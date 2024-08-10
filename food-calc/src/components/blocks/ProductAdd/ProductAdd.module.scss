@@ -1,0 +1,123 @@
+.productAdd {
+    padding: 20px 35px;
+    -webkit-box-shadow: 0px 0px 28px -13px rgba(0, 0, 0, 0.15);
+    -moz-box-shadow: 0px 0px 28px -13px rgba(0, 0, 0, 0.15);
+    box-shadow: 0px 0px 28px -12px rgba(0, 0, 0, 0.15);
+
+    .title {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+
+        font-size: 2.5rem;
+        font-weight: 600;
+        text-align: right;
+        flex-grow: 1;
+        color: #747474;
+        line-height: 0.9;
+
+        &NotImportant {
+            font-size: 1.8rem;
+            margin-right: 45px;
+            font-weight: 400;
+            font-style: italic;
+
+        }
+    }
+
+    .describe {
+        display: flex;
+        padding: 30px 0 10px;
+        gap: 15px;
+
+        &Naming {
+            font-size: 0.7rem;
+            font-style: italic;
+            padding-left: 5px;
+        }
+
+        &Inputs {
+            padding-top: 20px;
+        }
+
+        .describeContainer {
+            margin-top: 10px;
+        }
+
+        label {
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+            gap: 4px;
+        }
+
+        input:placeholder-shown {
+            font-style: italic;
+        }
+
+        textarea {
+            width: 300px;
+        }
+    }
+
+    .addButton {
+        border: 1px solid #00000056;
+        padding: 7px 50px 7px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.9rem;
+
+
+        &:hover {
+            background: #ebebeb56;
+        }
+    }
+
+    .actions {
+        display: flex;
+        padding: 45px 0 5px;
+        align-items: center;
+        justify-content: center;
+    }
+
+}
+
+.nutrient {
+    display: flex;
+    align-items: end;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px 2px 8px 12px;
+    gap: 5px;
+    border-radius: 10px;
+    -webkit-box-shadow: 0px 0px 14px -10px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0px 0px 14px -10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 0px 14px -10px rgba(0, 0, 0, 0.2);
+    font-size: 0.8rem;
+    // width: 300px;
+
+    label {
+        display: flex;
+        flex-direction: column;
+        width: 150px;
+        gap: 5px;
+    }
+
+    input{
+        width: 50px;
+    }
+
+    .unit {
+        font-size: 0.6rem;
+        color: rgba(0, 0, 0, 0.75);
+        margin-left: 3px;
+    }
+}
+
+.nutrientList {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 5px;
+    max-width: 700px;
+}
