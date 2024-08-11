@@ -1,5 +1,6 @@
+import { MenuProduct } from "menu_product/entities/menu_product.entity";
 import { Product } from "products/entities/product.entity";
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "users/entities/user.entity";
 
 @Entity()
@@ -13,16 +14,11 @@ export class Menu {
     @Column({ length: 1000, nullable: true, default: '' })
     description: string;
 
-
-    // @Column({ type: 'int' })
-    // quantity: number;
-
     @ManyToOne(() => User)
     user: User
 
-    // @ManyToMany(() => Product)
-    // products: Product[]
-
+    @OneToMany(() => MenuProduct, menuProduct => menuProduct.menu)
+    menuToProducts: MenuProduct[];
 }
 
 

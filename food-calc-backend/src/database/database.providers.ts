@@ -1,4 +1,5 @@
 
+import { MenuProduct } from 'menu_product/entities/menu_product.entity';
 import { Menu } from 'menus/entities/menu.entity';
 import { Nutrient } from 'nutrients/entities/nutrient.entity';
 import { Product } from 'products/entities/product.entity';
@@ -17,7 +18,7 @@ export const databaseProviders = [
         username: 'yakov',
         password: '0912',
         database: 'postgres',
-        entities: [User, Nutrient, Product, Menu, ProductsNutrient],
+        entities: [User, Nutrient, Product, Menu, MenuProduct, ProductsNutrient],
         synchronize: true,
       });
       return dataSource.initialize();

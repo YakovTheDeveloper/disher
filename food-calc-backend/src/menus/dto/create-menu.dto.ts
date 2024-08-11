@@ -1,7 +1,18 @@
 import { IsNotEmpty, Length, ValidateNested } from "class-validator";
-import { TransformPlainToInstance, Type } from "class-transformer";
+import { Transform, TransformPlainToInstance, Type } from "class-transformer";
 import { Product } from "products/entities/product.entity";
 import { User } from "users/entities/user.entity";
+import { IsNumberRecord } from "validators/isMappingNumberToNumber";
+import { IdToQuantity } from "common/types";
+
+// class ProductQuantity {
+//     @ValidateNested()
+//     @Type(() => Product)
+//     product: Product;
+
+//     @IsNotEmpty()
+//     quantity: number;
+// }
 
 export class CreateMenuDto {
 
@@ -15,9 +26,7 @@ export class CreateMenuDto {
     @Length(2, 50)
     description: string
 
-    // @IsNotEmpty()
-    // @ValidateNested({ each: true })
-    // @Type(() => Product)
-    // products: Product[]
-
+    @IsNumberRecord()
+    @ValidateNested({ each: true })
+    products: IdToQuantity;
 }

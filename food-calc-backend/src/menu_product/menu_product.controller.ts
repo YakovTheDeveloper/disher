@@ -9,12 +9,13 @@ export class MenuProductController {
 
   @Post()
   create(@Body() createMenuProductDto: CreateMenuProductDto) {
-    return this.menuProductService.create(createMenuProductDto);
+    // return this.menuProductService.create(createMenuProductDto);
   }
 
   @Get()
   findAll() {
-    return this.menuProductService.findAll();
+    // return this.menuProductService.findAll();
+    return
   }
 
   @Get(':id')
@@ -24,11 +25,13 @@ export class MenuProductController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateMenuProductDto: UpdateMenuProductDto) {
-    return this.menuProductService.update(+id, updateMenuProductDto);
+    // return this.menuProductService.update(+id, updateMenuProductDto);
+    return
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.menuProductService.remove(+id);
+    // return this.menuProductService.remove(+id);
+    return
   }
 }
