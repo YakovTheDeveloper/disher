@@ -1,7 +1,7 @@
 import { MENU_PRODUCT_REPOSITORY, MENU_REPOSITORY } from "constants/provide";
 import { DataSource } from "typeorm";
 import { Menu } from "./menu.entity";
-import { MenuProduct } from "./menuProduct.entity";
+import { MenuProduct } from "./menuProduct/menuProduct.entity";
 
 export const menusProviders = [
     {

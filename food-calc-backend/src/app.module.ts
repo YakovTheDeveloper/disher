@@ -8,9 +8,10 @@ import { ProductsModule } from './products/products.module';
 import { UserProductsModule } from './user_products/user_products.module';
 import { ProductsNutrientsModule } from './products_nutrients/products_nutrients.module';
 import { MenusModule } from 'foodCollection/menu/menus.module';
+import { AuthModule } from 'resources/auth/auth.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), UsersModule, NutrientsModule, ProductsModule, MenusModule, UserProductsModule, ProductsNutrientsModule],
+  imports: [ConfigModule.forRoot(), UsersModule, NutrientsModule, ProductsModule, MenusModule, UserProductsModule, ProductsNutrientsModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })

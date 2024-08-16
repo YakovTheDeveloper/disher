@@ -1,12 +1,11 @@
-import { IsNotEmpty, IsString, MinLength } from "class-validator";
+import { PartialType } from "@nestjs/mapped-types";
+import { IsNotEmpty, MinLength, IsString } from "class-validator";
 import { PrimaryGeneratedColumn } from "typeorm";
 
 export class CreateUserDto {
-
     @PrimaryGeneratedColumn()
     id: number
 
-    @IsNotEmpty()
     @MinLength(1, { message: 'Password must be at least 1 characters long' })
     login: string;
 
@@ -17,4 +16,11 @@ export class CreateUserDto {
     @IsString()
     @MinLength(4)
     confirmPassword: string;
+}
+
+export class LoginUserDto {
+    login: string;
+
+    @IsString()
+    password: string;
 }

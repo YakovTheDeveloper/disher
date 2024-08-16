@@ -4,16 +4,16 @@ import { MENU_PRODUCT_REPOSITORY } from 'constants/provide';
 import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { Id, IdToItem, UpdateDelta } from 'common/types';
 import { isEmpty } from 'lib/utils/isEmpty';
-import { Menu } from 'menus/entities/menu.entity';
 import { Product } from 'products/entities/product.entity';
 import { isNotEmpty } from 'class-validator';
 import { CreateFoodCollectionProductDto } from './dto/create-foodCollection_product.dto';
 import { UpdateFoodCollectionProductDto } from './dto/update-foodCollection_product.dto';
 import { FoodCollectionProduct } from './entities/foodCollectionProduct.entity';
 import { FoodCollection } from './entities/foodCollection.entity';
-import { MenuProduct } from 'foodCollection/menu/menuProduct.entity';
+import { MenuProduct } from 'foodCollection/menu/menuProduct/menuProduct.entity';
 import { Dish } from 'foodCollection/dish/dish.entity';
 import { DishProduct } from 'foodCollection/dish/dishProduct.entity';
+import { Menu } from 'foodCollection/menu/menu.entity';
 
 type UpdateData = {
   delta: UpdateDelta,

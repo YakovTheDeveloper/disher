@@ -2,16 +2,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import { MENU_PRODUCT_REPOSITORY } from 'constants/provide';
 import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { Id, IdToItem, UpdateDelta } from 'common/types';
-import { isEmpty } from 'lib/utils/isEmpty';
-import { Menu } from 'menus/entities/menu.entity';
-import { Product } from 'products/entities/product.entity';
-import { isNotEmpty } from 'class-validator';
 import { FoodCollectionService } from 'foodCollection/common/foodCollection.service';
 import { FoodCollectionProduct } from 'foodCollection/common/entities/foodCollectionProduct.entity';
 import { FoodCollectionProductService } from 'foodCollection/common/foodCollection_product.service';
 import { CreateFoodCollectionProductDto } from 'foodCollection/common/dto/create-foodCollection_product.dto';
 import { UpdateFoodCollectionProductDto } from 'foodCollection/common/dto/update-foodCollection_product.dto';
 import { MenuProduct } from './menuProduct.entity';
+import { Menu } from '../menu.entity';
 
 type UpdateData = {
     delta: UpdateDelta,

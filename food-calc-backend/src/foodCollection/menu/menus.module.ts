@@ -10,11 +10,13 @@ import { MENU_REPOSITORY } from 'constants/provide';
 import { Repository } from 'typeorm';
 import { FoodCollectionService } from 'foodCollection/common/foodCollection.service';
 import { MenusService } from './menus.service';
-import { MenuProductService } from './menuProduct.service';
+import { MenuProductService } from './menuProduct/menuProduct.service';
+import { JwtStrategy } from 'resources/auth/jwt.strategy';
+import { AuthModule } from 'resources/auth/auth.module';
 
 @Module({
-  imports: [DatabaseModule, UsersModule],
+  imports: [DatabaseModule, UsersModule,AuthModule],
   controllers: [MenusController],
-  providers: [...menusProviders, UsersService, ...usersProviders, MenusService, MenuProductService],
+  providers: [...menusProviders, UsersService, ...usersProviders, JwtStrategy, MenusService, MenuProductService],
 })
 export class MenusModule { }

@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm"
-import { Menu } from "./menu.entity"
+import { Menu } from "../menu.entity"
 import { FoodCollectionProduct } from "foodCollection/common/entities/foodCollectionProduct.entity"
 import { Product } from "products/entities/product.entity"
 

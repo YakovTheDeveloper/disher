@@ -1,6 +1,6 @@
 
 import { DishProduct } from "foodCollection/dish/dishProduct.entity";
-import { MenuProduct } from "foodCollection/menu/menuProduct.entity";
+import { MenuProduct } from "foodCollection/menu/menuProduct/menuProduct.entity";
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 
 

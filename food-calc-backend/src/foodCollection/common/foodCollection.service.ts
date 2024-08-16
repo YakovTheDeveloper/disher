@@ -7,12 +7,13 @@ import { UsersService } from 'users/users.service';
 import { MenuProductService } from 'menu_product/menu_product.service';
 import { Product } from 'products/entities/product.entity';
 import { compareProducts, createProductIdToMenuProduct } from 'lib/update';
-import { Menu } from 'menus/entities/menu.entity';
 import { CreateFoodCollectionDto } from 'foodCollection/common/dto/create-foodCollection.dto';
 import { UpdateFoodCollectionDto } from 'foodCollection/common/dto/update-foodCollection.dto';
 import { FoodCollection } from './entities/foodCollection.entity';
 import { FoodCollectionProductService } from './foodCollection_product.service';
 import { CreateFoodCollectionProductDto } from './dto/create-foodCollection_product.dto';
+import { Menu } from 'foodCollection/menu/menu.entity';
+import { User } from 'users/entities/user.entity';
 
 @Injectable()
 export class FoodCollectionService {
@@ -23,12 +24,16 @@ export class FoodCollectionService {
         private foodCollectionProductService: FoodCollectionProductService,
     ) { }
 
-    async create(createMenuDto: CreateFoodCollectionDto) {
-
-
+    async create(createMenuDto: CreateFoodCollectionDto, userId: number) {
         const { products } = createMenuDto
 
-        const menu = this.repository.create(createMenuDto)
+        const user = new User()
+        user.id = userId
+
+        const menu = this.repository.create({
+            ...createMenuDto,
+            user
+        })
 
         const productsToAdd: CreateFoodCollectionProductDto[] = []
 
@@ -59,7 +64,7 @@ export class FoodCollectionService {
         return `This action returns a #${id} menu`;
     }
 
-    async update(menuId: number, { products: updatedProducts, description, name, user }: UpdateFoodCollectionDto) {
+    async update(menuId: number, { products: updatedProducts, description, name }: UpdateFoodCollectionDto) {
         if (description || name) {
             const menu = new Menu()
             menu.id = menuId
@@ -67,17 +72,17 @@ export class FoodCollectionService {
             name && (menu.name = name)
             await this.repository.save(menu)
         }
-        
+
         if (!updatedProducts) {
             return 'Done'
         }
-        
+
         const menus = await this.foodCollectionProductService.findProductWithQuantityByMenuId(menuId)
-        
+
         const { initialMenuProducts, productToQuantity } = createProductIdToMenuProduct(menus)
-        
+
         const delta = compareProducts(productToQuantity, updatedProducts)
-        
+
         const result = await this.foodCollectionProductService.updateWithDelta({ delta, menuId, initialMenuProducts })
         return result
     }

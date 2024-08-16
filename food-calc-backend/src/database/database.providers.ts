@@ -3,7 +3,7 @@
 import { Dish } from 'foodCollection/dish/dish.entity';
 import { DishProduct } from 'foodCollection/dish/dishProduct.entity';
 import { Menu } from 'foodCollection/menu/menu.entity';
-import { MenuProduct } from 'foodCollection/menu/menuProduct.entity';
+import { MenuProduct } from 'foodCollection/menu/menuProduct/menuProduct.entity';
 import { Nutrient } from 'nutrients/entities/nutrient.entity';
 import { Product } from 'products/entities/product.entity';
 

@@ -6,9 +6,9 @@ import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { MenuProduct } from './entities/menu_product.entity';
 import { Id, IdToItem, UpdateDelta } from 'common/types';
 import { isEmpty } from 'lib/utils/isEmpty';
-import { Menu } from 'menus/entities/menu.entity';
 import { Product } from 'products/entities/product.entity';
 import { isNotEmpty } from 'class-validator';
+import { Menu } from 'foodCollection/menu/menu.entity';
 
 type UpdateData = {
   delta: UpdateDelta,
