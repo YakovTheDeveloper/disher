@@ -58,19 +58,33 @@ export class MenusService {
     return `This action returns a #${id} menu`;
   }
 
-  async update(menuId: number, updateMenuDto: UpdateMenuDto) {
+  async update(menuId: number, { products: updatedProducts, description, name, user }: UpdateMenuDto) {
+    if (description || name) {
+      const menu = new Menu()
+      menu.id = menuId
+      description && (menu.description = description)
+      name && (menu.name = name)
+      await this.menusRepository.save(menu)
+    }
+
+    if (!updatedProducts) {
+      return 'Done'
+    }
+
     const menus = await this.menuProductService.findProductWithQuantityByMenuId(menuId)
 
     const { initialMenuProducts, productToQuantity } = createProductIdToMenuProduct(menus)
 
-    const updated = updateMenuDto.products
-    const delta = compareProducts(productToQuantity, updated)
+    const delta = compareProducts(productToQuantity, updatedProducts)
 
     const result = await this.menuProductService.updateWithDelta({ delta, menuId, initialMenuProducts })
     return 'Done'
   }
 
   remove(id: number) {
+    const menu = new Menu()
+    menu.id = id
+    this.menusRepository.remove(menu)
     return `This action removes a #${id} menu`;
   }
 }

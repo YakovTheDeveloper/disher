@@ -12,3 +12,5 @@ export type UpdateDelta = {
     productsUpdated: IdToQuantity;
     productsRemoved: IdToItem<boolean>;
 }
+
+export type MenuCategory = 'menu' | 'dish'

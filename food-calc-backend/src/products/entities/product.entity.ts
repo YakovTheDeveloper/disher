@@ -1,4 +1,6 @@
-import { MenuProduct } from "menu_product/entities/menu_product.entity";
+
+import { DishProduct } from "foodCollection/dish/dishProduct.entity";
+import { MenuProduct } from "foodCollection/menu/menuProduct.entity";
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 
 
@@ -20,5 +22,11 @@ export class Product {
     descriptionRu: string;
 
     @OneToMany(() => MenuProduct, menuProduct => menuProduct.product)
-    public menuToProducts: MenuProduct[];
+    menuToProducts: MenuProduct[];
+
+    @OneToMany(() => DishProduct, dishProduct => dishProduct.product)
+    dishToProducts: DishProduct[];
+
+    // @OneToMany(() => MenuProduct, menuProduct => menuProduct.product)
+    // public menuToProducts: MenuProduct[];
 }

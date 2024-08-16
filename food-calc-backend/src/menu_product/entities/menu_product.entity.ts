@@ -1,4 +1,5 @@
-import { Menu } from "menus/entities/menu.entity";
+
+// import { Menu } from "foodCollection/common/entities/menu.entity";
 import { Product } from "products/entities/product.entity";
 import { Column, Entity, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
@@ -14,6 +15,7 @@ export class MenuProduct {
     @ManyToOne(() => Product, product => product.menuToProducts)
     product: Product
 
-    @ManyToOne(() => Menu, menu => menu.menuToProducts)
-    menu: Menu
+    // @ManyToOne(() => Menu, menu => menu.menuToProducts, { onDelete: 'CASCADE' })
+    // menu: Menu
 }
+

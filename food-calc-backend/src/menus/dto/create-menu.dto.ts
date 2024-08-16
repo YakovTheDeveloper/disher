@@ -1,23 +1,29 @@
-import { IsNotEmpty, Length, ValidateNested } from "class-validator";
+import { IsNotEmpty, Length, Validate, ValidateNested, ValidationArguments, ValidatorConstraint, ValidatorConstraintInterface } from "class-validator";
 import { Transform, TransformPlainToInstance, Type } from "class-transformer";
 import { Product } from "products/entities/product.entity";
 import { User } from "users/entities/user.entity";
 import { IsNumberRecord } from "validators/isMappingNumberToNumber";
-import { IdToQuantity } from "common/types";
+import { IdToQuantity, MenuCategory } from "common/types";
 
-// class ProductQuantity {
-//     @ValidateNested()
-//     @Type(() => Product)
-//     product: Product;
+@ValidatorConstraint({ name: 'string-or-number', async: false })
+export class IsMenuCategory implements ValidatorConstraintInterface {
+    validate(text: string, args: ValidationArguments) {
+        return text === 'menu' || text === 'dish';
+    }
 
-//     @IsNotEmpty()
-//     quantity: number;
-// }
+    defaultMessage(args: ValidationArguments) {
+        return 'category is ($value), but must be "menu" or "dish"';
+    }
+}
 
 export class CreateMenuDto {
 
     @IsNotEmpty()
     user: User
+
+    @IsNotEmpty()
+    @Validate(IsMenuCategory)
+    category: MenuCategory
 
     @IsNotEmpty()
     @Length(2, 50)

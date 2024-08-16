@@ -61,57 +61,57 @@ export class MenuProductService implements IMenuProductService {
   }
 
   async updateWithDelta({ delta, menuId, initialMenuProducts }: UpdateData) {
-    const { productsCreated, productsRemoved, productsUpdated } = delta
+    // const { productsCreated, productsRemoved, productsUpdated } = delta
 
-    const menuToUpdate: Menu = new Menu()
-    menuToUpdate.id = menuId
+    // const menuToUpdate: Menu = new Menu()
+    // menuToUpdate.id = menuId
 
-    const toRemove: MenuProduct[] = []
-    const toUpdate: MenuProduct[] = []
-    const toAddOrUpdate = { ...productsCreated, ...productsUpdated }
+    // const toRemove: MenuProduct[] = []
+    // const toUpdate: MenuProduct[] = []
+    // const toAddOrUpdate = { ...productsCreated, ...productsUpdated }
 
-    for (const productId in toAddOrUpdate) {
-      const quantity = toAddOrUpdate[productId]
-      const menuProduct = new MenuProduct()
-      const product = new Product()
-      product.id = +productId
+    // for (const productId in toAddOrUpdate) {
+    //   const quantity = toAddOrUpdate[productId]
+    //   const menuProduct = new MenuProduct()
+    //   const product = new Product()
+    //   product.id = +productId
 
-      menuProduct.quantity = quantity
-      menuProduct.menu = menuToUpdate
-      menuProduct.product = product
+    //   menuProduct.quantity = quantity
+    //   menuProduct.menu = menuToUpdate
+    //   menuProduct.product = product
 
-      const existedMenuProduct = initialMenuProducts[productId]
-      if (existedMenuProduct) {
-        menuProduct.id = existedMenuProduct.menuProductId
-      }
+    //   const existedMenuProduct = initialMenuProducts[productId]
+    //   if (existedMenuProduct) {
+    //     menuProduct.id = existedMenuProduct.menuProductId
+    //   }
 
-      toUpdate.push(menuProduct)
-    }
+    //   toUpdate.push(menuProduct)
+    // }
 
-    for (const productId in productsRemoved) {
-      const menuProduct = new MenuProduct()
-      const existedMenuProduct = initialMenuProducts[productId]
-      if (existedMenuProduct) {
-        menuProduct.id = existedMenuProduct.menuProductId
-      }
-      toRemove.push(menuProduct)
-    }
+    // for (const productId in productsRemoved) {
+    //   const menuProduct = new MenuProduct()
+    //   const existedMenuProduct = initialMenuProducts[productId]
+    //   if (existedMenuProduct) {
+    //     menuProduct.id = existedMenuProduct.menuProductId
+    //   }
+    //   toRemove.push(menuProduct)
+    // }
 
-    const queryRunner = this.menuProductRepository.dataSource.createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction();
-    const menuToAdd = new Menu()
-    menuToAdd.id = menuId
+    // const queryRunner = this.menuProductRepository.dataSource.createQueryRunner()
+    // await queryRunner.connect()
+    // await queryRunner.startTransaction();
+    // const menuToAdd = new Menu()
+    // menuToAdd.id = menuId
 
-    try {
-      if (isNotEmpty(toRemove)) await queryRunner.manager.remove(toRemove);
-      if (isNotEmpty(toUpdate)) await queryRunner.manager.save(toUpdate);
-      await queryRunner.commitTransaction();
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-    } finally {
-      await queryRunner.release();
-    }
+    // try {
+    //   if (isNotEmpty(toRemove)) await queryRunner.manager.remove(toRemove);
+    //   if (isNotEmpty(toUpdate)) await queryRunner.manager.save(toUpdate);
+    //   await queryRunner.commitTransaction();
+    // } catch (err) {
+    //   await queryRunner.rollbackTransaction();
+    // } finally {
+    //   await queryRunner.release();
+    // }
   }
 
   remove(ids: number[]) {
