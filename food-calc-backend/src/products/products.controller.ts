@@ -1,11 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { ProductsService } from './products.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductsService } from './products.service';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService) { }
 
   @Post()
   create(@Body() createProductDto: CreateProductDto) {
@@ -13,13 +23,24 @@ export class ProductsController {
   }
 
   @Get()
-  findAll() {
+  findAll(@Query() query) {
     return this.productsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(+id);
+  // @Get(':id')
+  // findOne(@Param('id') id: string, @Query() query) {
+  //   if (query?.with_nutrients != null) {
+  //     return this.productsService.findOneWithNutrients(+id);
+  //   }
+  //   return this.productsService.findOne(+id);
+  // }
+
+  @Get('nutrients')
+  findProductNutrients(@Query() query: { ids: string }) {
+    if (!query?.ids) {
+      return
+    }
+    return this.productsService.findProductNutrients(query.ids);
   }
 
   @Patch(':id')

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import SearchProductList from './SearchProductList/SearchProductList'
+import { observer } from 'mobx-react-lite'
 
 
 
@@ -21,4 +22,4 @@ const SearchProduct = () => {
     )
 }
 
-export default SearchProduct
+export default observer(SearchProduct)

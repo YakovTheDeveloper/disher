@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { observer } from "mobx-react-lite"
 import { Menus } from '../../../store/rootStore'
 import { Tabs, TabList, Tab, TabIndicator, TabPanels, TabPanel } from '@chakra-ui/react'
+import { GetProducts } from 'types/api/product'
 
 function MenuChoose() {
     const [tabIndex, setTabIndex] = useState(0)
@@ -23,7 +24,6 @@ function MenuChoose() {
         const currentIdx = Menus.menus.findIndex(menu => menu.id === Menus.currentMenuId)
         setTabIndex(currentIdx)
     }, [Menus.currentMenuId])
-
 
     return (
         <nav>

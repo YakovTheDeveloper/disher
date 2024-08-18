@@ -5,5 +5,7 @@ import { ProductStore } from "./productStore/productStore";
 
 
 export const Menus = new MenuStore()
-export const productStore = new ProductStore()
+
 export const calculationStore = new CalculationStore()
+
+export const productStore = new ProductStore()

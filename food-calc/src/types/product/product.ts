@@ -1,4 +1,4 @@
-type Id = string
+import { Id, IdMap, Value } from "@/types/common/common"
 
 export type IProduct = {
     id: string
@@ -12,5 +12,19 @@ export type IProduct = {
     }
 }
 
+export type ProductBase = {
+    id: number,
+    name: string,
+    nameRu: string
+}
+
+export type ProductFull = {
+    id: number,
+    name: string,
+    nameRu: string
+}
 
 export type IProducts = Record<Id, IProduct>
+
+export type NutrientIdToQuantityMap = IdMap<Value>
+export type ProductIdToNutrientsMap = IdMap<NutrientIdToQuantityMap>

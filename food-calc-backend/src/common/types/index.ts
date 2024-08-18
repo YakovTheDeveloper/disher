@@ -14,3 +14,8 @@ export type UpdateDelta = {
 }
 
 export type MenuCategory = 'menu' | 'dish'
+
+
+type IdMap<T> = Record<Id, T>
+type IdToNutrientValueMap = IdMap<Value>
+export type ProductIdToNutrientsMap = IdMap<IdToNutrientValueMap>
