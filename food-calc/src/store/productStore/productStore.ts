@@ -17,6 +17,11 @@ export class ProductStore implements IProductStore {
         this.productsBase = products
     }
 
+
+
+
+
+
     productToNutrients: ProductIdToNutrientsMap = {}
 
     setProductNutrientData = (data: ProductIdToNutrientsMap) => {

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Menus, productStore, rootStore } from '@store/rootStore'
+import { rootMenuStore, productStore, rootStore } from '@store/rootStore'
 import { IProductBase } from '../../../../types/menu/Menu'
 import { fromHash, generateHash } from '../../../../lib/hash/hash'
 import { observer } from 'mobx-react-lite'
@@ -29,7 +29,7 @@ const SearchProductList = ({ searchValue }) => {
     })
     console.log("found", found)
     function onAdd(product: IProductBase) {
-        Menus.addTo({
+        rootMenuStore.currentMenu?.addTo({
             ...product,
             quantity: 0
         })

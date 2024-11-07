@@ -1,0 +1,12 @@
+.modal {
+    margin: auto;
+    border-radius: 10px;
+}
+
+.modal::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.inner{
+    padding: 20px;
+}

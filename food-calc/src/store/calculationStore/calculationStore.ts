@@ -1,7 +1,12 @@
-import { makeAutoObservable } from "mobx"
+import { action, autorun, makeAutoObservable, toJS } from "mobx"
 import { IMenu, IProductBase } from "../../types/menu/Menu"
 import { v4 as uuidv4 } from 'uuid';
 import { IProduct, NutrientIdToQuantityMap } from "../../types/product/product";
+import { nutrientStore, productStore } from "@/store/rootStore";
+import { getMenuProductIds } from "@/domain/menu";
+import { isEmpty } from "@/lib/empty";
+import { fetchGetProductWithNutrients } from "@/api/product";
+import { MenuStore } from "@/store/rootMenuStore/menuStore/menuStore";
 type Id = string
 type ICalculationStore = {
     productsContent: Record<Id, IProduct['content']>
@@ -14,28 +19,79 @@ export class CalculationStore implements ICalculationStore {
 
     }
 
-    totalNutrients: NutrientIdToQuantityMap = {
-        1: 0,
-        2: 0
+    nutrientStore = nutrientStore
+    productStore = productStore
+
+    totalNutrients: NutrientIdToQuantityMap = {}
+
+
+    calculateNutrients = (products: IProductBase[]): NutrientIdToQuantityMap => {
+        const totalNutrients: NutrientIdToQuantityMap = {};
+
+        products.forEach(product => {
+
+
+
+            const productNutrients = this.productStore.getProductNutrients(+product.id)
+            if (!productNutrients) return
+            
+            for (const nutrientId in productNutrients) {
+                const nutrientValue = productNutrients[nutrientId]
+                console.log('nutrientValue',nutrientValue)
+                if (totalNutrients[nutrientId]) {
+                    totalNutrients[nutrientId] += product.quantity * nutrientValue / 100;
+                } else {
+                    totalNutrients[nutrientId] = product.quantity * nutrientValue / 100;
+                }
+            }
+
+
+
+
+        });
+
+        return totalNutrients;
+    };
+
+    resetNutrients = () => this.totalNutrients = {}
+
+    setNutrients = (products: IProductBase[]) => {
+        // this.totalNutrients =
     }
 
-    // addCalculatedProductContent = (id: string, content: IProduct['content']) => {
-    //     this.productsContent[id] = content
-    // }
+    fetchMissedProductNutrients(menu: IMenu) {
 
-    calculateNutrients = (nutrients: NutrientIdToQuantityMap) => {
-        console.log("WWW",nutrients)
-        for (const id in nutrients) {
-            const quantity = nutrients[id]
-            const fixed = Number.parseFloat((this.totalNutrients[id] += quantity).toFixed(2))
-            this.totalNutrients[id] = fixed
-        }
+        const { setProductNutrientData, getMissingProductIds } = productStore
 
-        this.totalNutrients
+        const productIdsInMenu = getMenuProductIds(menu)
+        const missingProducts = getMissingProductIds(productIdsInMenu)
+
+        console.log('productIdsInMenu', productIdsInMenu)
+        console.log('missingProducts', missingProducts)
+
+        if (isEmpty(missingProducts)) return
+
+        fetchGetProductWithNutrients(missingProducts).then(
+            action("fetchSuccess", res => {
+                res && setProductNutrientData(res)
+
+                // add to totalNutrients
+            }),
+            action("fetchError", error => {
+            })
+        )
     }
 
-    constructor() {
+    menuStore: MenuStore;
+
+    constructor(menuStore: MenuStore) {
+        this.menuStore = menuStore
         makeAutoObservable(this)
+
+        autorun(() => {
+            const calculated = this.calculateNutrients(menuStore.products)
+            console.log("wtf__", toJS(calculated))
+        })
     }
 
 }

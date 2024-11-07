@@ -22,14 +22,24 @@ export class FoodCollectionController {
         return menu
     }
 
+    @UseGuards(LocalAuthGuard)
     @Get()
-    findAll() {
-        return this.service.findAll();
+    findAll(@Req() request: Request) {
+        const userId = request.user?.id
+        if (userId == null) {
+            throw new BadRequestException('No such user id');
+        }
+        return this.service.findAll(userId);
     }
 
+    @UseGuards(LocalAuthGuard)
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.service.findOne(+id);
+    findOne(@Param('id') id: string, @Req() request: Request) {
+        const userId = request.user?.id
+        if (userId == null) {
+            throw new BadRequestException('No such user id');
+        }
+        return this.service.findOne(+id, userId);
     }
 
     @Patch(':id')

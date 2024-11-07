@@ -37,6 +37,7 @@ export class AuthService {
             const { password, ...jwtPayload } = createdUser
 
             return {
+                login: createdUser.login,
                 access_token: this.jwtService.sign({
                     ...jwtPayload
                 }),
@@ -58,6 +59,7 @@ export class AuthService {
         const { password, ...jwtPayload } = existedUser
 
         return {
+            login: existedUser.login,
             access_token: this.jwtService.sign(jwtPayload),
         };
     }

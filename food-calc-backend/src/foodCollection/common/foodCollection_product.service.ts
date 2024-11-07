@@ -60,6 +60,33 @@ export class FoodCollectionProductService implements IMenuProductService {
       .getRawMany();
   }
 
+  async findProducts(menuId: number): Promise<MenuProductData[]> {
+    return this.source.repository
+      .createQueryBuilder('menuProduct')
+      .leftJoin('menuProduct.product', 'product')
+      .leftJoin('product.productNutrients', 'productNutrients')
+      .select([
+        'productNutrients.quantity AS "nutrientQuantity"',
+        'productNutrients.nutrientId AS "nutrientId"',
+        'product.name AS "name"',
+        'menuProduct.quantity AS "quantity"',
+        'product.id AS "id"'
+      ])
+      .where('menuProduct.menuId = :menuId', { menuId })
+      .getRawMany();
+  }
+
+
+  // async findAllProducts(userId: number): Promise<MenuProductData[]> {
+  //   return this.source.repository
+  //     .createQueryBuilder('menu')
+  //     .leftJoinAndSelect('menu.menuToProducts', 'menuProduct') // Join menuProducts
+  //     .leftJoinAndSelect('menuProduct.product', 'product') // Join products related to menuProducts
+  //     .where('menu.userId = :userId', { userId }) // Filter by userId
+  //     .getMany();
+  // }
+
+
   findOne(id: number) {
     return `This action returns a #${id} menuProduct`;
   }

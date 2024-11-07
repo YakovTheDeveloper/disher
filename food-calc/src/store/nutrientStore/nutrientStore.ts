@@ -9,11 +9,11 @@ type INutrientStore = {
 
 export class NutrientStore implements INutrientStore {
 
-    nutrinets: Record<Id, INutrient> = nutrientsMap
+    nutrients: Record<Id, INutrient> = nutrientsMap
     currentMenuId = ''
 
     getNutrient = (id: number) => {
-        this.nutrinets[id]
+        this.nutrients[id]
     }
 }
 

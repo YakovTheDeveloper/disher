@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { IMenu, IProductBase } from '../../../types/menu/Menu'
 import { IProduct } from '../../../types/product/product'
 import { observer } from 'mobx-react'
-import { calculationStore, Menus } from '../../../store/rootStore'
+import { rootMenuStore } from '../../../store/rootStore'
+import { toJS } from 'mobx'
 
 // const calc = (products: IProductBase[]) => {
 
@@ -20,18 +21,28 @@ import { calculationStore, Menus } from '../../../store/rootStore'
 // }
 
 function NutrientsTotal() {
-    const { currentMenu } = Menus
-    const { totalNutrients } = calculationStore
+    const { currentMenu, currentMenuId } = rootMenuStore
+
+    const total = currentMenu?.calculations.totalNutrients
+
+    useEffect(() => {
 
 
+        return () => {
+            currentMenu.calculations.resetNutrients()
+        }
+
+
+    }, [currentMenuId])
 
 
     return (
-        <div>
+        <div key={currentMenuId}>
             Total:
-            {JSON.stringify(totalNutrients)}
+            {JSON.stringify(total)}
         </div>
     )
 }
+
 
 export default observer(NutrientsTotal)

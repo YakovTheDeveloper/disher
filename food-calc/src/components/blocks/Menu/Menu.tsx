@@ -1,52 +1,71 @@
 import React, { useEffect } from 'react'
 import MenuItem from './MenuItem/MenuItem'
 import { observer } from "mobx-react-lite"
-import { Menus, productStore } from '../../../store/rootStore'
+import {  rootMenuStore, productStore } from '../../../store/rootStore'
 import { IMenu } from '../../../types/Menu/Menu'
 import { fetchGetProductWithNutrients } from '@/api/product'
-import { toJS } from 'mobx';
+import { action, toJS } from 'mobx';
 import { getMenuProductIds } from '@/domain/menu'
 import { isEmpty } from '@/lib/empty'
+import NutrientsTotal from '@/components/blocks/NutrientsTotal/NutrientsTotal'
 
 type Props = {
     menu: IMenu
 }
 
+function fetchMissedProductNutrients(menu: IMenu) {
 
-const useMenu = (menu: IMenu) => {
     const { setProductNutrientData, getMissingProductIds } = productStore
 
     const productIdsInMenu = getMenuProductIds(menu)
     const missingProducts = getMissingProductIds(productIdsInMenu)
 
+    console.log('productIdsInMenu', productIdsInMenu)
     console.log('missingProducts', missingProducts)
 
-    useEffect(() => {
-        if (isEmpty(missingProducts)) return
-        fetchGetProductWithNutrients(missingProducts).then(res => {
+    if (isEmpty(missingProducts)) return
+
+    fetchGetProductWithNutrients(missingProducts).then(
+        action("fetchSuccess", res => {
             res && setProductNutrientData(res)
+
+            // add to totalNutrients
+        }),
+        action("fetchError", error => {
         })
-    }, [menu])
+    )
 }
 
-function Menu({ menu }: Props) {
 
 
+function Menu() {
+    const { currentMenu, saveNew, currentMenuId } = rootMenuStore
+    const menu = currentMenu
 
 
-    useMenu(menu)
     useEffect(() => {
-        console.log('productStore.productToNutrients', toJS(productStore.productToNutrients))
-    }, [productStore.productToNutrients])
+        console.log(menu?.menu)
+    }, [menu?.menu?.products])
+
+    useEffect(() => {
+        fetchMissedProductNutrients(currentMenu?.menu)
+    }, [currentMenu, currentMenu?.menu?.products.length])
+
+    const onSave = () => {
+        saveNew(menu.createMenuPayload)
+    }
+
+    const onUpdate = () => {
+
+    }
 
 
-
-    const { products, description, name, id } = menu
 
     return (
-        <section>
-            <h2>{id}</h2>
-            <div>{products.map(product => <MenuItem key={product.id} menuId={id} product={product} />)}</div>
+        <section key={currentMenuId}>
+            <h2>Add products</h2>
+            <div>{menu?.menu?.products.map(product => <MenuItem key={product.id} product={product} setProductQuantity={menu?.setProductQuantity} calculations={menu?.calculations} />)}</div>
+            <button onClick={onSave}>Сохранить</button>
         </section>
     )
 }

@@ -7,13 +7,10 @@ import { IsNumberRecord } from "validators/isMappingNumberToNumber";
 
 export class CreateFoodCollectionDto {
     @IsNotEmpty()
-    category: MenuCategory
-
-    @IsNotEmpty()
     @Length(2, 50)
     name: string
 
-    @Length(2, 50)
+    @Length(0, 50)
     description: string
 
     @IsNumberRecord()

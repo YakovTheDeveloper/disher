@@ -50,18 +50,52 @@ export class FoodCollectionService {
             productsToAdd.push(menuProduct)
         }
 
-        await this.repository.save(menu)
+        const createdMenu = await this.repository.save(menu)
         await this.foodCollectionProductService.create(productsToAdd)
 
-        return products
+        const { user: menuUser, ...result } = createdMenu
+
+        return result
     }
 
-    findAll() {
-        return `This action returns all menus`;
+    async findAll(userId: number) {
+        const menus = await this.repository.find({
+            where: { user: { id: userId } }
+        });
+        // const query = await this.repository
+        //     .createQueryBuilder('menu')
+        //     .leftJoinAndSelect('menu.menuToProducts', 'menuProduct') // Join menuProducts
+        //     .leftJoinAndSelect('menuProduct.product', 'product') // Join products related to menuProducts
+        //     .where('menu.userId = :userId', { userId }) // Filter by userId
+        //     .getMany();
+
+        // const result = await this.foodCollectionProductService.findAllProducts(userId)
+        return menus
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} menu`;
+    async findOne(id: number, userId: number) {
+        const productsWithNutrients = await this.foodCollectionProductService.findProducts(id) as any
+        const result = Object.values(productsWithNutrients.reduce((acc, item) => {
+            const { id, name, quantity, nutrientId, nutrientQuantity } = item;
+
+            if (!acc[id]) {
+                acc[id] = {
+                    name,
+                    quantity,
+                    id,
+                    nutrients: {}
+                };
+            }
+
+            acc[id].nutrients[nutrientId] = nutrientQuantity;
+
+            return acc;
+        }, {}));
+
+        return {
+            data: result,
+            error: null
+        }
     }
 
     async update(menuId: number, { products: updatedProducts, description, name }: UpdateFoodCollectionDto) {

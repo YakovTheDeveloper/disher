@@ -1,0 +1,21 @@
+.tab {
+    border-radius: var(--brad-tab);
+    border: 1px solid #dadada;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: rgb(248, 255, 255);
+        border-color: greenyellow;
+    }
+}
+
+.active {
+    background-color: beige;
+    color: white;
+
+    &:hover {
+        background-color: beige;
+    }
+}

@@ -1,13 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { calculationStore, Menus, productStore } from '../../../../store/rootStore'
+import { calculationStore, rootMenuStore, productStore } from '../../../../store/rootStore'
 import { IProductBase } from '../../../../types/menu/Menu'
 import { IProduct, NutrientIdToQuantityMap } from '../../../../types/product/product'
 import { observer } from 'mobx-react'
+import { CalculationStore } from '@/store/calculationStore/calculationStore'
+import { toJS } from 'mobx'
 
-type Props = {
-  product: IProductBase
-  menuId: string
-}
+
 
 // const getNewCalculatedContent = (delta: number, content: IProduct['content']): IProduct['content'] => {
 //   const newContent = JSON.parse(JSON.stringify(content))
@@ -38,40 +37,48 @@ const getNewCalculatedContent = (delta: number, baseProductNutrients: NutrientId
 
 }
 
-function MenuItem({ menuId, product }: Props) {
 
-  const { changeMenuProductQuantity, menus } = Menus
-  const { productToNutrients } = productStore
-  const { calculateNutrients } = calculationStore
+type Props = {
+  product: IProductBase
+  menuId: string
+  calculations: CalculationStore
+}
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // console.log('last value: ', product.quantity)
-    const quantity = Number(e.target.value)
-    // console.log('new value: ', quantity)
-    changeMenuProductQuantity(menuId, product.id, quantity)
+function MenuItem({ product, setProductQuantity, calculations }: Props) {
 
-  }
 
   const productNutrients = productStore.getProductNutrients(+product.id)
 
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const quantity = Number(e.target.value)
+    setProductQuantity(product.id, quantity)
+  }
 
-  const last = useRef(product.quantity)
+
+  // const firstRender = useRef(true)
 
   useEffect(() => {
-    const delta = product.quantity - last.current
-    console.log(delta)
-
-    const calculated = getNewCalculatedContent(delta, productNutrients)
-
-    calculateNutrients(calculated)
-    last.current = product.quantity
+    console.log(product.quantity)
   }, [product.quantity])
 
-  console.log('productNutrients', productNutrients)
 
-  if (!productNutrients) {
-    return <div>loading...</div>
-  }
+
+
+  useEffect(() => {
+    // calculations.calculateNutrients()
+  }, [product.quantity])
+
+  // useEffect(() => {
+  //   console.log('RENDER []')
+  //   firstRender.current = false
+  // }, [])
+
+
+  // if (!productNutrients) {
+  //   return <div>loading...</div>
+  // }
+
+  console.log("product", toJS(product))
 
   return (
     <div>

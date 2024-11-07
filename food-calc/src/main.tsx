@@ -2,19 +2,36 @@ import React from 'react'
 import * as ReactDOM from "react-dom/client";
 import App from './App.tsx'
 import './index.css'
-import { ChakraProvider } from '@chakra-ui/react'
 
 import {
   createBrowserRouter,
+  Outlet,
   RouterProvider,
 } from "react-router-dom";
 import "./index.css";
 import ProductAdd from './components/blocks/ProductAdd/ProductAdd.tsx';
+import ModalRoot from '@/ModalRoot.tsx';
+import Header from '@/components/common/Header/Header.tsx';
+
+const Root = () => {
+  return (
+    <>
+      <Header />
+      <ModalRoot />
+      <Outlet />
+
+    </>
+  )
+}
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <Root />,
+    children: [{
+      path: "",
+      element: <App />
+    }]
   },
   {
     path: "/add_product",
@@ -23,7 +40,5 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <ChakraProvider>
-    <RouterProvider router={router} />
-  </ChakraProvider>
+  <RouterProvider router={router} />
 )

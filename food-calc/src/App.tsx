@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 // import Menu from './components/blocks/Menu/Menu'
-import { Menus, productStore } from './store/rootStore'
+import { rootMenuStore, productStore } from './store/rootStore'
 import { observer } from "mobx-react-lite"
 import MenuChoose from './components/blocks/MenuChoose/MenuChoose'
 import SearchProduct from './components/blocks/SearchProduct/SearchProduct'
@@ -9,14 +9,13 @@ import NutrientsTotal from './components/blocks/NutrientsTotal/NutrientsTotal'
 
 import { fetchGetProducts } from './api/product'
 import Menu from '@/components/blocks/Menu/Menu'
+import ModalAuth from '@/components/ui/Modal/ModalAuth'
+import ModalRoot from '@/ModalRoot'
 
 
 const useInit = () => {
 
   useEffect(() => {
-    const newMenu = Menus.create()
-    Menus.setCurrentMenuId(newMenu.id)
-
     fetchGetProducts().then(result =>
       productStore.setProductsBase(result)
     )
@@ -34,14 +33,13 @@ function App() {
 
   return (
     <>
-
       <div>
 
         <SearchProduct />
 
         <MenuChoose />
 
-        {Menus.currentMenu && <Menu menu={Menus.currentMenu} />}
+        {rootMenuStore.currentMenu && <Menu />}
 
         <NutrientsTotal />
 

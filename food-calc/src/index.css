@@ -1,5 +1,11 @@
 :root {}
 
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
 a {
   text-decoration: inherit;
 }
@@ -29,6 +35,11 @@ textarea {
   padding: 1px 3px 1px 7px;
   font-size: 0.7rem;
   border-radius: 5px;
+}
+
+
+li{
+  list-style: none;
 }
 
 button:hover {}
