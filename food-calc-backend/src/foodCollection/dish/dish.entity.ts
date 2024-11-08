@@ -1,6 +1,7 @@
 import { FoodCollection } from "foodCollection/common/entities/foodCollection.entity";
+import { DishProduct } from "foodCollection/dish/dishProduct/dishProduct.entity";
 import { Entity, OneToMany } from "typeorm";
-import { DishProduct } from "./dishProduct.entity";
+
 
 
 @Entity()

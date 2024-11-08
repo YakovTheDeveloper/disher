@@ -12,8 +12,8 @@ import { FoodCollectionProduct } from './entities/foodCollectionProduct.entity';
 import { FoodCollection } from './entities/foodCollection.entity';
 import { MenuProduct } from 'foodCollection/menu/menuProduct/menuProduct.entity';
 import { Dish } from 'foodCollection/dish/dish.entity';
-import { DishProduct } from 'foodCollection/dish/dishProduct.entity';
 import { Menu } from 'foodCollection/menu/menu.entity';
+import { DishProduct } from 'foodCollection/dish/dishProduct/dishProduct.entity';
 
 type UpdateData = {
   delta: UpdateDelta,
@@ -42,39 +42,83 @@ export class FoodCollectionProductService implements IMenuProductService {
     private FoodCollectionEntity: new () => Menu | Dish
   ) { }
 
+  getTableAlias = () => {
+    const productAlias = this.manyProductsToOne === 'dish' ? 'dishProduct' : 'menuProduct'
+    const productAliasId = this.manyProductsToOne === 'dish' ? 'dishId' : 'menuId'
+    return { productAlias, productAliasId }
+  }
+
   async create(dto: CreateFoodCollectionProductDto[]) {
 
     return this.source.repository.save(dto)
   }
 
+
+  // async findProductWithQuantityByMenuId(menuId: number): Promise<MenuProductData[]> {
+  //   const {productAlias,productAliasId} = this.getTableAlias()
+  //   return this.source.repository
+  //     .createQueryBuilder('menuProduct')
+  //     .leftJoin('menuProduct.product', 'product')
+  //     .select([
+  //       'menuProduct.id AS "menuProductId"',
+  //       'menuProduct.quantity AS quantity',
+  //       'product.id AS "productId"'
+  //     ])
+  //     .where('menuProduct.menuId = :menuId', { menuId })
+  //     .getRawMany();
+  // }
+
+  
   async findProductWithQuantityByMenuId(menuId: number): Promise<MenuProductData[]> {
+    const { productAlias, productAliasId } = this.getTableAlias()
     return this.source.repository
-      .createQueryBuilder('menuProduct')
-      .leftJoin('menuProduct.product', 'product')
+      .createQueryBuilder(productAlias)
+      .leftJoin(`${productAlias}.product`, 'product')
       .select([
-        'menuProduct.id AS "menuProductId"',
-        'menuProduct.quantity AS quantity',
-        'product.id AS "productId"'
+        `${productAlias}.id AS "menuProductId"`,
+        `${productAlias}.quantity AS quantity`,
+        `product.id AS "productId"`
       ])
-      .where('menuProduct.menuId = :menuId', { menuId })
+      .where(`${productAlias}.${productAliasId} = :menuId`, { menuId })
       .getRawMany();
   }
 
   async findProducts(menuId: number): Promise<MenuProductData[]> {
+
+    const productAlias = this.manyProductsToOne === 'dish' ? 'dishProduct' : 'menuProduct'
+    const productAliasId = this.manyProductsToOne === 'dish' ? 'dishId' : 'menuId'
+
     return this.source.repository
-      .createQueryBuilder('menuProduct')
-      .leftJoin('menuProduct.product', 'product')
+      .createQueryBuilder(`${productAlias}`)
+      .leftJoin(`${productAlias}.product`, 'product')
       .leftJoin('product.productNutrients', 'productNutrients')
       .select([
         'productNutrients.quantity AS "nutrientQuantity"',
         'productNutrients.nutrientId AS "nutrientId"',
         'product.name AS "name"',
-        'menuProduct.quantity AS "quantity"',
+        `${productAlias}.quantity AS "quantity"`,
         'product.id AS "id"'
       ])
-      .where('menuProduct.menuId = :menuId', { menuId })
+      .where(`${productAlias}.${productAliasId} = :menuId`, { menuId })
       .getRawMany();
   }
+
+
+  // async findProducts(menuId: number): Promise<MenuProductData[]> {
+  //   return this.source.repository
+  //     .createQueryBuilder('menuProduct')
+  //     .leftJoin('menuProduct.product', 'product')
+  //     .leftJoin('product.productNutrients', 'productNutrients')
+  //     .select([
+  //       'productNutrients.quantity AS "nutrientQuantity"',
+  //       'productNutrients.nutrientId AS "nutrientId"',
+  //       'product.name AS "name"',
+  //       'menuProduct.quantity AS "quantity"',
+  //       'product.id AS "id"'
+  //     ])
+  //     .where('menuProduct.menuId = :menuId', { menuId })
+  //     .getRawMany();
+  // }
 
 
   // async findAllProducts(userId: number): Promise<MenuProductData[]> {

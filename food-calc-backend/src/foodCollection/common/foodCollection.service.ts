@@ -24,14 +24,14 @@ export class FoodCollectionService {
         private foodCollectionProductService: FoodCollectionProductService,
     ) { }
 
-    async create(createMenuDto: CreateFoodCollectionDto, userId: number) {
-        const { products } = createMenuDto
+    async create(createFoodCollectionDto: CreateFoodCollectionDto, userId: number) {
+        const { products } = createFoodCollectionDto
 
         const user = new User()
         user.id = userId
 
-        const menu = this.repository.create({
-            ...createMenuDto,
+        const foodCollection = this.repository.create({
+            ...createFoodCollectionDto,
             user
         })
 
@@ -42,15 +42,16 @@ export class FoodCollectionService {
             const productToAdd = new Product()
             productToAdd.id = +id
 
-            const menuProduct = new CreateFoodCollectionProductDto()
-            menuProduct.product = productToAdd
-            menuProduct.menu = menu
-            menuProduct.quantity = productQuantity
+            const foodProduct = new CreateFoodCollectionProductDto()
+            foodProduct.product = productToAdd
+            foodProduct.menu = foodCollection
+            foodProduct.dish = foodCollection
+            foodProduct.quantity = productQuantity
 
-            productsToAdd.push(menuProduct)
+            productsToAdd.push(foodProduct)
         }
 
-        const createdMenu = await this.repository.save(menu)
+        const createdMenu = await this.repository.save(foodCollection)
         await this.foodCollectionProductService.create(productsToAdd)
 
         const { user: menuUser, ...result } = createdMenu
@@ -62,14 +63,6 @@ export class FoodCollectionService {
         const menus = await this.repository.find({
             where: { user: { id: userId } }
         });
-        // const query = await this.repository
-        //     .createQueryBuilder('menu')
-        //     .leftJoinAndSelect('menu.menuToProducts', 'menuProduct') // Join menuProducts
-        //     .leftJoinAndSelect('menuProduct.product', 'product') // Join products related to menuProducts
-        //     .where('menu.userId = :userId', { userId }) // Filter by userId
-        //     .getMany();
-
-        // const result = await this.foodCollectionProductService.findAllProducts(userId)
         return menus
     }
 
@@ -125,7 +118,9 @@ export class FoodCollectionService {
         const menu = new Menu()
         menu.id = id
         this.repository.remove(menu)
-        return `This action removes a #${id} menu`;
+        return {
+            result: true
+        }
     }
 }
 

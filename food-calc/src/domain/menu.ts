@@ -1,5 +1,6 @@
-import { IMenu } from "@/types/menu/Menu";
+import { IMenu, IProductBase } from "@/types/menu/Menu";
+import { IProduct } from "@/types/product/product";
 
-export const getMenuProductIds = (menu: IMenu) => {
-    return menu.products.map(({ id }) => +id)
+export const getMenuProductIds = (products: IProductBase[]) => {
+    return products.map(({ id }) => +id)
 }

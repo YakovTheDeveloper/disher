@@ -17,6 +17,9 @@ export class CreateFoodCollectionProductDto {
     @Type(() => FoodCollection)
     menu: FoodCollection
 
+    @Type(() => FoodCollection)
+    dish: FoodCollection
+
     @IsNotEmpty()
     quantity: number
 }

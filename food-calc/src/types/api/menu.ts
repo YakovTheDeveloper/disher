@@ -1,5 +1,5 @@
 import { IdToQuantity } from "@/types/common/common";
-import { IProductBase, IProductWithNutrients } from "@/types/menu/Menu";
+import { IMenu, IProductBase, IProductWithNutrients } from "@/types/menu/Menu";
 
 export type MenuPayload = {
 
@@ -27,5 +27,5 @@ export type GetMenuResponse = {
     "error": null
 }
 
-export type GetAllMenuResponse = GetMenuResponse[]
+export type GetAllMenuResponse = IMenu[]
 

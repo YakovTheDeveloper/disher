@@ -10,7 +10,7 @@ function MenuChoose() {
     return (
         <nav>
             <TabList>
-                {menus.map(({ menu }) => (menu && <Tab key={menu.id} onClick={() => setCurrentMenuId(menu.id)} isActive={currentMenuId === menu.id}>{menu.name}</Tab>))}
+                {menus.map(({ id, name }) => (<Tab key={id} onClick={() => setCurrentMenuId(id)} isActive={currentMenuId === id}>{name}</Tab>))}
             </TabList>
             {/* <button onClick={onAdd}>+</button> */}
         </nav>

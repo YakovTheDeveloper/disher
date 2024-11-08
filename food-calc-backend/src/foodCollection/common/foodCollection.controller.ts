@@ -41,7 +41,8 @@ export class FoodCollectionController {
         }
         return this.service.findOne(+id, userId);
     }
-
+    
+    @UseGuards(LocalAuthGuard)
     @Patch(':id')
     update(@Param('id') id: string, @Body() updateDto: UpdateFoodCollectionDto) {
         return this.service.update(+id, updateDto);

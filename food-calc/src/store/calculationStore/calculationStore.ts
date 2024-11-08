@@ -24,20 +24,22 @@ export class CalculationStore implements ICalculationStore {
 
     totalNutrients: NutrientIdToQuantityMap = {}
 
+    setTotal = (nutrients: NutrientIdToQuantityMap) => {
+        this.totalNutrients = nutrients
+    }
 
     calculateNutrients = (products: IProductBase[]): NutrientIdToQuantityMap => {
         const totalNutrients: NutrientIdToQuantityMap = {};
 
         products.forEach(product => {
 
-
-
             const productNutrients = this.productStore.getProductNutrients(+product.id)
+            console.log('productNutrients', productNutrients)
             if (!productNutrients) return
-            
+
             for (const nutrientId in productNutrients) {
                 const nutrientValue = productNutrients[nutrientId]
-                console.log('nutrientValue',nutrientValue)
+                console.log('nutrientValue', nutrientValue)
                 if (totalNutrients[nutrientId]) {
                     totalNutrients[nutrientId] += product.quantity * nutrientValue / 100;
                 } else {
@@ -59,38 +61,45 @@ export class CalculationStore implements ICalculationStore {
         // this.totalNutrients =
     }
 
-    fetchMissedProductNutrients(menu: IMenu) {
+    // fetchMissedProductNutrients(menu: IMenu) {
 
-        const { setProductNutrientData, getMissingProductIds } = productStore
+    //     const { setProductNutrientData, getMissingProductIds } = productStore
 
-        const productIdsInMenu = getMenuProductIds(menu)
-        const missingProducts = getMissingProductIds(productIdsInMenu)
+    //     const productIdsInMenu = getMenuProductIds(menu)
+    //     const missingProducts = getMissingProductIds(productIdsInMenu)
 
-        console.log('productIdsInMenu', productIdsInMenu)
-        console.log('missingProducts', missingProducts)
+    //     console.log('productIdsInMenu', productIdsInMenu)
+    //     console.log('missingProducts', missingProducts)
 
-        if (isEmpty(missingProducts)) return
+    //     if (isEmpty(missingProducts)) return
 
-        fetchGetProductWithNutrients(missingProducts).then(
-            action("fetchSuccess", res => {
-                res && setProductNutrientData(res)
+    //     fetchGetProductWithNutrients(missingProducts).then(
+    //         action("fetchSuccess", res => {
+    //             res && setProductNutrientData(res)
 
-                // add to totalNutrients
-            }),
-            action("fetchError", error => {
-            })
-        )
-    }
+    //             // add to totalNutrients
+    //         }),
+    //         action("fetchError", error => {
+    //         })
+    //     )
+    // }
 
     menuStore: MenuStore;
+
+    // get menuProducts() {
+    //     return this.menuStore.products
+    // }
 
     constructor(menuStore: MenuStore) {
         this.menuStore = menuStore
         makeAutoObservable(this)
 
         autorun(() => {
-            const calculated = this.calculateNutrients(menuStore.products)
-            console.log("wtf__", toJS(calculated))
+            // console.log("wtf00000000000")
+            // console.log("__________ WTF", toJS(this.menuStore.products))
+            // const calculated = this.calculateNutrients(this.menuStore.products)
+            // this.totalNutrients = calculated
+            // console.log("wtf__", toJS(calculated))
         })
     }
 

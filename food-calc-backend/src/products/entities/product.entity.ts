@@ -1,4 +1,4 @@
-import { DishProduct } from 'foodCollection/dish/dishProduct.entity';
+import { DishProduct } from 'foodCollection/dish/dishProduct/dishProduct.entity';
 import {
   MenuProduct,
 } from 'foodCollection/menu/menuProduct/menuProduct.entity';

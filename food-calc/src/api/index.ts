@@ -1,3 +1,4 @@
+import { FoodCollection } from '@/api/menu';
 import { getTokenFromLocalStorage } from '@/lib/storage/localStorage';
 import axios, { AxiosRequestConfig } from 'axios';
 
@@ -16,6 +17,14 @@ export const api = {
         const result = await axiosInstance.post(url, payload, config)
         if (result) return result.data
     },
+    patch: async (url: string, payload: any, config?: AxiosRequestConfig<any>) => {
+        const result = await axiosInstance.patch(url, payload, config)
+        if (result) return result.data
+    },
+    delete: async (url: string, config?: AxiosRequestConfig<any>) => {
+        const result = await axiosInstance.delete(url, config)
+        if (result) return result.data
+    },
 }
 
 export const apiRoutes = {
@@ -31,8 +40,20 @@ export const apiRoutes = {
     },
     menu: {
         create: 'menus',
+        update: (id: number) => `menus/${id}`,
         get: (id: number) => `menus/${id}`,
+        delete: (id: number) => `menus/${id}`,
         getAll: 'menus'
+    },
+    foodCollection: (type: FoodCollection) => {
+        const route = type === 'dish' ? 'dish' : 'menus'
+        return {
+            create: `${route}`,
+            update: (id: number) => `${route}/${id}`,
+            get: (id: number) => `${route}/${id}`,
+            delete: (id: number) => `${route}/${id}`,
+            getAll: `${route}`
+        }
     }
 }
 

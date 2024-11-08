@@ -28,9 +28,9 @@ function NutrientsTotal() {
     useEffect(() => {
 
 
-        return () => {
-            currentMenu.calculations.resetNutrients()
-        }
+        // return () => {
+        //     currentMenu.calculations.resetNutrients()
+        // }
 
 
     }, [currentMenuId])
