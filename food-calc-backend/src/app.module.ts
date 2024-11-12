@@ -10,9 +10,10 @@ import { ProductsNutrientsModule } from './products_nutrients/products_nutrients
 import { MenusModule } from 'foodCollection/menu/menus.module';
 import { AuthModule } from 'resources/auth/auth.module';
 import { DishModule } from 'foodCollection/dish/dish.module';
+import { MenuDishModule } from 'resources/menu_dishes/menu-dish.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), UsersModule, NutrientsModule, ProductsModule, MenusModule, DishModule,UserProductsModule, ProductsNutrientsModule, AuthModule],
+  imports: [ConfigModule.forRoot(), UsersModule, NutrientsModule, ProductsModule, MenusModule, DishModule, UserProductsModule, ProductsNutrientsModule, AuthModule, MenuDishModule],
   controllers: [AppController],
   providers: [AppService],
 })

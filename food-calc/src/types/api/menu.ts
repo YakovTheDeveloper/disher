@@ -23,7 +23,10 @@ export type MenuCreateResponse = {
 }
 
 export type GetMenuResponse = {
-    "data": IProductWithNutrients[],
+    "result": {
+        products: IProductWithNutrients[]
+        dishIds: number[]
+    },
     "error": null
 }
 

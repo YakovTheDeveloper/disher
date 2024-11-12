@@ -24,6 +24,6 @@ export async function fetchGetAllMenu(foodCollection?: FoodCollection): Promise<
 }
 
 
-export async function fetchDeleteMenu(id: number, foodCollection?: FoodCollection): Promise<GetMenuResponse> {
+export async function fetchDeleteMenu(id: number, foodCollection?: FoodCollection): Promise<any> {
     return await api.delete(apiRoutes.foodCollection(foodCollection).delete(id), AuthorizationHeader())
 }

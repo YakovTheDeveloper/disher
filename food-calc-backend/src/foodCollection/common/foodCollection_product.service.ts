@@ -67,8 +67,27 @@ export class FoodCollectionProductService implements IMenuProductService {
   //     .where('menuProduct.menuId = :menuId', { menuId })
   //     .getRawMany();
   // }
+  async findAll(userId: number) {
+    const menus = await this.source.repository
+      .createQueryBuilder("menu")
+      .leftJoinAndSelect("menu.menuProduct", "menuProduct") // Adjust according to your entity
+      .leftJoinAndSelect("menuProduct.product", "product")
+      .where("menu.user.id = :userId", { userId })
+      .select([
+        "menu.id",
+        "menu.name", // Assuming `name` exists on `menu`
+        "menuProduct.id",
+        "menuProduct.quantity",
+        "product.id",
+        "product.name" // Assuming `name` exists on `product`
+      ])
+      .getMany();
 
-  
+    return menus;
+  }
+
+
+
   async findProductWithQuantityByMenuId(menuId: number): Promise<MenuProductData[]> {
     const { productAlias, productAliasId } = this.getTableAlias()
     return this.source.repository
@@ -87,17 +106,15 @@ export class FoodCollectionProductService implements IMenuProductService {
 
     const productAlias = this.manyProductsToOne === 'dish' ? 'dishProduct' : 'menuProduct'
     const productAliasId = this.manyProductsToOne === 'dish' ? 'dishId' : 'menuId'
-
     return this.source.repository
       .createQueryBuilder(`${productAlias}`)
       .leftJoin(`${productAlias}.product`, 'product')
-      .leftJoin('product.productNutrients', 'productNutrients')
+      .leftJoin('menu_dish', 'menuDish', 'menuDish.menu_id = :menuId') // Add join to the junction table
       .select([
-        'productNutrients.quantity AS "nutrientQuantity"',
-        'productNutrients.nutrientId AS "nutrientId"',
         'product.name AS "name"',
         `${productAlias}.quantity AS "quantity"`,
-        'product.id AS "id"'
+        'product.id AS "id"',
+        'menuDish.dish_id AS "dishId"' // Select the dish_id from the junction table
       ])
       .where(`${productAlias}.${productAliasId} = :menuId`, { menuId })
       .getRawMany();

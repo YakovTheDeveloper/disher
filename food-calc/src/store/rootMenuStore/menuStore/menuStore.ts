@@ -8,7 +8,8 @@ import { DRAFT_MENU_ID } from "@/store/rootMenuStore/rootMenuStore";
 import { createIdToQuantityMapping } from "@/utils/transformation";
 import { fetchCreateMenu, fetchDeleteMenu, fetchUpdateMenu, FoodCollection } from "@/api/menu";
 import { isEqual } from "@/utils/comparison";
-import { productStore } from "@/store/rootStore";
+import { productStore, rootMenuStore } from "@/store/rootStore";
+import { emitter, EVENTS } from "@/store/emitter";
 
 type IMenuStore = {
     create(): IMenu;
@@ -77,15 +78,21 @@ export abstract class MenuStore {
         this.products.push(productToAdd)
     }
 
+    _additionalCalculationSourcesIds: number[] = []
+
+    setAdditionalCalculationSourcesIds = (ids: number[]) => {
+        this._additionalCalculationSourcesIds = ids
+    }
+
     calculations = new CalculationStore(this)
 
     _additionalCalculationSources: CalcSource[] = []
 
+    _additionalCalculationSourceIds: number[] = []
+
     get additionalCalculationSources() {
         return this._additionalCalculationSources
     }
-
-
 
     addAdditionalCalculationSources = (sources: CalcSource[]) => {
 
@@ -96,6 +103,15 @@ export abstract class MenuStore {
     removeAdditionalCalculationSources = (sourceId: number) => {
         this._additionalCalculationSources = this._additionalCalculationSources.filter(
             ({ id }) => id !== sourceId
+        )
+    }
+
+    patchAdditionalCalculationSources = (source: CalcSource) => {
+        this._additionalCalculationSources = this._additionalCalculationSources.map(
+            (initSource) => {
+                if (initSource.id === source.id) return source
+                return initSource
+            }
         )
     }
 
@@ -112,6 +128,7 @@ export abstract class MenuStore {
         makeObservable(this, {
             _additionalCalculationSources: observable,
             _products: observable,
+            _additionalCalculationSourcesIds: observable,
             products: computed,
             additionalSourceProducts: computed,
             setProducts: action,
@@ -119,16 +136,35 @@ export abstract class MenuStore {
             additionalCalculationSources: computed,
             addAdditionalCalculationSources: action,
             removeAdditionalCalculationSources: action,
+            setAdditionalCalculationSourcesIds: action,
             collectionType: observable
         })
 
 
-        const nutrientsCalculationAutorun = autorun(() => {
-            let dishes = this._additionalCalculationSources
-            dishes = dishes.map(({ products }) => products).flat()
-            const total = this.calculations.calculateNutrients([...this.products, ...dishes])
+        autorun(() => {
+            console.log('product.products!!',toJS(this._additionalCalculationSourcesIds))
+            
+            this._additionalCalculationSourcesIds.forEach(dishId => {
+                console.log('product.products',dishId)
+
+                const product = rootMenuStore.dishes.find(dish => dish.id === dishId)
+                if (product) {
+                    console.log('product.products',product.products)
+                }
+            })
+
+
+
+
+            const total = this.calculations.calculateNutrients([...this.products])
             this.calculations.setTotal(total)
         })
+        // autorun(() => {
+        //     let dishes = this._additionalCalculationSources
+        //     dishes = dishes.map(({ products }) => products).flat()
+        //     const total = this.calculations.calculateNutrients([...this.products, ...dishes])
+        //     this.calculations.setTotal(total)
+        // })
     }
 
 }
@@ -157,7 +193,19 @@ export class UserMenuStore extends MenuStore {
     async save(id: number): Promise<unknown> {
         return fetchUpdateMenu(id, this.createMenuPayload, this.collectionType).then(
             action("fetchSuccess", res => {
-                this._initProductsSnapshot = JSON.parse(JSON.stringify(this._products))
+                const updated = JSON.parse(JSON.stringify(this._products)) as IProductBase[]
+                this._initProductsSnapshot = updated
+
+                if (this.collectionType === 'dish') {
+                    emitter.dispatchEvent(new CustomEvent(EVENTS.DISH_UPDATED, {
+                        detail: {
+                            name: this.name,
+                            id: this.id,
+                            products: updated,
+                        } as CalcSource
+                    }));
+                }
+
             }),
             action("fetchError", error => {
             })

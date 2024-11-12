@@ -60,36 +60,75 @@ export class FoodCollectionService {
     }
 
     async findAll(userId: number) {
-        const menus = await this.repository.find({
-            where: { user: { id: userId } }
-        });
-        return menus
+        
+        // const menus = await this.foodCollectionProductService.findAll(userId)
+        const menus = await this.repository
+            .createQueryBuilder("menu")
+            .leftJoinAndSelect("menu.menuToProducts", "menuToProducts") // Adjust according to your entity
+            .leftJoinAndSelect("menuToProducts.product", "product")
+            .where("menu.user.id = :userId", { userId })
+            .select([
+                "menu.id",
+                "menu.name", // Assuming `name` exists on `menu`
+                "menuToProducts.quantity",
+                "product.id",
+                "product.name" // Assuming `name` exists on `product`
+            ])
+            .getMany();
+
+        const mapped = menus.map(item => ({
+            id: item.id,
+            name: item.name,
+            products: item.menuToProducts.map(menuProduct => ({
+                id: menuProduct.product.id,
+                name: menuProduct.product.name,
+                quantity: menuProduct.quantity
+            }))
+        }));
+        return mapped
+
+
+
+        // const menus = await this.repository.find({
+        //     where: { user: { id: userId } }
+        // });
+        // return menus
     }
 
     async findOne(id: number, userId: number) {
-        const productsWithNutrients = await this.foodCollectionProductService.findProducts(id) as any
-        const result = Object.values(productsWithNutrients.reduce((acc, item) => {
-            const { id, name, quantity, nutrientId, nutrientQuantity } = item;
+        const productsWithNutrients = await this.foodCollectionProductService.findProducts(id) as any;
+// return productsWithNutrients
+        const result = productsWithNutrients.reduce((acc, item) => {
+            const { id, name, quantity, nutrientId, nutrientQuantity, dishId } = item;
 
-            if (!acc[id]) {
-                acc[id] = {
+            // Ensure product is not added multiple times
+            let product = acc.products.find(product => product.id === id);
+
+            if (!product) {
+                // Add new product only if it doesn't exist already
+                product = {
                     name,
                     quantity,
                     id,
-                    nutrients: {}
                 };
+                acc.products.push(product);
             }
 
-            acc[id].nutrients[nutrientId] = nutrientQuantity;
+
+            // Collect unique dishIds
+            if (dishId && !acc.dishIds.includes(dishId)) {
+                acc.dishIds.push(dishId);
+            }
 
             return acc;
-        }, {}));
+        }, { products: [], dishIds: [] });
 
         return {
-            data: result,
+            result: result,
             error: null
-        }
+        };
     }
+
 
     async update(menuId: number, { products: updatedProducts, description, name }: UpdateFoodCollectionDto) {
         if (description || name) {
