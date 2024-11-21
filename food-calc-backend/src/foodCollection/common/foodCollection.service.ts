@@ -60,7 +60,7 @@ export class FoodCollectionService {
     }
 
     async findAll(userId: number) {
-        
+
         // const menus = await this.foodCollectionProductService.findAll(userId)
         const menus = await this.repository
             .createQueryBuilder("menu")
@@ -79,6 +79,7 @@ export class FoodCollectionService {
         const mapped = menus.map(item => ({
             id: item.id,
             name: item.name,
+            //@ts-ignore
             products: item.menuToProducts.map(menuProduct => ({
                 id: menuProduct.product.id,
                 name: menuProduct.product.name,
@@ -97,7 +98,7 @@ export class FoodCollectionService {
 
     async findOne(id: number, userId: number) {
         const productsWithNutrients = await this.foodCollectionProductService.findProducts(id) as any;
-// return productsWithNutrients
+        // return productsWithNutrients
         const result = productsWithNutrients.reduce((acc, item) => {
             const { id, name, quantity, nutrientId, nutrientQuantity, dishId } = item;
 

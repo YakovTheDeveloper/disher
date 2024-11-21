@@ -9,10 +9,6 @@ import NutrientsTotal from './components/blocks/NutrientsTotal/NutrientsTotal'
 
 import { fetchGetProducts } from './api/product'
 import Menu from '@/components/blocks/Menu/Menu'
-import ModalAuth from '@/components/ui/Modal/ModalAuth'
-import ModalRoot from '@/ModalRoot'
-import DishChoose from '@/components/blocks/DishChoose/DishChoose'
-
 
 const useInit = () => {
 
@@ -37,7 +33,6 @@ function App() {
       <div>
 
         <SearchProduct />
-        <DishChoose />
         <MenuChoose />
 
         {rootMenuStore.currentMenu && <Menu />}

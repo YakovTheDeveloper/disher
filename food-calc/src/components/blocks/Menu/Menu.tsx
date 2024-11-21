@@ -17,7 +17,7 @@ type Props = {
 function fetchMissedProductNutrients(products: IProductBase[]) {
 
     const { setProductNutrientData, getMissingProductIds } = productStore
-   
+
     const productIdsInMenu = getMenuProductIds(products)
     const missingProducts = getMissingProductIds(productIdsInMenu)
 
@@ -49,9 +49,9 @@ function Menu() {
     }, [currentMenu, currentMenu.products])
 
     useEffect(() => {
-        fetchMissedProductNutrients([...currentMenu.products, ...currentMenu.additionalSourceProducts])
+        fetchMissedProductNutrients(currentMenu.products)
         // fetchMissedProductNutrients(currentMenu.products)
-    }, [currentMenu, currentMenu?.products.length, currentMenu.additionalSourceProducts])
+    }, [currentMenu, currentMenu?.products.length])
 
     const onSave = () => {
         // saveNew(menu.createMenuPayload)
@@ -77,16 +77,6 @@ function Menu() {
             {currentMenu instanceof UserMenuStore && <UserActionButton onClick={onSave} changeOccured={currentMenu.changeOccured} />}
             {currentMenu instanceof UserMenuStore && currentMenu.changeOccured && <button onClick={currentMenu.resetToInit}>Сбросить к первоначальному</button>}
             {currentMenu instanceof UserMenuStore && <button onClick={deleteCurrentMenu}>Удалить</button>}
-            <div>{menu?.additionalCalculationSources.map(({ id, name }) =>
-                <li>
-                    {name}
-                    {id}
-                    <button onClick={() => currentMenu.removeAdditionalCalculationSources(id)}>
-                        удалить
-                    </button>
-                </li>)}
-
-            </div>
         </section>
     )
 }

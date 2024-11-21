@@ -9,6 +9,9 @@ import { Nutrient } from 'nutrients/entities/nutrient.entity';
 import { Product } from 'products/entities/product.entity';
 
 import { ProductsNutrient } from 'products_nutrients/entities/products_nutrient.entity';
+import { Day } from 'resources/day/entities/day.entity';
+import { DayCategory } from 'resources/day/entities/day_category.entity';
+import { DayCategoryDish } from 'resources/day/entities/day_category_dish.entity';
 import { MenuDish } from 'resources/menu_dishes/menu-dish.entity';
 import { DataSource } from 'typeorm';
 import { User } from 'users/entities/user.entity';
@@ -24,7 +27,7 @@ export const databaseProviders = [
         username: 'yakov',
         password: '0912',
         database: 'postgres',
-        entities: [User, Nutrient, Product, MenuProduct, Menu, ProductsNutrient, Dish, DishProduct, MenuDish],
+        entities: [User, Nutrient, Product, MenuProduct, Menu, ProductsNutrient, Dish, DishProduct, MenuDish, Day, DayCategory, DayCategoryDish],
         synchronize: true,
       });
       return dataSource.initialize();

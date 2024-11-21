@@ -4,6 +4,7 @@ import { RootMenuStore } from "./rootMenuStore/rootMenuStore";
 import { ProductStore } from "./productStore/productStore";
 import { UserStore } from "@/store/userStore/userStore";
 import { NutrientStore } from "@/store/nutrientStore/nutrientStore";
+import { DayStore } from "@/store/dayStore/dayStore";
 
 export const nutrientStore = new NutrientStore()
 export const productStore = new ProductStore()
@@ -16,3 +17,4 @@ export const UIStore = new UiStore()
 
 export const userStore = new UserStore()
 
+export const dayStore = new DayStore()

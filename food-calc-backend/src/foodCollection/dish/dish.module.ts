@@ -13,9 +13,11 @@ import { AuthModule } from 'resources/auth/auth.module';
 import { DishController } from 'foodCollection/dish/dish.controller';
 import { DishService } from 'foodCollection/dish/dish.service';
 import { DishProductService } from 'foodCollection/dish/dishProduct/dishProduct.service';
+import { DayModule } from 'resources/day/day.module';
+import { dayProdivers } from 'resources/day/day.providers';
 
 @Module({
-  imports: [DatabaseModule, UsersModule,AuthModule],
+  imports: [DatabaseModule, UsersModule, AuthModule],
   controllers: [DishController],
   providers: [...dishProviders, UsersService, ...usersProviders, JwtStrategy, DishService, DishProductService],
 })

@@ -11,9 +11,10 @@ import { MenusModule } from 'foodCollection/menu/menus.module';
 import { AuthModule } from 'resources/auth/auth.module';
 import { DishModule } from 'foodCollection/dish/dish.module';
 import { MenuDishModule } from 'resources/menu_dishes/menu-dish.module';
+import { DayModule } from 'resources/day/day.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), UsersModule, NutrientsModule, ProductsModule, MenusModule, DishModule, UserProductsModule, ProductsNutrientsModule, AuthModule, MenuDishModule],
+  imports: [ConfigModule.forRoot(), UsersModule, NutrientsModule, ProductsModule, MenusModule, DishModule, UserProductsModule, ProductsNutrientsModule, AuthModule, MenuDishModule,DayModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -14,23 +14,16 @@ type IRootMenuStore = {
 }
 
 export const DRAFT_MENU_ID = 'draft-menu'
-export const DRAFT_DISH_ID = 'draft-menu-dish'
 
 export class RootMenuStore implements IRootMenuStore {
 
     productStore: ProductStore;
 
     draftMenu = new DraftMenuStore().setData({
-        collectionType: 'menu',
         id: DRAFT_MENU_ID
-    })
-    draftDishCollection = new DraftMenuStore().setData({
-        collectionType: 'dish',
-        id: DRAFT_DISH_ID
     })
 
     menus: MenuStore[] = [this.draftMenu]
-    dishes: MenuStore[] = [this.draftDishCollection]
 
     currentMenuId: number | 'draft-menu' = DRAFT_MENU_ID
 
@@ -39,19 +32,7 @@ export class RootMenuStore implements IRootMenuStore {
     }
 
     get currentMenu(): MenuStore {
-        return [...this.menus, ...this.dishes].find(menu => menu.id === this.currentMenuId) || this.draftMenu
-    }
-
-    removeDishFromMenu = (id: number) => [
-        this.menus.forEach(menu => {
-            menu.removeAdditionalCalculationSources(id)
-        })
-    ]
-
-    patchDishInMenu = (payload: any) => {
-        this.menus.forEach(menu => {
-            menu.patchAdditionalCalculationSources(payload)
-        })
+        return this.menus.find(menu => menu.id === this.currentMenuId) || this.draftMenu
     }
 
     getAll = async () => {
@@ -63,23 +44,7 @@ export class RootMenuStore implements IRootMenuStore {
                     store.description = description
                     store.id = id
                     store.name = name
-                    store.collectionType = 'menu'
                     this.menus.push(store)
-                })
-            }),
-            action("fetchError", error => {
-            })
-        )
-        fetchGetAllMenu("dish").then(
-            action("fetchSuccess", res => {
-
-                res.forEach(({ description, id, name }) => {
-                    const store = new UserMenuStore()
-                    store.description = description
-                    store.id = id
-                    store.name = name
-                    store.collectionType = 'dish'
-                    this.dishes.push(store)
                 })
             }),
             action("fetchError", error => {
@@ -91,23 +56,8 @@ export class RootMenuStore implements IRootMenuStore {
         products: IProductWithNutrients[];
         dishIds: number[];
     }> => {
-        return fetchGetMenu(id, this.currentMenu.collectionType).then(
+        return fetchGetMenu(id).then(
             action("fetchSuccess", res => res.result),
-            action("fetchError", error => {
-            })
-        )
-    }
-
-    addDish = async (id: number, name: string) => {
-        return fetchGetMenu(id, 'dish').then(
-            action("fetchSuccess", res => {
-                this.currentMenu.addAdditionalCalculationSources([{
-                    id,
-                    name,
-                    products: res.result.products
-                }])
-            }
-            ),
             action("fetchError", error => {
             })
         )
@@ -115,44 +65,24 @@ export class RootMenuStore implements IRootMenuStore {
 
     deleteCurrentMenu = async (): Promise<any> => {
         if (this.currentMenu instanceof DraftMenuStore) return
-        const type = this.currentMenu.collectionType
         console.log("detail", +this.currentMenu.id)
 
         const foodCollectionId = +this.currentMenu.id;
 
-        return fetchDeleteMenu(foodCollectionId, type).then(
+        return fetchDeleteMenu(foodCollectionId).then(
             action("fetchSuccess", res => {
 
-                if (type === 'menu') {
-                    this.menus = this.menus.filter(menu => menu.id !== foodCollectionId)
-                    this.currentMenuId = DRAFT_MENU_ID
-                }
-                if (type === 'dish') {
-                    emitter.dispatchEvent(new CustomEvent(EVENTS.DISH_DELETED, {
-                        detail: foodCollectionId
-                    }))
-                    this.dishes = this.dishes.filter(dish => dish.id !== foodCollectionId)
-                    this.currentMenuId = DRAFT_DISH_ID
-                    console.log("detail", foodCollectionId)
-                }
+                this.menus = this.menus.filter(menu => menu.id !== foodCollectionId)
+                this.currentMenuId = DRAFT_MENU_ID
             }),
             action("fetchError", error => {
-            }) 
+            })
         )
     }
 
     constructor(productStore: ProductStore) {
         this.productStore = productStore
         makeAutoObservable(this)
-
-        emitter.addEventListener(EVENTS.DISH_UPDATED, (event) => {
-            this.patchDishInMenu(event.detail);
-        });
-
-
-        emitter.addEventListener(EVENTS.DISH_DELETED, (event) => {
-            this.removeDishFromMenu(event.detail);
-        });
 
         autorun(() => {
 
@@ -167,14 +97,13 @@ export class RootMenuStore implements IRootMenuStore {
 
             this.getOne(this.currentMenu.id).then(result => {
                 if (!result) return
-               
+
                 const products = result.products.map(product => {
                     const { nutrients, ...data } = product
                     return data
                 })
                 this.currentMenu.setFetched(true)
                 this.currentMenu.setProducts(products)
-                this.currentMenu.setAdditionalCalculationSourcesIds(result.dishIds)
 
                 if (this.currentMenu instanceof UserMenuStore) {
                     this.currentMenu.setInitProductsSnapshot(products)
