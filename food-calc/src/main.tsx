@@ -12,6 +12,8 @@ import "./index.css";
 import ProductAdd from './components/blocks/ProductAdd/ProductAdd.tsx';
 import ModalRoot from '@/ModalRoot.tsx';
 import Header from '@/components/common/Header/Header.tsx';
+import Days from '@/components/blocks/Days/Days.tsx';
+import AddDishToDay from '@/components/blocks/AddDishToDay/AddDishToDay.tsx';
 
 const Root = () => {
   return (
@@ -36,6 +38,10 @@ const router = createBrowserRouter([
   {
     path: "/add_product",
     element: <ProductAdd />,
+  },
+  {
+    path: "/days",
+    element: <Days />,
   },
 ]);
 

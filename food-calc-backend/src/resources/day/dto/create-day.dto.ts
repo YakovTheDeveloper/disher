@@ -1,14 +1,26 @@
 import { Type } from 'class-transformer';
 import { IsString, IsArray, ArrayNotEmpty, IsNumber, ValidateNested } from 'class-validator';
 
+class DayCategoryDishDto {
+  @IsNumber()
+  id: string;
 
-class DayCategoryDto {
+  @IsNumber()
+  position: number;
+}
+
+
+export class DayCategoryDto {
   @IsString()
   name: string;
 
+  @IsNumber()
+  position: number;
+
   @IsArray()
-  @IsNumber({}, { each: true })
-  dishIds: number[];
+  @ValidateNested({ each: true })
+  @Type(() => DayCategoryDishDto)
+  dishes: DayCategoryDishDto[];
 }
 
 export class CreateDayDto {

@@ -15,7 +15,7 @@ export class DayCategory {
     @ManyToOne(() => Day, day => day.dayCategories)
     day: Day;
 
-    @OneToMany(() => DayCategoryDish, dayCategoryDish => dayCategoryDish.day, { cascade: true, onDelete: 'CASCADE' })
+    @OneToMany(() => DayCategoryDish, dayCategoryDish => dayCategoryDish.dayCategory, { cascade: true, onDelete: 'CASCADE' })
     dayCategoryDishes: DayCategoryDish[];
 
     @Column({ nullable: true })

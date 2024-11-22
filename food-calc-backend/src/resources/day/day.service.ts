@@ -9,23 +9,33 @@ import { DayCategoryDish } from 'resources/day/entities/day_category_dish.entity
 import { DAY_CATEGORY_DISH_REPOSITORY, DAY_CATEGORY_REPOSITORY, DAY_REPOSITORY, DISH_REPOSITORY } from 'constants/provide';
 import { UpdateDayDto } from 'resources/day/dto/update-day.dto';
 import { isEmpty, isNotEmpty } from 'lib/utils/isEmpty';
+import { User } from 'users/entities/user.entity';
+import { CreateDayDto, DayCategoryDto } from 'resources/day/dto/create-day.dto';
 
-type DayCategoryPayload = { id?: number, name: string; dishIds: number[] }
+type DayCategoryDishesPayload = {
+  id: number,
+  position: number
+}
+
+type DayCategoryPayload = {
+  id?: number, name: string; dishes: DayCategoryDishesPayload[], position: number
+}
 
 function createCategoryDishes(data: {
-  dishIds: number[],
+  dishes: DayCategoryDishesPayload[],
   day: Day,
   category: DayCategory
 }) {
-  const { category, day, dishIds } = data
+  const { category, day, dishes } = data
   const categories: DayCategoryDish[] = []
-  for (const dishId of dishIds) {
+  for (const payloadDish of dishes) {
     const dayCategoryDish = new DayCategoryDish();
     const dish = new Dish()
-    dish.id = dishId
+    dish.id = payloadDish.id
     dayCategoryDish.dayCategory = category
     dayCategoryDish.dish = dish
     dayCategoryDish.day = day
+    dayCategoryDish.position = payloadDish.position
     categories.push(dayCategoryDish);
   }
   return categories
@@ -35,9 +45,11 @@ function createDayCategories(createPayload: DayCategoryPayload[], day: Day): Day
   const result = []
   for (const dayCategory of createPayload) {
     const category = new DayCategory();
+    const { dishes } = dayCategory
     category.name = dayCategory.name;
+    category.position = dayCategory.position
     category.dayCategoryDishes = createCategoryDishes({
-      dishIds: dayCategory.dishIds,
+      dishes,
       category,
       day
     });
@@ -53,6 +65,7 @@ type UpdateObject = {
 }
 
 function updateDayCategories(updatePayload: DayCategoryPayload[], day: Day): Day {
+
   const mapping: UpdateObject = updatePayload.reduce((acc, category) => {
     if (category.id == null) {
       acc.categoriesToAdd.push(category)
@@ -69,42 +82,86 @@ function updateDayCategories(updatePayload: DayCategoryPayload[], day: Day): Day
   const newCategories = Object.keys(mapping.categoiesToUpdateMapping).map(c => +c)
   const { productsRemoved } = getDishChanges(oldCategories, newCategories)
 
+
   if (isNotEmpty(productsRemoved)) {
     day.dayCategories = day.dayCategories.filter(category => !productsRemoved.includes(category.id))
   }
+
+  day.dayCategories = day.dayCategories.map(dayCategory => {
+    const categoryToUpdate = mapping.categoiesToUpdateMapping[dayCategory.id]
+    if (categoryToUpdate) {
+      const position = categoryToUpdate.position
+      return {
+        ...dayCategory,
+        position
+      }
+    }
+    return dayCategory
+  })
+
 
   if (isNotEmpty(mapping.categoriesToAdd)) {
     const newCategories = createDayCategories(mapping.categoriesToAdd, day)
     day.dayCategories = [...day.dayCategories, ...newCategories]
   }
 
+
+
   for (const dayCategory of day.dayCategories) {
+
     const { id } = dayCategory
     const updatePayload = mapping.categoiesToUpdateMapping[id]
     if (!updatePayload) continue
-    const { dishIds, name } = updatePayload
+    const { dishes, name } = updatePayload
     dayCategory.name = name
 
-
-    updateDayCategoriesDishes(dayCategory, dishIds, day)
+    updateDayCategoriesDishes(dayCategory, dishes, day)
   }
 
 
   return day
 }
 
-function updateDayCategoriesDishes(dayCategory: DayCategory, dishIds: number[], day: Day) {
+function createIdToItemMapping<T>(items: (T & { id: number })[]): Record<number, T> {
+  return items.reduce((acc, item) => {
+    acc[item.id] = item
+    return acc
+  }, {})
+}
 
+function updateDayCategoriesDishes(dayCategory: DayCategory, dishes: DayCategoryDishesPayload[], day: Day) {
+
+  const dishesPayloadMapping = createIdToItemMapping(dishes)
+
+  const newDishes = dishes.map(({ id }) => id)
   const oldDishes = dayCategory.dayCategoryDishes.map(categoryDish => categoryDish.dish.id)
-  const { productsCreated, productsRemoved } = getDishChanges(oldDishes, dishIds)
+
+  const { productsCreated, productsRemoved } = getDishChanges(oldDishes, newDishes)
+
+
 
   if (isNotEmpty(productsRemoved)) {
     dayCategory.dayCategoryDishes = dayCategory.dayCategoryDishes.filter(categoryDish => !productsRemoved.includes(categoryDish.dish.id))
   }
 
+  dayCategory.dayCategoryDishes = dayCategory.dayCategoryDishes.map(categoryDish => {
+    const dishId = categoryDish.dish.id
+    if (dishesPayloadMapping[dishId]) {
+      const position = dishesPayloadMapping[dishId].position
+      return {
+        ...categoryDish,
+        position
+      }
+    }
+    return categoryDish
+  })
+
+  const dishesToCreate = dishes.filter(dish => productsCreated.includes(dish.id))
+
+
   if (isNotEmpty(productsCreated)) {
     const newDishes = createCategoryDishes({
-      dishIds: productsCreated,
+      dishes: dishesToCreate,
       category: dayCategory,
       day
     })
@@ -128,6 +185,21 @@ export function getDishChanges(
   };
 }
 
+// export function getDishChanges2(
+//   oldState: number[],
+//   newChanges: number[]
+// ) {
+//   const oldStateSet = new Set(oldState);
+//   const newChangesSet = new Set(newChanges);
+
+//   const productsRemoved = oldState.filter(item => !newChangesSet.has(item));
+//   const productsCreated = newChanges.filter(item => !oldStateSet.has(item));
+
+//   return {
+//     productsRemoved,
+//     productsCreated,
+//   };
+// }
 
 
 @Injectable()
@@ -146,10 +218,14 @@ export class DayService {
     private dayCategoryDishRepository: Repository<DayCategoryDish>,
   ) { }
 
-  async createDay(dayName: string, dayContent: DayCategoryPayload[]) {
+  async createDay(dayName: string, dayContent: DayCategoryPayload[], userId: number) {
+    const user = new User()
+    user.id = userId
+
     let day = new Day();
     day.name = dayName;
     day.dayCategories = createDayCategories(dayContent, day);
+    day.user = user
     const newDay = await this.dayRepository.save(day)
 
     return {
@@ -167,8 +243,11 @@ export class DayService {
   async update(
     dayId: number,
     updatedDayName: string,
-    updatedDayContent: { id?: number; name: string; dishIds: number[] }[]
+    updatedDayContent: DayCategoryPayload[],
+    userId: number
   ) {
+    const user = new User()
+    user.id = userId
     // Fetch the existing Day with its categories and their relationships
     const existingDay = await this.dayRepository.findOne({
       where: { id: dayId },
@@ -191,7 +270,7 @@ export class DayService {
     await this.dayCategoryDishRepository
       .createQueryBuilder()
       .delete()
-      .where('dayId IS NULL')
+      .where('dayId IS NULL OR dayCategoryId IS NULL')
       .execute();
     await this.dayCategoryRepository
       .createQueryBuilder()

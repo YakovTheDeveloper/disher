@@ -1,0 +1,48 @@
+/* Basic Styling for the List */
+.category {
+    padding: 10px;
+    margin-bottom: 8px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: grab;
+    /* transition: background-color 0.3s ease, transform 0.3s ease; */
+}
+
+.name{
+    width: 90%;
+    display: inline-block;
+    margin-right: auto;
+}
+
+.addButton{
+    width: 10%;
+    display: inline-block;
+    margin-left: auto;
+
+}
+
+.active{
+    border-color: blue;
+}
+
+/* .category.dragging {
+    opacity: 0.3;
+    border: 2px dotted blue;
+    transition: transform 0.3s ease;
+}
+
+
+.category.hovered {
+    background-color: #e0e0e0;
+    border: 1px solid #999;
+}
+
+
+.category {
+    cursor: grab;
+}
+
+.category:active {
+    cursor: grabbing;
+} */

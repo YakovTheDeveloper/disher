@@ -1,0 +1,10 @@
+.container {
+    border: 2px solid white;
+    padding: 15px;
+    transition: border-color 0.3s ease; /* Smooth transition for the border color */
+    border-radius: 8px; /* Optional: Add rounded corners for a more pleasant effect */
+}
+
+.container.appear {
+    border-color: rgb(152, 152, 255);
+}
