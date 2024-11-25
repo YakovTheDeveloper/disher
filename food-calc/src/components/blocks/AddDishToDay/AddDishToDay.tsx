@@ -17,7 +17,7 @@ type Props = {
 const AddDishToDay = observer((props: Props) => {
 
     const { addDishToCategory, dishAddCategory, isDishInCategory, currentCategoryId } = props
-    const { menus } = rootMenuStore
+    const { userDishes } = rootMenuStore
 
     const { name, dishes, id: categoryId } = dishAddCategory
 
@@ -45,7 +45,7 @@ const AddDishToDay = observer((props: Props) => {
         ])}>
             <p>Добавить блюдо в категорию {name}</p>
             <ul>
-                {menus.map(({ id, name }) => (
+                {userDishes.map(({ id, name }) => (
                     <li key={id} onClick={() => onAdd({ id, name })}>
                         {id}, {name} {isDishInCategory(dishAddCategory, id) && 'In List'}
                     </li>

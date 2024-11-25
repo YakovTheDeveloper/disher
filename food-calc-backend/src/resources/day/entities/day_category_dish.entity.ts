@@ -14,13 +14,16 @@ export class DayCategoryDish {
     @JoinColumn({ name: 'dayId' })
     day: Day;
 
-    @ManyToOne(() => DayCategory, dayCategory => dayCategory.dayCategoryDishes, { nullable: true, onDelete: 'CASCADE' })
+    @ManyToOne(() => DayCategory, dayCategory => dayCategory.dayCategoryDishes, { nullable: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
     @JoinColumn({ name: 'dayCategoryId' })
     dayCategory: DayCategory;
 
-    @ManyToOne(() => Dish, dish => dish.dayCategoryDishes)
+    @ManyToOne(() => Dish, dish => dish.dayCategoryDishes, { cascade: true, eager: true })
     @JoinColumn({ name: 'dishId' })
     dish: Dish;
+
+    @OneToMany(() => DayCategoryDish, dayCategoryDish => dayCategoryDish.dish)
+    dayCategoryDishes: DayCategoryDish[];
 
     @Column({ nullable: true })
     position: number;

@@ -12,14 +12,18 @@ type Props = {
     category: DayCategory
     onDishAdd: (category: DayCategory) => void
     index: number;
-    moveCategory: (fromIndex: number, toIndex: number) => void; // Function to move category
+    removeCategory: (categoryId: string) => void; // Function to move category
     currentCategoryId: string
 }
 
 
-const DayCategoryItem: React.FC<Props> = ({ currentCategoryId, category, onDishAdd, index, moveCategory, removeCategory }) => {
+const DayCategoryItem: React.FC<Props> = ({ currentCategoryId, category, onDishAdd, removeCategory }) => {
     const isActive = currentCategoryId === category.id
-    console.log("category",toJS(category))
+    const { id: categoryId } = category
+    const onRemove = () => {
+        removeCategory(categoryId)
+    }
+    console.log("category.dishescategory.dishes",toJS(category.dishes))
     return (
         <Reorder.Item
             as='li'
@@ -29,6 +33,7 @@ const DayCategoryItem: React.FC<Props> = ({ currentCategoryId, category, onDishA
 
             whileDrag={{ scale: 1.05, opacity: 0.8 }}  // Feedback while dragging
         >
+            <button onClick={onRemove} className={s.removeButton}>x</button>
             <p className={s.name}>{category.name}</p>
             <button onClick={() => onDishAdd(category)} className={s.addButton}>+</button>
             <ul>

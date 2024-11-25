@@ -1,28 +1,45 @@
 /* Basic Styling for the List */
 .category {
-    padding: 10px;
+    min-width: 150px;
+    padding: 3px 8px 8px;
     margin-bottom: 8px;
     background-color: #f9f9f9;
     border: 1px solid #ddd;
     border-radius: 4px;
     cursor: grab;
+    position: relative;
+    display: flex;
+    flex-direction: column;
     /* transition: background-color 0.3s ease, transform 0.3s ease; */
 }
 
-.name{
+.category:hover .removeButton {
+    opacity: 1;
+}
+
+.removeButton {
+    right: 0;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    transition: all 0.2s;
+    margin-left: auto;
+}
+
+.name {
     width: 90%;
     display: inline-block;
     margin-right: auto;
 }
 
-.addButton{
+.addButton {
     width: 10%;
     display: inline-block;
-    margin-left: auto;
+    margin-right: auto;
 
 }
 
-.active{
+.active {
     border-color: blue;
 }
 

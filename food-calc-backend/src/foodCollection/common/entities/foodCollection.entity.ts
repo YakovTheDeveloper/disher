@@ -20,6 +20,4 @@ export class FoodCollection {
     @ManyToOne(() => User)
     user: User
 
-    // @OneToMany(() => MenuProduct, menuProduct => menuProduct.menu)
-    // menuToProducts: MenuProduct[];
 }

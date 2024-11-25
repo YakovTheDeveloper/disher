@@ -1,5 +1,5 @@
 .tabList {
     display: flex;
-    gap: var(--gap-tabs);
+    /* gap: var(--gap-tabs); */
     padding: 40px 0;
 }

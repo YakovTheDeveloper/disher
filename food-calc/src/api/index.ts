@@ -21,6 +21,10 @@ export const api = {
         const result = await axiosInstance.patch(url, payload, config)
         if (result) return result.data
     },
+    put: async (url: string, payload: any, config?: AxiosRequestConfig<any>) => {
+        const result = await axiosInstance.put(url, payload, config)
+        if (result) return result.data
+    },
     delete: async (url: string, config?: AxiosRequestConfig<any>) => {
         const result = await axiosInstance.delete(url, config)
         if (result) return result.data
@@ -45,15 +49,19 @@ export const apiRoutes = {
         delete: (id: number) => `menus/${id}`,
         getAll: 'menus'
     },
-    foodCollection: (type: FoodCollection) => {
-        const route = type === 'dish' ? 'dish' : 'menus'
-        return {
-            create: `${route}`,
-            update: (id: number) => `${route}/${id}`,
-            get: (id: number) => `${route}/${id}`,
-            delete: (id: number) => `${route}/${id}`,
-            getAll: `${route}`
-        }
+    day: {
+        create: 'day',
+        getAll: 'day',
+        update: (id: number) => `${'day'}/${id}`,
+        get: (id: number) => `${'day'}/${id}`,
+        delete: (id: number) => `${'day'}/${id}`,
+    },
+    dish: {
+        create: `${'dish'}`,
+        update: (id: number) => `${'dish'}/${id}`,
+        get: (id: number) => `${'dish'}/${id}`,
+        delete: (id: number) => `${'dish'}/${id}`,
+        getAll: `${'dish'}`
     }
 }
 

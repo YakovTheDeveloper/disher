@@ -9,8 +9,10 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import DayCategoryItem from '@/components/blocks/Days/DayCategory/DayCategory'
 import { AnimatePresence, Reorder } from 'framer-motion'
 import s from './Day.module.css'
+import { CreateDayPayload, CreateDayResponse } from '@/types/api/day'
 type Props = {
     store: DayStore
+    createDay: (payload: CreateDayPayload) => Promise<CreateDayResponse>
 }
 
 export type DishAddOptions = {
@@ -19,35 +21,22 @@ export type DishAddOptions = {
 }
 
 const Day = (props: Props) => {
-    const { store } = props
-    const { addCategory, categories, name, id, addDishToCategory, isDishInCategory, currentCategoryId, setCurrentCategoryId } = store
-
-    console.log(toJS(categories).map(a => a.dishes))
-    console.log(toJS(categories))
+    const { store, createDay } = props
+    console.log("store", toJS(store))
+    const { onSave, moveCategory, removeCategory, addCategory, categories, name, id, addDishToCategory, isDishInCategory, currentCategoryId, setCurrentCategoryId } = store
 
     const [dishAddCategory, setDishAddCategory] = useState<DayCategory | null>(null)
 
     const onDishAdd = (category: DayCategory) => {
+        console.log('setCurrentCategoryId', setCurrentCategoryId)
         setCurrentCategoryId(category.id)
         setDishAddCategory(category)
     }
 
-    const { moveCategory, removeCategory, updateCategoryPositions, generatePayload } = store
-
-    const onSave = () => {
-        const res = toJS(generatePayload())
-        console.log(toJS(res.dayContent))
-    }
-
-    // const moveCategory = (fromIndex: number, toIndex: number) => {
-    //     store.updateCategoryPositions(fromIndex, toIndex);
-    // };
-
-    // const removeCategory = (index: number) => {
-    //     const updatedCategories = [...categories];
-    //     updatedCategories.splice(index, 1);
-    //     updateCategories(updatedCategories);
-    // };
+    // const onSave = async () => {
+    //     const payload = generatePayload()
+    //     const newDay = await createDay(payload)
+    // }
 
 
 
@@ -73,9 +62,9 @@ const Day = (props: Props) => {
                                 category={category}
                                 index={index}
                                 onDishAdd={onDishAdd}
-                                moveCategory={moveCategory}
-                                removeCategory={removeCategory}
                                 currentCategoryId={currentCategoryId}
+                                removeCategory={removeCategory}
+
                             />
                         ))}
                     </AnimatePresence>
@@ -85,8 +74,6 @@ const Day = (props: Props) => {
                         addDishToCategory={addDishToCategory}
                         dishAddCategory={dishAddCategory}
                         isDishInCategory={isDishInCategory}
-                        moveCategory={moveCategory}
-                        removeCategory={removeCategory}
                         currentCategoryId={currentCategoryId}
                     />}
                 <button onClick={onSave}>Сохранить</button>

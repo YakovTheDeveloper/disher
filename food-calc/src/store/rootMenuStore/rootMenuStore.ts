@@ -27,6 +27,12 @@ export class RootMenuStore implements IRootMenuStore {
 
     currentMenuId: number | 'draft-menu' = DRAFT_MENU_ID
 
+
+    get userDishes() {
+        console.log('asdasd',toJS(this.menus))
+        return this.menus.filter(({ id }) => DRAFT_MENU_ID !== id)
+    }
+
     setCurrentMenuId = (id: number | 'draft-menu') => {
         this.currentMenuId = id
     }
@@ -36,7 +42,7 @@ export class RootMenuStore implements IRootMenuStore {
     }
 
     getAll = async () => {
-        fetchGetAllMenu("menu").then(
+        fetchGetAllMenu().then(
             action("fetchSuccess", res => {
 
                 res.forEach(({ description, id, name }) => {

@@ -12,10 +12,13 @@ export class DayCategory {
     @Column()
     name: string
 
-    @ManyToOne(() => Day, day => day.dayCategories)
+    @ManyToOne(() => Day, day => day.dayCategories, {
+        onDelete: 'CASCADE', // Remove this DayCategory if the related Day is deleted
+        onUpdate: 'CASCADE', // Update the reference if Day's primary key changes
+    })
     day: Day;
 
-    @OneToMany(() => DayCategoryDish, dayCategoryDish => dayCategoryDish.dayCategory, { cascade: true, onDelete: 'CASCADE' })
+    @OneToMany(() => DayCategoryDish, dayCategoryDish => dayCategoryDish.dayCategory, { cascade: true, onDelete: 'CASCADE', eager: true })
     dayCategoryDishes: DayCategoryDish[];
 
     @Column({ nullable: true })

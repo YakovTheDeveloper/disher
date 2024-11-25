@@ -16,13 +16,17 @@ export class DayController {
     if (userId == null) {
       throw new BadRequestException('No such user id');
     }
-    return this.dayService.createDay(createDayDto.dayName, createDayDto.dayContent, userId);
+    return this.dayService.createDay(createDayDto.name, createDayDto.categories, userId);
   }
 
   @UseGuards(LocalAuthGuard)
   @Get()
   findAll(@Req() request: Request) {
-    return this.dayService.findAll();
+    const userId = request.user?.id
+    if (userId == null) {
+      throw new BadRequestException('No such user id');
+    }
+    return this.dayService.findAll(userId);
   }
 
   @UseGuards(LocalAuthGuard)
@@ -38,12 +42,16 @@ export class DayController {
     if (userId == null) {
       throw new BadRequestException('No such user id');
     }
-    return this.dayService.update(+id, updateDayDto.dayName, updateDayDto.dayContent, userId);
+    return this.dayService.update(+id, updateDayDto.name, updateDayDto.categories, userId);
   }
 
   @UseGuards(LocalAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string, @Req() request: Request) {
-    // return this.dayService.remove(+id);
+    const userId = request.user?.id
+    if (userId == null) {
+      throw new BadRequestException('No such user id');
+    }
+    return this.dayService.remove(+id, userId);
   }
 }

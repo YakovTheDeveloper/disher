@@ -10,12 +10,13 @@ export class Day {
     @PrimaryGeneratedColumn()
     id: number;
 
-    name: string
-
     @ManyToOne(() => User, user => user.days)
     user: User;
+    
+    @Column()
+    name: string
 
-    @OneToMany(() => DayCategory, dayCategory => dayCategory.day, { cascade: true, onDelete: 'CASCADE' })
+    @OneToMany(() => DayCategory, dayCategory => dayCategory.day, { cascade: true, onDelete: 'CASCADE', eager: true })
     dayCategories: DayCategory[];
 
     @OneToMany(() => DayCategoryDish, dayCategoryDish => dayCategoryDish.day, { cascade: true, onDelete: 'CASCADE' })

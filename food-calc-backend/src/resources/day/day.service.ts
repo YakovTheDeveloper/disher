@@ -227,17 +227,109 @@ export class DayService {
     day.dayCategories = createDayCategories(dayContent, day);
     day.user = user
     const newDay = await this.dayRepository.save(day)
+    const dayWithRelations = await this.dayRepository.findOne({
+      where: { id: newDay.id },
+      relations: [
+        'dayCategories.dayCategoryDishes',
+        'dayCategories.dayCategoryDishes.dish',
+      ],
+    });
+
+    const transformedResult = {
+      result: {
+        id: dayWithRelations.id,
+        name: dayWithRelations.name,
+        categories: dayWithRelations.dayCategories.map(category => ({
+          id: category.id,
+          name: category.name,
+          position: category.position,
+          dishes: category.dayCategoryDishes.map(dishRelation => ({
+            id: dishRelation.dish.id,
+            name: dishRelation.dish.name,
+          })),
+        })),
+      },
+    };
+
+    return transformedResult;
+
+    console.log(newDay.dayCategories.map(dc => dc.dayCategoryDishes.map(d => d.dish)))
+
+    return dayWithRelations
 
     return {
       result: {
         name: newDay.name,
-        id: newDay.id
+        id: newDay.id,
+        categories: newDay.dayCategories.map(({ id, name, position, dayCategoryDishes }) => ({
+          id,
+          name,
+          position,
+          dishes: dayCategoryDishes.map(dishCategory => {
+            console.log(dishCategory)
+            return {
+              id: dishCategory.dish.id,
+              name: dishCategory.dish.name
+            }
+          })
+        }))
       }
     }
   }
 
-  findAll(): Promise<Day[]> {
-    return this.dayRepository.find({ relations: ['menus'] });
+  async findAll(userId: string): Promise<Day[]> {
+    const user = new User()
+    user.id = +userId
+    const days = await this.dayRepository.find({
+      relations: ['dayCategories'],
+      where: { user }
+    });
+
+    console.log(days)
+    const transformedData = days.map(day => ({
+      id: day.id,
+      name: day.name,
+      categories: day.dayCategories.map(category => ({
+        id: category.id,
+        name: category.name,
+        position: category.position,
+        dishes: category.dayCategoryDishes.map(dishInfo => ({
+          id: dishInfo.dish.id,
+          name: dishInfo.dish.name,
+        })),
+      })),
+    }));
+    return {
+      result: transformedData
+    }
+
+    return {
+      result: days.map(day => {
+
+        const dishes = day.dayCategoryDishes.map(dishCategory => ({
+          id: dishCategory.dish.id,
+          position: dishCategory.position,
+          name: dishCategory.dish.name
+        }))
+
+        console.log(day.dayCategoryDishes)
+        // Group dishes within their respective categories
+        const categoriesWithDishes = day.dayCategories.map(category => ({
+          id: category.id,
+          name: category.name,
+          position: category.position,
+          dishes: dishes || [], // Assuming `categoryId` in DayCategoryDish links to DayCategory
+        }));
+
+        return {
+          id: day.id,
+          name: day.name,
+          // dayCategories: day.dayCategories,
+          categories: categoriesWithDishes, // Replace dayCategories with updated structure
+          dayCategoryDishes: undefined, // Remove the top-level dayCategoryDishes property
+        }
+      })
+    }
   }
 
   async update(
@@ -288,5 +380,12 @@ export class DayService {
 
   }
 
+
+  async remove(id: number, userId: number) {
+    const result = await this.dayRepository.delete({ id, user: { id: userId } })
+    return {
+      result: true
+    }
+  }
 
 }

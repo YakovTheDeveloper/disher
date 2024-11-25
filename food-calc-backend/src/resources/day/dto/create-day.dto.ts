@@ -1,12 +1,13 @@
 import { Type } from 'class-transformer';
-import { IsString, IsArray, ArrayNotEmpty, IsNumber, ValidateNested } from 'class-validator';
+import { IsString, IsArray, ArrayNotEmpty, IsNumber, ValidateNested, IsOptional } from 'class-validator';
 
 class DayCategoryDishDto {
   @IsNumber()
   id: string;
-
+  
+  @IsOptional()
   @IsNumber()
-  position: number;
+  position?: number;
 }
 
 
@@ -25,10 +26,10 @@ export class DayCategoryDto {
 
 export class CreateDayDto {
   @IsString()
-  dayName: string;
+  name: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => DayCategoryDto)
-  dayContent: DayCategoryDto[];
+  categories: DayCategoryDto[];
 }
