@@ -5,7 +5,7 @@ import { Dish } from "foodCollection/dish/dish.entity"
 
 @Entity()
 export class DishProduct extends FoodCollectionProduct {
-    @ManyToOne(() => Dish, dish => dish.menuToProducts, { onDelete: 'CASCADE' })
+    @ManyToOne(() => Dish, dish => dish.dishToProducts, { onDelete: 'CASCADE' })
     dish: Dish
 
     @ManyToOne(() => Product, product => product.dishToProducts)

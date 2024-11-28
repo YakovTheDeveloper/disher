@@ -1,0 +1,19 @@
+.dish{
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    min-width: 340px;
+}
+
+.products{
+    flex-grow: 1;
+}
+
+.actions{
+    display: flex;
+    justify-content: flex-end;
+}
+
+.mainButton{
+    margin-right: auto;
+}

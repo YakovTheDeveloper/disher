@@ -1,0 +1,28 @@
+.button {
+    padding: 5px 8px;
+    background-color: transparent;
+    border: none;
+    width: fit-content;
+
+    transition: opacity 0.2s;
+
+    &:hover{
+        opacity: 0.7;
+    }
+}
+
+.primary {
+    color: var(--color-green);
+}
+
+.secondary {
+    color: rgb(69, 128, 255);
+}
+
+.tertiary {}
+
+.disabled {}
+
+.danger {
+    color: var(--color-danger);
+}

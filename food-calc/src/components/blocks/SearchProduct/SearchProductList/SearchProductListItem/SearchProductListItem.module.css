@@ -1,0 +1,15 @@
+.product {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    cursor: pointer;
+
+    &:not(.active)&:hover {
+        background-color: var(--color-light-green-2);
+    }
+
+}
+
+.active {
+    background-color: var(--color-light-green)
+}

@@ -62,6 +62,9 @@ export const apiRoutes = {
         get: (id: number) => `${'dish'}/${id}`,
         delete: (id: number) => `${'dish'}/${id}`,
         getAll: `${'dish'}`
+    },
+    dishProducts: {
+        get: (query: string) => `${'dish'}/products/?dish_ids=${query}`,
     }
 }
 

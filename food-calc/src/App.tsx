@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 // import Menu from './components/blocks/Menu/Menu'
-import { rootMenuStore, productStore } from './store/rootStore'
+import { rootDishStore, productStore, dishCalculationStore } from './store/rootStore'
 import { observer } from "mobx-react-lite"
 import MenuChoose from './components/blocks/MenuChoose/MenuChoose'
 import SearchProduct from './components/blocks/SearchProduct/SearchProduct'
 import NutrientsTotal from './components/blocks/NutrientsTotal/NutrientsTotal'
 
 import { fetchGetProducts } from './api/product'
-import Menu from '@/components/blocks/Menu/Menu'
+import Dish from '@/components/blocks/Menu/Dish'
+import DishContainer from '@/components/blocks/Menu/DishContainer'
+import Container from '@/components/ui/Container/Container'
+
 
 const useInit = () => {
 
@@ -33,11 +36,15 @@ function App() {
       <div>
 
         <SearchProduct />
-        <MenuChoose />
 
-        {rootMenuStore.currentMenu && <Menu />}
+        <Container>
+          <MenuChoose />
+          <Container boxShadow>
+            {rootDishStore.currentDish && <DishContainer store={rootDishStore.currentDish} />}
+          </Container>
+          <NutrientsTotal totalNutrients={dishCalculationStore.totalNutrients} />
+        </Container>
 
-        <NutrientsTotal />
 
       </div>
     </>

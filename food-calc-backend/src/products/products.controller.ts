@@ -12,6 +12,7 @@ import {
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './products.service';
+import { wait } from 'lib/utils/wait';
 
 @Controller('products')
 export class ProductsController {
@@ -36,10 +37,11 @@ export class ProductsController {
   // }
 
   @Get('nutrients')
-  findProductNutrients(@Query() query: { ids: string }) {
+  async findProductNutrients(@Query() query: { ids: string }) {
     if (!query?.ids) {
       return
     }
+    await wait(3000)
     return this.productsService.findProductNutrients(query.ids);
   }
 

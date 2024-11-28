@@ -1,10 +1,17 @@
-import { makeAutoObservable } from "mobx"
+import { action, makeAutoObservable } from "mobx"
 import { IMenu, IProductBase } from "../../types/menu/Menu"
 import { v4 as uuidv4 } from 'uuid';
 import { IProducts, ProductBase, ProductIdToNutrientsMap } from "../../types/product/product";
+import { fetchGetProductWithNutrients } from "@/api/product";
+import { isEmpty } from "@/lib/empty";
 
 type IProductStore = {
 
+}
+
+export type ProductLoading = {
+    isLoading: boolean,
+    status: 'loaded' | 'error' | 'pending'
 }
 
 export class ProductStore implements IProductStore {
@@ -17,12 +24,40 @@ export class ProductStore implements IProductStore {
         this.productsBase = products
     }
 
-
-
-
-
-
     productToNutrients: ProductIdToNutrientsMap = {}
+
+    productLoadingStatus: Record<string, ProductLoading> = {}
+
+    setLoadingStatus = (id: string, status: ProductLoading) => {
+        this.productLoadingStatus[id] = status
+    }
+
+    getLoadingStatus = (id: string) => this.productLoadingStatus[id] || null
+
+
+    fetchAndSetProductNutrientsData = async (ids: number[], signal?: AbortSignal) => {
+        const missingProducts = this.getMissingProductIds(ids)
+
+        if (isEmpty(missingProducts)) return
+
+        return fetchGetProductWithNutrients(missingProducts, {
+            signal
+        }).then(
+            action("fetchSuccess", res => {
+                this.setProductNutrientData(res)
+                return res
+            }),
+            action("fetchError", error => {
+                console.error(error)
+                return error
+            })
+        )
+            .catch(err => err)
+    }
+
+
+
+
 
     setProductNutrientData = (data: ProductIdToNutrientsMap) => {
         for (const id in data) {
@@ -32,8 +67,10 @@ export class ProductStore implements IProductStore {
     }
 
     getMissingProductIds = (menuProductIds: number[]): number[] => {
-        const existingProductIds = Object.keys(this.productToNutrients).map(id => Number(id));
-        const missingProductIds = menuProductIds.filter(id => !existingProductIds.includes(id));
+        const existingProductIds = Object.keys(this.productToNutrients).map(id => +id);
+        console.log("existingProductIds", existingProductIds)
+        console.log("menuProductIds", menuProductIds, existingProductIds)
+        const missingProductIds = menuProductIds.filter(id => !existingProductIds.includes(+id));
         return missingProductIds;
     }
 

@@ -1,3 +1,4 @@
+import { Dish } from 'foodCollection/dish/dish.entity';
 import { Day } from 'resources/day/entities/day.entity';
 import { Entity, Column, PrimaryGeneratedColumn, Unique, Index, OneToMany } from 'typeorm';
 
@@ -15,4 +16,7 @@ export class User {
 
     @OneToMany(() => Day, day => day.user)
     days: Day[];
+
+    @OneToMany(() => Dish, dish => dish.user)
+    dishes: Dish[];
 }

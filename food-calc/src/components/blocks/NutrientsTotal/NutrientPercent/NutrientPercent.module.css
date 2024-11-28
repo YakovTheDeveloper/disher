@@ -1,0 +1,15 @@
+.percent {
+    text-align: right;
+    position: relative;
+    margin-left: 5px;
+    padding-right: 5px;
+}
+
+.backgroundFill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: -1; /* Behind the text */
+    transition: width 0.3s ease; /* Smooth transition for updates */
+}

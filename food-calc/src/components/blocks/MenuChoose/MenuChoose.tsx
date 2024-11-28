@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import { observer } from "mobx-react-lite"
-import { rootMenuStore } from '../../../store/rootStore'
+import { rootDishStore } from '../../../store/rootStore'
 import { GetProducts } from 'types/api/product'
 import { Tab } from '@/components/ui/Tab'
 import { TabList } from '@/components/ui/TabList'
-
+import s from './DishTabs.module.css'
 function MenuChoose() {
-    const { menus, setCurrentMenuId, currentMenuId } = rootMenuStore
+    const { dishes, setCurrentMenuId, currentDishId } = rootDishStore
+    console.log(dishes)
     return (
-        <nav>
+        <nav className={s.dishTabs}>
             <TabList>
-                {menus.map(({ id, name }) => (<Tab key={id} onClick={() => setCurrentMenuId(id)} isActive={currentMenuId === id}>{name}</Tab>))}
+                {dishes.map(({ id, name }, i) => (<Tab draft={i === 0} key={id} onClick={() => setCurrentMenuId(id)} isActive={currentDishId === id}>{name}</Tab>))}
             </TabList>
             {/* <button onClick={onAdd}>+</button> */}
         </nav>

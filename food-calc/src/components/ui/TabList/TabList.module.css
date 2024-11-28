@@ -1,5 +1,6 @@
 .tabList {
     display: flex;
     /* gap: var(--gap-tabs); */
-    padding: 40px 0;
+    flex-direction: column;
+    /* padding: 40px 0; */
 }

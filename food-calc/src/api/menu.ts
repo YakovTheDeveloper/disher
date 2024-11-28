@@ -9,20 +9,20 @@ export async function fetchCreateMenu(payload: CreateMenuPayload): Promise<MenuC
     return await api.post(apiRoutes.dish.create, payload, AuthorizationHeader())
 }
 
-export async function fetchUpdateMenu(id: number, payload: UpdateMenuPayload, foodCollection?: FoodCollection): Promise<MenuCreateResponse> {
+export async function fetchUpdateMenu(id: number, payload: UpdateMenuPayload): Promise<MenuCreateResponse> {
     return await api.patch(apiRoutes.dish.update(id), payload, AuthorizationHeader())
 }
 
 
-export async function fetchGetMenu(id: number, foodCollection?: FoodCollection): Promise<GetMenuResponse> {
+export async function fetchGetMenu(id: number): Promise<GetMenuResponse> {
     return await api.get(apiRoutes.dish.get(id), AuthorizationHeader())
 }
 
-export async function fetchGetAllMenu(foodCollection?: FoodCollection): Promise<GetAllMenuResponse> {
+export async function fetchGetAllMenu(): Promise<GetAllMenuResponse> {
     return await api.get(apiRoutes.dish.getAll, AuthorizationHeader())
 }
 
 
-export async function fetchDeleteMenu(id: number, foodCollection?: FoodCollection): Promise<any> {
+export async function fetchDeleteMenu(id: number): Promise<any> {
     return await api.delete(apiRoutes.dish.delete(id), AuthorizationHeader())
 }

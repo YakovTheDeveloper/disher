@@ -285,7 +285,7 @@ export class DayService {
       where: { user }
     });
 
-    console.log(days)
+   
     const transformedData = days.map(day => ({
       id: day.id,
       name: day.name,

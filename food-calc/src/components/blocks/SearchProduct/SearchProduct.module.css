@@ -1,0 +1,35 @@
+.container {
+    width: 100%;
+}
+
+.searchContainer {
+    position: relative;
+    width: 50%;
+    margin: 0 auto;
+}
+
+.search {
+    height: 50px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 10px 10px;
+    font-size: 1rem;
+    border: 2px solid #bce5b7;
+    border-radius: 30px;
+
+
+    &::placeholder {
+        font-size: 1rem;
+    }
+
+    &:focus {
+        border: 2px solid #bbff6d;
+    }
+}
+
+.listContainer {
+    position: absolute;
+    bottom: 0;
+    transform: translateY(100%);
+    width: 100%;
+}

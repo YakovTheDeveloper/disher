@@ -25,7 +25,6 @@ const ProductAdd = () => {
       productToAdd.content[elementData.id] = Number(elementData.element.value)
     }
 
-    console.log(productToAdd)
   }
 
   return (

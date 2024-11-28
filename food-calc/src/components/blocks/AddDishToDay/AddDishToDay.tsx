@@ -1,6 +1,6 @@
 import { DishAddOptions } from '@/components/blocks/Days/Day'
 import { DayCategory } from '@/store/dayStore/rootDayStore'
-import { rootDayStore, rootMenuStore } from '@/store/rootStore'
+import { rootDayStore, rootDishStore } from '@/store/rootStore'
 import { observer } from 'mobx-react-lite'
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useNavigation, useSearchParams } from 'react-router-dom'
@@ -12,12 +12,13 @@ type Props = {
     dishAddCategory: DayCategory
     isDishInCategory: any
     currentCategoryId: string
+    toggleDish: any
 }
 
 const AddDishToDay = observer((props: Props) => {
 
-    const { addDishToCategory, dishAddCategory, isDishInCategory, currentCategoryId } = props
-    const { userDishes } = rootMenuStore
+    const { addDishToCategory, dishAddCategory, isDishInCategory, currentCategoryId, toggleDish } = props
+    const { userDishes } = rootDishStore
 
     const { name, dishes, id: categoryId } = dishAddCategory
 
@@ -32,7 +33,7 @@ const AddDishToDay = observer((props: Props) => {
     }, [currentCategoryId]);
 
     const onAdd = (dish: { id: string, name: string }) => {
-        addDishToCategory(categoryId, {
+        toggleDish(categoryId, {
             ...dish,
             position: 0
         })
@@ -43,15 +44,18 @@ const AddDishToDay = observer((props: Props) => {
             s.container,
             isBlue ? s.appear : ''
         ])}>
-            <p>Добавить блюдо в категорию {name}</p>
-            <ul>
-                {userDishes.map(({ id, name }) => (
-                    <li key={id} onClick={() => onAdd({ id, name })}>
-                        {id}, {name} {isDishInCategory(dishAddCategory, id) && 'In List'}
-                    </li>
-                ))}
+            <p>{name}: добавить или убрать блюдо</p>
+            <ul className={s.list}>
+                {userDishes.map(({ id, name }) => {
+                    const isActive = isDishInCategory(dishAddCategory, id)
+                    return (
+                        <li key={id} onClick={() => onAdd({ id, name })} className={clsx(s.listItem, isActive && s.inList)}>
+                            {name} <span>{isActive && '✅'}</span>
+
+                        </li>
+                    )
+                })}
             </ul>
-            {/* <button onClick={() => onAdd(id)}>Добавить</button> */}
         </div>
     )
 })

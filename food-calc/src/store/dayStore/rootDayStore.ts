@@ -1,26 +1,75 @@
 import { fetchCreateDay, fetchDeleteDay, fetchGetAllDay, fetchUpdateDay } from "@/api/day";
+import { isEmpty, isNotEmpty } from "@/lib/empty";
+import { CalculationStore } from "@/store/calculationStore/calculationStore";
+import { RootDishStore } from "@/store/rootMenuStore/rootMenuStore";
 import { CreateDayPayload } from "@/types/api/day";
-import { autorun, makeAutoObservable, toJS } from "mobx"
+import { autorun, makeAutoObservable, reaction, runInAction, toJS } from "mobx"
 import { v4 as uuidv4 } from 'uuid';
 
 
 
 
 export class RootDayStore {
-    constructor() {
+    currentAbortController: AbortController | null = null;
+
+    constructor(private rootMenuStore: RootDishStore) {
         makeAutoObservable(this)
 
         autorun(() => {
 
             this.getDays()
         })
+
+
+        reaction(
+            () => [this.currentStore, this.currentStore?.categories.map(cat => toJS(cat.dishes))],
+            ([day]) => {
+                runInAction(() => {
+                    if (!day) return
+
+                    if (this.currentAbortController) {
+                        this.currentAbortController.abort();
+                    }
+                    this.currentAbortController = new AbortController();
+                    this.calculations.resetNutrients()
+                    const dishesProductIds = this.rootMenuStore.getCorrespondingDishesProductsIds(day?.dishes || [])
+                    const productsToFetch = this.calculations.productStore.getMissingProductIds(dishesProductIds)
+                    const dishes = this.rootMenuStore.getCorrespondingDishes(day?.dishes || [])
+
+                    if (isNotEmpty(productsToFetch)) {
+                        const currentController = this.currentAbortController
+                        this.calculations.productStore.fetchAndSetProductNutrientsData(productsToFetch, this.currentAbortController.signal)
+                            .then(res => {
+                                if (!res) return
+                                if (currentController !== this.currentAbortController) return;
+                                this.calculations.update(dishes)
+                            })
+
+                    }
+                    if (isEmpty(productsToFetch)) {
+                        this.calculations.update(dishes)
+                    }
+                })
+            }
+        );
     }
+
+
+    calculations = new CalculationStore()
 
     draftDayStore: DayStore = new DayStore(this)
     userDayStores: DayStore[] = []
 
     get allStores() {
         return [this.draftDayStore, ...this.userDayStores]
+    }
+
+    get currentStore() {
+        return this.allStores.find(({ id }) => id === this.currentDayId)
+    }
+
+    get currentDayProducts() {
+        return this.currentStore?.products
     }
 
     findDayStore = (dayId: string) => {
@@ -36,6 +85,7 @@ export class RootDayStore {
     }
 
     currentDayId = this.draftDayStore.id
+
 
     // findDayCategory = (dayStore: DayStore, categoryId: string) => {
     //     return dayStore.categories.find(({ id }) => id === categoryId)
@@ -56,7 +106,6 @@ export class RootDayStore {
     createDay = async (payload: CreateDayPayload) => {
         fetchCreateDay(payload).then(res => {
             if (!res) return
-            console.log(res)
             const { categories, id, name } = res.result
             const newStore = new DayStore(this)
             newStore.categories = categories
@@ -70,7 +119,6 @@ export class RootDayStore {
     }
 
     updateDay = async (dayId: string, payload: CreateDayPayload) => {
-        console.log(dayId)
         fetchUpdateDay(dayId, payload).then(res => {
             if (!res) return
             console.log(res)
@@ -94,15 +142,16 @@ export class RootDayStore {
             if (!res) return
             const days = res.result.map(day => {
                 const store = new DayStore(this)
-                store.categories = day.categories
+                store.categories = day.categories.sort((a, b) => a.position - b.position);
                 store.id = day.id
                 store.name = day.name
-                console.log("store",store)
+                console.log("store", store)
                 return store
             })
             this.userDayStores = [...days]
         })
     }
+
 
 
 
@@ -115,7 +164,19 @@ export class DayStore {
     constructor(rootDayStore: RootDayStore) {
         makeAutoObservable(this)
         this.rootDayStore = rootDayStore
+
+        // reaction(
+        //     () => [this.rootDayStore?.currentDayId],
+        //     ([currentDayId]) => {
+        //         const result = currentDayId === this.id
+        //         console.log('wtf', result)
+        //         // console.log("currentDayId", currentDayId, res)
+        //     }
+        // );
     }
+
+
+    calculations = new CalculationStore()
 
     rootDayStore: RootDayStore | null = null
 
@@ -126,6 +187,30 @@ export class DayStore {
     id = DRAFT_ID
 
     currentCategoryId: string = ''
+
+    get dishes() {
+        return this.categories.flatMap(cat => cat.dishes.map(({ id }) => id))
+    }
+
+    get products() {
+        const products: string[] = []
+        for (const category of this.categories) {
+            for (const dish of category.dishes) {
+                products.push(dish.id)
+            }
+        }
+        return Array.from(new Set(products))
+    }
+
+    get uniqueProducts() {
+        const products: string[] = []
+        for (const category of this.categories) {
+            for (const dish of category.dishes) {
+                products.push(dish.id)
+            }
+        }
+        return Array.from(new Set(products))
+    }
 
     setCurrentCategoryId = (categoryId: string) => {
         this.currentCategoryId = categoryId
@@ -178,6 +263,31 @@ export class DayStore {
         category.dishes.push(dish)
         console.log('this.categories', toJS(this.categories))
     }
+
+    removeDishFromCategory = (categoryId: string, dish: DayCategoryDish) => {
+        const category = this.categories.find(({ id }) => id === categoryId)
+        if (!category) return
+        category.dishes = category?.dishes.filter(({ id }) => id !== dish.id)
+    }
+
+    changeCategoryName = (categoryId: string, name: string) => {
+        const category = this.categories.find(({ id }) => id === categoryId)
+        if (!category) return
+        category.name = name
+
+    }
+
+    toggleDish = (categoryId: string, dish: DayCategoryDish) => {
+        const category = this.categories.find(({ id }) => id === categoryId)
+        if (!category) return
+        const dishExist = category.dishes.find(({ id }) => id === dish.id)
+        if (dishExist) {
+            category.dishes = category?.dishes.filter(({ id }) => id !== dish.id)
+            return
+        }
+        category.dishes.push(dish)
+    }
+
 
 
     isDishInCategory = (category: DayCategory, dishId: string): boolean => {

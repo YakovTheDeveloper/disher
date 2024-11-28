@@ -2,9 +2,16 @@ import React, { useEffect } from 'react'
 import { IMenu, IProductBase } from '../../../types/menu/Menu'
 import { IProduct } from '../../../types/product/product'
 import { observer } from 'mobx-react'
-import { rootMenuStore } from '../../../store/rootStore'
+import { rootDishStore } from '../../../store/rootStore'
 import { toJS } from 'mobx'
-
+import { CalculationStore } from '@/store/calculationStore/calculationStore'
+import { nutrientDailyNorms, nutrientsMap } from '@/store/nutrientStore/data'
+import Container from '@/components/ui/Container/Container'
+import { li } from 'framer-motion/client'
+import { IdToQuantity } from '@/types/common/common'
+import s from './NutrientsTotal.module.css'
+import NutrientPercent from '@/components/blocks/NutrientsTotal/NutrientPercent/NutrientPercent'
+import { Typography } from '@/components/ui/Typography/Typography'
 // const calc = (products: IProductBase[]) => {
 
 //     const total: Record<string, number> = {}
@@ -19,28 +26,39 @@ import { toJS } from 'mobx'
 
 //     return total
 // }
+const nutrientCategories = Object.values(nutrientsMap)
 
-function NutrientsTotal() {
-    const { currentMenu, currentMenuId } = rootMenuStore
-
-    const total = currentMenu?.calculations.totalNutrients
-
-    useEffect(() => {
-
-
-        // return () => {
-        //     currentMenu.calculations.resetNutrients()
-        // }
+type Props = {
+    totalNutrients: IdToQuantity
+    loading: boolean
+}
+const NutrientsTotal = ({ totalNutrients, loading }: Props) => {
 
 
-    }, [currentMenuId])
+
 
 
     return (
-        <div key={currentMenuId}>
-            Total:
-            {JSON.stringify(total)}
-        </div>
+        <Container>
+            <div>
+                {loading && <span>Loading...</span>}
+            </div>
+            <ul>
+                {nutrientCategories.map(({ displayName, id, unit }) => (
+                    <li className={s.nutrient}>
+                        <span>{displayName}</span>
+                        <span>
+                            {totalNutrients[id] || '-'}
+                            {' '}
+                            <Typography variant='caption'>
+                                {unit}
+                            </Typography>
+                        </span>
+                        <NutrientPercent nutrientId={id} nutrientQuantity={totalNutrients[id]} />
+                    </li>
+                ))}
+            </ul>
+        </Container>
     )
 }
 

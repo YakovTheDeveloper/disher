@@ -4,11 +4,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { IProduct } from "../../types/product/product";
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { CreateMenuPayload } from "@/types/api/menu";
-import { DRAFT_MENU_ID } from "@/store/rootMenuStore/rootMenuStore";
+import { DRAFT_MENU_ID, RootDishStore } from "@/store/rootDishStore/rootDishStore";
 import { createIdToQuantityMapping } from "@/utils/transformation";
 import { fetchCreateMenu, fetchDeleteMenu, fetchUpdateMenu, FoodCollection } from "@/api/menu";
 import { isEqual } from "@/utils/comparison";
-import { productStore, rootMenuStore } from "@/store/rootStore";
+import { productStore, rootDishStore } from "@/store/rootStore";
 import { emitter, EVENTS } from "@/store/emitter";
 
 type IMenuStore = {
@@ -24,15 +24,19 @@ type CalcSource = {
     products: IProductBase[]
 }
 
-export abstract class MenuStore {
+export class DishStore {
     description = ''
     name = 'New menu'
     id: string | number = DRAFT_MENU_ID
-    _products: IProductBase[] = []
+    products: IProductBase[] = []
     fetched = false
 
-    get products() {
-        return this._products
+    get productIds() {
+        return this.products.map(({ id }) => id)
+    }
+
+    get productsEmpty() {
+        return this.products.length === 0
     }
 
     get createMenuPayload(): CreateMenuPayload {
@@ -49,9 +53,11 @@ export abstract class MenuStore {
     }
 
     setData = (data: {
-        id?: string | number
+        id?: string | number,
+        name?: string
     }) => {
         if (data.id) this.id = data.id
+        if (data.name) this.name = data.name
         return this
     }
 
@@ -62,11 +68,11 @@ export abstract class MenuStore {
     }
 
     setProducts = (products: IProductBase[]) => {
-        this._products = products
+        this.products = products
     }
 
     removeProduct = (productId: number) => {
-        this._products = this._products.filter(product => +product.id !== productId)
+        this.products = this.products.filter(product => +product.id !== productId)
     }
 
     addTo = (productToAdd: IProductBase) => {
@@ -75,6 +81,14 @@ export abstract class MenuStore {
         this.products.push(productToAdd)
     }
 
+    toggleProduct = (product: IProductBase) => {
+        const existed = this.products.find(({ id }) => id === product.id)
+        if (existed) {
+            this.products = this.products.filter(({ id }) => id !== product.id)
+            return
+        }
+        this.products.push(product)
+    }
 
     calculations = new CalculationStore(this)
 
@@ -82,12 +96,16 @@ export abstract class MenuStore {
 
     }
 
+    resetToInit = () => { }
+
     constructor() {
         makeObservable(this, {
-            _products: observable,
-            products: computed,
+            products: observable,
+            // products: computed,
+            productIds: computed,
             setProducts: action,
             removeProduct: action,
+            toggleProduct: action,
         })
 
 
@@ -107,71 +125,86 @@ export abstract class MenuStore {
 }
 
 
-export class UserMenuStore extends MenuStore {
-    constructor() {
-        super()
+export class UserDishStore extends DishStore {
+    constructor(private rootDishStore: RootDishStore) {
+        super();
+
         makeObservable(this, {
             _initProductsSnapshot: observable,
             changeOccured: observable,
             save: action,
             setInitProductsSnapshot: action,
             resetToInit: action,
-            initProductsSnapshot: computed
-        })
+            initProductsSnapshot: computed,
+        });
+
+        // Initialize the snapshot and start the reaction
+        this._initProductsSnapshot = null;
+        this.changeOccured = false;
 
         reaction(
-            () => [toJS(this._initProductsSnapshot), toJS(this._products)],
+            () => [toJS(this._initProductsSnapshot), toJS(this.products)],
             ([snapshot, products]) => {
                 this.changeOccured = !isEqual(snapshot, products);
             }
         );
     }
 
-    async save(id: number): Promise<unknown> {
-        return fetchUpdateMenu(id, this.createMenuPayload, this.collectionType).then(
-            action("fetchSuccess", res => {
-                const updated = JSON.parse(JSON.stringify(this._products)) as IProductBase[]
-                this._initProductsSnapshot = updated
-
+    save = async (id: number): Promise<unknown> => {
+        const captureState = structuredClone(toJS(this.products))
+        return fetchUpdateMenu(id, this.createMenuPayload).then(
+            action("fetchSuccess", (res) => {
+                console.log("@@@", res)
+                this._initProductsSnapshot = captureState
+                this.changeOccured = false;
             }),
-            action("fetchError", error => {
+            action("fetchError", (error) => {
+                console.error("Save failed", error);
             })
-        )
-    }
+        );
+    };
 
+    removeDish = async (id: string) => {
+        this.rootDishStore.removeDish(id);
+    };
 
     changeOccured: boolean = false;
 
-    _initProductsSnapshot: IProductBase[] | null = null
+    _initProductsSnapshot: IProductBase[] | null = null;
 
     get initProductsSnapshot() {
-        return this._initProductsSnapshot
+        return this._initProductsSnapshot;
+    }
+
+    setInitProductsSnapshot(products: IProductBase[]) {
+        this._initProductsSnapshot = structuredClone(products)
     }
 
     resetToInit = () => {
-        if (!this._initProductsSnapshot) return
-        this._products = JSON.parse(JSON.stringify(this._initProductsSnapshot))
-        this.changeOccured = false
-    }
-
-    setInitProductsSnapshot = (products: IProductBase[]) => {
-        this._initProductsSnapshot = products
-    }
+        console.log("this._initProductsSnapsho", this._initProductsSnapshot)
+        if (!this._initProductsSnapshot) return;
+        this.products = structuredClone(this._initProductsSnapshot);
+        this.changeOccured = false;
+    };
 }
 
-export class DraftMenuStore extends MenuStore {
+export class DraftDishStore extends DishStore {
     constructor() {
         super()
         makeObservable(this, {
             save: action
         })
-        autorun(() => {
-        })
+
+    }
+
+    resetToInit = () => {
+        this.products = []
     }
 
 
-    async save() {
-        return fetchCreateMenu(this.createMenuPayload, this.collectionType).then(
+    save = async () => {
+        console.log('this', this)
+        return fetchCreateMenu(this.createMenuPayload).then(
             action("fetchSuccess", res => {
                 res.id
             }),

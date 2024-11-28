@@ -10,6 +10,7 @@ import DayCategoryItem from '@/components/blocks/Days/DayCategory/DayCategory'
 import { AnimatePresence, Reorder } from 'framer-motion'
 import s from './Day.module.css'
 import { CreateDayPayload, CreateDayResponse } from '@/types/api/day'
+import Button from '@/components/ui/Button/Button'
 type Props = {
     store: DayStore
     createDay: (payload: CreateDayPayload) => Promise<CreateDayResponse>
@@ -22,28 +23,19 @@ export type DishAddOptions = {
 
 const Day = (props: Props) => {
     const { store, createDay } = props
-    console.log("store", toJS(store))
-    const { onSave, moveCategory, removeCategory, addCategory, categories, name, id, addDishToCategory, isDishInCategory, currentCategoryId, setCurrentCategoryId } = store
+    const { changeCategoryName, removeDishFromCategory, onSave, moveCategory, removeCategory, addCategory, categories, name, id, addDishToCategory, isDishInCategory, currentCategoryId, setCurrentCategoryId, toggleDish } = store
 
     const [dishAddCategory, setDishAddCategory] = useState<DayCategory | null>(null)
 
     const onDishAdd = (category: DayCategory) => {
-        console.log('setCurrentCategoryId', setCurrentCategoryId)
         setCurrentCategoryId(category.id)
         setDishAddCategory(category)
     }
 
-    // const onSave = async () => {
-    //     const payload = generatePayload()
-    //     const newDay = await createDay(payload)
-    // }
-
-
-
     return (
         <section className={s.day}>
             <h2>{name}</h2>
-            <button onClick={addCategory}>Создать категорию</button>
+            <Button onClick={addCategory} variant='secondary'>Создать категорию</Button>
             <div className={s.content}>
                 <Reorder.Group
                     axis="y"  // Restrict movement to the y-axis (vertical)
@@ -64,20 +56,26 @@ const Day = (props: Props) => {
                                 onDishAdd={onDishAdd}
                                 currentCategoryId={currentCategoryId}
                                 removeCategory={removeCategory}
+                                removeDishFromCategory={removeDishFromCategory}
+                                changeCategoryName={changeCategoryName}
+
 
                             />
                         ))}
                     </AnimatePresence>
                 </Reorder.Group>
-                {dishAddCategory &&
-                    <AddDishToDay
-                        addDishToCategory={addDishToCategory}
-                        dishAddCategory={dishAddCategory}
-                        isDishInCategory={isDishInCategory}
-                        currentCategoryId={currentCategoryId}
-                    />}
-                <button onClick={onSave}>Сохранить</button>
+                <section>
+                    {dishAddCategory &&
+                        <AddDishToDay
+                            addDishToCategory={addDishToCategory}
+                            dishAddCategory={dishAddCategory}
+                            isDishInCategory={isDishInCategory}
+                            currentCategoryId={currentCategoryId}
+                            toggleDish={toggleDish}
+                        />}
+                </section>
             </div>
+            <Button onClick={onSave} variant='secondary'>Сохранить</Button>
         </section>
     )
 }

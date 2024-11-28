@@ -17,6 +17,8 @@ body {
   display: flex;
   min-width: 320px;
   min-height: 100vh;
+  font-family: "Jost", sans-serif;
+  font-size: 16px;
 }
 
 h1 {
@@ -26,6 +28,7 @@ h1 {
 
 button {
   font-family: inherit;
+  font-size: inherit;
   cursor: pointer;
 }
 

@@ -8,9 +8,9 @@ type Props = {
   after: React.ReactNode
 }
 const Tab = (props: Props) => {
-  const { onClick, children, isActive, after } = props
+  const { onClick, children, isActive, after, draft } = props
   return (
-    <li className={clsx([s.tab, isActive && s.active])}>
+    <li className={clsx([s.tab, isActive && s.active, draft && s.draft])}>
       <div className={clsx([s.inner])} onClick={onClick}>{children}
       </div>
       {after &&

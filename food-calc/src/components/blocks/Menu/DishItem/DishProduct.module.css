@@ -1,0 +1,63 @@
+.dishProduct {
+    position: relative;
+    padding: 4px 0;
+    border-bottom: 1px solid #ddd;
+    background-color: #fff;
+    display: grid;
+    width: 100%;
+    grid-template-columns: 7fr 1fr 20px;
+    gap: 8px;
+    overflow: hidden;
+    font-size: 1rem;
+}
+
+.dishProduct:hover .removeButton {
+    opacity: 1;
+}
+
+.removeButton {
+    opacity: 0;
+}
+
+.productName {
+    z-index: 1;
+    color: #333;
+    font-weight: bold;
+}
+
+.input {
+    width: 50px;
+}
+
+/* Skeleton Overlay */
+.loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0.6) 0%,
+            rgba(255, 255, 255, 0.8) 50%,
+            rgba(255, 255, 255, 0.6) 100%);
+    z-index: 0;
+    animation: shimmer 1.5s infinite;
+    opacity: 0.8;
+    /* Adjust transparency level */
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.loading input,
+.loading button {
+    visibility: hidden;
+}
