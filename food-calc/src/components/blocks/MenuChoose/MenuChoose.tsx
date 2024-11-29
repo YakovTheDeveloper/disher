@@ -6,12 +6,12 @@ import { Tab } from '@/components/ui/Tab'
 import { TabList } from '@/components/ui/TabList'
 import s from './DishTabs.module.css'
 function MenuChoose() {
-    const { dishes, setCurrentMenuId, currentDishId } = rootDishStore
+    const { dishes, setCurrentDishId, currentDishId } = rootDishStore
     console.log(dishes)
     return (
         <nav className={s.dishTabs}>
             <TabList>
-                {dishes.map(({ id, name }, i) => (<Tab draft={i === 0} key={id} onClick={() => setCurrentMenuId(id)} isActive={currentDishId === id}>{name}</Tab>))}
+                {dishes.map(({ id, name }, i) => (<Tab draft={i === 0} key={id} onClick={() => setCurrentDishId(id)} isActive={currentDishId === id}>{name}</Tab>))}
             </TabList>
             {/* <button onClick={onAdd}>+</button> */}
         </nav>

@@ -9,6 +9,7 @@ import { ProductLoading } from '@/store/productStore/productStore'
 import s from './DishProduct.module.css'
 import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
 import clsx from 'clsx'
+import { Typography } from '@/components/ui/Typography/Typography'
 
 type Props = {
   product: IProductBase
@@ -27,8 +28,8 @@ function DishItem({ product, setProductQuantity, removeProduct, isLoading }: Pro
 
   return (
     <div className={clsx([s.dishProduct, isLoading?.isLoading ? s.loading : ''])}>
-      <p>{product.name}</p>
       <input maxLength={4} className={clsx(s.input)} type="text" value={product.quantity} onChange={onChange} disabled={disabled} />
+      <Typography variant='body2'>{product.name}</Typography>
       <RemoveButton onClick={() => removeProduct(product.id)} className={s.removeButton} />
     </div>
   )

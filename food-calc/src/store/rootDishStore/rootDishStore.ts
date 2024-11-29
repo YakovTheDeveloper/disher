@@ -10,9 +10,10 @@ import { emitter, EVENTS } from "@/store/emitter";
 import { NutrientStore } from "@/store/nutrientStore/nutrientStore";
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { isEmpty, isNotEmpty } from "@/lib/empty";
+import { IDish } from "@/types/dish/dish";
 
 type IRootMenuStore = {
-    setCurrentMenuId(id: number): void
+    setCurrentDishId(id: number): void
     productStore: ProductStore
 }
 
@@ -20,9 +21,10 @@ export const DRAFT_MENU_ID = 'draft-menu'
 
 export class RootDishStore implements IRootMenuStore {
 
-    draftDish = new DraftDishStore().setData({
+    draftDish = new DraftDishStore(this).setData({
         id: DRAFT_MENU_ID,
-        name: 'Новое блюдо'
+        name: 'Новое блюдо',
+        products: []
     })
 
     userDishes: DishStore[] = []
@@ -35,6 +37,10 @@ export class RootDishStore implements IRootMenuStore {
 
     get currentDish() {
         return this.dishes.find(({ id }) => id === this.currentDishId)
+    }
+
+    get dishIds() {
+        return this.dishes.map(({ id }) => id)
     }
 
 
@@ -61,22 +67,27 @@ export class RootDishStore implements IRootMenuStore {
         return Array.from(new Set(dishIds.flatMap(dishId => this.idToDishMapping[dishId].map(({ id }) => id))))
     }
 
-    setCurrentMenuId = (id: number | 'draft-menu') => {
+    setCurrentDishId = (id: number | 'draft-menu') => {
         this.currentDishId = id
+    }
+
+    createDishStore = (payload: IDish) => {
+        const store = new UserDishStore(this)
+        store.setData(payload)
+        store.detectChangesStore.setInitSnapshot(payload.products)
+        return store
+    }
+
+    addDishStore = (store: DishStore) => {
+        this.userDishes.push(store)
     }
 
     getAll = async () => {
         fetchGetAllMenu().then(
             action("fetchSuccess", res => {
 
-                res.forEach(({ description, id, name, products }) => {
-                    const store = new UserDishStore(this)
-                    store.description = description
-                    store.id = id
-                    store.name = name
-                    store.products = products
-                    store.setInitProductsSnapshot(products)
-                    this.userDishes.push(store)
+                res.forEach((payload) => {
+                    this.addDishStore(this.createDishStore(payload))
                 })
             }),
             action("fetchError", error => {
@@ -98,6 +109,7 @@ export class RootDishStore implements IRootMenuStore {
     removeDish = async (id: string): Promise<any> => {
         return fetchDeleteMenu(id).then(
             action("fetchSuccess", res => {
+                this.currentDishId = DRAFT_MENU_ID
                 this.userDishes = this.userDishes.filter(dish => dish.id !== id)
             }),
             action("fetchError", error => {

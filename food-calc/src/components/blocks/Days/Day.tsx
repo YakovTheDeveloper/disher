@@ -11,6 +11,7 @@ import { AnimatePresence, Reorder } from 'framer-motion'
 import s from './Day.module.css'
 import { CreateDayPayload, CreateDayResponse } from '@/types/api/day'
 import Button from '@/components/ui/Button/Button'
+import { Typography } from '@/components/ui/Typography/Typography'
 type Props = {
     store: DayStore
     createDay: (payload: CreateDayPayload) => Promise<CreateDayResponse>
@@ -22,7 +23,7 @@ export type DishAddOptions = {
 }
 
 const Day = (props: Props) => {
-    const { store, createDay } = props
+    const { store } = props
     const { changeCategoryName, removeDishFromCategory, onSave, moveCategory, removeCategory, addCategory, categories, name, id, addDishToCategory, isDishInCategory, currentCategoryId, setCurrentCategoryId, toggleDish } = store
 
     const [dishAddCategory, setDishAddCategory] = useState<DayCategory | null>(null)
@@ -34,16 +35,15 @@ const Day = (props: Props) => {
 
     return (
         <section className={s.day}>
-            <h2>{name}</h2>
-            <Button onClick={addCategory} variant='secondary'>Создать категорию</Button>
+            <Typography variant='h1'>{name}</Typography>
+            <Button onClick={addCategory} variant='primary'>Создать категорию</Button>
             <div className={s.content}>
                 <Reorder.Group
-                    axis="y"  // Restrict movement to the y-axis (vertical)
+                    axis="y"
                     values={categories}
                     onReorder={(newOrder) => {
-                        // Update the store with the new order
                         store.categories = newOrder;
-                        store.syncPositions(); // Sync positions after reordering
+                        store.syncPositions();
                     }}
                 >
                     <AnimatePresence>
@@ -75,7 +75,7 @@ const Day = (props: Props) => {
                         />}
                 </section>
             </div>
-            <Button onClick={onSave} variant='secondary'>Сохранить</Button>
+            <Button onClick={onSave} variant='primary'>Сохранить</Button>
         </section>
     )
 }

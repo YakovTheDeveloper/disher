@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, BadRequestException } from '@nestjs/common';
 import { Request } from 'express';
 
-import { CreateFoodCollectionDto } from 'foodCollection/common/dto/create-foodCollection.dto';
+import { CreateDishDto } from 'foodCollection/common/dto/create-foodCollection.dto';
 import { UpdateFoodCollectionDto } from 'foodCollection/common/dto/update-foodCollection.dto';
 import { FoodCollectionService } from 'foodCollection/common/foodCollection.service';
 import { LocalAuthGuard } from 'resources/auth/auth.guard';
@@ -13,7 +13,7 @@ export class FoodCollectionController {
 
     @UseGuards(LocalAuthGuard)
     @Post()
-    async create(@Body() createDto: CreateFoodCollectionDto, @Req() request: Request) {
+    async create(@Body() createDto: CreateDishDto, @Req() request: Request) {
         const userId = request.user?.id
         if (userId == null) {
             throw new BadRequestException('No such user id');

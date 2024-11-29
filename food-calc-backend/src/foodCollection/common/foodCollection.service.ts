@@ -7,7 +7,7 @@ import { UsersService } from 'users/users.service';
 import { MenuProductService } from 'menu_product/menu_product.service';
 import { Product } from 'products/entities/product.entity';
 import { compareProducts, createProductIdToMenuProduct } from 'lib/update';
-import { CreateFoodCollectionDto } from 'foodCollection/common/dto/create-foodCollection.dto';
+import { CreateDishDto } from 'foodCollection/common/dto/create-foodCollection.dto';
 import { UpdateFoodCollectionDto } from 'foodCollection/common/dto/update-foodCollection.dto';
 import { FoodCollection } from './entities/foodCollection.entity';
 import { FoodCollectionProductService } from './foodCollection_product.service';
@@ -24,7 +24,7 @@ export class FoodCollectionService {
         private foodCollectionProductService: FoodCollectionProductService,
     ) { }
 
-    async create(createFoodCollectionDto: CreateFoodCollectionDto, userId: number) {
+    async create(createFoodCollectionDto: CreateDishDto, userId: number) {
         const { products } = createFoodCollectionDto
 
         const user = new User()

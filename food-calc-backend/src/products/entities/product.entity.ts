@@ -37,7 +37,4 @@ export class Product {
 
     @OneToMany(() => ProductsNutrient, productNutrient => productNutrient.product)
     productNutrients: ProductsNutrient[]
-
-    // @OneToMany(() => MenuProduct, menuProduct => menuProduct.product)
-    // public menuToProducts: MenuProduct[];
 }

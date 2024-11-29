@@ -22,7 +22,7 @@ function Dish(props: Props) {
     return (
         <section className={s.dish}>
             <Typography align='center' variant='h1'>{name}</Typography>
-            <Container vertical>
+            <div >
                 {/* <h4>Продукты</h4> */}
                 {productsEmpty && <>
                     <Typography variant='caption'>Список пуст</Typography>
@@ -39,7 +39,7 @@ function Dish(props: Props) {
                         />)}
 
                 </div>
-            </Container>
+            </div>
 
             <div className={s.actions}>
                 {children}

@@ -1,11 +1,11 @@
 import { Type } from "class-transformer";
-import { IsNotEmpty, Length, Validate, ValidateNested } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsString, Length, Validate, ValidateNested } from "class-validator";
 import { MenuCategory, IdToQuantity } from "common/types";
 import { Product } from "products/entities/product.entity";
 import { User } from "users/entities/user.entity";
 import { IsNumberRecord } from "validators/isMappingNumberToNumber";
 
-export class CreateFoodCollectionDto {
+export class CreateDishDto {
     @IsNotEmpty()
     @Length(2, 50)
     name: string
@@ -13,7 +13,21 @@ export class CreateFoodCollectionDto {
     @Length(0, 50)
     description: string
 
-    @IsNumberRecord()
+    @IsArray()
     @ValidateNested({ each: true })
-    products: IdToQuantity;
+    @Type(() => DishProductDto)
+    products: DishProductDto[];
 }
+
+
+export class DishProductDto {
+    @IsNumber()
+    id: number;
+
+    @IsString()
+    name: string;
+
+    @IsNumber()
+    quantity: number;
+}
+

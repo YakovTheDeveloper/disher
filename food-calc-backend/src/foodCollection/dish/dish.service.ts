@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { DISH_REPOSITORY, MENU_REPOSITORY, MENUS_REPOSITORY } from 'constants/provide';
-import { In, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { UsersService } from 'users/users.service';
 import { FoodCollectionService } from 'foodCollection/common/foodCollection.service';
 import { FoodCollectionProductService } from 'foodCollection/common/foodCollection_product.service';
@@ -10,10 +10,12 @@ import { Dish } from 'foodCollection/dish/dish.entity';
 import { Menu } from 'foodCollection/menu/menu.entity';
 import { compareProducts, createProductIdToMenuProduct } from 'lib/update';
 import { UpdateFoodCollectionDto } from 'foodCollection/common/dto/update-foodCollection.dto';
-import { CreateFoodCollectionDto } from 'foodCollection/common/dto/create-foodCollection.dto';
+import { CreateDishDto, DishProductDto } from 'foodCollection/common/dto/create-foodCollection.dto';
 import { CreateFoodCollectionProductDto } from 'foodCollection/common/dto/create-foodCollection_product.dto';
 import { Product } from 'products/entities/product.entity';
 import { User } from 'users/entities/user.entity';
+import { DishProduct } from 'foodCollection/dish/dishProduct/dishProduct.entity';
+import { classToPlain, instanceToPlain, plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class DishService {
@@ -82,63 +84,28 @@ export class DishService {
     }
   }
 
-  async create(createFoodCollectionDto: CreateFoodCollectionDto, userId: number) {
-    const { products } = createFoodCollectionDto
-
-    const user = new User()
-    user.id = userId
-
-    const foodCollection = this.dishRepository.create({
-      ...createFoodCollectionDto,
-      user
-    })
-
-    const productsToAdd: CreateFoodCollectionProductDto[] = []
-
-    for (const id in products) {
-      const productQuantity = products[id]
-      const productToAdd = new Product()
-      productToAdd.id = +id
-
-      const foodProduct = new CreateFoodCollectionProductDto()
-      foodProduct.product = productToAdd
-      foodProduct.menu = foodCollection
-      foodProduct.dish = foodCollection
-      foodProduct.quantity = productQuantity
-
-      productsToAdd.push(foodProduct)
-    }
-
-    const createdMenu = await this.dishRepository.save(foodCollection)
-    await this.dishProductService.create(productsToAdd)
-
-    const { user: menuUser, ...result } = createdMenu
-
-    return result
+  async create(dto: CreateDishDto, userId: number) {
+    const dish = createDish(userId, dto)
+    const newDish = await this.dishRepository.save(dish)
+    return { result: transformDish(newDish) }
   }
 
+  async update(dishId: number, dto: UpdateFoodCollectionDto) {
+    await this.dishRepository.manager.transaction(async (manager) => {
+      // Remove old relationships
+      await manager.createQueryBuilder()
+        .delete()
+        .from(DishProduct)
+        .where("dishId = :dishId", { dishId })
+        .execute();
 
-  async update(dishId: number, { products: updatedProducts, description, name }: UpdateFoodCollectionDto) {
-    if (description || name) {
-      const dish = new Dish()
-      dish.id = dishId
-      description && (dish.description = description)
-      name && (dish.name = name)
-      await this.dishRepository.save(dish)
-    }
+      const dish = new Dish();
+      dish.id = dishId;
+      updateDish(dish, dto);
+      await manager.save(Dish, dish);
+    });
 
-    if (!updatedProducts) {
-      return 'Done'
-    }
-
-    const menus = await this.dishProductService.findProductWithQuantityByMenuId(dishId)
-
-    const { initialMenuProducts, productToQuantity } = createProductIdToMenuProduct(menus)
-
-    const delta = compareProducts(productToQuantity, updatedProducts)
-
-    const result = await this.dishProductService.updateWithDelta({ delta, dishId, initialMenuProducts })
-    return result
+    return true;
   }
 
   remove(id: number) {
@@ -180,3 +147,63 @@ function transformResult(result: any[]): { productId: number; nutrients: Record<
 
 }
 
+type DishData = {
+  name: string, description: string, products: DishProductDto[]
+}
+
+const createDish = (userId: number, data: DishData) => {
+  const { description, name, products } = data
+  const user = new User()
+  user.id = userId
+  const dish = new Dish()
+  dish.name = name
+  dish.description = description
+  dish.user = user
+  const dishProducts = createDishProducts(dish, products)
+  dish.dishToProducts = dishProducts
+  return dish
+}
+
+const updateDish = (dish: Dish, data: Partial<DishData>) => {
+  if (data.products) {
+    const dishProducts = createDishProducts(dish, data.products)
+    dish.dishToProducts = dishProducts
+  }
+  if (data.name) {
+    dish.name = data.name
+  }
+  if (data.description) {
+    dish.description = data.description
+  }
+}
+
+const createDishProducts = (dish: Dish, products: DishProductDto[]) => {
+  return products.map(({ id, quantity, name }) => {
+    const dishProduct = new DishProduct()
+
+    dishProduct.dish = dish
+    dishProduct.quantity = quantity
+    const product = new Product
+    product.id = id
+    product.name = name
+    dishProduct.product = product
+
+    return dishProduct
+  })
+}
+
+const transformDishProducts = (products: DishProduct[]) => {
+  console.log(products.map(product => {
+    console.log(product)
+  }))
+  return products.map(({ id, quantity, product }) => ({
+    id: product.id, quantity, name: product.name
+  }))
+}
+
+const transformDish = (dish: Dish) => {
+  const { id, name, description, dishToProducts } = dish
+  return {
+    id, name, description, products: transformDishProducts(dishToProducts)
+  }
+}

@@ -18,7 +18,7 @@ export class DayCategoryDish {
     @JoinColumn({ name: 'dayCategoryId' })
     dayCategory: DayCategory;
 
-    @ManyToOne(() => Dish, dish => dish.dayCategoryDishes, { cascade: true, eager: true })
+    @ManyToOne(() => Dish, dish => dish.dayCategoryDishes, { eager: true, onDelete: 'CASCADE' })
     @JoinColumn({ name: 'dishId' })
     dish: Dish;
 

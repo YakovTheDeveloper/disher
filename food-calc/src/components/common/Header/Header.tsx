@@ -4,6 +4,8 @@ import { Modals } from '@/store/uiStore/uiStore'
 import { UserStore } from '@/store/userStore/userStore'
 import React from 'react'
 import s from './Header.module.css'
+import { RouterPaths } from '@/main'
+import { NavLink } from 'react-router-dom'
 
 const Header = () => {
 
@@ -15,6 +17,9 @@ const Header = () => {
 
     return (
         <header className={s.header}>
+            {Object.values(RouterPaths).map(({ label, url }) => (
+                <NavLink to={url}>{label}</NavLink>
+            ))}
             <AuthButton onClick={onSignIn}>
                 Войти
             </AuthButton>

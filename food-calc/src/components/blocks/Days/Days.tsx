@@ -1,8 +1,10 @@
 import Day from '@/components/blocks/Days/Day'
 import NutrientsTotal from '@/components/blocks/NutrientsTotal/NutrientsTotal'
+import Container from '@/components/ui/Container/Container'
 import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
 import { Tab } from '@/components/ui/Tab'
 import { TabList } from '@/components/ui/TabList'
+import { DRAFT_ID } from '@/store/dayStore/rootDayStore'
 import { getFullDataStore, rootDayStore } from '@/store/rootStore'
 import { toJS } from 'mobx'
 import { observer } from 'mobx-react-lite'
@@ -19,21 +21,27 @@ const Days = () => {
 
 
     return (
-        <section>
-            <TabList>
-                {allStores.map(({ id, name }) => (
-                    <Tab
-                        key={id}
-                        onClick={() => setCurrentDayId(id)}
-                        isActive={currentDayId === id}
-                        after={isDraftId(id) ? null : <RemoveButton onClick={() => removeDay(id)} />}
-                    >
+        <Container>
+            <Container>
+                <TabList >
+                    {allStores.map(({ id, name }, i) => (
+                        <Tab
+                            key={id}
+                            draft={i === 0}
+                            onClick={() => setCurrentDayId(id)}
+                            isActive={currentDayId === id}
+                            after={isDraftId(id) ? null : <RemoveButton onClick={() => removeDay(id)} />}
+                        >
 
-                        {name}</Tab>))}
-            </TabList>
-            {currentStore && <Day store={currentStore} ></Day>}
+                            {name}
+                        </Tab>))}
+                </TabList>
+            </Container>
+            <Container boxShadow>
+                {currentStore && <Day store={currentStore} ></Day>}
+            </Container>
             {currentStore && <NutrientsTotal totalNutrients={rootDayStore.calculations.totalNutrients} loading={isLoading}></NutrientsTotal>}
-        </section>
+        </Container>
     )
 }
 

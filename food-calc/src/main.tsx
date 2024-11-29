@@ -26,6 +26,17 @@ const Root = () => {
   )
 }
 
+export const RouterPaths = {
+  'days': {
+    url: '/days',
+    label: 'Дни'
+  },
+  'main': {
+    url: '/',
+    label: 'Создание блюд'
+  },
+}
+
 const router = createBrowserRouter([
   {
     path: "/",

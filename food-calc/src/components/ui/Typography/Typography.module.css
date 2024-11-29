@@ -1,17 +1,15 @@
-.h1{
+.h1 {
     font-size: 1.8rem;
     font-weight: 300;
 }
 
-.body1{
+.body1 {}
 
+.body2 {
+    /* font-size: 1rem; */
 }
 
-.body2{
-
-}
-
-.caption{
+.caption {
     opacity: 0.7;
     font-size: 0.8rem;
 }

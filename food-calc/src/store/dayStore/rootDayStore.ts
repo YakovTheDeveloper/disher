@@ -1,7 +1,9 @@
 import { fetchCreateDay, fetchDeleteDay, fetchGetAllDay, fetchUpdateDay } from "@/api/day";
 import { isEmpty, isNotEmpty } from "@/lib/empty";
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
+import { DetectChangesStore } from "@/store/common/DetectChangesStore";
 import { RootDishStore } from "@/store/rootMenuStore/rootMenuStore";
+import { rootDishStore } from "@/store/rootStore";
 import { CreateDayPayload } from "@/types/api/day";
 import { autorun, makeAutoObservable, reaction, runInAction, toJS } from "mobx"
 import { v4 as uuidv4 } from 'uuid';
@@ -86,22 +88,9 @@ export class RootDayStore {
 
     currentDayId = this.draftDayStore.id
 
-
-    // findDayCategory = (dayStore: DayStore, categoryId: string) => {
-    //     return dayStore.categories.find(({ id }) => id === categoryId)
-    // }
-
     setCurrentDayId = (id: string) => {
         this.currentDayId = id
     }
-
-    // saveDay = async (payload: CreateDayPayload) => {
-    //     if (this.currentDayId === DRAFT_ID) {
-    //         this.createDay(payload)
-    //         return
-    //     }
-    //     this.updateDay(payload)
-    // }
 
     createDay = async (payload: CreateDayPayload) => {
         fetchCreateDay(payload).then(res => {
@@ -173,7 +162,29 @@ export class DayStore {
         //         // console.log("currentDayId", currentDayId, res)
         //     }
         // );
+
+        reaction(
+            () => rootDishStore.dishIds,
+            (totalDishIds) => {
+                const dayDishIds = this.dishIds
+                const deletedDishIds = dayDishIds.filter((id) => !totalDishIds.includes(id));
+
+                deletedDishIds.forEach((deletedDishId) => {
+                    this.categories.forEach((category) => {
+                        const dish = category.dishes.find((d) => d.id === deletedDishId);
+                        if (dish) {
+                            this.removeDishFromCategory(category.id, dish);
+                        }
+                    });
+                });
+
+                console.log("Deleted dish IDs:", deletedDishIds);
+            }
+        );
+
     }
+
+
 
 
     calculations = new CalculationStore()
@@ -189,6 +200,10 @@ export class DayStore {
     currentCategoryId: string = ''
 
     get dishes() {
+        return this.categories.flatMap(cat => cat.dishes.map(({ id }) => id))
+    }
+
+    get dishIds() {
         return this.categories.flatMap(cat => cat.dishes.map(({ id }) => id))
     }
 
@@ -341,9 +356,28 @@ export class DayStore {
         }
         this.rootDayStore?.updateDay(this.id, this.generatePayload())
     }
+
+    
 }
 
+export class UserDayStore extends DayStore {
 
+    constructor(rootDayStore: RootDayStore) {
+        super(rootDayStore)
+        this.detectChangesStore = new DetectChangesStore(this.categories);
+
+        reaction(
+            () => [toJS(this.categories)],
+            ([data]) => {
+                this.detectChangesStore.setData(data)
+            }
+        );
+
+    }
+    detectChangesStore: DetectChangesStore<DayCategory[]>
+
+
+}
 
 type DayCategoryDish = {
     "id": string,
@@ -357,13 +391,6 @@ export type DayCategory = {
     position: number,
     "dishes": DayCategoryDish[]
 }
-
-type Day =
-    {
-        "dayName": string,
-        "dayContent":
-        DayCategory[]
-    }
 
 const draftDayExample = {
     dayName: 'Новый день',

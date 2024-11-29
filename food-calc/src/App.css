@@ -15,4 +15,6 @@
   --color-light-green-2: rgb(222, 255, 234);
 
   --box-shadow-s: -1px 2px 8px -2px rgba(0, 0, 0, 0.3);
+
+  --width-quantity-input: 50px;
 }

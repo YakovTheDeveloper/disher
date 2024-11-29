@@ -7,19 +7,21 @@ export type MenuPayload = {
 
     description: string
 
-    products: IdToQuantity;
+    products: IProductBase[];
 }
 
 export type CreateMenuPayload = MenuPayload
 export type UpdateMenuPayload = MenuPayload
 
 export type MenuCreateResponse = {
+    result: {
 
-    name: string
+        name: string
 
-    description: string
+        description: string
 
-    id: string;
+        id: string;
+    }
 }
 
 export type GetMenuResponse = {
