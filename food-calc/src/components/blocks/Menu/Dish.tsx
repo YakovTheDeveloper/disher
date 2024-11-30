@@ -16,7 +16,7 @@ type Props = {
 
 function Dish(props: Props) {
     const { store, children } = props
-    const { products = [], setProductQuantity, removeProduct, id, save, name, productsEmpty } = store
+    const { products = [], setProductQuantity, removeProduct, name, empty } = store
     const { getLoadingStatus } = productStore
 
     return (
@@ -24,7 +24,7 @@ function Dish(props: Props) {
             <Typography align='center' variant='h1'>{name}</Typography>
             <div >
                 {/* <h4>Продукты</h4> */}
-                {productsEmpty && <>
+                {empty && <>
                     <Typography variant='caption'>Список пуст</Typography>
                     <p>Можно добавить продукты, воспользовавшись поиском</p>
                 </>}

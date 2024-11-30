@@ -12,24 +12,24 @@ import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { isEmpty, isNotEmpty } from "@/lib/empty";
 import { IDish } from "@/types/dish/dish";
 
-type IRootMenuStore = {
-    setCurrentDishId(id: number): void
-    productStore: ProductStore
-}
+// type IRootMenuStore = {
+//     setCurrentDishId(id: number): void
+//     productStore: ProductStore
+// }
 
-export const DRAFT_MENU_ID = 'draft-menu'
+export const DRAFT_MENU_ID = -1
 
-export class RootDishStore implements IRootMenuStore {
+export class RootDishStore {
 
-    draftDish = new DraftDishStore(this).setData({
+    draftDish: DraftDishStore = new DraftDishStore(this).setData({
         id: DRAFT_MENU_ID,
         name: 'Новое блюдо',
         products: []
     })
 
-    userDishes: DishStore[] = []
+    userDishes: UserDishStore[] = []
 
-    currentDishId: number | 'draft-menu' = DRAFT_MENU_ID
+    currentDishId: number = DRAFT_MENU_ID
 
     get dishes() {
         return [this.draftDish, ...this.userDishes]
@@ -67,7 +67,7 @@ export class RootDishStore implements IRootMenuStore {
         return Array.from(new Set(dishIds.flatMap(dishId => this.idToDishMapping[dishId].map(({ id }) => id))))
     }
 
-    setCurrentDishId = (id: number | 'draft-menu') => {
+    setCurrentDishId = (id: number) => {
         this.currentDishId = id
     }
 
@@ -78,7 +78,7 @@ export class RootDishStore implements IRootMenuStore {
         return store
     }
 
-    addDishStore = (store: DishStore) => {
+    addDishStore = (store: UserDishStore) => {
         this.userDishes.push(store)
     }
 
@@ -106,11 +106,11 @@ export class RootDishStore implements IRootMenuStore {
         )
     }
 
-    removeDish = async (id: string): Promise<any> => {
+    removeDish = async (id: number): Promise<any> => {
         return fetchDeleteMenu(id).then(
             action("fetchSuccess", res => {
                 this.currentDishId = DRAFT_MENU_ID
-                this.userDishes = this.userDishes.filter(dish => dish.id !== id)
+                this.userDishes = this.userDishes.filter((dish) => dish.id !== id)
             }),
             action("fetchError", error => {
             })
@@ -164,57 +164,6 @@ export class RootDishStore implements IRootMenuStore {
                 console.log("reaction 2, update")
                 this.calculationStore.update(products)
             })
-
-
-        // reaction(
-        //     () => [this.currentDish?.products.map(product => toJS(product))],
-        //     ([products]) => {
-        //         console.log('dish,products', products)
-
-        //         const productIds = dish.productIds
-        //         const productsToFetch = this.calculationStore.productStore.getMissingProductIds(productIds)
-        //         const currentProducts = dish.products
-
-        //         if (isNotEmpty(productsToFetch)) {
-        //             const currentController = this.currentAbortController
-        //             this.calculationStore.productStore.fetchAndSetProductNutrientsData(productsToFetch, this.currentAbortController.signal)
-        //                 .then(res => {
-        //                     if (!res) return
-        //                     if (currentController !== this.currentAbortController) return;
-        //                     this.calculationStore.update(currentProducts)
-        //                 })
-
-        //         }
-        //         if (isEmpty(productsToFetch)) {
-        //             this.calculationStore.update(currentProducts)
-        //         }
-
-
-        //     })
-
-
-
-        autorun(() => {
-            if (this.currentDish instanceof DraftDishStore) return
-            if (this.currentDish.fetched) {
-                return
-            }
-
-            // this.getOne(this.currentDish.id).then(result => {
-            //     if (!result) return
-
-            //     const products = result.products.map(product => {
-            //         const { nutrients, ...data } = product
-            //         return data
-            //     })
-            //     this.currentDish.setFetched(true)
-            //     this.currentDish.setProducts(products)
-
-            //     if (this.currentDish instanceof UserDishStore) {
-            //         this.currentDish.setInitProductsSnapshot(products)
-            //     }
-            // })
-        })
     }
 
 

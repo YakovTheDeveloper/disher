@@ -1,6 +1,7 @@
 import { Dish } from 'foodCollection/dish/dish.entity';
 import { Day } from 'resources/day/entities/day.entity';
 import { Entity, Column, PrimaryGeneratedColumn, Unique, Index, OneToMany } from 'typeorm';
+import { UserNorm } from 'user_norm/entities/user_norm.entity';
 
 @Entity()
 export class User {
@@ -19,4 +20,7 @@ export class User {
 
     @OneToMany(() => Dish, dish => dish.user)
     dishes: Dish[];
+
+    @OneToMany(() => UserNorm, norm => norm.user)
+    norms: UserNorm[];
 }

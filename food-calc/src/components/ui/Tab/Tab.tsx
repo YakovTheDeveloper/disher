@@ -2,6 +2,8 @@ import React from 'react'
 import s from './Tab.module.css'
 import clsx from 'clsx'
 import { Typography } from '@/components/ui/Typography/Typography'
+
+
 type Props = {
   onClick: VoidFunction
   children: string

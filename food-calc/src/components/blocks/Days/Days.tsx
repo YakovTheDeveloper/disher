@@ -12,7 +12,7 @@ import React, { useEffect } from 'react'
 
 const Days = () => {
 
-    const { createDay, updateDay, allStores, setCurrentDayId, currentDayId, removeDay, isDraftId } = rootDayStore
+    const { addDay, updateDay, allStores, setCurrentDayId, currentDayId, removeDay, isDraftId } = rootDayStore
 
     const currentStore = allStores.find(({ id }) => id === currentDayId)
 

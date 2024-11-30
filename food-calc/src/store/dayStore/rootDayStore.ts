@@ -2,10 +2,11 @@ import { fetchCreateDay, fetchDeleteDay, fetchGetAllDay, fetchUpdateDay } from "
 import { isEmpty, isNotEmpty } from "@/lib/empty";
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { DetectChangesStore } from "@/store/common/DetectChangesStore";
+import { DraftStore, UserDataStore } from "@/store/common/types";
 import { RootDishStore } from "@/store/rootMenuStore/rootMenuStore";
 import { rootDishStore } from "@/store/rootStore";
 import { CreateDayPayload } from "@/types/api/day";
-import { autorun, makeAutoObservable, reaction, runInAction, toJS } from "mobx"
+import { action, autorun, computed, makeAutoObservable, makeObservable, observable, reaction, runInAction, toJS } from "mobx"
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -21,6 +22,34 @@ export class RootDayStore {
 
             this.getDays()
         })
+
+
+        reaction(
+            () => rootDishStore.dishIds,
+            (totalDishIds) => {
+
+                this.allStores.forEach(store => {
+                    const dayDishIds = store.dishIds
+                    const deletedDishIds = dayDishIds.filter((id) => !totalDishIds.includes(+id));
+
+                    if (isEmpty(deletedDishIds)) return
+
+                    deletedDishIds.forEach((deletedDishId) => {
+                        store.categories.forEach((category) => {
+                            const dish = category.dishes.find((d) => d.id === deletedDishId);
+                            if (!dish) return
+                            store.removeDishFromCategory(category.id, dish);
+                        });
+                        if (store instanceof UserDayStore) {
+                            store.detectChangesStore.updateSnapshot(store.categories)
+                        }
+                    });
+
+
+                    console.log("Deleted dish IDs:", deletedDishIds);
+                })
+            }
+        );
 
 
         reaction(
@@ -59,8 +88,8 @@ export class RootDayStore {
 
     calculations = new CalculationStore()
 
-    draftDayStore: DayStore = new DayStore(this)
-    userDayStores: DayStore[] = []
+    draftDayStore: DayStore = new DraftDayStore(this)
+    userDayStores: UserDayStore[] = []
 
     get allStores() {
         return [this.draftDayStore, ...this.userDayStores]
@@ -75,31 +104,33 @@ export class RootDayStore {
     }
 
     findDayStore = (dayId: string) => {
-        return [this.draftDayStore, ...this.userDayStores].find(({ id }) => id === dayId)
+        return [this.draftDayStore, ...this.userDayStores].find(({ id }) => id === +dayId)
     }
 
-    addToUserDayStores = (day: DayStore) => {
+    addToUserDayStores = (day: UserDayStore) => {
         this.userDayStores.push(day)
     }
 
-    isDraftId = (dayId: string) => {
+    isDraftId = (dayId: number) => {
         return dayId === DRAFT_ID
     }
 
     currentDayId = this.draftDayStore.id
 
-    setCurrentDayId = (id: string) => {
+    setCurrentDayId = (id: number) => {
         this.currentDayId = id
     }
 
-    createDay = async (payload: CreateDayPayload) => {
+
+    addDay = async (payload: CreateDayPayload) => {
         fetchCreateDay(payload).then(res => {
             if (!res) return
             const { categories, id, name } = res.result
-            const newStore = new DayStore(this)
+            const newStore = new UserDayStore(this)
             newStore.categories = categories
             newStore.name = name
             newStore.id = id
+            newStore.detectChangesStore.setInitSnapshot(categories)
             this.addToUserDayStores(newStore)
             this.setCurrentDayId(id)
             this.draftDayStore.clear()
@@ -107,21 +138,21 @@ export class RootDayStore {
         })
     }
 
-    updateDay = async (dayId: string, payload: CreateDayPayload) => {
+    updateDay = async (dayId: number, payload: CreateDayPayload) => {
         fetchUpdateDay(dayId, payload).then(res => {
             if (!res) return
             console.log(res)
-            const { categories, id, name } = res.result
+            // const { categories, id, name } = res.result
 
 
         })
     }
 
 
-    removeDay = async (dayId: string) => {
+    removeDay = async (dayId: number) => {
         fetchDeleteDay(dayId).then(res => {
             if (!res && !res.result) return
-            this.userDayStores = this.userDayStores.filter(({ id }) => id !== dayId)
+            this.userDayStores = this.userDayStores.filter(({ id }) => +id !== dayId)
         })
     }
 
@@ -130,10 +161,12 @@ export class RootDayStore {
         fetchGetAllDay().then(res => {
             if (!res) return
             const days = res.result.map(day => {
-                const store = new DayStore(this)
-                store.categories = day.categories.sort((a, b) => a.position - b.position);
+                const store = new UserDayStore(this)
+                const categories = day.categories.sort((a, b) => a.position - b.position);
+                store.categories = categories
                 store.id = day.id
                 store.name = day.name
+                store.detectChangesStore.setInitSnapshot(categories)
                 console.log("store", store)
                 return store
             })
@@ -147,47 +180,50 @@ export class RootDayStore {
 
 }
 
-export const DRAFT_ID = 'DRAFT_ID'
+export const DRAFT_ID = -1
+export const DRAFT_NAME = 'Новый день'
 
 export class DayStore {
     constructor(rootDayStore: RootDayStore) {
-        makeAutoObservable(this)
+        makeObservable(this, {
+            rootDayStore: observable,
+            name: observable,
+            categories: observable,
+            id: observable,
+            currentCategoryId: observable,
+            empty: computed,
+            dishes: computed,
+            dishIds: computed,
+            products: computed,
+            uniqueProducts: computed,
+
+        })
         this.rootDayStore = rootDayStore
 
         // reaction(
-        //     () => [this.rootDayStore?.currentDayId],
-        //     ([currentDayId]) => {
-        //         const result = currentDayId === this.id
-        //         console.log('wtf', result)
-        //         // console.log("currentDayId", currentDayId, res)
+        //     () => rootDishStore.dishIds,
+        //     (totalDishIds) => {
+        //         const dayDishIds = this.dishIds
+        //         const deletedDishIds = dayDishIds.filter((id) => !totalDishIds.includes(id));
+
+        //         if (isNotEmpty(deletedDishIds)) {
+        //             deletedDishIds.forEach((deletedDishId) => {
+        //                 this.categories.forEach((category) => {
+        //                     const dish = category.dishes.find((d) => d.id === deletedDishId);
+        //                     if (dish) {
+        //                         this.removeDishFromCategory(category.id, dish);
+        //                     }
+        //                 });
+        //             });
+        //         }
+
+        //         console.log("Deleted dish IDs:", deletedDishIds);
         //     }
         // );
-
-        reaction(
-            () => rootDishStore.dishIds,
-            (totalDishIds) => {
-                const dayDishIds = this.dishIds
-                const deletedDishIds = dayDishIds.filter((id) => !totalDishIds.includes(id));
-
-                deletedDishIds.forEach((deletedDishId) => {
-                    this.categories.forEach((category) => {
-                        const dish = category.dishes.find((d) => d.id === deletedDishId);
-                        if (dish) {
-                            this.removeDishFromCategory(category.id, dish);
-                        }
-                    });
-                });
-
-                console.log("Deleted dish IDs:", deletedDishIds);
-            }
-        );
 
     }
 
 
-
-
-    calculations = new CalculationStore()
 
     rootDayStore: RootDayStore | null = null
 
@@ -198,6 +234,10 @@ export class DayStore {
     id = DRAFT_ID
 
     currentCategoryId: string = ''
+
+    get empty() {
+        return this.categories.length === 0
+    }
 
     get dishes() {
         return this.categories.flatMap(cat => cat.dishes.map(({ id }) => id))
@@ -225,6 +265,10 @@ export class DayStore {
             }
         }
         return Array.from(new Set(products))
+    }
+
+    updateName = (name: string) => {
+        this.name = name
     }
 
     setCurrentCategoryId = (categoryId: string) => {
@@ -349,21 +393,31 @@ export class DayStore {
         this.currentCategoryId = ''
     }
 
-    onSave = async () => {
+    save = async () => {
         if (this.id === DRAFT_ID) {
-            this.rootDayStore?.createDay(this.generatePayload())
+            this.rootDayStore?.addDay(this.generatePayload())
             return
         }
         this.rootDayStore?.updateDay(this.id, this.generatePayload())
     }
 
-    
+    resetToInit = () => {
+        this.categories = structuredClone(draftDayExample.dayContent)
+        this.name = DRAFT_NAME
+        this.id = DRAFT_ID
+    }
+
+
 }
 
-export class UserDayStore extends DayStore {
+export class UserDayStore extends DayStore implements UserDataStore<DayCategory[]> {
 
     constructor(rootDayStore: RootDayStore) {
         super(rootDayStore)
+        makeObservable(this, {
+            save: action,
+            resetToInit: action,
+        })
         this.detectChangesStore = new DetectChangesStore(this.categories);
 
         reaction(
@@ -377,7 +431,40 @@ export class UserDayStore extends DayStore {
     detectChangesStore: DetectChangesStore<DayCategory[]>
 
 
+    remove = (id: number) => {
+        return this.rootDayStore?.removeDay(id)
+    }
+
+    resetToInit = () => {
+        console.log('from userdatstore')
+        if (!this.detectChangesStore.initProductsSnapshotCopy) return
+        this.categories = this.detectChangesStore.initProductsSnapshotCopy
+    }
+
+    save = async (id: number) => {
+        return this.rootDayStore?.updateDay(this.id, this.generatePayload())
+            .then(() => {
+                this.detectChangesStore.updateSnapshot(this.categories)
+            })
+    }
+
+
 }
+
+export class DraftDayStore extends DayStore implements DraftStore {
+    constructor(rootDayStore: RootDayStore) {
+        super(rootDayStore)
+        makeObservable(this, {
+            save: action,
+            resetToInit: action,
+        })
+    }
+
+    save = async () => {
+        this.rootDayStore?.addDay(this.generatePayload())
+    }
+}
+
 
 type DayCategoryDish = {
     "id": string,

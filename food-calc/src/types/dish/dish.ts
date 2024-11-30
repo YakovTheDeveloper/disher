@@ -1,6 +1,6 @@
 
 export type IDish = {
-    id: string,
+    id: number,
     name: string
     description?: string
     products: IProductBase[]
@@ -8,6 +8,6 @@ export type IDish = {
 
 export type IProductBase = {
     name: string
-    id: string
+    id: number
     quantity: number
 }

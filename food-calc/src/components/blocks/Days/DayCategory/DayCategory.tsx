@@ -8,6 +8,7 @@ import s from './DayCategory.module.css'
 import { motion, Reorder, } from 'framer-motion';
 import { toJS } from 'mobx'
 import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
+import EditableText from '@/components/ui/EditableText/EditableText'
 
 type Props = {
     category: DayCategory
@@ -55,11 +56,22 @@ const DayCategoryItem: React.FC<Props> = ({ changeCategoryName, currentCategoryI
 
 const DayCategoryName = (props) => {
     const { name, isActive, changeCategoryName, categoryId } = props
-    const onChange = (e) => {
-        changeCategoryName(categoryId, e.target.value)
+
+    console.log("name", name)
+
+    const onChange = (value: string) => {
+        changeCategoryName(categoryId, value)
     }
+
+    return <EditableText onChange={onChange} value={name} typographyProps={{
+        variant: 'body1'
+    }} />
+
+
+
+
     if (isActive) return (
-        <input className={s.name} defaultValue={name} maxLength={30} onChange={onChange}/>
+        <input className={s.name} defaultValue={name} maxLength={30} onChange={onChange} />
     )
     return (
         <p className={s.name}>{name}</p>

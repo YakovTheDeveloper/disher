@@ -1,7 +1,7 @@
 import { isEqual } from "@/utils/comparison";
-import { autorun, isObservable, makeAutoObservable, observable, reaction, toJS } from "mobx";
+import { makeAutoObservable, reaction, toJS } from "mobx";
 
-export class DetectChangesStore<DataType> {
+export class DetectChangesStore<DataType extends unknown[]> {
 
 
     constructor(observableData: DataType) {
@@ -12,13 +12,14 @@ export class DetectChangesStore<DataType> {
         reaction(
             () => [toJS(this.initSnapshot), toJS(this.data)],
             ([snapshot, data]) => {
+                console.log('snapshot', snapshot, data, snapshot === data)
                 this.changeOccured = !isEqual(snapshot, data);
             }
         );
     }
 
 
-    private data: DataType = []
+    private data: DataType | [] = []
     changeOccured = false;
     initSnapshot: DataType | null = null
 
@@ -31,7 +32,7 @@ export class DetectChangesStore<DataType> {
     }
 
     updateSnapshot = (data: DataType) => {
-        this.initSnapshot = data
+        this.initSnapshot = structuredClone(toJS(data))
         this.changeOccured = false;
     }
 

@@ -23,7 +23,7 @@ export type DayPayload = {
 
 export type CreateDayResponse = {
     result: {
-        id: string,
+        id: number,
         name: string,
         categories: {
             id: string,
@@ -37,7 +37,7 @@ export type CreateDayResponse = {
 
 export type GetAllDayResponse = {
     result: {
-        id: string,
+        id: number,
         name: string,
         categories: {
             id: string,

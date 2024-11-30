@@ -14,6 +14,7 @@ import { DayCategory } from 'resources/day/entities/day_category.entity';
 import { DayCategoryDish } from 'resources/day/entities/day_category_dish.entity';
 import { MenuDish } from 'resources/menu_dishes/menu-dish.entity';
 import { DataSource } from 'typeorm';
+import { UserNorm } from 'user_norm/entities/user_norm.entity';
 import { User } from 'users/entities/user.entity';
 
 export const databaseProviders = [
@@ -27,7 +28,7 @@ export const databaseProviders = [
         username: 'yakov',
         password: '0912',
         database: 'postgres',
-        entities: [User, Nutrient, Product, MenuProduct, Menu, ProductsNutrient, Dish, DishProduct, MenuDish, Day, DayCategory, DayCategoryDish],
+        entities: [User, Nutrient, Product, MenuProduct, Menu, ProductsNutrient, Dish, DishProduct, MenuDish, Day, DayCategory, DayCategoryDish, UserNorm],
         synchronize: true,
       });
       return dataSource.initialize();

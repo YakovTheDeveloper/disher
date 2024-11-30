@@ -12,9 +12,12 @@ import s from './Day.module.css'
 import { CreateDayPayload, CreateDayResponse } from '@/types/api/day'
 import Button from '@/components/ui/Button/Button'
 import { Typography } from '@/components/ui/Typography/Typography'
+import DayActions from '@/components/blocks/Days/DayActions'
+import Actions from '@/components/blocks/common/Actions/Actions'
+import EditableText from '@/components/ui/EditableText/EditableText'
 type Props = {
     store: DayStore
-    createDay: (payload: CreateDayPayload) => Promise<CreateDayResponse>
+    addDay: (payload: CreateDayPayload) => Promise<CreateDayResponse>
 }
 
 export type DishAddOptions = {
@@ -24,7 +27,7 @@ export type DishAddOptions = {
 
 const Day = (props: Props) => {
     const { store } = props
-    const { changeCategoryName, removeDishFromCategory, onSave, moveCategory, removeCategory, addCategory, categories, name, id, addDishToCategory, isDishInCategory, currentCategoryId, setCurrentCategoryId, toggleDish } = store
+    const { updateName, changeCategoryName, removeDishFromCategory, removeCategory, addCategory, categories, name, id, addDishToCategory, isDishInCategory, currentCategoryId, setCurrentCategoryId, toggleDish } = store
 
     const [dishAddCategory, setDishAddCategory] = useState<DayCategory | null>(null)
 
@@ -35,8 +38,13 @@ const Day = (props: Props) => {
 
     return (
         <section className={s.day}>
-            <Typography variant='h1'>{name}</Typography>
-            <Button onClick={addCategory} variant='primary'>Создать категорию</Button>
+            <EditableText
+                value={name}
+                onChange={updateName}
+                typographyProps={{ variant: 'h1' }}
+            />
+            {/* <Typography variant='h1'>{name}</Typography> */}
+            <Button onClick={addCategory} variant='secondary'>Создать категорию</Button>
             <div className={s.content}>
                 <Reorder.Group
                     axis="y"
@@ -47,7 +55,6 @@ const Day = (props: Props) => {
                     }}
                 >
                     <AnimatePresence>
-
                         {categories.map((category, index) => (
                             <DayCategoryItem
                                 key={category.id}
@@ -75,7 +82,8 @@ const Day = (props: Props) => {
                         />}
                 </section>
             </div>
-            <Button onClick={onSave} variant='primary'>Сохранить</Button>
+            <Actions store={store} />
+            {/* <DayActions store={store}/> */}
         </section>
     )
 }

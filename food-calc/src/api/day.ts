@@ -5,7 +5,7 @@ export async function fetchCreateDay(payload: CreateDayPayload): Promise<CreateD
     return await api.post(apiRoutes.day.create, payload, AuthorizationHeader())
 }
 
-export async function fetchUpdateDay(id: string, payload: UpdateDayPayload): Promise<UpdateDayResponse> {
+export async function fetchUpdateDay(id: number, payload: UpdateDayPayload): Promise<UpdateDayResponse> {
     return await api.put(apiRoutes.day.update(id), payload, AuthorizationHeader())
 }
 
