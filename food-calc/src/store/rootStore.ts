@@ -4,7 +4,7 @@ import { CalculationStore } from "./calculationStore/calculationStore";
 import { ProductStore } from "./productStore/productStore";
 import { UserStore } from "@/store/userStore/userStore";
 import { NutrientStore } from "@/store/nutrientStore/nutrientStore";
-import { RootDayStore } from "@/store/dayStore/rootDayStore";
+import { RootDayStore } from "@/store/rootDayStore/rootDayStore";
 import { GetFullDataStore } from "@/store/getFullDataStore/getFullDataStore";
 import { RootDishStore } from "@/store/rootDishStore/rootDishStore";
 

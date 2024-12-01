@@ -1,5 +1,4 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm"
-import { FoodCollectionProduct } from "foodCollection/common/entities/foodCollectionProduct.entity"
 import { Product } from "products/entities/product.entity"
 import { Dish } from "foodCollection/dish/dish.entity"
 import { Exclude } from "class-transformer"

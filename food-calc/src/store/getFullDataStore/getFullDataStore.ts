@@ -1,4 +1,4 @@
-import { RootDayStore } from "@/store/dayStore/rootDayStore"
+import { RootDayStore } from "@/store/rootDayStore/rootDayStore"
 import { ProductStore } from "@/store/productStore/productStore"
 import { RootDishStore } from "@/store/rootDishStore/rootDishStore"
 import { makeAutoObservable, reaction, toJS } from "mobx"
@@ -41,13 +41,13 @@ export class GetFullDataStore {
 
     }
 
-    getProductNutrientData = async () => {
-        const dishIds = this.rootDayStore?.currentStore?.products
-        const dishProductData = this.rootDishStore?.getDishesProductsAsIds(dishIds)
-        const productIdsToFetch = this.productStore?.getMissingProductIds(dishProductData)
-        const result = await this.productStore?.fetchProductWithNutrients(productIdsToFetch)
-        return result
-    }
+    // getProductNutrientData = async () => {
+    //     const dishIds = this.rootDayStore?.currentStore?.products
+    //     const dishProductData = this.rootDishStore?.getDishesProductsAsIds(dishIds)
+    //     const productIdsToFetch = this.productStore?.getMissingProductIds(dishProductData)
+    //     const result = await this.productStore?.fetchProductWithNutrients(productIdsToFetch)
+    //     return result
+    // }
 
 
 }

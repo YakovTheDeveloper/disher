@@ -28,25 +28,35 @@ export class UserNormService {
     return await this.repository.save(norms)
   }
 
-  findAll() {
-    return `This action returns all userNorm`;
+  async findAll(id: number) {
+    const result = await this.repository.find({ where: { user: { id } } })
+    return { result }
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} userNorm`;
+    const result = this.repository.find({ where: { user: { id } } })
+    return { result }
   }
 
   async update(id: number, userId: number, updateUserNormDto: UpdateUserNormDto) {
     const user = new User()
     user.id = userId
 
+
     const norms = this.repository.create(updateUserNormDto)
     norms.user = user
+    norms.id = id
 
     return await this.repository.save(norms)
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} userNorm`;
+  async remove(id: number, userId: number) {
+    const norm = new UserNorm()
+    const user = new User()
+    user.id = userId
+    norm.id = id
+    norm.user = user
+    const result = await this.repository.remove(norm)
+    return { result: true }
   }
 }

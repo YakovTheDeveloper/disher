@@ -1,4 +1,3 @@
-import { Menu } from 'foodCollection/menu/menu.entity';
 import { DayCategory } from 'resources/day/entities/day_category.entity';
 import { DayCategoryDish } from 'resources/day/entities/day_category_dish.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable, OneToMany, ManyToOne } from 'typeorm';
@@ -18,7 +17,4 @@ export class Day {
 
     @OneToMany(() => DayCategory, dayCategory => dayCategory.day, { cascade: true, onDelete: 'CASCADE', eager: true })
     dayCategories: DayCategory[];
-
-    @OneToMany(() => DayCategoryDish, dayCategoryDish => dayCategoryDish.day, { cascade: true, onDelete: 'CASCADE' })
-    dayCategoryDishes: DayCategoryDish[];
 }

@@ -1,28 +1,30 @@
-import { DayCategory } from '@/store/dayStore/rootDayStore'
 import clsx from 'clsx'
 import { observer } from 'mobx-react-lite'
 import React from 'react'
-import { DndProvider, useDrag, useDrop } from 'react-dnd'
-import { HTML5Backend } from 'react-dnd-html5-backend'
 import s from './DayCategory.module.css'
-import { motion, Reorder, } from 'framer-motion';
-import { toJS } from 'mobx'
+import { Reorder, } from 'framer-motion';
 import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
 import EditableText from '@/components/ui/EditableText/EditableText'
+import { DayCategory } from '@/types/day/day';
+import DayCategoryDishItem from '@/components/blocks/Days/DayCategoryDishItem/DayCategoryDishItem';
+import Slider from '@/components/ui/Slider/Slider';
+import { Typography } from '@/components/ui/Typography/Typography';
 
 type Props = {
     category: DayCategory
     onDishAdd: (category: DayCategory) => void
     index: number;
-    removeCategory: (categoryId: string) => void; // Function to move category
+    removeCategory: (categoryId: number) => void; // Function to move category
     currentCategoryId: string
     removeDishFromCategory: any
     changeCategoryName: (categoryId: string, name: string) => void
 }
 
 
-const DayCategoryItem: React.FC<Props> = ({ changeCategoryName, currentCategoryId, category, onDishAdd, removeCategory, removeDishFromCategory }) => {
-    const isActive = currentCategoryId === category.id
+const DayCategoryItem: React.FC<Props> = (
+    { changeCategoryName, currentCategoryId, category, onDishAdd, removeCategory, removeDishFromCategory, getDishCoefficient, updateDishCoefficient }
+) => {
+    const isActive = +currentCategoryId === category.id
     const { id: categoryId } = category
     const onRemove = () => {
         removeCategory(categoryId)
@@ -43,12 +45,23 @@ const DayCategoryItem: React.FC<Props> = ({ changeCategoryName, currentCategoryI
             <button onClick={onRemove} className={clsx(s.removeCategoryButtonContainer, s.removeButton, s.hoverShow)}>x</button>
             <DayCategoryName name={category.name} isActive={isActive} changeCategoryName={changeCategoryName} categoryId={category.id} />
             <ul>
-                {category.dishes.map(({ id, name }) => (
-                    <li key={id} className={s.dish}>
-                        <span>{name}</span>
-                        <RemoveButton className={clsx(s.hoverShow, s.removeButton)} onClick={() => onDishRemove(category.id, { id, name })} />
-                    </li>
-                ))}
+                {category.dishes.map((dish) => {
+                    const coefficient = getDishCoefficient(categoryId, dish.id)
+                    return (
+                        <DayCategoryDishItem key={dish.id} className={s.dish} dish={dish}>
+                            <RemoveButton className={clsx(s.hoverShow, s.removeButton)} onClick={() => onDishRemove(category.id, dish)} />
+                            <Slider
+                                label={
+                                    <Typography variant='caption'>
+                                        {coefficient.toFixed(1)} * 100 гр. = {(coefficient * 100).toFixed(1)} гр.
+                                    </Typography>
+                                }
+                                onChange={(value) => updateDishCoefficient(categoryId, dish.id, value)}
+                                value={coefficient}
+                            />
+                        </DayCategoryDishItem>
+                    )
+                })}
             </ul>
         </Reorder.Item>
     );
@@ -57,8 +70,6 @@ const DayCategoryItem: React.FC<Props> = ({ changeCategoryName, currentCategoryI
 const DayCategoryName = (props) => {
     const { name, isActive, changeCategoryName, categoryId } = props
 
-    console.log("name", name)
-
     const onChange = (value: string) => {
         changeCategoryName(categoryId, value)
     }
@@ -66,16 +77,6 @@ const DayCategoryName = (props) => {
     return <EditableText onChange={onChange} value={name} typographyProps={{
         variant: 'body1'
     }} />
-
-
-
-
-    if (isActive) return (
-        <input className={s.name} defaultValue={name} maxLength={30} onChange={onChange} />
-    )
-    return (
-        <p className={s.name}>{name}</p>
-    )
 }
 
 export default observer(DayCategoryItem)

@@ -13,6 +13,11 @@ export type IProductBase = {
     quantity: number
 }
 
+export type IProduct = {
+    id: number
+    quantity: number
+}
+
 export type IProductWithNutrients = {
     name: string
     id: string

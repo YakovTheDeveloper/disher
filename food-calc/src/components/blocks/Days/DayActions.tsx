@@ -1,5 +1,5 @@
 import { DraftActions, UserActions } from '@/components/blocks/common/Actions/Actions'
-import { DayStore, UserDayStore } from '@/store/dayStore/rootDayStore'
+import { DayStore, UserDayStore } from '@/store/rootDayStore/rootDayStore'
 import React from 'react'
 
 type Props = {

@@ -1,13 +1,8 @@
 import { action, autorun, makeAutoObservable, reaction, toJS } from "mobx"
-import { IMenu, IProductBase, IProductWithNutrients } from "../../types/menu/Menu"
-import { v4 as uuidv4 } from 'uuid';
-import { IProduct } from "../../types/product/product";
-import { DraftDishStore, DishStore, UserDishStore } from "@/store/rootDishStore/dishStore/dishStore";
-import { fetchCreateMenu, fetchDeleteMenu, fetchGetAllMenu, fetchGetMenu, FoodCollection } from "@/api/menu";
-import { MenuPayload } from "@/types/api/menu";
+import { IProductBase, IProductWithNutrients } from "../../types/menu/Menu"
+import { DraftDishStore, UserDishStore } from "@/store/rootDishStore/dishStore/dishStore";
+import { fetchDeleteMenu, fetchGetAllMenu, fetchGetMenu } from "@/api/menu";
 import { ProductStore } from "@/store/productStore/productStore";
-import { emitter, EVENTS } from "@/store/emitter";
-import { NutrientStore } from "@/store/nutrientStore/nutrientStore";
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { isEmpty, isNotEmpty } from "@/lib/empty";
 import { IDish } from "@/types/dish/dish";
@@ -59,13 +54,13 @@ export class RootDishStore {
         }, {} as Record<string, IProductBase[]>)
     }
 
-    getCorrespondingDishes = (dishIds: string[]): IProductBase[] => {
-        return dishIds.flatMap(dishId => this.idToDishMapping[dishId])
-    }
+    // getDishProductsByIds = (dishIds: string[]): IProductBase[] => {
+    //     return dishIds.flatMap(dishId => this.idToDishMapping[dishId])
+    // }
 
-    getCorrespondingDishesProductsIds = (dishIds: string[]) => {
-        return Array.from(new Set(dishIds.flatMap(dishId => this.idToDishMapping[dishId].map(({ id }) => id))))
-    }
+    // getCorrespondingDishesProductsIds = (dishIds: string[]) => {
+    //     return Array.from(new Set(dishIds.flatMap(dishId => this.idToDishMapping[dishId].map(({ id }) => id))))
+    // }
 
     setCurrentDishId = (id: number) => {
         this.currentDishId = id

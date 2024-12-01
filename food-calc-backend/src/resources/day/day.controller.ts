@@ -16,6 +16,7 @@ export class DayController {
     if (userId == null) {
       throw new BadRequestException('No such user id');
     }
+    // return this.dayService.createDay2(createDayDto, userId);
     return this.dayService.createDay(createDayDto.name, createDayDto.categories, userId);
   }
 

@@ -1,19 +1,9 @@
+import { DayCategory, DayCategoryDish } from "@/types/day/day"
 
 type DayContent = {
     name: string
     position: number
-    dishes: DayContentDish[]
-}
-
-type DayContentDish = {
-    id: string,
-    position: number
-}
-
-type DayContentDishWithName = {
-    id: string,
-    position: number
-    name: string
+    dishes: DayCategoryDish[]
 }
 
 export type DayPayload = {
@@ -25,12 +15,7 @@ export type CreateDayResponse = {
     result: {
         id: number,
         name: string,
-        categories: {
-            id: string,
-            name: string,
-            position: number,
-            dishes: DayContentDishWithName[]
-        }[]
+        categories: DayCategory[]
     }
 }
 
@@ -39,12 +24,7 @@ export type GetAllDayResponse = {
     result: {
         id: number,
         name: string,
-        categories: {
-            id: string,
-            name: string,
-            position: number,
-            dishes: DayContentDishWithName[]
-        }[]
+        categories: DayCategory[]
     }[]
 }
 

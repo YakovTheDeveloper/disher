@@ -1,16 +1,16 @@
 import { Id, IdMap, Value } from "@/types/common/common"
 
-export type IProduct = {
-    id: string
-    name: string
-    content: {
-        main: {
-            protein: number
-            carb: number
-            fat: number
-        }
-    }
-}
+// export type IProduct = {
+//     id: string
+//     name: string
+//     content: {
+//         main: {
+//             protein: number
+//             carb: number
+//             fat: number
+//         }
+//     }
+// }
 
 export type ProductBase = {
     id: number,

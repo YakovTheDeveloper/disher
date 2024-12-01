@@ -10,11 +10,10 @@ import { UsersService } from 'users/users.service';
 import { usersProviders } from 'users/users.providers';
 import { AuthModule } from 'resources/auth/auth.module';
 import { DatabaseModule } from 'database/database.module';
-import { DishProductService } from 'foodCollection/dish/dishProduct/dishProduct.service';
 
 @Module({
   imports: [UsersModule, DishModule, AuthModule, DatabaseModule],
   controllers: [DayController],
-  providers: [DayService, ...dayProdivers, ...dishProviders, DishService, UsersService, ...usersProviders, DishProductService],
+  providers: [DayService, ...dayProdivers, ...dishProviders, DishService, UsersService, ...usersProviders],
 })
 export class DayModule { }

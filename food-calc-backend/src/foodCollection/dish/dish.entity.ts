@@ -1,5 +1,4 @@
 import { Exclude, Transform } from "class-transformer";
-import { FoodCollection } from "foodCollection/common/entities/foodCollection.entity";
 import { DishProduct } from "foodCollection/dish/dishProduct/dishProduct.entity";
 import { DayCategoryDish } from "resources/day/entities/day_category_dish.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
@@ -20,6 +19,7 @@ export class Dish {
 
     @OneToMany(() => DishProduct, dishProduct => dishProduct.dish, {
         cascade: true,
+        eager: true,
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
     })

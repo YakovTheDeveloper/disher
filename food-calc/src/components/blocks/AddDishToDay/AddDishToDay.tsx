@@ -1,11 +1,12 @@
 import { DishAddOptions } from '@/components/blocks/Days/Day'
-import { DayCategory } from '@/store/dayStore/rootDayStore'
+import { DayCategory } from '@/store/rootDayStore/rootDayStore'
 import { rootDayStore, rootDishStore } from '@/store/rootStore'
 import { observer } from 'mobx-react-lite'
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useNavigation, useSearchParams } from 'react-router-dom'
 import s from './AddDishToDay.module.css'
 import clsx from 'clsx'
+import { DayCategoryDish } from '@/types/day/day'
 
 type Props = {
     addDishToCategory: any
@@ -32,7 +33,7 @@ const AddDishToDay = observer((props: Props) => {
         return () => clearTimeout(timer);
     }, [currentCategoryId]);
 
-    const onAdd = (dish: { id: string, name: string }) => {
+    const onAdd = (dish: DayCategoryDish) => {
         toggleDish(categoryId, {
             ...dish,
             position: 0
@@ -46,10 +47,15 @@ const AddDishToDay = observer((props: Props) => {
         ])}>
             <p>{name}: добавить или убрать блюдо</p>
             <ul className={s.list}>
-                {userDishes.map(({ id, name }) => {
-                    const isActive = isDishInCategory(dishAddCategory, id)
+                {userDishes.map((dish) => {
+                    const isActive = isDishInCategory(dishAddCategory, dish.id)
                     return (
-                        <li key={id} onClick={() => onAdd({ id, name })} className={clsx(s.listItem, isActive && s.inList)}>
+                        <li key={dish.id} onClick={() => onAdd({
+                            coefficient: 1,
+                            id: dish.id,
+                            name: dish.name,
+                            products: dish.products.map(({ id, quantity }) => ({ id: +id, quantity }))
+                        })} className={clsx(s.listItem, isActive && s.inList)}>
                             {name} <span>{isActive && '✅'}</span>
 
                         </li>

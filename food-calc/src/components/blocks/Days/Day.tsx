@@ -1,20 +1,16 @@
 import AddDishToDay from '@/components/blocks/AddDishToDay/AddDishToDay'
-import { DayCategory, DayStore } from '@/store/dayStore/rootDayStore'
-import { toJS } from 'mobx'
+
 import { observer } from 'mobx-react-lite'
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useState } from 'react'
 import DayCategoryItem from '@/components/blocks/Days/DayCategory/DayCategory'
 import { AnimatePresence, Reorder } from 'framer-motion'
 import s from './Day.module.css'
 import { CreateDayPayload, CreateDayResponse } from '@/types/api/day'
 import Button from '@/components/ui/Button/Button'
-import { Typography } from '@/components/ui/Typography/Typography'
-import DayActions from '@/components/blocks/Days/DayActions'
 import Actions from '@/components/blocks/common/Actions/Actions'
 import EditableText from '@/components/ui/EditableText/EditableText'
+import { DayStore } from '@/store/rootDayStore/dayStore'
+import { DayCategory } from '@/types/day/day'
 type Props = {
     store: DayStore
     addDay: (payload: CreateDayPayload) => Promise<CreateDayResponse>
@@ -27,7 +23,20 @@ export type DishAddOptions = {
 
 const Day = (props: Props) => {
     const { store } = props
-    const { updateName, changeCategoryName, removeDishFromCategory, removeCategory, addCategory, categories, name, id, addDishToCategory, isDishInCategory, currentCategoryId, setCurrentCategoryId, toggleDish } = store
+    const {
+        updateName,
+        changeCategoryName,
+        removeDishFromCategory,
+        removeCategory,
+        addCategory,
+        categories,
+        name,
+        id,
+        addDishToCategory, isDishInCategory, currentCategoryId, setCurrentCategoryId, toggleDish,
+        getDishCoefficient,
+        updateDishCoefficient
+
+    } = store
 
     const [dishAddCategory, setDishAddCategory] = useState<DayCategory | null>(null)
 
@@ -65,6 +74,9 @@ const Day = (props: Props) => {
                                 removeCategory={removeCategory}
                                 removeDishFromCategory={removeDishFromCategory}
                                 changeCategoryName={changeCategoryName}
+                                getDishCoefficient={getDishCoefficient}
+                                updateDishCoefficient={updateDishCoefficient}
+
 
 
                             />

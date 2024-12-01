@@ -15,6 +15,7 @@ import { CreateDayDto, DayCategoryDto } from 'resources/day/dto/create-day.dto';
 type DayCategoryDishesPayload = {
   id: number,
   position: number
+  coefficient: number
 }
 
 type DayCategoryPayload = {
@@ -23,10 +24,9 @@ type DayCategoryPayload = {
 
 function createCategoryDishes(data: {
   dishes: DayCategoryDishesPayload[],
-  day: Day,
   category: DayCategory
 }) {
-  const { category, day, dishes } = data
+  const { category, dishes } = data
   const categories: DayCategoryDish[] = []
   for (const payloadDish of dishes) {
     const dayCategoryDish = new DayCategoryDish();
@@ -34,8 +34,8 @@ function createCategoryDishes(data: {
     dish.id = payloadDish.id
     dayCategoryDish.dayCategory = category
     dayCategoryDish.dish = dish
-    dayCategoryDish.day = day
     dayCategoryDish.position = payloadDish.position
+    dayCategoryDish.coefficient = payloadDish.coefficient
     categories.push(dayCategoryDish);
   }
   return categories
@@ -51,7 +51,6 @@ function createDayCategories(createPayload: DayCategoryPayload[], day: Day): Day
     category.dayCategoryDishes = createCategoryDishes({
       dishes,
       category,
-      day
     });
     category.day = day
     result.push(category);
@@ -163,7 +162,6 @@ function updateDayCategoriesDishes(dayCategory: DayCategory, dishes: DayCategory
     const newDishes = createCategoryDishes({
       dishes: dishesToCreate,
       category: dayCategory,
-      day
     })
     dayCategory.dayCategoryDishes = [...dayCategory.dayCategoryDishes, ...newDishes]
   }
@@ -208,19 +206,29 @@ export class DayService {
     @Inject(DAY_REPOSITORY)
     private dayRepository: Repository<Day>,
 
-    @Inject(DISH_REPOSITORY)
-    private dishRepository: Repository<Dish>,
-
     @Inject(DAY_CATEGORY_REPOSITORY)
     private dayCategoryRepository: Repository<DayCategory>,
 
+
     @Inject(DAY_CATEGORY_DISH_REPOSITORY)
-    private dayCategoryDishRepository: Repository<DayCategoryDish>,
+    private dayCategoryDishRepository: Repository<DayCategory>,
   ) { }
+
+  // async createDay2(dto: CreateDayDto, userId: number) {
+  //   const day = this.dayRepository.create(dto)
+  //   const user = new User()
+  //   user.id = userId
+  //   day.user = user
+
+  //   const dayCategories = this.dayCategoryRepository.create(dto.categories)
+  //   const dayCategoriseDishes = this.dayCategoryDishRepository.create(dto.categories)
+  // }
 
   async createDay(dayName: string, dayContent: DayCategoryPayload[], userId: number) {
     const user = new User()
     user.id = userId
+
+
 
     let day = new Day();
     day.name = dayName;
@@ -234,6 +242,8 @@ export class DayService {
         'dayCategories.dayCategoryDishes.dish',
       ],
     });
+
+
 
     const transformedResult = {
       result: {
@@ -277,7 +287,7 @@ export class DayService {
     }
   }
 
-  async findAll(userId: string): Promise<Day[]> {
+  async findAll(userId: number): Promise<Day[]> {
     const user = new User()
     user.id = +userId
     const days = await this.dayRepository.find({
@@ -285,7 +295,6 @@ export class DayService {
       where: { user }
     });
 
-   
     const transformedData = days.map(day => ({
       id: day.id,
       name: day.name,
@@ -294,8 +303,13 @@ export class DayService {
         name: category.name,
         position: category.position,
         dishes: category.dayCategoryDishes.map(dishInfo => ({
+          coefficient: dishInfo.coefficient,
           id: dishInfo.dish.id,
           name: dishInfo.dish.name,
+          products: dishInfo.dish.dishToProducts.map(dishToProducts => ({
+            quantity: dishToProducts.quantity,
+            id: dishToProducts.product.id
+          }))
         })),
       })),
     }));
@@ -353,23 +367,14 @@ export class DayService {
     existingDay.name = updatedDayName;
 
 
-    // const categoriesToAdd = updatedDayContent.filter(content => content.id == null)
-    // const entitiesCategoriesToAdd = createDayCategories(categoriesToAdd, existingDay)
-
     updateDayCategories(updatedDayContent, existingDay)
 
     await this.dayRepository.save(existingDay);
-    await this.dayCategoryDishRepository
-      .createQueryBuilder()
-      .delete()
-      .where('dayId IS NULL OR dayCategoryId IS NULL')
-      .execute();
     await this.dayCategoryRepository
       .createQueryBuilder()
       .delete()
       .where('dayId IS NULL')
       .execute();
-    // await this.dayCategoryDishRepository.remove()
 
     return true
 

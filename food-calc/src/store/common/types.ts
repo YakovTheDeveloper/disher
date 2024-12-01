@@ -1,6 +1,6 @@
 import { DetectChangesStore } from "@/store/common/DetectChangesStore";
 
-export interface UserDataStore<Data> {
+export interface UserDataStore<Data extends unknown[]> {
     detectChangesStore: DetectChangesStore<Data>
     remove: (id: number) => void
     resetToInit: () => void

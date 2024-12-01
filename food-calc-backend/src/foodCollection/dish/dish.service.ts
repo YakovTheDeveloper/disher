@@ -1,31 +1,21 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { DISH_REPOSITORY, MENU_REPOSITORY, MENUS_REPOSITORY } from 'constants/provide';
-import { DataSource, In, Repository } from 'typeorm';
-import { UsersService } from 'users/users.service';
-import { FoodCollectionService } from 'foodCollection/common/foodCollection.service';
-import { FoodCollectionProductService } from 'foodCollection/common/foodCollection_product.service';
-import { DishProductService } from 'foodCollection/dish/dishProduct/dishProduct.service';
+import { In, Repository } from 'typeorm';
 import { Dish } from 'foodCollection/dish/dish.entity';
-import { Menu } from 'foodCollection/menu/menu.entity';
+
 import { compareProducts, createProductIdToMenuProduct } from 'lib/update';
 import { UpdateFoodCollectionDto } from 'foodCollection/common/dto/update-foodCollection.dto';
 import { CreateDishDto, DishProductDto } from 'foodCollection/common/dto/create-foodCollection.dto';
-import { CreateFoodCollectionProductDto } from 'foodCollection/common/dto/create-foodCollection_product.dto';
 import { Product } from 'products/entities/product.entity';
 import { User } from 'users/entities/user.entity';
 import { DishProduct } from 'foodCollection/dish/dishProduct/dishProduct.entity';
-import { classToPlain, instanceToPlain, plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class DishService {
   constructor(
     @Inject(DISH_REPOSITORY)
     private dishRepository: Repository<Dish>,
-    @Inject(UsersService)
-    private usersService: UsersService,
-    @Inject(DishProductService)
-    private dishProductService: FoodCollectionProductService,
   ) { }
 
   async findAll(userId: number) {
@@ -65,7 +55,7 @@ export class DishService {
     // return menus
   }
 
-  async getDishProductData(userId: string, dishIds: string[]) {
+  async getDishProductData(userId: number, dishIds: string[]) {
     console.log(userId, dishIds)
     const result = await this.dishRepository.find({
       where: {
