@@ -3,4 +3,57 @@
     /* gap: var(--gap-tabs); */
     flex-direction: column;
     /* padding: 40px 0; */
+
+}
+
+.skeletonTab {
+    /* height: 30px; */
+    width: 100%;
+    user-select: none;
+    cursor: auto;
+
+    * {
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        color: transparent
+    }
+}
+
+.skeletonTabInner {
+    width: 100%;
+    /* Adjust based on the size of your tab */
+    background-color: #e0e0e0;
+    /* Light gray background */
+    /* Rounded corners (optional) */
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+/* Add the animation */
+.skeletonTabInner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
+    animation: loadingAnimation 1.5s infinite ease-in-out;
+}
+
+/* Define the keyframes for the animation */
+@keyframes loadingAnimation {
+    0% {
+        left: -100%;
+    }
+
+    50% {
+        left: 100%;
+    }
+
+    100% {
+        left: -100%;
+    }
 }

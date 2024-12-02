@@ -1,8 +1,13 @@
 .tab {
-    padding: 10px 20px 0;
+    padding: 12px 20px 0 0;
     position: relative;
     max-width: 300px;
     font-size: 0.8rem;
+}
+
+.tabContent {
+    display: flex;
+    gap: 5px;
 }
 
 .draft {
@@ -14,7 +19,7 @@
     border-style: dashed;
 }
 
-.draftCaption{
+.draftCaption {
     display: flex;
     width: 100%;
     justify-content: center;
@@ -34,10 +39,20 @@
     position: relative;
 
     &:hover {
-        background-color: rgb(248, 255, 255);
         border-color: var(--color-green);
     }
 }
+
+.disabled .inner {
+    user-select: none;
+    cursor: auto;
+
+    &:hover {
+        border-color: #dadada;
+    }
+}
+
+
 
 .active .inner:after {
     border-radius: var(--brad-tab);
@@ -61,9 +76,6 @@
     border: 3px dashed var(--color-green);
 }
 
-.tab.active .inner {
-    /* color: white; */
-}
 
 .after {
     transition: opacity 0.2s;
@@ -71,4 +83,10 @@
     position: absolute;
     top: 0;
     right: 0;
+}
+
+.before {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

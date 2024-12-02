@@ -6,6 +6,11 @@ import { DayCategory, DayCategoryDish } from "@/types/day/day"
 import { makeObservable, observable, computed, toJS, action, reaction } from "mobx"
 import { v4 as uuidv4 } from 'uuid';
 
+type DayData = {
+    date: string,
+    categories: DayCategory[]
+}
+
 export class DayStore {
     constructor(rootDayStore: RootDayStore) {
         makeObservable(this, {
@@ -13,12 +18,14 @@ export class DayStore {
             name: observable,
             categories: observable,
             id: observable,
+            date: observable,
             currentCategoryId: observable,
             empty: computed,
             dishIds: computed,
             products: computed,
+            data: computed,
             uniqueProductIds: computed,
-
+            setDate: action,
         })
         this.rootDayStore = rootDayStore
 
@@ -56,6 +63,8 @@ export class DayStore {
     id = DRAFT_ID
 
     currentCategoryId: string = ''
+
+    date = ''
 
     get empty() {
         return this.categories.length === 0
@@ -215,8 +224,9 @@ export class DayStore {
     }
 
     generatePayload = (): CreateDayPayload => {
-        const payload = {
+        const payload: CreateDayPayload = {
             name: this.name,
+            date: this.date,
             categories: this.categories.map(({ dishes, name, position }) => ({
                 dishes: dishes.map(dish => {
                     const { name, ...rest } = dish
@@ -255,10 +265,18 @@ export class DayStore {
         this.id = DRAFT_ID
     }
 
+    setDate = (date: string) => this.date = date
+
+    get data() {
+        return {
+            date: this.date,
+            categories: this.categories
+        }
+    }
 
 }
 
-export class UserDayStore extends DayStore implements UserDataStore<DayCategory[]> {
+export class UserDayStore extends DayStore implements UserDataStore<DayData> {
 
     constructor(rootDayStore: RootDayStore) {
         super(rootDayStore)
@@ -266,17 +284,24 @@ export class UserDayStore extends DayStore implements UserDataStore<DayCategory[
             save: action,
             resetToInit: action,
         })
-        this.detectChangesStore = new DetectChangesStore(this.categories);
+        this.detectChangesStore = new DetectChangesStore(this.data);
 
         reaction(
-            () => [toJS(this.categories)],
+            () => [this.data],
             ([data]) => {
+                console.log("NEWDATA", data)
                 this.detectChangesStore.setData(data)
             }
         );
+        // reaction(
+        //     () => [toJS(this.categories)],
+        //     ([data]) => {
+        //         this.detectChangesStore.setData(data)
+        //     }
+        // );
 
     }
-    detectChangesStore: DetectChangesStore<DayCategory[]>
+    detectChangesStore: DetectChangesStore<DayData>
 
 
     remove = (id: number) => {
@@ -286,13 +311,17 @@ export class UserDayStore extends DayStore implements UserDataStore<DayCategory[
     resetToInit = () => {
         console.log('from userdatstore')
         if (!this.detectChangesStore.initProductsSnapshotCopy) return
-        this.categories = this.detectChangesStore.initProductsSnapshotCopy
+        const { categories, date } = this.detectChangesStore.initProductsSnapshotCopy
+        this.date = date
+        this.categories = categories
+        // this.categories = this.detectChangesStore.initProductsSnapshotCopy
     }
 
     save = async (id: number) => {
         return this.rootDayStore?.updateDay(this.id, this.generatePayload())
             .then(() => {
-                this.detectChangesStore.updateSnapshot(this.categories)
+                this.detectChangesStore.updateSnapshot(this.data)
+                // this.detectChangesStore.updateSnapshot(this.categories)
             })
     }
 
@@ -307,6 +336,10 @@ export class DraftDayStore extends DayStore implements DraftStore {
             resetToInit: action,
         })
     }
+
+    // get loading() {
+    //     return this.rootStore.fetchManager.loading.save;
+    //   }
 
     save = async () => {
         this.rootDayStore?.addDay(this.generatePayload())

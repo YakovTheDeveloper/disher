@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
@@ -11,10 +11,18 @@ import { AuthModule } from 'resources/auth/auth.module';
 import { DishModule } from 'foodCollection/dish/dish.module';
 import { DayModule } from 'resources/day/day.module';
 import { UserNormModule } from './user_norm/user_norm.module';
+import { DelayMiddleware } from 'middleware/delay.middleware';
 
 @Module({
   imports: [ConfigModule.forRoot(), UsersModule, NutrientsModule, ProductsModule, DishModule, UserProductsModule, ProductsNutrientsModule, AuthModule, DayModule, UserNormModule],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Apply the DelayMiddleware globally
+    consumer.apply(DelayMiddleware).forRoutes('*');
+    // Or apply it to specific routes
+    // consumer.apply(DelayMiddleware).forRoutes('your-route');
+  }
+} 

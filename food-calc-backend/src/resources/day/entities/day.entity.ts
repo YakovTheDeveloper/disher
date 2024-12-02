@@ -11,10 +11,13 @@ export class Day {
 
     @ManyToOne(() => User, user => user.days)
     user: User;
-    
+
     @Column()
     name: string
 
     @OneToMany(() => DayCategory, dayCategory => dayCategory.day, { cascade: true, onDelete: 'CASCADE', eager: true })
     dayCategories: DayCategory[];
+
+    @Column({ nullable: true })
+    date: string
 }

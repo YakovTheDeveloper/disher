@@ -1,3 +1,4 @@
+import { ISODate } from "@/types/common/common"
 import { DayCategory, DayCategoryDish } from "@/types/day/day"
 
 type DayContent = {
@@ -9,6 +10,7 @@ type DayContent = {
 export type DayPayload = {
     name: string
     categories: DayContent
+    date: ISODate
 }
 
 export type CreateDayResponse = {
@@ -23,6 +25,7 @@ export type CreateDayResponse = {
 export type GetAllDayResponse = {
     result: {
         id: number,
+        date: string,
         name: string,
         categories: DayCategory[]
     }[]

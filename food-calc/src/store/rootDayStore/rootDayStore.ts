@@ -63,7 +63,7 @@ export class RootDayStore {
                     this.currentAbortController = new AbortController();
                     this.calculations.resetNutrients()
 
-      
+
                     const productsToFetch = this.calculations.productStore.getMissingProductIds(dayStore.uniqueProductIds)
                     if (isNotEmpty(productsToFetch)) {
                         const currentController = this.currentAbortController
@@ -124,7 +124,11 @@ export class RootDayStore {
             newStore.categories = categories
             newStore.name = name
             newStore.id = id
-            newStore.detectChangesStore.setInitSnapshot(categories)
+
+            newStore.detectChangesStore.setInitSnapshot({
+                categories,
+                date: payload.date
+            })
             this.addToUserDayStores(newStore)
             this.setCurrentDayId(id)
             this.draftDayStore.clear()
@@ -156,11 +160,16 @@ export class RootDayStore {
             if (!res) return
             const days = res.result.map(day => {
                 const store = new UserDayStore(this)
-                const categories = day.categories.sort((a, b) => a.position - b.position);
+                const { categories, date, id, name } = day
+                categories.sort((a, b) => a.position - b.position);
                 store.categories = categories
-                store.id = day.id
-                store.name = day.name
-                store.detectChangesStore.setInitSnapshot(categories)
+                store.id = id
+                store.name = name
+                store.date = date
+                store.detectChangesStore.setInitSnapshot({
+                    categories,
+                    date
+                })
                 console.log("store", store)
                 return store
             })

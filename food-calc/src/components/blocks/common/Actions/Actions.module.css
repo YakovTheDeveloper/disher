@@ -1,0 +1,13 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.3s;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* height: 100%; */
+}

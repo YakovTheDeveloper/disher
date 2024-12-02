@@ -17,7 +17,7 @@ export class DayController {
       throw new BadRequestException('No such user id');
     }
     // return this.dayService.createDay2(createDayDto, userId);
-    return this.dayService.createDay(createDayDto.name, createDayDto.categories, userId);
+    return this.dayService.createDay(createDayDto, userId);
   }
 
   @UseGuards(LocalAuthGuard)
@@ -43,7 +43,7 @@ export class DayController {
     if (userId == null) {
       throw new BadRequestException('No such user id');
     }
-    return this.dayService.update(+id, updateDayDto.name, updateDayDto.categories, userId);
+    return this.dayService.update(+id, updateDayDto, userId);
   }
 
   @UseGuards(LocalAuthGuard)

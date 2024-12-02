@@ -56,6 +56,12 @@ export const apiRoutes = {
         get: (id: number) => `${'day'}/${id}`,
         delete: (id: number) => `${'day'}/${id}`,
     },
+    norm: {
+        create: 'norm',
+        update: (id: number) => `norm/${id}`,
+        delete: (id: number) => `norm/${id}`,
+        getAll: 'norm'
+    },
     dish: {
         create: `${'dish'}`,
         update: (id: number) => `${'dish'}/${id}`,

@@ -1,10 +1,11 @@
+import { Optional } from '@nestjs/common';
 import { Type } from 'class-transformer';
 import { IsString, IsArray, ArrayNotEmpty, IsNumber, ValidateNested, IsOptional } from 'class-validator';
 
 class DayCategoryDishDto {
   @IsNumber()
   id: string;
-  
+
   @IsOptional()
   @IsNumber()
   position?: number;
@@ -32,4 +33,8 @@ export class CreateDayDto {
   @ValidateNested({ each: true })
   @Type(() => DayCategoryDto)
   categories: DayCategoryDto[];
+
+  @IsOptional()
+  @IsString()
+  date?: string
 }

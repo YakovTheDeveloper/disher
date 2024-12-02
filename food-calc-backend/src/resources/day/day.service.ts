@@ -224,15 +224,16 @@ export class DayService {
   //   const dayCategoriseDishes = this.dayCategoryDishRepository.create(dto.categories)
   // }
 
-  async createDay(dayName: string, dayContent: DayCategoryPayload[], userId: number) {
+  async createDay(dto: CreateDayDto, userId: number) {
     const user = new User()
     user.id = userId
 
 
-
+    const { categories, name, date = '' } = dto
     let day = new Day();
-    day.name = dayName;
-    day.dayCategories = createDayCategories(dayContent, day);
+    day.name = name;
+    if (date) day.date = date
+    day.dayCategories = createDayCategories(categories, day);
     day.user = user
     const newDay = await this.dayRepository.save(day)
     const dayWithRelations = await this.dayRepository.findOne({
@@ -298,6 +299,7 @@ export class DayService {
     const transformedData = days.map(day => ({
       id: day.id,
       name: day.name,
+      date: day.date,
       categories: day.dayCategories.map(category => ({
         id: category.id,
         name: category.name,
@@ -348,8 +350,7 @@ export class DayService {
 
   async update(
     dayId: number,
-    updatedDayName: string,
-    updatedDayContent: DayCategoryPayload[],
+    dto: UpdateDayDto,
     userId: number
   ) {
     const user = new User()
@@ -364,10 +365,12 @@ export class DayService {
       throw new Error(`Day with ID ${dayId} not found`);
     }
 
-    existingDay.name = updatedDayName;
+
+    if (dto.name) existingDay.name
+    if (dto.date) existingDay.date = dto.date
 
 
-    updateDayCategories(updatedDayContent, existingDay)
+    updateDayCategories(dto.categories, existingDay)
 
     await this.dayRepository.save(existingDay);
     await this.dayCategoryRepository

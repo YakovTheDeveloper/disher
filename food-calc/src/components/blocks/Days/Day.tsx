@@ -11,6 +11,7 @@ import Actions from '@/components/blocks/common/Actions/Actions'
 import EditableText from '@/components/ui/EditableText/EditableText'
 import { DayStore } from '@/store/rootDayStore/dayStore'
 import { DayCategory } from '@/types/day/day'
+import DatePicker from '@/components/ui/Calendar/Calendar'
 type Props = {
     store: DayStore
     addDay: (payload: CreateDayPayload) => Promise<CreateDayResponse>
@@ -34,7 +35,9 @@ const Day = (props: Props) => {
         id,
         addDishToCategory, isDishInCategory, currentCategoryId, setCurrentCategoryId, toggleDish,
         getDishCoefficient,
-        updateDishCoefficient
+        updateDishCoefficient,
+        date,
+        setDate
 
     } = store
 
@@ -45,8 +48,13 @@ const Day = (props: Props) => {
         setDishAddCategory(category)
     }
 
+    console.log("date", date)
+
     return (
         <section className={s.day}>
+            <div>
+                <DatePicker date={date} setDate={setDate} />
+            </div>
             <EditableText
                 value={name}
                 onChange={updateName}
