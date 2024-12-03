@@ -1,21 +1,25 @@
-import React from 'react'
-import s from './Container.module.css'
-import clsx from 'clsx'
+import React from 'react';
+import s from './Container.module.css';
+import clsx from 'clsx';
 
 type Props = {
-    children: React.ReactNode
-    vertical?: boolean
-    className?: string
-    boxShadow?: boolean
-}
-const Container = ({ children, vertical, boxShadow, className }: Props) => {
+    children: React.ReactNode;
+    vertical?: boolean;
+    className?: string;
+    boxShadow?: boolean;
+    size?: 'small' | 'medium'
+};
 
-    const classList = clsx([s.container, vertical && s.vertical, boxShadow && s.boxShadow, className])
+const Container = ({ children, vertical, boxShadow, size = 'small', className }: Props) => {
+    const classList = clsx([
+        s.container,
+        vertical && s.vertical,
+        boxShadow && s.boxShadow,
+        s[size],
+        className,
+    ]);
 
+    return <div className={classList}>{children}</div>;
+};
 
-    return (
-        <div className={classList}>{children}</div>
-    )
-}
-
-export default Container
+export default Container;

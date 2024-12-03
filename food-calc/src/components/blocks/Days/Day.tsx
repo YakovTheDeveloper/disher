@@ -1,4 +1,4 @@
-import AddDishToDay from '@/components/blocks/AddDishToDay/AddDishToDay'
+import AddDishToDay from '@/components/blocks/Days/AddDishToDay/AddDishToDay'
 
 import { observer } from 'mobx-react-lite'
 import { useState } from 'react'
@@ -11,7 +11,8 @@ import Actions from '@/components/blocks/common/Actions/Actions'
 import EditableText from '@/components/ui/EditableText/EditableText'
 import { DayStore } from '@/store/rootDayStore/dayStore'
 import { DayCategory } from '@/types/day/day'
-import DatePicker from '@/components/ui/Calendar/Calendar'
+import DatePicker from '@/components/ui/DatePicker/DatePicker'
+
 type Props = {
     store: DayStore
     addDay: (payload: CreateDayPayload) => Promise<CreateDayResponse>
@@ -32,8 +33,8 @@ const Day = (props: Props) => {
         addCategory,
         categories,
         name,
-        id,
-        addDishToCategory, isDishInCategory, currentCategoryId, setCurrentCategoryId, toggleDish,
+        currentCategoryId,
+        setCurrentCategoryId,
         getDishCoefficient,
         updateDishCoefficient,
         date,
@@ -41,25 +42,21 @@ const Day = (props: Props) => {
 
     } = store
 
-    const [dishAddCategory, setDishAddCategory] = useState<DayCategory | null>(null)
-
     const onDishAdd = (category: DayCategory) => {
-        setCurrentCategoryId(category.id)
-        setDishAddCategory(category)
+        setCurrentCategoryId(category.id.toString())
     }
-
-    console.log("date", date)
 
     return (
         <section className={s.day}>
-            <div>
+            <div className={s.header}>
+                <EditableText
+                    value={name}
+                    onChange={updateName}
+                    typographyProps={{ variant: 'h1' }}
+                />
                 <DatePicker date={date} setDate={setDate} />
             </div>
-            <EditableText
-                value={name}
-                onChange={updateName}
-                typographyProps={{ variant: 'h1' }}
-            />
+
             {/* <Typography variant='h1'>{name}</Typography> */}
             <Button onClick={addCategory} variant='secondary'>Создать категорию</Button>
             <div className={s.content}>
@@ -92,14 +89,7 @@ const Day = (props: Props) => {
                     </AnimatePresence>
                 </Reorder.Group>
                 <section>
-                    {dishAddCategory &&
-                        <AddDishToDay
-                            addDishToCategory={addDishToCategory}
-                            dishAddCategory={dishAddCategory}
-                            isDishInCategory={isDishInCategory}
-                            currentCategoryId={currentCategoryId}
-                            toggleDish={toggleDish}
-                        />}
+                    {<AddDishToDay day={store} />}
                 </section>
             </div>
             <Actions store={store} />

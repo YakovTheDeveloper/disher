@@ -1,13 +1,19 @@
 .header {
+    padding: 10px;
+    max-width: 1220px;
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    max-width: 1220px
+    align-items: center;
+    position: relative;
 }
 
 .navigation {
     display: flex;
     gap: 15px;
+    /* right: 50%; */
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .link {

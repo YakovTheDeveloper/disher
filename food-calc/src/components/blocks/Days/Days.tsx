@@ -1,5 +1,6 @@
 import Day from '@/components/blocks/Days/Day'
 import NutrientsTotal from '@/components/blocks/NutrientsTotal/NutrientsTotal'
+import Layout from '@/components/common/Layout/Layout'
 import Container from '@/components/ui/Container/Container'
 import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
 import { Tab } from '@/components/ui/Tab'
@@ -21,8 +22,8 @@ const Days = () => {
 
 
     return (
-        <Container>
-            <Container>
+        <Layout
+            left={
                 <TabList >
                     {allStores.map(({ id, name }, i) => (
                         <Tab
@@ -30,18 +31,21 @@ const Days = () => {
                             draft={i === 0}
                             onClick={() => setCurrentDayId(id)}
                             isActive={currentDayId === id}
-                            after={isDraftId(id) ? null : <RemoveButton onClick={() => removeDay(id)} />}
+                            after={isDraftId(id) ? null : <RemoveButton onClick={() => removeDay(id)} size='small' />}
                         >
 
                             {name}
                         </Tab>))}
                 </TabList>
-            </Container>
-            <Container boxShadow>
-                {currentStore && <Day store={currentStore} ></Day>}
-            </Container>
-            {currentStore && <NutrientsTotal totalNutrients={rootDayStore.calculations.totalNutrients} loading={isLoading}></NutrientsTotal>}
-        </Container>
+            }
+            center={
+                currentStore && <Day store={currentStore} ></Day>
+            }
+            right={
+                currentStore && <NutrientsTotal totalNutrients={rootDayStore.calculations.totalNutrients} loading={isLoading}></NutrientsTotal>
+            }
+        >
+        </Layout>
     )
 }
 

@@ -1,6 +1,5 @@
 .container {
     border: 2px solid white;
-    padding: 15px;
     transition: border-color 0.3s ease;
     /* Smooth transition for the border color */
     border-radius: 8px;
@@ -8,10 +7,17 @@
 }
 
 .container.appear {
-    border-color: rgb(152, 152, 255);
+    border-color: var(--color-light-green);
 }
 
-.list{
+.header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.list {
     padding-top: 20px;
     display: flex;
     flex-direction: column;
@@ -26,8 +32,8 @@
     justify-content: space-between;
     cursor: pointer;
 
-    &:hover{
-        background-color: aliceblue;
+    &:hover {
+        background-color: var(--color-light-green-2);
     }
 }
 

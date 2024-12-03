@@ -31,12 +31,14 @@
 }
 
 .inner {
+    width: 100%;
     border-radius: var(--brad-tab);
     border: 1px solid #dadada;
     padding: 5px 10px;
     transition: all 0.2s;
     cursor: pointer;
     position: relative;
+
 
     &:hover {
         border-color: var(--color-green);

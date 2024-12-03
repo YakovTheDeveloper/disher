@@ -1,4 +1,10 @@
+.container {
+    width: 100%;
+    max-width: 210px;
+}
+
 .tabList {
+    width: 100%;
     display: flex;
     /* gap: var(--gap-tabs); */
     flex-direction: column;

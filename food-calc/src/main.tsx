@@ -19,7 +19,7 @@ import Header from "@/components/common/Header/Header.tsx";
 
 import Days from "@/components/blocks/Days/Days.tsx";
 
-import AddDishToDay from "@/components/blocks/AddDishToDay/AddDishToDay.tsx";
+import AddDishToDay from "@/components/blocks/Days/AddDishToDay/AddDishToDay.tsx";
 
 import DailyNorms from "@/components/blocks/DailyNorms/DailyNorms.tsx";
 

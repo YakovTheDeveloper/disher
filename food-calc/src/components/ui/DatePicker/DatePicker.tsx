@@ -1,5 +1,8 @@
 import useOutsideClick from "@/hooks/useOutsideClick";
 import React, { useState, useEffect, useRef } from "react";
+import s from "./DatePicker.module.css";
+import RemoveButton from "@/components/ui/RemoveButton/RemoveButton";
+import { Typography } from "@/components/ui/Typography/Typography";
 
 // Utility function to generate an array of dates for the current month
 const getDaysInMonth = (date: Date): Date[] => {
@@ -30,7 +33,7 @@ const DatePicker: React.FC<Props> = ({ date, setDate }) => {
 
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Hide product list when clicked outside
+    // Hide calendar when clicked outside
     useOutsideClick(containerRef, () => setIsOpen(false));
 
     // When `date` prop changes, update the `currentMonth`
@@ -45,7 +48,12 @@ const DatePicker: React.FC<Props> = ({ date, setDate }) => {
 
     // Handles date selection
     const handleDateClick = (selectedDate: Date) => {
-        setDate(selectedDate.toISOString())
+        if (selectedDate.toISOString() === date) {
+            setDate('')
+            setIsOpen(false); // Close the calendar
+            return
+        }
+        setDate(selectedDate.toISOString());
         setIsOpen(false); // Close the calendar
     };
 
@@ -70,16 +78,25 @@ const DatePicker: React.FC<Props> = ({ date, setDate }) => {
     // Generate days for the current month or fallback to current date
     const daysInMonth = currentMonth ? getDaysInMonth(currentMonth) : [];
 
-    return (
-        <div ref={containerRef}>
-            <span onClick={toggleCalendar} style={{ cursor: "pointer", padding: "5px" }}>
-                {date ? new Date(date).toLocaleDateString() : "Select Date"}
-            </span>
+    const options = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    };
+    const label = date ? new Date(date).toLocaleDateString('ru-RU', options) : "Назначить дату"
 
+    return (
+        <div ref={containerRef} className={s.container}>
+            <span onClick={toggleCalendar} className={s.trigger}>
+                {label}
+            </span>
             {isOpen && (
-                <div style={calendarStyles}>
-                    <div style={headerStyles}>
-                        <button onClick={goToPreviousMonth} disabled={!currentMonth}>&lt;</button>
+                <div className={s.calendar}>
+                    <div className={s.header}>
+                        <button onClick={goToPreviousMonth} disabled={!currentMonth}>
+                            &lt;
+                        </button>
                         <span>
                             {currentMonth
                                 ? currentMonth.toLocaleDateString("en-US", {
@@ -88,17 +105,21 @@ const DatePicker: React.FC<Props> = ({ date, setDate }) => {
                                 })
                                 : "No Month Selected"}
                         </span>
-                        <button onClick={goToNextMonth} disabled={!currentMonth}>&gt;</button>
+                        <button onClick={goToNextMonth} disabled={!currentMonth}>
+                            &gt;
+                        </button>
                     </div>
-                    <div style={gridStyles}>
+                    <div className={s.dayNames}>
+                        {dayNames.ru.map((day) => (
+                            <Typography key={day} variant="caption" align="center">{day}</Typography>
+                        ))}
+                    </div>
+                    <div className={s.grid}>
                         {daysInMonth.map((day) => (
                             <div
                                 key={day.toISOString()}
-                                style={{
-                                    ...dayStyles,
-                                    backgroundColor: day.toISOString() === date ? "#ADD8E6" : "",
-                                    cursor: "pointer",
-                                }}
+                                className={`${s.day} ${day.toISOString() === date ? s.selectedDay : ""
+                                    }`}
                                 onClick={() => handleDateClick(day)}
                             >
                                 {day.getDate()}
@@ -107,38 +128,15 @@ const DatePicker: React.FC<Props> = ({ date, setDate }) => {
                     </div>
                 </div>
             )}
+
         </div>
     );
 };
 
-// Styles
-const calendarStyles: React.CSSProperties = {
-    position: "absolute",
-    backgroundColor: "white",
-    border: "1px solid #ddd",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    zIndex: 10,
-    padding: "10px",
-};
+const dayNames = {
+    ru: ["пн", "вт", "ср", "чт", "пт", "сб", "вс"],
+    en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+}
 
-const headerStyles: React.CSSProperties = {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "10px",
-};
-
-const gridStyles: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: "repeat(7, 1fr)",
-    gap: "5px",
-};
-
-const dayStyles: React.CSSProperties = {
-    textAlign: "center",
-    padding: "10px",
-    borderRadius: "50%",
-    cursor: "pointer",
-};
 
 export default DatePicker;

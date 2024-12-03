@@ -1,10 +1,17 @@
-.day{
+.day {
     display: flex;
     flex-direction: column;
     gap: 30px;
+    width: 100%;
 }
 
-.content{
+.header {
+    display: flex;
+    gap: 30px;
+    justify-content: space-between;
+}
+
+.content {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px;

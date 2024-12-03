@@ -1,0 +1,11 @@
+.layout {
+    display: grid;
+    grid-template-columns: 1fr 600px 1fr;
+    gap: 10px;
+
+}
+
+.left {
+    display: flex;
+    justify-content: flex-end;
+}

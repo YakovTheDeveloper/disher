@@ -12,7 +12,7 @@ const skeletons = new Array(3).fill("");
 const TabList = (props: Props) => {
   const { children, isLoading } = props;
   return (
-    <div>
+    <div className={s.container}>
       <ul className={s.tabList}>{children}</ul>
       {isLoading && (
         <>
@@ -23,7 +23,7 @@ const TabList = (props: Props) => {
               disabled={true}
               isActive={false}
               draft={false}
-              onClick={() => {}}
+              onClick={() => { }}
             >
               Загрузка
             </Tab>

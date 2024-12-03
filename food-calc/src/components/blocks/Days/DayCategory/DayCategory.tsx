@@ -24,7 +24,7 @@ type Props = {
 const DayCategoryItem: React.FC<Props> = (
     { changeCategoryName, currentCategoryId, category, onDishAdd, removeCategory, removeDishFromCategory, getDishCoefficient, updateDishCoefficient }
 ) => {
-    const isActive = +currentCategoryId === category.id
+    const isActive = currentCategoryId === category.id.toString()
     const { id: categoryId } = category
     const onRemove = () => {
         removeCategory(categoryId)
@@ -38,13 +38,13 @@ const DayCategoryItem: React.FC<Props> = (
             as='li'
             value={category}
             key={category.id}
-            className={clsx(s.category, isActive && s.active)}
+            className={clsx(s.dayCategory, isActive && s.active)}
             onClick={() => onDishAdd(category)}
             whileDrag={{ scale: 1.05, opacity: 0.8 }}  // Feedback while dragging
         >
             <button onClick={onRemove} className={clsx(s.removeCategoryButtonContainer, s.removeButton, s.hoverShow)}>x</button>
             <DayCategoryName name={category.name} isActive={isActive} changeCategoryName={changeCategoryName} categoryId={category.id} />
-            <ul>
+            <ul className={s.dishesList}>
                 {category.dishes.map((dish) => {
                     const coefficient = getDishCoefficient(categoryId, dish.id)
                     return (

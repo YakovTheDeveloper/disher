@@ -25,7 +25,9 @@ export class DayStore {
             products: computed,
             data: computed,
             uniqueProductIds: computed,
+            currentCategory: computed,
             setDate: action,
+            setCurrentCategoryId: action
         })
         this.rootDayStore = rootDayStore
 
@@ -73,11 +75,11 @@ export class DayStore {
     get map() {
         return this.categories.reduce((categoryMap, category) => {
             const dishesMap = category.dishes.reduce((dishesMap, dish) => {
-                dishesMap[+dish.id] = dish; // Convert dish.id to number for numeric indexing
+                dishesMap[+dish.id] = dish;
                 return dishesMap;
             }, {} as Record<number, DayCategoryDish>);
 
-            categoryMap[+category.id] = {
+            categoryMap[category.id] = {
                 ...category,
                 dishes: dishesMap,
             };
@@ -111,6 +113,10 @@ export class DayStore {
             }
         }
         return Array.from(new Set(products))
+    }
+
+    get currentCategory() {
+        return this.categories.find(({ id }) => id === this.currentCategoryId)
     }
 
     updateName = (name: string) => {
@@ -198,7 +204,9 @@ export class DayStore {
     }
 
     updateDishCoefficient = (categoryId: number, dishId: number, value: number) => {
+        // console.log(categoryId, dishId)
         const category = this.map[categoryId]
+        console.log(toJS(this.categories))
         const dish = category?.dishes?.[dishId]
         if (!dish) return
         dish.coefficient = +value.toFixed(1)

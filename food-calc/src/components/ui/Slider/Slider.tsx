@@ -29,10 +29,13 @@ const Slider: React.FC<SliderProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     const newValue = calculateValue(e.clientX);
+    console.log('fuck')
     onChange(newValue);
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const newValue = calculateValue(moveEvent.clientX);
+      console.log('fuck', onChange)
+
       onChange(newValue);
     };
 

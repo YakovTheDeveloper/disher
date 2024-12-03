@@ -2,8 +2,26 @@
     background: none;
     border: none;
     transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-    &:hover{
-        opacity: 0.5;
-    }
+.small {
+    width: 8px;
+    height: 8px;
+}
+
+.medium {
+    width: 14px;
+    height: 15px;
+}
+
+.large {
+    width: 20px;
+    height: 20px;
+}
+
+.removeButton:hover {
+    opacity: 0.5;
 }
