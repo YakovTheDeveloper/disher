@@ -9,8 +9,8 @@
     border-radius: var(--brad-category);
     position: relative;
     display: flex;
-    flex-direction: column;
     cursor: pointer;
+    user-select: none;
     /* transition: background-color 0.3s ease, transform 0.3s ease; */
 
     &:hover {
@@ -35,6 +35,9 @@
 }
 
 .removeButton {
+    position: absolute;
+    top: 0;
+    right: 0;
     transition: opacity 0.2s;
     opacity: 0;
 }
@@ -62,14 +65,16 @@
 }
 
 .dayCategory.active {
-    border-color: transparent;
+    border-color: var(--color-green);
 }
 
-.active {
-    border-color: rgb(13, 255, 166);
+
+.sliderContainer {
+    padding: 10px;
 }
 
-/* .active:after {
+/* 
+.active:after {
 
     border-radius: var(--brad-category);
     content: '';
@@ -82,7 +87,29 @@
     border: 3px solid var(--color-green);
 } */
 
+.active {
+    border: 1px solid var(--color-green);
+}
 
+.dragHandle {
+    cursor: grab;
+    padding: 0.5rem;
+    background-color: #f5f5f5;
+    border-right: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dragHandle:active {
+    cursor: grabbing;
+}
+
+.dragHandle span {
+    font-size: 1.5rem;
+    line-height: 1;
+    user-select: none;
+}
 
 
 /* .category.dragging {

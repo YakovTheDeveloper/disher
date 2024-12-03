@@ -1,5 +1,5 @@
 import { DayCategoryDish } from '@/types/day/day'
-import React from 'react'
+import React, { useCallback } from 'react'
 import s from './DayCategoryDishItem.module.css'
 import { Typography } from '@/components/ui/Typography/Typography'
 import clsx from 'clsx'
@@ -12,7 +12,10 @@ type Props = {
 }
 
 const DayCategoryDishItem = ({ dish, children, className }: Props) => {
-    const {  id, name } = dish
+
+
+
+    const { id, name } = dish
     return (
         <li key={id} className={clsx([className, s.dish])}>
             <Typography variant='body2'>{name}</Typography>

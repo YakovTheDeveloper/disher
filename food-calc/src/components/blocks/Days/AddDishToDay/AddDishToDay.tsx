@@ -6,12 +6,14 @@ import clsx from 'clsx'
 import { DayCategoryDish } from '@/types/day/day'
 import { Typography } from '@/components/ui/Typography/Typography'
 import { DayStore } from '@/store/rootDayStore/dayStore'
+import DayDishesList from '@/components/blocks/Days/AddDishToDay/DayDishesList/DayDishesList'
+import DishInCategoryStatus from '@/components/blocks/Days/DayCategoryDishItem/DishInCategoryStatus/DishInCategoryStatus'
 
 type Props = {
     day: DayStore
 }
 
-const AddDishToDay = observer((props: Props) => {
+const AddDishToDay = (props: Props) => {
 
     const { isDishInCategory, toggleDish, currentCategory } = props.day
     const { userDishes } = rootDishStore
@@ -39,6 +41,8 @@ const AddDishToDay = observer((props: Props) => {
 
     if (!currentCategory) return null
 
+
+
     return (
         <div className={clsx([
             s.container,
@@ -49,26 +53,15 @@ const AddDishToDay = observer((props: Props) => {
                 <Typography variant='caption' align='center'>добавить или убрать блюдо</Typography>
             </div>
             <ul className={s.list}>
-                {userDishes.map((dish) => {
-                    const isActive = isDishInCategory(currentCategory, dish.id.toString())
-                    return (
-                        <li
-                            key={dish.id}
-                            onClick={() => onAdd({
-                                coefficient: 1,
-                                id: dish.id,
-                                name: dish.name,
-                                products: dish.products.map(({ id, quantity }) => ({ id: +id, quantity }))
-                            })}
-                            className={clsx(s.listItem, isActive && s.inList)}
-                        >
-                            {dish.name} <span>{isActive && '✅'}</span>
-                        </li>
-                    )
-                })}
+                <DayDishesList
+                    isDishInCategory={isDishInCategory}
+                    toggleDishInCategory={onAdd}
+                    userDishes={userDishes}
+                    category={currentCategory}
+                />
             </ul>
         </div>
     )
-})
+}
 
-export default AddDishToDay
+export default observer(AddDishToDay)

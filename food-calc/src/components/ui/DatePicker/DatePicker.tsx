@@ -84,7 +84,7 @@ const DatePicker: React.FC<Props> = ({ date, setDate }) => {
         month: 'long',
         day: 'numeric',
     };
-    const label = date ? new Date(date).toLocaleDateString('ru-RU', options) : "Назначить дату"
+    const label = date ? new Date(date).toLocaleDateString('ru-RU', options) : "Установить дату"
 
     return (
         <div ref={containerRef} className={s.container}>

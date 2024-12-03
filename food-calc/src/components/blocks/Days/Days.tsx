@@ -1,5 +1,7 @@
 import Day from '@/components/blocks/Days/Day'
+import NutrientPercent from '@/components/blocks/NutrientsTotal/NutrientPercent/NutrientPercent'
 import NutrientsTotal from '@/components/blocks/NutrientsTotal/NutrientsTotal'
+import NutrientValue from '@/components/blocks/NutrientsTotal/NutrientValue/NutrientValue'
 import Layout from '@/components/common/Layout/Layout'
 import Container from '@/components/ui/Container/Container'
 import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
@@ -13,7 +15,7 @@ import React, { useEffect } from 'react'
 
 const Days = () => {
 
-    const { addDay, updateDay, allStores, setCurrentDayId, currentDayId, removeDay, isDraftId } = rootDayStore
+    const { addDay, updateDay, allStores, setCurrentDayId, currentDayId, removeDay, isDraftId, calculations } = rootDayStore
 
     const currentStore = allStores.find(({ id }) => id === currentDayId)
 
@@ -42,7 +44,23 @@ const Days = () => {
                 currentStore && <Day store={currentStore} ></Day>
             }
             right={
-                currentStore && <NutrientsTotal totalNutrients={rootDayStore.calculations.totalNutrients} loading={isLoading}></NutrientsTotal>
+                currentStore &&
+                <NutrientsTotal
+
+                    rowPositionSecond={(nutrient) => (
+                        <NutrientValue
+                            nutrient={nutrient}
+                            calculations={calculations}
+
+                        />
+                    )}
+                    rowPositionThird={({ id }) => (
+                        <NutrientPercent
+                            nutrientId={id}
+                            nutrientQuantity={calculations.totalNutrients[id]}
+                        />
+                    )}
+                    loading={isLoading}></NutrientsTotal>
             }
         >
         </Layout>

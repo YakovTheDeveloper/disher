@@ -10,8 +10,10 @@ import Button from '@/components/ui/Button/Button'
 import Actions from '@/components/blocks/common/Actions/Actions'
 import EditableText from '@/components/ui/EditableText/EditableText'
 import { DayStore } from '@/store/rootDayStore/dayStore'
-import { DayCategory } from '@/types/day/day'
+import { DayCategory, DayCategoryDish } from '@/types/day/day'
 import DatePicker from '@/components/ui/DatePicker/DatePicker'
+import DayCategoryDishList from '@/components/blocks/Days/DayCategory/DayCategoryDishList/DayCategoryDishList'
+import DayDishCoefficientSlider from '@/components/blocks/Days/DayCategory/DayCategoryDishList/DayDishCoefficientSlider/DayDishCoefficientSlider'
 
 type Props = {
     store: DayStore
@@ -46,6 +48,10 @@ const Day = (props: Props) => {
         setCurrentCategoryId(category.id.toString())
     }
 
+    // const onDishRemove = (categoryId: string, dish: DayCategoryDish) => {
+    //     removeDishFromCategory(categoryId,d)
+    // }
+
     return (
         <section className={s.day}>
             <div className={s.header}>
@@ -79,12 +85,28 @@ const Day = (props: Props) => {
                                 removeCategory={removeCategory}
                                 removeDishFromCategory={removeDishFromCategory}
                                 changeCategoryName={changeCategoryName}
-                                getDishCoefficient={getDishCoefficient}
-                                updateDishCoefficient={updateDishCoefficient}
+                                renderDragHandle={true} // Pass down this prop to allow the item to render a drag handle
+                            >
+
+                                <DayCategoryDishList
+                                    category={category}
+                                    getDishCoefficient={getDishCoefficient}
+                                    updateDishCoefficient={updateDishCoefficient}
+                                    removeDishFromCategory={removeDishFromCategory}
+                                    dishSliderRender={(dishId: number) => (
+                                        <DayDishCoefficientSlider
+                                            day={store}
+                                            dishId={dishId}
+                                            dishCoefficient={getDishCoefficient(category.id, dishId)}
+                                        />
+                                    )}
 
 
+                                >
 
-                            />
+
+                                </DayCategoryDishList>
+                            </DayCategoryItem>
                         ))}
                     </AnimatePresence>
                 </Reorder.Group>

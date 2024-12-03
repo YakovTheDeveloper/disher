@@ -204,7 +204,7 @@ export class DayStore {
     }
 
     updateDishCoefficient = (categoryId: number, dishId: number, value: number) => {
-        // console.log(categoryId, dishId)
+        console.log(categoryId, dishId)
         const category = this.map[categoryId]
         console.log(toJS(this.categories))
         const dish = category?.dishes?.[dishId]

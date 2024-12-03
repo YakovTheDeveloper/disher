@@ -4,8 +4,8 @@ export type NutrientCategory = {
     name: string;
     displayName: string;
     displayNameRu: string;
-    unit: string;
-    unitRu: string;
+    unit: 'g' | 'μg';
+    unitRu: 'г' | 'мкг';
 }
 export const nutrientsMap: Record<number, NutrientCategory> = {
     "1": {

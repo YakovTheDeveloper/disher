@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import styles from "./Slider.module.css";
 
 interface SliderProps {
   min?: number;
@@ -6,7 +7,7 @@ interface SliderProps {
   step?: number;
   value: number; // Controlled value
   onChange: (value: number) => void; // Callback to propagate changes
-  label: React.ReactNode // Callback to propagate changes
+  label: React.ReactNode;
 }
 
 const Slider: React.FC<SliderProps> = ({
@@ -15,7 +16,7 @@ const Slider: React.FC<SliderProps> = ({
   step = 0.1,
   value,
   onChange,
-  label
+  label,
 }) => {
   const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -29,13 +30,10 @@ const Slider: React.FC<SliderProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     const newValue = calculateValue(e.clientX);
-    console.log('fuck')
     onChange(newValue);
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const newValue = calculateValue(moveEvent.clientX);
-      console.log('fuck', onChange)
-
       onChange(newValue);
     };
 
@@ -51,60 +49,28 @@ const Slider: React.FC<SliderProps> = ({
   const percentage = ((value - min) / (max - min)) * 100;
 
   return (
-    <div style={styles.container}>
-      <div style={styles.label}>
-        {label}
-        {/* Value: {value.toFixed(1)} */}
-      </div>
+    <div
+      className={styles.container}
+    >
+      <div className={styles.label}>{label}</div>
       <div
         ref={sliderRef}
-        style={styles.slider}
+        className={styles.slider}
         onMouseDown={handleMouseDown}
       >
-        <div style={{ ...styles.track, width: `${percentage}%` }} />
         <div
+          className={styles.track}
+          style={{ width: `${percentage}%` }}
+        />
+        <div
+          className={styles.thumb}
           style={{
-            ...styles.thumb,
             left: `calc(${percentage}% - 10px)`,
           }}
         />
       </div>
-    </div>
+    </div >
   );
-};
-
-const styles = {
-  container: {
-    width: "300px",
-    padding: "20px",
-  },
-  label: {
-    marginBottom: "10px",
-    fontSize: "14px",
-  },
-  slider: {
-    position: "relative" as "relative",
-    height: "6px",
-    background: "#ccc",
-    borderRadius: "3px",
-    cursor: "pointer",
-  },
-  track: {
-    position: "absolute" as "absolute",
-    height: "100%",
-    background: "#007bff",
-    borderRadius: "3px",
-  },
-  thumb: {
-    position: "absolute" as "absolute",
-    top: "-7px",
-    width: "20px",
-    height: "20px",
-    background: "#007bff",
-    borderRadius: "50%",
-    cursor: "grab",
-    transform: "translateX(-50%)",
-  },
 };
 
 export default Slider;
