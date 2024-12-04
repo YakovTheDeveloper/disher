@@ -3,6 +3,8 @@
   align-items: center;
   gap: 5px;
   transition: all 0.3s;
+  width: 100%;
+  margin-top: auto;
 }
 
 .loading {
@@ -10,4 +12,12 @@
   align-items: center;
   justify-content: center;
   /* height: 100%; */
+}
+
+.mainButton {
+  margin-right: auto;
+}
+
+.deleteButton {
+  margin-left: auto;
 }

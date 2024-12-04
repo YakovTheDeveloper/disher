@@ -47,9 +47,6 @@ const EditableText = ({
                 />
             ) : (
                 <>
-                    <Typography {...typographyProps}>
-                        {value || placeholder}
-                    </Typography>
                     <button
                         className={s.editButton}
                         onClick={() => setIsEditing(true)}
@@ -57,6 +54,9 @@ const EditableText = ({
                     >
                         <EditIcon />
                     </button>
+                    <Typography {...typographyProps}>
+                        {value || placeholder}
+                    </Typography>
                 </>
             )}
         </div>

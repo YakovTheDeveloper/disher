@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import styles from "./Slider.module.css";
+import clsx from "clsx";
 
 interface SliderProps {
   min?: number;
@@ -8,6 +9,7 @@ interface SliderProps {
   value: number; // Controlled value
   onChange: (value: number) => void; // Callback to propagate changes
   label: React.ReactNode;
+  className?: string
 }
 
 const Slider: React.FC<SliderProps> = ({
@@ -17,6 +19,7 @@ const Slider: React.FC<SliderProps> = ({
   value,
   onChange,
   label,
+  className
 }) => {
   const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -50,7 +53,7 @@ const Slider: React.FC<SliderProps> = ({
 
   return (
     <div
-      className={styles.container}
+      className={clsx([styles.container, className])}
     >
       <div className={styles.label}>{label}</div>
       <div

@@ -78,7 +78,7 @@ export abstract class FetchManagerStore<Data> implements FetchManager<Data> {
   ): Promise<Response<Data>>;
   protected abstract fetchUpdate(
     id: number,
-    payload: Data
+    payload: Omit<Data, "id">
   ): Promise<Response<Data>>;
   protected abstract fetchDelete(id: number): Promise<Response<boolean>>;
 
@@ -107,7 +107,7 @@ export abstract class FetchManagerStore<Data> implements FetchManager<Data> {
   };
 
   // Update data
-  update = async (id: number, payload: Data): Promise<Data | undefined> => {
+  update = async (id: number, payload: Omit<Data, "id">): Promise<Data | undefined> => {
     this.setLoading("update", true, id);
     try {
       const res = await this.fetchUpdate(id, payload);

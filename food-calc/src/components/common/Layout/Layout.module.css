@@ -1,8 +1,12 @@
 .layout {
     display: grid;
-    grid-template-columns: 1fr 600px 1fr;
-    gap: 10px;
+    grid-template-columns: 1fr 660px 1fr;
+    gap: 20px;
 
+}
+
+.center {
+    max-height: 78vh;
 }
 
 .left {

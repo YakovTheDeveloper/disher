@@ -1,30 +1,19 @@
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
-import {
-  calculationStore,
-  rootDishStore,
-  productStore,
-  UIStore,
-} from "../../../../store/rootStore";
+import React, { memo, useCallback, useState } from "react";
 import { IProductBase } from "../../../../types/menu/Menu";
-import {
-  IProduct,
-  NutrientIdToQuantityMap,
-} from "../../../../types/product/product";
 import { observer } from "mobx-react";
-import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { toJS } from "mobx";
 import { ProductLoading } from "@/store/productStore/productStore";
 import s from "./DishProduct.module.css";
-import RemoveButton from "@/components/ui/RemoveButton/RemoveButton";
 import clsx from "clsx";
 import { Typography } from "@/components/ui/Typography/Typography";
-import { Modals } from "@/store/uiStore/uiStore";
+import NumberInput from "@/components/ui/Input/InputNumber";
+import { debounce } from "@/utils/debounce";
 
 type Props = {
   product: IProductBase;
   menuId: string;
   isLoading: ProductLoading | null;
-  setProductQuantity: (productId: string, quantity: number) => void;
+  setProductQuantity: (productId: number, quantity: number) => void;
   after?: React.ReactNode;
   onNameClick: () => void;
 };
@@ -36,29 +25,42 @@ function DishItem({
   after,
   onNameClick,
 }: Props) {
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const quantity = Number(e.target.value);
-    setProductQuantity(product.id, quantity);
-  };
-  console.log("isLoading", toJS(isLoading));
+
   const disabled =
     isLoading?.isLoading ||
     isLoading?.status === "error" ||
     isLoading?.status === "pending";
 
+  const { quantity, id } = product
+  const [localValue, setLocalValue] = useState(quantity);
+
+  const debouncedUpdate = useCallback(
+    debounce((quantity) => {
+      setProductQuantity(id, quantity);
+    }, 450),
+    [id]
+  );
+
+  const handleChange = (value: number) => {
+    setLocalValue(value)
+    debouncedUpdate(value);
+  };
+
+
+
+
   return (
     <div
       className={clsx([s.dishProduct, isLoading?.isLoading ? s.loading : ""])}
     >
-      <input
-        maxLength={4}
-        className={clsx(s.input)}
-        type="text"
-        value={product.quantity}
-        onChange={onChange}
+
+      <NumberInput
+        max={4}
+        value={localValue}
+        onChange={handleChange}
         disabled={disabled}
       />
-      <Typography variant="body2" onClick={onNameClick}>
+      <Typography variant="body1" onClick={onNameClick} className={s.productName}>
         {product.name}
       </Typography>
       {after}

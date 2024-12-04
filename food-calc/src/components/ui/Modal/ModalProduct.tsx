@@ -1,4 +1,4 @@
-import DishItem from "@/components/blocks/Menu/DishItem/DishItem";
+import DishItem from "@/components/blocks/Dish/DishItem/DishItem";
 import NutrientPercent from "@/components/blocks/NutrientsTotal/NutrientPercent/NutrientPercent";
 import NutrientsTotal from "@/components/blocks/NutrientsTotal/NutrientsTotal";
 import Modal from "@/components/ui/Modal/Modal";

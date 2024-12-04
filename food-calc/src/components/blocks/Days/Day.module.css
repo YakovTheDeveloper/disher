@@ -11,8 +11,8 @@
     justify-content: space-between;
 }
 
-.content {
+.main {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
+    grid-template-columns: 5fr 3fr;
+    gap: 10px;
 }

@@ -10,6 +10,7 @@ import { Typography } from "@/components/ui/Typography/Typography";
 import RemoveButton from "@/components/ui/RemoveButton/RemoveButton";
 import { Modals } from "@/store/uiStore/uiStore";
 import { IProductBase } from "@/types/dish/dish";
+import Layout from "@/components/common/Layout/Layout";
 
 type Props = {
   menu: IMenu;
@@ -34,6 +35,7 @@ function Dish(props: Props) {
 
   return (
     <section className={s.dish}>
+
       <Typography align="center" variant="h1">
         {name}
       </Typography>
@@ -64,7 +66,7 @@ function Dish(props: Props) {
         </div>
       </div>
 
-      <div className={s.actions}>{children}</div>
+      {children}
     </section>
   );
 }

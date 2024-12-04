@@ -1,4 +1,4 @@
-import { nutrientDailyNorms } from '@/store/nutrientStore/data'
+import { NutrientCategory, nutrientDailyNorms, nutrientsHaveDailyNorm } from '@/store/nutrientStore/data'
 import s from './NutrientPercent.module.css'
 import React from 'react'
 import { Typography } from '@/components/ui/Typography/Typography'
@@ -24,11 +24,18 @@ const getBackgroundColor = (percent: number) => {
     return '#4caf50'; // Green for >60%
 };
 
+const nutrientDailyNormExist = (nutrientId: number): boolean => {
+    return nutrientsHaveDailyNorm[nutrientId]
+}
+
 const getTextColor = (percent: number) => {
     return percent >= 100 ? 'white' : 'black'
 };
-
-const NutrientPercent = ({ nutrientQuantity, nutrientId }) => {
+type Props = {
+    nutrientQuantity: number,
+    nutrientId: number
+}
+const NutrientPercent = ({ nutrientQuantity, nutrientId }: Props) => {
     const normValue = nutrientDailyNorms[nutrientId]
     const percentage = (nutrientQuantity / normValue) * 100
     const value = getRoundedValue(percentage, nutrientQuantity, normValue);
@@ -36,6 +43,8 @@ const NutrientPercent = ({ nutrientQuantity, nutrientId }) => {
     const backgroundColor = getBackgroundColor(percentage);
     const textColor = getTextColor(percentage);
     const backgroundWidth = Math.min(percentage, 100);
+
+    const nutrientDailyNorm = nutrientDailyNormExist(nutrientId)
 
     return (
         <span className={s.percent} style={{
@@ -48,9 +57,14 @@ const NutrientPercent = ({ nutrientQuantity, nutrientId }) => {
                     backgroundColor,
                 }}
             />
-            {value ?? '-'}
-            {' '}
-            <Typography variant='caption'>%</Typography>
+            {
+                nutrientDailyNorm && <>
+                    {value ?? '-'}
+                    {' '}
+
+                    <Typography variant='caption'>%</Typography>
+                </>
+            }
         </span>
     )
 }

@@ -55,6 +55,10 @@
 }
 
 
+.active .inner {
+    cursor: default;
+}
+
 
 .active .inner:after {
     border-radius: var(--brad-tab);

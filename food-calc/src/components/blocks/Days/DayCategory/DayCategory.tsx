@@ -55,19 +55,21 @@ const DayCategoryItem: React.FC<Props> = (
                 className={s.dragHandle}
                 onPointerDown={(event) => dragControls.start(event)} // Initiates drag
             >
-                <span>::</span>
+                <span>||</span>
             </div>
 
             <button onClick={onRemove} className={clsx(s.removeCategoryButtonContainer, s.removeButton, s.hoverShow)}>x</button>
 
-            <DayCategoryName
-                name={category.name}
-                isActive={isActive}
-                changeCategoryName={changeCategoryName}
-                categoryId={category.id}
-            />
+            <div className={s.content}>
+                <DayCategoryName
+                    name={category.name}
+                    isActive={isActive}
+                    changeCategoryName={changeCategoryName}
+                    categoryId={category.id}
+                />
 
-            {children}
+                {children}
+            </div>
 
             {/* <ul className={s.dishesList}>
                 {category.dishes.map((dish) => {

@@ -27,7 +27,7 @@ const NutrientsTotal = ({
               {rowPositionSecond instanceof Function
                 ? rowPositionSecond(category)
                 : rowPositionSecond}
-              {/* {totalNutrients[id] || '-'} */}{" "}
+              {" "}
               <Typography variant="caption">
                 {category.unitRu}
               </Typography>

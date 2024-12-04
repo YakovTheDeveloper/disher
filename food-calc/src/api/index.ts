@@ -1,4 +1,4 @@
-import { FoodCollection } from '@/api/menu';
+import { FoodCollection } from '@/api/dish';
 import { getTokenFromLocalStorage } from '@/lib/storage/localStorage';
 import axios, { AxiosRequestConfig } from 'axios';
 

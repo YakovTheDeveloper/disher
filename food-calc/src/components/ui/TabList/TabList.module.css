@@ -1,10 +1,13 @@
 .container {
     width: 100%;
-    max-width: 210px;
+    align-items: center;
+    display: flex;
+    justify-content: center;
 }
 
 .tabList {
     width: 100%;
+    max-width: 200px;
     display: flex;
     /* gap: var(--gap-tabs); */
     flex-direction: column;

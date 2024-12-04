@@ -7,16 +7,17 @@ import {
   dishCalculationStore,
 } from "./store/rootStore";
 import { observer } from "mobx-react-lite";
-import MenuChoose from "./components/blocks/MenuChoose/MenuChoose";
+import MenuChoose from "./components/blocks/DishTabs/DishTabs";
 import SearchProduct from "./components/blocks/SearchProduct/SearchProduct";
 import NutrientsTotal from "./components/blocks/NutrientsTotal/NutrientsTotal";
 
 import { fetchGetProducts } from "./api/product";
-import Dish from "@/components/blocks/Menu/Dish";
-import DishContainer from "@/components/blocks/Menu/DishContainer";
+import Dish from "@/components/blocks/Dish/Dish";
+import DishContainer from "@/components/blocks/Dish/Dishes";
 import Container from "@/components/ui/Container/Container";
 import NutrientPercent from "@/components/blocks/NutrientsTotal/NutrientPercent/NutrientPercent";
 import { toJS } from "mobx";
+import Dishes from "@/components/blocks/Dish/Dishes";
 
 const useInit = () => {
   useEffect(() => {
@@ -30,31 +31,12 @@ function App() {
     "dishCalculationStore.totalNutrients",
     toJS(dishCalculationStore.totalNutrients)
   );
+  const { currentDish } = rootDishStore
   return (
     <>
       <div>
         <SearchProduct />
-
-        <Container>
-          <MenuChoose />
-          <Container boxShadow>
-            {rootDishStore.currentDish && (
-              <DishContainer store={rootDishStore.currentDish} />
-            )}
-          </Container>
-          <NutrientsTotal
-            rowPositionSecond={({ id }) => (
-              <span>{dishCalculationStore.totalNutrients[id]}</span>
-            )}
-            rowPositionThird={({ id }) => (
-              <NutrientPercent
-                nutrientId={id}
-                nutrientQuantity={dishCalculationStore.totalNutrients[id]}
-              />
-            )}
-          />
-          {/* <NutrientsTotal totalNutrients={dishCalculationStore.totalNutrients} /> */}
-        </Container>
+        <Dishes store={currentDish} />
       </div>
     </>
   );

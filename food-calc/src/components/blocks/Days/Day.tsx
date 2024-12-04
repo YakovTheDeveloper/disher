@@ -65,7 +65,7 @@ const Day = (props: Props) => {
 
             {/* <Typography variant='h1'>{name}</Typography> */}
             <Button onClick={addCategory} variant='secondary'>Создать категорию</Button>
-            <div className={s.content}>
+            <div className={s.main}>
                 <Reorder.Group
                     axis="y"
                     values={categories}
@@ -97,7 +97,7 @@ const Day = (props: Props) => {
                                         <DayDishCoefficientSlider
                                             day={store}
                                             dishId={dishId}
-                                            dishCoefficient={getDishCoefficient(category.id, dishId)}
+                                            coefficient={getDishCoefficient(category.id, dishId)}
                                         />
                                     )}
 

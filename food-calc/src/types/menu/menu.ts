@@ -1,7 +1,7 @@
 import { IdToQuantity } from "@/types/common/common"
 
 export type IMenu = {
-    id: string,
+    id: number,
     name: string
     description: string
     products: IProductBase[]
@@ -9,7 +9,7 @@ export type IMenu = {
 
 export type IProductBase = {
     name: string
-    id: string
+    id: number
     quantity: number
 }
 
@@ -20,7 +20,7 @@ export type IProduct = {
 
 export type IProductWithNutrients = {
     name: string
-    id: string
+    id: number
     quantity: number
     nutrients: IdToQuantity
 }

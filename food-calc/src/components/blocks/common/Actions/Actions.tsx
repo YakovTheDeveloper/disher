@@ -59,12 +59,12 @@ export const DraftActions = observer(
   ({ save, resetToInit, isEmpty, loading }: DraftProps) => {
     return (
       <div className={s.container}>
-        <span className={s.loading}>{loading && <Spinner />}</span>
+        {loading && <span className={s.loading}>{loading && <Spinner />}</span>}
         <Button className={s.mainButton} onClick={save} disabled={loading}>
           Сохранить
         </Button>
         {!isEmpty && (
-          <Button onClick={resetToInit} variant="danger" disabled={loading}>
+          <Button onClick={resetToInit} variant="danger" disabled={loading} className={s.deleteButton}>
             Сбросить
           </Button>
         )}
@@ -100,7 +100,7 @@ export const UserActions = observer(
             Отменить изменения
           </Button>
         </IfContentChange>
-        <Button onClick={() => remove(+id)} variant="danger" disabled={loading}>
+        <Button onClick={() => remove(+id)} variant="danger" disabled={loading} className={s.deleteButton}>
           Удалить
         </Button>
       </div>

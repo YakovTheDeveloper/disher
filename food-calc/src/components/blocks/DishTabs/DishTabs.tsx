@@ -5,7 +5,7 @@ import { GetProducts } from 'types/api/product'
 import { Tab } from '@/components/ui/Tab'
 import { TabList } from '@/components/ui/TabList'
 import s from './DishTabs.module.css'
-function MenuChoose() {
+function DishTabs() {
     const { dishes, setCurrentDishId, currentDishId } = rootDishStore
     console.log(dishes)
     return (
@@ -18,4 +18,4 @@ function MenuChoose() {
     )
 }
 
-export default observer(MenuChoose)
+export default observer(DishTabs)

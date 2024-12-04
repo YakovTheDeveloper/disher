@@ -3,10 +3,10 @@ import { IMenu, IProductBase } from "../../../types/menu/Menu"
 import { v4 as uuidv4 } from 'uuid';
 import { IProduct } from "../../types/product/product";
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
-import { CreateMenuPayload } from "@/types/api/menu";
+import { CreateDishPayload } from "@/types/api/menu";
 import { DRAFT_MENU_ID, RootDishStore } from "@/store/rootDishStore/rootDishStore";
 import { createIdToQuantityMapping } from "@/utils/transformation";
-import { fetchCreateMenu, fetchDeleteMenu, fetchUpdateMenu, FoodCollection } from "@/api/menu";
+import { fetchCreateDish, fetchDeleteDish, fetchUpdateDish, FoodCollection } from "@/api/dish";
 import { isEqual } from "@/utils/comparison";
 import { productStore, rootDishStore } from "@/store/rootStore";
 import { emitter, EVENTS } from "@/store/emitter";
@@ -42,7 +42,7 @@ export class DishStore {
         return this.products.length === 0
     }
 
-    get payload(): CreateMenuPayload {
+    get payload(): CreateDishPayload {
         // const products = createIdToQuantityMapping(this.products)
         return {
             name: this.name,
@@ -119,15 +119,19 @@ export class DishStore {
         })
     }
 
+
+
 }
 
 
 export class UserDishStore extends DishStore implements UserDataStore<IProductBase[]> {
-    constructor(private rootDishStore: RootDishStore) {
-        super(rootDishStore);
+    constructor(private rootStore: RootDishStore) {
+        super(rootStore);
         makeObservable(this, {
             save: action,
             resetToInit: action,
+            remove: action,
+            loading: computed
         });
         this.detectChangesStore = new DetectChangesStore(this.products);
 
@@ -152,9 +156,9 @@ export class UserDishStore extends DishStore implements UserDataStore<IProductBa
 
     save = async (id: number) => {
         const captureState = structuredClone(toJS(this.products))
-        fetchUpdateMenu(id, this.payload).then(
+        this.rootStore.updateDish(this.payload, id).then(
             action("fetchSuccess", (res) => {
-                this.detectChangesStore.updateSnapshot(captureState)
+                res && this.detectChangesStore.updateSnapshot(captureState)
             }),
             action("fetchError", (error) => {
                 console.error("Save failed", error);
@@ -163,16 +167,24 @@ export class UserDishStore extends DishStore implements UserDataStore<IProductBa
     };
 
     remove = async (id: number) => {
-        this.rootDishStore.removeDish(id);
+        this.rootStore.removeDish(id);
     };
+
+    get loading() {
+        const state = this.rootStore.fetchManager.loading;
+        return state.update.get(+this.id) || state.delete.get(+this.id) || false;
+    }
+
 
 }
 
 export class DraftDishStore extends DishStore implements DraftStore {
-    constructor(private rootDishStore: RootDishStore) {
-        super(rootDishStore)
+    constructor(private rootStore: RootDishStore) {
+        super(rootStore)
         makeObservable(this, {
-            save: action
+            save: action,
+            loading: computed
+
         })
 
     }
@@ -182,17 +194,18 @@ export class DraftDishStore extends DishStore implements DraftStore {
         this.products = []
     }
 
+    get loading() {
+        return this.rootStore.fetchManager.loading.save;
+    }
 
 
     save = async () => {
-        return fetchCreateMenu(this.payload).then(
+        return this.rootStore.fetchManager.create(this.payload).then(
             action("fetchSuccess", res => {
-                console.log("created", res)
                 if (!res) return
-                const { result } = res
-                const store = this.rootDishStore.createDishStore(result)
-                this.rootDishStore.addDishStore(store)
-                this.rootDishStore.setCurrentDishId(result.id)
+                const store = this.rootStore.createDishStore(res)
+                this.rootStore.addDishStore(store)
+                this.rootStore.setCurrentDishId(res.id)
                 this.resetToInit()
             }),
             action("fetchError", error => {
@@ -229,7 +242,7 @@ export class DraftDishStore extends DishStore implements DraftStore {
 
 //     save = async (id: number): Promise<unknown> => {
 //         const captureState = structuredClone(toJS(this.products))
-//         return fetchUpdateMenu(id, this.payload).then(
+//         return fetchUpdateDish(id, this.payload).then(
 //             action("fetchSuccess", (res) => {
 //                 console.log("@@@", res)
 //                 this._initProductsSnapshot = captureState

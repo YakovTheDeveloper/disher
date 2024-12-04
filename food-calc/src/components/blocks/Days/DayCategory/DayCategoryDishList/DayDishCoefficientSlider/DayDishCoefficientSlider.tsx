@@ -6,28 +6,26 @@ import { debounce } from '@/utils/debounce'
 import { toJS } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import React, { useCallback, useState } from 'react'
-
+import s from './DayDishCoefficientSlider.module.css'
 type Props = {
     day: DayStore
     dishId: number
-    dishCoefficient: number
+    coefficient: number
 }
-const DayDishCoefficientSlider = ({ day, dishId, dishCoefficient }: Props) => {
 
-    const [sliderValue, setSliderValue] = useState(0)
+
+const getDescriptionLabelText = (coefficient: number) => {
+    return `${coefficient.toFixed(1)} * 100 гр. = ${(coefficient * 100).toFixed(1)} гр`
+}
+const DayDishCoefficientSlider = ({ day, dishId, coefficient }: Props) => {
+    const [localValue, setLocalValue] = useState(coefficient);
+
 
     if (!day?.currentCategory) return
 
     const { currentCategory } = day
     const categoryId = currentCategory.id
     const { updateDishCoefficient } = day
-
-    const coefficient = dishCoefficient
-
-    console.log("coefficient", coefficient)
-    const category = toJS(day.map)
-    console.log("coefficient category", category[categoryId].dishes[dishId], dishId)
-
 
 
 
@@ -40,19 +38,21 @@ const DayDishCoefficientSlider = ({ day, dishId, dishCoefficient }: Props) => {
 
     const handleChange = (value: number) => {
         debouncedUpdate(value); // Debounced update for heavy operations
+        setLocalValue(value)
     };
 
 
     return (
 
         <Slider
+            className={s.dishCoefficientSlider}
             label={
                 <Typography variant='caption'>
-                    {coefficient.toFixed(1)} * 100 гр. = {(coefficient * 100).toFixed(1)} гр.
+                    {getDescriptionLabelText(coefficient)}
                 </Typography>
             }
             onChange={handleChange}
-            value={coefficient}
+            value={localValue}
         />
 
     )

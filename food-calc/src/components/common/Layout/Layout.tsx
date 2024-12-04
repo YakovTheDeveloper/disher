@@ -14,10 +14,10 @@ const Layout = ({ left, center, right }: Props) => {
             <Container className={s.left}>
                 {left}
             </Container>
-            <Container boxShadow size='medium'>
+            <Container boxShadow size='medium' className={s.center}>
                 {center}
             </Container>
-            <Container>
+            <Container className={s.right}>
                 {right}
             </Container>
         </section>

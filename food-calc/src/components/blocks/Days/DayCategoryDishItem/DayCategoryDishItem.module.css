@@ -1,4 +1,21 @@
 .dish {
     display: flex;
     align-items: center;
+    flex-direction: column;
+    position: relative;
+    gap: 10px;
+    margin-top: 30px;
+
+    cursor: default;
+}
+
+.after {}
+
+.dishName {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 15px;
+
 }
