@@ -7,7 +7,7 @@ import { TabList } from '@/components/ui/TabList'
 import s from './DishTabs.module.css'
 function DishTabs() {
     const { dishes, setCurrentDishId, currentDishId } = rootDishStore
-    console.log(dishes)
+    console.log('dishes', dishes)
     return (
         <nav className={s.dishTabs}>
             <TabList>

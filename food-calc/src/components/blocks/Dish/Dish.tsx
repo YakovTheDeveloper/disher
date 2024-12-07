@@ -1,7 +1,7 @@
 import React from "react";
 import DishItem from "./DishItem/DishItem";
 import { observer } from "mobx-react-lite";
-import { productStore, UIStore } from "../../../store/rootStore";
+import { productStore, uiStore } from "../../../store/rootStore";
 import { IMenu } from "../../../types/Menu/Menu";
 import { DishStore } from "@/store/rootDishStore/dishStore/dishStore";
 import s from "./Dish.module.css";
@@ -13,7 +13,6 @@ import { IProductBase } from "@/types/dish/dish";
 import Layout from "@/components/common/Layout/Layout";
 
 type Props = {
-  menu: IMenu;
   store: DishStore;
   children: React.ReactNode;
 };
@@ -30,7 +29,7 @@ function Dish(props: Props) {
   const { getLoadingStatus } = productStore;
 
   const onClickProductName = (product: IProductBase) => {
-    UIStore.openModal(Modals.Product, { Product: product });
+    uiStore.openModal(Modals.Product, { Product: product });
   };
 
   return (

@@ -146,35 +146,28 @@ export class RootDishStore {
   };
 
   getAll = async () => {
-    this.fetchManager.getAll().then(
-      action("fetchSuccess", (res) => {
-        if (!res) return
-        res.forEach((payload) => {
-          this.addDishStore(this.createDishStore(payload));
-        });
-      }),
-      action("fetchError", (error) => { })
-    );
-  };
+    return this.fetchManager.getAll().then((res) => {
+      if (res.isError) {
+        return res
+      }
+      res.data
 
-  getOne = async (
-    id: number
-  ): Promise<{
-    products: IProductWithNutrients[];
-    dishIds: number[];
-  }> => {
-    return fetchGetDish(id).then(
-      action("fetchSuccess", (res) => res.result),
-      action("fetchError", (error) => { })
-    );
+      console.log("HHHHHH", res)
+      res.data.forEach((payload) => {
+        console.log("payload", payload)
+        this.addDishStore(this.createDishStore(payload));
+      });
+      return res
+    });
   };
 
   removeDish = async (id: number): Promise<any> => {
     return this.fetchManager.delete(id).then(
       action("fetchSuccess", (res) => {
-        if (!res) return
+        if (res.isError) return res
         this.currentDishId = DRAFT_MENU_ID;
         this.userDishes = this.userDishes.filter((dish) => dish.id !== id);
+        return res
       }),
       action("fetchError", (error) => { })
     );
@@ -183,9 +176,10 @@ export class RootDishStore {
   updateDish = async (payload: UpdateDishPayload, id: number): Promise<any> => {
     return this.fetchManager.update(id, payload).then(
       action("fetchSuccess", (res) => {
-        if (!res) return
+        if (res.isError) return res
         this.currentDishId = DRAFT_MENU_ID;
         this.userDishes = this.userDishes.filter((dish) => dish.id !== id);
+        return res
       }),
       action("fetchError", (error) => { })
     );

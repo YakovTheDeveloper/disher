@@ -1,5 +1,6 @@
 import React, { ChangeEvent } from 'react';
 import s from './InputNumber.module.css';
+import { observer } from 'mobx-react-lite';
 
 interface NumberInputProps {
     value: number; // Controlled value
@@ -11,10 +12,12 @@ interface NumberInputProps {
 const NumberInput: React.FC<NumberInputProps> = ({ value, onChange, max, disabled }) => {
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const inputValue = e.target.value;
+        console.log("nutrient ibput", inputValue)
 
-        // Allow only numeric values and enforce the maximum length
         if (/^\d*$/.test(inputValue) && inputValue.length <= max) {
             onChange(+inputValue);
+            console.log("nutrient 1212")
+
         }
     };
 
@@ -23,11 +26,11 @@ const NumberInput: React.FC<NumberInputProps> = ({ value, onChange, max, disable
             className={s.numberInput}
             type="text"
             disabled={disabled}
-            value={value.toString()}
+            value={value?.toString() || 0}
             onChange={handleChange}
             maxLength={max}
         />
     );
 };
 
-export default NumberInput;
+export default observer(NumberInput);

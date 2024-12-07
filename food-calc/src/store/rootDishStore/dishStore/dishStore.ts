@@ -1,15 +1,8 @@
-import { makeAutoObservable, toJS, autorun, override, action, makeObservable, observable, computed, reaction } from "mobx"
+import { toJS, autorun, action, makeObservable, observable, computed, reaction } from "mobx"
 import { IMenu, IProductBase } from "../../../types/menu/Menu"
-import { v4 as uuidv4 } from 'uuid';
-import { IProduct } from "../../types/product/product";
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { CreateDishPayload } from "@/types/api/menu";
 import { DRAFT_MENU_ID, RootDishStore } from "@/store/rootDishStore/rootDishStore";
-import { createIdToQuantityMapping } from "@/utils/transformation";
-import { fetchCreateDish, fetchDeleteDish, fetchUpdateDish, FoodCollection } from "@/api/dish";
-import { isEqual } from "@/utils/comparison";
-import { productStore, rootDishStore } from "@/store/rootStore";
-import { emitter, EVENTS } from "@/store/emitter";
 import { IDish } from "@/types/dish/dish";
 import { DetectChangesStore } from "@/store/common/DetectChangesStore";
 import { DraftStore, UserDataStore } from "@/store/common/types";
@@ -63,7 +56,7 @@ export class DishStore {
         return this
     }
 
-    setProductQuantity = (productId: string, quantity: number) => {
+    setProductQuantity = (productId: number, quantity: number) => {
         const product = this.products.find(({ id }) => id === productId)
         if (!product) return
         product.quantity = quantity
@@ -156,18 +149,21 @@ export class UserDishStore extends DishStore implements UserDataStore<IProductBa
 
     save = async (id: number) => {
         const captureState = structuredClone(toJS(this.products))
-        this.rootStore.updateDish(this.payload, id).then(
+        return this.rootStore.updateDish(this.payload, id).then(
             action("fetchSuccess", (res) => {
                 res && this.detectChangesStore.updateSnapshot(captureState)
+                return !!res
             }),
             action("fetchError", (error) => {
                 console.error("Save failed", error);
+                return false
             })
         );
     };
 
     remove = async (id: number) => {
-        this.rootStore.removeDish(id);
+        const res = await this.rootStore.removeDish(id);
+        return res
     };
 
     get loading() {
@@ -178,7 +174,7 @@ export class UserDishStore extends DishStore implements UserDataStore<IProductBa
 
 }
 
-export class DraftDishStore extends DishStore implements DraftStore {
+export class DraftDishStore extends DishStore implements DraftStore<IProductBase[]> {
     constructor(private rootStore: RootDishStore) {
         super(rootStore)
         makeObservable(this, {
@@ -202,13 +198,15 @@ export class DraftDishStore extends DishStore implements DraftStore {
     save = async () => {
         return this.rootStore.fetchManager.create(this.payload).then(
             action("fetchSuccess", res => {
-                if (!res) return
+                if (!res) return res
                 const store = this.rootStore.createDishStore(res)
                 this.rootStore.addDishStore(store)
                 this.rootStore.setCurrentDishId(res.id)
                 this.resetToInit()
+                return !!res
             }),
             action("fetchError", error => {
+                return false
             })
         )
     }

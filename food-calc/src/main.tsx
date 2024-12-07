@@ -22,6 +22,7 @@ import Days from "@/components/blocks/Days/Days.tsx";
 import AddDishToDay from "@/components/blocks/Days/AddDishToDay/AddDishToDay.tsx";
 
 import DailyNorms from "@/components/blocks/DailyNorms/DailyNorms.tsx";
+import NotificationWrapper from "@/components/ui/Notification/NotificationWrapper.tsx";
 
 const Root = () => {
   return (
@@ -29,7 +30,7 @@ const Root = () => {
       <Header />
 
       <ModalRoot />
-
+      <NotificationWrapper />
       <Outlet />
     </>
   );

@@ -1,4 +1,4 @@
-import { NutrientCategory, nutrientDailyNorms, nutrientsHaveDailyNorm } from '@/store/nutrientStore/data'
+import { NutrientCategory, nutrientDailyNorms, nutrientsHaveDailyNorm, nutrientsPadding } from '@/store/nutrientStore/data'
 import s from './NutrientPercent.module.css'
 import React from 'react'
 import { Typography } from '@/components/ui/Typography/Typography'

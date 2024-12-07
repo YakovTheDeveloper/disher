@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react'
 import s from './Modal.module.scss'
-import { UIStore } from '@/store/rootStore';
+import { uiStore } from '@/store/rootStore';
 
 const Modal = ({ isOpen, children }) => {
     const ref: React.Ref<HTMLDialogElement> = useRef(null);
 
-    const { closeModal } = UIStore
+    const { closeModal } = uiStore
 
     useEffect(() => {
         if (isOpen) {

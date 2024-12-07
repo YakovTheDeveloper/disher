@@ -241,20 +241,20 @@ export const nutrientsMap: Record<number, NutrientCategory> = {
         "unitRu": "мкг"
     },
     "30": {
-        "id": 30,
-        "name": "vitaminE",
-        "displayName": "Vitamin E",
-        "displayNameRu": "Витамин E",
-        "unit": "mg",
-        "unitRu": "мг"
-    },
-    "31": {
         "id": 31,
         "name": "vitaminK",
         "displayName": "Vitamin K",
         "displayNameRu": "Витамин K",
         "unit": "μg",
         "unitRu": "мкг"
+    },
+    "31": {
+        "id": 30,
+        "name": "vitaminE",
+        "displayName": "Vitamin E",
+        "displayNameRu": "Витамин E",
+        "unit": "mg",
+        "unitRu": "мг"
     },
     "32": {
         "id": 32,
@@ -272,6 +272,42 @@ export const nutrientsMap: Record<number, NutrientCategory> = {
         "unit": "μg",
         "unitRu": "мкг"
     }
+}
+
+export const nutrientsPadding: Record<number, boolean> = {
+    1: false,       // Protein (g)
+    2: false,       // Fats (g)
+    3: false,      // Carbohydrates (g)
+    4: true,       // Sugar (g)
+    5: true,      // Starch (g)
+    6: true,       // Fiber (g)
+    7: false,     // Energy (kcal)
+    8: false,     // Water (g)
+    9: false,       // Iron (mg)
+    10: false,     // Magnesium (mg)
+    11: false,     // Phosphorus (mg)
+    12: false,    // Potassium (mg)
+    13: false,    // Sodium (mg)
+    14: false,      // Zinc (mg)
+    15: false,     // Copper (μg)
+    16: false,    // Manganese (μg)
+    17: false,      // Selenium (μg)
+    18: false,     // Iodine (μg)
+    19: false,     // Vitamin A (μg)
+    20: false,     // Vitamin B1 (mg)
+    21: false,     // Vitamin B2 (mg)
+    22: false,      // Vitamin B3 (mg)
+    23: false,     // Vitamin B4 (Choline) (mg)
+    24: false,       // Vitamin B5 (mg)
+    25: false,     // Vitamin B6 (mg)
+    26: false,     // Vitamin B9 (μg)
+    27: false,     // Vitamin B12 (μg)
+    28: false,      // Vitamin C (mg)
+    29: false,      // Vitamin D (μg)
+    30: false,      // Vitamin E (mg)
+    31: false,     // Vitamin K (μg)
+    32: true,    // Beta-carotene (μg)
+    33: true,     // Alpha-carotene (μg)
 }
 
 export const nutrientsHaveDailyNorm: Record<number, boolean> = {

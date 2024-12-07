@@ -1,0 +1,54 @@
+.notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #fff;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: slide-down 0.3s ease-out, fade-out 0.5s ease 2.5s forwards;
+    opacity: 1;
+}
+
+.removeButtonPosition {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: white;
+}
+
+.success {
+    background-color: var(--color-green);
+    /* Green */
+}
+
+.warning {
+    background-color: #ff9800;
+    /* Orange */
+}
+
+.error {
+    background-color: #f44336;
+    /* Red */
+}
+
+@keyframes slide-down {
+    from {
+        transform: translateX(-50%) translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fade-out {
+    to {
+        opacity: 0;
+    }
+}

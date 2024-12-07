@@ -1,4 +1,4 @@
-import { rootDishStore } from '@/store/rootStore'
+import { rootDayStore2, rootDishStore } from '@/store/rootStore'
 import { observer } from 'mobx-react-lite'
 import { useEffect, useState } from 'react'
 import s from './AddDishToDay.module.css'
@@ -8,21 +8,22 @@ import { Typography } from '@/components/ui/Typography/Typography'
 import { DayStore } from '@/store/rootDayStore/dayStore'
 import DayDishesList from '@/components/blocks/Days/AddDishToDay/DayDishesList/DayDishesList'
 import DishInCategoryStatus from '@/components/blocks/Days/DayCategoryDishItem/DishInCategoryStatus/DishInCategoryStatus'
+import { DayStore2 } from '@/store/rootDayStore/dayStore2'
+import { DayCategoryStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryStore'
+
 
 type Props = {
-    day: DayStore
+    currentCategory: DayCategoryStore
 }
 
-const AddDishToDay = (props: Props) => {
+const AddDishToDay = ({ currentCategory }: Props) => {
+    const { toggleDish, isDishInCategory } = currentCategory
 
-    const { isDishInCategory, toggleDish, currentCategory } = props.day
     const { userDishes } = rootDishStore
 
-    // const { name, id: categoryId } = dishAddCategory
+    console.log("currentCategory", currentCategory)
 
     const [isBlue, setIsBlue] = useState(false);
-
-
 
     useEffect(() => {
         setIsBlue(true);
@@ -33,15 +34,10 @@ const AddDishToDay = (props: Props) => {
     }, [currentCategory]);
 
     const onAdd = (dish: DayCategoryDish) => {
-        toggleDish(currentCategory?.id, {
-            ...dish,
-            position: 0
-        })
+        toggleDish(dish)
     }
 
     if (!currentCategory) return null
-
-
 
     return (
         <div className={clsx([

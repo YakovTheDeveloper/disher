@@ -2,6 +2,7 @@ import { fetchCreateDay, fetchDeleteDay, fetchGetAllDay, fetchUpdateDay } from "
 import { isEmpty, isNotEmpty } from "@/lib/empty";
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { DayStore, DraftDayStore, UserDayStore } from "@/store/rootDayStore/dayStore";
+import { DayStore2 } from "@/store/rootDayStore/dayStore2";
 import { RootDishStore } from "@/store/rootDishStore/rootDishStore";
 import { rootDishStore } from "@/store/rootStore";
 import { CreateDayPayload } from "@/types/api/day";
@@ -89,6 +90,8 @@ export class RootDayStore {
     draftDayStore: DayStore = new DraftDayStore(this)
     userDayStores: UserDayStore[] = []
 
+
+
     get allStores() {
         return [this.draftDayStore, ...this.userDayStores]
     }
@@ -154,28 +157,39 @@ export class RootDayStore {
         })
     }
 
-
     getDays = async () => {
         fetchGetAllDay().then(res => {
             if (!res) return
             const days = res.result.map(day => {
-                const store = new UserDayStore(this)
-                const { categories, date, id, name } = day
-                categories.sort((a, b) => a.position - b.position);
-                store.categories = categories
-                store.id = id
-                store.name = name
-                store.date = date
-                store.detectChangesStore.setInitSnapshot({
-                    categories,
-                    date
-                })
-                console.log("store", store)
+                const store = new DayStore2(this, day)
                 return store
             })
             this.userDayStores = [...days]
         })
     }
+
+
+    // getDays = async () => {
+    //     fetchGetAllDay().then(res => {
+    //         if (!res) return
+    //         const days = res.result.map(day => {
+    //             const store = new UserDayStore(this)
+    //             const { categories, date, id, name } = day
+    //             categories.sort((a, b) => a.position - b.position);
+    //             store.categories = categories
+    //             store.id = id
+    //             store.name = name
+    //             store.date = date
+    //             store.detectChangesStore.setInitSnapshot({
+    //                 categories,
+    //                 date
+    //             })
+    //             console.log("store", store)
+    //             return store
+    //         })
+    //         this.userDayStores = [...days]
+    //     })
+    // }
 
 
 

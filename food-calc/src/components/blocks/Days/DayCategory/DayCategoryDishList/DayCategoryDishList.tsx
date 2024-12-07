@@ -6,33 +6,37 @@ import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
 import clsx from 'clsx'
 import { observer } from 'mobx-react-lite'
 import { observable } from 'mobx'
+import { dayCategoryDishStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryDishStore'
+import DayDishCoefficientSlider from '@/components/blocks/Days/DayCategory/DayCategoryDishList/DayDishCoefficientSlider/DayDishCoefficientSlider'
 
 type Props = {
-    category: DayCategory
-    getDishCoefficient: (categoryId: number, dishId: number) => number
-    updateDishCoefficient: (categoryId: number, dishId: number, value: number) => void
-    removeDishFromCategory: (categoryId: string, dish: DayCategoryDish) => void
-    children: React.ReactNode
-    dishSliderRender: (dishId: number) => React.ReactNode
+    // category: DayCategory
+    // getDishCoefficient: (categoryId: number, dishId: number) => number
+    // updateDishCoefficient: (categoryId: number, dishId: number, value: number) => void
+    // removeDishFromCategory: (categoryId: string, dish: DayCategoryDish) => void
+    // children: React.ReactNode
+    // dishSliderRender: (dishId: number) => React.ReactNode
+
+
+
+    dishes: dayCategoryDishStore[]
+    renderDeleleButton: (dishId: number) => React.ReactNode
 }
 
-const DayCategoryDishList = ({ category, dishSliderRender, removeDishFromCategory }: Props) => {
-    const categoryId = category.id.toString()
-    return (
+const DayCategoryDishList = ({ dishes, renderDeleleButton }: Props) => {
 
+    return (
         <ul className={s.dishesList}>
-            {category.dishes.map((dish) => {
+            {dishes.map((dish) => {
                 return (
-                    <DayCategoryDishItem key={dish.id} className={s.dish} dish={dish} after={
-                        <RemoveButton
-                            className={clsx(s.hoverShow, s.removeButton)}
-                            onClick={observable(() => removeDishFromCategory(categoryId, dish))}
-                            size='small'
-                        />
-                    }>
+                    <DayCategoryDishItem key={dish.id} className={s.dish} dish={dish}
+                        after={renderDeleleButton(dish.id)}>
 
                         <div className={s.sliderContainer}>
-                            {dishSliderRender(dish.id)}
+                            <DayDishCoefficientSlider
+                                categoryDish={dish}
+                                coefficient={dish.coefficient}
+                            />
                         </div>
                     </DayCategoryDishItem>
                 );

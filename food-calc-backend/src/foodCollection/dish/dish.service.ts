@@ -45,7 +45,9 @@ export class DishService {
         quantity: dishProduct.quantity
       }))
     }));
-    return mapped
+    return {
+      result: mapped
+    }
 
 
 

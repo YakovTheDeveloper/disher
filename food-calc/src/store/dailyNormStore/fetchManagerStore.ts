@@ -5,19 +5,14 @@ import {
   fetchDeleteNorm,
 } from "@/api/norm";
 import { FetchManager, Loading } from "@/store/common/FetchManagerStore";
-import { DailyNormNoId } from "@/types/api/norm";
+import { Response } from "@/types/api/common";
 import { DailyNorm } from "@/types/norm/norm";
 import {
   action,
   computed,
   makeObservable,
   observable,
-  ObservableMap,
 } from "mobx";
-
-type Response<Data> = {
-  result: Data;
-};
 
 // FetchManagerStore class
 export abstract class FetchManagerStore<Data> implements FetchManager<Data> {
@@ -45,7 +40,6 @@ export abstract class FetchManagerStore<Data> implements FetchManager<Data> {
     return this.loadingStates;
   }
 
-  // setLoading method to change loading states
   setLoading(key: "all" | "save", value: boolean): void;
   setLoading(key: "update" | "delete", value: boolean, id: number): void;
   setLoading(key: keyof Loading, value: boolean, id?: number): void {
@@ -66,12 +60,12 @@ export abstract class FetchManagerStore<Data> implements FetchManager<Data> {
       if (id != null) {
         return this.loadingStates[key].get(id) || false;
       }
+      return false
     } else {
       return this.loadingStates[key];
     }
   }
 
-  // Abstract methods that need to be implemented by subclasses
   protected abstract fetchAll(): Promise<Response<Data[]>>;
   protected abstract fetchCreate(
     payload: Omit<Data, "id">
@@ -82,56 +76,35 @@ export abstract class FetchManagerStore<Data> implements FetchManager<Data> {
   ): Promise<Response<Data>>;
   protected abstract fetchDelete(id: number): Promise<Response<boolean>>;
 
-  // Fetch all data
-  getAll = async (): Promise<Data[] | undefined> => {
+  getAll = async () => {
     this.setLoading("all", true);
-    try {
-      const res = await this.fetchAll();
-      if (!res?.result) return;
-      return res?.result;
-    } finally {
-      this.setLoading("all", false);
-    }
+    const res = await this.fetchAll();
+    this.setLoading("all", false);
+    return res
   };
 
-  // Create data
-  create = async (payload: Omit<Data, "id">): Promise<Data | undefined> => {
+  create = async (payload: Omit<Data, "id">) => {
     this.setLoading("save", true);
-    try {
-      const res = await this.fetchCreate(payload);
-      if (!res?.result) return;
-      return res?.result;
-    } finally {
-      this.setLoading("save", false);
-    }
+    const res = await this.fetchCreate(payload);
+    this.setLoading("save", false);
+    return res
   };
 
-  // Update data
-  update = async (id: number, payload: Omit<Data, "id">): Promise<Data | undefined> => {
+  update = async (id: number, payload: Omit<Data, "id">) => {
     this.setLoading("update", true, id);
-    try {
-      const res = await this.fetchUpdate(id, payload);
-      if (!res?.result) return;
-      return res?.result;
-    } finally {
-      this.setLoading("update", false, id);
-    }
+    const res = await this.fetchUpdate(id, payload);
+    this.setLoading("update", false, id);
+    return res
   };
 
-  // Delete data
-  delete = async (id: number): Promise<boolean> => {
+  delete = async (id: number) => {
     this.setLoading("delete", true, id);
-    try {
-      const res = await this.fetchDelete(id);
-      if (!res?.result) return false;
-      return true;
-    } finally {
-      this.setLoading("delete", false, id);
-    }
+    const res = await this.fetchDelete(id);
+    this.setLoading("delete", false, id);
+    return res
   };
 }
 
-// Concrete implementation for DailyNorm
 export class DailyNormFetchManager extends FetchManagerStore<DailyNorm> {
   protected fetchAll(): Promise<Response<DailyNorm[]>> {
     return fetchGetAllNorm();

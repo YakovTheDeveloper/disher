@@ -8,6 +8,7 @@ import {
 } from "@/store/dailyNormStore/fetchManagerStore";
 import { DailyNorm } from "@/types/norm/norm";
 import {
+  action,
   autorun,
   makeAutoObservable,
   makeObservable,
@@ -82,25 +83,26 @@ export class RootDailyNormStore {
 
   save = (payload: DailyNormNoId) => {
     this.fetchManager.create(payload).then((res) => {
-      if (!res) return;
-      this.add(res);
+      if (res.isError) return res;
+      this.add(res.data);
+      return res
     });
   };
 
   update = async (id: number | string, payload: DailyNorm) => {
     return this.fetchManager.update(+id, payload).then((res) => {
-        console.log("resres",res)
-      return Boolean(res);
+      return res
     });
   };
 
-  delete = (id: number | string) => {
+  remove = (id: number | string) => {
     this.fetchManager.delete(+id).then((res) => {
-      if (!res) return;
+      if (res.isError) return;
       console.log(this.norms);
       this.norms = this.norms.filter((norm) => +norm.id !== +id);
       console.log(this.norms);
       this.setCurrentId(DRAFT_ID);
+      return res
     });
   };
 }
@@ -110,6 +112,9 @@ export class DailyNormStore {
     makeObservable(this, {
       name: observable,
       nutrients: observable,
+      id: observable,
+      updateNutrient: action,
+      setName: action
     });
   }
 
@@ -125,12 +130,13 @@ export class DailyNormStore {
   updateNutrient = (nutrient: keyof Omit<DailyNorm, "id">, value: number) => {
     this.nutrients[nutrient] = value;
   };
+
+  setName = (value: string) => this.name = value
 }
 
 export class UserNormStore
   extends DailyNormStore
-  implements UserDataStore<Omit<DailyNorm, "id">>
-{
+  implements UserDataStore<Omit<DailyNorm, "id">> {
   constructor(private rootStore: RootDailyNormStore) {
     super(rootStore);
     makeObservable(this, {});
@@ -151,8 +157,9 @@ export class UserNormStore
     });
   };
 
-  remove = async (id: number) => {
-    this.rootStore.delete(id);
+  remove = async () => {
+    //this.id
+    this.rootStore.remove(this.id);
   };
 
   get empty() {

@@ -262,7 +262,9 @@ export class DayService {
       },
     };
 
-    return transformedResult;
+    return {
+      result: transformedResult
+    };
 
     console.log(newDay.dayCategories.map(dc => dc.dayCategoryDishes.map(d => d.dish)))
 
@@ -379,7 +381,9 @@ export class DayService {
       .where('dayId IS NULL')
       .execute();
 
-    return true
+    return {
+      result: true
+    }
 
 
 

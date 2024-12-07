@@ -1,5 +1,5 @@
 import AuthButton from "@/components/ui/Button/AuthButton/AuthButton";
-import { UIStore, userStore } from "@/store/rootStore";
+import { uiStore, userStore } from "@/store/rootStore";
 import { Modals } from "@/store/uiStore/uiStore";
 import { UserStore } from "@/store/userStore/userStore";
 import React from "react";
@@ -9,7 +9,7 @@ import { NavLink } from "react-router-dom";
 import { Typography } from "@/components/ui/Typography/Typography";
 
 const Header = () => {
-  const { openModal } = UIStore;
+  const { openModal } = uiStore;
   const { user } = userStore;
 
   const onSignIn = () => openModal(Modals.Auth);

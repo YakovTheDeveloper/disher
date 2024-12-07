@@ -5,6 +5,10 @@ import { DetectChangesStore } from "@/store/common/DetectChangesStore";
 import { observer } from "mobx-react-lite";
 import { DraftStore, UserDataStore } from "@/store/common/types";
 import Spinner from "@/components/ui/Spinner/Spinner";
+import { uiStore } from "@/store/rootStore";
+import { notificationMessages } from "@/components/ui/Notification/NotificationMessages";
+import { EntityNames, Operations } from "@/types/common/common";
+import { Response } from "@/types/api/common";
 
 type DraftProps = {
   save: () => void;
@@ -24,11 +28,45 @@ type UserProps = {
 };
 
 type Props = {
-  store: UserDataStore<any> | DraftStore;
+  store: UserDataStore<any> | DraftStore<any>;
+  variant: EntityNames
 };
 
-const Actions = ({ store }: Props) => {
-  const { loading } = store;
+type OnAction = {
+  callback: () => Promise<Response<any>>,
+  op: Operations
+} | {
+  callback: (id: number) => Promise<Response<any>>
+  id: number
+  op: Operations
+}
+
+const Actions = ({ store, variant }: Props) => {
+
+  const { notification } = uiStore
+  const { loading, name } = store;
+
+  const onAction = (data: OnAction) => {
+    const { op } = data
+
+    const notificationCb = (res: Response<any>) => {
+      if (res.isError) {
+        notification.error(variant, op, name)
+        return
+      }
+      notification.success(variant, op, name)
+    }
+
+    if ('id' in data) {
+      const { id } = data
+      data.callback(id).then(notificationCb)
+      return
+    }
+
+    data.callback().then(notificationCb)
+  }
+
+
   if ("detectChangesStore" in store) {
     const { empty, remove, save, detectChangesStore, resetToInit, id } = store;
     return (
@@ -36,9 +74,9 @@ const Actions = ({ store }: Props) => {
         detectChangesStore={detectChangesStore}
         id={id.toString()}
         isEmpty={empty}
-        remove={remove}
+        remove={() => onAction({ callback: remove, id, op: 'delete' })}
         resetToInit={resetToInit}
-        save={save}
+        save={() => onAction({ callback: save, id, op: 'save' })}
         loading={loading}
       />
     );
@@ -49,7 +87,7 @@ const Actions = ({ store }: Props) => {
     <DraftActions
       resetToInit={resetToInit}
       isEmpty={empty}
-      save={save}
+      save={() => onAction({ callback: save, op: 'save' })}
       loading={loading}
     />
   );

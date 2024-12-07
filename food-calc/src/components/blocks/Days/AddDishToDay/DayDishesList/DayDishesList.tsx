@@ -9,7 +9,7 @@ import DishInCategoryStatus from '@/components/blocks/Days/DayCategoryDishItem/D
 
 type Props = {
     userDishes: UserDishStore[]
-    isDishInCategory: (category: DayCategory, dishId: string) => boolean
+    isDishInCategory: (dishId: number) => boolean
     toggleDishInCategory: (dish: DayCategoryDish) => void
     category: DayCategory
 }
@@ -34,8 +34,7 @@ const DayDishesList = ({ userDishes, isDishInCategory, toggleDishInCategory }: P
                     >
                         {dish.name}
                         <DishInCategoryStatus
-                            dishId={dish.id.toString()}
-                            isDishInCategory={isDishInCategory}
+                            isDishInCategory={isDishInCategory(dish.id)}
                         />
                     </li>
                 )

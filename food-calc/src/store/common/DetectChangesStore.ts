@@ -2,9 +2,11 @@ import { isEqual } from "@/utils/comparison";
 import { makeAutoObservable, reaction, toJS } from "mobx";
 
 export class DetectChangesStore<DataType> {
-  constructor(observableData: DataType) {
+  constructor(observableData: DataType, name = '') {
     makeAutoObservable(this);
     this.data = observableData;
+    this.name = name
+    console.log('observableData', name, observableData)
     this.setInitSnapshot(this.data);
 
     reaction(
@@ -16,6 +18,8 @@ export class DetectChangesStore<DataType> {
     );
   }
 
+  name = ''
+
   // check
   private data: DataType | null = null;
   changeOccured = false;
@@ -26,6 +30,7 @@ export class DetectChangesStore<DataType> {
   };
 
   setInitSnapshot = (data: DataType) => {
+    console.log("wtf2", data)
     this.initSnapshot = structuredClone(toJS(data));
   };
 

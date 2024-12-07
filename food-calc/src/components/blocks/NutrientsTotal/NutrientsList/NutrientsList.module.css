@@ -1,0 +1,32 @@
+.nutrientsListContainer {
+    display: flex;
+    gap: 30px;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.nutrient {
+    display: grid;
+    grid-template-columns: 160px 1fr 75px;
+    border-bottom: 1px solid rgb(225, 225, 225);
+    position: relative;
+}
+
+.twoColumns {
+    grid-template-columns: 160px 1fr
+}
+
+.offset {
+    padding-left: 20px;
+}
+
+.offset:before {
+    position: absolute;
+    content: '';
+    height: 1px;
+    background-color: gray;
+    width: 12px;
+    top: 50%;
+    left: 0;
+
+}

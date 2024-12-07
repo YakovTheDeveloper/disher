@@ -1,18 +1,20 @@
 import { DetectChangesStore } from "@/store/common/DetectChangesStore";
+import { Response } from "@/types/api/common";
 
 export interface UserDataStore<Data> {
   detectChangesStore: DetectChangesStore<Data>;
-  remove: (id: number) => void;
+  remove: (id: number) => Promise<Response<boolean>>;
   resetToInit: () => void;
-  save: (id: number) => Promise<void>;
+  save: (id: number) => Promise<Response<Data>>;
   id: number;
   empty: boolean;
   loading: boolean;
+  name: string;
 }
 
-export interface DraftStore {
+export interface DraftStore<Data> {
   resetToInit: () => void;
-  save: () => Promise<void>;
+  save: () => Promise<Response<Data>>;
   empty: boolean;
-  loading: boolean;
+  name: string;
 }

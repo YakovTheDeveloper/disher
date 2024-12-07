@@ -1,5 +1,6 @@
 import { DetectChangesStore } from "@/store/common/DetectChangesStore"
 import { UserDataStore, DraftStore } from "@/store/common/types"
+import { DayCategoryStore } from "@/store/rootDayStore/dayCategoryStore/dayCategoryStore"
 import { RootDayStore, DRAFT_ID, DRAFT_NAME } from "@/store/rootDayStore/rootDayStore"
 import { CreateDayPayload } from "@/types/api/day"
 import { DayCategory, DayCategoryDish } from "@/types/day/day"
@@ -27,7 +28,11 @@ export class DayStore {
             uniqueProductIds: computed,
             currentCategory: computed,
             setDate: action,
-            setCurrentCategoryId: action
+            setCurrentCategoryId: action,
+
+
+            categories2: observable,
+            setCategories: action
         })
         this.rootDayStore = rootDayStore
 
@@ -53,6 +58,13 @@ export class DayStore {
         // );
 
     }
+
+
+    setCategories = (categories: DayCategory[]) => {
+        this.categories2 = categories.map(category => new DayCategoryStore(category))
+    }
+
+    categories2: DayCategoryStore[] = []
 
 
 

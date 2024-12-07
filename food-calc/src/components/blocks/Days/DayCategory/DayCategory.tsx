@@ -1,42 +1,30 @@
 import clsx from 'clsx'
 import { observer } from 'mobx-react-lite'
-import React, { useCallback } from 'react'
+import React from 'react'
 import s from './DayCategory.module.css'
 import { Reorder, useDragControls, } from 'framer-motion';
-import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
 import EditableText from '@/components/ui/EditableText/EditableText'
 import { DayCategory } from '@/types/day/day';
-import DayCategoryDishItem from '@/components/blocks/Days/DayCategoryDishItem/DayCategoryDishItem';
-import Slider from '@/components/ui/Slider/Slider';
-import { Typography } from '@/components/ui/Typography/Typography';
-import { debounce } from '@/utils/debounce';
+import { DayCategoryStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryStore';
 
 type Props = {
-    category: DayCategory
-    onDishAdd: (category: DayCategory) => void
+    category: DayCategoryStore
+    setCurrentCategory: (category: DayCategory) => void
+    removeCategory: () => void
     index: number;
-    removeCategory: (categoryId: number) => void; // Function to move category
-    currentCategoryId: string
-    removeDishFromCategory: any
-    changeCategoryName: (categoryId: string, name: string) => void
     children: React.ReactNode
+    isActive: boolean
 }
 
 
 const DayCategoryItem: React.FC<Props> = (
-    { changeCategoryName, currentCategoryId, children, category, onDishAdd, removeCategory, removeDishFromCategory, }
+    { category, isActive, children, setCurrentCategory }
 ) => {
-    const isActive = currentCategoryId === category.id.toString()
-    const { id: categoryId } = category
-    const onRemove = () => {
-        removeCategory(categoryId)
-    }
-    const onDishRemove = (categoryId: string, dish: { id: string, name: string }) => {
-        removeDishFromCategory(categoryId, dish)
-    }
+
     const dragControls = useDragControls();
 
 
+    const { name, updateName, remove, setAsCurrent } = category
 
 
 
@@ -46,10 +34,10 @@ const DayCategoryItem: React.FC<Props> = (
             value={category}
             key={category.id}
             className={clsx(s.dayCategory, isActive && s.active)}
-            onClick={() => onDishAdd(category)}
-            whileDrag={{ scale: 1.05, opacity: 0.8 }} // Feedback while dragging
-            dragListener={false} // Disable default drag listener
-            dragControls={dragControls} // Attach custom drag controls
+            onClick={setAsCurrent}
+            whileDrag={{ scale: 1.05, opacity: 0.8 }}
+            dragListener={false}
+            dragControls={dragControls}
         >
             <div
                 className={s.dragHandle}
@@ -58,15 +46,25 @@ const DayCategoryItem: React.FC<Props> = (
                 <span>||</span>
             </div>
 
-            <button onClick={onRemove} className={clsx(s.removeCategoryButtonContainer, s.removeButton, s.hoverShow)}>x</button>
+            <button onClick={remove} className={clsx(s.removeCategoryButtonContainer, s.removeButton, s.hoverShow)}>x</button>
 
             <div className={s.content}>
-                <DayCategoryName
+
+                <EditableText
+                    onChange={updateName}
+                    value={name}
+                    typographyProps={{
+                        variant: 'body1'
+                    }}
+                />
+
+                {/* <DayCategoryName
                     name={category.name}
                     isActive={isActive}
-                    changeCategoryName={changeCategoryName}
+                    changeCategoryName={updateName}
                     categoryId={category.id}
-                />
+                /> */}
+
 
                 {children}
             </div>
@@ -100,17 +98,17 @@ const DayCategoryItem: React.FC<Props> = (
     );
 };
 
-const DayCategoryName = (props) => {
-    const { name, isActive, changeCategoryName, categoryId } = props
+// const DayCategoryName = (props) => {
+//     const { name, isActive, changeCategoryName, categoryId } = props
 
-    const onChange = (value: string) => {
-        changeCategoryName(categoryId, value)
-    }
+//     const onChange = (value: string) => {
+//         changeCategoryName(categoryId, value)
+//     }
 
-    return <EditableText onChange={onChange} value={name} typographyProps={{
-        variant: 'body1'
-    }} />
-}
+//     return <EditableText onChange={onChange} value={name} typographyProps={{
+//         variant: 'body1'
+//     }} />
+// }
 
 export default observer(DayCategoryItem)
 // import { DayCategory } from '@/store/dayStore/rootDayStore'

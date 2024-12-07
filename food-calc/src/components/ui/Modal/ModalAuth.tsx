@@ -1,7 +1,7 @@
 import { fetchSignIn, fetchSignUp } from '@/api/auth'
 import Modal from '@/components/ui/Modal/Modal'
 import { addTokenToLocalStorage } from '@/lib/storage/localStorage'
-import { UIStore, userStore } from '@/store/rootStore'
+import { uiStore, userStore } from '@/store/rootStore'
 import { UiStore } from '@/store/uiStore/uiStore'
 import React, { useRef, useState } from 'react'
 
@@ -44,7 +44,7 @@ const ModalAuth = ({ isOpen }) => {
             if (!res) return
             addTokenToLocalStorage(res.access_token)
             userStore.setUser(res)
-            UIStore.closeModal()
+            uiStore.closeModal()
         })
 
 

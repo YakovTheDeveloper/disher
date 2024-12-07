@@ -1,6 +1,7 @@
 import React from 'react'
 import s from './Layout.module.css'
 import Container from '@/components/ui/Container/Container'
+import { observer } from 'mobx-react-lite'
 
 type Props = {
     left: React.ReactNode
@@ -17,11 +18,11 @@ const Layout = ({ left, center, right }: Props) => {
             <Container boxShadow size='medium' className={s.center}>
                 {center}
             </Container>
-            <Container className={s.right}>
+            {right && <Container className={s.right}>
                 {right}
-            </Container>
+            </Container>}
         </section>
     )
 }
 
-export default Layout
+export default observer(Layout)

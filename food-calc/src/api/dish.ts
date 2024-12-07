@@ -30,6 +30,6 @@ export async function fetchDeleteDish(id: number): Promise<any> {
     return await api.delete(apiRoutes.dish.delete(id), AuthorizationHeader())
 }
 
-export async function fetchGetDishProducts(dishIds: string[]): Promise<GetProductsPayload> {
-    return await api.get(apiRoutes.dishProducts.get(dishIds.toString()))
+export async function fetchGetDishProducts(dishIds: string[]) {
+    return await api.get<GetProductsPayload>(apiRoutes.dishProducts.get(dishIds.toString()))
 }

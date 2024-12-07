@@ -7,17 +7,14 @@ import TickIcon from "@/assets/icons/tick.svg";
 
 
 type Props = {
-    dishId: string
-    isDishInCategory: (category: DayCategory, dishId: string) => boolean
+    isDishInCategory: boolean
 }
 
-const DishInCategoryStatus = ({ isDishInCategory, dishId }: Props) => {
-    const { currentStore } = rootDayStore
-    if (!currentStore || !currentStore.currentCategory) return
-    const isActive = isDishInCategory(currentStore.currentCategory, dishId)
+const DishInCategoryStatus = ({ isDishInCategory }: Props) => {
+
+    const isActive = isDishInCategory
     if (!isActive) return null
 
-    console.log('wf', currentStore?.categories)
     return (
         <Typography variant='caption' align='right' color='green'>
             в списке <TickIcon />

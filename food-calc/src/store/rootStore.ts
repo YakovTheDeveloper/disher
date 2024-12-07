@@ -8,6 +8,7 @@ import { RootDayStore } from "@/store/rootDayStore/rootDayStore";
 import { GetFullDataStore } from "@/store/getFullDataStore/getFullDataStore";
 import { RootDishStore } from "@/store/rootDishStore/rootDishStore";
 import { RootDailyNormStore } from "@/store/dailyNormStore/dailyNormStore";
+import { RootDayStore2 } from "@/store/rootDayStore/rootDayStore2";
 
 export const productStore = new ProductStore();
 export const nutrientStore = new NutrientStore();
@@ -21,16 +22,18 @@ export const rootDishStore = new RootDishStore(
 
 // export const calculationStore = new CalculationStore()
 
-export const UIStore = new UiStore();
+export const uiStore = new UiStore();
 
 export const userStore = new UserStore();
 
-export const rootDayStore = new RootDayStore(rootDishStore);
+// export const rootDayStore = new RootDayStore(rootDishStore);
+export const rootDayStore2 = new RootDayStore2();
 
 //todo delete
-export const getFullDataStore = new GetFullDataStore(
-  rootDayStore,
-  productStore,
-  rootDishStore
-);
+// export const getFullDataStore = new GetFullDataStore(
+//   rootDayStore2,
+//   productStore,
+//   rootDishStore
+// );
 export const rootDailyNormStore = new RootDailyNormStore();
+

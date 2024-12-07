@@ -1,10 +1,13 @@
+import { Response } from "@/types/api/common";
 import { ObservableMap } from "mobx";
 
+
+
 export interface FetchManager<Data> {
-  getAll: () => Promise<Data[] | undefined>;
-  create: (payload: Omit<Data, "id">) => Promise<Data | undefined>;
-  update: (id: number, payload: Data) => Promise<Data | undefined>;
-  delete: (id: number) => Promise<boolean | undefined>;
+  getAll: () => Promise<Response<Data[]>>;
+  create: (payload: Omit<Data, "id">) => Promise<Response<Data>>;
+  update: (id: number, payload: Data) => Promise<Response<Data>>;
+  delete: (id: number) => Promise<Response<boolean>>;
   loading: Loading;
 }
 

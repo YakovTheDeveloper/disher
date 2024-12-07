@@ -1,11 +1,14 @@
 import Actions from "@/components/blocks/common/Actions/Actions";
+import NutrientsList from "@/components/blocks/NutrientsTotal/NutrientsList/NutrientsList";
 import NutrientsTotal from "@/components/blocks/NutrientsTotal/NutrientsTotal";
 import EditableText from "@/components/ui/EditableText/EditableText";
+import NumberInput from "@/components/ui/Input/InputNumber";
 import { Typography } from "@/components/ui/Typography/Typography";
 import {
   DraftNormStore,
   UserNormStore,
 } from "@/store/dailyNormStore/dailyNormStore";
+import { toJS } from "mobx";
 import { observer } from "mobx-react-lite";
 import React from "react";
 
@@ -15,20 +18,23 @@ type Props = {
 const DailyNorm = ({ store }: Props) => {
   const { nutrients, updateNutrient, name } = store;
 
+  console.log('nutrients[category.id]', toJS(nutrients))
+
   return (
     <div>
-      <div>
-        <EditableText value={name} typographyProps={{ variant: "h1" }} />
-      </div>
-      <NutrientsTotal
-        rowPositionSecond={(category) => (
-          <input
-            value={nutrients[category.name]}
-            onChange={(e) => updateNutrient(category.name, +e.target.value)}
-          />
-        )}
-      />
-      <Actions store={store} />
+      <NutrientsTotal>
+        <NutrientsList
+          wrap
+          rowPositionSecond={(category) => (
+            <NumberInput
+              max={4}
+              value={nutrients[category.name]}
+              onChange={(value) => updateNutrient(category.name, value)}
+            />
+          )}
+        />
+      </NutrientsTotal>
+      <Actions store={store} variant="norm" />
     </div>
   );
 };

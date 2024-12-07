@@ -7,9 +7,10 @@ import { toJS } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import React, { useCallback, useState } from 'react'
 import s from './DayDishCoefficientSlider.module.css'
+import { dayCategoryDishStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryDishStore'
+
 type Props = {
-    day: DayStore
-    dishId: number
+    categoryDish: dayCategoryDishStore
     coefficient: number
 }
 
@@ -17,23 +18,17 @@ type Props = {
 const getDescriptionLabelText = (coefficient: number) => {
     return `${coefficient.toFixed(1)} * 100 гр. = ${(coefficient * 100).toFixed(1)} гр`
 }
-const DayDishCoefficientSlider = ({ day, dishId, coefficient }: Props) => {
+
+const DayDishCoefficientSlider = ({ categoryDish, coefficient }: Props) => {
     const [localValue, setLocalValue] = useState(coefficient);
 
-
-    if (!day?.currentCategory) return
-
-    const { currentCategory } = day
-    const categoryId = currentCategory.id
-    const { updateDishCoefficient } = day
-
-
+    const { updateCoefficient } = categoryDish
 
     const debouncedUpdate = useCallback(
         debounce((newValue) => {
-            updateDishCoefficient(categoryId, dishId, newValue);
+            updateCoefficient(newValue);
         }, 300), // Adjust debounce delay as needed
-        [categoryId, dishId]
+        [categoryDish]
     );
 
     const handleChange = (value: number) => {
