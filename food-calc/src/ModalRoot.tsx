@@ -1,5 +1,5 @@
 import ModalAuth from "@/components/ui/Modal/ModalAuth";
-import ModalProduct from "@/components/ui/Modal/ModalProduct";
+import ModalProduct from "@/components/ui/Modal/ModalProduct/ModalProduct";
 import { uiStore } from "@/store/rootStore";
 import { Modals } from "@/store/uiStore/uiStore";
 import { toJS } from "mobx";

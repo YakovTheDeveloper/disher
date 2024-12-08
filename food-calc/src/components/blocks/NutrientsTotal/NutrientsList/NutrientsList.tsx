@@ -8,7 +8,7 @@ import { observer } from 'mobx-react-lite'
 type Props = {
     rowPositionSecond?: React.ReactNode | ((cat: NutrientCategory) => JSX.Element);
     rowPositionThird?: React.ReactNode | ((cat: NutrientCategory) => JSX.Element);
-    wrap: boolean
+    wrap?: boolean
 }
 
 const nutrientCategories = Object.values(nutrientsMap);
@@ -29,7 +29,7 @@ const NutrientsList = ({ rowPositionThird, rowPositionSecond, wrap }: Props) => 
         <div className={s.nutrientsListContainer}>
             <ul className={s.nutrientsList}>
                 {nutrients.map((category) => (
-                    <li className={clsx([s.nutrient, gridClass])}>
+                    <li key={category.id} className={clsx([s.nutrient, gridClass])}>
                         <span className={clsx(nutrientPadding(category.id) ? s.offset : null)}>{category.displayNameRu}</span>
                         <span>
                             {rowPositionSecond instanceof Function
@@ -50,7 +50,7 @@ const NutrientsList = ({ rowPositionThird, rowPositionSecond, wrap }: Props) => 
             </ul>
             {second && <ul>
                 {second.map((category) => (
-                    <li className={clsx([s.nutrient, gridClass])}>
+                    <li key={category.id} className={clsx([s.nutrient, gridClass])}>
                         <span className={clsx(nutrientPadding(category.id) ? s.offset : null)}>{category.displayNameRu}</span>
                         <span>
                             {rowPositionSecond instanceof Function

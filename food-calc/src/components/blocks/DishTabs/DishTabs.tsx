@@ -6,14 +6,13 @@ import { Tab } from '@/components/ui/Tab'
 import { TabList } from '@/components/ui/TabList'
 import s from './DishTabs.module.css'
 function DishTabs() {
-    const { dishes, setCurrentDishId, currentDishId } = rootDishStore
-    console.log('dishes', dishes)
+    const { dishes, setCurrentDishId, currentDishId, loadingState } = rootDishStore
+    const isLoading = loadingState.getLoading('all')
     return (
         <nav className={s.dishTabs}>
-            <TabList>
+            <TabList isLoading={isLoading}>
                 {dishes.map(({ id, name }, i) => (<Tab draft={i === 0} key={id} onClick={() => setCurrentDishId(id)} isActive={currentDishId === id}>{name}</Tab>))}
             </TabList>
-            {/* <button onClick={onAdd}>+</button> */}
         </nav>
     )
 }

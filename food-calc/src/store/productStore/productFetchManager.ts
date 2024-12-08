@@ -2,7 +2,7 @@ import { fetchCreateDish, fetchDeleteDish, fetchGetAllDishes, fetchUpdateDish } 
 import { FetchManagerStore } from "@/store/common/FetchManagerStore";
 import { IDish } from "@/types/dish/dish";
 
-export class DishFetchManager extends FetchManagerStore<IDish> {
+export class ProductFetchManager extends FetchManagerStore<IDish> {
     protected fetchCreate(payload: Omit<IDish, "id">) {
         return fetchCreateDish(payload)
     }

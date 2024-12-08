@@ -95,4 +95,3 @@ class NotificationStore {
     this.notifications = this.notifications.filter(notification => notification.id != id)
   }
 }
-

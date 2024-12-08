@@ -2,34 +2,27 @@ import React, { memo, useCallback, useState } from "react";
 import { IProductBase } from "../../../../types/menu/Menu";
 import { observer } from "mobx-react";
 import { toJS } from "mobx";
-import { ProductLoading } from "@/store/productStore/productStore";
 import s from "./DishProduct.module.css";
 import clsx from "clsx";
 import { Typography } from "@/components/ui/Typography/Typography";
 import NumberInput from "@/components/ui/Input/InputNumber";
 import { debounce } from "@/utils/debounce";
+import DishLoader from "@/components/blocks/Dish/DishItem/DishLoader";
+import { productStore } from "@/store/rootStore";
 
 type Props = {
   product: IProductBase;
-  menuId: string;
-  isLoading: ProductLoading | null;
   setProductQuantity: (productId: number, quantity: number) => void;
   after?: React.ReactNode;
-  onNameClick: () => void;
+  onNameClick?: () => void;
 };
 
-function DishItem({
+function DishProduct({
   product,
   setProductQuantity,
-  isLoading,
   after,
   onNameClick,
 }: Props) {
-
-  const disabled =
-    isLoading?.isLoading ||
-    isLoading?.status === "error" ||
-    isLoading?.status === "pending";
 
   const { quantity, id } = product
   const [localValue, setLocalValue] = useState(quantity);
@@ -37,7 +30,7 @@ function DishItem({
   const debouncedUpdate = useCallback(
     debounce((quantity) => {
       setProductQuantity(id, quantity);
-    }, 450),
+    }, 375),
     [id]
   );
 
@@ -47,25 +40,33 @@ function DishItem({
   };
 
 
-
+  const isLoading = productStore.loadingState.getLoading('getOne', id)
 
   return (
     <div
-      className={clsx([s.dishProduct, isLoading?.isLoading ? s.loading : ""])}
+      className={clsx([s.dishProduct])}
     >
-
+      {isLoading &&
+        <Typography className={clsx([s.caption, isLoading ? s.loading : ''])} variant="caption">
+          загрузка
+        </Typography>
+      }
       <NumberInput
         max={4}
         value={localValue}
         onChange={handleChange}
-        disabled={disabled}
+        disabled={isLoading}
       />
-      <Typography variant="body1" onClick={onNameClick} className={s.productName}>
+      <Typography variant="body1" onClick={
+        () => !isLoading && onNameClick?.()
+      } className={s.productName}>
         {product.name}
       </Typography>
-      {after}
+      <span className={clsx([s.showOnContainerHover, s.after])}>
+        {after}
+      </span>
     </div>
   );
 }
 
-export default memo(observer(DishItem));
+export default observer(DishProduct);

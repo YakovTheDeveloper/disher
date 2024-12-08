@@ -1,16 +1,14 @@
 import React from "react";
-import DishItem from "./DishItem/DishItem";
 import { observer } from "mobx-react-lite";
-import { productStore, uiStore } from "../../../store/rootStore";
-import { IMenu } from "../../../types/Menu/Menu";
+import { uiStore } from "../../../store/rootStore";
 import { DishStore } from "@/store/rootDishStore/dishStore/dishStore";
 import s from "./Dish.module.css";
-import Container from "@/components/ui/Container/Container";
 import { Typography } from "@/components/ui/Typography/Typography";
 import RemoveButton from "@/components/ui/RemoveButton/RemoveButton";
 import { Modals } from "@/store/uiStore/uiStore";
 import { IProductBase } from "@/types/dish/dish";
-import Layout from "@/components/common/Layout/Layout";
+import DishProduct from "./DishItem/DishProduct";
+import { toJS } from "mobx";
 
 type Props = {
   store: DishStore;
@@ -24,35 +22,35 @@ function Dish(props: Props) {
     setProductQuantity,
     removeProduct,
     name,
+    id,
     empty,
   } = store;
-  const { getLoadingStatus } = productStore;
 
   const onClickProductName = (product: IProductBase) => {
     uiStore.openModal(Modals.Product, { Product: product });
   };
 
+
+  console.log(toJS(products))
+
   return (
     <section className={s.dish}>
-
       <Typography align="center" variant="h1">
         {name}
       </Typography>
       <div>
-        {/* <h4>Продукты</h4> */}
         {empty && (
           <>
             <Typography variant="caption">Список пуст</Typography>
             <p>Можно добавить продукты, воспользовавшись поиском</p>
           </>
         )}
-        <div className={s.products}>
+        <div className={s.products} key={id}>
           {products.map((product) => (
-            <DishItem
+            <DishProduct
               key={product.id}
               product={product}
               setProductQuantity={setProductQuantity}
-              isLoading={getLoadingStatus(product.id)}
               onNameClick={() => onClickProductName(product)}
               after={
                 <RemoveButton
@@ -64,7 +62,6 @@ function Dish(props: Props) {
           ))}
         </div>
       </div>
-
       {children}
     </section>
   );

@@ -1,3 +1,4 @@
+import Actions from "@/components/blocks/common/Actions/Actions";
 import DailyNorm from "@/components/blocks/DailyNorms/DailyNorm";
 import Layout from "@/components/common/Layout/Layout";
 import Container from "@/components/ui/Container/Container";
@@ -5,6 +6,7 @@ import EditableText from "@/components/ui/EditableText/EditableText";
 import RemoveButton from "@/components/ui/RemoveButton/RemoveButton";
 import { Tab } from "@/components/ui/Tab";
 import { TabList } from "@/components/ui/TabList";
+import { DraftNormStore } from "@/store/dailyNormStore/dailyNormStore";
 import { rootDailyNormStore } from "@/store/rootStore";
 import { observer } from "mobx-react-lite";
 import React from "react";
@@ -21,9 +23,10 @@ const DailyNorms = () => {
     setCurrentDailyNormInUseId,
     dailyNormIdCurrentlyInUse,
     fetchManager,
+    loadingState
   } = rootDailyNormStore;
 
-  const { loading } = fetchManager;
+  const { loadingStore } = fetchManager;
   const name = currentStore?.name || ''
 
   console.log(stores.length);
@@ -31,7 +34,7 @@ const DailyNorms = () => {
   return (
     <Layout
       left={
-        <TabList isLoading={loading.all}>
+        <TabList isLoading={loadingStore.getLoading('all')}>
           {stores.map(({ id, name }, i) => (
             <Tab
               before={
@@ -57,16 +60,20 @@ const DailyNorms = () => {
         </TabList>
       }
       center={
-        currentStore && <DailyNorm store={currentStore}></DailyNorm>
-      }
-      title={
-        currentStore &&
-        <EditableText value={name} typographyProps={{ variant: "h1" }}
-          onChange={currentStore.setName}
-        />
+        currentStore && (
+          <DailyNorm store={currentStore}>
+            <Actions store={currentStore} variant="norm" loadingState={loadingState} />
+          </DailyNorm>
+        )
+
       }
       right={
         null
+      }
+      overlayCenter={
+        (currentStore instanceof DraftNormStore && loadingState.getLoading('save'))
+        || loadingState.getLoading('update', currentStore?.id || -1)
+        || loadingState.getLoading('delete', currentStore?.id || -1)
       }
     >
     </Layout>

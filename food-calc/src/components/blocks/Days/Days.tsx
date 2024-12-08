@@ -1,3 +1,4 @@
+import Actions from '@/components/blocks/common/Actions/Actions'
 import AddDishToDay from '@/components/blocks/Days/AddDishToDay/AddDishToDay'
 import Day from '@/components/blocks/Days/Day'
 import NutrientPercent from '@/components/blocks/NutrientsTotal/NutrientPercent/NutrientPercent'
@@ -18,13 +19,14 @@ const Days = () => {
         setCurrentDayId,
         currentDayId,
         isDraftId,
-        removeDay
+        removeDay,
+        loadingState
     } = rootDayStore2
 
     return (
         <Layout
             left={
-                <TabList >
+                <TabList isLoading={loadingState.getLoading('all')}>
                     {allStores.map(({ id, name }, i) => (
                         <Tab
                             key={id}
@@ -40,7 +42,12 @@ const Days = () => {
             }
             center={
                 currentStore && (
-                    <Day store={currentStore} >
+                    <Day
+                        store={currentStore}
+                        actions={
+                            <Actions store={currentStore} variant='day' loadingState={loadingState} />
+                        }
+                    >
                         {currentStore.currentCategory &&
                             <AddDishToDay currentCategory={currentStore.currentCategory}
                             />}

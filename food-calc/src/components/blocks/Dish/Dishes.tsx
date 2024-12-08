@@ -5,8 +5,10 @@ import Actions from "@/components/blocks/common/Actions/Actions"
 import Layout from "@/components/common/Layout/Layout"
 import NutrientPercent from "@/components/blocks/NutrientsTotal/NutrientPercent/NutrientPercent"
 import NutrientsTotal from "@/components/blocks/NutrientsTotal/NutrientsTotal"
-import { dishCalculationStore } from "@/store/rootStore"
+import { dishCalculationStore, rootDishStore } from "@/store/rootStore"
 import DishTabs from "@/components/blocks/DishTabs/DishTabs"
+import NutrientsList from "@/components/blocks/NutrientsTotal/NutrientsList/NutrientsList"
+import NutrientValue from "@/components/blocks/NutrientsTotal/NutrientValue/NutrientValue"
 
 type Props = {
     store: UserDishStore | DraftDishStore
@@ -17,6 +19,8 @@ type Props = {
 function Dishes(props: Props) {
     const { store } = props
 
+    const { loadingState } = rootDishStore
+
     return (
 
         <Layout
@@ -25,22 +29,31 @@ function Dishes(props: Props) {
             }
             center={
                 <Dish store={store}>
-                    <Actions store={store} variant="dish" />
+                    <Actions store={store} variant="dish" loadingState={loadingState} />
                 </Dish>
             }
-
             right={
-                <NutrientsTotal
-                    rowPositionSecond={({ id }) => (
-                        <span>{dishCalculationStore.totalNutrients[id]}</span>
-                    )}
-                    rowPositionThird={({ id }) => (
-                        <NutrientPercent
-                            nutrientId={id}
-                            nutrientQuantity={dishCalculationStore.totalNutrients[id]}
-                        />
-                    )}
-                />
+                <NutrientsTotal>
+                    <NutrientsList
+                        rowPositionSecond={(nutrient) => (
+                            <NutrientValue
+                                nutrient={nutrient}
+                                calculations={dishCalculationStore}
+                            />
+                        )}
+                        rowPositionThird={({ id }) => (
+                            <NutrientPercent
+                                nutrientId={id}
+                                nutrientQuantity={dishCalculationStore.totalNutrients[id]}
+                            />
+                        )}
+                    />
+                </NutrientsTotal>
+            }
+            overlayCenter={
+                (store instanceof DraftDishStore && loadingState.getLoading('save'))
+                || loadingState.getLoading('update', store.id)
+                || loadingState.getLoading('delete', store.id)
             }
         />
 

@@ -21,7 +21,10 @@ import Dishes from "@/components/blocks/Dish/Dishes";
 
 const useInit = () => {
   useEffect(() => {
-    fetchGetProducts().then((result) => productStore.setProductsBase(result));
+    fetchGetProducts().then((res) => {
+      if (res.isError) return
+      productStore.setProductsBase(res.data)
+    });
   }, []);
 };
 

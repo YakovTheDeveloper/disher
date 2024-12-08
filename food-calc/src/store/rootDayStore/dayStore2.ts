@@ -205,10 +205,10 @@ export class UserDayStore2 extends DayStore2 implements UserDataStore<DayData> {
             })
     }
 
-    get loading() {
-        const state = this.rootDayStore.fetchManager.loading;
-        return state.update.get(+this.id) || state.delete.get(+this.id) || false;
-    }
+    // get loading() {
+    //     const state = this.rootDayStore.fetchManager.loading;
+    //     return state.update.get(+this.id) || state.delete.get(+this.id) || false;
+    // }
 
 }
 
@@ -228,9 +228,9 @@ export class DraftDayStore2 extends DayStore2 implements DraftStore {
         this.rootDayStore.setCurrentDayId(day.id)
     }
 
-    get loading() {
-        return this.rootDayStore.fetchManager.loading.save;
-    }
+    // get loading() {
+    //     return this.rootDayStore.fetchManager.loading.save;
+    // }
 
     save = async () => {
         return this.rootDayStore?.addDay(this.generatePayload())

@@ -1,6 +1,8 @@
-import DishItem from "@/components/blocks/Dish/DishItem/DishItem";
+import DishItem from "@/components/blocks/Dish/DishItem/DishProduct";
 import NutrientPercent from "@/components/blocks/NutrientsTotal/NutrientPercent/NutrientPercent";
+import NutrientsList from "@/components/blocks/NutrientsTotal/NutrientsList/NutrientsList";
 import NutrientsTotal from "@/components/blocks/NutrientsTotal/NutrientsTotal";
+import NutrientValue from "@/components/blocks/NutrientsTotal/NutrientValue/NutrientValue";
 import Modal from "@/components/ui/Modal/Modal";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
@@ -8,6 +10,7 @@ import { IProductBase } from "@/types/dish/dish";
 import { makeAutoObservable, reaction, toJS } from "mobx";
 import { observer } from "mobx-react-lite";
 import React, { useEffect } from "react";
+import s from './ModalProduct.module.css'
 
 type Props = {
     data: IProductBase | null;
@@ -63,33 +66,38 @@ const ModalProduct = ({ isOpen, data }: Props) => {
         product.setProduct(data);
     }, [data, product]);
 
-    const setProductQuantity = (_: string, value: number) => {
+    const setProductQuantity = (_: number, value: number) => {
         product.setQuantity(value);
     };
 
     return (
         <Modal isOpen={isOpen}>
-            {product.data && (
-                <DishItem
-                    product={product.data}
-                    setProductQuantity={setProductQuantity}
-                />
-            )}
-            <NutrientsTotal
-                rowPositionSecond={({ id }) => (
-                    <Typography>
-                        {product.calculations.totalNutrients[id]}
-                    </Typography>
-                )}
-                rowPositionThird={({ id }) => (
-                    <NutrientPercent
-                        nutrientId={id}
-                        nutrientQuantity={
-                            product.calculations.totalNutrients[id]
-                        }
+            <header className={s.header}>
+                {/* <Typography variant="h2">{product.data?.name}</Typography> */}
+                {product.data && (
+                    <DishItem
+                        product={product.data}
+                        setProductQuantity={setProductQuantity}
                     />
                 )}
-            />
+            </header>
+            <NutrientsTotal>
+                <NutrientsList
+                    wrap
+                    rowPositionSecond={(nutrient) => (
+                        <NutrientValue calculations={product.calculations} nutrient={nutrient} />
+                    )}
+                    rowPositionThird={({ id }) => (
+                        <NutrientPercent
+                            nutrientId={id}
+                            nutrientQuantity={
+                                product.calculations.totalNutrients[id]
+                            }
+                        />
+                    )}
+                >
+                </NutrientsList>
+            </NutrientsTotal>
         </Modal>
     );
 };

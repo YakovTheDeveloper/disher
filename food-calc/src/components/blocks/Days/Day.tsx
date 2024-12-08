@@ -12,6 +12,7 @@ import DayCategories from '@/components/blocks/Days/DayCategories/DayCategories'
 type Props = {
     store: DayStore2
     children: React.ReactNode
+    actions: React.ReactNode
 }
 
 export type DishAddOptions = {
@@ -20,7 +21,7 @@ export type DishAddOptions = {
 }
 
 const Day = (props: Props) => {
-    const { store, children } = props
+    const { store, children, actions } = props
     const {
         categories,
         name,
@@ -30,6 +31,8 @@ const Day = (props: Props) => {
         updateName,
         updateDate
     } = store
+
+
 
     return (
         <section className={s.day}>
@@ -60,7 +63,7 @@ const Day = (props: Props) => {
                     {children}
                 </section>
             </div>
-            <Actions store={store} variant='day' />
+            {actions}
         </section>
     )
 }

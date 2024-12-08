@@ -1,5 +1,5 @@
 import React from 'react'
-import { rootDishStore, productStore, rootStore } from '@store/rootStore'
+import { rootDishStore, productStore, selectedDishCalculations } from '@store/rootStore'
 import { IProductBase } from '../../../../types/menu/Menu'
 import { fromHash, generateHash } from '../../../../lib/hash/hash'
 import { observer } from 'mobx-react-lite'
@@ -12,9 +12,7 @@ const SearchProductList = ({ searchValue }) => {
 
     if (!searchValue) return null
 
-
-
-
+    const { handleGetFullProductData } = productStore
     const products = productStore.productsBase
 
     const found = products.filter(({ name, nameRu }) => {
@@ -22,25 +20,26 @@ const SearchProductList = ({ searchValue }) => {
     })
 
     async function onAdd(product: IProductBase) {
+        const capturedDish = rootDishStore.currentDish
 
-        const status = productStore.getLoadingStatus(product.id)
-        if (!status) {
-            productStore.setLoadingStatus(product.id, { isLoading: true, status: 'pending' })
-            productStore.fetchAndSetProductNutrientsData([+product.id]).then((res) => {
-                if (!res) return
-
-            }).finally(() => productStore.setLoadingStatus(product.id, { isLoading: false, status: 'loaded' }))
-        }
-
-
-        rootDishStore.currentDish?.toggleProduct({
+        capturedDish?.toggleProduct({
             ...product,
-            quantity: 0
+            quantity: 100
         })
+
+        handleGetFullProductData([product.id])
+            .then(res => {
+                if (res?.isError) {
+                    capturedDish?.toggleProduct({
+                        ...product,
+                        quantity: 100
+                    })
+                    return
+                }
+                selectedDishCalculations.updateCalculationsWithCurrentProducts()
+
+            })
     }
-
-    // console.log("rootDishStore.currentDish?.hasProduct",rootDishStore.currentDish?.hasProduct)
-
 
     return (
         <ul className={clsx(s.list)}>

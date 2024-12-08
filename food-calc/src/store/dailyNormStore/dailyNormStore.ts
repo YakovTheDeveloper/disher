@@ -1,10 +1,10 @@
 import { fetchCreateNorm, fetchDeleteNorm, fetchGetAllNorm } from "@/api/norm";
 import { DetectChangesStore } from "@/store/common/DetectChangesStore";
 import { FetchManager } from "@/store/common/FetchManagerStore";
-import { DraftStore, UserDataStore } from "@/store/common/types";
+import { LoadingStateStore } from "@/store/common/LoadingStateStore";
+import { DraftStore, RootEntityStore, UserDataStore } from "@/store/common/types";
 import {
   DailyNormFetchManager,
-  FetchManagerStore,
 } from "@/store/dailyNormStore/fetchManagerStore";
 import { DailyNorm } from "@/types/norm/norm";
 import {
@@ -17,31 +17,30 @@ import {
   toJS,
 } from "mobx";
 
-const DRAFT_ID = "_";
+const DRAFT_ID = -1;
 
 export type DailyNormNoId = Omit<DailyNorm, "id">;
 
-export class RootDailyNormStore {
+export class RootDailyNormStore implements RootEntityStore {
   constructor() {
     makeAutoObservable(this);
 
     autorun(() => {
-      this.fetchManager.getAll().then((norms) => {
-        if (!norms) return;
-        this.add(norms);
-      });
+      this.getAll()
     });
   }
 
-  fetchManager: FetchManager<DailyNorm> = new DailyNormFetchManager();
+  loadingState = new LoadingStateStore()
 
-  currentId: string | number = DRAFT_ID;
+  fetchManager: FetchManager<DailyNorm> = new DailyNormFetchManager(this.loadingState);
+
+  currentId: number = DRAFT_ID;
 
   draftNorm = new DraftNormStore(this);
 
   norms: UserNormStore[] = [];
 
-  dailyNormIdCurrentlyInUse: string | number = DRAFT_ID;
+  dailyNormIdCurrentlyInUse: number = DRAFT_ID;
 
   get stores() {
     return [this.draftNorm, ...this.norms];
@@ -51,22 +50,22 @@ export class RootDailyNormStore {
     return this.stores.find(({ id }) => id === this.currentId);
   }
 
-  setCurrentId = (id: number | string) => {
+  setCurrentId = (id: number) => {
     this.currentId = id;
   };
 
-  setCurrentDailyNormInUseId = (id: number | string) => {
+  setCurrentDailyNormInUseId = (id: number) => {
     this.dailyNormIdCurrentlyInUse = id;
   };
 
-  isDraftId = (id: number | string) => {
+  isDraftId = (id: number) => {
     return id === DRAFT_ID;
   };
 
   create = (norm: DailyNorm) => {
     const { id, ...nutrients } = norm;
     const store = new UserNormStore(this);
-    store.id = id.toString();
+    store.id = id;
     store.nutrients = nutrients;
     return store;
   };
@@ -81,26 +80,32 @@ export class RootDailyNormStore {
     this.setCurrentId(data.id);
   };
 
-  save = (payload: DailyNormNoId) => {
-    this.fetchManager.create(payload).then((res) => {
+  getAll = async () => {
+    return this.fetchManager.getAll().then((res) => {
+      if (res.isError) return res;
+      this.add(res.data);
+      return res
+    });
+  }
+
+  save = async (payload: DailyNormNoId) => {
+    return this.fetchManager.create(payload).then((res) => {
       if (res.isError) return res;
       this.add(res.data);
       return res
     });
   };
 
-  update = async (id: number | string, payload: DailyNorm) => {
+  update = async (id: number, payload: DailyNorm) => {
     return this.fetchManager.update(+id, payload).then((res) => {
       return res
     });
   };
 
-  remove = (id: number | string) => {
-    this.fetchManager.delete(+id).then((res) => {
-      if (res.isError) return;
-      console.log(this.norms);
+  remove = async (id: number) => {
+    return this.fetchManager.delete(+id).then((res) => {
+      if (res.isError) return res;
       this.norms = this.norms.filter((norm) => +norm.id !== +id);
-      console.log(this.norms);
       this.setCurrentId(DRAFT_ID);
       return res
     });
@@ -108,7 +113,7 @@ export class RootDailyNormStore {
 }
 
 export class DailyNormStore {
-  constructor(private rootStore: RootDailyNormStore) {
+  constructor() {
     makeObservable(this, {
       name: observable,
       nutrients: observable,
@@ -121,7 +126,7 @@ export class DailyNormStore {
   name = "Новая дневная норма";
 
   nutrients: Omit<DailyNorm, "id"> = structuredClone(nutrients);
-  id: string | number = DRAFT_ID;
+  id: number = DRAFT_ID;
 
   get payload() {
     return this.nutrients;
@@ -137,8 +142,9 @@ export class DailyNormStore {
 export class UserNormStore
   extends DailyNormStore
   implements UserDataStore<Omit<DailyNorm, "id">> {
+
   constructor(private rootStore: RootDailyNormStore) {
-    super(rootStore);
+    super();
     makeObservable(this, {});
     this.detectChangesStore = new DetectChangesStore(this.nutrients);
 
@@ -151,15 +157,16 @@ export class UserNormStore
   }
 
   save = async () => {
-    this.rootStore.update(this.id, this.payload).then((res) => {
-      console.log("res", res);
-      res && this.detectChangesStore.updateSnapshot(this.nutrients);
+    return this.rootStore.update(this.id, this.payload).then((res) => {
+      if (res.isError) return res
+      this.detectChangesStore.updateSnapshot(this.nutrients);
+      return res
     });
   };
 
   remove = async () => {
     //this.id
-    this.rootStore.remove(this.id);
+    return this.rootStore.remove(this.id);
   };
 
   get empty() {
@@ -171,26 +178,22 @@ export class UserNormStore
     this.nutrients = this.detectChangesStore.initProductsSnapshotCopy;
   };
 
-  get loading() {
-    const state = this.rootStore.fetchManager.loading;
-    return state.update.get(+this.id) || state.delete.get(+this.id) || false;
-  }
+  // get loading() {
+  //   const state = this.rootStore.loadingState.getLoading('update', this.id)
+  //   return state.update.get(+this.id) || state.delete.get(+this.id) || false;
+  // }
 
   detectChangesStore: DetectChangesStore<Omit<DailyNorm, "id">>;
 }
 
 export class DraftNormStore extends DailyNormStore implements DraftStore {
   constructor(private rootStore: RootDailyNormStore) {
-    super(rootStore);
+    super();
     makeObservable(this, {});
   }
 
-  get loading() {
-    return this.rootStore.fetchManager.loading.save;
-  }
-
   save = async () => {
-    this.rootStore.save(this.payload);
+    return this.rootStore.save(this.payload);
   };
 
   get empty() {

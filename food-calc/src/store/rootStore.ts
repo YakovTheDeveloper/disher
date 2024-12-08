@@ -9,31 +9,28 @@ import { GetFullDataStore } from "@/store/getFullDataStore/getFullDataStore";
 import { RootDishStore } from "@/store/rootDishStore/rootDishStore";
 import { RootDailyNormStore } from "@/store/dailyNormStore/dailyNormStore";
 import { RootDayStore2 } from "@/store/rootDayStore/rootDayStore2";
+import { CalculationReactionStore } from "@/store/rootDishStore/calculationReactionStore";
 
 export const productStore = new ProductStore();
 export const nutrientStore = new NutrientStore();
 
 export const dishCalculationStore = new CalculationStore();
 
-export const rootDishStore = new RootDishStore(
-  productStore,
-  dishCalculationStore
-);
 
-// export const calculationStore = new CalculationStore()
+
+export const rootDishStore = new RootDishStore();
+
+export const selectedDishCalculations = new CalculationReactionStore(
+  productStore,
+  dishCalculationStore,
+  rootDishStore
+)
 
 export const uiStore = new UiStore();
 
 export const userStore = new UserStore();
 
-// export const rootDayStore = new RootDayStore(rootDishStore);
 export const rootDayStore2 = new RootDayStore2();
 
-//todo delete
-// export const getFullDataStore = new GetFullDataStore(
-//   rootDayStore2,
-//   productStore,
-//   rootDishStore
-// );
 export const rootDailyNormStore = new RootDailyNormStore();
 

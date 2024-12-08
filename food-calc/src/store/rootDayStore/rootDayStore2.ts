@@ -1,6 +1,7 @@
 import { fetchCreateDay, fetchDeleteDay, fetchGetAllDay, fetchUpdateDay } from "@/api/day";
 import { isEmpty, isNotEmpty } from "@/lib/empty";
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
+import { LoadingStateStore } from "@/store/common/LoadingStateStore";
 import { createDraftDayCategory, DayCategoryStore } from "@/store/rootDayStore/dayCategoryStore/dayCategoryStore";
 import { DaysFetchManager } from "@/store/rootDayStore/daysFetchManager";
 import { DayStore, DraftDayStore, UserDayStore } from "@/store/rootDayStore/dayStore";
@@ -32,7 +33,8 @@ export class RootDayStore2 {
         })
     }
 
-    fetchManager = new DaysFetchManager()
+    loadingState = new LoadingStateStore()
+    fetchManager = new DaysFetchManager(this.loadingState)
 
     calculations = new CalculationStore()
 

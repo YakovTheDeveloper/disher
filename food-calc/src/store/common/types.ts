@@ -18,3 +18,11 @@ export interface DraftStore<Data> {
   empty: boolean;
   name: string;
 }
+
+export interface RootEntityStore<Data = any> {
+  save: (payload: any) => Promise<Response<Data>>,
+  update: (id: number, payload: any) => Promise<Response<Data>>,
+  remove: (id: number, payload: any) => Promise<Response<Data>>,
+  getAll: () => Promise<Response<Data>>,
+}
+

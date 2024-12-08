@@ -9,6 +9,8 @@ import { uiStore } from "@/store/rootStore";
 import { notificationMessages } from "@/components/ui/Notification/NotificationMessages";
 import { EntityNames, Operations } from "@/types/common/common";
 import { Response } from "@/types/api/common";
+import { LoadingStateStore } from "@/store/common/LoadingStateStore";
+import { toJS } from "mobx";
 
 type DraftProps = {
   save: () => void;
@@ -29,7 +31,9 @@ type UserProps = {
 
 type Props = {
   store: UserDataStore<any> | DraftStore<any>;
+  // store: UserDataStore<any> | DraftStore<any>;
   variant: EntityNames
+  loadingState: LoadingStateStore
 };
 
 type OnAction = {
@@ -41,10 +45,13 @@ type OnAction = {
   op: Operations
 }
 
-const Actions = ({ store, variant }: Props) => {
+const Actions = ({ store, variant, loadingState }: Props) => {
 
   const { notification } = uiStore
-  const { loading, name } = store;
+  const { name } = store;
+
+
+
 
   const onAction = (data: OnAction) => {
     const { op } = data
@@ -69,6 +76,8 @@ const Actions = ({ store, variant }: Props) => {
 
   if ("detectChangesStore" in store) {
     const { empty, remove, save, detectChangesStore, resetToInit, id } = store;
+    const loading = loadingState.getLoading('delete', store.id) || loadingState.getLoading('update', store.id)
+
     return (
       <UserActions
         detectChangesStore={detectChangesStore}
@@ -76,13 +85,15 @@ const Actions = ({ store, variant }: Props) => {
         isEmpty={empty}
         remove={() => onAction({ callback: remove, id, op: 'delete' })}
         resetToInit={resetToInit}
-        save={() => onAction({ callback: save, id, op: 'save' })}
+        save={() => onAction({ callback: save, id, op: 'update' })}
         loading={loading}
       />
     );
   }
 
   const { resetToInit, empty, save } = store;
+  const loading = loadingState.getLoading('save')
+
   return (
     <DraftActions
       resetToInit={resetToInit}
@@ -123,16 +134,14 @@ export const UserActions = observer(
   }: UserProps) => {
     return (
       <div className={s.container}>
+        <Button
+          className={s.mainButton}
+          onClick={() => save(+id)}
+          disabled={loading}
+        >
+          Обновить
+        </Button>
         <span className={s.loading}>{loading && <Spinner />}</span>
-        <IfContentChange changeOccured={detectChangesStore.changeOccured}>
-          <Button
-            className={s.mainButton}
-            onClick={() => save(+id)}
-            disabled={loading}
-          >
-            Обновить
-          </Button>
-        </IfContentChange>
         <IfContentChange changeOccured={detectChangesStore.changeOccured}>
           <Button onClick={resetToInit} variant="danger" disabled={loading}>
             Отменить изменения

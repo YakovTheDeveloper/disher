@@ -24,8 +24,11 @@ export class ProductsController {
   }
 
   @Get()
-  findAll(@Query() query) {
-    return this.productsService.findAll();
+  async findAll(@Query() query) {
+    const result = await this.productsService.findAll();
+    return {
+      result
+    }
   }
 
   // @Get(':id')
@@ -41,8 +44,8 @@ export class ProductsController {
     if (!query?.ids) {
       return
     }
-    await wait(3000)
-    return this.productsService.findProductNutrients(query.ids);
+    const result = await this.productsService.findProductNutrients(query.ids)
+    return { result };
   }
 
   @Patch(':id')

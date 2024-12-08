@@ -1,19 +1,67 @@
 .dishProduct {
-  position: relative;
-  padding: 4px;
-  border: 1px solid transparent;
-  background-color: #fff;
+  max-width: 300px;
   display: grid;
+  position: relative;
+  padding: 20px 5px 20px;
+  border: 1px solid transparent;
+  gap: 7px;
+  background-color: #fff;
   width: 100%;
   grid-template-columns: auto 1fr 20px;
   align-items: center;
-  gap: 8px;
-  overflow: hidden;
+  padding: 5px 0;
+  position: relative;
 
-  &:hover {
-    /* background-color: var(--color-light-green-2); */
-    /* border-color: #e2e2e2; */
+  &:hover {}
+
+}
+
+.dishProduct:hover .showOnContainerHover {
+  opacity: 1;
+}
+
+.after {
+  transition: opacity 0.2s;
+  opacity: 0;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  bottom: 50%;
+  right: 0;
+  border-radius: 50%;
+  height: 4px;
+  width: 4px;
+  background-color: rgba(0, 255, 0, 0.708);
+
+  /* Larger background size for smoother motion */
+  animation: moveRight 1.5s ease-in-out infinite;
+}
+
+@keyframes moveRight {
+  0% {
+    transform: translateY(50%) scale(1);
+    /* Start the gradient in the initial position */
   }
+
+  100% {
+    transform: translateY(50%) scale(1.5);
+    /* End the gradient beyond the left edge for smooth looping */
+  }
+}
+
+.inner {}
+
+.caption {
+  position: absolute;
+  top: -15px;
+  right: 50%;
+  width: fit-content;
+  background-color: #ffffff;
+  padding: 2px 10px;
+  transform: translateX(50%);
 }
 
 .dishProduct:hover .removeButton {
@@ -35,35 +83,13 @@
   width: var(--width-quantity-input);
 }
 
-/* Skeleton Overlay */
-.loading::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0.6) 0%,
-      rgba(255, 255, 255, 0.8) 50%,
-      rgba(255, 255, 255, 0.6) 100%);
-  z-index: 0;
-  animation: shimmer 1.5s infinite;
-  opacity: 0.8;
-  /* Adjust transparency level */
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-
-  100% {
-    transform: translateX(100%);
-  }
-}
 
 .loading input,
 .loading button {
-  visibility: hidden;
+  /* visibility: hidden; */
+}
+
+.loading .productName {
+  user-select: none;
+  cursor: auto;
 }
