@@ -5,10 +5,11 @@ import { DishStore } from "@/store/rootDishStore/dishStore/dishStore";
 import s from "./Dish.module.css";
 import { Typography } from "@/components/ui/Typography/Typography";
 import RemoveButton from "@/components/ui/RemoveButton/RemoveButton";
-import { Modals } from "@/store/uiStore/uiStore";
+
 import { IProductBase } from "@/types/dish/dish";
 import DishProduct from "./DishItem/DishProduct";
 import { toJS } from "mobx";
+import { Modals } from "@/store/uiStore/modalStore/modalStore";
 
 type Props = {
   store: DishStore;
@@ -27,7 +28,7 @@ function Dish(props: Props) {
   } = store;
 
   const onClickProductName = (product: IProductBase) => {
-    uiStore.openModal(Modals.Product, { Product: product });
+    uiStore.modal.openModal(Modals.Product, product);
   };
 
 

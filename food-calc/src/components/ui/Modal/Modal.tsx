@@ -1,11 +1,19 @@
 import React, { useEffect, useRef } from 'react'
 import s from './Modal.module.scss'
 import { uiStore } from '@/store/rootStore';
+import useOutsideClick from '@/hooks/useOutsideClick';
 
-const Modal = ({ isOpen, children }) => {
+
+type Props = {
+    children: React.ReactNode
+    isOpen: boolean
+}
+
+const Modal = ({ isOpen, children }: Props) => {
     const ref: React.Ref<HTMLDialogElement> = useRef(null);
 
-    const { closeModal } = uiStore
+    const { closeModal } = uiStore.modal
+    // useOutsideClick(ref, closeModal)
 
     useEffect(() => {
         if (isOpen) {
@@ -20,6 +28,7 @@ const Modal = ({ isOpen, children }) => {
             closeModal()
         }
     }
+
 
     return (
         <dialog

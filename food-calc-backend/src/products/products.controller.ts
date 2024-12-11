@@ -31,6 +31,18 @@ export class ProductsController {
     }
   }
 
+  @Get('rich')
+  async findRich(@Query() query: { nutrient_id: string }) {
+    if (!query.nutrient_id) {
+      throw new Error('No such nutrient_id')
+    }
+    const result = await this.productsService.findRich(query.nutrient_id);
+    return {
+      result
+    }
+  }
+
+
   // @Get(':id')
   // findOne(@Param('id') id: string, @Query() query) {
   //   if (query?.with_nutrients != null) {

@@ -33,10 +33,7 @@
 
 .skeletonTabInner {
     width: 100%;
-    /* Adjust based on the size of your tab */
     background-color: #e0e0e0;
-    /* Light gray background */
-    /* Rounded corners (optional) */
     position: relative;
     overflow: hidden;
     display: inline-block;

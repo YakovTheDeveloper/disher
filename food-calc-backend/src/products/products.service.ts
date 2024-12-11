@@ -79,6 +79,76 @@ export class ProductsService {
 
     return productIdToNutrientsMap
   }
+
+  async findRich(nutrientId: string) {
+    // Nutrient daily norms
+    const nutrients = {
+      protein: 51,
+      fats: 70,
+      carbohydrates: 275,
+      sugar: 50,
+      starch: 30,
+      fiber: 25,
+      energy: 2000,
+      water: 2000,
+      iron: 18,
+      calcium: 1000,
+      magnesium: 350,
+      phosphorus: 700,
+      potassium: 3500,
+      sodium: 2300,
+      zinc: 15,
+      copper: 900,
+      manganese: 2.3,
+      selenium: 55,
+      iodine: 150,
+      vitaminA: 900,
+      vitaminB1: 1.2,
+      vitaminB2: 1.3,
+      vitaminB3: 16,
+      vitaminB4: 550,
+      vitaminB5: 5,
+      vitaminB6: 2,
+      vitaminB7: 1,
+      vitaminB9: 400,
+      vitaminB12: 2.4,
+      vitaminC: 90,
+      vitaminD: 20,
+      vitaminE: 15,
+      vitaminK: 120,
+      betaCarotene: 3000,
+      alphaCarotene: 600,
+    };
+
+    // Retrieve the daily norm for the given nutrientId
+    const dailyNorm = nutrients[nutrientId];
+
+    if (!dailyNorm) {
+      throw new Error(`Nutrient with ID ${nutrientId} not found in daily norms.`);
+    }
+    const threshold = dailyNorm * 0.2;
+    // Fetch products using a QueryBuilder
+    const products = await this.productsRepository
+      .createQueryBuilder('product')
+      .innerJoinAndSelect('product.productNutrients', 'productNutrient')
+      .innerJoinAndSelect('productNutrient.nutrient', 'nutrient')
+      .where('nutrient.name = :nutrientId', { nutrientId })
+      .andWhere('productNutrient.quantity > :threshold', { threshold })
+      .getMany();
+
+    return products
+      .sort((a, b) => b.productNutrients[0].quantity - a.productNutrients[0].quantity)
+      .map(({ name, productNutrients, id }) => ({
+        id,
+        name,
+        nutrients: productNutrients
+          .reduce((acc, { nutrient, quantity }) => {
+            acc[nutrient.id] = quantity
+            return acc
+          }, {})
+      }));
+  }
+
   // async findOneWithNutrients(id: number) {
   //   let productWithNutrients = await this.productsRepository
   //     .createQueryBuilder('product')

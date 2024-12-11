@@ -17,5 +17,9 @@
 
 .h1.offset {
     /* margin-bottom: 1rem; */
-    padding-bottom: 100px;
+    padding-bottom: 2rem;
+}
+
+.h2.offset {
+    padding-bottom: 1rem;
 }

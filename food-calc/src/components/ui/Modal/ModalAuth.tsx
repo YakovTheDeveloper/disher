@@ -44,7 +44,7 @@ const ModalAuth = ({ isOpen }) => {
             if (!res) return
             addTokenToLocalStorage(res.access_token)
             userStore.setUser(res)
-            uiStore.closeModal()
+            uiStore.modal.closeModal()
         })
 
 

@@ -3,13 +3,8 @@ import { action, makeAutoObservable, toJS } from "mobx";
 import { GenerateId } from "@/utils/uuidNumber";
 import { EntityNames, Operations } from "@/types/common/common";
 import { notificationMessages } from "@/components/ui/Notification/NotificationMessages";
+import { ModalStore } from "@/store/uiStore/modalStore/modalStore";
 
-export enum Modals {
-  Auth = "Auth",
-  Product = "Product",
-}
-
-type Payload = { Product: IProductBase | null };
 
 export type NotificationData = {
   id: number
@@ -18,37 +13,12 @@ export type NotificationData = {
 }
 
 export class UiStore {
-  currentModal: Modals | null = null;
-
-  data: {
-    Auth: null;
-    Product: IProductBase | null;
-  } = {
-      Auth: null,
-      Product: null,
-    };
 
   notification = new NotificationStore()
 
-  openModal = (id: Modals, data?: Payload) => {
-    console.log(toJS(data?.Product));
-    this.currentModal = id;
-    if (!data) return;
-    data.Product = structuredClone(toJS(data.Product));
-    this.setData(data);
-  };
-
-  closeModal = () => {
-    this.currentModal = null;
-  };
+  modal = new ModalStore()
 
 
-
-
-
-  setData = (data: Payload) => {
-    this.data = { ...this.data, ...data };
-  };
 
   constructor() {
     makeAutoObservable(this);

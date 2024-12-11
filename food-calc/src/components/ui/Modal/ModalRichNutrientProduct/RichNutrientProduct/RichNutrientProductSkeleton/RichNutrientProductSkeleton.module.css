@@ -1,0 +1,16 @@
+.richNutrientSkeletonContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.inner {
+    height: var(--height-rich-nutrient-product);
+}
+
+.richProduct {
+    display: grid;
+    grid-template-columns: var(--grid-column-rich-nutrient-product);
+    /* height: calc(var(--height-rich-nutrient-product) - 10px); */
+    gap: 2px;
+}

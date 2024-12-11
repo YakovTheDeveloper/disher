@@ -56,6 +56,9 @@ export class UserNorm {
     copper: number;
 
     @Column({ type: 'float', nullable: false })
+    calcium: number;
+
+    @Column({ type: 'float', nullable: false })
     manganese: number;
 
     @Column({ type: 'float', nullable: false })

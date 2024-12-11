@@ -12,20 +12,13 @@ const nutrientPadding = (nutrientId: number): boolean => {
 }
 
 type Props = {
-  loading: boolean;
-  rowPositionSecond?: React.ReactNode | ((cat: NutrientCategory) => JSX.Element);
-  rowPositionThird?: React.ReactNode | ((cat: NutrientCategory) => JSX.Element);
   children?: React.ReactNode;
 };
 const NutrientsTotal = ({
-  loading,
-  rowPositionSecond,
-  rowPositionThird,
   children
 }: Props) => {
   return (
     <div className={s.nutrientsTotal}>
-      <div>{loading && <span>Loading...</span>}</div>
       {children}
     </div>
   );

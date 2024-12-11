@@ -88,12 +88,12 @@ const ModalProduct = ({ isOpen, data }: Props) => {
                     rowPositionSecond={(nutrient) => (
                         <NutrientValue calculations={product.calculations} nutrient={nutrient} />
                     )}
-                    rowPositionThird={({ id, name }) => (
+                    rowPositionThird={(nutrient) => (
                         <NutrientPercent
                             dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
-                            nutrientId={name}
+                            nutrient={nutrient}
                             nutrientQuantity={
-                                product.calculations.totalNutrients[id]
+                                product.calculations.totalNutrients[nutrient.id]
                             }
                         />
                     )}

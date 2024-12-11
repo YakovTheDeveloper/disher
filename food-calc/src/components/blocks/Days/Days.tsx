@@ -71,14 +71,13 @@ const Days = () => {
 
                             />
                         )}
-                        rowPositionThird={({ id, name }) => (
+                        rowPositionThird={(nutrient) => (
                             <NutrientPercent
                                 dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
-                                nutrientId={name}
-                                nutrientQuantity={dayCalculationStore.totalNutrients[id]}
+                                nutrientId={nutrient.id}
+                                nutrientQuantity={dayCalculationStore.totalNutrients[nutrient.id]}
                             />
                         )}
-                        loading={false}
                     />
                 </NutrientsTotal>
             }

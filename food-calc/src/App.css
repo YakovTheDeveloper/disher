@@ -19,8 +19,12 @@
   --color-light-gray: #8a8a8a;
 
   --box-shadow-s: -1px 2px 8px -2px rgba(0, 0, 0, 0.3);
+  --box-shadow-xs: -1px 2px 8px -1px rgba(0, 0, 0, 0.08);
 
   --width-quantity-input: 50px;
 
+  --grid-column-rich-nutrient-product: 4ch 7ch auto 9ch 100px;
+
+  --height-rich-nutrient-product: 30px;
   --height-header: 55px;
 }

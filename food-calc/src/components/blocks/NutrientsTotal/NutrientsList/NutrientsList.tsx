@@ -5,10 +5,11 @@ import clsx from 'clsx'
 import { Typography } from '@/components/ui/Typography/Typography'
 import { div } from 'framer-motion/client'
 import { observer } from 'mobx-react-lite'
+import { NutrientData } from '@/types/nutrient/nutrient'
 type Props = {
-    rowPositionSecond?: React.ReactNode | ((cat: NutrientCategory) => JSX.Element);
-    rowPositionThird?: React.ReactNode | ((cat: NutrientCategory) => JSX.Element);
-    rowPositionFourth?: React.ReactNode | ((cat: NutrientCategory) => JSX.Element);
+    rowPositionSecond?: React.ReactNode | ((cat: NutrientData) => JSX.Element);
+    rowPositionThird?: React.ReactNode | ((cat: NutrientData) => JSX.Element);
+    rowPositionFourth?: React.ReactNode | ((cat: NutrientData) => JSX.Element);
     wrap?: boolean
 }
 

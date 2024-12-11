@@ -57,9 +57,16 @@ function DishProduct({
         onChange={handleChange}
         disabled={isLoading}
       />
-      <Typography variant="body1" onClick={
-        () => !isLoading && onNameClick?.()
-      } className={s.productName}>
+      <Typography
+        variant="body1"
+        onClick={
+          () => !isLoading && onNameClick?.()
+        }
+        className={clsx([
+          s.productName,
+          onNameClick && s.productNameClickable
+        ])}
+      >
         {product.name}
       </Typography>
       <span className={clsx([s.showOnContainerHover, s.after])}>

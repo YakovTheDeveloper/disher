@@ -42,14 +42,13 @@ function Dishes(props: Props) {
                                 calculations={dishCalculationStore}
                             />
                         )}
-                        rowPositionThird={({ id, name }) => (
+                        rowPositionThird={(nutrient) => (
                             <NutrientPercent
                                 dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
-                                nutrientId={name}
-                                nutrientQuantity={dishCalculationStore.totalNutrients[id]}
-                            >
-                                <FindRichButton nutrientId={id} />
-                            </NutrientPercent>
+                                nutrient={nutrient}
+                                nutrientQuantity={dishCalculationStore.totalNutrients[nutrient.id]}
+                                showFindRichProduct
+                            />
 
                         )}
                     />

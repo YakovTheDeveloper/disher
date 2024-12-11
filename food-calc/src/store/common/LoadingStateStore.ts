@@ -1,20 +1,22 @@
 import { action, computed, makeAutoObservable, makeObservable, observable, ObservableMap } from "mobx";
 
+type Id = string | number
+
 export type Loading = {
     all: boolean;
     save: boolean;
-    getOne: ObservableMap<number, boolean>; // Added getOne
-    update: ObservableMap<number, boolean>;
-    delete: ObservableMap<number, boolean>;
+    getOne: ObservableMap<Id, boolean>; // Added getOne
+    update: ObservableMap<Id, boolean>;
+    delete: ObservableMap<Id, boolean>;
 };
 
 export class LoadingStateStore {
     loadingStates: Loading = {
         all: false,
         save: false,
-        getOne: observable.map<number, boolean>(), // Added initialization
-        update: observable.map<number, boolean>(),
-        delete: observable.map<number, boolean>(),
+        getOne: observable.map<Id, boolean>(), // Added initialization
+        update: observable.map<Id, boolean>(),
+        delete: observable.map<Id, boolean>(),
     };
 
     constructor() {
@@ -22,8 +24,8 @@ export class LoadingStateStore {
     }
 
     setLoading(key: "all" | "save" | "getOne", value: boolean): void;
-    setLoading(key: "update" | "delete" | "getOne", value: boolean, id: number): void;
-    setLoading(key: keyof Loading, value: boolean, id?: number): void {
+    setLoading(key: "update" | "delete" | "getOne", value: boolean, id: Id): void;
+    setLoading(key: keyof Loading, value: boolean, id?: Id): void {
         if (key === "update" || key === "delete" || key === "getOne") {
             if (id != null) {
                 const field = this.loadingStates[key];
@@ -35,8 +37,8 @@ export class LoadingStateStore {
     }
 
     getLoading(key: "all" | "save" | "getOne"): boolean;
-    getLoading(key: "update" | "delete" | "getOne", id: number): boolean;
-    getLoading(key: keyof Loading, id?: number): boolean {
+    getLoading(key: "update" | "delete" | "getOne", id: Id): boolean;
+    getLoading(key: keyof Loading, id?: Id): boolean {
         if (key === "update" || key === "delete" || key === "getOne") {
             if (id != null) {
                 return this.loadingStates[key].get(id) || false;

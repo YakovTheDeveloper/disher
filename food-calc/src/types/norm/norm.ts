@@ -9,6 +9,7 @@ export type DailyNorm = {
   water: number;
   iron: number;
   magnesium: number;
+  calcium: number;
   phosphorus: number;
   potassium: number;
   sodium: number;

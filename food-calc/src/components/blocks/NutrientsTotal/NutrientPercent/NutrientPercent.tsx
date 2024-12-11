@@ -3,6 +3,11 @@ import s from './NutrientPercent.module.css'
 import React from 'react'
 import { Typography } from '@/components/ui/Typography/Typography'
 import { DailyNorm } from '@/types/norm/norm';
+import FindRichButton from '@/components/blocks/NutrientsTotal/FindRichButton/FindRichButton';
+import { uiStore } from '@/store/rootStore';
+import { Modals } from '@/store/uiStore/modalStore/modalStore';
+import { NutrientData } from '@/types/nutrient/nutrient';
+import { observer } from 'mobx-react-lite';
 
 const getRoundedValue = (percentage: number, quantity, norm) => {
     if (!quantity || !norm) return null;
@@ -34,26 +39,32 @@ const getTextColor = (percent: number) => {
 };
 type Props = {
     nutrientQuantity: number,
-    nutrientId: string
+    nutrient: NutrientData
     dailyNutrientNorm: DailyNorm
     children?: React.ReactNode
+    showFindRichProduct?: boolean
+    getComponentColorStyle?: (color: string, backgroundColor: string) => void
 }
-const NutrientPercent = ({ nutrientQuantity, nutrientId, dailyNutrientNorm, children }: Props) => {
-    const haveDailyNorm = nutrientHasDailyNorm(nutrientId)
+const NutrientPercent = ({ nutrientQuantity, nutrient, dailyNutrientNorm, children, getComponentColorStyle, showFindRichProduct }: Props) => {
+    const { name } = nutrient
+    const haveDailyNorm = nutrientHasDailyNorm(name)
 
-    const normValue = dailyNutrientNorm[nutrientId]
+    const normValue = dailyNutrientNorm[name]
     const percentage = (nutrientQuantity / normValue) * 100
     const value = getRoundedValue(percentage, nutrientQuantity, normValue);
 
     const backgroundColor = getBackgroundColor(percentage);
     const textColor = getTextColor(percentage);
-    const backgroundWidth = Math.min(percentage, 100);
+    const percantageView = Math.min(percentage, 100);
 
 
     const fillStyle = haveDailyNorm ? {
-        width: `${backgroundWidth}%`,
+        width: `${percantageView}%`,
         backgroundColor,
     } : undefined
+
+    getComponentColorStyle?.(textColor, backgroundColor)
+
 
     return (
         <span className={s.percent} style={{
@@ -76,9 +87,13 @@ const NutrientPercent = ({ nutrientQuantity, nutrientId, dailyNutrientNorm, chil
                     </Typography>
                 </>
             }
-            {children}
+            {showFindRichProduct &&
+                <FindRichButton
+                    percantageView={percantageView}
+                    onClick={() => uiStore.modal.openModal(Modals.NutrientRichProduct, nutrient)}
+                />}
         </span>
     )
 }
 
-export default NutrientPercent
+export default observer(NutrientPercent)

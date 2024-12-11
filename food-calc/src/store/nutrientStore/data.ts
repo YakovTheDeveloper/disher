@@ -1,4 +1,4 @@
-import { NutrientData, NutrientUnit, NutrientUnitRu } from "@/types/nutrient/nutrient";
+import { NutrientData, NutrientName, NutrientUnit, NutrientUnitRu } from "@/types/nutrient/nutrient";
 
 export type NutrientCategory = {
     id: number;
@@ -353,11 +353,13 @@ export const nutrientsPadding: Record<number, boolean> = {
     29: false,      // Vitamin D (μg)
     30: false,      // Vitamin E (mg)
     31: false,     // Vitamin K (μg)
-    32: true,    // Beta-carotene (μg)
-    33: true,     // Alpha-carotene (μg)
+    32: false,    // Beta-carotene (μg)
+    33: false,     // Alpha-carotene (μg)
+    34: false,     // Beta-carotene (μg)
+    35: false,     // Alpha-carotene (μg)
 }
 
-export const nutrientsHaveDailyNorm: Record<string, boolean> = {
+export const nutrientsHaveDailyNorm: Record<NutrientName, boolean> = {
     "protein": true,
     "fats": true,
     "carbohydrates": true,
@@ -365,6 +367,7 @@ export const nutrientsHaveDailyNorm: Record<string, boolean> = {
     "energy": true,
     "water": true,
     "iron": true,
+    "calcium": true,
     "sugar": false,
     "starch": false,
     "magnesium": true,
@@ -383,6 +386,7 @@ export const nutrientsHaveDailyNorm: Record<string, boolean> = {
     "vitaminB4": true,
     "vitaminB5": true,
     "vitaminB6": true,
+    "vitaminB7": false,
     "vitaminB9": true,
     "vitaminB12": true,
     "vitaminC": true,

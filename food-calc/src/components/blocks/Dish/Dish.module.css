@@ -9,7 +9,8 @@
 
 .products {
     display: flex;
-    flex-direction: column;
+    /* flex-direction: column; */
+    flex-wrap: wrap;
     flex-grow: 1;
     gap: 7px;
 }

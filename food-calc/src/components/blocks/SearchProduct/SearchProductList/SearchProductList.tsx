@@ -1,5 +1,5 @@
 import React from 'react'
-import { rootDishStore, productStore, currentCalculationStore } from '@store/rootStore'
+import { rootDishStore, productStore, currentCalculationStore, addProductToDishUseCase } from '@store/rootStore'
 import { IProductBase } from '../../../../types/menu/Menu'
 import { fromHash, generateHash } from '../../../../lib/hash/hash'
 import { observer } from 'mobx-react-lite'
@@ -20,25 +20,10 @@ const SearchProductList = ({ searchValue }) => {
     })
 
     async function onAdd(product: IProductBase) {
-        const capturedDish = rootDishStore.currentDish
-
-        capturedDish?.toggleProduct({
+        addProductToDishUseCase.execute({
             ...product,
             quantity: 100
         })
-
-        handleGetFullProductData([product.id])
-            .then(res => {
-                if (res?.isError) {
-                    capturedDish?.toggleProduct({
-                        ...product,
-                        quantity: 100
-                    })
-                    return
-                }
-                currentCalculationStore.updateDishCalculationsWithCurrentProducts()
-
-            })
     }
 
     return (

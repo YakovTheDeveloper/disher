@@ -25,7 +25,7 @@ export class SeedService implements OnModuleInit {
     ) { }
 
     async onModuleInit() {
-        await this.insertDefaultNutrients();
+        // await this.insertDefaultNutrients();
     }
 
     private async insertDefaultNutrients() {
@@ -40,7 +40,7 @@ export class SeedService implements OnModuleInit {
 
 
         // Load the JSON file
-        fs.readFile('src/seed/init_products.json', 'utf-8', (err, data) => {
+        fs.readFile('src/seed/init_products.json', 'utf-8', async (err, data) => {
             if (err) {
                 console.error("Error reading file:", err);
                 return;
@@ -51,7 +51,11 @@ export class SeedService implements OnModuleInit {
 
                 const products: Product[] = []
 
-                jsonData.forEach(product => {
+                jsonData.forEach(async product => {
+
+                    const exist = await this.productsRepository.find({ where: { id: product.id } })
+                    if (exist) return
+
                     const newProduct = new Product()
                     newProduct.description = product.name
                     newProduct.name = product.name

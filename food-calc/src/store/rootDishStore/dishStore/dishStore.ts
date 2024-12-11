@@ -72,6 +72,10 @@ export class DishStore {
         this.products.push(product)
     }
 
+    // hasProduct = (productId: number) => {
+    //     return this.products.some(({ id }) => id === productId)
+    // }
+
     calculations = new CalculationStore()
 
     get productData() {

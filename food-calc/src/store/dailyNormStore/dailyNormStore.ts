@@ -219,6 +219,7 @@ const nutrients = {
   energy: 2000,
   water: 2000,
   iron: 18,
+  calcium: 1000,
   magnesium: 350,
   phosphorus: 700,
   potassium: 3500,

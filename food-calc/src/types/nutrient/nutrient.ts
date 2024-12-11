@@ -40,7 +40,7 @@ export type NutrientName = 'protein'
     | 'betaCarotene'
     | 'alphaCarotene'
 
-export type NutrientData = { id: number, name: string, displayName: string, displayNameRu: string, unit: NutrientUnit, "unitRu": NutrientUnitRu }
+export type NutrientData = { id: number, name: NutrientName, displayName: string, displayNameRu: string, unit: NutrientUnit, "unitRu": NutrientUnitRu }
 
 export type NutrientUnit = 'g' | 'μg' | 'mg' | 'kcal'
 export type NutrientUnitRu = 'г' | 'мг' | 'мкг' | 'ккал'

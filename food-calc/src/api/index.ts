@@ -65,6 +65,9 @@ export const apiRoutes = {
     products: {
         get: "products",
     },
+    richNutrientProducts: {
+        get: (id: number) => `products/rich/?nutrient_id=${id}`
+    },
     productsWithNutrients: {
         get: (ids: number[]) => `products/nutrients?ids=${ids.join(",")}`,
     },

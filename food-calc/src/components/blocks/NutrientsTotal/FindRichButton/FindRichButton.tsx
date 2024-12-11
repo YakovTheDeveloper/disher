@@ -1,15 +1,26 @@
 import DiamondIcon from "@/assets/icons/diamond.svg";
 import s from './FindRichButton.module.css'
 import React from 'react'
+import { NutrientData } from "@/types/nutrient/nutrient";
 
 type Props = {
-    nutrientId: number
+    percantageView: number
+    onClick: () => void
 }
 
-const FindRichButton = ({ nutrientId }) => {
+const FindRichButton = ({ percantageView, onClick }: Props) => {
+    const alpha = Math.max(percantageView / 100, 0.4)
+
+    const color = `rgba(76, 175, 80, ${alpha})`
+
     return (
-        <button className={s.findButton}>
-            <DiamondIcon className={s.icon} />
+        <button
+            className={s.findButton}
+            onClick={onClick}
+        >
+            <DiamondIcon
+                className={s.icon}
+                style={{ color }} />
         </button>
     )
 }
