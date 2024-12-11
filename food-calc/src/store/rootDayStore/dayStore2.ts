@@ -7,7 +7,7 @@ import { RootDayStore2 } from "@/store/rootDayStore/rootDayStore2";
 import { CreateDayPayload } from "@/types/api/day";
 import { Day, DayCategory } from "@/types/day/day";
 import { GenerateId } from "@/utils/uuidNumber";
-import { action, makeAutoObservable, makeObservable, observable, observe, reaction, toJS } from "mobx";
+import { action, computed, makeAutoObservable, makeObservable, observable, observe, reaction, runInAction, toJS } from "mobx";
 import { v4 as uuidv4 } from 'uuid';
 
 export abstract class DayStore2 {
@@ -18,15 +18,20 @@ export abstract class DayStore2 {
             name: observable,
             date: observable,
             categories: observable,
-            currentCategory: observable,
+            currentCategoryId: observable,
+            currentCategory: computed,
             init: action,
-            setCurrentCategory: action,
             createNewCategory: action,
             removeCategory: action,
             syncPositions: action,
             reorderCategories: action,
+            reorderCategories2: action,
+            setCurrentCategoryId: action,
             updateName: action,
             updateDate: action,
+            // setCurrentCategoryByIndex: action,
+            uniqueProductIds: computed,
+            calcReactionPayload: computed
         })
     }
 
@@ -38,7 +43,15 @@ export abstract class DayStore2 {
 
     categories: DayCategoryStore[] = []
 
-    currentCategory: DayCategoryStore | null = null
+    // currentCategory: DayCategoryStore | null = null
+
+    get currentCategory() {
+        return this.categories.find(({ id }) => id === this.currentCategoryId) || null
+    }
+
+    currentCategoryId: number = -1
+
+    setCurrentCategoryId = (id: number) => this.currentCategoryId = id
 
     init = (day: Day) => {
         const { date, id, name, categories } = day
@@ -50,18 +63,36 @@ export abstract class DayStore2 {
         this.date = date
     }
 
-    setCurrentCategory = (category: DayCategoryStore | null) => {
-        this.currentCategory = category
-    }
 
     createNewCategory = (data?: Partial<DayCategory>) => {
         const result: DayCategory = createDraftDayCategory(data)
         const category = new DayCategoryStore(this, result)
         this.categories.push(category)
+        console.log(toJS(this.categories))
     }
 
+    // setCurrentCategory = (category: DayCategoryStore | null) => {
+    //     this.currentCategory = category
+    // }
+
+    // setCurrentCategoryByIndex = (idx: number) => {
+    //     if (idx >= 0 && idx < this.categories.length) {
+    //         this.currentCategory = this.categories[idx];
+    //         this.current
+    //     } else {
+    //         this.currentCategory = null;
+    //     }
+    // };
+
     removeCategory = (categoryId: number) => {
-        this.categories = this.categories.filter(({ id }) => id !== categoryId)
+
+        const index = this.categories.findIndex(({ id }) => id === categoryId);
+
+        if (index !== -1) {
+            this.categories.splice(index, 1);
+            const nextCategoryId = this.categories[index - 1]?.id
+            nextCategoryId != null && this.setCurrentCategoryId(nextCategoryId)
+        }
     }
 
     syncPositions() {
@@ -70,16 +101,26 @@ export abstract class DayStore2 {
         });
     }
 
-    reorderCategories(startIndex: number, endIndex: number) {
-        if (startIndex === endIndex) return;
+    reorderCategories(newOrder: DayCategoryStore[]) {
+        this.categories = newOrder
 
-        const updatedCategories = [...this.categories];
-        const [movedItem] = updatedCategories.splice(startIndex, 1); // Remove the dragged item
-        updatedCategories.splice(endIndex, 0, movedItem); // Insert at the target index
-
-        this.categories = updatedCategories;
-        this.syncPositions(); // Update positions to reflect the new order
+        this.syncPositions();
     }
+
+
+    reorderCategories2 = (newOrder: DayCategoryStore[]) => {
+        this.categories = newOrder
+    }
+    // reorderCategories(startIndex: number, endIndex: number) {
+    //     if (startIndex === endIndex) return;
+
+    //     const updatedCategories = [...this.categories];
+    //     const [movedItem] = updatedCategories.splice(startIndex, 1); // Remove the dragged item
+    //     updatedCategories.splice(endIndex, 0, movedItem); // Insert at the target index
+
+    //     this.categories = updatedCategories;
+    //     this.syncPositions(); // Update positions to reflect the new order
+    // }
 
     updateName = (name: string) => this.name = name
     updateDate = (date: string) => this.date = date
@@ -100,6 +141,21 @@ export abstract class DayStore2 {
         console.log(payload)
 
         return payload
+    }
+
+    get uniqueProductIds() {
+        return [...new Set(this.categories.flatMap(category => {
+            return category.dishes.flatMap(dish => dish.productIds)
+        }))]
+    }
+
+    get calcReactionPayload() {
+        return this.categories.map(category => ({
+            dishes: category.dishes.map(({ coefficient, products }) => ({
+                coefficient,
+                products: products.map(product => ({ ...product }))
+            }))
+        }));
     }
 
     // update = (day: Day) => {

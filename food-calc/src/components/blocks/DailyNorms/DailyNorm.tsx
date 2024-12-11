@@ -18,7 +18,9 @@ const DailyNorm = ({ store, children }: Props) => {
 
   return (
     <>
-      <EditableText value={name} typographyProps={{ variant: "h1" }}
+      <EditableText
+        value={name}
+        typographyProps={{ variant: "h1" }}
         onChange={store.setName}
       />
       <NutrientsTotal key={store.id}>

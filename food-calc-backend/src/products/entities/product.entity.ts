@@ -6,15 +6,16 @@ import {
   Column,
   Entity,
   OneToMany,
+  PrimaryColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()
 export class Product {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   id: number;
 
-  @Column({ length: 100 })
+  @Column({ length: 200 })
   name: string;
 
   @Column({ length: 100, nullable: true, default: '' })
@@ -29,6 +30,6 @@ export class Product {
   @OneToMany(() => DishProduct, dishProduct => dishProduct.product)
   dishToProducts: DishProduct[];
 
-  @OneToMany(() => ProductsNutrient, productNutrient => productNutrient.product)
+  @OneToMany(() => ProductsNutrient, productNutrient => productNutrient.product, { cascade: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   productNutrients: ProductsNutrient[]
 }

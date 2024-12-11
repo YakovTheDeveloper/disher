@@ -8,6 +8,10 @@ import EditableText from '@/components/ui/EditableText/EditableText'
 import DatePicker from '@/components/ui/DatePicker/DatePicker'
 import { DayStore2 } from '@/store/rootDayStore/dayStore2'
 import DayCategories from '@/components/blocks/Days/DayCategories/DayCategories'
+import { toJS } from 'mobx'
+import { createContext } from 'react'
+import { currentCalculationStore } from '@/store/rootStore'
+import { DayCalculationContext } from '@/context/calculationContext'
 
 type Props = {
     store: DayStore2
@@ -26,39 +30,45 @@ const Day = (props: Props) => {
         categories,
         name,
         date,
-        currentCategory,
+        currentCategoryId,
         createNewCategory,
         updateName,
         updateDate
     } = store
 
-
-
     return (
         <section className={s.day}>
-            <div className={s.header}>
+            <header className={s.header}>
                 <EditableText
                     value={name}
                     onChange={updateName}
                     typographyProps={{ variant: 'h1' }}
                 />
                 <DatePicker date={date} setDate={updateDate} />
-            </div>
-            <Button onClick={() => createNewCategory()} variant='secondary'>Создать категорию</Button>
+            </header>
+            <Button onClick={() => createNewCategory()} variant='secondary'>
+                Создать категорию
+            </Button>
             <div className={s.main}>
-                <Reorder.Group
-                    axis="y"
-                    values={categories}
-                    onReorder={(newOrder) => {
-                        store.categories = newOrder;
-                        store.syncPositions();
+                <DayCalculationContext.Provider
+                    value={{
+                        updateCalculations: currentCalculationStore.updateDayCalculationsWithCurrentProducts
                     }}
                 >
-                    <DayCategories
-                        categories={categories}
-                        currentCategory={currentCategory?.id || -1}
-                    />
-                </Reorder.Group>
+                    <Reorder.Group
+                        axis="y"
+                        values={categories}
+                        onReorder={(newOrder) => {
+                            store.reorderCategories(newOrder)
+                        }}
+                    >
+                        <DayCategories
+                            categories={categories}
+                            currentCategory={currentCategoryId}
+                        />
+                    </Reorder.Group>
+                </DayCalculationContext.Provider>
+
                 <section>
                     {children}
                 </section>

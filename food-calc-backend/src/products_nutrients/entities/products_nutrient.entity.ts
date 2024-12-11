@@ -8,10 +8,14 @@ export class ProductsNutrient {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column('decimal') // Use 'decimal' for decimal numbers
     quantity: number;
 
-    @ManyToOne(() => Product)
+
+    @ManyToOne(() => Product, {
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    })
     product: Product
 
     @ManyToOne(() => Nutrient)

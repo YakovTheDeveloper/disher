@@ -32,7 +32,9 @@ export class dayCategoryDishStore {
 
     updateCoefficient = (value: number) => this.coefficient = value
 
-
+    get productIds() {
+        return this.products.map(({ id }) => id)
+    }
 
 }
 

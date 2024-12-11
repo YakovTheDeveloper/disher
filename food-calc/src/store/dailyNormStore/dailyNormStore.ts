@@ -50,6 +50,10 @@ export class RootDailyNormStore implements RootEntityStore {
     return this.stores.find(({ id }) => id === this.currentId);
   }
 
+  get currentDailyNormUsedInCalculations() {
+    return this.stores.find(({ id }) => id === this.dailyNormIdCurrentlyInUse)?.payload;
+  }
+
   setCurrentId = (id: number) => {
     this.currentId = id;
   };

@@ -2,20 +2,21 @@ import Actions from '@/components/blocks/common/Actions/Actions'
 import AddDishToDay from '@/components/blocks/Days/AddDishToDay/AddDishToDay'
 import Day from '@/components/blocks/Days/Day'
 import NutrientPercent from '@/components/blocks/NutrientsTotal/NutrientPercent/NutrientPercent'
+import NutrientsList from '@/components/blocks/NutrientsTotal/NutrientsList/NutrientsList'
 import NutrientsTotal from '@/components/blocks/NutrientsTotal/NutrientsTotal'
 import NutrientValue from '@/components/blocks/NutrientsTotal/NutrientValue/NutrientValue'
 import Layout from '@/components/common/Layout/Layout'
 import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
 import { Tab } from '@/components/ui/Tab'
 import { TabList } from '@/components/ui/TabList'
-import { rootDayStore2 } from '@/store/rootStore'
+import { DayCalculationContext } from '@/context/calculationContext'
+import { currentCalculationStore, dayCalculationStore, rootDailyNormStore, rootDayStore2 } from '@/store/rootStore'
 import { observer } from 'mobx-react-lite'
 
 const Days = () => {
     const {
         currentStore,
         allStores,
-        calculations,
         setCurrentDayId,
         currentDayId,
         isDraftId,
@@ -33,7 +34,7 @@ const Days = () => {
                             draft={i === 0}
                             onClick={() => setCurrentDayId(id)}
                             isActive={currentDayId === id}
-                            after={isDraftId(id) ? null : <RemoveButton onClick={() => removeDay(id)} size='small' />}
+                            after={i === 0 ? null : <RemoveButton onClick={() => removeDay(id)} size='small' />}
                         >
 
                             {name}
@@ -49,29 +50,36 @@ const Days = () => {
                         }
                     >
                         {currentStore.currentCategory &&
-                            <AddDishToDay currentCategory={currentStore.currentCategory}
-                            />}
+                            <DayCalculationContext.Provider value={{
+                                updateCalculations: currentCalculationStore.updateDayCalculationsWithCurrentProducts
+                            }}>
+                                <AddDishToDay currentCategory={currentStore.currentCategory} />
+                            </DayCalculationContext.Provider>
+                        }
                     </Day>
                 )
 
             }
             right={
                 currentStore &&
-                <NutrientsTotal
-                    rowPositionSecond={(nutrient) => (
-                        <NutrientValue
-                            nutrient={nutrient}
-                            calculations={calculations}
+                <NutrientsTotal  >
+                    <NutrientsList
+                        rowPositionSecond={(nutrient) => (
+                            <NutrientValue
+                                nutrient={nutrient}
+                                calculations={dayCalculationStore}
 
-                        />
-                    )}
-                    rowPositionThird={({ id }) => (
-                        <NutrientPercent
-                            nutrientId={id}
-                            nutrientQuantity={calculations.totalNutrients[id]}
-                        />
-                    )}
-                    loading={false}>
+                            />
+                        )}
+                        rowPositionThird={({ id, name }) => (
+                            <NutrientPercent
+                                dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
+                                nutrientId={name}
+                                nutrientQuantity={dayCalculationStore.totalNutrients[id]}
+                            />
+                        )}
+                        loading={false}
+                    />
                 </NutrientsTotal>
             }
         >

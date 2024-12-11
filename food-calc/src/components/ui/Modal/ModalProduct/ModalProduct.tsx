@@ -11,6 +11,7 @@ import { makeAutoObservable, reaction, toJS } from "mobx";
 import { observer } from "mobx-react-lite";
 import React, { useEffect } from "react";
 import s from './ModalProduct.module.css'
+import { rootDailyNormStore } from "@/store/rootStore";
 
 type Props = {
     data: IProductBase | null;
@@ -87,9 +88,10 @@ const ModalProduct = ({ isOpen, data }: Props) => {
                     rowPositionSecond={(nutrient) => (
                         <NutrientValue calculations={product.calculations} nutrient={nutrient} />
                     )}
-                    rowPositionThird={({ id }) => (
+                    rowPositionThird={({ id, name }) => (
                         <NutrientPercent
-                            nutrientId={id}
+                            dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
+                            nutrientId={name}
                             nutrientQuantity={
                                 product.calculations.totalNutrients[id]
                             }

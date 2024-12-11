@@ -1,8 +1,10 @@
-import { autorun, makeAutoObservable } from "mobx"
+import { autorun, makeAutoObservable, reaction } from "mobx"
 import { IProduct, IProductBase } from "../../types/menu/Menu"
 import { NutrientIdToQuantityMap } from "../../types/product/product";
 import { nutrientStore, productStore } from "@/store/rootStore";
 import { DayCategory } from "@/types/day/day";
+import { RootDailyNormStore } from "@/store/dailyNormStore/dailyNormStore";
+import { DailyNorm } from "@/types/norm/norm";
 
 
 
@@ -15,7 +17,9 @@ export class CalculationStore {
 
     totalNutrients: NutrientIdToQuantityMap = {}
 
-
+    constructor() {
+        makeAutoObservable(this)
+    }
 
     setTotal = (nutrients: NutrientIdToQuantityMap) => {
         this.totalNutrients = nutrients
@@ -97,16 +101,5 @@ export class CalculationStore {
 
     }
 
-
-
-    constructor() {
-
-        makeAutoObservable(this)
-
-        autorun(() => {
-
-
-        })
-    }
 
 }

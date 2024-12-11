@@ -10,5 +10,6 @@ import { SeedModule } from 'seed/seed.module';
   imports: [DatabaseModule],
   controllers: [NutrientsController],
   providers: [NutrientsService, ...nutrientsProviders],
+  exports: [...nutrientsProviders]
 })
 export class NutrientsModule { }

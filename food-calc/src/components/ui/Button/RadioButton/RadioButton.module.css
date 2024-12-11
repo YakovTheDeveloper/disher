@@ -1,0 +1,37 @@
+.radioButton {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    margin: 0.5rem;
+}
+
+.input {
+    display: none;
+    /* Hide the native radio button */
+}
+
+.iconContainer {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    /* Adjust for square edges */
+    transition: border-color 0.3s;
+}
+
+.iconContainer:hover {
+    border-color: #888;
+}
+
+.tickIcon {
+    width: 12px;
+    height: 12px;
+}
+
+.input:checked+.iconContainer {
+    border-color: var(--color-green);
+    background-color: var(--color-light-green-2);
+}

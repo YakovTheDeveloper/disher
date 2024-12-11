@@ -5,10 +5,12 @@ import { IProducts, ProductBase, ProductIdToNutrientsMap } from "../../types/pro
 import { fetchGetProductWithNutrients } from "@/api/product";
 import { isEmpty } from "@/lib/empty";
 import { LoadingStateStore } from "@/store/common/LoadingStateStore";
+import { initProducts } from "@/store/productStore/initProducts";
 
 type IProductStore = {
 
 }
+
 
 export class ProductStore implements IProductStore {
 
@@ -16,7 +18,7 @@ export class ProductStore implements IProductStore {
         makeAutoObservable(this)
     }
 
-    productsBase: ProductBase[] = []
+    productsBase: ProductBase[] = structuredClone(initProducts)
 
     productToNutrients: ProductIdToNutrientsMap = {}
 

@@ -1,16 +1,16 @@
 .header {
-    padding: 10px;
+    height: var(--height-header);
     max-width: 1220px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
+    margin: 10px 0;
 }
 
 .navigation {
     display: flex;
     gap: 15px;
-    /* right: 50%; */
     position: relative;
     left: 50%;
     transform: translateX(-50%);

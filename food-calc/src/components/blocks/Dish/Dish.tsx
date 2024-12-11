@@ -56,6 +56,7 @@ function Dish(props: Props) {
                 <RemoveButton
                   onClick={() => removeProduct(product.id)}
                   className={s.removeButton}
+                  color="gray"
                 />
               }
             />

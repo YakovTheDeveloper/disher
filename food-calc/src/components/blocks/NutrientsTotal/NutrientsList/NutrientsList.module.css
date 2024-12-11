@@ -30,3 +30,16 @@
     left: 0;
 
 }
+
+.nutrientsList {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.cell {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}

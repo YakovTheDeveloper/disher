@@ -5,10 +5,11 @@ import Actions from "@/components/blocks/common/Actions/Actions"
 import Layout from "@/components/common/Layout/Layout"
 import NutrientPercent from "@/components/blocks/NutrientsTotal/NutrientPercent/NutrientPercent"
 import NutrientsTotal from "@/components/blocks/NutrientsTotal/NutrientsTotal"
-import { dishCalculationStore, rootDishStore } from "@/store/rootStore"
+import { dishCalculationStore, rootDailyNormStore, rootDishStore } from "@/store/rootStore"
 import DishTabs from "@/components/blocks/DishTabs/DishTabs"
 import NutrientsList from "@/components/blocks/NutrientsTotal/NutrientsList/NutrientsList"
 import NutrientValue from "@/components/blocks/NutrientsTotal/NutrientValue/NutrientValue"
+import FindRichButton from "@/components/blocks/NutrientsTotal/FindRichButton/FindRichButton"
 
 type Props = {
     store: UserDishStore | DraftDishStore
@@ -41,11 +42,15 @@ function Dishes(props: Props) {
                                 calculations={dishCalculationStore}
                             />
                         )}
-                        rowPositionThird={({ id }) => (
+                        rowPositionThird={({ id, name }) => (
                             <NutrientPercent
-                                nutrientId={id}
+                                dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
+                                nutrientId={name}
                                 nutrientQuantity={dishCalculationStore.totalNutrients[id]}
-                            />
+                            >
+                                <FindRichButton nutrientId={id} />
+                            </NutrientPercent>
+
                         )}
                     />
                 </NutrientsTotal>

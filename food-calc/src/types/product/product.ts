@@ -15,14 +15,14 @@ import { Id, IdMap, Value } from "@/types/common/common"
 export type ProductBase = {
     id: number,
     name: string,
-    nameRu: string
+    // nameRu: string
 }
 
-export type ProductFull = {
-    id: number,
-    name: string,
-    nameRu: string
-}
+// export type ProductFull = {
+//     id: number,
+//     name: string,
+//     nameRu: string
+// }
 
 export type IProducts = Record<Id, IProduct>
 

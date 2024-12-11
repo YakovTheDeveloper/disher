@@ -1,4 +1,4 @@
-import { NutrientCategory, nutrientsMap, nutrientsPadding } from '@/store/nutrientStore/data'
+import { defaultNutrients, NutrientCategory, nutrientsMap, nutrientsPadding } from '@/store/nutrientStore/data'
 import React from 'react'
 import s from './NutrientsList.module.css'
 import clsx from 'clsx'
@@ -8,21 +8,22 @@ import { observer } from 'mobx-react-lite'
 type Props = {
     rowPositionSecond?: React.ReactNode | ((cat: NutrientCategory) => JSX.Element);
     rowPositionThird?: React.ReactNode | ((cat: NutrientCategory) => JSX.Element);
+    rowPositionFourth?: React.ReactNode | ((cat: NutrientCategory) => JSX.Element);
     wrap?: boolean
 }
 
-const nutrientCategories = Object.values(nutrientsMap);
 const nutrientPadding = (nutrientId: number): boolean => {
     return nutrientsPadding[nutrientId]
 }
 
 const NutrientsList = ({ rowPositionThird, rowPositionSecond, wrap }: Props) => {
-    let nutrients = nutrientCategories
+    let nutrients = defaultNutrients
+
     let second = null
     if (wrap) {
-        const first = nutrientCategories.slice(0, nutrientCategories.length / 2)
+        const first = defaultNutrients.slice(0, defaultNutrients.length / 2)
         nutrients = first
-        second = nutrientCategories.slice(nutrientCategories.length / 2, nutrientCategories.length)
+        second = defaultNutrients.slice(defaultNutrients.length / 2, defaultNutrients.length)
     }
     const gridClass = !rowPositionThird ? s.twoColumns : null
     return (
@@ -30,8 +31,9 @@ const NutrientsList = ({ rowPositionThird, rowPositionSecond, wrap }: Props) => 
             <ul className={s.nutrientsList}>
                 {nutrients.map((category) => (
                     <li key={category.id} className={clsx([s.nutrient, gridClass])}>
-                        <span className={clsx(nutrientPadding(category.id) ? s.offset : null)}>{category.displayNameRu}</span>
-                        <span>
+                        <span className={clsx(nutrientPadding(category.id) ? s.offset : null)}>
+                            {category.displayNameRu}</span>
+                        <span className={s.cell}>
                             {rowPositionSecond instanceof Function
                                 ? rowPositionSecond(category)
                                 : rowPositionSecond}
@@ -48,11 +50,11 @@ const NutrientsList = ({ rowPositionThird, rowPositionSecond, wrap }: Props) => 
                 ))}
 
             </ul>
-            {second && <ul>
+            {second && <ul className={s.nutrientsList}>
                 {second.map((category) => (
                     <li key={category.id} className={clsx([s.nutrient, gridClass])}>
                         <span className={clsx(nutrientPadding(category.id) ? s.offset : null)}>{category.displayNameRu}</span>
-                        <span>
+                        <span className={s.cell}>
                             {rowPositionSecond instanceof Function
                                 ? rowPositionSecond(category)
                                 : rowPositionSecond}

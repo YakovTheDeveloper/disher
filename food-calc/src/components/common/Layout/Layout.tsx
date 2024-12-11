@@ -7,13 +7,16 @@ import clsx from 'clsx'
 type Props = {
     left: React.ReactNode
     center: React.ReactNode
-    right: React.ReactNode
+    right?: React.ReactNode
     overlayCenter?: boolean
 }
 
-const Layout = ({ left, center, right, overlayCenter }: Props) => {
+const Layout = ({ left, center, right = null, overlayCenter }: Props) => {
+
+    const columnClass = getColumnsContainerClass({ right })
+
     return (
-        <section className={s.layout}>
+        <section className={clsx([s.layout, columnClass])}>
             <Container className={s.left}>
                 {left}
             </Container>
@@ -31,3 +34,14 @@ const Layout = ({ left, center, right, overlayCenter }: Props) => {
 }
 
 export default observer(Layout)
+
+type Columns = {
+    right?: React.ReactNode
+}
+
+const getColumnsContainerClass = ({ right }: Columns) => {
+    if (!right) {
+        return s.noRight
+    }
+    return ''
+}

@@ -9,3 +9,5 @@ export type GetNormResponse = Response<DailyNorm[]>
 export type CreateNormResponse = Response<DailyNorm>
 export type UpdateNormResponse = Response<DailyNorm>
 export type NormResponse = Response<boolean>
+
+

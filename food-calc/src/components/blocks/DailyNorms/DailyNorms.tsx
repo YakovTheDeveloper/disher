@@ -1,6 +1,7 @@
 import Actions from "@/components/blocks/common/Actions/Actions";
 import DailyNorm from "@/components/blocks/DailyNorms/DailyNorm";
 import Layout from "@/components/common/Layout/Layout";
+import RadioButton from "@/components/ui/Button/RadioButton/RadioButton";
 import Container from "@/components/ui/Container/Container";
 import EditableText from "@/components/ui/EditableText/EditableText";
 import RemoveButton from "@/components/ui/RemoveButton/RemoveButton";
@@ -38,10 +39,11 @@ const DailyNorms = () => {
           {stores.map(({ id, name }, i) => (
             <Tab
               before={
-                <input
-                  type="radio"
-                  checked={id === dailyNormIdCurrentlyInUse}
-                  onChange={() => setCurrentDailyNormInUseId(id)}
+                <RadioButton
+                  id={id}
+                  name={name}
+                  isChecked={id === dailyNormIdCurrentlyInUse}
+                  onChange={setCurrentDailyNormInUseId}
                 />
               }
               key={id}

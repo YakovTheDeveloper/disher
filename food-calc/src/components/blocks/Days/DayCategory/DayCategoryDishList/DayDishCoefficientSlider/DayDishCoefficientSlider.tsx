@@ -5,9 +5,10 @@ import { rootDayStore } from '@/store/rootStore'
 import { debounce } from '@/utils/debounce'
 import { toJS } from 'mobx'
 import { observer } from 'mobx-react-lite'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useContext, useState } from 'react'
 import s from './DayDishCoefficientSlider.module.css'
 import { dayCategoryDishStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryDishStore'
+import { DayCalculationContext } from '@/context/calculationContext'
 
 type Props = {
     categoryDish: dayCategoryDishStore
@@ -23,10 +24,12 @@ const DayDishCoefficientSlider = ({ categoryDish, coefficient }: Props) => {
     const [localValue, setLocalValue] = useState(coefficient);
 
     const { updateCoefficient } = categoryDish
+    const { updateCalculations } = useContext(DayCalculationContext)
 
     const debouncedUpdate = useCallback(
         debounce((newValue) => {
             updateCoefficient(newValue);
+            updateCalculations()
         }, 300), // Adjust debounce delay as needed
         [categoryDish]
     );

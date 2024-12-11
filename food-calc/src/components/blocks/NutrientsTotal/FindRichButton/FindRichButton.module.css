@@ -1,0 +1,20 @@
+.findButton {
+    border: none;
+    background: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2px;
+    border-radius: 4px;
+    margin-left: auto;
+
+    &:hover {
+        opacity: 0.7;
+    }
+}
+
+.icon {
+    width: 16px;
+    height: 16px;
+    color: var(--color-green);
+}

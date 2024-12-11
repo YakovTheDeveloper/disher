@@ -1,4 +1,4 @@
-.container{
+.container {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -12,7 +12,7 @@
     border: none;
     padding: 7px 2px;
 
-    
+
 }
 
 .editButton {
@@ -29,7 +29,7 @@
         height: 100%;
     }
 
-    &:hover{
+    &:hover {
         opacity: 1;
     }
 }

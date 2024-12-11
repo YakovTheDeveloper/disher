@@ -14,3 +14,8 @@
     color: #8a8a8a;
     font-size: 0.8rem;
 }
+
+.h1.offset {
+    /* margin-bottom: 1rem; */
+    padding-bottom: 100px;
+}

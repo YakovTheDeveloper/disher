@@ -12,9 +12,10 @@ import { DishModule } from 'foodCollection/dish/dish.module';
 import { DayModule } from 'resources/day/day.module';
 import { UserNormModule } from './user_norm/user_norm.module';
 import { DelayMiddleware } from 'middleware/delay.middleware';
+import { SeedModule } from 'seed/seed.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), UsersModule, NutrientsModule, ProductsModule, DishModule, UserProductsModule, ProductsNutrientsModule, AuthModule, DayModule, UserNormModule],
+  imports: [ConfigModule.forRoot(), UsersModule, NutrientsModule, ProductsModule, DishModule, UserProductsModule, ProductsNutrientsModule, AuthModule, DayModule, UserNormModule, SeedModule],
   controllers: [AppController],
   providers: [AppService],
 })

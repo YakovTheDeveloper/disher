@@ -58,7 +58,7 @@ export class RootDayStore2 {
     }
 
     isDraftId = (dayId: number) => {
-        return dayId === DRAFT_ID
+        return dayId === this.draftDayStore.id
     }
 
     currentDayId = this.draftDayStore.id
@@ -93,6 +93,7 @@ export class RootDayStore2 {
                 return res
             }
             this.userDayStores = this.userDayStores.filter(({ id }) => +id !== dayId)
+            this.setCurrentDayId(this.draftDayStore.id)
             return res
         })
     }

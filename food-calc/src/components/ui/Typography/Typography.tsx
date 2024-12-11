@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import React, { FC } from "react";
 import s from "./Typography.module.css";
+
 type Variant =
   | "h1"
   | "h2"
@@ -14,6 +15,7 @@ type Variant =
   | "body2"
   | "caption"
   | "overline";
+
 type TextAlign = "left" | "center" | "right" | "justify";
 
 export interface TypographyProps {
@@ -23,6 +25,8 @@ export interface TypographyProps {
   align?: TextAlign;
   className?: string;
   children: React.ReactNode;
+  style?: React.CSSProperties;
+  offset?: boolean;
   onClick?: VoidFunction;
 }
 
@@ -48,18 +52,23 @@ export const Typography: FC<TypographyProps> = ({
   align = "left",
   className,
   onClick,
+  style,
+  offset,
   children,
 }) => {
   const Component = component || variantMapping[variant];
 
+  const combinedStyles: React.CSSProperties = {
+    color,
+    textAlign: align,
+    ...style, // Merge additional styles
+  };
+
   return (
     <Component
-      className={clsx([className, s[variant]])}
+      className={clsx(className, s[variant], offset && s.offset)}
       onClick={onClick}
-      style={{
-        color,
-        textAlign: align,
-      }}
+      style={combinedStyles}
     >
       {children}
     </Component>

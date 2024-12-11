@@ -1,4 +1,6 @@
 .percent {
+    display: flex;
+    align-items: center;
     text-align: right;
     position: relative;
     margin-left: 5px;
@@ -10,6 +12,8 @@
     top: 0;
     left: 0;
     height: 100%;
-    z-index: -1; /* Behind the text */
-    transition: width 0.3s ease; /* Smooth transition for updates */
+    z-index: -1;
+    /* Behind the text */
+    transition: width 0.3s ease;
+    /* Smooth transition for updates */
 }

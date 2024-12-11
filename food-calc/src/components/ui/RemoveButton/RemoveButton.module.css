@@ -25,3 +25,11 @@
 .removeButton:hover {
     opacity: 0.5;
 }
+
+.gray {
+    color: var(--color-light-gray);
+}
+
+.black {
+    color: black;
+}

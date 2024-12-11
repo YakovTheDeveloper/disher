@@ -1,15 +1,17 @@
 import clsx from 'clsx'
 import { observer } from 'mobx-react-lite'
-import React from 'react'
+import React, { useContext } from 'react'
 import s from './DayCategory.module.css'
 import { Reorder, useDragControls, } from 'framer-motion';
 import EditableText from '@/components/ui/EditableText/EditableText'
 import { DayCategory } from '@/types/day/day';
 import { DayCategoryStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryStore';
+import RemoveButton from '@/components/ui/RemoveButton/RemoveButton';
+import { DayCalculationContext } from '@/context/calculationContext';
+import { rootDayStore2 } from '@/store/rootStore';
 
 type Props = {
     category: DayCategoryStore
-    setCurrentCategory: (category: DayCategory) => void
     removeCategory: () => void
     index: number;
     children: React.ReactNode
@@ -18,22 +20,28 @@ type Props = {
 
 
 const DayCategoryItem: React.FC<Props> = (
-    { category, isActive, children, setCurrentCategory }
+    { category, isActive, children }
 ) => {
-
+    const { updateCalculations } = useContext(DayCalculationContext)
     const dragControls = useDragControls();
-
 
     const { name, updateName, remove, setAsCurrent } = category
 
 
 
+    const onDayCategoryRemove = () => {
+        remove()
+        updateCalculations()
+    }
+
+
+
     return (
         <Reorder.Item
+            className={clsx(s.dayCategory, isActive && s.active)}
             as='li'
             value={category}
             key={category.id}
-            className={clsx(s.dayCategory, isActive && s.active)}
             onClick={setAsCurrent}
             whileDrag={{ scale: 1.05, opacity: 0.8 }}
             dragListener={false}
@@ -41,15 +49,11 @@ const DayCategoryItem: React.FC<Props> = (
         >
             <div
                 className={s.dragHandle}
-                onPointerDown={(event) => dragControls.start(event)} // Initiates drag
+                onPointerDown={(event) => dragControls.start(event)}
             >
                 <span>||</span>
             </div>
-
-            <button onClick={remove} className={clsx(s.removeCategoryButtonContainer, s.removeButton, s.hoverShow)}>x</button>
-
             <div className={s.content}>
-
                 <EditableText
                     onChange={updateName}
                     value={name}
@@ -57,58 +61,17 @@ const DayCategoryItem: React.FC<Props> = (
                         variant: 'body1'
                     }}
                 />
-
-                {/* <DayCategoryName
-                    name={category.name}
-                    isActive={isActive}
-                    changeCategoryName={updateName}
-                    categoryId={category.id}
-                /> */}
-
-
                 {children}
             </div>
-
-            {/* <ul className={s.dishesList}>
-                {category.dishes.map((dish) => {
-                    const coefficient = getDishCoefficient(categoryId, dish.id);
-                    return (
-                        <DayCategoryDishItem key={dish.id} className={s.dish} dish={dish}>
-                            <RemoveButton
-                                className={clsx(s.hoverShow, s.removeButton)}
-                                onClick={() => onDishRemove(category.id, dish)}
-                                size='small'
-                            />
-                            <div className={s.sliderContainer}>
-                                <Slider
-                                    label={
-                                        <Typography variant='caption'>
-                                            {coefficient.toFixed(1)} * 100 гр. = {(coefficient * 100).toFixed(1)} гр.
-                                        </Typography>
-                                    }
-                                    onChange={(value) => updateDishCoefficient(categoryId, dish.id, value)}
-                                    value={coefficient}
-                                />
-                            </div>
-                        </DayCategoryDishItem>
-                    );
-                })}
-            </ul> */}
+            <RemoveButton
+                onClick={onDayCategoryRemove}
+                className={clsx(s.removeButton)}
+                color='gray'
+                size='small'
+            />
         </Reorder.Item>
     );
 };
-
-// const DayCategoryName = (props) => {
-//     const { name, isActive, changeCategoryName, categoryId } = props
-
-//     const onChange = (value: string) => {
-//         changeCategoryName(categoryId, value)
-//     }
-
-//     return <EditableText onChange={onChange} value={name} typographyProps={{
-//         variant: 'body1'
-//     }} />
-// }
 
 export default observer(DayCategoryItem)
 // import { DayCategory } from '@/store/dayStore/rootDayStore'

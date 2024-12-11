@@ -1,6 +1,6 @@
-import { rootDayStore2, rootDishStore } from '@/store/rootStore'
+import { currentCalculationStore, productStore, rootDayStore2, rootDishStore } from '@/store/rootStore'
 import { observer } from 'mobx-react-lite'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import s from './AddDishToDay.module.css'
 import clsx from 'clsx'
 import { DayCategoryDish } from '@/types/day/day'
@@ -10,6 +10,8 @@ import DayDishesList from '@/components/blocks/Days/AddDishToDay/DayDishesList/D
 import DishInCategoryStatus from '@/components/blocks/Days/DayCategoryDishItem/DishInCategoryStatus/DishInCategoryStatus'
 import { DayStore2 } from '@/store/rootDayStore/dayStore2'
 import { DayCategoryStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryStore'
+import { CalculationReactionStore } from '@/store/rootDishStore/calculationReactionStore'
+import { DayCalculationContext } from '@/context/calculationContext'
 
 
 type Props = {
@@ -20,8 +22,10 @@ const AddDishToDay = ({ currentCategory }: Props) => {
     const { toggleDish, isDishInCategory } = currentCategory
 
     const { userDishes } = rootDishStore
+    const { updateCalculations } = useContext(DayCalculationContext)
 
-    console.log("currentCategory", currentCategory)
+
+    const { handleGetFullProductData } = productStore
 
     const [isBlue, setIsBlue] = useState(false);
 
@@ -35,6 +39,14 @@ const AddDishToDay = ({ currentCategory }: Props) => {
 
     const onAdd = (dish: DayCategoryDish) => {
         toggleDish(dish)
+        handleGetFullProductData(currentCategory.uniqueProductIds).then(
+            (res) => {
+                updateCalculations()
+                if (res?.isError) {
+                    toggleDish(dish)
+                }
+            }
+        )
     }
 
     if (!currentCategory) return null

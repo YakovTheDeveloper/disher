@@ -1,15 +1,23 @@
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { ProductStore } from "@/store/productStore/productStore";
-import { RootDayStore } from "@/store/rootDayStore/rootDayStore";
-import { DraftDishStore, UserDishStore } from "@/store/rootDishStore/dishStore/dishStore";
+import { RootDayStore2 } from "@/store/rootDayStore/rootDayStore2";
 import { RootDishStore } from "@/store/rootDishStore/rootDishStore";
 import { makeAutoObservable, reaction, toJS } from "mobx";
+
+type StoreParameters = {
+    productStore: ProductStore,
+    rootDishStore: RootDishStore,
+    rootDayStore: RootDayStore2,
+    calculationStore: CalculationStore,
+}
 
 export class CalculationReactionStore {
     constructor(
         private productStore: ProductStore,
-        private calculationStore: CalculationStore,
-        private rootDishStore: RootDishStore
+        private rootDishStore: RootDishStore,
+        private rootDayStore: RootDayStore2,
+        private calculationDishStore: CalculationStore,
+        private calculationDayStore: CalculationStore,
     ) {
         makeAutoObservable(this);
 
@@ -21,13 +29,11 @@ export class CalculationReactionStore {
             () => toJS(this.rootDishStore.currentDish?.products),
             (products) => {
                 console.log('reaction I: products change')
-
-                if (!products) return;
-                this.updateCalculationsWithCurrentProducts();
+                products && this.updateDishCalculationsWithCurrentProducts();
             }
         );
 
-        reaction(
+        const fetchProductsAndUpdateDishCalculations = reaction(
             () => this.rootDishStore.currentDish,
             (dish) => {
                 console.log('reaction II: current dish')
@@ -36,14 +42,70 @@ export class CalculationReactionStore {
                     .handleGetFullProductData(dish.productIds)
                     .then((res) => {
                         if (res?.isError) return;
-                        this.updateCalculationsWithCurrentProducts();
+                        this.updateDishCalculationsWithCurrentProducts();
                     });
             }
         );
+
+        // reaction(
+        //     () => this.rootDayStore.currentStore?.calcReactionPayload,
+        //     (products) => {
+        //         console.log('reaction I: day change')
+        //         products && this.updateDayCalculationsWithCurrentProducts();
+        //     }
+        // );
+
+        const fetchProductsAndUpdateDayCalculations = reaction(
+            () => this.rootDayStore.currentStore,
+            (day) => {
+                if (!day) return
+                console.log('reaction II: current day')
+
+                this.productStore
+                    .handleGetFullProductData(day.uniqueProductIds)
+                    .then((res) => {
+                        // if (res?.isError) return;
+                        this.updateDayCalculationsWithCurrentProducts();
+                    });
+            }
+        );
+
+
+        // const fetchProductsAndUpdateDayCalculations2 = reaction(
+        //     () => toJS(this.rootDayStore.currentStore?.categories.map(category => category.dishes.map(({ products }) => products.length))),
+        //     (day) => {
+        //         if (!day) return
+        //         console.log('reaction II: current day')
+        //         if (!this.rootDayStore.currentStore?.uniqueProductIds) return
+        //         this.productStore
+        //             .handleGetFullProductData(this.rootDayStore.currentStore?.uniqueProductIds)
+        //             .then((res) => {
+        //                 if (res?.isError) return;
+        //                 this.updateDayCalculationsWithCurrentProducts();
+        //             });
+        //     }
+        // );
+
+
+        // const fetchProductsAndUpdateDayCalculations3 = reaction(
+        //     () => toJS(this.rootDayStore.currentStore?.categories.map(({ dishes }) => dishes.map(({ coefficient }) => coefficient))),
+        //     (day) => {
+        //         if (!day) return
+        //         console.log('reaction II: current day COEFF')
+        //         if (!this.rootDayStore.currentStore?.uniqueProductIds) return
+        //         this.updateDayCalculationsWithCurrentProducts();
+        //     }
+        // );
     }
 
-    updateCalculationsWithCurrentProducts() {
+    updateDishCalculationsWithCurrentProducts = () => {
         const currentDish = this.rootDishStore.currentDish;
-        this.calculationStore.update(currentDish?.products || []);
+        this.calculationDishStore.update(currentDish?.products || []);
+    }
+
+    updateDayCalculationsWithCurrentProducts = () => {
+        const currentDish = this.rootDayStore.currentStore;
+        if (!currentDish) return
+        this.calculationDayStore.updateWithDay(currentDish.categories);
     }
 }

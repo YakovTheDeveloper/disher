@@ -14,5 +14,6 @@ import { ProductsNutrientsService } from 'products_nutrients/products_nutrients.
   imports: [DatabaseModule, ProductsNutrientsModule, NutrientsModule],
   controllers: [ProductsController],
   providers: [ProductsNutrientsService, ProductsService, ...productsProvider, ...productsNutrientsProvider, ...nutrientsProviders],
+  exports: [...productsProvider]
 })
 export class ProductsModule { }

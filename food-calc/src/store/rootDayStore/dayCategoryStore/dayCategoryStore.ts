@@ -2,14 +2,26 @@ import { dayCategoryDishStore } from "@/store/rootDayStore/dayCategoryStore/dayC
 import { DayStore2 } from "@/store/rootDayStore/dayStore2";
 import { DayCategory, DayCategoryDish } from "@/types/day/day";
 import { GenerateId } from "@/utils/uuidNumber";
-import { makeAutoObservable } from "mobx";
+import { action, computed, makeAutoObservable, makeObservable, observable } from "mobx";
 import { v4 as uuidv4 } from 'uuid';
 
 export class DayCategoryStore {
 
     constructor(private day: DayStore2, category: DayCategory) {
         this.init(category)
-        makeAutoObservable(this)
+        makeObservable(this, {
+            id: observable,
+            name: observable,
+            dishes: observable,
+            position: observable,
+            setAsCurrent: action,
+            remove: action,
+            updateName: action,
+            removeDish: action,
+            toggleDish: action,
+            init: action,
+            uniqueProductIds: computed
+        })
     }
 
     id: number = GenerateId();
@@ -21,7 +33,7 @@ export class DayCategoryStore {
     position: number = 0
 
     setAsCurrent = () => {
-        this.day.setCurrentCategory(this)
+        this.day.setCurrentCategoryId(this.id)
     }
 
     isDishInCategory = (dishId: number) => {
@@ -54,6 +66,9 @@ export class DayCategoryStore {
 
     remove = () => this.day.removeCategory(this.id)
 
+    get uniqueProductIds() {
+        return [...new Set(this.dishes.flatMap(dish => dish.productIds))]
+    }
 
 }
 
