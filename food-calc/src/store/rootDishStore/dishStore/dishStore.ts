@@ -87,10 +87,13 @@ export class DishStore {
 
     }
 
+    updateName = (name: string) => { this.name = name }
+
     resetToInit = () => { }
 
     constructor(rootDishStore: RootDishStore) {
         makeObservable(this, {
+            name: observable,
             products: observable,
             // products: computed,
             productIds: computed,
@@ -98,6 +101,7 @@ export class DishStore {
             setProducts: action,
             removeProduct: action,
             toggleProduct: action,
+            updateName: action,
         })
 
 

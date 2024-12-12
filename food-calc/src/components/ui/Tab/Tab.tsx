@@ -29,7 +29,9 @@ const Tab = (props: Props) => {
           </div>
         }
         <div className={clsx([s.inner, innerClassName])} onClick={onClick}>
-          {children}
+          <Typography>
+            {children}
+          </Typography>
         </div>
       </div>
 

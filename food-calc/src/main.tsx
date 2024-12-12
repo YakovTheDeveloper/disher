@@ -23,6 +23,7 @@ import AddDishToDay from "@/components/blocks/Days/AddDishToDay/AddDishToDay.tsx
 
 import DailyNorms from "@/components/blocks/DailyNorms/DailyNorms.tsx";
 import NotificationWrapper from "@/components/ui/Notification/NotificationWrapper.tsx";
+import DaysCalendar from "@/components/blocks/DaysCalendar/DaysCalendar.tsx";
 
 const Root = () => {
   return (
@@ -37,21 +38,16 @@ const Root = () => {
 };
 
 export const RouterPaths = {
-
   main: {
     url: "/",
-
     label: "Создание блюд",
   },
   days: {
     url: "/days",
-
     label: "Дни",
   },
-
   norm: {
     url: "/daily-norms",
-
     label: "Дневные нормы",
   },
 };
@@ -84,6 +80,12 @@ const router = createBrowserRouter([
         path: "/daily-norms",
 
         element: <DailyNorms />,
+      },
+
+      {
+        path: "/calendar",
+
+        element: <DaysCalendar />,
       },
     ],
   },

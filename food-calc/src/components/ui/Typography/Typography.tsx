@@ -59,14 +59,13 @@ export const Typography: FC<TypographyProps> = ({
   const Component = component || variantMapping[variant];
 
   const combinedStyles: React.CSSProperties = {
-    color,
     textAlign: align,
     ...style, // Merge additional styles
   };
 
   return (
     <Component
-      className={clsx(className, s[variant], offset && s.offset)}
+      className={clsx(s.typo, className, s[variant], offset && s.offset, color && s[color])}
       onClick={onClick}
       style={combinedStyles}
     >

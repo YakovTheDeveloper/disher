@@ -11,7 +11,7 @@
     flex-direction: column;
     justify-content: space-around;
     position: relative;
-    overflow: hidden;
+    /* overflow: hidden; */
 }
 
 .left {

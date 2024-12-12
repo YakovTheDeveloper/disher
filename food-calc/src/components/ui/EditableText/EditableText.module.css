@@ -1,18 +1,18 @@
 .container {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     height: 30px;
+
+    &:focus-within .editButton {
+        visibility: hidden;
+    }
 }
 
 .editableText {}
 
 .editableTextInput {
-    font-size: 0.9rem;
     border: none;
     padding: 7px 2px;
-
-
 }
 
 .editButton {
@@ -23,6 +23,7 @@
     height: 14px;
     border: none;
     opacity: 0.3;
+    margin-right: 10px;
 
     svg {
         width: 100%;

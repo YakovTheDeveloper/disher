@@ -1,3 +1,7 @@
+.typo {
+    white-space: wrap;
+}
+
 .h1 {
     font-size: 1.8rem;
     font-weight: 300;
@@ -22,4 +26,8 @@
 
 .h2.offset {
     padding-bottom: 1rem;
+}
+
+.green {
+    color: var(--color-green);
 }

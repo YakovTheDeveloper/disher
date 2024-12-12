@@ -10,6 +10,7 @@ import { IProductBase } from "@/types/dish/dish";
 import DishProduct from "./DishItem/DishProduct";
 import { toJS } from "mobx";
 import { Modals } from "@/store/uiStore/modalStore/modalStore";
+import EditableText from "@/components/ui/EditableText/EditableText";
 
 type Props = {
   store: DishStore;
@@ -23,6 +24,7 @@ function Dish(props: Props) {
     setProductQuantity,
     removeProduct,
     name,
+    updateName,
     id,
     empty,
   } = store;
@@ -36,9 +38,16 @@ function Dish(props: Props) {
 
   return (
     <section className={s.dish}>
-      <Typography align="center" variant="h1">
-        {name}
-      </Typography>
+      <EditableText
+        typographyProps={{
+          align: 'center',
+          variant: 'h1'
+        }}
+        value={name}
+        onChange={updateName}
+      >
+
+      </EditableText>
       <div>
         {empty && (
           <>

@@ -34,8 +34,24 @@ function Dishes(props: Props) {
                 </Dish>
             }
             right={
-                <NutrientsTotal>
-                    <NutrientsList
+                <NutrientsTotal
+                    rowPositionSecond={(nutrient) => (
+                        <NutrientValue
+                            nutrient={nutrient}
+                            calculations={dishCalculationStore}
+                        />
+                    )}
+                    rowPositionThird={(nutrient) => (
+                        <NutrientPercent
+                            dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
+                            nutrient={nutrient}
+                            nutrientQuantity={dishCalculationStore.totalNutrients[nutrient.id]}
+                            showFindRichProduct
+                        />
+
+                    )}
+                >
+                    {/* <NutrientsList
                         rowPositionSecond={(nutrient) => (
                             <NutrientValue
                                 nutrient={nutrient}
@@ -51,7 +67,7 @@ function Dishes(props: Props) {
                             />
 
                         )}
-                    />
+                    /> */}
                 </NutrientsTotal>
             }
             overlayCenter={

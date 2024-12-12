@@ -1,7 +1,7 @@
 import { IProductBase } from "@/types/dish/dish";
 import { action, makeAutoObservable, toJS } from "mobx";
 import { GenerateId } from "@/utils/uuidNumber";
-import { EntityNames, Operations } from "@/types/common/common";
+import { EntityNames, ISODate, Operations } from "@/types/common/common";
 import { notificationMessages } from "@/components/ui/Notification/NotificationMessages";
 import { ModalStore } from "@/store/uiStore/modalStore/modalStore";
 
@@ -12,13 +12,17 @@ export type NotificationData = {
   message: string
 }
 
+export type DayContent = 'day' | 'calendar'
+
 export class UiStore {
 
   notification = new NotificationStore()
 
   modal = new ModalStore()
 
+  dayCalendarDate: ISODate = ''
 
+  setDayCalendarDate = (date: ISODate) => { this.dayCalendarDate = date }
 
   constructor() {
     makeAutoObservable(this);
