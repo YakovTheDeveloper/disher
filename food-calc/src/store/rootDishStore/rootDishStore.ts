@@ -132,6 +132,18 @@ export class RootDishStore {
     );
   };
 
+  saveDish = async () => {
+    return this.fetchManager.create(this.draftDish.payload).then(res => {
+      if (res.isError) return res
+      const { data } = res
+      const store = this.createDishStore(data)
+      this.addDishStore(store)
+      this.setCurrentDishId(data.id)
+      this.draftDish.resetToInit()
+      return res
+    })
+  }
+
 
 
   // testStore = new CalculationReactionStore(

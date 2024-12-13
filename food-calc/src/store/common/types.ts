@@ -8,7 +8,6 @@ export interface UserDataStore<Data> {
   save: (id: number) => Promise<Response<Data>>;
   id: number;
   empty: boolean;
-  loading: boolean;
   name: string;
 }
 

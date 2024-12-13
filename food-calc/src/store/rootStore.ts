@@ -9,6 +9,8 @@ import { RootDailyNormStore } from "@/store/dailyNormStore/dailyNormStore";
 import { RootDayStore2 } from "@/store/rootDayStore/rootDayStore2";
 import { CalculationReactionStore } from "@/store/rootDishStore/calculationReactionStore";
 import { AddProductToDishUseCase } from "@/store/useCasesStore/addProductToDishUseCase";
+import { DishFlow } from "@/store/useCasesStore/updateDishFlow";
+import { NotificationStore } from "@/store/uiStore/notificationStore/notificationStore";
 
 export const productStore = new ProductStore();
 export const nutrientStore = new NutrientStore();
@@ -28,7 +30,8 @@ export const currentCalculationStore = new CalculationReactionStore(
   dayCalculationStore
 )
 
-export const uiStore = new UiStore();
+const notificationStore = new NotificationStore()
+export const uiStore = new UiStore(notificationStore);
 
 export const userStore = new UserStore();
 
@@ -38,3 +41,10 @@ export const addProductToDishUseCase = new AddProductToDishUseCase(
   productStore
 )
 
+export const Flows = {
+  Dish: new DishFlow(
+    rootDishStore,
+    rootDayStore2,
+    currentCalculationStore,
+    notificationStore)
+}

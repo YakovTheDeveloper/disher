@@ -7,7 +7,7 @@ import clsx from "clsx";
 import NutrientsList, { NutrientsListProps } from "@/components/blocks/NutrientsTotal/NutrientsList/NutrientsList";
 import { NutrientName } from "@/types/nutrient/nutrient";
 import Button from "@/components/ui/Button/Button";
-import { isNotEmpty } from "@/lib/empty";
+import { isEmpty, isNotEmpty } from "@/lib/empty";
 
 const nutrientCategories = Object.values(nutrientsMap);
 const nutrientPadding = (nutrientId: number): boolean => {
@@ -24,8 +24,8 @@ const NutrientsTotal = ({
   rowPositionThird
 }: Props) => {
 
-  const [selected, setSelected] = useState<NutrientName[]>()
-  const [showOnlySelected, setShowOnlySelected] = useState(false)
+  const [selected, setSelected] = useState<NutrientName[]>([])
+  const [showOnlySelectedNutrients, setShowOnlySelected] = useState(false)
 
   const onRowClick = (categoryName: NutrientName) => {
     setSelected(prev => {
@@ -42,18 +42,21 @@ const NutrientsTotal = ({
     setShowOnlySelected(false)
   }
 
-  console.log(selected)
+  console.log('selected', selected)
 
-  const filteredNutrients = showOnlySelected ? defaultNutrients.filter(({ name }) => selected?.includes(name)) : defaultNutrients
+  const someSelected = isNotEmpty(selected)
+
+  const filteredNutrients = showOnlySelectedNutrients ? defaultNutrients.filter(({ name }) => selected?.includes(name)) : defaultNutrients
 
   return (
     <div className={s.nutrientsTotal}>
 
       <header>
-        {isNotEmpty(selected) &&
+        {someSelected &&
           <>
-            {!showOnlySelected && <Button onClick={() => setShowOnlySelected(true)}>Показать только выделенные</Button>}
-            {showOnlySelected && <Button onClick={cancelSelection}>Показать все</Button>}
+            {!showOnlySelectedNutrients && <Button onClick={() => setShowOnlySelected(true)}>Показать только выделенные</Button>}
+            {!showOnlySelectedNutrients && <Button onClick={cancelSelection}>отменить</Button>}
+            {showOnlySelectedNutrients && <Button onClick={cancelSelection}>Показать все</Button>}
           </>
         }
 

@@ -75,24 +75,23 @@ const Days = () => {
             }
             right={
                 currentStore &&
-                <NutrientsTotal  >
-                    <NutrientsList
-                        rowPositionSecond={(nutrient) => (
-                            <NutrientValue
-                                nutrient={nutrient}
-                                calculations={dayCalculationStore}
+                <NutrientsTotal
+                    rowPositionSecond={(nutrient) => (
+                        <NutrientValue
+                            nutrient={nutrient}
+                            calculations={dayCalculationStore}
 
-                            />
-                        )}
-                        rowPositionThird={(nutrient) => (
-                            <NutrientPercent
-                                dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
-                                nutrientId={nutrient.id}
-                                nutrient={nutrient}
-                                nutrientQuantity={dayCalculationStore.totalNutrients[nutrient.id]}
-                            />
-                        )}
-                    />
+                        />
+                    )}
+                    rowPositionThird={(nutrient) => (
+                        <NutrientPercent
+                            dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
+                            nutrientId={nutrient.id}
+                            nutrient={nutrient}
+                            nutrientQuantity={dayCalculationStore.totalNutrients[nutrient.id]}
+                        />
+                    )}
+                >
                 </NutrientsTotal>
             }
         >

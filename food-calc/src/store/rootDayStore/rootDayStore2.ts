@@ -11,6 +11,7 @@ import { rootDishStore } from "@/store/rootStore";
 import { Response } from "@/types/api/common";
 import { CreateDayPayload } from "@/types/api/day";
 import { Day } from "@/types/day/day";
+import { IProductBase } from "@/types/dish/dish";
 import { GenerateId } from "@/utils/uuidNumber";
 import { autorun, makeAutoObservable, reaction, runInAction, toJS } from "mobx"
 
@@ -114,7 +115,23 @@ export class RootDayStore2 {
         })
     }
 
+    updateDishInDays = (dishId: number, name: string, products: IProductBase[]) => {
+        this.allStores.forEach(({ categories }) => {
+            categories.forEach(({ dishes }) => {
+                dishes.forEach((dish) => {
+                    if (dish.id === dishId) {
+                        dish.update(name, products)
+                    }
+                })
+            })
+        })
+    }
 
+    removeDishFromDays = (dishId: number) => {
+        this.allStores.forEach(({ categories }) => {
+            categories.forEach(({ removeDish }) => removeDish(dishId))
+        })
+    }
 
 
 }

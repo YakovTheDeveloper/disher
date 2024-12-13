@@ -29,48 +29,71 @@ type UserProps = {
   loading: boolean;
 };
 
-type Props = {
+type Props<Data> = {
   store: UserDataStore<any> | DraftStore<any>;
   // store: UserDataStore<any> | DraftStore<any>;
   variant: EntityNames
   loadingState: LoadingStateStore
+
+  actions?: {
+    onSave: () => Promise<Response<any>>
+    onDelete: (id: number) => Promise<Response<any>>
+    onUpdate: (id: number) => Promise<Response<any>>
+    onSaveEnd?: (res: Response<any>) => void
+    onDeleteEnd?: (res: Response<any>) => void
+    onUpdateEnd?: (res: Response<any>) => void
+  }
+  detectChangesStore: DetectChangesStore<any>
 };
 
 type OnAction = {
-  callback: () => Promise<Response<any>>,
-  op: Operations
+  save: () => Promise<Response<any>>,
+  op: 'save'
 } | {
-  callback: (id: number) => Promise<Response<any>>
+  remove: (id: number) => Promise<Response<any>>
   id: number
-  op: Operations
+  op: 'delete'
+} | {
+  save: (id: number) => Promise<Response<any>>
+  id: number
+  op: 'update'
 }
 
-const Actions = ({ store, variant, loadingState }: Props) => {
+const Actions = ({ store, variant, loadingState, actions }: Props) => {
 
   const { notification } = uiStore
   const { name } = store;
 
-
-
+  const notificationCb = (res: Response<any>, op: Operations) => {
+    if (res.isError) {
+      notification.error(variant, op, name)
+      return
+    }
+    notification.success(variant, op, name)
+  }
 
   const onAction = (data: OnAction) => {
     const { op } = data
-
-    const notificationCb = (res: Response<any>) => {
-      if (res.isError) {
-        notification.error(variant, op, name)
-        return
-      }
-      notification.success(variant, op, name)
+    if (op === 'save') {
+      data.save().then((res) => {
+        notificationCb(res, op)
+        actions?.onSaveEnd?.(res)
+      })
     }
-
-    if ('id' in data) {
+    if (op === 'delete') {
       const { id } = data
-      data.callback(id).then(notificationCb)
-      return
+      data.remove(id).then((res) => {
+        notificationCb(res, op)
+        actions?.onDeleteEnd?.(res)
+      })
     }
-
-    data.callback().then(notificationCb)
+    if (op === 'update') {
+      const { id } = data
+      data.save(id).then((res) => {
+        notificationCb(res, op)
+        actions?.onUpdateEnd?.(res)
+      })
+    }
   }
 
 
@@ -83,9 +106,9 @@ const Actions = ({ store, variant, loadingState }: Props) => {
         detectChangesStore={detectChangesStore}
         id={id.toString()}
         isEmpty={empty}
-        remove={() => onAction({ callback: remove, id, op: 'delete' })}
+        remove={() => onAction({ remove, id, op: 'delete' })}
         resetToInit={resetToInit}
-        save={() => onAction({ callback: save, id, op: 'update' })}
+        save={() => onAction({ save, id, op: 'update' })}
         loading={loading}
       />
     );
@@ -98,7 +121,7 @@ const Actions = ({ store, variant, loadingState }: Props) => {
     <DraftActions
       resetToInit={resetToInit}
       isEmpty={empty}
-      save={() => onAction({ callback: save, op: 'save' })}
+      save={() => onAction({ save, op: 'save' })}
       loading={loading}
     />
   );

@@ -177,19 +177,7 @@ export class DraftDishStore extends DishStore implements DraftStore<IProductBase
     }
 
 
-    save = async () => {
-        return this.rootStore.fetchManager.create(this.payload).then(
-            action("fetchSuccess", res => {
-                if (res.isError) return res
-                const { data } = res
-                const store = this.rootStore.createDishStore(data)
-                this.rootStore.addDishStore(store)
-                this.rootStore.setCurrentDishId(data.id)
-                this.resetToInit()
-                return res
-            }),
-        )
-    }
+
 }
 
 
