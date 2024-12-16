@@ -37,8 +37,12 @@ const NutrientsList = ({ rowPositionThird, rowPositionSecond, wrap, onRowClick, 
                         className={clsx([s.nutrient, gridClass, selectedRows?.includes(category.name) && s.nutrientSelected])}
                         onClick={onRowClick ? () => onRowClick(category.name) : undefined}
                     >
-                        <span className={clsx(nutrientPadding(category.id) ? s.offset : null)}>
-                            {category.displayNameRu}</span>
+                        <Typography
+                            className={clsx(nutrientPadding(category.id) ? s.offset : null)}
+                            variant='table'
+                        >
+                            {category.displayNameRu}
+                        </Typography>
                         <span className={s.cell}>
                             {rowPositionSecond instanceof Function
                                 ? rowPositionSecond(category)
@@ -57,9 +61,14 @@ const NutrientsList = ({ rowPositionThird, rowPositionSecond, wrap, onRowClick, 
 
             </ul>
             {second && <ul className={s.nutrientsList}>
-                {second.map((category) => (
-                    <li key={category.id} className={clsx([s.nutrient, gridClass])}>
-                        <span className={clsx(nutrientPadding(category.id) ? s.offset : null)}>{category.displayNameRu}</span>
+                {nutrients.map((category) => (
+                    <li
+                        key={category.id}
+                        className={clsx([s.nutrient, gridClass, selectedRows?.includes(category.name) && s.nutrientSelected])}
+                        onClick={onRowClick ? () => onRowClick(category.name) : undefined}
+                    >
+                        <span className={clsx(nutrientPadding(category.id) ? s.offset : null)}>
+                            {category.displayNameRu}</span>
                         <span className={s.cell}>
                             {rowPositionSecond instanceof Function
                                 ? rowPositionSecond(category)
@@ -75,6 +84,7 @@ const NutrientsList = ({ rowPositionThird, rowPositionSecond, wrap, onRowClick, 
                             : rowPositionThird}
                     </li>
                 ))}
+
             </ul>}
         </div>
     )

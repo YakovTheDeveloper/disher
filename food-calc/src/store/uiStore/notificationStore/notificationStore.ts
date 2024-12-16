@@ -32,7 +32,7 @@ export class NotificationStore {
         this.push({ variant: 'error', message: message(name) })
     }
 
-    private removeNotification = (id: number) => {
+    removeNotification = (id: number) => {
         this.notifications = this.notifications.filter(notification => notification.id != id)
     }
 

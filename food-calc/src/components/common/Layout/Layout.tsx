@@ -21,7 +21,8 @@ const Layout = ({ left, center, right = null, overlayCenter }: Props) => {
                 {left}
             </Container>
             <Container
-                boxShadow size='medium'
+                boxShadow
+                size='medium'
                 className={clsx([s.center, overlayCenter && s.overlayCenter])}
             >
                 {center}

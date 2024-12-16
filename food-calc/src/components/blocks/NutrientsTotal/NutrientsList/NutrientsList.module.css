@@ -7,7 +7,7 @@
 
 .nutrient {
     display: grid;
-    grid-template-columns: 160px 1fr 75px;
+    grid-template-columns: 120px 1fr 90px;
     border-bottom: 1px solid rgb(225, 225, 225);
     /* border-top: 1px solid rgb(225, 225, 225); */
     position: relative;

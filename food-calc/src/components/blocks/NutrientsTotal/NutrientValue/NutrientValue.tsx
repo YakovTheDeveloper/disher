@@ -2,6 +2,7 @@ import React from 'react'
 import s from './NutrientValue.module.css'
 import { CalculationStore } from '@/store/calculationStore/calculationStore'
 import { NutrientCategory } from '@/store/nutrientStore/data'
+import { Typography } from '@/components/ui/Typography/Typography'
 
 type Props = {
     nutrient: NutrientCategory
@@ -20,7 +21,7 @@ const NutrientValue = ({ calculations, nutrient }: Props) => {
     if (value == null) return null
 
     return (
-        <div>{normaliseNutrientValue(value, nutrient)}</div>
+        <Typography variant='body2'>{normaliseNutrientValue(value, nutrient)}</Typography>
     )
 }
 

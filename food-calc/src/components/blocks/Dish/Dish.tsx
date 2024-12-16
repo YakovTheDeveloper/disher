@@ -52,7 +52,8 @@ function Dish(props: Props) {
         {empty && (
           <>
             <Typography variant="caption">Список пуст</Typography>
-            <p>Можно добавить продукты, воспользовавшись поиском</p>
+            <p>Можно добавить продукты, воспользовавшись <Typography variant="underline">поиском</Typography>
+            </p>
           </>
         )}
         <div className={s.products} key={id}>

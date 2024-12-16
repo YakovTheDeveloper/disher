@@ -18,6 +18,8 @@ export class UiStore {
 
   dayCalendarDate: ISODate = ''
 
+  tooltip = new TooltipStore()
+
   setDayCalendarDate = (date: ISODate) => { this.dayCalendarDate = date }
 
   constructor(private notification: NotificationStore) {
@@ -25,3 +27,13 @@ export class UiStore {
   }
 }
 
+
+class TooltipStore {
+  constructor() {
+    makeAutoObservable(this);
+  }
+
+  removableTooltipOpen = false
+  open = () => this.removableTooltipOpen = true
+  close = () => this.removableTooltipOpen = false
+}

@@ -1,46 +1,28 @@
 /* eslint-disable linebreak-style */
-import React from "react";
 
 import * as ReactDOM from "react-dom/client";
 
-import App from "./App.tsx";
+import CreateDish from "./components/blocks/CreateDish/CreateDish.tsx";
 
-import "./index.css";
-
-import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "./index.css";
 
 import ProductAdd from "./components/blocks/ProductAdd/ProductAdd.tsx";
 
-import ModalRoot from "@/ModalRoot.tsx";
 
-import Header from "@/components/common/Header/Header.tsx";
 
 import Days from "@/components/blocks/Days/Days.tsx";
 
-import AddDishToDay from "@/components/blocks/Days/AddDishToDay/AddDishToDay.tsx";
 
 import DailyNorms from "@/components/blocks/DailyNorms/DailyNorms.tsx";
-import NotificationWrapper from "@/components/ui/Notification/NotificationWrapper.tsx";
 import DaysCalendar from "@/components/blocks/DaysCalendar/DaysCalendar.tsx";
-
-const Root = () => {
-  return (
-    <>
-      <Header />
-
-      <ModalRoot />
-      <NotificationWrapper />
-      <Outlet />
-    </>
-  );
-};
+import Root from "@/Root.tsx";
 
 export const RouterPaths = {
   main: {
     url: "/",
-    label: "Создание блюд",
+    label: "Блюда",
   },
   days: {
     url: "/days",
@@ -48,7 +30,7 @@ export const RouterPaths = {
   },
   norm: {
     url: "/daily-norms",
-    label: "Дневные нормы",
+    label: "Нормы",
   },
 };
 
@@ -62,7 +44,7 @@ const router = createBrowserRouter([
       {
         path: "",
 
-        element: <App />,
+        element: <CreateDish />,
       },
       {
         path: "/add_product",

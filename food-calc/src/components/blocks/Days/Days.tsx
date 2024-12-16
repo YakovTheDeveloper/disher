@@ -20,10 +20,11 @@ import { NavLink } from 'react-router'
 const Days = () => {
     const {
         currentStore,
-        allStores,
+        userDayStores,
         setCurrentDayId,
         currentDayId,
         isDraftId,
+        draftDayStore,
         removeDay,
         loadingState
     } = rootDayStore2
@@ -33,20 +34,26 @@ const Days = () => {
     return (
         <Layout
             left={
-                <div>
+                <div style={{ width: '100%' }}>
                     <NavLink
                         to='/calendar'
                     >
                         <Typography color='green'>Календарь</Typography>
                     </NavLink>
                     <TabList isLoading={loadingState.getLoading('all')}>
-                        {allStores.map(({ id, name }, i) => (
+                        <Tab
+                            draft
+                            isActive={currentDayId === draftDayStore.id}
+                            onClick={() => setCurrentDayId(draftDayStore.id)}
+                        >
+                            Новый день
+                        </Tab>
+                        {userDayStores.map(({ id, name }) => (
                             <Tab
                                 key={id}
-                                draft={i === 0}
                                 onClick={() => setCurrentDayId(id)}
                                 isActive={currentDayId === id}
-                                after={i === 0 ? null : <RemoveButton onClick={() => removeDay(id)} size='small' />}
+                                after={<RemoveButton onClick={() => removeDay(id)} size='small' />}
                             >
 
                                 {name}

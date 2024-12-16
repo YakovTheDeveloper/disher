@@ -49,6 +49,13 @@ const EditableText = ({
 
     return (
         <div className={s.container}>
+            <button
+                className={s.editButton}
+                onClick={() => setIsEditing(true)}
+                aria-label="Edit"
+            >
+                <EditIcon />
+            </button>
             {isEditing ? (
                 <input
                     className={clsx([s.editableTextInput, inputTypoClass])}
@@ -62,13 +69,7 @@ const EditableText = ({
                 />
             ) : (
                 <>
-                    <button
-                        className={s.editButton}
-                        onClick={() => setIsEditing(true)}
-                        aria-label="Edit"
-                    >
-                        <EditIcon />
-                    </button>
+
                     <Typography {...typographyProps}>
                         {value || placeholder}
                     </Typography>

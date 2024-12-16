@@ -10,7 +10,7 @@ type Props = {
   isActive: boolean
   after?: React.ReactNode
   before?: React.ReactNode
-  draft: boolean,
+  draft?: boolean,
   disabled?: boolean
   containerClassName?: string
   innerClassName?: string

@@ -2,8 +2,8 @@
     width: 100%;
     align-items: center;
     display: flex;
+    flex-grow: 1;
     flex-direction: column;
-    justify-content: center;
     margin-bottom: auto;
 }
 

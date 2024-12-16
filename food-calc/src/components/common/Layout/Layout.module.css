@@ -1,9 +1,12 @@
 .layout {
+    width: 100%;
     display: grid;
-    grid-template-columns: 200px 660px 350px;
-    gap: 20px;
-    max-width: 1200px;
-    height: calc(100% - var(--height-header));
+    grid-template-columns: var(--width-tabs-container) 1fr 335px;
+    gap: var(--gap-layout);
+    /* height: calc(100% - var(--height-header)); */
+    height: 100vh;
+    padding: 10px 0;
+    flex-grow: 1;
 }
 
 .center {
@@ -12,11 +15,20 @@
     justify-content: space-around;
     position: relative;
     /* overflow: hidden; */
+    padding-bottom: 10px;
+    padding-top: 20px;
 }
 
 .left {
     display: flex;
     justify-content: flex-end;
+    padding-bottom: 10px;
+}
+
+.right {
+    overflow-y: auto;
+    height: 100%;
+    padding-bottom: 10px;
 }
 
 .title {
@@ -32,6 +44,8 @@
 }
 
 .overlayCenter {
+
+    box-shadow: none;
 
     &::after {
         content: '';

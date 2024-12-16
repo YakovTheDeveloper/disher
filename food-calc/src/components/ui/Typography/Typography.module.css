@@ -1,10 +1,12 @@
 .typo {
     white-space: wrap;
+    position: relative;
 }
 
 .h1 {
     font-size: 1.8rem;
-    font-weight: 300;
+    font-weight: 200;
+    font-family: "Merriweather", serif;
 }
 
 .body1 {}
@@ -30,4 +32,24 @@
 
 .green {
     color: var(--color-green);
+}
+
+.table {
+    font-size: 15px;
+}
+
+.underline {
+
+    &:after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        bottom: 0;
+        left: 0;
+        border-bottom: 2px dotted rgba(16, 81, 0, 0.55);
+    }
+}
+
+.clickable {
+    cursor: pointer;
 }

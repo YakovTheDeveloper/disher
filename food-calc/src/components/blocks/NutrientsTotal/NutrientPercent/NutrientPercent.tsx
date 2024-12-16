@@ -76,15 +76,11 @@ const NutrientPercent = ({ nutrientQuantity, nutrient, dailyNutrientNorm, childr
             />
             {
                 haveDailyNorm && <>
-                    {value ?? '-'}
+                    {value}
                     {' '}
-                    <Typography
-                        variant='caption'
-                        style={{
-                            color: 'inherit'
-                        }}>
+                    <span className={s.pecentSign}>
                         %
-                    </Typography>
+                    </span>
                 </>
             }
             {showFindRichProduct &&

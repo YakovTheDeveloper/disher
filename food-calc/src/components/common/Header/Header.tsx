@@ -16,19 +16,21 @@ const Header = () => {
 
   return (
     <header className={s.header}>
-      <nav className={s.navigation}>
-        {Object.values(RouterPaths).map(({ label, url }) => (
-          <NavLink
-            to={url}
-            className={({ isActive }) => (isActive ? `${s.link} ${s.activeLink}` : s.link)}
-          >
-            <Typography>{label}</Typography>
-          </NavLink>
-        ))}
-      </nav>
-      <div>
-        <AuthButton onClick={onSignIn}>Войти</AuthButton>
-        <div>{user?.login}</div>
+      <div className={s.inner}>
+        <nav className={s.navigation}>
+          {Object.values(RouterPaths).map(({ label, url }) => (
+            <NavLink
+              to={url}
+              className={({ isActive }) => (isActive ? `${s.link} ${s.activeLink}` : s.link)}
+            >
+              <Typography>{label}</Typography>
+            </NavLink>
+          ))}
+        </nav>
+        <div className={s.auth}>
+          <AuthButton onClick={onSignIn}>Войти</AuthButton>
+          <div>{user?.login}</div>
+        </div>
       </div>
     </header>
   );

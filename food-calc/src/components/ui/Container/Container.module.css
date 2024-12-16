@@ -9,13 +9,14 @@
 }
 
 .boxShadow {
-    box-shadow: -1px 2px 11px -4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0px 0px 8px -4px rgba(0, 0, 0, 0.45);
 }
 
 .small {
-    padding: 0 0 20px;
+    /* padding: 0 0 20px; */
+    padding: 5px;
 }
 
 .medium {
-    padding: 34px 35px 22px;
+    padding: 29px 22px 15px;
 }

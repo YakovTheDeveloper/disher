@@ -54,7 +54,7 @@ export class DishFlow {
         }
     }
 
-    save = async () => {
+    create = async () => {
         const payload = this.rootDishStore.draftDish.payload
         const res = await this.rootDishStore.saveDish()
         if (res.isError) {

@@ -7,7 +7,7 @@
   background-color: #fff;
   width: 100%;
   grid-template-columns: auto 1fr 20px;
-  padding: 7px;
+  padding: 5px;
   position: relative;
   box-shadow: var(--box-shadow-xs);
 

@@ -14,7 +14,8 @@ type Variant =
   | "body1"
   | "body2"
   | "caption"
-  | "overline";
+  | "underline"
+  | "table";
 
 type TextAlign = "left" | "center" | "right" | "justify";
 
@@ -27,6 +28,7 @@ export interface TypographyProps {
   children: React.ReactNode;
   style?: React.CSSProperties;
   offset?: boolean;
+  clickable?: boolean;
   onClick?: VoidFunction;
 }
 
@@ -42,7 +44,8 @@ const variantMapping: Record<Variant, React.ElementType> = {
   body1: "p",
   body2: "p",
   caption: "span",
-  overline: "span",
+  underline: "span",
+  table: "span",
 };
 
 export const Typography: FC<TypographyProps> = ({
@@ -54,6 +57,7 @@ export const Typography: FC<TypographyProps> = ({
   onClick,
   style,
   offset,
+  clickable,
   children,
 }) => {
   const Component = component || variantMapping[variant];
@@ -65,7 +69,7 @@ export const Typography: FC<TypographyProps> = ({
 
   return (
     <Component
-      className={clsx(s.typo, className, s[variant], offset && s.offset, color && s[color])}
+      className={clsx(s.typo, className, s[variant], offset && s.offset, color && s[color], clickable && s.clickable)}
       onClick={onClick}
       style={combinedStyles}
     >

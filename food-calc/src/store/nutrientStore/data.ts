@@ -35,7 +35,7 @@ export const defaultNutrients: NutrientData[] = [
     { id: 21, name: 'vitaminB1', displayName: 'Vitamin B1', displayNameRu: 'Витамин B1', unit: 'mg', "unitRu": "мг" },
     { id: 22, name: 'vitaminB2', displayName: 'Vitamin B2', displayNameRu: 'Витамин B2', unit: 'mg', "unitRu": "мг" },
     { id: 23, name: 'vitaminB3', displayName: 'Vitamin B3', displayNameRu: 'Витамин B3', unit: 'mg', "unitRu": "мг" },
-    { id: 24, name: 'vitaminB4', displayName: 'Vitamin B4 (Choline)', displayNameRu: 'Витамин B4 (Холин)', unit: 'mg', "unitRu": "мг" },
+    { id: 24, name: 'vitaminB4', displayName: 'Vitamin B4 (Choline)', displayNameRu: 'Витамин B4', unit: 'mg', "unitRu": "мг" },
     { id: 25, name: 'vitaminB5', displayName: 'Vitamin B5', displayNameRu: 'Витамин B5', unit: 'mg', "unitRu": "мг" },
     { id: 26, name: 'vitaminB6', displayName: 'Vitamin B6', displayNameRu: 'Витамин B6', unit: 'mg', "unitRu": "мг" },
     { id: 27, name: 'vitaminB7', displayName: 'Biotin', displayNameRu: 'Биотин', unit: 'mg', "unitRu": "мг" },
@@ -235,7 +235,7 @@ export const nutrientsMap: Record<number, NutrientCategory> = defaultNutrients
 //         "id": 23,
 //         "name": "vitaminB4",
 //         "displayName": "Vitamin B4 (Choline)",
-//         "displayNameRu": "Витамин B4 (Холин)",
+//         "displayNameRu": "Витамин B4",
 //         "unit": "mg",
 //         "unitRu": "мг"
 //     },

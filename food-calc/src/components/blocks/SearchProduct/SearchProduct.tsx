@@ -28,14 +28,14 @@ const SearchProduct = () => {
     );
 
     return (
-        <Container className={s.container}>
+        <div className={s.container}>
             <div className={s.searchContainer} ref={containerRef}>
-                <input className={s.search} value={searchValue} onChange={onChange} placeholder='Apples...' />
+                <input className={s.search} value={searchValue} onChange={onChange} placeholder='Например, гречка' />
                 <div className={s.listContainer}>
                     {showProductList && searchValue && <SearchProductList searchValue={searchValue} />}
                 </div>
             </div>
-        </Container >
+        </div >
     )
 }
 
