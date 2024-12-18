@@ -34,7 +34,7 @@
     bottom: 0;
     transform: translateY(100%);
     width: 100%;
-    z-index: 2;
+    z-index: 10;
     max-height: 70vh;
     /* border: 1px solid #000; */
     overflow: auto;

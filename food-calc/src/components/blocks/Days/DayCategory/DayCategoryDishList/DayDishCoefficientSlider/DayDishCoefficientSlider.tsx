@@ -17,7 +17,8 @@ type Props = {
 
 
 const getDescriptionLabelText = (coefficient: number) => {
-    return `${coefficient.toFixed(1)} * 100 гр. = ${(coefficient * 100).toFixed(1)} гр`
+    return `${(coefficient * 100).toFixed(1)} гр`
+    // return `${coefficient.toFixed(1)} * 100 гр. = ${(coefficient * 100).toFixed(1)} гр`
 }
 
 const DayDishCoefficientSlider = ({ categoryDish, coefficient }: Props) => {

@@ -2,6 +2,7 @@
   width: 100%;
   display: grid;
   position: relative;
+  align-items: center;
   /* border: 1px solid var(--color-light-green); */
   gap: 7px;
   background-color: #fff;
@@ -9,7 +10,7 @@
   grid-template-columns: auto 1fr 20px;
   padding: 5px;
   position: relative;
-  box-shadow: var(--box-shadow-xs);
+  /* border: 1px solid #ccc90040; */
 
   &:hover {}
 
@@ -22,31 +23,44 @@
 .after {
   transition: opacity 0.2s;
   opacity: 0;
+  z-index: 10;
+  justify-self: start;
+  align-self: flex-start;
+  margin-left: auto;
 }
 
 .loading::after {
   content: '';
   position: absolute;
-  z-index: -1;
-  bottom: 50%;
-  right: 0;
+  z-index: 1;
+  top: 50%;
+  left: 0px;
   border-radius: 50%;
-  height: 4px;
-  width: 4px;
-  background-color: rgba(0, 255, 0, 0.708);
-
-  /* Larger background size for smoother motion */
-  animation: moveRight 1.5s ease-in-out infinite;
+  transform: translateY(-50%);
+  height: 6px;
+  width: 6px;
+  animation: moveRight 1.2s ease-in-out infinite;
 }
 
 @keyframes moveRight {
   0% {
-    transform: translateY(50%) scale(1);
+    transform: translateY(200%) scale(1);
+    background-color: rgba(150, 158, 174, 0.3);
+    /* Start the gradient in the initial position */
+    opacity: 0;
+  }
+
+  30% {
+    transform: translateY(-50%) scale(1);
+    background-color: rgba(48, 105, 220, 0.3);
+    opacity: 1;
     /* Start the gradient in the initial position */
   }
 
   100% {
-    transform: translateY(50%) scale(1.5);
+    transform: translateX(800%) scale(1.5);
+    background-color: rgba(91, 235, 13, 0.684);
+    opacity: 0.1;
     /* End the gradient beyond the left edge for smooth looping */
   }
 }

@@ -1,5 +1,5 @@
 import { UiStore } from "@/store/uiStore/uiStore";
-import { CalculationStore } from "./calculationStore/calculationStore";
+import { CalculationStore } from "@/store/calculationStore/calculationStore";
 
 import { ProductStore } from "./productStore/productStore";
 import { UserStore } from "@/store/userStore/userStore";
@@ -16,8 +16,8 @@ export const productStore = new ProductStore();
 export const nutrientStore = new NutrientStore();
 export const rootDailyNormStore = new RootDailyNormStore();
 
-export const dishCalculationStore = new CalculationStore();
-export const dayCalculationStore = new CalculationStore();
+export const dishCalculationStore = new CalculationStore(nutrientStore, productStore);
+export const dayCalculationStore = new CalculationStore(nutrientStore, productStore);
 
 export const rootDishStore = new RootDishStore();
 export const rootDayStore2 = new RootDayStore2();

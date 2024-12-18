@@ -1,24 +1,26 @@
 import React from "react";
 import TickIcon from "@/assets/icons/tick.svg"; // Adjust the path as needed
-import s from "./RadioButton.module.css"; // Optional CSS module
+import s from "./SelectableInput.module.css"; // Optional CSS module
 
-interface RadioButtonProps {
+interface SelectableInputProps {
     id: number;
     name: string;
+    type: "radio" | "checkbox";
     isChecked: boolean;
     onChange: (id: number) => void;
 }
 
-const RadioButton: React.FC<RadioButtonProps> = ({
+const SelectableInput: React.FC<SelectableInputProps> = ({
     id,
     name,
+    type,
     isChecked,
     onChange,
 }) => {
     return (
-        <label className={s.radioButton}>
+        <label className={s.selectableInput}>
             <input
-                type="radio"
+                type={type}
                 id={id.toString()}
                 name={name}
                 checked={isChecked}
@@ -32,4 +34,4 @@ const RadioButton: React.FC<RadioButtonProps> = ({
     );
 };
 
-export default RadioButton;
+export default SelectableInput;

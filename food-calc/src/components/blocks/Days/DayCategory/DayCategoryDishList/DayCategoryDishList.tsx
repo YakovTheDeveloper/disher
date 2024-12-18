@@ -20,21 +20,23 @@ const DayCategoryDishList = ({ dishes, renderDeleleButton, loadingStore }: Props
         return some
     }
 
+
     return (
         <ul className={s.dishesList}>
             {dishes.map((dish) => {
                 return (
-                    <DayCategoryDishItem key={dish.id} className={s.dish} dish={dish}
-                        after={renderDeleleButton(dish.id)}>
+                    <DayCategoryDishItem
+                        key={dish.id}
+                        dish={dish}
+                        after={renderDeleleButton(dish.id)}
+                        isLoading={checkLoading(dish.productIds)}
+                    >
 
                         <div className={s.sliderContainer}>
                             <DayDishCoefficientSlider
                                 categoryDish={dish}
                                 coefficient={dish.coefficient}
                             />
-                        </div>
-                        <div>
-                            {checkLoading(dish.productIds) && 'LOADING'}
                         </div>
                     </DayCategoryDishItem>
                 );

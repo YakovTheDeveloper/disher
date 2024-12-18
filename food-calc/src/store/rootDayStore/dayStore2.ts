@@ -54,6 +54,7 @@ export abstract class DayStore2 {
     setCurrentCategoryId = (id: number) => this.currentCategoryId = id
 
     init = (day: Day) => {
+        console.log("day", day)
         const { date, id, name, categories } = day
         this.categories = categories
             .sort((a, b) => a.position - b.position)

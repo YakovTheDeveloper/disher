@@ -1,11 +1,10 @@
 .dish {
-    display: flex;
+    display: grid;
+    grid-template-columns: 5fr 4fr;
     align-items: center;
-    flex-direction: column;
     position: relative;
-    gap: 10px;
-    margin-top: 30px;
-
+    gap: 0 40px;
+    padding: 6px 10px 6px 2px;
     cursor: default;
 }
 
@@ -15,7 +14,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 100%;
+    /* width: 100%; */
     gap: 15px;
 
 }
+
+.loading {}

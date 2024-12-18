@@ -8,6 +8,8 @@ import NutrientsList, { NutrientsListProps } from "@/components/blocks/Nutrients
 import { NutrientName } from "@/types/nutrient/nutrient";
 import Button from "@/components/ui/Button/Button";
 import { isEmpty, isNotEmpty } from "@/lib/empty";
+import SelectableInput from "@/components/ui/Button/SelectableInput/SelectableInput";
+import EyeIcon from "@/assets/icons/eye.svg";
 
 const nutrientCategories = Object.values(nutrientsMap);
 const nutrientPadding = (nutrientId: number): boolean => {
@@ -26,8 +28,10 @@ const NutrientsTotal = ({
 
   const [selected, setSelected] = useState<NutrientName[]>([])
   const [showOnlySelectedNutrients, setShowOnlySelected] = useState(false)
+  const [editMode, setEditMode] = useState(false)
 
   const onRowClick = (categoryName: NutrientName) => {
+    console.log(categoryName)
     setSelected(prev => {
       if (!prev) return []
       if (prev?.includes(categoryName)) {
@@ -38,38 +42,65 @@ const NutrientsTotal = ({
   }
 
   const cancelSelection = () => {
-    setSelected([])
+    // setSelected([])
     setShowOnlySelected(false)
   }
 
-  console.log('selected', selected)
+  const onFilterClick = () => {
+    setEditMode(prev => !prev)
+  }
 
-  const someSelected = isNotEmpty(selected)
+  const showAll = () => {
+    setEditMode(false)
+    setShowOnlySelected(false)
+  }
+
+  const showFiltered = () => {
+    setEditMode(false)
+    setShowOnlySelected(true)
+  }
 
   const filteredNutrients = showOnlySelectedNutrients ? defaultNutrients.filter(({ name }) => selected?.includes(name)) : defaultNutrients
+
+
 
   return (
     <div className={s.nutrientsTotal}>
 
-      <header>
-        {someSelected &&
+      <header className={s.header}>
+        <button className={s.filterButton} onClick={onFilterClick}>
+          <EyeIcon />
+        </button>
+        {editMode &&
           <>
-            {!showOnlySelectedNutrients && <Button onClick={() => setShowOnlySelected(true)}>Показать только выделенные</Button>}
-            {!showOnlySelectedNutrients && <Button onClick={cancelSelection}>отменить</Button>}
-            {showOnlySelectedNutrients && <Button onClick={cancelSelection}>Показать все</Button>}
+            {editMode && <Button variant="secondary" onClick={showAll}>Все</Button>}
+            {!editMode && <Button variant="secondary" onClick={cancelSelection}>отменить</Button>}
+            {editMode && <Button variant="secondary" onClick={showFiltered}>Только выбранные</Button>}
           </>
         }
 
       </header>
       {/* {children} */}
 
+
       <NutrientsList
+        rowPositionFirst={(nutrient) => {
+          if (!editMode) return null
+          return (
+            <SelectableInput
+              type="checkbox"
+              onChange={() => onRowClick(nutrient.name)}
+              isChecked={selected?.includes(nutrient.name)}
+              id={nutrient.id}
+              name={nutrient.name}
+            />
+          )
+        }}
         rowPositionSecond={rowPositionSecond}
         rowPositionThird={rowPositionThird}
-        selectedRows={selected}
-        onRowClick={onRowClick}
         nutrients={filteredNutrients}
       />
+
     </div>
   );
 };

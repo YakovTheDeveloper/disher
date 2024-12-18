@@ -9,6 +9,8 @@ import { DayCategoryStore } from '@/store/rootDayStore/dayCategoryStore/dayCateg
 import RemoveButton from '@/components/ui/RemoveButton/RemoveButton';
 import { DayCalculationContext } from '@/context/calculationContext';
 import { rootDayStore2 } from '@/store/rootStore';
+import RemoveTooltip from '@/components/blocks/common/RemoveTooltip/RemoveTooltip';
+import { Tooltip } from '@/components/ui/Tooltip/Tooltip';
 
 type Props = {
     category: DayCategoryStore
@@ -34,8 +36,6 @@ const DayCategoryItem: React.FC<Props> = (
         updateCalculations()
     }
 
-
-
     return (
         <Reorder.Item
             className={clsx(s.dayCategory, isActive && s.active)}
@@ -58,17 +58,23 @@ const DayCategoryItem: React.FC<Props> = (
                     onChange={updateName}
                     value={name}
                     typographyProps={{
-                        variant: 'body1'
+                        variant: 'h2'
                     }}
                 />
                 {children}
             </div>
-            <RemoveButton
-                onClick={onDayCategoryRemove}
-                className={clsx(s.removeButton)}
-                color='gray'
-                size='small'
-            />
+            <Tooltip placement='left-start'>
+                <RemoveTooltip
+                    onConfirm={() => onDayCategoryRemove()}
+                >
+                    <RemoveButton
+                        className={clsx(s.removeButton)}
+                        color='gray'
+                        size='small'
+                    />
+                </RemoveTooltip>
+            </Tooltip>
+
         </Reorder.Item>
     );
 };

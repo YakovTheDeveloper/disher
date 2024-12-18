@@ -31,13 +31,15 @@ function DishTabs() {
                         onClick={() => setCurrentDishId(id)}
                         isActive={currentDishId === id}
                         after={
-                            <Tooltip placement='bottom'>
+
+                            <Tooltip>
                                 <RemoveTooltip
                                     onConfirm={() => Flows.Dish.remove(id, name)}
                                 >
-                                    <RemoveButton size='medium' color='gray' />
+                                    <RemoveButton size='small' color='gray' />
                                 </RemoveTooltip>
                             </Tooltip>
+
 
                         }
                     >

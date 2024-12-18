@@ -3,10 +3,11 @@ import React from 'react'
 import s from './RemoveTooltip.module.css'
 import { Tooltip, TooltipContent, TooltipInner, TooltipTrigger, useTooltip, useTooltipContext } from '@/components/ui/Tooltip/Tooltip'
 import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
+import Button from '@/components/ui/Button/Button'
 
 type Props = {
     removableName?: string
-    onConfirm: () => Promise<void>
+    onConfirm: VoidFunction
     children: React.ReactNode
 }
 
@@ -27,17 +28,23 @@ const RemoveTooltip = ({ removableName, onConfirm, children }: Props) => {
 
     return (
         <>
-            <TooltipTrigger >
+            <TooltipTrigger
+                onClick={(e) => e.stopPropagation()}
+            >
                 {children}
             </TooltipTrigger>
-            <TooltipContent className="Tooltip">
+            <TooltipContent className="Tooltip"
+                onClick={(e) => e.stopPropagation()}
+            >
                 <TooltipInner>
-                    <Typography variant='body2'>Удалить{nameView}?</Typography>
-                    <button onClick={confirmHandle}>да</button>
+                    {/* <Typography variant='body1'>Удалить{nameView}?</Typography> */}
+                    <Button className={s.confirmButton} onClick={confirmHandle} variant='secondary'>Подтвердить</Button>
                     {/* <button onClick={rejectHandle}>нет</button> */}
                 </TooltipInner>
             </TooltipContent>
         </>
+
+
 
 
     )

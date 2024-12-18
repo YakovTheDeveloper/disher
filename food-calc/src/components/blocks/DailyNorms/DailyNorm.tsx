@@ -6,8 +6,10 @@ import {
   DraftNormStore,
   UserNormStore,
 } from "@/store/dailyNormStore/dailyNormStore";
+import { defaultNutrients } from "@/store/nutrientStore/data";
 import { observer } from "mobx-react-lite";
 import React from "react";
+import s from './DailyNorm.module.css'
 
 type Props = {
   store: DraftNormStore | UserNormStore;
@@ -16,6 +18,10 @@ type Props = {
 const DailyNorm = ({ store, children }: Props) => {
   const { nutrients, updateNutrient, name } = store;
 
+  const nutrientsPartOne = defaultNutrients.slice(0, defaultNutrients.length / 2)
+
+  const nutrientsPartTwo = defaultNutrients.slice(defaultNutrients.length / 2, defaultNutrients.length)
+
   return (
     <>
       <EditableText
@@ -23,9 +29,9 @@ const DailyNorm = ({ store, children }: Props) => {
         typographyProps={{ variant: "h1" }}
         onChange={store.setName}
       />
-      <NutrientsTotal key={store.id}>
+      <div className={s.container}>
         <NutrientsList
-          wrap
+          nutrients={nutrientsPartOne}
           rowPositionSecond={(category) => (
             <NumberInput
               max={4}
@@ -34,7 +40,17 @@ const DailyNorm = ({ store, children }: Props) => {
             />
           )}
         />
-      </NutrientsTotal>
+        <NutrientsList
+          nutrients={nutrientsPartTwo}
+          rowPositionSecond={(category) => (
+            <NumberInput
+              max={4}
+              value={nutrients[category.name]}
+              onChange={(value) => updateNutrient(category.name, value)}
+            />
+          )}
+        />
+      </div>
       {children}
     </>
   );

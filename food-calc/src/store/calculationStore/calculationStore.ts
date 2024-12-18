@@ -1,23 +1,22 @@
 import { autorun, makeAutoObservable, reaction } from "mobx"
-import { IProduct, IProductBase } from "../../types/menu/Menu"
+
 import { NutrientIdToQuantityMap } from "../../types/product/product";
 import { nutrientStore, productStore } from "@/store/rootStore";
 import { DayCategory } from "@/types/day/day";
 import { RootDailyNormStore } from "@/store/dailyNormStore/dailyNormStore";
 import { DailyNorm } from "@/types/norm/norm";
+//@ts-ignore
+import { IProduct } from "@/types/menu/Menu";
+import { IProductBase } from "@/types/dish/dish";
+import { NutrientStore } from "@/store/nutrientStore/nutrientStore";
+import { ProductStore } from "@/store/productStore/productStore";
 
 
 
 export class CalculationStore {
-
-
-
-    nutrientStore = nutrientStore
-    productStore = productStore
-
     totalNutrients: NutrientIdToQuantityMap = {}
 
-    constructor() {
+    constructor(private nutrientStore: NutrientStore, private productStore: ProductStore) {
         makeAutoObservable(this)
     }
 

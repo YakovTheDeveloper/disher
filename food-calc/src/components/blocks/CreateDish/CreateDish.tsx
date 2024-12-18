@@ -28,9 +28,7 @@ function CreateDish() {
 
   return (
     <div className={s.createDish}>
-      <Dishes store={currentDish} >
-        <SearchProduct />
-      </Dishes>
+      <Dishes store={currentDish} />
     </div>
   );
 }

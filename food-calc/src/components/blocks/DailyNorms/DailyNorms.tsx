@@ -1,7 +1,8 @@
 import Actions from "@/components/blocks/common/Actions/Actions";
 import DailyNorm from "@/components/blocks/DailyNorms/DailyNorm";
 import Layout from "@/components/common/Layout/Layout";
-import RadioButton from "@/components/ui/Button/RadioButton/RadioButton";
+import SelectableInput from "@/components/ui/Button/SelectableInput/SelectableInput";
+
 import Container from "@/components/ui/Container/Container";
 import EditableText from "@/components/ui/EditableText/EditableText";
 import RemoveButton from "@/components/ui/RemoveButton/RemoveButton";
@@ -28,7 +29,6 @@ const DailyNorms = () => {
   } = rootDailyNormStore;
 
   const { loadingStore } = fetchManager;
-  const name = currentStore?.name || ''
 
   console.log(stores.length);
 
@@ -39,7 +39,8 @@ const DailyNorms = () => {
           {stores.map(({ id, name }, i) => (
             <Tab
               before={
-                <RadioButton
+                <SelectableInput
+                  type="radio"
                   id={id}
                   name={name}
                   isChecked={id === dailyNormIdCurrentlyInUse}

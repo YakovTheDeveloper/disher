@@ -27,17 +27,15 @@ export class RootDayStore2 {
         autorun(() => {
             this.getDays()
             this.draftDayStore.categories = [
-                new DayCategoryStore(this.draftDayStore, createDraftDayCategory({ name: 'Завтрак' })),
-                new DayCategoryStore(this.draftDayStore, createDraftDayCategory({ name: 'Обед' })),
-                new DayCategoryStore(this.draftDayStore, createDraftDayCategory({ name: 'Ужин' })),
+                new DayCategoryStore(this.draftDayStore, createDraftDayCategory({ name: 'Завтрак', position: 0 })),
+                new DayCategoryStore(this.draftDayStore, createDraftDayCategory({ name: 'Обед', position: 1 })),
+                new DayCategoryStore(this.draftDayStore, createDraftDayCategory({ name: 'Ужин', position: 2 })),
             ]
         })
     }
 
     loadingState = new LoadingStateStore()
     fetchManager = new DaysFetchManager(this.loadingState)
-
-    calculations = new CalculationStore()
 
     draftDayStore: DayStore2 = new DraftDayStore2(this)
     userDayStores: DayStore2[] = []

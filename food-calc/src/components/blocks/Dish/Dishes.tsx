@@ -18,7 +18,7 @@ type Props = {
 
 
 function Dishes(props: Props) {
-    const { store, children } = props
+    const { store } = props
     const { loadingState, draftDish, currentDish } = rootDishStore
 
     return (
@@ -27,28 +27,25 @@ function Dishes(props: Props) {
                 <DishTabs />
             }
             center={
-                <>
-                    {children}
-                    <Dish store={store}>
-                        <>
-                            {currentDish instanceof UserDishStore
-                                ? <UserActions2
-                                    store={currentDish}
-                                    loadingState={loadingState}
-                                    remove={() => Flows.Dish.remove(currentDish.id, currentDish.name)}
-                                    update={() => Flows.Dish.update(currentDish.id, currentDish.name)}
-                                    resetToInit={currentDish.resetToInit}
-                                />
-                                : <DraftActions2
-                                    loadingState={loadingState}
-                                    isEmpty={draftDish.empty}
-                                    resetToInit={draftDish.resetToInit}
-                                    save={() => Flows.Dish.create()}
-                                />
-                            }
-                        </>
-                    </Dish>
-                </>
+                <Dish store={store}>
+                    {currentDish instanceof UserDishStore
+                        ? <UserActions2
+                            store={currentDish}
+                            loadingState={loadingState}
+                            remove={() => Flows.Dish.remove(currentDish.id, currentDish.name)}
+                            update={() => Flows.Dish.update(currentDish.id, currentDish.name)}
+                            resetToInit={currentDish.resetToInit}
+                        />
+                        : <DraftActions2
+                            loadingState={loadingState}
+                            isEmpty={draftDish.empty}
+                            resetToInit={draftDish.resetToInit}
+                            save={() => Flows.Dish.create()}
+                        />
+                    }
+
+                </Dish>
+
             }
             right={
                 <NutrientsTotal

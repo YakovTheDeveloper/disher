@@ -9,6 +9,7 @@ import NumberInput from "@/components/ui/Input/InputNumber";
 import { debounce } from "@/utils/debounce";
 import DishLoader from "@/components/blocks/Dish/DishItem/DishLoader";
 import { productStore } from "@/store/rootStore";
+import Overlay from "@/components/ui/Overlay/Overlay";
 
 type Props = {
   product: IProductBase;
@@ -44,13 +45,14 @@ function DishProduct({
 
   return (
     <div
-      className={clsx([s.dishProduct])}
+      className={clsx([s.dishProduct, isLoading && s.loading])}
     >
-      {isLoading &&
-        <Typography className={clsx([s.caption, isLoading ? s.loading : ''])} variant="caption">
-          загрузка
-        </Typography>
-      }
+      <Overlay show={isLoading}>
+        {/* <Typography variant="caption" color="green">
+            загрузка
+          </Typography> */}
+      </Overlay>
+
       <NumberInput
         max={4}
         value={localValue}
@@ -59,6 +61,7 @@ function DishProduct({
       />
       <Typography
         variant="body1"
+        clickable
         onClick={
           () => !isLoading && onNameClick?.()
         }

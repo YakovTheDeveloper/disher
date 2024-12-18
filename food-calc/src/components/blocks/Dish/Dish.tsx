@@ -11,6 +11,8 @@ import DishProduct from "./DishItem/DishProduct";
 import { toJS } from "mobx";
 import { Modals } from "@/store/uiStore/modalStore/modalStore";
 import EditableText from "@/components/ui/EditableText/EditableText";
+import EmptyListMessage from "@/components/blocks/Dish/EmptyListMessage/EmptyListMessage";
+import SearchProduct from "@/components/blocks/SearchProduct/SearchProduct";
 
 type Props = {
   store: DishStore;
@@ -38,6 +40,7 @@ function Dish(props: Props) {
 
   return (
     <section className={s.dish}>
+      <SearchProduct />
       <EditableText
         typographyProps={{
           align: 'center',
@@ -45,17 +48,9 @@ function Dish(props: Props) {
         }}
         value={name}
         onChange={updateName}
-      >
-
-      </EditableText>
-      <div>
-        {empty && (
-          <>
-            <Typography variant="caption">Список пуст</Typography>
-            <p>Можно добавить продукты, воспользовавшись <Typography variant="underline">поиском</Typography>
-            </p>
-          </>
-        )}
+      />
+      <div className={s.dishMain}>
+        <EmptyListMessage isShow={empty} />
         <div className={s.products} key={id}>
           {products.map((product) => (
             <DishProduct
@@ -68,6 +63,7 @@ function Dish(props: Props) {
                   onClick={() => removeProduct(product.id)}
                   className={s.removeButton}
                   color="gray"
+                  size="small"
                 />
               }
             />

@@ -7,26 +7,18 @@ import { div } from 'framer-motion/client'
 import { observer } from 'mobx-react-lite'
 import { NutrientData, NutrientName } from '@/types/nutrient/nutrient'
 export type NutrientsListProps = {
+    rowPositionFirst?: React.ReactNode | ((cat: NutrientData) => JSX.Element | null);
     rowPositionSecond?: React.ReactNode | ((cat: NutrientData) => JSX.Element);
     rowPositionThird?: React.ReactNode | ((cat: NutrientData) => JSX.Element);
     rowPositionFourth?: React.ReactNode | ((cat: NutrientData) => JSX.Element);
-    onRowClick?: (categoryName: NutrientName) => void
-    selectedRows?: NutrientName[]
     nutrients?: NutrientData[]
-    wrap?: boolean
 }
 
 const nutrientPadding = (nutrientId: number): boolean => {
     return nutrientsPadding[nutrientId]
 }
 
-const NutrientsList = ({ rowPositionThird, rowPositionSecond, wrap, onRowClick, selectedRows, nutrients = defaultNutrients }: NutrientsListProps) => {
-    let second = null
-    if (wrap) {
-        const first = defaultNutrients.slice(0, defaultNutrients.length / 2)
-        nutrients = first
-        second = defaultNutrients.slice(defaultNutrients.length / 2, defaultNutrients.length)
-    }
+const NutrientsList = ({ rowPositionFirst, rowPositionThird, rowPositionSecond, nutrients = defaultNutrients }: NutrientsListProps) => {
     const gridClass = !rowPositionThird ? s.twoColumns : null
     return (
         <div className={s.nutrientsListContainer}>
@@ -34,19 +26,25 @@ const NutrientsList = ({ rowPositionThird, rowPositionSecond, wrap, onRowClick, 
                 {nutrients.map((category) => (
                     <li
                         key={category.id}
-                        className={clsx([s.nutrient, gridClass, selectedRows?.includes(category.name) && s.nutrientSelected])}
-                        onClick={onRowClick ? () => onRowClick(category.name) : undefined}
+                        className={clsx([s.nutrient, gridClass])}
                     >
-                        <Typography
-                            className={clsx(nutrientPadding(category.id) ? s.offset : null)}
-                            variant='table'
-                        >
-                            {category.displayNameRu}
-                        </Typography>
+                        <span className={s.cell}>
+                            {rowPositionFirst instanceof Function
+                                ? rowPositionFirst(category)
+                                : rowPositionFirst
+                            }
+                            <Typography
+                                className={clsx(nutrientPadding(category.id) ? s.offset : null)}
+                                variant='table'
+                            >
+                                {category.displayNameRu}
+                            </Typography>
+                        </span>
                         <span className={s.cell}>
                             {rowPositionSecond instanceof Function
                                 ? rowPositionSecond(category)
-                                : rowPositionSecond}
+                                : rowPositionSecond
+                            }
 
                             {" "}
                             <Typography variant="caption">
@@ -58,34 +56,7 @@ const NutrientsList = ({ rowPositionThird, rowPositionSecond, wrap, onRowClick, 
                             : rowPositionThird}
                     </li>
                 ))}
-
             </ul>
-            {second && <ul className={s.nutrientsList}>
-                {nutrients.map((category) => (
-                    <li
-                        key={category.id}
-                        className={clsx([s.nutrient, gridClass, selectedRows?.includes(category.name) && s.nutrientSelected])}
-                        onClick={onRowClick ? () => onRowClick(category.name) : undefined}
-                    >
-                        <span className={clsx(nutrientPadding(category.id) ? s.offset : null)}>
-                            {category.displayNameRu}</span>
-                        <span className={s.cell}>
-                            {rowPositionSecond instanceof Function
-                                ? rowPositionSecond(category)
-                                : rowPositionSecond}
-
-                            {" "}
-                            <Typography variant="caption">
-                                {category.unitRu}
-                            </Typography>
-                        </span>
-                        {rowPositionThird instanceof Function
-                            ? rowPositionThird(category)
-                            : rowPositionThird}
-                    </li>
-                ))}
-
-            </ul>}
         </div>
     )
 }

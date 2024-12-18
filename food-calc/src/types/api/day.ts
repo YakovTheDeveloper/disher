@@ -1,14 +1,11 @@
+import { Response } from "@/types/api/common"
 import { Day } from "@/types/day/day"
 
 export type DayPayload = Omit<Day, 'id'>
 
-export type CreateDayResponse = {
-    result: Day
-}
+export type CreateDayResponse = Response<Day>
 
-export type GetAllDayResponse = {
-    result: Day[]
-}
+export type GetAllDayResponse = Response<Day[]>
 
 export type CreateDayPayload = DayPayload
 

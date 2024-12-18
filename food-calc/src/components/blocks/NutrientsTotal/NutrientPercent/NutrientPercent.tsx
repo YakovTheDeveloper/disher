@@ -8,6 +8,7 @@ import { uiStore } from '@/store/rootStore';
 import { Modals } from '@/store/uiStore/modalStore/modalStore';
 import { NutrientData } from '@/types/nutrient/nutrient';
 import { observer } from 'mobx-react-lite';
+import clsx from 'clsx';
 
 const getRoundedValue = (percentage: number, quantity, norm) => {
     if (!quantity || !norm) return null;
@@ -27,7 +28,7 @@ const getBackgroundColor = (percent: number) => {
     if (!percent) return 'transparent'
     if (percent <= 30) return '#ccc';
     if (percent <= 60) return '#ffc107';
-    return '#4caf50'; // Green for >60%
+    return 'rgb(120 228 116)'; // Green for >60%
 };
 
 const nutrientHasDailyNorm = (nutrientId: string): boolean => {
@@ -70,19 +71,20 @@ const NutrientPercent = ({ nutrientQuantity, nutrient, dailyNutrientNorm, childr
         <span className={s.percent} style={{
             color: textColor
         }}>
-            <div
-                className={s.backgroundFill}
-                style={fillStyle}
-            />
-            {
-                haveDailyNorm && <>
-                    {value}
-                    {' '}
-                    <span className={s.pecentSign}>
-                        %
-                    </span>
-                </>
-            }
+
+            {haveDailyNorm && <div
+                className={s.valueContainer}
+            >
+                <span className={s.percent}>{value}</span>
+                <div
+                    className={clsx([s.backgroundFill])}
+                    style={fillStyle}
+
+                />
+            </div>}
+            <span className={s.percentSign}>
+                %
+            </span>
             {showFindRichProduct &&
                 <FindRichButton
                     percantageView={percantageView}

@@ -12,6 +12,8 @@ import { toJS } from 'mobx'
 import { createContext } from 'react'
 import { currentCalculationStore } from '@/store/rootStore'
 import { DayCalculationContext } from '@/context/calculationContext'
+import { Typography } from '@/components/ui/Typography/Typography'
+import { NavLink } from 'react-router'
 
 type Props = {
     store: DayStore2
@@ -46,9 +48,16 @@ const Day = (props: Props) => {
                 />
                 <DatePicker date={date} setDate={updateDate} />
             </header>
-            <Button onClick={() => createNewCategory()} variant='secondary'>
-                Создать категорию
-            </Button>
+            <div className={s.sub}>
+                <Button onClick={() => createNewCategory()} variant='secondary'>
+                    Создать категорию
+                </Button>
+                <NavLink
+                    to='/calendar'
+                >
+                    <Typography color='green'>Календарь</Typography>
+                </NavLink>
+            </div>
             <div className={s.main}>
                 <DayCalculationContext.Provider
                     value={{

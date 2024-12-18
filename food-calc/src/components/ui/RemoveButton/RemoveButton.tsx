@@ -5,7 +5,7 @@ import CrossIcon from "@/assets/icons/cross.svg";
 
 interface RemoveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     size?: 'small' | 'medium' | 'large'; // Defines the allowed size variants
-    color?: 'black' | 'gray'
+    color?: 'black' | 'gray' | 'white'
 }
 
 const RemoveButton: React.FC<RemoveButtonProps> = ({

@@ -7,6 +7,7 @@ import { RouterPaths } from "@/main";
 import { NavLink } from "react-router-dom";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { Modals } from "@/store/uiStore/modalStore/modalStore";
+import LogoIcon from "@/assets/icons/logo.svg"; // Adjust the path as needed
 
 const Header = () => {
   const { modal } = uiStore;
@@ -17,6 +18,9 @@ const Header = () => {
   return (
     <header className={s.header}>
       <div className={s.inner}>
+
+        {/* <LogoIcon className={s.logo} /> */}
+
         <nav className={s.navigation}>
           {Object.values(RouterPaths).map(({ label, url }) => (
             <NavLink

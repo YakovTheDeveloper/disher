@@ -246,24 +246,24 @@ export class DayService {
 
 
 
-    const transformedResult = {
-      result: {
-        id: dayWithRelations.id,
-        name: dayWithRelations.name,
-        categories: dayWithRelations.dayCategories.map(category => ({
-          id: category.id,
-          name: category.name,
-          position: category.position,
-          dishes: category.dayCategoryDishes.map(dishRelation => ({
-            id: dishRelation.dish.id,
-            name: dishRelation.dish.name,
-          })),
+    const result = {
+
+      id: dayWithRelations.id,
+      name: dayWithRelations.name,
+      categories: dayWithRelations.dayCategories.map(category => ({
+        id: category.id,
+        name: category.name,
+        position: category.position,
+        dishes: category.dayCategoryDishes.map(dishRelation => ({
+          id: dishRelation.dish.id,
+          name: dishRelation.dish.name,
         })),
-      },
+      })),
+
     };
 
     return {
-      result: transformedResult
+      result
     };
 
     console.log(newDay.dayCategories.map(dc => dc.dayCategoryDishes.map(d => d.dish)))

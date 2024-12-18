@@ -1,4 +1,7 @@
 import Actions from '@/components/blocks/common/Actions/Actions'
+import DraftActions2 from '@/components/blocks/common/Actions/DraftActions2'
+import UserActions2 from '@/components/blocks/common/Actions/UserActions2'
+import RemoveTooltip from '@/components/blocks/common/RemoveTooltip/RemoveTooltip'
 import AddDishToDay from '@/components/blocks/Days/AddDishToDay/AddDishToDay'
 import Day from '@/components/blocks/Days/Day'
 import NutrientPercent from '@/components/blocks/NutrientsTotal/NutrientPercent/NutrientPercent'
@@ -10,9 +13,13 @@ import Button from '@/components/ui/Button/Button'
 import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
 import { Tab } from '@/components/ui/Tab'
 import { TabList } from '@/components/ui/TabList'
+import { Tooltip } from '@/components/ui/Tooltip/Tooltip'
 import { Typography } from '@/components/ui/Typography/Typography'
 import { DayCalculationContext } from '@/context/calculationContext'
+import { DayStore2, UserDayStore2 } from '@/store/rootDayStore/dayStore2'
 import { currentCalculationStore, dayCalculationStore, rootDailyNormStore, rootDayStore2 } from '@/store/rootStore'
+import clsx from 'clsx'
+import { s } from 'framer-motion/client'
 import { observer } from 'mobx-react-lite'
 import { useState } from 'react'
 import { NavLink } from 'react-router'
@@ -35,11 +42,11 @@ const Days = () => {
         <Layout
             left={
                 <div style={{ width: '100%' }}>
-                    <NavLink
+                    {/* <NavLink
                         to='/calendar'
                     >
                         <Typography color='green'>Календарь</Typography>
-                    </NavLink>
+                    </NavLink> */}
                     <TabList isLoading={loadingState.getLoading('all')}>
                         <Tab
                             draft
@@ -53,7 +60,21 @@ const Days = () => {
                                 key={id}
                                 onClick={() => setCurrentDayId(id)}
                                 isActive={currentDayId === id}
-                                after={<RemoveButton onClick={() => removeDay(id)} size='small' />}
+                                after={
+
+                                    <Tooltip placement='left-start'>
+                                        <RemoveTooltip
+                                            onConfirm={() => removeDay(id)}
+                                        >
+                                            <RemoveButton
+                                                className={clsx(s.removeButton)}
+                                                color='gray'
+                                                size='small'
+                                            />
+                                        </RemoveTooltip>
+                                    </Tooltip>
+                                    // <RemoveButton onClick={() => removeDay(id)} size='small' 
+                                }
                             >
 
                                 {name}
@@ -66,7 +87,24 @@ const Days = () => {
                     <Day
                         store={currentStore}
                         actions={
-                            <Actions store={currentStore} variant='day' loadingState={loadingState} />
+                            <>
+                                {currentStore instanceof UserDayStore2
+                                    ? <UserActions2
+                                        store={currentStore}
+                                        loadingState={loadingState}
+                                        remove={() => rootDayStore2.removeDay(currentStore.id)}
+                                        update={() => rootDayStore2.updateDay(currentStore.id, currentStore.generatePayload())}
+                                        resetToInit={currentStore.resetToInit}
+                                    />
+                                    : <DraftActions2
+                                        loadingState={loadingState}
+                                        isEmpty={draftDayStore.empty}
+                                        resetToInit={draftDayStore.resetToInit}
+                                        save={() => rootDayStore2.addDay(draftDayStore.generatePayload())}
+                                    />
+                                }
+                            </>
+                            // <Actions store={currentStore} variant='day' loadingState={loadingState} />
                         }
                     >
                         {currentStore.currentCategory &&

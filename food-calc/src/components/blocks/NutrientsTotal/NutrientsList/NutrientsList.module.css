@@ -7,17 +7,13 @@
 
 .nutrient {
     display: grid;
-    grid-template-columns: 120px 1fr 90px;
+    grid-template-columns: 120px 70px 1fr;
     border-bottom: 1px solid rgb(225, 225, 225);
     /* border-top: 1px solid rgb(225, 225, 225); */
     position: relative;
     padding: 3px 0 3px 2px;
 
     /* transition: border-color 0.1s; */
-
-    &:hover {
-        border-color: var(--color-green);
-    }
 }
 
 .nutrientSelected {
