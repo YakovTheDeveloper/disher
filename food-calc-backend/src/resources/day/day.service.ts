@@ -15,7 +15,7 @@ import { CreateDayDto, DayCategoryDto } from 'resources/day/dto/create-day.dto';
 type DayCategoryDishesPayload = {
   id: number,
   position: number
-  coefficient: number
+  quantity: number
 }
 
 type DayCategoryPayload = {
@@ -35,7 +35,7 @@ function createCategoryDishes(data: {
     dayCategoryDish.dayCategory = category
     dayCategoryDish.dish = dish
     dayCategoryDish.position = payloadDish.position
-    dayCategoryDish.coefficient = payloadDish.coefficient
+    dayCategoryDish.quantity = payloadDish.quantity
     categories.push(dayCategoryDish);
   }
   return categories
@@ -257,6 +257,11 @@ export class DayService {
         dishes: category.dayCategoryDishes.map(dishRelation => ({
           id: dishRelation.dish.id,
           name: dishRelation.dish.name,
+          quantity: dishRelation.quantity,
+          products: dishRelation.dish.dishToProducts.map(({ product, quantity }) => ({
+            id: product.id,
+            quantity
+          }))
         })),
       })),
 
@@ -307,7 +312,7 @@ export class DayService {
         name: category.name,
         position: category.position,
         dishes: category.dayCategoryDishes.map(dishInfo => ({
-          coefficient: dishInfo.coefficient,
+          quantity: dishInfo.quantity,
           id: dishInfo.dish.id,
           name: dishInfo.dish.name,
           products: dishInfo.dish.dishToProducts.map(dishToProducts => ({

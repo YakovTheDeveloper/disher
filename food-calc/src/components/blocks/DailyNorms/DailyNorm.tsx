@@ -34,7 +34,6 @@ const DailyNorm = ({ store, children }: Props) => {
           nutrients={nutrientsPartOne}
           rowPositionSecond={(category) => (
             <NumberInput
-              max={4}
               value={nutrients[category.name]}
               onChange={(value) => updateNutrient(category.name, value)}
             />
@@ -44,7 +43,6 @@ const DailyNorm = ({ store, children }: Props) => {
           nutrients={nutrientsPartTwo}
           rowPositionSecond={(category) => (
             <NumberInput
-              max={4}
               value={nutrients[category.name]}
               onChange={(value) => updateNutrient(category.name, value)}
             />

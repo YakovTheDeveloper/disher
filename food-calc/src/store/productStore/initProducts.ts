@@ -1,1266 +1,1266 @@
 export const initProducts = [
     {
-        "id": 279,
-        "name": "Collards, raw"
-    },
-    {
-        "id": 280,
-        "name": "Brussels sprouts, raw"
-    },
-    {
-        "id": 281,
-        "name": "Beets, raw"
-    },
-    {
-        "id": 282,
-        "name": "Eggplant, raw"
-    },
-    {
-        "id": 283,
-        "name": "Tomatoes, whole, canned, solids and liquids, with salt added"
-    },
-    {
-        "id": 284,
-        "name": "Tomato, sauce, canned, with salt added"
-    },
-    {
-        "id": 285,
-        "name": "Tomato, paste, canned, without salt added"
-    },
-    {
-        "id": 286,
-        "name": "Tomatoes, crushed, canned"
-    },
-    {
-        "id": 287,
-        "name": "Tomato, puree, canned"
-    },
-    {
         "id": 1,
-        "name": "Hummus, commercial"
+        "nameRu": "Хумус, обычный"
     },
     {
         "id": 2,
-        "name": "Tomatoes, grape, raw"
+        "nameRu": "Помидоры, виноград, сырые"
     },
     {
         "id": 3,
-        "name": "Beans, snap, green, canned, regular pack, drained solids"
+        "nameRu": "Фасоль, свежая, зеленая, консервированная, в обычной упаковке, без косточек"
     },
     {
         "id": 4,
-        "name": "Frankfurter, beef, unheated"
+        "nameRu": "Сосиски говяжьи, необжаренные"
     },
     {
         "id": 5,
-        "name": "Nuts, almonds, dry roasted, with salt added"
+        "nameRu": "Орехи, миндаль, обжаренные в сухарях, с добавлением соли"
     },
     {
         "id": 6,
-        "name": "Kale, raw"
+        "nameRu": "Капуста, сырая"
     },
     {
         "id": 7,
-        "name": "Egg, whole, raw, frozen, pasteurized"
+        "nameRu": "Яйца, целые, сырые, замороженные, пастеризованные"
     },
     {
         "id": 8,
-        "name": "Egg, white, raw, frozen, pasteurized"
+        "nameRu": "Яйцо, белое, сырое, замороженное, пастеризованное"
     },
     {
         "id": 9,
-        "name": "Egg, white, dried"
+        "nameRu": "Яйцо, белое, сушеное"
     },
     {
         "id": 10,
-        "name": "Onion rings, breaded, par fried, frozen, prepared, heated in oven"
+        "nameRu": "Луковые кольца, запанированные, обжаренные на пару, замороженные, готовые, запеченные в духовке"
     },
     {
         "id": 11,
-        "name": "Pickles, cucumber, dill or kosher dill"
+        "nameRu": "Соленые огурцы, зелень укропа или кошерного укропа"
     },
     {
         "id": 12,
-        "name": "Cheese, parmesan, grated"
+        "nameRu": "Сыр, пармезан, тертый"
     },
     {
         "id": 13,
-        "name": "Cheese, pasteurized process, American, vitamin D fortified"
+        "nameRu": "Сыр пастеризованный, американский, обогащенный витамином D"
     },
     {
         "id": 14,
-        "name": "Grapefruit juice, white, canned or bottled, unsweetened"
+        "nameRu": "Сок грейпфрутовый, белый, консервированный или в бутылках, несладкий"
     },
     {
         "id": 15,
-        "name": "Peaches, yellow, raw"
+        "nameRu": "Персики желтые, сырые"
     },
     {
         "id": 16,
-        "name": "Seeds, sunflower seed kernels, dry roasted, with salt added"
+        "nameRu": "Семечки, ядра семян подсолнечника, обжаренные в сухарях, с добавлением соли"
     },
     {
         "id": 17,
-        "name": "Bread, white, commercially prepared"
+        "nameRu": "Хлеб белый, промышленного приготовления"
     },
     {
         "id": 18,
-        "name": "Kale, frozen, cooked, boiled, drained, without salt"
+        "nameRu": "Капуста кале, замороженная, отварная, без соли"
     },
     {
         "id": 19,
-        "name": "Mustard, prepared, yellow"
+        "nameRu": "Горчица готовая, желтая"
     },
     {
         "id": 20,
-        "name": "Kiwifruit, green, raw"
+        "nameRu": "Киви, зеленые, сырые"
     },
     {
         "id": 21,
-        "name": "Nectarines, raw"
+        "nameRu": "Нектарины, сырые"
     },
     {
         "id": 22,
-        "name": "Cheese, cheddar"
+        "nameRu": "Сыр, чеддер"
     },
     {
         "id": 23,
-        "name": "Cheese, cottage, lowfat, 2% milkfat"
-    },
-    {
-        "id": 24,
-        "name": "Cheese, mozzarella, low moisture, part-skim"
-    },
-    {
-        "id": 25,
-        "name": "Egg, whole, dried"
-    },
-    {
-        "id": 26,
-        "name": "Egg, yolk, raw, frozen, pasteurized"
-    },
-    {
-        "id": 27,
-        "name": "Egg, yolk, dried"
-    },
-    {
-        "id": 28,
-        "name": "Yogurt, Greek, plain, nonfat"
-    },
-    {
-        "id": 29,
-        "name": "Yogurt, Greek, strawberry, nonfat"
-    },
-    {
-        "id": 30,
-        "name": "Oil, coconut"
-    },
-    {
-        "id": 31,
-        "name": "Chicken, broilers or fryers, drumstick, meat only, cooked, braised"
-    },
-    {
-        "id": 32,
-        "name": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, cooked, braised"
-    },
-    {
-        "id": 33,
-        "name": "Sauce, pasta, spaghetti\/marinara, ready-to-serve"
-    },
-    {
-        "id": 34,
-        "name": "Ham, sliced, pre-packaged, deli meat (96%fat free, water added)"
-    },
-    {
-        "id": 35,
-        "name": "Olives, green, Manzanilla, stuffed with pimiento"
-    },
-    {
-        "id": 36,
-        "name": "Cookies, oatmeal, soft, with raisins"
-    },
-    {
-        "id": 37,
-        "name": "Tomatoes, canned, red, ripe, diced"
-    },
-    {
-        "id": 38,
-        "name": "Fish, haddock, raw"
-    },
-    {
-        "id": 39,
-        "name": "Fish, pollock, raw"
-    },
-    {
-        "id": 40,
-        "name": "Fish, tuna, light, canned in water, drained solids"
-    },
-    {
-        "id": 41,
-        "name": "Restaurant, Chinese, fried rice, without meat"
-    },
-    {
-        "id": 42,
-        "name": "Restaurant, Latino, tamale, pork"
-    },
-    {
-        "id": 43,
-        "name": "Restaurant, Latino, pupusas con frijoles (pupusas, bean)"
-    },
-    {
-        "id": 44,
-        "name": "Bread, whole-wheat, commercially prepared"
-    },
-    {
-        "id": 45,
-        "name": "Beef, loin, tenderloin roast, separable lean only, boneless, trimmed to 0\" fat, select, cooked, roasted"
-    },
-    {
-        "id": 46,
-        "name": "Beef, loin, top loin steak, boneless, lip-on, separable lean only, trimmed to 1\/8\" fat, choice, raw"
-    },
-    {
-        "id": 47,
-        "name": "Beef, round, eye of round roast, boneless, separable lean only, trimmed to 0\" fat, select, raw"
-    },
-    {
-        "id": 48,
-        "name": "Beef, round, top round roast, boneless, separable lean only, trimmed to 0\" fat, select, raw"
-    },
-    {
-        "id": 49,
-        "name": "Beef, short loin, porterhouse steak, separable lean only, trimmed to 1\/8\" fat, select, raw"
-    },
-    {
-        "id": 50,
-        "name": "Beef, short loin, t-bone steak, bone-in, separable lean only, trimmed to 1\/8\" fat, choice, cooked, grilled"
-    },
-    {
-        "id": 51,
-        "name": "Carrots, frozen, unprepared"
-    },
-    {
-        "id": 52,
-        "name": "Cheese, dry white, queso seco"
-    },
-    {
-        "id": 53,
-        "name": "Cheese, ricotta, whole milk"
-    },
-    {
-        "id": 54,
-        "name": "Cheese, swiss"
-    },
-    {
-        "id": 55,
-        "name": "Figs, dried, uncooked"
-    },
-    {
-        "id": 56,
-        "name": "Lettuce, cos or romaine, raw"
-    },
-    {
-        "id": 57,
-        "name": "Melons, cantaloupe, raw"
+        "nameRu": "Сыр творожный, нежирный, 2%-ной молочной жирности"
     },
     {
         "id": 58,
-        "name": "Oranges, raw, navels"
+        "nameRu": "Апельсины, сырые, с пупками"
+    },
+    {
+        "id": 24,
+        "nameRu": "Сыр моцарелла, с низким содержанием влаги, частично обезжиренный"
+    },
+    {
+        "id": 25,
+        "nameRu": "Яйцо, цельное, сушеное"
+    },
+    {
+        "id": 26,
+        "nameRu": "Яйцо, желток, сырое, замороженное, пастеризованное"
+    },
+    {
+        "id": 27,
+        "nameRu": "Яйцо, желток, сушеное"
+    },
+    {
+        "id": 28,
+        "nameRu": "Йогурт, греческий, простой, обезжиренный"
+    },
+    {
+        "id": 29,
+        "nameRu": "Йогурт, греческий, клубничный, обезжиренный"
+    },
+    {
+        "id": 30,
+        "nameRu": "Масло, кокосовое"
+    },
+    {
+        "id": 31,
+        "nameRu": "Курица, бройлеры или фритюрницы, голени, только мясные, вареные, тушеные"
+    },
+    {
+        "id": 32,
+        "nameRu": "Курица, приготовленная на гриле или во фритюре, грудка, без кожи, без костей, только для мяса, вареная, тушеная"
+    },
+    {
+        "id": 33,
+        "nameRu": "Соус, паста, спагетти\/маринара, готовая к подаче"
+    },
+    {
+        "id": 34,
+        "nameRu": "Ветчина, нарезанная ломтиками, расфасованная, мясные деликатесы (без содержания жира 96%, с добавлением воды)"
+    },
+    {
+        "id": 35,
+        "nameRu": "Оливки, зеленые, мансанилья, фаршированные пимен-тро"
+    },
+    {
+        "id": 36,
+        "nameRu": "Печенье овсяное, мягкое, с изюмом"
+    },
+    {
+        "id": 37,
+        "nameRu": "Помидоры консервированные, красные, спелые, нарезанные кубиками"
+    },
+    {
+        "id": 38,
+        "nameRu": "Рыба, пикша, сырая"
+    },
+    {
+        "id": 39,
+        "nameRu": "Рыба, минтай, сырой"
+    },
+    {
+        "id": 40,
+        "nameRu": "Рыба, тунец, нежирный, консервированный в воде, без косточек"
+    },
+    {
+        "id": 41,
+        "nameRu": "Ресторан, китайская кухня, жареный рис, без мяса"
+    },
+    {
+        "id": 42,
+        "nameRu": "Ресторан, латиноамериканский, тамале, свинина"
+    },
+    {
+        "id": 43,
+        "nameRu": "Ресторан, латиноамериканский, pupusas con frijoles (пупусы с фасолью)"
+    },
+    {
+        "id": 44,
+        "nameRu": "Хлеб цельнозерновой, промышленного приготовления"
+    },
+    {
+        "id": 45,
+        "nameRu": "Говядина, корейка, вырезка для жарки, только нежирная, без костей, обезжиренная до 0%, отборная, вареная, запеченная в духовке"
+    },
+    {
+        "id": 46,
+        "nameRu": "Говядина, филейная часть, стейк из филейной части, без костей, с начинкой, только нежирная, обезжиренная до 1\/8 жирности, отборная, сырая"
+    },
+    {
+        "id": 47,
+        "nameRu": "Говядина круглая, обжаренная в виде глазка, без костей, только нежирная, обезжиренная до 0 жирности, отборная, сырая"
+    },
+    {
+        "id": 48,
+        "nameRu": "Говядина круглая, обжаренная с верхом, без костей, только нежирная, обезжиренная до 0 жирности, отборная, сырая"
+    },
+    {
+        "id": 49,
+        "nameRu": "Говядина, филейная часть, стейк 'портерхаус', только нежирная, обезжиренная до 1\/8 жирности, отборная, сырая"
+    },
+    {
+        "id": 50,
+        "nameRu": "Говядина, филейная часть, стейк на т-образной кости, без костей, только нежирная, обезжиренная до 1\/8 жирности, отборная, вареная, на гриле"
+    },
+    {
+        "id": 51,
+        "nameRu": "Морковь, замороженная, неподготовленная"
+    },
+    {
+        "id": 52,
+        "nameRu": "Сыр белый сухой, кесо секо"
+    },
+    {
+        "id": 53,
+        "nameRu": "Сыр, рикотта, цельное молоко"
+    },
+    {
+        "id": 54,
+        "nameRu": "Сыр швейцарский"
+    },
+    {
+        "id": 55,
+        "nameRu": "Инжир, сушеный, сырой"
+    },
+    {
+        "id": 56,
+        "nameRu": "Салат латук, кос или ромэн, сырой"
+    },
+    {
+        "id": 57,
+        "nameRu": "Дыни, канталупа, сырые"
     },
     {
         "id": 59,
-        "name": "Milk, lowfat, fluid, 1% milkfat, with added vitamin A and vitamin D"
+        "nameRu": "Молоко нежирное, жидкое, 1% молочного жира, с добавлением витамина А и витамина D"
     },
     {
         "id": 60,
-        "name": "Pears, raw, bartlett"
+        "nameRu": "Груши сырые, бартлетт"
     },
     {
         "id": 61,
-        "name": "Restaurant, Chinese, sweet and sour pork"
+        "nameRu": "Свинина ресторанная, китайская, кисло-сладкая"
     },
     {
         "id": 62,
-        "name": "Salt, table, iodized"
+        "nameRu": "Соль поваренная, йодированная"
     },
     {
         "id": 63,
-        "name": "Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)"
+        "nameRu": "Молоко, обезжиренное, жидкое, с добавлением витамина А и витамина D (обезжиренное или обезжиренное)"
     },
     {
         "id": 64,
-        "name": "Sauce, salsa, ready-to-serve"
+        "nameRu": "Соус сальса, готовое к подаче"
     },
     {
         "id": 65,
-        "name": "Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D"
+        "nameRu": "Молоко с пониженным содержанием жира, жидкое, 2% молочного жира, с добавлением витамина А и витамин D"
     },
     {
         "id": 66,
-        "name": "Sausage, breakfast sausage, beef, pre-cooked, unprepared"
+        "nameRu": "Сосиски, сосиски для завтрака, говяжьи, предварительно приготовленные, без приправ"
     },
     {
         "id": 67,
-        "name": "Sausage, Italian, pork, mild, cooked, pan-fried"
+        "nameRu": "Сосиски, итальянские, свиные, мягкие, вареные, обжаренные на сковороде"
     },
     {
         "id": 68,
-        "name": "Sausage, pork, chorizo, link or ground, cooked, pan-fried"
+        "nameRu": "Сосиски, свинина, чоризо, сырые или молотые, вареные, обжаренные на сковороде"
     },
     {
         "id": 69,
-        "name": "Milk, whole, 3.25% milkfat, with added vitamin D"
+        "nameRu": "Молоко цельное, с содержанием молочного жира 3,25%, с добавлением витамина D"
     },
     {
         "id": 70,
-        "name": "Sausage, turkey, breakfast links, mild, raw"
+        "nameRu": "Колбаса, индейка, полуфабрикаты, сырые"
     },
     {
         "id": 71,
-        "name": "Sugars, granulated"
+        "nameRu": "Сахар, гранулированный"
     },
     {
         "id": 72,
-        "name": "Turkey, ground, 93% lean, 7% fat, pan-broiled crumbles"
+        "nameRu": "Индейка, фаршированная, на 93% нежирная, на 7% жирная, обжаренная на сковороде"
     },
     {
         "id": 73,
-        "name": "Ham, sliced, restaurant"
+        "nameRu": "Ветчина, нарезанная ломтиками, ресторанная"
     },
     {
         "id": 74,
-        "name": "Cheese, American, restaurant"
+        "nameRu": "Сыр американский, ресторанный"
     },
     {
         "id": 75,
-        "name": "Beans, Dry, Medium Red (0% moisture)"
+        "nameRu": "Фасоль сухая, красного цвета (влажность 0%)"
     },
     {
         "id": 76,
-        "name": "Beans, Dry, Red (0% moisture)"
+        "nameRu": "Фасоль сухая, красного цвета (влажность 0%)"
     },
     {
         "id": 77,
-        "name": "Beans, Dry, Flor de Mayo (0% moisture)"
+        "nameRu": "Фасоль сухая, с майонезом (влажность 0%)"
     },
     {
         "id": 78,
-        "name": "Beans, Dry, Brown (0% moisture)"
+        "nameRu": "Фасоль сухая, коричневая (влажность 0%)"
     },
     {
         "id": 79,
-        "name": "Beans, Dry, Tan (0% moisture)"
+        "nameRu": "Фасоль сухая, коричневая (влажность 0%)"
     },
     {
         "id": 80,
-        "name": "Beans, Dry, Light Tan (0% moisture)"
+        "nameRu": "Фасоль сухая, светло-коричневая (влажность 0%)"
     },
     {
         "id": 81,
-        "name": "Beans, Dry, Carioca (0% moisture)"
+        "nameRu": "Фасоль сухая, Кариока (влажность 0%)"
     },
     {
         "id": 82,
-        "name": "Beans, Dry, Cranberry (0% moisture)"
+        "nameRu": "Фасоль сухая, клюквенная (влажность 0%)"
     },
     {
         "id": 83,
-        "name": "Beans, Dry, Light Red Kidney (0% moisture)"
+        "nameRu": "Фасоль сухая, Светло-красная с почками (влажность 0%)"
     },
     {
         "id": 84,
-        "name": "Beans, Dry, Pink (0% moisture)"
+        "nameRu": "Фасоль сухая, розовая (влажность 0%)"
     },
     {
         "id": 85,
-        "name": "Beans, Dry, Dark Red Kidney (0% moisture)"
+        "nameRu": "Фасоль сухая, с темно-красными почками (влажность 0%)"
     },
     {
         "id": 86,
-        "name": "Beans, Dry, Navy (0% moisture)"
+        "nameRu": "Фасоль сухая, темно-синяя (влажность 0%)"
     },
     {
         "id": 87,
-        "name": "Beans, Dry, Small White (0% moisture)"
+        "nameRu": "Фасоль сухая, мелкая белая (влажность 0%)"
     },
     {
         "id": 88,
-        "name": "Beans, Dry, Small Red (0% moisture)"
+        "nameRu": "Фасоль сухая, мелкая красная (влажность 0%)"
     },
     {
         "id": 89,
-        "name": "Beans, Dry, Black (0% moisture)"
+        "nameRu": "Фасоль сухая, черная (влажность 0%)"
     },
     {
         "id": 90,
-        "name": "Beans, Dry, Pinto (0% moisture)"
+        "nameRu": "Фасоль сухая, Пинто (влажность 0%)"
     },
     {
         "id": 91,
-        "name": "Beans, Dry, Great Northern (0% moisture)"
+        "nameRu": "Фасоль сухая, Грейт Нозерн (влажность 0%)"
     },
     {
         "id": 92,
-        "name": "Broccoli, raw"
+        "nameRu": "Брокколи, сырая"
     },
     {
         "id": 93,
-        "name": "Ketchup, restaurant"
+        "nameRu": "Кетчуп ресторанный"
     },
     {
         "id": 94,
-        "name": "Eggs, Grade A, Large, egg white"
+        "nameRu": "Яйца, сорт А, Крупные, яичный белок"
     },
     {
         "id": 95,
-        "name": "Eggs, Grade A, Large, egg yolk"
+        "nameRu": "Яйца, сорт А, Крупные, яичный желток"
     },
     {
         "id": 96,
-        "name": "Oil, canola"
+        "nameRu": "Масло рапсовое"
     },
     {
         "id": 97,
-        "name": "Oil, corn"
+        "nameRu": "Масло кукурузное"
     },
     {
         "id": 98,
-        "name": "Oil, soybean"
+        "nameRu": "Масло соевое"
     },
     {
         "id": 99,
-        "name": "Oil, olive, extra virgin"
+        "nameRu": "Масло оливковое первого отжима"
     },
     {
         "id": 100,
-        "name": "Eggs, Grade A, Large, egg whole"
+        "nameRu": "Яйца, сорт А, крупные, целое яйцо"
     },
     {
         "id": 101,
-        "name": "Pork, cured, bacon, cooked, restaurant"
+        "nameRu": "Свинина, вяленая, с беконом, вареная, ресторанная"
     },
     {
         "id": 102,
-        "name": "Butter, stick, unsalted"
+        "nameRu": "Сливочное масло, не соленое"
     },
     {
         "id": 103,
-        "name": "Flour, wheat, all-purpose, enriched, bleached"
+        "nameRu": "Мука пшеничная универсальная, обогащенная, отбеленная"
     },
     {
         "id": 104,
-        "name": "Flour, wheat, all-purpose, enriched, unbleached"
+        "nameRu": "Мука пшеничная, универсальная, обогащенная, небеленая"
     },
     {
         "id": 105,
-        "name": "Flour, wheat, all-purpose, unenriched, unbleached"
+        "nameRu": "Мука пшеничная, универсальная, необогащенная, небеленая"
     },
     {
         "id": 106,
-        "name": "Flour, whole wheat, unenriched"
+        "nameRu": "Мука цельнозерновая необогащенная"
     },
     {
         "id": 107,
-        "name": "Flour, bread, white, enriched, unbleached"
+        "nameRu": "Мука хлебопекарная белая, обогащенная, небеленая"
     },
     {
         "id": 108,
-        "name": "Flour, rice, white, unenriched"
+        "nameRu": "Мука рисовая, белая, необогащенная"
     },
     {
         "id": 109,
-        "name": "Flour, corn, yellow, fine meal, enriched"
+        "nameRu": "Мука кукурузная, желтая, мелкого помола, обогащенная"
     },
     {
         "id": 110,
-        "name": "Butter, stick, salted"
+        "nameRu": "Масло сливочное, соленое"
     },
     {
         "id": 111,
-        "name": "Onions, red, raw"
+        "nameRu": "Лук репчатый, красный, сырой"
     },
     {
         "id": 112,
-        "name": "Onions, yellow, raw"
+        "nameRu": "Лук репчатый, желтый, сырой"
     },
     {
         "id": 113,
-        "name": "Garlic, raw"
+        "nameRu": "Чеснок, сырой"
     },
     {
         "id": 114,
-        "name": "Flour, soy, defatted"
+        "nameRu": "Мука, соевая, обезжиренная"
     },
     {
         "id": 115,
-        "name": "Flour, soy, full-fat"
+        "nameRu": "Мука, соевая, жирная"
     },
     {
         "id": 116,
-        "name": "Flour, rice, brown"
+        "nameRu": "Мука, рисовая, коричневая"
     },
     {
         "id": 117,
-        "name": "Flour, rice, glutinous"
+        "nameRu": "Мука рисовая, клейкая"
     },
     {
         "id": 118,
-        "name": "Flour, pastry, unenriched, unbleached"
+        "nameRu": "Мука кондитерская, необогащенная, небеленая"
     },
     {
         "id": 119,
-        "name": "Onions, white, raw"
+        "nameRu": "Лук репчатый, белый, сырой"
     },
     {
         "id": 120,
-        "name": "Bananas, overripe, raw"
+        "nameRu": "Бананы, перезрелые, сырые"
     },
     {
         "id": 121,
-        "name": "Bananas, ripe and slightly ripe, raw"
+        "nameRu": "Бананы, спелые и слегка перезрелые, сырые"
     },
     {
         "id": 122,
-        "name": "Apples, red delicious, with skin, raw"
+        "nameRu": "Яблоки, red delicious, с кожурой, сырые"
     },
     {
         "id": 123,
-        "name": "Apples, fuji, with skin, raw"
+        "nameRu": "Яблока, fuji, с кожурой, сырые"
     },
     {
         "id": 124,
-        "name": "Apples, gala, with skin, raw"
+        "nameRu": "Яблока, gala, с кожурой, сырые"
     },
     {
         "id": 125,
-        "name": "Apples, granny smith, with skin, raw"
+        "nameRu": "Яблок, granny smith, с кожурой, сырые"
     },
     {
         "id": 126,
-        "name": "Apples, honeycrisp, with skin, raw"
+        "nameRu": "Яблоки в медовой крошке, с кожурой, сырые"
     },
     {
         "id": 127,
-        "name": "Oil, peanut"
+        "nameRu": "Масло арахисовое"
     },
     {
         "id": 128,
-        "name": "Oil, sunflower"
+        "nameRu": "Масло подсолнечное"
     },
     {
         "id": 129,
-        "name": "Oil, safflower"
+        "nameRu": "Масло сафлоровое"
     },
     {
         "id": 130,
-        "name": "Oil, olive, extra light"
+        "nameRu": "Масло оливковое, очень легкое"
     },
     {
         "id": 131,
-        "name": "Mushroom, lion's mane"
+        "nameRu": "Гриб, львиная грива"
     },
     {
         "id": 132,
-        "name": "Mushroom, oyster"
+        "nameRu": "Гриб, вешенка"
     },
     {
         "id": 133,
-        "name": "Mushrooms, shiitake"
+        "nameRu": "Грибы, шиитаке"
     },
     {
         "id": 134,
-        "name": "Mushrooms, white button"
+        "nameRu": "Шампиньоны, белые веточки"
     },
     {
         "id": 135,
-        "name": "Soy milk, unsweetened, plain, shelf stable"
+        "nameRu": "Соевое молоко, несладкое, без добавок, без консервантов"
     },
     {
         "id": 136,
-        "name": "Almond milk, unsweetened, plain, shelf stable"
+        "nameRu": "Миндальное молоко, несладкое, обычное, без добавок, годится для хранения"
     },
     {
         "id": 137,
-        "name": "Spinach, baby"
+        "nameRu": "Шпинат детский"
     },
     {
         "id": 138,
-        "name": "Spinach, mature"
+        "nameRu": "Шпинат зрелый"
     },
     {
         "id": 139,
-        "name": "Tomato, roma"
+        "nameRu": "Помидор, рома"
     },
     {
         "id": 140,
-        "name": "Flour, 00"
+        "nameRu": "Мука, 00"
     },
     {
         "id": 141,
-        "name": "Flour, spelt, whole grain"
+        "nameRu": "Мука из полбы, цельнозерновая"
     },
     {
         "id": 142,
-        "name": "Flour, semolina, coarse and semi-coarse"
+        "nameRu": "Мука, манная крупа крупного и полужирного помола"
     },
     {
         "id": 143,
-        "name": "Flour, semolina, fine"
+        "nameRu": "Мука, манная крупа мелкого помола"
     },
     {
         "id": 144,
-        "name": "Apple juice, with added vitamin C, from concentrate, shelf stable"
+        "nameRu": "Яблочный сок, с добавлением витамина С, из концентрата, годный к хранению"
     },
     {
         "id": 145,
-        "name": "Orange juice, no pulp, not fortified, from concentrate, refrigerated"
+        "nameRu": "Апельсиновый сок, без мякоти, не витаминизированный, из концентрата, охлажденный"
     },
     {
         "id": 146,
-        "name": "Grape juice, purple, with added vitamin C, from concentrate, shelf stable"
+        "nameRu": "Виноградный сок, фиолетовый, с добавлением витамина С, из концентрата, годный к хранению"
     },
     {
         "id": 147,
-        "name": "Grape juice, white, with added vitamin C, from concentrate, shelf stable"
+        "nameRu": "Виноградный сок, белый, с добавлением витамина С, из концентрата, годный к хранению"
     },
     {
         "id": 148,
-        "name": "Cranberry juice, not fortified, from concentrate, shelf stable"
+        "nameRu": "Клюквенный сок, не обогащенный, из концентрата, годный к хранению"
     },
     {
         "id": 149,
-        "name": "Grapefruit juice, red, not fortified, not from concentrate, refrigerated"
+        "nameRu": "Грейпфрутовый сок, красный, не обогащенный, не из концентрата, охлажденный"
     },
     {
         "id": 150,
-        "name": "Tomato juice, with added ingredients, from concentrate, shelf stable"
+        "nameRu": "Томатный сок с добавлением ингредиентов, из концентрата, годный к хранению"
     },
     {
         "id": 151,
-        "name": "Orange juice, no pulp, not fortified, not from concentrate, refrigerated"
+        "nameRu": "Апельсиновый сок без мякоти, не витаминизированный, не из концентрата, охлажденный"
     },
     {
         "id": 152,
-        "name": "Mushroom, portabella"
+        "nameRu": "Грибной, портабелла"
     },
     {
         "id": 153,
-        "name": "Mushroom, king oyster"
+        "nameRu": "Гриб, королевская вешенка"
     },
     {
         "id": 154,
-        "name": "Mushroom, enoki"
+        "nameRu": "Гриб, эноки"
     },
     {
         "id": 155,
-        "name": "Mushroom, crimini"
+        "nameRu": "Гриб, кримини"
     },
     {
         "id": 156,
-        "name": "Mushroom, maitake"
+        "nameRu": "Гриб, майтаке"
     },
     {
         "id": 157,
-        "name": "Mushroom, beech"
+        "nameRu": "Гриб, бук"
     },
     {
         "id": 158,
-        "name": "Mushroom, pioppini"
+        "nameRu": "Пирожки с грибами"
     },
     {
         "id": 159,
-        "name": "Soy milk, sweetened, plain, refrigerated"
+        "nameRu": "Соевое молоко, подслащенное, простое, охлажденное"
     },
     {
         "id": 160,
-        "name": "Almond milk, unsweetened, plain, refrigerated"
+        "nameRu": "Миндальное молоко, несладкое, простое, охлажденное"
     },
     {
         "id": 161,
-        "name": "Oat milk, unsweetened, plain, refrigerated"
+        "nameRu": "Овсяное молоко, несладкое, простое, охлажденное"
     },
     {
         "id": 162,
-        "name": "Carrots, mature, raw"
+        "nameRu": "Морковь, зрелая, сырая"
     },
     {
         "id": 163,
-        "name": "Carrots, baby, raw"
+        "nameRu": "Морковь, свежая, сырая"
     },
     {
         "id": 164,
-        "name": "Peppers, bell, green, raw"
+        "nameRu": "Перец болгарский, зеленый, сырой"
     },
     {
         "id": 165,
-        "name": "Peppers, bell, yellow, raw"
+        "nameRu": "Перец болгарский, желтый, сырой"
     },
     {
         "id": 166,
-        "name": "Peppers, bell, red, raw"
+        "nameRu": "Перец болгарский, красный, сырой"
     },
     {
         "id": 167,
-        "name": "Peppers, bell, orange, raw"
+        "nameRu": "Перец болгарский, апельсиновый, сырой"
     },
     {
         "id": 168,
-        "name": "Buttermilk, low fat"
+        "nameRu": "Пахта нежирная"
     },
     {
         "id": 169,
-        "name": "Yogurt, plain, whole milk"
+        "nameRu": "Йогурт обычный, цельное молоко"
     },
     {
         "id": 170,
-        "name": "Yogurt, Greek, plain, whole milk"
+        "nameRu": "Йогурт греческий, обычный, цельное молоко"
     },
     {
         "id": 171,
-        "name": "Cheese, parmesan, grated, refrigerated"
+        "nameRu": "Сыр пармезан, тертый, охлажденный"
     },
     {
         "id": 172,
-        "name": "Cheese, feta, whole milk, crumbled"
+        "nameRu": "Сыр, фета, цельное молоко, крошеный"
     },
     {
         "id": 173,
-        "name": "Flour, almond"
+        "nameRu": "Мука, миндаль"
     },
     {
         "id": 174,
-        "name": "Flour, oat, whole grain"
+        "nameRu": "Мука, овсяная, цельнозерновая"
     },
     {
         "id": 175,
-        "name": "Flour, potato"
+        "nameRu": "Мука, картофельная"
     },
     {
         "id": 176,
-        "name": "Peanut butter, creamy"
+        "nameRu": "Арахисовое масло, сливочное"
     },
     {
         "id": 177,
-        "name": "Sesame butter, creamy"
+        "nameRu": "Кунжутное масло, сливочное"
     },
     {
         "id": 178,
-        "name": "Almond butter, creamy"
+        "nameRu": "Миндальное масло, сливочное"
     },
     {
         "id": 179,
-        "name": "Flaxseed, ground"
+        "nameRu": "Льняное семя, молотое"
     },
     {
         "id": 180,
-        "name": "Cottage cheese, full fat, large or small curd"
+        "nameRu": "Творог полножирный, крупный или мелкий"
     },
     {
         "id": 181,
-        "name": "Cream cheese, full fat, block"
+        "nameRu": "Сливочный сыр полножирный, брусочками"
     },
     {
         "id": 182,
-        "name": "Cream, heavy"
+        "nameRu": "Сливочный, жирный"
     },
     {
         "id": 183,
-        "name": "Cream, sour, full fat"
+        "nameRu": "Сливки, сметанные, полножирные"
     },
     {
         "id": 184,
-        "name": "Lettuce, iceberg, raw"
+        "nameRu": "Салат-латук, айсберг, сырой"
     },
     {
         "id": 185,
-        "name": "Lettuce, romaine, green, raw"
+        "nameRu": "Салат-латук, ромэн, зеленый, сырой"
     },
     {
         "id": 186,
-        "name": "Lettuce, leaf, red, raw"
+        "nameRu": "Салат-латук, листовой, красный, сырой"
     },
     {
         "id": 187,
-        "name": "Lettuce, leaf, green, raw"
+        "nameRu": "Салат-латук, листовой, зеленый, сырой"
     },
     {
         "id": 188,
-        "name": "Nuts, pine nuts, raw"
+        "nameRu": "Орехи, кедровые орешки, сырые"
     },
     {
         "id": 189,
-        "name": "Nuts, almonds, whole, raw"
+        "nameRu": "Орехи, миндаль, целые, сырые"
     },
     {
         "id": 190,
-        "name": "Nuts, walnuts, English, halves, raw"
+        "nameRu": "Орехов, грецких орехов, по-английски, половинки, сырые"
     },
     {
         "id": 191,
-        "name": "Nuts, pecans, halves, raw"
+        "nameRu": "Орехов, пекан, половинки, сырые"
     },
     {
         "id": 192,
-        "name": "Oats, whole grain, rolled, old fashioned"
+        "nameRu": "Овсяные хлопья, цельнозерновые, в рулонах, по старинке"
     },
     {
         "id": 193,
-        "name": "Oats, whole grain, steel cut"
+        "nameRu": "Овсяные хлопья, цельнозерновые, в нарезке"
     },
     {
         "id": 194,
-        "name": "Pineapple, raw"
+        "nameRu": "Ананас, сырой"
     },
     {
         "id": 195,
-        "name": "Cherries, sweet, dark red, raw"
+        "nameRu": "Вишня, сладкая, темно-красная, сырая"
     },
     {
         "id": 196,
-        "name": "Beans, snap, green, raw"
+        "nameRu": "Фасоль, хрустящая, зеленая, сырая"
     },
     {
         "id": 197,
-        "name": "Potatoes, russet, without skin, raw"
+        "nameRu": "Картофель, красновато-коричневый, без кожуры, сырой"
     },
     {
         "id": 198,
-        "name": "Potatoes, red, without skin, raw"
+        "nameRu": "Картофель, красный, без кожуры, сырой"
     },
     {
         "id": 199,
-        "name": "Potatoes, gold, without skin, raw"
+        "nameRu": "Картофель, золотистый, без кожуры, сырой"
     },
     {
         "id": 200,
-        "name": "Sweet potatoes, orange flesh, without skin, raw"
+        "nameRu": "Сладкий картофель, мякоть апельсина, без кожуры, сырой"
     },
     {
         "id": 201,
-        "name": "Celery, raw"
-    },
-    {
-        "id": 278,
-        "name": "Cauliflower, raw"
+        "nameRu": "Сельдерей, сырой"
     },
     {
         "id": 202,
-        "name": "Cucumber, with peel, raw"
+        "nameRu": "Огурец, с кожурой, сырой"
     },
     {
         "id": 203,
-        "name": "Cabbage, green, raw"
+        "nameRu": "Капуста, зеленая, сырая"
     },
     {
         "id": 204,
-        "name": "Cabbage, red, raw"
+        "nameRu": "Капуста, красная, сырая"
     },
     {
         "id": 205,
-        "name": "Strawberries, raw"
+        "nameRu": "Клубника, сырая"
     },
     {
         "id": 206,
-        "name": "Raspberries, raw"
+        "nameRu": "Малина, сырая"
     },
     {
         "id": 207,
-        "name": "Blueberries, raw"
+        "nameRu": "Черника сырая"
     },
     {
         "id": 208,
-        "name": "Grapes, red, seedless, raw"
+        "nameRu": "Виноград красный, без косточек, сырой"
     },
     {
         "id": 209,
-        "name": "Grapes, green, seedless, raw"
+        "nameRu": "Виноград зеленый, без косточек, сырой"
     },
     {
         "id": 210,
-        "name": "Applesauce, unsweetened, with added vitamin C"
+        "nameRu": "Яблочное пюре несладкое с добавлением витамина С"
     },
     {
         "id": 211,
-        "name": "Flour, amaranth"
+        "nameRu": "Мука амарантовая"
     },
     {
         "id": 212,
-        "name": "Flour, quinoa"
+        "nameRu": "Мука, киноа"
     },
     {
         "id": 213,
-        "name": "Flour, sorghum"
+        "nameRu": "Мука, сорго"
     },
     {
         "id": 214,
-        "name": "Flour, buckwheat"
+        "nameRu": "Мука гречневая"
     },
     {
         "id": 215,
-        "name": "Flour, rye"
+        "nameRu": "Мука ржаная"
     },
     {
         "id": 216,
-        "name": "Flour, barley"
+        "nameRu": "Мука ячменная"
     },
     {
         "id": 217,
-        "name": "Flour, cassava"
+        "nameRu": "Мука из маниоки"
     },
     {
         "id": 218,
-        "name": "Buckwheat, whole grain"
+        "nameRu": "Гречневая крупа, цельнозерновая"
     },
     {
         "id": 219,
-        "name": "Millet, whole grain"
+        "nameRu": "Пшено, цельнозерновое"
     },
     {
         "id": 220,
-        "name": "Rice, brown, long grain, unenriched, raw"
+        "nameRu": "Рис, коричневый, длиннозерный, необогащенный, сырой"
     },
     {
         "id": 221,
-        "name": "Rice, white, long grain, unenriched, raw"
+        "nameRu": "Рис, белый, длиннозерный, необогащенный, сырой"
     },
     {
         "id": 222,
-        "name": "Beef, ground, 90% lean meat \/ 10% fat, raw"
+        "nameRu": "Говядина, фарш, 90% постного мяса \/ 10% жира, сырая"
     },
     {
         "id": 223,
-        "name": "Beef, ground, 80% lean meat \/ 20% fat, raw"
+        "nameRu": "Говядина, фарш, 80% постного мяса \/ 20% жира, сырая"
     },
     {
         "id": 224,
-        "name": "Pork, ground, raw"
+        "nameRu": "Свинина, молотая, сырая"
     },
     {
         "id": 225,
-        "name": "Chicken, ground, with additives, raw"
+        "nameRu": "Курица, молотая, с добавками, сырая"
     },
     {
         "id": 226,
-        "name": "Turkey, ground, 93% lean\/ 7% fat, raw"
+        "nameRu": "Индейка, молотая, 93% нежирной массы\/ 7% жира, сырая"
     },
     {
         "id": 227,
-        "name": "Nuts, brazilnuts, raw"
+        "nameRu": "Орехов, бразильских орехов, сырых"
     },
     {
         "id": 228,
-        "name": "Nuts, cashew nuts, raw"
+        "nameRu": "Орехи, кешью, сырые"
     },
     {
         "id": 229,
-        "name": "Nuts, hazelnuts or filberts, raw"
+        "nameRu": "Орехи, фундук или фундучная лещина, сырые"
     },
     {
         "id": 230,
-        "name": "Peanuts, raw"
+        "nameRu": "Арахис сырой"
     },
     {
         "id": 231,
-        "name": "Flour, chestnut"
+        "nameRu": "Мука каштановая"
     },
     {
         "id": 232,
-        "name": "Nuts, macadamia nuts, raw"
+        "nameRu": "Орехи, макадамия, сырые"
     },
     {
         "id": 233,
-        "name": "Nuts, pistachio nuts, raw"
+        "nameRu": "Орехи, фисташки, сырые"
     },
     {
         "id": 234,
-        "name": "Seeds, pumpkin seeds (pepitas), raw"
+        "nameRu": "Семечки, тыквенные семечки (пепитас), сырые"
     },
     {
         "id": 235,
-        "name": "Seeds, sunflower seed, kernel, raw"
+        "nameRu": "Семечки, семена подсолнечника, ядра, сырые"
     },
     {
         "id": 236,
-        "name": "Flour, coconut"
+        "nameRu": "Мука, кокосовая стружка"
     },
     {
         "id": 237,
-        "name": "Beans, cannellini, dry"
+        "nameRu": "Фасоль, каннеллини, сухая"
     },
     {
         "id": 238,
-        "name": "Chickpeas, (garbanzo beans, bengal gram), dry"
+        "nameRu": "Нут (фасоль гарбанзо, бенгальский горох), сухой"
     },
     {
         "id": 239,
-        "name": "Lentils, dry"
+        "nameRu": "Чечевица, сухая"
     },
     {
         "id": 240,
-        "name": "Blackeye pea, dry"
+        "nameRu": "Черный горошек, сухой"
     },
     {
         "id": 241,
-        "name": "Beans, black, canned, sodium added, drained and rinsed"
+        "nameRu": "Фасоль черная консервированная с добавлением натрия, слить воду и промыть"
     },
     {
         "id": 242,
-        "name": "Beans, navy, canned, sodium added, drained and rinsed"
+        "nameRu": "Фасоль морская консервированная с добавлением натрия, слить воду и промыть"
     },
     {
         "id": 243,
-        "name": "Beans, cannellini, canned, sodium added, drained and rinsed"
+        "nameRu": "Фасоль каннеллини, консервированная, с добавлением натрия, высушенная и промытая"
     },
     {
         "id": 244,
-        "name": "Chickpeas (garbanzo beans, bengal gram), canned, sodium added, drained and rinsed"
+        "nameRu": "Нут (фасоль гарбанзо, бенгальский горох), консервированный, с добавлением натрия, высушенный и промытый"
     },
     {
         "id": 245,
-        "name": "Beans, kidney, dark red, canned, sodium added, sugar added, drained and rinsed"
+        "nameRu": "Фасоль с почками, темно-красная, консервированная, с добавлением натрия, сахара, очищенная и промытая"
     },
     {
         "id": 246,
-        "name": "Beans, kidney, light red, canned, sodium added, sugar added, drained and rinsed"
+        "nameRu": "Фасоль с почками, светло-красная, консервированная, с добавлением натрия, сахара, очищенная и промытая"
     },
     {
         "id": 247,
-        "name": "Peas, green, sweet, canned, sodium added, sugar added, drained and rinsed"
+        "nameRu": "Горошек зеленый сладкий консервированный с добавлением натрия и сахара, слить воду и промыть"
     },
     {
         "id": 248,
-        "name": "Beans, pinto, canned, sodium added, drained and rinsed"
-    },
-    {
-        "id": 249,
-        "name": "Blackeye pea, canned, sodium added, drained and rinsed"
-    },
-    {
-        "id": 250,
-        "name": "Beans, great northern, canned, sodium added, drained and rinsed"
-    },
-    {
-        "id": 251,
-        "name": "Pork, loin, boneless, raw"
-    },
-    {
-        "id": 252,
-        "name": "Pork, loin, tenderloin, boneless, raw"
-    },
-    {
-        "id": 253,
-        "name": "Chicken, breast, boneless, skinless, raw"
-    },
-    {
-        "id": 254,
-        "name": "Chicken, thigh, boneless, skinless, raw"
-    },
-    {
-        "id": 255,
-        "name": "Beef, ribeye, steak, boneless, choice, raw"
-    },
-    {
-        "id": 256,
-        "name": "Beef, round, top round, boneless, choice, raw"
-    },
-    {
-        "id": 257,
-        "name": "Beef, chuck, roast, boneless, choice, raw"
-    },
-    {
-        "id": 258,
-        "name": "Beef, flank, steak, boneless, choice, raw"
-    },
-    {
-        "id": 259,
-        "name": "Yogurt, plain, nonfat"
-    },
-    {
-        "id": 260,
-        "name": "Cheese, monterey jack, solid"
-    },
-    {
-        "id": 261,
-        "name": "Cheese, pasteurized process cheese food or product, American, singles"
-    },
-    {
-        "id": 262,
-        "name": "Cheese, provolone, sliced"
-    },
-    {
-        "id": 263,
-        "name": "Cheese, oaxaca, solid"
-    },
-    {
-        "id": 264,
-        "name": "Cheese, queso fresco, solid"
-    },
-    {
-        "id": 265,
-        "name": "Cheese, cotija, solid"
-    },
-    {
-        "id": 266,
-        "name": "Fish, salmon, sockeye, wild caught, raw"
-    },
-    {
-        "id": 267,
-        "name": "Fish, salmon, Atlantic, farm raised, raw"
-    },
-    {
-        "id": 268,
-        "name": "Fish, tilapia, farm raised, raw"
-    },
-    {
-        "id": 269,
-        "name": "Crustaceans, shrimp, farm raised, raw"
-    },
-    {
-        "id": 270,
-        "name": "Fish, cod, Atlantic, wild caught, raw"
-    },
-    {
-        "id": 271,
-        "name": "Fish, catfish, farm raised, raw"
-    },
-    {
-        "id": 272,
-        "name": "Crustaceans, crab, blue swimming, lump, pasteurized, refrigerated"
-    },
-    {
-        "id": 273,
-        "name": "Squash, summer, green, zucchini, includes skin, raw"
-    },
-    {
-        "id": 274,
-        "name": "Squash, summer, yellow, includes skin, raw"
-    },
-    {
-        "id": 275,
-        "name": "Squash, winter, butternut, raw"
-    },
-    {
-        "id": 276,
-        "name": "Squash, winter, acorn, raw"
-    },
-    {
-        "id": 277,
-        "name": "Cabbage, bok choy, raw"
-    },
-    {
-        "id": 288,
-        "name": "Apricot, with skin, raw"
-    },
-    {
-        "id": 289,
-        "name": "Melons, honeydew, raw"
-    },
-    {
-        "id": 290,
-        "name": "Plantains, ripe, raw"
-    },
-    {
-        "id": 291,
-        "name": "Plantains, underripe, raw"
-    },
-    {
-        "id": 292,
-        "name": "Chia seeds, dry, raw"
-    },
-    {
-        "id": 293,
-        "name": "Bulgur, dry, raw"
-    },
-    {
-        "id": 294,
-        "name": "Wild rice, dry, raw"
+        "nameRu": "Фасоль пинто, консервированная, с добавлением натрия, очищенная и промытая"
     },
     {
         "id": 295,
-        "name": "Arugula, baby, raw"
+        "nameRu": "Руккола, малосольная, сырая"
     },
     {
         "id": 296,
-        "name": "Asparagus, green, raw"
+        "nameRu": "Спаржа, зеленая, сырая"
+    },
+    {
+        "id": 249,
+        "nameRu": "Черный горошек, консервированный, с добавлением натрия, очищенный и промытый"
+    },
+    {
+        "id": 250,
+        "nameRu": "Фасоль 'грейт нозерн', консервированная, с добавлением натрия, высушенная и промытая"
+    },
+    {
+        "id": 251,
+        "nameRu": "Свинина, корейка, без костей, сырая"
+    },
+    {
+        "id": 252,
+        "nameRu": "Свинина, корейка, вырезка, без костей, сырая"
+    },
+    {
+        "id": 253,
+        "nameRu": "Курица, грудка, без костей, без кожи, сырая"
+    },
+    {
+        "id": 254,
+        "nameRu": "Курица, бедро, без костей, без кожи, сырая"
+    },
+    {
+        "id": 255,
+        "nameRu": "Говядина, рибай, стейк, без костей, отборный, сырой"
+    },
+    {
+        "id": 256,
+        "nameRu": "Говядина круглая, без костей, отборная, сырая"
+    },
+    {
+        "id": 257,
+        "nameRu": "Говядина, запеченная, без костей, на выбор, сырая"
+    },
+    {
+        "id": 258,
+        "nameRu": "Говядина, бифштекс, без костей, на выбор, сырая"
+    },
+    {
+        "id": 259,
+        "nameRu": "Йогурт, обычный, обезжиренный"
+    },
+    {
+        "id": 260,
+        "nameRu": "Сыр, монтерей джек, твердый"
+    },
+    {
+        "id": 261,
+        "nameRu": "Сыр, пастеризованный плавленый сыр, пищевой или полуфабрикат, американский, одиночный"
+    },
+    {
+        "id": 262,
+        "nameRu": "Сыр проволоне, нарезанный ломтиками"
+    },
+    {
+        "id": 263,
+        "nameRu": "Сыр оахака, твердый"
+    },
+    {
+        "id": 264,
+        "nameRu": "Сыр кесо фреско, твердый"
+    },
+    {
+        "id": 265,
+        "nameRu": "Сыр котиджа, твердый"
+    },
+    {
+        "id": 266,
+        "nameRu": "Рыба, лосось, нерка, выловленная в дикой природе, сырая"
+    },
+    {
+        "id": 267,
+        "nameRu": "Рыба, лосось атлантический, выращенная на ферме, сырая"
+    },
+    {
+        "id": 268,
+        "nameRu": "Рыба, тилапия, выращенная на ферме, сырая"
+    },
+    {
+        "id": 269,
+        "nameRu": "Ракообразные, креветки, выращенные на ферме, сырые"
+    },
+    {
+        "id": 270,
+        "nameRu": "Рыба, треска атлантическая, выловленная в дикой природе, сырая"
+    },
+    {
+        "id": 271,
+        "nameRu": "Рыба, сом, выращенная на ферме, сырая"
+    },
+    {
+        "id": 272,
+        "nameRu": "Ракообразные, крабы, синеплавающие, кусковые, пастеризованные, охлажденные"
+    },
+    {
+        "id": 273,
+        "nameRu": "Кабачки, летние, зеленые, цуккини, с кожурой, сырые"
+    },
+    {
+        "id": 274,
+        "nameRu": "Кабачки, летние, желтые, с кожурой, сырые"
+    },
+    {
+        "id": 275,
+        "nameRu": "Кабачки, зимние, с орехами, сырые"
+    },
+    {
+        "id": 276,
+        "nameRu": "Кабачки, зимние, с желудями, сырые"
+    },
+    {
+        "id": 277,
+        "nameRu": "Капуста бок-чой, сырая"
+    },
+    {
+        "id": 278,
+        "nameRu": "Цветная капуста, сырая"
+    },
+    {
+        "id": 279,
+        "nameRu": "Капуста, сырая"
+    },
+    {
+        "id": 280,
+        "nameRu": "Брюссельская капуста, сырая"
+    },
+    {
+        "id": 281,
+        "nameRu": "Свекла, сырая"
+    },
+    {
+        "id": 282,
+        "nameRu": "Баклажаны сырые"
+    },
+    {
+        "id": 283,
+        "nameRu": "Помидоры целые, консервированные, твердые и жидкие, с добавлением соли"
+    },
+    {
+        "id": 284,
+        "nameRu": "Помидоры, консервированные под соусом, с добавлением соли"
+    },
+    {
+        "id": 285,
+        "nameRu": "Помидоры, паста, консервированные, без добавления соли"
+    },
+    {
+        "id": 286,
+        "nameRu": "Помидоры, измельченные, консервированные"
+    },
+    {
+        "id": 287,
+        "nameRu": "Помидоры, пюре, консервированные"
+    },
+    {
+        "id": 288,
+        "nameRu": "Абрикос, с кожурой, сырой"
+    },
+    {
+        "id": 289,
+        "nameRu": "Дыни, опята, сырые"
+    },
+    {
+        "id": 290,
+        "nameRu": "Бананы, спелые, сырые"
+    },
+    {
+        "id": 291,
+        "nameRu": "Бананы, недозрелые, сырые"
+    },
+    {
+        "id": 292,
+        "nameRu": "Семена чиа, сухие, сырые"
+    },
+    {
+        "id": 293,
+        "nameRu": "Булгур, сухой, сырой"
+    },
+    {
+        "id": 294,
+        "nameRu": "Дикий рис, сухой, сырой"
     },
     {
         "id": 297,
-        "name": "Avocado, Hass, peeled, raw"
+        "nameRu": "Авокадо, Хасс, очищенное, сырое"
     },
     {
         "id": 298,
-        "name": "Rice, black, unenriched, raw"
+        "nameRu": "Рис, черный, необогащенный, сырой"
     },
     {
         "id": 299,
-        "name": "Corn, sweet, yellow and white kernels,  fresh, raw"
+        "nameRu": "Кукуруза, сладкая, с желтыми и белыми зернами, свежая, сырая"
     },
     {
         "id": 300,
-        "name": "Einkorn, grain, dry, raw"
+        "nameRu": "Кукуруза, зерновая, сухая, сырая"
     },
     {
         "id": 301,
-        "name": "Farro, pearled, dry, raw"
+        "nameRu": "Фарро, перловое, сухое, сырое"
     },
     {
         "id": 302,
-        "name": "Fonio, grain, dry, raw"
+        "nameRu": "Фонио, зерновое, сухое, сырое"
     },
     {
         "id": 303,
-        "name": "Khorasan, grain, dry, raw"
+        "nameRu": "Хорасан, зерновое, сухое, сырое"
     },
     {
         "id": 304,
-        "name": "Kiwifruit (kiwi), green, peeled, raw"
+        "nameRu": "Киви, зеленый, очищенный, сырой"
     },
     {
         "id": 305,
-        "name": "Mandarin, seedless, peeled, raw"
+        "nameRu": "Мандарин, без косточек, очищенный, сырой"
     },
     {
         "id": 306,
-        "name": "Mango, Tommy Atkins, peeled, raw"
+        "nameRu": "Манго, Томми Аткинс, очищенное, сырое"
     },
     {
         "id": 307,
-        "name": "Mango, Ataulfo, peeled, raw"
+        "nameRu": "Манго, Атаульфо, очищенное, сырое"
     },
     {
         "id": 308,
-        "name": "Corn flour, masa harina, white or yellow, dry, raw"
+        "nameRu": "Кукурузная мука, маса харина, белая или желтая, сухая, сырая"
     },
     {
         "id": 309,
-        "name": "Pear, Anjou, green, with skin, raw"
+        "nameRu": "Груша анжуйская, зеленая, с кожурой, сырая"
     },
     {
         "id": 310,
-        "name": "Plum, black, with skin, raw"
+        "nameRu": "Слива, черная, с кожурой, сырая"
     },
     {
         "id": 311,
-        "name": "Rice, red, unenriched, dry, raw"
+        "nameRu": "Рис, красный, необогащенный, сухой, сырой"
     },
     {
         "id": 312,
-        "name": "Sorghum bran, white, unenriched, dry, raw"
+        "nameRu": "Отруби сорговые, белые, необогащенные, сухие, сырые"
     },
     {
         "id": 313,
-        "name": "Sorghum flour, white, pearled, unenriched, dry, raw"
+        "nameRu": "Мука сорговая, белая, перламутровая, необогащенная, сухая, сырая"
     },
     {
         "id": 314,
-        "name": "Sorghum grain, white, pearled, unenriched, dry, raw"
+        "nameRu": "Сорго зерновое, белое, перламутровое, необогащенное, сухое, сырое"
     },
     {
         "id": 315,
-        "name": "Sorghum, whole grain, white, dry, raw"
+        "nameRu": "Сорго цельнозерновое, белое, сухое, сырое"
     },
     {
         "id": 316,
-        "name": "Plantains, overripe, raw"
+        "nameRu": "Бананы перезрелые, сырые"
     }
 ]

@@ -10,6 +10,7 @@ import { debounce } from "@/utils/debounce";
 import DishLoader from "@/components/blocks/Dish/DishItem/DishLoader";
 import { productStore } from "@/store/rootStore";
 import Overlay from "@/components/ui/Overlay/Overlay";
+import QuantityControl from "@/components/ui/QuantityControl/QuantityControl";
 
 type Props = {
   product: IProductBase;
@@ -26,7 +27,6 @@ function DishProduct({
 }: Props) {
 
   const { quantity, id } = product
-  const [localValue, setLocalValue] = useState(quantity);
 
   const debouncedUpdate = useCallback(
     debounce((quantity) => {
@@ -36,9 +36,10 @@ function DishProduct({
   );
 
   const handleChange = (value: number) => {
-    setLocalValue(value)
     debouncedUpdate(value);
   };
+
+
 
 
   const isLoading = productStore.loadingState.getLoading('getOne', id)
@@ -47,34 +48,26 @@ function DishProduct({
     <div
       className={clsx([s.dishProduct, isLoading && s.loading])}
     >
-      <Overlay show={isLoading}>
-        {/* <Typography variant="caption" color="green">
-            загрузка
-          </Typography> */}
-      </Overlay>
-
-      <NumberInput
-        max={4}
-        value={localValue}
-        onChange={handleChange}
-        disabled={isLoading}
-      />
-      <Typography
-        variant="body1"
-        clickable
-        onClick={
-          () => !isLoading && onNameClick?.()
-        }
-        className={clsx([
-          s.productName,
-          onNameClick && s.productNameClickable
-        ])}
-      >
-        {product.name}
-      </Typography>
-      <span className={clsx([s.showOnContainerHover, s.after])}>
-        {after}
-      </span>
+      <Overlay show={isLoading} />
+      <div className={s.productNameContainer}>
+        <Typography
+          variant="body1"
+          clickable
+          onClick={
+            () => !isLoading && onNameClick?.()
+          }
+          className={clsx([
+            s.productName,
+            onNameClick && s.productNameClickable
+          ])}
+        >
+          {product.nameRu}
+        </Typography>
+        <span className={clsx([s.showOnContainerHover, s.after])}>
+          {after}
+        </span>
+      </div>
+      <QuantityControl quantity={quantity} onChange={handleChange} />
     </div>
   );
 }

@@ -20,12 +20,12 @@
     }
 
     &:hover .removeButton {
-        visibility: visible;
+        color: var(--color-light-gray);
     }
 
 }
 
-.content {
+.header {
     flex-grow: 1;
 }
 
@@ -43,7 +43,8 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    transition: opacity 0.2s;
+    transition: color 0.2s;
+    color: #fefefe;
     /* visibility: hidden; */
 }
 

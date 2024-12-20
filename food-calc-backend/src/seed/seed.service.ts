@@ -11,6 +11,7 @@ import { ProductsNutrient } from 'products_nutrients/entities/products_nutrient.
 type ParsedProduct = {
     id: number
     name: string,
+    nameRu: string,
     nutrients: { id: number, name: string, value: number, unitName: string }[]
 }
 
@@ -53,13 +54,14 @@ export class SeedService implements OnModuleInit {
 
                 jsonData.forEach(async product => {
 
-                    const exist = await this.productsRepository.find({ where: { id: product.id } })
-                    if (exist) return
+                    // const exist = await this.productsRepository.find({ where: { id: product.id } })
+                    // if (exist) return
 
                     const newProduct = new Product()
                     newProduct.description = product.name
                     newProduct.name = product.name
                     newProduct.id = product.id
+                    newProduct.nameRu = product.nameRu
                     const productNutrients: ProductsNutrient[] = []
 
                     product.nutrients.forEach(({ id, name, unitName, value }) => {

@@ -3,7 +3,7 @@ import { ISODate } from "@/types/common/common"
 export type DayCategoryDish = {
     id: number,
     name: string,
-    coefficient: number
+    quantity: number
     products: { id: number, quantity: number }[]
 }
 

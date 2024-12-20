@@ -28,6 +28,6 @@ export class DayCategoryDish {
     position: number;
 
     @Column({ type: 'float', default: 1.0 })
-    coefficient: number;
+    quantity: number;
 
 }

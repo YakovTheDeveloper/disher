@@ -26,9 +26,10 @@ const getRoundedValue = (percentage: number, quantity, norm) => {
 
 const getBackgroundColor = (percent: number) => {
     if (!percent) return 'transparent'
-    if (percent <= 30) return '#ccc';
+    if (percent <= 30) return 'rgba(204, 204, 204, 0.5)';
     if (percent <= 60) return '#ffc107';
-    return 'rgb(120 228 116)'; // Green for >60%
+    // if (percent <= 90) return 'rgb(116 198 84)'
+    return 'rgb(116 198 84)'; // Green for >60%
 };
 
 const nutrientHasDailyNorm = (nutrientId: string): boolean => {

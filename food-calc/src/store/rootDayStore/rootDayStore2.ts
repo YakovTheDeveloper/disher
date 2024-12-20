@@ -38,7 +38,7 @@ export class RootDayStore2 {
     fetchManager = new DaysFetchManager(this.loadingState)
 
     draftDayStore: DayStore2 = new DraftDayStore2(this)
-    userDayStores: DayStore2[] = []
+    userDayStores: UserDayStore2[] = []
 
     get allStores() {
         return [this.draftDayStore, ...this.userDayStores]
@@ -52,7 +52,7 @@ export class RootDayStore2 {
         return [this.draftDayStore, ...this.userDayStores].find(({ id }) => id === dayId)
     }
 
-    addToUserDayStores = (day: DayStore2) => {
+    addToUserDayStores = (day: UserDayStore2) => {
         this.userDayStores.push(day)
     }
 
@@ -88,14 +88,26 @@ export class RootDayStore2 {
 
     removeDay = async (dayId: number) => {
         return this.fetchManager.delete(dayId).then(res => {
-            if (res.isError) {
-                return res
-            }
-            this.userDayStores = this.userDayStores.filter(({ id }) => +id !== dayId)
-            this.setCurrentDayId(this.draftDayStore.id)
             return res
         })
     }
+
+    removeLocal = (dayId: number) => {
+        const index = this.userDayStores.findIndex(({ id }) => +id === dayId);
+        if (index === -1) return null;
+
+        const [day] = this.userDayStores.splice(index, 1);
+
+        return { day, index };
+    };
+
+    addLocal = ({ day, index }: { day: UserDayStore2, index?: number }) => {
+        if (index == null) {
+            this.userDayStores.push(day)
+            return
+        }
+        this.userDayStores.splice(index, 0, day);
+    };
 
     getDays = async () => {
         return this.fetchManager.getAll().then(result => {
@@ -105,7 +117,7 @@ export class RootDayStore2 {
             }
             const days = result.data.map(day => {
                 const store = new UserDayStore2(this, day)
-                store.detectChangesStore.setInitSnapshot(store.toJS())
+                // store.detectChangesStore.setInitSnapshot(store.toJS())
                 return store
             })
             this.userDayStores = [...days]

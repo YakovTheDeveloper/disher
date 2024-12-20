@@ -1,16 +1,12 @@
-import { currentCalculationStore, productStore, rootDayStore2, rootDishStore } from '@/store/rootStore'
+import { productStore, rootDishStore } from '@/store/rootStore'
 import { observer } from 'mobx-react-lite'
 import { useContext, useEffect, useState } from 'react'
 import s from './AddDishToDay.module.css'
 import clsx from 'clsx'
 import { DayCategoryDish } from '@/types/day/day'
 import { Typography } from '@/components/ui/Typography/Typography'
-import { DayStore } from '@/store/rootDayStore/dayStore'
 import DayDishesList from '@/components/blocks/Days/AddDishToDay/DayDishesList/DayDishesList'
-import DishInCategoryStatus from '@/components/blocks/Days/DayCategoryDishItem/DishInCategoryStatus/DishInCategoryStatus'
-import { DayStore2 } from '@/store/rootDayStore/dayStore2'
 import { DayCategoryStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryStore'
-import { CalculationReactionStore } from '@/store/rootDishStore/calculationReactionStore'
 import { DayCalculationContext } from '@/context/calculationContext'
 
 

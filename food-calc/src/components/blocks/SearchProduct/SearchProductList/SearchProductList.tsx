@@ -1,5 +1,5 @@
 import React from 'react'
-import { rootDishStore, productStore, currentCalculationStore, addProductToDishUseCase } from '@/store/rootStore'
+import { rootDishStore, productStore, currentCalculationStore, addProductToDishUseCase, Flows } from '@/store/rootStore'
 import { IProductBase } from '../../../../types/menu/Menu'
 import { fromHash, generateHash } from '../../../../lib/hash/hash'
 import { observer } from 'mobx-react-lite'
@@ -11,12 +11,10 @@ import { hasProduct } from '@/domain/common'
 const SearchProductList = ({ searchValue }) => {
 
     if (!searchValue) return null
-
-    const { handleGetFullProductData } = productStore
     const products = productStore.productsBase
 
-    const found = products.filter(({ name, nameRu = '' }) => {
-        return name.toLowerCase().includes(searchValue.toLowerCase()) || nameRu.toLowerCase().includes(searchValue.toLowerCase())
+    const found = products.filter(({ name = '', nameRu }) => {
+        return nameRu.toLowerCase().includes(searchValue.toLowerCase()) || name.toLowerCase().includes(searchValue.toLowerCase())
     })
 
     async function onAdd(product: IProductBase) {
@@ -36,7 +34,7 @@ const SearchProductList = ({ searchValue }) => {
                     hasProduct={hasProduct}
                     productIds={rootDishStore.currentDish?.productIds}
                 >
-                    {product.name}
+                    {product.nameRu}
                 </SearchProductListItem>)}
         </ul>
     )

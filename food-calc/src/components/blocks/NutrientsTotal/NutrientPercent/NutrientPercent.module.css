@@ -1,10 +1,13 @@
 .percent {
     display: flex;
+    justify-content: end;
     align-items: center;
-    justify-content: center;
+    gap: 5px;
+    /* justify-content: center; */
     text-align: left;
     margin-left: 5px;
     padding: 1px 2px;
+    font-size: 15px;
 }
 
 .backgroundFill {
@@ -21,6 +24,7 @@
 .percentSign {
     display: inline-block;
     margin-left: 4px;
+    /* margin-left: auto; */
     font-size: 10px;
     color: rgb(30, 30, 30);
 }

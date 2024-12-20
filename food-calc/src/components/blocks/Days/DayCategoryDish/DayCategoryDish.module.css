@@ -1,18 +1,18 @@
 .dish {
-    display: grid;
-    grid-template-columns: 5fr 4fr;
+    /* display: grid;
+    grid-template-columns: 5fr 4fr; */
     align-items: center;
     position: relative;
-    gap: 0 40px;
-    padding: 6px 10px 6px 2px;
+    gap: 0 20px;
+    padding: 12px 10px 8px 8px;
     cursor: default;
+    box-shadow: var(--box-shadow-xs);
 }
 
 .after {}
 
 .dishName {
     display: flex;
-    align-items: center;
     justify-content: space-between;
     /* width: 100%; */
     gap: 15px;

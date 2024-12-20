@@ -4,6 +4,7 @@ import UserActions2 from '@/components/blocks/common/Actions/UserActions2'
 import RemoveTooltip from '@/components/blocks/common/RemoveTooltip/RemoveTooltip'
 import AddDishToDay from '@/components/blocks/Days/AddDishToDay/AddDishToDay'
 import Day from '@/components/blocks/Days/Day'
+import DayTabs from '@/components/blocks/Days/DayTabs/DayTabs'
 import NutrientPercent from '@/components/blocks/NutrientsTotal/NutrientPercent/NutrientPercent'
 import NutrientsList from '@/components/blocks/NutrientsTotal/NutrientsList/NutrientsList'
 import NutrientsTotal from '@/components/blocks/NutrientsTotal/NutrientsTotal'
@@ -17,7 +18,7 @@ import { Tooltip } from '@/components/ui/Tooltip/Tooltip'
 import { Typography } from '@/components/ui/Typography/Typography'
 import { DayCalculationContext } from '@/context/calculationContext'
 import { DayStore2, UserDayStore2 } from '@/store/rootDayStore/dayStore2'
-import { currentCalculationStore, dayCalculationStore, rootDailyNormStore, rootDayStore2 } from '@/store/rootStore'
+import { currentCalculationStore, dayCalculationStore, Flows, rootDailyNormStore, rootDayStore2 } from '@/store/rootStore'
 import clsx from 'clsx'
 import { s } from 'framer-motion/client'
 import { observer } from 'mobx-react-lite'
@@ -27,61 +28,13 @@ import { NavLink } from 'react-router'
 const Days = () => {
     const {
         currentStore,
-        userDayStores,
-        setCurrentDayId,
-        currentDayId,
-        isDraftId,
         draftDayStore,
-        removeDay,
         loadingState
     } = rootDayStore2
 
-
-
     return (
         <Layout
-            left={
-                <div style={{ width: '100%' }}>
-                    {/* <NavLink
-                        to='/calendar'
-                    >
-                        <Typography color='green'>Календарь</Typography>
-                    </NavLink> */}
-                    <TabList isLoading={loadingState.getLoading('all')}>
-                        <Tab
-                            draft
-                            isActive={currentDayId === draftDayStore.id}
-                            onClick={() => setCurrentDayId(draftDayStore.id)}
-                        >
-                            Новый день
-                        </Tab>
-                        {userDayStores.map(({ id, name }) => (
-                            <Tab
-                                key={id}
-                                onClick={() => setCurrentDayId(id)}
-                                isActive={currentDayId === id}
-                                after={
-
-                                    <Tooltip placement='left-start'>
-                                        <RemoveTooltip
-                                            onConfirm={() => removeDay(id)}
-                                        >
-                                            <RemoveButton
-                                                className={clsx(s.removeButton)}
-                                                color='gray'
-                                                size='small'
-                                            />
-                                        </RemoveTooltip>
-                                    </Tooltip>
-                                    // <RemoveButton onClick={() => removeDay(id)} size='small' 
-                                }
-                            >
-
-                                {name}
-                            </Tab>))}
-                    </TabList>
-                </div>
-            }
+            left={<DayTabs day={rootDayStore2} />}
             center={
                 currentStore && (
                     <Day
@@ -92,15 +45,15 @@ const Days = () => {
                                     ? <UserActions2
                                         store={currentStore}
                                         loadingState={loadingState}
-                                        remove={() => rootDayStore2.removeDay(currentStore.id)}
-                                        update={() => rootDayStore2.updateDay(currentStore.id, currentStore.generatePayload())}
+                                        remove={() => Flows.Day.remove(currentStore.id, currentStore.name)}
+                                        update={() => Flows.Day.update(currentStore.id, currentStore.name)}
                                         resetToInit={currentStore.resetToInit}
                                     />
                                     : <DraftActions2
                                         loadingState={loadingState}
                                         isEmpty={draftDayStore.empty}
                                         resetToInit={draftDayStore.resetToInit}
-                                        save={() => rootDayStore2.addDay(draftDayStore.generatePayload())}
+                                        save={Flows.Day.create}
                                     />
                                 }
                             </>

@@ -55,16 +55,19 @@ const DatePicker: React.FC<Props> = ({ date, setDate }) => {
             <span onClick={toggleCalendar} className={s.trigger}>
                 {label}
             </span>
-            {isOpen && (
-                <Calendar
-                    currentMonth={currentMonth}
-                    onDateSelect={handleDateClick}
-                    selectedDate={date}
-                    onPrevMonth={goToPreviousMonth}
-                    onNextMonth={goToNextMonth}
-                    dayNames={dayNames.ru}
-                />
-            )}
+            <div className={s.calendarContainer}>
+                {isOpen && (
+                    <Calendar
+                        currentMonth={currentMonth}
+                        onDateSelect={handleDateClick}
+                        selectedDate={date}
+                        onPrevMonth={goToPreviousMonth}
+                        onNextMonth={goToNextMonth}
+                        dayNames={dayNames.ru}
+                    />
+                )}
+            </div>
+
         </div>
     );
 };

@@ -16,9 +16,8 @@
     padding: 5px 10px;
     font-size: 1rem;
     border: 2px solid var(--color-light-green);
-    border-radius: 12px;
+    border-radius: 20px;
     caret-color: var(--color-green);
-    outline-color: var(--color-green);
 
     &::placeholder {
         font-size: 1rem;
@@ -27,6 +26,10 @@
     &:focus {
         border: 2px solid #bbff6d;
     }
+
+    &:hover {
+        background-color: rgb(251, 251, 251);
+    }
 }
 
 .listContainer {
@@ -34,7 +37,7 @@
     bottom: 0;
     transform: translateY(100%);
     width: 100%;
-    z-index: 10;
+    z-index: var(--z-index-search-list);
     max-height: 70vh;
     /* border: 1px solid #000; */
     overflow: auto;

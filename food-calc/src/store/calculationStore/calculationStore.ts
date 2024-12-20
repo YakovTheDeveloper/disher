@@ -39,7 +39,7 @@ export class CalculationStore {
         const categoriesNutrients = categories.map(category => {
 
             const dishesNutrients: NutrientIdToQuantityMap[] = category.dishes.map(dish => {
-                return this.calculateNutrients(dish.products, dish.coefficient)
+                return this.calculateNutrients(dish.products, dish.quantity)
             })
             return dishesNutrients
         })
@@ -59,7 +59,7 @@ export class CalculationStore {
         return totalNutrients
     }
 
-    calculateNutrients = (products: IProduct[], coefficient?: number): NutrientIdToQuantityMap => {
+    calculateNutrients = (products: IProduct[], dishQuantity?: number): NutrientIdToQuantityMap => {
         const totalNutrients: NutrientIdToQuantityMap = {};
 
         products.forEach(product => {
@@ -84,10 +84,10 @@ export class CalculationStore {
 
         });
 
-        if (coefficient != null) {
+        if (dishQuantity != null) {
             for (const nutrientId in totalNutrients) {
                 const value = totalNutrients[nutrientId]
-                totalNutrients[nutrientId] = value * coefficient
+                totalNutrients[nutrientId] = value * dishQuantity / 100
             }
         }
 

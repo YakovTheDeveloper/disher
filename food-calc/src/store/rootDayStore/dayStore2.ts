@@ -25,7 +25,6 @@ export abstract class DayStore2 {
             removeCategory: action,
             syncPositions: action,
             reorderCategories: action,
-            reorderCategories2: action,
             setCurrentCategoryId: action,
             updateName: action,
             updateDate: action,
@@ -104,14 +103,13 @@ export abstract class DayStore2 {
 
     reorderCategories(newOrder: DayCategoryStore[]) {
         this.categories = newOrder
-
         this.syncPositions();
     }
 
 
-    reorderCategories2 = (newOrder: DayCategoryStore[]) => {
-        this.categories = newOrder
-    }
+    // reorderCategories2 = (newOrder: DayCategoryStore[]) => {
+    //     this.categories = newOrder
+    // }
     // reorderCategories(startIndex: number, endIndex: number) {
     //     if (startIndex === endIndex) return;
 
@@ -152,8 +150,8 @@ export abstract class DayStore2 {
 
     get calcReactionPayload() {
         return this.categories.map(category => ({
-            dishes: category.dishes.map(({ coefficient, products }) => ({
-                coefficient,
+            dishes: category.dishes.map(({ quantity, products }) => ({
+                quantity,
                 products: products.map(product => ({ ...product }))
             }))
         }));
@@ -167,7 +165,7 @@ export abstract class DayStore2 {
     //             category.position = updatedCategory.position
 
     //             category.dishes.forEach(dish => {
-    //                 dish.coefficient = updatedCategory.
+    //                 dish.quantity = updatedCategory.
     //             })
     //         })
     //     })
@@ -197,16 +195,16 @@ export class UserDayStore2 extends DayStore2 implements UserDataStore<DayData> {
             resetToInit: action,
         })
 
-        this.detectChangesStore = new DetectChangesStore(this.toJS(), 'day');
+        // this.detectChangesStore = new DetectChangesStore(this.toJS(), 'day');
 
 
-        reaction(
-            () => [this.toJS()],
-            ([data]) => {
-                console.log("NEWDATA", data)
-                this.detectChangesStore.setData(data)
-            }
-        );
+        // reaction(
+        //     () => [this.toJS()],
+        //     ([data]) => {
+        //         console.log("NEWDATA", data)
+        //         this.detectChangesStore.setData(data)
+        //     }
+        // );
     }
 
     toJS(): DayData {
@@ -218,10 +216,10 @@ export class UserDayStore2 extends DayStore2 implements UserDataStore<DayData> {
                 id: category.id,
                 name: category.name,
                 position: category.position,
-                dishes: category.dishes.map(({ id, coefficient, products, name }) => ({
+                dishes: category.dishes.map(({ id, quantity, products, name }) => ({
                     name,
                     id,
-                    coefficient,
+                    quantity,
                     products: products.map(product => ({
                         id: product.id,
                         quantity: product.quantity
@@ -242,7 +240,7 @@ export class UserDayStore2 extends DayStore2 implements UserDataStore<DayData> {
         console.log('from userdatstore')
         if (!this.detectChangesStore.initProductsSnapshotCopy) return
         const day = this.detectChangesStore.initProductsSnapshotCopy
-        this.setCurrentCategory(null)
+        this.setCurrentCategoryId(-1)
         this.init(day)
 
         // day.categories.forEach(snapshotCategory => {

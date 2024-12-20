@@ -9,19 +9,29 @@ type Props = {
     calculations: CalculationStore
 }
 
-const normaliseNutrientValue = (value: number, nutrient: NutrientCategory) => {
-    const { unit } = nutrient
-    if (unit === 'μg') return value.toFixed(2)
-    return value.toFixed(1)
+const removeTrailingZeroes = (str: string): string => {
+    return str.replace(/(\.0+|(\.\d*?[1-9])0+)$/, '$2');
+};
 
-}
+const normaliseNutrientValue = (value: number, nutrient: NutrientCategory): string => {
+    const { unit } = nutrient;
+    let result = '';
+    if (unit === 'μg') {
+        result = value.toFixed(2);
+    } else {
+        result = value.toFixed(1);
+    }
+    return removeTrailingZeroes(result);
+};
 
 const NutrientValue = ({ calculations, nutrient }: Props) => {
     const value = calculations.totalNutrients[nutrient.id]
     if (value == null) return null
 
     return (
-        <Typography variant='body2'>{normaliseNutrientValue(value, nutrient)}</Typography>
+        <Typography variant='body2'>
+            {normaliseNutrientValue(value, nutrient)}
+        </Typography>
     )
 }
 

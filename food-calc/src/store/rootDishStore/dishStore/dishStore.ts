@@ -1,4 +1,4 @@
-import { toJS, autorun, action, makeObservable, observable, computed, reaction } from "mobx"
+import { toJS, autorun, action, makeObservable, observable, computed, reaction, runInAction } from "mobx"
 import { IMenu, IProductBase } from "../../../types/menu/Menu"
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { CreateDishPayload } from "@/types/api/menu";
@@ -29,6 +29,14 @@ export class DishStore {
             description: this.description,
             products: this.products
         }
+    }
+
+    convertAllProductsTo100Gr = () => {
+        const totalWeight = this.products.reduce((sum, product) => sum + product.quantity, 0);
+        runInAction(() => this.products.forEach(product => {
+            product.quantity = +((product.quantity / totalWeight) * 100).toFixed()
+        }))
+
     }
 
     setFetched = (status: boolean) => {
@@ -95,20 +103,20 @@ export class DishStore {
         makeObservable(this, {
             name: observable,
             products: observable,
-            // products: computed,
             productIds: computed,
             productData: computed,
             setProducts: action,
             removeProduct: action,
             toggleProduct: action,
             updateName: action,
+            convertAllProductsTo100Gr: action,
         })
 
 
-        autorun(() => {
-            const total = this.calculations.calculateNutrients([...this.products])
-            this.calculations.setTotal(total)
-        })
+        // autorun(() => {
+        //     const total = this.calculations.calculateNutrients([...this.products])
+        //     this.calculations.setTotal(total)
+        // })
     }
 
 

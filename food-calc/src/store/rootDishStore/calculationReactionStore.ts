@@ -88,7 +88,7 @@ export class CalculationReactionStore {
 
 
         // const fetchProductsAndUpdateDayCalculations3 = reaction(
-        //     () => toJS(this.rootDayStore.currentStore?.categories.map(({ dishes }) => dishes.map(({ coefficient }) => coefficient))),
+        //     () => toJS(this.rootDayStore.currentStore?.categories.map(({ dishes }) => dishes.map(({ quantity }) => quantity))),
         //     (day) => {
         //         if (!day) return
         //         console.log('reaction II: current day COEFF')

@@ -1,0 +1,40 @@
+.hoverTrackContainer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: var(--z-index-slider-hover-track);
+}
+
+.hoverTrack {
+    position: absolute;
+    height: 100%;
+    background: rgba(32, 198, 46, 0.2);
+    /* Example: light blue for hover effect */
+    pointer-events: none;
+    /* Smooth transition for hover effect */
+}
+
+.preview {
+    position: absolute;
+    top: -10px;
+    right: 50%;
+    transform: translateX(50%);
+}
+
+.previewValue {
+    border-radius: 50%;
+    height: 50px;
+    width: 50px;
+    padding: 15px;
+    font-size: 1rem;
+    background-color: var(--color-white);
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-green-2);
+    font-weight: 400;
+    box-shadow: var(--box-shadow-s);
+
+    top: -30px;
+}

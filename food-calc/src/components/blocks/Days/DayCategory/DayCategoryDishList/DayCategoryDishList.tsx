@@ -1,18 +1,17 @@
 import React from 'react'
 import s from './DayCategoryDishList.module.css'
-import DayCategoryDishItem from '@/components/blocks/Days/DayCategoryDishItem/DayCategoryDishItem'
 import { observer } from 'mobx-react-lite'
 import { dayCategoryDishStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryDishStore'
-import DayDishCoefficientSlider from '@/components/blocks/Days/DayCategory/DayCategoryDishList/DayDishCoefficientSlider/DayDishCoefficientSlider'
 import { LoadingStateStore } from '@/store/common/LoadingStateStore'
+import DayCategoryDish from '@/components/blocks/Days/DayCategoryDish/DayCategoryDish'
 
 type Props = {
     dishes: dayCategoryDishStore[]
-    renderDeleleButton: (dishId: number) => React.ReactNode
+    removeDish: (dishId: number) => void
     loadingStore: LoadingStateStore
 }
 
-const DayCategoryDishList = ({ dishes, renderDeleleButton, loadingStore }: Props) => {
+const DayCategoryDishList = ({ dishes, loadingStore, removeDish }: Props) => {
 
 
     const checkLoading = (ids: number[]) => {
@@ -20,25 +19,16 @@ const DayCategoryDishList = ({ dishes, renderDeleleButton, loadingStore }: Props
         return some
     }
 
-
     return (
         <ul className={s.dishesList}>
             {dishes.map((dish) => {
                 return (
-                    <DayCategoryDishItem
+                    <DayCategoryDish
                         key={dish.id}
                         dish={dish}
-                        after={renderDeleleButton(dish.id)}
                         isLoading={checkLoading(dish.productIds)}
-                    >
-
-                        <div className={s.sliderContainer}>
-                            <DayDishCoefficientSlider
-                                categoryDish={dish}
-                                coefficient={dish.coefficient}
-                            />
-                        </div>
-                    </DayCategoryDishItem>
+                        removeDish={() => removeDish(dish.id)}
+                    />
                 );
             })}
         </ul>

@@ -8,13 +8,20 @@
     /* height: calc(100% - 70px); */
     /* height: calc(100vh - 70px); */
     display: grid;
-    gap: 30px;
+    gap: 5px;
     grid-template-rows: auto auto 1fr auto;
     /* grid-template-columns: 1fr; */
 }
 
+.dishHeader {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+}
+
 .dishMain {
     overflow-y: auto;
+    overflow-x: hidden;
     padding-bottom: 40px;
 }
 

@@ -13,6 +13,7 @@ import { Modals } from "@/store/uiStore/modalStore/modalStore";
 import EditableText from "@/components/ui/EditableText/EditableText";
 import EmptyListMessage from "@/components/blocks/Dish/EmptyListMessage/EmptyListMessage";
 import SearchProduct from "@/components/blocks/SearchProduct/SearchProduct";
+import Button from "@/components/ui/Button/Button";
 
 type Props = {
   store: DishStore;
@@ -29,6 +30,7 @@ function Dish(props: Props) {
     updateName,
     id,
     empty,
+    convertAllProductsTo100Gr
   } = store;
 
   const onClickProductName = (product: IProductBase) => {
@@ -41,14 +43,20 @@ function Dish(props: Props) {
   return (
     <section className={s.dish}>
       <SearchProduct />
-      <EditableText
-        typographyProps={{
-          align: 'center',
-          variant: 'h1'
-        }}
-        value={name}
-        onChange={updateName}
-      />
+      <header className={s.dishHeader}>
+        <EditableText
+          key={id}
+          typographyProps={{
+            variant: 'h1'
+          }}
+          value={name}
+          onChange={updateName}
+        />
+        <Button variant='secondary' onClick={() => convertAllProductsTo100Gr()}>
+          <p>перевести</p>
+          в 100 гр.
+        </Button>
+      </header>
       <div className={s.dishMain}>
         <EmptyListMessage isShow={empty} />
         <div className={s.products} key={id}>

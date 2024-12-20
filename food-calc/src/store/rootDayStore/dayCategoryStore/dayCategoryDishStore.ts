@@ -18,19 +18,19 @@ export class dayCategoryDishStore {
 
     name: string = ''
 
-    coefficient: number = 1
+    quantity: number = 100
 
     products: Product[] = []
 
     init = (data: DayCategoryDish) => {
-        const { coefficient, id, name, products } = data
-        this.coefficient = coefficient
+        const { quantity, id, name, products } = data
+        this.quantity = quantity
         this.id = id
         this.name = name
         this.products = products
     }
 
-    updateCoefficient = (value: number) => this.coefficient = value
+    updateQuantity = (quantity: number) => this.quantity = quantity
 
     get productIds() {
         return this.products.map(({ id }) => id)

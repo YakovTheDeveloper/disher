@@ -7,11 +7,12 @@ import Button from '@/components/ui/Button/Button'
 
 type Props = {
     removableName?: string
+    className?: string
     onConfirm: VoidFunction
     children: React.ReactNode
 }
 
-const RemoveTooltip = ({ removableName, onConfirm, children }: Props) => {
+const RemoveTooltip = ({ removableName, onConfirm, children, className }: Props) => {
 
     const nameView = removableName ? ` ${removableName}` : ''
 
@@ -38,7 +39,11 @@ const RemoveTooltip = ({ removableName, onConfirm, children }: Props) => {
             >
                 <TooltipInner>
                     {/* <Typography variant='body1'>Удалить{nameView}?</Typography> */}
-                    <Button className={s.confirmButton} onClick={confirmHandle} variant='secondary'>Подтвердить</Button>
+                    <Button className={s.confirmButton} onClick={confirmHandle} variant='secondary'>
+                        <Typography variant='body2'>
+                            Подтвердить
+                        </Typography>
+                    </Button>
                     {/* <button onClick={rejectHandle}>нет</button> */}
                 </TooltipInner>
             </TooltipContent>

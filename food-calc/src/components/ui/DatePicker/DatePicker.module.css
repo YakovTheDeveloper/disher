@@ -1,3 +1,7 @@
+:root {
+    --trigger-height: 34px;
+}
+
 .container {
     position: relative;
     font-size: 14px;
@@ -7,7 +11,11 @@
 
 .trigger {
     cursor: pointer;
-    padding: 6px 10px;
+    padding: 2px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--trigger-height);
     border: 1px solid #4CAF50;
     border-radius: 4px;
     background-color: var(--color-white);
@@ -19,4 +27,13 @@
 .trigger:hover {
     background-color: #4CAF50;
     color: white;
+}
+
+.calendarContainer {
+    position: absolute;
+    z-index: 2;
+    top: calc(var(--trigger-height) + 15px);
+    right: 0;
+    /* left: -25px; */
+    /* transform: translateX(-50%); */
 }

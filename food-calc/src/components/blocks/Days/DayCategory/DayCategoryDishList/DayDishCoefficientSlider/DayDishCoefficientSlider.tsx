@@ -1,59 +1,51 @@
 import Slider from '@/components/ui/Slider/Slider'
 import { Typography } from '@/components/ui/Typography/Typography'
-import { DayStore } from '@/store/rootDayStore/dayStore'
-import { rootDayStore } from '@/store/rootStore'
+import { dayCategoryDishStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryDishStore'
 import { debounce } from '@/utils/debounce'
-import { toJS } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import React, { useCallback, useContext, useState } from 'react'
 import s from './DayDishCoefficientSlider.module.css'
-import { dayCategoryDishStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryDishStore'
 import { DayCalculationContext } from '@/context/calculationContext'
 
 type Props = {
     categoryDish: dayCategoryDishStore
-    coefficient: number
+    quantity: number
 }
 
-
-const getDescriptionLabelText = (coefficient: number) => {
-    return `${(coefficient * 100).toFixed(1)} гр`
-    // return `${coefficient.toFixed(1)} * 100 гр. = ${(coefficient * 100).toFixed(1)} гр`
+const getDescriptionLabelText = (quantity: number) => {
+    return `${(quantity * 100).toFixed(1)} гр`
 }
 
-const DayDishCoefficientSlider = ({ categoryDish, coefficient }: Props) => {
-    const [localValue, setLocalValue] = useState(coefficient);
+const DayDishCoefficientSlider = ({ categoryDish, quantity }: Props) => {
+    const [localValue, setLocalValue] = useState(quantity)
 
-    const { updateCoefficient } = categoryDish
+    const { updateQuantity } = categoryDish
     const { updateCalculations } = useContext(DayCalculationContext)
 
     const debouncedUpdate = useCallback(
         debounce((newValue) => {
-            updateCoefficient(newValue);
-            updateCalculations()
+            updateQuantity(newValue) // Update the quantity
+            updateCalculations() // Perform heavy calculations
         }, 300), // Adjust debounce delay as needed
         [categoryDish]
-    );
+    )
 
     const handleChange = (value: number) => {
-        debouncedUpdate(value); // Debounced update for heavy operations
-        setLocalValue(value)
-    };
-
+        setLocalValue(value) // Update UI immediately
+        debouncedUpdate(value) // Debounced heavy operation
+    }
 
     return (
-
         <Slider
             className={s.dishCoefficientSlider}
             label={
-                <Typography variant='caption'>
-                    {getDescriptionLabelText(coefficient)}
+                <Typography variant="caption">
+                    {getDescriptionLabelText(localValue)} {/* Use localValue for real-time updates */}
                 </Typography>
             }
             onChange={handleChange}
             value={localValue}
         />
-
     )
 }
 

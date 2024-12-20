@@ -1,13 +1,12 @@
 .dishProduct {
   width: 100%;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   position: relative;
-  align-items: center;
   /* border: 1px solid var(--color-light-green); */
   gap: 7px;
   background-color: #fff;
-  width: 100%;
-  grid-template-columns: auto 1fr 20px;
+  /* grid-template-columns: auto 1fr 20px; */
   padding: 5px;
   position: relative;
   /* border: 1px solid #ccc90040; */
@@ -24,8 +23,8 @@
   transition: opacity 0.2s;
   opacity: 0;
   z-index: 10;
-  justify-self: start;
-  align-self: flex-start;
+  /* justify-self: start; */
+  /* align-self: flex-start; */
   margin-left: auto;
 }
 
@@ -85,10 +84,16 @@
   opacity: 0;
 }
 
+.productNameContainer {
+  display: flex;
+  gap: 10px;
+}
+
 .productName {
+  display: flex;
   z-index: 1;
   color: #333;
-  width: fit-content;
+  /* width: fit-content; */
   transition: color 0.1s;
 }
 

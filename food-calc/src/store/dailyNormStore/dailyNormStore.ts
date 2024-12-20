@@ -226,7 +226,7 @@ const nutrients = {
   sodium: 2300,
   zinc: 15,
   copper: 900,
-  manganese: 2.3,
+  manganese: 2300,
   selenium: 55,
   iodine: 150,
   vitaminA: 900,

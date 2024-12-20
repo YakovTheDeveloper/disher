@@ -12,6 +12,12 @@ import { rootDayStore2 } from '@/store/rootStore';
 import RemoveTooltip from '@/components/blocks/common/RemoveTooltip/RemoveTooltip';
 import { Tooltip } from '@/components/ui/Tooltip/Tooltip';
 
+const ReorderItemProps = {
+    as: 'li' as const,
+    whileDrag: { scale: 1.05, opacity: 0.8 },
+    dragListener: false
+}
+
 type Props = {
     category: DayCategoryStore
     removeCategory: () => void
@@ -36,16 +42,17 @@ const DayCategoryItem: React.FC<Props> = (
         updateCalculations()
     }
 
+    console.log("category", category)
+
+    // const removeButtonVisible
+
     return (
         <Reorder.Item
             className={clsx(s.dayCategory, isActive && s.active)}
-            as='li'
             value={category}
-            key={category.id}
             onClick={setAsCurrent}
-            whileDrag={{ scale: 1.05, opacity: 0.8 }}
-            dragListener={false}
             dragControls={dragControls}
+            {...ReorderItemProps}
         >
             <div
                 className={s.dragHandle}
@@ -53,7 +60,7 @@ const DayCategoryItem: React.FC<Props> = (
             >
                 <span>||</span>
             </div>
-            <div className={s.content}>
+            <header className={s.header}>
                 <EditableText
                     onChange={updateName}
                     value={name}
@@ -62,7 +69,7 @@ const DayCategoryItem: React.FC<Props> = (
                     }}
                 />
                 {children}
-            </div>
+            </header>
             <Tooltip placement='left-start'>
                 <RemoveTooltip
                     onConfirm={() => onDayCategoryRemove()}

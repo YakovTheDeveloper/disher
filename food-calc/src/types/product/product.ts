@@ -14,8 +14,8 @@ import { Id, IdMap, IdToQuantity, Value } from "@/types/common/common"
 
 export type ProductBase = {
     id: number,
-    name: string,
-    // nameRu: string
+    name?: string,
+    nameRu: string
 }
 
 // export type ProductFull = {

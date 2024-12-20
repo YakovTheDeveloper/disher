@@ -39,8 +39,8 @@ describe('CalculationStore', () => {
         expect(calculationStore.totalNutrients).toEqual(PRODUCT_NUTRIENTS_DOUBLED);
     });
 
-    it('should calculate nutrients with coefficient', () => {
-        const nutrients = calculationStore.calculateNutrients(PRODUCTS, 0.5);
+    it('should calculate nutrients with quantity', () => {
+        const nutrients = calculationStore.calculateNutrients(PRODUCTS, 50);
         expect(nutrients).toEqual(PRODUCT_NUTRIENTS_HALVED);
     });
 

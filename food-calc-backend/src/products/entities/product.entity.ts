@@ -18,7 +18,7 @@ export class Product {
   @Column({ length: 200 })
   name: string;
 
-  @Column({ length: 100, nullable: true, default: '' })
+  @Column({ length: 200, nullable: true, default: '' })
   nameRu: string;
 
   @Column({ length: 1000, nullable: true, default: '' })

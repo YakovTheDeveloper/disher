@@ -3,9 +3,8 @@ import React, { useEffect } from 'react'
 import s from './DayDishesList.module.css'
 import { DayCategory, DayCategoryDish } from '@/types/day/day'
 import clsx from 'clsx'
-import { toJS } from 'mobx'
 import { observer } from 'mobx-react-lite'
-import DishInCategoryStatus from '@/components/blocks/Days/DayCategoryDishItem/DishInCategoryStatus/DishInCategoryStatus'
+import DishInCategoryStatus from '@/components/blocks/Days/DayCategoryDish/DishInCategoryStatus/DishInCategoryStatus'
 
 type Props = {
     userDishes: UserDishStore[]
@@ -25,7 +24,7 @@ const DayDishesList = ({ userDishes, isDishInCategory, toggleDishInCategory }: P
                     <li
                         key={dish.id}
                         onClick={() => toggleDishInCategory({
-                            coefficient: 1,
+                            quantity: 100,
                             id: dish.id,
                             name: dish.name,
                             products: dish.products.map(({ id, quantity }) => ({ id: +id, quantity }))

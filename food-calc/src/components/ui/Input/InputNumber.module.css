@@ -1,14 +1,54 @@
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.inputWrapper {
+    position: relative;
+    display: flex;
+}
+
 .numberInput {
-    width: 6ch;
-    font-size: 14px;
-    text-align: center;
-    border: 1px solid #eeeeee;
+    width: 65px;
+    /* Space for the arrow buttons */
+    text-align: right;
+    font-size: 0.8rem;
+    border: 1px solid #ccc;
     border-radius: 4px;
     outline: none;
     box-sizing: border-box;
-    text-align: left;
 }
 
-.numberInput:focus {
-    border-color: var(--color-green);
+.arrows {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.arrow {
+    background: none;
+    border: none;
+    padding: 2px;
+    font-size: 12px;
+    cursor: pointer;
+    line-height: 1;
+    color: #555;
+}
+
+.arrow:disabled {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+.arrow:not(:disabled):hover {
+    color: #000;
+}
+
+.arrow:not(:disabled):active {
+    color: #333;
 }
