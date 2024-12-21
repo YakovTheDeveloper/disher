@@ -19,7 +19,6 @@ const DayTabs = ({ day }: Props) => {
         setCurrentDayId,
         currentDayId,
         draftDayStore,
-        removeDay,
         loadingState,
     } = day
 
@@ -44,7 +43,6 @@ const DayTabs = ({ day }: Props) => {
                                 onConfirm={() => Flows.Day.remove(id, name)}
                             >
                                 <RemoveButton
-                                    // className={clsx(s.removeButton)}
                                     color='gray'
                                     size='small'
                                 />

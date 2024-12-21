@@ -84,22 +84,15 @@ export class DishStore {
     //     return this.products.some(({ id }) => id === productId)
     // }
 
-    calculations = new CalculationStore()
-
     get productData() {
         return this.products.map(product => product.quantity)
-    }
-
-
-    async save(id?: number): Promise<unknown> {
-
     }
 
     updateName = (name: string) => { this.name = name }
 
     resetToInit = () => { }
 
-    constructor(rootDishStore: RootDishStore) {
+    constructor(data: IDish) {
         makeObservable(this, {
             name: observable,
             products: observable,
@@ -112,25 +105,21 @@ export class DishStore {
             convertAllProductsTo100Gr: action,
         })
 
+        const { id, name, products } = data
 
-        // autorun(() => {
-        //     const total = this.calculations.calculateNutrients([...this.products])
-        //     this.calculations.setTotal(total)
-        // })
+        this.id = id
+        this.name = name
+        this.products = products
     }
-
-
 
 }
 
 
 export class UserDishStore extends DishStore implements UserDataStore<IProductBase[]> {
-    constructor(private rootStore: RootDishStore) {
-        super(rootStore);
+    constructor(data: IDish) {
+        super(data);
         makeObservable(this, {
-            save: action,
             resetToInit: action,
-            remove: action,
         });
         this.detectChangesStore = new DetectChangesStore(this.products);
 
@@ -153,28 +142,27 @@ export class UserDishStore extends DishStore implements UserDataStore<IProductBa
     };
 
 
-    save = async (id: number) => {
-        const captureState = structuredClone(toJS(this.products))
-        return this.rootStore.updateDish(this.payload, id).then((res) => {
-            if (res.isError) return res
-            this.detectChangesStore.updateSnapshot(captureState)
-            return res
-        }
-        );
-    };
+    // save = async (id: number) => {
+    //     const captureState = structuredClone(toJS(this.products))
+    //     return this.rootStore.updateDish(this.payload, id).then((res) => {
+    //         if (res.isError) return res
+    //         this.detectChangesStore.updateSnapshot(captureState)
+    //         return res
+    //     }
+    //     );
+    // };
 
-    remove = async (id: number) => {
-        const res = await this.rootStore.removeDish(id);
-        return res
-    };
+    // remove = async (id: number) => {
+    //     const res = await this.rootStore.removeDish(id);
+    //     return res
+    // };
 
 }
 
 export class DraftDishStore extends DishStore implements DraftStore<IProductBase[]> {
-    constructor(private rootStore: RootDishStore) {
-        super(rootStore)
+    constructor(data: IDish) {
+        super(data);
         makeObservable(this, {
-            save: action,
         })
 
     }
@@ -183,9 +171,6 @@ export class DraftDishStore extends DishStore implements DraftStore<IProductBase
         this.name = 'Новое блюдо'
         this.products = []
     }
-
-
-
 }
 
 

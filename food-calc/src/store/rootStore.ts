@@ -12,6 +12,7 @@ import { AddProductToDishUseCase } from "@/store/useCasesStore/addProductToDishU
 import { DishFlow } from "@/store/useCasesStore/dishFlow";
 import { NotificationStore } from "@/store/uiStore/notificationStore/notificationStore";
 import { DayFlow } from "@/store/useCasesStore/dayFlow";
+import { DailyNormFlow } from "@/store/useCasesStore/dailyNormFlow";
 
 export const productStore = new ProductStore();
 export const nutrientStore = new NutrientStore();
@@ -47,10 +48,15 @@ export const Flows = {
     rootDishStore,
     rootDayStore2,
     currentCalculationStore,
-    notificationStore
+    notificationStore,
+    productStore
   ),
   Day: new DayFlow(
     rootDayStore2,
+    notificationStore
+  ),
+  Norm: new DailyNormFlow(
+    rootDailyNormStore,
     notificationStore
   )
 }

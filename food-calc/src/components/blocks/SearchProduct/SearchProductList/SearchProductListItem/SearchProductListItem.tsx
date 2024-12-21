@@ -7,9 +7,9 @@ import clsx from 'clsx'
 
 type Props = {
   onClick: () => void
-  productId: string
-  productIds: string[]
-  hasProduct: (productId: string, productIds: string[]) => boolean
+  productId: number
+  productIds: number[]
+  hasProduct: (productId: number, productIds: number[]) => boolean
   children: React.ReactNode
 }
 

@@ -10,6 +10,8 @@ import { GenerateId } from "@/utils/uuidNumber";
 import { action, computed, makeAutoObservable, makeObservable, observable, observe, reaction, runInAction, toJS } from "mobx";
 import { v4 as uuidv4 } from 'uuid';
 
+export const DRAFT_DAY_ID = -1
+
 export abstract class DayStore2 {
     constructor(private rootStore: RootDayStore2, day: Day) {
         this.init(day)
@@ -271,7 +273,6 @@ export class DraftDayStore2 extends DayStore2 implements DraftStore {
     constructor(private rootDayStore: RootDayStore2) {
         super(rootDayStore, createDraftDay())
         makeObservable(this, {
-            save: action,
             resetToInit: action,
         })
     }
@@ -279,16 +280,8 @@ export class DraftDayStore2 extends DayStore2 implements DraftStore {
     resetToInit = () => {
         const day = createDraftDay()
         this.init(day)
-        this.setCurrentCategory(null)
-        this.rootDayStore.setCurrentDayId(day.id)
-    }
-
-    // get loading() {
-    //     return this.rootDayStore.fetchManager.loading.save;
-    // }
-
-    save = async () => {
-        return this.rootDayStore?.addDay(this.generatePayload())
+        this.setCurrentCategoryId(-1)
+        // this.rootDayStore.setCurrentDayId(day.id)
     }
 }
 
@@ -299,6 +292,6 @@ const createDraftDay = (): Day => ({
         { name: 'Ужин', id: GenerateId(), dishes: [], position: 2 },
     ],
     date: '',
-    id: GenerateId(),
+    id: DRAFT_DAY_ID,
     name: 'Новый день'
 })

@@ -6,21 +6,21 @@ import {
 } from "@/api/norm";
 import { FetchManagerStore } from "@/store/common/FetchManagerStore";
 import { Response } from "@/types/api/common";
-import { DailyNorm } from "@/types/norm/norm";
+import { DailyNormV2 } from "@/types/norm/norm";
 
-export class DailyNormFetchManager extends FetchManagerStore<DailyNorm> {
-  protected fetchAll(): Promise<Response<DailyNorm[]>> {
+export class DailyNormFetchManager extends FetchManagerStore<DailyNormV2> {
+  protected fetchAll(): Promise<Response<DailyNormV2[]>> {
     return fetchGetAllNorm();
   }
 
-  protected fetchCreate(payload: DailyNorm): Promise<Response<DailyNorm>> {
+  protected fetchCreate(payload: DailyNormV2): Promise<Response<DailyNormV2>> {
     return fetchCreateNorm(payload);
   }
 
   protected fetchUpdate(
     id: number,
-    payload: DailyNorm
-  ): Promise<Response<DailyNorm>> {
+    payload: DailyNormV2
+  ): Promise<Response<DailyNormV2>> {
     return fetchUpdateNorm(id, payload);
   }
 

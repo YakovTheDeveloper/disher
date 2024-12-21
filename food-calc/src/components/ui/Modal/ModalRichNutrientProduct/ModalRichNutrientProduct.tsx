@@ -4,7 +4,7 @@ import NutrientValue from '@/components/blocks/NutrientsTotal/NutrientValue/Nutr
 import Modal from '@/components/ui/Modal/Modal'
 import { Typography } from '@/components/ui/Typography/Typography'
 import { RichProducts } from '@/store/productStore/productStore'
-import { addProductToDishUseCase, rootDailyNormStore } from '@/store/rootStore'
+import { addProductToDishUseCase, Flows, rootDailyNormStore } from '@/store/rootStore'
 import { NutrientData, NutrientName } from '@/types/nutrient/nutrient'
 import { RichProductData } from '@/types/product/product'
 import { observer } from 'mobx-react-lite'
@@ -45,8 +45,8 @@ const ModalRichNutrientProduct = ({ nutrient, before, isOpen, products, getData,
                         name={name}
                         nutrients={nutrients}
                         nutrient={nutrient}
-                        onProductAdd={() => addProductToDishUseCase.execute({
-                            id, name, quantity: 100
+                        onProductAdd={() => Flows.Dish.addProduct({
+                            id, name, quantity: 100, nameRu: ''
                         })}
                     />
                 ))}

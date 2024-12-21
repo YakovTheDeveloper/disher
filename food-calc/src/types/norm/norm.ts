@@ -35,3 +35,44 @@ export type DailyNorm = {
   alphaCarotene: number;
   id: number;
 };
+
+export type DailyNormV2 = {
+  name: string,
+  nutrients: {
+    protein: number;
+    fats: number;
+    carbohydrates: number;
+    sugar: number;
+    starch: number;
+    fiber: number;
+    energy: number;
+    water: number;
+    iron: number;
+    magnesium: number;
+    calcium: number;
+    phosphorus: number;
+    potassium: number;
+    sodium: number;
+    zinc: number;
+    copper: number;
+    manganese: number;
+    selenium: number;
+    iodine: number;
+    vitaminA: number;
+    vitaminB1: number;
+    vitaminB2: number;
+    vitaminB3: number;
+    vitaminB4: number;
+    vitaminB5: number;
+    vitaminB6: number;
+    vitaminB9: number;
+    vitaminB12: number;
+    vitaminC: number;
+    vitaminD: number;
+    vitaminE: number;
+    vitaminK: number;
+    betaCarotene: number;
+    alphaCarotene: number;
+  }
+  id: number;
+};

@@ -8,9 +8,18 @@ import s from './DishTabs.module.css'
 import RemoveTooltip from '@/components/blocks/common/RemoveTooltip/RemoveTooltip'
 import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
 import { Tooltip, TooltipContent, TooltipInner, TooltipTrigger } from '@/components/ui/Tooltip/Tooltip'
+import { RootDishStore } from '@/store/rootDishStore/rootDishStore'
+import { RootEntityStore } from '@/store/common/types'
+import { UserDishStore, DraftDishStore } from '@/store/rootDishStore/dishStore/dishStore'
+import { IDish } from '@/types/dish/dish'
 
-function DishTabs() {
-    const { draftDish, userDishes, setCurrentDishId, currentDishId, loadingState } = rootDishStore
+type Props = {
+    rootStore: RootEntityStore<IDish, UserDishStore, DraftDishStore>
+}
+
+function DishTabs({ rootStore }: Props) {
+    console.log("rootStore", rootStore)
+    const { draftStore, userStores, setCurrentId, currentItemId, loadingState } = rootStore
 
     const isLoading = loadingState.getLoading('all')
 
@@ -19,17 +28,17 @@ function DishTabs() {
             <TabList isLoading={isLoading}>
                 <Tab
                     draft
-                    onClick={() => setCurrentDishId(draftDish.id)}
-                    isActive={currentDishId === draftDish.id}
+                    onClick={() => setCurrentId(draftStore.id)}
+                    isActive={currentItemId === draftStore.id}
 
                 >
                     Новое блюдо
                 </Tab>
-                {userDishes.map(({ id, name }) => (
+                {userStores.map(({ id, name }) => (
                     <Tab
                         key={id}
-                        onClick={() => setCurrentDishId(id)}
-                        isActive={currentDishId === id}
+                        onClick={() => setCurrentId(id)}
+                        isActive={currentItemId === id}
                         after={
 
                             <Tooltip>

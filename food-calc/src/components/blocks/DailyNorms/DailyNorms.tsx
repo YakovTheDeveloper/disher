@@ -1,5 +1,9 @@
 import Actions from "@/components/blocks/common/Actions/Actions";
+import DraftActions2 from "@/components/blocks/common/Actions/DraftActions2";
+import UserActions2 from "@/components/blocks/common/Actions/UserActions2";
 import DailyNorm from "@/components/blocks/DailyNorms/DailyNorm";
+import DailyNormTabs from "@/components/blocks/DailyNorms/DailyNormTabs";
+import DefaultDailyNorm from "@/components/blocks/DailyNorms/DefaultDailyNorm/DefaultDailyNorm";
 import Layout from "@/components/common/Layout/Layout";
 import SelectableInput from "@/components/ui/Button/SelectableInput/SelectableInput";
 
@@ -8,66 +12,53 @@ import EditableText from "@/components/ui/EditableText/EditableText";
 import RemoveButton from "@/components/ui/RemoveButton/RemoveButton";
 import { Tab } from "@/components/ui/Tab";
 import { TabList } from "@/components/ui/TabList";
-import { DraftNormStore } from "@/store/dailyNormStore/dailyNormStore";
-import { rootDailyNormStore } from "@/store/rootStore";
+import { DailyNormStore, DefaultNormStore, DraftNormStore, UserNormStore } from "@/store/dailyNormStore/dailyNormStore";
+import { Flows, rootDailyNormStore } from "@/store/rootStore";
 import { observer } from "mobx-react-lite";
-import React from "react";
+import React, { useEffect } from "react";
 
 const DailyNorms = () => {
 
   const {
     currentStore,
-    stores,
-    currentId,
-    setCurrentId,
-    isDraftId,
-    remove,
-    setCurrentDailyNormInUseId,
-    dailyNormIdCurrentlyInUse,
-    fetchManager,
-    loadingState
+    draftStore,
+    loadingState,
   } = rootDailyNormStore;
 
-  const { loadingStore } = fetchManager;
+  useEffect(() => {
+    Flows.Norm.getAll()
+  }, [])
 
-  console.log(stores.length);
+  if (!currentStore) return
 
   return (
     <Layout
-      left={
-        <TabList isLoading={loadingStore.getLoading('all')}>
-          {stores.map(({ id, name }, i) => (
-            <Tab
-              before={
-                <SelectableInput
-                  type="radio"
-                  id={id}
-                  name={name}
-                  isChecked={id === dailyNormIdCurrentlyInUse}
-                  onChange={setCurrentDailyNormInUseId}
+      left={<DailyNormTabs
+        store={rootDailyNormStore}
+        onRemove={() => Flows.Norm.remove(currentStore.id, currentStore.name)}
+      />}
+      center={
+        currentStore instanceof DefaultNormStore
+          ? <DefaultDailyNorm store={currentStore} />
+          : (
+            <DailyNorm store={currentStore}>
+              {currentStore instanceof UserNormStore
+                ? <UserActions2
+                  store={currentStore}
+                  loadingState={loadingState}
+                  remove={() => Flows.Norm.remove(currentStore.id, currentStore.name)}
+                  update={() => Flows.Norm.update(currentStore.id, currentStore.name)}
+                  resetToInit={currentStore.resetToInit}
+                />
+                : <DraftActions2
+                  loadingState={loadingState}
+                  isEmpty={draftStore.empty}
+                  resetToInit={draftStore.resetToInit}
+                  save={Flows.Norm.create}
                 />
               }
-              key={id}
-              draft={i === 0}
-              onClick={() => setCurrentId(id)}
-              isActive={currentId === id}
-              after={
-                isDraftId(id) ? null : (
-                  <RemoveButton onClick={() => remove(id)} />
-                )
-              }
-            >
-              {name}
-            </Tab>
-          ))}
-        </TabList>
-      }
-      center={
-        currentStore && (
-          <DailyNorm store={currentStore}>
-            <Actions store={currentStore} variant="norm" loadingState={loadingState} />
-          </DailyNorm>
-        )
+            </DailyNorm>
+          )
 
       }
       right={

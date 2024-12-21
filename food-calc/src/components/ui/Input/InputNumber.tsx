@@ -28,13 +28,10 @@ const NumberInput: React.FC<NumberInputProps> = ({ value, onChange, max = 10000,
     };
 
     const handleScroll = (e: React.WheelEvent<HTMLInputElement>) => {
-        e.preventDefault();
+        // e.preventDefault();
         const delta = e.deltaY < 0 ? INCREMENT_STEP : -INCREMENT_STEP;
         onChange(clampValue(value + delta));
     };
-
-    const increment = () => onChange(clampValue(value + INCREMENT_STEP));
-    const decrement = () => onChange(clampValue(value - INCREMENT_STEP));
 
     return (
         <div className={s.container}>

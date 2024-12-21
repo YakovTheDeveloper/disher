@@ -17,7 +17,7 @@ type Props = {
 const AddDishToDay = ({ currentCategory }: Props) => {
     const { toggleDish, isDishInCategory } = currentCategory
 
-    const { userDishes } = rootDishStore
+    const { userStores } = rootDishStore
     const { updateCalculations } = useContext(DayCalculationContext)
 
 
@@ -60,7 +60,7 @@ const AddDishToDay = ({ currentCategory }: Props) => {
                 <DayDishesList
                     isDishInCategory={isDishInCategory}
                     toggleDishInCategory={onAdd}
-                    userDishes={userDishes}
+                    userDishes={userStores}
                     category={currentCategory}
                 />
             </ul>

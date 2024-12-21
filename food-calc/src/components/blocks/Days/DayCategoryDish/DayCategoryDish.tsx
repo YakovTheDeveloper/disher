@@ -27,19 +27,24 @@ const DayCategoryDish = ({ dish, className, removeDish, isLoading }: Props) => {
         updateCalculations()
     }
 
+    const onRemove = () => {
+        removeDish()
+        updateCalculations()
+    }
+
     return (
         <li key={id} className={clsx([className, s.dish])}>
-            <div className={s.dishName}>
-                <Typography variant='body1'>{name}</Typography>
+            <header className={s.dishName}>
+                <Typography variant='body1'>
+                    {name}
+                </Typography>
                 <RemoveButton
-                    onClick={(() => {
-                        removeDish()
-                        updateCalculations()
-                    })}
+                    className={s.removeButton}
+                    onClick={onRemove}
                     size='small'
                     color='gray'
                 />
-            </div>
+            </header>
             <QuantityControl
                 quantity={dish.quantity}
                 onChange={onUpdateQuantity}

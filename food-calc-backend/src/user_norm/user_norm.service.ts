@@ -11,43 +11,53 @@ export class UserNormService {
   constructor(
     @Inject(USER_NORMS_REPOSITORY)
     private repository: Repository<UserNorm>,
-  ) {}
+  ) { }
 
   async create(userId: number, createUserNormDto: CreateUserNormDto) {
     const user = new User()
     user.id = userId
 
-    const norms = this.repository.create(createUserNormDto)
+    const norms = this.repository.create({ name: createUserNormDto.name, ...createUserNormDto.nutrients })
     norms.user = user
-
-    const result = await this.repository.save(norms)
-    return { result }
+    const { name, id, ...nutrients } = await this.repository.save(norms)
+    return { result: { id, name, nutrients } }
   }
 
   async findAll(id: number) {
-    const result = await this.repository.find({ where: { user: { id } } })
+    const result = (await this.repository.find({ where: { user: { id } } }))
+      .map(({ id, name, ...nutrients }) => ({
+        id,
+        name,
+        nutrients
+      }))
     return { result }
   }
 
-  findOne(id: number) {
-    const result = this.repository.find({ where: { user: { id } } })
+  async findOne(id: number) {
+    const result = (await this.repository.find({ where: { user: { id } } }))
+      .map(({ name, id, ...nutrients }) => ({
+        name,
+        id,
+        nutrients
+      }))
     return { result }
   }
 
   async update(
-    id: number,
+    normId: number,
     userId: number,
     updateUserNormDto: UpdateUserNormDto,
   ) {
     const user = new User()
     user.id = userId
 
-    const norms = this.repository.create(updateUserNormDto)
+    const norms = this.repository.create({ name: updateUserNormDto.name, ...updateUserNormDto.nutrients })
     norms.user = user
-    norms.id = id
+    norms.id = normId
+    norms.name = updateUserNormDto.name
 
-    const result = await this.repository.save(norms)
-    return { result }
+    const { name, id, ...nutrients } = await this.repository.save(norms)
+    return { result: { id, nutrients } }
   }
 
   async remove(id: number, userId: number) {

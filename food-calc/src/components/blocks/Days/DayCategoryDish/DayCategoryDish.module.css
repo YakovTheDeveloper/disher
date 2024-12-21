@@ -7,6 +7,10 @@
     padding: 12px 10px 8px 8px;
     cursor: default;
     box-shadow: var(--box-shadow-xs);
+
+    &:hover .removeButton {
+        color: var(--color-light-gray);
+    }
 }
 
 .after {}
@@ -20,3 +24,7 @@
 }
 
 .loading {}
+
+.removeButton {
+    color: white;
+}

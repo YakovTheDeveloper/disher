@@ -18,7 +18,7 @@ const SearchProductList = ({ searchValue }) => {
     })
 
     async function onAdd(product: IProductBase) {
-        addProductToDishUseCase.execute({
+        Flows.Dish.addProduct({
             ...product,
             quantity: 100
         })
@@ -32,7 +32,7 @@ const SearchProductList = ({ searchValue }) => {
                     productId={product.id}
                     onClick={() => onAdd(product)}
                     hasProduct={hasProduct}
-                    productIds={rootDishStore.currentDish?.productIds}
+                    productIds={rootDishStore.currentStore?.productIds}
                 >
                     {product.nameRu}
                 </SearchProductListItem>)}

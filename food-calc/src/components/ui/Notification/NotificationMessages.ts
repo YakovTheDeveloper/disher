@@ -13,6 +13,7 @@ export const notificationMessages: Messages = {
             save: () => `Не получилось сохранить, попробуйте позднее`,
             update: () => `Не получилось обновить, попробуйте позднее`,
             delete: () => `Не получилось удалить, попробуйте позднее`,
+            getAll: () => `Не удалось получить дни, попробуйте позднее`
         }
     },
     dish: {
@@ -25,6 +26,7 @@ export const notificationMessages: Messages = {
             save: () => `Не получилось сохранить, попробуйте позднее`,
             update: () => `Не получилось обновить, попробуйте позднее`,
             delete: () => `Не получилось удалить, попробуйте позднее`,
+            getAll: () => `Не удалось получить блюда, попробуйте позднее`
         }
     },
     norm: {
@@ -37,6 +39,7 @@ export const notificationMessages: Messages = {
             save: () => `Не получилось сохранить, попробуйте позднее`,
             update: () => `Не получилось обновить, попробуйте позднее`,
             delete: () => `Не получилось удалить, попробуйте позднее`,
+            getAll: () => `Не удалось получить нормы, попробуйте позднее`
         }
     }
 
@@ -45,6 +48,6 @@ export const notificationMessages: Messages = {
 type OperationObject = Record<Operations, (name: string) => string>
 
 type Messages = Record<EntityNames, {
-    success: OperationObject
+    success: Omit<OperationObject, 'getAll'>
     error: OperationObject
 }>

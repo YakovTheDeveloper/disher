@@ -10,17 +10,29 @@ type Props = {
   isActive: boolean
   after?: React.ReactNode
   before?: React.ReactNode
+  label?: string
   draft?: boolean,
   disabled?: boolean
   containerClassName?: string
   innerClassName?: string
 }
 const Tab = (props: Props) => {
-  const { onClick, children, isActive, before, after, draft, containerClassName, disabled, innerClassName } = props
+  const { onClick, children, isActive, before, after, label, draft, containerClassName, disabled, innerClassName } = props
   return (
     <li className={clsx([s.tab, isActive && s.active, draft && s.draft, containerClassName, disabled && s.disabled])}>
 
-      {draft && <Typography className={s.draftCaption} align='center' variant='caption'>черновик</Typography>}
+      {draft && (
+        <Typography className={s.draftCaption} align='center' variant='caption'>
+          черновик
+        </Typography>
+      )}
+
+      {label && (
+        <Typography className={s.draftCaption} align='center' variant='caption'>
+          {label}
+        </Typography>
+      )}
+
 
       <div className={clsx([s.tabContent])}>
         {before &&

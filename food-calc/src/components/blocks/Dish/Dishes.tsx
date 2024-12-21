@@ -10,36 +10,39 @@ import NutrientValue from "@/components/blocks/NutrientsTotal/NutrientValue/Nutr
 import DraftActions2 from "@/components/blocks/common/Actions/DraftActions2"
 import UserActions2 from "@/components/blocks/common/Actions/UserActions2"
 import Container from "@/components/ui/Container/Container"
+import { RootEntityStore } from "@/store/common/types"
+import { IDish } from "@/types/dish/dish"
+import { useEffect } from "react"
 
 type Props = {
-    store: UserDishStore | DraftDishStore
-    children: React.ReactNode
+    rootStore: RootEntityStore<IDish, UserDishStore, DraftDishStore>
 }
 
 
-function Dishes(props: Props) {
-    const { store } = props
-    const { loadingState, draftDish, currentDish } = rootDishStore
+function Dishes({ rootStore = rootDishStore }: Props) {
+    const { loadingState, draftStore, currentStore } = rootStore
+
+    if (!currentStore) return null
 
     return (
         <Layout
             left={
-                <DishTabs />
+                <DishTabs rootStore={rootStore} />
             }
             center={
-                <Dish store={store}>
-                    {currentDish instanceof UserDishStore
+                <Dish store={currentStore}>
+                    {currentStore instanceof UserDishStore
                         ? <UserActions2
-                            store={currentDish}
+                            store={currentStore}
                             loadingState={loadingState}
-                            remove={() => Flows.Dish.remove(currentDish.id, currentDish.name)}
-                            update={() => Flows.Dish.update(currentDish.id, currentDish.name)}
-                            resetToInit={currentDish.resetToInit}
+                            remove={() => Flows.Dish.remove(currentStore.id, currentStore.name)}
+                            update={() => Flows.Dish.update(currentStore.id, currentStore.name)}
+                            resetToInit={currentStore.resetToInit}
                         />
                         : <DraftActions2
                             loadingState={loadingState}
-                            isEmpty={draftDish.empty}
-                            resetToInit={draftDish.resetToInit}
+                            isEmpty={draftStore.empty}
+                            resetToInit={draftStore.resetToInit}
                             save={() => Flows.Dish.create()}
                         />
                     }
@@ -68,9 +71,9 @@ function Dishes(props: Props) {
                 </NutrientsTotal>
             }
             overlayCenter={
-                (store instanceof DraftDishStore && loadingState.getLoading('save'))
-                || loadingState.getLoading('update', store.id)
-                || loadingState.getLoading('delete', store.id)
+                (currentStore instanceof DraftDishStore && loadingState.getLoading('save'))
+                || loadingState.getLoading('update', currentStore.id)
+                || loadingState.getLoading('delete', currentStore.id)
             }
         />
 

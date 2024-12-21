@@ -2,14 +2,18 @@ import { fetchCreateNorm, fetchDeleteNorm, fetchGetAllNorm } from "@/api/norm";
 import { DetectChangesStore } from "@/store/common/DetectChangesStore";
 import { FetchManager } from "@/store/common/FetchManagerStore";
 import { LoadingStateStore } from "@/store/common/LoadingStateStore";
-import { DraftStore, RootEntityStore, UserDataStore } from "@/store/common/types";
+import { DraftStore, RootEntity, RootEntityStore, UserDataStore } from "@/store/common/types";
 import {
   DailyNormFetchManager,
 } from "@/store/dailyNormStore/fetchManagerStore";
-import { DailyNorm } from "@/types/norm/norm";
+import { UserDayStore2 } from "@/store/rootDayStore/dayStore2";
+import { Flows } from "@/store/rootStore";
+import { DailyNorm, DailyNormV2 } from "@/types/norm/norm";
+import { GenerateId } from "@/utils/uuidNumber";
 import {
   action,
   autorun,
+  computed,
   makeAutoObservable,
   makeObservable,
   observable,
@@ -21,103 +25,44 @@ const DRAFT_ID = -1;
 
 export type DailyNormNoId = Omit<DailyNorm, "id">;
 
-export class RootDailyNormStore implements RootEntityStore {
+export class RootDailyNormStore extends RootEntityStore<DailyNormV2, UserNormStore, DraftNormStore> {
   constructor() {
-    makeAutoObservable(this);
-
-    autorun(() => {
-      this.getAll()
+    super(UserNormStore)
+    makeObservable(this, {
+      dailyNormIdCurrentlyInUse: observable,
+      draftStore: observable,
+      currentDailyNormUsedInCalculations: computed,
+      setCurrentDailyNormInUseId: action
     });
   }
 
-  loadingState = new LoadingStateStore()
+  draftStore = new DraftNormStore({ id: -1, nutrients: structuredClone(nutrientsInit), name: 'Новая дневная норма' })
 
-  fetchManager: FetchManager<DailyNorm> = new DailyNormFetchManager(this.loadingState);
+  fetchManager: FetchManager<DailyNormV2> = new DailyNormFetchManager(this.loadingState);
 
-  currentId: number = DRAFT_ID;
+  defaultNorms = [
+    new DefaultNormStore('Стандарт', nutrientsInit),
+    new DefaultNormStore('Спорт', nutrientsInit)
+  ]
 
-  draftNorm = new DraftNormStore(this);
-
-  norms: UserNormStore[] = [];
-
-  dailyNormIdCurrentlyInUse: number = DRAFT_ID;
+  dailyNormIdCurrentlyInUse: number = this.defaultNorms[0].id;
 
   get stores() {
-    return [this.draftNorm, ...this.norms];
-  }
-
-  get currentStore() {
-    return this.stores.find(({ id }) => id === this.currentId);
+    return [this.draftStore, ...this.defaultNorms, ...this.userStores];
   }
 
   get currentDailyNormUsedInCalculations() {
-    return this.stores.find(({ id }) => id === this.dailyNormIdCurrentlyInUse)?.payload;
+    return this.stores.find(({ id }) => id === this.dailyNormIdCurrentlyInUse)?.nutrients;
   }
-
-  setCurrentId = (id: number) => {
-    this.currentId = id;
-  };
 
   setCurrentDailyNormInUseId = (id: number) => {
     this.dailyNormIdCurrentlyInUse = id;
   };
 
-  isDraftId = (id: number) => {
-    return id === DRAFT_ID;
-  };
-
-  create = (norm: DailyNorm) => {
-    const { id, ...nutrients } = norm;
-    const store = new UserNormStore(this);
-    store.id = id;
-    store.nutrients = nutrients;
-    return store;
-  };
-
-  add = (data: DailyNorm | DailyNorm[]) => {
-    if (data instanceof Array) {
-      const stores = data.map((result) => this.create(result));
-      this.norms = [...this.norms, ...stores];
-      return;
-    }
-    this.norms = [...this.norms, this.create(data)];
-    this.setCurrentId(data.id);
-  };
-
-  getAll = async () => {
-    return this.fetchManager.getAll().then((res) => {
-      if (res.isError) return res;
-      this.add(res.data);
-      return res
-    });
-  }
-
-  save = async (payload: DailyNormNoId) => {
-    return this.fetchManager.create(payload).then((res) => {
-      if (res.isError) return res;
-      this.add(res.data);
-      return res
-    });
-  };
-
-  update = async (id: number, payload: DailyNorm) => {
-    return this.fetchManager.update(+id, payload).then((res) => {
-      return res
-    });
-  };
-
-  remove = async (id: number) => {
-    return this.fetchManager.delete(+id).then((res) => {
-      if (res.isError) return res;
-      this.norms = this.norms.filter((norm) => +norm.id !== +id);
-      this.setCurrentId(DRAFT_ID);
-      return res
-    });
-  };
 }
 
 export class DailyNormStore {
-  constructor() {
+  constructor(data: DailyNormV2) {
     makeObservable(this, {
       name: observable,
       nutrients: observable,
@@ -125,30 +70,48 @@ export class DailyNormStore {
       updateNutrient: action,
       setName: action
     });
+    const { id, nutrients, name } = data
+    this.id = id
+    this.nutrients = nutrients
+    this.name = name
   }
 
   name = "Новая дневная норма";
 
-  nutrients: Omit<DailyNorm, "id"> = structuredClone(nutrients);
+  nutrients: Omit<DailyNorm, "id"> = structuredClone(nutrientsInit);
   id: number = DRAFT_ID;
 
-  get payload() {
-    return this.nutrients;
+  get payload(): Omit<DailyNormV2, "id"> {
+    return {
+      name: this.name,
+      nutrients: this.nutrients
+    };
   }
 
-  updateNutrient = (nutrient: keyof Omit<DailyNorm, "id">, value: number) => {
+  updateNutrient = (nutrient: keyof DailyNormV2['nutrients'], value: number) => {
     this.nutrients[nutrient] = value;
   };
 
   setName = (value: string) => this.name = value
 }
 
+export class DefaultNormStore {
+  constructor(name: string, initNutrients: Omit<DailyNorm, "id">) {
+    makeAutoObservable(this);
+    this.name = name
+    this.nutrients = initNutrients
+  }
+  name = "Новая дневная норма";
+  nutrients: Omit<DailyNorm, "id"> = structuredClone(nutrientsInit);
+  id: number = GenerateId();
+}
+
 export class UserNormStore
   extends DailyNormStore
   implements UserDataStore<Omit<DailyNorm, "id">> {
 
-  constructor(private rootStore: RootDailyNormStore) {
-    super();
+  constructor(data: DailyNormV2) {
+    super(data);
     makeObservable(this, {});
     this.detectChangesStore = new DetectChangesStore(this.nutrients);
 
@@ -160,19 +123,6 @@ export class UserNormStore
     );
   }
 
-  save = async () => {
-    return this.rootStore.update(this.id, this.payload).then((res) => {
-      if (res.isError) return res
-      this.detectChangesStore.updateSnapshot(this.nutrients);
-      return res
-    });
-  };
-
-  remove = async () => {
-    //this.id
-    return this.rootStore.remove(this.id);
-  };
-
   get empty() {
     return false;
   }
@@ -182,34 +132,25 @@ export class UserNormStore
     this.nutrients = this.detectChangesStore.initProductsSnapshotCopy;
   };
 
-  // get loading() {
-  //   const state = this.rootStore.loadingState.getLoading('update', this.id)
-  //   return state.update.get(+this.id) || state.delete.get(+this.id) || false;
-  // }
-
   detectChangesStore: DetectChangesStore<Omit<DailyNorm, "id">>;
 }
 
 export class DraftNormStore extends DailyNormStore implements DraftStore {
-  constructor(private rootStore: RootDailyNormStore) {
-    super();
+  constructor(data: DailyNormV2) {
+    super(data);
     makeObservable(this, {});
   }
-
-  save = async () => {
-    return this.rootStore.save(this.payload);
-  };
 
   get empty() {
     return false;
   }
 
   resetToInit = async () => {
-    this.nutrients = structuredClone(nutrients);
+    this.nutrients = structuredClone(nutrientsInit);
   };
 }
 
-const nutrients = {
+const nutrientsInit = {
   protein: 51,
   fats: 70,
   carbohydrates: 275,

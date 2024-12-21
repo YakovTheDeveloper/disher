@@ -1,96 +1,102 @@
-import { IsInt, IsOptional, IsPositive, IsNumber } from 'class-validator';
+import { IsNumber, IsOptional } from 'class-validator';
 
 export class CreateUserNormDto {
+    name: string; // Name of the user norm
+
+    nutrients: NutrientsDto
+}
+
+class NutrientsDto {
     @IsNumber()
-    protein?: number; // Protein (g)
+    protein: number; // Protein (g)
 
     @IsNumber()
-    fats?: number; // Fats (g)
+    fats: number; // Fats (g)
 
     @IsNumber()
-    carbohydrates?: number; // Carbohydrates (g)
+    carbohydrates: number; // Carbohydrates (g)
 
     @IsNumber()
-    fiber?: number; // Fiber (g)
+    fiber: number; // Fiber (g)
 
     @IsNumber()
-    energy?: number; // Energy (kcal)
+    energy: number; // Energy (kcal)
 
     @IsNumber()
-    water?: number; // Water (g)
+    water: number; // Water (g)
 
     @IsNumber()
-    iron?: number; // Iron (mg)
+    iron: number; // Iron (mg)
 
     @IsNumber()
-    magnesium?: number; // Magnesium (mg)
+    magnesium: number; // Magnesium (mg)
 
     @IsNumber()
-    phosphorus?: number; // Phosphorus (mg)
+    phosphorus: number; // Phosphorus (mg)
 
     @IsNumber()
-    potassium?: number; // Potassium (mg)
+    potassium: number; // Potassium (mg)
 
     @IsNumber()
-    sodium?: number; // Sodium (mg)
+    sodium: number; // Sodium (mg)
 
     @IsNumber()
-    zinc?: number; // Zinc (mg)
+    zinc: number; // Zinc (mg)
 
     @IsNumber()
-    copper?: number; // Copper (μg)
+    copper: number; // Copper (μg)
 
     @IsNumber()
-    manganese?: number; // Manganese (μg)
+    manganese: number; // Manganese (μg)
 
     @IsNumber()
-    selenium?: number; // Selenium (μg)
+    selenium: number; // Selenium (μg)
 
     @IsNumber()
-    iodine?: number; // Iodine (μg)
+    iodine: number; // Iodine (μg)
 
     @IsNumber()
-    vitaminA?: number; // Vitamin A (μg)
+    vitaminA: number; // Vitamin A (μg)
 
     @IsNumber()
-    vitaminB1?: number; // Vitamin B1 (mg)
+    vitaminB1: number; // Vitamin B1 (mg)
 
     @IsNumber()
-    vitaminB2?: number; // Vitamin B2 (mg)
+    vitaminB2: number; // Vitamin B2 (mg)
 
     @IsNumber()
-    vitaminB3?: number; // Vitamin B3 (mg)
+    vitaminB3: number; // Vitamin B3 (mg)
 
     @IsNumber()
-    vitaminB4?: number; // Vitamin B4 (mg)
+    vitaminB4: number; // Vitamin B4 (mg)
 
     @IsNumber()
-    vitaminB5?: number; // Vitamin B5 (mg)
+    vitaminB5: number; // Vitamin B5 (mg)
 
     @IsNumber()
-    vitaminB6?: number; // Vitamin B6 (mg)
+    vitaminB6: number; // Vitamin B6 (mg)
 
     @IsNumber()
-    vitaminB9?: number; // Vitamin B9 (μg)
+    vitaminB9: number; // Vitamin B9 (μg)
 
     @IsNumber()
-    vitaminB12?: number; // Vitamin B12 (μg)
+    vitaminB12: number; // Vitamin B12 (μg)
 
     @IsNumber()
-    vitaminC?: number; // Vitamin C (mg)
+    vitaminC: number; // Vitamin C (mg)
 
     @IsNumber()
-    vitaminD?: number; // Vitamin D (μg)
+    vitaminD: number; // Vitamin D (μg)
 
     @IsNumber()
-    vitaminE?: number; // Vitamin E (mg)
+    vitaminE: number; // Vitamin E (mg)
 
     @IsNumber()
-    vitaminK?: number; // Vitamin K (μg)
+    vitaminK: number; // Vitamin K (μg)
 
     @IsNumber()
-    betaCarotene?: number; // Beta-carotene (μg)
+    betaCarotene: number; // Beta-carotene (μg)
 
     @IsNumber()
-    alphaCarotene?: number; // Alpha-carotene (μg)
+    alphaCarotene: number; // Alpha-carotene (μg)
 }

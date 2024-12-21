@@ -9,4 +9,4 @@ export type ISODate = string
 
 export type EntityNames = 'day' | 'dish' | 'norm'
 
-export type Operations = 'save' | 'update' | 'delete'
+export type Operations = 'save' | 'update' | 'delete' | 'getAll'

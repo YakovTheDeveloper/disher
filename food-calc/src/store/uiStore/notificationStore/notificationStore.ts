@@ -22,7 +22,6 @@ export class NotificationStore {
     }
 
     success = (variant: EntityNames, operation: Operations, name: string) => {
-        console.log("good", variant, operation)
         const message = notificationMessages[variant]['success'][operation]
         this.push({ variant: 'success', message: message(name) })
     }

@@ -26,7 +26,7 @@ export class CalculationReactionStore {
 
     private initializeReactions() {
         reaction(
-            () => toJS(this.rootDishStore.currentDish?.products),
+            () => toJS(this.rootDishStore.currentStore?.products),
             (products) => {
                 console.log('reaction I: products change')
                 products && this.updateDishCalculationsWithCurrentProducts();
@@ -34,7 +34,7 @@ export class CalculationReactionStore {
         );
 
         const fetchProductsAndUpdateDishCalculations = reaction(
-            () => this.rootDishStore.currentDish,
+            () => this.rootDishStore.currentStore,
             (dish) => {
                 console.log('reaction II: current dish')
                 if (!dish) return;
@@ -99,7 +99,7 @@ export class CalculationReactionStore {
     }
 
     updateDishCalculationsWithCurrentProducts = () => {
-        const currentDish = this.rootDishStore.currentDish;
+        const currentDish = this.rootDishStore.currentStore;
         this.calculationDishStore.update(currentDish?.products || []);
     }
 

@@ -37,9 +37,6 @@ function Dish(props: Props) {
     uiStore.modal.openModal(Modals.Product, product);
   };
 
-
-  console.log(toJS(products))
-
   return (
     <section className={s.dish}>
       <SearchProduct />

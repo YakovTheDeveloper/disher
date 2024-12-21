@@ -2,8 +2,6 @@
 
 import * as ReactDOM from "react-dom/client";
 
-import CreateDish from "./components/blocks/CreateDish/CreateDish.tsx";
-
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "./index.css";
@@ -18,6 +16,7 @@ import Days from "@/components/blocks/Days/Days.tsx";
 import DailyNorms from "@/components/blocks/DailyNorms/DailyNorms.tsx";
 import DaysCalendar from "@/components/blocks/DaysCalendar/DaysCalendar.tsx";
 import Root from "@/Root.tsx";
+import Dishes from "@/components/blocks/Dish/Dishes.tsx";
 
 export const RouterPaths = {
   main: {
@@ -44,7 +43,7 @@ const router = createBrowserRouter([
       {
         path: "",
 
-        element: <CreateDish />,
+        element: <Dishes />,
       },
       {
         path: "/add_product",

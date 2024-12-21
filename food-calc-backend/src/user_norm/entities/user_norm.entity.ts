@@ -16,6 +16,9 @@ export class UserNorm {
     @ManyToOne(() => User, user => user.norms)
     user: User;
 
+    @Column()
+    name: string
+
     @Column({ type: 'float', nullable: false })
     protein: number;
 
