@@ -25,7 +25,7 @@ const Slider: React.FC<SliderProps> = ({
   value,
   onChange,
   label,
-  marks = [0, 100, 200, 300, 400, 500],
+  marks = [0, 100, 200, 300, 400],
   className
 }) => {
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -66,7 +66,7 @@ const Slider: React.FC<SliderProps> = ({
   return (
     <div className={clsx([styles.container, className])}>
       {label && <div className={styles.label}>{label}</div>}
-      <div className={styles.helperValues}>
+      {/* <div className={styles.helperValues}>
         {marks.map(mark => (
           <span
             className={styles.helperValue}
@@ -75,7 +75,7 @@ const Slider: React.FC<SliderProps> = ({
             {mark}
           </span>
         ))}
-      </div>
+      </div> */}
       <div
         ref={sliderRef}
         className={styles.slider}
@@ -86,6 +86,15 @@ const Slider: React.FC<SliderProps> = ({
           max={max}
           step={step}
         />
+        {/* <span
+          className={s.previewValue}
+          style={{
+            left: `${hoverPercentage}%`,
+          }}
+        >
+          {previewValue.toFixed()}
+
+        </span> */}
         <div
           className={styles.track}
           style={{ width: `${percentage}%` }}
@@ -93,7 +102,7 @@ const Slider: React.FC<SliderProps> = ({
         <div
           className={styles.thumb}
           style={{
-            left: `calc(${percentage}% - 8px)`,
+            left: `calc(${percentage}% - 16px)`,
           }}
         />
       </div>

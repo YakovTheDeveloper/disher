@@ -9,3 +9,7 @@ export async function fetchSignUp(payload: SignUpPayload): Promise<AuthResponse>
 export async function fetchSignIn(payload: SignInPayload): Promise<AuthResponse> {
     return await api.post(apiRoutes.auth.signIn, payload)
 }
+
+export async function fetchGetMe(): Promise<AuthResponse> {
+    return await api.get(apiRoutes.auth.user)
+}

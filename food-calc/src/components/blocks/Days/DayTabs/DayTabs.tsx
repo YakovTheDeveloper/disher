@@ -29,7 +29,7 @@ const DayTabs = ({ day }: Props) => {
                 isActive={currentDayId === draftDayStore.id}
                 onClick={() => setCurrentDayId(draftDayStore.id)}
             >
-                Новый день
+                Новый рацион
             </Tab>
             {userDayStores.map(({ id, name }) => (
                 <Tab

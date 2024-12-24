@@ -1,15 +1,17 @@
 import React, { useEffect, useRef } from 'react'
-import s from './Modal.module.scss'
+import s from './Modal.module.css'
 import { uiStore } from '@/store/rootStore';
 import useOutsideClick from '@/hooks/useOutsideClick';
+import clsx from 'clsx';
 
 
 type Props = {
     children: React.ReactNode
+    className?: string,
     isOpen: boolean
 }
 
-const Modal = ({ isOpen, children }: Props) => {
+const Modal = ({ isOpen, children, className }: Props) => {
     const ref: React.Ref<HTMLDialogElement> = useRef(null);
 
     const { closeModal } = uiStore.modal
@@ -35,7 +37,7 @@ const Modal = ({ isOpen, children }: Props) => {
             ref={ref}
             onCancel={closeModal}
             onMouseDown={onMouseDown}
-            className={s.modal}
+            className={clsx(s.modal, className)}
         >
 
             {/* <button onClick={closeModal}>
@@ -44,6 +46,7 @@ const Modal = ({ isOpen, children }: Props) => {
             <div className={s.inner}>
                 {children}
             </div>
+            <div className={s.background} />
         </dialog>
     );
 }

@@ -10,11 +10,11 @@ import { useEffect } from "react";
 const Root = () => {
 
     useEffect(() => {
-        fetchGetProducts().then((res) => {
-            if (res.isError) return
-            productStore.setProductsBase(res.data)
-        });
-        Flows.Dish.getAll()
+        // fetchGetProducts().then((res) => {
+        //     if (res.isError) return
+        //     productStore.setProductsBase(res.data)
+        // });
+        // Flows.Dish.getAll()
     }, []);
 
     return (

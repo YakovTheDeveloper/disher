@@ -1,3 +1,5 @@
+import { Response } from "@/types/api/common"
+
 export type SignUpPayload = {
     "login": string,
     "password": string,
@@ -9,7 +11,7 @@ export type SignInPayload = {
     "password": string,
 }
 
-export type AuthResponse = {
+export type AuthResponse = Response<{
     login: string,
     access_token: string
-}
+}>

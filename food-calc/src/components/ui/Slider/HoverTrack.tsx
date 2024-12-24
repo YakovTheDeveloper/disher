@@ -1,6 +1,7 @@
-import React, { useRef, useState } from "react";
+import React, { memo, useRef, useState } from "react";
 import s from "./HoverTrack.module.css";
 import { debounce } from "@/utils/debounce";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/Tooltip/Tooltip";
 
 interface HoverTrackProps {
     min: number;
@@ -52,7 +53,6 @@ const HoverTrack: React.FC<HoverTrackProps> = ({ min, max, step }) => {
         setHoverPercentage(0);
         onHover(null);
     };
-
     return (
         <div
             ref={ref}
@@ -74,12 +74,13 @@ const HoverTrack: React.FC<HoverTrackProps> = ({ min, max, step }) => {
                         left: `${hoverPercentage}%`,
                     }}
                 >
-                    {previewValue.toFixed()} {/* Customize the display format */}
+                    {previewValue?.toFixed()}
 
                 </span>
             )}
         </div>
     );
+
 };
 
-export default HoverTrack;
+export default memo(HoverTrack);

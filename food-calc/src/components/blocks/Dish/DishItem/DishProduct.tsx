@@ -39,8 +39,11 @@ function DishProduct({
     debouncedUpdate(value);
   };
 
-
-
+  const productNameClasses = clsx([
+    s.productName,
+    onNameClick && s.productNameClickable
+  ])
+  const onProductNameClick = () => !isLoading && onNameClick?.()
 
   const isLoading = productStore.loadingState.getLoading('getOne', id)
 
@@ -50,24 +53,20 @@ function DishProduct({
     >
       <Overlay show={isLoading} />
       <div className={s.productNameContainer}>
-        <Typography
-          variant="body1"
-          clickable
-          onClick={
-            () => !isLoading && onNameClick?.()
-          }
-          className={clsx([
-            s.productName,
-            onNameClick && s.productNameClickable
-          ])}
-        >
-          {product.nameRu}
-        </Typography>
         <span className={clsx([s.showOnContainerHover, s.after])}>
           {after}
         </span>
       </div>
-      <QuantityControl quantity={quantity} onChange={handleChange} />
+      <QuantityControl quantity={quantity} onChange={handleChange} >
+        <Typography
+          variant="body1"
+          clickable
+          onClick={onProductNameClick}
+          className={productNameClasses}
+        >
+          {product.name}
+        </Typography>
+      </QuantityControl>
     </div>
   );
 }

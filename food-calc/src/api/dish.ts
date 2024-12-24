@@ -9,25 +9,25 @@ export type FoodCollection = 'menu' | 'dish'
 
 export async function fetchCreateDish(payload: CreateDishPayload): Promise<MenuCreateResponse> {
 
-    return await api.post(apiRoutes.dish.create, payload, AuthorizationHeader())
+    return await api.post(apiRoutes.dish.create, payload)
 }
 
 export async function fetchUpdateDish(id: number, payload: UpdateDishPayload): Promise<MenuCreateResponse> {
-    return await api.patch(apiRoutes.dish.update(id), payload, AuthorizationHeader())
+    return await api.patch(apiRoutes.dish.update(id), payload)
 }
 
 
 export async function fetchGetDish(id: number): Promise<GetDishResponse> {
-    return await api.get(apiRoutes.dish.get(id), AuthorizationHeader())
+    return await api.get(apiRoutes.dish.get(id))
 }
 
 export async function fetchGetAllDishes(): Promise<GetAllDishResponse> {
-    return await api.get(apiRoutes.dish.getAll, AuthorizationHeader())
+    return await api.get(apiRoutes.dish.getAll)
 }
 
 
 export async function fetchDeleteDish(id: number): Promise<any> {
-    return await api.delete(apiRoutes.dish.delete(id), AuthorizationHeader())
+    return await api.delete(apiRoutes.dish.delete(id))
 }
 
 export async function fetchGetDishProducts(dishIds: string[]) {

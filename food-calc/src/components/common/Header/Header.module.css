@@ -8,12 +8,12 @@
     &::after {
         content: '';
         background: linear-gradient(180deg,
-                rgba(225, 13, 13, 0.222) 0%,
-                rgba(227, 223, 5, 0.208) 30%,
-                rgba(158, 191, 168, 0.267) 53%,
-                rgba(151, 255, 118, 0.19) 67%,
-                rgba(196, 223, 57, 0.383) 86%,
-                rgba(104, 255, 103, 0.13) 100%);
+                rgba(225, 13, 13, 0.05) 0%,
+                rgba(227, 223, 5, 0.05) 30%,
+                rgba(158, 191, 168, 0.05) 53%,
+                rgba(151, 255, 118, 0.05) 67%,
+                rgba(196, 223, 57, 0.2) 86%,
+                rgba(104, 255, 103, 0.05) 100%);
         position: absolute;
         top: 0;
         left: 0;
@@ -34,7 +34,7 @@
     padding: 10px;
     position: fixed;
     width: var(--width-navigation-desktop);
-    padding-bottom: 25px;
+    padding-bottom: 20px;
     z-index: 2;
 }
 
@@ -62,7 +62,7 @@
     content: '';
     bottom: 0;
     width: 100%;
-    height: 3px;
+    height: 2px;
     background-color: var(--color-green);
 }
 

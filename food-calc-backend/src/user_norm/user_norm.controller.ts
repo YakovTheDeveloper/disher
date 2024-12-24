@@ -52,6 +52,6 @@ export class UserNormController {
     if (userId == null) {
       throw new BadRequestException('No such user id');
     }
-    return this.userNormService.remove(+id);
+    return this.userNormService.remove(+id, userId);
   }
 }

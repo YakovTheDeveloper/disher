@@ -8,3 +8,10 @@ export function getTokenFromLocalStorage() {
     }
     return null;
 }
+
+export function removeTokenFromLocalStorage() {
+    if (typeof localStorage !== 'undefined') {
+        return localStorage?.removeItem('access_token');
+    }
+    return null;
+}

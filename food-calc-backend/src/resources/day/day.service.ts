@@ -7,7 +7,7 @@ import { Day } from 'resources/day/entities/day.entity';
 import { DayCategory } from 'resources/day/entities/day_category.entity';
 import { DayCategoryDish } from 'resources/day/entities/day_category_dish.entity';
 import { DAY_CATEGORY_DISH_REPOSITORY, DAY_CATEGORY_REPOSITORY, DAY_REPOSITORY, DISH_REPOSITORY } from 'constants/provide';
-import { UpdateDayDto } from 'resources/day/dto/update-day.dto';
+import { PartUpdateDayDto, UpdateDayDto } from 'resources/day/dto/update-day.dto';
 import { isEmpty, isNotEmpty } from 'lib/utils/isEmpty';
 import { User } from 'users/entities/user.entity';
 import { CreateDayDto, DayCategoryDto } from 'resources/day/dto/create-day.dto';
@@ -389,14 +389,32 @@ export class DayService {
     return {
       result: true
     }
-
-
-
-
-
-
   }
 
+  async updatePart(
+    dayId: number,
+    dto: PartUpdateDayDto,
+    userId: number
+  ) {
+    const user = new User()
+    user.id = userId
+    // Fetch the existing Day with its categories and their relationships
+    const existingDay = await this.dayRepository.findOne({
+      where: { id: dayId },
+    });
+
+    if (!existingDay) {
+      throw new Error(`Day with ID ${dayId} not found`);
+    }
+
+    existingDay.date = dto.date
+
+    await this.dayRepository.save(existingDay);
+
+    return {
+      result: true
+    }
+  }
 
   async remove(id: number, userId: number) {
     const result = await this.dayRepository.delete({ id, user: { id: userId } })

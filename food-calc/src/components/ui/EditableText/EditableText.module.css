@@ -8,11 +8,18 @@
     }
 }
 
-.editableText {}
+.editableText {
+    cursor: pointer;
+    width: fit-content;
+
+    &:hover {
+        opacity: 0.8;
+    }
+}
 
 .editableTextInput {
     border: none;
-    padding: 7px 2px;
+    padding: 7px 3px 7px 2px;
     width: 100%;
 }
 
@@ -24,7 +31,7 @@
     height: 14px;
     border: none;
     opacity: 0.3;
-    margin-right: 10px;
+    margin-left: 10px;
 
     svg {
         min-width: 100%;

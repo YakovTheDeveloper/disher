@@ -32,6 +32,6 @@ export const defaultNutrients: { id: number, name: string, displayName: string, 
     { id: 29, name: 'vitaminD', displayName: 'Vitamin D', displayNameRu: 'Витамин D', unit: 'μg' },
     { id: 30, name: 'vitaminE', displayName: 'Vitamin E', displayNameRu: 'Витамин E', unit: 'mg' },
     { id: 31, name: 'vitaminK', displayName: 'Vitamin K', displayNameRu: 'Витамин K', unit: 'μg' },
-    { id: 32, name: 'betaCarotene', displayName: 'Beta-carotene', displayNameRu: 'Бета-каротин', unit: 'μg' },
-    { id: 33, name: 'alphaCarotene', displayName: 'Alpha-carotene', displayNameRu: 'Альфа-каротин', unit: 'μg' }
+    { id: 32, name: 'betaCarotene', displayName: 'Beta-carotene', displayNameRu: 'β-каротин', unit: 'μg' },
+    { id: 33, name: 'alphaCarotene', displayName: 'Alpha-carotene', displayNameRu: 'α-каротин', unit: 'μg' }
 ];

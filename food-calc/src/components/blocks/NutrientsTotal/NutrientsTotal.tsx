@@ -67,7 +67,7 @@ const NutrientsTotal = ({
   return (
     <div className={s.nutrientsTotal}>
 
-      <header className={s.header}>
+      {/* <header className={s.header}>
         <button className={s.filterButton} onClick={onFilterClick}>
           <EyeIcon />
         </button>
@@ -79,9 +79,7 @@ const NutrientsTotal = ({
           </>
         }
 
-      </header>
-      {/* {children} */}
-
+      </header> */}
 
       <NutrientsList
         rowPositionFirst={(nutrient) => {

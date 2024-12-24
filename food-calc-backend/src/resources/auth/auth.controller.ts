@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from './auth.dto';
+import { LocalAuthGuard } from 'resources/auth/auth.guard';
 
 
 @Controller('auth')
@@ -17,5 +18,13 @@ export class AuthController {
         return this.authService.signUp(dto)
     }
 
-
+    @UseGuards(LocalAuthGuard)
+    @Get('me')
+    getUser(@Req() request: Request) {
+        const userId = request.user?.id
+        if (userId == null) {
+            throw new BadRequestException('No such user id');
+        }
+        return this.authService.getMe(userId)
+    }
 }

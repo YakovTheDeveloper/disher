@@ -123,12 +123,12 @@ export class UserDishStore extends DishStore implements UserDataStore<IProductBa
         });
         this.detectChangesStore = new DetectChangesStore(this.products);
 
-        reaction(
-            () => [toJS(this.products)],
-            ([data]) => {
-                this.detectChangesStore.setData(data)
-            }
-        );
+        // reaction(
+        //     () => [toJS(this.products)],
+        //     ([data]) => {
+        //         this.detectChangesStore.setData(data)
+        //     }
+        // );
     }
 
     detectChangesStore: DetectChangesStore<IProductBase[]>

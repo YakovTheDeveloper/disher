@@ -35,14 +35,14 @@ const UserActions2 = ({
                 onClick={() => update(+id)}
                 disabled={loading}
             >
-                Обновить
+                Обновить блюдо
             </Button>
             <span className={s.loading}>{loading && <Spinner />}</span>
-            {detectChangesStore?.changeOccured &&
+            {/* {detectChangesStore?.changeOccured &&
                 <Button onClick={resetToInit} variant="danger" disabled={loading}>
                     Отменить изменения
                 </Button>
-            }
+            } */}
 
             <Tooltip placement='left-start'>
                 <RemoveTooltip

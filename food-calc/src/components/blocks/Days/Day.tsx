@@ -21,26 +21,19 @@ type Props = {
     actions: React.ReactNode
 }
 
-export type DishAddOptions = {
-    categoryId: string
-    categoryName: string
-}
-
 const Day = (props: Props) => {
     const { store, children, actions } = props
     const {
-        categories,
         name,
         date,
-        currentCategoryId,
+        id,
         createNewCategory,
         updateName,
         updateDate,
-        id
     } = store
 
     return (
-        <section className={s.day}>
+        <section className={s.day} key={id}>
             <header className={s.header}>
                 <EditableText
                     value={name}

@@ -3,7 +3,7 @@ import s from "./Button.module.css";
 import clsx from "clsx";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "tertiary" | "danger";
+  variant?: "primary" | "secondary" | "tertiary" | "danger" | 'ghost';
   isLoading?: boolean;
   before?: React.ReactNode;
 }
@@ -14,6 +14,7 @@ const Button: FC<ButtonProps> = ({
   variant = "primary",
   isLoading = false,
   className,
+  type = 'button',
   ...props
 }) => {
   const buttonClasses = clsx(
@@ -27,6 +28,7 @@ const Button: FC<ButtonProps> = ({
     <button
       className={buttonClasses}
       disabled={isLoading || props.disabled} // Disable button during loading
+      type={type}
       {...props}
     >
       {before}

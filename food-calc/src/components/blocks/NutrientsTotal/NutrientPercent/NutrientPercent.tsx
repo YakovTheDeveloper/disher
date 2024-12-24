@@ -83,9 +83,9 @@ const NutrientPercent = ({ nutrientQuantity, nutrient, dailyNutrientNorm, childr
 
                 />
             </div>}
-            <span className={s.percentSign}>
+            {/* <span className={s.percentSign}>
                 %
-            </span>
+            </span> */}
             {showFindRichProduct &&
                 <FindRichButton
                     percantageView={percantageView}

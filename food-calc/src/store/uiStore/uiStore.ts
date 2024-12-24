@@ -14,15 +14,21 @@ export type DayContent = 'day' | 'calendar'
 
 export class UiStore {
 
-  modal = new ModalStore()
-
-  dayCalendarDate: ISODate = ''
+  dayCalendarDate: ISODate = new Date().toISOString()
 
   tooltip = new TooltipStore()
 
   setDayCalendarDate = (date: ISODate) => { this.dayCalendarDate = date }
 
-  constructor(private notification: NotificationStore) {
+  notification: NotificationStore
+  modal: ModalStore
+
+  constructor(
+    notification: NotificationStore,
+    modal: ModalStore
+  ) {
+    this.notification = notification
+    this.modal = modal
     makeAutoObservable(this);
   }
 }

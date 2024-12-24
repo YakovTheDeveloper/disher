@@ -21,7 +21,7 @@ const DraftActions2 = ({ save, resetToInit, isEmpty, loadingState }: Props) => {
         <div className={s.container}>
             {loading && <span className={s.loading}>{loading && <Spinner />}</span>}
             <Button className={s.mainButton} onClick={save} disabled={loading}>
-                Создать
+                Сохранить блюдо
             </Button>
             {!isEmpty && (
                 <Button onClick={resetToInit} variant="danger" disabled={loading} className={s.deleteButton}>

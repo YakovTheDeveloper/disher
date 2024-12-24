@@ -1,6 +1,22 @@
 .quantityControl {
+
+    /* display: grid;
+    grid-template-columns: auto 2fr 1fr;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 10px; */
+
     display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 20px;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.quantityControlHeader {
+    display: flex;
+    gap: 5px;
+    align-items: flex-start;
+}
+
+.quantityControlSlider {
+    width: 90%;
 }

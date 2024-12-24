@@ -8,7 +8,7 @@ export type IDish = {
 
 export type IProductBase = {
     name: string
-    nameRu: string
+    name: string
     id: number
     quantity: number
 }

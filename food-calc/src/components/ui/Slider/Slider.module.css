@@ -9,8 +9,9 @@
 
 .slider {
     position: relative;
-    height: 12px;
-    background: var(--color-light-green-2);
+    height: 1px;
+    /* border: 3px solid #ffffff; */
+    background: var(--color-light-gray-3);
     border-radius: 12px;
     cursor: pointer;
 }
@@ -24,15 +25,33 @@
 
 .thumb {
     position: absolute;
-    top: -5px;
-    width: 8px;
-    height: 20px;
-    background: var(--color-green);
-    border-radius: 7px;
-    border: 2px solid white;
+    top: -7px;
+    width: 16px;
+    height: 16px;
+    background: none;
+    border-radius: 50%;
     cursor: grab;
     transform: translateX(50%);
+    z-index: var(--z-index-slider-thumb);
     user-select: none;
+    background: transparent;
+
+    &:after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 50%;
+        transform: translate(50%, -50%);
+        border: 2px solid white;
+        width: 8px;
+        height: 8px;
+        background: rgb(142, 253, 187);
+        border-radius: 50%;
+    }
+}
+
+.thumb:hover:after {
+    background: var(--color-green);
 }
 
 .helperValues {

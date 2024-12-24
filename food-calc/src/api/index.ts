@@ -5,8 +5,30 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 // Create Axios Instance
 export const axiosInstance: AxiosInstance = axios.create({
     baseURL: "http://localhost:3000",
-    timeout: 5000, // Optional: Add a timeout for better handling
+    timeout: 5000,
 });
+
+axiosInstance.interceptors.request.use((config) => {
+    const token = getTokenFromLocalStorage();
+    if (token) {
+        config.headers = {
+            ...config.headers,
+            Authorization: `Bearer ${token}`,
+        };
+    }
+    return config;
+});
+
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            // Handle unauthorized access
+            // window.location.href = "/login"; // Or MobX store logout action
+        }
+        return Promise.reject(error);
+    }
+);
 
 // Utility: Get Authorization Header
 export function AuthorizationHeader(): AxiosRequestConfig {
@@ -41,8 +63,6 @@ async function apiRequest<T>(
     }
 }
 
-
-// API Methods
 export const api = {
     get: <T>(url: string, config?: AxiosRequestConfig) =>
         apiRequest<T>("get", url, undefined, config),
@@ -74,6 +94,7 @@ export const apiRoutes = {
     auth: {
         signUp: "auth/signUp",
         signIn: "auth/signIn",
+        user: "auth/me",
     },
     menu: {
         create: "menus",
@@ -107,98 +128,20 @@ export const apiRoutes = {
     },
 };
 
-// Example Usage: 
-// Fetch products
-async function fetchProducts() {
-    try {
-        const products = await api.get<any[]>(apiRoutes.products.get);
-        console.log(products);
-    } catch (error) {
-        console.error(error.message);
-    }
-}
 
+// const errorMessages: Record<number, string> = {
+//     400: "Bad Request",
+//     401: "Unauthorized. Please log in again.",
+//     403: "Forbidden. You don't have permission.",
+//     404: "Resource not found.",
+//     500: "Server error. Please try again later.",
+// };
 
-// import { FoodCollection } from '@/api/dish';
-// import { getTokenFromLocalStorage } from '@/lib/storage/localStorage';
-// import axios, { AxiosRequestConfig } from 'axios';
-
-
-// export const axiosInstance = axios.create({
-//     baseURL: "http://localhost:3000"
-// })
-
-
-// export const api = {
-//     get: async (url: string, config?: AxiosRequestConfig<any>) => {
-//         const result = await axiosInstance.get(url, config)
-//         if (result) return result.data
-//     },
-//     post: async (url: string, payload: any, config?: AxiosRequestConfig<any>) => {
-//         const result = await axiosInstance.post(url, payload, config)
-//         if (result) return result.data
-//     },
-//     patch: async (url: string, payload: any, config?: AxiosRequestConfig<any>) => {
-//         const result = await axiosInstance.patch(url, payload, config)
-//         if (result) return result.data
-//     },
-//     put: async (url: string, payload: any, config?: AxiosRequestConfig<any>) => {
-//         const result = await axiosInstance.put(url, payload, config)
-//         if (result) return result.data
-//     },
-//     delete: async (url: string, config?: AxiosRequestConfig<any>) => {
-//         const result = await axiosInstance.delete(url, config)
-//         if (result) return result.data
-//     },
-// }
-
-// export const apiRoutes = {
-//     products: {
-//         get: 'products'
-//     },
-//     productsWithNutrients: {
-//         get: (ids: number[]) => `products/nutrients?ids=${ids}`
-//     },
-//     auth: {
-//         signUp: 'auth/signUp',
-//         signIn: 'auth/signIn',
-//     },
-//     menu: {
-//         create: 'menus',
-//         update: (id: number) => `menus/${id}`,
-//         get: (id: number) => `menus/${id}`,
-//         delete: (id: number) => `menus/${id}`,
-//         getAll: 'menus'
-//     },
-//     day: {
-//         create: 'day',
-//         getAll: 'day',
-//         update: (id: number) => `${'day'}/${id}`,
-//         get: (id: number) => `${'day'}/${id}`,
-//         delete: (id: number) => `${'day'}/${id}`,
-//     },
-//     norm: {
-//         create: 'norm',
-//         update: (id: number) => `norm/${id}`,
-//         delete: (id: number) => `norm/${id}`,
-//         getAll: 'norm'
-//     },
-//     dish: {
-//         create: `${'dish'}`,
-//         update: (id: number) => `${'dish'}/${id}`,
-//         get: (id: number) => `${'dish'}/${id}`,
-//         delete: (id: number) => `${'dish'}/${id}`,
-//         getAll: `${'dish'}`
-//     },
-//     dishProducts: {
-//         get: (query: string) => `${'dish'}/products/?dish_ids=${query}`,
+// function getErrorMessage(error: any): string {
+//     if (axios.isAxiosError(error)) {
+//         const status = error.response?.status;
+//         return errorMessages[status] || error.response?.data?.message || "An error occurred.";
 //     }
+//     return "An unexpected error occurred.";
 // }
 
-// export function AuthorizationHeader() {
-//     return {
-//         headers: {
-//             Authorization: `Bearer ${getTokenFromLocalStorage()}`
-//         }
-//     }
-// }

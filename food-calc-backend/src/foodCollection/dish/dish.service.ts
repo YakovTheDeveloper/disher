@@ -31,7 +31,8 @@ export class DishService {
         "dish.name", // Assuming `name` exists on `dish`
         "dishToProducts.quantity",
         "product.id",
-        "product.name" // Assuming `name` exists on `product`
+        "product.name", // Assuming `name` exists on `product`
+        "product.nameRu",
       ])
       .getMany();
 
@@ -41,7 +42,7 @@ export class DishService {
       //@ts-ignore
       products: item.dishToProducts.map(dishProduct => ({
         id: dishProduct.product.id,
-        name: dishProduct.product.name,
+        name: dishProduct.product.nameRu,
         quantity: dishProduct.quantity
       }))
     }));

@@ -5,6 +5,7 @@ import { DayCategory, DayCategoryDish } from '@/types/day/day'
 import clsx from 'clsx'
 import { observer } from 'mobx-react-lite'
 import DishInCategoryStatus from '@/components/blocks/Days/DayCategoryDish/DishInCategoryStatus/DishInCategoryStatus'
+import { Typography } from '@/components/ui/Typography/Typography'
 
 type Props = {
     userDishes: UserDishStore[]
@@ -31,7 +32,7 @@ const DayDishesList = ({ userDishes, isDishInCategory, toggleDishInCategory }: P
                         })}
                         className={clsx(s.dayDishItem)}
                     >
-                        {dish.name}
+                        <Typography>{dish.name}</Typography>
                         <DishInCategoryStatus
                             isDishInCategory={isDishInCategory(dish.id)}
                         />

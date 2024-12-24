@@ -4,8 +4,15 @@ import { makeAutoObservable, toJS } from "mobx";
 
 type Payload = { Product: IProductBase | null };
 
+export enum Tab {
+    SignIn = 'signIn',
+    SignUp = 'signUp'
+}
+
 type ModalData = {
-    Auth: null;
+    Auth: {
+        currentTab: Tab
+    };
     Product: IProductBase | null;
     NutrientRichProduct: NutrientData | null
 }
@@ -24,7 +31,7 @@ export class ModalStore {
     currentModal: Modals | null = null;
 
     data: ModalData = {
-        Auth: null,
+        Auth: { currentTab: Tab.SignIn },
         Product: null,
         NutrientRichProduct: null
     };

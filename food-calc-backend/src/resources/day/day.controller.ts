@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req, BadRequestException } from '@nestjs/common';
 import { DayService } from './day.service';
 import { CreateDayDto } from './dto/create-day.dto';
-import { UpdateDayDto } from './dto/update-day.dto';
+import { PartUpdateDayDto, UpdateDayDto } from './dto/update-day.dto';
 import { LocalAuthGuard } from 'resources/auth/auth.guard';
 import { Request } from 'express';
 
@@ -44,6 +44,16 @@ export class DayController {
       throw new BadRequestException('No such user id');
     }
     return this.dayService.update(+id, updateDayDto, userId);
+  }
+
+  @UseGuards(LocalAuthGuard)
+  @Patch(':id')
+  updatePart(@Param('id') id: string, @Body() updateDayDto: PartUpdateDayDto, @Req() request: Request) {
+    const userId = request.user?.id
+    if (userId == null) {
+      throw new BadRequestException('No such user id');
+    }
+    return this.dayService.updatePart(+id, updateDayDto, userId);
   }
 
   @UseGuards(LocalAuthGuard)

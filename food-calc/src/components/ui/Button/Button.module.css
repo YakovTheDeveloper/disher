@@ -42,3 +42,9 @@
 .danger {
   color: var(--color-danger);
 }
+
+.ghost {
+  background-color: transparent;
+  color: var(--color-green);
+  padding: 0 2px;
+}

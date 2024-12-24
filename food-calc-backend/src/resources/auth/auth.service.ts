@@ -37,10 +37,12 @@ export class AuthService {
             const { password, ...jwtPayload } = createdUser
 
             return {
-                login: createdUser.login,
-                access_token: this.jwtService.sign({
-                    ...jwtPayload
-                }),
+                result: {
+                    login: createdUser.login,
+                    access_token: this.jwtService.sign({
+                        ...jwtPayload
+                    }),
+                }
             };
         }
     }
@@ -59,10 +61,30 @@ export class AuthService {
         const { password, ...jwtPayload } = existedUser
 
         return {
-            login: existedUser.login,
-            access_token: this.jwtService.sign(jwtPayload),
+            result: {
+                login: existedUser.login,
+                access_token: this.jwtService.sign(jwtPayload),
+            }
         };
     }
+
+    async getMe(userId: number) {
+        const existedUser = await this.usersService.findOne(userId)
+        if (!existedUser) {
+            throw new BadRequestException("User with such login doesn't exist");
+        }
+
+        const { password, ...jwtPayload } = existedUser
+
+        return {
+            result: {
+                id: existedUser.id,
+                login: existedUser.login,
+                access_token: this.jwtService.sign(jwtPayload),
+            }
+        };
+    }
+
 
     private async hashPassword(password: string): Promise<string> {
         const salt = await bcrypt.genSalt(10);

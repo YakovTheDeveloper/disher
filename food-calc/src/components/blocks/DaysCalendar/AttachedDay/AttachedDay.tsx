@@ -17,7 +17,7 @@ const AttachedDay = ({ userDayName, onUserDayClick }: Props) => {
     }
 
     return (
-        <Button variant='primary' onClick={handleNavigation}>
+        <Button variant='tertiary' onClick={handleNavigation}>
             <Typography>
                 {userDayName}
             </Typography>

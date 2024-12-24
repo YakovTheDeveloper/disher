@@ -2,10 +2,11 @@
 
 .dayDishItem {
     display: grid;
-    grid-template-columns: 70% auto;
+    grid-template-columns: 1fr 20px;
     /* border-radius: var(--brad-tab); */
     border: 1px solid #d6d6d6;
-    padding: 5px;
+    border-radius: 5px;
+    padding: 5px 4px 5px 11px;
 
     &:hover {
         cursor: pointer;

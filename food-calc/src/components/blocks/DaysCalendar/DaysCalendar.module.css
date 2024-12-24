@@ -1,0 +1,15 @@
+.calendar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 100%;
+}
+
+.attachDays {
+    min-height: 50%;
+}
+
+.attachDaysHeader {
+    display: flex;
+    flex-direction: column;
+}

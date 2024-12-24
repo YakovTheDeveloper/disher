@@ -13,6 +13,8 @@ import { DishFlow } from "@/store/useCasesStore/dishFlow";
 import { NotificationStore } from "@/store/uiStore/notificationStore/notificationStore";
 import { DayFlow } from "@/store/useCasesStore/dayFlow";
 import { DailyNormFlow } from "@/store/useCasesStore/dailyNormFlow";
+import { InitSetupFlow } from "@/store/useCasesStore/initSetupFlow";
+import { ModalStore } from "@/store/uiStore/modalStore/modalStore";
 
 export const productStore = new ProductStore();
 export const nutrientStore = new NutrientStore();
@@ -33,7 +35,9 @@ export const currentCalculationStore = new CalculationReactionStore(
 )
 
 const notificationStore = new NotificationStore()
-export const uiStore = new UiStore(notificationStore);
+
+export const modalStore = new ModalStore()
+export const uiStore = new UiStore(notificationStore, modalStore);
 
 export const userStore = new UserStore();
 
@@ -60,3 +64,5 @@ export const Flows = {
     notificationStore
   )
 }
+
+export const initSetupFlow = new InitSetupFlow(userStore, Flows)

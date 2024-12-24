@@ -46,7 +46,7 @@ const ModalRichNutrientProduct = ({ nutrient, before, isOpen, products, getData,
                         nutrients={nutrients}
                         nutrient={nutrient}
                         onProductAdd={() => Flows.Dish.addProduct({
-                            id, name, quantity: 100, nameRu: ''
+                            id, name, quantity: 100, name: ''
                         })}
                     />
                 ))}

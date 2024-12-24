@@ -32,7 +32,7 @@ function DishTabs({ rootStore }: Props) {
                     isActive={currentItemId === draftStore.id}
 
                 >
-                    Новое блюдо
+                    Создать блюдо
                 </Tab>
                 {userStores.map(({ id, name }) => (
                     <Tab

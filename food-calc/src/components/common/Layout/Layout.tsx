@@ -8,29 +8,27 @@ type Props = {
     left: React.ReactNode
     center: React.ReactNode
     right?: React.ReactNode
+    centerTop?: React.ReactNode
     overlayCenter?: boolean
 }
 
-const Layout = ({ left, center, right = null, overlayCenter }: Props) => {
+const Layout = ({ left, center, right = null, centerTop, overlayCenter }: Props) => {
 
     const columnClass = getColumnsContainerClass({ right })
 
     return (
-        <section className={clsx([s.layout, columnClass])}>
-            <Container className={s.left}>
+        <div className={clsx([s.layout, columnClass])}>
+            <section className={s.left}>
                 {left}
-            </Container>
-            <Container
-                boxShadow
-                size='medium'
-                className={clsx([s.center, overlayCenter && s.overlayCenter])}
+            </section>
+            <section className={clsx([s.center, overlayCenter && s.overlayCenter])}
             >
                 {center}
-            </Container>
-            {right && <Container className={s.right}>
+            </section>
+            {right && <section className={s.right} >
                 {right}
-            </Container>}
-        </section>
+            </section>}
+        </div>
     )
 }
 

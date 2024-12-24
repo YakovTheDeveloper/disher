@@ -90,6 +90,8 @@ export class DishFlow {
         this.root.addLocal(this.root.createChildStore(res.data))
         this.notifications.success('dish', 'save', payload.name)
         this.root.setCurrentId(res.data.id)
+        this.root.draftStore.resetToInit()
+
     }
 
     addProduct = async (product: IProductBase) => {

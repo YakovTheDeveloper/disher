@@ -8,12 +8,10 @@ import { NavLink } from "react-router-dom";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { Modals } from "@/store/uiStore/modalStore/modalStore";
 import LogoIcon from "@/assets/icons/logo.svg"; // Adjust the path as needed
+import { observer } from "mobx-react-lite";
 
 const Header = () => {
-  const { modal } = uiStore;
   const { user } = userStore;
-
-  const onSignIn = () => modal.openModal(Modals.Auth);
 
   return (
     <header className={s.header}>
@@ -32,12 +30,12 @@ const Header = () => {
           ))}
         </nav>
         <div className={s.auth}>
-          <AuthButton onClick={onSignIn}>Войти</AuthButton>
-          <div>{user?.login}</div>
+          <AuthButton />
+          {/* <div>{user?.login}</div> */}
         </div>
       </div>
     </header>
   );
 };
 
-export default Header;
+export default observer(Header);

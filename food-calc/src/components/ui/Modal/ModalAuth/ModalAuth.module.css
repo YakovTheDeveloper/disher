@@ -1,0 +1,24 @@
+.modal {
+    /* background: linear-gradient(180deg,
+            rgba(10, 206, 43, 0.222) 0%,
+            rgba(232, 228, 10, 0.208) 30%,
+            rgba(9, 210, 9, 0.13) 100%);
+    filter: blur(2px) */
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    /* min-height: 300px; */
+    justify-content: space-between;
+}
+
+.inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 12px;
+    min-width: 300px;
+
+}

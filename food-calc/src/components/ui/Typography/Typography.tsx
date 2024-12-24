@@ -29,6 +29,7 @@ export interface TypographyProps {
   style?: React.CSSProperties;
   offset?: boolean;
   clickable?: boolean;
+  underline?: boolean;
   onClick?: VoidFunction;
 }
 
@@ -58,6 +59,7 @@ export const Typography: FC<TypographyProps> = ({
   style,
   offset,
   clickable,
+  underline,
   children,
 }) => {
   const Component = component || variantMapping[variant];
@@ -69,7 +71,7 @@ export const Typography: FC<TypographyProps> = ({
 
   return (
     <Component
-      className={clsx(s.typo, className, s[variant], offset && s.offset, color && s[color], clickable && s.clickable)}
+      className={clsx(s.typo, className, underline && s.underline, s[variant], offset && s.offset, color && s[color], clickable && s.clickable)}
       onClick={onClick}
       style={combinedStyles}
     >

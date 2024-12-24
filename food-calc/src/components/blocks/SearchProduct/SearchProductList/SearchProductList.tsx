@@ -13,8 +13,8 @@ const SearchProductList = ({ searchValue }) => {
     if (!searchValue) return null
     const products = productStore.productsBase
 
-    const found = products.filter(({ name = '', nameRu }) => {
-        return nameRu.toLowerCase().includes(searchValue.toLowerCase()) || name.toLowerCase().includes(searchValue.toLowerCase())
+    const found = products.filter(({ name }) => {
+        return name.toLowerCase().includes(searchValue.toLowerCase())
     })
 
     async function onAdd(product: IProductBase) {
@@ -34,7 +34,7 @@ const SearchProductList = ({ searchValue }) => {
                     hasProduct={hasProduct}
                     productIds={rootDishStore.currentStore?.productIds}
                 >
-                    {product.nameRu}
+                    {product.name}
                 </SearchProductListItem>)}
         </ul>
     )

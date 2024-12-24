@@ -11,13 +11,14 @@ import NumberInput from "@/components/ui/Input/InputNumber";
 type Props = {
     quantity: number
     onChange: (value: number) => void
+    children: React.ReactNode
 }
 
 // const getDescriptionLabelText = (quantity: number) => {
 //     return `${(quantity * 100).toFixed(1)} гр`
 // }
 
-const QuantityControl = ({ quantity, onChange }: Props) => {
+const QuantityControl = ({ quantity, onChange, children }: Props) => {
     const [localValue, setLocalValue] = useState(quantity)
     console.log(quantity)
 
@@ -38,17 +39,20 @@ const QuantityControl = ({ quantity, onChange }: Props) => {
     return (
         <div className={s.quantityControl}>
 
+            <div className={s.quantityControlHeader}>
+                <NumberInput
+                    value={localValue}
+                    onChange={handleChange}
+                />
+                {children}
+            </div>
             <Slider
-                min={1}
-                max={500}
+                min={0}
+                max={400}
                 step={10}
-                className={s.dishCoefficientSlider}
+                className={s.quantityControlSlider}
                 onChange={handleChange}
                 value={localValue}
-            />
-            <NumberInput
-                value={localValue}
-                onChange={handleChange}
             />
         </div>
     )

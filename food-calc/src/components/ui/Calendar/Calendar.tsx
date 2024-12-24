@@ -1,6 +1,7 @@
 import React from "react";
 import s from "./Calendar.module.css";
 import { Typography } from "@/components/ui/Typography/Typography";
+import { ISODate } from "@/types/common/common";
 
 type CalendarProps = {
     currentMonth: Date;
@@ -54,6 +55,11 @@ const getDaysInMonth = (date: Date): Date[] => {
     return days;
 };
 
+
+const isSameDay = (day: Date, secondDay: ISODate) => {
+    return day.toDateString() === new Date(secondDay).toDateString()
+}
+
 // Main Calendar component
 const Calendar: React.FC<CalendarProps> = ({
     currentMonth,
@@ -71,6 +77,8 @@ const Calendar: React.FC<CalendarProps> = ({
     for (let i = 0; i < daysInMonth.length; i += 7) {
         weeks.push(daysInMonth.slice(i, i + 7));
     }
+
+    console.log("selectedDate", selectedDate)
 
     return (
         <div className={s.calendar}>
@@ -93,9 +101,15 @@ const Calendar: React.FC<CalendarProps> = ({
                     <div key={index} className={s.week}>
                         {week.map((day) => (
                             <div
-                                key={day.toISOString()}
-                                className={`${s.day} ${day.getMonth() !== currentMonth.getMonth() ? s.otherMonthDay : ""} ${day.toISOString() === selectedDate ? s.selectedDay : ""}`}
+                                className={`
+                                    ${s.day} 
+                                    ${day.getMonth() !== currentMonth.getMonth() ? s.otherMonthDay : ""} 
+                                    ${isSameDay(day, selectedDate) ? s.selectedDay : ""}
+                                    ${isSameDay(day, new Date().toISOString()) ? s.today : ""}
+                                    `
+                                }
                                 onClick={() => onDateSelect(day)}
+                                key={day.toISOString()}
                             >
                                 {day.getDate()}
                                 {renderDayCellContent?.(day)}

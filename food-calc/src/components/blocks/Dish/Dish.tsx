@@ -1,7 +1,7 @@
 import React from "react";
 import { observer } from "mobx-react-lite";
 import { uiStore } from "../../../store/rootStore";
-import { DishStore } from "@/store/rootDishStore/dishStore/dishStore";
+import { DishStore, DraftDishStore } from "@/store/rootDishStore/dishStore/dishStore";
 import s from "./Dish.module.css";
 import { Typography } from "@/components/ui/Typography/Typography";
 import RemoveButton from "@/components/ui/RemoveButton/RemoveButton";
@@ -14,6 +14,7 @@ import EditableText from "@/components/ui/EditableText/EditableText";
 import EmptyListMessage from "@/components/blocks/Dish/EmptyListMessage/EmptyListMessage";
 import SearchProduct from "@/components/blocks/SearchProduct/SearchProduct";
 import Button from "@/components/ui/Button/Button";
+import Input from "@/components/ui/Input/Input";
 
 type Props = {
   store: DishStore;
@@ -37,23 +38,44 @@ function Dish(props: Props) {
     uiStore.modal.openModal(Modals.Product, product);
   };
 
+  const isDraft = store instanceof DraftDishStore
+
+  const dishTitleText = isDraft ? 'Создание нового блюда' : 'Редактирование вашего блюда'
+
   return (
     <section className={s.dish}>
+      {/* <div className={s.dishTitle}>
+        <Typography variant="caption" offset align="left" >{dishTitleText}</Typography>
+      </div> */}
       <SearchProduct />
       <header className={s.dishHeader}>
-        <EditableText
-          key={id}
-          typographyProps={{
-            variant: 'h1'
-          }}
-          value={name}
-          onChange={updateName}
-        />
-        <Button variant='secondary' onClick={() => convertAllProductsTo100Gr()}>
+        {isDraft
+          ? <Input
+            placeholder="Название блюда..."
+            typographyVariant="h2"
+            className={s.dishNameInput}
+            value={name}
+            onChange={(e) => updateName(e.target.value)}
+          />
+          : <EditableText
+            key={id}
+            typographyProps={{
+              variant: 'h2',
+              underline: true,
+              color: 'green-2'
+            }}
+            value={name}
+            onChange={updateName}
+          />
+        }
+
+
+        {/* <Button variant='secondary' onClick={() => convertAllProductsTo100Gr()}>
           <p>перевести</p>
           в 100 гр.
-        </Button>
+        </Button> */}
       </header>
+
       <div className={s.dishMain}>
         <EmptyListMessage isShow={empty} />
         <div className={s.products} key={id}>
@@ -75,6 +97,7 @@ function Dish(props: Props) {
           ))}
         </div>
       </div>
+
       {children}
     </section>
   );

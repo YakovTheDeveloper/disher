@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const DRAFT_DAY_ID = -1
 
 export abstract class DayStore2 {
-    constructor(private rootStore: RootDayStore2, day: Day) {
+    constructor(day: Day) {
         this.init(day)
         makeObservable(this, {
             id: observable,
@@ -38,7 +38,7 @@ export abstract class DayStore2 {
 
     id: number = GenerateId();
 
-    name = 'Новый день'
+    name = 'Новый рацион'
 
     date = ''
 
@@ -97,13 +97,13 @@ export abstract class DayStore2 {
         }
     }
 
-    syncPositions() {
+    syncPositions = () => {
         this.categories.forEach((category, index) => {
             category.position = index; // Assuming `position` is a public property
         });
     }
 
-    reorderCategories(newOrder: DayCategoryStore[]) {
+    reorderCategories = (newOrder: DayCategoryStore[]) => {
         this.categories = newOrder
         this.syncPositions();
     }
@@ -190,10 +190,9 @@ type DayData = Day
 export class UserDayStore2 extends DayStore2 implements UserDataStore<DayData> {
 
 
-    constructor(private rootDayStore: RootDayStore2, day: Day) {
-        super(rootDayStore, day)
+    constructor(day: Day) {
+        super(day)
         makeObservable(this, {
-            save: action,
             resetToInit: action,
         })
 
@@ -234,9 +233,6 @@ export class UserDayStore2 extends DayStore2 implements UserDataStore<DayData> {
     detectChangesStore: DetectChangesStore<DayData>
 
 
-    remove = (id: number) => {
-        return this.rootDayStore?.removeDay(id)
-    }
 
     resetToInit = () => {
         console.log('from userdatstore')
@@ -254,13 +250,6 @@ export class UserDayStore2 extends DayStore2 implements UserDataStore<DayData> {
 
     }
 
-    save = async () => {
-        return this.rootDayStore?.updateDay(this.id, this.generatePayload())
-            .then((res) => {
-                this.detectChangesStore.updateSnapshot(this.toJS())
-                return res
-            })
-    }
 
     // get loading() {
     //     const state = this.rootDayStore.fetchManager.loading;
@@ -270,8 +259,8 @@ export class UserDayStore2 extends DayStore2 implements UserDataStore<DayData> {
 }
 
 export class DraftDayStore2 extends DayStore2 implements DraftStore {
-    constructor(private rootDayStore: RootDayStore2) {
-        super(rootDayStore, createDraftDay())
+    constructor() {
+        super(createDraftDay())
         makeObservable(this, {
             resetToInit: action,
         })
@@ -293,5 +282,5 @@ const createDraftDay = (): Day => ({
     ],
     date: '',
     id: DRAFT_DAY_ID,
-    name: 'Новый день'
+    name: 'Новый рацион'
 })

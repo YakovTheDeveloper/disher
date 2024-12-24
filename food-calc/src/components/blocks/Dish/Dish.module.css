@@ -5,12 +5,36 @@
 .dish {
     width: 100%;
     height: 100%;
-    /* height: calc(100% - 70px); */
-    /* height: calc(100vh - 70px); */
     display: grid;
-    gap: 5px;
     grid-template-rows: auto auto 1fr auto;
+    padding-right: 15px;
+    /* gap: 10px; */
+    /* justify-content: space-between; */
     /* grid-template-columns: 1fr; */
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 150px;
+        right: 0;
+        height: 100%;
+        width: 200px;
+        box-shadow: 2px 7px 13px -1px rgba(0, 0, 0, 0.1);
+        pointer-events: none;
+        /* So it doesn’t block clicks */
+    }
+
+}
+
+.dishTitle {
+    padding-top: 5px;
+    padding-bottom: 10px;
+    /* box-shadow: 0 -5px 5px -2px rgba(0, 0, 0, 0.04); */
+}
+
+.dishNameInput {
+    /* padding: 0; */
 }
 
 .dishHeader {
@@ -20,16 +44,18 @@
 }
 
 .dishMain {
+    display: flex;
     overflow-y: auto;
-    overflow-x: hidden;
-    padding-bottom: 40px;
+    /* overflow-x: hidden; */
+    margin-top: 1rem;
 }
 
 .products {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    gap: 2px;
+    padding-bottom: 1rem;
+    /* gap: 2px; */
     /* overflow-y: auto; */
 }
 

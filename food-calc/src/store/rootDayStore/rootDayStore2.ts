@@ -1,23 +1,12 @@
-import { fetchCreateDay, fetchDeleteDay, fetchGetAllDay, fetchUpdateDay } from "@/api/day";
-import { isEmpty, isNotEmpty } from "@/lib/empty";
-import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { LoadingStateStore } from "@/store/common/LoadingStateStore";
 import { createDraftDayCategory, DayCategoryStore } from "@/store/rootDayStore/dayCategoryStore/dayCategoryStore";
 import { DaysFetchManager } from "@/store/rootDayStore/daysFetchManager";
-import { DayStore, DraftDayStore, UserDayStore } from "@/store/rootDayStore/dayStore";
 import { DayStore2, DraftDayStore2, UserDayStore2 } from "@/store/rootDayStore/dayStore2";
-import { RootDishStore } from "@/store/rootDishStore/rootDishStore";
-import { rootDishStore } from "@/store/rootStore";
 import { Response } from "@/types/api/common";
 import { CreateDayPayload } from "@/types/api/day";
 import { Day } from "@/types/day/day";
 import { IProductBase } from "@/types/dish/dish";
-import { GenerateId } from "@/utils/uuidNumber";
-import { autorun, makeAutoObservable, reaction, runInAction, toJS } from "mobx"
-
-import { v4 as uuidv4 } from 'uuid';
-
-
+import { autorun, makeAutoObservable } from "mobx"
 
 export class RootDayStore2 {
     currentAbortController: AbortController | null = null;
@@ -37,7 +26,7 @@ export class RootDayStore2 {
     loadingState = new LoadingStateStore()
     fetchManager = new DaysFetchManager(this.loadingState)
 
-    draftDayStore: DayStore2 = new DraftDayStore2(this)
+    draftDayStore: DayStore2 = new DraftDayStore2()
     userDayStores: UserDayStore2[] = []
 
     get allStores() {
@@ -72,7 +61,7 @@ export class RootDayStore2 {
                 return res
             }
             const { data } = res
-            const newStore = new UserDayStore2(this, data)
+            const newStore = new UserDayStore2(data)
             this.addToUserDayStores(newStore)
             this.setCurrentDayId(data.id)
             return res
@@ -116,7 +105,7 @@ export class RootDayStore2 {
                 return result
             }
             const days = result.data.map(day => {
-                const store = new UserDayStore2(this, day)
+                const store = new UserDayStore2(day)
                 // store.detectChangesStore.setInitSnapshot(store.toJS())
                 return store
             })
@@ -147,5 +136,5 @@ export class RootDayStore2 {
 }
 
 export const DRAFT_ID = -1
-export const DRAFT_NAME = 'Новый день'
+export const DRAFT_NAME = 'Новый рацион'
 

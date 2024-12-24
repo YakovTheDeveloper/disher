@@ -4,15 +4,16 @@
 }
 
 .h1 {
-    font-size: 1.5rem;
-    font-weight: 200;
-    font-family: "Merriweather", serif;
+    font-size: 1.6rem;
+    font-weight: 300;
+    font-family: "Montserrat", sans-serif;
+    color: var(--color-gray);
 }
 
 .h2 {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     font-weight: 400;
-    font-family: "Merriweather", serif;
+    font-family: "Montserrat", serif;
 }
 
 .body1 {}
@@ -29,15 +30,19 @@
 
 .h1.offset {
     /* margin-bottom: 1rem; */
-    padding-bottom: 2rem;
+    padding-bottom: 1.2rem;
 }
 
 .h2.offset {
-    padding-bottom: 1rem;
+    padding-bottom: 0.5rem;
 }
 
 .green {
     color: var(--color-green);
+}
+
+.green-2 {
+    color: var(--color-green-2);
 }
 
 .table {
@@ -50,9 +55,9 @@
         content: '';
         position: absolute;
         width: 100%;
-        bottom: 0;
+        bottom: -3px;
         left: 0;
-        border-bottom: 2px dotted rgba(16, 81, 0, 0.55);
+        border-bottom: 2px dotted rgba(16, 81, 0, 0.4);
     }
 }
 

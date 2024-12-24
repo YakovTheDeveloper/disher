@@ -13,6 +13,7 @@ import Container from "@/components/ui/Container/Container"
 import { RootEntityStore } from "@/store/common/types"
 import { IDish } from "@/types/dish/dish"
 import { useEffect } from "react"
+import SearchProduct from "@/components/blocks/SearchProduct/SearchProduct"
 
 type Props = {
     rootStore: RootEntityStore<IDish, UserDishStore, DraftDishStore>
@@ -63,7 +64,7 @@ function Dishes({ rootStore = rootDishStore }: Props) {
                             dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
                             nutrient={nutrient}
                             nutrientQuantity={dishCalculationStore.totalNutrients[nutrient.id]}
-                            showFindRichProduct
+                        // showFindRichProduct
                         />
 
                     )}
