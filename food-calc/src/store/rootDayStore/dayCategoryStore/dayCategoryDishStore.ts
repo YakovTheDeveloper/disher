@@ -20,17 +20,21 @@ export class dayCategoryDishStore {
 
     quantity: number = 100
 
+    isOriginalValuesUse: boolean = true
+
     products: Product[] = []
 
     init = (data: DayCategoryDish) => {
-        const { quantity, id, name, products } = data
+        const { quantity, id, name, products, isOriginalValuesUse = true } = data
         this.quantity = quantity
         this.id = id
         this.name = name
         this.products = products
+        this.isOriginalValuesUse = isOriginalValuesUse
     }
 
     updateQuantity = (quantity: number) => this.quantity = quantity
+    setIsOriginalValuesUseUsed = (value: boolean) => this.isOriginalValuesUse = value
 
     get productIds() {
         return this.products.map(({ id }) => id)

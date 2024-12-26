@@ -1,9 +1,17 @@
 import { Type } from 'class-transformer';
-import { isString, IsNotEmpty, Length, IsObject, ValidateNested } from 'class-validator';
+import { isString, IsNotEmpty, Length, IsObject, ValidateNested, IsNumber } from 'class-validator';
 import { NutrientIdToQuantity } from 'common/types';
 import { IsNumberRecord } from 'validators/isMappingNumberToNumber';
 
+class PortionsDto {
+    @IsNotEmpty()
+    @Length(2, 20)
+    name: string
 
+    @IsNotEmpty()
+    @IsNumber()
+    quantity: number
+}
 
 export class CreateProductDto {
 
@@ -15,7 +23,9 @@ export class CreateProductDto {
     @Length(10, 500)
     description: string
 
-    @IsNumberRecord() 
+    @IsNumberRecord()
     nutrients: NutrientIdToQuantity
+
+    portions: PortionsDto
 
 }

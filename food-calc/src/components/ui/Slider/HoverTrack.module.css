@@ -33,6 +33,6 @@
     padding: 2px 5px;
     border-radius: 4px;
     width: 65px;
-    transform: translate(-50%, -100%);
+    transform: translate(10%);
     /* transform: translateY(50%); */
 }

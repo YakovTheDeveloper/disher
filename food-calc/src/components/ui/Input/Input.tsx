@@ -1,23 +1,30 @@
-import React, { useState, forwardRef, InputHTMLAttributes } from 'react';
+import React, { useState, forwardRef, InputHTMLAttributes, ReactNode } from 'react';
 import styles from './Input.module.css';
 import { TypographyProps } from '@/components/ui/Typography/Typography';
 import clsx from 'clsx';
 import typoStyle from '@/components/ui/Typography/Typography.module.css';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-    label?: string;
+    label?: ReactNode;
     error?: string;
     helperText?: string;
-    showPasswordToggle?: boolean; // New optional prop
+    showPasswordToggle?: boolean;
     typographyVariant?: TypographyProps['variant'];
+    before?: ReactNode; // Slot for left-side icon/button
+    after?: ReactNode;  // Slot for right-side icon/button
+    wrapperClassName?: string;  // Slot for right-side icon/button
+    className?: string;  // Slot for right-side icon/button
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(({
     label,
     error,
     helperText,
-    showPasswordToggle = false, // Default to false for other use cases
+    showPasswordToggle = false,
     typographyVariant,
+    before,
+    after,
+    wrapperClassName,
     className,
     type,
     ...props
@@ -33,16 +40,17 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
         : type;
 
     return (
-        <div className={`${styles.inputWrapper} ${className || ''}`}>
+        <div >
             {label && <label htmlFor={props.id} className={styles.label}>{label}</label>}
-            <div className={`${styles.inputContainer} ${error ? styles.error : ''}`}>
+            <div className={clsx([styles.inputContainer, error && styles.error, wrapperClassName])}>
+                {before && <span className={styles.before}>{before}</span>}
                 <input
                     ref={ref}
                     type={inputType}
-                    className={clsx([styles.inputElement, typographyVariant && typoStyle[typographyVariant]])}
+                    className={clsx([styles.inputElement, className, typographyVariant && typoStyle[typographyVariant]])}
                     {...props}
                 />
-                {showPasswordToggle && type === 'password' && (
+                {showPasswordToggle && type === 'password' ? (
                     <button
                         type="button"
                         onClick={togglePasswordVisibility}
@@ -51,6 +59,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
                     >
                         {isPasswordVisible ? '🙈' : '👁️'}
                     </button>
+                ) : (
+                    after && <span className={styles.after}>{after}</span>
                 )}
             </div>
             {helperText && <p className={styles.helperText}>{helperText}</p>}

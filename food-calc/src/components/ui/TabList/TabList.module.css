@@ -11,8 +11,10 @@
     width: 100%;
     max-width: 200px;
     display: flex;
+    height: 100%;
     /* gap: var(--gap-tabs); */
     flex-direction: column;
+    overflow: hidden;
     /* padding: 40px 0; */
 
 }

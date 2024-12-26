@@ -24,7 +24,10 @@ const NutrientsList = ({ rowPositionFirst, rowPositionThird, rowPositionSecond, 
     return (
         <div className={s.nutrientsListContainer}>
             {Object.entries(nutrientsV2).map(([categoryName, categories]) => (
-                <ul className={s.nutrientsList} key={categoryName}>
+                <ul
+                    className={clsx([s.nutrientsList, s[categoryName]])}
+                    key={categoryName}
+                >
                     {categories.map((category) => (
                         <li
                             key={category.id}
@@ -39,7 +42,7 @@ const NutrientsList = ({ rowPositionFirst, rowPositionThird, rowPositionSecond, 
                                     className={clsx(nutrientPadding(category.id) ? s.offset : null)}
                                     variant='table'
                                 >
-                                    {category.displayNameRu}
+                                    {category.displayNameRu}{ }
                                 </Typography>
                             </span>
                             <span className={s.cell}>

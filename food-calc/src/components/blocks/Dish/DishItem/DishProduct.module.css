@@ -16,8 +16,17 @@
 
 }
 
+
 .dishProduct:hover .showOnContainerHover {
   opacity: 1;
+}
+
+.dishProduct:hover .quantitySlider {
+  opacity: 1;
+}
+
+.quantitySlider {
+  opacity: 0;
 }
 
 .after {
@@ -87,6 +96,7 @@
 
 .productNameContainer {
   display: flex;
+  flex-grow: 1;
   gap: 10px;
 }
 

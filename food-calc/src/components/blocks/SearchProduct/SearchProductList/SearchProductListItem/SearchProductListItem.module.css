@@ -3,17 +3,26 @@
     justify-content: space-between;
     padding: 8px 12px;
     cursor: pointer;
+    border: 1px solid transparent;
+    overflow: hidden;
 
     &:not(.active)&:hover {
-        background-color: var(--color-light-green-2);
+        color: var(--color-green);
     }
 
-    &:hover {
-        opacity: 0.8;
+    &:last-child {
+        border-bottom-right-radius: 20px;
+        border-bottom-left-radius: 20px;
     }
 
 }
 
 .active {
-    background-color: var(--color-light-green)
+    background-color: var(--color-light-green);
+
+    &:hover {
+        color: var(--color-green);
+        /* background-color: var(--color-light-green-2); */
+
+    }
 }

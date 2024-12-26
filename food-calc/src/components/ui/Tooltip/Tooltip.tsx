@@ -22,13 +22,19 @@ interface TooltipOptions {
     placement?: Placement;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    isHover?: boolean
+    isFocus?: boolean
+    isClick?: boolean,
 }
 
 export function useTooltip({
     initialOpen = false,
     placement = "top",
     open: controlledOpen,
-    onOpenChange: setControlledOpen
+    onOpenChange: setControlledOpen,
+    isHover = false,
+    isFocus = false,
+    isClick = false
 }: TooltipOptions = {}) {
     const [uncontrolledOpen, setUncontrolledOpen] = React.useState(initialOpen);
 
@@ -53,18 +59,32 @@ export function useTooltip({
 
     const context = data.context;
 
-    // const hover = useHover(context, {
-    //     move: false,
-    //     enabled: controlledOpen == null
-    // });
-    const click = useClick(context);
-    const focus = useFocus(context, {
-        enabled: controlledOpen == null
-    });
+
+
     const dismiss = useDismiss(context);
     const role = useRole(context, { role: "tooltip" });
 
-    const interactions = useInteractions([click, focus, dismiss, role]);
+    const interactionItems = [dismiss, role]
+
+    if (isClick) {
+        const click = useClick(context);
+        interactionItems.push(click)
+    }
+    if (isHover) {
+        const hover = useHover(context, {
+            move: false,
+            enabled: controlledOpen == null
+        });
+        interactionItems.push(hover)
+    }
+    if (isFocus) {
+        const focus = useFocus(context, {
+            enabled: controlledOpen == null
+        });
+        interactionItems.push(focus);
+    }
+    const interactions = useInteractions(interactionItems);
+
 
     return React.useMemo(
         () => ({
@@ -93,11 +113,15 @@ export const useTooltipContext = () => {
 
 export function Tooltip({
     children,
+    isHover,
+    isFocus,
+    isClick,
     ...options
 }: { children: React.ReactNode } & TooltipOptions) {
     // This can accept any props as options, e.g. `placement`,
     // or other positioning options.
-    const tooltip = useTooltip(options);
+    const tooltip = useTooltip({ ...options, isHover, isFocus, isClick });
+
     return (
         <TooltipContext.Provider value={tooltip}>
             {children}
@@ -112,7 +136,6 @@ export const TooltipTrigger = React.forwardRef<
     const context = useTooltipContext();
     const childrenRef = (children as any).ref;
     const ref = useMergeRefs([context.refs.setReference, propRef, childrenRef]);
-
     // `asChild` allows the user to pass any element as the anchor
     if (asChild && React.isValidElement(children)) {
         return React.cloneElement(

@@ -1,13 +1,5 @@
 .inputWrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.label {
-    font-size: 1rem;
-    font-weight: 500;
-    color: #333;
+    width: 100%;
 }
 
 .inputContainer {
@@ -17,15 +9,39 @@
     border-radius: 4px;
     padding: 0.3rem;
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    overflow: hidden;
+
+    &:focus-within {
+        border: 1px solid var(--color-green);
+    }
+
+    &:hover,
+    &:hover .inputElement {
+        background-color: rgb(251, 251, 251);
+    }
 }
 
-.inputContainer:hover {
-    border-color: #888;
+.before,
+.after {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.5rem;
+    font-size: 1.2rem;
+    color: #666;
 }
 
-.inputContainer:focus-within {
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+.before {
+
+    /* margin-right: 0.3rem; */
+    svg {
+        max-width: 100%;
+        color: var(--color-green)
+    }
+}
+
+.after {
+    margin-left: 0.3rem;
 }
 
 .inputElement {
@@ -33,34 +49,19 @@
     border: none;
     outline: none;
     font-size: 1rem;
-    padding: 0.5rem 0.4rem;
+    padding: 0.3rem 0.4rem;
     color: #333;
+    font-size: 1rem;
+
+    &::placeholder {
+        font-weight: 300;
+    }
+
 }
 
-.toggleButton {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.2rem;
-    padding: 0 0.5rem;
-    color: #007bff;
-    transition: color 0.2s ease-in-out;
-}
-
-.toggleButton:hover {
-    color: #0056b3;
-}
-
-.error {
-    border-color: red;
-}
-
-.helperText {
-    font-size: 0.875rem;
-    color: #666;
-}
-
-.errorText {
-    font-size: 0.875rem;
-    color: red;
+.label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
 }

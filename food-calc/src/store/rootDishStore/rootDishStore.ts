@@ -40,7 +40,7 @@ export class RootDishStore extends RootEntityStore<
 
   draftStore: DraftDishStore = new DraftDishStore({
     id: DRAFT_MENU_ID,
-    name: "Новое блюдо",
+    name: "",
     products: [],
   })
 

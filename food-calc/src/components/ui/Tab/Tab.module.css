@@ -1,6 +1,7 @@
 .tab {
-    padding: 10px 13px 0 0;
+    padding: 0 13px 0 0;
     position: relative;
+    padding-right: 0;
     max-width: 300px;
     font-size: 0.8rem;
 }
@@ -15,13 +16,6 @@
     border-radius: 15px;
 }
 
-.draft .inner {
-    /* background-color: var(--color-green); */
-    /* color: white; */
-    border-style: dashed;
-    /* border-color: white; */
-    border-radius: 0;
-}
 
 .draftCaption {
     display: flex;
@@ -37,37 +31,50 @@
 .inner {
     width: 100%;
     display: flex;
+    align-items: center;
+    /* justify-content: space-between; */
+    gap: 7px;
     border-radius: var(--brad-tab);
+    /* border: 1px solid transparent; */
+
+    color: rgb(12, 12, 12);
+    /* border-radius: var(--brad-tab);
     border: 1px solid #dadada;
-    padding: 5px 10px;
+    border-right: none;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0; */
+
+    padding: 6px 7px 6px 8px;
     transition: all 0.1s;
     cursor: pointer;
     position: relative;
     word-break: break-word;
 
     &:hover {
-        border-color: var(--color-green);
+        /* border-color: var(--color-green); */
+        /* background-color: var(--color-green); */
+        background-color: white;
     }
 }
+
+.draft .inner {
+    svg {
+        color: var(--color-green)
+    }
+}
+
 
 .disabled .inner {
     user-select: none;
     cursor: auto;
 
-    &:hover {
+    /* &:hover {
         border-color: #dadada;
-    }
+    } */
 }
 
 
-.active .inner {
-    cursor: default;
-    /* box-shadow: var(--box-shadow-xs); */
-}
-
-
-
-.active .inner:after {
+/* .active .inner:before {
     border-radius: var(--brad-tab);
     content: '';
     position: absolute;
@@ -78,8 +85,7 @@
     border: 3px solid var(--color-green);
 }
 
-.draft.active .inner:after {
-    border-radius: 0;
+.draft.active .inner:before {
     content: '';
     position: absolute;
     top: -1px;
@@ -87,15 +93,119 @@
     right: -1px;
     bottom: -1px;
     border: 3px solid var(--color-green);
+} */
+
+/* .active .inner:after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: -14px;
+    width: 14px;
+    height: 1px;
+    background-color: var(--color-green);
+}
+ */
+
+
+
+.active .inner {
+    position: relative;
+    color: rgb(12, 12, 12);
+    /* background: rgb(121, 121, 121); */
+    background: white;
+    /* background: linear-gradient(90deg, rgba(121, 121, 121, 1) 0%, rgba(200, 200, 200, 1) 70%, rgba(255, 255, 255, 1) 100%); */
+    /* color: black; */
+    cursor: default;
+
+    /* border: 1px solid var(--color-green); */
+    border-right-color: transparent;
+    border-color: transparent;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
+
+.active .inner:before,
+.active .inner:after {
+    transition: all 1s;
+    /* background: url('../../../assets/decarative/rounded-corner-3.svg') center no-repeat; */
+    opacity: 0;
+    background-color: rgb(255, 255, 255);
+    -webkit-mask-image: url('../../../assets/decarative/rounded-corner-4.svg');
+    mask-image: url('../../../assets/decarative/rounded-corner-4.svg');
+    content: '';
+    position: absolute;
+    height: 22px;
+    width: 8px;
+    right: 0;
+}
+
+.active .inner:before,
+.active .inner:after {
+    opacity: 1;
+}
+
+
+.active .inner:before {
+    top: 0;
+    transform: translateY(-100%) scale(1, -1);
+    /* z-index: -1; */
+}
+
+.active .inner:after {
+    bottom: 0;
+    transform: translateY(100%) scale(1, 1);
+    /* transform: translateY(100%); */
+}
+
+
+/* .inner:before,
+.inner:after {
+    transition: all 0.5s;
+    content: '';
+    position: absolute;
+    height: 60px;
+    width: 60px;
+    border: 1px solid var(--color-green);
+    border-left-color: transparent;
+    z-index: -1;
+    right: 0px;
+    background: transparent;
+}
+
+.inner:before {
+    top: 0;
+    transform: translateY(-100%);
+    border-top-color: transparent;
+    border-bottom-right-radius: 12px;
+    height: 1000px;
+}
+
+.inner:after {
+    bottom: 0;
+    border-bottom-color: transparent;
+    transform: translateY(100%);
+    border-top-right-radius: 12px;
+    height: 1000px;
+} */
 
 .after {
     transition: opacity 0.2s;
     opacity: 0;
-    position: absolute;
-    top: 0;
-    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    /* position: absolute; */
+    /* top: 0; */
+    /* right: 5px; */
+    border-radius: 50%;
+    padding: 5px;
+
+    &:hover {
+        background-color: rgba(240, 240, 240, 1);
+    }
 }
 
 .before {

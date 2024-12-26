@@ -168,7 +168,7 @@ export class DraftDishStore extends DishStore implements DraftStore<IProductBase
     }
 
     resetToInit = () => {
-        this.name = 'Новое блюдо'
+        this.name = ''
         this.products = []
     }
 }

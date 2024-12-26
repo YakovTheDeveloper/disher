@@ -7,18 +7,20 @@ import React, { useCallback, useContext, useEffect, useState } from 'react'
 import s from './QuantityControl.module.css'
 import { DayCalculationContext } from '@/context/calculationContext'
 import NumberInput from "@/components/ui/Input/InputNumber";
+import clsx from 'clsx'
 
 type Props = {
     quantity: number
     onChange: (value: number) => void
     children: React.ReactNode
+    sliderClassName: string
 }
 
 // const getDescriptionLabelText = (quantity: number) => {
 //     return `${(quantity * 100).toFixed(1)} гр`
 // }
 
-const QuantityControl = ({ quantity, onChange, children }: Props) => {
+const QuantityControl = ({ quantity, onChange, children, sliderClassName }: Props) => {
     const [localValue, setLocalValue] = useState(quantity)
     console.log(quantity)
 
@@ -50,7 +52,7 @@ const QuantityControl = ({ quantity, onChange, children }: Props) => {
                 min={0}
                 max={400}
                 step={10}
-                className={s.quantityControlSlider}
+                className={clsx([s.quantityControlSlider, sliderClassName])}
                 onChange={handleChange}
                 value={localValue}
             />

@@ -34,14 +34,7 @@ const Day = (props: Props) => {
 
     return (
         <section className={s.day} key={id}>
-            <header className={s.header}>
-                <EditableText
-                    value={name}
-                    onChange={updateName}
-                    typographyProps={{ variant: 'h1' }}
-                />
-                <DatePicker date={date} setDate={updateDate} />
-            </header>
+
             <div className={s.sub}>
                 <Button onClick={() => createNewCategory()} variant='secondary'>
                     Создать категорию
@@ -63,10 +56,18 @@ const Day = (props: Props) => {
                     />
                 </DayCalculationContext.Provider>
 
-                <section>
+                <section className={s.dishChoose}>
                     {children}
                 </section>
             </div>
+            <header className={s.header}>
+                <EditableText
+                    value={name}
+                    onChange={updateName}
+                    typographyProps={{ variant: 'h1' }}
+                />
+                <DatePicker date={date} setDate={updateDate} />
+            </header>
             {actions}
         </section>
     )

@@ -2,30 +2,24 @@ import React from 'react'
 import s from './Tab.module.css'
 import clsx from 'clsx'
 import { Typography } from '@/components/ui/Typography/Typography'
+import PlusIcon from "@/assets/icons/plus.svg";
 
 
-type Props = {
+export type TabProps = {
   onClick: VoidFunction
-  children: string
+  children: React.ReactNode
   isActive: boolean
   after?: React.ReactNode
   before?: React.ReactNode
-  label?: string
-  draft?: boolean,
+  label?: React.ReactNode
   disabled?: boolean
   containerClassName?: string
   innerClassName?: string
 }
-const Tab = (props: Props) => {
-  const { onClick, children, isActive, before, after, label, draft, containerClassName, disabled, innerClassName } = props
+const Tab = (props: TabProps) => {
+  const { onClick, children, isActive, before, after, label, containerClassName, disabled, innerClassName } = props
   return (
-    <li className={clsx([s.tab, isActive && s.active, draft && s.draft, containerClassName, disabled && s.disabled])}>
-
-      {draft && (
-        <Typography className={s.draftCaption} align='center' variant='caption'>
-          черновик
-        </Typography>
-      )}
+    <li className={clsx([s.tab, isActive && [s.active, s.rounded], containerClassName, disabled && s.disabled])}>
 
       {label && (
         <Typography className={s.draftCaption} align='center' variant='caption'>
@@ -41,17 +35,16 @@ const Tab = (props: Props) => {
           </div>
         }
         <div className={clsx([s.inner, innerClassName])} onClick={onClick}>
-          <Typography>
-            {children}
-          </Typography>
+          {children}
+          {after &&
+            <div className={s.after}>
+              {after}
+            </div>
+          }
         </div>
       </div>
 
-      {after &&
-        <div className={s.after}>
-          {after}
-        </div>
-      }
+
     </li>
   )
 }

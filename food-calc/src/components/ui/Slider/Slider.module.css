@@ -1,5 +1,6 @@
 .container {
     width: 100%;
+    transition: opacity 0.2s;
 }
 
 .label {
@@ -9,9 +10,9 @@
 
 .slider {
     position: relative;
-    height: 1px;
+    height: 4px;
     /* border: 3px solid #ffffff; */
-    background: var(--color-light-gray-3);
+    background: var(--color-light-green);
     border-radius: 12px;
     cursor: pointer;
 }
@@ -19,15 +20,15 @@
 .track {
     position: absolute;
     height: 100%;
-    background: var(--color-light-green);
+    background: var(--color-green);
     border-radius: 3px;
 }
 
 .thumb {
     position: absolute;
     top: -7px;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     background: none;
     border-radius: 50%;
     cursor: grab;
@@ -43,9 +44,9 @@
         right: 50%;
         transform: translate(50%, -50%);
         border: 2px solid white;
-        width: 8px;
-        height: 8px;
-        background: rgb(142, 253, 187);
+        width: 10px;
+        height: 10px;
+        background: var(--color-green);
         border-radius: 50%;
     }
 }

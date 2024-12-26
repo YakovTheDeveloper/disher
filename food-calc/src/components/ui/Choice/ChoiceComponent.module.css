@@ -1,0 +1,36 @@
+.container {
+    display: flex;
+    gap: 5px;
+}
+
+.choiceButton {
+    background-color: #f8f9fa;
+    color: #495057;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 3px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.choiceButton:hover {
+    background-color: #e9ecef;
+}
+
+.choiceButton:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 4px rgba(128, 189, 255, 0.8);
+}
+
+.choiceButton:active {
+    transform: scale(0.95);
+}
+
+.choiceButton.active {
+    background-color: #00a228;
+    color: #fff;
+    border-color: #009728;
+    font-weight: 300;
+}

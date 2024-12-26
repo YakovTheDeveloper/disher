@@ -1,4 +1,4 @@
-import { action, makeAutoObservable, toJS } from "mobx"
+import { action, makeAutoObservable, runInAction, toJS } from "mobx"
 import { IMenu, IProductBase } from "../../types/menu/Menu"
 import { v4 as uuidv4 } from 'uuid';
 import { IProducts, ProductBase, ProductIdToNutrientsMap, RichProductData } from "../../types/product/product";
@@ -74,6 +74,7 @@ export class ProductStore implements IProductStore {
 
     handleGetFullProductData = async (ids: number[]) => {
         const missingProductIds = this.getMissingProductIds(ids)
+        console.log('missingProductIds', missingProductIds)
         if (isEmpty(missingProductIds)) return
         return this.fetchFullProductData(missingProductIds)
     }
@@ -88,7 +89,7 @@ export class ProductStore implements IProductStore {
         }
 
         ids.forEach(id => this.loadingState.setLoading('getOne', false, id))
-        this.setProductNutrientData(res.data)
+        this.setProductNutrientData(res.data.nutrients)
         return res
     }
 
@@ -109,10 +110,12 @@ export class ProductStore implements IProductStore {
 
 
     setProductNutrientData = (data: ProductIdToNutrientsMap) => {
-        for (const id in data) {
-            const nutrientToQuantity = data[id]
-            this.productToNutrients[id] = nutrientToQuantity
-        }
+        runInAction(() => {
+            for (const id in data) {
+                const nutrientToQuantity = data[id]
+                this.productToNutrients[id] = nutrientToQuantity
+            }
+        })
     }
 
     getMissingProductIds = (dishProductIds: number[]): number[] => {

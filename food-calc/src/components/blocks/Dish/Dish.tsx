@@ -48,33 +48,7 @@ function Dish(props: Props) {
         <Typography variant="caption" offset align="left" >{dishTitleText}</Typography>
       </div> */}
       <SearchProduct />
-      <header className={s.dishHeader}>
-        {isDraft
-          ? <Input
-            placeholder="Название блюда..."
-            typographyVariant="h2"
-            className={s.dishNameInput}
-            value={name}
-            onChange={(e) => updateName(e.target.value)}
-          />
-          : <EditableText
-            key={id}
-            typographyProps={{
-              variant: 'h2',
-              underline: true,
-              color: 'green-2'
-            }}
-            value={name}
-            onChange={updateName}
-          />
-        }
 
-
-        {/* <Button variant='secondary' onClick={() => convertAllProductsTo100Gr()}>
-          <p>перевести</p>
-          в 100 гр.
-        </Button> */}
-      </header>
 
       <div className={s.dishMain}>
         <EmptyListMessage isShow={empty} />
@@ -97,7 +71,29 @@ function Dish(props: Props) {
           ))}
         </div>
       </div>
-
+      <header className={s.dishHeader}>
+        {isDraft
+          ? <Input
+            placeholder="Рис с овощами..."
+            typographyVariant="h2"
+            wrapperClassName={s.dishNameInput}
+            value={name}
+            onChange={(e) => updateName(e.target.value)}
+            label={<Typography variant="caption" align="center">Название для вашего блюда</Typography>}
+          />
+          : <EditableText
+            key={id}
+            placeholder="Рис с овощами..."
+            typographyProps={{
+              variant: 'h2',
+              underline: true,
+              color: 'green-2'
+            }}
+            value={name}
+            onChange={updateName}
+          />
+        }
+      </header>
       {children}
     </section>
   );

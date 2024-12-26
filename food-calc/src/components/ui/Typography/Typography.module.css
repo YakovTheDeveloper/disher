@@ -16,7 +16,9 @@
     font-family: "Montserrat", serif;
 }
 
-.body1 {}
+.body1 {
+    font-size: 15px;
+}
 
 .body2 {
     font-size: 0.8rem;
@@ -46,7 +48,7 @@
 }
 
 .table {
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .underline {

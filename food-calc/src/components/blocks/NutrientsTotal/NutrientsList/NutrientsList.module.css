@@ -1,7 +1,7 @@
 .nutrientsListContainer {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 10px;
     width: 100%;
 
 }
@@ -9,10 +9,15 @@
 .nutrient {
     display: grid;
     grid-template-columns: 90px 70px 1fr;
-    border-bottom: 1px solid rgb(235, 235, 235);
+    border-bottom: 1px solid transparent;
     /* border-top: 1px solid rgb(225, 225, 225); */
     position: relative;
     padding: 4px 0 4px 2px;
+    z-index: 1;
+
+    &:last-child {
+        border-bottom: none;
+    }
 
     /* transition: border-color 0.1s; */
 }
@@ -46,6 +51,11 @@
 .nutrientsList {
     display: flex;
     flex-direction: column;
+    border-radius: 9px;
+    padding: 4px;
+    border: 1px solid transparent;
+    background-color: white;
+    height: fit-content;
     /* flex-grow: 0;
     flex-shrink: 1; */
     /* flex-wrap: wrap; */
@@ -76,4 +86,44 @@
     display: flex;
     align-items: center;
     gap: 5px;
+}
+
+.main {
+    border-color: rgba(0, 0, 255, 0.24);
+
+    .nutrient {
+        border-color: rgba(0, 0, 255, 0.08);
+    }
+}
+
+.vitaminsB {
+    border-color: rgba(255, 85, 0, 0.35);
+
+    .nutrient {
+        border-color: rgba(255, 85, 0, 0.1);
+    }
+}
+
+.vitaminsRest {
+    border-color: rgba(253, 164, 0, 0.35);
+
+    .nutrient {
+        border-color: rgba(253, 164, 0, 0.5);
+    }
+}
+
+.minerals {
+    border-color: rgba(110, 88, 255, 0.35);
+
+    .nutrient {
+        border-color: rgba(110, 88, 255, 0.15);
+    }
+}
+
+.misc {
+    border-color: rgba(0, 0, 255, 0.24);
+
+    .nutrient {
+        border-color: rgba(0, 0, 255, 0.1);
+    }
 }

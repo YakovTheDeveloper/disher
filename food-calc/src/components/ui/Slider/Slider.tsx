@@ -102,7 +102,7 @@ const Slider: React.FC<SliderProps> = ({
         <div
           className={styles.thumb}
           style={{
-            left: `calc(${percentage}% - 16px)`,
+            left: `calc(${percentage}% - 18px)`,
           }}
         />
       </div>

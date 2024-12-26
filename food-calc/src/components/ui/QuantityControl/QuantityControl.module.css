@@ -8,12 +8,12 @@
 
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
 }
 
 .quantityControlHeader {
     display: flex;
-    gap: 5px;
+    gap: 9px;
     align-items: flex-start;
 }
 

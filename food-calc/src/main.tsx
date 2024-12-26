@@ -11,7 +11,8 @@ import ProductAdd from "./components/blocks/ProductAdd/ProductAdd.tsx";
 
 
 import Days from "@/components/blocks/Days/Days.tsx";
-
+import DishIcon from "@/assets/icons/dish.svg"
+import DaysIcon from "@/assets/icons/days.svg"
 
 import DailyNorms from "@/components/blocks/DailyNorms/DailyNorms.tsx";
 import DaysCalendar from "@/components/blocks/DaysCalendar/DaysCalendar.tsx";
@@ -22,14 +23,19 @@ export const RouterPaths = {
   main: {
     url: "/",
     label: "Блюда",
+    Icon: DishIcon
   },
   days: {
     url: "/days",
     label: "Дни",
+    Icon: DaysIcon
+
   },
   norm: {
     url: "/daily-norms",
     label: "Нормы",
+    Icon: DishIcon
+
   },
 };
 

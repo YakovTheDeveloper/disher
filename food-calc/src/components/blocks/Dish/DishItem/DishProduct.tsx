@@ -52,20 +52,21 @@ function DishProduct({
       className={clsx([s.dishProduct, isLoading && s.loading])}
     >
       <Overlay show={isLoading} />
-      <div className={s.productNameContainer}>
-        <span className={clsx([s.showOnContainerHover, s.after])}>
-          {after}
-        </span>
-      </div>
-      <QuantityControl quantity={quantity} onChange={handleChange} >
-        <Typography
-          variant="body1"
-          clickable
-          onClick={onProductNameClick}
-          className={productNameClasses}
-        >
-          {product.name}
-        </Typography>
+
+      <QuantityControl quantity={quantity} onChange={handleChange} sliderClassName={s.quantitySlider}>
+        <div className={s.productNameContainer}>
+          <Typography
+            variant="body1"
+            clickable
+            onClick={onProductNameClick}
+            className={productNameClasses}
+          >
+            {product.name}
+          </Typography>
+          <span className={clsx([s.showOnContainerHover, s.after])}>
+            {after}
+          </span>
+        </div>
       </QuantityControl>
     </div>
   );

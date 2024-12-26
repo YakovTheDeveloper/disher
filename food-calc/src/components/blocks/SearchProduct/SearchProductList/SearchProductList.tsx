@@ -7,8 +7,12 @@ import s from './SearchProductList.module.css'
 import clsx from 'clsx'
 import SearchProductListItem from '@/components/blocks/SearchProduct/SearchProductList/SearchProductListItem/SearchProductListItem'
 import { hasProduct } from '@/domain/common'
-
-const SearchProductList = ({ searchValue }) => {
+import { isNotEmpty } from '@/lib/empty'
+type Props = {
+    searchValue: string
+    hideList: VoidFunction
+}
+const SearchProductList = ({ searchValue, hideList }: Props) => {
 
     if (!searchValue) return null
     const products = productStore.productsBase
@@ -18,11 +22,14 @@ const SearchProductList = ({ searchValue }) => {
     })
 
     async function onAdd(product: IProductBase) {
+        hideList()
         Flows.Dish.addProduct({
             ...product,
             quantity: 100
         })
     }
+
+
 
     return (
         <ul className={clsx(s.list)}>

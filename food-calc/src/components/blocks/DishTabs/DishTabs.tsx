@@ -12,13 +12,13 @@ import { RootDishStore } from '@/store/rootDishStore/rootDishStore'
 import { RootEntityStore } from '@/store/common/types'
 import { UserDishStore, DraftDishStore } from '@/store/rootDishStore/dishStore/dishStore'
 import { IDish } from '@/types/dish/dish'
+import DraftTab from '@/components/ui/Tab/DraftTab'
 
 type Props = {
     rootStore: RootEntityStore<IDish, UserDishStore, DraftDishStore>
 }
 
 function DishTabs({ rootStore }: Props) {
-    console.log("rootStore", rootStore)
     const { draftStore, userStores, setCurrentId, currentItemId, loadingState } = rootStore
 
     const isLoading = loadingState.getLoading('all')
@@ -26,34 +26,36 @@ function DishTabs({ rootStore }: Props) {
     return (
         <nav className={s.dishTabs}>
             <TabList isLoading={isLoading}>
-                <Tab
-                    draft
+                <DraftTab
                     onClick={() => setCurrentId(draftStore.id)}
                     isActive={currentItemId === draftStore.id}
 
                 >
                     Создать блюдо
-                </Tab>
-                {userStores.map(({ id, name }) => (
-                    <Tab
-                        key={id}
-                        onClick={() => setCurrentId(id)}
-                        isActive={currentItemId === id}
-                        after={
+                </DraftTab>
+                {userStores.map(({ id, name }) => {
+                    return (
+                        <Tab
+                            key={id}
+                            onClick={() => setCurrentId(id)}
+                            isActive={currentItemId === id}
+                            after={
 
-                            <Tooltip>
-                                <RemoveTooltip
-                                    onConfirm={() => Flows.Dish.remove(id, name)}
-                                >
-                                    <RemoveButton size='small' color='gray' />
-                                </RemoveTooltip>
-                            </Tooltip>
+                                <Tooltip isClick>
+                                    <RemoveTooltip
+                                        onConfirm={() => Flows.Dish.remove(id, name)}
+                                    >
+                                        <RemoveButton size='small' color='gray' />
+                                    </RemoveTooltip>
+                                </Tooltip>
 
 
-                        }
-                    >
-                        {name}
-                    </Tab>))
+                            }
+                        >
+                            {name}
+                        </Tab>
+                    )
+                })
                 }
             </TabList>
         </nav>

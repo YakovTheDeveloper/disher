@@ -6,7 +6,7 @@
 
   --gap-tabs: 10px;
 
-  --brad-tab: 15px;
+  --brad-tab: 9px;
   --brad-category: 10px;
   --brad-s: 15px;
   --brad-xs: 6px;
@@ -34,14 +34,15 @@
   --height-rich-nutrient-product: 30px;
   --height-header: 55px;
 
-  --width-navigation-desktop: 80px;
+  --width-navigation-desktop: 66px;
   --width-tabs-container: 170px;
 
   --gap-layout: 15px;
 
+  --z-index-search-container: 23;
+  --z-index-search-list: 23;
   --z-index-main-overlay: 22;
   --z-index-tooltip: 21;
-  --z-index-search-list: 20;
   --z-index-dish-overlay: 7;
 
   --z-index-slider-hover-track: 4;

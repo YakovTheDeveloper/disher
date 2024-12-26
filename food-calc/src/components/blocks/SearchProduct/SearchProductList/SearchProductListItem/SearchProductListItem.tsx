@@ -4,6 +4,9 @@ import { rootDishStore } from '@/store/rootStore'
 import { observer } from 'mobx-react-lite'
 import { toJS } from 'mobx'
 import clsx from 'clsx'
+import ProductInDishStatus from '@/components/blocks/Dish/ProductInDishStatus/ProductInDishStatus'
+import { Typography } from '@/components/ui/Typography/Typography'
+import TickIcon from "@/assets/icons/tick.svg";
 
 type Props = {
   onClick: () => void
@@ -22,7 +25,12 @@ const SearchProductListItem = ({ onClick, productId, children, hasProduct, produ
   return (
     <li onClick={onClick} className={classNames}>
       <span>{children}</span>
-      <span>{isInCurrentDish && 'В списке'}</span>
+      <span>{isInCurrentDish &&
+        <Typography variant='caption'>
+          <TickIcon />
+        </Typography>}
+      </span>
+      {/* <ProductInDishStatus productId={}/> */}
     </li>
   )
 }

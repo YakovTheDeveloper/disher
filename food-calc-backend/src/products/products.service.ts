@@ -58,7 +58,7 @@ export class ProductsService {
       .where('product.id IN (:...idArray)', { idArray })
       .leftJoin('product.productNutrients', 'productNutrients')
       .leftJoin('productNutrients.nutrient', 'nutrient')
-      .select(['product.id', 'productNutrients.quantity', 'nutrient.id'])
+      .select(['product.id', 'product.portions', 'productNutrients.quantity', 'nutrient.id'])
       .getMany();
 
     // let productWithNutrients = await this.productsRepository
@@ -71,13 +71,23 @@ export class ProductsService {
 
     const productIdToNutrientsMap: ProductIdToNutrientsMap = {}
 
-    productWithNutrients.forEach(({ id, productNutrients }) => {
+    const portionsResult = []
+
+
+    productWithNutrients.forEach(({ id, productNutrients, portions }) => {
       const nutrients: IdToQuantity = {}
+      portionsResult.push({
+        id,
+        content: portions
+      })
       productNutrients.forEach(({ nutrient, quantity }) => nutrients[nutrient.id] = quantity)
       productIdToNutrientsMap[id] = nutrients
     })
 
-    return productIdToNutrientsMap
+    return {
+      nutrients: productIdToNutrientsMap,
+      portions: portionsResult,
+    }
   }
 
   async findRich(nutrientId: string) {
@@ -170,11 +180,23 @@ export class ProductsService {
   //   }
   // }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: number, updateProductDto: UpdateProductDto) {
+
+    const { portions = '' } = updateProductDto
+
+    const [product] = await this.productsRepository.find({ where: { id } })
+    if (!product) return
+
+    if (portions) {
+      product.portions = JSON.stringify(portions)
+    }
+    const result = await this.productsRepository.save(product)
+
+    return result
   }
 
   remove(id: number) {
     return `This action removes a #${id} product`;
   }
 }
+

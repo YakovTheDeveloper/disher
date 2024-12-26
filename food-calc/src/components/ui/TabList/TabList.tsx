@@ -22,7 +22,6 @@ const TabList = (props: Props) => {
               innerClassName={s.skeletonTabInner}
               disabled={true}
               isActive={false}
-              draft={false}
               onClick={() => { }}
             >
               Загрузка

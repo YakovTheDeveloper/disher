@@ -24,6 +24,8 @@ export class Product {
   @Column({ length: 1000, nullable: true, default: '' })
   description: string;
 
+  @Column({ nullable: true, default: JSON.stringify(''), type: 'json' })
+  portions: string;
   @Column({ length: 1000, nullable: true, default: '' })
   descriptionRu: string;
 
@@ -33,3 +35,5 @@ export class Product {
   @OneToMany(() => ProductsNutrient, productNutrient => productNutrient.product, { cascade: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   productNutrients: ProductsNutrient[]
 }
+
+

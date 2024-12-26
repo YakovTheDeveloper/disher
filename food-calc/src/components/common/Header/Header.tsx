@@ -7,8 +7,9 @@ import { RouterPaths } from "@/main";
 import { NavLink } from "react-router-dom";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { Modals } from "@/store/uiStore/modalStore/modalStore";
-import LogoIcon from "@/assets/icons/logo.svg"; // Adjust the path as needed
+import DishIcon from "@/assets/icons/dish.svg"; // Adjust the path as needed
 import { observer } from "mobx-react-lite";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/Tooltip/Tooltip";
 
 const Header = () => {
   const { user } = userStore;
@@ -20,12 +21,22 @@ const Header = () => {
         {/* <LogoIcon className={s.logo} /> */}
 
         <nav className={s.navigation}>
-          {Object.values(RouterPaths).map(({ label, url }) => (
+          {Object.values(RouterPaths).map(({ label, url, Icon }) => (
             <NavLink
               to={url}
               className={({ isActive }) => (isActive ? `${s.link} ${s.activeLink}` : s.link)}
             >
-              <Typography>{label}</Typography>
+              <Tooltip isHover isFocus={false}>
+                <TooltipTrigger >
+                  <Typography>
+                    {<Icon className={s.icon} />}
+                  </Typography>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {label}
+                </TooltipContent>
+              </Tooltip>
+
             </NavLink>
           ))}
         </nav>

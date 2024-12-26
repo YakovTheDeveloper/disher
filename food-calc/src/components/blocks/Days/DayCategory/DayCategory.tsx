@@ -70,7 +70,7 @@ const DayCategoryItem: React.FC<Props> = (
                 />
                 {children}
             </header>
-            <Tooltip placement='left-start'>
+            <Tooltip placement='left-start' isClick>
                 <RemoveTooltip
                     onConfirm={() => onDayCategoryRemove()}
                 >
