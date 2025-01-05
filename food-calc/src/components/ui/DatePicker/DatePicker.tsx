@@ -48,7 +48,11 @@ const DatePicker: React.FC<Props> = ({ date, setDate }) => {
     };
 
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const label = date ? new Date(date).toLocaleDateString('ru-RU', options) : "Установить дату";
+    const label = date ? new Date(date).toLocaleDateString('ru-RU', options) : "Занести в календарь";
+
+    //TODO 12.27.24 reseed products from newly created file
+
+    // multiple date select, bigger size maybe modal
 
     return (
         <div ref={containerRef} className={s.container}>

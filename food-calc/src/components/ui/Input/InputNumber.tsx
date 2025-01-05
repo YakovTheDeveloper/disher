@@ -1,17 +1,21 @@
 import React, { ChangeEvent, useRef } from 'react';
 import s from './InputNumber.module.css';
 import { observer } from 'mobx-react-lite';
+import clsx from 'clsx';
 
 interface NumberInputProps {
     value: number;
+    className?: string;
+    wrapperClassName?: string;
     onChange: (value: number) => void;
     max?: number;
     disabled?: boolean;
+    step?: number
 }
 
 const INCREMENT_STEP = 10;
 
-const NumberInput: React.FC<NumberInputProps> = ({ value, onChange, max = 10000, disabled }) => {
+const NumberInput: React.FC<NumberInputProps> = ({ value, onChange, max = 10000, disabled, wrapperClassName, className, step = 10 }) => {
     const clampValue = (newValue: number) => {
         if (newValue < 0) return 0;
         if (newValue > max) return max;
@@ -34,19 +38,17 @@ const NumberInput: React.FC<NumberInputProps> = ({ value, onChange, max = 10000,
     };
 
     return (
-        <div className={s.container}>
-            <div className={s.inputWrapper}>
-                <input
-                    className={s.numberInput}
-                    type="number"
-                    step={10}
-                    disabled={disabled}
-                    value={value?.toString() || '0'}
-                    onChange={handleChange}
-                    maxLength={max.toString().length}
-                    onWheel={handleScroll}
-                />
-            </div>
+        <div className={clsx([s.inputWrapper, wrapperClassName])}>
+            <input
+                className={clsx([s.numberInput, className])}
+                type="number"
+                step={step}
+                disabled={disabled}
+                value={value?.toString() || '0'}
+                onChange={handleChange}
+                maxLength={max.toString().length}
+                onWheel={handleScroll}
+            />
         </div>
     );
 };

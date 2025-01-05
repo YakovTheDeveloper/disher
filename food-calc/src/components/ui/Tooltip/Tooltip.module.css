@@ -1,9 +1,17 @@
 .tooltipInner {
-    padding: 4px 6px;
     background-color: white;
     border: 1px solid var(--color-light-gray-2);
     border-radius: var(--brad-xs);
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.tooltipInner.small {
+    padding: 4px 6px;
+}
+
+
+.tooltipInner.medium {
+    padding: 13px 12px 14px;
 }

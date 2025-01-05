@@ -1,0 +1,15 @@
+.searchWrapper {
+    border-color: transparent;
+    /* border: 2px solid var(--color-light-green); */
+    border-radius: 35px;
+    background-color: white;
+}
+
+.searchInput {
+    /* height: 50px; */
+    width: 100%;
+    /* margin: 0 auto; */
+    /* margin-top: 20px; */
+    padding: 0 10px 0 0;
+    caret-color: var(--color-green);
+}

@@ -18,24 +18,41 @@ export class DishService {
     private dishRepository: Repository<Dish>,
   ) { }
 
-  async findAll(userId: number) {
-
-    // const menus = await this.foodCollectionProductService.findAll(userId)
-    const dishes = await this.dishRepository
-      .createQueryBuilder("dish")
-      .leftJoinAndSelect("dish.dishToProducts", "dishToProducts") // Adjust according to your entity
-      .leftJoinAndSelect("dishToProducts.product", "product")
-      .where("dish.user.id = :userId", { userId })
+  async findAll(userId: number, limit: number, offset: number, search: string) {
+    // Create the base query without pagination
+    const query = this.dishRepository
+      .createQueryBuilder('dish')
+      .leftJoinAndSelect('dish.dishToProducts', 'dishToProducts')
+      .leftJoinAndSelect('dishToProducts.product', 'product')
+      .where('dish.user.id = :userId', { userId })
       .select([
-        "dish.id",
-        "dish.name", // Assuming `name` exists on `dish`
-        "dishToProducts.quantity",
-        "product.id",
-        "product.name", // Assuming `name` exists on `product`
-        "product.nameRu",
-      ])
+        'dish.id',
+        'dish.name',
+        'dishToProducts.quantity',
+        'product.id',
+        'product.name',
+        'product.nameRu',
+      ]);
+
+    // Apply search filter if search term is provided
+    if (search) {
+      query.andWhere('product.nameRu LIKE :search', {
+        search: `%${search}%`,  // Use LIKE for partial matching
+      });
+    }
+
+    // Get total count without pagination (considering search filter)
+    const totalCount = await query.getCount();
+
+    // Apply pagination (limit and offset)
+    const dishes = await query
+      .skip(offset) // Apply offset
+      .take(limit)  // Apply limit
       .getMany();
 
+    console.log("dishes", dishes)
+
+    // Map the results to the desired structure
     const mapped = dishes.map(item => ({
       id: item.id,
       name: item.name,
@@ -43,19 +60,17 @@ export class DishService {
       products: item.dishToProducts.map(dishProduct => ({
         id: dishProduct.product.id,
         name: dishProduct.product.nameRu,
-        quantity: dishProduct.quantity
-      }))
+        quantity: dishProduct.quantity,
+      })),
     }));
+
+    // Return the mapped result along with total count
     return {
-      result: mapped
-    }
-
-
-
-    // const menus = await this.repository.find({
-    //     where: { user: { id: userId } }
-    // });
-    // return menus
+      result: {
+        content: mapped,
+        itemsCount: totalCount,
+      },
+    };
   }
 
   async getDishProductData(userId: number, dishIds: string[]) {

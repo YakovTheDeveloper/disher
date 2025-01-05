@@ -2,37 +2,39 @@ import React from 'react';
 import styles from './ChoiceComponent.module.css';
 import clsx from 'clsx';
 
+export interface ChoiceOption {
+    value: string;
+    displayName: string;
+}
+
 interface ChoiceComponentProps {
-    isActive: boolean; // Current active state (true/false)
-    onChoose: (value: boolean) => void; // Callback to update the state
-    buttonLabels?: [string, string]; // Labels for true/false buttons, optional
-    className: string
+    active: ChoiceOption['value']
+    onChoose: (option: ChoiceOption) => void; // Callback to update the state
+    options: ChoiceOption[]; // List of options with name and displayName
+    className?: string; // Optional additional class name
 }
 
 const ChoiceComponent: React.FC<ChoiceComponentProps> = ({
-    isActive,
+    active,
     onChoose,
+    options,
     className,
-    buttonLabels = ['Yes', 'No'], // Default labels
 }) => {
     return (
         <div className={clsx([styles.container, className])}>
-            <button
-                className={`${styles.choiceButton} ${isActive ? styles.active : ''}`}
-                onClick={() => onChoose(true)}
-                aria-pressed={isActive}
-                aria-label={`Choose ${buttonLabels[0]}`}
-            >
-                {buttonLabels[0]}
-            </button>
-            <button
-                className={`${styles.choiceButton} ${!isActive ? styles.active : ''}`}
-                onClick={() => onChoose(false)}
-                aria-pressed={!isActive}
-                aria-label={`Choose ${buttonLabels[1]}`}
-            >
-                {buttonLabels[1]}
-            </button>
+            {options.map((option) => (
+                <button
+                    key={option.value}
+                    className={clsx(styles.choiceButton, {
+                        [styles.active]: option.value === active,
+                    })}
+                    onClick={() => onChoose(option)}
+                    aria-pressed={option.value === active}
+                    aria-label={`Choose ${option.displayName}`}
+                >
+                    {option.displayName}
+                </button>
+            ))}
         </div>
     );
 };

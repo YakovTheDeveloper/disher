@@ -11,6 +11,8 @@ import { DayCalculationContext } from '@/context/calculationContext';
 import { rootDayStore2 } from '@/store/rootStore';
 import RemoveTooltip from '@/components/blocks/common/RemoveTooltip/RemoveTooltip';
 import { Tooltip } from '@/components/ui/Tooltip/Tooltip';
+import Button from '@/components/ui/Button/Button';
+import PlusIcon from "@/assets/icons/plus.svg";
 
 const ReorderItemProps = {
     as: 'li' as const,
@@ -60,27 +62,38 @@ const DayCategoryItem: React.FC<Props> = (
             >
                 <span>||</span>
             </div>
-            <header className={s.header}>
-                <EditableText
-                    onChange={updateName}
-                    value={name}
-                    typographyProps={{
-                        variant: 'h2'
-                    }}
-                />
-                {children}
-            </header>
-            <Tooltip placement='left-start' isClick>
-                <RemoveTooltip
-                    onConfirm={() => onDayCategoryRemove()}
-                >
-                    <RemoveButton
-                        className={clsx(s.removeButton)}
-                        color='gray'
-                        size='small'
+            <div className={s.dayCategoryMain}>
+                <header className={s.dayCategoryMainHeader}>
+                    {/* <Button className={s.addDishButton}>
+                        <PlusIcon
+                            style={{
+                                width: '10px',
+                                height: ' 10px'
+                            }} />
+                    </Button> */}
+                    <EditableText
+                        onChange={updateName}
+                        value={name}
+                        typographyProps={{
+                            variant: 'body1'
+                        }}
                     />
-                </RemoveTooltip>
-            </Tooltip>
+                    <div className={s.removeButtonContainer}>
+                        <Tooltip placement='left-start' isClick>
+                            <RemoveTooltip
+                                onConfirm={() => onDayCategoryRemove()}
+                            >
+                                <RemoveButton
+                                    className={s.removeButton}
+                                    color='gray'
+                                    size='small'
+                                />
+                            </RemoveTooltip>
+                        </Tooltip>
+                    </div>
+                </header>
+                {children}
+            </div>
 
         </Reorder.Item>
     );

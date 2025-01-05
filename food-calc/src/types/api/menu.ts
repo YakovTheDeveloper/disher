@@ -1,4 +1,4 @@
-import { Response } from "@/types/api/common";
+import { PaginanationParams, Response } from "@/types/api/common";
 import { IdToQuantity } from "@/types/common/common";
 import { IMenu, IProductBase, IProductWithNutrients } from "@/types/menu/Menu";
 
@@ -40,5 +40,8 @@ export type GetDishResponse = Response<{
 //     "error": null
 // }
 
-export type GetAllDishResponse = Response<IMenu[]>
+export type GetAllDishResponse = Response<{
+    content: IMenu[]
+    itemsCount: number
+}>
 

@@ -3,8 +3,13 @@ import { RootDayStore2 } from "@/store/rootDayStore/rootDayStore2";
 import { CalculationReactionStore } from "@/store/rootDishStore/calculationReactionStore";
 import { DishStore, UserDishStore } from "@/store/rootDishStore/dishStore/dishStore";
 import { RootDishStore } from "@/store/rootDishStore/rootDishStore";
+import { DishUiStore } from "@/store/uiStore/dishUiStore/dishUiStore";
 import { NotificationStore } from "@/store/uiStore/notificationStore/notificationStore";
+import { ProductFlow } from "@/store/useCasesStore/productFlow";
+import { SearchParams } from "@/types/api/common";
+import { GetAllDishParams } from "@/types/api/dish";
 import { IProductBase } from "@/types/dish/dish";
+import { param } from "framer-motion/client";
 import { makeAutoObservable } from "mobx";
 
 export class DishFlow {
@@ -13,7 +18,9 @@ export class DishFlow {
         private rootDayStore: RootDayStore2,
         private calculations: CalculationReactionStore,
         private notifications: NotificationStore,
-        private products: ProductStore
+        private products: ProductStore,
+        private productFlow: ProductFlow,
+        private dishUi: DishUiStore
     ) {
         makeAutoObservable(this)
     }
@@ -25,15 +32,33 @@ export class DishFlow {
     }
 
 
-    getAll = async () => {
-        const res = await this.root.fetchManager.getAll()
+    getAll = async (search: string) => {
+        const { params, finish, next, setItemsCount } = this.root.pagination
+
+        console.log("getall", finish)
+        const totalParams: Partial<GetAllDishParams> = {
+            search: ''
+        }
+
+        const { limit, offset } = params
+        totalParams.limit = limit
+        totalParams.offset = offset
+
+        if (search) totalParams.search = search
+
+        const res = await this.root.fetchManager.getAll(totalParams)
         if (res.isError) {
             this.notifications.error('dish', 'getAll', '')
             return
         }
         const { data } = res
-        const stores = data.map(norm => new UserDishStore(norm))
+        const stores = data.content.map(norm => new UserDishStore(norm))
+        setItemsCount(data.itemsCount)
+
+        // setSearchContent(data.content)
+
         this.root.addLocalBulk(stores)
+        next()
     }
 
 
@@ -97,15 +122,15 @@ export class DishFlow {
     addProduct = async (product: IProductBase) => {
         const capturedDish = this.root.currentStore
 
-        capturedDish?.toggleProduct({
+        capturedDish?.toggleProductV2({
             ...product,
             quantity: 100
         })
 
-        this.products.handleGetFullProductData([product.id])
+        this.productFlow.getProductFull([product.id])
             .then(res => {
                 if (res?.isError) {
-                    capturedDish?.toggleProduct({
+                    capturedDish?.toggleProductV2({
                         ...product,
                         quantity: 100
                     })
@@ -113,5 +138,17 @@ export class DishFlow {
                 }
                 this.calculations.updateDishCalculationsWithCurrentProducts()
             })
+
+        // this.products.handleGetFullProductData([product.id])
+        //     .then(res => {
+        //         if (res?.isError) {
+        //             capturedDish?.toggleProduct({
+        //                 ...product,
+        //                 quantity: 100
+        //             })
+        //             return
+        //         }
+        //         this.calculations.updateDishCalculationsWithCurrentProducts()
+        //     })
     }
 }

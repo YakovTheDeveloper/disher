@@ -35,7 +35,7 @@ const Days = ({ dayRoot = rootDayStore2, userRoot = userStore }: Props) => {
     const {
         currentStore,
         draftDayStore,
-        loadingState
+        loadingState,
     } = dayRoot
 
     if (!currentStore) return
@@ -71,19 +71,18 @@ const Days = ({ dayRoot = rootDayStore2, userRoot = userStore }: Props) => {
                                 // <Actions store={currentStore} variant='day' loadingState={loadingState} />
                             }
                         >
-                            {currentStore.currentCategory &&
+                            {/* {currentStore.currentCategory &&
                                 <DayCalculationContext.Provider value={{
                                     updateCalculations: currentCalculationStore.updateDayCalculationsWithCurrentProducts
                                 }}>
                                     <AddDishToDay currentCategory={currentStore.currentCategory} />
                                 </DayCalculationContext.Provider>
-                            }
+                            } */}
                         </Day>
                 )
 
             }
             right={
-                currentStore &&
                 <NutrientsTotal
                     rowPositionSecond={(nutrient) => (
                         <NutrientValue
@@ -101,6 +100,15 @@ const Days = ({ dayRoot = rootDayStore2, userRoot = userStore }: Props) => {
                         />
                     )}
                 >
+                    {currentStore.currentCategory &&
+                        <AddDishToDay
+                            before={
+                                <Button onClick={() => currentStore.setCurrentCategoryId(-1)}>
+                                    {'<-'}
+                                </Button>
+                            }
+                            currentCategory={currentStore.currentCategory}
+                        />}
                 </NutrientsTotal>
             }
         >

@@ -1,0 +1,18 @@
+.choice {
+    /* gap: 10px; */
+    /* padding: 20px; */
+    /* background-color: aliceblue; */
+    border: 1px solid lightgray;
+    /* padding: 10px; */
+}
+
+.inputContainer {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.inputContainer .portionInput {
+    width: 39px;
+    padding: 0;
+}

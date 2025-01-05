@@ -84,6 +84,7 @@ export const api = {
 export const apiRoutes = {
     products: {
         get: "products",
+        patch: (id: number) => `products/${id}`
     },
     richNutrientProducts: {
         get: (id: number) => `products/rich/?nutrient_id=${id}`

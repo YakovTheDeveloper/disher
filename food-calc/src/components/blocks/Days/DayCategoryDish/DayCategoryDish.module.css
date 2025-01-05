@@ -6,7 +6,7 @@
     /* gap: 10px 20px; */
     padding: 8px 10px 8px 8px;
     cursor: default;
-    box-shadow: var(--box-shadow-xs);
+    /* box-shadow: var(--box-shadow-xs); */
 
     &:hover .removeButton {
         color: var(--color-light-gray);
@@ -19,7 +19,9 @@
 }
 
 .choice {
+    flex-direction: column;
     padding-bottom: 5px;
+    max-width: 60px;
 }
 
 .choice,
@@ -32,14 +34,16 @@
 
 .dishName {
     display: flex;
-    justify-content: space-between;
+    align-items: end;
+    /* justify-content: space-between; */
     /* width: 100%; */
-    gap: 15px;
+    gap: 7px;
 
 }
 
 .loading {}
 
 .removeButton {
+    margin-left: auto;
     color: white;
 }

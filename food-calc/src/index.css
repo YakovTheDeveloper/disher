@@ -42,7 +42,7 @@
   --z-index-search-container: 23;
   --z-index-search-list: 23;
   --z-index-main-overlay: 22;
-  --z-index-tooltip: 21;
+  --z-index-tooltip: 40;
   --z-index-dish-overlay: 7;
 
   --z-index-slider-hover-track: 4;

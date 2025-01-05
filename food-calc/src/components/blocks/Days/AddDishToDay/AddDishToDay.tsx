@@ -1,6 +1,6 @@
-import { productStore, rootDishStore } from '@/store/rootStore'
+import { Flows, productStore, rootDishStore } from '@/store/rootStore'
 import { observer } from 'mobx-react-lite'
-import { useContext, useEffect, useState } from 'react'
+import { ReactNode, useContext, useEffect, useState } from 'react'
 import s from './AddDishToDay.module.css'
 import clsx from 'clsx'
 import { DayCategoryDish } from '@/types/day/day'
@@ -8,13 +8,16 @@ import { Typography } from '@/components/ui/Typography/Typography'
 import DayDishesList from '@/components/blocks/Days/AddDishToDay/DayDishesList/DayDishesList'
 import { DayCategoryStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryStore'
 import { DayCalculationContext } from '@/context/calculationContext'
+import Input from '@/components/ui/Input/Input'
+import SearchInput from '@/components/ui/Input/SearchInput/SearchInput'
 
 
 type Props = {
     currentCategory: DayCategoryStore
+    before: ReactNode
 }
 
-const AddDishToDay = ({ currentCategory }: Props) => {
+const AddDishToDay = ({ currentCategory, before }: Props) => {
     const { toggleDish, isDishInCategory } = currentCategory
 
     const { userStores } = rootDishStore
@@ -29,13 +32,15 @@ const AddDishToDay = ({ currentCategory }: Props) => {
         setIsBlue(true);
         const timer = setTimeout(() => {
             setIsBlue(false);
-        }, 150);
+        }, 500);
         return () => clearTimeout(timer);
     }, [currentCategory]);
 
     const onAdd = (dish: DayCategoryDish) => {
+
         toggleDish(dish)
-        handleGetFullProductData(currentCategory.uniqueProductIds).then(
+
+        Flows.Product.getProductFull(currentCategory.uniqueProductIds).then(
             (res) => {
                 updateCalculations()
                 if (res?.isError) {
@@ -53,9 +58,15 @@ const AddDishToDay = ({ currentCategory }: Props) => {
             isBlue ? s.appear : ''
         ])}>
             <div className={s.header}>
-                <Typography align='center'>{currentCategory?.name}</Typography>
-                <Typography variant='caption' align='center'>добавить или убрать блюдо</Typography>
+                <div className={s.before}>
+                    {before}
+                </div>
+                <div className={s.headerTitle}>
+                    <Typography variant='h2' align='center'>{currentCategory?.name}</Typography>
+                    <Typography variant='caption' align='center'>добавить или убрать блюдо</Typography>
+                </div>
             </div>
+            <SearchInput placeholder='Название блюда...' />
             <ul className={s.list}>
                 <DayDishesList
                     isDishInCategory={isDishInCategory}

@@ -42,8 +42,19 @@ export class ProductsService {
   }
 
   async findAll() {
-    const products = await this.productsRepository.find()
-    return products.map(({ description, descriptionRu, ...baseData }) => ({ ...baseData }))
+    const products = await this.productsRepository.find({ relations: ['productNutrients', 'productNutrients.nutrient'] })
+    return products.map(({ id, nameRu, portions, productNutrients }) => {
+      // console.log("portions", portions)
+      return {
+        id,
+        name: nameRu,
+        portions: JSON.parse(portions || "[]") || [],
+        nutrients: productNutrients.reduce((nutrientAcc, productNutrient) => {
+          nutrientAcc[productNutrient.nutrient.id] = productNutrient.quantity;
+          return nutrientAcc;
+        }, {})
+      }
+    })
   }
 
   findOne(id: number) {
@@ -69,25 +80,27 @@ export class ProductsService {
     //   .select(['product.id', 'productNutrients', 'nutrient.id'])
     //   .getMany();
 
-    const productIdToNutrientsMap: ProductIdToNutrientsMap = {}
+    const result = []
 
-    const portionsResult = []
-
-
-    productWithNutrients.forEach(({ id, productNutrients, portions }) => {
+    productWithNutrients.forEach(({ id, productNutrients, portions = "[]" }) => {
+      console.log("portions", portions)
       const nutrients: IdToQuantity = {}
-      portionsResult.push({
-        id,
-        content: portions
-      })
+      const portionsParsed = JSON.parse(portions || "[]")
+
       productNutrients.forEach(({ nutrient, quantity }) => nutrients[nutrient.id] = quantity)
-      productIdToNutrientsMap[id] = nutrients
+
+      result.push({
+        id,
+        nutrients,
+        portions: portionsParsed
+      })
     })
 
-    return {
-      nutrients: productIdToNutrientsMap,
-      portions: portionsResult,
-    }
+    return result
+    // return {
+    //   nutrients: productIdToNutrientsMap,
+    //   portions: productIdToPortion,
+    // }
   }
 
   async findRich(nutrientId: string) {
@@ -182,14 +195,16 @@ export class ProductsService {
 
   async update(id: number, updateProductDto: UpdateProductDto) {
 
-    const { portions = '' } = updateProductDto
+    const { portions = '', name = '' } = updateProductDto
 
     const [product] = await this.productsRepository.find({ where: { id } })
     if (!product) return
 
-    if (portions) {
-      product.portions = JSON.stringify(portions)
-    }
+    if (portions) product.portions = JSON.stringify(portions)
+    if (name) product.nameRu = name
+    // if (name) {
+    //   product.nameRu = name
+    // }
     const result = await this.productsRepository.save(product)
 
     return result

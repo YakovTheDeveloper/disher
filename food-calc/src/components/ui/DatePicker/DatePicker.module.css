@@ -32,8 +32,8 @@
 .calendarContainer {
     position: absolute;
     z-index: 2;
-    top: calc(var(--trigger-height) + 15px);
+    top: calc(var(--trigger-height) - 30px);
     right: 0;
     /* left: -25px; */
-    /* transform: translateX(-50%); */
+    transform: translateY(-100%);
 }

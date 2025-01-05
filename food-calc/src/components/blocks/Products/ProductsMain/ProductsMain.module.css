@@ -1,0 +1,24 @@
+.productsMain {
+    display: grid;
+    height: 100%;
+    grid-template-rows: 1fr auto;
+    flex-direction: column;
+}
+
+.productsMainContent {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    overflow-y: auto;
+    height: 100%;
+    gap: 20px;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.nutrients {
+    overflow-y: auto;
+}

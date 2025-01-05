@@ -15,9 +15,12 @@
 
 .main {
     overflow-y: auto;
-    display: grid;
-    grid-template-columns: 5fr 3fr;
+    /* display: grid; */
+    /* grid-template-columns: 5fr 3fr; */
+    background-color: rgb(253, 253, 253);
+    padding: 10px;
     gap: 10px;
+    border-radius: 10px;
 }
 
 .sub {

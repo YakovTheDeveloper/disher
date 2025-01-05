@@ -15,3 +15,12 @@ export function removeTokenFromLocalStorage() {
     }
     return null;
 }
+
+export function persistToLocalStorage<T>(key: string, data: T) {
+    localStorage.setItem(key, JSON.stringify(data));
+}
+
+export function loadFromLocalStorage<T>(key: string): T | null {
+    const storedData = localStorage.getItem(key);
+    return storedData ? JSON.parse(storedData) : null;
+}

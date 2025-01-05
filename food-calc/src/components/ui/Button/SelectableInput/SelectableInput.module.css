@@ -1,3 +1,10 @@
+.selectableInput {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    user-select: none;
+}
+
 .radioButton {
     display: inline-flex;
     align-items: center;
@@ -8,6 +15,10 @@
 .input {
     display: none;
     /* Hide the native radio button */
+}
+
+.label {
+    user-select: none;
 }
 
 .iconContainer {

@@ -41,6 +41,19 @@ export const notificationMessages: Messages = {
             delete: () => `Не получилось удалить, попробуйте позднее`,
             getAll: () => `Не удалось получить нормы, попробуйте позднее`
         }
+    },
+    product: {
+        success: {
+            save: (product: string) => `Вы добавили ${product}!`,
+            update: (product: string) => `Вы обновили ${product}!`,
+            delete: (product: string) => `Вы удалили ${product}`,
+        },
+        error: {
+            save: () => `Не получилось сохранить, попробуйте позднее`,
+            update: () => `Не получилось обновить, попробуйте позднее`,
+            delete: () => `Не получилось удалить, попробуйте позднее`,
+            getAll: () => `Не удалось получить нормы, попробуйте позднее`
+        }
     }
 
 }

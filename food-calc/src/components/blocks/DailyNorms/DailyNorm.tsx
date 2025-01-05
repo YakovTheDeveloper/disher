@@ -32,16 +32,7 @@ const DailyNorm = ({ store, children }: Props) => {
       />
       <div className={s.container}>
         <NutrientsList
-          nutrients={nutrientsPartOne}
-          rowPositionSecond={(category) => (
-            <NumberInput
-              value={nutrients[category.name]}
-              onChange={(value) => updateNutrient(category.name, value)}
-            />
-          )}
-        />
-        <NutrientsList
-          nutrients={nutrientsPartTwo}
+          nutrients={defaultNutrients}
           rowPositionSecond={(category) => (
             <NumberInput
               value={nutrients[category.name]}

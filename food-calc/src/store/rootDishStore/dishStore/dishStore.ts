@@ -1,4 +1,4 @@
-import { toJS, autorun, action, makeObservable, observable, computed, reaction, runInAction } from "mobx"
+import { toJS, autorun, action, makeObservable, observable, computed, reaction, runInAction, makeAutoObservable } from "mobx"
 import { IMenu, IProductBase } from "../../../types/menu/Menu"
 import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { CreateDishPayload } from "@/types/api/menu";
@@ -6,12 +6,15 @@ import { DRAFT_MENU_ID, RootDishStore } from "@/store/rootDishStore/rootDishStor
 import { IDish } from "@/types/dish/dish";
 import { DetectChangesStore } from "@/store/common/DetectChangesStore";
 import { DraftStore, UserDataStore } from "@/store/common/types";
+import { rootProductStore } from "@/store/rootStore";
+import { ProductPortionStore } from "@/store/productStore/rootProductStore";
 
 export class DishStore {
     description = ''
     name = 'New menu'
     id: number = DRAFT_MENU_ID
     products: IProductBase[] = []
+    productsV2: DishProduct[] = []
     fetched = false
 
     get productIds() {
@@ -19,7 +22,8 @@ export class DishStore {
     }
 
     get empty() {
-        return this.products.length === 0
+        // return this.products.length === 0
+        return this.productsV2.length === 0
     }
 
     get payload(): CreateDishPayload {
@@ -80,9 +84,14 @@ export class DishStore {
         this.products.push(product)
     }
 
-    // hasProduct = (productId: number) => {
-    //     return this.products.some(({ id }) => id === productId)
-    // }
+    toggleProductV2 = (product: IProductBase) => {
+        const existed = this.productsV2.find(({ id }) => id === product.id)
+        if (existed) {
+            this.productsV2 = this.productsV2.filter(({ id }) => id !== product.id)
+            return
+        }
+        this.productsV2.push(new DishProduct(product))
+    }
 
     get productData() {
         return this.products.map(product => product.quantity)
@@ -96,6 +105,7 @@ export class DishStore {
         makeObservable(this, {
             name: observable,
             products: observable,
+            productsV2: observable,
             productIds: computed,
             productData: computed,
             setProducts: action,
@@ -110,6 +120,7 @@ export class DishStore {
         this.id = id
         this.name = name
         this.products = products
+        this.productsV2 = products.map(product => new DishProduct(product))
     }
 
 }
@@ -173,66 +184,31 @@ export class DraftDishStore extends DishStore implements DraftStore<IProductBase
     }
 }
 
+export class DishProduct {
+    constructor({ id, name, quantity }: IProductBase, private productStore = rootProductStore) {
+        makeAutoObservable(this)
+        this.id = id
+        this.name = name
+        this.quantity = quantity
+        this._portions = this.productStore.userStoresMap[this.id].portions
+        this.currentPortion = ''
+    }
 
-// export class UserDishStore extends DishStore {
-//     constructor(private rootDishStore: RootDishStore) {
-//         super(rootDishStore);
+    id: number
+    name: string
+    quantity: number
 
-//         makeObservable(this, {
-//             _initProductsSnapshot: observable,
-//             changeOccured: observable,
-//             save: action,
-//             setInitProductsSnapshot: action,
-//             resetToInit: action,
-//             initProductsSnapshot: computed,
-//         });
+    currentPortion: string
 
-//         // Initialize the snapshot and start the reaction
-//         this._initProductsSnapshot = null;
-//         this.changeOccured = false;
+    _portions: ProductPortionStore[]
 
-//         reaction(
-//             () => [toJS(this._initProductsSnapshot), toJS(this.products)],
-//             ([snapshot, products]) => {
-//                 this.changeOccured = !isEqual(snapshot, products);
-//             }
-//         );
-//     }
+    get portions() {
+        return this.productStore.userStoresMap[this.id].portions.map(({ name, quantity }) => ({
+            name, quantity
+        }))
+    }
 
-//     save = async (id: number): Promise<unknown> => {
-//         const captureState = structuredClone(toJS(this.products))
-//         return fetchUpdateDish(id, this.payload).then(
-//             action("fetchSuccess", (res) => {
-//                 console.log("@@@", res)
-//                 this._initProductsSnapshot = captureState
-//                 this.changeOccured = false;
-//             }),
-//             action("fetchError", (error) => {
-//                 console.error("Save failed", error);
-//             })
-//         );
-//     };
+    setQuantity = (quantity: number) => this.quantity = quantity
 
-//     removeDish = async (id: string) => {
-//         this.rootDishStore.removeDish(id);
-//     };
-
-//     changeOccured: boolean = false;
-
-//     _initProductsSnapshot: IProductBase[] | null = null;
-
-//     get initProductsSnapshot() {
-//         return this._initProductsSnapshot;
-//     }
-
-//     setInitProductsSnapshot(products: IProductBase[]) {
-//         this._initProductsSnapshot = structuredClone(products)
-//     }
-
-//     resetToInit = () => {
-//         console.log("this._initProductsSnapsho", this._initProductsSnapshot)
-//         if (!this._initProductsSnapshot) return;
-//         this.products = structuredClone(toJS(this._initProductsSnapshot));
-//         this.changeOccured = false;
-//     };
-// }
+    setCurrentPortion = (portion: string) => this.currentPortion = portion
+}

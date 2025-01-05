@@ -1,3 +1,4 @@
+import { PaginanationParams, SearchParams } from "@/types/api/common"
 import { IdToQuantity } from "@/types/common/common"
 
 export type GetDishProductsResponse = {
@@ -7,4 +8,6 @@ export type GetDishProductsResponse = {
 type DishProduct = {
     productId: number
     nutrients: IdToQuantity
-} 
+}
+
+export type GetAllDishParams = PaginanationParams & { search: string }

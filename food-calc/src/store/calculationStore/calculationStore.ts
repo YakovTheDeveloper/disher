@@ -10,13 +10,14 @@ import { IProduct } from "@/types/menu/Menu";
 import { IProductBase } from "@/types/dish/dish";
 import { NutrientStore } from "@/store/nutrientStore/nutrientStore";
 import { ProductStore } from "@/store/productStore/productStore";
+import { RootProductStore } from "@/store/productStore/rootProductStore";
 
 
 
 export class CalculationStore {
     totalNutrients: NutrientIdToQuantityMap = {}
 
-    constructor(private nutrientStore: NutrientStore, private productStore: ProductStore) {
+    constructor(private rootProductStore: RootProductStore, private productStore: ProductStore) {
         makeAutoObservable(this)
     }
 
@@ -25,7 +26,9 @@ export class CalculationStore {
     }
 
     update(products: IProduct[]) {
+        console.log("products", products)
         const nutrients = this.calculateNutrients(products)
+        console.log("products nutrients", nutrients)
         this.setTotal(nutrients)
     }
 
@@ -64,7 +67,9 @@ export class CalculationStore {
 
         products.forEach(product => {
 
-            const productNutrients = this.productStore.getProductNutrients(+product.id)
+            const productNutrients = this.rootProductStore.userStoresMap[product.id].nutrients
+
+            // const productNutrients = this.productStore.getProductNutrients(+product.id)
             if (!productNutrients) {
                 console.log('No nutrients')
                 return

@@ -1,13 +1,15 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import TickIcon from "@/assets/icons/tick.svg"; // Adjust the path as needed
 import s from "./SelectableInput.module.css"; // Optional CSS module
+import { observer } from "mobx-react-lite";
 
 interface SelectableInputProps {
-    id: number;
+    id: number | string;
     name: string;
     type: "radio" | "checkbox";
+    label?: ReactNode,
     isChecked: boolean;
-    onChange: (id: number) => void;
+    onChange: (id: number | string) => void;
 }
 
 const SelectableInput: React.FC<SelectableInputProps> = ({
@@ -15,6 +17,7 @@ const SelectableInput: React.FC<SelectableInputProps> = ({
     name,
     type,
     isChecked,
+    label,
     onChange,
 }) => {
     return (
@@ -30,8 +33,13 @@ const SelectableInput: React.FC<SelectableInputProps> = ({
             <div className={s.iconContainer}>
                 {isChecked && <TickIcon className={s.tickIcon} />}
             </div>
+            {label &&
+                <span className={s.label}>
+                    {label}
+                </span>
+            }
         </label>
     );
 };
 
-export default SelectableInput;
+export default observer(SelectableInput);

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, BadRequestException, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, BadRequestException, Query, Search } from '@nestjs/common';
 import { DishService } from './dish.service';
 import { FoodCollectionController } from 'foodCollection/common/foodCollection.controller';
 import { LocalAuthGuard } from 'resources/auth/auth.guard';
@@ -27,12 +27,21 @@ export class DishController {
 
   @UseGuards(LocalAuthGuard)
   @Get()
-  findAll(@Req() request: Request) {
+  findAll(
+    @Req() request: Request,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+    @Query('search') search?: string
+  ) {
     const userId = request.user?.id
     if (userId == null) {
       throw new BadRequestException('No such user id');
     }
-    return this.dishService.findAll(userId);
+
+    const pageLimit = limit && limit > 0 ? limit : 10;  // Default limit is 10
+    const pageOffset = offset && offset >= 0 ? offset : 0;
+
+    return this.dishService.findAll(userId, pageLimit, pageOffset, search);
   }
 
   @UseGuards(LocalAuthGuard)

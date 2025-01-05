@@ -44,3 +44,11 @@ export type NutrientData = { id: number, name: NutrientName, displayName: string
 
 export type NutrientUnit = 'g' | 'μg' | 'mg' | 'kcal'
 export type NutrientUnitRu = 'г' | 'мг' | 'мкг' | 'ккал'
+
+export type NutrientGroupName = 'main' | 'vitaminsB' | 'minerals' | 'rest'
+
+export type NutrientGroup = {
+    name: NutrientGroupName
+    displayName: string
+    content: NutrientData[]
+}

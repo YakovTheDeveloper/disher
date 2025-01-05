@@ -25,7 +25,7 @@ const UserActions2 = ({
     store,
     loadingState,
 }: Props) => {
-    const { detectChangesStore, id } = store
+    const { detectChangesStore = null, id } = store
     const loading = loadingState.getLoading('delete', id) || loadingState.getLoading('update', id)
 
     return (

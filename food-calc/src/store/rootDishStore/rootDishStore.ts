@@ -15,6 +15,7 @@ import { LoadingStateStore } from "@/store/common/LoadingStateStore";
 import { FetchManagerStore } from "@/store/common/FetchManagerStore";
 import { CalculationReactionStore } from "@/store/rootDishStore/calculationReactionStore";
 import { RootEntityStore } from "@/store/common/types";
+import { PaginationStore } from "@/store/common/PaginationStore";
 // type IRootMenuStore = {WW#
 //     productStore: ProductStore
 // }
@@ -37,6 +38,8 @@ export class RootDishStore extends RootEntityStore<
       // this.getAll();
     });
   }
+
+  pagination = new PaginationStore()
 
   draftStore: DraftDishStore = new DraftDishStore({
     id: DRAFT_MENU_ID,

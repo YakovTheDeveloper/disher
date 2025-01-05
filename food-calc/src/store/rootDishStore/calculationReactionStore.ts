@@ -2,6 +2,7 @@ import { CalculationStore } from "@/store/calculationStore/calculationStore";
 import { ProductStore } from "@/store/productStore/productStore";
 import { RootDayStore2 } from "@/store/rootDayStore/rootDayStore2";
 import { RootDishStore } from "@/store/rootDishStore/rootDishStore";
+import { ProductFlow } from "@/store/useCasesStore/productFlow";
 import { makeAutoObservable, reaction, toJS } from "mobx";
 
 type StoreParameters = {
@@ -13,11 +14,11 @@ type StoreParameters = {
 
 export class CalculationReactionStore {
     constructor(
-        private productStore: ProductStore,
         private rootDishStore: RootDishStore,
         private rootDayStore: RootDayStore2,
         private calculationDishStore: CalculationStore,
         private calculationDayStore: CalculationStore,
+        private productFlow: ProductFlow,
     ) {
         makeAutoObservable(this);
 
@@ -37,9 +38,9 @@ export class CalculationReactionStore {
             () => this.rootDishStore.currentStore,
             (dish) => {
                 console.log('reaction II: current dish')
+                const { getProductFull } = this.productFlow
                 if (!dish) return;
-                this.productStore
-                    .handleGetFullProductData(dish.productIds)
+                getProductFull(dish.productIds)
                     .then((res) => {
                         if (res?.isError) return;
                         this.updateDishCalculationsWithCurrentProducts();
@@ -60,9 +61,9 @@ export class CalculationReactionStore {
             (day) => {
                 if (!day) return
                 console.log('reaction II: current day')
+                const { getProductFull } = this.productFlow
 
-                this.productStore
-                    .handleGetFullProductData(day.uniqueProductIds)
+                getProductFull(day.uniqueProductIds)
                     .then((res) => {
                         // if (res?.isError) return;
                         this.updateDayCalculationsWithCurrentProducts();

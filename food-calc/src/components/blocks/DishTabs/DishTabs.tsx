@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { observer } from "mobx-react-lite"
 import { Flows, rootDishStore, uiStore } from '../../../store/rootStore'
 import { GetProducts } from 'types/api/product'
@@ -13,18 +13,50 @@ import { RootEntityStore } from '@/store/common/types'
 import { UserDishStore, DraftDishStore } from '@/store/rootDishStore/dishStore/dishStore'
 import { IDish } from '@/types/dish/dish'
 import DraftTab from '@/components/ui/Tab/DraftTab'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScrollOptions'
+import { DishFlow } from '@/store/useCasesStore/dishFlow'
+import SearchInput from '@/components/ui/Input/SearchInput/SearchInput'
+import { UiStore } from '@/store/uiStore/uiStore'
+import DishSearch from '@/components/blocks/Dish/DishSearch/DishSearch'
+import Button from '@/components/ui/Button/Button'
 
 type Props = {
-    rootStore: RootEntityStore<IDish, UserDishStore, DraftDishStore>
+    rootStore: RootDishStore
+    // rootStore: RootEntityStore<IDish, UserDishStore, DraftDishStore>
+    dishFlow: DishFlow
+    ui: UiStore
 }
 
-function DishTabs({ rootStore }: Props) {
+function DishTabs({ rootStore, dishFlow = Flows.Dish, ui = uiStore }: Props) {
+
+    const { dishUi } = ui
+
     const { draftStore, userStores, setCurrentId, currentItemId, loadingState } = rootStore
 
     const isLoading = loadingState.getLoading('all')
 
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const onReachEnd = async () => dishFlow.getAll(dishUi.searchBarDishPage)
+
+    const isAtEnd = useInfiniteScroll({ containerRef, onReachEnd })
+
+    const search = ui.dishUi.searchBarDishPage
+
+    const content =
+        search
+            ? userStores.filter(({ name }) => {
+                return name.toLowerCase().includes(search.toLowerCase())
+            })
+            : userStores
+
+
+
+
+    const disabled = userStores.length === rootDishStore.pagination.itemsCount
+
     return (
-        <nav className={s.dishTabs}>
+        <nav className={s.dishTabs} ref={containerRef}>
             <TabList isLoading={isLoading}>
                 <DraftTab
                     onClick={() => setCurrentId(draftStore.id)}
@@ -33,7 +65,12 @@ function DishTabs({ rootStore }: Props) {
                 >
                     Создать блюдо
                 </DraftTab>
-                {userStores.map(({ id, name }) => {
+                <DishSearch
+                    getAll={dishFlow.getAll}
+                    uiStore={dishUi}
+                    onChange={() => rootStore.pagination.reset()}
+                />
+                {content.map(({ id, name }) => {
                     return (
                         <Tab
                             key={id}
@@ -58,6 +95,9 @@ function DishTabs({ rootStore }: Props) {
                 })
                 }
             </TabList>
+            <Button onClick={onReachEnd} variant='ghost' disabled={disabled}>
+                Загрузить еще
+            </Button>
         </nav>
     )
 }

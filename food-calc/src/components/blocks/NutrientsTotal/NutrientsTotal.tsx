@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-import { defaultNutrients, NutrientCategory, nutrientsMap, nutrientsPadding } from "@/store/nutrientStore/data";
+import { defaultNutrientsV2, nutrientsMap, nutrientsPadding } from "@/store/nutrientStore/data";
 import s from "./NutrientsTotal.module.css";
-import { Typography } from "@/components/ui/Typography/Typography";
-import clsx from "clsx";
 import NutrientsList, { NutrientsListProps } from "@/components/blocks/NutrientsTotal/NutrientsList/NutrientsList";
 import { NutrientName } from "@/types/nutrient/nutrient";
-import Button from "@/components/ui/Button/Button";
-import { isEmpty, isNotEmpty } from "@/lib/empty";
 import SelectableInput from "@/components/ui/Button/SelectableInput/SelectableInput";
-import EyeIcon from "@/assets/icons/eye.svg";
+import NutrientsFilter from "@/components/blocks/NutrientsTotal/NutrientsFilter/NutrientsFilter";
+import { uiStore } from "@/store/rootStore";
+import { NutrientUiStore } from "@/store/uiStore/uiStore";
 
 const nutrientCategories = Object.values(nutrientsMap);
 const nutrientPadding = (nutrientId: number): boolean => {
@@ -18,10 +16,12 @@ const nutrientPadding = (nutrientId: number): boolean => {
 
 type Props = {
   children?: React.ReactNode;
+  store: NutrientUiStore;
 } & NutrientsListProps;
 
 const NutrientsTotal = ({
   children,
+  store = uiStore.nutrients,
   rowPositionSecond,
   rowPositionThird
 }: Props) => {
@@ -60,12 +60,15 @@ const NutrientsTotal = ({
     setShowOnlySelected(true)
   }
 
-  const filteredNutrients = showOnlySelectedNutrients ? defaultNutrients.filter(({ name }) => selected?.includes(name)) : defaultNutrients
+  // const filteredNutrients = showOnlySelectedNutrients ? defaultNutrients.filter(({ name }) => selected?.includes(name)) : defaultNutrients
+  const filteredNutrients = defaultNutrientsV2.filter(({ name }) => store.nutrientGroupsVisibility[name])
+
 
 
 
   return (
     <div className={s.nutrientsTotal}>
+      <NutrientsFilter />
 
       {/* <header className={s.header}>
         <button className={s.filterButton} onClick={onFilterClick}>
@@ -80,8 +83,9 @@ const NutrientsTotal = ({
         }
 
       </header> */}
-
+      {children}
       <NutrientsList
+        filter={store.nutrientsVisibility}
         rowPositionFirst={(nutrient) => {
           if (!editMode) return null
           return (
@@ -96,7 +100,7 @@ const NutrientsTotal = ({
         }}
         rowPositionSecond={rowPositionSecond}
         rowPositionThird={rowPositionThird}
-        nutrients={filteredNutrients}
+        nutrientsV2={filteredNutrients}
       />
 
     </div>

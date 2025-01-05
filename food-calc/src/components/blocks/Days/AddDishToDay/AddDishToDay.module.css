@@ -1,16 +1,41 @@
 .container {
-    border: 2px solid white;
-    transition: border-color 0.3s ease;
+    border: 4px solid transparent;
+    transition: all 0.2s ease;
     /* Smooth transition for the border color */
     border-radius: 8px;
     /* Optional: Add rounded corners for a more pleasant effect */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    z-index: 10;
+
+
 }
+
+
 
 .container.appear {
     border-color: var(--color-light-green);
+    /* animation: moveLeft 1.2s ease-in-out; */
+}
+
+.before {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.headerTitle {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -39,4 +64,43 @@
 
 .inList {
     /* border-color: rgb(77, 181, 89); */
+}
+
+@keyframes moveRight {
+    0% {
+        transform: translateY(200%) scale(1);
+        background-color: rgba(150, 158, 174, 0.3);
+        /* Start the gradient in the initial position */
+        opacity: 0;
+    }
+
+    30% {
+        transform: translateY(-50%) scale(1);
+        background-color: rgba(48, 105, 220, 0.3);
+        opacity: 1;
+        /* Start the gradient in the initial position */
+    }
+
+    100% {
+        transform: translateX(800%) scale(1.5);
+        background-color: rgba(91, 235, 13, 0.684);
+        opacity: 0.1;
+        /* End the gradient beyond the left edge for smooth looping */
+    }
+}
+
+@keyframes moveLeft {
+    0% {
+        transform: translateY(200%);
+    }
+
+    30% {
+        transform: translateY(150%);
+        /* Start the gradient in the initial position */
+    }
+
+    100% {
+        transform: translateY(100%);
+        /* End the gradient beyond the left edge for smooth looping */
+    }
 }

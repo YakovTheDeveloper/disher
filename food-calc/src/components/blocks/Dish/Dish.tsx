@@ -25,13 +25,13 @@ function Dish(props: Props) {
   const { store, children } = props;
   const {
     products = [],
+    productsV2 = [],
     setProductQuantity,
     removeProduct,
     name,
     updateName,
     id,
     empty,
-    convertAllProductsTo100Gr
   } = store;
 
   const onClickProductName = (product: IProductBase) => {
@@ -53,7 +53,7 @@ function Dish(props: Props) {
       <div className={s.dishMain}>
         <EmptyListMessage isShow={empty} />
         <div className={s.products} key={id}>
-          {products.map((product) => (
+          {productsV2.map((product) => (
             <DishProduct
               key={product.id}
               product={product}

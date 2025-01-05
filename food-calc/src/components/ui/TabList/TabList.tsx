@@ -13,22 +13,24 @@ const TabList = (props: Props) => {
   const { children, isLoading } = props;
   return (
     <div className={s.container}>
-      <ul className={s.tabList}>{children}</ul>
-      {isLoading && (
-        <>
-          {skeletons.map((_) => (
-            <Tab
-              containerClassName={s.skeletonTab}
-              innerClassName={s.skeletonTabInner}
-              disabled={true}
-              isActive={false}
-              onClick={() => { }}
-            >
-              Загрузка
-            </Tab>
-          ))}
-        </>
-      )}
+      <ul className={s.tabList}>
+        {children}
+        {isLoading && (
+          <>
+            {skeletons.map((_) => (
+              <Tab
+                containerClassName={s.skeletonTab}
+                innerClassName={s.skeletonTabInner}
+                disabled={true}
+                isActive={false}
+                onClick={() => { }}
+              >
+                Загрузка
+              </Tab>
+            ))}
+          </>
+        )}
+      </ul>
     </div>
   );
 };

@@ -30,6 +30,10 @@
     font-size: 0.8rem;
 }
 
+.caption.offset {
+    margin-bottom: 0.5rem;
+}
+
 .h1.offset {
     /* margin-bottom: 1rem; */
     padding-bottom: 1.2rem;

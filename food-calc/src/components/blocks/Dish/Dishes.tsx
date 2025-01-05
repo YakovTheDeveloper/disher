@@ -14,6 +14,7 @@ import { RootEntityStore } from "@/store/common/types"
 import { IDish } from "@/types/dish/dish"
 import { useEffect } from "react"
 import SearchProduct from "@/components/blocks/SearchProduct/SearchProduct"
+import { isEmpty } from "@/lib/empty"
 
 type Props = {
     rootStore: RootEntityStore<IDish, UserDishStore, DraftDishStore>
@@ -52,24 +53,26 @@ function Dishes({ rootStore = rootDishStore }: Props) {
 
             }
             right={
-                <NutrientsTotal
-                    rowPositionSecond={(nutrient) => (
-                        <NutrientValue
-                            nutrient={nutrient}
-                            calculations={dishCalculationStore}
-                        />
-                    )}
-                    rowPositionThird={(nutrient) => (
-                        <NutrientPercent
-                            dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
-                            nutrient={nutrient}
-                            nutrientQuantity={dishCalculationStore.totalNutrients[nutrient.id]}
-                        // showFindRichProduct
-                        />
+                isEmpty(currentStore.productsV2)
+                    ? null
+                    : <NutrientsTotal
+                        rowPositionSecond={(nutrient) => (
+                            <NutrientValue
+                                nutrient={nutrient}
+                                calculations={dishCalculationStore}
+                            />
+                        )}
+                        rowPositionThird={(nutrient) => (
+                            <NutrientPercent
+                                dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
+                                nutrient={nutrient}
+                                nutrientQuantity={dishCalculationStore.totalNutrients[nutrient.id]}
+                            // showFindRichProduct
+                            />
 
-                    )}
-                >
-                </NutrientsTotal>
+                        )}
+                    >
+                    </NutrientsTotal>
             }
             overlayCenter={
                 (currentStore instanceof DraftDishStore && loadingState.getLoading('save'))

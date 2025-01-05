@@ -39,11 +39,11 @@ const Day = (props: Props) => {
                 <Button onClick={() => createNewCategory()} variant='secondary'>
                     Создать категорию
                 </Button>
-                <NavLink
+                {/* <NavLink
                     to='/calendar'
                 >
                     <Typography color='green'>Календарь</Typography>
-                </NavLink>
+                </NavLink> */}
             </div>
             <div className={s.main}>
                 <DayCalculationContext.Provider

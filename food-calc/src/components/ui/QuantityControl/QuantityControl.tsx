@@ -13,6 +13,7 @@ type Props = {
     quantity: number
     onChange: (value: number) => void
     children: React.ReactNode
+    after: React.ReactNode
     sliderClassName: string
 }
 
@@ -20,7 +21,7 @@ type Props = {
 //     return `${(quantity * 100).toFixed(1)} гр`
 // }
 
-const QuantityControl = ({ quantity, onChange, children, sliderClassName }: Props) => {
+const QuantityControl = ({ quantity, onChange, children, sliderClassName, after }: Props) => {
     const [localValue, setLocalValue] = useState(quantity)
     console.log(quantity)
 
@@ -48,14 +49,15 @@ const QuantityControl = ({ quantity, onChange, children, sliderClassName }: Prop
                 />
                 {children}
             </div>
-            <Slider
+            {/* <Slider
                 min={0}
                 max={400}
                 step={10}
                 className={clsx([s.quantityControlSlider, sliderClassName])}
                 onChange={handleChange}
                 value={localValue}
-            />
+            /> */}
+            {after}
         </div>
     )
 }

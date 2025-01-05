@@ -16,12 +16,14 @@ import {
 } from "@floating-ui/react";
 import type { Placement } from "@floating-ui/react";
 import s from './Tooltip.module.css'
+import clsx from "clsx";
 
 interface TooltipOptions {
     initialOpen?: boolean;
     placement?: Placement;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    isDismiss?: boolean
     isHover?: boolean
     isFocus?: boolean
     isClick?: boolean,
@@ -32,6 +34,7 @@ export function useTooltip({
     placement = "top",
     open: controlledOpen,
     onOpenChange: setControlledOpen,
+    isDismiss = true,
     isHover = false,
     isFocus = false,
     isClick = false
@@ -47,7 +50,7 @@ export function useTooltip({
         onOpenChange: setOpen,
         whileElementsMounted: autoUpdate,
         middleware: [
-            offset(5),
+            offset(3),
             flip({
                 crossAxis: placement.includes("-"),
                 fallbackAxisSideDirection: "start",
@@ -61,10 +64,14 @@ export function useTooltip({
 
 
 
-    const dismiss = useDismiss(context);
     const role = useRole(context, { role: "tooltip" });
 
-    const interactionItems = [dismiss, role]
+    const interactionItems = [role]
+
+    const dismiss = useDismiss(context, {
+        enabled: true
+    });
+    interactionItems.push(dismiss)
 
     if (isClick) {
         const click = useClick(context);
@@ -72,8 +79,9 @@ export function useTooltip({
     }
     if (isHover) {
         const hover = useHover(context, {
-            move: false,
-            enabled: controlledOpen == null
+            move: true,
+            delay: 50,
+            enabled: controlledOpen == null,
         });
         interactionItems.push(hover)
     }
@@ -115,12 +123,14 @@ export function Tooltip({
     children,
     isHover,
     isFocus,
+    isDismiss,
     isClick,
     ...options
 }: { children: React.ReactNode } & TooltipOptions) {
     // This can accept any props as options, e.g. `placement`,
     // or other positioning options.
-    const tooltip = useTooltip({ ...options, isHover, isFocus, isClick });
+    const tooltip = useTooltip({ ...options, isHover, isFocus, isClick, isDismiss });
+
 
     return (
         <TooltipContext.Provider value={tooltip}>
@@ -173,8 +183,10 @@ export const TooltipContent = React.forwardRef<
     return (
         <FloatingPortal>
             <div
+                className="Tooltip"
                 ref={ref}
                 style={{
+                    // zIndex: 1000,
                     ...context.floatingStyles,
                     ...style
                 }}
@@ -185,9 +197,15 @@ export const TooltipContent = React.forwardRef<
 });
 
 
-export const TooltipInner = ({ children }) => {
+type TooltipInnerProps = {
+    children: React.ReactNode
+    size?: 'small' | 'medium'
+    className?: string
+}
+
+export const TooltipInner = ({ children, className, size = "small" }: TooltipInnerProps) => {
     return (
-        <div className={s.tooltipInner}>
+        <div className={clsx([s.tooltipInner, className, s[size]])}>
             {children}
         </div>
     )

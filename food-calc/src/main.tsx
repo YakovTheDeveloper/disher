@@ -18,6 +18,7 @@ import DailyNorms from "@/components/blocks/DailyNorms/DailyNorms.tsx";
 import DaysCalendar from "@/components/blocks/DaysCalendar/DaysCalendar.tsx";
 import Root from "@/Root.tsx";
 import Dishes from "@/components/blocks/Dish/Dishes.tsx";
+import ProductsPage from "@/components/blocks/Products/ProductsPage.tsx";
 
 export const RouterPaths = {
   main: {
@@ -35,7 +36,6 @@ export const RouterPaths = {
     url: "/daily-norms",
     label: "Нормы",
     Icon: DishIcon
-
   },
 };
 
@@ -74,6 +74,10 @@ const router = createBrowserRouter([
 
         element: <DaysCalendar />,
       },
+      {
+        path: '/products',
+        element: <ProductsPage />
+      }
     ],
   },
 ]);

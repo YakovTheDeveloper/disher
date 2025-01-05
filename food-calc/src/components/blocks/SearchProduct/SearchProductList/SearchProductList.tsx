@@ -1,5 +1,5 @@
 import React from 'react'
-import { rootDishStore, productStore, currentCalculationStore, addProductToDishUseCase, Flows } from '@/store/rootStore'
+import { rootDishStore, productStore, currentCalculationStore, Flows } from '@/store/rootStore'
 import { IProductBase } from '../../../../types/menu/Menu'
 import { fromHash, generateHash } from '../../../../lib/hash/hash'
 import { observer } from 'mobx-react-lite'

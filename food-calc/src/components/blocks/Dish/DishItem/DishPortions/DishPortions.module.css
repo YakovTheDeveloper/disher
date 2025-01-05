@@ -1,0 +1,29 @@
+.dishPortions {
+    padding: 8px;
+    /* background: linear-gradient(90deg, rgba(238, 238, 238, 0.8) 80%, rgba(233, 233, 233, 1) 100%); */
+    box-shadow: var(--box-shadow-s);
+    display: flex;
+    gap: 6px;
+    user-select: none;
+}
+
+.dishPortion {
+    background: white;
+    width: fit-content;
+    padding: 2px 5px;
+    border-radius: 6px;
+    border: 1px solid #c9c9c9;
+    cursor: pointer;
+    font-size: 12px;
+
+    &:not(.active)&:hover {
+        border-color: var(--color-green-2);
+        color: var(--color-green-2);
+        opacity: 0.5;
+    }
+}
+
+.dishPortion.active {
+    border-color: var(--color-green);
+    color: var(--color-green);
+}

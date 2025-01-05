@@ -1,17 +1,18 @@
 .container {
     display: flex;
-    gap: 5px;
+    /* gap: 5px; */
+    border-radius: 9px;
+    overflow: hidden;
 }
 
 .choiceButton {
-    background-color: #f8f9fa;
+    background-color: #dbdbdb;
     color: #495057;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    padding: 3px 12px;
+    /* border: 1px solid #ced4da; */
+    padding: 5px 12px;
     font-size: 12px;
     cursor: pointer;
-    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .choiceButton:hover {
@@ -25,12 +26,11 @@
 }
 
 .choiceButton:active {
-    transform: scale(0.95);
+    /* transform: scale(0.95); */
 }
 
 .choiceButton.active {
-    background-color: #00a228;
-    color: #fff;
-    border-color: #009728;
+    background-color: white;
+    color: black;
     font-weight: 300;
 }

@@ -2,12 +2,25 @@
     width: 100%;
 }
 
+.small .inputContainer {}
+
+.small .inputElement {
+    font-size: 12px;
+}
+
+.medium .inputContainer {
+    padding: 0.3rem;
+}
+
+.medium .inputElement {
+    padding: 0.3rem 0.4rem;
+}
+
 .inputContainer {
     display: flex;
     align-items: center;
     border: 1px solid #ccc;
     border-radius: 4px;
-    padding: 0.3rem;
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     overflow: hidden;
 
@@ -49,7 +62,6 @@
     border: none;
     outline: none;
     font-size: 1rem;
-    padding: 0.3rem 0.4rem;
     color: #333;
     font-size: 1rem;
 

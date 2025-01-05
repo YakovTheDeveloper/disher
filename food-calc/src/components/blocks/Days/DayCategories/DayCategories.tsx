@@ -5,7 +5,7 @@ import { DayCalculationContext } from '@/context/calculationContext'
 
 import { DayCategoryStore } from '@/store/rootDayStore/dayCategoryStore/dayCategoryStore'
 import { DayStore2 } from '@/store/rootDayStore/dayStore2'
-import { productStore } from '@/store/rootStore'
+import { productStore, rootProductStore } from '@/store/rootStore'
 import clsx from 'clsx'
 import { Reorder, AnimatePresence } from 'framer-motion'
 import { observable } from 'mobx'
@@ -49,7 +49,7 @@ const DayCategories = ({ store }: Props) => {
                             <DayCategoryDishList
                                 dishes={category.dishes}
                                 removeDish={category.removeDish}
-                                loadingStore={productStore.loadingState}
+                                loadingStore={rootProductStore.loadingState}
                             >
                             </DayCategoryDishList>
                         </DayCategory>

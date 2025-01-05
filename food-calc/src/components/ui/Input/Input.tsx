@@ -4,7 +4,7 @@ import { TypographyProps } from '@/components/ui/Typography/Typography';
 import clsx from 'clsx';
 import typoStyle from '@/components/ui/Typography/Typography.module.css';
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: ReactNode;
     error?: string;
     helperText?: string;
@@ -14,6 +14,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     after?: ReactNode;  // Slot for right-side icon/button
     wrapperClassName?: string;  // Slot for right-side icon/button
     className?: string;  // Slot for right-side icon/button
+    size?: 'small' | 'medium'
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(({
@@ -27,6 +28,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
     wrapperClassName,
     className,
     type,
+    size = 'medium',
     ...props
 }, ref) => {
     const [isPasswordVisible, setPasswordVisible] = useState(false);
@@ -40,7 +42,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
         : type;
 
     return (
-        <div >
+        <div className={clsx([styles.inputWrapper, styles[size]])}>
             {label && <label htmlFor={props.id} className={styles.label}>{label}</label>}
             <div className={clsx([styles.inputContainer, error && styles.error, wrapperClassName])}>
                 {before && <span className={styles.before}>{before}</span>}

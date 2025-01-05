@@ -8,12 +8,16 @@ import { Typography } from "@/components/ui/Typography/Typography";
 import NumberInput from "@/components/ui/Input/InputNumber";
 import { debounce } from "@/utils/debounce";
 import DishLoader from "@/components/blocks/Dish/DishItem/DishLoader";
-import { productStore } from "@/store/rootStore";
+import { productStore, rootProductStore } from "@/store/rootStore";
 import Overlay from "@/components/ui/Overlay/Overlay";
 import QuantityControl from "@/components/ui/QuantityControl/QuantityControl";
+import { DishProduct } from "@/store/rootDishStore/dishStore/dishStore";
+import ChoiceComponent from "@/components/ui/Choice/Choice";
+import DishPortions from "@/components/blocks/Dish/DishItem/DishPortions/DishPortions";
+import { isNotEmpty } from "@/lib/empty";
 
 type Props = {
-  product: IProductBase;
+  product: DishProduct;
   setProductQuantity: (productId: number, quantity: number) => void;
   after?: React.ReactNode;
   onNameClick?: () => void;
@@ -45,7 +49,12 @@ function DishProduct({
   ])
   const onProductNameClick = () => !isLoading && onNameClick?.()
 
-  const isLoading = productStore.loadingState.getLoading('getOne', id)
+  const isLoading = rootProductStore.loadingState.getLoading('getOne', id)
+
+  // console.log("product", toJS(product.portions))
+  // console.log("product--", toJS(rootProductStore.userStoresMap[product.id].portions))
+
+  const { portions, currentPortion, setCurrentPortion, setQuantity } = product
 
   return (
     <div
@@ -53,16 +62,29 @@ function DishProduct({
     >
       <Overlay show={isLoading} />
 
-      <QuantityControl quantity={quantity} onChange={handleChange} sliderClassName={s.quantitySlider}>
+      <QuantityControl
+        quantity={quantity}
+        onChange={handleChange}
+        sliderClassName={s.quantitySlider}
+        after={isNotEmpty(portions) && (
+          <DishPortions
+            portions={portions}
+            currentQuantity={quantity}
+            onClick={(quantity) => setQuantity(quantity)}
+          />
+        )}
+      >
         <div className={s.productNameContainer}>
-          <Typography
-            variant="body1"
-            clickable
-            onClick={onProductNameClick}
-            className={productNameClasses}
-          >
-            {product.name}
-          </Typography>
+          <div>
+            <Typography
+              variant="body1"
+              clickable
+              onClick={onProductNameClick}
+              className={productNameClasses}
+            >
+              {product.name}
+            </Typography>
+          </div>
           <span className={clsx([s.showOnContainerHover, s.after])}>
             {after}
           </span>

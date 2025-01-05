@@ -1,5 +1,7 @@
 import { api, apiRoutes, AuthorizationHeader } from "@/api";
 import { getTokenFromLocalStorage } from "@/lib/storage/localStorage";
+import { PaginanationParams } from "@/types/api/common";
+import { GetAllDishParams } from "@/types/api/dish";
 import { CreateDishPayload, GetAllDishResponse, GetDishResponse, MenuCreateResponse, DishPayload, UpdateDishPayload } from "@/types/api/menu";
 
 import { GetProductsPayload } from "@/types/api/product";
@@ -21,8 +23,11 @@ export async function fetchGetDish(id: number): Promise<GetDishResponse> {
     return await api.get(apiRoutes.dish.get(id))
 }
 
-export async function fetchGetAllDishes(): Promise<GetAllDishResponse> {
-    return await api.get(apiRoutes.dish.getAll)
+export async function fetchGetAllDishes(params: GetAllDishParams): Promise<GetAllDishResponse> {
+    console.log("paramsparams", params)
+    return await api.get(apiRoutes.dish.getAll, {
+        params
+    })
 }
 
 
