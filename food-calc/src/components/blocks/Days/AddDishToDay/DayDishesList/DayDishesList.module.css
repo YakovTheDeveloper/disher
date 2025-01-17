@@ -1,16 +1,7 @@
 .dishIsInCategory {}
 
-.dayDishItem {
-    display: grid;
-    grid-template-columns: 1fr 20px;
-    /* border-radius: var(--brad-tab); */
-    border: 1px solid transparent;
-    border-radius: 5px;
-    padding: 5px 4px 5px 11px;
-
-    &:hover {
-        cursor: pointer;
-        background-color: var(--color-green);
-        color: white;
-    }
+.dayDishesList {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
 }

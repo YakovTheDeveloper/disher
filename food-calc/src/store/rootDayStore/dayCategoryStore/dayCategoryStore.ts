@@ -1,4 +1,4 @@
-import { dayCategoryDishStore } from "@/store/rootDayStore/dayCategoryStore/dayCategoryDishStore";
+import { DayCategoryDishStore } from "@/store/rootDayStore/dayCategoryStore/dayCategoryDishStore";
 import { DayStore2 } from "@/store/rootDayStore/dayStore2";
 import { DayCategory, DayCategoryDish } from "@/types/day/day";
 import { GenerateId } from "@/utils/uuidNumber";
@@ -28,7 +28,7 @@ export class DayCategoryStore {
 
     name = 'Новая категория'
 
-    dishes: dayCategoryDishStore[] = []
+    dishes: DayCategoryDishStore[] = []
 
     position: number = 0
 
@@ -50,13 +50,13 @@ export class DayCategoryStore {
             this.dishes = this.dishes.filter(({ id }) => id !== dish.id)
             return
         }
-        this.dishes.push(new dayCategoryDishStore(dish))
+        this.dishes.push(new DayCategoryDishStore(dish))
     }
 
 
     init = (category: DayCategory) => {
         const { dishes = [], id, name, position } = category
-        this.dishes = dishes.map(dish => new dayCategoryDishStore(dish))
+        this.dishes = dishes.map(dish => new DayCategoryDishStore(dish))
         this.id = id
         this.name = name
         this.position = position

@@ -1,18 +1,24 @@
 .container {
     display: flex;
-    /* gap: 5px; */
     border-radius: 9px;
     overflow: hidden;
+}
+
+.container.vertical {
+    flex-direction: column;
+    border-radius: 12px;
+    /* Slightly more rounded for vertical layout */
 }
 
 .choiceButton {
     background-color: #dbdbdb;
     color: #495057;
-    /* border: 1px solid #ced4da; */
     padding: 5px 12px;
     font-size: 12px;
     cursor: pointer;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    border: none;
+    /* Remove border for cleaner look */
 }
 
 .choiceButton:hover {
@@ -25,12 +31,19 @@
     box-shadow: 0 0 4px rgba(128, 189, 255, 0.8);
 }
 
-.choiceButton:active {
-    /* transform: scale(0.95); */
-}
-
 .choiceButton.active {
     background-color: white;
     color: black;
     font-weight: 300;
+}
+
+/* Rounded corners for vertical layout */
+.choiceButton.first {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.choiceButton.last {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
 }

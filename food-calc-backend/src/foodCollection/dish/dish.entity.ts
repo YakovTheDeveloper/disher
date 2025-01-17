@@ -34,6 +34,9 @@ export class Dish {
 
     @ManyToOne(() => User)
     user: User
+
+    @Column({ nullable: true, default: JSON.stringify(''), type: 'json' })
+    portions: string;
 }
 
 

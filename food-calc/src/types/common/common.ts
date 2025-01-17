@@ -10,3 +10,9 @@ export type ISODate = string
 export type EntityNames = 'day' | 'dish' | 'norm' | 'product'
 
 export type Operations = 'save' | 'update' | 'delete' | 'getAll'
+
+export type Portion = {
+    id: number,
+    name: string,
+    quantity: number
+}

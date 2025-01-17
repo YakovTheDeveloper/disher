@@ -5,18 +5,20 @@ import { observer } from 'mobx-react-lite'
 import React from 'react'
 import TickIcon from "@/assets/icons/tick.svg";
 import s from './DishInCategoryStatus.module.css'
+import clsx from 'clsx'
 
 type Props = {
-    isDishInCategory: boolean
+    isActive: boolean
+    className: string
 }
 
-const DishInCategoryStatus = ({ isDishInCategory }: Props) => {
-
-    const isActive = isDishInCategory
-    if (!isActive) return null
-
+const DishInCategoryStatus = ({ isActive, className }: Props) => {
     return (
-        <Typography variant='caption' align='right' color='green' className={s.dishInCategoryStatus}>
+        <Typography
+            variant='caption'
+            align='right'
+            className={clsx([s.dishInCategoryStatus, className, isActive && s.active])}
+        >
             <TickIcon />
         </Typography>
     )

@@ -1,14 +1,14 @@
-import { IdToQuantity } from "@/types/common/common"
+import { IdToQuantity, Portion } from "@/types/common/common"
 
 export type IMenu = {
     id: number,
     name: string
     description: string
     products: IProductBase[]
+    portions: Portion[]
 }
 
 export type IProductBase = {
-    name: string
     name: string
     id: number
     quantity: number

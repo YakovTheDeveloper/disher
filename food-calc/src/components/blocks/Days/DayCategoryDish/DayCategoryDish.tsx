@@ -11,12 +11,13 @@ import RemoveButton from '@/components/ui/RemoveButton/RemoveButton'
 import ChoiceComponent, { ChoiceOption } from '@/components/ui/Choice/Choice'
 import { observer } from 'mobx-react-lite'
 import DishQuantity from '@/components/blocks/Days/DayCategoryDish/DishQuantity/DishQuantity'
+import { PortionStore } from '@/store/productStore/rootProductStore'
 
 type Props = {
     dish: DayCategoryDishType & {
         updateQuantity: (value: number) => void
-        setIsOriginalValuesUseUsed: (value: boolean) => void
         isOriginalValuesUse: boolean
+        portions: PortionStore[]
     }
     className?: string
     isLoading: boolean
@@ -24,7 +25,7 @@ type Props = {
 }
 
 const DayCategoryDish = ({ dish, className, removeDish, isLoading }: Props) => {
-    const { id, name, updateQuantity, setIsOriginalValuesUseUsed, isOriginalValuesUse } = dish
+    const { id, name, updateQuantity, portions } = dish
     const { updateCalculations } = useContext(DayCalculationContext)
 
     const onUpdateQuantity = (value: number) => {
@@ -37,34 +38,15 @@ const DayCategoryDish = ({ dish, className, removeDish, isLoading }: Props) => {
         updateCalculations()
     }
 
-    console.log("isOriginalValuesUse", isOriginalValuesUse)
-
-    const handleChoice = ({ value }: ChoiceOption) => {
-        setIsOriginalValuesUseUsed(value === 'portion')
-    }
-
     return (
         <li key={id} className={clsx([className, s.dish])}>
             <div className={s.dishName}>
                 <div>
-                    {/* {!isOriginalValuesUse && <QuantityControl
-                        quantity={dish.quantity}
-                        onChange={onUpdateQuantity}
-                        sliderClassName={s.slider}
-                    />} */}
                     <DishQuantity
                         quantity={dish.quantity}
                         onChange={onUpdateQuantity}
+                        portions={portions}
                     />
-                    {/* <ChoiceComponent
-                        className={s.choice}
-                        active={isOriginalValuesUse ? 'portion' : 'different'}
-                        options={[
-                            { displayName: 'Другое значение', value: 'different' },
-                            { displayName: 'Порция', value: 'portion' },
-                        ]}
-                        onChoose={handleChoice}
-                    /> */}
                 </div>
                 <Typography variant='body1'>
                     {name}

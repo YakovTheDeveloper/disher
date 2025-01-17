@@ -11,11 +11,12 @@ interface NumberInputProps {
     max?: number;
     disabled?: boolean;
     step?: number
+    label?: React.ReactNode
 }
 
 const INCREMENT_STEP = 10;
 
-const NumberInput: React.FC<NumberInputProps> = ({ value, onChange, max = 10000, disabled, wrapperClassName, className, step = 10 }) => {
+const NumberInput: React.FC<NumberInputProps> = ({ label, value, onChange, max = 10000, disabled, wrapperClassName, className, step = 10 }) => {
     const clampValue = (newValue: number) => {
         if (newValue < 0) return 0;
         if (newValue > max) return max;
@@ -49,6 +50,7 @@ const NumberInput: React.FC<NumberInputProps> = ({ value, onChange, max = 10000,
                 maxLength={max.toString().length}
                 onWheel={handleScroll}
             />
+            {label}
         </div>
     );
 };

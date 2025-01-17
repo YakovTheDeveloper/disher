@@ -9,7 +9,7 @@ interface UseInfiniteScrollOptions {
 
 export const useInfiniteScroll = ({
     containerRef,
-    offset = 50,
+    offset = 100,
     onReachEnd,
 }: UseInfiniteScrollOptions): boolean => {
     const [isAtEnd, setIsAtEnd] = useState(false);

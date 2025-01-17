@@ -1,18 +1,43 @@
+.portionsContainer {
+    min-width: 100%;
+}
+
 .productsPortions {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    gap: 10px;
+    gap: 10px 0;
 }
 
 .portion {
     display: flex;
     align-items: center;
     gap: 5px;
+    height: 40px;
+
+    &:hover .removeButton {
+        color: black;
+    }
 }
 
 .productsPortionsList {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0 5px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.portionNameInput {
+    width: 100px;
+}
+
+.portionQuantityInput {
+    width: 60px;
+}
+
+.removeButton {
+    color: transparent;
+    align-self: flex-start;
+    justify-self: start;
 }

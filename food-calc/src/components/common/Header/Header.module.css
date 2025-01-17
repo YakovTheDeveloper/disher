@@ -7,7 +7,7 @@
 
     &::after {
         content: '';
-        background: linear-gradient(90deg, rgba(225, 225, 225, 0.8) 80%, rgba(220, 220, 220, 1) 100%);
+        background: linear-gradient(90deg, rgba(225, 225, 225, 0.9) 80%, rgba(225, 225, 225, 1) 100%);
         position: absolute;
         top: 0;
         left: 0;

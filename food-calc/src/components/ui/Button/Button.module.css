@@ -49,3 +49,10 @@
   color: var(--color-green);
   padding: 0 2px;
 }
+
+.center {
+  display: flex;
+  align-self: center;
+  justify-self: center;
+  margin: 0 auto;
+}

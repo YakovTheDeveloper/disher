@@ -37,13 +37,11 @@ export class ProductFlow {
     getProductFull = async (ids: number[]) => {
         const { userStoresMap, getMissingProductIds } = this.root
         const missing = getMissingProductIds(ids)
-        console.log("missing", userStoresMap)
-        console.log("missing", missing, toJS(userStoresMap))
         if (isEmpty(missing)) {
             return { isError: false }
         }
 
-        const res = await this.root.fetchManager.fetchById(ids)
+        const res = await this.root.fetchManager.fetchById(missing)
         if (res.isError) {
             return res
         }

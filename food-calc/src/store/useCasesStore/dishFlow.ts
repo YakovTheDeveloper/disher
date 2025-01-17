@@ -52,7 +52,7 @@ export class DishFlow {
             return
         }
         const { data } = res
-        const stores = data.content.map(norm => new UserDishStore(norm))
+        const stores = data.content.map(dish => new UserDishStore(dish))
         setItemsCount(data.itemsCount)
 
         // setSearchContent(data.content)

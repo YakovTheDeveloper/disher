@@ -40,7 +40,7 @@ const SearchProduct = () => {
 
     return (
         <div className={s.container}>
-            <Typography variant='caption' align='center'>Поиск продуктов</Typography>
+            {/* <Typography variant='caption' align='center'>Поиск продуктов</Typography> */}
             <div className={s.searchContainer} ref={containerRef}>
                 <Input
                     wrapperClassName={clsx([s.searchWrapper, showProductList && s.borderRadius])}
@@ -48,7 +48,7 @@ const SearchProduct = () => {
                     value={searchValue}
                     onChange={onChange}
                     onClick={onInputClick}
-                    placeholder='Например, гречка'
+                    placeholder='Гречневая крупа...'
                     before={<SearchIcon />}
                 />
 

@@ -10,9 +10,12 @@ type Props = {
     className?: string
     onConfirm: VoidFunction
     children: React.ReactNode
+    message?: React.ReactNode
 }
 
-const RemoveTooltip = ({ removableName, onConfirm, children, className }: Props) => {
+//todo rename - ConfirmTooltip
+
+const RemoveTooltip = ({ removableName, onConfirm, children, className, message }: Props) => {
 
     const nameView = removableName ? ` ${removableName}` : ''
 
@@ -38,6 +41,7 @@ const RemoveTooltip = ({ removableName, onConfirm, children, className }: Props)
                 onClick={(e) => e.stopPropagation()}
             >
                 <TooltipInner>
+                    {message}
                     {/* <Typography variant='body1'>Удалить{nameView}?</Typography> */}
                     <Button className={s.confirmButton} onClick={confirmHandle} variant='secondary'>
                         <Typography variant='body2'>

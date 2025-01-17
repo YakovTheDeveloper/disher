@@ -201,11 +201,12 @@ type TooltipInnerProps = {
     children: React.ReactNode
     size?: 'small' | 'medium'
     className?: string
+    variant?: 'simple' | 'standard'
 }
 
-export const TooltipInner = ({ children, className, size = "small" }: TooltipInnerProps) => {
+export const TooltipInner = ({ children, className, size = "small", variant = 'standard' }: TooltipInnerProps) => {
     return (
-        <div className={clsx([s.tooltipInner, className, s[size]])}>
+        <div className={clsx([s.tooltipInner, className, s[size], s[variant]])}>
             {children}
         </div>
     )

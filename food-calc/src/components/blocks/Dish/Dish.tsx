@@ -15,6 +15,8 @@ import EmptyListMessage from "@/components/blocks/Dish/EmptyListMessage/EmptyLis
 import SearchProduct from "@/components/blocks/SearchProduct/SearchProduct";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/Input/Input";
+import ProductsPortions from "@/components/blocks/Products/ProductsMain/ProductsPortions/ProductsPortions";
+import ChangeName from "@/components/blocks/common/ChangeName/ChangeName";
 
 type Props = {
   store: DishStore;
@@ -22,9 +24,10 @@ type Props = {
 };
 
 function Dish(props: Props) {
-  const { store, children } = props;
+  const { store, children, openModal } = props;
   const {
     products = [],
+    portionStore,
     productsV2 = [],
     setProductQuantity,
     removeProduct,
@@ -47,6 +50,10 @@ function Dish(props: Props) {
       {/* <div className={s.dishTitle}>
         <Typography variant="caption" offset align="left" >{dishTitleText}</Typography>
       </div> */}
+
+
+
+      <Typography variant="caption" align="center">Добавление продуктов</Typography>
       <SearchProduct />
 
 
@@ -72,28 +79,22 @@ function Dish(props: Props) {
         </div>
       </div>
       <header className={s.dishHeader}>
-        {isDraft
-          ? <Input
-            placeholder="Рис с овощами..."
-            typographyVariant="h2"
-            wrapperClassName={s.dishNameInput}
-            value={name}
-            onChange={(e) => updateName(e.target.value)}
-            label={<Typography variant="caption" align="center">Название для вашего блюда</Typography>}
-          />
-          : <EditableText
-            key={id}
-            placeholder="Рис с овощами..."
-            typographyProps={{
-              variant: 'h2',
-              underline: true,
-              color: 'green-2'
-            }}
-            value={name}
-            onChange={updateName}
-          />
-        }
+        <Typography variant="caption" align="center">Изменение имени блюда</Typography>
+        <ChangeName
+          isDraft={isDraft}
+          key={id}
+          placeholder="Рис с овощами..."
+          updateName={updateName}
+          value={name}
+        />
+        <Button variant="ghost" onClick={() => {
+
+          uiStore.dishUi.setAdditionalDishFormDataShow(true);
+        }}>
+          Дополнительные настройки
+        </Button>
       </header>
+
       {children}
     </section>
   );

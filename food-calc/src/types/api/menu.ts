@@ -1,14 +1,16 @@
 import { PaginanationParams, Response } from "@/types/api/common";
-import { IdToQuantity } from "@/types/common/common";
+import { IdToQuantity, Portion } from "@/types/common/common";
 import { IMenu, IProductBase, IProductWithNutrients } from "@/types/menu/Menu";
 
 export type DishPayload = {
 
     name: string
 
-    description?: string
+    description: string
 
     products: IProductBase[];
+
+    portions: Omit<Portion, 'id'>[]
 }
 
 export type CreateDishPayload = DishPayload

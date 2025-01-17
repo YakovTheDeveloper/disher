@@ -1,9 +1,32 @@
+.listContainer {
+    /* Set a fixed height for the scrollable container */
+    overflow-y: auto;
+    position: relative;
+    z-index: var(--z-index-search-container);
+}
+
+.spacer {
+    position: relative;
+    width: 100%;
+    background-color: white;
+}
+
 .list {
     display: flex;
+    max-height: 400px;
     flex-direction: column;
     background-color: rgb(255, 255, 255);
     border-bottom-right-radius: 20px;
     border-bottom-left-radius: 20px;
     overflow: hidden;
-    /* box-shadow: var(--box-shadow-s); */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+
+    z-index: var(--z-index-search-list);
+}
+
+.noResults {
+    padding: 20px;
 }

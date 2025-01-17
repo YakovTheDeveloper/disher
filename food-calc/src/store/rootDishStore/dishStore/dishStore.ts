@@ -7,18 +7,27 @@ import { IDish } from "@/types/dish/dish";
 import { DetectChangesStore } from "@/store/common/DetectChangesStore";
 import { DraftStore, UserDataStore } from "@/store/common/types";
 import { rootProductStore } from "@/store/rootStore";
-import { ProductPortionStore } from "@/store/productStore/rootProductStore";
+import { PortionStore, RootPortionStore } from "@/store/productStore/rootProductStore";
+import { Portion } from "@/types/common/common";
+import { TOTAL_PRODUCTS_PORTION_ID } from "@/constants";
 
 export class DishStore {
     description = ''
     name = 'New menu'
     id: number = DRAFT_MENU_ID
-    products: IProductBase[] = []
+    // products: IProductBase[] = []
     productsV2: DishProduct[] = []
+    portionStore: RootPortionStore
     fetched = false
 
     get productIds() {
-        return this.products.map(({ id }) => id)
+        return this.productsV2.map(({ id }) => id)
+    }
+
+    get products() {
+        return this.productsV2.map(({ id, quantity, name }) => ({
+            id, quantity, name
+        }))
     }
 
     get empty() {
@@ -28,60 +37,30 @@ export class DishStore {
 
     get payload(): CreateDishPayload {
         // const products = createIdToQuantityMapping(this.products)
-        return {
-            name: this.name,
-            description: this.description,
-            products: this.products
-        }
+        const { name, description, products, portionStore: { payload } } = this
+        return { name, description, products, portions: payload }
     }
 
-    convertAllProductsTo100Gr = () => {
-        const totalWeight = this.products.reduce((sum, product) => sum + product.quantity, 0);
-        runInAction(() => this.products.forEach(product => {
-            product.quantity = +((product.quantity / totalWeight) * 100).toFixed()
-        }))
+    // convertAllProductsTo100Gr = () => {
+    //     const totalWeight = this.products.reduce((sum, product) => sum + product.quantity, 0);
+    //     runInAction(() => this.products.forEach(product => {
+    //         product.quantity = +((product.quantity / totalWeight) * 100).toFixed()
+    //     }))
 
-    }
+    // }
 
     setFetched = (status: boolean) => {
         this.fetched = status
     }
 
-    setData = (data: IDish) => {
-        if (data.id) this.id = data.id
-        if (data.name) this.name = data.name
-        if (data.description) this.description = data.description
-        if (data.products) this.products = data.products
-        return this
-    }
-
     setProductQuantity = (productId: number, quantity: number) => {
-        const product = this.products.find(({ id }) => id === productId)
+        const product = this.productsV2.find(({ id }) => id === productId)
         if (!product) return
         product.quantity = quantity
     }
 
-    setProducts = (products: IProductBase[]) => {
-        this.products = products
-    }
-
     removeProduct = (productId: number) => {
-        this.products = this.products.filter(product => +product.id !== productId)
-    }
-
-    addTo = (productToAdd: IProductBase) => {
-        const existed = this.products.find(product => product.id === productToAdd.id)
-        if (existed) return
-        this.products.push(productToAdd)
-    }
-
-    toggleProduct = (product: IProductBase) => {
-        const existed = this.products.find(({ id }) => id === product.id)
-        if (existed) {
-            this.products = this.products.filter(({ id }) => id !== product.id)
-            return
-        }
-        this.products.push(product)
+        this.productsV2 = this.productsV2.filter(product => +product.id !== productId)
     }
 
     toggleProductV2 = (product: IProductBase) => {
@@ -93,34 +72,67 @@ export class DishStore {
         this.productsV2.push(new DishProduct(product))
     }
 
-    get productData() {
-        return this.products.map(product => product.quantity)
-    }
+    // get productData() {
+    //     return this.products.map(product => product.quantity)
+    // }
+
+    updateDescription = (value: string) => { this.description = value }
 
     updateName = (name: string) => { this.name = name }
 
     resetToInit = () => { }
 
+    updateTotalPortion = () => {
+        this.portionStore.updatePortion(-1, this.totalProductsQuantity)
+    }
+
+    divideAllProducts = (divider: number) => {
+        runInAction(() => this.productsV2.forEach(product => {
+            product.quantity = Math.round(product.quantity / divider)
+        }))
+    }
+
+    get totalProductsQuantity() {
+        return this.products.reduce((sum, product) => sum + product.quantity, 0);
+    }
+
     constructor(data: IDish) {
         makeObservable(this, {
             name: observable,
-            products: observable,
+            description: observable,
             productsV2: observable,
             productIds: computed,
-            productData: computed,
-            setProducts: action,
+            totalProductsQuantity: computed,
             removeProduct: action,
-            toggleProduct: action,
             updateName: action,
-            convertAllProductsTo100Gr: action,
+            updateDescription: action,
+            updateTotalPortion: action,
+            divideAllProducts: action,
         })
 
-        const { id, name, products } = data
+        const { id, name, products, portions = [], description = '' } = data
+
+
+        this.portionStore = new RootPortionStore()
 
         this.id = id
         this.name = name
-        this.products = products
+        this.description = description
         this.productsV2 = products.map(product => new DishProduct(product))
+        this.portionStore.setPortions(portions)
+
+        this.portionStore.addPortion({
+            id: TOTAL_PRODUCTS_PORTION_ID,
+            name: 'Суммарный вес (1 порция)',
+            quantity: 0
+        })
+
+        autorun(() => this.updateTotalPortion())
+
+        reaction(
+            () => toJS(this.products),
+            (_) => this.updateTotalPortion()
+        );
     }
 
 }
@@ -173,6 +185,7 @@ export class UserDishStore extends DishStore implements UserDataStore<IProductBa
 export class DraftDishStore extends DishStore implements DraftStore<IProductBase[]> {
     constructor(data: IDish) {
         super(data);
+
         makeObservable(this, {
         })
 

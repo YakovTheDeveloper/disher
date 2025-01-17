@@ -1,5 +1,6 @@
 
 import ModalAuth from "@/components/ui/Modal/ModalAuth/ModalAuth";
+import ModalDishAdditionals from "@/components/ui/Modal/ModalDishAdditionals/ModalDishAdditionals";
 import ModalProduct from "@/components/ui/Modal/ModalProduct/ModalProduct";
 import ModalRichNutrientProduct from "@/components/ui/Modal/ModalRichNutrientProduct/ModalRichNutrientProduct";
 import RichNutrientProductSkeleton from "@/components/ui/Modal/ModalRichNutrientProduct/RichNutrientProduct/RichNutrientProductSkeleton/RichNutrientProductSkeleton";
@@ -17,6 +18,7 @@ const ModalRoot = () => {
   return (
     <>
       <ModalAuth isOpen={currentModal === Modals.Auth} data={data[Modals.Auth]} />
+      <ModalDishAdditionals isOpen={currentModal === Modals.DishAdditionals} rootDishStore={rootDishStore} />
       <ModalProduct
         isOpen={currentModal === Modals.Product}
         data={data[Modals.Product]}

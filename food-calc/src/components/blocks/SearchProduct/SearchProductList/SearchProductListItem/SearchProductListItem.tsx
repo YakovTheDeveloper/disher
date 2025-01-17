@@ -7,6 +7,7 @@ import clsx from 'clsx'
 import ProductInDishStatus from '@/components/blocks/Dish/ProductInDishStatus/ProductInDishStatus'
 import { Typography } from '@/components/ui/Typography/Typography'
 import TickIcon from "@/assets/icons/tick.svg";
+import SelectableItem from '@/components/ui/SelectableItem/SelectableItem'
 
 type Props = {
   onClick: () => void
@@ -20,18 +21,14 @@ const SearchProductListItem = ({ onClick, productId, children, hasProduct, produ
 
   const isInCurrentDish = hasProduct(productId, productIds)
 
-  const classNames = clsx([s.product, isInCurrentDish && s.active])
-
   return (
-    <li onClick={onClick} className={classNames}>
-      <span>{children}</span>
-      <span>{isInCurrentDish &&
-        <Typography variant='caption'>
-          <TickIcon />
-        </Typography>}
-      </span>
-      {/* <ProductInDishStatus productId={}/> */}
-    </li>
+    <SelectableItem
+      isActive={isInCurrentDish}
+      onClick={onClick}
+    >
+      <Typography>{children}</Typography>
+    </SelectableItem>
+
   )
 }
 

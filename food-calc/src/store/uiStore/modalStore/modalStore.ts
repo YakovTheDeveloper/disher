@@ -21,6 +21,7 @@ export enum Modals {
     Auth = "Auth",
     Product = "Product",
     NutrientRichProduct = "NutrientRichProduct",
+    DishAdditionals = "DishAdditionals",
 }
 
 export class ModalStore {

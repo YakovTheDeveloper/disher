@@ -20,7 +20,7 @@ import { Typography } from '@/components/ui/Typography/Typography'
 import { DayCalculationContext } from '@/context/calculationContext'
 import { DayStore2, UserDayStore2 } from '@/store/rootDayStore/dayStore2'
 import { RootDayStore2 } from '@/store/rootDayStore/rootDayStore2'
-import { currentCalculationStore, dayCalculationStore, Flows, rootDailyNormStore, rootDayStore2, userStore } from '@/store/rootStore'
+import { currentCalculationStore, dayCalculationStore, Flows, rootDailyNormStore, rootDayStore2, uiStore, userStore } from '@/store/rootStore'
 import { UserStore } from '@/store/userStore/userStore'
 import clsx from 'clsx'
 import { s } from 'framer-motion/client'
@@ -102,6 +102,7 @@ const Days = ({ dayRoot = rootDayStore2, userRoot = userStore }: Props) => {
                 >
                     {currentStore.currentCategory &&
                         <AddDishToDay
+                            dishUiStore={uiStore.dishUi}
                             before={
                                 <Button onClick={() => currentStore.setCurrentCategoryId(-1)}>
                                     {'<-'}

@@ -27,7 +27,7 @@ export class CalculationReactionStore {
 
     private initializeReactions() {
         reaction(
-            () => toJS(this.rootDishStore.currentStore?.products),
+            () => toJS(this.rootDishStore.currentStore?.productsV2),
             (products) => {
                 console.log('reaction I: products change')
                 products && this.updateDishCalculationsWithCurrentProducts();
@@ -46,6 +46,7 @@ export class CalculationReactionStore {
                         this.updateDishCalculationsWithCurrentProducts();
                     });
             }
+
         );
 
         // reaction(

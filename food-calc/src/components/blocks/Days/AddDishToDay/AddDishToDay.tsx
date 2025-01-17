@@ -1,4 +1,4 @@
-import { Flows, productStore, rootDishStore } from '@/store/rootStore'
+import { dishFlow, Flows, productStore, rootDishStore, uiStore } from '@/store/rootStore'
 import { observer } from 'mobx-react-lite'
 import { ReactNode, useContext, useEffect, useState } from 'react'
 import s from './AddDishToDay.module.css'
@@ -10,21 +10,23 @@ import { DayCategoryStore } from '@/store/rootDayStore/dayCategoryStore/dayCateg
 import { DayCalculationContext } from '@/context/calculationContext'
 import Input from '@/components/ui/Input/Input'
 import SearchInput from '@/components/ui/Input/SearchInput/SearchInput'
+import DishSearch from '@/components/blocks/Dish/DishSearch/DishSearch'
+import { DishUiStore } from '@/store/uiStore/dishUiStore/dishUiStore'
+import Button from '@/components/ui/Button/Button'
+import { useDishLoading, useDishSearch } from '@/components/blocks/Dish/hooks'
 
 
 type Props = {
     currentCategory: DayCategoryStore
     before: ReactNode
+    dishUiStore: DishUiStore
 }
 
-const AddDishToDay = ({ currentCategory, before }: Props) => {
+const AddDishToDay = ({ currentCategory, before, dishUiStore }: Props) => {
     const { toggleDish, isDishInCategory } = currentCategory
 
     const { userStores } = rootDishStore
     const { updateCalculations } = useContext(DayCalculationContext)
-
-
-    const { handleGetFullProductData } = productStore
 
     const [isBlue, setIsBlue] = useState(false);
 
@@ -50,6 +52,18 @@ const AddDishToDay = ({ currentCategory, before }: Props) => {
         )
     }
 
+    const { onReachEnd } = useDishLoading({
+        dishFlow,
+        dishUiStore
+    })
+
+    const { content, disabled } = useDishSearch({
+        dishStores: userStores,
+        dishUiStore,
+        paginationStore: rootDishStore.pagination
+
+    })
+
     if (!currentCategory) return null
 
     return (
@@ -66,15 +80,23 @@ const AddDishToDay = ({ currentCategory, before }: Props) => {
                     <Typography variant='caption' align='center'>добавить или убрать блюдо</Typography>
                 </div>
             </div>
-            <SearchInput placeholder='Название блюда...' />
+            <DishSearch
+                size='medium'
+                getAll={dishFlow.getAll}
+                uiStore={uiStore.dishUi}
+                onChange={() => rootDishStore.pagination.reset()}
+            />
             <ul className={s.list}>
                 <DayDishesList
                     isDishInCategory={isDishInCategory}
                     toggleDishInCategory={onAdd}
-                    userDishes={userStores}
+                    userDishes={content}
                     category={currentCategory}
                 />
             </ul>
+            <Button onClick={onReachEnd} variant='ghost' disabled={disabled} center>
+                Загрузить еще
+            </Button>
         </div>
     )
 }

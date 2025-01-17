@@ -19,6 +19,7 @@ import SearchInput from '@/components/ui/Input/SearchInput/SearchInput'
 import { UiStore } from '@/store/uiStore/uiStore'
 import DishSearch from '@/components/blocks/Dish/DishSearch/DishSearch'
 import Button from '@/components/ui/Button/Button'
+import { useDishLoading, useDishSearch } from '@/components/blocks/Dish/hooks'
 
 type Props = {
     rootStore: RootDishStore
@@ -37,23 +38,19 @@ function DishTabs({ rootStore, dishFlow = Flows.Dish, ui = uiStore }: Props) {
 
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const onReachEnd = async () => dishFlow.getAll(dishUi.searchBarDishPage)
+    const { onReachEnd } = useDishLoading({
+        dishFlow,
+        dishUiStore: ui.dishUi
+    })
+
+    const { content, disabled } = useDishSearch({
+        dishStores: userStores,
+        dishUiStore: dishUi,
+        paginationStore: rootDishStore.pagination
+
+    })
 
     const isAtEnd = useInfiniteScroll({ containerRef, onReachEnd })
-
-    const search = ui.dishUi.searchBarDishPage
-
-    const content =
-        search
-            ? userStores.filter(({ name }) => {
-                return name.toLowerCase().includes(search.toLowerCase())
-            })
-            : userStores
-
-
-
-
-    const disabled = userStores.length === rootDishStore.pagination.itemsCount
 
     return (
         <nav className={s.dishTabs} ref={containerRef}>

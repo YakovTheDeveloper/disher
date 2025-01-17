@@ -6,7 +6,7 @@
     width: 100%;
     height: 100%;
     display: grid;
-    grid-template-rows: auto 1fr auto auto;
+    grid-template-rows: auto auto 1fr auto;
     padding-right: 15px;
     /* gap: 10px; */
     /* justify-content: space-between; */
@@ -44,10 +44,15 @@
 }
 
 .dishHeader {
-    display: grid;
+    display: flex;
+    flex-direction: column;
+    /* align-items: center; */
+    gap: 10px;
+    /* display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
-    min-height: 45px;
+    justify-content: center;
+    min-height: 45px; */
 }
 
 .dishMain {
@@ -73,4 +78,9 @@
 
 .mainButton {
     margin-right: auto;
+}
+
+.dishHeader .portions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
 }

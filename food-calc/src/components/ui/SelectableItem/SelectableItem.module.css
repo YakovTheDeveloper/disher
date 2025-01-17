@@ -1,0 +1,27 @@
+.selectableItem {
+    display: grid;
+    grid-template-columns: 1fr 20px;
+    /* border-radius: var(--brad-tab); */
+    border: 1px solid transparent;
+    padding: 5px 8px 5px 11px;
+
+    transition: opacity 0.1s ease-in-out;
+    cursor: pointer;
+
+    &:hover:not(.selectableItemActive) {
+        /* border-bottom-color: var(--color-green); */
+        /* border-top-color: var(--color-green); */
+        /* border-right-color: var(--color-green); */
+        color: var(--color-green);
+    }
+}
+
+.selectableItemActive {
+    background-color: var(--color-green);
+    color: white;
+    border-radius: 16px;
+
+    &:hover {
+        opacity: 0.8;
+    }
+}

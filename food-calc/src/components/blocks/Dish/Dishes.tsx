@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite"
 import Layout from "@/components/common/Layout/Layout"
 import NutrientPercent from "@/components/blocks/NutrientsTotal/NutrientPercent/NutrientPercent"
 import NutrientsTotal from "@/components/blocks/NutrientsTotal/NutrientsTotal"
-import { dishCalculationStore, Flows, rootDailyNormStore, rootDishStore } from "@/store/rootStore"
+import { dishCalculationStore, Flows, rootDailyNormStore, rootDishStore, uiStore } from "@/store/rootStore"
 import DishTabs from "@/components/blocks/DishTabs/DishTabs"
 import NutrientValue from "@/components/blocks/NutrientsTotal/NutrientValue/NutrientValue"
 import DraftActions2 from "@/components/blocks/common/Actions/DraftActions2"
@@ -15,6 +15,9 @@ import { IDish } from "@/types/dish/dish"
 import { useEffect } from "react"
 import SearchProduct from "@/components/blocks/SearchProduct/SearchProduct"
 import { isEmpty } from "@/lib/empty"
+import RightPanel from "@/components/common/Layout/RightPanel/RightPanel"
+import DishFormAdditionals from "@/components/blocks/Dish/DishFormAdditionals/DishFormAdditionals"
+import DishDivideSettings from "@/components/blocks/Dish/DishDivideSettings/DishDivideSettings"
 
 type Props = {
     rootStore: RootEntityStore<IDish, UserDishStore, DraftDishStore>
@@ -53,26 +56,36 @@ function Dishes({ rootStore = rootDishStore }: Props) {
 
             }
             right={
-                isEmpty(currentStore.productsV2)
-                    ? null
-                    : <NutrientsTotal
-                        rowPositionSecond={(nutrient) => (
-                            <NutrientValue
-                                nutrient={nutrient}
-                                calculations={dishCalculationStore}
-                            />
-                        )}
-                        rowPositionThird={(nutrient) => (
-                            <NutrientPercent
-                                dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
-                                nutrient={nutrient}
-                                nutrientQuantity={dishCalculationStore.totalNutrients[nutrient.id]}
-                            // showFindRichProduct
-                            />
+                <RightPanel
+                    topElement={uiStore.dishUi.additionalDishFormDataShow && (
+                        <div>
+                            <DishFormAdditionals rootDishStore={rootDishStore} />
+                            <DishDivideSettings dishStore={currentStore} />
+                        </div>
+                    )}
+                    onBack={() => uiStore.dishUi.setAdditionalDishFormDataShow(false)}
+                >
+                    {isEmpty(currentStore.productsV2)
+                        ? null
+                        : <NutrientsTotal
+                            rowPositionSecond={(nutrient) => (
+                                <NutrientValue
+                                    nutrient={nutrient}
+                                    calculations={dishCalculationStore}
+                                />
+                            )}
+                            rowPositionThird={(nutrient) => (
+                                <NutrientPercent
+                                    dailyNutrientNorm={rootDailyNormStore.currentDailyNormUsedInCalculations}
+                                    nutrient={nutrient}
+                                    nutrientQuantity={dishCalculationStore.totalNutrients[nutrient.id]}
+                                // showFindRichProduct
+                                />
 
-                        )}
-                    >
-                    </NutrientsTotal>
+                            )}
+                        >
+                        </NutrientsTotal>}
+                </RightPanel>
             }
             overlayCenter={
                 (currentStore instanceof DraftDishStore && loadingState.getLoading('save'))

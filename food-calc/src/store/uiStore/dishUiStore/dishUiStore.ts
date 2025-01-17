@@ -9,6 +9,8 @@ export class DishUiStore {
 
     searchContent: IMenu[] = []
 
+    additionalDishFormDataShow = false
+
     searchBarDishPage = ''
     searchBarDayPage = ''
 
@@ -20,5 +22,7 @@ export class DishUiStore {
     setSearchContent = (content: IMenu[]) => {
         this.searchContent = content
     }
+
+    setAdditionalDishFormDataShow = (value: boolean) => this.additionalDishFormDataShow = value
 
 }

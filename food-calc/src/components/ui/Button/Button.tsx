@@ -6,6 +6,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "tertiary" | "danger" | 'ghost';
   isLoading?: boolean;
   before?: React.ReactNode;
+  center?: boolean
 }
 
 const Button: FC<ButtonProps> = ({
@@ -14,6 +15,7 @@ const Button: FC<ButtonProps> = ({
   variant = "primary",
   isLoading = false,
   className,
+  center,
   type = 'button',
   ...props
 }) => {
@@ -21,7 +23,8 @@ const Button: FC<ButtonProps> = ({
     s.button,
     s[variant],
     props.disabled && s.disabled,
-    className
+    className,
+    center && s.center
   );
 
   return (

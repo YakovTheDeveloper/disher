@@ -8,3 +8,5 @@ export const LOCAL_STORAGE_KEYS = {
     nutrientsVisibility: 'nutrientsVisibility',
     NutrientUiStore: 'NutrientUiStore'
 }
+
+export const TOTAL_PRODUCTS_PORTION_ID = -1

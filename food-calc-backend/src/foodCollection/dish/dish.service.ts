@@ -28,6 +28,8 @@ export class DishService {
       .select([
         'dish.id',
         'dish.name',
+        'dish.portions',
+        'dish.description',
         'dishToProducts.quantity',
         'product.id',
         'product.name',
@@ -56,12 +58,14 @@ export class DishService {
     const mapped = dishes.map(item => ({
       id: item.id,
       name: item.name,
+      description: item.description,
       //@ts-ignore
       products: item.dishToProducts.map(dishProduct => ({
         id: dishProduct.product.id,
         name: dishProduct.product.nameRu,
         quantity: dishProduct.quantity,
       })),
+      portions: JSON.parse(item.portions || '[]')
     }));
 
     // Return the mapped result along with total count
@@ -159,20 +163,21 @@ type DishData = {
   name: string, description: string, products: DishProductDto[]
 }
 
-const createDish = (userId: number, data: DishData) => {
-  const { description, name, products } = data
+const createDish = (userId: number, data: CreateDishDto) => {
+  const { description, name, products, portions } = data
   const user = new User()
   user.id = userId
   const dish = new Dish()
   dish.name = name
   dish.description = description
   dish.user = user
+  dish.portions = JSON.stringify(portions)
   const dishProducts = createDishProducts(dish, products)
   dish.dishToProducts = dishProducts
   return dish
 }
 
-const updateDish = (dish: Dish, data: Partial<DishData>) => {
+const updateDish = (dish: Dish, data: Partial<CreateDishDto>) => {
   if (data.products) {
     const dishProducts = createDishProducts(dish, data.products)
     dish.dishToProducts = dishProducts
@@ -182,6 +187,9 @@ const updateDish = (dish: Dish, data: Partial<DishData>) => {
   }
   if (data.description) {
     dish.description = data.description
+  }
+  if (data.portions) {
+    dish.portions = JSON.stringify(data.portions)
   }
 }
 
@@ -210,8 +218,9 @@ const transformDishProducts = (products: DishProduct[]) => {
 }
 
 const transformDish = (dish: Dish) => {
-  const { id, name, description, dishToProducts } = dish
+  const { id, name, description, dishToProducts, portions } = dish
   return {
-    id, name, description, products: transformDishProducts(dishToProducts)
+    id, name, description, products: transformDishProducts(dishToProducts),
+    portions: JSON.parse(portions || '[]')
   }
 }
