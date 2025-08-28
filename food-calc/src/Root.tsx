@@ -19,7 +19,7 @@ const Root = () => {
 
     return (
         <div className={s.root}>
-            <Header />
+            {/* <Header /> */}
             <ModalRoot />
             <NotificationWrapper />
             <div className={s.main}>

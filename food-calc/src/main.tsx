@@ -8,34 +8,32 @@ import "./index.css";
 
 import ProductAdd from "./components/blocks/ProductAdd/ProductAdd.tsx";
 
-
-
 import Days from "@/components/blocks/Days/Days.tsx";
-import DishIcon from "@/assets/icons/dish.svg"
-import DaysIcon from "@/assets/icons/days.svg"
+import DishIcon from "@/assets/icons/dish.svg";
+import DaysIcon from "@/assets/icons/days.svg";
 
 import DailyNorms from "@/components/blocks/DailyNorms/DailyNorms.tsx";
 import DaysCalendar from "@/components/blocks/DaysCalendar/DaysCalendar.tsx";
 import Root from "@/Root.tsx";
 import Dishes from "@/components/blocks/Dish/Dishes.tsx";
 import ProductsPage from "@/components/blocks/Products/ProductsPage.tsx";
+import ScheduleBuilderPage from "./pages/schedule-builder-page/ScheduleBuilderPage.tsx";
 
 export const RouterPaths = {
   main: {
     url: "/",
     label: "Блюда",
-    Icon: DishIcon
+    Icon: DishIcon,
   },
   days: {
     url: "/days",
     label: "Дни",
-    Icon: DaysIcon
-
+    Icon: DaysIcon,
   },
   norm: {
     url: "/daily-norms",
     label: "Нормы",
-    Icon: DishIcon
+    Icon: DishIcon,
   },
 };
 
@@ -56,7 +54,11 @@ const router = createBrowserRouter([
 
         element: <ProductAdd />,
       },
+      {
+        path: "/add_product",
 
+        element: <ProductAdd />,
+      },
       {
         path: "/days",
 
@@ -75,9 +77,13 @@ const router = createBrowserRouter([
         element: <DaysCalendar />,
       },
       {
-        path: '/products',
-        element: <ProductsPage />
-      }
+        path: "/products",
+        element: <ProductsPage />,
+      },
+      {
+        path: "/schedule-builder",
+        element: <ScheduleBuilderPage />,
+      },
     ],
   },
 ]);
