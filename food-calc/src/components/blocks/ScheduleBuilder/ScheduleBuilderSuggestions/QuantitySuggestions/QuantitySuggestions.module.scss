@@ -1,0 +1,90 @@
+@mixin item-background {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background-color: rgba(72, 157, 255, 0.529);
+    z-index: -1;
+}
+
+.container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 30px;
+    font-size: 2rem;
+}
+
+.items {
+    height: 80%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+}
+
+.item {
+    position: relative;
+    transition: opacity 0.2s ease-in;
+
+    &Unit {
+        transition: padding 0.1s ease-out;
+    }
+
+
+    &:not(.item_custom) {
+
+        &:active {
+            &::before {
+                opacity: 1;
+            }
+        }
+
+        &::before {
+            @include item-background;
+            opacity: 0;
+            background-color: rgba(177, 213, 255, 0.529);
+        }
+
+        &.item_active {
+            &::before {
+                opacity: 1;
+            }
+        }
+    }
+
+
+
+
+
+    &_custom {
+        input {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, 50%);
+
+            transition: all 0.2s ease-in-out;
+            background-color: transparent;
+            border: none;
+            font-size: 2rem;
+            caret-color: #fff;
+            color: #fff;
+            outline: none;
+            width: 50%;
+        }
+    }
+
+
+    &_background {
+        position: relative;
+        @include item-background;
+        color: #fff;
+        border-radius: 20px;
+        transition: transform 2s ease-in-out;
+        background-color: rgba(115, 180, 255, 0.335);
+    }
+}

@@ -1,34 +1,60 @@
-.ScheduleBuilder {
+.container {
   width: 100%;
   border: 1px solid #000;
   position: relative;
   padding: 10px;
+}
 
-  &__list {
-    display: flex;
-    flex-direction: column;
+.list {
+  display: flex;
+  flex-direction: column;
 
-    &Item {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      padding: 10px;
-      border: 1px solid #0000001c;
-      box-shadow: var(--box-shadow-s);
+  &Item {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr 50px;
+    gap: 5px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #0000001c;
+    box-shadow: 0px 10px 8px -11px rgba(0, 0, 0, 0.15);
+
+    &_noShadow {
+      box-shadow: none;
+      border: none;
+    }
+
+    &_lined {
+      margin-top: 35px;
+    }
+
+    &Message {
+      position: absolute;
+      left: 50%;
+      top: -30px;
+      transform: translateX(-50%);
+      color: #c3c3c3;
+      font-style: italic;
+    }
+
+    &Time {
+      width: 100px;
     }
   }
+}
 
-  &__addButton {
-    position: absolute;
-    bottom: 5%;
-    left: 50%;
-    transform: translateX(-50%);
+.addButton {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
 
-    height: 40px;
-    width: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #000;
-    border-radius: 50%;
-  }
+  height: 100px;
+  width: 100px;
+  display: flex;
+  font-size: 2rem;
+  font-weight: 200;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #000;
+  border-radius: 50%;
 }

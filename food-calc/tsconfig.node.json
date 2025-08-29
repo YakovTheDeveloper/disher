@@ -4,6 +4,7 @@
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "lib": ["ES2020", "DOM", "DOM.Iterable", "ESNext.Array"],
     "allowSyntheticDefaultImports": true
   },
   "include": ["vite.config.ts"]

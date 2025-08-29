@@ -1,18 +1,5 @@
-import { makeAutoObservable } from "mobx";
-
-type DaySchedule = {
-  id: number;
-  date: string;
-  items: DayScheduleItem[];
-};
-
-type DayScheduleItem = {
-  id: number;
-  foodId: number;
-  foodName: string;
-  quantity: number;
-  time: string;
-};
+import { DaySchedule, DayScheduleItem } from "@/types/schedule";
+import { makeAutoObservable, runInAction } from "mobx";
 
 type DayScheduleUI = DaySchedule & {
   isLocal?: boolean;
@@ -21,44 +8,96 @@ type DayScheduleUI = DaySchedule & {
 export type DayScheduleItemUI = Omit<DayScheduleItem, "foodId"> & {
   foodId: null | number;
 };
+export enum Suggestion {
+  Time = "time",
+  Food = "food",
+  Quantity = "quantity"
+}
 
 export class ScheduleBuilderViewModel {
   constructor(raw?: DaySchedule) {
-    makeAutoObservable(this);
     if (raw) {
       this.schedule = raw;
       return;
     }
     this.schedule = createUIDaySchedule();
+    this.schedule.items = createMockScheduleItems()
+    makeAutoObservable(this);
   }
 
   schedule: DayScheduleUI;
 
-  currentScheduleItem: DayScheduleItemUI | null = null;
+  get currentScheduleItem() {
+    return this.schedule.items.find(({ id }) => this.currentScheduleId === id) || null
+  }
 
-  setCurrentScheduleItem = (schedule: DayScheduleItem) => {
-    this.currentScheduleItem = schedule;
-  };
+  currentScheduleId = -1
+  currentSuggestion: Suggestion | null = null
+
+  setCurrentScheduleItemId = (id: number) => {
+    this.currentScheduleId = id
+  }
+
+  setCurrentSuggestion = (value: Suggestion | null) => {
+    this.currentSuggestion = value
+  }
 
   updateCurrentScheduleItem = ({
     quantity,
     foodName,
-  }: {
-    quantity: number;
-    foodName: string;
-  }) => {
+    time,
+    foodId
+  }: Partial<DayScheduleItem>) => {
     if (!this.currentScheduleItem) return;
-    if (quantity) this.currentScheduleItem.quantity = quantity;
-    if (foodName) this.currentScheduleItem.foodName = foodName;
+    if (quantity != null) this.currentScheduleItem.quantity = quantity;
+    if (foodName != null) this.currentScheduleItem.foodName = foodName;
+    if (time != null) this.currentScheduleItem.time = time;
+    if (foodId != null) this.currentScheduleItem.foodId = foodId;
   };
 
-  get scheduleItems() {
+  onSuggestionSelect = (foodId: number, foodName: string) => {
+    this.updateCurrentScheduleItem({ foodId, foodName });
+    this.setCurrentScheduleItemId(-1)
+  }
+
+  acceptTime = (time: string) => {
+    this.updateCurrentScheduleItem({ time });
+    this.setCurrentScheduleItemId(-1)
+    this.setCurrentSuggestion(null)
+  }
+
+  acceptQuantity = (quantity: number) => {
+    this.updateCurrentScheduleItem({ quantity });
+    this.setCurrentScheduleItemId(-1)
+    this.setCurrentSuggestion(null)
+  }
+
+  onScheduleItemAddHandler = () => {
+    const item = createUIDayScheduleItem()
+    const lastAddedScheduleItem = this.scheduleItems.at(-1)
+    if (lastAddedScheduleItem) item.time = lastAddedScheduleItem.time
+    this.addScheduleItem(item)
+    this.setCurrentScheduleItemId(item.id)
+    this.setCurrentSuggestion(Suggestion.Food)
+  }
+
+  private addScheduleItem = (item: DayScheduleItemUI) => {
+    this.schedule.items.push(item);
+  }
+
+  private get scheduleItems() {
     return this.schedule.items;
   }
 
-  createItem = () => {
-    this.schedule.items.push(createUIDayScheduleItem());
-  };
+  get scheduleItemsSorted(): DayScheduleItem[] {
+    return this.scheduleItems.toSorted((a, b) => {
+      const [aHours, aMinutes] = a.time.split(':').map(Number);
+      const [bHours, bMinutes] = b.time.split(':').map(Number);
+      if (aHours !== bHours) return aHours - bHours;
+      return aMinutes - bMinutes;
+    });
+  }
+
 }
 
 function createUIDaySchedule(): DayScheduleUI {
@@ -76,6 +115,15 @@ function createUIDayScheduleItem(): DayScheduleItemUI {
     foodName: "",
     id: Math.random(),
     quantity: 100,
-    time: "",
+    time: '08:00',
   };
+}
+
+function createMockScheduleItems() {
+
+  const item1 = createUIDayScheduleItem()
+  const item2 = createUIDayScheduleItem()
+  item2.time = '08:30'
+
+  return [item1, item2]
 }

@@ -3,13 +3,13 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import svgr from 'vite-plugin-svgr';
 import path from 'path';
-
-
+import { patchCssModules } from 'vite-css-modules';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    patchCssModules(),
     svgr({
       // svgr options: https://react-svgr.com/docs/options/
       svgrOptions: { exportType: "default", ref: true, svgo: false, titleProp: true },
@@ -22,13 +22,14 @@ export default defineConfig({
       // '@store': '/src/store',
     },
   },
-  server: {
-    open: true,
-    host: true,
-    port: 3000, // This is the port which we will use in docker
-    // add the next lines if you're using windows and hot reload doesn't work
-    watch: {
-      usePolling: true,
+  css: {
+    modules: {
+      // generateScopedName: customScopedName,
+      generateScopedName: '[folder]-[local]__[hash:base64:5]',
     },
   }
 })
+
+// generateScopedName: process.env.NODE_ENV === 'production'
+//   ? '[hash:base64:6]'
+//   : '[name]__[local]___[hash:base64:5]'
