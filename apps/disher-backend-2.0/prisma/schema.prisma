@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+generator zod {
+  provider = "zod-prisma-types"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Schedule {
+  id     Int            @id @default(autoincrement())
+  date   DateTime
+  items  ScheduleItem[]
+  userId Int
+  user   User           @relation(fields: [userId], references: [id])
+}
+
+model ScheduleItem {
+  id         Int      @id @default(autoincrement())
+  quantity   Int
+  time       String
+  foodName   String
+  foodId     Int?
+  dishId     Int?
+  scheduleId Int
+  food       Food?    @relation(fields: [foodId], references: [id])
+  dish       Dish?    @relation(fields: [dishId], references: [id])
+  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+}
+
+model Food {
+  id            Int            @id @default(autoincrement())
+  name          String
+  nameRu        String
+  description   String
+  descriptionRu String
+  nutrients     Nutrient[]
+  ScheduleItem  ScheduleItem[]
+}
+
+model Nutrient {
+  id     Int    @id @default(autoincrement())
+  name   String
+  value  Float
+  foodId Int
+  food   Food   @relation(fields: [foodId], references: [id])
+}
+
+model Dish {
+  id             Int            @id @default(autoincrement())
+  productId      Int
+  scheduleItemId Int
+  ScheduleItem   ScheduleItem[]
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  email     String?  @unique
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts Account[]
+  Schedule Schedule[]
+}
+
+model Account {
+  id                Int     @id @default(autoincrement())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
