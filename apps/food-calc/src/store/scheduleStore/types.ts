@@ -1,4 +1,4 @@
-import { getOneSchedule, getSchedules } from "@/api/schedule.api";
+import { getOneSchedule } from "@/api/schedule/schedule.api";
 
 export type ScheduleEntity = NonNullable<
     Awaited<ReturnType<typeof getOneSchedule>>["data"]

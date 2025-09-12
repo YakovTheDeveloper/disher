@@ -1,0 +1,23 @@
+.list {
+    overflow: auto;
+    align-items: flex-start;
+    justify-content: start;
+    // height: 40vh;
+    flex-grow: 1;
+    font-size: 1rem;
+    padding-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    &Item {
+        padding: 5px 10px;
+        background-color: white;
+        border-radius: 20px;
+
+        &_active {
+            background-color: var(--color-green);
+            color: var(--color-white);
+        }
+    }
+}

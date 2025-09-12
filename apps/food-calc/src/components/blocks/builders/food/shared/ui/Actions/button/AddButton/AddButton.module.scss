@@ -1,0 +1,16 @@
+.container {
+    position: absolute;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+
+    height: 100px;
+    width: 100px;
+    display: flex;
+    font-size: 2rem;
+    font-weight: 200;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #000;
+    border-radius: 50%;
+}

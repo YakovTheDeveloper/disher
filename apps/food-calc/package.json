@@ -11,7 +11,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "create-component": "node create-boilerplate-component.js"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.0",
@@ -25,6 +26,7 @@
     "mobx-react": "^9.1.1",
     "mobx-react-lite": "^4.0.7",
     "module-alias": "^2.2.3",
+    "motion": "^12.23.12",
     "react": "^18.3.1",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",

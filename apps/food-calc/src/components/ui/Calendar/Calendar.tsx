@@ -113,7 +113,7 @@ const Calendar: React.FC<CalendarProps> = ({
                 onClick={() => onDateSelect(day)}
                 key={day.toISOString()}
               >
-                {day.getDate()}
+                {day.getUTCDate()}
                 {renderDayCellContent?.(day)}
               </div>
             ))}

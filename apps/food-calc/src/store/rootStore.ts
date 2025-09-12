@@ -19,10 +19,14 @@ import { ProductFlow } from "@/store/useCasesStore/productFlow";
 import { NutrientUiStore } from "@/store/uiStore/nutrientUiStore/nutrientUiStore";
 import { DishUiStore } from "@/store/uiStore/dishUiStore/dishUiStore";
 import { ScheduleStore } from "@/store/scheduleStore/scheduleStore";
+import { DishModelStore } from "@/store/models/dish/dishStore";
+import { FoodModelStore } from "@/store/models/food/foodStore";
 
 const notificationStore = new NotificationStore()
 
 export const scheduleStore = new ScheduleStore()
+export const dishStore = new DishModelStore()
+export const foodStore = new FoodModelStore()
 
 export const rootProductStore = new RootProductStore()
 

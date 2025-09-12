@@ -27,26 +27,27 @@ model Schedule {
 }
 
 model ScheduleItem {
-  id         Int      @id @default(autoincrement())
-  quantity   Int
-  time       String
-  foodName   String
-  foodId     Int?
-  dishId     Int?
-  scheduleId Int
-  food       Food?    @relation(fields: [foodId], references: [id])
-  dish       Dish?    @relation(fields: [dishId], references: [id])
-  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+  id             Int      @id @default(autoincrement())
+  quantity       Int
+  time           String
+  customFoodName String?
+  foodId         Int?
+  dishId         Int?
+  scheduleId     Int
+  food           Food?    @relation(fields: [foodId], references: [id])
+  dish           Dish?    @relation(fields: [dishId], references: [id])
+  schedule       Schedule @relation(fields: [scheduleId], references: [id])
 }
 
 model Food {
   id            Int            @id @default(autoincrement())
   name          String
-  nameRu        String
+  nameEng       String
   description   String
   descriptionRu String
   nutrients     Nutrient[]
   ScheduleItem  ScheduleItem[]
+  DishItem      DishItem[]
 }
 
 model Nutrient {
@@ -58,10 +59,21 @@ model Nutrient {
 }
 
 model Dish {
-  id             Int            @id @default(autoincrement())
-  productId      Int
-  scheduleItemId Int
-  ScheduleItem   ScheduleItem[]
+  name         String
+  id           Int            @id @default(autoincrement())
+  items        DishItem[]
+  userId       Int
+  user         User           @relation(fields: [userId], references: [id])
+  ScheduleItem ScheduleItem[]
+}
+
+model DishItem {
+  id       Int  @id @default(autoincrement())
+  quantity Int
+  foodId   Int
+  dishId   Int
+  food     Food @relation(fields: [foodId], references: [id])
+  dish     Dish @relation(fields: [dishId], references: [id])
 }
 
 model User {
@@ -74,6 +86,7 @@ model User {
 
   accounts Account[]
   Schedule Schedule[]
+  Dish     Dish[]
 }
 
 model Account {

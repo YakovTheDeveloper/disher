@@ -1,0 +1,21 @@
+.content {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 4fr;
+  gap: 20px;
+  align-items: stretch;
+  max-height: 60vh;
+  padding: 20px;
+
+  &__header {
+    display: flex;
+    gap: 20px;
+  }
+
+}
+
+.searchInput {
+  padding: 15px;
+  font-size: 1.5rem;
+  flex-grow: 1;
+}

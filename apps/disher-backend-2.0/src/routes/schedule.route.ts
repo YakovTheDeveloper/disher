@@ -7,7 +7,18 @@ import { ScheduleCreateInputSchema, ScheduleCreateWithoutUserInputSchema, Schedu
 import { createResponseObject } from "../lib/response"
 
 const scheduleItemSelect = {
-    dishId: true, foodId: true, foodName: true, id: true, quantity: true,
+    dish: {
+        select: {
+            id: true,
+            name: true,
+        }
+    },
+    food: {
+        select: {
+            id: true,
+            name: true,
+        }
+    }, customFoodName: true, id: true, quantity: true,
     time: true
 }
 

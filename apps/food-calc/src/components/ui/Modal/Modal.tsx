@@ -1,54 +1,43 @@
-import React, { useEffect, useRef } from 'react'
-import s from './Modal.module.css'
-import { uiStore } from '@/store/rootStore';
-import useOutsideClick from '@/hooks/useOutsideClick';
+import React, { useEffect } from 'react';
+import s from './Modal.module.scss';
 import clsx from 'clsx';
-
+import { observer } from 'mobx-react-lite';
+import RemoveButton from '@/components/ui/RemoveButton/RemoveButton';
 
 type Props = {
-    children: React.ReactNode
-    className?: string,
-    isOpen: boolean
-}
+  children: React.ReactNode;
+  className?: string;
+  isOpen: boolean;
+  onClose: VoidFunction;
+};
 
-const Modal = ({ isOpen, children, className }: Props) => {
-    const ref: React.Ref<HTMLDialogElement> = useRef(null);
-
-    const { closeModal } = uiStore.modal
-    // useOutsideClick(ref, closeModal)
-
-    useEffect(() => {
-        if (isOpen) {
-            ref.current?.showModal();
-        } else {
-            ref.current?.close();
-        }
-    }, [isOpen]);
-
-    const onMouseDown = (event: React.MouseEvent<HTMLDialogElement, MouseEvent>) => {
-        if (event.target === ref.current) {
-            closeModal()
-        }
+const Modal = ({ isOpen, children, className, onClose }: Props) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
+  if (!isOpen) return null;
 
-    return (
-        <dialog
-            ref={ref}
-            onCancel={closeModal}
-            onMouseDown={onMouseDown}
-            className={clsx(s.modal, className)}
-        >
+  return (
+    <>
+      <div className={s.backdrop} onClick={onClose} />
+      <div className={clsx(s.modal, className)}>
+        <div className={s.inner}>
+          <header>
+            <RemoveButton onClick={onClose} />
+          </header>
+          {children}
+        </div>
+      </div>
+    </>
+  );
+};
 
-            {/* <button onClick={closeModal}>
-                Close
-            </button> */}
-            <div className={s.inner}>
-                {children}
-            </div>
-            <div className={s.background} />
-        </dialog>
-    );
-}
-
-export default Modal
+export default observer(Modal);

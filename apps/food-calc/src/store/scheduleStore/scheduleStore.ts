@@ -1,4 +1,4 @@
-import { getSchedules, updateSchedule, createSchedule, deleteSchedule } from "@/api/schedule.api";
+import { getSchedules, updateSchedule, createSchedule, deleteSchedule } from "@/api/schedule/schedule.api";
 import { ScheduleEntity } from "@/store/scheduleStore/types";
 import { makeAutoObservable } from "mobx";
 

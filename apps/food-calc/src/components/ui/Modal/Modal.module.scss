@@ -1,0 +1,39 @@
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+
+    @media (max-width: 900px) {
+        background: transparent;
+    }
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    width: 100dvw;
+    height: 100dvh;
+    background: white;
+    z-index: 9999;
+
+    display: flex;
+    flex-direction: column;
+
+}
+
+.inner {
+    flex: 1;
+    overflow: auto;
+    padding: 32px 25px 20px;
+
+    header {
+        align-items: end;
+        justify-items: end;
+        padding: 0 0 10px;
+    }
+
+    @media (max-width: 900px) {
+        padding: 10px;
+    }
+}
