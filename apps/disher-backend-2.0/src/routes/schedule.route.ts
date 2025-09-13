@@ -5,6 +5,7 @@ import { prisma } from "../client"
 import { t } from "../trpc"
 import { ScheduleCreateInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateManyFoodInputSchema, ScheduleItemCreateManyScheduleInputSchema, ScheduleItemCreateNestedManyWithoutScheduleInputSchema, ScheduleItemCreateWithoutScheduleInputSchema, ScheduleItemUncheckedUpdateWithoutScheduleInputSchema, ScheduleItemUpdateWithoutScheduleInputSchema, ScheduleUpdateInputSchema, ScheduleUpdateWithoutUserInputSchema, ScheduleWhereUniqueInputSchema } from "../../prisma/generated/zod"
 import { createResponseObject } from "../lib/response"
+import { DailySurveySchema } from "./schedule.route/validation"
 
 const scheduleItemSelect = {
     dish: {
@@ -25,7 +26,7 @@ const scheduleItemSelect = {
 export const scheduleRoutes = {
     getSchedules: t.procedure.input(
         z.object({
-            date: z.iso.datetime().optional(),
+            date: z.string().datetime().optional(),
         })
     ).query(async ({ input }) => {
         const parsedDate = input.date ? new Date(input.date) : null;
@@ -43,6 +44,7 @@ export const scheduleRoutes = {
             select: {
                 id: true,
                 date: true,
+                questionnaire: true,
                 items: {
                     select: scheduleItemSelect
                 },
@@ -64,6 +66,7 @@ export const scheduleRoutes = {
         const result = await prisma.schedule.findFirst({
             select: {
                 id: true,
+                questionnaire: true,
                 date: true,
                 items: {
                     select: scheduleItemSelect
@@ -95,8 +98,9 @@ export const scheduleRoutes = {
         .input(
             z.object({
                 id: z.number(),
-                date: z.iso.datetime().optional(),
-                items: z.array(z.lazy(() => ScheduleItemCreateManyScheduleInputSchema)).optional()
+                date: z.string().optional(),
+                items: z.array(z.lazy(() => ScheduleItemCreateManyScheduleInputSchema)).optional(),
+                questionnaire: DailySurveySchema.optional()
             })
         )
         .mutation(async ({ input }) => {
@@ -104,8 +108,12 @@ export const scheduleRoutes = {
 
             // Fetch existing items only if items are provided
             let itemsUpdate = {};
-            let restUpdate: Pick<typeof input, 'date'> = {}
+            let restUpdate: Partial<{
+                date: string,
+                questionnaire: string
+            }> = {}
             if (input.date) restUpdate.date = input.date
+            if (input.questionnaire) restUpdate.questionnaire = JSON.stringify(input.questionnaire)
 
             if (items) {
                 const existingItems = await prisma.scheduleItem.findMany({ where: { scheduleId: id } });

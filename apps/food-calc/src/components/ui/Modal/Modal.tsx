@@ -41,3 +41,23 @@ const Modal = ({ isOpen, children, className, onClose }: Props) => {
 };
 
 export default observer(Modal);
+
+// <AnimatePresence>
+//   {isOpen && (
+//     <motion.aside
+//       initial={{ x: '100%' }}
+//       animate={{ x: 0 }}
+//       exit={{ x: '100%' }}
+//       transition={{ duration: 0.2, ease: 'easeInOut' }}
+//     >
+//       <div className={clsx(s.modal, className)}>
+//         <div className={s.inner}>
+//           <header>
+//             <RemoveButton onClick={onClose} />
+//           </header>
+//           {children}
+//         </div>
+//       </div>
+//     </motion.aside>
+//   )}
+// </AnimatePresence>

@@ -12,67 +12,72 @@ import NewDishBuilderPage from '@/pages/dish/builder/new-dish-builder-page/NewDi
 import Days from '@/components/blocks/Days/Days.tsx';
 import ProductAdd from '@/components/blocks/ProductAdd/ProductAdd.tsx';
 
+export enum RouterLinks {
+  Root = '/',
+  Dishes = '',
+  AddProduct = '/add_product',
+  Days = '/days',
+  DailyNorms = '/daily-norms',
+  Calendar = '/calendar',
+  Products = '/products',
+  DishBuilder = '/dish/builder',
+  NewDishBuilder = '/dish/builder/new',
+  Schedule = '/schedule',
+  ScheduleBuilder = '/schedule/builder/',
+  NewScheduleBuilder = '/schedule/builder/new',
+}
+
 export const router = createBrowserRouter([
   {
-    path: '/',
-
+    path: RouterLinks.Root,
     element: <Root />,
-
     children: [
       {
-        path: '',
-
+        path: RouterLinks.Dishes,
         element: <Dishes />,
       },
       {
-        path: '/add_product',
-
+        path: RouterLinks.AddProduct,
         element: <ProductAdd />,
       },
       {
-        path: '/add_product',
-
+        path: RouterLinks.AddProduct,
         element: <ProductAdd />,
       },
       {
-        path: '/days',
-
+        path: RouterLinks.Days,
         element: <Days />,
       },
-
       {
-        path: '/daily-norms',
-
+        path: RouterLinks.DailyNorms,
         element: <DailyNorms />,
       },
-
       {
-        path: '/calendar',
-
+        path: RouterLinks.Calendar,
         element: <DaysCalendar />,
       },
       {
-        path: '/products',
+        path: RouterLinks.Products,
         element: <ProductsPage />,
       },
       {
-        path: '/dish/builder',
+        path: RouterLinks.DishBuilder,
         element: <DishBuilderPage />,
       },
       {
-        path: '/dish/builder/new',
+        path: RouterLinks.NewDishBuilder,
         element: <NewDishBuilderPage />,
       },
       {
-        path: '/schedule',
+        path: RouterLinks.Schedule,
         element: <SchedulePage />,
       },
       {
-        path: '/schedule/builder/',
+        path: RouterLinks.ScheduleBuilder,
         element: <ScheduleBuilderPage />,
       },
       {
-        path: '/schedule/builder/new',
+        path: RouterLinks.NewScheduleBuilder,
         element: <NewScheduleBuilderPage />,
       },
     ],

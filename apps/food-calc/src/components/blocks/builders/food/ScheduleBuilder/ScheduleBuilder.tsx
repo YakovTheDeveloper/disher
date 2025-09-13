@@ -11,7 +11,8 @@ import { Storage } from '@/infrastructure/storage';
 import { getScheduleProductsByTime } from '@/store/scheduleStore/schedule.domain';
 import { useNavigate } from 'react-router';
 import { createFoodQuantityCollectionDTO } from '@/components/blocks/builders/food/shared/dto';
-import { Button } from '@/components/blocks/builders/food/shared/ui/Actions/button';
+import { Button as ActionButton } from '@/components/blocks/builders/food/shared/ui/Actions/button';
+import { Button } from '@/components/ui/Button';
 import { Actions } from '@/components/blocks/builders/food/shared/ui/Actions';
 import { OptionsStoreUI } from '@/components/blocks/builders/food/shared/OptionsStoreUI';
 import Modal from '@/components/ui/Modal/Modal';
@@ -22,12 +23,13 @@ import {
 } from '@/components/blocks/builders/food/DishBuilder/model/DishBuilderViewModel';
 import { toJS } from 'mobx';
 import { addDish } from '@/api/dish/dish.api';
-import { dishStore, foodStore } from '@/store/rootStore';
+import { dishStore, foodStore, uiStore } from '@/store/rootStore';
 import { ListItem } from '@/components/blocks/builders/food/shared/ui/ListItem';
 import { SearchViewModel } from '@/components/blocks/builders/food/ScheduleBuilder/model/SearchViewModel';
 import { FoodModelStore } from '@/store/models/food/foodStore';
 import { DishModelStore } from '@/store/models/dish/dishStore';
 import { SearchFilterTabs } from '@/components/blocks/builders/food/ScheduleBuilder/ui/SearchFilterTabs';
+import { AnimatePresence } from 'framer-motion';
 
 const isSameTimeAsPrevious = (items: { time: string }[], index: number, time: string) => {
   return items[index - 1]?.time === time;
@@ -80,21 +82,22 @@ enum Modals {
   Time = 'time',
   Food = 'food',
   Quantity = 'quantity',
-  Dish = 'dish',
+  Questionnaire = 'questionnaire',
 }
 
 type Props = {
   init: ScheduleEntity;
   onSave: (payload: ScheduleEntity, id?: number) => Promise<ScheduleEntity | undefined>;
   finishButtonTitle: string;
+  children: React.ReactNode;
 };
 
-const ScheduleBuilder = ({ init, onSave, finishButtonTitle }: Props) => {
+const ScheduleBuilder = ({ init, onSave, finishButtonTitle, children }: Props) => {
   const schedules = useMemo(() => new ScheduleBuilderViewModel(init), []);
   const modals = useMemo(() => new ModalStoreUI<Modals>(), []);
   const options = useMemo(() => new OptionsStoreUI(), []);
   const searchFiltering = useMemo(() => new SearchViewModel(foodStore, dishStore), []);
-
+  const menuUi = uiStore.menu;
   const onFoodsOpen = () => {
     schedules.children.setCurrentId(-1);
     modals.set(Modals.Food);
@@ -167,9 +170,15 @@ const ScheduleBuilder = ({ init, onSave, finishButtonTitle }: Props) => {
     modals.close();
   };
 
+  const onQuestionnaireButtonClick = () => modals.set(Modals.Questionnaire);
+
   return (
     <div className={style.container}>
-      <h1>{getTitle(schedules.date)}</h1>
+      <header className={style.header}>
+        {children}
+        <h1>{getTitle(schedules.date)}</h1>
+        <button onClick={onQuestionnaireButtonClick}>бумажка</button>
+      </header>
       <ul className={style.list}>
         {schedules.scheduleItemsSorted.map(
           ({ id, food = null, quantity, time, customFoodName = '', dish = null }, index, items) => {
@@ -240,10 +249,16 @@ const ScheduleBuilder = ({ init, onSave, finishButtonTitle }: Props) => {
         )}
       </Modal>
 
+      <Modal onClose={modals.close} isOpen={modals.current === Modals.Questionnaire}>
+        <ContentEdit.Questionnaire vm={schedules.questionnaire} />
+      </Modal>
+
       <Actions isShow={!modals.current}>
-        <Button.Add onClick={onFoodsOpen} />
-        <Button.Finish onClick={onFinish}>{finishButtonTitle}</Button.Finish>
-        <Button.AdditionalOptions onClick={onMoreOptions}>больше</Button.AdditionalOptions>
+        <ActionButton.Add onClick={onFoodsOpen} />
+        <ActionButton.Finish onClick={onFinish}>{finishButtonTitle}</ActionButton.Finish>
+        <ActionButton.AdditionalOptions onClick={onMoreOptions}>
+          больше
+        </ActionButton.AdditionalOptions>
       </Actions>
     </div>
   );

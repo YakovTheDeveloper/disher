@@ -1,8 +1,8 @@
+import { createQuestionnaire, QuestionnaireViewModel } from "@/components/blocks/builders/food/ScheduleBuilder/model/QuestionnaireViewModel";
 import { UpdateChildrenStore } from "@/components/blocks/builders/food/shared/UpdateChildrenStore";
 import { deepCopy } from "@/lib/copy/deepCopy";
 import { CommonData } from "@/store/models/common/types";
-import { ScheduleEntity, ScheduleItemEntity } from "@/store/scheduleStore/types";
-import { throws } from "assert";
+import { ScheduleEntity, ScheduleItemEntity, ScheduleQuestionnaire } from "@/store/scheduleStore/types";
 import { makeAutoObservable, runInAction, toJS } from "mobx";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -17,12 +17,15 @@ export class ScheduleBuilderViewModel {
   constructor(raw: ScheduleEntity) {
     this.schedule = deepCopy(raw)
     this.children = new UpdateChildrenStore(() => this.schedule)
+    this.questionnaire = new QuestionnaireViewModel(() => this.schedule)
     makeAutoObservable(this);
   }
 
   schedule: DayScheduleUI;
 
   children: UpdateChildrenStore<ScheduleEntity, ScheduleItemEntity>
+
+  questionnaire: QuestionnaireViewModel
 
   get date() {
     return this.schedule.date

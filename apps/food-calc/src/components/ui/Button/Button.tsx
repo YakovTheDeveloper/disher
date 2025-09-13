@@ -1,18 +1,23 @@
-import React, { FC, ButtonHTMLAttributes } from "react";
-import s from "./Button.module.css";
-import clsx from "clsx";
+import React, { FC, ButtonHTMLAttributes } from 'react';
+import s from './Button.module.css';
+import clsx from 'clsx';
+import { Menu } from './Menu';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "tertiary" | "danger" | 'ghost';
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'danger' | 'ghost';
   isLoading?: boolean;
   before?: React.ReactNode;
-  center?: boolean
+  center?: boolean;
 }
 
-const Button: FC<ButtonProps> = ({
+type ButtonComponent = React.FC<ButtonProps> & {
+  Menu: typeof Menu;
+};
+
+const Button: ButtonComponent = ({
   before,
   children,
-  variant = "primary",
+  variant = 'primary',
   isLoading = false,
   className,
   center,
@@ -35,9 +40,11 @@ const Button: FC<ButtonProps> = ({
       {...props}
     >
       {before}
-      {isLoading ? "Loading..." : children}
+      {isLoading ? 'Loading...' : children}
     </button>
   );
 };
+
+Button.Menu = Menu;
 
 export default Button;

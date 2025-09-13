@@ -6,7 +6,7 @@ import { defaultNutrientsV2 } from "@/store/nutrientStore/data";
 import { NutrientGroupName } from "@/types/nutrient/nutrient";
 import { NutrientUiStore } from "@/store/uiStore/nutrientUiStore/nutrientUiStore";
 import { DishUiStore } from "@/store/uiStore/dishUiStore/dishUiStore";
-
+import { MenuUiStore } from "@/store/uiStore/menu/menuUiStore";
 
 export type NotificationData = {
   id: number
@@ -30,23 +30,24 @@ export class UiStore {
   nutrients: NutrientUiStore
 
   dishUi: DishUiStore
+  menu: MenuUiStore
 
   // day = {
   //   showDishChoice: false
   // }
 
-
   constructor(
     notification: NotificationStore,
     modal: ModalStore,
     nutrient: NutrientUiStore,
-    dishUiStore: DishUiStore
+    dishUiStore: DishUiStore,
+    menu: MenuUiStore
   ) {
     this.notification = notification
     this.modal = modal
     this.nutrients = nutrient
     this.dishUi = dishUiStore
+    this.menu = menu
     makeAutoObservable(this);
   }
 }
-

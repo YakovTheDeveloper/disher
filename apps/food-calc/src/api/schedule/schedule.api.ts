@@ -1,6 +1,6 @@
 import { mapScheduleItemsWithoutDraftIds } from "@/api/schedule/schedule.transform"
 import { trpc } from "@/api/trpc/trpc"
-import { ScheduleEntity } from "@/store/scheduleStore/types"
+import { ScheduleEntity, ScheduleQuestionnaire } from "@/store/scheduleStore/types"
 import type { ApiInputs } from '@types'
 
 export const getSchedules = async (date: string) => {
@@ -50,11 +50,22 @@ export const addSchedule = async (data: Omit<ScheduleEntity, 'id'>) => {
     return result.data
 }
 
-export const updateSchedule = async (data: Omit<ScheduleEntity, 'id'>, id: number) => {
-    const { date, items } = data
+export const updateSchedule = async (
+    data: Partial<Omit<ScheduleEntity, 'id' | 'questionnaire'> & { questionnaire?: ScheduleQuestionnaire }>,
+    id: number
+) => {
+    const payload: Parameters<typeof trpc.updateSchedule.mutate>[0] = { id }
 
-    const sanitizedItems = mapScheduleItemsWithoutDraftIds(items)
+    if (data.date !== undefined) {
+        payload.date = data.date
+    }
+    if (data.items !== undefined) {
+        payload.items = mapScheduleItemsWithoutDraftIds(data.items)
+    }
+    if (data.questionnaire !== undefined) {
+        payload.questionnaire = data.questionnaire
+    }
 
-    const result = await trpc.updateSchedule.mutate({ id, date, items: sanitizedItems });
+    const result = await trpc.updateSchedule.mutate(payload)
     return result.data
 }

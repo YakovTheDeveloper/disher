@@ -19,11 +19,12 @@ datasource db {
 }
 
 model Schedule {
-  id     Int            @id @default(autoincrement())
-  date   DateTime
-  items  ScheduleItem[]
-  userId Int
-  user   User           @relation(fields: [userId], references: [id])
+  id            Int            @id @default(autoincrement())
+  date          DateTime
+  items         ScheduleItem[]
+  userId        Int
+  user          User           @relation(fields: [userId], references: [id])
+  questionnaire String?
 }
 
 model ScheduleItem {
@@ -75,6 +76,15 @@ model DishItem {
   food     Food @relation(fields: [foodId], references: [id])
   dish     Dish @relation(fields: [dishId], references: [id])
 }
+
+// model Questionnaire {
+//   id         Int      @id @default(autoincrement())
+//   content    Json
+//   scheduleId Int      @unique
+//   schedule   Schedule @relation(fields: [scheduleId], references: [id])
+//   userId     Int?
+//   user       User?    @relation(fields: [userId], references: [id])
+// }
 
 model User {
   id        Int      @id @default(autoincrement())

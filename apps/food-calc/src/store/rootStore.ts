@@ -21,6 +21,7 @@ import { DishUiStore } from "@/store/uiStore/dishUiStore/dishUiStore";
 import { ScheduleStore } from "@/store/scheduleStore/scheduleStore";
 import { DishModelStore } from "@/store/models/dish/dishStore";
 import { FoodModelStore } from "@/store/models/food/foodStore";
+import { MenuUiStore } from "@/store/uiStore/menu/menuUiStore";
 
 const notificationStore = new NotificationStore()
 
@@ -56,7 +57,8 @@ export const currentCalculationStore = new CalculationReactionStore(
 export const modalStore = new ModalStore()
 const nutrientUiStore = new NutrientUiStore()
 const dishUiStore = new DishUiStore()
-export const uiStore = new UiStore(notificationStore, modalStore, nutrientUiStore, dishUiStore);
+const menuUiStore = new MenuUiStore()
+export const uiStore = new UiStore(notificationStore, modalStore, nutrientUiStore, dishUiStore, menuUiStore);
 
 export const userStore = new UserStore();
 

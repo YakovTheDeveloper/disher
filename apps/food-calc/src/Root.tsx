@@ -2,6 +2,8 @@ import NotificationWrapper from '@/components/ui/Notification/NotificationWrappe
 import ModalRoot from '@/ModalRoot';
 import { Outlet } from 'react-router';
 import s from './Root.module.scss';
+import { Menu } from '@/components/common/Menu';
+import { uiStore } from '@/store/rootStore';
 
 const Root = () => {
   return (

@@ -3,6 +3,11 @@
   // border: 1px solid #000;
   position: relative;
   padding: 10px;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+  }
 }
 
 .list {
