@@ -1,0 +1,42 @@
+.wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+}
+
+
+.container {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.swipeWrapper {
+    height: 100%;
+}
+
+.dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    height: 100%;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: gray;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.dot.active {
+    background: black;
+}

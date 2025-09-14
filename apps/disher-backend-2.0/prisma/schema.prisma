@@ -46,17 +46,29 @@ model Food {
   nameEng       String
   description   String
   descriptionRu String
-  nutrients     Nutrient[]
+  nutrients     FoodNutrient[]
   ScheduleItem  ScheduleItem[]
   DishItem      DishItem[]
 }
 
+model FoodNutrient {
+  id         Int      @id @default(autoincrement())
+  quantity   Float
+  foodId     Int
+  Food       Food     @relation(fields: [foodId], references: [id])
+  nutrientId Int
+  Nutrient   Nutrient @relation(fields: [nutrientId], references: [id])
+}
+
 model Nutrient {
-  id     Int    @id @default(autoincrement())
-  name   String
-  value  Float
-  foodId Int
-  food   Food   @relation(fields: [foodId], references: [id])
+  id             Int            @id @default(autoincrement())
+  name           String?
+  nameEng        String?
+  unit           String?
+  unitEng        String?
+  displayName    String?
+  displayNameEng String?
+  FoodNutrient   FoodNutrient[]
 }
 
 model Dish {

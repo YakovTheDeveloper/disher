@@ -27,6 +27,23 @@ export class ScheduleBuilderViewModel {
 
   questionnaire: QuestionnaireViewModel
 
+  get foodWithQuantity() {
+    const current = this.children.current
+    if (current?.dish) {
+      return current?.dish.items.map(({ food: { id }, quantity }) => ({
+        id,
+        quantity
+      }))
+    }
+    if (current?.food) {
+      return [{
+        id: current.food.id,
+        quantity: current.quantity
+      }]
+    }
+    return []
+  }
+
   get date() {
     return this.schedule.date
   }

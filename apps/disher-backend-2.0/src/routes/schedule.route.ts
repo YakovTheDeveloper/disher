@@ -12,6 +12,17 @@ const scheduleItemSelect = {
         select: {
             id: true,
             name: true,
+            items: {
+                select: {
+                    quantity: true,
+                    food: {
+                        select: {
+                            id: true,
+                            name: true,
+                        }
+                    },
+                }
+            }
         }
     },
     food: {
@@ -19,10 +30,13 @@ const scheduleItemSelect = {
             id: true,
             name: true,
         }
-    }, customFoodName: true, id: true, quantity: true,
+    },
+    customFoodName: true,
+    id: true,
+    quantity: true,
     time: true
-}
 
+}
 export const scheduleRoutes = {
     getSchedules: t.procedure.input(
         z.object({

@@ -1,5 +1,17 @@
 import { trpc } from "@/api/trpc/trpc"
 
-export const getFood = async () => {
-    return await trpc.getFood.query()
+export const getFood = async (ids?: number[]) => {
+    const payload = ids ? { ids } : undefined
+    return await trpc.getFood.query(payload)
+}
+
+export const getFoodWithNutrients = async (ids?: number[]) => {
+    const payload = ids ? { ids } : undefined
+    return await trpc.getFoodWithNutrients.query(payload)
+}
+
+export const getOneFood = async (id: number) => {
+    return await trpc.getOneFood.query({
+        id
+    })
 }

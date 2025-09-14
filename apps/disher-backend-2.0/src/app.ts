@@ -16,6 +16,10 @@ server.register(cors, {
     credentials: true, // if you need cookies
 });
 
+server.addHook('preHandler', async (request, reply) => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+});
+
 server.register(fastifyTRPCPlugin, {
     prefix: '/trpc',
     trpcOptions: {

@@ -22,6 +22,7 @@ import { ScheduleStore } from "@/store/scheduleStore/scheduleStore";
 import { DishModelStore } from "@/store/models/dish/dishStore";
 import { FoodModelStore } from "@/store/models/food/foodStore";
 import { MenuUiStore } from "@/store/uiStore/menu/menuUiStore";
+import { ScheduleCacheStore } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleCacheStore";
 
 const notificationStore = new NotificationStore()
 
@@ -87,3 +88,5 @@ export const Flows = {
 }
 
 export const initSetupFlow = new InitSetupFlow(userStore, Flows)
+
+export const scheduleCache = new ScheduleCacheStore()

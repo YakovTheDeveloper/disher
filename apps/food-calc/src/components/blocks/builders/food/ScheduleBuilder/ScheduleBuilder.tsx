@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ScheduleBuilderViewModel } from './model/ScheduleBuilderViewModel';
 import { Suggestion } from '../shared/ModalStoreUI';
 import { observer } from 'mobx-react-lite';
@@ -30,6 +30,10 @@ import { FoodModelStore } from '@/store/models/food/foodStore';
 import { DishModelStore } from '@/store/models/dish/dishStore';
 import { SearchFilterTabs } from '@/components/blocks/builders/food/ScheduleBuilder/ui/SearchFilterTabs';
 import { AnimatePresence } from 'framer-motion';
+import { Navigation } from '@/components/blocks/builders/food/ScheduleBuilder/ui/Navigation';
+import { Swipeable } from '@/components/blocks/builders/food/shared/ui/layout/Swipeable';
+import { FoodName } from '@/components/blocks/builders/food/shared/ui/FoodName';
+import { Nutrients } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients';
 
 const isSameTimeAsPrevious = (items: { time: string }[], index: number, time: string) => {
   return items[index - 1]?.time === time;
@@ -64,62 +68,57 @@ const getTimeDifferenceWithPrevious = (
   return `${hoursView}${minutesView}`;
 };
 
-const getTitle = (input: string) => {
-  const date = new Date(input);
-
-  const day = date.getUTCDate();
-  const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'long', timeZone: 'UTC' }).format(
-    date
-  );
-  const weekdayName = new Intl.DateTimeFormat('ru-RU', { weekday: 'long', timeZone: 'UTC' }).format(
-    date
-  );
-
-  return `${day} ${monthName}, ${weekdayName}`;
-};
-
 enum Modals {
   Time = 'time',
   Food = 'food',
   Quantity = 'quantity',
-  Questionnaire = 'questionnaire',
+  Nutrients = 'Nutrients',
 }
 
 type Props = {
-  init: ScheduleEntity;
   onSave: (payload: ScheduleEntity, id?: number) => Promise<ScheduleEntity | undefined>;
   finishButtonTitle: string;
   children: React.ReactNode;
+  schedule: ScheduleBuilderViewModel;
 };
 
-const ScheduleBuilder = ({ init, onSave, finishButtonTitle, children }: Props) => {
-  const schedules = useMemo(() => new ScheduleBuilderViewModel(init), []);
+const ScheduleBuilder = ({ schedule, onSave, finishButtonTitle, children }: Props) => {
   const modals = useMemo(() => new ModalStoreUI<Modals>(), []);
   const options = useMemo(() => new OptionsStoreUI(), []);
   const searchFiltering = useMemo(() => new SearchViewModel(foodStore, dishStore), []);
   const menuUi = uiStore.menu;
+
   const onFoodsOpen = () => {
-    schedules.children.setCurrentId(-1);
+    schedule.children.setCurrentId(-1);
     modals.set(Modals.Food);
   };
 
   const onTitle = (id: string | number) => {
-    schedules.children.setCurrentId(id);
+    schedule.children.setCurrentId(id);
     modals.set(Modals.Food);
   };
 
+  const onTitleInfoMode = (id: string | number) => {
+    schedule.children.setCurrentId(id);
+    const ids = schedule.foodWithQuantity.map(({ id }) => ({
+      id,
+    }));
+    foodStore.getWithNutrientsByFoodIds(ids);
+    modals.set(Modals.Nutrients);
+  };
+
   const onTime = (id: string | number) => {
-    schedules.children.setCurrentId(id);
+    schedule.children.setCurrentId(id);
     modals.set(Modals.Time);
   };
 
   const onQuantity = (id: string | number) => {
-    schedules.children.setCurrentId(id);
+    schedule.children.setCurrentId(id);
     modals.set(Modals.Quantity);
   };
 
   const onFinish = async () => {
-    await onSave(...schedules.payload);
+    await onSave(...schedule.payload);
   };
 
   const onMoreOptions = () => {
@@ -133,7 +132,7 @@ const ScheduleBuilder = ({ init, onSave, finishButtonTitle, children }: Props) =
 
   const onDishCreateClick = (e, time: string) => {
     e?.stopPropagation();
-    const scheduleItemsByTime = getScheduleProductsByTime(schedules.schedule, time);
+    const scheduleItemsByTime = getScheduleProductsByTime(schedule.schedule, time);
     console.log('asd', toJS(scheduleItemsByTime));
     const dto = createFoodQuantityCollectionDTO(scheduleItemsByTime);
     const dish = createDishLocal(dto);
@@ -146,11 +145,11 @@ const ScheduleBuilder = ({ init, onSave, finishButtonTitle, children }: Props) =
     const { id, name } = result;
 
     dishStore.set(result.id, result);
-    schedules.addChild({ dish: { id, name } });
+    schedule.addChild({ dish: { id, name } });
 
     if (!dishInit) return;
     const { content, time } = dishInit;
-    schedules.removeChildrenByTimeAndId(
+    schedule.removeChildrenByTimeAndId(
       time,
       content.items.map(({ food }) => food.id)
     );
@@ -161,65 +160,80 @@ const ScheduleBuilder = ({ init, onSave, finishButtonTitle, children }: Props) =
     if (!data) return;
     const selection = variant === 'dish' ? { dish: data, food: null } : { food: data, dish: null };
     searchFiltering.setFilterText('');
-    if (!schedules.children.current) {
-      schedules.addChild(selection);
+    if (!schedule.children.current) {
+      schedule.addChild(selection);
       modals.close();
       return;
     }
-    schedules.children.updateCurrent(selection);
+    schedule.children.updateCurrent(selection);
     modals.close();
   };
 
-  const onQuestionnaireButtonClick = () => modals.set(Modals.Questionnaire);
+  const getFoodModel = useCallback(() => foodStore, []);
+  const getCurrentFoodWithQuantity = useCallback(() => schedule.foodWithQuantity, []);
 
   return (
     <div className={style.container}>
       <header className={style.header}>
         {children}
-        <h1>{getTitle(schedules.date)}</h1>
-        <button onClick={onQuestionnaireButtonClick}>бумажка</button>
+        <Navigation />
       </header>
-      <ul className={style.list}>
-        {schedules.scheduleItemsSorted.map(
-          ({ id, food = null, quantity, time, customFoodName = '', dish = null }, index, items) => {
-            const notSameTimeAsPrevious = !isSameTimeAsPrevious(items, index, time);
-            const sameTimeAsNext = isSameTimeAsNext(items, index, time);
-            const timeDifference = getTimeDifferenceWithPrevious(items, index, time);
-            return (
-              <ListItem
-                options={options}
-                key={id}
-                className={clsx([
-                  dish && style.listItem_dish,
-                  notSameTimeAsPrevious && style.listItem_lined,
-                  sameTimeAsNext && style.listItem_noShadow,
-                ])}
-              >
-                <p onClick={() => onTime(id)} className={style.listItemTime}>
-                  {time || '00:00'}
-                </p>
-                <p onClick={() => onTitle(id)}>
-                  <span
-                    className={clsx([style.listItemTopBlock, style.listItemMessage])}
-                    hidden={!timeDifference}
-                  >
-                    {timeDifference}
-                  </span>
-                  {food ? food.name : dish ? dish.name : customFoodName}
-                  <span
-                    onClick={(e) => onDishCreateClick(e, time)}
-                    className={clsx([style.listItemTopBlock, style.listItemTopBlock_right])}
-                    hidden={!timeDifference}
-                  >
-                    обьединить в блюдо
-                  </span>
-                </p>
-                <p onClick={() => onQuantity(id)}>{quantity}</p>
-              </ListItem>
-            );
-          }
-        )}
-      </ul>
+
+      <Swipeable>
+        <ul className={style.list}>
+          {schedule.scheduleItemsSorted.map(
+            (
+              { id, food = null, quantity, time, customFoodName = '', dish = null },
+              index,
+              items
+            ) => {
+              const notSameTimeAsPrevious = !isSameTimeAsPrevious(items, index, time);
+              const sameTimeAsNext = isSameTimeAsNext(items, index, time);
+              const timeDifference = getTimeDifferenceWithPrevious(items, index, time);
+              return (
+                <ListItem
+                  options={options}
+                  key={id}
+                  className={clsx([
+                    dish && style.listItem_dish,
+                    notSameTimeAsPrevious && style.listItem_lined,
+                    sameTimeAsNext && style.listItem_noShadow,
+                  ])}
+                >
+                  <p onClick={() => onTime(id)} className={style.listItemTime}>
+                    {time || '00:00'}
+                  </p>
+                  <p>
+                    <span
+                      className={clsx([style.listItemTopBlock, style.listItemMessage])}
+                      hidden={!timeDifference}
+                    >
+                      {timeDifference}
+                    </span>
+                    <FoodName
+                      hintMode={options.showAdditionals}
+                      onClick={() => onTitle(id)}
+                      onClickHintModeOn={() => onTitleInfoMode(id)}
+                    >
+                      {food ? food.name : dish ? dish.name : customFoodName}
+                    </FoodName>
+                    <span
+                      onClick={(e) => onDishCreateClick(e, time)}
+                      className={clsx([style.listItemTopBlock, style.listItemTopBlock_right])}
+                      hidden={!timeDifference}
+                    >
+                      обьединить в блюдо
+                    </span>
+                  </p>
+                  <p onClick={() => onQuantity(id)}>{quantity}</p>
+                </ListItem>
+              );
+            }
+          )}
+        </ul>
+        <ContentEdit.Questionnaire vm={schedule.questionnaire} />
+      </Swipeable>
+
       {modals.current === Modals.Food && (
         <ContentEdit.Food
           content={searchFiltering}
@@ -228,16 +242,20 @@ const ScheduleBuilder = ({ init, onSave, finishButtonTitle, children }: Props) =
           <ContentEdit.SearchList
             content={searchFiltering}
             onFoodSelect={onFoodSelect}
-            vm={schedules}
+            vm={schedule}
           />
         </ContentEdit.Food>
       )}
       {modals.current === Modals.Time && (
-        <ContentEdit.Time vm={schedules.children} onFinish={modals.close} />
+        <ContentEdit.Time vm={schedule.children} onFinish={modals.close} />
       )}
       {modals.current === Modals.Quantity && (
-        <ContentEdit.Quantity vm={schedules.children} onFinish={modals.close} />
+        <ContentEdit.Quantity vm={schedule.children} onFinish={modals.close} />
       )}
+
+      <Modal isOpen={modals.current === Modals.Nutrients} onClose={modals.close}>
+        <Nutrients getFood={getFoodModel} getCurrentFood={getCurrentFoodWithQuantity} />
+      </Modal>
 
       <Modal onClose={() => setDishInit(null)} isOpen={!!dishInit}>
         {dishInit && (
@@ -247,10 +265,6 @@ const ScheduleBuilder = ({ init, onSave, finishButtonTitle, children }: Props) =
             onSave={onCreateDish}
           />
         )}
-      </Modal>
-
-      <Modal onClose={modals.close} isOpen={modals.current === Modals.Questionnaire}>
-        <ContentEdit.Questionnaire vm={schedules.questionnaire} />
       </Modal>
 
       <Actions isShow={!modals.current}>

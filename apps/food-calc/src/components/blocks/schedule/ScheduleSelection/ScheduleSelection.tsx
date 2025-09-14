@@ -34,7 +34,7 @@ const ScheduleSelection = () => {
   const onDateChoose = (date: Date) => {
     const exist = scheduleStore.dateToSchedule.get(date.toISOString());
     if (!exist) {
-      navigate(`builder/new?initDate=${date.toISOString()}`);
+      navigate(`builder/new?date=${date.toISOString()}`);
       return;
     }
     navigate(`builder/?date=${date.toISOString()}`);
