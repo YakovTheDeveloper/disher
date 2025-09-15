@@ -9,7 +9,7 @@ import { DishEntity } from '@/store/models/dish/types';
 import { ListItem } from '@/components/blocks/builders/food/shared/ui/ListItem';
 import { Button } from '@/components/blocks/builders/food/shared/ui/Actions/button';
 import { Heading } from '@/components/blocks/builders/food/DishBuilder/ui/Heading';
-import { OptionsStoreUI } from '@/components/blocks/builders/food/shared/OptionsStoreUI';
+import { BuilderUIStore } from '@/components/blocks/builders/food/shared/BuilderUIStore';
 import { FoodName } from '@/components/blocks/builders/food/shared/ui/FoodName';
 import { Actions } from '@/components/blocks/builders/food/shared/ui/Actions';
 
@@ -22,7 +22,7 @@ type Props = {
 const DishBuilder = ({ init, onSave, finishButtonTitle }: Props) => {
   const dishes = useMemo(() => new DishBuilderViewModel(init), []);
   const modals = useMemo(() => new ModalStoreUI(), []);
-  const options = useMemo(() => new OptionsStoreUI(), []);
+  const options = useMemo(() => new BuilderUIStore(), []);
 
   const onFoodsOpen = () => {
     dishes.children.setCurrentId(-1);

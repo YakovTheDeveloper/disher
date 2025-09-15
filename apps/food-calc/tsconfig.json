@@ -6,7 +6,8 @@
       "ESNext.Array",
       "ES2020",
       "DOM",
-      "DOM.Iterable"
+      "DOM.Iterable",
+      "ES2023"
     ],
     "composite": true,
     "module": "ESNext",

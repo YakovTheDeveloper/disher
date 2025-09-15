@@ -20,7 +20,7 @@ import { NutrientUiStore } from "@/store/uiStore/nutrientUiStore/nutrientUiStore
 import { DishUiStore } from "@/store/uiStore/dishUiStore/dishUiStore";
 import { ScheduleStore } from "@/store/scheduleStore/scheduleStore";
 import { DishModelStore } from "@/store/models/dish/dishStore";
-import { FoodModelStore } from "@/store/models/food/foodStore";
+import { FoodModelStore } from "@/store/models/food/foodModelStore";
 import { MenuUiStore } from "@/store/uiStore/menu/menuUiStore";
 import { ScheduleCacheStore } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleCacheStore";
 

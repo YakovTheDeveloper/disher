@@ -4,8 +4,7 @@ import clsx from 'clsx';
 import commonStyle from '../ContentEdit.module.scss';
 
 import { useState } from 'react';
-
-const FOOD_NAME_PLACEHOLDER = 'Гречка...';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const TIME = {
   HOURS: [
@@ -51,10 +50,11 @@ type Props = {
 
 const Time = ({ vm, onFinish }: Props) => {
   const [initHours, initMinutes] = parseTime(vm.current?.time || '');
-
   const [minutes, setMinutes] = useState<string>(initMinutes);
   const [hours, setHours] = useState(initHours);
-  // const hidden = vm.currentSuggestion !== Suggestion.Time;
+
+  const [animHour, setAnimHour] = useState<string | null>(null);
+  const [circlePos, setCirclePos] = useState<{ x: number; y: number } | null>(null);
 
   const onMinutesChange = (m: string) => {
     const time = hours + ':' + m;
@@ -63,9 +63,16 @@ const Time = ({ vm, onFinish }: Props) => {
     onFinish();
   };
 
-  const onHourChange = (h: string) => {
+  const onHourChange = (h: string, e: React.MouseEvent) => {
     setHours(h);
     setMinutes('');
+
+    // get position of clicked hour button
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    setCirclePos({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+    setAnimHour(h);
+
+    setTimeout(() => setAnimHour(null), 1200); // remove after animation
   };
 
   return (
@@ -73,7 +80,7 @@ const Time = ({ vm, onFinish }: Props) => {
       {TIME.HOURS.map((h) => (
         <ul key={h} className={style.minutes}>
           <button
-            onClick={() => onHourChange(h)}
+            onClick={(e) => onHourChange(h, e)}
             className={clsx([hours === h && style.hoursItem_active, style.hoursItem])}
           >
             {h}
@@ -90,6 +97,63 @@ const Time = ({ vm, onFinish }: Props) => {
           ))}
         </ul>
       ))}
+
+      {/* ANIMATION LAYER */}
+      <AnimatePresence>
+        {animHour && circlePos && (
+          <>
+            {/* Expanding Circle */}
+            <motion.div
+              key={hours}
+              initial={{
+                left: circlePos.x,
+                top: circlePos.y,
+                scale: 0,
+                opacity: 0.8,
+              }}
+              animate={{
+                left: '100%',
+                top: 0,
+                scale: 10,
+                opacity: 0,
+              }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.2, ease: 'easeOut' }}
+              style={{
+                position: 'fixed',
+                width: 200,
+                height: 200,
+                borderRadius: '50%',
+                backgroundColor: 'limegreen',
+                zIndex: 10,
+                transform: 'translate(-50%, -50%)',
+                pointerEvents: 'none',
+              }}
+            />
+
+            {/* Huge Hour Number */}
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 3, opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.2, ease: 'easeOut' }}
+              style={{
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                color: 'white',
+                fontSize: '10rem',
+                fontWeight: 'bold',
+                zIndex: 20,
+                pointerEvents: 'none',
+              }}
+            >
+              {animHour}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

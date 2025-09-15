@@ -1,12 +1,13 @@
 import { observer } from 'mobx-react-lite';
 import { motion } from 'framer-motion';
 import styles from './Nutrients.module.scss';
-import { FoodModelStore } from '@/store/models/food/foodStore';
+import { FoodModelStore } from '@/store/models/food/foodModelStore';
 import {
   defaultDailyNorms,
   nutrientGroups,
   nutrientNames,
 } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/constants';
+import { Overlay } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/Overlay';
 
 // Groups of nutrients
 const groups: Record<string, number[]> = {
@@ -17,32 +18,33 @@ const groups: Record<string, number[]> = {
 };
 
 const getRoundedPercent = (percentage: number, quantity, norm) => {
-  if (!quantity || !norm) return null;
+  if (!quantity || !norm) return '';
 
   if (percentage < 1) {
     return percentage.toFixed(2);
   } else if (percentage < 10) {
     return percentage.toFixed(1);
   } else {
-    return Math.round(percentage);
+    return Math.round(percentage).toString();
   }
 };
 
 type Props = {
   getFood: () => FoodModelStore;
   getCurrentFood: () => { quantity: number; id: number }[];
+  currentFood: { quantity: number; id: number }[];
+  renderOverlay?: (percent: string) => React.ReactNode;
 };
 
-const Nutrients = ({ getCurrentFood, getFood }: Props) => {
+const Nutrients = ({ getCurrentFood, getFood, currentFood, renderOverlay }: Props) => {
   const foodModel = getFood();
-  const currentFood = getCurrentFood();
 
   const totals = () => {
     const acc: Record<number, number> = {};
-    currentFood.forEach(({ id }) => {
-      const nutrients = foodModel.data.get(id.toString())?.nutrients || [];
-      nutrients.forEach(({ nutrientId, quantity }: { nutrientId: number; quantity: number }) => {
-        acc[nutrientId] = (acc[nutrientId] || 0) + quantity;
+    currentFood.forEach(({ id, quantity: foodQuantity }) => {
+      const foodNutrients = foodModel.data.get(id.toString())?.nutrients || [];
+      foodNutrients.forEach(({ nutrientId, quantity: nutrientQuantity }) => {
+        acc[nutrientId] = (acc[nutrientId] || 0) + (nutrientQuantity * foodQuantity) / 100;
       });
     });
     return acc;
@@ -57,7 +59,7 @@ const Nutrients = ({ getCurrentFood, getFood }: Props) => {
           <h3 className={styles.groupTitle}>{groupName}</h3>
           <div className={styles.groupContent}>
             {content.map(({ id, unitRu, displayNameRu }) => {
-              if (!sums[id]) return null;
+              // if (!sums[id]) return null;
 
               const name = displayNameRu;
               const norm = defaultDailyNorms[id];
@@ -78,10 +80,12 @@ const Nutrients = ({ getCurrentFood, getFood }: Props) => {
                   <div className={styles.header}>
                     <span className={styles.name}>{name}</span>
                     <span className={styles.value}>
-                      {unit}
-                      {value.toFixed(1)} / {norm}
+                      {unit} {value?.toFixed(1)} / {norm}
                     </span>
-                    <span className={styles.percent}>{percentNormalized}</span>
+                    <span className={styles.percent}>
+                      {console.log('wtf')}
+                      {renderOverlay ? renderOverlay(percentNormalized) : percentNormalized}
+                    </span>
                   </div>
                   <div className={styles.progressWrapper}>
                     <div className={styles.progress} style={{ width: `${percent}%` }} />

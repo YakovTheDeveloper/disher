@@ -1,6 +1,6 @@
 import { CommonData } from "@/store/models/common/types"
 import { DishModelStore } from "@/store/models/dish/dishStore"
-import { FoodModelStore } from "@/store/models/food/foodStore"
+import { FoodModelStore } from "@/store/models/food/foodModelStore"
 import { makeAutoObservable } from "mobx"
 
 type FilterVariants = 'dish' | 'food'

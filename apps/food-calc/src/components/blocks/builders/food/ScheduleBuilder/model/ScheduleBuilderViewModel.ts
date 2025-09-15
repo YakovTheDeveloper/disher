@@ -2,11 +2,12 @@ import { createQuestionnaire, QuestionnaireViewModel } from "@/components/blocks
 import { UpdateChildrenStore } from "@/components/blocks/builders/food/shared/UpdateChildrenStore";
 import { deepCopy } from "@/lib/copy/deepCopy";
 import { CommonData } from "@/store/models/common/types";
+import { getTotalFoodAndDishFoodQuantityFromAll, getTotalFoodAndDishFoodQuantityFromOne } from "@/store/scheduleStore/schedule.domain";
 import { ScheduleEntity, ScheduleItemEntity, ScheduleQuestionnaire } from "@/store/scheduleStore/types";
 import { makeAutoObservable, runInAction, toJS } from "mobx";
 import { v4 as uuidv4 } from 'uuid';
 
-type DayScheduleUI = ScheduleEntity & {
+export type DayScheduleUI = ScheduleEntity & {
   items: DayScheduleItemUI[];
 };
 export type DayScheduleItemUI = Omit<ScheduleItemEntity, "foodId" | "id"> & {
@@ -29,20 +30,13 @@ export class ScheduleBuilderViewModel {
 
   get foodWithQuantity() {
     const current = this.children.current
-    if (current?.dish) {
-      return current?.dish.items.map(({ food: { id }, quantity }) => ({
-        id,
-        quantity
-      }))
-    }
-    if (current?.food) {
-      return [{
-        id: current.food.id,
-        quantity: current.quantity
-      }]
-    }
-    return []
+    if (!current) return []
+    return getTotalFoodAndDishFoodQuantityFromOne(current)
   }
+
+  // get totalScheduleFoodWithQuantity() {
+  //   return getTotalFoodAndDishFoodQuantityFromAll(this.schedule.items)
+  // }
 
   get date() {
     return this.schedule.date
@@ -66,6 +60,10 @@ export class ScheduleBuilderViewModel {
         id: current.food.id
       }
     }
+  }
+
+  getAllFoodAndDishFoodQuantity = () => {
+
   }
 
   addChild = (data: Partial<{ food: CommonData, dish: CommonData }>) => {
@@ -144,4 +142,23 @@ export function createLocalSchedule(date?: string) {
   if (date) schedule.date = date
   schedule.items = createMockScheduleItems()
   return schedule
+}
+
+export function makeScheduleItemsSignature(items: DayScheduleUI['items']): string {
+  return items
+    .map((i) => {
+      const dishPart = i.dish
+        ? `${i.dish.id}:${i.dish.items
+          .map((d) => `${d.food.id}:${d.quantity}`)
+          .join("|")}`
+        : "";
+
+      return [
+        `id:${i.id}`,
+        `food:${i.food ? i.food.id : "null"}`,
+        `qty:${i.quantity}`,
+        `dish:${dishPart}`,
+      ].join(";");
+    })
+    .join("||");
 }

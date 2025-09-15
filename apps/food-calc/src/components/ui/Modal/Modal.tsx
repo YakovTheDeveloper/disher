@@ -5,19 +5,37 @@ import { observer } from 'mobx-react-lite';
 import RemoveButton from '@/components/ui/RemoveButton/RemoveButton';
 import { useNavigate, useLocation, useNavigationType } from 'react-router';
 
-type Props = {
+type ModalByOpen = {
   children: React.ReactNode;
   className?: string;
-  isOpen: boolean;
+  isOpen: boolean | (() => boolean);
   onClose: VoidFunction;
 };
 
-const Modal = ({ isOpen, children, className, onClose }: Props) => {
+type ModalById = {
+  children: React.ReactNode;
+  className?: string;
+  onClose: VoidFunction;
+  id: string | number;
+  currentId: string | number | null;
+};
+
+type Props = ModalByOpen | ModalById;
+
+const Modal = (props: Props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const navigationType = useNavigationType();
   const openedRef = useRef(false);
 
+  const isOpen =
+    'isOpen' in props
+      ? typeof props.isOpen === 'function'
+        ? props.isOpen()
+        : props.isOpen
+      : props.id === props.currentId;
+
+  const { children, className, onClose } = props;
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';

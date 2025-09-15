@@ -5,10 +5,14 @@ import { Pages } from '@/components/blocks/builders/food/shared/ui/layout/Swipea
 
 type Props = {
   children: ReactNode[]; // multiple pages
+  model: {
+    currentPage: number;
+    setCurrentPage: (value: number) => void;
+  };
 };
 
-const Swipeable = ({ children }: Props) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+const Swipeable = ({ children, model }: Props) => {
+  const { setCurrentPage } = model;
   const [offset, setOffset] = useState(0);
   const startX = useRef<number | null>(null);
   const startTime = useRef<number | null>(null);
@@ -35,10 +39,10 @@ const Swipeable = ({ children }: Props) => {
       const isFast = elapsed < 250 && Math.abs(deltaX) > 125; // fast flick
       const isFar = Math.abs(deltaX) > width / 2; // long drag
 
-      if ((isFast || isFar) && deltaX > 0 && currentIndex > 0) {
-        setCurrentIndex((prev) => prev - 1);
-      } else if ((isFast || isFar) && deltaX < 0 && currentIndex < children.length - 1) {
-        setCurrentIndex((prev) => prev + 1);
+      if ((isFast || isFar) && deltaX > 0 && model.currentPage > 0) {
+        setCurrentPage(model.currentPage - 1);
+      } else if ((isFast || isFar) && deltaX < 0 && model.currentPage < children.length - 1) {
+        setCurrentPage(model.currentPage + 1);
       }
     }
 
@@ -48,13 +52,13 @@ const Swipeable = ({ children }: Props) => {
   };
 
   const goToPage = (index: number) => {
-    setCurrentIndex(index);
+    setCurrentPage(index);
   };
 
   const minDragToMoveScreen = 300;
   const width = containerRef.current?.offsetWidth || 1;
 
-  const aimScreenPosition = (-currentIndex * 100) / children.length;
+  const aimScreenPosition = (-model.currentPage * 100) / children.length;
 
   const getLinearOffset = () => {
     let effectiveOffset = 0;
@@ -97,7 +101,7 @@ const Swipeable = ({ children }: Props) => {
         {children.map((_, i) => (
           <span
             key={i}
-            className={`${styles.dot} ${i === currentIndex ? styles.active : ''}`}
+            className={`${styles.dot} ${i === model.currentPage ? styles.active : ''}`}
             onClick={() => goToPage(i)}
           ></span>
         ))}

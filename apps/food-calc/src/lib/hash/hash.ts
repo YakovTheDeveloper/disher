@@ -8,10 +8,13 @@ export function generateHash(input: string): string {
     return base64Encoded;
 }
 
-
 export function fromHash(encoded: string): string {
     const base64Decoded = CryptoJS.enc.Base64.parse(encoded).toString(CryptoJS.enc.Utf8);
     const decryptedBytes = CryptoJS.AES.decrypt(base64Decoded, passphrase);
     const decryptedString = decryptedBytes.toString(CryptoJS.enc.Utf8);
     return decryptedString;
+}
+
+export function generateHashFromIdCollection(collection: (number)[]) {
+    return Array.from(new Set(collection)).toSorted((a, b) => a - b).toString()
 }

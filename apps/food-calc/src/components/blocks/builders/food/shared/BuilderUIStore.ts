@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-export class OptionsStoreUI {
+export class BuilderUIStore {
     constructor() {
         makeAutoObservable(this);
     }
@@ -13,5 +13,11 @@ export class OptionsStoreUI {
 
     toggle = () => {
         this.showAdditionals = !this.showAdditionals
+    }
+
+    currentPage = 1
+
+    setCurrentPage = (value: number) => {
+        this.currentPage = value
     }
 }
