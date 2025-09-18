@@ -8,6 +8,7 @@ import { useNavigate, useLocation, useNavigationType } from 'react-router';
 type ModalByOpen = {
   children: React.ReactNode;
   className?: string;
+  backdropClassname?: string;
   isOpen: boolean | (() => boolean);
   onClose: VoidFunction;
 };
@@ -15,6 +16,7 @@ type ModalByOpen = {
 type ModalById = {
   children: React.ReactNode;
   className?: string;
+  backdropClassname?: string;
   onClose: VoidFunction;
   id: string | number;
   currentId: string | number | null;
@@ -35,19 +37,12 @@ const Modal = (props: Props) => {
         : props.isOpen
       : props.id === props.currentId;
 
-  const { children, className, onClose } = props;
+  const { children, className, onClose, backdropClassname } = props;
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
 
-      navigate(
-        {
-          pathname: location.pathname,
-          search: location.search,
-          hash: location.hash,
-        },
-        { replace: false, state: { modal: true } }
-      );
+      navigate(location, { replace: false, state: { modal: true } });
 
       openedRef.current = true;
     } else {
@@ -66,12 +61,15 @@ const Modal = (props: Props) => {
     }
   }, [navigationType, onClose]);
 
+  console.log('className', className);
+  console.log('backdropClassname', backdropClassname);
+
   if (!isOpen) return null;
 
   return (
     <>
-      <div className={s.backdrop} onClick={onClose} />
-      <div className={clsx(s.modal, className)}>
+      <div className={clsx([s.backdrop, backdropClassname])} onClick={onClose} />
+      <div className={clsx([s.modal, className])}>
         <div className={s.inner}>
           <header>
             <RemoveButton onClick={onClose} />

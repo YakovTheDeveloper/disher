@@ -32,12 +32,7 @@ const ScheduleSelection = () => {
   //   };
 
   const onDateChoose = (date: Date) => {
-    const exist = scheduleStore.dateToSchedule.get(date.toISOString());
-    if (!exist) {
-      navigate(`builder/new?date=${date.toISOString()}`);
-      return;
-    }
-    navigate(`builder/?date=${date.toISOString()}`);
+    navigate(`builder?date=${date.toISOString()}`);
   };
 
   return (
@@ -52,7 +47,7 @@ const ScheduleSelection = () => {
         dayNames={dayNames.ru}
         cellClassName={style.dateCell}
         renderDayCellContent={(date) => (
-          <span>{scheduleStore.dateToSchedule.get(date.toISOString()) && 'есть'}</span>
+          <span>{scheduleStore.data.get(date.toISOString()) && 'есть'}</span>
         )}
       />
     </div>

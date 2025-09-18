@@ -19,8 +19,8 @@ export class FoodModelStore {
         this.getAll();
     }
 
-    requestState: Record<string, Map<string, RequestState>> = {
-        getAllWithNutrients: new Map()
+    requestState = {
+        getAllWithNutrients: new Map<string, RequestState>()
     }
 
     getAll = async (ids?: number[], withNutrients = false) => {
@@ -55,6 +55,12 @@ export class FoodModelStore {
     };
 
     getOne = async (id: number) => {
+        const res = await getOneFood(id);
+        if (!res.data) return;
+        this.data.set(res.data.id.toString(), res.data);
+    }
+
+    getOneByDate = async (date: number) => {
         const res = await getOneFood(id);
         if (!res.data) return;
         this.data.set(res.data.id.toString(), res.data);

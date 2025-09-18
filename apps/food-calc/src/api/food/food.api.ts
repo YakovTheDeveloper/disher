@@ -13,8 +13,9 @@ export const getFoodWithNutrients = async (ids?: number[]) => {
     return requestWrapper(trpc.getFoodWithNutrients.query, {}, payload)
 }
 
-export const getOneFood = async (id: number) => {
+export const getOneFood = async (id: number, date?: string) => {
     return await trpc.getOneFood.query({
-        id
+        id,
+        ...(date ? { date } : {})
     })
 }

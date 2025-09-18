@@ -1,11 +1,8 @@
 import { makeAutoObservable } from "mobx";
-
-export enum Suggestion {
-    Time = "time",
-    Food = "food",
-    Quantity = "quantity"
-}
-
+export type CommonModals =
+    | 'food'
+    | 'quantity'
+    | 'nutrients'
 export class ModalStoreUI<Variants> {
     constructor() {
         makeAutoObservable(this);

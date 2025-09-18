@@ -10,4 +10,8 @@
     border-radius: 20px;
     background-color: rgba(63, 86, 255, 0.335);
     color: white;
+
+    &:disabled {
+        opacity: 0.3;
+    }
 }

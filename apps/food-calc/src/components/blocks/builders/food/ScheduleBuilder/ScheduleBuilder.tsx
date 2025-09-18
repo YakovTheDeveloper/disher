@@ -1,22 +1,14 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ScheduleBuilderViewModel } from './model/ScheduleBuilderViewModel';
-import { Suggestion } from '../shared/ModalStoreUI';
-import { observer, useLocalStore } from 'mobx-react-lite';
-import style from './ScheduleBuilder.module.scss';
-import clsx from 'clsx';
-import { ScheduleEntity } from '@/store/scheduleStore/types';
-import { ModalStoreUI } from '@/components/blocks/builders/food/shared/ModalStoreUI';
-import { ContentEdit } from '@/components/blocks/builders/food/shared/ContentEdit';
-import { Storage } from '@/infrastructure/storage';
 import {
-  getAllFoodIds,
-  getScheduleProductsByTime,
-  getTotalFoodAndDishFoodQuantityFromOne,
-} from '@/store/scheduleStore/schedule.domain';
-import { useNavigate } from 'react-router';
+  DayScheduleUI,
+  ScheduleBuilderViewModel,
+  TimeGroupUI,
+} from './model/ScheduleBuilderViewModel';
+import style from './ScheduleBuilder.module.scss';
+import { CommonModals, ModalStoreUI } from '@/components/blocks/builders/food/shared/ModalStoreUI';
+import { ContentEdit } from '@/components/blocks/builders/food/shared/ContentEdit';
 import { createFoodQuantityCollectionDTO } from '@/components/blocks/builders/food/shared/dto';
 import { Button as ActionButton } from '@/components/blocks/builders/food/shared/ui/Actions/button';
-import { Button } from '@/components/ui/Button';
 import { Actions } from '@/components/blocks/builders/food/shared/ui/Actions';
 
 import Modal from '@/components/ui/Modal/Modal';
@@ -25,78 +17,49 @@ import {
   createDishLocal,
   DishUI,
 } from '@/components/blocks/builders/food/DishBuilder/model/DishBuilderViewModel';
-import { toJS } from 'mobx';
 import { addDish } from '@/api/dish/dish.api';
 import { dishStore, foodStore } from '@/store/rootStore';
-import { ListItem } from '@/components/blocks/builders/food/shared/ui/ListItem';
 import { SearchViewModel } from '@/components/blocks/builders/food/ScheduleBuilder/model/SearchViewModel';
-import { FoodModelStore } from '@/store/models/food/foodModelStore';
-import { DishModelStore } from '@/store/models/dish/dishStore';
 import { SearchFilterTabs } from '@/components/blocks/builders/food/ScheduleBuilder/ui/SearchFilterTabs';
-import { AnimatePresence } from 'framer-motion';
-import { Navigation } from '@/components/blocks/builders/food/ScheduleBuilder/ui/Navigation';
 import { Swipeable } from '@/components/blocks/builders/food/shared/ui/layout/Swipeable';
-import { FoodName } from '@/components/blocks/builders/food/shared/ui/FoodName';
 import { Nutrients } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients';
 import { List } from '@/components/blocks/builders/food/ScheduleBuilder/ui/List';
 import { ModalRoot } from '@/components/blocks/builders/food/shared/ModalRoot';
 import { TotalNutrients } from '@/components/blocks/builders/food/shared/ContentInfo/TotalNutrients';
 import { BuilderUIStore } from '@/components/blocks/builders/food/shared/BuilderUIStore';
+import { motion } from 'framer-motion';
+import { observer } from 'mobx-react-lite';
+import { useScheduleItemActionsUI } from '@/components/blocks/builders/food/ScheduleBuilder/context';
+import { toJS, trace } from 'mobx';
 
-enum Modals {
+export enum Modals {
   Time = 'time',
   Food = 'food',
   Quantity = 'quantity',
-  Nutrients = 'Nutrients',
+  Nutrients = 'nutrients',
 }
 
 type Props = {
-  onSave: (payload: ScheduleEntity, id?: number) => Promise<ScheduleEntity | undefined>;
-  finishButtonTitle: string;
-  children: React.ReactNode;
+  onFinish: (payload: DayScheduleUI) => Promise<void>;
   schedule: ScheduleBuilderViewModel;
+  getLoadingState: () => boolean;
 };
 
-const ScheduleBuilder = ({ schedule, onSave, finishButtonTitle, children }: Props) => {
-  const modals = useMemo(() => new ModalStoreUI<Modals>(), []);
+const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
+  const modals = useMemo(() => new ModalStoreUI<CommonModals | 'time'>(), []);
   const options = useMemo(() => new BuilderUIStore(), []);
   const searchFiltering = useMemo(() => new SearchViewModel(foodStore, dishStore), []);
 
-  const onFoodsOpen = () => {
-    schedule.children.setCurrentId(-1);
-    modals.set(Modals.Food);
-  };
-
-  const onTitle = (id: string | number) => {
-    schedule.children.setCurrentId(id);
-    modals.set(Modals.Food);
-  };
-
-  const onTitleInfoMode = (id: string | number) => {
-    schedule.children.setCurrentId(id);
-    if (!schedule.children.current) return;
-    const food = getTotalFoodAndDishFoodQuantityFromOne(schedule.children.current);
-    const ids = getAllFoodIds(food);
-    foodStore.loadFoodWithNutrientsByFoodIds(ids);
-    modals.set(Modals.Nutrients);
-  };
-
-  const onTime = (id: string | number) => {
-    schedule.children.setCurrentId(id);
-    modals.set(Modals.Time);
-  };
-
-  const onQuantity = (id: string | number) => {
-    schedule.children.setCurrentId(id);
-    modals.set(Modals.Quantity);
-  };
-
-  const onFinish = async () => {
-    await onSave(...schedule.payload);
-  };
+  const _itemActions = useScheduleItemActionsUI(schedule, modals);
+  const itemActions = useMemo(() => _itemActions, [modals, schedule]);
 
   const onMoreOptions = () => {
     options.toggle();
+  };
+
+  const onFoodsOpenCreate = () => {
+    schedule.children.setCurrentId(-1);
+    modals.set('food');
   };
 
   const [dishInit, setDishInit] = useState<{
@@ -104,10 +67,9 @@ const ScheduleBuilder = ({ schedule, onSave, finishButtonTitle, children }: Prop
     time: string;
   } | null>(null);
 
-  const onDishCreateClick = (time: string) => {
-    const scheduleItemsByTime = getScheduleProductsByTime(schedule.schedule, time);
-    console.log('asd', toJS(scheduleItemsByTime));
-    const dto = createFoodQuantityCollectionDTO(scheduleItemsByTime);
+  const onUniteFoodIntoDish = (group: TimeGroupUI) => {
+    const { time, items } = group;
+    const dto = createFoodQuantityCollectionDTO(items);
     const dish = createDishLocal(dto);
     setDishInit({ content: dish, time });
   };
@@ -129,6 +91,8 @@ const ScheduleBuilder = ({ schedule, onSave, finishButtonTitle, children }: Prop
     setDishInit(null);
   };
 
+  console.log('main render');
+
   const onFoodSelect = (data: { id: number; name: string } | null, variant: 'dish' | 'food') => {
     if (!data) return;
     const selection = variant === 'dish' ? { dish: data, food: null } : { food: data, dish: null };
@@ -145,24 +109,33 @@ const ScheduleBuilder = ({ schedule, onSave, finishButtonTitle, children }: Prop
   const getFoodModel = useCallback(() => foodStore, []);
   const getCurrentFoodWithQuantity = useCallback(() => schedule.foodWithQuantity, []);
 
-  return (
-    <div className={style.container}>
-      <header className={style.header}>
-        {children}
-        <Navigation />
-      </header>
+  // trace(true);
 
+  // const itemActions = useMemo(
+  //   () => ({ onFoodsOpenUpdate, onFoodsOpenCreate, onFoodsOpenInfo, onTimeOpen, onQuantityOpen }),
+  //   [schedule, modals]
+  // );
+
+  console.log('SChedule buILder REnder');
+
+  return (
+    <motion.div
+      className={style.container}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Swipeable model={options}>
         <TotalNutrients vm={schedule} />
+
         <List
+          itemActions={itemActions}
           content={schedule}
-          onDishCreate={onDishCreateClick}
-          onTime={onTime}
-          onTitle={onTitle}
-          onTitleInfoMode={onTitleInfoMode}
+          onDishesUnite={onUniteFoodIntoDish}
           options={options}
-          onQuantity={onQuantity}
+          getLoadingState={getLoadingState}
         />
+
         <ContentEdit.Questionnaire vm={schedule.questionnaire} />
       </Swipeable>
 
@@ -202,14 +175,14 @@ const ScheduleBuilder = ({ schedule, onSave, finishButtonTitle, children }: Prop
       </Modal>
 
       <Actions isShow={() => !modals.current && options.currentPage !== 0}>
-        <ActionButton.Finish onClick={onFinish}>{finishButtonTitle}</ActionButton.Finish>
-        <ActionButton.Add onClick={onFoodsOpen} />
+        <ActionButton.Finish onFinish={onFinish} content={schedule} />
+        <ActionButton.Add onClick={onFoodsOpenCreate} />
         <ActionButton.AdditionalOptions onClick={onMoreOptions}>
           больше
         </ActionButton.AdditionalOptions>
       </Actions>
-    </div>
+    </motion.div>
   );
 };
 
-export default ScheduleBuilder;
+export default observer(ScheduleBuilder);

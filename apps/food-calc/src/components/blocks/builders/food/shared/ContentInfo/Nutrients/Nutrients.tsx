@@ -69,6 +69,8 @@ const Nutrients = ({ getCurrentFood, getFood, currentFood, renderOverlay }: Prop
               const unit = unitRu;
               const percentNormalized = getRoundedPercent(percent, value, norm);
 
+              const progressBarPercent = value ? percent : 0;
+
               return (
                 <motion.div
                   key={id}
@@ -88,7 +90,7 @@ const Nutrients = ({ getCurrentFood, getFood, currentFood, renderOverlay }: Prop
                     </span>
                   </div>
                   <div className={styles.progressWrapper}>
-                    <div className={styles.progress} style={{ width: `${percent}%` }} />
+                    <div className={styles.progress} style={{ width: `${progressBarPercent}%` }} />
                   </div>
                 </motion.div>
               );

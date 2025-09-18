@@ -1,16 +1,16 @@
-import React from 'react'
-import s from './Overlay.module.css'
+import React from 'react';
+import s from './Overlay.module.css';
+import clsx from 'clsx';
+import { observer } from 'mobx-react-lite';
 type Props = {
-    children?: React.ReactNode
-    show: boolean
-}
-const Overlay = ({ children, show }: Props) => {
-    if (!show) return null
-    return (
-        <div className={s.overlay}>
-            <div className={s.children}>{children}</div>
-        </div>
-    )
-}
+  children?: React.ReactNode;
+  isLoading: () => boolean;
+  translucent?: boolean;
+};
+const Overlay = ({ isLoading, translucent = true }: Props) => {
+  const show = isLoading();
+  console.log(show);
+  return <div className={clsx([s.overlay, translucent && s.translucent, show && s.show])}></div>;
+};
 
-export default Overlay
+export default observer(Overlay);

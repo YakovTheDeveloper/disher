@@ -17,7 +17,7 @@ server.register(cors, {
 });
 
 server.addHook('preHandler', async (request, reply) => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 });
 
 server.register(fastifyTRPCPlugin, {

@@ -23,6 +23,8 @@
 }
 
 .inner {
+    display: flex;
+    flex-direction: column;
     flex: 1;
     overflow: auto;
     padding: 32px 25px 20px;

@@ -5,6 +5,7 @@ export class RequestState {
     id: string
     loading = false;
     error: string | null = null;
+    code: Code = -1
 
     constructor(id: string) {
         this.id = id
@@ -18,13 +19,15 @@ export class RequestState {
         return this
     }
 
-    success() {
+    success(code?: Code) {
         this.loading = false;
+        if (code) this.code = code
     }
 
-    fail(err: unknown) {
+    fail(err: unknown, code?: Code) {
         this.loading = false;
         this.error = err instanceof Error ? err.message : String(err);
+        if (code) this.code = code
     }
 
     raw(): {
@@ -34,19 +37,23 @@ export class RequestState {
         if (this.error)
             return {
                 isError: true,
-                code: 0
+                code: this.code
             }
 
         return {
             isError: false,
-            code: 0
+            code: this.code
         }
     }
 
-    data(): [boolean, string | number] {
+    data(): Data {
         if (this.error) {
-            return [true, 0];
+            return [true, this.code];
         }
-        return [false, 0];
+        return [false, this.code];
     }
 }
+
+type IsError = boolean
+type Code = string | number
+type Data = [IsError, Code]

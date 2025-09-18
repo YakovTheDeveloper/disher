@@ -2,29 +2,51 @@ import { createQuestionnaire, QuestionnaireViewModel } from "@/components/blocks
 import { UpdateChildrenStore } from "@/components/blocks/builders/food/shared/UpdateChildrenStore";
 import { deepCopy } from "@/lib/copy/deepCopy";
 import { CommonData } from "@/store/models/common/types";
+import { DishEntity } from "@/store/models/dish/types";
 import { getTotalFoodAndDishFoodQuantityFromAll, getTotalFoodAndDishFoodQuantityFromOne } from "@/store/scheduleStore/schedule.domain";
 import { ScheduleEntity, ScheduleItemEntity, ScheduleQuestionnaire } from "@/store/scheduleStore/types";
-import { makeAutoObservable, runInAction, toJS } from "mobx";
+import { makeAutoObservable, makeObservable, observable, runInAction, toJS } from "mobx";
 import { v4 as uuidv4 } from 'uuid';
 
-export type DayScheduleUI = ScheduleEntity & {
+export type DayScheduleItemUIStatus = 'added' | 'deleted' | 'modified' | null
+
+export type DayScheduleUI = Omit<ScheduleEntity, 'items' | 'questionnaire'> & {
   items: DayScheduleItemUI[];
+  questionnaire: ScheduleQuestionnaire | null
 };
 export type DayScheduleItemUI = Omit<ScheduleItemEntity, "foodId" | "id"> & {
   id: string | number
+  status: DayScheduleItemUIStatus
 };
+
+type AddChild = { food: null, dish: DishEntity } | { food: CommonData, dish: null }
+
+export type TimeGroupUI = { time: string; items: DayScheduleItemUI[], offset: { hours: number; minutes: number } | null; }
+
+function scheduleToUIAdapter(raw: ScheduleEntity): DayScheduleUI {
+  const copy = deepCopy(raw);
+  const questionnaire = raw.questionnaire
+  return {
+    ...copy,
+    questionnaire: questionnaire ? JSON.parse(questionnaire) : null,
+    items: copy.items.map((item) => ({
+      ...item,
+      status: null,
+    })),
+  };
+}
 
 export class ScheduleBuilderViewModel {
   constructor(raw: ScheduleEntity) {
-    this.schedule = deepCopy(raw)
+    this.schedule = scheduleToUIAdapter(raw)
     this.children = new UpdateChildrenStore(() => this.schedule)
     this.questionnaire = new QuestionnaireViewModel(() => this.schedule)
-    makeAutoObservable(this);
+    makeAutoObservable(this)
   }
 
   schedule: DayScheduleUI;
 
-  children: UpdateChildrenStore<ScheduleEntity, ScheduleItemEntity>
+  children: UpdateChildrenStore<DayScheduleUI, DayScheduleItemUI>
 
   questionnaire: QuestionnaireViewModel
 
@@ -44,6 +66,10 @@ export class ScheduleBuilderViewModel {
 
   get id() {
     return this.schedule.id
+  }
+
+  get itemsLength() {
+    return this.schedule.items.length
   }
 
   get selectedItemId() {
@@ -66,7 +92,7 @@ export class ScheduleBuilderViewModel {
 
   }
 
-  addChild = (data: Partial<{ food: CommonData, dish: CommonData }>) => {
+  addChild = (data: AddChild) => {
     const item = createUIDayScheduleItem(data)
     const lastAddedScheduleItem = this.scheduleItems.at(-1)
     if (lastAddedScheduleItem) item.time = lastAddedScheduleItem.time
@@ -74,12 +100,25 @@ export class ScheduleBuilderViewModel {
     return item.id
   }
 
-  removeChild = (childId: string | number) => {
-    const index = this.schedule.items.findIndex(item => item.id === childId);
-    if (index >= 0) {
-      this.schedule.items.splice(index, 1);
+  deleteChild = (childId: string | number) => {
+    const item = this.schedule.items.find(item => item.id === childId);
+    if (!item) return
+
+    if (item.status === 'added') {
+      this.schedule.items = this.schedule.items.filter(i => i.id !== childId);
+      return
     }
-  }
+    item.status = 'deleted';
+  };
+
+  recoverDeletedChild = (childId: string | number) => {
+    const item = this.schedule.items.find(item => item.id === childId);
+    if (!item) return
+
+    if (item.status === 'deleted') {
+      item.status = null;
+    }
+  };
 
   removeChildrenByTimeAndId = (time: string, ids: number[]) => {
     this.schedule.items = this.schedule.items.filter(schedule => {
@@ -93,17 +132,54 @@ export class ScheduleBuilderViewModel {
     return this.schedule.items;
   }
 
-  get scheduleItemsSorted(): DayScheduleItemUI[] {
-    return this.scheduleItems.toSorted((a, b) => {
-      const [aHours, aMinutes] = a.time.split(':').map(Number);
-      const [bHours, bMinutes] = b.time.split(':').map(Number);
-      if (aHours !== bHours) return aHours - bHours;
-      return aMinutes - bMinutes;
-    });
+  get itemsGroupedByTime(): TimeGroupUI[] {
+    const sorted = this.schedule.items.slice().sort((a, b) =>
+      a.time.localeCompare(b.time) // works for HH:mm format
+    );
+
+    const toMinutes = (t: string) => {
+      const [hours, minutes] = t.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+
+    const groups: {
+      time: string;
+      items: DayScheduleItemUI[];
+      offset: { hours: number; minutes: number } | null;
+    }[] = [];
+
+    let prevTimeMinutes: number | null = null;
+
+    for (const item of sorted) {
+      const currentMinutes = toMinutes(item.time);
+      let group = groups[groups.length - 1];
+
+      if (!group || group.time !== item.time) {
+        const diff = prevTimeMinutes == null ? null : currentMinutes - prevTimeMinutes;
+
+        group = {
+          time: item.time,
+          items: [],
+          offset: diff === null
+            ? null
+            : {
+              hours: Math.floor(diff / 60),
+              minutes: diff % 60,
+            },
+        };
+
+        groups.push(group);
+        prevTimeMinutes = currentMinutes;
+      }
+
+      group.items.push(item);
+    }
+
+    return groups;
   }
 
-  get payload(): [any, any] {
-    return [this.schedule, this.id]
+  payload = () => {
+    return this.schedule
   }
 
 }
@@ -113,18 +189,21 @@ function createUIDaySchedule(): DayScheduleUI {
     date: "",
     id: -1,
     items: [],
+    questionnaire: null
   };
 }
 
-function createUIDayScheduleItem(data: Partial<{ food: CommonData, dish: CommonData }>): DayScheduleItemUI {
-  const { dish = null, food = null } = data
+// function createUIDayScheduleItem(data: Partial<{ food: CommonData, dish: CommonData }>): DayScheduleItemUI {
+function createUIDayScheduleItem(data: Partial<DayScheduleItemUI>): DayScheduleItemUI {
+  const { dish = null, food = null, time = '08:00', quantity = 100 } = data
   return {
-    customFoodName: "",
+    customFoodName: "название кастомное",
+    status: 'added',
     dish,
+    food,
     id: uuidv4(),
-    quantity: 100,
-    time: '08:00',
-    food
+    quantity,
+    time
   };
 }
 

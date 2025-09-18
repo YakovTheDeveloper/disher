@@ -20,7 +20,7 @@ datasource db {
 
 model Schedule {
   id            Int            @id @default(autoincrement())
-  date          DateTime
+  date          DateTime       @unique
   items         ScheduleItem[]
   userId        Int
   user          User           @relation(fields: [userId], references: [id])

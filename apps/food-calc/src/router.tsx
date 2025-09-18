@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter } from 'react-router-dom';
 import DailyNorms from '@/components/blocks/DailyNorms/DailyNorms.tsx';
 import DaysCalendar from '@/components/blocks/DaysCalendar/DaysCalendar.tsx';
 import Root from '@/Root.tsx';

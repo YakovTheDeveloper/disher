@@ -20,6 +20,8 @@ function ModalRoot<ModalVariants extends string | number>({
             id={id as ModalVariants}
             currentId={modals.current}
             onClose={modals.close}
+            className={styles.offset}
+            backdropClassname={styles.offset}
           >
             {Component as React.ReactNode}
           </Modal>

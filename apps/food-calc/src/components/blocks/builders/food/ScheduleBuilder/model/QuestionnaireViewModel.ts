@@ -1,19 +1,18 @@
 import { updateSchedule } from "@/api/schedule/schedule.api";
-import { ScheduleEntity, ScheduleQuestionnaire } from "@/store/scheduleStore/types";
+import { DayScheduleUI } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
+import { ScheduleQuestionnaire } from "@/store/scheduleStore/types";
 import { makeAutoObservable } from "mobx";
 
 export class QuestionnaireViewModel {
-    private getSchedule: () => ScheduleEntity;
+    private getSchedule: () => DayScheduleUI;
 
     content: ScheduleQuestionnaire;
 
-    constructor(getSchedule: () => ScheduleEntity) {
+    constructor(getSchedule: () => DayScheduleUI) {
         this.getSchedule = getSchedule;
 
         const init = getSchedule().questionnaire;
-        const content = init
-            ? (JSON.parse(init) as ScheduleQuestionnaire)
-            : createQuestionnaire();
+        const content = init || createQuestionnaire()
 
         console.log("content", content);
         this.content = content;

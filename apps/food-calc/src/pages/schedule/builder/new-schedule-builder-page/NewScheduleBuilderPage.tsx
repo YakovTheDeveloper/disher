@@ -1,6 +1,7 @@
 import { addSchedule } from '@/api/schedule/schedule.api';
 import { ScheduleBuilder } from '@/components/blocks/builders/food/ScheduleBuilder';
 import { createLocalSchedule } from '@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel';
+import { ScheduleViewModelFactory } from '@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleCacheStore';
 import { Menu } from '@/components/common/Menu';
 import { Button } from '@/components/ui/Button';
 import { scheduleCache, scheduleStore } from '@/store/rootStore';
@@ -22,17 +23,9 @@ const NewScheduleBuilderPage = () => {
     return null;
   }
 
-  const getSchedule = () => {
-    const cached = scheduleCache.viewmodels.get(initDate);
-    if (cached) {
-      return cached;
-    }
-    return scheduleCache.createAndSet(initDate);
-  };
-
-  const schedule = getSchedule();
-
-  const init = createLocalSchedule(initDate || '');
+  const init =
+    scheduleCache.get(initDate) ||
+    scheduleCache.set(ScheduleViewModelFactory.createFromScratch(initDate));
 
   const onSave = async (data, id) => {
     console.log('onsave', data, id);
@@ -45,12 +38,7 @@ const NewScheduleBuilderPage = () => {
 
   return (
     <>
-      <ScheduleBuilder
-        key={initDate}
-        schedule={schedule}
-        finishButtonTitle="Создать"
-        onSave={onSave}
-      >
+      <ScheduleBuilder key={initDate} schedule={init} finishButtonTitle="Создать" onSave={onSave}>
         <Button.Menu menu={menuUi} onClick={menuUi.open} />
       </ScheduleBuilder>
       <Menu store={menuUi} />

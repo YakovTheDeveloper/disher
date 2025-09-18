@@ -1,6 +1,11 @@
 .page {
     height: 100%;
+    overflow-y: auto;
     flex-shrink: 0;
     width: 100%;
-    overflow: auto;
+    position: relative;
+}
+
+.offset {
+    height: 85px;
 }

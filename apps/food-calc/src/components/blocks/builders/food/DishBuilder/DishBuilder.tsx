@@ -1,17 +1,23 @@
 import { useMemo } from 'react';
 import { DishBuilderViewModel } from './model/DishBuilderViewModel';
-import { Suggestion } from '../shared/ModalStoreUI';
+
 import { observer } from 'mobx-react-lite';
 import style from './DishBuilder.module.scss';
 import { ModalStoreUI } from '@/components/blocks/builders/food/shared/ModalStoreUI';
 import { ContentEdit } from '@/components/blocks/builders/food/shared/ContentEdit';
 import { DishEntity } from '@/store/models/dish/types';
-import { ListItem } from '@/components/blocks/builders/food/shared/ui/ListItem';
+import { CommonListItem } from '@/components/blocks/builders/food/shared/ui/CommonListItem';
 import { Button } from '@/components/blocks/builders/food/shared/ui/Actions/button';
 import { Heading } from '@/components/blocks/builders/food/DishBuilder/ui/Heading';
 import { BuilderUIStore } from '@/components/blocks/builders/food/shared/BuilderUIStore';
 import { FoodName } from '@/components/blocks/builders/food/shared/ui/FoodName';
 import { Actions } from '@/components/blocks/builders/food/shared/ui/Actions';
+
+export enum Modals {
+  Food = 'food',
+  Quantity = 'quantity',
+  Nutrients = 'Nutrients',
+}
 
 type Props = {
   init: DishEntity;
@@ -21,12 +27,12 @@ type Props = {
 
 const DishBuilder = ({ init, onSave, finishButtonTitle }: Props) => {
   const dishes = useMemo(() => new DishBuilderViewModel(init), []);
-  const modals = useMemo(() => new ModalStoreUI(), []);
+  const modals = useMemo(() => new ModalStoreUI<Modals>(), []);
   const options = useMemo(() => new BuilderUIStore(), []);
 
   const onFoodsOpen = () => {
     dishes.children.setCurrentId(-1);
-    modals.set(Suggestion.Food);
+    modals.set(Modals.Food);
   };
 
   const onFoodSelect = (food: { id: number; name: string } | null) => {
@@ -41,12 +47,12 @@ const DishBuilder = ({ init, onSave, finishButtonTitle }: Props) => {
 
   const onTitle = (id: string | number) => {
     dishes.children.setCurrentId(id);
-    modals.set(Suggestion.Food);
+    modals.set(Modals.Food);
   };
 
   const onQuantity = (id: string | number) => {
     dishes.children.setCurrentId(id);
-    modals.set(Suggestion.Quantity);
+    modals.set(Modals.Quantity);
   };
 
   const onFinish = async () => {
@@ -63,7 +69,7 @@ const DishBuilder = ({ init, onSave, finishButtonTitle }: Props) => {
       <ul className={style.list}>
         {dishes.schedule.items.map(({ id, food, quantity }) => {
           return (
-            <ListItem key={id} options={options}>
+            <CommonListItem key={id} options={options}>
               <FoodName
                 className={style.foodName}
                 onClick={() => onTitle(id)}
@@ -72,18 +78,18 @@ const DishBuilder = ({ init, onSave, finishButtonTitle }: Props) => {
                 {food.name}
               </FoodName>
               <p onClick={() => onQuantity(id)}>{quantity}</p>
-            </ListItem>
+            </CommonListItem>
           );
         })}
       </ul>
-      {modals.current === Suggestion.Food && (
+      {modals.current === Modals.Food && (
         <ContentEdit.Food
           vm={dishes.children}
           onFinish={modals.close}
           onFoodSelect={onFoodSelect}
         />
       )}
-      {modals.current === Suggestion.Quantity && (
+      {modals.current === Modals.Quantity && (
         <ContentEdit.Quantity vm={dishes.children} onFinish={modals.close} />
       )}
 

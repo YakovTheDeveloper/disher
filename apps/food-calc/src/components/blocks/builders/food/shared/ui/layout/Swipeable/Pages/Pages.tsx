@@ -12,6 +12,7 @@ const Pages = ({ children }: Props) => {
       {children.map((child, i) => (
         <div key={i} className={styles.page} style={{ flex: `0 0 ${100 / children.length}%` }}>
           {child}
+          <div className={styles.offset}></div>
         </div>
       ))}
     </>

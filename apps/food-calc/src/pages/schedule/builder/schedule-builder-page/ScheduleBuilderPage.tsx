@@ -1,41 +1,83 @@
-import { updateSchedule } from '@/api/schedule/schedule.api';
 import { ScheduleBuilder } from '@/components/blocks/builders/food/ScheduleBuilder';
-import { createLocalSchedule } from '@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel';
+import { DayScheduleUI } from '@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel';
+import { Navigation } from '@/components/blocks/builders/food/ScheduleBuilder/ui/Navigation';
 import { Menu } from '@/components/common/Menu';
 import { Button } from '@/components/ui/Button';
-import { scheduleStore, uiStore } from '@/store/rootStore';
+import { RouterLinks } from '@/router';
+import { scheduleStore } from '@/store/rootStore';
 import { MenuUiStore } from '@/store/uiStore/menu/menuUiStore';
-import { toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import styles from './ScheduleBuilderPage.module.scss';
+import { InitLoadingStore } from '@/components/blocks/builders/food/ScheduleBuilder/model/InitLoadingStore';
+import { WithOverlay } from '@/components/ui/Overlay';
 
-const ScheduleBuilderPage = () => {
+const Page = observer(({ date }: { date: string }) => {
   const menuUi = useMemo(() => new MenuUiStore(), []);
-  const [searchParams] = useSearchParams();
-  const date = searchParams.get('date');
+  const store = useMemo(() => new InitLoadingStore(), []);
 
-  if (!date) return null;
+  // trace(true);
 
-  const initSchedule = scheduleStore.dateToSchedule.get(date);
+  useEffect(() => {
+    store.onInit(date);
+  }, [date]);
 
-  if (!initSchedule) return null;
+  const onFinish = useCallback(async (payload: DayScheduleUI) => {
+    if (payload.id === -1) {
+      const { data = null } = await scheduleStore.create(payload);
+      if (data) store.set(data);
+      return;
+    }
+    const { data = null } = await scheduleStore.update(payload);
+    if (data) store.set(data);
+    return;
+  }, []);
 
-  const onSave = async (data, id) => {
-    const result = await updateSchedule(data, id);
-    if (!result) return;
-    const { date } = result;
-    scheduleStore.set(date, result);
-  };
+  const isLoading = useCallback(
+    () => scheduleStore.requestState.getOneByDate.get(date)?.loading ?? false,
+    [scheduleStore, date]
+  );
+
+  const getLoadingState = useCallback(
+    () => scheduleStore.requestState.createOrUpdate.get(date)?.loading ?? false,
+    [scheduleStore, date]
+  );
+
+  console.log('store.initData', store.initData);
+  console.log('schedule builder page render');
 
   return (
-    <>
-      <ScheduleBuilder init={initSchedule} finishButtonTitle="Обновить" onSave={onSave}>
+    <div className={styles.container}>
+      <Navigation>
         <Button.Menu menu={menuUi} onClick={menuUi.open} />
-      </ScheduleBuilder>
+      </Navigation>
+      <WithOverlay isLoading={isLoading}>
+        {store.initData && (
+          <ScheduleBuilder
+            key={date}
+            schedule={store.initData}
+            onFinish={onFinish}
+            getLoadingState={getLoadingState}
+          />
+        )}
+      </WithOverlay>
       <Menu store={menuUi} />
-    </>
+    </div>
   );
+});
+
+const GetDatePageWrapper = () => {
+  const [searchParams] = useSearchParams();
+  const date = searchParams.get('date');
+  const navigate = useNavigate();
+
+  if (!date) {
+    navigate(RouterLinks.Schedule);
+    return null;
+  }
+
+  return <Page date={date} />;
 };
 
-export default observer(ScheduleBuilderPage);
+export default GetDatePageWrapper;

@@ -1,21 +1,31 @@
 import { observer } from 'mobx-react-lite';
 import styles from './FoodName.module.scss';
 import clsx from 'clsx';
+import { useCallback, useMemo } from 'react';
 type Props = {
-  children: string;
-  onClick: () => void;
-  onClickHintModeOn: () => void;
+  children: () => string | null;
+  onClick: (id: string | number) => void;
+  onClickHintModeOn: (id: string | number) => void;
   hintMode: boolean;
-  className: string;
+  className?: string;
+  id?: number | string;
 };
 
-const FoodName = ({ className, children, onClick, onClickHintModeOn, hintMode }: Props) => {
+const FoodName = ({ className, children, onClick, onClickHintModeOn, hintMode, id }: Props) => {
+  const handleClick = () => {
+    if (!id) return;
+    if (hintMode) {
+      onClickHintModeOn(id);
+      return;
+    }
+    onClick(id);
+  };
   return (
     <p
       className={clsx([styles.container, className, hintMode && styles.active])}
-      onClick={hintMode ? onClickHintModeOn : onClick}
+      onClick={handleClick}
     >
-      {children}
+      {children()}
     </p>
   );
 };

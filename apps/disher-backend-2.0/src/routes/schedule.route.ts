@@ -6,6 +6,7 @@ import { t } from "../trpc"
 import { ScheduleCreateInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateManyFoodInputSchema, ScheduleItemCreateManyScheduleInputSchema, ScheduleItemCreateNestedManyWithoutScheduleInputSchema, ScheduleItemCreateWithoutScheduleInputSchema, ScheduleItemUncheckedUpdateWithoutScheduleInputSchema, ScheduleItemUpdateWithoutScheduleInputSchema, ScheduleUpdateInputSchema, ScheduleUpdateWithoutUserInputSchema, ScheduleWhereUniqueInputSchema } from "../../prisma/generated/zod"
 import { createResponseObject } from "../lib/response"
 import { DailySurveySchema } from "./schedule.route/validation"
+import { Prisma } from "@prisma/client"
 
 const scheduleItemSelect = {
     dish: {
@@ -69,44 +70,77 @@ export const scheduleRoutes = {
         return createResponseObject(200, 'good', result)
     }),
     getOneSchedule: t.procedure.input(
-        z.object({
-            id: z.number()
-        })
+        z.union([
+            z.object({ id: z.number(), date: z.string().datetime().optional() }),
+            z.object({ id: z.number().optional(), date: z.string().datetime() }),
+        ])
     ).query(async ({ input }) => {
         const whereCondition = {
-            id: input.id
+            id: input.id,
+            ...(input.date ? { date: input.date } : {})
         }
 
-        const result = await prisma.schedule.findFirst({
-            select: {
-                id: true,
-                questionnaire: true,
-                date: true,
-                items: {
-                    select: scheduleItemSelect
+        try {
+            const result = await prisma.schedule.findFirst({
+                select: {
+                    id: true,
+                    questionnaire: true,
+                    date: true,
+                    items: {
+                        select: scheduleItemSelect
+                    },
                 },
-            },
-            where: whereCondition
-        });
+                where: whereCondition
+            });
 
-        return createResponseObject(200, 'good', result)
+            if (!result) {
+                return createResponseObject(404, "Schedule not found", null);
+            }
+
+            return createResponseObject(200, "OK", result);
+
+        } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                return createResponseObject(400, "Database error", null);
+            }
+            return createResponseObject(500, "Unexpected error", null);
+        }
     }),
     addSchedule: t.procedure
         .input(
             ScheduleCreateWithoutUserInputSchema
         )
         .mutation(async ({ input }) => {
-            const result = await prisma.schedule.create({
-                data: {
-                    ...input,
-                    userId: 1
-                }, select: {
-                    id: true, items: {
-                        select: scheduleItemSelect
-                    }, date: true
+
+
+            try {
+                const result = await prisma.schedule.create({
+                    data: {
+                        ...input,
+                        userId: 1
+                    }, select: {
+                        id: true,
+                        items: {
+                            select: scheduleItemSelect
+                        },
+                        date: true,
+                        questionnaire: true,
+                    }
+                });
+
+                if (!result) {
+                    return createResponseObject(404, "hz", null);
                 }
-            });
-            return createResponseObject(200, 'good', result)
+
+                return createResponseObject(200, "OK", result);
+
+            } catch (error) {
+                if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                    return createResponseObject(400, "Database error", null);
+                }
+                return createResponseObject(500, "Unexpected error", null);
+            }
+
         }),
     updateSchedule: t.procedure
         .input(
@@ -150,21 +184,36 @@ export const scheduleRoutes = {
                 };
             }
 
-            const result = await prisma.schedule.update({
-                where: { id },
-                select: {
-                    date: true,
-                    id: true,
-                    items: {
-                        select: scheduleItemSelect
-                    },
-                },
-                data: {
-                    ...restUpdate,
-                    ...itemsUpdate
-                }
-            });
 
-            return createResponseObject(200, 'good', result);
+            try {
+                const result = await prisma.schedule.update({
+                    where: { id },
+                    select: {
+                        date: true,
+                        id: true,
+                        questionnaire: true,
+                        items: {
+                            select: scheduleItemSelect
+                        },
+                    },
+                    data: {
+                        ...restUpdate,
+                        ...itemsUpdate
+                    }
+                });
+
+                if (!result) {
+                    return createResponseObject(404, "hz", null);
+                }
+
+                return createResponseObject(200, "OK", result);
+
+            } catch (error) {
+                if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                    return createResponseObject(400, "Database error", null);
+                }
+                return createResponseObject(500, "Unexpected error", null);
+            }
+
         })
 } 

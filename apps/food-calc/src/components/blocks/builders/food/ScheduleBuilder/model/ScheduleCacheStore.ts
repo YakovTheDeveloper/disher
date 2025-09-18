@@ -1,4 +1,6 @@
-import { createLocalSchedule, ScheduleBuilderViewModel } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
+import { createLocalSchedule, DayScheduleUI, ScheduleBuilderViewModel } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
+import { ScheduleEntity } from "@/store/scheduleStore/types";
+import { DaySchedule } from "@/types/schedule";
 import { makeAutoObservable } from "mobx";
 
 type ISODate = string
@@ -12,17 +14,16 @@ export class ScheduleCacheStore {
 
     set = (vm: ScheduleBuilderViewModel) => {
         this.viewmodels.set(vm.date, vm)
+        return vm
     }
 
     remove = (vm: ScheduleBuilderViewModel) => {
         this.viewmodels.delete(vm.date)
     }
 
-    createAndSet = (date: string) => {
-        const seed = createLocalSchedule(date || '');
-        const init = new ScheduleBuilderViewModel(seed)
-        this.set(init)
-        return init
+    get = (date: string) => {
+        const cached = this.viewmodels.get(date)
+        if (cached) return cached
     }
 
     // getCachedOrNew = () => {
@@ -32,4 +33,18 @@ export class ScheduleCacheStore {
     //     }
     //     schedulesCache.viewmodels.get(initDate)
     // }
+}
+
+export class ScheduleViewModelFactory {
+    static createFromScratch = (date: string) => {
+        return new ScheduleBuilderViewModel({
+            date,
+            id: -1,
+            items: [],
+            questionnaire: null
+        })
+    }
+    static createFromModel = (data: ScheduleEntity) => {
+        return new ScheduleBuilderViewModel(data)
+    }
 }
