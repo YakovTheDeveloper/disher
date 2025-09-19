@@ -1,14 +1,18 @@
 import { observer } from 'mobx-react-lite';
-import styles from './AdditionalOptionsButton.module.scss';
+import commonStyles from '../styles.module.scss';
 type Props = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   onClick: VoidFunction;
+  options: {
+    showAdditionals: boolean;
+  };
 };
 
-const AdditionalOptionsButton = ({ children, onClick }: Props) => {
+const AdditionalOptionsButton = ({ options, onClick }: Props) => {
+  const textView = options.showAdditionals ? 'больше' : 'меньше';
   return (
-    <button className={styles.container} onClick={onClick}>
-      {children}
+    <button className={commonStyles.actionButton} onClick={onClick}>
+      {textView}
     </button>
   );
 };

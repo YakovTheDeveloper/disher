@@ -2,9 +2,12 @@ import { observer } from 'mobx-react-lite';
 import styles from './Navigation.module.scss';
 import { NavLink, useNavigate, useSearchParams } from 'react-router';
 import { RouterLinks } from '@/router';
-// import { CalendarIcon } from '@icons';
 import CalendarIcon from '@/assets/icons/calendar.svg';
 import { useScheduleNavigation } from './context';
+import ArrowLeftIcon from '@/assets/icons/arrowLeft.svg';
+import ArrowRightIcon from '@/assets/icons/arrowRight.svg';
+
+import { motion, AnimatePresence } from 'framer-motion';
 
 type Props = {
   children: React.ReactNode;
@@ -26,7 +29,7 @@ const getTitle = (input: string) => {
   const date = new Date(input);
 
   const day = date.getUTCDate();
-  const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'short', timeZone: 'UTC' }).format(
+  const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'long', timeZone: 'UTC' }).format(
     date
   );
   const monthNumber = new Intl.DateTimeFormat('ru-RU', {
@@ -35,7 +38,7 @@ const getTitle = (input: string) => {
   }).format(date);
 
   const weekdayName = new Intl.DateTimeFormat('ru-RU', {
-    weekday: 'short',
+    weekday: 'long',
     timeZone: 'UTC',
   }).format(date);
 
@@ -65,20 +68,41 @@ const Navigation = ({ children }: Props) => {
   const { day, monthName, monthNumber, weekdayName } = getTitle(date);
 
   return (
-    <header className={styles.header}>
-      {children}
-      <div className={styles.container}>
-        <button onClick={back}>{'<-'}</button>
-        <NavLink className={styles.title} to={RouterLinks.Schedule}>
-          <CalendarIcon color="lightblue" width="20px" height="20px" />
-          <div className={styles.date}>
-            {day}.{monthNumber}
-          </div>
-          <span>{weekdayName}</span>
-        </NavLink>
-        <button onClick={next}>{'->'}</button>
-      </div>
-    </header>
+    <motion.header
+      className={styles.container}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <button className={styles.navButton} onClick={back}>
+        <ArrowLeftIcon />
+      </button>
+
+      <NavLink className={styles.title} to={RouterLinks.Schedule}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={date}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className={styles.date}
+          >
+            <div className={styles.dateNumbers}>
+              {day}.{monthNumber}
+            </div>
+            <div className={styles.dateWords}>
+              <span>{weekdayName} </span>
+              <span>{monthName}</span>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </NavLink>
+
+      <button className={styles.navButton} onClick={next}>
+        <ArrowRightIcon />
+      </button>
+    </motion.header>
   );
 };
 

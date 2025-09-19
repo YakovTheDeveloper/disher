@@ -1,0 +1,29 @@
+.actionButton {
+    min-width: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    /* space between icon + text */
+
+    font-size: 1.5rem;
+    font-weight: 300;
+    padding: 12px 24px;
+    border-radius: 999px;
+    /* pill shape */
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.1);
+    user-select: none;
+
+    background: linear-gradient(135deg, rgb(158, 169, 255), rgb(119, 135, 255));
+    color: white;
+    border: none;
+
+    &:disabled {
+        opacity: 0.2;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+}

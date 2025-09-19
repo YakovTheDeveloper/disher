@@ -8,6 +8,9 @@ import {
   nutrientNames,
 } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/constants';
 import { Overlay } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/Overlay';
+import { useCallback, useEffect, useMemo } from 'react';
+import { NutrientCard } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/NutrientCard';
+import { NutrientViewModelStore } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/model/NutrientsViewModel';
 
 // Groups of nutrients
 const groups: Record<string, number[]> = {
@@ -15,18 +18,6 @@ const groups: Record<string, number[]> = {
   Минералы: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
   Витамины: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
   Каротиноиды: [34, 35],
-};
-
-const getRoundedPercent = (percentage: number, quantity, norm) => {
-  if (!quantity || !norm) return '';
-
-  if (percentage < 1) {
-    return percentage.toFixed(2);
-  } else if (percentage < 10) {
-    return percentage.toFixed(1);
-  } else {
-    return Math.round(percentage).toString();
-  }
 };
 
 type Props = {
@@ -39,62 +30,29 @@ type Props = {
 const Nutrients = ({ getCurrentFood, getFood, currentFood, renderOverlay }: Props) => {
   const foodModel = getFood();
 
-  const totals = () => {
-    const acc: Record<number, number> = {};
-    currentFood.forEach(({ id, quantity: foodQuantity }) => {
-      const foodNutrients = foodModel.data.get(id.toString())?.nutrients || [];
-      foodNutrients.forEach(({ nutrientId, quantity: nutrientQuantity }) => {
-        acc[nutrientId] = (acc[nutrientId] || 0) + (nutrientQuantity * foodQuantity) / 100;
-      });
-    });
-    return acc;
-  };
+  const store = useMemo(() => new NutrientViewModelStore(foodModel), []);
 
-  const sums = totals();
+  const getSum = useCallback(store.getValue, []);
+
+  useEffect(() => {
+    store.currentFood = currentFood;
+  }, [currentFood, store]);
 
   return (
     <div className={styles.container}>
       {nutrientGroups.map(({ content, displayName: groupName }) => (
         <div key={groupName} className={styles.group}>
+          {console.log('NUTRIENT_GROUP')}
           <h3 className={styles.groupTitle}>{groupName}</h3>
           <div className={styles.groupContent}>
-            {content.map(({ id, unitRu, displayNameRu }) => {
-              // if (!sums[id]) return null;
-
-              const name = displayNameRu;
-              const norm = defaultDailyNorms[id];
-              const value = sums[id];
-              const percent = Math.min(100, (value / norm) * 100);
-
-              const unit = unitRu;
-              const percentNormalized = getRoundedPercent(percent, value, norm);
-
-              const progressBarPercent = value ? percent : 0;
-
-              return (
-                <motion.div
-                  key={id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className={styles.card}
-                >
-                  <div className={styles.header}>
-                    <span className={styles.name}>{name}</span>
-                    <span className={styles.value}>
-                      {unit} {value?.toFixed(1)} / {norm}
-                    </span>
-                    <span className={styles.percent}>
-                      {console.log('wtf')}
-                      {renderOverlay ? renderOverlay(percentNormalized) : percentNormalized}
-                    </span>
-                  </div>
-                  <div className={styles.progressWrapper}>
-                    <div className={styles.progress} style={{ width: `${progressBarPercent}%` }} />
-                  </div>
-                </motion.div>
-              );
-            })}
+            {content.map((nutrientData) => (
+              <NutrientCard
+                key={nutrientData.id}
+                renderOverlay={renderOverlay}
+                getValue={getSum}
+                content={nutrientData}
+              />
+            ))}
           </div>
         </div>
       ))}

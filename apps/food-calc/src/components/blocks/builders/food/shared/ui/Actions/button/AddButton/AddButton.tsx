@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './AddButton.module.scss';
+
 type Props = {
   onClick: VoidFunction;
   children?: string;

@@ -20,4 +20,17 @@ export class BuilderUIStore {
     setCurrentPage = (value: number) => {
         this.currentPage = value
     }
+
+    foodSelectMessage: string[] = []
+
+    getFoodSelectMessage = () => {
+        return this.foodSelectMessage.pop() || null
+    }
+
+    pushFoodSelectMessage = (message: string) => {
+        this.foodSelectMessage.push(message)
+    }
+
+    clearFoodSelectMessage = () => this.foodSelectMessage = []
+
 }

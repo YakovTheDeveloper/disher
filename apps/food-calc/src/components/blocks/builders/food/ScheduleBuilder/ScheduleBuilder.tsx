@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   DayScheduleUI,
   ScheduleBuilderViewModel,
@@ -118,13 +118,21 @@ const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
 
   console.log('SChedule buILder REnder');
 
+  const shouldActionShow = useCallback(() => !modals.current && options.currentPage === 1, []);
+
+  useEffect(() => {
+    const noItems = schedule.schedule.items.length === 0;
+    if (noItems) {
+      options.pushFoodSelectMessage('Начнем заполнять наш день');
+      onFoodsOpenCreate();
+    }
+    return () => {
+      options.clearFoodSelectMessage();
+    };
+  }, [schedule]);
+
   return (
-    <motion.div
-      className={style.container}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className={style.container}>
       <Swipeable model={options}>
         <TotalNutrients vm={schedule} />
 
@@ -139,21 +147,21 @@ const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
         <ContentEdit.Questionnaire vm={schedule.questionnaire} />
       </Swipeable>
 
-      <Modal isOpen={() => modals.current === Modals.Food} onClose={modals.close}>
-        <ContentEdit.Food
-          content={searchFiltering}
-          before={<SearchFilterTabs model={searchFiltering} />}
-        >
-          <ContentEdit.SearchList
-            content={searchFiltering}
-            onFoodSelect={onFoodSelect}
-            vm={schedule}
-          />
-        </ContentEdit.Food>
-      </Modal>
-
       <ModalRoot modals={modals}>
         {{
+          [Modals.Food]: (
+            <ContentEdit.Food
+              options={options}
+              content={searchFiltering}
+              before={<SearchFilterTabs model={searchFiltering} />}
+            >
+              <ContentEdit.SearchList
+                content={searchFiltering}
+                onFoodSelect={onFoodSelect}
+                vm={schedule}
+              />
+            </ContentEdit.Food>
+          ),
           [Modals.Time]: <ContentEdit.Time vm={schedule.children} onFinish={modals.close} />,
           [Modals.Quantity]: (
             <ContentEdit.Quantity vm={schedule.children} onFinish={modals.close} />
@@ -174,14 +182,12 @@ const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
         )}
       </Modal>
 
-      <Actions isShow={() => !modals.current && options.currentPage !== 0}>
+      <Actions isShow={shouldActionShow}>
         <ActionButton.Finish onFinish={onFinish} content={schedule} />
         <ActionButton.Add onClick={onFoodsOpenCreate} />
-        <ActionButton.AdditionalOptions onClick={onMoreOptions}>
-          больше
-        </ActionButton.AdditionalOptions>
+        <ActionButton.AdditionalOptions onClick={onMoreOptions} options={options} />
       </Actions>
-    </motion.div>
+    </div>
   );
 };
 

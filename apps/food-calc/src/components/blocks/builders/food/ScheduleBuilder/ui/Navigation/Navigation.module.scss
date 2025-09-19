@@ -1,27 +1,44 @@
 .container {
-
-
-    display: grid;
+    display: flex;
     align-items: center;
-    grid-template-columns: 1fr 250px 1fr;
-    gap: 20px;
+    justify-content: space-between;
+    flex-grow: 1;
+    gap: 60px;
+    height: 100%;
+    width: 100%;
+}
+
+.navButton {
+    height: 60px;
+    width: 60px;
 }
 
 .title {
-    font-weight: 300;
-    font-size: 30px;
-    line-height: 27px;
-
     display: flex;
-    align-items: end;
-    gap: 20px;
-    color: lightblue;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
-.date {}
-
-.header {
+.date {
     display: flex;
-    justify-content: space-between;
-    padding: 10px 0 30px;
+    flex-direction: column;
+    align-items: center;
+    font-size: 3.5rem;
+    line-height: 3.5rem;
+}
+
+.dateNumbers {
+    font-size: 1em;
+    font-weight: 300;
+    color: black;
+}
+
+.dateWords {
+    display: flex;
+    font-size: 0.5em;
+    color: rgb(255, 200, 200);
+    display: flex;
+    font-weight: 300;
+    gap: 10px;
 }

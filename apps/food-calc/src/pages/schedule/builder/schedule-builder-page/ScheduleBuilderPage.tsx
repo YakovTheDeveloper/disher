@@ -11,7 +11,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import styles from './ScheduleBuilderPage.module.scss';
 import { InitLoadingStore } from '@/components/blocks/builders/food/ScheduleBuilder/model/InitLoadingStore';
-import { WithOverlay } from '@/components/ui/Overlay';
+import { Overlay, WithOverlay } from '@/components/ui/Overlay';
 
 const Page = observer(({ date }: { date: string }) => {
   const menuUi = useMemo(() => new MenuUiStore(), []);
@@ -49,10 +49,20 @@ const Page = observer(({ date }: { date: string }) => {
 
   return (
     <div className={styles.container}>
+      <Menu store={menuUi} />
       <Navigation>
         <Button.Menu menu={menuUi} onClick={menuUi.open} />
       </Navigation>
-      <WithOverlay isLoading={isLoading}>
+      <Overlay isLoading={isLoading} className={styles.overlay} />
+      {store.initData && (
+        <ScheduleBuilder
+          key={date}
+          schedule={store.initData}
+          onFinish={onFinish}
+          getLoadingState={getLoadingState}
+        />
+      )}
+      {/* <WithOverlay isLoading={isLoading}>
         {store.initData && (
           <ScheduleBuilder
             key={date}
@@ -61,8 +71,7 @@ const Page = observer(({ date }: { date: string }) => {
             getLoadingState={getLoadingState}
           />
         )}
-      </WithOverlay>
-      <Menu store={menuUi} />
+      </WithOverlay> */}
     </div>
   );
 });

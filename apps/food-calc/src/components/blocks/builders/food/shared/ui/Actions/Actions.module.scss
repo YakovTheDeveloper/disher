@@ -1,13 +1,19 @@
-.actions {
-    position: fixed;
-    bottom: 120px;
+.container {
+    position: absolute;
+    // bottom: 80px;
+    bottom: 0;
     left: 0;
-    transform: translateX(-50%);
+    // transform: translateX(-100%);
     z-index: 101;
-    width: 100%;
-    padding: 0 20px;
-    height: 0;
+    width: calc(100dvw - 20px);
 
+    // padding: 0 20px;
+    // height: 0;
+
+
+}
+
+.content {
     display: flex;
     justify-content: space-between;
     align-items: center;

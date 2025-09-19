@@ -4,5 +4,12 @@
     position: relative;
 
     display: grid;
-    grid-template-rows: auto 95%;
+    grid-template-rows: var(--builder-header-height) var(--builder-body-height);
+    grid-template-columns: 1fr;
+    justify-content: space-between;
+}
+
+.overlay {
+    top: var(--builder-header-height);
+    height: var(--builder-body-height);
 }

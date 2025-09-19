@@ -91,18 +91,19 @@ const TotalNutrients = ({ vm }: Props) => {
     };
   }, []);
 
+  const renderOverlay = useCallback(
+    (value: string) => (
+      <Overlay loading={foodStore.requestState} currentId={currentScheduleFoodIds}>
+        {value}
+      </Overlay>
+    ),
+    [foodStore.requestState, currentScheduleFoodIds]
+  );
+
   const getFoodModel = useCallback(() => foodStore, []);
   return (
     <div className={styles.container} ref={containerRef}>
-      <Nutrients
-        currentFood={products}
-        getFood={getFoodModel}
-        renderOverlay={(value: string) => (
-          <Overlay loading={foodStore.requestState} currentId={currentScheduleFoodIds}>
-            {value}
-          </Overlay>
-        )}
-      />
+      <Nutrients currentFood={products} getFood={getFoodModel} renderOverlay={renderOverlay} />
     </div>
   );
 };

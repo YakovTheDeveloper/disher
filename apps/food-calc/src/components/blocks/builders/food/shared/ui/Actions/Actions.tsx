@@ -10,24 +10,24 @@ type Props = {
 };
 
 const Actions = ({ children, isShow }: Props) => {
+  const show = isShow();
+
   return (
-    <AnimatePresence>
-      {isShow() && (
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 50 }}
-          transition={{
-            type: 'spring',
-            stiffness: 300,
-            damping: 30,
-          }}
-          className={styles.actions}
-        >
-          {children}
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div className={styles.container}>
+      <AnimatePresence mode="sync">
+        {show && (
+          <motion.div
+            initial={{ opacity: 0, y: 0 }}
+            animate={{ opacity: 1, y: -100 }}
+            exit={{ opacity: 0, y: 0 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className={styles.content}
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 

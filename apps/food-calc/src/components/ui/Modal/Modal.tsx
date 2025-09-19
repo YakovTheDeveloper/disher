@@ -61,9 +61,6 @@ const Modal = (props: Props) => {
     }
   }, [navigationType, onClose]);
 
-  console.log('className', className);
-  console.log('backdropClassname', backdropClassname);
-
   if (!isOpen) return null;
 
   return (
