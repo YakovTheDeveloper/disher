@@ -3,6 +3,8 @@ import s from './Calendar.module.css';
 import { Typography } from '@/components/ui/Typography/Typography';
 import { ISODate } from '@/types/common/common';
 import { observer } from 'mobx-react-lite';
+import ArrowLeftIcon from '@/assets/icons/arrowLeft.svg';
+import ArrowRightIcon from '@/assets/icons/arrowRight.svg';
 
 // Helper function to get the days of a given month and the surrounding months if needed to fill the calendar grid
 const getDaysInMonth = (date: Date): Date[] => {
@@ -57,7 +59,7 @@ type CalendarProps = {
   onPrevMonth: () => void;
   onNextMonth: () => void;
   dayNames: string[];
-  renderDayCellContent?: (dayDate: Date) => JSX.Element;
+  renderDayCellContent?: (dayDate: Date) => React.ReactNode;
   cellClassName: string;
 };
 
@@ -85,11 +87,15 @@ const Calendar: React.FC<CalendarProps> = ({
   return (
     <div className={s.calendar}>
       <div className={s.header}>
-        <button onClick={onPrevMonth}>&lt;</button>
+        <button onClick={onPrevMonth} className={s.headerButton}>
+          <ArrowLeftIcon />
+        </button>
         <Typography variant="body1">
           {currentMonth.toLocaleDateString('ru-Ru', { year: 'numeric', month: 'long' })}
         </Typography>
-        <button onClick={onNextMonth}>&gt;</button>
+        <button onClick={onNextMonth} className={s.headerButton}>
+          <ArrowRightIcon />
+        </button>
       </div>
       <div className={s.dayNames}>
         {dayNames.map((day) => (
@@ -113,8 +119,7 @@ const Calendar: React.FC<CalendarProps> = ({
                 onClick={() => onDateSelect(day)}
                 key={day.toISOString()}
               >
-                {day.getUTCDate()}
-                {renderDayCellContent?.(day)}
+                {renderDayCellContent ? renderDayCellContent?.(day) : day.getUTCDate()}
               </div>
             ))}
           </div>

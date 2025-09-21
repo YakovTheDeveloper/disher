@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { NutrientData } from '@/types/nutrient/nutrient';
 import { defaultDailyNorms } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/constants';
 type Props = {
-  children: React.ReactNode;
   content: NutrientData;
   renderOverlay: ((percent: string) => React.ReactNode) | undefined;
   getValue: (id: number) => number;

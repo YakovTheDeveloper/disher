@@ -6,13 +6,15 @@ import { generateHashFromIdCollection } from "@/lib/hash/hash";
 import { FoodEntity } from "@/store/models/food/types";
 import { makeAutoObservable, toJS } from "mobx";
 
+type FoodEntityFull = FoodEntity & {
+    nutrients?: {
+        quantity: number;
+        nutrientId: number;
+    }[]
+}
+
 export class FoodModelStore {
-    data: Map<string, FoodEntity & {
-        nutrients?: {
-            quantity: number;
-            nutrientId: number;
-        }[]
-    }> = new Map();
+    data: Map<string, FoodEntityFull> = new Map();
 
     constructor() {
         makeAutoObservable(this);
@@ -85,6 +87,6 @@ export class FoodModelStore {
         return missing
     }
 
-    set = async (id: number, schedule: FoodEntity) => this.data.set(id.toString(), schedule);
+    set = async (id: number, schedule: FoodEntityFull) => this.data.set(id.toString(), schedule);
     delete = async (id: number) => this.data.delete(id.toString());
 }

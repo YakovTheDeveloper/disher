@@ -89,7 +89,7 @@ const TotalNutrients = ({ vm }: Props) => {
       if (el) observer.unobserve(el);
       observer.disconnect();
     };
-  }, []);
+  }, [vm.schedule.items, prevSignature.current]);
 
   const renderOverlay = useCallback(
     (value: string) => (

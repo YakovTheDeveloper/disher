@@ -1,6 +1,5 @@
 .calendar {
     background-color: white;
-    border: 1px solid #ddd;
     border-radius: 8px;
     box-shadow: var(--box-shadow-s);
     /* z-index: 10; */
@@ -27,6 +26,12 @@
     padding: 4px 8px;
     border-radius: 4px;
     transition: background-color 0.1s ease;
+    width: 40px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .header button:hover {
@@ -68,7 +73,6 @@
 }
 
 .day:not(.selectedDay):hover {
-    border-color: var(--color-green);
     color: var(--color-green-2);
 }
 
@@ -95,6 +99,20 @@
 }
 
 .today {
-    background-color: var(--color-green);
-    color: var(--color-white);
+    /* border-color: var(--color-green); */
+    border-color: color-mix(in srgb, var(--color-green) 60%, white);
+    /* color: var(--color-green); */
+    /* background-color: var(--color-green); */
+
+    position: relative;
+
+    &:before {
+        content: 'Сегодня';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        font-size: 12px;
+        opacity: 0.5;
+        transform: translateX(-50%);
+    }
 }

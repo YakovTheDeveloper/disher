@@ -3,7 +3,16 @@ import styles from './ModalRoot.module.scss';
 import { ModalStoreUI } from '@/components/blocks/builders/food/shared/ModalStoreUI';
 import Modal from '@/components/ui/Modal/Modal';
 type Props<ModalVariants extends string | number> = {
-  children: Partial<Record<ModalVariants, React.ReactNode>>;
+  children: Partial<
+    | Record<ModalVariants, React.ReactNode>
+    | Record<
+        ModalVariants,
+        {
+          component: React.ReactNode;
+          onClose: () => void;
+        }
+      >
+  >;
   modals: ModalStoreUI<ModalVariants>;
 };
 

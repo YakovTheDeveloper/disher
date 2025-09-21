@@ -1,14 +1,21 @@
 import Calendar from '@/components/ui/Calendar/Calendar';
 import style from './ScheduleSelection.module.scss';
 import { dayNames } from '@/constants';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Typography } from '@/components/ui/Typography/Typography';
 import { observer } from 'mobx-react-lite';
 import { useNavigate } from 'react-router';
 import { scheduleStore } from '@/store/rootStore';
+import clsx from 'clsx';
+import { ScheduleStore } from '@/store/scheduleStore/scheduleStore';
+import { ScheduleCalendarContentCell } from '@/components/blocks/schedule/ScheduleSelection/ScheduleCalendarContentCell';
 
-const ScheduleSelection = () => {
+const ScheduleSelection = ({ store = scheduleStore }: { store: ScheduleStore }) => {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+
+  useEffect(() => {
+    store.getAllMonthShortData(currentMonth);
+  }, [currentMonth]);
 
   const navigate = useNavigate();
 
@@ -35,6 +42,16 @@ const ScheduleSelection = () => {
     navigate(`builder?date=${date.toISOString()}`);
   };
 
+  const getContentExist = useCallback(
+    (date: Date) => store.existing.get(date.toISOString()) || false,
+    [store]
+  );
+
+  const renderCellContent = useCallback(
+    (date: Date) => <ScheduleCalendarContentCell date={date} getContentExist={getContentExist} />,
+    [getContentExist]
+  );
+
   return (
     <div className={style.container}>
       <Typography>Расписание</Typography>
@@ -46,9 +63,7 @@ const ScheduleSelection = () => {
         onDateSelect={onDateChoose}
         dayNames={dayNames.ru}
         cellClassName={style.dateCell}
-        renderDayCellContent={(date) => (
-          <span>{scheduleStore.data.get(date.toISOString()) && 'есть'}</span>
-        )}
+        renderDayCellContent={renderCellContent}
       />
     </div>
   );

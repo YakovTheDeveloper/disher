@@ -1,5 +1,6 @@
+import { DayScheduleUI } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
 import { FoodQuantityDTO } from "@/components/blocks/builders/food/shared/dto";
-import { UpdateChildrenStore } from "@/components/blocks/builders/food/shared/UpdateChildrenStore";
+import { CollectionItemEntity, UpdateChildrenStore } from "@/components/blocks/builders/food/shared/UpdateChildrenStore";
 import { deepCopy } from "@/lib/copy/deepCopy";
 import { DishEntity, DishItemEntity } from "@/store/models/dish/types";
 import { ScheduleEntity, ScheduleItemEntity } from "@/store/scheduleStore/types";
@@ -7,55 +8,89 @@ import { throws } from "assert";
 import { makeAutoObservable, runInAction, toJS } from "mobx";
 import { v4 as uuidv4 } from 'uuid';
 
-export type DishUI = DishEntity & {
+export type DishUI = Omit<DishEntity, 'items'> & {
   items: DishItemUI[];
 };
 export type DishItemUI = Omit<DishItemEntity, | "id"> & {
   id: string | number
+  status: CollectionItemEntity['status']
 };
 
+function foodCollectionToUIAdapter(dto: FoodQuantityDTO[]): DishUI {
+  return createDishLocal(dto);
+}
+
+function toUIAdapter(raw: DishEntity): DishUI {
+  const copy = deepCopy(raw);
+  return {
+    ...copy,
+    items: copy.items.map((item) => ({
+      ...item,
+      status: null,
+    })),
+  };
+}
+
 export class DishBuilderViewModel {
-  constructor(raw: DishEntity) {
-    this.schedule = deepCopy(raw)
-    this.children = new UpdateChildrenStore(() => this.schedule)
+  constructor(raw: DishEntity | FoodQuantityDTO[]) {
+    if ('name' in raw) {
+      this.content = toUIAdapter(raw)
+    } else {
+      this.content = foodCollectionToUIAdapter(raw)
+    }
+    this.children = new UpdateChildrenStore(() => this.content)
     makeAutoObservable(this);
   }
 
-  schedule: DishUI;
+  content: DishUI;
 
-  children: UpdateChildrenStore<DishEntity, DishItemEntity>
+  children: UpdateChildrenStore<DishUI, DishItemUI>
 
   get name() {
-    return this.schedule.name
+    return this.content.name
   }
 
   get id() {
-    return this.schedule.id
+    return this.content.id
   }
 
   addChild = (food: { id: number, name: string }) => {
     const item = createDishItemLocal(food)
-    this.schedule.items.push(item);
+    this.content.items.push(item);
     return item.id
   }
 
   removeChild = (childId: string | number) => {
-    const index = this.schedule.items.findIndex(item => item.id === childId);
+    const index = this.content.items.findIndex(item => item.id === childId);
     if (index >= 0) {
-      this.schedule.items.splice(index, 1);
+      this.content.items.splice(index, 1);
     }
   }
 
   updateName = (name: string) => {
-    this.schedule.name = name
+    this.content.name = name
   }
 
-  private get scheduleItems() {
-    return this.schedule.items;
+  private get items() {
+    return this.content.items;
   }
 
-  get payload(): [any, any] {
-    return [this.schedule, this.id]
+  payload = () => {
+    return this.content
+  }
+
+  get itemsLength() {
+    return this.content.items.length
+  }
+
+  get selectedItemId() {
+    const current = this.children.current
+    if (!current) return
+    return {
+      variant: 'food',
+      id: current.food.id
+    }
+
   }
 }
 
@@ -64,6 +99,7 @@ function createDishItemLocal(food: { id: number, name: string }): DishItemUI {
     food,
     id: uuidv4(),
     quantity: 100,
+    status: 'added'
   };
 }
 
@@ -76,10 +112,11 @@ function createDishItemLocal(food: { id: number, name: string }): DishItemUI {
 //   return [item1, item2]
 // }
 
-export function createDishLocal(items: FoodQuantityDTO[] = []): DishUI {
+export function createDishLocal(itemsDto: FoodQuantityDTO[] = []): DishUI {
+  const items: DishItemUI[] = itemsDto.map(({ food, quantity }) => ({ food, quantity, id: uuidv4(), status: 'added' }))
   return {
     id: -1,
     name: 'Новое блюдо',
-    items: items.map(({ food, quantity }) => ({ food, quantity, id: uuidv4() }))
+    items
   };
 }

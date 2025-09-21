@@ -1,6 +1,6 @@
-import { DayScheduleItemUIStatus } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
-import { Suggestion } from "./ModalStoreUI";
 import { makeAutoObservable, toJS } from "mobx";
+
+export type CollectionItemEntityStatusUI = 'added' | 'deleted' | 'modified' | null
 
 export interface CollectionEntity<T> {
     items: (CollectionItemEntity & T)[];
@@ -9,7 +9,7 @@ export interface CollectionEntity<T> {
 export interface CollectionItemEntity {
     id: number | string;
     quantity: number;
-    status: DayScheduleItemUIStatus
+    status: CollectionItemEntityStatusUI
 }
 
 export class UpdateChildrenStore<Parent extends CollectionEntity<Child>, Child> {
@@ -17,20 +17,20 @@ export class UpdateChildrenStore<Parent extends CollectionEntity<Child>, Child> 
     timestamp = Date.now()
 
     currentId: number | string = -1;
-    private getCollection: () => Parent;
+    private getParent: () => Parent;
 
-    get collection(): Parent {
-        return this.getCollection();
+    get parent(): Parent {
+        return this.getParent();
     }
 
     constructor(getCollection: () => Parent) {
         makeAutoObservable(this);
-        this.getCollection = getCollection;
+        this.getParent = getCollection;
     }
 
     get current() {
         console.log('GET_CURRENT_STAMP', this.timestamp)
-        return this.collection?.items.find(({ id }) => id === this.currentId) || null;
+        return this.parent?.items.find(({ id }) => id === this.currentId) || null;
     }
 
     setCurrentId = (id: number | string) => {
@@ -53,7 +53,27 @@ export class UpdateChildrenStore<Parent extends CollectionEntity<Child>, Child> 
         Object.assign(this.current, finalUpdate);
     };
 
-    private statusResolver = (status: DayScheduleItemUIStatus) => {
+    deleteChild = (childId: string | number) => {
+        const item = this.parent.items.find(item => item.id === childId);
+        if (!item) return
+
+        if (item.status === 'added') {
+            this.parent.items = this.parent.items.filter(i => i.id !== childId);
+            return
+        }
+        item.status = 'deleted';
+    };
+
+    recoverDeletedChild = (childId: string | number) => {
+        const item = this.parent.items.find(item => item.id === childId);
+        if (!item) return
+
+        if (item.status === 'deleted') {
+            item.status = null;
+        }
+    };
+
+    private statusResolver = (status: CollectionItemEntityStatusUI) => {
         if (status == null) return 'modified'
         return status
     }

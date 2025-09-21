@@ -9,7 +9,7 @@ type Props = {
     filterText: string;
     setFilterText: (text: string) => void;
   };
-  options: {
+  options?: {
     getFoodSelectMessage: () => string | null;
   };
   before?: React.ReactNode;
@@ -20,7 +20,7 @@ const FOOD_NAME_PLACEHOLDER = 'Гречка...';
 
 const Food = ({ before, content, children, options }: Props) => {
   const onFoodNameChange = (e) => content.setFilterText(e.target.value);
-  const message = options.getFoodSelectMessage();
+  const message = options?.getFoodSelectMessage();
   return (
     <div className={clsx([style.content, commonStyle.SuggestionWrapper])}>
       {message}

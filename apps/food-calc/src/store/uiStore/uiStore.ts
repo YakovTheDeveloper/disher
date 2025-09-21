@@ -7,6 +7,10 @@ import { NutrientGroupName } from "@/types/nutrient/nutrient";
 import { NutrientUiStore } from "@/store/uiStore/nutrientUiStore/nutrientUiStore";
 import { DishUiStore } from "@/store/uiStore/dishUiStore/dishUiStore";
 import { MenuUiStore } from "@/store/uiStore/menu/menuUiStore";
+import mobx from 'mobx'
+import { DailyNormsStoreUI } from "@/store/uiStore/dailyNorms/DailyNormsStoreUI";
+import { DailyNormModelStore } from "@/store/models/dailyNorm/dailyNorm.model";
+import { dailyNormModelStore } from "@/store/rootStore";
 
 export type NotificationData = {
   id: number
@@ -31,6 +35,8 @@ export class UiStore {
 
   dishUi: DishUiStore
   menu: MenuUiStore
+
+  dailyNorms = new DailyNormsStoreUI(dailyNormModelStore)
 
   // day = {
   //   showDishChoice: false

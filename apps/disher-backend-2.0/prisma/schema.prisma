@@ -55,7 +55,7 @@ model FoodNutrient {
   id         Int      @id @default(autoincrement())
   quantity   Float
   foodId     Int
-  Food       Food     @relation(fields: [foodId], references: [id])
+  Food       Food     @relation(fields: [foodId], references: [id], onDelete: Cascade)
   nutrientId Int
   Nutrient   Nutrient @relation(fields: [nutrientId], references: [id])
 }
@@ -69,6 +69,7 @@ model Nutrient {
   displayName    String?
   displayNameEng String?
   FoodNutrient   FoodNutrient[]
+  DailyNormItem  DailyNormItem?
 }
 
 model Dish {
@@ -86,7 +87,25 @@ model DishItem {
   foodId   Int
   dishId   Int
   food     Food @relation(fields: [foodId], references: [id])
-  dish     Dish @relation(fields: [dishId], references: [id])
+  dish     Dish @relation(fields: [dishId], references: [id], onDelete: Cascade)
+}
+
+model DailyNorm {
+  id          Int             @id @default(autoincrement())
+  items       DailyNormItem[]
+  userId      Int
+  user        User            @relation(fields: [userId], references: [id])
+  name        String
+  description String
+}
+
+model DailyNormItem {
+  id         Int       @id @default(autoincrement())
+  normId     Int
+  norm       DailyNorm @relation(fields: [normId], references: [id], onDelete: Cascade)
+  nutrientId Int       @unique
+  Nutrient   Nutrient  @relation(fields: [nutrientId], references: [id])
+  quantity   Int
 }
 
 // model Questionnaire {
@@ -106,9 +125,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  accounts Account[]
-  Schedule Schedule[]
-  Dish     Dish[]
+  accounts  Account[]
+  Schedule  Schedule[]
+  Dish      Dish[]
+  DailyNorm DailyNorm[]
 }
 
 model Account {

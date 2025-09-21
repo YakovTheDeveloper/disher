@@ -29,7 +29,7 @@ const TimeGroup = ({ children, group, onUnite }: Props) => {
         </span>
         {showUniteButton && (
           <span onClick={onUniteHandler} className={clsx([styles.uniteButton])}>
-            обьединить
+            создать блюдо
           </span>
         )}
       </header>

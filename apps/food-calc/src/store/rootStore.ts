@@ -23,9 +23,11 @@ import { DishModelStore } from "@/store/models/dish/dishStore";
 import { FoodModelStore } from "@/store/models/food/foodModelStore";
 import { MenuUiStore } from "@/store/uiStore/menu/menuUiStore";
 import { ScheduleCacheStore } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleCacheStore";
+import { DailyNormModelStore } from "@/store/models/dailyNorm/dailyNorm.model";
 
 const notificationStore = new NotificationStore()
 
+export const dailyNormModelStore = new DailyNormModelStore()
 export const scheduleStore = new ScheduleStore()
 export const dishStore = new DishModelStore()
 export const foodStore = new FoodModelStore()

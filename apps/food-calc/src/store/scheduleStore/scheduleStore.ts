@@ -5,12 +5,15 @@ import { ScheduleEntity } from "@/store/scheduleStore/types";
 import { ISODate } from "@/types/common/common";
 import { makeAutoObservable } from "mobx";
 
+type DateAndIdScheduleEntity = Pick<ScheduleEntity, 'date' | 'id'>
+
 export class ScheduleStore {
     data: Map<ISODate, ScheduleEntity> = new Map();
 
+    existing: Map<ISODate, boolean> = new Map();
+
     constructor() {
         makeAutoObservable(this);
-        this.getAll();
     }
 
     requestState = {
@@ -22,13 +25,17 @@ export class ScheduleStore {
         this.data.set(data.date, data);
     }
 
-    getAll = async () => {
-        const res = await getSchedules(new Date().toISOString());
+    private addExisting = (data: ScheduleEntity) => {
+        this.existing.set(data.date, Boolean(data));
+    }
+
+    getAllMonthShortData = async (date: Date) => {
+        const res = await getSchedules(date.toISOString());
         console.log("res.data", res);
         if (!res.data) return;
         this.data.clear();
         res.data.forEach((schedule: ScheduleEntity) => {
-            this.addLocal(schedule);
+            this.addExisting(schedule);
         });
     };
 

@@ -28,16 +28,21 @@ import { ModalRoot } from '@/components/blocks/builders/food/shared/ModalRoot';
 import { TotalNutrients } from '@/components/blocks/builders/food/shared/ContentInfo/TotalNutrients';
 import { BuilderUIStore } from '@/components/blocks/builders/food/shared/BuilderUIStore';
 import { motion } from 'framer-motion';
-import { observer } from 'mobx-react-lite';
-import { useScheduleItemActionsUI } from '@/components/blocks/builders/food/ScheduleBuilder/context';
-import { toJS, trace } from 'mobx';
+import { observer, useLocalObservable } from 'mobx-react-lite';
+import { runInAction, toJS, trace } from 'mobx';
+import DishCreatingStore from '@/components/blocks/builders/food/ScheduleBuilder/model/CreateDishViewModel';
+import { DishBuilderContainer } from '@/components/blocks/builders/food/ScheduleBuilder/ui/DishBuilderContainer';
+import { useItemActionsUI } from '@/components/blocks/builders/food/shared/useItemActionsUI';
 
-export enum Modals {
-  Time = 'time',
-  Food = 'food',
-  Quantity = 'quantity',
-  Nutrients = 'nutrients',
-}
+export const Modals = {
+  Time: 'time',
+  Food: 'food',
+  Quantity: 'quantity',
+  Nutrients: 'nutrients',
+  CreateDish: 'createDish',
+} as const;
+
+export type ModalsType = (typeof Modals)[keyof typeof Modals];
 
 type Props = {
   onFinish: (payload: DayScheduleUI) => Promise<void>;
@@ -46,11 +51,11 @@ type Props = {
 };
 
 const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
-  const modals = useMemo(() => new ModalStoreUI<CommonModals | 'time'>(), []);
+  const modals = useMemo(() => new ModalStoreUI<ModalsType>(), []);
   const options = useMemo(() => new BuilderUIStore(), []);
   const searchFiltering = useMemo(() => new SearchViewModel(foodStore, dishStore), []);
 
-  const _itemActions = useScheduleItemActionsUI(schedule, modals);
+  const _itemActions = useItemActionsUI({ variant: 'schedule', modals, vm: schedule });
   const itemActions = useMemo(() => _itemActions, [modals, schedule]);
 
   const onMoreOptions = () => {
@@ -62,36 +67,15 @@ const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
     modals.set('food');
   };
 
-  const [dishInit, setDishInit] = useState<{
-    content: DishUI;
-    time: string;
-  } | null>(null);
+  const dishCreatingStore = useMemo(() => new DishCreatingStore(dishStore, schedule), []);
 
-  const onUniteFoodIntoDish = (group: TimeGroupUI) => {
-    const { time, items } = group;
-    const dto = createFoodQuantityCollectionDTO(items);
-    const dish = createDishLocal(dto);
-    setDishInit({ content: dish, time });
-  };
-
-  const onCreateDish = async (data) => {
-    const result = await addDish(data);
-    if (!result) return;
-    const { id, name } = result;
-
-    dishStore.set(result.id, result);
-    schedule.addChild({ dish: { id, name } });
-
-    if (!dishInit) return;
-    const { content, time } = dishInit;
-    schedule.removeChildrenByTimeAndId(
-      time,
-      content.items.map(({ food }) => food.id)
-    );
-    setDishInit(null);
-  };
-
-  console.log('main render');
+  const onUniteFoodIntoDish = useCallback(
+    (group: TimeGroupUI) => {
+      dishCreatingStore.create(group);
+      modals.set('createDish');
+    },
+    [dishCreatingStore]
+  );
 
   const onFoodSelect = (data: { id: number; name: string } | null, variant: 'dish' | 'food') => {
     if (!data) return;
@@ -108,13 +92,6 @@ const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
 
   const getFoodModel = useCallback(() => foodStore, []);
   const getCurrentFoodWithQuantity = useCallback(() => schedule.foodWithQuantity, []);
-
-  // trace(true);
-
-  // const itemActions = useMemo(
-  //   () => ({ onFoodsOpenUpdate, onFoodsOpenCreate, onFoodsOpenInfo, onTimeOpen, onQuantityOpen }),
-  //   [schedule, modals]
-  // );
 
   console.log('SChedule buILder REnder');
 
@@ -169,19 +146,9 @@ const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
           [Modals.Nutrients]: (
             <Nutrients getFood={getFoodModel} getCurrentFood={getCurrentFoodWithQuantity} />
           ),
+          [Modals.CreateDish]: <DishBuilderContainer store={dishCreatingStore} />,
         }}
       </ModalRoot>
-
-      <Modal onClose={() => setDishInit(null)} isOpen={!!dishInit}>
-        {dishInit && (
-          <DishBuilder
-            finishButtonTitle="Обьединить"
-            init={dishInit.content}
-            onSave={onCreateDish}
-          />
-        )}
-      </Modal>
-
       <Actions isShow={shouldActionShow}>
         <ActionButton.Finish onFinish={onFinish} content={schedule} />
         <ActionButton.Add onClick={onFoodsOpenCreate} />

@@ -19,7 +19,7 @@ export type DayScheduleItemUI = Omit<ScheduleItemEntity, "foodId" | "id"> & {
   status: DayScheduleItemUIStatus
 };
 
-type AddChild = { food: null, dish: DishEntity } | { food: CommonData, dish: null }
+type AddChild = { food: null, dish: DishEntity, time?: string } | { food: CommonData, dish: null, time?: string }
 
 export type TimeGroupUI = { time: string; items: DayScheduleItemUI[], offset: { hours: number; minutes: number } | null; }
 
@@ -92,39 +92,23 @@ export class ScheduleBuilderViewModel {
 
   }
 
-  addChild = (data: AddChild) => {
+  addChild = (data: AddChild, timeAsLastChildAdded: boolean = true) => {
     const item = createUIDayScheduleItem(data)
-    const lastAddedScheduleItem = this.scheduleItems.at(-1)
-    if (lastAddedScheduleItem) item.time = lastAddedScheduleItem.time
+    if (timeAsLastChildAdded) {
+      const lastAddedScheduleItem = this.scheduleItems.at(-1)
+      if (lastAddedScheduleItem) item.time = lastAddedScheduleItem.time
+    }
     this.schedule.items.push(item);
     return item.id
   }
 
-  deleteChild = (childId: string | number) => {
-    const item = this.schedule.items.find(item => item.id === childId);
-    if (!item) return
-
-    if (item.status === 'added') {
-      this.schedule.items = this.schedule.items.filter(i => i.id !== childId);
-      return
-    }
-    item.status = 'deleted';
-  };
-
-  recoverDeletedChild = (childId: string | number) => {
-    const item = this.schedule.items.find(item => item.id === childId);
-    if (!item) return
-
-    if (item.status === 'deleted') {
-      item.status = null;
-    }
-  };
-
-  removeChildrenByTimeAndId = (time: string, ids: number[]) => {
-    this.schedule.items = this.schedule.items.filter(schedule => {
-      const matchTime = schedule.time === time
-      const matchId = ids.includes(schedule.food?.id ?? -1)
-      return !(matchTime && matchId)
+  removeChildrenByFoodIdsAndTime = (foodIds: number[], time: string) => {
+    runInAction(() => {
+      this.schedule.items.forEach(item => {
+        if (item.food && foodIds.includes(item.food.id) && item.time === time) {
+          this.children.deleteChild(item.id)
+        }
+      })
     })
   }
 

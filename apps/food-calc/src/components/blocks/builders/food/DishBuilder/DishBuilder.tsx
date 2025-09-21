@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { DishBuilderViewModel } from './model/DishBuilderViewModel';
+import { useCallback, useMemo } from 'react';
+import { DishBuilderViewModel, DishItemUI } from './model/DishBuilderViewModel';
 
 import { observer } from 'mobx-react-lite';
 import style from './DishBuilder.module.scss';
@@ -12,23 +12,38 @@ import { Heading } from '@/components/blocks/builders/food/DishBuilder/ui/Headin
 import { BuilderUIStore } from '@/components/blocks/builders/food/shared/BuilderUIStore';
 import { FoodName } from '@/components/blocks/builders/food/shared/ui/FoodName';
 import { Actions } from '@/components/blocks/builders/food/shared/ui/Actions';
+import { Quantity } from '@/components/blocks/builders/food/shared/ui/Quantity';
+import { useItemActionsUI } from '@/components/blocks/builders/food/shared/useItemActionsUI';
+import { DishListItem } from '@/components/blocks/builders/food/DishBuilder/ui/DishListItem';
+import { ModalRoot } from '@/components/blocks/builders/food/shared/ModalRoot';
+import { Nutrients } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients';
+import { SearchViewModel } from '@/components/blocks/builders/food/DishBuilder/model/SearchViewModel';
+import { foodStore } from '@/store/rootStore';
+import { FoodModelStore } from '@/store/models/food/foodModelStore';
 
-export enum Modals {
-  Food = 'food',
-  Quantity = 'quantity',
-  Nutrients = 'Nutrients',
-}
+export const Modals = {
+  Food: 'food',
+  Quantity: 'quantity',
+  Nutrients: 'nutrients',
+} as const;
+
+export type ModalsType = (typeof Modals)[keyof typeof Modals];
 
 type Props = {
-  init: DishEntity;
-  onSave: (payload: DishEntity, id?: number) => Promise<DishEntity | undefined>;
+  init: DishBuilderViewModel;
+  onFinish: (payload: T) => Promise<void>;
+  foodModelStore?: FoodModelStore;
   finishButtonTitle: string;
 };
 
-const DishBuilder = ({ init, onSave, finishButtonTitle }: Props) => {
-  const dishes = useMemo(() => new DishBuilderViewModel(init), []);
-  const modals = useMemo(() => new ModalStoreUI<Modals>(), []);
+const DishBuilder = ({ init, onFinish, foodModelStore = foodStore, finishButtonTitle }: Props) => {
+  const dishes = init;
+  const modals = useMemo(() => new ModalStoreUI<ModalsType>(), []);
   const options = useMemo(() => new BuilderUIStore(), []);
+  const searchFiltering = useMemo(() => new SearchViewModel(foodModelStore), []);
+
+  const _itemActions = useItemActionsUI({ variant: 'dish', modals, vm: dishes });
+  const itemActions = useMemo(() => _itemActions, [modals, dishes]);
 
   const onFoodsOpen = () => {
     dishes.children.setCurrentId(-1);
@@ -45,20 +60,6 @@ const DishBuilder = ({ init, onSave, finishButtonTitle }: Props) => {
     dishes.children.updateCurrent({ food });
   };
 
-  const onTitle = (id: string | number) => {
-    dishes.children.setCurrentId(id);
-    modals.set(Modals.Food);
-  };
-
-  const onQuantity = (id: string | number) => {
-    dishes.children.setCurrentId(id);
-    modals.set(Modals.Quantity);
-  };
-
-  const onFinish = async () => {
-    await onSave(...dishes.payload);
-  };
-
   const onMoreOptions = () => {
     options.toggle();
   };
@@ -67,36 +68,37 @@ const DishBuilder = ({ init, onSave, finishButtonTitle }: Props) => {
     <div className={style.container}>
       <Heading vm={dishes} />
       <ul className={style.list}>
-        {dishes.schedule.items.map(({ id, food, quantity }) => {
+        {dishes.content.items.map((content) => {
           return (
-            <CommonListItem key={id} options={options}>
-              <FoodName
-                className={style.foodName}
-                onClick={() => onTitle(id)}
-                hintMode={options.showAdditionals}
-              >
-                {food.name}
-              </FoodName>
-              <p onClick={() => onQuantity(id)}>{quantity}</p>
-            </CommonListItem>
+            <DishListItem
+              key={content.id}
+              content={content}
+              itemActions={itemActions}
+              options={options}
+            />
           );
         })}
       </ul>
-      {modals.current === Modals.Food && (
-        <ContentEdit.Food
-          vm={dishes.children}
-          onFinish={modals.close}
-          onFoodSelect={onFoodSelect}
-        />
-      )}
-      {modals.current === Modals.Quantity && (
-        <ContentEdit.Quantity vm={dishes.children} onFinish={modals.close} />
-      )}
+      <ModalRoot modals={modals}>
+        {{
+          [Modals.Food]: (
+            <ContentEdit.Food options={options} content={searchFiltering}>
+              <ContentEdit.SearchList
+                content={searchFiltering}
+                onFoodSelect={onFoodSelect}
+                vm={dishes}
+              />
+            </ContentEdit.Food>
+          ),
+          [Modals.Quantity]: <ContentEdit.Quantity vm={dishes.children} onFinish={modals.close} />,
+          [Modals.Nutrients]: <Nutrients getCurrentFood={() => {}} />,
+        }}
+      </ModalRoot>
 
-      <Actions isShow={!modals.current}>
+      <Actions isShow={() => !modals.current}>
+        <Button.Finish onFinish={onFinish} content={dishes} />
         <Button.Add onClick={onFoodsOpen} />
-        <Button.Finish onClick={onFinish}>{finishButtonTitle}</Button.Finish>
-        <Button.AdditionalOptions onClick={onMoreOptions}>больше</Button.AdditionalOptions>
+        <Button.AdditionalOptions onClick={onMoreOptions} options={options} />
       </Actions>
     </div>
   );
