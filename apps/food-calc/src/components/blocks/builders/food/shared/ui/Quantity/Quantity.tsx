@@ -7,15 +7,17 @@ type Props = {
   onClick: (id: string | number) => void;
   className?: string;
   hide: boolean;
+  unit: string;
 };
 
-const Quantity = ({ id, onClick, children, hide }: Props) => {
+const Quantity = ({ id, onClick, children, hide, unit = 'г' }: Props) => {
   console.log('LIST_ITEM_QUANTIY');
 
   const onClickHandler = () => onClick(id);
   return (
     <p onClick={onClickHandler} className={`${styles.container} ${hide ? styles.hide : ''}`}>
       {children()}
+      <span className={styles.unit}>{unit}.</span>
     </p>
   );
 };

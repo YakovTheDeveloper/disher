@@ -1,14 +1,14 @@
 .actionButton {
-    min-width: 140px;
+    max-width: 110px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     /* space between icon + text */
 
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 300;
-    padding: 12px 24px;
+    padding: 8px 18px;
     border-radius: 999px;
     /* pill shape */
     cursor: pointer;

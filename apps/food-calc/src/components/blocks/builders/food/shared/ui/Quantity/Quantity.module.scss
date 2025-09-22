@@ -9,3 +9,8 @@
     opacity: 0; // fade out
     pointer-events: none; // prevent interaction while hidden
 }
+
+.unit {
+    opacity: 0.15;
+    margin-left: 3px;
+}

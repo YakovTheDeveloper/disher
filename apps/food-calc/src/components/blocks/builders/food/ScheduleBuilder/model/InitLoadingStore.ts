@@ -19,6 +19,10 @@ export class InitLoadingStore {
         this.initData = ScheduleViewModelFactory.createFromModel(data)
     }
 
+    reset() {
+        this.initData = null
+    }
+
     async onInit(date: ISODate) {
 
         this.initData = null

@@ -28,14 +28,14 @@ const Menu = ({ store, children }: Props) => {
           <button className={styles.closeBtn} onClick={onClose}>
             x
           </button>
-          <div className={styles.links}>
+          {/* <div className={styles.links}>
             <NavLink className={styles.link} to={RouterLinks.Schedule}>
               Календарь
             </NavLink>
             <NavLink className={styles.link} to={''}>
               Мои блюда
             </NavLink>
-          </div>
+          </div> */}
           <div>{children}</div>
         </motion.aside>
       )}

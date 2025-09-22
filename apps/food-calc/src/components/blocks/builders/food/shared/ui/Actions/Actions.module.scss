@@ -16,8 +16,7 @@
 .content {
     // display: flex;
     // justify-content: space-between;
-    align-items: center;
-    display: grid;
-    grid-template-columns: 140px auto 140px;
+    display: flex;
     justify-content: space-between;
+    align-items: center;
 }

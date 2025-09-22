@@ -1,23 +1,14 @@
-import { observer, useLocalObservable } from 'mobx-react-lite';
+import { observer } from 'mobx-react-lite';
 import styles from './TotalNutrients.module.scss';
 import { Nutrients } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients';
-import {
-  DayScheduleUI,
-  makeScheduleItemsSignature,
-} from '@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel';
-import { useCallback, useRef, useState, useEffect } from 'react';
-import {
-  getAllFoodIds,
-  getTotalFoodAndDishFoodQuantityFromAll,
-} from '@/store/scheduleStore/schedule.domain';
+import { DayScheduleUI } from '@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel';
+import { useCallback, useRef, useEffect, useMemo } from 'react';
 import { foodStore } from '@/store/rootStore';
-import { FoodWithQuantity } from '@/store/scheduleStore/schedule.domain.types';
 import { Overlay } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/Overlay';
-import { generateHashFromIdCollection } from '@/lib/hash/hash';
-import { comparer, toJS } from 'mobx';
 import { Typography } from '@/components/ui/atoms/Typography';
 import { NavLink } from 'react-router';
 import { RouterLinks } from '@/router';
+import { CalculationFlowStore } from '@/components/blocks/builders/food/shared/calculationFlowStore';
 
 type Props = {
   children: React.ReactNode;
@@ -28,85 +19,28 @@ type Props = {
 
 const TotalNutrients = ({ vm }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [products, setProductsForNutrientCalculations] = useState<FoodWithQuantity[]>([]);
 
-  const prevSignature = useRef<string | null>(null);
+  const calculationStore = useMemo(() => new CalculationFlowStore(vm), [vm]);
 
-  const currentScheduleFoodIds = useLocalObservable(() => ({
-    content: [] as number[],
-    set(value: number[]) {
-      if (!comparer.shallow(this.content, value)) {
-        this.content = value;
-      }
-    },
-  }));
-
-  const onIntersection = async () => {
-    const total = getTotalFoodAndDishFoodQuantityFromAll(vm.schedule.items);
-    const ids = getAllFoodIds(total);
-
-    currentScheduleFoodIds.set(ids);
-
-    const [_, code] = await foodStore.loadFoodWithNutrientsByFoodIds(ids);
-
-    const signature = makeScheduleItemsSignature(vm.schedule.items);
-    if (code === 'PASS') {
-      if (signature !== prevSignature.current) {
-        console.log('Не равны, обновляю');
-        setProductsForNutrientCalculations(total);
-        prevSignature.current = signature;
-        return;
-      }
-
-      console.log('Равны');
-      console.log(prevSignature.current);
-      console.log(signature);
-    }
-
-    if (code === 'DONE') {
-      setProductsForNutrientCalculations(total);
-      prevSignature.current = signature;
-      return;
-    }
-    if (code === 'FAIL') {
-      setProductsForNutrientCalculations([]);
-      prevSignature.current = '';
-      return;
-    }
-  };
-
-  useEffect(() => {
-    const observer = new window.IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        onIntersection();
-      },
-      {
-        threshold: 0.5,
-      }
-    );
-    const el = containerRef.current;
-    if (el) observer.observe(el);
-
-    return () => {
-      if (el) observer.unobserve(el);
-      observer.disconnect();
-    };
-  }, [vm.schedule.items, prevSignature.current]);
+  console.log('TotalNutrients render');
 
   const renderOverlay = useCallback(
     (value: string) => (
-      <Overlay loading={foodStore.requestState} currentId={currentScheduleFoodIds}>
+      <Overlay loading={foodStore.requestState} currentId={calculationStore}>
         {value}
       </Overlay>
     ),
-    [foodStore.requestState, currentScheduleFoodIds]
+    [foodStore.requestState, calculationStore]
   );
 
   const getFoodModel = useCallback(() => foodStore, []);
   return (
     <div className={styles.container} ref={containerRef}>
-      <Nutrients currentFood={products} getFood={getFoodModel} renderOverlay={renderOverlay} />
+      <Nutrients
+        currentFood={calculationStore.products}
+        getFood={getFoodModel}
+        renderOverlay={renderOverlay}
+      />
       <NavLink to={RouterLinks.DailyNorms}>
         <Typography variant="action">поменять норму</Typography>
       </NavLink>

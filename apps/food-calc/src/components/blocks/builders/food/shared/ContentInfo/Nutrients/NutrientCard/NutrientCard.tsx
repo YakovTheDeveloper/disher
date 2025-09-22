@@ -39,10 +39,12 @@ const NutrientCard = ({ content, renderOverlay, getValue }: Props) => {
       className={styles.card}
     >
       <div className={styles.header}>
-        <span className={styles.name}>{displayNameRu}</span>
-        <span className={styles.value}>
-          {unit} {value?.toFixed(1)} / {norm}
-        </span>
+        <div className={styles.headerColumn}>
+          <span className={styles.name}>{displayNameRu}</span>
+          <span className={styles.value}>
+            {value?.toFixed(1)} / {norm}
+          </span>
+        </div>
         <span className={styles.percent}>
           {renderOverlay ? renderOverlay(percentNormalized) : percentNormalized}
         </span>

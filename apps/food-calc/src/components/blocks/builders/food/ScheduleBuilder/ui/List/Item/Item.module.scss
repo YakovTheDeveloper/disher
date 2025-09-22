@@ -1,7 +1,7 @@
 .group {
     display: grid;
-    grid-template-columns: auto 1fr 50px;
-    gap: 5px;
-    align-items: center;
+    grid-template-columns: 6ch 1fr 5ch;
+    gap: 10px;
+    // align-items: center;
     position: relative;
 }

@@ -40,8 +40,6 @@ export const defaultNutrients: NutrientData[] = [
     { id: 35, name: 'alphaCarotene', displayName: 'Alpha-carotene', displayNameRu: 'α-каротин', unit: 'μg', "unitRu": "мкг" }
 ];
 
-
-
 export const defaultNutrientsV2: NutrientGroup[] = [
     {
         name: 'main',
@@ -59,7 +57,7 @@ export const defaultNutrientsV2: NutrientGroup[] = [
     },
     {
         name: 'vitaminsB',
-        displayName: 'Витамины группы Б',
+        displayName: 'Витамины Б',
         content: [
             { id: 21, name: 'vitaminB1', displayName: 'Vitamin B1', displayNameRu: 'Витамин B1', unit: 'mg', "unitRu": "мг" },
             { id: 22, name: 'vitaminB2', displayName: 'Vitamin B2', displayNameRu: 'Витамин B2', unit: 'mg', "unitRu": "мг" },
@@ -91,7 +89,7 @@ export const defaultNutrientsV2: NutrientGroup[] = [
     },
     {
         name: 'rest',
-        displayName: 'Остальные витамины и прочее',
+        displayName: 'Прочие витамины и остальное',
         content: [
 
             { id: 20, name: 'vitaminA', displayName: 'Vitamin A', displayNameRu: 'Витамин A', unit: 'μg', "unitRu": "мкг" },
@@ -106,10 +104,8 @@ export const defaultNutrientsV2: NutrientGroup[] = [
     },
 ]
 
-
 export const nutrientsMap: Record<number, NutrientData> = defaultNutrients
     .reduce((acc, nutrient) => acc[nutrient.id] = nutrient, {} as Record<number, NutrientData>)
-
 
 // export const nutrientsMap: Record<number, NutrientCategory> = {
 //     "1": {

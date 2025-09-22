@@ -70,10 +70,10 @@ export class FoodModelStore {
 
     loadFoodWithNutrientsByFoodIds = async (ids: number[]) => {
         ids = this.getIdsMissingFoodWithNutrients(ids)
-        if (isEmpty(ids)) return [false, 'PASS' as const]
+        if (isEmpty(ids)) return [false, 'NO_FETCH_NEEDED' as const]
         const [isError] = await this._loadFoodWithNutrientsByFoodIds(ids);
         if (isError) return [isError, 'FAIL' as const]
-        return [isError, 'DONE' as const]
+        return [isError, 'FETCH_DONE' as const]
     };
 
     private getIdsMissingFoodWithNutrients = (ids: number[]) => {

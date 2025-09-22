@@ -1,11 +1,44 @@
 .page {
     height: 100%;
-    overflow-y: auto;
     flex-shrink: 0;
     width: 100%;
     position: relative;
+
+    &Content {
+        height: 100%;
+        overflow-y: auto;
+    }
 }
 
 .offset {
     height: 300px;
+}
+
+// .pagesContainer {
+//     position: relative;
+//     overflow-y: auto; // scroll container
+//     height: 100%; // adjust as needed
+// }
+
+// .gradientOverlay {
+//     position: sticky;
+//     bottom: 0;
+//     left: 0;
+//     right: 0;
+//     height: 40px; // gradient height
+//     pointer-events: none;
+//     background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.9));
+//     z-index: 10;
+// }
+
+
+.gradientOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 30px; // gradient height
+    pointer-events: none;
+    background: linear-gradient(to top, transparent, rgba(255, 255, 255, 1));
+    z-index: 10;
 }

@@ -12,10 +12,12 @@ import cors from '@fastify/cors';
 const server = fastify();
 
 server.register(cors, {
-    origin: true, // allow all origins or use specific: ['http://localhost:3000']
-    credentials: true, // if you need cookies
+    origin: [
+        'http://localhost:5173',
+        'http://192.168.88.235:5173',
+    ],
+    credentials: true,
 });
-
 server.addHook('preHandler', async (request, reply) => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 });
@@ -36,7 +38,7 @@ server.register(fastifyTRPCPlugin, {
 
 (async () => {
     try {
-        await server.listen({ port: 3000 });
+        await server.listen({ port: 3000, host: '0.0.0.0' });
     } catch (err) {
         server.log.error(err);
         process.exit(1);

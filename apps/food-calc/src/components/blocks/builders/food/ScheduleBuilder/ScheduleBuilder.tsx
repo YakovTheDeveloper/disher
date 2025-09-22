@@ -33,6 +33,7 @@ import { runInAction, toJS, trace } from 'mobx';
 import DishCreatingStore from '@/components/blocks/builders/food/ScheduleBuilder/model/CreateDishViewModel';
 import { DishBuilderContainer } from '@/components/blocks/builders/food/ScheduleBuilder/ui/DishBuilderContainer';
 import { useItemActionsUI } from '@/components/blocks/builders/food/shared/useItemActionsUI';
+import { NutrientsEventEmitter } from '@/components/blocks/builders/food/shared/emitter';
 
 export const Modals = {
   Time: 'time',
@@ -93,21 +94,25 @@ const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
 
   const shouldActionShow = useCallback(() => !modals.current && options.currentPage === 1, []);
 
+  // useEffect(() => {
+  //   const noItems = schedule.schedule.items.length === 0;
+  //   if (noItems) {
+  //     options.pushFoodSelectMessage('Начнем заполнять наш день');
+  //     onFoodsOpenCreate();
+  //   }
+  //   return () => {
+  //     options.clearFoodSelectMessage();
+  //   };
+  // }, [schedule]);
+
   useEffect(() => {
-    const noItems = schedule.schedule.items.length === 0;
-    if (noItems) {
-      options.pushFoodSelectMessage('Начнем заполнять наш день');
-      onFoodsOpenCreate();
-    }
-    return () => {
-      options.clearFoodSelectMessage();
-    };
-  }, [schedule]);
+    if (options.currentPage === 0) NutrientsEventEmitter.emit('RECALCULATE_NUTRIENTS');
+  }, [options.currentPage]);
 
   return (
     <div className={style.container}>
       <Swipeable model={options}>
-        <TotalNutrients vm={schedule} />
+        <TotalNutrients vm={schedule} options={options} />
 
         <List
           itemActions={itemActions}

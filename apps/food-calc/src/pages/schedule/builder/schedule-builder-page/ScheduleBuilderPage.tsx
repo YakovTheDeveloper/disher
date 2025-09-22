@@ -12,16 +12,30 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import styles from './ScheduleBuilderPage.module.scss';
 import { InitLoadingStore } from '@/components/blocks/builders/food/ScheduleBuilder/model/InitLoadingStore';
 import { Overlay, WithOverlay } from '@/components/ui/Overlay';
+import { debounce } from '@/utils/debounce';
 
 const Page = observer(({ date }: { date: string }) => {
-  const menuUi = useMemo(() => new MenuUiStore(), []);
   const store = useMemo(() => new InitLoadingStore(), []);
 
   // trace(true);
 
+  const onInit = useMemo(
+    () =>
+      debounce((date: string) => {
+        console.log('on init function');
+        store.onInit(date);
+      }, 500),
+    [store]
+  );
+
   useEffect(() => {
-    store.onInit(date);
-  }, [date]);
+    store.reset();
+    onInit(date);
+
+    return () => {
+      onInit.cancel();
+    };
+  }, [date, onInit]);
 
   const onFinish = useCallback(async (payload: DayScheduleUI) => {
     if (payload.id === -1) {
@@ -49,10 +63,7 @@ const Page = observer(({ date }: { date: string }) => {
 
   return (
     <div className={styles.container}>
-      <Menu store={menuUi} />
-      <Navigation>
-        <Button.Menu menu={menuUi} onClick={menuUi.open} />
-      </Navigation>
+      <Navigation></Navigation>
       <Overlay isLoading={isLoading} className={styles.overlay} />
       {store.initData && (
         <ScheduleBuilder

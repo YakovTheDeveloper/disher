@@ -4,7 +4,7 @@
     left: 0;
     height: 100vh; // full screen height
     width: 80%; // covers 80% of screen
-    max-width: 320px;
+    max-width: fit-content;
     background: #0a1a3d; // dark blue
     border-top-right-radius: 1.5rem; // rounded corner
     box-shadow: 4px 0 12px rgba(0, 0, 0, 0.3);

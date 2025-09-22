@@ -14,10 +14,11 @@ import { Button as ActionButton } from '@/components/blocks/builders/food/shared
 import { createDailyNorm, updateDailyNorm } from '@/api/dailyNorm/dailyNorm.api';
 import { dailyNormModelStore } from '@/store/rootStore';
 import { ListItem } from './ListItem';
+import { ReversableDeletionButton } from '@/components/ui/atoms/ReversableDeletionButton';
+import { DailyNormModelStore } from '@/store/models/dailyNorm/dailyNorm.model';
 
 type Props = {
   children?: React.ReactNode;
-  f;
   init: DailyNormEntity[];
 };
 
@@ -25,6 +26,9 @@ const DailyNorms = ({ init }: Props) => {
   const store = useMemo(() => new DailyNormsViewModel(init), [init]);
 
   const modalStore = useMemo(() => new ModalStoreUI<'edit' | 'view'>(), []);
+
+  const modelStore = useMemo(() => new DailyNormModelStore(), []);
+
   const options = useLocalObservable(() => ({
     showAdditionals: false,
     toggle() {
@@ -64,6 +68,10 @@ const DailyNorms = ({ init }: Props) => {
     modalStore.close();
   };
 
+  const onDelete = (id: number | string) => {
+    // modelStore.remove();
+  };
+
   const standardNorm = store.defaults[0];
   // const standardNorm2 = store.defaults[1]
 
@@ -80,7 +88,11 @@ const DailyNorms = ({ init }: Props) => {
         {store.items.map((item) => (
           <ListItem item={item} key={item.id} onTitle={onOpenEdit}>
             <p>{item.name}</p>
-            {options.showAdditionals && <button>Удалить</button>}
+            {options.showAdditionals && (
+              <ReversableDeletionButton onDelete={() => onDelete(item.id)}>
+                Удалить
+              </ReversableDeletionButton>
+            )}
           </ListItem>
         ))}
       </ul>
