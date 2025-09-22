@@ -11,6 +11,7 @@ import DishBuilderPage from '@/pages/dish/builder/dish-builder-page/DishBuilderP
 import NewDishBuilderPage from '@/pages/dish/builder/new-dish-builder-page/NewDishBuilderPage.tsx';
 import Days from '@/components/blocks/Days/Days.tsx';
 import ProductAdd from '@/components/blocks/ProductAdd/ProductAdd.tsx';
+import { DailyNormsPage } from '@/pages/dailyNormsPage/index.ts';
 
 export enum RouterLinks {
   Root = '/',
@@ -35,6 +36,10 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.Dishes,
         element: <Dishes />,
+      },
+      {
+        path: RouterLinks.DailyNorms,
+        element: <DailyNormsPage />,
       },
       {
         path: RouterLinks.AddProduct,

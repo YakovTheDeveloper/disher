@@ -9,7 +9,13 @@ import {
 import { DailyNormEntity } from "@/store/models/dailyNorm/dailyNorm.types";
 
 export class DailyNormModelStore {
-    data: Map<string, DailyNormEntity> = new Map();
+    data: Map<string, DailyNormEntity> = new Map(
+
+    );
+
+    get dataCollection(): DailyNormEntity[] {
+        return Array.from(this.data.values())
+    }
 
     constructor() {
         makeAutoObservable(this);

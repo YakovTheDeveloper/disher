@@ -12,6 +12,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest",
+    "dev-host": "vite --host",
     "create-component": "node create-boilerplate-component.js"
   },
   "dependencies": {

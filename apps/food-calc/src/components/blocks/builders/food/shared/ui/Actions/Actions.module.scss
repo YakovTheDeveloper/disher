@@ -14,7 +14,10 @@
 }
 
 .content {
-    display: flex;
-    justify-content: space-between;
+    // display: flex;
+    // justify-content: space-between;
     align-items: center;
+    display: grid;
+    grid-template-columns: 140px auto 140px;
+    justify-content: space-between;
 }

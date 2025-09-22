@@ -105,7 +105,7 @@ model DailyNormItem {
   norm       DailyNorm @relation(fields: [normId], references: [id], onDelete: Cascade)
   nutrientId Int       @unique
   Nutrient   Nutrient  @relation(fields: [nutrientId], references: [id])
-  quantity   Int
+  quantity   Int?
 }
 
 // model Questionnaire {

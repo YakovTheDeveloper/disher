@@ -15,6 +15,9 @@ import { FoodWithQuantity } from '@/store/scheduleStore/schedule.domain.types';
 import { Overlay } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/Overlay';
 import { generateHashFromIdCollection } from '@/lib/hash/hash';
 import { comparer, toJS } from 'mobx';
+import { Typography } from '@/components/ui/atoms/Typography';
+import { NavLink } from 'react-router';
+import { RouterLinks } from '@/router';
 
 type Props = {
   children: React.ReactNode;
@@ -104,6 +107,9 @@ const TotalNutrients = ({ vm }: Props) => {
   return (
     <div className={styles.container} ref={containerRef}>
       <Nutrients currentFood={products} getFood={getFoodModel} renderOverlay={renderOverlay} />
+      <NavLink to={RouterLinks.DailyNorms}>
+        <Typography variant="action">поменять норму</Typography>
+      </NavLink>
     </div>
   );
 };

@@ -2,14 +2,15 @@ import { observer } from 'mobx-react-lite';
 import commonStyles from '../styles.module.scss';
 type Props = {
   children?: React.ReactNode;
-  onClick: VoidFunction;
   options: {
     showAdditionals: boolean;
+    toggle: () => void;
   };
 };
 
-const AdditionalOptionsButton = ({ options, onClick }: Props) => {
+const AdditionalOptionsButton = ({ options }: Props) => {
   const textView = options.showAdditionals ? 'больше' : 'меньше';
+  const onClick = options.toggle;
   return (
     <button className={commonStyles.actionButton} onClick={onClick}>
       {textView}

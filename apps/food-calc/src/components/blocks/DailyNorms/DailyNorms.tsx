@@ -1,112 +1,102 @@
-import Actions from "@/components/blocks/common/Actions/Actions";
-import DraftActions2 from "@/components/blocks/common/Actions/DraftActions2";
-import UserActions2 from "@/components/blocks/common/Actions/UserActions2";
-import DailyNorm from "@/components/blocks/DailyNorms/DailyNorm";
-import DailyNormTabs from "@/components/blocks/DailyNorms/DailyNormTabs";
-import DefaultDailyNorm from "@/components/blocks/DailyNorms/DefaultDailyNorm/DefaultDailyNorm";
-import Layout from "@/components/common/Layout/Layout";
-import SelectableInput from "@/components/ui/Button/SelectableInput/SelectableInput";
+import { observer, useLocalObservable } from 'mobx-react-lite';
+import styles from './DailyNorms.module.scss';
+import { DailyNormEntity } from '@/store/models/dailyNorm/dailyNorm.types';
+import {
+  DailyNormEntityUI,
+  DailyNormsViewModel,
+} from '@/components/blocks/DailyNorms/viewModel/DailyNormsViewModel';
+import { useCallback, useMemo } from 'react';
+import { DailyNormsContent } from '@/components/blocks/DailyNorms/DailyNormsEdit';
+import { ModalStoreUI } from '@/components/blocks/builders/food/shared/ModalStoreUI';
+import { ModalRoot } from '@/components/blocks/builders/food/shared/ModalRoot';
+import { Actions } from '@/components/blocks/builders/food/shared/ui/Actions';
+import { Button as ActionButton } from '@/components/blocks/builders/food/shared/ui/Actions/button';
+import { createDailyNorm, updateDailyNorm } from '@/api/dailyNorm/dailyNorm.api';
+import { dailyNormModelStore } from '@/store/rootStore';
+import { ListItem } from './ListItem';
 
-import Container from "@/components/ui/Container/Container";
-import EditableText from "@/components/ui/EditableText/EditableText";
-import RemoveButton from "@/components/ui/RemoveButton/RemoveButton";
-import { Tab } from "@/components/ui/Tab";
-import { TabList } from "@/components/ui/TabList";
-import { DailyNormStore, DefaultNormStore, DraftNormStore, UserNormStore } from "@/store/dailyNormStore/dailyNormStore";
-import { Flows, rootDailyNormStore } from "@/store/rootStore";
-import { observer } from "mobx-react-lite";
-import React, { useEffect } from "react";
+type Props = {
+  children?: React.ReactNode;
+  f;
+  init: DailyNormEntity[];
+};
 
-const DailyNorms = () => {
+const DailyNorms = ({ init }: Props) => {
+  const store = useMemo(() => new DailyNormsViewModel(init), [init]);
 
-  const {
-    currentStore,
-    draftStore,
-    loadingState,
-  } = rootDailyNormStore;
+  const modalStore = useMemo(() => new ModalStoreUI<'edit' | 'view'>(), []);
+  const options = useLocalObservable(() => ({
+    showAdditionals: false,
+    toggle() {
+      this.showAdditionals = !this.showAdditionals;
+    },
+  }));
 
-  useEffect(() => {
-    Flows.Norm.getAll()
-  }, [])
+  // const onDelete = useCallback((id: string | number) => store.deleteChild(id), [store]);
+  // const onRecover = useCallback((id: string | number) => store.recoverDeletedChild(id), [store]);
 
-  if (!currentStore) return
+  const createAndOpenEdit = useCallback(() => {
+    const id = store.addChild();
+    store.setCurrentId(id);
+    modalStore.set('edit');
+  }, [modalStore, store]);
+
+  const openForView = useCallback(
+    (id: number | string) => {
+      store.setCurrentId(id);
+      modalStore.set('view');
+    },
+    [modalStore, store]
+  );
+
+  const onOpenEdit = (id: string | number) => {
+    store.setCurrentId(id);
+    modalStore.set('edit');
+  };
+
+  const onFinish = async (payload: DailyNormEntityUI | null) => {
+    if (!payload) return;
+    const localCreated = typeof payload.id === 'string';
+    const method = localCreated ? createDailyNorm : updateDailyNorm;
+    const result = await method(payload);
+    if (!result.data) return;
+    dailyNormModelStore.set(result.data.id, result.data);
+    modalStore.close();
+  };
+
+  const standardNorm = store.defaults[0];
+  // const standardNorm2 = store.defaults[1]
+
+  const showFinishButton = modalStore.current === 'edit';
+  const showAdditionalOptionsButton = !modalStore.current;
+  const showAddButton = !modalStore.current;
 
   return (
-    <Layout
-      left={<DailyNormTabs
-        store={rootDailyNormStore}
-        onRemove={() => Flows.Norm.remove(currentStore.id, currentStore.name)}
-      />}
-      center={
-        currentStore instanceof DefaultNormStore
-          ? <DefaultDailyNorm store={currentStore} />
-          : (
-            <DailyNorm store={currentStore}>
-              {currentStore instanceof UserNormStore
-                ? <UserActions2
-                  store={currentStore}
-                  loadingState={loadingState}
-                  remove={() => Flows.Norm.remove(currentStore.id, currentStore.name)}
-                  update={() => Flows.Norm.update(currentStore.id, currentStore.name)}
-                  resetToInit={currentStore.resetToInit}
-                />
-                : <DraftActions2
-                  loadingState={loadingState}
-                  isEmpty={draftStore.empty}
-                  resetToInit={draftStore.resetToInit}
-                  save={Flows.Norm.create}
-                />
-              }
-            </DailyNorm>
-          )
-
-      }
-      right={
-        null
-      }
-      overlayCenter={
-        (currentStore instanceof DraftNormStore && loadingState.getLoading('save'))
-        || loadingState.getLoading('update', currentStore?.id || -1)
-        || loadingState.getLoading('delete', currentStore?.id || -1)
-      }
-    >
-    </Layout>
-  )
-
-  // return (
-
-  //   <Container>
-  //     <Container>
-  //       <TabList isLoading={loading.all}>
-  //         {stores.map(({ id, name }, i) => (
-  //           <Tab
-  //             before={
-  //               <input
-  //                 type="radio"
-  //                 checked={id === dailyNormIdCurrentlyInUse}
-  //                 onChange={() => setCurrentDailyNormInUseId(id)}
-  //               />
-  //             }
-  //             key={id}
-  //             draft={i === 0}
-  //             onClick={() => setCurrentId(id)}
-  //             isActive={currentId === id}
-  //             after={
-  //               isDraftId(id) ? null : (
-  //                 <RemoveButton onClick={() => remove(id)} />
-  //               )
-  //             }
-  //           >
-  //             {name}
-  //           </Tab>
-  //         ))}
-  //       </TabList>
-  //     </Container>
-  //     <Container boxShadow>
-  //       {currentStore && <DailyNorm store={currentStore}></DailyNorm>}
-  //     </Container>
-  //   </Container>
-
+    <div className={styles.container}>
+      <ListItem item={standardNorm} onTitle={() => openForView(standardNorm.id)}>
+        {standardNorm.name}
+      </ListItem>
+      <ul>
+        {store.items.map((item) => (
+          <ListItem item={item} key={item.id} onTitle={onOpenEdit}>
+            <p>{item.name}</p>
+            {options.showAdditionals && <button>Удалить</button>}
+          </ListItem>
+        ))}
+      </ul>
+      <ModalRoot modals={modalStore}>
+        {{
+          ['view']: <DailyNormsContent store={store} variant="view" />,
+          ['edit']: <DailyNormsContent store={store} variant="modify" />,
+        }}
+      </ModalRoot>
+      <Actions isShow={() => true}>
+        {showFinishButton ? <ActionButton.Finish onFinish={onFinish} content={store} /> : <span />}
+        {showAddButton && <ActionButton.Add onClick={createAndOpenEdit} />}
+        {showAdditionalOptionsButton && <ActionButton.AdditionalOptions options={options} />}
+      </Actions>
+    </div>
+  );
 };
 
 export default observer(DailyNorms);

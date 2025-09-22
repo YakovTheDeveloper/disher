@@ -8,7 +8,6 @@ export interface CollectionEntity<T> {
 
 export interface CollectionItemEntity {
     id: number | string;
-    quantity: number;
     status: CollectionItemEntityStatusUI
 }
 

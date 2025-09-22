@@ -58,10 +58,6 @@ const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
   const _itemActions = useItemActionsUI({ variant: 'schedule', modals, vm: schedule });
   const itemActions = useMemo(() => _itemActions, [modals, schedule]);
 
-  const onMoreOptions = () => {
-    options.toggle();
-  };
-
   const onFoodsOpenCreate = () => {
     schedule.children.setCurrentId(-1);
     modals.set('food');
@@ -152,7 +148,7 @@ const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
       <Actions isShow={shouldActionShow}>
         <ActionButton.Finish onFinish={onFinish} content={schedule} />
         <ActionButton.Add onClick={onFoodsOpenCreate} />
-        <ActionButton.AdditionalOptions onClick={onMoreOptions} options={options} />
+        <ActionButton.AdditionalOptions options={options} />
       </Actions>
     </div>
   );

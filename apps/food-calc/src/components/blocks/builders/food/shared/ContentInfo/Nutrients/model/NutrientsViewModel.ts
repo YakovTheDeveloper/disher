@@ -1,5 +1,8 @@
 import { defaultDailyNorms } from "@/components/blocks/builders/food/shared/ContentInfo/Nutrients/constants";
+import { DailyNormModelStore } from "@/store/models/dailyNorm/dailyNorm.model";
 import { FoodModelStore } from "@/store/models/food/foodModelStore";
+import { dailyNormModelStore, uiStore } from "@/store/rootStore";
+import { DailyNormsStoreUI } from "@/store/uiStore/dailyNorms/DailyNormsStoreUI";
 import { makeAutoObservable } from "mobx";
 
 type FoodId = number
@@ -10,10 +13,8 @@ export class NutrientViewModelStore {
         quantity: number;
         id: FoodId;
     }[] = [];
-    foodModel: FoodModelStore;
 
-    constructor(foodModel: FoodModelStore) {
-        this.foodModel = foodModel;
+    constructor(private foodModel: FoodModelStore, private dailyNormStoreUI: DailyNormsStoreUI = uiStore.dailyNorms) {
         makeAutoObservable(this);
     }
 
@@ -38,8 +39,11 @@ export class NutrientViewModelStore {
     getValue = (id: FoodId) => this.sums[id] ?? 0;
 
     getPercent = (id: NutrientId) => {
-        const norm = defaultDailyNorms[id];
+        const dailyNormNutrientQuantity = this.dailyNormStoreUI.currentNormNutrients[id]
+        console.log(dailyNormNutrientQuantity);
+        const noNorm = dailyNormNutrientQuantity == null
+        if (noNorm) return null
         const value = this.getValue(id);
-        return Math.min(100, (value / norm) * 100);
+        return Math.min(10000, (value / dailyNormNutrientQuantity) * 100);
     };
 }

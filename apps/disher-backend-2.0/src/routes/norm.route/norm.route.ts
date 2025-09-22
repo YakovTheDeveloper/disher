@@ -8,9 +8,10 @@ const defaultSelect = {
     name: true,
     description: true,
     items: {
-        include: {
-            Nutrient: true,
-        },
+        select: {
+            quantity: true,
+            nutrientId: true
+        }
     },
 }
 
@@ -33,7 +34,7 @@ export const dailyNormRoute = {
                 items: z.array(
                     z.object({
                         nutrientId: z.number(),
-                        quantity: z.number(),
+                        quantity: z.number().nullable().optional(),
                     })
                 ),
             })
@@ -67,7 +68,7 @@ export const dailyNormRoute = {
                 items: z.array(
                     z.object({
                         nutrientId: z.number(),
-                        quantity: z.number(),
+                        quantity: z.number().nullable().optional(),
                     })
                 ),
             })
