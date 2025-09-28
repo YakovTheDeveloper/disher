@@ -8,9 +8,10 @@ import { BuilderUIStore } from '@/components/blocks/builders/food/shared/Builder
 import { useCallback } from 'react';
 import { Item } from '@/components/blocks/builders/food/ScheduleBuilder/ui/List/Item';
 import { ItemActions } from '@/components/blocks/builders/food/ScheduleBuilder/types';
-import { TimeGroup } from '@/components/blocks/builders/food/ScheduleBuilder/ui/TimeGroup';
+import { TimeGroup } from '@/components/blocks/builders/food/ScheduleBuilder/ui/List/TimeGroup';
 import { WithOverlay } from '@/components/ui/Overlay';
 import Overlay from '@/components/ui/Overlay/Overlay';
+import clsx from 'clsx';
 
 type CommonProps = {
   options: BuilderUIStore;
@@ -42,14 +43,25 @@ const List = observer(({ content, itemActions, options, length, onDishesUnite }:
     (item: DayScheduleItemUI) => {
       return <Item key={item.id} content={item} itemActions={itemActions} options={options} />;
     },
-    [itemActions]
+    [itemActions, options]
+  );
+
+  const renderAside = useCallback(
+    (group: TimeGroupUI) => {
+      return group.items.length > 1 && options.showAdditionals ? (
+        <span onClick={() => onDishesUnite(group)} className={clsx([styles.uniteButton])}>
+          создать блюдо
+        </span>
+      ) : null;
+    },
+    [onDishesUnite, options]
   );
 
   console.log('from list');
   return (
-    <ul className={styles.list}>
+    <ul className="builder__time-groups">
       {content.map((group) => (
-        <TimeGroup key={group.time} group={group} onUnite={onDishesUnite} options={options}>
+        <TimeGroup key={group.time} group={group} renderAside={renderAside}>
           {renderItem}
         </TimeGroup>
       ))}

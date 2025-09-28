@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  DayScheduleItemUI,
   DayScheduleUI,
   ScheduleBuilderViewModel,
   TimeGroupUI,
@@ -33,7 +34,14 @@ import { runInAction, toJS, trace } from 'mobx';
 import DishCreatingStore from '@/components/blocks/builders/food/ScheduleBuilder/model/CreateDishViewModel';
 import { DishBuilderContainer } from '@/components/blocks/builders/food/ScheduleBuilder/ui/DishBuilderContainer';
 import { useItemActionsUI } from '@/components/blocks/builders/food/shared/useItemActionsUI';
-import { NutrientsEventEmitter } from '@/components/blocks/builders/food/shared/emitter';
+import {
+  NutrientsEventEmitter,
+  ScheduleUIEventEmitter,
+} from '@/components/blocks/builders/food/shared/emitter';
+import { CopySchedule } from '@/components/blocks/builders/food/ScheduleBuilder/ui/CopySchedule';
+import { EventsBuilder } from '@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder';
+import { EventContent } from '@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/components/EventContent';
+import { DailyEventData } from '@types';
 
 export const Modals = {
   Time: 'time',
@@ -41,6 +49,9 @@ export const Modals = {
   Quantity: 'quantity',
   Nutrients: 'nutrients',
   CreateDish: 'createDish',
+  CopySchedule: 'copySchedule',
+  EventTime: 'eventTime',
+  EventContent: 'eventContent',
 } as const;
 
 export type ModalsType = (typeof Modals)[keyof typeof Modals];
@@ -53,11 +64,14 @@ type Props = {
 
 const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
   const modals = useMemo(() => new ModalStoreUI<ModalsType>(), []);
+
   const options = useMemo(() => new BuilderUIStore(), []);
   const searchFiltering = useMemo(() => new SearchViewModel(foodStore, dishStore), []);
 
   const _itemActions = useItemActionsUI({ variant: 'schedule', modals, vm: schedule });
   const itemActions = useMemo(() => _itemActions, [modals, schedule]);
+
+  const dailyEventsItems = schedule.dailyEvents.children;
 
   const onFoodsOpenCreate = () => {
     schedule.children.setCurrentId(-1);
@@ -105,14 +119,55 @@ const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
   //   };
   // }, [schedule]);
 
+  const onFinishHandler = useCallback(() => {
+    onFinish(schedule.payload());
+  }, [schedule]);
+
+  const onCopyFinish = useCallback(
+    (items: DayScheduleItemUI[]) => {
+      schedule.addChildren(items);
+      modals.close();
+    },
+    [schedule, modals]
+  );
+
+  const onEventContentUpdateModalOpen = (id: string | number) => {
+    dailyEventsItems.setCurrentId(id);
+    modals.set('eventContent');
+  };
+
+  const onEventContentCreateModalOpen = () => {
+    dailyEventsItems.setCurrentId(-1);
+    modals.set('eventContent');
+  };
+
+  const onEventTimeModalOpen = (id: string | number) => {
+    dailyEventsItems.setCurrentId(id);
+    modals.set('eventTime');
+  };
+
+  const onEventContentSelect = (content: DailyEventData) => {
+    if (dailyEventsItems.currentId === -1) {
+      schedule.dailyEvents.add(content);
+      return;
+    }
+    dailyEventsItems.updateCurrent({ data: content });
+  };
+
   useEffect(() => {
     if (options.currentPage === 0) NutrientsEventEmitter.emit('RECALCULATE_NUTRIENTS');
   }, [options.currentPage]);
 
+  useEffect(() => {
+    ScheduleUIEventEmitter.on('OPEN_COPY_SCHEDULE_MODAL', () => {
+      modals.set('copySchedule');
+    });
+  }, []);
+
   return (
     <div className={style.container}>
       <Swipeable model={options}>
-        <TotalNutrients vm={schedule} options={options} />
+        <TotalNutrients vm={schedule} />
 
         <List
           itemActions={itemActions}
@@ -122,7 +177,12 @@ const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
           getLoadingState={getLoadingState}
         />
 
-        <ContentEdit.Questionnaire vm={schedule.questionnaire} />
+        <EventsBuilder
+          vm={schedule.dailyEvents}
+          onEventContentUpdateModalOpen={onEventContentUpdateModalOpen}
+          onEventTimeModalOpen={onEventTimeModalOpen}
+          onEventContentCreateModalOpen={onEventContentCreateModalOpen}
+        />
       </Swipeable>
 
       <ModalRoot modals={modals}>
@@ -148,10 +208,22 @@ const ScheduleBuilder = ({ schedule, onFinish, getLoadingState }: Props) => {
             <Nutrients getFood={getFoodModel} getCurrentFood={getCurrentFoodWithQuantity} />
           ),
           [Modals.CreateDish]: <DishBuilderContainer store={dishCreatingStore} />,
+          [Modals.CopySchedule]: <CopySchedule onFinish={onCopyFinish} />,
+          [Modals.EventContent]: (
+            <EventContent
+              onSelect={onEventContentSelect}
+              onFinish={modals.close}
+              current={dailyEventsItems.current?.data}
+            />
+          ),
+          [Modals.EventTime]: <ContentEdit.Time vm={dailyEventsItems} onFinish={modals.close} />,
         }}
       </ModalRoot>
+
       <Actions isShow={shouldActionShow}>
-        <ActionButton.Finish onFinish={onFinish} content={schedule} />
+        <ActionButton.Finish onClick={onFinishHandler} content={schedule}>
+          обновить
+        </ActionButton.Finish>
         <ActionButton.Add onClick={onFoodsOpenCreate} />
         <ActionButton.AdditionalOptions options={options} />
       </Actions>

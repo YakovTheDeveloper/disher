@@ -1,11 +1,11 @@
-import { createQuestionnaire, QuestionnaireViewModel } from "@/components/blocks/builders/food/ScheduleBuilder/model/QuestionnaireViewModel";
+import { DayEventsBuilderViewModel } from "@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel";
 import { UpdateChildrenStore } from "@/components/blocks/builders/food/shared/UpdateChildrenStore";
 import { deepCopy } from "@/lib/copy/deepCopy";
 import { CommonData } from "@/store/models/common/types";
 import { DishEntity } from "@/store/models/dish/types";
-import { getTotalFoodAndDishFoodQuantityFromAll, getTotalFoodAndDishFoodQuantityFromOne } from "@/store/scheduleStore/schedule.domain";
+import { getTotalFoodAndDishFoodQuantityFromOne } from "@/store/scheduleStore/schedule.domain";
 import { ScheduleEntity, ScheduleItemEntity, ScheduleQuestionnaire } from "@/store/scheduleStore/types";
-import { makeAutoObservable, makeObservable, observable, runInAction, toJS } from "mobx";
+import { makeAutoObservable, runInAction } from "mobx";
 import { v4 as uuidv4 } from 'uuid';
 
 export type DayScheduleItemUIStatus = 'added' | 'deleted' | 'modified' | null
@@ -14,14 +14,16 @@ export type DayScheduleUI = Omit<ScheduleEntity, 'items' | 'questionnaire'> & {
   items: DayScheduleItemUI[];
   questionnaire: ScheduleQuestionnaire | null
 };
-export type DayScheduleItemUI = Omit<ScheduleItemEntity, "foodId" | "id"> & {
+export type DayScheduleItemUI = Omit<ScheduleItemEntity, "id"> & {
   id: string | number
   status: DayScheduleItemUIStatus
 };
 
+export type DayScheduleItemCopyPayloadUI = Omit<DayScheduleItemUI, 'status'>
+
 type AddChild = { food: null, dish: DishEntity, time?: string } | { food: CommonData, dish: null, time?: string }
 
-export type TimeGroupUI = { time: string; items: DayScheduleItemUI[], offset: { hours: number; minutes: number } | null; }
+export type TimeGroupUI<T = DayScheduleItemUI> = { time: string; items: T[], offset: { hours: number; minutes: number } | null; }
 
 function scheduleToUIAdapter(raw: ScheduleEntity): DayScheduleUI {
   const copy = deepCopy(raw);
@@ -40,15 +42,15 @@ export class ScheduleBuilderViewModel {
   constructor(raw: ScheduleEntity) {
     this.schedule = scheduleToUIAdapter(raw)
     this.children = new UpdateChildrenStore(() => this.schedule)
-    this.questionnaire = new QuestionnaireViewModel(() => this.schedule)
+    this.dailyEvents = new DayEventsBuilderViewModel(raw.questionnaire)
     makeAutoObservable(this)
   }
 
   schedule: DayScheduleUI;
 
-  children: UpdateChildrenStore<DayScheduleUI, DayScheduleItemUI>
+  dailyEvents: DayEventsBuilderViewModel
 
-  questionnaire: QuestionnaireViewModel
+  children: UpdateChildrenStore<DayScheduleUI, DayScheduleItemUI>
 
   get foodWithQuantity() {
     const current = this.children.current
@@ -100,6 +102,14 @@ export class ScheduleBuilderViewModel {
     }
     this.schedule.items.push(item);
     return item.id
+  }
+
+  addChildren = (items: AddChild[]) => {
+    runInAction(() => {
+      items.forEach(item => {
+        this.schedule.items.push(createUIDayScheduleItem(item));
+      })
+    })
   }
 
   removeChildrenByFoodIdsAndTime = (foodIds: number[], time: string) => {

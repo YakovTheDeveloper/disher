@@ -14,6 +14,7 @@ import { MenuUiStore } from '@/store/uiStore/menu/menuUiStore';
 import { Button } from '@/components/ui/Button';
 import { Menu } from '@/components/common/Menu';
 import CalendarIcon from '@/assets/icons/calendar.svg';
+import { ScheduleUIEventEmitter } from '@/components/blocks/builders/food/shared/emitter';
 
 type Props = {
   children?: React.ReactNode;
@@ -69,6 +70,10 @@ const Navigation = ({ children, menuUi = new MenuUiStore() }: Props) => {
     touchStartX.current = null;
   };
 
+  const onCopyFromSchedule = () => {
+    ScheduleUIEventEmitter.emit('OPEN_COPY_SCHEDULE_MODAL');
+  };
+
   return (
     <>
       <motion.header
@@ -86,7 +91,7 @@ const Navigation = ({ children, menuUi = new MenuUiStore() }: Props) => {
           <NavLink className={styles.title} to={RouterLinks.Schedule}>
             <motion.div className={styles.date}>
               <div className={styles.dateNumbers}>
-                {isToday(date) && <p className={styles.dateWordsToday}>сегодня</p>}
+                {/* {isToday(date) && <p className={styles.dateWordsToday}>сегодня</p>} */}
 
                 <span>
                   {day}.{monthNumber}
@@ -108,6 +113,11 @@ const Navigation = ({ children, menuUi = new MenuUiStore() }: Props) => {
           <CalendarIcon className={styles.menuNavIcon} />
           <button className={styles.swipeHint} onClick={handleNext}>
             ➡︎
+          </button>
+        </div>
+        <div>
+          <button className={styles.buttonInMenu} onClick={onCopyFromSchedule}>
+            Скопировать еду с другого дня
           </button>
         </div>
       </Menu>

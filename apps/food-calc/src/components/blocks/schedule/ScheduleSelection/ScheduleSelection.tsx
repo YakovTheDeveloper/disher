@@ -10,14 +10,17 @@ import clsx from 'clsx';
 import { ScheduleStore } from '@/store/scheduleStore/scheduleStore';
 import { ScheduleCalendarContentCell } from '@/components/blocks/schedule/ScheduleSelection/ScheduleCalendarContentCell';
 
-const ScheduleSelection = ({ store = scheduleStore }: { store: ScheduleStore }) => {
+type Props = {
+  onDate: (date: Date) => void;
+  store?: ScheduleStore;
+};
+
+const ScheduleSelection = ({ store = scheduleStore, onDate }: Props) => {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   useEffect(() => {
     store.getAllMonthShortData(currentMonth);
   }, [currentMonth]);
-
-  const navigate = useNavigate();
 
   const onPrevMonth = () => {
     const prevMonth = new Date(currentMonth);
@@ -29,17 +32,6 @@ const ScheduleSelection = ({ store = scheduleStore }: { store: ScheduleStore }) 
     const nextMonth = new Date(currentMonth);
     nextMonth.setMonth(currentMonth.getMonth() + 1);
     setCurrentMonth(nextMonth);
-  };
-
-  //   const options: Intl.DateTimeFormatOptions = {
-  //     weekday: 'long',
-  //     year: '2-digit',
-  //     month: 'numeric',
-  //     day: 'numeric',
-  //   };
-
-  const onDateChoose = (date: Date) => {
-    navigate(`builder?date=${date.toISOString()}`);
   };
 
   const getContentExist = useCallback(
@@ -60,7 +52,7 @@ const ScheduleSelection = ({ store = scheduleStore }: { store: ScheduleStore }) 
         onNextMonth={onNextMonth}
         onPrevMonth={onPrevMonth}
         selectedDate={null}
-        onDateSelect={onDateChoose}
+        onDateSelect={onDate}
         dayNames={dayNames.ru}
         cellClassName={style.dateCell}
         renderDayCellContent={renderCellContent}

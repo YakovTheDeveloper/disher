@@ -5,7 +5,7 @@ import { prisma } from "../client"
 import { t } from "../trpc"
 import { ScheduleCreateInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateManyFoodInputSchema, ScheduleItemCreateManyScheduleInputSchema, ScheduleItemCreateNestedManyWithoutScheduleInputSchema, ScheduleItemCreateWithoutScheduleInputSchema, ScheduleItemUncheckedUpdateWithoutScheduleInputSchema, ScheduleItemUpdateWithoutScheduleInputSchema, ScheduleUpdateInputSchema, ScheduleUpdateWithoutUserInputSchema, ScheduleWhereUniqueInputSchema } from "../../prisma/generated/zod"
 import { createResponseObject } from "../lib/response"
-import { DailySurveySchema } from "./schedule.route/validation"
+import { DailyEventsUpdateSchema } from "./schedule.route/validation"
 import { Prisma } from "@prisma/client"
 
 const scheduleItemSelect = {
@@ -142,13 +142,41 @@ export const scheduleRoutes = {
             }
 
         }),
+    updateScheduleDailyEvents: t.procedure.input(DailyEventsUpdateSchema).mutation(async ({ input }) => {
+        const { id, items } = input
+        try {
+            const result = await prisma.schedule.update({
+                where: { id },
+                select: {
+                    date: true,
+                    id: true,
+                    questionnaire: true,
+                },
+                data: {
+                    questionnaire: JSON.stringify(items)
+                }
+            });
+
+            if (!result) {
+                return createResponseObject(404, "hz", null);
+            }
+
+            return createResponseObject(200, "OK", result);
+
+        } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                return createResponseObject(400, "Database error", null);
+            }
+            return createResponseObject(500, "Unexpected error", null);
+        }
+
+    }),
     updateSchedule: t.procedure
         .input(
             z.object({
                 id: z.number(),
                 date: z.string().optional(),
                 items: z.array(z.lazy(() => ScheduleItemCreateManyScheduleInputSchema)).optional(),
-                questionnaire: DailySurveySchema.optional()
             })
         )
         .mutation(async ({ input }) => {
@@ -161,7 +189,6 @@ export const scheduleRoutes = {
                 questionnaire: string
             }> = {}
             if (input.date) restUpdate.date = input.date
-            if (input.questionnaire) restUpdate.questionnaire = JSON.stringify(input.questionnaire)
 
             if (items) {
                 const existingItems = await prisma.scheduleItem.findMany({ where: { scheduleId: id } });

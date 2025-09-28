@@ -21,8 +21,7 @@
 
 .title {
     display: flex;
-    align-items: center;
-    justify-content: space-evenly;
+    justify-content: end;
     gap: 10px;
     // margin: 0 auto;
     flex-grow: 1;
@@ -32,8 +31,11 @@
     display: flex;
     flex-direction: column;
     // align-items: center;
-    font-size: 2.3rem;
-    line-height: 2.3rem;
+    font-size: 25px;
+    line-height: 25px;
+    padding-top: 7px;
+    gap: 4px;
+    padding-right: 25px;
 }
 
 .dateNumbers {
@@ -43,6 +45,7 @@
     display: flex;
     gap: 20px;
     position: relative;
+    margin-left: auto;
 }
 
 .dateWords {
@@ -53,7 +56,7 @@
     font-style: italic;
     font-size: 15px;
     line-height: 0.8rem;
-    margin-right: 7px;
+    // margin-right: 7px;
 
 
     gap: 5px;
@@ -113,4 +116,11 @@
     100% {
         transform: translateX(5px);
     }
+}
+
+.buttonInMenu {
+    font-weight: 300;
+    font-style: italic;
+    font-size: 20px;
+    color: #fff;
 }

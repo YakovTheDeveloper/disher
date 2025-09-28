@@ -4,22 +4,17 @@ import {
   DayScheduleItemUI,
   TimeGroupUI,
 } from '@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel';
-import clsx from 'clsx';
-import { BuilderUIStore } from '@/components/blocks/builders/food/shared/BuilderUIStore';
-type Props = {
-  children: (item: DayScheduleItemUI) => JSX.Element;
-  group: TimeGroupUI;
-  onUnite: (group: TimeGroupUI) => void;
-  options: BuilderUIStore;
+
+type Props<T> = {
+  children: (item: T) => JSX.Element;
+  group: TimeGroupUI<T>;
+  renderAside?: (group: TimeGroupUI<T>) => JSX.Element | null;
 };
 
-const TimeGroup = ({ children, group, onUnite }: Props) => {
+const TimeGroup = <T,>({ children, group, renderAside }: Props<T>) => {
   console.log('TIME_GROUP');
-  const onUniteHandler = () => onUnite(group);
 
   const timeOffsetFromPreviousGroupView = formatOffset(group.offset);
-
-  const showUniteButton = group.items.length > 1;
 
   return (
     <ul className={styles.container}>
@@ -27,11 +22,7 @@ const TimeGroup = ({ children, group, onUnite }: Props) => {
         <span className={styles.message} hidden={!group.offset}>
           {timeOffsetFromPreviousGroupView}
         </span>
-        {showUniteButton && (
-          <span onClick={onUniteHandler} className={clsx([styles.uniteButton])}>
-            создать блюдо
-          </span>
-        )}
+        {renderAside?.(group)}
       </header>
       {group.items.map(children)}
     </ul>

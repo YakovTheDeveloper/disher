@@ -36,13 +36,11 @@
     }
 }
 
-.uniteButton {
-    font-weight: 500;
-    color: rgba(63, 86, 255, 0.335);
-}
+
 
 .header {
     display: flex;
     justify-content: flex-end;
+    min-height: 25px;
 
 }

@@ -1,0 +1,7 @@
+.container {}
+
+.listItemRow {
+    display: grid;
+    grid-template-columns: 5ch 1fr;
+    gap: 10px;
+}

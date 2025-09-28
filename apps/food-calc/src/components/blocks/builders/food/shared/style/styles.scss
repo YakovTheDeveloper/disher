@@ -1,4 +1,16 @@
 :root {
     --builder-header-height: 10dvh;
     --builder-body-height: 90dvh;
+
+    --builder-time-group-gap: 30px;
+}
+
+
+.builder {
+
+    &__time-groups {
+        display: flex;
+        flex-direction: column;
+        gap: var(--builder-time-group-gap);
+    }
 }

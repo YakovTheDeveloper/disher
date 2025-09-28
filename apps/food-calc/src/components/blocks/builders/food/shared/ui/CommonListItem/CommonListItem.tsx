@@ -34,9 +34,9 @@ const ListItem = ({
   return (
     <li
       className={clsx([
+        className,
         styles.container,
         showAdditionals && styles.container_active,
-        className,
         status && styles[status],
       ])}
     >

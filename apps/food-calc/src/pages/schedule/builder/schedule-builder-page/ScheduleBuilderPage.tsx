@@ -13,12 +13,10 @@ import styles from './ScheduleBuilderPage.module.scss';
 import { InitLoadingStore } from '@/components/blocks/builders/food/ScheduleBuilder/model/InitLoadingStore';
 import { Overlay, WithOverlay } from '@/components/ui/Overlay';
 import { debounce } from '@/utils/debounce';
+import { ScheduleQuestionnaireItemUI } from '@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel';
 
 const Page = observer(({ date }: { date: string }) => {
   const store = useMemo(() => new InitLoadingStore(), []);
-
-  // trace(true);
-
   const onInit = useMemo(
     () =>
       debounce((date: string) => {
@@ -48,6 +46,14 @@ const Page = observer(({ date }: { date: string }) => {
     return;
   }, []);
 
+  const onDailyEventsUpdate = useCallback(
+    async (payload: ScheduleQuestionnaireItemUI[]) => {
+      const { data = null } = await scheduleStore.updateDailyEvents(date, payload);
+      if (data) scheduleStore.updateDailyEventsLocal(date, data.questionnaire);
+    },
+    [date]
+  );
+
   const isLoading = useCallback(
     () => scheduleStore.requestState.getOneByDate.get(date)?.loading ?? false,
     [scheduleStore, date]
@@ -70,19 +76,10 @@ const Page = observer(({ date }: { date: string }) => {
           key={date}
           schedule={store.initData}
           onFinish={onFinish}
+          onDailyEventsUpdate={onDailyEventsUpdate}
           getLoadingState={getLoadingState}
         />
       )}
-      {/* <WithOverlay isLoading={isLoading}>
-        {store.initData && (
-          <ScheduleBuilder
-            key={date}
-            schedule={store.initData}
-            onFinish={onFinish}
-            getLoadingState={getLoadingState}
-          />
-        )}
-      </WithOverlay> */}
     </div>
   );
 });

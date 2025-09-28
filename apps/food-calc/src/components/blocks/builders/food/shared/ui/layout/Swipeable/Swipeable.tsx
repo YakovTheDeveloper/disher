@@ -63,6 +63,10 @@ const Swipeable = ({ children, model }: Props) => {
   const getLinearOffset = () => {
     let effectiveOffset = 0;
 
+    if (children.length - 1 === model.currentPage) {
+      return 0;
+    }
+
     if (offset < 0)
       effectiveOffset =
         Math.abs(offset) > minDragToMoveScreen

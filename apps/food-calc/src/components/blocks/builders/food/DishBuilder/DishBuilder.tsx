@@ -96,7 +96,9 @@ const DishBuilder = ({ init, onFinish, foodModelStore = foodStore, finishButtonT
       </ModalRoot>
 
       <Actions isShow={() => !modals.current}>
-        <Button.Finish onFinish={onFinish} content={dishes} />
+        <Button.Finish onClick={onFinish} content={dishes}>
+          обновить
+        </Button.Finish>
         <Button.Add onClick={onFoodsOpen} />
         <Button.AdditionalOptions onClick={onMoreOptions} options={options} />
       </Actions>

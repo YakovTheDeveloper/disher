@@ -4,6 +4,7 @@ import { trpc } from "@/api/trpc/trpc"
 import { DayScheduleUI } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel"
 import { ISODate } from "@/types/common/common"
 import type { ApiInputs } from '@types'
+import { DailyEventData } from "@types";
 
 export const getSchedules = async (date: string) => {
     return trpc.getSchedules.query({ date })
@@ -47,11 +48,18 @@ export const updateSchedule = async (
         const noStatus = statusFiltered.map(normalizeFoodAndDishIds)
         payload.items = noStatus
     }
-    if (data.questionnaire != undefined) {
-        payload.questionnaire = data.questionnaire
-    }
 
     const result = await trpc.updateSchedule.mutate(payload)
+    return result
+}
+
+export const updateDailyEvents = async (
+    data: DailyEventData[],
+    id: number
+) => {
+    const payload: Parameters<typeof trpc.updateScheduleDailyEvents.mutate>[0] = { id, items: data }
+
+    const result = await trpc.updateScheduleDailyEvents.mutate(payload)
     return result
 }
 

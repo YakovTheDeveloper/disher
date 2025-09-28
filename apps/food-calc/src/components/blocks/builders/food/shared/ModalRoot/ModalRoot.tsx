@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite';
 import styles from './ModalRoot.module.scss';
 import { ModalStoreUI } from '@/components/blocks/builders/food/shared/ModalStoreUI';
 import Modal from '@/components/ui/Modal/Modal';
+import { createPortal } from 'react-dom';
 type Props<ModalVariants extends string | number> = {
   children: Partial<
     | Record<ModalVariants, React.ReactNode>
@@ -20,7 +21,7 @@ function ModalRoot<ModalVariants extends string | number>({
   children,
   modals,
 }: Props<ModalVariants>) {
-  return (
+  return createPortal(
     <>
       {Object.entries(children).map(([id, Component]) =>
         Component ? (
@@ -36,7 +37,8 @@ function ModalRoot<ModalVariants extends string | number>({
           </Modal>
         ) : null
       )}
-    </>
+    </>,
+    document.body
   );
 }
 

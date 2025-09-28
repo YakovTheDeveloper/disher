@@ -22,7 +22,7 @@
                 "packages/api/src/*"
             ],
             "@types/*": [
-                "packages/types/src*"
+                "packages/types/src/*"
             ]
         }
     }

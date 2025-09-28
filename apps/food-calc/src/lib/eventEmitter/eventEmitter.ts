@@ -1,8 +1,6 @@
-// eventEmitter.ts
-type EventName = "RECALCULATE_NUTRIENTS";
 type Listener = () => void;
 
-export class EventEmitter {
+export class EventEmitter<EventName> {
     private listeners: Map<EventName, Set<Listener>> = new Map();
 
     on(event: EventName, listener: Listener) {
