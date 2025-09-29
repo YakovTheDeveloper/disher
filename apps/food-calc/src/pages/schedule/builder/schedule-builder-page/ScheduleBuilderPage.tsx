@@ -46,14 +46,6 @@ const Page = observer(({ date }: { date: string }) => {
     return;
   }, []);
 
-  const onDailyEventsUpdate = useCallback(
-    async (payload: ScheduleQuestionnaireItemUI[]) => {
-      const { data = null } = await scheduleStore.updateDailyEvents(date, payload);
-      if (data) scheduleStore.updateDailyEventsLocal(date, data.questionnaire);
-    },
-    [date]
-  );
-
   const isLoading = useCallback(
     () => scheduleStore.requestState.getOneByDate.get(date)?.loading ?? false,
     [scheduleStore, date]
@@ -76,7 +68,6 @@ const Page = observer(({ date }: { date: string }) => {
           key={date}
           schedule={store.initData}
           onFinish={onFinish}
-          onDailyEventsUpdate={onDailyEventsUpdate}
           getLoadingState={getLoadingState}
         />
       )}

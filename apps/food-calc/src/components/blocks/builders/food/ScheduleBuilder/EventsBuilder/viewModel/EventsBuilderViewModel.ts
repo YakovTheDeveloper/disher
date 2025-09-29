@@ -17,15 +17,17 @@ export type ScheduleQuestionnaireItemUI = {
     time: string
 };
 
-function dailyEventsToUIAdapter(data?: string | null): ScheduleQuestionnaire {
-    return data ? JSON.parse(data) : {
-        items: []
-    }
-}
+// function dailyEventsToUIAdapter(data?: string | null): ScheduleQuestionnaire {
+//     return data ? JSON.parse(data) : {
+//         items: []
+//     }
+// }
 
 export class DayEventsBuilderViewModel {
-    constructor(raw: string | null) {
-        this.content = dailyEventsToUIAdapter(raw)
+    constructor(data: ScheduleQuestionnaireItemUI[] | null) {
+        this.content = {
+            items: data ?? []
+        }
         this.children = new UpdateChildrenStore(() => this.content)
 
         makeAutoObservable(this)
@@ -59,7 +61,7 @@ export class DayEventsBuilderViewModel {
     }
 
     payload = () => {
-        return {}
+        return this.content.items
     }
 }
 
@@ -71,15 +73,6 @@ const createLocal = (data: DailyEventData): ScheduleQuestionnaireItemUI => {
         time: '00:00'
     };
 };
-
-export type DailyEventVariant = {
-    variant: string
-    content: {
-        variant: string,
-        content: { value: OneToTen }
-    }
-
-}
 
 export const eventVariantToView = {
     sleep: 'сон',

@@ -1,3 +1,4 @@
+import { getTotalDishFoodContentQuantity } from "@/store/models/dish/dish.domain";
 import { GetTotalFoodAndDishFoodQuantityFromOneItemInput, FoodWithQuantity, GetTotalFoodAndDishFoodQuantityFromAllItemsInput } from "@/store/scheduleStore/schedule.domain.types"
 import { ScheduleEntity } from "@/store/scheduleStore/types"
 
@@ -5,24 +6,32 @@ export function getScheduleProductsByTime(schedule: ScheduleEntity, time: string
     return schedule.items.filter((item) => item.time === time)
 }
 
-export function getTotalFoodAndDishFoodQuantityFromOne(item: GetTotalFoodAndDishFoodQuantityFromOneItemInput): FoodWithQuantity[] {
+//todo tests with custom quantity
+export function getTotalFoodAndDishFoodQuantityFromSchedule(item: GetTotalFoodAndDishFoodQuantityFromOneItemInput, customQuantity?: number): FoodWithQuantity[] {
+    const quantity = customQuantity ?? item.quantity;
     if (item?.dish) {
-        return item?.dish.items.map(({ food: { id }, quantity }) => ({
-            id,
-            quantity
-        }))
+        const dishItems = item.dish.items;
+        const dishTotalWeight = getTotalDishFoodContentQuantity(dishItems)
+
+        return dishItems.map(({ food: { id }, quantity }) => {
+            const actualWeight = quantity * (quantity / dishTotalWeight);
+            return {
+                id,
+                quantity: actualWeight
+            };
+        });
     }
     if (item?.food) {
         return [{
             id: item.food.id,
-            quantity: item.quantity
+            quantity
         }]
     }
     return []
 }
 
 export function getTotalFoodAndDishFoodQuantityFromAll(items: GetTotalFoodAndDishFoodQuantityFromAllItemsInput): FoodWithQuantity[] {
-    return items.flatMap(getTotalFoodAndDishFoodQuantityFromOne)
+    return items.flatMap((item) => getTotalFoodAndDishFoodQuantityFromSchedule(item))
 }
 
 export function getAllFoodIds(items: FoodWithQuantity[]) {

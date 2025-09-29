@@ -78,19 +78,60 @@ const DailyEventDataSchema = z.union([
     NoteEventSchema,
 ]);
 
-// Final input schema
-const DailyEventsInputSchema = z.object({
-    items: z.array(DailyEventDataSchema),
-});
 
 // Type inference (optional)
 
+const DailyEventsItemsSchema = z.object({
+    time: z.string(),
+    content: DailyEventDataSchema
+})
+
+const DailyEventsInputSchema = z.array(DailyEventsItemsSchema)
+
 export const DailyEventsUpdateSchema = z.object({
     id: z.number(),
-    items: z.array(z.object({
-        time: z.string(),
-        content: DailyEventDataSchema
-    })),
+    items: DailyEventsInputSchema
 });
 
 export type DailyEvents = z.infer<typeof DailyEventsUpdateSchema>;
+
+export type DailyEventEntity = z.infer<typeof DailyEventsItemsSchema>;
+
+
+
+export const ScheduleItemCreateZod = z.object({
+    quantity: z.number(),
+    time: z.string(),
+    customFoodName: z.string().optional().nullable(),
+    foodId: z.number().optional(),
+    dishId: z.number().optional(),
+});
+
+export const ScheduleItemUpdateZod = z.object({
+    id: z.number(),
+    quantity: z.number().optional(),
+    time: z.string().optional(),
+    customFoodName: z.string().optional().nullable(),
+    foodId: z.number().optional().nullable(),
+    dishId: z.number().optional().nullable(),
+});
+
+export const ScheduleChangesZod = z.object({
+    create: z.array(ScheduleItemCreateZod).optional(),
+    update: z.array(ScheduleItemUpdateZod).optional(),
+    delete: z.array(z.number()).optional(),
+});
+
+export const ScheduleUpdateInputZod = z.object({
+    id: z.number(),
+    date: z.string().optional(),
+    dailyEvents: DailyEventsInputSchema.optional(),
+    changes: ScheduleChangesZod.optional(),
+});
+
+
+export const ScheduleCreateInputZod = z.object({
+    date: z.string(),
+    dailyEvents: DailyEventsInputSchema,
+    items: z.array(ScheduleItemCreateZod).optional(),
+});

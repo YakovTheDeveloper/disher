@@ -1,4 +1,4 @@
-import { getFood, getFoodWithNutrients, getOneFood } from "@/api/food/food.api";
+import { getFoodList, GetFoodParams, getFoodWithNutrients, getOneFood } from "@/api/food/food.api";
 import { requestWrapper } from "@/api/Request";
 import { RequestState } from "@/api/RequestState";
 import { isEmpty } from "@/lib/empty";
@@ -16,24 +16,43 @@ type FoodEntityFull = FoodEntity & {
 export class FoodModelStore {
     data: Map<string, FoodEntityFull> = new Map();
 
+    shortData: FoodEntity[] = []
+
+    setShortData = (data: FoodEntity[]) => {
+        this.shortData = [...this.shortData, ...data]
+    }
+
     constructor() {
         makeAutoObservable(this);
-        this.getAll();
+        // this.getAll();
     }
 
     requestState = {
         getAllWithNutrients: new Map<string, RequestState>()
     }
 
-    getAll = async (ids?: number[], withNutrients = false) => {
-        const method = (withNutrients ? getFoodWithNutrients : getFood)
-        const res = await requestWrapper(method, {}, ids);
+    // getAll = async (ids?: number[], withNutrients = false) => {
+    //     const method = (withNutrients ? getFoodWithNutrients : getFood)
+    //     const res = await requestWrapper(method, {}, ids);
 
-        if (!res.data) return;
-        res.data.forEach((dish) => {
-            this.data.set(dish.id.toString(), dish);
+    //     if (!res.data) return;
+    //     res.data.forEach((dish) => {
+    //         this.data.set(dish.id.toString(), dish);
+    //     });
+    // };
+
+    getFoodWithParams = async (params: GetFoodParams) => {
+        const result = await getFoodList(params);
+        if (!result.data) return {
+            items: [],
+            hasMore: false
+        }
+
+        result.data.items.forEach((food) => {
+            this.data.set(food.id.toString(), food);
         });
-    };
+        return result.data
+    }
 
     private _loadFoodWithNutrientsByFoodIds = async (ids: number[]) => {
 

@@ -10,3 +10,5 @@ export type ScheduleItemEntity = NonNullable<
 >['items'][number];
 
 export type DailyEventsEntity = Required<DailyEvents>
+
+export type { DailyEventEntity } from '@types'

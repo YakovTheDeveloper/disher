@@ -1,6 +1,6 @@
 import { ModalStoreUI } from '@/components/blocks/builders/food/shared/ModalStoreUI';
 
-type CommonModals = 'food' | 'quantity' | 'nutrients';
+type CommonModals = 'food' | 'quantity' | 'foodNutrients';
 
 type CommonVM = {
     children: {
@@ -13,7 +13,7 @@ type CommonVM = {
 type Args = {
     variant: 'schedule',
     vm: CommonVM,
-    modals: ModalStoreUI<CommonModals | 'createDish' | 'time'>
+    modals: ModalStoreUI<CommonModals | 'createDish' | 'time' | 'dishNutrients'>
 } | {
     variant: 'dish',
     vm: CommonVM,
@@ -23,6 +23,7 @@ type Args = {
 export type ItemActions = {
     onFoodsOpenUpdate: (id: string | number) => void;
     onFoodsOpenInfo: (id: string | number) => void;
+    onDishOpenInfo?: (id: string | number) => void;
     onTimeOpen?: (id: string | number) => void;
     onQuantityOpen: (id: string | number) => void;
     onDelete: (childId: string | number) => void;
@@ -42,9 +43,8 @@ export function useItemActionsUI({ modals, variant, vm }: Args): ItemActions {
 
     const onFoodsOpenInfo = (id: string | number) => {
         vm.children.setCurrentId(id);
-        modals.set('nutrients');
+        modals.set('foodNutrients');
     };
-
     const result = {
         onFoodsOpenUpdate,
         onQuantityOpen,
@@ -55,6 +55,12 @@ export function useItemActionsUI({ modals, variant, vm }: Args): ItemActions {
             onTimeOpen: (id: string | number) => {
                 vm.children.setCurrentId(id)
                 modals.set('time');
+            }
+        } : {}),
+        ...(variant === 'schedule' ? {
+            onDishOpenInfo: (id: string | number) => {
+                vm.children.setCurrentId(id)
+                modals.set('dishNutrients');
             }
         } : {}),
     };

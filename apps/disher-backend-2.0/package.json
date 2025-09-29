@@ -1,7 +1,8 @@
 {
   "name": "wow",
   "scripts": {
-    "dev": "ts-node ./src/app.ts",
+    "dev:local": "cross-env HOST=localhost ts-node ./src/app.ts",
+    "dev:network": "cross-env HOST=0.0.0.0 ts-node ./src/app.ts",
     "queries": "ts-node ./src/queries.ts",
     "caching": "ts-node ./src/caching.ts",
     "test": "ts-node ./src/test.ts",
@@ -27,6 +28,7 @@
     "@types/koa": "^3.0.0",
     "@types/koa__router": "^12.0.4",
     "@types/koa-bodyparser": "^4.3.12",
+    "cross-env": "^10.0.0",
     "prisma": "^6.15.0",
     "ts-node": "10.9.2",
     "typescript": "^5.9.2"

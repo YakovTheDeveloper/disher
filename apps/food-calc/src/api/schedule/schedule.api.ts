@@ -1,6 +1,7 @@
-import { filterAndRemoveStatus, noChildrenIdsIfString } from "@/api/adapters/common"
+import { extractChanges, filterAndRemoveStatus, noChildrenIdsIfString } from "@/api/adapters/common"
 import { scheduleFromUI, normalizeFoodAndDishIds } from "@/api/schedule/schedule.adapter"
 import { trpc } from "@/api/trpc/trpc"
+import { ScheduleQuestionnaireItemUI } from "@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel"
 import { DayScheduleUI } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel"
 import { ISODate } from "@/types/common/common"
 import type { ApiInputs } from '@types'
@@ -22,11 +23,15 @@ export const addSchedule = async (data: DayScheduleUI) => {
     const normalizedIds = schedule.items.map(normalizeFoodAndDishIds);
     const items = filterAndRemoveStatus(normalizedIds)
 
-    const payload: ApiInputs.ScheduleCreateWithoutUserInput = {
+    const filteredDailyEventItems = filterAndRemoveStatus(data.dailyEvents || [])
+
+    const payload: Parameters<typeof trpc.addSchedule.mutate>[0] = {
         date: data.date,
-        items: {
-            createMany: { data: items }
-        }
+        items,
+        dailyEvents: filteredDailyEventItems.map(({ data, time }) => ({
+            time,
+            content: data
+        })) ?? []
     }
 
     const result = await trpc.addSchedule.mutate(payload);
@@ -42,26 +47,38 @@ export const updateSchedule = async (
     if (data.date != undefined) {
         payload.date = data.date
     }
+
     if (data.items != undefined) {
-        const normalizedIds = noChildrenIdsIfString(data.items)
-        const statusFiltered = filterAndRemoveStatus(normalizedIds)
-        const noStatus = statusFiltered.map(normalizeFoodAndDishIds)
-        payload.items = noStatus
+        const changes = extractChanges(data.items)
+        payload.changes = changes
     }
+
+    if (data.dailyEvents != undefined) {
+
+        const filtered = filterAndRemoveStatus(data.dailyEvents)
+
+        console.log('filtered', filtered);
+
+        payload.dailyEvents = filtered.map(({ data, time }) => ({
+            time,
+            content: data
+        }))
+    }
+
+    console.log("payload", payload);
 
     const result = await trpc.updateSchedule.mutate(payload)
     return result
 }
 
-export const updateDailyEvents = async (
-    data: DailyEventData[],
-    id: number
-) => {
-    const payload: Parameters<typeof trpc.updateScheduleDailyEvents.mutate>[0] = { id, items: data }
+// export const updateDailyEvents = async (
+//     date: ISODate, payload: ScheduleQuestionnaireItemUI[]
+// ) => {
+//     const payload: Parameters<typeof trpc.updateScheduleDailyEvents.mutate>[0] = { id, items: data }
 
-    const result = await trpc.updateScheduleDailyEvents.mutate(payload)
-    return result
-}
+//     const result = await trpc.updateScheduleDailyEvents.mutate(payload)
+//     return result
+// }
 
 // export const updateSchedule = async (
 //     data: Partial<Omit<ScheduleEntity, 'id' | 'questionnaire'> & { questionnaire?: ScheduleQuestionnaire }>,

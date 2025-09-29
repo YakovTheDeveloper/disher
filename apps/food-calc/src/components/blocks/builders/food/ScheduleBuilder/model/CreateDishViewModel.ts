@@ -2,6 +2,7 @@ import { addDish } from "@/api/dish/dish.api";
 import { DishBuilderViewModel } from "@/components/blocks/builders/food/DishBuilder/model/DishBuilderViewModel";
 import { ScheduleBuilderViewModel, TimeGroupUI } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
 import { createFoodQuantityCollectionDTO } from "@/components/blocks/builders/food/shared/dto";
+import { getTotalDishFoodContentQuantity } from "@/store/models/dish/dish.domain";
 import { DishModelStore } from "@/store/models/dish/dishStore";
 
 import { makeAutoObservable } from "mobx";
@@ -37,7 +38,8 @@ export class DishCreatingStore {
         const dish = await addDish(this.vm.payload());
         if (!dish) return;
         this.dishStore.set(dish.id, dish);
-        this.schedule.addChild({ dish, food: null, time: this.time }, false);
+        const initQuantity = getTotalDishFoodContentQuantity(dish.items)
+        this.schedule.addChild({ dish, food: null, time: this.time, quantity: initQuantity }, false);
         this.schedule.removeChildrenByFoodIdsAndTime(
             this.vm.content.items.map(({ food }) => food.id),
             this.time

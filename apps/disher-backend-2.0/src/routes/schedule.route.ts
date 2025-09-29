@@ -3,9 +3,9 @@
 import z from "zod"
 import { prisma } from "../client"
 import { t } from "../trpc"
-import { ScheduleCreateInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateManyFoodInputSchema, ScheduleItemCreateManyScheduleInputSchema, ScheduleItemCreateNestedManyWithoutScheduleInputSchema, ScheduleItemCreateWithoutScheduleInputSchema, ScheduleItemUncheckedUpdateWithoutScheduleInputSchema, ScheduleItemUpdateWithoutScheduleInputSchema, ScheduleUpdateInputSchema, ScheduleUpdateWithoutUserInputSchema, ScheduleWhereUniqueInputSchema } from "../../prisma/generated/zod"
+import { ScheduleCreateInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateInputSchema, ScheduleItemCreateManyFoodInputSchema, ScheduleItemCreateManyScheduleInputSchema, ScheduleItemCreateNestedManyWithoutScheduleInputSchema, ScheduleItemCreateWithoutScheduleInputSchema, ScheduleItemUncheckedCreateInputSchema, ScheduleItemUncheckedUpdateWithoutScheduleInputSchema, ScheduleItemUpdateInputSchema, ScheduleItemUpdateWithoutScheduleInputSchema, ScheduleUpdateInputSchema, ScheduleUpdateWithoutUserInputSchema, ScheduleWhereUniqueInputSchema } from "../../prisma/generated/zod"
 import { createResponseObject } from "../lib/response"
-import { DailyEventsUpdateSchema } from "./schedule.route/validation"
+import { DailyEventsUpdateSchema, ScheduleCreateInputZod, ScheduleUpdateInputZod } from "./schedule.route/validation"
 import { Prisma } from "@prisma/client"
 
 const scheduleItemSelect = {
@@ -59,7 +59,7 @@ export const scheduleRoutes = {
             select: {
                 id: true,
                 date: true,
-                questionnaire: true,
+                dailyEvents: true,
                 items: {
                     select: scheduleItemSelect
                 },
@@ -84,7 +84,7 @@ export const scheduleRoutes = {
             const result = await prisma.schedule.findFirst({
                 select: {
                     id: true,
-                    questionnaire: true,
+                    dailyEvents: true,
                     date: true,
                     items: {
                         select: scheduleItemSelect
@@ -108,23 +108,26 @@ export const scheduleRoutes = {
     }),
     addSchedule: t.procedure
         .input(
-            ScheduleCreateWithoutUserInputSchema
+            ScheduleCreateInputZod
         )
         .mutation(async ({ input }) => {
 
+            const { dailyEvents = null, date, items = [] } = input
 
             try {
                 const result = await prisma.schedule.create({
                     data: {
-                        ...input,
-                        userId: 1
+                        date,
+                        items: items ? { create: items } : undefined,
+                        userId: 1,
+                        dailyEvents: dailyEvents ? JSON.stringify(dailyEvents) : null
                     }, select: {
                         id: true,
                         items: {
                             select: scheduleItemSelect
                         },
                         date: true,
-                        questionnaire: true,
+                        dailyEvents: true,
                     }
                 });
 
@@ -150,10 +153,10 @@ export const scheduleRoutes = {
                 select: {
                     date: true,
                     id: true,
-                    questionnaire: true,
+                    dailyEvents: true,
                 },
                 data: {
-                    questionnaire: JSON.stringify(items)
+                    dailyEvents: JSON.stringify(items)
                 }
             });
 
@@ -172,61 +175,47 @@ export const scheduleRoutes = {
 
     }),
     updateSchedule: t.procedure
-        .input(
-            z.object({
-                id: z.number(),
-                date: z.string().optional(),
-                items: z.array(z.lazy(() => ScheduleItemCreateManyScheduleInputSchema)).optional(),
-            })
-        )
+        .input(ScheduleUpdateInputZod)
         .mutation(async ({ input }) => {
-            const { id, items = null } = input;
+            const { id, date, changes } = input;
 
-            // Fetch existing items only if items are provided
-            let itemsUpdate = {};
-            let restUpdate: Partial<{
-                date: string,
-                questionnaire: string
-            }> = {}
-            if (input.date) restUpdate.date = input.date
+            const data: any = {};
+            if (date) data.date = date;
 
-            if (items) {
-                const existingItems = await prisma.scheduleItem.findMany({ where: { scheduleId: id } });
-
-                const createItems = items.filter(i => !i.id);
-                const updateItems = items.filter(i => i.id);
-                const deleteIds = existingItems
-                    .filter(e => !items.find(i => i.id === e.id))
-                    .map(e => ({ id: e.id }));
-
-                itemsUpdate = {
-                    items: {
-                        create: createItems,
-                        update: updateItems.map(i => ({
-                            where: { id: i.id },
-                            data: { quantity: i.quantity, time: i.time }
-                        })),
-                        delete: deleteIds
-                    }
+            if (changes) {
+                data.items = {
+                    create: changes.create ?? [],
+                    update: (changes.update ?? []).map((u) => ({
+                        where: { id: u.id },
+                        data: {
+                            ...(u.quantity !== undefined ? { quantity: u.quantity } : {}),
+                            ...(u.time !== undefined ? { time: u.time } : {}),
+                            ...(u.customFoodName !== undefined
+                                ? { customFoodName: u.customFoodName }
+                                : {}),
+                            ...(u.foodId !== undefined ? { foodId: u.foodId } : {}),
+                            ...(u.dishId !== undefined ? { dishId: u.dishId } : {}),
+                        },
+                    })),
+                    delete: (changes.delete ?? []).map((id) => ({ id }))
                 };
+            }
+
+            if (input.dailyEvents) {
+                data.dailyEvents = JSON.stringify(input.dailyEvents)
             }
 
 
             try {
                 const result = await prisma.schedule.update({
                     where: { id },
+                    data,
                     select: {
-                        date: true,
                         id: true,
-                        questionnaire: true,
-                        items: {
-                            select: scheduleItemSelect
-                        },
+                        date: true,
+                        dailyEvents: true,
+                        items: { select: scheduleItemSelect },
                     },
-                    data: {
-                        ...restUpdate,
-                        ...itemsUpdate
-                    }
                 });
 
                 if (!result) {

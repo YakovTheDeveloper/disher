@@ -28,6 +28,7 @@ export class UpdateChildrenStore<Parent extends CollectionEntity<Child>, Child> 
     }
 
     get current() {
+        console.log('current', this.parent);
         console.log('GET_CURRENT_STAMP', this.timestamp)
         return this.parent?.items.find(({ id }) => id === this.currentId) || null;
     }

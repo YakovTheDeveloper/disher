@@ -32,11 +32,14 @@ export function noChildrenIdsIfString<T extends { id: unknown }>(
 //     });
 // }
 
+export type DayScheduleItemUIStatus = 'added' | 'deleted' | 'modified' | null
+
 export function filterAndRemoveStatus<T extends { status: CollectionItemEntityStatusUI }>(
     data: T[]
 ): Omit<T, 'status'>[] {
     const result: Omit<T, 'status'>[] = [];
     for (const item of data) {
+
         if (item.status !== "deleted") {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { status, ...rest } = item;
@@ -44,4 +47,37 @@ export function filterAndRemoveStatus<T extends { status: CollectionItemEntitySt
         }
     }
     return result;
+}
+
+export interface ScheduleChanges<T extends { id: number | string, status: string | null }> {
+    create: Omit<T, 'status' | 'id'>[];
+    update: (Omit<T, 'status' | 'id'> & { id: number })[];
+    delete: number[]; // ids
+}
+
+export function extractChanges<T extends { id: number | string, status: string | null }>(items: T[]): ScheduleChanges<T> {
+    const create: Omit<T, 'status' | 'id'>[] = [];
+    const update: Omit<T, 'status'>[] = [];
+    const deleteIds: number[] = [];
+
+    for (const item of items) {
+        switch (item.status) {
+            case 'added':
+                // no id yet
+                const { status: _, id: __, ...newItem } = item;
+                create.push(newItem);
+                break;
+            case 'modified':
+                const { status: _s, ...changedItem } = item;
+                update.push(changedItem);
+                break;
+            case 'deleted':
+                if (item.id) deleteIds.push(item.id);
+                break;
+            default:
+                break; // unchanged
+        }
+    }
+
+    return { create, update, delete: deleteIds };
 }

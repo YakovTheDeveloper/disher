@@ -29,7 +29,7 @@ const Nutrients = ({ getFood = () => foodStore, currentFood, renderOverlay }: Pr
   const getSum = useCallback(store.getValue, []);
 
   useEffect(() => {
-    store.currentFood = currentFood;
+    store.setCurrentFood(currentFood);
   }, [currentFood, store]);
 
   return (

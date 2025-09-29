@@ -5,11 +5,24 @@ import { makeAutoObservable } from "mobx"
 
 type FilterVariants = 'dish' | 'food'
 export type FilterOptions = Record<FilterVariants, boolean>
-export type UICollectionItem = {
-    uid: string   // unique across all stores
-    id: string | number
+export type ScheduleContentSearchItem = {
+    uid: string
+    id: number
     name: string
-    type: string
+    type: 'dish'
+    items: {
+        food: {
+            id: number;
+            name: string;
+        };
+        id: number;
+        quantity: number;
+    }[]
+} | {
+    uid: string
+    id: number
+    name: string
+    type: 'food'
 }
 
 export class SearchViewModel {
@@ -38,16 +51,17 @@ export class SearchViewModel {
         this.filterText = text
     }
 
-    private get dishesList(): UICollectionItem[] {
+    private get dishesList(): ScheduleContentSearchItem[] {
         return Array.from(this.dishStore.data.values()).map(dish => ({
             uid: `dish-${dish.id}`,
             id: dish.id,
             name: dish.name,
             type: "dish",
+            items: dish.items
         }))
     }
 
-    private get foodList(): UICollectionItem[] {
+    private get foodList(): ScheduleContentSearchItem[] {
         return Array.from(this.foodStore.data.values()).map(food => ({
             uid: `food-${food.id}`,
             id: food.id,

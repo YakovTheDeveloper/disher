@@ -1,18 +1,18 @@
-import { DayEventsBuilderViewModel } from "@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel";
+import { DayEventsBuilderViewModel, ScheduleQuestionnaireItemUI } from "@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel";
 import { UpdateChildrenStore } from "@/components/blocks/builders/food/shared/UpdateChildrenStore";
 import { deepCopy } from "@/lib/copy/deepCopy";
 import { CommonData } from "@/store/models/common/types";
 import { DishEntity } from "@/store/models/dish/types";
-import { getTotalFoodAndDishFoodQuantityFromOne } from "@/store/scheduleStore/schedule.domain";
-import { ScheduleEntity, ScheduleItemEntity, ScheduleQuestionnaire } from "@/store/scheduleStore/types";
+import { getTotalFoodAndDishFoodQuantityFromSchedule } from "@/store/scheduleStore/schedule.domain";
+import { DailyEventEntity, ScheduleEntity, ScheduleItemEntity } from "@/store/scheduleStore/types";
 import { makeAutoObservable, runInAction } from "mobx";
 import { v4 as uuidv4 } from 'uuid';
 
 export type DayScheduleItemUIStatus = 'added' | 'deleted' | 'modified' | null
 
-export type DayScheduleUI = Omit<ScheduleEntity, 'items' | 'questionnaire'> & {
+export type DayScheduleUI = Omit<ScheduleEntity, 'items' | 'dailyEvents'> & {
   items: DayScheduleItemUI[];
-  questionnaire: ScheduleQuestionnaire | null
+  dailyEvents: ScheduleQuestionnaireItemUI[] | null
 };
 export type DayScheduleItemUI = Omit<ScheduleItemEntity, "id"> & {
   id: string | number
@@ -21,16 +21,22 @@ export type DayScheduleItemUI = Omit<ScheduleItemEntity, "id"> & {
 
 export type DayScheduleItemCopyPayloadUI = Omit<DayScheduleItemUI, 'status'>
 
-type AddChild = { food: null, dish: DishEntity, time?: string } | { food: CommonData, dish: null, time?: string }
+type AddChild = { food: null, dish: DishEntity, time?: string, quantity?: number } | { food: CommonData, dish: null, time?: string, quantity?: number }
 
 export type TimeGroupUI<T = DayScheduleItemUI> = { time: string; items: T[], offset: { hours: number; minutes: number } | null; }
 
 function scheduleToUIAdapter(raw: ScheduleEntity): DayScheduleUI {
   const copy = deepCopy(raw);
-  const questionnaire = raw.questionnaire
+  const dailyEvents = raw.dailyEvents ? JSON.parse(raw.dailyEvents) as DailyEventEntity[] : null
+  const dailyEventsAdapted: ScheduleQuestionnaireItemUI[] = dailyEvents?.map(event => ({
+    status: null,
+    data: event.content,
+    time: event.time,
+    id: uuidv4()
+  })) ?? []
   return {
     ...copy,
-    questionnaire: questionnaire ? JSON.parse(questionnaire) : null,
+    dailyEvents: dailyEventsAdapted,
     items: copy.items.map((item) => ({
       ...item,
       status: null,
@@ -40,9 +46,13 @@ function scheduleToUIAdapter(raw: ScheduleEntity): DayScheduleUI {
 
 export class ScheduleBuilderViewModel {
   constructor(raw: ScheduleEntity) {
-    this.schedule = scheduleToUIAdapter(raw)
+    const adapted = scheduleToUIAdapter(raw)
+    this.schedule = adapted
+
+    console.log('adapted', adapted);
+
     this.children = new UpdateChildrenStore(() => this.schedule)
-    this.dailyEvents = new DayEventsBuilderViewModel(raw.questionnaire)
+    this.dailyEvents = new DayEventsBuilderViewModel(adapted.dailyEvents)
     makeAutoObservable(this)
   }
 
@@ -52,10 +62,22 @@ export class ScheduleBuilderViewModel {
 
   children: UpdateChildrenStore<DayScheduleUI, DayScheduleItemUI>
 
+  get currentDailyEventData() {
+    return this.dailyEvents.children.current?.data || null
+  }
+
+  get currentChild(): DayScheduleItemUI | null {
+    return this.children.current || null
+  }
+
+  get dailyEventItemsStore() {
+    return this.dailyEvents.children
+  }
+
   get foodWithQuantity() {
     const current = this.children.current
     if (!current) return []
-    return getTotalFoodAndDishFoodQuantityFromOne(current)
+    return getTotalFoodAndDishFoodQuantityFromSchedule(current)
   }
 
   // get totalScheduleFoodWithQuantity() {
@@ -172,8 +194,11 @@ export class ScheduleBuilderViewModel {
     return groups;
   }
 
-  payload = () => {
-    return this.schedule
+  payload = (): DayScheduleUI => {
+    return {
+      ...this.schedule,
+      dailyEvents: this.dailyEvents.payload()
+    }
   }
 
 }
@@ -183,7 +208,7 @@ function createUIDaySchedule(): DayScheduleUI {
     date: "",
     id: -1,
     items: [],
-    questionnaire: null
+    dailyEvents: []
   };
 }
 

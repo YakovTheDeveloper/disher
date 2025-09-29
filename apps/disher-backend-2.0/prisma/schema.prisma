@@ -19,12 +19,12 @@ datasource db {
 }
 
 model Schedule {
-  id            Int            @id @default(autoincrement())
-  date          DateTime       @unique
-  items         ScheduleItem[]
-  userId        Int
-  user          User           @relation(fields: [userId], references: [id])
-  questionnaire String?
+  id          Int            @id @default(autoincrement())
+  date        DateTime       @unique
+  items       ScheduleItem[]
+  userId      Int
+  user        User           @relation(fields: [userId], references: [id])
+  dailyEvents String?
 }
 
 model ScheduleItem {

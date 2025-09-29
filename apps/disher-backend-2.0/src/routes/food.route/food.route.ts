@@ -4,7 +4,7 @@ import { createResponseObject } from "../../lib/response";
 import { t } from "../../trpc";
 
 export const foodRoutes = {
-    getFood: t.procedure.input(z.object({
+    getFoodByIds: t.procedure.input(z.object({
         ids: z.array(z.number()).optional(),
     }).optional()).query(async ({ input }) => {
         const result = await prisma.food.findMany({
@@ -22,6 +22,56 @@ export const foodRoutes = {
         })
         return createResponseObject(200, 'good', result)
     }),
+    getFood: t.procedure
+        .input(
+            z.object({
+                page: z.number().min(1).default(1),
+                limit: z.number().min(1).max(100).default(50),
+                filters: z
+                    .object({
+                        category: z.string().optional(),
+                        search: z.string().optional(),
+                        minPrice: z.number().optional(),
+                        maxPrice: z.number().optional(),
+                    })
+                    .optional(),
+            })
+        )
+        .query(async ({ input }) => {
+            const { page, limit, filters } = input
+
+            const where: any = {}
+            if (filters?.category) where.category = filters.category
+            if (filters?.search)
+                where.name = { contains: filters.search, mode: "insensitive" }
+            if (filters?.minPrice || filters?.maxPrice)
+                where.price = {
+                    ...(filters.minPrice ? { gte: filters.minPrice } : {}),
+                    ...(filters.maxPrice ? { lte: filters.maxPrice } : {}),
+                }
+
+            const [items, total] = await Promise.all([
+                prisma.food.findMany({
+                    where,
+                    skip: (page - 1) * limit,
+                    take: limit,
+                    select: { id: true, name: true },
+                    orderBy: { id: "asc" },
+                }),
+                prisma.food.count({ where }),
+            ])
+
+            const hasMore = page * limit < total
+
+            const result = {
+                items,
+                hasMore,
+            }
+
+            return createResponseObject(200, 'good', result)
+
+
+        }),
     getFoodWithNutrients: t.procedure.input(z.object({
         ids: z.array(z.number()).optional(),
     }).optional()).query(async ({ input }) => {

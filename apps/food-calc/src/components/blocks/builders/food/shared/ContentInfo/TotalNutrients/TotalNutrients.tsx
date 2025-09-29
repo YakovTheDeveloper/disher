@@ -8,7 +8,9 @@ import { Overlay } from '@/components/blocks/builders/food/shared/ContentInfo/Nu
 import { Typography } from '@/components/ui/atoms/Typography';
 import { NavLink } from 'react-router';
 import { RouterLinks } from '@/router';
-import { CalculationFlowStore } from '@/components/blocks/builders/food/shared/calculationFlowStore';
+import { PrepareProductsForCalculationStore } from '@/components/blocks/builders/food/shared/calculationFlowStore';
+import { NutrientsEventEmitter } from '@/components/blocks/builders/food/shared/emitter';
+import { TotalNutrientsViewModel } from '@/components/blocks/builders/food/shared/ContentInfo/TotalNutrients/viewModel/TotalNutrientsViewModel';
 
 type Props = {
   children: React.ReactNode;
@@ -18,26 +20,29 @@ type Props = {
 };
 
 const TotalNutrients = ({ vm }: Props) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const prepareStore = useMemo(() => new PrepareProductsForCalculationStore(), []);
 
-  const calculationStore = useMemo(() => new CalculationFlowStore(vm), [vm]);
+  const calculationStore = useMemo(
+    () => new TotalNutrientsViewModel(vm, prepareStore),
+    [vm, prepareStore]
+  );
 
   console.log('TotalNutrients render');
 
   const renderOverlay = useCallback(
     (value: string) => (
-      <Overlay loading={foodStore.requestState} currentId={calculationStore}>
+      <Overlay loading={foodStore.requestState} currentId={prepareStore}>
         {value}
       </Overlay>
     ),
-    [foodStore.requestState, calculationStore]
+    [foodStore.requestState, prepareStore]
   );
 
   const getFoodModel = useCallback(() => foodStore, []);
   return (
-    <div className={styles.container} ref={containerRef}>
+    <div className={styles.container}>
       <Nutrients
-        currentFood={calculationStore.products}
+        currentFood={prepareStore.products}
         getFood={getFoodModel}
         renderOverlay={renderOverlay}
       />

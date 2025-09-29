@@ -1,11 +1,7 @@
 import { observer } from 'mobx-react-lite';
-import styles from './EventListItem.module.scss';
 import { Time } from '@/components/blocks/builders/food/ScheduleBuilder/ui/List/Time';
-import {
-  DailyEventData,
-  DailyEventVariants,
-  ScheduleQuestionnaireItemUI,
-} from '@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel';
+import { ScheduleQuestionnaireItemUI } from '@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel';
+import { toJS } from 'mobx';
 type Props = {
   children?: React.ReactNode;
   onTimeModalOpen: (id: number | string) => void;
@@ -14,20 +10,24 @@ type Props = {
 };
 
 const EventListItem = ({ item, onTimeModalOpen, onContentModalOpen }: Props) => {
-  function getEventDescription(event: DailyEventData): string {
-    switch (event.variant) {
+  function getEventDescription(item: ScheduleQuestionnaireItemUI): string {
+    console.log('EventListItem', toJS(item));
+
+    const variant = item.data.variant;
+
+    switch (variant) {
       case 'sleep':
-        return `Сон: ${event.content.hours}ч ${event.content.minutes}м, качество ${event.content.quality}/10`;
+        return `Сон: ${item.data.content.hours}ч ${item.data.content.minutes}м, качество ${item.data.content.quality}/10`;
       case 'mood':
-        return `Настроение: ${event.content.value}/10`;
+        return `Настроение: ${item.data.content.value}/10`;
       case 'energy':
-        return `Энергия: ${event.content.value}/10`;
+        return `Энергия: ${item.data.content.value}/10`;
       case 'digestion':
-        return `Пищеварение (${event.content.variant}): ${event.content.value}/10`;
+        return `Пищеварение (${item.data.content.variant}): ${item.data.content.value}/10`;
       case 'activity':
-        return `Активность: ${event.content.variant}, ${event.content.hours}ч ${event.content.minutes}м`;
+        return `Активность: ${item.data.content.variant}, ${item.data.content.hours}ч ${item.data.content.minutes}м`;
       case 'note':
-        return `Заметка: ${event.content.value}`;
+        return `Заметка: ${item.data.content.value}`;
     }
   }
 
@@ -37,7 +37,7 @@ const EventListItem = ({ item, onTimeModalOpen, onContentModalOpen }: Props) => 
         {() => item.time}
       </Time>
       {/* <p onClick={() => onContentModalOpen(item.id)}>{item.data.variant}</p> */}
-      <p onClick={() => onContentModalOpen(item.id)}>{getEventDescription(item.data)}</p>
+      <p onClick={() => onContentModalOpen(item.id)}>{getEventDescription(item)}</p>
     </>
   );
 };

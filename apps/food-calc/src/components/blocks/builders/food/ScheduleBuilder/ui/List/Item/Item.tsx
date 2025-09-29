@@ -20,8 +20,15 @@ type Props = {
 const Item = ({ itemActions, content, options, className }: Props) => {
   console.log('LIST_ITEM', content);
 
-  const { onDelete, onFoodsOpenInfo, onFoodsOpenUpdate, onQuantityOpen, onRecover, onTimeOpen } =
-    itemActions;
+  const {
+    onDelete,
+    onFoodsOpenInfo,
+    onFoodsOpenUpdate,
+    onQuantityOpen,
+    onRecover,
+    onTimeOpen,
+    onDishOpenInfo,
+  } = itemActions;
 
   const id = content.id;
 
@@ -38,6 +45,22 @@ const Item = ({ itemActions, content, options, className }: Props) => {
 
   const isQuantityHide = useMemo(() => showAdditionalsMode, [showAdditionalsMode]);
 
+  // content.dish
+
+  const onNameClick = () => {
+    onFoodsOpenUpdate(id);
+    return;
+  };
+
+  const onNameAdditionalOptionsClick = () => {
+    if (content.dish) {
+      onDishOpenInfo(id);
+      return;
+    }
+    onFoodsOpenInfo(id);
+    return;
+  };
+
   return (
     <CommonListItem
       className={clsx([className, styles.group])}
@@ -53,8 +76,8 @@ const Item = ({ itemActions, content, options, className }: Props) => {
       <FoodName
         id={id}
         hintMode={showAdditionalsMode}
-        onClick={onFoodsOpenUpdate}
-        onClickHintModeOn={onFoodsOpenInfo}
+        onClick={onNameClick}
+        onClickHintModeOn={onNameAdditionalOptionsClick}
       >
         {getFoodName}
       </FoodName>

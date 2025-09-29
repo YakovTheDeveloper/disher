@@ -7,7 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 type Props = {
   onSelect: (data: DailyEventData) => void;
   onFinish: () => void;
-  current?: DailyEventData | null;
+  schedule: {
+    currentDailyEventData: DailyEventData | null;
+  };
 };
 
 type VariantKey = DailyEventData['variant'];
@@ -15,10 +17,12 @@ type DigestionSubKey = 'bloating' | 'stomach_pain' | 'heartburn' | 'constipation
 
 const variantOptions: VariantKey[] = ['sleep', 'mood', 'energy', 'activity', 'note', 'digestion'];
 
-const EventContent = observer(({ onSelect, onFinish, current }: Props) => {
+const EventContent = observer(({ onSelect, onFinish, schedule }: Props) => {
   const [selected, setSelected] = useState<VariantKey | null>(null);
   const [selectedSub, setSelectedSub] = useState<DigestionSubKey | null>(null);
   const [formData, setFormData] = useState<any>({});
+
+  const current = schedule.currentDailyEventData;
 
   // initialize from current if editing
   useEffect(() => {

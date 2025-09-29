@@ -1,3 +1,5 @@
+export { DailyEventEntity } from 'apps/disher-backend-2.0/src/routes/schedule.route/validation'
+
 type OneToTen = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 type SleepEvent = {

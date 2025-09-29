@@ -14,10 +14,15 @@ import { TimeGroup } from '@/components/blocks/builders/food/ScheduleBuilder/ui/
 
 type Props = {
   children?: React.ReactNode;
-  vm: DayEventsBuilderViewModel;
+  vm: {
+    dailyEvents: DayEventsBuilderViewModel;
+  };
   onEventContentUpdateModalOpen: (id: string | number) => void;
   onEventContentCreateModalOpen: () => void;
   onEventTimeModalOpen: (id: string | number) => void;
+  options: {
+    showAdditionals: boolean;
+  };
 };
 
 const EventsBuilder = ({
@@ -25,49 +30,52 @@ const EventsBuilder = ({
   onEventContentUpdateModalOpen,
   onEventContentCreateModalOpen,
   onEventTimeModalOpen,
+  options,
 }: Props) => {
-  const options = useMemo(() => new BuilderUIStore(), []);
-
   const onFinishHandler = useCallback(() => {
+    // updateDailyEvents
     // onFinish(vm.payload());
   }, [vm]);
 
-  const renderEventListItem = useCallback((item: ScheduleQuestionnaireItemUI) => {
-    return (
-      <CommonListItem
-        className={styles.listItemRow}
-        id={item.id}
-        onDelete={vm.children.deleteChild}
-        onRecover={vm.children.recoverDeletedChild}
-        key={item.id}
-        status={item.status}
-        showAdditionals={options.showAdditionals}
-      >
-        <EventListItem
-          item={item}
-          onContentModalOpen={onEventContentUpdateModalOpen}
-          onTimeModalOpen={onEventTimeModalOpen}
-        />
-      </CommonListItem>
-    );
-  }, []);
+  const renderEventListItem = useCallback(
+    (item: ScheduleQuestionnaireItemUI) => {
+      return (
+        <CommonListItem
+          className={styles.listItemRow}
+          id={item.id}
+          onDelete={vm.dailyEvents.children.deleteChild}
+          onRecover={vm.dailyEvents.children.recoverDeletedChild}
+          key={item.id}
+          status={item.status}
+          showAdditionals={options.showAdditionals}
+        >
+          <EventListItem
+            item={item}
+            onContentModalOpen={onEventContentUpdateModalOpen}
+            onTimeModalOpen={onEventTimeModalOpen}
+          />
+        </CommonListItem>
+      );
+    },
+    [vm]
+  );
 
   return (
     <>
       <section className="builder__time-groups">
-        {vm.itemsGroupedByTime.map((timeGroup) => (
+        {vm.dailyEvents.itemsGroupedByTime.map((timeGroup) => (
           <TimeGroup key={timeGroup.time} group={timeGroup}>
             {renderEventListItem}
           </TimeGroup>
         ))}
       </section>
-      <Actions isShow={() => true}>
+      {/* <Actions isShow={() => true}>
         <ActionButton.Finish onClick={onFinishHandler} content={vm}>
           обновить
         </ActionButton.Finish>
         <ActionButton.Add onClick={onEventContentCreateModalOpen} />
         <ActionButton.AdditionalOptions options={options} />
-      </Actions>
+      </Actions> */}
     </>
   );
 };

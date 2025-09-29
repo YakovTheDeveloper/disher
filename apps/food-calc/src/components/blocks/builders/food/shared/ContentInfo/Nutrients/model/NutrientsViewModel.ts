@@ -1,7 +1,5 @@
-import { defaultDailyNorms } from "@/components/blocks/builders/food/shared/ContentInfo/Nutrients/constants";
-import { DailyNormModelStore } from "@/store/models/dailyNorm/dailyNorm.model";
 import { FoodModelStore } from "@/store/models/food/foodModelStore";
-import { dailyNormModelStore, uiStore } from "@/store/rootStore";
+import { uiStore } from "@/store/rootStore";
 import { DailyNormsStoreUI } from "@/store/uiStore/dailyNorms/DailyNormsStoreUI";
 import { makeAutoObservable } from "mobx";
 
@@ -20,10 +18,10 @@ export class NutrientViewModelStore {
 
     get sums() {
         const acc: Record<FoodId, number> = {};
-        this.currentFood.forEach(({ id, quantity }) => {
+        this.currentFood.forEach(({ id, quantity: foodQuantity }) => {
             const foodNutrients = this.foodModel.data.get(id.toString())?.nutrients || [];
             foodNutrients.forEach(({ nutrientId, quantity: q }) => {
-                acc[nutrientId] = (acc[nutrientId] || 0) + (q * quantity) / 100;
+                acc[nutrientId] = (acc[nutrientId] || 0) + (q * foodQuantity) / 100;
             });
         });
         return acc;

@@ -1,10 +1,18 @@
 import { requestWrapper } from "@/api/Request"
 import { trpc } from "@/api/trpc/trpc"
 
-export const getFood = async (ids?: number[]) => {
-    const payload = ids ? { ids } : undefined
-    return requestWrapper(trpc.getFood.query, {}, payload)
+export type GetFoodParams = {
+    ids?: number[]
+    page?: number
+    limit?: number
+    filters?: {
+        category?: string
+        search?: string
+    }
+}
 
+export const getFoodList = async (params: GetFoodParams) => {
+    return await requestWrapper(trpc.getFood.query, {}, params)
 }
 
 export const getFoodWithNutrients = async (ids?: number[]) => {
