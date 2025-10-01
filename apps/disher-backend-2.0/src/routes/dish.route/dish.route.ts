@@ -22,14 +22,48 @@ const dishSelect = {
 }
 
 export const dihesRoutes = {
-    getDishes: t.procedure.query(async ({ input }) => {
-        const result = await prisma.dish.findMany({
-            select: dishSelect,
-            where: { user: { id: 1 } }
-        });
+    getDishes: t.procedure
+        .input(
+            z.object({
+                page: z.number().min(1).default(1),
+                limit: z.number().min(1).max(100).default(50),
+                filters: z
+                    .object({
+                        search: z.string().optional(),
+                        // userId: z.number().optional(), // optional user filter if needed
+                    })
+                    .optional(),
+            })
+        )
+        .query(async ({ input }) => {
+            const { page, limit, filters } = input
 
-        return createResponseObject(200, 'good', result)
-    }),
+            const where: any = {}
+            // if (filters?.userId) where.user = { id: filters.userId }
+            where.user = { id: 1 }
+            if (filters?.search)
+                where.name = { contains: filters.search, mode: 'insensitive' }
+
+            const [items, total] = await Promise.all([
+                prisma.dish.findMany({
+                    where,
+                    skip: (page - 1) * limit,
+                    take: limit,
+                    select: dishSelect,
+                    orderBy: { id: 'asc' },
+                }),
+                prisma.dish.count({ where }),
+            ])
+
+            const hasMore = page * limit < total
+
+            const result = {
+                items,
+                hasMore,
+            }
+
+            return createResponseObject(200, 'good', result)
+        }),
     getOneDish: t.procedure.input(
         z.object({
             id: z.number()

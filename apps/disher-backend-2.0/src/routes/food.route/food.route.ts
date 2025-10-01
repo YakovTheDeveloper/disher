@@ -31,8 +31,6 @@ export const foodRoutes = {
                     .object({
                         category: z.string().optional(),
                         search: z.string().optional(),
-                        minPrice: z.number().optional(),
-                        maxPrice: z.number().optional(),
                     })
                     .optional(),
             })
@@ -44,12 +42,6 @@ export const foodRoutes = {
             if (filters?.category) where.category = filters.category
             if (filters?.search)
                 where.name = { contains: filters.search, mode: "insensitive" }
-            if (filters?.minPrice || filters?.maxPrice)
-                where.price = {
-                    ...(filters.minPrice ? { gte: filters.minPrice } : {}),
-                    ...(filters.maxPrice ? { lte: filters.maxPrice } : {}),
-                }
-
             const [items, total] = await Promise.all([
                 prisma.food.findMany({
                     where,

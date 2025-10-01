@@ -4,12 +4,16 @@
     position: relative;
 
     display: grid;
-    grid-template-rows: var(--builder-header-height) var(--builder-body-height);
+    grid-template-rows: auto 1fr;
     grid-template-columns: 1fr;
-    justify-content: space-between;
+
+    // display: grid;
+    // grid-template-rows: var(--builder-header-height) var(--builder-body-height);
+    // grid-template-columns: 1fr;
+    // justify-content: space-between;
 }
 
-.overlay {
-    top: var(--builder-header-height);
-    height: var(--builder-body-height);
-}
+// .overlay {
+//     top: var(--builder-header-height);
+//     height: var(--builder-body-height);
+// }

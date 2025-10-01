@@ -7,12 +7,12 @@ import { observer } from 'mobx-react-lite';
 import { useNavigate } from 'react-router';
 import { scheduleStore } from '@/store/rootStore';
 import clsx from 'clsx';
-import { ScheduleStore } from '@/store/scheduleStore/scheduleStore';
+import { ScheduleModelStore } from '@/store/models/schedule/scheduleModelStore';
 import { ScheduleCalendarContentCell } from '@/components/blocks/schedule/ScheduleSelection/ScheduleCalendarContentCell';
 
 type Props = {
   onDate: (date: Date) => void;
-  store?: ScheduleStore;
+  store?: ScheduleModelStore;
 };
 
 const ScheduleSelection = ({ store = scheduleStore, onDate }: Props) => {

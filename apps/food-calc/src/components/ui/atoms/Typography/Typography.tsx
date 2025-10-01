@@ -3,7 +3,7 @@ import styles from './Typography.module.scss';
 import clsx from 'clsx';
 type Props = {
   children: React.ReactNode;
-  variant: 'action';
+  variant: 'action' | 'info';
 };
 
 const Typography = ({ children, variant }: Props) => {

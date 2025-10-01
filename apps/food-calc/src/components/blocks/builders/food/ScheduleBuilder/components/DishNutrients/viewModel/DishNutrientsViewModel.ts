@@ -1,6 +1,6 @@
 import { autorun, makeAutoObservable, runInAction } from "mobx";
 import { PrepareProductsForCalculationStore } from "@/components/blocks/builders/food/shared/calculationFlowStore";
-import { getTotalFoodAndDishFoodQuantityFromAll } from "@/store/scheduleStore/schedule.domain";
+import { getTotalFoodAndDishFoodQuantityFromAll } from "@/store/models/schedule/schedule.domain";
 
 type DishItem = {
     food: {

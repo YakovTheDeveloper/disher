@@ -9,6 +9,7 @@ import { Quantity } from '@/components/blocks/builders/food/shared/ui/Quantity';
 import { useCallback, useMemo } from 'react';
 import clsx from 'clsx';
 import { CommonListItem } from '@/components/blocks/builders/food/shared/ui/CommonListItem';
+import { toJS } from 'mobx';
 
 type Props = {
   content: DayScheduleItemUI;
@@ -34,8 +35,9 @@ const Item = ({ itemActions, content, options, className }: Props) => {
 
   const getFoodName = useCallback(
     () => content.food?.name ?? content.dish?.name ?? content.customFoodName,
-    [content]
+    [content, content.food, content.dish, content.customFoodName]
   );
+  console.log('content', content);
   const getTime = useCallback(() => content.time || '00:00', [content]);
   const getQuantity = useCallback(() => content.quantity, [content]);
 
@@ -61,6 +63,28 @@ const Item = ({ itemActions, content, options, className }: Props) => {
     return;
   };
 
+  console.log('contentcontent', toJS(content));
+
+  const getVariantText = () => {
+    if (content.customFoodName) return 'кастомный продукт';
+    if (content.dish) return 'блюдо';
+    return 'продукт';
+    // if (content.food) return 'продукт';
+  };
+  const getFoodNameClassName = () => {
+    if (content.customFoodName) return styles.customFoodName;
+    if (content.dish) return styles.dishName;
+    if (content.food) return styles.foodName;
+    return '';
+  };
+
+  const afterName = useMemo(() => {
+    if (showAdditionalsMode) {
+      return <p className={styles.variant}>{getVariantText()}</p>;
+    }
+    return null;
+  }, [showAdditionalsMode, content]);
+
   return (
     <CommonListItem
       className={clsx([className, styles.group])}
@@ -74,6 +98,8 @@ const Item = ({ itemActions, content, options, className }: Props) => {
         {getTime}
       </Time>
       <FoodName
+        className={getFoodNameClassName()}
+        after={afterName}
         id={id}
         hintMode={showAdditionalsMode}
         onClick={onNameClick}

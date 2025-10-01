@@ -1,5 +1,5 @@
 import { createLocalSchedule, DayScheduleUI, ScheduleBuilderViewModel } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
-import { ScheduleEntity } from "@/store/scheduleStore/types";
+import { ScheduleEntity } from "@/store/models/schedule/types";
 import { DaySchedule } from "@/types/schedule";
 import { makeAutoObservable } from "mobx";
 

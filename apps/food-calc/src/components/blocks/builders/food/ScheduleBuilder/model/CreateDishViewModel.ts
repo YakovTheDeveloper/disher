@@ -3,7 +3,7 @@ import { DishBuilderViewModel } from "@/components/blocks/builders/food/DishBuil
 import { ScheduleBuilderViewModel, TimeGroupUI } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
 import { createFoodQuantityCollectionDTO } from "@/components/blocks/builders/food/shared/dto";
 import { getTotalDishFoodContentQuantity } from "@/store/models/dish/dish.domain";
-import { DishModelStore } from "@/store/models/dish/dishStore";
+import { DishModelStore } from "@/store/models/dish/dishModelStore";
 
 import { makeAutoObservable } from "mobx";
 

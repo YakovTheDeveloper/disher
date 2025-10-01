@@ -7,7 +7,7 @@ import { RouterLinks } from '@/router';
 import {
   getTotalFoodAndDishFoodQuantityFromAll,
   getTotalFoodAndDishFoodQuantityFromSchedule,
-} from '@/store/scheduleStore/schedule.domain';
+} from '@/store/models/schedule/schedule.domain';
 import { NavLink } from 'react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Overlay } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/Overlay';

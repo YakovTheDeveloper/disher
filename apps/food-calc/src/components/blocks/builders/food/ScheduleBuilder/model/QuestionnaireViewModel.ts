@@ -1,6 +1,6 @@
 import { updateSchedule } from "@/api/schedule/schedule.api";
 import { DayScheduleUI } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
-import { ScheduleQuestionnaire } from "@/store/scheduleStore/types";
+import { ScheduleQuestionnaire } from "@/store/models/schedule/types";
 import { makeAutoObservable } from "mobx";
 
 export class QuestionnaireViewModel {

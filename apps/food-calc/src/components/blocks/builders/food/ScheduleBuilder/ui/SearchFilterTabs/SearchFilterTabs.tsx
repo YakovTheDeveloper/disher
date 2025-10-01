@@ -28,13 +28,19 @@ const SearchFilterTabs = ({ children, model }: Props) => {
         className={`${styles.tabsItem} ${model.filter.food ? styles.active : ''}`}
         onClick={() => handleToggle('food')}
       >
-        еда
+        продукты
       </span>
       <span
         className={`${styles.tabsItem} ${model.filter.dish ? styles.active : ''}`}
         onClick={() => handleToggle('dish')}
       >
         блюда
+      </span>
+      <span
+        className={`${styles.tabsItem} ${model.filter.dish ? styles.active : ''}`}
+        onClick={() => handleToggle('dish')}
+      >
+        кастомный продукт
       </span>
       {children}
     </div>

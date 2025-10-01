@@ -3,7 +3,7 @@ import { ScheduleBuilderViewModel } from "@/components/blocks/builders/food/Sche
 import { ScheduleViewModelFactory } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleCacheStore";
 import { ISODate } from "@/types/common/common";
 import { scheduleCache, scheduleStore } from "@/store/rootStore"; // make sure these exist
-import { ScheduleEntity } from "@/store/scheduleStore/types";
+import { ScheduleEntity } from "@/store/models/schedule/types";
 
 export class InitLoadingStore {
     initData: ScheduleBuilderViewModel | null = null;

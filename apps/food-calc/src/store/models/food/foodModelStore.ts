@@ -22,6 +22,10 @@ export class FoodModelStore {
         this.shortData = [...this.shortData, ...data]
     }
 
+    get list() {
+        return Array.from(this.data.values())
+    }
+
     constructor() {
         makeAutoObservable(this);
         // this.getAll();

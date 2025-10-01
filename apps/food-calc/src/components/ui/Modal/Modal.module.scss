@@ -1,14 +1,3 @@
-.backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 99;
-
-    @media (max-width: 900px) {
-        background: transparent;
-    }
-}
-
 .modal {
     position: fixed;
     inset: 0;
@@ -26,16 +15,39 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    overflow: auto;
     padding: 32px 25px 20px;
+    overflow: hidden;
 
     header {
         align-items: end;
         justify-items: end;
         padding: 0 0 10px;
+        flex: 0 1;
     }
+
+    &Content {
+        display: flex;
+        flex: 1 0;
+        overflow: hidden;
+
+        > :first-child {
+            overflow: auto;
+        }
+    }
+
 
     @media (max-width: 900px) {
         padding: 10px;
+    }
+}
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+
+    @media (max-width: 900px) {
+        background: transparent;
     }
 }

@@ -1,10 +1,21 @@
 import { dishFromUI } from "@/api/dish/dish.adapter";
+import { requestWrapper } from "@/api/Request";
 import { trpc } from "@/api/trpc/trpc"
 import { DishUI } from "@/components/blocks/builders/food/DishBuilder/model/DishBuilderViewModel";
 import { ApiInputs } from "@types";
 
-export const getDishes = async () => {
-    return trpc.getDishes.query()
+export type GetWithParams = {
+    ids?: number[]
+    page?: number
+    limit?: number
+    filters?: {
+        category?: string
+        search?: string
+    }
+}
+
+export const getDishes = async (params: GetWithParams) => {
+    return await requestWrapper(trpc.getDishes.query, {}, params)
 }
 
 export const getOneDish = async (id: number) => {

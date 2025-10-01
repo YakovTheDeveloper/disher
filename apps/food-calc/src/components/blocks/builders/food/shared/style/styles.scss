@@ -1,16 +1,25 @@
 :root {
-    --builder-header-height: 10dvh;
-    --builder-body-height: 90dvh;
+    --builder-header-height: 8dvh;
+    --builder-body-height: 92dvh;
 
     --builder-time-group-gap: 30px;
 }
 
 
-.builder {
+#root .builder {
 
     &__time-groups {
         display: flex;
         flex-direction: column;
         gap: var(--builder-time-group-gap);
+    }
+
+    &__with-animation {
+        // color: #101010; // starting color
+        transition: color 0.3s ease-in-out;
+    }
+
+    &__animation-appear {
+        color: #38cc6e; // inverted color when circle is visible
     }
 }

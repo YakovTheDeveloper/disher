@@ -43,7 +43,6 @@ export class UpdateChildrenStore<Parent extends CollectionEntity<Child>, Child> 
     }
 
     updateCurrent = (updated: Partial<CollectionEntity<Child>['items'][number]>) => {
-        console.log(updated, this.current);
 
         if (!this.current) return;
         const finalUpdate = {
@@ -51,6 +50,7 @@ export class UpdateChildrenStore<Parent extends CollectionEntity<Child>, Child> 
             status: this.statusResolver(this.current.status)
         }
         Object.assign(this.current, finalUpdate);
+        console.log('updated', this.current);
     };
 
     deleteChild = (childId: string | number) => {

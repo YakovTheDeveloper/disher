@@ -3,8 +3,8 @@ import { UpdateChildrenStore } from "@/components/blocks/builders/food/shared/Up
 import { deepCopy } from "@/lib/copy/deepCopy";
 import { CommonData } from "@/store/models/common/types";
 import { DishEntity } from "@/store/models/dish/types";
-import { getTotalFoodAndDishFoodQuantityFromSchedule } from "@/store/scheduleStore/schedule.domain";
-import { DailyEventEntity, ScheduleEntity, ScheduleItemEntity } from "@/store/scheduleStore/types";
+import { getTotalFoodAndDishFoodQuantityFromSchedule } from "@/store/models/schedule/schedule.domain";
+import { DailyEventEntity, ScheduleEntity, ScheduleItemEntity } from "@/store/models/schedule/types";
 import { makeAutoObservable, runInAction } from "mobx";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -21,7 +21,7 @@ export type DayScheduleItemUI = Omit<ScheduleItemEntity, "id"> & {
 
 export type DayScheduleItemCopyPayloadUI = Omit<DayScheduleItemUI, 'status'>
 
-type AddChild = { food: null, dish: DishEntity, time?: string, quantity?: number } | { food: CommonData, dish: null, time?: string, quantity?: number }
+export type AddChild = { food: null, dish: DishEntity, time?: string, quantity?: number, customFoodName?: string } | { food: CommonData, dish: null, time?: string, quantity?: number, customFoodName?: string }
 
 export type TimeGroupUI<T = DayScheduleItemUI> = { time: string; items: T[], offset: { hours: number; minutes: number } | null; }
 
@@ -214,9 +214,9 @@ function createUIDaySchedule(): DayScheduleUI {
 
 // function createUIDayScheduleItem(data: Partial<{ food: CommonData, dish: CommonData }>): DayScheduleItemUI {
 function createUIDayScheduleItem(data: Partial<DayScheduleItemUI>): DayScheduleItemUI {
-  const { dish = null, food = null, time = '08:00', quantity = 100 } = data
+  const { dish = null, food = null, time = '08:00', quantity = 100, customFoodName = '' } = data
   return {
-    customFoodName: "название кастомное",
+    customFoodName,
     status: 'added',
     dish,
     food,

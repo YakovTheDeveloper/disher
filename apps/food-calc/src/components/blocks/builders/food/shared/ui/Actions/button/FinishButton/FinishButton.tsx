@@ -10,7 +10,7 @@ type Props<T> = {
   onClick: () => void;
 };
 const FinishButton = <T,>({ content, disabled, children, onClick }: Props<T>) => {
-  const isDisabled = disabled || content.itemsLength === 0;
+  const isDisabled = disabled ?? content.itemsLength === 0;
 
   return (
     <button onClick={onClick} className={commonStyles.actionButton} disabled={isDisabled}>

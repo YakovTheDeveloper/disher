@@ -4,3 +4,31 @@
     gap: 10px;
     position: relative;
 }
+
+.variant {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    transform: translate(0, 70%);
+
+    font-size: 11px;
+    font-style: italic;
+    color: rgba(0, 0, 0, 0.39);
+}
+
+.customFoodName {
+    color: rgba(0, 0, 0, 0.586);
+    font-weight: 400;
+    font-style: italic;
+}
+
+.dishName {
+    color: #000;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+}
+
+.foodName {
+    color: #000;
+    font-weight: 400;
+}

@@ -1,18 +1,16 @@
 import NotificationWrapper from '@/components/ui/Notification/NotificationWrapper';
-import ModalRoot from '@/ModalRoot';
 import { Outlet } from 'react-router-dom';
-import s from './Root.module.scss';
-import { Menu } from '@/components/common/Menu';
-import { uiStore } from '@/store/rootStore';
+import s from '@/assets/style/Root.module.scss';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+import '@/assets/style/index.css';
+import '@/assets/style/App.module.scss';
 
 const queryClient = new QueryClient();
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <div className={s.root}>
-        {/* <Header /> */}
-        <ModalRoot />
         <NotificationWrapper />
         <div className={s.main}>
           <Outlet />

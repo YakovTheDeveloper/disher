@@ -1,16 +1,9 @@
 import { makeAutoObservable } from "mobx";
 import { ISODate } from "@/types/common/common";
-import { ModalStore } from "@/store/uiStore/modalStore/modalStore";
 import { NotificationStore } from "@/store/uiStore/notificationStore/notificationStore";
-import { defaultNutrientsV2 } from "@/store/nutrientStore/data";
-import { NutrientGroupName } from "@/types/nutrient/nutrient";
-import { NutrientUiStore } from "@/store/uiStore/nutrientUiStore/nutrientUiStore";
-import { DishUiStore } from "@/store/uiStore/dishUiStore/dishUiStore";
-import { MenuUiStore } from "@/store/uiStore/menu/menuUiStore";
-import mobx from 'mobx'
 import { DailyNormsStoreUI } from "@/store/uiStore/dailyNorms/DailyNormsStoreUI";
-import { DailyNormModelStore } from "@/store/models/dailyNorm/dailyNorm.model";
 import { dailyNormModelStore } from "@/store/rootStore";
+import { MenuUiStore } from "@/store/uiStore/menu/menuUiStore";
 
 export type NotificationData = {
   id: number
@@ -29,14 +22,10 @@ export class UiStore {
   setDayCalendarDate = (date: ISODate) => { this.dayCalendarDate = date }
 
   notification: NotificationStore
-  modal: ModalStore
-
-  nutrients: NutrientUiStore
-
-  dishUi: DishUiStore
-  menu: MenuUiStore
 
   dailyNorms = new DailyNormsStoreUI(dailyNormModelStore)
+
+  menu = new MenuUiStore()
 
   // day = {
   //   showDishChoice: false
@@ -44,16 +33,8 @@ export class UiStore {
 
   constructor(
     notification: NotificationStore,
-    modal: ModalStore,
-    nutrient: NutrientUiStore,
-    dishUiStore: DishUiStore,
-    menu: MenuUiStore
   ) {
     this.notification = notification
-    this.modal = modal
-    this.nutrients = nutrient
-    this.dishUi = dishUiStore
-    this.menu = menu
     makeAutoObservable(this);
   }
 }

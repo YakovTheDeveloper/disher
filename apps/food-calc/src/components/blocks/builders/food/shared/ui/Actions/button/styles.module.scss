@@ -1,17 +1,17 @@
-.actionButton {
-    max-width: 110px;
+button.actionButton {
+    width: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     /* space between icon + text */
 
-    font-size: 1.2rem;
-    font-weight: 300;
-    padding: 8px 18px;
+
+    padding: 10px 16px;
     border-radius: 999px;
     /* pill shape */
     cursor: pointer;
+    flex-shrink: 0;
     transition: all 0.25s ease;
 
     box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.1);
@@ -20,6 +20,10 @@
     background: linear-gradient(135deg, rgb(158, 169, 255), rgb(119, 135, 255));
     color: white;
     border: none;
+
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 18px;
 
     &:disabled {
         opacity: 0.2;

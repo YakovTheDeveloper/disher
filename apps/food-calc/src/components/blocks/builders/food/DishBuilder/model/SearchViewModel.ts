@@ -1,5 +1,5 @@
 import { CommonData } from "@/store/models/common/types"
-import { DishModelStore } from "@/store/models/dish/dishStore"
+import { DishModelStore } from "@/store/models/dish/dishModelStore"
 import { FoodModelStore } from "@/store/models/food/foodModelStore"
 import { makeAutoObservable } from "mobx"
 

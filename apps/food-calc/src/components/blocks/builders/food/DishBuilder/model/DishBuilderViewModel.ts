@@ -3,7 +3,7 @@ import { FoodQuantityDTO } from "@/components/blocks/builders/food/shared/dto";
 import { CollectionItemEntity, UpdateChildrenStore } from "@/components/blocks/builders/food/shared/UpdateChildrenStore";
 import { deepCopy } from "@/lib/copy/deepCopy";
 import { DishEntity, DishItemEntity } from "@/store/models/dish/types";
-import { ScheduleEntity, ScheduleItemEntity } from "@/store/scheduleStore/types";
+import { ScheduleEntity, ScheduleItemEntity } from "@/store/models/schedule/types";
 import { throws } from "assert";
 import { makeAutoObservable, runInAction, toJS } from "mobx";
 import { v4 as uuidv4 } from 'uuid';

@@ -1,0 +1,175 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+
+
+@import url('@/components/blocks/builders/food/shared/style/styles.scss');
+
+:root {
+  margin: 0 auto;
+
+  --gap-tabs: 10px;
+
+  --brad-tab: 9px;
+  --brad-category: 10px;
+  --brad-s: 15px;
+  --brad-xs: 6px;
+
+  --color-white: rgb(252, 255, 252);
+  --color-danger: rgb(236, 0, 0);
+  --color-primary: rgb(0, 140, 195);
+  --color-green: rgb(76, 175, 80);
+  --color-green-2: rgb(34, 124, 37);
+  --color-light-green: rgb(177, 255, 206);
+  --color-light-green-2: rgb(222, 255, 234);
+  --color-light-green-3: rgb(243, 255, 240);
+  --color-light-gray: #8a8a8a;
+  --color-light-gray-2: #d5d5d5;
+  --color-light-gray-3: #f0f0f0;
+  --color-gray: #2b2b2b;
+
+  --box-shadow-s: -1px 2px 8px -2px rgba(0, 0, 0, 0.15);
+  --box-shadow-xs: 0px 4px 3px -1px rgba(0, 0, 0, 0.08);
+
+  --width-quantity-input: 50px;
+
+  --grid-column-rich-nutrient-product: 4ch 7ch auto 9ch 100px;
+
+  --height-rich-nutrient-product: 30px;
+  --height-header: 55px;
+
+  --width-navigation-desktop: 66px;
+  --width-tabs-container: 170px;
+
+  --gap-layout: 15px;
+
+  --z-index-search-container: 23;
+  --z-index-search-list: 23;
+  --z-index-main-overlay: 22;
+  --z-index-tooltip: 40;
+  --z-index-dish-overlay: 7;
+
+  --z-index-slider-hover-track: 4;
+  --z-index-slider-thumb: 5;
+  --z-index-slider-hover-track-tooltip: 6;
+
+
+
+
+
+}
+
+html,
+body {
+  height: 100vh;
+  width: 100vw;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  /* Thin scrollbar */
+  scrollbar-color: #e6e6e6 #f8f9fa;
+  /* Thumb color and track color */
+}
+
+a {
+  text-decoration: inherit;
+}
+
+a:hover {}
+
+body {
+  margin: 0;
+  display: flex;
+  overflow: hidden;
+  font-family: "Jost", sans-serif;
+  font-size: 16px;
+  margin: 0 auto;
+  transition: background-color 0.3s ease-in;
+
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  background-color: unset;
+  border: none;
+}
+
+input,
+textarea {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 1px 3px 1px 7px;
+  font-size: 14px;
+  border-radius: 5px;
+  font-family: inherit;
+  outline-color: rgb(158, 169, 255);
+
+  &:focus {
+    background-color: #fff;
+    box-shadow: 0 0 0 2px rgba(73, 60, 255, 0.15);
+  }
+}
+
+
+li {
+  list-style: none;
+}
+
+button:hover {}
+
+button:focus,
+button:focus-visible {}
+
+::-webkit-scrollbar {
+  width: 8px;
+  /* Width for vertical scrollbar */
+  height: 8px;
+  /* Height for horizontal scrollbar */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #6c757d;
+  /* Default thumb color */
+  border-radius: 4px;
+  /* Rounded edges */
+  border: 2px solid transparent;
+  /* Spacing around the thumb */
+  background-clip: padding-box;
+  /* Prevent border overlap */
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  /* Smooth transition */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #495057;
+  /* Darker color on hover */
+  border-color: #dee2e6;
+  /* Light border on hover for contrast */
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f8f9fa;
+  /* Light background for the track */
+  border-radius: 4px;
+  /* Matching rounded corners */
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+  /* Subtle inner shadow */
+}
+
+.Tooltip {
+  z-index: var(--z-index-tooltip);
+}

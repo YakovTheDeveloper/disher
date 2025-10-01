@@ -20,22 +20,17 @@ type CommonProps = {
   content: {
     itemsGroupedByTime: TimeGroupUI[];
   };
-  getLoadingState: () => boolean;
 };
+
 type Props = Omit<CommonProps, 'content' | 'getLoadingState'> & {
   length: number;
   content: TimeGroupUI[];
 };
 
-const ListWrapper = observer(({ content, getLoadingState, ...restProps }: CommonProps) => {
+const ListWrapper = observer(({ content, ...restProps }: CommonProps) => {
   const length = content.itemsGroupedByTime.length;
   console.log(length);
-  return (
-    <>
-      <Overlay isLoading={getLoadingState} />
-      <List content={content.itemsGroupedByTime} length={length} {...restProps} />
-    </>
-  );
+  return <List content={content.itemsGroupedByTime} length={length} {...restProps} />;
 });
 
 const List = observer(({ content, itemActions, options, length, onDishesUnite }: Props) => {

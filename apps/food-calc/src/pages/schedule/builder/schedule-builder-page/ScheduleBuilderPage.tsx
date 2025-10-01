@@ -51,11 +51,6 @@ const Page = observer(({ date }: { date: string }) => {
     [scheduleStore, date]
   );
 
-  const getLoadingState = useCallback(
-    () => scheduleStore.requestState.createOrUpdate.get(date)?.loading ?? false,
-    [scheduleStore, date]
-  );
-
   console.log('store.initData', store.initData);
   console.log('schedule builder page render');
 
@@ -64,12 +59,7 @@ const Page = observer(({ date }: { date: string }) => {
       <Navigation></Navigation>
       <Overlay isLoading={isLoading} className={styles.overlay} />
       {store.initData && (
-        <ScheduleBuilder
-          key={date}
-          schedule={store.initData}
-          onFinish={onFinish}
-          getLoadingState={getLoadingState}
-        />
+        <ScheduleBuilder key={date} date={date} schedule={store.initData} onFinish={onFinish} />
       )}
     </div>
   );

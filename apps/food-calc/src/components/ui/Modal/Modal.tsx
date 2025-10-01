@@ -71,7 +71,7 @@ const Modal = (props: Props) => {
           <header>
             <RemoveButton onClick={onClose} />
           </header>
-          {children}
+          <div className={s.innerContent}>{children}</div>
         </div>
       </div>
     </>

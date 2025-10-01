@@ -10,15 +10,16 @@ import {
   getTitle,
 } from '@/components/blocks/builders/food/ScheduleBuilder/ui/Navigation/methods';
 import clsx from 'clsx';
-import { MenuUiStore } from '@/store/uiStore/menu/menuUiStore';
 import { Button } from '@/components/ui/Button';
 import { Menu } from '@/components/common/Menu';
 import CalendarIcon from '@/assets/icons/calendar.svg';
 import { ScheduleUIEventEmitter } from '@/components/blocks/builders/food/shared/emitter';
+import { uiStore } from '@/store/rootStore';
+import { MenuUiStore } from '@/store/uiStore/menu/menuUiStore';
 
 type Props = {
   children?: React.ReactNode;
-  menuUi?: MenuUiStore;
+  menuUi: MenuUiStore;
 };
 
 function isToday(date) {
@@ -37,7 +38,7 @@ function isToday(date) {
 
 const SWIPE_THRESHOLD = 50;
 
-const Navigation = ({ children, menuUi = new MenuUiStore() }: Props) => {
+const Navigation = ({ children, menuUi = uiStore.menu }: Props) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const date = searchParams.get('date') || new Date().toISOString();

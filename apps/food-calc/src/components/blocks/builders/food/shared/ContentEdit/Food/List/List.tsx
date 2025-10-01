@@ -1,48 +1,42 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import clsx from 'clsx';
 import styles from './List.module.scss';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { getFoodList } from '@/api/food/food.api';
-import {
-  ScheduleContentSearchItem,
-  UICollectionItem,
-} from '@/components/blocks/builders/food/ScheduleBuilder/model/SearchViewModel';
-import { CommonData } from '@/store/models/common/types';
-import { FoodModelStore } from '@/store/models/food/foodModelStore';
-import { foodStore } from '@/store/rootStore';
+import { GetFoodParams } from '@/api/food/food.api';
+import { ScheduleContentSearchItem } from '@/components/blocks/builders/food/ScheduleBuilder/model/SearchViewModel';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { FoodEntity } from '@/store/models/food/types';
 import { useDebounce } from 'use-debounce';
 
 type Props = {
-  content: {
-    filtered: UICollectionItem[];
-    filterText: string;
-    setFilterText: (text: string) => void;
+  search: {
+    filterSearchText: string;
+    localFiltered: unknown[];
   };
-  onFoodSelect: (item: ScheduleContentSearchItem) => void;
-  vm: {
-    selectedItemId?: {
-      variant: string;
+  queryKey: string;
+  onFetch: (params: GetFoodParams) => Promise<{
+    items: {
       id: number;
-    };
-  };
-  model?: FoodModelStore;
+      name: string;
+    }[];
+    hasMore: boolean;
+  }>;
+  renderListContent: (item: unknown) => React.ReactNode;
 };
 
-const List = observer(({ onFoodSelect, content, vm, model = foodStore }: Props) => {
+const List = observer(({ search, onFetch, queryKey, renderListContent }: Props) => {
   const parentRef = useRef<HTMLDivElement>(null);
 
-  const filteredLocal = content.filtered;
+  const filteredLocal = search.localFiltered;
 
   type Response = { items: FoodEntity[]; hasMore: boolean };
 
   const fetchFoodPage = async ({ pageParam = 1 }): Promise<Response> => {
-    const res = await model.getFoodWithParams({
+    const res = await onFetch({
       page: pageParam,
       limit: 10,
-      filters: { search: content.filterText || undefined },
+      filters: { search: search.filterSearchText || undefined },
     });
     return res;
   };
@@ -51,7 +45,7 @@ const List = observer(({ onFoodSelect, content, vm, model = foodStore }: Props) 
     return lastPage.hasMore ? allPages.length + 1 : undefined;
   };
 
-  const [debouncedFilter] = useDebounce(content.filterText, 300);
+  const [debouncedFilter] = useDebounce(search.filterSearchText, 300);
 
   const {
     data,
@@ -60,7 +54,7 @@ const List = observer(({ onFoodSelect, content, vm, model = foodStore }: Props) 
     isFetchingNextPage,
     isLoading: isQueryLoading,
   } = useInfiniteQuery({
-    queryKey: ['foodList', debouncedFilter],
+    queryKey: [queryKey, debouncedFilter],
     queryFn: fetchFoodPage,
     getNextPageParam: getNextPageParam,
     initialPageParam: 1,
@@ -89,6 +83,8 @@ const List = observer(({ onFoodSelect, content, vm, model = foodStore }: Props) 
     }
   };
 
+  const virtualItems = rowVirtualizer.getVirtualItems();
+
   // useEffect(() => {
   //   fetchNextPage();
   // }, []);
@@ -102,7 +98,7 @@ const List = observer(({ onFoodSelect, content, vm, model = foodStore }: Props) 
           position: 'relative',
         }}
       >
-        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+        {virtualItems.map((virtualRow) => {
           const item = items[virtualRow.index];
           if (!item) return null;
 
@@ -111,9 +107,9 @@ const List = observer(({ onFoodSelect, content, vm, model = foodStore }: Props) 
               key={item.id}
               className={clsx([
                 styles.listItem,
-                vm.selectedItemId?.variant === item.type &&
-                  vm.selectedItemId?.id === item.id &&
-                  styles.listItem_active,
+                // vm.selectedItemId?.variant === item.type &&
+                //   vm.selectedItemId?.id === item.id &&
+                //   styles.listItem_active,
               ])}
               style={{
                 position: 'absolute',
@@ -122,12 +118,18 @@ const List = observer(({ onFoodSelect, content, vm, model = foodStore }: Props) 
                 width: '100%',
                 transform: `translateY(${virtualRow.start}px)`,
               }}
-              onClick={() => onFoodSelect(item)}
             >
-              <div className={styles.listItem__text}>{item.name}</div>
+              {renderListContent(item)}
             </li>
           );
         })}
+
+        {!isFetchingNextPage && !isQueryLoading && virtualItems.length === 0 ? (
+          <div>
+            <p>По вашему запросу ничего не найдено</p>
+          </div>
+        ) : null}
+
         {(isFetchingNextPage || isQueryLoading) && (
           <li
             style={{

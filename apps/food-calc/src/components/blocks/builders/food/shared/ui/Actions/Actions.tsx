@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './Actions.module.scss';
+import { createPortal } from 'react-dom';
 
 type Props = {
   children: React.ReactNode;
@@ -11,8 +12,7 @@ type Props = {
 
 const Actions = ({ children, isShow }: Props) => {
   const show = isShow();
-
-  return (
+  return createPortal(
     <div className={styles.container}>
       <AnimatePresence mode="sync">
         {show && (
@@ -27,7 +27,8 @@ const Actions = ({ children, isShow }: Props) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </div>,
+    document.body
   );
 };
 
