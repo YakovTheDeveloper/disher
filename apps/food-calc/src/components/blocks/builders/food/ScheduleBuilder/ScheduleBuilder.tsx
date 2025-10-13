@@ -45,10 +45,12 @@ import { FoodAdd } from '@/components/blocks/builders/food/ScheduleBuilder/compo
 import { DishEntity } from '@/store/models/dish/types';
 import { FoodEntity } from '@/store/models/food/types';
 import { toJS } from 'mobx';
+import { RootActions } from '@/components/blocks/builders/food/ScheduleBuilder/components/RootActions';
 
 export const Modals = {
   Time: 'time',
-  Food: 'food',
+  AddFood: 'addFood',
+  UpdateFood: 'updateFood',
   Quantity: 'quantity',
   DishNutrients: 'dishNutrients',
   CreateDish: 'createDish',
@@ -80,7 +82,7 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
 
   const onFoodsOpenCreate = () => {
     schedule.children.setCurrentId(-1);
-    modals.set('food');
+    modals.set('addFood');
   };
 
   const dishCreatingStore = useMemo(() => new DishCreatingStore(dishStore, schedule), []);
@@ -93,44 +95,15 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
     [dishCreatingStore]
   );
 
-  const onFoodSelect = (payload: DishEntity | FoodEntity | string) => {
-    let toAdd: Partial<AddChild> = {};
-    console.log('onFoodSelect');
+  const onFoodAdd = (payload: DishEntity | FoodEntity | string) => {
+    console.log('onFoodAdd payload', payload);
+    schedule.addChild(schedule.getChildContentVariant(payload));
+    modals.close();
+  };
 
-    if (typeof payload === 'string') {
-      toAdd = {
-        dish: null,
-        food: null,
-        customFoodName: payload,
-      };
-    } else if ('items' in payload) {
-      toAdd = {
-        dish: {
-          id: payload.id,
-          items: payload.items,
-          name: payload.name,
-        },
-        customFoodName: '',
-        food: null,
-      };
-    } else {
-      toAdd = {
-        food: {
-          id: payload.id,
-          name: payload.name,
-        },
-        customFoodName: '',
-        dish: null,
-      };
-    }
-
-    console.log(toAdd);
-    if (!schedule.children.current) {
-      schedule.addChild(toAdd);
-      modals.close();
-      return;
-    }
-    schedule.children.updateCurrent(toAdd);
+  const onFoodUpdate = (payload: DishEntity | FoodEntity | string) => {
+    console.log('onFoodUpdate payload', payload);
+    schedule.children.updateCurrent(schedule.getChildContentVariant(payload));
     modals.close();
   };
 
@@ -215,15 +188,12 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
   // }, [date]);
 
   const isLoading = () => scheduleStore.requestState.createOrUpdate.get(date)?.loading || false;
-  const shouldActionShow = useCallback(() => {
-    const loading = isLoading();
-    if (loading) return false;
-    return !modals.current && options.currentPage !== 0;
-  }, [isLoading]);
+
+  const pageNames = useMemo(() => ['нутриенты', 'еда', 'события'], []);
 
   return (
     <div className={style.container}>
-      <Swipeable model={options}>
+      <Swipeable model={options} pageNames={pageNames}>
         <TotalNutrients vm={schedule} ref={totalNutrients} />
 
         <WithOverlay isLoading={isLoading}>
@@ -248,20 +218,8 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
 
       <ModalRoot modals={modals}>
         {{
-          [Modals.Food]: (
-            <FoodAdd store={schedule} onChoose={onFoodSelect} />
-            // <ContentEdit.Food
-            //   options={options}
-            //   content={searchFiltering}
-            //   before={<SearchFilterTabs model={searchFiltering} />}
-            // >
-            //   <ContentEdit.SearchList
-            //     content={searchFiltering}
-            //     onFoodSelect={onFoodSelect}
-            //     vm={schedule}
-            //   />
-            // </ContentEdit.Food>
-          ),
+          [Modals.AddFood]: <FoodAdd store={schedule} onChoose={onFoodAdd} />,
+          [Modals.UpdateFood]: <FoodAdd store={schedule} onChoose={onFoodUpdate} />,
           [Modals.Time]: <ContentEdit.Time vm={schedule.children} onFinish={modals.close} />,
           [Modals.Quantity]: (
             <ContentEdit.Quantity vm={schedule.children} onFinish={modals.close} />
@@ -283,14 +241,53 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
         }}
       </ModalRoot>
 
-      <Actions isShow={shouldActionShow}>
-        <ActionButton.Finish onClick={onFinishHandler} content={schedule}>
-          обновить
+      <RootActions
+        isLoading={isLoading}
+        modals={modals}
+        onFinishHandler={onFinishHandler}
+        onEventContentCreateModalOpen={onEventContentCreateModalOpen}
+        onFoodsOpenCreate={onFoodsOpenCreate}
+        options={options}
+        schedule={schedule}
+      />
+
+      {/* <Actions isShow={shouldFoodActionsShow}>
+        <ActionButton.Finish
+          onClick={onFinishHandler}
+          content={schedule}
+          isShow={() => !schedule.isNoItems}
+        >
+          сохранить
         </ActionButton.Finish>
-        {options.currentPage === 1 && <ActionButton.Add onClick={onFoodsOpenCreate} />}
-        {options.currentPage === 2 && <ActionButton.Add onClick={onEventContentCreateModalOpen} />}
-        <ActionButton.AdditionalOptions options={options} />
+        {options.currentPage === 1 && (
+          <ActionButton.Add onClick={onFoodsOpenCreate} animate={() => schedule.isNoItems} />
+        )}
+        {options.currentPage === 2 && (
+          <ActionButton.Add
+            onClick={onEventContentCreateModalOpen}
+            animate={() => schedule.isNoItems}
+          />
+        )}
+        <ActionButton.AdditionalOptions options={options} isShow={() => !schedule.isNoItems} />
       </Actions>
+
+      <Actions isShow={shouldDailyEventsBuilderActionShow}>
+        <ActionButton.Finish
+          onClick={onFinishHandler}
+          content={schedule}
+          isShow={() => !schedule.isNoDailyEventItems}
+        >
+          сохранить
+        </ActionButton.Finish>
+        <ActionButton.Add
+          onClick={onEventContentCreateModalOpen}
+          animate={() => schedule.isNoDailyEventItems}
+        />
+        <ActionButton.AdditionalOptions
+          options={options}
+          isShow={() => !schedule.isNoDailyEventItems}
+        />
+      </Actions> */}
     </div>
   );
 };

@@ -211,7 +211,7 @@ const FoodAdd = ({ children, onChoose, store }: Props) => {
             value={state.customProductText}
             onChange={(e) => state.setCustomText(e.target.value)}
           />
-          <Button.Finish onClick={onCustomProductAdd} disabled={false}>
+          <Button.Finish onClick={onCustomProductAdd} disabled={false} isShow={() => true}>
             принять
           </Button.Finish>
         </div>

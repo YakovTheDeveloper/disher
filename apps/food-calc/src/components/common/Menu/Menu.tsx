@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import styles from './Menu.module.scss';
 import { NavLink } from 'react-router';
 import { RouterLinks } from '@/router';
+import { createPortal } from 'react-dom';
+import useOutsideClick from '@/hooks/useOutsideClick';
+import { useRef } from 'react';
 
 type Props = {
   children?: React.ReactNode;
@@ -13,12 +16,19 @@ type Props = {
 const Menu = ({ store, children }: Props) => {
   const show = store.isOpen;
 
+  const ref = useRef<HTMLDivElement>(null);
+
+  useOutsideClick(ref, () => {
+    store.close();
+  });
+
   const onClose = () => store.close();
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {show && (
         <motion.aside
+          ref={ref}
           className={styles.container}
           initial={{ x: '-100%' }}
           animate={{ x: 0 }}
@@ -39,7 +49,8 @@ const Menu = ({ store, children }: Props) => {
           <div>{children}</div>
         </motion.aside>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

@@ -75,6 +75,8 @@ const Navigation = ({ children, menuUi = uiStore.menu }: Props) => {
     ScheduleUIEventEmitter.emit('OPEN_COPY_SCHEDULE_MODAL');
   };
 
+  const onCalendarButtonClick = () => navigate(RouterLinks.Schedule);
+
   return (
     <>
       <motion.header
@@ -106,12 +108,15 @@ const Navigation = ({ children, menuUi = uiStore.menu }: Props) => {
           </NavLink>
         </div>
       </motion.header>
+
       <Menu store={menuUi}>
         <div className={styles.swipeButtons}>
           <button className={styles.swipeHint} onClick={handleBack}>
             ⬅︎
           </button>
-          <CalendarIcon className={styles.menuNavIcon} />
+          <button onClick={onCalendarButtonClick}>
+            <CalendarIcon className={styles.menuNavIcon} />
+          </button>
           <button className={styles.swipeHint} onClick={handleNext}>
             ➡︎
           </button>

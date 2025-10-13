@@ -8,11 +8,14 @@ type Props = {
     showAdditionals: boolean;
     toggle: () => void;
   };
+  isShow?: () => boolean;
 };
 
-const AdditionalOptionsButton = ({ options, className }: Props) => {
+const AdditionalOptionsButton = ({ options, className, isShow }: Props) => {
   const textView = options.showAdditionals ? 'больше' : 'меньше';
   const onClick = options.toggle;
+
+  if (!isShow?.()) return null;
   return (
     <button className={clsx([className, commonStyles.actionButton])} onClick={onClick}>
       {textView}

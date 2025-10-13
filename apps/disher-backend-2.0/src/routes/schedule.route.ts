@@ -185,19 +185,31 @@ export const scheduleRoutes = {
             if (changes) {
                 data.items = {
                     create: changes.create ?? [],
-                    update: (changes.update ?? []).map((u) => ({
-                        where: { id: u.id },
-                        data: {
-                            ...(u.quantity !== undefined ? { quantity: u.quantity } : {}),
-                            ...(u.time !== undefined ? { time: u.time } : {}),
-                            ...(u.customFoodName !== undefined
-                                ? { customFoodName: u.customFoodName }
-                                : {}),
-                            ...(u.foodId !== undefined ? { foodId: u.foodId } : {}),
-                            ...(u.dishId !== undefined ? { dishId: u.dishId } : {}),
-                        },
-                    })),
-                    delete: (changes.delete ?? []).map((id) => ({ id }))
+                    update: (changes.update ?? []).map((u) => {
+                        const updateData: any = {};
+
+                        if (u.quantity !== undefined) updateData.quantity = u.quantity;
+                        if (u.time !== undefined) updateData.time = u.time;
+
+                        // If customFoodName is provided
+                        if (u.customFoodName !== undefined) {
+                            updateData.customFoodName = u.customFoodName;
+
+                            // Unlink dish and product if custom name is set
+                            updateData.dishId = null;
+                            updateData.foodId = null;
+                        } else {
+                            // Otherwise update them normally if explicitly provided
+                            if (u.dishId !== undefined) updateData.dishId = u.dishId;
+                            if (u.foodId !== undefined) updateData.foodId = u.foodId;
+                        }
+
+                        return {
+                            where: { id: u.id },
+                            data: updateData,
+                        };
+                    }),
+                    delete: (changes.delete ?? []).map((id) => ({ id })),
                 };
             }
 

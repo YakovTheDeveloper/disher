@@ -33,7 +33,7 @@ export type ItemActions = {
 export function useItemActionsUI({ modals, variant, vm }: Args): ItemActions {
     const onFoodsOpenUpdate = (id: string | number) => {
         vm.children.setCurrentId(id);
-        modals.set('food');
+        modals.set('updateFood');
     };
 
     const onQuantityOpen = (id: string | number) => {
@@ -45,6 +45,7 @@ export function useItemActionsUI({ modals, variant, vm }: Args): ItemActions {
         vm.children.setCurrentId(id);
         modals.set('foodNutrients');
     };
+
     const result = {
         onFoodsOpenUpdate,
         onQuantityOpen,

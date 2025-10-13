@@ -3,6 +3,7 @@ import { UpdateChildrenStore } from "@/components/blocks/builders/food/shared/Up
 import { deepCopy } from "@/lib/copy/deepCopy";
 import { CommonData } from "@/store/models/common/types";
 import { DishEntity } from "@/store/models/dish/types";
+import { FoodEntity } from "@/store/models/food/types";
 import { getTotalFoodAndDishFoodQuantityFromSchedule } from "@/store/models/schedule/schedule.domain";
 import { DailyEventEntity, ScheduleEntity, ScheduleItemEntity } from "@/store/models/schedule/types";
 import { makeAutoObservable, runInAction } from "mobx";
@@ -21,7 +22,11 @@ export type DayScheduleItemUI = Omit<ScheduleItemEntity, "id"> & {
 
 export type DayScheduleItemCopyPayloadUI = Omit<DayScheduleItemUI, 'status'>
 
-export type AddChild = { food: null, dish: DishEntity, time?: string, quantity?: number, customFoodName?: string } | { food: CommonData, dish: null, time?: string, quantity?: number, customFoodName?: string }
+export type AddChild = { food: null, dish: DishEntity, time?: string, quantity?: number, customFoodName?: string } | { food: CommonData, dish: null, time?: string, quantity?: number, customFoodName?: string } | {
+  dish: null,
+  food: null,
+  customFoodName: string
+}
 
 export type TimeGroupUI<T = DayScheduleItemUI> = { time: string; items: T[], offset: { hours: number; minutes: number } | null; }
 
@@ -74,6 +79,12 @@ export class ScheduleBuilderViewModel {
     return this.dailyEvents.children
   }
 
+  get customItems() {
+    return this.schedule.items.filter(({ customFoodName, dish, food }) => {
+      return customFoodName !== '' && dish == null && food == null
+    })
+  }
+
   get foodWithQuantity() {
     const current = this.children.current
     if (!current) return []
@@ -94,6 +105,15 @@ export class ScheduleBuilderViewModel {
 
   get itemsLength() {
     return this.schedule.items.length
+  }
+
+  get isNoItems() {
+    return this.schedule.items.length === 0
+  }
+
+  get isNoDailyEventItems() {
+    return this.dailyEvents.content.items.length === 0
+
   }
 
   get selectedItemId() {
@@ -132,6 +152,33 @@ export class ScheduleBuilderViewModel {
         this.schedule.items.push(createUIDayScheduleItem(item));
       })
     })
+  }
+
+  getChildContentVariant = (payload: DishEntity | FoodEntity | string) => {
+    const isCustom = typeof payload === 'string';
+    if (isCustom) return {
+      dish: null,
+      food: null,
+      customFoodName: payload,
+    }
+    const isDish = 'items' in payload;
+    if (isDish) return {
+      dish: {
+        id: payload.id,
+        items: payload.items,
+        name: payload.name,
+      },
+      customFoodName: '',
+      food: null,
+    }
+    return {
+      food: {
+        id: payload.id,
+        name: payload.name,
+      },
+      customFoodName: '',
+      dish: null,
+    }
   }
 
   removeChildrenByFoodIdsAndTime = (foodIds: number[], time: string) => {

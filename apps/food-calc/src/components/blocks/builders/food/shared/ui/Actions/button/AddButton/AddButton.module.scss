@@ -1,3 +1,20 @@
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(78, 164, 255, 0.7);
+        transform: scale(1);
+    }
+
+    70% {
+        box-shadow: 0 0 0 20px rgba(0, 123, 255, 0);
+        transform: scale(1.08);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+        transform: scale(1);
+    }
+}
+
 .container {
     height: 16vw;
     width: 16vw;
@@ -9,9 +26,28 @@
     font-weight: 100;
     align-items: center;
     justify-content: center;
-    border: 1px solid #000;
     border-radius: 50%;
     background-color: #00000027;
     border: none;
     color: white;
+    transition: box-shadow 0.3s, transform 0.3s;
+    position: relative;
+    overflow: visible;
+}
+
+.animate::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    z-index: 0;
+    animation: pulse 1.2s infinite;
+    border: 2px solid #daecff;
+    box-shadow: 0 0 10px #bbdcff;
+    pointer-events: none;
+}
+
+.animate {
+    position: relative;
+    z-index: 1;
 }

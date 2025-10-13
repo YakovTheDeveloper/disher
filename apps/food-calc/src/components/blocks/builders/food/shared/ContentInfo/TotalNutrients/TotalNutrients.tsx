@@ -18,13 +18,14 @@ type Props = {
   children: React.ReactNode;
   vm: {
     schedule: DayScheduleUI;
+    customItems: DayScheduleItemUI[];
   };
   ref: React.Ref<{
     calculate: () => void;
   }>;
 };
 
-const TotalNutrients = ({ vm, ref }: Props) => {
+const TotalNutrients = ({ vm, ref, children }: Props) => {
   const { prepareStore } = useTotalNutrients(vm, ref);
 
   console.log('TotalNutrients render');
@@ -49,6 +50,20 @@ const TotalNutrients = ({ vm, ref }: Props) => {
       <NavLink to={RouterLinks.DailyNorms}>
         <Typography variant="action">поменять норму</Typography>
       </NavLink>
+      {children}
+
+      {vm.customItems.length && (
+        <div className={styles.messageContainer}>
+          <p>Расчет производится без учета кастомных продуктов</p>
+          <div className={styles.messageContainerRow}>
+            Продукты:{' '}
+            {vm.customItems.map(({ customFoodName }) => (
+              <span key={customFoodName}>{customFoodName}</span>
+            ))}{' '}
+          </div>
+          <p>не были учтены</p>
+        </div>
+      )}
     </div>
   );
 };

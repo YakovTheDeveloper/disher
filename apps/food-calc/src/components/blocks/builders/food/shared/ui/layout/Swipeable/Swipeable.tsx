@@ -2,16 +2,18 @@ import { useState, useRef, ReactNode, TouchEvent } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './Swipeable.module.scss';
 import { Pages } from '@/components/blocks/builders/food/shared/ui/layout/Swipeable/Pages';
+import clsx from 'clsx';
 
 type Props = {
   children: ReactNode[]; // multiple pages
+  pageNames?: string[];
   model: {
     currentPage: number;
     setCurrentPage: (value: number) => void;
   };
 };
 
-const Swipeable = ({ children, model }: Props) => {
+const Swipeable = ({ children, model, pageNames }: Props) => {
   const { setCurrentPage } = model;
   const [offset, setOffset] = useState(0);
   const startX = useRef<number | null>(null);
@@ -101,14 +103,32 @@ const Swipeable = ({ children, model }: Props) => {
       </div>
 
       {/* Tracker Dots */}
-      <div className={styles.dots}>
-        {children.map((_, i) => (
-          <span
-            key={i}
-            className={`${styles.dot} ${i === model.currentPage ? styles.active : ''}`}
-            onClick={() => goToPage(i)}
-          ></span>
-        ))}
+      <div className={styles.bottom}>
+        {/* <div className={styles.dots}>
+          {children.map((_, i) => (
+            <span
+              key={i}
+              className={`${styles.dot} ${i === model.currentPage ? styles.active : ''}`}
+              onClick={() => goToPage(i)}
+            ></span>
+          ))}
+        </div> */}
+        {pageNames && (
+          <div className={styles.tabs}>
+            {pageNames.map((name, i) => (
+              <span
+                className={clsx([
+                  styles.tabs__tab,
+                  model.currentPage === i && styles.tabs__tab_active,
+                ])}
+                key={name}
+                onClick={() => goToPage(i)}
+              >
+                {name}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
