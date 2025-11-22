@@ -27,3 +27,7 @@ export const getOneFood = async (id: number, date?: string) => {
         ...(date ? { date } : {})
     })
 }
+
+export const addFood = async (payload: any) => {
+    return await trpc.addFood.mutate(payload)
+}

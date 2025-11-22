@@ -40,16 +40,26 @@ const parseTime = (time: string) => {
   return time.split(':');
 };
 
+type HasTime = { time: string };
+
+// type Props<T extends HasTime> = {
+//   store: {
+//     current: T | null;
+//     updateCurrent: (fields: Partial<T>) => void;
+//   };
+//   onFinish: () => void;
+// };
+
 type Props = {
-  vm: {
+  store: {
     current: { time: string } | null;
-    updateCurrent: (data: { time?: string }) => void;
+    updateTime: (time: string) => void;
   };
   onFinish: () => void;
 };
 
-const Time = ({ vm, onFinish }: Props) => {
-  const [initHours, initMinutes] = parseTime(vm.current?.time || '');
+function Time({ store, onFinish }: Props) {
+  const [initHours, initMinutes] = parseTime(store.current?.time || '');
   const [minutes, setMinutes] = useState<string>(initMinutes);
   const [hours, setHours] = useState(initHours);
 
@@ -59,7 +69,7 @@ const Time = ({ vm, onFinish }: Props) => {
   const onMinutesChange = (m: string) => {
     const time = hours + ':' + m;
     setMinutes('');
-    vm.updateCurrent({ time });
+    store.updateTime(time);
     onFinish();
   };
 
@@ -156,6 +166,6 @@ const Time = ({ vm, onFinish }: Props) => {
       </AnimatePresence>
     </div>
   );
-};
+}
 
 export default observer(Time);

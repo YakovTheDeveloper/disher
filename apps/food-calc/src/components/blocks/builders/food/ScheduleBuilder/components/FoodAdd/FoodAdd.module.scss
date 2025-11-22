@@ -96,7 +96,7 @@
 
     span {
         display: inline-block;
-        font-size: 24px;
+        font-size: 26px;
         transition: all 0.4s ease;
     }
 
@@ -134,4 +134,8 @@
 
 .currentSelectedItem {
     background-color: rgba(195, 255, 169, 0.757);
+}
+
+.actions {
+    z-index: 101;
 }

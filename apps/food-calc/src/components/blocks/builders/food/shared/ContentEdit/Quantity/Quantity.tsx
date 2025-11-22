@@ -13,15 +13,15 @@ const variants = [
 ].flatMap((val) => val);
 
 type Props = {
-  vm: {
+  store: {
     current: { quantity: number } | null;
-    updateCurrent: (data: { quantity: number }) => void;
+    updateQuantity: (quantity: number) => void;
   };
   onFinish: () => void;
 };
 
-const Quantity = ({ vm, onFinish }: Props) => {
-  const initQuantity = vm.current?.quantity;
+const Quantity = ({ store, onFinish }: Props) => {
+  const initQuantity = store.current?.quantity;
 
   const [isCustom, setIsCustom] = useState(false);
   const [customValue, setCustomValue] = useState('');
@@ -33,8 +33,8 @@ const Quantity = ({ vm, onFinish }: Props) => {
     setCustomValue(e.target.value);
   };
 
-  const accept = (data: { quantity: number }) => {
-    vm.updateCurrent(data);
+  const onAccept = (quantity: number) => {
+    store.updateQuantity(quantity);
     onFinish();
   };
 
@@ -46,7 +46,7 @@ const Quantity = ({ vm, onFinish }: Props) => {
   const onCustomButtonClick = () => {
     if (isCustom) {
       const quantity = Number(customValue);
-      accept({ quantity });
+      onAccept(quantity);
       return;
     }
     showCustomInput();
@@ -91,7 +91,7 @@ const Quantity = ({ vm, onFinish }: Props) => {
         </button>
         {variants.map((quantity) => (
           <button
-            onClick={() => accept({ quantity })}
+            onClick={() => onAccept(quantity)}
             key={quantity}
             className={clsx([
               style.item,

@@ -1,9 +1,28 @@
-.container {
-    height: 100px;
-    min-width: 100px;
-    display: flex;
-    font-size: 2rem;
-    font-weight: 200;
+button.button {
+    position: relative;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+
+    border: 1px solid rgb(223, 226, 255);
+
+    font-weight: 300;
+    color: rgb(163, 173, 255);
+    box-shadow: none;
+    outline: none;
+    gap: 0;
+
+    &.active {
+        border-color: rgb(103, 151, 255);
+        color: rgb(48, 113, 255);
+    }
+}
+
+
+.text {
+    &.active {}
 }

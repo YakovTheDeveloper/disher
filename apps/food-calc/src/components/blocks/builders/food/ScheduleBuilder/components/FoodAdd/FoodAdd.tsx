@@ -13,19 +13,41 @@ import clsx from 'clsx';
 import { DayScheduleItemUI } from '@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel';
 import { DishEntity } from '@/store/models/dish/types';
 import { FoodEntity } from '@/store/models/food/types';
+import { Instance } from 'mobx-state-tree';
+import { DaySchedule, ScheduleItem } from '@/domain/schedule';
+import { useDailyScheduleModals } from '@/components/blocks/builders/food/ScheduleBuilder/modalContext';
+import { domainStore } from '@/store/store';
 
 type Props = {
   children?: React.ReactNode;
-  onChoose: (payload: DishEntity | FoodEntity | string) => void;
-  store: {
-    currentChild: DayScheduleItemUI | null;
-  };
+  store: Instance<typeof DaySchedule>;
 };
 
 type Tabs = 'productSearch' | 'dishSearch' | 'createCustom';
 
-const FoodAdd = ({ children, onChoose, store }: Props) => {
-  const currentChild = store.currentChild;
+const FoodAdd = ({ children, store }: Props) => {
+  const modals = useDailyScheduleModals();
+
+  const currentChild = store.current;
+
+  const onCustomAdd = (payload: DishEntity | FoodEntity | string) => {
+    console.log('onCustomAdd payload', payload);
+    store.addOrUpdateCustomItem(payload);
+    modals.close();
+  };
+
+  const onFoodAdd = (payload: DishEntity | FoodEntity | string) => {
+    console.log('onFoodAdd payload', payload);
+    store.addOrUpdateFoodItem(payload.id);
+    modals.close();
+  };
+
+  const onDishAdd = (payload: DishEntity | FoodEntity | string) => {
+    console.log('onDishAdd payload', payload);
+    store.addOrUpdateDishItem(payload.id);
+    modals.close();
+  };
+
   const state = useLocalObservable(() => ({
     currentTab: 'productSearch' as Tabs,
     filterText: '',
@@ -49,8 +71,8 @@ const FoodAdd = ({ children, onChoose, store }: Props) => {
       },
       get localFiltered() {
         const q = this.filterSearchText.trim().toLowerCase();
-        if (!q) return foodStore.list ?? [];
-        return (foodStore.list ?? []).filter((p: any) =>
+        if (!q) return domainStore.foodStore.list ?? [];
+        return (domainStore.foodStore.list ?? []).filter((p: any) =>
           ((p.name ?? p.title ?? '') + '').toLowerCase().includes(q)
         );
       },
@@ -82,19 +104,15 @@ const FoodAdd = ({ children, onChoose, store }: Props) => {
     },
   }));
 
-  console.log('wtf', toJS(dishStore.list), toJS(foodStore.list));
-
-  const onItemNameClick = (item: unknown) => {
-    onChoose(item);
-  };
-
   const onProductClickSeeDetails = () => {};
 
   const onCustomProductAdd = () => {
     console.log('onItemNameClick', state.customProductText);
 
-    onChoose(state.customProductText);
+    onCustomAdd(state.customProductText);
   };
+
+  console.log('state.foodSearchState', state.foodSearchState);
 
   const renderProductItem = (item: unknown) => (
     <>
@@ -102,7 +120,7 @@ const FoodAdd = ({ children, onChoose, store }: Props) => {
         className={currentChild?.food?.id === item.id ? styles.currentSelectedItem : ''}
       >
         <FoodName
-          onClick={() => onItemNameClick(item)}
+          onClick={() => onFoodAdd(item)}
           onClickHintModeOn={onProductClickSeeDetails}
           hintMode={settings.showAdditionals}
         >
@@ -118,7 +136,7 @@ const FoodAdd = ({ children, onChoose, store }: Props) => {
         className={currentChild?.dish?.id === item.id ? styles.currentSelectedItem : ''}
       >
         <FoodName
-          onClick={() => onItemNameClick(item)}
+          onClick={() => onDishAdd(item)}
           onClickHintModeOn={onProductClickSeeDetails}
           hintMode={settings.showAdditionals}
         >
@@ -188,7 +206,7 @@ const FoodAdd = ({ children, onChoose, store }: Props) => {
       {state.currentTab === 'productSearch' ? (
         <List
           queryKey="productSearch"
-          onFetch={foodStore.getFoodWithParams}
+          onFetch={domainStore.foodStore.getFoodWithParams}
           search={state.foodSearchState}
           renderListContent={renderProductItem}
         />
@@ -217,10 +235,12 @@ const FoodAdd = ({ children, onChoose, store }: Props) => {
         </div>
       )}
 
-      <Actions isShow={showActionsBar}>
+      <Actions isShow={showActionsBar} className={styles.actions}>
         <Button.AdditionalOptions
+          isShow={() => true}
           className={styles.additionalButton}
           options={settings}
+          onClick={settings.toggle}
         ></Button.AdditionalOptions>
       </Actions>
     </div>

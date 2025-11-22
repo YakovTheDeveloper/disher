@@ -2,6 +2,7 @@ import { z } from "zod";
 import { prisma } from "../../client";
 import { createResponseObject } from "../../lib/response";
 import { t } from "../../trpc";
+import { AddFoodInputSchema } from "./validation";
 
 export const foodRoutes = {
     getFoodByIds: t.procedure.input(z.object({
@@ -112,5 +113,43 @@ export const foodRoutes = {
             where: whereCondition
         })
         return createResponseObject(200, 'good', result)
-    })
+    }),
+    addFood: t.procedure
+        .input(AddFoodInputSchema)
+        .mutation(async ({ input }) => {
+            const maxId = await prisma.food.aggregate({ _max: { id: true } });
+            const newId = (maxId._max.id ?? 0) + 1;
+
+            try {
+                // 1️⃣ Create the Food record
+                const food = await prisma.food.create({
+                    data: {
+                        id: newId,
+                        name: input.name,
+                        nameEng: input.nameEng,
+                        description: input.description ?? "",
+                        descriptionEng: input.descriptionEng ?? "",
+                        nutrients: {
+                            create: input.nutrients.map((n) => ({
+                                quantity: n.value,
+                                nutrientId: n.id,
+                            })),
+                        },
+                    },
+                    include: {
+                        nutrients: {
+                            select: {
+                                quantity: true,
+                                nutrientId: true,
+                            },
+                        },
+                    },
+                });
+
+                return createResponseObject(200, "Food created successfully", food);
+            } catch (error) {
+                console.error("addFood error:", error);
+                return createResponseObject(500, "Error creating food", error);
+            }
+        }),
 }

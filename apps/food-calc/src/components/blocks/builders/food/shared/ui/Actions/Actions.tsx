@@ -4,16 +4,18 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './Actions.module.scss';
 import { createPortal } from 'react-dom';
+import clsx from 'clsx';
 
 type Props = {
   children: React.ReactNode;
   isShow: () => boolean;
+  className?: string;
 };
 
-const Actions = ({ children, isShow }: Props) => {
+const Actions = ({ children, isShow, className }: Props) => {
   const show = isShow();
   return createPortal(
-    <div className={styles.container}>
+    <div className={clsx([styles.container, className])}>
       <AnimatePresence mode="sync">
         {show && (
           <motion.div

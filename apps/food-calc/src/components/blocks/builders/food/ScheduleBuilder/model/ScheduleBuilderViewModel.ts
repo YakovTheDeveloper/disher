@@ -1,5 +1,6 @@
 import { DayEventsBuilderViewModel, ScheduleQuestionnaireItemUI } from "@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel";
 import { UpdateChildrenStore } from "@/components/blocks/builders/food/shared/UpdateChildrenStore";
+import { DaySchedule } from "@/domain/schedule";
 import { deepCopy } from "@/lib/copy/deepCopy";
 import { CommonData } from "@/store/models/common/types";
 import { DishEntity } from "@/store/models/dish/types";
@@ -7,6 +8,7 @@ import { FoodEntity } from "@/store/models/food/types";
 import { getTotalFoodAndDishFoodQuantityFromSchedule } from "@/store/models/schedule/schedule.domain";
 import { DailyEventEntity, ScheduleEntity, ScheduleItemEntity } from "@/store/models/schedule/types";
 import { makeAutoObservable, runInAction } from "mobx";
+import { Instance } from "mobx-state-tree";
 import { v4 as uuidv4 } from 'uuid';
 
 export type DayScheduleItemUIStatus = 'added' | 'deleted' | 'modified' | null
@@ -46,6 +48,27 @@ function scheduleToUIAdapter(raw: ScheduleEntity): DayScheduleUI {
       ...item,
       status: null,
     })),
+  };
+}
+
+function scheduleToUIAdapterV2(raw: ScheduleEntity): Instance<typeof DaySchedule> {
+  const copy = deepCopy(raw);
+  const dailyEvents = raw.dailyEvents ? JSON.parse(raw.dailyEvents) as DailyEventEntity[] : null
+  const dailyEventsAdapted: ScheduleQuestionnaireItemUI[] = dailyEvents?.map(event => ({
+    status: null,
+    data: event.content,
+    time: event.time,
+    id: uuidv4()
+  })) ?? []
+  return {
+    ...copy,
+
+    dailyEvents: dailyEventsAdapted,
+
+    items: copy.items.map(i => ({
+      ...i,
+      status: "none" // MST-friendly version of null
+    }))
   };
 }
 

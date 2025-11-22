@@ -4,6 +4,12 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+enum ScheduleItemType {
+  food
+  dish
+  custom
+}
+
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -28,27 +34,28 @@ model Schedule {
 }
 
 model ScheduleItem {
-  id             Int      @id @default(autoincrement())
+  id             Int              @id @default(autoincrement())
   quantity       Int
+  type           ScheduleItemType
   time           String
   customFoodName String?
   foodId         Int?
   dishId         Int?
   scheduleId     Int
-  food           Food?    @relation(fields: [foodId], references: [id])
-  dish           Dish?    @relation(fields: [dishId], references: [id])
-  schedule       Schedule @relation(fields: [scheduleId], references: [id])
+  food           Food?            @relation(fields: [foodId], references: [id])
+  dish           Dish?            @relation(fields: [dishId], references: [id])
+  schedule       Schedule         @relation(fields: [scheduleId], references: [id])
 }
 
 model Food {
-  id            Int            @id @default(autoincrement())
-  name          String
-  nameEng       String
-  description   String
-  descriptionRu String
-  nutrients     FoodNutrient[]
-  ScheduleItem  ScheduleItem[]
-  DishItem      DishItem[]
+  id             Int            @id @default(autoincrement())
+  name           String
+  nameEng        String
+  description    String?
+  descriptionEng String?
+  nutrients      FoodNutrient[]
+  ScheduleItem   ScheduleItem[]
+  DishItem       DishItem[]
 }
 
 model FoodNutrient {

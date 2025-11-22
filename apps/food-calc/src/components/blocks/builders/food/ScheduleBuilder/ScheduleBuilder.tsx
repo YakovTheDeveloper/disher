@@ -71,7 +71,7 @@ type Props = {
 const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
   const modals = useMemo(() => new ModalStoreUI<ModalsType>(), []);
 
-  const options = useMemo(() => new BuilderUIStore(), []);
+  const options = useMemo(() => new BuilderUIStore([0, 1, 2]), []);
 
   const _itemActions = useItemActionsUI({ variant: 'schedule', modals, vm: schedule });
   const itemActions = useMemo(() => _itemActions, [modals, schedule]);
@@ -111,17 +111,6 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
   const getCurrentFoodWithQuantity = useCallback(() => schedule.foodWithQuantity, []);
 
   console.log('SChedule buILder REnder');
-
-  // useEffect(() => {
-  //   const noItems = schedule.schedule.items.length === 0;
-  //   if (noItems) {
-  //     options.pushFoodSelectMessage('Начнем заполнять наш день');
-  //     onFoodsOpenCreate();
-  //   }
-  //   return () => {
-  //     options.clearFoodSelectMessage();
-  //   };
-  // }, [schedule]);
 
   const onFinishHandler = useCallback(() => {
     const payload = schedule.payload();
@@ -191,6 +180,8 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
 
   const pageNames = useMemo(() => ['нутриенты', 'еда', 'события'], []);
 
+  const foodOptions = useMemo(() => options.getShowMoreOptions(1), [options]);
+
   return (
     <div className={style.container}>
       <Swipeable model={options} pageNames={pageNames}>
@@ -201,7 +192,7 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
             itemActions={itemActions}
             content={schedule}
             onDishesUnite={onUniteFoodIntoDish}
-            options={options}
+            options={foodOptions}
           />
         </WithOverlay>
 
@@ -250,44 +241,6 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
         options={options}
         schedule={schedule}
       />
-
-      {/* <Actions isShow={shouldFoodActionsShow}>
-        <ActionButton.Finish
-          onClick={onFinishHandler}
-          content={schedule}
-          isShow={() => !schedule.isNoItems}
-        >
-          сохранить
-        </ActionButton.Finish>
-        {options.currentPage === 1 && (
-          <ActionButton.Add onClick={onFoodsOpenCreate} animate={() => schedule.isNoItems} />
-        )}
-        {options.currentPage === 2 && (
-          <ActionButton.Add
-            onClick={onEventContentCreateModalOpen}
-            animate={() => schedule.isNoItems}
-          />
-        )}
-        <ActionButton.AdditionalOptions options={options} isShow={() => !schedule.isNoItems} />
-      </Actions>
-
-      <Actions isShow={shouldDailyEventsBuilderActionShow}>
-        <ActionButton.Finish
-          onClick={onFinishHandler}
-          content={schedule}
-          isShow={() => !schedule.isNoDailyEventItems}
-        >
-          сохранить
-        </ActionButton.Finish>
-        <ActionButton.Add
-          onClick={onEventContentCreateModalOpen}
-          animate={() => schedule.isNoDailyEventItems}
-        />
-        <ActionButton.AdditionalOptions
-          options={options}
-          isShow={() => !schedule.isNoDailyEventItems}
-        />
-      </Actions> */}
     </div>
   );
 };

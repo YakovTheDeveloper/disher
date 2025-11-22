@@ -5,9 +5,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import '@/assets/style/index.css';
 import '@/assets/style/App.module.scss';
+import { domainStore } from '@/store/store';
 
 const queryClient = new QueryClient();
+
 const App = () => {
+  const store = domainStore;
+
+  console.log('store', store);
+
   return (
     <QueryClientProvider client={queryClient}>
       <div className={s.root}>

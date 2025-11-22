@@ -6,7 +6,7 @@ import clsx from 'clsx';
 type Props = {
   children?: React.ReactNode;
   className?: string;
-  status: 'added' | 'deleted' | 'modified' | null;
+  status: 'added' | 'deleted' | 'modified' | 'none' | null;
   showAdditionals: boolean;
   id: number | string;
   onDelete: (id: string | number) => void;

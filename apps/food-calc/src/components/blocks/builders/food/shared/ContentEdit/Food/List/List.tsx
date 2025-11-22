@@ -2,12 +2,14 @@ import { useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import clsx from 'clsx';
 import styles from './List.module.scss';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { GetFoodParams } from '@/api/food/food.api';
 import { ScheduleContentSearchItem } from '@/components/blocks/builders/food/ScheduleBuilder/model/SearchViewModel';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { FoodEntity } from '@/store/models/food/types';
 import { useDebounce } from 'use-debounce';
+import { FoodEntity } from '@/store/models/food/types';
+import { Overlay } from '@/components/ui/Overlay';
+import { domainStore } from '@/store/store';
 
 type Props = {
   search: {
@@ -40,6 +42,8 @@ const List = observer(({ search, onFetch, queryKey, renderListContent }: Props) 
     });
     return res;
   };
+
+  console.log(domainStore.foodStore);
 
   const getNextPageParam = (lastPage: Response, allPages: Response[]) => {
     return lastPage.hasMore ? allPages.length + 1 : undefined;
@@ -89,8 +93,11 @@ const List = observer(({ search, onFetch, queryKey, renderListContent }: Props) 
   //   fetchNextPage();
   // }, []);
 
+  const initLoading = isQueryLoading && filteredLocal.length === 0;
+
   return (
     <div ref={parentRef} className={styles.scrollContainer} onScroll={handleScroll}>
+      <Overlay isLoading={() => initLoading} />
       <ul
         className={styles.list}
         style={{
@@ -98,6 +105,12 @@ const List = observer(({ search, onFetch, queryKey, renderListContent }: Props) 
           position: 'relative',
         }}
       >
+        {/* <li
+          className={styles.listEndLoader}
+          style={{
+            transform: `translateY(${rowVirtualizer.getTotalSize() - 60}px)`,
+          }}
+        ></li> */}
         {virtualItems.map((virtualRow) => {
           const item = items[virtualRow.index];
           if (!item) return null;
@@ -132,17 +145,11 @@ const List = observer(({ search, onFetch, queryKey, renderListContent }: Props) 
 
         {(isFetchingNextPage || isQueryLoading) && (
           <li
+            className={styles.listEndLoader}
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
               transform: `translateY(${rowVirtualizer.getTotalSize() - 60}px)`,
-              textAlign: 'center',
             }}
-          >
-            Loading…
-          </li>
+          ></li>
         )}
       </ul>
     </div>

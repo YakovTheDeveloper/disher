@@ -14,26 +14,28 @@ import { InitLoadingStore } from '@/components/blocks/builders/food/ScheduleBuil
 import { Overlay, WithOverlay } from '@/components/ui/Overlay';
 import { debounce } from '@/utils/debounce';
 import { ScheduleQuestionnaireItemUI } from '@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel';
+import { ModalDailyScheduleProvider } from '@/components/blocks/builders/food/ScheduleBuilder/modalContext';
+import { domainStore } from '@/store/store';
 
 const Page = observer(({ date }: { date: string }) => {
   const store = useMemo(() => new InitLoadingStore(), []);
-  const onInit = useMemo(
-    () =>
-      debounce((date: string) => {
-        console.log('on init function');
-        store.onInit(date);
-      }, 500),
-    [store]
-  );
+  // const onInit = useMemo(
+  //   () =>
+  //     debounce((date: string) => {
+  //       console.log('on init function');
+  //       store.onInit(date);
+  //     }, 500),
+  //   [store]
+  // );
 
-  useEffect(() => {
-    store.reset();
-    onInit(date);
+  // useEffect(() => {
+  //   store.reset();
+  //   onInit(date);
 
-    return () => {
-      onInit.cancel();
-    };
-  }, [date, onInit]);
+  //   return () => {
+  //     onInit.cancel();
+  //   };
+  // }, [date, onInit]);
 
   const onFinish = useCallback(async (payload: DayScheduleUI) => {
     if (payload.id === -1) {
@@ -54,14 +56,36 @@ const Page = observer(({ date }: { date: string }) => {
   console.log('store.initData', store.initData);
   console.log('schedule builder page render');
 
+  const current = domainStore.daySchedule.data.get(date);
+
+  const init = async () => {
+    const { code, data = null } = await domainStore.daySchedule.getOneByDate(date);
+
+    if (code === 404) {
+      domainStore.daySchedule.addLocal({ date, isDraft: true });
+    }
+
+    if (data) {
+      domainStore.daySchedule.addLocal({ ...data, isDraft: false });
+    }
+  };
+
+  useEffect(() => {
+    console.log('current', current);
+    if (current) return;
+    init();
+  }, [current]);
+
   return (
-    <div className={styles.container}>
-      <Navigation></Navigation>
-      <Overlay isLoading={isLoading} className={styles.overlay} />
-      {store.initData && (
-        <ScheduleBuilder key={date} date={date} schedule={store.initData} onFinish={onFinish} />
-      )}
-    </div>
+    <ModalDailyScheduleProvider>
+      <div className={styles.container}>
+        <Navigation></Navigation>
+        <Overlay isLoading={isLoading} className={styles.overlay} />
+        {current && (
+          <ScheduleBuilder key={date} date={date} schedule={current} onFinish={onFinish} />
+        )}
+      </div>
+    </ModalDailyScheduleProvider>
   );
 });
 

@@ -9,10 +9,12 @@ type Props = {
   onEventContentCreateModalOpen: () => void;
   options: {
     currentPage: number;
+    getShowMoreOptions: (value: number) => { showAdditionals: boolean };
+    togglePagesShowMoreOptions: (value: number) => void;
   };
   isLoading: () => boolean;
   modals: {
-    current: boolean;
+    current: string | null;
   };
   schedule: {
     isNoItems: boolean;
@@ -50,10 +52,23 @@ const RootActions = ({
     return options.currentPage === 2;
   };
 
+  const onMoreOptionsCLickNutrients = () => options.togglePagesShowMoreOptions(0);
+  const onMoreOptionsCLickFood = () => options.togglePagesShowMoreOptions(1);
+  const onMoreOptionsCLickDailyEvents = () => options.togglePagesShowMoreOptions(2);
+
+  const showAdditionalsTotalNutrients = options.getShowMoreOptions(0);
+  const showAdditionalsFood = options.getShowMoreOptions(1);
+  const showAdditionalsDailyEvents = options.getShowMoreOptions(2);
+
   return (
     <>
       <Actions isShow={shouldTotalNutrientsShow}>
-        <ActionButton.AdditionalOptions options={options} isShow={() => true} />
+        <ActionButton.AdditionalOptions
+          options={showAdditionalsTotalNutrients}
+          isShow={() => true}
+          className={styles.nutrientMoreButton}
+          onClick={onMoreOptionsCLickNutrients}
+        />
       </Actions>
       <Actions isShow={shouldFoodActionsShow}>
         <ActionButton.Finish
@@ -64,7 +79,11 @@ const RootActions = ({
           сохранить
         </ActionButton.Finish>
         <ActionButton.Add onClick={onFoodsOpenCreate} animate={() => schedule.isNoItems} />
-        <ActionButton.AdditionalOptions options={options} isShow={() => !schedule.isNoItems} />
+        <ActionButton.AdditionalOptions
+          options={showAdditionalsFood}
+          isShow={() => !schedule.isNoItems}
+          onClick={onMoreOptionsCLickFood}
+        />
       </Actions>
       <Actions isShow={shouldDailyEventsBuilderActionShow}>
         <ActionButton.Finish
@@ -79,7 +98,8 @@ const RootActions = ({
           animate={() => schedule.isNoDailyEventItems}
         />
         <ActionButton.AdditionalOptions
-          options={options}
+          onClick={onMoreOptionsCLickDailyEvents}
+          options={showAdditionalsDailyEvents}
           isShow={() => !schedule.isNoDailyEventItems}
         />
       </Actions>

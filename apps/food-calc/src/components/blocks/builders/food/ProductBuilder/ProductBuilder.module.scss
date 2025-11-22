@@ -1,0 +1,169 @@
+.wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    background: #fafafa;
+    height: 100vh;
+    /* fill viewport */
+    overflow: hidden;
+    /* prevent double scroll */
+}
+
+.form {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 1440px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+
+    label {
+        font-weight: 500;
+        margin-bottom: 0.4rem;
+        color: #333;
+    }
+
+    input,
+    textarea {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+        transition: border-color 0.2s ease;
+        resize: vertical;
+
+        &:focus {
+            outline: none;
+            border-color: #0077ff;
+        }
+    }
+
+    textarea {
+        min-height: 80px;
+    }
+}
+
+.importArea {
+    font-family: monospace;
+    background: #f8f8f8;
+    min-height: 100px;
+}
+
+.importBtn {
+    align-self: flex-start;
+    margin-top: 0.5rem;
+    background: #00a36c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s ease;
+
+    &:hover {
+        background: #008f5d;
+    }
+}
+
+.nutrientContainer {
+    margin-top: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+}
+
+.scrollArea {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 1rem;
+    max-height: 50vh;
+    /* scrollable section height */
+    background: #fefefe;
+}
+
+.group {
+    margin-bottom: 1.5rem;
+
+    h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.75rem;
+    }
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+}
+
+.nutrient {
+    display: flex;
+    flex-direction: column;
+
+    label {
+        font-size: 0.9rem;
+        color: #555;
+        margin-bottom: 0.3rem;
+    }
+
+    input {
+        padding: 0.4rem 0.6rem;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+
+        &:focus {
+            border-color: #0077ff;
+        }
+    }
+}
+
+.submit {
+    background-color: #0077ff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    margin-top: 1rem;
+
+    &:hover {
+        background-color: #005ecb;
+    }
+
+    &:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+}

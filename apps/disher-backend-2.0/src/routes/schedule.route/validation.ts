@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ScheduleItemCreateZod } from "./validation/scheduleItem.validation";
 
 // Helper schema for OneToTen
 const OneToTenSchema = z.union([
@@ -97,15 +98,6 @@ export type DailyEvents = z.infer<typeof DailyEventsUpdateSchema>;
 
 export type DailyEventEntity = z.infer<typeof DailyEventsItemsSchema>;
 
-
-
-export const ScheduleItemCreateZod = z.object({
-    quantity: z.number(),
-    time: z.string(),
-    customFoodName: z.string().optional().nullable(),
-    foodId: z.number().optional(),
-    dishId: z.number().optional(),
-});
 
 export const ScheduleItemUpdateZod = z.object({
     id: z.number(),

@@ -10,33 +10,50 @@ import { useCallback, useMemo } from 'react';
 import clsx from 'clsx';
 import { CommonListItem } from '@/components/blocks/builders/food/shared/ui/CommonListItem';
 import { toJS } from 'mobx';
+import { Instance } from 'mobx-state-tree';
+import { ScheduleItem } from '@/domain/schedule';
+import { useDailyScheduleModals } from '@/components/blocks/builders/food/ScheduleBuilder/modalContext';
 
 type Props = {
-  content: DayScheduleItemUI;
+  content: Instance<typeof ScheduleItem>;
   options: BuilderUIStore;
-  itemActions: ItemActions;
   className?: string;
 };
 
-const Item = ({ itemActions, content, options, className }: Props) => {
+const Item = ({ content, options, className }: Props) => {
+  const modals = useDailyScheduleModals();
+
   console.log('LIST_ITEM', content);
 
-  const {
-    onDelete,
-    onFoodsOpenInfo,
-    onFoodsOpenUpdate,
-    onQuantityOpen,
-    onRecover,
-    onTimeOpen,
-    onDishOpenInfo,
-  } = itemActions;
+  const onFoodsOpenUpdate = () => {
+    content.setAsCurrent();
+    modals.set('Food');
+  };
+
+  const onQuantityOpen = () => {
+    content.setAsCurrent();
+    modals.set('quantity');
+  };
+
+  const onFoodsOpenInfo = () => {
+    content.setAsCurrent();
+    modals.set('foodNutrients');
+  };
+
+  const onDelete = () => content.markDeleted();
+  const onRecover = () => content.recover();
+  const onTimeOpen = () => {
+    content.setAsCurrent();
+    modals.set('time');
+  };
+  const onDishOpenInfo = () => {
+    content.setAsCurrent();
+    modals.set('dishNutrients');
+  };
 
   const id = content.id;
 
-  const getFoodName = useCallback(
-    () => content.food?.name ?? content.dish?.name ?? content.customFoodName,
-    [content, content.food, content.dish, content.customFoodName]
-  );
+  const getFoodName = useCallback(() => content.name, [content]);
   console.log('content', content);
   const getTime = useCallback(() => content.time || '00:00', [content]);
   const getQuantity = useCallback(() => content.quantity, [content]);
@@ -49,33 +66,28 @@ const Item = ({ itemActions, content, options, className }: Props) => {
 
   // content.dish
 
-  const onNameClick = () => {
-    onFoodsOpenUpdate(id);
-    return;
-  };
-
   const onNameAdditionalOptionsClick = () => {
-    if (content.dish) {
-      onDishOpenInfo(id);
+    if (content.type === 'dish') {
+      onDishOpenInfo();
       return;
     }
-    onFoodsOpenInfo(id);
+    onFoodsOpenInfo();
     return;
   };
 
   console.log('contentcontent', toJS(content));
 
   const getVariantText = () => {
-    if (content.customFoodName) return 'кастомный продукт';
-    if (content.dish) return 'блюдо';
+    if (content.type === 'custom') return 'кастомный продукт';
+    if (content.type === 'dish') return 'блюдо';
     return 'продукт';
     // if (content.food) return 'продукт';
   };
+
   const getFoodNameClassName = () => {
-    if (content.customFoodName) return styles.customFoodName;
-    if (content.dish) return styles.dishName;
-    if (content.food) return styles.foodName;
-    return '';
+    console.log('f', content);
+    const prefix = content.type;
+    return styles[`${prefix}Title`];
   };
 
   const afterName = useMemo(() => {
@@ -102,7 +114,7 @@ const Item = ({ itemActions, content, options, className }: Props) => {
         after={afterName}
         id={id}
         hintMode={showAdditionalsMode}
-        onClick={onNameClick}
+        onClick={onFoodsOpenUpdate}
         onClickHintModeOn={onNameAdditionalOptionsClick}
       >
         {getFoodName}

@@ -9,40 +9,39 @@ import { useCallback } from 'react';
 import { Item } from '@/components/blocks/builders/food/ScheduleBuilder/ui/List/Item';
 import { ItemActions } from '@/components/blocks/builders/food/ScheduleBuilder/types';
 import { TimeGroup } from '@/components/blocks/builders/food/ScheduleBuilder/ui/List/TimeGroup';
-import { WithOverlay } from '@/components/ui/Overlay';
-import Overlay from '@/components/ui/Overlay/Overlay';
 import clsx from 'clsx';
+import { Instance } from 'mobx-state-tree';
+import { DaySchedule, ScheduleItem } from '@/domain/schedule';
 
 type CommonProps = {
-  options: BuilderUIStore;
-  onDishesUnite: (group: TimeGroupUI) => void;
-  itemActions: ItemActions;
-  content: {
-    itemsGroupedByTime: TimeGroupUI[];
+  options: {
+    showAdditionals: boolean;
   };
+  onDishesUnite: (group: TimeGroupUI<Instance<typeof ScheduleItem>>) => void;
+  schedule: Instance<typeof DaySchedule>;
 };
 
-type Props = Omit<CommonProps, 'content' | 'getLoadingState'> & {
-  length: number;
-  content: TimeGroupUI[];
-};
-
-const ListWrapper = observer(({ content, ...restProps }: CommonProps) => {
-  const length = content.itemsGroupedByTime.length;
+const ListWrapper = observer(({ schedule, ...restProps }: CommonProps) => {
+  const length = schedule.itemsGroupedByTime.length;
   console.log(length);
-  return <List content={content.itemsGroupedByTime} length={length} {...restProps} />;
+  return <List items={schedule.itemsGroupedByTime} length={length} {...restProps} />;
 });
 
-const List = observer(({ content, itemActions, options, length, onDishesUnite }: Props) => {
+type Props = Omit<CommonProps, 'schedule'> & {
+  length: number;
+  items: TimeGroupUI<Instance<typeof ScheduleItem>>[];
+};
+
+const List = observer(({ items, options, length, onDishesUnite }: Props) => {
   const renderItem = useCallback(
-    (item: DayScheduleItemUI) => {
-      return <Item key={item.id} content={item} itemActions={itemActions} options={options} />;
+    (item: Instance<typeof ScheduleItem>) => {
+      return <Item key={item.id} content={item} options={options} />;
     },
-    [itemActions, options]
+    [options]
   );
 
   const renderAside = useCallback(
-    (group: TimeGroupUI) => {
+    (group: TimeGroupUI<Instance<typeof ScheduleItem>>) => {
       return group.items.length > 1 && options.showAdditionals ? (
         <span onClick={() => onDishesUnite(group)} className={clsx([styles.uniteButton])}>
           создать блюдо
@@ -55,7 +54,7 @@ const List = observer(({ content, itemActions, options, length, onDishesUnite }:
   console.log('from list');
   return (
     <ul className="builder__time-groups">
-      {content.map((group) => (
+      {items.map((group) => (
         <TimeGroup key={group.time} group={group} renderAside={renderAside}>
           {renderItem}
         </TimeGroup>
