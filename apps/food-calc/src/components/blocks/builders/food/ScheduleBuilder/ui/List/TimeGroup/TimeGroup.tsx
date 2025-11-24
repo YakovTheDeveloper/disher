@@ -4,6 +4,7 @@ import {
   DayScheduleItemUI,
   TimeGroupUI,
 } from '@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel';
+import clsx from 'clsx';
 
 type Props<T> = {
   children: (item: T) => JSX.Element;
@@ -19,10 +20,15 @@ const TimeGroup = <T,>({ children, group, renderAside }: Props<T>) => {
   return (
     <ul className={styles.container}>
       <header className={styles.header}>
-        <span className={styles.message} hidden={!group.offset}>
-          {timeOffsetFromPreviousGroupView}
-        </span>
-        {renderAside?.(group)}
+        <div className={styles.headerCenter}>
+          <span className={clsx([styles.message_time, styles.message])}>{group.time}</span>
+          {group.offset && (
+            <span className={clsx([styles.message_delta, styles.message])}>
+              {timeOffsetFromPreviousGroupView}
+            </span>
+          )}
+        </div>
+        {renderAside && <span className={clsx([styles.headerAside])}>{renderAside?.(group)}</span>}
       </header>
       {group.items.map(children)}
     </ul>
@@ -40,7 +46,7 @@ function formatOffset(offset: { hours: number; minutes: number } | null): string
     parts.push(`${offset.hours} ч.`);
   }
   if (offset.minutes > 0) {
-    parts.push(`${offset.minutes} мин.`);
+    parts.push(`${offset.minutes} м.`);
   }
 
   return parts.join(' ').trim();

@@ -1,6 +1,6 @@
 import { DayEventsBuilderViewModel, ScheduleQuestionnaireItemUI } from "@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel";
 import { UpdateChildrenStore } from "@/components/blocks/builders/food/shared/UpdateChildrenStore";
-import { DaySchedule } from "@/domain/schedule";
+import { DaySchedule } from "@/domain/schedule/schedule";
 import { deepCopy } from "@/lib/copy/deepCopy";
 import { CommonData } from "@/store/models/common/types";
 import { DishEntity } from "@/store/models/dish/types";

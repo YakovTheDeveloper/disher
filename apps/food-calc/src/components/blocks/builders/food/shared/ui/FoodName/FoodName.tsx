@@ -1,8 +1,9 @@
 import { observer } from 'mobx-react-lite';
 import styles from './FoodName.module.scss';
 import clsx from 'clsx';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useAnimationOnChange } from '@/components/blocks/builders/food/shared/hooks/useAnimationOnChange';
+import { Typography } from '@/components/ui/atoms/Typography';
 type Props = {
   children: () => string | null;
   onClick: (id: string | number) => void;
@@ -30,16 +31,20 @@ const FoodName = ({
     onClick(id);
   };
 
-  const animationClassName = useAnimationOnChange(children());
+  const text = children() || '';
+
+  const animationClassName = useAnimationOnChange(text);
 
   return (
-    <p
+    <Typography
+      ellipsis={true}
+      variant="custom"
+      after={after}
       className={clsx([styles.container, className, hintMode && styles.active, animationClassName])}
       onClick={handleClick}
     >
-      {children()}
-      {after}
-    </p>
+      {text}
+    </Typography>
   );
 };
 

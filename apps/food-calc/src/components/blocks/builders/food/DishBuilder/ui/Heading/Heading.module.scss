@@ -1,10 +1,13 @@
 .container {
     position: relative;
+    align-items: center;
+    display: flex;
+    gap: 10px;
 }
 
 .createText {
     font-weight: 800;
-    font-size: 57px;
+    font-size: 35px;
     line-height: normal;
     opacity: 0.04;
     text-transform: uppercase;
@@ -12,12 +15,15 @@
 }
 
 .nameText {
-    position: absolute;
+    padding: 4px 6px;
     font-size: 22px;
     font-weight: 400;
     line-height: normal;
     width: 100%;
+    border-color: rgba(0, 0, 0, 0.021);
     height: 100%;
+    color: rgb(70, 70, 70);
     top: 0;
+    font-style: italic;
     left: 0;
 }

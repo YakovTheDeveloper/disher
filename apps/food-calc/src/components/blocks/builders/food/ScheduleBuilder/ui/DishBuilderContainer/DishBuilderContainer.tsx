@@ -1,21 +1,32 @@
 import { observer } from 'mobx-react-lite';
 import styles from './DishBuilderContainer.module.scss';
-import { DishBuilder } from '@/components/blocks/builders/food/DishBuilder';
+import {
+  DishBuilder,
+  DishBuilderOnUniteProducts,
+} from '@/components/blocks/builders/food/DishBuilder';
 import DishCreatingStore from '@/components/blocks/builders/food/ScheduleBuilder/model/CreateDishViewModel';
 import { DishBuilderViewModel } from '@/components/blocks/builders/food/DishBuilder/model/DishBuilderViewModel';
+import { Instance } from 'mobx-state-tree';
+import { DaySchedule } from '@/domain/schedule/schedule';
+import { useDailyScheduleModals } from '@/components/blocks/builders/food/ScheduleBuilder/modalContext';
 type Props = {
   children?: React.ReactNode;
-  store: DishCreatingStore;
+  store: Instance<typeof DaySchedule>;
 };
 
 const DishBuilderContainer = ({ store, children }: Props) => {
-  const vm = store.vm;
+  const modals = useDailyScheduleModals();
 
-  if (!vm) return null;
+  if (!store?.tempDishFromFood) return null;
+
+  const onFinish = async () => {
+    store.saveDishFromTempAndReset();
+    modals.close();
+  };
 
   return (
     <div className={styles.container}>
-      <DishBuilder finishButtonTitle="Обьединить" init={vm} onFinish={store.onFinish} />
+      <DishBuilderOnUniteProducts init={store.tempDishFromFood} onFinish={onFinish} />
     </div>
   );
 };

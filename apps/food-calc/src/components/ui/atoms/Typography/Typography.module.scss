@@ -14,3 +14,13 @@
     font-weight: 300;
 
 }
+
+/* applied only when ellipsis === true */
+.ellipsis {
+    display: block;
+    min-width: 0;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

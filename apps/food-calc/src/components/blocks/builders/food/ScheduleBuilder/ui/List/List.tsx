@@ -11,7 +11,8 @@ import { ItemActions } from '@/components/blocks/builders/food/ScheduleBuilder/t
 import { TimeGroup } from '@/components/blocks/builders/food/ScheduleBuilder/ui/List/TimeGroup';
 import clsx from 'clsx';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule, ScheduleItem } from '@/domain/schedule';
+import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
+import { ItemsList } from '@/components/ui/atoms/ItemsList';
 
 type CommonProps = {
   options: {
@@ -35,7 +36,7 @@ type Props = Omit<CommonProps, 'schedule'> & {
 const List = observer(({ items, options, length, onDishesUnite }: Props) => {
   const renderItem = useCallback(
     (item: Instance<typeof ScheduleItem>) => {
-      return <Item key={item.id} content={item} options={options} />;
+      return <Item key={item.id} item={item} options={options} />;
     },
     [options]
   );
@@ -53,13 +54,13 @@ const List = observer(({ items, options, length, onDishesUnite }: Props) => {
 
   console.log('from list');
   return (
-    <ul className="builder__time-groups">
+    <ItemsList>
       {items.map((group) => (
         <TimeGroup key={group.time} group={group} renderAside={renderAside}>
           {renderItem}
         </TimeGroup>
       ))}
-    </ul>
+    </ItemsList>
   );
 });
 

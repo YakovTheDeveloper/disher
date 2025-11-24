@@ -1,13 +1,46 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Typography.module.scss';
 import clsx from 'clsx';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
+
 type Props = {
   children: React.ReactNode;
-  variant: 'action' | 'info';
+  variant: 'action' | 'info' | 'custom';
+  ellipsis?: boolean;
+  className?: string;
+  onClick?: () => void;
+  maxChars?: number;
+  after?: React.ReactNode;
 };
 
-const Typography = ({ children, variant }: Props) => {
-  return <p className={clsx([styles.container, styles[variant]])}>{children}</p>;
+type ExposedRefs = {
+  container: HTMLParagraphElement | null;
+  measure: HTMLSpanElement | null;
 };
+
+const Typography = forwardRef<ExposedRefs, Props>(
+  ({ children, variant, ellipsis, className, onClick, after }, ref) => {
+    const isCustom = variant === 'custom';
+
+    return (
+      <>
+        <p
+          onClick={onClick}
+          className={clsx(
+            styles.container,
+            !isCustom && styles[variant],
+            ellipsis && styles.ellipsis,
+            className
+          )}
+        >
+          {children}
+          {after}
+        </p>
+      </>
+    );
+  }
+);
+
+Typography.displayName = 'Typography';
 
 export default observer(Typography);

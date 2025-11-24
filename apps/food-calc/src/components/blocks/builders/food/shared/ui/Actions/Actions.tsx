@@ -10,12 +10,15 @@ type Props = {
   children: React.ReactNode;
   isShow: () => boolean;
   className?: string;
+  zIndex?: number;
 };
 
-const Actions = ({ children, isShow, className }: Props) => {
+const Actions = ({ children, isShow, className, zIndex }: Props) => {
+  const style = zIndex ? { zIndex } : {};
+
   const show = isShow();
   return createPortal(
-    <div className={clsx([styles.container, className])}>
+    <div className={clsx([styles.container, className])} style={style}>
       <AnimatePresence mode="sync">
         {show && (
           <motion.div

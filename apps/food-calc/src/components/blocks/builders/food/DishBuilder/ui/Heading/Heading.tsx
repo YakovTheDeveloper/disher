@@ -1,29 +1,44 @@
 import { observer } from 'mobx-react-lite';
+import { useEffect, useRef } from 'react';
 import styles from './Heading.module.scss';
 
 type Props = {
-  vm: {
+  store: {
     name: string;
     updateName: (name: string) => void;
   };
 };
 
-const Heading = ({ vm }: Props) => {
+const Heading = ({ store }: Props) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
   const onChange = (e) => {
-    vm.updateName(e.target.value);
+    console.log('heading e', e.target.value);
+    store.updateName(e.target.value);
   };
 
   const onBlur = () => {
-    if (!vm.name) {
-      vm.updateName('Новое блюдо');
+    if (!store.name) {
+      store.updateName('Новое блюдо');
     }
   };
 
   return (
     <div className={styles.container}>
-      <p className={styles.createText}>ваше блюдо</p>
-      {/* <p className={styles.nameText}>{children}</p> */}
-      <input className={styles.nameText} value={vm.name} onChange={onChange} onBlur={onBlur} />
+      <input
+        ref={inputRef}
+        className={styles.nameText}
+        value={store.name}
+        onChange={onChange}
+        onBlur={onBlur}
+      />
+      <p className={styles.createText}>ваше блюдо </p>
     </div>
   );
 };

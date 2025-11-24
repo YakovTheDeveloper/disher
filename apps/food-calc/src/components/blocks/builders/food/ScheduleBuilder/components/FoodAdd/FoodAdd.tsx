@@ -14,44 +14,50 @@ import { DayScheduleItemUI } from '@/components/blocks/builders/food/ScheduleBui
 import { DishEntity } from '@/store/models/dish/types';
 import { FoodEntity } from '@/store/models/food/types';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule, ScheduleItem } from '@/domain/schedule';
+import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
 import { useDailyScheduleModals } from '@/components/blocks/builders/food/ScheduleBuilder/modalContext';
 import { domainStore } from '@/store/store';
+import { Time } from '@/components/blocks/builders/food/ScheduleBuilder/ui/List/Time';
 
 type Props = {
   children?: React.ReactNode;
   store: Instance<typeof DaySchedule>;
+  headerAfter?: React.ReactNode;
 };
 
 type Tabs = 'productSearch' | 'dishSearch' | 'createCustom';
 
-const FoodAdd = ({ children, store }: Props) => {
+const FoodAdd = ({ children, store, headerAfter }: Props) => {
   const modals = useDailyScheduleModals();
 
   const currentChild = store.current;
 
   const onCustomAdd = (payload: DishEntity | FoodEntity | string) => {
     console.log('onCustomAdd payload', payload);
-    store.addOrUpdateCustomItem(payload);
+    store.updateChildContent('custom', payload.toString());
     modals.close();
   };
 
   const onFoodAdd = (payload: DishEntity | FoodEntity | string) => {
     console.log('onFoodAdd payload', payload);
-    store.addOrUpdateFoodItem(payload.id);
+    store.updateChildContent('food', payload.id.toString());
     modals.close();
   };
 
   const onDishAdd = (payload: DishEntity | FoodEntity | string) => {
     console.log('onDishAdd payload', payload);
-    store.addOrUpdateDishItem(payload.id);
+    store.updateChildContent('dish', payload.id.toString());
     modals.close();
+  };
+
+  const onTimeOpen = () => {
+    modals.push('time');
   };
 
   const state = useLocalObservable(() => ({
     currentTab: 'productSearch' as Tabs,
     filterText: '',
-    customProductText: currentChild?.customFoodName || '',
+    customProductText: currentChild?.content?.name || '',
 
     setTab(tab: Tabs) {
       this.currentTab = tab;
@@ -146,6 +152,8 @@ const FoodAdd = ({ children, store }: Props) => {
     </>
   );
 
+  const getChildTime = () => currentChild?.time;
+
   const showActionsBar = () => state.currentTab !== 'createCustom';
 
   return (
@@ -173,25 +181,33 @@ const FoodAdd = ({ children, store }: Props) => {
         {children}
       </div>
 
-      <h2 className={clsx([styles.infoTitle, settings.showAdditionals && styles.infoTitle_active])}>
-        {state.currentTab === 'productSearch' && (
-          <Typography variant="info">
-            {settings.showAdditionals && <span>Узнать о продукте</span>}
-            {!settings.showAdditionals && <span>Добавить продукт</span>}
-          </Typography>
-        )}
-        {state.currentTab === 'dishSearch' && (
-          <Typography variant="info">
-            {settings.showAdditionals && <span>Редактировать блюдо</span>}
-            {!settings.showAdditionals && <span>Добавить блюдо</span>}
-          </Typography>
-        )}
-        {state.currentTab === 'createCustom' && (
-          <Typography variant="info">
-            {currentChild ? 'Обновить название' : 'Создать продукт'}
-          </Typography>
-        )}
-      </h2>
+      <header className={clsx([styles.infoTitleContainer])}>
+        <h2
+          className={clsx([styles.infoTitle, settings.showAdditionals && styles.infoTitle_active])}
+        >
+          {state.currentTab === 'productSearch' && (
+            <Typography variant="info">
+              {settings.showAdditionals && <span>Узнать о продукте</span>}
+              {!settings.showAdditionals && <span>Добавить продукт</span>}
+            </Typography>
+          )}
+          {state.currentTab === 'dishSearch' && (
+            <Typography variant="info">
+              {settings.showAdditionals && <span>Редактировать блюдо</span>}
+              {!settings.showAdditionals && <span>Добавить блюдо</span>}
+            </Typography>
+          )}
+          {state.currentTab === 'createCustom' && (
+            <Typography variant="info">
+              {currentChild ? 'Обновить название' : 'Создать продукт'}
+            </Typography>
+          )}
+        </h2>
+
+        <div onClick={onTimeOpen}>
+          <Time>{getChildTime}</Time>
+        </div>
+      </header>
 
       {/* Search input */}
       {state.currentTab !== 'createCustom' && (

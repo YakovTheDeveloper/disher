@@ -47,13 +47,17 @@ import { FoodEntity } from '@/store/models/food/types';
 import { toJS } from 'mobx';
 import { RootActions } from '@/components/blocks/builders/food/ScheduleBuilder/components/RootActions';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule';
+import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
 import { useDailyScheduleModals } from '@/components/blocks/builders/food/ScheduleBuilder/modalContext';
+import { useNavigate } from 'react-router';
+import { RouterLinks } from '@/router';
+import { domainStore } from '@/store/store';
 
 export const Modals = {
   Time: 'time',
+  TimeInit: 'timeInit',
   Food: 'Food',
-  AddFood: 'addFood',
+  FoodAdd: 'foodAdd',
   UpdateFood: 'updateFood',
   Quantity: 'quantity',
   DishNutrients: 'dishNutrients',
@@ -73,33 +77,30 @@ type Props = {
 };
 
 const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
-  // const modals = useMemo(() => new ModalStoreUI<ModalsType>(), []);
+  const navigate = useNavigate();
 
   const modals = useDailyScheduleModals();
-
   const options = useMemo(() => new BuilderUIStore([0, 1, 2]), []);
-
-  // const _itemActions = useItemActionsUI({ variant: 'schedule', modals, vm: schedule });
-  // const itemActions = useMemo(() => _itemActions, [modals, schedule]);
 
   const totalNutrients = useRef<{
     calculate: () => void;
   }>(null);
 
   const onFoodsOpenCreate = () => {
-    schedule.setCurrent(-1);
-    modals.set('Food');
+    schedule.addFoodItemAndSetAsCurrent('1');
+    modals.set('timeInit');
   };
 
-  const dishCreatingStore = useMemo(() => new DishCreatingStore(dishStore, schedule), []);
+  const onUniteFoodIntoDish = useCallback((group: TimeGroupUI<Instance<typeof ScheduleItem>>) => {
+    const dish = domainStore.interactionsService.foodIntoNewDish(group.items);
+    navigate(RouterLinks.DishBuilder + '?id=' + dish.id + '&add_to=' + date);
 
-  const onUniteFoodIntoDish = useCallback(
-    (group: TimeGroupUI) => {
-      dishCreatingStore.create(group);
-      modals.set('createDish');
-    },
-    [dishCreatingStore]
-  );
+    // modals.set('createDish');
+  }, []);
+
+  const onTimeChooseInit = () => {
+    modals.set(Modals.FoodAdd);
+  };
 
   // const onFoodUpdate = (payload: DishEntity | FoodEntity | string) => {
   //   console.log('onFoodUpdate payload', payload);
@@ -208,12 +209,13 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
 
       <ModalRoot modals={modals}>
         {{
-          [Modals.Food]: <FoodAdd store={schedule} />,
+          [Modals.FoodAdd]: <FoodAdd store={schedule} />,
           [Modals.Time]: <ContentEdit.Time store={schedule} onFinish={modals.close} />,
+          [Modals.TimeInit]: <ContentEdit.Time store={schedule} onFinish={onTimeChooseInit} />,
           [Modals.Quantity]: <ContentEdit.Quantity store={schedule} onFinish={modals.close} />,
           // [Modals.DishNutrients]: <DishNutrients vm={schedule} />,
           // [Modals.FoodNutrients]: <FoodNutrients vm={schedule} />,
-          // [Modals.CreateDish]: <DishBuilderContainer store={dishCreatingStore} />,
+          [Modals.CreateDish]: <DishBuilderContainer store={schedule} />,
           // [Modals.CopySchedule]: <CopySchedule onFinish={onCopyFinish} />,
           // [Modals.EventContent]: (
           //   <EventContent

@@ -3,32 +3,21 @@ import { getFoodList, GetFoodParams, getFoodWithNutrients, getOneFood } from "@/
 import { requestWrapper } from "@/api/Request";
 import { RequestState } from "@/api/RequestState";
 import { isEmpty } from "@/lib/empty";
-import { Food } from "@/domain/food";
+import { Food } from "@/domain/Food";
+import { createFoodModel } from "@/store/FoodStore/factory";
 
 type GetFoodListResult = Awaited<ReturnType<typeof getFoodList>>;
 //
 // TYPES
 //
-const NutrientModel = types.model({
-    quantity: types.number,
-    nutrientId: types.number,
-});
-
-const FoodEntityModel = types.model({
-    id: types.identifier,
-    name: types.maybe(types.string),
-    // add other FoodEntity fields...
-    nutrients: types.maybe(types.array(NutrientModel)),
-});
-
 //
 // STORE
 //
 export const FoodModelStore = types
     .model("FoodModelStore", {
-        data: types.map(FoodEntityModel),
-        data2: types.array(FoodEntityModel),
-        shortData: types.optional(types.array(FoodEntityModel), []),
+        data: types.map(Food),
+        data2: types.array(Food),
+        shortData: types.optional(types.array(Food), []),
 
         requestState: types.optional(
             types.model({
@@ -58,8 +47,14 @@ export const FoodModelStore = types
             self.shortData.push(...data);
         },
 
-        set(id: number, value: any) {
-            self.data.set(String(id), value);
+        // set(id: number, value: any) {
+        //     self.data.set(String(id), value);
+        // },
+
+        addLocal(value: Partial<Instance<typeof Food>>) {
+            const model = createFoodModel(value)
+            self.data.set(model.id, model);
+            return model
         },
 
         delete(id: number) {

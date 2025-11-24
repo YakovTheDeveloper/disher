@@ -100,7 +100,13 @@
         transition: all 0.4s ease;
     }
 
-    // underline animation
+
+    &Container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
     &::after {
         content: "";
         position: absolute;
@@ -114,7 +120,7 @@
 
     // active state
     &_active {
-        margin-left: auto;
+        // margin-left: auto;
 
         span {
             color: #007bff;
@@ -130,6 +136,8 @@
     &:hover span {
         color: #0056b3;
     }
+
+
 }
 
 .currentSelectedItem {

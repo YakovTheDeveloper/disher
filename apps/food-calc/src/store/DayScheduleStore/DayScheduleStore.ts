@@ -6,14 +6,9 @@ import {
     updateSchedule
 } from "@/api/schedule/schedule.api"
 import { ISODate } from "@/types/common/common"
-import { DaySchedule } from "@/domain/schedule"
+import { DaySchedule } from "@/domain/schedule/schedule"
 import { createDayScheduleModel } from "@/store/DayScheduleStore/fabric"
-
-const RequestState = types.model("RequestState", {
-    loading: types.boolean,
-    error: types.maybe(types.string),
-    code: types.maybe(types.number),
-})
+import { RequestState } from "@/store/shared/RequestState"
 
 export const DayScheduleStore = types
     .model("DayScheduleStore", {
@@ -41,6 +36,7 @@ export const DayScheduleStore = types
         addLocal(init: Parameters<typeof createDayScheduleModel>[0]) {
             const model = createDayScheduleModel(init);
             self.data.set(model.date, model);
+            return model
         }
 
     }))
@@ -151,6 +147,10 @@ export const DayScheduleStore = types
         // ---- Manual setters if needed
         set(date: ISODate, schedule: unknown) {
             self.data.set(date, cast(schedule))
+        },
+
+        getLocal(date: ISODate) {
+            return self.data.get(date);
         },
 
         delete(date: ISODate) {

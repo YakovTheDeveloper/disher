@@ -8,18 +8,38 @@ import { useCallback, useMemo } from 'react';
 import clsx from 'clsx';
 import { CommonListItem } from '@/components/blocks/builders/food/shared/ui/CommonListItem';
 import { DishItemUI } from '@/components/blocks/builders/food/DishBuilder/model/DishBuilderViewModel';
+import { Instance } from 'mobx-state-tree';
+import { Dish, DishItem } from '@/domain/dish/Dish';
+import { useDishModals } from '@/components/blocks/builders/food/DishBuilder/modalContext';
 
 type Props = {
-  content: DishItemUI;
+  content: Instance<typeof DishItem>;
   options: BuilderUIStore;
-  itemActions: ItemActions;
   className?: string;
 };
 
 const DishListItem = ({ itemActions, content, options, className }: Props) => {
   console.log('LIST_ITEM', content);
 
-  const { onDelete, onFoodsOpenInfo, onFoodsOpenUpdate, onQuantityOpen, onRecover } = itemActions;
+  const modals = useDishModals();
+
+  const onFoodsOpenUpdate = () => {
+    content.setAsCurrent();
+    modals?.set('Food');
+  };
+
+  const onQuantityOpen = () => {
+    content.setAsCurrent();
+    modals?.set('quantity');
+  };
+
+  const onFoodsOpenInfo = () => {
+    content.setAsCurrent();
+    modals?.set('foodNutrients');
+  };
+
+  const onDelete = () => content.markDeleted();
+  const onRecover = () => content.recover();
 
   const id = content.id;
 

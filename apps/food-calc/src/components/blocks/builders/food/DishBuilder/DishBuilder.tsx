@@ -20,6 +20,11 @@ import { Nutrients } from '@/components/blocks/builders/food/shared/ContentInfo/
 import { SearchViewModel } from '@/components/blocks/builders/food/DishBuilder/model/SearchViewModel';
 import { foodStore } from '@/store/rootStore';
 import { FoodModelStore } from '@/store/models/food/foodModelStore';
+import { Instance } from 'mobx-state-tree';
+import { Dish } from '@/domain/dish/Dish';
+import { useDishModals } from '@/components/blocks/builders/food/DishBuilder/modalContext';
+import { FoodAdd } from '@/components/blocks/builders/food/DishBuilder/components/FoodAdd';
+import { ItemsList } from '@/components/ui/atoms/ItemsList';
 
 export const Modals = {
   Food: 'food',
@@ -30,7 +35,7 @@ export const Modals = {
 export type ModalsType = (typeof Modals)[keyof typeof Modals];
 
 type Props = {
-  init: DishBuilderViewModel;
+  init: Instance<typeof Dish>;
   onFinish: (payload: T) => Promise<void>;
   foodModelStore?: FoodModelStore;
   finishButtonTitle: string;
@@ -38,26 +43,13 @@ type Props = {
 
 const DishBuilder = ({ init, onFinish, foodModelStore = foodStore, finishButtonTitle }: Props) => {
   const dishes = init;
-  const modals = useMemo(() => new ModalStoreUI<ModalsType>(), []);
-  const options = useMemo(() => new BuilderUIStore(), []);
+  const modals = useDishModals();
+  const options = useMemo(() => new BuilderUIStore([0, 1]), []);
   const searchFiltering = useMemo(() => new SearchViewModel(foodModelStore), []);
 
-  const _itemActions = useItemActionsUI({ variant: 'dish', modals, vm: dishes });
-  const itemActions = useMemo(() => _itemActions, [modals, dishes]);
-
   const onFoodsOpen = () => {
-    dishes.children.setCurrentId(-1);
+    dishes.setCurrent(-1);
     modals.set(Modals.Food);
-  };
-
-  const onFoodSelect = (food: { id: number; name: string } | null) => {
-    if (!food) return;
-    if (!dishes.children.current) {
-      dishes.addChild(food);
-      modals.close();
-      return;
-    }
-    dishes.children.updateCurrent({ food });
   };
 
   const onMoreOptions = () => {
@@ -66,41 +58,28 @@ const DishBuilder = ({ init, onFinish, foodModelStore = foodStore, finishButtonT
 
   return (
     <div className={style.container}>
-      <Heading vm={dishes} />
-      <ul className={style.list}>
-        {dishes.content.items.map((content) => {
-          return (
-            <DishListItem
-              key={content.id}
-              content={content}
-              itemActions={itemActions}
-              options={options}
-            />
-          );
+      <Heading store={dishes} />
+
+      <ItemsList>
+        {dishes.items.map((content) => {
+          return <DishListItem key={content.id} content={content} options={options} />;
         })}
-      </ul>
+      </ItemsList>
+
       <ModalRoot modals={modals}>
         {{
-          [Modals.Food]: (
-            <ContentEdit.Food options={options} content={searchFiltering}>
-              <ContentEdit.SearchList
-                content={searchFiltering}
-                onFoodSelect={onFoodSelect}
-                vm={dishes}
-              />
-            </ContentEdit.Food>
-          ),
-          [Modals.Quantity]: <ContentEdit.Quantity vm={dishes.children} onFinish={modals.close} />,
+          [Modals.Food]: <FoodAdd store={dishes} />,
+          [Modals.Quantity]: <ContentEdit.Quantity store={dishes} onFinish={modals.close} />,
           [Modals.Nutrients]: <Nutrients getCurrentFood={() => {}} />,
         }}
       </ModalRoot>
 
       <Actions isShow={() => !modals.current}>
-        <Button.Finish onClick={onFinish} content={dishes}>
-          обновить
+        <Button.Finish onClick={onFinish} content={dishes} isShow={() => true}>
+          синхронизовать
         </Button.Finish>
         <Button.Add onClick={onFoodsOpen} />
-        <Button.AdditionalOptions onClick={onMoreOptions} options={options} />
+        <Button.AdditionalOptions onClick={onMoreOptions} options={options} isShow={() => true} />
       </Actions>
     </div>
   );

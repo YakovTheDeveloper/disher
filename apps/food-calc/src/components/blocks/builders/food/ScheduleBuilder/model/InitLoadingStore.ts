@@ -6,7 +6,7 @@ import { scheduleCache, scheduleStore } from "@/store/rootStore"; // make sure t
 import { ScheduleEntity } from "@/store/models/schedule/types";
 import { domainStore } from "@/store/store";
 import { Instance } from "mobx-state-tree";
-import { DaySchedule } from "@/domain/schedule";
+import { DaySchedule } from "@/domain/schedule/schedule";
 
 export class InitLoadingStore {
     initData: Instance<typeof DaySchedule> | null = null;

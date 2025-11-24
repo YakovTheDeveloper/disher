@@ -7,17 +7,14 @@ import { useAnimationOnChange } from '@/components/blocks/builders/food/shared/h
 
 type Props = {
   children: () => string | null;
-  onClick: (id: number | string) => void;
-  id: number | string;
+  onClick: () => void;
 };
 
-const Time = ({ children, id, onClick }: Props) => {
-  const onClickHandler = () => onClick(id);
-
+const Time = ({ children, onClick }: Props) => {
   const className = useAnimationOnChange(children());
 
   return (
-    <p onClick={onClickHandler} className={clsx([className, styles.container])}>
+    <p onClick={onClick} className={clsx([className, styles.container])}>
       {children()}
     </p>
   );
