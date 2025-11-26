@@ -55,7 +55,6 @@ import { domainStore } from '@/store/store';
 
 export const Modals = {
   Time: 'time',
-  TimeInit: 'timeInit',
   Food: 'Food',
   FoodAdd: 'foodAdd',
   UpdateFood: 'updateFood',
@@ -88,19 +87,17 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
 
   const onFoodsOpenCreate = () => {
     schedule.addFoodItemAndSetAsCurrent('1');
-    modals.set('timeInit');
+    modals.set('foodAdd');
   };
 
   const onUniteFoodIntoDish = useCallback((group: TimeGroupUI<Instance<typeof ScheduleItem>>) => {
     const dish = domainStore.interactionsService.foodIntoNewDish(group.items);
-    navigate(RouterLinks.DishBuilder + '?id=' + dish.id + '&add_to=' + date);
+    navigate(
+      RouterLinks.DishBuilder + '?id=' + dish.id + '&add_to=' + date + '&time=' + group.time
+    );
 
     // modals.set('createDish');
   }, []);
-
-  const onTimeChooseInit = () => {
-    modals.set(Modals.FoodAdd);
-  };
 
   // const onFoodUpdate = (payload: DishEntity | FoodEntity | string) => {
   //   console.log('onFoodUpdate payload', payload);
@@ -211,7 +208,6 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
         {{
           [Modals.FoodAdd]: <FoodAdd store={schedule} />,
           [Modals.Time]: <ContentEdit.Time store={schedule} onFinish={modals.close} />,
-          [Modals.TimeInit]: <ContentEdit.Time store={schedule} onFinish={onTimeChooseInit} />,
           [Modals.Quantity]: <ContentEdit.Quantity store={schedule} onFinish={modals.close} />,
           // [Modals.DishNutrients]: <DishNutrients vm={schedule} />,
           // [Modals.FoodNutrients]: <FoodNutrients vm={schedule} />,

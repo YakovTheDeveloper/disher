@@ -1,11 +1,13 @@
 import { z } from "zod";
 import { prisma } from "../../client";
 import { createResponseObject } from "../../lib/response";
-import { t } from "../../trpc";
+import { publicProcedure, t } from "../../trpc";
 import { AddFoodInputSchema } from "./validation";
+import { paginate } from "../../lib/pagination";
+import { Food } from "../../generated/prisma";
 
 export const foodRoutes = {
-    getFoodByIds: t.procedure.input(z.object({
+    getFoodByIds: publicProcedure.input(z.object({
         ids: z.array(z.number()).optional(),
     }).optional()).query(async ({ input }) => {
         const result = await prisma.food.findMany({
@@ -23,7 +25,7 @@ export const foodRoutes = {
         })
         return createResponseObject(200, 'good', result)
     }),
-    getFood: t.procedure
+    getFood: publicProcedure
         .input(
             z.object({
                 page: z.number().min(1).default(1),
@@ -43,29 +45,73 @@ export const foodRoutes = {
             if (filters?.category) where.category = filters.category
             if (filters?.search)
                 where.name = { contains: filters.search, mode: "insensitive" }
-            const [items, total] = await Promise.all([
-                prisma.food.findMany({
-                    where,
-                    skip: (page - 1) * limit,
-                    take: limit,
-                    select: { id: true, name: true },
-                    orderBy: { id: "asc" },
-                }),
-                prisma.food.count({ where }),
-            ])
 
-            const hasMore = page * limit < total
 
-            const result = {
-                items,
-                hasMore,
-            }
+            const result = await paginate({
+                prismaModel: prisma.food,
+                page,
+                limit,
+                where,
+                select: { id: true, name: true },
+                orderBy: { id: "asc" },
+            })
 
             return createResponseObject(200, 'good', result)
 
 
         }),
-    getFoodWithNutrients: t.procedure.input(z.object({
+    getFoodWithNutrients: publicProcedure
+        .input(
+            z.object({
+                page: z.number().min(1).default(1),
+                limit: z.number().min(1).max(100).default(50),
+            })
+        )
+        .query(async ({ input }) => {
+            const { page, limit } = input
+
+            const select = {
+                id: true,
+                name: true,
+                description: true,
+                nutrients: {
+                    select: {
+                        nutrientId: true,
+                        quantity: true,
+                    }
+                }
+            }
+
+            const [items, total] = await Promise.all([
+                prisma.food.findMany({
+                    skip: (page - 1) * limit,
+                    take: limit,
+                    select,
+                }),
+                prisma.food.count(),
+            ])
+
+            const resultItems = items.map(item => {
+                // const nutrients = item.nutrients.map(nutrient => ({
+                const nutrients = item.nutrients.map(nutrient => ({
+                    ...nutrient,
+                    nutrientId: nutrient.nutrientId.toString(),
+                    nutrient: nutrient.nutrientId.toString()
+                }))
+                // }))
+                return { ...item, id: item.id.toString(), description: item.description || '', nutrients }
+            })
+
+            const result = {
+                items: resultItems, // now strongly typed as TModel[]
+                hasMore: page * limit < total,
+                total
+            }
+
+            return createResponseObject(200, 'good', result)
+        }),
+
+    getFoodWithNutrientsByIds: publicProcedure.input(z.object({
         ids: z.array(z.number()).optional(),
     }).optional()).query(async ({ input }) => {
         const result = await prisma.food.findMany({
@@ -89,7 +135,7 @@ export const foodRoutes = {
         })
         return createResponseObject(200, 'good', result)
     }),
-    getOneFood: t.procedure.input(
+    getOneFood: publicProcedure.input(
         z.object({
             id: z.number()
         })
@@ -114,7 +160,7 @@ export const foodRoutes = {
         })
         return createResponseObject(200, 'good', result)
     }),
-    addFood: t.procedure
+    addFood: publicProcedure
         .input(AddFoodInputSchema)
         .mutation(async ({ input }) => {
             const maxId = await prisma.food.aggregate({ _max: { id: true } });

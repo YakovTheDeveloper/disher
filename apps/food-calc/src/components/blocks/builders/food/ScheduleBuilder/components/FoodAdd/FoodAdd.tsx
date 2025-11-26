@@ -18,6 +18,7 @@ import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
 import { useDailyScheduleModals } from '@/components/blocks/builders/food/ScheduleBuilder/modalContext';
 import { domainStore } from '@/store/store';
 import { Time } from '@/components/blocks/builders/food/ScheduleBuilder/ui/List/Time';
+import { filterBy } from '@/lib/filter/filter';
 
 type Props = {
   children?: React.ReactNode;
@@ -41,7 +42,7 @@ const FoodAdd = ({ children, store, headerAfter }: Props) => {
   const onFoodAdd = (payload: DishEntity | FoodEntity | string) => {
     console.log('onFoodAdd payload', payload);
     store.updateChildContent('food', payload.id.toString());
-    modals.close();
+    modals.clear();
   };
 
   const onDishAdd = (payload: DishEntity | FoodEntity | string) => {
@@ -76,11 +77,7 @@ const FoodAdd = ({ children, store, headerAfter }: Props) => {
         return state.filterText;
       },
       get localFiltered() {
-        const q = this.filterSearchText.trim().toLowerCase();
-        if (!q) return domainStore.foodStore.list ?? [];
-        return (domainStore.foodStore.list ?? []).filter((p: any) =>
-          ((p.name ?? p.title ?? '') + '').toLowerCase().includes(q)
-        );
+        return filterBy(domainStore.foodStore.list, this.filterSearchText, ['name', 'title']);
       },
     },
 
@@ -89,11 +86,7 @@ const FoodAdd = ({ children, store, headerAfter }: Props) => {
         return state.filterText;
       },
       get localFiltered() {
-        const q = this.filterSearchText.trim().toLowerCase();
-        if (!q) return dishStore.list ?? [];
-        return (dishStore.list ?? []).filter((d: any) =>
-          ((d.name ?? d.title ?? '') + '').toLowerCase().includes(q)
-        );
+        return filterBy(domainStore.dishStore.list, this.filterSearchText, ['name', 'title']);
       },
     },
   }));

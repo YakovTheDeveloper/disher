@@ -6,12 +6,16 @@
 }
 
 .variant {
+    display: block;
+    width: 100px;
     position: absolute;
-    bottom: 0;
-    right: 0;
-    transform: translate(0, 70%);
+    bottom: 6px;
+    right: 50px;
+    text-align: left;
+    transform: translate(50%, 50%);
 
-    font-size: 11px;
+    font-size: 13px;
+    line-height: 9px;
     font-style: italic;
     color: rgba(0, 0, 0, 0.39);
 }

@@ -27,7 +27,10 @@ export const DishStore = types
     .views(self => ({
         get root(): RootInstance {
             return getRoot(self)
-        }
+        },
+        get list() {
+            return Array.from(self.data.values());
+        },
     }))
     // ======== HELPERS ========
     .actions(self => ({
@@ -41,13 +44,14 @@ export const DishStore = types
             return self.request.get(date)!
         },
         addLocal(init: Parameters<typeof createDishModel>[0]) {
+            console.log('addLocal', init);
             const model = createDishModel(init);
             self.data.set(model.id, model);
             return model
         },
-        addLocalFromSnapshot(snapshot: SnapshotOut<typeof Dish>) {
-            self.data.set(snapshot.id, Dish.create(snapshot));
-        }
+        // addLocalFromSnapshot(snapshot: SnapshotOut<typeof Dish>) {
+        //     self.data.set(snapshot.id, Dish.create(snapshot));
+        // }
     }))
 
     // ======== ACTIONS / FLOWS ========

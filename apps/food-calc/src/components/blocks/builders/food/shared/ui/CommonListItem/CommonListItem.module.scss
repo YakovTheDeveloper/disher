@@ -49,9 +49,9 @@
 .added,
 .deleted,
 .modified {
-    background-size: 100px;
+    background-size: 70px;
     background-repeat: no-repeat;
-    background-position: left 0% top 75%;
+    background-position: right 50px top 50%;
     background-blend-mode: soft-light;
 }
 
@@ -64,7 +64,6 @@
 
 .deleted {
     background-color: #ffeaea;
-    background-position: left 0% top 50%;
     background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 24 24" fill="none"><g id="Edit / Remove_Minus"><path id="Vector" d="M6 12H18" stroke="%23000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g></svg>');
 }
 

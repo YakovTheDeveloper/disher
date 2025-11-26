@@ -1,5 +1,5 @@
 import { Dish } from "@/domain/dish/Dish";
-import { AllScheduleItemTypes } from "@/domain/schedule/schedule";
+import { AllScheduleItemContentTypes, ScheduleItem } from "@/domain/schedule/schedule";
 import { DayScheduleApi, DishStoreApi, RootInstance } from "@/store/types";
 import { getEnv, getRoot, Instance, IStateTreeNode, types } from "mobx-state-tree";
 
@@ -12,16 +12,16 @@ export const InteractionsService = types
     .model({})
     .actions(self => {
 
-        function foodIntoNewDish(items: AllScheduleItemTypes[]) {
+        function foodIntoNewDish(items: Instance<typeof ScheduleItem>[]) {
             const root = getRoot(self) as InteractionsEnv;
             // const root = getRoot(self) as IStateTreeNode as RootInstance; // if needed
 
             const onlyFoodItems = items
-                .filter(el => ("food" in el) && el.status !== 'deleted')
+                .filter(el => el.content.type === 'food' && el.status !== 'deleted')
                 .map(el => ({
                     id: el.id,
-                    foodId: String(el.food!.id),
-                    food: el.food!.id,
+                    foodId: String(el.content.foodId),
+                    food: String(el.content.foodId),
                     quantity: el.quantity,
                     status: "added" as const,
                 }));
@@ -33,7 +33,7 @@ export const InteractionsService = types
             return root.dishStore.addLocal(init)
         }
 
-        function onDishSaveFromScheduleFood(dishId: string, scheduleDate: string) {
+        function onDishSaveFromScheduleFood(dishId: string, scheduleDate: string, time: string) {
             const root = getRoot(self) as InteractionsEnv;
 
             const schedule = root.daySchedule.getLocal(scheduleDate)
@@ -43,12 +43,12 @@ export const InteractionsService = types
                 return
             }
             const dishItemIds = dish.items.map((item) => item.id.toString())
-            schedule.addOrUpdateDishItem(dishId);
+            schedule.addDishItem(dishId, { time });
             schedule.changeStatusByIds(dishItemIds);
 
         }
 
-        // function* scenario(items: AllScheduleItemTypes[]) {
+        // function* scenario(items: AllScheduleItemContentTypes[]) {
 
         //     foodIntoNewDish(items)
 

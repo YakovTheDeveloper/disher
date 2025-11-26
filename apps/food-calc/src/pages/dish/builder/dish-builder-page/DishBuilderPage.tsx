@@ -12,6 +12,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 const DishBuilderPage = () => {
   const [searchParams] = useSearchParams();
   const dishIdParam = searchParams.get('id');
+  const scheduleItemTimeParam = searchParams.get('time') || '08:00';
   const scheduleDateParam = searchParams.get('add_to');
 
   const navigate = useNavigate();
@@ -20,7 +21,11 @@ const DishBuilderPage = () => {
 
   const onSave = async (data, id) => {
     if (scheduleDateParam && dishIdParam) {
-      domainStore.interactionsService.onDishSaveFromScheduleFood(dishIdParam, scheduleDateParam);
+      domainStore.interactionsService.onDishSaveFromScheduleFood(
+        dishIdParam,
+        scheduleDateParam,
+        scheduleItemTimeParam
+      );
       navigate(RouterLinks.ScheduleBuilder + '?date=' + scheduleDateParam, { replace: true });
     }
 

@@ -78,8 +78,8 @@ const Item = ({ item, options, className }: Props) => {
   console.log('itemitem', toJS(item));
 
   const getVariantText = () => {
-    if (item.type === 'custom') return 'кастомный продукт';
-    if (item.type === 'dish') return 'блюдо';
+    if (item.content.type === 'custom') return 'кастомный продукт';
+    if (item.content.type === 'dish') return 'блюдо';
     return 'продукт';
     // if (item.food) return 'продукт';
   };
@@ -95,7 +95,7 @@ const Item = ({ item, options, className }: Props) => {
       return <p className={styles.variant}>{getVariantText()}</p>;
     }
     return null;
-  }, [showAdditionalsMode, item]);
+  }, [showAdditionalsMode, item.content]);
 
   return (
     <CommonListItem
@@ -108,7 +108,6 @@ const Item = ({ item, options, className }: Props) => {
     >
       <FoodName
         className={getFoodNameClassName()}
-        after={afterName}
         id={id}
         hintMode={showAdditionalsMode}
         onClick={onFoodsOpenUpdate}
@@ -119,6 +118,7 @@ const Item = ({ item, options, className }: Props) => {
       <Quantity id={id} onClick={onQuantityOpen} hide={isQuantityHide}>
         {getQuantity}
       </Quantity>
+      {afterName}
     </CommonListItem>
   );
 };

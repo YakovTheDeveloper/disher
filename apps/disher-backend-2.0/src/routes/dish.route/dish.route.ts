@@ -2,7 +2,7 @@
 
 import z from "zod"
 import { prisma } from "../../client"
-import { t } from "../../trpc"
+import { publicProcedure, t } from "../../trpc"
 import { DishCreateWithoutUserInputSchema, DishItemCreateManyDishInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateManyScheduleInputSchema } from "../../../prisma/generated/zod"
 import { createResponseObject } from "../../lib/response"
 
@@ -22,7 +22,7 @@ const dishSelect = {
 }
 
 export const dihesRoutes = {
-    getDishes: t.procedure
+    getDishes: publicProcedure
         .input(
             z.object({
                 page: z.number().min(1).default(1),
@@ -64,7 +64,7 @@ export const dihesRoutes = {
 
             return createResponseObject(200, 'good', result)
         }),
-    getOneDish: t.procedure.input(
+    getOneDish: publicProcedure.input(
         z.object({
             id: z.number()
         })
@@ -81,7 +81,7 @@ export const dihesRoutes = {
 
         return createResponseObject(200, 'good', result)
     }),
-    addDish: t.procedure
+    addDish: publicProcedure
         .input(
             DishCreateWithoutUserInputSchema
         )
@@ -95,7 +95,7 @@ export const dihesRoutes = {
             });
             return createResponseObject(200, 'good', result)
         }),
-    updateDish: t.procedure
+    updateDish: publicProcedure
         .input(
             z.object({
                 id: z.number(),

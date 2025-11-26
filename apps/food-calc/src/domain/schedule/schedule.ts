@@ -8,9 +8,9 @@ import { TimeGroupUI } from "@/components/blocks/builders/food/ScheduleBuilder/m
 import { createDishModel, createDishSnapshot } from "@/store/DishStore/fabric";
 import { RootInstance } from "@/store/types";
 
-export type ScheduleItemType = Instance<typeof BaseScheduleItem>["type"];
+export type ScheduleItemType = Instance<typeof ScheduleItem>["type"];
 
-export type AllScheduleItemTypes = Instance<typeof BaseScheduleItem> | Instance<typeof FoodScheduleItem> | Instance<typeof CustomScheduleItem> | Instance<typeof DishScheduleItem>
+export type AllScheduleItemContentTypes = Instance<typeof DishItemContent> | Instance<typeof FoodItemContent> | Instance<typeof CustomItemContent>
 
 type ChildVariant = "dish" | "food" | "custom";
 
@@ -30,9 +30,6 @@ export const FoodItemContent = types.model()
         }),
     })
     .views((self) => ({
-        get isFood() { return true; },
-        get isDish() { return false; },
-        get isCustom() { return false; },
         get name() { return self.food?.name || 'нет имени' }
 
     }))
@@ -53,9 +50,6 @@ export const DishItemContent = types.model()
         }),
     })
     .views((self) => ({
-        get isFood() { return false; },
-        get isDish() { return true; },
-        get isCustom() { return false; },
         get name() { return self.dish?.name || 'нет имени' }
 
     }));
@@ -67,10 +61,7 @@ export const CustomItemContent = types.model()
         name: types.string, // required for custom
     })
     .views((self) => ({
-        get isFood() { return false; },
-        get isDish() { return false; },
         get isCustom() { return true; },
-        get name() { return self.name }
     }));
 
 export const ScheduleItem = types.model("ScheduleItem", {
@@ -81,12 +72,10 @@ export const ScheduleItem = types.model("ScheduleItem", {
     title: types.string,
     scheduleId: types.number,
     status: types.optional(ItemStatus, "none"),
-    content: types.maybe(
-        types.union(
-            FoodItemContent,
-            DishItemContent,
-            CustomItemContent
-        )
+    content: types.union(
+        FoodItemContent,
+        DishItemContent,
+        CustomItemContent
     )
 
 })
@@ -120,6 +109,7 @@ export const DaySchedule = types
 
         items: types.array(ScheduleItem),
         isDraft: types.boolean,
+        lastTimeItemAdded: types.optional(types.string, ""),
         currentId: types.optional(types.number, -1),
     })
     .views(self => ({
@@ -211,7 +201,31 @@ export const DaySchedule = types
             }));
         }
 
-        function addFoodItemAndSetAsCurrent(
+        function addDishItem(
+            dishId: string,
+            fields: Partial<Instance<typeof ScheduleItem>> = {}
+        ) {
+            const item = ScheduleItem.create({
+                title: "",
+                id: Date.now(),
+                type: "food",
+                quantity: 100,
+                time: self.lastTimeItemAdded || "08:00",
+                scheduleId: self.id,
+                status: "added",
+                ...fields,
+                content: DishItemContent.create({
+                    type: 'dish',
+                    dishId,
+                    dish: dishId,
+                })
+            });
+
+            self.items.push(item);
+            return item;
+        }
+
+        function addFoodItem(
             foodId: string,
             fields: Partial<Instance<typeof ScheduleItem>> = {}
         ) {
@@ -220,7 +234,7 @@ export const DaySchedule = types
                 id: Date.now(),
                 type: "food",
                 quantity: 100,
-                time: "08:00",
+                time: self.lastTimeItemAdded || "08:00",
                 scheduleId: self.id,
                 status: "added",
                 ...fields,
@@ -232,6 +246,14 @@ export const DaySchedule = types
             });
 
             self.items.push(item);
+            return item;
+        }
+
+        function addFoodItemAndSetAsCurrent(
+            foodId: string,
+            fields: Partial<Instance<typeof ScheduleItem>> = {}
+        ) {
+            const item = addFoodItem(foodId, fields)
             setCurrent(item.id)
             return item;
         }
@@ -284,6 +306,7 @@ export const DaySchedule = types
 
         function updateTime(time: string) {
             updateCurrent({ time });
+            self.lastTimeItemAdded = time
         }
 
         function updateQuantity(quantity: number) {
@@ -328,6 +351,7 @@ export const DaySchedule = types
         return {
             setCurrent,
             clearCurrent,
+            addDishItem,
             changeStatusByIds,
             updateChildContent,
             addFoodItemAndSetAsCurrent,

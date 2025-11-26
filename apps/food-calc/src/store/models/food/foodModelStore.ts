@@ -1,4 +1,4 @@
-import { getFoodList, GetFoodParams, getFoodWithNutrients, getOneFood } from "@/api/food/food.api";
+import { getFoodList, GetFoodParams, getFoodWithNutrientsByIds, getOneFood } from "@/api/food/food.api";
 import { requestWrapper } from "@/api/Request";
 import { RequestState } from "@/api/RequestState";
 import { isEmpty } from "@/lib/empty";
@@ -36,7 +36,7 @@ export class FoodModelStore {
     }
 
     // getAll = async (ids?: number[], withNutrients = false) => {
-    //     const method = (withNutrients ? getFoodWithNutrients : getFood)
+    //     const method = (withNutrients ? getFoodWithNutrientsByIds : getFood)
     //     const res = await requestWrapper(method, {}, ids);
 
     //     if (!res.data) return;
@@ -63,7 +63,7 @@ export class FoodModelStore {
         const state = new RequestState('')
         ids.forEach((id) => this.requestState.getAllWithNutrients.set(id.toString(), state))
 
-        const res = await requestWrapper(getFoodWithNutrients, {}, ids);
+        const res = await requestWrapper(getFoodWithNutrientsByIds, {}, ids);
 
         if (!res.data) {
             state.fail('error')

@@ -6,6 +6,7 @@ import { DishStore } from "@/store/DishStore/DishStore";
 import { RootInstance, RootStore } from './types'
 import { InteractionsService } from "@/store/interactions/InteractionsService";
 import { makePersistable } from "@/store/persistance";
+import { createNutrientStoreWithInitialData } from "@/store/NutrientStore/NutrientStore";
 
 let _store: RootInstance | undefined;
 
@@ -14,6 +15,7 @@ function createStore(): RootInstance {
         daySchedule: DayScheduleStore.create(),
         foodStore: FoodModelStore.create(),
         dishStore: DishStore.create(),
+        nutrientStore: createNutrientStoreWithInitialData(),
         interactionsService: InteractionsService.create(),
     });
 

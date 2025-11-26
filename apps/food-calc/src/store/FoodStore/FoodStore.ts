@@ -1,10 +1,11 @@
-import { types, flow, getSnapshot, Instance } from "mobx-state-tree";
-import { getFoodList, GetFoodParams, getFoodWithNutrients, getOneFood } from "@/api/food/food.api";
+import { types, flow, getSnapshot, Instance, SnapshotIn } from "mobx-state-tree";
+import { getFoodList, GetFoodParams, getFoodWithNutrients, getFoodWithNutrientsByIds, getOneFood } from "@/api/food/food.api";
 import { requestWrapper } from "@/api/Request";
 import { RequestState } from "@/api/RequestState";
 import { isEmpty } from "@/lib/empty";
 import { Food } from "@/domain/Food";
 import { createFoodModel } from "@/store/FoodStore/factory";
+import { runInAction } from "mobx";
 
 type GetFoodListResult = Awaited<ReturnType<typeof getFoodList>>;
 //
@@ -16,8 +17,9 @@ type GetFoodListResult = Awaited<ReturnType<typeof getFoodList>>;
 export const FoodModelStore = types
     .model("FoodModelStore", {
         data: types.map(Food),
-        data2: types.array(Food),
         shortData: types.optional(types.array(Food), []),
+        total: types.optional(types.number, 0),
+        hasMore: types.optional(types.boolean, true),
 
         requestState: types.optional(
             types.model({
@@ -36,130 +38,150 @@ export const FoodModelStore = types
         get list() {
             return Array.from(self.data.values());
         },
+        get dataLength() {
+            return self.data.size
+        },
     }))
 
     //
     // ACTIONS
     //
-    .actions((self) => ({
+    .actions((self) => {
 
-        setShortData(data: any[]) {
+        function setShortData(data: any[]) {
             self.shortData.push(...data);
-        },
+        }
 
-        // set(id: number, value: any) {
-        //     self.data.set(String(id), value);
-        // },
+        function addLocal(value: SnapshotIn<typeof Food>) {
+            // const model = createFoodModel(value);
+            const model = Food.create(value);
+            try {
+                self.data.set(model.id, model);
+            } catch (error) {
+                // handle error if needed
+            }
+            return model;
+        }
 
-        addLocal(value: Partial<Instance<typeof Food>>) {
-            const model = createFoodModel(value)
-            self.data.set(model.id, model);
-            return model
-        },
-
-        delete(id: number) {
+        function deleteFood(id: number) {
             self.data.delete(String(id));
-        },
+        }
 
-        getIdsMissingFoodWithNutrients(ids: number[]) {
+        function getIdsMissingFoodWithNutrients(ids: number[]) {
             const missing: number[] = [];
             ids.forEach((id) => {
                 const exist = self.data.get(String(id));
                 if (!exist || !exist.nutrients) missing.push(id);
             });
             return missing;
-        },
+        }
 
-        //
-        // LOAD FOOD LIST
-        //
-        getFoodWithParams: flow(function* (params: GetFoodParams) {
+        const getFoodWithParams = flow(function* (params: GetFoodParams) {
             const result: GetFoodListResult = yield getFoodList(params);
 
-            console.log('result', result)
             if (!result?.data) return { items: [], hasMore: false };
 
             result.data.items.forEach((food) => {
-                console.log('result food', food)
-
-                self.data.set(food.id.toString(), {
-                    ...food,
-                    id: food.id.toString()
-                });
-                self.data2.push({
-                    ...food,
-                    id: food.id.toString()
-                });
+                self.data.set(food.id.toString(), { ...food, id: food.id.toString() });
             });
 
-            console.log('FOODSTORE self.data', self.data);
-
             return result.data;
-        }),
+        });
 
-        //
-        // LOAD ONE FOOD
-        //
-        getOne: flow(function* (id: number) {
+        const getOne = flow(function* (id: number) {
             const res = yield getOneFood(id);
             if (!res.data) return;
             self.data.set(String(res.data.id), res.data);
-        }),
+        });
 
-        //
-        // LOAD ONE FOOD by date (your function was wrong — you used id inside)
-        //
-        getOneByDate: flow(function* (date: number) {
+        const getOneByDate = flow(function* (date: number) {
             const res = yield getOneFood(date); // assuming same API
             if (!res.data) return;
             self.data.set(String(res.data.id), res.data);
-        }),
+        });
 
-        //
-        // PRIVATE: LOAD FOOD WITH NUTRIENTS
-        //
-        _loadFoodWithNutrientsByFoodIds: flow(function* (ids: number[]) {
+        const _loadFoodWithNutrientsByFoodIds = flow(function* (ids: number[]) {
             const state = new RequestState("");
 
             ids.forEach((id) => {
                 self.requestState.getAllWithNutrients.set(String(id), state);
             });
 
-            const res = yield requestWrapper(getFoodWithNutrients, {}, ids);
+            const res = yield requestWrapper(getFoodWithNutrientsByIds, {}, ids);
 
             if (!res.data) {
                 state.fail("error");
-                ids.forEach((id) =>
-                    self.requestState.getAllWithNutrients.delete(String(id))
-                );
+                ids.forEach((id) => self.requestState.getAllWithNutrients.delete(String(id)));
                 return state.data();
             }
 
             state.success();
-            ids.forEach((id) =>
-                self.requestState.getAllWithNutrients.delete(String(id))
-            );
+            ids.forEach((id) => self.requestState.getAllWithNutrients.delete(String(id)));
 
             res.data.forEach((dish: any) => {
                 self.data.set(String(dish.id), dish);
             });
 
             return state.data();
-        }),
+        });
 
-        //
-        // PUBLIC: LOAD WITH MISSING CHECK
-        //
-        loadFoodWithNutrientsByFoodIds: flow(function* (ids: number[]) {
-            ids = self.getIdsMissingFoodWithNutrients(ids);
+        const loadFoodWithNutrientsByFoodIds = flow(function* (ids: number[]) {
+            ids = getIdsMissingFoodWithNutrients(ids);
             if (isEmpty(ids)) return [false, "NO_FETCH_NEEDED" as const];
 
-            const [isError] = yield self._loadFoodWithNutrientsByFoodIds(ids);
+            const [isError] = yield _loadFoodWithNutrientsByFoodIds(ids);
 
             if (isError) return [isError, "FAIL" as const];
             return [isError, "FETCH_DONE" as const];
-        }),
-    }));
+        });
+
+        const loadLazy = flow(async function (params) {
+
+            // Calculate how many we already have
+            const loadedCount = self.data.size;
+
+            // --- SMART SKIP LOGIC ---
+            // If server data is static and:
+            //    - we know total already
+            //    - we have all items
+            //    - AND fetch is beginning from start
+            if (
+                params?.offset === 0 &&
+                self.total > 0 &&
+                loadedCount === self.total
+            ) {
+                // Nothing to load
+                return;
+            }
+
+            const result = await getFoodWithNutrients(params);
+            if (!result?.data) return;
+
+            const { hasMore, items, total } = result.data;
+
+            runInAction(() => {
+                // update totals
+                self.total = total;
+                self.hasMore = hasMore;
+
+                // add new items
+                items.forEach(item => addLocal(item));
+            });
+        });
+
+        return {
+            setShortData,
+            addLocal,
+            deleteFood,
+            getIdsMissingFoodWithNutrients,
+            getFoodWithParams,
+            getOne,
+            getOneByDate,
+            _loadFoodWithNutrientsByFoodIds,
+            loadFoodWithNutrientsByFoodIds,
+            loadLazy,
+        };
+    });
 
 //
 // INSTANCE TYPE

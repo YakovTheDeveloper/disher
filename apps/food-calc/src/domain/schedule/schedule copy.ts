@@ -10,7 +10,7 @@ import { RootInstance } from "@/store/types";
 
 export type ScheduleItemType = Instance<typeof BaseScheduleItem>["type"];
 
-export type AllScheduleItemTypes = Instance<typeof BaseScheduleItem> | Instance<typeof FoodScheduleItem> | Instance<typeof CustomScheduleItem> | Instance<typeof DishScheduleItem>
+export type AllScheduleItemContentTypes = Instance<typeof BaseScheduleItem> | Instance<typeof FoodScheduleItem> | Instance<typeof CustomScheduleItem> | Instance<typeof DishScheduleItem>
 
 type ChildVariant = "dish" | "food" | "custom";
 

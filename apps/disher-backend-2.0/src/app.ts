@@ -8,7 +8,6 @@ import { createContext } from './context'
 import cors from '@fastify/cors';
 
 
-
 const server = fastify();
 
 server.register(cors, {

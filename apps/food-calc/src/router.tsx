@@ -6,6 +6,7 @@ import SchedulePage from '@/pages/schedule/schedule-page/SchedulePage.tsx';
 import DishBuilderPage from '@/pages/dish/builder/dish-builder-page/DishBuilderPage.tsx';
 import { DailyNormsPage } from '@/pages/dailyNormsPage/index.ts';
 import ProductBuilderPage from '@/pages/productBuilderPage/productBuilderPage.tsx';
+import LoadDataPage from '@/pages/LoadDataPage/LoadDataPage.tsx';
 
 export enum RouterLinks {
   Root = '/',
@@ -14,6 +15,7 @@ export enum RouterLinks {
   Schedule = '/schedule',
   ScheduleBuilder = '/schedule/builder/',
   ProductBuilder = '/product/builder/',
+  LoadData = '/load-data/',
 }
 
 export const router = createBrowserRouter([
@@ -44,6 +46,10 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.ProductBuilder,
         element: <ProductBuilderPage />,
+      },
+      {
+        path: RouterLinks.LoadData,
+        element: <LoadDataPage />,
       },
     ],
   },

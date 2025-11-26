@@ -1,12 +1,18 @@
 import { Nutrient } from "@/domain/Nutrient";
-import { types } from "mobx-state-tree";
+import { getRoot, types } from "mobx-state-tree";
 
 export const FoodNutrient = types.model("FoodNutrient", {
-    id: types.identifier,
     quantity: types.number,
-    foodId: types.string,
-    nutrientId: types.number,
-    Nutrient: types.late(() => Nutrient)
+    nutrientId: types.identifier,
+    nutrient: types.reference(Nutrient, {
+        get(identifier, parent) {
+            const root = getRoot(parent); // <-- MST helper to get the tree root
+            return root.nutrientStore.data.get(identifier);
+        },
+        set(value) {
+            return value.id; // MST needs to know how to store reference
+        }
+    })
 });
 
 // Food

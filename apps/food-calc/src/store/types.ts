@@ -3,11 +3,13 @@ import { DayScheduleStore } from "@/store/DayScheduleStore/DayScheduleStore";
 import { FoodModelStore } from "@/store/FoodStore/FoodStore";
 import { DishStore } from "@/store/DishStore/DishStore";
 import { InteractionsService } from "@/store/interactions/InteractionsService";
+import { NutrientStore } from "@/store/NutrientStore/NutrientStore";
 
 export const RootStore = types.model("RootStore", {
     daySchedule: types.optional(DayScheduleStore, {}),
     foodStore: types.optional(FoodModelStore, {}),
     dishStore: types.optional(DishStore, {}),
+    nutrientStore: types.optional(NutrientStore, {}),
     interactionsService: types.optional(InteractionsService, {}),
 });
 

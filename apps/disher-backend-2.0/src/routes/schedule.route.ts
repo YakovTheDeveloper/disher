@@ -2,7 +2,7 @@
 
 import z from "zod"
 import { prisma } from "../client"
-import { t } from "../trpc"
+import { publicProcedure, t } from "../trpc"
 import { ScheduleCreateInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateInputSchema, ScheduleItemCreateManyFoodInputSchema, ScheduleItemCreateManyScheduleInputSchema, ScheduleItemCreateNestedManyWithoutScheduleInputSchema, ScheduleItemCreateWithoutScheduleInputSchema, ScheduleItemUncheckedCreateInputSchema, ScheduleItemUncheckedUpdateWithoutScheduleInputSchema, ScheduleItemUpdateInputSchema, ScheduleItemUpdateWithoutScheduleInputSchema, ScheduleUpdateInputSchema, ScheduleUpdateWithoutUserInputSchema, ScheduleWhereUniqueInputSchema } from "../../prisma/generated/zod"
 import { createResponseObject } from "../lib/response"
 import { DailyEventsUpdateSchema, ScheduleCreateInputZod, ScheduleUpdateInputZod } from "./schedule.route/validation"
@@ -39,7 +39,7 @@ const scheduleItemSelect = {
 
 }
 export const scheduleRoutes = {
-    getSchedules: t.procedure.input(
+    getSchedules: publicProcedure.input(
         z.object({
             date: z.string().datetime().optional(),
         })
@@ -69,7 +69,7 @@ export const scheduleRoutes = {
 
         return createResponseObject(200, 'good', result)
     }),
-    getOneSchedule: t.procedure.input(
+    getOneSchedule: publicProcedure.input(
         z.union([
             z.object({ id: z.number(), date: z.string().datetime().optional() }),
             z.object({ id: z.number().optional(), date: z.string().datetime() }),
@@ -106,7 +106,7 @@ export const scheduleRoutes = {
             return createResponseObject(500, "Unexpected error", null);
         }
     }),
-    addSchedule: t.procedure
+    addSchedule: publicProcedure
         .input(
             ScheduleCreateInputZod
         )
@@ -145,7 +145,7 @@ export const scheduleRoutes = {
             }
 
         }),
-    updateScheduleDailyEvents: t.procedure.input(DailyEventsUpdateSchema).mutation(async ({ input }) => {
+    updateScheduleDailyEvents: publicProcedure.input(DailyEventsUpdateSchema).mutation(async ({ input }) => {
         const { id, items } = input
         try {
             const result = await prisma.schedule.update({
@@ -174,7 +174,7 @@ export const scheduleRoutes = {
         }
 
     }),
-    updateSchedule: t.procedure
+    updateSchedule: publicProcedure
         .input(ScheduleUpdateInputZod)
         .mutation(async ({ input }) => {
             const { id, date, changes } = input;

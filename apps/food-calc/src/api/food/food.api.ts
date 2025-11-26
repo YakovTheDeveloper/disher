@@ -15,10 +15,14 @@ export const getFoodList = async (params: GetFoodParams) => {
     return await requestWrapper(trpc.getFood.query, {}, params)
 }
 
-export const getFoodWithNutrients = async (ids?: number[]) => {
+export const getFoodWithNutrientsByIds = async (ids?: number[]) => {
     const payload = ids ? { ids } : undefined
-    trpc.getFoodWithNutrients.query(payload)
-    return requestWrapper(trpc.getFoodWithNutrients.query, {}, payload)
+    trpc.getFoodWithNutrientsByIds.query(payload)
+    return requestWrapper(trpc.getFoodWithNutrientsByIds.query, {}, payload)
+}
+
+export const getFoodWithNutrients = async (params: GetFoodParams) => {
+    return requestWrapper(trpc.getFoodWithNutrients.query, {}, params)
 }
 
 export const getOneFood = async (id: number, date?: string) => {
