@@ -45,7 +45,7 @@ const List = observer(({ items, options, length, onDishesUnite }: Props) => {
     (group: TimeGroupUI<Instance<typeof ScheduleItem>>) => {
       return group.items.length > 1 && options.showAdditionals ? (
         <span onClick={() => onDishesUnite(group)} className={clsx([styles.uniteButton])}>
-          создать блюдо
+          преобразовать в блюдо
         </span>
       ) : null;
     },

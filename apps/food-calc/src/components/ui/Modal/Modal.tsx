@@ -25,9 +25,6 @@ type ModalById = {
 type Props = ModalByOpen | ModalById;
 
 const Modal = (props: Props) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const navigationType = useNavigationType();
   const openedRef = useRef(false);
 
   const isOpen =
@@ -41,9 +38,6 @@ const Modal = (props: Props) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-
-      navigate(location, { replace: false, state: { modal: true } });
-
       openedRef.current = true;
     } else {
       document.body.style.overflow = '';
@@ -52,14 +46,7 @@ const Modal = (props: Props) => {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen, navigate]);
-
-  useEffect(() => {
-    if (openedRef.current && navigationType === 'POP') {
-      onClose();
-      openedRef.current = false;
-    }
-  }, [navigationType, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

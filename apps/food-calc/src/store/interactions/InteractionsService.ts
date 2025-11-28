@@ -1,5 +1,5 @@
 import { Dish } from "@/domain/dish/Dish";
-import { AllScheduleItemContentTypes, ScheduleItem } from "@/domain/schedule/schedule";
+import { AllScheduleItemContentTypes, DaySchedule, ScheduleItem } from "@/domain/schedule/schedule";
 import { DayScheduleApi, DishStoreApi, RootInstance } from "@/store/types";
 import { getEnv, getRoot, Instance, IStateTreeNode, types } from "mobx-state-tree";
 
@@ -33,11 +33,8 @@ export const InteractionsService = types
             return root.dishStore.addLocal(init)
         }
 
-        function onDishSaveFromScheduleFood(dishId: string, scheduleDate: string, time: string) {
-            const root = getRoot(self) as InteractionsEnv;
-
-            const schedule = root.daySchedule.getLocal(scheduleDate)
-            const dish = root.dishStore.getLocal(dishId)
+        function onDishSaveFromScheduleFood(dish: Instance<typeof Dish>, schedule: Instance<typeof DaySchedule>, time: string) {
+            const dishId = dish.id
             if (!schedule || !dish) {
                 console.error('no dish or schedule', schedule, dish)
                 return
@@ -48,6 +45,13 @@ export const InteractionsService = types
 
         }
 
+        function createNewDishAndAppendToSchedule(schedule: Instance<typeof DaySchedule>, timeGroupItems: Instance<typeof ScheduleItem>[], time: string) {
+            const dish = foodIntoNewDish(timeGroupItems)
+            onDishSaveFromScheduleFood(dish, schedule, time)
+            return dish
+
+        }
+
         // function* scenario(items: AllScheduleItemContentTypes[]) {
 
         //     foodIntoNewDish(items)
@@ -55,7 +59,6 @@ export const InteractionsService = types
         // }
 
         return {
-            onDishSaveFromScheduleFood,
-            foodIntoNewDish
+            createNewDishAndAppendToSchedule
         }
     });

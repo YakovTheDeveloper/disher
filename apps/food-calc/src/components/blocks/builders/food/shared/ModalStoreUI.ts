@@ -1,56 +1,23 @@
-import { makeAutoObservable } from "mobx";
+// ModalStoreUI.ts
+export class ModalStoreUI<Variants extends string | number> {
+    private navigate: ReturnType<typeof import("react-router").useNavigate> | null = null;
 
-export type CommonModals =
-    | "food"
-    | "quantity"
-    | "nutrients";
+    setNavigate = (navigate: ReturnType<typeof import("react-router").useNavigate>) => {
+        this.navigate = navigate;
+    };
 
-export class ModalStoreUI<Variants> {
-    constructor() {
-        makeAutoObservable(this);
-    }
-
-    // NEW: internal stack
-    private stack: Variants[] = [];
-
-    // OLD API: works same as before
-    get current(): Variants | null {
-        return this.stack.length > 0 ? this.stack[this.stack.length - 1] : null;
-    }
-
-    // OLD API: sets a single modal (pushes to stack)
     set = (value: Variants | null) => {
-        if (value === null) {
-            this.stack = [];
-        } else {
-            this.stack.push(value);
-        }
-    }
+        if (!value || !this.navigate) return;
+        const params = new URLSearchParams(window.location.search);
+        params.set("modal", value.toString());
+        this.navigate(`?${params.toString()}`, { replace: false, state: { modal: true } });
+    };
 
-    // OLD API: close current modal
     close = () => {
-        this.stack.pop();
-    }
+        window.history.back()
+    };
 
-    // OPTIONAL NEW HELPERS (do not break existing usage)
-
-    /** Open multiple modals at once */
-    push = (...values: Variants[]) => {
-        this.stack.push(...values);
-    }
-
-    /** Close and return the top modal */
-    pop = () => {
-        return this.stack.pop();
-    }
-
-    /** Clear all modals */
     clear = () => {
-        this.stack = [];
-    }
-
-    /** Get full stack if needed */
-    get all() {
-        return [...this.stack];
-    }
+        window.history.back()
+    };
 }

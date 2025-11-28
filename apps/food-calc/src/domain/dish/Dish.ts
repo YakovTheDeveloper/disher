@@ -1,5 +1,6 @@
 import { ItemStatus } from "@/domain/commonListItem";
 import { Food } from "@/domain/Food";
+import { sumRecordArray, sumRecords } from "@/lib/sumRecords/sumRecords";
 import { getParent, getRoot, Instance, types } from "mobx-state-tree";
 
 export const DishItem = types.model("DishItem", {
@@ -57,15 +58,37 @@ export const Dish = types.model("Dish", {
     },
     get isNoItems() {
         return self.items.length === 0
+    },
+    get baseDishWeight() {
+        return self.items.reduce(
+            (sum, { quantity }) => sum + quantity,
+            0
+        );
     }
+})).views(self => ({
 
+    get foodWithNoNutrients() {
+        return self.items.filter(item => item.food.noNutrients).map(item => item.food)
+    }
 }))
-    .actions(self => ({
-        setCurrent(id: number) {
+    .actions(self => {
+
+        function getTotalNutrients(userQuantity: number) {
+            const nutrients = self.items.map(({ food }) => food.getTotalNutrients(userQuantity));
+            const acc = sumRecordArray(nutrients)
+            const scaleFactor = userQuantity / self.baseDishWeight;
+            Object.keys(acc).forEach(key => {
+                acc[key] = acc[key] * scaleFactor;
+            });
+            return acc;
+        }
+
+        function setCurrent(id: number) {
             self.currentId = id;
-        },
-        addOrUpdateChild(foodId: string, fields: Partial<typeof DishItem> = {}) {
-            if (self.currentMode === 'ADD') {
+        }
+
+        function addOrUpdateChild(foodId: string, fields: Partial<typeof DishItem> = {}) {
+            if (self.currentMode === "ADD") {
                 const item = DishItem.create({
                     id: Date.now(),
                     quantity: 100,
@@ -76,46 +99,57 @@ export const Dish = types.model("Dish", {
                 });
                 self.items.push(item);
                 return item;
-            } else if (self.currentMode === 'UPDATE' && self.current) {
+            }
+
+            if (self.currentMode === "UPDATE" && self.current) {
                 Object.assign(self.current, { foodId, food: foodId, ...fields });
                 self.current.markModified();
                 return self.current;
             }
-        },
+        }
 
-        updateName(name: string) {
-            self.name = name
-        },
+        function updateName(name: string) {
+            self.name = name;
+        }
 
-        updateQuantity(quantity: number) {
-            self.updateCurrentChild({ quantity })
-        },
+        function updateQuantity(quantity: number) {
+            updateCurrentChild({ quantity });
+        }
 
-        updateCurrentChild(fields: Partial<typeof DishItem>) {
+        function updateCurrentChild(fields: Partial<typeof DishItem>) {
             const item = self.current;
             if (!item) return;
 
             Object.assign(item, fields);
             item.markModified();
-        },
+        }
 
-        deleteItem(childId: number) {
+        function deleteItem(childId: number) {
             const item = self.items.find(i => i.id === childId);
             if (!item) return;
 
             if (item.status === "added") {
-                // completely remove if it's never been saved
                 self.items.replace(self.items.filter(i => i.id !== childId));
                 return;
             }
 
-            // soft delete
             item.markDeleted();
-        },
+        }
 
-        recoverItem(childId: number) {
+        function recoverItem(childId: number) {
             const item = self.items.find(i => i.id === childId);
             if (!item) return;
             item.recover();
         }
-    }));
+
+        return {
+            getTotalNutrients,
+            setCurrent,
+            addOrUpdateChild,
+            updateName,
+            updateQuantity,
+            updateCurrentChild,
+            deleteItem,
+            recoverItem
+        };
+    })

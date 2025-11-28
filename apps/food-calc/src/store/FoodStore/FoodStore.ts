@@ -107,7 +107,7 @@ export const FoodModelStore = types
                 self.requestState.getAllWithNutrients.set(String(id), state);
             });
 
-            const res = yield requestWrapper(getFoodWithNutrientsByIds, {}, ids);
+            const res = yield getFoodWithNutrientsByIds(ids)
 
             if (!res.data) {
                 state.fail("error");

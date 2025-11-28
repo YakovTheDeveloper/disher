@@ -8,7 +8,7 @@ import { scheduleStore } from '@/store/rootStore';
 import { MenuUiStore } from '@/store/uiStore/menu/menuUiStore';
 import { observer } from 'mobx-react-lite';
 import { useCallback, useEffect, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import styles from './ScheduleBuilderPage.module.scss';
 import { InitLoadingStore } from '@/components/blocks/builders/food/ScheduleBuilder/model/InitLoadingStore';
 import { Overlay, WithOverlay } from '@/components/ui/Overlay';
@@ -27,15 +27,6 @@ const Page = observer(({ date }: { date: string }) => {
   //     }, 500),
   //   [store]
   // );
-
-  // useEffect(() => {
-  //   store.reset();
-  //   onInit(date);
-
-  //   return () => {
-  //     onInit.cancel();
-  //   };
-  // }, [date, onInit]);
 
   const onFinish = useCallback(async (payload: DayScheduleUI) => {
     if (payload.id === -1) {
@@ -90,14 +81,17 @@ const Page = observer(({ date }: { date: string }) => {
 });
 
 const GetDatePageWrapper = () => {
-  const [searchParams] = useSearchParams();
-  const date = searchParams.get('date');
+  const params = useParams();
+  const date = params.date;
   const navigate = useNavigate();
 
-  if (!date) {
-    navigate(RouterLinks.Schedule);
-    return null;
-  }
+  useEffect(() => {
+    if (!date) {
+      navigate(RouterLinks.Schedule);
+    }
+  }, [date]);
+
+  if (!date) return null;
 
   return <Page date={date} />;
 };

@@ -7,12 +7,73 @@ import { ItemStatus, ItemStatusType } from "@/domain/commonListItem";
 import { TimeGroupUI } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
 import { createDishModel, createDishSnapshot } from "@/store/DishStore/fabric";
 import { RootInstance } from "@/store/types";
+import { FoodWithQuantity } from "@/domain/schedule/types";
+import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
 
 export type ScheduleItemType = Instance<typeof ScheduleItem>["type"];
 
 export type AllScheduleItemContentTypes = Instance<typeof DishItemContent> | Instance<typeof FoodItemContent> | Instance<typeof CustomItemContent>
 
 type ChildVariant = "dish" | "food" | "custom";
+
+// пусть будет у Dish тоже
+export const DishItemContent = types.model()
+    .named("DishItemContent")
+    .props({
+        type: types.literal("dish"),
+        dishId: types.string,
+        dish: types.reference(Dish, {
+            get(identifier, parent) {
+                const root = getRoot(parent); // <-- MST helper to get the tree root
+                return root.dishStore.data.get(identifier);
+            },
+            set(value) {
+                return value.id; // MST needs to know how to store reference
+            }
+        }),
+    })
+    .views((self) => ({
+        get name() { return self.dish?.name || 'нет имени' },
+        get parentQuantity(): number {
+            const parentItem = getParent(self);
+            return parentItem.quantity;
+        },
+        get foodWithNoNutrients() {
+            return self.dish.foodWithNoNutrients
+        }
+
+    })).actions(self => {
+
+        function getTotalNutrients() {
+            return self.dish.getTotalNutrients(self.parentQuantity)
+        }
+
+        return {
+            getTotalNutrients,
+        }
+    })
+
+export const CustomItemContent = types.model()
+    .named("CustomItemContent")
+    .props({
+        type: types.literal("custom"),
+        name: types.string, // required for custom
+    })
+    .views((self) => ({
+        get isCustom() { return true; },
+        get foodWithNoNutrients() {
+            return []
+        }
+    })).actions(self => {
+
+        function getTotalNutrients(): Record<string, number> {
+            return {}
+        }
+
+        return {
+            getTotalNutrients
+        }
+    })
 
 export const FoodItemContent = types.model()
     .named("FoodItemContent")
@@ -30,39 +91,25 @@ export const FoodItemContent = types.model()
         }),
     })
     .views((self) => ({
-        get name() { return self.food?.name || 'нет имени' }
+        get name() { return self.food?.name || 'нет имени' },
+        get parentQuantity(): number {
+            const parentItem = getParent(self);
+            return parentItem.quantity;
+        },
+        get foodWithNoNutrients() {
+            return self.food.noNutrients ? [self.food] : []
+        }
 
-    }))
+    })).actions(self => {
 
-export const DishItemContent = types.model()
-    .named("DishItemContent")
-    .props({
-        type: types.literal("dish"),
-        dishId: types.string,
-        dish: types.reference(Dish, {
-            get(identifier, parent) {
-                const root = getRoot(parent); // <-- MST helper to get the tree root
-                return root.dishStore.data.get(identifier);
-            },
-            set(value) {
-                return value.id; // MST needs to know how to store reference
-            }
-        }),
+        function getTotalNutrients() {
+            return self.food.getTotalNutrients(self.parentQuantity)
+        }
+
+        return {
+            getTotalNutrients
+        }
     })
-    .views((self) => ({
-        get name() { return self.dish?.name || 'нет имени' }
-
-    }));
-
-export const CustomItemContent = types.model()
-    .named("CustomItemContent")
-    .props({
-        type: types.literal("custom"),
-        name: types.string, // required for custom
-    })
-    .views((self) => ({
-        get isCustom() { return true; },
-    }));
 
 export const ScheduleItem = types.model("ScheduleItem", {
     type: types.enumeration("ScheduleItemType", ["dish", "food", "custom"]),
@@ -115,6 +162,13 @@ export const DaySchedule = types
     .views(self => ({
         get current() {
             return self.items.find(i => i.id === self.currentId) || null;
+        },
+        get customItems() {
+            return self.items.filter(i => i.content.type === 'custom') || null;
+        },
+        get foodWithNoNutrients() {
+            return Array.from(new Set(self.items
+                .flatMap(item => item.content.foodWithNoNutrients)))
         },
         get itemsLength() {
             return self.items.length
@@ -180,6 +234,13 @@ export const DaySchedule = types
         }
     }))
     .actions(self => {
+
+        function getTotalNutrients() {
+            const nutrients = self.items.map(item =>
+                item.content.getTotalNutrients()
+            );
+            return sumRecordArray(nutrients);
+        }
 
         function setCurrent(id: number) {
             self.currentId = id;
@@ -314,7 +375,7 @@ export const DaySchedule = types
         }
 
         function updateCurrent(
-            fields: Partial<Instance<typeof CustomScheduleItem>>
+            fields: Partial<Instance<typeof ScheduleItem>>
         ) {
             const item = self.current;
             if (!item) return;
@@ -360,5 +421,6 @@ export const DaySchedule = types
             updateCurrent,
             deleteItem,
             recoverItem,
+            getTotalNutrients
         };
     })

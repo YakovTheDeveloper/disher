@@ -1,0 +1,16 @@
+.container {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    cursor: text;
+}
+
+.input {
+    width: 30px;
+    font-size: 18px;
+    border: none;
+    text-align: center;
+    outline: none;
+}

@@ -19,6 +19,7 @@ import { useDailyScheduleModals } from '@/components/blocks/builders/food/Schedu
 import { domainStore } from '@/store/store';
 import { Time } from '@/components/blocks/builders/food/ScheduleBuilder/ui/List/Time';
 import { filterBy } from '@/lib/filter/filter';
+import { TimePicker } from '@/components/blocks/builders/food/ScheduleBuilder/components/TimePicker';
 
 type Props = {
   children?: React.ReactNode;
@@ -51,8 +52,8 @@ const FoodAdd = ({ children, store, headerAfter }: Props) => {
     modals.close();
   };
 
-  const onTimeOpen = () => {
-    modals.push('time');
+  const onTimeChangeFinish = (value: string) => {
+    store.updateTime(value);
   };
 
   const state = useLocalObservable(() => ({
@@ -197,8 +198,8 @@ const FoodAdd = ({ children, store, headerAfter }: Props) => {
           )}
         </h2>
 
-        <div onClick={onTimeOpen}>
-          <Time>{getChildTime}</Time>
+        <div>
+          <TimePicker value={currentChild?.time} onFinish={onTimeChangeFinish} />
         </div>
       </header>
 

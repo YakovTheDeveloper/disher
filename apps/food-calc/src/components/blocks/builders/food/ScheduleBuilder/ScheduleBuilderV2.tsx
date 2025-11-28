@@ -52,6 +52,7 @@ import { useDailyScheduleModals } from '@/components/blocks/builders/food/Schedu
 import { useNavigate } from 'react-router';
 import { RouterLinks } from '@/router';
 import { domainStore } from '@/store/store';
+import toaster from '@/infrastructure/toaster/toaster';
 
 export const Modals = {
   Time: 'time',
@@ -91,10 +92,13 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
   };
 
   const onUniteFoodIntoDish = useCallback((group: TimeGroupUI<Instance<typeof ScheduleItem>>) => {
-    const dish = domainStore.interactionsService.foodIntoNewDish(group.items);
-    navigate(
-      RouterLinks.DishBuilder + '?id=' + dish.id + '&add_to=' + date + '&time=' + group.time
+    const dish = domainStore.interactionsService.createNewDishAndAppendToSchedule(
+      schedule,
+      group.items,
+      group.time
     );
+    toaster.success('Блюдо создано');
+    navigate(RouterLinks.DishBuilder + '?id=' + dish.id);
 
     // modals.set('createDish');
   }, []);
@@ -186,7 +190,7 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
         {/* <TotalNutrients vm={schedule} ref={totalNutrients} /> */}
 
         {[
-          <></>,
+          <TotalNutrients ref={totalNutrients} store={schedule} />,
           <WithOverlay isLoading={isLoading}>
             <List onDishesUnite={onUniteFoodIntoDish} options={foodOptions} schedule={schedule} />
           </WithOverlay>,

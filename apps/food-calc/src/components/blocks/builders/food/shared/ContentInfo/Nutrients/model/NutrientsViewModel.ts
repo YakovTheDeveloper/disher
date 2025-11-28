@@ -1,7 +1,10 @@
+import { FoodWithQuantity } from "@/domain/schedule/types";
 import { FoodModelStore } from "@/store/models/food/foodModelStore";
 import { uiStore } from "@/store/rootStore";
+import { domainStore } from "@/store/store";
 import { DailyNormsStoreUI } from "@/store/uiStore/dailyNorms/DailyNormsStoreUI";
 import { makeAutoObservable } from "mobx";
+import { Instance } from "mobx-state-tree";
 
 type FoodId = number
 type NutrientId = number
@@ -12,26 +15,14 @@ export class NutrientViewModelStore {
         id: FoodId;
     }[] = [];
 
-    constructor(private foodModel: FoodModelStore, private dailyNormStoreUI: DailyNormsStoreUI = uiStore.dailyNorms) {
+    constructor(private dailyNormStoreUI: DailyNormsStoreUI = uiStore.dailyNorms) {
         makeAutoObservable(this);
     }
 
-    get sums() {
-        const acc: Record<FoodId, number> = {};
-        this.currentFood.forEach(({ id, quantity: foodQuantity }) => {
-            const foodNutrients = this.foodModel.data.get(id.toString())?.nutrients || [];
-            foodNutrients.forEach(({ nutrientId, quantity: q }) => {
-                acc[nutrientId] = (acc[nutrientId] || 0) + (q * foodQuantity) / 100;
-            });
-        });
-        return acc;
-    }
+    sums: Record<string, number> = {}
 
-    setCurrentFood = (food: {
-        quantity: number;
-        id: FoodId;
-    }[]) => {
-        this.currentFood = food
+    setSums = (nutrients: Record<string, number> = {}) => {
+        this.sums = nutrients
     }
 
     getValue = (id: FoodId) => this.sums[id] ?? 0;

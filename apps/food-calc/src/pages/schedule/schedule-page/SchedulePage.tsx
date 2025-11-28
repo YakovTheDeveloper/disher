@@ -5,7 +5,7 @@ const SchedulePage = () => {
   const navigate = useNavigate();
 
   const onDateChoose = (date: Date) => {
-    navigate(`builder?date=${date.toISOString()}`);
+    navigate(`builder/${date.toISOString()}`);
   };
 
   return (

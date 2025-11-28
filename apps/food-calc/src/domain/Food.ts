@@ -23,4 +23,22 @@ export const Food = types.model("Food", {
     description: types.maybe(types.string),
     descriptionEng: types.maybe(types.string),
     nutrients: types.maybe(types.array(FoodNutrient)),
+}).views(self => ({
+
+    get noNutrients() {
+        return !self.nutrients
+    }
+})).actions(self => {
+
+    function getTotalNutrients(productQuantity: number) {
+        const acc: Record<string, number> = {};
+        const foodNutrients = self.nutrients || [];
+        foodNutrients.forEach(({ nutrientId, quantity: q }) => {
+            acc[nutrientId] = (acc[nutrientId] || 0) + (q * productQuantity) / 100;
+        });
+        return acc;
+    }
+    return {
+        getTotalNutrients
+    }
 });

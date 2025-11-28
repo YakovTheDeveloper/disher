@@ -1,10 +1,5 @@
 import { ScheduleItemEntity } from "@/store/models/schedule/types";
 
-export type FoodWithQuantity = {
-    id: number;
-    quantity: number;
-};
-
 export type GetTotalFoodAndDishFoodQuantityFromOneItemInput = {
     food?: ScheduleItemEntity["food"];
     dish?: ScheduleItemEntity["dish"];

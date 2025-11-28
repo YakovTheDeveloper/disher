@@ -6,6 +6,8 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { NutrientCard } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/NutrientCard';
 import { NutrientViewModelStore } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/model/NutrientsViewModel';
 import { foodStore } from '@/store/rootStore';
+import { Instance } from 'mobx-state-tree';
+import { TotalNutrientsStore } from '@/components/blocks/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
 
 // Groups of nutrients
 // const groups: Record<string, number[]> = {
@@ -15,22 +17,15 @@ import { foodStore } from '@/store/rootStore';
 //   Каротиноиды: [34, 35],
 // };
 
+type FoodId = string;
+
 type Props = {
-  getFood?: () => FoodModelStore;
-  currentFood: { quantity: number; id: number }[];
   renderOverlay?: (percent: string) => React.ReactNode;
+  store: Instance<typeof TotalNutrientsStore>;
 };
 
-const Nutrients = ({ getFood = () => foodStore, currentFood, renderOverlay }: Props) => {
-  const foodModel = getFood();
-
-  const store = useMemo(() => new NutrientViewModelStore(foodModel), []);
-
+const Nutrients = ({ store, renderOverlay }: Props) => {
   const getSum = useCallback(store.getValue, []);
-
-  useEffect(() => {
-    store.setCurrentFood(currentFood);
-  }, [currentFood, store]);
 
   return (
     <div className={styles.container}>
