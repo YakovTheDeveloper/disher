@@ -25,6 +25,7 @@
     "clsx": "2.1.1",
     "crypto-js": "^4.2.0",
     "framer-motion": "^12.23.13",
+    "mitt": "^3.0.1",
     "mobx": "6.13.5",
     "mobx-devtools-mst": "^0.9.46",
     "mobx-react": "9.2.0",

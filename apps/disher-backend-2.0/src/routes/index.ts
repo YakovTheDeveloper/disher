@@ -2,7 +2,7 @@ import { initTRPC } from '@trpc/server';
 import superjson from 'superjson'
 import { z } from 'zod';
 import { prisma } from '../client';
-import { scheduleRoutes } from './schedule.route';
+import { scheduleRoutes } from './schedule.route/schedule.route';
 import { t } from '../trpc';
 import { userRoutes } from './user.route';
 import { dihesRoutes } from './dish.route/dish.route';

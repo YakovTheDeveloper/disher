@@ -22,6 +22,10 @@ export interface DishStoreApi {
     getLocal: DishStoreInstance["getLocal"];
 }
 
+export interface NutrientStoreApi {
+    items: Instance<typeof NutrientStore>["items"];
+}
+
 export interface DayScheduleApi {
     getLocal: Instance<typeof DayScheduleStore>["getLocal"];
 }

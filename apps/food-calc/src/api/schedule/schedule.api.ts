@@ -3,9 +3,13 @@ import { scheduleFromUI, normalizeFoodAndDishIds } from "@/api/schedule/schedule
 import { trpc } from "@/api/trpc/trpc"
 import { ScheduleQuestionnaireItemUI } from "@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel"
 import { DayScheduleUI } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel"
+import { Dish } from "@/domain/dish/Dish"
+import { DaySchedule } from "@/domain/schedule/schedule"
 import { ISODate } from "@/types/common/common"
 import type { ApiInputs } from '@types'
 import { DailyEventData } from "@types";
+import { toJS } from "mobx"
+import { getSnapshot, Instance } from "mobx-state-tree"
 
 export const getSchedules = async (date: string) => {
     return trpc.getSchedules.query({ date })
@@ -35,6 +39,35 @@ export const addSchedule = async (data: DayScheduleUI) => {
     }
 
     const result = await trpc.addSchedule.mutate(payload);
+    return result
+}
+
+export const syncSchedule = async (input: {
+    schedule: Instance<typeof DaySchedule>,
+    unsyncDishesPerSchedule: Instance<typeof Dish>[]
+}[]) => {
+
+    const payload: Parameters<typeof trpc.syncSchedule.mutate>[0] = {
+        schedules: input.map(({ schedule, unsyncDishesPerSchedule }) => {
+            const { items, date, isDraft } = getSnapshot(schedule);
+            const userId = 1
+            return {
+                date,
+                userId,
+                items: extractChanges(items),
+                isDraft,
+                unsyncDishesPerSchedule: unsyncDishesPerSchedule.map(({ id, isDraft, name, items }) => ({
+                    id,
+                    userId,
+                    isDraft,
+                    name,
+                    items: extractChanges(items)
+                })),
+            }
+        }),
+    }
+
+    const result = await trpc.syncSchedule.mutate(payload);
     return result
 }
 

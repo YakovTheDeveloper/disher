@@ -46,7 +46,7 @@ const Navigation = ({ children, menuUi = uiStore.menu }: Props) => {
   const { day, monthName, monthNumber, weekdayName } = getTitle(date);
 
   const updateDate = (newDate: string) => {
-    navigate(`?date=${encodeURIComponent(newDate)}`);
+    navigate(RouterLinks.ScheduleBuilder + newDate);
   };
 
   const handleNext = () => updateDate(nextDate(date));

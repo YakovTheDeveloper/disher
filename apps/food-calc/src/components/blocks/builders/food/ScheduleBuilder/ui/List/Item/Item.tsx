@@ -13,6 +13,8 @@ import { toJS } from 'mobx';
 import { Instance } from 'mobx-state-tree';
 import { ScheduleItem } from '@/domain/schedule/schedule';
 import { useDailyScheduleModals } from '@/components/blocks/builders/food/ScheduleBuilder/modalContext';
+import { useNavigate } from 'react-router';
+import { RouterLinks } from '@/router';
 
 type Props = {
   item: Instance<typeof ScheduleItem>;
@@ -22,6 +24,8 @@ type Props = {
 
 const Item = ({ item, options, className }: Props) => {
   const modals = useDailyScheduleModals();
+
+  const navigate = useNavigate();
 
   console.log('LIST_ITEM', item);
 
@@ -36,8 +40,7 @@ const Item = ({ item, options, className }: Props) => {
   };
 
   const onFoodsOpenInfo = () => {
-    item.setAsCurrent();
-    modals.set('foodNutrients');
+    modals.set('foodNutrients', { id: item.content.foodId });
   };
 
   const onDelete = () => item.markDeleted();
@@ -47,8 +50,8 @@ const Item = ({ item, options, className }: Props) => {
   //   modals.set('time');
   // };
   const onDishOpenInfo = () => {
-    item.setAsCurrent();
-    modals.set('dishNutrients');
+    console.log('item.content', item.content);
+    navigate(`${RouterLinks.DishBuilder}/${item.content.dishId}`);
   };
 
   const id = item.id;
@@ -67,7 +70,7 @@ const Item = ({ item, options, className }: Props) => {
   // item.dish
 
   const onNameAdditionalOptionsClick = () => {
-    if (item.type === 'dish') {
+    if (item.content.type === 'dish') {
       onDishOpenInfo();
       return;
     }

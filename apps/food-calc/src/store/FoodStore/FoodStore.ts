@@ -1,13 +1,14 @@
 import { types, flow, getSnapshot, Instance, SnapshotIn } from "mobx-state-tree";
 import { getFoodList, GetFoodParams, getFoodWithNutrients, getFoodWithNutrientsByIds, getOneFood } from "@/api/food/food.api";
 import { requestWrapper } from "@/api/Request";
-import { RequestState } from "@/api/RequestState";
+import { RequestState, ResponseStatus } from "@/api/RequestState";
 import { isEmpty } from "@/lib/empty";
 import { Food } from "@/domain/Food";
 import { createFoodModel } from "@/store/FoodStore/factory";
 import { runInAction } from "mobx";
 
 type GetFoodListResult = Awaited<ReturnType<typeof getFoodList>>;
+type GetFoodNutrientsByIdResult = Awaited<ReturnType<typeof getFoodWithNutrientsByIds>>;
 //
 // TYPES
 //
@@ -41,6 +42,12 @@ export const FoodModelStore = types
         get dataLength() {
             return self.data.size
         },
+        isOneOfProductsIsLoading(foodIds: string[]) {
+            const entries = Array.from(self.requestState.getAllWithNutrients.keys());
+            return entries.some((key) =>
+                foodIds.some((key2) => key === key2.toString())
+            )
+        }
     }))
 
     //
@@ -100,7 +107,11 @@ export const FoodModelStore = types
             self.data.set(String(res.data.id), res.data);
         });
 
-        const _loadFoodWithNutrientsByFoodIds = flow(function* (ids: number[]) {
+        const _loadFoodWithNutrientsByFoodIds = flow(function* (ids: string[]): Generator<
+            Promise<GetFoodNutrientsByIdResult>, // тип промиса, который ты yield-ишь
+            ResponseStatus,           // return type
+            GetFoodNutrientsByIdResult          // то, что "res" в итоге получит
+        > {
             const state = new RequestState("");
 
             ids.forEach((id) => {
@@ -112,21 +123,26 @@ export const FoodModelStore = types
             if (!res.data) {
                 state.fail("error");
                 ids.forEach((id) => self.requestState.getAllWithNutrients.delete(String(id)));
-                return state.data();
+                return state.status();
             }
 
             state.success();
             ids.forEach((id) => self.requestState.getAllWithNutrients.delete(String(id)));
 
-            res.data.forEach((dish: any) => {
-                self.data.set(String(dish.id), dish);
+            res.data.forEach(({ id, nutrients }) => {
+                const food = self.data.get(String(id));
+                console.log("hellohello", food);
+                food?.setNutrients(nutrients)
             });
 
-            return state.data();
+            return state.status();
         });
 
-        const loadFoodWithNutrientsByFoodIds = flow(function* (ids: number[]) {
-            ids = getIdsMissingFoodWithNutrients(ids);
+        const loadFoodWithNutrientsByFoodIds = flow(function* (ids: string[]): Generator<
+            Promise<ResponseStatus>,
+            [boolean, "NO_FETCH_NEEDED" | "FAIL" | "FETCH_DONE"],
+            ResponseStatus
+        > {
             if (isEmpty(ids)) return [false, "NO_FETCH_NEEDED" as const];
 
             const [isError] = yield _loadFoodWithNutrientsByFoodIds(ids);

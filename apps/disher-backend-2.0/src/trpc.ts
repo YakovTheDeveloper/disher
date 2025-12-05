@@ -5,6 +5,7 @@ export const t = initTRPC.create();
 
 export const idStringifier = t.middleware(async ({ next }) => {
     const result = await next();
+
     return transformIds(result);
 });
 

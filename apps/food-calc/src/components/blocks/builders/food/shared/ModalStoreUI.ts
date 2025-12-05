@@ -6,13 +6,24 @@ export class ModalStoreUI<Variants extends string | number> {
         this.navigate = navigate;
     };
 
-    set = (value: Variants | null) => {
+    set = (value: Variants | null, inputParams?: Record<string, string>) => {
         if (!value || !this.navigate) return;
-        const params = new URLSearchParams(window.location.search);
-        params.set("modal", value.toString());
-        this.navigate(`?${params.toString()}`, { replace: false, state: { modal: true } });
-    };
 
+        const params = new URLSearchParams(window.location.search);
+
+        params.set("modal", value.toString());
+
+        if (inputParams) {
+            Object.entries(inputParams).forEach(([key, val]) => {
+                params.set(key, val);
+            });
+        }
+
+        this.navigate(`?${params.toString()}`, {
+            replace: false,
+            state: { modal: true }
+        });
+    };
     close = () => {
         window.history.back()
     };

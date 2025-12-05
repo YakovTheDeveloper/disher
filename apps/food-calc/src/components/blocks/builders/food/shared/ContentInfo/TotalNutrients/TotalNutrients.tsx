@@ -13,6 +13,8 @@ import { Instance } from 'mobx-state-tree';
 import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
 import { NutrientViewModelStore } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/model/NutrientsViewModel';
 import { TotalNutrientsStore } from '@/components/blocks/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
+import { domainStore } from '@/store/store';
+import { emitter } from '@/infrastructure/emitter/emitter';
 
 export interface TotalNutrientsRef {
   calculate: () => void;
@@ -29,29 +31,22 @@ type Props = {
 const TotalNutrients = ({ store, ref, children }: Props) => {
   // const { prepareStore } = useTotalNutrients(store, ref);
 
-  const nutrientStore = useMemo(() => TotalNutrientsStore.create({}), []);
+  const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);
   nutrientStore.setEntity(store);
 
-  console.log('TotalNutrients render', store.foodWithNoNutrients);
-
-  const prepareStore = {
-    content: [],
-  };
+  const isLoading = useCallback(() => nutrientStore.isOneOfProductsIsLoading, [nutrientStore]);
 
   const renderOverlay = useCallback(
-    (value: string) => (
-      <Overlay loading={foodStore.requestState} currentId={prepareStore}>
-        {value}
-      </Overlay>
-    ),
-    [foodStore.requestState, prepareStore]
+    (value: string) => <Overlay loading={isLoading}>{value}</Overlay>,
+    [foodStore.requestState]
   );
 
   return (
     <div className={styles.container}>
       <button
-        onClick={() => {
-          console.log('nutrientStore.nutrients', nutrientStore.nutrients);
+        onClick={async () => {
+          const nutrients = await nutrientStore.loadNutrientsAndCalculate();
+          console.log('nutrientStore.nutrients', nutrients);
         }}
       >
         ПО СЧИТАТЬ

@@ -68,7 +68,7 @@ export const Dish = types.model("Dish", {
 })).views(self => ({
 
     get foodWithNoNutrients() {
-        return self.items.filter(item => item.food.noNutrients).map(item => item.food)
+        return Array.from(new Set(self.items.filter(item => item.food.noNutrients).map(item => item.food)))
     }
 }))
     .actions(self => {

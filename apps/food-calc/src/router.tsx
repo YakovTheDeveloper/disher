@@ -32,7 +32,11 @@ export const router = createBrowserRouter([
         element: <DailyNorms />,
       },
       {
-        path: RouterLinks.DishBuilder,
+        path: `${RouterLinks.DishBuilder}/:id`,
+        element: <DishBuilderPage />,
+      },
+      {
+        path: `${RouterLinks.DishBuilder}`,
         element: <DishBuilderPage />,
       },
       {

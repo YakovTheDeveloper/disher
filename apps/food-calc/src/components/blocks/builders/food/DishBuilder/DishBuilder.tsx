@@ -15,7 +15,6 @@ import { Actions } from '@/components/blocks/builders/food/shared/ui/Actions';
 import { Quantity } from '@/components/blocks/builders/food/shared/ui/Quantity';
 import { useItemActionsUI } from '@/components/blocks/builders/food/shared/useItemActionsUI';
 import { DishListItem } from '@/components/blocks/builders/food/DishBuilder/ui/DishListItem';
-import { ModalRoot } from '@/components/blocks/builders/food/shared/ModalRoot';
 import { Nutrients } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients';
 import { SearchViewModel } from '@/components/blocks/builders/food/DishBuilder/model/SearchViewModel';
 import { foodStore } from '@/store/rootStore';
@@ -25,6 +24,7 @@ import { Dish } from '@/domain/dish/Dish';
 import { useDishModals } from '@/components/blocks/builders/food/DishBuilder/modalContext';
 import { FoodAdd } from '@/components/blocks/builders/food/DishBuilder/components/FoodAdd';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
+import ModalRoot from '@/components/blocks/builders/food/shared/ModalRoot/ModalRoot';
 
 export const Modals = {
   Food: 'food',

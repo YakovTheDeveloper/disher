@@ -7,11 +7,13 @@ import { dishStore, scheduleStore } from '@/store/rootStore';
 import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
-const DishBuilderPage = () => {
-  const [searchParams] = useSearchParams();
-  const dishIdParam = searchParams.get('id');
+type Props = {
+  dishIdParam: number;
+};
+
+const Page = ({ dishIdParam }: Props) => {
   const navigate = useNavigate();
 
   const current = domainStore.dishStore.data.get(dishIdParam);
@@ -53,4 +55,20 @@ const DishBuilderPage = () => {
   );
 };
 
-export default observer(DishBuilderPage);
+const PageWrapper = () => {
+  const params = useParams();
+  const dishIdParam = params.id;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!dishIdParam) {
+      navigate(RouterLinks.Schedule);
+    }
+  }, [dishIdParam]);
+
+  if (!dishIdParam) return null;
+
+  return <Page dishIdParam={dishIdParam} />;
+};
+
+export default observer(PageWrapper);

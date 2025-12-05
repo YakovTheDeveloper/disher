@@ -46,7 +46,14 @@ export class RequestState {
         }
     }
 
-    data(): Data {
+    data(): ResponseStatus {
+        if (this.error) {
+            return [true, this.code];
+        }
+        return [false, this.code];
+    }
+
+    status(): ResponseStatus {
         if (this.error) {
             return [true, this.code];
         }
@@ -56,4 +63,4 @@ export class RequestState {
 
 type IsError = boolean
 type Code = string | number
-type Data = [IsError, Code]
+export type ResponseStatus = [IsError, Code]

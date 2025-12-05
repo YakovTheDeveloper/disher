@@ -30,3 +30,16 @@ export function transformIds(value: any, seen = new WeakSet()): any {
 
   return out;
 }
+
+export function parseIds(obj: any): any {
+  if (Array.isArray(obj)) return obj.map(parseIds);
+  if (obj && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj).map(([k, v]) => [
+        k,
+        k.endsWith('Id') && typeof v === 'string' ? Number(v) : parseIds(v),
+      ])
+    );
+  }
+  return obj;
+}

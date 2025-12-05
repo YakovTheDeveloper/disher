@@ -71,7 +71,7 @@ export const Modals = {
 export type ModalsType = (typeof Modals)[keyof typeof Modals];
 
 type Props = {
-  onFinish: (payload: DayScheduleUI) => Promise<void>;
+  onFinish: (payload: Instance<typeof DaySchedule>) => Promise<void>;
   schedule: Instance<typeof DaySchedule>;
   date: ISODate;
 };
@@ -98,7 +98,7 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
       group.time
     );
     toaster.success('Блюдо создано');
-    navigate(RouterLinks.DishBuilder + '?id=' + dish.id);
+    navigate(RouterLinks.DishBuilder + '/' + dish.id);
 
     // modals.set('createDish');
   }, []);
@@ -115,9 +115,8 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
   console.log('SChedule buILder REnder');
 
   const onFinishHandler = useCallback(() => {
-    const payload = schedule.payload();
-    console.log('onFinishHandle payloadr', toJS(payload));
-    onFinish(payload);
+    console.log('onFinishHandle payloadr', toJS(schedule));
+    onFinish(schedule);
   }, [schedule]);
 
   // const onCopyFinish = useCallback(
@@ -213,8 +212,8 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
           [Modals.FoodAdd]: <FoodAdd store={schedule} />,
           [Modals.Time]: <ContentEdit.Time store={schedule} onFinish={modals.close} />,
           [Modals.Quantity]: <ContentEdit.Quantity store={schedule} onFinish={modals.close} />,
-          // [Modals.DishNutrients]: <DishNutrients vm={schedule} />,
-          // [Modals.FoodNutrients]: <FoodNutrients vm={schedule} />,
+          [Modals.DishNutrients]: <DishNutrients store={schedule} />,
+          [Modals.FoodNutrients]: <FoodNutrients store={schedule} />,
           [Modals.CreateDish]: <DishBuilderContainer store={schedule} />,
           // [Modals.CopySchedule]: <CopySchedule onFinish={onCopyFinish} />,
           // [Modals.EventContent]: (

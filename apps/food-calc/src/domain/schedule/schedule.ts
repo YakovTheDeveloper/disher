@@ -1,4 +1,4 @@
-import { applySnapshot, getRoot, getSnapshot, Instance, types } from "mobx-state-tree";
+import { applySnapshot, getRoot, getSnapshot, Instance, onPatch, types } from "mobx-state-tree";
 import { getParent } from "mobx-state-tree";
 
 import { Dish, DishItem } from "../dish/Dish";
@@ -9,12 +9,19 @@ import { createDishModel, createDishSnapshot } from "@/store/DishStore/fabric";
 import { RootInstance } from "@/store/types";
 import { FoodWithQuantity } from "@/domain/schedule/types";
 import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
+import { emitter } from "@/infrastructure/emitter/emitter";
 
 export type ScheduleItemType = Instance<typeof ScheduleItem>["type"];
 
 export type AllScheduleItemContentTypes = Instance<typeof DishItemContent> | Instance<typeof FoodItemContent> | Instance<typeof CustomItemContent>
 
 type ChildVariant = "dish" | "food" | "custom";
+
+function isDishContent(
+    content: typeof DishItemContent.Type | typeof FoodItemContent.Type | typeof CustomItemContent.Type
+): content is typeof DishItemContent.Type {
+    return content.type === "dish";
+}
 
 // пусть будет у Dish тоже
 export const DishItemContent = types.model()
@@ -112,12 +119,9 @@ export const FoodItemContent = types.model()
     })
 
 export const ScheduleItem = types.model("ScheduleItem", {
-    type: types.enumeration("ScheduleItemType", ["dish", "food", "custom"]),
     id: types.identifierNumber,
     quantity: types.number,
     time: types.string,
-    title: types.string,
-    scheduleId: types.number,
     status: types.optional(ItemStatus, "none"),
     content: types.union(
         FoodItemContent,
@@ -125,7 +129,11 @@ export const ScheduleItem = types.model("ScheduleItem", {
         CustomItemContent
     )
 
-})
+}).views(self => ({
+    get type() {
+        return self.content.type
+    }
+}))
     .actions(self => ({
         setAsCurrent() {
             const parent = getParent<Instance<typeof DaySchedule>>(self, 2);
@@ -144,6 +152,9 @@ export const ScheduleItem = types.model("ScheduleItem", {
             if (self.status === "deleted") {
                 self.status = "none";
             }
+        },
+        updateQuantity(quantity: number) {
+            self.quantity = quantity
         }
     }));
 
@@ -160,11 +171,21 @@ export const DaySchedule = types
         currentId: types.optional(types.number, -1),
     })
     .views(self => ({
+        getChildById(id: string) {
+            return self.items.find(i => i.id.toString() === id) || null;
+        },
         get current() {
             return self.items.find(i => i.id === self.currentId) || null;
         },
         get customItems() {
             return self.items.filter(i => i.content.type === 'custom') || null;
+        },
+        get allDraftDishesFromItems() {
+            return self.items
+                .map(i => i.content)
+                .filter(isDishContent)
+                .map(content => content.dish)
+                .filter(({ isDraft }) => isDraft)
         },
         get foodWithNoNutrients() {
             return Array.from(new Set(self.items
@@ -235,6 +256,26 @@ export const DaySchedule = types
     }))
     .actions(self => {
 
+        let disposer: any = null
+
+        function afterCreate() {
+            // локальный слушатель ПАТЧЕЙ
+            disposer = onPatch(self, patch => {
+                if (
+                    patch.path.match(/items\/\d+\/quantity/) ||
+                    patch.path.match(/items\/\d+\/content/) ||
+                    patch.path === "/items" ||                         // полностью изменён
+                    patch.path.match(/items\/\d+$/)                    // add/remove
+                ) {
+                    emitter.emit('CALCULATION_NEEDED')
+                }
+            })
+        }
+
+        function beforeDestroy() {
+            disposer?.()
+        }
+
         function getTotalNutrients() {
             const nutrients = self.items.map(item =>
                 item.content.getTotalNutrients()
@@ -267,12 +308,10 @@ export const DaySchedule = types
             fields: Partial<Instance<typeof ScheduleItem>> = {}
         ) {
             const item = ScheduleItem.create({
-                title: "",
                 id: Date.now(),
                 type: "food",
                 quantity: 100,
                 time: self.lastTimeItemAdded || "08:00",
-                scheduleId: self.id,
                 status: "added",
                 ...fields,
                 content: DishItemContent.create({
@@ -291,12 +330,10 @@ export const DaySchedule = types
             fields: Partial<Instance<typeof ScheduleItem>> = {}
         ) {
             const item = ScheduleItem.create({
-                title: "",
                 id: Date.now(),
                 type: "food",
                 quantity: 100,
                 time: self.lastTimeItemAdded || "08:00",
-                scheduleId: self.id,
                 status: "added",
                 ...fields,
                 content: FoodItemContent.create({
@@ -421,6 +458,8 @@ export const DaySchedule = types
             updateCurrent,
             deleteItem,
             recoverItem,
-            getTotalNutrients
+            getTotalNutrients,
+            afterCreate,
+            beforeDestroy
         };
     })

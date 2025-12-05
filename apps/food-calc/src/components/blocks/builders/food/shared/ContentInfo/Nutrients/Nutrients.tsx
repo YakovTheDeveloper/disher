@@ -1,7 +1,10 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Nutrients.module.scss';
 import { FoodModelStore } from '@/store/models/food/foodModelStore';
-import { nutrientGroups } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/constants';
+import {
+  NutrientContentItem,
+  nutrientGroups,
+} from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/constants';
 import { useCallback, useEffect, useMemo } from 'react';
 import { NutrientCard } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/NutrientCard';
 import { NutrientViewModelStore } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/model/NutrientsViewModel';
@@ -25,7 +28,9 @@ type Props = {
 };
 
 const Nutrients = ({ store, renderOverlay }: Props) => {
-  const getSum = useCallback(store.getValue, []);
+  useEffect(() => {
+    console.log('new store nutrients', Array.from(store.nutrients.entries()));
+  }, [Array.from(store.nutrients.entries())]);
 
   return (
     <div className={styles.container}>
@@ -33,11 +38,11 @@ const Nutrients = ({ store, renderOverlay }: Props) => {
         <div key={groupName} className={styles.group}>
           <h3 className={styles.groupTitle}>{groupName}</h3>
           <div className={styles.groupContent}>
-            {content.map((nutrientData) => (
+            {content.map((nutrientData: NutrientContentItem) => (
               <NutrientCard
                 key={nutrientData.id}
                 renderOverlay={renderOverlay}
-                getValue={getSum}
+                getValue={store.getValue}
                 content={nutrientData}
               />
             ))}

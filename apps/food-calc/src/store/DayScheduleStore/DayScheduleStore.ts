@@ -3,12 +3,15 @@ import {
     getSchedules,
     getOneSchedule,
     addSchedule,
-    updateSchedule
+    updateSchedule,
+    syncSchedule
 } from "@/api/schedule/schedule.api"
 import { ISODate } from "@/types/common/common"
 import { DaySchedule } from "@/domain/schedule/schedule"
 import { createDayScheduleModel } from "@/store/DayScheduleStore/fabric"
 import { RequestState } from "@/store/shared/RequestState"
+import { RequestAndSetHandler } from "@/store/common/pureFabrication/RequestAndSet"
+import { StatusModel } from "@/store/common/pureFabrication/StatusModel"
 
 export const DayScheduleStore = types
     .model("DayScheduleStore", {
@@ -19,31 +22,19 @@ export const DayScheduleStore = types
         exists: types.map(types.boolean),
 
         // Request states per date
-        request: types.map(RequestState),
+        status: types.optional(StatusModel, {
+            fetchGet: {},
+            fetchSync: {},
+        }),
     })
 
     // ======== HELPERS ========
     .actions(self => ({
-        ensureRequest(date: ISODate) {
-            if (!self.request.has(date)) {
-                self.request.set(
-                    date,
-                    RequestState.create({ loading: false, error: undefined })
-                )
-            }
-            return self.request.get(date)!
-        },
         addLocal(init: Parameters<typeof createDayScheduleModel>[0]) {
             const model = createDayScheduleModel(init);
             self.data.set(model.date, model);
             return model
-        }
-
-    }))
-
-    // ======== ACTIONS / FLOWS ========
-    .actions(self => ({
-
+        },
         // ---- Load all schedules for a month (short data)
         getAllMonthShortData: flow(function* (date: Date) {
             const res = yield getSchedules(date.toISOString())
@@ -57,57 +48,30 @@ export const DayScheduleStore = types
         }),
 
         // ---- Load a single schedule by date
-        getOneByDate: flow(function* (date: ISODate) {
-            const state = self.ensureRequest(date)
-            state.loading = true
-            state.error = undefined
-
-            try {
-                const res = yield getOneSchedule({ date })
-                state.code = res.code
-
-                if (!res.data) {
-                    state.error = "Not found"
-                    return { data: null, ...state }
-                }
-
-                // Fill domain model
-                self.data.set(date, DaySchedule.create(res.data))
-                return { data: res.data, ...state }
-
-            } catch (e) {
-                state.error = String(e)
-                return { data: null, ...state }
-            } finally {
-                state.loading = false
-            }
+        fetchGetOneByDate: flow(function* (date: ISODate) {
+            const byDate = new RequestAndSetHandler(self)
+            return yield byDate.load({
+                id: date,
+                variant: 'fetchGet'
+            }, () => getOneSchedule({ date }))
         }),
 
         // ---- Create a schedule
-        create: flow(function* (payload: DayScheduleUI) {
-            const date = payload.date
-            const state = self.ensureRequest(date)
-            state.loading = true
-            state.error = undefined
+        fetchSync: flow(function* (payload: Instance<typeof DaySchedule>) {
+            const { date } = payload
+            const unsyncDishesPerSchedule = payload.allDraftDishesFromItems
+            const syncRequest = new RequestAndSetHandler(self)
+            const result = yield syncRequest.load({
+                id: date,
+                variant: 'fetchSync'
+            }, () => syncSchedule([{
+                schedule: payload,
+                unsyncDishesPerSchedule
+            }]))
+            // self.data.set(date, DaySchedule.create(res.data))
 
-            try {
-                const res = yield addSchedule(payload)
-                state.code = res.code
+            return result
 
-                if (!res.data) {
-                    state.error = "Create failed"
-                    return { data: null, ...state }
-                }
-
-                self.data.set(date, DaySchedule.create(res.data))
-                return { data: res.data, ...state }
-
-            } catch (e) {
-                state.error = String(e)
-                return { data: null, ...state }
-            } finally {
-                state.loading = false
-            }
         }),
 
         // ---- Update schedule
@@ -156,4 +120,5 @@ export const DayScheduleStore = types
         delete(date: ISODate) {
             self.data.delete(date)
         },
+
     }))

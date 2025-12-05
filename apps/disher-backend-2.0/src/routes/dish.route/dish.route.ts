@@ -5,6 +5,9 @@ import { prisma } from "../../client"
 import { publicProcedure, t } from "../../trpc"
 import { DishCreateWithoutUserInputSchema, DishItemCreateManyDishInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateManyScheduleInputSchema } from "../../../prisma/generated/zod"
 import { createResponseObject } from "../../lib/response"
+import { syncDish, syncDishItems } from "./dish.service"
+import { DishSyncInputZod } from "./dish.validation"
+import { Prisma } from "generated/prisma"
 
 const dishSelect = {
     id: true,
@@ -95,6 +98,19 @@ export const dihesRoutes = {
             });
             return createResponseObject(200, 'good', result)
         }),
+    syncDish: publicProcedure
+        .input(DishSyncInputZod)
+        .mutation(async ({ input }) => {
+            const results = [];
+
+            for (const dish of input.dishes) {
+                const result = await syncDish(dish);
+                results.push(result);
+            }
+
+            return createResponseObject(200, "OK", results);
+        }),
+
     updateDish: publicProcedure
         .input(
             z.object({

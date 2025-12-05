@@ -15,8 +15,8 @@ export const getFoodList = async (params: GetFoodParams) => {
     return await requestWrapper(trpc.getFood.query, {}, params)
 }
 
-export const getFoodWithNutrientsByIds = async (ids?: number[]) => {
-    const payload = ids ? { ids } : undefined
+export const getFoodWithNutrientsByIds = async (ids?: string[]) => {
+    const payload = ids ? { ids: ids.map(id => +id) } : undefined
     trpc.getFoodWithNutrientsByIds.query(payload)
     return requestWrapper(trpc.getFoodWithNutrientsByIds.query, {}, payload)
 }

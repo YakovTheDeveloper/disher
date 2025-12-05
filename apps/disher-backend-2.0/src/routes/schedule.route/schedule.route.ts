@@ -1,14 +1,17 @@
 
 
 import z from "zod"
-import { prisma } from "../client"
-import { publicProcedure, t } from "../trpc"
-import { ScheduleCreateInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateInputSchema, ScheduleItemCreateManyFoodInputSchema, ScheduleItemCreateManyScheduleInputSchema, ScheduleItemCreateNestedManyWithoutScheduleInputSchema, ScheduleItemCreateWithoutScheduleInputSchema, ScheduleItemUncheckedCreateInputSchema, ScheduleItemUncheckedUpdateWithoutScheduleInputSchema, ScheduleItemUpdateInputSchema, ScheduleItemUpdateWithoutScheduleInputSchema, ScheduleUpdateInputSchema, ScheduleUpdateWithoutUserInputSchema, ScheduleWhereUniqueInputSchema } from "../../prisma/generated/zod"
-import { createResponseObject } from "../lib/response"
-import { DailyEventsUpdateSchema, ScheduleCreateInputZod, ScheduleUpdateInputZod } from "./schedule.route/validation"
+import { prisma } from "../../client"
+import { publicProcedure, t } from "../../trpc"
+import { ScheduleCreateInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateInputSchema, ScheduleItemCreateManyFoodInputSchema, ScheduleItemCreateManyScheduleInputSchema, ScheduleItemCreateNestedManyWithoutScheduleInputSchema, ScheduleItemCreateWithoutScheduleInputSchema, ScheduleItemUncheckedCreateInputSchema, ScheduleItemUncheckedUpdateWithoutScheduleInputSchema, ScheduleItemUpdateInputSchema, ScheduleItemUpdateWithoutScheduleInputSchema, ScheduleUpdateInputSchema, ScheduleUpdateWithoutUserInputSchema, ScheduleWhereUniqueInputSchema } from "../../../prisma/generated/zod"
+import { createResponseObject } from "../../lib/response"
+import { DailyEventsUpdateSchema, ScheduleCreateInputZod, ScheduleUpdateInputZod } from "./validation"
 import { Prisma } from "@prisma/client"
+import { ScheduleSyncInputZod } from "./validationV2"
+import { syncSchedule } from "./schedule.service"
+import { syncDish } from "../dish.route/dish.service"
 
-const scheduleItemSelect = {
+export const scheduleItemSelect = {
     dish: {
         select: {
             id: true,
@@ -243,5 +246,46 @@ export const scheduleRoutes = {
                 return createResponseObject(500, "Unexpected error", null);
             }
 
+        }),
+    syncSchedule: publicProcedure
+        .input(ScheduleSyncInputZod)
+        .mutation(async ({ input }) => {
+            const results = [];
+            for (const schedule of input.schedules) {
+
+
+                try {
+                    const result = await prisma.$transaction(async (tx) => {
+
+                        const unsyncDishes = schedule.unsyncDishesPerSchedule
+                        const localClientIdToNewDbId: Record<number, number> = {};
+
+                        for (const key in unsyncDishes.items) {
+                            const dish = unsyncDishes[key]
+                            const newDish = await syncDish(tx, dish);
+                        }
+
+
+                        return syncSchedule(tx, schedule);
+                    });
+
+                    results.push(result);
+
+                } catch (error) {
+                    console.error(error);
+
+                    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                        return createResponseObject(400, "Database error", null);
+                    }
+
+                    return createResponseObject(500, "Unexpected error", null);
+                }
+            }
+
+            return createResponseObject(200, "OK", results);
         })
+
+
+
+
 } 

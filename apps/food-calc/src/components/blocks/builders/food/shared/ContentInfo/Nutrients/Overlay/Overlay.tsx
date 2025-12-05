@@ -5,23 +5,15 @@ import { isEmpty } from '@/lib/empty';
 import { toJS } from 'mobx';
 import clsx from 'clsx';
 type Props = {
-  loading: Record<string, Map<string, RequestState>>;
-  currentId: {
-    content: number[];
-  };
+  loading: () => boolean;
   children: string;
 };
 
-const Overlay = ({ children, loading, currentId }: Props) => {
-  const entries = Array.from(loading.getAllWithNutrients.keys());
-  const atLeastOneFoodNutrientsMissing = entries.some((key) =>
-    currentId.content.some((key2) => key === key2.toString())
-  );
+const Overlay = ({ children, loading }: Props) => {
+  const isLoading = loading();
 
   return (
-    <div className={clsx(styles.loader, atLeastOneFoodNutrientsMissing && styles.animate)}>
-      {!atLeastOneFoodNutrientsMissing && children}
-    </div>
+    <div className={clsx(styles.loader, isLoading && styles.animate)}>{!isLoading && children}</div>
   );
 };
 

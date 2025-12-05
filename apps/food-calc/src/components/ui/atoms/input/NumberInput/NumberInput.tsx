@@ -10,22 +10,10 @@ type Props = {
   placeholder?: string;
 };
 
-/**
- * Generic NumberInput component that:
- * - Supports controlled numeric input (nullable)
- * - Keeps empty string when cleared
- * - Restores previous value on blur if input is invalid
- */
 const NumberInput = ({ id, value, onChange, className, placeholder }: Props) => {
-  const prev = useRef<number | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleChange = (inputValue: string) => {
-    prev.current = null;
-    if (inputValue === '') {
-      onChange(null);
-      return;
-    }
-
     const numericValue = Number(inputValue);
     if (!Number.isNaN(numericValue)) {
       onChange(numericValue);
@@ -33,25 +21,20 @@ const NumberInput = ({ id, value, onChange, className, placeholder }: Props) => 
   };
 
   const handleFocus = () => {
-    prev.current = value ?? null;
-    onChange(null); // clear current value
-  };
-
-  const handleBlur = () => {
-    if (value === null && prev.current !== null) {
-      onChange(prev.current); // restore previous value
-    }
+    setTimeout(() => {
+      inputRef.current?.select();
+    });
   };
 
   return (
     <input
+      ref={inputRef}
       id={id}
       type="number"
       inputMode="decimal"
       className={`${styles.input} ${className || ''}`}
       value={value ?? ''}
       onFocus={handleFocus}
-      onBlur={handleBlur}
       placeholder={placeholder}
       onChange={(e) => handleChange(e.target.value)}
     />

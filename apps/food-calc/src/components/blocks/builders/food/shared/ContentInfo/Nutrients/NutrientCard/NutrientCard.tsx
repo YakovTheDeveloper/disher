@@ -2,11 +2,14 @@ import { observer } from 'mobx-react-lite';
 import styles from './NutrientCard.module.scss';
 import { motion } from 'framer-motion';
 import { NutrientData } from '@/types/nutrient/nutrient';
-import { defaultDailyNorms } from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/constants';
+import {
+  defaultDailyNorms,
+  NutrientContentItem,
+} from '@/components/blocks/builders/food/shared/ContentInfo/Nutrients/constants';
 type Props = {
-  content: NutrientData;
+  content: NutrientContentItem;
   renderOverlay: ((percent: string) => React.ReactNode) | undefined;
-  getValue: (id: number) => number;
+  getValue: (id: string) => number;
 };
 
 const getRoundedPercent = (percentage: number, quantity, norm) => {
@@ -24,7 +27,9 @@ const getRoundedPercent = (percentage: number, quantity, norm) => {
 const NutrientCard = ({ content, renderOverlay, getValue }: Props) => {
   const { displayName, displayNameRu, id, name, unit, unitRu } = content;
   const value = getValue(id);
-  const norm = defaultDailyNorms[id];
+
+  console.log('NutrientCard', id, value);
+  const norm = defaultDailyNorms[+id];
   const percent = Math.min(100, (value / norm) * 100);
 
   const percentNormalized = getRoundedPercent(percent, value, norm);

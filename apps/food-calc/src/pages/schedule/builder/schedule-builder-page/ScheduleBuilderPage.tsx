@@ -16,6 +16,8 @@ import { debounce } from '@/utils/debounce';
 import { ScheduleQuestionnaireItemUI } from '@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel';
 import { ModalDailyScheduleProvider } from '@/components/blocks/builders/food/ScheduleBuilder/modalContext';
 import { domainStore } from '@/store/store';
+import { DaySchedule } from '@/domain/schedule/schedule';
+import { Instance } from 'mobx-state-tree';
 
 const Page = observer(({ date }: { date: string }) => {
   const store = useMemo(() => new InitLoadingStore(), []);
@@ -28,20 +30,13 @@ const Page = observer(({ date }: { date: string }) => {
   //   [store]
   // );
 
-  const onFinish = useCallback(async (payload: DayScheduleUI) => {
-    if (payload.id === -1) {
-      const { data = null } = await scheduleStore.create(payload);
-      if (data) store.set(data);
-      return;
-    }
-    const { data = null } = await scheduleStore.update(payload);
-    if (data) store.set(data);
-    return;
+  const onFinish = useCallback(async (payload: Instance<typeof DaySchedule>) => {
+    domainStore.daySchedule.fetchSync(payload);
   }, []);
 
   const isLoading = useCallback(
-    () => scheduleStore.requestState.getOneByDate.get(date)?.loading ?? false,
-    [scheduleStore, date]
+    () => domainStore.daySchedule.status.fetchGet.get(date)?.loading ?? false,
+    [domainStore.daySchedule.status, date]
   );
 
   console.log('store.initData', store.initData);
@@ -50,15 +45,15 @@ const Page = observer(({ date }: { date: string }) => {
   const current = domainStore.daySchedule.data.get(date);
 
   const init = async () => {
-    const { code, data = null } = await domainStore.daySchedule.getOneByDate(date);
+    const { code, data = null } = await domainStore.daySchedule.fetchGetOneByDate(date);
 
-    if (code === 404) {
-      domainStore.daySchedule.addLocal({ date, isDraft: true });
-    }
+    // if (code === 404) {
+    //   domainStore.daySchedule.addLocal({ date, isDraft: true });
+    // }
 
-    if (data) {
-      domainStore.daySchedule.addLocal({ ...data, isDraft: false });
-    }
+    // if (data) {
+    //   domainStore.daySchedule.addLocal({ ...data, isDraft: false });
+    // }
   };
 
   useEffect(() => {
@@ -66,6 +61,10 @@ const Page = observer(({ date }: { date: string }) => {
     if (current) return;
     init();
   }, [current]);
+
+  useEffect(() => {
+    init();
+  }, []);
 
   return (
     <ModalDailyScheduleProvider>
