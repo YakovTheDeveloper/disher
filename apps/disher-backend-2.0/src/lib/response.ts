@@ -5,16 +5,15 @@ export interface IResponseData<T> {
     data: T | null;
 }
 
-export function createResponseObject<T = object>(responseCode: number, message: string, data: T): IResponseData<T> {
-    const result: IResponseData<T> = {
-        code: responseCode || 200,
+export function createResponseObject<T>(
+    responseCode: number,
+    message: string,
+    data: T
+): IResponseData<T> {
+    return {
+        code: responseCode,
         nonce: Date.now(),
-        data: data || null
+        message,
+        data
     };
-
-    if (message) {
-        result.message = message;
-    }
-
-    return result;
 }

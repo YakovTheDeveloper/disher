@@ -11,6 +11,8 @@ import { DishItemUI } from '@/components/blocks/builders/food/DishBuilder/model/
 import { Instance } from 'mobx-state-tree';
 import { Dish, DishItem } from '@/domain/dish/Dish';
 import { useDishModals } from '@/components/blocks/builders/food/DishBuilder/modalContext';
+import { Modals } from '@/components/blocks/builders/food/DishBuilder/DishBuilder';
+import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 
 type Props = {
   content: Instance<typeof DishItem>;
@@ -24,8 +26,9 @@ const DishListItem = ({ itemActions, content, options, className }: Props) => {
   const modals = useDishModals();
 
   const onFoodsOpenUpdate = () => {
-    content.setAsCurrent();
-    modals?.set('Food');
+    modals?.set(Modals.Food, {
+      item_id: content.id,
+    });
   };
 
   const onQuantityOpen = () => {
@@ -38,8 +41,8 @@ const DishListItem = ({ itemActions, content, options, className }: Props) => {
     modals?.set('foodNutrients');
   };
 
-  const onDelete = () => content.markDeleted();
-  const onRecover = () => content.recover();
+  const onDelete = () => content.deleteChild();
+  // const onRecover = () => content.recover();
 
   const id = content.id;
 
@@ -52,14 +55,15 @@ const DishListItem = ({ itemActions, content, options, className }: Props) => {
 
   const isQuantityHide = useMemo(() => showAdditionalsMode, [showAdditionalsMode]);
 
+  const onChange = (quantity: number) => content.update({ quantity });
+
   return (
     <CommonListItem
       className={clsx([className, styles.group])}
       onDelete={onDelete}
-      onRecover={onRecover}
       showAdditionals={showAdditionalsMode}
       id={id}
-      status={status}
+      sync={content.sync}
     >
       <FoodName
         id={id}
@@ -69,9 +73,9 @@ const DishListItem = ({ itemActions, content, options, className }: Props) => {
       >
         {getFoodName}
       </FoodName>
-      <Quantity id={id} onClick={onQuantityOpen} hide={isQuantityHide}>
-        {getQuantity}
-      </Quantity>
+      {!isQuantityHide && (
+        <NumberInput value={content.quantity} onChange={onChange} useLocalValue />
+      )}
     </CommonListItem>
   );
 };

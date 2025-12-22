@@ -1,40 +1,33 @@
-import { ItemStatus } from "@/domain/commonListItem";
+import { deleteChild as deleteChildFromList, ItemStatus, ItemStatusType, SyncStatus } from "@/domain/commonListItem";
 import { Food } from "@/domain/Food";
+import { generateId } from "@/lib/id/generateId";
 import { sumRecordArray, sumRecords } from "@/lib/sumRecords/sumRecords";
-import { getParent, getRoot, Instance, types } from "mobx-state-tree";
+import { destroy, getParent, getRoot, Instance, SnapshotIn, types } from "mobx-state-tree";
 
 export const DishItem = types.model("DishItem", {
-    id: types.identifierNumber,
+    id: types.identifier,
     quantity: types.number,
     foodId: types.string,
     food: types.reference(Food, {
         get(identifier, parent) {
             const root = getRoot(parent); // <-- MST helper to get the tree root
-            return root.foodStore.data.get(identifier);
+            console.log("root", root);
+            return root.foodStore?.data.get(identifier);
         },
         set(value) {
             return value.id; // MST needs to know how to store reference
         }
     }),
-    status: types.optional(ItemStatus, "none")
+    sync: types.optional(SyncStatus, {})
 }).actions(self => ({
-    setAsCurrent() {
+    deleteChild() {
         const parent = getParent<Instance<typeof Dish>>(self, 2);
-        console.log("parent", parent);
-        parent.setCurrent(self.id);
+        parent.deleteChild(self.id);
     },
-    markModified() {
-        if (self.status === "none") {
-            self.status = "modified";
-        }
-    },
-    markDeleted() {
-        self.status = "deleted";
-    },
-    recover() {
-        if (self.status === "deleted") {
-            self.status = "none";
-        }
+    update(
+        fields: Partial<SnapshotIn<typeof DishItem>>) {
+        const parent = getParent<Instance<typeof Dish>>(self, 2);
+        parent.updateChildById(self.id, fields, true);
     }
 }))
 
@@ -44,17 +37,17 @@ export const Dish = types.model("Dish", {
     name: types.string,
     userId: types.number,
     items: types.array(types.late(() => DishItem)),
-    isDraft: types.boolean,
-    currentId: types.optional(types.number, -1)
 }).views(self => ({
-    get current() {
-        return self.items.find(i => i.id === self.currentId) || null;
+    get delta() {
+        console.log(self.items);
+        const added = self.items.filter(i => i.sync.status === "added");
+        const modified = self.items.filter(i => i.sync.status === "modified");
+        const deleted = self.items.filter(i => i.sync.status === "deleted").map(({ id }) => id);
+
+        return { added, modified, deleted };
     },
     get itemsLength() {
         return self.items.length
-    },
-    get currentMode() {
-        return self.currentId === -1 ? 'ADD' : 'UPDATE'
     },
     get isNoItems() {
         return self.items.length === 0
@@ -83,73 +76,76 @@ export const Dish = types.model("Dish", {
             return acc;
         }
 
-        function setCurrent(id: number) {
-            self.currentId = id;
+        function addChildWithLocalData(foodId: string, fields: Partial<typeof DishItem> = {}) {
+            const item = DishItem.create({
+                id: generateId(),
+                quantity: 100,
+                foodId,
+                food: foodId,
+                ...fields
+            });
+            item.sync.markAdded()
+            self.items.push(item);
+            return item;
         }
 
-        function addOrUpdateChild(foodId: string, fields: Partial<typeof DishItem> = {}) {
-            if (self.currentMode === "ADD") {
-                const item = DishItem.create({
-                    id: Date.now(),
-                    quantity: 100,
-                    foodId,
-                    food: foodId,
-                    status: "added",
-                    ...fields
-                });
-                self.items.push(item);
-                return item;
-            }
+        function addChildWithServerData(foodId: string, fields: Partial<typeof DishItem> & { id: string, quantity: number }) {
+            const item = DishItem.create({
+                foodId,
+                food: foodId,
+                ...fields
+            });
+            self.items.push(item);
+            return item;
+        }
 
-            if (self.currentMode === "UPDATE" && self.current) {
-                Object.assign(self.current, { foodId, food: foodId, ...fields });
-                self.current.markModified();
-                return self.current;
-            }
+        function getChildById(childId: string) {
+            const child = self.items.find(({ id }) => id === childId);
+            return child
+        }
+
+        function updateChildById(
+            childId: string,
+            fields: Partial<SnapshotIn<typeof DishItem>>,
+            markChildAsModified?: boolean
+        ) {
+            const child = self.items.find(({ id }) => id === childId);
+            if (!child) return;
+
+            Object.assign(child, {
+                ...fields,
+                ...(fields.foodId !== undefined
+                    ? { foodId: fields.foodId, food: fields.foodId }
+                    : {})
+            })
+
+            if (markChildAsModified) child.sync.markModified();
+            return child;
         }
 
         function updateName(name: string) {
             self.name = name;
         }
 
-        function updateQuantity(quantity: number) {
-            updateCurrentChild({ quantity });
+        function deleteChild(childId: string) {
+            deleteChildFromList(self.items, childId)
         }
 
-        function updateCurrentChild(fields: Partial<typeof DishItem>) {
-            const item = self.current;
-            if (!item) return;
-
-            Object.assign(item, fields);
-            item.markModified();
+        function removeChildrenMarkedAsDeleted() {
+            self.items
+                .filter(item => item.sync.status === 'deleted')
+                .forEach(item => {
+                    destroy(item);
+                });
         }
-
-        function deleteItem(childId: number) {
-            const item = self.items.find(i => i.id === childId);
-            if (!item) return;
-
-            if (item.status === "added") {
-                self.items.replace(self.items.filter(i => i.id !== childId));
-                return;
-            }
-
-            item.markDeleted();
-        }
-
-        function recoverItem(childId: number) {
-            const item = self.items.find(i => i.id === childId);
-            if (!item) return;
-            item.recover();
-        }
-
         return {
+            addChildWithLocalData,
+            addChildWithServerData,
+            updateChildById,
+            getChildById,
             getTotalNutrients,
-            setCurrent,
-            addOrUpdateChild,
             updateName,
-            updateQuantity,
-            updateCurrentChild,
-            deleteItem,
-            recoverItem
+            deleteChild,
+            removeChildrenMarkedAsDeleted
         };
     })

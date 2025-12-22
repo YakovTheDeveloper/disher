@@ -31,7 +31,7 @@ const Page = observer(({ date }: { date: string }) => {
   // );
 
   const onFinish = useCallback(async (payload: Instance<typeof DaySchedule>) => {
-    domainStore.daySchedule.fetchSync(payload);
+    domainStore.interactionsService.fetchSyncScheduleAndDishes(payload);
   }, []);
 
   const isLoading = useCallback(
@@ -47,13 +47,13 @@ const Page = observer(({ date }: { date: string }) => {
   const init = async () => {
     const { code, data = null } = await domainStore.daySchedule.fetchGetOneByDate(date);
 
-    // if (code === 404) {
-    //   domainStore.daySchedule.addLocal({ date, isDraft: true });
-    // }
+    if (code === 404) {
+      domainStore.daySchedule.addLocal({ date, isDraft: true });
+    }
 
-    // if (data) {
-    //   domainStore.daySchedule.addLocal({ ...data, isDraft: false });
-    // }
+    if (data) {
+      domainStore.daySchedule.addLocal({ ...data, isDraft: false });
+    }
   };
 
   useEffect(() => {

@@ -36,7 +36,7 @@ export type ModalsType = (typeof Modals)[keyof typeof Modals];
 
 type Props = {
   init: Instance<typeof Dish>;
-  onFinish: (payload: T) => Promise<void>;
+  onFinish: (data: Instance<typeof Dish>) => Promise<void>;
   foodModelStore?: FoodModelStore;
   finishButtonTitle: string;
 };
@@ -48,12 +48,15 @@ const DishBuilder = ({ init, onFinish, foodModelStore = foodStore, finishButtonT
   const searchFiltering = useMemo(() => new SearchViewModel(foodModelStore), []);
 
   const onFoodsOpen = () => {
-    dishes.setCurrent(-1);
     modals.set(Modals.Food);
   };
 
   const onMoreOptions = () => {
     options.toggle();
+  };
+
+  const onSync = () => {
+    onFinish(dishes);
   };
 
   return (
@@ -75,7 +78,7 @@ const DishBuilder = ({ init, onFinish, foodModelStore = foodStore, finishButtonT
       </ModalRoot>
 
       <Actions isShow={() => !modals.current}>
-        <Button.Finish onClick={onFinish} content={dishes} isShow={() => true}>
+        <Button.Finish onClick={onSync} content={dishes} isShow={() => true}>
           синхронизовать
         </Button.Finish>
         <Button.Add onClick={onFoodsOpen} />

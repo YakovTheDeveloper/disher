@@ -2,10 +2,12 @@ import { updateDish } from '@/api/dish/dish.api';
 import { updateSchedule } from '@/api/schedule/schedule.api';
 import { DishBuilder } from '@/components/blocks/builders/food/DishBuilder';
 import { ModalDishProvider } from '@/components/blocks/builders/food/DishBuilder/modalContext';
+import { Dish } from '@/domain/dish/Dish';
 import { RouterLinks } from '@/router';
 import { dishStore, scheduleStore } from '@/store/rootStore';
 import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
+import { Instance } from 'mobx-state-tree';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
@@ -18,7 +20,9 @@ const Page = ({ dishIdParam }: Props) => {
 
   const current = domainStore.dishStore.data.get(dishIdParam);
 
-  const onSave = async (data, id) => {
+  const onSave = async (data: Instance<typeof Dish>) => {
+    domainStore.interactionsService.fetchSyncDishes([data]);
+
     // const result = await updateDish(data, id);
     // if (!result) return;
     // dishStore.set(result.id, result);
@@ -65,6 +69,12 @@ const PageWrapper = () => {
       navigate(RouterLinks.Schedule);
     }
   }, [dishIdParam]);
+
+  useEffect(() => {
+    if (location.search) {
+      navigate(location.pathname, { replace: true });
+    }
+  }, []);
 
   if (!dishIdParam) return null;
 

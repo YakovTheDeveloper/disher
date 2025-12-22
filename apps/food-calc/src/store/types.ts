@@ -20,6 +20,7 @@ export type DishStoreInstance = Instance<typeof DishStore>;
 export interface DishStoreApi {
     addLocal: DishStoreInstance["addLocal"];
     getLocal: DishStoreInstance["getLocal"];
+    fetchSync: DishStoreInstance["fetchSync"];
 }
 
 export interface NutrientStoreApi {

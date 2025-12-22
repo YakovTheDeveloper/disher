@@ -2,27 +2,11 @@
 
 import z from "zod"
 import { prisma } from "../../client"
-import { publicProcedure, t } from "../../trpc"
+import { idStringifier, publicProcedure, t } from "../../trpc"
 import { DishCreateWithoutUserInputSchema, DishItemCreateManyDishInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateManyScheduleInputSchema } from "../../../prisma/generated/zod"
 import { createResponseObject } from "../../lib/response"
-import { syncDish, syncDishItems } from "./dish.service"
-import { DishSyncInputZod } from "./dish.validation"
-import { Prisma } from "generated/prisma"
-
-const dishSelect = {
-    id: true,
-    name: true,
-    items: {
-        select: {
-            food: {
-                select: {
-                    id: true,
-                    name: true
-                }
-            }, id: true, quantity: true,
-        }
-    },
-}
+import { DishSyncInputZod, DishZodType } from "./dish.validation"
+import { getCreateItems, getUpdateItems } from "./dish.service"
 
 export const dihesRoutes = {
     getDishes: publicProcedure
@@ -69,93 +53,127 @@ export const dihesRoutes = {
         }),
     getOneDish: publicProcedure.input(
         z.object({
-            id: z.number()
+            id: z.string()
         })
     ).query(async ({ input }) => {
         const whereCondition = {
             id: input.id
         }
 
-        const result = await prisma.dish.findFirst({
-            select: dishSelect,
+        const result = await prisma.dish.findUnique({
+            select: {
+                id: true,
+                items: true,
+                name: true
+            },
             where: whereCondition,
 
         });
 
         return createResponseObject(200, 'good', result)
     }),
-    addDish: publicProcedure
-        .input(
-            DishCreateWithoutUserInputSchema
-        )
-        .mutation(async ({ input }) => {
-            const result = await prisma.dish.create({
-                data: {
-                    ...input,
-                    userId: 1
-                },
-                select: dishSelect
-            });
-            return createResponseObject(200, 'good', result)
-        }),
+
     syncDish: publicProcedure
         .input(DishSyncInputZod)
-        .mutation(async ({ input }) => {
+        .mutation(async ({ input, ctx }) => {
             const results = [];
-
             for (const dish of input.dishes) {
-                const result = await syncDish(dish);
-                results.push(result);
+                try {
+
+
+                    const result = await prisma.$transaction(async (tx) => {
+                        let existingDish = await prisma.dish.findUnique({
+                            where: { id: dish.id },
+                        });
+
+                        if (existingDish) {
+                            await tx.dish.update({
+                                where: { id: dish.id },
+                                data: {
+                                    name: dish.name,
+                                    userId: dish.userId,
+                                    updatedAt: new Date(),
+                                },
+                            });
+                        } else {
+                            existingDish = await tx.dish.create({
+                                data: {
+                                    id: dish.id, // client-first id
+                                    name: dish.name,
+                                    userId: dish.userId,
+                                },
+                            });
+                        }
+
+                        const changes = dish.items;
+
+                        // ---------- DELETE ----------
+                        if (changes?.delete?.length) {
+                            await tx.dishItem.deleteMany({
+                                where: {
+                                    id: { in: changes.delete.map(id => id.toString()) },
+                                    dishId: dish.id?.toString(), // защита
+                                },
+                            });
+                        }
+
+                        // ---------- UPDATE ----------
+                        if (changes?.update?.length) {
+                            for (const item of changes.update) {
+                                await tx.dishItem.update({
+                                    where: { id: item.id?.toString() },
+                                    data: {
+                                        quantity: item.quantity,
+                                        food: { connect: { id: item.foodId } }
+                                    },
+                                });
+                            }
+                        }
+
+                        // ---------- CREATE ----------
+                        if (changes?.create?.length) {
+                            await tx.dishItem.createMany({
+                                data: changes.create.map((item) => ({
+                                    id: item.id,     // client-first id
+                                    quantity: item.quantity,
+                                    foodId: item.foodId,
+                                    dishId: existingDish.id
+                                })),
+                                skipDuplicates: true, // важно для повторного sync
+                            });
+                        }
+
+                        // =========================
+                        // RETURN UPDATED DISH
+                        // =========================
+
+                        return await tx.dish.findUnique({
+                            where: { id: dish.id },
+                            include: {
+                                items: true,
+                            },
+                        });
+                    });
+
+                    results.push({
+                        id: dish.id,
+                        dish: result,
+                    });
+                } catch (error) {
+                    console.error("Dish sync error:", {
+                        dishId: dish.id,
+                        error,
+                    });
+
+                    results.push({
+                        id: dish.id,
+                        dish: null,
+                    });
+                }
             }
 
             return createResponseObject(200, "OK", results);
-        }),
-
-    updateDish: publicProcedure
-        .input(
-            z.object({
-                id: z.number(),
-                name: z.string(),
-                items: z.array(z.lazy(() => DishItemCreateManyDishInputSchema)).optional()
-            })
-        )
-        .mutation(async ({ input }) => {
-            const { id, items = null } = input;
-
-            let itemsUpdate = {};
-            let restUpdate: Partial<Pick<typeof input, 'name'>> = {}
-            if (input.name) restUpdate.name = input.name
-
-            if (items) {
-                const existingItems = await prisma.dishItem.findMany({ where: { dishId: id } });
-
-                const createItems = items.filter(i => !i.id);
-                const updateItems = items.filter(i => i.id);
-                const deleteIds = existingItems
-                    .filter(e => !items.find(i => i.id === e.id))
-                    .map(e => ({ id: e.id }));
-
-                itemsUpdate = {
-                    items: {
-                        create: createItems,
-                        update: updateItems.map(i => ({
-                            where: { id: i.id },
-                            data: { quantity: i.quantity }
-                        })),
-                        delete: deleteIds
-                    }
-                };
-            }
-
-            const result = await prisma.dish.update({
-                where: { id },
-                select: dishSelect,
-                data: {
-                    ...restUpdate,
-                    ...itemsUpdate
-                }
-            });
-
-            return createResponseObject(200, 'good', result);
         })
+    ,
+
 } 

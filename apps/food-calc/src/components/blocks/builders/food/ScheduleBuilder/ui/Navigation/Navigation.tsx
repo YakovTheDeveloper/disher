@@ -74,6 +74,9 @@ const Navigation = ({ children, menuUi = uiStore.menu }: Props) => {
   const onCopyFromSchedule = () => {
     ScheduleUIEventEmitter.emit('OPEN_COPY_SCHEDULE_MODAL');
   };
+  const onNewDish = () => {
+    ScheduleUIEventEmitter.emit('CREATE_DISH');
+  };
 
   const onCalendarButtonClick = () => navigate(RouterLinks.Schedule);
 
@@ -124,6 +127,9 @@ const Navigation = ({ children, menuUi = uiStore.menu }: Props) => {
         <div>
           <button className={styles.buttonInMenu} onClick={onCopyFromSchedule}>
             Скопировать еду с другого дня
+          </button>
+          <button className={styles.buttonInMenu} onClick={onNewDish}>
+            Создать блюдо
           </button>
         </div>
       </Menu>

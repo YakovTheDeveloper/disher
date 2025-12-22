@@ -82,10 +82,6 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
   const modals = useDailyScheduleModals();
   const options = useMemo(() => new BuilderUIStore([0, 1, 2]), []);
 
-  const totalNutrients = useRef<{
-    calculate: () => void;
-  }>(null);
-
   const onFoodsOpenCreate = () => {
     schedule.addFoodItemAndSetAsCurrent('1');
     modals.set('foodAdd');
@@ -155,11 +151,6 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
   // };
 
   useEffect(() => {
-    if (!totalNutrients.current) return;
-    if (options.currentPage === 0) totalNutrients.current?.calculate();
-  }, [options.currentPage, totalNutrients.current]);
-
-  useEffect(() => {
     if (options.currentPage === 2) {
       document.body.style.backgroundColor = '#e6e6e6';
     } else {
@@ -170,6 +161,10 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
   useEffect(() => {
     ScheduleUIEventEmitter.on('OPEN_COPY_SCHEDULE_MODAL', () => {
       modals.set('copySchedule');
+    });
+    ScheduleUIEventEmitter.on('CREATE_DISH', () => {
+      const newDish = domainStore.dishStore.addLocal({ isDraft: true });
+      navigate(RouterLinks.DishBuilder + '/' + newDish.id);
     });
   }, []);
 
@@ -189,7 +184,7 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
         {/* <TotalNutrients vm={schedule} ref={totalNutrients} /> */}
 
         {[
-          <TotalNutrients ref={totalNutrients} store={schedule} />,
+          <TotalNutrients store={schedule} />,
           <WithOverlay isLoading={isLoading}>
             <List onDishesUnite={onUniteFoodIntoDish} options={foodOptions} schedule={schedule} />
           </WithOverlay>,
@@ -228,7 +223,6 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
           // ),
         }}
       </ModalRoot>
-
       <RootActions
         isLoading={isLoading}
         modals={modals}

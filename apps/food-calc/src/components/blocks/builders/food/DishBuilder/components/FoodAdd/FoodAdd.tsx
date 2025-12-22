@@ -5,7 +5,7 @@ import { Button } from '@/components/blocks/builders/food/shared/ui/Actions/butt
 import { FoodName } from '@/components/blocks/builders/food/shared/ui/FoodName';
 import { Typography } from '@/components/ui/atoms/Typography';
 import { observer, useLocalObservable } from 'mobx-react-lite';
-import React from 'react';
+import React, { useEffect } from 'react';
 import clsx from 'clsx';
 import styles from './FoodAdd.module.scss';
 import { DaySchedule } from '@/domain/schedule/schedule';
@@ -14,6 +14,7 @@ import { Instance } from 'mobx-state-tree';
 import { domainStore } from '@/store/store';
 import { useDishModals } from '@/components/blocks/builders/food/DishBuilder/modalContext';
 import { Dish } from '@/domain/dish/Dish';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 
 type Props = {
   children?: React.ReactNode;
@@ -23,12 +24,41 @@ type Props = {
 const FoodAdd = ({ children, store }: Props) => {
   const modals = useDishModals();
 
-  const currentChild = store.current;
+  const [searchParams] = useSearchParams();
+  const itemId = searchParams.get('item_id');
 
-  const onFoodAdd = (item: any) => {
-    store.addOrUpdateChild(item.id);
+  const currentChildFoodId = store.getChildById(itemId as string)?.foodId;
+
+  const onFoodAdd = (food: any) => {
+    console.log('itemId', itemId);
+    if (itemId) {
+      store.updateChildById(
+        itemId,
+        {
+          foodId: food.id,
+        },
+        true
+      );
+      modals.close();
+      return;
+    }
+    store.addChildWithLocalData(food.id);
     modals.close();
   };
+  const navigate = useNavigate();
+
+  // useEffect(() => {
+  //   const timer = setInterval(() => {
+  //     const randomId = Math.floor(Math.random() * 1_000_000_000_000);
+
+  //     const newParams = new URLSearchParams(searchParams);
+  //     newParams.set('item_id', String(randomId));
+
+  //     navigate(`?${newParams.toString()}`, { replace: true });
+  //   }, 3000);
+
+  //   return () => clearInterval(timer);
+  // }, [searchParams]);
 
   const state = useLocalObservable(() => ({
     filterText: '',
@@ -60,9 +90,7 @@ const FoodAdd = ({ children, store }: Props) => {
   }));
 
   const renderFoodItem = (item: any) => (
-    <SearchListItem
-      className={currentChild?.food?.id === item.id ? styles.currentSelectedItem : ''}
-    >
+    <SearchListItem className={currentChildFoodId === item.id ? styles.currentSelectedItem : ''}>
       <FoodName
         onClick={() => onFoodAdd(item)}
         onClickHintModeOn={() => {}}

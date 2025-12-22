@@ -12,6 +12,9 @@ import { RequestState } from "@/store/shared/RequestState"
 import { Dish } from "@/domain/dish/Dish"
 import { createDishModel } from "@/store/DishStore/fabric"
 import { RootInstance } from "@/store/store"
+import { syncDishes } from "@/api/dish/dish.api"
+import { RequestAndSetHandler } from "@/store/common/pureFabrication/RequestAndSet"
+import { StatusModel } from "@/store/common/pureFabrication/StatusModel"
 
 export const DishStore = types
     .model("DishStore", {
@@ -23,6 +26,10 @@ export const DishStore = types
 
         // Request states per date
         request: types.map(RequestState),
+        status: types.optional(StatusModel, {
+            fetchGet: {},
+            fetchSync: {},
+        }),
     })
     .views(self => ({
         get root(): RootInstance {
@@ -43,6 +50,7 @@ export const DishStore = types
             }
             return self.request.get(date)!
         },
+
         addLocal(init: Parameters<typeof createDishModel>[0]) {
             console.log('addLocal', init);
             const model = createDishModel(init);
@@ -51,7 +59,16 @@ export const DishStore = types
         },
         // addLocalFromSnapshot(snapshot: SnapshotOut<typeof Dish>) {
         //     self.data.set(snapshot.id, Dish.create(snapshot));
-        // }
+        // },
+
+        fetchSync: async (payload: Instance<typeof Dish>[]) => {
+            const syncRequest = new RequestAndSetHandler(self);
+            return await syncRequest.load(
+                payload.map(x => ({ id: x.id, variant: "fetchSync" })),
+                () => syncDishes(payload)
+            );
+        },
+
     }))
 
     // ======== ACTIONS / FLOWS ========

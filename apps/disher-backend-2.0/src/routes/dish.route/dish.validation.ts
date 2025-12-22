@@ -1,12 +1,13 @@
 import { z } from "zod";
 
 export const DishItemCreateZod = z.object({
+    id: z.string(),
     quantity: z.number(),
-    foodId: z.string().transform((val) => val ? Number(val) : undefined),
+    foodId: z.string().transform((val) => Number(val)),
 });
 
 export const DishItemUpdateZod = z.object({
-    id: z.string().transform((val) => val ? Number(val) : undefined),
+    id: z.string(),
     quantity: z.number().optional(),
     foodId: z.string().optional().transform((val) => val ? Number(val) : undefined),
 });
@@ -14,14 +15,13 @@ export const DishItemUpdateZod = z.object({
 export const DishItemsChangesZod = z.object({
     create: z.array(DishItemCreateZod).optional(),
     update: z.array(DishItemUpdateZod).optional(),
-    delete: z.array(z.number()).optional(),
+    delete: z.array(z.string()).optional(),
 });
 
 export const DishZod = z.object({
-    id: z.string().optional().transform((val) => val ? Number(val) : undefined), // null → create, exists → update
+    id: z.string(),
     name: z.string(),
     userId: z.number(),
-    isDraft: z.boolean(),
     items: DishItemsChangesZod,
 });
 

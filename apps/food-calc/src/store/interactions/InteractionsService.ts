@@ -1,10 +1,14 @@
 import { Dish } from "@/domain/dish/Dish";
-import { AllScheduleItemContentTypes, DaySchedule, ScheduleItem } from "@/domain/schedule/schedule";
+import { AllScheduleItemContentTypes, DaySchedule, DishItemContent, ScheduleItem } from "@/domain/schedule/schedule";
+import { DayScheduleStore } from "@/store/DayScheduleStore/DayScheduleStore";
+import { DishStore } from "@/store/DishStore/DishStore";
+import { domainStore } from "@/store/store";
 import { DayScheduleApi, DishStoreApi, RootInstance } from "@/store/types";
-import { getEnv, getRoot, Instance, IStateTreeNode, types } from "mobx-state-tree";
+import { flow, getEnv, getRoot, Instance, IStateTreeNode, types, walk } from "mobx-state-tree";
 
 export interface InteractionsEnv {
-    dishStore: DishStoreApi;
+    dishStore: Instance<typeof DishStore>;
+    scheduleStore: Instance<typeof DayScheduleStore>
     daySchedule: DayScheduleApi;
 }
 
@@ -52,6 +56,65 @@ export const InteractionsService = types
 
         }
 
+        const fetchSyncScheduleAndDishes = async (payload: Instance<typeof DaySchedule>) => {
+            const root = getRoot(self) as InteractionsEnv;
+
+            const syncedDishes = await root.dishStore.fetchSync(
+                payload.allDraftDishesFromItems
+            );
+
+            if (!syncedDishes) return;
+
+            for (const item of syncedDishes) {
+                if (item.dish) {
+                    root.dishStore.addLocal({
+                        id: String(item.dish.id),
+                        name: item.dish.name,
+                        isDraft: false,
+                        items: item.dish.items.map(i => ({
+                            id: String(i.id),
+                            quantity: i.quantity,
+                            foodId: String(i.foodId),
+                            food: String(i.foodId),
+                        })),
+                    });
+                }
+            }
+
+        };
+
+        const fetchSyncDishes = async (payload: Instance<typeof Dish>[]) => {
+
+            const root = getRoot(self) as InteractionsEnv;
+
+            const syncedDishes = await root.dishStore.fetchSync(
+                payload
+            );
+
+            if (!syncedDishes) return;
+
+            for (const item of syncedDishes) {
+                if (!item.dish) continue
+                const id = item.dish.id
+                const dishChildren = item.dish.items
+                const localDish = root.dishStore.data.get(id)
+
+                localDish?.removeChildrenMarkedAsDeleted()
+
+                for (const dishChild of dishChildren) {
+                    const { id, quantity, foodId } = dishChild
+                    const localChild = localDish?.updateChildById(id, {
+                        quantity, foodId: foodId.toString()
+                    }, false)
+                    localChild?.sync.onSync(Date.now().toString())
+                    if (!localChild) {
+                        localDish?.addChildWithServerData(foodId.toString(), { id, quantity })
+                    }
+                }
+            }
+
+        };
+
         // function* scenario(items: AllScheduleItemContentTypes[]) {
 
         //     foodIntoNewDish(items)
@@ -59,6 +122,8 @@ export const InteractionsService = types
         // }
 
         return {
+            fetchSyncDishes,
+            fetchSyncScheduleAndDishes,
             createNewDishAndAppendToSchedule
         }
     });

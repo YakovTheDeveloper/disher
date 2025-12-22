@@ -2,30 +2,35 @@ import React from 'react';
 import styles from './CommonListItem.module.scss';
 import { observer } from 'mobx-react-lite';
 import clsx from 'clsx';
+import { Instance } from 'mobx-state-tree';
+import { SyncStatus } from '@/domain/commonListItem';
 
 type Props = {
   children?: React.ReactNode;
   className?: string;
-  status: 'added' | 'deleted' | 'modified' | 'none' | null;
   showAdditionals: boolean;
   id: number | string;
+  sync: Instance<typeof SyncStatus>;
   onDelete: (id: string | number) => void;
-  onRecover: (id: string | number) => void;
+  // onRecover: (id: string | number) => void;
 };
 const ListItem = ({
   id,
   children,
   showAdditionals,
   className,
-  status,
+  sync,
   onDelete,
-  onRecover,
+  // onRecover,
 }: Props) => {
+  const status = sync.status;
+  // if (status === 'deleted') return null;
+
   const onRemoveHandler = () => {
-    if (status === 'deleted') {
-      onRecover(id);
-      return;
-    }
+    // if (status === 'deleted') {
+    //   onRecover(id);
+    //   return;
+    // }
     onDelete(id);
   };
 
@@ -45,8 +50,8 @@ const ListItem = ({
         onClick={onRemoveHandler}
         className={clsx(
           styles.additionalOptions,
-          showAdditionals && styles.additionalOptions_active,
-          status === 'deleted' && styles.additionalOptions_alternative
+          showAdditionals && styles.additionalOptions_active
+          // status === 'deleted' && styles.additionalOptions_alternative
         )}
       ></button>
     </li>

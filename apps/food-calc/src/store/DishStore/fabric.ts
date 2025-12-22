@@ -1,4 +1,5 @@
 import { Dish } from "@/domain/dish/Dish";
+import { generateId } from "@/lib/id/generateId";
 import { ISODate } from "@/types/common/common";
 import { Instance, SnapshotIn } from "mobx-state-tree";
 
@@ -7,7 +8,7 @@ export function createDishModel(
 ) {
     const data = {
         name: overrides.name ?? '',
-        id: Math.floor(Math.random() * 1_000_000).toString(),
+        id: generateId(),
         userId: overrides.userId ?? 0,
         items: overrides.items ?? [],
         currentId: overrides.currentId ?? -1,

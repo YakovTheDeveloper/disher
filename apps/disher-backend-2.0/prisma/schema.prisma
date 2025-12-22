@@ -25,23 +25,25 @@ datasource db {
 }
 
 model Schedule {
-  id          Int            @id @default(autoincrement())
+  id          String         @id
   date        DateTime       @unique
   items       ScheduleItem[]
   userId      Int
   user        User           @relation(fields: [userId], references: [id])
   dailyEvents String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }
 
 model ScheduleItem {
-  id             Int              @id @default(autoincrement())
+  id             String           @id
   quantity       Int
   type           ScheduleItemType
   time           String
   customFoodName String?
   foodId         Int?
-  dishId         Int?
-  scheduleId     Int
+  dishId         String?
+  scheduleId     String
   food           Food?            @relation(fields: [foodId], references: [id])
   dish           Dish?            @relation(fields: [dishId], references: [id])
   schedule       Schedule         @relation(fields: [scheduleId], references: [id])
@@ -81,20 +83,22 @@ model Nutrient {
 
 model Dish {
   name         String
-  id           Int            @id @default(autoincrement())
+  id           String         @id
   items        DishItem[]
   userId       Int
   user         User           @relation(fields: [userId], references: [id])
   ScheduleItem ScheduleItem[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
 model DishItem {
-  id       Int  @id @default(autoincrement())
+  id       String @id
   quantity Int
   foodId   Int
-  dishId   Int
-  food     Food @relation(fields: [foodId], references: [id])
-  dish     Dish @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  dishId   String
+  food     Food   @relation(fields: [foodId], references: [id])
+  dish     Dish   @relation(fields: [dishId], references: [id], onDelete: Cascade)
 }
 
 model DailyNorm {

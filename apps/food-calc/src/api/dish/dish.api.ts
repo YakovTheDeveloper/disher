@@ -1,8 +1,11 @@
+import { extractChanges } from "@/api/adapters/common";
 import { dishFromUI } from "@/api/dish/dish.adapter";
 import { requestWrapper } from "@/api/Request";
 import { trpc } from "@/api/trpc/trpc"
 import { DishUI } from "@/components/blocks/builders/food/DishBuilder/model/DishBuilderViewModel";
+import { Dish } from "@/domain/dish/Dish";
 import { ApiInputs } from "@types";
+import { getSnapshot, Instance } from "mobx-state-tree";
 
 export type GetWithParams = {
     ids?: number[]
@@ -40,5 +43,29 @@ export const updateDish = async (data: DishUI) => {
     const { id, items, name } = dishFromUI(data, 'updateDish')
 
     const result = await trpc.updateDish.mutate({ id, name, items });
+    return result.data
+}
+
+export const syncDishes = async (dishes: Instance<typeof Dish>[]) => {
+
+    const payload: Parameters<typeof trpc.syncDish.mutate>[0] = {
+        dishes: dishes.map((dish) => {
+            const { items, isDraft, name, id } = getSnapshot(dish);
+            const { added, deleted, modified } = dish.delta
+            const userId = 1
+            return {
+                id,
+                userId,
+                items: {
+                    create: added,
+                    delete: deleted,
+                    update: modified
+                },
+                name
+            }
+        }),
+    }
+
+    const result = await trpc.syncDish.mutate(payload);
     return result.data
 }

@@ -10,6 +10,7 @@ import { RootInstance } from "@/store/types";
 import { FoodWithQuantity } from "@/domain/schedule/types";
 import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
 import { emitter } from "@/infrastructure/emitter/emitter";
+import { walk } from "mobx-state-tree";
 
 export type ScheduleItemType = Instance<typeof ScheduleItem>["type"];
 
@@ -46,13 +47,13 @@ export const DishItemContent = types.model()
             return parentItem.quantity;
         },
         get foodWithNoNutrients() {
-            return self.dish.foodWithNoNutrients
+            return self.dish?.foodWithNoNutrients || []
         }
 
     })).actions(self => {
 
         function getTotalNutrients() {
-            return self.dish.getTotalNutrients(self.parentQuantity)
+            return self.dish?.getTotalNutrients(self.parentQuantity) || {}
         }
 
         return {
@@ -104,13 +105,13 @@ export const FoodItemContent = types.model()
             return parentItem.quantity;
         },
         get foodWithNoNutrients() {
-            return self.food.noNutrients ? [self.food] : []
+            return self.food?.noNutrients ? [self.food] : []
         }
 
     })).actions(self => {
 
         function getTotalNutrients() {
-            return self.food.getTotalNutrients(self.parentQuantity)
+            return self.food?.getTotalNutrients(self.parentQuantity) || {}
         }
 
         return {

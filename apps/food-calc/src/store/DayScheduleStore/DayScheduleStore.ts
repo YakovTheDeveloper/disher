@@ -58,6 +58,7 @@ export const DayScheduleStore = types
 
         // ---- Create a schedule
         fetchSync: flow(function* (payload: Instance<typeof DaySchedule>) {
+
             const { date } = payload
             const unsyncDishesPerSchedule = payload.allDraftDishesFromItems
             const syncRequest = new RequestAndSetHandler(self)
