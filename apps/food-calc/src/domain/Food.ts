@@ -21,7 +21,7 @@ export const FoodNutrient = types.model("FoodNutrient", {
 
 // Food
 export const Food = types.model("Food", {
-    id: types.identifier,
+    id: types.identifierNumber,
     name: types.string,
     nameEng: types.maybe(types.string),
     description: types.maybe(types.string),

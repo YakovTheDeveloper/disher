@@ -3,7 +3,7 @@ import { getParent } from "mobx-state-tree";
 
 import { Dish, DishItem } from "../dish/Dish";
 import { Food } from "@/domain/Food";
-import { ItemStatus, ItemStatusType } from "@/domain/commonListItem";
+import { ItemStatus, ItemStatusType, SyncStatus } from "@/domain/commonListItem";
 import { TimeGroupUI } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
 import { createDishModel, createDishSnapshot } from "@/store/DishStore/fabric";
 import { RootInstance } from "@/store/types";
@@ -11,6 +11,8 @@ import { FoodWithQuantity } from "@/domain/schedule/types";
 import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
 import { emitter } from "@/infrastructure/emitter/emitter";
 import { walk } from "mobx-state-tree";
+import { ChildrenController } from "@/domain/shared/ChildrenController";
+import { groupItemsByTime } from "@/domain/schedule/schedule.service";
 
 export type ScheduleItemType = Instance<typeof ScheduleItem>["type"];
 
@@ -18,241 +20,188 @@ export type AllScheduleItemContentTypes = Instance<typeof DishItemContent> | Ins
 
 type ChildVariant = "dish" | "food" | "custom";
 
-function isDishContent(
-    content: typeof DishItemContent.Type | typeof FoodItemContent.Type | typeof CustomItemContent.Type
-): content is typeof DishItemContent.Type {
-    return content.type === "dish";
-}
+export const ItemContent = types
+    .model("ItemContent", {
+        variant: types.enumeration("ItemVariant", ["custom", "food", "dish"]),
 
-// пусть будет у Dish тоже
-export const DishItemContent = types.model()
-    .named("DishItemContent")
-    .props({
-        type: types.literal("dish"),
-        dishId: types.string,
-        dish: types.reference(Dish, {
-            get(identifier, parent) {
-                const root = getRoot(parent); // <-- MST helper to get the tree root
-                return root.dishStore.data.get(identifier);
-            },
-            set(value) {
-                return value.id; // MST needs to know how to store reference
-            }
-        }),
+        customName: types.maybe(types.string),
+
+        foodId: types.maybe(types.string),
+        dishId: types.maybe(types.string),
     })
-    .views((self) => ({
-        get name() { return self.dish?.name || 'нет имени' },
-        get parentQuantity(): number {
-            const parentItem = getParent(self);
-            return parentItem.quantity;
+    .views(self => ({
+        get food() {
+            if (!self.foodId) return undefined
+            return getRoot(self).foodStore.data.get(self.foodId)
         },
+
+        get dish(): Instance<typeof Dish> | undefined {
+            if (!self.dishId) return undefined
+            return getRoot(self).dishStore.data.get(self.dishId)
+        },
+        get parentQuantity(): number { const parentItem = getParent(self); return parentItem.quantity; },
+
+        get name() {
+            switch (self.variant) {
+                case "custom":
+                    return self.customName ?? "нет имени"
+                case "food":
+                    return self.food?.name ?? "нет имени"
+                case "dish":
+                    return self.dish?.name ?? "нет имени"
+            }
+        },
+
         get foodWithNoNutrients() {
-            return self.dish?.foodWithNoNutrients || []
-        }
-
-    })).actions(self => {
-
-        function getTotalNutrients() {
-            return self.dish?.getTotalNutrients(self.parentQuantity) || {}
-        }
-
-        return {
-            getTotalNutrients,
-        }
-    })
-
-export const CustomItemContent = types.model()
-    .named("CustomItemContent")
-    .props({
-        type: types.literal("custom"),
-        name: types.string, // required for custom
-    })
-    .views((self) => ({
-        get isCustom() { return true; },
-        get foodWithNoNutrients() {
+            if (self.variant === "food" && self.food?.noNutrients) {
+                return [self.food]
+            }
+            if (self.variant === "dish") {
+                return self.dish?.foodWithNoNutrients ?? []
+            }
             return []
         }
-    })).actions(self => {
+    }))
+    .actions(self => {
+        type Variant = "custom" | "food" | "dish"
 
-        function getTotalNutrients(): Record<string, number> {
-            return {}
+        const FIELDS_BY_VARIANT: Record<Variant, (keyof typeof self)[]> = {
+            custom: ["customName"],
+            food: ["foodId"],
+            dish: ["dishId"],
         }
 
-        return {
-            getTotalNutrients
+        function resetAll() {
+            self.customName = undefined
+            self.foodId = undefined
+            self.dishId = undefined
         }
-    })
 
-export const FoodItemContent = types.model()
-    .named("FoodItemContent")
-    .props({
-        type: types.literal("food"),
-        foodId: types.string,
-        food: types.reference(Food, {
-            get(identifier, parent) {
-                const root = getRoot(parent); // <-- MST helper to get the tree root
-                return root.foodStore.data.get(identifier);
-            },
-            set(value) {
-                return value.id; // MST needs to know how to store reference
+        function validate(variant: Variant, payload: any) {
+            if (variant === "food" && !payload.foodId) {
+                throw new Error("foodId is required for food variant")
             }
-        }),
-    })
-    .views((self) => ({
-        get name() { return self.food?.name || 'нет имени' },
-        get parentQuantity(): number {
-            const parentItem = getParent(self);
-            return parentItem.quantity;
-        },
-        get foodWithNoNutrients() {
-            return self.food?.noNutrients ? [self.food] : []
+            if (variant === "dish" && !payload.dishId) {
+                throw new Error("dishId is required for dish variant")
+            }
+            if (variant === "custom" && !payload.customName) {
+                throw new Error("customName is required for custom variant")
+            }
         }
 
-    })).actions(self => {
-
-        function getTotalNutrients() {
-            return self.food?.getTotalNutrients(self.parentQuantity) || {}
+        function applyPayload(variant: Variant, payload: any) {
+            for (const field of FIELDS_BY_VARIANT[variant]) {
+                if (field in payload) {
+                    // @ts-expect-error — controlled assignment
+                    self[field] = payload[field]
+                }
+            }
         }
 
         return {
-            getTotalNutrients
+            update(
+                params: {
+                    variant?: Variant
+                    customName?: string
+                    foodId?: string
+                    dishId?: string
+                }
+            ) {
+                const nextVariant = params.variant ?? self.variant as Variant
+                const variantChanged = nextVariant !== self.variant
+
+                validate(nextVariant, params)
+
+                if (variantChanged) {
+                    self.variant = nextVariant
+                    resetAll()
+                }
+
+                applyPayload(nextVariant, params)
+            },
+            getTotalNutrients() {
+                switch (self.variant) {
+                    case "food":
+                        return self.food?.getTotalNutrients(self.parentQuantity) ?? {}
+                    case "dish":
+                        return self.dish?.getTotalNutrients(self.parentQuantity) ?? {}
+                    default:
+                        return {}
+                }
+            }
         }
     })
 
 export const ScheduleItem = types.model("ScheduleItem", {
-    id: types.identifierNumber,
+    id: types.identifier,
     quantity: types.number,
     time: types.string,
-    status: types.optional(ItemStatus, "none"),
-    content: types.union(
-        FoodItemContent,
-        DishItemContent,
-        CustomItemContent
-    )
+    sync: types.optional(SyncStatus, {}),
+    content: types.optional(ItemContent, { variant: 'custom' }),
 
 }).views(self => ({
     get type() {
-        return self.content.type
+        return self.content.variant
     }
 }))
     .actions(self => ({
-        setAsCurrent() {
-            const parent = getParent<Instance<typeof DaySchedule>>(self, 2);
-            console.log("parent", parent);
-            parent.setCurrent(self.id);
-        },
-        markModified() {
-            if (self.status === "none") {
-                self.status = "modified";
-            }
-        },
-        markDeleted() {
-            self.status = "deleted";
-        },
-        recover() {
-            if (self.status === "deleted") {
-                self.status = "none";
-            }
-        },
-        updateQuantity(quantity: number) {
-            self.quantity = quantity
-        }
+
     }));
 
-export const DaySchedule = types
-    .model("DaySchedule", {
-        id: types.number,
-        date: types.identifier,
-        userId: types.number,
-        dailyEvents: types.maybeNull(types.string),
+export const EventItem = types.model("EventItem", {
+    id: types.identifier,
+    value: types.string,
+    time: types.string,
+    sync: types.optional(SyncStatus, {}),
+    type: types.string
 
-        items: types.array(ScheduleItem),
-        isDraft: types.boolean,
-        lastTimeItemAdded: types.optional(types.string, ""),
-        currentId: types.optional(types.number, -1),
-    })
+}).views(self => ({
+
+}))
+    .actions(self => ({
+
+    }));
+
+export const DaySchedule = types.model({
+    id: types.identifier,
+    userId: types.number,
+    lastSync: types.optional(types.string, ""),
+    lastTimeItemAdded: types.optional(types.string, ""),
+    foods: ChildrenController(ScheduleItem),
+    events: ChildrenController(EventItem)
+})
     .views(self => ({
         getChildById(id: string) {
-            return self.items.find(i => i.id.toString() === id) || null;
-        },
-        get current() {
-            return self.items.find(i => i.id === self.currentId) || null;
+            return self.foods.items.find(i => i.id.toString() === id) || null;
         },
         get customItems() {
-            return self.items.filter(i => i.content.type === 'custom') || null;
+            return self.foods.items.filter(i => i.content.variant === 'custom') || null;
         },
         get allDraftDishesFromItems() {
-            return self.items
-                .map(i => i.content)
-                .filter(isDishContent)
-                .map(content => content.dish)
-                .filter(({ isDraft }) => isDraft)
+            return self.foods.items
+                .filter(item => item.content.variant === "dish" && item.content.dish && !item.content.dish.lastSync)
+                .map(item => item.content.dish!)
+
         },
         get foodWithNoNutrients() {
-            return Array.from(new Set(self.items
+            return Array.from(new Set(self.foods.items
                 .flatMap(item => item.content.foodWithNoNutrients)))
         },
         get itemsLength() {
-            return self.items.length
-        },
-        get currentMode() {
-            return self.currentId === -1 ? 'ADD' : 'UPDATE'
+            return self.foods.items.length
         },
         get isNoItems() {
-            return self.items.length === 0
+            return self.foods.items.length === 0
         },
         get isNoDailyEventItems() {
-            return self.dailyEvents?.content?.items?.length === 0
+            return self.events?.items?.length === 0
         },
-        get itemsGroupedByTime(): TimeGroupUI<Instance<typeof ScheduleItem>>[] {
-            const sorted = self.items.slice().sort((a, b) =>
-                a.time.localeCompare(b.time) // HH:mm safe
-            );
+        get foodsGroupedByTime() {
+            return groupItemsByTime(self.foods.items);
+        },
 
-            const toMinutes = (t: string) => {
-                const [hours, minutes] = t.split(":").map(Number);
-                return hours * 60 + minutes;
-            };
-
-            const groups: {
-                time: string;
-                items: typeof self.items[0][];
-                offset: { hours: number; minutes: number } | null;
-            }[] = [];
-
-            let prevTimeMinutes: number | null = null;
-
-            for (const item of sorted) {
-                const currentMinutes = toMinutes(item.time);
-                let group = groups[groups.length - 1];
-
-                // New group if the time changed
-                if (!group || group.time !== item.time) {
-                    const diff =
-                        prevTimeMinutes == null
-                            ? null
-                            : currentMinutes - prevTimeMinutes;
-
-                    group = {
-                        time: item.time,
-                        items: [],
-                        offset:
-                            diff === null
-                                ? null
-                                : {
-                                    hours: Math.floor(diff / 60),
-                                    minutes: diff % 60,
-                                },
-                    };
-
-                    groups.push(group);
-                    prevTimeMinutes = currentMinutes;
-                }
-
-                group.items.push(item);
-            }
-
-            return groups;
+        get eventsGroupedByTime() {
+            return groupItemsByTime(self.events.items);
         }
     }))
     .actions(self => {
@@ -278,22 +227,14 @@ export const DaySchedule = types
         }
 
         function getTotalNutrients() {
-            const nutrients = self.items.map(item =>
+            const nutrients = self.foods.items.map(item =>
                 item.content.getTotalNutrients()
             );
             return sumRecordArray(nutrients);
         }
 
-        function setCurrent(id: number) {
-            self.currentId = id;
-        }
-
-        function clearCurrent() {
-            self.currentId = -1;
-        }
-
         function changeStatusByIds(ids: string[], status: ItemStatusType = 'deleted') {
-            self.items.replace(self.items.map(item => {
+            self.foods.items.replace(self.foods.items.map(item => {
 
                 const thatId = ids.includes(String(item.id))
                 if (thatId) return {
@@ -304,161 +245,104 @@ export const DaySchedule = types
             }));
         }
 
-        function addDishItem(
-            dishId: string,
-            fields: Partial<Instance<typeof ScheduleItem>> = {}
-        ) {
-            const item = ScheduleItem.create({
-                id: Date.now(),
-                type: "food",
-                quantity: 100,
-                time: self.lastTimeItemAdded || "08:00",
-                status: "added",
-                ...fields,
-                content: DishItemContent.create({
-                    type: 'dish',
-                    dishId,
-                    dish: dishId,
-                })
-            });
-
-            self.items.push(item);
-            return item;
+        function updateChildContent(id: string, variant: ChildVariant, payload: {
+            customName?: string
+            foodId?: string
+            dishId?: string
+        }) {
+            const child = self.getChildById(id)
+            if (!child) return
+            child.content.update({ variant, ...payload })
         }
 
-        function addFoodItem(
-            foodId: string,
-            fields: Partial<Instance<typeof ScheduleItem>> = {}
-        ) {
-            const item = ScheduleItem.create({
-                id: Date.now(),
-                type: "food",
-                quantity: 100,
-                time: self.lastTimeItemAdded || "08:00",
-                status: "added",
-                ...fields,
-                content: FoodItemContent.create({
-                    type: 'food',
-                    foodId,
-                    food: foodId,
-                })
-            });
-
-            self.items.push(item);
-            return item;
-        }
-
-        function addFoodItemAndSetAsCurrent(
-            foodId: string,
-            fields: Partial<Instance<typeof ScheduleItem>> = {}
-        ) {
-            const item = addFoodItem(foodId, fields)
-            setCurrent(item.id)
-            return item;
-        }
-
-        function updateChildContent(
-            variant: ChildVariant,
-            value: string,
-            fields: any = {}
-        ) {
-            if (!self.current) return;
-
-            const config = {
-                dish: {
-                    model: DishItemContent,
-                    payload: {
-                        type: 'dish',
-                        dish: value,
-                        dishId: value
-                    }
-                },
-                food: {
-                    model: FoodItemContent,
-                    payload: {
-                        type: 'food',
-                        food: value,
-                        foodId: value
-                    }
-                },
-                custom: {
-                    model: CustomItemContent,
-                    payload: {
-                        type: 'custom',
-                        name: value
-                    }
-                }
-            } as const
-
-            const payload = config[variant].payload
-            const contentModel = config[variant].model
-
-            if (self.current.content?.type === variant) {
-                Object.assign(self.current.content, { ...payload })
-                return
-            }
-
-            const content = contentModel.create(payload)
-            self.current.content = content
-
-        }
-
-        function updateTime(time: string) {
-            updateCurrent({ time });
+        function updateTime(id: string, time: string) {
+            self.foods.updateChildById({ id, time });
             self.lastTimeItemAdded = time
         }
 
-        function updateQuantity(quantity: number) {
-            updateCurrent({ quantity });
+        function updateEventTime(id: string, time: string) {
+            self.events.updateChildById({ id, time });
+            // self.lastTimeItemAdded = time
         }
 
-        function updateCurrent(
-            fields: Partial<Instance<typeof ScheduleItem>>
-        ) {
-            const item = self.current;
-            if (!item) return;
-
-            Object.assign(item, fields);
-            item.markModified();
+        function updateQuantity(id: string, quantity: number) {
+            self.foods.updateChildById({ id, quantity });
         }
 
-        function deleteItemLocal(childId: number) {
-            const index = self.items.findIndex(i => i.id === childId);
-            if (index === -1) return;
+        function addOrUpdateCustom(itemId: string | null, state: { time: string, customName: string }) {
+            const customName = state.customName.toString();
 
-            self.items.splice(index, 1);   // ← Deletes the MST node cleanly
-        }
-
-        function deleteItem(childId: number) {
-            const item = self.items.find(i => i.id === childId);
-            if (!item) return;
-
-            if (item.status === "added") {
-                self.items.replace(self.items.filter(i => i.id !== childId));
+            if (!itemId) {
+                self.foods.addChildWithLocalData({
+                    quantity: 100,
+                    time: state.time,
+                    content: {
+                        variant: 'custom',
+                        customName,
+                    },
+                });
                 return;
             }
 
-            item.markDeleted();
+            updateChildContent(itemId, 'custom', { customName });
         }
 
-        function recoverItem(childId: number) {
-            const item = self.items.find(i => i.id === childId);
-            if (!item) return;
-            item.recover();
+        function addOrUpdateFood(itemId: string | null, state: { time: string, foodId: string }) {
+            if (!itemId) {
+                self.foods.addChildWithLocalData({
+                    quantity: 100,
+                    time: state.time,
+                    content: {
+                        variant: 'food',
+                        foodId: state.foodId
+                    },
+                });
+                self.lastTimeItemAdded = state.time
+                return;
+            }
+
+            updateChildContent(itemId, 'food', { foodId: state.foodId });
+        }
+
+        function addOrUpdateDish(itemId: string | null, state: { time: string, dishId: string }) {
+            if (!itemId) {
+                self.foods.addChildWithLocalData({
+                    quantity: 100,
+                    time: state.time,
+                    content: {
+                        variant: 'dish',
+                        dishId: state.dishId,
+                    },
+                });
+                return;
+            }
+
+            updateChildContent(itemId, 'dish', { dishId: payload.id.toString() });
+        }
+
+        function addOrUpdateEvent(itemId: string | null, state: { type: string, value: string, time: string }) {
+            const { type, value, time } = state;
+            if (!itemId) {
+                self.events.addChildWithLocalData({
+                    type,
+                    time,
+                    value,
+                });
+                return;
+            }
+            self.foods.updateChildById({ id: itemId, type, value, time });
         }
 
         return {
-            setCurrent,
-            clearCurrent,
-            addDishItem,
+            addOrUpdateCustom,
+            addOrUpdateFood,
+            updateEventTime,
+            addOrUpdateDish,
+            addOrUpdateEvent,
             changeStatusByIds,
             updateChildContent,
-            addFoodItemAndSetAsCurrent,
             updateTime,
             updateQuantity,
-            updateCurrent,
-            deleteItem,
-            recoverItem,
             getTotalNutrients,
             afterCreate,
             beforeDestroy

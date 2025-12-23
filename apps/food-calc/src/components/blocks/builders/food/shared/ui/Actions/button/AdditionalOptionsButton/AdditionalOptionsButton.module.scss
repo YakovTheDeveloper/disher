@@ -2,15 +2,15 @@ button.button {
     position: relative;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    justify-content: end;
     background: transparent;
     border: none;
     cursor: pointer;
     transition: background 0.3s ease;
 
-    border: 1px solid rgb(223, 226, 255);
-
-    font-weight: 300;
+    border: none;
+    font-size: 30px;
+    font-weight: 800;
     color: rgb(163, 173, 255);
     box-shadow: none;
     outline: none;
@@ -19,6 +19,8 @@ button.button {
     &.active {
         border-color: rgb(103, 151, 255);
         color: rgb(48, 113, 255);
+        font-size: 40px;
+        font-weight: 300;
     }
 }
 

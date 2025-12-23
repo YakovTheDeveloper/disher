@@ -11,18 +11,19 @@ import clsx from 'clsx';
 import { CommonListItem } from '@/components/blocks/builders/food/shared/ui/CommonListItem';
 import { toJS } from 'mobx';
 import { Instance } from 'mobx-state-tree';
-import { ScheduleItem } from '@/domain/schedule/schedule';
+import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
 import { useDailyScheduleModals } from '@/components/blocks/builders/food/ScheduleBuilder/modalContext';
 import { useNavigate } from 'react-router';
 import { RouterLinks } from '@/router';
 
 type Props = {
+  controller: Instance<typeof DaySchedule>;
   item: Instance<typeof ScheduleItem>;
   options: BuilderUIStore;
   className?: string;
 };
 
-const Item = ({ item, options, className }: Props) => {
+const Item = ({ item, controller, options, className }: Props) => {
   const modals = useDailyScheduleModals();
 
   const navigate = useNavigate();
@@ -30,25 +31,22 @@ const Item = ({ item, options, className }: Props) => {
   console.log('LIST_ITEM', item);
 
   const onFoodsOpenUpdate = () => {
-    item.setAsCurrent();
-    modals.set('foodAdd');
+    modals.set('foodAdd', {
+      item_id: item.id,
+    });
   };
 
   const onQuantityOpen = () => {
-    item.setAsCurrent();
-    modals.set('quantity');
+    modals.set('quantity', {
+      item_id: item.id,
+    });
   };
 
   const onFoodsOpenInfo = () => {
     modals.set('foodNutrients', { id: item.content.foodId });
   };
 
-  const onDelete = () => item.markDeleted();
-  const onRecover = () => item.recover();
-  // const onTimeOpen = () => {
-  //   item.setAsCurrent();
-  //   modals.set('time');
-  // };
+  const onDelete = () => controller.removeChild(item.id);
   const onDishOpenInfo = () => {
     console.log('item.content', item.content);
     navigate(`${RouterLinks.DishBuilder}/${item.content.dishId}`);
@@ -61,8 +59,6 @@ const Item = ({ item, options, className }: Props) => {
   // const getTime = useCallback(() => item.time || '00:00', [item]);
   const getQuantity = useCallback(() => item.quantity, [item]);
 
-  const status = item.status;
-
   const showAdditionalsMode = options.showAdditionals;
 
   const isQuantityHide = useMemo(() => showAdditionalsMode, [showAdditionalsMode]);
@@ -70,7 +66,7 @@ const Item = ({ item, options, className }: Props) => {
   // item.dish
 
   const onNameAdditionalOptionsClick = () => {
-    if (item.content.type === 'dish') {
+    if (item.content.variant === 'dish') {
       onDishOpenInfo();
       return;
     }
@@ -81,8 +77,8 @@ const Item = ({ item, options, className }: Props) => {
   console.log('itemitem', toJS(item));
 
   const getVariantText = () => {
-    if (item.content.type === 'custom') return 'кастомный продукт';
-    if (item.content.type === 'dish') return 'блюдо';
+    if (item.content.variant === 'custom') return 'кастомный продукт';
+    if (item.content.variant === 'dish') return 'блюдо';
     return 'продукт';
     // if (item.food) return 'продукт';
   };
@@ -104,10 +100,9 @@ const Item = ({ item, options, className }: Props) => {
     <CommonListItem
       className={clsx([className, styles.group])}
       onDelete={onDelete}
-      onRecover={onRecover}
       showAdditionals={showAdditionalsMode}
       id={id}
-      status={status}
+      sync={item.sync}
     >
       <FoodName
         className={getFoodNameClassName()}

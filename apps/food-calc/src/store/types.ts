@@ -6,7 +6,7 @@ import { InteractionsService } from "@/store/interactions/InteractionsService";
 import { NutrientStore } from "@/store/NutrientStore/NutrientStore";
 
 export const RootStore = types.model("RootStore", {
-    daySchedule: types.optional(DayScheduleStore, {}),
+    scheduleStore: types.optional(DayScheduleStore, {}),
     foodStore: types.optional(FoodModelStore, {}),
     dishStore: types.optional(DishStore, {}),
     nutrientStore: types.optional(NutrientStore, {}),

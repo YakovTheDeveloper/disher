@@ -2,7 +2,7 @@ button.actionButton {
     width: 140px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    // justify-content: center;
     gap: 8px;
     /* space between icon + text */
 
@@ -14,14 +14,15 @@ button.actionButton {
     flex-shrink: 0;
     transition: all 0.25s ease;
 
-    box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.1);
+    // box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.1);
     user-select: none;
 
-    background: linear-gradient(135deg, rgb(158, 169, 255), rgb(119, 135, 255));
-    color: white;
+    // background: linear-gradient(135deg, rgb(158, 169, 255), rgb(119, 135, 255));
+    background: none;
+    color: rgb(158, 169, 255);
     border: none;
 
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 300;
     line-height: 18px;
 

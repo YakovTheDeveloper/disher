@@ -70,6 +70,7 @@ const RootActions = ({
           onClick={onMoreOptionsCLickNutrients}
         />
       </Actions>
+
       <Actions isShow={shouldFoodActionsShow}>
         <ActionButton.Finish
           onClick={onFinishHandler}
@@ -85,6 +86,7 @@ const RootActions = ({
           onClick={onMoreOptionsCLickFood}
         />
       </Actions>
+
       <Actions isShow={shouldDailyEventsBuilderActionShow}>
         <ActionButton.Finish
           onClick={onFinishHandler}

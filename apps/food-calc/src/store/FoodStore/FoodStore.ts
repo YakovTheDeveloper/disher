@@ -6,6 +6,7 @@ import { isEmpty } from "@/lib/empty";
 import { Food } from "@/domain/Food";
 import { createFoodModel } from "@/store/FoodStore/factory";
 import { runInAction } from "mobx";
+import { standardFood } from "@/assets/seed/food";
 
 type GetFoodListResult = Awaited<ReturnType<typeof getFoodList>>;
 type GetFoodNutrientsByIdResult = Awaited<ReturnType<typeof getFoodWithNutrientsByIds>>;
@@ -138,6 +139,18 @@ export const FoodModelStore = types
             return state.status();
         });
 
+        const addFoodIfNotExists = (food) => {
+            if (!self.data.has(food.id)) {
+                self.data.set(food.id, food)
+            }
+        }
+
+        const loadInitialFoods = () => {
+            standardFood.forEach(food => {
+                addFoodIfNotExists(food)
+            })
+        }
+
         const loadFoodWithNutrientsByFoodIds = flow(function* (ids: string[]): Generator<
             Promise<ResponseStatus>,
             [boolean, "NO_FETCH_NEEDED" | "FAIL" | "FETCH_DONE"],
@@ -196,6 +209,9 @@ export const FoodModelStore = types
             _loadFoodWithNutrientsByFoodIds,
             loadFoodWithNutrientsByFoodIds,
             loadLazy,
+            afterCreate() {
+                loadInitialFoods()
+            }
         };
     });
 

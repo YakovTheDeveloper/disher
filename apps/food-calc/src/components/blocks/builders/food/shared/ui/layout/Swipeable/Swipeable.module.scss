@@ -2,6 +2,7 @@
     position: relative;
     width: 100%;
     height: 100%;
+    overflow: hidden;
 
 
     display: grid;
@@ -13,8 +14,29 @@
 .container {
     overflow: hidden;
     width: 100%;
-    height: 100%;
+    height: calc(100% + 60px);
     position: relative;
+    padding-top: 60px;
+    transition: transform 0.1s;
+    transform: translateY(0);
+
+    &_full {
+        transform: translateY(-60px);
+    }
+}
+
+.header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    transform: translateY(0);
+    transition: transform 0.1s;
+
+    &_hidden {
+        transform: translateY(-100%);
+    }
 }
 
 .swipeWrapper {
@@ -25,7 +47,7 @@
 
 .bottom {
     position: absolute;
-    bottom: 30px;
+    bottom: 10px;
     left: 0;
     width: 100%;
     height: 0px;

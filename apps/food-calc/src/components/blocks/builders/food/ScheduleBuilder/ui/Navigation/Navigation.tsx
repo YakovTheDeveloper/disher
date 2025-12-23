@@ -2,8 +2,8 @@ import { observer } from 'mobx-react-lite';
 import styles from './Navigation.module.scss';
 import { NavLink, useNavigate, useSearchParams } from 'react-router';
 import { RouterLinks } from '@/router';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useRef } from 'react';
+import { motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
 import {
   nextDate,
   prevDate,
@@ -22,9 +22,9 @@ type Props = {
   menuUi: MenuUiStore;
 };
 
-function isToday(date) {
+function isToday(date: string | Date) {
   if (!(date instanceof Date)) {
-    date = new Date(date); // allow strings or timestamps
+    date = new Date(date);
   }
 
   const today = new Date();
@@ -35,8 +35,6 @@ function isToday(date) {
     date.getFullYear() === today.getFullYear()
   );
 }
-
-const SWIPE_THRESHOLD = 50;
 
 const Navigation = ({ children, menuUi = uiStore.menu }: Props) => {
   const navigate = useNavigate();
@@ -52,43 +50,28 @@ const Navigation = ({ children, menuUi = uiStore.menu }: Props) => {
   const handleNext = () => updateDate(nextDate(date));
   const handleBack = () => updateDate(prevDate(date));
 
-  // --- Swipe & Drag Logic ---
-  const touchStartX = useRef<number | null>(null);
-
-  const handleSwipe = (deltaX: number) => {
-    if (deltaX > SWIPE_THRESHOLD) handleBack();
-    else if (deltaX < -SWIPE_THRESHOLD) handleNext();
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-    handleSwipe(deltaX);
-    touchStartX.current = null;
-  };
-
   const onCopyFromSchedule = () => {
     ScheduleUIEventEmitter.emit('OPEN_COPY_SCHEDULE_MODAL');
   };
+
   const onNewDish = () => {
     ScheduleUIEventEmitter.emit('CREATE_DISH');
   };
 
   const onCalendarButtonClick = () => navigate(RouterLinks.Schedule);
 
+  // -------------------------------
+  // Header hide/show on scroll logic
+
   return (
     <>
       <motion.header
         className={styles.wrapper}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+        initial={false}
+        transition={{
+          duration: 0.25,
+          ease: 'easeOut',
+        }}
       >
         <div className={styles.container}>
           <div className={clsx([styles.menuButton])}>
@@ -98,7 +81,6 @@ const Navigation = ({ children, menuUi = uiStore.menu }: Props) => {
             <motion.div className={styles.date}>
               <div className={styles.dateNumbers}>
                 {/* {isToday(date) && <p className={styles.dateWordsToday}>сегодня</p>} */}
-
                 <span>
                   {day}.{monthNumber}
                 </span>

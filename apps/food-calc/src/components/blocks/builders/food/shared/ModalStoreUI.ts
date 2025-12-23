@@ -6,10 +6,16 @@ export class ModalStoreUI<Variants extends string | number> {
         this.navigate = navigate;
     };
 
-    set = (value: Variants | null, inputParams?: Record<string, string>) => {
+    set = (
+        value: Variants | null,
+        inputParams?: Record<string, string>,
+        removeParams?: string[]
+    ) => {
         if (!value || !this.navigate) return;
 
         const params = new URLSearchParams(window.location.search);
+
+        // удалить ненужные параметры
 
         params.set("modal", value.toString());
 
@@ -19,11 +25,16 @@ export class ModalStoreUI<Variants extends string | number> {
             });
         }
 
+        removeParams?.forEach((key) => {
+            params.delete(key);
+        });
+
         this.navigate(`?${params.toString()}`, {
             replace: false,
-            state: { modal: true }
+            state: { modal: true },
         });
     };
+
     close = () => {
         window.history.back()
     };

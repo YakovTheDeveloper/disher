@@ -3,16 +3,18 @@ import { ISODate } from "@/types/common/common";
 import { Instance } from "mobx-state-tree";
 
 export function createDayScheduleModel(
-    overrides: Partial<Instance<typeof DaySchedule>> & { date: ISODate, isDraft: boolean }
+    overrides: Partial<Instance<typeof DaySchedule>> & { id: ISODate }
 ) {
     const data = {
-        id: Math.floor(Math.random() * 1_000_000),
-        date: overrides.date,
+        id: overrides.id,
         userId: overrides.userId ?? 0,
-        dailyEvents: overrides.dailyEvents ?? null,
-        items: overrides.items ?? [],
-        currentId: overrides.currentId ?? -1,
-        isDraft: overrides.isDraft
+        foods: {
+            items: overrides.foods ?? []
+        },
+        events: {
+            items: overrides.events ?? []
+        },
+        lastSync: ''
     }
 
     return DaySchedule.create(data)

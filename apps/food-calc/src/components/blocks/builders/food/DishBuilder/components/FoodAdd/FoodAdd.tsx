@@ -15,6 +15,8 @@ import { domainStore } from '@/store/store';
 import { useDishModals } from '@/components/blocks/builders/food/DishBuilder/modalContext';
 import { Dish } from '@/domain/dish/Dish';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
+import { useItemIdParam } from '@/hooks/useItemIdParams';
+import { TimePicker } from '@/components/blocks/builders/food/ScheduleBuilder/components/TimePicker';
 
 type Props = {
   children?: React.ReactNode;
@@ -23,18 +25,18 @@ type Props = {
 
 const FoodAdd = ({ children, store }: Props) => {
   const modals = useDishModals();
+  const itemId = useItemIdParam();
 
-  const [searchParams] = useSearchParams();
-  const itemId = searchParams.get('item_id');
-
-  const currentChildFoodId = store.getChildById(itemId as string)?.foodId;
+  const currentChild = store.getChildById(itemId as string);
+  const currentChildFoodId = currentChildFoodId?.foodId;
 
   const onFoodAdd = (food: any) => {
     console.log('itemId', itemId);
     if (itemId) {
       store.updateChildById(
-        itemId,
         {
+          id: itemId,
+          food: food.id,
           foodId: food.id,
         },
         true
@@ -42,7 +44,11 @@ const FoodAdd = ({ children, store }: Props) => {
       modals.close();
       return;
     }
-    store.addChildWithLocalData(food.id);
+    store.addChildWithLocalData({
+      food: food.id,
+      foodId: food.id,
+      quantity: 100,
+    });
     modals.close();
   };
   const navigate = useNavigate();
@@ -109,6 +115,13 @@ const FoodAdd = ({ children, store }: Props) => {
           {settings.showAdditionals ? 'Узнать о продукте' : 'Добавить продукт'}
         </Typography>
       </h2>
+
+      <div>
+        {currentChild && (
+          <TimePicker value={currentChild?.time} onFinish={onTimeChangeFinishUpdate} />
+        )}
+        {!currentChild && <TimePicker value={state.time} onFinish={onTimeChangeFinishLocalState} />}
+      </div>
 
       {/* Search */}
       <input

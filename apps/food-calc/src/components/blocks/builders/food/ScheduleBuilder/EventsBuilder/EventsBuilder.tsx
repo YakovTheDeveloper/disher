@@ -11,12 +11,12 @@ import { Actions } from '@/components/blocks/builders/food/shared/ui/Actions';
 import { Button as ActionButton } from '@/components/blocks/builders/food/shared/ui/Actions/button';
 import { EventListItem } from '@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/components/EventListItem';
 import { TimeGroup } from '@/components/blocks/builders/food/ScheduleBuilder/ui/List/TimeGroup';
+import { Instance } from 'mobx-state-tree';
+import { DaySchedule, EventItem } from '@/domain/schedule/schedule';
 
 type Props = {
   children?: React.ReactNode;
-  vm: {
-    dailyEvents: DayEventsBuilderViewModel;
-  };
+  schedule: Instance<typeof DaySchedule>;
   onEventContentUpdateModalOpen: (id: string | number) => void;
   onEventContentCreateModalOpen: () => void;
   onEventTimeModalOpen: (id: string | number) => void;
@@ -26,7 +26,7 @@ type Props = {
 };
 
 const EventsBuilder = ({
-  vm,
+  schedule,
   onEventContentUpdateModalOpen,
   onEventContentCreateModalOpen,
   onEventTimeModalOpen,
@@ -35,18 +35,17 @@ const EventsBuilder = ({
   const onFinishHandler = useCallback(() => {
     // updateDailyEvents
     // onFinish(vm.payload());
-  }, [vm]);
+  }, [schedule]);
 
   const renderEventListItem = useCallback(
-    (item: ScheduleQuestionnaireItemUI) => {
+    (item: Instance<typeof EventItem>) => {
       return (
         <CommonListItem
           className={styles.listItemRow}
           id={item.id}
-          onDelete={vm.dailyEvents.children.deleteChild}
-          onRecover={vm.dailyEvents.children.recoverDeletedChild}
+          onDelete={schedule.events.removeChild}
           key={item.id}
-          status={item.status}
+          sync={item.sync}
           showAdditionals={options.showAdditionals}
         >
           <EventListItem
@@ -57,13 +56,13 @@ const EventsBuilder = ({
         </CommonListItem>
       );
     },
-    [vm]
+    [schedule]
   );
 
   return (
     <>
       <section className="builder__time-groups">
-        {vm.dailyEvents.itemsGroupedByTime.map((timeGroup) => (
+        {schedule.eventsGroupedByTime.map((timeGroup) => (
           <TimeGroup key={timeGroup.time} group={timeGroup}>
             {renderEventListItem}
           </TimeGroup>

@@ -4,7 +4,8 @@ import {
     getOneSchedule,
     addSchedule,
     updateSchedule,
-    syncSchedule
+    syncSchedule,
+    syncSchedules
 } from "@/api/schedule/schedule.api"
 import { ISODate } from "@/types/common/common"
 import { DaySchedule } from "@/domain/schedule/schedule"
@@ -32,7 +33,7 @@ export const DayScheduleStore = types
     .actions(self => ({
         addLocal(init: Parameters<typeof createDayScheduleModel>[0]) {
             const model = createDayScheduleModel(init);
-            self.data.set(model.date, model);
+            self.data.set(model.id, model);
             return model
         },
         // ---- Load all schedules for a month (short data)
@@ -57,50 +58,18 @@ export const DayScheduleStore = types
         }),
 
         // ---- Create a schedule
-        fetchSync: flow(function* (payload: Instance<typeof DaySchedule>) {
-
-            const { date } = payload
-            const unsyncDishesPerSchedule = payload.allDraftDishesFromItems
+        fetchSync: async (payload: Instance<typeof DaySchedule>) => {
+            const { id } = payload
             const syncRequest = new RequestAndSetHandler(self)
-            const result = yield syncRequest.load({
-                id: date,
+            const result = await syncRequest.load({
+                id,
                 variant: 'fetchSync'
-            }, () => syncSchedule([{
-                schedule: payload,
-                unsyncDishesPerSchedule
-            }]))
+            }, () => syncSchedules([payload]))
             // self.data.set(date, DaySchedule.create(res.data))
 
             return result
 
-        }),
-
-        // ---- Update schedule
-        update: flow(function* (payload: DayScheduleUI) {
-            const date = payload.date
-            const state = self.ensureRequest(date)
-            state.loading = true
-            state.error = undefined
-
-            try {
-                const res = yield updateSchedule(payload, payload.id)
-                state.code = res.code
-
-                if (!res.data) {
-                    state.error = "Update failed"
-                    return { data: null, ...state }
-                }
-
-                self.data.set(date, DaySchedule.create(res.data))
-                return { data: res.data, ...state }
-
-            } catch (e) {
-                state.error = String(e)
-                return { data: null, ...state }
-            } finally {
-                state.loading = false
-            }
-        }),
+        },
 
         // ---- Local update (no backend call)
         updateDailyEventsLocal(date: ISODate, payload: string | null) {

@@ -18,6 +18,7 @@ import { ModalDailyScheduleProvider } from '@/components/blocks/builders/food/Sc
 import { domainStore } from '@/store/store';
 import { DaySchedule } from '@/domain/schedule/schedule';
 import { Instance } from 'mobx-state-tree';
+import { HeaderedContainer } from '@/components/common/Layout/HeaderedContainer';
 
 const Page = observer(({ date }: { date: string }) => {
   const store = useMemo(() => new InitLoadingStore(), []);
@@ -35,25 +36,18 @@ const Page = observer(({ date }: { date: string }) => {
   }, []);
 
   const isLoading = useCallback(
-    () => domainStore.daySchedule.status.fetchGet.get(date)?.loading ?? false,
-    [domainStore.daySchedule.status, date]
+    () => domainStore.scheduleStore.status.fetchGet.get(date)?.loading ?? false,
+    [domainStore.scheduleStore.status, date]
   );
 
   console.log('store.initData', store.initData);
   console.log('schedule builder page render');
 
-  const current = domainStore.daySchedule.data.get(date);
+  const current = domainStore.scheduleStore.data.get(date);
 
   const init = async () => {
-    const { code, data = null } = await domainStore.daySchedule.fetchGetOneByDate(date);
-
-    if (code === 404) {
-      domainStore.daySchedule.addLocal({ date, isDraft: true });
-    }
-
-    if (data) {
-      domainStore.daySchedule.addLocal({ ...data, isDraft: false });
-    }
+    const localSchedule = domainStore.scheduleStore.addLocal({ id: date });
+    domainStore.interactionsService.fetchSyncScheduleAndDishes(localSchedule);
   };
 
   useEffect(() => {
@@ -62,19 +56,11 @@ const Page = observer(({ date }: { date: string }) => {
     init();
   }, [current]);
 
-  useEffect(() => {
-    init();
-  }, []);
-
   return (
     <ModalDailyScheduleProvider>
-      <div className={styles.container}>
-        <Navigation></Navigation>
-        <Overlay isLoading={isLoading} className={styles.overlay} />
-        {current && (
-          <ScheduleBuilder key={date} date={date} schedule={current} onFinish={onFinish} />
-        )}
-      </div>
+      {current ? (
+        <ScheduleBuilder key={date} date={date} schedule={current} onFinish={onFinish} />
+      ) : null}
     </ModalDailyScheduleProvider>
   );
 });

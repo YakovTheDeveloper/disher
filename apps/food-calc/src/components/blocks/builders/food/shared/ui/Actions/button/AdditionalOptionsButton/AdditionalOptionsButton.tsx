@@ -13,7 +13,7 @@ type Props = {
 };
 
 const AdditionalOptionsButton = ({ options, className, isShow, onClick }: Props) => {
-  const textView = options.showAdditionals ? 'меньше опций' : 'больше опций';
+  const textView = options.showAdditionals ? 'x' : '...';
 
   if (!isShow?.()) return null;
   return (

@@ -28,17 +28,17 @@ export class InitLoadingStore {
 
         this.initData = null
 
-        const cached = domainStore.daySchedule.data.get(date)
+        const cached = domainStore.scheduleStore.data.get(date)
         if (cached) {
             this.initData = cached;
             return;
         }
 
         if (!cached) {
-            const { code, data = null } = await domainStore.daySchedule.getOneByDate(date);
+            const { code, data = null } = await domainStore.scheduleStore.getOneByDate(date);
 
             if (code === 404) {
-                const newSchedule = domainStore.daySchedule.createLocal(data)
+                const newSchedule = domainStore.scheduleStore.createLocal(data)
                 this.scheduleCacheInstance.set(newViewModel);
                 this.initData = newViewModel
                 return;

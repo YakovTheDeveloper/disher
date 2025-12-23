@@ -2,6 +2,58 @@
 import type { Prisma } from "@prisma/client";
 import { scheduleItemSelect } from "./schedule.route";
 
+export function mapScheduleItemData(item: {
+    quantity?: number;
+    content: {
+        variant: "custom" | "food" | "dish";
+        customName?: string | null;
+        foodId?: string | null;
+        dishId?: string | null;
+    };
+}) {
+    const { content } = item;
+
+    switch (content.variant) {
+        case "food":
+            if (!content.foodId) {
+                throw new Error("foodId is required for variant 'food'");
+            }
+            return {
+                quantity: item.quantity ?? 0,
+                type: "food" as const,
+                foodId: +content.foodId,
+                dishId: null,
+                customFoodName: null,
+            };
+        case "dish":
+            if (!content.dishId) {
+                throw new Error("dishId is required for variant 'dish'");
+            }
+            return {
+                quantity: item.quantity ?? 0,
+                type: "dish" as const,
+                dishId: content.dishId,
+                foodId: null,
+                customFoodName: null,
+            };
+        case "custom":
+            if (!content.customName) {
+                throw new Error("customName is required for variant 'custom'");
+            }
+            return {
+                quantity: item.quantity ?? 0,
+                type: "custom" as const,
+                customFoodName: content.customName,
+                foodId: null,
+                dishId: null,
+            };
+        default:
+            throw new Error("Invalid variant in content");
+    }
+}
+
+
+
 export async function syncSchedule(
     tx: Prisma.TransactionClient,
     schedule: any // you can type with DayScheduleInput

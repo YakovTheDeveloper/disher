@@ -16,11 +16,12 @@ import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 
 type Props = {
   content: Instance<typeof DishItem>;
+  controller: Instance<typeof Dish>;
   options: BuilderUIStore;
   className?: string;
 };
 
-const DishListItem = ({ itemActions, content, options, className }: Props) => {
+const DishListItem = ({ itemActions, controller, content, options, className }: Props) => {
   console.log('LIST_ITEM', content);
 
   const modals = useDishModals();
@@ -32,16 +33,14 @@ const DishListItem = ({ itemActions, content, options, className }: Props) => {
   };
 
   const onQuantityOpen = () => {
-    content.setAsCurrent();
     modals?.set('quantity');
   };
 
   const onFoodsOpenInfo = () => {
-    content.setAsCurrent();
     modals?.set('foodNutrients');
   };
 
-  const onDelete = () => content.deleteChild();
+  const onDelete = () => controller.removeChild(content.id);
   // const onRecover = () => content.recover();
 
   const id = content.id;
@@ -49,13 +48,11 @@ const DishListItem = ({ itemActions, content, options, className }: Props) => {
   const getFoodName = useCallback(() => content.food?.name, [content]);
   const getQuantity = useCallback(() => content.quantity, [content]);
 
-  const status = content.status;
-
   const showAdditionalsMode = options.showAdditionals;
 
   const isQuantityHide = useMemo(() => showAdditionalsMode, [showAdditionalsMode]);
 
-  const onChange = (quantity: number) => content.update({ quantity });
+  const onChange = (quantity: number) => controller.updateChildById({ id: content.id, quantity });
 
   return (
     <CommonListItem

@@ -62,10 +62,11 @@ const DishBuilder = ({ init, onFinish, foodModelStore = foodStore, finishButtonT
   return (
     <div className={style.container}>
       <Heading store={dishes} />
-
       <ItemsList>
         {dishes.items.map((content) => {
-          return <DishListItem key={content.id} content={content} options={options} />;
+          return (
+            <DishListItem key={content.id} controller={init} content={content} options={options} />
+          );
         })}
       </ItemsList>
 

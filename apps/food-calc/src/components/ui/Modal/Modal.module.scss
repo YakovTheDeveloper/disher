@@ -19,10 +19,14 @@
     overflow: hidden;
 
     header {
-        align-items: end;
-        justify-items: end;
+        display: flex;
+        align-items: flex-end;
+        justify-items: flex-end;
         padding: 0 0 10px;
-        flex: 0 1;
+
+        * {
+            margin-left: auto;
+        }
     }
 
     &Content {

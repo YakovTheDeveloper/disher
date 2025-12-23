@@ -1,5 +1,16 @@
-import { EventEmitter } from "@/lib/eventEmitter/eventEmitter";
+import mitt from 'mitt';
 
-export const NutrientsEventEmitter = new EventEmitter<"RECALCULATE_NUTRIENTS">()
+// Define the event types
+type NutrientsEvents = {
+    RECALCULATE_NUTRIENTS: void;
+};
 
-export const ScheduleUIEventEmitter = new EventEmitter<"OPEN_COPY_SCHEDULE_MODAL">()
+type ScheduleUIEvents = {
+    OPEN_COPY_SCHEDULE_MODAL: void;
+    CREATE_DISH: void;
+    SCROLL_NAVIGATION: number; // scrollTop value
+};
+
+// Create mitt emitters
+export const NutrientsEventEmitter = mitt<NutrientsEvents>();
+export const ScheduleUIEventEmitter = mitt<ScheduleUIEvents>();

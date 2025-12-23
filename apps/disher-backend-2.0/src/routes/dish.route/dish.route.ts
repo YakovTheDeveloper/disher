@@ -51,32 +51,36 @@ export const dihesRoutes = {
 
             return createResponseObject(200, 'good', result)
         }),
-    getOneDish: publicProcedure.input(
-        z.object({
-            id: z.string()
-        })
-    ).query(async ({ input }) => {
-        const whereCondition = {
-            id: input.id
-        }
+    getDish: publicProcedure
+        .input(
+            z.object({
+                id: z.union([
+                    z.string(),
+                    z.array(z.string()),
+                ]),
+            })
+        )
+        .query(async ({ input }) => {
+            const ids = Array.isArray(input.id) ? input.id : [input.id];
 
-        const result = await prisma.dish.findUnique({
-            select: {
-                id: true,
-                items: true,
-                name: true
-            },
-            where: whereCondition,
+            const result = await prisma.dish.findMany({
+                where: {
+                    id: { in: ids },
+                },
+                select: {
+                    id: true,
+                    items: true,
+                    name: true,
+                },
+            });
 
-        });
-
-        return createResponseObject(200, 'good', result)
-    }),
-
+            return createResponseObject(200, 'good', result);
+        }),
     syncDish: publicProcedure
         .input(DishSyncInputZod)
         .mutation(async ({ input, ctx }) => {
             const results = [];
+            const notSync = []
             for (const dish of input.dishes) {
                 try {
 
@@ -165,6 +169,8 @@ export const dihesRoutes = {
                         error,
                     });
 
+                    notSync.push(dish.id)
+
                     results.push({
                         id: dish.id,
                         dish: null,
@@ -172,7 +178,10 @@ export const dihesRoutes = {
                 }
             }
 
-            return createResponseObject(200, "OK", results);
+            return createResponseObject(200, "OK", {
+                dishes: results,
+                notSyncIds: notSync
+            });
         })
     ,
 

@@ -53,6 +53,7 @@ import { useNavigate } from 'react-router';
 import { RouterLinks } from '@/router';
 import { domainStore } from '@/store/store';
 import toaster from '@/infrastructure/toaster/toaster';
+import { Navigation } from '@/components/blocks/builders/food/ScheduleBuilder/ui/Navigation';
 
 export const Modals = {
   Time: 'time',
@@ -83,8 +84,7 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
   const options = useMemo(() => new BuilderUIStore([0, 1, 2]), []);
 
   const onFoodsOpenCreate = () => {
-    schedule.addFoodItemAndSetAsCurrent('1');
-    modals.set('foodAdd');
+    modals.set('foodAdd', {}, ['item_id']);
   };
 
   const onUniteFoodIntoDish = useCallback((group: TimeGroupUI<Instance<typeof ScheduleItem>>) => {
@@ -138,13 +138,13 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
   //   modals.set('eventTime');
   // };
 
-  // const onEventContentSelect = (content: DailyEventData) => {
-  //   if (schedule.dailyEvents.children.currentId === -1) {
-  //     schedule.dailyEvents.add(content);
-  //     return;
-  //   }
-  //   schedule.dailyEvents.children.updateCurrent({ data: content });
-  // };
+  const onEventContentSelect = (content: DailyEventData) => {
+    if (schedule.dailyEvents.children.currentId === -1) {
+      schedule.dailyEvents.add(content);
+      return;
+    }
+    schedule.dailyEvents.children.updateCurrent({ data: content });
+  };
 
   // const onDailyEventsUpdate = async () => {
   //   updateDailyEvents;
@@ -180,7 +180,7 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
 
   return (
     <div className={style.container}>
-      <Swipeable model={options} pageNames={pageNames}>
+      <Swipeable model={options} pageNames={pageNames} header={<Navigation></Navigation>}>
         {/* <TotalNutrients vm={schedule} ref={totalNutrients} /> */}
 
         {[
@@ -188,7 +188,7 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
           <WithOverlay isLoading={isLoading}>
             <List onDishesUnite={onUniteFoodIntoDish} options={foodOptions} schedule={schedule} />
           </WithOverlay>,
-          <></>,
+          <EventsBuilder schedule={schedule} options={foodOptions} />,
         ]}
 
         {/* <WithOverlay isLoading={isLoading}>
@@ -211,13 +211,13 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
           [Modals.FoodNutrients]: <FoodNutrients store={schedule} />,
           [Modals.CreateDish]: <DishBuilderContainer store={schedule} />,
           // [Modals.CopySchedule]: <CopySchedule onFinish={onCopyFinish} />,
-          // [Modals.EventContent]: (
-          //   <EventContent
-          //     onSelect={onEventContentSelect}
-          //     onFinish={modals.close}
-          //     schedule={schedule}
-          //   />
-          // ),
+          [Modals.EventContent]: (
+            <EventContent
+              onSelect={onEventContentSelect}
+              onFinish={modals.close}
+              schedule={schedule}
+            />
+          ),
           // [Modals.EventTime]: (
           //   <ContentEdit.Time vm={schedule.dailyEventItemsStore} onFinish={modals.close} />
           // ),

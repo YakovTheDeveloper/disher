@@ -104,6 +104,29 @@ export const updateSchedule = async (
     return result
 }
 
+export const syncSchedules = async (schedules: Instance<typeof DaySchedule>[]) => {
+
+    const payload: Parameters<typeof trpc.syncSchedule.mutate>[0] = {
+        schedules: schedules.map((schedule) => {
+            const { id } = getSnapshot(schedule);
+            const { added, deleted, modified } = schedule.delta
+            const userId = 1
+            return {
+                id,
+                userId,
+                items: {
+                    create: added,
+                    delete: deleted,
+                    update: modified
+                },
+            }
+        }),
+    }
+
+    const result = await trpc.syncSchedule.mutate(payload);
+    return result.data
+}
+
 // export const updateDailyEvents = async (
 //     date: ISODate, payload: ScheduleQuestionnaireItemUI[]
 // ) => {

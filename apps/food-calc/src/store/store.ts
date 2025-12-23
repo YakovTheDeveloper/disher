@@ -8,12 +8,13 @@ import { InteractionsService } from "@/store/interactions/InteractionsService";
 import { makePersistable } from "@/store/persistance";
 import { createNutrientStoreWithInitialData } from "@/store/NutrientStore/NutrientStore";
 import { onPatch } from "mobx-state-tree";
+import { standardFood } from "@/assets/seed/food";
 
 let _store: RootInstance | undefined;
 
 function createStore(): RootInstance {
     const store = RootStore.create({
-        daySchedule: DayScheduleStore.create(),
+        scheduleStore: DayScheduleStore.create(),
         foodStore: FoodModelStore.create(),
         dishStore: DishStore.create(),
         nutrientStore: createNutrientStoreWithInitialData(),
@@ -22,7 +23,7 @@ function createStore(): RootInstance {
 
     makePersistable(store.dishStore, "dish-store")
     makePersistable(store.foodStore, "food-store")
-    makePersistable(store.daySchedule, "day-schedule-store")
+    makePersistable(store.scheduleStore, "day-schedule-store")
     makeInspectable(store);
 
     return store;

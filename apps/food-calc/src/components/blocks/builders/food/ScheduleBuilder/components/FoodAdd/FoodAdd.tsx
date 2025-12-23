@@ -20,6 +20,7 @@ import { domainStore } from '@/store/store';
 import { Time } from '@/components/blocks/builders/food/ScheduleBuilder/ui/List/Time';
 import { filterBy } from '@/lib/filter/filter';
 import { TimePicker } from '@/components/blocks/builders/food/ScheduleBuilder/components/TimePicker';
+import { useSearchParams } from 'react-router';
 
 type Props = {
   children?: React.ReactNode;
@@ -32,34 +33,56 @@ type Tabs = 'productSearch' | 'dishSearch' | 'createCustom';
 const FoodAdd = ({ children, store, headerAfter }: Props) => {
   const modals = useDailyScheduleModals();
 
-  const currentChild = store.current;
+  const [searchParams] = useSearchParams();
+  const itemId = searchParams.get('item_id');
+
+  const currentChild = store.getChildById(itemId);
 
   const onCustomAdd = (payload: DishEntity | FoodEntity | string) => {
+    const customName = payload.toString();
     console.log('onCustomAdd payload', payload);
-    store.updateChildContent('custom', payload.toString());
+    store.addOrUpdateCustom(itemId, {
+      customName,
+      time: state.time,
+    });
     modals.close();
   };
 
   const onFoodAdd = (payload: DishEntity | FoodEntity | string) => {
-    console.log('onFoodAdd payload', payload);
-    store.updateChildContent('food', payload.id.toString());
+    console.log('onFoodAdd payload', payload, state.time);
+    store.addOrUpdateFood(itemId, {
+      foodId: payload.id.toString(),
+      time: state.time,
+    });
     modals.clear();
   };
 
   const onDishAdd = (payload: DishEntity | FoodEntity | string) => {
     console.log('onDishAdd payload', payload);
-    store.updateChildContent('dish', payload.id.toString());
+    store.addOrUpdateDish(itemId, {
+      dishId: payload.id.toString(),
+      time: state.time,
+    });
     modals.close();
   };
 
-  const onTimeChangeFinish = (value: string) => {
-    store.updateTime(value);
+  const onTimeChangeFinishUpdate = (value: string) => {
+    store.updateTime(itemId, value);
+  };
+
+  const onTimeChangeFinishLocalState = (value: string) => {
+    state.setTime(value);
   };
 
   const state = useLocalObservable(() => ({
     currentTab: 'productSearch' as Tabs,
     filterText: '',
     customProductText: currentChild?.content?.name || '',
+    time: store.lastTimeItemAdded || '08:00',
+
+    setTime(time: string) {
+      this.time = time;
+    },
 
     setTab(tab: Tabs) {
       this.currentTab = tab;
@@ -117,7 +140,7 @@ const FoodAdd = ({ children, store, headerAfter }: Props) => {
   const renderProductItem = (item: unknown) => (
     <>
       <SearchListItem
-        className={currentChild?.food?.id === item.id ? styles.currentSelectedItem : ''}
+        className={currentChild?.content?.food?.id === item.id ? styles.currentSelectedItem : ''}
       >
         <FoodName
           onClick={() => onFoodAdd(item)}
@@ -133,7 +156,7 @@ const FoodAdd = ({ children, store, headerAfter }: Props) => {
   const renderDishtItem = (item: unknown) => (
     <>
       <SearchListItem
-        className={currentChild?.dish?.id === item.id ? styles.currentSelectedItem : ''}
+        className={currentChild?.content?.dish?.id === item.id ? styles.currentSelectedItem : ''}
       >
         <FoodName
           onClick={() => onDishAdd(item)}
@@ -199,7 +222,12 @@ const FoodAdd = ({ children, store, headerAfter }: Props) => {
         </h2>
 
         <div>
-          <TimePicker value={currentChild?.time} onFinish={onTimeChangeFinish} />
+          {currentChild && (
+            <TimePicker value={currentChild?.time} onFinish={onTimeChangeFinishUpdate} />
+          )}
+          {!currentChild && (
+            <TimePicker value={state.time} onFinish={onTimeChangeFinishLocalState} />
+          )}
         </div>
       </header>
 

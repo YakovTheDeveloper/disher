@@ -23,20 +23,23 @@ type CommonProps = {
 };
 
 const ListWrapper = observer(({ schedule, ...restProps }: CommonProps) => {
-  const length = schedule.itemsGroupedByTime.length;
+  const length = schedule.foodsGroupedByTime.length;
   console.log(length);
-  return <List items={schedule.itemsGroupedByTime} length={length} {...restProps} />;
+  return (
+    <List items={schedule.foodsGroupedByTime} schedule={schedule} length={length} {...restProps} />
+  );
 });
 
 type Props = Omit<CommonProps, 'schedule'> & {
   length: number;
+  schedule: Instance<typeof DaySchedule>;
   items: TimeGroupUI<Instance<typeof ScheduleItem>>[];
 };
 
-const List = observer(({ items, options, length, onDishesUnite }: Props) => {
+const List = observer(({ items, options, length, onDishesUnite, schedule }: Props) => {
   const renderItem = useCallback(
     (item: Instance<typeof ScheduleItem>) => {
-      return <Item key={item.id} item={item} options={options} />;
+      return <Item key={item.id} item={item} options={options} controller={schedule} />;
     },
     [options]
   );

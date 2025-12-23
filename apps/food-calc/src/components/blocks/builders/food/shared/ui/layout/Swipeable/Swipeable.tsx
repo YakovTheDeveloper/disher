@@ -1,7 +1,10 @@
-import { useState, useRef, ReactNode, TouchEvent } from 'react';
+import { useState, useRef, ReactNode, TouchEvent, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './Swipeable.module.scss';
-import { Pages } from '@/components/blocks/builders/food/shared/ui/layout/Swipeable/Pages';
+import {
+  Pages,
+  ScrollDirection,
+} from '@/components/blocks/builders/food/shared/ui/layout/Swipeable/Pages';
 import clsx from 'clsx';
 
 type Props = {
@@ -11,14 +14,24 @@ type Props = {
     currentPage: number;
     setCurrentPage: (value: number) => void;
   };
+  header?: React.ReactNode;
 };
 
-const Swipeable = ({ children, model, pageNames }: Props) => {
+const Swipeable = ({ children, model, pageNames, header }: Props) => {
   const { setCurrentPage } = model;
   const [offset, setOffset] = useState(0);
+  const [hideHeader, setHideHeader] = useState(false);
   const startX = useRef<number | null>(null);
   const startTime = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollDirection = (direction: ScrollDirection) => {
+    if (direction === 'down') {
+      setHideHeader(true);
+    } else if (direction === 'up') {
+      setHideHeader(false);
+    }
+  };
 
   const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
     startX.current = e.touches[0].clientX;
@@ -57,7 +70,7 @@ const Swipeable = ({ children, model, pageNames }: Props) => {
     setCurrentPage(index);
   };
 
-  const minDragToMoveScreen = 300;
+  const minDragToMoveScreen = 100;
   const width = containerRef.current?.offsetWidth || 1;
 
   const aimScreenPosition = (-model.currentPage * 100) / children.length;
@@ -82,9 +95,12 @@ const Swipeable = ({ children, model, pageNames }: Props) => {
 
   return (
     <div className={styles.wrapper}>
+      {header && (
+        <div className={clsx(styles.header, hideHeader && styles.header_hidden)}>{header}</div>
+      )}
       <div
         ref={containerRef}
-        className={styles.container}
+        className={clsx(styles.container, hideHeader && styles.container_full)}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -93,18 +109,18 @@ const Swipeable = ({ children, model, pageNames }: Props) => {
           className={styles.swipeWrapper}
           style={{
             transform: transformStyle,
-            transition: offset === 0 ? 'transform 0.3s ease' : 'none',
+            transition: offset === 0 ? 'transform 0.1s' : 'none',
             display: 'flex',
             width: `${children.length * 100}%`,
           }}
         >
-          <Pages>{children}</Pages>
+          <Pages onScrollDirectionChange={handleScrollDirection}>{children}</Pages>
         </div>
       </div>
 
       {/* Tracker Dots */}
       <div className={styles.bottom}>
-        {/* <div className={styles.dots}>
+        <div className={styles.dots}>
           {children.map((_, i) => (
             <span
               key={i}
@@ -112,8 +128,8 @@ const Swipeable = ({ children, model, pageNames }: Props) => {
               onClick={() => goToPage(i)}
             ></span>
           ))}
-        </div> */}
-        {pageNames && (
+        </div>
+        {/* {pageNames && (
           <div className={styles.tabs}>
             {pageNames.map((name, i) => (
               <span
@@ -128,7 +144,7 @@ const Swipeable = ({ children, model, pageNames }: Props) => {
               </span>
             ))}
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

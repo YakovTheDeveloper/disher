@@ -4,23 +4,36 @@ import { dayNames } from '@/constants';
 import { useCallback, useEffect, useState } from 'react';
 import { Typography } from '@/components/ui/Typography/Typography';
 import { observer } from 'mobx-react-lite';
-import { useNavigate } from 'react-router';
 import { scheduleStore } from '@/store/rootStore';
-import clsx from 'clsx';
 import { ScheduleModelStore } from '@/store/models/schedule/scheduleModelStore';
 import { ScheduleCalendarContentCell } from '@/components/blocks/schedule/ScheduleSelection/ScheduleCalendarContentCell';
 
+/**
+ * ✅ SINGLE SOURCE OF TRUTH FOR DATE FORMAT
+ * DD-MM-YYYY
+ */
+const formatDDMMYYYY = (date: Date): string => {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yyyy = date.getFullYear();
+
+  return `${dd}-${mm}-${yyyy}`;
+};
+
 type Props = {
-  onDate: (date: Date) => void;
+  /** 🔒 Date is ALWAYS passed as DD-MM-YYYY */
+  onDate: (date: string) => void;
   store?: ScheduleModelStore;
 };
 
 const ScheduleSelection = ({ store = scheduleStore, onDate }: Props) => {
+  /** UI-only Date (allowed) */
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
+  /** Load month data */
   useEffect(() => {
     store.getAllMonthShortData(currentMonth);
-  }, [currentMonth]);
+  }, [currentMonth, store]);
 
   const onPrevMonth = () => {
     const prevMonth = new Date(currentMonth);
@@ -34,8 +47,12 @@ const ScheduleSelection = ({ store = scheduleStore, onDate }: Props) => {
     setCurrentMonth(nextMonth);
   };
 
+  /** 🔑 ALL STORE LOOKUPS USE DD-MM-YYYY */
   const getContentExist = useCallback(
-    (date: Date) => store.existing.get(date.toISOString()) || false,
+    (date: Date) => {
+      const key = formatDDMMYYYY(date);
+      return store.existing.get(key) || false;
+    },
     [store]
   );
 
@@ -44,15 +61,21 @@ const ScheduleSelection = ({ store = scheduleStore, onDate }: Props) => {
     [getContentExist]
   );
 
+  /** 🔒 Convert Date → DD-MM-YYYY before leaving component */
+  const onDateSelect = (date: string) => {
+    onDate(date);
+  };
+
   return (
     <div className={style.container}>
       <Typography>Расписание</Typography>
+
       <Calendar
         currentMonth={currentMonth}
         onNextMonth={onNextMonth}
         onPrevMonth={onPrevMonth}
         selectedDate={null}
-        onDateSelect={onDate}
+        onDateSelect={onDateSelect}
         dayNames={dayNames.ru}
         cellClassName={style.dateCell}
         renderDayCellContent={renderCellContent}

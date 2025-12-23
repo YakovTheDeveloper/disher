@@ -7,9 +7,8 @@ import { ScheduleCreateInputSchema, ScheduleCreateWithoutUserInputSchema, Schedu
 import { createResponseObject } from "../../lib/response"
 import { DailyEventsUpdateSchema, ScheduleCreateInputZod, ScheduleUpdateInputZod } from "./validation"
 import { Prisma } from "@prisma/client"
-import { ScheduleSyncInputZod } from "./validationV2"
-import { syncSchedule } from "./schedule.service"
-import { syncDish } from "../dish.route/dish.service"
+import { ScheduleSyncInputZod } from "./validationV3"
+import { mapScheduleItemData, syncSchedule } from "./schedule.service"
 
 export const scheduleItemSelect = {
     dish: {
@@ -247,38 +246,95 @@ export const scheduleRoutes = {
             }
 
         }),
+
+
     syncSchedule: publicProcedure
         .input(ScheduleSyncInputZod)
         .mutation(async ({ input }) => {
             const results = [];
-            for (const schedule of input.schedules) {
 
+            for (const schedule of input.schedules) {
 
                 try {
                     const result = await prisma.$transaction(async (tx) => {
+                        // =========================
+                        // UPSERT SCHEDULE
+                        // =========================
+                        let existingSchedule = await tx.schedule.findUnique({
+                            where: { id: schedule.id },
+                        });
 
-                        const unsyncDishes = schedule.unsyncDishesPerSchedule
-                        const localClientIdToNewDbId: Record<number, number> = {};
-
-                        for (const key in unsyncDishes.items) {
-                            const dish = unsyncDishes[key]
-                            const newDish = await syncDish(tx, dish);
+                        if (existingSchedule) {
+                            await tx.schedule.update({
+                                where: { id: schedule.id },
+                                data: {
+                                    updatedAt: new Date(),
+                                },
+                            });
+                        } else {
+                            existingSchedule = await tx.schedule.create({
+                                data: {
+                                    id: schedule.id, // client-first id
+                                    userId: schedule.userId,
+                                },
+                            });
                         }
 
+                        const changes = schedule.items;
+                        const eventChanges = schedule.events;
 
-                        return syncSchedule(tx, schedule);
+                        if (changes?.delete?.length) {
+                            await tx.scheduleItem.deleteMany({
+                                where: {
+                                    id: { in: changes.delete },
+                                    scheduleId: schedule.id,
+                                },
+                            });
+                        }
+                        if (changes?.update?.length) {
+                            for (const item of changes.update) {
+                                await tx.scheduleItem.update({
+                                    where: { id: item.id },
+                                    data: {
+                                        time: item.time,
+                                        ...mapScheduleItemData(item),
+                                    },
+                                });
+                            }
+                        }
+                        if (changes?.create?.length) {
+                            await tx.scheduleItem.createMany({
+                                data: changes.create.map((item) => ({
+                                    id: item.id,
+                                    scheduleId: schedule.id,
+                                    time: item.time,
+                                    ...mapScheduleItemData(item),
+                                })),
+                                skipDuplicates: true,
+                            });
+                        }
+                        return tx.schedule.findUnique({
+                            where: { id: schedule.id },
+                            include: {
+                                items: true,
+                            },
+                        });
                     });
 
-                    results.push(result);
-
+                    results.push({
+                        id: schedule.id,
+                        schedule: result,
+                    });
                 } catch (error) {
-                    console.error(error);
+                    console.error("Schedule sync error:", {
+                        scheduleId: schedule.id,
+                        error,
+                    });
 
-                    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-                        return createResponseObject(400, "Database error", null);
-                    }
-
-                    return createResponseObject(500, "Unexpected error", null);
+                    results.push({
+                        id: schedule.id,
+                        schedule: null,
+                    });
                 }
             }
 

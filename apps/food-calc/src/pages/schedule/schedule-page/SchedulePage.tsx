@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router';
 const SchedulePage = () => {
   const navigate = useNavigate();
 
-  const onDateChoose = (date: Date) => {
-    navigate(`builder/${date.toISOString()}`);
+  const onDateChoose = (date: string) => {
+    navigate(`builder/${date}`);
   };
 
   return (

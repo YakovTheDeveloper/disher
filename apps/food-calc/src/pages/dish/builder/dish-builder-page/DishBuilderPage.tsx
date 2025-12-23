@@ -37,14 +37,14 @@ const Page = ({ dishIdParam }: Props) => {
 
     return;
 
-    const { code, data = null } = await domainStore.daySchedule.getOneByDate(date);
+    const { code, data = null } = await domainStore.scheduleStore.getOneByDate(date);
 
     if (code === 404) {
-      domainStore.daySchedule.addLocal({ date, isDraft: true });
+      domainStore.scheduleStore.addLocal({ date, isDraft: true });
     }
 
     if (data) {
-      domainStore.daySchedule.addLocal({ ...data, isDraft: false });
+      domainStore.scheduleStore.addLocal({ ...data, isDraft: false });
     }
   };
 

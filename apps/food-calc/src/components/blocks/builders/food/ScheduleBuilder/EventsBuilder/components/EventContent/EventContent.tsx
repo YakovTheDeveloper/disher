@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { observer } from 'mobx-react-lite';
+import { observer, useLocalObservable } from 'mobx-react-lite';
 import styles from './EventContent.module.scss';
 import { DailyEventData } from '@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DaySchedule } from '@/domain/schedule/schedule';
+import { Instance } from 'mobx-state-tree';
+import { useItemIdParam } from '@/hooks/useItemIdParams';
+import { TimePicker } from '@/components/blocks/builders/food/ScheduleBuilder/components/TimePicker';
 
 type Props = {
   onSelect: (data: DailyEventData) => void;
   onFinish: () => void;
-  schedule: {
-    currentDailyEventData: DailyEventData | null;
-  };
+  schedule: Instance<typeof DaySchedule>;
 };
 
 type VariantKey = DailyEventData['variant'];
@@ -21,8 +23,24 @@ const EventContent = observer(({ onSelect, onFinish, schedule }: Props) => {
   const [selected, setSelected] = useState<VariantKey | null>(null);
   const [selectedSub, setSelectedSub] = useState<DigestionSubKey | null>(null);
   const [formData, setFormData] = useState<any>({});
+  const itemId = useItemIdParam();
 
-  const current = schedule.currentDailyEventData;
+  const current = schedule.events.getChildById(itemId);
+
+  const state = useLocalObservable(() => ({
+    time: schedule.lastTimeItemAdded || '08:00',
+    setTime(time: string) {
+      this.time = time;
+    },
+  }));
+
+  const onTimeChangeFinishUpdate = (value: string) => {
+    schedule.updateEventTime(itemId, value);
+  };
+
+  const onTimeChangeFinishLocalState = (value: string) => {
+    state.setTime(value);
+  };
 
   // initialize from current if editing
   useEffect(() => {
@@ -42,35 +60,48 @@ const EventContent = observer(({ onSelect, onFinish, schedule }: Props) => {
   };
 
   const handleSubmit = (e: React.FormEvent) => {
+    console.log('schedule', schedule);
+
     e.preventDefault();
     if (!selected) return;
 
     // digestion handled separately
     if (selected === 'digestion') return;
 
-    onSelect({
-      variant: selected,
-      content: formData,
+    schedule.addOrUpdateEvent(itemId, {
+      type: selected,
+      value: JSON.stringify(formData),
+      time: '08:00',
     });
+
+    // onSelect({
+    //   variant: selected,
+    //   content: formData,
+    // });
     onFinish();
   };
 
   const handleDigestionSave = () => {
+    console.log('schedule', schedule);
+
     if (!selectedSub) return;
-    onSelect({
-      variant: 'digestion',
-      content: {
-        variant: selectedSub,
-        value: formData.value,
-      },
-    });
+    // onSelect({
+    //   variant: 'digestion',
+    //   content: {
+    //     variant: selectedSub,
+    //     value: formData.value,
+    //   },
+    // });
     onFinish();
   };
 
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>{current ? 'Редактировать' : 'Добавить событие'}</h2>
-
+      <div>
+        {current && <TimePicker value={current?.time} onFinish={onTimeChangeFinishUpdate} />}
+        {!current && <TimePicker value={state.time} onFinish={onTimeChangeFinishLocalState} />}
+      </div>
       {/* Step 1: Select variant */}
       {!selected && (
         <div className={styles.variantList}>

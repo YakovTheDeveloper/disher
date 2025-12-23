@@ -1,5 +1,7 @@
 import { Dish } from "@/domain/dish/Dish";
 import { AllScheduleItemContentTypes, DaySchedule, DishItemContent, ScheduleItem } from "@/domain/schedule/schedule";
+import toaster from "@/infrastructure/toaster/toaster";
+import { isEmpty, isNotEmpty } from "@/lib/empty";
 import { DayScheduleStore } from "@/store/DayScheduleStore/DayScheduleStore";
 import { DishStore } from "@/store/DishStore/DishStore";
 import { domainStore } from "@/store/store";
@@ -9,7 +11,6 @@ import { flow, getEnv, getRoot, Instance, IStateTreeNode, types, walk } from "mo
 export interface InteractionsEnv {
     dishStore: Instance<typeof DishStore>;
     scheduleStore: Instance<typeof DayScheduleStore>
-    daySchedule: DayScheduleApi;
 }
 
 export const InteractionsService = types
@@ -56,30 +57,32 @@ export const InteractionsService = types
 
         }
 
-        const fetchSyncScheduleAndDishes = async (payload: Instance<typeof DaySchedule>) => {
+        const fetchSyncScheduleAndDishes = async (schedule: Instance<typeof DaySchedule>) => {
             const root = getRoot(self) as InteractionsEnv;
 
-            const syncedDishes = await root.dishStore.fetchSync(
-                payload.allDraftDishesFromItems
+            const notSyncedDishes = schedule.allDraftDishesFromItems
+
+            if (isNotEmpty(notSyncedDishes)) {
+                const status = await fetchSyncDishes(notSyncedDishes)
+                if (status === 'fail') return
+            }
+
+            const syncedSchedules = await root.scheduleStore.fetchSync(
+                schedule
             );
 
-            if (!syncedDishes) return;
+            const id = schedule.id
+            const children = schedule.items
 
-            for (const item of syncedDishes) {
-                if (item.dish) {
-                    root.dishStore.addLocal({
-                        id: String(item.dish.id),
-                        name: item.dish.name,
-                        isDraft: false,
-                        items: item.dish.items.map(i => ({
-                            id: String(i.id),
-                            quantity: i.quantity,
-                            foodId: String(i.foodId),
-                            food: String(i.foodId),
-                        })),
-                    });
-                }
+            const syncedSchedule = syncedSchedules?.at(0)
+            if (!syncedSchedule?.schedule) {
+                toaster.warning('Не удалось синхронизировать день')
+                return
             }
+
+            const local = root.scheduleStore.data.get(id)
+            local?.removeChildrenMarkedAsDeleted()
+            local?.addOrUpdateBulk(children)
 
         };
 
@@ -87,33 +90,42 @@ export const InteractionsService = types
 
             const root = getRoot(self) as InteractionsEnv;
 
-            const syncedDishes = await root.dishStore.fetchSync(
+            const syncResult = await root.dishStore.fetchSync(
                 payload
             );
 
-            if (!syncedDishes) return;
+            if (!syncResult?.dishes) return 'fail';
 
-            for (const item of syncedDishes) {
+            for (const item of syncResult.dishes) {
                 if (!item.dish) continue
                 const id = item.dish.id
                 const dishChildren = item.dish.items
                 const localDish = root.dishStore.data.get(id)
 
+                localDish?.setLastSync()
                 localDish?.removeChildrenMarkedAsDeleted()
-
-                for (const dishChild of dishChildren) {
-                    const { id, quantity, foodId } = dishChild
-                    const localChild = localDish?.updateChildById(id, {
-                        quantity, foodId: foodId.toString()
-                    }, false)
-                    localChild?.sync.onSync(Date.now().toString())
-                    if (!localChild) {
-                        localDish?.addChildWithServerData(foodId.toString(), { id, quantity })
-                    }
-                }
+                localDish?.addOrUpdateBulk(dishChildren)
             }
 
+            return isNotEmpty(syncResult.notSyncIds) ? 'fail' : 'success'
+
         };
+
+        // const fetchGetDishes = async (id: string) => {
+        //     const root = getRoot(self) as InteractionsEnv;
+
+        //     const dishes = await root.dishStore.fetchGet(id)
+
+        //     if (dishes?.data == null) return;
+
+        //     for (const inputDish of dishes.data) {
+        //         const id = inputDish.id
+        //         const localDish = root.dishStore.data.get(id)
+        //         const dishChildren = inputDish.items
+        //         localDish?.addOrUpdateBulk(dishChildren)
+        //     }
+
+        // }
 
         // function* scenario(items: AllScheduleItemContentTypes[]) {
 

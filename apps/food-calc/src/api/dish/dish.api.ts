@@ -21,8 +21,9 @@ export const getDishes = async (params: GetWithParams) => {
     return await requestWrapper(trpc.getDishes.query, {}, params)
 }
 
-export const getOneDish = async (id: number) => {
-    return trpc.getOneDish.query({ id })
+export const getDishById = async (id: string[] | string) => {
+    return await requestWrapper(trpc.getDish.query, {}, { id })
+
 }
 
 export const addDish = async (data: DishUI) => {

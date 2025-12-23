@@ -10,6 +10,14 @@ enum ScheduleItemType {
   custom
 }
 
+enum ScheduleEventType {
+  negative
+  positive
+  custom
+  routine
+  sport
+}
+
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -25,14 +33,22 @@ datasource db {
 }
 
 model Schedule {
-  id          String         @id
-  date        DateTime       @unique
-  items       ScheduleItem[]
-  userId      Int
-  user        User           @relation(fields: [userId], references: [id])
-  dailyEvents String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id        String          @id // DD-MM-YYYY
+  items     ScheduleItem[]
+  events    ScheduleEvent[]
+  userId    Int
+  user      User            @relation(fields: [userId], references: [id])
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model ScheduleEvent {
+  id         String            @id
+  type       ScheduleEventType
+  time       String
+  scheduleId String
+  schedule   Schedule          @relation(fields: [scheduleId], references: [id])
+  content    Json?
 }
 
 model ScheduleItem {
