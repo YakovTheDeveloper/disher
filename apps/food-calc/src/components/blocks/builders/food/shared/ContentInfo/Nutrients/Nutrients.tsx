@@ -11,6 +11,7 @@ import { NutrientViewModelStore } from '@/components/blocks/builders/food/shared
 import { foodStore } from '@/store/rootStore';
 import { Instance } from 'mobx-state-tree';
 import { TotalNutrientsStore } from '@/components/blocks/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
+import { ScreenLabel } from '@/components/blocks/builders/food/shared/atoms/ScreenLabel';
 
 // Groups of nutrients
 // const groups: Record<string, number[]> = {
@@ -36,7 +37,11 @@ const Nutrients = ({ store, renderOverlay }: Props) => {
     <div className={styles.container}>
       {nutrientGroups.map(({ content, displayName: groupName }) => (
         <div key={groupName} className={styles.group}>
-          <h3 className={styles.groupTitle}>{groupName}</h3>
+          <h3 className={styles.groupTitle}>
+            <ScreenLabel opacity={0.2} fontSize={15} letterSpacing={'1px'}>
+              {groupName}
+            </ScreenLabel>
+          </h3>
           <div className={styles.groupContent}>
             {content.map((nutrientData: NutrientContentItem) => (
               <NutrientCard

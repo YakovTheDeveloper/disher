@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import Modal from '@/components/ui/Modal/Modal';
 import styles from './ModalRoot.module.scss';
 import { useDailyScheduleModals } from '@/components/blocks/builders/food/ScheduleBuilder/modalContext';
+import { Drawer } from '@/components/ui/Drawer';
 
 type Props<ModalVariants extends string | number> = {
   children: Partial<
@@ -20,14 +21,12 @@ function ModalRoot<ModalVariants extends string | number>({ children }: Props<Mo
 
   const modalFromUrl = params.get('modal') as ModalVariants | null;
 
-  // Чистый URL без модалки
   const getBaselineUrl = () => {
     const newParams = new URLSearchParams(params);
     newParams.delete('modal');
     return location.pathname + (newParams.toString() ? `?${newParams.toString()}` : '');
   };
 
-  // Устанавливаем baseline один раз при монтировании
   useEffect(() => {
     if (!baselineRef.current) {
       baselineRef.current = getBaselineUrl();
@@ -35,36 +34,40 @@ function ModalRoot<ModalVariants extends string | number>({ children }: Props<Mo
     }
   }, []);
 
-  // Открытие/закрытие модалки
-  // useEffect(() => {
-  //   if (!modalFromUrl) return; // закрытие обрабатываем только кнопкой
+  const isMobile = true;
 
-  //   const modalParams = new URLSearchParams(params);
-  //   modalParams.set('modal', modalFromUrl.toString());
-  //   const modalUrl = location.pathname + '?' + modalParams.toString();
+  const currentChild = modalFromUrl ? children[modalFromUrl] : null;
 
-  //   navigate(modalUrl, { replace: false });
-  // }, [modalFromUrl]);
-
-  return createPortal(
-    <>
-      {Object.entries(children).map(([id, Component]) =>
-        Component ? (
-          <Modal
-            key={id}
-            id={id as ModalVariants}
-            currentId={modalFromUrl}
-            onClose={modals.close}
-            className={styles.offset}
-            backdropClassname={styles.offset}
-          >
-            {Component as React.ReactNode}
-          </Modal>
-        ) : null
-      )}
-    </>,
-    document.body
+  return (
+    <Drawer open={!!currentChild} onOpenChange={modals.close}>
+      {currentChild as React.ReactNode}
+    </Drawer>
   );
+  // return createPortal(
+  //   <>
+  //     {Object.entries(children).map(([id, Component]) =>
+  //       Component ? (
+  //         !isMobile ? (
+  //           <Modal
+  //             key={id}
+  //             id={id as ModalVariants}
+  //             currentId={modalFromUrl}
+  //             onClose={modals.close}
+  //             className={styles.offset}
+  //             backdropClassname={styles.offset}
+  //           >
+  //             {Component as React.ReactNode}
+  //           </Modal>
+  //         ) : (
+  //           <Drawer open={modalFromUrl === id} onOpenChange={modals.close}>
+  //             {Component as React.ReactNode}
+  //           </Drawer>
+  //         )
+  //       ) : null
+  //     )}
+  //   </>,
+  //   document.body
+  // );
 }
 
 export default ModalRoot;

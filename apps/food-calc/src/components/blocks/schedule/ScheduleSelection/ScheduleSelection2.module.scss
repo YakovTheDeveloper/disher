@@ -1,0 +1,145 @@
+:root {
+    --color-bg-primary: 240 0% 100%;
+    --color-bg-secondary: 240 5% 96%;
+    --color-bg-hover: 240 5% 92%;
+    --color-border: 240 6% 10% / 0.1;
+    --color-border-subtle: 240 6% 10% / 0.05;
+    --color-text-primary: 240 6% 10%;
+    --color-text-secondary: 240 6% 10% / 0.6;
+    --color-text-tertiary: 240 6% 10% / 0.4;
+    --color-text-disabled: 240 6% 10% / 0.2;
+    --color-accent: 214 89% 52%;
+    --color-accent-dark: 214 89% 45%;
+    --glass-bg: hsla(240, 0%, 100%, 0.8);
+}
+
+.dark {
+    --color-bg-primary: 240 6% 10%;
+    --color-bg-secondary: 240 4% 16%;
+    --color-bg-hover: 240 4% 20%;
+    --color-border: 0 0% 96% / 0.1;
+    --color-border-subtle: 0 0% 96% / 0.05;
+    --color-text-primary: 0 0% 95%;
+    --color-text-secondary: 0 0% 95% / 0.6;
+    --color-text-tertiary: 0 0% 95% / 0.4;
+    --color-text-disabled: 0 0% 95% / 0.2;
+    --color-accent: 214 89% 60%;
+    --color-accent-dark: 214 89% 50%;
+    --glass-bg: hsla(240, 6%, 10%, 0.8);
+}
+
+.calendarWrapper {
+    background: var(--color-bg-primary);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--color-border);
+    flex-grow: 1;
+    height: 100%;
+}
+
+.weekDaysHeader {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--color-border-subtle);
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+
+    div {
+        text-align: center;
+        font-size: 13px;
+        color: var(--color-text-secondary);
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+}
+
+.monthSection {
+    padding: 0 10px 15px;
+}
+
+.stickyHeader {
+    position: sticky;
+    top: 0;
+    backdrop-filter: blur(8px);
+    padding: 15px 0 10px;
+    font-weight: 200;
+    font-size: 30px;
+    color: var(--color-text-primary);
+    z-index: 5;
+    text-align: center;
+    text-transform: capitalize;
+}
+
+.daysGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 5px 0;
+}
+
+.day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    border-radius: 50%;
+    margin: 2px;
+    transition: background 0.2s ease-out, color 0.2s ease-out, transform 0.1s ease-out;
+
+    &.outside {
+        color: var(--color-text-disabled);
+    }
+
+    &.today {
+        color: var(--color-accent);
+        font-weight: 600;
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 5px;
+            height: 5px;
+            background-color: var(--color-accent);
+            border-radius: 50%;
+        }
+    }
+
+    &.selected {
+        background: var(--color-accent);
+        color: white;
+        font-weight: 600;
+    }
+
+    &:hover:not(.selected):not(.outside) {
+        background: var(--color-bg-hover);
+        border-radius: 50%;
+    }
+
+    &:active {
+        background: var(--color-accent-dark);
+        transform: scale(0.95);
+        color: white;
+    }
+}
+
+.goToday {
+    text-transform: uppercase;
+    color: rgb(255, 255, 255);
+    font-weight: 800;
+    text-align: center;
+    font-size: 24px;
+    background-color: rgb(255, 14, 46);
+    border-radius: 20px 10px;
+    padding: 10px;
+    font-style: italic;
+}

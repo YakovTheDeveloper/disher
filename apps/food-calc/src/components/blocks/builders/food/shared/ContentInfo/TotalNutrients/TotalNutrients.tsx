@@ -15,6 +15,7 @@ import { NutrientViewModelStore } from '@/components/blocks/builders/food/shared
 import { TotalNutrientsStore } from '@/components/blocks/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
 import { domainStore } from '@/store/store';
 import { emitter } from '@/infrastructure/emitter/emitter';
+import { Button } from '@/components/ui/Button';
 
 export interface TotalNutrientsRef {
   calculate: () => void;
@@ -43,14 +44,14 @@ const TotalNutrients = ({ store, ref, children }: Props) => {
 
   return (
     <div className={styles.container}>
-      <button
+      {/* <Button
         onClick={async () => {
           const nutrients = await nutrientStore.loadNutrientsAndCalculate();
           console.log('nutrientStore.nutrients', nutrients);
         }}
       >
-        ПО СЧИТАТЬ
-      </button>
+        Го
+      </Button> */}
       <Nutrients store={nutrientStore} renderOverlay={renderOverlay} />
       <NavLink to={RouterLinks.DailyNorms}>
         <Typography variant="action">поменять норму</Typography>

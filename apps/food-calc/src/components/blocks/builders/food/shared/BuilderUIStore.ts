@@ -37,8 +37,8 @@ export class BuilderUIStore {
 
     currentPage = 1
 
-    setCurrentPage = (value: number) => {
-        this.currentPage = value
+    setCurrentPage = (value: number, total: number) => {
+        this.currentPage = Math.max(0, Math.min(value, total - 1))
     }
 
     foodSelectMessage: string[] = []

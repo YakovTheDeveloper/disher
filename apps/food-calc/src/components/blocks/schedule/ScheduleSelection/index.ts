@@ -1,1 +1,1 @@
-export { default as ScheduleSelection } from "./ScheduleSelection.tsx";
+export { default as ScheduleSelection } from './ScheduleSelection.tsx';

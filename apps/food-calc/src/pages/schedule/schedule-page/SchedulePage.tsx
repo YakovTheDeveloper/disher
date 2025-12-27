@@ -10,7 +10,7 @@ const SchedulePage = () => {
 
   return (
     <>
-      <ScheduleSelection onDate={onDateChoose} />
+      <ScheduleSelection onSelect={onDateChoose} />
     </>
   );
 };

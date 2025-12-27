@@ -1,0 +1,66 @@
+// Эти CSS-переменные управляют внутренней анимацией Vaul.
+// Можно настроить их для ускорения или замедления анимации.
+// Взяты из примеров Vaul для более резкой и отзывчивой анимации.
+// vaul-overlay-duration также управляет скоростью появления/исчезновения оверлея.
+:root {
+    --vaul-drawer-duration: 0.2s;
+    /* Общая длительность анимации Drawer */
+    --vaul-overlay-duration: 0.2s;
+    /* Длительность анимации оверлея */
+    --vaul-overlay-opacity: 0.4;
+    /* Прозрачность оверлея */
+}
+
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    // background-color: rgba(0, 0, 0, 0.4); // Vaul устанавливает это через --vaul-overlay-opacity
+    background-color: hsla(0, 0%, 0%, var(--vaul-overlay-opacity));
+    /* Используем CSS-переменную для оверлея */
+    z-index: 50;
+    // Анимацией `opacity` оверлея управляет Vaul, используя --vaul-overlay-duration.
+}
+
+.content {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 60;
+    overflow: hidden;
+    height: calc(100% - 80px);
+
+    .dragHandle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 80px;
+        margin-bottom: 20px;
+        background-color: transparent;
+        position: relative;
+
+        .handleBar {
+            margin: auto;
+            width: 60px;
+            height: 4px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 6px;
+            background-color: #c0c0c0;
+        }
+    }
+}
+
+.scrollable {
+    flex: 1;
+    overflow-y: auto;
+}

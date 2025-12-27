@@ -92,8 +92,8 @@ const Navigation = ({ children, menuUi = uiStore.menu }: Props) => {
             </motion.div>
           </NavLink>
         </div>
+        {children}
       </motion.header>
-
       <Menu store={menuUi}>
         <div className={styles.swipeButtons}>
           <button className={styles.swipeHint} onClick={handleBack}>

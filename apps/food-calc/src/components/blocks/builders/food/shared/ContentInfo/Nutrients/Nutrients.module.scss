@@ -3,6 +3,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    padding-top: 20px;
 
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -15,13 +16,16 @@
 }
 
 .groupTitle {
-    font-size: 14px;
-    font-weight: 300;
-    color: #444;
+    font-size: 11px;
+    font-weight: 400;
+    color: #44444493;
     font-style: italic;
     margin-bottom: 4px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    text-align: end;
+
+    position: relative;
 }
 
 .groupContent {

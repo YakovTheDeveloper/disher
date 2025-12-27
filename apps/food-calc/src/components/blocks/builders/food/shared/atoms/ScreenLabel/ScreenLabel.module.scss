@@ -1,0 +1,14 @@
+.ScreenLabel {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    transform: translate(-0%, -50%);
+    pointer-events: none;
+    z-index: 1;
+    font-weight: 900;
+    font-size: 50px;
+    opacity: 0.03;
+    letter-spacing: -3px;
+    text-transform: uppercase;
+}

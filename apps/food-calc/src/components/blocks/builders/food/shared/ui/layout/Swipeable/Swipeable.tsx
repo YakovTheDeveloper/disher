@@ -1,152 +1,57 @@
-import { useState, useRef, ReactNode, TouchEvent, useCallback } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import type { Swiper as SwiperInstance } from 'swiper';
+import { useEffect, useRef, useState } from 'react';
+import 'swiper/css';
 import { observer } from 'mobx-react-lite';
 import styles from './Swipeable.module.scss';
-import {
-  Pages,
-  ScrollDirection,
-} from '@/components/blocks/builders/food/shared/ui/layout/Swipeable/Pages';
-import clsx from 'clsx';
 
 type Props = {
-  children: ReactNode[]; // multiple pages
-  pageNames?: string[];
-  model: {
-    currentPage: number;
-    setCurrentPage: (value: number) => void;
-  };
-  header?: React.ReactNode;
+  defaultIndex?: number;
+  onIndexChange?: (index: number, total: number) => void;
+  children: React.ReactNode[];
 };
 
-const Swipeable = ({ children, model, pageNames, header }: Props) => {
-  const { setCurrentPage } = model;
-  const [offset, setOffset] = useState(0);
-  const [hideHeader, setHideHeader] = useState(false);
-  const startX = useRef<number | null>(null);
-  const startTime = useRef<number | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
 
-  const handleScrollDirection = (direction: ScrollDirection) => {
-    if (direction === 'down') {
-      setHideHeader(true);
-    } else if (direction === 'up') {
-      setHideHeader(false);
-    }
-  };
+const Swipeable = ({ defaultIndex = 0, onIndexChange, children }: Props) => {
+  const swiperRef = useRef<SwiperInstance | null>(null);
+  const total = children.length;
 
-  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
-    startX.current = e.touches[0].clientX;
-    startTime.current = Date.now();
-  };
+  // 🧠 внутреннее состояние
+  const [activeIndex, setActiveIndex] = useState(() => clamp(defaultIndex, 0, total - 1));
 
-  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
-    if (startX.current !== null) {
-      const deltaX = e.touches[0].clientX - startX.current;
-      setOffset(deltaX);
-    }
-  };
+  // 🔗 sync state → swiper
+  useEffect(() => {
+    if (!swiperRef.current) return;
+    if (swiperRef.current.activeIndex === activeIndex) return;
 
-  const handleTouchEnd = () => {
-    if (startX.current !== null && startTime.current !== null) {
-      const deltaX = offset;
-      const elapsed = Date.now() - startTime.current;
-      const width = containerRef.current?.offsetWidth || 1;
-
-      const isFast = elapsed < 250 && Math.abs(deltaX) > 125; // fast flick
-      const isFar = Math.abs(deltaX) > width / 2; // long drag
-
-      if ((isFast || isFar) && deltaX > 0 && model.currentPage > 0) {
-        setCurrentPage(model.currentPage - 1);
-      } else if ((isFast || isFar) && deltaX < 0 && model.currentPage < children.length - 1) {
-        setCurrentPage(model.currentPage + 1);
-      }
-    }
-
-    setOffset(0);
-    startX.current = null;
-    startTime.current = null;
-  };
-
-  const goToPage = (index: number) => {
-    setCurrentPage(index);
-  };
-
-  const minDragToMoveScreen = 100;
-  const width = containerRef.current?.offsetWidth || 1;
-
-  const aimScreenPosition = (-model.currentPage * 100) / children.length;
-
-  const getLinearOffset = () => {
-    let effectiveOffset = 0;
-
-    if (children.length - 1 === model.currentPage) {
-      return 0;
-    }
-
-    if (offset < 0)
-      effectiveOffset =
-        Math.abs(offset) > minDragToMoveScreen
-          ? offset - Math.sign(offset) * minDragToMoveScreen
-          : 0;
-
-    return (effectiveOffset / width) * 100;
-  };
-
-  const transformStyle = `translateX(${aimScreenPosition + getLinearOffset()}%)`;
+    swiperRef.current.slideTo(activeIndex);
+  }, [activeIndex]);
 
   return (
-    <div className={styles.wrapper}>
-      {header && (
-        <div className={clsx(styles.header, hideHeader && styles.header_hidden)}>{header}</div>
-      )}
-      <div
-        ref={containerRef}
-        className={clsx(styles.container, hideHeader && styles.container_full)}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div
-          className={styles.swipeWrapper}
-          style={{
-            transform: transformStyle,
-            transition: offset === 0 ? 'transform 0.1s' : 'none',
-            display: 'flex',
-            width: `${children.length * 100}%`,
-          }}
-        >
-          <Pages onScrollDirectionChange={handleScrollDirection}>{children}</Pages>
-        </div>
-      </div>
-
-      {/* Tracker Dots */}
-      <div className={styles.bottom}>
-        <div className={styles.dots}>
-          {children.map((_, i) => (
-            <span
-              key={i}
-              className={`${styles.dot} ${i === model.currentPage ? styles.active : ''}`}
-              onClick={() => goToPage(i)}
-            ></span>
-          ))}
-        </div>
-        {/* {pageNames && (
-          <div className={styles.tabs}>
-            {pageNames.map((name, i) => (
-              <span
-                className={clsx([
-                  styles.tabs__tab,
-                  model.currentPage === i && styles.tabs__tab_active,
-                ])}
-                key={name}
-                onClick={() => goToPage(i)}
-              >
-                {name}
-              </span>
-            ))}
-          </div>
-        )} */}
-      </div>
-    </div>
+    <Swiper
+      slidesPerView={1}
+      resistanceRatio={0}
+      touchReleaseOnEdges
+      threshold={10}
+      speed={280}
+      grabCursor={false}
+      onSwiper={(swiper) => {
+        swiperRef.current = swiper;
+        swiper.slideTo(activeIndex, 0);
+      }}
+      onSlideChange={(swiper) => {
+        const next = clamp(swiper.activeIndex, 0, total - 1);
+        setActiveIndex(next);
+        onIndexChange?.(next, total);
+      }}
+    >
+      {children.map((child, i) => (
+        <SwiperSlide key={i} className={styles.slide}>
+          {child}
+        </SwiperSlide>
+      ))}
+    </Swiper>
   );
 };
 

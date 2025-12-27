@@ -1,85 +1,97 @@
-import Calendar from '@/components/ui/Calendar/Calendar';
-import style from './ScheduleSelection.module.scss';
-import { dayNames } from '@/constants';
-import { useCallback, useEffect, useState } from 'react';
-import { Typography } from '@/components/ui/Typography/Typography';
+import React, { useMemo, useRef } from 'react';
+import {
+  format,
+  addMonths,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameDay,
+  // isSameMonth,
+  startOfToday,
+} from 'date-fns';
+import { Virtuoso } from 'react-virtuoso';
+import styles from './ScheduleSelection2.module.scss';
 import { observer } from 'mobx-react-lite';
-import { scheduleStore } from '@/store/rootStore';
-import { ScheduleModelStore } from '@/store/models/schedule/scheduleModelStore';
-import { ScheduleCalendarContentCell } from '@/components/blocks/schedule/ScheduleSelection/ScheduleCalendarContentCell';
+import { ru } from 'date-fns/locale';
+import { NavLink } from 'react-router';
+import { RouterLinks } from '@/router';
 
-/**
- * ✅ SINGLE SOURCE OF TRUTH FOR DATE FORMAT
- * DD-MM-YYYY
- */
-const formatDDMMYYYY = (date: Date): string => {
-  const dd = String(date.getDate()).padStart(2, '0');
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const yyyy = date.getFullYear();
+const START_DATE = startOfMonth(new Date());
 
-  return `${dd}-${mm}-${yyyy}`;
-};
+export const ScheduleSelection = ({ onSelect, selectedDate }) => {
+  const today = startOfToday();
 
-type Props = {
-  /** 🔒 Date is ALWAYS passed as DD-MM-YYYY */
-  onDate: (date: string) => void;
-  store?: ScheduleModelStore;
-};
+  const months = useMemo(() => {
+    const allMonths = Array.from({ length: 24 }, (_, i) => addMonths(START_DATE, i - 12));
+    return allMonths;
+  }, []);
 
-const ScheduleSelection = ({ store = scheduleStore, onDate }: Props) => {
-  /** UI-only Date (allowed) */
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const renderMonth = (index: number) => {
+    const monthStart = months[index];
+    const monthEnd = endOfMonth(monthStart);
 
-  /** Load month data */
-  useEffect(() => {
-    store.getAllMonthShortData(currentMonth);
-  }, [currentMonth, store]);
+    const daysInMonth = eachDayOfInterval({
+      start: monthStart,
+      end: monthEnd,
+    });
 
-  const onPrevMonth = () => {
-    const prevMonth = new Date(currentMonth);
-    prevMonth.setMonth(currentMonth.getMonth() - 1);
-    setCurrentMonth(prevMonth);
-  };
+    const firstDayOfWeek = monthStart.getDay();
+    const startOffset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
-  const onNextMonth = () => {
-    const nextMonth = new Date(currentMonth);
-    nextMonth.setMonth(currentMonth.getMonth() + 1);
-    setCurrentMonth(nextMonth);
-  };
+    const emptyCells = Array.from({ length: startOffset }, (_, i) => (
+      <div key={`empty-${index}-${i}`} className={styles.emptyDay}></div>
+    ));
 
-  /** 🔑 ALL STORE LOOKUPS USE DD-MM-YYYY */
-  const getContentExist = useCallback(
-    (date: Date) => {
-      const key = formatDDMMYYYY(date);
-      return store.existing.get(key) || false;
-    },
-    [store]
-  );
+    return (
+      <div className={styles.monthSection}>
+        <div className={styles.stickyHeader}>{format(monthStart, 'LLLL yyyy', { locale: ru })}</div>
+        <div className={styles.daysGrid}>
+          {emptyCells}
+          {daysInMonth.map((day) => {
+            const isSelected = selectedDate && isSameDay(day, selectedDate);
+            const isCurrentDay = isSameDay(day, today);
 
-  const renderCellContent = useCallback(
-    (date: Date) => <ScheduleCalendarContentCell date={date} getContentExist={getContentExist} />,
-    [getContentExist]
-  );
-
-  /** 🔒 Convert Date → DD-MM-YYYY before leaving component */
-  const onDateSelect = (date: string) => {
-    onDate(date);
+            return (
+              <button
+                key={day.toISOString()}
+                className={`
+                  ${styles.day}
+                  ${isSelected ? styles.selected : ''}
+                  ${isCurrentDay ? styles.today : ''}
+                `}
+                onClick={() => onSelect(format(day, 'dd-MM-yyyy'))}
+              >
+                {format(day, 'd')}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className={style.container}>
-      <Typography>Расписание</Typography>
+    <div className={`${styles.calendarWrapper} ${false ? styles.dark : ''}`}>
+      <div className={styles.weekDaysHeader}>
+        {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((d, i) => (
+          <div key={i}>{d}</div>
+        ))}
+      </div>
 
-      <Calendar
-        currentMonth={currentMonth}
-        onNextMonth={onNextMonth}
-        onPrevMonth={onPrevMonth}
-        selectedDate={null}
-        onDateSelect={onDateSelect}
-        dayNames={dayNames.ru}
-        cellClassName={style.dateCell}
-        renderDayCellContent={renderCellContent}
+      <Virtuoso
+        className={styles.scrollContainer}
+        style={{ height: '100%', width: '100%' }}
+        data={months}
+        initialTopMostItemIndex={12}
+        itemContent={(index) => renderMonth(index)}
+        increaseViewportBy={300}
       />
+      <NavLink
+        to={RouterLinks.ScheduleBuilder + format(new Date(), 'dd-MM-yyyy')}
+        className={styles.goToday}
+      >
+        {'Сегодня'}
+      </NavLink>
     </div>
   );
 };

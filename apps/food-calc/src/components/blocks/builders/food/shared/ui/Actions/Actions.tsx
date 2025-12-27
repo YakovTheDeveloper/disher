@@ -2,22 +2,23 @@ import { Button } from '@/components/blocks/builders/food/shared/ui/Actions/butt
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import styles from './Actions.module.scss';
 import { createPortal } from 'react-dom';
 import clsx from 'clsx';
+import styles from './Actions.module.scss';
 
 type Props = {
   children: React.ReactNode;
   isShow: () => boolean;
   className?: string;
   zIndex?: number;
+  isPortal?: boolean; // new prop to toggle portal
 };
 
-const Actions = ({ children, isShow, className, zIndex }: Props) => {
+const Actions = ({ children, isShow, className, zIndex, isPortal = true }: Props) => {
   const style = zIndex ? { zIndex } : {};
-
   const show = isShow();
-  return createPortal(
+
+  const content = (
     <div className={clsx([styles.container, className])} style={style}>
       <AnimatePresence mode="sync">
         {show && (
@@ -32,9 +33,14 @@ const Actions = ({ children, isShow, className, zIndex }: Props) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>,
-    document.body
+    </div>
   );
+
+  if (isPortal) {
+    return createPortal(content, document.body);
+  }
+
+  return content;
 };
 
 export default observer(Actions);

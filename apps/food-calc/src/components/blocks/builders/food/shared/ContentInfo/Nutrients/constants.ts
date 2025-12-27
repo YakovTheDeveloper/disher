@@ -57,7 +57,7 @@ export const nutrientGroups: NutrientGroup[] = [
     },
     {
         name: 'vitaminsB',
-        displayName: 'Витамины группы Б',
+        displayName: 'Витамины Б',
         content: [
             { id: '21', name: 'vitaminB1', displayName: 'Vitamin B1', displayNameRu: 'Витамин B1', unit: 'mg', "unitRu": "мг" },
             { id: '22', name: 'vitaminB2', displayName: 'Vitamin B2', displayNameRu: 'Витамин B2', unit: 'mg', "unitRu": "мг" },
@@ -89,7 +89,7 @@ export const nutrientGroups: NutrientGroup[] = [
     },
     {
         name: 'rest',
-        displayName: 'Остальные витамины и прочее',
+        displayName: 'Остальные витамины',
         content: [
             { id: '20', name: 'vitaminA', displayName: 'Vitamin A', displayNameRu: 'Витамин A', unit: 'μg', "unitRu": "мкг" },
 

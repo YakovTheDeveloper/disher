@@ -175,30 +175,11 @@ const FoodAdd = ({ children, store, headerAfter }: Props) => {
 
   return (
     <div className={styles.container}>
-      {/* Tabs */}
-      <div className={styles.tabs}>
-        <span
-          className={`${styles.tabsItem} ${state.currentTab === 'productSearch' ? styles.active : ''}`}
-          onClick={() => state.setTab('productSearch')}
-        >
-          Продукты
-        </span>
-        <span
-          className={`${styles.tabsItem} ${state.currentTab === 'dishSearch' ? styles.active : ''}`}
-          onClick={() => state.setTab('dishSearch')}
-        >
-          Блюда
-        </span>
-        <span
-          className={`${styles.tabsItem} ${state.currentTab === 'createCustom' ? styles.active : ''}`}
-          onClick={() => state.setTab('createCustom')}
-        >
-          Кастомный продукт
-        </span>
-        {children}
-      </div>
-
-      <header className={clsx([styles.infoTitleContainer])}>
+      <header className={clsx([styles.header])}>
+        {currentChild && (
+          <TimePicker value={currentChild?.time} onFinish={onTimeChangeFinishUpdate} />
+        )}
+        {!currentChild && <TimePicker value={state.time} onFinish={onTimeChangeFinishLocalState} />}
         <h2
           className={clsx([styles.infoTitle, settings.showAdditionals && styles.infoTitle_active])}
         >
@@ -220,15 +201,6 @@ const FoodAdd = ({ children, store, headerAfter }: Props) => {
             </Typography>
           )}
         </h2>
-
-        <div>
-          {currentChild && (
-            <TimePicker value={currentChild?.time} onFinish={onTimeChangeFinishUpdate} />
-          )}
-          {!currentChild && (
-            <TimePicker value={state.time} onFinish={onTimeChangeFinishLocalState} />
-          )}
-        </div>
       </header>
 
       {/* Search input */}
@@ -273,7 +245,28 @@ const FoodAdd = ({ children, store, headerAfter }: Props) => {
         </div>
       )}
 
-      <Actions isShow={showActionsBar} className={styles.actions}>
+      <Actions isShow={showActionsBar} className={styles.actions} isPortal={false}>
+        <div className={styles.tabs}>
+          <span
+            className={`${styles.tabsItem} ${state.currentTab === 'productSearch' ? styles.active : ''}`}
+            onClick={() => state.setTab('productSearch')}
+          >
+            Продукты
+          </span>
+          <span
+            className={`${styles.tabsItem} ${state.currentTab === 'dishSearch' ? styles.active : ''}`}
+            onClick={() => state.setTab('dishSearch')}
+          >
+            Блюда
+          </span>
+          <span
+            className={`${styles.tabsItem} ${state.currentTab === 'createCustom' ? styles.active : ''}`}
+            onClick={() => state.setTab('createCustom')}
+          >
+            Кастомный продукт
+          </span>
+          {children}
+        </div>
         <Button.AdditionalOptions
           isShow={() => true}
           className={styles.additionalButton}

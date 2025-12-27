@@ -54,6 +54,7 @@ import { RouterLinks } from '@/router';
 import { domainStore } from '@/store/store';
 import toaster from '@/infrastructure/toaster/toaster';
 import { Navigation } from '@/components/blocks/builders/food/ScheduleBuilder/ui/Navigation';
+import { ScreenLabel } from '@/components/blocks/builders/food/shared/atoms/ScreenLabel';
 
 export const Modals = {
   Time: 'time',
@@ -180,26 +181,33 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
 
   return (
     <div className={style.container}>
-      <Swipeable model={options} pageNames={pageNames} header={<Navigation></Navigation>}>
-        {/* <TotalNutrients vm={schedule} ref={totalNutrients} /> */}
-
+      <Swipeable
+        index={options.currentPage}
+        defaultIndex={1}
+        onIndexChange={options.setCurrentPage}
+      >
         {[
-          <TotalNutrients store={schedule} />,
-          <WithOverlay isLoading={isLoading}>
-            <List onDishesUnite={onUniteFoodIntoDish} options={foodOptions} schedule={schedule} />
-          </WithOverlay>,
-          <EventsBuilder schedule={schedule} options={foodOptions} />,
+          <>
+            <Navigation>
+              <ScreenLabel>{'Нутриенты'}</ScreenLabel>
+            </Navigation>
+            <TotalNutrients store={schedule} />
+          </>,
+          <>
+            <Navigation>
+              <ScreenLabel>{'Еда'}</ScreenLabel>
+            </Navigation>
+            <WithOverlay isLoading={isLoading}>
+              <List onDishesUnite={onUniteFoodIntoDish} options={foodOptions} schedule={schedule} />
+            </WithOverlay>
+          </>,
+          <>
+            <Navigation>
+              <ScreenLabel>{'События'}</ScreenLabel>
+            </Navigation>
+            <EventsBuilder schedule={schedule} options={foodOptions} />
+          </>,
         ]}
-
-        {/* <WithOverlay isLoading={isLoading}>
-          <EventsBuilder
-            vm={schedule}
-            onEventContentUpdateModalOpen={onEventContentUpdateModalOpen}
-            onEventTimeModalOpen={onEventTimeModalOpen}
-            onEventContentCreateModalOpen={onEventContentCreateModalOpen}
-            options={options}
-          />
-        </WithOverlay> */}
       </Swipeable>
 
       <ModalRoot modals={modals}>

@@ -17,8 +17,11 @@
     justify-content: space-between;
     align-items: center;
     border-bottom: 2px solid #f0f0f0;
-    margin-bottom: 1rem;
     position: relative;
+    background-color: #fafafa;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border-radius: 16px 16px 0 0;
+
 }
 
 .tabsItem {
@@ -31,6 +34,7 @@
     border-bottom: 2px solid transparent;
     transition: all 0.25s ease;
     user-select: none;
+    background-color: #fafafa;
 
     &:hover {
         color: #111;
@@ -87,6 +91,12 @@
 
 .additionalButton {
     margin-left: auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+
 }
 
 .infoTitle {

@@ -3,6 +3,7 @@
     width: 100%;
     top: 0;
     z-index: 100;
+    position: relative;
 }
 
 .container {
@@ -37,7 +38,6 @@
     line-height: 25px;
     padding-top: 7px;
     gap: 4px;
-    padding-right: 25px;
 }
 
 .dateNumbers {
