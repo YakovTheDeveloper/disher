@@ -1,4 +1,4 @@
-import { DailyNormEntityUI } from "@/components/blocks/DailyNorms/viewModel/DailyNormsViewModel"
+import { DailyNormEntityUI } from "@/components/features/DailyNorms/viewModel/DailyNormsViewModel"
 export const STANDARD_NORM_ID = 'STANDARD'
 export const STANDARD_NORM_ID_2 = 'STANDARD_2'
 

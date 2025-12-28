@@ -1,4 +1,4 @@
-import { debounce } from '@/utils/debounce';
+import { debounce } from '@/lib/debounce';
 import { useEffect, useState } from 'react';
 
 interface UseInfiniteScrollOptions {

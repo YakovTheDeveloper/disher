@@ -1,6 +1,6 @@
 import { requestWrapper } from "@/api/Request"
 import { trpc } from "@/api/trpc/trpc"
-import { DailyNormEntityUI } from "@/components/blocks/DailyNorms/viewModel/DailyNormsViewModel"
+import { DailyNormEntityUI } from "@/components/features/DailyNorms/viewModel/DailyNormsViewModel"
 
 export const getDailyNorms = async () => {
     return requestWrapper(trpc.getDailyNorms.query, {})

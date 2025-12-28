@@ -1,4 +1,4 @@
-import { CollectionItemEntityStatusUI } from "@/components/blocks/builders/food/shared/UpdateChildrenStore";
+import { CollectionItemEntityStatusUI } from "@/components/features/builders/food/shared/UpdateChildrenStore";
 
 export type NoId<T extends { id: unknown }> = Omit<T, "id">;
 

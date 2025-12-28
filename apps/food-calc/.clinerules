@@ -1,0 +1,13 @@
+Project: React frontend
+Stack: TypeScript, Vite, MobX
+
+Rules:
+
+- Use functional components only
+- Prefer MobX state management over React state management
+- Styling: SCSS Modules
+- Follow existing code style
+- Do not rewrite unrelated files
+- Keep changes minimal
+- Do not refactor unrelated files
+- No explanations unless asked

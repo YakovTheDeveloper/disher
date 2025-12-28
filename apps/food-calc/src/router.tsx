@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
-import DailyNorms from '@/components/blocks/DailyNorms/DailyNorms.tsx';
+import DailyNorms from '@/components/features/DailyNorms/DailyNorms.tsx';
 import App from '@/App.tsx';
 import ScheduleBuilderPage from './pages/schedule/builder/schedule-builder-page/ScheduleBuilderPage.tsx';
 import SchedulePage from '@/pages/schedule/schedule-page/SchedulePage.tsx';

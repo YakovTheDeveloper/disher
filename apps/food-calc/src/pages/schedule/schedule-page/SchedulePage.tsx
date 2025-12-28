@@ -1,4 +1,4 @@
-import { ScheduleSelection } from '@/components/blocks/schedule/ScheduleSelection';
+import { ScheduleSelection } from '@/components/features/schedule/ScheduleSelection';
 import { useNavigate } from 'react-router';
 
 const SchedulePage = () => {

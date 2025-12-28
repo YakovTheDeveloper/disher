@@ -1,27 +1,14 @@
-import { ScheduleBuilder } from '@/components/blocks/builders/food/ScheduleBuilder';
-import { DayScheduleUI } from '@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel';
-import { Navigation } from '@/components/blocks/builders/food/ScheduleBuilder/ui/Navigation';
-import { Menu } from '@/components/common/Menu';
-import { Button } from '@/components/ui/Button';
+import { ScheduleBuilder } from '@/components/features/builders/food/ScheduleBuilder';
 import { RouterLinks } from '@/router';
-import { scheduleStore } from '@/store/rootStore';
-import { MenuUiStore } from '@/store/uiStore/menu/menuUiStore';
 import { observer } from 'mobx-react-lite';
-import { useCallback, useEffect, useMemo } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import styles from './ScheduleBuilderPage.module.scss';
-import { InitLoadingStore } from '@/components/blocks/builders/food/ScheduleBuilder/model/InitLoadingStore';
-import { Overlay, WithOverlay } from '@/components/ui/Overlay';
-import { debounce } from '@/utils/debounce';
-import { ScheduleQuestionnaireItemUI } from '@/components/blocks/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel';
-import { ModalDailyScheduleProvider } from '@/components/blocks/builders/food/ScheduleBuilder/modalContext';
+import { useCallback, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ModalDailyScheduleProvider } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
 import { domainStore } from '@/store/store';
 import { DaySchedule } from '@/domain/schedule/schedule';
 import { Instance } from 'mobx-state-tree';
-import { HeaderedContainer } from '@/components/common/Layout/HeaderedContainer';
 
 const Page = observer(({ date }: { date: string }) => {
-  const store = useMemo(() => new InitLoadingStore(), []);
   // const onInit = useMemo(
   //   () =>
   //     debounce((date: string) => {
@@ -35,12 +22,11 @@ const Page = observer(({ date }: { date: string }) => {
     domainStore.interactionsService.fetchSyncScheduleAndDishes(payload);
   }, []);
 
-  const isLoading = useCallback(
-    () => domainStore.scheduleStore.status.fetchGet.get(date)?.loading ?? false,
-    [domainStore.scheduleStore.status, date]
-  );
+  // const isLoading = useCallback(
+  //   () => domainStore.scheduleStore.status.fetchGet.get(date)?.loading ?? false,
+  //   [domainStore.scheduleStore.status, date]
+  // );
 
-  console.log('store.initData', store.initData);
   console.log('schedule builder page render');
 
   const current = domainStore.scheduleStore.data.get(date);

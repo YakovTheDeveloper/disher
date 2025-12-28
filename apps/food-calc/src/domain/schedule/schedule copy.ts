@@ -4,7 +4,7 @@ import { getParent } from "mobx-state-tree";
 import { Dish, DishItem } from "../dish/Dish";
 import { Food } from "@/domain/Food";
 import { ItemStatus, ItemStatusType } from "@/domain/commonListItem";
-import { TimeGroupUI } from "@/components/blocks/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
+import { TimeGroupUI } from "@/components/features/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
 import { createDishModel, createDishSnapshot } from "@/store/DishStore/fabric";
 import { RootInstance } from "@/store/types";
 

@@ -7,8 +7,6 @@ import { RootInstance, RootStore } from './types'
 import { InteractionsService } from "@/store/interactions/InteractionsService";
 import { makePersistable } from "@/store/persistance";
 import { createNutrientStoreWithInitialData } from "@/store/NutrientStore/NutrientStore";
-import { onPatch } from "mobx-state-tree";
-import { standardFood } from "@/assets/seed/food";
 
 let _store: RootInstance | undefined;
 

@@ -1,10 +1,8 @@
-import { types, flow, getSnapshot, Instance, SnapshotIn } from "mobx-state-tree";
+import { types, flow, Instance, SnapshotIn } from "mobx-state-tree";
 import { getFoodList, GetFoodParams, getFoodWithNutrients, getFoodWithNutrientsByIds, getOneFood } from "@/api/food/food.api";
-import { requestWrapper } from "@/api/Request";
 import { RequestState, ResponseStatus } from "@/api/RequestState";
 import { isEmpty } from "@/lib/empty";
 import { Food } from "@/domain/Food";
-import { createFoodModel } from "@/store/FoodStore/factory";
 import { runInAction } from "mobx";
 import { standardFood } from "@/assets/seed/food";
 

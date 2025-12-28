@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react-swc'
 import svgr from 'vite-plugin-svgr';
 import path from 'path';
 import { patchCssModules } from 'vite-css-modules';
+import checker from 'vite-plugin-checker';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -15,7 +16,17 @@ export default defineConfig({
       svgrOptions: { exportType: "default", ref: true, svgo: false, titleProp: true },
       include: "**/*.svg",
     }),
+    checker({
+      typescript: {
+        tsconfigPath: 'tsconfig.json',
+      },
+      overlay: false,
+      terminal: false,
+    }),
   ],
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+  },
   resolve: {
     alias: {
       '@icons': path.resolve(__dirname, './src/assets/icons'),
@@ -28,6 +39,23 @@ export default defineConfig({
     modules: {
       // generateScopedName: customScopedName,
       generateScopedName: '[folder]-[local]__[hash:base64:5]',
+    },
+    devSourcemap: true
+  },
+  server: {
+    hmr: {
+      overlay: false,
+    },
+  },
+  build: {
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        // Разделение вендорных библиотек (React, ReactDOM) для лучшего кеширования
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+        },
+      },
     },
   }
 })

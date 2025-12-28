@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import styles from './productBuilderPage.module.scss';
-import { ProductBuilder } from '@/components/blocks/builders/food/ProductBuilder';
+import { ProductBuilder } from '@/components/features/builders/food/ProductBuilder';
 type Props = {
   children: React.ReactNode;
 };

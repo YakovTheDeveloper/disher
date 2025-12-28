@@ -1,6 +1,5 @@
 import { makeAutoObservable } from "mobx";
 import { ISODate } from "@/types/common/common";
-import { NotificationStore } from "@/store/uiStore/notificationStore/notificationStore";
 import { DailyNormsStoreUI } from "@/store/uiStore/dailyNorms/DailyNormsStoreUI";
 import { dailyNormModelStore } from "@/store/rootStore";
 import { MenuUiStore } from "@/store/uiStore/menu/menuUiStore";
@@ -21,8 +20,6 @@ export class UiStore {
 
   setDayCalendarDate = (date: ISODate) => { this.dayCalendarDate = date }
 
-  notification: NotificationStore
-
   dailyNorms = new DailyNormsStoreUI(dailyNormModelStore)
 
   menu = new MenuUiStore()
@@ -32,9 +29,7 @@ export class UiStore {
   // }
 
   constructor(
-    notification: NotificationStore,
   ) {
-    this.notification = notification
     makeAutoObservable(this);
   }
 }
