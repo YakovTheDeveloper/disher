@@ -283,6 +283,37 @@ export const scheduleRoutes = {
                         const changes = schedule.items;
                         const eventChanges = schedule.events;
 
+                        if (eventChanges?.delete?.length) {
+                            await tx.scheduleEvent.deleteMany({
+                                where: {
+                                    id: { in: eventChanges.delete },
+                                    scheduleId: schedule.id,
+                                },
+                            });
+                        }
+                        if (eventChanges?.update?.length) {
+                            for (const item of eventChanges.update) {
+                                await tx.scheduleEvent.update({
+                                    where: { id: item.id },
+                                    data: {
+                                        time: item.time,
+                                        
+                                    },
+                                });
+                            }
+                        }
+                        if (eventChanges?.create?.length) {
+                            await tx.scheduleEvent.createMany({
+                                data: eventChanges.create.map((item) => ({
+                                    id: item.id,
+                                    scheduleId: schedule.id,
+                                    time: item.time,
+
+                                })),
+                                skipDuplicates: true,
+                            });
+                        }
+
                         if (changes?.delete?.length) {
                             await tx.scheduleItem.deleteMany({
                                 where: {

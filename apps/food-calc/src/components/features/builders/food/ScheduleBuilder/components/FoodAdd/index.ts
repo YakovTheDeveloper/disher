@@ -1,1 +1,1 @@
-export { default as FoodAdd } from "./FoodAdd.tsx";
+export { default as SearchFood } from "./SearchFood.tsx";

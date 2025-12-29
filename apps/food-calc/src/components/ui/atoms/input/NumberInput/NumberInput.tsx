@@ -1,71 +1,58 @@
-import { useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './NumberInput.module.scss';
 
 type Props = {
   id?: string;
   value: number | null | undefined;
-  onChange: (value: number) => void;
+  onBlur?: (current: number) => void;
+  onChange?: (current: number) => void;
   className?: string;
   placeholder?: string;
-  useLocalValue?: boolean; // <— NEW
+  autoFocus?: boolean;
 };
 
-const NumberInput = ({
-  id,
-  value,
-  onChange,
-  className,
-  placeholder,
-  useLocalValue = false,
-}: Props) => {
-  const inputRef = useRef<HTMLInputElement | null>(null);
+const NumberInput = forwardRef<HTMLInputElement, Props>(
+  ({ id, value, onBlur, className, placeholder, autoFocus, onChange }, ref) => {
+    const inputRef = useRef<HTMLInputElement>(null);
 
-  // Local state only when needed
-  const [localValue, setLocalValue] = useState<string>(value?.toString() ?? '');
+    useImperativeHandle(ref, () => inputRef.current!, []);
 
-  const displayedValue = useLocalValue ? localValue : (value ?? '');
+    const handleBlur = () => {
+      onBlur?.();
+    };
 
-  const handleLocalChange = (v: string) => {
-    setLocalValue(v);
-  };
+    const handleFocus = () => {
+      setTimeout(() => {
+        inputRef.current?.select();
+      });
+    };
 
-  const handleBlur = () => {
-    if (!useLocalValue) return;
+    return (
+      <input
+        autoFocus={autoFocus}
+        ref={inputRef}
+        id={id}
+        inputMode="numeric"
+        pattern="[0-9]*"
+        onFocus={handleFocus}
+        className={`${styles.input} ${className || ''}`}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => {
+          const val = e.target.value.replace(/\D/g, '');
+          onChange?.(val === '' ? 0 : Number(val));
+        }}
+        onBlur={handleBlur}
+        onCopy={(e) => e.preventDefault()}
+        onCut={(e) => e.preventDefault()}
+        onPaste={(e) => e.preventDefault()}
+        onContextMenu={(e) => e.preventDefault()}
+      />
+    );
+  }
+);
 
-    const numeric = Number(localValue);
-    onChange(Number.isNaN(numeric) ? 0 : numeric);
-  };
-
-  const handleImmediateChange = (v: string) => {
-    const numeric = Number(v);
-    if (!Number.isNaN(numeric)) {
-      onChange(numeric);
-    } else {
-      onChange(0);
-    }
-  };
-
-  const handleFocus = () => {
-    setTimeout(() => inputRef.current?.select());
-  };
-
-  return (
-    <input
-      ref={inputRef}
-      id={id}
-      type="number"
-      inputMode="decimal"
-      className={`${styles.input} ${className || ''}`}
-      value={displayedValue}
-      onFocus={handleFocus}
-      placeholder={placeholder}
-      onChange={(e) =>
-        useLocalValue ? handleLocalChange(e.target.value) : handleImmediateChange(e.target.value)
-      }
-      onBlur={handleBlur}
-    />
-  );
-};
+NumberInput.displayName = 'NumberInput';
 
 export default observer(NumberInput);

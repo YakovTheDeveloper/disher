@@ -1,0 +1,47 @@
+.tabs {
+    display: grid;
+    grid-template-columns: auto 1fr 2fr 1fr;
+    gap: 0.5rem; // Space between tabs
+}
+
+.tabButton {
+    background-color: transparent;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    cursor: pointer;
+    color: var(--text-color-secondary, #616161);
+    border-bottom: 2px solid transparent; // Underline effect for tabs
+    transition: all 0.3s ease-in-out;
+    outline: none; // Remove default outline for a cleaner look
+
+    &:hover {
+        color: var(--primary-color, #1976d2); // Hover color
+        border-color: var(--primary-color-light, #bbdefb); // Lighter underline on hover
+    }
+
+    &.activeTab {
+        color: var(--primary-color, #1976d2); // Primary color for active tab
+        font-weight: 600;
+        border-color: var(--primary-color, #1976d2); // Bold underline for active tab
+    }
+
+    // Accessibility improvements
+    &:focus-visible {
+        box-shadow: 0 0 0 2px var(--focus-ring-color, rgba(25, 118, 210, 0.5)); // Focus ring for keyboard users
+    }
+}
+
+.tabContent {
+    padding: 1rem 0;
+    // Any specific styles for the content area below tabs
+}
+
+// Define some CSS variables for consistency (optional, but good practice)
+:root {
+    --primary-color: #1976d2;
+    --primary-color-light: #bbdefb;
+    --text-color-secondary: #616161;
+    --border-color: #e0e0e0;
+    --focus-ring-color: rgba(25, 118, 210, 0.5);
+}

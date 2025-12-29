@@ -5,6 +5,13 @@
     font-size: 0.9rem;
     text-align: right;
 
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+
+    text-align: center;
+
+
     &[type='number'] {
         width: 7ch;
     }

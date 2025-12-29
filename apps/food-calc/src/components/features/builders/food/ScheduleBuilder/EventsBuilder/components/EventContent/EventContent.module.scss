@@ -172,3 +172,14 @@
     color: white;
     // font-weight: 600;
 }
+
+// Content containers for each event type
+.sleepContent,
+.moodContent,
+.energyContent,
+.activityContent,
+.noteContent {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}

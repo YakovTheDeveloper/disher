@@ -1,0 +1,55 @@
+.digestionContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.variantList {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.variantButton {
+    padding: 12px;
+    background: #f3f3f3;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    text-transform: capitalize;
+    transition: background 0.2s;
+}
+
+.variantButton:active {
+    background: #e0e0e0;
+}
+
+.digestionForm {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+}
+
+.subTitle {
+    text-transform: capitalize;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.submitButton {
+    margin-top: 12px;
+    padding: 12px;
+    background: #007aff;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.submitButton:active {
+    background: #0060d1;
+}

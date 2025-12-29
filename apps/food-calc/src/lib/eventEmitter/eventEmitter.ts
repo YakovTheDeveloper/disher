@@ -1,5 +1,5 @@
 type Listener = () => void;
-
+//todo delete
 export class EventEmitter<EventName> {
     private listeners: Map<EventName, Set<Listener>> = new Map();
 

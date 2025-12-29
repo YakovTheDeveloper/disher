@@ -18,7 +18,7 @@ import { DishNutrients } from '@/components/features/builders/food/ScheduleBuild
 
 import { FoodNutrients } from '@/components/features/builders/food/shared/components/FoodNutrients';
 import { ISODate } from '@/types/common/common';
-import { FoodAdd } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd';
+import { SearchFood } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd';
 import { toJS } from 'mobx';
 import { Instance } from 'mobx-state-tree';
 import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
@@ -34,11 +34,13 @@ import { ScreenScroll } from '@/components/features/builders/food/shared/ui/layo
 import { ScheduleFoodEdit } from '@/components/features/builders/food/ScheduleBuilder/components/ScheduleFoodEdit';
 import { Actions } from '@/components/features/builders/food/shared/ui/Actions';
 import { Button } from '@/components/features/builders/food/shared/ui/Actions/button';
+import { ScheduleFoodAdd } from '@/components/features/builders/food/ScheduleBuilder/components/ScheduleFoodAdd';
 
 export const Modals = {
   Time: 'time',
   Food: 'Food',
   FoodAdd: 'FoodAdd',
+  EventAdd: 'EventAdd',
   FoodEdit: 'FoodEdit',
   UpdateFood: 'updateFood',
   Quantity: 'quantity',
@@ -64,8 +66,12 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
   const modals = useDailyScheduleModals();
   const options = useMemo(() => new BuilderUIStore([0, 1, 2]), []);
 
-  const onFoodsOpenCreate = () => {
-    modals.set('foodAdd', {}, ['item_id']);
+  const onFoodAdd = () => {
+    modals.set(Modals.FoodAdd, {}, ['item_id']);
+  };
+
+  const onEventAdd = () => {
+    modals.set(Modals.EventAdd, {}, ['item_id']);
   };
 
   const onUniteFoodIntoDish = useCallback((group: TimeGroupUI<Instance<typeof ScheduleItem>>) => {
@@ -175,6 +181,7 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
               <TotalNutrients store={schedule} />
             </ScreenScroll>
           </Screen>,
+
           <Screen key={2}>
             <Navigation>
               <ScreenLabel>{'Еда'}</ScreenLabel>
@@ -182,7 +189,14 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
             <ScreenScroll>
               <List onDishesUnite={onUniteFoodIntoDish} options={foodOptions} schedule={schedule} />
             </ScreenScroll>
+            <Actions isShow={() => true} isPortal={false}>
+              <Button.Finish onClick={onFinishHandler} content={schedule} isShow={() => true}>
+                синхронизовать
+              </Button.Finish>
+              <Button.Add onClick={onFoodAdd} />
+            </Actions>
           </Screen>,
+
           <Screen key={3}>
             <Navigation>
               <ScreenLabel>{'События'}</ScreenLabel>
@@ -190,21 +204,29 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
             <ScreenScroll>
               <EventsBuilder schedule={schedule} options={foodOptions} />
             </ScreenScroll>
+            <Actions isShow={() => true} isPortal={false}>
+              <Button.Finish onClick={onFinishHandler} content={schedule} isShow={() => true}>
+                синхронизовать
+              </Button.Finish>
+              <Button.Add onClick={onEventAdd} />
+            </Actions>
           </Screen>,
         ]}
       </Swipeable>
 
       <ModalRoot modals={modals}>
         {{
-          [Modals.FoodAdd]: <FoodAdd store={schedule} />,
-          [Modals.FoodEdit]: <ScheduleFoodEdit schedule={schedule} />,
-          [Modals.Time]: <ContentEdit.Time store={schedule} onFinish={modals.close} />,
-          [Modals.Quantity]: <ContentEdit.Quantity store={schedule} onFinish={modals.close} />,
+          [Modals.FoodAdd]: <ScheduleFoodAdd schedule={schedule} />,
+          [Modals.FoodEdit]: <ScheduleFoodEdit schedule={schedule} defaultTab="foodChange" />,
+          [Modals.Time]: <ScheduleFoodEdit schedule={schedule} defaultTab="time" />,
+          [Modals.Quantity]: <ScheduleFoodEdit schedule={schedule} defaultTab="quantity" />,
+          // [Modals.Time]: <ContentEdit.Time store={schedule} onFinish={modals.close} />,
+          // [Modals.Quantity]: <ContentEdit.Quantity store={schedule} onFinish={modals.close} />,
           [Modals.DishNutrients]: <DishNutrients store={schedule} />,
           [Modals.FoodNutrients]: <FoodNutrients store={schedule} />,
           [Modals.CreateDish]: <DishBuilderContainer store={schedule} />,
           // [Modals.CopySchedule]: <CopySchedule onFinish={onCopyFinish} />,
-          [Modals.EventContent]: (
+          [Modals.EventAdd]: (
             <EventContent
               onSelect={onEventContentSelect}
               onFinish={modals.close}
@@ -216,12 +238,6 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
           // ),
         }}
       </ModalRoot>
-      <Actions isShow={() => true}>
-        <Button.Finish onClick={onFinishHandler} content={schedule} isShow={() => true}>
-          синхронизовать
-        </Button.Finish>
-        <Button.Add onClick={onFoodsOpenCreate} />
-      </Actions>
     </div>
   );
 };

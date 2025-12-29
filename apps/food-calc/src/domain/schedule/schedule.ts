@@ -1,16 +1,10 @@
-import { applySnapshot, getRoot, getSnapshot, Instance, onPatch, types } from "mobx-state-tree";
+import { getEnv, getRoot, getSnapshot, Instance, onPatch, types } from "mobx-state-tree";
 import { getParent } from "mobx-state-tree";
 
-import { Dish, DishItem } from "../dish/Dish";
-import { Food } from "@/domain/Food";
-import { ItemStatus, ItemStatusType, SyncStatus } from "@/domain/commonListItem";
-import { TimeGroupUI } from "@/components/features/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel";
-import { createDishModel, createDishSnapshot } from "@/store/DishStore/fabric";
-import { RootInstance } from "@/store/types";
-import { FoodWithQuantity } from "@/domain/schedule/types";
+import { Dish } from "../dish/Dish";
+import { ItemStatusType, SyncStatus } from "@/domain/commonListItem";
 import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
 import { emitter } from "@/infrastructure/emitter/emitter";
-import { walk } from "mobx-state-tree";
 import { ChildrenController } from "@/domain/shared/ChildrenController";
 import { groupItemsByTime } from "@/domain/schedule/schedule.service";
 
@@ -31,8 +25,10 @@ export const ItemContent = types
     })
     .views(self => ({
         get food() {
-            if (!self.foodId) return undefined
-            return getRoot(self).foodStore.data.get(self.foodId)
+            if (!self.foodId) return null
+            const foodStore = getEnv(self)?.foodStore
+            return foodStore?.data.get(self.foodId)
+            // return getRoot(self).foodStore.data.get(self.foodId)
         },
 
         get dish(): Instance<typeof Dish> | undefined {
@@ -144,9 +140,41 @@ export const ScheduleItem = types.model("ScheduleItem", {
         return self.content.variant
     }
 }))
-    .actions(self => ({
+    .actions(self => {
+        function updateTime(time: string) {
+            self.time = time;
+        }
+        function updateQuantity(quantity: number) {
+            self.quantity = quantity;
+        }
+        function updateChildContent(variant: ChildVariant, payload: {
+            customName?: string
+            foodId?: string
+            dishId?: string
+        }) {
+            self.content.update({ variant, ...payload })
+        }
+        function updateCustom(state: { customName: string }) {
+            const customName = state.customName.toString();
+            updateChildContent('custom', { customName });
+        }
 
-    }));
+        function updateFood(state: { foodId: string }) {
+            updateChildContent('food', { foodId: state.foodId });
+        }
+
+        function updateDish(state: { dishId: string }) {
+            updateChildContent('dish', { dishId: state.id.toString() });
+        }
+
+        return {
+            updateTime,
+            updateQuantity,
+            updateCustom,
+            updateFood,
+            updateDish
+        }
+    });
 
 export const EventItem = types.model("EventItem", {
     id: types.identifier,
@@ -159,16 +187,42 @@ export const EventItem = types.model("EventItem", {
 
 }))
     .actions(self => ({
-
+        updateTime(time: string) {
+            self.time = time;
+        }
     }));
+
+const DayScheduleDraftModel = types.model({
+    event: types.optional(EventItem, () => ({
+        id: 'draft-event',
+        time: '12:00',
+        value: '',
+        type: 'custom'
+    })),
+    food: types.optional(ScheduleItem, () => ({
+        id: 'draft-food',
+        quantity: 100,
+        time: '12:00',
+        content: { variant: 'custom', customName: 'Мой продукт' }
+    }))
+}).actions(self => ({
+    resetDraftFood() {
+        self.food.updateChildContent("custom", { customName: 'Мой продукт' })
+        self.food.updateTime('12:00')
+        self.food.updateQuantity(100)
+    }
+}
+))
 
 export const DaySchedule = types.model({
     id: types.identifier,
     userId: types.number,
     lastSync: types.optional(types.string, ""),
     lastTimeItemAdded: types.optional(types.string, ""),
+    lastTimeEventAdded: types.optional(types.string, ""),
     foods: ChildrenController(ScheduleItem),
-    events: ChildrenController(EventItem)
+    events: ChildrenController(EventItem),
+    draft: types.optional(DayScheduleDraftModel, () => ({})),
 })
     .views(self => ({
         getChildById(id: string) {
@@ -222,6 +276,26 @@ export const DaySchedule = types.model({
             })
         }
 
+        function addDraftToFoods(draft: Instance<typeof ScheduleItem>) {
+            const { time, quantity, content } = draft;
+            self.foods.addChildWithLocalData({
+                time,
+                quantity,
+                content: getSnapshot(content)
+            })
+            self.lastTimeItemAdded = time
+        }
+
+        function addDraftToEvents(draft: Instance<typeof EventItem>) {
+            const { time, value, type } = draft;
+            self.events.addChildWithLocalData({
+                time,
+                value,
+                type
+            })
+            self.lastTimeEventAdded = time
+        }
+
         function beforeDestroy() {
             disposer?.()
         }
@@ -252,7 +326,7 @@ export const DaySchedule = types.model({
         }) {
             const child = self.getChildById(id)
             if (!child) return
-            child.content.update({ variant, ...payload })
+            child.updateChildContent(variant, payload)
         }
 
         function updateTime(id: string, time: string) {
@@ -269,57 +343,6 @@ export const DaySchedule = types.model({
             self.foods.updateChildById({ id, quantity });
         }
 
-        function addOrUpdateCustom(itemId: string | null, state: { time: string, customName: string }) {
-            const customName = state.customName.toString();
-
-            if (!itemId) {
-                self.foods.addChildWithLocalData({
-                    quantity: 100,
-                    time: state.time,
-                    content: {
-                        variant: 'custom',
-                        customName,
-                    },
-                });
-                return;
-            }
-
-            updateChildContent(itemId, 'custom', { customName });
-        }
-
-        function addOrUpdateFood(itemId: string | null, state: { time: string, foodId: string }) {
-            if (!itemId) {
-                self.foods.addChildWithLocalData({
-                    quantity: 100,
-                    time: state.time,
-                    content: {
-                        variant: 'food',
-                        foodId: state.foodId
-                    },
-                });
-                self.lastTimeItemAdded = state.time
-                return;
-            }
-
-            updateChildContent(itemId, 'food', { foodId: state.foodId });
-        }
-
-        function addOrUpdateDish(itemId: string | null, state: { time: string, dishId: string }) {
-            if (!itemId) {
-                self.foods.addChildWithLocalData({
-                    quantity: 100,
-                    time: state.time,
-                    content: {
-                        variant: 'dish',
-                        dishId: state.dishId,
-                    },
-                });
-                return;
-            }
-
-            updateChildContent(itemId, 'dish', { dishId: payload.id.toString() });
-        }
-
         function addOrUpdateEvent(itemId: string | null, state: { type: string, value: string, time: string }) {
             const { type, value, time } = state;
             if (!itemId) {
@@ -334,10 +357,9 @@ export const DaySchedule = types.model({
         }
 
         return {
-            addOrUpdateCustom,
-            addOrUpdateFood,
+            addDraftToFoods,
+            addDraftToEvents,
             updateEventTime,
-            addOrUpdateDish,
             addOrUpdateEvent,
             changeStatusByIds,
             updateChildContent,

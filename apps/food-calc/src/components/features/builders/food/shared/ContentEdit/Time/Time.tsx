@@ -5,6 +5,7 @@ import commonStyle from '../ContentEdit.module.scss';
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TimePicker } from '@/components/features/builders/food/ScheduleBuilder/components/TimePicker';
 
 const TIME = {
   HOURS: [
@@ -51,15 +52,15 @@ type HasTime = { time: string };
 // };
 
 type Props = {
-  store: {
-    current: { time: string } | null;
+  item: {
+    time: string;
     updateTime: (time: string) => void;
   };
   onFinish: () => void;
 };
 
-function Time({ store, onFinish }: Props) {
-  const [initHours, initMinutes] = parseTime(store.current?.time || '');
+function Time({ item, onFinish }: Props) {
+  const [initHours, initMinutes] = parseTime(item.time || '');
   const [minutes, setMinutes] = useState<string>(initMinutes);
   const [hours, setHours] = useState(initHours);
 
@@ -69,7 +70,7 @@ function Time({ store, onFinish }: Props) {
   const onMinutesChange = (m: string) => {
     const time = hours + ':' + m;
     setMinutes('');
-    store.updateTime(time);
+    item.updateTime(time);
     onFinish();
   };
 
@@ -87,6 +88,7 @@ function Time({ store, onFinish }: Props) {
 
   return (
     <div className={clsx([style.container, commonStyle.SuggestionWrapper])}>
+      <TimePicker value={item.time} onFinish={onFinish} />
       {TIME.HOURS.map((h) => (
         <ul key={h} className={style.minutes}>
           <button

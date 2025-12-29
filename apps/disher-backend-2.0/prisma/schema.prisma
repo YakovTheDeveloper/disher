@@ -48,7 +48,7 @@ model ScheduleEvent {
   time       String
   scheduleId String
   schedule   Schedule          @relation(fields: [scheduleId], references: [id])
-  content    Json?
+  value      String
 }
 
 model ScheduleItem {

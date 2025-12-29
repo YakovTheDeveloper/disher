@@ -6,75 +6,51 @@ import { observer, useLocalObservable } from 'mobx-react-lite';
 import React from 'react';
 import styles from './FoodAdd.module.scss';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule';
-import { useDailyScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
+import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
 import { domainStore } from '@/store/store';
 import { filterBy } from '@/lib/filter/filter';
 import { useSearchParams } from 'react-router';
 
 type Props = {
   children?: React.ReactNode;
-  store: Instance<typeof DaySchedule>;
+  scheduleChild: Instance<typeof ScheduleItem>;
+  onFinish: () => void;
   headerAfter?: React.ReactNode;
-  filterText: string;
-  setFilterText: (text: string) => void;
 };
 
 type Tabs = 'productSearch' | 'dishSearch' | 'createCustom';
 
-const FoodAdd = ({ store }: Props) => {
-  const modals = useDailyScheduleModals();
+const SearchFood = ({ scheduleChild, onFinish, children }: Props) => {
+  // const modals = useDailyScheduleModals();
 
-  const [searchParams] = useSearchParams();
-  const itemId = searchParams.get('item_id');
-
-  const currentChild = store.getChildById(itemId);
+  const currentChild = scheduleChild;
 
   const onCustomAdd = (payload: DishEntity | FoodEntity | string) => {
-    const customName = payload.toString();
     console.log('onCustomAdd payload', payload);
-    store.addOrUpdateCustom(itemId, {
-      customName,
-      time: state.time,
+    scheduleChild.updateCustom({
+      customName: payload.toString(),
     });
-    modals.close();
+    onFinish();
   };
 
   const onFoodAdd = (payload: DishEntity | FoodEntity | string) => {
-    console.log('onFoodAdd payload', payload, state.time);
-    store.addOrUpdateFood(itemId, {
+    scheduleChild.updateFood({
       foodId: payload.id.toString(),
-      time: state.time,
     });
-    modals.clear();
+    onFinish();
   };
 
   const onDishAdd = (payload: DishEntity | FoodEntity | string) => {
-    console.log('onDishAdd payload', payload);
-    store.addOrUpdateDish(itemId, {
+    scheduleChild.updateDish({
       dishId: payload.id.toString(),
-      time: state.time,
     });
-    modals.close();
-  };
-
-  const onTimeChangeFinishUpdate = (value: string) => {
-    store.updateTime(itemId, value);
-  };
-
-  const onTimeChangeFinishLocalState = (value: string) => {
-    state.setTime(value);
+    onFinish();
   };
 
   const state = useLocalObservable(() => ({
     currentTab: 'productSearch' as Tabs,
     filterText: '',
-    customProductText: currentChild?.content?.name || '',
-    time: store.lastTimeItemAdded || '08:00',
-
-    setTime(time: string) {
-      this.time = time;
-    },
+    customProductText: currentChild?.content?.customName || '',
 
     setTab(tab: Tabs) {
       this.currentTab = tab;
@@ -107,18 +83,6 @@ const FoodAdd = ({ store }: Props) => {
     },
   }));
 
-  const settings = useLocalObservable(() => ({
-    showAdditionals: false,
-
-    setShowAdditionals(value: boolean) {
-      this.showAdditionals = value;
-    },
-
-    toggle() {
-      this.showAdditionals = !this.showAdditionals;
-    },
-  }));
-
   const onProductClickSeeDetails = () => {};
 
   const onCustomProductAdd = () => {
@@ -134,11 +98,7 @@ const FoodAdd = ({ store }: Props) => {
       <SearchListItem
         className={currentChild?.content?.food?.id === item.id ? styles.currentSelectedItem : ''}
       >
-        <FoodName
-          onClick={() => onFoodAdd(item)}
-          onClickHintModeOn={onProductClickSeeDetails}
-          hintMode={settings.showAdditionals}
-        >
+        <FoodName onClick={() => onFoodAdd(item)} onClickHintModeOn={onProductClickSeeDetails}>
           {() => item.name}
         </FoodName>
       </SearchListItem>
@@ -150,11 +110,7 @@ const FoodAdd = ({ store }: Props) => {
       <SearchListItem
         className={currentChild?.content?.dish?.id === item.id ? styles.currentSelectedItem : ''}
       >
-        <FoodName
-          onClick={() => onDishAdd(item)}
-          onClickHintModeOn={onProductClickSeeDetails}
-          hintMode={settings.showAdditionals}
-        >
+        <FoodName onClick={() => onDishAdd(item)} onClickHintModeOn={onProductClickSeeDetails}>
           {() => item.name}
         </FoodName>
       </SearchListItem>
@@ -169,12 +125,34 @@ const FoodAdd = ({ store }: Props) => {
     <>
       {/* Search input */}
       {state.currentTab !== 'createCustom' && (
-        <input
-          className={styles.searchInput}
-          placeholder="Поиск..."
-          value={state.filterText}
-          onChange={(e) => state.setSearch(e.target.value)}
-        />
+        <header className={styles.header}>
+          <input
+            className={styles.searchInput}
+            placeholder="Поиск..."
+            value={state.filterText}
+            onChange={(e) => state.setSearch(e.target.value)}
+          />
+          <div className={styles.tabs}>
+            <span
+              className={`${styles.tabButton} ${state.currentTab === 'productSearch' ? styles.active : ''}`}
+              onClick={() => state.setTab('productSearch')}
+            >
+              Продукты
+            </span>
+            <span
+              className={`${styles.tabButton} ${state.currentTab === 'dishSearch' ? styles.active : ''}`}
+              onClick={() => state.setTab('dishSearch')}
+            >
+              Блюда
+            </span>
+            <span
+              className={`${styles.tabButton} ${state.currentTab === 'createCustom' ? styles.active : ''}`}
+              onClick={() => state.setTab('createCustom')}
+            >
+              Свой продукт
+            </span>
+          </div>
+        </header>
       )}
 
       {state.currentTab === 'productSearch' ? (
@@ -212,4 +190,4 @@ const FoodAdd = ({ store }: Props) => {
   );
 };
 
-export default observer(FoodAdd);
+export default observer(SearchFood);

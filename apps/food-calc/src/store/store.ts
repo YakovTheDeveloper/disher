@@ -10,14 +10,17 @@ import { createNutrientStoreWithInitialData } from "@/store/NutrientStore/Nutrie
 
 let _store: RootInstance | undefined;
 
+export const mstEnv = {
+    foodStore: FoodModelStore.create(),
+}
+
 function createStore(): RootInstance {
     const store = RootStore.create({
         scheduleStore: DayScheduleStore.create(),
-        foodStore: FoodModelStore.create(),
         dishStore: DishStore.create(),
         nutrientStore: createNutrientStoreWithInitialData(),
         interactionsService: InteractionsService.create(),
-    });
+    }, mstEnv);
 
     makePersistable(store.dishStore, "dish-store")
     makePersistable(store.foodStore, "food-store")

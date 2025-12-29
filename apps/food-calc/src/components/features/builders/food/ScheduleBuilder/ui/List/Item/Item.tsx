@@ -47,7 +47,7 @@ const Item = ({ item, controller, options, className }: Props) => {
     modals.set('foodNutrients', { id: item.content.foodId });
   };
 
-  const onDelete = () => controller.foods.updateChildById(item.id);
+  const onDelete = () => controller.foods.removeChild(item.id);
   const onDishOpenInfo = () => {
     console.log('item.content', item.content);
     navigate(`${RouterLinks.DishBuilder}/${item.content.dishId}`);
