@@ -7,7 +7,6 @@ import { FoodNutrients } from '@/components/features/builders/food/shared/compon
 import { useSearchParams } from 'react-router';
 import { DishNutrients } from '@/components/features/builders/food/ScheduleBuilder/components/DishNutrients';
 import { useState } from 'react';
-import { TimePicker } from '@/components/features/builders/food/ScheduleBuilder/components/TimePicker';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import { ContentEdit } from '@/components/features/builders/food/shared/ContentEdit';
 import { useDailyScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
@@ -18,7 +17,6 @@ type Props = {
   children?: React.ReactNode;
   schedule: Instance<typeof DaySchedule>;
   defaultTab?: string;
-  isCreating?: boolean;
 };
 
 const tabs = [
@@ -28,7 +26,7 @@ const tabs = [
   { value: 'quantity', label: 'количество' },
 ];
 
-const ScheduleFoodEdit = observer(({ isCreating, schedule, defaultTab }: Props) => {
+const ScheduleFoodEdit = observer(({ schedule, defaultTab }: Props) => {
   const [searchParams] = useSearchParams();
   const itemId = searchParams.get('item_id');
 
@@ -49,7 +47,7 @@ const ScheduleFoodEdit = observer(({ isCreating, schedule, defaultTab }: Props) 
   return (
     <DrawerLayout
       label={<ScreenLabel className={styles.title}>Редактирование приема пищи</ScreenLabel>}
-      tabs={<Tabs tabs={tabs} current={tab} setTab={setTab} />}
+      tabs={<Tabs tabs={tabs} current={tab} setTab={setTab} variant="scheduleFoodEdit" />}
     >
       {tab === 'info' && (
         <div>

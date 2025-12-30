@@ -1,4 +1,3 @@
-import { SearchListItem } from '@/components/features/builders/food/shared/components/search/SearchListItem';
 import { List } from '@/components/features/builders/food/shared/ContentEdit/Food/List';
 import { Button } from '@/components/features/builders/food/shared/ui/Actions/button';
 import { FoodName } from '@/components/features/builders/food/shared/ui/FoodName';
@@ -10,6 +9,7 @@ import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
 import { domainStore } from '@/store/store';
 import { filterBy } from '@/lib/filter/filter';
 import { useSearchParams } from 'react-router';
+import { SearchListItem } from '@/components/ui/atoms/SearchListItem';
 
 type Props = {
   children?: React.ReactNode;

@@ -5,13 +5,45 @@ import QuickButtons from '../shared/QuickButtons/QuickButtons';
 import { TextInput } from '@/components/ui/atoms/input/TextInput';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import ContentContainer from '../shared/ContentContainer/ContentContainer';
+import { useEffect, useState } from 'react';
 
 type Props = {
-  formData: Record<string, unknown>;
-  handleChange: (key: string, value: unknown) => void;
+  value: string;
+  onChange: (value: string) => void;
 };
 
-const ActivityContent = observer(({ formData, handleChange }: Props) => {
+const parseValueToForm = (value: string) => {
+  const defaultForm = {
+    variant: '',
+    hours: 0,
+    minutes: 0,
+  };
+  if (!value) {
+    return defaultForm;
+  }
+  const parts = value.split('|');
+  if (parts.length !== 3) {
+    return defaultForm;
+  }
+  return {
+    variant: parts[0],
+    hours: parseInt(parts[1], 10) || 0,
+    minutes: parseInt(parts[2], 10) || 0,
+  };
+};
+
+const ActivityContent = observer(({ value, onChange }: Props) => {
+  const [formData, setFormData] = useState(parseValueToForm(value));
+
+  const handleChange = (key: string, value: string | number | undefined) => {
+    if (value === undefined) return;
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  useEffect(() => {
+    const formToString = `${formData.variant}|${formData.hours}|${formData.minutes}`;
+    onChange(formToString);
+  }, [formData]);
   return (
     <ContentContainer className={styles.activityContent}>
       <Label>Type</Label>

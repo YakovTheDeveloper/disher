@@ -173,3 +173,12 @@ button:focus-visible {}
 .Tooltip {
   z-index: var(--z-index-tooltip);
 }
+
+.ellipsis {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

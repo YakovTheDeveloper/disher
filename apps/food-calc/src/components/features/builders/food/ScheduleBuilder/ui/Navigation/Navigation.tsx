@@ -92,7 +92,7 @@ const Navigation = ({ children, menuUi = uiStore.menu }: Props) => {
             </motion.div>
           </NavLink>
         </div>
-        {children}
+        <div className={styles.left}>{children}</div>
       </motion.header>
       <Menu store={menuUi}>
         <div className={styles.swipeButtons}>

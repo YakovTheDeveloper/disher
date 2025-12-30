@@ -5,13 +5,45 @@ import SliderField from '../shared/SliderField/SliderField';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import QuickButtons from '../shared/QuickButtons/QuickButtons';
 import ContentContainer from '../shared/ContentContainer/ContentContainer';
+import { useEffect, useState } from 'react';
 
 type Props = {
-  formData: Record<string, unknown>;
-  handleChange: (key: string, value: unknown) => void;
+  value: string;
+  onChange: (value: string) => void;
 };
 
-const SleepContent = observer(({ formData, handleChange }: Props) => {
+const parseValueToForm = (value: string) => {
+  const defaultForm = {
+    quality: 5,
+    hours: 7,
+    minutes: 30,
+  };
+  if (!value) {
+    return defaultForm;
+  }
+  const parts = value.split('|');
+  if (parts.length !== 3) {
+    return defaultForm;
+  }
+  return {
+    quality: parseInt(parts[0], 10),
+    hours: parseInt(parts[1], 10),
+    minutes: parseInt(parts[2], 10),
+  };
+};
+
+const SleepContent = observer(({ value, onChange }: Props) => {
+  const [formData, setFormData] = useState(parseValueToForm(value));
+
+  const handleChange = (key: string, value: number) => {
+    setFormData((prev: any) => ({ ...prev, [key]: value }));
+  };
+
+  useEffect(() => {
+    const formToString = `${formData.quality}|${formData.hours}|${formData.minutes}`;
+    onChange(formToString);
+  }, [formData]);
+
   return (
     <ContentContainer className={styles.sleepContent}>
       <Label>Quality (1–10)</Label>

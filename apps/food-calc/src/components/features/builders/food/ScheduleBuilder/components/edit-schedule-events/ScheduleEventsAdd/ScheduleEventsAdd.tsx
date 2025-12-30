@@ -1,13 +1,8 @@
 import { observer } from 'mobx-react-lite';
-import styles from './ScheduleFoodAdd.module.scss';
-import { SearchFood } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd';
-import { Instance, SnapshotIn } from 'mobx-state-tree';
-import { DaySchedule, EventItem, ScheduleItem } from '@/domain/schedule/schedule';
-import { FoodNutrients } from '@/components/features/builders/food/shared/components/FoodNutrients';
-import { useSearchParams } from 'react-router';
-import { DishNutrients } from '@/components/features/builders/food/ScheduleBuilder/components/DishNutrients';
-import { useState, useCallback, useMemo } from 'react'; // Import useCallback
-import { TimePicker } from '@/components/features/builders/food/ScheduleBuilder/components/TimePicker';
+import styles from './ScheduleEventsAdd.module.scss';
+import { Instance } from 'mobx-state-tree';
+import { DaySchedule } from '@/domain/schedule/schedule';
+import { useState, useMemo } from 'react'; // Import useCallback
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import { ContentEdit } from '@/components/features/builders/food/shared/ContentEdit';
 import { useDailyScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
@@ -16,43 +11,17 @@ import clsx from 'clsx';
 import { mstEnv } from '@/store/store';
 import { DrawerLayout } from '@/components/features/builders/food/shared/components/DrawerLayout';
 import { EventContent } from '@/components/features/builders/food/ScheduleBuilder/EventsBuilder/components/EventContent';
-
-type TabValue = 'info' | 'eventSelect' | 'quantity' | 'time';
+import { useItemCreationSteps } from '@/components/features/builders/food/shared/hooks/useItemCreationSteps';
+import { SchheduleEventList } from '@/components/features/builders/food/ScheduleBuilder/components/edit-schedule-events/components/SchheduleEventList';
+import { EventItem } from '@/domain/schedule/scheduleEvent/scheduleEvent';
+import { FinishButton } from '@/components/features/builders/food/shared/atoms/FinishButton';
 
 type Props = {
   children?: React.ReactNode;
   schedule: Instance<typeof DaySchedule>;
 };
 
-type Tab = {
-  value: TabValue;
-  label: string;
-};
-
-const tabs: Tab[] = [
-  { value: 'time', label: 'время' },
-  { value: 'eventSelect', label: 'событие' },
-  { value: 'quantity', label: 'количество' },
-];
-
-enum Steps {
-  TimeSelect,
-  EventSelect,
-  QuantitySelect,
-}
-
-const availableTabsPerStep: Record<Steps, TabValue[]> = {
-  [Steps.TimeSelect]: ['time'],
-  [Steps.EventSelect]: ['time', 'eventSelect'],
-  [Steps.QuantitySelect]: ['time', 'eventSelect', 'quantity'],
-};
-
-const getTabsForStep = (step: Steps): Tab[] => {
-  const allowed = availableTabsPerStep[step];
-  return tabs.filter((tab) => allowed.includes(tab.value));
-};
-
-const ScheduleEventsAdd = observer(({ schedule }: Props) => {
+const ScheduleEventsAdd = ({ schedule }: Props) => {
   const modals = useDailyScheduleModals();
 
   // const currentChild = schedule.draft.food;
@@ -69,56 +38,54 @@ const ScheduleEventsAdd = observer(({ schedule }: Props) => {
       ),
     []
   );
-
-  const [step, setStep] = useState(Steps.TimeSelect);
-  const [tab, setTab] = useState<TabValue>('time');
-
-  const onTimeSetFinish = () => {
-    setStep(Steps.EventSelect);
-    setTab('eventSelect');
-  };
-  const onEventSetFinish = () => {
-    setStep(Steps.QuantitySelect);
-    setTab('quantity');
-  };
-  const onQuantitySetFinish = () => {};
-
   const onFinish = () => {
-    console.log('currentChild', currentChild);
     schedule.addDraftToEvents(currentChild);
     modals.close();
   };
 
-  const isFinishButtonActive = step === Steps.QuantitySelect;
+  const tabs = [
+    {
+      value: 'time',
+      label: 'Время',
+      alternativeLabel: currentChild.time || '00:00',
+    },
+    {
+      value: 'eventSelect',
+      label: 'Вариант',
+      alternativeLabel: currentChild.typeView,
+    },
+    {
+      value: 'value',
+      label: 'Количество',
+      alternativeLabel: currentChild.value,
+    },
+  ];
+
+  const { currentStep, visibleSteps, setStepByValue, maxStepReached, onStepFinish } =
+    useItemCreationSteps(tabs, onFinish);
 
   return (
     <DrawerLayout
-      label={<ScreenLabel className={styles.title}>Добавить событие</ScreenLabel>}
-      tabs={<Tabs tabs={getTabsForStep(step)} current={tab} setTab={setTab} />}
-      bottom={
-        <button
-          disabled={!isFinishButtonActive}
-          className={clsx([
-            styles.finishButton,
-            isFinishButtonActive && styles.finishButton_active,
-          ])}
-          onClick={onFinish}
-        >
-          Завершить
-        </button>
+      label={<ScreenLabel>Добавить</ScreenLabel>}
+      tabs={
+        <Tabs
+          tabs={visibleSteps}
+          current={currentStep}
+          setTab={setStepByValue}
+          variant="scheduleEventAdd"
+        />
       }
+      bottom={<FinishButton maxStepReached={maxStepReached} onClick={onFinish} />}
     >
-      {tab === 'time' && <ContentEdit.Time item={currentChild} onFinish={onTimeSetFinish} />}
-      {tab === 'eventSelect' && (
-        <ul>
-          <li onClick={onEventSetFinish}>спорт</li>
-          <li onClick={onEventSetFinish}>недуг</li>
-          <li onClick={onEventSetFinish}>кастомное событие</li>
-        </ul>
+      {currentStep === 'time' && <ContentEdit.Time item={currentChild} onFinish={onStepFinish} />}
+      {currentStep === 'eventSelect' && (
+        <SchheduleEventList eventItem={currentChild} onFinish={onStepFinish} />
       )}
-      {tab === 'quantity' && <EventContent />}
+      {currentStep === 'value' && (
+        <EventContent onFinish={onStepFinish} currentEvent={currentChild} />
+      )}
     </DrawerLayout>
   );
-});
+};
 
-export default ScheduleEventsAdd;
+export default observer(ScheduleEventsAdd);

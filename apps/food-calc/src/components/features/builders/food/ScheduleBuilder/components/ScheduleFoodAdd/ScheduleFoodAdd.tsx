@@ -1,13 +1,9 @@
 import { observer } from 'mobx-react-lite';
 import styles from './ScheduleFoodAdd.module.scss';
 import { SearchFood } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd';
-import { Instance, SnapshotIn } from 'mobx-state-tree';
+import { Instance } from 'mobx-state-tree';
 import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
-import { FoodNutrients } from '@/components/features/builders/food/shared/components/FoodNutrients';
-import { useSearchParams } from 'react-router';
-import { DishNutrients } from '@/components/features/builders/food/ScheduleBuilder/components/DishNutrients';
-import { useState, useCallback, useMemo } from 'react'; // Import useCallback
-import { TimePicker } from '@/components/features/builders/food/ScheduleBuilder/components/TimePicker';
+import { useMemo } from 'react'; // Import useCallback
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import { ContentEdit } from '@/components/features/builders/food/shared/ContentEdit';
 import { useDailyScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
@@ -15,40 +11,14 @@ import { Tabs } from '@/components/ui/Tabs';
 import clsx from 'clsx';
 import { mstEnv } from '@/store/store';
 import { DrawerLayout } from '@/components/features/builders/food/shared/components/DrawerLayout';
+import { useItemCreationSteps } from '@/components/features/builders/food/shared/hooks/useItemCreationSteps';
+import { FinishButton } from '@/components/features/builders/food/shared/atoms/FinishButton';
 
 type TabValue = 'info' | 'foodSelect' | 'quantity' | 'time';
 
 type Props = {
   children?: React.ReactNode;
   schedule: Instance<typeof DaySchedule>;
-};
-
-type Tab = {
-  value: TabValue;
-  label: string;
-};
-
-const tabs: Tab[] = [
-  { value: 'time', label: 'время' },
-  { value: 'foodSelect', label: 'еда' },
-  { value: 'quantity', label: 'количество' },
-];
-
-enum Steps {
-  TimeSelect,
-  FoodSelect,
-  QuantitySelect,
-}
-
-const availableTabsPerStep: Record<Steps, TabValue[]> = {
-  [Steps.TimeSelect]: ['time'],
-  [Steps.FoodSelect]: ['time', 'foodSelect'],
-  [Steps.QuantitySelect]: ['time', 'foodSelect', 'quantity'],
-};
-
-const getTabsForStep = (step: Steps): Tab[] => {
-  const allowed = availableTabsPerStep[step];
-  return tabs.filter((tab) => allowed.includes(tab.value));
 };
 
 const ScheduleFoodAdd = observer(({ schedule }: Props) => {
@@ -69,50 +39,39 @@ const ScheduleFoodAdd = observer(({ schedule }: Props) => {
     []
   );
 
-  const [step, setStep] = useState(Steps.TimeSelect);
-  const [tab, setTab] = useState<TabValue>('time');
-
-  const onTimeSetFinish = () => {
-    setStep(Steps.FoodSelect);
-    setTab('foodSelect');
-  };
-  const onFoodSetFinish = () => {
-    setStep(Steps.QuantitySelect);
-    setTab('quantity');
-  };
-  const onQuantitySetFinish = () => {};
-
   const onFinish = () => {
-    console.log('currentChild', currentChild);
     schedule.addDraftToFoods(currentChild);
     modals.close();
   };
 
-  const isFinishButtonActive = step === Steps.QuantitySelect;
+  const tabs = [
+    { value: 'time', label: 'время', alternativeLabel: currentChild.time },
+    { value: 'foodSelect', label: 'еда', alternativeLabel: currentChild.content.name },
+    { value: 'quantity', label: 'количество', alternativeLabel: currentChild.quantity },
+  ];
+
+  const { currentStep, visibleSteps, setStepByValue, maxStepReached, onStepFinish } =
+    useItemCreationSteps(tabs, onFinish);
 
   return (
     <DrawerLayout
       label={<ScreenLabel className={styles.title}>Добавить пищу</ScreenLabel>}
-      tabs={<Tabs tabs={getTabsForStep(step)} current={tab} setTab={setTab} />}
-      bottom={
-        <button
-          disabled={!isFinishButtonActive}
-          className={clsx([
-            styles.finishButton,
-            isFinishButtonActive && styles.finishButton_active,
-          ])}
-          onClick={onFinish}
-        >
-          Завершить
-        </button>
+      tabs={
+        <Tabs
+          tabs={visibleSteps}
+          current={currentStep}
+          setTab={setStepByValue}
+          variant="scheduleFoodAdd"
+        />
       }
+      bottom={<FinishButton maxStepReached={maxStepReached} onClick={onFinish} />}
     >
-      {tab === 'time' && <ContentEdit.Time item={currentChild} onFinish={onTimeSetFinish} />}
-      {tab === 'foodSelect' && (
-        <SearchFood scheduleChild={currentChild} onFinish={onFoodSetFinish} />
+      {currentStep === 'time' && <ContentEdit.Time item={currentChild} onFinish={onStepFinish} />}
+      {currentStep === 'foodSelect' && (
+        <SearchFood scheduleChild={currentChild} onFinish={onStepFinish} />
       )}
-      {tab === 'quantity' && (
-        <ContentEdit.Quantity item={currentChild} onFinish={onQuantitySetFinish} />
+      {currentStep === 'quantity' && (
+        <ContentEdit.Quantity item={currentChild} onFinish={onStepFinish} />
       )}
     </DrawerLayout>
   );

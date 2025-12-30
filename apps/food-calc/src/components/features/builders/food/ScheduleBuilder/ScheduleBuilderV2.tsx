@@ -35,12 +35,14 @@ import { ScheduleFoodEdit } from '@/components/features/builders/food/ScheduleBu
 import { Actions } from '@/components/features/builders/food/shared/ui/Actions';
 import { Button } from '@/components/features/builders/food/shared/ui/Actions/button';
 import { ScheduleFoodAdd } from '@/components/features/builders/food/ScheduleBuilder/components/ScheduleFoodAdd';
+import { ScheduleEventsAdd } from '@/components/features/builders/food/ScheduleBuilder/components/edit-schedule-events/ScheduleEventsAdd';
 
 export const Modals = {
   Time: 'time',
   Food: 'Food',
   FoodAdd: 'FoodAdd',
   EventAdd: 'EventAdd',
+  EventEdit: 'EventEdit',
   FoodEdit: 'FoodEdit',
   UpdateFood: 'updateFood',
   Quantity: 'quantity',
@@ -226,13 +228,8 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
           [Modals.FoodNutrients]: <FoodNutrients store={schedule} />,
           [Modals.CreateDish]: <DishBuilderContainer store={schedule} />,
           // [Modals.CopySchedule]: <CopySchedule onFinish={onCopyFinish} />,
-          [Modals.EventAdd]: (
-            <EventContent
-              onSelect={onEventContentSelect}
-              onFinish={modals.close}
-              schedule={schedule}
-            />
-          ),
+          [Modals.EventAdd]: <ScheduleEventsAdd schedule={schedule} onFinish={onFinishHandler} />,
+          [Modals.EventEdit]: <ScheduleEventsAdd schedule={schedule} onFinish={onFinishHandler} />,
           // [Modals.EventTime]: (
           //   <ContentEdit.Time vm={schedule.dailyEventItemsStore} onFinish={modals.close} />
           // ),

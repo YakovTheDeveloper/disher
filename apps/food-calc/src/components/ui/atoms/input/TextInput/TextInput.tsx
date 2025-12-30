@@ -1,5 +1,5 @@
 import React, { forwardRef, useState, useCallback, useId } from 'react';
-import styles from './TextInput.module.css';
+import styles from './TextInput.module.scss';
 
 export interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
@@ -16,7 +16,7 @@ export interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInput
   showClearButton?: boolean;
 }
 
-export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
+const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
   (
     {
       label,
@@ -162,3 +162,4 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
 );
 
 TextInput.displayName = 'TextInput';
+export default TextInput;

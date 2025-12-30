@@ -1,22 +1,29 @@
 .tabs {
     display: grid;
-    grid-template-columns: auto 1fr 2fr 1fr;
-    gap: 0.5rem; // Space between tabs
+    border-radius: 10px;
+    overflow: hidden;
 }
 
 .tabButton {
     background-color: transparent;
     border: none;
-    padding: 0.75rem 1.25rem;
-    font-size: 1rem;
+    padding: 0 1rem;
+    height: 50px;
+    font-size: 14px;
     cursor: pointer;
     color: var(--text-color-secondary, #616161);
-    border-bottom: 2px solid transparent; // Underline effect for tabs
-    transition: all 0.3s ease-in-out;
+    // border-bottom: 2px solid transparent; // Underline effect for tabs
+    // transition: all 0.3s ease-in-out;
     outline: none; // Remove default outline for a cleaner look
 
+    min-width: 0;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
     &:hover {
-        color: var(--primary-color, #1976d2); // Hover color
+        // color: var(--primary-color, #1976d2); // Hover color
         border-color: var(--primary-color-light, #bbdefb); // Lighter underline on hover
     }
 
@@ -30,11 +37,63 @@
     &:focus-visible {
         box-shadow: 0 0 0 2px var(--focus-ring-color, rgba(25, 118, 210, 0.5)); // Focus ring for keyboard users
     }
+
+    &:first-child {
+        text-align: left;
+    }
+}
+
+.place {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
 }
 
 .tabContent {
     padding: 1rem 0;
     // Any specific styles for the content area below tabs
+}
+
+.inner {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+}
+
+.labelContainer {
+    height: 100%;
+    position: relative;
+    display: block;
+}
+
+.label {
+    display: block;
+    position: relative;
+}
+
+.alternative {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    display: block;
+    transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+    opacity: 0;
+    font-size: 12px;
+    color: lightblue;
+    font-style: italic;
+    transform: translate(-30px, 100%);
+
+
+    &__inactive {
+        opacity: 1;
+        transform: translate(0, 100%);
+
+    }
 }
 
 // Define some CSS variables for consistency (optional, but good practice)

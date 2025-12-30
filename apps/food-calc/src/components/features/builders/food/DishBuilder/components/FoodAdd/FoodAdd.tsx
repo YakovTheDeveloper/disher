@@ -1,4 +1,3 @@
-import { SearchListItem } from '@/components/features/builders/food/shared/components/search/SearchListItem';
 import { List } from '@/components/features/builders/food/shared/ContentEdit/Food/List';
 import { Actions } from '@/components/features/builders/food/shared/ui/Actions';
 import { Button } from '@/components/features/builders/food/shared/ui/Actions/button';
@@ -17,6 +16,7 @@ import { Dish } from '@/domain/dish/Dish';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useItemIdParam } from '@/hooks/useItemIdParams';
 import { TimePicker } from '@/components/features/builders/food/ScheduleBuilder/components/TimePicker';
+import { SearchListItem } from '@/components/ui/atoms/SearchListItem';
 
 type Props = {
   children?: React.ReactNode;

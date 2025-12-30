@@ -4,7 +4,7 @@ import styles from './NumberInput.module.scss';
 
 type Props = {
   id?: string;
-  value: number | null | undefined;
+  value: number;
   onBlur?: (current: number) => void;
   onChange?: (current: number) => void;
   className?: string;

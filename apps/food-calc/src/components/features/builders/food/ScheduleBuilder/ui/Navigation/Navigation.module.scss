@@ -15,6 +15,15 @@
     position: relative;
 }
 
+.left {
+    position: absolute;
+    left: 0;
+    top: -10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .menuButton {
     height: 60px;
     width: 60px;

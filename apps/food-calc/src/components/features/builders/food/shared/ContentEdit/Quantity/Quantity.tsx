@@ -18,11 +18,15 @@ type Props = {
 const Quantity = ({ onFinish, item }: Props) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleChange = (quantity: number) => {
-    item.updateQuantity(quantity);
+  const [value, setValue] = useState(item.quantity);
+
+  const onBlur = () => {
+    item.updateQuantity(value);
+    // onFinish()
   };
 
   const handleVariantClick = (quantity: number) => {
+    setValue(quantity);
     item.updateQuantity(quantity);
     // onFinish();
   };
@@ -40,8 +44,9 @@ const Quantity = ({ onFinish, item }: Props) => {
             placeholder="Введите количество"
             ref={inputRef}
             className={style.input}
-            value={item.quantity}
-            onBlur={handleChange}
+            onChange={setValue}
+            value={value}
+            onBlur={onBlur}
           />
           <span className={style.unit}>г.</span>
         </div>

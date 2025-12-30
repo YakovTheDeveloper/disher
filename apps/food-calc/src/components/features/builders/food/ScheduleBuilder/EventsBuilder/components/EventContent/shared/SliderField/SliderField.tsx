@@ -22,6 +22,6 @@ const SliderField = ({ value, min, max, onChange }: Props) => {
       />
     </div>
   );
-});
+};
 
 export default SliderField;

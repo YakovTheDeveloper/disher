@@ -7,6 +7,7 @@ import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
 import { emitter } from "@/infrastructure/emitter/emitter";
 import { ChildrenController } from "@/domain/shared/ChildrenController";
 import { groupItemsByTime } from "@/domain/schedule/schedule.service";
+import { EventItem } from "@/domain/schedule/scheduleEvent/scheduleEvent";
 
 export type ScheduleItemType = Instance<typeof ScheduleItem>["type"];
 
@@ -176,44 +177,6 @@ export const ScheduleItem = types.model("ScheduleItem", {
         }
     });
 
-export const EventItem = types.model("EventItem", {
-    id: types.identifier,
-    value: types.string,
-    time: types.string,
-    sync: types.optional(SyncStatus, {}),
-    type: types.string
-
-}).views(self => ({
-
-}))
-    .actions(self => ({
-        updateTime(time: string) {
-            self.time = time;
-        }
-    }));
-
-const DayScheduleDraftModel = types.model({
-    event: types.optional(EventItem, () => ({
-        id: 'draft-event',
-        time: '12:00',
-        value: '',
-        type: 'custom'
-    })),
-    food: types.optional(ScheduleItem, () => ({
-        id: 'draft-food',
-        quantity: 100,
-        time: '12:00',
-        content: { variant: 'custom', customName: 'Мой продукт' }
-    }))
-}).actions(self => ({
-    resetDraftFood() {
-        self.food.updateChildContent("custom", { customName: 'Мой продукт' })
-        self.food.updateTime('12:00')
-        self.food.updateQuantity(100)
-    }
-}
-))
-
 export const DaySchedule = types.model({
     id: types.identifier,
     userId: types.number,
@@ -222,7 +185,6 @@ export const DaySchedule = types.model({
     lastTimeEventAdded: types.optional(types.string, ""),
     foods: ChildrenController(ScheduleItem),
     events: ChildrenController(EventItem),
-    draft: types.optional(DayScheduleDraftModel, () => ({})),
 })
     .views(self => ({
         getChildById(id: string) {

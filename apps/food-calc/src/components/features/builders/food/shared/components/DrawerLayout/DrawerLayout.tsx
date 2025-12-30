@@ -9,14 +9,14 @@ type Props = {
 
 const DrawerLayout = ({ children, label, tabs, bottom }: Props) => {
   return (
-    <div>
-      {label}
+    <>
+      <div className={styles.title}>{label}</div>
       <div className={styles.container}>
         <header className={styles.header}>{tabs}</header>
         {children}
       </div>
       <div className={styles.bottom}>{bottom}</div>
-    </div>
+    </>
   );
 };
 

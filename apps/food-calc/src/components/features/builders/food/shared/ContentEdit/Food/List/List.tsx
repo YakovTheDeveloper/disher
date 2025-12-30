@@ -3,7 +3,6 @@ import { observer } from 'mobx-react-lite';
 import clsx from 'clsx';
 import styles from './List.module.scss';
 import { GetFoodParams } from '@/api/food/food.api';
-import { ScheduleContentSearchItem } from '@/components/features/builders/food/ScheduleBuilder/model/SearchViewModel';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useDebounce } from 'use-debounce';
@@ -116,10 +115,9 @@ const List = observer(({ search, onFetch, queryKey, renderListContent }: Props) 
           if (!item) return null;
 
           return (
-            <li
+            <div
               key={item.id}
               className={clsx([
-                styles.listItem,
                 // vm.selectedItemId?.variant === item.type &&
                 //   vm.selectedItemId?.id === item.id &&
                 //   styles.listItem_active,
@@ -133,7 +131,7 @@ const List = observer(({ search, onFetch, queryKey, renderListContent }: Props) 
               }}
             >
               {renderListContent(item)}
-            </li>
+            </div>
           );
         })}
 

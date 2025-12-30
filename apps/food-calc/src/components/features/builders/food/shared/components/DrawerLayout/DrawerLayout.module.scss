@@ -2,9 +2,11 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    padding: 10px;
 }
 
 .title {
+    position: absolute;
     top: 0;
     left: 0;
     transform: unset;
@@ -13,14 +15,17 @@
 
 .header {
     // Your existing header styles
-    border-bottom: 1px solid var(--border-color, #e0e0e0); // Use a CSS variable or define directly
+    // border-bottom: 1px solid var(--border-color, #e0e0e0); // Use a CSS variable or define directly
     padding-bottom: 0;
 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     position: sticky;
     top: 0;
     z-index: 10;
     background: white;
     height: 50px;
+    margin-bottom: 10px;
+    border-radius: 10px;
 }
 
 .bottom {
