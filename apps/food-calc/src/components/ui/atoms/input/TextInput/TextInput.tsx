@@ -24,7 +24,7 @@ const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
       helperText,
       startAdornment,
       endAdornment,
-      size = 'medium',
+      size = 'small',
       variant = 'outlined',
       fullWidth = false,
       success = false,

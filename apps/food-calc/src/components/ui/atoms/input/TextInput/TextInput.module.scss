@@ -4,7 +4,6 @@
     flex-direction: column;
     gap: 0.375rem;
     width: 100%;
-    max-width: 400px;
 }
 
 .fullWidth {
@@ -69,7 +68,6 @@
 
 /* Sizes */
 .small {
-    min-height: 2.25rem;
     padding: 0 0.75rem;
 }
 
@@ -221,7 +219,6 @@
 /* Mobile optimization */
 @media (max-width: 768px) {
     .small {
-        min-height: 2.5rem;
         font-size: 1rem;
     }
 
@@ -247,7 +244,7 @@
 /* Touch device optimization */
 @media (hover: none) and (pointer: coarse) {
     .inputWrapper {
-        min-height: 2.75rem;
+        // min-height: 2.75rem;
     }
 
     .clearButton {
@@ -267,51 +264,51 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-    .label {
-        color: #e5e7eb;
-    }
+// @media (prefers-color-scheme: dark) {
+//     .label {
+//         color: #e5e7eb;
+//     }
 
-    .inputWrapper {
-        background-color: #1f2937;
-    }
+//     .inputWrapper {
+//         background-color: #1f2937;
+//     }
 
-    .outlined {
-        border-color: #4b5563;
-    }
+//     .outlined {
+//         border-color: #4b5563;
+//     }
 
-    .outlined:hover:not(.disabled) {
-        border-color: #6b7280;
-    }
+//     .outlined:hover:not(.disabled) {
+//         border-color: #6b7280;
+//     }
 
-    .filled {
-        background-color: #374151;
-    }
+//     .filled {
+//         background-color: #374151;
+//     }
 
-    .filled:hover:not(.disabled) {
-        background-color: #4b5563;
-    }
+//     .filled:hover:not(.disabled) {
+//         background-color: #4b5563;
+//     }
 
-    .input {
-        color: #f9fafb;
-    }
+//     .input {
+//         color: #f9fafb;
+//     }
 
-    .input::placeholder {
-        color: #6b7280;
-    }
+//     .input::placeholder {
+//         color: #6b7280;
+//     }
 
-    .disabled {
-        background-color: #111827;
-    }
+//     .disabled {
+//         background-color: #111827;
+//     }
 
-    .helperText {
-        color: #9ca3af;
-    }
+//     .helperText {
+//         color: #9ca3af;
+//     }
 
-    .clearButton:hover {
-        background-color: #374151;
-    }
-}
+//     .clearButton:hover {
+//         background-color: #374151;
+//     }
+// }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {

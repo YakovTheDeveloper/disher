@@ -1,6 +1,7 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './NumberInput.module.scss';
+import clsx from 'clsx';
 
 type Props = {
   id?: string;
@@ -36,7 +37,7 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
         inputMode="numeric"
         pattern="[0-9]*"
         onFocus={handleFocus}
-        className={`${styles.input} ${className || ''}`}
+        className={clsx([styles.input, className])}
         value={value}
         placeholder={placeholder}
         onChange={(e) => {

@@ -6,9 +6,10 @@ type Props = {
   min: number;
   max: number;
   onChange: (value: number) => void;
+  children: React.ReactNode
 };
 
-const SliderField = ({ value, min, max, onChange }: Props) => {
+const SliderField = ({ value, min, max, onChange,children }: Props) => {
   return (
     <div className={styles.sliderWrapper}>
       <div className={styles.sliderValue}>{value}</div>

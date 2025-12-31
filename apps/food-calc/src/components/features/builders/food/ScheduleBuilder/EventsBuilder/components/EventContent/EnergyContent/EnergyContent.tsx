@@ -1,22 +1,17 @@
 import { observer } from 'mobx-react-lite';
-import styles from './EnergyContent.module.scss';
-import { Label } from '../shared/Label';
-import SliderField from '../shared/SliderField/SliderField';
-import ContentContainer from '../shared/ContentContainer/ContentContainer';
 import { useEffect, useState } from 'react';
+import { EventContentEditForm } from '../shared/EventContentEditForm';
 
 type Props = {
   value: string;
   onChange: (value: string) => void;
 };
 
-const parseValueToForm = (value: string) => {
-  const defaultForm = {
-    value: 5,
-  };
-  if (!value) {
-    return defaultForm;
-  }
+type FormData = {
+  value: number;
+};
+
+const parseValueToForm = (value: string): FormData => {
   return {
     value: parseInt(value, 10) || 5,
   };
@@ -25,8 +20,14 @@ const parseValueToForm = (value: string) => {
 const EnergyContent = observer(({ value, onChange }: Props) => {
   const [formData, setFormData] = useState(parseValueToForm(value));
 
-  const handleChange = (key: string, value: number) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+  const handleChange = (key: string, value: string) => {
+    setFormData(
+      (prev) =>
+        ({
+          ...prev,
+          [key]: Number(value),
+        }) as FormData
+    );
   };
 
   useEffect(() => {
@@ -34,15 +35,18 @@ const EnergyContent = observer(({ value, onChange }: Props) => {
   }, [formData]);
 
   return (
-    <ContentContainer className={styles.energyContent}>
-      <Label>Energy (1–10)</Label>
-      <SliderField
-        value={formData.value}
-        min={1}
-        max={10}
-        onChange={(value) => handleChange('value', value)}
-      />
-    </ContentContainer>
+    <EventContentEditForm
+      items={[
+        {
+          key: 'value',
+          label: 'Энергия',
+          value: formData.value,
+          quickButtons: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+          placeholder: '1–10',
+        },
+      ]}
+      onChange={handleChange}
+    />
   );
 });
 

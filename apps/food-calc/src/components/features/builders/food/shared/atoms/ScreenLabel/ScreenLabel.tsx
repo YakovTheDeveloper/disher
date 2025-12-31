@@ -8,21 +8,31 @@ type Props = {
   fontSize?: string | number;
   letterSpacing?: string | number;
   className?: string;
+  variant: keyof typeof fontStyle;
 };
 
-const ScreenLabel = ({ children, opacity, fontSize, letterSpacing, className }: Props) => {
+const ScreenLabel = ({ children, opacity, className, variant }: Props) => {
   return (
-    <div
+    <p
       className={clsx([className, styles.ScreenLabel])}
       style={{
         opacity,
-        fontSize,
-        letterSpacing,
+        ...fontStyle[variant],
       }}
     >
       {children}
-    </div>
+    </p>
   );
+};
+
+const fontStyle = {
+  screenHeader: {
+    fontSize: '50px',
+    letterSpacing: '-3px',
+  },
+  formValueLabel: {
+    fontSize: '100px',
+  },
 };
 
 export default observer(ScreenLabel);
