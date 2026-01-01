@@ -184,34 +184,22 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
             </ScreenScroll>
           </Screen>,
 
-          <Screen key={2}>
+          <Screen key={2} bottom={<Button.Add onClick={onFoodAdd} />}>
             <Navigation>
               <ScreenLabel>{'Еда'}</ScreenLabel>
             </Navigation>
             <ScreenScroll>
               <List onDishesUnite={onUniteFoodIntoDish} options={foodOptions} schedule={schedule} />
             </ScreenScroll>
-            <Actions isShow={() => true} isPortal={false}>
-              <Button.Finish onClick={onFinishHandler} content={schedule} isShow={() => true}>
-                синхронизовать
-              </Button.Finish>
-              <Button.Add onClick={onFoodAdd} />
-            </Actions>
           </Screen>,
 
-          <Screen key={3}>
+          <Screen key={3} bottom={<Button.Add onClick={onEventAdd} />}>
             <Navigation>
               <ScreenLabel>{'События'}</ScreenLabel>
             </Navigation>
             <ScreenScroll>
               <EventsBuilder schedule={schedule} options={foodOptions} />
             </ScreenScroll>
-            <Actions isShow={() => true} isPortal={false}>
-              <Button.Finish onClick={onFinishHandler} content={schedule} isShow={() => true}>
-                синхронизовать
-              </Button.Finish>
-              <Button.Add onClick={onEventAdd} />
-            </Actions>
           </Screen>,
         ]}
       </Swipeable>

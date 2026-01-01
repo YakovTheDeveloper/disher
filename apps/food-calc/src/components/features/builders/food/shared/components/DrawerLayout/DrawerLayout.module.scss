@@ -4,6 +4,8 @@
     flex: 1;
     padding: 10px;
     margin-bottom: 60px;
+    background: linear-gradient(180deg, #ffffff 0%, #c7c7c7 95%, #dbdbdb 60%, #c4c3c3 100%);
+
 }
 
 .title {
@@ -13,26 +15,31 @@
     transform: unset;
     white-space: nowrap;
     z-index: -1;
+
 }
 
 .header {
     // Your existing header styles
-    // border-bottom: 1px solid var(--border-color, #e0e0e0); // Use a CSS variable or define directly
-    padding-bottom: 0;
-
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    // box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     position: sticky;
     top: 0;
     z-index: 10;
-    background: white;
-    height: 50px;
+    // height: 45px;\
+    height: auto;
     margin-bottom: 10px;
     border-radius: 10px;
 }
 
+.subHeader {
+    position: sticky;
+    top: 0;
+}
+
 .bottom {
-    position: fixed;
-    bottom: 0;
-    right: 0;
+    z-index: 9;
+    display: flex;
+    position: absolute;
+    top: 50px;
+    left: 0;
     width: 100%;
 }

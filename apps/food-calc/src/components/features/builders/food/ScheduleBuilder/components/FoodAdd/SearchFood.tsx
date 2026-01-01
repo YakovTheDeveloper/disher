@@ -10,6 +10,8 @@ import { domainStore } from '@/store/store';
 import { filterBy } from '@/lib/filter/filter';
 import { useSearchParams } from 'react-router';
 import { SearchListItem } from '@/components/ui/atoms/SearchListItem';
+import SearchFoodControls from './SearchFoodControls/SearchFoodControls';
+import clsx from 'clsx';
 
 type Props = {
   children?: React.ReactNode;
@@ -96,21 +98,29 @@ const SearchFood = ({ scheduleChild, onFinish, children }: Props) => {
   const renderProductItem = (item: unknown) => (
     <>
       <SearchListItem
-        className={currentChild?.content?.food?.id === item.id ? styles.currentSelectedItem : ''}
+        active={currentChild?.content?.food?.id === item.id}
+        onClick={() => onFoodAdd(item)}
+        item={item}
       >
-        <FoodName onClick={() => onFoodAdd(item)} onClickHintModeOn={onProductClickSeeDetails}>
+        {/* <FoodName
+          className="ellipsis"
+          onClick={() => onFoodAdd(item)}
+          onClickHintModeOn={onProductClickSeeDetails}
+        >
           {() => item.name}
-        </FoodName>
+        </FoodName> */}
       </SearchListItem>
     </>
   );
 
   const renderDishtItem = (item: unknown) => (
     <>
-      <SearchListItem
-        className={currentChild?.content?.dish?.id === item.id ? styles.currentSelectedItem : ''}
-      >
-        <FoodName onClick={() => onDishAdd(item)} onClickHintModeOn={onProductClickSeeDetails}>
+      <SearchListItem active={currentChild?.content?.dish?.id === item.id}>
+        <FoodName
+          className="ellipsis"
+          onClick={() => onDishAdd(item)}
+          onClickHintModeOn={onProductClickSeeDetails}
+        >
           {() => item.name}
         </FoodName>
       </SearchListItem>
@@ -123,36 +133,14 @@ const SearchFood = ({ scheduleChild, onFinish, children }: Props) => {
 
   return (
     <>
-      {/* Search input */}
       {state.currentTab !== 'createCustom' && (
-        <header className={styles.header}>
-          <input
-            className={styles.searchInput}
-            placeholder="Поиск..."
-            value={state.filterText}
-            onChange={(e) => state.setSearch(e.target.value)}
-          />
-          <div className={styles.tabs}>
-            <span
-              className={`${styles.tabButton} ${state.currentTab === 'productSearch' ? styles.active : ''}`}
-              onClick={() => state.setTab('productSearch')}
-            >
-              Продукты
-            </span>
-            <span
-              className={`${styles.tabButton} ${state.currentTab === 'dishSearch' ? styles.active : ''}`}
-              onClick={() => state.setTab('dishSearch')}
-            >
-              Блюда
-            </span>
-            <span
-              className={`${styles.tabButton} ${state.currentTab === 'createCustom' ? styles.active : ''}`}
-              onClick={() => state.setTab('createCustom')}
-            >
-              Свой продукт
-            </span>
-          </div>
-        </header>
+        <SearchFoodControls
+          currentTab={state.currentTab}
+          setTab={state.setTab}
+          filterText={state.filterText}
+          setSearch={state.setSearch}
+          isVisible={true}
+        />
       )}
 
       {state.currentTab === 'productSearch' ? (
@@ -166,7 +154,7 @@ const SearchFood = ({ scheduleChild, onFinish, children }: Props) => {
       {state.currentTab === 'dishSearch' ? (
         <List
           queryKey="dishSearch"
-          onFetch={dishStore.getAllWithParams}
+          onFetch={domainStore.dishStore.getAllWithParams}
           search={state.dishSearchState}
           renderListContent={renderDishtItem}
         />

@@ -1,20 +1,50 @@
 .tabs {
-    display: grid;
-    border-radius: 10px;
     overflow: hidden;
+    position: relative;
+
+    &:before {
+        content: '';
+        background: rgb(190, 190, 190);
+        inset: 0;
+        position: absolute;
+        height: 40px;
+        border-radius: 20px;
+        z-index: 1;
+
+    }
+
+
+    &Row {
+        z-index: 1;
+        display: grid;
+        padding: 5px;
+        border-radius: 20px;
+
+
+
+
+
+    }
+
+    background-color: #f7f7f7;
+    border-radius: 20px;
+
 }
 
 .tabButton {
-    background-color: transparent;
+    z-index: 2;
     border: none;
-    padding: 0 1rem;
-    height: 50px;
+    padding: 0.3rem 1rem;
     font-size: 14px;
     cursor: pointer;
-    color: var(--text-color-secondary, #616161);
+    color: #646464;
     // border-bottom: 2px solid transparent; // Underline effect for tabs
     // transition: all 0.3s ease-in-out;
     outline: none; // Remove default outline for a cleaner look
+    background: transparent;
+
+    text-transform: capitalize;
+    display: flex;
 
     min-width: 0;
     width: 100%;
@@ -28,8 +58,10 @@
     }
 
     &.activeTab {
-        color: var(--primary-color, #1976d2); // Primary color for active tab
-        font-weight: 600;
+        border-radius: 20px;
+        background: rgb(236, 236, 236);
+        // color: #ffffff;
+
         border-color: var(--primary-color, #1976d2); // Bold underline for active tab
     }
 
@@ -57,7 +89,6 @@
 }
 
 .inner {
-    position: relative;
     height: 100%;
     display: flex;
     align-items: center;
@@ -67,31 +98,26 @@
 
 .labelContainer {
     height: 100%;
-    position: relative;
     display: block;
 }
 
-.label {
-    display: block;
-    position: relative;
-}
 
 .alternative {
-    position: absolute;
-    bottom: 3px;
-    left: 0;
-    display: block;
-    transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-    opacity: 0;
+    padding: 0.3rem 1rem;
+    transition: opacity 0.3s ease-in-out, transform 0.5s ease-in-out;
+    opacity: 0.3;
     font-size: 12px;
-    color: lightblue;
+    color: rgb(34, 34, 34);
     font-style: italic;
-    transform: translate(-30px, 100%);
-
+    text-align: left;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     &__inactive {
         opacity: 1;
-        transform: translate(0, 100%);
+        transform: translate(3px);
 
     }
 }
@@ -103,4 +129,11 @@
     --text-color-secondary: #616161;
     --border-color: #e0e0e0;
     --focus-ring-color: rgba(25, 118, 210, 0.5);
+}
+
+.tabWrapper {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    gap: 0.5rem;
 }

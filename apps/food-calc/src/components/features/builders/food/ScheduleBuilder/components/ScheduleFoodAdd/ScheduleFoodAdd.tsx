@@ -13,6 +13,7 @@ import { mstEnv } from '@/store/store';
 import { DrawerLayout } from '@/components/features/builders/food/shared/components/DrawerLayout';
 import { useItemCreationSteps } from '@/components/features/builders/food/shared/hooks/useItemCreationSteps';
 import { FinishButton } from '@/components/features/builders/food/shared/atoms/FinishButton';
+import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 
 type TabValue = 'info' | 'foodSelect' | 'quantity' | 'time';
 
@@ -55,14 +56,23 @@ const ScheduleFoodAdd = observer(({ schedule }: Props) => {
 
   return (
     <DrawerLayout
-      label={<ScreenLabel className={styles.title}>Добавить пищу</ScreenLabel>}
+      label={<ScreenLabel className={styles.title}>Добавить</ScreenLabel>}
       tabs={
-        <Tabs
-          tabs={visibleSteps}
-          current={currentStep}
-          setTab={setStepByValue}
-          variant="scheduleFoodAdd"
-        />
+        <>
+          <Tabs
+            tabs={visibleSteps}
+            current={currentStep}
+            setTab={setStepByValue}
+            variant="scheduleFoodAdd"
+          />
+        </>
+      }
+      sub={
+        <>
+          {currentStep === 'quantity' && (
+            <ContentEdit.Quantity item={currentChild} onFinish={onStepFinish} />
+          )}
+        </>
       }
       bottom={<FinishButton maxStepReached={maxStepReached} onClick={onFinish} />}
     >

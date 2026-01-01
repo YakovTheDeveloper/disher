@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import styles from './EventContentEditForm.module.scss';
 import { Label } from '../Label';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
-import QuickButtons from '../QuickButtons/QuickButtons';
+import QuickButtons from '../../../../../../shared/atoms/QuickButtons/QuickButtons';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import { TextInput } from '@/components/ui/atoms/input/TextInput';
 import { GrowingInput } from '@/components/ui/atoms/input/GrowingInput';
@@ -76,6 +76,7 @@ const EventContentEditForm = observer(({ items, onChange }: Props) => {
         </Label>
         {isNumberField(config) && config.quickButtons && (
           <QuickButtons<number>
+            className={styles.quickButtons}
             options={config.quickButtons}
             selectedValue={config.value}
             onSelect={handleNumberQuickSelect(config.key)}
@@ -84,6 +85,7 @@ const EventContentEditForm = observer(({ items, onChange }: Props) => {
 
         {isStringField(config) && config.quickButtons && (
           <QuickButtons<string>
+            className={styles.quickButtons}
             options={config.quickButtons}
             selectedValue={config.value}
             onSelect={handleStringQuickSelect(config.key)}

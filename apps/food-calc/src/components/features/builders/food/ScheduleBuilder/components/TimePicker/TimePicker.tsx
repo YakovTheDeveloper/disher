@@ -2,15 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './TimePicker.module.scss';
-
-type Props = {
-  value?: string; // "HH:MM" initial value
-  onChange?: (value: string) => void; // on every normalized change
-  onFinish?: (value: string) => void; // after minutes completed (and blurred)
-  id?: string;
-  hourAriaLabel?: string;
-  minuteAriaLabel?: string;
-};
+import clsx from 'clsx';
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -44,9 +36,25 @@ const normalize = (hhRaw: string, mmRaw: string) => {
   return `${pad2(hNum)}:${pad2(mNum)}`;
 };
 
+type Props = {
+  value?: string; // "HH:MM" initial value
+  onChange?: (value: string) => void; // on every normalized change
+  onFinish?: (value: string) => void; // after minutes completed (and blurred)
+  id?: string;
+  hourAriaLabel?: string;
+  minuteAriaLabel?: string;
+  hours: string; // "HH" initial value
+  minutes: string; // "MM" initial value
+  setHours: (value: string) => void;
+  setMinutes: (value: string) => void;
+};
+
 const TimePicker = observer((props: Props) => {
   const {
-    value = '00:00',
+    hours,
+    minutes,
+    setHours,
+    setMinutes,
     onChange,
     onFinish,
     id,
@@ -55,20 +63,20 @@ const TimePicker = observer((props: Props) => {
   } = props;
 
   // controlled-ish initial parse
-  const [initH, initM] = (value || '00:00').split(':');
-  const [hours, setHours] = useState<string>(initH === undefined ? '' : initH.replace(/\D/g, ''));
-  const [minutes, setMinutes] = useState<string>(
-    initM === undefined ? '' : initM.replace(/\D/g, '')
-  );
+  // const [initH, initM] = (value || '00:00').split(':');
+  // const [hours, setHours] = useState<string>(initH === undefined ? '' : initH.replace(/\D/g, ''));
+  // const [minutes, setMinutes] = useState<string>(
+  //   initM === undefined ? '' : initM.replace(/\D/g, '')
+  // );
 
   const hhRef = useRef<HTMLInputElement | null>(null);
   const mmRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Keep parent informed whenever normalized value changes
-  useEffect(() => {
-    onChange?.(normalize(hours || '0', minutes || '0'));
-  }, [hours, minutes, onChange]);
+  // useEffect(() => {
+  //   onChange?.(normalize(hours || '0', minutes || '0'));
+  // }, [hours, minutes, onChange]);
 
   // focus container -> focus hours (and select)
   useEffect(() => {
@@ -249,46 +257,46 @@ const TimePicker = observer((props: Props) => {
     <div
       ref={containerRef}
       id={id}
-      className={styles.container}
+      className={clsx([styles.container])}
       role="group"
       aria-label="Time input"
       // keep cursor text when hover
       style={{ cursor: 'text', display: 'inline-flex', alignItems: 'center' }}
     >
-      <input
-        ref={hhRef}
-        className={styles.input}
-        aria-label={hourAriaLabel}
-        placeholder="hh"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        value={hours}
-        onChange={handleHoursChange}
-        onKeyDown={handleHoursKeyDown}
-        onBlur={handleHoursBlur}
-        maxLength={2}
-        // select on focus to make overwriting fast
-        onFocus={(e) => e.currentTarget.select()}
-        style={{ width: 36, textAlign: 'center', border: 'none', outline: 'none', fontSize: 14 }}
-      />
-      <span aria-hidden style={{ padding: '0 6px' }}>
-        :
-      </span>
-      <input
-        ref={mmRef}
-        className={styles.input}
-        aria-label={minuteAriaLabel}
-        placeholder="mm"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        value={minutes}
-        onChange={handleMinutesChange}
-        onKeyDown={handleMinutesKeyDown}
-        onBlur={handleMinutesBlur}
-        maxLength={2}
-        onFocus={(e) => e.currentTarget.select()}
-        style={{ width: 36, textAlign: 'center', border: 'none', outline: 'none', fontSize: 14 }}
-      />
+      <div className={styles.inner}>
+        <input
+          ref={hhRef}
+          className={styles.input}
+          aria-label={hourAriaLabel}
+          placeholder="hh"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          value={hours}
+          onChange={handleHoursChange}
+          onKeyDown={handleHoursKeyDown}
+          onBlur={handleHoursBlur}
+          maxLength={2}
+          // select on focus to make overwriting fast
+          onFocus={(e) => e.currentTarget.select()}
+        />
+        <span aria-hidden style={{ padding: '0 1px' }}>
+          :
+        </span>
+        <input
+          ref={mmRef}
+          className={styles.input}
+          aria-label={minuteAriaLabel}
+          placeholder="mm"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          value={minutes}
+          onChange={handleMinutesChange}
+          onKeyDown={handleMinutesKeyDown}
+          onBlur={handleMinutesBlur}
+          maxLength={2}
+          onFocus={(e) => e.currentTarget.select()}
+        />
+      </div>
     </div>
   );
 });

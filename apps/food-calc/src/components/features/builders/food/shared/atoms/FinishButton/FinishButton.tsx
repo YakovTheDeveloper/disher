@@ -19,7 +19,8 @@ const FinishButton = ({ children, maxStepReached, onClick }: Props) => {
       transition={{ duration: 0.4, ease: 'easeOut' }}
       onClick={onClick}
     >
-      {children || 'Окей'}
+      <div className={styles.finishButton__icon}>✓</div>
+      <span className={styles.text}>{children || 'Завершить'}</span>
     </motion.button>
   );
 };

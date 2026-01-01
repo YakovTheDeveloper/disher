@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom';
 import s from '@/assets/style/Root.module.scss';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import '@/assets/style/index.css';
+import '@/assets/style/index.scss';
 import '@/assets/style/App.module.scss';
 import { domainStore } from '@/store/store';
 import { Toaster } from 'react-hot-toast';

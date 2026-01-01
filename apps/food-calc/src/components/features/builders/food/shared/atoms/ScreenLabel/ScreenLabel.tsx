@@ -30,6 +30,10 @@ const fontStyle = {
     fontSize: '50px',
     letterSpacing: '-3px',
   },
+  drawer: {
+    fontSize: '30px',
+    letterSpacing: '-3px',
+  },
   formValueLabel: {
     fontSize: '100px',
   },

@@ -47,11 +47,13 @@ const SchheduleEventList = ({ eventItem, onFinish }: Props) => {
       {EventTypes.map((event) => (
         <SearchListItem
           key={event.value}
+          item={event}
           active={eventItem.type === event.value}
           onClick={() => {
             eventItem.updateType(event.value);
             onFinish();
           }}
+          onInfoClick={() => {}}
         >
           {event.label}
         </SearchListItem>

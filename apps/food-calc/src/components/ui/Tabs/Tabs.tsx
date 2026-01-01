@@ -11,22 +11,28 @@ type Props = {
 
 const Tabs = ({ tabs, current, setTab, variant }: Props) => {
   return (
-    <div className={styles.tabs} style={{ gridTemplateColumns: GridVariants[variant] }}>
-      {tabs.map((tab) => {
-        const isActive = current === tab.value;
-        const hasAlternative = !!tab.alternativeLabel;
+    <div className={styles.tabs}>
+      <div
+        className={styles.tabsRow}
+        style={{
+          gridTemplateColumns: GridVariants[variant].slice(0, tabs.length).join(' '),
+        }}
+      >
+        {tabs.map((tab) => {
+          const isActive = current === tab.value;
+          const hasAlternative = !!tab.alternativeLabel;
 
-        return (
-          <button
-            key={tab.value}
-            className={`${styles.tabButton} ${isActive ? styles.activeTab : ''}`}
-            onClick={() => setTab(tab.value)}
-            aria-selected={isActive}
-            role="tab"
-          >
-            <span className={clsx([styles.label])}>
-              {tab.label}
-              {tab.alternativeLabel && (
+          return (
+            <button className={`${styles.tabWrapper}`} key={tab.value}>
+              <div
+                className={`${styles.tabButton} ${isActive ? styles.activeTab : ''} ellipsis`}
+                onClick={() => setTab(tab.value)}
+                aria-selected={isActive}
+                role="tab"
+              >
+                {LabelNamesView[tab.value] || tab.label}
+              </div>
+              {hasAlternative && (
                 <span
                   className={clsx(
                     styles.alternative,
@@ -37,21 +43,33 @@ const Tabs = ({ tabs, current, setTab, variant }: Props) => {
                   {tab.alternativeLabel}
                 </span>
               )}
-            </span>
-          </button>
-        );
-      })}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 };
-
 const GridVariants = {
-  scheduleFoodAdd: '100px 3fr auto',
-  scheduleFoodEdit: '100px auto 3fr auto',
-  dishFoodAdd: '1fr auto',
-  dishFoodEdit: 'auto 1fr auto',
-  scheduleEventAdd: '100px 1fr auto',
-  scheduleEventEdit: '100px 1fr auto',
+  scheduleFoodAdd: ['auto', '50%', 'auto'],
+  scheduleFoodEdit: ['100px', 'auto', '3fr', 'auto'],
+  dishFoodAdd: ['1fr', 'auto'],
+  dishFoodEdit: ['auto', '1fr', 'auto'],
+  scheduleEventAdd: ['100px', '1fr', 'auto'],
+  scheduleEventEdit: ['100px', '1fr', 'auto'],
 };
+
+const LabelNamesView: Record<string, string> = {
+  quantity: 'Сколько',
+  value: 'Кол-во',
+};
+// const GridVariants = {
+//   scheduleFoodAdd: 'auto 1fr auto',
+//   scheduleFoodEdit: 'auto auto 1fr auto',
+//   dishFoodAdd: '1fr auto',
+//   dishFoodEdit: 'auto 1fr auto',
+//   scheduleEventAdd: 'auto 1fr auto',
+//   scheduleEventEdit: 'auto 1fr auto',
+// };
 
 export default observer(Tabs);

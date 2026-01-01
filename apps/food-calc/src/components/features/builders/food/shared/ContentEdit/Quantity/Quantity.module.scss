@@ -7,19 +7,31 @@
     background-color: #fff;
     border-radius: 0.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    flex-grow: 1;
 }
 
 .inputWrapper {
+    position: sticky;
     display: flex;
     align-items: center;
+    top: 40px;
+    right: 0;
+    max-width: 100%;
+    flex-grow: 0;
     gap: 0.5rem;
-    grid-column: span 3;
+    z-index: 33;
+    margin-bottom: 30px;
+    background-color: transparent
+}
+
+.variants {
+    width: 90%;
 }
 
 .input {
     flex: 1;
     padding: 0.75rem 1rem;
-    border: 1px solid #d1d5db;
+    border: 1px solid transparent;
     border-radius: 0.375rem;
     font-size: 1rem;
     font-weight: 500;
@@ -46,39 +58,4 @@
     font-size: 1rem;
     font-weight: 600;
     color: #374151;
-}
-
-.variants {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 0.5rem;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.variant {
-    padding: 0.5rem 1rem;
-    background-color: #f3f4f6;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #374151;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-
-    &:hover {
-        background-color: #e5e7eb;
-    }
-
-    &:focus {
-        outline: 2px solid #3b82f6;
-        outline-offset: 2px;
-    }
-}
-
-.variantActive {
-    background-color: #dbeafe;
-    border-color: #3b82f6;
-    color: #1e40af;
 }

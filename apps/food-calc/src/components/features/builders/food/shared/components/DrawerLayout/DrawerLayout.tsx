@@ -4,15 +4,17 @@ type Props = {
   children: React.ReactNode;
   label: React.ReactNode;
   tabs: React.ReactNode;
+  sub?: React.ReactNode;
   bottom?: React.ReactNode;
 };
 
-const DrawerLayout = ({ children, label, tabs, bottom }: Props) => {
+const DrawerLayout = ({ children, label, tabs, bottom, sub }: Props) => {
   return (
     <>
       <div className={styles.title}>{label}</div>
+      <header className={styles.header}>{tabs}</header>
       <div className={styles.container}>
-        <header className={styles.header}>{tabs}</header>
+        {/* {sub && <header className={styles.subHeader}>{sub}</header>} */}
         {children}
       </div>
       <div className={styles.bottom}>{bottom}</div>

@@ -7,10 +7,13 @@
 
 .hours,
 .minutes {
-    font-size: 2rem;
 
     &Item {
+        font-size: 1rem;
         position: relative;
+        padding: 10px;
+        border: 1px solid #c7c7c7;
+        border-radius: 1000px;
 
         &:active {
             &::after {
@@ -27,6 +30,7 @@
         }
 
         &_active {
+
             &::before {
                 content: "";
                 position: absolute;
@@ -44,6 +48,41 @@
 
 }
 
+.values {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    &Row {
+        display: flex;
+        gap: 1rem;
+    }
+
+
+    .minutes {
+        position: relative;
+
+        &Inner {
+            border: 1px solid #d8d8d818;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            padding: 0 0.5rem 1rem;
+
+            position: absolute;
+            left: 0;
+            top: 0;
+            gap: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+    }
+
+
+    .quickButtons {
+        flex-wrap: nowrap;
+    }
+}
+
 .hours {
     display: flex;
     flex-direction: column;
@@ -58,15 +97,20 @@
 
 }
 
-.minutes {
-    display: flex;
-    justify-content: space-between;
 
-    &Item {
-        &_active {
-            &::before {
-                background-color: rgba(0, 128, 0, 0.5);
-            }
-        }
-    }
-}
+// .minutes {
+//     display: flex;
+//     justify-content: space-between;
+
+//     &Item {
+//         &_active {
+//             &::before {
+//                 background-color: rgba(0, 128, 0, 0.5);
+//             }
+//         }
+//     }
+
+//     &Second{
+
+//     }
+// }

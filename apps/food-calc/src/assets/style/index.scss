@@ -3,6 +3,7 @@
 
 
 @import url('@/components/features/builders/food/shared/style/styles.scss');
+@import './mixin.scss';
 
 :root {
   margin: 0 auto;
@@ -90,7 +91,7 @@ body {
   display: flex;
   overflow: hidden;
   font-family: "Jost", sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   margin: 0 auto;
   transition: background-color 0.3s ease-in;
 
@@ -175,10 +176,5 @@ button:focus-visible {}
 }
 
 .ellipsis {
-  display: block;
-  min-width: 0;
-  width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  @include ellipsis();
 }

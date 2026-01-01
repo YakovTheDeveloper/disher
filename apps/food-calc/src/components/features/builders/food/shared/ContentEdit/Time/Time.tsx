@@ -3,9 +3,11 @@ import style from './Time.module.scss';
 import clsx from 'clsx';
 import commonStyle from '../ContentEdit.module.scss';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TimePicker } from '@/components/features/builders/food/ScheduleBuilder/components/TimePicker';
+import { QuickButtons } from '@/components/features/builders/food/shared/atoms/QuickButtons';
+import { QuickButton } from '@/components/features/builders/food/shared/atoms/QuickButtons/QuickButton';
 
 const TIME = {
   HOURS: [
@@ -34,7 +36,8 @@ const TIME = {
     '04',
     '05',
   ],
-  MINUTES: ['00', '10', '20', '30', '40', '50'],
+  MINUTES: ['00', '05', '10', '15', '20', '25'],
+  MINUTES2: ['30', '35', '40', '45', '50', '55'],
 };
 
 const parseTime = (time: string) => {
@@ -64,15 +67,22 @@ function Time({ item, onFinish }: Props) {
   const [minutes, setMinutes] = useState<string>(initMinutes);
   const [hours, setHours] = useState(initHours);
 
+  const time = hours + ':' + minutes;
+
   const [animHour, setAnimHour] = useState<string | null>(null);
   const [circlePos, setCirclePos] = useState<{ x: number; y: number } | null>(null);
 
   const onMinutesChange = (m: string) => {
-    const time = hours + ':' + m;
-    setMinutes('');
-    item.updateTime(time);
+    // const time = hours + ':' + m;
+    console.log(m);
+    setMinutes(m);
+    // item.updateTime(time);
     onFinish();
   };
+
+  useEffect(() => {
+    return () => item.updateTime(time);
+  }, []);
 
   const onHourChange = (h: string, e: React.MouseEvent) => {
     setHours(h);
@@ -88,27 +98,42 @@ function Time({ item, onFinish }: Props) {
 
   return (
     <div className={clsx([style.container, commonStyle.SuggestionWrapper])}>
-      <TimePicker value={item.time} onFinish={onFinish} />
-      {TIME.HOURS.map((h) => (
-        <ul key={h} className={style.minutes}>
-          <button
-            onClick={(e) => onHourChange(h, e)}
-            className={clsx([hours === h && style.hoursItem_active, style.hoursItem])}
-          >
-            {h}
-          </button>
-          {TIME.MINUTES.map((m) => (
-            <button
-              key={m}
-              className={clsx([minutes === m && style.minutesItem_active, style.minutesItem])}
-              hidden={h !== hours}
-              onClick={() => onMinutesChange(m)}
-            >
-              {m}
-            </button>
-          ))}
-        </ul>
-      ))}
+      <TimePicker
+        value={time}
+        onFinish={onFinish}
+        hours={hours}
+        minutes={minutes}
+        setHours={setHours}
+        setMinutes={setMinutes}
+      />
+      <div className={style.values}>
+        {TIME.HOURS.map((hour) => (
+          <div className={style.valuesRow} key={hour}>
+            <QuickButton isActive={hour === hours} onClick={(e) => onHourChange(hour, e)}>
+              {hour}
+            </QuickButton>
+
+            {hour === hours && (
+              <div className={style.minutes}>
+                <div className={style.minutesInner}>
+                  <QuickButtons
+                    className={style.quickButtons}
+                    options={TIME.MINUTES}
+                    selectedValue={minutes}
+                    onSelect={(value) => onMinutesChange(value)}
+                  />
+                  <QuickButtons
+                    className={clsx([style.quickButtons, style.minutesSecondRow])}
+                    options={TIME.MINUTES2}
+                    selectedValue={minutes}
+                    onSelect={(value) => onMinutesChange(value)}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
 
       {/* ANIMATION LAYER */}
       <AnimatePresence>

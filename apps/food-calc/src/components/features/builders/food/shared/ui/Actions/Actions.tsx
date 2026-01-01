@@ -16,21 +16,22 @@ type Props = {
 
 const Actions = ({ children, isShow, className, zIndex, isPortal = true }: Props) => {
   const style = zIndex ? { zIndex } : {};
-  const show = isShow();
+  // const show = isShow();
+  const show = true;
 
   const content = (
     <div className={clsx([styles.container, className])} style={style}>
       <AnimatePresence mode="sync">
         {show && (
-          <motion.div
-            initial={{ opacity: 0, y: 0 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 0 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            className={styles.content}
-          >
-            {children}
-          </motion.div>
+          <div className={styles.content}>{children}</div>
+          // <motion.div
+          //   initial={{ opacity: 0, y: 0 }}
+          //   animate={{ opacity: 1, y: 0 }}
+          //   exit={{ opacity: 0, y: 0 }}
+          //   transition={{ duration: 0.3, ease: 'easeOut' }}
+          //   className={styles.content}
+          // >
+          // </motion.div>
         )}
       </AnimatePresence>
     </div>

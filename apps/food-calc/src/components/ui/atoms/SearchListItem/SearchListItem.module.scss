@@ -1,10 +1,21 @@
+.searchListItemWrapper {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
 .listItem {
     display: flex;
     align-items: center;
-    padding: 12px 16px;
+    border: 1px solid transparent;
+    padding: 5px 5px 5px 10px;
     border-radius: 8px;
-    border: 1px solid #e5e7eb;
     background-color: #ffffff;
+    text-transform: capitalize;
+    flex-grow: 1;
+
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: inherit;
@@ -23,9 +34,13 @@
 }
 
 .listItem_active {
-    background-color: #ecfdf5; // Light green background
-    border-color: #10b981; // Green border
+    background-color: #4b99ff; // Light green background
+    border-color: #7cb9ff50; // Green border
     color: #065f46; // Darker green text
+
+    * {
+        color: white;
+    }
 
     &:hover {
         background-color: #d1fae5; // Slightly darker green on hover
@@ -39,8 +54,8 @@
     gap: 8px;
 
     // Friendly typography for health app
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 1rem;
+    font-weight: 400;
     line-height: 1.4;
     color: #374151;
 }
@@ -54,3 +69,5 @@
     font-size: 12px;
     font-weight: 400;
 }
+
+.before {}

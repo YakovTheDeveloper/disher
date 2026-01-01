@@ -29,27 +29,30 @@ const Swipeable = ({ defaultIndex = 0, onIndexChange, children }: Props) => {
   }, [activeIndex]);
 
   return (
-    <Swiper
-      slidesPerView={1}
-      resistanceRatio={0}
-      touchReleaseOnEdges
-      threshold={10}
-      speed={280}
-      grabCursor={false}
-      onSwiper={(swiper) => {
-        swiperRef.current = swiper;
-        swiper.slideTo(activeIndex, 0);
-      }}
-      onSlideChange={(swiper) => {
-        const next = clamp(swiper.activeIndex, 0, total - 1);
-        setActiveIndex(next);
-        onIndexChange?.(next, total);
-      }}
-    >
-      {children.map((child, i) => (
-        <SwiperSlide key={i}>{child}</SwiperSlide>
-      ))}
-    </Swiper>
+    <div className={styles.wrapper}>
+      <Swiper
+        style={{ height: '100%' }}
+        slidesPerView={1}
+        resistanceRatio={0}
+        touchReleaseOnEdges
+        threshold={10}
+        speed={280}
+        grabCursor={false}
+        onSwiper={(swiper) => {
+          swiperRef.current = swiper;
+          swiper.slideTo(activeIndex, 0);
+        }}
+        onSlideChange={(swiper) => {
+          const next = clamp(swiper.activeIndex, 0, total - 1);
+          setActiveIndex(next);
+          onIndexChange?.(next, total);
+        }}
+      >
+        {children.map((child, i) => (
+          <SwiperSlide key={i}>{child}</SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
   );
 };
 
