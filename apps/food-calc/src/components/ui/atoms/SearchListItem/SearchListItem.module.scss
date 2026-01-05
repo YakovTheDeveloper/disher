@@ -10,7 +10,7 @@
     border: 1px solid transparent;
     padding: 5px 5px 5px 10px;
     border-radius: 8px;
-    background-color: #ffffff;
+    background: #ffffff;
     text-transform: capitalize;
     flex-grow: 1;
 
@@ -19,11 +19,14 @@
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: inherit;
-    min-height: 48px;
+    height: 40px;
 
-    &:hover {
-        background-color: #f9fafb;
-        border-color: #d1d5db;
+    &:hover,
+    &:active {
+        color: black;
+        background: #2A7B9B;
+        background: linear-gradient(90deg, rgba(42, 123, 155, 0.3) 0%, rgba(87, 199, 133, 0.3) 46%, rgba(237, 221, 83, 0.3) 100%);
+        border-color: transparent;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
@@ -34,7 +37,7 @@
 }
 
 .listItem_active {
-    background-color: #4b99ff; // Light green background
+    background: #4b99ff; // Light green background
     border-color: #7cb9ff50; // Green border
     color: #065f46; // Darker green text
 
@@ -42,9 +45,6 @@
         color: white;
     }
 
-    &:hover {
-        background-color: #d1fae5; // Slightly darker green on hover
-    }
 }
 
 .content {

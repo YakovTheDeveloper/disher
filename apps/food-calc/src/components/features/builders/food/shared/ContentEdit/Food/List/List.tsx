@@ -73,7 +73,7 @@ const List = observer(({ search, onFetch, queryKey, renderListContent }: Props) 
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? items.length + 1 : items.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 60,
+    estimateSize: () => 40,
     overscan: 5,
   });
 

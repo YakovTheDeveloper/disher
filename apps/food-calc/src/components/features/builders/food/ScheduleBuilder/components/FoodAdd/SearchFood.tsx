@@ -18,11 +18,12 @@ type Props = {
   scheduleChild: Instance<typeof ScheduleItem>;
   onFinish: () => void;
   headerAfter?: React.ReactNode;
+  searchState: any;
 };
 
 type Tabs = 'productSearch' | 'dishSearch' | 'createCustom';
 
-const SearchFood = ({ scheduleChild, onFinish, children }: Props) => {
+const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) => {
   // const modals = useDailyScheduleModals();
 
   const currentChild = scheduleChild;
@@ -133,7 +134,7 @@ const SearchFood = ({ scheduleChild, onFinish, children }: Props) => {
 
   return (
     <>
-      {state.currentTab !== 'createCustom' && (
+      {/* {state.currentTab !== 'createCustom' && (
         <SearchFoodControls
           currentTab={state.currentTab}
           setTab={state.setTab}
@@ -141,7 +142,7 @@ const SearchFood = ({ scheduleChild, onFinish, children }: Props) => {
           setSearch={state.setSearch}
           isVisible={true}
         />
-      )}
+      )} */}
 
       {state.currentTab === 'productSearch' ? (
         <List

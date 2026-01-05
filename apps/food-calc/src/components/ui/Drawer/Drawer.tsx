@@ -1,6 +1,9 @@
+import { emitter } from '@/infrastructure/emitter/emitter';
 import styles from './Drawer.module.scss';
 import { observer } from 'mobx-react-lite';
 import { Drawer as DrawerLib } from 'vaul';
+import { useEffect, useMemo, useRef } from 'react';
+import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 
 type DrawerProps = {
   open: boolean;
@@ -9,6 +12,8 @@ type DrawerProps = {
 };
 
 export function Drawer({ open, onOpenChange, children }: DrawerProps) {
+  // useLockBodyScroll(open);
+
   return (
     <DrawerLib.Root
       open={open}
@@ -16,17 +21,12 @@ export function Drawer({ open, onOpenChange, children }: DrawerProps) {
       fixed={true}
       direction="bottom"
       closeThreshold={0.1}
+      repositionInputs={false}
       handleOnly
     >
       <DrawerLib.Portal>
         <DrawerLib.Overlay className={styles.overlay} />
-
-        <DrawerLib.Content className={styles.content}>
-          <DrawerLib.Handle className={styles.dragHandle}>
-            <div className={styles.handleBar}></div>
-          </DrawerLib.Handle>
-          <div className={styles.scrollable}>{children}</div>
-        </DrawerLib.Content>
+        {children}
       </DrawerLib.Portal>
     </DrawerLib.Root>
   );

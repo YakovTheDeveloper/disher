@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './TimePicker.module.scss';
 import clsx from 'clsx';
+import { QuickButton } from '@/components/features/builders/food/shared/atoms/QuickButtons/QuickButton';
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -251,11 +252,43 @@ const TimePicker = observer((props: Props) => {
     }
   };
 
+  // Control handlers
+  const incrementHours = () => {
+    const current = Number(hours) || 0;
+    const next = (current + 1) % 24;
+    const newHours = pad2(next);
+    setHours(newHours);
+    onChange?.(normalize(newHours, minutes));
+  };
+
+  const decrementHours = () => {
+    const current = Number(hours) || 0;
+    const next = current === 0 ? 23 : current - 1;
+    const newHours = pad2(next);
+    setHours(newHours);
+    onChange?.(normalize(newHours, minutes));
+  };
+
+  const incrementMinutes = () => {
+    const current = Number(minutes) || 0; // получаем текущие минуты
+    const next = (current + 5) % 60; // добавляем 5 и берём остаток от 60
+    const newMinutes = pad2(next); // форматируем в строку с 2 цифрами
+    setMinutes(newMinutes); // обновляем состояние
+    onChange?.(normalize(hours, newMinutes)); // вызываем callback с новым временем
+  };
+
+  const decrementMinutes = () => {
+    const current = Number(minutes) || 0;
+    const next = (current - 5 + 60) % 60; // добавляем 60, чтобы избежать отрицательных минут
+    const newMinutes = pad2(next); // форматируем в 2 цифры
+    setMinutes(newMinutes);
+    onChange?.(normalize(hours, newMinutes));
+  };
+
   // expose a way to programmatically set focus externally? not needed for now
 
   return (
     <div
-      ref={containerRef}
       id={id}
       className={clsx([styles.container])}
       role="group"
@@ -264,38 +297,48 @@ const TimePicker = observer((props: Props) => {
       style={{ cursor: 'text', display: 'inline-flex', alignItems: 'center' }}
     >
       <div className={styles.inner}>
-        <input
-          ref={hhRef}
-          className={styles.input}
-          aria-label={hourAriaLabel}
-          placeholder="hh"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          value={hours}
-          onChange={handleHoursChange}
-          onKeyDown={handleHoursKeyDown}
-          onBlur={handleHoursBlur}
-          maxLength={2}
-          // select on focus to make overwriting fast
-          onFocus={(e) => e.currentTarget.select()}
-        />
-        <span aria-hidden style={{ padding: '0 1px' }}>
-          :
-        </span>
-        <input
-          ref={mmRef}
-          className={styles.input}
-          aria-label={minuteAriaLabel}
-          placeholder="mm"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          value={minutes}
-          onChange={handleMinutesChange}
-          onKeyDown={handleMinutesKeyDown}
-          onBlur={handleMinutesBlur}
-          maxLength={2}
-          onFocus={(e) => e.currentTarget.select()}
-        />
+        <div className={styles.controls}>
+          <button onClick={incrementHours}>↑</button>
+          <button onClick={decrementHours}>↓</button>
+        </div>
+        <div className={styles.timeInputs} ref={containerRef}>
+          <input
+            ref={hhRef}
+            className={styles.input}
+            aria-label={hourAriaLabel}
+            placeholder="hh"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={hours}
+            onChange={handleHoursChange}
+            onKeyDown={handleHoursKeyDown}
+            onBlur={handleHoursBlur}
+            maxLength={2}
+            // select on focus to make overwriting fast
+            onFocus={(e) => e.currentTarget.select()}
+          />
+          <span className={styles.betweenInputs} aria-hidden style={{ padding: '0 1px' }}>
+            :
+          </span>
+          <input
+            ref={mmRef}
+            className={styles.input}
+            aria-label={minuteAriaLabel}
+            placeholder="mm"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={minutes}
+            onChange={handleMinutesChange}
+            onKeyDown={handleMinutesKeyDown}
+            onBlur={handleMinutesBlur}
+            maxLength={2}
+            onFocus={(e) => e.currentTarget.select()}
+          />
+        </div>
+        <div className={styles.controls}>
+          <button onClick={incrementMinutes}>↑</button>
+          <button onClick={decrementMinutes}>↓</button>
+        </div>
       </div>
     </div>
   );

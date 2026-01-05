@@ -48,10 +48,49 @@
 
 }
 
+.nowButtons {
+    background-color: white;
+
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0;
+    flex-grow: 1;
+
+    &List {
+        display: flex;
+    }
+
+
+
+    .nowButton {
+
+        font-size: 10px;
+    }
+}
+
+
+.timePicker {
+    position: sticky;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 0;
+    right: 0;
+    max-width: 100%;
+    flex-grow: 0;
+    gap: 0.5rem;
+    z-index: 33;
+    margin-bottom: 30px;
+    height: 85px;
+    background-color: white;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
 .values {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 5px;
 
     &Row {
         display: flex;
@@ -68,7 +107,7 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
             padding: 0 0.5rem 1rem;
 
-            position: absolute;
+            position: sticky;
             left: 0;
             top: 0;
             gap: 1rem;

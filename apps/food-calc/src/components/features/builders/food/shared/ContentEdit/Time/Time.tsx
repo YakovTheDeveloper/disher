@@ -1,8 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import style from './Time.module.scss';
-import clsx from 'clsx';
-import commonStyle from '../ContentEdit.module.scss';
-
+import dateFns from 'date-fns';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TimePicker } from '@/components/features/builders/food/ScheduleBuilder/components/TimePicker';
@@ -72,17 +70,30 @@ function Time({ item, onFinish }: Props) {
   const [animHour, setAnimHour] = useState<string | null>(null);
   const [circlePos, setCirclePos] = useState<{ x: number; y: number } | null>(null);
 
+  const onFinishHandler = (time) => {
+    console.log('time finish', time);
+    item.updateTime(time);
+    onFinish();
+  };
+
   const onMinutesChange = (m: string) => {
     // const time = hours + ':' + m;
     console.log(m);
     setMinutes(m);
-    // item.updateTime(time);
-    onFinish();
+
+    // setTimeout(() => {
+    //   item.updateTime(time);
+    // });
+    // onFinish();
   };
 
-  useEffect(() => {
-    return () => item.updateTime(time);
-  }, []);
+  console.log('time', time);
+
+  // useEffect(() => {
+  //   const time = hours + ':' + minutes;
+
+  //   return () => item.updateTime(time);
+  // }, [hours, minutes]);
 
   const onHourChange = (h: string, e: React.MouseEvent) => {
     setHours(h);
@@ -97,16 +108,28 @@ function Time({ item, onFinish }: Props) {
   };
 
   return (
-    <div className={clsx([style.container, commonStyle.SuggestionWrapper])}>
-      <TimePicker
-        value={time}
-        onFinish={onFinish}
-        hours={hours}
-        minutes={minutes}
-        setHours={setHours}
-        setMinutes={setMinutes}
-      />
-      <div className={style.values}>
+    <>
+      <div className={style.timePicker}>
+        <TimePicker
+          value={time}
+          onFinish={onFinishHandler}
+          hours={hours}
+          minutes={minutes}
+          setHours={setHours}
+          setMinutes={onMinutesChange}
+        />
+      </div>
+      <div className={style.nowButtons}>
+        <p>Сейчас:</p>
+        <div className={style.nowButtonsList}>
+          {/* <QuickButton className={style.nowButton}>-30 мин.</QuickButton> */}
+          {/* <QuickButton className={style.nowButton}>-15 мин.</QuickButton> */}
+          <QuickButton className={style.nowButton}>cейчас</QuickButton>
+          {/* <QuickButton className={style.nowButton}>+ 15 мин.</QuickButton> */}
+          {/* <QuickButton className={style.nowButton}>+ 30 мин.</QuickButton> */}
+        </div>
+      </div>
+      {/* <div className={style.values}>
         {TIME.HOURS.map((hour) => (
           <div className={style.valuesRow} key={hour}>
             <QuickButton isActive={hour === hours} onClick={(e) => onHourChange(hour, e)}>
@@ -133,7 +156,7 @@ function Time({ item, onFinish }: Props) {
             )}
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* ANIMATION LAYER */}
       <AnimatePresence>
@@ -191,7 +214,7 @@ function Time({ item, onFinish }: Props) {
           </>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }
 

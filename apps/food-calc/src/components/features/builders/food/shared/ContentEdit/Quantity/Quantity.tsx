@@ -43,67 +43,28 @@ const Quantity = ({ onFinish, item }: Props) => {
 
   return (
     <>
-      <div className={style.inputWrapper}>
-        <NumberInput
-          autoFocus
-          placeholder="Введите количество"
-          ref={inputRef}
-          className={style.input}
-          onChange={setValue}
-          value={value}
-          onBlur={onBlur}
-        />
-        <span className={style.unit}>г.</span>
+      <div className={style.header}>
+        <div className={style.inputWrapper}>
+          <NumberInput
+            autoFocus
+            placeholder="Введите количество"
+            ref={inputRef}
+            className={style.input}
+            onChange={setValue}
+            value={value}
+            onBlur={onBlur}
+          />
+          <span className={style.unit}>г.</span>
+        </div>
       </div>
       <div className={style.variants}>
-        {variants.map((values, index) => (
-          <QuickButtons
-            key={index}
-            options={values}
-            onSelect={handleVariantClick}
-            selectedValue={value}
-          />
-        ))}
-        {variants.map((values, index) => (
-          <QuickButtons
-            key={index}
-            options={values}
-            onSelect={handleVariantClick}
-            selectedValue={value}
-          />
-        ))}
-        {variants.map((values, index) => (
-          <QuickButtons
-            key={index}
-            options={values}
-            onSelect={handleVariantClick}
-            selectedValue={value}
-          />
-        ))}
-        {variants.map((values, index) => (
-          <QuickButtons
-            key={index}
-            options={values}
-            onSelect={handleVariantClick}
-            selectedValue={value}
-          />
-        ))}
-        {variants.map((values, index) => (
-          <QuickButtons
-            key={index}
-            options={values}
-            onSelect={handleVariantClick}
-            selectedValue={value}
-          />
-        ))}
-        {variants.map((values, index) => (
-          <QuickButtons
-            key={index}
-            options={values}
-            onSelect={handleVariantClick}
-            selectedValue={value}
-          />
-        ))}
+        {variants.map((values, index) =>
+          values.map((value) => (
+            <QuickButton key={index} onSelect={handleVariantClick} selectedValue={value}>
+              {value}
+            </QuickButton>
+          ))
+        )}
       </div>
     </>
   );

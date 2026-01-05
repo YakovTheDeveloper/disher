@@ -1,12 +1,15 @@
 .header {
-    position: sticky;
-    top: 50px;
-    z-index: 10;
-    background: white;
+    // position: fixed;
+    position: relative;
+    top: 0;
+    z-index: 11;
     display: flex;
     gap: 5px;
-    max-height: 90px;
-    padding-bottom: 5px;
+    // min-height: 80px;
+    box-shadow: 10px -3px 4px 3px rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(207, 207, 207, 0.274);
+    width: 100%;
+    padding: 8px;
 }
 
 .tabs {
@@ -23,6 +26,10 @@
     flex-grow: 1;
     align-items: center;
     margin-left: 3rem;
+
+    .tabButton {
+        font-size: 14px;
+    }
 }
 
 .tabsColumn {
@@ -53,6 +60,8 @@
         color: #111;
         background-color: #fafafa;
     }
+
+    &.active {}
 }
 
 .active {
@@ -63,21 +72,21 @@
 }
 
 .searchInput {
+
     height: 100%;
-    padding: 1rem 1rem 1rem 10px;
+    padding: 5px 5px 5px 10px;
     border: none;
-    border-radius: 4px;
+    border-radius: 24px;
     outline: none;
-    font-size: 0.95rem;
+    font-size: 12px;
     transition: opacity 0.2s ease, width 0.2s ease;
-    background-color: #fafafa;
-    background: white;
+    background: rgb(240, 240, 240);
 
 
 
     &:focus {
         border-color: #007bff;
-        background-color: #fff;
+        // background-color: #fff;
         box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
     }
 }
@@ -100,10 +109,11 @@
     transform: translateY(-50%);
     z-index: 11;
     background: white;
-    border: 2px solid #007bff;
+    border: 1px solid #007bff60;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
+    padding: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -121,3 +131,25 @@
 }
 
 .container {}
+
+.dropdownMenu {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    min-width: 120px;
+    z-index: 1001;
+}
+
+.dropdownItem {
+    padding: 1rem 3rem;
+    cursor: pointer;
+    font-size: 16px;
+    color: #555;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #f8f9fa;
+        color: #111;
+    }
+}

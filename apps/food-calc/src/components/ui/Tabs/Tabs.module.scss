@@ -4,13 +4,27 @@
 
     &:before {
         content: '';
-        background: rgb(190, 190, 190);
-        inset: 0;
+        background: rgb(238, 238, 238);
+        bottom: 0;
+        left: 0;
+        right: 0;
         position: absolute;
-        height: 40px;
+        height: 50px;
         border-radius: 20px;
         z-index: 1;
+    }
 
+
+    &:after {
+        content: '';
+        top: 10px;
+        left: 0;
+        right: 0;
+        position: absolute;
+        height: 15px;
+        // background: linear-gradient(90deg, rgba(0, 255, 0, 0.8) 0%, rgba(171, 255, 14, 0.3) 46%, rgba(110, 48, 253, 0.3) 100%);
+
+        z-index: 1;
     }
 
 
@@ -26,18 +40,18 @@
 
     }
 
-    background-color: #f7f7f7;
-    border-radius: 20px;
+    // background-color: #f7f7f7;
+    // border-radius: 20px;
 
 }
 
 .tabButton {
     z-index: 2;
     border: none;
-    padding: 0.3rem 1rem;
+    padding: 10px 3px 10px 5px;
     font-size: 14px;
     cursor: pointer;
-    color: #646464;
+    color: #727272;
     // border-bottom: 2px solid transparent; // Underline effect for tabs
     // transition: all 0.3s ease-in-out;
     outline: none; // Remove default outline for a cleaner look
@@ -45,6 +59,8 @@
 
     text-transform: capitalize;
     display: flex;
+    align-items: center;
+    justify-content: center;
 
     min-width: 0;
     width: 100%;
@@ -59,7 +75,8 @@
 
     &.activeTab {
         border-radius: 20px;
-        background: rgb(236, 236, 236);
+        background: rgb(255, 255, 255);
+        font-weight: 600;
         // color: #ffffff;
 
         border-color: var(--primary-color, #1976d2); // Bold underline for active tab
@@ -105,18 +122,20 @@
 .alternative {
     padding: 0.3rem 1rem;
     transition: opacity 0.3s ease-in-out, transform 0.5s ease-in-out;
-    opacity: 0.3;
+    opacity: 0.6;
     font-size: 12px;
-    color: rgb(34, 34, 34);
+    color: rgb(0, 0, 0);
+    // color: rgb(235, 234, 255);
     font-style: italic;
     text-align: left;
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    z-index: 2;
 
     &__inactive {
-        opacity: 1;
+        opacity: 0.9;
         transform: translate(3px);
 
     }
@@ -135,5 +154,4 @@
     display: flex;
     flex-direction: column;
     position: relative;
-    gap: 0.5rem;
 }

@@ -1,70 +1,145 @@
 import { observer, useLocalObservable } from 'mobx-react-lite';
-import React from 'react';
+import React, { useRef } from 'react';
 import SearchIcon from '@/assets/icons/search.svg';
 import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
+import { motion } from 'framer-motion';
+
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  useHover,
+  useFocus,
+  useDismiss,
+  useRole,
+  useInteractions,
+  useMergeRefs,
+  FloatingPortal,
+  useClick,
+} from '@floating-ui/react';
 
 type Tabs = 'productSearch' | 'dishSearch' | 'createCustom';
 
 type Props = {
-  currentTab: Tabs;
-  setTab: (tab: Tabs) => void;
-  filterText: string;
-  setSearch: (text: string) => void;
+  searchState: any;
   isVisible: boolean;
 };
 
-const SearchFoodControls = ({ currentTab, setTab, filterText, setSearch, isVisible }: Props) => {
+const SearchFoodControls = ({ searchState, isVisible }: Props) => {
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const localState = useLocalObservable(() => ({
     isSearchOpen: false,
     setIsSearchOpen(open: boolean) {
       this.isSearchOpen = open;
     },
+    dropdownOpen: false,
+    setDropdownOpen(open: boolean) {
+      this.dropdownOpen = open;
+    },
   }));
+
+  const getTabLabel = (tab: Tabs) => {
+    switch (tab) {
+      case 'productSearch':
+        return 'Продукты';
+      case 'dishSearch':
+        return 'Блюда';
+      case 'createCustom':
+        return 'Свой продукт';
+      default:
+        return '';
+    }
+  };
+
+  const onSearchButtonClick = () => {
+    localState.setIsSearchOpen(true);
+    const drawerContainer = document.getElementById('drawer-content-scrollable');
+    searchInputRef.current?.focus();
+    if (drawerContainer) {
+      drawerContainer.scrollTo({
+        top: -200, // прокручиваем к верху
+        behavior: 'smooth', // плавная прокрутка
+      });
+    }
+  };
+
+  const { x, y, refs, strategy, context } = useFloating({
+    open: localState.dropdownOpen,
+    onOpenChange: localState.setDropdownOpen,
+    placement: 'bottom',
+    whileElementsMounted: autoUpdate,
+    middleware: [offset(4), flip(), shift()],
+  });
+
+  const click = useClick(context);
+
+  const { getReferenceProps, getFloatingProps } = useInteractions([click]);
 
   if (!isVisible) return null;
 
   return (
     <header className={styles.header}>
       <input
-        className={clsx(
-          styles.searchInput,
-          localState.isSearchOpen ? styles.searchInputOpen : styles.searchInputClosed
-        )}
+        id="search-input"
+        ref={searchInputRef}
+        className={clsx(styles.searchInput, styles.searchInputOpen)}
         placeholder="Например, рис"
-        value={filterText}
-        onChange={(e) => setSearch(e.target.value)}
+        value={searchState.filterText}
+        onChange={(e) => searchState.setSearch(e.target.value)}
       />
-      <button
-        className={clsx(
-          styles.searchButton,
-          localState.isSearchOpen ? styles.searchButtonHidden : styles.searchButtonVisible
-        )}
-        onClick={() => localState.setIsSearchOpen(true)}
-      >
-        <SearchIcon />
-      </button>
-      <div
-        className={clsx(styles.tabs, localState.isSearchOpen ? styles.tabsColumn : styles.tabsRow)}
-      >
+      <div className={styles.tabs}>
         <span
-          className={`${styles.tabButton} ${currentTab === 'productSearch' ? styles.active : ''}`}
-          onClick={() => setTab('productSearch')}
+          ref={refs.setReference}
+          className={`${styles.tabButton} ${styles.active}`}
+          {...getReferenceProps()}
         >
-          Продукты
+          {getTabLabel(searchState.currentTab)}
         </span>
-        <span
-          className={`${styles.tabButton} ${currentTab === 'dishSearch' ? styles.active : ''}`}
-          onClick={() => setTab('dishSearch')}
-        >
-          Блюда
-        </span>
-        <span
-          className={`${styles.tabButton} ${currentTab === 'createCustom' ? styles.active : ''}`}
-          onClick={() => setTab('createCustom')}
-        >
-          Свой продукт
-        </span>
+        <FloatingPortal>
+          {localState.dropdownOpen && (
+            <div
+              ref={refs.setFloating}
+              style={{
+                position: strategy,
+                top: y ?? 0,
+                left: x ?? 0,
+              }}
+              className={styles.dropdownMenu}
+              {...getFloatingProps()}
+            >
+              <div
+                className={styles.dropdownItem}
+                onClick={() => {
+                  searchState.setTab('productSearch');
+                  localState.setDropdownOpen(false);
+                }}
+              >
+                Продукты
+              </div>
+              <div
+                className={styles.dropdownItem}
+                onClick={() => {
+                  searchState.setTab('dishSearch');
+                  localState.setDropdownOpen(false);
+                }}
+              >
+                Блюда
+              </div>
+              <div
+                className={styles.dropdownItem}
+                onClick={() => {
+                  searchState.setTab('createCustom');
+                  localState.setDropdownOpen(false);
+                }}
+              >
+                Свой продукт
+              </div>
+            </div>
+          )}
+        </FloatingPortal>
       </div>
     </header>
   );

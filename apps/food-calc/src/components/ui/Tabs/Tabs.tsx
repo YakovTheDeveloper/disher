@@ -23,15 +23,7 @@ const Tabs = ({ tabs, current, setTab, variant }: Props) => {
           const hasAlternative = !!tab.alternativeLabel;
 
           return (
-            <button className={`${styles.tabWrapper}`} key={tab.value}>
-              <div
-                className={`${styles.tabButton} ${isActive ? styles.activeTab : ''} ellipsis`}
-                onClick={() => setTab(tab.value)}
-                aria-selected={isActive}
-                role="tab"
-              >
-                {LabelNamesView[tab.value] || tab.label}
-              </div>
+            <div className={`${styles.tabWrapper}`} key={tab.value}>
               {hasAlternative && (
                 <span
                   className={clsx(
@@ -43,7 +35,15 @@ const Tabs = ({ tabs, current, setTab, variant }: Props) => {
                   {tab.alternativeLabel}
                 </span>
               )}
-            </button>
+              <button
+                className={`${styles.tabButton} ${isActive ? styles.activeTab : ''} ellipsis`}
+                onClick={() => setTab(tab.value)}
+                aria-selected={isActive}
+                role="tab"
+              >
+                {LabelNamesView[tab.value] || tab.label}
+              </button>
+            </div>
           );
         })}
       </div>
