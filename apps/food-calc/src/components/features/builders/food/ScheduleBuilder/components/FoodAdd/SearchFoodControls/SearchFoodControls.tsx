@@ -1,9 +1,7 @@
 import { observer, useLocalObservable } from 'mobx-react-lite';
-import React, { useRef } from 'react';
-import SearchIcon from '@/assets/icons/search.svg';
+import { useRef } from 'react';
 import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
-import { motion } from 'framer-motion';
 
 import {
   useFloating,
@@ -11,13 +9,7 @@ import {
   offset,
   flip,
   shift,
-  useHover,
-  useFocus,
-  useDismiss,
-  useRole,
   useInteractions,
-  useMergeRefs,
-  FloatingPortal,
   useClick,
 } from '@floating-ui/react';
 
@@ -54,22 +46,10 @@ const SearchFoodControls = ({ searchState, isVisible }: Props) => {
     }
   };
 
-  const onSearchButtonClick = () => {
-    localState.setIsSearchOpen(true);
-    const drawerContainer = document.getElementById('drawer-content-scrollable');
-    searchInputRef.current?.focus();
-    if (drawerContainer) {
-      drawerContainer.scrollTo({
-        top: -200, // прокручиваем к верху
-        behavior: 'smooth', // плавная прокрутка
-      });
-    }
-  };
-
   const { x, y, refs, strategy, context } = useFloating({
     open: localState.dropdownOpen,
     onOpenChange: localState.setDropdownOpen,
-    placement: 'bottom',
+    placement: 'bottom-start',
     whileElementsMounted: autoUpdate,
     middleware: [offset(4), flip(), shift()],
   });
@@ -98,48 +78,48 @@ const SearchFoodControls = ({ searchState, isVisible }: Props) => {
         >
           {getTabLabel(searchState.currentTab)}
         </span>
-        <FloatingPortal>
-          {localState.dropdownOpen && (
+
+        {localState.dropdownOpen && (
+          <div
+            ref={refs.setFloating}
+            style={{
+              position: strategy,
+              top: y ?? 0,
+              left: x ?? 0,
+              zIndex: 1050,
+            }}
+            className={styles.dropdownMenu}
+            {...getFloatingProps()}
+          >
             <div
-              ref={refs.setFloating}
-              style={{
-                position: strategy,
-                top: y ?? 0,
-                left: x ?? 0,
+              className={styles.dropdownItem}
+              onClick={() => {
+                searchState.setTab('productSearch');
+                localState.setDropdownOpen(false);
               }}
-              className={styles.dropdownMenu}
-              {...getFloatingProps()}
             >
-              <div
-                className={styles.dropdownItem}
-                onClick={() => {
-                  searchState.setTab('productSearch');
-                  localState.setDropdownOpen(false);
-                }}
-              >
-                Продукты
-              </div>
-              <div
-                className={styles.dropdownItem}
-                onClick={() => {
-                  searchState.setTab('dishSearch');
-                  localState.setDropdownOpen(false);
-                }}
-              >
-                Блюда
-              </div>
-              <div
-                className={styles.dropdownItem}
-                onClick={() => {
-                  searchState.setTab('createCustom');
-                  localState.setDropdownOpen(false);
-                }}
-              >
-                Свой продукт
-              </div>
+              Продукты
             </div>
-          )}
-        </FloatingPortal>
+            <div
+              className={styles.dropdownItem}
+              onClick={() => {
+                searchState.setTab('dishSearch');
+                localState.setDropdownOpen(false);
+              }}
+            >
+              Блюда
+            </div>
+            <div
+              className={styles.dropdownItem}
+              onClick={() => {
+                searchState.setTab('createCustom');
+                localState.setDropdownOpen(false);
+              }}
+            >
+              Свой продукт
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

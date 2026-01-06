@@ -47,6 +47,8 @@ const Quantity = ({ onFinish, item }: Props) => {
         <div className={style.inputWrapper}>
           <NumberInput
             autoFocus
+            size="big"
+            boxShadow
             placeholder="Введите количество"
             ref={inputRef}
             className={style.input}
@@ -60,7 +62,7 @@ const Quantity = ({ onFinish, item }: Props) => {
       <div className={style.variants}>
         {variants.map((values, index) =>
           values.map((value) => (
-            <QuickButton key={index} onSelect={handleVariantClick} selectedValue={value}>
+            <QuickButton key={index} onClick={() => handleVariantClick(value)}>
               {value}
             </QuickButton>
           ))

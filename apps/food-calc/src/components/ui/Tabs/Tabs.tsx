@@ -20,7 +20,7 @@ const Tabs = ({ tabs, current, setTab, variant }: Props) => {
       >
         {tabs.map((tab) => {
           const isActive = current === tab.value;
-          const hasAlternative = !!tab.alternativeLabel;
+          const hasAlternative = tab.alternativeLabel != null;
 
           return (
             <div className={`${styles.tabWrapper}`} key={tab.value}>
@@ -61,7 +61,7 @@ const GridVariants = {
 
 const LabelNamesView: Record<string, string> = {
   quantity: 'Сколько',
-  value: 'Кол-во',
+  value: 'Сколько',
 };
 // const GridVariants = {
 //   scheduleFoodAdd: 'auto 1fr auto',

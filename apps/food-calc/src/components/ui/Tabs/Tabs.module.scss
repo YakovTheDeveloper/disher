@@ -139,6 +139,10 @@
         transform: translate(3px);
 
     }
+
+    &:empty::before {
+        content: '\00a0';
+    }
 }
 
 // Define some CSS variables for consistency (optional, but good practice)

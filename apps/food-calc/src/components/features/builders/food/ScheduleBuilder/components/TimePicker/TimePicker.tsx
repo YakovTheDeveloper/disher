@@ -181,8 +181,10 @@ const TimePicker = observer((props: Props) => {
     if (raw.length === 2) {
       const mmFormatted = pad2(clamp(Number(raw), 0, 59));
       setMinutes(mmFormatted);
-      // finish
-      window.requestAnimationFrame(() => finishAndBlur(hours || '0', mmFormatted));
+      setTimeout(() => {
+        finishAndBlur(hours || '0', mmFormatted);
+      });
+      // window.requestAnimationFrame(() => finishAndBlur(hours || '0', mmFormatted));
     }
   };
 

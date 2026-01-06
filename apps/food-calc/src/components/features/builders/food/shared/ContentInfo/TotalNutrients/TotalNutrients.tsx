@@ -45,7 +45,7 @@ const TotalNutrients = ({ store, ref, children }: Props) => {
       >
         Го
       </Button> */}
-      <Nutrients store={nutrientStore} renderOverlay={renderOverlay} />
+      <Nutrients store={nutrientStore} renderOverlay={renderOverlay} progressType="circle" />
       <NavLink to={RouterLinks.DailyNorms}>
         <Typography variant="action">поменять норму</Typography>
       </NavLink>

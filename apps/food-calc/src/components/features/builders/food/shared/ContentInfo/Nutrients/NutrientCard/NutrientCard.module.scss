@@ -51,3 +51,47 @@
     background: linear-gradient(90deg, #4cafef, #2196f3);
     transition: width 0.3s ease;
 }
+
+.circleProgressWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+
+    .percent {
+
+        color: #c5c5c5;
+        font-weight: 300;
+    }
+
+}
+
+.progressCircle {
+    width: 56px;
+    height: 56px;
+    // transform: rotate(90deg);
+    /* to start from top */
+}
+
+.circleBg {
+    fill: none;
+    stroke: #eee;
+    stroke-width: 5;
+}
+
+.circle {
+    fill: none;
+    stroke: linear-gradient(90deg, #4cafef, #2196f3);
+    stroke-linecap: round;
+    stroke-width: 5;
+    transition: stroke-dasharray 0.3s ease;
+}
+
+.circleText {
+    font-size: 6px;
+    font-weight: 400;
+    fill: #222;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}

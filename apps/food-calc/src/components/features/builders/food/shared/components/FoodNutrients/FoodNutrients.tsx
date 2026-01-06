@@ -10,13 +10,16 @@ import { Typography } from '@/components/ui/atoms/Typography';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import { TotalNutrientsStore } from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
 import { domainStore } from '@/store/store';
+import clsx from 'clsx';
 
 type Props = {
   children?: React.ReactNode;
+  before?: React.ReactNode;
+  className?: string;
   foodId: string;
 };
 
-const FoodNutrients = ({ foodId }: Props) => {
+const FoodNutrients = ({ foodId, className, before }: Props) => {
   // const [params] = useSearchParams();
   // const foodId = params.get('id');
   if (!foodId) return null;
@@ -42,13 +45,20 @@ const FoodNutrients = ({ foodId }: Props) => {
   );
 
   return (
-    <div className={styles.container}>
-      <header>
-        <Typography>информация</Typography>
-        <Typography>{food.name}</Typography>
-        <NumberInput onChange={onChange} value={nutrientStore.quantity} placeholder="#ЗНАЧ!" />
+    <div className={clsx([styles.container, className])}>
+      <header className={styles.header}>
+        {before}
+        <Typography className={styles.foodName}>{food.name}</Typography>
+        <NumberInput
+          color="white"
+          size="small"
+          className={styles.numberInput}
+          onChange={onChange}
+          value={nutrientStore.quantity}
+          placeholder="кол-во"
+        />
       </header>
-      <Nutrients store={nutrientStore} renderOverlay={renderOverlay} />
+      <Nutrients store={nutrientStore} renderOverlay={renderOverlay} progressType="circle" />
       <NavLink to={RouterLinks.DailyNorms} className={styles.link}>
         <Typography variant="action">поменять норму</Typography>
       </NavLink>

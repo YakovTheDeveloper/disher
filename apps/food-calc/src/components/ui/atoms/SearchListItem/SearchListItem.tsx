@@ -7,7 +7,7 @@ type Props = {
   after?: React.ReactNode; // Buttons or extra info
   active?: boolean;
   onClick?: () => void;
-  onInfoClick?: () => void;
+  onInfoClick?: (id: string) => void;
   style?: React.CSSProperties;
   className: string;
   item: { name: string; label?: string };
@@ -25,19 +25,16 @@ const SearchListItem = ({ onInfoClick, item, after, active, onClick, className, 
   return (
     <li className={styles.searchListItemWrapper}>
       {onInfoClick && (
-        <span className={styles.before} onClick={onInfoClick}>
+        <button className={styles.before} onClick={onInfoClick}>
           <InfoIcon />
-        </span>
+        </button>
       )}
       <p
         className={clsx(className, styles.listItem, active && styles.listItem_active)}
         onClick={onClick}
         style={style}
       >
-        {item && <p className="ellipsis"> {item.name || item.label}</p>}
-
-        {/* <div className={styles.content}>{children}</div> */}
-        {after && <div className={styles.after}>{after}</div>}
+        {item.name || item.label}
       </p>
     </li>
   );

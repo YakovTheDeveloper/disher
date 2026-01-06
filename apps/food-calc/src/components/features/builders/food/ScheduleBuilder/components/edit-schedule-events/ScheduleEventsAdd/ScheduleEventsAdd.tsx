@@ -57,7 +57,7 @@ const ScheduleEventsAdd = ({ schedule }: Props) => {
     {
       value: 'value',
       label: 'Количество',
-      alternativeLabel: currentChild.value,
+      alternativeLabel: currentChild.value || '',
     },
   ];
 

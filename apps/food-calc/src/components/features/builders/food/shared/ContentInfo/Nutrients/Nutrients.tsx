@@ -9,6 +9,7 @@ import { NutrientCard } from '@/components/features/builders/food/shared/Content
 import { Instance } from 'mobx-state-tree';
 import { TotalNutrientsStore } from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
+import clsx from 'clsx';
 
 // Groups of nutrients
 // const groups: Record<string, number[]> = {
@@ -23,15 +24,16 @@ type FoodId = string;
 type Props = {
   renderOverlay?: (percent: string) => React.ReactNode;
   store: Instance<typeof TotalNutrientsStore>;
+  progressType?: 'bar' | 'circle';
 };
 
-const Nutrients = ({ store, renderOverlay }: Props) => {
+const Nutrients = ({ store, renderOverlay, progressType = 'bar' }: Props) => {
   useEffect(() => {
     console.log('new store nutrients', Array.from(store.nutrients.entries()));
   }, [Array.from(store.nutrients.entries())]);
 
   return (
-    <div className={styles.container}>
+    <div className={clsx([styles.container, styles[progressType]])}>
       {nutrientGroups.map(({ content, displayName: groupName }) => (
         <div key={groupName} className={styles.group}>
           <h3 className={styles.groupTitle}>
@@ -39,13 +41,14 @@ const Nutrients = ({ store, renderOverlay }: Props) => {
               {groupName}
             </ScreenLabel>
           </h3>
-          <div className={styles.groupContent}>
+          <div className={clsx([styles.groupContent])}>
             {content.map((nutrientData: NutrientContentItem) => (
               <NutrientCard
                 key={nutrientData.id}
                 renderOverlay={renderOverlay}
                 getValue={store.getValue}
                 content={nutrientData}
+                progressType={progressType}
               />
             ))}
           </div>

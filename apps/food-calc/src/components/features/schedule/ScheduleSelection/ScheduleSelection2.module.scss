@@ -1,40 +1,40 @@
 :root {
-    --color-bg-primary: 240 0% 100%;
-    --color-bg-secondary: 240 5% 96%;
-    --color-bg-hover: 240 5% 92%;
-    --color-border: 240 6% 10% / 0.1;
-    --color-border-subtle: 240 6% 10% / 0.05;
-    --color-text-primary: 240 6% 10%;
-    --color-text-secondary: 240 6% 10% / 0.6;
-    --color-text-tertiary: 240 6% 10% / 0.4;
-    --color-text-disabled: 240 6% 10% / 0.2;
-    --color-accent: 214 89% 52%;
-    --color-accent-dark: 214 89% 45%;
+    --color-calendar-bg-primary: 240 0% 100%;
+    --color-calendar-bg-secondary: 240 5% 96%;
+    --color-calendar-bg-hover: 240 5% 92%;
+    --color-calendar-border: 240 6% 10% / 0.1;
+    --color-calendar-border-subtle: 240 6% 10% / 0.05;
+    --color-calendar-text-primary: 240 6% 10%;
+    --color-calendar-text-secondary: 240 6% 10% / 0.6;
+    --color-calendar-text-tertiary: 240 6% 10% / 0.4;
+    --color-calendar-text-disabled: 240 6% 10% / 0.2;
+    --color-calendar-accent: 214 89% 52%;
+    --color-calendar-accent-dark: 214 89% 45%;
     --glass-bg: hsla(240, 0%, 100%, 0.8);
 }
 
 .dark {
-    --color-bg-primary: 240 6% 10%;
-    --color-bg-secondary: 240 4% 16%;
-    --color-bg-hover: 240 4% 20%;
-    --color-border: 0 0% 96% / 0.1;
-    --color-border-subtle: 0 0% 96% / 0.05;
-    --color-text-primary: 0 0% 95%;
-    --color-text-secondary: 0 0% 95% / 0.6;
-    --color-text-tertiary: 0 0% 95% / 0.4;
-    --color-text-disabled: 0 0% 95% / 0.2;
-    --color-accent: 214 89% 60%;
-    --color-accent-dark: 214 89% 50%;
+    --color-calendar-bg-primary: 240 6% 10%;
+    --color-calendar-bg-secondary: 240 4% 16%;
+    --color-calendar-bg-hover: 240 4% 20%;
+    --color-calendar-border: 0 0% 96% / 0.1;
+    --color-calendar-border-subtle: 0 0% 96% / 0.05;
+    --color-calendar-text-primary: 0 0% 95%;
+    --color-calendar-text-secondary: 0 0% 95% / 0.6;
+    --color-calendar-text-tertiary: 0 0% 95% / 0.4;
+    --color-calendar-text-disabled: 0 0% 95% / 0.2;
+    --color-calendar-accent: 214 89% 60%;
+    --color-calendar-accent-dark: 214 89% 50%;
     --glass-bg: hsla(240, 6%, 10%, 0.8);
 }
 
 .calendarWrapper {
-    background: var(--color-bg-primary);
+    background: var(--color-calendar-bg-primary);
     border-radius: 14px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-calendar-border);
     flex-grow: 1;
     height: 100%;
 }
@@ -43,7 +43,7 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     padding: 10px 0;
-    border-bottom: 0.5px solid var(--color-border-subtle);
+    border-bottom: 0.5px solid var(--color-calendar-border-subtle);
     background: var(--glass-bg);
     backdrop-filter: blur(8px);
     z-index: 10;
@@ -51,7 +51,7 @@
     div {
         text-align: center;
         font-size: 13px;
-        color: var(--color-text-secondary);
+        color: var(--color-calendar-text-secondary);
         font-weight: 500;
         text-transform: uppercase;
     }
@@ -68,7 +68,7 @@
     padding: 15px 0 10px;
     font-weight: 200;
     font-size: 30px;
-    color: var(--color-text-primary);
+    color: var(--color-calendar-text-primary);
     z-index: 5;
     text-align: center;
     text-transform: capitalize;
@@ -88,18 +88,18 @@
     border: none;
     background: transparent;
     font-size: 16px;
-    color: var(--color-text-primary);
+    color: var(--color-calendar-text-primary);
     cursor: pointer;
     border-radius: 50%;
     margin: 2px;
     transition: background 0.2s ease-out, color 0.2s ease-out, transform 0.1s ease-out;
 
     &.outside {
-        color: var(--color-text-disabled);
+        color: var(--color-calendar-text-disabled);
     }
 
     &.today {
-        color: var(--color-accent);
+        color: var(--color-calendar-accent);
         font-weight: 600;
         position: relative;
 
@@ -109,24 +109,24 @@
             bottom: 4px;
             width: 5px;
             height: 5px;
-            background-color: var(--color-accent);
+            background-color: var(--color-calendar-accent);
             border-radius: 50%;
         }
     }
 
     &.selected {
-        background: var(--color-accent);
+        background: var(--color-calendar-accent);
         color: white;
         font-weight: 600;
     }
 
     &:hover:not(.selected):not(.outside) {
-        background: var(--color-bg-hover);
+        background: var(--color-calendar-bg-hover);
         border-radius: 50%;
     }
 
     &:active {
-        background: var(--color-accent-dark);
+        background: var(--color-calendar-accent-dark);
         transform: scale(0.95);
         color: white;
     }

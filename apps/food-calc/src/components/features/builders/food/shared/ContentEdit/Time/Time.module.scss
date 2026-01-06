@@ -48,25 +48,7 @@
 
 }
 
-.nowButtons {
-    background-color: white;
 
-    display: flex;
-    flex-direction: column;
-    padding: 1rem 0;
-    flex-grow: 1;
-
-    &List {
-        display: flex;
-    }
-
-
-
-    .nowButton {
-
-        font-size: 10px;
-    }
-}
 
 
 .timePicker {
@@ -80,8 +62,7 @@
     flex-grow: 0;
     gap: 0.5rem;
     z-index: 33;
-    margin-bottom: 30px;
-    height: 85px;
+    // min-height: 85px;
     background-color: white;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;

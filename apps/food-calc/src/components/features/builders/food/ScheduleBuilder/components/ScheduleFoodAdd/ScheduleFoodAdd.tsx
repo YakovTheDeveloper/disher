@@ -112,11 +112,7 @@ const ScheduleFoodAdd = observer(({ schedule }: Props) => {
           <SearchFoodControls searchState={searchState} isVisible={true} />
         )
       }
-      bottom={
-        <>
-          <FinishButton maxStepReached={maxStepReached} onClick={onFinish} />
-        </>
-      }
+      topRight={<FinishButton onClick={onFinish} />}
     >
       {currentStep === 'time' && <ContentEdit.Time item={currentChild} onFinish={onStepFinish} />}
       {currentStep === 'foodSelect' && (

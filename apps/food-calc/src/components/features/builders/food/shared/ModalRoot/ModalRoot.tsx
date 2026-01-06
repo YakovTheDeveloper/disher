@@ -5,6 +5,7 @@ import Modal from '@/components/ui/Modal/Modal';
 import styles from './ModalRoot.module.scss';
 import { useDailyScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
 import { Drawer } from '@/components/ui/Drawer';
+import { emitter } from '@/infrastructure/emitter/emitter';
 
 type Props<ModalVariants extends string | number> = {
   children: Partial<
@@ -34,8 +35,6 @@ function ModalRoot<ModalVariants extends string | number>({ children }: Props<Mo
     }
   }, []);
 
-  const isMobile = true;
-
   const currentChild = modalFromUrl ? children[modalFromUrl] : null;
 
   return (
@@ -43,31 +42,6 @@ function ModalRoot<ModalVariants extends string | number>({ children }: Props<Mo
       {currentChild as React.ReactNode}
     </Drawer>
   );
-  // return createPortal(
-  //   <>
-  //     {Object.entries(children).map(([id, Component]) =>
-  //       Component ? (
-  //         !isMobile ? (
-  //           <Modal
-  //             key={id}
-  //             id={id as ModalVariants}
-  //             currentId={modalFromUrl}
-  //             onClose={modals.close}
-  //             className={styles.offset}
-  //             backdropClassname={styles.offset}
-  //           >
-  //             {Component as React.ReactNode}
-  //           </Modal>
-  //         ) : (
-  //           <Drawer open={modalFromUrl === id} onOpenChange={modals.close}>
-  //             {Component as React.ReactNode}
-  //           </Drawer>
-  //         )
-  //       ) : null
-  //     )}
-  //   </>,
-  //   document.body
-  // );
 }
 
 export default ModalRoot;

@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './NumberInput.module.scss';
 import clsx from 'clsx';
@@ -11,10 +11,16 @@ type Props = {
   className?: string;
   placeholder?: string;
   autoFocus?: boolean;
+  boxShadow?: boolean;
+  size?: 'small' | 'big';
+  color?: 'grey' | 'white';
 };
 
 const NumberInput = forwardRef<HTMLInputElement, Props>(
-  ({ id, value, onBlur, className, placeholder, autoFocus, onChange }, ref) => {
+  (
+    { id, value, onBlur, className, placeholder, autoFocus, boxShadow, onChange, size, color },
+    ref
+  ) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
     useImperativeHandle(ref, () => inputRef.current!, []);
@@ -37,7 +43,13 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
         inputMode="numeric"
         pattern="[0-9]*"
         onFocus={handleFocus}
-        className={clsx([styles.input, className])}
+        className={clsx([
+          styles.input,
+          boxShadow && styles.boxShadow,
+          color && styles[color],
+          size && styles[size],
+          className,
+        ])}
         value={value}
         placeholder={placeholder}
         onChange={(e) => {

@@ -2,26 +2,18 @@ import { observer } from 'mobx-react-lite';
 import styles from './FinishButton.module.scss';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
+import TickIcon from '@/assets/icons/tick.svg';
 
 type Props = {
   children?: React.ReactNode;
-  maxStepReached: boolean;
   onClick: () => void;
 };
 
-const FinishButton = ({ children, maxStepReached, onClick }: Props) => {
+const FinishButton = ({ children, onClick }: Props) => {
   return (
-    <motion.button
-      disabled={!maxStepReached}
-      className={clsx([styles.finishButton, maxStepReached && styles.finishButton_active])}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={maxStepReached ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
-      onClick={onClick}
-    >
-      <div className={styles.finishButton__icon}>✓</div>
-      <span className={styles.text}>{children || 'Завершить'}</span>
-    </motion.button>
+    <button onClick={onClick} className={styles.finishButton}>
+      <TickIcon />
+    </button>
   );
 };
 

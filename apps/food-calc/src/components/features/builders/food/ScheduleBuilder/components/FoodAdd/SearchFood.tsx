@@ -2,16 +2,14 @@ import { List } from '@/components/features/builders/food/shared/ContentEdit/Foo
 import { Button } from '@/components/features/builders/food/shared/ui/Actions/button';
 import { FoodName } from '@/components/features/builders/food/shared/ui/FoodName';
 import { observer, useLocalObservable } from 'mobx-react-lite';
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './FoodAdd.module.scss';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
+import { ScheduleItem } from '@/domain/schedule/schedule';
 import { domainStore } from '@/store/store';
 import { filterBy } from '@/lib/filter/filter';
-import { useSearchParams } from 'react-router';
 import { SearchListItem } from '@/components/ui/atoms/SearchListItem';
-import SearchFoodControls from './SearchFoodControls/SearchFoodControls';
-import clsx from 'clsx';
+import { FoodNutrients } from '@/components/features/builders/food/shared/components/FoodNutrients';
 
 type Props = {
   children?: React.ReactNode;
@@ -26,7 +24,13 @@ type Tabs = 'productSearch' | 'dishSearch' | 'createCustom';
 const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) => {
   // const modals = useDailyScheduleModals();
 
+  const [currentInfoFood, setCurrentInfoFood] = useState('');
+
+  const onBackButton = () => setCurrentInfoFood('');
+
   const currentChild = scheduleChild;
+
+  const onFinishHandler = () => {};
 
   const onCustomAdd = (payload: DishEntity | FoodEntity | string) => {
     console.log('onCustomAdd payload', payload);
@@ -50,55 +54,22 @@ const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) =
     onFinish();
   };
 
-  const state = useLocalObservable(() => ({
-    currentTab: 'productSearch' as Tabs,
-    filterText: '',
-    customProductText: currentChild?.content?.customName || '',
-
-    setTab(tab: Tabs) {
-      this.currentTab = tab;
-    },
-
-    setSearch(text: string) {
-      this.filterText = text;
-    },
-
-    setCustomText(text: string) {
-      this.customProductText = text;
-    },
-
-    foodSearchState: {
-      get filterSearchText() {
-        return state.filterText;
-      },
-      get localFiltered() {
-        return filterBy(domainStore.foodStore.list, this.filterSearchText, ['name', 'title']);
-      },
-    },
-
-    dishSearchState: {
-      get filterSearchText() {
-        return state.filterText;
-      },
-      get localFiltered() {
-        return filterBy(domainStore.dishStore.list, this.filterSearchText, ['name', 'title']);
-      },
-    },
-  }));
-
   const onProductClickSeeDetails = () => {};
 
   const onCustomProductAdd = () => {
-    console.log('onItemNameClick', state.customProductText);
+    console.log('onItemNameClick', searchState.customProductText);
 
-    onCustomAdd(state.customProductText);
+    onCustomAdd(searchState.customProductText);
   };
 
-  console.log('state.foodSearchState', state.foodSearchState);
+  console.log('searchState.foodSearchState', searchState.foodSearchState);
+
+  const onInfoClick = () => {};
 
   const renderProductItem = (item: unknown) => (
     <>
       <SearchListItem
+        onInfoClick={() => setCurrentInfoFood(item.id)}
         active={currentChild?.content?.food?.id === item.id}
         onClick={() => onFoodAdd(item)}
         item={item}
@@ -116,7 +87,10 @@ const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) =
 
   const renderDishtItem = (item: unknown) => (
     <>
-      <SearchListItem active={currentChild?.content?.dish?.id === item.id}>
+      <SearchListItem
+        onInfoClick={() => setCurrentInfoFood(item.id)}
+        active={currentChild?.content?.dish?.id === item.id}
+      >
         <FoodName
           className="ellipsis"
           onClick={() => onDishAdd(item)}
@@ -130,51 +104,56 @@ const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) =
 
   const getChildTime = () => currentChild?.time;
 
-  const showActionsBar = () => state.currentTab !== 'createCustom';
+  const showActionsBar = () => searchState.currentTab !== 'createCustom';
 
   return (
     <>
-      {/* {state.currentTab !== 'createCustom' && (
-        <SearchFoodControls
-          currentTab={state.currentTab}
-          setTab={state.setTab}
-          filterText={state.filterText}
-          setSearch={state.setSearch}
-          isVisible={true}
-        />
-      )} */}
+      <div className={styles.content}>
+        {currentInfoFood && (
+          <div className={styles.foodInfo}>
+            <FoodNutrients
+              foodId={currentInfoFood}
+              className={styles.foodInfoNutrients}
+              before={<button onClick={onBackButton}>{'<-'}</button>}
+            />
+          </div>
+        )}
+        {
+          <>
+            {searchState.currentTab === 'productSearch' ? (
+              <List
+                queryKey="productSearch"
+                onFetch={domainStore.foodStore.getFoodWithParams}
+                search={searchState.foodSearchState}
+                renderListContent={renderProductItem}
+              />
+            ) : null}
+            {searchState.currentTab === 'dishSearch' ? (
+              <List
+                queryKey="dishSearch"
+                onFetch={domainStore.dishStore.getAllWithParams}
+                search={searchState.dishSearchState}
+                renderListContent={renderDishtItem}
+              />
+            ) : null}
 
-      {state.currentTab === 'productSearch' ? (
-        <List
-          queryKey="productSearch"
-          onFetch={domainStore.foodStore.getFoodWithParams}
-          search={state.foodSearchState}
-          renderListContent={renderProductItem}
-        />
-      ) : null}
-      {state.currentTab === 'dishSearch' ? (
-        <List
-          queryKey="dishSearch"
-          onFetch={domainStore.dishStore.getAllWithParams}
-          search={state.dishSearchState}
-          renderListContent={renderDishtItem}
-        />
-      ) : null}
-
-      {/* Custom product input */}
-      {state.currentTab === 'createCustom' && (
-        <div className={styles.customContainer}>
-          <input
-            className={styles.customInput}
-            placeholder="Название кастомного продукта"
-            value={state.customProductText}
-            onChange={(e) => state.setCustomText(e.target.value)}
-          />
-          <Button.Finish onClick={onCustomProductAdd} disabled={false} isShow={() => true}>
-            принять
-          </Button.Finish>
-        </div>
-      )}
+            {/* Custom product input */}
+            {searchState.currentTab === 'createCustom' && (
+              <div className={styles.customContainer}>
+                <input
+                  className={styles.customInput}
+                  placeholder="Название кастомного продукта"
+                  value={searchState.customProductText}
+                  onChange={(e) => searchState.setCustomText(e.target.value)}
+                />
+                <Button.Finish onClick={onCustomProductAdd} disabled={false} isShow={() => true}>
+                  принять
+                </Button.Finish>
+              </div>
+            )}
+          </>
+        }
+      </div>
     </>
   );
 };

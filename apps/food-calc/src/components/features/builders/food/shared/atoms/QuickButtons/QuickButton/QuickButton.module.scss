@@ -1,4 +1,10 @@
+.quickButtonWrapper {
+    display: flex;
+    position: relative;
+}
+
 .quickButton {
+    flex-grow: 1;
     background: #f1f1f1;
     border: none;
     padding: 0.4rem 0.8rem;
@@ -6,10 +12,29 @@
     font-size: 0.9rem;
     cursor: pointer;
     transition: background 0.2s ease, border-radius 0.2s ease;
+    z-index: 2;
 
     &:hover {
         background: #e0e0e0;
     }
+}
+
+.circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    background: #7bbbff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transform-origin: center;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.animating {
+    // color: white !important;
 }
 
 .activeButton {

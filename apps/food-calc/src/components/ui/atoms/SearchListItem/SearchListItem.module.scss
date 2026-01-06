@@ -1,18 +1,21 @@
 .searchListItemWrapper {
     display: flex;
-    gap: 1rem;
     align-items: center;
 }
 
 .listItem {
     display: flex;
     align-items: center;
-    border: 1px solid transparent;
+    border: 2px solid transparent;
     padding: 5px 5px 5px 10px;
     border-radius: 8px;
     background: #ffffff;
     text-transform: capitalize;
     flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
@@ -24,9 +27,7 @@
     &:hover,
     &:active {
         color: black;
-        background: #2A7B9B;
-        background: linear-gradient(90deg, rgba(42, 123, 155, 0.3) 0%, rgba(87, 199, 133, 0.3) 46%, rgba(237, 221, 83, 0.3) 100%);
-        border-color: transparent;
+        border-color: #4b99ff;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
@@ -70,4 +71,15 @@
     font-weight: 400;
 }
 
-.before {}
+.before {
+    color: #a5a5a5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 5px 8px 8px;
+
+    &:active {
+        color: #6b7280;
+        background-color: #4b99ff;
+    }
+}
