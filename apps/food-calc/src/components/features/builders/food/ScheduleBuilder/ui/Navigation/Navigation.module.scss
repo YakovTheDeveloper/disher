@@ -1,18 +1,24 @@
-.wrapper {
-    display: flex;
-    width: 100%;
-    top: 0;
-    z-index: 100;
-    position: relative;
-}
-
 .container {
     display: flex;
-    justify-content: end;
-    flex-grow: 1;
-    height: 70%;
+    // justify-content: end;
     width: 100%;
     position: relative;
+    justify-content: space-between;
+}
+
+.title {
+    position: absolute;
+    left: 0;
+    width: 100%;
+}
+
+.dateLink {
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+    background-color: #fff;
+    padding: 1rem 5px 1rem 2rem;
+    border-radius: 50px;
 }
 
 .left {
@@ -31,17 +37,10 @@
     left: 0;
 }
 
-.title {
-    display: flex;
-    justify-content: end;
-    gap: 10px;
-    // margin: 0 auto;
-    flex-grow: 1;
-}
-
 .date {
     display: flex;
     flex-direction: column;
+    flex-grow: 0;
     // align-items: center;
     font-size: 25px;
     line-height: 25px;

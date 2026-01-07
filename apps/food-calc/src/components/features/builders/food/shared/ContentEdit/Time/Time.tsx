@@ -34,14 +34,12 @@ function Time({ item, onFinish }: Props) {
   const time = hours + ':' + minutes;
 
   const onFinishHandler = (time: string) => {
-    console.log('time finish', time);
     item.updateTime(time);
     onFinish();
   };
 
   const onMinutesChange = (m: string) => {
     // const time = hours + ':' + m;
-    console.log(m);
     setMinutes(m);
 
     // setTimeout(() => {
@@ -49,8 +47,6 @@ function Time({ item, onFinish }: Props) {
     // });
     // onFinish();
   };
-
-  console.log('time', time);
 
   return (
     <>

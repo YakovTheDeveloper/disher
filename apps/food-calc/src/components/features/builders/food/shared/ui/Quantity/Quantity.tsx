@@ -12,8 +12,6 @@ type Props = {
 };
 
 const Quantity = ({ id, onClick, children, hide, unit = 'г' }: Props) => {
-  console.log('LIST_ITEM_QUANTIY');
-
   const className = useAnimationOnChange(children());
 
   const onClickHandler = () => onClick(id);

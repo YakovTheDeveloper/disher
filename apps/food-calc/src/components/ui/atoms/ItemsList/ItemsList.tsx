@@ -10,29 +10,11 @@ type Props = {
 const ItemsList = ({ children }: Props) => {
   const listRef = useRef<HTMLUListElement | null>(null);
 
-  useEffect(() => {
-    const handleOutside = (event: MouseEvent | TouchEvent) => {
-      const target = event.target as Node | null;
-      if (!target || !listRef.current) return;
-
-      if (!listRef.current.contains(target)) {
-        console.log(target);
-        emitter.emit('outsideClick', target);
-      }
-    };
-
-    document.addEventListener('mouseup', handleOutside);
-    document.addEventListener('touchend', handleOutside);
-
-    return () => {
-      document.removeEventListener('mouseup', handleOutside);
-      document.removeEventListener('touchend', handleOutside);
-    };
-  }, []);
-
   return (
     <ul ref={listRef} className={styles.container}>
+      <div className={styles.offsetBottom}></div>
       {children}
+      <div className={styles.offsetBottom}></div>
     </ul>
   );
 };

@@ -8,24 +8,24 @@ declare const DailyEventsItemsSchema: z.ZodObject<{
             hours: z.ZodNumber;
             minutes: z.ZodNumber;
         }, "strip", z.ZodTypeAny, {
-            quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             hours?: number;
             minutes?: number;
         }, {
-            quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             hours?: number;
             minutes?: number;
         }>;
     }, "strip", z.ZodTypeAny, {
         content?: {
-            quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             hours?: number;
             minutes?: number;
         };
         variant?: "sleep";
     }, {
         content?: {
-            quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             hours?: number;
             minutes?: number;
         };
@@ -35,18 +35,18 @@ declare const DailyEventsItemsSchema: z.ZodObject<{
         content: z.ZodObject<{
             value: z.ZodUnion<[z.ZodLiteral<1>, z.ZodLiteral<2>, z.ZodLiteral<3>, z.ZodLiteral<4>, z.ZodLiteral<5>, z.ZodLiteral<6>, z.ZodLiteral<7>, z.ZodLiteral<8>, z.ZodLiteral<9>, z.ZodLiteral<10>]>;
         }, "strip", z.ZodTypeAny, {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
         }, {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
         }>;
     }, "strip", z.ZodTypeAny, {
         content?: {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
         };
         variant?: "mood";
     }, {
         content?: {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
         };
         variant?: "mood";
     }>, z.ZodObject<{
@@ -54,18 +54,18 @@ declare const DailyEventsItemsSchema: z.ZodObject<{
         content: z.ZodObject<{
             value: z.ZodUnion<[z.ZodLiteral<1>, z.ZodLiteral<2>, z.ZodLiteral<3>, z.ZodLiteral<4>, z.ZodLiteral<5>, z.ZodLiteral<6>, z.ZodLiteral<7>, z.ZodLiteral<8>, z.ZodLiteral<9>, z.ZodLiteral<10>]>;
         }, "strip", z.ZodTypeAny, {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
         }, {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
         }>;
     }, "strip", z.ZodTypeAny, {
         content?: {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
         };
         variant?: "energy";
     }, {
         content?: {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
         };
         variant?: "energy";
     }>, z.ZodObject<{
@@ -74,21 +74,21 @@ declare const DailyEventsItemsSchema: z.ZodObject<{
             variant: z.ZodEnum<["bloating", "stomach_pain", "heartburn", "constipation", "diarrhea"]>;
             value: z.ZodUnion<[z.ZodLiteral<1>, z.ZodLiteral<2>, z.ZodLiteral<3>, z.ZodLiteral<4>, z.ZodLiteral<5>, z.ZodLiteral<6>, z.ZodLiteral<7>, z.ZodLiteral<8>, z.ZodLiteral<9>, z.ZodLiteral<10>]>;
         }, "strip", z.ZodTypeAny, {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
         }, {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
         }>;
     }, "strip", z.ZodTypeAny, {
         content?: {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
         };
         variant?: "digestion";
     }, {
         content?: {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
         };
         variant?: "digestion";
@@ -145,24 +145,24 @@ declare const DailyEventsItemsSchema: z.ZodObject<{
     time?: string;
     content?: {
         content?: {
-            quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             hours?: number;
             minutes?: number;
         };
         variant?: "sleep";
     } | {
         content?: {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
         };
         variant?: "mood";
     } | {
         content?: {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
         };
         variant?: "energy";
     } | {
         content?: {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
         };
         variant?: "digestion";
@@ -183,24 +183,24 @@ declare const DailyEventsItemsSchema: z.ZodObject<{
     time?: string;
     content?: {
         content?: {
-            quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             hours?: number;
             minutes?: number;
         };
         variant?: "sleep";
     } | {
         content?: {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
         };
         variant?: "mood";
     } | {
         content?: {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
         };
         variant?: "energy";
     } | {
         content?: {
-            value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+            value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
         };
         variant?: "digestion";
@@ -229,24 +229,24 @@ export declare const DailyEventsUpdateSchema: z.ZodObject<{
                 hours: z.ZodNumber;
                 minutes: z.ZodNumber;
             }, "strip", z.ZodTypeAny, {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             }, {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             }>;
         }, "strip", z.ZodTypeAny, {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         }, {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
@@ -256,18 +256,18 @@ export declare const DailyEventsUpdateSchema: z.ZodObject<{
             content: z.ZodObject<{
                 value: z.ZodUnion<[z.ZodLiteral<1>, z.ZodLiteral<2>, z.ZodLiteral<3>, z.ZodLiteral<4>, z.ZodLiteral<5>, z.ZodLiteral<6>, z.ZodLiteral<7>, z.ZodLiteral<8>, z.ZodLiteral<9>, z.ZodLiteral<10>]>;
             }, "strip", z.ZodTypeAny, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             }, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             }>;
         }, "strip", z.ZodTypeAny, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         }, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         }>, z.ZodObject<{
@@ -275,18 +275,18 @@ export declare const DailyEventsUpdateSchema: z.ZodObject<{
             content: z.ZodObject<{
                 value: z.ZodUnion<[z.ZodLiteral<1>, z.ZodLiteral<2>, z.ZodLiteral<3>, z.ZodLiteral<4>, z.ZodLiteral<5>, z.ZodLiteral<6>, z.ZodLiteral<7>, z.ZodLiteral<8>, z.ZodLiteral<9>, z.ZodLiteral<10>]>;
             }, "strip", z.ZodTypeAny, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             }, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             }>;
         }, "strip", z.ZodTypeAny, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         }, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         }>, z.ZodObject<{
@@ -295,21 +295,21 @@ export declare const DailyEventsUpdateSchema: z.ZodObject<{
                 variant: z.ZodEnum<["bloating", "stomach_pain", "heartburn", "constipation", "diarrhea"]>;
                 value: z.ZodUnion<[z.ZodLiteral<1>, z.ZodLiteral<2>, z.ZodLiteral<3>, z.ZodLiteral<4>, z.ZodLiteral<5>, z.ZodLiteral<6>, z.ZodLiteral<7>, z.ZodLiteral<8>, z.ZodLiteral<9>, z.ZodLiteral<10>]>;
             }, "strip", z.ZodTypeAny, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             }, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             }>;
         }, "strip", z.ZodTypeAny, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
         }, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -366,24 +366,24 @@ export declare const DailyEventsUpdateSchema: z.ZodObject<{
         time?: string;
         content?: {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -404,24 +404,24 @@ export declare const DailyEventsUpdateSchema: z.ZodObject<{
         time?: string;
         content?: {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -444,24 +444,24 @@ export declare const DailyEventsUpdateSchema: z.ZodObject<{
         time?: string;
         content?: {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -485,24 +485,24 @@ export declare const DailyEventsUpdateSchema: z.ZodObject<{
         time?: string;
         content?: {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -556,15 +556,15 @@ export declare const ScheduleChangesZod: z.ZodObject<{
         dishId: z.ZodOptional<z.ZodNever>;
     }, "strip", z.ZodTypeAny, {
         dishId: never;
-        type?: "food";
         time?: string;
+        type?: "food";
         quantity?: number;
         customFoodName?: string;
         foodId?: number;
     }, {
         dishId: never;
-        type?: "food";
         time?: string;
+        type?: "food";
         quantity?: number;
         customFoodName?: string;
         foodId?: number;
@@ -577,15 +577,15 @@ export declare const ScheduleChangesZod: z.ZodObject<{
         foodId: z.ZodOptional<z.ZodNever>;
     }, "strip", z.ZodTypeAny, {
         foodId: never;
-        type?: "dish";
         time?: string;
+        type?: "dish";
         quantity?: number;
         customFoodName?: string;
         dishId?: number;
     }, {
         foodId: never;
-        type?: "dish";
         time?: string;
+        type?: "dish";
         quantity?: number;
         customFoodName?: string;
         dishId?: number;
@@ -599,15 +599,15 @@ export declare const ScheduleChangesZod: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         foodId: never;
         dishId: never;
-        type?: "custom";
         time?: string;
+        type?: "custom";
         quantity?: number;
         customFoodName?: string;
     }, {
         foodId: never;
         dishId: never;
-        type?: "custom";
         time?: string;
+        type?: "custom";
         quantity?: number;
         customFoodName?: string;
     }>]>, "many">>;
@@ -637,23 +637,23 @@ export declare const ScheduleChangesZod: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     create?: ({
         dishId: never;
-        type?: "food";
         time?: string;
+        type?: "food";
         quantity?: number;
         customFoodName?: string;
         foodId?: number;
     } | {
         foodId: never;
-        type?: "dish";
         time?: string;
+        type?: "dish";
         quantity?: number;
         customFoodName?: string;
         dishId?: number;
     } | {
         foodId: never;
         dishId: never;
-        type?: "custom";
         time?: string;
+        type?: "custom";
         quantity?: number;
         customFoodName?: string;
     })[];
@@ -669,23 +669,23 @@ export declare const ScheduleChangesZod: z.ZodObject<{
 }, {
     create?: ({
         dishId: never;
-        type?: "food";
         time?: string;
+        type?: "food";
         quantity?: number;
         customFoodName?: string;
         foodId?: number;
     } | {
         foodId: never;
-        type?: "dish";
         time?: string;
+        type?: "dish";
         quantity?: number;
         customFoodName?: string;
         dishId?: number;
     } | {
         foodId: never;
         dishId: never;
-        type?: "custom";
         time?: string;
+        type?: "custom";
         quantity?: number;
         customFoodName?: string;
     })[];
@@ -711,24 +711,24 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
                 hours: z.ZodNumber;
                 minutes: z.ZodNumber;
             }, "strip", z.ZodTypeAny, {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             }, {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             }>;
         }, "strip", z.ZodTypeAny, {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         }, {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
@@ -738,18 +738,18 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
             content: z.ZodObject<{
                 value: z.ZodUnion<[z.ZodLiteral<1>, z.ZodLiteral<2>, z.ZodLiteral<3>, z.ZodLiteral<4>, z.ZodLiteral<5>, z.ZodLiteral<6>, z.ZodLiteral<7>, z.ZodLiteral<8>, z.ZodLiteral<9>, z.ZodLiteral<10>]>;
             }, "strip", z.ZodTypeAny, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             }, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             }>;
         }, "strip", z.ZodTypeAny, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         }, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         }>, z.ZodObject<{
@@ -757,18 +757,18 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
             content: z.ZodObject<{
                 value: z.ZodUnion<[z.ZodLiteral<1>, z.ZodLiteral<2>, z.ZodLiteral<3>, z.ZodLiteral<4>, z.ZodLiteral<5>, z.ZodLiteral<6>, z.ZodLiteral<7>, z.ZodLiteral<8>, z.ZodLiteral<9>, z.ZodLiteral<10>]>;
             }, "strip", z.ZodTypeAny, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             }, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             }>;
         }, "strip", z.ZodTypeAny, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         }, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         }>, z.ZodObject<{
@@ -777,21 +777,21 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
                 variant: z.ZodEnum<["bloating", "stomach_pain", "heartburn", "constipation", "diarrhea"]>;
                 value: z.ZodUnion<[z.ZodLiteral<1>, z.ZodLiteral<2>, z.ZodLiteral<3>, z.ZodLiteral<4>, z.ZodLiteral<5>, z.ZodLiteral<6>, z.ZodLiteral<7>, z.ZodLiteral<8>, z.ZodLiteral<9>, z.ZodLiteral<10>]>;
             }, "strip", z.ZodTypeAny, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             }, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             }>;
         }, "strip", z.ZodTypeAny, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
         }, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -848,24 +848,24 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
         time?: string;
         content?: {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -886,24 +886,24 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
         time?: string;
         content?: {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -931,15 +931,15 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
             dishId: z.ZodOptional<z.ZodNever>;
         }, "strip", z.ZodTypeAny, {
             dishId: never;
-            type?: "food";
             time?: string;
+            type?: "food";
             quantity?: number;
             customFoodName?: string;
             foodId?: number;
         }, {
             dishId: never;
-            type?: "food";
             time?: string;
+            type?: "food";
             quantity?: number;
             customFoodName?: string;
             foodId?: number;
@@ -952,15 +952,15 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
             foodId: z.ZodOptional<z.ZodNever>;
         }, "strip", z.ZodTypeAny, {
             foodId: never;
-            type?: "dish";
             time?: string;
+            type?: "dish";
             quantity?: number;
             customFoodName?: string;
             dishId?: number;
         }, {
             foodId: never;
-            type?: "dish";
             time?: string;
+            type?: "dish";
             quantity?: number;
             customFoodName?: string;
             dishId?: number;
@@ -974,15 +974,15 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
         }, "strip", z.ZodTypeAny, {
             foodId: never;
             dishId: never;
-            type?: "custom";
             time?: string;
+            type?: "custom";
             quantity?: number;
             customFoodName?: string;
         }, {
             foodId: never;
             dishId: never;
-            type?: "custom";
             time?: string;
+            type?: "custom";
             quantity?: number;
             customFoodName?: string;
         }>]>, "many">>;
@@ -1012,23 +1012,23 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         create?: ({
             dishId: never;
-            type?: "food";
             time?: string;
+            type?: "food";
             quantity?: number;
             customFoodName?: string;
             foodId?: number;
         } | {
             foodId: never;
-            type?: "dish";
             time?: string;
+            type?: "dish";
             quantity?: number;
             customFoodName?: string;
             dishId?: number;
         } | {
             foodId: never;
             dishId: never;
-            type?: "custom";
             time?: string;
+            type?: "custom";
             quantity?: number;
             customFoodName?: string;
         })[];
@@ -1044,23 +1044,23 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
     }, {
         create?: ({
             dishId: never;
-            type?: "food";
             time?: string;
+            type?: "food";
             quantity?: number;
             customFoodName?: string;
             foodId?: number;
         } | {
             foodId: never;
-            type?: "dish";
             time?: string;
+            type?: "dish";
             quantity?: number;
             customFoodName?: string;
             dishId?: number;
         } | {
             foodId: never;
             dishId: never;
-            type?: "custom";
             time?: string;
+            type?: "custom";
             quantity?: number;
             customFoodName?: string;
         })[];
@@ -1081,24 +1081,24 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
         time?: string;
         content?: {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -1119,23 +1119,23 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
     changes?: {
         create?: ({
             dishId: never;
-            type?: "food";
             time?: string;
+            type?: "food";
             quantity?: number;
             customFoodName?: string;
             foodId?: number;
         } | {
             foodId: never;
-            type?: "dish";
             time?: string;
+            type?: "dish";
             quantity?: number;
             customFoodName?: string;
             dishId?: number;
         } | {
             foodId: never;
             dishId: never;
-            type?: "custom";
             time?: string;
+            type?: "custom";
             quantity?: number;
             customFoodName?: string;
         })[];
@@ -1156,24 +1156,24 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
         time?: string;
         content?: {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -1194,23 +1194,23 @@ export declare const ScheduleUpdateInputZod: z.ZodObject<{
     changes?: {
         create?: ({
             dishId: never;
-            type?: "food";
             time?: string;
+            type?: "food";
             quantity?: number;
             customFoodName?: string;
             foodId?: number;
         } | {
             foodId: never;
-            type?: "dish";
             time?: string;
+            type?: "dish";
             quantity?: number;
             customFoodName?: string;
             dishId?: number;
         } | {
             foodId: never;
             dishId: never;
-            type?: "custom";
             time?: string;
+            type?: "custom";
             quantity?: number;
             customFoodName?: string;
         })[];
@@ -1236,24 +1236,24 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
                 hours: z.ZodNumber;
                 minutes: z.ZodNumber;
             }, "strip", z.ZodTypeAny, {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             }, {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             }>;
         }, "strip", z.ZodTypeAny, {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         }, {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
@@ -1263,18 +1263,18 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
             content: z.ZodObject<{
                 value: z.ZodUnion<[z.ZodLiteral<1>, z.ZodLiteral<2>, z.ZodLiteral<3>, z.ZodLiteral<4>, z.ZodLiteral<5>, z.ZodLiteral<6>, z.ZodLiteral<7>, z.ZodLiteral<8>, z.ZodLiteral<9>, z.ZodLiteral<10>]>;
             }, "strip", z.ZodTypeAny, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             }, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             }>;
         }, "strip", z.ZodTypeAny, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         }, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         }>, z.ZodObject<{
@@ -1282,18 +1282,18 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
             content: z.ZodObject<{
                 value: z.ZodUnion<[z.ZodLiteral<1>, z.ZodLiteral<2>, z.ZodLiteral<3>, z.ZodLiteral<4>, z.ZodLiteral<5>, z.ZodLiteral<6>, z.ZodLiteral<7>, z.ZodLiteral<8>, z.ZodLiteral<9>, z.ZodLiteral<10>]>;
             }, "strip", z.ZodTypeAny, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             }, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             }>;
         }, "strip", z.ZodTypeAny, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         }, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         }>, z.ZodObject<{
@@ -1302,21 +1302,21 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
                 variant: z.ZodEnum<["bloating", "stomach_pain", "heartburn", "constipation", "diarrhea"]>;
                 value: z.ZodUnion<[z.ZodLiteral<1>, z.ZodLiteral<2>, z.ZodLiteral<3>, z.ZodLiteral<4>, z.ZodLiteral<5>, z.ZodLiteral<6>, z.ZodLiteral<7>, z.ZodLiteral<8>, z.ZodLiteral<9>, z.ZodLiteral<10>]>;
             }, "strip", z.ZodTypeAny, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             }, {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             }>;
         }, "strip", z.ZodTypeAny, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
         }, {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -1373,24 +1373,24 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
         time?: string;
         content?: {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -1411,24 +1411,24 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
         time?: string;
         content?: {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -1455,15 +1455,15 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
         dishId: z.ZodOptional<z.ZodNever>;
     }, "strip", z.ZodTypeAny, {
         dishId: never;
-        type?: "food";
         time?: string;
+        type?: "food";
         quantity?: number;
         customFoodName?: string;
         foodId?: number;
     }, {
         dishId: never;
-        type?: "food";
         time?: string;
+        type?: "food";
         quantity?: number;
         customFoodName?: string;
         foodId?: number;
@@ -1476,15 +1476,15 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
         foodId: z.ZodOptional<z.ZodNever>;
     }, "strip", z.ZodTypeAny, {
         foodId: never;
-        type?: "dish";
         time?: string;
+        type?: "dish";
         quantity?: number;
         customFoodName?: string;
         dishId?: number;
     }, {
         foodId: never;
-        type?: "dish";
         time?: string;
+        type?: "dish";
         quantity?: number;
         customFoodName?: string;
         dishId?: number;
@@ -1498,15 +1498,15 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         foodId: never;
         dishId: never;
-        type?: "custom";
         time?: string;
+        type?: "custom";
         quantity?: number;
         customFoodName?: string;
     }, {
         foodId: never;
         dishId: never;
-        type?: "custom";
         time?: string;
+        type?: "custom";
         quantity?: number;
         customFoodName?: string;
     }>]>, "many">>;
@@ -1514,23 +1514,23 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
     date?: string;
     items?: ({
         dishId: never;
-        type?: "food";
         time?: string;
+        type?: "food";
         quantity?: number;
         customFoodName?: string;
         foodId?: number;
     } | {
         foodId: never;
-        type?: "dish";
         time?: string;
+        type?: "dish";
         quantity?: number;
         customFoodName?: string;
         dishId?: number;
     } | {
         foodId: never;
         dishId: never;
-        type?: "custom";
         time?: string;
+        type?: "custom";
         quantity?: number;
         customFoodName?: string;
     })[];
@@ -1538,24 +1538,24 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
         time?: string;
         content?: {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";
@@ -1577,23 +1577,23 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
     date?: string;
     items?: ({
         dishId: never;
-        type?: "food";
         time?: string;
+        type?: "food";
         quantity?: number;
         customFoodName?: string;
         foodId?: number;
     } | {
         foodId: never;
-        type?: "dish";
         time?: string;
+        type?: "dish";
         quantity?: number;
         customFoodName?: string;
         dishId?: number;
     } | {
         foodId: never;
         dishId: never;
-        type?: "custom";
         time?: string;
+        type?: "custom";
         quantity?: number;
         customFoodName?: string;
     })[];
@@ -1601,24 +1601,24 @@ export declare const ScheduleCreateInputZod: z.ZodObject<{
         time?: string;
         content?: {
             content?: {
-                quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                quality?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 hours?: number;
                 minutes?: number;
             };
             variant?: "sleep";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "mood";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
             };
             variant?: "energy";
         } | {
             content?: {
-                value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                value?: 1 | 2 | 3 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
                 variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
             };
             variant?: "digestion";

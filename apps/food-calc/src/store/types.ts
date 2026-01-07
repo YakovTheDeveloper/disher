@@ -4,6 +4,7 @@ import { FoodModelStore } from "@/store/FoodStore/FoodStore";
 import { DishStore } from "@/store/DishStore/DishStore";
 import { InteractionsService } from "@/store/interactions/InteractionsService";
 import { NutrientStore } from "@/store/NutrientStore/NutrientStore";
+import { GlobalUiStore } from "@/store/GlobalUiStore/GlobalUiStore";
 
 export const RootStore = types.model("RootStore", {
     scheduleStore: types.optional(DayScheduleStore, {}),
@@ -11,6 +12,7 @@ export const RootStore = types.model("RootStore", {
     dishStore: types.optional(DishStore, {}),
     nutrientStore: types.optional(NutrientStore, {}),
     interactionsService: types.optional(InteractionsService, {}),
+    globalUiStore: types.optional(GlobalUiStore, { isActionsMode: false }),
 });
 
 export type RootInstance = Instance<typeof RootStore>;

@@ -16,10 +16,6 @@ export class UiStore {
 
   dayCalendarDate: ISODate = new Date().toISOString()
 
-  // tooltip = new TooltipStore()
-
-  setDayCalendarDate = (date: ISODate) => { this.dayCalendarDate = date }
-
   dailyNorms = new DailyNormsStoreUI(dailyNormModelStore)
 
   menu = new MenuUiStore()

@@ -100,6 +100,8 @@ const DrawerLayout = ({ children, label, tabs, bottom, subHeader, topRight }: Pr
   return (
     <DrawerLib.Content className={styles.content} id="drawer-content">
       <DrawerLib.Handle className={styles.dragHandle}>
+        <div className={styles.title}>{label}</div>
+
         <div className={styles.handleBar}></div>
         <DrawerLib.Close className={clsx([styles.topLeft, styles.actionHeaderButton])}>
           <ArrowLeftIcon />
@@ -107,7 +109,6 @@ const DrawerLayout = ({ children, label, tabs, bottom, subHeader, topRight }: Pr
         <div className={clsx([styles.actionHeaderButton, styles.topRight])}>{topRight}</div>
       </DrawerLib.Handle>
 
-      <div className={styles.title}>{label}</div>
       <header className={clsx([styles.header, !headerShow && styles.hide])}>{tabs}</header>
       {subHeader && <header className={styles.subHeader}>{subHeader}</header>}
 

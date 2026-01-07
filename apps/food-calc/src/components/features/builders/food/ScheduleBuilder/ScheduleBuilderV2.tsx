@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { TimeGroupUI } from './model/ScheduleBuilderViewModel';
 import style from './ScheduleBuilder.module.scss';
-import { ContentEdit } from '@/components/features/builders/food/shared/ContentEdit';
 
 import { Swipeable } from '@/components/features/builders/food/shared/ui/layout/Swipeable';
 import { List } from '@/components/features/builders/food/ScheduleBuilder/ui/List';
@@ -12,13 +11,11 @@ import { observer } from 'mobx-react-lite';
 import { DishBuilderContainer } from '@/components/features/builders/food/ScheduleBuilder/ui/DishBuilderContainer';
 import { ScheduleUIEventEmitter } from '@/components/features/builders/food/shared/emitter';
 import { EventsBuilder } from '@/components/features/builders/food/ScheduleBuilder/EventsBuilder';
-import { EventContent } from '@/components/features/builders/food/ScheduleBuilder/EventsBuilder/components/EventContent';
 import { DailyEventData } from '@types';
 import { DishNutrients } from '@/components/features/builders/food/ScheduleBuilder/components/DishNutrients';
 
 import { FoodNutrients } from '@/components/features/builders/food/shared/components/FoodNutrients';
 import { ISODate } from '@/types/common/common';
-import { SearchFood } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd';
 import { toJS } from 'mobx';
 import { Instance } from 'mobx-state-tree';
 import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
@@ -31,11 +28,11 @@ import { Navigation } from '@/components/features/builders/food/ScheduleBuilder/
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import { Screen } from '@/components/features/builders/food/shared/ui/layout/Screen';
 import { ScreenScroll } from '@/components/features/builders/food/shared/ui/layout/Screen/ScreenScroll';
-import { ScheduleFoodEdit } from '@/components/features/builders/food/ScheduleBuilder/components/ScheduleFoodEdit';
-import { Actions } from '@/components/features/builders/food/shared/ui/Actions';
+import { ScheduleFoodEdit } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/ScheduleFoodEdit';
 import { Button } from '@/components/features/builders/food/shared/ui/Actions/button';
-import { ScheduleFoodAdd } from '@/components/features/builders/food/ScheduleBuilder/components/ScheduleFoodAdd';
+import { ScheduleFoodAdd } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/ScheduleFoodAdd';
 import { ScheduleEventsAdd } from '@/components/features/builders/food/ScheduleBuilder/components/edit-schedule-events/ScheduleEventsAdd';
+import { MotionValue } from 'framer-motion';
 
 export const Modals = {
   Time: 'time',
@@ -167,39 +164,32 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
 
   const foodOptions = useMemo(() => options.getShowMoreOptions(1), [options]);
 
+  const onPageChange = (page: number, total: number) => {
+    options.setCurrentPage(page, total);
+    domainStore.globalUiStore.clearSelection();
+  };
+
   return (
-    <div className={style.container}>
-      <Swipeable
-        index={options.currentPage}
-        defaultIndex={1}
-        onIndexChange={options.setCurrentPage}
-      >
+    <>
+      <Swipeable index={options.currentPage} defaultIndex={1} onIndexChange={onPageChange}>
         {[
           <Screen key={1}>
-            <Navigation>
-              <ScreenLabel>{'Нутриенты'}</ScreenLabel>
-            </Navigation>
-            <ScreenScroll>
-              <TotalNutrients store={schedule} />
-            </ScreenScroll>
+            <TotalNutrients store={schedule} />
           </Screen>,
 
-          <Screen key={2} bottom={<Button.Add onClick={onFoodAdd} />}>
-            <Navigation>
-              <ScreenLabel>{'Еда'}</ScreenLabel>
-            </Navigation>
-            <ScreenScroll>
-              <List onDishesUnite={onUniteFoodIntoDish} options={foodOptions} schedule={schedule} />
-            </ScreenScroll>
+          <Screen
+            key={2}
+            header={(props: {
+              scrollY: MotionValue<number>;
+              scrollYProgress: MotionValue<number>;
+            }) => <Navigation scrollData={props}></Navigation>}
+            bottom={<Button.Add onClick={onFoodAdd} />}
+          >
+            <List onDishesUnite={onUniteFoodIntoDish} options={foodOptions} schedule={schedule} />
           </Screen>,
 
           <Screen key={3} bottom={<Button.Add onClick={onEventAdd} />}>
-            <Navigation>
-              <ScreenLabel>{'События'}</ScreenLabel>
-            </Navigation>
-            <ScreenScroll>
-              <EventsBuilder schedule={schedule} options={foodOptions} />
-            </ScreenScroll>
+            <EventsBuilder schedule={schedule} options={foodOptions} />
           </Screen>,
         ]}
       </Swipeable>
@@ -223,7 +213,7 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
           // ),
         }}
       </ModalRoot>
-    </div>
+    </>
   );
 };
 

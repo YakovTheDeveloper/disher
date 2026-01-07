@@ -14,9 +14,10 @@ const AddButton = ({ onClick, animate }: Props) => {
   console.log('shouldAnimate', shouldAnimate);
 
   return (
-    <button onClick={onClick} className={clsx([styles.container, shouldAnimate && styles.animate])}>
-      +
-    </button>
+    <button
+      onClick={onClick}
+      className={clsx([styles.container, shouldAnimate && styles.animate])}
+    ></button>
   );
 };
 

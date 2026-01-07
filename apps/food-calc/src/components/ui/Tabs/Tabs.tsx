@@ -1,9 +1,11 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Tabs.module.scss';
 import clsx from 'clsx';
+import InfoIcon from '@/assets/icons/cirlceInfo.svg';
+type Tab = { value: string; label: string; alternativeLabel?: string };
 
 type Props = {
-  tabs: Array<{ value: string; label: string; alternativeLabel?: string }>;
+  tabs: Tab[];
   current: string;
   setTab: (tab: string) => void;
   variant: keyof typeof GridVariants;
@@ -41,7 +43,7 @@ const Tabs = ({ tabs, current, setTab, variant }: Props) => {
                 aria-selected={isActive}
                 role="tab"
               >
-                {LabelNamesView[tab.value] || tab.label}
+                {getTabTitleView(tab)}
               </button>
             </div>
           );
@@ -52,7 +54,7 @@ const Tabs = ({ tabs, current, setTab, variant }: Props) => {
 };
 const GridVariants = {
   scheduleFoodAdd: ['auto', '50%', 'auto'],
-  scheduleFoodEdit: ['100px', 'auto', '3fr', 'auto'],
+  scheduleFoodEdit: ['auto', 'auto', '40%', 'auto'],
   dishFoodAdd: ['1fr', 'auto'],
   dishFoodEdit: ['auto', '1fr', 'auto'],
   scheduleEventAdd: ['100px', '1fr', 'auto'],
@@ -63,13 +65,20 @@ const LabelNamesView: Record<string, string> = {
   quantity: 'Сколько',
   value: 'Сколько',
 };
-// const GridVariants = {
-//   scheduleFoodAdd: 'auto 1fr auto',
-//   scheduleFoodEdit: 'auto auto 1fr auto',
-//   dishFoodAdd: '1fr auto',
-//   dishFoodEdit: 'auto 1fr auto',
-//   scheduleEventAdd: 'auto 1fr auto',
-//   scheduleEventEdit: 'auto 1fr auto',
-// };
+
+const ValueToIconView: Record<string, React.ReactNode | null> = {
+  info: <InfoIcon />,
+  value: null,
+};
+
+const getTabTitleView = (tab: Tab) => {
+  const { label, value } = tab;
+  if (value === 'info') return ValueToIconView[value];
+
+  const icon = ValueToIconView[value] || '';
+  const normalizedLabel = LabelNamesView[value] || label;
+
+  return [icon, normalizedLabel];
+};
 
 export default observer(Tabs);

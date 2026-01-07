@@ -11,7 +11,10 @@ import clsx from 'clsx';
 import { mstEnv } from '@/store/store';
 import { DrawerLayout } from '@/components/features/builders/food/shared/components/DrawerLayout';
 import { EventContent } from '@/components/features/builders/food/ScheduleBuilder/EventsBuilder/components/EventContent';
-import { useItemCreationSteps } from '@/components/features/builders/food/shared/hooks/useItemCreationSteps';
+import {
+  useItemCreationSteps,
+  useTabs,
+} from '@/components/features/builders/food/shared/hooks/useTabs';
 import { SchheduleEventList } from '@/components/features/builders/food/ScheduleBuilder/components/edit-schedule-events/components/SchheduleEventList';
 import { EventItem } from '@/domain/schedule/scheduleEvent/scheduleEvent';
 import { FinishButton } from '@/components/features/builders/food/shared/atoms/FinishButton';
@@ -61,29 +64,19 @@ const ScheduleEventsAdd = ({ schedule }: Props) => {
     },
   ];
 
-  const { currentStep, visibleSteps, setStepByValue, maxStepReached, onStepFinish } =
-    useItemCreationSteps(tabs, onFinish);
+  const { currentTab, goNext, setTab } = useTabs(tabs);
 
   return (
     <DrawerLayout
       label={<ScreenLabel>Добавить</ScreenLabel>}
-      tabs={
-        <Tabs
-          tabs={visibleSteps}
-          current={currentStep}
-          setTab={setStepByValue}
-          variant="scheduleEventAdd"
-        />
-      }
-      bottom={<FinishButton maxStepReached={maxStepReached} onClick={onFinish} />}
+      tabs={<Tabs tabs={tabs} current={currentTab} setTab={setTab} variant="scheduleEventAdd" />}
+      topRight={<FinishButton onClick={onFinish} />}
     >
-      {currentStep === 'time' && <ContentEdit.Time item={currentChild} onFinish={onStepFinish} />}
-      {currentStep === 'eventSelect' && (
-        <SchheduleEventList eventItem={currentChild} onFinish={onStepFinish} />
+      {currentTab === 'time' && <ContentEdit.Time item={currentChild} onFinish={goNext} />}
+      {currentTab === 'eventSelect' && (
+        <SchheduleEventList eventItem={currentChild} onFinish={goNext} />
       )}
-      {currentStep === 'value' && (
-        <EventContent onFinish={onStepFinish} currentEvent={currentChild} />
-      )}
+      {currentTab === 'value' && <EventContent onFinish={goNext} currentEvent={currentChild} />}
     </DrawerLayout>
   );
 };

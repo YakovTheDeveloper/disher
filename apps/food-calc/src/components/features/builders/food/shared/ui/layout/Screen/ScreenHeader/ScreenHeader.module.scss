@@ -1,0 +1,28 @@
+.headerWrapper {
+    position: sticky;
+    position: absolute;
+    width: 100%;
+    top: 0;
+    z-index: 10;
+    background-color: transparent;
+    height: 70px; // Stable height to prevent layout shifts
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    // padding: 0 16px;
+    width: 100%;
+}
+
+.title {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    top: 0;
+}

@@ -22,8 +22,6 @@ type Props = {
 };
 
 const DishListItem = ({ itemActions, controller, content, options, className }: Props) => {
-  console.log('LIST_ITEM', content);
-
   const modals = useDishModals();
 
   const onFoodsOpenUpdate = () => {

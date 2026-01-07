@@ -1,110 +1,178 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import styles from './CommonListItem.module.scss';
 import { observer } from 'mobx-react-lite';
 import clsx from 'clsx';
 import { Instance } from 'mobx-state-tree';
 import { SyncStatus } from '@/domain/commonListItem';
-import useOutsideClick from '@/hooks/useOutsideClick';
-import { emitter } from '@/infrastructure/emitter/emitter';
+import TickIcon from '@/assets/icons/tick.svg';
+import { GlobalUiStore } from '@/store/GlobalUiStore/GlobalUiStore';
+import { domainStore } from '@/store/store';
 
 type Props = {
+  id: string | number;
   children?: React.ReactNode;
   className?: string;
-  showAdditionals: boolean;
-  id: number | string;
   sync: Instance<typeof SyncStatus>;
-  onDelete: (id: string | number) => void;
-  // onRecover: (id: string | number) => void;
+  uiStore?: Instance<typeof GlobalUiStore>;
 };
 
-const LONG_PRESS_DELAY = 400;
+const LONG_PRESS_DELAY = 450;
+const MOVE_THRESHOLD = 10; // Pixels allowed before canceling long press
 
 const ListItem = ({
   id,
   children,
   className,
   sync,
-  onDelete,
-  // onRecover,
+  uiStore = domainStore.globalUiStore,
 }: Props) => {
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const longPressTriggered = useRef(false);
+  const stringId = id.toString();
 
-  const [editMode, setEditMode] = useState(false);
-  const [tapped, setTapped] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startPosRef = useRef({ x: 0, y: 0 });
+  const isPendingRef = useRef(false);
+  const wasLongPressedRef = useRef(false);
+  const preventNextClickRef = useRef(false);
+  const [isPressed, setIsPressed] = useState(false);
 
-  const onPointerDown = () => {
-    longPressTriggered.current = false;
-    setTapped(true);
+  const isActionsMode = uiStore.isActionsMode;
+  const isSelected = uiStore.isSelected(stringId);
 
-    timerRef.current = setTimeout(() => {
-      longPressTriggered.current = true;
-      setEditMode(true);
-    }, LONG_PRESS_DELAY);
-  };
+  const handleSelect = useCallback(() => {
+    uiStore.toggleSelectedId(stringId);
+  }, [uiStore, stringId]);
 
-  const onPointerUp = () => {
-    setTapped(false);
+  const cleanUp = useCallback(() => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
-    requestAnimationFrame(() => {
-      longPressTriggered.current = false;
-    });
+    isPendingRef.current = false;
+    setIsPressed(false);
+  }, []);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    log('pointer DOWN', 'red');
+
+    if (isActionsMode) {
+      preventNextClickRef.current = true;
+    }
+
+    // Only support primary mouse button / touch
+    if (e.button !== 0) return;
+
+    e.currentTarget.setPointerCapture(e.pointerId);
+    log(`${e.pointerId}`, 'red');
+
+    isPendingRef.current = true;
+    wasLongPressedRef.current = false;
+    startPosRef.current = { x: e.clientX, y: e.clientY };
+    setIsPressed(true);
+
+    timerRef.current = setTimeout(() => {
+      if (isPendingRef.current) {
+        wasLongPressedRef.current = true;
+
+        log('блокирую кнопку', 'red');
+        preventNextClickRef.current = true;
+        handleSelect();
+        // Visual indicator that press succeeded
+        setIsPressed(false);
+      }
+    }, LONG_PRESS_DELAY);
   };
 
-  const onClickCapture = (e: React.MouseEvent) => {
-    if (longPressTriggered.current) {
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!isPendingRef.current) return;
+
+    const shiftX = Math.abs(e.clientX - startPosRef.current.x);
+    const shiftY = Math.abs(e.clientY - startPosRef.current.y);
+
+    // If user scrolls or moves significantly, cancel the selection timer
+    if (shiftX > MOVE_THRESHOLD || shiftY > MOVE_THRESHOLD) {
+      cleanUp();
+    }
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    log('pointer UP', 'red');
+    e.currentTarget.releasePointerCapture(e.pointerId);
+
+    const skipTap = wasLongPressedRef.current;
+
+    cleanUp();
+
+    // If we're already in multi-select mode, any short tap should toggle
+    if (!skipTap && isActionsMode) {
+      handleSelect();
+    }
+
+    setTimeout(() => {
+      log('разблокировал кнопку', 'green');
+      preventNextClickRef.current = false;
+    }, 50);
+  };
+
+  const onContextMenu = (e: React.MouseEvent) => {
+    // Prevent system context menu if we just triggered a long press
+    if (wasLongPressedRef.current) {
       e.preventDefault();
-      e.stopPropagation();
+    }
+  };
+
+  const onSelectButtonClick = (e) => {
+    log('click button', 'orange');
+    if (preventNextClickRef.current) {
       return;
     }
+    handleSelect();
   };
 
   const status = sync.status;
 
-  const onRemoveHandler = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    onDelete(id);
-  };
-
-  useEffect(() => {
-    const handler = () => {
-      setEditMode(false);
-    };
-    emitter.on('outsideClick', handler);
-
-    return () => {
-      emitter.off('outsideClick', handler);
-    };
-  }, []);
-
   return (
-    <li
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
-      onClickCapture={onClickCapture}
-      className={clsx([
-        className,
-        styles.container,
-        editMode && styles.container_active,
-        tapped && styles.container_tapped,
-        status && styles[status],
-      ])}
-    >
-      {editMode && <div className={styles.interactionBlocker} aria-hidden />}
-      {children}
-      {editMode && (
-        <button
-          onClick={onRemoveHandler}
-          className={clsx(styles.deleteButton, editMode && styles.deleteButton_active)}
-        >
-          Удалить
-        </button>
+    <div
+      className={clsx(
+        styles.commonListItemWrapper,
+        isSelected && styles.selected,
+        isActionsMode && styles.inActionsMode
       )}
-    </li>
+      onContextMenu={onContextMenu}
+    >
+      {isActionsMode && (
+        <div className={styles.selectCheckbox}>
+          <button type="button" className={styles.selectButton} onClick={onSelectButtonClick}>
+            {isSelected && <TickIcon />}
+          </button>
+        </div>
+      )}
+
+      <li
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerMove={onPointerMove}
+        onPointerCancel={cleanUp}
+        onPointerLeave={cleanUp}
+        className={clsx(
+          className,
+          styles.commonListItemInner,
+          isActionsMode && styles.commonListItemInner_inActionsMode,
+          isPressed && styles.commonListItemInner_tapped,
+          status && styles[status]
+        )}
+      >
+        <div
+          onClickCapture={(e) => {
+            if (preventNextClickRef.current) {
+              e.stopPropagation();
+            }
+          }}
+          className={clsx(styles.content, isActionsMode && styles.content_disabled)}
+        >
+          {children}
+        </div>
+      </li>
+    </div>
   );
 };
 

@@ -29,8 +29,6 @@ const Item = ({ item, controller, options, className }: Props) => {
 
   const navigate = useNavigate();
 
-  console.log('LIST_ITEM', item);
-
   const onFoodsOpenUpdate = () => {
     modals.set(Modals.FoodEdit, {
       item_id: item.id,
@@ -49,15 +47,12 @@ const Item = ({ item, controller, options, className }: Props) => {
 
   const onDelete = () => controller.foods.removeChild(item.id);
   const onDishOpenInfo = () => {
-    console.log('item.content', item.content);
     navigate(`${RouterLinks.DishBuilder}/${item.content.dishId}`);
   };
 
   const id = item.id;
 
   const getFoodName = useCallback(() => item.content?.name, [item]);
-  console.log('item', item);
-  // const getTime = useCallback(() => item.time || '00:00', [item]);
   const getQuantity = useCallback(() => item.quantity, [item]);
 
   const showAdditionalsMode = options.showAdditionals;
@@ -75,8 +70,6 @@ const Item = ({ item, controller, options, className }: Props) => {
     return;
   };
 
-  console.log('itemitem', toJS(item));
-
   const getVariantText = () => {
     if (item.content.variant === 'custom') return 'кастомный продукт';
     if (item.content.variant === 'dish') return 'блюдо';
@@ -85,7 +78,6 @@ const Item = ({ item, controller, options, className }: Props) => {
   };
 
   const getFoodNameClassName = () => {
-    console.log('f', item);
     const prefix = item.type;
     return styles[`${prefix}Title`];
   };

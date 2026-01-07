@@ -3,6 +3,7 @@ import makeInspectable from "mobx-devtools-mst";
 import { DayScheduleStore } from "@/store/DayScheduleStore/DayScheduleStore";
 import { FoodModelStore } from "@/store/FoodStore/FoodStore";
 import { DishStore } from "@/store/DishStore/DishStore";
+import { GlobalUiStore } from "@/store/GlobalUiStore/GlobalUiStore";
 import { RootInstance, RootStore } from './types'
 import { InteractionsService } from "@/store/interactions/InteractionsService";
 import { makePersistable } from "@/store/persistance";
@@ -20,6 +21,7 @@ function createStore(): RootInstance {
         dishStore: DishStore.create(),
         nutrientStore: createNutrientStoreWithInitialData(),
         interactionsService: InteractionsService.create(),
+        globalUiStore: GlobalUiStore.create({ isActionsMode: false }),
     }, mstEnv);
 
     makePersistable(store.dishStore, "dish-store")

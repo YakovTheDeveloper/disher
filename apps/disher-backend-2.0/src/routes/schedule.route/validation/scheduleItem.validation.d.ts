@@ -8,15 +8,15 @@ export declare const ScheduleItemCreateZod: z.ZodDiscriminatedUnion<"type", [z.Z
     dishId: z.ZodOptional<z.ZodNever>;
 }, "strip", z.ZodTypeAny, {
     dishId: never;
-    type?: "food";
     time?: string;
+    type?: "food";
     quantity?: number;
     customFoodName?: string;
     foodId?: number;
 }, {
     dishId: never;
-    type?: "food";
     time?: string;
+    type?: "food";
     quantity?: number;
     customFoodName?: string;
     foodId?: number;
@@ -29,15 +29,15 @@ export declare const ScheduleItemCreateZod: z.ZodDiscriminatedUnion<"type", [z.Z
     foodId: z.ZodOptional<z.ZodNever>;
 }, "strip", z.ZodTypeAny, {
     foodId: never;
-    type?: "dish";
     time?: string;
+    type?: "dish";
     quantity?: number;
     customFoodName?: string;
     dishId?: number;
 }, {
     foodId: never;
-    type?: "dish";
     time?: string;
+    type?: "dish";
     quantity?: number;
     customFoodName?: string;
     dishId?: number;
@@ -51,15 +51,15 @@ export declare const ScheduleItemCreateZod: z.ZodDiscriminatedUnion<"type", [z.Z
 }, "strip", z.ZodTypeAny, {
     foodId: never;
     dishId: never;
-    type?: "custom";
     time?: string;
+    type?: "custom";
     quantity?: number;
     customFoodName?: string;
 }, {
     foodId: never;
     dishId: never;
-    type?: "custom";
     time?: string;
+    type?: "custom";
     quantity?: number;
     customFoodName?: string;
 }>]>;

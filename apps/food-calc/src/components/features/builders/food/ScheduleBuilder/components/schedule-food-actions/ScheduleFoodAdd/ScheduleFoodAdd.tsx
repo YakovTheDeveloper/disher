@@ -12,14 +12,11 @@ import clsx from 'clsx';
 import { mstEnv, domainStore } from '@/store/store';
 import { filterBy } from '@/lib/filter/filter';
 import { DrawerLayout } from '@/components/features/builders/food/shared/components/DrawerLayout';
-import { useItemCreationSteps } from '@/components/features/builders/food/shared/hooks/useItemCreationSteps';
+import { useTabs } from '@/components/features/builders/food/shared/hooks/useTabs';
 import { FinishButton } from '@/components/features/builders/food/shared/atoms/FinishButton';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import { SearchFoodControls } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd/SearchFoodControls';
-
-type TabValue = 'info' | 'foodSelect' | 'quantity' | 'time';
-
-type SearchTabs = 'productSearch' | 'dishSearch' | 'createCustom';
+import { useScheduleFoodActions } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/hooks/useScheduleFoodActions';
 
 type Props = {
   children?: React.ReactNode;
@@ -29,7 +26,6 @@ type Props = {
 const ScheduleFoodAdd = observer(({ schedule }: Props) => {
   const modals = useDailyScheduleModals();
 
-  // const currentChild = schedule.draft.food;
   const currentChild = useMemo(
     () =>
       ScheduleItem.create(
@@ -49,41 +45,7 @@ const ScheduleFoodAdd = observer(({ schedule }: Props) => {
     modals.close();
   };
 
-  const searchState = useLocalObservable(() => ({
-    currentTab: 'productSearch' as SearchTabs,
-    filterText: '',
-    customProductText: currentChild?.content?.customName || '',
-
-    setTab(tab: SearchTabs) {
-      this.currentTab = tab;
-    },
-
-    setSearch(text: string) {
-      this.filterText = text;
-    },
-
-    setCustomText(text: string) {
-      this.customProductText = text;
-    },
-
-    foodSearchState: {
-      get filterSearchText() {
-        return searchState.filterText;
-      },
-      get localFiltered() {
-        return filterBy(domainStore.foodStore.list, this.filterSearchText, ['name', 'title']);
-      },
-    },
-
-    dishSearchState: {
-      get filterSearchText() {
-        return searchState.filterText;
-      },
-      get localFiltered() {
-        return filterBy(domainStore.dishStore.list, this.filterSearchText, ['name', 'title']);
-      },
-    },
-  }));
+  const { searchState } = useScheduleFoodActions(currentChild);
 
   const tabs = [
     { value: 'time', label: 'время', alternativeLabel: currentChild.time },
@@ -91,40 +53,28 @@ const ScheduleFoodAdd = observer(({ schedule }: Props) => {
     { value: 'quantity', label: 'количество', alternativeLabel: currentChild.quantity },
   ];
 
-  const { currentStep, visibleSteps, setStepByValue, maxStepReached, onStepFinish } =
-    useItemCreationSteps(tabs, onFinish);
+  const { currentTab, goNext, setTab } = useTabs(tabs);
 
   return (
     <DrawerLayout
       label={<ScreenLabel className={styles.title}>Добавить</ScreenLabel>}
       tabs={
         <>
-          <Tabs
-            tabs={visibleSteps}
-            current={currentStep}
-            setTab={setStepByValue}
-            variant="scheduleFoodAdd"
-          />
+          <Tabs tabs={tabs} current={currentTab} setTab={setTab} variant="scheduleFoodAdd" />
         </>
       }
       subHeader={
-        currentStep === 'foodSelect' && (
+        currentTab === 'foodSelect' && (
           <SearchFoodControls searchState={searchState} isVisible={true} />
         )
       }
       topRight={<FinishButton onClick={onFinish} />}
     >
-      {currentStep === 'time' && <ContentEdit.Time item={currentChild} onFinish={onStepFinish} />}
-      {currentStep === 'foodSelect' && (
-        <SearchFood
-          scheduleChild={currentChild}
-          onFinish={onStepFinish}
-          searchState={searchState}
-        />
+      {currentTab === 'time' && <ContentEdit.Time item={currentChild} onFinish={goNext} />}
+      {currentTab === 'foodSelect' && (
+        <SearchFood scheduleChild={currentChild} onFinish={goNext} searchState={searchState} />
       )}
-      {currentStep === 'quantity' && (
-        <ContentEdit.Quantity item={currentChild} onFinish={onStepFinish} />
-      )}
+      {currentTab === 'quantity' && <ContentEdit.Quantity item={currentChild} onFinish={goNext} />}
     </DrawerLayout>
   );
 });

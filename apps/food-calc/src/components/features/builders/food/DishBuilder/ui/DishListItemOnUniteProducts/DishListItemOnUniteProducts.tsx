@@ -19,8 +19,6 @@ type Props = {
 };
 
 const DishListItemOnUniteProducts = ({ content, options, className }: Props) => {
-  console.log('LIST_ITEM', content);
-
   const onDelete = () => content.markDeleted();
   const onRecover = () => content.recover();
 

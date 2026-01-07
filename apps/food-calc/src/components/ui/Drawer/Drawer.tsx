@@ -20,7 +20,8 @@ export function Drawer({ open, onOpenChange, children }: DrawerProps) {
       onOpenChange={onOpenChange}
       fixed={true}
       direction="bottom"
-      closeThreshold={0.1}
+      // dismissible={false}
+      closeThreshold={0.5}
       repositionInputs={false}
       handleOnly
     >
