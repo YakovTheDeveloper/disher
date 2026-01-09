@@ -1,9 +1,10 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Navigation.module.scss';
-import { NavLink, useNavigate, useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { RouterLinks } from '@/router';
 import { motion, MotionValue, useTransform } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
+import { DateInfo } from './DateInfo';
 import {
   nextDate,
   prevDate,
@@ -25,10 +26,7 @@ type Props = {
   children?: React.ReactNode;
   menuUi?: MenuUiStore;
 
-  scrollData: {
-    scrollY: MotionValue<number>;
-    scrollYProgress: MotionValue<number>;
-  };
+  scrollYProgress: MotionValue<number>;
 };
 
 function isToday(date: string | Date) {
@@ -45,21 +43,15 @@ function isToday(date: string | Date) {
   );
 }
 
-const Navigation = ({ children, menuUi = uiStore.menu, scrollData }: Props) => {
-  console.log('scrollData', scrollData);
-
+const Navigation = ({ children, menuUi = uiStore.menu, scrollYProgress }: Props) => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const date = searchParams.get('date') || new Date().toISOString();
 
-  const { day, monthName, monthNumber, weekdayName } = getTitle(date);
+  // const updateDate = (newDate: string) => {
+  //   navigate(RouterLinks.ScheduleBuilder + newDate);
+  // };
 
-  const updateDate = (newDate: string) => {
-    navigate(RouterLinks.ScheduleBuilder + newDate);
-  };
-
-  const handleNext = () => updateDate(nextDate(date));
-  const handleBack = () => updateDate(prevDate(date));
+  // const handleNext = () => updateDate(nextDate(date));
+  // const handleBack = () => updateDate(prevDate(date));
 
   const onCopyFromSchedule = () => {
     ScheduleUIEventEmitter.emit('OPEN_COPY_SCHEDULE_MODAL');
@@ -71,33 +63,12 @@ const Navigation = ({ children, menuUi = uiStore.menu, scrollData }: Props) => {
 
   const onCalendarButtonClick = () => navigate(RouterLinks.Schedule);
 
-  const headerY = useTransform(scrollData.scrollYProgress, [0, 1], [1, 0]);
-
   return (
     <div className={styles.container}>
-      <div className={styles.title}>{children}</div>
-      {domainStore.globalUiStore.isActionsMode && <ActionsHeader />}
-      {!domainStore.globalUiStore.isActionsMode && (
-        <>
-          <div className={clsx([styles.menuButton])}>
-            <Button.Menu menu={menuUi} onClick={menuUi.toggle} />
-          </div>
-          <NavLink className={styles.dateLink} to={RouterLinks.Schedule}>
-            <motion.div className={styles.date}>
-              <div className={styles.dateNumbers}>
-                {/* {isToday(date) && <p className={styles.dateWordsToday}>сегодня</p>} */}
-                <span>
-                  {day}.{monthNumber}
-                </span>
-              </div>
-              <motion.div className={styles.dateWords} style={{ opacity: headerY }}>
-                <span>{weekdayName},</span>
-                <span>{monthName}</span>
-              </motion.div>
-            </motion.div>
-          </NavLink>
-        </>
-      )}
+      <div className={clsx([styles.menuButton])}>
+        <Button.Menu menu={menuUi} onClick={menuUi.toggle} />
+      </div>
+      <DateInfo scrollYProgress={scrollYProgress} />
     </div>
   );
 };
@@ -125,3 +96,4 @@ export default observer(Navigation);
 //           </button>
 //         </div>
 //       </Menu>
+//           </button>

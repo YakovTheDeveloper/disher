@@ -1,7 +1,22 @@
 .finishButton {
     color: var(--color-accent);
+    position: relative;
 
     * {
         color: var(--color-accent);
+    }
+
+    &:before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 40px;
+        height: 40px;
+        transform: translate(-50%, -50%);
+        border: 1px solid #363636;
+
+        border-radius: 50%;
+
     }
 }

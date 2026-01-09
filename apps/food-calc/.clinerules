@@ -11,12 +11,13 @@ Rules:
 - Keep changes minimal
 - Do not refactor unrelated files
 - No explanations unless asked
-
+- Do not build project
 
 You are allowed to act autonomously.
 
 Do NOT ask for confirmation for trivial or reversible actions,
 including but not limited to:
+
 - removing unused imports
 - formatting code
 - renaming variables
@@ -24,6 +25,7 @@ including but not limited to:
 - editing multiple files as part of a single logical change
 
 Ask for confirmation ONLY when performing:
+
 - destructive actions (deleting files, wiping directories)
 - irreversible operations
 - changes outside the current workspace

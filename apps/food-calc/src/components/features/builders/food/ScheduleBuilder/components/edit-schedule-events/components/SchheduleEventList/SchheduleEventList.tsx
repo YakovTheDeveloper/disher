@@ -43,7 +43,7 @@ const EventTypes: { value: ScheduleEventType; label: string }[] = [
 
 const SchheduleEventList = ({ eventItem, onFinish }: Props) => {
   return (
-    <ItemsList>
+    <ItemsList offsetTop>
       {EventTypes.map((event) => (
         <SearchListItem
           key={event.value}

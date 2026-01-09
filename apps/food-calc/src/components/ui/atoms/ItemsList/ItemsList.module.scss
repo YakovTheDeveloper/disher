@@ -4,8 +4,13 @@
     gap: 10px;
     // height: 100%;
     // overflow-y: auto;
+    touch-action: pan-y;
 }
 
 .offsetBottom {
     height: 100px;
+}
+
+.offsetTop {
+    padding-top: 100px;
 }

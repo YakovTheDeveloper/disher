@@ -7,13 +7,23 @@ const exitActions = () => {
   domainStore.globalUiStore.clearSelection();
 };
 
-const ActionsHeader = () => {
+type Props = {
+  onDelete: (childIds: string[]) => void;
+};
+
+const ActionsHeader = ({ onDelete }: Props) => {
+  if (!domainStore.globalUiStore.isActionsMode) return null;
+
+  const onDeleteHandler = () => {
+    onDelete(domainStore.globalUiStore.selectedIds);
+  };
+
   return (
     <div className={styles.actions}>
       <button onClick={exitActions}>
         <ArrowLeftIcon />
       </button>
-      <button>Удалить</button>
+      <button onClick={onDeleteHandler}>Удалить</button>
     </div>
   );
 };

@@ -21,16 +21,19 @@
     display: flex;
 
     padding: 10px;
+
     // background-color: #ffffff;
     // color: rgb(49, 70, 255);
 
-    box-shadow: 0 4px 25px rgba(223, 223, 223, 0.5);
+    box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.1);
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     border: none;
     transition: box-shadow 0.3s, transform 0.3s;
     position: relative;
+
+    backdrop-filter: blur(1px);
 
     &:active {
         box-shadow: none;
@@ -41,6 +44,8 @@
         content: '+';
         font-weight: 100;
         font-size: 4rem;
+        backdrop-filter: blur(10px);
+        color: rgba(0, 0, 0, 0.479);
         line-height: 1;
     }
 }

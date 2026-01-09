@@ -33,6 +33,7 @@ import { Button } from '@/components/features/builders/food/shared/ui/Actions/bu
 import { ScheduleFoodAdd } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/ScheduleFoodAdd';
 import { ScheduleEventsAdd } from '@/components/features/builders/food/ScheduleBuilder/components/edit-schedule-events/ScheduleEventsAdd';
 import { MotionValue } from 'framer-motion';
+import { ActionsHeader } from '@/components/features/builders/food/shared/components/ActionsHeader';
 
 export const Modals = {
   Time: 'time',
@@ -173,22 +174,30 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
     <>
       <Swipeable index={options.currentPage} defaultIndex={1} onIndexChange={onPageChange}>
         {[
-          <Screen key={1}>
+          <Screen key={1} title="Нутриенты">
             <TotalNutrients store={schedule} />
           </Screen>,
 
           <Screen
+            actions={<ActionsHeader onDelete={schedule.foods.removeChildren} />}
             key={2}
-            header={(props: {
-              scrollY: MotionValue<number>;
-              scrollYProgress: MotionValue<number>;
-            }) => <Navigation scrollData={props}></Navigation>}
+            title="Еда"
+            header={(scrollYProgress: MotionValue<number>) => (
+              <Navigation scrollYProgress={scrollYProgress}></Navigation>
+            )}
             bottom={<Button.Add onClick={onFoodAdd} />}
           >
             <List onDishesUnite={onUniteFoodIntoDish} options={foodOptions} schedule={schedule} />
           </Screen>,
 
-          <Screen key={3} bottom={<Button.Add onClick={onEventAdd} />}>
+          <Screen
+            key={3}
+            title="События"
+            header={(scrollYProgress: MotionValue<number>) => (
+              <Navigation scrollYProgress={scrollYProgress}></Navigation>
+            )}
+            bottom={<Button.Add onClick={onEventAdd} />}
+          >
             <EventsBuilder schedule={schedule} options={foodOptions} />
           </Screen>,
         ]}

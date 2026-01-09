@@ -1,22 +1,27 @@
 .container {
     gap: 16px;
-    padding-top: 20px;
+    padding-top: 100px;
+    display: flex;
+    flex-direction: column;
 
-    display: grid;
-    grid-template-columns: 1fr 1fr;
 
     .groupContent {
         display: flex;
         flex-direction: column;
         gap: 6px;
+
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+
     }
 
     .groupTitle {
-        font-size: 11px;
+        white-space: nowrap;
         font-weight: 400;
         color: #44444493;
         font-style: italic;
-        margin-bottom: 4px;
+        margin: 0.5rem 0;
+        text-align: left;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         text-align: end;
@@ -59,4 +64,5 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    overflow: hidden;
 }

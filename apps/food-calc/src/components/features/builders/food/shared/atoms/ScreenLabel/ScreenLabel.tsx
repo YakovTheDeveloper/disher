@@ -27,7 +27,7 @@ const ScreenLabel = ({ children, opacity, className, variant }: Props) => {
 
 const fontStyle = {
   screenHeader: {
-    fontSize: '50px',
+    fontSize: '45px',
     letterSpacing: '-3px',
   },
   drawer: {

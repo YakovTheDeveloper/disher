@@ -86,8 +86,8 @@
     flex-direction: column;
     flex: 1;
     overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+    // -webkit-overflow-scrolling: touch;
     padding: 0 0 10px;
     // margin-bottom: 60px;
     // background: linear-gradient(180deg, #ffffff 0%, #c7c7c7 95%, #dbdbdb 60%, #c4c3c3 100%);

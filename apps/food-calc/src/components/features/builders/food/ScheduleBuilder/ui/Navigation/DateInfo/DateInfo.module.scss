@@ -1,0 +1,63 @@
+.dateLink {
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+}
+
+.date {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 0;
+    // align-items: center;
+    font-size: 25px;
+    line-height: 25px;
+    gap: 18px;
+}
+
+.dateNumbers {
+    margin-right: 8px;
+    font-size: 1.2rem;
+    font-weight: 300;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.904);
+    display: flex;
+    gap: 10px 5px;
+    position: relative;
+    align-items: end;
+    margin-left: auto;
+    padding: 0.5rem;
+    border-radius: 50px;
+    transform-origin: top right;
+
+    // background: rgba(255, 255, 255, 0.2);
+
+
+}
+
+.dateWord {
+    color: rgb(115, 45, 255);
+    font-weight: 200;
+    font-style: italic;
+    font-size: 15px;
+    line-height: 0.8rem;
+}
+
+.dateWords {
+
+    display: flex;
+    gap: 5px;
+
+    position: relative;
+    // bottom: -20px;
+    padding-right: 1rem;
+
+    &:Today {
+        font-style: italic;
+        font-weight: 200;
+        position: absolute;
+        top: -28px;
+        left: 0;
+        font-size: 1rem;
+        color: rgba(141, 84, 255, 0.544);
+    }
+}

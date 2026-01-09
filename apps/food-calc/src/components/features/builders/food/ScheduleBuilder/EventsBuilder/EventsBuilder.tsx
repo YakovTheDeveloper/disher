@@ -6,6 +6,8 @@ import { EventListItem } from '@/components/features/builders/food/ScheduleBuild
 import { TimeGroup } from '@/components/features/builders/food/ScheduleBuilder/ui/List/TimeGroup';
 import { Instance } from 'mobx-state-tree';
 import { DaySchedule, EventItem } from '@/domain/schedule/schedule';
+import clsx from 'clsx';
+import { ItemsList } from '@/components/ui/atoms/ItemsList';
 
 type Props = {
   children?: React.ReactNode;
@@ -54,12 +56,14 @@ const EventsBuilder = ({
 
   return (
     <>
-      <section className="builder__time-groups">
-        {schedule.eventsGroupedByTime.map((timeGroup) => (
-          <TimeGroup key={timeGroup.time} group={timeGroup}>
-            {renderEventListItem}
-          </TimeGroup>
-        ))}
+      <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
+        <ItemsList offsetTop>
+          {schedule.eventsGroupedByTime.map((timeGroup) => (
+            <TimeGroup key={timeGroup.time} group={timeGroup}>
+              {renderEventListItem}
+            </TimeGroup>
+          ))}
+        </ItemsList>
       </section>
       {/* <Actions isShow={() => true}>
         <ActionButton.Finish onClick={onFinishHandler} content={vm}>

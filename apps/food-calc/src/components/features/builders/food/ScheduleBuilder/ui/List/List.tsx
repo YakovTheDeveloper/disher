@@ -57,7 +57,7 @@ const List = observer(({ items, options, length, onDishesUnite, schedule }: Prop
 
   console.log('from list');
   return (
-    <ItemsList>
+    <ItemsList offsetTop>
       {items.map((group) => (
         <TimeGroup key={group.time} group={group} renderAside={renderAside}>
           {renderItem}

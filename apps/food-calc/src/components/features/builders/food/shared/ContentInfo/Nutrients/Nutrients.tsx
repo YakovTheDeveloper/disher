@@ -10,6 +10,7 @@ import { Instance } from 'mobx-state-tree';
 import { TotalNutrientsStore } from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import clsx from 'clsx';
+import NutrientCardV2 from '@/components/features/builders/food/shared/ContentInfo/Nutrients/NutrientCard/NutrientCardV2';
 
 // Groups of nutrients
 // const groups: Record<string, number[]> = {
@@ -24,31 +25,28 @@ type FoodId = string;
 type Props = {
   renderOverlay?: (percent: string) => React.ReactNode;
   store: Instance<typeof TotalNutrientsStore>;
-  progressType?: 'bar' | 'circle';
 };
 
-const Nutrients = ({ store, renderOverlay, progressType = 'bar' }: Props) => {
+const Nutrients = ({ store, renderOverlay }: Props) => {
   useEffect(() => {
     console.log('new store nutrients', Array.from(store.nutrients.entries()));
   }, [Array.from(store.nutrients.entries())]);
 
   return (
-    <div className={clsx([styles.container, styles[progressType]])}>
+    <div className={clsx([styles.container])}>
       {nutrientGroups.map(({ content, displayName: groupName }) => (
         <div key={groupName} className={styles.group}>
           <h3 className={styles.groupTitle}>
-            <ScreenLabel opacity={0.2} fontSize={15} letterSpacing={'1px'}>
-              {groupName}
-            </ScreenLabel>
+            <ScreenLabel opacity={0.2}>{groupName}</ScreenLabel>
           </h3>
           <div className={clsx([styles.groupContent])}>
             {content.map((nutrientData: NutrientContentItem) => (
-              <NutrientCard
+              <NutrientCardV2
                 key={nutrientData.id}
                 renderOverlay={renderOverlay}
                 getValue={store.getValue}
                 content={nutrientData}
-                progressType={progressType}
+                // progressType={progressType}
               />
             ))}
           </div>

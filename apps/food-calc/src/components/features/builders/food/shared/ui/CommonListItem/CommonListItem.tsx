@@ -7,7 +7,7 @@ import { SyncStatus } from '@/domain/commonListItem';
 import TickIcon from '@/assets/icons/tick.svg';
 import { GlobalUiStore } from '@/store/GlobalUiStore/GlobalUiStore';
 import { domainStore } from '@/store/store';
-
+import { AnimatePresence, motion } from 'framer-motion';
 type Props = {
   id: string | number;
   children?: React.ReactNode;
@@ -34,7 +34,6 @@ const ListItem = ({
   const wasLongPressedRef = useRef(false);
   const preventNextClickRef = useRef(false);
   const [isPressed, setIsPressed] = useState(false);
-
   const isActionsMode = uiStore.isActionsMode;
   const isSelected = uiStore.isSelected(stringId);
 
@@ -52,8 +51,6 @@ const ListItem = ({
   }, []);
 
   const onPointerDown = (e: React.PointerEvent) => {
-    log('pointer DOWN', 'red');
-
     if (isActionsMode) {
       preventNextClickRef.current = true;
     }
@@ -61,7 +58,7 @@ const ListItem = ({
     // Only support primary mouse button / touch
     if (e.button !== 0) return;
 
-    e.currentTarget.setPointerCapture(e.pointerId);
+    // e.currentTarget.setPointerCapture(e.pointerId);
     log(`${e.pointerId}`, 'red');
 
     isPendingRef.current = true;
@@ -95,8 +92,9 @@ const ListItem = ({
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
+    console.log(e);
+
     log('pointer UP', 'red');
-    e.currentTarget.releasePointerCapture(e.pointerId);
 
     const skipTap = wasLongPressedRef.current;
 
@@ -139,13 +137,22 @@ const ListItem = ({
       )}
       onContextMenu={onContextMenu}
     >
-      {isActionsMode && (
+      <AnimatePresence>
+        {isActionsMode && (
+          <motion.div className={styles.selectCheckbox}>
+            <button type="button" className={styles.selectButton} onClick={onSelectButtonClick}>
+              {isSelected && <TickIcon />}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* {isActionsMode && (
         <div className={styles.selectCheckbox}>
           <button type="button" className={styles.selectButton} onClick={onSelectButtonClick}>
             {isSelected && <TickIcon />}
           </button>
         </div>
-      )}
+      )} */}
 
       <li
         onPointerDown={onPointerDown}

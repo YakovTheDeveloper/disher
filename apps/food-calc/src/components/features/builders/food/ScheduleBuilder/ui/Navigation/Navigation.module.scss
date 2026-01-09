@@ -12,76 +12,7 @@
     width: 100%;
 }
 
-.dateLink {
-    display: flex;
-    flex-direction: column;
-    margin-left: auto;
-    background-color: #fff;
-    padding: 1rem 5px 1rem 2rem;
-    border-radius: 50px;
-}
 
-.left {
-    position: absolute;
-    left: 0;
-    top: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.menuButton {
-    height: 60px;
-    width: 60px;
-    position: absolute;
-    left: 0;
-}
-
-.date {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 0;
-    // align-items: center;
-    font-size: 25px;
-    line-height: 25px;
-    padding-top: 7px;
-    gap: 4px;
-}
-
-.dateNumbers {
-    font-size: 1em;
-    font-weight: 300;
-    color: black;
-    display: flex;
-    gap: 20px;
-    position: relative;
-    margin-left: auto;
-}
-
-.dateWords {
-
-    color: rgb(115, 45, 255);
-    display: flex;
-    font-weight: 200;
-    font-style: italic;
-    font-size: 15px;
-    line-height: 0.8rem;
-    // margin-right: 7px;
-
-
-    gap: 5px;
-
-
-    &Today {
-        font-style: italic;
-        font-weight: 200;
-        position: absolute;
-        top: -28px;
-        left: 0;
-        font-size: 1rem;
-        color: rgba(141, 84, 255, 0.544);
-    }
-}
 
 .swipeButtons {
     display: grid;
@@ -105,11 +36,9 @@
 }
 
 .menuButton {
-    margin: unset;
-    margin-bottom: auto;
-    margin-left: auto;
     width: fit-content;
     opacity: 0.1;
+    padding: 0.5rem;
 }
 
 .menuNavIcon {
@@ -135,3 +64,5 @@
     font-size: 20px;
     color: #fff;
 }
+
+// margin-right: 7px;

@@ -24,6 +24,9 @@ export const getTitle = (input: string) => {
     const weekdayName = new Intl.DateTimeFormat('ru-RU', { weekday: 'long', timeZone: 'UTC' }).format(
         date
     );
+    const weekdayNameShort = new Intl.DateTimeFormat('ru-RU', { weekday: 'short', timeZone: 'UTC' }).format(
+        date
+    );
 
-    return { day, monthNumber, monthName, weekdayName };
+    return { day, monthNumber, monthName, weekdayName, weekdayNameShort };
 };

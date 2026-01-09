@@ -63,6 +63,22 @@ export function ChildrenController<T extends IAnyModelType>(
         item.sync.markDeleted();
       },
 
+      removeChildren(childIds: string[]) {
+        const toRemove: string[] = [];
+        childIds.forEach(childId => {
+          const item = self.items.find(i => i.id === childId);
+          if (!item) return;
+          if (!item.sync.lastSync) {
+            toRemove.push(childId);
+          } else {
+            item.sync.markDeleted();
+          }
+        });
+        if (toRemove.length > 0) {
+          self.items.replace(self.items.filter(i => !toRemove.includes(i.id)));
+        }
+      },
+
       removeChildrenMarkedAsDeleted() {
         self.items
           .filter(i => i.sync.status === "deleted")
