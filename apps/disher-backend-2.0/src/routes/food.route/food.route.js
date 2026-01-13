@@ -81,7 +81,7 @@ exports.foodRoutes = {
     getFood: trpc_1.publicProcedure
         .input(zod_1.z.object({
         page: zod_1.z.number().min(1).default(1),
-        limit: zod_1.z.number().min(1).max(100).default(50),
+        limit: zod_1.z.number().min(1).max(1000).default(50),
         filters: zod_1.z
             .object({
             category: zod_1.z.string().optional(),
@@ -118,7 +118,7 @@ exports.foodRoutes = {
     getFoodWithNutrients: trpc_1.publicProcedure
         .input(zod_1.z.object({
         page: zod_1.z.number().min(1).default(1),
-        limit: zod_1.z.number().min(1).max(100).default(50),
+        limit: zod_1.z.number().min(1).max(1000).default(50),
     }))
         .query(function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
         var page, limit, select, _c, items, total, resultItems, result;
@@ -150,7 +150,7 @@ exports.foodRoutes = {
                     _c = _d.sent(), items = _c[0], total = _c[1];
                     resultItems = items.map(function (item) {
                         // const nutrients = item.nutrients.map(nutrient => ({
-                        var nutrients = item.nutrients.map(function (nutrient) { return (__assign(__assign({}, nutrient), { nutrientId: nutrient.nutrientId.toString(), nutrient: nutrient.nutrientId.toString() })); });
+                        var nutrients = item.nutrients.map(function (nutrient) { return (__assign(__assign({}, nutrient), { nutrientId: nutrient.nutrientId.toString() })); });
                         // }))
                         return __assign(__assign({}, item), { id: item.id.toString(), description: item.description || '', nutrients: nutrients });
                     });

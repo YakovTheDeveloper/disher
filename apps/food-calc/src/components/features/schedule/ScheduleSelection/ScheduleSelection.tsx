@@ -1,6 +1,7 @@
-import React, { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import {
   format,
+  addDays,
   addMonths,
   startOfMonth,
   endOfMonth,
@@ -8,6 +9,8 @@ import {
   isSameDay,
   // isSameMonth,
   startOfToday,
+  subDays,
+  parse,
 } from 'date-fns';
 import { Virtuoso } from 'react-virtuoso';
 import styles from './ScheduleSelection2.module.scss';
@@ -17,8 +20,12 @@ import { NavLink } from 'react-router';
 import { RouterLinks } from '@/router';
 
 const START_DATE = startOfMonth(new Date());
-
-export const ScheduleSelection = ({ onSelect, selectedDate }) => {
+type Props = {
+  onSelect: (date: string) => void;
+  selectedDate?: string;
+  showFastButtons?: boolean;
+};
+export const ScheduleSelection = ({ onSelect, selectedDate, showFastButtons = false }: Props) => {
   const today = startOfToday();
 
   const months = useMemo(() => {
@@ -48,7 +55,10 @@ export const ScheduleSelection = ({ onSelect, selectedDate }) => {
         <div className={styles.daysGrid}>
           {emptyCells}
           {daysInMonth.map((day) => {
-            const isSelected = selectedDate && isSameDay(day, selectedDate);
+            const selectedDateParsed = selectedDate
+              ? parse(selectedDate, 'dd-MM-yyyy', new Date())
+              : null;
+            const isSelected = selectedDateParsed && isSameDay(day, selectedDateParsed);
             const isCurrentDay = isSameDay(day, today);
 
             return (
@@ -86,12 +96,28 @@ export const ScheduleSelection = ({ onSelect, selectedDate }) => {
         itemContent={(index) => renderMonth(index)}
         increaseViewportBy={300}
       />
-      <NavLink
-        to={RouterLinks.ScheduleBuilder + format(new Date(), 'dd-MM-yyyy')}
-        className={styles.goToday}
-      >
-        {'Сегодня'}
-      </NavLink>
+      {showFastButtons && (
+        <div className={styles.links}>
+          <NavLink
+            to={RouterLinks.ScheduleBuilder + format(subDays(startOfToday(), 1), 'dd-MM-yyyy')}
+            className={styles.goDay}
+          >
+            <span className={styles.linkButtonText}>{'Вчера'}</span>
+          </NavLink>
+          <NavLink
+            to={RouterLinks.ScheduleBuilder + format(startOfToday(), 'dd-MM-yyyy')}
+            className={styles.goDay}
+          >
+            <span className={styles.linkButtonText}>{'Сегодня'}</span>
+          </NavLink>
+          <NavLink
+            to={RouterLinks.ScheduleBuilder + format(addDays(startOfToday(), 1), 'dd-MM-yyyy')}
+            className={styles.goDay}
+          >
+            <span className={styles.linkButtonText}>{'Завтра'}</span>
+          </NavLink>
+        </div>
+      )}
     </div>
   );
 };

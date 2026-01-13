@@ -1,13 +1,12 @@
 import { motion, MotionValue, useTransform } from 'framer-motion';
 import styles from './ScreenHeader.module.scss';
 import { memo } from 'react';
-import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 
 type Props = {
   children: React.ReactNode;
   actions: React.ReactNode;
   scrollYProgress: MotionValue<number>;
-  title?: string;
+  title?: React.ReactNode;
 };
 
 const ScreenHeader = ({ children, title, actions, scrollYProgress }: Props) => {
@@ -19,7 +18,7 @@ const ScreenHeader = ({ children, title, actions, scrollYProgress }: Props) => {
       {actions}
       <motion.header className={styles.header}>
         <motion.div className={styles.title} style={{ scale: titleScale, opacity: titleOpacity }}>
-          <ScreenLabel variant="screenHeader">{title}</ScreenLabel>
+          {title}
         </motion.div>
         {children}
       </motion.header>

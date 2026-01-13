@@ -4,15 +4,15 @@ export declare const foodRoutes: {
             ids?: number[];
         };
         output: import("../../lib/response").IResponseData<{
-            name: string;
             id: number;
+            name: string;
         }[]>;
         meta: object;
     }>;
     getFood: import("@trpc/server").TRPCQueryProcedure<{
         input: {
-            limit?: number;
             page?: number;
+            limit?: number;
             filters?: {
                 search?: string;
                 category?: string;
@@ -26,8 +26,8 @@ export declare const foodRoutes: {
     }>;
     getFoodWithNutrients: import("@trpc/server").TRPCQueryProcedure<{
         input: {
-            limit?: number;
             page?: number;
+            limit?: number;
         };
         output: import("../../lib/response").IResponseData<{
             items: any;
@@ -41,8 +41,8 @@ export declare const foodRoutes: {
             ids?: number[];
         };
         output: import("../../lib/response").IResponseData<{
-            name: string;
             id: number;
+            name: string;
             nutrients: {
                 quantity: number;
                 nutrientId: number;
@@ -55,8 +55,8 @@ export declare const foodRoutes: {
             id?: number;
         };
         output: import("../../lib/response").IResponseData<{
-            name: string;
             id: number;
+            name: string;
             nutrients: {
                 quantity: number;
                 nutrientId: number;
@@ -66,9 +66,9 @@ export declare const foodRoutes: {
     }>;
     addFood: import("@trpc/server").TRPCMutationProcedure<{
         input: {
-            description?: string;
             name?: string;
             nameEng?: string;
+            description?: string;
             descriptionEng?: string;
             nutrients?: {
                 value?: number;

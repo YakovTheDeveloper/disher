@@ -4,7 +4,7 @@ import { RequestState, ResponseStatus } from "@/api/RequestState";
 import { isEmpty } from "@/lib/empty";
 import { Food } from "@/domain/Food";
 import { runInAction } from "mobx";
-import { standardFood } from "@/assets/seed/food";
+import foodFullData from "@/assets/seed/foodFull.json";
 
 type GetFoodListResult = Awaited<ReturnType<typeof getFoodList>>;
 type GetFoodNutrientsByIdResult = Awaited<ReturnType<typeof getFoodWithNutrientsByIds>>;
@@ -60,7 +60,14 @@ export const FoodModelStore = types
 
         function addLocal(value: SnapshotIn<typeof Food>) {
             // const model = createFoodModel(value);
-            const model = Food.create(value);
+            const snapshot = { ...value }
+            if (snapshot.nutrients) {
+                snapshot.nutrients = snapshot.nutrients.map((n: any) => ({
+                    ...n,
+                    nutrient: n.nutrientId || n.nutrient
+                }))
+            }
+            const model = Food.create(snapshot);
             try {
                 self.data.set(model.id, model);
             } catch (error) {
@@ -137,17 +144,40 @@ export const FoodModelStore = types
             return state.status();
         });
 
-        const addFoodIfNotExists = (food) => {
-            if (!self.data.has(food.id)) {
-                self.data.set(food.id, food)
+        const addFoodOrNutrientsIfNotExists = (food: typeof foodFullData[0]) => {
+            const key = food.id
+            const existFood = self.data.get(key)
+1
+            try {
+                if (!existFood) {
+                    const convertedNutrients = food.nutrients.map(n => ({
+                        ...n,
+                        nutrient: n.nutrientId
+                    }))
+                    const newFood = Food.create({
+                        ...food,
+                        nutrients: convertedNutrients,
+                        nameEng: '',
+                    });
+                    runInAction(() => self.data.set(key, newFood))
+                    return
+                }
+
+                if (isEmpty(existFood?.nutrients)) {
+                    existFood.setNutrients(food.nutrients)
+                }
+            } catch (error) {
+                console.error(error)
             }
+
         }
 
-        const loadInitialFoods = () => {
-            standardFood.forEach(food => {
-                addFoodIfNotExists(food)
+        const loadInitialFoods = flow(function* (): Generator<any> {
+            const data = yield fetch('/foodFull.json').then(r => r.json());
+            foodFullData.forEach(food => {
+                addFoodOrNutrientsIfNotExists(food)
             })
-        }
+        });
 
         const loadFoodWithNutrientsByFoodIds = flow(function* (ids: string[]): Generator<
             Promise<ResponseStatus>,

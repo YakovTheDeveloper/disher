@@ -49,26 +49,37 @@ function Time({ item, onFinish }: Props) {
   };
 
   return (
-    <>
+    <div className={style.container}>
       <div className={style.timePicker}>
-        <TimePicker
-          value={time}
-          onFinish={onFinishHandler}
-          hours={hours}
-          minutes={minutes}
-          setHours={setHours}
-          setMinutes={onMinutesChange}
+        <TimeNow
+          time={time}
+          onTimeChange={(h, m) => {
+            setHours(h);
+            setMinutes(m);
+          }}
         />
+        <div>
+          <input
+            type="time"
+            value={item.time}
+            onChange={(e) => {
+              const time = e.target.value;
+              item.updateTime(time);
+              // console.log(e.target.value);
+            }}
+          />
+          <TimePicker
+            value={time}
+            onFinish={onFinishHandler}
+            hours={hours}
+            minutes={minutes}
+            setHours={setHours}
+            setMinutes={onMinutesChange}
+          />
+        </div>
         {/* <NextButton onClick={() => onFinishHandler(time)} /> */}
       </div>
-      <TimeNow
-        time={time}
-        onTimeChange={(h, m) => {
-          setHours(h);
-          setMinutes(m);
-        }}
-      />
-    </>
+    </div>
   );
 }
 

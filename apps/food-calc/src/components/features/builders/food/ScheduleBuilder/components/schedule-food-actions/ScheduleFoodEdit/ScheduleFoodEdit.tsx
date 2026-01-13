@@ -16,6 +16,7 @@ import { useScheduleFoodActions } from '@/components/features/builders/food/Sche
 import { useTabs } from '@/components/features/builders/food/shared/hooks/useTabs';
 import { useItemIdParam } from '@/hooks/useItemIdParams';
 import { SearchFoodControls } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd/SearchFoodControls';
+import { Spacer } from '@/components/ui/atoms/Spacer';
 
 type Props = {
   children?: React.ReactNode;
@@ -77,6 +78,7 @@ const ScheduleFoodEdit = observer(({ schedule, defaultTab }: Props) => {
       {currentTab === 'quantity' && (
         <ContentEdit.Quantity item={currentChild} onFinish={onFinish} />
       )}
+      <Spacer variant="drawer-footer-offset" />
     </DrawerLayout>
   );
 });

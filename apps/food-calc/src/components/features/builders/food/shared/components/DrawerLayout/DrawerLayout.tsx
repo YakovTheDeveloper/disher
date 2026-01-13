@@ -11,110 +11,45 @@ import TickIcon from '@/assets/icons/tick.svg';
 type Props = {
   children: React.ReactNode;
   label: React.ReactNode;
-  tabs: React.ReactNode;
+  tabs?: React.ReactNode;
   subHeader?: React.ReactNode;
   topRight?: React.ReactNode;
   bottom?: React.ReactNode;
+  className?: string;
 };
-const SCROLL_DELTA = 10; // px
-const THROTTLE_MS = 50;
 
-const DrawerLayout = ({ children, label, tabs, bottom, subHeader, topRight }: Props) => {
-  const [headerShow, setHeaderShow] = useState(true);
+const DrawerLayout = ({ children, label, tabs, bottom, subHeader, topRight, className }: Props) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const headerVisible = useRef(true);
-  const lastScrollY = useRef(0);
-
-  // useEffect(() => {
-  //   const show = () => setHeaderShow(true);
-  //   const hide = () => setHeaderShow(false);
-
-  //   emitter.on('HEADER_SHOW', show);
-  //   emitter.on('HEADER_FORCE_SHOW', show);
-  //   emitter.on('HEADER_HIDE', hide);
-
-  //   return () => {
-  //     emitter.off('HEADER_SHOW', show);
-  //     emitter.off('HEADER_FORCE_SHOW', show);
-  //     emitter.off('HEADER_HIDE', hide);
-  //   };
-  // }, []);
-
-  // useEffect(() => {
-  //   const updateHeight = () => {
-  //     const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
-  //     const overlayHeight = window.innerHeight - viewportHeight;
-  //     document.documentElement.style.setProperty('--overlay-height', `${overlayHeight}px`);
-  //   };
-
-  //   window.visualViewport?.addEventListener('resize', updateHeight);
-  //   window.addEventListener('resize', updateHeight); // на случай старых браузеров
-  //   updateHeight();
-
-  //   return () => {
-  //     window.visualViewport?.removeEventListener('resize', updateHeight);
-  //     window.removeEventListener('resize', updateHeight);
-  //   };
-  // }, []);
-
-  // const handleScroll = useMemo(
-  //   () =>
-  //     throttle((event: React.UIEvent<HTMLDivElement>) => {
-  //       if (scrollRef.current?.scrollTop < 50) {
-  //         emitter.emit('HEADER_SHOW');
-
-  //         return;
-  //       }
-
-  //       const y = event.currentTarget?.scrollTop;
-  //       const diff = y - lastScrollY.current;
-
-  //       // Всегда показываем хедер вверху
-  //       if (y === 0) {
-  //         if (!headerVisible.current) {
-  //           headerVisible.current = true;
-  //           emitter.emit('HEADER_FORCE_SHOW');
-  //         }
-  //         lastScrollY.current = 0;
-  //         return;
-  //       }
-
-  //       // игнорим микро-скролл
-  //       if (Math.abs(diff) < SCROLL_DELTA) return;
-
-  //       if (diff > 0 && headerVisible.current) {
-  //         headerVisible.current = false;
-  //         emitter.emit('HEADER_HIDE');
-  //       }
-
-  //       if (diff < 0 && !headerVisible.current) {
-  //         headerVisible.current = true;
-  //         emitter.emit('HEADER_SHOW');
-  //       }
-
-  //       lastScrollY.current = y;
-  //     }, THROTTLE_MS),
-  //   []
-  // );
 
   return (
-    <DrawerLib.Content className={styles.content} id="drawer-content">
+    <DrawerLib.Content className={clsx([styles.content, className])} id="drawer-content">
       <DrawerLib.Handle className={styles.dragHandle}>
         <div className={styles.title}>{label}</div>
 
         <div className={styles.handleBar}></div>
-        <DrawerLib.Close className={clsx([styles.topLeft, styles.actionHeaderButton])}>
+        <DrawerLib.Close
+          className={clsx([
+            styles.topLeft,
+            styles.actionHeaderButton,
+            styles.actionHeaderButton_back,
+          ])}
+        >
           <ArrowLeftIcon />
         </DrawerLib.Close>
         <div className={clsx([styles.actionHeaderButton, styles.topRight])}>{topRight}</div>
       </DrawerLib.Handle>
 
-      <header className={clsx([styles.header, !headerShow && styles.hide])}>{tabs}</header>
       {subHeader && <header className={styles.subHeader}>{subHeader}</header>}
 
-      <div ref={scrollRef} id="drawer-content-scrollable" className={clsx([styles.container])}>
+      <div
+        ref={scrollRef}
+        id="drawer-content-scrollable"
+        className={clsx([styles.scrollableContent])}
+      >
         {children}
       </div>
+
+      {tabs && <footer className={clsx([styles.footer])}>{tabs}</footer>}
 
       {bottom && <div className={styles.supHeader}>{bottom}</div>}
     </DrawerLib.Content>

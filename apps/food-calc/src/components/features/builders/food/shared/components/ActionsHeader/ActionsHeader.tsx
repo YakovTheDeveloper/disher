@@ -7,23 +7,37 @@ const exitActions = () => {
   domainStore.globalUiStore.clearSelection();
 };
 
-type Props = {
-  onDelete: (childIds: string[]) => void;
-};
-
-const ActionsHeader = ({ onDelete }: Props) => {
+const ActionsHeader = () => {
   if (!domainStore.globalUiStore.isActionsMode) return null;
 
-  const onDeleteHandler = () => {
-    onDelete(domainStore.globalUiStore.selectedIds);
+  const { modalStore } = domainStore.globalUiStore;
+
+  const onDeleteButtonClick = () => {
+    modalStore.openConfirmationModal({
+      action: 'удалить выбранное?',
+    });
+  };
+
+  const onCreateDishButtonClick = () => {
+    modalStore.openCreateDishFromScheduleModal();
+  };
+
+  const onCopyToAnotherDayButtonClick = () => {
+    modalStore.openCopyScheduleItemsToAnotherDayModal();
   };
 
   return (
     <div className={styles.actions}>
-      <button onClick={exitActions}>
-        <ArrowLeftIcon />
-      </button>
-      <button onClick={onDeleteHandler}>Удалить</button>
+      <div className={styles.actionsGroup}>
+        <button onClick={exitActions}>
+          <ArrowLeftIcon />
+        </button>
+        <button onClick={onDeleteButtonClick}>Удалить</button>
+      </div>
+      <div className={styles.actionsGroup}>
+        <button onClick={onCreateDishButtonClick}>создать новое блюдо</button>
+        <button onClick={onCopyToAnotherDayButtonClick}>перенести еду в другой день</button>
+      </div>
     </div>
   );
 };

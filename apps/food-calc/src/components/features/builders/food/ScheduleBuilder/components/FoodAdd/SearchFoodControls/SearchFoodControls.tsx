@@ -12,6 +12,8 @@ import {
   useInteractions,
   useClick,
 } from '@floating-ui/react';
+import { RouterLinks } from '@/router';
+import { useNavigate } from 'react-router';
 
 type Tabs = 'productSearch' | 'dishSearch' | 'createCustom';
 
@@ -21,6 +23,8 @@ type Props = {
 };
 
 const SearchFoodControls = ({ searchState, isVisible }: Props) => {
+  const navigate = useNavigate();
+
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const localState = useLocalObservable(() => ({
     isSearchOpen: false,
@@ -43,6 +47,19 @@ const SearchFoodControls = ({ searchState, isVisible }: Props) => {
         return 'Свой продукт';
       default:
         return '';
+    }
+  };
+
+  const getFilterLabel = (tab: string) => {
+    switch (tab) {
+      case 'all':
+        return 'Все категории';
+      case 'vegan':
+        return 'Веганские';
+      case 'vegeterian':
+        return 'Вегетерианские';
+      default:
+        return 'Все категории';
     }
   };
 
@@ -121,6 +138,25 @@ const SearchFoodControls = ({ searchState, isVisible }: Props) => {
           </div>
         )}
       </div>
+      <span
+        ref={refs.setReference}
+        className={`${styles.tabButton} ${styles.active}`}
+        {...getReferenceProps()}
+      >
+        {getFilterLabel(searchState.currentTab)}
+      </span>
+
+      {/* {searchState.currentTab === 'productSearch' && (
+        <button className={`${styles.createFoodButton} ${styles.active}`} onClick={() => navigate(RouterLinks.DishBuilder)}>+ Создать</button>
+      )} */}
+      {searchState.currentTab === 'dishSearch' && (
+        <button
+          className={`${styles.createFoodButton} ${styles.active}`}
+          onClick={() => navigate(RouterLinks.DishBuilder)}
+        >
+          + Создать
+        </button>
+      )}
     </header>
   );
 };

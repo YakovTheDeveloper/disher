@@ -10,7 +10,7 @@ const SchedulePage = () => {
 
   return (
     <>
-      <ScheduleSelection onSelect={onDateChoose} />
+      <ScheduleSelection onSelect={onDateChoose} showFastButtons />
     </>
   );
 };

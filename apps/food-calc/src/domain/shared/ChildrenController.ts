@@ -1,6 +1,6 @@
-import { SyncStatus } from "@/domain/commonListItem";
+// import { SyncStatus } from "@/domain/commonListItem";
 import { generateId } from "@/lib/id/generateId"
-import { types, destroy, SnapshotIn, IAnyModelType, IModelType } from "mobx-state-tree"
+import { types, destroy, SnapshotIn, IAnyModelType, IModelType, getSnapshot } from "mobx-state-tree"
 
 export function ChildrenController<T extends IAnyModelType>(
   ChildModel: T,
@@ -26,8 +26,14 @@ export function ChildrenController<T extends IAnyModelType>(
         return self.items.find(i => i.id === id)
       },
 
+      getChildrenByIds(ids: string[]) {
+        const itemMap = new Map(self.items.map(item => [item.id, item]));
+        return ids.map(id => itemMap.get(id)).filter((item): item is NonNullable<typeof item> => item != null);
+      },
+
       addChildWithLocalData(data: Partial<SnapshotIn<T>>) {
-        const child = ChildModel.create({ id: generateId(), ...data })
+        const { id = '', ...noIdData } = getSnapshot(data)
+        const child = ChildModel.create({ id: generateId(), ...noIdData })
         child.sync.markAdded()
         self.items.push(child)
         return child
@@ -83,6 +89,12 @@ export function ChildrenController<T extends IAnyModelType>(
         self.items
           .filter(i => i.sync.status === "deleted")
           .forEach(destroy)
+      },
+
+      addBulkEachWithNewId(inputChildren: Partial<SnapshotIn<T>>[]) {
+        inputChildren.forEach(child => {
+          this.addChildWithLocalData(child)
+        })
       },
 
       addOrUpdateBulk(inputChildren: Partial<SnapshotIn<T>>[]) {

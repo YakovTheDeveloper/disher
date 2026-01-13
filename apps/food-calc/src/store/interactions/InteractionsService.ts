@@ -1,58 +1,83 @@
+import { getIds } from "@/domain/common";
 import { Dish } from "@/domain/dish/Dish";
-import { AllScheduleItemContentTypes, DaySchedule, DishItemContent, ScheduleItem } from "@/domain/schedule/schedule";
+import { DaySchedule, ScheduleItem } from "@/domain/schedule/schedule";
 import toaster from "@/infrastructure/toaster/toaster";
-import { isEmpty, isNotEmpty } from "@/lib/empty";
+import { isNotEmpty } from "@/lib/empty";
 import { DayScheduleStore } from "@/store/DayScheduleStore/DayScheduleStore";
 import { DishStore } from "@/store/DishStore/DishStore";
+import { GlobalUiStore } from "@/store/GlobalUiStore/GlobalUiStore";
 import { domainStore } from "@/store/store";
-import { DayScheduleApi, DishStoreApi, RootInstance } from "@/store/types";
-import { flow, getEnv, getRoot, Instance, IStateTreeNode, types, walk } from "mobx-state-tree";
+import { DDMMYYYY } from "@/types/common/timeAndDate";
+import { getRoot, Instance, types, getSnapshot } from "mobx-state-tree";
 
 export interface InteractionsEnv {
     dishStore: Instance<typeof DishStore>;
     scheduleStore: Instance<typeof DayScheduleStore>
+    globalUiStore: Instance<typeof GlobalUiStore>
+}
+
+type CreateNewDishAndAppendToScheduleParam = {
+    schedule: Instance<typeof DaySchedule>
+    timeToAddDishScheduleItem: string
+    removeScheduleItems: boolean
 }
 
 export const InteractionsService = types
     .model({})
     .actions(self => {
 
-        function foodIntoNewDish(items: Instance<typeof ScheduleItem>[]) {
-            const root = getRoot(self) as InteractionsEnv;
-            // const root = getRoot(self) as IStateTreeNode as RootInstance; // if needed
+        function moveOrCopyItemsFromOneScheduleToAnother(fromDate: string, toDate: string, action: 'copy' | 'move') {
+            const selectedIds = domainStore.globalUiStore.selectedIds;
 
-            const onlyFoodItems = items
-                .filter(el => el.content.type === 'food' && el.status !== 'deleted')
-                .map(el => ({
-                    id: el.id,
-                    foodId: String(el.content.foodId),
-                    food: String(el.content.foodId),
-                    quantity: el.quantity,
-                    status: "added" as const,
-                }));
-
-            const init = {
-                items: onlyFoodItems,
-                isDraft: true,
-            }
-            return root.dishStore.addLocal(init)
-        }
-
-        function onDishSaveFromScheduleFood(dish: Instance<typeof Dish>, schedule: Instance<typeof DaySchedule>, time: string) {
-            const dishId = dish.id
-            if (!schedule || !dish) {
-                console.error('no dish or schedule', schedule, dish)
+            const from = domainStore.scheduleStore.data.get(fromDate);
+            if (!from) {
+                console.warn('No FROM schedule found')
                 return
             }
-            const dishItemIds = dish.items.map((item) => item.id.toString())
-            schedule.addDishItem(dishId, { time });
-            schedule.changeStatusByIds(dishItemIds);
+            const selectedFromSchedule = from.foods.getChildrenByIds(selectedIds);
+
+            let to = domainStore.scheduleStore.data.get(toDate);
+
+            if (!to) {
+                console.warn('No schedule found to copy/move items TO')
+                to = domainStore.scheduleStore.addLocal({
+                    id: toDate
+                })
+            }
+
+            to.foods.addBulkEachWithNewId(selectedFromSchedule)
+
+            if (action === 'move') {
+                from.foods.removeChildren(selectedIds)
+            }
+
+            domainStore.globalUiStore.clearSelection()
 
         }
 
-        function createNewDishAndAppendToSchedule(schedule: Instance<typeof DaySchedule>, timeGroupItems: Instance<typeof ScheduleItem>[], time: string) {
-            const dish = foodIntoNewDish(timeGroupItems)
-            onDishSaveFromScheduleFood(dish, schedule, time)
+        function createNewDishAndAppendToSchedule({ schedule, timeToAddDishScheduleItem, removeScheduleItems }: CreateNewDishAndAppendToScheduleParam) {
+            const root = getRoot(self) as InteractionsEnv;
+            const selectedIds = root.globalUiStore.selectedIds
+
+            const dishItemsPayload = schedule.foods.getChildrenByIds(selectedIds)
+
+            const dish = root.dishStore.addLocal({
+                variant: 'fromScheduleFood',
+                payload: dishItemsPayload
+            })!
+
+            const dishId = dish.id
+            if (!dish) {
+                console.error('no dish ', dish)
+                return
+            }
+            schedule.foods.addChildWithLocalData({ quantity: 100, time: timeToAddDishScheduleItem, content: { dishId, variant: 'dish' } });
+
+            console.log('removeScheduleItems', removeScheduleItems, getIds(dish.items));
+            if (removeScheduleItems) {
+                schedule.foods.removeChildren(getIds(dish.items))
+            }
+
             return dish
 
         }
@@ -129,13 +154,14 @@ export const InteractionsService = types
 
         // function* scenario(items: AllScheduleItemContentTypes[]) {
 
-        //     foodIntoNewDish(items)
+        //     createDishFromScheduleFood(items)
 
         // }
 
         return {
             fetchSyncDishes,
             fetchSyncScheduleAndDishes,
-            createNewDishAndAppendToSchedule
+            createNewDishAndAppendToSchedule,
+            moveOrCopyItemsFromOneScheduleToAnother
         }
     });

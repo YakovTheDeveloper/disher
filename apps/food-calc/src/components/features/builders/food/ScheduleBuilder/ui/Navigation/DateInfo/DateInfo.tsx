@@ -1,20 +1,24 @@
 import { observer } from 'mobx-react-lite';
 import styles from './DateInfo.module.scss';
-import { NavLink, useSearchParams } from 'react-router';
+import { NavLink, useParams, useSearchParams } from 'react-router';
 import { RouterLinks } from '@/router';
 import { motion, useTransform } from 'framer-motion';
 import { MotionValue } from 'framer-motion';
 import { getTitle } from '@/components/features/builders/food/ScheduleBuilder/ui/Navigation/methods';
+import { useDailyScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
+import { Modals } from '@/components/features/builders/food/ScheduleBuilder/ScheduleBuilderV2';
 
 type Props = {
   scrollYProgress: MotionValue<number>;
 };
 
 const DateInfo = ({ scrollYProgress }: Props) => {
-  const [searchParams] = useSearchParams();
-  const date = searchParams.get('date') || new Date().toISOString();
+  const params = useParams();
+  const dateParam = params.date;
 
-  const { day, monthName, monthNumber, weekdayName, weekdayNameShort } = getTitle(date);
+  const modals = useDailyScheduleModals();
+
+  const { day, monthName, monthNumber, weekdayName, weekdayNameShort } = getTitle(dateParam);
 
   const dateWordsOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const shortDayNameOpacity = useTransform(scrollYProgress, [0.5, 1], [0, 1], { clamp: true });
@@ -38,7 +42,7 @@ const DateInfo = ({ scrollYProgress }: Props) => {
   //   ['rgba(255,255,255,0)', 'rgba(255,255,255,0)', 'rgba(255,255,255,0.8)']
   // );
   return (
-    <NavLink className={styles.dateLink} to={RouterLinks.Schedule}>
+    <div className={styles.dateLink} onClick={() => modals.set(Modals.DateChoose)}>
       <motion.div className={styles.date}>
         <motion.div
           className={styles.dateNumbers}
@@ -78,7 +82,7 @@ const DateInfo = ({ scrollYProgress }: Props) => {
           <span className={styles.dateWord}>{monthName}</span>
         </motion.div>
       </motion.div>
-    </NavLink>
+    </div>
   );
 };
 

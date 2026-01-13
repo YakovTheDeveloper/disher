@@ -1,9 +1,11 @@
 import { types, Instance } from "mobx-state-tree";
+import { ModalStore } from "./ModalStore/ModalStore";
 
 export const GlobalUiStore = types
     .model("GlobalUiStore", {
         isActionsMode: types.boolean,
         selectedIds: types.array(types.string),
+        modalStore: types.optional(ModalStore, {}),
     })
     .actions(self => ({
         setIsActionsMode(value: boolean) {
@@ -21,6 +23,23 @@ export const GlobalUiStore = types
                 self.selectedIds.splice(index, 1);
             } else {
                 self.selectedIds.push(id);
+            }
+
+            self.isActionsMode = self.selectedIds.length > 0;
+        },
+
+        setSelectedIds(ids: string[]) {
+            const selectedSet = new Set(self.selectedIds);
+            const idsSet = new Set(ids);
+
+            if (ids.every(id => selectedSet.has(id))) {
+                self.selectedIds.replace(self.selectedIds.filter(id => !idsSet.has(id)));
+            } else {
+                ids.forEach(id => {
+                    if (!selectedSet.has(id)) {
+                        self.selectedIds.push(id);
+                    }
+                });
             }
 
             self.isActionsMode = self.selectedIds.length > 0;

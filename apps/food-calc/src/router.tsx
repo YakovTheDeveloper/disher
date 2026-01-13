@@ -7,15 +7,17 @@ import DishBuilderPage from '@/pages/dish/builder/dish-builder-page/DishBuilderP
 import { DailyNormsPage } from '@/pages/dailyNormsPage/index.ts';
 import ProductBuilderPage from '@/pages/productBuilderPage/productBuilderPage.tsx';
 import LoadDataPage from '@/pages/LoadDataPage/LoadDataPage.tsx';
+import DishesPage from '@/pages/dish/dishes-page/DishesPage.tsx';
 
 export enum RouterLinks {
   Root = '/',
   DailyNorms = '/daily-norms',
   DishBuilder = '/dish/builder',
   Schedule = '/schedule',
-  ScheduleBuilder = '/schedule/builder/',
-  ProductBuilder = '/product/builder/',
-  LoadData = '/load-data/',
+  ScheduleBuilder = '/schedule/builder',
+  ProductBuilder = '/product/builder',
+  LoadData = '/load-data',
+  Dishes = '/dishes',
 }
 
 export const router = createBrowserRouter([
@@ -44,7 +46,7 @@ export const router = createBrowserRouter([
         element: <SchedulePage />,
       },
       {
-        path: RouterLinks.ScheduleBuilder + ':date',
+        path: RouterLinks.ScheduleBuilder + '/' + ':date',
         element: <ScheduleBuilderPage />,
       },
       {
@@ -54,6 +56,10 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.LoadData,
         element: <LoadDataPage />,
+      },
+      {
+        path: RouterLinks.Dishes,
+        element: <DishesPage />,
       },
     ],
   },

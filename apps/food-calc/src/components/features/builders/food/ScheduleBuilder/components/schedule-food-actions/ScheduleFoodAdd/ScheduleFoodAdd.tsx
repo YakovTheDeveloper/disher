@@ -17,6 +17,7 @@ import { FinishButton } from '@/components/features/builders/food/shared/atoms/F
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import { SearchFoodControls } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd/SearchFoodControls';
 import { useScheduleFoodActions } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/hooks/useScheduleFoodActions';
+import { Spacer } from '@/components/ui/atoms/Spacer';
 
 type Props = {
   children?: React.ReactNode;
@@ -75,6 +76,7 @@ const ScheduleFoodAdd = observer(({ schedule }: Props) => {
         <SearchFood scheduleChild={currentChild} onFinish={goNext} searchState={searchState} />
       )}
       {currentTab === 'quantity' && <ContentEdit.Quantity item={currentChild} onFinish={goNext} />}
+      <Spacer variant="drawer-footer-offset" />
     </DrawerLayout>
   );
 });

@@ -1,5 +1,5 @@
 .ScreenLabel {
-    pointer-events: none;
+    // pointer-events: none;
     z-index: 1;
     font-weight: 900;
     font-size: 50px;
@@ -8,4 +8,35 @@
     letter-spacing: -3px;
     text-transform: uppercase;
     display: inline-block;
+    position: relative;
+
+    &--screenHeader {
+        font-size: 45px;
+        letter-spacing: -3px;
+    }
+
+    &--drawer {
+        font-size: 50px;
+        letter-spacing: -3px;
+        padding-left: 10px;
+    }
+
+    &--formValueLabel {
+        font-size: 100px;
+    }
+
+    &--nutrients {
+        font-size: 20px;
+        letter-spacing: 0;
+        padding-right: 0.5rem;
+    }
+}
+
+.decorative {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: 0.5;
+    z-index: -1;
 }

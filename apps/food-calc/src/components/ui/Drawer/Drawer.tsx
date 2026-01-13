@@ -1,9 +1,5 @@
-import { emitter } from '@/infrastructure/emitter/emitter';
 import styles from './Drawer.module.scss';
-import { observer } from 'mobx-react-lite';
 import { Drawer as DrawerLib } from 'vaul';
-import { useEffect, useMemo, useRef } from 'react';
-import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 
 type DrawerProps = {
   open: boolean;

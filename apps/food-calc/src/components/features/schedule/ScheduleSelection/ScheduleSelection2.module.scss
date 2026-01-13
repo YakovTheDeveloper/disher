@@ -39,6 +39,64 @@
     height: 100%;
 }
 
+.links {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5rem;
+    font-size: 1rem;
+    z-index: 6;
+    padding: 0.5rem;
+    background: transparent;
+
+
+}
+
+.goDay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    overflow: hidden;
+    position: relative;
+
+    .linkButtonText {
+        position: relative;
+        z-index: 2;
+        text-transform: uppercase;
+        color: rgb(255, 255, 255);
+        text-align: center;
+        font-style: italic;
+
+        font-size: 12px;
+        font-weight: 400;
+    }
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        width: 90%;
+        height: 70%;
+        border-radius: 8px;
+
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+
+        background-color: rgba(255, 14, 46, 0.5);
+
+        backdrop-filter: blur(5px);
+
+        z-index: 1;
+
+    }
+
+}
+
 .weekDaysHeader {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -85,7 +143,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: none;
     background: transparent;
     font-size: 16px;
     color: var(--color-calendar-text-primary);
@@ -93,6 +150,7 @@
     border-radius: 50%;
     margin: 2px;
     transition: background 0.2s ease-out, color 0.2s ease-out, transform 0.1s ease-out;
+    border: 1px solid transparent;
 
     &.outside {
         color: var(--color-calendar-text-disabled);
@@ -116,7 +174,8 @@
 
     &.selected {
         background: var(--color-calendar-accent);
-        color: white;
+        color: rgb(255, 46, 46);
+        border-color: #ff2f2f5b;
         font-weight: 600;
     }
 
@@ -130,16 +189,4 @@
         transform: scale(0.95);
         color: white;
     }
-}
-
-.goToday {
-    text-transform: uppercase;
-    color: rgb(255, 255, 255);
-    font-weight: 800;
-    text-align: center;
-    font-size: 24px;
-    background-color: rgb(255, 14, 46);
-    border-radius: 20px 10px;
-    padding: 10px;
-    font-style: italic;
 }

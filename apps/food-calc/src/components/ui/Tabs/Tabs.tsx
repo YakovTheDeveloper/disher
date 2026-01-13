@@ -25,27 +25,28 @@ const Tabs = ({ tabs, current, setTab, variant }: Props) => {
           const hasAlternative = tab.alternativeLabel != null;
 
           return (
-            <div className={`${styles.tabWrapper}`} key={tab.value}>
+            <button
+              className={`${styles.tabWrapper} ${isActive && styles.active}`}
+              onClick={() => setTab(tab.value)}
+              key={tab.value}
+              aria-selected={isActive}
+              role="tab"
+            >
               {hasAlternative && (
                 <span
                   className={clsx(
-                    styles.alternative,
-                    !isActive && hasAlternative && styles.alternative__inactive,
+                    styles.header,
+                    !isActive && hasAlternative && styles.header__inactive,
                     'ellipsis'
                   )}
                 >
                   {tab.alternativeLabel}
                 </span>
               )}
-              <button
-                className={`${styles.tabButton} ${isActive ? styles.activeTab : ''} ellipsis`}
-                onClick={() => setTab(tab.value)}
-                aria-selected={isActive}
-                role="tab"
-              >
+              <span className={`${styles.tabButton} ${isActive ? styles.activeTab : ''} ellipsis`}>
                 {getTabTitleView(tab)}
-              </button>
-            </div>
+              </span>
+            </button>
           );
         })}
       </div>
@@ -57,8 +58,8 @@ const GridVariants = {
   scheduleFoodEdit: ['auto', 'auto', '40%', 'auto'],
   dishFoodAdd: ['1fr', 'auto'],
   dishFoodEdit: ['auto', '1fr', 'auto'],
-  scheduleEventAdd: ['100px', '1fr', 'auto'],
-  scheduleEventEdit: ['100px', '1fr', 'auto'],
+  scheduleEventAdd: ['1fr', '2fr', '1fr'],
+  scheduleEventEdit: ['1fr', '2fr', '1fr'],
 };
 
 const LabelNamesView: Record<string, string> = {

@@ -2,16 +2,19 @@ import { getEnv, getRoot, getSnapshot, Instance, onPatch, types } from "mobx-sta
 import { getParent } from "mobx-state-tree";
 
 import { Dish } from "../dish/Dish";
-import { ItemStatusType, SyncStatus } from "@/domain/commonListItem";
+import { SyncStatus } from "@/domain/commonListItem";
 import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
 import { emitter } from "@/infrastructure/emitter/emitter";
 import { ChildrenController } from "@/domain/shared/ChildrenController";
 import { groupItemsByTime } from "@/domain/schedule/schedule.service";
 import { EventItem } from "@/domain/schedule/scheduleEvent/scheduleEvent";
+import { DishStore } from "@/store/DishStore/DishStore";
+
+export interface RootStoreEnv {
+    dishStore: Instance<typeof DishStore>;
+}
 
 export type ScheduleItemType = Instance<typeof ScheduleItem>["type"];
-
-export type AllScheduleItemContentTypes = Instance<typeof DishItemContent> | Instance<typeof FoodItemContent> | Instance<typeof CustomItemContent>
 
 type ChildVariant = "dish" | "food" | "custom";
 
@@ -34,7 +37,8 @@ export const ItemContent = types
 
         get dish(): Instance<typeof Dish> | undefined {
             if (!self.dishId) return undefined
-            return getRoot(self).dishStore.data.get(self.dishId)
+            const root = getRoot(self) as RootStoreEnv
+            return root.dishStore.data.get(self.dishId)
         },
         get parentQuantity(): number { const parentItem = getParent(self); return parentItem.quantity; },
 
@@ -148,7 +152,7 @@ export const ScheduleItem = types.model("ScheduleItem", {
         function updateQuantity(quantity: number) {
             self.quantity = quantity;
         }
-        function updateChildContent(variant: ChildVariant, payload: {
+        function updateContent(variant: ChildVariant, payload: {
             customName?: string
             foodId?: string
             dishId?: string
@@ -157,15 +161,15 @@ export const ScheduleItem = types.model("ScheduleItem", {
         }
         function updateCustom(state: { customName: string }) {
             const customName = state.customName.toString();
-            updateChildContent('custom', { customName });
+            updateContent('custom', { customName });
         }
 
         function updateFood(state: { foodId: string }) {
-            updateChildContent('food', { foodId: state.foodId });
+            updateContent('food', { foodId: state.foodId });
         }
 
         function updateDish(state: { dishId: string }) {
-            updateChildContent('dish', { dishId: state.id.toString() });
+            updateContent('dish', { dishId: state.dishId.toString() });
         }
 
         return {
@@ -173,7 +177,8 @@ export const ScheduleItem = types.model("ScheduleItem", {
             updateQuantity,
             updateCustom,
             updateFood,
-            updateDish
+            updateDish,
+            updateContent
         }
     });
 
@@ -187,7 +192,7 @@ export const DaySchedule = types.model({
     events: ChildrenController(EventItem),
 })
     .views(self => ({
-        getChildById(id: string) {
+        getChildById(id: string): Instance<typeof ScheduleItem> | null {
             return self.foods.items.find(i => i.id.toString() === id) || null;
         },
         get customItems() {
@@ -269,17 +274,18 @@ export const DaySchedule = types.model({
             return sumRecordArray(nutrients);
         }
 
-        function changeStatusByIds(ids: string[], status: ItemStatusType = 'deleted') {
-            self.foods.items.replace(self.foods.items.map(item => {
+        // function changeStatusByIds(ids: string[], status: ItemStatusType = 'deleted') {
 
-                const thatId = ids.includes(String(item.id))
-                if (thatId) return {
-                    ...item,
-                    status
-                }
-                return item
-            }));
-        }
+        //     self.foods.items.replace(self.foods.items.map(item => {
+
+        //         const thatId = ids.includes(String(item.id))
+        //         if (thatId) return {
+        //             ...item,
+        //             status
+        //         }
+        //         return item
+        //     }));
+        // }
 
         function updateChildContent(id: string, variant: ChildVariant, payload: {
             customName?: string
@@ -288,7 +294,8 @@ export const DaySchedule = types.model({
         }) {
             const child = self.getChildById(id)
             if (!child) return
-            child.updateChildContent(variant, payload)
+
+            child.updateContent(variant, payload)
         }
 
         function updateTime(id: string, time: string) {
@@ -315,7 +322,7 @@ export const DaySchedule = types.model({
                 });
                 return;
             }
-            self.foods.updateChildById({ id: itemId, type, value, time });
+            self.events.updateChildById({ id: itemId, type, value, time });
         }
 
         return {
@@ -323,7 +330,7 @@ export const DaySchedule = types.model({
             addDraftToEvents,
             updateEventTime,
             addOrUpdateEvent,
-            changeStatusByIds,
+            // changeStatusByIds,
             updateChildContent,
             updateTime,
             updateQuantity,

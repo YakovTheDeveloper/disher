@@ -7,54 +7,54 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
     getDailyNorms: import("@trpc/server").TRPCQueryProcedure<{
         input: void;
         output: import("../lib/response").IResponseData<{
+            id: number;
+            name: string;
             description: string;
             items: {
                 quantity: number;
                 nutrientId: number;
             }[];
-            name: string;
-            id: number;
         }[]>;
         meta: object;
     }>;
     createDailyNorms: import("@trpc/server").TRPCMutationProcedure<{
         input: {
+            name?: string;
             description?: string;
             items?: {
                 quantity?: number;
                 nutrientId?: number;
             }[];
-            name?: string;
         };
         output: import("../lib/response").IResponseData<{
+            id: number;
+            name: string;
             description: string;
             items: {
                 quantity: number;
                 nutrientId: number;
             }[];
-            name: string;
-            id: number;
         }>;
         meta: object;
     }>;
     updateDailyNorms: import("@trpc/server").TRPCMutationProcedure<{
         input: {
+            id?: number;
+            name?: string;
             description?: string;
             items?: {
                 quantity?: number;
                 nutrientId?: number;
             }[];
-            name?: string;
-            id?: number;
         };
         output: import("../lib/response").IResponseData<{
+            id: number;
+            name: string;
             description: string;
             items: {
                 quantity: number;
                 nutrientId: number;
             }[];
-            name: string;
-            id: number;
         }>;
         meta: object;
     }>;
@@ -63,21 +63,21 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
             id?: number;
         };
         output: import("../lib/response").IResponseData<{
+            id: number;
+            name: string;
             description: string;
             items: {
                 quantity: number;
                 nutrientId: number;
             }[];
-            name: string;
-            id: number;
         }>;
         meta: object;
     }>;
     getOne: import("@trpc/server").TRPCQueryProcedure<{
         input: void;
         output: import("../lib/response").IResponseData<{
-            name: string;
             id: number;
+            name: string;
         }[]>;
         meta: object;
     }>;
@@ -86,15 +86,15 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
             ids?: number[];
         };
         output: import("../lib/response").IResponseData<{
-            name: string;
             id: number;
+            name: string;
         }[]>;
         meta: object;
     }>;
     getFood: import("@trpc/server").TRPCQueryProcedure<{
         input: {
-            limit?: number;
             page?: number;
+            limit?: number;
             filters?: {
                 search?: string;
                 category?: string;
@@ -108,8 +108,8 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
     }>;
     getFoodWithNutrients: import("@trpc/server").TRPCQueryProcedure<{
         input: {
-            limit?: number;
             page?: number;
+            limit?: number;
         };
         output: import("../lib/response").IResponseData<{
             items: any;
@@ -123,8 +123,8 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
             ids?: number[];
         };
         output: import("../lib/response").IResponseData<{
-            name: string;
             id: number;
+            name: string;
             nutrients: {
                 quantity: number;
                 nutrientId: number;
@@ -137,8 +137,8 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
             id?: number;
         };
         output: import("../lib/response").IResponseData<{
-            name: string;
             id: number;
+            name: string;
             nutrients: {
                 quantity: number;
                 nutrientId: number;
@@ -148,9 +148,9 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
     }>;
     addFood: import("@trpc/server").TRPCMutationProcedure<{
         input: {
-            description?: string;
             name?: string;
             nameEng?: string;
+            description?: string;
             descriptionEng?: string;
             nutrients?: {
                 value?: number;
@@ -171,36 +171,36 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
     getDish: import("@trpc/server").TRPCQueryProcedure<{
         input: any;
         output: import("../lib/response").IResponseData<{
+            id: string;
+            name: string;
             items: {
                 id: string;
                 quantity: number;
                 foodId: number;
                 dishId: string;
             }[];
-            name: string;
-            id: string;
         }[]>;
         meta: object;
     }>;
     syncDish: import("@trpc/server").TRPCMutationProcedure<{
         input: {
             dishes?: {
+                id?: string;
+                name?: string;
+                userId?: number;
                 items?: {
                     create?: {
                         id?: string;
                         quantity?: number;
                         foodId?: string;
                     }[];
+                    delete?: string[];
                     update?: {
                         id?: string;
                         quantity?: number;
                         foodId?: string;
                     }[];
-                    delete?: string[];
                 };
-                name?: string;
-                id?: string;
-                userId?: number;
             }[];
         };
         output: import("../lib/response").IResponseData<{
@@ -212,24 +212,24 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
     createUser: import("@trpc/server").TRPCMutationProcedure<{
         input: any;
         output: import("../lib/response").IResponseData<{
-            email: string | null;
-            name: string | null;
             id: number;
+            name: string | null;
+            email: string | null;
+            image: string | null;
             createdAt: Date;
             updatedAt: Date;
-            image: string | null;
         }>;
         meta: object;
     }>;
     getUser: import("@trpc/server").TRPCQueryProcedure<{
         input: any;
         output: {
-            email: string | null;
-            name: string | null;
             id: number;
+            name: string | null;
+            email: string | null;
+            image: string | null;
             createdAt: Date;
             updatedAt: Date;
-            image: string | null;
         };
         meta: object;
     }>;
@@ -250,66 +250,66 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
     }>;
     addSchedule: import("@trpc/server").TRPCMutationProcedure<{
         input: {
-            date?: string;
             items?: ({
                 dishId: never;
                 type?: "food";
-                time?: string;
                 quantity?: number;
-                customFoodName?: string;
                 foodId?: number;
+                time?: string;
+                customFoodName?: string;
             } | {
                 foodId: never;
                 type?: "dish";
-                time?: string;
                 quantity?: number;
+                time?: string;
                 customFoodName?: string;
                 dishId?: number;
             } | {
                 foodId: never;
                 dishId: never;
                 type?: "custom";
-                time?: string;
                 quantity?: number;
+                time?: string;
                 customFoodName?: string;
             })[];
+            date?: string;
             dailyEvents?: {
                 time?: string;
                 content?: {
+                    variant?: "sleep";
                     content?: {
-                        quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                        quality?: 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
                         hours?: number;
                         minutes?: number;
                     };
-                    variant?: "sleep";
                 } | {
-                    content?: {
-                        value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
-                    };
                     variant?: "mood";
-                } | {
                     content?: {
-                        value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                        value?: 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
                     };
-                    variant?: "energy";
                 } | {
+                    variant?: "energy";
                     content?: {
-                        value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                        value?: 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+                    };
+                } | {
+                    variant?: "digestion";
+                    content?: {
+                        value?: 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
                         variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
                     };
-                    variant?: "digestion";
                 } | {
+                    variant?: "activity";
                     content?: {
                         variant?: string;
                         hours?: number;
                         minutes?: number;
                     };
-                    variant?: "activity";
                 } | {
+                    variant?: "note";
                     content?: {
                         value?: string;
                     };
-                    variant?: "note";
                 };
             }[];
         };
@@ -318,125 +318,125 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
     }>;
     updateScheduleDailyEvents: import("@trpc/server").TRPCMutationProcedure<{
         input: {
+            id?: number;
             items?: {
                 time?: string;
                 content?: {
+                    variant?: "sleep";
                     content?: {
-                        quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                        quality?: 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
                         hours?: number;
                         minutes?: number;
                     };
-                    variant?: "sleep";
                 } | {
-                    content?: {
-                        value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
-                    };
                     variant?: "mood";
-                } | {
                     content?: {
-                        value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                        value?: 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
                     };
-                    variant?: "energy";
                 } | {
+                    variant?: "energy";
                     content?: {
-                        value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                        value?: 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+                    };
+                } | {
+                    variant?: "digestion";
+                    content?: {
+                        value?: 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
                         variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
                     };
-                    variant?: "digestion";
                 } | {
+                    variant?: "activity";
                     content?: {
                         variant?: string;
                         hours?: number;
                         minutes?: number;
                     };
-                    variant?: "activity";
                 } | {
+                    variant?: "note";
                     content?: {
                         value?: string;
                     };
-                    variant?: "note";
                 };
             }[];
-            id?: number;
         };
         output: import("../lib/response").IResponseData<any>;
         meta: object;
     }>;
     updateSchedule: import("@trpc/server").TRPCMutationProcedure<{
         input: {
-            date?: string;
             id?: number;
+            date?: string;
             dailyEvents?: {
                 time?: string;
                 content?: {
+                    variant?: "sleep";
                     content?: {
-                        quality?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                        quality?: 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
                         hours?: number;
                         minutes?: number;
                     };
-                    variant?: "sleep";
                 } | {
-                    content?: {
-                        value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
-                    };
                     variant?: "mood";
-                } | {
                     content?: {
-                        value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                        value?: 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
                     };
-                    variant?: "energy";
                 } | {
+                    variant?: "energy";
                     content?: {
-                        value?: 1 | 3 | 2 | 4 | 5 | 8 | 6 | 7 | 9 | 10;
+                        value?: 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+                    };
+                } | {
+                    variant?: "digestion";
+                    content?: {
+                        value?: 3 | 1 | 2 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
                         variant?: "bloating" | "stomach_pain" | "heartburn" | "constipation" | "diarrhea";
                     };
-                    variant?: "digestion";
                 } | {
+                    variant?: "activity";
                     content?: {
                         variant?: string;
                         hours?: number;
                         minutes?: number;
                     };
-                    variant?: "activity";
                 } | {
+                    variant?: "note";
                     content?: {
                         value?: string;
                     };
-                    variant?: "note";
                 };
             }[];
             changes?: {
                 create?: ({
                     dishId: never;
                     type?: "food";
-                    time?: string;
                     quantity?: number;
-                    customFoodName?: string;
                     foodId?: number;
+                    time?: string;
+                    customFoodName?: string;
                 } | {
                     foodId: never;
                     type?: "dish";
-                    time?: string;
                     quantity?: number;
+                    time?: string;
                     customFoodName?: string;
                     dishId?: number;
                 } | {
                     foodId: never;
                     dishId: never;
                     type?: "custom";
-                    time?: string;
                     quantity?: number;
+                    time?: string;
                     customFoodName?: string;
                 })[];
+                delete?: number[];
                 update?: {
-                    time?: string;
                     id?: number;
                     quantity?: number;
-                    customFoodName?: string;
                     foodId?: number;
+                    time?: string;
+                    customFoodName?: string;
                     dishId?: number;
                 }[];
-                delete?: number[];
             };
         };
         output: import("../lib/response").IResponseData<any>;
@@ -445,45 +445,45 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
     syncSchedule: import("@trpc/server").TRPCMutationProcedure<{
         input: {
             schedules?: {
-                items?: {
-                    create?: {
-                        time?: string;
-                        id?: string;
-                        content?: {
-                            foodId?: string;
-                            dishId?: string;
-                            variant?: "custom" | "food" | "dish";
-                            customName?: string;
-                        };
-                        quantity?: number;
-                    }[];
-                    update?: {
-                        time?: string;
-                        id?: string;
-                        content?: {
-                            foodId?: string;
-                            dishId?: string;
-                            variant?: "custom" | "food" | "dish";
-                            customName?: string;
-                        };
-                        quantity?: number;
-                    }[];
-                    delete?: string[];
-                };
                 id?: string;
                 userId?: number;
+                items?: {
+                    create?: {
+                        id?: string;
+                        quantity?: number;
+                        time?: string;
+                        content?: {
+                            foodId?: string;
+                            dishId?: string;
+                            variant?: "food" | "dish" | "custom";
+                            customName?: string;
+                        };
+                    }[];
+                    delete?: string[];
+                    update?: {
+                        id?: string;
+                        quantity?: number;
+                        time?: string;
+                        content?: {
+                            foodId?: string;
+                            dishId?: string;
+                            variant?: "food" | "dish" | "custom";
+                            customName?: string;
+                        };
+                    }[];
+                };
                 events?: {
                     create?: {
                         value?: string;
                         type?: string;
                         id?: string;
                     }[];
+                    delete?: string[];
                     update?: {
                         value?: string;
                         type?: string;
                         id?: string;
                     }[];
-                    delete?: string[];
                 };
             }[];
         };

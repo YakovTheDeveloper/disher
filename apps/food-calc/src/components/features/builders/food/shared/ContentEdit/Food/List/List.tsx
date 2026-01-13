@@ -15,6 +15,7 @@ type Props = {
     filterSearchText: string;
     localFiltered: unknown[];
   };
+  after: React.ReactNode;
   queryKey: string;
   onFetch: (params: GetFoodParams) => Promise<{
     items: {
@@ -26,7 +27,7 @@ type Props = {
   renderListContent: (item: unknown) => React.ReactNode;
 };
 
-const List = observer(({ search, onFetch, queryKey, renderListContent }: Props) => {
+const List = observer(({ search, onFetch, queryKey, renderListContent, after }: Props) => {
   const parentRef = useRef<HTMLDivElement>(null);
 
   const filteredLocal = search.localFiltered;
@@ -87,6 +88,9 @@ const List = observer(({ search, onFetch, queryKey, renderListContent }: Props) 
   };
 
   const virtualItems = rowVirtualizer.getVirtualItems();
+  const totalHeight = rowVirtualizer.getTotalSize();
+
+  const listHeight = totalHeight ? `${totalHeight}px` : 'auto';
 
   // useEffect(() => {
   //   fetchNextPage();
@@ -100,7 +104,7 @@ const List = observer(({ search, onFetch, queryKey, renderListContent }: Props) 
       <ul
         className={styles.list}
         style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
+          height: listHeight,
           position: 'relative',
         }}
       >
@@ -149,6 +153,8 @@ const List = observer(({ search, onFetch, queryKey, renderListContent }: Props) 
             }}
           ></li>
         )}
+
+        {after}
       </ul>
     </div>
   );

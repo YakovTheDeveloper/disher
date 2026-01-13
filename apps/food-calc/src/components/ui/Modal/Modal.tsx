@@ -1,68 +1,43 @@
-import React, { TouchEvent, useEffect, useRef } from 'react';
-import s from './Modal.module.scss';
-import clsx from 'clsx';
+import Modal from 'react-modal';
 import { observer } from 'mobx-react-lite';
-import RemoveButton from '@/components/ui/RemoveButton/RemoveButton';
-import { useNavigate, useLocation, useNavigationType } from 'react-router';
+import styles from './Modal.module.scss';
+import { ModalStoreInstance } from '../../../store/GlobalUiStore/ModalStore/ModalStore';
 
-type ModalByOpen = {
+import { domainStore } from '@/store/store';
+
+interface ModalProps {
+  modalStore?: ModalStoreInstance;
   children: React.ReactNode;
-  className?: string;
-  backdropClassname?: string;
-  isOpen: boolean | (() => boolean);
-  onClose: VoidFunction;
-};
+}
 
-type ModalById = {
-  children: React.ReactNode;
-  className?: string;
-  backdropClassname?: string;
-  onClose: VoidFunction;
-  id: string | number;
-  currentId: string | number | null;
-};
+const ModalComponent = ({
+  modalStore = domainStore.globalUiStore.modalStore,
+  children,
+}: ModalProps) => {
+  const currentModal = modalStore.currentModal;
 
-type Props = ModalByOpen | ModalById;
+  if (!currentModal) return null;
 
-const Modal = (props: Props) => {
-  const openedRef = useRef(false);
-
-  const isOpen =
-    'isOpen' in props
-      ? typeof props.isOpen === 'function'
-        ? props.isOpen()
-        : props.isOpen
-      : props.id === props.currentId;
-
-  const { children, className, onClose, backdropClassname } = props;
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      openedRef.current = true;
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
+  const { isOpen } = currentModal;
 
   return (
-    <>
-      <div className={clsx([s.backdrop, backdropClassname])} onClick={onClose} />
-      <div className={clsx([s.modal, className])}>
-        <div className={s.inner}>
-          <header>
-            <RemoveButton onClick={onClose} />
-          </header>
-          <div className={s.innerContent}>{children}</div>
-        </div>
-      </div>
-    </>
+    <Modal
+      isOpen={isOpen}
+      onRequestClose={() => modalStore.closeModal()}
+      className={styles.modal}
+      overlayClassName={styles.overlay}
+      contentLabel="Modal"
+      style={{
+        content: {},
+        overlay: {},
+      }}
+    >
+      <button className={styles.closeButton} onClick={() => modalStore.closeModal()}>
+        ×
+      </button>
+      {children}
+    </Modal>
   );
 };
 
-export default observer(Modal);
+export default observer(ModalComponent);

@@ -11,6 +11,7 @@
     ],
     "composite": true,
     "module": "ESNext",
+    "noEmitOnError": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "experimentalDecorators": true, // Required for MobX decorators

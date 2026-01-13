@@ -1,18 +1,17 @@
 import { observer } from 'mobx-react-lite';
 import styles from './TimeGroup.module.scss';
-import {
-  DayScheduleItemUI,
-  TimeGroupUI,
-} from '@/components/features/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel';
+
 import clsx from 'clsx';
+import { TimeGroupUI } from '@/domain/schedule/schedule.service';
 
 type Props<T> = {
   children: (item: T) => JSX.Element;
   group: TimeGroupUI<T>;
   renderAside?: (group: TimeGroupUI<T>) => JSX.Element | null;
+  onTimeClick?: (group: TimeGroupUI<T>) => void;
 };
 
-const TimeGroup = <T,>({ children, group, renderAside }: Props<T>) => {
+const TimeGroup = <T,>({ children, group, renderAside, onTimeClick }: Props<T>) => {
   console.log('TIME_GROUP');
 
   const timeOffsetFromPreviousGroupView = formatOffset(group.offset);
@@ -21,7 +20,12 @@ const TimeGroup = <T,>({ children, group, renderAside }: Props<T>) => {
     <ul className={styles.container}>
       <header className={styles.header}>
         <div className={styles.headerCenter}>
-          <span className={clsx([styles.message_time, styles.message])}>{group.time}</span>
+          <span
+            className={clsx([styles.message_time, styles.message])}
+            onClick={() => onTimeClick?.(group)}
+          >
+            {group.time}
+          </span>
           {group.offset && (
             <span className={clsx([styles.message_delta, styles.message])}>
               {timeOffsetFromPreviousGroupView}

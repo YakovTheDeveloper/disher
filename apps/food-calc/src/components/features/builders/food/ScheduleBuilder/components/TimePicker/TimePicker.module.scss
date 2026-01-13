@@ -2,11 +2,9 @@
     display: inline-flex;
     align-items: center;
     flex-direction: column;
-    border-radius: 20px;
     cursor: text;
     height: 100%;
     flex-grow: 1;
-    padding: 1rem 0;
     justify-content: space-between;
 
 
@@ -22,7 +20,9 @@
     grid-template-columns: 1fr auto 1fr;
     // gap: 0.5rem;
     transition: 0.2s box-shadow ease-in-out;
-    background-color: white;
+
+    background: rgb(177, 215, 255);
+    border-radius: 20px;
 
     border: 2px solid transparent;
 
@@ -37,9 +37,21 @@
 
 .input,
 .betweenInputs {
-    font-size: 2rem;
-    font-weight: 400;
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: #007aff;
+    padding: 0;
+    background: rgb(177, 215, 255);
 }
+
+.input {
+    max-width: 50px;
+    flex-shrink: 0;
+    border: none;
+    text-align: center;
+    outline: none;
+}
+
 
 .betweenInputs {
     display: flex;
@@ -47,13 +59,6 @@
     justify-content: center;
 }
 
-.input {
-    min-width: 30px;
-    max-width: 60px;
-    border: none;
-    text-align: center;
-    outline: none;
-}
 
 
 .inner {

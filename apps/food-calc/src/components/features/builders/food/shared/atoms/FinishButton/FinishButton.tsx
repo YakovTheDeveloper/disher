@@ -12,7 +12,10 @@ type Props = {
 const FinishButton = ({ children, onClick }: Props) => {
   return (
     <button onClick={onClick} className={styles.finishButton}>
-      <TickIcon />
+      Добавить
+      <span className={styles.iconContainer}>
+        <TickIcon />
+      </span>
     </button>
   );
 };

@@ -37,7 +37,9 @@ const Nutrients = ({ store, renderOverlay }: Props) => {
       {nutrientGroups.map(({ content, displayName: groupName }) => (
         <div key={groupName} className={styles.group}>
           <h3 className={styles.groupTitle}>
-            <ScreenLabel opacity={0.2}>{groupName}</ScreenLabel>
+            <ScreenLabel variant="nutrients" opacity={0.2}>
+              {groupName}
+            </ScreenLabel>
           </h3>
           <div className={clsx([styles.groupContent])}>
             {content.map((nutrientData: NutrientContentItem) => (

@@ -92,9 +92,7 @@ const ListItem = ({
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
-    console.log(e);
-
-    log('pointer UP', 'red');
+    // log('pointer UP', 'red');
 
     const skipTap = wasLongPressedRef.current;
 
@@ -106,7 +104,7 @@ const ListItem = ({
     }
 
     setTimeout(() => {
-      log('разблокировал кнопку', 'green');
+      // log('разблокировал кнопку', 'green');
       preventNextClickRef.current = false;
     }, 50);
   };
@@ -119,7 +117,7 @@ const ListItem = ({
   };
 
   const onSelectButtonClick = (e) => {
-    log('click button', 'orange');
+    // log('click button', 'orange');
     if (preventNextClickRef.current) {
       return;
     }

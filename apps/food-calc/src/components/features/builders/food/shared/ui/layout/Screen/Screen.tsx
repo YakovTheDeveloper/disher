@@ -12,7 +12,7 @@ type Props = {
   actions?: React.ReactNode;
   bottom?: React.ReactNode;
   header?: (scrollYProgress: MotionValue<number>) => React.ReactNode;
-  title?: string;
+  title?: React.ReactNode;
 };
 
 const Screen = ({ header, children, bottom, actions, title }: Props) => {

@@ -29,7 +29,7 @@ export const foodRoutes = {
         .input(
             z.object({
                 page: z.number().min(1).default(1),
-                limit: z.number().min(1).max(100).default(50),
+                limit: z.number().min(1).max(1000).default(50),
                 filters: z
                     .object({
                         category: z.string().optional(),
@@ -64,7 +64,7 @@ export const foodRoutes = {
         .input(
             z.object({
                 page: z.number().min(1).default(1),
-                limit: z.number().min(1).max(100).default(50),
+                limit: z.number().min(1).max(1000).default(50),
             })
         )
         .query(async ({ input }) => {
@@ -96,7 +96,6 @@ export const foodRoutes = {
                 const nutrients = item.nutrients.map(nutrient => ({
                     ...nutrient,
                     nutrientId: nutrient.nutrientId.toString(),
-                    nutrient: nutrient.nutrientId.toString()
                 }))
                 // }))
                 return { ...item, id: item.id.toString(), description: item.description || '', nutrients }

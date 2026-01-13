@@ -1,3 +1,5 @@
+import { DDMMYYYY } from "@/types/common/timeAndDate";
+import { parse, isValid } from 'date-fns';
 
 export const nextDate = (currentDateISO: string) => {
     const date = new Date(currentDateISO);
@@ -11,22 +13,19 @@ export const prevDate = (currentDateISO: string) => {
     return date.toISOString();
 };
 
-export const getTitle = (input: string) => {
-    const date = new Date(input);
-    const day = date.getUTCDate();
-    const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'long', timeZone: 'UTC' }).format(
-        date
-    );
-    const monthNumber = new Intl.DateTimeFormat('ru-RU', {
-        month: '2-digit',
-        timeZone: 'UTC',
-    }).format(date);
-    const weekdayName = new Intl.DateTimeFormat('ru-RU', { weekday: 'long', timeZone: 'UTC' }).format(
-        date
-    );
-    const weekdayNameShort = new Intl.DateTimeFormat('ru-RU', { weekday: 'short', timeZone: 'UTC' }).format(
-        date
-    );
+export const getTitle = (input: DDMMYYYY) => {
+    const date = parse(input, 'dd-MM-yyyy', new Date());
+
+    if (!isValid(date)) {
+        throw new Error(`Invalid date: ${input}`);
+    }
+
+    const day = date.getDate();
+    const monthNumber = date.getMonth() + 1;
+
+    const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(date);
+    const weekdayName = new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(date);
+    const weekdayNameShort = new Intl.DateTimeFormat('ru-RU', { weekday: 'short' }).format(date);
 
     return { day, monthNumber, monthName, weekdayName, weekdayNameShort };
 };

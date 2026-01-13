@@ -5,11 +5,45 @@ import svgr from 'vite-plugin-svgr';
 import path from 'path';
 import { patchCssModules } from 'vite-css-modules';
 import checker from 'vite-plugin-checker';
+import { VitePWA } from 'vite-plugin-pwa';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    // basicSsl(),
+    // VitePWA({
+    //   registerType: 'autoUpdate',
+
+    //   includeAssets: [
+    //     'favicon.ico',
+    //     'robots.txt',
+    //     'apple-touch-icon.png'
+    //   ],
+
+    //   manifest: {
+    //     name: 'My React PWA',
+    //     short_name: 'ReactPWA',
+    //     description: 'React + Vite Progressive Web App',
+    //     theme_color: '#1976d2',
+    //     background_color: '#ffffff',
+    //     display: 'standalone',
+    //     start_url: '/',
+    //     icons: [
+    //       {
+    //         src: '/pwa-192x192.png',
+    //         sizes: '192x192',
+    //         type: 'image/png'
+    //       },
+    //       {
+    //         src: '/pwa-512x512.png',
+    //         sizes: '512x512',
+    //         type: 'image/png'
+    //       }
+    //     ]
+    //   }
+    // }),
     patchCssModules(),
     svgr({
       // svgr options: https://react-svgr.com/docs/options/
@@ -22,6 +56,7 @@ export default defineConfig({
       },
       overlay: false,
       terminal: false,
+
     }),
   ],
   optimizeDeps: {

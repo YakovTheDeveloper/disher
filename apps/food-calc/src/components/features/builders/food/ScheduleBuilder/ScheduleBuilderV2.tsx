@@ -34,10 +34,13 @@ import { ScheduleFoodAdd } from '@/components/features/builders/food/ScheduleBui
 import { ScheduleEventsAdd } from '@/components/features/builders/food/ScheduleBuilder/components/edit-schedule-events/ScheduleEventsAdd';
 import { MotionValue } from 'framer-motion';
 import { ActionsHeader } from '@/components/features/builders/food/shared/components/ActionsHeader';
+import { ScheduleSelection } from '@/components/features/schedule/ScheduleSelection';
+import { DateChoose } from '@/components/features/builders/food/ScheduleBuilder/components/DateChoose';
 
 export const Modals = {
   Time: 'time',
   Food: 'Food',
+  DateChoose: 'DateChoose',
   FoodAdd: 'FoodAdd',
   EventAdd: 'EventAdd',
   EventEdit: 'EventEdit',
@@ -174,14 +177,23 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
     <>
       <Swipeable index={options.currentPage} defaultIndex={1} onIndexChange={onPageChange}>
         {[
-          <Screen key={1} title="Нутриенты">
+          <Screen key={1} title={<ScreenLabel variant="screenHeader">Нутриенты</ScreenLabel>}>
             <TotalNutrients store={schedule} />
           </Screen>,
 
           <Screen
-            actions={<ActionsHeader onDelete={schedule.foods.removeChildren} />}
+            actions={<ActionsHeader />}
             key={2}
-            title="Еда"
+            title={
+              <ScreenLabel
+                variant="screenHeader"
+                onClick={() => {
+                  navigate(RouterLinks.Dishes);
+                }}
+              >
+                Еда
+              </ScreenLabel>
+            }
             header={(scrollYProgress: MotionValue<number>) => (
               <Navigation scrollYProgress={scrollYProgress}></Navigation>
             )}
@@ -192,7 +204,7 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
 
           <Screen
             key={3}
-            title="События"
+            title={<ScreenLabel variant="screenHeader">События</ScreenLabel>}
             header={(scrollYProgress: MotionValue<number>) => (
               <Navigation scrollYProgress={scrollYProgress}></Navigation>
             )}
@@ -205,6 +217,7 @@ const ScheduleBuilder = ({ schedule, onFinish, date }: Props) => {
 
       <ModalRoot modals={modals}>
         {{
+          [Modals.DateChoose]: <DateChoose />,
           [Modals.FoodAdd]: <ScheduleFoodAdd schedule={schedule} />,
           [Modals.FoodEdit]: <ScheduleFoodEdit schedule={schedule} defaultTab="foodChange" />,
           [Modals.Time]: <ScheduleFoodEdit schedule={schedule} defaultTab="time" />,

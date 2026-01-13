@@ -69,17 +69,20 @@ const TimeNow = ({ time, onTimeChange }: Props) => {
           isActive={minus15Time === time}
           onClick={onMinus15Select}
         >
-          -15 мин.
+          <span className={styles.textNow}>сейчас</span>
+          <span className={styles.textMinutes}>-15 мин.</span>
         </QuickButton>
         <QuickButton className={styles.button} onClick={onNowSelect} isActive={timeNow === time}>
-          сейчас ({timeNow})
+          <span className={styles.textNow}>сейчас</span>
+          <span className={styles.textMinutes}>{timeNow}</span>
         </QuickButton>
         <QuickButton
           className={styles.button}
           isActive={plus15Time === time}
           onClick={onPlus15Select}
         >
-          + 15 мин.
+          <span className={styles.textNow}>сейчас</span>
+          <span className={styles.textMinutes}>+15 мин.</span>
         </QuickButton>
       </div>
     </div>

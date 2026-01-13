@@ -21,9 +21,8 @@
 .title {
     position: absolute;
     left: 0;
-    bottom: 0;
     top: 0;
     padding: 0.5rem;
-
+    z-index: 1;
     transform-origin: top left;
 }

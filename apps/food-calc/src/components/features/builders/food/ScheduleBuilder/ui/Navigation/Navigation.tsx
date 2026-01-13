@@ -65,9 +65,6 @@ const Navigation = ({ children, menuUi = uiStore.menu, scrollYProgress }: Props)
 
   return (
     <div className={styles.container}>
-      <div className={clsx([styles.menuButton])}>
-        <Button.Menu menu={menuUi} onClick={menuUi.toggle} />
-      </div>
       <DateInfo scrollYProgress={scrollYProgress} />
     </div>
   );

@@ -21,7 +21,7 @@ export const FoodNutrient = types.model("FoodNutrient", {
 
 // Food
 export const Food = types.model("Food", {
-    id: types.identifierNumber,
+    id: types.identifier,
     name: types.string,
     nameEng: types.maybe(types.string),
     description: types.maybe(types.string),
@@ -49,7 +49,7 @@ export const Food = types.model("Food", {
     }
     function setNutrients(nutrients: {
         quantity: number;
-        nutrientId: number;
+        nutrientId: number | string;
     }[]) {
         console.log('hellohello', nutrients);
         if (!self.nutrients) {
