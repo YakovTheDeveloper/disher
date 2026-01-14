@@ -1,0 +1,169 @@
+import { types, Instance } from "mobx-state-tree";
+
+// Payload models for ScheduleDrawers
+const DateChooseDrawer = types.model('DateChooseDrawer', {
+    type: types.literal('schedule.date'),
+});
+
+const FoodAddDrawer = types.model('FoodAddDrawer', {
+    type: types.literal('schedule.food.add'),
+});
+
+export const FoodEditDrawer = types.model('FoodEditDrawer', {
+    type: types.literal('schedule.food.edit'),
+    payload: types.model({
+        defaultTab: types.enumeration(['foodChange', 'time', 'quantity']),
+        itemToEditId: types.string
+    }),
+});
+
+const EventAddDrawer = types.model('EventAddDrawer', {
+    type: types.literal('schedule.event.add'),
+});
+
+export const EventEditDrawer = types.model('EventEditDrawer', {
+    type: types.literal('schedule.event.edit'),
+    payload: types.model({
+        defaultTab: types.enumeration(['content', 'time', 'value']),
+        itemToEditId: types.string
+    }),
+});
+
+// Payload models for DishModals
+const DishFoodAddModal = types.model('DishFoodAddModal', {
+    type: types.literal('dish.food.add'),
+});
+
+export const DishFoodEditModal = types.model('DishFoodEditModal', {
+    type: types.literal('dish.food.edit'),
+    payload: types.model({
+        defaultTab: types.enumeration(['content', 'quantity']),
+        itemToEditId: types.string
+    }),
+});
+
+// Union of all drawer payload models
+const DrawerPayloadModel = types.union(
+    DateChooseDrawer,
+    FoodAddDrawer,
+    FoodEditDrawer,
+    EventAddDrawer,
+    EventEditDrawer,
+    DishFoodAddModal,
+    DishFoodEditModal,
+);
+
+export const ScheduleDrawers = {
+    DateChoose: 'schedule.date',
+    FoodEdit: 'schedule.food.edit',
+    FoodAdd: 'schedule.food.add',
+    EventEdit: 'schedule.event.edit',
+    EventAdd: 'schedule.event.add',
+} as const;
+
+export const DishModals = {
+    FoodAdd: 'dish.food.add',
+    FoodEdit: 'dish.food.edit',
+} as const;
+
+export type DrawerType = typeof ScheduleDrawers[keyof typeof ScheduleDrawers] | typeof DishModals[keyof typeof DishModals];
+
+export type DrawerOpenArgs =
+    | { type: typeof ScheduleDrawers.DateChoose }
+    | { type: typeof ScheduleDrawers.FoodAdd }
+    | { type: typeof ScheduleDrawers.FoodEdit; payload: { defaultTab: 'foodChange' | 'time' | 'quantity', itemToEditId: string } }
+    | { type: typeof ScheduleDrawers.EventAdd }
+    | { type: typeof ScheduleDrawers.EventEdit; payload: { defaultTab: 'content' | 'time' | 'value', itemToEditId: string } }
+    | { type: typeof DishModals.FoodAdd }
+    | { type: typeof DishModals.FoodEdit };
+
+export const DrawerStore = types
+    .model('DrawerStore', {
+        activeDrawer: types.maybe(DrawerPayloadModel),
+        isOpen: types.optional(types.boolean, false),
+    })
+    .views(self => ({
+        get isDrawerOpen() {
+            return self.isOpen;
+        },
+
+        get currentDrawer() {
+            return self.activeDrawer;
+        },
+    }))
+    .actions(self => {
+        function updateUrl(args: DrawerOpenArgs | null) {
+            const url = new URL(window.location.href);
+            if (args) {
+                url.searchParams.set('drawer', args.type);
+            } else {
+                url.searchParams.delete('drawer');
+            }
+
+            const newUrl = url.pathname + url.search + url.hash;
+            if (window.location.search !== url.search) {
+                window.history.pushState({ drawerSync: true }, '', newUrl);
+            }
+        }
+
+        return {
+            open(args: DrawerOpenArgs, skipUrlUpdate = false) {
+                switch (args.type) {
+                    case ScheduleDrawers.DateChoose:
+                        self.activeDrawer = DateChooseDrawer.create(args);
+                        break;
+                    case ScheduleDrawers.FoodAdd:
+                        self.activeDrawer = FoodAddDrawer.create(args);
+                        break;
+                    case ScheduleDrawers.FoodEdit:
+                        self.activeDrawer = FoodEditDrawer.create(args);
+                        break;
+                    case ScheduleDrawers.EventAdd:
+                        self.activeDrawer = EventAddDrawer.create(args);
+                        break;
+                    case ScheduleDrawers.EventEdit:
+                        self.activeDrawer = EventEditDrawer.create(args);
+                        break;
+                    case DishModals.FoodAdd:
+                        self.activeDrawer = DishFoodAddModal.create(args);
+                        break;
+                    case DishModals.FoodEdit:
+                        self.activeDrawer = DishFoodEditModal.create(args);
+                        break;
+                }
+                self.isOpen = true;
+                if (!skipUrlUpdate) {
+                    updateUrl(args);
+                }
+            },
+
+            close(skipUrlUpdate = false) {
+                self.isOpen = false;
+                self.activeDrawer = undefined;
+                if (!skipUrlUpdate) {
+                    updateUrl(null);
+                }
+            },
+
+            syncFromUrl() {
+                const params = new URLSearchParams(window.location.search);
+                const type = params.get('drawer') as DrawerType | null;
+                // const payloadStr = params.get('payload');
+
+                if (type) {
+                    try {
+                        const payload = undefined;
+                        // @ts-ignore - Dynamic construction based on type
+                        // this.open({ type, payload }, true);
+                    } catch (e) {
+                        console.error('Failed to parse drawer payload from URL', e);
+                        this.close(true);
+                    }
+                } else if (self.isOpen) {
+                    this.close(true);
+                }
+            },
+        };
+    });
+
+export type DrawerStoreInstance = Instance<typeof DrawerStore>;

@@ -8,7 +8,10 @@ import { NavLink } from 'react-router';
 import { RouterLinks } from '@/router';
 import { Instance } from 'mobx-state-tree';
 import { DaySchedule } from '@/domain/schedule/schedule';
-import { TotalNutrientsStore } from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
+import {
+  NutrientsCountableEntity,
+  TotalNutrientsStore,
+} from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
 
 export interface TotalNutrientsRef {
   calculate: () => void;
@@ -16,17 +19,16 @@ export interface TotalNutrientsRef {
 
 type Props = {
   children: React.ReactNode;
-  store: Instance<typeof DaySchedule>;
-  ref: React.Ref<{
-    calculate: () => void;
-  }>;
+  countable: NutrientsCountableEntity & { customItems?: { name: string }[] };
+  // store: Instance<typeof DaySchedule>;
+  // ref: React.Ref<{
+  //   calculate: () => void;
+  // }>;
 };
 
-const TotalNutrients = ({ store, ref, children }: Props) => {
-  // const { prepareStore } = useTotalNutrients(store, ref);
-
+const TotalNutrients = ({ countable, children }: Props) => {
   const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);
-  nutrientStore.setEntity(store);
+  nutrientStore.setEntity(countable);
 
   const isLoading = useCallback(() => nutrientStore.isOneOfProductsIsLoading, [nutrientStore]);
 
@@ -45,17 +47,17 @@ const TotalNutrients = ({ store, ref, children }: Props) => {
       >
         Го
       </Button> */}
-      <Nutrients store={nutrientStore} renderOverlay={renderOverlay} progressType="circle" />
+      <Nutrients store={nutrientStore} renderOverlay={renderOverlay} asControlledForm={false} />
       <NavLink to={RouterLinks.DailyNorms}>
         <Typography variant="action">поменять норму</Typography>
       </NavLink>
       {children}
 
-      {store.foodWithNoNutrients.length && (
+      {countable.foodWithNoNutrients.length && (
         <div className={styles.messageContainer}>
           <p>Без продуктов</p>
           <div className={styles.messageContainerRow}>
-            {store.foodWithNoNutrients.map((food) => (
+            {countable.foodWithNoNutrients.map((food) => (
               <span key={food.id}>{food.name}</span>
             ))}{' '}
           </div>
@@ -63,13 +65,13 @@ const TotalNutrients = ({ store, ref, children }: Props) => {
         </div>
       )}
 
-      {store.customItems.length && (
+      {countable.customItems?.length && (
         <div className={styles.messageContainer}>
           <p>Расчет производится без учета кастомных продуктов</p>
           <div className={styles.messageContainerRow}>
             Продукты:{' '}
-            {store.customItems.map(({ content }) => (
-              <span key={content.name}>{content.name}</span>
+            {countable.customItems.map(({ name }) => (
+              <span key={name}>{name}</span>
             ))}{' '}
           </div>
           <p>не были учтены</p>

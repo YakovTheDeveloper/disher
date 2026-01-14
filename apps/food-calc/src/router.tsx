@@ -5,9 +5,10 @@ import ScheduleBuilderPage from './pages/schedule/builder/schedule-builder-page/
 import SchedulePage from '@/pages/schedule/schedule-page/SchedulePage.tsx';
 import DishBuilderPage from '@/pages/dish/builder/dish-builder-page/DishBuilderPage.tsx';
 import { DailyNormsPage } from '@/pages/dailyNormsPage/index.ts';
-import ProductBuilderPage from '@/pages/productBuilderPage/productBuilderPage.tsx';
+
 import LoadDataPage from '@/pages/LoadDataPage/LoadDataPage.tsx';
 import DishesPage from '@/pages/dish/dishes-page/DishesPage.tsx';
+import UserProductPage from '@/pages/user-product-page/UserProductPage.tsx';
 
 export enum RouterLinks {
   Root = '/',
@@ -18,6 +19,7 @@ export enum RouterLinks {
   ProductBuilder = '/product/builder',
   LoadData = '/load-data',
   Dishes = '/dishes',
+  UserProduct = '/user-product',
 }
 
 export const router = createBrowserRouter([
@@ -49,10 +51,10 @@ export const router = createBrowserRouter([
         path: RouterLinks.ScheduleBuilder + '/' + ':date',
         element: <ScheduleBuilderPage />,
       },
-      {
-        path: RouterLinks.ProductBuilder,
-        element: <ProductBuilderPage />,
-      },
+      // {
+      //   path: RouterLinks.ProductBuilder,
+      //   element: <ProductBuilderPage />,
+      // },
       {
         path: RouterLinks.LoadData,
         element: <LoadDataPage />,
@@ -60,6 +62,10 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.Dishes,
         element: <DishesPage />,
+      },
+      {
+        path: `${RouterLinks.UserProduct}/:id`,
+        element: <UserProductPage />,
       },
     ],
   },

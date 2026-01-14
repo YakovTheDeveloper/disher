@@ -1,27 +1,29 @@
+import { domainStore } from '@/store/store';
 import styles from './Drawer.module.scss';
 import { Drawer as DrawerLib } from 'vaul';
+import { observer } from 'mobx-react';
 
 type DrawerProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
 };
 
-export function Drawer({ open, onOpenChange, children }: DrawerProps) {
+export function Drawer({ children }: DrawerProps) {
   // useLockBodyScroll(open);
+
+  const drawerStore = domainStore.globalUiStore.drawerStore;
 
   return (
     <DrawerLib.Root
-      open={open}
-      onOpenChange={onOpenChange}
+      open={drawerStore.isOpen}
+      onClose={drawerStore.close}
       fixed={true}
       direction="bottom"
-      // dismissible={false}
+      dismissible={true}
       closeThreshold={0.5}
       repositionInputs={false}
       handleOnly
     >
-      <DrawerLib.Portal>
+      <DrawerLib.Portal container={document.getElementById('drawer-root')}>
         <DrawerLib.Overlay className={styles.overlay} />
         {children}
       </DrawerLib.Portal>
@@ -29,4 +31,4 @@ export function Drawer({ open, onOpenChange, children }: DrawerProps) {
   );
 }
 
-export default Drawer;
+export default observer(Drawer);

@@ -18,6 +18,6 @@
     // background-color: rgba(0, 0, 0, 0.4); // Vaul устанавливает это через --vaul-overlay-opacity
     background-color: hsla(0, 0%, 0%, var(--vaul-overlay-opacity));
     /* Используем CSS-переменную для оверлея */
-    z-index: 50;
+    z-index: 3000;
     // Анимацией `opacity` оверлея управляет Vaul, используя --vaul-overlay-duration.
 }

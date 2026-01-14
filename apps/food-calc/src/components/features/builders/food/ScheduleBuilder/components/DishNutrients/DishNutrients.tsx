@@ -12,14 +12,16 @@ import { TotalNutrientsStore } from '@/components/features/builders/food/shared/
 import { Instance } from 'mobx-state-tree';
 import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
 import { Dish } from '@/domain/dish/Dish';
+import { useSchedule } from '@/components/features/builders/food/ScheduleBuilder/context';
 
 type Props = {
-  schedule: Instance<typeof DaySchedule>;
   currentChild: Instance<typeof ScheduleItem>;
   currentDish: Instance<typeof Dish>;
 };
 
-const DishNutrients = ({ schedule, currentChild, currentDish }: Props) => {
+const DishNutrients = ({ currentChild, currentDish }: Props) => {
+  const schedule = useSchedule();
+
   const [currentTab, setCurrentTab] = useState('');
 
   const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);
@@ -56,7 +58,7 @@ const DishNutrients = ({ schedule, currentChild, currentDish }: Props) => {
 
       <div className={styles.main}>
         <div className={styles.content}>
-          <Nutrients renderOverlay={renderOverlay} store={nutrientStore} />
+          <Nutrients renderOverlay={renderOverlay} store={nutrientStore} asControlledForm={false} />
           <NavLink to={RouterLinks.DailyNorms} className={styles.link}>
             <Typography variant="action">поменять норму</Typography>
           </NavLink>

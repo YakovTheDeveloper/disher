@@ -5,7 +5,10 @@ import {
   nutrientGroups,
 } from '@/components/features/builders/food/shared/ContentInfo/Nutrients/constants';
 import { useEffect } from 'react';
-import { NutrientCard } from '@/components/features/builders/food/shared/ContentInfo/Nutrients/NutrientCard';
+import {
+  NutrientCard,
+  NutrientCardFormEntry,
+} from '@/components/features/builders/food/shared/ContentInfo/Nutrients/NutrientCard';
 import { Instance } from 'mobx-state-tree';
 import { TotalNutrientsStore } from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
@@ -22,12 +25,26 @@ import NutrientCardV2 from '@/components/features/builders/food/shared/ContentIn
 
 type FoodId = string;
 
-type Props = {
+interface CommonProps {
   renderOverlay?: (percent: string) => React.ReactNode;
   store: Instance<typeof TotalNutrientsStore>;
-};
+}
 
-const Nutrients = ({ store, renderOverlay }: Props) => {
+type ConditionalProps =
+  | {
+      asControlledForm: true;
+      onChange: (value: number, nutrientId: string) => void;
+      getValue: (id: string) => number;
+    }
+  | {
+      asControlledForm: false;
+      onChange?: never;
+      getValue?: never;
+    };
+
+type Props = CommonProps & ConditionalProps;
+
+const Nutrients = ({ store, renderOverlay, onChange, asControlledForm, getValue }: Props) => {
   useEffect(() => {
     console.log('new store nutrients', Array.from(store.nutrients.entries()));
   }, [Array.from(store.nutrients.entries())]);
@@ -42,15 +59,22 @@ const Nutrients = ({ store, renderOverlay }: Props) => {
             </ScreenLabel>
           </h3>
           <div className={clsx([styles.groupContent])}>
-            {content.map((nutrientData: NutrientContentItem) => (
-              <NutrientCardV2
-                key={nutrientData.id}
-                renderOverlay={renderOverlay}
-                getValue={store.getValue}
-                content={nutrientData}
-                // progressType={progressType}
-              />
-            ))}
+            {content.map((nutrientData: NutrientContentItem) => {
+              return asControlledForm ? (
+                <NutrientCardFormEntry
+                  onChange={onChange}
+                  content={nutrientData}
+                  getValue={getValue}
+                  renderOverlay={renderOverlay}
+                />
+              ) : (
+                <NutrientCardV2
+                  content={nutrientData}
+                  getValue={store.getValue}
+                  renderOverlay={renderOverlay}
+                />
+              );
+            })}
           </div>
         </div>
       ))}

@@ -6,10 +6,11 @@ import { useNavigate } from 'react-router';
 import { RouterLinks } from '@/router';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 type Props = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  close: () => void;
 };
 
-const DateChoose = ({ children }: Props) => {
+const DateChoose = ({ children, close }: Props) => {
   const navigate = useNavigate();
 
   return (

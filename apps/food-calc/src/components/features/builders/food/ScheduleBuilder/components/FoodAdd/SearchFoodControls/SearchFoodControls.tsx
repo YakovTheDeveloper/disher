@@ -14,15 +14,23 @@ import {
 } from '@floating-ui/react';
 import { RouterLinks } from '@/router';
 import { useNavigate } from 'react-router';
+import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
+import { domainStore } from '@/store/store';
+import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 
 type Tabs = 'productSearch' | 'dishSearch' | 'createCustom';
 
 type Props = {
   searchState: any;
   isVisible: boolean;
+  modalStore?: ModalStoreInstance;
 };
 
-const SearchFoodControls = ({ searchState, isVisible }: Props) => {
+const SearchFoodControls = ({
+  searchState,
+  isVisible,
+  modalStore = domainStore.globalUiStore.modalStore,
+}: Props) => {
   const navigate = useNavigate();
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -75,10 +83,18 @@ const SearchFoodControls = ({ searchState, isVisible }: Props) => {
 
   const { getReferenceProps, getFloatingProps } = useInteractions([click]);
 
+  const onAddButtonClick = () => {
+    modalStore.openModal(ModalType.CREATE_FOOD);
+    // modalStore.openModal(ModalType.CREATE_DISH)
+  };
+
   if (!isVisible) return null;
 
   return (
     <header className={styles.header}>
+      <button className={`${styles.createFoodButton} ${styles.active}`} onClick={onAddButtonClick}>
+        +
+      </button>
       <input
         id="search-input"
         ref={searchInputRef}
@@ -87,6 +103,7 @@ const SearchFoodControls = ({ searchState, isVisible }: Props) => {
         value={searchState.filterText}
         onChange={(e) => searchState.setSearch(e.target.value)}
       />
+
       <div className={styles.tabs}>
         <span
           ref={refs.setReference}
@@ -138,25 +155,17 @@ const SearchFoodControls = ({ searchState, isVisible }: Props) => {
           </div>
         )}
       </div>
-      <span
+      {/* <span
         ref={refs.setReference}
         className={`${styles.tabButton} ${styles.active}`}
         {...getReferenceProps()}
       >
         {getFilterLabel(searchState.currentTab)}
-      </span>
+      </span> */}
 
       {/* {searchState.currentTab === 'productSearch' && (
         <button className={`${styles.createFoodButton} ${styles.active}`} onClick={() => navigate(RouterLinks.DishBuilder)}>+ Создать</button>
       )} */}
-      {searchState.currentTab === 'dishSearch' && (
-        <button
-          className={`${styles.createFoodButton} ${styles.active}`}
-          onClick={() => navigate(RouterLinks.DishBuilder)}
-        >
-          + Создать
-        </button>
-      )}
     </header>
   );
 };

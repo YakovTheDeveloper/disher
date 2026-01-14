@@ -1,34 +1,23 @@
-import { deleteChild as deleteChildFromList, ItemStatus, ItemStatusType, SyncStatus } from "@/domain/commonListItem";
-import { Food } from "@/domain/Food";
+import { SyncStatus } from "@/domain/commonListItem";
+import { ItemContent } from "@/domain/schedule/schedule";
 import { ChildrenController } from "@/domain/shared/ChildrenController";
-import { generateId } from "@/lib/id/generateId";
-import { sumRecordArray, sumRecords } from "@/lib/sumRecords/sumRecords";
-import { destroy, getParent, getRoot, Instance, SnapshotIn, types } from "mobx-state-tree";
+import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
+import { getSnapshot, Instance, types } from "mobx-state-tree";
 
 export const DishItem = types.model("DishItem", {
     id: types.identifier,
     quantity: types.number,
-    foodId: types.string,
-    food: types.reference(Food, {
-        get(identifier, parent) {
-            const root = getRoot(parent); // <-- MST helper to get the tree root
-            console.log("root", root);
-            return root.foodStore?.data.get(identifier);
-        },
-        set(value) {
-            return value.id; // MST needs to know how to store reference
-        }
-    }),
+    content: types.optional(ItemContent, { variant: 'custom' }),
     sync: types.optional(SyncStatus, {})
 }).actions(self => ({
 
 }))
 
-// Dish
 export const Dish = types.compose("Dish", types.model({
     id: types.identifier,
     name: types.string,
     userId: types.number,
+
     lastSync: types.optional(types.string, '')
 }), ChildrenController(DishItem))
     .views(self => ({
@@ -43,9 +32,10 @@ export const Dish = types.compose("Dish", types.model({
                 (sum, { quantity }) => sum + quantity,
                 0
             );
-        }
-    })).views(self => ({
-
+        },
+        get customItems() {
+            return self.items.filter(i => i.content.variant === 'custom') || null;
+        },
         get foodWithNoNutrients() {
             return Array.from(new Set(self.items.filter(item => item.food.noNutrients).map(item => item.food)))
         }
@@ -61,6 +51,14 @@ export const Dish = types.compose("Dish", types.model({
             return acc;
         }
 
+        function addDraftChild(draft: Instance<typeof DishItem>) {
+            const { quantity, content } = draft;
+            self.addChildWithLocalData({
+                quantity,
+                content: getSnapshot(content)
+            })
+        }
+
         function updateName(name: string) {
             self.name = name;
         }
@@ -69,6 +67,7 @@ export const Dish = types.compose("Dish", types.model({
         }
 
         return {
+            addDraftChild,
             getTotalNutrients,
             updateName,
             setLastSync

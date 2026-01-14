@@ -58,7 +58,7 @@ const FoodNutrients = ({ foodId, className, before }: Props) => {
           placeholder="кол-во"
         />
       </header>
-      <Nutrients store={nutrientStore} renderOverlay={renderOverlay} progressType="circle" />
+      <Nutrients store={nutrientStore} renderOverlay={renderOverlay} asControlledForm={false} />
       <NavLink to={RouterLinks.DailyNorms} className={styles.link}>
         <Typography variant="action">поменять норму</Typography>
       </NavLink>

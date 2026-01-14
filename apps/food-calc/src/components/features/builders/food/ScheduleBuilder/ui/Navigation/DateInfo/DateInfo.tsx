@@ -6,7 +6,8 @@ import { motion, useTransform } from 'framer-motion';
 import { MotionValue } from 'framer-motion';
 import { getTitle } from '@/components/features/builders/food/ScheduleBuilder/ui/Navigation/methods';
 import { useDailyScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
-import { Modals } from '@/components/features/builders/food/ScheduleBuilder/ScheduleBuilderV2';
+import { domainStore } from '@/store/store';
+import { ScheduleDrawers } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
 
 type Props = {
   scrollYProgress: MotionValue<number>;
@@ -15,8 +16,7 @@ type Props = {
 const DateInfo = ({ scrollYProgress }: Props) => {
   const params = useParams();
   const dateParam = params.date;
-
-  const modals = useDailyScheduleModals();
+  const modals = domainStore.globalUiStore.drawerStore;
 
   const { day, monthName, monthNumber, weekdayName, weekdayNameShort } = getTitle(dateParam);
 
@@ -42,7 +42,14 @@ const DateInfo = ({ scrollYProgress }: Props) => {
   //   ['rgba(255,255,255,0)', 'rgba(255,255,255,0)', 'rgba(255,255,255,0.8)']
   // );
   return (
-    <div className={styles.dateLink} onClick={() => modals.set(Modals.DateChoose)}>
+    <div
+      className={styles.dateLink}
+      onClick={() =>
+        modals.open({
+          type: ScheduleDrawers.DateChoose,
+        })
+      }
+    >
       <motion.div className={styles.date}>
         <motion.div
           className={styles.dateNumbers}

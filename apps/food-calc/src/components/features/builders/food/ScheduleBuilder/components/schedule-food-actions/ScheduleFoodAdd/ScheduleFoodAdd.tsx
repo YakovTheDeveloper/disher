@@ -1,31 +1,26 @@
-import { observer, useLocalObservable } from 'mobx-react-lite';
+import { observer } from 'mobx-react-lite';
 import styles from './ScheduleFoodAdd.module.scss';
 import { SearchFood } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd';
-import { Instance } from 'mobx-state-tree';
-import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
+import { ScheduleItem } from '@/domain/schedule/schedule';
 import { useMemo } from 'react'; // Import useCallback
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import { ContentEdit } from '@/components/features/builders/food/shared/ContentEdit';
-import { useDailyScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
 import { Tabs } from '@/components/ui/Tabs';
-import clsx from 'clsx';
-import { mstEnv, domainStore } from '@/store/store';
-import { filterBy } from '@/lib/filter/filter';
+import { mstEnv } from '@/store/store';
 import { DrawerLayout } from '@/components/features/builders/food/shared/components/DrawerLayout';
 import { useTabs } from '@/components/features/builders/food/shared/hooks/useTabs';
 import { FinishButton } from '@/components/features/builders/food/shared/atoms/FinishButton';
-import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import { SearchFoodControls } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd/SearchFoodControls';
 import { useScheduleFoodActions } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/hooks/useScheduleFoodActions';
 import { Spacer } from '@/components/ui/atoms/Spacer';
+import { useSchedule } from '@/components/features/builders/food/ScheduleBuilder/context';
 
 type Props = {
-  children?: React.ReactNode;
-  schedule: Instance<typeof DaySchedule>;
+  close: () => void;
 };
 
-const ScheduleFoodAdd = observer(({ schedule }: Props) => {
-  const modals = useDailyScheduleModals();
+const ScheduleFoodAdd = observer(({ close }: Props) => {
+  const schedule = useSchedule();
 
   const currentChild = useMemo(
     () =>
@@ -43,7 +38,7 @@ const ScheduleFoodAdd = observer(({ schedule }: Props) => {
 
   const onFinish = () => {
     schedule.addDraftToFoods(currentChild);
-    modals.close();
+    close();
   };
 
   const { searchState } = useScheduleFoodActions(currentChild);

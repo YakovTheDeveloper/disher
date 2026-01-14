@@ -103,8 +103,11 @@
     font-weight: 700;
     color: #222;
     text-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
-    pointer-events: none;
     z-index: 10;
+
+    &_noPointerEvents {
+        pointer-events: none;
+    }
 
 }
 
@@ -126,5 +129,18 @@
     font-style: italic;
     color: #ffffff;
     border-radius: 8px;
+
+}
+
+.numberInput {
+    // position: relative;
+    // z-index: 11;
+    max-width: 40px;
+    background: transparent;
+
+    // position: absolute;
+    // left: 0;
+    // top: 0;
+    // bottom: 0;
 
 }

@@ -1,30 +1,39 @@
+import { ModalConfirmDeleteDishes } from '@/components/features/builders/food/Dishes/modal/ModalConfirmDeleteDishes';
 import { ModalCopyScheduleItemsToAnotherDay } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ModalCopyScheduleItemsToAnotherDay';
 import { ModalCreateDishFromSchedule } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ModalCreateDishFromSchedule';
-import { ModalConfirmation } from '@/components/ui/Modal/ModalConfirmation';
-import { modalComponentMap } from '@/modalConfing';
+import { ModalCreateDish } from '@/components/features/builders/food/shared/modal/ModalCreateDish';
+import { ModalCreateFood } from '@/components/features/builders/food/shared/modal/ModalCreateFood';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 import { domainStore } from '@/store/store';
+import { observer } from 'mobx-react-lite';
 
 type Props = {
   modalStore?: ModalStoreInstance;
 };
 
-export const ModalManager = ({ modalStore = domainStore.globalUiStore.modalStore }: Props) => {
-  const activeModal = modalStore.activeModal;
-  if (!activeModal) return null;
+export const ModalManager = observer(
+  ({ modalStore = domainStore.globalUiStore.modalStore }: Props) => {
+    if (!modalStore.currentModal) return null;
 
-  switch (activeModal.type) {
-    case ModalType.CONFIRMATION:
-      return <ModalConfirmation modalStore={modalStore} data={activeModal.data} />;
+    switch (modalStore.currentModal) {
+      case ModalType.CONFIRMATION_REMOVE_DISHES:
+        return <ModalConfirmDeleteDishes />;
 
-    case ModalType.CREATE_DISH_FROM_SCHEDULE:
-      return <ModalCreateDishFromSchedule modalStore={modalStore} data={activeModal.data} />;
+      case ModalType.CREATE_DISH_FROM_SCHEDULE:
+        return <ModalCreateDishFromSchedule modalStore={modalStore} />;
 
-    case ModalType.COPY_SCHEDULE_ITEMS_TO_ANOTHER_DAY:
-      return <ModalCopyScheduleItemsToAnotherDay modalStore={modalStore} data={activeModal.data} />;
+      case ModalType.COPY_SCHEDULE_ITEMS_TO_ANOTHER_DAY:
+        return <ModalCopyScheduleItemsToAnotherDay modalStore={modalStore} />;
 
-    default:
-      return null;
+      case ModalType.CREATE_FOOD:
+        return <ModalCreateFood modalStore={modalStore} />;
+
+      case ModalType.CREATE_DISH:
+        return <ModalCreateDish modalStore={modalStore} />;
+
+      default:
+        return null;
+    }
   }
-};
+);

@@ -36,6 +36,6 @@ export const RouterPaths = {
   },
 };
 
-Modal.setAppElement('#root');
+Modal.setAppElement('#modal-root');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(<RouterProvider router={router} />);

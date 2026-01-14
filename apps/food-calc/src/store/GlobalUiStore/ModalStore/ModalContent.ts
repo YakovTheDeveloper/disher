@@ -1,42 +1,22 @@
-import { types, SnapshotIn } from "mobx-state-tree";
-
 export enum ModalType {
-    CONFIRMATION = 'confirmation',
-    CREATE_DISH_FROM_SCHEDULE = 'CREATE_DISH_FROM_SCHEDULE',
+    CONFIRMATION_REMOVE_DISHES = 'CONFIRMATION_REMOVE_DISHES',
+    CONFIRMATION_REMOVE_DISH_ITEMS = 'CONFIRMATION_REMOVE_DISH_ITEMS',
+    CONFIRMATION_REMOVE_SCHEDULE_FOOD = 'CONFIRMATION_REMOVE_SCHEDULE_FOOD',
+    CONFIRMATION_REMOVE_SCHEDULE_EVENTS = 'CONFIRMATION_REMOVE_SCHEDULE_EVENTS',
+
     COPY_SCHEDULE_ITEMS_TO_ANOTHER_DAY = 'COPY_SCHEDULE_ITEMS_TO_ANOTHER_DAY',
     COPY_SCHEDULE_ITEMS_TO_DISH = 'COPY_SCHEDULE_ITEMS_TO_DISH',
+    COPY_DISH_ITEMS_TO_ANOTHER_DISH = 'COPY_DISH_ITEMS_TO_ANOTHER_DISH',
+    COPY_DISH_ITEMS_TO_SCHEDULE = 'COPY_DISH_ITEMS_TO_SCHEDULE',
+
     SELECT = 'select',
+
+    CREATE_DISH_FROM_SCHEDULE = 'CREATE_DISH_FROM_SCHEDULE',
+    CREATE_FOOD = 'CREATE_FOOD',
+    CREATE_DISH = 'CREATE_DISH',
 }
 
-const actionType = types.optional(types.string, '')
-
-export const ConfirmationModalData = types.model("ConfirmationModalData", {
-    action: actionType,
-}).actions(self => ({
-    setAction(action: string) {
-        self.action = action;
-    },
-}));
-
-export const CreateDishFromScheduleConfirmationModalData = types.model("CreateDishFromScheduleConfirmationModalData", {
-    action: actionType,
-
-}).actions(self => ({
-    setAction(action: string) {
-        self.action = action;
-    },
-}));
-
-export const CopyScheduleItemsToAnotherDayModalData = types.model("CopyScheduleItemsToAnotherDayModalData", {
-    action: actionType,
-
-}).actions(self => ({
-    setAction(action: string) {
-        self.action = action;
-    },
-}));
-
-export type ConfirmationModalDataType = SnapshotIn<typeof ConfirmationModalData>;
-export type CopyScheduleItemsToAnotherDayModalDataType = SnapshotIn<typeof CopyScheduleItemsToAnotherDayModalData>;
-export type CreateDishFromScheduleModalDataType = SnapshotIn<typeof CreateDishFromScheduleConfirmationModalData>;
-export const ModalData = types.union(ConfirmationModalData, CreateDishFromScheduleConfirmationModalData, CopyScheduleItemsToAnotherDayModalData);
+export type ConfirmationModals = ModalType.CONFIRMATION_REMOVE_DISHES
+    | ModalType.CONFIRMATION_REMOVE_SCHEDULE_FOOD
+    | ModalType.CONFIRMATION_REMOVE_SCHEDULE_EVENTS
+    | ModalType.CONFIRMATION_REMOVE_DISH_ITEMS

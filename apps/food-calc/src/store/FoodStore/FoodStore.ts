@@ -2,21 +2,41 @@ import { types, flow, Instance, SnapshotIn } from "mobx-state-tree";
 import { getFoodList, GetFoodParams, getFoodWithNutrients, getFoodWithNutrientsByIds, getOneFood } from "@/api/food/food.api";
 import { RequestState, ResponseStatus } from "@/api/RequestState";
 import { isEmpty } from "@/lib/empty";
-import { Food } from "@/domain/Food";
+import { Food, UserFood } from "@/domain/Food";
 import { runInAction } from "mobx";
 import foodFullData from "@/assets/seed/foodFull.json";
+import { generateId } from "@/lib/id/generateId";
 
 type GetFoodListResult = Awaited<ReturnType<typeof getFoodList>>;
 type GetFoodNutrientsByIdResult = Awaited<ReturnType<typeof getFoodWithNutrientsByIds>>;
+type AddLocalPayload = {
+    food: SnapshotIn<typeof Food>,
+    variant: 'pre-defined-food'
+} | {
+    food: Omit<SnapshotIn<typeof Food>, 'id'>,
+    variant: 'user-custom-food'
+}
+
 //
 // TYPES
 //
 //
 // STORE
 //
+
+function normalizeNutrients(
+    nutrients?: SnapshotIn<typeof Food>['nutrients']
+) {
+    return nutrients?.map((n: any) => ({
+        ...n,
+        nutrient: n.nutrientId ?? n.nutrient,
+    }))
+}
+
 export const FoodModelStore = types
     .model("FoodModelStore", {
         data: types.map(Food),
+        customUserFoodData: types.map(UserFood),
         shortData: types.optional(types.array(Food), []),
         total: types.optional(types.number, 0),
         hasMore: types.optional(types.boolean, true),
@@ -54,26 +74,52 @@ export const FoodModelStore = types
     //
     .actions((self) => {
 
+        function getUserFoodById(id: string) {
+            return self.customUserFoodData.get(id)
+        }
+
+        function getUserOrPredefinedFoodById(id: string) {
+            return self.customUserFoodData.get(id) || self.data.get(id)
+        }
+
         function setShortData(data: any[]) {
             self.shortData.push(...data);
         }
 
-        function addLocal(value: SnapshotIn<typeof Food>) {
-            // const model = createFoodModel(value);
-            const snapshot = { ...value }
-            if (snapshot.nutrients) {
-                snapshot.nutrients = snapshot.nutrients.map((n: any) => ({
-                    ...n,
-                    nutrient: n.nutrientId || n.nutrient
-                }))
-            }
-            const model = Food.create(snapshot);
+        function addLocal(payload: AddLocalPayload): Instance<typeof Food> | undefined {
             try {
-                self.data.set(model.id, model);
+                switch (payload.variant) {
+                    case 'pre-defined-food': {
+                        const model = Food.create({
+                            ...payload.food,
+                            nutrients: normalizeNutrients(payload.food.nutrients),
+                        })
+
+                        self.data.set(model.id, model)
+                        return model
+                    }
+
+                    case 'user-custom-food': {
+                        const model = Food.create({
+                            ...payload.food,
+                            id: generateId(),
+                            nutrients: normalizeNutrients(payload.food.nutrients),
+                        })
+
+                        self.customUserFoodData.set(model.id, model)
+                        return model
+                    }
+
+                    default: {
+                        const _exhaustive: never = payload
+                        return _exhaustive
+                    }
+                }
             } catch (error) {
-                // handle error if needed
+                // optionally log / rethrow
+                console.error('addLocal failed', error)
+                return undefined
             }
-            return model;
         }
 
         function deleteFood(id: number) {
@@ -147,7 +193,7 @@ export const FoodModelStore = types
         const addFoodOrNutrientsIfNotExists = (food: typeof foodFullData[0]) => {
             const key = food.id
             const existFood = self.data.get(key)
-1
+            1
             try {
                 if (!existFood) {
                     const convertedNutrients = food.nutrients.map(n => ({
@@ -222,7 +268,10 @@ export const FoodModelStore = types
                 self.hasMore = hasMore;
 
                 // add new items
-                items.forEach(item => addLocal(item));
+                items.forEach(item => addLocal({
+                    food: item,
+                    variant: 'pre-defined-food'
+                }));
             });
         });
 
@@ -237,6 +286,8 @@ export const FoodModelStore = types
             _loadFoodWithNutrientsByFoodIds,
             loadFoodWithNutrientsByFoodIds,
             loadLazy,
+            getUserFoodById,
+            getUserOrPredefinedFoodById,
             afterCreate() {
                 loadInitialFoods()
             }
@@ -246,4 +297,4 @@ export const FoodModelStore = types
 //
 // INSTANCE TYPE
 //
-export interface IFoodModelStore extends Instance<typeof FoodModelStore> { }
+export interface FoodStoreInstance extends Instance<typeof FoodModelStore> { }

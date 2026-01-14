@@ -1,6 +1,6 @@
 // import { SyncStatus } from "@/domain/commonListItem";
 import { generateId } from "@/lib/id/generateId"
-import { types, destroy, SnapshotIn, IAnyModelType, IModelType, getSnapshot } from "mobx-state-tree"
+import { types, destroy, SnapshotIn, IAnyModelType, IModelType, getSnapshot, isStateTreeNode } from "mobx-state-tree"
 
 export function ChildrenController<T extends IAnyModelType>(
   ChildModel: T,
@@ -32,7 +32,9 @@ export function ChildrenController<T extends IAnyModelType>(
       },
 
       addChildWithLocalData(data: Partial<SnapshotIn<T>>) {
-        const { id = '', ...noIdData } = getSnapshot(data)
+        const dataNormalized = isStateTreeNode(data) ? getSnapshot(data) : data
+        const { id = '', ...noIdData } = dataNormalized
+
         const child = ChildModel.create({ id: generateId(), ...noIdData })
         child.sync.markAdded()
         self.items.push(child)

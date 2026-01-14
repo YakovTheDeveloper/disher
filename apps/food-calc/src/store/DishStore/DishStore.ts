@@ -1,13 +1,6 @@
-import { types, flow, cast, Instance, getRoot, SnapshotIn } from "mobx-state-tree"
-import {
-    getSchedules,
-    getOneSchedule,
-    addSchedule,
-    updateSchedule
-} from "@/api/schedule/schedule.api"
+import { types, cast, Instance, getRoot, SnapshotIn } from "mobx-state-tree"
 import { ISODate } from "@/types/common/common"
-import { DaySchedule, ScheduleItem } from "@/domain/schedule/schedule"
-import { createDayScheduleModel } from "@/store/DayScheduleStore/fabric"
+import { ScheduleItem } from "@/domain/schedule/schedule"
 import { RequestState } from "@/store/shared/RequestState"
 import { Dish } from "@/domain/dish/Dish"
 import { createDishModel } from "@/store/DishStore/fabric"
@@ -104,6 +97,13 @@ export const DishStore = types
                 [{ id, variant: "fetchGet" }],
                 () => getDishById(id)
             );
+        },
+
+        removeBulk(dishIds: string[]) {
+            dishIds.forEach(id => {
+                self.data.delete(id);
+                self.exists.delete(id);
+            });
         },
 
     }))

@@ -1,27 +1,24 @@
 import { observer } from 'mobx-react-lite';
 import styles from './ScheduleFoodEdit.module.scss';
 import { SearchFood } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd';
-import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule';
 import { FoodNutrients } from '@/components/features/builders/food/shared/components/FoodNutrients';
-import { useSearchParams } from 'react-router';
 import { DishNutrients } from '@/components/features/builders/food/ScheduleBuilder/components/DishNutrients';
-import { useState } from 'react';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import { ContentEdit } from '@/components/features/builders/food/shared/ContentEdit';
-import { useDailyScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
 import { Tabs } from '@/components/ui/Tabs';
 import { DrawerLayout } from '@/components/features/builders/food/shared/components/DrawerLayout';
 import { useScheduleFoodActions } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/hooks/useScheduleFoodActions';
 import { useTabs } from '@/components/features/builders/food/shared/hooks/useTabs';
-import { useItemIdParam } from '@/hooks/useItemIdParams';
 import { SearchFoodControls } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd/SearchFoodControls';
 import { Spacer } from '@/components/ui/atoms/Spacer';
+import {
+  useSchedule,
+  useSelectedScheduleItem,
+} from '@/components/features/builders/food/ScheduleBuilder/context';
 
 type Props = {
-  children?: React.ReactNode;
-  schedule: Instance<typeof DaySchedule>;
   defaultTab?: string;
+  close: () => void;
 };
 
 const tabs = [
@@ -31,15 +28,9 @@ const tabs = [
   { value: 'quantity', label: 'количество' },
 ];
 
-const ScheduleFoodEdit = observer(({ schedule, defaultTab }: Props) => {
-  const itemId = useItemIdParam();
-
-  const modals = useDailyScheduleModals();
-
-  const currentChild = schedule.getChildById(itemId);
-
-  if (!currentChild) return null;
-
+const ScheduleFoodEdit = observer(({ defaultTab, close }: Props) => {
+  const schedule = useSchedule();
+  const currentChild = useSelectedScheduleItem();
   const { currentTab, setTab } = useTabs(tabs, defaultTab);
   const { searchState } = useScheduleFoodActions(currentChild);
 
@@ -47,7 +38,7 @@ const ScheduleFoodEdit = observer(({ schedule, defaultTab }: Props) => {
   const foodId = currentChild.content.foodId;
   const dish = currentChild.content.dish;
 
-  const onFinish = () => modals.close();
+  const onFinish = () => close();
 
   return (
     <DrawerLayout

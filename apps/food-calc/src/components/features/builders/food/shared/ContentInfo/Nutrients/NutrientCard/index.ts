@@ -1,1 +1,2 @@
-export { default as NutrientCard } from "./NutrientCard.tsx";
+export { default as NutrientCard } from "./NutrientCardV2.tsx";
+export { default as NutrientCardFormEntry } from "./NutrientCardV2FormEntry.tsx";

@@ -1,28 +1,51 @@
-.modal {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    right: auto;
-    bottom: auto;
-    transform: translate(-50%, -50%);
-    max-width: 500px;
-    width: 90%;
-    min-width: 300px;
-    background: var(--color-white);
-    border: 1px solid var(--color-light-gray-2);
-    box-shadow: var(--box-shadow-s);
-    border-radius: var(--brad-s);
-    padding: 0;
-}
+// .modal {
+//     position: absolute;
+//     top: 50%;
+//     left: 50%;
+//     right: auto;
+//     bottom: auto;
+//     transform: translate(-50%, -50%);
+//     max-width: 500px;
+//     width: 90%;
+//     min-width: 300px;
+//     background: var(--color-white);
+//     border: 1px solid var(--color-light-gray-2);
+//     box-shadow: var(--box-shadow-s);
+//     border-radius: var(--brad-s);
+//     padding: 0;
+//     z-index: 4001;
+// }
+
+// .overlay {
+//     position: fixed;
+//     top: 0;
+//     left: 0;
+//     right: 0;
+//     bottom: 0;
+//     background-color: rgba(0, 0, 0, 0.5);
+//     z-index: 4000;
+// }
 
 .overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 4000;
+}
+
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 90vw;
+    max-height: 90vh;
+    z-index: 4001;
+
 }
 
 .closeButton {

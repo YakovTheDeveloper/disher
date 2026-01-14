@@ -8,8 +8,9 @@ Rules:
 - Styling: SCSS Modules
 - Follow existing code style
 - Do not rewrite unrelated files
-- Keep changes minimal
+- Do not read unrelated files
 - Do not refactor unrelated files
+- Keep changes minimal
 - No explanations unless asked
 - Do not build project
 
@@ -31,3 +32,5 @@ Ask for confirmation ONLY when performing:
 - changes outside the current workspace
 
 When a plan is approved, execute it fully without further confirmations.
+
+router data is here @/src/router.tsx

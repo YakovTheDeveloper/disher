@@ -3,17 +3,23 @@ import styles from './ModalConfirmation.module.scss';
 import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 import { ConfirmationModalDataType as ConfirmationModalDataInstance } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 import { domainStore } from '@/store/store';
+import { useConfirm } from '@/context/modalConfirmationContext';
 
 type Props = {
-  modalStore: ModalStoreInstance;
+  modalStore?: ModalStoreInstance;
   data: ConfirmationModalDataInstance;
+  onConfirm: () => void;
 };
 
-const ModalConfirmation = ({ modalStore, data }: Props) => {
+const ModalConfirmation = ({
+  modalStore = domainStore.globalUiStore.modalStore,
+  data,
+  onConfirm,
+}: Props) => {
   const ids = domainStore.globalUiStore.selectedIds;
   // schedule.foods.removeChildren(ids);
 
-  domainStore.globalUiStore.clearSelection();
+  // domainStore.globalUiStore.clearSelection();
 
   return (
     <div className={styles.content}>
@@ -23,7 +29,7 @@ const ModalConfirmation = ({ modalStore, data }: Props) => {
         <button onClick={modalStore.closeModal} className={styles.cancel}>
           Отменить
         </button>
-        <button onClick={modalStore.confirmCurrentModal} className={styles.confirm}>
+        <button onClick={onConfirm} className={styles.confirm}>
           Подтвердить
         </button>
       </div>

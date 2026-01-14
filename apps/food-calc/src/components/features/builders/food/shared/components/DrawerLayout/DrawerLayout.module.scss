@@ -16,11 +16,13 @@
     min-height: 50vh;
     // max-height: calc(100vh - var(--overlay-height, 0px));+
     max-height: 98dvh;
+    z-index: 3001;
 
     display: flex;
     flex-direction: column;
     // flex-grow: 1;
-    z-index: 60;
+
+
     overflow: hidden;
     padding-bottom: env(safe-area-inset-bottom);
 

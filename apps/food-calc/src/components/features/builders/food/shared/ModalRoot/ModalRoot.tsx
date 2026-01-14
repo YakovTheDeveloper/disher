@@ -37,6 +37,7 @@ function ModalRoot<ModalVariants extends string | number>({ children }: Props<Mo
 
   const currentChild = modalFromUrl ? children[modalFromUrl] : null;
 
+  return null;
   return (
     <Drawer open={!!currentChild} onOpenChange={modals.close}>
       {currentChild as React.ReactNode}

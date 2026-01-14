@@ -1,21 +1,17 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Item.module.scss';
-import { DayScheduleItemUI } from '@/components/features/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel';
-import { Time } from '@/components/features/builders/food/ScheduleBuilder/ui/List/Time';
 import { BuilderUIStore } from '@/components/features/builders/food/shared/BuilderUIStore';
 import { FoodName } from '@/components/features/builders/food/shared/ui/FoodName';
-import { ItemActions } from '@/components/features/builders/food/ScheduleBuilder/types';
 import { Quantity } from '@/components/features/builders/food/shared/ui/Quantity';
 import { useCallback, useMemo } from 'react';
 import clsx from 'clsx';
 import { CommonListItem } from '@/components/features/builders/food/shared/ui/CommonListItem';
-import { toJS } from 'mobx';
 import { Instance } from 'mobx-state-tree';
 import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
-import { useDailyScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
 import { useNavigate } from 'react-router';
 import { RouterLinks } from '@/router';
-import { Modals } from '@/components/features/builders/food/ScheduleBuilder/ScheduleBuilderV2';
+import { domainStore } from '@/store/store';
+import { ScheduleDrawers } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
 
 type Props = {
   controller: Instance<typeof DaySchedule>;
@@ -25,19 +21,28 @@ type Props = {
 };
 
 const Item = ({ item, controller, options, className }: Props) => {
-  const modals = useDailyScheduleModals();
+  const modals = domainStore.globalUiStore.drawerStore;
+  const id = item.id;
 
   const navigate = useNavigate();
 
   const onFoodsOpenUpdate = () => {
-    modals.set(Modals.FoodEdit, {
-      item_id: item.id,
+    modals.open({
+      type: ScheduleDrawers.FoodEdit,
+      payload: {
+        defaultTab: 'foodChange',
+        itemToEditId: id,
+      },
     });
   };
 
   const onQuantityOpen = () => {
-    modals.set('quantity', {
-      item_id: item.id,
+    modals.open({
+      type: ScheduleDrawers.FoodEdit,
+      payload: {
+        defaultTab: 'quantity',
+        itemToEditId: id,
+      },
     });
   };
 
@@ -49,8 +54,6 @@ const Item = ({ item, controller, options, className }: Props) => {
   const onDishOpenInfo = () => {
     navigate(`${RouterLinks.DishBuilder}/${item.content.dishId}`);
   };
-
-  const id = item.id;
 
   const getFoodName = useCallback(() => item.content?.name, [item]);
   const getQuantity = useCallback(() => item.quantity, [item]);

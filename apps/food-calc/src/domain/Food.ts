@@ -34,6 +34,13 @@ export const Food = types.model("Food", {
         },
         get foodWithNoNutrients() {
             return views.noNutrients ? [self] : [];
+        },
+        get nutrientsMap() {
+            const map = new Map<string, typeof self.nutrients[0]>();
+            self.nutrients.forEach(nutrient => {
+                map.set(nutrient.nutrientId, nutrient);
+            });
+            return map;
         }
     }
     return views;
@@ -51,7 +58,6 @@ export const Food = types.model("Food", {
         quantity: number;
         nutrientId: number | string;
     }[]) {
-        console.log('hellohello', nutrients);
         if (!self.nutrients) {
             self.nutrients = cast([]);
         }
@@ -63,14 +69,54 @@ export const Food = types.model("Food", {
                     quantity
                 })
             )
-            console.log('newNutrients', newNutrients);
             self.nutrients.replace(newNutrients)
         } catch (error) {
 
         }
     }
+
+    function addNutrient(nutrientId: string, quantity: number) {
+        const existingNutrient = self.nutrients.find(n => n.nutrientId === nutrientId);
+        if (!existingNutrient) {
+            const newNutrient = FoodNutrient.create({
+                nutrientId,
+                quantity,
+                nutrient: nutrientId
+            });
+            self.nutrients.push(newNutrient);
+            return newNutrient
+        }
+    }
+
     return {
         setNutrients,
-        getTotalNutrients
+        getTotalNutrients,
+        addNutrient
     }
 });
+
+export const UserFood = Food
+    .named("UserFood")
+    .actions(self => ({
+        changeName(name: string) {
+            self.name = name
+        },
+
+        changeDescription(description?: string) {
+            self.description = description
+        },
+
+        changeNutrientValue(nutrientId: string, quantity: number) {
+
+            const nutrient = self.nutrients.find(n => n.nutrientId === nutrientId)
+
+            console.log(nutrient);
+            if (nutrient) {
+                nutrient.quantity = quantity
+            } else {
+                const newNutrient = self.addNutrient(nutrientId, quantity)
+                if (!newNutrient) return
+                newNutrient.quantity = quantity
+            }
+        },
+    }))

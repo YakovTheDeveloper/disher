@@ -8,6 +8,8 @@ import { Toaster } from 'react-hot-toast';
 import { setupGlobalLog } from '@/lib/log/log';
 import { Modal } from '@/components/ui/Modal';
 import { ModalManager } from '@/ModalManager';
+import { Drawer } from '@/components/ui/Drawer';
+import { DrawerManager } from '@/DrawerManager';
 
 const queryClient = new QueryClient();
 
@@ -21,6 +23,9 @@ const App = () => {
         <Modal>
           <ModalManager />
         </Modal>
+        <Drawer>
+          <DrawerManager />
+        </Drawer>
         <Outlet />
       </div>
     </QueryClientProvider>

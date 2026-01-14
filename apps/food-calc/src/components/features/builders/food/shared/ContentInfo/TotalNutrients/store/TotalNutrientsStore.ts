@@ -7,14 +7,17 @@ import { types, IAnyStateTreeNode, Instance, flow, onPatch } from "mobx-state-tr
 type FoodId = string
 type NutrientId = number
 
-interface Entity { getTotalNutrients: (q?: number) => Record<string, number>, foodWithNoNutrients: { id: string }[] }
+export interface NutrientsCountableEntity {
+    getTotalNutrients: (q?: number) => Record<string, number>,
+    foodWithNoNutrients: { id: string, name: string }[]
+}
 
 export const TotalNutrientsStore = types
     .model("TotalNutrientsStore", {
         nutrients: types.map(types.number),
     })
     .volatile<{
-        entity: Entity | null
+        entity: NutrientsCountableEntity | null
         emitter: Emitter | null
     }>(() => ({
         entity: null,
@@ -72,7 +75,7 @@ export const TotalNutrientsStore = types
                 }
             },
 
-            setEntity(entity: Entity) {
+            setEntity(entity: NutrientsCountableEntity) {
                 disposeEntityListener?.()
                 self.entity = entity
                 actions.loadNutrientsAndCalculate()
@@ -80,6 +83,7 @@ export const TotalNutrientsStore = types
                 disposeEntityListener = onPatch(entity, patch => {
                     console.log('patch');
                     if (
+                        patch.path.match(/nutrients\/\d+\/quantity/) ||
                         patch.path.match(/items\/\d+\/quantity/) ||
                         patch.path.match(/items\/\d+\/content/) ||
                         patch.path === "/items" ||

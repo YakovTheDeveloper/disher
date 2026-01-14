@@ -5,7 +5,6 @@ import { DaySchedule } from '@/domain/schedule/schedule';
 import { useState, useMemo, lazy } from 'react'; // Import useCallback
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import { ContentEdit } from '@/components/features/builders/food/shared/ContentEdit';
-import { useDailyScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
 import { Tabs } from '@/components/ui/Tabs';
 import clsx from 'clsx';
 import { mstEnv } from '@/store/store';
@@ -19,6 +18,7 @@ import { SchheduleEventList } from '@/components/features/builders/food/Schedule
 import { EventItem } from '@/domain/schedule/scheduleEvent/scheduleEvent';
 import { FinishButton } from '@/components/features/builders/food/shared/atoms/FinishButton';
 import { Spacer } from '@/components/ui/atoms/Spacer';
+import { useSchedule } from '@/components/features/builders/food/ScheduleBuilder/context';
 
 const EventContent = lazy(() =>
   import(
@@ -29,12 +29,11 @@ const EventContent = lazy(() =>
 );
 
 type Props = {
-  children?: React.ReactNode;
-  schedule: Instance<typeof DaySchedule>;
+  close: () => void;
 };
 
-const ScheduleEventsAdd = ({ schedule }: Props) => {
-  const modals = useDailyScheduleModals();
+const ScheduleEventsAdd = ({ close }: Props) => {
+  const schedule = useSchedule();
 
   // const currentChild = schedule.draft.food;
   const currentChild = useMemo(
@@ -52,7 +51,7 @@ const ScheduleEventsAdd = ({ schedule }: Props) => {
   );
   const onFinish = () => {
     schedule.addDraftToEvents(currentChild);
-    modals.close();
+    close();
   };
 
   const tabs = [

@@ -4,7 +4,7 @@
     top: 0;
     z-index: 11;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: auto 1fr 1fr 1fr 1fr;
     grid-template-rows: 1fr 1fr;
     gap: 5px;
     // min-height: 80px;
@@ -12,6 +12,15 @@
     border-bottom: 1px solid rgba(207, 207, 207, 0.274);
     width: 100%;
     padding: 8px;
+}
+
+.createFoodButton {
+    font-size: 12px;
+    background-color: transparent;
+    height: 28px;
+    width: 28px;
+
+
 }
 
 .searchInput {
@@ -136,12 +145,7 @@
     pointer-events: none;
 }
 
-.createFoodButton {
-    grid-column: 4 / 4;
 
-    font-size: 12px;
-    background-color: transparent;
-}
 
 .dropdownMenu {
     background: white;

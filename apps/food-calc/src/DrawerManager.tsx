@@ -1,30 +1,57 @@
-import { ModalCopyScheduleItemsToAnotherDay } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ModalCopyScheduleItemsToAnotherDay';
-import { ModalCreateDishFromSchedule } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ModalCreateDishFromSchedule';
-import { ModalConfirmation } from '@/components/ui/Modal/ModalConfirmation';
-import { modalComponentMap } from '@/modalConfing';
-import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
-import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
+import { useEffect } from 'react';
+import { observer } from 'mobx-react-lite';
+import { scheduleDrawers } from '@/components/features/builders/food/ScheduleBuilder/components/drawer/ScheduleDrawers';
+import { DrawerDefinition } from '@/types/common/drawer';
 import { domainStore } from '@/store/store';
 
-type Props = {
-  modalStore?: ModalStoreInstance;
-};
+export function createDrawerRegistry(definitions: DrawerDefinition[]) {
+  const map = new Map<string, DrawerDefinition>();
 
-export const ModalManager = ({ modalStore = domainStore.globalUiStore.modalStore }: Props) => {
-  const activeModal = modalStore.activeModal;
-  if (!activeModal) return null;
-
-  switch (activeModal.type) {
-    case ModalType.CONFIRMATION:
-      return <ModalConfirmation modalStore={modalStore} data={activeModal.data} />;
-
-    case ModalType.CREATE_DISH_FROM_SCHEDULE:
-      return <ModalCreateDishFromSchedule modalStore={modalStore} data={activeModal.data} />;
-
-    case ModalType.COPY_SCHEDULE_ITEMS_TO_ANOTHER_DAY:
-      return <ModalCopyScheduleItemsToAnotherDay modalStore={modalStore} data={activeModal.data} />;
-
-    default:
-      return null;
+  for (const def of definitions) {
+    if (map.has(def.type)) {
+      throw new Error(`Duplicate drawer type: ${def.type}`);
+    }
+    map.set(def.type, def);
   }
-};
+
+  return map;
+}
+
+export const drawerRegistry = createDrawerRegistry([...scheduleDrawers]);
+
+export const DrawerManager = observer(() => {
+  const { drawerStore } = domainStore.globalUiStore;
+  const { activeDrawer, isOpen, close, syncFromUrl } = drawerStore;
+
+  useEffect(() => {
+    syncFromUrl();
+
+    const handlePopState = () => {
+      syncFromUrl();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [syncFromUrl]);
+
+  if (!isOpen || !activeDrawer) return null;
+
+  const definition = drawerRegistry.get(activeDrawer.type);
+
+  if (!definition) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Unknown drawer:', activeDrawer.type);
+    }
+    return null;
+  }
+
+  return (
+    <>
+      {definition.render({
+        // @ts-expect-error - activeDrawer matches DrawerPayloadModel which might or might not have payload
+        payload: activeDrawer.payload,
+        close: () => close(),
+      })}
+    </>
+  );
+});

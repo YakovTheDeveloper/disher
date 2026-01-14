@@ -30,8 +30,8 @@ export const ItemContent = types
     .views(self => ({
         get food() {
             if (!self.foodId) return null
-            const foodStore = getEnv(self)?.foodStore
-            return foodStore?.data.get(self.foodId)
+            const foodStore = getEnv(self)?.foodStore as FoodStoreInstance
+            return foodStore?.getUserOrPredefinedFoodById(self.foodId)
             // return getRoot(self).foodStore.data.get(self.foodId)
         },
 

@@ -1,8 +1,7 @@
-import Modal from 'react-modal';
+import * as Dialog from '@radix-ui/react-dialog';
 import { observer } from 'mobx-react-lite';
 import styles from './Modal.module.scss';
 import { ModalStoreInstance } from '../../../store/GlobalUiStore/ModalStore/ModalStore';
-
 import { domainStore } from '@/store/store';
 
 interface ModalProps {
@@ -16,27 +15,34 @@ const ModalComponent = ({
 }: ModalProps) => {
   const currentModal = modalStore.currentModal;
 
-  if (!currentModal) return null;
-
-  const { isOpen } = currentModal;
-
   return (
-    <Modal
-      isOpen={isOpen}
-      onRequestClose={() => modalStore.closeModal()}
-      className={styles.modal}
-      overlayClassName={styles.overlay}
-      contentLabel="Modal"
-      style={{
-        content: {},
-        overlay: {},
+    <Dialog.Root
+      open={!!currentModal}
+      onOpenChange={(open) => {
+        if (!open) {
+          modalStore.closeModal();
+        }
       }}
     >
-      <button className={styles.closeButton} onClick={() => modalStore.closeModal()}>
-        ×
-      </button>
-      {children}
-    </Modal>
+      <Dialog.Portal>
+        <Dialog.Overlay className={styles.overlay} />
+
+        <Dialog.Content className={styles.modal}>
+          <button
+            className={styles.closeButton}
+            // aria-label="Close"
+            onClick={(e) => {
+              e.stopPropagation();
+              modalStore.closeModal();
+            }}
+          >
+            ×
+          </button>
+
+          {children}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 };
 
