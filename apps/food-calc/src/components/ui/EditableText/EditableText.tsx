@@ -1,86 +1,132 @@
-import React, { useState } from "react";
-import { Typography, TypographyProps } from "@/components/ui/Typography/Typography";
-import EditIcon from "@/assets/icons/edit.svg";
-import s from './EditableText.module.css';
-
-import typoStyle from '@/components/ui/Typography/Typography.module.css';
-import clsx from "clsx";
+import React, { useState, useRef, useCallback, forwardRef } from 'react';
+import styles from './EditableText.module.scss';
+import clsx from 'clsx';
+import crossIcon from '@/assets/icons/cross.svg';
 
 interface EditableTextProps {
-    value: string; // The text value to display/edit
-    onChange: (newValue: string) => void; // Callback to handle value changes
-    typographyProps?: Omit<TypographyProps, "children">; // Props to pass to the Typography component (excluding 'children')
-    placeholder?: string; // Optional placeholder for the input field
-    max?: number; // Maximum length for the input value
-    min?: number; // Minimum length for the input value
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+  multiline?: boolean;
+  readOnly?: boolean;
+  allowEmpty?: boolean;
+  isClearable?: boolean;
 }
 
-const EditableText = ({
-    value,
-    onChange,
-    typographyProps,
-    placeholder = "Edit text...",
-    max = 50,
-    min = 1,
-}: EditableTextProps) => {
-    const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
-    const [localValue, setLocalValue] = useState(value); // Local state for editing
+const EditableText = forwardRef<HTMLDivElement, EditableTextProps>(
+  (
+    {
+      value,
+      onChange,
+      placeholder = '',
+      className,
+      multiline = false,
+      readOnly = false,
+      allowEmpty = true,
+      isClearable = true,
+    },
+    ref
+  ) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
-    const handleSave = () => {
-        if (localValue.length >= min && localValue.length <= max) {
-            onChange(localValue); // Update parent value only on save
-        }
-        setIsEditing(false); // Exit edit mode on save
-    };
+    // Start editing
+    const handleStartEdit = useCallback(() => {
+      if (readOnly) return;
+      setIsEditing(true);
+      // Focus after render
+      setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.setSelectionRange(
+          inputRef.current.value.length,
+          inputRef.current.value.length
+        );
+      }, 0);
+    }, [readOnly]);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
-            handleSave(); // Save on Enter key
-        } else if (e.key === "Escape") {
-            setIsEditing(false); // Cancel edit on Escape key
-        }
-    };
+    // Cancel editing
+    const handleCancel = useCallback(() => {
+      setIsEditing(false);
+    }, []);
 
-    const handleInputChange = (newValue: string) => {
-        setLocalValue(newValue); // Update local state
-    };
+    // Clear input
+    const handleClear = useCallback(() => {
+      if (inputRef.current) {
+        inputRef.current.value = '';
+        inputRef.current.focus();
+      }
+    }, []);
 
-    const inputTypoClass = typographyProps?.variant ? typoStyle[typographyProps.variant] : '';
+    // Commit changes
+    const handleCommit = useCallback(() => {
+      if (!inputRef.current) return;
+      const trimmedValue = inputRef.current.value.trim();
+      if (!allowEmpty && !trimmedValue) {
+        handleCancel();
+      } else {
+        setIsEditing(false);
+        onChange(trimmedValue);
+      }
+    }, [onChange, allowEmpty, handleCancel]);
+
+    // Handle key events
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !multiline) handleCommit();
+        if (e.key === 'Escape') handleCancel();
+      },
+      [multiline, handleCommit, handleCancel]
+    );
+
+    if (isEditing) {
+      const InputComponent = multiline ? 'textarea' : 'input';
+      const inputProps = {
+        ref: inputRef,
+        className: clsx(styles.input, isClearable && styles.inputClearable),
+        defaultValue: value,
+        onBlur: handleCommit,
+        onKeyDown: handleKeyDown,
+        placeholder,
+        'aria-label': `Editing text: ${value}`,
+        disabled: readOnly,
+      };
+
+      return (
+        <div className={styles.inputWrapper}>
+          {React.createElement(InputComponent, inputProps)}
+          {isClearable && (
+            <button
+              type="button"
+              className={styles.clearButton}
+              onMouseDown={handleClear}
+              aria-label="Clear text"
+            >
+              <img src={crossIcon} alt="Clear" />
+            </button>
+          )}
+        </div>
+      );
+    }
 
     return (
-        <div className={s.container}>
-            {isEditing ? (
-                <input
-                    className={clsx([s.editableTextInput, inputTypoClass])}
-                    type="text"
-                    value={localValue}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onBlur={handleSave}
-                    autoFocus
-                    placeholder={placeholder}
-                />
-            ) : (
-                <>
-
-                    <Typography
-                        {...typographyProps}
-                        onClick={() => setIsEditing(true)}
-                        className={s.editableText}
-                    >
-                        {value || placeholder}
-                    </Typography>
-                </>
-            )}
-            <button
-                className={s.editButton}
-                onClick={() => setIsEditing(true)}
-                aria-label="Edit"
-            >
-                <EditIcon />
-            </button>
-        </div>
+      <div
+        ref={ref}
+        className={clsx(styles.display, className)}
+        onClick={handleStartEdit}
+        role="button"
+        tabIndex={readOnly ? -1 : 0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleStartEdit();
+        }}
+        aria-label={`Editable text: ${value}`}
+      >
+        {value ? value : <span className={styles.placeholder}>{placeholder}</span>}
+      </div>
     );
-};
+  }
+);
+
+EditableText.displayName = 'EditableText';
 
 export default EditableText;

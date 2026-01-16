@@ -1,24 +1,16 @@
 import { observer } from 'mobx-react-lite';
-import styles from './ScheduleFoodEdit.module.scss';
+import styles from './DishFoodEdit.module.scss';
 import { SearchFood } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd';
 import { FoodNutrients } from '@/components/features/builders/food/shared/components/FoodNutrients';
-import { DishNutrients } from '@/components/features/builders/food/ScheduleBuilder/components/DishNutrients';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import { ContentEdit } from '@/components/features/builders/food/shared/ContentEdit';
 import { Tabs } from '@/components/ui/Tabs';
 import { DrawerLayout } from '@/components/features/builders/food/shared/components/DrawerLayout';
-import { useScheduleFoodActions } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/hooks/useScheduleFoodActions';
+import { useDishFoodActions } from '@/components/features/builders/food/DishBuilder/components/drawer/dish-food-actions/hooks/useDishFoodActions';
 import { useTabs } from '@/components/features/builders/food/shared/hooks/useTabs';
 import { SearchFoodControls } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd/SearchFoodControls';
 import { Spacer } from '@/components/ui/atoms/Spacer';
-import {
-  useSchedule,
-  useSelectedScheduleItem,
-} from '@/components/features/builders/food/ScheduleBuilder/context';
-import {
-  useDish,
-  useSelectedDishItem,
-} from '@/components/features/builders/food/DishBuilder/context';
+import { useSelectedDishItem } from '@/components/features/builders/food/DishBuilder/context';
 
 type Props = {
   defaultTab?: string;
@@ -34,7 +26,7 @@ const tabs = [
 const DishFoodEdit = observer(({ defaultTab, close }: Props) => {
   const currentChild = useSelectedDishItem();
   const { currentTab, setTab } = useTabs(tabs, defaultTab);
-  const { searchState } = useScheduleFoodActions(currentChild);
+  const { searchState } = useDishFoodActions(currentChild);
 
   const foodId = currentChild.content.foodId;
 

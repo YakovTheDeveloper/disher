@@ -14,6 +14,7 @@ type Props = {
   className?: string;
   sync: Instance<typeof SyncStatus>;
   uiStore?: Instance<typeof GlobalUiStore>;
+  variant?: 1 | 2 | 3;
 };
 
 const LONG_PRESS_DELAY = 450;
@@ -25,6 +26,7 @@ const ListItem = ({
   className,
   sync,
   uiStore = domainStore.globalUiStore,
+  variant,
 }: Props) => {
   const stringId = id.toString();
 
@@ -163,7 +165,8 @@ const ListItem = ({
           styles.commonListItemInner,
           isActionsMode && styles.commonListItemInner_inActionsMode,
           isPressed && styles.commonListItemInner_tapped,
-          status && styles[status]
+          status && styles[status],
+          variant && styles[`variant_${variant}`]
         )}
       >
         <div

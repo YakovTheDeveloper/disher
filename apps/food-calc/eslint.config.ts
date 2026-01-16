@@ -18,7 +18,7 @@ export default defineConfig([
         rules: {
             'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0 }],
             'react/react-in-jsx-scope': 'off',
-            "react/prop-types": "off"
+            "react/prop-types": "off",
         },
     },
 ]);

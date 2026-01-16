@@ -15,10 +15,10 @@ import { Spacer } from '@/components/ui/atoms/Spacer';
 import { SearchFood } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd';
 import { mstEnv } from '@/store/store';
 type Props = {
-  children: React.ReactNode;
+  close: () => void;
 };
 
-const DishFoodAdd = ({ children }: Props) => {
+const DishFoodAdd = ({ close }: Props) => {
   const dish = useDish();
 
   const currentChild = useMemo(
@@ -44,7 +44,7 @@ const DishFoodAdd = ({ children }: Props) => {
   const { searchState } = useDishFoodActions(currentChild);
 
   const tabs = [
-    { value: 'foodSelect', label: 'еда', alternativeLabel: currentChild.content.name },
+    { value: 'foodSelect', label: 'еда', alternativeLabel: currentChild.content?.name || '' },
     { value: 'quantity', label: 'количество', alternativeLabel: currentChild.quantity },
   ];
 

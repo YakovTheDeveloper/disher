@@ -1,4 +1,4 @@
-import { Nutrient } from "@/domain/Nutrient";
+import { Nutrient } from "@/domain/nutrient/Nutrient";
 import { isEmpty } from "@/lib/empty";
 import { NutrientStoreApi } from "@/store/types";
 import { cast, getRoot, types } from "mobx-state-tree";

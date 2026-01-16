@@ -1,41 +1,54 @@
 import { observer } from 'mobx-react-lite';
 import styles from './DishListItem.module.scss';
-import { BuilderUIStore } from '@/components/features/builders/food/shared/BuilderUIStore';
 import { FoodName } from '@/components/features/builders/food/shared/ui/FoodName';
-import { ItemActions } from '@/components/features/builders/food/ScheduleBuilder/types';
-import { Quantity } from '@/components/features/builders/food/shared/ui/Quantity';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import clsx from 'clsx';
 import { CommonListItem } from '@/components/features/builders/food/shared/ui/CommonListItem';
-import { DishItemUI } from '@/components/features/builders/food/DishBuilder/model/DishBuilderViewModel';
 import { Instance } from 'mobx-state-tree';
 import { Dish, DishItem } from '@/domain/dish/Dish';
 import { useDishModals } from '@/components/features/builders/food/DishBuilder/modalContext';
 import { Modals } from '@/components/features/builders/food/DishBuilder/DishBuilder';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
+import {
+  DishDrawers,
+  DishModals,
+  DrawerStoreInstance,
+} from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
+import { domainStore } from '@/store/store';
 
 type Props = {
   content: Instance<typeof DishItem>;
   controller: Instance<typeof Dish>;
-  options: BuilderUIStore;
   className?: string;
+  drawerStore?: DrawerStoreInstance;
 };
 
-const DishListItem = ({ itemActions, controller, content, options, className }: Props) => {
+const DishListItem = ({
+  controller,
+  content,
+  className,
+  drawerStore = domainStore.globalUiStore.drawerStore,
+}: Props) => {
   const modals = useDishModals();
 
   const onFoodsOpenUpdate = () => {
-    modals?.set(Modals.Food, {
-      item_id: content.id,
+    drawerStore.open({
+      type: DishDrawers.FoodEdit,
+      payload: {
+        defaultTab: 'content',
+        itemToEditId: content.id,
+      },
     });
   };
 
   const onQuantityOpen = () => {
-    modals?.set('quantity');
-  };
-
-  const onFoodsOpenInfo = () => {
-    modals?.set('foodNutrients');
+    drawerStore.open({
+      type: DishDrawers.FoodEdit,
+      payload: {
+        defaultTab: 'quantity',
+        itemToEditId: content.id,
+      },
+    });
   };
 
   const onDelete = () => controller.removeChild(content.id);
@@ -46,31 +59,14 @@ const DishListItem = ({ itemActions, controller, content, options, className }: 
   const getFoodName = useCallback(() => content.food?.name, [content]);
   const getQuantity = useCallback(() => content.quantity, [content]);
 
-  const showAdditionalsMode = options.showAdditionals;
-
-  const isQuantityHide = useMemo(() => showAdditionalsMode, [showAdditionalsMode]);
-
   const onChange = (quantity: number) => controller.updateChildById({ id: content.id, quantity });
 
   return (
-    <CommonListItem
-      className={clsx([className, styles.group])}
-      onDelete={onDelete}
-      showAdditionals={showAdditionalsMode}
-      id={id}
-      sync={content.sync}
-    >
-      <FoodName
-        id={id}
-        hintMode={showAdditionalsMode}
-        onClick={onFoodsOpenUpdate}
-        onClickHintModeOn={onFoodsOpenInfo}
-      >
+    <CommonListItem className={clsx([className, styles.group])} id={id} sync={content.sync}>
+      <FoodName id={id} onClick={onFoodsOpenUpdate}>
         {getFoodName}
       </FoodName>
-      {!isQuantityHide && (
-        <NumberInput value={content.quantity} onChange={onChange} useLocalValue />
-      )}
+      <NumberInput value={content.quantity} onChange={onChange} />
     </CommonListItem>
   );
 };

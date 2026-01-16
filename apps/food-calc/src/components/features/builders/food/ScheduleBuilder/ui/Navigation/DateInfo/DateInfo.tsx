@@ -4,6 +4,7 @@ import { NavLink, useParams, useSearchParams } from 'react-router';
 import { RouterLinks } from '@/router';
 import { motion, useTransform } from 'framer-motion';
 import { MotionValue } from 'framer-motion';
+import { Scalable } from '@/components/ui/Scalable';
 import { getTitle } from '@/components/features/builders/food/ScheduleBuilder/ui/Navigation/methods';
 import { useDailyScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
 import { domainStore } from '@/store/store';
@@ -28,19 +29,6 @@ const DateInfo = ({ scrollYProgress }: Props) => {
 
   const dateWordsHeight = useTransform(scrollYProgress, [0, 1], ['1.5em', '0em']);
   // const containerGap = useTransform(scrollYProgress, [0, 1], ['8px', '0px']);
-  const numbersScale = useTransform(scrollYProgress, [0.5, 1], [2, 1]);
-
-  const dateBackgroundColor = useTransform(scrollYProgress, (v) =>
-    v >= 0.999 ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0)'
-  );
-
-  const blur = useTransform(scrollYProgress, (v) => (v >= 0.999 ? 'blur(30px)' : 'none'));
-
-  // const dateBackgroundColor = useTransform(
-  //   scrollYProgress,
-  //   [0, 0.999999, 1],
-  //   ['rgba(255,255,255,0)', 'rgba(255,255,255,0)', 'rgba(255,255,255,0.8)']
-  // );
   return (
     <div
       className={styles.dateLink}
@@ -51,14 +39,7 @@ const DateInfo = ({ scrollYProgress }: Props) => {
       }
     >
       <motion.div className={styles.date}>
-        <motion.div
-          className={styles.dateNumbers}
-          style={{
-            scale: numbersScale,
-            backgroundColor: dateBackgroundColor,
-            backdropFilter: blur,
-          }}
-        >
+        <Scalable scrollYProgress={scrollYProgress} className={styles.dateNumbers}>
           <motion.span
             className={styles.dateWord}
             style={{
@@ -75,7 +56,7 @@ const DateInfo = ({ scrollYProgress }: Props) => {
           <motion.span>
             {day}.{monthNumber}
           </motion.span>
-        </motion.div>
+        </Scalable>
 
         <motion.div
           className={styles.dateWords}

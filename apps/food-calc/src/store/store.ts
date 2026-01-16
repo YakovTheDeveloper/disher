@@ -8,6 +8,7 @@ import { RootInstance, RootStore } from './types'
 import { InteractionsService } from "@/store/interactions/InteractionsService";
 import { makePersistable } from "@/store/persistance";
 import { createNutrientStoreWithInitialData } from "@/store/NutrientStore/NutrientStore";
+import { DailyNormStore } from "@/store/DailyNormStore/DailyNormStore";
 
 let _store: RootInstance | undefined;
 
@@ -21,12 +22,14 @@ function createStore(): RootInstance {
         dishStore: DishStore.create(),
         nutrientStore: createNutrientStoreWithInitialData(),
         interactionsService: InteractionsService.create(),
+        dailyNormStore: DailyNormStore.create(),
         globalUiStore: GlobalUiStore.create({ isActionsMode: false }),
     }, mstEnv);
 
     makePersistable(store.dishStore, "dish-store")
     makePersistable(store.foodStore, "food-store")
     makePersistable(store.scheduleStore, "day-schedule-store")
+    makePersistable(store.dailyNormStore, "daily-norm-store")
     makeInspectable(store);
 
     return store;

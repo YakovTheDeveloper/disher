@@ -1,5 +1,3 @@
-import { NutrientGroup, NutrientName } from "@/types/nutrient/nutrient";
-
 export type NutrientContentItem = { id: string, name: string, displayName: string, displayNameRu: string, unit: string, "unitRu": "мг" }
 
 export const nutrientNames: Record<number, string> = {
@@ -38,6 +36,21 @@ export const nutrientNames: Record<number, string> = {
     33: 'Витамин K',
     34: 'Бета-каротин',
     35: 'Альфа-каротин',
+};
+
+export type Nutrient = {
+    id: string;
+    name: string;
+    displayName: string;
+    displayNameRu: string;
+    unit: string;
+    unitRu: string;
+};
+
+export type NutrientGroup = {
+    name: string;
+    displayName: string;
+    content: Nutrient[];
 };
 
 export const nutrientGroups: NutrientGroup[] = [
@@ -102,6 +115,11 @@ export const nutrientGroups: NutrientGroup[] = [
         ]
     },
 ]
+
+export const allNutrientsList = nutrientGroups.flatMap((item) => {
+    return item.content.map(content => content)
+})
+
 export const nutrientsHaveDailyNorm: Record<number, boolean> = {
     1: true,   // protein
     2: true,   // fats

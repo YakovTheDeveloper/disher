@@ -10,6 +10,8 @@ import { Modal } from '@/components/ui/Modal';
 import { ModalManager } from '@/ModalManager';
 import { Drawer } from '@/components/ui/Drawer';
 import { DrawerManager } from '@/DrawerManager';
+import { useEffect } from 'react';
+import { useLocation, useNavigationType } from 'react-router-dom';
 
 const queryClient = new QueryClient();
 

@@ -19,8 +19,6 @@ type Props = {
   searchState: any;
 };
 
-type Tabs = 'productSearch' | 'dishSearch' | 'createCustom';
-
 const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) => {
   // const modals = useDailyScheduleModals();
 
@@ -30,37 +28,17 @@ const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) =
 
   const currentChild = scheduleChild;
 
-  const onFinishHandler = () => {};
-
-  const onCustomAdd = (payload: DishEntity | FoodEntity | string) => {
-    console.log('onCustomAdd payload', payload);
-    scheduleChild.updateCustom({
-      customName: payload.toString(),
-    });
-    onFinish();
-  };
-
   const onFoodAdd = (payload: DishEntity | FoodEntity | string) => {
-    scheduleChild.updateFood({
-      foodId: payload.id.toString(),
-    });
+    scheduleChild.updateContent('product', payload.id.toString());
     onFinish();
   };
 
   const onDishAdd = (payload: DishEntity | FoodEntity | string) => {
-    scheduleChild.updateDish({
-      dishId: payload.id.toString(),
-    });
+    scheduleChild.updateContent('dish', payload.id.toString());
     onFinish();
   };
 
   const onProductClickSeeDetails = () => {};
-
-  const onCustomProductAdd = () => {
-    console.log('onItemNameClick', searchState.customProductText);
-
-    onCustomAdd(searchState.customProductText);
-  };
 
   console.log('searchState.foodSearchState', searchState.foodSearchState);
 
@@ -136,21 +114,6 @@ const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) =
                 renderListContent={renderDishtItem}
               />
             ) : null}
-
-            {/* Custom product input */}
-            {searchState.currentTab === 'createCustom' && (
-              <div className={styles.customContainer}>
-                <input
-                  className={styles.customInput}
-                  placeholder="Название кастомного продукта"
-                  value={searchState.customProductText}
-                  onChange={(e) => searchState.setCustomText(e.target.value)}
-                />
-                <Button.Finish onClick={onCustomProductAdd} disabled={false} isShow={() => true}>
-                  принять
-                </Button.Finish>
-              </div>
-            )}
           </>
         }
       </div>

@@ -22,3 +22,10 @@
 
     }
 }
+
+
+@mixin badge() {
+    border-radius: 50px;
+    overflow: hidden;
+    padding: 5px;
+}

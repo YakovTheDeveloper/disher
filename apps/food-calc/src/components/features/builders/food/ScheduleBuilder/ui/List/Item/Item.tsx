@@ -14,17 +14,13 @@ import { domainStore } from '@/store/store';
 import { ScheduleDrawers } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
 
 type Props = {
-  controller: Instance<typeof DaySchedule>;
-  item: Instance<typeof ScheduleItem>;
   options: BuilderUIStore;
   className?: string;
 };
 
-const Item = ({ item, controller, options, className }: Props) => {
+const Item = ({ item, className }: Props) => {
   const modals = domainStore.globalUiStore.drawerStore;
   const id = item.id;
-
-  const navigate = useNavigate();
 
   const onFoodsOpenUpdate = () => {
     modals.open({
@@ -46,38 +42,17 @@ const Item = ({ item, controller, options, className }: Props) => {
     });
   };
 
-  const onFoodsOpenInfo = () => {
-    modals.set('foodNutrients', { id: item.content.foodId });
-  };
-
-  const onDelete = () => controller.foods.removeChild(item.id);
-  const onDishOpenInfo = () => {
-    navigate(`${RouterLinks.DishBuilder}/${item.content.dishId}`);
-  };
-
-  const getFoodName = useCallback(() => item.content?.name, [item]);
+  const getFoodName = useCallback(() => item.content?.name || '-', [item]);
   const getQuantity = useCallback(() => item.quantity, [item]);
 
-  const showAdditionalsMode = options.showAdditionals;
-
-  const isQuantityHide = useMemo(() => showAdditionalsMode, [showAdditionalsMode]);
-
-  // item.dish
-
-  const onNameAdditionalOptionsClick = () => {
-    if (item.content.variant === 'dish') {
-      onDishOpenInfo();
-      return;
+  const getVariantLabelText = () => {
+    if (item.content?.variant === 'product') {
+      if (item.content.isCustom) return 'кастом';
+      else return 'продукт';
     }
-    onFoodsOpenInfo();
-    return;
-  };
+    if (item.content?.variant === 'dish') return 'блюдо';
 
-  const getVariantText = () => {
-    if (item.content.variant === 'custom') return 'кастомный продукт';
-    if (item.content.variant === 'dish') return 'блюдо';
-    return 'продукт';
-    // if (item.food) return 'продукт';
+    return 'не выбрано';
   };
 
   const getFoodNameClassName = () => {
@@ -86,30 +61,15 @@ const Item = ({ item, controller, options, className }: Props) => {
   };
 
   const afterName = useMemo(() => {
-    if (showAdditionalsMode) {
-      return <p className={styles.variant}>{getVariantText()}</p>;
-    }
-    return null;
-  }, [showAdditionalsMode, item.content]);
+    return <p className={styles.variant}>{getVariantLabelText()}</p>;
+  }, [item.content]);
 
   return (
-    <CommonListItem
-      className={clsx([className, styles.group])}
-      onDelete={onDelete}
-      showAdditionals={showAdditionalsMode}
-      id={id}
-      sync={item.sync}
-    >
-      <FoodName
-        className={getFoodNameClassName()}
-        id={id}
-        hintMode={showAdditionalsMode}
-        onClick={onFoodsOpenUpdate}
-        onClickHintModeOn={onNameAdditionalOptionsClick}
-      >
+    <CommonListItem className={clsx([className, styles.group])} id={id} sync={item.sync}>
+      <FoodName className={getFoodNameClassName()} id={id} onClick={onFoodsOpenUpdate}>
         {getFoodName}
       </FoodName>
-      <Quantity id={id} onClick={onQuantityOpen} hide={isQuantityHide}>
+      <Quantity id={id} onClick={onQuantityOpen}>
         {getQuantity}
       </Quantity>
       {afterName}

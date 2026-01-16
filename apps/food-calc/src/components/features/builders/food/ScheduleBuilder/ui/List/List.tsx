@@ -14,10 +14,6 @@ import { getIds } from '@/domain/common';
 import { TimeGroupUI } from '@/domain/schedule/schedule.service';
 
 type CommonProps = {
-  options: {
-    showAdditionals: boolean;
-  };
-  onDishesUnite: (group: TimeGroupUI<Instance<typeof ScheduleItem>>) => void;
   schedule: Instance<typeof DaySchedule>;
 };
 
@@ -36,49 +32,25 @@ type Props = Omit<CommonProps, 'schedule'> & {
   uiStore?: typeof domainStore.globalUiStore;
 };
 
-const List = observer(
-  ({
-    items,
-    options,
-    length,
-    onDishesUnite,
-    schedule,
-    uiStore = domainStore.globalUiStore,
-  }: Props) => {
-    const renderItem = useCallback(
-      (item: Instance<typeof ScheduleItem>) => {
-        return <Item key={item.id} item={item} options={options} controller={schedule} />;
-      },
-      [options]
-    );
+const List = observer(({ items, length, schedule, uiStore = domainStore.globalUiStore }: Props) => {
+  const renderItem = useCallback((item: Instance<typeof ScheduleItem>) => {
+    return <Item key={item.id} item={item} controller={schedule} />;
+  }, []);
 
-    const renderAside = useCallback(
-      (group: TimeGroupUI<Instance<typeof ScheduleItem>>) => {
-        return group.items.length > 1 && options.showAdditionals ? (
-          <span onClick={() => onDishesUnite(group)} className={clsx([styles.uniteButton])}>
-            преобразовать в блюдо
-          </span>
-        ) : null;
-      },
-      [onDishesUnite, options]
-    );
-
-    console.log('from list');
-    return (
-      <ItemsList offsetTop>
-        {items.map((group) => (
-          <TimeGroup
-            key={group.time}
-            group={group}
-            renderAside={renderAside}
-            onTimeClick={(group) => uiStore.setSelectedIds(getIds(group.items))}
-          >
-            {renderItem}
-          </TimeGroup>
-        ))}
-      </ItemsList>
-    );
-  }
-);
+  console.log('from list');
+  return (
+    <ItemsList offsetTop>
+      {items.map((group) => (
+        <TimeGroup
+          key={group.time}
+          group={group}
+          onTimeClick={(group) => uiStore.setSelectedIds(getIds(group.items))}
+        >
+          {renderItem}
+        </TimeGroup>
+      ))}
+    </ItemsList>
+  );
+});
 
 export default ListWrapper;

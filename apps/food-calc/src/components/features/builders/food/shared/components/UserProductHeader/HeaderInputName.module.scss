@@ -1,0 +1,12 @@
+@import '@/assets/style/mixin.scss';
+
+.HeaderInputName {
+    margin-left: auto;
+    @include badge;
+    z-index: 2;
+    width: 50%;
+}
+
+.textInput {
+    // width: 10%;
+}

@@ -1,0 +1,100 @@
+.display {
+    cursor: pointer;
+    min-height: 1.5rem;
+    padding: 0.2rem;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
+    // border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    width: 100%;
+
+    &:hover {
+        background-color: #f8f8f83a;
+        border-color: #d0d0d0;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    &:focus {
+        outline: none;
+        background-color: #f0f0f0;
+        box-shadow: inset 0 0 0 2px #007aff;
+    }
+}
+
+.placeholder {
+    color: #999;
+    font-style: italic;
+}
+
+.input {
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    padding: 0.2rem 0.4rem;
+    font-size: 1rem;
+    font-family: inherit;
+    color: #333;
+    background: white;
+    width: 100%;
+    outline: none;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+
+    &::placeholder {
+        color: #999;
+        font-weight: 300;
+    }
+
+    &:focus {
+        border-color: #007aff;
+        box-shadow: inset 0 0 0 2px #007aff;
+    }
+}
+
+.input[type='text'] {
+    min-height: 1.2em;
+}
+
+.input[type='textarea'] {
+    resize: vertical;
+    min-height: 3em;
+}
+
+.input.inputClearable {
+    padding-right: 2rem;
+}
+
+.inputWrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.clearButton {
+    position: absolute;
+    top: 50%;
+    right: 0.5rem;
+    transform: translateY(-50%);
+    background: #ccc;
+    border: 1px solid #999;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 1.2rem;
+    height: 1.2rem;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #ddd;
+    }
+
+    img {
+        width: 0.7rem;
+        height: 0.7rem;
+        filter: invert(1);
+    }
+}

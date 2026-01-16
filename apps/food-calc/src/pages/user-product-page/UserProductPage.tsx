@@ -1,5 +1,4 @@
 import { observer } from 'mobx-react-lite';
-import EditableText from '@/components/ui/EditableText/EditableText';
 import Textarea from '@/components/ui/Textarea/Textarea';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import { useParams } from 'react-router-dom';
@@ -9,6 +8,8 @@ import { Spacer } from '@/components/ui/atoms/Spacer';
 import { Nutrients } from '@/components/features/builders/food/shared/ContentInfo/Nutrients';
 import { useMemo } from 'react';
 import { TotalNutrientsStore } from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
+import { Label } from '@/components/features/builders/food/ScheduleBuilder/EventsBuilder/components/EventContent/shared/Label';
+import { HeaderInputName } from '@/components/features/builders/food/shared/components/UserProductHeader';
 
 const UserProductPage = () => {
   const { id } = useParams<'id'>();
@@ -22,23 +23,19 @@ const UserProductPage = () => {
     userFood.changeNutrientValue(nutrientId, value);
 
   const getValue = (nutrientId: string) => {
-    return userFood.nutrientsMap.get(nutrientId)?.quantity;
+    return userFood.nutrientsMap.get(nutrientId)?.quantity || 0;
   };
 
   return (
     <Screen
       title={<ScreenLabel variant="screenHeader">Продукт</ScreenLabel>}
-      // header={(scrollYProgress: MotionValue<number>) => (
-      //   <Navigation scrollYProgress={scrollYProgress}></Navigation>
-      // )}
+      header={(scrollYProgress) => (
+        <HeaderInputName scrollYProgress={scrollYProgress} entity={userFood} />
+      )}
     >
       <Spacer variant="screen-header-offset" />
       <label>
-        <p>Имя</p>
-        <EditableText value={userFood?.name || ''} onChange={(val) => userFood?.changeName(val)} />
-      </label>
-      <label>
-        <p>Описание</p>
+        {/* <p>Описание</p> */}
         <Textarea
           value={userFood?.description || ''}
           onChange={(val) => userFood?.changeDescription(val || undefined)}

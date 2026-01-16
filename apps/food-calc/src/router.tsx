@@ -4,22 +4,24 @@ import App from '@/App.tsx';
 import ScheduleBuilderPage from './pages/schedule/builder/schedule-builder-page/ScheduleBuilderPage.tsx';
 import SchedulePage from '@/pages/schedule/schedule-page/SchedulePage.tsx';
 import DishBuilderPage from '@/pages/dish/builder/dish-builder-page/DishBuilderPage.tsx';
-import { DailyNormsPage } from '@/pages/dailyNormsPage/index.ts';
+import { DailyNormsPage } from '@/pages/daily-norms/dailyNormsPage/index.ts';
 
 import LoadDataPage from '@/pages/LoadDataPage/LoadDataPage.tsx';
 import DishesPage from '@/pages/dish/dishes-page/DishesPage.tsx';
 import UserProductPage from '@/pages/user-product-page/UserProductPage.tsx';
+import DailyNormsCreateOrUpdatePage from '@/pages/daily-norms/DailyNormsCreateOrUpdatePage/DailyNormsCreateOrUpdatePage.tsx';
 
 export enum RouterLinks {
   Root = '/',
   DailyNorms = '/daily-norms',
-  DishBuilder = '/dish/builder',
-  Schedule = '/schedule',
-  ScheduleBuilder = '/schedule/builder',
-  ProductBuilder = '/product/builder',
+  DishBuilder = '/dish',
+  Schedule = '/date',
+  ScheduleBuilder = '/schedule',
+  ProductBuilder = '/product',
   LoadData = '/load-data',
   Dishes = '/dishes',
   UserProduct = '/user-product',
+  // DailyNormsCreateOrUpdate = '/daily-norms',
 }
 
 export const router = createBrowserRouter([
@@ -32,8 +34,8 @@ export const router = createBrowserRouter([
         element: <DailyNormsPage />,
       },
       {
-        path: RouterLinks.DailyNorms,
-        element: <DailyNorms />,
+        path: `${RouterLinks.DailyNorms}/:id`,
+        element: <DailyNormsCreateOrUpdatePage />,
       },
       {
         path: `${RouterLinks.DishBuilder}/:id`,

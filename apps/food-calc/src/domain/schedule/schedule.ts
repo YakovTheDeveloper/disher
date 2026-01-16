@@ -1,7 +1,4 @@
 import { getEnv, getRoot, getSnapshot, Instance, onPatch, types } from "mobx-state-tree";
-import { getParent } from "mobx-state-tree";
-
-import { Dish } from "../dish/Dish";
 import { SyncStatus } from "@/domain/commonListItem";
 import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
 import { emitter } from "@/infrastructure/emitter/emitter";
@@ -9,6 +6,8 @@ import { ChildrenController } from "@/domain/shared/ChildrenController";
 import { groupItemsByTime } from "@/domain/schedule/schedule.service";
 import { EventItem } from "@/domain/schedule/scheduleEvent/scheduleEvent";
 import { DishStore } from "@/store/DishStore/DishStore";
+import { FoodContentDish, FoodContentProduct, FoodContentType } from "@/domain/shared/foodContent/foodContent";
+import { UserFood } from "@/domain/Food";
 
 export interface RootStoreEnv {
     dishStore: Instance<typeof DishStore>;
@@ -16,134 +15,33 @@ export interface RootStoreEnv {
 
 export type ScheduleItemType = Instance<typeof ScheduleItem>["type"];
 
-type ChildVariant = "dish" | "food" | "custom";
+const ScheduleItemContent = types.union(
+    {
+        dispatcher(snapshot) {
+            if (snapshot == null) {
+                return FoodContentProduct
+            }
 
-export const ItemContent = types
-    .model("ItemContent", {
-        variant: types.enumeration("ItemVariant", ["custom", "food", "dish"]),
-
-        customName: types.maybe(types.string),
-
-        foodId: types.maybe(types.string),
-        dishId: types.maybe(types.string),
-    })
-    .views(self => ({
-        get food() {
-            if (!self.foodId) return null
-            const foodStore = getEnv(self)?.foodStore as FoodStoreInstance
-            return foodStore?.getUserOrPredefinedFoodById(self.foodId)
-            // return getRoot(self).foodStore.data.get(self.foodId)
+            return snapshot.variant === "dish"
+                ? FoodContentDish
+                : FoodContentProduct
         },
-
-        get dish(): Instance<typeof Dish> | undefined {
-            if (!self.dishId) return undefined
-            const root = getRoot(self) as RootStoreEnv
-            return root.dishStore.data.get(self.dishId)
-        },
-        get parentQuantity(): number { const parentItem = getParent(self); return parentItem.quantity; },
-
-        get name() {
-            switch (self.variant) {
-                case "custom":
-                    return self.customName ?? "нет имени"
-                case "food":
-                    return self.food?.name ?? "нет имени"
-                case "dish":
-                    return self.dish?.name ?? "нет имени"
-            }
-        },
-
-        get foodWithNoNutrients() {
-            if (self.variant === "food" && self.food?.noNutrients) {
-                return [self.food]
-            }
-            if (self.variant === "dish") {
-                return self.dish?.foodWithNoNutrients ?? []
-            }
-            return []
-        }
-    }))
-    .actions(self => {
-        type Variant = "custom" | "food" | "dish"
-
-        const FIELDS_BY_VARIANT: Record<Variant, (keyof typeof self)[]> = {
-            custom: ["customName"],
-            food: ["foodId"],
-            dish: ["dishId"],
-        }
-
-        function resetAll() {
-            self.customName = undefined
-            self.foodId = undefined
-            self.dishId = undefined
-        }
-
-        function validate(variant: Variant, payload: any) {
-            if (variant === "food" && !payload.foodId) {
-                throw new Error("foodId is required for food variant")
-            }
-            if (variant === "dish" && !payload.dishId) {
-                throw new Error("dishId is required for dish variant")
-            }
-            if (variant === "custom" && !payload.customName) {
-                throw new Error("customName is required for custom variant")
-            }
-        }
-
-        function applyPayload(variant: Variant, payload: any) {
-            for (const field of FIELDS_BY_VARIANT[variant]) {
-                if (field in payload) {
-                    // @ts-expect-error — controlled assignment
-                    self[field] = payload[field]
-                }
-            }
-        }
-
-        return {
-            update(
-                params: {
-                    variant?: Variant
-                    customName?: string
-                    foodId?: string
-                    dishId?: string
-                }
-            ) {
-                const nextVariant = params.variant ?? self.variant as Variant
-                const variantChanged = nextVariant !== self.variant
-
-                validate(nextVariant, params)
-
-                if (variantChanged) {
-                    self.variant = nextVariant
-                    resetAll()
-                }
-
-                applyPayload(nextVariant, params)
-            },
-            getTotalNutrients() {
-                switch (self.variant) {
-                    case "food":
-                        return self.food?.getTotalNutrients(self.parentQuantity) ?? {}
-                    case "dish":
-                        return self.dish?.getTotalNutrients(self.parentQuantity) ?? {}
-                    default:
-                        return {}
-                }
-            }
-        }
-    })
+    },
+    FoodContentProduct,
+    FoodContentDish
+)
 
 export const ScheduleItem = types.model("ScheduleItem", {
     id: types.identifier,
     quantity: types.number,
     time: types.string,
     sync: types.optional(SyncStatus, {}),
-    content: types.optional(ItemContent, { variant: 'custom' }),
+    content: types.maybeNull(ScheduleItemContent)
 
 }).views(self => ({
     get type() {
-        return self.content.variant
-    }
+        return self.content?.variant || ''
+    },
 }))
     .actions(self => {
         function updateTime(time: string) {
@@ -152,32 +50,43 @@ export const ScheduleItem = types.model("ScheduleItem", {
         function updateQuantity(quantity: number) {
             self.quantity = quantity;
         }
-        function updateContent(variant: ChildVariant, payload: {
-            customName?: string
-            foodId?: string
-            dishId?: string
-        }) {
-            self.content.update({ variant, ...payload })
-        }
-        function updateCustom(state: { customName: string }) {
-            const customName = state.customName.toString();
-            updateContent('custom', { customName });
-        }
+        function updateContent(inputVariant: FoodContentType, id: string) {
 
-        function updateFood(state: { foodId: string }) {
-            updateContent('food', { foodId: state.foodId });
-        }
+            if (self.content === null) {
+                if (inputVariant === 'product') {
+                    self.content = ScheduleItemContent.create({
+                        variant: 'product',
+                        foodId: id
+                    })
+                } else {
+                    self.content = ScheduleItemContent.create({
+                        variant: 'dish',
+                        dishId: id
+                    })
+                }
+                return
+            }
 
-        function updateDish(state: { dishId: string }) {
-            updateContent('dish', { dishId: state.dishId.toString() });
+            if (self.content.variant === 'dish' && inputVariant === 'product') {
+                self.content = ScheduleItemContent.create({
+                    variant: 'product',
+                    foodId: id
+                })
+                return
+            }
+            if (self.content.variant === 'product' && inputVariant === 'dish') {
+                self.content = ScheduleItemContent.create({
+                    variant: 'dish',
+                    dishId: id
+                })
+                return
+            }
+            self.content.update(id)
         }
 
         return {
             updateTime,
             updateQuantity,
-            updateCustom,
-            updateFood,
-            updateDish,
             updateContent
         }
     });
@@ -193,10 +102,10 @@ export const DaySchedule = types.model({
 })
     .views(self => ({
         getChildById(id: string): Instance<typeof ScheduleItem> | null {
-            return self.foods.items.find(i => i.id.toString() === id) || null;
+            return self.foods.items.find(item => item.id.toString() === id) || null;
         },
         get customItems() {
-            return self.foods.items.filter(i => i.content.variant === 'custom') || null;
+            return self.foods.items.filter(item => item.content?.food && UserFood.is(item.content.food)) || null;
         },
         get allDraftDishesFromItems() {
             return self.foods.items
@@ -206,7 +115,8 @@ export const DaySchedule = types.model({
         },
         get foodWithNoNutrients() {
             return Array.from(new Set(self.foods.items
-                .flatMap(item => item.content.foodWithNoNutrients)))
+                .filter(item => item.content != null)
+                .flatMap(item => item.content!.foodWithNoNutrients)))
         },
         get itemsLength() {
             return self.foods.items.length
@@ -248,7 +158,7 @@ export const DaySchedule = types.model({
             self.foods.addChildWithLocalData({
                 time,
                 quantity,
-                content: getSnapshot(content)
+                content: content ? getSnapshot(content) : null
             })
             self.lastTimeItemAdded = time
         }
@@ -268,9 +178,10 @@ export const DaySchedule = types.model({
         }
 
         function getTotalNutrients() {
-            const nutrients = self.foods.items.map(item =>
-                item.content.getTotalNutrients()
-            );
+            const nutrients = self.foods.items.map(item => {
+                if (item.content == null) return {}
+                return item.content.getTotalNutrients()
+            });
             return sumRecordArray(nutrients);
         }
 
@@ -286,17 +197,6 @@ export const DaySchedule = types.model({
         //         return item
         //     }));
         // }
-
-        function updateChildContent(id: string, variant: ChildVariant, payload: {
-            customName?: string
-            foodId?: string
-            dishId?: string
-        }) {
-            const child = self.getChildById(id)
-            if (!child) return
-
-            child.updateContent(variant, payload)
-        }
 
         function updateTime(id: string, time: string) {
             self.foods.updateChildById({ id, time });
@@ -331,7 +231,6 @@ export const DaySchedule = types.model({
             updateEventTime,
             addOrUpdateEvent,
             // changeStatusByIds,
-            updateChildContent,
             updateTime,
             updateQuantity,
             getTotalNutrients,

@@ -20,6 +20,7 @@ const DateChoose = ({ children, close }: Props) => {
     >
       <ScheduleSelection
         onSelect={(date: string) => {
+          close();
           navigate(`${RouterLinks.ScheduleBuilder}/${date}`);
         }}
       ></ScheduleSelection>

@@ -42,16 +42,6 @@ export const DishStore = types
     }))
     // ======== HELPERS ========
     .actions(self => ({
-        ensureRequest(date: ISODate) {
-            if (!self.request.has(date)) {
-                self.request.set(
-                    date,
-                    RequestState.create({ loading: false, error: undefined })
-                )
-            }
-            return self.request.get(date)!
-        },
-
         addLocal(init: AddLocalType) {
             const { variant, payload } = init
             if (variant === 'fromSnapshot') {

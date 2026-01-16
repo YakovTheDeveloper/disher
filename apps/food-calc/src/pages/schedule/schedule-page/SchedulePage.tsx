@@ -1,11 +1,12 @@
 import { ScheduleSelection } from '@/components/features/schedule/ScheduleSelection';
+import { RouterLinks } from '@/router';
 import { useNavigate } from 'react-router';
 
 const SchedulePage = () => {
   const navigate = useNavigate();
 
   const onDateChoose = (date: string) => {
-    navigate(`builder/${date}`);
+    navigate(`${RouterLinks.ScheduleBuilder}/${date}`);
   };
 
   return (

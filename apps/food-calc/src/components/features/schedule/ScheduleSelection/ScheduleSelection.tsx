@@ -99,19 +99,23 @@ export const ScheduleSelection = ({ onSelect, selectedDate, showFastButtons = fa
       {showFastButtons && (
         <div className={styles.links}>
           <NavLink
-            to={RouterLinks.ScheduleBuilder + format(subDays(startOfToday(), 1), 'dd-MM-yyyy')}
+            to={
+              RouterLinks.ScheduleBuilder + '/' + format(subDays(startOfToday(), 1), 'dd-MM-yyyy')
+            }
             className={styles.goDay}
           >
             <span className={styles.linkButtonText}>{'Вчера'}</span>
           </NavLink>
           <NavLink
-            to={RouterLinks.ScheduleBuilder + format(startOfToday(), 'dd-MM-yyyy')}
+            to={RouterLinks.ScheduleBuilder + '/' + format(startOfToday(), 'dd-MM-yyyy')}
             className={styles.goDay}
           >
             <span className={styles.linkButtonText}>{'Сегодня'}</span>
           </NavLink>
           <NavLink
-            to={RouterLinks.ScheduleBuilder + format(addDays(startOfToday(), 1), 'dd-MM-yyyy')}
+            to={
+              RouterLinks.ScheduleBuilder + '/' + format(addDays(startOfToday(), 1), 'dd-MM-yyyy')
+            }
             className={styles.goDay}
           >
             <span className={styles.linkButtonText}>{'Завтра'}</span>

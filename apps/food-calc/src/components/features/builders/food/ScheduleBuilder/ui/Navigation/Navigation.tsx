@@ -1,26 +1,11 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Navigation.module.scss';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate } from 'react-router';
 import { RouterLinks } from '@/router';
-import { motion, MotionValue, useTransform } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { MotionValue } from 'framer-motion';
 import { DateInfo } from './DateInfo';
-import {
-  nextDate,
-  prevDate,
-  getTitle,
-} from '@/components/features/builders/food/ScheduleBuilder/ui/Navigation/methods';
-import clsx from 'clsx';
-import { Button } from '@/components/ui/Button';
-import { Menu } from '@/components/shared/Menu';
-import CalendarIcon from '@/assets/icons/calendar.svg';
 import { ScheduleUIEventEmitter } from '@/components/features/builders/food/shared/emitter';
-import { uiStore } from '@/store/rootStore';
 import { MenuUiStore } from '@/store/uiStore/menu/menuUiStore';
-import { emitter } from '@/infrastructure/emitter/emitter';
-import { ActionsHeader } from '@/components/features/builders/food/shared/components/ActionsHeader';
-import { domainStore } from '@/store/store';
-import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 
 type Props = {
   children?: React.ReactNode;
@@ -43,7 +28,7 @@ function isToday(date: string | Date) {
   );
 }
 
-const Navigation = ({ children, menuUi = uiStore.menu, scrollYProgress }: Props) => {
+const Navigation = ({ children, scrollYProgress }: Props) => {
   const navigate = useNavigate();
 
   // const updateDate = (newDate: string) => {

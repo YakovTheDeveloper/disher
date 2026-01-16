@@ -14,6 +14,7 @@ import { SearchFoodControls } from '@/components/features/builders/food/Schedule
 import { useScheduleFoodActions } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/hooks/useScheduleFoodActions';
 import { Spacer } from '@/components/ui/atoms/Spacer';
 import { useSchedule } from '@/components/features/builders/food/ScheduleBuilder/context';
+import { createScheduleItemDraft } from '@/domain/schedule/factory';
 
 type Props = {
   close: () => void;
@@ -23,17 +24,8 @@ const ScheduleFoodAdd = observer(({ close }: Props) => {
   const schedule = useSchedule();
 
   const currentChild = useMemo(
-    () =>
-      ScheduleItem.create(
-        {
-          id: 'draft-food',
-          quantity: 100,
-          time: schedule.lastTimeItemAdded || '12:00',
-          content: { variant: 'custom', customName: 'Мой продукт' },
-        },
-        mstEnv
-      ),
-    []
+    () => createScheduleItemDraft(schedule.lastTimeItemAdded),
+    [schedule.lastTimeItemAdded]
   );
 
   const onFinish = () => {
@@ -45,7 +37,7 @@ const ScheduleFoodAdd = observer(({ close }: Props) => {
 
   const tabs = [
     { value: 'time', label: 'время', alternativeLabel: currentChild.time },
-    { value: 'foodSelect', label: 'еда', alternativeLabel: currentChild.content.name },
+    { value: 'foodSelect', label: 'еда', alternativeLabel: currentChild.content?.name || '' },
     { value: 'quantity', label: 'количество', alternativeLabel: currentChild.quantity },
   ];
 

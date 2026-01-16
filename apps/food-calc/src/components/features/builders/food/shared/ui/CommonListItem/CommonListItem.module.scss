@@ -128,3 +128,16 @@
 .modified {
     background-color: #fffbe6;
 }
+
+.variant_2 {
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 32px;
+    padding: 12px 24px;
+    font-size: 1.5rem;
+    font-weight: 500;
+
+    &:hover {
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
+}

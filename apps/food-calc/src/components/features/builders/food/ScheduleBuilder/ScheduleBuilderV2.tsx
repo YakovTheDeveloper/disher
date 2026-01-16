@@ -25,7 +25,7 @@ import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore'
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 
 type Props = {
-  onFinish: (payload: Instance<typeof DaySchedule>) => Promise<void>;
+  // onFinish: (payload: Instance<typeof DaySchedule>) => Promise<void>;
   schedule: Instance<typeof DaySchedule>;
   date: ISODate;
   modalStore?: ModalStoreInstance;
@@ -33,14 +33,12 @@ type Props = {
 
 const ScheduleBuilder = ({
   schedule,
-  onFinish,
   date,
   modalStore = domainStore.globalUiStore.modalStore,
 }: Props) => {
   const navigate = useNavigate();
 
   const modals = domainStore.globalUiStore.drawerStore;
-  const options = useMemo(() => new BuilderUIStore([0, 1, 2]), []);
 
   const onFoodAdd = () => {
     modals.open({
@@ -56,26 +54,20 @@ const ScheduleBuilder = ({
 
   console.log('SChedule buILder REnder');
 
-  useEffect(() => {
-    if (options.currentPage === 2) {
+  const pageNames = useMemo(() => ['nutrients', 'food', 'events'], []);
+
+  const onPageChange = (page: number, total: number) => {
+    domainStore.globalUiStore.clearSelection();
+    if (page === 2) {
       document.body.style.backgroundColor = '#e6e6e6';
     } else {
       document.body.style.backgroundColor = '';
     }
-  }, [options.currentPage]);
-
-  const pageNames = useMemo(() => ['нутриенты', 'еда', 'события'], []);
-
-  const foodOptions = useMemo(() => options.getShowMoreOptions(1), [options]);
-
-  const onPageChange = (page: number, total: number) => {
-    options.setCurrentPage(page, total);
-    domainStore.globalUiStore.clearSelection();
   };
 
   return (
     <>
-      <Swipeable index={options.currentPage} defaultIndex={1} onIndexChange={onPageChange}>
+      <Swipeable pageNames={pageNames} defaultIndex={1} onIndexChange={onPageChange}>
         {[
           <Screen key={1} title={<ScreenLabel variant="screenHeader">Нутриенты</ScreenLabel>}>
             <TotalNutrients store={schedule} countable={schedule} />
@@ -113,7 +105,7 @@ const ScheduleBuilder = ({
             )}
             bottom={<Button.Add onClick={onFoodAdd} />}
           >
-            <List options={foodOptions} schedule={schedule} />
+            <List schedule={schedule} />
           </Screen>,
 
           <Screen
@@ -142,7 +134,7 @@ const ScheduleBuilder = ({
             )}
             bottom={<Button.Add onClick={onEventAdd} />}
           >
-            <EventsBuilder schedule={schedule} options={foodOptions} />
+            <EventsBuilder schedule={schedule} />
           </Screen>,
         ]}
       </Swipeable>

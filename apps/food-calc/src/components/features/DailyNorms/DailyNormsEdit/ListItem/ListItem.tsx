@@ -1,17 +1,19 @@
 import { observer } from 'mobx-react-lite';
 import styles from './ListItem.module.scss';
-import { Nutrient } from '@/components/features/DailyNorms/DailyNormsEdit/DailyNormsEdit';
-import { DailyNormsViewModel } from '@/components/features/DailyNorms/viewModel/DailyNormsViewModel';
 import { useRef } from 'react';
+import { Instance } from 'mobx-state-tree';
+import { DailyNormItem, UserDailyNorm } from '@/domain/dailyNorm/DailyNorm.model';
+import { Nutrient } from '@/components/features/builders/food/shared/ContentInfo/Nutrients/constants';
 
 type Props = {
   nutrient: Nutrient;
-  store: DailyNormsViewModel;
+  dailyNorm: Instance<typeof UserDailyNorm>;
   variant: 'view' | 'modify';
 };
 
-const ListItem = ({ nutrient, store, variant }: Props) => {
-  const current = store.current?.items.find((i) => i.nutrientId === nutrient.id);
+const ListItem = ({ nutrient, variant, dailyNorm }: Props) => {
+  const item = dailyNorm.nutrientIdToDailyNormItem.get(nutrient.id);
+  if (!item) return null;
 
   const prev = useRef<number | null>(null);
 
@@ -19,24 +21,24 @@ const ListItem = ({ nutrient, store, variant }: Props) => {
     prev.current = null;
     if (value === '') {
       // Keep it empty instead of forcing 0
-      store.updateCurrentNormNutrient(nutrient.id, null);
+      dailyNorm.changeNutrientValue(nutrient.id, null);
       return;
     }
 
     const numericValue = Number(value);
     if (!Number.isNaN(numericValue)) {
-      store.updateCurrentNormNutrient(nutrient.id, numericValue);
+      dailyNorm.changeNutrientValue(nutrient.id, numericValue);
     }
   };
 
   const onFocus = (nutrient: Nutrient) => {
-    prev.current = current?.quantity || null;
-    store.updateCurrentNormNutrient(nutrient.id, null);
+    prev.current = item?.quantity || null;
+    dailyNorm.changeNutrientValue(nutrient.id, null);
   };
 
   const onBlur = () => {
     if (!prev.current) return;
-    store.updateCurrentNormNutrient(nutrient.id, prev.current);
+    dailyNorm.changeNutrientValue(nutrient.id, prev.current);
   };
 
   return (
@@ -55,14 +57,14 @@ const ListItem = ({ nutrient, store, variant }: Props) => {
               type="number"
               inputMode="decimal"
               className={styles.input}
-              value={current?.quantity ?? ''}
+              value={item?.quantity ?? ''}
               onChange={(e) => handleNutrientChange(nutrient, e.target.value)}
             />
             <span className={styles.unit}>{nutrient.unitRu}</span>
           </>
         ) : (
           <span className={styles.textValue}>
-            {current?.quantity ?? '—'} {nutrient.unitRu}
+            {item?.quantity ?? '—'} {nutrient.unitRu}
           </span>
         )}
       </div>

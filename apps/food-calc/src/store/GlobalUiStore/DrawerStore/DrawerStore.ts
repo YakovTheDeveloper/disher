@@ -29,12 +29,12 @@ export const EventEditDrawer = types.model('EventEditDrawer', {
     }),
 });
 
-// Payload models for DishModals
-const DishFoodAddModal = types.model('DishFoodAddModal', {
+// Payload models for DishDrawers
+const DishFoodAdd = types.model('DishFoodAdd', {
     type: types.literal('dish.food.add'),
 });
 
-export const DishFoodEditModal = types.model('DishFoodEditModal', {
+export const DishFoodEdit = types.model('DishFoodEdit', {
     type: types.literal('dish.food.edit'),
     payload: types.model({
         defaultTab: types.enumeration(['content', 'quantity']),
@@ -49,8 +49,9 @@ const DrawerPayloadModel = types.union(
     FoodEditDrawer,
     EventAddDrawer,
     EventEditDrawer,
-    DishFoodAddModal,
-    DishFoodEditModal,
+    DishFoodAdd,
+    DishFoodEdit,
+
 );
 
 export const ScheduleDrawers = {
@@ -61,12 +62,12 @@ export const ScheduleDrawers = {
     EventAdd: 'schedule.event.add',
 } as const;
 
-export const DishModals = {
+export const DishDrawers = {
     FoodAdd: 'dish.food.add',
     FoodEdit: 'dish.food.edit',
 } as const;
 
-export type DrawerType = typeof ScheduleDrawers[keyof typeof ScheduleDrawers] | typeof DishModals[keyof typeof DishModals];
+export type DrawerType = typeof ScheduleDrawers[keyof typeof ScheduleDrawers] | typeof DishDrawers[keyof typeof DishDrawers];
 
 export type DrawerOpenArgs =
     | { type: typeof ScheduleDrawers.DateChoose }
@@ -74,8 +75,8 @@ export type DrawerOpenArgs =
     | { type: typeof ScheduleDrawers.FoodEdit; payload: { defaultTab: 'foodChange' | 'time' | 'quantity', itemToEditId: string } }
     | { type: typeof ScheduleDrawers.EventAdd }
     | { type: typeof ScheduleDrawers.EventEdit; payload: { defaultTab: 'content' | 'time' | 'value', itemToEditId: string } }
-    | { type: typeof DishModals.FoodAdd }
-    | { type: typeof DishModals.FoodEdit };
+    | { type: typeof DishDrawers.FoodAdd }
+    | { type: typeof DishDrawers.FoodEdit, payload: { defaultTab: 'content' | 'quantity', itemToEditId: string } };
 
 export const DrawerStore = types
     .model('DrawerStore', {
@@ -124,11 +125,11 @@ export const DrawerStore = types
                     case ScheduleDrawers.EventEdit:
                         self.activeDrawer = EventEditDrawer.create(args);
                         break;
-                    case DishModals.FoodAdd:
-                        self.activeDrawer = DishFoodAddModal.create(args);
+                    case DishDrawers.FoodAdd:
+                        self.activeDrawer = DishFoodAdd.create(args);
                         break;
-                    case DishModals.FoodEdit:
-                        self.activeDrawer = DishFoodEditModal.create(args);
+                    case DishDrawers.FoodEdit:
+                        self.activeDrawer = DishFoodEdit.create(args);
                         break;
                 }
                 self.isOpen = true;

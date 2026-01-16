@@ -1,5 +1,5 @@
 import { nutrientGroups } from "@/components/features/builders/food/shared/ContentInfo/Nutrients/constants";
-import { Nutrient } from "@/domain/Nutrient";
+import { Nutrient } from "@/domain/nutrient/Nutrient";
 import { getRoot, types } from "mobx-state-tree";
 
 export const NutrientStore = types.model("NutrientStore", {

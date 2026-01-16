@@ -11,7 +11,6 @@ export const useScheduleFoodActions = (currentChild: Instance<typeof ScheduleIte
     const searchState = useLocalObservable(() => ({
         currentTab: 'productSearch' as SearchTabs,
         filterText: '',
-        customProductText: currentChild?.content?.customName || '',
 
         setTab(tab: SearchTabs) {
             this.currentTab = tab;
@@ -19,10 +18,6 @@ export const useScheduleFoodActions = (currentChild: Instance<typeof ScheduleIte
 
         setSearch(text: string) {
             this.filterText = text;
-        },
-
-        setCustomText(text: string) {
-            this.customProductText = text;
         },
 
         foodSearchState: {

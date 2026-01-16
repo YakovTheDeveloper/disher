@@ -12,6 +12,7 @@ import {
   NutrientsCountableEntity,
   TotalNutrientsStore,
 } from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
+import { Spacer } from '@/components/ui/atoms/Spacer';
 
 export interface TotalNutrientsRef {
   calculate: () => void;
@@ -39,6 +40,7 @@ const TotalNutrients = ({ countable, children }: Props) => {
 
   return (
     <div className={styles.container}>
+      <Spacer variant="screen-header-offset" />
       {/* <Button
         onClick={async () => {
           const nutrients = await nutrientStore.loadNutrientsAndCalculate();

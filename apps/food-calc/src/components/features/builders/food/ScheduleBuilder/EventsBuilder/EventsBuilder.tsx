@@ -15,9 +15,6 @@ type Props = {
   onEventContentUpdateModalOpen: (id: string | number) => void;
   onEventContentCreateModalOpen: () => void;
   onEventTimeModalOpen: (id: string | number) => void;
-  options: {
-    showAdditionals: boolean;
-  };
 };
 
 const EventsBuilder = ({
@@ -25,7 +22,6 @@ const EventsBuilder = ({
   onEventContentUpdateModalOpen,
   onEventContentCreateModalOpen,
   onEventTimeModalOpen,
-  options,
 }: Props) => {
   const onFinishHandler = useCallback(() => {
     // updateDailyEvents
@@ -41,7 +37,6 @@ const EventsBuilder = ({
           onDelete={schedule.events.removeChild}
           key={item.id}
           sync={item.sync}
-          showAdditionals={options.showAdditionals}
         >
           <EventListItem
             item={item}
