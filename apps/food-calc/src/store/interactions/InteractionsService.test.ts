@@ -51,7 +51,7 @@ describe("save dish draft flow", () => {
         //
         // --- DishStore validation ---
         //
-        const savedDish = root.dishStore.data.get(String(tempDishId));
+        const savedDish = root.dishStore.getEntity(String(tempDishId));
         expect(savedDish, "saved dish must be present in dishStore").toBeTruthy();
         expect(
             savedDish!.items.length,

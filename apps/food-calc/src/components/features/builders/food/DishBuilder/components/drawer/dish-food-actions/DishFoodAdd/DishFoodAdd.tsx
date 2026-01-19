@@ -37,7 +37,7 @@ const DishFoodAdd = ({ close }: Props) => {
   );
 
   const onFinish = () => {
-    dish.addDraftChild(currentChild);
+    dish.addChildFromDraft(currentChild);
     close();
   };
 

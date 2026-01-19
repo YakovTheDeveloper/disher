@@ -1,0 +1,10 @@
+<svg width="1em" height="1em" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Основной круг лупы -->
+  <circle cx="18" cy="18" r="10" stroke="currentColor" stroke-width="1" />
+
+  <!-- Ручка лупы (упрощённая форма) -->
+ <path d="M26 26 L30 30" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="1"/>
+
+  <!-- Опционально: небольшой акцент (например, обводка) -->
+  <circle cx="18" cy="18" r="7" stroke="currentColor" stroke-width="1" opacity="0.1" />
+</svg>

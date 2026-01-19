@@ -1,7 +1,7 @@
 import { SyncStatus } from "@/domain/commonListItem";
-import { UserFood } from "@/domain/Food";
 import { ChildrenController } from "@/domain/shared/ChildrenController";
 import { FoodContentProduct } from "@/domain/shared/foodContent/foodContent";
+
 import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
 import { getSnapshot, Instance, types } from "mobx-state-tree";
 
@@ -18,6 +18,7 @@ export const DishItem = types.model("DishItem", {
 export const Dish = types.compose("Dish", types.model({
     id: types.identifier,
     name: types.string,
+    description: types.string,
     userId: types.number,
     lastSync: types.optional(types.string, '')
 }), ChildrenController(DishItem))
@@ -35,7 +36,7 @@ export const Dish = types.compose("Dish", types.model({
             );
         },
         get customItems() {
-            return self.items.filter(i => UserFood.is(i.content.food)) || null;
+            return self.items.filter(item => item.content.food?.createdByUser) || null;
         },
         get foodWithNoNutrients() {
             return Array.from(new Set(self.items.filter(item => item.food.noNutrients).map(item => item.food)))
@@ -52,7 +53,7 @@ export const Dish = types.compose("Dish", types.model({
             return acc;
         }
 
-        function addDraftChild(draft: Instance<typeof DishItem>) {
+        function addChildFromDraft(draft: Instance<typeof DishItem>) {
             const { quantity, content } = draft;
             self.addChildWithLocalData({
                 quantity,
@@ -67,10 +68,19 @@ export const Dish = types.compose("Dish", types.model({
             self.lastSync = sync;
         }
 
+        function changeName(name: string) {
+            self.name = name
+        }
+
+        function changeDescription(description: string) {
+            self.description = description
+        }
+
         return {
-            addDraftChild,
+            addChildFromDraft,
             getTotalNutrients,
-            updateName,
+            changeDescription,
+            changeName,
             setLastSync
         };
     })

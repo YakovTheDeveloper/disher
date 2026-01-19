@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import styles from './DishesPage.module.scss';
-import { Dishes } from '@/components/features/builders/food/Dishes';
+import { Dishes } from '@/components/features/lists/Dishes';
 type Props = {
   children: React.ReactNode;
 };

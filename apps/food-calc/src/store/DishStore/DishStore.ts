@@ -1,122 +1,48 @@
-import { types, cast, Instance, getRoot, SnapshotIn } from "mobx-state-tree"
-import { ISODate } from "@/types/common/common"
-import { ScheduleItem } from "@/domain/schedule/schedule"
+import { types, Instance, getRoot } from "mobx-state-tree"
 import { RequestState } from "@/store/shared/RequestState"
 import { Dish } from "@/domain/dish/Dish"
-import { createDishModel } from "@/store/DishStore/fabric"
 import { RootInstance } from "@/store/store"
 import { getDishById, syncDishes } from "@/api/dish/dish.api"
-import { RequestAndSetHandler } from "@/store/common/pureFabrication/RequestAndSet"
+import { createRequestController } from "@/store/common/pureFabrication/createRequestController"
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel"
+import { createDataStoreModel, createEntityDataStore, createImmutableEntityStore } from "@/store/shared/DataStore"
 
-type AddLocalType = {
-    variant: 'fromSnapshot',
-    payload: Partial<SnapshotIn<typeof Dish>>
-} | {
-    variant: 'fromScheduleFood'
-    payload: Instance<typeof ScheduleItem>[]
-}
-
-export const DishStore = types
-    .model("DishStore", {
-        // Cache of schedules, keyed by date (ISO)
-        data: types.map(Dish),
-
-        // Tracks if schedule exists on backend
-        exists: types.map(types.boolean),
-
-        // Request states per date
-        request: types.map(RequestState),
-        status: types.optional(StatusModel, {
-            fetchGet: {},
-            fetchSync: {},
-        }),
-    })
-    .views(self => ({
-        get root(): RootInstance {
-            return getRoot(self)
-        },
-        get list() {
-            return Array.from(self.data.values());
-        },
-    }))
-    // ======== HELPERS ========
+const storeModel = types.model("DishStore", {
+    request: types.map(RequestState),
+    status: types.optional(StatusModel, {
+        fetchGet: {},
+        fetchSync: {},
+    }),
+})
     .actions(self => ({
-        addLocal(init: AddLocalType) {
-            const { variant, payload } = init
-            if (variant === 'fromSnapshot') {
-                const model = createDishModel(payload);
-                self.data.set(model.id, model);
-                return model
-            }
-            if (variant === 'fromScheduleFood') {
-                const onlyFoodItems = payload
-                    .filter(el => el.content.variant === 'food' && el.sync.status !== 'deleted')
-                    .map(el => ({
-                        id: el.id,
-                        foodId: String(el.content.foodId),
-                        food: String(el.content.foodId),
-                        quantity: el.quantity,
-                        status: "added" as const,
-                    }));
-
-                const init = {
-                    items: onlyFoodItems,
-                }
-                const model = createDishModel(init);
-                self.data.set(model.id, model);
-                return model
-            }
-        },
-
-        // addLocalFromSnapshot(snapshot: SnapshotOut<typeof Dish>) {
-        //     self.data.set(snapshot.id, Dish.create(snapshot));
-        // },
 
         fetchSync: async (payload: Instance<typeof Dish>[]) => {
-            const syncRequest = new RequestAndSetHandler(self);
-            return await syncRequest.load(
+            const syncRequest = createRequestController({
+                getState: (id: string, variant: string) => self.status[variant].get(id)
+            })
+
+            return await syncRequest.run(
                 payload.map(x => ({ id: x.id, variant: "fetchSync" })),
                 () => syncDishes(payload)
             );
         },
 
         fetchGet: async (id: string) => {
-            const syncRequest = new RequestAndSetHandler(self);
+            const syncRequest = createRequestController({
+                getState: (id: string, variant: string) => self.status[variant].get(id)
+            });
             return await syncRequest.load(
                 [{ id, variant: "fetchGet" }],
                 () => getDishById(id)
             );
         },
 
-        removeBulk(dishIds: string[]) {
-            dishIds.forEach(id => {
-                self.data.delete(id);
-                self.exists.delete(id);
-            });
-        },
-
     }))
 
-    // ======== ACTIONS / FLOWS ========
-    .actions(self => ({
+export const DishStore = types.compose(
+    "DishStore",
+    storeModel,
+    createDataStoreModel("DishStoreData", Dish)
+)
 
-        // ---- Local update (no backend call)
-        updateDailyEventsLocal(date: ISODate, payload: string | null) {
-            const item = self.data.get(date)
-            if (!item) return
-            item.dailyEvents = payload
-        },
-
-        // ---- Manual setters if needed
-        set(date: ISODate, schedule: unknown) {
-            self.data.set(date, cast(schedule))
-        },
-        getLocal(id: string) {
-            return self.data.get(id);
-        },
-
-        delete(date: ISODate) {
-            self.data.delete(date)
-        },
-    }))
+export type DishStoreInstance = Instance<typeof DishStore>

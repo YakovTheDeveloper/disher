@@ -5,6 +5,7 @@ import toaster from "@/infrastructure/toaster/toaster";
 import { isNotEmpty } from "@/lib/empty";
 import { DayScheduleStore } from "@/store/DayScheduleStore/DayScheduleStore";
 import { DishStore } from "@/store/DishStore/DishStore";
+import { DishFactory } from "@/store/DishStore/Dish.factory";
 import { GlobalUiStore } from "@/store/GlobalUiStore/GlobalUiStore";
 import { domainStore } from "@/store/store";
 import { DDMMYYYY } from "@/types/common/timeAndDate";
@@ -61,16 +62,13 @@ export const InteractionsService = types
 
             const dishItemsPayload = schedule.foods.getChildrenByIds(selectedIds)
 
-            const dish = root.dishStore.addLocal({
-                variant: 'fromScheduleFood',
-                payload: dishItemsPayload
-            })!
+            const dish = root.dishStore.user.insert(DishFactory.createNewLocalFromScheduleProducts(dishItemsPayload))
 
             const dishId = dish.id
-            if (!dish) {
-                console.error('no dish ', dish)
-                return
-            }
+            // if (!dish) {
+            //     console.error('no dish ', dish)
+            //     return
+            // }
             schedule.foods.addChildWithLocalData({ quantity: 100, time: timeToAddDishScheduleItem, content: { dishId, variant: 'dish' } });
 
             console.log('removeScheduleItems', removeScheduleItems, getIds(dish.items));
@@ -125,7 +123,7 @@ export const InteractionsService = types
                 if (!item.dish) continue
                 const id = item.dish.id
                 const dishChildren = item.dish.items
-                const localDish = root.dishStore.data.get(id)
+                const localDish = root.dishStore.getEntity(id)
 
                 localDish?.setLastSync()
                 localDish?.removeChildrenMarkedAsDeleted()
@@ -145,7 +143,7 @@ export const InteractionsService = types
 
         //     for (const inputDish of dishes.data) {
         //         const id = inputDish.id
-        //         const localDish = root.dishStore.data.get(id)
+        //         const localDish = root.dishStore.getEntity(id)
         //         const dishChildren = inputDish.items
         //         localDish?.addOrUpdateBulk(dishChildren)
         //     }

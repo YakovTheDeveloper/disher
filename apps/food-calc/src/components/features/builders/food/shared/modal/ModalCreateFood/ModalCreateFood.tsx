@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { domainStore } from '@/store/store';
 import { RouterLinks } from '@/router';
 import { DrawerStoreInstance } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
+import { productFactory } from '@/domain/product/Food.factory';
 type Props = {
   modalStore: ModalStoreInstance;
   drawerStore: DrawerStoreInstance;
@@ -25,11 +26,13 @@ const ModalCreateFood = ({
   const handleCreate = () => {
     const name = inputRef.current?.value.trim();
     if (!name) return;
-    const food = { name };
-    const createdFood = domainStore.foodStore.addLocal({
-      variant: 'user-custom-food',
-      food,
-    });
+
+    const createdFood = domainStore.foodStore.user.insert(
+      productFactory.createNewLocal({
+        name,
+        createdByUser: true,
+      })
+    );
     modalStore.closeModal();
     drawerStore.close();
     if (!createdFood) return;

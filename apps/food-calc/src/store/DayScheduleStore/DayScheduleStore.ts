@@ -10,8 +10,7 @@ import {
 import { ISODate } from "@/types/common/common"
 import { DaySchedule } from "@/domain/schedule/schedule"
 import { createDayScheduleModel } from "@/store/DayScheduleStore/fabric"
-import { RequestState } from "@/store/shared/RequestState"
-import { RequestAndSetHandler } from "@/store/common/pureFabrication/RequestAndSet"
+import { createRequestController } from "@/store/common/pureFabrication/createRequestController"
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel"
 
 export const DayScheduleStore = types
@@ -27,6 +26,7 @@ export const DayScheduleStore = types
             fetchGet: {},
             fetchSync: {},
         }),
+
     })
 
     // ======== HELPERS ========
@@ -36,36 +36,18 @@ export const DayScheduleStore = types
             self.data.set(model.id, model);
             return model
         },
-        // ---- Load all schedules for a month (short data)
-        getAllMonthShortData: flow(function* (date: Date) {
-            const res = yield getSchedules(date.toISOString())
 
-            if (!res.data) return
-
-            self.exists.clear()
-            res.data.forEach(schedule => {
-                self.exists.set(schedule.date, true)
-            })
-        }),
-
-        // ---- Load a single schedule by date
-        fetchGetOneByDate: flow(function* (date: ISODate) {
-            const byDate = new RequestAndSetHandler(self)
-            return yield byDate.load({
-                id: date,
-                variant: 'fetchGet'
-            }, () => getOneSchedule({ date }))
-        }),
-
-        // ---- Create a schedule
         fetchSync: async (payload: Instance<typeof DaySchedule>) => {
             const { id } = payload
-            const syncRequest = new RequestAndSetHandler(self)
-            const result = await syncRequest.load({
+
+            const syncRequest = createRequestController({
+                getState: (id: string, variant: string) => self.status[variant].get(id)
+            })
+
+            const result = await syncRequest.run({
                 id,
                 variant: 'fetchSync'
             }, () => syncSchedules([payload]))
-            // self.data.set(date, DaySchedule.create(res.data))
 
             return result
 

@@ -6,12 +6,12 @@ import { domainStore } from '@/store/store';
 import { useParams } from 'react-router';
 import DailyNormsEdit from '@/components/features/DailyNorms/DailyNormsEdit/DailyNormsEdit';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
-import { HeaderInputName } from '@/components/features/builders/food/shared/components/UserProductHeader';
+import { HeaderInputName } from '@/components/features/builders/food/shared/components/HeaderInputName';
 type Props = {};
 
 const DailyNormsCreateOrUpdatePage = ({}: Props) => {
   const { id } = useParams<'id'>();
-  const userDailyNorm = id ? domainStore.dailyNormStore.getUserDailtNormById(id) : undefined;
+  const userDailyNorm = id ? domainStore.dailyNormStore.user.getById(id) : undefined;
   if (!userDailyNorm) return;
 
   return (

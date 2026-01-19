@@ -1,12 +1,14 @@
-import { ModalConfirmDeleteDishes } from '@/components/features/builders/food/Dishes/modal/ModalConfirmDeleteDishes';
+import { ModalConfirmDeleteDishes } from '@/components/features/lists/Dishes/modal/ModalConfirmDeleteDishes';
 import { ModalCopyScheduleItemsToAnotherDay } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ModalCopyScheduleItemsToAnotherDay';
 import { ModalCreateDishFromSchedule } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ModalCreateDishFromSchedule';
 import { ModalCreateDish } from '@/components/features/builders/food/shared/modal/ModalCreateDish';
 import { ModalCreateFood } from '@/components/features/builders/food/shared/modal/ModalCreateFood';
+import { ModalPhysicalActivityPulse } from '@/components/features/builders/food/ScheduleBuilder/EventsBuilder/components/modal/ModalPhysicalActivityPulse';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
+import { SelectedEventItemProvider } from '@/components/features/builders/food/ScheduleBuilder/context';
 
 type Props = {
   modalStore?: ModalStoreInstance;
@@ -31,6 +33,9 @@ export const ModalManager = observer(
 
       case ModalType.CREATE_DISH:
         return <ModalCreateDish modalStore={modalStore} />;
+
+      case ModalType.PULSE_PHYSICAL_ACTIVITY:
+        return <ModalPhysicalActivityPulse />;
 
       default:
         return null;

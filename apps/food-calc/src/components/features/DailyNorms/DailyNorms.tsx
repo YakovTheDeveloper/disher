@@ -15,6 +15,17 @@ import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore'
 import { DrawerStoreInstance } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
 import { Button } from '@/components/features/builders/food/shared/ui/Actions/button';
 import styles from './DailyNorms.module.scss';
+import { useFilteringState } from '@/components/features/shared/hooks/useFilteringState';
+import { Scalable } from '@/components/ui/Scalable';
+import SearchInput from '@/components/ui/Input/SearchInput/SearchInput';
+import { TextInput } from '@/components/ui/atoms/input/TextInput';
+import clsx from 'clsx';
+import { Spacer } from '@/components/ui/atoms/Spacer';
+import { FilterButton } from '@/components/features/builders/food/shared/atoms/button/FilterButton';
+import { DailyNormsFactory } from '@/store/DailyNormStore/factory';
+import { ScalableHeaderNameInput } from '@/components/features/lists/shared/ScalableHeaderNameInput';
+import { MotionValue } from 'framer-motion';
+import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
 
 type Props = {
   children?: React.ReactNode;
@@ -28,20 +39,22 @@ const DailyNorms = ({
   modalStore = domainStore.globalUiStore.modalStore,
   drawerStore = domainStore.globalUiStore.drawerStore,
 }: Props) => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
-  const onOpenEdit = (id: string | number) => {};
-
-  const onAdd = () => {
-    const { id } = store.addNewLocal({
-      name: 'Новая норма',
-      description: '',
-    });
-    navigate(`${RouterLinks.DailyNorms}/${id}`);
-  };
+  const { onAdd, navigate, filter } = useListStateActions({
+    store,
+    basePath: RouterLinks.DailyNorms,
+    createDraft: () =>
+      DailyNormsFactory.createNewLocal({
+        name: 'Новая норма',
+        description: '',
+      }),
+    filterKeys: ['name', 'description'], // Можно расширять
+  });
 
   return (
     <Screen
+      header={<ScalableHeaderNameInput state={filter} />}
       actions={
         <ActionsHeader
           left={
@@ -57,61 +70,30 @@ const DailyNorms = ({
       }
       bottom={<Button.Add onClick={onAdd} />}
       title={<ScreenLabel variant="screenHeader">Нормы</ScreenLabel>}
+      backgroundColor="gray"
     >
-      <div className={styles.dailyNormsListWrapper}>
-        <ItemsList offsetTop>
-          {store.predefinedDataList.map((item) => (
-            <CommonListItem key={item.id} id={item.id} sync={{ status: 'none' }} variant={2}>
+      <Spacer variant="screen-header-offset" />
+      <FilterButton />
+      <ItemsList>
+        {filter.filteredList.map((item) => (
+          <div
+            key={item.id}
+            className={clsx([styles.item, store.selectedNormId === item.id && styles.selected])}
+          >
+            <CommonListItem id={item.id} variant={2} innerClassName={clsx([styles.innerListItem])}>
               <p onClick={() => navigate(`${RouterLinks.DailyNorms}/${item.id}`)}>
                 {item.name || 'без имени'}
               </p>
             </CommonListItem>
-          ))}
-          {store.userDataList.map((item) => (
-            <CommonListItem key={item.id} id={item.id} sync={{ status: 'none' }} variant={2}>
-              <p onClick={() => navigate(`${RouterLinks.DailyNorms}/${item.id}`)}>
-                {item.name || 'без имени'}
-              </p>
-            </CommonListItem>
-          ))}
-        </ItemsList>
-        <ItemsList offsetTop>
-          {store.predefinedDataList.map((item) => (
-            <button className={styles.dailyNormChooseButton}></button>
-          ))}
-          {store.userDataList.map((item) => (
-            <button className={styles.dailyNormChooseButton}></button>
-          ))}
-        </ItemsList>
-      </div>
+            <button
+              onClick={() => store.setSelectedId(item.id)}
+              className={clsx([styles.selectButton])}
+            ></button>
+          </div>
+        ))}
+      </ItemsList>
     </Screen>
   );
-
-  // return (
-  //   <div className={styles.container}>
-  //     <ListItem item={standardNorm} onTitle={() => openForView(standardNorm.id)}>
-  //       {standardNorm.name}
-  //     </ListItem>
-  //     <ul>
-  //       {store.data.map((item) => (
-  //         <ListItem item={item} key={item.id} onTitle={onOpenEdit}>
-  //           <p>{item.name}</p>
-  //         </ListItem>
-  //       ))}
-  //     </ul>
-  //     <ModalRoot modals={modalStore}>
-  //       {{
-  //         ['view']: <DailyNormsContent store={store} variant="view" />,
-  //         ['edit']: <DailyNormsContent store={store} variant="modify" />,
-  //       }}
-  //     </ModalRoot>
-  //     <Actions isShow={() => true}>
-  //       {showFinishButton ? <ActionButton.Finish onFinish={onFinish} content={store} /> : <span />}
-  //       {showAddButton && <ActionButton.Add onClick={createAndOpenEdit} />}
-  //       {showAdditionalOptionsButton && <ActionButton.AdditionalOptions options={options} />}
-  //     </Actions>
-  //   </div>
-  // );
 };
 
 export default observer(DailyNorms);

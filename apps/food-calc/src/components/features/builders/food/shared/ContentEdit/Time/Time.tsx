@@ -1,141 +1,73 @@
 import { observer } from 'mobx-react-lite';
+import { useState, useEffect, useCallback } from 'react';
 import style from './Time.module.scss';
-import { useState } from 'react';
 import { TimePicker } from '@/components/features/builders/food/ScheduleBuilder/components/TimePicker';
-
 import { TimeNow } from './TimeNow';
-import { NextButton } from '@/components/features/builders/food/shared/atoms/button/NextButton';
-
-const parseTime = (time: string) => {
-  return time.split(':');
-};
-
-// type Props<T extends HasTime> = {
-//   store: {
-//     current: T | null;
-//     updateCurrent: (fields: Partial<T>) => void;
-//   };
-//   onFinish: () => void;
-// };
 
 type Props = {
   item: {
-    time: string;
+    time: string; // Format "HH:mm"
     updateTime: (time: string) => void;
   };
   onFinish: () => void;
 };
 
-function Time({ item, onFinish }: Props) {
-  const [initHours, initMinutes] = parseTime(item.time || '');
-  const [minutes, setMinutes] = useState<string>(initMinutes);
-  const [hours, setHours] = useState(initHours);
+const Time = ({ item, onFinish }: Props) => {
+  // 1. Single source of truth: Local state synchronized with MobX
+  const [localTime, setLocalTime] = useState(item.time || '12:00');
 
-  const time = hours + ':' + minutes;
+  // Update local state if the store changes externally
+  useEffect(() => {
+    if (item.time) setLocalTime(item.time);
+  }, [item.time]);
 
-  const onFinishHandler = (time: string) => {
-    item.updateTime(time);
+  const [hours, minutes] = localTime.split(':');
+
+  // 2. Unified handler to prevent logic duplication
+  const handleTimeUpdate = useCallback(
+    (newTime: string) => {
+      setLocalTime(newTime);
+      item.updateTime(newTime);
+    },
+    [item]
+  );
+
+  const onFinishHandler = () => {
+    item.updateTime(localTime);
     onFinish();
-  };
-
-  const onMinutesChange = (m: string) => {
-    // const time = hours + ':' + m;
-    setMinutes(m);
-
-    // setTimeout(() => {
-    //   item.updateTime(time);
-    // });
-    // onFinish();
   };
 
   return (
     <div className={style.container}>
       <div className={style.timePicker}>
-        <TimeNow
-          time={time}
-          onTimeChange={(h, m) => {
-            setHours(h);
-            setMinutes(m);
-          }}
-        />
-        <div>
+        {/* Visual Clock Header */}
+        <TimeNow time={localTime} onTimeChange={(h, m) => handleTimeUpdate(`${h}:${m}`)} />
+
+        <div className={style.inputWrapper}>
+          {/* 
+            UX Strategy: 
+            The native input is invisible but covers the area for mobile users.
+            The custom TimePicker handles desktop interactions.
+          */}
           <input
             type="time"
-            value={item.time}
-            onChange={(e) => {
-              const time = e.target.value;
-              item.updateTime(time);
-              // console.log(e.target.value);
-            }}
+            className={style.nativeInput}
+            value={localTime}
+            onChange={(e) => handleTimeUpdate(e.target.value)}
           />
+
           <TimePicker
-            value={time}
-            onFinish={onFinishHandler}
+            value={localTime}
             hours={hours}
             minutes={minutes}
-            setHours={setHours}
-            setMinutes={onMinutesChange}
+            setHours={(h) => handleTimeUpdate(`${h}:${minutes}`)}
+            setMinutes={(m) => handleTimeUpdate(`${hours}:${m}`)}
+            onFinish={onFinishHandler}
           />
         </div>
-        {/* <NextButton onClick={() => onFinishHandler(time)} /> */}
       </div>
     </div>
   );
-}
+};
 
 export default observer(Time);
-
-// <AnimatePresence>
-//   {animHour && circlePos && (
-//     <>
-//       <motion.div
-//         key={hours}
-//         initial={{
-//           left: circlePos.x,
-//           top: circlePos.y,
-//           scale: 0,
-//           opacity: 0.8,
-//         }}
-//         animate={{
-//           left: '100%',
-//           top: 0,
-//           scale: 10,
-//           opacity: 0,
-//         }}
-//         exit={{ opacity: 0 }}
-//         transition={{ duration: 1.2, ease: 'easeOut' }}
-//         style={{
-//           position: 'fixed',
-//           width: 200,
-//           height: 200,
-//           borderRadius: '50%',
-//           backgroundColor: 'limegreen',
-//           zIndex: 10,
-//           transform: 'translate(-50%, -50%)',
-//           pointerEvents: 'none',
-//         }}
-//       />
-
-//       {/* Huge Hour Number */}
-//       <motion.div
-//         initial={{ scale: 0.5, opacity: 0 }}
-//         animate={{ scale: 3, opacity: 1 }}
-//         exit={{ opacity: 0 }}
-//         transition={{ duration: 1.2, ease: 'easeOut' }}
-//         style={{
-//           position: 'fixed',
-//           top: '50%',
-//           left: '50%',
-//           transform: 'translate(-50%, -50%)',
-//           color: 'white',
-//           fontSize: '10rem',
-//           fontWeight: 'bold',
-//           zIndex: 20,
-//           pointerEvents: 'none',
-//         }}
-//       >
-//         {animHour}
-//       </motion.div>
-//     </>
-//   )}
-// </AnimatePresence>;

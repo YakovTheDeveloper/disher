@@ -12,10 +12,12 @@ import { Drawer } from '@/components/ui/Drawer';
 import { DrawerManager } from '@/DrawerManager';
 import { useEffect } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
+import { useLastFocusMethod } from '@/hooks/useLastFocusMethod';
 
 const queryClient = new QueryClient();
 
 const App = () => {
+  useLastFocusMethod();
   setupGlobalLog();
 
   return (

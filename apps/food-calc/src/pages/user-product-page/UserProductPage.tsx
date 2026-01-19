@@ -9,11 +9,11 @@ import { Nutrients } from '@/components/features/builders/food/shared/ContentInf
 import { useMemo } from 'react';
 import { TotalNutrientsStore } from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
 import { Label } from '@/components/features/builders/food/ScheduleBuilder/EventsBuilder/components/EventContent/shared/Label';
-import { HeaderInputName } from '@/components/features/builders/food/shared/components/UserProductHeader';
+import { HeaderInputName } from '@/components/features/builders/food/shared/components/HeaderInputName';
 
 const UserProductPage = () => {
   const { id } = useParams<'id'>();
-  const userFood = id ? domainStore.foodStore.getUserFoodById(id) : undefined;
+  const userFood = id ? domainStore.foodStore.getEntity(id) : undefined;
   if (!userFood) return;
 
   const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);

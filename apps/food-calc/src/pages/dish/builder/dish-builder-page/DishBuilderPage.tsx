@@ -18,7 +18,7 @@ type Props = {
 const Page = ({ dishIdParam }: Props) => {
   const navigate = useNavigate();
 
-  const current = domainStore.dishStore.data.get(dishIdParam);
+  const current = domainStore.dishStore.user.entities.get(dishIdParam);
 
   const onSave = async (data: Instance<typeof Dish>) => {
     domainStore.interactionsService.fetchSyncDishes([data]);
@@ -29,12 +29,6 @@ const Page = ({ dishIdParam }: Props) => {
   };
 
   const onInit = async () => {
-    if (!dishIdParam) {
-      const model = domainStore.dishStore.addLocal({ isDraft: true });
-      navigate(RouterLinks.DishBuilder + '?id=' + model.id, { replace: true });
-      return;
-    }
-
     return;
 
     const { code, data = null } = await domainStore.scheduleStore.getOneByDate(date);

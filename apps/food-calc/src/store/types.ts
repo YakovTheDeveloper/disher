@@ -23,7 +23,7 @@ export type DishStoreInstance = Instance<typeof DishStore>;
 
 export interface DishStoreApi {
     addLocal: DishStoreInstance["addLocal"];
-    getLocal: DishStoreInstance["getLocal"];
+    getById: DishStoreInstance["getById"];
     fetchSync: DishStoreInstance["fetchSync"];
 }
 

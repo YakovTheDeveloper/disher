@@ -36,6 +36,8 @@ export const SelectedScheduleItemProvider: React.FC<SelectedScheduleItemProvider
   );
 };
 
+// ----------------------------------------------
+
 const SelectedEventItemContext = createContext<Instance<typeof EventItem> | undefined>(undefined);
 
 export const useSelectedEventItem = () => {

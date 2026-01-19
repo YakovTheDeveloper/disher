@@ -12,7 +12,8 @@ type Props = {
   id: string | number;
   children?: React.ReactNode;
   className?: string;
-  sync: Instance<typeof SyncStatus>;
+  innerClassName?: string;
+  sync?: Instance<typeof SyncStatus>;
   uiStore?: Instance<typeof GlobalUiStore>;
   variant?: 1 | 2 | 3;
 };
@@ -24,6 +25,7 @@ const ListItem = ({
   id,
   children,
   className,
+  innerClassName,
   sync,
   uiStore = domainStore.globalUiStore,
   variant,
@@ -126,7 +128,7 @@ const ListItem = ({
     handleSelect();
   };
 
-  const status = sync.status;
+  const status = sync?.status;
 
   return (
     <div
@@ -162,6 +164,7 @@ const ListItem = ({
         onPointerLeave={cleanUp}
         className={clsx(
           className,
+          innerClassName,
           styles.commonListItemInner,
           isActionsMode && styles.commonListItemInner_inActionsMode,
           isPressed && styles.commonListItemInner_tapped,

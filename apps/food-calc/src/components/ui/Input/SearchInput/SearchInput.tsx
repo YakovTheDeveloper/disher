@@ -1,22 +1,26 @@
-import Input, { InputProps } from '@/components/ui/Input/Input'
-import React from 'react'
-import SearchIcon from "@/assets/icons/search.svg";
+import React from 'react';
+import SearchIcon from '@/assets/icons/lupa.svg';
 import clsx from 'clsx';
-import s from './SearchInput.module.css'
+import styles from './SearchInput.module.scss';
 
-const SearchInput = ({ className = '', wrapperClassName = '', ...inputProps }: InputProps) => {
+type Props = React.InputHTMLAttributes<HTMLInputElement> & {
+  wrapperClassName?: string;
+};
 
+const SearchInput = ({ className = '', wrapperClassName = '', ...inputProps }: Props) => {
+  return (
+    <label className={clsx(styles.searchWrapper, wrapperClassName)}>
+      <div className={styles.searchIcon}>
+        <SearchIcon />
+      </div>
+      <input
+        type="text"
+        className={clsx(styles.searchInput, className)}
+        placeholder="Поиск"
+        {...inputProps}
+      />
+    </label>
+  );
+};
 
-
-    return (
-        <Input
-            {...inputProps}
-            className={clsx([className, s.searchInput])}
-            wrapperClassName={clsx([wrapperClassName, s.searchWrapper])}
-            before={<SearchIcon />}
-        />
-
-    )
-}
-
-export default SearchInput
+export default SearchInput;

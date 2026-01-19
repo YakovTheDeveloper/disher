@@ -1,5 +1,5 @@
 import { deleteChild as deleteChildFromList, ItemStatus, ItemStatusType, SyncStatus } from "@/domain/commonListItem";
-import { Food } from "@/domain/Food";
+import { Food } from "@/domain/product/Food.model";
 import { ChildrenController } from "@/domain/shared/ChildrenController";
 import { generateId } from "@/lib/id/generateId";
 import { sumRecordArray, sumRecords } from "@/lib/sumRecords/sumRecords";

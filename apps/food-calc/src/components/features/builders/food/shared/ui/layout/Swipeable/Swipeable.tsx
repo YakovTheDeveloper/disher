@@ -12,6 +12,7 @@ type Props = {
   onIndexChange?: (index: number, total: number) => void;
   enableHashSync?: boolean;
   children: React.ReactNode[];
+  style?: React.CSSProperties;
 };
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
@@ -22,6 +23,7 @@ const Swipeable = ({
   onIndexChange,
   enableHashSync = true,
   children,
+  style,
 }: Props) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -55,35 +57,41 @@ const Swipeable = ({
   }, [activeIndex]);
 
   return (
-    <div className={styles.wrapper}>
-      <Swiper
-        style={{ height: '100%' }}
-        slidesPerView={1}
-        resistanceRatio={0}
-        touchReleaseOnEdges
-        threshold={10}
-        speed={280}
-        grabCursor={false}
-        onSwiper={(swiper) => {
-          swiperRef.current = swiper;
-          swiper.slideTo(activeIndex, 0);
-        }}
-        onSlideChange={(swiper) => {
-          const next = clamp(swiper.activeIndex, 0, total - 1);
-          setActiveIndex(next);
-          if (enableHashSync) {
-            navigate(location.pathname + location.search + `#${pageNames[next]}`, {
-              replace: true,
-            });
-          }
-          onIndexChange?.(next, total);
-        }}
-      >
-        {children.map((child, i) => (
-          <SwiperSlide key={i}>{child}</SwiperSlide>
-        ))}
-      </Swiper>
-    </div>
+    <Swiper
+      className={styles.swiper}
+      style={style}
+      slidesPerView={1}
+      resistanceRatio={0}
+      touchReleaseOnEdges
+      threshold={10}
+      speed={280}
+      observer
+      observeParents
+      grabCursor={false}
+      autoHeight={false}
+      height={undefined}
+      wrapperClass={styles.wrapper}
+      onSwiper={(swiper) => {
+        swiperRef.current = swiper;
+        swiper.slideTo(activeIndex, 0);
+      }}
+      onSlideChange={(swiper) => {
+        const next = clamp(swiper.activeIndex, 0, total - 1);
+        setActiveIndex(next);
+        if (enableHashSync) {
+          navigate(location.pathname + location.search + `#${pageNames[next]}`, {
+            replace: true,
+          });
+        }
+        onIndexChange?.(next, total);
+      }}
+    >
+      {children.map((child, i) => (
+        <SwiperSlide key={i} className={styles.slide}>
+          {child}
+        </SwiperSlide>
+      ))}
+    </Swiper>
   );
 };
 

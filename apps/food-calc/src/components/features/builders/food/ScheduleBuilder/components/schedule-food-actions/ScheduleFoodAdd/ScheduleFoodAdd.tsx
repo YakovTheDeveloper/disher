@@ -15,6 +15,7 @@ import { useScheduleFoodActions } from '@/components/features/builders/food/Sche
 import { Spacer } from '@/components/ui/atoms/Spacer';
 import { useSchedule } from '@/components/features/builders/food/ScheduleBuilder/context';
 import { createScheduleItemDraft } from '@/domain/schedule/factory';
+import { Swipeable } from '@/components/features/builders/food/shared/ui/layout/Swipeable';
 
 type Props = {
   close: () => void;
@@ -58,11 +59,18 @@ const ScheduleFoodAdd = observer(({ close }: Props) => {
       }
       topRight={<FinishButton onClick={onFinish} />}
     >
-      {currentTab === 'time' && <ContentEdit.Time item={currentChild} onFinish={goNext} />}
+      <Swipeable pageNames={['a', 'b', 'c']} style={{ minHeight: '25dvh' }}>
+        <ContentEdit.Time item={currentChild} onFinish={goNext} />
+        <SearchFood scheduleChild={currentChild} onFinish={goNext} searchState={searchState} />
+        <ContentEdit.Quantity item={currentChild} onFinish={goNext} />
+      </Swipeable>
+
+      {/* {currentTab === 'time' && <ContentEdit.Time item={currentChild} onFinish={goNext} />}
       {currentTab === 'foodSelect' && (
         <SearchFood scheduleChild={currentChild} onFinish={goNext} searchState={searchState} />
       )}
-      {currentTab === 'quantity' && <ContentEdit.Quantity item={currentChild} onFinish={goNext} />}
+      {currentTab === 'quantity' && <ContentEdit.Quantity item={currentChild} onFinish={goNext} />} */}
+
       <Spacer variant="drawer-footer-offset" />
     </DrawerLayout>
   );

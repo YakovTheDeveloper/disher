@@ -18,7 +18,7 @@ export const useDish = (): Instance<typeof Dish> => {
 
 export const DishProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { id } = useParams();
-  const dish = domainStore.dishStore.data.get(id || '');
+  const dish = domainStore.dishStore.getEntity(id || '');
 
   return <DishContext.Provider value={dish}>{children}</DishContext.Provider>;
 };

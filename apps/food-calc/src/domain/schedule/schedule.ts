@@ -7,7 +7,6 @@ import { groupItemsByTime } from "@/domain/schedule/schedule.service";
 import { EventItem } from "@/domain/schedule/scheduleEvent/scheduleEvent";
 import { DishStore } from "@/store/DishStore/DishStore";
 import { FoodContentDish, FoodContentProduct, FoodContentType } from "@/domain/shared/foodContent/foodContent";
-import { UserFood } from "@/domain/Food";
 
 export interface RootStoreEnv {
     dishStore: Instance<typeof DishStore>;
@@ -105,11 +104,11 @@ export const DaySchedule = types.model({
             return self.foods.items.find(item => item.id.toString() === id) || null;
         },
         get customItems() {
-            return self.foods.items.filter(item => item.content?.food && UserFood.is(item.content.food)) || null;
+            return self.foods.items.filter(item => item.content?.food.createdByUser) || null;
         },
         get allDraftDishesFromItems() {
             return self.foods.items
-                .filter(item => item.content.variant === "dish" && item.content.dish && !item.content.dish.lastSync)
+                .filter(item => item.content?.variant === "dish" && item.content.dish && !item.content.dish.lastSync)
                 .map(item => item.content.dish!)
 
         },

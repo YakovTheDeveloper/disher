@@ -12,6 +12,7 @@ type BaseField = {
   key: string;
   label: string;
   placeholder?: string;
+  before?: React.ReactNode | null;
 };
 
 export type FormFieldConfig =
@@ -54,6 +55,7 @@ const EventContentEditForm = observer(({ items, onChange }: Props) => {
     return (
       <div key={index}>
         <Label aside={<ScreenLabel variant="formValueLabel">{displayValue}</ScreenLabel>}>
+          {config.before}
           {typeof config.value === 'number' && (
             <NumberInput
               className={clsx([styles.input, styles.inputNumber])}

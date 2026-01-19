@@ -1,5 +1,4 @@
 
-import { UserFood } from "@/domain/Food"
 import { RootStoreEnv } from "@/domain/schedule/schedule"
 import { FoodStoreInstance } from "@/store/FoodStore/FoodStore"
 import { getEnv, getRoot, getParent, types } from "mobx-state-tree"
@@ -14,9 +13,13 @@ export const FoodContentProduct = types
     .views(self => ({
         get food() {
             const foodStore = getEnv(self)?.foodStore as FoodStoreInstance
-            return foodStore?.getUserOrPredefinedFoodById(self.foodId) ?? null
+            return foodStore?.getEntity(self.foodId) ?? null
         },
-
+    }))
+    .views(self => ({
+        get isCustom() {
+            return self.food?.createdByUser || 'no data'
+        },
         get name() {
             return self.food?.name ?? "нет имени"
         },
@@ -28,10 +31,6 @@ export const FoodContentProduct = types
         get parentQuantity(): number {
             return getParent(self).quantity
         },
-
-        get isCustom() {
-            return UserFood.is(self.food)
-        }
     }))
 
     .actions(self => ({
@@ -51,9 +50,10 @@ export const FoodContentDish = types
     .views(self => ({
         get dish() {
             const root = getRoot(self) as RootStoreEnv
-            return root.dishStore.data.get(self.dishId)
+            return root.dishStore.getEntity(self.dishId)
         },
-
+    }))
+    .views(self => ({
         get name() {
             return self.dish?.name ?? 'Без имени'
         },
