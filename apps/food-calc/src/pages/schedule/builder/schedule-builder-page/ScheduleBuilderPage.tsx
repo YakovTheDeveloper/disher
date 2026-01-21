@@ -3,7 +3,6 @@ import { RouterLinks } from '@/router';
 import { observer } from 'mobx-react-lite';
 import { useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ModalDailyScheduleProvider } from '@/components/features/builders/food/ScheduleBuilder/modalContext';
 import { domainStore } from '@/store/store';
 import { DaySchedule } from '@/domain/schedule/schedule';
 import { Instance } from 'mobx-state-tree';
@@ -43,11 +42,11 @@ const Page = observer(({ date }: { date: string }) => {
   }, [current]);
 
   return (
-    <ModalDailyScheduleProvider>
+    <>
       {current ? (
         <ScheduleBuilder key={date} date={date} schedule={current} onFinish={onFinish} />
       ) : null}
-    </ModalDailyScheduleProvider>
+    </>
   );
 });
 

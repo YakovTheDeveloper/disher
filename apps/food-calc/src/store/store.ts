@@ -17,22 +17,31 @@ export const mstEnv = {
 }
 
 function createStore(): RootInstance {
-    const store = RootStore.create({
-        scheduleStore: DayScheduleStore.create(),
-        dishStore: DishStore.create(),
-        nutrientStore: createNutrientStoreWithInitialData(),
-        interactionsService: InteractionsService.create(),
-        dailyNormStore: DailyNormStore.create(),
-        globalUiStore: GlobalUiStore.create({ isActionsMode: false }),
-    }, mstEnv);
+    try {
+        const store = RootStore.create({
+            scheduleStore: DayScheduleStore.create(),
+            dishStore: DishStore.create(),
+            nutrientStore: createNutrientStoreWithInitialData(),
+            interactionsService: InteractionsService.create(),
+            dailyNormStore: DailyNormStore.create(),
+            globalUiStore: GlobalUiStore.create({ isActionsMode: false }),
+        }, mstEnv);
 
-    makePersistable(store.dishStore, "dish-store")
-    makePersistable(store.foodStore, "food-store")
-    makePersistable(store.scheduleStore, "day-schedule-store")
-    makePersistable(store.dailyNormStore, "daily-norm-store")
-    makeInspectable(store);
+        // Initializations are now async in makePersistable
+        // We call them, and they will hydrate the store as snapshots arrive from IndexedDB
+        makePersistable(store.dishStore, "dish-store").catch(e => console.error("Error initializing dish-store persistence:", e))
+        makePersistable(store.foodStore, "food-store").catch(e => console.error("Error initializing food-store persistence:", e))
+        makePersistable(store.scheduleStore, "day-schedule-store").catch(e => console.error("Error initializing day-schedule-store persistence:", e))
+        makePersistable(store.dailyNormStore, "daily-norm-store").catch(e => console.error("Error initializing daily-norm-store persistence:", e))
 
-    return store;
+        makeInspectable(store);
+
+        return store;
+    } catch (error) {
+        console.error("Critical error during RootStore creation:", error);
+        // Fallback or re-throw depending on app architecture
+        throw error;
+    }
 }
 
 export const domainStore = _store ?? (_store = createStore());

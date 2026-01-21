@@ -19,17 +19,10 @@ export const DailyNorm = types.model("DailyNorm", {
     id: types.identifier,
     name: types.string,
     description: types.string,
-    items: types.array(DailyNormItem)
-});
-
-export const UserDailyNorm = DailyNorm
-    .named("UserDailyNorm")
-    .props({
-        items: types.array(types.late(() => DailyNormItem)),
-        // userId: types.number,
-    })
+    items: types.array(DailyNormItem),
+    createByUser: types.boolean
+})
     .views(self => ({
-
         get nutrientIdToDailyNormItem(): Map<string, Instance<typeof DailyNormItem>> {
             const map = new Map<string, Instance<typeof DailyNormItem>>();
             for (const item of self.items) {
@@ -37,23 +30,27 @@ export const UserDailyNorm = DailyNorm
             }
             return map;
         }
-
     }))
     .actions(self => ({
         changeName(name: string) {
-            self.name = name
+            if (!self.createByUser) {
+                throw new Error("Cannot change name for predefined daily norm");
+            }
+            self.name = name;
         },
-
         changeDescription(description: string) {
-            self.description = description
+            if (!self.createByUser) {
+                throw new Error("Cannot change description for predefined daily norm");
+            }
+            self.description = description;
         },
-
         changeNutrientValue(nutrientId: string, quantity: number | null) {
+            if (!self.createByUser) {
+                throw new Error("Cannot change nutrient values for predefined daily norm");
+            }
             const item = self.items.find(normItem => normItem.nutrientId === nutrientId);
-
             if (item) {
                 item.quantity = quantity;
             }
-        },
-
-    }))
+        }
+    }));

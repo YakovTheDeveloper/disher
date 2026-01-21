@@ -1,5 +1,5 @@
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel";
-import { IAnyModelType, Instance, SnapshotIn, types } from "mobx-state-tree";
+import { IAnyModelType, Instance, SnapshotIn, isStateTreeNode, types } from "mobx-state-tree";
 
 export function createEntityDataStore<TModel extends IAnyModelType>(name: string, model: TModel) {
     return types
@@ -22,7 +22,7 @@ export function createEntityDataStore<TModel extends IAnyModelType>(name: string
         .views((self) => ({
             get list(): Instance<TModel>[] {
                 return Array.from(self.entities.values()).filter(
-                    (e) => self.meta.get((e as any).id)?.status !== "deleted"
+                    (e) => self.meta.get((e as Instance<TModel> & { id: string }).id)?.status !== "deleted"
                 );
             },
             getById(id: string) {
@@ -49,7 +49,7 @@ export function createEntityDataStore<TModel extends IAnyModelType>(name: string
             },
 
             replace(entity: Instance<TModel>) {
-                const id = (entity as any).id.toString();
+                const id = (entity as Instance<TModel> & { id: string }).id.toString();
                 self.entities.set(id, entity);
                 self.meta.get(id)!.status = "dirty";
                 self.meta.get(id)!.updatedAt = Date.now();
@@ -73,7 +73,11 @@ export function createEntityDataStore<TModel extends IAnyModelType>(name: string
         }));
 }
 
-export function createImmutableEntityStore<TModel extends IAnyModelType>(name: string, model: TModel, getInitDataAfterStoreCreate?: () => Promise<Record<string, SnapshotIn<TModel>>>) {
+export function createImmutableEntityStore<TModel extends IAnyModelType>(
+    name: string,
+    model: TModel,
+    getInitDataAfterStoreCreate?: () => Promise<Record<string, SnapshotIn<TModel>> | Record<string, Instance<TModel>>>
+) {
     return types
         .model(name, {
             entities: types.optional(types.map(model), {}),
@@ -88,27 +92,27 @@ export function createImmutableEntityStore<TModel extends IAnyModelType>(name: s
         }))
         .actions((self) => ({
             load(items: Instance<TModel>[]) {
-                self.entities.clear();
                 items.forEach((item) => {
                     self.entities.set((item as any).id.toString(), item);
                 });
             },
+
             afterCreate() {
-                if (getInitDataAfterStoreCreate) {
-                    getInitDataAfterStoreCreate().then((init: Record<string, SnapshotIn<TModel>>) => {
-
-                        console.log("init from afterCreate", init);
-
-                        for (const [id, snapshot] of Object.entries(init)) {
-                            const instance = model.create(snapshot);
-                            self.entities.set(id, instance);
+                const initialize = async () => {
+                    if (getInitDataAfterStoreCreate) {
+                        try {
+                            const init = await getInitDataAfterStoreCreate();
+                            const instances: Instance<TModel>[] = Object.entries(init).map(([, value]) => {
+                                return isStateTreeNode(value) ? value as Instance<TModel> : model.create(value as SnapshotIn<TModel>);
+                            });
+                            (self as any).load(instances);
+                        } catch (err) {
+                            console.error('Error initializing store:', err);
                         }
-                    }).finally(() => {
-                        Object.freeze(self.entities);
-                    });
-                } else {
+                    }
                     Object.freeze(self.entities);
-                }
+                };
+                initialize();
             },
         }));
 }
@@ -118,8 +122,9 @@ export function createDataStoreModel<
 >(
     name: string,
     model: TBaseModel,
-    getInitDataAfterStoreCreate?: () => Promise<Record<string, SnapshotIn<TBaseModel>>>
+    getInitDataAfterStoreCreate?: () => Promise<Record<string, SnapshotIn<TBaseModel>> | Record<string, Instance<TBaseModel>>>
 ) {
+
     const BaseStore = createImmutableEntityStore(
         name + "Base",
         model,
@@ -179,10 +184,6 @@ export function createDataStoreModel<
 
 }
 
-// export type DataStoreType = ReturnType<typeof createDataStoreModel>
-
 export type IDataStoreInstance<
     TBase extends IAnyModelType = IAnyModelType,
 > = Instance<ReturnType<typeof createDataStoreModel<TBase>>>;
-
-// TODO - убрать разделение на две сущности, пусть будет одна с флагом origin or createdByUser> = Instance<ReturnType<typeof createDataStoreModel<TBase>>>;

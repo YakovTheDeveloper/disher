@@ -5,44 +5,24 @@ import { useCallback } from 'react';
 import { EventListItem } from '@/components/features/builders/food/ScheduleBuilder/EventsBuilder/components/EventListItem';
 import { TimeGroup } from '@/components/features/builders/food/ScheduleBuilder/ui/List/TimeGroup';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule, EventItem } from '@/domain/schedule/schedule';
+import { DaySchedule } from '@/domain/schedule/schedule';
 import clsx from 'clsx';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
+import { EventItem } from '@/domain/schedule/scheduleEvent/scheduleEvent';
+import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
+import { ScheduleDrawers } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
 
 type Props = {
   children?: React.ReactNode;
   schedule: Instance<typeof DaySchedule>;
-  onEventContentUpdateModalOpen: (id: string | number) => void;
-  onEventContentCreateModalOpen: () => void;
-  onEventTimeModalOpen: (id: string | number) => void;
 };
 
-const EventsBuilder = ({
-  schedule,
-  onEventContentUpdateModalOpen,
-  onEventContentCreateModalOpen,
-  onEventTimeModalOpen,
-}: Props) => {
-  const onFinishHandler = useCallback(() => {
-    // updateDailyEvents
-    // onFinish(vm.payload());
-  }, [schedule]);
-
+const EventsBuilder = ({ schedule }: Props) => {
   const renderEventListItem = useCallback(
     (item: Instance<typeof EventItem>) => {
       return (
-        <CommonListItem
-          className={styles.listItemRow}
-          id={item.id}
-          onDelete={schedule.events.removeChild}
-          key={item.id}
-          sync={item.sync}
-        >
-          <EventListItem
-            item={item}
-            onContentModalOpen={onEventContentUpdateModalOpen}
-            onTimeModalOpen={onEventTimeModalOpen}
-          />
+        <CommonListItem className={styles.listItemRow} id={item.id} key={item.id} sync={item.sync}>
+          <EventListItem item={item} />
         </CommonListItem>
       );
     },

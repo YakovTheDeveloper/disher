@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import style from './Time.module.scss';
 import { TimePicker } from '@/components/features/builders/food/ScheduleBuilder/components/TimePicker';
 import { TimeNow } from './TimeNow';
+import { domainStore } from '@/store/store';
+import { UIViewOptionsInstance } from '@/store/GlobalUiStore/UiViewOptions/UIViewOptions';
 
 type Props = {
   item: {
@@ -10,11 +12,14 @@ type Props = {
     updateTime: (time: string) => void;
   };
   onFinish: () => void;
+  uiStore?: UIViewOptionsInstance;
 };
 
-const Time = ({ item, onFinish }: Props) => {
+const Time = ({ item, onFinish, uiStore = domainStore.globalUiStore.options }: Props) => {
   // 1. Single source of truth: Local state synchronized with MobX
   const [localTime, setLocalTime] = useState(item.time || '12:00');
+
+  const { toggleTimePickerVariant } = uiStore;
 
   // Update local state if the store changes externally
   useEffect(() => {
@@ -39,23 +44,22 @@ const Time = ({ item, onFinish }: Props) => {
 
   return (
     <div className={style.container}>
-      <div className={style.timePicker}>
-        {/* Visual Clock Header */}
+      <header>
+        <button className={style.toggleButton} onClick={toggleTimePickerVariant}>
+          альтернативный выбор времени
+        </button>
+      </header>
+      <div className={style.inputWrapper}>
         <TimeNow time={localTime} onTimeChange={(h, m) => handleTimeUpdate(`${h}:${m}`)} />
 
-        <div className={style.inputWrapper}>
-          {/* 
-            UX Strategy: 
-            The native input is invisible but covers the area for mobile users.
-            The custom TimePicker handles desktop interactions.
-          */}
+        {uiStore.timePickerVariant === 'native' ? (
           <input
             type="time"
             className={style.nativeInput}
             value={localTime}
             onChange={(e) => handleTimeUpdate(e.target.value)}
           />
-
+        ) : (
           <TimePicker
             value={localTime}
             hours={hours}
@@ -64,7 +68,7 @@ const Time = ({ item, onFinish }: Props) => {
             setMinutes={(m) => handleTimeUpdate(`${hours}:${m}`)}
             onFinish={onFinishHandler}
           />
-        </div>
+        )}
       </div>
     </div>
   );

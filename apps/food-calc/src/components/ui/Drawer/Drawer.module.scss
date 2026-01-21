@@ -3,9 +3,9 @@
 // Взяты из примеров Vaul для более резкой и отзывчивой анимации.
 // vaul-overlay-duration также управляет скоростью появления/исчезновения оверлея.
 :root {
-    --vaul-drawer-duration: 0.2s;
+    --vaul-drawer-duration: 0;
     /* Общая длительность анимации Drawer */
-    --vaul-overlay-duration: 0.2s;
+    --vaul-overlay-duration: 0;
     /* Длительность анимации оверлея */
     --vaul-overlay-opacity: 0.4;
     /* Прозрачность оверлея */
@@ -18,6 +18,6 @@
     // background-color: rgba(0, 0, 0, 0.4); // Vaul устанавливает это через --vaul-overlay-opacity
     background-color: hsla(0, 0%, 0%, var(--vaul-overlay-opacity));
     /* Используем CSS-переменную для оверлея */
-    z-index: 3000;
+    z-index: 50;
     // Анимацией `opacity` оверлея управляет Vaul, используя --vaul-overlay-duration.
 }

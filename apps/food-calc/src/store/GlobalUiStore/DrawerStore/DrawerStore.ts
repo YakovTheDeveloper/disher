@@ -69,14 +69,7 @@ export const DishDrawers = {
 
 export type DrawerType = typeof ScheduleDrawers[keyof typeof ScheduleDrawers] | typeof DishDrawers[keyof typeof DishDrawers];
 
-export type DrawerOpenArgs =
-    | { type: typeof ScheduleDrawers.DateChoose }
-    | { type: typeof ScheduleDrawers.FoodAdd }
-    | { type: typeof ScheduleDrawers.FoodEdit; payload: { defaultTab: 'foodChange' | 'time' | 'quantity', itemToEditId: string } }
-    | { type: typeof ScheduleDrawers.EventAdd }
-    | { type: typeof ScheduleDrawers.EventEdit; payload: { defaultTab: 'content' | 'time' | 'value', itemToEditId: string } }
-    | { type: typeof DishDrawers.FoodAdd }
-    | { type: typeof DishDrawers.FoodEdit, payload: { defaultTab: 'content' | 'quantity', itemToEditId: string } };
+export type DrawerOpenArgs = Instance<typeof DrawerPayloadModel>;
 
 export const DrawerStore = types
     .model('DrawerStore', {

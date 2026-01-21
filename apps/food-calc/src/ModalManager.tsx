@@ -9,6 +9,8 @@ import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore'
 import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
 import { SelectedEventItemProvider } from '@/components/features/builders/food/ScheduleBuilder/context';
+import { ModalConfirmationDeleteEvents } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ModalConfirmationDeleteEvents';
+import ScheduleProvider from '@/components/features/builders/food/ScheduleBuilder/context/ScheduleProvider';
 
 type Props = {
   modalStore?: ModalStoreInstance;
@@ -21,6 +23,13 @@ export const ModalManager = observer(
     switch (modalStore.currentModal) {
       case ModalType.CONFIRMATION_REMOVE_DISHES:
         return <ModalConfirmDeleteDishes />;
+
+      case ModalType.CONFIRMATION_REMOVE_SCHEDULE_EVENTS:
+        return (
+          <ScheduleProvider>
+            <ModalConfirmationDeleteEvents />
+          </ScheduleProvider>
+        );
 
       case ModalType.CREATE_DISH_FROM_SCHEDULE:
         return <ModalCreateDishFromSchedule modalStore={modalStore} />;

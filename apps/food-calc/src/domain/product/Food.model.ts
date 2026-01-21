@@ -1,4 +1,5 @@
 import { Nutrient } from "@/domain/nutrient/Nutrient";
+import { Portion } from "./ProductPortions/ProductPortions";
 import { isEmpty } from "@/lib/empty";
 import { NutrientStoreApi } from "@/store/types";
 import { cast, getRoot, types } from "mobx-state-tree";
@@ -28,6 +29,9 @@ export const Food = types.model("Food", {
     descriptionEng: types.maybe(types.string),
     nutrients: types.optional(types.array(FoodNutrient), []),
     createdByUser: types.optional(types.boolean, false),
+    portions: types.optional(types.array(Portion), []),
+    category: types.optional(types.string, ""),
+
 }).views(self => {
     const views = {
         get noNutrients() {

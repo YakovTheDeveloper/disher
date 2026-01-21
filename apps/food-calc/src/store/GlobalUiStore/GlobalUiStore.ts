@@ -2,6 +2,7 @@ import { types, Instance } from "mobx-state-tree";
 import { ModalStore } from "./ModalStore/ModalStore";
 import { DrawerStore } from "./DrawerStore/DrawerStore";
 import { ScrollStore } from "./ScrollStore/ScrollStore";
+import { UIViewOptions } from "./UiViewOptions/UIViewOptions";
 
 export const GlobalUiStore = types
     .model("GlobalUiStore", {
@@ -10,6 +11,7 @@ export const GlobalUiStore = types
         modalStore: types.optional(ModalStore, {}),
         drawerStore: types.optional(DrawerStore, {}),
         scrollStore: types.optional(ScrollStore, {}),
+        options: types.optional(UIViewOptions, {}),
     })
     .actions(self => ({
         setIsActionsMode(value: boolean) {

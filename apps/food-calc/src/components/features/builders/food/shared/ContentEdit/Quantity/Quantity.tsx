@@ -1,11 +1,8 @@
 import { observer } from 'mobx-react-lite';
-import { useEffect, useRef, useState } from 'react';
-import clsx from 'clsx';
+import { useRef, useState } from 'react';
 import style from './Quantity.module.scss';
-import commonStyle from '../ContentEdit.module.scss';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import { QuickButton } from '@/components/features/builders/food/shared/atoms/QuickButtons/QuickButton';
-import { QuickButtons } from '@/components/features/builders/food/shared/atoms/QuickButtons';
 
 const variants = [
   [25, 50, 75, 100],
@@ -46,7 +43,7 @@ const Quantity = ({ onFinish, item }: Props) => {
       <div className={style.header}>
         <div className={style.inputWrapper}>
           <NumberInput
-            autoFocus
+            // autoFocus
             size="big"
             boxShadow
             placeholder="Введите количество"

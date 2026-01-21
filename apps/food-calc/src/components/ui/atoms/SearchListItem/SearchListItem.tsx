@@ -4,6 +4,7 @@ import clsx from 'clsx';
 
 type Props = {
   children: React.ReactNode;
+  iconElement?: React.ReactNode;
   after?: React.ReactNode; // Buttons or extra info
   active?: boolean;
   onClick?: () => void;
@@ -21,12 +22,22 @@ const InfoIcon = () => (
   </svg>
 );
 
-const SearchListItem = ({ onInfoClick, item, after, active, onClick, className, style }: Props) => {
+const SearchListItem = ({
+  onInfoClick,
+  iconElement,
+  item,
+  after,
+  active,
+  onClick,
+  className,
+  style,
+}: Props) => {
   return (
     <li className={styles.searchListItemWrapper}>
       {onInfoClick && (
         <button className={styles.before} onClick={onInfoClick}>
-          <InfoIcon />
+          {/* <InfoIcon /> */}
+          {iconElement}
         </button>
       )}
       <p

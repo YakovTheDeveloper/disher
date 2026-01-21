@@ -1,8 +1,8 @@
 import { List } from '@/components/features/builders/food/shared/ContentEdit/Food/List';
 import { Button } from '@/components/features/builders/food/shared/ui/Actions/button';
 import { FoodName } from '@/components/features/builders/food/shared/ui/FoodName';
-import { observer, useLocalObservable } from 'mobx-react-lite';
-import React, { useState } from 'react';
+import { observer } from 'mobx-react-lite';
+import React, { useCallback, useState } from 'react';
 import styles from './FoodAdd.module.scss';
 import { Instance } from 'mobx-state-tree';
 import { ScheduleItem } from '@/domain/schedule/schedule';
@@ -10,13 +10,21 @@ import { domainStore } from '@/store/store';
 import { filterBy } from '@/lib/filter/filter';
 import { SearchListItem } from '@/components/ui/atoms/SearchListItem';
 import { FoodNutrients } from '@/components/features/builders/food/shared/components/FoodNutrients';
+import {
+  FilteringState,
+  IFilteringState,
+} from '@/components/features/shared/hooks/useFilteringState';
+import { foodSearchConfing } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/config/config';
 
 type Props = {
   children?: React.ReactNode;
   scheduleChild: Instance<typeof ScheduleItem>;
   onFinish: () => void;
   headerAfter?: React.ReactNode;
-  searchState: any;
+  searchState: FilteringState<
+    (typeof foodSearchConfing)[number]['tabName'],
+    typeof foodSearchConfing
+  >;
 };
 
 const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) => {
@@ -28,61 +36,67 @@ const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) =
 
   const currentChild = scheduleChild;
 
-  const onFoodAdd = (payload: DishEntity | FoodEntity | string) => {
-    scheduleChild.updateContent('product', payload.id.toString());
-    onFinish();
-  };
+  const onFoodAdd = useCallback(
+    (payload: any) => {
+      scheduleChild.updateContent('product', payload.id.toString());
+      onFinish();
+    },
+    [scheduleChild, onFinish]
+  );
 
-  const onDishAdd = (payload: DishEntity | FoodEntity | string) => {
-    scheduleChild.updateContent('dish', payload.id.toString());
-    onFinish();
-  };
+  const onDishAdd = useCallback(
+    (payload: any) => {
+      scheduleChild.updateContent('dish', payload.id.toString());
+      onFinish();
+    },
+    [scheduleChild, onFinish]
+  );
 
-  const onProductClickSeeDetails = () => {};
+  const onProductClickSeeDetails = useCallback(() => {}, []);
 
-  console.log('searchState.foodSearchState', searchState.foodSearchState);
+  const renderProductItem = useCallback(
+    (item: any) => {
+      const content = currentChild?.content;
+      const isActive = content?.variant === 'product' && content.foodId === item.id.toString();
 
-  const onInfoClick = () => {};
-
-  const renderProductItem = (item: unknown) => (
-    <>
-      <SearchListItem
-        onInfoClick={() => setCurrentInfoFood(item.id)}
-        active={currentChild?.content?.food?.id === item.id}
-        onClick={() => onFoodAdd(item)}
-        item={item}
-      >
-        {/* <FoodName
-          className="ellipsis"
+      return (
+        <SearchListItem
+          className=""
+          onInfoClick={() => setCurrentInfoFood(item.id)}
+          active={isActive}
           onClick={() => onFoodAdd(item)}
-          onClickHintModeOn={onProductClickSeeDetails}
-        >
-          {() => item.name}
-        </FoodName> */}
-      </SearchListItem>
-    </>
+          item={item}
+        />
+      );
+    },
+    [currentChild?.content, onFoodAdd]
   );
 
-  const renderDishtItem = (item: unknown) => (
-    <>
-      <SearchListItem
-        onInfoClick={() => setCurrentInfoFood(item.id)}
-        active={currentChild?.content?.dish?.id === item.id}
-      >
-        <FoodName
-          className="ellipsis"
-          onClick={() => onDishAdd(item)}
-          onClickHintModeOn={onProductClickSeeDetails}
+  const renderDishtItem = useCallback(
+    (item: any) => {
+      const content = currentChild?.content;
+      const isActive = content?.variant === 'dish' && content.dishId === item.id.toString();
+
+      return (
+        <SearchListItem
+          className=""
+          item={item}
+          onInfoClick={() => setCurrentInfoFood(item.id)}
+          active={isActive}
         >
-          {() => item.name}
-        </FoodName>
-      </SearchListItem>
-    </>
+          <FoodName
+            className="ellipsis"
+            onClick={() => onDishAdd(item)}
+            onClickHintModeOn={onProductClickSeeDetails}
+            hintMode={false}
+          >
+            {() => item.name}
+          </FoodName>
+        </SearchListItem>
+      );
+    },
+    [currentChild?.content, onDishAdd, onProductClickSeeDetails]
   );
-
-  const getChildTime = () => currentChild?.time;
-
-  const showActionsBar = () => searchState.currentTab !== 'createCustom';
 
   return (
     <>
@@ -96,26 +110,27 @@ const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) =
             />
           </div>
         )}
-        {
-          <>
-            {searchState.currentTab === 'productSearch' ? (
-              <List
-                queryKey="productSearch"
-                onFetch={domainStore.foodStore.getFoodWithParams}
-                search={searchState.foodSearchState}
-                renderListContent={renderProductItem}
-              />
-            ) : null}
-            {searchState.currentTab === 'dishSearch' ? (
-              <List
-                queryKey="dishSearch"
-                onFetch={domainStore.dishStore.getAllWithParams}
-                search={searchState.dishSearchState}
-                renderListContent={renderDishtItem}
-              />
-            ) : null}
-          </>
-        }
+
+        {searchState.currentTab === 'продукты' ? (
+          <List
+            after={null}
+            queryKey="productSearch"
+            onFetch={domainStore.foodStore.getFoodWithParams as any}
+            search={searchState}
+            renderListContent={renderProductItem}
+          />
+        ) : null}
+        {searchState.currentTab === 'блюда' ? (
+          <List
+            after={null}
+            queryKey="dishSearch"
+            onFetch={domainStore.dishStore.getAllWithParams as any}
+            search={searchState}
+            renderListContent={renderDishtItem}
+          />
+        ) : null}
+
+        {children}
       </div>
     </>
   );

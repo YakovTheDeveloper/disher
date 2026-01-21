@@ -5,6 +5,11 @@ import { Instance } from 'mobx-state-tree';
 import { DaySchedule } from '@/domain/schedule/schedule';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { EventItem, ScheduleEventType } from '@/domain/schedule/scheduleEvent/scheduleEvent';
+import SleepIcon from '@/assets/icons/schedule-event-icons/sleep.svg';
+import MoodIcon from '@/assets/icons/schedule-event-icons/mood.svg';
+import EnergyIcon from '@/assets/icons/schedule-event-icons/energy.svg';
+import SportIcon from '@/assets/icons/schedule-event-icons/sport.svg';
+import CustomIcon from '@/assets/icons/schedule-event-icons/custom.svg';
 type Props = {
   eventItem: Instance<typeof EventItem>;
   onFinish: () => void;
@@ -41,19 +46,42 @@ const EventTypes: { value: ScheduleEventType; label: string }[] = [
   },
 ];
 
+function getIcon(value: ScheduleEventType) {
+  switch (value) {
+    case 'sleep':
+      return <SleepIcon />;
+    case 'mood':
+      return <MoodIcon />;
+    case 'energy':
+      return <EnergyIcon />;
+    case 'activity':
+      return <SportIcon />;
+    case 'digestion':
+      return <CustomIcon />;
+    case 'note':
+      return <CustomIcon />;
+    case 'illness':
+      return <CustomIcon />;
+    default:
+      return null;
+  }
+}
+
 const SchheduleEventList = ({ eventItem, onFinish }: Props) => {
   return (
-    <ItemsList offsetTop>
+    <ItemsList>
       {EventTypes.map((event) => (
         <SearchListItem
           key={event.value}
-          item={event}
+          item={{ name: event.label }}
           active={eventItem.type === event.value}
           onClick={() => {
             eventItem.updateType(event.value);
             onFinish();
           }}
           onInfoClick={() => {}}
+          iconElement={getIcon(event.value)}
+          className=""
         >
           {event.label}
         </SearchListItem>

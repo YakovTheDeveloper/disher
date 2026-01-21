@@ -1,12 +1,9 @@
 import { observer } from 'mobx-react-lite';
 import styles from './DrawerLayout.module.scss';
-import { emitter } from '@/infrastructure/emitter/emitter';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRef } from 'react';
 import clsx from 'clsx';
-import { throttle } from 'lodash';
 import { Drawer as DrawerLib } from 'vaul';
 import ArrowLeftIcon from '@/assets/icons/arrowLeftLong.svg';
-import TickIcon from '@/assets/icons/tick.svg';
 
 type Props = {
   children: React.ReactNode;

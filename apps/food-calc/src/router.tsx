@@ -10,6 +10,7 @@ import LoadDataPage from '@/pages/LoadDataPage/LoadDataPage.tsx';
 import DishesPage from '@/pages/dish/dishes-page/DishesPage.tsx';
 import UserProductPage from '@/pages/user-product-page/UserProductPage.tsx';
 import DailyNormsCreateOrUpdatePage from '@/pages/daily-norms/DailyNormsCreateOrUpdatePage/DailyNormsCreateOrUpdatePage.tsx';
+import TestModalPage from '@/pages/swipe-test/TestModalPage';
 
 export enum RouterLinks {
   Root = '/',
@@ -21,6 +22,7 @@ export enum RouterLinks {
   LoadData = '/load-data',
   Dishes = '/dishes',
   UserProduct = '/user-product',
+  Test2 = '/test-2',
   // DailyNormsCreateOrUpdate = '/daily-norms',
 }
 
@@ -68,6 +70,10 @@ export const router = createBrowserRouter([
       {
         path: `${RouterLinks.UserProduct}/:id`,
         element: <UserProductPage />,
+      },
+      {
+        path: RouterLinks.Test2,
+        element: <TestModalPage />,
       },
     ],
   },

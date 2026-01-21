@@ -95,6 +95,8 @@
     backdrop-filter: blur(1px);
     -webkit-backdrop-filter: blur(1px);
     background: rgba(255, 255, 255, 0.85);
+    border-bottom: 3px solid rgba(55, 0, 255, 0.253);
+
 
 
     padding: 10px 0.5rem 10px;
@@ -116,7 +118,7 @@
     // #1976d2;
 
     &.active {
-        border-bottom: 1px solid rgba(55, 0, 255, 0.253);
+        border-color: #13579b;
 
 
         &::before {

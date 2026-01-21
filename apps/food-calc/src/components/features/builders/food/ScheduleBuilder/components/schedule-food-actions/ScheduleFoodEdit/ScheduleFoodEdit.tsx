@@ -7,7 +7,6 @@ import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/Sc
 import { ContentEdit } from '@/components/features/builders/food/shared/ContentEdit';
 import { Tabs } from '@/components/ui/Tabs';
 import { DrawerLayout } from '@/components/features/builders/food/shared/components/DrawerLayout';
-import { useScheduleFoodActions } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/hooks/useScheduleFoodActions';
 import { useTabs } from '@/components/features/builders/food/shared/hooks/useTabs';
 import { SearchFoodControls } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd/SearchFoodControls';
 import { Spacer } from '@/components/ui/atoms/Spacer';
@@ -15,6 +14,8 @@ import {
   useSchedule,
   useSelectedScheduleItem,
 } from '@/components/features/builders/food/ScheduleBuilder/context';
+import { useFilteringState } from '@/components/features/shared/hooks/useFilteringState';
+import { foodSearchConfing } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/config/config';
 
 type Props = {
   defaultTab?: string;
@@ -32,7 +33,7 @@ const ScheduleFoodEdit = observer(({ defaultTab, close }: Props) => {
   const schedule = useSchedule();
   const currentChild = useSelectedScheduleItem();
   const { currentTab, setTab } = useTabs(tabs, defaultTab);
-  const { searchState } = useScheduleFoodActions(currentChild);
+  const filterState = useFilteringState(foodSearchConfing);
 
   const variant = currentChild.content.variant;
   const foodId = currentChild.content.foodId;
@@ -50,7 +51,7 @@ const ScheduleFoodEdit = observer(({ defaultTab, close }: Props) => {
       tabs={<Tabs tabs={tabs} current={currentTab} setTab={setTab} variant="scheduleFoodEdit" />}
       subHeader={
         currentTab === 'foodChange' && (
-          <SearchFoodControls searchState={searchState} isVisible={true} />
+          <SearchFoodControls searchState={filterState} isVisible={true} />
         )
       }
     >
@@ -64,7 +65,7 @@ const ScheduleFoodEdit = observer(({ defaultTab, close }: Props) => {
       )}
       {currentTab === 'time' && <ContentEdit.Time item={currentChild} onFinish={onFinish} />}
       {currentTab === 'foodChange' && (
-        <SearchFood scheduleChild={currentChild} onFinish={onFinish} searchState={searchState} />
+        <SearchFood scheduleChild={currentChild} onFinish={onFinish} searchState={filterState} />
       )}
       {currentTab === 'quantity' && (
         <ContentEdit.Quantity item={currentChild} onFinish={onFinish} />

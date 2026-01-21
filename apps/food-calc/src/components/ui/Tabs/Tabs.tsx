@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import styles from './Tabs.module.scss';
 import clsx from 'clsx';
 import InfoIcon from '@/assets/icons/cirlceInfo.svg';
-type Tab = { value: string; label: string; alternativeLabel?: string };
+type Tab = { value: string; label: string; alternativeLabel?: string; disabled?: boolean };
 
 type Props = {
   tabs: Tab[];
@@ -27,10 +27,11 @@ const Tabs = ({ tabs, current, setTab, variant }: Props) => {
           return (
             <button
               className={`${styles.tabWrapper} ${isActive && styles.active}`}
-              onClick={() => setTab(tab.value)}
+              onClick={() => !tab.disabled && setTab(tab.value)}
               key={tab.value}
               aria-selected={isActive}
               role="tab"
+              disabled={tab.disabled}
             >
               {hasAlternative && (
                 <span
@@ -43,9 +44,9 @@ const Tabs = ({ tabs, current, setTab, variant }: Props) => {
                   {tab.alternativeLabel}
                 </span>
               )}
-              <span className={`${styles.tabButton} ${isActive ? styles.activeTab : ''} ellipsis`}>
+              {/* <span className={`${styles.tabButton} ${isActive ? styles.activeTab : ''} ellipsis`}>
                 {getTabTitleView(tab)}
-              </span>
+              </span> */}
             </button>
           );
         })}

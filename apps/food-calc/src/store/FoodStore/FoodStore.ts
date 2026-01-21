@@ -1,14 +1,92 @@
-import { types, flow, Instance } from "mobx-state-tree";
+import { types, flow, Instance, SnapshotIn } from "mobx-state-tree";
 import { getFoodList, GetFoodParams, getFoodWithNutrients, getFoodWithNutrientsByIds, getOneFood } from "@/api/food/food.api";
 import { RequestState, ResponseStatus } from "@/api/RequestState";
 import { isEmpty } from "@/lib/empty";
 import { Food } from "@/domain/product/Food.model";
 import { runInAction } from "mobx";
 import { createDataStoreModel } from "@/store/shared/DataStore";
-import { createInitialProductMapping } from "@/store/FoodStore/init";
 
 type GetFoodListResult = Awaited<ReturnType<typeof getFoodList>>;
 type GetFoodNutrientsByIdResult = Awaited<ReturnType<typeof getFoodWithNutrientsByIds>>;
+
+interface FoodEntry2 {
+    id: string;
+    name: string;
+    category?: string;
+    portions: any[];
+}
+
+// Function to load initial food data
+async function createInitialProductMapping(): Promise<Record<string, SnapshotIn<typeof Food>>> {
+    interface FoodEntry {
+        id: string;
+        name: string;
+        description: string;
+        nutrients: {
+            nutrientId: string;
+            quantity: number;
+        }[];
+    }
+
+    try {
+        const rawData: FoodEntry[] = await fetch('/foodFull.json').then(r => r.json());
+        const rawData2: FoodEntry2[] = await fetch('/productsWithPortions.json').then(r => r.json());
+
+        const data: Record<string, SnapshotIn<typeof Food>> = {};
+        rawData.forEach(item => {
+            const nutrients = item.nutrients?.map((n) => ({
+                ...n,
+                nutrient: n.nutrientId
+            }));
+
+            data[item.id] = {
+                id: item.id,
+                name: item.name,
+                description: item.description,
+                nutrients: nutrients || [],
+                createdByUser: false,
+                portions: [],
+                category: ""
+            };
+        });
+
+        rawData2.forEach(item => {
+            if (data[item.id]) {
+                // Normalize portions
+                data[item.id].portions = item.portions.map((p: any) => {
+                    if (p.label !== undefined) {
+                        // Standard format
+                        return {
+                            label: p.label,
+                            amount: p.amount,
+                            unit: p.unit,
+                            grams: p.grams
+                        };
+                    } else if (p.name !== undefined) {
+                        // Alternative format, assume grams
+                        return {
+                            label: p.name,
+                            amount: p.value,
+                            unit: "g",
+                            grams: p.value
+                        };
+                    }
+                    return null;
+                }).filter(Boolean);
+
+                // Assign category if present
+                if (item.category) {
+                    data[item.id].category = item.category;
+                }
+            }
+        });
+        return data;
+
+    } catch (error) {
+
+    }
+
+}
 
 // const loadInitialFoods = flow(function* (): Generator<any> {
 //     interface FoodEntry {
@@ -54,7 +132,9 @@ export const FoodModelStore = types.compose(
     "ProductStore",
     StoreModel,
     createDataStoreModel("ProductStoreData", Food, createInitialProductMapping)
-).actions((self) => {
+).views((self) => ({
+    get data() { return self.mergedMap; }
+})).actions((self) => {
 
     function getIdsMissingFoodWithNutrients(ids: number[]) {
         const missing: number[] = [];
@@ -113,7 +193,6 @@ export const FoodModelStore = types.compose(
 
         res.data.forEach(({ id, nutrients }) => {
             const food = self.data.get(String(id));
-            console.log("hellohello", food);
             food?.setNutrients(nutrients)
         });
 

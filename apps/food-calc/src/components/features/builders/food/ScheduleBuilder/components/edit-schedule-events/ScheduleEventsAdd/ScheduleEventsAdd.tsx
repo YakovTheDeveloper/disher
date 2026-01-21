@@ -59,16 +59,19 @@ const ScheduleEventsAdd = ({ close }: Props) => {
       value: 'time',
       label: 'Время',
       alternativeLabel: currentChild.time || '00:00',
+      disabled: false,
     },
     {
       value: 'eventSelect',
       label: 'Вариант',
       alternativeLabel: currentChild.typeView,
+      disabled: !currentChild.type,
     },
     {
       value: 'value',
       label: 'Количество',
       alternativeLabel: currentChild.value || '',
+      disabled: false,
     },
   ];
 

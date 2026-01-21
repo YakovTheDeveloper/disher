@@ -19,8 +19,8 @@ export function createRequestController({
         );
 
         states.forEach(s => {
-            s.setLoading(true);
-            s.setError("");
+            s?.setLoading(true);
+            s?.setError("");
         });
 
         try {
@@ -32,10 +32,10 @@ export function createRequestController({
             return result;
         } catch (e) {
             const err = String(e);
-            states.forEach(s => s.setError(err));
+            states.forEach(s => s?.setError(err));
             return null;
         } finally {
-            states.forEach(s => s.setLoading(false));
+            states.forEach(s => s?.setLoading(false));
         }
     }
 

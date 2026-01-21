@@ -104,7 +104,7 @@ export const DaySchedule = types.model({
             return self.foods.items.find(item => item.id.toString() === id) || null;
         },
         get customItems() {
-            return self.foods.items.filter(item => item.content?.food.createdByUser) || null;
+            return self.foods.items.filter(item => item.content?.food?.createdByUser) || null;
         },
         get allDraftDishesFromItems() {
             return self.foods.items

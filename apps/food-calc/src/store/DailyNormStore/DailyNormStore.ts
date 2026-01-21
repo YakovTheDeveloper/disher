@@ -1,8 +1,10 @@
-import { types, Instance } from "mobx-state-tree";
+import { types, Instance, SnapshotIn } from "mobx-state-tree";
 import { RequestState } from "@/store/shared/RequestState";
-import { UserDailyNorm } from "@/domain/dailyNorm/DailyNorm.model";
+import { DailyNorm, DailyNormItem } from "@/domain/dailyNorm/DailyNorm.model";
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel";
 import { createDataStoreModel } from "@/store/shared/DataStore";
+import { DailyNormsFactory } from "@/domain/dailyNorm/factory";
+import { defaultDailyNorms } from "@/components/features/builders/food/shared/ContentInfo/Nutrients/constants";
 
 const storeModel = types.model("DailyNormStore", {
     request: types.map(RequestState),
@@ -11,7 +13,8 @@ const storeModel = types.model("DailyNormStore", {
 
 const dataStoreModel = createDataStoreModel(
     "DailyNormData",
-    UserDailyNorm
+    DailyNorm,
+    onInit
 );
 
 const optionsModel = types.model("DailyNormOptions", {
@@ -30,3 +33,25 @@ export const DailyNormStore = types.compose(
 );
 
 export type DailyNormStoreInstance = Instance<typeof DailyNormStore>
+
+// function onInit(): Record<string, SnapshotIn<typeof DailyNorm>> {
+async function onInit(): Promise<Record<string, Instance<typeof DailyNorm>>> {
+
+    const items: SnapshotIn<typeof DailyNormItem>[] = Object.entries(defaultDailyNorms).map(([nutrientId, quantity], index) => ({
+        id: (index + 1).toString(),
+        nutrientId: nutrientId.toString(),
+        quantity
+    }));
+
+    const norm1 = DailyNormsFactory.createFromServerData({
+        name: 'Стандарт',
+        description: '',
+        id: 'DEFAULT_NORM',
+        items,
+        createByUser: false
+    })
+    const result = {
+        [norm1.id]: norm1
+    }
+    return result
+}

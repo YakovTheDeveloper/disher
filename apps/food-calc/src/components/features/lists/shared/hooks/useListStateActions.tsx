@@ -31,7 +31,7 @@ export const useListStateActions = <IModel extends IAnyModelType>({
       list: store.merged,
       filterKeys: filterKeys,
     },
-  ]);
+  ] as const);
 
   return {
     filter,

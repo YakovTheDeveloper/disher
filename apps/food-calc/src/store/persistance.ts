@@ -1,17 +1,49 @@
-import { onSnapshot, applySnapshot } from "mobx-state-tree"
+import { onSnapshot, applySnapshot, getSnapshot } from "mobx-state-tree"
+import { db } from "@/infrastructure/storage/db"
 
-export function makePersistable(store: any, key: string) {
-    const saved = localStorage.getItem(key)
+export async function makePersistable(store: any, key: string) {
+    // 1. Try to load from IndexedDB
+    const saved = await db.snapshots.get(key)
 
     if (saved) {
         try {
-            applySnapshot(store, JSON.parse(saved))
+            applySnapshot(store, saved.data)
         } catch (e) {
-            console.error("Failed to load MST snapshot", e)
+            console.error(`Failed to load MST snapshot for ${key} from IndexedDB. Error:`, e)
+            // If data is corrupted, we might want to keep the current initial state
+        }
+    } else {
+        // 2. Fallback to LocalStorage and migrate if exists
+        const legacyData = localStorage.getItem(key)
+        if (legacyData) {
+            try {
+                const parsed = JSON.parse(legacyData)
+                applySnapshot(store, parsed)
+                // Migrate to IndexedDB
+                await db.snapshots.put({ key, data: parsed })
+
+                console.log(`Migrated ${key} from LocalStorage to IndexedDB`)
+            } catch (e) {
+                console.error(`Failed to migrate ${key} from LocalStorage. Error:`, e)
+            }
+        } else {
+            // No saved data found, perform initial save of current state
+            try {
+                const initialSnapshot = getSnapshot(store)
+                await db.snapshots.put({ key, data: initialSnapshot })
+                console.log(`Initial snapshot for ${key} saved to IndexedDB`)
+            } catch (e) {
+                console.error(`Failed to save initial MST snapshot for ${key} to IndexedDB. Error:`, e)
+            }
         }
     }
 
-    onSnapshot(store, snapshot => {
-        localStorage.setItem(key, JSON.stringify(snapshot))
+    // 3. Persist changes to IndexedDB
+    onSnapshot(store, async snapshot => {
+        try {
+            await db.snapshots.put({ key, data: snapshot })
+        } catch (e) {
+            console.error(`Failed to save MST snapshot for ${key} to IndexedDB. Error:`, e)
+        }
     })
 }

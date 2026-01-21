@@ -1,55 +1,72 @@
-import { useRef } from 'react';
+import { useRef, useMemo, memo } from 'react';
 import { observer } from 'mobx-react-lite';
-import clsx from 'clsx';
 import styles from './List.module.scss';
 import { GetFoodParams } from '@/api/food/food.api';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useDebounce } from 'use-debounce';
-import { FoodEntity } from '@/store/models/food/types';
 import { Overlay } from '@/components/ui/Overlay';
-import { domainStore } from '@/store/store';
 
 type Props = {
   search: {
-    filterSearchText: string;
-    localFiltered: unknown[];
+    filterText: string;
+    filteredList: any[];
   };
   after: React.ReactNode;
   queryKey: string;
   onFetch: (params: GetFoodParams) => Promise<{
-    items: {
-      id: number;
-      name: string;
-    }[];
+    items: any[];
     hasMore: boolean;
   }>;
-  renderListContent: (item: unknown) => React.ReactNode;
+  renderListContent: (item: any) => React.ReactNode;
 };
+
+const ListItem = memo(
+  ({
+    virtualRow,
+    item,
+    renderListContent,
+  }: {
+    virtualRow: VirtualItem;
+    item: any;
+    renderListContent: (item: any) => React.ReactNode;
+  }) => (
+    <div
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        transform: `translateY(${virtualRow.start}px)`,
+      }}
+    >
+      {renderListContent(item)}
+    </div>
+  )
+);
+ListItem.displayName = 'ListItem';
 
 const List = observer(({ search, onFetch, queryKey, renderListContent, after }: Props) => {
   const parentRef = useRef<HTMLDivElement>(null);
 
-  const filteredLocal = search.localFiltered;
+  const filteredLocal = search.filteredList;
 
-  type Response = { items: FoodEntity[]; hasMore: boolean };
+  type Response = { items: any[]; hasMore: boolean };
 
   const fetchFoodPage = async ({ pageParam = 1 }): Promise<Response> => {
     const res = await onFetch({
       page: pageParam,
       limit: 10,
-      filters: { search: search.filterSearchText || undefined },
+      filters: { search: search.filterText || undefined },
     });
-    return res;
+    return res as Response;
   };
-
-  console.log(domainStore.foodStore);
 
   const getNextPageParam = (lastPage: Response, allPages: Response[]) => {
     return lastPage.hasMore ? allPages.length + 1 : undefined;
   };
 
-  const [debouncedFilter] = useDebounce(search.filterSearchText, 300);
+  const [debouncedFilter] = useDebounce(search.filterText, 300);
 
   const {
     data,
@@ -62,14 +79,15 @@ const List = observer(({ search, onFetch, queryKey, renderListContent, after }: 
     queryFn: fetchFoodPage,
     getNextPageParam: getNextPageParam,
     initialPageParam: 1,
-    refetchOnMount: true,
-    staleTime: Infinity,
+    refetchOnMount: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const remoteItems = data?.pages.flatMap((p) => p.items) || [];
-
-  const localIds = new Set(filteredLocal.map((i) => i.id));
-  const items = [...filteredLocal, ...remoteItems.filter((i) => !localIds.has(i.id))];
+  const items = useMemo(() => {
+    const remoteItems = data?.pages.flatMap((p) => p.items) || [];
+    const localIds = new Set(filteredLocal.map((i) => i.id));
+    return [...filteredLocal, ...remoteItems.filter((i) => !localIds.has(i.id))];
+  }, [data?.pages, filteredLocal]);
 
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? items.length + 1 : items.length,
@@ -92,15 +110,11 @@ const List = observer(({ search, onFetch, queryKey, renderListContent, after }: 
 
   const listHeight = totalHeight ? `${totalHeight}px` : 'auto';
 
-  // useEffect(() => {
-  //   fetchNextPage();
-  // }, []);
-
   const initLoading = isQueryLoading && filteredLocal.length === 0;
 
   return (
     <div ref={parentRef} className={styles.scrollContainer} onScroll={handleScroll}>
-      <Overlay isLoading={() => initLoading} />
+      <Overlay className="" isLoading={() => initLoading} />
       <ul
         className={styles.list}
         style={{
@@ -108,34 +122,17 @@ const List = observer(({ search, onFetch, queryKey, renderListContent, after }: 
           position: 'relative',
         }}
       >
-        {/* <li
-          className={styles.listEndLoader}
-          style={{
-            transform: `translateY(${rowVirtualizer.getTotalSize() - 60}px)`,
-          }}
-        ></li> */}
         {virtualItems.map((virtualRow) => {
           const item = items[virtualRow.index];
           if (!item) return null;
 
           return (
-            <div
+            <ListItem
               key={item.id}
-              className={clsx([
-                // vm.selectedItemId?.variant === item.type &&
-                //   vm.selectedItemId?.id === item.id &&
-                //   styles.listItem_active,
-              ])}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-            >
-              {renderListContent(item)}
-            </div>
+              virtualRow={virtualRow}
+              item={item}
+              renderListContent={renderListContent}
+            />
           );
         })}
 

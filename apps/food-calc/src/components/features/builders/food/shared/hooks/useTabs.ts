@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 export function useTabs<T extends string>(
-    tabs: readonly { value: T; label: string }[],
+    tabs: readonly { value: T; label: string; disabled?: boolean }[],
     defaultTab?: T
 ) {
 

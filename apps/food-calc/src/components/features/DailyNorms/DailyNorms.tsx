@@ -1,6 +1,4 @@
 import { observer } from 'mobx-react-lite';
-import { useMemo } from 'react';
-import { ModalStoreUI } from '@/components/features/builders/food/shared/ModalStoreUI';
 import { Screen } from '@/components/features/builders/food/shared/ui/layout/Screen';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
@@ -9,23 +7,17 @@ import { ActionsHeader } from '@/components/features/builders/food/shared/compon
 import { DailyNormStoreInstance } from '@/store/DailyNormStore/DailyNormStore';
 import { domainStore } from '@/store/store';
 import { RouterLinks } from '@/router';
-import { useNavigate } from 'react-router';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 import { DrawerStoreInstance } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
 import { Button } from '@/components/features/builders/food/shared/ui/Actions/button';
 import styles from './DailyNorms.module.scss';
-import { useFilteringState } from '@/components/features/shared/hooks/useFilteringState';
-import { Scalable } from '@/components/ui/Scalable';
-import SearchInput from '@/components/ui/Input/SearchInput/SearchInput';
-import { TextInput } from '@/components/ui/atoms/input/TextInput';
 import clsx from 'clsx';
 import { Spacer } from '@/components/ui/atoms/Spacer';
 import { FilterButton } from '@/components/features/builders/food/shared/atoms/button/FilterButton';
-import { DailyNormsFactory } from '@/store/DailyNormStore/factory';
 import { ScalableHeaderNameInput } from '@/components/features/lists/shared/ScalableHeaderNameInput';
-import { MotionValue } from 'framer-motion';
 import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
+import { DailyNormsFactory } from '@/domain/dailyNorm/factory';
 
 type Props = {
   children?: React.ReactNode;
@@ -49,7 +41,7 @@ const DailyNorms = ({
         name: 'Новая норма',
         description: '',
       }),
-    filterKeys: ['name', 'description'], // Можно расширять
+    filterKeys: ['name', 'description'],
   });
 
   return (
