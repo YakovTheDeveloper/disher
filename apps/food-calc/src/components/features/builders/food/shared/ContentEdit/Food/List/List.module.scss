@@ -1,5 +1,4 @@
 .scrollContainer {
-    // height: 400px;
     overflow-y: auto;
     border-radius: 8px;
     position: relative;
@@ -21,7 +20,7 @@
 }
 
 .listItem {
-    height: 60px;
+    height: 40px;
     position: relative;
     box-sizing: border-box;
 }
@@ -30,6 +29,12 @@
     background-color: rgba(255, 255, 255, 0.75);
 }
 
+.noResults {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+    font-size: 14px;
+}
 
 .listEndLoader {
     position: relative;

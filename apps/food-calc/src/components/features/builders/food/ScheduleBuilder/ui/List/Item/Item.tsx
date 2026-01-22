@@ -1,21 +1,18 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Item.module.scss';
-import { BuilderUIStore } from '@/components/features/builders/food/shared/BuilderUIStore';
 import { FoodName } from '@/components/features/builders/food/shared/ui/FoodName';
 import { Quantity } from '@/components/features/builders/food/shared/ui/Quantity';
 import { useCallback, useMemo } from 'react';
 import clsx from 'clsx';
 import { CommonListItem } from '@/components/features/builders/food/shared/ui/CommonListItem';
-import { Instance } from 'mobx-state-tree';
-import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
-import { useNavigate } from 'react-router';
-import { RouterLinks } from '@/router';
 import { domainStore } from '@/store/store';
 import { ScheduleDrawers } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
+import { ScheduleItem } from '@/domain/schedule/schedule';
+import { Instance } from 'mobx-state-tree';
 
 type Props = {
-  options: BuilderUIStore;
   className?: string;
+  item: Instance<typeof ScheduleItem>;
 };
 
 const Item = ({ item, className }: Props) => {
@@ -42,7 +39,7 @@ const Item = ({ item, className }: Props) => {
     });
   };
 
-  const getFoodName = useCallback(() => item.content?.name || '-', [item]);
+  const getFoodName = useCallback(() => item.content?.name, [item]);
   const getQuantity = useCallback(() => item.quantity, [item]);
 
   const getVariantLabelText = () => {
@@ -52,7 +49,7 @@ const Item = ({ item, className }: Props) => {
     }
     if (item.content?.variant === 'dish') return 'блюдо';
 
-    return 'не выбрано';
+    return '';
   };
 
   const getFoodNameClassName = () => {
@@ -66,7 +63,11 @@ const Item = ({ item, className }: Props) => {
 
   return (
     <CommonListItem className={clsx([className, styles.group])} id={id} sync={item.sync}>
-      <FoodName className={getFoodNameClassName()} id={id} onClick={onFoodsOpenUpdate}>
+      <FoodName
+        content={item.content}
+        className={getFoodNameClassName()}
+        onClick={onFoodsOpenUpdate}
+      >
         {getFoodName}
       </FoodName>
       <Quantity id={id} onClick={onQuantityOpen}>

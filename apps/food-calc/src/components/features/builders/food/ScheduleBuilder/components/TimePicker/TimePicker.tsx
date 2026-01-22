@@ -64,38 +64,42 @@ const TimePicker = observer((props: Props) => {
           <button onClick={decrementHours}>↓</button>
         </div>
         <div className={styles.timeInputs} ref={containerRef}>
-          <input
-            ref={hhRef}
-            className={styles.input}
-            aria-label={hourAriaLabel}
-            placeholder="hh"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={hours}
-            onChange={handleHoursChange}
-            onKeyDown={handleHoursKeyDown}
-            onBlur={handleHoursBlur}
-            maxLength={2}
-            // select on focus to make overwriting fast
-            onFocus={(e) => e.currentTarget.select()}
-          />
-          <span className={styles.betweenInputs} aria-hidden style={{ padding: '0 1px' }}>
+          <div className={styles.inputWrapper}>
+            <input
+              ref={hhRef}
+              className={styles.input}
+              aria-label={hourAriaLabel}
+              placeholder="hh"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={hours}
+              onChange={handleHoursChange}
+              onKeyDown={handleHoursKeyDown}
+              onBlur={handleHoursBlur}
+              maxLength={2}
+              // select on focus to make overwriting fast
+              onFocus={(e) => e.currentTarget.select()}
+            />
+          </div>
+          <span className={styles.betweenInputs} aria-hidden>
             :
           </span>
-          <input
-            ref={mmRef}
-            className={styles.input}
-            aria-label={minuteAriaLabel}
-            placeholder="mm"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={minutes}
-            onChange={handleMinutesChange}
-            onKeyDown={handleMinutesKeyDown}
-            onBlur={handleMinutesBlur}
-            maxLength={2}
-            onFocus={(e) => e.currentTarget.select()}
-          />
+          <div className={styles.inputWrapper}>
+            <input
+              ref={mmRef}
+              className={styles.input}
+              aria-label={minuteAriaLabel}
+              placeholder="mm"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={minutes}
+              onChange={handleMinutesChange}
+              onKeyDown={handleMinutesKeyDown}
+              onBlur={handleMinutesBlur}
+              maxLength={2}
+              onFocus={(e) => e.currentTarget.select()}
+            />
+          </div>
         </div>
         <div className={styles.controls}>
           <button onClick={incrementMinutes}>↑</button>

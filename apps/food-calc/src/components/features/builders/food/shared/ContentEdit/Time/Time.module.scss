@@ -18,6 +18,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: 1rem;
 
     // Make native input overlay on mobile, but stay subtle on desktop
@@ -38,6 +39,13 @@
             border: 1px solid #ddd;
         }
     }
+}
+
+.selectTime {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
 }
 
 .hours,

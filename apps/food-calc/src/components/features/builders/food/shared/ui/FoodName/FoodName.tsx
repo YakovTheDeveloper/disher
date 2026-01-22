@@ -6,44 +6,32 @@ import { useAnimationOnChange } from '@/components/features/builders/food/shared
 import { Typography } from '@/components/ui/atoms/Typography';
 type Props = {
   children: () => string | null;
-  onClick: (id: string | number) => void;
-  onClickHintModeOn: (id: string | number) => void;
+  onClick: () => void;
   after?: React.ReactNode;
-  hintMode: boolean;
   className?: string;
-  id?: number | string;
+  content: { name: string } | null;
 };
 
-const FoodName = ({
-  className,
-  children,
-  onClick,
-  onClickHintModeOn,
-  hintMode,
-  id,
-  after,
-}: Props) => {
-  const handleClick = () => {
-    if (hintMode) {
-      onClickHintModeOn(id);
-      return;
-    }
-    onClick(id);
-  };
+const FoodName = ({ className, children, onClick, after }: Props) => {
+  const initTitle = children();
+  const normalizedTitle = initTitle || 'не выбрано';
 
-  const text = children() || '';
-
-  const animationClassName = useAnimationOnChange(text);
+  const animationClassName = useAnimationOnChange(initTitle);
 
   return (
     <Typography
       ellipsis={true}
       variant="custom"
       after={after}
-      className={clsx([styles.container, className, hintMode && styles.active, animationClassName])}
-      onClick={handleClick}
+      className={clsx([
+        styles.container,
+        className,
+        animationClassName,
+        !initTitle && styles.noTitle,
+      ])}
+      onClick={onClick}
     >
-      {text}
+      {normalizedTitle}
     </Typography>
   );
 };

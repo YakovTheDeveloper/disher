@@ -11,24 +11,39 @@ const toaster: Toaster = {
     success: (msg: string) =>
         toast.success(msg, {
             style: {
-                background: "#10b981",
-                color: "white",
+                background: "rgba(16, 185, 129, 0.95)",
+                color: "#ffffff",
+                borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                fontSize: "14px",
+                fontWeight: "500",
+                padding: "12px 16px",
             },
         }),
 
     error: (msg: string) =>
         toast.error(msg, {
             style: {
-                background: "#ef4444",
-                color: "white",
+                background: "rgba(239, 68, 68, 0.95)",
+                color: "#ffffff",
+                borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                fontSize: "14px",
+                fontWeight: "500",
+                padding: "12px 16px",
             },
         }),
 
     info: (msg: string) =>
         toast(msg, {
             style: {
-                background: "#3b82f6",
-                color: "white",
+                background: "rgba(59, 130, 246, 0.95)",
+                color: "#ffffff",
+                borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                fontSize: "14px",
+                fontWeight: "500",
+                padding: "12px 16px",
             },
         }),
 
@@ -36,8 +51,13 @@ const toaster: Toaster = {
         toast(msg, {
             icon: "⚠️",
             style: {
-                background: "#f59e0b",
-                color: "white",
+                background: "rgba(245, 158, 11, 0.95)",
+                color: "#ffffff",
+                borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                fontSize: "14px",
+                fontWeight: "500",
+                padding: "12px 16px",
             },
         }),
 };

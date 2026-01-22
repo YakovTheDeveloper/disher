@@ -1,5 +1,5 @@
 import { observer, useLocalObservable } from 'mobx-react-lite';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
 
@@ -17,155 +17,131 @@ import { useNavigate } from 'react-router';
 import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 import { domainStore } from '@/store/store';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
+import SearchInput from '@/components/ui/Input/SearchInput/SearchInput';
+import { foodSearchConfing } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/config/config';
+import { FilteringState } from '@/components/features/shared/hooks/useFilteringState';
 
-type Tabs = 'productSearch' | 'dishSearch' | 'createCustom';
+type Tabs = 'продукты' | 'блюда';
 
 type Props = {
-  searchState: any;
+  searchState: FilteringState<
+    (typeof foodSearchConfing)[number]['tabName'],
+    typeof foodSearchConfing
+  >;
   isVisible: boolean;
+  className: string;
   modalStore?: ModalStoreInstance;
 };
 
 const SearchFoodControls = ({
   searchState,
   isVisible,
+  className,
   modalStore = domainStore.globalUiStore.modalStore,
 }: Props) => {
   const navigate = useNavigate();
-
+  const [filterPanel, setFilterPanel] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const localState = useLocalObservable(() => ({
-    isSearchOpen: false,
-    setIsSearchOpen(open: boolean) {
-      this.isSearchOpen = open;
-    },
-    dropdownOpen: false,
-    setDropdownOpen(open: boolean) {
-      this.dropdownOpen = open;
-    },
-  }));
 
   const getTabLabel = (tab: Tabs) => {
     switch (tab) {
-      case 'productSearch':
+      case 'продукты':
         return 'Продукты';
-      case 'dishSearch':
+      case 'блюда':
         return 'Блюда';
-      case 'createCustom':
-        return 'Свой продукт';
       default:
         return '';
     }
   };
 
-  const getFilterLabel = (tab: string) => {
-    switch (tab) {
-      case 'all':
-        return 'Все категории';
-      case 'vegan':
-        return 'Веганские';
-      case 'vegeterian':
-        return 'Вегетерианские';
-      default:
-        return 'Все категории';
-    }
+  // const getFilterLabel = (tab: string) => {
+  //   switch (tab) {
+  //     case 'all':
+  //       return 'Все категории';
+  //     case 'vegan':
+  //       return 'Веганские';
+  //     case 'vegeterian':
+  //       return 'Вегетерианские';
+  //     default:
+  //       return 'Все категории';
+  //   }
+  // };
+
+  const openFilterPanel = () => {
+    setFilterPanel((prev) => !prev);
   };
 
-  const { x, y, refs, strategy, context } = useFloating({
-    open: localState.dropdownOpen,
-    onOpenChange: localState.setDropdownOpen,
-    placement: 'bottom-start',
-    whileElementsMounted: autoUpdate,
-    middleware: [offset(4), flip(), shift()],
-  });
-
-  const click = useClick(context);
-
-  const { getReferenceProps, getFloatingProps } = useInteractions([click]);
+  const otherTabButton = () => {
+    if (searchState.currentTab === 'продукты')
+      return (
+        <span
+          className={`${styles.tabButton} ${styles.active}`}
+          onClick={() => {
+            searchState.setTab('блюда');
+            setFilterPanel(false);
+          }}
+        >
+          Блюда
+        </span>
+      );
+    return (
+      <span
+        className={`${styles.tabButton} ${styles.active}`}
+        onClick={() => {
+          searchState.setTab('продукты');
+          setFilterPanel(false);
+        }}
+      >
+        Продукты
+      </span>
+    );
+  };
 
   const onAddButtonClick = () => {
     modalStore.openModal(ModalType.CREATE_FOOD);
     // modalStore.openModal(ModalType.CREATE_DISH)
   };
 
+  const onSubFilterChoose = (value: string) => {};
+
+  const subFilterTabs = [
+    { value: 'vegetarian', label: 'Вегетерианские' },
+    { value: 'diary', label: 'Молочные' },
+    { value: 'sea', label: 'Морепродукты' },
+  ];
   if (!isVisible) return null;
 
   return (
-    <header className={styles.header}>
+    <header className={clsx([styles.header, className])}>
+      <div className={clsx(styles.selectPanel, filterPanel && styles.selectPanelOpen)}>
+        <div className={styles.subFilterTabs}>
+          {subFilterTabs.map(({ value, label }) => (
+            <span
+              key={value}
+              className={`${styles.tabButton} ${styles.active}`}
+              onClick={() => onSubFilterChoose(value)}
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+        <div className={styles.alternativeFilterButtonWrapper}>{otherTabButton()}</div>
+      </div>
+
       <button className={`${styles.createFoodButton} ${styles.active}`} onClick={onAddButtonClick}>
         +
       </button>
-      <input
+      <SearchInput
         id="search-input"
         ref={searchInputRef}
-        className={clsx(styles.searchInput, styles.searchInputOpen)}
         placeholder="Например, рис"
         value={searchState.filterText}
         onChange={(e) => searchState.setSearch(e.target.value)}
       />
 
-      <div className={styles.tabs}>
-        <span
-          ref={refs.setReference}
-          className={`${styles.tabButton} ${styles.active}`}
-          {...getReferenceProps()}
-        >
-          {getTabLabel(searchState.currentTab)}
-        </span>
-
-        {localState.dropdownOpen && (
-          <div
-            ref={refs.setFloating}
-            style={{
-              position: strategy,
-              top: y ?? 0,
-              left: x ?? 0,
-              zIndex: 1050,
-            }}
-            className={styles.dropdownMenu}
-            {...getFloatingProps()}
-          >
-            <div
-              className={styles.dropdownItem}
-              onClick={() => {
-                searchState.setTab('productSearch');
-                localState.setDropdownOpen(false);
-              }}
-            >
-              Продукты
-            </div>
-            <div
-              className={styles.dropdownItem}
-              onClick={() => {
-                searchState.setTab('dishSearch');
-                localState.setDropdownOpen(false);
-              }}
-            >
-              Блюда
-            </div>
-            <div
-              className={styles.dropdownItem}
-              onClick={() => {
-                searchState.setTab('createCustom');
-                localState.setDropdownOpen(false);
-              }}
-            >
-              Свой продукт
-            </div>
-          </div>
-        )}
-      </div>
-      {/* <span
-        ref={refs.setReference}
-        className={`${styles.tabButton} ${styles.active}`}
-        {...getReferenceProps()}
-      >
-        {getFilterLabel(searchState.currentTab)}
-      </span> */}
-
-      {/* {searchState.currentTab === 'productSearch' && (
-        <button className={`${styles.createFoodButton} ${styles.active}`} onClick={() => navigate(RouterLinks.DishBuilder)}>+ Создать</button>
-      )} */}
+      <span className={`${styles.tabButton} ${styles.active}`} onClick={openFilterPanel}>
+        {getTabLabel(searchState.currentTab)}
+      </span>
     </header>
   );
 };

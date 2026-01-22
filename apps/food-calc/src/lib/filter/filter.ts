@@ -1,15 +1,9 @@
-export function filterBy(
-    items: any[] | undefined,
-    query: string,
-    fields: string[]
-) {
-    if (!items) return [];
-    const q = query.trim().toLowerCase();
-    if (!q) return items;
+import { filterByWithSearch } from '../search';
 
-    return items.filter((item) =>
-        fields.some((field) =>
-            ((item[field] ?? '') + '').toLowerCase().includes(q)
-        )
-    );
+export function filterBy<T extends Record<string, unknown>>(
+    items: T[] | readonly T[] | undefined,
+    query: string,
+    fields: (keyof T | string)[]
+): T[] {
+    return filterByWithSearch(items, query, fields as string[]);
 }

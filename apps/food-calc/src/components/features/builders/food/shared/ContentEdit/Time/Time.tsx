@@ -1,5 +1,6 @@
-import { observer } from 'mobx-react-lite';
-import { useState, useEffect, useCallback } from 'react';
+import { observer, useLocalObservable } from 'mobx-react-lite';
+import { runInAction } from 'mobx';
+import { useEffect } from 'react';
 import style from './Time.module.scss';
 import { TimePicker } from '@/components/features/builders/food/ScheduleBuilder/components/TimePicker';
 import { TimeNow } from './TimeNow';
@@ -13,32 +14,23 @@ type Props = {
   };
   onFinish: () => void;
   uiStore?: UIViewOptionsInstance;
+  timeState: { localTime: string; handleTimeUpdate: (time: string) => void };
 };
 
-const Time = ({ item, onFinish, uiStore = domainStore.globalUiStore.options }: Props) => {
-  // 1. Single source of truth: Local state synchronized with MobX
-  const [localTime, setLocalTime] = useState(item.time || '12:00');
+const Time = ({
+  item,
+  onFinish,
+  uiStore = domainStore.globalUiStore.options,
+  timeState,
+}: Props) => {
+  const state = timeState;
 
   const { toggleTimePickerVariant } = uiStore;
 
-  // Update local state if the store changes externally
-  useEffect(() => {
-    if (item.time) setLocalTime(item.time);
-  }, [item.time]);
-
-  const [hours, minutes] = localTime.split(':');
-
-  // 2. Unified handler to prevent logic duplication
-  const handleTimeUpdate = useCallback(
-    (newTime: string) => {
-      setLocalTime(newTime);
-      item.updateTime(newTime);
-    },
-    [item]
-  );
+  const [hours, minutes] = state.localTime.split(':');
 
   const onFinishHandler = () => {
-    item.updateTime(localTime);
+    item.updateTime(state.localTime);
     onFinish();
   };
 
@@ -50,25 +42,25 @@ const Time = ({ item, onFinish, uiStore = domainStore.globalUiStore.options }: P
         </button>
       </header>
       <div className={style.inputWrapper}>
-        <TimeNow time={localTime} onTimeChange={(h, m) => handleTimeUpdate(`${h}:${m}`)} />
-
-        {uiStore.timePickerVariant === 'native' ? (
-          <input
-            type="time"
-            className={style.nativeInput}
-            value={localTime}
-            onChange={(e) => handleTimeUpdate(e.target.value)}
-          />
-        ) : (
-          <TimePicker
-            value={localTime}
-            hours={hours}
-            minutes={minutes}
-            setHours={(h) => handleTimeUpdate(`${h}:${minutes}`)}
-            setMinutes={(m) => handleTimeUpdate(`${hours}:${m}`)}
-            onFinish={onFinishHandler}
-          />
-        )}
+        <div className={style.selectTime}>
+          {uiStore.timePickerVariant === 'native' ? (
+            <input
+              type="time"
+              className={style.nativeInput}
+              value={state.localTime}
+              onChange={(e) => state.handleTimeUpdate(e.target.value)}
+            />
+          ) : (
+            <TimePicker
+              value={state.localTime}
+              hours={hours}
+              minutes={minutes}
+              setHours={(h) => state.handleTimeUpdate(`${h}:${minutes}`)}
+              setMinutes={(m) => state.handleTimeUpdate(`${hours}:${m}`)}
+              onFinish={onFinishHandler}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

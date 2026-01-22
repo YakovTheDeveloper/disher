@@ -69,6 +69,17 @@
     // Any specific styles for the content area below tabs
 }
 
+.searchFoodControls {
+    visibility: hidden;
+
+    &.active {
+        visibility: visible;
+    }
+
+}
+
+
+
 // Define some CSS variables for consistency (optional, but good practice)
 :root {
     --primary-color: #1976d2;

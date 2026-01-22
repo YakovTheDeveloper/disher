@@ -1,9 +1,10 @@
 .content {
-    overflow: hidden;
+    // overflow: hidden;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     position: relative;
+    min-height: 0;
 }
 
 .foodInfo {

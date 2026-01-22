@@ -127,7 +127,7 @@
 .footer {
     // padding-bottom: 0.5rem;
     // border-radius: 25px 25px 0 0;
-    position: absolute;
+    // position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
@@ -137,6 +137,30 @@
     // box-shadow: 1px 0px 6px 0px rgba(0, 0, 0, 0.2);
     transition: 0.05s opacity ease-in, transform 0.3s ease-in-out;
 }
+
+.supHeader {
+    z-index: 9;
+    display: flex;
+    // position: absolute;
+    // top: 10px;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+
+
+}
+
+/* CSS */
+.supHeader {
+    display: grid;
+}
+
+.supHeader>div {
+    grid-area: 1 / 1;
+    /* Все элементы в одной сетке */
+}
+
 
 
 .hide {
@@ -156,14 +180,5 @@
 //     top: 0;
 // }
 
-.supHeader {
-    z-index: 9;
-    display: flex;
-    position: absolute;
-    // top: 10px;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-}
 
 .subHeader {}

@@ -84,10 +84,11 @@ const List = observer(({ search, onFetch, queryKey, renderListContent, after }: 
   });
 
   const items = useMemo(() => {
+    if (!debouncedFilter) return [];
     const remoteItems = data?.pages.flatMap((p) => p.items) || [];
     const localIds = new Set(filteredLocal.map((i) => i.id));
     return [...filteredLocal, ...remoteItems.filter((i) => !localIds.has(i.id))];
-  }, [data?.pages, filteredLocal]);
+  }, [data?.pages, filteredLocal, debouncedFilter]);
 
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? items.length + 1 : items.length,
@@ -137,8 +138,12 @@ const List = observer(({ search, onFetch, queryKey, renderListContent, after }: 
         })}
 
         {!isFetchingNextPage && !isQueryLoading && virtualItems.length === 0 ? (
-          <div>
-            <p>По вашему запросу ничего не найдено</p>
+          <div className={styles.noResults}>
+            <p>
+              {debouncedFilter
+                ? 'По вашему запросу ничего не найдено'
+                : 'Введите запрос для поиска'}
+            </p>
           </div>
         ) : null}
 

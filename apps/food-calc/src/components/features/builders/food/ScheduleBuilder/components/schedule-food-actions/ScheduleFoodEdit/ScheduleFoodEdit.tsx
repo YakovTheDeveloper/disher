@@ -16,6 +16,7 @@ import {
 } from '@/components/features/builders/food/ScheduleBuilder/context';
 import { useFilteringState } from '@/components/features/shared/hooks/useFilteringState';
 import { foodSearchConfing } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/config/config';
+import SwipeableV2 from '@/components/features/builders/food/shared/ui/layout/Swipeable/SwipeableV2';
 
 type Props = {
   defaultTab?: string;
@@ -55,14 +56,26 @@ const ScheduleFoodEdit = observer(({ defaultTab, close }: Props) => {
         )
       }
     >
-      {currentTab === 'info' && (
-        <div>
-          {variant === 'dish' && dish && (
-            <DishNutrients schedule={schedule} currentDish={dish} currentChild={currentChild} />
-          )}
-          {variant === 'food' && foodId && <FoodNutrients foodId={foodId} />}
-        </div>
-      )}
+      <SwipeableV2 ref={swipeRef} onIndexChange={(index) => originalSetTab(indexToTab[index])}>
+        {currentTab === 'info' && (
+          <div>
+            {variant === 'dish' && dish && (
+              <DishNutrients schedule={schedule} currentDish={dish} currentChild={currentChild} />
+            )}
+            {variant === 'food' && foodId && <FoodNutrients foodId={foodId} />}
+          </div>
+        )}
+        <ContentEdit.Time item={currentChild} onFinish={goNext} />
+        <SearchFood
+          scheduleChild={currentChild}
+          onFinish={onProductChoose}
+          searchState={filterState}
+        >
+          <SearchFoodControls searchState={filterState} isVisible={true} />
+        </SearchFood>
+        <ContentEdit.Quantity item={currentChild} onFinish={goNext} />
+      </SwipeableV2>
+
       {currentTab === 'time' && <ContentEdit.Time item={currentChild} onFinish={onFinish} />}
       {currentTab === 'foodChange' && (
         <SearchFood scheduleChild={currentChild} onFinish={onFinish} searchState={filterState} />

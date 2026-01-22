@@ -40,6 +40,15 @@ const Quantity = ({ onFinish, item }: Props) => {
 
   return (
     <>
+      <div className={style.variants}>
+        {variants.map((values, index) =>
+          values.map((value) => (
+            <QuickButton key={index} onClick={() => handleVariantClick(value)}>
+              {value}
+            </QuickButton>
+          ))
+        )}
+      </div>
       <div className={style.header}>
         <div className={style.inputWrapper}>
           <NumberInput
@@ -55,15 +64,6 @@ const Quantity = ({ onFinish, item }: Props) => {
           />
           <span className={style.unit}>г.</span>
         </div>
-      </div>
-      <div className={style.variants}>
-        {variants.map((values, index) =>
-          values.map((value) => (
-            <QuickButton key={index} onClick={() => handleVariantClick(value)}>
-              {value}
-            </QuickButton>
-          ))
-        )}
       </div>
     </>
   );

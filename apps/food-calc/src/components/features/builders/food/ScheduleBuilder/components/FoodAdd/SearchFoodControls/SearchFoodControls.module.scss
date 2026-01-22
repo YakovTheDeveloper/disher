@@ -1,17 +1,23 @@
+@import '@/assets/style/mixin.scss';
+$header-padding: 5px;
+$header-height: 40px;
+$header-height-padding-included: calc($header-height + $header-padding * 2);
+$tab-button-width: 120px;
+$filter-tabs-gap: 12px;
+
 .header {
     // position: fixed;
     position: relative;
     top: 0;
     z-index: 11;
-    display: grid;
-    grid-template-columns: auto 1fr 1fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    display: flex;
     gap: 5px;
     // min-height: 80px;
     box-shadow: 10px -3px 4px 3px rgba(0, 0, 0, 0.05);
     border-bottom: 1px solid rgba(207, 207, 207, 0.274);
     width: 100%;
-    padding: 8px;
+    padding: $header-padding;
+    min-height: $header-height-padding-included;
 }
 
 .createFoodButton {
@@ -24,8 +30,7 @@
 }
 
 .searchInput {
-    grid-column: span 3;
-
+    flex-grow: 1;
     height: 100%;
     padding: 5px 5px 5px 10px;
     border: none;
@@ -53,6 +58,49 @@
 .searchInputOpen {
     width: 100%;
     opacity: 1;
+}
+
+.selectPanel {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    max-height: 200px;
+    padding: $header-padding;
+    z-index: 1;
+    border-top-right-radius: 16px;
+    border-top-left-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: $filter-tabs-gap;
+
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform: translateY(100%);
+    opacity: 0;
+    background-color: rgba(220, 220, 220, 0.749);
+
+    .subFilterTabs {
+        flex-wrap: wrap;
+        display: flex;
+        gap: $filter-tabs-gap;
+        position: relative;
+        z-index: 2;
+
+        * {
+            flex-grow: 1;
+        }
+    }
+
+}
+
+.alternativeFilterButtonWrapper {
+    // position: absolute;
+    // bottom: $header-padding;
+    // left: $header-padding;
+    min-height: $header-height;
+    display: flex;
+    width: calc(100% - $tab-button-width - $filter-tabs-gap);
 }
 
 .tabs {
@@ -101,18 +149,35 @@
     user-select: none;
     background-color: #fafafa;
     white-space: nowrap;
+    border: 1px solid transparent;
+    z-index: 2;
+    min-width: $tab-button-width;
 
     &:hover {
         color: #111;
         background-color: #fafafa;
     }
 
+    &SubFilter {}
+
     &.active {}
+}
+
+.subFilterTabs {
+    .tabButton {
+        border-radius: 20px;
+        border-color: #007bff;
+
+        &.active {
+            background-color: #007bff;
+            color: #fff;
+        }
+    }
+
 }
 
 .active {
     color: #007bff;
-    border-bottom-color: #007bff;
     font-weight: 600;
     background-color: #f9fbff;
 }
@@ -145,26 +210,7 @@
     pointer-events: none;
 }
 
-
-
-.dropdownMenu {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    min-width: 120px;
-    z-index: 1050;
-}
-
-.dropdownItem {
-    padding: 1rem 3rem;
-    cursor: pointer;
-    font-size: 16px;
-    color: #555;
-    white-space: nowrap;
-    transition: background-color 0.2s ease;
-
-    &:hover {
-        background-color: #f8f9fa;
-        color: #111;
-    }
+.selectPanelOpen {
+    transform: translateY(0);
+    opacity: 1;
 }

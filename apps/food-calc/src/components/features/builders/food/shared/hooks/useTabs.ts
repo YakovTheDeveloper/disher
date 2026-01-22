@@ -23,10 +23,13 @@ export function useTabs<T extends string>(
 
     const goNext = () => {
         blurActiveElement();
+        let nextIndex = 0
         setActiveIndex((prev) => {
             const next = Math.min(prev + 1, tabs.length - 1);
+            nextIndex = next
             return next;
         });
+        return nextIndex
     };
 
     const setTab = (value: T) => {
