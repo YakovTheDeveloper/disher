@@ -9,18 +9,8 @@
     flex-grow: 1;
 }
 
-.header {
-    position: sticky;
-    display: flex;
-    align-items: center;
-    top: 0;
-    right: 0;
-    gap: 1rem;
-    z-index: 33;
-    height: 75px;
-    background-color: transparent;
+.header {}
 
-}
 
 .inputWrapper {
     position: relative;

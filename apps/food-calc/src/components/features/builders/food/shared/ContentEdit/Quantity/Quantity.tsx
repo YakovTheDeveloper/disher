@@ -49,21 +49,20 @@ const Quantity = ({ onFinish, item }: Props) => {
           ))
         )}
       </div>
-      <div className={style.header}>
-        <div className={style.inputWrapper}>
-          <NumberInput
-            // autoFocus
-            size="big"
-            boxShadow
-            placeholder="Введите количество"
-            ref={inputRef}
-            className={style.input}
-            onChange={setValue}
-            value={value}
-            onBlur={onBlur}
-          />
-          <span className={style.unit}>г.</span>
-        </div>
+
+      <div className={style.inputWrapper}>
+        <NumberInput
+          // autoFocus
+          size="big"
+          boxShadow
+          placeholder="Введите количество"
+          ref={inputRef}
+          className={style.input}
+          onChange={setValue}
+          value={value}
+          onBlur={onBlur}
+        />
+        <span className={style.unit}>г.</span>
       </div>
     </>
   );

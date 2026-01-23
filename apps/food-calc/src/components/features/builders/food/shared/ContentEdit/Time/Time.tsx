@@ -1,6 +1,4 @@
-import { observer, useLocalObservable } from 'mobx-react-lite';
-import { runInAction } from 'mobx';
-import { useEffect } from 'react';
+import { observer } from 'mobx-react-lite';
 import style from './Time.module.scss';
 import { TimePicker } from '@/components/features/builders/food/ScheduleBuilder/components/TimePicker';
 import { TimeNow } from './TimeNow';
@@ -36,6 +34,7 @@ const Time = ({
 
   return (
     <div className={style.container}>
+      {/* <img src="/bright.png" className={style.image} /> */}
       <header>
         <button className={style.toggleButton} onClick={toggleTimePickerVariant}>
           альтернативный выбор времени

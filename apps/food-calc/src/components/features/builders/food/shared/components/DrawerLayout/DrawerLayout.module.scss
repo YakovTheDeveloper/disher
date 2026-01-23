@@ -17,19 +17,19 @@
     // max-height: calc(100vh - var(--overlay-height, 0px));+
     z-index: 3001;
 
-
-    // min-height: 0;
-
-
     height: 95dvh;
 
     display: flex;
     flex-direction: column;
-    // flex-grow: 1;
+
 
 
     overflow: hidden;
     padding-bottom: env(safe-area-inset-bottom);
+
+    &:focus-visible {
+        outline-color: rgb(255, 255, 255);
+    }
 
     .dragHandle {
         display: flex;
@@ -40,7 +40,7 @@
         height: 40px;
         margin-bottom: 1rem;
         background-color: transparent;
-        position: sticky;
+        position: absolute;
         top: 0;
         z-index: 20;
 
@@ -87,6 +87,7 @@
         padding: 0 0.5rem;
         align-items: center;
         justify-content: center;
+        opacity: 0.2;
     }
 }
 
@@ -125,20 +126,15 @@
 }
 
 .footer {
-    // padding-bottom: 0.5rem;
-    // border-radius: 25px 25px 0 0;
-    // position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    // height: var(--layout-footer-height);
-
-
-    // box-shadow: 1px 0px 6px 0px rgba(0, 0, 0, 0.2);
-    transition: 0.05s opacity ease-in, transform 0.3s ease-in-out;
+    height: var(--layout-footer-height, 40px);
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.3s ease, height 0.3s ease;
 }
 
-.supHeader {
+.bottom {}
+
+.bottom {
     z-index: 9;
     display: flex;
     // position: absolute;
@@ -151,15 +147,13 @@
 
 }
 
-/* CSS */
-.supHeader {
-    display: grid;
-}
+// .bottom {
+//     display: grid;
+// }
 
-.supHeader>div {
-    grid-area: 1 / 1;
-    /* Все элементы в одной сетке */
-}
+// .bottom>div {
+//     grid-area: 1 / 1;
+// }
 
 
 
@@ -182,3 +176,15 @@
 
 
 .subHeader {}
+
+.content:has(.scrollableContent input:focus, .scrollableContent textarea:focus) .footer {
+    height: 0;
+    opacity: 0;
+}
+
+.content:has(.bottom input:focus, .scrollableContent textarea:focus) .footer {
+    height: 0;
+    opacity: 0;
+}
+
+.footer2 {}

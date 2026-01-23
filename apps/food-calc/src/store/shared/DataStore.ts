@@ -180,6 +180,10 @@ export function createDataStoreModel<
                 return self.mergedMap.get(id)
             },
 
+            has(id: string) {
+                return self.base.entities.has(id) || self.user.entities.has(id);
+            },
+
         }))
 
 }

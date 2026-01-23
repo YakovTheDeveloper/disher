@@ -4,6 +4,7 @@ import { ScheduleEventsEdit } from '@/components/features/builders/food/Schedule
 import { ScheduleFoodAdd } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/ScheduleFoodAdd';
 import { ScheduleFoodEdit } from '@/components/features/builders/food/ScheduleBuilder/components/schedule-food-actions/ScheduleFoodEdit';
 import {
+  DraftScheduleItemProvider,
   SelectedEventItemProvider,
   SelectedScheduleItemProvider,
 } from '@/components/features/builders/food/ScheduleBuilder/context/ScheduleChildProvider';
@@ -41,7 +42,9 @@ export const scheduleDrawers: readonly DrawerDefinition<any>[] = [
     type: ScheduleDrawers.FoodAdd,
     render: (ctx: DrawerContext) => (
       <ScheduleProvider>
-        <ScheduleFoodAdd close={ctx.close} />
+        <DraftScheduleItemProvider>
+          <ScheduleFoodAdd variant="add" close={ctx.close} />
+        </DraftScheduleItemProvider>
       </ScheduleProvider>
     ),
   },
@@ -51,7 +54,7 @@ export const scheduleDrawers: readonly DrawerDefinition<any>[] = [
     render: (ctx: SnapshotIn<typeof FoodEditDrawer>) => (
       <ScheduleProvider>
         <SelectedScheduleItemProvider itemId={ctx.payload.itemToEditId}>
-          <ScheduleFoodEdit defaultTab={ctx.payload.defaultTab} close={ctx.close} />
+          <ScheduleFoodAdd variant="edit" defaultTab={ctx.payload.defaultTab} close={ctx.close} />
         </SelectedScheduleItemProvider>
       </ScheduleProvider>
     ),

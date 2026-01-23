@@ -1,4 +1,4 @@
-import { getEnv, getRoot, getSnapshot, Instance, onPatch, types } from "mobx-state-tree";
+import { clone, getEnv, getRoot, getSnapshot, Instance, onPatch, types } from "mobx-state-tree";
 import { SyncStatus } from "@/domain/commonListItem";
 import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
 import { emitter } from "@/infrastructure/emitter/emitter";
@@ -7,6 +7,8 @@ import { groupItemsByTime } from "@/domain/schedule/schedule.service";
 import { EventItem } from "@/domain/schedule/scheduleEvent/scheduleEvent";
 import { DishStore } from "@/store/DishStore/DishStore";
 import { FoodContentDish, FoodContentProduct, FoodContentType } from "@/domain/shared/foodContent/foodContent";
+import { ScheduleFactory } from "@/domain/schedule/factory";
+import { generateId } from "@/lib/id/generateId";
 
 export interface RootStoreEnv {
     dishStore: Instance<typeof DishStore>;
@@ -90,12 +92,37 @@ export const ScheduleItem = types.model("ScheduleItem", {
         }
     });
 
+export const Draft = types.model("Draft", {
+    eventDraft: types.optional(EventItem, {
+        id: "DRAFT",
+        time: '12:00',
+        type: 'custom',
+        value: ''
+    }),
+    foodDraft: types.optional(ScheduleItem, {
+        id: "DRAFT",
+        time: '12:00',
+        quantity: 100
+    })
+}).actions(self => ({
+    clearEvent() {
+        self.eventDraft.time = '12:00'
+        self.eventDraft.type = 'custom'
+        self.eventDraft.value = ''
+    },
+    clearFood() {
+        self.foodDraft.content = null
+        self.foodDraft.quantity = 100
+    },
+}));
+
 export const DaySchedule = types.model({
     id: types.identifier,
     userId: types.number,
     lastSync: types.optional(types.string, ""),
     lastTimeItemAdded: types.optional(types.string, ""),
     lastTimeEventAdded: types.optional(types.string, ""),
+    draft: types.optional(Draft, {}),
     foods: ChildrenController(ScheduleItem),
     events: ChildrenController(EventItem),
 })
@@ -152,14 +179,9 @@ export const DaySchedule = types.model({
             })
         }
 
-        function addDraftToFoods(draft: Instance<typeof ScheduleItem>) {
-            const { time, quantity, content } = draft;
-            self.foods.addChildWithLocalData({
-                time,
-                quantity,
-                content: content ? getSnapshot(content) : null
-            })
-            self.lastTimeItemAdded = time
+        function addDraftToFoods() {
+            self.foods.addChildWithLocalData(getSnapshot(self.draft.foodDraft))
+            self.draft.clearFood()
         }
 
         function addDraftToEvents(draft: Instance<typeof EventItem>) {

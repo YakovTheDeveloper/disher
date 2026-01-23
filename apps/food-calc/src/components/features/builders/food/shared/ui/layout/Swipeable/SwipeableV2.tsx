@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import styles from './SwipeableV2.module.scss';
-
 export type SwipeableRef = {
   goToPage: (index: number) => void;
 };
@@ -17,10 +16,11 @@ type Props = {
   children: React.ReactNode[];
   onIndexChange?: (index: number, total: number) => void;
   hasDots?: boolean;
+  image?: string;
 };
 
 const SwipeableV2 = forwardRef<SwipeableRef, Props>(
-  ({ children, onIndexChange, hasDots = false }, ref) => {
+  ({ children, onIndexChange, hasDots = false, image }, ref) => {
     const [selectedSlideModal, setSelectedSlideModal] = useState(0);
     const [emblaRefModal, emblaApi] = useEmblaCarousel(
       {
@@ -57,6 +57,14 @@ const SwipeableV2 = forwardRef<SwipeableRef, Props>(
       <div className={styles.carouselWrapper} data-carousel-container>
         <div className={styles.emblaViewport} ref={emblaRefModal}>
           <div className={styles.emblaContainer}>
+            {image && (
+              <div
+                className={styles.panoramicImgContainer}
+                style={{ width: `${children.length * 120}%` }}
+              >
+                <img src={image} className={styles.panoramicImg} alt="Panoramic view" />
+              </div>
+            )}
             {children.map((slide, index) => (
               <div key={index} className={styles.emblaSlide}>
                 <div className={styles.slideContent}>{slide}</div>

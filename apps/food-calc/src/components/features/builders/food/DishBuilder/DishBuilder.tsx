@@ -6,7 +6,6 @@ import { Dish } from '@/domain/dish/Dish';
 import { useDishModals } from '@/components/features/builders/food/DishBuilder/modalContext';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { Screen } from '@/components/features/builders/food/shared/ui/layout/Screen';
-import { Swipeable } from '@/components/features/builders/food/shared/ui/layout/Swipeable';
 import { TotalNutrients } from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
@@ -19,6 +18,7 @@ import { MotionValue } from 'framer-motion';
 import { Scalable } from '@/components/ui/Scalable';
 import { useNavigate } from 'react-router';
 import { DishDrawers, DrawerStoreInstance } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
+import SwipeableV2 from '@/components/features/builders/food/shared/ui/layout/Swipeable/SwipeableV2';
 
 export const Modals = {
   Food: 'food',
@@ -51,7 +51,7 @@ const DishBuilder = ({
   };
 
   return (
-    <Swipeable defaultIndex={1} pageNames={['nutrients', 'food']}>
+    <SwipeableV2 defaultIndex={1} pageNames={['nutrients', 'food']}>
       {[
         <Screen key={1} title={<ScreenLabel variant="screenHeader">Нутриенты</ScreenLabel>}>
           <TotalNutrients store={dishes} countable={dishes} />
@@ -102,7 +102,7 @@ const DishBuilder = ({
           </ItemsList>
         </Screen>,
       ]}
-    </Swipeable>
+    </SwipeableV2>
   );
 };
 

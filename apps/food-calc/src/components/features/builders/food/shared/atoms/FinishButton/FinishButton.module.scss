@@ -1,12 +1,28 @@
 .finishButton {
     color: var(--color-accent);
     display: flex;
-    font-weight: 300;
-    font-size: 1rem;
     align-items: center;
     padding: 0 0.5rem;
+    // width: 100%;
+    flex-grow: 1;
+    text-transform: lowercase;
+    font-size: 1rem;
+    text-align: center;
+
+    &_text {
+        color: #007aff;
+        font-size: 1.5rem;
+        font-weight: 200;
+        justify-content: end;
+
+
+    }
+
+    &_tick {}
 
 }
+
+
 
 .iconContainer {
     position: relative;

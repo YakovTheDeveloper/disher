@@ -8,7 +8,7 @@ import {
     syncSchedules
 } from "@/api/schedule/schedule.api"
 import { ISODate } from "@/types/common/common"
-import { DaySchedule } from "@/domain/schedule/schedule"
+import { DaySchedule, ScheduleItem } from "@/domain/schedule/schedule"
 import { createDayScheduleModel } from "@/store/DayScheduleStore/fabric"
 import { createRequestController } from "@/store/common/pureFabrication/createRequestController"
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel"
@@ -69,8 +69,11 @@ export const DayScheduleStore = types
             return self.data.get(date);
         },
 
-        delete(date: ISODate) {
-            self.data.delete(date)
+        has(date: string) {
+            return self.data.has(date);
         },
 
+        delete(date: ISODate) {
+            self.data.delete(date)
+        }
     }))

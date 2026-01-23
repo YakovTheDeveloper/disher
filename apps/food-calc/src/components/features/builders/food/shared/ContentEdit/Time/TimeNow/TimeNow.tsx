@@ -43,33 +43,31 @@ const TimeNow = ({ timeState }: Props) => {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.list}>
-        <QuickButton
-          className={styles.button}
-          isActive={minus15Time === timeState.localTime}
-          onClick={onMinus15Select}
-        >
-          <span className={styles.textNow}>сейчас</span>
-          <span className={styles.textMinutes}>-15 мин.</span>
-        </QuickButton>
-        <QuickButton
-          className={styles.button}
-          onClick={onNowSelect}
-          isActive={timeNow === timeState.localTime}
-        >
-          <span className={styles.textNow}>сейчас</span>
-          <span className={styles.textMinutes}>{timeNow}</span>
-        </QuickButton>
-        <QuickButton
-          className={styles.button}
-          isActive={plus15Time === timeState.localTime}
-          onClick={onPlus15Select}
-        >
-          <span className={styles.textNow}>сейчас</span>
-          <span className={styles.textMinutes}>+15 мин.</span>
-        </QuickButton>
-      </div>
+    <div className={styles.list}>
+      <QuickButton
+        className={styles.button}
+        isActive={minus15Time === timeState.localTime}
+        onClick={onMinus15Select}
+      >
+        <span className={styles.textNow}>сейчас</span>
+        <span className={styles.textMinutes}>-15 мин.</span>
+      </QuickButton>
+      <QuickButton
+        className={styles.button}
+        onClick={onNowSelect}
+        isActive={timeNow === timeState.localTime}
+      >
+        <span className={styles.textNow}>сейчас</span>
+        <span className={styles.textMinutes}>{timeNow}</span>
+      </QuickButton>
+      <QuickButton
+        className={styles.button}
+        isActive={plus15Time === timeState.localTime}
+        onClick={onPlus15Select}
+      >
+        <span className={styles.textNow}>сейчас</span>
+        <span className={styles.textMinutes}>+15 мин.</span>
+      </QuickButton>
     </div>
   );
 };

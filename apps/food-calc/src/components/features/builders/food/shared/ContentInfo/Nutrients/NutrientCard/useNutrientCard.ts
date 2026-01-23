@@ -32,8 +32,8 @@ const getRoundedPercent = (percentage: number) => {
 
 const getStatusClass = (p: number) => {
     if (p < 30) return 'low';
-    if (p < 85) return 'medium';
-    if (p <= 105) return 'optimal';
+    if (p < 60) return 'medium';
+    if (p <= 99) return 'optimal';
     return 'excess';
 };
 

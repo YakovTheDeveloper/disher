@@ -1,8 +1,8 @@
 import { observer, useLocalObservable } from 'mobx-react-lite';
 import { runInAction } from 'mobx';
 import { useMemo, useRef, useEffect } from 'react';
+import { parse, getHours } from 'date-fns';
 import { SearchFood } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd';
-import { useSearchParams } from 'react-router-dom';
 import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
 import { ContentEdit } from '@/components/features/builders/food/shared/ContentEdit';
 import { Tabs } from '@/components/ui/Tabs';
@@ -11,44 +11,39 @@ import { DrawerLayout } from '@/components/features/builders/food/shared/compone
 import { useTabs } from '@/components/features/builders/food/shared/hooks/useTabs';
 import { FinishButton } from '@/components/features/builders/food/shared/atoms/FinishButton';
 import { SearchFoodControls } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd/SearchFoodControls';
-import { Spacer } from '@/components/ui/atoms/Spacer';
-import { useSchedule } from '@/components/features/builders/food/ScheduleBuilder/context';
-import { ScheduleFactory } from '@/domain/schedule/factory';
+import {
+  useDraftScheduleItem,
+  useSchedule,
+  useSelectedScheduleItem,
+} from '@/components/features/builders/food/ScheduleBuilder/context';
 import { SwipeableRef } from '@/components/features/builders/food/shared/ui/layout/Swipeable';
 import { useFilteringState } from '@/components/features/shared/hooks/useFilteringState';
 import { FoodStoreInstance } from '@/store/FoodStore/FoodStore';
 import { DishStoreInstance } from '@/store/types';
 import SwipeableV2 from '@/components/features/builders/food/shared/ui/layout/Swipeable/SwipeableV2';
-import clsx from 'clsx';
 import { TimeNow } from '@/components/features/builders/food/shared/ContentEdit/Time/TimeNow';
+import { Button } from '@/components/ui/Button';
 
 type Props = {
   close: () => void;
   foodStore?: FoodStoreInstance;
   dishStore?: DishStoreInstance;
+  variant: 'add' | 'edit';
+  defaultTab?: string;
 };
 
 const ScheduleFoodAdd = observer(
-  ({ close, foodStore = domainStore.foodStore, dishStore = domainStore.dishStore }: Props) => {
+  ({
+    close,
+    foodStore = domainStore.foodStore,
+    dishStore = domainStore.dishStore,
+    variant,
+    defaultTab,
+  }: Props) => {
     const schedule = useSchedule();
-    const [searchParams] = useSearchParams();
-
-    const currentChild = useMemo(() => {
-      const argsParam = searchParams.get('args');
-      if (argsParam) {
-        try {
-          const args = JSON.parse(argsParam);
-          const time = args[0] !== undefined ? args[0] : schedule.lastTimeItemAdded;
-          return ScheduleFactory.createScheduleItemDraft(time, {
-            content: args[1],
-            quantity: args[2],
-          });
-        } catch {
-          return ScheduleFactory.createScheduleItemDraft(schedule.lastTimeItemAdded);
-        }
-      }
-      return ScheduleFactory.createScheduleItemDraft(schedule.lastTimeItemAdded);
-    }, [schedule.lastTimeItemAdded, searchParams]);
+    const hook = variant === 'add' ? useDraftScheduleItem : useSelectedScheduleItem;
+    const currentChild = hook();
+    console.log('currentChild', currentChild);
 
     const timeState = useLocalObservable(() => ({
       localTime: currentChild.time,
@@ -63,8 +58,10 @@ const ScheduleFoodAdd = observer(
     }, [currentChild.time, timeState]);
 
     const onFinish = () => {
-      schedule.addDraftToFoods(currentChild);
-      close();
+      if (variant === 'add') {
+        schedule.addDraftToFoods();
+        close();
+      }
     };
 
     const tabs = [
@@ -73,7 +70,7 @@ const ScheduleFoodAdd = observer(
       { value: 'quantity', label: 'количество', alternativeLabel: `${currentChild.quantity}` },
     ];
 
-    const { currentTab, goNext, setTab: originalSetTab } = useTabs(tabs);
+    const { currentTab, goNext, setTab: originalSetTab } = useTabs(tabs, defaultTab);
 
     const swipeRef = useRef<SwipeableRef>(null);
 
@@ -93,7 +90,6 @@ const ScheduleFoodAdd = observer(
     const onProductChoose = () => {
       swipeRef.current?.goToPage(tabToIndex.quantity);
     };
-
     const filterKeys = ['name'] as const;
 
     const config = useMemo(
@@ -115,6 +111,18 @@ const ScheduleFoodAdd = observer(
 
     const filterState = useFilteringState(config);
 
+    const currentImage = useMemo(() => {
+      const time = currentChild.time;
+      if (!time) return '/morning.png';
+      const parsedTime = parse(time, 'HH:mm', new Date());
+      const hour = getHours(parsedTime);
+      if (hour >= 22 || hour < 6) return '/night.png';
+      if (hour >= 18) return '/evening.jfif';
+      if (hour >= 12) return '/day.png';
+      if (hour >= 6) return '/morning.png';
+      return '/morning.png';
+    }, [currentChild.time]);
+
     return (
       <DrawerLayout
         label={<ScreenLabel variant="drawer">Добавить</ScreenLabel>}
@@ -123,8 +131,13 @@ const ScheduleFoodAdd = observer(
             <SearchFoodControls searchState={filterState} isVisible={true} />
           ) : currentTab === 'time' ? (
             <TimeNow timeState={timeState} />
-          ) : null
+          ) : (
+            <FinishButton onClick={onFinish} variant="text">
+              добавить еду
+            </FinishButton>
+          )
         }
+        // footer2={<button>Завершить добавление</button>}
         tabs={
           <>
             <Tabs tabs={tabs} current={currentTab} setTab={setTab} variant="scheduleFoodAdd" />
@@ -132,7 +145,11 @@ const ScheduleFoodAdd = observer(
         }
         topRight={<FinishButton onClick={onFinish} />}
       >
-        <SwipeableV2 ref={swipeRef} onIndexChange={(index) => originalSetTab(indexToTab[index])}>
+        <SwipeableV2
+          ref={swipeRef}
+          onIndexChange={(index) => originalSetTab(indexToTab[index])}
+          image={currentImage}
+        >
           <ContentEdit.Time item={currentChild} timeState={timeState} onFinish={goNext} />
           <SearchFood
             scheduleChild={currentChild}

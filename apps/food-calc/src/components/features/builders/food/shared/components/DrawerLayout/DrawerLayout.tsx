@@ -1,10 +1,11 @@
 import { observer } from 'mobx-react-lite';
 import styles from './DrawerLayout.module.scss';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import clsx from 'clsx';
 import { Drawer as DrawerLib } from 'vaul';
 import { AnimatePresence, motion } from 'framer-motion';
-import ArrowLeftIcon from '@/assets/icons/arrowLeftLong.svg';
+import CrossIcon from '@/assets/icons/cross.svg';
+import { emitter } from '@/infrastructure/emitter/emitter';
 
 type Props = {
   children: React.ReactNode;
@@ -13,42 +14,27 @@ type Props = {
   subHeader?: React.ReactNode;
   topRight?: React.ReactNode;
   bottom?: React.ReactNode;
+  footer2?: React.ReactNode;
   className?: string;
 };
 
-const DrawerLayout = ({ children, label, tabs, bottom, subHeader, topRight, className }: Props) => {
+const DrawerLayout = ({
+  children,
+  label,
+  tabs,
+  bottom,
+  subHeader,
+  topRight,
+  className,
+  footer2,
+}: Props) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const topRightRef = useRef<HTMLDivElement>(null);
   const bottomKey = (bottom as any)?.type?.motionKey ?? 'default';
-  const [isFooterHidden, setIsFooterHidden] = useState(false);
-
-  useEffect(() => {
-    const scrollableDiv = scrollRef.current;
-    if (scrollableDiv) {
-      const handleFocus = () => {
-        const activeElement = document.activeElement;
-        const isInputFocused = Boolean(
-          activeElement &&
-            (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') &&
-            scrollableDiv.contains(activeElement)
-        );
-        setIsFooterHidden(isInputFocused);
-      };
-
-      scrollableDiv.addEventListener('focusin', handleFocus);
-      scrollableDiv.addEventListener('focusout', () => setTimeout(handleFocus, 0));
-
-      return () => {
-        scrollableDiv.removeEventListener('focusin', handleFocus);
-        scrollableDiv.removeEventListener('focusout', () => setTimeout(handleFocus, 0));
-      };
-    }
-  }, []);
 
   return (
     <DrawerLib.Content className={clsx([styles.content, className])} id="drawer-content">
       <DrawerLib.Handle className={styles.dragHandle}>
-        <div className={styles.title}>{label}</div>
-
         <div className={styles.handleBar}></div>
         <DrawerLib.Close
           className={clsx([
@@ -57,14 +43,20 @@ const DrawerLayout = ({ children, label, tabs, bottom, subHeader, topRight, clas
             styles.actionHeaderButton_back,
           ])}
         >
-          <ArrowLeftIcon />
+          <CrossIcon />
         </DrawerLib.Close>
-        <div className={clsx([styles.actionHeaderButton, styles.topRight])}>{topRight}</div>
+        <div ref={topRightRef} className={clsx([styles.actionHeaderButton, styles.topRight])}>
+          {topRight}
+        </div>
       </DrawerLib.Handle>
 
       {subHeader && <header className={styles.subHeader}>{subHeader}</header>}
 
-      <div id="drawer-content-scrollable" className={clsx([styles.scrollableContent])}>
+      <div
+        ref={scrollRef}
+        id="drawer-content-scrollable"
+        className={clsx([styles.scrollableContent])}
+      >
         {children}
       </div>
       <AnimatePresence mode="popLayout">
@@ -81,26 +73,15 @@ const DrawerLayout = ({ children, label, tabs, bottom, subHeader, topRight, clas
             damping: 25,
             mass: 0.5, // делает анимацию легче и быстрее
           }}
-          className={styles.supHeader}
+          className={styles.bottom}
         >
           {bottom}
         </motion.div>
       </AnimatePresence>
 
-      <AnimatePresence>
-        {tabs && !isFooterHidden && (
-          <motion.footer
-            key="footer"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className={clsx([styles.footer])}
-          >
-            {tabs}
-          </motion.footer>
-        )}
-      </AnimatePresence>
+      {tabs && <footer className={clsx([styles.footer])}>{tabs}</footer>}
+
+      {footer2 && <div className={clsx([styles.footer2])}>{footer2}</div>}
     </DrawerLib.Content>
   );
 };

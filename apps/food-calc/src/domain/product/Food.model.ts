@@ -102,8 +102,8 @@ export const Food = types.model("Food", {
     }
 
     function changeNutrientValue(nutrientId: string, quantity: number) {
-        if (self.createdByUser) {
-            console.warn("Cannot change nutrient value for food created by user");
+        if (!self.createdByUser) {
+            console.warn("Cannot change nutrient value for base food product (it possible only for food created by user)");
             return;
         }
         const nutrient = self.nutrients.find(n => n.nutrientId === nutrientId)

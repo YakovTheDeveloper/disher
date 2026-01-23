@@ -127,6 +127,11 @@ export const StoreModel = types
             )
         }
     }))
+    .postProcessSnapshot((snapshot) => {
+        // remove fields
+        const { total, hasMore, requestState, ...rest } = snapshot;
+        return rest;
+    });
 
 export const FoodModelStore = types.compose(
     "ProductStore",

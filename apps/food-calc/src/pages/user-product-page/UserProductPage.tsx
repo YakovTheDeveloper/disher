@@ -29,9 +29,7 @@ const UserProductPage = () => {
   return (
     <Screen
       title={<ScreenLabel variant="screenHeader">Продукт</ScreenLabel>}
-      header={(scrollYProgress) => (
-        <HeaderInputName scrollYProgress={scrollYProgress} entity={userFood} />
-      )}
+      header={<HeaderInputName entity={userFood} />}
     >
       <Spacer variant="screen-header-offset" />
       <label>

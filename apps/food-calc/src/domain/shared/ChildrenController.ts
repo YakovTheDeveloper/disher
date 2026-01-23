@@ -1,6 +1,6 @@
 // import { SyncStatus } from "@/domain/commonListItem";
 import { generateId } from "@/lib/id/generateId"
-import { types, destroy, SnapshotIn, IAnyModelType, IModelType, getSnapshot, isStateTreeNode } from "mobx-state-tree"
+import { types, destroy, SnapshotIn, IAnyModelType, IModelType, getSnapshot, isStateTreeNode, Instance } from "mobx-state-tree"
 
 export function ChildrenController<T extends IAnyModelType>(
   ChildModel: T,
@@ -39,6 +39,11 @@ export function ChildrenController<T extends IAnyModelType>(
         child.sync.markAdded()
         self.items.push(child)
         return child
+      },
+
+      addChildFromModel(payload: Instance<T>) {
+        payload.sync.markAdded()
+        self.items.push(payload)
       },
 
       addChildWithServerData(data: Partial<SnapshotIn<T>>) {

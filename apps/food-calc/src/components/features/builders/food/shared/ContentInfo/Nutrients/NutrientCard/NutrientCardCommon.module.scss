@@ -8,7 +8,8 @@
     gap: 8px;
     position: relative;
     overflow: hidden;
-    border: 4px solid transparent;
+    border: var(--interactive-item-border-width) solid transparent;
+    transition: border-color 0.1s ease-in-out;
 
     &::before {
         content: '';
@@ -21,9 +22,11 @@
         opacity: 0.5;
     }
 
+
     &:focus-within {
         // border: 1px solid #f0f0f0;
         border-color: rgb(88, 133, 255);
+
     }
 }
 
@@ -72,25 +75,23 @@
     }
 }
 
-// Gaming color states
 .low {
-    background: linear-gradient(90deg, #607d8b, #455a64); // Grey-Blue for low
+    background: linear-gradient(90deg, #bdd2dd, #a2cde1); // Grey-Blue for low
     color: #455a64;
 }
 
 .medium {
-    background: linear-gradient(90deg, #4caf50, #388e3c); // Light Green
-    color: #388e3c;
-}
-
-.optimal {
-    background: linear-gradient(90deg, #2196f3, #1976d2); // Blue for optimal
+    background: linear-gradient(90deg, #3fa9ff, #298aeb); // Blue for optimal
     color: #1976d2;
 }
 
+.optimal {
+    background: linear-gradient(90deg, #8fef92, #54da5b); // Light Green
+    color: #388e3c;
+}
+
 .excess {
-    background: linear-gradient(90deg, #ff9800, #f57c00); // Orange for excess
-    color: #f57c00;
+    background: linear-gradient(90deg, #ffc36a, #eb8927); // Orange for excess
 }
 
 .valuesInside {
@@ -112,6 +113,10 @@
 
     &_noPointerEvents {
         pointer-events: none;
+    }
+
+    .excess & {
+        color: white;
     }
 
 }
@@ -138,14 +143,13 @@
 }
 
 .numberInput {
-    // position: relative;
-    // z-index: 11;
     max-width: 40px;
     background: transparent;
 
-    // position: absolute;
-    // left: 0;
-    // top: 0;
-    // bottom: 0;
+    border: none;
 
+    &::selection {
+        background-color: rgb(172, 172, 172);
+        color: white;
+    }
 }

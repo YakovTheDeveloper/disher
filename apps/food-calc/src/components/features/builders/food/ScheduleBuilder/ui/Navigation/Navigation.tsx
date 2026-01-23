@@ -6,12 +6,11 @@ import { MotionValue } from 'framer-motion';
 import { DateInfo } from './DateInfo';
 import { ScheduleUIEventEmitter } from '@/components/features/builders/food/shared/emitter';
 import { MenuUiStore } from '@/store/uiStore/menu/menuUiStore';
+import { useScreenScroll } from '@/components/features/builders/food/shared/ui/layout/Screen/context/ScreenScrollContext';
 
 type Props = {
   children?: React.ReactNode;
   menuUi?: MenuUiStore;
-
-  scrollYProgress: MotionValue<number>;
 };
 
 function isToday(date: string | Date) {
@@ -28,8 +27,10 @@ function isToday(date: string | Date) {
   );
 }
 
-const Navigation = ({ children, scrollYProgress }: Props) => {
+const Navigation = ({ children }: Props) => {
   const navigate = useNavigate();
+
+  const scrollYProgress = useScreenScroll();
 
   // const updateDate = (newDate: string) => {
   //   navigate(RouterLinks.ScheduleBuilder + newDate);

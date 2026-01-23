@@ -3,6 +3,7 @@ import { Instance } from 'mobx-state-tree';
 import { ScheduleItem } from '@/domain/schedule/schedule';
 import { EventItem } from '@/domain/schedule/scheduleEvent/scheduleEvent';
 import { useSchedule } from '@/components/features/builders/food/ScheduleBuilder/context/ScheduleProvider';
+import { observer } from 'mobx-react-lite';
 
 const SelectedScheduleItemContext = createContext<Instance<typeof ScheduleItem> | undefined>(
   undefined
@@ -35,6 +36,37 @@ export const SelectedScheduleItemProvider: React.FC<SelectedScheduleItemProvider
     </SelectedScheduleItemContext.Provider>
   );
 };
+
+// ------- //
+
+const DraftScheduleItemContext = createContext<Instance<typeof ScheduleItem> | undefined>(
+  undefined
+);
+
+export const useDraftScheduleItem = () => {
+  const ctx = useContext(DraftScheduleItemContext);
+  if (!ctx) throw new Error('useDraftScheduleItem must be used within DraftScheduleItemProvider');
+  return ctx;
+};
+
+interface DraftScheduleItemProviderProps {
+  children: ReactNode;
+}
+
+export const DraftScheduleItemProvider: React.FC<DraftScheduleItemProviderProps> = observer(
+  ({ children }) => {
+    const schedule = useSchedule();
+    const item = schedule.draft.foodDraft;
+
+    console.log('DraftScheduleItemProvider', item);
+
+    if (!item) throw new Error(`NO draft item exist`);
+
+    return (
+      <DraftScheduleItemContext.Provider value={item}>{children}</DraftScheduleItemContext.Provider>
+    );
+  }
+);
 
 // ----------------------------------------------
 

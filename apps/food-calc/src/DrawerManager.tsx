@@ -22,18 +22,7 @@ export const drawerRegistry = createDrawerRegistry([...scheduleDrawers, ...dishD
 
 export const DrawerManager = observer(() => {
   const { drawerStore } = domainStore.globalUiStore;
-  const { activeDrawer, isOpen, close, syncFromUrl } = drawerStore;
-
-  useEffect(() => {
-    syncFromUrl();
-
-    const handlePopState = () => {
-      syncFromUrl();
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [syncFromUrl]);
+  const { activeDrawer, isOpen } = drawerStore;
 
   if (!isOpen || !activeDrawer) return null;
 
@@ -51,7 +40,7 @@ export const DrawerManager = observer(() => {
       {definition.render({
         // @ts-expect-error - activeDrawer matches DrawerPayloadModel which might or might not have payload
         payload: activeDrawer.payload,
-        close: () => close(),
+        close: () => domainStore.globalUiStore.drawerStore.close(),
       })}
     </>
   );

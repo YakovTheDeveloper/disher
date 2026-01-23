@@ -5,15 +5,17 @@ import { UserFood } from '@/domain/product/Food.model';
 import EditableText from '@/components/ui/EditableText/EditableText';
 import styles from './HeaderInputName.module.scss';
 import { Scalable } from '@/components/ui/Scalable';
+import { useScreenScroll } from '@/components/features/builders/food/shared/ui/layout/Screen/context/ScreenScrollContext';
 type Props = {
-  scrollYProgress: MotionValue<number>;
   entity: {
     name: string;
     changeName: (value: string) => void;
   };
 };
 
-const HeaderInputName = ({ entity, scrollYProgress }: Props) => {
+const HeaderInputName = ({ entity }: Props) => {
+  const scrollYProgress = useScreenScroll();
+
   return (
     <Scalable scrollYProgress={scrollYProgress} className={styles.HeaderInputName}>
       <EditableText

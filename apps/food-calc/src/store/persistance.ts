@@ -10,7 +10,7 @@ export async function makePersistable(store: any, key: string) {
             applySnapshot(store, saved.data)
         } catch (e) {
             console.error(`Failed to load MST snapshot for ${key} from IndexedDB. Error:`, e)
-            // If data is corrupted, we might want to keep the current initial state
+
         }
     } else {
         // 2. Fallback to LocalStorage and migrate if exists
@@ -19,7 +19,7 @@ export async function makePersistable(store: any, key: string) {
             try {
                 const parsed = JSON.parse(legacyData)
                 applySnapshot(store, parsed)
-                // Migrate to IndexedDB
+
                 await db.snapshots.put({ key, data: parsed })
 
                 console.log(`Migrated ${key} from LocalStorage to IndexedDB`)
@@ -38,11 +38,12 @@ export async function makePersistable(store: any, key: string) {
         }
     }
 
-    // 3. Persist changes to IndexedDB
     onSnapshot(store, async snapshot => {
+
         try {
             await db.snapshots.put({ key, data: snapshot })
         } catch (e) {
+            console.warn("Snapshot possibly not cloneable", snapshot)
             console.error(`Failed to save MST snapshot for ${key} to IndexedDB. Error:`, e)
         }
     })

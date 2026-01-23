@@ -2,6 +2,7 @@ import { domainStore } from '@/store/store';
 import styles from './Drawer.module.scss';
 import { Drawer as DrawerLib } from 'vaul';
 import { observer } from 'mobx-react';
+import { useEffect } from 'react';
 
 type DrawerProps = {
   children: React.ReactNode;
@@ -11,6 +12,17 @@ export function Drawer({ children }: DrawerProps) {
   // useLockBodyScroll(open);
 
   const drawerStore = domainStore.globalUiStore.drawerStore;
+
+  useEffect(() => {
+    drawerStore.syncFromUrl();
+
+    const handlePopState = () => {
+      drawerStore.syncFromUrl();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   return (
     <DrawerLib.Root

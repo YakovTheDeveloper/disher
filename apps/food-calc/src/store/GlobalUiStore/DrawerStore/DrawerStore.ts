@@ -1,4 +1,5 @@
-import { types, Instance } from "mobx-state-tree";
+import { RootInstance } from "@/store/types";
+import { types, Instance, getRoot } from "mobx-state-tree";
 
 // Payload models for ScheduleDrawers
 const DateChooseDrawer = types.model('DateChooseDrawer', {
@@ -90,8 +91,21 @@ export const DrawerStore = types
             const url = new URL(window.location.href);
             if (args) {
                 url.searchParams.set('drawer', args.type);
+
+                // Serialize payload fields if they exist
+                if ('payload' in args && args.payload) {
+                    if ('itemToEditId' in args.payload) {
+                        url.searchParams.set('itemId', args.payload.itemToEditId);
+                    }
+                    if ('defaultTab' in args.payload) {
+                        url.searchParams.set('defaultTab', args.payload.defaultTab);
+                    }
+                }
             } else {
+                // Clear all drawer-related params
                 url.searchParams.delete('drawer');
+                url.searchParams.delete('itemId');
+                url.searchParams.delete('defaultTab');
             }
 
             const newUrl = url.pathname + url.search + url.hash;
@@ -139,16 +153,100 @@ export const DrawerStore = types
                 }
             },
 
+            canOpenDrawer(args: DrawerOpenArgs): boolean {
+                switch (args.type) {
+                    case ScheduleDrawers.DateChoose:
+                        return true;
+
+                    case ScheduleDrawers.FoodAdd:
+                    case ScheduleDrawers.EventAdd: {
+                        return true
+                    }
+
+                    case ScheduleDrawers.FoodEdit: {
+                        return true
+                    }
+
+                    case ScheduleDrawers.EventEdit: {
+                        return true
+                    }
+
+                    case DishDrawers.FoodAdd: {
+                        return true
+                    }
+
+                    case DishDrawers.FoodEdit: {
+                        return true
+                    }
+
+                    default:
+                        return false;
+                }
+            },
+
             syncFromUrl() {
                 const params = new URLSearchParams(window.location.search);
                 const type = params.get('drawer') as DrawerType | null;
-                // const payloadStr = params.get('payload');
+                console.log("drawerArgs", type);
 
                 if (type) {
                     try {
-                        const payload = undefined;
-                        // @ts-ignore - Dynamic construction based on type
-                        // this.open({ type, payload }, true);
+                        const itemId = params.get('itemId');
+                        const defaultTab = params.get('defaultTab');
+                        let drawerArgs: DrawerOpenArgs | null = null;
+
+                        switch (type) {
+                            case ScheduleDrawers.DateChoose:
+                                drawerArgs = { type };
+                                break;
+                            case ScheduleDrawers.FoodAdd:
+                                drawerArgs = { type };
+                                break;
+                            case ScheduleDrawers.FoodEdit:
+                                if (!itemId || !defaultTab) {
+                                    throw new Error('Missing required payload fields for FoodEdit');
+                                }
+                                drawerArgs = {
+                                    type,
+                                    payload: { itemToEditId: itemId, defaultTab: defaultTab as 'foodChange' | 'time' | 'quantity' }
+                                };
+                                break;
+                            case ScheduleDrawers.EventAdd:
+                                drawerArgs = { type };
+                                break;
+                            case ScheduleDrawers.EventEdit:
+                                if (!itemId || !defaultTab) {
+                                    throw new Error('Missing required payload fields for EventEdit');
+                                }
+                                drawerArgs = {
+                                    type,
+                                    payload: { itemToEditId: itemId, defaultTab: defaultTab as 'content' | 'time' | 'value' }
+                                };
+                                break;
+                            case DishDrawers.FoodAdd:
+                                drawerArgs = { type };
+                                break;
+                            case DishDrawers.FoodEdit:
+                                if (!itemId || !defaultTab) {
+                                    throw new Error('Missing required payload fields for DishFoodEdit');
+                                }
+                                drawerArgs = {
+                                    type,
+                                    payload: { itemToEditId: itemId, defaultTab: defaultTab as 'content' | 'quantity' }
+                                };
+                                break;
+                            default:
+                                throw new Error(`Unknown drawer type: ${type}`);
+                        }
+
+                        console.log("drawerArgs", drawerArgs);
+
+                        if (drawerArgs && this.canOpenDrawer(drawerArgs)) {
+                            this.open(drawerArgs, true);
+                        } else {
+                            console.log("can't open drawer");
+                            this.close(true);
+                        }
                     } catch (e) {
                         console.error('Failed to parse drawer payload from URL', e);
                         this.close(true);

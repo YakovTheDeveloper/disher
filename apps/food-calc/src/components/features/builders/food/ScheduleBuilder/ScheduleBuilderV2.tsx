@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from 'react';
 
-import { Swipeable } from '@/components/features/builders/food/shared/ui/layout/Swipeable';
 import { List } from '@/components/features/builders/food/ScheduleBuilder/ui/List';
 import { TotalNutrients } from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients';
 import { BuilderUIStore } from '@/components/features/builders/food/shared/BuilderUIStore';
@@ -23,6 +22,7 @@ import { ScheduleDrawers } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
 import { ScheduleFoodSelectionActions } from '@/components/features/builders/food/ScheduleBuilder/components/header-actions/ScheduleFoodSelectionActions';
 import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
+import SwipeableV2 from '@/components/features/builders/food/shared/ui/layout/Swipeable/SwipeableV2';
 
 type Props = {
   // onFinish: (payload: Instance<typeof DaySchedule>) => Promise<void>;
@@ -67,7 +67,7 @@ const ScheduleBuilder = ({
 
   return (
     <>
-      <Swipeable pageNames={pageNames} defaultIndex={1} onIndexChange={onPageChange}>
+      <SwipeableV2 pageNames={pageNames} defaultIndex={1} onIndexChange={onPageChange}>
         {[
           <Screen key={1} title={<ScreenLabel variant="screenHeader">Нутриенты</ScreenLabel>}>
             <TotalNutrients store={schedule} countable={schedule} />
@@ -100,9 +100,7 @@ const ScheduleBuilder = ({
                 Еда
               </ScreenLabel>
             }
-            header={(scrollYProgress: MotionValue<number>) => (
-              <Navigation scrollYProgress={scrollYProgress}></Navigation>
-            )}
+            header={<Navigation></Navigation>}
             bottom={<Button.Add onClick={onFoodAdd} />}
           >
             <List schedule={schedule} />
@@ -137,7 +135,7 @@ const ScheduleBuilder = ({
             <EventsBuilder schedule={schedule} />
           </Screen>,
         ]}
-      </Swipeable>
+      </SwipeableV2>
     </>
   );
 };
