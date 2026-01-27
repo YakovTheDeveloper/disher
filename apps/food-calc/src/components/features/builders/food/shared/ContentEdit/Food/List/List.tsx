@@ -1,4 +1,4 @@
-import { useRef, useMemo, memo } from 'react';
+import { useRef, useMemo, memo, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './List.module.scss';
 import { GetFoodParams } from '@/api/food/food.api';
@@ -19,6 +19,7 @@ type Props = {
     hasMore: boolean;
   }>;
   renderListContent: (item: any) => React.ReactNode;
+  gapSize?: number;
 };
 
 const ListItem = memo(
@@ -46,120 +47,129 @@ const ListItem = memo(
 );
 ListItem.displayName = 'ListItem';
 
-const List = observer(({ search, onFetch, queryKey, renderListContent, after }: Props) => {
-  const parentRef = useRef<HTMLDivElement>(null);
+const List = observer(
+  ({ search, onFetch, queryKey, renderListContent, after, gapSize = 8 }: Props) => {
+    const parentRef = useRef<HTMLDivElement>(null);
 
-  const filteredLocal = search.filteredList;
+    const filteredLocal = search.filteredList;
 
-  type Response = { items: any[]; hasMore: boolean };
+    type Response = { items: any[]; hasMore: boolean };
 
-  const fetchFoodPage = async ({ pageParam = 1 }): Promise<Response> => {
-    const res = await onFetch({
-      page: pageParam,
-      limit: 10,
-      filters: { search: search.filterText || undefined },
+    const fetchFoodPage = async ({ pageParam = 1 }): Promise<Response> => {
+      const res = await onFetch({
+        page: pageParam,
+        limit: 10,
+        filters: { search: search.filterText || undefined },
+      });
+      return res as Response;
+    };
+
+    const getNextPageParam = (lastPage: Response, allPages: Response[]) => {
+      return lastPage.hasMore ? allPages.length + 1 : undefined;
+    };
+
+    const [debouncedFilter] = useDebounce(search.filterText, 300);
+
+    const {
+      data,
+      fetchNextPage,
+      hasNextPage,
+      isFetchingNextPage,
+      isLoading: isQueryLoading,
+    } = useInfiniteQuery({
+      queryKey: [queryKey, debouncedFilter],
+      queryFn: fetchFoodPage,
+      getNextPageParam: getNextPageParam,
+      initialPageParam: 1,
+      refetchOnMount: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
     });
-    return res as Response;
-  };
 
-  const getNextPageParam = (lastPage: Response, allPages: Response[]) => {
-    return lastPage.hasMore ? allPages.length + 1 : undefined;
-  };
+    const items = useMemo(() => {
+      if (!debouncedFilter) return [];
+      const remoteItems = data?.pages.flatMap((p) => p.items) || [];
+      const localIds = new Set(filteredLocal.map((i) => i.id));
+      return [...filteredLocal, ...remoteItems.filter((i) => !localIds.has(i.id))];
+    }, [data?.pages, filteredLocal, debouncedFilter]);
 
-  const [debouncedFilter] = useDebounce(search.filterText, 300);
+    const rowVirtualizer = useVirtualizer({
+      count: hasNextPage ? items.length + 1 : items.length,
+      getScrollElement: () => parentRef.current,
+      estimateSize: () => 40 + gapSize,
+      overscan: 5,
+    });
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading: isQueryLoading,
-  } = useInfiniteQuery({
-    queryKey: [queryKey, debouncedFilter],
-    queryFn: fetchFoodPage,
-    getNextPageParam: getNextPageParam,
-    initialPageParam: 1,
-    refetchOnMount: false,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+    const handleScroll = () => {
+      const el = parentRef.current;
+      if (!el || !hasNextPage || isFetchingNextPage) return;
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      if (scrollHeight - scrollTop - clientHeight < 200) {
+        fetchNextPage();
+      }
+    };
 
-  const items = useMemo(() => {
-    if (!debouncedFilter) return [];
-    const remoteItems = data?.pages.flatMap((p) => p.items) || [];
-    const localIds = new Set(filteredLocal.map((i) => i.id));
-    return [...filteredLocal, ...remoteItems.filter((i) => !localIds.has(i.id))];
-  }, [data?.pages, filteredLocal, debouncedFilter]);
+    const virtualItems = rowVirtualizer.getVirtualItems();
+    const totalHeight = rowVirtualizer.getTotalSize();
 
-  const rowVirtualizer = useVirtualizer({
-    count: hasNextPage ? items.length + 1 : items.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 40,
-    overscan: 5,
-  });
+    const listHeight = totalHeight ? `${totalHeight}px` : 'auto';
 
-  const handleScroll = () => {
-    const el = parentRef.current;
-    if (!el || !hasNextPage || isFetchingNextPage) return;
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    if (scrollHeight - scrollTop - clientHeight < 200) {
-      fetchNextPage();
-    }
-  };
+    // Scroll to top when debounced filter text changes
+    useEffect(() => {
+      if (debouncedFilter) {
+        rowVirtualizer.scrollToIndex(0, { align: 'start' });
+      }
+    }, [debouncedFilter, rowVirtualizer]);
 
-  const virtualItems = rowVirtualizer.getVirtualItems();
-  const totalHeight = rowVirtualizer.getTotalSize();
+    const initLoading = isQueryLoading && filteredLocal.length === 0;
 
-  const listHeight = totalHeight ? `${totalHeight}px` : 'auto';
+    return (
+      <div ref={parentRef} className={styles.scrollContainer} onScroll={handleScroll}>
+        <Overlay className="" isLoading={() => initLoading} />
+        <ul
+          className={styles.list}
+          style={{
+            height: listHeight,
+            position: 'relative',
+          }}
+        >
+          {virtualItems.map((virtualRow) => {
+            const item = items[virtualRow.index];
+            if (!item) return null;
 
-  const initLoading = isQueryLoading && filteredLocal.length === 0;
+            return (
+              <ListItem
+                key={item.id}
+                virtualRow={virtualRow}
+                item={item}
+                renderListContent={renderListContent}
+              />
+            );
+          })}
 
-  return (
-    <div ref={parentRef} className={styles.scrollContainer} onScroll={handleScroll}>
-      <Overlay className="" isLoading={() => initLoading} />
-      <ul
-        className={styles.list}
-        style={{
-          height: listHeight,
-          position: 'relative',
-        }}
-      >
-        {virtualItems.map((virtualRow) => {
-          const item = items[virtualRow.index];
-          if (!item) return null;
+          {!isFetchingNextPage && !isQueryLoading && virtualItems.length === 0 ? (
+            <div className={styles.noResults}>
+              <p>
+                {debouncedFilter
+                  ? 'По вашему запросу ничего не найдено'
+                  : 'Введите запрос для поиска'}
+              </p>
+            </div>
+          ) : null}
 
-          return (
-            <ListItem
-              key={item.id}
-              virtualRow={virtualRow}
-              item={item}
-              renderListContent={renderListContent}
-            />
-          );
-        })}
+          {(isFetchingNextPage || isQueryLoading) && (
+            <li
+              className={styles.listEndLoader}
+              style={{
+                transform: `translateY(${rowVirtualizer.getTotalSize() - 60}px)`,
+              }}
+            ></li>
+          )}
 
-        {!isFetchingNextPage && !isQueryLoading && virtualItems.length === 0 ? (
-          <div className={styles.noResults}>
-            <p>
-              {debouncedFilter
-                ? 'По вашему запросу ничего не найдено'
-                : 'Введите запрос для поиска'}
-            </p>
-          </div>
-        ) : null}
-
-        {(isFetchingNextPage || isQueryLoading) && (
-          <li
-            className={styles.listEndLoader}
-            style={{
-              transform: `translateY(${rowVirtualizer.getTotalSize() - 60}px)`,
-            }}
-          ></li>
-        )}
-
-        {after}
-      </ul>
-    </div>
-  );
-});
+          {after}
+        </ul>
+      </div>
+    );
+  }
+);
 
 export default List;

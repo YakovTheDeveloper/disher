@@ -1,9 +1,10 @@
 import { observer } from 'mobx-react-lite';
+import { useCallback } from 'react';
 import style from './Time.module.scss';
 import { TimePicker } from '@/components/features/builders/food/ScheduleBuilder/components/TimePicker';
-import { TimeNow } from './TimeNow';
 import { domainStore } from '@/store/store';
 import { UIViewOptionsInstance } from '@/store/GlobalUiStore/UiViewOptions/UIViewOptions';
+import { TimeNow } from '@/components/features/builders/food/shared/ContentEdit/Time/TimeNow';
 
 type Props = {
   item: {
@@ -23,23 +24,21 @@ const Time = ({
 }: Props) => {
   const state = timeState;
 
-  const { toggleTimePickerVariant } = uiStore;
-
   const [hours, minutes] = state.localTime.split(':');
 
-  const onFinishHandler = () => {
-    item.updateTime(state.localTime);
-    onFinish();
-  };
+  const onFinishHandler = useCallback(() => onFinish(), [onFinish]);
 
   return (
     <div className={style.container}>
       {/* <img src="/bright.png" className={style.image} /> */}
-      <header>
-        <button className={style.toggleButton} onClick={toggleTimePickerVariant}>
-          альтернативный выбор времени
-        </button>
-      </header>
+      <button
+        className={style.toggleButton}
+        onClick={() => {
+          uiStore.toggleTimePickerVariant();
+        }}
+      >
+        часы
+      </button>
       <div className={style.inputWrapper}>
         <div className={style.selectTime}>
           {uiStore.timePickerVariant === 'native' ? (
@@ -48,6 +47,7 @@ const Time = ({
               className={style.nativeInput}
               value={state.localTime}
               onChange={(e) => state.handleTimeUpdate(e.target.value)}
+              onBlur={onFinishHandler}
             />
           ) : (
             <TimePicker
@@ -57,10 +57,14 @@ const Time = ({
               setHours={(h) => state.handleTimeUpdate(`${h}:${minutes}`)}
               setMinutes={(m) => state.handleTimeUpdate(`${hours}:${m}`)}
               onFinish={onFinishHandler}
+              autoFocus={true}
             />
           )}
         </div>
       </div>
+      <TimeNow timeState={timeState}>
+        <button className={style.toggleButton}>сейчас</button>
+      </TimeNow>
     </div>
   );
 };

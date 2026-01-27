@@ -1,5 +1,5 @@
 // TimePicker.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './TimePicker.module.scss';
 import clsx from 'clsx';
@@ -16,6 +16,7 @@ type Props = {
   minutes: string; // "MM" initial value
   setHours: (value: string) => void;
   setMinutes: (value: string) => void;
+  autoFocus?: boolean;
 };
 
 const TimePicker = observer((props: Props) => {
@@ -29,7 +30,10 @@ const TimePicker = observer((props: Props) => {
     id,
     hourAriaLabel = 'Hour',
     minuteAriaLabel = 'Minute',
+    autoFocus,
   } = props;
+
+  const [focusedInput, setFocusedInput] = useState<'hours' | 'minutes' | null>(null);
 
   const {
     hhRef,
@@ -47,7 +51,14 @@ const TimePicker = observer((props: Props) => {
     decrementMinutes,
   } = useTimePicker({ hours, minutes, setHours, setMinutes, onChange, onFinish });
 
-  // expose a way to programmatically set focus externally? not needed for now
+  React.useEffect(() => {
+    if (autoFocus) {
+      setTimeout(() => {
+        hhRef.current?.focus();
+        hhRef.current?.select();
+      }, 0);
+    }
+  }, [autoFocus]);
 
   return (
     <div
@@ -67,7 +78,7 @@ const TimePicker = observer((props: Props) => {
           <div className={styles.inputWrapper}>
             <input
               ref={hhRef}
-              className={styles.input}
+              className={clsx(styles.input, { [styles.blinking]: focusedInput === 'hours' })}
               aria-label={hourAriaLabel}
               placeholder="hh"
               inputMode="numeric"
@@ -75,10 +86,16 @@ const TimePicker = observer((props: Props) => {
               value={hours}
               onChange={handleHoursChange}
               onKeyDown={handleHoursKeyDown}
-              onBlur={handleHoursBlur}
+              onBlur={(e) => {
+                handleHoursBlur(e);
+                setFocusedInput(null);
+              }}
               maxLength={2}
               // select on focus to make overwriting fast
-              onFocus={(e) => e.currentTarget.select()}
+              onFocus={(e) => {
+                e.currentTarget.select();
+                setFocusedInput('hours');
+              }}
             />
           </div>
           <span className={styles.betweenInputs} aria-hidden>
@@ -87,7 +104,7 @@ const TimePicker = observer((props: Props) => {
           <div className={styles.inputWrapper}>
             <input
               ref={mmRef}
-              className={styles.input}
+              className={clsx(styles.input, { [styles.blinking]: focusedInput === 'minutes' })}
               aria-label={minuteAriaLabel}
               placeholder="mm"
               inputMode="numeric"
@@ -95,9 +112,15 @@ const TimePicker = observer((props: Props) => {
               value={minutes}
               onChange={handleMinutesChange}
               onKeyDown={handleMinutesKeyDown}
-              onBlur={handleMinutesBlur}
+              onBlur={(e) => {
+                handleMinutesBlur(e);
+                setFocusedInput(null);
+              }}
               maxLength={2}
-              onFocus={(e) => e.currentTarget.select()}
+              onFocus={(e) => {
+                e.currentTarget.select();
+                setFocusedInput('minutes');
+              }}
             />
           </div>
         </div>

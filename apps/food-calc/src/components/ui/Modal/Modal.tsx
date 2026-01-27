@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import styles from './Modal.module.scss';
 import { ModalStoreInstance } from '../../../store/GlobalUiStore/ModalStore/ModalStore';
 import { domainStore } from '@/store/store';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ModalProps {
   modalStore?: ModalStoreInstance;
@@ -25,9 +26,16 @@ const ModalComponent = ({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className={styles.overlay} />
-
-        <Dialog.Content className={styles.modal}>
+        <Dialog.Overlay asChild>
+          <motion.div
+            className={styles.overlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.9 }}
+            exit={{ opacity: 0 }}
+          />
+        </Dialog.Overlay>
+        {children}
+        {/* <Dialog.Content className={styles.modal}>
           <button
             className={styles.closeButton}
             // aria-label="Close"
@@ -40,7 +48,7 @@ const ModalComponent = ({
           </button>
 
           {children}
-        </Dialog.Content>
+        </Dialog.Content> */}
       </Dialog.Portal>
     </Dialog.Root>
   );

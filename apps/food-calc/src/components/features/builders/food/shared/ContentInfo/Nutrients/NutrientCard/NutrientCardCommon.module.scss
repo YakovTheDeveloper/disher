@@ -73,26 +73,28 @@
                 transparent 50%,
                 rgba(0, 0, 0, 0.1) 100%);
     }
+
+    &.low {
+        background: linear-gradient(90deg, #bdd2dd, #a2cde1); // Grey-Blue for low
+        color: #455a64;
+    }
+
+    &.medium {
+        background: linear-gradient(90deg, #3fa9ff, #298aeb); // Blue for optimal
+        color: #1976d2;
+    }
+
+    &.optimal {
+        background: linear-gradient(90deg, #8fef92, #54da5b); // Light Green
+        color: #388e3c;
+    }
+
+    &.excess {
+        background: linear-gradient(90deg, #ffc36a, #eb8927); // Orange for excess
+    }
+
 }
 
-.low {
-    background: linear-gradient(90deg, #bdd2dd, #a2cde1); // Grey-Blue for low
-    color: #455a64;
-}
-
-.medium {
-    background: linear-gradient(90deg, #3fa9ff, #298aeb); // Blue for optimal
-    color: #1976d2;
-}
-
-.optimal {
-    background: linear-gradient(90deg, #8fef92, #54da5b); // Light Green
-    color: #388e3c;
-}
-
-.excess {
-    background: linear-gradient(90deg, #ffc36a, #eb8927); // Orange for excess
-}
 
 .valuesInside {
     position: absolute;

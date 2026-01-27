@@ -66,7 +66,7 @@ export const useTimePicker = ({ hours, minutes, setHours, setMinutes, onChange, 
     const finishAndBlur = (h: string, m: string) => {
         const norm = normalize(h || '0', m || '0');
         onChange?.(norm);
-        // onFinish?.(norm);
+        onFinish?.(norm);
         mmRef.current?.blur();
     };
 

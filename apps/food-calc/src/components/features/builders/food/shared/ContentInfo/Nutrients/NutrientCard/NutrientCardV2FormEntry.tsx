@@ -24,7 +24,7 @@ const NutrientCardFormEntry = ({ content, getValue, onChange }: Props) => {
   };
 
   return (
-    <div className={styles.card} onClick={handleCardClick}>
+    <div className={clsx([styles.card, styles[statusClass]])} onClick={handleCardClick}>
       <div className={styles.header}>
         <span className={styles.name}>{displayNameRu}</span>
         <span className={clsx([styles.percentValue, styles[statusClass]])}>{percentText}%</span>

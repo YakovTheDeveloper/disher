@@ -16,7 +16,7 @@ const NutrientCard = ({ content, getValue }: Props) => {
     useNutrientCard({ content, getValue });
 
   return (
-    <div className={styles.card}>
+    <div className={clsx([styles.card, styles[statusClass]])}>
       <div className={styles.header}>
         <span className={styles.name}>{displayNameRu}</span>
         <span className={clsx([styles.percentValue, styles[statusClass]])}>{percentText}%</span>

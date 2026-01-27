@@ -6,8 +6,10 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
+
 import useEmblaCarousel from 'embla-carousel-react';
 import styles from './SwipeableV2.module.scss';
+import WeatherBackground from '@/components/features/WeatherBackground/WeatherBacground';
 export type SwipeableRef = {
   goToPage: (index: number) => void;
 };
@@ -16,7 +18,7 @@ type Props = {
   children: React.ReactNode[];
   onIndexChange?: (index: number, total: number) => void;
   hasDots?: boolean;
-  image?: string;
+  image?: React.ReactNode;
 };
 
 const SwipeableV2 = forwardRef<SwipeableRef, Props>(
@@ -59,10 +61,12 @@ const SwipeableV2 = forwardRef<SwipeableRef, Props>(
           <div className={styles.emblaContainer}>
             {image && (
               <div
-                className={styles.panoramicImgContainer}
-                style={{ width: `${children.length * 120}%` }}
+                className={styles.background}
+                style={{
+                  width: `${children.length * 200}%`,
+                }}
               >
-                <img src={image} className={styles.panoramicImg} alt="Panoramic view" />
+                {image}
               </div>
             )}
             {children.map((slide, index) => (

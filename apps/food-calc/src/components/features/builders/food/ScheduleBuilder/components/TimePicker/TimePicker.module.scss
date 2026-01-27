@@ -8,7 +8,6 @@
     justify-content: space-between;
 
 
-
 }
 
 
@@ -26,16 +25,14 @@
     width: 80%;
     flex-grow: 0;
     flex-shrink: 1;
-    // margin: 0 auto 0;
     box-shadow: 0 4px 25px rgba(223, 223, 223, 0.3);
-    // display: grid;
-    // grid-template-columns: 1fr auto 1fr;
+    background-color: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(2px);
     display: flex;
-    // padding: 2.5rem 1rem 2rem;
+    outline: 3px solid rgba(255, 0, 0, 0);
 
-    transition: 0.2s box-shadow ease-in-out;
+    transition: 0.2s box-shadow ease-in-out, outline-color 0.2s ease-in-out;
 
-    background: transparent;
     border-radius: 20px;
 
     border: 2px solid transparent;
@@ -44,8 +41,11 @@
     &:focus-within {
         // border-color: rgb(201, 201, 201);
         box-shadow: 0 4px 10px rgba(45, 66, 255, 0.1);
+        outline-color: rgba(255, 0, 0, 1);
 
     }
+
+
 
 }
 
@@ -70,10 +70,12 @@
 .betweenInputs {
     font-size: 4rem;
     font-weight: 500;
-    color: #007aff;
+    color: #fff;
+    // color: #007aff;
     padding: 1rem 2px;
     background: transparent;
     text-align: right;
+
 }
 
 .input {
@@ -85,11 +87,32 @@
 
     &::selection {
         color: red;
+
     }
 
     &:focus {
         border-radius: 12px;
-        outline: 2px solid #007aff;
+
+    }
+
+    &.blinking {
+        animation: blink 0.6s ease-in-out infinite;
+    }
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        color: #fff;
+    }
+
+    50% {
+        opacity: 0.3;
+        transform: scale(1.02);
+        color: #ffd700;
     }
 }
 
@@ -117,5 +140,6 @@
         padding: 0.5rem;
         border-radius: 10px;
         opacity: 0.3;
+        min-width: 55px;
     }
 }

@@ -1,0 +1,210 @@
+/**
+ * Weather Background Component Styles
+ * Layered atmospheric background with smooth animations
+ */
+
+.weatherBackground {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgb(200, 225, 245) 0%, rgb(235, 242, 250) 100%);
+
+    // Ensure smooth animations and prevent jank
+    will-change: opacity;
+    transform: translateZ(0);
+
+    // Refined color rendering for pastel palette
+    color-scheme: light;
+
+    // Support for reduced motion preference
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+/**
+ * Sky Gradient Layer
+ * Multi-directional gradient for sophisticated aesthetic appeal
+ * Combines radial and linear gradients for dimensional depth
+ */
+.skyGradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+
+    // Smooth gradient transitions with refined easing
+    transition: background 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    // GPU acceleration and optimal rendering
+    will-change: background;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+
+    // Enhanced color rendering
+    image-rendering: crisp-edges;
+}
+
+/**
+ * Clouds Layer
+ * Canvas-based multi-layered clouds with parallax
+ */
+.cloudsLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+
+    // Smooth appearance
+    opacity: 0;
+
+    // GPU acceleration for smooth animations
+    will-change: opacity;
+    transform: translateZ(0);
+}
+
+/**
+ * Celestial Bodies Layer
+ * Sun, moon, and stars with twinkling animation
+ */
+.celestialLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+
+    // Smooth appearance
+    opacity: 0;
+
+    // GPU acceleration
+    will-change: opacity;
+    transform: translateZ(0);
+
+    // Star twinkling keyframes
+    @keyframes twinkle {
+
+        0%,
+        100% {
+            opacity: 0.3;
+        }
+
+        50% {
+            opacity: 1;
+        }
+    }
+
+    animation: twinkle 3s ease-in-out infinite;
+}
+
+/**
+ * Weather Effects Layer
+ * Rain, snow, fog animations
+ */
+.weatherEffectsLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 4;
+
+    // Smooth transitions between weather types
+    opacity: 0;
+
+    // GPU acceleration
+    will-change: opacity;
+    transform: translateZ(0);
+
+    // Rain animation
+    @keyframes rainFall {
+        0% {
+            transform: translateY(-100%);
+        }
+
+        100% {
+            transform: translateY(100%);
+        }
+    }
+
+    // Snow animation (slower)
+    @keyframes snowFall {
+        0% {
+            transform: translateY(-100%) translateX(0);
+        }
+
+        100% {
+            transform: translateY(100%) translateX(10px);
+        }
+    }
+}
+
+/**
+ * Responsive design considerations
+ */
+@media (max-width: 768px) {
+    .weatherBackground {
+        // Ensure full viewport coverage on mobile
+        width: 100%;
+        height: 100%;
+
+        // Account for safe areas on devices with notches
+        padding-top: max(0px, env(safe-area-inset-top));
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+    }
+}
+
+/**
+ * High DPI / Retina display optimization
+ */
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+
+    .cloudsLayer,
+    .celestialLayer,
+    .weatherEffectsLayer {
+        // Sharper rendering on high-DPI screens
+        image-rendering: crisp-edges;
+    }
+}
+
+/**
+ * Low power mode / battery saver optimization
+ */
+@media (prefers-reduced-motion: reduce) {
+
+    .cloudsLayer,
+    .celestialLayer,
+    .weatherEffectsLayer {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .skyGradient {
+        transition: background 0.01ms !important;
+    }
+}
+
+/**
+ * Dark mode consideration
+ */
+@media (prefers-color-scheme: dark) {
+    .weatherBackground {
+        // Slightly enhanced contrast in dark mode
+        filter: brightness(0.95);
+    }
+}

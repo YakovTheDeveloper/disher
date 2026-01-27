@@ -8,9 +8,9 @@ import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
-import { SelectedEventItemProvider } from '@/components/features/builders/food/ScheduleBuilder/context';
 import { ModalConfirmationDeleteEvents } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ModalConfirmationDeleteEvents';
 import ScheduleProvider from '@/components/features/builders/food/ScheduleBuilder/context/ScheduleProvider';
+import { ScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ScheduleModals';
 
 type Props = {
   modalStore?: ModalStoreInstance;
@@ -19,6 +19,8 @@ type Props = {
 export const ModalManager = observer(
   ({ modalStore = domainStore.globalUiStore.modalStore }: Props) => {
     if (!modalStore.currentModal) return null;
+
+    const drawerStore = domainStore.globalUiStore.drawerStore;
 
     switch (modalStore.currentModal) {
       case ModalType.CONFIRMATION_REMOVE_DISHES:
@@ -38,13 +40,25 @@ export const ModalManager = observer(
         return <ModalCopyScheduleItemsToAnotherDay modalStore={modalStore} />;
 
       case ModalType.CREATE_FOOD:
-        return <ModalCreateFood modalStore={modalStore} />;
+        return <ModalCreateFood modalStore={modalStore} drawerStore={drawerStore} />;
 
       case ModalType.CREATE_DISH:
         return <ModalCreateDish modalStore={modalStore} />;
 
       case ModalType.PULSE_PHYSICAL_ACTIVITY:
-        return <ModalPhysicalActivityPulse />;
+        return <ModalPhysicalActivityPulse>{null}</ModalPhysicalActivityPulse>;
+
+      case ModalType.SCHEDULE_FOOD_ADD:
+      case ModalType.SCHEDULE_FOOD_EDIT:
+      case ModalType.SCHEDULE_EVENT_ADD:
+      case ModalType.SCHEDULE_EVENT_EDIT:
+        return (
+          <ScheduleModals
+            type={modalStore.currentModal}
+            payload={modalStore.payload}
+            close={() => modalStore.closeModal()}
+          />
+        );
 
       default:
         return null;

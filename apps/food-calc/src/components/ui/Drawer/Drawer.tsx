@@ -32,7 +32,7 @@ export function Drawer({ children }: DrawerProps) {
       direction="bottom"
       dismissible={true}
       closeThreshold={0.5}
-      repositionInputs={false}
+      repositionInputs={true}
       handleOnly
     >
       <DrawerLib.Portal container={document.getElementById('drawer-root')}>

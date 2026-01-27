@@ -39,7 +39,7 @@ const TotalNutrients = ({ countable, children }: Props) => {
   );
 
   return (
-    <div className={styles.container}>
+    <>
       <Spacer variant="screen-header-offset" />
       {/* <Button
         onClick={async () => {
@@ -79,7 +79,7 @@ const TotalNutrients = ({ countable, children }: Props) => {
           <p>не были учтены</p>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

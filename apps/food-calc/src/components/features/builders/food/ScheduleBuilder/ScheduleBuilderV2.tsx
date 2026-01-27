@@ -41,15 +41,11 @@ const ScheduleBuilder = ({
   const modals = domainStore.globalUiStore.drawerStore;
 
   const onFoodAdd = () => {
-    modals.open({
-      type: ScheduleDrawers.FoodAdd,
-    });
+    modalStore.openModal(ModalType.SCHEDULE_FOOD_ADD);
   };
 
   const onEventAdd = () => {
-    modals.open({
-      type: ScheduleDrawers.EventAdd,
-    });
+    modalStore.openModal(ModalType.SCHEDULE_EVENT_ADD);
   };
 
   console.log('SChedule buILder REnder');

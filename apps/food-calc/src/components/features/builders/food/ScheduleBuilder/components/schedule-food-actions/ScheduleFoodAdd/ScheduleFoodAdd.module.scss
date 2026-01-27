@@ -1,90 +1,109 @@
-.container {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
-
-.title {
-    top: 0;
-    left: 0;
-    transform: unset;
-    white-space: nowrap;
-}
-
-.header {
-    // Your existing header styles
-    border-bottom: 1px solid var(--border-color, #e0e0e0); // Use a CSS variable or define directly
-    padding-bottom: 0;
-
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: white;
-    height: 50px;
-}
-
-
-.tabs {
-    display: grid;
-    grid-template-columns: auto 1fr 2fr 1fr;
-    gap: 0.5rem; // Space between tabs
-}
-
-.tabs2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 5px; // Space between tabs
-}
-
-.tabButton {
-    background-color: transparent;
-    border: none;
-    padding: 0.75rem 1.25rem;
-    font-size: 1rem;
+.helpFocusButton {
+    color: #ffffff;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    font-size: 2.5rem;
+    font-weight: 300;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.02);
+    font-style: italic;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
-    color: var(--text-color-secondary, #616161);
-    border-bottom: 2px solid transparent; // Underline effect for tabs
-    transition: all 0.3s ease-in-out;
-    outline: none; // Remove default outline for a cleaner look
+    border-radius: 50%;
+    height: 6rem;
+    min-width: 6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0;
+    position: relative;
+    margin-left: auto;
+    margin-right: 1rem;
+
+    transform: rotate(-10deg);
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: -20px;
+        left: -20px;
+        right: -20px;
+        bottom: -20px;
+        border-radius: 50%;
+        background: conic-gradient(from 0deg,
+                transparent 0deg,
+                rgba(255, 255, 255, 0.4) 45deg,
+                rgba(255, 255, 255, 0.6) 90deg,
+                rgba(255, 255, 255, 0.4) 135deg,
+                transparent 180deg,
+                transparent 360deg);
+        animation: rotateShadow 2s linear infinite;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    .backgroundText {
+        font-style: italic;
+        opacity: 0.6;
+        pointer-events: none;
+        font-size: 2rem;
+        font-weight: 900;
+        z-index: 10;
+        transform: rotate(-30deg) translate(-50%);
+        user-select: none;
+
+
+        position: absolute;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60%;
+        height: 2px;
+        background-color: #000000;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 1px;
+    }
 
     &:hover {
-        color: var(--primary-color, #1976d2); // Hover color
-        border-color: var(--primary-color-light, #bbdefb); // Lighter underline on hover
+        transform: translateY(-3px) scale(1.05);
+        box-shadow:
+            0 8px 16px rgba(0, 0, 0, 0.1),
+            0 4px 8px rgba(0, 0, 0, 0.06),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+
+        &::after {
+            width: 60%;
+        }
     }
 
-    &.activeTab {
-        color: var(--primary-color, #1976d2); // Primary color for active tab
-        font-weight: 600;
-        border-color: var(--primary-color, #1976d2); // Bold underline for active tab
-    }
+    &:active {
+        transform: translateY(-1px) scale(0.98);
+        box-shadow:
+            0 4px 8px rgba(0, 0, 0, 0.08),
+            0 2px 4px rgba(0, 0, 0, 0.04),
+            0 0 0 1px rgba(255, 255, 255, 0.05);
 
-    // Accessibility improvements
-    &:focus-visible {
-        box-shadow: 0 0 0 2px var(--focus-ring-color, rgba(25, 118, 210, 0.5)); // Focus ring for keyboard users
+        &::after {
+            width: 40%;
+        }
     }
 }
 
-.tabContent {
-    padding: 1rem 0;
-    // Any specific styles for the content area below tabs
+.bottomPanel {
+    display: flex;
+    margin-bottom: 3rem;
 }
 
-.searchFoodControls {
-    visibility: hidden;
-
-    &.active {
-        visibility: visible;
+@keyframes rotateShadow {
+    from {
+        transform: rotate(0deg);
     }
 
-}
-
-
-
-// Define some CSS variables for consistency (optional, but good practice)
-:root {
-    --primary-color: #1976d2;
-    --primary-color-light: #bbdefb;
-    --text-color-secondary: #616161;
-    --border-color: #e0e0e0;
-    --focus-ring-color: rgba(25, 118, 210, 0.5);
+    to {
+        transform: rotate(360deg);
+    }
 }

@@ -128,15 +128,20 @@ const SearchFoodControls = ({
         <div className={styles.alternativeFilterButtonWrapper}>{otherTabButton()}</div>
       </div>
 
-      <button className={`${styles.createFoodButton} ${styles.active}`} onClick={onAddButtonClick}>
+      <button className={styles.createFoodButton} onClick={onAddButtonClick}>
         +
       </button>
       <SearchInput
+        size="medium"
         id="search-input"
         ref={searchInputRef}
+        className={styles.largeSearchInput}
         placeholder="Например, рис"
         value={searchState.filterText}
-        onChange={(e) => searchState.setSearch(e.target.value)}
+        onChange={(e) => {
+          e.preventDefault();
+          searchState.setSearch(e.target.value);
+        }}
       />
 
       <span className={`${styles.tabButton} ${styles.active}`} onClick={openFilterPanel}>
