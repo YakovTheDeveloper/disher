@@ -7,7 +7,7 @@ import { ContentEdit } from '@/components/features/builders/food/shared/ContentE
 import { Tabs } from '@/components/ui/Tabs';
 import { domainStore } from '@/store/store';
 import ModalLayout from '@/components/features/builders/food/shared/components/ModalLayout/ModalLayout';
-import { WizardStep } from '@/components/features/builders/food/shared/components/ModalLayout/WizardStep';
+import { WizardStep } from '@/components/features/builders/food/shared/components/WizardStep';
 import { useTabs } from '@/components/features/builders/food/shared/hooks/useTabs';
 import { FinishButton } from '@/components/features/builders/food/shared/atoms/FinishButton';
 import { SearchFoodControls } from '@/components/features/builders/food/ScheduleBuilder/components/FoodAdd/SearchFoodControls';
@@ -22,12 +22,21 @@ import { DishStoreInstance } from '@/store/types';
 import { TimeNow } from '@/components/features/builders/food/shared/ContentEdit/Time/TimeNow';
 import WeatherBackground from '@/components/features/WeatherBackground/WeatherBacground';
 import styles from './ScheduleFoodAdd.module.scss';
+import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
+import {
+  DrawerStoreInstance,
+  ProductDrawers,
+  ScheduleDrawers,
+} from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
+import RoundedPlusIcon from '@/assets/icons/rounded-plus-icon.svg';
 type Props = {
   close: () => void;
   foodStore?: FoodStoreInstance;
   dishStore?: DishStoreInstance;
   variant: 'add' | 'edit';
   defaultTab?: string;
+  modalStore: ModalStoreInstance;
+  drawerStore: DrawerStoreInstance;
 };
 
 const ScheduleFoodAdd = observer(
@@ -37,6 +46,8 @@ const ScheduleFoodAdd = observer(
     dishStore = domainStore.dishStore,
     variant,
     defaultTab,
+    modalStore = domainStore.globalUiStore.modalStore,
+    drawerStore = domainStore.globalUiStore.drawerStore,
   }: Props) => {
     const schedule = useSchedule();
     const hook = variant === 'add' ? useDraftScheduleItem : useSelectedScheduleItem;
@@ -64,7 +75,11 @@ const ScheduleFoodAdd = observer(
 
     const tabs = [
       { value: 'time', label: 'время', alternativeLabel: currentChild.time },
-      { value: 'foodSelect', label: 'еда', alternativeLabel: currentChild.content?.name || '' },
+      {
+        value: 'foodSelect',
+        label: 'еда',
+        alternativeLabel: currentChild.content?.name || 'не установлено',
+      },
       { value: 'quantity', label: 'количество', alternativeLabel: `${currentChild.quantity}` },
     ];
 
@@ -96,7 +111,8 @@ const ScheduleFoodAdd = observer(
     };
 
     const onProductChoose = () => {
-      setTab('quantity');
+      // setTab('quantity');
+      setTimeout(() => setTab('quantity'), 0);
     };
     const filterKeys = ['name'] as const;
 
@@ -119,76 +135,15 @@ const ScheduleFoodAdd = observer(
 
     const filterState = useFilteringState(config);
 
+    const searchFocusState = useLocalObservable(() => ({
+      isSearchFocused: false,
+      setSearchFocused(value: boolean) {
+        this.isSearchFocused = value;
+      },
+    }));
+
     const supFooter = (() => {
       switch (currentTab) {
-        case 'time':
-          return (
-            <div className={styles.bottomPanel}>
-              <button className={styles.helpFocusButton}>
-                <p className={styles.backgroundText}>Выбрать</p>
-
-                <svg
-                  width="1em"
-                  height="1em"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <g transform="rotate(-10 12 12)">
-                    <circle cx="12" cy="12" r="9" fill="#fff" stroke="#000" strokeWidth="1.5" />
-                    <circle cx="12" cy="4" r="0.5" fill="#000" />
-                    <circle cx="18.5" cy="12" r="0.5" fill="#000" />
-                    <circle cx="12" cy="20" r="0.5" fill="#000" />
-                    <circle cx="5.5" cy="12" r="0.5" fill="#000" />
-                    <line
-                      x1="12"
-                      y1="12"
-                      x2="12"
-                      y2="7"
-                      stroke="#000"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                    <line
-                      x1="12"
-                      y1="12"
-                      x2="15"
-                      y2="12"
-                      stroke="#000"
-                      strokeWidth="1"
-                      strokeLinecap="round"
-                    />
-                    <line
-                      x1="12"
-                      y1="12"
-                      x2="12"
-                      y2="5"
-                      stroke="#f00"
-                      strokeWidth="0.5"
-                      strokeLinecap="round"
-                    />
-                    <line
-                      x1="8"
-                      y1="3"
-                      x2="5"
-                      y2="0"
-                      stroke="#000"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <line
-                      x1="16"
-                      y1="3"
-                      x2="19"
-                      y2="0"
-                      stroke="#000"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </g>
-                </svg>
-              </button>
-            </div>
-          );
         case 'foodSelect':
           return (
             <div className={styles.bottomPanel}>
@@ -203,36 +158,43 @@ const ScheduleFoodAdd = observer(
               <FinishButton onClick={onFinish} variant="text">
                 добавить еду
               </FinishButton>
-              <Tabs tabs={tabs} current={currentTab} setTab={setTab} variant="scheduleFoodAdd" />
             </div>
           );
         default:
-          return (
-            <Tabs tabs={tabs} current={currentTab} setTab={setTab} variant="scheduleFoodAdd" />
-          );
+          return null;
       }
     })();
 
-    const subHeaderContent = (() => {
-      switch (currentTab) {
-        case 'foodSelect':
-          return <SearchFoodControls searchState={filterState} isVisible={true} />;
-        default:
-          return undefined;
-      }
-    })();
+    const onHeaderButtonClick = () => {
+      drawerStore.open({
+        type: ProductDrawers.Add,
+      });
+    };
 
     return (
       <ModalLayout
-        onBack={tabToIndex[currentTab as keyof typeof tabToIndex] > 0 ? handleBack : close}
-        showHeader={currentTab !== 'foodSelect'}
-        subHeader={subHeaderContent}
+        headerCenter={
+          currentTab === 'foodSelect' && (
+            <button onClick={onHeaderButtonClick} style={{ fontSize: '1.5rem' }}>
+              <RoundedPlusIcon />
+            </button>
+          )
+        }
+        // onBack={tabToIndex[currentTab as keyof typeof tabToIndex] > 0 ? handleBack : close}
         topRight={<FinishButton onClick={onFinish} />}
-        supFooter={supFooter}
-        footer={<Tabs tabs={tabs} current={currentTab} setTab={setTab} variant="scheduleFoodAdd" />}
+        footer={
+          <Tabs
+            tabs={tabs}
+            current={currentTab}
+            setTab={setTab}
+            variant="scheduleFoodAdd"
+            onFinish={onFinish}
+          />
+        }
         background={<WeatherBackground time={currentChild.time} weatherType="cloudy" />}
+        showHeader={!searchFocusState.isSearchFocused}
       >
-        <WizardStep stepKey={currentTab} direction={direction}>
+        <WizardStep stepKey={currentTab} direction={direction} helpButton>
           {currentTab === 'time' && (
             <ContentEdit.Time item={currentChild} timeState={timeState} onFinish={() => goNext()} />
           )}
@@ -241,7 +203,10 @@ const ScheduleFoodAdd = observer(
               scheduleChild={currentChild}
               onFinish={onProductChoose}
               searchState={filterState}
-            />
+              onFocusChange={(focused) => searchFocusState.setSearchFocused(focused)}
+            >
+              <SearchFoodControls searchState={filterState} isVisible={true} />
+            </SearchFood>
           )}
           {currentTab === 'quantity' && (
             <ContentEdit.Quantity item={currentChild} onFinish={onFinish} />

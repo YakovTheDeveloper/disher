@@ -2,39 +2,24 @@
     --layout-footer-height: 40px;
 }
 
-// .debug {
-//     // height: 200px;
-//     color: black;
-//     font-size: 3rem;
-//     position: relative;
 
-//     &::after {
-//         content: '';
-//         position: absolute;
-//         top: 0;
-//         left: 0;
-//         right: 0;
-//         bottom: 0;
-//         background-color: rgba(255, 64, 64, 0.496);
-//         height: var(--keyboard-height);
-//         // height: 200px;
-//     }
-// }
 
 .content {
-    position: fixed;
-    inset: 0;
+    position: absolute;
     transform: translateY(0);
-    // bottom: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
 
-    height: 100svh;
+    max-height: 100svh;
 
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 25%, rgba(255, 255, 255, 0.75) 50%, rgba(255, 255, 255, 1) 100%);
+    // background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 25%, rgba(255, 255, 255, 0.75) 50%, rgba(255, 255, 255, 1) 100%);
     backdrop-filter: blur(1px);
+    background-color: white;
     // filter: blur(1px);
     border-top-left-radius: 1rem;
     border-top-right-radius: 1rem;
-    z-index: 3001;
+    z-index: 5001;
 
     overscroll-behavior: contain;
     display: flex;
@@ -58,7 +43,7 @@
         height: 40px;
         margin-bottom: 1rem;
         background-color: transparent;
-        position: absolute;
+        // position: absolute;
         top: 0;
         z-index: 20;
 
@@ -120,138 +105,12 @@
 .scrollableContent {
     display: flex;
     flex-direction: column;
-    // height: 100%;
-    max-height: 100%;
-    // overflow: hidden;
     overflow-y: auto;
-    // overscroll-behavior: none;
-    // padding: 0 0 10px;
     min-height: 0;
-    // padding-bottom: 90px;
     flex-grow: 1;
-    /* Enable smooth scrolling on iOS */
     -webkit-overflow-scrolling: touch;
-    /* Optimize for scrolling performance */
-    // will-change: scroll-position;
-
-    will-change: height;
     transition: max-height 0.2s ease-out;
-
     mask-image: linear-gradient(to bottom,
             black 85%,
             transparent 100%);
-}
-
-.title {
-    position: absolute;
-    top: 0;
-    left: 0;
-    transform: unset;
-    white-space: nowrap;
-    z-index: -1;
-    user-select: none;
-
-}
-
-
-
-
-
-
-.footer {
-    position: fixed;
-    bottom: var(--keyboard-height, 0);
-    z-index: 9;
-    display: flex;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 50px;
-    transition: bottom 0.2s ease-out;
-}
-
-.footer2 {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: var(--keyboard-height, 0);
-    margin-top: 20px;
-    height: var(--layout-footer-height, 40px);
-    overflow: hidden;
-    opacity: 1;
-    transition: opacity 0.3s ease, transform 0.5s ease-in-out, bottom 0.2s ease-out;
-    z-index: 9;
-}
-
-// .bottom {
-//     display: grid;
-// }
-
-// .bottom>div {
-//     grid-area: 1 / 1;
-// }
-
-
-
-.hide {
-    opacity: 0;
-    z-index: 0;
-    user-select: none;
-    touch-action: none;
-    transform: translateY(-50px);
-}
-
-.none {
-    display: none;
-}
-
-// .subHeader {
-//     position: sticky;
-//     top: 0;
-// }
-
-
-.subHeader {}
-
-.footer:has(input:focus) {
-    bottom: 0;
-}
-
-.content:has(.scrollableContent input:focus, .scrollableContent textarea:focus) .footer2 {
-    opacity: 0;
-    transform: translateY(100%);
-}
-
-.content:has(.footer input:focus) .footer2 {
-    transform: translateY(100%);
-    opacity: 0;
-}
-
-.background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    z-index: -1;
-}
-
-.keyboardVisible {
-
-    /* Frozen viewport with interactive-widget=resizes-content keeps layout stable */
-    /* Smooth animations maintained for better UX like Telegram/Discord/Notion/Linear */
-
-    .scrollableContent {
-        // flex-grow: 0;
-        max-height: 50vh;
-    }
-
-
-    .footer {
-        bottom: 0;
-    }
-
-    .footer2 {
-        transform: translateY(100%);
-    }
 }

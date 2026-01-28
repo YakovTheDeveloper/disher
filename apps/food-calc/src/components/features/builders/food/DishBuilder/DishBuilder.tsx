@@ -3,7 +3,6 @@ import { Button } from '@/components/features/builders/food/shared/ui/Actions/bu
 import { DishListItem } from '@/components/features/builders/food/DishBuilder/ui/DishListItem';
 import { Instance } from 'mobx-state-tree';
 import { Dish } from '@/domain/dish/Dish';
-import { useDishModals } from '@/components/features/builders/food/DishBuilder/modalContext';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { Screen } from '@/components/features/builders/food/shared/ui/layout/Screen';
 import { TotalNutrients } from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients';
@@ -17,7 +16,6 @@ import { RouterLinks } from '@/router';
 import { MotionValue } from 'framer-motion';
 import { Scalable } from '@/components/ui/Scalable';
 import { useNavigate } from 'react-router';
-import { DishDrawers, DrawerStoreInstance } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
 import SwipeableV2 from '@/components/features/builders/food/shared/ui/layout/Swipeable/SwipeableV2';
 
 export const Modals = {
@@ -30,24 +28,15 @@ export type ModalsType = (typeof Modals)[keyof typeof Modals];
 
 type Props = {
   init: Instance<typeof Dish>;
-  onFinish: (data: Instance<typeof Dish>) => Promise<void>;
   modalStore?: ModalStoreInstance;
-  drawerStore?: DrawerStoreInstance;
 };
 
-const DishBuilder = ({
-  init,
-  onFinish,
-  modalStore = domainStore.globalUiStore.modalStore,
-  drawerStore = domainStore.globalUiStore.drawerStore,
-}: Props) => {
+const DishBuilder = ({ init, modalStore = domainStore.globalUiStore.modalStore }: Props) => {
   const dishes = init;
   const navigate = useNavigate();
 
   const onFoodsOpen = () => {
-    drawerStore.open({
-      type: DishDrawers.FoodAdd,
-    });
+    modalStore.openModal(ModalType.DISH_CREATE);
   };
 
   return (

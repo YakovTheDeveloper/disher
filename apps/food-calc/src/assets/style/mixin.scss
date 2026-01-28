@@ -29,3 +29,57 @@
     overflow: hidden;
     padding: 5px;
 }
+
+@mixin fade-top($left: 8px, $right: 8px, $height: 20px, $color: rgba(255, 255, 255, 0.8), $z-index: 1) {
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: $left;
+        right: $right;
+        height: $height;
+        background: linear-gradient(to bottom, $color, transparent);
+        pointer-events: none;
+        z-index: $z-index;
+    }
+}
+
+@mixin fade-bottom($left: 8px, $right: 8px, $height: 20px, $color: rgba(255, 255, 255, 0.8), $z-index: 1) {
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: $left;
+        right: $right;
+        height: $height;
+        background: linear-gradient(to top, $color, transparent);
+        pointer-events: none;
+        z-index: $z-index;
+    }
+}
+
+@mixin mobile-breakpoint($breakpoint: 768px) {
+    @media (max-width: $breakpoint) {
+        @content;
+    }
+}
+
+@mixin blink($color1, $color2, $time) {
+    @keyframes blink {
+
+        0%,
+        100% {
+            opacity: 1;
+            transform: scale(1);
+            color: $color1;
+        }
+
+        50% {
+            opacity: 0.3;
+            transform: scale(1.02);
+            color: $color2;
+        }
+    }
+
+    animation: blink $time ease-in-out infinite;
+}

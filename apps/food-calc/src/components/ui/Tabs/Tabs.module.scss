@@ -1,3 +1,5 @@
+@import '@/assets/style/mixin.scss';
+
 .tabs {
     overflow: hidden;
     position: relative;
@@ -101,6 +103,7 @@
 
     padding: 10px 0.5rem 10px;
     // min-height: 36px;
+    cursor: pointer;
 
     &::before {
         content: '';
@@ -133,5 +136,82 @@
         color: white;
         font-weight: 500;
         // Bold underline for active tab
+    }
+}
+
+.tabContainer {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.finishHint {
+    font-size: 12px;
+    font-style: italic;
+    color: #888;
+    text-align: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    position: absolute;
+    top: -5px;
+    transform: translateX(-50%);
+    left: 50%;
+    color: red;
+
+    &__active {
+        color: rgba(255, 7, 110, 0.8);
+    }
+}
+
+.lastTabActive {
+    position: relative;
+    @import '@/assets/style/mixin.scss';
+
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 6px;
+        height: 6px;
+        background: rgba(55, 0, 255, 1);
+        border-radius: 50%;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: translateX(-50%) scale(1.2);
+    }
+}
+
+.blinking {
+    animation: blink 1.1s ease-in-out infinite;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+        color: rgb(255, 40, 216);
+        border-color: rgb(255, 0, 212);
+    }
+
+    50% {
+        opacity: 0.1;
+        color: rgba(55, 0, 255, 1);
+        border-color: rgba(55, 0, 255, 1);
     }
 }

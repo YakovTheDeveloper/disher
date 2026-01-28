@@ -118,7 +118,7 @@ const WeatherBackground: React.FC<WeatherBackgroundProps> = ({
       }}
     >
       {/* Sky gradient base layer */}
-      <SkyGradient colors={blendedColors.sky} />
+      {/* <SkyGradient colors={blendedColors.sky} /> */}
 
       {/* Clouds with parallax layers */}
       {/* <Clouds
@@ -137,12 +137,12 @@ const WeatherBackground: React.FC<WeatherBackgroundProps> = ({
       /> */}
 
       {/* Weather effects (rain, snow, fog) */}
-      <WeatherEffects
+      {/* <WeatherEffects
         weatherType={weatherType}
         timePeriod={timePeriod}
         isReduced={prefersReducedMotion}
         isLowPower={isLowPowerDevice}
-      />
+      /> */}
     </motion.div>
   );
 };

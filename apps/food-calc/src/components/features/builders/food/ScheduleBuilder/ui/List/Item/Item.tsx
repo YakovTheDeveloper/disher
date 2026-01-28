@@ -6,9 +6,10 @@ import { useCallback, useMemo } from 'react';
 import clsx from 'clsx';
 import { CommonListItem } from '@/components/features/builders/food/shared/ui/CommonListItem';
 import { domainStore } from '@/store/store';
-import { ScheduleDrawers } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
+
 import { ScheduleItem } from '@/domain/schedule/schedule';
 import { Instance } from 'mobx-state-tree';
+import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 
 type Props = {
   className?: string;
@@ -16,26 +17,20 @@ type Props = {
 };
 
 const Item = ({ item, className }: Props) => {
-  const modals = domainStore.globalUiStore.drawerStore;
+  const modals = domainStore.globalUiStore.modalStore;
   const id = item.id;
 
   const onFoodsOpenUpdate = () => {
-    modals.open({
-      type: ScheduleDrawers.FoodEdit,
-      payload: {
-        defaultTab: 'foodChange',
-        itemToEditId: id,
-      },
+    modals.openModal(ModalType.SCHEDULE_FOOD_EDIT, {
+      defaultTab: 'foodChange',
+      itemToEditId: id,
     });
   };
 
   const onQuantityOpen = () => {
-    modals.open({
-      type: ScheduleDrawers.FoodEdit,
-      payload: {
-        defaultTab: 'quantity',
-        itemToEditId: id,
-      },
+    modals.openModal(ModalType.SCHEDULE_FOOD_EDIT, {
+      defaultTab: 'quantity',
+      itemToEditId: id,
     });
   };
 

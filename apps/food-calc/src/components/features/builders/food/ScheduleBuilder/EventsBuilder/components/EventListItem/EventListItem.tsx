@@ -1,9 +1,10 @@
 import { observer } from 'mobx-react-lite';
 import { Instance } from 'mobx-state-tree';
 import { EventItem } from '@/domain/schedule/scheduleEvent/scheduleEvent';
-import { ScheduleDrawers } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
+
 import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
 import { getEventDescription } from '@/components/features/builders/food/ScheduleBuilder/EventsBuilder/components/EventListItem/methods';
+import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 type Props = {
   children?: React.ReactNode;
   onClick: (id: number | string) => void;
@@ -11,15 +12,12 @@ type Props = {
 };
 
 const EventListItem = ({ item }: Props) => {
-  const { drawerStore } = useModalsAndDrawers();
+  const { modalStore } = useModalsAndDrawers();
 
   const onEventEditModalOpen = () => {
-    drawerStore.open({
-      type: ScheduleDrawers.EventEdit,
-      payload: {
-        defaultTab: 'content',
-        itemToEditId: item.id,
-      },
+    modalStore.openModal(ModalType.SCHEDULE_EVENT_EDIT, {
+      defaultTab: 'content',
+      itemToEditId: item.id,
     });
   };
 

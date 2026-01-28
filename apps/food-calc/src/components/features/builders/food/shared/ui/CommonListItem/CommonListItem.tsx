@@ -42,6 +42,9 @@ const ListItem = ({
   const isSelected = uiStore.isSelected(stringId);
 
   const handleSelect = useCallback(() => {
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
     uiStore.toggleSelectedId(stringId);
   }, [uiStore, stringId]);
 
@@ -131,7 +134,9 @@ const ListItem = ({
   const status = sync?.status;
 
   return (
-    <div
+    <motion.div
+      layout
+      whileTap={{ scale: 0.98 }}
       className={clsx(
         styles.commonListItemWrapper,
         isSelected && styles.selected,
@@ -141,22 +146,40 @@ const ListItem = ({
     >
       <AnimatePresence>
         {isActionsMode && (
-          <motion.div className={styles.selectCheckbox}>
-            <button type="button" className={styles.selectButton} onClick={onSelectButtonClick}>
-              {isSelected && <TickIcon />}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, x: -20 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.5, x: -20 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className={styles.selectCheckbox}
+          >
+            <button
+              type="button"
+              className={clsx(styles.selectButton, isSelected && styles.selectButton_selected)}
+              onClick={onSelectButtonClick}
+            >
+              <AnimatePresence mode="wait">
+                {isSelected && (
+                  <motion.div
+                    key="tick"
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.5, opacity: 0 }}
+                  >
+                    <TickIcon />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </button>
           </motion.div>
         )}
       </AnimatePresence>
-      {/* {isActionsMode && (
-        <div className={styles.selectCheckbox}>
-          <button type="button" className={styles.selectButton} onClick={onSelectButtonClick}>
-            {isSelected && <TickIcon />}
-          </button>
-        </div>
-      )} */}
 
-      <li
+      {isSelected && <div className={styles.selectedOverlay} />}
+
+      <motion.li
+        animate={{ x: isActionsMode ? 44 : 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
         onPointerMove={onPointerMove}
@@ -182,8 +205,8 @@ const ListItem = ({
         >
           {children}
         </div>
-      </li>
-    </div>
+      </motion.li>
+    </motion.div>
   );
 };
 

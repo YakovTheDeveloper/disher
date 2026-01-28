@@ -148,11 +148,7 @@ const List = observer(
 
           {!isFetchingNextPage && !isQueryLoading && virtualItems.length === 0 ? (
             <div className={styles.noResults}>
-              <p>
-                {debouncedFilter
-                  ? 'По вашему запросу ничего не найдено'
-                  : 'Введите запрос для поиска'}
-              </p>
+              <p>{debouncedFilter ? 'По вашему запросу ничего не найдено' : ''}</p>
             </div>
           ) : null}
 

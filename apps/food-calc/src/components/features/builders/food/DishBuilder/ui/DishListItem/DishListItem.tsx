@@ -9,45 +9,35 @@ import { Dish, DishItem } from '@/domain/dish/Dish';
 import { useDishModals } from '@/components/features/builders/food/DishBuilder/modalContext';
 import { Modals } from '@/components/features/builders/food/DishBuilder/DishBuilder';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
-import {
-  DishDrawers,
-  DishModals,
-  DrawerStoreInstance,
-} from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
+
 import { domainStore } from '@/store/store';
+import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
+import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 
 type Props = {
   content: Instance<typeof DishItem>;
   controller: Instance<typeof Dish>;
   className?: string;
-  drawerStore?: DrawerStoreInstance;
+  modalStore?: ModalStoreInstance;
 };
 
 const DishListItem = ({
   controller,
   content,
   className,
-  drawerStore = domainStore.globalUiStore.drawerStore,
+  modalStore = domainStore.globalUiStore.modalStore,
 }: Props) => {
-  const modals = useDishModals();
-
   const onFoodsOpenUpdate = () => {
-    drawerStore.open({
-      type: DishDrawers.FoodEdit,
-      payload: {
-        defaultTab: 'content',
-        itemToEditId: content.id,
-      },
+    modalStore.openModal(ModalType.DISH_EDIT, {
+      defaultTab: 'content',
+      itemToEditId: content.id,
     });
   };
 
   const onQuantityOpen = () => {
-    drawerStore.open({
-      type: DishDrawers.FoodEdit,
-      payload: {
-        defaultTab: 'quantity',
-        itemToEditId: content.id,
-      },
+    modalStore.openModal(ModalType.DISH_EDIT, {
+      defaultTab: 'quantity',
+      itemToEditId: content.id,
     });
   };
 

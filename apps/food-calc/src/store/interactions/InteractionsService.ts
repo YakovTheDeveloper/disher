@@ -10,11 +10,17 @@ import { GlobalUiStore } from "@/store/GlobalUiStore/GlobalUiStore";
 import { domainStore } from "@/store/store";
 import { DDMMYYYY } from "@/types/common/timeAndDate";
 import { getRoot, Instance, types, getSnapshot } from "mobx-state-tree";
+import { productFactory } from "@/domain/product/Food.factory";
+import { DrawerStoreInstance } from "@/store/GlobalUiStore/DrawerStore/DrawerStore";
+import { FoodStoreInstance } from "@/store/FoodStore/FoodStore";
+import { ModalInteractions } from "@/store/interactions/modalInteractions/ModalInteractions";
 
 export interface InteractionsEnv {
     dishStore: Instance<typeof DishStore>;
     scheduleStore: Instance<typeof DayScheduleStore>
     globalUiStore: Instance<typeof GlobalUiStore>
+    drawerStore: DrawerStoreInstance;
+    foodStore: FoodStoreInstance;
 }
 
 type CreateNewDishAndAppendToScheduleParam = {
@@ -24,7 +30,11 @@ type CreateNewDishAndAppendToScheduleParam = {
 }
 
 export const InteractionsService = types
-    .model({})
+    .model({
+
+        modalInteractions: types.optional(ModalInteractions, {})
+
+    })
     .actions(self => {
 
         function moveOrCopyItemsFromOneScheduleToAnother(fromDate: string, toDate: string, action: 'copy' | 'move') {

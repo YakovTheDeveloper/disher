@@ -13,12 +13,27 @@
 }
 
 .primary {
-  color: var(--color-white);
-  background-color: var(--color-green);
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  background: var(--color-deep-blue);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
 
   &:hover {
-    opacity: 0.85;
+    background: var(--color-blue-2);
+    transform: translateY(-1px);
   }
+
+  &:active {
+    transform: translateY(0);
+  }
+
 }
 
 .secondary {

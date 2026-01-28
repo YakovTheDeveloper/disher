@@ -1,242 +1,38 @@
 @import '@/assets/style/mixin.scss';
-$header-padding: 5px;
-$header-height: 40px;
+
+$header-padding: 10px;
+$header-height: 50px;
 $header-height-padding-included: calc($header-height + $header-padding * 2);
-$tab-button-width: 120px;
+$tab-button-width: auto;
 $filter-tabs-gap: 12px;
 
 .header {
-    // position: fixed;
-    position: relative;
+    position: sticky;
     top: 0;
     z-index: 11;
-    display: flex;
-    gap: 5px;
-    // min-height: 80px;
-    // box-shadow: 3px 1px 7px 0px rgba(0, 0, 0, 0.04);
-    // border-bottom: 1px solid rgba(207, 207, 207, 0.274);
-    padding: $header-padding;
-    min-height: $header-height-padding-included;
-}
-
-.header {
-    // top: 50px;
-}
-
-.createFoodButton {
-    background-color: #f0f0f0;
-    height: 36px;
-    width: 36px;
-    border-radius: 50%;
-    border: none;
-    display: flex;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    flex-shrink: 0;
-    color: gray;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0;
+    min-height: $header-height-padding-included;
+    background-color: #d2e8ff13;
+    backdrop-filter: blur(2px);
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    width: 100%;
 
-    &:hover {
-        background-color: #e0e0e0;
-    }
-
-    &:active {
-        background-color: #d0d0d0;
-    }
+    display: grid;
+    grid-template-columns: 1fr auto;
 }
 
 .largeSearchInput {
     font-size: 1.6rem !important;
-}
-
-.searchInput {
     flex-grow: 1;
-    height: 100%;
-    padding: 5px 5px 5px 10px;
-    border: none;
-    border-radius: 24px;
-    outline: none;
-    font-size: 12px;
-    transition: opacity 0.2s ease, width 0.2s ease;
-    background: rgb(240, 240, 240);
-
-    font-size: 2rem;
-
-
-    &:focus {
-        border-color: #007bff;
-        // background-color: #fff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-    }
-}
-
-.searchInputClosed {
-    width: 0;
-    opacity: 0;
-    left: 10px;
-}
-
-.searchInputOpen {
+    transition: all 0.3s ease;
     width: 100%;
-    opacity: 1;
-}
-
-.selectPanel {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    max-height: 200px;
-    padding: $header-padding;
-    z-index: 0;
-    border-top-right-radius: 16px;
-    border-top-left-radius: 16px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    gap: $filter-tabs-gap;
-
-    transition: transform 0.2s ease-in-out, opacity 1s;
-    transform: translateY(-200%);
-    opacity: 0;
-    background-color: rgba(220, 220, 220, 0.749);
-
-    &Open {
-        transform: translateY(0);
-        opacity: 1;
-        z-index: 1;
-    }
-
-    .subFilterTabs {
-        flex-wrap: wrap;
-        display: flex;
-        gap: $filter-tabs-gap;
-        position: relative;
-        z-index: 2;
-
-
-        * {
-            flex-grow: 1;
-        }
-
-        .tabButton {
-            border-radius: 20px;
-            border-color: #007bff;
-
-            &.active {
-                background-color: #007bff;
-                color: #fff;
-            }
-        }
-    }
-
-
-
-
-}
-
-.alternativeFilterButtonWrapper {
-    // position: absolute;
-    // bottom: $header-padding;
-    // left: $header-padding;
-    min-height: $header-height;
-    display: flex;
-    width: calc(100% - $tab-button-width - $filter-tabs-gap);
-}
-
-.tabs {
-    position: relative;
-    background-color: #fafafa;
-    border-radius: 16px 16px 0 0;
-}
-
-.filters {
-    display: grid;
-}
-
-.tabsRow {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    flex-grow: 1;
-    align-items: center;
-    margin-left: 3rem;
-
-    .tabButton {
-        font-size: 14px;
-    }
-}
-
-.tabsColumn {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
 }
 
 .tabButton {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex: 1;
-    text-align: center;
-    padding: 0.2rem 1rem;
-    font-size: 12px;
-    line-height: normal;
-    cursor: pointer;
-    color: #555;
-    font-weight: 400;
-    transition: all 0.25s ease;
-    user-select: none;
-    background-color: #fafafa;
-    white-space: nowrap;
-    border: 1px solid transparent;
-    z-index: 2;
-    min-width: $tab-button-width;
-    border-radius: 12px;
-
-    &:hover {
-        color: #111;
-        background-color: #fafafa;
-    }
-
-    &SubFilter {}
-
-    &.active {}
-}
-
-
-.active {
-    color: #007bff;
-    font-weight: 600;
-    background-color: #f9fbff;
-}
-
-.searchButton {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 11;
-    background: white;
-    border: 1px solid #007bff60;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    padding: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: opacity 0.2s ease;
-}
-
-.searchButtonVisible {
-    opacity: 1;
-}
-
-.searchButtonHidden {
-    opacity: 0;
-    pointer-events: none;
+    padding-right: 1rem;
+    color: var(--color-deep-blue);
 }

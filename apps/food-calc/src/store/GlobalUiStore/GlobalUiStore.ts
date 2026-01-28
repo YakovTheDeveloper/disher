@@ -3,6 +3,7 @@ import { ModalStore } from "./ModalStore/ModalStore";
 import { DrawerStore } from "./DrawerStore/DrawerStore";
 import { ScrollStore } from "./ScrollStore/ScrollStore";
 import { UIViewOptions } from "./UiViewOptions/UIViewOptions";
+import { UserAgentStore } from "./UserAgentStore/UserAgentStore";
 
 export const GlobalUiStore = types
     .model("GlobalUiStore", {
@@ -12,6 +13,7 @@ export const GlobalUiStore = types
         drawerStore: types.optional(DrawerStore, {}),
         scrollStore: types.optional(ScrollStore, {}),
         options: types.optional(UIViewOptions, {}),
+        userAgentStore: types.optional(UserAgentStore, {}),
     })
     .actions(self => ({
         setIsActionsMode(value: boolean) {

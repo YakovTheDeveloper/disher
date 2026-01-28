@@ -11,6 +11,8 @@ import { observer } from 'mobx-react-lite';
 import { ModalConfirmationDeleteEvents } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ModalConfirmationDeleteEvents';
 import ScheduleProvider from '@/components/features/builders/food/ScheduleBuilder/context/ScheduleProvider';
 import { ScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ScheduleModals';
+import { DishProvider } from '@/components/features/builders/food/DishBuilder/context';
+import { DishModals } from '@/components/features/builders/food/DishBuilder/components/modal/DishModals';
 
 type Props = {
   modalStore?: ModalStoreInstance;
@@ -39,12 +41,6 @@ export const ModalManager = observer(
       case ModalType.COPY_SCHEDULE_ITEMS_TO_ANOTHER_DAY:
         return <ModalCopyScheduleItemsToAnotherDay modalStore={modalStore} />;
 
-      case ModalType.CREATE_FOOD:
-        return <ModalCreateFood modalStore={modalStore} drawerStore={drawerStore} />;
-
-      case ModalType.CREATE_DISH:
-        return <ModalCreateDish modalStore={modalStore} />;
-
       case ModalType.PULSE_PHYSICAL_ACTIVITY:
         return <ModalPhysicalActivityPulse>{null}</ModalPhysicalActivityPulse>;
 
@@ -54,6 +50,16 @@ export const ModalManager = observer(
       case ModalType.SCHEDULE_EVENT_EDIT:
         return (
           <ScheduleModals
+            type={modalStore.currentModal}
+            payload={modalStore.payload}
+            close={() => modalStore.closeModal()}
+          />
+        );
+
+      case ModalType.DISH_CREATE:
+      case ModalType.DISH_EDIT:
+        return (
+          <DishModals
             type={modalStore.currentModal}
             payload={modalStore.payload}
             close={() => modalStore.closeModal()}

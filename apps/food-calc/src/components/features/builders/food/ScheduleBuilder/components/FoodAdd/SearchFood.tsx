@@ -25,9 +25,10 @@ type Props = {
     (typeof foodSearchConfing)[number]['tabName'],
     typeof foodSearchConfing
   >;
+  onFocusChange?: (focused: boolean) => void;
 };
 
-const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) => {
+const SearchFood = ({ scheduleChild, onFinish, children, searchState, onFocusChange }: Props) => {
   // const modals = useDailyScheduleModals();
 
   const [currentInfoFood, setCurrentInfoFood] = useState('');
@@ -101,6 +102,9 @@ const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) =
   return (
     <>
       <div className={styles.content}>
+        {React.isValidElement(children)
+          ? React.cloneElement(children as React.ReactElement<any>, { onFocusChange })
+          : children}
         {currentInfoFood && (
           <div className={styles.foodInfo}>
             <FoodNutrients
@@ -129,8 +133,6 @@ const SearchFood = ({ scheduleChild, onFinish, children, searchState }: Props) =
             renderListContent={renderDishtItem}
           />
         ) : null}
-
-        {children}
       </div>
     </>
   );

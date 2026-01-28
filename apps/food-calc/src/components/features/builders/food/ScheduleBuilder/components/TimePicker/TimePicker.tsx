@@ -4,6 +4,11 @@ import { observer } from 'mobx-react-lite';
 import styles from './TimePicker.module.scss';
 import clsx from 'clsx';
 import { useTimePicker } from './useTimePicker';
+import { useIOSAutofocus } from '@/hooks/useIOSAutofocus';
+
+import ArrowIcon from '@/assets/icons/arrows/curve-arrow.svg';
+import { emitter } from '@/infrastructure/emitter/emitter';
+import { domainStore } from '@/store/store';
 
 type Props = {
   value?: string; // "HH:MM" initial value
@@ -51,14 +56,26 @@ const TimePicker = observer((props: Props) => {
     decrementMinutes,
   } = useTimePicker({ hours, minutes, setHours, setMinutes, onChange, onFinish });
 
+  const isIOS = domainStore.globalUiStore.userAgentStore.isIOS;
+
+  // Use iOS autofocus hack
+  // useIOSAutofocus(hhRef, autoFocus);
+
   React.useEffect(() => {
-    if (autoFocus) {
-      setTimeout(() => {
+    if (autoFocus && !isIOS) {
+      const timeoutId = setTimeout(() => {
         hhRef.current?.focus();
         hhRef.current?.select();
-      }, 0);
+      }, 200);
+      return () => clearTimeout(timeoutId);
     }
-  }, [autoFocus]);
+  }, [autoFocus, isIOS]);
+
+  React.useEffect(() => {
+    const handler = () => hhRef.current?.focus();
+    emitter.on('WIZARD_FOCUS', handler);
+    return () => emitter.off('WIZARD_FOCUS', handler);
+  }, []);
 
   return (
     <div
@@ -71,8 +88,12 @@ const TimePicker = observer((props: Props) => {
     >
       <div className={styles.inner}>
         <div className={styles.controls}>
-          <button onClick={incrementHours}>↑</button>
-          <button onClick={decrementHours}>↓</button>
+          <button onClick={incrementHours} className={styles.rotateUp}>
+            <ArrowIcon />
+          </button>
+          <button onClick={decrementHours} className={styles.rotateDown}>
+            <ArrowIcon />
+          </button>
         </div>
         <div className={styles.timeInputs} ref={containerRef}>
           <div className={styles.inputWrapper}>
@@ -125,8 +146,12 @@ const TimePicker = observer((props: Props) => {
           </div>
         </div>
         <div className={styles.controls}>
-          <button onClick={incrementMinutes}>↑</button>
-          <button onClick={decrementMinutes}>↓</button>
+          <button onClick={incrementMinutes} className={styles.rotateUpLeft}>
+            <ArrowIcon />
+          </button>
+          <button onClick={decrementMinutes} className={styles.rotateDownRight}>
+            <ArrowIcon />
+          </button>
         </div>
       </div>
     </div>

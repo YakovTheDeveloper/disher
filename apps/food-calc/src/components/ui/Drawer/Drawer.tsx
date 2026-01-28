@@ -33,11 +33,18 @@ export function Drawer({ children }: DrawerProps) {
       dismissible={true}
       closeThreshold={0.5}
       repositionInputs={true}
-      handleOnly
+      container={document.getElementById('drawer-root')}
     >
-      <DrawerLib.Portal container={document.getElementById('drawer-root')}>
-        <DrawerLib.Overlay className={styles.overlay} />
+      <DrawerLib.Portal>
         {children}
+        <DrawerLib.Overlay
+          className={styles.overlay}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            drawerStore.close();
+            e.stopPropagation();
+          }}
+        />
       </DrawerLib.Portal>
     </DrawerLib.Root>
   );

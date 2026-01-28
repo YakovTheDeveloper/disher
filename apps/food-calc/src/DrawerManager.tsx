@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { scheduleDrawers } from '@/components/features/builders/food/ScheduleBuilder/components/drawer/ScheduleDrawers';
 import { dishDrawers } from '@/components/features/builders/food/DishBuilder/components/drawer/DishDrawers';
+import { productDrawers } from '@/components/features/drawers/ProductDrawers';
 import { DrawerDefinition } from '@/types/common/drawer';
 import { domainStore } from '@/store/store';
 
@@ -18,7 +19,11 @@ export function createDrawerRegistry(definitions: DrawerDefinition[]) {
   return map;
 }
 
-export const drawerRegistry = createDrawerRegistry([...scheduleDrawers, ...dishDrawers]);
+export const drawerRegistry = createDrawerRegistry([
+  ...scheduleDrawers,
+  ...dishDrawers,
+  ...productDrawers,
+]);
 
 export const DrawerManager = observer(() => {
   const { drawerStore } = domainStore.globalUiStore;

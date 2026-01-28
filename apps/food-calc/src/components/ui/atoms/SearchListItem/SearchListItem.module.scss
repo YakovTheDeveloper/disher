@@ -26,21 +26,18 @@
 
     &:hover,
     &:active {
-        color: black;
-        border-color: #4b99ff;
+        border-color: var(--color-deep-blue);
+        background: rgb(229, 222, 255);
+        color: #fff;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    &:focus {
-        outline: 2px solid #10b981; // Soft green for health theme
-        outline-offset: 2px;
     }
 }
 
 .listItem_active {
-    background: #4b99ff; // Light green background
+    background: var(--color-deep-blue); // Light green background
     border-color: #7cb9ff50; // Green border
-    color: #065f46; // Darker green text
+    color: white; // Darker green text
+    font-weight: 300;
 
     * {
         color: white;
@@ -58,7 +55,6 @@
     font-size: 1rem;
     font-weight: 400;
     line-height: 1.4;
-    color: #374151;
 }
 
 .after {

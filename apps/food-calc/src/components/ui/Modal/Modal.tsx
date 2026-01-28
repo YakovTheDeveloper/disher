@@ -25,8 +25,8 @@ const ModalComponent = ({
         }
       }}
     >
-      <Dialog.Portal>
-        <Dialog.Overlay asChild>
+      <Dialog.Portal container={document.getElementById('modal-root')}>
+        <Dialog.Overlay asChild onClick={() => modalStore.closeModal()}>
           <motion.div
             className={styles.overlay}
             initial={{ opacity: 0 }}

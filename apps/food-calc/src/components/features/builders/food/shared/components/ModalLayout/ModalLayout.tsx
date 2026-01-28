@@ -11,7 +11,7 @@ import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore'
 
 type Props = {
   children: React.ReactNode;
-  header?: React.ReactNode;
+  headerCenter?: React.ReactNode;
   footer?: React.ReactNode;
   supFooter?: React.ReactNode;
   onBack?: () => void;
@@ -27,7 +27,7 @@ type Props = {
 
 const ModalLayout = ({
   children,
-  header,
+  headerCenter,
   footer,
   supFooter,
   onBack,
@@ -51,51 +51,65 @@ const ModalLayout = ({
         exit={{ y: '20%', opacity: 0 }}
         transition={{ type: 'spring', stiffness: 400, damping: 40 }}
       >
-        <button
-          className={styles.closeButton}
-          // aria-label="Close"
-          onClick={(e) => {
-            e.stopPropagation();
-            modalStore.closeModal();
-          }}
-        >
-          ×
-        </button>
-
         <div
           className={clsx(styles.container, className, {
             [styles.keyboardVisible]: keyboardVisible,
           })}
         >
-          {showHeader && (
-            <header className={styles.header}>
-              <div className={styles.headerLeft}>
-                {onBack ? (
-                  <button className={styles.iconButton} onClick={onBack}>
-                    <BackIcon />
-                  </button>
-                ) : null}
-              </div>
+          <AnimatePresence mode="popLayout">
+            {showHeader && (
+              <motion.header
+                layout
+                className={styles.header}
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -20, opacity: 0 }}
+                transition={{ duration: 0.1, ease: 'easeOut' }}
+              >
+                <div className={styles.headerLeft}>
+                  {onBack ? (
+                    <button className={styles.iconButton} onClick={onBack}>
+                      <BackIcon />
+                    </button>
+                  ) : (
+                    <button
+                      className={styles.closeButton}
+                      // aria-label="Close"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        modalStore.closeModal();
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
 
-              <div className={styles.headerCenter}>
-                {title && <div className={styles.title}>{title}</div>}
-                {header}
-              </div>
+                <div className={styles.headerCenter}>
+                  {title && <div className={styles.title}>{title}</div>}
+                  {headerCenter}
+                </div>
 
-              <div className={styles.headerRight}>{topRight}</div>
-            </header>
-          )}
+                <div className={styles.headerRight}>{topRight}</div>
+              </motion.header>
+            )}
+          </AnimatePresence>
 
           {subHeader && <div className={styles.subHeader}>{subHeader}</div>}
 
-          <main ref={scrollRef} className={styles.content}>
+          <motion.main
+            // ref={scrollRef}
+            className={styles.content}
+            layout
+            transition={{ duration: 0.1, ease: 'easeOut' }}
+          >
             {children}
-          </main>
+          </motion.main>
 
           {supFooter && <footer className={styles.supFooter}>{supFooter}</footer>}
           {footer && <footer className={styles.footer}>{footer}</footer>}
 
-          {background && <div className={styles.background}>{background}</div>}
+          {/* {background && <div className={styles.background}>{background}</div>} */}
         </div>
       </motion.div>
     </Dialog.Content>
