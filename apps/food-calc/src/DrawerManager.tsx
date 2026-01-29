@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { scheduleDrawers } from '@/components/features/builders/food/ScheduleBuilder/components/drawer/ScheduleDrawers';
-import { dishDrawers } from '@/components/features/builders/food/DishBuilder/components/drawer/DishDrawers';
-import { productDrawers } from '@/components/features/drawers/ProductDrawers';
+import { scheduleDrawers } from '@/components/features/builders/ScheduleBuilder/components/drawer/ScheduleDrawers';
+import { dishDrawers } from '@/components/features/builders/DishBuilder/components/drawer/DishDrawers';
+import { productDrawers } from '@/components/features/shared/drawers/ProductDrawers';
 import { DrawerDefinition } from '@/types/common/drawer';
 import { domainStore } from '@/store/store';
 

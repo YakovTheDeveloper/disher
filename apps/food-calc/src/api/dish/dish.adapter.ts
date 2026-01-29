@@ -1,5 +1,5 @@
 import { noChildrenIds, noChildrenIdsIfString, NoId } from "@/api/adapters/common"
-import { DishItemUI, DishUI } from "@/components/features/builders/food/DishBuilder/model/DishBuilderViewModel"
+import { DishItemUI, DishUI } from "@/components/features/builders/DishBuilder/model/DishBuilderViewModel"
 import { DishEntity } from "@/store/models/dish/types"
 
 interface CreateDishInput extends Omit<DishEntity, 'items' | 'id'> {

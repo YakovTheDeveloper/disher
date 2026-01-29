@@ -1,1 +1,1 @@
-export { default as ProductList } from "./ProductList.tsx";
+export { default as ListProducts } from "./ListProducts.tsx";

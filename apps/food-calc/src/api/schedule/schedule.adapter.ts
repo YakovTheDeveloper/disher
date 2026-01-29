@@ -1,5 +1,5 @@
 import { noChildrenIds, noChildrenIdsIfString, NoId } from "@/api/adapters/common"
-import { DayScheduleItemUI, DayScheduleUI } from "@/components/features/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel"
+import { DayScheduleItemUI, DayScheduleUI } from "@/components/features/builders/ScheduleBuilder/model/ScheduleBuilderViewModel"
 
 export const scheduleFromUI = (item: DayScheduleUI) => {
     if (item.id === -1) {

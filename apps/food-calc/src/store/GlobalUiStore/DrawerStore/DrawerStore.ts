@@ -1,27 +1,10 @@
 import { RootInstance } from "@/store/types";
 import { types, Instance, getRoot } from "mobx-state-tree";
-
-// Payload models for ScheduleDrawers
-const DateChooseDrawer = types.model('DateChooseDrawer', {
-    type: types.literal('schedule.date'),
-});
-
-// Payload models for ProductDrawers
-const ProductAddDrawer = types.model('ProductAddDrawer', {
-    type: types.literal('product.add'),
-});
-
-// Payload models for DishDrawers
-const DishAddDrawer = types.model('DishAddDrawer', {
-    type: types.literal('dish.add'),
-});
-
-// Union of all drawer payload models
-const DrawerPayloadModel = types.union(
-    DateChooseDrawer,
-    ProductAddDrawer,
-    DishAddDrawer,
-);
+import {
+    Drawers,
+    DrawerPayloadModel,
+    DrawerType,
+} from "./payloadModels";
 
 export const ScheduleDrawers = {
     DateChoose: 'schedule.date',
@@ -35,7 +18,14 @@ export const DishDrawers = {
     Add: 'dish.add',
 } as const;
 
-export type DrawerType = typeof ScheduleDrawers[keyof typeof ScheduleDrawers] | typeof DishDrawers[keyof typeof DishDrawers] | typeof ProductDrawers[keyof typeof ProductDrawers];
+export const ConfirmationDrawers = {
+    RemoveDishes: 'confirmation.remove.dishes',
+    RemoveScheduleFood: 'confirmation.remove.schedule.food',
+    RemoveScheduleEvents: 'confirmation.remove.schedule.events',
+    RemoveDishItems: 'confirmation.remove.dish.items',
+    RemoveDailyNorm: 'confirmation.remove.daily.norm',
+    RemoveUserFood: 'confirmation.remove.user.food',
+} as const;
 
 export type DrawerOpenArgs = Instance<typeof DrawerPayloadModel>;
 
@@ -73,13 +63,31 @@ export const DrawerStore = types
             open(args: DrawerOpenArgs, skipUrlUpdate = false) {
                 switch (args.type) {
                     case ScheduleDrawers.DateChoose:
-                        self.activeDrawer = DateChooseDrawer.create(args);
+                        self.activeDrawer = Drawers.models.DateChoose.create(args);
                         break;
                     case ProductDrawers.Add:
-                        self.activeDrawer = ProductAddDrawer.create(args);
+                        self.activeDrawer = Drawers.models.ProductAdd.create(args);
                         break;
                     case DishDrawers.Add:
-                        self.activeDrawer = DishAddDrawer.create(args);
+                        self.activeDrawer = Drawers.models.DishAdd.create(args);
+                        break;
+                    case ConfirmationDrawers.RemoveDishes:
+                        self.activeDrawer = Drawers.models.ConfirmationRemoveDishes.create(args);
+                        break;
+                    case ConfirmationDrawers.RemoveScheduleFood:
+                        self.activeDrawer = Drawers.models.ConfirmationRemoveScheduleFood.create(args);
+                        break;
+                    case ConfirmationDrawers.RemoveScheduleEvents:
+                        self.activeDrawer = Drawers.models.ConfirmationRemoveScheduleEvents.create(args);
+                        break;
+                    case ConfirmationDrawers.RemoveDishItems:
+                        self.activeDrawer = Drawers.models.ConfirmationRemoveDishItems.create(args);
+                        break;
+                    case ConfirmationDrawers.RemoveDailyNorm:
+                        self.activeDrawer = Drawers.models.ConfirmationRemoveDailyNorm.create(args);
+                        break;
+                    case ConfirmationDrawers.RemoveUserFood:
+                        self.activeDrawer = Drawers.models.ConfirmationRemoveUserFood.create(args);
                         break;
                 }
                 self.isOpen = true;
@@ -101,6 +109,12 @@ export const DrawerStore = types
                     case ScheduleDrawers.DateChoose:
                     case ProductDrawers.Add:
                     case DishDrawers.Add:
+                    case ConfirmationDrawers.RemoveDishes:
+                    case ConfirmationDrawers.RemoveScheduleFood:
+                    case ConfirmationDrawers.RemoveScheduleEvents:
+                    case ConfirmationDrawers.RemoveDishItems:
+                    case ConfirmationDrawers.RemoveDailyNorm:
+                    case ConfirmationDrawers.RemoveUserFood:
                         return true;
 
                     default:
@@ -124,6 +138,24 @@ export const DrawerStore = types
                             drawerArgs = { type };
                             break;
                         case DishDrawers.Add:
+                            drawerArgs = { type };
+                            break;
+                        case ConfirmationDrawers.RemoveDishes:
+                            drawerArgs = { type };
+                            break;
+                        case ConfirmationDrawers.RemoveScheduleFood:
+                            drawerArgs = { type };
+                            break;
+                        case ConfirmationDrawers.RemoveScheduleEvents:
+                            drawerArgs = { type };
+                            break;
+                        case ConfirmationDrawers.RemoveDishItems:
+                            drawerArgs = { type };
+                            break;
+                        case ConfirmationDrawers.RemoveDailyNorm:
+                            drawerArgs = { type };
+                            break;
+                        case ConfirmationDrawers.RemoveUserFood:
                             drawerArgs = { type };
                             break;
                         default:

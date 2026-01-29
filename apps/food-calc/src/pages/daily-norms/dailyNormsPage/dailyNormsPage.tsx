@@ -1,12 +1,12 @@
 import { observer } from 'mobx-react-lite';
 import styles from './dailyNormsPage.module.scss';
-import { DailyNorms } from '@/components/features/DailyNorms';
+import { ListDailyNorms } from '@/components/features/lists/ListDailyNorms';
 type Props = {
   children: React.ReactNode;
 };
 
 const DailyNormsPage = ({ children }: Props) => {
-  return <DailyNorms />;
+  return <ListDailyNorms />;
 };
 
 export default observer(DailyNormsPage);

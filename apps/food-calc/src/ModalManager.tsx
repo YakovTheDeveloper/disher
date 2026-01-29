@@ -1,18 +1,15 @@
-import { ModalConfirmDeleteDishes } from '@/components/features/lists/Dishes/modal/ModalConfirmDeleteDishes';
-import { ModalCopyScheduleItemsToAnotherDay } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ModalCopyScheduleItemsToAnotherDay';
-import { ModalCreateDishFromSchedule } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ModalCreateDishFromSchedule';
-import { ModalCreateDish } from '@/components/features/builders/food/shared/modal/ModalCreateDish';
-import { ModalCreateFood } from '@/components/features/builders/food/shared/modal/ModalCreateFood';
-import { ModalPhysicalActivityPulse } from '@/components/features/builders/food/ScheduleBuilder/EventsBuilder/components/modal/ModalPhysicalActivityPulse';
+import { ModalConfirmDeleteDishes } from '@/components/features/lists/ListDishes/modal/ModalConfirmDeleteDishes';
+import { ModalCopyScheduleItemsToAnotherDay } from '@/components/features/builders/ScheduleBuilder/components/modal/ModalCopyScheduleItemsToAnotherDay';
+import { ModalCreateDishFromSchedule } from '@/components/features/builders/ScheduleBuilder/components/modal/ModalCreateDishFromSchedule';
+import { ModalPhysicalActivityPulse } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/modal/ModalPhysicalActivityPulse';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
-import { ModalConfirmationDeleteEvents } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ModalConfirmationDeleteEvents';
-import ScheduleProvider from '@/components/features/builders/food/ScheduleBuilder/context/ScheduleProvider';
-import { ScheduleModals } from '@/components/features/builders/food/ScheduleBuilder/components/modal/ScheduleModals';
-import { DishProvider } from '@/components/features/builders/food/DishBuilder/context';
-import { DishModals } from '@/components/features/builders/food/DishBuilder/components/modal/DishModals';
+import { ModalConfirmationDeleteEvents } from '@/components/features/builders/ScheduleBuilder/components/modal/ModalConfirmationDeleteEvents';
+import ScheduleProvider from '@/components/features/builders/ScheduleBuilder/context/providers/ScheduleProvider';
+import { ScheduleModals } from '@/components/features/builders/ScheduleBuilder/components/modal/ScheduleModals';
+import { DishModals } from '@/components/features/builders/DishBuilder/components/modal/DishModals';
 
 type Props = {
   modalStore?: ModalStoreInstance;
@@ -21,8 +18,6 @@ type Props = {
 export const ModalManager = observer(
   ({ modalStore = domainStore.globalUiStore.modalStore }: Props) => {
     if (!modalStore.currentModal) return null;
-
-    const drawerStore = domainStore.globalUiStore.drawerStore;
 
     switch (modalStore.currentModal) {
       case ModalType.CONFIRMATION_REMOVE_DISHES:

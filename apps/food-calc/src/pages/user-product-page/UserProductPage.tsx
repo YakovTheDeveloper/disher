@@ -1,16 +1,15 @@
 import { observer } from 'mobx-react-lite';
-import Textarea from '@/components/ui/Textarea/Textarea';
-import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
+import Textarea from '@/components/ui/atoms/Textarea/Textarea';
+import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { useParams } from 'react-router-dom';
 import { domainStore } from '@/store/store';
-import { Screen } from '@/components/features/builders/food/shared/ui/layout/Screen';
+import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { Spacer } from '@/components/ui/atoms/Spacer';
-import { Nutrients } from '@/components/features/builders/food/shared/ContentInfo/Nutrients';
+import { Nutrients } from '@/components/features/builders/shared/ContentInfo/Nutrients';
 import { useMemo } from 'react';
-import { TotalNutrientsStore } from '@/components/features/builders/food/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
-import { Label } from '@/components/features/builders/food/ScheduleBuilder/EventsBuilder/components/EventContent/shared/Label';
-import { HeaderInputName } from '@/components/features/builders/food/shared/components/HeaderInputName';
-
+import { TotalNutrientsStore } from '@/components/features/builders/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
+import { HeaderInputName } from '@/components/features/builders/shared/components/HeaderInputName';
+import { Label } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/EventContent/shared/Label';
 const UserProductPage = () => {
   const { id } = useParams<'id'>();
   const userFood = id ? domainStore.foodStore.getEntity(id) : undefined;

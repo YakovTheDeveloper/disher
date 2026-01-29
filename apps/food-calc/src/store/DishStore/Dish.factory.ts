@@ -1,4 +1,4 @@
-import { allNutrientsList } from "@/components/features/builders/food/shared/ContentInfo/Nutrients/constants";
+import { allNutrientsList } from "@/components/features/builders/shared/ContentInfo/Nutrients/constants";
 import { Dish } from "@/domain/dish/Dish";
 import { ScheduleItem } from "@/domain/schedule/schedule";
 import { generateId } from "@/lib/id/generateId";

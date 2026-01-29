@@ -180,18 +180,15 @@ export const DaySchedule = types.model({
         }
 
         function addDraftToFoods() {
-            self.foods.addChildWithLocalData(getSnapshot(self.draft.foodDraft))
+            const instance = self.foods.addChildWithLocalData(getSnapshot(self.draft.foodDraft))
             self.draft.clearFood()
+            return instance.id;
         }
 
-        function addDraftToEvents(draft: Instance<typeof EventItem>) {
-            const { time, value, type } = draft;
-            self.events.addChildWithLocalData({
-                time,
-                value,
-                type
-            })
-            self.lastTimeEventAdded = time
+        function addDraftToEvents() {
+            const instance = self.events.addChildWithLocalData(getSnapshot(self.draft.eventDraft))
+            self.draft.clearEvent()
+            return instance.id;
         }
 
         function beforeDestroy() {

@@ -1,14 +1,9 @@
-import { extractChanges, filterAndRemoveStatus, noChildrenIdsIfString } from "@/api/adapters/common"
+import { extractChanges, filterAndRemoveStatus } from "@/api/adapters/common"
 import { scheduleFromUI, normalizeFoodAndDishIds } from "@/api/schedule/schedule.adapter"
 import { trpc } from "@/api/trpc/trpc"
-import { ScheduleQuestionnaireItemUI } from "@/components/features/builders/food/ScheduleBuilder/EventsBuilder/viewModel/EventsBuilderViewModel"
-import { DayScheduleUI } from "@/components/features/builders/food/ScheduleBuilder/model/ScheduleBuilderViewModel"
 import { Dish } from "@/domain/dish/Dish"
 import { DaySchedule } from "@/domain/schedule/schedule"
 import { ISODate } from "@/types/common/common"
-import type { ApiInputs } from '@types'
-import { DailyEventData } from "@types";
-import { toJS } from "mobx"
 import { getSnapshot, Instance } from "mobx-state-tree"
 
 export const getSchedules = async (date: string) => {

@@ -5,10 +5,10 @@ import InfoIcon from '@/assets/icons/cirlceInfo.svg';
 
 export type Tab = {
   value: string;
-  label: string;
-  alternativeLabel?: string;
+  label?: string;
+  alternativeLabel: string | React.ReactNode;
   disabled?: boolean;
-  finishLabel?: string;
+  finishTabHintMessage?: string;
 };
 
 export type TabsProps = {
@@ -50,61 +50,59 @@ const Tabs = ({ tabs, current, setTab, variant, onFinish, finishHintText }: Tabs
   };
   return (
     <div className={styles.tabs}>
-      <div
-        className={styles.tabsRow}
-        style={{
-          gridTemplateColumns: GridVariants[variant].slice(0, tabs.length).join(' '),
-        }}
-      >
-        {tabs.map((tab, index) => {
-          const isActive = current === tab.value;
-          const hasAlternative = tab.alternativeLabel != null;
-          const isLastFinish = isFinishTab(index);
+      {tabs.map((tab, index) => {
+        const isActive = current === tab.value;
+        const hasAlternative = tab.alternativeLabel != null;
+        const isLastFinish = isFinishTab(index);
 
-          return (
-            <div
+        return (
+          <div
+            key={tab.value}
+            className={clsx([
+              styles.tabContainer,
+              styles[tab.value],
+              isLastFinish && isActive && styles.blinking,
+            ])}
+          >
+            {isLastFinish && isActive && (
+              <span
+                className={clsx(styles.finishHint, styles.finishHint__active)}
+                aria-hidden="true"
+              >
+                {tab.finishTabHintMessage || finishHintText || TABS_DEFAULT_FINISH_HINT}
+              </span>
+            )}
+            <button
+              className={clsx(
+                styles.tab,
+                isActive && styles.active,
+                isLastFinish && isActive && styles.lastTabActive
+              )}
+              onClick={() => handleTabClick(tab, index)}
+              onKeyDown={(e) => handleKeyDown(e, tab, index)}
               key={tab.value}
-              className={clsx([styles.tabContainer, isLastFinish && isActive && styles.blinking])}
+              aria-selected={isActive}
+              aria-describedby={isLastFinish ? 'finish-hint' : undefined}
+              role="tab"
+              disabled={tab.disabled}
+              tabIndex={isLastFinish && isActive ? 0 : -1}
             >
-              {isLastFinish && isActive && (
+              {hasAlternative && (
                 <span
-                  className={clsx(styles.finishHint, styles.finishHint__active)}
-                  aria-hidden="true"
+                  className={clsx(
+                    styles.header,
+                    !isActive && hasAlternative && styles.header__inactive,
+                    'ellipsis'
+                  )}
                 >
-                  {tab.finishLabel || finishHintText || TABS_DEFAULT_FINISH_HINT}
+                  {tab.alternativeLabel}
                 </span>
               )}
-              <button
-                className={clsx(
-                  styles.tabWrapper,
-                  isActive && styles.active,
-                  isLastFinish && isActive && styles.lastTabActive
-                )}
-                onClick={() => handleTabClick(tab, index)}
-                onKeyDown={(e) => handleKeyDown(e, tab, index)}
-                key={tab.value}
-                aria-selected={isActive}
-                aria-describedby={isLastFinish ? 'finish-hint' : undefined}
-                role="tab"
-                disabled={tab.disabled}
-                tabIndex={isLastFinish && isActive ? 0 : -1}
-              >
-                {hasAlternative && (
-                  <span
-                    className={clsx(
-                      styles.header,
-                      !isActive && hasAlternative && styles.header__inactive,
-                      'ellipsis'
-                    )}
-                  >
-                    {tab.alternativeLabel}
-                  </span>
-                )}
-              </button>
-            </div>
-          );
-        })}
-      </div>
+            </button>
+          </div>
+        );
+      })}
+
       {/* {onFinish && (
         <span id="finish-hint" className="sr-only">
           Нажмите Enter или пробел для завершения
@@ -113,15 +111,15 @@ const Tabs = ({ tabs, current, setTab, variant, onFinish, finishHintText }: Tabs
     </div>
   );
 };
-const GridVariants = {
-  scheduleFoodAdd: ['auto', '50%', 'auto'],
-  scheduleFoodEdit: ['auto', 'auto', '40%', 'auto'],
-  dishFoodAdd: ['1fr', 'auto'],
-  dishFoodEdit: ['auto', '1fr', 'auto'],
-  scheduleEventAdd: ['1fr', '2fr', '1fr'],
-  scheduleEventEdit: ['1fr', '2fr', '1fr'],
-  foodCreate: ['1fr', '1fr'],
-};
+// const GridVariants = {
+//   scheduleFoodAdd: ['auto', '50%', 'auto'],
+//   scheduleFoodEdit: ['auto', 'auto', '40%', 'auto'],
+//   dishFoodAdd: ['1fr', 'auto'],
+//   dishFoodEdit: ['auto', '1fr', 'auto'],
+//   scheduleEventAdd: ['1fr', '2fr', '1fr'],
+//   scheduleEventEdit: ['1fr', '2fr', '1fr'],
+//   foodCreate: ['1fr', '1fr'],
+// };
 
 const LabelNamesView: Record<string, string> = {
   quantity: 'Сколько',

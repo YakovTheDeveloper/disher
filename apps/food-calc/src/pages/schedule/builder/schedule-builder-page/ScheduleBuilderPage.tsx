@@ -1,4 +1,4 @@
-import { ScheduleBuilder } from '@/components/features/builders/food/ScheduleBuilder';
+import { ScheduleBuilder } from '@/components/features/builders/ScheduleBuilder';
 import { RouterLinks } from '@/router';
 import { observer } from 'mobx-react-lite';
 import { useCallback, useEffect } from 'react';

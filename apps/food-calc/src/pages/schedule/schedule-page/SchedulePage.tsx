@@ -1,4 +1,4 @@
-import { ScheduleSelection } from '@/components/features/schedule/ScheduleSelection';
+import { ScheduleSelection } from '@/components/features/ScheduleSelection';
 import { RouterLinks } from '@/router';
 import { useNavigate } from 'react-router';
 

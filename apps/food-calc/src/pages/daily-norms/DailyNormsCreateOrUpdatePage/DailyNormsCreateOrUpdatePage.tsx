@@ -1,12 +1,12 @@
 import { observer } from 'mobx-react-lite';
-import { Screen } from '@/components/features/builders/food/shared/ui/layout/Screen';
+import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { Spacer } from '@/components/ui/atoms/Spacer';
-import Textarea from '@/components/ui/Textarea/Textarea';
+import Textarea from '@/components/ui/atoms/Textarea/Textarea';
 import { domainStore } from '@/store/store';
 import { useParams } from 'react-router';
-import DailyNormsEdit from '@/components/features/DailyNorms/DailyNormsEdit/DailyNormsEdit';
-import { ScreenLabel } from '@/components/features/builders/food/shared/atoms/ScreenLabel';
-import { HeaderInputName } from '@/components/features/builders/food/shared/components/HeaderInputName';
+import DailyNormsEdit from '@/components/features/lists/ListDailyNorms/DailyNormsEdit/DailyNormsEdit';
+import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
+import { HeaderInputName } from '@/components/features/builders/shared/components/HeaderInputName';
 type Props = {};
 
 const DailyNormsCreateOrUpdatePage = ({}: Props) => {

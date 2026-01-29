@@ -4,7 +4,7 @@ import { DailyNorm, DailyNormItem } from "@/domain/dailyNorm/DailyNorm.model";
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel";
 import { createDataStoreModel } from "@/store/shared/DataStore";
 import { DailyNormsFactory } from "@/domain/dailyNorm/factory";
-import { defaultDailyNorms } from "@/components/features/builders/food/shared/ContentInfo/Nutrients/constants";
+import { defaultDailyNorms } from "@/components/features/builders/shared/ContentInfo/Nutrients/constants";
 
 const storeModel = types.model("DailyNormStore", {
     request: types.map(RequestState),

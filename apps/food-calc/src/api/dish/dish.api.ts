@@ -2,7 +2,7 @@ import { extractChanges } from "@/api/adapters/common";
 import { dishFromUI } from "@/api/dish/dish.adapter";
 import { requestWrapper } from "@/api/Request";
 import { trpc } from "@/api/trpc/trpc"
-import { DishUI } from "@/components/features/builders/food/DishBuilder/model/DishBuilderViewModel";
+import { DishUI } from "@/components/features/builders/DishBuilder/model/DishBuilderViewModel";
 import { Dish } from "@/domain/dish/Dish";
 import { ApiInputs } from "@types";
 import { getSnapshot, Instance } from "mobx-state-tree";
