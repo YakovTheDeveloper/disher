@@ -1,14 +1,14 @@
 import { observer, useLocalObservable } from 'mobx-react-lite';
 import { runInAction } from 'mobx';
 import { useMemo, useEffect, useRef, useCallback } from 'react';
-import { SearchFood } from '@/components/features/builders/ScheduleBuilder/components/FoodAdd';
+import { SearchFood } from '@/components/features/builders/shared/components/SearchFood';
 import { ContentEdit } from '@/components/features/builders/shared/ContentEdit';
 import { Tabs } from '@/components/ui/Tabs';
 import { domainStore } from '@/store/store';
 import ModalLayout from '@/components/features/builders/shared/components/ModalLayout/ModalLayout';
 import { WizardStep } from '@/components/features/builders/shared/components/WizardStep';
 import { FinishButton } from '@/components/features/builders/shared/atoms/FinishButton';
-import { SearchFoodControls } from '@/components/features/builders/ScheduleBuilder/components/FoodAdd/SearchFoodControls';
+import { SearchFoodControls } from '@/components/features/builders/shared/components/SearchFood/SearchFoodControls';
 import {
   useDraftFoodScheduleItem,
   useSchedule,
@@ -19,9 +19,11 @@ import { FoodStoreInstance } from '@/store/FoodStore/FoodStore';
 import { DishStoreInstance } from '@/store/types';
 import { TimeNow } from '@/components/features/builders/shared/ContentEdit/Time/TimeNow';
 import WeatherBackground from '@/components/features/WeatherBackground/WeatherBacground';
-import { DrawerStoreInstance, ProductDrawers } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
 import RoundedPlusIcon from '@/assets/icons/rounded-plus-icon.svg';
 import { useEntityItemWizard } from '@/components/features/builders/shared/hooks/useEntityItemWizard';
+import { useFilteringStateV2 } from '@/components/features/shared/hooks/useFilteringStateV2';
+import { DrawerStoreInstance } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2';
+import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 type Props = {
   close: () => void;
   foodStore?: FoodStoreInstance;
@@ -37,7 +39,7 @@ const ScheduleFoodAdd = observer(
     foodStore = domainStore.foodStore,
     dishStore = domainStore.dishStore,
     variant,
-    defaultTab,
+    defaultTab = 'time',
     drawerStore = domainStore.globalUiStore.drawerStore,
   }: Props) => {
     const schedule = useSchedule();
@@ -103,11 +105,13 @@ const ScheduleFoodAdd = observer(
       [foodStore.merged, dishStore.merged]
     );
 
-    const filterState = useFilteringState(config);
+    // const filterState = useFilteringState(config);
+
+    const filterStateV2 = useFilteringStateV2(config);
 
     const onHeaderButtonClick = () => {
       drawerStore.open({
-        type: ProductDrawers.Add,
+        type: DrawerTypesV2.Product.Add,
       });
     };
 
@@ -144,13 +148,12 @@ const ScheduleFoodAdd = observer(
           )}
           {currentTab === 'foodSelect' && (
             <SearchFood
+              mode="products-and-dishes"
               scheduleChild={currentChild}
               onFinish={handleNextStep}
-              searchState={filterState}
+              searchState={filterStateV2}
               onFocusChange={(focused) => searchFocusState.setSearchFocused(focused)}
-            >
-              <SearchFoodControls searchState={filterState} isVisible={true} />
-            </SearchFood>
+            />
           )}
           {currentTab === 'quantity' && (
             <ContentEdit.Quantity item={currentChild} onFinish={handleNextStep} />

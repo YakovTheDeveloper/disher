@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite';
 import styles from './TimeGroup.module.scss';
 
 import clsx from 'clsx';
+import { motion } from 'framer-motion';
 import { TimeGroupUI } from '@/domain/schedule/schedule.service';
 
 type Props<T> = {
@@ -20,12 +21,15 @@ const TimeGroup = <T,>({ children, group, renderAside, onTimeClick }: Props<T>) 
     <ul className={styles.container}>
       <header className={styles.header}>
         <div className={styles.headerCenter}>
-          <span
+          <motion.button
             className={clsx([styles.message_time, styles.message])}
             onClick={() => onTimeClick?.(group)}
+            whileTap={{ scale: 0.7 }}
+            whileHover={{ scale: 1.2 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           >
             {group.time}
-          </span>
+          </motion.button>
           {group.offset && (
             <span className={clsx([styles.message_delta, styles.message])}>
               {timeOffsetFromPreviousGroupView}

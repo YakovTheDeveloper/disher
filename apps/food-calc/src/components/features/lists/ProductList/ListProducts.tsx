@@ -1,7 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { domainStore } from '@/store/store';
-import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
-import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
+import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { RouterLinks } from '@/router';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
@@ -19,14 +18,10 @@ import { useListStateActions } from '@/components/features/shared/hooks/useListS
 import styles from './ListProducts.module.scss';
 
 type Props = {
-  modalStore?: ModalStoreInstance;
   foodStore?: FoodStoreInstance;
 };
 
-const ListProducts = ({
-  modalStore = domainStore.globalUiStore.modalStore,
-  foodStore = domainStore.foodStore,
-}: Props) => {
+const ListProducts = ({ foodStore = domainStore.foodStore }: Props) => {
   const { onAdd, navigate, filter } = useListStateActions({
     store: foodStore,
     basePath: RouterLinks.UserProduct,
@@ -47,7 +42,9 @@ const ListProducts = ({
           left={
             <button
               onClick={() => {
-                modalStore.openConfirmationModal(ModalType.CONFIRMATION_REMOVE_DISHES);
+                domainStore.globalUiStore.drawerStore.open({
+                  type: DrawerTypesV2.Confirmation.RemoveUserFood,
+                });
               }}
             >
               удалить

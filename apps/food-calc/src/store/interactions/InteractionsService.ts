@@ -1,23 +1,24 @@
 import { getIds } from "@/domain/common";
-import { Dish } from "@/domain/dish/Dish";
-import { DaySchedule, ScheduleItem } from "@/domain/schedule/schedule";
+import { Dish } from "@/domain/dish/Dish.model";
+import { DaySchedule, ScheduleItem } from "@/domain/schedule/schedule.model";
 import toaster from "@/infrastructure/toaster/toaster";
 import { isNotEmpty } from "@/lib/empty";
 import { DayScheduleStore } from "@/store/DayScheduleStore/DayScheduleStore";
+import { DailyNormStore } from "@/store/DailyNormStore/DailyNormStore";
 import { DishStore } from "@/store/DishStore/DishStore";
 import { DishFactory } from "@/store/DishStore/Dish.factory";
 import { GlobalUiStore } from "@/store/GlobalUiStore/GlobalUiStore";
 import { domainStore } from "@/store/store";
-import { DDMMYYYY } from "@/types/common/timeAndDate";
-import { getRoot, Instance, types, getSnapshot } from "mobx-state-tree";
+import { getRoot, Instance, types } from "mobx-state-tree";
 import { productFactory } from "@/domain/product/Food.factory";
-import { DrawerStoreInstance } from "@/store/GlobalUiStore/DrawerStore/DrawerStore";
+import { DrawerStoreInstance } from "@/store/GlobalUiStore/DrawerStore/DrawerStore.v2";
 import { FoodStoreInstance } from "@/store/FoodStore/FoodStore";
-import { ModalInteractions } from "@/store/interactions/modalInteractions/ModalInteractions";
+import { InteractionsCreate, InteractionsDelete } from "@/store/interactions/interactionsIndex";
 
 export interface InteractionsEnv {
     dishStore: Instance<typeof DishStore>;
     scheduleStore: Instance<typeof DayScheduleStore>
+    dailyNormStore: Instance<typeof DailyNormStore>
     globalUiStore: Instance<typeof GlobalUiStore>
     drawerStore: DrawerStoreInstance;
     foodStore: FoodStoreInstance;
@@ -32,13 +33,68 @@ type CreateNewDishAndAppendToScheduleParam = {
 export const InteractionsService = types
     .model({
 
-        modalInteractions: types.optional(ModalInteractions, {})
+        interactionsCreate: types.optional(InteractionsCreate, {}),
+        interactionsDelete: types.optional(InteractionsDelete, {}),
 
+        interactionsSelect: types.optional(types.model({
+            isActionsMode: false,
+            selectedIds: types.array(types.string),
+        }).actions(self => ({
+            setIsActionsMode(value: boolean) {
+                self.isActionsMode = value;
+
+                if (!value) {
+                    self.selectedIds.clear();
+                }
+            },
+
+            toggleSelectedId(id: string) {
+                const index = self.selectedIds.indexOf(id);
+
+                if (index >= 0) {
+                    self.selectedIds.splice(index, 1);
+                } else {
+                    self.selectedIds.push(id);
+                }
+
+                self.isActionsMode = self.selectedIds.length > 0;
+            },
+
+            setSelectedIds(ids: string[]) {
+                const selectedSet = new Set(self.selectedIds);
+                const idsSet = new Set(ids);
+
+                if (ids.every(id => selectedSet.has(id))) {
+                    self.selectedIds.replace(self.selectedIds.filter(id => !idsSet.has(id)));
+                } else {
+                    ids.forEach(id => {
+                        if (!selectedSet.has(id)) {
+                            self.selectedIds.push(id);
+                        }
+                    });
+                }
+
+                self.isActionsMode = self.selectedIds.length > 0;
+            },
+
+            clearSelection() {
+                self.selectedIds.clear();
+                self.isActionsMode = false;
+            },
+        })).views(self => ({
+            isSelected(id: string) {
+                return self.selectedIds.includes(id);
+            },
+
+            get selectedCount() {
+                return self.selectedIds.length;
+            },
+        })), {})
     })
     .actions(self => {
 
         function moveOrCopyItemsFromOneScheduleToAnother(fromDate: string, toDate: string, action: 'copy' | 'move') {
-            const selectedIds = domainStore.globalUiStore.selectedIds;
+            const selectedIds = domainStore.interactionsService.interactionsSelect.selectedIds;
 
             const from = domainStore.scheduleStore.data.get(fromDate);
             if (!from) {
@@ -59,16 +115,16 @@ export const InteractionsService = types
             to.foods.addBulkEachWithNewId(selectedFromSchedule)
 
             if (action === 'move') {
-                from.foods.removeChildren(selectedIds)
+                from.foods.removeBulk(selectedIds)
             }
 
-            domainStore.globalUiStore.clearSelection()
+            domainStore.interactionsService.interactionsSelect.clearSelection()
 
         }
 
         function createNewDishAndAppendToSchedule({ schedule, timeToAddDishScheduleItem, removeScheduleItems }: CreateNewDishAndAppendToScheduleParam) {
             const root = getRoot(self) as InteractionsEnv;
-            const selectedIds = root.globalUiStore.selectedIds
+            const selectedIds = root.interactionsSelect.selectedIds
 
             const dishItemsPayload = schedule.foods.getChildrenByIds(selectedIds)
 
@@ -83,7 +139,7 @@ export const InteractionsService = types
 
             console.log('removeScheduleItems', removeScheduleItems, getIds(dish.items));
             if (removeScheduleItems) {
-                schedule.foods.removeChildren(getIds(dish.items))
+                schedule.foods.removeBulk(getIds(dish.items))
             }
 
             return dish

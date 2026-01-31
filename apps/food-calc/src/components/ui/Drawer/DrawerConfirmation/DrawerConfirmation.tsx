@@ -1,35 +1,44 @@
 import { observer } from 'mobx-react-lite';
 import styles from './DrawerConfirmation.module.scss';
-import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
-import { ConfirmationModalDataType as ConfirmationModalDataInstance } from '@/store/GlobalUiStore/ModalStore/ModalContent';
-import { domainStore } from '@/store/store';
-import { useConfirm } from '@/context/modalConfirmationContext';
+import { ConfirmationActions } from '@/store/GlobalUiStore/DrawerStore/confirmationActions';
+
+export interface ConfirmationPayload {
+  title?: string;
+  message?: string;
+}
 
 type Props = {
-  modalStore?: ModalStoreInstance;
-  data: ConfirmationModalDataInstance;
-  onConfirm: () => void;
+  payload?: ConfirmationPayload;
+  onClose: () => void;
+  drawerType?: string;
+  onConfirm?: () => void;
+  onCancel?: () => void;
 };
 
-const DrawerConfirmation = ({
-  modalStore = domainStore.globalUiStore.modalStore,
-  data,
-  onConfirm,
-}: Props) => {
-  const ids = domainStore.globalUiStore.selectedIds;
-  // schedule.foods.removeChildren(ids);
+const DrawerConfirmation = ({ payload, onClose, drawerType, onConfirm, onCancel }: Props) => {
+  const handleConfirm = () => {
+    if (onConfirm) {
+      onConfirm();
+    } else if (drawerType) {
+      ConfirmationActions[drawerType as keyof typeof ConfirmationActions]?.();
+    }
+    onClose();
+  };
 
-  // domainStore.globalUiStore.clearSelection();
+  const handleCancel = () => {
+    onCancel?.();
+    onClose();
+  };
 
   return (
     <div className={styles.content}>
-      <h2>Подтвердите действие</h2>
-      <p>Вы уверены, что хотите {data.action}</p>
+      <h2>{payload?.title ?? 'Подтвердите действие'}</h2>
+      <p>{payload?.message ?? 'Вы уверены, что хотите выполнить это действие?'}</p>
       <div className={styles.actions}>
-        <button onClick={modalStore.closeModal} className={styles.cancel}>
+        <button onClick={handleCancel} className={styles.cancel}>
           Отменить
         </button>
-        <button onClick={onConfirm} className={styles.confirm}>
+        <button onClick={handleConfirm} className={styles.confirm}>
           Подтвердить
         </button>
       </div>

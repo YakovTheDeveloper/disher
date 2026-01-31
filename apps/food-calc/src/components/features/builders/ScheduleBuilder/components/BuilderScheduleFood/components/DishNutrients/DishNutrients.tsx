@@ -10,9 +10,12 @@ import { RouterLinks } from '@/router';
 import clsx from 'clsx';
 import { TotalNutrientsStore } from '@/components/features/builders/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
-import { Dish } from '@/domain/dish/Dish';
+import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule.model';
+import { Dish } from '@/domain/dish/Dish.model';
 import { useSchedule } from '@/components/features/builders/ScheduleBuilder/context';
+import { Button } from '@/components/ui/atoms/Button';
+import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
+import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 
 type Props = {
   currentChild: Instance<typeof ScheduleItem>;
@@ -59,9 +62,15 @@ const DishNutrients = ({ currentChild, currentDish }: Props) => {
       <div className={styles.main}>
         <div className={styles.content}>
           <Nutrients renderOverlay={renderOverlay} store={nutrientStore} asControlledForm={false} />
-          <NavLink to={RouterLinks.DailyNorms} className={styles.link}>
-            <Typography variant="action">поменять норму</Typography>
-          </NavLink>
+          <Button
+            variant="ghost"
+            className={styles.link}
+            onClick={() =>
+              useModalsAndDrawers().drawerStore.open({ type: DrawerTypesV2.DailyNorm.Choose })
+            }
+          >
+            поменять норму
+          </Button>
         </div>
         <nav className={styles.items}>
           {currentDish.items.map((item) => (

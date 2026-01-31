@@ -1,4 +1,4 @@
-import { ScheduleItem } from "@/domain/schedule/schedule"
+import { ScheduleItem } from "@/domain/schedule/schedule.model"
 import { mstEnv } from "@/store/store"
 
 export const ScheduleFactory = {

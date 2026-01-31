@@ -5,7 +5,7 @@ import { TotalNutrients } from '@/components/features/builders/shared/ContentInf
 import { observer } from 'mobx-react-lite';
 import { ISODate } from '@/types/common/common';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule';
+import { DaySchedule } from '@/domain/schedule/schedule.model';
 import { useNavigate } from 'react-router';
 import { RouterLinks } from '@/router';
 import { domainStore } from '@/store/store';
@@ -18,6 +18,7 @@ import { ActionsHeader } from '@/components/features/builders/shared/components/
 import { ScheduleFoodSelectionActions } from '@/components/features/builders/ScheduleBuilder/components/header-actions/ScheduleFoodSelectionActions';
 import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
+import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import SwipeableV2 from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableV2';
 import { BuilderScheduleEvents } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder';
 
@@ -35,8 +36,6 @@ const ScheduleBuilder = ({
 }: Props) => {
   const navigate = useNavigate();
 
-  const modals = domainStore.globalUiStore.drawerStore;
-
   const onFoodAdd = () => {
     modalStore.openModal(ModalType.SCHEDULE_FOOD_ADD);
   };
@@ -50,7 +49,7 @@ const ScheduleBuilder = ({
   const pageNames = useMemo(() => ['nutrients', 'food', 'events'], []);
 
   const onPageChange = (page: number, total: number) => {
-    domainStore.globalUiStore.clearSelection();
+    domainStore.interactionsService.interactionsSelect.clearSelection();
     if (page === 2) {
       document.body.style.backgroundColor = '#e6e6e6';
     } else {
@@ -72,7 +71,9 @@ const ScheduleBuilder = ({
                 left={
                   <button
                     onClick={() => {
-                      modalStore.openConfirmationModal(ModalType.CONFIRMATION_REMOVE_SCHEDULE_FOOD);
+                      domainStore.globalUiStore.drawerStore.open({
+                        type: DrawerTypesV2.Confirmation.RemoveScheduleFood,
+                      });
                     }}
                   >
                     удалить
@@ -105,9 +106,9 @@ const ScheduleBuilder = ({
                 left={
                   <button
                     onClick={() => {
-                      modalStore.openConfirmationModal(
-                        ModalType.CONFIRMATION_REMOVE_SCHEDULE_EVENTS
-                      );
+                      domainStore.globalUiStore.drawerStore.open({
+                        type: DrawerTypesV2.Confirmation.RemoveScheduleEvents,
+                      });
                     }}
                   >
                     удалить

@@ -5,7 +5,6 @@ import clsx from 'clsx';
 import { Instance } from 'mobx-state-tree';
 import { SyncStatus } from '@/domain/commonListItem';
 import TickIcon from '@/assets/icons/tick.svg';
-import { GlobalUiStore } from '@/store/GlobalUiStore/GlobalUiStore';
 import { domainStore } from '@/store/store';
 import { AnimatePresence, motion } from 'framer-motion';
 import { emitter } from '@/infrastructure/emitter/emitter';
@@ -15,24 +14,17 @@ type Props = {
   className?: string;
   innerClassName?: string;
   sync?: Instance<typeof SyncStatus>;
-  uiStore?: Instance<typeof GlobalUiStore>;
   variant?: 1 | 2 | 3;
 };
 
 const LONG_PRESS_DELAY = 450;
 const MOVE_THRESHOLD = 10; // Pixels allowed before canceling long press
 
-const ListItem = ({
-  id,
-  children,
-  className,
-  innerClassName,
-  sync,
-  uiStore = domainStore.globalUiStore,
-  variant,
-}: Props) => {
+const ListItem = ({ id, children, className, innerClassName, sync, variant }: Props) => {
   const stringId = id.toString();
   const [isHighlighted, setIsHighlighted] = useState(false);
+
+  const interactionsSelect = domainStore.interactionsService.interactionsSelect;
 
   // Emitter subscription for highlight animation
   useEffect(() => {
@@ -52,15 +44,15 @@ const ListItem = ({
   const wasLongPressedRef = useRef(false);
   const preventNextClickRef = useRef(false);
   const [isPressed, setIsPressed] = useState(false);
-  const isActionsMode = uiStore.isActionsMode;
-  const isSelected = uiStore.isSelected(stringId);
+  const isActionsMode = interactionsSelect.isActionsMode;
+  const isSelected = interactionsSelect.isSelected(stringId);
 
   const handleSelect = useCallback(() => {
     if (navigator.vibrate) {
       navigator.vibrate(10);
     }
-    uiStore.toggleSelectedId(stringId);
-  }, [uiStore, stringId]);
+    interactionsSelect.toggleSelectedId(stringId);
+  }, [interactionsSelect, stringId]);
 
   const cleanUp = useCallback(() => {
     if (timerRef.current) {

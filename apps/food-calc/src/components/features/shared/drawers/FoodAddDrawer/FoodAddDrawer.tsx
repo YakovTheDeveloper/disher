@@ -7,7 +7,7 @@ import type { Tab } from '@/components/ui/Tabs';
 import { domainStore } from '@/store/store';
 import { RouterLinks } from '@/router';
 import { useNavigate } from 'react-router';
-import { ModalInteractionsInstance } from '@/store/interactions/modalInteractions/ModalInteractions';
+import { InteractionsCreateInstance } from '@/store/interactions/interactionsIndex';
 import { DrawerProps } from '@/types/common/drawer.v2';
 
 type EntityType = 'product' | 'dish';
@@ -18,23 +18,23 @@ const tabs: Tab[] = [
 ];
 
 interface FoodAddDrawerProps extends DrawerProps {
-  modalInteractionsStore?: ModalInteractionsInstance;
+  interactionsCreate?: InteractionsCreateInstance;
   defaultTab?: EntityType;
 }
 
 const FoodAddDrawer = ({
   onClose,
   defaultTab = 'product',
-  modalInteractionsStore = domainStore.interactionsService.modalInteractions,
+  interactionsCreate = domainStore.interactionsService.interactionsCreate,
 }: FoodAddDrawerProps) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<EntityType>(defaultTab);
   const handleCreate = (name: string) => {
     if (activeTab === 'product') {
-      const id = modalInteractionsStore.createProduct(name);
+      const id = interactionsCreate.createProduct(name);
       navigate(`${RouterLinks.UserProduct}/${id}`);
     } else {
-      modalInteractionsStore.createDish(name);
+      interactionsCreate.createDish(name);
       navigate(`${RouterLinks.DishBuilder}`);
     }
     onClose();

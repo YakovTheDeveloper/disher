@@ -16,10 +16,10 @@ const ModalConfirmation = ({
   data,
   onConfirm,
 }: Props) => {
-  const ids = domainStore.globalUiStore.selectedIds;
+  const ids = domainStore.interactionsService.interactionsSelect.selectedIds;
   // schedule.foods.removeChildren(ids);
 
-  // domainStore.globalUiStore.clearSelection();
+  // domainStore.interactionsService.interactionsSelect.clearSelection();
 
   return (
     <div className={styles.content}>

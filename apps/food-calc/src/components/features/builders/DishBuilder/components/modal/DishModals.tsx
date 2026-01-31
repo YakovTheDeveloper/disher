@@ -1,10 +1,10 @@
 import React from 'react';
 import { DishFoodAdd } from '@/components/features/builders/DishBuilder/components/drawer/dish-food-actions/DishFoodAdd';
-import { DishFoodEdit } from '@/components/features/builders/DishBuilder/components/drawer/dish-food-actions/DishFoodEdit';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 import { WizardPayloadInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 import {
   DishProvider,
+  DraftDishItemProvider,
   SelectedDishItemProvider,
 } from '@/components/features/builders/DishBuilder/context';
 
@@ -19,7 +19,9 @@ export const DishModals: React.FC<DishModalProps> = ({ type, payload, close }) =
     case ModalType.DISH_CREATE:
       return (
         <DishProvider>
-          <DishFoodAdd close={close} />
+          <DraftDishItemProvider>
+            <DishFoodAdd close={close} variant="add" />
+          </DraftDishItemProvider>
         </DishProvider>
       );
 
@@ -28,7 +30,11 @@ export const DishModals: React.FC<DishModalProps> = ({ type, payload, close }) =
       return (
         <DishProvider>
           <SelectedDishItemProvider itemId={payload.itemToEditId}>
-            <DishFoodEdit defaultTab={payload.defaultTab as 'content' | 'quantity'} close={close} />
+            <DishFoodAdd
+              defaultTab={payload.defaultTab as 'content' | 'quantity'}
+              close={close}
+              variant="edit"
+            />
           </SelectedDishItemProvider>
         </DishProvider>
       );

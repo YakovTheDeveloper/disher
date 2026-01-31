@@ -1,8 +1,8 @@
 import { extractChanges, filterAndRemoveStatus } from "@/api/adapters/common"
 import { scheduleFromUI, normalizeFoodAndDishIds } from "@/api/schedule/schedule.adapter"
 import { trpc } from "@/api/trpc/trpc"
-import { Dish } from "@/domain/dish/Dish"
-import { DaySchedule } from "@/domain/schedule/schedule"
+import { Dish } from "@/domain/dish/Dish.model"
+import { DaySchedule } from "@/domain/schedule/schedule.model"
 import { ISODate } from "@/types/common/common"
 import { getSnapshot, Instance } from "mobx-state-tree"
 

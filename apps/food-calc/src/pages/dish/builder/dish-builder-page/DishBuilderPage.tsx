@@ -2,7 +2,7 @@ import { updateDish } from '@/api/dish/dish.api';
 import { updateSchedule } from '@/api/schedule/schedule.api';
 import { DishBuilder } from '@/components/features/builders/DishBuilder';
 import { ModalDishProvider } from '@/components/features/builders/DishBuilder/modalContext';
-import { Dish } from '@/domain/dish/Dish';
+import { Dish } from '@/domain/dish/Dish.model';
 import { RouterLinks } from '@/router';
 import { dishStore, scheduleStore } from '@/store/rootStore';
 import { domainStore } from '@/store/store';

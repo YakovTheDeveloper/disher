@@ -7,12 +7,15 @@ import { Typography } from '@/components/ui/atoms/Typography';
 import { NavLink } from 'react-router';
 import { RouterLinks } from '@/router';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule';
+import { DaySchedule } from '@/domain/schedule/schedule.model';
 import {
   NutrientsCountableEntity,
   TotalNutrientsStore,
 } from '@/components/features/builders/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
 import { Spacer } from '@/components/ui/atoms/Spacer';
+import { Button } from '@/components/ui/atoms/Button';
+import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
+import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 
 export interface TotalNutrientsRef {
   calculate: () => void;
@@ -50,9 +53,14 @@ const TotalNutrients = ({ countable, children }: Props) => {
         Го
       </Button> */}
       <Nutrients store={nutrientStore} renderOverlay={renderOverlay} asControlledForm={false} />
-      <NavLink to={RouterLinks.DailyNorms}>
-        <Typography variant="action">поменять норму</Typography>
-      </NavLink>
+      <Button
+        variant="ghost"
+        onClick={() =>
+          useModalsAndDrawers().drawerStore.open({ type: DrawerTypesV2.DailyNorm.Choose })
+        }
+      >
+        поменять норму
+      </Button>
       {children}
 
       {countable.foodWithNoNutrients.length && (

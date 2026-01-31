@@ -32,23 +32,6 @@ const Navigation = ({ children }: Props) => {
 
   const scrollYProgress = useScreenScroll();
 
-  // const updateDate = (newDate: string) => {
-  //   navigate(RouterLinks.ScheduleBuilder + newDate);
-  // };
-
-  // const handleNext = () => updateDate(nextDate(date));
-  // const handleBack = () => updateDate(prevDate(date));
-
-  const onCopyFromSchedule = () => {
-    ScheduleUIEventEmitter.emit('OPEN_COPY_SCHEDULE_MODAL');
-  };
-
-  const onNewDish = () => {
-    ScheduleUIEventEmitter.emit('CREATE_DISH');
-  };
-
-  const onCalendarButtonClick = () => navigate(RouterLinks.Schedule);
-
   return (
     <div className={styles.container}>
       <DateInfo scrollYProgress={scrollYProgress} />

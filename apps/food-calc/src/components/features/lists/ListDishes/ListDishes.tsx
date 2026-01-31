@@ -1,7 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { domainStore } from '@/store/store';
-import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
-import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
+import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { RouterLinks } from '@/router';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
@@ -19,17 +18,13 @@ import { useListStateActions } from '@/components/features/shared/hooks/useListS
 import styles from './ListDishes.module.scss';
 
 type Props = {
-  modalStore?: ModalStoreInstance;
   dishStore?: DishStoreInstance;
 };
 
-const ListDishes = ({
-  modalStore = domainStore.globalUiStore.modalStore,
-  dishStore = domainStore.dishStore,
-}: Props) => {
+const ListDishes = ({ dishStore = domainStore.dishStore }: Props) => {
   const { onAdd, navigate, filter } = useListStateActions({
     store: dishStore,
-    basePath: RouterLinks.Dishes,
+    basePath: RouterLinks.DishBuilder,
     createDraft: () =>
       DishFactory.createNewLocal({
         name: 'Новое блюдо',
@@ -47,7 +42,9 @@ const ListDishes = ({
           left={
             <button
               onClick={() => {
-                modalStore.openConfirmationModal(ModalType.CONFIRMATION_REMOVE_DISHES);
+                domainStore.globalUiStore.drawerStore.open({
+                  type: DrawerTypesV2.Confirmation.RemoveDishes,
+                });
               }}
             >
               удалить

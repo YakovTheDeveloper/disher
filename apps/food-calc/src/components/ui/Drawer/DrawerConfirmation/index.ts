@@ -1,1 +1,1 @@
-export { default as ModalConfirmation } from "./DrawerConfirmation.tsx";
+export { default as DrawerConfirmation } from "./DrawerConfirmation.tsx";

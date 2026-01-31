@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import clsx from 'clsx';
 import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
 import { Instance } from 'mobx-state-tree';
-import { Dish, DishItem } from '@/domain/dish/Dish';
+import { Dish, DishItem } from '@/domain/dish/Dish.model';
 import { useDishModals } from '@/components/features/builders/DishBuilder/modalContext';
 import { Modals } from '@/components/features/builders/DishBuilder/DishBuilder';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';

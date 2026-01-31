@@ -3,8 +3,7 @@ import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { DailyNormStoreInstance } from '@/store/DailyNormStore/DailyNormStore';
 import { domainStore } from '@/store/store';
 import { RouterLinks } from '@/router';
-import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
-import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
+import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { DrawerStoreInstance } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
 import styles from './ListDailyNorms.module.scss';
 import clsx from 'clsx';
@@ -16,19 +15,20 @@ import { DailyNormsFactory } from '@/domain/dailyNorm/factory';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { ActionsHeader } from '@/components/features/builders/shared/components/ActionsHeader';
+import { SelectableItem } from '@/components/ui/SelectableItem';
 import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
 import { Buttons } from '@/components/features/builders/shared/ui/Actions/button';
 
 type Props = {
   children?: React.ReactNode;
   store?: DailyNormStoreInstance;
-  modalStore?: ModalStoreInstance;
   drawerStore?: DrawerStoreInstance;
+  selectableItems?: boolean;
+  addControls?: boolean;
 };
 
 const ListDailyNorms = ({
   store = domainStore.dailyNormStore,
-  modalStore = domainStore.globalUiStore.modalStore,
   drawerStore = domainStore.globalUiStore.drawerStore,
 }: Props) => {
   // const navigate = useNavigate();
@@ -40,6 +40,7 @@ const ListDailyNorms = ({
       DailyNormsFactory.createNewLocal({
         name: 'Новая норма',
         description: '',
+        createByUser: true,
       }),
     filterKeys: ['name', 'description'],
   });
@@ -52,7 +53,9 @@ const ListDailyNorms = ({
           left={
             <button
               onClick={() => {
-                modalStore.openConfirmationModal(ModalType.CONFIRMATION_REMOVE_DISHES);
+                domainStore.globalUiStore.drawerStore.open({
+                  type: DrawerTypesV2.Confirmation.RemoveDailyNorms,
+                });
               }}
             >
               удалить
@@ -68,20 +71,18 @@ const ListDailyNorms = ({
       <Button variant="filter">Фильтр</Button>
       <ItemsList>
         {filter.filteredList.map((item) => (
-          <div
+          <SelectableItem
             key={item.id}
-            className={clsx([styles.item, store.selectedNormId === item.id && styles.selected])}
+            id={item.id}
+            isSelected={store.selectedNormId === item.id}
+            onSelect={(id) => store.setSelectedId(id)}
           >
-            <CommonListItem id={item.id} variant={2} innerClassName={clsx([styles.innerListItem])}>
+            <CommonListItem id={item.id} variant={2} className={styles.listItem}>
               <p onClick={() => navigate(`${RouterLinks.DailyNorms}/${item.id}`)}>
                 {item.name || 'без имени'}
               </p>
             </CommonListItem>
-            <button
-              onClick={() => store.setSelectedId(item.id)}
-              className={clsx([styles.selectButton])}
-            ></button>
-          </div>
+          </SelectableItem>
         ))}
       </ItemsList>
     </Screen>

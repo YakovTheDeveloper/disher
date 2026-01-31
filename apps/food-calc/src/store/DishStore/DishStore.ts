@@ -1,6 +1,6 @@
 import { types, Instance, getRoot } from "mobx-state-tree"
 import { RequestState } from "@/store/shared/RequestState"
-import { Dish } from "@/domain/dish/Dish"
+import { Dish } from "@/domain/dish/Dish.model"
 import { RootInstance } from "@/store/store"
 import { getDishById, syncDishes } from "@/api/dish/dish.api"
 import { createRequestController } from "@/store/common/pureFabrication/createRequestController"

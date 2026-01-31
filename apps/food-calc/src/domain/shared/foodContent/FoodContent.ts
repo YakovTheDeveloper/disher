@@ -1,15 +1,20 @@
 
-import { RootStoreEnv } from "@/domain/schedule/schedule"
+import { RootStoreEnv } from "@/domain/schedule/schedule.model"
 import { FoodStoreInstance } from "@/store/FoodStore/FoodStore"
-import { getEnv, getRoot, getParent, types } from "mobx-state-tree"
+import { getEnv, getRoot, types } from "mobx-state-tree"
+import { NutrientContentMixin } from "@/domain/shared/NutrientContentMixin"
 
 export type FoodContentType = 'dish' | 'product'
 
 export const FoodContentProduct = types
-    .model("FoodContentProduct", {
-        foodId: types.string,
-        variant: types.literal("product"),
-    })
+    .compose(
+        "FoodContentProduct",
+        types.model({
+            foodId: types.string,
+            variant: types.literal("product"),
+        }),
+        NutrientContentMixin('food')
+    )
     .views(self => ({
         get food() {
             const foodStore = getEnv(self)?.foodStore as FoodStoreInstance
@@ -27,26 +32,25 @@ export const FoodContentProduct = types
         get foodWithNoNutrients() {
             return self.food?.noNutrients ? [self.food] : []
         },
-
-        get parentQuantity(): number {
-            return getParent(self).quantity
-        },
     }))
-
     .actions(self => ({
-        getTotalNutrients() {
-            return self.food?.getTotalNutrients(self.parentQuantity) ?? {}
-        },
         update(id: string) {
             self.foodId = id
         },
+        getTotalNutrients() {
+            return self.food?.getTotalNutrients(self.parentQuantity)
+        }
     }))
 
 export const FoodContentDish = types
-    .model("FoodContentDish", {
-        dishId: types.string,
-        variant: types.literal("dish"),
-    })
+    .compose(
+        "FoodContentDish",
+        types.model({
+            dishId: types.string,
+            variant: types.literal("dish"),
+        }),
+        NutrientContentMixin('dish')
+    )
     .views(self => ({
         get dish() {
             const root = getRoot(self) as RootStoreEnv
@@ -61,18 +65,12 @@ export const FoodContentDish = types
         get foodWithNoNutrients() {
             return self.dish?.foodWithNoNutrients
         },
-        get parentQuantity(): number {
-            return getParent(self).quantity
-        },
     }))
     .actions(self => ({
-        getTotalNutrients() {
-            return (
-                self.dish?.getTotalNutrients(self.parentQuantity) ?? {}
-
-            )
-        },
         update(id: string) {
             self.dishId = id
+        },
+        getTotalNutrients() {
+            return self.dish?.getTotalNutrients(self.parentQuantity)
         }
     }))

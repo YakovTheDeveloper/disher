@@ -1,1 +1,1 @@
-export { default as DailyNormsContent } from "./DailyNormsEdit.tsx";
+export { default as DailyNormsContent } from "./DailyNormsContent.tsx";

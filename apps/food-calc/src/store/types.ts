@@ -1,4 +1,4 @@
-import { types, Instance } from "mobx-state-tree";
+import { types, flow, Instance, applySnapshot } from "mobx-state-tree";
 import { DayScheduleStore } from "@/store/DayScheduleStore/DayScheduleStore";
 import { FoodModelStore } from "@/store/FoodStore/FoodStore";
 import { DishStore } from "@/store/DishStore/DishStore";
@@ -6,16 +6,48 @@ import { InteractionsService } from "@/store/interactions/InteractionsService";
 import { NutrientStore } from "@/store/NutrientStore/NutrientStore";
 import { GlobalUiStore } from "@/store/GlobalUiStore/GlobalUiStore";
 import { DailyNormStore } from "@/store/DailyNormStore/DailyNormStore";
+import { hydrateAndPersist } from "@/store/persistance";
 
-export const RootStore = types.model("RootStore", {
-    scheduleStore: types.optional(DayScheduleStore, {}),
-    foodStore: types.optional(FoodModelStore, {}),
-    dishStore: types.optional(DishStore, {}),
-    nutrientStore: types.optional(NutrientStore, {}),
-    interactionsService: types.optional(InteractionsService, {}),
-    globalUiStore: types.optional(GlobalUiStore, { isActionsMode: false }),
-    dailyNormStore: types.optional(DailyNormStore, {}),
-});
+export const RootStore = types
+    .model("RootStore", {
+        isHydrated: false,
+        scheduleStore: DayScheduleStore,
+        foodStore: FoodModelStore,
+        dishStore: DishStore,
+        nutrientStore: NutrientStore,
+        dailyNormStore: DailyNormStore,
+        interactionsService: InteractionsService,
+        globalUiStore: GlobalUiStore,
+    })
+    .actions(self => {
+        const init = flow(function* init() {
+            yield Promise.all([
+                hydrateAndPersist(self.scheduleStore, "schedule"),
+
+                hydrateAndPersist(self.foodStore, "food", {
+                    seed: () => self.foodStore.applySeed(),
+                }),
+
+                hydrateAndPersist(self.dishStore, "dish"),
+
+                hydrateAndPersist(self.nutrientStore, "nutrients", {
+                    seed: () => self.nutrientStore.applySeed(),
+                }),
+
+                hydrateAndPersist(self.dailyNormStore, "dailyNorm", {
+                    seed: () => self.dailyNormStore.applySeed(),
+                }),
+            ])
+
+            self.isHydrated = true
+        })
+
+        return {
+            afterCreate() {
+                init()
+            },
+        }
+    })
 
 export type RootInstance = Instance<typeof RootStore>;
 

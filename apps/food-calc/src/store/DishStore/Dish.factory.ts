@@ -1,13 +1,13 @@
 import { allNutrientsList } from "@/components/features/builders/shared/ContentInfo/Nutrients/constants";
-import { Dish } from "@/domain/dish/Dish";
-import { ScheduleItem } from "@/domain/schedule/schedule";
+import { Dish, DishItem } from "@/domain/dish/Dish.model";
+import { ScheduleItem } from "@/domain/schedule/schedule.model";
 import { generateId } from "@/lib/id/generateId";
 import { StoreEntityFactory } from "@/store/types/factory";
 import { ISODate } from "@/types/common/common";
 import { Instance, SnapshotIn, SnapshotOut } from "mobx-state-tree";
 
 export const DishFactory: StoreEntityFactory<typeof Dish, SnapshotIn<typeof Dish>> & {
-    createNewLocalFromScheduleProducts: (data: SnapshotOut<typeof ScheduleItem>[]) => Instance<typeof Dish>
+    createNewLocalFromScheduleProducts: (data: SnapshotOut<typeof DishItem>[]) => Instance<typeof Dish>
 } = {
 
     createNewLocal(data: Omit<SnapshotIn<typeof Dish>, 'id'>) {
@@ -15,6 +15,9 @@ export const DishFactory: StoreEntityFactory<typeof Dish, SnapshotIn<typeof Dish
             ...data,
             id: generateId(),
             items: data.items,
+            draft: {
+                item: createDraftDishItem()
+            }
         })
     },
 
@@ -22,10 +25,13 @@ export const DishFactory: StoreEntityFactory<typeof Dish, SnapshotIn<typeof Dish
         return Dish.create({
             ...data,
             items: data.items,
+            draft: {
+                item: createDraftDishItem()
+            }
         })
     },
 
-    createNewLocalFromScheduleProducts(data: SnapshotOut<typeof ScheduleItem>[]) {
+    createNewLocalFromScheduleProducts(data: SnapshotOut<typeof DishItem>[]) {
         const onlyFoodItems = data
             .filter(el => el.content.variant === 'food' && el.sync.status !== 'deleted')
             .map(el => ({
@@ -41,7 +47,15 @@ export const DishFactory: StoreEntityFactory<typeof Dish, SnapshotIn<typeof Dish
             id: generateId(),
             userId: 0,
             items: onlyFoodItems,
+            draft: {
+                item: createDraftDishItem()
+            }
         })
 
     }
 }
+
+const createDraftDishItem = (): SnapshotIn<typeof DishItem> => ({
+    id: "DRAFT",
+    foodId: 1
+})

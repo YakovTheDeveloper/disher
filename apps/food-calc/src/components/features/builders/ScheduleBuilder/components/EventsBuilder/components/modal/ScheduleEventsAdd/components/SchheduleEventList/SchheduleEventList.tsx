@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import styles from './SchheduleEventList.module.scss';
 import { SearchListItem } from '@/components/ui/atoms/SearchListItem';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule';
+import { DaySchedule } from '@/domain/schedule/schedule.model';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { EventItem, ScheduleEventType } from '@/domain/schedule/scheduleEvent/scheduleEvent';
 import SleepIcon from '@/assets/icons/schedule-event-icons/sleep.svg';

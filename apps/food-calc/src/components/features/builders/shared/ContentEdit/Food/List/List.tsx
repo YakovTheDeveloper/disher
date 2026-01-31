@@ -9,7 +9,7 @@ import { Overlay } from '@/components/ui/Overlay';
 
 type Props = {
   search: {
-    filterText: string;
+    searchQuery: string;
     filteredList: any[];
   };
   after: React.ReactNode;
@@ -59,7 +59,7 @@ const List = observer(
       const res = await onFetch({
         page: pageParam,
         limit: 10,
-        filters: { search: search.filterText || undefined },
+        filters: { search: search.searchQuery || undefined },
       });
       return res as Response;
     };
@@ -68,7 +68,7 @@ const List = observer(
       return lastPage.hasMore ? allPages.length + 1 : undefined;
     };
 
-    const [debouncedFilter] = useDebounce(search.filterText, 300);
+    const [debouncedFilter] = useDebounce(search.searchQuery, 300);
 
     const {
       data,

@@ -7,7 +7,7 @@ import clsx from 'clsx';
 import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
 import { domainStore } from '@/store/store';
 
-import { ScheduleItem } from '@/domain/schedule/schedule';
+import { ScheduleItem } from '@/domain/schedule/schedule.model';
 import { Instance } from 'mobx-state-tree';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 

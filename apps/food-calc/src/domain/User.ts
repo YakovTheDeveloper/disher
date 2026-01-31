@@ -1,6 +1,6 @@
 
 import { DailyNorm } from "@/domain/DailyNorm";
-import { Dish } from "@/domain/dish/Dish";
+import { Dish } from "@/domain/dish/Dish.model";
 import { types } from "mobx-state-tree";
 
 export const User = types.model("User", {

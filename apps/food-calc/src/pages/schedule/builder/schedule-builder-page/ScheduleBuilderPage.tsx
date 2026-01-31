@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { domainStore } from '@/store/store';
-import { DaySchedule } from '@/domain/schedule/schedule';
+import { DaySchedule } from '@/domain/schedule/schedule.model';
 import { Instance } from 'mobx-state-tree';
 
 const Page = observer(({ date }: { date: string }) => {

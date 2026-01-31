@@ -11,6 +11,9 @@ import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import { TotalNutrientsStore } from '@/components/features/builders/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
 import { domainStore } from '@/store/store';
 import clsx from 'clsx';
+import { Button } from '@/components/ui/atoms/Button';
+import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
+import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 
 type Props = {
   children?: React.ReactNode;
@@ -59,9 +62,15 @@ const FoodNutrients = ({ foodId, className, before }: Props) => {
         />
       </header>
       <Nutrients store={nutrientStore} renderOverlay={renderOverlay} asControlledForm={false} />
-      <NavLink to={RouterLinks.DailyNorms} className={styles.link}>
-        <Typography variant="action">поменять норму</Typography>
-      </NavLink>
+      <Button
+        variant="ghost"
+        className={styles.link}
+        onClick={() =>
+          useModalsAndDrawers().drawerStore.open({ type: DrawerTypesV2.DailyNorm.Choose })
+        }
+      >
+        поменять норму
+      </Button>
     </div>
   );
 };

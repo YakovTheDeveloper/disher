@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 import { useParams } from 'react-router';
 import { domainStore } from '@/store/store';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule';
+import { DaySchedule } from '@/domain/schedule/schedule.model';
 
 export const ScheduleContext = createContext<Instance<typeof DaySchedule> | undefined>(undefined);
 

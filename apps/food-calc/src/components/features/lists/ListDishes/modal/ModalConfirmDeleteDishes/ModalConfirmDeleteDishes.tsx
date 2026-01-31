@@ -5,10 +5,10 @@ import { domainStore } from '@/store/store';
 
 const ModalConfirmDeleteDishes = () => {
   const onConfirm = () => {
-    const selectedIds = domainStore.globalUiStore.selectedIds;
+    const selectedIds = domainStore.interactionsService.interactionsSelect.selectedIds;
     domainStore.dishStore.user.removeBulk(selectedIds);
     domainStore.globalUiStore.modalStore.closeModal();
-    domainStore.globalUiStore.clearSelection();
+    domainStore.interactionsService.interactionsSelect.clearSelection();
   };
 
   return <ModalConfirmation onConfirm={onConfirm} data={{ action: 'удалить выбранные блюда' }} />;

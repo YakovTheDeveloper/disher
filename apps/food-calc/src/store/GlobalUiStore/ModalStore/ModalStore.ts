@@ -1,7 +1,6 @@
 import { types, Instance, SnapshotIn } from "mobx-state-tree";
 import {
-    ModalType,
-    ConfirmationModals
+    ModalType
 } from "./ModalContent";
 
 const WizardPayloadModel = types.model("WizardPayload", {
@@ -33,10 +32,6 @@ export const ModalStore = types
             closeModal() {
                 self.currentModal = undefined
                 self.payload = undefined
-            },
-
-            openConfirmationModal(variant: ConfirmationModals) {
-                self.currentModal = variant
             },
 
             openModal<T extends ModalType>(

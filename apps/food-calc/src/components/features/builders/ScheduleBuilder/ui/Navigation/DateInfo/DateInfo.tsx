@@ -9,6 +9,8 @@ import { getTitle } from '@/components/features/builders/ScheduleBuilder/ui/Navi
 import { useDailyScheduleModals } from '@/components/features/builders/ScheduleBuilder/modalContext';
 import { domainStore } from '@/store/store';
 import { ScheduleDrawers } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
+import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
+import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
 
 type Props = {
   scrollYProgress: MotionValue<number>;
@@ -33,9 +35,7 @@ const DateInfo = ({ scrollYProgress }: Props) => {
     <div
       className={styles.dateLink}
       onClick={() =>
-        modals.open({
-          type: ScheduleDrawers.DateChoose,
-        })
+        useModalsAndDrawers().drawerStore.open({ type: DrawerTypesV2.Schedule.DateChoose })
       }
     >
       <motion.div className={styles.date}>

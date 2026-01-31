@@ -20,7 +20,7 @@ const ModalCreateDishFromSchedule = ({ modalStore }: Props) => {
 
   if (!schedule) return null;
 
-  const selectedIds = domainStore.globalUiStore.selectedIds;
+  const selectedIds = domainStore.interactionsService.interactionsSelect.selectedIds;
   const selectedScheduleItems = schedule.foods.getChildrenByIds(selectedIds);
 
   const [removeScheduleItems, setReplaceItemsIfSameTime] = useState(false);

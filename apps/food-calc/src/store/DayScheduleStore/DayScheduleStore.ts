@@ -8,7 +8,7 @@ import {
     syncSchedules
 } from "@/api/schedule/schedule.api"
 import { ISODate } from "@/types/common/common"
-import { DaySchedule, ScheduleItem } from "@/domain/schedule/schedule"
+import { DaySchedule, ScheduleItem } from "@/domain/schedule/schedule.model"
 import { createDayScheduleModel } from "@/store/DayScheduleStore/fabric"
 import { createRequestController } from "@/store/common/pureFabrication/createRequestController"
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel"
@@ -35,6 +35,10 @@ export const DayScheduleStore = types
             const model = createDayScheduleModel(init);
             self.data.set(model.id, model);
             return model
+        },
+
+        getEntity(date: ISODate) {
+            return self.data.get(date)
         },
 
         fetchSync: async (payload: Instance<typeof DaySchedule>) => {

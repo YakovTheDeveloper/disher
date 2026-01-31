@@ -5,6 +5,7 @@ import { isEmpty } from "@/lib/empty";
 import { Food } from "@/domain/product/Food.model";
 import { runInAction } from "mobx";
 import { createDataStoreModel } from "@/store/shared/DataStore";
+import { productFactory } from "@/domain/product/Food.factory";
 
 type GetFoodListResult = Awaited<ReturnType<typeof getFoodList>>;
 type GetFoodNutrientsByIdResult = Awaited<ReturnType<typeof getFoodWithNutrientsByIds>>;
@@ -17,7 +18,7 @@ interface FoodEntry2 {
 }
 
 // Function to load initial food data
-async function createInitialProductMapping(): Promise<Record<string, SnapshotIn<typeof Food>>> {
+async function createInitialProductMapping() {
     interface FoodEntry {
         id: string;
         name: string;
@@ -80,31 +81,19 @@ async function createInitialProductMapping(): Promise<Record<string, SnapshotIn<
                 }
             }
         });
-        return data;
+
+        const mappedData: Record<string, Instance<typeof Food>> = {};
+        Object.entries(data).forEach(([id, food]) => {
+            mappedData[id] = productFactory.createFromServerData(food);
+        });
+
+        return mappedData;
 
     } catch (error) {
-
+        console.error("Error creating initial product mapping:", error);
     }
 
 }
-
-// const loadInitialFoods = flow(function* (): Generator<any> {
-//     interface FoodEntry {
-//         id: string;
-//         name: string;
-//         description: string;
-//         nutrients: {
-//             nutrientId: string;
-//             quantity: number;
-//         }[];
-//     }
-
-//     const data: FoodEntry[] = yield fetch('/foodFull.json').then(r => r.json());
-//     data.forEach(food => {
-//         (food as any).createByUser = false;
-//         addFoodOrNutrientsIfNotExists(food)
-//     })
-// });
 
 export const StoreModel = types
     .model("FoodModelStore", {
@@ -136,7 +125,7 @@ export const StoreModel = types
 export const FoodModelStore = types.compose(
     "ProductStore",
     StoreModel,
-    createDataStoreModel("ProductStoreData", Food, createInitialProductMapping)
+    createDataStoreModel("ProductStoreData", Food)
 ).views((self) => ({
     get data() { return self.mergedMap; }
 })).actions((self) => {
@@ -232,6 +221,11 @@ export const FoodModelStore = types.compose(
 
     }
 
+    const applySeed = flow(function* () {
+        const mappedData = yield createInitialProductMapping();
+        self.base.set(mappedData);
+    })
+
     // const loadInitialFoods = flow(function* (): Generator<any> {
     //     interface FoodEntry {
     //         id: string;
@@ -270,6 +264,7 @@ export const FoodModelStore = types.compose(
         getOneByDate,
         _loadFoodWithNutrientsByFoodIds,
         loadFoodWithNutrientsByFoodIds,
+        applySeed
     };
 })
 

@@ -2,13 +2,14 @@ import { observer } from 'mobx-react-lite';
 import { Buttons } from '@/components/features/builders/shared/ui/Actions/button';
 import { DishListItem } from '@/components/features/builders/DishBuilder/ui/DishListItem';
 import { Instance } from 'mobx-state-tree';
-import { Dish } from '@/domain/dish/Dish';
+import { Dish } from '@/domain/dish/Dish.model';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { TotalNutrients } from '@/components/features/builders/shared/ContentInfo/TotalNutrients';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
+import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { domainStore } from '@/store/store';
 import { ActionsHeader } from '@/components/features/builders/shared/components/ActionsHeader';
 import { DishFoodSelectionActions } from '@/components/features/builders/DishBuilder/components/header-actions/DishFoodSelectionActions';
@@ -17,6 +18,7 @@ import { MotionValue } from 'framer-motion';
 import { Scalable } from '@/components/ui/Scalable';
 import { useNavigate } from 'react-router';
 import SwipeableV2 from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableV2';
+import { HeaderInputName } from '@/components/features/builders/shared/components/HeaderInputName';
 
 export const Modals = {
   Food: 'food',
@@ -52,7 +54,9 @@ const DishBuilder = ({ init, modalStore = domainStore.globalUiStore.modalStore }
               left={
                 <button
                   onClick={() => {
-                    modalStore.openConfirmationModal(ModalType.CONFIRMATION_REMOVE_DISH_ITEMS);
+                    domainStore.globalUiStore.drawerStore.open({
+                      type: DrawerTypesV2.Confirmation.RemoveDishItems,
+                    });
                   }}
                 >
                   удалить
@@ -70,18 +74,10 @@ const DishBuilder = ({ init, modalStore = domainStore.globalUiStore.modalStore }
                 navigate(RouterLinks.ScheduleBuilder);
               }}
             >
-              Еда
+              {init.name}
             </ScreenLabel>
           }
-          header={(scrollYProgress: MotionValue<number>) => (
-            <Scalable scrollYProgress={scrollYProgress}>
-              {/* <EditableText
-                  value={userFood?.name || ''}
-                  onChange={(val) => userFood?.changeName(val)}
-                  className={styles.textInput}
-                /> */}
-            </Scalable>
-          )}
+          header={<HeaderInputName entity={init} />}
           bottom={<Buttons.Add onClick={onFoodsOpen} />}
         >
           <ItemsList>

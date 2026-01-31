@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { ScheduleListItem } from '@/components/features/builders/ScheduleBuilder/components/BuilderScheduleFood/ScheduleListItem';
 import { TimeGroup } from '@/components/features/builders/ScheduleBuilder/components/List/TimeGroup';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule';
+import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule.model';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { domainStore } from '@/store/store';
 import { getIds } from '@/domain/common';
@@ -30,11 +30,11 @@ type Props = Omit<CommonProps, 'schedule'> & {
   length: number;
   schedule: Instance<typeof DaySchedule>;
   items: TimeGroupUI<Instance<typeof ScheduleItem>>[];
-  uiStore?: typeof domainStore.globalUiStore;
+  interactions?: typeof domainStore.interactionsService;
 };
 
 const BuilderScheduleFood = observer(
-  ({ items, length, schedule, uiStore = domainStore.globalUiStore }: Props) => {
+  ({ items, length, schedule, interactions = domainStore.interactionsService }: Props) => {
     const renderItem = useCallback((item: Instance<typeof ScheduleItem>) => {
       return <ScheduleListItem key={item.id} item={item} controller={schedule} />;
     }, []);
@@ -46,7 +46,9 @@ const BuilderScheduleFood = observer(
           <TimeGroup
             key={group.time}
             group={group}
-            onTimeClick={(group) => uiStore.setSelectedIds(getIds(group.items))}
+            onTimeClick={(group) =>
+              interactions.interactionsSelect.setSelectedIds(getIds(group.items))
+            }
           >
             {renderItem}
           </TimeGroup>

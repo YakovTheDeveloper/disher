@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 import { useParams } from 'react-router';
 import { domainStore } from '@/store/store';
 import { Instance } from 'mobx-state-tree';
-import { Dish } from '@/domain/dish/Dish';
+import { Dish } from '@/domain/dish/Dish.model';
 
 export const DishContext = createContext<Instance<typeof Dish> | undefined>(undefined);
 

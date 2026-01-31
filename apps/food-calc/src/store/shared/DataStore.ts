@@ -76,7 +76,6 @@ export function createEntityDataStore<TModel extends IAnyModelType>(name: string
 export function createImmutableEntityStore<TModel extends IAnyModelType>(
     name: string,
     model: TModel,
-    getInitDataAfterStoreCreate?: () => Promise<Record<string, SnapshotIn<TModel>> | Record<string, Instance<TModel>>>
 ) {
     return types
         .model(name, {
@@ -96,23 +95,10 @@ export function createImmutableEntityStore<TModel extends IAnyModelType>(
                     self.entities.set((item as any).id.toString(), item);
                 });
             },
+            set(items: Record<string, Instance<TModel>>) {
+                if (!items || typeof items !== 'object') return;
 
-            afterCreate() {
-                const initialize = async () => {
-                    if (getInitDataAfterStoreCreate) {
-                        try {
-                            const init = await getInitDataAfterStoreCreate();
-                            const instances: Instance<TModel>[] = Object.entries(init).map(([, value]) => {
-                                return isStateTreeNode(value) ? value as Instance<TModel> : model.create(value as SnapshotIn<TModel>);
-                            });
-                            (self as any).load(instances);
-                        } catch (err) {
-                            console.error('Error initializing store:', err);
-                        }
-                    }
-                    Object.freeze(self.entities);
-                };
-                initialize();
+                self.entities.replace(new Map(Object.entries(items)));
             },
         }));
 }
@@ -122,13 +108,11 @@ export function createDataStoreModel<
 >(
     name: string,
     model: TBaseModel,
-    getInitDataAfterStoreCreate?: () => Promise<Record<string, SnapshotIn<TBaseModel>> | Record<string, Instance<TBaseModel>>>
 ) {
 
     const BaseStore = createImmutableEntityStore(
         name + "Base",
         model,
-        getInitDataAfterStoreCreate
     );
 
     const UserStore = createEntityDataStore(

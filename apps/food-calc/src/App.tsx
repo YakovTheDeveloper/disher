@@ -8,9 +8,11 @@ import { setupGlobalLog } from '@/lib/log/log';
 import { Modal } from '@/components/ui/Modal';
 import { ModalManager } from '@/ModalManager';
 import { Drawer } from '@/components/ui/Drawer';
-import { DrawerManager } from '@/DrawerManager';
 import { useLastFocusMethod } from '@/hooks/useLastFocusMethod';
 import { useUserAgentDetection } from '@/hooks/useUserAgentDetection';
+import DrawerManagerV2 from '@/DrawerManagerV2';
+import { domainStore } from '@/store/store';
+import { observer } from 'mobx-react-lite';
 
 const queryClient = new QueryClient();
 
@@ -18,6 +20,10 @@ const App = () => {
   useLastFocusMethod();
   useUserAgentDetection();
   setupGlobalLog();
+
+  if (!domainStore.isHydrated) {
+    return <div>загрузка</div>;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -27,7 +33,7 @@ const App = () => {
           <ModalManager />
         </Modal>
         <Drawer>
-          <DrawerManager />
+          <DrawerManagerV2 />
         </Drawer>
         <Outlet />
       </div>
@@ -35,4 +41,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default observer(App);

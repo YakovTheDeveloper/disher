@@ -1,62 +1,69 @@
-/**
- * DrawerStore V2 - simplified store with code splitting support
- * Uses simple MobX instead of MST for simplicity
- */
+import { ActiveDrawerState, DrawerOpenArgs } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
+import { types, Instance } from 'mobx-state-tree';
 
-import { makeAutoObservable } from 'mobx';
-import { ActiveDrawerState, DrawerOpenArgs } from '@/types/common/drawer.v2';
+const DrawerPayloadModel = types.model('DrawerPayload', {
+    title: types.optional(types.string, ''),
+    message: types.optional(types.string, ''),
+});
 
-class DrawerStoreV2 {
-    private _activeDrawer: ActiveDrawerState | null = null;
-    private _isOpen = false;
+const ActiveDrawerModel = types.model('ActiveDrawer', {
+    type: types.string,
+    payload: types.maybe(DrawerPayloadModel),
+});
 
-    constructor() {
-        makeAutoObservable(this);
-    }
+// MST Model
+export const DrawerStoreV2 = types
+    .model('DrawerStoreV2', {
+        _activeDrawer: types.maybe(ActiveDrawerModel),
+        _isOpen: types.optional(types.boolean, false),
+    })
+    .views(self => ({
+        get activeDrawer(): ActiveDrawerState | null {
+            if (!self._activeDrawer) return null;
+            return {
+                type: self._activeDrawer.type,
+                payload: self._activeDrawer.payload,
+            };
+        },
 
-    get activeDrawer(): ActiveDrawerState | null {
-        return this._activeDrawer;
-    }
+        get isOpen(): boolean {
+            return self._isOpen;
+        },
 
-    get isOpen(): boolean {
-        return this._isOpen;
-    }
+        get activeType(): string | null {
+            return self._activeDrawer?.type ?? null;
+        },
+    }))
+    .actions(self => ({
+        open<T extends Record<string, unknown>>(args: DrawerOpenArgs<T>): void {
+            const payload = args.payload as Record<string, unknown> | undefined;
+            self._activeDrawer = ActiveDrawerModel.create({
+                type: args.type,
+                payload: payload ? DrawerPayloadModel.create({
+                    title: String(payload.title ?? ''),
+                    message: String(payload.message ?? ''),
+                }) : undefined,
+            });
+            self._isOpen = true;
+        },
 
-    get activeType(): string | null {
-        return this._activeDrawer?.type ?? null;
-    }
+        close(): void {
+            self._activeDrawer = undefined;
+            self._isOpen = false;
+        },
 
-    open<T = unknown>(args: DrawerOpenArgs<T>): void {
-        this._activeDrawer = {
-            type: args.type,
-            payload: args.payload,
-        };
-        this._isOpen = true;
-    }
+        toggle(): void {
+            if (self._isOpen) {
+                this.close();
+            } else if (self._activeDrawer) {
+                self._isOpen = true;
+            }
+        },
 
-    close(): void {
-        this._activeDrawer = null;
-        this._isOpen = false;
-    }
+        reset(): void {
+            self._activeDrawer = undefined;
+            self._isOpen = false;
+        },
+    }));
 
-    toggle(): void {
-        if (this._isOpen) {
-            this.close();
-        } else if (this._activeDrawer) {
-            this._isOpen = true;
-        }
-    }
-
-    reset(): void {
-        this._activeDrawer = null;
-        this._isOpen = false;
-    }
-}
-
-// Singleton instance
-export const drawerStoreV2 = new DrawerStoreV2();
-
-// Hook for React components
-export function useDrawerStoreV2() {
-    return drawerStoreV2;
-}
+export type DrawerStoreInstance = Instance<typeof DrawerStoreV2>;

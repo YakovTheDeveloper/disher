@@ -1,6 +1,6 @@
 import { createContext, ReactNode } from 'react';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule';
+import { DaySchedule } from '@/domain/schedule/schedule.model';
 import { useSchedule } from './ScheduleProvider';
 import { observer } from 'mobx-react-lite';
 

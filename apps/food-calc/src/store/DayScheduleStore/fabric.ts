@@ -1,4 +1,4 @@
-import { DaySchedule } from "@/domain/schedule/schedule";
+import { DaySchedule } from "@/domain/schedule/schedule.model";
 import { ISODate } from "@/types/common/common";
 import { Instance } from "mobx-state-tree";
 

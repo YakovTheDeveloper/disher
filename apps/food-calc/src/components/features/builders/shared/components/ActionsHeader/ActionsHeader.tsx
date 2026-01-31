@@ -4,14 +4,14 @@ import ArrowLeftIcon from '@/assets/icons/arrowLeftLong.svg';
 import styles from './ActionsHeader.module.scss';
 
 const exitActions = () => {
-  domainStore.globalUiStore.clearSelection();
+  domainStore.interactionsService.interactionsSelect.clearSelection();
 };
 type Props = {
   children?: React.ReactNode;
   left?: React.ReactNode;
 };
 const ActionsHeader = ({ children, left }: Props) => {
-  if (!domainStore.globalUiStore.isActionsMode) return null;
+  if (!domainStore.interactionsService.interactionsSelect.isActionsMode) return null;
 
   return (
     <div className={styles.actions}>

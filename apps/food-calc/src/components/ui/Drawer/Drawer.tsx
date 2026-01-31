@@ -13,26 +13,25 @@ export function Drawer({ children }: DrawerProps) {
 
   const drawerStore = domainStore.globalUiStore.drawerStore;
 
-  useEffect(() => {
-    drawerStore.syncFromUrl();
+  // useEffect(() => {
+  //   drawerStore.syncFromUrl();
 
-    const handlePopState = () => {
-      drawerStore.syncFromUrl();
-    };
+  //   const handlePopState = () => {
+  //     drawerStore.syncFromUrl();
+  //   };
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  //   window.addEventListener('popstate', handlePopState);
+  //   return () => window.removeEventListener('popstate', handlePopState);
+  // }, []);
 
   return (
     <DrawerLib.Root
       open={drawerStore.isOpen}
       onClose={drawerStore.close}
-      fixed={true}
       direction="bottom"
       dismissible={true}
       closeThreshold={0.5}
-      repositionInputs={true}
+      repositionInputs={false}
       container={document.getElementById('drawer-root')}
     >
       <DrawerLib.Portal>

@@ -24,8 +24,14 @@ type Props = {
   onSelect: (date: string) => void;
   selectedDate?: string;
   showFastButtons?: boolean;
+  className?: string;
 };
-export const ScheduleSelection = ({ onSelect, selectedDate, showFastButtons = false }: Props) => {
+export const ScheduleSelection = ({
+  onSelect,
+  selectedDate,
+  showFastButtons = false,
+  className,
+}: Props) => {
   const today = startOfToday();
 
   const months = useMemo(() => {
@@ -81,7 +87,7 @@ export const ScheduleSelection = ({ onSelect, selectedDate, showFastButtons = fa
   };
 
   return (
-    <div className={`${styles.calendarWrapper} ${false ? styles.dark : ''}`}>
+    <div className={`${styles.calendarWrapper} ${className || ''} ${false ? styles.dark : ''}`}>
       <div className={styles.weekDaysHeader}>
         {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((d, i) => (
           <div key={i}>{d}</div>

@@ -8,7 +8,7 @@ import { DailyNormsPage } from '@/pages/daily-norms/dailyNormsPage/index.ts';
 import LoadDataPage from '@/pages/LoadDataPage/LoadDataPage.tsx';
 import DishesPage from '@/pages/dish/dishes-page/DishesPage.tsx';
 import UserProductPage from '@/pages/user-product-page/UserProductPage.tsx';
-import DailyNormsCreateOrUpdatePage from '@/pages/daily-norms/DailyNormsCreateOrUpdatePage/DailyNormsCreateOrUpdatePage.tsx';
+import DailyNormPage from '@/pages/daily-norms/DailyNormPage/DailyNormPage.tsx';
 import TestModalPage from '@/pages/swipe-test/TestModalPage';
 
 export enum RouterLinks {
@@ -36,7 +36,7 @@ export const router = createBrowserRouter([
       },
       {
         path: `${RouterLinks.DailyNorms}/:id`,
-        element: <DailyNormsCreateOrUpdatePage />,
+        element: <DailyNormPage />,
       },
       {
         path: `${RouterLinks.DishBuilder}/:id`,

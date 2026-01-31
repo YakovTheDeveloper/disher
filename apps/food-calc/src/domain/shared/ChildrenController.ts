@@ -76,7 +76,7 @@ export function ChildrenController<T extends IAnyModelType>(
         item.sync.markDeleted();
       },
 
-      removeChildren(childIds: string[]) {
+      removeBulk(childIds: string[]) {
         const toRemove: string[] = [];
         childIds.forEach(childId => {
           const item = self.items.find(i => i.id === childId);

@@ -18,7 +18,7 @@
   padding: 0.75rem 1.5rem;
   font-size: 0.9375rem;
   font-weight: 500;
-  background: var(--color-deep-blue);
+  background: var(--color-accent);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -61,7 +61,7 @@
 
 .ghost {
   background-color: transparent;
-  color: var(--color-green);
+  color: var(--color-accent);
   padding: 0 2px;
 }
 
@@ -72,9 +72,20 @@
   margin: 0 auto;
 }
 
+
+
 .filter {
   border-radius: 12px;
   background-color: rgb(176, 176, 176);
+  color: #fff;
+  padding: 3px 8px;
+  font-size: 0.8rem;
+  width: fit-content;
+}
+
+.filter-2 {
+  border-radius: 12px;
+  background-color: var(--color-deep-blue);
   color: #fff;
   padding: 3px 8px;
   font-size: 0.8rem;

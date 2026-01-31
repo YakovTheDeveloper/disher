@@ -4,7 +4,7 @@ import { CommonListItem } from '@/components/features/builders/shared/ui/CommonL
 import { useCallback } from 'react';
 import { TimeGroup } from '@/components/features/builders/ScheduleBuilder/components/List/TimeGroup';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule';
+import { DaySchedule } from '@/domain/schedule/schedule.model';
 import clsx from 'clsx';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { EventItem } from '@/domain/schedule/scheduleEvent/scheduleEvent';
