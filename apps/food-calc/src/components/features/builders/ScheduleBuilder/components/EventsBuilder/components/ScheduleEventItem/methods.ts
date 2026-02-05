@@ -1,7 +1,7 @@
-import { EventItem } from "@/domain/schedule/scheduleEvent/scheduleEvent";
+import { ScheduleEventItem } from "@/domain/schedule/scheduleEvent/ScheduleEvent.model";
 import { Instance } from "mobx-state-tree";
 
-export function getEventDescription(item: Instance<typeof EventItem>): string {
+export function getEventDescription(item: Instance<typeof ScheduleEventItem>): string {
     const variant = item.type;
 
     switch (variant) {

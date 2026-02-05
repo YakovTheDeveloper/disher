@@ -7,8 +7,6 @@ import { useState } from 'react';
 type DigestionSubKey = 'bloating' | 'stomach_pain' | 'heartburn' | 'constipation' | 'diarrhea';
 
 type Props = {
-  selectedSub: DigestionSubKey | null;
-  setSelectedSub: (sub: DigestionSubKey | null) => void;
   formData: Record<string, unknown>;
   setFormData: (data: Record<string, unknown>) => void;
   handleChange: (key: string, value: unknown) => void;

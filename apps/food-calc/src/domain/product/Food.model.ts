@@ -1,7 +1,7 @@
 import { Nutrient } from "@/domain/nutrient/Nutrient";
-import { Portion } from "./ProductPortions/ProductPortions";
+import { PortionsController } from "@/domain/shared/PortionsController";
 import { isEmpty } from "@/lib/empty";
-import { NutrientStoreApi } from "@/store/types";
+import { NutrientStoreApi } from "@/store/RootStoreModel";
 import { cast, getRoot, types } from "mobx-state-tree";
 
 export const FoodNutrient = types.model("FoodNutrient", {
@@ -21,7 +21,7 @@ export const FoodNutrient = types.model("FoodNutrient", {
 });
 
 // Food
-export const Food = types.model("Food", {
+export const Food = types.compose("Food", PortionsController(), types.model({
     id: types.identifier,
     name: types.string,
     nameEng: types.maybe(types.string),
@@ -29,10 +29,8 @@ export const Food = types.model("Food", {
     descriptionEng: types.maybe(types.string),
     nutrients: types.optional(types.array(FoodNutrient), []),
     createdByUser: types.optional(types.boolean, false),
-    portions: types.optional(types.array(Portion), []),
     category: types.optional(types.string, ""),
-
-}).views(self => {
+})).views(self => {
     const views = {
         get noNutrients() {
             return isEmpty(self.nutrients);

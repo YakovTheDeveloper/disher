@@ -21,6 +21,7 @@ import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import SwipeableV2 from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableV2';
 import { BuilderScheduleEvents } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder';
+import { clearSessionStorage } from '@/infrastructure/storage/sessionStorage';
 
 type Props = {
   // onFinish: (payload: Instance<typeof DaySchedule>) => Promise<void>;
@@ -37,10 +38,12 @@ const ScheduleBuilder = ({
   const navigate = useNavigate();
 
   const onFoodAdd = () => {
+    clearSessionStorage(`tabs:${location.pathname}`);
     modalStore.openModal(ModalType.SCHEDULE_FOOD_ADD);
   };
 
   const onEventAdd = () => {
+    clearSessionStorage(`tabs:${location.pathname}`);
     modalStore.openModal(ModalType.SCHEDULE_EVENT_ADD);
   };
 

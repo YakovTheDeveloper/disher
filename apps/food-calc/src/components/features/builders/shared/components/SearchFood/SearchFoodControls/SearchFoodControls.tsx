@@ -10,6 +10,7 @@ import { emitter } from '@/infrastructure/emitter/emitter';
 import FilterPanel from '@/components/ui/FilterPanel/FilterPanel';
 import { Button } from '@/components/ui/atoms/Button';
 import { UseFilteringStateV2Return } from '@/components/features/shared/hooks/useFilteringStateV2';
+import { SearchMode } from '@/components/features/builders/shared/components/SearchFood/SearchFood';
 
 type Tabs = 'продукты' | 'блюда';
 
@@ -17,9 +18,10 @@ type Props = {
   searchState: UseFilteringStateV2Return;
   className: string;
   onFocusChange?: (focused: boolean) => void;
+  mode?: SearchMode;
 };
 
-const SearchFoodControls = ({ searchState, className, onFocusChange }: Props) => {
+const SearchFoodControls = ({ searchState, className, onFocusChange, mode }: Props) => {
   const [filterPanel, setFilterPanel] = useState(false);
   const [selectedSubFilter, setSelectedSubFilter] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -51,11 +53,14 @@ const SearchFoodControls = ({ searchState, className, onFocusChange }: Props) =>
 
   // Prepare FilterPanel options
   const primaryOptions = useMemo(
-    () => [
-      { value: 'продукты', label: 'Продукты' },
-      { value: 'блюда', label: 'Блюда' },
-    ],
-    []
+    () =>
+      mode === 'products-only'
+        ? []
+        : [
+            { value: 'продукты', label: 'Продукты' },
+            { value: 'блюда', label: 'Блюда' },
+          ],
+    [mode]
   );
 
   const secondaryOptions = useMemo(

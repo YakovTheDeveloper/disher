@@ -1,0 +1,110 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stack {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    margin-bottom: 4px;
+}
+
+.stackItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--primary-color, #0066cc);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        background: var(--primary-hover, #0052a3);
+    }
+}
+
+.stackRemove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    font-size: 14px;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.stackSeparator {
+    color: var(--text-secondary, #888);
+    font-size: 12px;
+    padding: 0 4px;
+}
+
+.optionsWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.placeholder {
+    color: var(--text-secondary, #888);
+    font-size: 14px;
+    padding: 8px 0;
+}
+
+.optionsGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 8px;
+    background: var(--bg-color, #fff);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: var(--hover-bg-color, #f5f5f5);
+        border-color: var(--primary-color, #0066cc);
+    }
+
+    &.selected {
+        background: var(--primary-color, #0066cc);
+        color: #fff;
+        border-color: var(--primary-color, #0066cc);
+    }
+}
+
+.label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.indicator {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.childLevel {
+    margin-top: 8px;
+    padding-left: 16px;
+    border-left: 2px solid var(--border-color, #ddd);
+}

@@ -1,37 +1,42 @@
 import { SyncStatus } from "@/domain/commonListItem";
 import { ChildrenController } from "@/domain/shared/ChildrenController";
-import { FoodContentProduct } from "@/domain/shared/foodContent/foodContent";
+import { PortionsController } from "@/domain/shared/PortionsController";
+import { ContentControllerDish, ProductContent } from "@/domain/shared/foodContent/foodContent";
 import { NutrientSource } from "@/domain/shared/NutrientSource";
 
 import { aggregateNutrients } from "@/lib/nutrients/aggregateNutrients";
 import { getSnapshot, Instance, types } from "mobx-state-tree";
 
-export const DishItem = types.model("DishItem", {
-    id: types.identifier,
-    quantity: 100,
-    foodId: types.string,
-    content: FoodContentProduct,
-    sync: types.optional(SyncStatus, {})
-}).actions((_self) => ({}))
-
-export const DishItemDraft = types.model("DishItemDraft", {
-    item: DishItem
-}).actions(self => ({
-    clearDishItem() {
-        self.item.foodId = ""
-        self.item.quantity = 100
-        self.item.content = FoodContentProduct.create({ foodId: "1", variant: "product" })
-    }
+export const DishItem = types.compose("DishItem",
+    types.model({
+        id: types.identifier,
+        sync: types.optional(SyncStatus, {})
+    }),
+    ContentControllerDish
+).views(self => ({
+    get effectiveQuantity(): number {
+        return self.content?.quantity
+    },
+})).actions(self => ({
+    // updateQuantity(quantity: number) {
+    //     self.content?.updateQuantity(quantity);
+    // },
+    // updateContent(id: string) {
+    //     self.updateFood(id)
+    // }
 }))
 
-export const Dish = types.compose("Dish", types.model({
-    id: types.identifier,
-    name: types.string,
-    description: types.string,
-    userId: types.number,
-    lastSync: types.optional(types.string, ''),
-    draft: DishItemDraft
-}), ChildrenController(DishItem))
+export const Dish = types.compose("Dish",
+    types.model({
+        id: types.identifier,
+        name: types.string,
+        description: types.string,
+        userId: types.number,
+        lastSync: types.optional(types.string, ''),
+    }),
+    ChildrenController(DishItem),
+    PortionsController()
+)
     .views(self => ({
         get itemsLength() {
             return self.items.length
@@ -41,7 +46,7 @@ export const Dish = types.compose("Dish", types.model({
         },
         get baseDishWeight() {
             return self.items.reduce(
-                (sum, { quantity }) => sum + quantity,
+                (sum, item) => sum + item.content.quantity,
                 0
             );
         },
@@ -61,27 +66,6 @@ export const Dish = types.compose("Dish", types.model({
             );
         }
 
-        function addChildFromDraft(draft: Instance<typeof DishItem>) {
-            const { quantity, content } = draft;
-            self.addChildWithLocalData({
-                quantity,
-                content: getSnapshot(content)
-            })
-        }
-
-        function addDishItemFromDraft() {
-            const { quantity, content } = self.draft.item;
-            if (!content.foodId) return;
-            self.addChildWithLocalData({
-                quantity,
-                content: getSnapshot(content)
-            });
-            self.draft.clearDishItem();
-        }
-
-        function updateName(name: string) {
-            self.name = name;
-        }
         function setLastSync(sync: string = Date.now().toString()) {
             self.lastSync = sync;
         }
@@ -95,8 +79,6 @@ export const Dish = types.compose("Dish", types.model({
         }
 
         return {
-            addChildFromDraft,
-            addDishItemFromDraft,
             getTotalNutrients,
             changeDescription,
             changeName,

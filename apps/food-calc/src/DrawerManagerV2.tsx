@@ -4,6 +4,7 @@ import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.
 import { observer } from 'mobx-react-lite';
 import { DrawerLayout } from '@/components/features/builders/shared/components/DrawerLayout';
 import { ConfirmationPayload } from '@/components/ui/Drawer/DrawerConfirmation/DrawerConfirmation';
+import { IdFromUrlProvider } from '@/context/useUrlParamsIdContext';
 
 const DateChoose = lazy(
   () =>
@@ -46,18 +47,20 @@ export const DrawerManagerV2: React.FC = () => {
       case DrawerTypesV2.Dish.Add:
         return <DrawerLayout>{<FoodAddDrawer onClose={close} defaultTab="dish" />}</DrawerLayout>;
       case DrawerTypesV2.Confirmation.RemoveDishes:
+      case DrawerTypesV2.Confirmation.RemoveDailyNorms:
+      case DrawerTypesV2.Confirmation.RemoveUserFood:
       case DrawerTypesV2.Confirmation.RemoveScheduleFood:
       case DrawerTypesV2.Confirmation.RemoveScheduleEvents:
       case DrawerTypesV2.Confirmation.RemoveDishItems:
-      case DrawerTypesV2.Confirmation.RemoveDailyNorms:
-      case DrawerTypesV2.Confirmation.RemoveUserFood:
         return (
           <DrawerLayout>
-            <ConfirmationDrawer
-              payload={activeDrawer.payload as ConfirmationPayload | undefined}
-              drawerType={activeDrawer.type}
-              onClose={close}
-            />
+            <IdFromUrlProvider>
+              <ConfirmationDrawer
+                payload={activeDrawer.payload as ConfirmationPayload | undefined}
+                drawerType={activeDrawer.type}
+                onClose={close}
+              />
+            </IdFromUrlProvider>
           </DrawerLayout>
         );
       case DrawerTypesV2.DailyNorm.Choose:

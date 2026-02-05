@@ -4,7 +4,7 @@ import { FoodName } from '@/components/features/builders/shared/ui/FoodName';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useState } from 'react';
 import styles from './SearchFood.module.scss';
-import { Instance } from 'mobx-state-tree';
+import { Instance, SnapshotOut } from 'mobx-state-tree';
 import { ScheduleItem } from '@/domain/schedule/schedule.model';
 import { domainStore } from '@/store/store';
 import { filterBy } from '@/lib/filter/filter';
@@ -13,23 +13,26 @@ import { FoodNutrients } from '@/components/features/builders/shared/components/
 import { UseFilteringStateV2Return } from '@/components/features/shared/hooks/useFilteringStateV2';
 import { foodSearchConfing } from '@/components/features/builders/ScheduleBuilder/components/schedule-food-actions/config/config';
 import { SearchFoodControls } from '@/components/features/builders/shared/components/SearchFood/SearchFoodControls';
+import { FoodContentDish, FoodContentProduct } from '@/domain/shared/foodContent/foodContent';
 
-type SearchMode = 'products-only' | 'products-and-dishes';
+export type SearchMode = 'products-only' | 'products-and-dishes';
 
 type Props = {
-  children?: React.ReactNode;
-  scheduleChild: Instance<typeof ScheduleItem>;
+  currentChild: {
+    content: Instance<typeof FoodContentProduct> | Instance<typeof FoodContentDish> | null;
+    updateFood: (id: string) => void;
+    updateDish?: (id: string) => void;
+  };
   onFinish: () => void;
   headerAfter?: React.ReactNode;
   searchState: UseFilteringStateV2Return;
   onFocusChange?: (focused: boolean) => void;
-  mode?: SearchMode;
+  mode: SearchMode;
 };
 
 const SearchFood = ({
-  scheduleChild,
   onFinish,
-  children,
+  currentChild,
   searchState,
   onFocusChange,
   mode = 'products-and-dishes',
@@ -38,29 +41,30 @@ const SearchFood = ({
 
   const onBackButton = () => setCurrentInfoFood('');
 
-  const currentChild = scheduleChild;
+  const { updateFood, updateDish } = currentChild;
 
   const onFoodAdd = useCallback(
     (payload: any) => {
-      scheduleChild.updateContent('product', payload.id.toString());
+      console.log('payload', payload);
+      updateFood(payload.id.toString());
       onFinish();
     },
-    [scheduleChild, onFinish]
+    [onFinish, updateFood]
   );
 
   const onDishAdd = useCallback(
     (payload: any) => {
-      scheduleChild.updateContent('dish', payload.id.toString());
+      updateDish?.(payload.id.toString());
       onFinish();
     },
-    [scheduleChild, onFinish]
+    [updateDish, onFinish]
   );
 
   const onProductClickSeeDetails = useCallback(() => {}, []);
 
   const renderProductItem = useCallback(
     (item: any) => {
-      const content = currentChild?.content;
+      const content = currentChild.content;
       const isActive = content?.variant === 'product' && content.foodId === item.id.toString();
 
       return (
@@ -73,12 +77,12 @@ const SearchFood = ({
         />
       );
     },
-    [currentChild?.content, onFoodAdd]
+    [currentChild.content, onFoodAdd]
   );
 
   const renderDishtItem = useCallback(
     (item: any) => {
-      const content = currentChild?.content;
+      const content = currentChild.content;
       const isActive = content?.variant === 'dish' && content.dishId === item.id.toString();
 
       return (
@@ -88,14 +92,7 @@ const SearchFood = ({
           onInfoClick={() => setCurrentInfoFood(item.id)}
           active={isActive}
         >
-          <FoodName
-            className="ellipsis"
-            onClick={() => onDishAdd(item)}
-            onClickHintModeOn={onProductClickSeeDetails}
-            hintMode={false}
-          >
-            {() => item.name}
-          </FoodName>
+          <FoodName content={item} className="ellipsis" onClick={() => onDishAdd(item)} />
         </SearchListItem>
       );
     },
@@ -105,7 +102,7 @@ const SearchFood = ({
   return (
     <>
       <div className={styles.content}>
-        <SearchFoodControls searchState={searchState} onFocusChange={onFocusChange} />
+        <SearchFoodControls mode={mode} searchState={searchState} onFocusChange={onFocusChange} />
         {currentInfoFood && (
           <div className={styles.foodInfo}>
             <FoodNutrients

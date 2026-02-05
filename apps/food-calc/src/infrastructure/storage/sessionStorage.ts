@@ -6,7 +6,10 @@ const get = (key) => {
     return item ? JSON.parse(item) : null;
 };
 
-export default {
-    set,
-    get
+export const clearSessionStorage = (id?: string) => {
+    if (id) {
+        sessionStorage.removeItem(id);
+    } else {
+        sessionStorage.clear();
+    }
 }

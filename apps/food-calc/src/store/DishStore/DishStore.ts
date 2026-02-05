@@ -1,6 +1,6 @@
-import { types, Instance, getRoot } from "mobx-state-tree"
+import { types, Instance, getRoot, getSnapshot } from "mobx-state-tree"
 import { RequestState } from "@/store/shared/RequestState"
-import { Dish } from "@/domain/dish/Dish.model"
+import { Dish, DishItem } from "@/domain/dish/Dish.model"
 import { RootInstance } from "@/store/store"
 import { getDishById, syncDishes } from "@/api/dish/dish.api"
 import { createRequestController } from "@/store/common/pureFabrication/createRequestController"
@@ -12,6 +12,15 @@ const storeModel = types.model("DishStore", {
     status: types.optional(StatusModel, {
         fetchGet: {},
         fetchSync: {},
+    }),
+    // Draft state for dish items
+    itemDraft: types.optional(DishItem, {
+        id: "DRAFT",
+        contentProduct: {
+            foodId: '0',
+            quantity: 100,
+            variant: "product"
+        }
     }),
 })
     .actions(self => ({
@@ -37,6 +46,17 @@ const storeModel = types.model("DishStore", {
             );
         },
 
+        // ======== DRAFT METHODS ========
+        clearItemDraft() {
+            self.itemDraft.updateFood('0')
+        },
+
+        commitItemDraft(dish: Instance<typeof Dish>): void {
+            // const content = self.itemDraft.contentProduct
+            const { id, ...snapshot } = getSnapshot(self.itemDraft)
+            dish.addChildWithLocalData(snapshot)
+            self.clearItemDraft()
+        },
     }))
 
 export const DishStore = types.compose(

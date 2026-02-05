@@ -1,5 +1,6 @@
 import { createContext, useContext, ReactNode } from 'react';
 import { Instance } from 'mobx-state-tree';
+import { domainStore } from '@/store/store';
 import { useDish } from '@/components/features/builders/DishBuilder/context/DishProvider';
 import { DishItem } from '@/domain/dish/Dish.model';
 
@@ -20,10 +21,9 @@ export const SelectedDishItemProvider: React.FC<{
 };
 
 export const DraftDishItemProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const dish = useDish();
-  const item = dish.draft.item;
+  const item = domainStore.dishStore.itemDraft;
 
-  if (!item) throw new Error(`No draft was found`);
+  if (!item) throw new Error(`No draft was found in store`);
 
   return (
     <SelectedDishItemContext.Provider value={item}>{children}</SelectedDishItemContext.Provider>

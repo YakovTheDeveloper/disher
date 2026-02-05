@@ -1,16 +1,16 @@
 import React from 'react';
-import { DishFoodAdd } from '@/components/features/builders/DishBuilder/components/drawer/dish-food-actions/DishFoodAdd';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
-import { WizardPayloadInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
+import { GetPayload } from '@/store/GlobalUiStore/ModalStore/ModalPayloads';
 import {
   DishProvider,
   DraftDishItemProvider,
   SelectedDishItemProvider,
 } from '@/components/features/builders/DishBuilder/context';
+import { DishFoodAdd } from '@/components/features/builders/DishBuilder/components/drawer/DishFoodAdd';
 
 interface DishModalProps {
   type: ModalType;
-  payload?: WizardPayloadInstance;
+  payload?: GetPayload<ModalType.DISH_EDIT | ModalType.DISH_CREATE>;
   close: () => void;
 }
 

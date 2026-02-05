@@ -1,0 +1,21 @@
+.container {
+    padding: 16px;
+    background: var(--bg-secondary, #f9f9f9);
+    border-radius: 12px;
+    margin-top: 16px;
+}
+
+.title {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary, #333);
+}
+
+.field {
+    margin-bottom: 12px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}

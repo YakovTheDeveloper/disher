@@ -7,6 +7,7 @@ import { emitter } from '@/infrastructure/emitter/emitter';
 import { useListFadeEffect } from '@/hooks/useListFadeEffect';
 import { Instance } from 'mobx-state-tree';
 import { Portion } from '@/domain/product/ProductPortions/ProductPortions';
+import { FoodContentInstance } from '@/domain/shared/foodContent/foodContent';
 
 const variants = [
   [25, 50, 75, 100],
@@ -20,31 +21,19 @@ type QuickButtonData = {
 };
 
 type Props = {
-  item:
-    | ({
-        quantity: number;
-        updateQuantity: (quantity: number) => void;
-      } & {
-        content?: {
-          food?: {
-            portions?: Instance<typeof Portion>[];
-          };
-        };
-      })
-    | any;
+  content: FoodContentInstance;
   onFinish: () => void;
 };
 
-const Quantity = ({ onFinish, item }: Props) => {
+const Quantity = ({ onFinish, content }: Props) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const variantsRef = useRef<HTMLDivElement | null>(null);
 
-  const [value, setValue] = useState(item.quantity);
-
+  const [value, setValue] = useState(content.quantity);
   const fadeClasses = useListFadeEffect({ containerRef: variantsRef });
 
   // Get portions from food if available
-  const portions = (item as any).content?.food?.portions || [];
+  const portions = content.food?.portions || content.dish?.portions || [];
 
   // Build quick buttons data
   const quickButtons: QuickButtonData[] =
@@ -67,13 +56,13 @@ const Quantity = ({ onFinish, item }: Props) => {
   }, []);
 
   const onBlur = () => {
-    item.updateQuantity(value);
+    content.updateQuantity(value);
     onFinish();
   };
 
   const handleVariantClick = (quantity: number) => {
     setValue(quantity);
-    item.updateQuantity(quantity);
+    content.updateQuantity(quantity);
     // onFinish();
   };
 

@@ -13,6 +13,8 @@ import { useUserAgentDetection } from '@/hooks/useUserAgentDetection';
 import DrawerManagerV2 from '@/DrawerManagerV2';
 import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
+import { I18nextProvider } from 'react-i18next';
+import '@/i18n';
 
 const queryClient = new QueryClient();
 
@@ -26,18 +28,20 @@ const App = () => {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Toaster />
-      <div className={s.main}>
-        <Modal>
-          <ModalManager />
-        </Modal>
-        <Drawer>
-          <DrawerManagerV2 />
-        </Drawer>
-        <Outlet />
-      </div>
-    </QueryClientProvider>
+    <I18nextProvider>
+      <QueryClientProvider client={queryClient}>
+        <Toaster />
+        <div className={s.main}>
+          <Modal>
+            <ModalManager />
+          </Modal>
+          <Drawer>
+            <DrawerManagerV2 />
+          </Drawer>
+          <Outlet />
+        </div>
+      </QueryClientProvider>
+    </I18nextProvider>
   );
 };
 

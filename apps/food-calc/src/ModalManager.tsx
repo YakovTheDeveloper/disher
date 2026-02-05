@@ -20,16 +20,6 @@ export const ModalManager = observer(
     if (!modalStore.currentModal) return null;
 
     switch (modalStore.currentModal) {
-      case ModalType.CONFIRMATION_REMOVE_DISHES:
-        return <ModalConfirmDeleteDishes />;
-
-      case ModalType.CONFIRMATION_REMOVE_SCHEDULE_EVENTS:
-        return (
-          <ScheduleProvider>
-            <ModalConfirmationDeleteEvents />
-          </ScheduleProvider>
-        );
-
       case ModalType.CREATE_DISH_FROM_SCHEDULE:
         return <ModalCreateDishFromSchedule modalStore={modalStore} />;
 

@@ -7,7 +7,7 @@ import { Instance } from 'mobx-state-tree';
 import { DaySchedule } from '@/domain/schedule/schedule.model';
 import clsx from 'clsx';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
-import { EventItem } from '@/domain/schedule/scheduleEvent/scheduleEvent';
+import { ScheduleEventItem as ScheduleEventItemModel } from '@/domain/schedule/scheduleEvent/ScheduleEvent.model';
 import { ScheduleEventItem } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/ScheduleEventItem';
 type Props = {
   children?: React.ReactNode;
@@ -16,7 +16,7 @@ type Props = {
 
 const BuilderScheduleEvents = ({ schedule }: Props) => {
   const renderEventListItem = useCallback(
-    (item: Instance<typeof EventItem>) => {
+    (item: Instance<typeof ScheduleEventItemModel>) => {
       return (
         <CommonListItem className={styles.listItemRow} id={item.id} key={item.id} sync={item.sync}>
           <ScheduleEventItem item={item} />

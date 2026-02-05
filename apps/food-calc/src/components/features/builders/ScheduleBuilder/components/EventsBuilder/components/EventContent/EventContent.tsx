@@ -9,11 +9,11 @@ import { EnergyContent } from './EnergyContent';
 import { NoteContent } from './NoteContent';
 import { ActivityContent } from './ActivityContent';
 import { DigestionContent } from './DigestionContent';
-import { EventItem } from '@/domain/schedule/scheduleEvent/scheduleEvent';
+import { ScheduleEventItem } from '@/domain/schedule/scheduleEvent/ScheduleEvent.model';
 
 type Props = {
   onFinish: () => void;
-  currentEvent: Instance<typeof EventItem>;
+  currentEvent: Instance<typeof ScheduleEventItem>;
 };
 
 const EventContent = observer(({ currentEvent, onFinish }: Props) => {

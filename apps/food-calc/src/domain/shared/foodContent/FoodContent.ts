@@ -1,24 +1,26 @@
-
 import { RootStoreEnv } from "@/domain/schedule/schedule.model"
 import { FoodStoreInstance } from "@/store/FoodStore/FoodStore"
-import { getEnv, getRoot, types } from "mobx-state-tree"
-import { NutrientContentMixin } from "@/domain/shared/NutrientContentMixin"
+import { getEnv, getRoot, Instance, types } from "mobx-state-tree"
+
+const DEFAULT_QUANTITY = 100;
 
 export type FoodContentType = 'dish' | 'product'
 
+// Re-export new controllers for backward compatibility
+
 export const FoodContentProduct = types
-    .compose(
-        "FoodContentProduct",
-        types.model({
-            foodId: types.string,
-            variant: types.literal("product"),
-        }),
-        NutrientContentMixin('food')
-    )
+    .model("FoodContentProduct", {
+        foodId: types.string,
+        variant: types.literal("product"),
+        quantity: 100,
+    })
     .views(self => ({
         get food() {
-            const foodStore = getEnv(self)?.foodStore as FoodStoreInstance
-            return foodStore?.getEntity(self.foodId) ?? null
+            const root = getRoot(self) as RootStoreEnv
+            return root.foodStore.getEntity(self.foodId) ?? null
+        },
+        get dish() {
+            return null
         },
     }))
     .views(self => ({
@@ -37,24 +39,29 @@ export const FoodContentProduct = types
         update(id: string) {
             self.foodId = id
         },
+        updateQuantity(quantity: number) {
+            self.quantity = quantity;
+        },
         getTotalNutrients() {
-            return self.food?.getTotalNutrients(self.parentQuantity)
+            return self.food?.getTotalNutrients(self.quantity)
         }
     }))
 
+export type FoodContentProductInstance = Instance<typeof FoodContentProduct>
+
 export const FoodContentDish = types
-    .compose(
-        "FoodContentDish",
-        types.model({
-            dishId: types.string,
-            variant: types.literal("dish"),
-        }),
-        NutrientContentMixin('dish')
-    )
+    .model("FoodContentDish", {
+        dishId: types.string,
+        variant: types.literal("dish"),
+        quantity: 100,
+    })
     .views(self => ({
         get dish() {
             const root = getRoot(self) as RootStoreEnv
             return root.dishStore.getEntity(self.dishId)
+        },
+        get food() {
+            return null
         },
     }))
     .views(self => ({
@@ -70,7 +77,95 @@ export const FoodContentDish = types
         update(id: string) {
             self.dishId = id
         },
+        updateQuantity(quantity: number) {
+            self.quantity = quantity;
+        },
         getTotalNutrients() {
-            return self.dish?.getTotalNutrients(self.parentQuantity)
+            return self.dish?.getTotalNutrients(self.quantity)
         }
     }))
+
+export type FoodContentDishInstance = Instance<typeof FoodContentDish>
+
+export type FoodContentInstance = FoodContentProductInstance | FoodContentDishInstance
+
+export const ContentControllerFood = types.model({
+    contentProduct: types.maybeNull(FoodContentProduct),
+    contentDish: types.maybeNull(FoodContentDish)
+}).views(self => ({
+    get content() {
+        return self.contentDish || self.contentProduct || null
+    }
+})).actions(self => {
+
+    function updateFood(id: string) {
+        // food → food
+        if (self.contentProduct) {
+            self.contentProduct.update(id);
+            return;
+        }
+
+        // dish → food / empty → food
+        self.contentDish = null;
+        self.contentProduct = FoodContentProduct.create({
+            variant: 'product',
+            foodId: id,
+            quantity: self.content?.quantity ?? DEFAULT_QUANTITY
+        });
+    }
+
+    function updateDish(id: string) {
+        // dish → dish
+        if (self.contentDish) {
+            self.contentDish.update(id);
+            return;
+        }
+
+        // food → dish / empty → dish
+        self.contentProduct = null;
+        self.contentDish = FoodContentDish.create({
+            variant: 'dish',
+            dishId: id,
+            quantity: self.content?.quantity ?? DEFAULT_QUANTITY
+        });
+    }
+
+    function clear() {
+        self.contentProduct = null;
+        self.contentDish = null;
+    }
+
+    return {
+        updateFood,
+        updateDish,
+        clear
+    }
+})
+
+export const ContentControllerDish = types.model({
+    contentProduct: FoodContentProduct,
+}).views(self => ({
+    get content() {
+        return self.contentProduct
+    }
+})).actions(self => {
+
+    function updateFood(id: string) {
+        // food → food
+
+        if (self.contentProduct) {
+            self.contentProduct.update(id);
+            return;
+        }
+
+        self.contentProduct = FoodContentProduct.create({
+            variant: 'product',
+            foodId: id,
+            quantity: self.content?.quantity ?? DEFAULT_QUANTITY
+        });
+    }
+
+    return {
+        updateFood,
+    }
+})

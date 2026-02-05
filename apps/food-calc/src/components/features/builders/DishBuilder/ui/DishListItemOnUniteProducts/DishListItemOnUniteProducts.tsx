@@ -25,7 +25,7 @@ const DishListItemOnUniteProducts = ({ content, options, className }: Props) => 
   const id = content.id;
 
   const getFoodName = useCallback(() => content.food?.name, [content]);
-  const getQuantity = useCallback(() => content.quantity, [content]);
+  const getQuantity = useCallback(() => content.effectiveQuantity, [content]);
 
   const status = content.status;
 

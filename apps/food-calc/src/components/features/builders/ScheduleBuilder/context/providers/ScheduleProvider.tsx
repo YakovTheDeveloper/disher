@@ -17,7 +17,7 @@ export const useSchedule = (): Instance<typeof DaySchedule> => {
 };
 
 const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { date } = useParams();
+  const { id: date } = useParams();
   const schedule = domainStore.scheduleStore.data.get(date || '');
 
   return <ScheduleContext.Provider value={schedule}>{children}</ScheduleContext.Provider>;

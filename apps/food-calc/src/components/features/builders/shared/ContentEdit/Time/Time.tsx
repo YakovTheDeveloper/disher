@@ -7,20 +7,17 @@ import { UIViewOptionsInstance } from '@/store/GlobalUiStore/UiViewOptions/UIVie
 import { TimeNow } from '@/components/features/builders/shared/ContentEdit/Time/TimeNow';
 
 type Props = {
-  item: {
-    time: string; // Format "HH:mm"
-    updateTime: (time: string) => void;
-  };
   onFinish: () => void;
   uiStore?: UIViewOptionsInstance;
   timeState: { localTime: string; handleTimeUpdate: (time: string) => void };
+  asLongetivity: boolean;
 };
 
 const Time = ({
-  item,
   onFinish,
   uiStore = domainStore.globalUiStore.options,
   timeState,
+  asLongetivity = false,
 }: Props) => {
   const state = timeState;
 
@@ -31,17 +28,19 @@ const Time = ({
   return (
     <div className={style.container}>
       {/* <img src="/bright.png" className={style.image} /> */}
-      <button
-        className={style.toggleButton}
-        onClick={() => {
-          uiStore.toggleTimePickerVariant();
-        }}
-      >
-        часы
-      </button>
+      {!asLongetivity && (
+        <button
+          className={style.toggleButton}
+          onClick={() => {
+            uiStore.toggleTimePickerVariant();
+          }}
+        >
+          часы
+        </button>
+      )}
       <div className={style.inputWrapper}>
         <div className={style.selectTime}>
-          {uiStore.timePickerVariant === 'native' ? (
+          {!asLongetivity && uiStore.timePickerVariant === 'native' ? (
             <input
               type="time"
               className={style.nativeInput}
@@ -62,9 +61,11 @@ const Time = ({
           )}
         </div>
       </div>
-      <TimeNow timeState={timeState}>
-        <button className={style.toggleButton}>сейчас</button>
-      </TimeNow>
+      {!asLongetivity && (
+        <TimeNow timeState={timeState}>
+          <button className={style.toggleButton}>сейчас</button>
+        </TimeNow>
+      )}
     </div>
   );
 };

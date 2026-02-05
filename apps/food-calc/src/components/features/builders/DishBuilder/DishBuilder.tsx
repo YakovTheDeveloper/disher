@@ -1,6 +1,5 @@
 import { observer } from 'mobx-react-lite';
 import { Buttons } from '@/components/features/builders/shared/ui/Actions/button';
-import { DishListItem } from '@/components/features/builders/DishBuilder/ui/DishListItem';
 import { Instance } from 'mobx-state-tree';
 import { Dish } from '@/domain/dish/Dish.model';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
@@ -19,6 +18,13 @@ import { Scalable } from '@/components/ui/Scalable';
 import { useNavigate } from 'react-router';
 import SwipeableV2 from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableV2';
 import { HeaderInputName } from '@/components/features/builders/shared/components/HeaderInputName';
+import { useOverlay } from '@/store/GlobalUiStore/OverlayStore';
+import { clearSessionStorage } from '@/infrastructure/storage/sessionStorage';
+import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
+import { FoodName } from '@/components/features/builders/shared/ui/FoodName';
+import { Quantity } from '@/components/features/builders/shared/ui/Quantity';
+import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
+import styles from './DishBuilder.module.scss';
 
 export const Modals = {
   Food: 'food',
@@ -37,12 +43,10 @@ const DishBuilder = ({ init, modalStore = domainStore.globalUiStore.modalStore }
   const dishes = init;
   const navigate = useNavigate();
 
-  const onFoodsOpen = () => {
-    modalStore.openModal(ModalType.DISH_CREATE);
-  };
+  const { openFormDishAdd, openFormDishEdit } = useOverlay();
 
   return (
-    <SwipeableV2 defaultIndex={1} pageNames={['nutrients', 'food']}>
+    <SwipeableV2 pageNames={['nutrients', 'food']}>
       {[
         <Screen key={1} title={<ScreenLabel variant="screenHeader">Нутриенты</ScreenLabel>}>
           <TotalNutrients store={dishes} countable={dishes} />
@@ -77,12 +81,40 @@ const DishBuilder = ({ init, modalStore = domainStore.globalUiStore.modalStore }
               {init.name}
             </ScreenLabel>
           }
-          header={<HeaderInputName entity={init} />}
-          bottom={<Buttons.Add onClick={onFoodsOpen} />}
+          header={<HeaderInputName entity={init} asInput />}
+          bottom={<Buttons.Add onClick={openFormDishAdd} />}
         >
-          <ItemsList>
-            {dishes.items.map((content) => {
-              return <DishListItem key={content.id} controller={init} content={content} />;
+          <ItemsList offsetTop>
+            {dishes.items.map((item) => {
+              const content = item.content;
+              const id = item.id;
+              const onFoodClick = () => {
+                clearSessionStorage(`tabs:${location.pathname}`);
+                openFormDishEdit(id, 'content');
+              };
+
+              const onQuantityClick = () => {
+                clearSessionStorage(`tabs:${location.pathname}`);
+                openFormDishEdit(id, 'quantity');
+              };
+
+              return (
+                <CommonListItem
+                  key={id}
+                  id={id}
+                  className={styles.group}
+                  innerClassName={styles.dishFoodListItem}
+                >
+                  <FoodName onClick={onFoodClick} content={content} />
+                  <Quantity
+                    id={id}
+                    onClick={onQuantityClick}
+                    hide={false}
+                    unit="г"
+                    content={content}
+                  />
+                </CommonListItem>
+              );
             })}
           </ItemsList>
         </Screen>,

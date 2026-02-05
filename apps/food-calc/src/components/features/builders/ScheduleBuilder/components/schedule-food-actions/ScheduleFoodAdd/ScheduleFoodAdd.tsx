@@ -1,6 +1,7 @@
 import { observer, useLocalObservable } from 'mobx-react-lite';
 import { runInAction } from 'mobx';
 import { useMemo, useEffect, useRef, useCallback } from 'react';
+import { useParams } from 'react-router';
 import { SearchFood } from '@/components/features/builders/shared/components/SearchFood';
 import { ContentEdit } from '@/components/features/builders/shared/ContentEdit';
 import { Tabs } from '@/components/ui/Tabs';
@@ -16,7 +17,7 @@ import {
 } from '@/components/features/builders/ScheduleBuilder/context';
 import { useFilteringState } from '@/components/features/shared/hooks/useFilteringState';
 import { FoodStoreInstance } from '@/store/FoodStore/FoodStore';
-import { DishStoreInstance } from '@/store/types';
+import { DishStoreInstance } from '@/store/RootStoreModel';
 import { TimeNow } from '@/components/features/builders/shared/ContentEdit/Time/TimeNow';
 import WeatherBackground from '@/components/features/WeatherBackground/WeatherBacground';
 import RoundedPlusIcon from '@/assets/icons/rounded-plus-icon.svg';
@@ -54,10 +55,6 @@ const ScheduleFoodAdd = observer(
       },
     }));
 
-    // useEffect(() => {
-    //   runInAction(() => (timeState.localTime = currentChild.time));
-    // }, [currentChild.time, timeState]);
-
     const baseTabs = [
       { value: 'time' as const, label: 'время', alternativeLabel: currentChild.time },
       {
@@ -68,7 +65,8 @@ const ScheduleFoodAdd = observer(
       {
         value: 'quantity' as const,
         label: 'количество',
-        alternativeLabel: `${currentChild.quantity}`,
+        alternativeLabel: `${currentChild.content?.quantity}`,
+        disabled: !currentChild.content,
       },
     ];
 
@@ -76,10 +74,9 @@ const ScheduleFoodAdd = observer(
       useEntityItemWizard(variant, {
         defaultTab: defaultTab as 'info' | 'time' | 'foodSelect' | 'quantity' | undefined,
         baseTabs,
-        enableHashSync: true,
         onFinish: () => {
           if (variant === 'add') {
-            return schedule.addDraftToFoods();
+            return domainStore.scheduleStore.commitFoodDraft(schedule);
           }
           return currentChild.id;
         },
@@ -88,26 +85,43 @@ const ScheduleFoodAdd = observer(
 
     const filterKeys = ['name'] as const;
 
-    const config = useMemo(
-      () =>
-        [
-          {
-            tabName: 'продукты',
-            list: foodStore.merged,
-            filterKeys,
-          },
-          {
-            tabName: 'блюда',
-            list: dishStore.merged,
-            filterKeys,
-          },
-        ] as const,
-      [foodStore.merged, dishStore.merged]
-    );
+    // const filterConfig = useMemo(
+    //   () =>
+    //     [
+    //       {
+    //         tabName: 'продукты',
+    //         list: foodStore.merged,
+    //         filterKeys,
+    //       },
+    //       {
+    //         tabName: 'блюда',
+    //         list: dishStore.merged,
+    //         filterKeys,
+    //       },
+    //     ] as const,
+    //   [foodStore.merged, dishStore.merged]
+    // );
 
     // const filterState = useFilteringState(config);
 
-    const filterStateV2 = useFilteringStateV2(config);
+    const filterStateV2 = useFilteringStateV2(
+      useMemo(
+        () =>
+          [
+            {
+              tabName: 'продукты',
+              list: foodStore.merged,
+              filterKeys,
+            },
+            {
+              tabName: 'блюда',
+              list: dishStore.merged,
+              filterKeys,
+            },
+          ] as const,
+        [foodStore.merged, dishStore.merged]
+      )
+    );
 
     const onHeaderButtonClick = () => {
       drawerStore.open({
@@ -149,14 +163,14 @@ const ScheduleFoodAdd = observer(
           {currentTab === 'foodSelect' && (
             <SearchFood
               mode="products-and-dishes"
-              scheduleChild={currentChild}
+              currentChild={currentChild}
               onFinish={handleNextStep}
               searchState={filterStateV2}
               onFocusChange={(focused) => searchFocusState.setSearchFocused(focused)}
             />
           )}
-          {currentTab === 'quantity' && (
-            <ContentEdit.Quantity item={currentChild} onFinish={handleNextStep} />
+          {currentTab === 'quantity' && currentChild.content && (
+            <ContentEdit.Quantity content={currentChild.content} onFinish={handleNextStep} />
           )}
         </WizardStep>
       </ModalLayout>

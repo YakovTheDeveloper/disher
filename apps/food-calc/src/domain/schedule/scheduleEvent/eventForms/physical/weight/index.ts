@@ -1,0 +1,1 @@
+export { weightConfig } from './config';

@@ -1,0 +1,1 @@
+export { focusConfig } from './config';

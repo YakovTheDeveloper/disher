@@ -4,16 +4,19 @@ import clsx from 'clsx';
 import { useCallback, useMemo, useRef } from 'react';
 import { useAnimationOnChange } from '@/components/features/builders/shared/hooks/useAnimationOnChange';
 import { Typography } from '@/components/ui/atoms/Typography';
+import {
+  FoodContentDishInstance,
+  FoodContentProductInstance,
+} from '@/domain/shared/foodContent/foodContent';
 type Props = {
-  children: () => string | null;
   onClick: () => void;
   after?: React.ReactNode;
   className?: string;
   content: { name: string } | null;
 };
 
-const FoodName = ({ className, children, onClick, after }: Props) => {
-  const initTitle = children();
+const FoodName = ({ className, onClick, after, content }: Props) => {
+  const initTitle = content?.name;
   const normalizedTitle = initTitle || 'не выбрано';
 
   const animationClassName = useAnimationOnChange(initTitle);
@@ -23,12 +26,7 @@ const FoodName = ({ className, children, onClick, after }: Props) => {
       ellipsis={true}
       variant="custom"
       after={after}
-      className={clsx([
-        styles.container,
-        className,
-        animationClassName,
-        !initTitle && styles.noTitle,
-      ])}
+      className={clsx([className, animationClassName, !initTitle && styles.noTitle])}
       onClick={onClick}
     >
       {normalizedTitle}

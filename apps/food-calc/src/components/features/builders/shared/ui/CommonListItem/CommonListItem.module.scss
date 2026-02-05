@@ -53,7 +53,9 @@
 }
 
 .commonListItemInner {
-    background-color: #f1fbf9;
+    background-color: #e6ffed;
+    outline: 1px solid #52ffba;
+
     position: relative;
     padding: 9px 8px 9px 12px;
     transition: background-color 0.3s ease, padding 0.3s ease;
@@ -119,6 +121,7 @@
 }
 
 .added {
+
     background-color: #e6ffed;
     // background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100px" height="100px" viewBox="0 0 15 15" fill="none"><path d="M7.5 4V11M4 7.5H11M7.5 14.5C3.63401 14.5 0.5 11.366 0.5 7.5C0.5 3.63401 3.63401 0.5 7.5 0.5C11.366 0.5 14.5 3.63401 14.5 7.5C14.5 11.366 11.366 14.5 7.5 14.5Z" stroke="%23000000"/></svg>');
 }

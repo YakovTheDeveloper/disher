@@ -8,6 +8,7 @@ export type Tab = {
   label?: string;
   alternativeLabel: string | React.ReactNode;
   disabled?: boolean;
+  disabledLabel?: string;
   finishTabHintMessage?: string;
 };
 
@@ -15,14 +16,13 @@ export type TabsProps = {
   tabs: Tab[];
   current: string;
   setTab: (tab: string) => void;
-  variant: keyof typeof GridVariants;
   onFinish?: () => void;
   finishHintText?: string;
 };
 
 const TABS_DEFAULT_FINISH_HINT = 'Click to finish!';
 
-const Tabs = ({ tabs, current, setTab, variant, onFinish, finishHintText }: TabsProps) => {
+const Tabs = ({ tabs, current, setTab, onFinish, finishHintText }: TabsProps) => {
   const isFinishTab = (index: number) => onFinish && index === tabs.length - 1;
 
   const handleTabClick = (tab: Tab, index: number) => {
@@ -95,7 +95,7 @@ const Tabs = ({ tabs, current, setTab, variant, onFinish, finishHintText }: Tabs
                     'ellipsis'
                   )}
                 >
-                  {tab.alternativeLabel}
+                  {tab.disabled ? tab.disabledLabel : tab.alternativeLabel}
                 </span>
               )}
             </button>
@@ -121,24 +121,24 @@ const Tabs = ({ tabs, current, setTab, variant, onFinish, finishHintText }: Tabs
 //   foodCreate: ['1fr', '1fr'],
 // };
 
-const LabelNamesView: Record<string, string> = {
-  quantity: 'Сколько',
-  value: 'Сколько',
-};
+// const LabelNamesView: Record<string, string> = {
+//   quantity: 'Сколько',
+//   value: 'Сколько',
+// };
 
-const ValueToIconView: Record<string, React.ReactNode | null> = {
-  info: <InfoIcon />,
-  value: null,
-};
+// const ValueToIconView: Record<string, React.ReactNode | null> = {
+//   info: <InfoIcon />,
+//   value: null,
+// };
 
-const getTabTitleView = (tab: Tab) => {
-  const { label, value } = tab;
-  if (value === 'info') return ValueToIconView[value];
+// const getTabTitleView = (tab: Tab) => {
+//   const { label, value } = tab;
+//   if (value === 'info') return ValueToIconView[value];
 
-  const icon = ValueToIconView[value] || '';
-  const normalizedLabel = LabelNamesView[value] || label;
+//   const icon = ValueToIconView[value] || '';
+//   const normalizedLabel = LabelNamesView[value] || label;
 
-  return [icon, normalizedLabel];
-};
+//   return [icon, normalizedLabel];
+// };
 
 export default observer(Tabs);

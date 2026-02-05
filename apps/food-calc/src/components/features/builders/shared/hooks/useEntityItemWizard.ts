@@ -43,10 +43,9 @@ export function useEntityItemWizard<T extends string>(
         baseTabs: readonly TabConfig<T>[];
         onFinish: () => JustCreatedItemId;
         onAfterFinish: () => void;
-        enableHashSync?: boolean;
     }
 ) {
-    const { defaultTab, baseTabs, onFinish, onAfterFinish, enableHashSync } = options;
+    const { defaultTab, baseTabs, onFinish, onAfterFinish } = options;
 
     // ========================================
     // Search Focus State (common)
@@ -75,7 +74,6 @@ export function useEntityItemWizard<T extends string>(
     const { currentTab, goNext, setTab, direction } = useTabs(
         tabs,
         defaultTab as T | undefined,
-        { enableHashSync }
     );
 
     // ========================================

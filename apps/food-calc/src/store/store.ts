@@ -1,13 +1,13 @@
 import makeInspectable from "mobx-devtools-mst";
 
-import { FoodModelStore } from "@/store/FoodStore/FoodStore";
-import { RootInstance, RootStore } from './types'
+import { FoodModelStore, FoodStoreInstance } from "@/store/FoodStore/FoodStore";
+import { RootInstance, RootStore } from './RootStoreModel'
 
 let _store: RootInstance | undefined;
 
 export const mstEnv = {
-    foodStore: FoodModelStore.create(),
-}
+    foodStore: undefined as FoodStoreInstance | undefined
+};
 
 function createStore(): RootInstance {
     try {
@@ -32,5 +32,6 @@ function createStore(): RootInstance {
 }
 
 export const domainStore = _store ?? (_store = createStore());
+mstEnv.foodStore = domainStore.foodStore;
 
 export const useStore = () => domainStore;

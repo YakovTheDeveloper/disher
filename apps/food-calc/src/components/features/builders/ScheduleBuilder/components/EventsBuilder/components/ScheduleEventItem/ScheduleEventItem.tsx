@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { Instance } from 'mobx-state-tree';
-import { EventItem } from '@/domain/schedule/scheduleEvent/scheduleEvent';
+import { ScheduleEventItem } from '@/domain/schedule/scheduleEvent/ScheduleEvent.model';
 
 import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
@@ -8,7 +8,7 @@ import { getEventDescription } from '@/components/features/builders/ScheduleBuil
 type Props = {
   children?: React.ReactNode;
   onClick: (id: number | string) => void;
-  item: Instance<typeof EventItem>;
+  item: Instance<typeof ScheduleEventItem>;
 };
 
 const ScheduleEventItem = ({ item }: Props) => {

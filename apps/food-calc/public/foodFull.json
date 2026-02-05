@@ -1,5 +1,16 @@
 [
     {
+        "id": "0",
+        "name": "Вода",
+        "description": "Питьевая вода",
+        "nutrients": [
+            {
+                "nutrientId": "8",
+                "quantity": 100
+            }
+        ]
+    },
+    {
         "id": "1",
         "name": "Хумус",
         "description": "Hummus, commercial",

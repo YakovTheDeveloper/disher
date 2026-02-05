@@ -2,11 +2,11 @@ import { observer } from 'mobx-react-lite';
 import styles from './EventContentEditForm.module.scss';
 import { Label } from '../Label';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import QuickButtons from '../../../../../../shared/atoms/QuickButtons/QuickButtons';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import { TextInput } from '@/components/ui/atoms/input/TextInput';
 import { GrowingInput } from '@/components/ui/atoms/input/GrowingInput';
 import clsx from 'clsx';
+import { QuickButtons } from '@/components/features/builders/shared/atoms/QuickButtons';
 
 type BaseField = {
   key: string;
@@ -49,11 +49,11 @@ const EventContentEditForm = observer(({ items, onChange }: Props) => {
     onChange(key, value);
   };
 
-  return items.map((config, index) => {
+  return items.map((config) => {
     const displayValue = String(config.value);
 
     return (
-      <div key={index}>
+      <div key={config.key}>
         <Label aside={<ScreenLabel variant="formValueLabel">{displayValue}</ScreenLabel>}>
           {config.before}
           {typeof config.value === 'number' && (

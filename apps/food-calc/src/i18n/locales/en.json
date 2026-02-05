@@ -1,0 +1,277 @@
+{
+    "category": {
+        "physical": "Physical",
+        "mental": "Mental",
+        "activity": "Activity",
+        "social": "Social",
+        "notes": "Notes"
+    },
+    "event": {
+        "custom": "Event",
+        "gratitude": "Gratitude",
+        "idea": "Idea",
+        "task": "Task",
+        "goal": "Goal",
+        "sleep": "Sleep",
+        "weight": "Weight",
+        "vitals": "Vitals",
+        "hydration": "Hydration",
+        "mood": "Mood",
+        "energy": "Energy",
+        "stress": "Stress",
+        "focus": "Focus",
+        "illness": "Illness",
+        "digestion": "Digestion",
+        "medication": "Medication",
+        "activity": "Activity",
+        "social": "Social",
+        "note": "Note"
+    },
+    "field": {
+        "sleep": {
+            "quality": "Quality",
+            "duration": "Duration"
+        },
+        "weight": {
+            "value": "Weight"
+        },
+        "vitals": {
+            "subtype": "Vital type",
+            "value": "Value"
+        },
+        "hydration": {
+            "subtype": "Beverage",
+            "volume": "Volume"
+        },
+        "mood": {
+            "value": "Mood"
+        },
+        "energy": {
+            "value": "Energy"
+        },
+        "stress": {
+            "subtype": "Stress source",
+            "level": "Level"
+        },
+        "focus": {
+            "value": "Focus",
+            "duration": "Duration"
+        },
+        "illness": {
+            "subtype": "Illness type",
+            "intensity": "Intensity",
+            "notes": "Notes"
+        },
+        "digestion": {
+            "subtype": "Symptom",
+            "intensity": "Intensity"
+        },
+        "medication": {
+            "subtype": "Medication type",
+            "name": "Name",
+            "dosage": "Dosage"
+        },
+        "activity": {
+            "subtype": "Activity type",
+            "duration": "Duration",
+            "intensity": "Intensity"
+        },
+        "social": {
+            "subtype": "Activity type",
+            "duration": "Duration",
+            "notes": "Notes"
+        },
+        "note": {
+            "content": "Content"
+        }
+    },
+    "subtype": {
+        "selectCategory": "Select category",
+        "illness": {
+            "headache": "Headache",
+            "cold": "Cold",
+            "fever": "Fever",
+            "cough": "Cough",
+            "nausea": "Nausea",
+            "allergy": "Allergy",
+            "pain": "Pain",
+            "fatigue": "Fatigue"
+        },
+        "digestion": {
+            "bloating": "Bloating",
+            "stomach_pain": "Stomach pain",
+            "heartburn": "Heartburn",
+            "constipation": "Constipation",
+            "diarrhea": "Diarrhea"
+        },
+        "medication": {
+            "pill": "Pills",
+            "drops": "Drops",
+            "injection": "Injection",
+            "syrup": "Syrup",
+            "topical": "Topical",
+            "other": "Other"
+        },
+        "vitals": {
+            "blood_pressure": "Blood pressure",
+            "heart_rate": "Heart rate",
+            "temperature": "Temperature",
+            "blood_sugar": "Blood sugar",
+            "oxygen": "Oxygen"
+        },
+        "hydration": {
+            "water": "Water",
+            "tea": "Tea",
+            "coffee": "Coffee",
+            "juice": "Juice",
+            "energy_drink": "Energy drink",
+            "smoothie": "Smoothie"
+        },
+        "stress": {
+            "work": "Work",
+            "personal": "Personal",
+            "financial": "Financial",
+            "health": "Health",
+            "relationship": "Relationship"
+        },
+        "anxiety": {
+            "mild": "Mild",
+            "moderate": "Moderate",
+            "severe": "Severe",
+            "panic": "Panic",
+            "general": "General",
+            "social": "Social"
+        },
+        "relaxation": {
+            "breathing": "Breathing",
+            "stretching": "Stretching",
+            "bath": "Bath",
+            "reading": "Reading",
+            "music": "Music",
+            "massage": "Massage",
+            "nature": "Nature"
+        },
+        "meditation": {
+            "mindfulness": "Mindfulness",
+            "guided": "Guided",
+            "body_scan": "Body scan",
+            "yoga_nidra": "Yoga nidra",
+            "loving_kindness": "Loving kindness",
+            "transcendental": "Transcendental"
+        },
+        "creativity": {
+            "drawing": "Drawing",
+            "writing": "Writing",
+            "music": "Music",
+            "crafts": "Crafts",
+            "cooking": "Cooking",
+            "photography": "Photography",
+            "diy": "DIY"
+        },
+        "activity": {
+            "sport": "Sport",
+            "walk": "Walk",
+            "exercise": "Exercise",
+            "steps": "Steps",
+            "swimming": "Swimming",
+            "cycling": "Cycling",
+            "yoga": "Yoga",
+            "dancing": "Dancing"
+        },
+        "hobby": {
+            "gaming": "Gaming",
+            "gardening": "Gardening",
+            "knitting": "Knitting",
+            "photography": "Photography",
+            "collecting": "Collecting",
+            "astronomy": "Astronomy",
+            "bird_watching": "Bird watching",
+            "fishing": "Fishing"
+        },
+        "chores": {
+            "cleaning": "Cleaning",
+            "laundry": "Laundry",
+            "shopping": "Shopping",
+            "errands": "Errands",
+            "cooking": "Cooking",
+            "dishwashing": "Dishwashing",
+            "organizing": "Organizing",
+            "home_repair": "Home repair"
+        },
+        "transport": {
+            "walking": "Walking",
+            "cycling": "Cycling",
+            "driving": "Driving",
+            "public_transit": "Public transit",
+            "taxi": "Taxi",
+            "running": "Running"
+        },
+        "social": {
+            "friends": "Friends",
+            "family": "Family",
+            "partner": "Partner",
+            "work_meeting": "Work meeting",
+            "party": "Party",
+            "call": "Call",
+            "date": "Date"
+        },
+        "online": {
+            "video_call": "Video call",
+            "messenger": "Messenger",
+            "social_media": "Social media",
+            "email": "Email",
+            "gaming": "Gaming",
+            "forum": "Forum",
+            "streaming": "Streaming"
+        },
+        "family": {
+            "kids": "Kids",
+            "parents": "Parents",
+            "siblings": "Siblings",
+            "extended_family": "Extended family",
+            "pets": "Pets",
+            "quality_time": "Quality time"
+        },
+        "partner": {
+            "date_night": "Date night",
+            "conversation": "Conversation",
+            "intimacy": "Intimacy",
+            "shared_activity": "Shared activity",
+            "support": "Support",
+            "conflict": "Conflict"
+        },
+        "task": {
+            "priority_low": "Low priority",
+            "priority_medium": "Medium priority",
+            "priority_high": "High priority",
+            "urgent": "Urgent",
+            "delegated": "Delegated",
+            "recurring": "Recurring"
+        },
+        "goal": {
+            "daily": "Daily",
+            "weekly": "Weekly",
+            "monthly": "Monthly",
+            "quarterly": "Quarterly",
+            "long_term": "Long term",
+            "milestone": "Milestone"
+        }
+    },
+    "common": {
+        "showAdvanced": "Show advanced",
+        "hideAdvanced": "Hide advanced"
+    },
+    "validation": {
+        "required": "Required field",
+        "min": "Minimum {min}",
+        "max": "Maximum {max}",
+        "minLength": "Minimum {minLength} characters",
+        "maxLength": "Maximum {maxLength} characters",
+        "rating_1_to_10": "Rating from 1 to 10",
+        "max_24_hours": "Maximum 24 hours",
+        "max_12_hours": "Maximum 12 hours",
+        "max_8_hours": "Maximum 8 hours",
+        "select_type": "Select type",
+        "enter_name": "Enter name"
+    }
+}

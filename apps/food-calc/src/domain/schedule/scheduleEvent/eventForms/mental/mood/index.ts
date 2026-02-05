@@ -1,0 +1,1 @@
+export { moodConfig } from './config';

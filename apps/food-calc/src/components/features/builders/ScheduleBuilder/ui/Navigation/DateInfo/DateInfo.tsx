@@ -18,7 +18,7 @@ type Props = {
 
 const DateInfo = ({ scrollYProgress }: Props) => {
   const params = useParams();
-  const dateParam = params.date;
+  const dateParam = params.id;
   const modals = domainStore.globalUiStore.drawerStore;
 
   const { day, monthName, monthNumber, weekdayName, weekdayNameShort } = getTitle(dateParam);

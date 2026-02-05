@@ -8,98 +8,77 @@ export type EventCategory =
     | 'social'        // Социальная активность
     | 'notes';        // Заметки и события
 
-/**
- * Подтипы физических событий (illness)
- */
-export type IllnessSubtype =
-    | 'headache'      // Головная боль
-    | 'cold'          // Простуда
-    | 'fever'         // Жар/температура
-    | 'cough'         // Кашель
-    | 'nausea'        // Тошнота
-    | 'allergy'       // Аллергия
-    | 'pain'          // Боль (общая)
-    | 'fatigue';      // Усталость/слабость
+// Подтипы теперь определены в соответствующих *.config.ts файлах:
+// - physical.config.ts: IllnessSubtype, DigestionSubtype, MedicationSubtype, VitalsSubtype, HydrationSubtype
+// - mental.config.ts: StressSubtype, AnxietySubtype, RelaxationSubtype, MeditationSubtype, CreativitySubtype
+// - activity.config.ts: ActivitySubtype, HobbySubtype, ChoresSubtype, TransportSubtype
+// - social.config.ts: SocialSubtype, OnlineSubtype, FamilySubtype, PartnerSubtype
+// - notes.config.ts: TaskSubtype, GoalSubtype
 
 /**
- * Подтипы пищеварительных событий
- */
-export type DigestionSubtype =
-    | 'bloating'      // Вздутие
-    | 'stomach_pain'  // Боль в желудке
-    | 'heartburn'     // Изжога
-    | 'constipation'  // Запор
-    | 'diarrhea';     // Диарея
-
-/**
- * Подтипы медикаментов
- */
-export type MedicationSubtype =
-    | 'pill'          // Таблетки
-    | 'drops'         // Капли
-    | 'injection'     // Инъекции
-    | 'syrup'         // Сироп
-    | 'topical'       // Наружные средства
-    | 'other';        // Другое
-
-/**
- * Подтипы стрессовых событий
- */
-export type StressSubtype =
-    | 'work'          // Рабочий стресс
-    | 'personal'      // Личный стресс
-    | 'financial'     // Финансовый стресс
-    | 'health'        // Стресс о здоровье
-    | 'relationship'; // Стресс в отношениях
-
-/**
- * Подтипы социальных событий
- */
-export type SocialSubtype =
-    | 'friends'       // Встреча с друзьями
-    | 'family'        // Семья
-    | 'partner'       // Партнёр
-    | 'work_meeting'  // Рабочая встреча
-    | 'party'         // Вечеринка
-    | 'call'          // Звонок
-    | 'date';         // Свидание
-
-/**
- * Подтипы активности
- */
-export type ActivitySubtype =
-    | 'sport'         // Спорт
-    | 'walk'          // Прогулка
-    | 'exercise'      // Упражнения
-    | 'steps';        // Шаги
-
-/**
- * Все возможные подтипы событий
+ * Все возможные подтипы событий (объединение из всех config файлов)
  */
 export type EventSubtype =
-    | IllnessSubtype
-    | DigestionSubtype
-    | MedicationSubtype
-    | StressSubtype
-    | SocialSubtype
-    | ActivitySubtype;
+    | import('./eventForms/physical.config').IllnessSubtype
+    | import('./eventForms/physical.config').DigestionSubtype
+    | import('./eventForms/physical.config').MedicationSubtype
+    | import('./eventForms/physical.config').VitalsSubtype
+    | import('./eventForms/physical.config').HydrationSubtype
+    | import('./eventForms/mental.config').StressSubtype
+    | import('./eventForms/mental.config').AnxietySubtype
+    | import('./eventForms/mental.config').RelaxationSubtype
+    | import('./eventForms/mental.config').MeditationSubtype
+    | import('./eventForms/mental.config').CreativitySubtype
+    | import('./eventForms/activity.config').ActivitySubtype
+    | import('./eventForms/activity.config').HobbySubtype
+    | import('./eventForms/activity.config').ChoresSubtype
+    | import('./eventForms/activity.config').TransportSubtype
+    | import('./eventForms/social.config').SocialSubtype
+    | import('./eventForms/social.config').OnlineSubtype
+    | import('./eventForms/social.config').FamilySubtype
+    | import('./eventForms/social.config').PartnerSubtype
+    | import('./eventForms/notes.config').TaskSubtype
+    | import('./eventForms/notes.config').GoalSubtype;
 
 /**
  * Базовые типы событий
  */
 export type BaseEventType =
+    // Physical
     | 'sleep'
+    | 'illness'
+    | 'digestion'
+    | 'medication'
+    | 'weight'
+    | 'vitals'
+    | 'hydration'
+    // Mental
     | 'mood'
     | 'energy'
     | 'stress'
     | 'focus'
-    | 'illness'
-    | 'digestion'
-    | 'medication'
+    | 'anxiety'
+    | 'relaxation'
+    | 'meditation'
+    | 'creativity'
+    // Activity
+    | 'sport'
     | 'activity'
+    | 'hobby'
+    | 'chores'
+    | 'transport'
+    // Social
     | 'social'
+    | 'online'
+    | 'family'
+    | 'partner'
+    // Notes
     | 'note'
-    | 'custom';
+    | 'custom'
+    | 'gratitude'
+    | 'idea'
+    | 'task'
+    | 'goal';
 
 /**
  * Полный тип события с категорией
@@ -155,7 +134,29 @@ export const EVENT_TYPES: Record<BaseEventType, EventTypeDefinition> = {
         defaultIcon: 'medication',
         color: '#10B981', // Emerald
     },
-
+    weight: {
+        type: 'weight',
+        category: 'physical',
+        localizationKey: 'event.weight',
+        defaultIcon: 'weight',
+        color: '#14B8A6', // Teal
+    },
+    vitals: {
+        type: 'vitals',
+        category: 'physical',
+        localizationKey: 'event.vitals',
+        subtypes: ['blood_pressure', 'heart_rate', 'temperature', 'blood_sugar', 'oxygen'],
+        defaultIcon: 'vitals',
+        color: '#06B6D4', // Cyan
+    },
+    hydration: {
+        type: 'hydration',
+        category: 'physical',
+        localizationKey: 'event.hydration',
+        subtypes: ['water', 'tea', 'coffee', 'juice', 'energy_drink', 'smoothie'],
+        defaultIcon: 'hydration',
+        color: '#0EA5E9', // Sky Blue
+    },
     // === MENTAL (Ментальное состояние) ===
     mood: {
         type: 'mood',
@@ -186,15 +187,79 @@ export const EVENT_TYPES: Record<BaseEventType, EventTypeDefinition> = {
         defaultIcon: 'focus',
         color: '#3B82F6', // Blue
     },
+    anxiety: {
+        type: 'anxiety',
+        category: 'mental',
+        localizationKey: 'event.anxiety',
+        subtypes: ['mild', 'moderate', 'severe', 'panic', 'general', 'social'],
+        defaultIcon: 'anxiety',
+        color: '#F43F5E', // Rose
+    },
+    relaxation: {
+        type: 'relaxation',
+        category: 'mental',
+        localizationKey: 'event.relaxation',
+        subtypes: ['breathing', 'stretching', 'bath', 'reading', 'music', 'massage', 'nature'],
+        defaultIcon: 'relaxation',
+        color: '#34D399', // Emerald Light
+    },
+    meditation: {
+        type: 'meditation',
+        category: 'mental',
+        localizationKey: 'event.meditation',
+        subtypes: ['mindfulness', 'guided', 'body_scan', 'yoga_nidra', 'loving_kindness', 'transcendental'],
+        defaultIcon: 'meditation',
+        color: '#818CF8', // Indigo Light
+    },
+    creativity: {
+        type: 'creativity',
+        category: 'mental',
+        localizationKey: 'event.creativity',
+        subtypes: ['drawing', 'writing', 'music', 'crafts', 'cooking', 'photography', 'diy'],
+        defaultIcon: 'creativity',
+        color: '#F472B6', // Pink Light
+    },
 
     // === ACTIVITY (Физическая активность) ===
+    sport: {
+        type: 'sport',
+        category: 'activity',
+        localizationKey: 'event.sport',
+        subtypes: ['running', 'gym', 'football', 'basketball', 'tennis', 'swimming', 'yoga', 'cycling'],
+        defaultIcon: 'sport',
+        color: '#10B981', // Emerald
+    },
     activity: {
         type: 'activity',
         category: 'activity',
         localizationKey: 'event.activity',
-        subtypes: ['sport', 'walk', 'exercise', 'steps'],
+        subtypes: ['sport', 'walk', 'exercise', 'steps', 'swimming', 'cycling', 'yoga', 'dancing'],
         defaultIcon: 'activity',
         color: '#22C55E', // Green
+    },
+    hobby: {
+        type: 'hobby',
+        category: 'activity',
+        localizationKey: 'event.hobby',
+        subtypes: ['gaming', 'gardening', 'knitting', 'photography', 'collecting', 'astronomy', 'bird_watching', 'fishing'],
+        defaultIcon: 'hobby',
+        color: '#84CC16', // Lime
+    },
+    chores: {
+        type: 'chores',
+        category: 'activity',
+        localizationKey: 'event.chores',
+        subtypes: ['cleaning', 'laundry', 'shopping', 'errands', 'cooking', 'dishwashing', 'organizing', 'home_repair'],
+        defaultIcon: 'chores',
+        color: '#A3E635', // Lime Light
+    },
+    transport: {
+        type: 'transport',
+        category: 'activity',
+        localizationKey: 'event.transport',
+        subtypes: ['walking', 'cycling', 'driving', 'public_transit', 'taxi', 'running'],
+        defaultIcon: 'transport',
+        color: '#64748B', // Slate
     },
 
     // === SOCIAL (Социальная активность) ===
@@ -205,6 +270,30 @@ export const EVENT_TYPES: Record<BaseEventType, EventTypeDefinition> = {
         subtypes: ['friends', 'family', 'partner', 'work_meeting', 'party', 'call', 'date'],
         defaultIcon: 'social',
         color: '#EC4899', // Pink
+    },
+    online: {
+        type: 'online',
+        category: 'social',
+        localizationKey: 'event.online',
+        subtypes: ['video_call', 'messenger', 'social_media', 'email', 'gaming', 'forum', 'streaming'],
+        defaultIcon: 'online',
+        color: '#6366F1', // Indigo
+    },
+    family: {
+        type: 'family',
+        category: 'social',
+        localizationKey: 'event.family',
+        subtypes: ['kids', 'parents', 'siblings', 'extended_family', 'pets', 'quality_time'],
+        defaultIcon: 'family',
+        color: '#F59E0B', // Amber
+    },
+    partner: {
+        type: 'partner',
+        category: 'social',
+        localizationKey: 'event.partner',
+        subtypes: ['date_night', 'conversation', 'intimacy', 'shared_activity', 'support', 'conflict'],
+        defaultIcon: 'partner',
+        color: '#F97316', // Orange
     },
 
     // === NOTES (Заметки и события) ===
@@ -221,6 +310,36 @@ export const EVENT_TYPES: Record<BaseEventType, EventTypeDefinition> = {
         localizationKey: 'event.custom',
         defaultIcon: 'custom',
         color: '#9CA3AF', // Light Gray
+    },
+    gratitude: {
+        type: 'gratitude',
+        category: 'notes',
+        localizationKey: 'event.gratitude',
+        defaultIcon: 'gratitude',
+        color: '#FBBF24', // Amber
+    },
+    idea: {
+        type: 'idea',
+        category: 'notes',
+        localizationKey: 'event.idea',
+        defaultIcon: 'idea',
+        color: '#A855F7', // Purple
+    },
+    task: {
+        type: 'task',
+        category: 'notes',
+        localizationKey: 'event.task',
+        subtypes: ['priority_low', 'priority_medium', 'priority_high', 'urgent', 'delegated', 'recurring'],
+        defaultIcon: 'task',
+        color: '#3B82F6', // Blue
+    },
+    goal: {
+        type: 'goal',
+        category: 'notes',
+        localizationKey: 'event.goal',
+        subtypes: ['daily', 'weekly', 'monthly', 'quarterly', 'long_term', 'milestone'],
+        defaultIcon: 'goal',
+        color: '#10B981', // Emerald
     },
 };
 

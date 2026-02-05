@@ -4,12 +4,6 @@ $border-width: 3px;
 
 .item {
     display: flex;
-    overflow: hidden;
-    border-top-right-radius: 16px;
-    border-bottom-right-radius: 16px;
-
-    border-radius: 16px;
-    overflow: hidden;
     position: relative;
     flex: 1 0;
 
@@ -33,9 +27,7 @@ $border-width: 3px;
     .innerListItem {
         z-index: 2;
 
-        border-left: $border-width solid transparent;
-        border-top: $border-width solid transparent;
-        border-bottom: $border-width solid transparent;
+        // border: $border-width solid transparent;
         border-radius: 32px;
         flex: 1 0;
     }
@@ -49,12 +41,12 @@ $border-width: 3px;
         background-color: rgb(237 237 237);
         position: relative;
         border-radius: 32px;
-        border: $border-width solid transparent;
+        border: 2px solid transparent;
     }
 
     .selectButton,
     .innerListItem {
-        transition: border-color 2s ease-in-out;
+        transition: border-color 0.5s ease-in-out;
     }
 
     &.selected {
@@ -65,44 +57,20 @@ $border-width: 3px;
         }
 
         .selectButton {
-            border-left: unset;
+            background-color: rgb(255, 255, 255);
+            // border-color: blue;
 
             &:after {
                 pointer-events: none;
                 inset: 0;
                 content: '';
                 position: absolute;
-                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>');
-                background-size: 20px 20px;
+                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="blue" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>');
+                background-size: 23px;
                 background-repeat: no-repeat;
                 background-position: center;
                 font-size: 2rem;
             }
-        }
-
-        .innerListItem {
-
-            li {
-                border-top-right-radius: 0px;
-                border-bottom-right-radius: 0px;
-            }
-        }
-
-
-        .innerListItem,
-        .selectButton {
-            border-color: blue;
-        }
-
-        .selectButton {
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
-            background-color: rgb(255, 255, 255);
-        }
-
-        .innerListItem {
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 0;
         }
     }
 }

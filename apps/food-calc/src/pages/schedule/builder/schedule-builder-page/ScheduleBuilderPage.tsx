@@ -52,7 +52,7 @@ const Page = observer(({ date }: { date: string }) => {
 
 const GetDatePageWrapper = () => {
   const params = useParams();
-  const date = params.date;
+  const date = params.id;
   const navigate = useNavigate();
 
   useEffect(() => {

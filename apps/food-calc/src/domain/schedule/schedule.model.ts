@@ -1,14 +1,12 @@
-import { clone, getEnv, getRoot, getSnapshot, Instance, onPatch, types } from "mobx-state-tree";
+import { getSnapshot, Instance, onPatch, types } from "mobx-state-tree";
 import { SyncStatus } from "@/domain/commonListItem";
 import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
 import { emitter } from "@/infrastructure/emitter/emitter";
 import { ChildrenController } from "@/domain/shared/ChildrenController";
 import { groupItemsByTime } from "@/domain/schedule/schedule.service";
-import { EventItem } from "@/domain/schedule/scheduleEvent/scheduleEvent";
+import { ScheduleEventItem } from "@/domain/schedule/scheduleEvent/ScheduleEvent.model";
 import { DishStore } from "@/store/DishStore/DishStore";
-import { FoodContentDish, FoodContentProduct, FoodContentType } from "@/domain/shared/foodContent/foodContent";
-import { ScheduleFactory } from "@/domain/schedule/factory";
-import { generateId } from "@/lib/id/generateId";
+import { ContentControllerFood, FullContent } from "@/domain/shared/foodContent/foodContent";
 
 export interface RootStoreEnv {
     dishStore: Instance<typeof DishStore>;
@@ -16,105 +14,21 @@ export interface RootStoreEnv {
 
 export type ScheduleItemType = Instance<typeof ScheduleItem>["type"];
 
-const ScheduleItemContent = types.union(
-    {
-        dispatcher(snapshot) {
-            if (snapshot == null) {
-                return FoodContentProduct
-            }
-
-            return snapshot.variant === "dish"
-                ? FoodContentDish
-                : FoodContentProduct
-        },
-    },
-    FoodContentProduct,
-    FoodContentDish
-)
-
-export const ScheduleItem = types.model("ScheduleItem", {
+export const ScheduleItem = types.compose("ScheduleItem", types.model({
     id: types.identifier,
-    quantity: types.number,
     time: types.string,
     sync: types.optional(SyncStatus, {}),
-    content: types.maybeNull(ScheduleItemContent)
 
-}).views(self => ({
-    get type() {
-        return self.content?.variant || ''
-    },
-}))
+}), ContentControllerFood)
     .actions(self => {
         function updateTime(time: string) {
             self.time = time;
         }
-        function updateQuantity(quantity: number) {
-            self.quantity = quantity;
-        }
-        function updateContent(inputVariant: FoodContentType, id: string) {
-
-            if (self.content === null) {
-                if (inputVariant === 'product') {
-                    self.content = ScheduleItemContent.create({
-                        variant: 'product',
-                        foodId: id
-                    })
-                } else {
-                    self.content = ScheduleItemContent.create({
-                        variant: 'dish',
-                        dishId: id
-                    })
-                }
-                return
-            }
-
-            if (self.content.variant === 'dish' && inputVariant === 'product') {
-                self.content = ScheduleItemContent.create({
-                    variant: 'product',
-                    foodId: id
-                })
-                return
-            }
-            if (self.content.variant === 'product' && inputVariant === 'dish') {
-                self.content = ScheduleItemContent.create({
-                    variant: 'dish',
-                    dishId: id
-                })
-                return
-            }
-            self.content.update(id)
-        }
 
         return {
-            updateTime,
-            updateQuantity,
-            updateContent
+            updateTime
         }
     });
-
-export const Draft = types.model("Draft", {
-    eventDraft: types.optional(EventItem, {
-        id: "DRAFT",
-        time: '12:00',
-        type: 'custom',
-        value: ''
-    }),
-    foodDraft: types.optional(ScheduleItem, {
-        id: "DRAFT",
-        time: '12:00',
-        quantity: 100
-    })
-}).actions(self => ({
-    clearEvent() {
-        self.eventDraft.time = '12:00'
-        self.eventDraft.type = 'custom'
-        self.eventDraft.value = ''
-    },
-    clearFood() {
-        self.foodDraft.content = null
-        self.foodDraft.quantity = 100
-    },
-}));
 
 export const DaySchedule = types.model({
     id: types.identifier,
@@ -122,20 +36,19 @@ export const DaySchedule = types.model({
     lastSync: types.optional(types.string, ""),
     lastTimeItemAdded: types.optional(types.string, ""),
     lastTimeEventAdded: types.optional(types.string, ""),
-    draft: types.optional(Draft, {}),
     foods: ChildrenController(ScheduleItem),
-    events: ChildrenController(EventItem),
+    events: ChildrenController(ScheduleEventItem),
 })
     .views(self => ({
         getChildById(id: string): Instance<typeof ScheduleItem> | null {
             return self.foods.items.find(item => item.id.toString() === id) || null;
         },
         get customItems() {
-            return self.foods.items.filter(item => item.content?.food?.createdByUser) || null;
+            return self.foods.items.filter(item => item.content?.variant === "product" && item.content?.food?.createdByUser) || null;
         },
         get allDraftDishesFromItems() {
             return self.foods.items
-                .filter(item => item.content?.variant === "dish" && item.content.dish && !item.content.dish.lastSync)
+                .filter(item => item.content?.variant === "dish" && item.content?.dish && !item.content.dish.lastSync)
                 .map(item => item.content.dish!)
 
         },
@@ -169,7 +82,10 @@ export const DaySchedule = types.model({
             // локальный слушатель ПАТЧЕЙ
             disposer = onPatch(self, patch => {
                 if (
-                    patch.path.match(/items\/\d+\/quantity/) ||
+                    patch.path.match(/items\/\d+\/content\/contentProduct\/\w+\/quantity/) ||
+                    patch.path.match(/items\/\d+\/content\/contentDish\/\w+\/quantity/) ||
+                    patch.path.match(/items\/\d+\/content\/contentProduct/) ||
+                    patch.path.match(/items\/\d+\/content\/contentDish/) ||
                     patch.path.match(/items\/\d+\/content/) ||
                     patch.path === "/items" ||                         // полностью изменён
                     patch.path.match(/items\/\d+$/)                    // add/remove
@@ -179,18 +95,6 @@ export const DaySchedule = types.model({
             })
         }
 
-        function addDraftToFoods() {
-            const instance = self.foods.addChildWithLocalData(getSnapshot(self.draft.foodDraft))
-            self.draft.clearFood()
-            return instance.id;
-        }
-
-        function addDraftToEvents() {
-            const instance = self.events.addChildWithLocalData(getSnapshot(self.draft.eventDraft))
-            self.draft.clearEvent()
-            return instance.id;
-        }
-
         function beforeDestroy() {
             disposer?.()
         }
@@ -198,7 +102,7 @@ export const DaySchedule = types.model({
         function getTotalNutrients() {
             const nutrients = self.foods.items.map(item => {
                 if (item.content == null) return {}
-                return item.content.getTotalNutrients()
+                return item.content.getTotalNutrients() || {}
             });
             return sumRecordArray(nutrients);
         }
@@ -226,31 +130,29 @@ export const DaySchedule = types.model({
             // self.lastTimeItemAdded = time
         }
 
-        function updateQuantity(id: string, quantity: number) {
-            self.foods.updateChildById({ id, quantity });
-        }
+        function addOrUpdateEvent(itemId: string | null, state: { type: string, data: Record<string, unknown> | null, time: string }) {
+            const { type, data, time } = state;
 
-        function addOrUpdateEvent(itemId: string | null, state: { type: string, value: string, time: string }) {
-            const { type, value, time } = state;
+            // Извлекаем subtype из data, если он там есть
+            const { subtype, ...restData } = (data as Record<string, unknown>) || {};
+
             if (!itemId) {
                 self.events.addChildWithLocalData({
                     type,
                     time,
-                    value,
+                    subtype: subtype as string[] || [],
+                    data: restData,
                 });
                 return;
             }
-            self.events.updateChildById({ id: itemId, type, value, time });
+            self.events.updateChildById({ id: itemId, type, subtype: subtype as string[] || [], data: restData, time });
         }
 
         return {
-            addDraftToFoods,
-            addDraftToEvents,
             updateEventTime,
             addOrUpdateEvent,
             // changeStatusByIds,
             updateTime,
-            updateQuantity,
             getTotalNutrients,
             afterCreate,
             beforeDestroy

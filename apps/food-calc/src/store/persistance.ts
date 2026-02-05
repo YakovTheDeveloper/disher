@@ -1,93 +1,186 @@
-// import { onSnapshot, applySnapshot, getSnapshot } from "mobx-state-tree"
-// import { db } from "@/infrastructure/storage/db"
-
-// export async function makePersistable(store: any, key: string) {
-//     // 1. Try to load from IndexedDB
-//     const saved = await db.snapshots.get(key)
-
-//     if (saved) {
-//         try {
-//             applySnapshot(store, saved.data)
-//         } catch (e) {
-//             console.error(`Failed to load MST snapshot for ${key} from IndexedDB. Error:`, e)
-
-//         }
-//     } else {
-//         // 2. Fallback to LocalStorage and migrate if exists
-//         const legacyData = localStorage.getItem(key)
-//         if (legacyData) {
-//             try {
-//                 const parsed = JSON.parse(legacyData)
-//                 applySnapshot(store, parsed)
-
-//                 await db.snapshots.put({ key, data: parsed })
-
-//                 console.log(`Migrated ${key} from LocalStorage to IndexedDB`)
-//             } catch (e) {
-//                 console.error(`Failed to migrate ${key} from LocalStorage. Error:`, e)
-//             }
-//         } else {
-//             // No saved data found, perform initial save of current state
-//             try {
-//                 const initialSnapshot = getSnapshot(store)
-//                 await db.snapshots.put({ key, data: initialSnapshot })
-//                 console.log(`Initial snapshot for ${key} saved to IndexedDB`)
-//             } catch (e) {
-//                 console.error(`Failed to save initial MST snapshot for ${key} to IndexedDB. Error:`, e)
-//             }
-//         }
-//     }
-
-//     onSnapshot(store, async snapshot => {
-
-//         try {
-//             await db.snapshots.put({ key, data: snapshot })
-//         } catch (e) {
-//             console.warn("Snapshot possibly not cloneable", snapshot)
-//             console.error(`Failed to save MST snapshot for ${key} to IndexedDB. Error:`, e)
-//         }
-//     })
-// }
-
-import { applySnapshot, onSnapshot } from "mobx-state-tree"
+import { applySnapshot, getSnapshot, onSnapshot, IAnyStateTreeNode } from "mobx-state-tree"
 import { db } from "@/infrastructure/storage/db"
 
-async function loadSnapshotFromStorage(key: string) {
-    const saved = await db.snapshots.get(key)
+const STORE_VERSION = 1
+const MAX_RETRY_ATTEMPTS = 3
+const RETRY_DELAY_MS = 100
 
-    if (saved) return saved.data
+interface HydrateOptions {
+    seed?: () => Promise<void> | void
+}
 
-    const legacy = localStorage.getItem(key)
-    if (legacy) {
-        const parsed = JSON.parse(legacy)
-        await db.snapshots.put({ key, data: parsed })
-        localStorage.removeItem(key)
-        return parsed
+function log(action: string, key: string, details?: unknown) {
+    console.log(`[Persistence:${key}] ${action}`, details ?? "")
+}
+
+function logError(action: string, key: string, error: unknown) {
+    console.error(`[Persistence:${key}] ERROR: ${action}`, error)
+}
+
+async function delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function retryWithBackoff<T>(
+    operation: () => Promise<T>,
+    key: string,
+    operationName: string
+): Promise<T | null> {
+    for (let attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+        try {
+            return await operation()
+        } catch (e) {
+            logError(`${operationName} (attempt ${attempt}/${MAX_RETRY_ATTEMPTS})`, key, e)
+
+            if (attempt === MAX_RETRY_ATTEMPTS) {
+                logError(`${operationName} failed after all retries`, key, e)
+                return null
+            }
+
+            await delay(RETRY_DELAY_MS * attempt)
+        }
     }
-
     return null
 }
 
-function persist(store: any, key: string) {
-    return onSnapshot(store, snapshot => {
-        db.snapshots.put({ key, data: snapshot }).catch(e => {
-            console.warn("Failed to persist snapshot", e)
-        })
+async function loadSnapshotFromStorage(key: string): Promise<unknown | null> {
+    log("Loading from IndexedDB...", key)
+
+    const saved = await retryWithBackoff(
+        () => db.snapshots.get(key),
+        key,
+        "Load from IndexedDB"
+    )
+
+    if (saved) {
+        log("Found in IndexedDB", key, { version: saved.version, timestamp: saved.timestamp })
+        return saved.data
+    }
+
+    // Fallback to LocalStorage
+    try {
+        const legacy = localStorage.getItem(key)
+        if (legacy) {
+            log("Found in LocalStorage, migrating...", key)
+            const parsed = JSON.parse(legacy)
+            const migrated = await retryWithBackoff(
+                () => db.snapshots.put({
+                    key,
+                    data: parsed,
+                    version: STORE_VERSION,
+                    timestamp: Date.now(),
+                }),
+                key,
+                "Migrate to IndexedDB"
+            )
+
+            if (migrated !== null) {
+                localStorage.removeItem(key)
+                log("Migrated from LocalStorage", key)
+            }
+            return parsed
+        }
+    } catch (e) {
+        logError("Failed to migrate from LocalStorage", key, e)
+    }
+
+    log("No saved data found", key)
+    return null
+}
+
+async function saveSnapshot(key: string, snapshot: unknown): Promise<boolean> {
+    const result = await retryWithBackoff(
+        () => db.snapshots.put({
+            key,
+            data: snapshot,
+            version: STORE_VERSION,
+            timestamp: Date.now(),
+        }),
+        key,
+        "Save snapshot"
+    )
+
+    if (result === null) {
+        // Fallback to LocalStorage if IndexedDB fails
+        try {
+            localStorage.setItem(key, JSON.stringify(snapshot))
+            log("Fallback: Saved to LocalStorage", key)
+            return true
+        } catch (e) {
+            logError("Failed to save to LocalStorage fallback", key, e)
+            return false
+        }
+    }
+
+    return true
+}
+
+function persist(store: IAnyStateTreeNode, key: string) {
+    log("Starting persistence subscription", key)
+
+    return onSnapshot(store, async snapshot => {
+        const success = await saveSnapshot(key, snapshot)
+        if (success) {
+            log("Snapshot saved", key)
+        } else {
+            logError("Failed to save snapshot", key, "All persistence methods failed")
+        }
     })
 }
 
 export async function hydrateAndPersist(
-    store: any,
+    store: IAnyStateTreeNode,
     key: string,
     options?: HydrateOptions
 ) {
+    log("=== Starting hydration ===", key)
+
     const snapshot = await loadSnapshotFromStorage(key)
 
     if (snapshot) {
-        applySnapshot(store, snapshot)
+        log("Applying snapshot...", key)
+        try {
+            applySnapshot(store, snapshot)
+            log("Snapshot applied successfully", key)
+        } catch (e) {
+            logError("Failed to apply snapshot", key, e)
+            // Clear corrupted data
+            await retryWithBackoff(
+                () => db.snapshots.delete(key),
+                key,
+                "Clear corrupted snapshot"
+            )
+            localStorage.removeItem(key)
+            log("Cleared corrupted snapshot", key)
+
+            // Continue to seed as fallback
+            if (options?.seed) {
+                log("Fallback to seed due to applySnapshot error", key)
+                try {
+                    await options.seed()
+                    log("Seed completed", key)
+                } catch (seedError) {
+                    logError("Seed failed", key, seedError)
+                }
+            }
+        }
     } else if (options?.seed) {
-        await options.seed()
+        log("No snapshot, running seed...", key)
+        try {
+            await options.seed()
+            log("Seed completed", key)
+        } catch (e) {
+            logError("Seed failed", key, e)
+        }
     }
 
+    // Immediately save current state after hydration/seed
+    // This ensures data is in IndexedDB even if store never changes
+    log("Saving initial state to IndexedDB", key)
+    const currentSnapshot = getSnapshot(store)
+    await saveSnapshot(key, currentSnapshot)
+
     persist(store, key)
+
+    log("=== Hydration completed ===", key)
 }

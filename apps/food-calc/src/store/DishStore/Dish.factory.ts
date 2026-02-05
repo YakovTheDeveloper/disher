@@ -1,9 +1,6 @@
-import { allNutrientsList } from "@/components/features/builders/shared/ContentInfo/Nutrients/constants";
 import { Dish, DishItem } from "@/domain/dish/Dish.model";
-import { ScheduleItem } from "@/domain/schedule/schedule.model";
 import { generateId } from "@/lib/id/generateId";
 import { StoreEntityFactory } from "@/store/types/factory";
-import { ISODate } from "@/types/common/common";
 import { Instance, SnapshotIn, SnapshotOut } from "mobx-state-tree";
 
 export const DishFactory: StoreEntityFactory<typeof Dish, SnapshotIn<typeof Dish>> & {
@@ -33,12 +30,15 @@ export const DishFactory: StoreEntityFactory<typeof Dish, SnapshotIn<typeof Dish
 
     createNewLocalFromScheduleProducts(data: SnapshotOut<typeof DishItem>[]) {
         const onlyFoodItems = data
-            .filter(el => el.content.variant === 'food' && el.sync.status !== 'deleted')
+            .filter(el => el.content.variant === 'product' && el.sync.status !== 'deleted')
             .map(el => ({
                 id: el.id,
                 foodId: String(el.content.foodId),
-                food: String(el.content.foodId),
-                quantity: el.quantity,
+                content: {
+                    variant: 'product' as const,
+                    foodId: String(el.content.foodId),
+                    quantity: el.content.quantity,
+                },
                 status: "added" as const,
             }))!;
 
@@ -57,5 +57,10 @@ export const DishFactory: StoreEntityFactory<typeof Dish, SnapshotIn<typeof Dish
 
 const createDraftDishItem = (): SnapshotIn<typeof DishItem> => ({
     id: "DRAFT",
-    foodId: 1
+    foodId: "",
+    content: {
+        foodId: "",
+        variant: "product" as const,
+        quantity: 100
+    }
 })

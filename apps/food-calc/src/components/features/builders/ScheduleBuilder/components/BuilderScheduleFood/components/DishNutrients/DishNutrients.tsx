@@ -34,7 +34,7 @@ const DishNutrients = ({ currentChild, currentDish }: Props) => {
     nutrientStore.loadNutrientsAndCalculate();
   }, [currentTab]);
 
-  const onChange = (e) => schedule.updateQuantity(currentChild.id, +e.target.value);
+  const onChange = (e) => currentChild.content.updateQuantity(+e.target.value);
 
   const isLoading = useCallback(() => nutrientStore.isOneOfProductsIsLoading, [nutrientStore]);
 
@@ -55,7 +55,7 @@ const DishNutrients = ({ currentChild, currentDish }: Props) => {
           {currentDish.name}
         </div>
         <div>
-          <input type="number" onChange={onChange} value={currentChild.quantity} />
+          <input type="number" onChange={onChange} value={currentChild.content.quantity} />
         </div>
       </header>
 

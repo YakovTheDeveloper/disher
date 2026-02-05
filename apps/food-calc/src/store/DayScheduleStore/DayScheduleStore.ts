@@ -1,4 +1,4 @@
-import { types, flow, cast, Instance } from "mobx-state-tree"
+import { types, flow, cast, Instance, getSnapshot } from "mobx-state-tree"
 import {
     getSchedules,
     getOneSchedule,
@@ -12,6 +12,10 @@ import { DaySchedule, ScheduleItem } from "@/domain/schedule/schedule.model"
 import { createDayScheduleModel } from "@/store/DayScheduleStore/fabric"
 import { createRequestController } from "@/store/common/pureFabrication/createRequestController"
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel"
+import { ScheduleEventItem } from "@/domain/schedule/scheduleEvent/ScheduleEvent.model"
+
+// Default draft values
+const DEFAULT_DRAFT_TIME = '12:00'
 
 export const DayScheduleStore = types
     .model("DayScheduleStore", {
@@ -25,6 +29,18 @@ export const DayScheduleStore = types
         status: types.optional(StatusModel, {
             fetchGet: {},
             fetchSync: {},
+        }),
+
+        // Draft state for foods and events
+        foodDraft: types.optional(ScheduleItem, {
+            id: "DRAFT",
+            time: DEFAULT_DRAFT_TIME
+        }),
+        eventDraft: types.optional(ScheduleEventItem, {
+            id: "DRAFT",
+            time: DEFAULT_DRAFT_TIME,
+            type: 'custom',
+            data: null
         }),
 
     })
@@ -79,5 +95,30 @@ export const DayScheduleStore = types
 
         delete(date: ISODate) {
             self.data.delete(date)
-        }
+        },
+
+        // ======== DRAFT METHODS ========
+        clearFoodDraft() {
+            self.foodDraft?.content.clear()
+        },
+
+        clearEventDraft() {
+            self.eventDraft.time = DEFAULT_DRAFT_TIME
+            self.eventDraft.type = 'custom'
+            self.eventDraft.data = null
+        },
+
+        commitFoodDraft(schedule: Instance<typeof DaySchedule>): string {
+            const snapshot = getSnapshot(self.foodDraft)
+            const instance = schedule.foods.addChildWithLocalData(snapshot)
+            self.clearFoodDraft()
+            return instance.id
+        },
+
+        commitEventDraft(schedule: Instance<typeof DaySchedule>): string {
+            const snapshot = getSnapshot(self.eventDraft)
+            const instance = schedule.events.addChildWithLocalData(snapshot)
+            self.clearEventDraft()
+            return instance.id
+        },
     }))

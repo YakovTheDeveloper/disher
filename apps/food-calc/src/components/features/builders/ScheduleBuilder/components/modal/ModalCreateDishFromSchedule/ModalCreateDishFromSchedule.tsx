@@ -11,7 +11,7 @@ type Props = {
 };
 
 const ModalCreateDishFromSchedule = ({ modalStore }: Props) => {
-  const { date } = useParams();
+  const { id: date } = useParams();
   const navigate = useNavigate();
 
   if (!date) return null;

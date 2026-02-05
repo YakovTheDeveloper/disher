@@ -1,6 +1,5 @@
 import { observer } from 'mobx-react-lite';
 import { useCallback } from 'react';
-import { ScheduleListItem } from '@/components/features/builders/ScheduleBuilder/components/BuilderScheduleFood/ScheduleListItem';
 import { TimeGroup } from '@/components/features/builders/ScheduleBuilder/components/List/TimeGroup';
 import { Instance } from 'mobx-state-tree';
 import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule.model';
@@ -8,6 +7,7 @@ import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { domainStore } from '@/store/store';
 import { getIds } from '@/domain/common';
 import { TimeGroupUI } from '@/domain/schedule/schedule.service';
+import { ScheduleFoodItem } from '@/components/features/builders/ScheduleBuilder/components/BuilderScheduleFood/ScheduleFoodItem';
 
 type CommonProps = {
   schedule: Instance<typeof DaySchedule>;
@@ -36,7 +36,7 @@ type Props = Omit<CommonProps, 'schedule'> & {
 const BuilderScheduleFood = observer(
   ({ items, length, schedule, interactions = domainStore.interactionsService }: Props) => {
     const renderItem = useCallback((item: Instance<typeof ScheduleItem>) => {
-      return <ScheduleListItem key={item.id} item={item} controller={schedule} />;
+      return <ScheduleFoodItem key={item.id} item={item} controller={schedule} />;
     }, []);
 
     console.log('from list');

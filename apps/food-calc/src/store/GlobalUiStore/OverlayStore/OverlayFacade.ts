@@ -1,6 +1,6 @@
 import { ModalType } from "../ModalStore/ModalContent";
 import { DrawerTypesV2 } from "../DrawerStore/DrawerStore.v2.types";
-import { WizardPayloadInstance } from "../ModalStore/ModalStore";
+import { GetPayload } from "../ModalStore/ModalPayloads";
 
 /**
  * Фасад для управления модалками и дроверами.
@@ -10,11 +10,11 @@ export interface OverlayFacade {
     // ===== Modal Methods =====
     openFormFoodEdit(itemToEditId: string): void;
     openFormDishAdd(): void;
-    openFormDishEdit(itemToEditId: string): void;
+    openFormDishEdit(itemToEditId: string, defaultTab: string): void;
     openFormScheduleFoodAdd(): void;
-    openFormScheduleFoodEdit(itemToEditId: string): void;
+    openFormScheduleFoodEdit(itemToEditId: string, defaultTab: string): void;
     openFormScheduleEventAdd(): void;
-    openFormScheduleEventEdit(itemToEditId: string): void;
+    openFormScheduleEventEdit(itemToEditId: string, defaultTab: string): void;
     openCopyScheduleItemsToAnotherDay(): void;
     openCopyScheduleItemsToDish(): void;
     openCopyDishItemsToAnotherDish(): void;
@@ -42,14 +42,7 @@ export interface OverlayFacade {
 }
 
 export function createOverlayFacade(modalStore: {
-    openModal<T extends ModalType>(
-        variant: T,
-        ...args: T extends (
-            ModalType.DISH_EDIT |
-            ModalType.SCHEDULE_FOOD_EDIT |
-            ModalType.SCHEDULE_EVENT_EDIT
-        ) ? [payload: { itemToEditId: string }] : [payload?: never]
-    ): void;
+    openModal<T extends ModalType>(variant: T, payload?: GetPayload<T>): void;
     closeModal(): void;
     isModalOpen: boolean;
 }, drawerStore: {
@@ -60,32 +53,28 @@ export function createOverlayFacade(modalStore: {
     return {
         // ===== Modal Methods =====
 
-        openFormFoodEdit(itemToEditId: string) {
-            modalStore.openModal(ModalType.SCHEDULE_FOOD_EDIT, { itemToEditId });
-        },
-
         openFormDishAdd() {
             modalStore.openModal(ModalType.DISH_CREATE);
         },
 
-        openFormDishEdit(itemToEditId: string) {
-            modalStore.openModal(ModalType.DISH_EDIT, { itemToEditId });
+        openFormDishEdit(itemToEditId: string, defaultTab?: string) {
+            modalStore.openModal(ModalType.DISH_EDIT, { itemToEditId, defaultTab });
         },
 
         openFormScheduleFoodAdd() {
             modalStore.openModal(ModalType.SCHEDULE_FOOD_ADD);
         },
 
-        openFormScheduleFoodEdit(itemToEditId: string) {
-            modalStore.openModal(ModalType.SCHEDULE_FOOD_EDIT, { itemToEditId });
+        openFormScheduleFoodEdit(itemToEditId: string, defaultTab?: string) {
+            modalStore.openModal(ModalType.SCHEDULE_FOOD_EDIT, { itemToEditId, defaultTab });
         },
 
         openFormScheduleEventAdd() {
             modalStore.openModal(ModalType.SCHEDULE_EVENT_ADD);
         },
 
-        openFormScheduleEventEdit(itemToEditId: string) {
-            modalStore.openModal(ModalType.SCHEDULE_EVENT_EDIT, { itemToEditId });
+        openFormScheduleEventEdit(itemToEditId: string, defaultTab?: string) {
+            modalStore.openModal(ModalType.SCHEDULE_EVENT_EDIT, { itemToEditId, defaultTab });
         },
 
         openCopyScheduleItemsToAnotherDay() {

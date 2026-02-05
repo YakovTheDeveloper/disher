@@ -1,0 +1,1 @@
+export { gratitudeConfig } from './config';

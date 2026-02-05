@@ -50,16 +50,5 @@
   "include": [
     "src"
   ],
-  "extends": "../../tsconfig.json",
-  "references": [
-    {
-      "path": "../../packages/api"
-    },
-    {
-      "path": "../../packages/types"
-    },
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ]
+  "extends": "../../tsconfig.json"
 }

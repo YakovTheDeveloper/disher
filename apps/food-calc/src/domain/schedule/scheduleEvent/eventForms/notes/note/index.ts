@@ -1,0 +1,1 @@
+export { noteConfig } from './config';

@@ -1,5 +1,7 @@
 import { observer, useLocalObservable } from 'mobx-react-lite';
 import { lazy } from 'react';
+import { useParams } from 'react-router';
+import { domainStore } from '@/store/store';
 import { ContentEdit } from '@/components/features/builders/shared/ContentEdit';
 import { Tabs } from '@/components/ui/Tabs';
 import ModalLayout from '@/components/features/builders/shared/components/ModalLayout/ModalLayout';
@@ -12,6 +14,7 @@ import {
   useSelectedEventItem,
 } from '@/components/features/builders/ScheduleBuilder/context';
 import { useEntityItemWizard } from '@/components/features/builders/shared/hooks/useEntityItemWizard';
+import EventContentV2 from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/EventContent/EventContentV2';
 
 const EventContent = lazy(() =>
   import(
@@ -33,6 +36,8 @@ const ScheduleEventsAdd = ({ close, variant, defaultTab }: Props) => {
   const hook = variant === 'add' ? useDraftEventScheduleItem : useSelectedEventItem;
 
   const currentChild = hook();
+
+  console.log('currentChild', currentChild);
 
   const timeState = useLocalObservable(() => ({
     localTime: currentChild.time,
@@ -64,7 +69,7 @@ const ScheduleEventsAdd = ({ close, variant, defaultTab }: Props) => {
     useEntityItemWizard(variant, {
       baseTabs,
       onFinish: () => {
-        return schedule.addDraftToEvents();
+        return domainStore.scheduleStore.commitEventDraft(schedule);
       },
       onAfterFinish: () => close(),
     });
@@ -93,13 +98,14 @@ const ScheduleEventsAdd = ({ close, variant, defaultTab }: Props) => {
       <WizardStep stepKey={currentTab} direction={direction}>
         {currentTab === 'info' && <div>инфа</div>}
         {currentTab === 'time' && (
-          <ContentEdit.Time item={currentChild} timeState={timeState} onFinish={handleNextStep} />
+          <ContentEdit.Time timeState={timeState} onFinish={handleNextStep} />
         )}
         {currentTab === 'eventSelect' && (
           <SchheduleEventList eventItem={currentChild} onFinish={handleNextStep} />
         )}
         {currentTab === 'value' && (
-          <EventContent onFinish={handleNextStep} currentEvent={currentChild} />
+          <EventContentV2 onFinish={handleNextStep} currentEvent={currentChild} />
+          // <EventContent onFinish={handleNextStep} currentEvent={currentChild} />
         )}
       </WizardStep>
     </ModalLayout>

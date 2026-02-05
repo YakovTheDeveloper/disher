@@ -51,7 +51,7 @@ export const router = createBrowserRouter([
         element: <SchedulePage />,
       },
       {
-        path: RouterLinks.ScheduleBuilder + '/' + ':date',
+        path: RouterLinks.ScheduleBuilder + '/' + ':id',
         element: <ScheduleBuilderPage />,
       },
       // {

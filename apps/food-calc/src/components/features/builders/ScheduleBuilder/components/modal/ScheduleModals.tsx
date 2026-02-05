@@ -8,11 +8,16 @@ import {
   ScheduleProvider,
 } from '@/components/features/builders/ScheduleBuilder/context';
 import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
-import { WizardPayloadInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
+import { GetPayload } from '@/store/GlobalUiStore/ModalStore/ModalPayloads';
 
 interface ScheduleModalProps {
   type: ModalType;
-  payload?: WizardPayloadInstance;
+  payload?: GetPayload<
+    | ModalType.SCHEDULE_FOOD_ADD
+    | ModalType.SCHEDULE_FOOD_EDIT
+    | ModalType.SCHEDULE_EVENT_ADD
+    | ModalType.SCHEDULE_EVENT_EDIT
+  >;
   close: () => void;
 }
 

@@ -38,6 +38,10 @@
     background-color: transparent;
 }
 
+.virtualItem {
+    box-sizing: border-box;
+}
+
 .listEndLoader {
     position: relative;
     width: 100%;

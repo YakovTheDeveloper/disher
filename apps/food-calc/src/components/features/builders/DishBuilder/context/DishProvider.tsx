@@ -10,7 +10,7 @@ export const useDish = (): Instance<typeof Dish> => {
   const ctx = useContext(DishContext);
 
   if (ctx === undefined) {
-    throw new Error('useSchedule must be used within DishProvider');
+    throw new Error('useDish must be used within DishProvider');
   }
 
   return ctx;

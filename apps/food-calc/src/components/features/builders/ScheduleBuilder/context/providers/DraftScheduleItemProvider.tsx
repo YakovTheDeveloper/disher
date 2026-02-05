@@ -1,13 +1,14 @@
 import { createContext, ReactNode } from 'react';
-import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule.model';
-import { useSchedule } from './ScheduleProvider';
+import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
 
-type DayScheduleInstance = Instance<typeof DaySchedule>;
-export const DraftScheduleItemContext = createContext<DayScheduleInstance['draft'] | undefined>(
-  undefined
-);
+// Type for draft object compatible with existing hooks
+type DraftItem = {
+  eventDraft: typeof domainStore.scheduleStore.eventDraft;
+  foodDraft: typeof domainStore.scheduleStore.foodDraft;
+};
+
+export const DraftScheduleItemContext = createContext<DraftItem | undefined>(undefined);
 
 interface DraftScheduleItemProviderProps {
   children: ReactNode;
@@ -15,15 +16,14 @@ interface DraftScheduleItemProviderProps {
 
 export const DraftScheduleItemProvider: React.FC<DraftScheduleItemProviderProps> = observer(
   ({ children }) => {
-    const schedule = useSchedule();
-    const item = schedule.draft;
+    const { foodDraft, eventDraft } = domainStore.scheduleStore;
 
-    console.log('DraftScheduleItemProvider', item);
-
-    if (!item) throw new Error(`NO draft exist`);
+    if (!foodDraft || !eventDraft) throw new Error(`No draft exist in store`);
 
     return (
-      <DraftScheduleItemContext.Provider value={item}>{children}</DraftScheduleItemContext.Provider>
+      <DraftScheduleItemContext.Provider value={{ eventDraft, foodDraft }}>
+        {children}
+      </DraftScheduleItemContext.Provider>
     );
   }
 );

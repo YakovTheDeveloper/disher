@@ -1,5 +1,4 @@
-.container {}
-
-.foodName {
-    grid-column: span 2;
+.dishFoodListItem {
+    display: grid;
+    grid-template-columns: 1fr auto;
 }

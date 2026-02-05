@@ -1,0 +1,277 @@
+{
+    "category": {
+        "physical": "Физическое",
+        "mental": "Ментальное",
+        "activity": "Активность",
+        "social": "Социальное",
+        "notes": "Заметки"
+    },
+    "event": {
+        "custom": "Событие",
+        "gratitude": "Благодарность",
+        "idea": "Идея",
+        "task": "Задача",
+        "goal": "Цель",
+        "sleep": "Сон",
+        "weight": "Вес",
+        "vitals": "Показатели",
+        "hydration": "Гидратация",
+        "mood": "Настроение",
+        "energy": "Энергия",
+        "stress": "Стресс",
+        "focus": "Фокус",
+        "illness": "Недуг",
+        "digestion": "Пищеварение",
+        "medication": "Лекарства",
+        "activity": "Активность",
+        "social": "Социальное",
+        "note": "Заметка"
+    },
+    "field": {
+        "sleep": {
+            "quality": "Качество",
+            "duration": "Продолжительность"
+        },
+        "weight": {
+            "value": "Вес"
+        },
+        "vitals": {
+            "subtype": "Тип показателя",
+            "value": "Значение"
+        },
+        "hydration": {
+            "subtype": "Напиток",
+            "volume": "Объём"
+        },
+        "mood": {
+            "value": "Настроение"
+        },
+        "energy": {
+            "value": "Энергия"
+        },
+        "stress": {
+            "subtype": "Источник стресса",
+            "level": "Уровень"
+        },
+        "focus": {
+            "value": "Фокус",
+            "duration": "Продолжительность"
+        },
+        "illness": {
+            "subtype": "Тип недуга",
+            "intensity": "Интенсивность",
+            "notes": "Заметки"
+        },
+        "digestion": {
+            "subtype": "Симптом",
+            "intensity": "Интенсивность"
+        },
+        "medication": {
+            "subtype": "Тип лекарства",
+            "name": "Название",
+            "dosage": "Дозировка"
+        },
+        "activity": {
+            "subtype": "Тип активности",
+            "duration": "Продолжительность",
+            "intensity": "Интенсивность"
+        },
+        "social": {
+            "subtype": "Тип активности",
+            "duration": "Продолжительность",
+            "notes": "Заметки"
+        },
+        "note": {
+            "content": "Содержание"
+        }
+    },
+    "subtype": {
+        "selectCategory": "Выберите категорию",
+        "illness": {
+            "headache": "Головная боль",
+            "cold": "Простуда",
+            "fever": "Жар",
+            "cough": "Кашель",
+            "nausea": "Тошнота",
+            "allergy": "Аллергия",
+            "pain": "Боль",
+            "fatigue": "Усталость"
+        },
+        "digestion": {
+            "bloating": "Вздутие",
+            "stomach_pain": "Боль в желудке",
+            "heartburn": "Изжога",
+            "constipation": "Запор",
+            "diarrhea": "Диарея"
+        },
+        "medication": {
+            "pill": "Таблетки",
+            "drops": "Капли",
+            "injection": "Инъекции",
+            "syrup": "Сироп",
+            "topical": "Наружные",
+            "other": "Другое"
+        },
+        "vitals": {
+            "blood_pressure": "Давление",
+            "heart_rate": "Пульс",
+            "temperature": "Температура",
+            "blood_sugar": "Сахар",
+            "oxygen": "Кислород"
+        },
+        "hydration": {
+            "water": "Вода",
+            "tea": "Чай",
+            "coffee": "Кофе",
+            "juice": "Сок",
+            "energy_drink": "Энергетик",
+            "smoothie": "Смузи"
+        },
+        "stress": {
+            "work": "Работа",
+            "personal": "Личное",
+            "financial": "Финансы",
+            "health": "Здоровье",
+            "relationship": "Отношения"
+        },
+        "anxiety": {
+            "mild": "Лёгкая",
+            "moderate": "Умеренная",
+            "severe": "Сильная",
+            "panic": "Паника",
+            "general": "Общая",
+            "social": "Социальная"
+        },
+        "relaxation": {
+            "breathing": "Дыхание",
+            "stretching": "Растяжка",
+            "bath": "Ванна",
+            "reading": "Чтение",
+            "music": "Музыка",
+            "massage": "Массаж",
+            "nature": "Природа"
+        },
+        "meditation": {
+            "mindfulness": "Осознанность",
+            "guided": "Направленная",
+            "body_scan": "Сканирование тела",
+            "yoga_nidra": "Йога-нидра",
+            "loving_kindness": "Любящая доброта",
+            "transcendental": "Трансцендентальная"
+        },
+        "creativity": {
+            "drawing": "Рисование",
+            "writing": "Письмо",
+            "music": "Музыка",
+            "crafts": "Ремесло",
+            "cooking": "Готовка",
+            "photography": "Фотография",
+            "diy": "Своими руками"
+        },
+        "activity": {
+            "sport": "Спорт",
+            "walk": "Прогулка",
+            "exercise": "Упражнения",
+            "steps": "Шаги",
+            "swimming": "Плавание",
+            "cycling": "Велосипед",
+            "yoga": "Йога",
+            "dancing": "Танцы"
+        },
+        "hobby": {
+            "gaming": "Игры",
+            "gardening": "Садоводство",
+            "knitting": "Вязание",
+            "photography": "Фотография",
+            "collecting": "Коллекционирование",
+            "astronomy": "Астрономия",
+            "bird_watching": "Наблюдение за птицами",
+            "fishing": "Рыбалка"
+        },
+        "chores": {
+            "cleaning": "Уборка",
+            "laundry": "Стирка",
+            "shopping": "Покупки",
+            "errands": "Поручения",
+            "cooking": "Готовка",
+            "dishwashing": "Мытьё посуды",
+            "organizing": "Организация",
+            "home_repair": "Ремонт"
+        },
+        "transport": {
+            "walking": "Пешком",
+            "cycling": "Велосипед",
+            "driving": "За рулём",
+            "public_transit": "Общественный транспорт",
+            "taxi": "Такси",
+            "running": "Бег"
+        },
+        "social": {
+            "friends": "Друзья",
+            "family": "Семья",
+            "partner": "Партнёр",
+            "work_meeting": "Рабочая встреча",
+            "party": "Вечеринка",
+            "call": "Звонок",
+            "date": "Свидание"
+        },
+        "online": {
+            "video_call": "Видеозвонок",
+            "messenger": "Мессенджер",
+            "social_media": "Соцсети",
+            "email": "Почта",
+            "gaming": "Игры",
+            "forum": "Форум",
+            "streaming": "Стриминг"
+        },
+        "family": {
+            "kids": "Дети",
+            "parents": "Родители",
+            "siblings": "Братья/сёстры",
+            "extended_family": "Расширенная семья",
+            "pets": "Питомцы",
+            "quality_time": "Качественное время"
+        },
+        "partner": {
+            "date_night": "Свидание",
+            "conversation": "Разговор",
+            "intimacy": "Интимность",
+            "shared_activity": "Совместное занятие",
+            "support": "Поддержка",
+            "conflict": "Конфликт"
+        },
+        "task": {
+            "priority_low": "Низкий приоритет",
+            "priority_medium": "Средний приоритет",
+            "priority_high": "Высокий приоритет",
+            "urgent": "Срочно",
+            "delegated": "Делегировано",
+            "recurring": "Повторяется"
+        },
+        "goal": {
+            "daily": "Дневная",
+            "weekly": "Недельная",
+            "monthly": "Месячная",
+            "quarterly": "Квартальная",
+            "long_term": "Долгосрочная",
+            "milestone": "Веха"
+        }
+    },
+    "common": {
+        "showAdvanced": "Показать расширенные",
+        "hideAdvanced": "Скрыть расширенные"
+    },
+    "validation": {
+        "required": "Обязательное поле",
+        "min": "Минимум {min}",
+        "max": "Максимум {max}",
+        "minLength": "Минимум {minLength} символов",
+        "maxLength": "Максимум {maxLength} символов",
+        "rating_1_to_10": "Оценка от 1 до 10",
+        "max_24_hours": "Максимум 24 часа",
+        "max_12_hours": "Максимум 12 часов",
+        "max_8_hours": "Максимум 8 часов",
+        "select_type": "Выберите тип",
+        "enter_name": "Введите название"
+    }
+}

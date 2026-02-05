@@ -4,14 +4,17 @@ import { SearchListItem } from '@/components/ui/atoms/SearchListItem';
 import { Instance } from 'mobx-state-tree';
 import { DaySchedule } from '@/domain/schedule/schedule.model';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
-import { EventItem, ScheduleEventType } from '@/domain/schedule/scheduleEvent/scheduleEvent';
+import {
+  ScheduleEventItem,
+  ScheduleEventType,
+} from '@/domain/schedule/scheduleEvent/ScheduleEvent.model';
 import SleepIcon from '@/assets/icons/schedule-event-icons/sleep.svg';
 import MoodIcon from '@/assets/icons/schedule-event-icons/mood.svg';
 import EnergyIcon from '@/assets/icons/schedule-event-icons/energy.svg';
 import SportIcon from '@/assets/icons/schedule-event-icons/sport.svg';
 import CustomIcon from '@/assets/icons/schedule-event-icons/custom.svg';
 type Props = {
-  eventItem: Instance<typeof EventItem>;
+  eventItem: Instance<typeof ScheduleEventItem>;
   onFinish: () => void;
 };
 
