@@ -1,1 +1,1 @@
-export { gratitudeConfig } from './config';
+export { gratitudeConfig } from './gratitude.config';

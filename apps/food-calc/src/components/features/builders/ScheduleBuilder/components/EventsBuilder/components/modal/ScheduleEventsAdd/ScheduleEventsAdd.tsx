@@ -1,13 +1,11 @@
 import { observer, useLocalObservable } from 'mobx-react-lite';
 import { lazy } from 'react';
-import { useParams } from 'react-router';
 import { domainStore } from '@/store/store';
 import { ContentEdit } from '@/components/features/builders/shared/ContentEdit';
 import { Tabs } from '@/components/ui/Tabs';
 import ModalLayout from '@/components/features/builders/shared/components/ModalLayout/ModalLayout';
 import { WizardStep } from '@/components/features/builders/shared/components/WizardStep';
 import { FinishButton } from '@/components/features/builders/shared/atoms/FinishButton';
-import { SchheduleEventList } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/modal/ScheduleEventsAdd/components/SchheduleEventList';
 import {
   useDraftEventScheduleItem,
   useSchedule,
@@ -15,6 +13,8 @@ import {
 } from '@/components/features/builders/ScheduleBuilder/context';
 import { useEntityItemWizard } from '@/components/features/builders/shared/hooks/useEntityItemWizard';
 import EventContentV2 from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/EventContent/EventContentV2';
+import { ScheduleEventCategoryList } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/modal/ScheduleEventsAdd/components/ScheduleEventCategoryList';
+import { useTranslation } from 'react-i18next';
 
 const EventContent = lazy(() =>
   import(
@@ -33,6 +33,8 @@ type Props = {
 const ScheduleEventsAdd = ({ close, variant, defaultTab }: Props) => {
   const schedule = useSchedule();
 
+  const { t } = useTranslation();
+
   const hook = variant === 'add' ? useDraftEventScheduleItem : useSelectedEventItem;
 
   const currentChild = hook();
@@ -47,6 +49,8 @@ const ScheduleEventsAdd = ({ close, variant, defaultTab }: Props) => {
     },
   }));
 
+  const typeTextView = t('event.' + currentChild.type);
+
   const baseTabs = [
     {
       value: 'time' as const,
@@ -56,7 +60,7 @@ const ScheduleEventsAdd = ({ close, variant, defaultTab }: Props) => {
     {
       value: 'eventSelect' as const,
       label: 'Вариант',
-      alternativeLabel: currentChild.type,
+      alternativeLabel: typeTextView,
     },
     {
       value: 'value' as const,
@@ -101,7 +105,7 @@ const ScheduleEventsAdd = ({ close, variant, defaultTab }: Props) => {
           <ContentEdit.Time timeState={timeState} onFinish={handleNextStep} />
         )}
         {currentTab === 'eventSelect' && (
-          <SchheduleEventList eventItem={currentChild} onFinish={handleNextStep} />
+          <ScheduleEventCategoryList eventItem={currentChild} onFinish={handleNextStep} />
         )}
         {currentTab === 'value' && (
           <EventContentV2 onFinish={handleNextStep} currentEvent={currentChild} />

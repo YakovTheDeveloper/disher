@@ -1,6 +1,5 @@
 import React from 'react';
 import styles from './MultiSelectField.module.scss';
-import { SelectableItem } from '@/components/ui/SelectableItem';
 import clsx from 'clsx';
 
 type Option = {
@@ -12,11 +11,10 @@ type Props = {
   options: Option[];
   selectedValues: string[];
   onChange: (values: string[]) => void;
-  label?: string;
   className?: string;
 };
 
-const MultiSelectField = ({ options, selectedValues, onChange, label, className }: Props) => {
+const MultiSelectField = ({ options, selectedValues, onChange, className }: Props) => {
   const handleToggle = (value: string) => {
     const newValues = selectedValues.includes(value)
       ? selectedValues.filter((v) => v !== value)
@@ -26,7 +24,6 @@ const MultiSelectField = ({ options, selectedValues, onChange, label, className 
 
   return (
     <div className={clsx(styles.container, className)}>
-      {label && <div className={styles.label}>{label}</div>}
       <div className={styles.chips}>
         {options.map((option) => {
           const isSelected = selectedValues.includes(option.value);

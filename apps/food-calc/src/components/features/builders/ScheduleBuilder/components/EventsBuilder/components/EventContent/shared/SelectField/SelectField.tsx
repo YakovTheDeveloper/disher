@@ -12,14 +12,12 @@ type Props = {
   options: Option[];
   value: string;
   onChange: (value: string) => void;
-  label?: string;
   className?: string;
 };
 
-const SelectField = ({ options, value, onChange, label, className }: Props) => {
+const SelectField = ({ options, value, onChange, className }: Props) => {
   return (
     <div className={clsx(styles.container, className)}>
-      {label && <div className={styles.label}>{label}</div>}
       <div className={styles.options}>
         {options.map((option) => (
           <SelectableInput
@@ -28,7 +26,7 @@ const SelectField = ({ options, value, onChange, label, className }: Props) => {
             name="select"
             type="radio"
             isChecked={value === option.value}
-            onChange={onChange}
+            onChange={(id) => onChange(String(id))}
             label={option.label}
           />
         ))}

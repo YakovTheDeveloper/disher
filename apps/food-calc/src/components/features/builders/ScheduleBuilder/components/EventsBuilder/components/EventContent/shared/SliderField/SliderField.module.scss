@@ -3,8 +3,8 @@
 // ============================================
 
 .sliderWrapper {
-    --slider-height: 8px;
-    --thumb-size: 24px;
+    --slider-height: 6px;
+    --thumb-size: 20px;
     --accent: var(--color-deep-blue);
     --accent-secondary: var(--color-accent-2);
     --track-bg: var(--color-light-gray-3);
@@ -229,4 +229,136 @@
     color: var(--color-light-gray);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+// ============================================
+// Curved Variant - Sine Wave Track
+// ============================================
+
+.curved {
+    .sliderContainer {
+        height: 56px;
+        padding: 8px 0;
+    }
+}
+
+.curvedTrackContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+
+    &:hover {
+        .sineThumb {
+            transform: scale(1.3);
+            filter: drop-shadow(0 4px 16px var(--glow-color)) drop-shadow(0 0 0 8px rgba(55, 0, 255, 0.15));
+        }
+    }
+
+    &.dragging {
+        cursor: grabbing;
+
+        .sineThumb {
+            transform: scale(1.2);
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2)) drop-shadow(0 0 0 10px rgba(55, 0, 255, 0.2));
+        }
+
+        .sineTrackFilled {
+            filter: drop-shadow(0 0 8px rgba(55, 0, 255, 0.6));
+        }
+    }
+}
+
+.curvedSvg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.sineTrackBg {
+    stroke: var(--track-bg);
+    stroke-width: 2;
+    stroke-linecap: round;
+    transition: stroke 0.2s ease;
+}
+
+.sineTrackFilled {
+    stroke: url(#sineGradient);
+    stroke-width: 2;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.15s ease-out, filter 0.2s ease;
+    filter: drop-shadow(0 0 4px rgba(55, 0, 255, 0.3));
+    will-change: stroke-dashoffset;
+}
+
+.sineThumb {
+    fill: white;
+    stroke: var(--accent);
+    stroke-width: 2;
+    transform-origin: center;
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s ease;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15)) drop-shadow(0 0 0 4px rgba(55, 0, 255, 0.1));
+}
+
+.sineTrackOpacity {
+    opacity: 0.5;
+}
+
+.sineText {
+    pointer-events: none;
+    font-family: sans-serif;
+    font-size: 12px;
+    fill: currentColor;
+}
+
+.sineTick {
+    opacity: 0.8;
+}
+
+// ============================================
+// Tick Marks
+// ============================================
+
+.tickMarks {
+    stroke: var(--track-bg);
+    stroke-width: 1;
+    stroke-linecap: round;
+}
+
+.tickMarkFilled {
+    stroke: rgba(55, 0, 255, 0.3);
+    stroke-width: 1;
+    stroke-linecap: round;
+}
+
+// ============================================
+// Linear Tick Marks
+// ============================================
+
+.tickMarksContainer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 12px;
+    pointer-events: none;
+}
+
+.tickMark {
+    position: absolute;
+    width: 2px;
+    height: 8px;
+    background: var(--track-bg);
+    border-radius: 1px;
+    transform: translateX(-50%);
+    top: 50%;
+    margin-top: -4px;
+    transition: background 0.15s ease-out;
+
+    &.tickMarkFilled {
+        background: rgba(55, 0, 255, 0.3);
+    }
 }

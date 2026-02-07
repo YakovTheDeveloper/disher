@@ -1,0 +1,33 @@
+.container {
+  position: relative;
+}
+
+.noSelect {
+  user-select: none;
+}
+
+.touchNone {
+  touch-action: none;
+}
+
+.curvedSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.svgOverflowVisible {
+  overflow: visible;
+}
+
+.fiftyOpacity {
+  opacity: 0.5;
+}
+
+.eightyOpacity {
+  opacity: 0.8;
+}
+
+.noPointerEvents {
+  pointer-events: none;
+}
+

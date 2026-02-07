@@ -1,0 +1,1 @@
+export { default as SliderFieldV2 } from './SliderFieldV2';

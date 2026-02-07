@@ -1,1 +1,1 @@
-export { customConfig } from './config';
+export { customConfig } from './custom.config';

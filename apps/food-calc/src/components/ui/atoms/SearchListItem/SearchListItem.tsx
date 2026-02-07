@@ -5,7 +5,8 @@ import clsx from 'clsx';
 type Props = {
   children: React.ReactNode;
   iconElement?: React.ReactNode;
-  after?: React.ReactNode; // Buttons or extra info
+  decorativeAfterElement?: React.ReactNode | string; // Buttons, extra info, or icon class name
+  actionBeforeElement?: React.ReactNode; // Buttons or extra info
   active?: boolean;
   onClick?: () => void;
   onInfoClick?: (id: string) => void;
@@ -24,9 +25,9 @@ const InfoIcon = () => (
 
 const SearchListItem = ({
   onInfoClick,
-  iconElement,
   item,
-  after,
+  decorativeAfterElement,
+  actionBeforeElement,
   active,
   onClick,
   className,
@@ -34,18 +35,14 @@ const SearchListItem = ({
 }: Props) => {
   return (
     <li className={styles.searchListItemWrapper}>
-      {onInfoClick && (
-        <button className={styles.before} onClick={onInfoClick}>
-          {/* <InfoIcon /> */}
-          {iconElement}
-        </button>
-      )}
+      {actionBeforeElement}
       <p
         className={clsx(className, styles.listItem, active && styles.listItem_active)}
         onClick={onClick}
         style={style}
       >
         {item.name || item.label}
+        {decorativeAfterElement}
       </p>
     </li>
   );

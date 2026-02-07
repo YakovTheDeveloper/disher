@@ -1,1 +1,1 @@
-export { sleepConfig } from './config';
+export { sleepConfig } from './sleep.config';

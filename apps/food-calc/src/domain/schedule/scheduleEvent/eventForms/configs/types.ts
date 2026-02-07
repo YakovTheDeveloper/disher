@@ -50,6 +50,10 @@ export interface FormFieldConfig {
     key: string;
     type: FormFieldType;
     labelKey: string;
+    /** Показывать ли лейбл (по умолчанию: true) */
+    showLabel?: boolean;
+    /** Дополнительный контент справа от лейбла */
+    labelAside?: React.ReactNode;
     /** Единица измерения (для числовых полей) */
     unit?: string;
     validation?: ValidationRule;

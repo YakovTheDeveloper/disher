@@ -1,1 +1,1 @@
-export { focusConfig } from './config';
+export { focusConfig } from './focus.config';

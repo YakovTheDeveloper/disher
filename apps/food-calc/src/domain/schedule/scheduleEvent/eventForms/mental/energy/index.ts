@@ -1,1 +1,1 @@
-export { energyConfig } from './config';
+export { energyConfig } from './energy.config';

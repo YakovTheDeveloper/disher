@@ -45,7 +45,8 @@ const EventContentV2 = observer(({ currentEvent, onFinish }: Props) => {
       <form onSubmit={handleSubmit}>
         <FormRenderer
           config={config.fields}
-          values={data as Record<string, string | number | string[]>}
+          subtype={currentEvent.subtype}
+          data={data as Record<string, string | number | string[]>}
           onChange={updateField}
           errors={{}}
         />

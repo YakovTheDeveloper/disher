@@ -1,1 +1,1 @@
-export { weightConfig } from './config';
+export { weightConfig } from './weight.config';

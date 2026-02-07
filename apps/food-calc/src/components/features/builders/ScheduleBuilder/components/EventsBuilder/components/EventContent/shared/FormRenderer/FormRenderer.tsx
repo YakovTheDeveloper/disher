@@ -13,17 +13,20 @@ import { QuickButtons } from '@/components/features/builders/shared/atoms/QuickB
 import { useTranslation } from 'react-i18next';
 import { SubtypeTreeField } from '../SubtypeTreeField';
 import { FormFieldConfig, FormFieldType } from '@/domain/schedule/scheduleEvent/eventForms';
+import { FormFieldLabel } from '../FormFieldLabel';
+import { SliderFieldV2 } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/EventContent/shared/SliderFieldV2';
 
 type Props = {
   config: FormFieldConfig[];
-  values: Record<string, string | number | string[]>;
+  data: Record<string, string | number | string[]>;
   onChange: (key: string, value: string | number | string[]) => void;
   errors?: Record<string, string>;
   className?: string;
+  subtype: string[];
 };
 
 const FIELD_COMPONENTS: Partial<Record<FormFieldType, React.FC<any>>> = {
-  slider: SliderField,
+  slider: SliderFieldV2,
   text: GrowingInput,
   duration: DurationField,
   select: SelectField,
@@ -35,20 +38,20 @@ const FIELD_COMPONENTS: Partial<Record<FormFieldType, React.FC<any>>> = {
 /**
  * Проверить, должно ли поле быть видимым на основе условия visibleWhen
  */
-const isFieldVisible = (field: FormFieldConfig, values: Record<string, any>): boolean => {
+const isFieldVisible = (field: FormFieldConfig, data: Record<string, any>): boolean => {
   if (!field.visibleWhen) return true;
   const { field: dependentField, equals } = field.visibleWhen;
-  return values[dependentField] === equals;
+  return data[dependentField] === equals;
 };
 
-const FormRenderer = observer(({ config, values, onChange, errors, className }: Props) => {
+const FormRenderer = observer(({ config, data, onChange, errors, className }: Props) => {
   const { t } = useTranslation();
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const hasAdvanced = config.some((f) => f.advanced);
   const visibleConfig = config.filter((f) => {
     // Сначала проверяем visibleWhen условие
-    if (!isFieldVisible(f, values)) return false;
+    if (!isFieldVisible(f, data)) return false;
     // Затем проверяем advanced
     if (hasAdvanced && f.advanced && !showAdvanced) return false;
     return true;
@@ -59,16 +62,28 @@ const FormRenderer = observer(({ config, values, onChange, errors, className }: 
   };
 
   const renderField = (field: FormFieldConfig) => {
-    const currentValue = values[field.key];
+    const currentValue = data[field.key];
     const error = errors?.[field.key];
     const Component = FIELD_COMPONENTS[field.type];
+
+    const subtype = data.subtype;
 
     if (!Component) {
       console.warn(`Unknown field type: ${field.type}`);
       return null;
     }
 
+    const showLabel = field.showLabel !== false;
     const label = t(field.labelKey);
+    const labelElement = showLabel ? (
+      <FormFieldLabel
+        label={label}
+        required={field.validation?.required}
+        error={error}
+        aside={field.labelAside}
+      />
+    ) : null;
+
     const spreadProps = {
       value: currentValue,
       onChange: (val: any) => handleChange(field.key, val),
@@ -79,19 +94,21 @@ const FormRenderer = observer(({ config, values, onChange, errors, className }: 
     switch (field.type) {
       case 'slider':
         return (
-          <Component
-            key={field.key}
-            {...spreadProps}
-            min={field.validation?.min ?? 0}
-            max={field.validation?.max ?? 10}
-            label={label}
-          />
+          <div key={field.key} className={styles.field}>
+            {labelElement}
+            <Component
+              {...spreadProps}
+              min={field.validation?.min ?? 0}
+              max={field.validation?.max ?? 10}
+              label={label}
+            />
+          </div>
         );
 
       case 'quick-buttons':
         return (
           <div key={field.key} className={styles.field}>
-            <div className={styles.fieldLabel}>{label}</div>
+            {labelElement}
             {field.options && (
               <QuickButtons
                 options={field.options.map((o) => Number(o.value))}
@@ -103,62 +120,81 @@ const FormRenderer = observer(({ config, values, onChange, errors, className }: 
         );
 
       case 'text':
-        return <Component key={field.key} {...spreadProps} label={label} placeholder={label} />;
+        return (
+          <div key={field.key} className={styles.field}>
+            {labelElement}
+            <Component key={field.key} {...spreadProps} placeholder={label} />
+          </div>
+        );
 
       case 'duration':
-        return <Component key={field.key} {...spreadProps} label={label} />;
+        return (
+          <div key={field.key} className={styles.field}>
+            {labelElement}
+            <Component {...spreadProps} label={label} />
+          </div>
+        );
 
       case 'select':
         return (
-          <Component
-            key={field.key}
-            {...spreadProps}
-            label={label}
-            options={
-              field.options?.map((o) => ({
-                value: o.value,
-                label: t(o.labelKey),
-              })) || []
-            }
-          />
+          <div key={field.key} className={styles.field}>
+            {labelElement}
+            <Component
+              {...spreadProps}
+              label={label}
+              options={
+                field.options?.map((o) => ({
+                  value: o.value,
+                  label: t(o.labelKey),
+                })) || []
+              }
+            />
+          </div>
         );
 
       case 'multiSelect':
         return (
-          <Component
-            key={field.key}
-            {...spreadProps}
-            label={label}
-            options={
-              field.options?.map((o) => ({
-                value: o.value,
-                label: t(o.labelKey),
-              })) || []
-            }
-          />
+          <div key={field.key} className={styles.field}>
+            {labelElement}
+            <Component
+              {...spreadProps}
+              label={label}
+              options={
+                field.options?.map((o) => ({
+                  value: o.value,
+                  label: t(o.labelKey),
+                })) || []
+              }
+            />
+          </div>
         );
 
       case 'steps':
         return (
-          <Component
-            key={field.key}
-            {...spreadProps}
-            label={label}
-            min={field.validation?.min ?? 0}
-            max={field.validation?.max ?? 100000}
-            step={field.step ?? 1}
-          />
+          <div key={field.key} className={styles.field}>
+            {labelElement}
+            <Component
+              {...spreadProps}
+              label={label}
+              min={field.validation?.min ?? 0}
+              max={field.validation?.max ?? 100000}
+              step={field.step ?? 1}
+            />
+          </div>
         );
 
       case 'tree':
         return (
-          <Component
-            key={field.key}
-            {...spreadProps}
-            label={label}
-            options={field.options || []}
-            maxDepth={field.maxDepth}
-          />
+          <div key={field.key} className={styles.field}>
+            {labelElement}
+            <Component
+              {...spreadProps}
+              label={label}
+              options={field.options || []}
+              maxDepth={field.maxDepth}
+              subtype={subtype}
+            />
+          </div>
         );
 
       default:

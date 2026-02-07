@@ -44,6 +44,7 @@ const WizardStep = ({ children, stepKey, direction, helpButton }: Props) => {
       )}
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
+          className={styles.animatedContainer}
           key={stepKey}
           custom={direction}
           variants={variants}
@@ -52,12 +53,7 @@ const WizardStep = ({ children, stepKey, direction, helpButton }: Props) => {
           exit="exit"
           transition={{
             x: { type: 'spring', stiffness: 300, damping: 30 },
-            opacity: { duration: 0.1 },
-          }}
-          style={{
-            width: '100%',
-            height: '100%',
-            position: 'relative',
+            opacity: { duration: 0.05 },
           }}
         >
           {children}

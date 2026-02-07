@@ -7,19 +7,44 @@ import { Instance } from 'mobx-state-tree';
 import { DaySchedule } from '@/domain/schedule/schedule.model';
 import clsx from 'clsx';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
-import { ScheduleEventItem as ScheduleEventItemModel } from '@/domain/schedule/scheduleEvent/ScheduleEvent.model';
-import { ScheduleEventItem } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/ScheduleEventItem';
+import { ScheduleEventItem } from '@/domain/schedule/scheduleEvent/ScheduleEvent.model';
+import { useOverlay } from '@/store/GlobalUiStore/OverlayStore';
 type Props = {
   children?: React.ReactNode;
   schedule: Instance<typeof DaySchedule>;
 };
 
+export function getEventDescription(item: Instance<typeof ScheduleEventItem>): string {
+  const variant = item.type;
+
+  switch (variant) {
+    case 'sleep':
+      return `Сон: ${item.value}, качество ${item.value}/10`;
+    case 'mood':
+      return `Настроение: ${item.value}/10`;
+    case 'energy':
+      return `Энергия: ${item.value}/10`;
+    case 'digestion':
+      return `Пищеварение (${item.type}): ${item.value}/10`;
+    case 'activity':
+      return `Активность: ${item.type}, ${item.value}`;
+    case 'note':
+      return `Заметка: ${item.value}`;
+  }
+}
+
 const BuilderScheduleEvents = ({ schedule }: Props) => {
+  const { openFormScheduleEventEdit } = useOverlay();
+
+  const onEventEditModalOpen = (item: Instance<typeof ScheduleEventItem>) => {
+    openFormScheduleEventEdit(item.id, 'content');
+  };
+
   const renderEventListItem = useCallback(
-    (item: Instance<typeof ScheduleEventItemModel>) => {
+    (item: Instance<typeof ScheduleEventItem>) => {
       return (
         <CommonListItem className={styles.listItemRow} id={item.id} key={item.id} sync={item.sync}>
-          <ScheduleEventItem item={item} />
+          <p onClick={() => onEventEditModalOpen(item)}>{getEventDescription(item)}</p>
         </CommonListItem>
       );
     },

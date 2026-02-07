@@ -1,1 +1,1 @@
-export { moodConfig } from './config';
+export { moodConfig } from './mood.config';

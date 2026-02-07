@@ -1,0 +1,42 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+    gap: 16px;
+    text-align: center;
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+
+    svg {
+        width: 48px;
+        height: 48px;
+    }
+
+    &.maxDepth {
+        color: var(--warning-color, #f59e0b);
+        background: var(--warning-bg, #fffbeb);
+    }
+
+    &.complete {
+        color: var(--success-color, #10b981);
+        background: var(--success-bg, #ecfdf5);
+    }
+}
+
+.message {
+    font-size: 14px;
+    color: var(--text-secondary, #64748b);
+    line-height: 1.5;
+    max-width: 240px;
+    margin: 0;
+}

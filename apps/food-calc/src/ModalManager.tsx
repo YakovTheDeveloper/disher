@@ -1,4 +1,3 @@
-import { ModalConfirmDeleteDishes } from '@/components/features/lists/ListDishes/modal/ModalConfirmDeleteDishes';
 import { ModalCopyScheduleItemsToAnotherDay } from '@/components/features/builders/ScheduleBuilder/components/modal/ModalCopyScheduleItemsToAnotherDay';
 import { ModalCreateDishFromSchedule } from '@/components/features/builders/ScheduleBuilder/components/modal/ModalCreateDishFromSchedule';
 import { ModalPhysicalActivityPulse } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/modal/ModalPhysicalActivityPulse';
@@ -6,8 +5,6 @@ import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
-import { ModalConfirmationDeleteEvents } from '@/components/features/builders/ScheduleBuilder/components/modal/ModalConfirmationDeleteEvents';
-import ScheduleProvider from '@/components/features/builders/ScheduleBuilder/context/providers/ScheduleProvider';
 import { ScheduleModals } from '@/components/features/builders/ScheduleBuilder/components/modal/ScheduleModals';
 import { DishModals } from '@/components/features/builders/DishBuilder/components/modal/DishModals';
 

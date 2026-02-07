@@ -1,1 +1,1 @@
-export { ideaConfig } from './config';
+export { ideaConfig } from './idea.config';

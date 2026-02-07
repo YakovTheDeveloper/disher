@@ -1,4 +1,7 @@
 {
+    "common": {
+        "frequent": "Частые"
+    },
     "category": {
         "physical": "Физическое",
         "mental": "Ментальное",
@@ -86,7 +89,10 @@
         }
     },
     "subtype": {
+        "lastTypeSelected": "Отлично!",
         "selectCategory": "Выберите категорию",
+        "maxDepthReached": "Достигнута максимальная глубина выбора",
+        "selectionComplete": "Выбор завершён",
         "illness": {
             "headache": "Головная боль",
             "cold": "Простуда",
@@ -169,14 +175,58 @@
             "diy": "Своими руками"
         },
         "activity": {
-            "sport": "Спорт",
-            "walk": "Прогулка",
-            "exercise": "Упражнения",
+            "category": {
+                "basic_mobility": "Базовая мобильность",
+                "fitness_gym": "Фитнес/спортзал",
+                "mind_and_body": "Разум и тело",
+                "cyclic_sports": "Циклические виды спорта",
+                "team_and_games": "Командные игры",
+                "martial_arts": "Единоборства",
+                "active_recreation": "Активный отдых",
+                "daily_routine": "Повседневные дела"
+            },
+            "walking": "Ходьба",
             "steps": "Шаги",
-            "swimming": "Плавание",
-            "cycling": "Велосипед",
+            "light_stretching": "Лёгкая растяжка",
+            "joint_gymnastics": "Суставная гимнастика",
+            "morning_exercise": "Утренняя зарядка",
+            "strength_training": "Силовые тренировки",
+            "cardio": "Кардио",
+            "crossfit": "Кроссфит",
+            "bodyweight": "Тренировки с весом",
+            "home_workout": "Домашние тренировки",
+            "hiit": "Высокоинтенсивные интервалы",
             "yoga": "Йога",
-            "dancing": "Танцы"
+            "pilates": "Пилас",
+            "meditation": "Медитация",
+            "breathing_practice": "Дыхательные практики",
+            "qigong": "Цигун",
+            "stretching": "Стретчинг",
+            "running": "Бег",
+            "cycling": "Велосипед",
+            "swimming": "Плавание",
+            "nordic_walking": "Скандинавская ходьба",
+            "skiing": "Лыжи",
+            "rowing": "Гребля",
+            "football": "Футбол",
+            "basketball": "Баскетбол",
+            "volleyball": "Волейбол",
+            "tennis": "Теннис",
+            "badminton": "Бадминтон",
+            "table_tennis": "Настольный теннис",
+            "boxing": "Бокс",
+            "karate_taekwondo": "Карате/Тхэквондо",
+            "bjj_wrestling": "БЖЖ/Борьба",
+            "muay_thai": "Муай-тай",
+            "dancing": "Танцы",
+            "hiking": "Пеший туризм",
+            "skating": "Катание на коньках",
+            "horse_riding": "Верховая езда",
+            "climbing": "Скалолазание",
+            "housework": "Домашние дела",
+            "gardening": "Садоводство",
+            "shopping": "Покупки",
+            "playing_with_kids": "Игры с детьми"
         },
         "hobby": {
             "gaming": "Игры",

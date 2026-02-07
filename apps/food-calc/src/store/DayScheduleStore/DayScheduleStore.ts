@@ -1,4 +1,4 @@
-import { types, flow, cast, Instance, getSnapshot } from "mobx-state-tree"
+import { types, flow, cast, Instance, getSnapshot, onPatch } from "mobx-state-tree"
 import {
     getSchedules,
     getOneSchedule,
@@ -13,9 +13,11 @@ import { createDayScheduleModel } from "@/store/DayScheduleStore/fabric"
 import { createRequestController } from "@/store/common/pureFabrication/createRequestController"
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel"
 import { ScheduleEventItem } from "@/domain/schedule/scheduleEvent/ScheduleEvent.model"
+import { BaseEventType } from "@/domain/schedule/scheduleEvent/eventTypes"
 
 // Default draft values
 const DEFAULT_DRAFT_TIME = '12:00'
+const MOST_USED_LIMIT = 5
 
 export const DayScheduleStore = types
     .model("DayScheduleStore", {
@@ -43,6 +45,43 @@ export const DayScheduleStore = types
             data: null
         }),
 
+        // Event usage statistics for "Most Often" feature
+        eventUsageStats: types.map(types.number),
+
+    })
+    .views(self => ({
+        getMostUsedEventTypes(): BaseEventType[] {
+            const entries = Array.from(self.eventUsageStats.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, MOST_USED_LIMIT)
+                .map(([type]) => type as BaseEventType)
+            return entries
+        },
+    }))
+    .actions(self => {
+        // Helper to recalculate most used after stats change
+        let _mostUsedCache: BaseEventType[] = []
+
+        const recalculateMostUsed = () => {
+            const entries = Array.from(self.eventUsageStats.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, MOST_USED_LIMIT)
+                .map(([type]) => type as BaseEventType)
+            _mostUsedCache = entries
+        }
+
+        return {
+            // ======== EVENT USAGE STATS ========
+            incrementEventUsage(type: BaseEventType) {
+                const current = self.eventUsageStats.get(type) || 0
+                self.eventUsageStats.set(type, current + 1)
+                recalculateMostUsed()
+            },
+
+            getMostUsedEventTypes(): BaseEventType[] {
+                return _mostUsedCache
+            }
+        }
     })
 
     // ======== HELPERS ========

@@ -1,18 +1,14 @@
 import React from 'react';
+import { AnimatePresence } from 'framer-motion';
+import clsx from 'clsx';
 import { EventSubtype } from '@/domain/schedule/scheduleEvent/eventTypes';
 import { useTranslation } from 'react-i18next';
-import clsx from 'clsx';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useSubtypeTree } from './useSubtypeTree';
+import { SubtypeBreadcrumbs } from './SubtypeBreadcrumbs';
+import { SubtypeOptions } from './SubtypeOptions';
+import { SubtypePlaceholder } from './SubtypePlaceholder';
+import { SubtypeOption } from './types';
 import styles from './SubtypeTreeSelector.module.scss';
-
-/**
- * Конфигурация подтипа с возможными дочерними элементами
- */
-export interface SubtypeOption {
-  value: EventSubtype;
-  labelKey: string;
-  children?: SubtypeOption[];
-}
 
 /**
  * Props для SubtypeTreeSelector
@@ -31,21 +27,6 @@ interface Props {
 }
 
 /**
- * Вспомогательная функция для получения опции по цепочке значений
- */
-function getOptionByChain(
-  options: SubtypeOption[],
-  chain: EventSubtype[]
-): SubtypeOption | undefined {
-  if (chain.length === 0) return undefined;
-  const currentValue = chain[0];
-  const currentOption = options.find((opt) => opt.value === currentValue);
-  if (!currentOption) return undefined;
-  if (chain.length === 1) return currentOption;
-  return getOptionByChain(currentOption.children || [], chain.slice(1));
-}
-
-/**
  * Рекурсивный селектор подтипов с прогрессивным раскрытием
  * Показывает стек выбранных категорий и новые уровни снизу
  */
@@ -57,107 +38,67 @@ export const SubtypeTreeSelector: React.FC<Props> = ({
   className,
 }) => {
   const { t } = useTranslation();
-  const currentLevel = selectedChain.length;
 
-  // Не рендерим, если достигли максимальной глубины
-  if (currentLevel >= maxDepth) return null;
-
-  // Получаем опции для текущего уровня
-  const currentOptions =
-    currentLevel === 0
-      ? options
-      : getOptionByChain(options, selectedChain.slice(0, currentLevel))?.children || [];
-
-  const currentValue = selectedChain[currentLevel] || null;
-
-  // Получаем метки для стека (только если мы не на первом уровне)
-  const stackLabels = selectedChain.slice(0, currentLevel).map((value, index) => {
-    const chainPart = selectedChain.slice(0, index + 1);
-    const option = getOptionByChain(options, chainPart);
-    return {
-      value,
-      label: option ? t(option.labelKey) : value,
-    };
+  const {
+    currentLevel,
+    isMaxDepthReached,
+    currentOptions,
+    currentValue,
+    stackItems,
+    selectValue,
+    navigateToStackIndex,
+    removeFromStack,
+  } = useSubtypeTree({
+    options,
+    selectedChain,
+    maxDepth,
+    onChange,
   });
-
-  const handleSelect = (value: EventSubtype) => {
-    const newChain = selectedChain.slice(0, currentLevel).concat(value);
-    onChange(newChain);
-  };
-
-  const handleStackClick = (index: number) => {
-    const newChain = selectedChain.slice(0, index + 1);
-    onChange(newChain);
-  };
 
   const handleRemoveFromStack = (index: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    const newChain = selectedChain.slice(0, index);
-    onChange(newChain);
+    removeFromStack(index);
   };
+
+  const hasOptions = currentOptions.length > 0;
 
   return (
     <div className={clsx(styles.container, className)}>
       {/* Стек выбранных категорий (breadcrumbs) */}
       <AnimatePresence>
-        {stackLabels.length > 0 && (
-          <motion.div
-            className={styles.stack}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.15 }}
-          >
-            {stackLabels.map((item, index) => (
-              <React.Fragment key={item.value}>
-                {index > 0 && <span className={styles.stackSeparator}>/</span>}
-                <button
-                  type="button"
-                  className={styles.stackItem}
-                  onClick={() => handleStackClick(index)}
-                >
-                  {item.label}
-                  <span
-                    className={styles.stackRemove}
-                    onClick={(e) => handleRemoveFromStack(index, e)}
-                  >
-                    ×
-                  </span>
-                </button>
-              </React.Fragment>
-            ))}
-          </motion.div>
+        {stackItems.length > 0 && (
+          <SubtypeBreadcrumbs
+            items={stackItems}
+            onItemClick={navigateToStackIndex}
+            onRemove={handleRemoveFromStack}
+            removeTitle={t('common.remove')}
+          />
         )}
       </AnimatePresence>
 
       {/* Текущий уровень выбора */}
       <AnimatePresence mode="wait">
-        <motion.div
-          key={currentLevel}
-          className={styles.optionsWrapper}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.15 }}
-        >
-          {currentOptions.length === 0 ? (
-            <div className={styles.placeholder}>{t('subtype.selectCategory')}</div>
-          ) : (
-            <div className={styles.optionsGrid}>
-              {currentOptions.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={clsx(styles.option, currentValue === option.value && styles.selected)}
-                  onClick={() => handleSelect(option.value)}
-                >
-                  <span className={styles.label}>{t(option.labelKey)}</span>
-                  {option.children && <span className={styles.indicator}>→</span>}
-                </button>
-              ))}
-            </div>
-          )}
-        </motion.div>
+        {isMaxDepthReached ? (
+          <SubtypePlaceholder
+            key="maxDepth"
+            type="maxDepth"
+            message={t('subtype.lastTypeSelected')}
+          />
+        ) : !hasOptions ? (
+          <SubtypePlaceholder
+            key="complete"
+            type="complete"
+            message={t('subtype.selectionComplete')}
+          />
+        ) : (
+          <SubtypeOptions
+            key={`level-${currentLevel}`}
+            options={currentOptions}
+            selectedValue={currentValue}
+            onSelect={selectValue}
+            getLabel={(key: string) => t(key)}
+          />
+        )}
       </AnimatePresence>
 
       {/* Следующий уровень (рекурсивно) */}
@@ -172,3 +113,6 @@ export const SubtypeTreeSelector: React.FC<Props> = ({
     </div>
   );
 };
+
+export type { SubtypeOption } from './types';
+export { useSubtypeTree } from './useSubtypeTree';
