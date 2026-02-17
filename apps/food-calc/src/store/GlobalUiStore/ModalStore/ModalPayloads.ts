@@ -5,20 +5,20 @@ import { ModalType } from "./ModalContent";
 
 export const DishEditPayloadModel = types.model("DishEditPayload", {
     itemToEditId: types.string,
-    defaultTab: types.enumeration<'content' | 'quantity'>('defaultTab', ['content', 'quantity']),
+    defaultTab: types.maybe(types.enumeration<'content' | 'quantity'>('defaultTab', ['content', 'quantity'])),
 });
 
 export const DishCreatePayloadModel = types.model("DishCreatePayload", {
-    defaultTab: types.enumeration<'content' | 'quantity'>('defaultTab', ['content', 'quantity']),
+    defaultTab: types.maybe(types.enumeration<'content' | 'quantity'>('defaultTab', ['content', 'quantity'])),
 });
 
 export const ScheduleFoodEditPayloadModel = types.model("ScheduleFoodEditPayload", {
     itemToEditId: types.string,
-    defaultTab: types.enumeration<'foodChange' | 'time' | 'quantity'>('defaultTab', ['foodChange', 'time', 'quantity']),
+    defaultTab: types.maybe(types.enumeration<'foodChange' | 'time' | 'quantity'>('defaultTab', ['foodChange', 'time', 'quantity'])),
 });
 
 export const ScheduleFoodAddPayloadModel = types.model("ScheduleFoodAddPayload", {
-    defaultTab: types.enumeration<'foodChange' | 'time' | 'quantity'>('defaultTab', ['foodChange', 'time', 'quantity']),
+    defaultTab: types.maybe(types.enumeration<'foodChange' | 'time' | 'quantity'>('defaultTab', ['foodChange', 'time', 'quantity'])),
 });
 
 export const ScheduleEventEditPayloadModel = types.model("ScheduleEventEditPayload", {
@@ -30,6 +30,11 @@ export const ScheduleEventAddPayloadModel = types.model("ScheduleEventAddPayload
     defaultTab: types.maybe(types.string),
 });
 
+export const SearchFoodPayloadModel = types.model("SearchFoodPayload", {
+    productId: types.maybe(types.string),
+    dishId: types.maybe(types.string),
+});
+
 // ===== Payload Types =====
 
 export type DishEditPayload = SnapshotIn<typeof DishEditPayloadModel>;
@@ -38,6 +43,7 @@ export type ScheduleFoodEditPayload = SnapshotIn<typeof ScheduleFoodEditPayloadM
 export type ScheduleFoodAddPayload = SnapshotIn<typeof ScheduleFoodAddPayloadModel>;
 export type ScheduleEventEditPayload = SnapshotIn<typeof ScheduleEventEditPayloadModel>;
 export type ScheduleEventAddPayload = SnapshotIn<typeof ScheduleEventAddPayloadModel>;
+export type SearchFoodPayload = SnapshotIn<typeof SearchFoodPayloadModel>;
 
 // ===== Wizard Modal Type =====
 
@@ -47,7 +53,8 @@ export type WizardModal =
     | ModalType.SCHEDULE_FOOD_ADD
     | ModalType.SCHEDULE_FOOD_EDIT
     | ModalType.SCHEDULE_EVENT_ADD
-    | ModalType.SCHEDULE_EVENT_EDIT;
+    | ModalType.SCHEDULE_EVENT_EDIT
+    | ModalType.SEARCH_FOOD;
 
 // ===== Discriminated Union for All Payloads =====
 
@@ -64,7 +71,8 @@ type ModalPayloadDiscriminatedUnion =
     | { type: ModalType.COPY_DISH_ITEMS_TO_SCHEDULE; payload?: undefined }
     | { type: ModalType.SELECT; payload?: undefined }
     | { type: ModalType.CREATE_DISH_FROM_SCHEDULE; payload?: undefined }
-    | { type: ModalType.PULSE_PHYSICAL_ACTIVITY; payload?: undefined };
+    | { type: ModalType.PULSE_PHYSICAL_ACTIVITY; payload?: undefined }
+    | { type: ModalType.SEARCH_FOOD; payload: SearchFoodPayload };
 
 // ===== GetPayload Helper Type =====
 

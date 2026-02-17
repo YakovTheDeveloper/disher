@@ -1,12 +1,8 @@
+import { UseFilteringStateV2Return } from '@/components/features/shared/hooks/useFilteringStateV2';
 import { ReactNode } from 'react';
 
 export interface ListItemBase {
     id: string | number;
-}
-
-export interface SearchState<T extends ListItemBase = ListItemBase> {
-    searchQuery: string;
-    filteredList: T[];
 }
 
 export interface FetchResponse<T extends ListItemBase = ListItemBase> {
@@ -26,7 +22,7 @@ export interface ListProps<T extends ListItemBase = ListItemBase> {
     /** Callback when list should close */
     onClose: () => void;
     /** Search state with query and filtered local items */
-    search: SearchState<T>;
+    search: UseFilteringStateV2Return<T>;
     /** React Query key */
     queryKey: string;
     /** Fetch function for remote data */

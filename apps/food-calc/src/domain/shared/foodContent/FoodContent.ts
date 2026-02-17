@@ -135,9 +135,18 @@ export const ContentControllerFood = types.model({
         self.contentDish = null;
     }
 
+    function update(variant: 'product' | 'dish', id: string) {
+        if (variant === 'product') {
+            updateFood(id);
+        } else {
+            updateDish(id);
+        }
+    }
+
     return {
         updateFood,
         updateDish,
+        update,
         clear
     }
 })

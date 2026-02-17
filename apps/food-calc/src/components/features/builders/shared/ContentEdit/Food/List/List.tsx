@@ -19,7 +19,7 @@ const ESTIMATED_ITEM_HEIGHT = 48;
  */
 function ListInner<T extends ListItemBase>({
   isShow,
-  onClose,
+  onClose = () => {},
   search,
   queryKey,
   onFetch,
@@ -108,6 +108,7 @@ function ListInner<T extends ListItemBase>({
   const showEndLoader = isFetchingNextPage || isLoading;
 
   // Don't render if not visible
+
   if (!isShow) return null;
 
   return (
@@ -118,7 +119,7 @@ function ListInner<T extends ListItemBase>({
       role="listbox"
       aria-expanded={isShow}
     >
-      <Overlay className="" isLoading={() => showInitialLoading} />
+      {/* <Overlay className="" isLoading={() => showInitialLoading} /> */}
 
       <ul
         className={styles.list}

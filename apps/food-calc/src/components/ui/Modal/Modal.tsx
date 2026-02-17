@@ -4,6 +4,7 @@ import styles from './Modal.module.scss';
 import { ModalStoreInstance } from '../../../store/GlobalUiStore/ModalStore/ModalStore';
 import { domainStore } from '@/store/store';
 import { motion, AnimatePresence } from 'framer-motion';
+import { modalStoreV2 } from '@/store/GlobalUiStore/ModalStoreV2/ModalStoreV2';
 
 interface ModalProps {
   modalStore?: ModalStoreInstance;
@@ -15,13 +16,18 @@ const ModalComponent = ({
   children,
 }: ModalProps) => {
   const currentModal = modalStore.currentModal;
+  // Subscribe to modalStoreV2 to trigger re-render when modals change
+  const v2Open = modalStoreV2.isModalOpen;
 
   return (
     <Dialog.Root
-      open={!!currentModal}
+      open={!!currentModal || v2Open}
       onOpenChange={(open) => {
         if (!open) {
           modalStore.closeModal();
+          if (modalStoreV2.isModalOpen) {
+            modalStoreV2.closeLast();
+          }
         }
       }}
     >

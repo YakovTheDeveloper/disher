@@ -9,6 +9,7 @@ type Props = {
   ellipsis?: boolean;
   className?: string;
   onClick?: () => void;
+  onTouchEnd?: () => void;
   maxChars?: number;
   after?: React.ReactNode;
 };
@@ -19,13 +20,14 @@ type ExposedRefs = {
 };
 
 const Typography = forwardRef<ExposedRefs, Props>(
-  ({ children, variant, ellipsis, className, onClick, after }, ref) => {
+  ({ children, variant, ellipsis, className, onClick, onTouchEnd, after }, ref) => {
     const isCustom = variant === 'custom';
 
     return (
       <>
         <p
           onClick={onClick}
+          onTouchEnd={onTouchEnd}
           className={clsx(
             styles.container,
             !isCustom && styles[variant],

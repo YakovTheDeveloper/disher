@@ -90,12 +90,12 @@ const DishBuilder = ({ init, modalStore = domainStore.globalUiStore.modalStore }
               const id = item.id;
               const onFoodClick = () => {
                 clearSessionStorage(`tabs:${location.pathname}`);
-                openFormDishEdit(id, 'content');
+                openFormDishEdit({ itemToEditId: id, defaultTab: 'content' });
               };
 
               const onQuantityClick = () => {
                 clearSessionStorage(`tabs:${location.pathname}`);
-                openFormDishEdit(id, 'quantity');
+                openFormDishEdit({ itemToEditId: id, defaultTab: 'quantity' });
               };
 
               return (

@@ -1,24 +1,23 @@
 import { observer } from 'mobx-react-lite';
 import { motion } from 'framer-motion';
 import styles from './ColumnLayoutWithFixedHeader.module.scss';
-import { ReactNode } from 'react';
+import { CSSProperties, ReactNode } from 'react';
 import clsx from 'clsx';
 
+type HeaderGradientConfig = {
+  initial: string;
+  finished: string;
+};
+
 type Props = {
-  /** Content to display in the fixed header */
   header: ReactNode;
-  /** Main scrollable content */
   children: ReactNode;
-  /** Additional class names for the header */
+  footer: ReactNode;
   headerClassName?: string;
-  /** Additional class names for the content container */
   contentClassName?: string;
-  /** Enable Framer Motion gradient animation on header */
-  animateGradient?: boolean;
-  /** Custom transparent gradient (defaults to standard) */
-  transparentGradient?: string;
-  /** Custom shadow gradient (defaults to standard) */
-  shadowGradient?: string;
+  containerClassName?: string;
+  containerStyle?: CSSProperties;
+  headerGradient?: HeaderGradientConfig;
 };
 
 const DEFAULT_TRANSPARENT_GRADIENT =
@@ -29,31 +28,28 @@ const DEFAULT_SHADOW_GRADIENT =
 const ColumnLayoutWithFixedHeader = ({
   header,
   children,
+  footer,
   headerClassName,
   contentClassName,
-  animateGradient = true,
-  transparentGradient = DEFAULT_TRANSPARENT_GRADIENT,
-  shadowGradient = DEFAULT_SHADOW_GRADIENT,
+  containerClassName,
+  containerStyle,
+  headerGradient,
 }: Props) => {
-  const HeaderWrapper = animateGradient ? motion.header : 'header';
+  const transparentGradient = headerGradient?.initial ?? DEFAULT_TRANSPARENT_GRADIENT;
+  const shadowGradient = headerGradient?.finished ?? DEFAULT_SHADOW_GRADIENT;
 
   return (
-    <section className={styles.container}>
-      {animateGradient ? (
-        <motion.header
-          className={clsx(styles.header, headerClassName)}
-          initial={{ background: transparentGradient }}
-          animate={{ background: shadowGradient }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-        >
-          <div className={styles.headerInner}>{header}</div>
-        </motion.header>
-      ) : (
-        <header className={clsx(styles.header, headerClassName)}>
-          <div className={styles.headerInner}>{header}</div>
-        </header>
-      )}
+    <section className={clsx(styles.container, containerClassName)} style={containerStyle}>
+      <motion.header
+        className={clsx(styles.header, headerClassName)}
+        initial={{ background: transparentGradient }}
+        animate={{ background: shadowGradient }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+      >
+        <div className={styles.headerInner}>{header}</div>
+      </motion.header>
       <div className={clsx(styles.content, contentClassName)}>{children}</div>
+      {footer}
     </section>
   );
 };

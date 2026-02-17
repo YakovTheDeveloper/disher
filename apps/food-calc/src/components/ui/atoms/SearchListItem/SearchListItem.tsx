@@ -3,12 +3,13 @@ import styles from './SearchListItem.module.scss';
 import clsx from 'clsx';
 
 type Props = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   iconElement?: React.ReactNode;
   decorativeAfterElement?: React.ReactNode | string; // Buttons, extra info, or icon class name
   actionBeforeElement?: React.ReactNode; // Buttons or extra info
   active?: boolean;
   onClick?: () => void;
+  onTouchEnd?: (e: React.TouchEvent<HTMLElement>) => void;
   onInfoClick?: (id: string) => void;
   style?: React.CSSProperties;
   className: string;
@@ -30,6 +31,7 @@ const SearchListItem = ({
   actionBeforeElement,
   active,
   onClick,
+  onTouchEnd,
   className,
   style,
 }: Props) => {
@@ -39,6 +41,7 @@ const SearchListItem = ({
       <p
         className={clsx(className, styles.listItem, active && styles.listItem_active)}
         onClick={onClick}
+        onTouchEnd={onTouchEnd}
         style={style}
       >
         {item.name || item.label}

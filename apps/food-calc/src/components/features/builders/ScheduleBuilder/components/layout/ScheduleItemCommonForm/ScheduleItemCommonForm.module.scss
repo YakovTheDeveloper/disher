@@ -1,0 +1,19 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+}
+
+.footer {
+    padding: 16px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.header {
+    height: 300px;
+    transition: background 1s ease;
+}
+
+.container {
+    // transition: background 1s ease;
+}

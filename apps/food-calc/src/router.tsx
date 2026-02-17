@@ -10,6 +10,7 @@ import DishesPage from '@/pages/dish/dishes-page/DishesPage.tsx';
 import UserProductPage from '@/pages/user-product-page/UserProductPage.tsx';
 import DailyNormPage from '@/pages/daily-norms/DailyNormPage/DailyNormPage.tsx';
 import TestModalPage from '@/pages/swipe-test/TestModalPage';
+import ScheduleFoodAddV2Page from './pages/schedule/builder/schedule-food-add-v2-page/ScheduleFoodAddV2Page.tsx';
 
 export enum RouterLinks {
   Root = '/',
@@ -17,6 +18,7 @@ export enum RouterLinks {
   DishBuilder = '/dish',
   Schedule = '/date',
   ScheduleBuilder = '/schedule',
+  ScheduleFoodAdd = '/schedule/food-add',
   ProductBuilder = '/product',
   LoadData = '/load-data',
   Dishes = '/dishes',
@@ -73,6 +75,10 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.Test2,
         element: <TestModalPage />,
+      },
+      {
+        path: `${RouterLinks.ScheduleFoodAdd}/:id`,
+        element: <ScheduleFoodAddV2Page />,
       },
     ],
   },

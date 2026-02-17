@@ -11,12 +11,18 @@ import { domainStore } from '@/store/store';
 import { ScheduleDrawers } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
 import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
+import { CSSProperties } from 'react';
+import clsx from 'clsx';
 
 type Props = {
   scrollYProgress: MotionValue<number>;
+  /** CSS custom properties for theming (e.g., --di-text-night) */
+  style?: CSSProperties;
+  /** Additional class names for theming (e.g., 'night', 'day') */
+  className?: string;
 };
 
-const DateInfo = ({ scrollYProgress }: Props) => {
+const DateInfo = ({ scrollYProgress, style, className }: Props) => {
   const params = useParams();
   const dateParam = params.id;
   const modals = domainStore.globalUiStore.drawerStore;
@@ -33,7 +39,8 @@ const DateInfo = ({ scrollYProgress }: Props) => {
   // const containerGap = useTransform(scrollYProgress, [0, 1], ['8px', '0px']);
   return (
     <div
-      className={styles.dateLink}
+      className={clsx(styles.dateLink, className)}
+      style={style}
       onClick={() =>
         useModalsAndDrawers().drawerStore.open({ type: DrawerTypesV2.Schedule.DateChoose })
       }

@@ -6,6 +6,7 @@ import {
     getEventTypeDefinition,
     hasSubtypes,
     getSubtypes,
+    getTypeGroupName,
     EVENT_TYPES
 } from './eventTypes';
 import {
@@ -89,6 +90,9 @@ export const ScheduleEventItem = types.model("ScheduleEventItem", {
     get formConfig(): EventFormConfig {
         return getEventFormConfig(self.type);
     },
+    get typeGroupView() {
+        return getTypeGroupName(self.type)
+    }
 })).actions(self => ({
     updateTime(time: string) {
         self.time = time;

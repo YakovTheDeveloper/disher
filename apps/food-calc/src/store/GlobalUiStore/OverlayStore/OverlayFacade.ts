@@ -1,30 +1,12 @@
 import { ModalType } from "../ModalStore/ModalContent";
 import { DrawerTypesV2 } from "../DrawerStore/DrawerStore.v2.types";
 import { GetPayload } from "../ModalStore/ModalPayloads";
+import { ModalMethodMap } from "./OverlayFacade.types";
 
 /**
- * Фасад для управления модалками и дроверами.
- * Предоставляет интуитивные методы без явного указания на тип (modal/drawer).
+ * Типы для drawer методов (пока оставляем ручные, т.к. drawer не имеет строгой типизации payload).
  */
-export interface OverlayFacade {
-    // ===== Modal Methods =====
-    openFormFoodEdit(itemToEditId: string): void;
-    openFormDishAdd(): void;
-    openFormDishEdit(itemToEditId: string, defaultTab: string): void;
-    openFormScheduleFoodAdd(): void;
-    openFormScheduleFoodEdit(itemToEditId: string, defaultTab: string): void;
-    openFormScheduleEventAdd(): void;
-    openFormScheduleEventEdit(itemToEditId: string, defaultTab: string): void;
-    openCopyScheduleItemsToAnotherDay(): void;
-    openCopyScheduleItemsToDish(): void;
-    openCopyDishItemsToAnotherDish(): void;
-    openCopyDishItemsToSchedule(): void;
-    openCreateDishFromSchedule(): void;
-    openSelect(): void;
-    openPulsePhysicalActivity(): void;
-    closeModal(): void;
-
-    // ===== Drawer Methods =====
+interface DrawerMethods {
     openDateChoose(): void;
     openProductAdd(): void;
     openDishAdd(): void;
@@ -36,10 +18,22 @@ export interface OverlayFacade {
     openConfirmationRemoveDailyNorms(title?: string, message?: string): void;
     openConfirmationRemoveUserFood(title?: string, message?: string): void;
     closeDrawer(): void;
+}
 
-    // ===== Common Methods =====
+/**
+ * Общие методы для закрытия.
+ */
+interface CommonMethods {
+    closeModal(): void;
     closeAll(): void;
 }
+
+/**
+ * Фасад для управления модалками и дроверами.
+ * Типы методов модалок автоматически выводятся из ModalType и GetPayload.
+ * При добавлении новой модалки в ModalType — метод автоматически появится с правильными типами.
+ */
+export interface OverlayFacade extends ModalMethodMap, DrawerMethods, CommonMethods { }
 
 export function createOverlayFacade(modalStore: {
     openModal<T extends ModalType>(variant: T, payload?: GetPayload<T>): void;
@@ -53,28 +47,28 @@ export function createOverlayFacade(modalStore: {
     return {
         // ===== Modal Methods =====
 
-        openFormDishAdd() {
-            modalStore.openModal(ModalType.DISH_CREATE);
+        openFormDishAdd(payload) {
+            modalStore.openModal(ModalType.DISH_CREATE, payload);
         },
 
-        openFormDishEdit(itemToEditId: string, defaultTab?: string) {
-            modalStore.openModal(ModalType.DISH_EDIT, { itemToEditId, defaultTab });
+        openFormDishEdit(payload) {
+            modalStore.openModal(ModalType.DISH_EDIT, payload);
         },
 
-        openFormScheduleFoodAdd() {
-            modalStore.openModal(ModalType.SCHEDULE_FOOD_ADD);
+        openFormScheduleFoodAdd(payload) {
+            modalStore.openModal(ModalType.SCHEDULE_FOOD_ADD, payload);
         },
 
-        openFormScheduleFoodEdit(itemToEditId: string, defaultTab?: string) {
-            modalStore.openModal(ModalType.SCHEDULE_FOOD_EDIT, { itemToEditId, defaultTab });
+        openFormScheduleFoodEdit(payload) {
+            modalStore.openModal(ModalType.SCHEDULE_FOOD_EDIT, payload);
         },
 
-        openFormScheduleEventAdd() {
-            modalStore.openModal(ModalType.SCHEDULE_EVENT_ADD);
+        openFormScheduleEventAdd(payload) {
+            modalStore.openModal(ModalType.SCHEDULE_EVENT_ADD, payload);
         },
 
-        openFormScheduleEventEdit(itemToEditId: string, defaultTab?: string) {
-            modalStore.openModal(ModalType.SCHEDULE_EVENT_EDIT, { itemToEditId, defaultTab });
+        openFormScheduleEventEdit(payload) {
+            modalStore.openModal(ModalType.SCHEDULE_EVENT_EDIT, payload);
         },
 
         openCopyScheduleItemsToAnotherDay() {
@@ -103,6 +97,10 @@ export function createOverlayFacade(modalStore: {
 
         openPulsePhysicalActivity() {
             modalStore.openModal(ModalType.PULSE_PHYSICAL_ACTIVITY);
+        },
+
+        openSearchFood(payload) {
+            modalStore.openModal(ModalType.SEARCH_FOOD, payload);
         },
 
         closeModal() {

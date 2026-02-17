@@ -138,7 +138,7 @@ export const DayScheduleStore = types
 
         // ======== DRAFT METHODS ========
         clearFoodDraft() {
-            self.foodDraft?.content.clear()
+            self.foodDraft?.clear()
         },
 
         clearEventDraft() {
@@ -147,7 +147,11 @@ export const DayScheduleStore = types
             self.eventDraft.data = null
         },
 
-        commitFoodDraft(schedule: Instance<typeof DaySchedule>): string {
+        commitFoodDraft(scheduleId: string): string {
+            const schedule = self.data.get(scheduleId)
+            if (!schedule) {
+                throw new Error(`Schedule with id ${scheduleId} not found`)
+            }
             const snapshot = getSnapshot(self.foodDraft)
             const instance = schedule.foods.addChildWithLocalData(snapshot)
             self.clearFoodDraft()

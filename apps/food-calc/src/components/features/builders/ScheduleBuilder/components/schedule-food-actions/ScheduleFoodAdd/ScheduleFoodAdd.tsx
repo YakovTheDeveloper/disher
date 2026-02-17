@@ -131,6 +131,7 @@ const ScheduleFoodAdd = observer(
 
     return (
       <ModalLayout
+        showCloseButton
         headerCenter={
           currentTab === 'foodSelect' && (
             <button onClick={onHeaderButtonClick} style={{ fontSize: '1.5rem' }}>

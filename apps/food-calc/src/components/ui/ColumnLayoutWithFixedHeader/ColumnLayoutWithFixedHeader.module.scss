@@ -9,13 +9,13 @@
     --clfh-header-z-index: 1;
     --clfh-content-z-index: 2;
     --clfh-content-offset: -20px;
+    --clfh-bg-default: linear-gradient(135deg, rgb(224, 229, 246) 0%, rgb(235, 242, 250) 100%);
 }
 
 .container {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+    // background: linear-gradient(135deg, rgb(47, 38, 72) 0%, rgb(72, 72, 72) 100%);
+    background: var(--clfh-bg-default);
+    overflow: auto;
 }
 
 .header {
@@ -32,10 +32,9 @@
 }
 
 .headerInner {
-    position: fixed;
-    width: 100%;
-    top: 0;
-    left: 0;
+    position: absolute;
+    inset: 0;
+    /* top:0; right:0; bottom:0; left:0 */
 }
 
 .content {
@@ -45,11 +44,15 @@
     border-top-left-radius: var(--clfh-content-radius);
     border-top-right-radius: var(--clfh-content-radius);
     padding: 1rem 0.5rem;
-    background-color: rgb(255, 255, 255);
+    background: linear-gradient(135deg, rgb(224, 229, 246) 0%, rgb(235, 242, 250) 100%);
+    // background-color: linear-gradient(135deg, rgb(224, 229, 246) 0%, rgb(235, 242, 250) 100%);
     backdrop-filter: blur(var(--clfh-content-blur));
     flex: 1;
     scroll-behavior: smooth;
     overflow-y: auto;
+    box-shadow: -1px 7px 8px 0px rgba(0, 0, 0, 0.05);
+    border-bottom-left-radius: calc(var(--clfh-content-radius) / 3);
+    border-bottom-right-radius: calc(var(--clfh-content-radius)/ 3);
 }
 
 // Accessibility: Respect reduced motion preferences

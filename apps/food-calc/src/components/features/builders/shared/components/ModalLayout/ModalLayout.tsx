@@ -23,6 +23,8 @@ type Props = {
   className?: string;
   modalStore?: ModalStoreInstance;
   showHeader?: boolean;
+  showCloseButton?: boolean;
+  showBackButton?: boolean;
 };
 
 const ModalLayout = ({
@@ -38,9 +40,15 @@ const ModalLayout = ({
   modalStore = domainStore.globalUiStore.modalStore,
   showHeader = true,
   className,
+  showCloseButton = false,
+  showBackButton = false,
 }: Props) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { keyboardVisible } = useKeyboardDetection();
+
+  // Determine button visibility: explicit props override implicit onBack
+  const showBack = showBackButton || (onBack !== undefined && !showCloseButton);
+  const showClose = showCloseButton || (!showBackButton && onBack === undefined);
 
   return (
     <Dialog.Content asChild>
@@ -67,11 +75,11 @@ const ModalLayout = ({
                 transition={{ duration: 0.1, ease: 'easeOut' }}
               >
                 <div className={styles.headerLeft}>
-                  {onBack ? (
+                  {showBack ? (
                     <button className={styles.iconButton} onClick={onBack}>
                       <BackIcon />
                     </button>
-                  ) : (
+                  ) : showClose ? (
                     <button
                       className={styles.closeButton}
                       // aria-label="Close"
@@ -82,7 +90,7 @@ const ModalLayout = ({
                     >
                       ×
                     </button>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className={styles.headerCenter}>

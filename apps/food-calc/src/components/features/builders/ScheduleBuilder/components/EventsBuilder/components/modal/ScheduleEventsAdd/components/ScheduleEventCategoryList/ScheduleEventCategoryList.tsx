@@ -12,6 +12,7 @@ import {
   EVENT_CATEGORIES,
   getEventTypeDefinition,
   BaseEventType,
+  BaseGroupEventType,
 } from '@/domain/schedule/scheduleEvent/eventTypes';
 import { useStore } from '@/store/store';
 import clsx from 'clsx';
@@ -23,7 +24,7 @@ type Props = {
   onFinish: () => void;
 };
 
-const CATEGORIES: { key: EventCategory; icon: string }[] = [
+const CATEGORIES: { key: BaseGroupEventType; icon: string }[] = [
   { key: 'physical', icon: 'pulse' },
   { key: 'mental', icon: 'brain' },
   { key: 'activity', icon: 'activity' },
@@ -31,7 +32,7 @@ const CATEGORIES: { key: EventCategory; icon: string }[] = [
   { key: 'notes', icon: 'note' },
 ];
 
-const EVENT_TYPES_BY_CATEGORY: Record<EventCategory, ScheduleEventType[]> = {
+const EVENT_TYPES_BY_CATEGORY: Record<BaseGroupEventType, ScheduleEventType[]> = {
   physical: ['sleep', 'illness', 'digestion', 'medication', 'weight', 'vitals', 'hydration'],
   mental: [
     'mood',
@@ -79,7 +80,7 @@ const ScheduleEventCategoryList = ({ eventItem, onFinish }: Props) => {
 
   // Refs for scroll navigation
   const listRef = useRef<HTMLDivElement>(null);
-  const sectionRefs = useRef<Record<EventCategory, HTMLDivElement | null>>({
+  const sectionRefs = useRef<Record<BaseGroupEventType, HTMLDivElement | null>>({
     physical: null,
     mental: null,
     activity: null,
@@ -102,7 +103,7 @@ const ScheduleEventCategoryList = ({ eventItem, onFinish }: Props) => {
 
   const headerContent = (
     <div className={styles.imageContainer}>
-      <CategoryImage category={eventItem.type} />
+      <CategoryImage category={eventItem.typeGroupView} />
     </div>
   );
 
@@ -193,8 +194,7 @@ const ScheduleEventCategoryList = ({ eventItem, onFinish }: Props) => {
   return (
     <ColumnLayoutWithFixedHeader
       header={headerContent}
-      transparentGradient={transparentGradient}
-      shadowGradient={shadowGradient}
+      headerGradient={{ initial: transparentGradient, finished: shadowGradient }}
     >
       {content}
     </ColumnLayoutWithFixedHeader>

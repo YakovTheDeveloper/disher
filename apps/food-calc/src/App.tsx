@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { AnimatedOutlet } from '@/components/ui/PageTransition';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import s from '@/assets/style/App.module.scss';
 import '@/assets/style/index.scss';
@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast';
 import { setupGlobalLog } from '@/lib/log/log';
 import { Modal } from '@/components/ui/Modal';
 import { ModalManager } from '@/ModalManager';
+import { ModalManagerV2 } from '@/components/ModalManagerV2';
 import { Drawer } from '@/components/ui/Drawer';
 import { useLastFocusMethod } from '@/hooks/useLastFocusMethod';
 import { useUserAgentDetection } from '@/hooks/useUserAgentDetection';
@@ -33,12 +34,13 @@ const App = () => {
         <Toaster />
         <div className={s.main}>
           <Modal>
-            <ModalManager />
+            {/* <ModalManager /> */}
+            <ModalManagerV2 />
           </Modal>
           <Drawer>
             <DrawerManagerV2 />
           </Drawer>
-          <Outlet />
+          <AnimatedOutlet />
         </div>
       </QueryClientProvider>
     </I18nextProvider>

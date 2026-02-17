@@ -9,13 +9,14 @@ import {
   FoodContentProductInstance,
 } from '@/domain/shared/foodContent/foodContent';
 type Props = {
-  onClick: () => void;
+  onClick?: () => void;
+  onTouchEnd?: (e: React.TouchEvent<HTMLElement>) => void;
   after?: React.ReactNode;
   className?: string;
   content: { name: string } | null;
 };
 
-const FoodName = ({ className, onClick, after, content }: Props) => {
+const FoodName = ({ className, onClick, onTouchEnd, after, content }: Props) => {
   const initTitle = content?.name;
   const normalizedTitle = initTitle || 'не выбрано';
 
@@ -28,6 +29,7 @@ const FoodName = ({ className, onClick, after, content }: Props) => {
       after={after}
       className={clsx([className, animationClassName, !initTitle && styles.noTitle])}
       onClick={onClick}
+      onTouchEnd={onTouchEnd}
     >
       {normalizedTitle}
     </Typography>

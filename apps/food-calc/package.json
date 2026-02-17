@@ -41,6 +41,7 @@
     "mobx-state-tree": "^7.0.2",
     "module-alias": "^2.2.3",
     "motion": "^12.23.12",
+    "pixi.js": "^8.16.0",
     "react": "^19.1.1",
     "react-day-picker": "^9.13.0",
     "react-dnd": "^16.0.1",

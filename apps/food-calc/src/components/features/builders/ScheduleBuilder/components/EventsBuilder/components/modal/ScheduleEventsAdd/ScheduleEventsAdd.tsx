@@ -35,11 +35,7 @@ const ScheduleEventsAdd = ({ close, variant, defaultTab }: Props) => {
 
   const { t } = useTranslation();
 
-  const hook = variant === 'add' ? useDraftEventScheduleItem : useSelectedEventItem;
-
-  const currentChild = hook();
-
-  console.log('currentChild', currentChild);
+  const currentChild = variant === 'add' ? useDraftEventScheduleItem() : useSelectedEventItem();
 
   const timeState = useLocalObservable(() => ({
     localTime: currentChild.time,
@@ -87,6 +83,7 @@ const ScheduleEventsAdd = ({ close, variant, defaultTab }: Props) => {
 
   return (
     <ModalLayout
+      showCloseButton
       footer={
         <Tabs
           tabs={tabs}

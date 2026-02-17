@@ -37,7 +37,7 @@ const BuilderScheduleEvents = ({ schedule }: Props) => {
   const { openFormScheduleEventEdit } = useOverlay();
 
   const onEventEditModalOpen = (item: Instance<typeof ScheduleEventItem>) => {
-    openFormScheduleEventEdit(item.id, 'content');
+    openFormScheduleEventEdit({ itemToEditId: item.id, defaultTab: 'content' });
   };
 
   const renderEventListItem = useCallback(

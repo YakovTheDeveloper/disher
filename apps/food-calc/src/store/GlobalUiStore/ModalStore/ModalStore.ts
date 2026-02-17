@@ -9,6 +9,7 @@ import {
     ScheduleFoodAddPayloadModel,
     ScheduleEventEditPayloadModel,
     ScheduleEventAddPayloadModel,
+    SearchFoodPayloadModel,
 } from "./ModalPayloads";
 
 // Union of all payload models for storage
@@ -18,7 +19,8 @@ const PayloadModels = types.union(
     ScheduleFoodEditPayloadModel,
     ScheduleFoodAddPayloadModel,
     ScheduleEventEditPayloadModel,
-    ScheduleEventAddPayloadModel
+    ScheduleEventAddPayloadModel,
+    SearchFoodPayloadModel
 );
 
 export const ModalStore = types
@@ -38,7 +40,8 @@ export const ModalStore = types
             ModalType.SCHEDULE_FOOD_ADD,
             ModalType.SCHEDULE_FOOD_EDIT,
             ModalType.SCHEDULE_EVENT_ADD,
-            ModalType.SCHEDULE_EVENT_EDIT
+            ModalType.SCHEDULE_EVENT_EDIT,
+            ModalType.SEARCH_FOOD,
         ];
 
         return {
@@ -68,6 +71,9 @@ export const ModalStore = types
                             break;
                         case ModalType.SCHEDULE_EVENT_ADD:
                             self.payload = ScheduleEventAddPayloadModel.create(payload as SnapshotIn<typeof ScheduleEventAddPayloadModel>);
+                            break;
+                        case ModalType.SEARCH_FOOD:
+                            self.payload = SearchFoodPayloadModel.create(payload as SnapshotIn<typeof SearchFoodPayloadModel>);
                             break;
                         default:
                             self.payload = undefined;

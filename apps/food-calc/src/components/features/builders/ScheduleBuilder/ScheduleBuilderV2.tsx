@@ -37,10 +37,17 @@ const ScheduleBuilder = ({
 }: Props) => {
   const navigate = useNavigate();
 
-  const onFoodAdd = () => {
+  const onFoodAddV2 = () => {
     clearSessionStorage(`tabs:${location.pathname}`);
-    modalStore.openModal(ModalType.SCHEDULE_FOOD_ADD);
+    navigate(RouterLinks.ScheduleFoodAdd + `/${date}`);
+    return;
   };
+
+  // Old implementation - commented for reference
+  // const onFoodAdd = () => {
+  //   clearSessionStorage(`tabs:${location.pathname}`);
+  //   modalStore.openModal(ModalType.SCHEDULE_FOOD_ADD);
+  // };
 
   const onEventAdd = () => {
     clearSessionStorage(`tabs:${location.pathname}`);
@@ -98,7 +105,7 @@ const ScheduleBuilder = ({
               </ScreenLabel>
             }
             header={<Navigation></Navigation>}
-            bottom={<Buttons.Add onClick={onFoodAdd} />}
+            bottom={<Buttons.Add onClick={onFoodAddV2} />}
           >
             <BuilderScheduleFood schedule={schedule} />
           </Screen>,

@@ -9,7 +9,8 @@ import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
 import { Instance } from 'mobx-state-tree';
 import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate } from 'react-router';
+import { useRequiredRouteParam } from '@/hooks/useRequiredRouteParam';
 
 type Props = {
   dishIdParam: number;
@@ -54,25 +55,20 @@ const Page = ({ dishIdParam }: Props) => {
 };
 
 const PageWrapper = () => {
-  const params = useParams();
-  const dishIdParam = params.id;
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!dishIdParam) {
-      navigate(RouterLinks.Schedule);
-    }
-  }, [dishIdParam]);
+  const { paramId: dishIdParam, isValid } = useRequiredRouteParam({
+    navigateToUrlOnFail: RouterLinks.Schedule,
+  });
 
   useEffect(() => {
     if (location.search) {
       navigate(location.pathname, { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
-  if (!dishIdParam) return null;
+  if (!isValid) return null;
 
-  return <Page dishIdParam={dishIdParam} />;
+  return <Page dishIdParam={Number(dishIdParam)} />;
 };
 
 export default observer(PageWrapper);

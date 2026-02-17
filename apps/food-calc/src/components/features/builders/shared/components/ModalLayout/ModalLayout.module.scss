@@ -6,17 +6,19 @@
     position: relative;
     overflow: hidden;
     // border-radius: 24px 24px 0 0;
-    transition: height 0.3s ease-out;
 
     background: linear-gradient(135deg, rgb(224, 229, 246) 0%, rgb(235, 242, 250) 100%);
     // background: linear-gradient(180deg, rgb(223, 242, 255) 0%, rgb(215, 229, 241) 75%, rgba(235, 242, 250, 0.196) 100%);
 
 
     &.keyboardVisible {
-        height: calc(100% - var(--keyboard-height, 0px));
+        // height: calc(100% - var(--keyboard-height, 0px));
     }
 
 
+    &.keyboardVisible .content {
+        // overflow-y: hidden;
+    }
 }
 
 

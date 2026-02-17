@@ -1,5 +1,4 @@
 .content {
-    // overflow: hidden;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -7,7 +6,14 @@
     min-height: 0;
     background: transparent;
     padding-right: var(--default-container-padding);
+}
 
+.header {
+    position: sticky;
+    display: flex;
+    top: 0;
+    z-index: 10;
+    padding: 8px 0;
 }
 
 .foodInfo {
@@ -41,6 +47,5 @@
 
     &:focus {
         background-color: #fff;
-        // box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15);
     }
 }

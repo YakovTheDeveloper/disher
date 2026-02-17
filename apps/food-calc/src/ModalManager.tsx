@@ -7,6 +7,7 @@ import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
 import { ScheduleModals } from '@/components/features/builders/ScheduleBuilder/components/modal/ScheduleModals';
 import { DishModals } from '@/components/features/builders/DishBuilder/components/modal/DishModals';
+import { ModalSearchFood } from '@/components/features/builders/shared/modals/ModalSearchFood';
 
 type Props = {
   modalStore?: ModalStoreInstance;
@@ -47,6 +48,9 @@ export const ModalManager = observer(
             close={() => modalStore.closeModal()}
           />
         );
+
+      case ModalType.SEARCH_FOOD:
+        return <ModalSearchFood />;
 
       default:
         return null;
