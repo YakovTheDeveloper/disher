@@ -92,8 +92,21 @@ export const DayScheduleStore = types
             return model
         },
 
-        getEntity(date: ISODate) {
-            return self.data.get(date)
+        getScheduleChildById(scheduleId: string, itemId: string, variant: 'food' | 'event') {
+            const schedule = self.data.get(scheduleId)
+            if (!schedule) return null
+            if (variant === 'food') {
+                return self.getEntity(itemId, 'food')
+            } else {
+                return self.getEntity(itemId, 'event')
+            }
+        },
+
+        getEntity(id: string | 'draft', variant: 'food' | 'event') {
+            if (id === 'draft') {
+                return variant === 'food' ? self.foodDraft : self.eventDraft
+            }
+            return self.data.get(id)
         },
 
         fetchSync: async (payload: Instance<typeof DaySchedule>) => {
@@ -158,7 +171,11 @@ export const DayScheduleStore = types
             return instance.id
         },
 
-        commitEventDraft(schedule: Instance<typeof DaySchedule>): string {
+        commitEventDraft(scheduleId: string): string {
+            const schedule = self.data.get(scheduleId)
+            if (!schedule) {
+                throw new Error(`Schedule with id ${scheduleId} not found`)
+            }
             const snapshot = getSnapshot(self.eventDraft)
             const instance = schedule.events.addChildWithLocalData(snapshot)
             self.clearEventDraft()

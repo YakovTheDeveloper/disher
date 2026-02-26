@@ -1,38 +1,28 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { observer } from 'mobx-react-lite';
 import styles from './Modal.module.scss';
-import { ModalStoreInstance } from '../../../store/GlobalUiStore/ModalStore/ModalStore';
-import { domainStore } from '@/store/store';
-import { motion, AnimatePresence } from 'framer-motion';
 import { modalStoreV2 } from '@/store/GlobalUiStore/ModalStoreV2/ModalStoreV2';
+import { motion } from 'framer-motion';
 
 interface ModalProps {
-  modalStore?: ModalStoreInstance;
   children: React.ReactNode;
 }
 
-const ModalComponent = ({
-  modalStore = domainStore.globalUiStore.modalStore,
-  children,
-}: ModalProps) => {
-  const currentModal = modalStore.currentModal;
+const ModalComponent = ({ children }: ModalProps) => {
   // Subscribe to modalStoreV2 to trigger re-render when modals change
   const v2Open = modalStoreV2.isModalOpen;
 
   return (
     <Dialog.Root
-      open={!!currentModal || v2Open}
+      open={v2Open}
       onOpenChange={(open) => {
-        if (!open) {
-          modalStore.closeModal();
-          if (modalStoreV2.isModalOpen) {
-            modalStoreV2.closeLast();
-          }
+        if (!open && modalStoreV2.isModalOpen) {
+          modalStoreV2.closeLast();
         }
       }}
     >
       <Dialog.Portal container={document.getElementById('modal-root')}>
-        <Dialog.Overlay asChild onClick={() => modalStore.closeModal()}>
+        <Dialog.Overlay asChild>
           <motion.div
             className={styles.overlay}
             initial={{ opacity: 0 }}
@@ -41,20 +31,6 @@ const ModalComponent = ({
           />
         </Dialog.Overlay>
         {children}
-        {/* <Dialog.Content className={styles.modal}>
-          <button
-            className={styles.closeButton}
-            // aria-label="Close"
-            onClick={(e) => {
-              e.stopPropagation();
-              modalStore.closeModal();
-            }}
-          >
-            ×
-          </button>
-
-          {children}
-        </Dialog.Content> */}
       </Dialog.Portal>
     </Dialog.Root>
   );

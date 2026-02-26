@@ -11,6 +11,7 @@ import { ModalManagerV2 } from '@/components/ModalManagerV2';
 import { Drawer } from '@/components/ui/Drawer';
 import { useLastFocusMethod } from '@/hooks/useLastFocusMethod';
 import { useUserAgentDetection } from '@/hooks/useUserAgentDetection';
+import { useGlobalScrollBlur } from '@/hooks/useGlobalScrollBlur';
 import DrawerManagerV2 from '@/DrawerManagerV2';
 import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
@@ -22,6 +23,7 @@ const queryClient = new QueryClient();
 const App = () => {
   useLastFocusMethod();
   useUserAgentDetection();
+  useGlobalScrollBlur();
   setupGlobalLog();
 
   if (!domainStore.isHydrated) {

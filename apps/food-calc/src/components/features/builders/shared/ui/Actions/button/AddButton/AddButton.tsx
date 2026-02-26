@@ -11,12 +11,10 @@ type Props = {
 const AddButton = ({ onClick, animate }: Props) => {
   const shouldAnimate = animate?.();
 
-  console.log('shouldAnimate', shouldAnimate);
-
   return (
     <button
       onClick={onClick}
-      className={clsx([styles.container, shouldAnimate && styles.animate])}
+      className={clsx([styles.container, !shouldAnimate && styles.animate])}
     ></button>
   );
 };

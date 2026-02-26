@@ -7,7 +7,7 @@ import { ISODate } from '@/types/common/common';
 import { Instance } from 'mobx-state-tree';
 import { DaySchedule } from '@/domain/schedule/schedule.model';
 import { useNavigate } from 'react-router';
-import { RouterLinks } from '@/router';
+import { getScheduleEventUrl, getScheduleFoodUrl, RouterLinks } from '@/router';
 import { domainStore } from '@/store/store';
 import { Navigation } from '@/components/features/builders/ScheduleBuilder/ui/Navigation';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
@@ -16,42 +16,32 @@ import { Buttons } from '@/components/features/builders/shared/ui/Actions/button
 import { MotionValue } from 'framer-motion';
 import { ActionsHeader } from '@/components/features/builders/shared/components/ActionsHeader';
 import { ScheduleFoodSelectionActions } from '@/components/features/builders/ScheduleBuilder/components/header-actions/ScheduleFoodSelectionActions';
-import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
-import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import SwipeableV2 from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableV2';
 import { BuilderScheduleEvents } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder';
 import { clearSessionStorage } from '@/infrastructure/storage/sessionStorage';
 
 type Props = {
-  // onFinish: (payload: Instance<typeof DaySchedule>) => Promise<void>;
   schedule: Instance<typeof DaySchedule>;
   date: ISODate;
-  modalStore?: ModalStoreInstance;
 };
 
-const ScheduleBuilder = ({
-  schedule,
-  date,
-  modalStore = domainStore.globalUiStore.modalStore,
-}: Props) => {
+const ScheduleBuilder = ({ schedule, date }: Props) => {
   const navigate = useNavigate();
 
   const onFoodAddV2 = () => {
     clearSessionStorage(`tabs:${location.pathname}`);
-    navigate(RouterLinks.ScheduleFoodAdd + `/${date}`);
-    return;
+
+    navigate(getScheduleFoodUrl(schedule.id, 'draft'));
+
+    requestAnimationFrame(() => {
+      document.getElementById('time-picker-hours-label')?.click();
+    });
   };
 
-  // Old implementation - commented for reference
-  // const onFoodAdd = () => {
-  //   clearSessionStorage(`tabs:${location.pathname}`);
-  //   modalStore.openModal(ModalType.SCHEDULE_FOOD_ADD);
-  // };
-
   const onEventAdd = () => {
-    clearSessionStorage(`tabs:${location.pathname}`);
-    modalStore.openModal(ModalType.SCHEDULE_EVENT_ADD);
+    // TODO: make link to new route
+    navigate(getScheduleEventUrl(schedule.id, 'draft'));
   };
 
   console.log('SChedule buILder REnder');
@@ -126,7 +116,6 @@ const ScheduleBuilder = ({
                 }
               >
                 экшены событий
-                {/* <ScheduleFoodSelectionActions /> */}
               </ActionsHeader>
             }
             key={3}

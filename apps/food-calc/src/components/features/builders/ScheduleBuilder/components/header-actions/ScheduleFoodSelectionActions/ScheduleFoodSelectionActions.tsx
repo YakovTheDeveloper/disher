@@ -1,19 +1,16 @@
 import { observer } from 'mobx-react-lite';
 import styles from './ScheduleFoodSelectionActions.module.scss';
-import { domainStore } from '@/store/store';
-import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 type Props = {
   children?: React.ReactNode;
 };
 
 const ScheduleFoodSelectionActions = ({ children }: Props) => {
-  const { modalStore } = domainStore.globalUiStore;
   const onCreateDishButtonClick = () => {
-    modalStore.openModal(ModalType.CREATE_DISH_FROM_SCHEDULE);
+    // TODO: move to new modal system
   };
 
   const onCopyToAnotherDayButtonClick = () => {
-    modalStore.openModal(ModalType.COPY_SCHEDULE_ITEMS_TO_ANOTHER_DAY);
+    // TODO: move to new modal system
   };
 
   return (

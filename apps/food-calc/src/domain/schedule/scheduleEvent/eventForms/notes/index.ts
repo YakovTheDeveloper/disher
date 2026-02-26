@@ -10,7 +10,9 @@ export { gratitudeConfig } from './gratitude';
 export { ideaConfig } from './idea';
 export { taskConfig } from './task';
 export { goalConfig } from './goal';
+export { reflectionConfig } from './reflection';
 
 // Types
 export type { TaskSubtype } from './task';
 export type { GoalSubtype } from './goal';
+export type { ReflectionSubtype } from './reflection';

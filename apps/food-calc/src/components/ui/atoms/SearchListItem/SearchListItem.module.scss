@@ -17,6 +17,9 @@
     white-space: nowrap;
     text-overflow: ellipsis;
 
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
     cursor: pointer;
@@ -24,10 +27,8 @@
     font-family: inherit;
     height: 40px;
 
-    &:hover,
     &:active {
-        border-color: var(--color-deep-blue);
-        background: rgb(229, 222, 255);
+        background: rgb(215, 204, 255);
         color: #fff;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }

@@ -44,7 +44,7 @@ const Page = observer(({ date }: { date: string }) => {
   return (
     <>
       {current ? (
-        <ScheduleBuilder key={date} date={date} schedule={current} onFinish={onFinish} />
+        <ScheduleBuilder key={date} date={date} schedule={current} />
       ) : null}
     </>
   );

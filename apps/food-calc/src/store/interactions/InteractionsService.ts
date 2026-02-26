@@ -94,7 +94,7 @@ export const InteractionsService = types
     .actions(self => {
 
         function moveOrCopyItemsFromOneScheduleToAnother(fromDate: string, toDate: string, action: 'copy' | 'move') {
-            const selectedIds = domainStore.interactionsService.interactionsSelect.selectedIds;
+            const selectedIds = self.interactionsSelect.selectedIds;
 
             const from = domainStore.scheduleStore.data.get(fromDate);
             if (!from) {
@@ -124,7 +124,7 @@ export const InteractionsService = types
 
         function createNewDishAndAppendToSchedule({ schedule, timeToAddDishScheduleItem, removeScheduleItems }: CreateNewDishAndAppendToScheduleParam) {
             const root = getRoot(self) as InteractionsEnv;
-            const selectedIds = root.interactionsSelect.selectedIds
+            const selectedIds = self.interactionsSelect.selectedIds
 
             const dishItemsPayload = schedule.foods.getChildrenByIds(selectedIds)
 

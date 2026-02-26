@@ -6,12 +6,20 @@ import styles from './SearchFoodModal.module.scss';
 interface SearchFoodModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onOpen?: () => void;
   children: ReactNode;
 }
 
-const SearchFoodModal = ({ open, onOpenChange, children }: SearchFoodModalProps) => {
+const SearchFoodModal = ({ open, onOpenChange, onOpen, children }: SearchFoodModalProps) => {
+  const handleOpenChange = (isOpen: boolean) => {
+    onOpenChange(isOpen);
+    if (isOpen && onOpen) {
+      onOpen();
+    }
+  };
+
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <AnimatePresence>
         {open && (
           <Dialog.Portal container={document.getElementById('modal-root')}>

@@ -2,7 +2,6 @@ import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
 import { EventContentEditForm } from '../shared/EventContentEditForm';
 import { domainStore } from '@/store/store';
-import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 import { emitter } from '@/infrastructure/emitter/emitter';
 
 type Props = {
@@ -43,7 +42,7 @@ const ActivityContent = observer(({ value, onChange }: Props) => {
   const [formData, setFormData] = useState(parseValueToForm(value));
 
   const openPulseModal = () => {
-    domainStore.globalUiStore.modalStore.openModal(ModalType.PULSE_PHYSICAL_ACTIVITY);
+    // TODO: move to new modal system
   };
 
   const handleChange = (key: string, value: string) => {

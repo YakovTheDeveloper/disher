@@ -29,13 +29,23 @@
   padding: 12px 16px;
   border: none;
   border-radius: 24px;
-  background-color: #ffffff;
-  color: #000000;
-  font-size: 16px;
+  background-color: #d4e9ff;
+  color: #4a52c2;
+  font-size: 1rem;
   line-height: 1.5;
   cursor: pointer;
   transition: background-color 0.2s ease;
   text-align: left;
+
+  &.hasText {
+    border: 2px solid var(--color-accent);
+    // font-weight: 500;
+    color: var(--color-accent);
+  }
+
+  &.noText {
+    // border: 2px solid rgba(13, 146, 255, 0.663);
+  }
 
   &:hover {
     background-color: var(--color-accent);
@@ -43,7 +53,8 @@
   }
 
   &:active {
-    background-color: rgba(43, 43, 43, 0.8);
+    background-color: var(--color-accent);
+    color: white;
   }
 }
 

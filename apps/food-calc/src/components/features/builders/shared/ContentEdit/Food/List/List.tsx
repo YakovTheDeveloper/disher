@@ -9,9 +9,9 @@ import { useListData, useListVisibility, useListScroll } from './List.hooks';
 import { ListItem } from './ListItem';
 import { Overlay } from '@/components/ui/Overlay';
 
-const DEFAULT_GAP_SIZE = 8;
+const DEFAULT_GAP_SIZE = 2;
 const DEFAULT_OVERSCAN = 5;
-const ESTIMATED_ITEM_HEIGHT = 48;
+const ESTIMATED_ITEM_HEIGHT = 42;
 
 /**
  * Virtualized searchable list with infinite scroll

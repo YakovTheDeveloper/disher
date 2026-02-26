@@ -6,14 +6,24 @@ export type EventCategory =
     | 'mental'        // Ментальное состояние
     | 'activity'      // Физическая активность
     | 'social'        // Социальная активность
-    | 'notes';        // Заметки и события
+    | 'notes'         // Заметки и события
+    | 'work'          // Работа и карьера
+    | 'learning'      // Обучение и творчество
+    | 'environment'   // Окружающая среда
+    | 'digital'       // Цифровая среда
+    | 'life_events';  // События жизни
 
 // Подтипы теперь определены в соответствующих *.config.ts файлах:
-// - physical.config.ts: IllnessSubtype, DigestionSubtype, MedicationSubtype, VitalsSubtype, HydrationSubtype
-// - mental.config.ts: StressSubtype, AnxietySubtype, RelaxationSubtype, MeditationSubtype, CreativitySubtype
+// - physical.config.ts: IllnessSubtype, DigestionSubtype, MedicationSubtype, VitalsSubtype, HydrationSubtype, PainSubtype, etc.
+// - mental.config.ts: StressSubtype, AnxietySubtype, RelaxationSubtype, MeditationSubtype, CreativitySubtype, AngerSubtype, etc.
 // - activity.config.ts: ActivitySubtype, HobbySubtype, ChoresSubtype, TransportSubtype
-// - social.config.ts: SocialSubtype, OnlineSubtype, FamilySubtype, PartnerSubtype
-// - notes.config.ts: TaskSubtype, GoalSubtype
+// - social.config.ts: SocialSubtype, OnlineSubtype, FamilySubtype, PartnerSubtype, WorkSocialSubtype
+// - notes.config.ts: TaskSubtype, GoalSubtype, ReflectionSubtype
+// - work.config.ts: WorkSubtype
+// - learning.config.ts: LearningSubtype
+// - environment.config.ts: EnvironmentSubtype
+// - digital.config.ts: DigitalSubtype
+// - life-events.config.ts: LifeEventsSubtype
 
 /**
  * Базовые типы событий
@@ -27,6 +37,15 @@ export type BaseEventType =
     | 'weight'
     | 'vitals'
     | 'hydration'
+    | 'pain'
+    | 'allergy'
+    | 'skin'
+    | 'female_health'
+    | 'doctor'
+    | 'treatment'
+    | 'nap'
+    | 'rest'
+    | 'active_recovery'
     // Mental
     | 'mood'
     | 'energy'
@@ -36,6 +55,9 @@ export type BaseEventType =
     | 'relaxation'
     | 'meditation'
     | 'creativity'
+    | 'anger'
+    | 'motivation'
+    | 'therapy'
     // Activity
     | 'sport'
     | 'activity'
@@ -47,13 +69,25 @@ export type BaseEventType =
     | 'online'
     | 'family'
     | 'partner'
+    | 'work_social'
     // Notes
     | 'note'
     | 'custom'
     | 'gratitude'
     | 'idea'
     | 'task'
-    | 'goal';
+    | 'goal'
+    | 'reflection'
+    // Work & Career
+    | 'work'
+    // Learning & Creativity
+    | 'learning'
+    // Environment & Context
+    | 'environment'
+    // Digital & Media
+    | 'digital'
+    // Life Events
+    | 'life_events';
 
 export type BaseGroupEventType =
     | 'physical'
@@ -61,6 +95,12 @@ export type BaseGroupEventType =
     | 'activity'
     | 'social'
     | 'notes'
+    | 'work'
+    | 'learning'
+    | 'environment'
+    | 'digital'
+    | 'life_events';
+
 /**
  * Полный тип события с категорией
  */
@@ -74,6 +114,11 @@ export interface EventTypeDefinition {
     /** Поддерживаемые подтипы (если есть) */
     subtypes?: string[];
 }
+
+/**
+ * Подтип события (просто строка)
+ */
+export type EventSubtype = string;
 
 /**
  * Все типы событий с определениями
@@ -258,6 +303,123 @@ export const EVENT_TYPES: Record<BaseEventType, EventTypeDefinition> = {
         localizationKey: 'event.goal',
         subtypes: ['daily', 'weekly', 'monthly', 'quarterly', 'long_term', 'milestone'],
     },
+    reflection: {
+        type: 'reflection',
+        category: 'notes',
+        localizationKey: 'event.reflection',
+        subtypes: ['daily_review', 'lesson_learned', 'decision_log', 'custom'],
+    },
+
+    // === NEW PHYSICAL TYPES ===
+    pain: {
+        type: 'pain',
+        category: 'physical',
+        localizationKey: 'event.pain',
+        subtypes: ['headache', 'toothache', 'back_pain', 'neck_pain', 'muscle_pain', 'joint_pain', 'abdominal_pain', 'period_pain', 'stomach_pain', 'custom'],
+    },
+    allergy: {
+        type: 'allergy',
+        category: 'physical',
+        localizationKey: 'event.allergy',
+        subtypes: ['rhinitis', 'itching', 'rash', 'watery_eyes', 'asthma_like', 'custom'],
+    },
+    skin: {
+        type: 'skin',
+        category: 'physical',
+        localizationKey: 'event.skin',
+        subtypes: ['acne', 'dermatitis', 'dryness', 'wound', 'bruise', 'sunburn', 'custom'],
+    },
+    female_health: {
+        type: 'female_health',
+        category: 'physical',
+        localizationKey: 'event.female_health',
+        subtypes: ['cycle_start', 'cycle_end', 'ovulation', 'pms', 'spotting', 'custom'],
+    },
+    doctor: {
+        type: 'doctor',
+        category: 'physical',
+        localizationKey: 'event.doctor',
+        subtypes: ['appointment', 'procedure', 'vaccination', 'test_result', 'custom'],
+    },
+    treatment: {
+        type: 'treatment',
+        category: 'physical',
+        localizationKey: 'event.treatment',
+        subtypes: ['physio', 'massage', 'ice_heat', 'stretch_protocol', 'custom'],
+    },
+    nap: {
+        type: 'nap',
+        category: 'physical',
+        localizationKey: 'event.nap',
+        subtypes: ['nap_short', 'nap_long', 'custom'],
+    },
+    rest: {
+        type: 'rest',
+        category: 'physical',
+        localizationKey: 'event.rest',
+        subtypes: ['lying_down', 'doing_nothing', 'spa_bath', 'custom'],
+    },
+    active_recovery: {
+        type: 'active_recovery',
+        category: 'physical',
+        localizationKey: 'event.active_recovery',
+        subtypes: ['stretching_recovery', 'walk_easy', 'breathing_nsdr', 'custom'],
+    },
+
+    // === NEW MENTAL TYPES ===
+    anger: {
+        type: 'anger',
+        category: 'mental',
+        localizationKey: 'event.anger',
+        subtypes: ['anger', 'resentment', 'shame', 'guilt', 'custom'],
+    },
+    motivation: {
+        type: 'motivation',
+        category: 'mental',
+        localizationKey: 'event.motivation',
+        subtypes: ['inspired', 'resistant', 'procrastinating', 'custom'],
+    },
+    therapy: {
+        type: 'therapy',
+        category: 'mental',
+        localizationKey: 'event.therapy',
+        subtypes: ['session', 'homework', 'breakthrough', 'custom'],
+    },
+
+    // === NEW SOCIAL TYPES ===
+    work_social: {
+        type: 'work_social',
+        category: 'social',
+        localizationKey: 'event.work_social',
+        subtypes: ['team_bonding', 'conflict', 'feedback', 'custom'],
+    },
+
+    // === NEW CATEGORIES ===
+    work: {
+        type: 'work',
+        category: 'work',
+        localizationKey: 'event.work',
+    },
+    learning: {
+        type: 'learning',
+        category: 'learning',
+        localizationKey: 'event.learning',
+    },
+    environment: {
+        type: 'environment',
+        category: 'environment',
+        localizationKey: 'event.environment',
+    },
+    digital: {
+        type: 'digital',
+        category: 'digital',
+        localizationKey: 'event.digital',
+    },
+    life_events: {
+        type: 'life_events',
+        category: 'life_events',
+        localizationKey: 'event.life_events',
+    },
 };
 
 /**
@@ -286,6 +448,26 @@ export const EVENT_CATEGORIES: Record<EventCategory, {
     notes: {
         localizationKey: 'category.notes',
         order: 5,
+    },
+    work: {
+        localizationKey: 'category.work',
+        order: 6,
+    },
+    learning: {
+        localizationKey: 'category.learning',
+        order: 7,
+    },
+    environment: {
+        localizationKey: 'category.environment',
+        order: 8,
+    },
+    digital: {
+        localizationKey: 'category.digital',
+        order: 9,
+    },
+    life_events: {
+        localizationKey: 'category.life_events',
+        order: 10,
     },
 };
 

@@ -28,3 +28,8 @@ export * from './mental';
 export * from './activity';
 export * from './social';
 export * from './notes';
+export * from './work';
+export * from './learning';
+export * from './environment';
+export * from './digital';
+export * from './life-events';

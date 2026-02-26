@@ -1,6 +1,4 @@
-import { ModalType } from "../ModalStore/ModalContent";
 import { DrawerTypesV2 } from "../DrawerStore/DrawerStore.v2.types";
-import { GetPayload } from "../ModalStore/ModalPayloads";
 import { ModalMethodMap } from "./OverlayFacade.types";
 
 /**
@@ -36,7 +34,8 @@ interface CommonMethods {
 export interface OverlayFacade extends ModalMethodMap, DrawerMethods, CommonMethods { }
 
 export function createOverlayFacade(modalStore: {
-    openModal<T extends ModalType>(variant: T, payload?: GetPayload<T>): void;
+    // TODO: make link to new route
+    openModal<T extends string>(variant: T, payload?: any): void;
     closeModal(): void;
     isModalOpen: boolean;
 }, drawerStore: {
@@ -45,62 +44,62 @@ export function createOverlayFacade(modalStore: {
     isOpen: boolean;
 }): OverlayFacade {
     return {
-        // ===== Modal Methods =====
+        // ===== Modal Methods (TODO: migrate to new modal system or routes) =====
 
-        openFormDishAdd(payload) {
-            modalStore.openModal(ModalType.DISH_CREATE, payload);
+        openFormDishAdd(payload?: any) {
+            // TODO: make link to new route
         },
 
-        openFormDishEdit(payload) {
-            modalStore.openModal(ModalType.DISH_EDIT, payload);
+        openFormDishEdit(payload?: any) {
+            // TODO: make link to new route
         },
 
-        openFormScheduleFoodAdd(payload) {
-            modalStore.openModal(ModalType.SCHEDULE_FOOD_ADD, payload);
+        openFormScheduleFoodAdd(payload?: any) {
+            // TODO: make link to new route
         },
 
-        openFormScheduleFoodEdit(payload) {
-            modalStore.openModal(ModalType.SCHEDULE_FOOD_EDIT, payload);
+        openFormScheduleFoodEdit(payload?: any) {
+            // TODO: make link to new route
         },
 
-        openFormScheduleEventAdd(payload) {
-            modalStore.openModal(ModalType.SCHEDULE_EVENT_ADD, payload);
+        openFormScheduleEventAdd(payload?: any) {
+            // TODO: make link to new route
         },
 
-        openFormScheduleEventEdit(payload) {
-            modalStore.openModal(ModalType.SCHEDULE_EVENT_EDIT, payload);
+        openFormScheduleEventEdit(payload?: any) {
+            // TODO: make link to new route
         },
 
         openCopyScheduleItemsToAnotherDay() {
-            modalStore.openModal(ModalType.COPY_SCHEDULE_ITEMS_TO_ANOTHER_DAY);
+            // TODO: move to new modal system
         },
 
         openCopyScheduleItemsToDish() {
-            modalStore.openModal(ModalType.COPY_SCHEDULE_ITEMS_TO_DISH);
+            // TODO: move to new modal system
         },
 
         openCopyDishItemsToAnotherDish() {
-            modalStore.openModal(ModalType.COPY_DISH_ITEMS_TO_ANOTHER_DISH);
+            // TODO: move to new modal system
         },
 
         openCopyDishItemsToSchedule() {
-            modalStore.openModal(ModalType.COPY_DISH_ITEMS_TO_SCHEDULE);
+            // TODO: move to new modal system
         },
 
         openCreateDishFromSchedule() {
-            modalStore.openModal(ModalType.CREATE_DISH_FROM_SCHEDULE);
+            // TODO: move to new modal system
         },
 
         openSelect() {
-            modalStore.openModal(ModalType.SELECT);
+            // TODO: move to new modal system
         },
 
         openPulsePhysicalActivity() {
-            modalStore.openModal(ModalType.PULSE_PHYSICAL_ACTIVITY);
+            // TODO: move to new modal system
         },
 
-        openSearchFood(payload) {
-            modalStore.openModal(ModalType.SEARCH_FOOD, payload);
+        openSearchFood(payload?: any) {
+            // TODO: move to new modal system
         },
 
         closeModal() {

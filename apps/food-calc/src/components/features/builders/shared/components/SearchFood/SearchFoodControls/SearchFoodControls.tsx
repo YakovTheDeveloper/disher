@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { useRef, useState, useEffect, useMemo } from 'react';
+import { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
 
@@ -18,18 +18,26 @@ type Props = {
   searchState: UseFilteringStateV2Return;
   className: string;
   onFocusChange?: (focused: boolean) => void;
+  onOpen?: () => void;
   mode?: SearchMode;
 };
 
-const SearchFoodControls = ({ searchState, className, onFocusChange, mode }: Props) => {
+const SearchFoodControls = ({ searchState, className, onFocusChange, onOpen, mode }: Props) => {
   const [filterPanel, setFilterPanel] = useState(false);
   const [selectedSubFilter, setSelectedSubFilter] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    const handler = () => searchInputRef.current?.focus();
-    emitter.on('WIZARD_FOCUS', handler);
-    return () => emitter.off('WIZARD_FOCUS', handler);
+  // Focus input when modal opens - sync call for iOS/Android compatibility
+  const handleOpen = () => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus({ preventScroll: true });
+    }
+    onOpen?.();
+  };
+
+  // Synchronous focus on mount - critical for iOS keyboard to appear
+  useLayoutEffect(() => {
+    searchInputRef.current?.focus({ preventScroll: true });
   }, []);
 
   const toggleFilterPanel = () => {
@@ -87,7 +95,6 @@ const SearchFoodControls = ({ searchState, className, onFocusChange, mode }: Pro
 
       <SearchInput
         size="medium"
-        id="search-input"
         ref={searchInputRef}
         className={styles.largeSearchInput}
         placeholder="Поиск"

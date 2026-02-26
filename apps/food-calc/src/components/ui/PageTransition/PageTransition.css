@@ -1,0 +1,113 @@
+/* View Transitions API - Native page transitions */
+@supports (view-transition-name: none) {
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 0.25s;
+        animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    /* Slide from right (forward navigation) */
+    ::view-transition-old(root) {
+        animation-name: slide-out-to-left;
+    }
+
+    ::view-transition-new(root) {
+        animation-name: slide-in-from-right;
+    }
+
+    /* Slide from left (back navigation) */
+    .view-transition-back ::view-transition-old(root) {
+        animation-name: slide-out-to-right;
+    }
+
+    .view-transition-back ::view-transition-new(root) {
+        animation-name: slide-in-from-left;
+    }
+
+    /* Fade transition */
+    ::view-transition-old(root):only-child {
+        animation: fade-out 0.2s ease-out;
+    }
+
+    ::view-transition-new(root):only-child {
+        animation: fade-in 0.2s ease-out;
+    }
+}
+
+@keyframes slide-in-from-right {
+    from {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-out-to-left {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+}
+
+@keyframes slide-in-from-left {
+    from {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-out-to-right {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+}

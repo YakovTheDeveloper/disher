@@ -4,10 +4,9 @@ import { observer } from 'mobx-react-lite';
 import styles from './TimePicker.module.scss';
 import clsx from 'clsx';
 import { useTimePicker } from './useTimePicker';
-import { useIOSAutofocus } from '@/hooks/useIOSAutofocus';
 
 import ArrowIcon from '@/assets/icons/arrows/curve-arrow.svg';
-import { emitter } from '@/infrastructure/emitter/emitter';
+
 import { domainStore } from '@/store/store';
 
 type Props = {
@@ -61,21 +60,15 @@ const TimePicker = observer((props: Props) => {
   // Use iOS autofocus hack
   // useIOSAutofocus(hhRef, autoFocus);
 
-  React.useEffect(() => {
-    if (autoFocus && !isIOS) {
-      const timeoutId = setTimeout(() => {
-        hhRef.current?.focus();
-        hhRef.current?.select();
-      }, 200);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [autoFocus, isIOS]);
-
-  React.useEffect(() => {
-    const handler = () => hhRef.current?.focus();
-    emitter.on('WIZARD_FOCUS', handler);
-    return () => emitter.off('WIZARD_FOCUS', handler);
-  }, []);
+  // React.useEffect(() => {
+  //   if (autoFocus && !isIOS) {
+  //     const timeoutId = setTimeout(() => {
+  //       hhRef.current?.focus();
+  //       hhRef.current?.select();
+  //     }, 200);
+  //     return () => clearTimeout(timeoutId);
+  //   }
+  // }, [autoFocus, isIOS]);
 
   return (
     <div
@@ -96,7 +89,7 @@ const TimePicker = observer((props: Props) => {
           </button>
         </div>
         <div className={styles.timeInputs} ref={containerRef}>
-          <div className={styles.inputWrapper}>
+          <label className={styles.inputWrapper} id="time-picker-hours-label">
             <input
               ref={hhRef}
               className={clsx(styles.input, { [styles.blinking]: focusedInput === 'hours' })}
@@ -118,11 +111,11 @@ const TimePicker = observer((props: Props) => {
                 setFocusedInput('hours');
               }}
             />
-          </div>
+          </label>
           <span className={styles.betweenInputs} aria-hidden>
             :
           </span>
-          <div className={styles.inputWrapper}>
+          <label className={styles.inputWrapper}>
             <input
               ref={mmRef}
               className={clsx(styles.input, { [styles.blinking]: focusedInput === 'minutes' })}
@@ -143,7 +136,7 @@ const TimePicker = observer((props: Props) => {
                 setFocusedInput('minutes');
               }}
             />
-          </div>
+          </label>
         </div>
         <div className={styles.controls}>
           <button onClick={incrementMinutes} className={styles.rotateUpLeft}>

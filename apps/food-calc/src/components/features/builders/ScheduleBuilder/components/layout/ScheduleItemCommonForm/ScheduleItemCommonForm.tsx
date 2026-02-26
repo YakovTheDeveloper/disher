@@ -56,10 +56,13 @@ export const TIME_OF_DAY_HEADER_GRADIENT: Record<TimeOfDay, { initial: string; f
 
 /** Фоновые градиенты V2 - яркие холодные оттенки */
 export const TIME_OF_DAY_BG_V2: Record<TimeOfDay, string> = {
-  morning: 'linear-gradient(135deg, rgb(180, 235, 255) 0%, rgb(220, 250, 255) 100%)',
-  day: 'linear-gradient(135deg, rgb(190, 210, 255) 0%, rgb(210, 225, 255) 100%)',
-  evening: 'linear-gradient(135deg, rgb(235, 210, 255) 0%, rgb(255, 235, 255) 100%)',
-  night: 'linear-gradient(135deg, rgb(25, 35, 70) 0%, rgb(45, 55, 95) 100%)',
+  morning:
+    'linear-gradient(135deg, rgb(180, 235, 255) 0%, rgb(220, 250, 255) 70%, rgb(249, 255, 255) 100%)',
+  day: 'linear-gradient(135deg, rgb(190, 210, 255) 0%, rgb(210, 225, 255) 70%, rgb(249, 255, 255) 100%)',
+  evening:
+    'linear-gradient(135deg, rgb(235, 210, 255) 0%, rgb(255, 235, 255) 70%, rgb(249, 255, 255) 100%)',
+  night:
+    'linear-gradient(135deg, rgb(25, 35, 70) 0%, rgb(45, 55, 95) 70%, rgb(249, 255, 255) 100%)',
 };
 
 /** Цвет текста V2 - яркие холодные оттенки */
@@ -144,12 +147,12 @@ const ScheduleItemCommonForm = ({ time, children, button }: Props) => {
       contentClassName={styles.content}
       containerStyle={layoutContainerBgStyle}
       headerGradient={headerGradient}
-      footer={<div className={styles.footer}>{button}</div>}
       header={
         <DateInfo scrollYProgress={motionValue} className={timeOfDay} style={dateInfoStyles} />
       }
     >
       {children}
+      <div className={styles.footer}>{button}</div>
     </ColumnLayoutWithFixedHeader>
   );
 };

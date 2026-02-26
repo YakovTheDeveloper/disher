@@ -30,10 +30,32 @@ const CATEGORIES: { key: BaseGroupEventType; icon: string }[] = [
   { key: 'activity', icon: 'activity' },
   { key: 'social', icon: 'users' },
   { key: 'notes', icon: 'note' },
+  { key: 'work', icon: 'briefcase' },
+  { key: 'learning', icon: 'book' },
+  { key: 'environment', icon: 'globe' },
+  { key: 'digital', icon: 'monitor' },
+  { key: 'life_events', icon: 'star' },
 ];
 
 const EVENT_TYPES_BY_CATEGORY: Record<BaseGroupEventType, ScheduleEventType[]> = {
-  physical: ['sleep', 'illness', 'digestion', 'medication', 'weight', 'vitals', 'hydration'],
+  physical: [
+    'sleep',
+    'illness',
+    'digestion',
+    'medication',
+    'weight',
+    'vitals',
+    'hydration',
+    'pain',
+    'allergy',
+    'skin',
+    'female_health',
+    'doctor',
+    'treatment',
+    'nap',
+    'rest',
+    'active_recovery',
+  ],
   mental: [
     'mood',
     'energy',
@@ -43,10 +65,18 @@ const EVENT_TYPES_BY_CATEGORY: Record<BaseGroupEventType, ScheduleEventType[]> =
     'relaxation',
     'meditation',
     'creativity',
+    'anger',
+    'motivation',
+    'therapy',
   ],
   activity: ['sport', 'activity', 'hobby', 'chores', 'transport'],
-  social: ['social', 'online', 'family', 'partner'],
-  notes: ['note', 'custom', 'gratitude', 'idea', 'task', 'goal'],
+  social: ['social', 'online', 'family', 'partner', 'work_social'],
+  notes: ['note', 'custom', 'gratitude', 'idea', 'task', 'goal', 'reflection'],
+  work: ['work'],
+  learning: ['learning'],
+  environment: ['environment'],
+  digital: ['digital'],
+  life_events: ['life_events'],
 };
 
 // Grouped event types for scroll navigation
@@ -66,6 +96,11 @@ function getCategoryEmoji(category: EventCategory): string {
     activity: '⚡',
     social: '👥',
     notes: '📝',
+    work: '💼',
+    learning: '📚',
+    environment: '🌍',
+    digital: '📱',
+    life_events: '🎉',
   };
   return emojis[category];
 }

@@ -1,5 +1,4 @@
 import { types, Instance } from "mobx-state-tree";
-import { ModalStore } from "./ModalStore/ModalStore";
 import { DrawerStoreV2 } from "./DrawerStore/DrawerStore.v2";
 import { ScrollStore } from "./ScrollStore/ScrollStore";
 import { UIViewOptions } from "./UiViewOptions/UiViewOptions";
@@ -7,7 +6,6 @@ import { UserAgentStore } from "./UserAgentStore/UserAgentStore";
 
 export const GlobalUiStore = types
     .model("GlobalUiStore", {
-        modalStore: types.optional(ModalStore, {}),
         drawerStore: types.optional(DrawerStoreV2, {}),
         scrollStore: types.optional(ScrollStore, {}),
         options: types.optional(UIViewOptions, {}),

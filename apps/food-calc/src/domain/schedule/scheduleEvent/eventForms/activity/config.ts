@@ -96,6 +96,56 @@ export const ACTIVITY_SUBTYPES_TREE: SubtypeOption[] = [
             { value: 'playing_with_kids', labelKey: 'subtype.activity.playing_with_kids' },
         ],
     },
+    {
+        value: 'work_session',
+        labelKey: 'subtype.activity.category.work_session',
+        children: [
+            { value: 'deep_work', labelKey: 'subtype.activity.deep_work' },
+            { value: 'coding', labelKey: 'subtype.activity.coding' },
+            { value: 'writing', labelKey: 'subtype.activity.writing' },
+            { value: 'design', labelKey: 'subtype.activity.design' },
+            { value: 'analysis', labelKey: 'subtype.activity.analysis' },
+            { value: 'shallow_work', labelKey: 'subtype.activity.shallow_work' },
+            { value: 'email', labelKey: 'subtype.activity.email' },
+            { value: 'docs', labelKey: 'subtype.activity.docs' },
+            { value: 'triage', labelKey: 'subtype.activity.triage' },
+        ],
+    },
+    {
+        value: 'meetings',
+        labelKey: 'subtype.activity.category.meetings',
+        children: [
+            { value: 'sync', labelKey: 'subtype.activity.sync' },
+            { value: '1on1', labelKey: 'subtype.activity.1on1' },
+            { value: 'planning', labelKey: 'subtype.activity.planning' },
+            { value: 'retro', labelKey: 'subtype.activity.retro' },
+            { value: 'interview', labelKey: 'subtype.activity.interview' },
+        ],
+    },
+    {
+        value: 'delivery',
+        labelKey: 'subtype.activity.category.delivery',
+        children: [
+            { value: 'deploy', labelKey: 'subtype.activity.deploy' },
+            { value: 'incident', labelKey: 'subtype.activity.incident' },
+            { value: 'hotfix', labelKey: 'subtype.activity.hotfix' },
+            { value: 'oncall', labelKey: 'subtype.activity.oncall' },
+            { value: 'task_done', labelKey: 'subtype.activity.task_done' },
+            { value: 'blocked', labelKey: 'subtype.activity.blocked' },
+            { value: 'context_switching', labelKey: 'subtype.activity.context_switching' },
+        ],
+    },
+    {
+        value: 'career',
+        labelKey: 'subtype.activity.category.career',
+        children: [
+            { value: 'resume', labelKey: 'subtype.activity.resume' },
+            { value: 'portfolio', labelKey: 'subtype.activity.portfolio' },
+            { value: 'job_search', labelKey: 'subtype.activity.job_search' },
+            { value: 'offer', labelKey: 'subtype.activity.offer' },
+            { value: 'salary_talk', labelKey: 'subtype.activity.salary_talk' },
+        ],
+    },
 ];
 
 export const activityConfig: EventFormConfig = {

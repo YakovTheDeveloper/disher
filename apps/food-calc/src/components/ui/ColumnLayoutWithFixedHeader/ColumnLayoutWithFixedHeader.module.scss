@@ -20,7 +20,7 @@
 
 .header {
     position: sticky;
-    top: 0;
+    top: 40px;
     z-index: var(--clfh-header-z-index);
     height: var(--clfh-header-height);
     // Gradient is animated by Framer Motion when enabled
@@ -39,20 +39,41 @@
 
 .content {
     position: relative;
-    top: var(--clfh-content-offset);
+    // top: var(--clfh-content-offset);
     z-index: var(--clfh-content-z-index);
     border-top-left-radius: var(--clfh-content-radius);
     border-top-right-radius: var(--clfh-content-radius);
     padding: 1rem 0.5rem;
     background: linear-gradient(135deg, rgb(224, 229, 246) 0%, rgb(235, 242, 250) 100%);
-    // background-color: linear-gradient(135deg, rgb(224, 229, 246) 0%, rgb(235, 242, 250) 100%);
-    backdrop-filter: blur(var(--clfh-content-blur));
+    // backdrop-filter: blur(var(--clfh-content-blur));
     flex: 1;
     scroll-behavior: smooth;
     overflow-y: auto;
     box-shadow: -1px 7px 8px 0px rgba(0, 0, 0, 0.05);
-    border-bottom-left-radius: calc(var(--clfh-content-radius) / 3);
-    border-bottom-right-radius: calc(var(--clfh-content-radius)/ 3);
+
+    // Gradient fade at bottom (90-100%)
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 10%;
+        pointer-events: none;
+        background: linear-gradient(to top, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 100%);
+    }
+
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 10%;
+        pointer-events: none;
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 100%);
+    }
 }
 
 // Accessibility: Respect reduced motion preferences

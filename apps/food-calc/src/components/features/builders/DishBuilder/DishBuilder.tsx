@@ -6,8 +6,6 @@ import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { TotalNutrients } from '@/components/features/builders/shared/ContentInfo/TotalNutrients';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
-import { ModalStoreInstance } from '@/store/GlobalUiStore/ModalStore/ModalStore';
 import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { domainStore } from '@/store/store';
 import { ActionsHeader } from '@/components/features/builders/shared/components/ActionsHeader';
@@ -36,10 +34,9 @@ export type ModalsType = (typeof Modals)[keyof typeof Modals];
 
 type Props = {
   init: Instance<typeof Dish>;
-  modalStore?: ModalStoreInstance;
 };
 
-const DishBuilder = ({ init, modalStore = domainStore.globalUiStore.modalStore }: Props) => {
+const DishBuilder = ({ init }: Props) => {
   const dishes = init;
   const navigate = useNavigate();
 
@@ -82,20 +79,20 @@ const DishBuilder = ({ init, modalStore = domainStore.globalUiStore.modalStore }
             </ScreenLabel>
           }
           header={<HeaderInputName entity={init} asInput />}
-          bottom={<Buttons.Add onClick={openFormDishAdd} />}
+          bottom={<Buttons.Add onClick={() => {
+            // TODO: make link to new route
+          }} />}
         >
           <ItemsList offsetTop>
             {dishes.items.map((item) => {
               const content = item.content;
               const id = item.id;
               const onFoodClick = () => {
-                clearSessionStorage(`tabs:${location.pathname}`);
-                openFormDishEdit({ itemToEditId: id, defaultTab: 'content' });
+                // TODO: make link to new route
               };
 
               const onQuantityClick = () => {
-                clearSessionStorage(`tabs:${location.pathname}`);
-                openFormDishEdit({ itemToEditId: id, defaultTab: 'quantity' });
+                // TODO: make link to new route
               };
 
               return (

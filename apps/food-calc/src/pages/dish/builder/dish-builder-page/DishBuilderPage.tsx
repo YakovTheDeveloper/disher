@@ -49,7 +49,7 @@ const Page = ({ dishIdParam }: Props) => {
 
   return (
     <ModalDishProvider>
-      {current && <DishBuilder init={current} finishButtonTitle="Обновить" onFinish={onSave} />}
+      {current && <DishBuilder init={current} />}
     </ModalDishProvider>
   );
 };

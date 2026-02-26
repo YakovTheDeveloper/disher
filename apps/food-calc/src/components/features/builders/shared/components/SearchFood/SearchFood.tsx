@@ -24,10 +24,9 @@ type Props = {
   currentProductId?: string | null;
   currentDishId?: string | null;
   onFinish: (payload: { variant: 'product' | 'dish'; id: string }) => void;
-  headerAfter?: React.ReactNode;
   beforeSearchInput?: React.ReactNode;
-  searchState?: UseFilteringStateV2Return;
   onFocusChange?: (focused: boolean) => void;
+  onOpen?: () => void;
   mode: SearchMode;
 };
 
@@ -36,8 +35,8 @@ const SearchFood = ({
   currentProductId,
   currentDishId,
   beforeSearchInput,
-  searchState: externalSearchState,
   onFocusChange,
+  onOpen,
   mode = 'products-and-dishes',
 }: Props) => {
   const [currentInfoFood, setCurrentInfoFood] = useState('');
@@ -64,7 +63,7 @@ const SearchFood = ({
   );
 
   // Используем внешний searchState или создаём внутренний
-  const filterState = externalSearchState ?? searchState;
+  const filterState = searchState;
 
   const onBackButton = () => setCurrentInfoFood('');
 
@@ -145,8 +144,13 @@ const SearchFood = ({
         )}
 
         <div className={styles.header}>
-          {beforeSearchInput}
-          <SearchFoodControls mode={mode} searchState={filterState} onFocusChange={onFocusChange} />
+          {beforeSearchInput && <div className={styles.beforeSearchInput}>{beforeSearchInput}</div>}
+          <SearchFoodControls
+            mode={mode}
+            searchState={filterState}
+            onFocusChange={onFocusChange}
+            onOpen={onOpen}
+          />
         </div>
 
         {filterState.currentTab === 'продукты' && (

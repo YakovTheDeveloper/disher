@@ -1,32 +1,69 @@
 import { observer } from 'mobx-react-lite';
-import styles from './ModalSearchFood.module.scss';
+import { useCallback } from 'react';
 import { SearchFood } from '@/components/features/builders/shared/components/SearchFood';
-import { domainStore } from '@/store/store';
-import { useOverlay } from '@/store/GlobalUiStore/OverlayStore';
 import { BaseModalProps } from '@/store/GlobalUiStore/ModalStoreV2/types';
 import { ModalLayout } from '@/components/features/builders/shared/components/ModalLayout';
-import ArrowLeftIcon from '@/assets/icons/arrowLeftLong.svg';
+import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
 
 interface ModalSearchFoodProps extends BaseModalProps {
-  // Можно добавить пропсы для предварительного выбора продукта/блюда
   productId?: string;
   dishId?: string;
 }
 
+const ModalSearchFoodContent = observer(({ productId, dishId, onClose }: ModalSearchFoodProps) => {
+  const handleFoodAdd = useCallback(
+    (payload: { id: string }) => {
+      onClose({ id: payload.id, variant: 'product' });
+    },
+    [onClose]
+  );
+
+  const handleDishAdd = useCallback(
+    (payload: { id: string }) => {
+      onClose({ id: payload.id, variant: 'dish' });
+    },
+    [onClose]
+  );
+
+  return (
+    <SearchFormExpandable
+      trigger={
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: '#f5f5f5',
+            borderRadius: 8,
+            padding: '8px 12px',
+            width: '100%',
+          }}
+        >
+          <span style={{ marginRight: 8 }}>🔍</span>
+          <span style={{ color: '#999' }}>Поиск продуктов и блюд...</span>
+        </div>
+      }
+      content={
+        <SearchFood
+          mode="products-and-dishes"
+          onFinish={(payload) => {
+            if (payload.variant === 'product') {
+              handleFoodAdd({ id: payload.id });
+            } else {
+              handleDishAdd({ id: payload.id });
+            }
+          }}
+          currentDishId={dishId}
+          currentProductId={productId}
+        />
+      }
+    />
+  );
+});
+
 const ModalSearchFood = observer(({ productId, dishId, onClose }: ModalSearchFoodProps) => {
   return (
     <ModalLayout>
-      <SearchFood
-        mode="products-and-dishes"
-        onFinish={onClose}
-        currentDishId={dishId}
-        currentProductId={productId}
-        beforeSearchInput={
-          <button className={styles.backButton}>
-            <ArrowLeftIcon />
-          </button>
-        }
-      />
+      <ModalSearchFoodContent productId={productId} dishId={dishId} onClose={onClose} />
     </ModalLayout>
   );
 });

@@ -64,7 +64,6 @@ html[data-focus-method="pointer"] .searchWrapper:has(input:focus-visible) {
 .searchInput {
     flex: 1;
     border: none;
-    background: transparent;
     /* outline: none; */
     /* padding: 4px 0; */
     line-height: 1;
@@ -73,6 +72,8 @@ html[data-focus-method="pointer"] .searchWrapper:has(input:focus-visible) {
     caret-animation: smooth;
     font-size: 0.8rem;
     outline: transparent;
+    background: transparent;
+    background-color: transparent;
 
     &::placeholder {
         font-weight: 500;
@@ -86,5 +87,21 @@ html[data-focus-method="pointer"] .searchWrapper:has(input:focus-visible) {
         caret-color: rgb(49, 49, 49);
     } */
 
+    // Override browser autofill background
+    &:-internal-autofill-selected {
+        background-image: none !important;
+        background-color: transparent !important;
+        box-shadow: 0 0 0 100px transparent inset !important;
+        -webkit-text-fill-color: inherit !important;
+    }
 
+    // Dark mode support
+    @media (prefers-color-scheme: dark) {
+        &:-internal-autofill-selected {
+            background-image: none !important;
+            background-color: transparent !important;
+            box-shadow: 0 0 0 100px transparent inset !important;
+            -webkit-text-fill-color: inherit !important;
+        }
+    }
 }

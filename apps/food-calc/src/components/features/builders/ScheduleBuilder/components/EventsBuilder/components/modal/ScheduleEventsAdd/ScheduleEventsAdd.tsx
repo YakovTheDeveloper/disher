@@ -1,41 +1,26 @@
 import { observer, useLocalObservable } from 'mobx-react-lite';
-import { lazy } from 'react';
-import { domainStore } from '@/store/store';
+import { useNavigate } from 'react-router';
 import { ContentEdit } from '@/components/features/builders/shared/ContentEdit';
-import { Tabs } from '@/components/ui/Tabs';
-import ModalLayout from '@/components/features/builders/shared/components/ModalLayout/ModalLayout';
-import { WizardStep } from '@/components/features/builders/shared/components/WizardStep';
-import { FinishButton } from '@/components/features/builders/shared/atoms/FinishButton';
-import {
-  useDraftEventScheduleItem,
-  useSchedule,
-  useSelectedEventItem,
-} from '@/components/features/builders/ScheduleBuilder/context';
-import { useEntityItemWizard } from '@/components/features/builders/shared/hooks/useEntityItemWizard';
 import EventContentV2 from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/EventContent/EventContentV2';
 import { ScheduleEventCategoryList } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/modal/ScheduleEventsAdd/components/ScheduleEventCategoryList';
-import { useTranslation } from 'react-i18next';
+import { FoodStoreInstance } from '@/store/FoodStore/FoodStore';
+import { DishStoreInstance, RootInstance } from '@/store/RootStoreModel';
+import { ScheduleItemCommonForm } from '@/components/features/builders/ScheduleBuilder/components/layout/ScheduleItemCommonForm';
+import Button from '@/components/ui/atoms/Button/Button';
+import style from './ScheduleEventsAdd.module.scss';
 
-const EventContent = lazy(() =>
-  import(
-    '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/EventContent'
-  ).then((module) => ({
-    default: module.EventContent,
-  }))
-);
+interface ScheduleEventsAddProps {
+  foodStore: FoodStoreInstance;
+  dishStore: DishStoreInstance;
+  scheduleStore: RootInstance['scheduleStore'];
+  scheduleChildItem: RootInstance['scheduleStore']['eventDraft'];
+  parentScheduleId: string;
+}
 
-type Props = {
-  close: () => void;
-  variant: 'add' | 'edit';
-  defaultTab?: string;
-};
+const ScheduleEventsAdd = (props: ScheduleEventsAddProps) => {
+  const navigate = useNavigate();
 
-const ScheduleEventsAdd = ({ close, variant, defaultTab }: Props) => {
-  const schedule = useSchedule();
-
-  const { t } = useTranslation();
-
-  const currentChild = variant === 'add' ? useDraftEventScheduleItem() : useSelectedEventItem();
+  const { parentScheduleId, scheduleChildItem: currentChild, scheduleStore } = props;
 
   const timeState = useLocalObservable(() => ({
     localTime: currentChild.time,
@@ -45,71 +30,48 @@ const ScheduleEventsAdd = ({ close, variant, defaultTab }: Props) => {
     },
   }));
 
-  const typeTextView = t('event.' + currentChild.type);
+  const handleFinish = () => {
+    scheduleStore.commitEventDraft(parentScheduleId);
+    navigate(-1);
+  };
 
-  const baseTabs = [
-    {
-      value: 'time' as const,
-      label: 'Время',
-      alternativeLabel: currentChild.time || '00:00',
-    },
-    {
-      value: 'eventSelect' as const,
-      label: 'Вариант',
-      alternativeLabel: typeTextView,
-    },
-    {
-      value: 'value' as const,
-      label: 'Количество',
-      alternativeLabel: currentChild.value || '',
-    },
-  ];
+  const handleTimeFinish = () => {
+    const eventTypeSection = document.getElementById('event-type-section');
+    if (eventTypeSection) {
+      eventTypeSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
-  const { searchFocusState, currentTab, direction, setTab, handleFinish, handleNextStep } =
-    useEntityItemWizard(variant, {
-      baseTabs,
-      onFinish: () => {
-        return domainStore.scheduleStore.commitEventDraft(schedule);
-      },
-      onAfterFinish: () => close(),
-    });
+  const handleEventTypeFinish = () => {
+    const valueSection = document.getElementById('value-section');
+    if (valueSection) {
+      valueSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
-  const tabs =
-    variant === 'edit'
-      ? [{ value: 'info' as const, label: 'info', alternativeLabel: '' }, ...baseTabs]
-      : baseTabs;
-
-  const handleTabChange = (tab: string) => setTab(tab as 'time' | 'eventSelect' | 'value' | 'info');
+  const handleValueFinish = () => {
+    handleFinish();
+  };
 
   return (
-    <ModalLayout
-      showCloseButton
-      footer={
-        <Tabs
-          tabs={tabs}
-          current={currentTab}
-          setTab={handleTabChange}
-          variant="scheduleEventAdd"
-          onFinish={handleFinish}
-        />
+    <ScheduleItemCommonForm
+      time={timeState.localTime}
+      button={
+        <Button variant="primary" onClick={handleFinish}>
+          Сохранить
+        </Button>
       }
-      topRight={<FinishButton onClick={handleFinish} />}
-      showHeader={!searchFocusState.isSearchFocused}
     >
-      <WizardStep stepKey={currentTab} direction={direction}>
-        {currentTab === 'info' && <div>инфа</div>}
-        {currentTab === 'time' && (
-          <ContentEdit.Time timeState={timeState} onFinish={handleNextStep} />
-        )}
-        {currentTab === 'eventSelect' && (
-          <ScheduleEventCategoryList eventItem={currentChild} onFinish={handleNextStep} />
-        )}
-        {currentTab === 'value' && (
-          <EventContentV2 onFinish={handleNextStep} currentEvent={currentChild} />
-          // <EventContent onFinish={handleNextStep} currentEvent={currentChild} />
-        )}
-      </WizardStep>
-    </ModalLayout>
+      <div className={style.section} id="time-section">
+        <ContentEdit.Time timeState={timeState} onFinish={handleTimeFinish} />
+      </div>
+      <div className={style.section} id="event-type-section">
+        <ScheduleEventCategoryList eventItem={currentChild} onFinish={handleEventTypeFinish} />
+      </div>
+      <div className={style.section} id="value-section">
+        <EventContentV2 onFinish={handleValueFinish} currentEvent={currentChild} />
+      </div>
+    </ScheduleItemCommonForm>
   );
 };
 

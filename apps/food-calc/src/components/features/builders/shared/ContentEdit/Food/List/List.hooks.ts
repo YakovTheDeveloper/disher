@@ -193,6 +193,12 @@ export function useListScroll({
         if (scrollHeight - scrollTop - clientHeight < threshold) {
             fetchNextPage();
         }
+
+        // Hide keyboard on scroll - Yandex/Google mobile web best practice
+        const activeElement = document.activeElement;
+        if (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement) {
+            activeElement.blur();
+        }
     }, [parentRef, fetchNextPage]);
 
     return handleScroll;

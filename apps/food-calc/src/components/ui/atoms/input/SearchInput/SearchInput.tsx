@@ -10,17 +10,29 @@ type Props = React.InputHTMLAttributes<HTMLInputElement> & {
 
 const SearchInput = React.forwardRef<HTMLInputElement, Props>(
   ({ className = '', wrapperClassName = '', size = 'small', ...inputProps }, ref) => {
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      e.target.select();
+      inputProps.onFocus?.(e);
+    };
+
     return (
       <label className={clsx(styles.searchWrapper, styles[size], wrapperClassName)}>
         <div className={styles.searchIcon}>
           <SearchIcon />
         </div>
         <input
-          type="text"
+          type="search"
+          id="search"
+          inputMode="search"
+          enterKeyHint="search"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           className={clsx(styles.searchInput, className)}
           placeholder="Поиск"
           ref={ref}
           {...inputProps}
+          onFocus={handleFocus}
         />
       </label>
     );

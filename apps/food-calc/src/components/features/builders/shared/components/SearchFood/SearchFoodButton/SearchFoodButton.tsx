@@ -24,6 +24,7 @@ const SearchFoodButton: React.FC<SearchFoodButtonProps> = ({
   className,
 }) => {
   const hasTopBar = topLeftAction || topRightAction;
+  const hasText = !!text;
 
   return (
     <div className={clsx(s.container, className)}>
@@ -33,11 +34,11 @@ const SearchFoodButton: React.FC<SearchFoodButtonProps> = ({
           <div className={s.topRight}>{topRightAction}</div>
         </div>
       )}
-      <button className={s.button} onClick={onClick} type="button">
+      <span className={clsx(s.button, hasText ? s.hasText : s.noText)} onClick={onClick}>
         {leftSlot && <div className={s.leftSlot}>{leftSlot}</div>}
         <span className={s.text}>{text || placeholder}</span>
         {rightSlots && <div className={s.rightSlots}>{rightSlots}</div>}
-      </button>
+      </span>
     </div>
   );
 };

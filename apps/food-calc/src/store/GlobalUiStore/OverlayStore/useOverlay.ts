@@ -6,11 +6,14 @@ import { useMemo } from "react";
  * Хук для доступа к OverlayFacade из компонентов.
  * Предоставляет интуитивные методы для открытия модалок и дроверов.
  * 
+ * Внимание: modalStore методы модалок теперь пустые (TODO)
+ * для перехода на роуты или ModalStoreV2
+ * 
  * @example
  * ```typescript
  * const { openFormDishAdd, openConfirmationRemoveDishes } = useOverlay();
  * 
- * // Открыть модалку создания блюда
+ * // Открыть модалку создания блюда (TODO: make link to new route)
  * openFormDishAdd();
  * 
  * // Открыть дровер подтверждения удаления
@@ -19,10 +22,17 @@ import { useMemo } from "react";
  */
 export function useOverlay(): OverlayFacade {
     const { globalUiStore } = useStore();
-    const { modalStore, drawerStore } = globalUiStore;
+    const { drawerStore } = globalUiStore;
+
+    // Mock modalStore - методы теперь пустые (TODO)
+    const modalStore = {
+        openModal: () => {},
+        closeModal: () => {},
+        isModalOpen: false,
+    };
 
     return useMemo(
-        () => createOverlayFacade(modalStore, drawerStore),
-        [modalStore, drawerStore]
+        () => createOverlayFacade(modalStore as any, drawerStore),
+        [drawerStore]
     );
 }

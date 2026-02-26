@@ -10,6 +10,15 @@ import {
     weightConfig,
     vitalsConfig,
     hydrationConfig,
+    painConfig,
+    allergyConfig,
+    skinConfig,
+    femaleHealthConfig,
+    doctorConfig,
+    treatmentConfig,
+    napConfig,
+    restConfig,
+    activeRecoveryConfig,
 } from './physical';
 
 import {
@@ -20,7 +29,10 @@ import {
     anxietyConfig,
     relaxationConfig,
     meditationConfig,
-    creativityConfig
+    creativityConfig,
+    angerConfig,
+    motivationConfig,
+    therapyConfig,
 } from './mental';
 
 import {
@@ -31,7 +43,8 @@ import {
     socialConfig,
     onlineConfig,
     familyConfig,
-    partnerConfig
+    partnerConfig,
+    workSocialConfig,
 } from './social';
 
 import {
@@ -40,8 +53,29 @@ import {
     gratitudeConfig,
     ideaConfig,
     taskConfig,
-    goalConfig
+    goalConfig,
+    reflectionConfig,
 } from './notes';
+
+import {
+    workConfig,
+} from './work';
+
+import {
+    learningConfig,
+} from './learning';
+
+import {
+    environmentConfig,
+} from './environment';
+
+import {
+    digitalConfig,
+} from './digital';
+
+import {
+    lifeEventsConfig,
+} from './life-events';
 
 /**
  * Объединяющая карта всех конфигураций форм событий
@@ -55,6 +89,15 @@ export const EVENT_FORMS: Record<BaseEventType, EventFormConfig> = {
     weight: weightConfig,
     vitals: vitalsConfig,
     hydration: hydrationConfig,
+    pain: painConfig,
+    allergy: allergyConfig,
+    skin: skinConfig,
+    female_health: femaleHealthConfig,
+    doctor: doctorConfig,
+    treatment: treatmentConfig,
+    nap: napConfig,
+    rest: restConfig,
+    active_recovery: activeRecoveryConfig,
 
     // === MENTAL ===
     mood: moodConfig,
@@ -65,6 +108,9 @@ export const EVENT_FORMS: Record<BaseEventType, EventFormConfig> = {
     relaxation: relaxationConfig,
     meditation: meditationConfig,
     creativity: creativityConfig,
+    anger: angerConfig,
+    motivation: motivationConfig,
+    therapy: therapyConfig,
 
     // === ACTIVITY ===
     activity: activityConfig,
@@ -74,6 +120,7 @@ export const EVENT_FORMS: Record<BaseEventType, EventFormConfig> = {
     online: onlineConfig,
     family: familyConfig,
     partner: partnerConfig,
+    work_social: workSocialConfig,
 
     // === NOTES ===
     note: noteConfig,
@@ -82,4 +129,20 @@ export const EVENT_FORMS: Record<BaseEventType, EventFormConfig> = {
     idea: ideaConfig,
     task: taskConfig,
     goal: goalConfig,
+    reflection: reflectionConfig,
+
+    // === WORK ===
+    work: workConfig,
+
+    // === LEARNING ===
+    learning: learningConfig,
+
+    // === ENVIRONMENT ===
+    environment: environmentConfig,
+
+    // === DIGITAL ===
+    digital: digitalConfig,
+
+    // === LIFE EVENTS ===
+    life_events: lifeEventsConfig,
 } as const;

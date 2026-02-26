@@ -6,10 +6,11 @@ import { useCallback, useMemo } from 'react';
 import clsx from 'clsx';
 import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
 import { domainStore } from '@/store/store';
+import { useNavigate, useParams } from 'react-router';
+import { RouterLinks } from '@/router';
 
 import { ScheduleItem } from '@/domain/schedule/schedule.model';
 import { Instance } from 'mobx-state-tree';
-import { ModalType } from '@/store/GlobalUiStore/ModalStore/ModalContent';
 
 type Props = {
   className?: string;
@@ -17,24 +18,19 @@ type Props = {
 };
 
 const ScheduleFoodItem = ({ item, className }: Props) => {
-  const modals = domainStore.globalUiStore.modalStore;
+  const navigate = useNavigate();
+  const { id: date } = useParams();
   const id = item.id;
   const content = item.content;
 
   console.log('content:', content);
 
   const onFoodsOpenUpdate = () => {
-    modals.openModal(ModalType.SCHEDULE_FOOD_EDIT, {
-      defaultTab: 'foodChange',
-      itemToEditId: id,
-    });
+    navigate(`${RouterLinks.ScheduleFood}/${date}?id=${id}`);
   };
 
   const onQuantityOpen = () => {
-    modals.openModal(ModalType.SCHEDULE_FOOD_EDIT, {
-      defaultTab: 'quantity',
-      itemToEditId: id,
-    });
+    navigate(`${RouterLinks.ScheduleFood}/${date}?id=${id}`);
   };
 
   const getVariantLabelText = () => {
