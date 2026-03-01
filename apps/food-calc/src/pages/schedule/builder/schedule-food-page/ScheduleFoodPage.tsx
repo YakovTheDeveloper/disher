@@ -12,13 +12,13 @@ const ScheduleFoodPage = () => {
     return null;
   }
 
-  const child = domainStore.scheduleStore.getScheduleChildById(id, childId, 'food');
+  const child = domainStore.foodScheduleStore.getScheduleChildById(id, childId);
 
   return (
     <ScheduleFood
       foodStore={domainStore.foodStore}
       dishStore={domainStore.dishStore}
-      scheduleStore={domainStore.scheduleStore}
+      scheduleStore={domainStore.foodScheduleStore}
       scheduleChildItem={child}
       parentScheduleId={id}
     />

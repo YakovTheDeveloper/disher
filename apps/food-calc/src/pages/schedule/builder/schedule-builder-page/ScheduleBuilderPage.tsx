@@ -1,4 +1,3 @@
-import { ScheduleBuilder } from '@/components/features/builders/ScheduleBuilder';
 import { RouterLinks } from '@/router';
 import { observer } from 'mobx-react-lite';
 import { useCallback, useEffect } from 'react';
@@ -6,46 +5,41 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { domainStore } from '@/store/store';
 import { DaySchedule } from '@/domain/schedule/schedule.model';
 import { Instance } from 'mobx-state-tree';
+import SwipeableV2 from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableV2';
+import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
+import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
+import { BuilderScheduleFood } from '@/components/features/builders/ScheduleBuilder/components/BuilderScheduleFood';
+import { BuilderScheduleEvents } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder';
+import TotalNutrients from '@/components/features/builders/TotalNutrients/TotalNutrients';
 
 const Page = observer(({ date }: { date: string }) => {
-  // const onInit = useMemo(
-  //   () =>
-  //     debounce((date: string) => {
-  //       console.log('on init function');
-  //       store.onInit(date);
-  //     }, 500),
-  //   [store]
-  // );
-
-  const onFinish = useCallback(async (payload: Instance<typeof DaySchedule>) => {
-    domainStore.interactionsService.fetchSyncScheduleAndDishes(payload);
-  }, []);
-
-  // const isLoading = useCallback(
-  //   () => domainStore.scheduleStore.status.fetchGet.get(date)?.loading ?? false,
-  //   [domainStore.scheduleStore.status, date]
-  // );
-
   console.log('schedule builder page render');
 
-  const current = domainStore.scheduleStore.data.get(date);
+  const foodSchedule =
+    domainStore.foodScheduleStore.data.get(date) ||
+    domainStore.foodScheduleStore.addLocal({ id: date });
 
-  const init = async () => {
-    const localSchedule = domainStore.scheduleStore.addLocal({ id: date });
-    domainStore.interactionsService.fetchSyncScheduleAndDishes(localSchedule);
+  const eventSchedule =
+    domainStore.eventScheduleStore.data.get(date) ||
+    domainStore.eventScheduleStore.addLocal({ id: date });
+
+  const onPageChange = (page: number, total: number) => {
+    if (page === 2) {
+      document.body.style.backgroundColor = '#e6e6e6';
+    } else {
+      document.body.style.backgroundColor = '';
+    }
   };
-
-  useEffect(() => {
-    console.log('current', current);
-    if (current) return;
-    init();
-  }, [current]);
 
   return (
     <>
-      {current ? (
-        <ScheduleBuilder key={date} date={date} schedule={current} />
-      ) : null}
+      <SwipeableV2 defaultSlide={1} onIndexChange={onPageChange}>
+        <Screen title={<ScreenLabel variant="screenHeader">Нутриенты</ScreenLabel>}>
+          {/* <TotalNutrients store={current} countable={current} /> */}
+        </Screen>
+        <BuilderScheduleFood schedule={foodSchedule} />
+        <BuilderScheduleEvents schedule={eventSchedule} />
+      </SwipeableV2>
     </>
   );
 });

@@ -1,5 +1,4 @@
 import { types, getRoot, Instance } from "mobx-state-tree";
-import { allNutrientsList } from "@/components/features/builders/shared/ContentInfo/Nutrients/constants";
 import { Nutrient } from "@/domain/nutrient/Nutrient";
 import { generateId } from "@/lib/id/generateId";
 import type { RootInstance } from "@/store/RootStoreModel";

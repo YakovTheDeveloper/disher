@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useState, useMemo } from 'react';
 import styles from './SearchFood.module.scss';
 import { Instance, SnapshotOut } from 'mobx-state-tree';
-import { ScheduleItem } from '@/domain/schedule/schedule.model';
+import { ScheduleFoodsItem } from '@/domain/schedule/scheduleFood/ScheduleFoods.model';
 import { domainStore } from '@/store/store';
 import { filterBy } from '@/lib/filter/filter';
 import { SearchListItem } from '@/components/ui/atoms/SearchListItem';

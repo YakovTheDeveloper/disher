@@ -2,11 +2,14 @@ import { createContext, useContext } from 'react';
 import { useParams } from 'react-router';
 import { domainStore } from '@/store/store';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule.model';
+import { DaySchedule, ScheduleFood, ScheduleEventContainer } from '@/domain/schedule/schedule.model';
+import { types } from 'mobx-state-tree';
 
-export const ScheduleContext = createContext<Instance<typeof DaySchedule> | undefined>(undefined);
+const CombinedSchedule = types.compose("CombinedSchedule", ScheduleFood, ScheduleEventContainer)
 
-export const useSchedule = (): Instance<typeof DaySchedule> => {
+export const ScheduleContext = createContext<Instance<typeof CombinedSchedule> | undefined>(undefined);
+
+export const useSchedule = (): Instance<typeof CombinedSchedule> => {
   const ctx = useContext(ScheduleContext);
 
   if (ctx === undefined) {
@@ -18,9 +21,16 @@ export const useSchedule = (): Instance<typeof DaySchedule> => {
 
 const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { id: date } = useParams();
-  const schedule = domainStore.scheduleStore.data.get(date || '');
+  const foodSchedule = domainStore.foodScheduleStore.data.get(date || '');
+  const eventSchedule = domainStore.eventScheduleStore.data.get(date || '');
 
-  return <ScheduleContext.Provider value={schedule}>{children}</ScheduleContext.Provider>;
+  // Create a combined view from both stores
+  const combined = foodSchedule ? {
+    ...foodSchedule,
+    events: eventSchedule?.events
+  } : undefined;
+
+  return <ScheduleContext.Provider value={combined as any}>{children}</ScheduleContext.Provider>;
 };
 
 export default ScheduleProvider;

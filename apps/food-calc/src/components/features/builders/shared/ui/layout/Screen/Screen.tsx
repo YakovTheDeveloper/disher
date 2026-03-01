@@ -29,7 +29,7 @@ const Screen = ({ header, children, bottom, actions, title, backgroundColor }: P
 
   return (
     <div className={clsx([styles.screen, backgroundColor && styles[`bg-${backgroundColor}`]])}>
-      <ScreenHeader actions={actions} scrollYProgress={scrollYProgress} title={title}>
+      <ScreenHeader scrollYProgress={scrollYProgress} title={title}>
         <ScreenScrollProvider value={scrollYProgress}>
           {header}
           {/* {header?.(scrollYProgress)} */}
@@ -39,6 +39,7 @@ const Screen = ({ header, children, bottom, actions, title, backgroundColor }: P
       <ScreenScroll scrollY={scrollY}>{children}</ScreenScroll>
 
       {bottom && <div className={styles.bottom}>{bottom}</div>}
+      {actions && <div className={styles.actions}>{actions}</div>}
     </div>
   );
 };

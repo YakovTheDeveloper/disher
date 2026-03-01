@@ -36,7 +36,7 @@ export function ChildrenController<T extends IAnyModelType>(
         const { id = '', ...noIdData } = dataNormalized
 
         const child = ChildModel.create({ id: generateId(), ...noIdData })
-        child.sync.markAdded()
+        child.sync?.markAdded()
         self.items.push(child)
         return child
       },
@@ -62,7 +62,7 @@ export function ChildrenController<T extends IAnyModelType>(
         if (!child) return
 
         Object.assign(child, fields)
-        if (markModified) child.sync.markModified()
+        if (markModified) child.sync?.markModified()
         return child
       },
 
@@ -111,7 +111,7 @@ export function ChildrenController<T extends IAnyModelType>(
           const localChild = this.updateChildById(child)
 
           if (localChild) {
-            localChild.sync.onSync(now)
+            localChild.sync?.onSync(now)
           } else {
             this.addChildWithServerData(child)
           }

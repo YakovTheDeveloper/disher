@@ -1,121 +1,125 @@
-import { SyncStatus } from "@/domain/commonListItem";
 import { types } from "mobx-state-tree";
+import { SyncStatus } from "@/domain/commonListItem";
 import {
-    BaseEventType,
-    EventSubtype,
-    getEventTypeDefinition,
-    hasSubtypes,
-    getSubtypes,
-    getTypeGroupName,
-    EVENT_TYPES
-} from './eventTypes';
-import {
-    EventFormConfig,
-    getEventFormConfig
-} from './eventForms';
-import { ScheduleEventFactory } from "@/domain/schedule/scheduleEvent/ScheduleEvent.factory";
+    Atom,
+    isValidAtom
+} from './atom.types';
 
 /**
- * Тип события для обратной совместимости
+ * MST model definitions for each atom type
  */
-export type ScheduleEventType = BaseEventType;
+const ScaleAtomModel = types.model("ScaleAtom", {
+    kind: types.literal("scale"),
+    value: types.number,
+    label: types.optional(types.string, ""),
+});
+
+const TimeAtomModel = types.model("TimeAtom", {
+    kind: types.literal("time"),
+    start: types.optional(types.number, 0),
+    end: types.optional(types.number, 0),
+    durationMin: types.optional(types.number, 0),
+});
+
+const NumberAtomModel = types.model("NumberAtom", {
+    kind: types.literal("number"),
+    value: types.number,
+    unit: types.optional(types.string, ""),
+    label: types.optional(types.string, ""),
+});
+
+const TagAtomModel = types.model("TagAtom", {
+    kind: types.literal("tag"),
+    value: types.string,
+});
+
+const RelationAtomModel = types.model("RelationAtom", {
+    kind: types.literal("relation"),
+    value: types.string,
+});
+
+const FlagAtomModel = types.model("FlagAtom", {
+    kind: types.literal("flag"),
+    value: types.string,
+});
 
 /**
- * Получить отображаемое имя типа события
+ * Union of all atom models
  */
-function getEventTypeLabel(type: BaseEventType): string {
-    const definition = getEventTypeDefinition(type);
-    return definition.localizationKey;
-}
+const AtomModel = types.union(
+    types.late(() => ScaleAtomModel),
+    types.late(() => TimeAtomModel),
+    types.late(() => NumberAtomModel),
+    types.late(() => TagAtomModel),
+    types.late(() => RelationAtomModel),
+    types.late(() => FlagAtomModel),
+);
 
-export const ScheduleEventItem = types.model("ScheduleEventItem", {
+/**
+ * ScheduleEventItem V2 - new atomic model
+ * Replaces the old type-based system
+ */
+export const ScheduleEvent = types.model("ScheduleEvent", {
     id: types.identifier,
-    /** Данные события (объект, не сериализованная строка) */
-    data: types.frozen(),
-    time: types.string,
+    time: types.optional(types.string, ""),
     sync: types.optional(SyncStatus, {}),
-    type: types.union(
-        // Physical
-        types.literal('sleep'),
-        types.literal('illness'),
-        types.literal('digestion'),
-        types.literal('medication'),
-        types.literal('weight'),
-        types.literal('vitals'),
-        types.literal('hydration'),
-        // Mental
-        types.literal('mood'),
-        types.literal('energy'),
-        types.literal('stress'),
-        types.literal('focus'),
-        types.literal('anxiety'),
-        types.literal('relaxation'),
-        types.literal('meditation'),
-        types.literal('creativity'),
-        // Activity
-        types.literal('sport'),
-        types.literal('activity'),
-        types.literal('hobby'),
-        types.literal('chores'),
-        types.literal('transport'),
-        // Social
-        types.literal('social'),
-        types.literal('online'),
-        types.literal('family'),
-        types.literal('partner'),
-        // Notes
-        types.literal('note'),
-        types.literal('custom'),
-        types.literal('gratitude'),
-        types.literal('idea'),
-        types.literal('task'),
-        types.literal('goal'),
-    ),
-    /** Путь выбора категории (массив от корня до выбранного листа) */
-    subtype: types.optional(types.array(types.string), []),
+    text: types.optional(types.string, ""),
+    createdAt: types.number,
+    atoms: types.array(AtomModel),
+})
+    .actions(self => ({
+        /**
+         * Add an atom to this event
+         */
+        addAtom(atom: Atom) {
+            if (isValidAtom(atom)) {
+                self.atoms.push(atom as any);
+            }
+        },
 
-}).views(self => ({
-    get typeView() {
-        return getEventTypeLabel(self.type);
-    },
-    get definition() {
-        return getEventTypeDefinition(self.type);
-    },
-    get hasSubtypes(): boolean {
-        return hasSubtypes(self.type);
-    },
-    get availableSubtypes(): EventSubtype[] {
-        return getSubtypes(self.type);
-    },
-    get formConfig(): EventFormConfig {
-        return getEventFormConfig(self.type);
-    },
-    get typeGroupView() {
-        return getTypeGroupName(self.type)
-    }
-})).actions(self => ({
-    updateTime(time: string) {
-        self.time = time;
-    },
-    updateType(type: ScheduleEventType) {
-        self.subtype.replace([]);
-        self.type = type;
-        self.data = ScheduleEventFactory.createEmptyEventData(type);
-    },
-    updateSubtype(subtype: string[]) {
-        self.subtype.replace(subtype);
-    },
-    /**
-     * Установить данные события
-     */
-    setData(data: Record<string, unknown> | null) {
-        self.data = data;
-    },
-}));
+        /**
+         * Remove an atom by index
+         */
+        removeAtom(index: number) {
+            if (index >= 0 && index < self.atoms.length) {
+                self.atoms.splice(index, 1);
+            }
+        },
 
-/**
- * Получить все доступные типы событий
- */
-export function getAllEventTypes(): ScheduleEventType[] {
-    return Object.keys(EVENT_TYPES) as ScheduleEventType[];
-}
+        /**
+         * Update an atom at index
+         */
+        updateAtom(index: number, atom: Atom) {
+            if (index >= 0 && index < self.atoms.length && isValidAtom(atom)) {
+                self.atoms[index] = atom as any;
+            }
+        },
+
+        /**
+         * Set the event text/description
+         */
+        setText(text: string) {
+            self.text = text;
+        },
+
+        /**
+         * Clear all atoms
+         */
+        clearAtoms() {
+            self.atoms.length = 0;
+        },
+
+        /**
+         * Get atoms of a specific kind
+         */
+        getAtomsByKind(kind: Atom['kind']): Atom[] {
+            return self.atoms.filter(atom => atom.kind === kind) as Atom[];
+        },
+
+        /**
+         * Check if event has any atoms of a specific kind
+         */
+        hasAtomOfKind(kind: Atom['kind']): boolean {
+            return self.atoms.some(atom => atom.kind === kind);
+        },
+    }));

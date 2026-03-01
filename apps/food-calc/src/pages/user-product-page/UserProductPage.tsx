@@ -5,9 +5,9 @@ import { useParams } from 'react-router-dom';
 import { domainStore } from '@/store/store';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { Spacer } from '@/components/ui/atoms/Spacer';
-import { Nutrients } from '@/components/features/builders/shared/ContentInfo/Nutrients';
+import { Nutrients } from '@/components/features/builders/TotalNutrients/Nutrients';
 import { useMemo } from 'react';
-import { TotalNutrientsStore } from '@/components/features/builders/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
+import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
 import { HeaderInputName } from '@/components/features/builders/shared/components/HeaderInputName';
 import { Label } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/EventContent/shared/Label';
 const UserProductPage = () => {

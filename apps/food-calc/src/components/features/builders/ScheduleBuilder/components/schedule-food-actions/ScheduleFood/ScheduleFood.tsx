@@ -22,8 +22,8 @@ import { RouterUrls } from '@/router';
 interface ScheduleFoodProps {
   foodStore: FoodStoreInstance;
   dishStore: DishStoreInstance;
-  scheduleStore: RootInstance['scheduleStore'];
-  scheduleChildItem: RootInstance['scheduleStore']['foodDraft'];
+  scheduleStore: RootInstance['foodScheduleStore'];
+  scheduleChildItem: RootInstance['foodScheduleStore']['foodDraft'];
   parentScheduleId: string; // DD-MM-YYYY format, e.g. "15-09-2024"
 }
 

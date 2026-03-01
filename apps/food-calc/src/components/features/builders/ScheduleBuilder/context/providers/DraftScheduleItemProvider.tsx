@@ -4,8 +4,8 @@ import { observer } from 'mobx-react-lite';
 
 // Type for draft object compatible with existing hooks
 type DraftItem = {
-  eventDraft: typeof domainStore.scheduleStore.eventDraft;
-  foodDraft: typeof domainStore.scheduleStore.foodDraft;
+  eventDraft: typeof domainStore.eventScheduleStore.eventDraft;
+  foodDraft: typeof domainStore.foodScheduleStore.foodDraft;
 };
 
 export const DraftScheduleItemContext = createContext<DraftItem | undefined>(undefined);
@@ -16,7 +16,8 @@ interface DraftScheduleItemProviderProps {
 
 export const DraftScheduleItemProvider: React.FC<DraftScheduleItemProviderProps> = observer(
   ({ children }) => {
-    const { foodDraft, eventDraft } = domainStore.scheduleStore;
+    const foodDraft = domainStore.foodScheduleStore.foodDraft;
+    const eventDraft = domainStore.eventScheduleStore.eventDraft;
 
     if (!foodDraft || !eventDraft) throw new Error(`No draft exist in store`);
 

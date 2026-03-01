@@ -1,24 +1,24 @@
-import { EventData, getEventFormConfig } from "@/domain/schedule/scheduleEvent/eventForms";
-import { BaseEventType } from "@/domain/schedule/scheduleEvent/eventTypes";
-import { ScheduleEventItem } from "@/domain/schedule/scheduleEvent/ScheduleEvent.model";
+import { ScheduleEvent } from "@/domain/schedule/scheduleEvent/ScheduleEvent.model";
 import { generateId } from "@/lib/id/generateId";
 import { StoreEntityFactory } from "@/store/types/factory";
 import { SnapshotIn } from "mobx-state-tree";
 
-export const ScheduleEventFactory: StoreEntityFactory<typeof ScheduleEventItem> & {
-    createEmptyEventData(type: BaseEventType): EventData
-} = {
+/**
+ * Factory for creating ScheduleEventItem instances
+ * Now works with atomic events instead of type-based events
+ */
+export const ScheduleEventFactory: StoreEntityFactory<typeof ScheduleEvent> = {
 
-    createNewLocal(data: Omit<SnapshotIn<typeof ScheduleEventItem>, 'id'>) {
+    /**
+     * Create a new event from local data
+     */
+    createNewLocal(data: Omit<SnapshotIn<typeof ScheduleEvent>, 'id'>) {
         try {
-            // Извлекаем subtype из data, если он там есть
-            const { subtype, ...restData } = data.data as Record<string, unknown> || {};
-
-            return ScheduleEventItem.create({
+            return ScheduleEvent.create({
                 ...data,
                 id: generateId(),
-                subtype: subtype as string[] || [],
-                data: restData,
+                createdAt: Date.now(),
+                atoms: data.atoms || [],
             });
         } catch (error) {
             console.error('createNewLocal failed', error);
@@ -26,50 +26,27 @@ export const ScheduleEventFactory: StoreEntityFactory<typeof ScheduleEventItem> 
         }
     },
 
-    createFromServerData(data: SnapshotIn<typeof ScheduleEventItem>) {
-
+    /**
+     * Create an event from server data
+     */
+    createFromServerData(data: SnapshotIn<typeof ScheduleEvent>) {
+        return ScheduleEvent.create({
+            ...data,
+            id: data.id,
+            createdAt: data.createdAt || Date.now(),
+            atoms: data.atoms || [],
+        });
     },
+};
 
-    createEmptyEventData(type: BaseEventType): EventData {
-        const formConfig = getEventFormConfig(type);
-        const data: EventData = { type };
-
-        for (const field of formConfig.fields) {
-            if (field.defaultValue !== undefined) {
-                data[field.key] = field.defaultValue;
-                continue;
-            }
-
-            switch (field.type) {
-                case 'text':
-                    data[field.key] = '';
-                    break;
-                case 'slider':
-                case 'steps':
-                    data[field.key] = field.validation?.min ?? 0;
-                    break;
-                case 'duration':
-                    data[field.key] = 30;
-                    break;
-                case 'time':
-                    data[field.key] = '12:00';
-                    break;
-                case 'select':
-                    data[field.key] = field.options?.[0]?.value ?? undefined;
-                    break;
-                case 'multiSelect':
-                    data[field.key] = [];
-                    break;
-                case 'tree':
-                    data[field.key] = [];
-                    break;
-                case 'quick-buttons':
-                    data[field.key] = undefined;
-                    break;
-            }
-        }
-
-        return data;
-    }
-
+/**
+ * Helper function to create an empty event
+ */
+export function createEmptyEvent(): SnapshotIn<typeof ScheduleEvent> {
+    return {
+        id: generateId(),
+        text: "",
+        createdAt: Date.now(),
+        atoms: [],
+    };
 }

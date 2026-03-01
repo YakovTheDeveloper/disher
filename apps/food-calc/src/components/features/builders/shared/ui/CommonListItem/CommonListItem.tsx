@@ -5,26 +5,36 @@ import clsx from 'clsx';
 import { Instance } from 'mobx-state-tree';
 import { SyncStatus } from '@/domain/commonListItem';
 import TickIcon from '@/assets/icons/tick.svg';
-import { domainStore } from '@/store/store';
 import { AnimatePresence, motion } from 'framer-motion';
 import { emitter } from '@/infrastructure/emitter/emitter';
 type Props = {
-  id: string | number;
+  id: string;
   children?: React.ReactNode;
   className?: string;
   innerClassName?: string;
   sync?: Instance<typeof SyncStatus>;
   variant?: 1 | 2 | 3;
+  isSelectMode: boolean;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
 };
 
 const LONG_PRESS_DELAY = 450;
 const MOVE_THRESHOLD = 10; // Pixels allowed before canceling long press
 
-const ListItem = ({ id, children, className, innerClassName, sync, variant }: Props) => {
+const ListItem = ({
+  id,
+  children,
+  className,
+  innerClassName,
+  sync,
+  variant,
+  isSelectMode,
+  isSelected,
+  onSelect,
+}: Props) => {
   const stringId = id.toString();
   const [isHighlighted, setIsHighlighted] = useState(false);
-
-  const interactionsSelect = domainStore.interactionsService.interactionsSelect;
 
   // Emitter subscription for highlight animation
   useEffect(() => {
@@ -44,15 +54,13 @@ const ListItem = ({ id, children, className, innerClassName, sync, variant }: Pr
   const wasLongPressedRef = useRef(false);
   const preventNextClickRef = useRef(false);
   const [isPressed, setIsPressed] = useState(false);
-  const isActionsMode = interactionsSelect.isActionsMode;
-  const isSelected = interactionsSelect.isSelected(stringId);
 
   const handleSelect = useCallback(() => {
     if (navigator.vibrate) {
       navigator.vibrate(10);
     }
-    interactionsSelect.toggleSelectedId(stringId);
-  }, [interactionsSelect, stringId]);
+    onSelect(stringId);
+  }, [onSelect, stringId]);
 
   const cleanUp = useCallback(() => {
     if (timerRef.current) {
@@ -64,7 +72,7 @@ const ListItem = ({ id, children, className, innerClassName, sync, variant }: Pr
   }, []);
 
   const onPointerDown = (e: React.PointerEvent) => {
-    if (isActionsMode) {
+    if (isSelectMode) {
       preventNextClickRef.current = true;
     }
 
@@ -112,7 +120,7 @@ const ListItem = ({ id, children, className, innerClassName, sync, variant }: Pr
     cleanUp();
 
     // If we're already in multi-select mode, any short tap should toggle
-    if (!skipTap && isActionsMode) {
+    if (!skipTap && isSelectMode) {
       handleSelect();
     }
 
@@ -146,12 +154,12 @@ const ListItem = ({ id, children, className, innerClassName, sync, variant }: Pr
       className={clsx(
         styles.commonListItemWrapper,
         isSelected && styles.selected,
-        isActionsMode && styles.inActionsMode
+        isSelectMode && styles.inActionsMode
       )}
       onContextMenu={onContextMenu}
     >
       <AnimatePresence>
-        {isActionsMode && (
+        {isSelectMode && (
           <motion.div
             initial={{ opacity: 0, scale: 0.5, x: -20 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
@@ -184,7 +192,7 @@ const ListItem = ({ id, children, className, innerClassName, sync, variant }: Pr
       {isSelected && <div className={styles.selectedOverlay} />}
 
       <motion.li
-        animate={{ x: isActionsMode ? 44 : 0 }}
+        animate={{ x: isSelectMode ? 44 : 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
@@ -195,7 +203,7 @@ const ListItem = ({ id, children, className, innerClassName, sync, variant }: Pr
           className,
           innerClassName,
           styles.commonListItemInner,
-          isActionsMode && styles.commonListItemInner_inActionsMode,
+          isSelectMode && styles.commonListItemInner_inActionsMode,
           isPressed && styles.commonListItemInner_tapped,
           status && styles[status],
           variant && styles[`variant_${variant}`],
@@ -208,7 +216,7 @@ const ListItem = ({ id, children, className, innerClassName, sync, variant }: Pr
               e.stopPropagation();
             }
           }}
-          className={clsx(styles.content, isActionsMode && styles.content_disabled)}
+          className={clsx(styles.content, isSelectMode && styles.content_disabled)}
         >
           {children}
         </div>

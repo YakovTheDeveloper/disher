@@ -1,9 +1,10 @@
 import { getIds } from "@/domain/common";
 import { Dish } from "@/domain/dish/Dish.model";
-import { DaySchedule, ScheduleItem } from "@/domain/schedule/schedule.model";
+import { ScheduleFood, DaySchedule } from "@/domain/schedule/schedule.model";
+import { ScheduleFoodsItem } from "@/domain/schedule/scheduleFood/ScheduleFoods.model";
 import toaster from "@/infrastructure/toaster/toaster";
 import { isNotEmpty } from "@/lib/empty";
-import { DayScheduleStore } from "@/store/DayScheduleStore/DayScheduleStore";
+import { FoodScheduleStore } from "@/store/FoodScheduleStore/FoodScheduleStore";
 import { DailyNormStore } from "@/store/DailyNormStore/DailyNormStore";
 import { DishStore } from "@/store/DishStore/DishStore";
 import { DishFactory } from "@/store/DishStore/Dish.factory";
@@ -14,10 +15,11 @@ import { productFactory } from "@/domain/product/Food.factory";
 import { DrawerStoreInstance } from "@/store/GlobalUiStore/DrawerStore/DrawerStore.v2";
 import { FoodStoreInstance } from "@/store/FoodStore/FoodStore";
 import { InteractionsCreate, InteractionsDelete } from "@/store/interactions/interactionsIndex";
+import { InteractionsSelect } from "@/hooks/factoryHooks/useSelection";
 
 export interface InteractionsEnv {
     dishStore: Instance<typeof DishStore>;
-    scheduleStore: Instance<typeof DayScheduleStore>
+    foodScheduleStore: Instance<typeof FoodScheduleStore>
     dailyNormStore: Instance<typeof DailyNormStore>
     globalUiStore: Instance<typeof GlobalUiStore>
     drawerStore: DrawerStoreInstance;
@@ -28,6 +30,7 @@ type CreateNewDishAndAppendToScheduleParam = {
     schedule: Instance<typeof DaySchedule>
     timeToAddDishScheduleItem: string
     removeScheduleItems: boolean
+    interactionsSelect: InteractionsSelect
 }
 
 export const InteractionsService = types
@@ -35,79 +38,22 @@ export const InteractionsService = types
 
         interactionsCreate: types.optional(InteractionsCreate, {}),
         interactionsDelete: types.optional(InteractionsDelete, {}),
-
-        interactionsSelect: types.optional(types.model({
-            isActionsMode: false,
-            selectedIds: types.array(types.string),
-        }).actions(self => ({
-            setIsActionsMode(value: boolean) {
-                self.isActionsMode = value;
-
-                if (!value) {
-                    self.selectedIds.clear();
-                }
-            },
-
-            toggleSelectedId(id: string) {
-                const index = self.selectedIds.indexOf(id);
-
-                if (index >= 0) {
-                    self.selectedIds.splice(index, 1);
-                } else {
-                    self.selectedIds.push(id);
-                }
-
-                self.isActionsMode = self.selectedIds.length > 0;
-            },
-
-            setSelectedIds(ids: string[]) {
-                const selectedSet = new Set(self.selectedIds);
-                const idsSet = new Set(ids);
-
-                if (ids.every(id => selectedSet.has(id))) {
-                    self.selectedIds.replace(self.selectedIds.filter(id => !idsSet.has(id)));
-                } else {
-                    ids.forEach(id => {
-                        if (!selectedSet.has(id)) {
-                            self.selectedIds.push(id);
-                        }
-                    });
-                }
-
-                self.isActionsMode = self.selectedIds.length > 0;
-            },
-
-            clearSelection() {
-                self.selectedIds.clear();
-                self.isActionsMode = false;
-            },
-        })).views(self => ({
-            isSelected(id: string) {
-                return self.selectedIds.includes(id);
-            },
-
-            get selectedCount() {
-                return self.selectedIds.length;
-            },
-        })), {})
     })
     .actions(self => {
 
-        function moveOrCopyItemsFromOneScheduleToAnother(fromDate: string, toDate: string, action: 'copy' | 'move') {
-            const selectedIds = self.interactionsSelect.selectedIds;
-
-            const from = domainStore.scheduleStore.data.get(fromDate);
+        function moveOrCopyItemsFromOneScheduleToAnother(fromDate: string, toDate: string, action: 'copy' | 'move', selectedIds: string[]) {
+            const from = domainStore.foodScheduleStore.data.get(fromDate);
             if (!from) {
                 console.warn('No FROM schedule found')
                 return
             }
             const selectedFromSchedule = from.foods.getChildrenByIds(selectedIds);
 
-            let to = domainStore.scheduleStore.data.get(toDate);
+            let to = domainStore.foodScheduleStore.data.get(toDate);
 
             if (!to) {
                 console.warn('No schedule found to copy/move items TO')
-                to = domainStore.scheduleStore.addLocal({
+                to = domainStore.foodScheduleStore.addLocal({
                     id: toDate
                 })
             }
@@ -117,14 +63,11 @@ export const InteractionsService = types
             if (action === 'move') {
                 from.foods.removeBulk(selectedIds)
             }
-
-            domainStore.interactionsService.interactionsSelect.clearSelection()
-
         }
 
-        function createNewDishAndAppendToSchedule({ schedule, timeToAddDishScheduleItem, removeScheduleItems }: CreateNewDishAndAppendToScheduleParam) {
+        function createNewDishAndAppendToSchedule({ schedule, timeToAddDishScheduleItem, removeScheduleItems, interactionsSelect }: CreateNewDishAndAppendToScheduleParam) {
             const root = getRoot(self) as InteractionsEnv;
-            const selectedIds = self.interactionsSelect.selectedIds
+            const selectedIds = interactionsSelect.selectedIds
 
             const dishItemsPayload = schedule.foods.getChildrenByIds(selectedIds)
 
@@ -146,59 +89,59 @@ export const InteractionsService = types
 
         }
 
-        const fetchSyncScheduleAndDishes = async (schedule: Instance<typeof DaySchedule>) => {
-            const root = getRoot(self) as InteractionsEnv;
+        // const fetchSyncScheduleAndDishes = async (schedule: Instance<typeof ScheduleFood>) => {
+        //     const root = getRoot(self) as InteractionsEnv;
 
-            const notSyncedDishes = schedule.allDraftDishesFromItems
+        //     const notSyncedDishes = (schedule as any).allDraftDishesFromItems
 
-            if (isNotEmpty(notSyncedDishes)) {
-                const status = await fetchSyncDishes(notSyncedDishes)
-                if (status === 'fail') return
-            }
+        //     if (isNotEmpty(notSyncedDishes)) {
+        //         const status = await fetchSyncDishes(notSyncedDishes)
+        //         if (status === 'fail') return
+        //     }
 
-            const syncedSchedules = await root.scheduleStore.fetchSync(
-                schedule
-            );
+        //     const syncedSchedules = await root.foodScheduleStore.fetchSync(
+        //         schedule
+        //     );
 
-            const id = schedule.id
-            const children = schedule.items
+        //     const id = schedule.id
+        //     const children = (schedule as any).items
 
-            const syncedSchedule = syncedSchedules?.at(0)
-            if (!syncedSchedule?.schedule) {
-                toaster.warning('Не удалось синхронизировать день')
-                return
-            }
+        //     const syncedSchedule = syncedSchedules?.at(0)
+        //     if (!syncedSchedule?.schedule) {
+        //         toaster.warning('Не удалось синхронизировать день')
+        //         return
+        //     }
 
-            const local = root.scheduleStore.data.get(id)
-            local?.removeChildrenMarkedAsDeleted()
-            local?.addOrUpdateBulk(children)
+        //     const local = root.foodScheduleStore.data.get(id)
+        //     local?.removeChildrenMarkedAsDeleted()
+        //     local?.addOrUpdateBulk(children)
 
-        };
+        // };
 
-        const fetchSyncDishes = async (payload: Instance<typeof Dish>[]) => {
+        // const fetchSyncDishes = async (payload: Instance<typeof Dish>[]) => {
 
-            const root = getRoot(self) as InteractionsEnv;
+        //     const root = getRoot(self) as InteractionsEnv;
 
-            const syncResult = await root.dishStore.fetchSync(
-                payload
-            );
+        //     const syncResult = await root.dishStore.fetchSync(
+        //         payload
+        //     );
 
-            if (!syncResult?.dishes) return 'fail';
+        //     if (!syncResult?.dishes) return 'fail';
 
-            for (const item of syncResult.dishes) {
-                if (!item.dish) continue
-                const id = item.dish.id
-                const dishChildren = item.dish.items
-                const localDish = root.dishStore.getEntity(id)
+        //     for (const item of syncResult.dishes) {
+        //         if (!item.dish) continue
+        //         const id = item.dish.id
+        //         const dishChildren = item.dish.items
+        //         const localDish = root.dishStore.getEntity(id)
 
-                localDish?.setLastSync()
-                localDish?.removeChildrenMarkedAsDeleted()
-                localDish?.addOrUpdateBulk(dishChildren)
-            }
+        //         localDish?.setLastSync()
+        //         localDish?.removeChildrenMarkedAsDeleted()
+        //         localDish?.addOrUpdateBulk(dishChildren)
+        //     }
 
-            return isNotEmpty(syncResult.notSyncIds) ? 'fail' : 'success'
+        //     return isNotEmpty(syncResult.notSyncIds) ? 'fail' : 'success'
 
-        };
+        // };
 
         // const fetchGetDishes = async (id: string) => {
         //     const root = getRoot(self) as InteractionsEnv;
@@ -223,8 +166,6 @@ export const InteractionsService = types
         // }
 
         return {
-            fetchSyncDishes,
-            fetchSyncScheduleAndDishes,
             createNewDishAndAppendToSchedule,
             moveOrCopyItemsFromOneScheduleToAnother
         }

@@ -1,15 +1,17 @@
 import { Instance, types } from "mobx-state-tree";
 import toaster from "@/infrastructure/toaster/toaster";
 import { domainStore } from "@/store/store";
+import { InteractionsSelect } from "@/hooks/factoryHooks/useSelection";
 
 type DeleteAction = () => void;
 
 const performBulkDelete = (
     action: string,
     deleteFn: DeleteAction,
-    successMessage: string
+    successMessage: string,
+    interactionsSelect: InteractionsSelect
 ): void => {
-    const ids = domainStore.interactionsService.interactionsSelect.selectedIds;
+    const ids = interactionsSelect.selectedIds;
 
     if (ids.length === 0) {
         toaster.warning("Не выбрано ни одного элемента");
@@ -26,69 +28,75 @@ const performBulkDelete = (
         });
         toaster.error("Ошибка при удалении");
     } finally {
-        domainStore.interactionsService.interactionsSelect.clearSelection();
+        interactionsSelect.clearSelection();
         domainStore.globalUiStore.drawerStore.close();
     }
 };
 
 export const InteractionsDelete = types.optional(types.model().actions((self) => ({
-    removeDishes() {
+    removeDishes(interactionsSelect: InteractionsSelect) {
         performBulkDelete(
             "removeDishes",
             () => domainStore.dishStore.user.removeBulk(
-                domainStore.interactionsService.interactionsSelect.selectedIds
+                interactionsSelect.selectedIds
             ),
-            "Блюда удалены"
+            "Блюда удалены",
+            interactionsSelect
         );
     },
 
-    removeDishItems(id: string) {
+    removeDishItems(id: string, interactionsSelect: InteractionsSelect) {
         performBulkDelete(
             "removeDishItems",
             () => domainStore.dishStore.getEntity(id).removeBulk(
-                domainStore.interactionsService.interactionsSelect.selectedIds
+                interactionsSelect.selectedIds
             ),
-            "Элементы блюда удалены"
+            "Элементы блюда удалены",
+            interactionsSelect
         );
     },
 
-    removeScheduleFood(id: string) {
+    removeScheduleFood(id: string, interactionsSelect: InteractionsSelect) {
         performBulkDelete(
             "removeScheduleFood",
-            () => domainStore.scheduleStore.getEntity(id).foods.removeBulk(
-                domainStore.interactionsService.interactionsSelect.selectedIds
+            () => domainStore.foodScheduleStore.data.get(id)?.foods.removeBulk(
+                interactionsSelect.selectedIds
             ),
-            "Еда из расписания удалена"
+            "Еда из расписания удалена",
+            interactionsSelect
         );
     },
 
-    removeScheduleEvents(id: string) {
+    removeScheduleEvents(id: string, interactionsSelect: InteractionsSelect) {
         performBulkDelete(
             "removeScheduleEvents",
-            () => domainStore.scheduleStore.getEntity(id).events.removeBulk(
-                domainStore.interactionsService.interactionsSelect.selectedIds
+            () => domainStore.eventScheduleStore.data.get(id)?.events.removeBulk(
+                interactionsSelect.selectedIds
             ),
-            "События расписания удалены"
+            "События расписания удалены",
+            interactionsSelect
         );
     },
 
-    removeDailyNorms() {
+    removeDailyNorms(interactionsSelect: InteractionsSelect) {
         performBulkDelete(
             "removeDailyNorms",
             () => domainStore.dailyNormStore.user.removeBulk(
-                domainStore.interactionsService.interactionsSelect.selectedIds
+                interactionsSelect.selectedIds
             ),
-            "Дневные нормы удалены"
+            "Дневные нормы удалены",
+            interactionsSelect
         );
     },
 
-    removeUserFood() {
+    removeUserFood(interactionsSelect: InteractionsSelect) {
         performBulkDelete(
             "removeUserFood",
             () => domainStore.foodStore.user.removeBulk(
-                domainStore.interactionsService.interactionsSelect.selectedIds
+                interactionsSelect.selectedIds
             ),
-            "Пользовательская еда удалена"
+            "Пользовательская еда удалена",
+            interactionsSelect
         );
     },
 })), {})

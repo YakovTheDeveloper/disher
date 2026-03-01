@@ -70,6 +70,9 @@ const TimePicker = observer((props: Props) => {
   //   }
   // }, [autoFocus, isIOS]);
 
+  const hourOpacity = focusedInput === 'hours' ? 1 : focusedInput ? 0.5 : 1;
+  const minuteOpacity = focusedInput === 'minutes' ? 1 : focusedInput ? 0.5 : 1;
+
   return (
     <div
       id={id}
@@ -93,6 +96,7 @@ const TimePicker = observer((props: Props) => {
             <input
               ref={hhRef}
               className={clsx(styles.input, { [styles.blinking]: focusedInput === 'hours' })}
+              style={{ opacity: hourOpacity }}
               aria-label={hourAriaLabel}
               placeholder="hh"
               inputMode="numeric"
@@ -118,6 +122,7 @@ const TimePicker = observer((props: Props) => {
           <label className={styles.inputWrapper}>
             <input
               ref={mmRef}
+              style={{ opacity: minuteOpacity }}
               className={clsx(styles.input, { [styles.blinking]: focusedInput === 'minutes' })}
               aria-label={minuteAriaLabel}
               placeholder="mm"

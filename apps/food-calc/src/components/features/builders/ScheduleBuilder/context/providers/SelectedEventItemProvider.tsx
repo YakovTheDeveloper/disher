@@ -1,11 +1,11 @@
 import { createContext, ReactNode } from 'react';
 import { Instance } from 'mobx-state-tree';
-import { ScheduleEventItem } from '@/domain/schedule/scheduleEvent/ScheduleEvent.model';
+import { ScheduleEvent } from '@/domain/schedule/scheduleEvent/ScheduleEvent.model';
 import { useSchedule } from './ScheduleProvider';
 
-export const SelectedEventItemContext = createContext<
-  Instance<typeof ScheduleEventItem> | undefined
->(undefined);
+export const SelectedEventItemContext = createContext<Instance<typeof ScheduleEvent> | undefined>(
+  undefined
+);
 
 interface SelectedEventItemProviderProps {
   itemId: string;

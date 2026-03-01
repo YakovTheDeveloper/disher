@@ -1,4 +1,4 @@
-import { allNutrientsList } from "@/components/features/builders/shared/ContentInfo/Nutrients/constants"
+import { allNutrientsList } from "@/components/features/builders/TotalNutrients/Nutrients/constants"
 import { DailyNorm } from "@/domain/dailyNorm/DailyNorm.model"
 import { generateId } from "@/lib/id/generateId"
 import { StoreEntityFactory } from "@/store/types/factory"

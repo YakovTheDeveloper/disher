@@ -1,0 +1,97 @@
+.atomList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    min-height: 40px;
+}
+
+.atomChip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 16px;
+    font-size: 13px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.atomChip:hover {
+    border-color: #d0d0d0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.atomChip[data-kind='scale'] {
+    border-color: #ffb366;
+    background: #fff9f0;
+}
+
+.atomChip[data-kind='time'] {
+    border-color: #66b3ff;
+    background: #f0f8ff;
+}
+
+.atomChip[data-kind='number'] {
+    border-color: #99ff66;
+    background: #f8fff0;
+}
+
+.atomChip[data-kind='tag'] {
+    border-color: #ff99ff;
+    background: #fff0ff;
+}
+
+.atomChip[data-kind='relation'] {
+    border-color: #66ffcc;
+    background: #f0fffb;
+}
+
+.atomChip[data-kind='flag'] {
+    border-color: #ffff99;
+    background: #fffff0;
+}
+
+.atomLabel {
+    font-weight: 500;
+    color: #666;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.atomValue {
+    color: #333;
+    font-weight: 500;
+}
+
+.removeButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin-left: 4px;
+    background: transparent;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 14px;
+    transition: color 0.2s ease;
+    border-radius: 50%;
+}
+
+.removeButton:hover {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.removeButton:active {
+    transform: scale(0.95);
+}

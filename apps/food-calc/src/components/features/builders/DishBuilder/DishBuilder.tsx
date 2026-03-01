@@ -4,13 +4,13 @@ import { Instance } from 'mobx-state-tree';
 import { Dish } from '@/domain/dish/Dish.model';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
-import { TotalNutrients } from '@/components/features/builders/shared/ContentInfo/TotalNutrients';
+import { TotalNutrients } from '@/components/features/builders/TotalNutrients/TotalNutrients';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { domainStore } from '@/store/store';
 import { ActionsHeader } from '@/components/features/builders/shared/components/ActionsHeader';
 import { DishFoodSelectionActions } from '@/components/features/builders/DishBuilder/components/header-actions/DishFoodSelectionActions';
-import { RouterLinks } from '@/router';
+import { RouterLinks, RouterUrls } from '@/router';
 import { MotionValue } from 'framer-motion';
 import { Scalable } from '@/components/ui/Scalable';
 import { useNavigate } from 'react-router';
@@ -24,14 +24,6 @@ import { Quantity } from '@/components/features/builders/shared/ui/Quantity';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import styles from './DishBuilder.module.scss';
 
-export const Modals = {
-  Food: 'food',
-  Quantity: 'quantity',
-  Nutrients: 'nutrients',
-} as const;
-
-export type ModalsType = (typeof Modals)[keyof typeof Modals];
-
 type Props = {
   init: Instance<typeof Dish>;
 };
@@ -40,82 +32,71 @@ const DishBuilder = ({ init }: Props) => {
   const dishes = init;
   const navigate = useNavigate();
 
-  const { openFormDishAdd, openFormDishEdit } = useOverlay();
+  const onAdd = () => {
+    navigate(RouterUrls.getDishDraft());
+  };
+
+  const onEdit = () => {
+    navigate(RouterUrls.getDish(dishes.id));
+  };
 
   return (
-    <SwipeableV2 pageNames={['nutrients', 'food']}>
-      {[
-        <Screen key={1} title={<ScreenLabel variant="screenHeader">Нутриенты</ScreenLabel>}>
-          <TotalNutrients store={dishes} countable={dishes} />
-        </Screen>,
+    <SwipeableV2>
+      <Screen key={1} title={<ScreenLabel variant="screenHeader">Нутриенты</ScreenLabel>}>
+        <TotalNutrients store={dishes} countable={dishes} />
+      </Screen>
 
-        <Screen
-          actions={
-            <ActionsHeader
-              left={
-                <button
-                  onClick={() => {
-                    domainStore.globalUiStore.drawerStore.open({
-                      type: DrawerTypesV2.Confirmation.RemoveDishItems,
-                    });
-                  }}
-                >
-                  удалить
-                </button>
-              }
-            >
-              <DishFoodSelectionActions />
-            </ActionsHeader>
-          }
-          key={2}
-          title={
-            <ScreenLabel
-              variant="screenHeader"
-              onClick={() => {
-                navigate(RouterLinks.ScheduleBuilder);
-              }}
-            >
-              {init.name}
-            </ScreenLabel>
-          }
-          header={<HeaderInputName entity={init} asInput />}
-          bottom={<Buttons.Add onClick={() => {
-            // TODO: make link to new route
-          }} />}
-        >
-          <ItemsList offsetTop>
-            {dishes.items.map((item) => {
-              const content = item.content;
-              const id = item.id;
-              const onFoodClick = () => {
-                // TODO: make link to new route
-              };
+      <Screen
+        actions={
+          <ActionsHeader
+            left={
+              <button
+                onClick={() => {
+                  domainStore.globalUiStore.drawerStore.open({
+                    type: DrawerTypesV2.Confirmation.RemoveDishItems,
+                  });
+                }}
+              >
+                удалить
+              </button>
+            }
+          >
+            <DishFoodSelectionActions />
+          </ActionsHeader>
+        }
+        key={2}
+        title={
+          <ScreenLabel
+            variant="screenHeader"
+            onClick={() => {
+              navigate(RouterLinks.ScheduleBuilder);
+            }}
+          >
+            {init.name}
+          </ScreenLabel>
+        }
+        header={<HeaderInputName entity={init} asInput />}
+        bottom={<Buttons.Add onClick={onAdd} />}
+      >
+        <ItemsList offsetTop>
+          {dishes.items.map((item) => {
+            const content = item.content;
+            const id = item.id;
 
-              const onQuantityClick = () => {
-                // TODO: make link to new route
-              };
-
-              return (
-                <CommonListItem
-                  key={id}
-                  id={id}
-                  className={styles.group}
-                  innerClassName={styles.dishFoodListItem}
-                >
-                  <FoodName onClick={onFoodClick} content={content} />
-                  <Quantity
-                    id={id}
-                    onClick={onQuantityClick}
-                    hide={false}
-                    unit="г"
-                    content={content}
-                  />
-                </CommonListItem>
-              );
-            })}
-          </ItemsList>
-        </Screen>,
-      ]}
+            return (
+              <CommonListItem
+                key={id}
+                id={id}
+                className={styles.group}
+                innerClassName={styles.dishFoodListItem}
+              >
+                <FoodName onClick={onEdit} content={content} />
+                <Quantity id={id} hide={false} unit="г" content={content} />
+              </CommonListItem>
+            );
+          })}
+        </ItemsList>
+      </Screen>
     </SwipeableV2>
   );
 };

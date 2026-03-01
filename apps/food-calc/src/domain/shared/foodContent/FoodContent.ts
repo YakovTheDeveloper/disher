@@ -1,6 +1,10 @@
-import { RootStoreEnv } from "@/domain/schedule/schedule.model"
 import { FoodStoreInstance } from "@/store/FoodStore/FoodStore"
 import { getEnv, getRoot, Instance, types } from "mobx-state-tree"
+
+export interface RootStoreEnv {
+    dishStore: import("@/store/DishStore/DishStore").DishStore;
+    foodStore: FoodStoreInstance;
+}
 
 const DEFAULT_QUANTITY = 100;
 

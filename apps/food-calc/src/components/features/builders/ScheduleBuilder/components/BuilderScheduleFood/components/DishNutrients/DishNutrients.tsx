@@ -1,16 +1,17 @@
 import { observer } from 'mobx-react-lite';
 import styles from './DishNutrients.module.scss';
-import { Nutrients } from '@/components/features/builders/shared/ContentInfo/Nutrients';
-import { Overlay } from '@/components/features/builders/shared/ContentInfo/Nutrients/Overlay';
+import { Nutrients } from '@/components/features/builders/TotalNutrients/Nutrients';
+import { Overlay } from '@/components/features/builders/TotalNutrients/Nutrients/Overlay';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Typography } from '@/components/ui/atoms/Typography';
 import { NavLink } from 'react-router';
 import { RouterLinks } from '@/router';
 import clsx from 'clsx';
-import { TotalNutrientsStore } from '@/components/features/builders/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
+import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
 import { Instance } from 'mobx-state-tree';
-import { DaySchedule, ScheduleItem } from '@/domain/schedule/schedule.model';
+import { DaySchedule } from '@/domain/schedule/schedule.model';
+import { ScheduleFoodsItem } from '@/domain/schedule/scheduleFood/ScheduleFoods.model';
 import { Dish } from '@/domain/dish/Dish.model';
 import { useSchedule } from '@/components/features/builders/ScheduleBuilder/context';
 import { Button } from '@/components/ui/atoms/Button';
@@ -18,7 +19,7 @@ import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModal
 import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 
 type Props = {
-  currentChild: Instance<typeof ScheduleItem>;
+  currentChild: Instance<typeof ScheduleFoodsItem>;
   currentDish: Instance<typeof Dish>;
 };
 

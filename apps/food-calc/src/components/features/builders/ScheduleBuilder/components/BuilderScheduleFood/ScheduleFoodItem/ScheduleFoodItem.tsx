@@ -9,21 +9,21 @@ import { domainStore } from '@/store/store';
 import { useNavigate, useParams } from 'react-router';
 import { RouterLinks } from '@/router';
 
-import { ScheduleItem } from '@/domain/schedule/schedule.model';
+import { ScheduleFoodsItem as ScheduleFoodItemModel } from '@/domain/schedule/scheduleFood/ScheduleFoods.model';
 import { Instance } from 'mobx-state-tree';
+import { SelectionStoreType, useSelection } from '@/hooks/factoryHooks/useSelection';
 
 type Props = {
   className?: string;
-  item: Instance<typeof ScheduleItem>;
+  item: Instance<typeof ScheduleFoodItemModel>;
+  selectionStore: SelectionStoreType;
 };
 
-const ScheduleFoodItem = ({ item, className }: Props) => {
+const ScheduleFoodItemComponent = ({ item, className, selectionStore }: Props) => {
   const navigate = useNavigate();
   const { id: date } = useParams();
   const id = item.id;
   const content = item.content;
-
-  console.log('content:', content);
 
   const onFoodsOpenUpdate = () => {
     navigate(`${RouterLinks.ScheduleFood}/${date}?id=${id}`);
@@ -54,7 +54,14 @@ const ScheduleFoodItem = ({ item, className }: Props) => {
   }, [content]);
 
   return (
-    <CommonListItem className={clsx([className, styles.group])} id={id} sync={item.sync}>
+    <CommonListItem
+      className={clsx([className, styles.group])}
+      id={id}
+      sync={item.sync}
+      isSelectMode={selectionStore.isActionsMode}
+      isSelected={selectionStore.isSelected(id)}
+      onSelect={selectionStore.toggleSelectedId}
+    >
       <FoodName content={content} className={getFoodNameClassName()} onClick={onFoodsOpenUpdate} />
       <Quantity id={id} onClick={onQuantityOpen} content={content} />
       {afterName}
@@ -62,4 +69,4 @@ const ScheduleFoodItem = ({ item, className }: Props) => {
   );
 };
 
-export default observer(ScheduleFoodItem);
+export default observer(ScheduleFoodItemComponent);

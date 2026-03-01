@@ -56,24 +56,13 @@
 }
 
 
-.input {
-    width: 100%;
 
-    &[aria-label='Hour'] {
-        text-align: end;
-    }
-
-    &[aria-label='Minute'] {
-        text-align: start;
-    }
-}
 
 .input,
 .betweenInputs {
     font-size: 3.5rem;
     font-weight: 900;
     text-shadow: #ffd700;
-    color: #fff;
     // color: #007aff;
     padding: 1rem 2px;
     background: transparent;
@@ -81,12 +70,21 @@
 
 }
 
+.betweenInputs {
+    color: #aeaeae;
+    text-shadow: none;
+    font-weight: 700;
+}
+
 .input {
+    width: 100%;
+    color: rgb(75, 75, 75);
     flex-grow: 1;
     flex-shrink: 0;
     border: none;
     text-align: center;
     outline: none;
+    transition: opacity 0.1s ease;
 
     &::selection {
         color: red;
@@ -98,6 +96,13 @@
 
     }
 
+    &[aria-label='Hour'] {
+        text-align: end;
+    }
+
+    &[aria-label='Minute'] {
+        text-align: start;
+    }
 }
 
 

@@ -4,7 +4,6 @@ import { DishBuilder } from '@/components/features/builders/DishBuilder';
 import { ModalDishProvider } from '@/components/features/builders/DishBuilder/modalContext';
 import { Dish } from '@/domain/dish/Dish.model';
 import { RouterLinks } from '@/router';
-import { dishStore, scheduleStore } from '@/store/rootStore';
 import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
 import { Instance } from 'mobx-state-tree';
@@ -22,36 +21,19 @@ const Page = ({ dishIdParam }: Props) => {
   const current = domainStore.dishStore.user.entities.get(dishIdParam);
 
   const onSave = async (data: Instance<typeof Dish>) => {
-    domainStore.interactionsService.fetchSyncDishes([data]);
-
-    // const result = await updateDish(data, id);
-    // if (!result) return;
-    // dishStore.set(result.id, result);
+    // domainStore.interactionsService.fetchSyncDishes([data]);
   };
 
   const onInit = async () => {
+    // Schedule logic removed - now handled by FoodScheduleStore
     return;
-
-    const { code, data = null } = await domainStore.scheduleStore.getOneByDate(date);
-
-    if (code === 404) {
-      domainStore.scheduleStore.addLocal({ date, isDraft: true });
-    }
-
-    if (data) {
-      domainStore.scheduleStore.addLocal({ ...data, isDraft: false });
-    }
   };
 
   useEffect(() => {
     onInit();
   }, []);
 
-  return (
-    <ModalDishProvider>
-      {current && <DishBuilder init={current} />}
-    </ModalDishProvider>
-  );
+  return <ModalDishProvider>{current && <DishBuilder init={current} />}</ModalDishProvider>;
 };
 
 const PageWrapper = () => {

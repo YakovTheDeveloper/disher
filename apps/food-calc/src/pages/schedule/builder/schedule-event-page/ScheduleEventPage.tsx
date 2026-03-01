@@ -13,13 +13,15 @@ const ScheduleEventPage = () => {
     return null;
   }
 
-  const child = domainStore.scheduleStore.getScheduleChildById(id, childId, 'event');
+  const child = domainStore.eventScheduleStore.getScheduleChildById(id, childId);
+
+  console.log('omg', child);
 
   return (
     <ScheduleEventsAdd
       foodStore={domainStore.foodStore}
       dishStore={domainStore.dishStore}
-      scheduleStore={domainStore.scheduleStore}
+      scheduleStore={domainStore.eventScheduleStore}
       scheduleChildItem={child}
       parentScheduleId={id}
     />

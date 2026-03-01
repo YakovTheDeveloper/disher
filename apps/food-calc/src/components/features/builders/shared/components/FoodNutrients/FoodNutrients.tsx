@@ -1,14 +1,14 @@
 import { observer } from 'mobx-react-lite';
 import styles from './FoodNutrients.module.scss';
-import { Nutrients } from '@/components/features/builders/shared/ContentInfo/Nutrients';
+import { Nutrients } from '@/components/features/builders/TotalNutrients/Nutrients';
 
 import { RouterLinks } from '@/router';
 import { NavLink } from 'react-router';
 import { useCallback, useMemo } from 'react';
-import { Overlay } from '@/components/features/builders/shared/ContentInfo/Nutrients/Overlay';
+import { Overlay } from '@/components/features/builders/TotalNutrients/Nutrients/Overlay';
 import { Typography } from '@/components/ui/atoms/Typography';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
-import { TotalNutrientsStore } from '@/components/features/builders/shared/ContentInfo/TotalNutrients/store/TotalNutrientsStore';
+import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
 import { domainStore } from '@/store/store';
 import clsx from 'clsx';
 import { Button } from '@/components/ui/atoms/Button';

@@ -12,11 +12,15 @@ import DailyNormPage from '@/pages/daily-norms/DailyNormPage/DailyNormPage.tsx';
 import TestModalPage from '@/pages/swipe-test/TestModalPage';
 import ScheduleFoodPage from './pages/schedule/builder/schedule-food-page/ScheduleFoodPage.tsx';
 import ScheduleEventPage from '@/pages/schedule/builder/schedule-event-page/ScheduleEventPage.tsx';
+import DishPage from '@/pages/dish/DishPage/DishPage.tsx';
+import DishDraftPage from '@/pages/dish/DishPage/DishDraftPage.tsx';
 
 export enum RouterLinks {
   Root = '/',
   DailyNorms = '/daily-norms',
   DishBuilder = '/dish',
+  Dish = '/dish/:id',
+  DishDraft = '/dish/draft',
   Schedule = '/date',
   ScheduleBuilder = '/schedule',
   ScheduleFood = `/schedule/:id/food/:childId`,
@@ -37,6 +41,8 @@ export const getScheduleEventUrl = (id: string, childId: string) =>
 
 export const RouterUrls = {
   Schedule: (id: string) => `/schedule/${id}`,
+  getDish: (id: string) => `/dish/${id}`,
+  getDishDraft: () => `/dish/draft`,
 };
 
 export const router = createBrowserRouter([
@@ -59,6 +65,14 @@ export const router = createBrowserRouter([
       {
         path: `${RouterLinks.DishBuilder}`,
         element: <DishBuilderPage />,
+      },
+      {
+        path: `${RouterLinks.Dish}`,
+        element: <DishPage />,
+      },
+      {
+        path: `${RouterLinks.DishDraft}`,
+        element: <DishDraftPage />,
       },
       {
         path: RouterLinks.Schedule,

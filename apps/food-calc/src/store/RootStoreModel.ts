@@ -1,5 +1,6 @@
 import { types, flow, Instance } from "mobx-state-tree";
-import { DayScheduleStore } from "@/store/DayScheduleStore/DayScheduleStore";
+import { FoodScheduleStore } from "@/store/FoodScheduleStore/FoodScheduleStore";
+import { EventScheduleStore } from "@/store/EventScheduleStore/EventScheduleStore";
 import { FoodModelStore } from "@/store/FoodStore/FoodStore";
 import { DishStore } from "@/store/DishStore/DishStore";
 import { InteractionsService } from "@/store/interactions/InteractionsService";
@@ -11,7 +12,8 @@ import { hydrateAndPersist } from "@/store/persistance";
 export const RootStore = types
     .model("RootStore", {
         isHydrated: false,
-        scheduleStore: DayScheduleStore,
+        foodScheduleStore: FoodScheduleStore,
+        eventScheduleStore: EventScheduleStore,
         foodStore: FoodModelStore,
         dishStore: DishStore,
         nutrientStore: NutrientStore,
@@ -31,7 +33,7 @@ export const RootStore = types
                 });
 
                 // 2. Load independent stores in parallel
-                console.log("[RootStore] Loading nutrientStore and dailyNormStore...");
+                console.log("[RootStore and dailyNormStore] Loading nutrientStore...");
                 yield Promise.all([
                     hydrateAndPersist(self.nutrientStore, "nutrients", {
                         seed: () => self.nutrientStore.applySeed(),
@@ -45,9 +47,12 @@ export const RootStore = types
                 console.log("[RootStore] Loading dishStore...");
                 yield hydrateAndPersist(self.dishStore, "dish");
 
-                // 4. Load scheduleStore last (may depend on foodStore and dishStore)
-                console.log("[RootStore] Loading scheduleStore...");
-                yield hydrateAndPersist(self.scheduleStore, "schedule");
+                // 4. Load schedule stores last (may depend on foodStore and dishStore)
+                console.log("[RootStore] Loading foodScheduleStore...");
+                yield hydrateAndPersist(self.foodScheduleStore, "foodSchedule");
+
+                console.log("[RootStore] Loading eventScheduleStore...");
+                yield hydrateAndPersist(self.eventScheduleStore, "eventSchedule");
 
                 // 5. UI stores (optional persistence)
                 console.log("[RootStore] Loading globalUiStore...");
@@ -84,6 +89,10 @@ export interface NutrientStoreApi {
     items: Instance<typeof NutrientStore>["items"];
 }
 
-export interface DayScheduleApi {
-    getLocal: Instance<typeof DayScheduleStore>["getLocal"];
+export interface FoodScheduleApi {
+    getLocal: Instance<typeof FoodScheduleStore>["getLocal"];
+}
+
+export interface EventScheduleApi {
+    getLocal: Instance<typeof EventScheduleStore>["getLocal"];
 }

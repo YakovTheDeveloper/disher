@@ -12,7 +12,8 @@ export const mstEnv = {
 function createStore(): RootInstance {
     try {
         const store = RootStore.create({
-            scheduleStore: {},
+            foodScheduleStore: {},
+            eventScheduleStore: {},
             dishStore: {},
             nutrientStore: {},
             interactionsService: {},

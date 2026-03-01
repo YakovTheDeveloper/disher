@@ -1,0 +1,265 @@
+/**
+ * Shared styles for Atom Input components
+ */
+
+.inputBlock {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+}
+
+.title {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.description {
+    font-size: 13px;
+    color: #666;
+    margin: 0 0 12px 0;
+}
+
+.formGroup {
+    margin-bottom: 12px;
+}
+
+.formGroup label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+/* Styles for direct children without formGroup wrapper */
+.inputBlock>div>label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.inputBlock>div>input,
+.inputBlock>div>textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.inputBlock>div>input:focus,
+.inputBlock>div>textarea:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
+
+.inputBlock>div>input[type='range'] {
+    width: 100%;
+    margin: 8px 0;
+}
+
+.inputBlock>div>input[type='number'],
+.inputBlock>div>input[type='time'] {
+    width: 100%;
+}
+
+.inputBlock>div>output {
+    display: block;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: #4a90e2;
+    margin-top: 4px;
+}
+
+.formGroup {
+    margin-bottom: 12px;
+}
+
+.formGroup label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.formGroup input,
+.formGroup textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
+
+.formGroup input[type='range'] {
+    width: 100%;
+    margin: 8px 0;
+}
+
+.formGroup input[type='number'],
+.formGroup input[type='time'] {
+    width: 100%;
+}
+
+.valueDisplay {
+    display: block;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: #4a90e2;
+    margin-top: 4px;
+}
+
+.radioGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.radioGroup label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 400;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.radioGroup input[type='radio'] {
+    width: auto;
+    margin: 0;
+    cursor: pointer;
+}
+
+.presetLabels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.presetChip {
+    padding: 4px 10px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #666;
+}
+
+.presetChip:hover {
+    border-color: #4a90e2;
+    background: #f0f7ff;
+    color: #4a90e2;
+}
+
+.presetChip.active {
+    background: #4a90e2;
+    border-color: #4a90e2;
+    color: white;
+}
+
+.autocompleteContainer {
+    position: relative;
+}
+
+.suggestionsList {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.suggestionItem {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+}
+
+.suggestionItem:hover {
+    background: #f5f5f5;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.cancelBtn {
+    padding: 8px 16px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.15s;
+}
+
+.cancelBtn:hover {
+    background: #e8e8e8;
+    border-color: #ccc;
+}
+
+.addBtn {
+    padding: 8px 16px;
+    background: #4a90e2;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: white;
+    transition: all 0.15s;
+}
+
+.addBtn:hover:not(:disabled) {
+    background: #3a7bc8;
+}
+
+.addBtn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}

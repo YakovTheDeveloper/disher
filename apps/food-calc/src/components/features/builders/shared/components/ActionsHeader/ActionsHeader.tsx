@@ -1,22 +1,21 @@
 import { observer } from 'mobx-react-lite';
-import { domainStore } from '@/store/store';
 import ArrowLeftIcon from '@/assets/icons/arrowLeftLong.svg';
 import styles from './ActionsHeader.module.scss';
 
-const exitActions = () => {
-  domainStore.interactionsService.interactionsSelect.clearSelection();
-};
 type Props = {
   children?: React.ReactNode;
   left?: React.ReactNode;
+  show: boolean;
+  onBack?: () => void;
 };
-const ActionsHeader = ({ children, left }: Props) => {
-  if (!domainStore.interactionsService.interactionsSelect.isActionsMode) return null;
+// todo to actionsPanel
+const ActionsHeader = ({ children, left, show, onBack }: Props) => {
+  if (!show) return null;
 
   return (
     <div className={styles.actions}>
       <div className={styles.actionsGroup}>
-        <button onClick={exitActions}>
+        <button onClick={onBack}>
           <ArrowLeftIcon />
         </button>
         {left}

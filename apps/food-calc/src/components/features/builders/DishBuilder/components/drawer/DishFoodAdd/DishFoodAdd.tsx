@@ -1,28 +1,22 @@
 import { observer } from 'mobx-react-lite';
-import { useDish, useSelectedDishItem } from '@/components/features/builders/DishBuilder/context';
-import { useMemo } from 'react';
-import { DishItem } from '@/domain/dish/Dish.model';
-import { Tabs } from '@/components/ui/Tabs';
-import { SearchFoodControls } from '@/components/features/builders/shared/components/SearchFood/SearchFoodControls';
-import { FinishButton } from '@/components/features/builders/shared/atoms/FinishButton';
+import { useMemo, useState } from 'react';
 import { ContentEdit } from '@/components/features/builders/shared/ContentEdit';
-import { mstEnv } from '@/store/store';
 import { SearchFood } from '@/components/features/builders/shared/components/SearchFood';
-import ModalLayout from '@/components/features/builders/shared/components/ModalLayout/ModalLayout';
-import { WizardStep } from '@/components/features/builders/shared/components/WizardStep';
-import { useEntityItemWizard } from '@/components/features/builders/shared/hooks/useEntityItemWizard';
+import { ColumnLayoutWithFixedHeader } from '@/components/ui/ColumnLayoutWithFixedHeader/index';
 import { domainStore } from '@/store/store';
 import { FoodStoreInstance } from '@/store/FoodStore/FoodStore';
 import { DishStoreInstance } from '@/store/RootStoreModel';
-import {
-  useFilteringStateV2,
-  TabFilterConfig,
-} from '@/components/features/shared/hooks/useFilteringStateV2';
+import { DishItem } from '@/domain/dish/Dish.model';
+import { useFilteringStateV2 } from '@/components/features/shared/hooks/useFilteringStateV2';
+import Button from '@/components/ui/atoms/Button/Button';
+import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
+import { SearchFoodButton } from '@/components/features/builders/shared/components/SearchFood';
+import Logo from '@/assets/icons/logo.svg';
+import { Instance } from 'mobx-state-tree';
 
 type Props = {
   close: () => void;
-  variant: 'add' | 'edit';
-  defaultTab?: 'content' | 'quantity';
+  dishChildItem: Instance<typeof DishItem>;
   foodStore?: FoodStoreInstance;
   dishStore?: DishStoreInstance;
 };
@@ -30,39 +24,21 @@ type Props = {
 const DishFoodAdd = observer(
   ({
     close,
-    variant = 'add',
-    defaultTab = 'content',
+    dishChildItem,
     foodStore = domainStore.foodStore,
     dishStore = domainStore.dishStore,
   }: Props) => {
-    const dish = useDish();
-    const currentChild = useSelectedDishItem();
+    const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
-    const baseTabs = [
-      {
-        value: 'content' as const,
-        label: 'еда',
-        alternativeLabel: currentChild.content?.name || '',
-      },
-      {
-        value: 'quantity' as const,
-        label: 'количество',
-        alternativeLabel: `${currentChild.effectiveQuantity}`,
-      },
-    ];
+    const handleFinish = () => {
+      dishStore.commitItemDraft(dishChildItem);
+      close();
+    };
 
-    const { searchFocusState, currentTab, direction, setTab, handleFinish, handleNextStep } =
-      useEntityItemWizard(variant, {
-        defaultTab,
-        baseTabs,
-        onFinish: () => {
-          if (variant === 'add') {
-            dishStore.commitItemDraft(dish);
-          }
-          return currentChild.id;
-        },
-        onAfterFinish: close,
-      });
+    const onFoodAdd = (payload: { variant: 'dish' | 'product'; id: string }) => {
+      dishChildItem.update(payload.variant, payload.id);
+      setIsSearchExpanded(false);
+    };
 
     const filterKeys = ['name'] as const;
 
@@ -86,28 +62,52 @@ const DishFoodAdd = observer(
     const filterState = useFilteringStateV2(config);
 
     return (
-      <ModalLayout
-        topRight={<FinishButton onClick={handleFinish} />}
+      <ColumnLayoutWithFixedHeader
+        header={<div />}
         footer={
-          <Tabs tabs={baseTabs} current={currentTab} setTab={setTab} variant="scheduleFoodAdd" />
+          <Button variant="primary" onClick={handleFinish}>
+            Готово
+          </Button>
         }
-        showHeader={!searchFocusState.isSearchFocused}
       >
-        <WizardStep stepKey={currentTab} direction={direction}>
-          {currentTab === 'content' && (
-            <SearchFood
-              mode="products-only"
-              currentChild={currentChild}
-              onFinish={handleNextStep}
-              searchState={filterState}
-              onFocusChange={(focused) => searchFocusState.setSearchFocused(focused)}
-            />
-          )}
-          {currentTab === 'quantity' && (
-            <ContentEdit.Quantity content={currentChild.content} onFinish={handleNextStep} />
-          )}
-        </WizardStep>
-      </ModalLayout>
+        <div id="food-section">
+          <SearchFormExpandable
+            isExpanded={isSearchExpanded}
+            trigger={
+              <SearchFoodButton
+                onClick={() => setIsSearchExpanded(true)}
+                leftSlot={
+                  <span
+                    style={{
+                      fontSize: '1.5em',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Logo />
+                  </span>
+                }
+                placeholder="Добавить продукт или блюдо"
+                text={dishChildItem.content?.name}
+              />
+            }
+            content={
+              <SearchFood
+                mode="products"
+                onFinish={onFoodAdd}
+                currentDishId={dishChildItem.content?.dishId}
+                currentProductId={dishChildItem.content?.foodId}
+              />
+            }
+          />
+        </div>
+        {dishChildItem.content && (
+          <div id="quantity-section">
+            <ContentEdit.Quantity content={dishChildItem.content} onFinish={() => {}} />
+          </div>
+        )}
+      </ColumnLayoutWithFixedHeader>
     );
   }
 );
