@@ -13,11 +13,13 @@
 .bottom {
     position: absolute;
     right: 0;
+    left: 0;
     bottom: 10px;
-    width: fit-content;
     z-index: 100;
     padding-right: 0.5rem;
     // transform: translate(-50%, -100%);
+    display: flex;
+    justify-content: flex-end;
 
 }
 

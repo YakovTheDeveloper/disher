@@ -1,0 +1,46 @@
+.container {
+    flex-grow: 1;
+    overflow: auto;
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    height: 50vh;
+}
+
+.content {
+    min-height: 100%;
+}
+
+.filters {
+    padding: 0 0.5rem;
+}
+
+.search {
+    display: flex;
+    position: relative;
+    padding: 0.5rem;
+    margin-bottom: 2rem;
+
+    &::before {
+        content: attr(data-text);
+        text-transform: uppercase;
+        text-align: center;
+        color: rgba(0, 0, 0, 0.04);
+        font-weight: 900;
+        font-size: 66px;
+        line-height: 1;
+        letter-spacing: -3px;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: -1;
+    }
+}
+
+.bottomActionsPanel {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+}

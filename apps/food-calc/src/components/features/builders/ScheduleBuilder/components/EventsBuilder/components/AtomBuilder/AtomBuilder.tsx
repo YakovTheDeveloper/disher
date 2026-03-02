@@ -27,12 +27,6 @@ export interface AtomBuilderProps {
 
 type AtomModalKind = 'scale' | 'time' | 'number' | 'tag' | 'relation' | 'flag' | null;
 
-/**
- * AtomBuilder Component
- *
- * Provides UI to compose events from minimal, universal atoms.
- * Users add atoms step-by-step to describe what happened.
- */
 export const AtomBuilder = observer(
   ({ event, onEventChange, className = '' }: AtomBuilderProps) => {
     const [openModal, setOpenModal] = useState<AtomModalKind>(null);
@@ -50,10 +44,37 @@ export const AtomBuilder = observer(
 
     return (
       <div className={`${styles.container} ${className}`}>
-        {/* Atom list */}
         <AtomList atoms={event.atoms} onRemove={handleRemoveAtom} />
 
-        {/* Input blocks with animation */}
+        <div className={styles.atomButtons}>
+          <button onClick={() => setOpenModal('scale')} disabled={openModal !== null} type="button">
+            + Оценка (1-10)
+          </button>
+          <button onClick={() => setOpenModal('time')} disabled={openModal !== null} type="button">
+            + Время
+          </button>
+          <button
+            onClick={() => setOpenModal('number')}
+            disabled={openModal !== null}
+            type="button"
+          >
+            + Число
+          </button>
+          <button onClick={() => setOpenModal('tag')} disabled={openModal !== null} type="button">
+            + Тег
+          </button>
+          <button
+            onClick={() => setOpenModal('relation')}
+            disabled={openModal !== null}
+            type="button"
+          >
+            + Связь
+          </button>
+          <button onClick={() => setOpenModal('flag')} disabled={openModal !== null} type="button">
+            + Флаг
+          </button>
+        </div>
+
         <div className={styles.inputContainer}>
           <AnimatePresence mode="wait">
             {openModal === 'scale' && (
@@ -99,36 +120,6 @@ export const AtomBuilder = observer(
               />
             )}
           </AnimatePresence>
-        </div>
-
-        {/* Add buttons */}
-        <div className={styles.atomButtons}>
-          <button onClick={() => setOpenModal('scale')} disabled={openModal !== null} type="button">
-            + Оценка (1-10)
-          </button>
-          <button onClick={() => setOpenModal('time')} disabled={openModal !== null} type="button">
-            + Время
-          </button>
-          <button
-            onClick={() => setOpenModal('number')}
-            disabled={openModal !== null}
-            type="button"
-          >
-            + Число
-          </button>
-          <button onClick={() => setOpenModal('tag')} disabled={openModal !== null} type="button">
-            + Тег
-          </button>
-          <button
-            onClick={() => setOpenModal('relation')}
-            disabled={openModal !== null}
-            type="button"
-          >
-            + Связь
-          </button>
-          <button onClick={() => setOpenModal('flag')} disabled={openModal !== null} type="button">
-            + Флаг
-          </button>
         </div>
       </div>
     );

@@ -4,6 +4,7 @@ import {
     Atom,
     isValidAtom
 } from './atom.types';
+import { update } from "lodash";
 
 /**
  * MST model definitions for each atom type
@@ -43,9 +44,6 @@ const FlagAtomModel = types.model("FlagAtom", {
     value: types.string,
 });
 
-/**
- * Union of all atom models
- */
 const AtomModel = types.union(
     types.late(() => ScaleAtomModel),
     types.late(() => TimeAtomModel),
@@ -55,10 +53,6 @@ const AtomModel = types.union(
     types.late(() => FlagAtomModel),
 );
 
-/**
- * ScheduleEventItem V2 - new atomic model
- * Replaces the old type-based system
- */
 export const ScheduleEvent = types.model("ScheduleEvent", {
     id: types.identifier,
     time: types.optional(types.string, ""),
@@ -68,58 +62,40 @@ export const ScheduleEvent = types.model("ScheduleEvent", {
     atoms: types.array(AtomModel),
 })
     .actions(self => ({
-        /**
-         * Add an atom to this event
-         */
         addAtom(atom: Atom) {
             if (isValidAtom(atom)) {
                 self.atoms.push(atom as any);
             }
         },
 
-        /**
-         * Remove an atom by index
-         */
         removeAtom(index: number) {
             if (index >= 0 && index < self.atoms.length) {
                 self.atoms.splice(index, 1);
             }
         },
 
-        /**
-         * Update an atom at index
-         */
         updateAtom(index: number, atom: Atom) {
             if (index >= 0 && index < self.atoms.length && isValidAtom(atom)) {
                 self.atoms[index] = atom as any;
             }
         },
 
-        /**
-         * Set the event text/description
-         */
         setText(text: string) {
             self.text = text;
         },
 
-        /**
-         * Clear all atoms
-         */
         clearAtoms() {
             self.atoms.length = 0;
         },
 
-        /**
-         * Get atoms of a specific kind
-         */
         getAtomsByKind(kind: Atom['kind']): Atom[] {
             return self.atoms.filter(atom => atom.kind === kind) as Atom[];
         },
 
-        /**
-         * Check if event has any atoms of a specific kind
-         */
         hasAtomOfKind(kind: Atom['kind']): boolean {
             return self.atoms.some(atom => atom.kind === kind);
         },
+        updateTime(newTime: string) {
+            self.time = newTime;
+        }
     }));

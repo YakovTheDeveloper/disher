@@ -10,7 +10,7 @@ import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.
 import { domainStore } from '@/store/store';
 import { ActionsHeader } from '@/components/features/builders/shared/components/ActionsHeader';
 import { DishFoodSelectionActions } from '@/components/features/builders/DishBuilder/components/header-actions/DishFoodSelectionActions';
-import { RouterLinks, RouterUrls } from '@/router';
+import { getDishFoodDraftUrl, getDishFoodUrl, RouterLinks, RouterUrls } from '@/router';
 import { MotionValue } from 'framer-motion';
 import { Scalable } from '@/components/ui/Scalable';
 import { useNavigate } from 'react-router';
@@ -33,11 +33,11 @@ const DishBuilder = ({ init }: Props) => {
   const navigate = useNavigate();
 
   const onAdd = () => {
-    navigate(RouterUrls.getDishDraft());
+    navigate(getDishFoodDraftUrl(dishes.id));
   };
 
-  const onEdit = () => {
-    navigate(RouterUrls.getDish(dishes.id));
+  const onEdit = (childId: string) => {
+    navigate(getDishFoodUrl(dishes.id, childId));
   };
 
   return (
@@ -90,7 +90,7 @@ const DishBuilder = ({ init }: Props) => {
                 className={styles.group}
                 innerClassName={styles.dishFoodListItem}
               >
-                <FoodName onClick={onEdit} content={content} />
+                <FoodName onClick={() => onEdit(id)} content={content} />
                 <Quantity id={id} hide={false} unit="г" content={content} />
               </CommonListItem>
             );

@@ -3,7 +3,7 @@
 
 // CSS Variables for customization
 :root {
-    --clfh-header-height: 200px;
+    --clfh-header-height: 400px;
     --clfh-content-radius: 24px;
     --clfh-content-blur: 4px;
     --clfh-header-z-index: 1;
@@ -16,6 +16,8 @@
     // background: linear-gradient(135deg, rgb(47, 38, 72) 0%, rgb(72, 72, 72) 100%);
     background: var(--clfh-bg-default);
     overflow: auto;
+    flex: 1;
+
 }
 
 .header {

@@ -3,7 +3,7 @@ import { domainStore } from '@/store/store';
 import { useParams } from 'react-router';
 import { DishFoodAdd } from '@/components/features/builders/DishBuilder/components/drawer/DishFoodAdd';
 
-const DishPage = () => {
+const DishFoodPage = () => {
   const { id, childId } = useParams<{ id: string; childId: string }>();
 
   if (!id) {
@@ -25,4 +25,4 @@ const DishPage = () => {
   );
 };
 
-export default observer(DishPage);
+export default observer(DishFoodPage);

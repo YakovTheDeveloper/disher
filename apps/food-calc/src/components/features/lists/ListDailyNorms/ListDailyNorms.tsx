@@ -10,7 +10,7 @@ import clsx from 'clsx';
 import { Spacer } from '@/components/ui/atoms/Spacer';
 import { Button } from '@/components/ui/atoms/Button';
 import { ScalableHeaderNameInput } from '@/components/features/shared/components/ScalableHeaderNameInput';
-import { useListStateActions } from '@/components/features/shared/hooks/useListStateActions';
+import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
 import { DailyNormsFactory } from '@/domain/dailyNorm/factory';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
@@ -35,8 +35,8 @@ const ListDailyNorms = ({
 
   const { onAdd, navigate, filter } = useListStateActions({
     store,
-    basePath: RouterLinks.DailyNorms,
-    createDraft: () =>
+    navigateTo: RouterLinks.DailyNorms,
+    createEntity: () =>
       DailyNormsFactory.createNewLocal({
         name: 'Новая норма',
         description: '',

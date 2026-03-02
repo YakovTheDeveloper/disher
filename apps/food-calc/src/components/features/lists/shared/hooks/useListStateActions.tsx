@@ -7,22 +7,22 @@ type ExtractEntryType<IModel extends IAnyModelType> = Instance<IModel>;
 
 interface ListActionsOptions<IModel extends IAnyModelType> {
   store: IDataStoreInstance<IModel>;
-  basePath: string;
-  createDraft: () => Instance<IModel>;
+  navigateTo: string;
+  createEntity: () => Instance<IModel>;
   filterKeys?: (keyof ExtractEntryType<IModel>)[]; // Типизируем ключи фильтрации
 }
 
 export const useListStateActions = <IModel extends IAnyModelType>({
   store,
-  basePath,
-  createDraft,
+  navigateTo,
+  createEntity,
   filterKeys = ['name'],
 }: ListActionsOptions<IModel>) => {
   const navigate = useNavigate();
 
   const onAdd = () => {
-    const { id } = store.user.insert(createDraft());
-    navigate(`${basePath}/${id}`);
+    const { id } = store.user.insert(createEntity());
+    navigate(`${navigateTo}/${id}`);
   };
 
   const filter = useFilteringState([

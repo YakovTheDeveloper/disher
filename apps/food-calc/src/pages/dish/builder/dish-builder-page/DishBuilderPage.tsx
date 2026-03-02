@@ -8,24 +8,28 @@ import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
 import { Instance } from 'mobx-state-tree';
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { useRequiredRouteParam } from '@/hooks/useRequiredRouteParam';
 
-type Props = {
-  dishIdParam: number;
-};
+type Props = {};
 
-const Page = ({ dishIdParam }: Props) => {
+const Page = ({}: Props) => {
   const navigate = useNavigate();
 
-  const current = domainStore.dishStore.user.entities.get(dishIdParam);
+  const { id } = useParams<{ id: string }>();
+
+  if (!id) {
+    console.error('Dish ID is required but not found in URL');
+    return null;
+  }
+
+  const current = domainStore.dishStore.user.entities.get(id);
 
   const onSave = async (data: Instance<typeof Dish>) => {
     // domainStore.interactionsService.fetchSyncDishes([data]);
   };
 
   const onInit = async () => {
-    // Schedule logic removed - now handled by FoodScheduleStore
     return;
   };
 
@@ -33,24 +37,7 @@ const Page = ({ dishIdParam }: Props) => {
     onInit();
   }, []);
 
-  return <ModalDishProvider>{current && <DishBuilder init={current} />}</ModalDishProvider>;
+  return current ? <DishBuilder init={current} /> : null;
 };
 
-const PageWrapper = () => {
-  const navigate = useNavigate();
-  const { paramId: dishIdParam, isValid } = useRequiredRouteParam({
-    navigateToUrlOnFail: RouterLinks.Schedule,
-  });
-
-  useEffect(() => {
-    if (location.search) {
-      navigate(location.pathname, { replace: true });
-    }
-  }, [navigate]);
-
-  if (!isValid) return null;
-
-  return <Page dishIdParam={Number(dishIdParam)} />;
-};
-
-export default observer(PageWrapper);
+export default observer(Page);

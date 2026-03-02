@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { domainStore } from '@/store/store';
 import { DishFoodAdd } from '@/components/features/builders/DishBuilder/components/drawer/DishFoodAdd';
 
-const DishDraftPage = () => {
+const DishFoodDraftPage = () => {
   return (
     <DishFoodAdd
       dishStore={domainStore.dishStore}
@@ -12,4 +12,4 @@ const DishDraftPage = () => {
   );
 };
 
-export default observer(DishDraftPage);
+export default observer(DishFoodDraftPage);

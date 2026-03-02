@@ -12,6 +12,7 @@ import {
   isFlagAtom,
 } from '@/domain/schedule/scheduleEvent/atom.types';
 import styles from './AtomList.module.css';
+import { observer } from 'mobx-react-lite';
 
 export interface AtomListProps {
   atoms: Atom[];
@@ -79,7 +80,7 @@ function getAtomKindLabel(kind: Atom['kind']): string {
  *
  * Displays atoms as removable chips
  */
-export const AtomList = ({ atoms, onRemove, className = '' }: AtomListProps) => {
+export const AtomList = observer(({ atoms, onRemove, className = '' }: AtomListProps) => {
   if (atoms.length === 0) {
     return null;
   }
@@ -101,6 +102,6 @@ export const AtomList = ({ atoms, onRemove, className = '' }: AtomListProps) => 
       ))}
     </div>
   );
-};
+});
 
 AtomList.displayName = 'AtomList';

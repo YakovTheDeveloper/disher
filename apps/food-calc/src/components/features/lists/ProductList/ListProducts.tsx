@@ -14,7 +14,7 @@ import clsx from 'clsx';
 import { FoodStoreInstance } from '@/store/FoodStore/FoodStore';
 import { productFactory } from '@/domain/product/Food.factory';
 import { ScalableHeaderNameInput } from '@/components/features/shared/components/ScalableHeaderNameInput';
-import { useListStateActions } from '@/components/features/shared/hooks/useListStateActions';
+import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
 import styles from './ListProducts.module.scss';
 
 type Props = {
@@ -24,8 +24,8 @@ type Props = {
 const ListProducts = ({ foodStore = domainStore.foodStore }: Props) => {
   const { onAdd, navigate, filter } = useListStateActions({
     store: foodStore,
-    basePath: RouterLinks.UserProduct,
-    createDraft: () =>
+    navigateTo: RouterLinks.UserProduct,
+    createEntity: () =>
       productFactory.createNewLocal({
         name: 'Новый продукт',
         description: '',

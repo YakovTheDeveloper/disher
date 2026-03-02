@@ -12,7 +12,7 @@ type HeaderGradientConfig = {
 type Props = {
   header: ReactNode;
   children: ReactNode;
-  footer: ReactNode;
+  footer?: ReactNode;
   headerClassName?: string;
   contentClassName?: string;
   containerClassName?: string;
@@ -38,12 +38,18 @@ const ColumnLayoutWithFixedHeader = ({
   const transparentGradient = headerGradient?.initial ?? DEFAULT_TRANSPARENT_GRADIENT;
   const shadowGradient = headerGradient?.finished ?? DEFAULT_SHADOW_GRADIENT;
 
+  const headerVariants = {
+    initial: { background: transparentGradient },
+    animate: { background: shadowGradient },
+  };
+
   return (
     <section className={clsx(styles.container, containerClassName)} style={containerStyle}>
       <motion.header
         className={clsx(styles.header, headerClassName)}
-        initial={{ background: transparentGradient }}
-        animate={{ background: shadowGradient }}
+        variants={headerVariants}
+        initial="initial"
+        animate="animate"
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
         <div className={styles.headerInner}>{header}</div>

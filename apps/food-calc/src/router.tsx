@@ -12,15 +12,17 @@ import DailyNormPage from '@/pages/daily-norms/DailyNormPage/DailyNormPage.tsx';
 import TestModalPage from '@/pages/swipe-test/TestModalPage';
 import ScheduleFoodPage from './pages/schedule/builder/schedule-food-page/ScheduleFoodPage.tsx';
 import ScheduleEventPage from '@/pages/schedule/builder/schedule-event-page/ScheduleEventPage.tsx';
-import DishPage from '@/pages/dish/DishPage/DishPage.tsx';
-import DishDraftPage from '@/pages/dish/DishPage/DishDraftPage.tsx';
+import DishFoodPage from '@/pages/dish/DishFoodPage/DishFoodPage.tsx';
+import DishFoodDraftPage from '@/pages/dish/DishFoodPage/DishFoodDraftPage.tsx';
 
 export enum RouterLinks {
   Root = '/',
   DailyNorms = '/daily-norms',
   DishBuilder = '/dish',
+
   Dish = '/dish/:id',
-  DishDraft = '/dish/draft',
+  DishFoodDraft = '/dish/:id/food/draft',
+  DishFood = '/dish/:id/food/:childId',
   Schedule = '/date',
   ScheduleBuilder = '/schedule',
   ScheduleFood = `/schedule/:id/food/:childId`,
@@ -38,6 +40,10 @@ export const getScheduleFoodUrl = (id: string, childId: string) =>
 
 export const getScheduleEventUrl = (id: string, childId: string) =>
   `/schedule/${id}/event/${childId}`;
+
+export const getDishFoodDraftUrl = (id: string) => `/dish/${id}/food/draft`;
+
+export const getDishFoodUrl = (id: string) => `/dish/${id}/food/:childId`;
 
 export const RouterUrls = {
   Schedule: (id: string) => `/schedule/${id}`,
@@ -59,20 +65,16 @@ export const router = createBrowserRouter([
         element: <DailyNormPage />,
       },
       {
-        path: `${RouterLinks.DishBuilder}/:id`,
-        element: <DishBuilderPage />,
-      },
-      {
-        path: `${RouterLinks.DishBuilder}`,
-        element: <DishBuilderPage />,
-      },
-      {
         path: `${RouterLinks.Dish}`,
-        element: <DishPage />,
+        element: <DishBuilderPage />,
       },
       {
-        path: `${RouterLinks.DishDraft}`,
-        element: <DishDraftPage />,
+        path: `${RouterLinks.DishFood}`,
+        element: <DishFoodPage />,
+      },
+      {
+        path: `${RouterLinks.DishFoodDraft}`,
+        element: <DishFoodDraftPage />,
       },
       {
         path: RouterLinks.Schedule,
