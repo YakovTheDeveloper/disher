@@ -3,34 +3,26 @@ import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { DailyNormStoreInstance } from '@/store/DailyNormStore/DailyNormStore';
 import { domainStore } from '@/store/store';
 import { RouterLinks } from '@/router';
-import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
-import { DrawerStoreInstance } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
 import styles from './ListDailyNorms.module.scss';
 import clsx from 'clsx';
-import { Spacer } from '@/components/ui/atoms/Spacer';
-import { Button } from '@/components/ui/atoms/Button';
-import { ScalableHeaderNameInput } from '@/components/features/shared/components/ScalableHeaderNameInput';
 import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
 import { DailyNormsFactory } from '@/domain/dailyNorm/factory';
-import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
-import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import { ActionsHeader } from '@/components/features/builders/shared/components/ActionsHeader';
 import { SelectableItem } from '@/components/ui/SelectableItem';
 import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
-import { Buttons } from '@/components/features/builders/shared/ui/Actions/button';
+import FilterListLayout from '@/components/features/lists/shared/FilterListLayout/FilterListLayout';
+import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
+import { FilterPanel } from '@/components/features/lists/shared/FilterPanel';
+import ScrollTopButton from '@/components/features/lists/shared/ScrollTopButton/ScrollTopButton';
+import commonStyles from '../shared/commonStyles.module.scss';
 
 type Props = {
   children?: React.ReactNode;
   store?: DailyNormStoreInstance;
-  drawerStore?: DrawerStoreInstance;
   selectableItems?: boolean;
   addControls?: boolean;
 };
 
-const ListDailyNorms = ({
-  store = domainStore.dailyNormStore,
-  drawerStore = domainStore.globalUiStore.drawerStore,
-}: Props) => {
+const ListDailyNorms = ({ store = domainStore.dailyNormStore }: Props) => {
   // const navigate = useNavigate();
 
   const { onAdd, navigate, filter } = useListStateActions({
@@ -46,46 +38,53 @@ const ListDailyNorms = ({
   });
 
   return (
-    <Screen
-      header={<ScalableHeaderNameInput state={filter} />}
-      actions={
-        <ActionsHeader
-          left={
-            <button
-              onClick={() => {
-                domainStore.globalUiStore.drawerStore.open({
-                  type: DrawerTypesV2.Confirmation.RemoveDailyNorms,
-                });
-              }}
-            >
-              удалить
-            </button>
-          }
+    <FilterListLayout
+      searchPanelTitle="Нормы"
+      searchPanel={
+        <SearchInput
+          wrapperClassName={commonStyles.searchWrapper}
+          value={filter.filterText}
+          onChange={(e) => filter.setSearch(e.target.value)}
         />
       }
-      bottom={<Buttons.Add onClick={onAdd} />}
-      title={<ScreenLabel variant="screenHeader">Нормы</ScreenLabel>}
-      backgroundColor="gray"
-    >
-      <Spacer variant="screen-header-offset" />
-      <Button variant="filter">Фильтр</Button>
-      <ItemsList>
-        {filter.filteredList.map((item) => (
-          <SelectableItem
-            key={item.id}
-            id={item.id}
-            isSelected={store.selectedNormId === item.id}
-            onSelect={(id) => store.setSelectedId(id)}
-          >
-            <CommonListItem id={item.id} variant={2} className={styles.listItem}>
-              <p onClick={() => navigate(`${RouterLinks.DailyNorms}/${item.id}`)}>
-                {item.name || 'без имени'}
-              </p>
-            </CommonListItem>
-          </SelectableItem>
-        ))}
-      </ItemsList>
-    </Screen>
+      filterPanel={<FilterPanel selectedFilters={[]} columns={[]} onFilterChange={() => {}} />}
+      mainContent={
+        <ItemsList>
+          {filter.filteredList.map((item) => (
+            <SelectableItem
+              key={item.id}
+              id={item.id}
+              isSelected={store.selectedNormId === item.id}
+              onSelect={(id) => store.setSelectedId(id)}
+            >
+              <CommonListItem
+                id={item.id}
+                variant={2}
+                className={styles.listItem}
+                isSelectMode={true}
+                isSelected={store.selectedNormId === item.id}
+                onSelect={(id) => store.setSelectedId(id)}
+              >
+                <p onClick={() => navigate(`${RouterLinks.DailyNorms}/${item.id}`)}>
+                  {item.name || 'без имени'}
+                </p>
+              </CommonListItem>
+            </SelectableItem>
+          ))}
+        </ItemsList>
+      }
+      bottomActionsPanel={
+        <>
+          <ScrollTopButton
+            className={clsx([commonStyles.actionButton, commonStyles.scrollToTopButton])}
+          />
+          <button
+            onClick={onAdd}
+            className={clsx([commonStyles.actionButton, commonStyles.addButton])}
+          />
+        </>
+      }
+    />
   );
 };
 

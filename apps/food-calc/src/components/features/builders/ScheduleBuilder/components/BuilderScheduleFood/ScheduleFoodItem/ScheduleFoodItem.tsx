@@ -12,25 +12,23 @@ import { RouterLinks } from '@/router';
 import { ScheduleFoodsItem as ScheduleFoodItemModel } from '@/domain/schedule/scheduleFood/ScheduleFoods.model';
 import { Instance } from 'mobx-state-tree';
 import { SelectionStoreType, useSelection } from '@/hooks/factoryHooks/useSelection';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
 
 type Props = {
+  scheduleId: string;
   className?: string;
   item: Instance<typeof ScheduleFoodItemModel>;
   selectionStore: SelectionStoreType;
 };
 
-const ScheduleFoodItemComponent = ({ item, className, selectionStore }: Props) => {
-  const navigate = useNavigate();
-  const { id: date } = useParams();
+const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore }: Props) => {
+  const { toScheduleFood } = useAppRoutes();
+
   const id = item.id;
   const content = item.content;
 
   const onFoodsOpenUpdate = () => {
-    navigate(`${RouterLinks.ScheduleFood}/${date}?id=${id}`);
-  };
-
-  const onQuantityOpen = () => {
-    navigate(`${RouterLinks.ScheduleFood}/${date}?id=${id}`);
+    toScheduleFood(scheduleId, item.id);
   };
 
   const getVariantLabelText = () => {
@@ -57,13 +55,12 @@ const ScheduleFoodItemComponent = ({ item, className, selectionStore }: Props) =
     <CommonListItem
       className={clsx([className, styles.group])}
       id={id}
-      sync={item.sync}
       isSelectMode={selectionStore.isActionsMode}
       isSelected={selectionStore.isSelected(id)}
       onSelect={selectionStore.toggleSelectedId}
     >
       <FoodName content={content} className={getFoodNameClassName()} onClick={onFoodsOpenUpdate} />
-      <Quantity id={id} onClick={onQuantityOpen} content={content} />
+      <Quantity id={id} content={content} />
       {afterName}
     </CommonListItem>
   );

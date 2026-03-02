@@ -65,13 +65,14 @@ export const FoodScheduleStore = types
         },
 
         getScheduleChildById(scheduleId: string, itemId: string) {
+            console.log('getScheduleChildById', scheduleId, itemId);
             const schedule = self.data.get(scheduleId)
             if (!schedule) return null
 
             if (itemId === 'draft') {
                 return self.foodDraft
             }
-            return null
+            return schedule
         },
 
     }))

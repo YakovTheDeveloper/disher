@@ -17,6 +17,7 @@ type Props = {
   isSelectMode: boolean;
   isSelected: boolean;
   onSelect: (id: string) => void;
+  onClick?: () => void;
 };
 
 const LONG_PRESS_DELAY = 450;
@@ -32,6 +33,7 @@ const ListItem = ({
   isSelectMode,
   isSelected,
   onSelect,
+  onClick,
 }: Props) => {
   const stringId = id.toString();
   const [isHighlighted, setIsHighlighted] = useState(false);
@@ -122,6 +124,11 @@ const ListItem = ({
     // If we're already in multi-select mode, any short tap should toggle
     if (!skipTap && isSelectMode) {
       handleSelect();
+    }
+
+    // If NOT in select mode and NOT long pressed, fire onClick
+    if (!skipTap && !isSelectMode && onClick) {
+      onClick();
     }
 
     setTimeout(() => {

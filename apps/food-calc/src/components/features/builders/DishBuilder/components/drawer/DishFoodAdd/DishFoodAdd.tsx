@@ -89,7 +89,7 @@ const DishFoodAdd = observer(
                   </span>
                 }
                 placeholder="Добавить продукт или блюдо"
-                text={dishChildItem.content?.name}
+                chosenFoodTitle={dishChildItem.content?.name}
               />
             }
             content={

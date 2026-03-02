@@ -30,8 +30,8 @@
     box-shadow: 0 4px 25px rgba(223, 223, 223, 0.3);
     background-color: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(2px);
-    display: flex;
     outline: 3px solid rgba(255, 0, 0, 0);
+    display: flex;
 
     transition: 0.2s box-shadow ease-in-out, outline-color 0.2s ease-in-out;
 
@@ -93,7 +93,7 @@
 
     &:focus {
         border-radius: 12px;
-
+        outline: none;
     }
 
     &[aria-label='Hour'] {

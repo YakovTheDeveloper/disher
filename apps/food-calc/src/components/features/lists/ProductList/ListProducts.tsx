@@ -1,20 +1,16 @@
 import { observer } from 'mobx-react-lite';
 import { domainStore } from '@/store/store';
-import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { RouterLinks } from '@/router';
-import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
-import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
-import { ActionsHeader } from '@/components/features/builders/shared/components/ActionsHeader';
-import { Buttons } from '@/components/features/builders/shared/ui/Actions/button';
-import { Spacer } from '@/components/ui/atoms/Spacer';
-import { Button } from '@/components/ui/atoms/Button';
-import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
-import clsx from 'clsx';
 import { FoodStoreInstance } from '@/store/FoodStore/FoodStore';
 import { productFactory } from '@/domain/product/Food.factory';
-import { ScalableHeaderNameInput } from '@/components/features/shared/components/ScalableHeaderNameInput';
 import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
+import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
+import FilterListLayout from '@/components/features/lists/shared/FilterListLayout/FilterListLayout';
+import { FilterPanel } from '@/components/features/lists/shared/FilterPanel';
+import { ScrollTopButton } from '@/components/features/lists/shared/ScrollTopButton';
+import commonStyles from '@/components/features/lists/shared/commonStyles.module.scss';
+import clsx from 'clsx';
 import styles from './ListProducts.module.scss';
 
 type Props = {
@@ -34,49 +30,60 @@ const ListProducts = ({ foodStore = domainStore.foodStore }: Props) => {
     filterKeys: ['name', 'description'],
   });
 
+  const filterColumns = [
+    {
+      items: [
+        { value: 'user', label: 'Мои продукты' },
+        { value: 'system', label: 'Системные' },
+      ],
+    },
+  ];
+
+  const handleFilterChange = () => {
+    // TODO: implement filter logic
+  };
+
   return (
-    <Screen
-      header={<ScalableHeaderNameInput state={filter} />}
-      actions={
-        <ActionsHeader
-          left={
-            <button
-              onClick={() => {
-                domainStore.globalUiStore.drawerStore.open({
-                  type: DrawerTypesV2.Confirmation.RemoveUserFood,
-                });
-              }}
-            >
-              удалить
-            </button>
-          }
+    <FilterListLayout
+      filterPanel={
+        <FilterPanel
+          selectedFilters={['user']}
+          columns={filterColumns}
+          onFilterChange={handleFilterChange}
         />
       }
-      bottom={<Buttons.Add onClick={onAdd} />}
-      title={<ScreenLabel variant="screenHeader">Продукты</ScreenLabel>}
-      backgroundColor="gray"
-    >
-      <Spacer variant="screen-header-offset" />
-      <Button variant="filter">Фильтр</Button>
-      <ItemsList>
-        {filter.filteredList.map((item) => (
-          <>
-            <CommonListItem
-              key={item.id}
-              id={item.id}
-              sync={{ status: 'none', lastSync: '' }}
-              variant={2}
-              innerClassName={clsx([styles.innerListItem])}
-            >
+      searchPanel={
+        <SearchInput
+          wrapperClassName={commonStyles.searchWrapper}
+          value={filter.filterText}
+          size="medium"
+          onChange={(e) => filter.setSearch(e.target.value)}
+        />
+      }
+      searchPanelTitle="Продукты"
+      mainContent={
+        <ItemsList>
+          {filter.filteredList.map((item) => (
+            <li className={styles.listItem} key={item.id}>
               <p onClick={() => navigate(`${RouterLinks.UserProduct}/${item.id}`)}>
                 {item.name || 'без имени'}
               </p>
-            </CommonListItem>
-            <button className={clsx([styles.selectButton])}></button>
-          </>
-        ))}
-      </ItemsList>
-    </Screen>
+            </li>
+          ))}
+        </ItemsList>
+      }
+      bottomActionsPanel={
+        <>
+          <ScrollTopButton
+            className={clsx([commonStyles.actionButton, commonStyles.scrollToTopButton])}
+          />
+          <button
+            onClick={onAdd}
+            className={clsx([commonStyles.actionButton, commonStyles.addButton])}
+          />
+        </>
+      }
+    />
   );
 };
 

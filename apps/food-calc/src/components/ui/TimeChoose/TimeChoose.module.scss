@@ -1,0 +1,132 @@
+@import '@/assets/style/mixin.scss';
+
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+}
+
+.wrapper {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 28px;
+    border-radius: 16px;
+
+    transition: 0.2s box-shadow ease-in-out, outline-color 0.2s ease-in-out;
+    color: #ffffff;
+    box-shadow: 0 4px 25px rgba(223, 223, 223, 0.3);
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(2px);
+    outline: 3px solid rgba(255, 0, 0, 0);
+
+
+    &:focus-within {
+        box-shadow: 0 4px 10px rgba(45, 66, 255, 0.1);
+        outline-color: rgba(255, 0, 0, 1);
+    }
+}
+
+.inputWrapper {
+    display: flex;
+    align-items: center;
+
+}
+
+.input {
+    display: block;
+    width: 90px;
+    padding: 6px 4px;
+    font-size: 3.5rem;
+    font-weight: 900;
+    text-shadow: #ffd700;
+    text-align: center;
+    border: none;
+    background: transparent;
+    letter-spacing: 1px;
+    color: inherit;
+
+    &[aria-label='Hour'] {
+        padding-right: 0;
+    }
+
+    &[aria-label='Minute'] {
+        padding-left: 0;
+    }
+
+    &::selection {
+        color: red;
+
+    }
+
+    &:focus {
+        outline: none;
+        @include blink(#fff, #ffd700, 0.6s);
+    }
+
+    &::placeholder {
+        color: #999;
+        font-weight: 400;
+    }
+}
+
+.separator {
+    color: inherit;
+    font-weight: 400;
+    user-select: none;
+    pointer-events: none;
+    font-size: 2.5rem;
+    width: 10px;
+}
+
+.blinking {
+    @include blink(#fff, #ffd700, 0.6s);
+}
+
+.toggleButton {
+    color: rgb(71, 54, 201);
+    font-size: 14px;
+    border-radius: 12px;
+    font-style: italic;
+    white-space: nowrap;
+    padding: 8px 16px 8px 8px;
+
+    box-shadow: 0 4px 25px rgba(223, 223, 223, 0.3);
+    background-color: rgba(255, 255, 255, 0.1);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:before {
+        display: inline-block;
+        height: 24px;
+        width: 24px;
+        content: '';
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 20px;
+    }
+}
+
+.swapButton {
+    &:before {
+
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 10H3l4-4'/%3E%3Cpath d='M7 14h14l-4 4'/%3E%3C/svg%3E");
+
+    }
+}
+
+.nowButton {
+    &:before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v14'/%3E%3Cpath d='M8 7c0 4 2 6 4 10'/%3E%3Cpath d='M16 7c0 4-2 6-4 10'/%3E%3Cpath d='M6 21h12'/%3E%3C/svg%3E");
+
+    }
+}
+
+.buttonsWrapper {
+    display: flex;
+    gap: 40px;
+    flex-grow: 1;
+
+}

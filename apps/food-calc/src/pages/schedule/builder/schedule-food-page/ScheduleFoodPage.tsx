@@ -6,7 +6,6 @@ import { ScheduleFood } from '@/components/features/builders/ScheduleBuilder/com
 const ScheduleFoodPage = () => {
   const { id, childId } = useParams<{ id: string; childId: string }>();
 
-  // Validate params - redirect if missing
   if (!id || !childId) {
     window.location.href = RouterLinks.Schedule;
     return null;

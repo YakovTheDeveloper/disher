@@ -25,6 +25,7 @@ import { Buttons } from '@/components/features/builders/shared/ui/Actions/button
 import { modalStoreV2 } from '@/store/GlobalUiStore/ModalStoreV2/ModalStoreV2';
 import { ModalCopyScheduleItemsToAnotherDay } from '@/components/features/builders/ScheduleBuilder/components/modal/ModalCopyScheduleItemsToAnotherDay';
 import toaster from '@/infrastructure/toaster/toaster';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
 
 type CommonProps = {
   schedule: Instance<typeof ScheduleFoods>;
@@ -35,17 +36,12 @@ const BuilderScheduleFood = observer(
   ({ schedule, interactionsService = domainStore.interactionsService }: CommonProps) => {
     const navigate = useNavigate();
     const selectionStoreFood = useSelection();
-
-    const renderScheduleFoodItem = useCallback((item: Instance<typeof ScheduleFoodItemModel>) => {
-      return (
-        <ScheduleFoodItemComponent key={item.id} item={item} selectionStore={selectionStoreFood} />
-      );
-    }, []);
+    const { toScheduleFood } = useAppRoutes();
 
     const onFoodAddV2 = () => {
       clearSessionStorage(`tabs:${location.pathname}`);
 
-      navigate(getScheduleFoodUrl(schedule.id, 'draft'));
+      toScheduleFood(schedule.id, 'draft');
 
       requestAnimationFrame(() => {
         document.getElementById('time-picker-hours-label')?.click();
@@ -79,9 +75,21 @@ const BuilderScheduleFood = observer(
       selectionStoreFood.clearSelection();
     };
 
+    const renderScheduleFoodItem = useCallback((item: Instance<typeof ScheduleFoodItemModel>) => {
+      return (
+        <ScheduleFoodItemComponent
+          scheduleId={schedule.id}
+          key={item.id}
+          item={item}
+          selectionStore={selectionStoreFood}
+        />
+      );
+    }, []);
+
     console.log('from list');
     return (
       <Screen
+        offsetTop
         actions={
           <ActionsHeader
             show={selectionStoreFood.isActionsMode}

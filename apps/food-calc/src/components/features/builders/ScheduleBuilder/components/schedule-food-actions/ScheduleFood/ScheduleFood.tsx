@@ -18,6 +18,7 @@ import Logo from '@/assets/icons/logo.svg';
 import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
 import { ButtonBack } from '@/components/ui/atoms/Button/ButtonBack';
 import { RouterUrls } from '@/router';
+import { TimeChoose } from '@/components/ui/TimeChoose';
 
 interface ScheduleFoodProps {
   foodStore: FoodStoreInstance;
@@ -33,20 +34,21 @@ const ScheduleFood = observer((props: ScheduleFoodProps) => {
 
   const { parentScheduleId, scheduleChildItem: currentChild, scheduleStore } = props;
 
-  const timeState = useLocalObservable(() => ({
-    localTime: currentChild.time,
-    handleTimeUpdate(newTime: string) {
-      this.localTime = newTime;
-      currentChild.updateTime(newTime);
-    },
-  }));
+  // const timeState = useLocalObservable(() => ({
+  //   localTime: currentChild.time,
+  //   handleTimeUpdate(newTime: string) {
+  //     this.localTime = newTime;
+  //     currentChild.updateTime(newTime);
+  //   },
+  // }));
 
   const handleFinish = () => {
     navigate(RouterUrls.Schedule(parentScheduleId));
     scheduleStore.commitFoodDraft(parentScheduleId);
   };
 
-  const handleTimeFinish = () => {
+  const handleTimeFinish = (time: string) => {
+    currentChild.updateTime(time);
     // Auto-scroll to next section
     const foodSection = document.getElementById('food-section');
     if (foodSection) {
@@ -78,7 +80,7 @@ const ScheduleFood = observer((props: ScheduleFoodProps) => {
 
   return (
     <ScheduleItemCommonForm
-      time={timeState.localTime}
+      time={currentChild.time}
       button={
         <Button variant="primary" onClick={handleFinish}>
           Готово
@@ -86,7 +88,8 @@ const ScheduleFood = observer((props: ScheduleFoodProps) => {
       }
     >
       <div className={style.section} id="time-section">
-        <ContentEdit.Time timeState={timeState} onFinish={handleTimeFinish} />
+        <TimeChoose onFinish={handleTimeFinish} />
+        {/* <ContentEdit.Time onFinish={handleTimeFinish} /> */}
       </div>
       <div className={style.section} id="food-section">
         <SearchFormExpandable
@@ -107,7 +110,7 @@ const ScheduleFood = observer((props: ScheduleFoodProps) => {
                 </span>
               }
               placeholder="Добавить продукт или блюдо"
-              text={currentChild.content?.name}
+              chosenFoodTitle={currentChild.content?.name}
             />
           }
           content={

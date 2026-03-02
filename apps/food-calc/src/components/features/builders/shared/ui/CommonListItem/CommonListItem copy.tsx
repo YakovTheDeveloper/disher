@@ -1,21 +1,22 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import styles from './CommonListItem.module.scss';
 import { observer } from 'mobx-react-lite';
 import clsx from 'clsx';
 import { Instance } from 'mobx-state-tree';
 import { SyncStatus } from '@/domain/commonListItem';
 import TickIcon from '@/assets/icons/tick.svg';
-import { GlobalUiStore } from '@/store/GlobalUiStore/GlobalUiStore';
-import { domainStore } from '@/store/store';
 import { AnimatePresence, motion } from 'framer-motion';
+import { emitter } from '@/infrastructure/emitter/emitter';
 type Props = {
-  id: string | number;
+  id: string;
   children?: React.ReactNode;
   className?: string;
   innerClassName?: string;
   sync?: Instance<typeof SyncStatus>;
-  uiStore?: Instance<typeof GlobalUiStore>;
   variant?: 1 | 2 | 3;
+  isSelectMode: boolean;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
 };
 
 const LONG_PRESS_DELAY = 450;
@@ -27,10 +28,25 @@ const ListItem = ({
   className,
   innerClassName,
   sync,
-  uiStore = domainStore.globalUiStore,
   variant,
+  isSelectMode,
+  isSelected,
+  onSelect,
 }: Props) => {
   const stringId = id.toString();
+  const [isHighlighted, setIsHighlighted] = useState(false);
+
+  // Emitter subscription for highlight animation
+  useEffect(() => {
+    const handler = ({ id: highlightedId }: { id: string | number }) => {
+      if (highlightedId.toString() === stringId) {
+        setIsHighlighted(true);
+        setTimeout(() => setIsHighlighted(false), 3000);
+      }
+    };
+    emitter.on('HIGHLIGHT_ITEM', handler);
+    return () => emitter.off('HIGHLIGHT_ITEM', handler);
+  }, [stringId]);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startPosRef = useRef({ x: 0, y: 0 });
@@ -38,12 +54,13 @@ const ListItem = ({
   const wasLongPressedRef = useRef(false);
   const preventNextClickRef = useRef(false);
   const [isPressed, setIsPressed] = useState(false);
-  const isActionsMode = uiStore.isActionsMode;
-  const isSelected = uiStore.isSelected(stringId);
 
   const handleSelect = useCallback(() => {
-    uiStore.toggleSelectedId(stringId);
-  }, [uiStore, stringId]);
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+    onSelect(stringId);
+  }, [onSelect, stringId]);
 
   const cleanUp = useCallback(() => {
     if (timerRef.current) {
@@ -55,7 +72,7 @@ const ListItem = ({
   }, []);
 
   const onPointerDown = (e: React.PointerEvent) => {
-    if (isActionsMode) {
+    if (isSelectMode) {
       preventNextClickRef.current = true;
     }
 
@@ -103,7 +120,7 @@ const ListItem = ({
     cleanUp();
 
     // If we're already in multi-select mode, any short tap should toggle
-    if (!skipTap && isActionsMode) {
+    if (!skipTap && isSelectMode) {
       handleSelect();
     }
 
@@ -131,32 +148,52 @@ const ListItem = ({
   const status = sync?.status;
 
   return (
-    <div
+    <motion.div
+      layout
+      whileTap={{ scale: 0.98 }}
       className={clsx(
         styles.commonListItemWrapper,
         isSelected && styles.selected,
-        isActionsMode && styles.inActionsMode
+        isSelectMode && styles.inActionsMode
       )}
       onContextMenu={onContextMenu}
     >
       <AnimatePresence>
-        {isActionsMode && (
-          <motion.div className={styles.selectCheckbox}>
-            <button type="button" className={styles.selectButton} onClick={onSelectButtonClick}>
-              {isSelected && <TickIcon />}
+        {isSelectMode && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, x: -20 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.5, x: -20 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className={styles.selectCheckbox}
+          >
+            <button
+              type="button"
+              className={clsx(styles.selectButton, isSelected && styles.selectButton_selected)}
+              onClick={onSelectButtonClick}
+            >
+              <AnimatePresence mode="wait">
+                {isSelected && (
+                  <motion.div
+                    key="tick"
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.5, opacity: 0 }}
+                  >
+                    <TickIcon />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </button>
           </motion.div>
         )}
       </AnimatePresence>
-      {/* {isActionsMode && (
-        <div className={styles.selectCheckbox}>
-          <button type="button" className={styles.selectButton} onClick={onSelectButtonClick}>
-            {isSelected && <TickIcon />}
-          </button>
-        </div>
-      )} */}
 
-      <li
+      {isSelected && <div className={styles.selectedOverlay} />}
+
+      <motion.li
+        animate={{ x: isSelectMode ? 44 : 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
         onPointerMove={onPointerMove}
@@ -166,10 +203,11 @@ const ListItem = ({
           className,
           innerClassName,
           styles.commonListItemInner,
-          isActionsMode && styles.commonListItemInner_inActionsMode,
+          isSelectMode && styles.commonListItemInner_inActionsMode,
           isPressed && styles.commonListItemInner_tapped,
           status && styles[status],
-          variant && styles[`variant_${variant}`]
+          variant && styles[`variant_${variant}`],
+          isHighlighted && styles.highlighted
         )}
       >
         <div
@@ -178,12 +216,12 @@ const ListItem = ({
               e.stopPropagation();
             }
           }}
-          className={clsx(styles.content, isActionsMode && styles.content_disabled)}
+          className={clsx(styles.content, isSelectMode && styles.content_disabled)}
         >
           {children}
         </div>
-      </li>
-    </div>
+      </motion.li>
+    </motion.div>
   );
 };
 

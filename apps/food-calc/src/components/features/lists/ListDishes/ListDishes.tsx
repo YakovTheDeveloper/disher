@@ -6,13 +6,16 @@ import { Button } from '@/components/ui/atoms/Button';
 import { DishStoreInstance } from '@/store/DishStore/DishStore';
 import { DishFactory } from '@/store/DishStore/Dish.factory';
 import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
+import { useScrollToTop } from '@/components/features/lists/shared/hooks/useScrollToTop';
 import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
 import Logo from '@/assets/icons/logo.svg';
 import FilterListLayout from '@/components/features/lists/shared/FilterListLayout/FilterListLayout';
 import { Buttons } from '@/components/features/builders/shared/ui/Actions/button';
 import styles from '../shared/commonStyles.module.scss';
-import { FilterPanel } from '../shared/FilterPanel';
+import { ScrollTopButton } from '../shared/ScrollTopButton';
 
+import { FilterPanel } from '../shared/FilterPanel';
+import clsx from 'clsx';
 type Props = {
   dishStore?: DishStoreInstance;
 };
@@ -70,7 +73,12 @@ const ListDishes = ({ dishStore = domainStore.dishStore }: Props) => {
           ))}
         </ItemsList>
       }
-      bottomActionsPanel={<button onClick={onAdd} className={styles.addButton} />}
+      bottomActionsPanel={
+        <>
+          <ScrollTopButton className={clsx([styles.actionButton, styles.scrollToTopButton])} />
+          <button onClick={onAdd} className={clsx([styles.actionButton, styles.addButton])} />
+        </>
+      }
     />
   );
 };

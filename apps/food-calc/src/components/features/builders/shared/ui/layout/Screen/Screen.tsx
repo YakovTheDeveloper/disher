@@ -14,13 +14,22 @@ type Props = {
   actions?: React.ReactNode;
   bottom?: React.ReactNode;
   header: React.ReactNode;
+  offsetTop: boolean;
   // header?: (scrollYProgress: MotionValue<number>) => React.ReactNode;
   title?: React.ReactNode;
   backgroundColor?: 'gray' | 'white';
   // HeaderComponent?: React.ComponentType<{ scrollYProgress: MotionValue<number> }>;
 };
 
-const Screen = ({ header, children, bottom, actions, title, backgroundColor }: Props) => {
+const Screen = ({
+  header,
+  children,
+  bottom,
+  actions,
+  title,
+  backgroundColor,
+  offsetTop,
+}: Props) => {
   const scrollY = useMotionValue(0);
 
   const scrollYProgress = useTransform(scrollY, [0, COLLAPSE_CONFIG.collapseDistance], [0, 1], {
@@ -28,7 +37,13 @@ const Screen = ({ header, children, bottom, actions, title, backgroundColor }: P
   });
 
   return (
-    <div className={clsx([styles.screen, backgroundColor && styles[`bg-${backgroundColor}`]])}>
+    <div
+      className={clsx([
+        styles.screen,
+        backgroundColor && styles[`bg-${backgroundColor}`],
+        offsetTop && styles.offsetTop,
+      ])}
+    >
       <ScreenHeader scrollYProgress={scrollYProgress} title={title}>
         <ScreenScrollProvider value={scrollYProgress}>
           {header}

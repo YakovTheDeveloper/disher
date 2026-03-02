@@ -9,19 +9,17 @@ import { TimeNow } from '@/components/features/builders/shared/ContentEdit/Time/
 type Props = {
   onFinish: () => void;
   uiStore?: UIViewOptionsInstance;
-  timeState: { localTime: string; handleTimeUpdate: (time: string) => void };
   asLongetivity: boolean;
+  time: string;
 };
 
 const Time = ({
   onFinish,
   uiStore = domainStore.globalUiStore.options,
-  timeState,
   asLongetivity = false,
+  time,
 }: Props) => {
-  const state = timeState;
-
-  const [hours, minutes] = state.localTime.split(':');
+  const [hours, minutes] = time.split(':');
 
   const onFinishHandler = useCallback(() => onFinish(), [onFinish]);
 
