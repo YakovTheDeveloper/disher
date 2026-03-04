@@ -8,7 +8,7 @@ type NutrientId = number
 
 export interface NutrientsCountableEntity {
     getTotalNutrients: (q?: number) => Record<string, number>,
-    foodWithNoNutrients: { id: string, name: string }[]
+    foodWithNoNutrients: { id: string }[]
 }
 
 export const TotalNutrientsStore = types

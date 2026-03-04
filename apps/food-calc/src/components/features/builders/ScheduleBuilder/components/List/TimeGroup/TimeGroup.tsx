@@ -38,7 +38,7 @@ const TimeGroup = <T,>({ children, group, renderAside, onTimeClick }: Props<T>) 
         </div>
         {renderAside && <span className={clsx([styles.headerAside])}>{renderAside?.(group)}</span>}
       </header>
-      {group.items.map(children)}
+      {children}
     </ul>
   );
 };

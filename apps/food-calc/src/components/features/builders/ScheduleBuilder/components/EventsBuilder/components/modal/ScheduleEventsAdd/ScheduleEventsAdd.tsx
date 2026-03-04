@@ -1,14 +1,14 @@
-import { observer, useLocalObservable } from 'mobx-react-lite';
+import { observer } from 'mobx-react-lite';
 import { useNavigate } from 'react-router';
-import { ContentEdit } from '@/components/features/builders/shared/ContentEdit';
 import { FoodStoreInstance } from '@/store/FoodStore/FoodStore';
 import { DishStoreInstance, RootInstance } from '@/store/RootStoreModel';
 import { ScheduleItemCommonForm } from '@/components/features/builders/ScheduleBuilder/components/layout/ScheduleItemCommonForm';
 import Button from '@/components/ui/atoms/Button/Button';
 import style from './ScheduleEventsAdd.module.scss';
-import { TextInput } from '@/components/ui/atoms/input/TextInput';
 import Textarea from '@/components/ui/atoms/Textarea/Textarea';
 import { AtomBuilder } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/AtomBuilder';
+import { scrollToElement } from '@/lib/scroll';
+import { TimeChoose } from '@/components/ui/TimeChoose';
 
 interface ScheduleEventsAddProps {
   foodStore: FoodStoreInstance;
@@ -23,31 +23,20 @@ const ScheduleEventsAdd = (props: ScheduleEventsAddProps) => {
 
   const { parentScheduleId, scheduleChildItem: currentChild, scheduleStore } = props;
 
-  const timeState = useLocalObservable(() => ({
-    localTime: currentChild.time,
-    handleTimeUpdate(newTime: string) {
-      this.localTime = newTime;
-      currentChild.updateTime(newTime);
-    },
-  }));
-
   const handleFinish = () => {
     scheduleStore.commitEventDraft(parentScheduleId);
     navigate(-1);
   };
 
-  const handleTimeFinish = () => {
-    const eventTypeSection = document.getElementById('event-type-section');
-    if (eventTypeSection) {
-      eventTypeSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+  const handleTimeFinish = (time: string) => {
+    currentChild.updateTime(time);
+    // Auto-scroll to next section
+    document.activeElement?.blur(); // Dismiss keyboard on mobile
+    scrollToElement('schedule-item-form', 'event-type-section', { behavior: 'auto', delay: 100 });
   };
 
   const handleEventTypeFinish = () => {
-    const valueSection = document.getElementById('value-section');
-    if (valueSection) {
-      valueSection.scrollIntoView({ behavior: 'smooth' });
-    }
+    scrollToElement('schedule-item-form', 'value-section', { behavior: 'smooth' });
   };
 
   const handleValueFinish = () => {
@@ -64,7 +53,7 @@ const ScheduleEventsAdd = (props: ScheduleEventsAddProps) => {
 
   return (
     <ScheduleItemCommonForm
-      time={timeState.localTime}
+      time={currentChild.time}
       button={
         <Button variant="primary" onClick={handleFinish}>
           Сохранить
@@ -72,7 +61,7 @@ const ScheduleEventsAdd = (props: ScheduleEventsAddProps) => {
       }
     >
       <div className={style.section} id="time-section">
-        <ContentEdit.Time timeState={timeState} onFinish={handleTimeFinish} />
+        <TimeChoose onFinish={handleTimeFinish} initialTime={currentChild.time} />
       </div>
       <div className={style.section}>
         <Textarea onChange={onTextChange} value={currentChild.text} />

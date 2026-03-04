@@ -2,10 +2,10 @@ import { observer } from 'mobx-react-lite';
 import styles from './DishesPage.module.scss';
 import { ListDishes } from '@/components/features/lists/ListDishes';
 type Props = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 };
 
-const DishesPage = ({ children }: Props) => {
+const DishesPage = ({}: Props) => {
   return <ListDishes></ListDishes>;
 };
 

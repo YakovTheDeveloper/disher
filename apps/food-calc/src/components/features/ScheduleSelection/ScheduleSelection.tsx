@@ -95,7 +95,7 @@ export const ScheduleSelection = ({
       </div>
 
       <Virtuoso
-        className={styles.scrollContainer}
+        className={`${styles.scrollContainer}`}
         style={{ height: '100%', width: '100%' }}
         data={months}
         initialTopMostItemIndex={12}

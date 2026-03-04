@@ -2,4 +2,13 @@
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    // padding-top: 40vh;
+
+    // Performance optimizations for smooth scrolling
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+
+    // Prevents scroll chaining effects
+    overscroll-behavior: contain;
 }

@@ -10,7 +10,7 @@ import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { BuilderScheduleFood } from '@/components/features/builders/ScheduleBuilder/components/BuilderScheduleFood';
 import { BuilderScheduleEvents } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder';
-import TotalNutrients from '@/components/features/builders/TotalNutrients/TotalNutrients';
+import { TotalNutrients } from '@/components/features/builders/TotalNutrients/TotalNutrients';
 
 const Page = observer(({ date }: { date: string }) => {
   console.log('schedule builder page render');
@@ -28,14 +28,15 @@ const Page = observer(({ date }: { date: string }) => {
       document.body.style.backgroundColor = '#e6e6e6';
     } else {
       document.body.style.backgroundColor = '';
+      1;
     }
   };
 
   return (
     <>
       <SwipeableV2 defaultSlide={1} onIndexChange={onPageChange}>
-        <Screen title={<ScreenLabel variant="screenHeader">Нутриенты</ScreenLabel>}>
-          {/* <TotalNutrients store={current} countable={current} /> */}
+        <Screen title={<ScreenLabel variant="screenHeader">Нутри</ScreenLabel>}>
+          <TotalNutrients countable={foodSchedule} />
         </Screen>
         <BuilderScheduleFood schedule={foodSchedule} />
         <BuilderScheduleEvents schedule={eventSchedule} />

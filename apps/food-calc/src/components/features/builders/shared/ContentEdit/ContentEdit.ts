@@ -1,13 +1,11 @@
 import { Food } from './Food'
-import { Time } from './Time'
-import { Quantity } from './Quantity'
+import { ProductQuantity } from '@/components/features/product/ProductQuantity'
 import { List } from '@/components/features/builders/shared/ContentEdit/Food/List'
 
 export const ContentEdit = {
     Food,
     SearchList: List,
-    Time,
-    Quantity,
+    Quantity: ProductQuantity,
 }
 
 export default ContentEdit

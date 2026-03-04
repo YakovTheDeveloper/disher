@@ -2,10 +2,10 @@
     display: flex;
     flex-grow: 1;
     flex-direction: column;
-    overflow: hidden;
     position: relative;
     width: 100%;
     height: 100%;
+    overflow-y: auto;
 
 
 }
@@ -14,13 +14,13 @@
     position: absolute;
     right: 0;
     left: 0;
+    padding-right: 0.5rem;
     bottom: 10px;
     z-index: 100;
-    padding-right: 0.5rem;
     // transform: translate(-50%, -100%);
     display: flex;
     justify-content: flex-end;
-
+    touch-action: none
 }
 
 .bg-gray {
@@ -39,6 +39,23 @@
     right: 0;
 }
 
-.offsetTop {
-    margin-top: 40vh;
+.upperPlace {
+    position: sticky;
+    height: 40vh;
+    top: 0;
+}
+
+.screenScroll {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    // padding-top: 40vh;
+
+    // Performance optimizations for smooth scrolling
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+
+    // Prevents scroll chaining effects
+    overscroll-behavior: contain;
 }

@@ -142,6 +142,7 @@ const ScheduleItemCommonForm = ({ time, children, button }: Props) => {
 
   return (
     <ColumnLayoutWithFixedHeader
+      id="schedule-item-form"
       headerClassName={styles.header}
       containerClassName={styles.container}
       contentClassName={styles.content}

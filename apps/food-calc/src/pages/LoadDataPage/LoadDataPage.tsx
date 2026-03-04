@@ -3,10 +3,10 @@ import styles from './LoadDataPage.module.scss';
 import { domainStore } from '@/store/store';
 import { useQuery } from '@tanstack/react-query';
 type Props = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 };
 
-const LoadDataPage = ({ children }: Props) => {
+const LoadDataPage = ({}: Props) => {
   const currentLength = domainStore.foodStore.dataLength;
   const totalLength = domainStore.foodStore.total;
 

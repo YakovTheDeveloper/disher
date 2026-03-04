@@ -24,7 +24,6 @@ type Props = {
   currentProductId?: string | null;
   currentDishId?: string | null;
   onFinish: (payload: { variant: 'product' | 'dish'; id: string }) => void;
-  beforeSearchInput?: React.ReactNode;
   onFocusChange?: (focused: boolean) => void;
   onOpen?: () => void;
   mode: SearchMode;
@@ -34,7 +33,6 @@ const SearchFood = ({
   onFinish,
   currentProductId,
   currentDishId,
-  beforeSearchInput,
   onFocusChange,
   onOpen,
   mode = 'products-and-dishes',
@@ -144,7 +142,6 @@ const SearchFood = ({
         )}
 
         <div className={styles.header}>
-          {beforeSearchInput && <div className={styles.beforeSearchInput}>{beforeSearchInput}</div>}
           <SearchFoodControls
             mode={mode}
             searchState={filterState}

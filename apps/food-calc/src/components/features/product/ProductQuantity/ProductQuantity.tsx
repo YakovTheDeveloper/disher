@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { useRef, useState, useMemo } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
-import style from './Quantity.module.scss';
+import style from './ProductQuantity.module.scss';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import { QuickButton } from '@/components/features/builders/shared/atoms/QuickButtons/QuickButton';
 import { Instance } from 'mobx-state-tree';
@@ -35,7 +35,7 @@ const chunkArray = <T,>(arr: T[], size: number): T[][] => {
   return chunks;
 };
 
-const Quantity = ({ onFinish, content }: Props) => {
+const ProductQuantity = ({ onFinish, content }: Props) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [value, setValue] = useState(content.quantity);
@@ -110,7 +110,7 @@ const Quantity = ({ onFinish, content }: Props) => {
         <span className={style.unit}>г.</span>
       </div>
 
-      {/* Portions carousel - 2×4 grid per slide */}
+      {/* Portions carousel */}
       {portionSlides.length > 0 && (
         <div className={style.emblaViewport} ref={portionsEmblaRef}>
           <div className={style.emblaContainer}>
@@ -133,7 +133,7 @@ const Quantity = ({ onFinish, content }: Props) => {
         </div>
       )}
 
-      {/* Quantities carousel - 2×4 grid per slide */}
+      {/* Default quantities carousel */}
       {quantitySlides.length > 0 && (
         <div className={style.emblaViewport} ref={quantitiesEmblaRef}>
           <div className={style.emblaContainer}>
@@ -159,4 +159,4 @@ const Quantity = ({ onFinish, content }: Props) => {
   );
 };
 
-export default observer(Quantity);
+export default observer(ProductQuantity);

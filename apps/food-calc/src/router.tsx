@@ -14,10 +14,12 @@ import ScheduleFoodPage from './pages/schedule/builder/schedule-food-page/Schedu
 import ScheduleEventPage from '@/pages/schedule/builder/schedule-event-page/ScheduleEventPage.tsx';
 import DishFoodPage from '@/pages/dish/DishFoodPage/DishFoodPage.tsx';
 import DishFoodDraftPage from '@/pages/dish/DishFoodPage/DishFoodDraftPage.tsx';
+import ProductListPage from '@/pages/product/ProductListPage/ProductListPage.tsx';
 
 export enum RouterLinks {
   Root = '/',
   DailyNorms = '/daily-norms',
+  Products = '/products',
   DishBuilder = '/dish',
 
   Dish = '/dish/:id',
@@ -95,6 +97,10 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.Dishes,
         element: <DishesPage />,
+      },
+      {
+        path: RouterLinks.Products,
+        element: <ProductListPage />,
       },
       {
         path: `${RouterLinks.UserProduct}/:id`,

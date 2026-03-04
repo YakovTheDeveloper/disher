@@ -5,7 +5,7 @@
     position: relative;
     min-height: 0;
     background: transparent;
-    padding-right: var(--default-container-padding);
+    // padding-right: var(--default-container-padding);
 }
 
 .header {
@@ -14,6 +14,10 @@
     top: 0;
     z-index: 10;
     padding: 8px 0;
+    background-color: #d2e8ff13;
+    backdrop-filter: blur(2px);
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
 }
 
 .foodInfo {
@@ -48,11 +52,4 @@
     &:focus {
         background-color: #fff;
     }
-}
-
-.beforeSearchInput {
-    margin-right: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }

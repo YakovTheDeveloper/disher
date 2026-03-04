@@ -18,7 +18,7 @@ export const ScheduleFoodsItem = types.compose("ScheduleFood", types.model({
     },
 }))
 
-export type ScheduleFoodsItemType = typeof ScheduleFoodsItem
+export type ScheduleFoodsItemType = Instance<typeof ScheduleFoodsItem>
 
 export const ScheduleFoods = types.model({
     id: types.identifier,

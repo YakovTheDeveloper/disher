@@ -26,6 +26,8 @@ import { modalStoreV2 } from '@/store/GlobalUiStore/ModalStoreV2/ModalStoreV2';
 import { ModalCopyScheduleItemsToAnotherDay } from '@/components/features/builders/ScheduleBuilder/components/modal/ModalCopyScheduleItemsToAnotherDay';
 import toaster from '@/infrastructure/toaster/toaster';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
+import { OpenDishes } from '@/components/features/dish/OpenDishes';
+import { OpenProducts } from '@/components/features/product/OpenProducts';
 
 type CommonProps = {
   schedule: Instance<typeof ScheduleFoods>;
@@ -75,17 +77,6 @@ const BuilderScheduleFood = observer(
       selectionStoreFood.clearSelection();
     };
 
-    const renderScheduleFoodItem = useCallback((item: Instance<typeof ScheduleFoodItemModel>) => {
-      return (
-        <ScheduleFoodItemComponent
-          scheduleId={schedule.id}
-          key={item.id}
-          item={item}
-          selectionStore={selectionStoreFood}
-        />
-      );
-    }, []);
-
     console.log('from list');
     return (
       <Screen
@@ -123,6 +114,17 @@ const BuilderScheduleFood = observer(
         header={<Navigation></Navigation>}
         bottom={selectionStoreFood.isActionsMode ? null : <Buttons.Add onClick={onFoodAddV2} />}
       >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '0.5rem',
+            marginTop: '2rem',
+          }}
+        >
+          <OpenDishes />
+          <OpenProducts />
+        </div>
         <ItemsList offsetTop>
           {schedule.foodsGroupedByTime.map((group) => (
             <TimeGroup
@@ -130,7 +132,14 @@ const BuilderScheduleFood = observer(
               group={group}
               onTimeClick={(group) => selectionStoreFood.setSelectedIds(getIds(group.items))}
             >
-              {renderScheduleFoodItem}
+              {group.items.map((item) => (
+                <ScheduleFoodItemComponent
+                  scheduleId={schedule.id}
+                  key={item.id}
+                  item={item}
+                  selectionStore={selectionStoreFood}
+                />
+              ))}
             </TimeGroup>
           ))}
         </ItemsList>

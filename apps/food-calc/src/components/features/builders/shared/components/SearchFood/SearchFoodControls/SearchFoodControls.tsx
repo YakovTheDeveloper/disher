@@ -11,6 +11,7 @@ import FilterPanel from '@/components/ui/FilterPanel/FilterPanel';
 import { Button } from '@/components/ui/atoms/Button';
 import { UseFilteringStateV2Return } from '@/components/features/shared/hooks/useFilteringStateV2';
 import { SearchMode } from '@/components/features/builders/shared/components/SearchFood/SearchFood';
+import { ButtonBack } from '@/components/ui/atoms/Button/ButtonBack';
 
 type Tabs = 'продукты' | 'блюда';
 
@@ -20,6 +21,7 @@ type Props = {
   onFocusChange?: (focused: boolean) => void;
   onOpen?: () => void;
   mode?: SearchMode;
+  hasBackButton?: boolean;
 };
 
 const SearchFoodControls = ({ searchState, className, onFocusChange, onOpen, mode }: Props) => {
@@ -82,6 +84,7 @@ const SearchFoodControls = ({ searchState, className, onFocusChange, onOpen, mod
 
   return (
     <header className={clsx([styles.header, className])}>
+      <ButtonBack onClick={() => emitter.emit('back')} />
       <FilterPanel
         isOpen={filterPanel}
         primaryOptions={primaryOptions}
@@ -107,7 +110,7 @@ const SearchFoodControls = ({ searchState, className, onFocusChange, onOpen, mod
         }}
       />
 
-      <Button variant="filter-2" className={`${styles.active}`} onClick={toggleFilterPanel}>
+      <Button variant="filter" className={`${styles.active}`} onClick={toggleFilterPanel}>
         {searchState.currentTab}
       </Button>
     </header>

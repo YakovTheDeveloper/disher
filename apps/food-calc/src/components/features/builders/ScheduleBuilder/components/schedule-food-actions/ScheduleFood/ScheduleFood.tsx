@@ -8,64 +8,38 @@ import {
 import { ContentEdit } from '@/components/features/builders/shared/ContentEdit';
 import { FoodStoreInstance } from '@/store/FoodStore/FoodStore';
 import { DishStoreInstance, RootInstance } from '@/store/RootStoreModel';
-import { TimeNow } from '@/components/features/builders/shared/ContentEdit/Time/TimeNow';
 import style from './ScheduleFood.module.scss';
 import Button from '@/components/ui/atoms/Button/Button';
 import { ScheduleItemCommonForm } from '@/components/features/builders/ScheduleBuilder/components/layout/ScheduleItemCommonForm';
-import { modalStoreV2 } from '@/store/GlobalUiStore/ModalStoreV2/ModalStoreV2';
-import { ModalSearchFood } from '@/components/features/builders/shared/modals/ModalSearchFood';
 import Logo from '@/assets/icons/logo.svg';
 import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
-import { ButtonBack } from '@/components/ui/atoms/Button/ButtonBack';
-import { RouterUrls } from '@/router';
 import { TimeChoose } from '@/components/ui/TimeChoose';
+import { useEmitter } from '@/hooks/useEmitter';
+import { ScheduleFoodsItemType } from '@/domain/schedule/scheduleFood/ScheduleFoods.model';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
+import { scrollToElement } from '@/lib/scroll';
 
 interface ScheduleFoodProps {
   foodStore: FoodStoreInstance;
   dishStore: DishStoreInstance;
   scheduleStore: RootInstance['foodScheduleStore'];
-  scheduleChildItem: RootInstance['foodScheduleStore']['foodDraft'];
+  scheduleChildItem: ScheduleFoodsItemType;
   parentScheduleId: string; // DD-MM-YYYY format, e.g. "15-09-2024"
 }
 
 const ScheduleFood = observer((props: ScheduleFoodProps) => {
-  const navigate = useNavigate();
+  const isDraft = props.scheduleChildItem.id === 'DRAFT';
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
+  const { toScheduleBuilder } = useAppRoutes();
+
   const { parentScheduleId, scheduleChildItem: currentChild, scheduleStore } = props;
-
-  // const timeState = useLocalObservable(() => ({
-  //   localTime: currentChild.time,
-  //   handleTimeUpdate(newTime: string) {
-  //     this.localTime = newTime;
-  //     currentChild.updateTime(newTime);
-  //   },
-  // }));
-
-  const handleFinish = () => {
-    navigate(RouterUrls.Schedule(parentScheduleId));
-    scheduleStore.commitFoodDraft(parentScheduleId);
-  };
 
   const handleTimeFinish = (time: string) => {
     currentChild.updateTime(time);
     // Auto-scroll to next section
-    const foodSection = document.getElementById('food-section');
-    if (foodSection) {
-      foodSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  };
-
-  const openSearchFoodWithArgs = async () => {
-    // const result = await modalStoreV2.show(ModalSearchFood, {
-    //   productId: currentChild.contentProduct?.foodId,
-    //   dishId: currentChild.contentDish?.dishId,
-    // });
-    // console.log(result);
-    // if (!result.id) return;
-    // const { variant, id } = result;
-    // currentChild.update(variant, id);
-    // handleFoodFinish();
+    // Delay scroll to allow keyboard to dismiss and viewport to settle
+    scrollToElement('schedule-item-form', 'food-section', { behavior: 'auto', delay: 100 });
   };
 
   const onFoodAdd = (payload: { variant: 'dish' | 'product'; id: string }) => {
@@ -74,9 +48,18 @@ const ScheduleFood = observer((props: ScheduleFoodProps) => {
     setIsSearchExpanded(false);
   };
 
+  const handleFinish = () => {
+    if (isDraft) {
+      scheduleStore.commitFoodDraft(parentScheduleId);
+    }
+    toScheduleBuilder(parentScheduleId);
+  };
+
   const handleQuantityFinish = () => {
     // handleFinish();
   };
+
+  useEmitter('back', () => setIsSearchExpanded(false));
 
   return (
     <ScheduleItemCommonForm
@@ -88,7 +71,7 @@ const ScheduleFood = observer((props: ScheduleFoodProps) => {
       }
     >
       <div className={style.section} id="time-section">
-        <TimeChoose onFinish={handleTimeFinish} />
+        <TimeChoose onFinish={handleTimeFinish} initialTime={currentChild.time} />
         {/* <ContentEdit.Time onFinish={handleTimeFinish} /> */}
       </div>
       <div className={style.section} id="food-section">
@@ -119,7 +102,6 @@ const ScheduleFood = observer((props: ScheduleFoodProps) => {
               onFinish={onFoodAdd}
               currentDishId={currentChild.content?.dishId}
               currentProductId={currentChild.content?.foodId}
-              beforeSearchInput={<ButtonBack onClick={() => setIsSearchExpanded(false)} />}
             />
           }
         ></SearchFormExpandable>
@@ -132,7 +114,5 @@ const ScheduleFood = observer((props: ScheduleFoodProps) => {
     </ScheduleItemCommonForm>
   );
 });
-
-TimeNow.motionKey = 'time';
 
 export default ScheduleFood;

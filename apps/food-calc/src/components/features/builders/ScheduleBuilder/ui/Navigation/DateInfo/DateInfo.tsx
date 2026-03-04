@@ -29,13 +29,10 @@ const DateInfo = ({ scrollYProgress, style, className }: Props) => {
 
   const { day, monthName, monthNumber, weekdayName, weekdayNameShort } = getTitle(dateParam);
 
-  const dateWordsOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const shortDayNameOpacity = useTransform(scrollYProgress, [0.5, 1], [0, 1], { clamp: true });
-  const shortDayNameHeight = useTransform(scrollYProgress, [0, 0.8], ['0em', '1em'], {
-    clamp: true,
-  });
+  const dateWordsScale = useTransform(scrollYProgress, [0, 0.4], [1, 0], { clamp: true });
 
-  const dateWordsHeight = useTransform(scrollYProgress, [0, 1], ['1.5em', '0em']);
+  const shortDayNameOpacity = useTransform(scrollYProgress, [0.6, 1], [0, 1], { clamp: true });
+  const shortDayNameScale = useTransform(scrollYProgress, [0.6, 1], [0, 1], { clamp: true });
   // const containerGap = useTransform(scrollYProgress, [0, 1], ['8px', '0px']);
   return (
     <div
@@ -51,10 +48,9 @@ const DateInfo = ({ scrollYProgress, style, className }: Props) => {
             className={styles.dateWord}
             style={{
               opacity: shortDayNameOpacity,
-              height: shortDayNameHeight,
-              overflow: 'hidden',
-              willChange: 'opacity',
-              transform: 'translateZ(0)',
+              transform: `scaleY(${shortDayNameScale})`,
+              transformOrigin: 'top',
+              willChange: 'opacity, transform',
             }}
           >
             {weekdayNameShort}
@@ -68,9 +64,10 @@ const DateInfo = ({ scrollYProgress, style, className }: Props) => {
         <motion.div
           className={styles.dateWords}
           style={{
-            opacity: dateWordsOpacity,
-            height: dateWordsHeight,
-            overflow: 'hidden',
+            opacity: dateWordsScale,
+            transform: `scaleY(${dateWordsScale})`,
+            transformOrigin: 'top',
+            willChange: 'opacity, transform',
           }}
         >
           <span className={styles.dateWord}>{weekdayName},</span>

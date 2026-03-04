@@ -9,8 +9,9 @@
 
 .wrapper {
     display: inline-flex;
-    align-items: center;
-    padding: 12px 28px;
+    // align-items: center;
+    // margin-left: auto;
+    padding: 12px 12px 12px 12px;
     border-radius: 16px;
 
     transition: 0.2s box-shadow ease-in-out, outline-color 0.2s ease-in-out;
@@ -35,9 +36,9 @@
 
 .input {
     display: block;
-    width: 90px;
+    width: 130px;
     padding: 6px 4px;
-    font-size: 3.5rem;
+    font-size: 5rem;
     font-weight: 900;
     text-shadow: #ffd700;
     text-align: center;
@@ -71,12 +72,14 @@
 }
 
 .separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: inherit;
     font-weight: 400;
     user-select: none;
     pointer-events: none;
     font-size: 2.5rem;
-    width: 10px;
 }
 
 .blinking {
@@ -126,7 +129,21 @@
 
 .buttonsWrapper {
     display: flex;
-    gap: 40px;
     flex-grow: 1;
 
+}
+
+.nativeInput {
+    font-size: 2rem;
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: inherit;
+    cursor: pointer;
+
+    &:focus {
+        outline: none;
+        border-color: rgba(255, 0, 0, 0.8);
+    }
 }

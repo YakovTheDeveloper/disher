@@ -2,46 +2,28 @@ import { useNavigate, useLocation } from 'react-router';
 import { RouterLinks, RouterUrls, getScheduleFoodUrl, getScheduleEventUrl, getDishFoodDraftUrl } from '@/router';
 
 export interface UseAppRoutesOptions {
-    /** Fallback URL when there's no history to go back to */
     fallbackUrl?: string;
 }
 
 export interface UseAppRoutesReturn {
-    /** Standard navigate function */
     navigate: ReturnType<typeof useNavigate>;
-    /** Current location */
     location: ReturnType<typeof useLocation>;
-    /** Go back with fallback support */
     goBack: (fallback?: string) => void;
-    /** Navigate to root */
     toRoot: () => void;
-    /** Navigate to daily norms list */
     toDailyNorms: () => void;
-    /** Navigate to daily norm by ID */
     toDailyNorm: (id: string) => void;
-    /** Navigate to dish builder (create new) */
     toDishBuilder: () => void;
-    /** Navigate to dish by ID */
     toDish: (id: string) => void;
-    /** Navigate to dish food draft */
     toDishFoodDraft: (id: string) => void;
-    /** Navigate to dish food by child ID */
     toDishFood: (id: string, childId: string) => void;
-    /** Navigate to schedule list */
     toSchedule: () => void;
-    /** Navigate to schedule builder by ID */
     toScheduleBuilder: (id: string) => void;
-    /** Navigate to schedule food */
     toScheduleFood: (id: string, childId: string) => void;
-    /** Navigate to schedule event */
     toScheduleEvent: (id: string, childId: string) => void;
-    /** Navigate to load data page */
     toLoadData: () => void;
-    /** Navigate to dishes list */
     toDishes: () => void;
-    /** Navigate to user product by ID */
+    toProducts: () => void;
     toUserProduct: (id: string) => void;
-    /** Navigate to test page */
     toTest: () => void;
 }
 
@@ -91,6 +73,7 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
     const toScheduleEvent = (id: string, childId: string) => navigate(getScheduleEventUrl(id, childId));
     const toLoadData = () => navigate(RouterLinks.LoadData);
     const toDishes = () => navigate(RouterLinks.Dishes);
+    const toProducts = () => navigate(RouterLinks.Products);
     const toUserProduct = (id: string) => navigate(`${RouterLinks.UserProduct}/${id}`);
     const toTest = () => navigate(RouterLinks.Test2);
 
@@ -111,6 +94,7 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
         toScheduleEvent,
         toLoadData,
         toDishes,
+        toProducts,
         toUserProduct,
         toTest,
     };

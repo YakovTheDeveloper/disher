@@ -1,7 +1,7 @@
 import { types, cast, Instance, getSnapshot } from "mobx-state-tree"
 import { syncSchedules } from "@/api/schedule/schedule.api"
 import { ISODate } from "@/types/common/common"
-import { ScheduleFoods, ScheduleFoodsItem } from "@/domain/schedule/scheduleFood/ScheduleFoods.model"
+import { ScheduleFoods, ScheduleFoodsItem, ScheduleFoodsItemType } from "@/domain/schedule/scheduleFood/ScheduleFoods.model"
 import { createFoodScheduleModel } from "@/store/FoodScheduleStore/fabric"
 import { createRequestController } from "@/store/common/pureFabrication/createRequestController"
 import { ScheduleTime } from "@/store/common/ScheduleTime.model"
@@ -15,7 +15,6 @@ export const FoodScheduleStore = types
         foodDraft: types.optional(ScheduleFoodsItem, {
             id: "DRAFT",
             time: DEFAULT_DRAFT_TIME
-
         }),
     })
     .views(self => ({
@@ -64,15 +63,15 @@ export const FoodScheduleStore = types
             schedule.dailyEvents = payload
         },
 
-        getScheduleChildById(scheduleId: string, itemId: string) {
-            console.log('getScheduleChildById', scheduleId, itemId);
-            const schedule = self.data.get(scheduleId)
-            if (!schedule) return null
-
+        getScheduleChildById(scheduleId: string, itemId: string): ScheduleFoodsItemType | null | undefined {
             if (itemId === 'draft') {
                 return self.foodDraft
             }
-            return schedule
+
+            const schedule = self.data.get(scheduleId)
+            if (!schedule) return null
+
+            return schedule.getChildById(itemId)
         },
 
     }))

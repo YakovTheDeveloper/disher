@@ -10,6 +10,7 @@ type HeaderGradientConfig = {
 };
 
 type Props = {
+  id?: string;
   header: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
@@ -26,6 +27,7 @@ const DEFAULT_SHADOW_GRADIENT =
   'linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, 0.15) 100%)';
 
 const ColumnLayoutWithFixedHeader = ({
+  id,
   header,
   children,
   footer,
@@ -44,16 +46,19 @@ const ColumnLayoutWithFixedHeader = ({
   };
 
   return (
-    <section className={clsx(styles.container, containerClassName)} style={containerStyle}>
-      <motion.header
-        className={clsx(styles.header, headerClassName)}
+    <section id={id} className={clsx(styles.container, containerClassName)} style={containerStyle}>
+      <motion.header className={clsx(styles.header, headerClassName)}>
+        <div className={styles.headerInner}>{header}</div>
+      </motion.header>
+
+      <motion.div
+        className={styles.additionalBackground}
         variants={headerVariants}
         initial="initial"
         animate="animate"
         transition={{ duration: 0.6, ease: 'easeOut' }}
-      >
-        <div className={styles.headerInner}>{header}</div>
-      </motion.header>
+      ></motion.div>
+
       <div className={clsx(styles.content, contentClassName)}>{children}</div>
       {footer}
     </section>

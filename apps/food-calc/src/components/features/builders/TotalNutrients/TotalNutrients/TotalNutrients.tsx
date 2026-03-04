@@ -16,6 +16,7 @@ import { Spacer } from '@/components/ui/atoms/Spacer';
 import { Button } from '@/components/ui/atoms/Button';
 import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
 import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
+import { OpenDailyNorms } from '@/components/features/dailyNorms/OpenDailyNorms';
 
 export interface TotalNutrientsRef {
   calculate: () => void;
@@ -31,8 +32,6 @@ type Props = {
 };
 
 const TotalNutrients = ({ countable, children }: Props) => {
-  return null;
-
   const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);
   nutrientStore.setEntity(countable);
 
@@ -55,14 +54,8 @@ const TotalNutrients = ({ countable, children }: Props) => {
         Го
       </Button> */}
       <Nutrients store={nutrientStore} renderOverlay={renderOverlay} asControlledForm={false} />
-      <Button
-        variant="ghost"
-        onClick={() =>
-          useModalsAndDrawers().drawerStore.open({ type: DrawerTypesV2.DailyNorm.Choose })
-        }
-      >
-        поменять норму
-      </Button>
+      <OpenDailyNorms />
+
       {children}
 
       {countable.foodWithNoNutrients.length && (

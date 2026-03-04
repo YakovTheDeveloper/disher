@@ -6,7 +6,6 @@ import { Drawer as DrawerLib } from 'vaul';
 import { AnimatePresence, motion } from 'framer-motion';
 import CrossIcon from '@/assets/icons/cross.svg';
 import { emitter } from '@/infrastructure/emitter/emitter';
-import { useKeyboardDetection } from './useKeyboardDetection';
 
 type Props = {
   children: React.ReactNode;

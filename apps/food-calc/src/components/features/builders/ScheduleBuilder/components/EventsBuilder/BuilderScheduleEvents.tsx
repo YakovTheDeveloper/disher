@@ -67,51 +67,53 @@ const BuilderScheduleEvents = ({ schedule }: Props) => {
   };
 
   return (
-    <>
-      <Screen
-        actions={
-          <ActionsHeader
-            show={selectionStoreEvents.isActionsMode}
-            onBack={() => selectionStoreEvents.clearSelection()}
-            left={
-              <button
-                onClick={() => {
-                  domainStore.globalUiStore.drawerStore.open({
-                    type: DrawerTypesV2.Confirmation.RemoveScheduleEvents,
-                  });
-                }}
-              >
-                удалить
-              </button>
-            }
-          >
-            экшены событий
-          </ActionsHeader>
-        }
-        key={3}
-        title={<ScreenLabel variant="screenHeader">События</ScreenLabel>}
-        header={<Navigation></Navigation>}
-        bottom={<Buttons.Add onClick={onEventAdd} />}
-      >
-        <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
-          <ItemsList offsetTop>
-            {schedule.eventsGroupedByTime.map((timeGroup) => (
-              <TimeGroup key={timeGroup.time} group={timeGroup}>
-                {renderEventListItem}
-              </TimeGroup>
-            ))}
-          </ItemsList>
-        </section>
-      </Screen>
-
-      {/* <Actions isShow={() => true}>
-        <ActionButton.Finish onClick={onFinishHandler} content={vm}>
-          обновить
-        </ActionButton.Finish>
-        <ActionButton.Add onClick={onEventContentCreateModalOpen} />
-        <ActionButton.AdditionalOptions options={options} />
-      </Actions> */}
-    </>
+    <Screen
+      offsetTop
+      actions={
+        <ActionsHeader
+          show={selectionStoreEvents.isActionsMode}
+          onBack={() => selectionStoreEvents.clearSelection()}
+          left={
+            <button
+              onClick={() => {
+                domainStore.globalUiStore.drawerStore.open({
+                  type: DrawerTypesV2.Confirmation.RemoveScheduleEvents,
+                });
+              }}
+            >
+              удалить
+            </button>
+          }
+        >
+          экшены событий
+        </ActionsHeader>
+      }
+      key={3}
+      title={<ScreenLabel variant="screenHeader">События</ScreenLabel>}
+      header={<Navigation></Navigation>}
+      bottom={<Buttons.Add onClick={onEventAdd} />}
+    >
+      <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
+        <ItemsList offsetTop>
+          {schedule.eventsGroupedByTime.map((timeGroup) => (
+            <TimeGroup key={timeGroup.time} group={timeGroup}>
+              {timeGroup.items.map((item: Instance<typeof ScheduleEvent>) => {
+                return (
+                  <CommonListItem
+                    className={styles.listItemRow}
+                    id={item.id}
+                    key={item.id}
+                    sync={item.sync}
+                  >
+                    <p onClick={() => onEventEditModalOpen(item)}>{getEventDescription(item)}</p>
+                  </CommonListItem>
+                );
+              })}
+            </TimeGroup>
+          ))}
+        </ItemsList>
+      </section>
+    </Screen>
   );
 };
 

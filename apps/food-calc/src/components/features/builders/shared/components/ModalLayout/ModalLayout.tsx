@@ -11,7 +11,7 @@ type Props = {
 };
 
 const ModalLayout = ({ children, className }: Props) => {
-  const { keyboardVisible } = useKeyboardDetection();
+  // const { keyboardVisible } = useKeyboardDetection();
 
   return (
     <Dialog.Content asChild>
@@ -24,7 +24,7 @@ const ModalLayout = ({ children, className }: Props) => {
       >
         <div
           className={clsx(styles.container, className, {
-            [styles.keyboardVisible]: keyboardVisible,
+            [styles.keyboardVisible]: false,
           })}
         >
           <motion.main

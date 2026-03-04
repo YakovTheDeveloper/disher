@@ -24,22 +24,28 @@
 .button {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
   width: 100%;
   padding: 12px 16px;
   border: 2px solid transparent;
   border-radius: 24px;
-  background-color: #ffffff;
-  color: #4a52c2;
+  color: rgb(71, 54, 201);
   font-size: 1rem;
   line-height: 1.5;
   cursor: pointer;
   transition: background-color 0.2s ease;
   text-align: left;
+  font-style: italic;
+
+  box-shadow: 0 4px 25px rgba(223, 223, 223, 0.8);
+  background-color: rgba(255, 255, 255, 0.2);
+
 
   &.hasText {
     border: 2px solid var(--color-accent);
     // font-weight: 500;
+    font-style: normal;
+
     color: var(--color-accent);
   }
 
@@ -49,16 +55,19 @@
 
   &:hover {
     border-color: var(--color-accent);
-    background-color: rgb(192, 212, 255);
     color: var(--color-accent);
+    text-decoration: underline;
+    background: rgb(244, 244, 244);
+
   }
 
   &:active {
     border-color: var(--color-accent);
-    background-color: #BBDEFB;
     color: var(--color-accent);
     box-shadow: 0 2px 6px rgba(74, 82, 194, 0.2);
     transform: translateY(0);
+    text-decoration: underline;
+    background: rgb(244, 244, 244);
   }
 
 }
@@ -87,10 +96,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #AED6F0, #BFDFFF);
+  opacity: 0.7;
+  background: linear-gradient(135deg, rgb(255, 255, 255), #deeeff);
   border-radius: 12px;
   position: relative;
 }
@@ -99,12 +109,12 @@
 .addIcon::after {
   content: '';
   position: absolute;
-  background-color: #ffffff;
+  background: linear-gradient(135deg, rgb(71, 54, 201), #3b9dff);
   border-radius: 2px;
 }
 
 .addIcon::before {
-  width: 10px;
+  width: 9px;
   height: 2px;
   top: 50%;
   left: 50%;
@@ -113,7 +123,7 @@
 
 .addIcon::after {
   width: 2px;
-  height: 10px;
+  height: 9px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -143,4 +153,3 @@
   background-color: rgba(74, 82, 194, 0.15);
   transform: scale(0.98);
 }
-
