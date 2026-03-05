@@ -1,0 +1,22 @@
+.container {
+    display: flex;
+    position: relative;
+    padding: 0.5rem;
+
+    &::before {
+        content: attr(data-text);
+        text-transform: uppercase;
+        text-align: center;
+        color: rgba(0, 0, 0, 0.04);
+        font-weight: 900;
+        font-size: 66px;
+        line-height: 1;
+        letter-spacing: -3px;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: -1;
+        pointer-events: none;
+        user-select: none;
+    }
+}

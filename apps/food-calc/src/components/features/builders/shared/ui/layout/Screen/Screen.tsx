@@ -1,56 +1,91 @@
 import { observer } from 'mobx-react-lite';
-import { useScroll, useTransform } from 'framer-motion';
 import styles from './Screen.module.scss';
-import { ScreenHeader } from './ScreenHeader';
 import { COLLAPSE_CONFIG } from './types';
 import { ScreenScrollProvider } from './context/ScreenScrollContext';
 import clsx from 'clsx';
-import { useRef } from 'react';
+import { useRef, memo } from 'react';
+import { ScrollTopButton } from '@/components/features/builders/shared/ui/Actions/button/ScrollTopButton';
+import { useScrollHide } from '@/hooks/useScrollHide';
+import { useBottomPanelsVisibility } from './useBottomPanelsVisibility';
 
 type Props = {
   children: React.ReactNode;
   actions?: React.ReactNode;
-  bottom?: React.ReactNode;
-  header: React.ReactNode;
+  bottomRight?: React.ReactNode;
+  header?: React.ReactNode;
   offsetTop: boolean;
   title?: React.ReactNode;
   backgroundColor?: 'gray' | 'white';
+  overlay?: React.ReactNode;
+  topLeft?: React.ReactNode;
 };
 
 const Screen = ({
   header,
   children,
-  bottom,
+  bottomRight,
   actions,
-  title,
   backgroundColor,
   offsetTop,
+  overlay,
+  topLeft,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const { scrollY } = useScroll({
-    container: scrollContainerRef,
+  const { scrollYProgress, isScrollingDown, isScrolledPastThreshold } = useScrollHide({
+    containerRef: scrollContainerRef,
+    collapseDistance: COLLAPSE_CONFIG.collapseDistance,
   });
 
-  const scrollYProgress = useTransform(scrollY, [0, COLLAPSE_CONFIG.collapseDistance], [0, 1], {
-    clamp: true,
-  });
+  const { isBottomPanelsVisible } = useBottomPanelsVisibility({ isScrollingDown });
+
+  const scrollTop = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className={clsx([styles.screen, backgroundColor && styles[`bg-${backgroundColor}`]])}>
       <div className={styles.screenScroll} ref={scrollContainerRef}>
         {offsetTop && <div className={styles.upperPlace}></div>}
-        <ScreenHeader scrollYProgress={scrollYProgress} title={title}>
-          <ScreenScrollProvider value={scrollYProgress}>{header}</ScreenScrollProvider>
-        </ScreenHeader>
+
+        {header && <ScreenScrollProvider value={scrollYProgress}>{header}</ScreenScrollProvider>}
 
         {children}
       </div>
 
-      {bottom && <div className={styles.bottom}>{bottom}</div>}
-      {actions && <div className={styles.actions}>{actions}</div>}
+      {/* ScrollTopButton with CSS-based visibility to avoid DOM thrashing */}
+      <div
+        className={clsx(
+          styles.bottomLeft,
+          isScrolledPastThreshold ? styles.visible : styles.hidden
+        )}
+        style={{ pointerEvents: isScrolledPastThreshold ? 'auto' : 'none' }}
+      >
+        <ScrollTopButton onClick={scrollTop} />
+      </div>
+
+      {bottomRight && <div className={clsx(styles.bottomRight)}>{bottomRight}</div>}
+
+      {topLeft && (
+        <div className={clsx(styles.topLeft, topLeft ? styles.visible : styles.hidden)}>
+          {topLeft}
+        </div>
+      )}
+
+      {actions && (
+        <div
+          className={clsx(styles.actions, isBottomPanelsVisible ? styles.visible : styles.hidden)}
+          style={{ pointerEvents: isBottomPanelsVisible ? 'auto' : 'none' }}
+        >
+          {actions}
+        </div>
+      )}
+
+      {overlay}
     </div>
   );
 };
 
-export default observer(Screen);
+export default memo(observer(Screen));

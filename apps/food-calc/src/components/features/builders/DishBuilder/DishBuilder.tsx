@@ -23,6 +23,9 @@ import { FoodName } from '@/components/features/builders/shared/ui/FoodName';
 import { Quantity } from '@/components/features/builders/shared/ui/Quantity';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import styles from './DishBuilder.module.scss';
+import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
+import EditableText from '@/components/ui/atoms/EditableText/EditableText';
+import TextBehind from '@/components/ui/TextBehind/TextBehind';
 
 type Props = {
   init: Instance<typeof Dish>;
@@ -47,6 +50,7 @@ const DishBuilder = ({ init }: Props) => {
       </Screen>
 
       <Screen
+        offsetTop
         actions={
           <ActionsHeader
             left={
@@ -75,8 +79,16 @@ const DishBuilder = ({ init }: Props) => {
             {init.name}
           </ScreenLabel>
         }
-        header={<HeaderInputName entity={init} asInput />}
-        bottom={<Buttons.Add onClick={onAdd} />}
+        header={
+          <TextBehind text="Блюдо">
+            <EditableText
+              value={init?.name || ''}
+              onChange={(val) => init?.changeName(val)}
+              className={styles.textInput}
+            />
+          </TextBehind>
+        }
+        bottomRight={<AddButton onClick={onAdd} />}
       >
         <ItemsList offsetTop>
           {dishes.items.map((item) => {

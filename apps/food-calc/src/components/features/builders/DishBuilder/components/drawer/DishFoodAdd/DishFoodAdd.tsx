@@ -13,53 +13,30 @@ import { SearchFormExpandable } from '@/components/features/shared/components/Se
 import { SearchFoodButton } from '@/components/features/builders/shared/components/SearchFood';
 import Logo from '@/assets/icons/logo.svg';
 import { Instance } from 'mobx-state-tree';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
+import { ProductQuantity } from '@/components/features/product/ProductQuantity';
 
 type Props = {
-  close: () => void;
   dishChildItem: Instance<typeof DishItem>;
-  foodStore?: FoodStoreInstance;
   dishStore?: DishStoreInstance;
+  dishId: string;
 };
 
 const DishFoodAdd = observer(
-  ({
-    close,
-    dishChildItem,
-    foodStore = domainStore.foodStore,
-    dishStore = domainStore.dishStore,
-  }: Props) => {
+  ({ dishId, dishChildItem, dishStore = domainStore.dishStore }: Props) => {
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+    const { toDish } = useAppRoutes();
 
     const handleFinish = () => {
-      dishStore.commitItemDraft(dishChildItem);
-      close();
+      dishStore.commitItemDraft(dishId);
+      toDish(dishId);
     };
 
     const onFoodAdd = (payload: { variant: 'dish' | 'product'; id: string }) => {
-      dishChildItem.update(payload.variant, payload.id);
+      if (payload.variant === 'dish') return;
+      dishChildItem.updateFood(payload.id);
       setIsSearchExpanded(false);
     };
-
-    const filterKeys = ['name'] as const;
-
-    const config = useMemo(
-      () =>
-        [
-          {
-            tabName: 'продукты',
-            list: foodStore.merged,
-            filterKeys,
-          },
-          {
-            tabName: 'блюда',
-            list: dishStore.merged,
-            filterKeys,
-          },
-        ] as const,
-      [foodStore.merged, dishStore.merged]
-    );
-
-    const filterState = useFilteringStateV2(config);
 
     return (
       <ColumnLayoutWithFixedHeader
@@ -94,9 +71,9 @@ const DishFoodAdd = observer(
             }
             content={
               <SearchFood
-                mode="products"
+                mode="products-only"
                 onFinish={onFoodAdd}
-                currentDishId={dishChildItem.content?.dishId}
+                currentDishId={null}
                 currentProductId={dishChildItem.content?.foodId}
               />
             }
@@ -104,7 +81,7 @@ const DishFoodAdd = observer(
         </div>
         {dishChildItem.content && (
           <div id="quantity-section">
-            <ContentEdit.Quantity content={dishChildItem.content} onFinish={() => {}} />
+            <ProductQuantity content={dishChildItem.content} onFinish={() => {}} />
           </div>
         )}
       </ColumnLayoutWithFixedHeader>

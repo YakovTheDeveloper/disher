@@ -16,13 +16,7 @@ const DishFoodPage = () => {
     return <div>Блюдо не найдено</div>;
   }
 
-  return (
-    <DishFoodAdd
-      dishStore={domainStore.dishStore}
-      foodStore={domainStore.foodStore}
-      dishChildItem={child}
-    />
-  );
+  return <DishFoodAdd dishId={id} dishStore={domainStore.dishStore} dishChildItem={child} />;
 };
 
 export default observer(DishFoodPage);

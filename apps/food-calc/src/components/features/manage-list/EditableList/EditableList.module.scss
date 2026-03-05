@@ -1,0 +1,17 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.deletedSection {
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed #ccc;
+}
+
+.deletedLabel {
+    font-size: 0.875rem;
+    color: #888;
+    padding: 0.25rem 1rem;
+}

@@ -1,22 +1,22 @@
 import { List } from '@/components/features/builders/shared/ContentEdit/Food/List';
-import { Buttons } from '@/components/features/builders/shared/ui/Actions/button';
 import { FoodName } from '@/components/features/builders/shared/ui/FoodName';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useState, useMemo } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import styles from './SearchFood.module.scss';
-import { Instance, SnapshotOut } from 'mobx-state-tree';
-import { ScheduleFoodsItem } from '@/domain/schedule/scheduleFood/ScheduleFoods.model';
 import { domainStore } from '@/store/store';
-import { filterBy } from '@/lib/filter/filter';
 import { SearchListItem } from '@/components/ui/atoms/SearchListItem';
 import { FoodNutrients } from '@/components/features/builders/shared/components/FoodNutrients';
-import {
-  useFilteringStateV2,
-  UseFilteringStateV2Return,
-} from '@/components/features/shared/hooks/useFilteringStateV2';
-import { foodSearchConfing } from '@/components/features/builders/ScheduleBuilder/components/schedule-food-actions/config/config';
+import { useFilteringStateV2 } from '@/components/features/shared/hooks/useFilteringStateV2';
+import { useCategoryFilterState } from '@/components/features/shared/hooks/useCategoryFilterState';
 import { SearchFoodControls } from '@/components/features/builders/shared/components/SearchFood/SearchFoodControls';
-import { FoodContentDish, FoodContentProduct } from '@/domain/shared/foodContent/foodContent';
+import { FilterButton } from '@/components/ui/atoms/Button';
+import { FilterPanel } from '@/components/ui/FilterPanel';
+import {
+  getDishCategoryGroups,
+  getProductCategoryGroups,
+  getDishCategoryOptions,
+  getProductCategoryOptions,
+} from '@/lib/filter/categoryOptions';
 
 export type SearchMode = 'products-only' | 'products-and-dishes';
 
@@ -34,14 +34,21 @@ const SearchFood = ({
   currentProductId,
   currentDishId,
   onFocusChange,
-  onOpen,
   mode = 'products-and-dishes',
 }: Props) => {
   const [currentInfoFood, setCurrentInfoFood] = useState('');
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+
+  // Category filter state
+  const categoryFilter = useCategoryFilterState();
+
+  // Determine current filter type based on tab
+  const getCurrentFilterType = (tab: string) => (tab === 'продукты' ? 'product' : 'dish');
 
   // Логика фильтрации - создаётся внутри компонента
   const filterKeys = ['name'] as const;
-  const searchState = useFilteringStateV2(
+
+  const filterState = useFilteringStateV2(
     useMemo(
       () =>
         [
@@ -60,10 +67,37 @@ const SearchFood = ({
     )
   );
 
-  // Используем внешний searchState или создаём внутренний
-  const filterState = searchState;
+  const currentFilterType = getCurrentFilterType(filterState.currentTab);
+  const currentCategoryFilter = categoryFilter.getCategoryFilter(currentFilterType);
+
+  // Apply category filter to filtered list
+  const filterStateWithCategory = useFilteringStateV2(
+    useMemo(
+      () =>
+        [
+          {
+            tabName: 'продукты',
+            list: domainStore.foodStore.merged,
+            filterKeys,
+          },
+          {
+            tabName: 'блюда',
+            list: domainStore.dishStore.merged,
+            filterKeys,
+          },
+        ] as const,
+      []
+    ),
+    {
+      categoryFilter: currentCategoryFilter,
+    }
+  );
 
   const onBackButton = () => setCurrentInfoFood('');
+
+  const toggleFilterPanel = () => {
+    setFilterPanelOpen((prev) => !prev);
+  };
 
   const onFoodAdd = useCallback(
     (payload: any) => {
@@ -143,33 +177,77 @@ const SearchFood = ({
 
         <div className={styles.header}>
           <SearchFoodControls
-            mode={mode}
-            searchState={filterState}
+            searchState={filterStateWithCategory}
             onFocusChange={onFocusChange}
-            onOpen={onOpen}
+            toggleFilterPanel={toggleFilterPanel}
           />
         </div>
 
-        {filterState.currentTab === 'продукты' && (
+        {filterStateWithCategory.currentTab === 'продукты' && (
           <List
             isShow={true}
             after={null}
             queryKey="productSearch"
-            onFetch={domainStore.foodStore.getFoodWithParams as any}
-            search={filterState}
+            onFetch={async () => ({ items: [], hasMore: false })}
+            search={filterStateWithCategory}
             renderListContent={renderProductItem}
+            onClose={() => {}}
           />
         )}
-        {filterState.currentTab === 'блюда' && mode === 'products-and-dishes' && (
+        {filterStateWithCategory.currentTab === 'блюда' && mode === 'products-and-dishes' && (
           <List
             isShow={true}
             after={null}
             queryKey="dishSearch"
-            onFetch={domainStore.dishStore.getAllWithParams as any}
-            search={filterState}
+            onFetch={async () => ({ items: [], hasMore: false })}
+            search={filterStateWithCategory}
             renderListContent={renderDishtItem}
+            onClose={() => {}}
           />
         )}
+
+        {/* Filter Panel at bottom of screen */}
+        <section className={styles.filterWrapper}>
+          {/* Tabs for switching between Products and Dishes */}
+          {mode === 'products-and-dishes' && (
+            <div className={styles.filterTabs}>
+              <button
+                className={`${styles.filterTab} ${filterStateWithCategory.currentTab === 'продукты' ? styles.filterTabActive : ''}`}
+                onClick={() => filterStateWithCategory.setTab('продукты')}
+              >
+                Продукты
+              </button>
+              <button
+                className={`${styles.filterTab} ${filterStateWithCategory.currentTab === 'блюда' ? styles.filterTabActive : ''}`}
+                onClick={() => filterStateWithCategory.setTab('блюда')}
+              >
+                Блюда
+              </button>
+            </div>
+          )}
+
+          <FilterPanel
+            groups={
+              filterStateWithCategory.currentTab === 'продукты'
+                ? getProductCategoryGroups()
+                : getDishCategoryGroups()
+            }
+            options={
+              filterStateWithCategory.currentTab === 'продукты'
+                ? getProductCategoryOptions()
+                : getDishCategoryOptions()
+            }
+            selectedValues={currentCategoryFilter}
+            onToggle={(value) => categoryFilter.toggleCategory(currentFilterType, value as string)}
+            onClear={() => categoryFilter.clearCategories(currentFilterType)}
+            title="Фильтр по категории"
+          />
+        </section>
+
+        {/* Filter Button in bottom-right corner */}
+        <div className={styles.filterButtonWrapper}>
+          <FilterButton isActive={filterPanelOpen} onClick={toggleFilterPanel} />
+        </div>
       </div>
     </>
   );

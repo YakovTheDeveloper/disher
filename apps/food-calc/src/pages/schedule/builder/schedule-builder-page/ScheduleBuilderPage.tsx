@@ -8,7 +8,7 @@ import { Instance } from 'mobx-state-tree';
 import SwipeableV2 from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableV2';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import { BuilderScheduleFood } from '@/components/features/builders/ScheduleBuilder/components/BuilderScheduleFood';
+import { FoodSchedule } from '@/components/widgets/FoodSchedule';
 import { BuilderScheduleEvents } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder';
 import { TotalNutrients } from '@/components/features/builders/TotalNutrients/TotalNutrients';
 
@@ -38,7 +38,7 @@ const Page = observer(({ date }: { date: string }) => {
         <Screen title={<ScreenLabel variant="screenHeader">Нутри</ScreenLabel>}>
           <TotalNutrients countable={foodSchedule} />
         </Screen>
-        <BuilderScheduleFood schedule={foodSchedule} />
+        <FoodSchedule schedule={foodSchedule} />
         <BuilderScheduleEvents schedule={eventSchedule} />
       </SwipeableV2>
     </>

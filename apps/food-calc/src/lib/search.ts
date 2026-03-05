@@ -16,6 +16,8 @@ export interface SearchOptions<T = Record<string, unknown>> {
     threshold?: number;
     /** Weight importance of keys (e.g., ['name:3', 'category:1']) */
     weights?: Record<string, number>;
+    /** Category filter - items must have at least one of these categories */
+    categoryFilter?: string[];
 }
 
 /**
@@ -31,26 +33,42 @@ export function fuzzySearch<T extends Record<string, any>>(
     query: string,
     options: SearchOptions
 ): T[] {
+    const { categoryFilter, minLength: configMinLength, limit: configLimit, ...searchOptions } = options;
     const trimmedQuery = query.trim();
+    const minLength = configMinLength ?? 2;
+    const limit = configLimit ?? 20;
+
+    // Start with all items (or filtered by category if provided)
+    let filteredItems: T[] = [...items];
+
+    // Apply category filter first if provided
+    if (categoryFilter && categoryFilter.length > 0) {
+        const lowerCategories = categoryFilter.map(c => c.toLowerCase());
+        filteredItems = filteredItems.filter(item => {
+            const itemCategory = item.category?.toLowerCase();
+            if (!itemCategory) return false;
+            return lowerCategories.some(cat => itemCategory.includes(cat));
+        });
+    }
+
+    // Return filtered items if no search query
+    if (!trimmedQuery) {
+        return filteredItems.slice(0, limit);
+    }
 
     // Return all items if query is too short for fuzzy matching
-    const minLength = options.minLength ?? 2;
     if (trimmedQuery.length < minLength) {
-        if (trimmedQuery.length === 0) {
-            return [...items];
-        }
-
         // For short queries, use simple include check
-        return fuzzySearchSimple(items, trimmedQuery, options.keys, options.limit ?? 20);
+        return fuzzySearchSimple(filteredItems, trimmedQuery, searchOptions.keys, limit);
     }
 
     // Fuse.js configuration for optimal performance and accuracy
     const fuseOptions: Fuse.IFuseOptions<T> = {
-        keys: options.weights
-            ? Object.entries(options.weights).map(([key, weight]) => ({ name: key, weight }))
-            : options.keys,
-        threshold: options.threshold ?? 0.4, // Reasonable balance of accuracy and fuzziness
-        distance: options.keys.length > 1 ? 100 : 80, // Allow more distance for multiple keys
+        keys: searchOptions.weights
+            ? Object.entries(searchOptions.weights).map(([key, weight]) => ({ name: key, weight }))
+            : searchOptions.keys,
+        threshold: searchOptions.threshold ?? 0.4, // Reasonable balance of accuracy and fuzziness
+        distance: searchOptions.keys.length > 1 ? 100 : 80, // Allow more distance for multiple keys
         includeScore: false, // We don't need scores in result
         includeMatches: false, // Keep results clean
         minMatchCharLength: minLength,
@@ -63,11 +81,11 @@ export function fuzzySearch<T extends Record<string, any>>(
         matchAllTokens: true,
     };
 
-    const fuse = new Fuse(items, fuseOptions);
+    const fuse = new Fuse(filteredItems, fuseOptions);
     const results = fuse.search(trimmedQuery);
 
     return results
-        .slice(0, options.limit ?? 20)
+        .slice(0, limit)
         .map(result => result.item);
 }
 

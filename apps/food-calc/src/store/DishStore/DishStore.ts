@@ -6,63 +6,49 @@ import { getDishById, syncDishes } from "@/api/dish/dish.api"
 import { createRequestController } from "@/store/common/pureFabrication/createRequestController"
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel"
 import { createDataStoreModel, createEntityDataStore, createImmutableEntityStore } from "@/store/shared/DataStore"
-
-const storeModel = types.model("DishStore", {
-    request: types.map(RequestState),
-    status: types.optional(StatusModel, {
-        fetchGet: {},
-        fetchSync: {},
-    }),
-    // Draft state for dish items
-    itemDraft: types.optional(DishItem, {
-        id: "DRAFT",
-        contentProduct: {
-            foodId: '0',
-            quantity: 100,
-            variant: "product"
-        }
-    }),
-})
-    .actions(self => ({
-
-        fetchSync: async (payload: Instance<typeof Dish>[]) => {
-            const syncRequest = createRequestController({
-                getState: (id: string, variant: string) => self.status[variant].get(id)
-            })
-
-            return await syncRequest.run(
-                payload.map(x => ({ id: x.id, variant: "fetchSync" })),
-                () => syncDishes(payload)
-            );
-        },
-
-        fetchGet: async (id: string) => {
-            const syncRequest = createRequestController({
-                getState: (id: string, variant: string) => self.status[variant].get(id)
-            });
-            return await syncRequest.load(
-                [{ id, variant: "fetchGet" }],
-                () => getDishById(id)
-            );
-        },
-
-        // ======== DRAFT METHODS ========
-        clearItemDraft() {
-            self.itemDraft.updateFood('0')
-        },
-
-        commitItemDraft(dish: Instance<typeof Dish>): void {
-            // const content = self.itemDraft.contentProduct
-            const { id, ...snapshot } = getSnapshot(self.itemDraft)
-            dish.addChildWithLocalData(snapshot)
-            self.clearItemDraft()
-        },
-    }))
+import { FoodContentProduct } from "@/domain/shared/foodContent/foodContent"
+import { DishFactory } from "@/store/DishStore/Dish.factory"
 
 export const DishStore = types.compose(
-    "DishStore",
-    storeModel,
+    types.model({
+        itemDraft: types.optional(DishItem, {
+            id: "DRAFT",
+            contentProduct: {
+                foodId: '0',
+                quantity: 100,
+                variant: "product"
+            }
+        }),
+    }),
     createDataStoreModel("DishStoreData", Dish)
-)
+).actions(self => ({
+
+    clearItemDraft() {
+        self.itemDraft.updateFood('0')
+    },
+
+    commitItemDraft(dishId: string): void {
+        const dish = self.user.getById(dishId)
+        if (!dish) {
+            console.log('no such dish')
+            return
+        }
+        // const content = self.itemDraft.contentProduct
+        const { id, ...snapshot } = getSnapshot(self.itemDraft)
+        dish.addChildWithLocalData(snapshot)
+        self.clearItemDraft()
+    },
+
+    createDishWithProductsContent(name: string, content: Instance<typeof FoodContentProduct> | Instance<typeof FoodContentProduct>[]) {
+        const dish = self.user.insert(DishFactory.createNewLocal({
+            name,
+            description: '',
+            userId: 0,
+        }))
+
+        dish.addChildrenByProductContent(content)
+        return dish.id
+    }
+}))
 
 export type DishStoreInstance = Instance<typeof DishStore>

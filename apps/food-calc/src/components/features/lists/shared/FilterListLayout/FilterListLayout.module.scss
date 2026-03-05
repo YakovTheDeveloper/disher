@@ -15,6 +15,7 @@
 
 .filters {
     padding: 0 0.5rem;
+    margin: 1rem 0 2rem 0;
     display: flex;
     justify-content: flex-end;
 }
@@ -23,8 +24,6 @@
     display: flex;
     position: relative;
     padding: 0.5rem;
-    margin-top: 1rem;
-    margin-bottom: 2rem;
 
     &::before {
         content: attr(data-text);

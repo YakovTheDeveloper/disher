@@ -1,132 +1,130 @@
-import { FC, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import styles from './FilterPanel.module.scss';
 
-export interface FilterOption {
-  value: string;
+// Generic types for category values
+export type CategoryValue = string;
+
+export interface CategoryGroup<T extends string = string> {
+  groupName: string;
+  categories: T[];
+  icon?: string;
+}
+
+export interface CategoryOption<T extends string = string> {
+  value: T;
   label: string;
-  icon?: React.ReactNode;
+  popularity?: number;
 }
 
-export interface FilterPanelProps {
-  isOpen: boolean;
-  primaryOptions: FilterOption[];
-  selectedPrimary: string | null;
-  onPrimaryChange: (value: string) => void;
-  secondaryOptions?: FilterOption[];
-  selectedSecondary: string[];
-  onSecondaryChange: (value: string) => void;
+export interface FilterPanelProps<T extends string = string> {
+  /** Array of category groups to display */
+  groups: CategoryGroup<T>[];
+  /** Map of category values to their display options */
+  options: Record<string, CategoryOption<T>>;
+  /** Currently selected category values */
+  selectedValues: T[];
+  /** Callback when a category is toggled */
+  onToggle: (value: T) => void;
+  /** Callback to clear all selections */
+  onClear?: () => void;
+  /** Optional title for the panel */
+  title?: string;
+  /** Optional className for styling overrides */
   className?: string;
-  maxHeight?: string | number;
-  onClose?: () => void;
+  /** Optional test id for testing */
+  testId?: string;
 }
 
-const FilterPanel: FC<FilterPanelProps> = ({
-  isOpen,
-  primaryOptions,
-  selectedPrimary,
-  onPrimaryChange,
-  secondaryOptions = [],
-  selectedSecondary,
-  onSecondaryChange,
+/**
+ * A dumb (presentational) filter panel component for mobile-first design.
+ * Works with any entity that has categorized values (Product, Dish, etc.)
+ *
+ * @example
+ * <FilterPanel
+ *   groups={DISH_CATEGORY_GROUPS}
+ *   options={dishOptions}
+ *   selectedValues={selectedCategories}
+ *   onToggle={handleToggle}
+ *   onClear={handleClear}
+ *   title="Filter by Category"
+ * />
+ */
+const FilterPanel = <T extends CategoryValue>({
+  groups,
+  options,
+  selectedValues,
+  onToggle,
+  onClear,
+  title,
   className,
-  maxHeight = 280,
-  onClose,
-}) => {
-  const handlePrimaryClick = useCallback(
-    (value: string) => {
-      onPrimaryChange(value);
-      // onClose?.();
-    },
-    [onPrimaryChange, onClose]
-  );
+  testId,
+}: FilterPanelProps<T>) => {
+  const hasSelection = selectedValues.length > 0;
 
-  const handleSecondaryClick = useCallback(
-    (value: string) => {
-      onSecondaryChange(value);
-    },
-    [onSecondaryChange]
-  );
-
-  const handleKeyDown = (e: React.KeyboardEvent, callback: () => void) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      callback();
-    }
-  };
+  const isSelected = (value: T): boolean => selectedValues.includes(value);
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className={clsx(styles.panel, className)}
-          style={{ maxHeight }}
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{
-            duration: 0.3,
-            ease: [0.25, 0.8, 0.25, 1],
-          }}
-        >
-          <div className={styles.content}>
-            {/* Primary Filters Section */}
-            {primaryOptions.length > 0 && (
-              <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>Тип</h3>
-                <div className={styles.primaryContainer}>
-                  {primaryOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      className={clsx(
-                        styles.primaryButton,
-                        selectedPrimary === option.value && styles.primaryButtonActive
-                      )}
-                      onClick={() => handlePrimaryClick(option.value)}
-                      onKeyDown={(e) => handleKeyDown(e, () => handlePrimaryClick(option.value))}
-                      aria-pressed={selectedPrimary === option.value}
-                      aria-label={option.label}
-                    >
-                      {option.icon && <span className={styles.icon}>{option.icon}</span>}
-                      <span>{option.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Secondary Filters Section */}
-            {secondaryOptions.length > 0 && (
-              <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>Фильтры</h3>
-                <div className={styles.secondaryContainer}>
-                  {secondaryOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      className={clsx(
-                        styles.tag,
-                        selectedSecondary.includes(option.value) && styles.tagActive
-                      )}
-                      onClick={() => handleSecondaryClick(option.value)}
-                      onKeyDown={(e) => handleKeyDown(e, () => handleSecondaryClick(option.value))}
-                      aria-pressed={selectedSecondary.includes(option.value)}
-                      aria-label={option.label}
-                    >
-                      {option.icon && <span className={styles.icon}>{option.icon}</span>}
-                      <span>{option.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </section>
+    <div className={clsx(styles.panel, className)} data-testid={testId}>
+      <div className={styles.content}>
+        {/* Header with title and clear button */}
+        {(title || hasSelection) && (
+          <div className={styles.header}>
+            {title && <h3 className={styles.title}>{title}</h3>}
+            {hasSelection && onClear && (
+              <button
+                type="button"
+                className={styles.clearButton}
+                onClick={onClear}
+                aria-label="Clear all filters"
+              >
+                Clear
+              </button>
             )}
           </div>
+        )}
 
-          {/* Animated border gradient at bottom */}
-          <div className={styles.borderGradient} />
-        </motion.div>
-      )}
-    </AnimatePresence>
+        {/* Category groups */}
+        <div className={styles.groups}>
+          {groups.map((group) => (
+            <section key={group.groupName} className={styles.section}>
+              <h4 className={styles.sectionTitle}>{group.groupName}</h4>
+              <div className={styles.tagsContainer}>
+                {group.categories.map((categoryValue) => {
+                  const option = options[categoryValue];
+                  if (!option) return null;
+
+                  const selected = isSelected(categoryValue);
+
+                  return (
+                    <button
+                      key={categoryValue}
+                      type="button"
+                      className={clsx(styles.tag, selected && styles.tagActive)}
+                      onClick={() => onToggle(categoryValue)}
+                      aria-pressed={selected}
+                    >
+                      {group.icon && (
+                        <span className={styles.tagIcon} aria-hidden="true">
+                          {group.icon}
+                        </span>
+                      )}
+                      <span className={styles.tagLabel}>{option.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+
+        {/* Selected count indicator */}
+        {hasSelection && (
+          <div className={styles.footer}>
+            <span className={styles.selectedCount}>{selectedValues.length} selected</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

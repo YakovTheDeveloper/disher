@@ -75,3 +75,5 @@ export const FoodScheduleStore = types
         },
 
     }))
+
+export type FoodScheduleStoreType = Instance<typeof FoodScheduleStore>

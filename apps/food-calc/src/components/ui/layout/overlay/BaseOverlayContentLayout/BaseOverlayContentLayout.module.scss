@@ -1,0 +1,25 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+}
+
+.header,
+.supFooter,
+.footer {
+  padding: 1rem;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+

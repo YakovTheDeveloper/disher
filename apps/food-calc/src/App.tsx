@@ -13,6 +13,7 @@ import { useLastFocusMethod } from '@/hooks/useLastFocusMethod';
 import { useUserAgentDetection } from '@/hooks/useUserAgentDetection';
 import { useGlobalScrollBlur } from '@/hooks/useGlobalScrollBlur';
 import DrawerManagerV2 from '@/DrawerManagerV2';
+import DrawerManagerV3 from '@/components/DrawerManagerV3';
 import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
 import { I18nextProvider } from 'react-i18next';
@@ -39,9 +40,12 @@ const App = () => {
             {/* <ModalManager /> */}
             <ModalManagerV2 />
           </Modal>
+
           <Drawer>
             <DrawerManagerV2 />
+            <DrawerManagerV3 />
           </Drawer>
+
           <AnimatedOutlet />
         </div>
       </QueryClientProvider>

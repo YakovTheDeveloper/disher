@@ -1,30 +1,42 @@
 import { SyncStatus } from "@/domain/commonListItem";
 import { ChildrenController } from "@/domain/shared/ChildrenController";
 import { PortionsController } from "@/domain/shared/PortionsController";
-import { ContentControllerDish, ProductContent } from "@/domain/shared/foodContent/foodContent";
+import { FoodContentProduct, ProductContent } from "@/domain/shared/foodContent/foodContent";
 import { NutrientSource } from "@/domain/shared/NutrientSource";
 
 import { aggregateNutrients } from "@/lib/nutrients/aggregateNutrients";
 import { getSnapshot, Instance, types } from "mobx-state-tree";
+const DEFAULT_QUANTITY = 100;
 
-export const DishItem = types.compose("DishItem",
-    types.model({
-        id: types.identifier,
-        sync: types.optional(SyncStatus, {})
-    }),
-    ContentControllerDish
-).views(self => ({
-    get effectiveQuantity(): number {
-        return self.content?.quantity
-    },
-})).actions(self => ({
-    // updateQuantity(quantity: number) {
-    //     self.content?.updateQuantity(quantity);
-    // },
-    // updateContent(id: string) {
-    //     self.updateFood(id)
-    // }
-}))
+export const DishItem = types.model("DishItem", {
+    id: types.identifier,
+    sync: types.optional(SyncStatus, {}),
+    contentProduct: FoodContentProduct,
+})
+    .views(self => ({
+        get content() {
+            return self.contentProduct
+        },
+        get effectiveQuantity(): number {
+            return self.content?.quantity
+        },
+    })).actions(self => {
+
+        function updateFood(id: string) {
+            if (self.contentProduct) {
+                self.contentProduct.update(id);
+                return;
+            }
+
+            self.contentProduct = FoodContentProduct.create({
+                variant: 'product',
+                foodId: id,
+                quantity: self.content?.quantity ?? DEFAULT_QUANTITY
+            });
+        }
+
+        return { updateFood }
+    })
 
 export const Dish = types.compose("Dish",
     types.model({
@@ -78,10 +90,22 @@ export const Dish = types.compose("Dish",
             self.description = description
         }
 
+        function addChildrenByProductContent(content: Instance<typeof FoodContentProduct> | Instance<typeof FoodContentProduct>[]) {
+            if (!Array.isArray(content)) {
+                self.addChildWithLocalData({ contentProduct: getSnapshot(content) })
+                return
+            }
+            const payload = content.map(item => ({ contentProduct: getSnapshot(item) }))
+            self.addBulkEachWithNewId(payload)
+        }
+
         return {
+            addChildrenByProductContent,
             getTotalNutrients,
             changeDescription,
             changeName,
-            setLastSync
+            setLastSync,
         };
     })
+
+export type DishModelInstance = Instance<typeof Dish>

@@ -1,39 +1,21 @@
 import { observer } from 'mobx-react-lite';
+import TextBehind from '@/components/ui/TextBehind/TextBehind';
 import styles from './FilterListLayout.module.scss';
 
 type Props = {
-  headerContent?: React.ReactNode;
   filterPanel?: React.ReactNode;
   searchPanel?: React.ReactNode;
   searchPanelTitle?: string;
   mainContent?: React.ReactNode;
-  bottomActionsPanel?: React.ReactNode;
 };
 
-const FilterListLayout = ({
-  headerContent,
-  filterPanel,
-  searchPanel,
-  searchPanelTitle,
-  mainContent,
-  bottomActionsPanel,
-}: Props) => {
+const FilterListLayout = ({ filterPanel, searchPanel, searchPanelTitle, mainContent }: Props) => {
   return (
-    <section className={styles.container}>
-      <header className={styles.header}>{headerContent}</header>
-      <div className={styles.content}>
-        {filterPanel && <div className={styles.filters}>{filterPanel}</div>}
-        {searchPanel && (
-          <div className={styles.search} data-text={searchPanelTitle}>
-            {searchPanel}
-          </div>
-        )}
-        {mainContent}
-        {bottomActionsPanel && (
-          <div className={styles.bottomActionsPanel}>{bottomActionsPanel}</div>
-        )}
-      </div>
-    </section>
+    <div className={styles.content}>
+      {searchPanel && <TextBehind text={searchPanelTitle}>{searchPanel}</TextBehind>}
+      {filterPanel && <div className={styles.filters}>{filterPanel}</div>}
+      {mainContent}
+    </div>
   );
 };
 

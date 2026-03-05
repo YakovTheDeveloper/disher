@@ -15,8 +15,8 @@ const DishFoodSelectionActions = ({ children }: Props) => {
 
   return (
     <>
-      <button onClick={onCopyDishItemsToScheduleButtonClick}>перенести еду в день</button>
-      <button onClick={onCopyToAnotherDishButtonClick}>перенести еду в другое блюдо</button>
+      <button onClick={onCopyDishItemsToScheduleButtonClick}>move/copy</button>
+      <button onClick={onCopyToAnotherDishButtonClick}>в блюдо</button>
     </>
   );
 };

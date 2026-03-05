@@ -154,31 +154,3 @@ export const ContentControllerFood = types.model({
         clear
     }
 })
-
-export const ContentControllerDish = types.model({
-    contentProduct: FoodContentProduct,
-}).views(self => ({
-    get content() {
-        return self.contentProduct
-    }
-})).actions(self => {
-
-    function updateFood(id: string) {
-        // food → food
-
-        if (self.contentProduct) {
-            self.contentProduct.update(id);
-            return;
-        }
-
-        self.contentProduct = FoodContentProduct.create({
-            variant: 'product',
-            foodId: id,
-            quantity: self.content?.quantity ?? DEFAULT_QUANTITY
-        });
-    }
-
-    return {
-        updateFood,
-    }
-})

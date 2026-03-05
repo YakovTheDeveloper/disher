@@ -2,20 +2,20 @@ import { observer } from 'mobx-react-lite';
 import { domainStore } from '@/store/store';
 import { RouterLinks } from '@/router';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
-import { Button } from '@/components/ui/atoms/Button';
 import { DishStoreInstance } from '@/store/DishStore/DishStore';
 import { DishFactory } from '@/store/DishStore/Dish.factory';
 import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
-import { useScrollToTop } from '@/components/features/lists/shared/hooks/useScrollToTop';
 import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
-import Logo from '@/assets/icons/logo.svg';
 import FilterListLayout from '@/components/features/lists/shared/FilterListLayout/FilterListLayout';
-import { Buttons } from '@/components/features/builders/shared/ui/Actions/button';
 import styles from '../shared/commonStyles.module.scss';
-import { ScrollTopButton } from '../shared/ScrollTopButton';
 
 import { FilterPanel } from '../shared/FilterPanel';
-import clsx from 'clsx';
+import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
+import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
+import { PopoverTrigger } from '@/components/ui/popover/PopoverTrigger';
+import AddListItemButton from '@/components/ui/atoms/Button/AddListItemButton/AddListItemButton';
+import { drawerStoreV3 } from '@/store/GlobalUiStore/DrawerStoreV3/DrawerStoreV3';
+import { AddDishToDayScheduleOverlay } from '@/components/features/daySchedule/add-dish-to-day-schedule/AddDishToDayScheduleOverlay';
 type Props = {
   dishStore?: DishStoreInstance;
 };
@@ -51,35 +51,46 @@ const ListDishes = ({ dishStore = domainStore.dishStore }: Props) => {
   ];
 
   return (
-    <FilterListLayout
-      filterPanel={<FilterPanel selectedFilters={['breakfast']} columns={filterColumns} />}
-      searchPanel={
-        <SearchInput
-          wrapperClassName={styles.searchWrapper}
-          value={filter.filterText}
-          size="medium"
-          onChange={(e) => filter.setSearch(e.target.value)}
-        />
-      }
-      searchPanelTitle="Блюда"
-      mainContent={
-        <ItemsList>
-          {filter.filteredList.map((item) => (
-            <li className={styles.listItem} key={item.id}>
-              <p onClick={() => navigate(`${RouterLinks.DishBuilder}/${item.id}`)}>
-                {item.name || 'без имени'}
-              </p>
-            </li>
-          ))}
-        </ItemsList>
-      }
-      bottomActionsPanel={
-        <>
-          <ScrollTopButton className={clsx([styles.actionButton, styles.scrollToTopButton])} />
-          <button onClick={onAdd} className={clsx([styles.actionButton, styles.addButton])} />
-        </>
-      }
-    />
+    <Screen offsetTop bottomRight={<AddButton onClick={onAdd} />} actions={<></>}>
+      <FilterListLayout
+        filterPanel={<FilterPanel selectedFilters={['breakfast']} columns={filterColumns} />}
+        searchPanel={
+          <SearchInput
+            wrapperClassName={styles.searchWrapper}
+            value={filter.filterText}
+            size="medium"
+            onChange={(e) => filter.setSearch(e.target.value)}
+          />
+        }
+        searchPanelTitle="Блюда"
+        mainContent={
+          <ItemsList>
+            {filter.filteredList.map((item) => (
+              <div key={item.id} className={styles.listItemWrapper}>
+                <li className={styles.listItem}>
+                  <p onClick={() => navigate(`${RouterLinks.DishBuilder}/${item.id}`)}>
+                    {item.name || 'без имени'}
+                  </p>
+                </li>
+                <PopoverTrigger
+                  trigger={<AddListItemButton />}
+                  content={
+                    <button
+                      type="button"
+                      onClick={() =>
+                        drawerStoreV3.show(AddDishToDayScheduleOverlay, { dishId: item.id })
+                      }
+                    >
+                      Добавить в день
+                    </button>
+                  }
+                />
+              </div>
+            ))}
+          </ItemsList>
+        }
+      />
+    </Screen>
   );
 };
 

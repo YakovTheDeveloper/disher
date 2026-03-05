@@ -8,9 +8,17 @@ import { useListStateActions } from '@/components/features/lists/shared/hooks/us
 import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
 import FilterListLayout from '@/components/features/lists/shared/FilterListLayout/FilterListLayout';
 import { FilterPanel } from '@/components/features/lists/shared/FilterPanel';
-import { ScrollTopButton } from '@/components/features/lists/shared/ScrollTopButton';
+import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
+import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
+import { SimpleListItem } from '@/components/ui/list-item/SimpleListItem';
+import { PopoverTrigger } from '@/components/ui/popover/PopoverTrigger';
+import AddListItemButton from '@/components/ui/atoms/Button/AddListItemButton/AddListItemButton';
+import Button from '@/components/ui/atoms/Button/Button';
+import { drawerStoreV3 } from '@/store/GlobalUiStore/DrawerStoreV3/DrawerStoreV3';
+import { AddProductToDayScheduleOverlay } from '@/components/features/daySchedule/add-product-to-day-schedule/AddProductToDayScheduleOverlay';
+import { AddProductToDishOverlay } from '@/components/features/dish/add-product-to-dish/AddProductToDishOverlay';
+
 import commonStyles from '@/components/features/lists/shared/commonStyles.module.scss';
-import clsx from 'clsx';
 import styles from './ListProducts.module.scss';
 
 type Props = {
@@ -44,46 +52,66 @@ const ListProducts = ({ foodStore = domainStore.foodStore }: Props) => {
   };
 
   return (
-    <FilterListLayout
-      filterPanel={
-        <FilterPanel
-          selectedFilters={['user']}
-          columns={filterColumns}
-          onFilterChange={handleFilterChange}
-        />
-      }
-      searchPanel={
-        <SearchInput
-          wrapperClassName={commonStyles.searchWrapper}
-          value={filter.filterText}
-          size="medium"
-          onChange={(e) => filter.setSearch(e.target.value)}
-        />
-      }
-      searchPanelTitle="Продукты"
-      mainContent={
-        <ItemsList>
-          {filter.filteredList.map((item) => (
-            <li className={styles.listItem} key={item.id}>
-              <p onClick={() => navigate(`${RouterLinks.UserProduct}/${item.id}`)}>
-                {item.name || 'без имени'}
-              </p>
-            </li>
-          ))}
-        </ItemsList>
-      }
-      bottomActionsPanel={
-        <>
-          <ScrollTopButton
-            className={clsx([commonStyles.actionButton, commonStyles.scrollToTopButton])}
+    <Screen offsetTop bottomRight={<AddButton onClick={onAdd} />} actions={<></>}>
+      <FilterListLayout
+        filterPanel={
+          <FilterPanel
+            selectedFilters={['user']}
+            columns={filterColumns}
+            onFilterChange={handleFilterChange}
           />
-          <button
-            onClick={onAdd}
-            className={clsx([commonStyles.actionButton, commonStyles.addButton])}
+        }
+        searchPanel={
+          <SearchInput
+            wrapperClassName={commonStyles.searchWrapper}
+            value={filter.filterText}
+            size="medium"
+            onChange={(e) => filter.setSearch(e.target.value)}
           />
-        </>
-      }
-    />
+        }
+        searchPanelTitle="Продукты"
+        mainContent={
+          <ItemsList>
+            {filter.filteredList.map((item) => (
+              <SimpleListItem
+                key={item.id}
+                rightSlot={
+                  <PopoverTrigger
+                    trigger={<AddListItemButton />}
+                    content={
+                      <>
+                        <Button
+                          variant="ghost"
+                          onClick={() =>
+                            drawerStoreV3.show(AddProductToDayScheduleOverlay, {
+                              productId: item.id,
+                            })
+                          }
+                        >
+                          Добавить в день
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() =>
+                            drawerStoreV3.show(AddProductToDishOverlay, { productId: item.id })
+                          }
+                        >
+                          Добавить в блюдо
+                        </Button>
+                      </>
+                    }
+                  />
+                }
+              >
+                <p onClick={() => navigate(`${RouterLinks.UserProduct}/${item.id}`)}>
+                  {item.name || 'без имени'}
+                </p>
+              </SimpleListItem>
+            ))}
+          </ItemsList>
+        }
+      />
+    </Screen>
   );
 };
 

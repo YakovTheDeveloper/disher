@@ -2,15 +2,17 @@ import { observer } from 'mobx-react-lite';
 import styles from './Navigation.module.scss';
 import { useNavigate } from 'react-router';
 import { RouterLinks } from '@/router';
-import { MotionValue } from 'framer-motion';
 import { DateInfo } from './DateInfo';
 import { ScheduleUIEventEmitter } from '@/components/features/builders/shared/emitter';
 import { MenuUiStore } from '@/store/uiStore/menu/menuUiStore';
 import { useScreenScroll } from '@/components/features/builders/shared/ui/layout/Screen/context/ScreenScrollContext';
+import { motion, MotionValue, useMotionValueEvent, useTransform } from 'framer-motion';
+import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 
 type Props = {
   children?: React.ReactNode;
   menuUi?: MenuUiStore;
+  title?: React.ReactNode;
 };
 
 function isToday(date: string | Date) {
@@ -27,15 +29,21 @@ function isToday(date: string | Date) {
   );
 }
 
-const Navigation = ({ children }: Props) => {
+const Navigation = ({ title }: Props) => {
   const navigate = useNavigate();
 
   const scrollYProgress = useScreenScroll();
+  const titleOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
 
   return (
-    <div className={styles.container}>
-      <DateInfo scrollYProgress={scrollYProgress} />
-    </div>
+    <header className={styles.header}>
+      <motion.div className={styles.title} style={{ opacity: titleOpacity }}>
+        <ScreenLabel variant="screenHeader">{title}</ScreenLabel>
+      </motion.div>
+      <div className={styles.container}>
+        <DateInfo scrollYProgress={scrollYProgress} />
+      </div>
+    </header>
   );
 };
 

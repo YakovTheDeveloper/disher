@@ -7,20 +7,99 @@
     height: 100%;
     overflow-y: auto;
 
-
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
-.bottom {
+.bottomRight {
     position: absolute;
     right: 0;
-    left: 0;
     padding-right: 0.5rem;
     bottom: 10px;
     z-index: 100;
     // transform: translate(-50%, -100%);
     display: flex;
     justify-content: flex-end;
-    touch-action: none
+    width: fit-content;
+
+    // GPU acceleration for smooth iOS animations
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+
+    // Opacity-only transitions for minimal paint cost
+    transition: opacity 0.25s ease-out;
+
+    // Visibility states
+    &.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    &.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+.bottomLeft {
+    position: absolute;
+    left: 0;
+    width: fit-content;
+    padding-left: 0.5rem;
+    bottom: 10px;
+    z-index: 100;
+    display: flex;
+    justify-content: flex-start;
+
+    // GPU acceleration for smooth iOS animations
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+
+    // Opacity-only transitions for minimal paint cost
+    transition: opacity 0.25s ease-out;
+
+    // Visibility states
+    &.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    &.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+.topLeft {
+    position: absolute;
+    left: 0;
+    width: fit-content;
+    padding-left: 0.5rem;
+    top: 10px;
+    z-index: 100;
+    display: flex;
+    justify-content: flex-start;
+
+    // GPU acceleration for smooth iOS animations
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+
+    // Opacity-only transitions for minimal paint cost
+    transition: opacity 0.25s ease-out;
+
+    // Visibility states
+    &.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    &.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
 }
 
 .bg-gray {
@@ -37,6 +116,26 @@
     bottom: 0;
     left: 0;
     right: 0;
+    z-index: 101;
+
+    // GPU acceleration for smooth iOS animations
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+
+    // Opacity-only transitions for minimal paint cost
+    transition: opacity 0.25s ease-out;
+
+    // Visibility states
+    &.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    &.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
 }
 
 .upperPlace {
@@ -58,4 +157,9 @@
 
     // Prevents scroll chaining effects
     overscroll-behavior: contain;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
 }

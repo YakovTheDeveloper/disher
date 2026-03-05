@@ -34,6 +34,7 @@ const DateInfo = ({ scrollYProgress, style, className }: Props) => {
   const shortDayNameOpacity = useTransform(scrollYProgress, [0.6, 1], [0, 1], { clamp: true });
   const shortDayNameScale = useTransform(scrollYProgress, [0.6, 1], [0, 1], { clamp: true });
   // const containerGap = useTransform(scrollYProgress, [0, 1], ['8px', '0px']);
+
   return (
     <div
       className={clsx(styles.dateLink, className)}

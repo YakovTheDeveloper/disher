@@ -19,6 +19,7 @@ import { domainStore } from '@/store/store';
 import { Buttons } from '@/components/features/builders/shared/ui/Actions/button';
 import { useNavigate } from 'react-router';
 import { useSelection } from '@/hooks/factoryHooks/useSelection';
+import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
 
 type Props = {
   children?: React.ReactNode;
@@ -91,7 +92,7 @@ const BuilderScheduleEvents = ({ schedule }: Props) => {
       key={3}
       title={<ScreenLabel variant="screenHeader">События</ScreenLabel>}
       header={<Navigation></Navigation>}
-      bottom={<Buttons.Add onClick={onEventAdd} />}
+      bottomRight={<AddButton onClick={onEventAdd} />}
     >
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList offsetTop>

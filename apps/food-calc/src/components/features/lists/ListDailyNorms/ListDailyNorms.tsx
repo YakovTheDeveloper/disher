@@ -4,7 +4,6 @@ import { DailyNormStoreInstance } from '@/store/DailyNormStore/DailyNormStore';
 import { domainStore } from '@/store/store';
 import { RouterLinks } from '@/router';
 import styles from './ListDailyNorms.module.scss';
-import clsx from 'clsx';
 import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
 import { DailyNormsFactory } from '@/domain/dailyNorm/factory';
 import { SelectableItem } from '@/components/ui/SelectableItem';
@@ -12,7 +11,9 @@ import { CommonListItem } from '@/components/features/builders/shared/ui/CommonL
 import FilterListLayout from '@/components/features/lists/shared/FilterListLayout/FilterListLayout';
 import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
 import { FilterPanel } from '@/components/features/lists/shared/FilterPanel';
-import ScrollTopButton from '@/components/features/lists/shared/ScrollTopButton/ScrollTopButton';
+import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
+import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
+
 import commonStyles from '../shared/commonStyles.module.scss';
 
 type Props = {
@@ -38,53 +39,44 @@ const ListDailyNorms = ({ store = domainStore.dailyNormStore }: Props) => {
   });
 
   return (
-    <FilterListLayout
-      searchPanelTitle="Нормы"
-      searchPanel={
-        <SearchInput
-          wrapperClassName={commonStyles.searchWrapper}
-          value={filter.filterText}
-          onChange={(e) => filter.setSearch(e.target.value)}
-        />
-      }
-      filterPanel={<FilterPanel selectedFilters={[]} columns={[]} onFilterChange={() => {}} />}
-      mainContent={
-        <ItemsList>
-          {filter.filteredList.map((item) => (
-            <SelectableItem
-              key={item.id}
-              id={item.id}
-              isSelected={store.selectedNormId === item.id}
-              onSelect={(id) => store.setSelectedId(id)}
-            >
-              <CommonListItem
+    <Screen offsetTop bottomRight={<AddButton onClick={onAdd} />} actions={<></>}>
+      <FilterListLayout
+        searchPanelTitle="Нормы"
+        searchPanel={
+          <SearchInput
+            wrapperClassName={commonStyles.searchWrapper}
+            value={filter.filterText}
+            onChange={(e) => filter.setSearch(e.target.value)}
+          />
+        }
+        filterPanel={<FilterPanel selectedFilters={[]} columns={[]} onFilterChange={() => {}} />}
+        mainContent={
+          <ItemsList>
+            {filter.filteredList.map((item) => (
+              <SelectableItem
+                key={item.id}
                 id={item.id}
-                variant={2}
-                className={styles.listItem}
-                isSelectMode={true}
                 isSelected={store.selectedNormId === item.id}
                 onSelect={(id) => store.setSelectedId(id)}
               >
-                <p onClick={() => navigate(`${RouterLinks.DailyNorms}/${item.id}`)}>
-                  {item.name || 'без имени'}
-                </p>
-              </CommonListItem>
-            </SelectableItem>
-          ))}
-        </ItemsList>
-      }
-      bottomActionsPanel={
-        <>
-          <ScrollTopButton
-            className={clsx([commonStyles.actionButton, commonStyles.scrollToTopButton])}
-          />
-          <button
-            onClick={onAdd}
-            className={clsx([commonStyles.actionButton, commonStyles.addButton])}
-          />
-        </>
-      }
-    />
+                <CommonListItem
+                  id={item.id}
+                  variant={2}
+                  className={styles.listItem}
+                  isSelectMode={true}
+                  isSelected={store.selectedNormId === item.id}
+                  onSelect={(id) => store.setSelectedId(id)}
+                >
+                  <p onClick={() => navigate(`${RouterLinks.DailyNorms}/${item.id}`)}>
+                    {item.name || 'без имени'}
+                  </p>
+                </CommonListItem>
+              </SelectableItem>
+            ))}
+          </ItemsList>
+        }
+      />
+    </Screen>
   );
 };
 

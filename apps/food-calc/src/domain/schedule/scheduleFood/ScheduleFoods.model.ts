@@ -6,6 +6,7 @@ import { ChildrenController } from "@/domain/shared/ChildrenController";
 import { groupItemsByTime } from "@/domain/schedule/schedule.service";
 import { ContentControllerFood } from "@/domain/shared/foodContent/foodContent";
 import { ScheduleTime } from "@/store/common/ScheduleTime.model";
+import { DishModelInstance } from "@/domain/dish/Dish.model";
 
 export type ScheduleItemType = Instance<typeof ScheduleFoodsItem>["type"];
 
@@ -56,6 +57,37 @@ export const ScheduleFoods = types.model({
 
         let disposer: any = null
 
+        function getProductOnlyChildrenByIds(ids: string[]) {
+            return self.foods.getChildrenByIds(ids).filter(item => item.content?.variant === "product")
+        }
+
+        function swapProductsToDish(productsIds: string[], dishId: string) {
+            const products = self.foods.getChildrenByIds(productsIds);
+            const timeToUse = products[0]?.time || new Date().toTimeString().slice(0, 5);
+
+            self.foods.addChildWithLocalData({
+                time: timeToUse,
+                contentDish: {
+                    dishId,
+                    variant: 'dish' as const,
+                }
+            });
+
+            self.foods.removeBulk(productsIds);
+        }
+
+        function addScheduleItemOfDishType(dishId: string) {
+            const currentTime = new Date().toTimeString().slice(0, 5);
+
+            self.foods.addChildWithLocalData({
+                time: currentTime,
+                contentDish: {
+                    dishId,
+                    variant: 'dish' as const,
+                }
+            });
+        }
+
         function afterCreate() {
             disposer = onPatch(self, patch => {
                 if (
@@ -85,7 +117,10 @@ export const ScheduleFoods = types.model({
         }
 
         return {
+            getProductOnlyChildrenByIds,
             getTotalNutrients,
+            swapProductsToDish,
+            addScheduleItemOfDishType,
             afterCreate,
             beforeDestroy
         };

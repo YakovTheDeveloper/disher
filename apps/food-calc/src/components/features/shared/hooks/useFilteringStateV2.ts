@@ -11,13 +11,15 @@ export interface FilteringOptions {
     minLength?: number;
     limit?: number;
     debounce?: number;
+    /** Category filter - items must have at least one of these categories */
+    categoryFilter?: string[];
 }
 
 export function useFilteringStateV2(
     tabs: readonly TabFilterConfig<T>[],
     options: FilteringOptions = {}
 ) {
-    const { minLength = 2, limit = 50 } = options;
+    const { minLength = 2, limit = 50, categoryFilter } = options;
 
     const [currentTab, setCurrentTab] = useState(tabs[0]?.tabName ?? '');
     const [searchQuery, setSearchQuery] = useState('');
@@ -30,8 +32,11 @@ export function useFilteringStateV2(
 
     // Отфильтрованный список
     const filteredList = useMemo(() => {
-        if (!searchQuery.trim() || !currentConfig) {
-            return currentConfig?.list ?? [];
+        const list = currentConfig?.list ?? [];
+
+        // If no search query and no category filter, return full list
+        if (!searchQuery.trim() && (!categoryFilter || categoryFilter.length === 0)) {
+            return list;
         }
 
         const searchOptions: SearchOptions<Record<string, unknown>> = {
@@ -39,10 +44,11 @@ export function useFilteringStateV2(
             minLength,
             limit,
             threshold: 0.4,
+            categoryFilter: categoryFilter?.length ? categoryFilter : undefined,
         };
 
-        return fuzzySearch(currentConfig.list, searchQuery, searchOptions);
-    }, [searchQuery, currentConfig, minLength, limit]);
+        return fuzzySearch(list, searchQuery, searchOptions);
+    }, [searchQuery, currentConfig, minLength, limit, categoryFilter]);
 
     return {
         currentTab,

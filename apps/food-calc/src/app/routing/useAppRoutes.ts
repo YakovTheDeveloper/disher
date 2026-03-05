@@ -12,7 +12,6 @@ export interface UseAppRoutesReturn {
     toRoot: () => void;
     toDailyNorms: () => void;
     toDailyNorm: (id: string) => void;
-    toDishBuilder: () => void;
     toDish: (id: string) => void;
     toDishFoodDraft: (id: string) => void;
     toDishFood: (id: string, childId: string) => void;
@@ -63,7 +62,6 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
     const toRoot = () => navigate(RouterLinks.Root);
     const toDailyNorms = () => navigate(RouterLinks.DailyNorms);
     const toDailyNorm = (id: string) => navigate(`${RouterLinks.DailyNorms}/${id}`);
-    const toDishBuilder = () => navigate(RouterLinks.DishBuilder);
     const toDish = (id: string) => navigate(RouterUrls.getDish(id));
     const toDishFoodDraft = (id: string) => navigate(getDishFoodDraftUrl(id));
     const toDishFood = (id: string, childId: string) => navigate(`/dish/${id}/food/${childId}`);
@@ -84,7 +82,6 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
         toRoot,
         toDailyNorms,
         toDailyNorm,
-        toDishBuilder,
         toDish,
         toDishFoodDraft,
         toDishFood,
