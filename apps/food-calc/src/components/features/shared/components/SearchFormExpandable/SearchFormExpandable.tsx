@@ -7,12 +7,20 @@ export interface SearchFormExpandableProps {
   trigger?: React.ReactNode;
   content: React.ReactNode;
   isExpanded: boolean;
+  position?: 'fixed' | 'absolute';
 }
 
 const SearchFormExpandable: React.FC<SearchFormExpandableProps> = observer(
-  ({ trigger, content, isExpanded }) => {
+  ({ trigger, content, isExpanded, position = 'fixed' }) => {
     return (
-      <div className={clsx(styles.container, isExpanded && styles.expanded)}>
+      <div
+        className={clsx(
+          styles.container,
+          position === 'fixed' && isExpanded && styles.fixed,
+          position === 'absolute' && isExpanded && styles.absolute,
+          isExpanded && styles.expanded
+        )}
+      >
         {trigger && (
           <label className={clsx(styles.trigger, isExpanded && styles.collapsed)} htmlFor="search">
             {trigger}

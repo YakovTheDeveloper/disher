@@ -1,8 +1,10 @@
-export type NutrientContentItem = { id: string, name: string, displayName: string, displayNameRu: string, unit: string, "unitRu": "мг" }
-
-export const nutrientNames: Record<number, string> = {
-    1: 'Белки',
-    2: 'Жиры',
+export type NutrientContentItem = {
+    id: string,
+    name: string,
+    displayName: string,
+    displayNameRu: string,
+    unit: string,
+    unitRu: string,
     3: 'Углеводы',
     4: 'Сахар',
     5: 'Крахмал',

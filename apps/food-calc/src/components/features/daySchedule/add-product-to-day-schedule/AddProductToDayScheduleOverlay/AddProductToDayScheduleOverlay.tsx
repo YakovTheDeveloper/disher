@@ -15,7 +15,7 @@ const AddProductToDayScheduleOverlay = observer(({ productId, onClose }: Props) 
   const foodStore = useFoodStore();
   const foodScheduleStore = useFoodScheduleStore();
   const product = foodStore.getById(productId);
-  
+
   const today = format(startOfToday(), 'dd-MM-yyyy');
   const [selectedDate, setSelectedDate] = useState<string>(today);
 

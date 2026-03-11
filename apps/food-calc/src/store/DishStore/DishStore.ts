@@ -6,7 +6,7 @@ import { getDishById, syncDishes } from "@/api/dish/dish.api"
 import { createRequestController } from "@/store/common/pureFabrication/createRequestController"
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel"
 import { createDataStoreModel, createEntityDataStore, createImmutableEntityStore } from "@/store/shared/DataStore"
-import { FoodContentProduct } from "@/domain/shared/foodContent/foodContent"
+import { FoodContentProduct, FoodContentProductInstance } from "@/domain/shared/foodContent/foodContent"
 import { DishFactory } from "@/store/DishStore/Dish.factory"
 
 export const DishStore = types.compose(
@@ -39,7 +39,7 @@ export const DishStore = types.compose(
         self.clearItemDraft()
     },
 
-    createDishWithProductsContent(name: string, content: Instance<typeof FoodContentProduct> | Instance<typeof FoodContentProduct>[]) {
+    createDishWithProductsContent(name: string, content: FoodContentProductInstance[]) {
         const dish = self.user.insert(DishFactory.createNewLocal({
             name,
             description: '',

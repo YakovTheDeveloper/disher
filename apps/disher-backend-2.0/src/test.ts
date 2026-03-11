@@ -1,4 +1,4 @@
-import { appRouter } from "./routes";
+import { appRouter } from "./routes/index.js";
 
 const caller = appRouter.createCaller({})
 

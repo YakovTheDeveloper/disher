@@ -1,4 +1,4 @@
-import { DishZodType } from "./dish.validation";
+import { DishZodType } from "./dish.validation.js";
 
 
 type DishItems = DishZodType["items"];

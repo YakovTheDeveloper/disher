@@ -13,7 +13,7 @@ import { TimeGroupUI } from '@/domain/schedule/schedule.service';
 import ScheduleFoodItemComponent from '@/components/widgets/FoodSchedule/ScheduleFoodItem/ScheduleFoodItem';
 import { useSelection } from '@/hooks/factoryHooks/useSelection';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
-import { ActionsHeader } from '@/components/features/builders/shared/components/ActionsHeader';
+import { ActionsPanel } from '@/components/features/builders/shared/components/ActionsPanel';
 import { Navigation } from '@/components/features/builders/ScheduleBuilder/ui/Navigation';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { getScheduleFoodUrl, RouterLinks } from '@/router';
@@ -30,8 +30,16 @@ import { OpenDishes } from '@/components/features/dish/OpenDishes';
 import { OpenProducts } from '@/components/features/product/OpenProducts';
 import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
 import { LabeledCheckbox } from '@/components/ui/LabeledCheckbox';
-import { CreateDishFromProductList } from '@/components/features/dish/create-dish-from-product-list/CreateDishFromProductList';
+import { CopyProductsToExistingDish } from '@/components/features/dish/copy-products-to-dish/CreateDishFromProductList';
+import { CreateDishAndCopyProducts } from '@/components/features/dish/create-dish-and-copy-products';
 import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
+import { drawerStoreV3 } from '@/store/GlobalUiStore/DrawerStoreV3/DrawerStoreV3';
+import { CopyFoodToDaySchedule } from '@/components/features/daySchedule/copy-food-to-day-schedule/CopyFoodFromDayScheduleOverlay';
+import TextBehind from '@/components/ui/TextBehind/TextBehind';
+import { CountBadge } from '@/components/ui/atoms/Button/CountBadge/CountBadge';
+import { TextInput } from '@/components/ui/atoms/input/TextInput';
+import { Nullable } from 'vitest';
+import { OpenScheduleFoodAnalytics } from '@/components/features/daySchedule/get-day-schedule-food-analytics/OpenScheduleFoodAnalytics';
 
 type CommonProps = {
   schedule: Instance<typeof ScheduleFoods>;
@@ -43,18 +51,15 @@ const FoodSchedule = observer(
     const navigate = useNavigate();
     const selectionStoreFood = useSelection();
     const { toScheduleFood } = useAppRoutes();
-    const [isOpen, setIsOpen] = useState(false);
-    const [shouldReplace, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState<'create-dish-and-copy' | 'copy-to-existing-dish' | null>(
+      null
+    );
+    const swapProductsToDishCheckboxInputRef = useRef<HTMLInputElement>(null);
+    const closeDishCreateModal = () => setIsOpen(null);
+    const openDishModal = (variant: 'create-dish-and-copy' | 'copy-to-existing-dish' | null) =>
+      setIsOpen(variant);
 
-    const onFoodAddV2 = () => {
-      clearSessionStorage(`tabs:${location.pathname}`);
-
-      toScheduleFood(schedule.id, 'draft');
-
-      requestAnimationFrame(() => {
-        document.getElementById('time-picker-hours-label')?.click();
-      });
-    };
+    const onFoodAddButtonClick = () => toScheduleFood(schedule.id, 'draft');
 
     const onCopyToAnotherDayButtonClick = async () => {
       const { date, mode } = await modalStoreV2.show(ModalCopyScheduleItemsToAnotherDay, {
@@ -79,40 +84,84 @@ const FoodSchedule = observer(
       selectionStoreFood.clearSelection();
     };
 
-    const open = () => {
-      if (selectionStoreFood.selectedIds.length === 0) {
+    const onDishCreateButtonClick = () => {
+      const selectedProducts = schedule.getChildrenListWithProductContentByIds(
+        selectionStoreFood.selectedIds
+      );
+      if (selectedProducts.length === 0) {
         toaster.error('Надо выбрать хотя бы 1 элемент с продуктом, чтобы создать блюдо');
         return;
       }
-      setIsOpen(true);
     };
 
-    const onDishCreateFinish = (dishId: string) => {
-      schedule.swapProductsToDish(['0'], dishId);
-      setIsOpen(false);
+    const openDishCreateModal = () => {
+      onDishCreateButtonClick();
+      openDishModal('create-dish-and-copy');
     };
+
+    const openCopyToDishModal = () => {
+      onDishCreateButtonClick();
+      openDishModal('copy-to-existing-dish');
+    };
+
+    const onCreateDishAndCopyFinish = (dishId: string, selectedProductIds: string[]) => {
+      if (swapProductsToDishCheckboxInputRef.current?.checked) {
+        schedule.swapProductsToDish(selectedProductIds, dishId);
+      }
+      closeDishCreateModal();
+    };
+
+    const onCopyToAnotherSchedule = () => {
+      const selectedProducts = schedule.getChildrenWithAnyExistingContentByIds(
+        selectionStoreFood.selectedIds
+      );
+      modalStoreV2.show(CopyFoodToDaySchedule, { items: selectedProducts });
+    };
+
+    const selectedProductsFromSelectedFoods = schedule.getChildrenListWithProductContentByIds(
+      selectionStoreFood.selectedIds
+    );
+
+    const [selectedDish, setSelectedDish] = useState();
 
     return (
       <Screen
         offsetTop
         overlay={
-          <SearchFormExpandable
-            isExpanded={isOpen}
-            content={
-              <CreateDishFromProductList
-                items={schedule.getProductOnlyChildrenByIds(selectionStoreFood.selectedIds)}
-                onFinish={onDishCreateFinish}
-              >
-                <LabeledCheckbox
-                  onChange={() => {}}
-                  label="Заменить выбранные продукты на новое блюдо"
+          <>
+            <SearchFormExpandable
+              position="absolute"
+              isExpanded={isOpen === 'create-dish-and-copy'}
+              content={
+                <CreateDishAndCopyProducts
+                  onClose={closeDishCreateModal}
+                  items={selectedProductsFromSelectedFoods}
+                  onFinish={onCreateDishAndCopyFinish}
+                >
+                  <LabeledCheckbox
+                    ref={swapProductsToDishCheckboxInputRef}
+                    label="Заменить выбранные продукты на новое блюдо"
+                  />
+                </CreateDishAndCopyProducts>
+              }
+            />
+            <SearchFormExpandable
+              position="absolute"
+              isExpanded={isOpen === 'copy-to-existing-dish'}
+              content={
+                <CopyProductsToExistingDish
+                  onClose={closeDishCreateModal}
+                  items={schedule.getChildrenListWithProductContentByIds(
+                    selectionStoreFood.selectedIds
+                  )}
+                  onFinish={closeDishCreateModal}
                 />
-              </CreateDishFromProductList>
-            }
-          />
+              }
+            />
+          </>
         }
         actions={
-          <ActionsHeader
+          <ActionsPanel
             show={selectionStoreFood.isActionsMode}
             onBack={() => selectionStoreFood.clearSelection()}
             left={
@@ -127,22 +176,25 @@ const FoodSchedule = observer(
               </button>
             }
           >
-            <button onClick={open}>создать блюдо</button>
-            <button onClick={onCopyToAnotherDayButtonClick}>move/copy</button>
-          </ActionsHeader>
+            <label onClick={openDishCreateModal} htmlFor="dish-name-input">
+              в новое блюдо
+            </label>
+            <label onClick={openCopyToDishModal} htmlFor="search">
+              в готовое блюдо
+            </label>
+            <button onClick={onCopyToAnotherSchedule}>copy</button>
+          </ActionsPanel>
         }
-        title={
-          <ScreenLabel
-            variant="screenHeader"
-            onClick={() => {
-              navigate(RouterLinks.Dishes + `?from_date=${schedule.id}`);
-            }}
-          >
-            Еда
-          </ScreenLabel>
-        }
+        title={<ScreenLabel variant="screenHeader">Еда</ScreenLabel>}
         header={<Navigation title="Еда"></Navigation>}
-        bottomRight={selectionStoreFood.isActionsMode ? null : <AddButton onClick={onFoodAddV2} />}
+        topLeft={
+          selectionStoreFood.selectedIds.length > 0 ? (
+            <CountBadge count={selectionStoreFood.selectedIds.length} />
+          ) : null
+        }
+        bottomRight={
+          selectionStoreFood.isActionsMode ? null : <AddButton onClick={onFoodAddButtonClick} />
+        }
       >
         <div
           style={{

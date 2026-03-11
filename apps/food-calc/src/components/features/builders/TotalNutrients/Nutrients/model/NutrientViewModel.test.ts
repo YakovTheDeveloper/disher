@@ -1,5 +1,5 @@
 
-import { NutrientViewModelStore } from "@/components/features/builders/TotalNutrients/Nutrients/model/NutrientsViewModel";
+import { NutrientViewModelStore } from "@/components/entities/nutrient/NutrientGroup/model/NutrientsViewModel";
 import { DailyNormModelStore } from "@/store/models/dailyNorm/dailyNorm.model";
 import { FoodModelStore } from "@/store/models/food/foodModelStore";
 import { DailyNormsStoreUI } from "@/store/uiStore/dailyNorms/DailyNormsStoreUI";

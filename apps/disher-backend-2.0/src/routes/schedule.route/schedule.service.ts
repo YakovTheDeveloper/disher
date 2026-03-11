@@ -1,6 +1,6 @@
 // src/server/services/schedule.service.ts
 import type { Prisma } from "@prisma/client";
-import { scheduleItemSelect } from "./schedule.route";
+import { scheduleItemSelect } from "./schedule.route.js";
 
 export function mapScheduleItemData(item: {
     quantity?: number;

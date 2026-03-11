@@ -8,7 +8,7 @@ import { TotalNutrients } from '@/components/features/builders/TotalNutrients/To
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { domainStore } from '@/store/store';
-import { ActionsHeader } from '@/components/features/builders/shared/components/ActionsHeader';
+import { ActionsPanel } from '@/components/features/builders/shared/components/ActionsPanel';
 import { DishFoodSelectionActions } from '@/components/features/builders/DishBuilder/components/header-actions/DishFoodSelectionActions';
 import { getDishFoodDraftUrl, getDishFoodUrl, RouterLinks, RouterUrls } from '@/router';
 import { MotionValue } from 'framer-motion';
@@ -52,7 +52,7 @@ const DishBuilder = ({ init }: Props) => {
       <Screen
         offsetTop
         actions={
-          <ActionsHeader
+          <ActionsPanel
             left={
               <button
                 onClick={() => {
@@ -66,7 +66,7 @@ const DishBuilder = ({ init }: Props) => {
             }
           >
             <DishFoodSelectionActions />
-          </ActionsHeader>
+          </ActionsPanel>
         }
         key={2}
         title={

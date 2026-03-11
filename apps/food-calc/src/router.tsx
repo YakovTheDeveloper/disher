@@ -15,6 +15,7 @@ import ScheduleEventPage from '@/pages/schedule/builder/schedule-event-page/Sche
 import DishFoodPage from '@/pages/dish/DishFoodPage/DishFoodPage.tsx';
 import DishFoodDraftPage from '@/pages/dish/DishFoodPage/DishFoodDraftPage.tsx';
 import ProductListPage from '@/pages/product/ProductListPage/ProductListPage.tsx';
+import { ScheduleFoodAnalyticsPage } from '@/pages/schedule/analytics/schedule-analytics-page/ScheduleFoodAnalyticsPage/index.ts';
 
 export enum RouterLinks {
   Root = '/',
@@ -29,6 +30,7 @@ export enum RouterLinks {
   ScheduleBuilder = '/schedule',
   ScheduleFood = `/schedule/:id/food/:childId`,
   ScheduleEvent = `/schedule/:id/event/:childId`,
+  ScheduleAnalytics = `/schedule/:id/analytics`,
   ProductBuilder = '/product',
   LoadData = '/load-data',
   Dishes = '/dishes',
@@ -42,6 +44,8 @@ export const getScheduleFoodUrl = (id: string, childId: string) =>
 
 export const getScheduleEventUrl = (id: string, childId: string) =>
   `/schedule/${id}/event/${childId}`;
+
+export const getScheduleAnalyticsUrl = (id: string) => `/schedule/${id}/analytics`;
 
 export const getDishFoodDraftUrl = (id: string) => `/dish/${id}/food/draft`;
 
@@ -85,6 +89,10 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.ScheduleBuilder + '/' + ':id',
         element: <ScheduleBuilderPage />,
+      },
+      {
+        path: RouterLinks.ScheduleAnalytics,
+        element: <ScheduleFoodAnalyticsPage />,
       },
       // {
       //   path: RouterLinks.ProductBuilder,

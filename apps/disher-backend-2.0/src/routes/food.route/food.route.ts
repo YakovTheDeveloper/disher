@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { prisma } from "../../client";
-import { createResponseObject } from "../../lib/response";
-import { publicProcedure, t } from "../../trpc";
-import { AddFoodInputSchema } from "./validation";
-import { paginate } from "../../lib/pagination";
-import { Food } from "../../generated/prisma";
+import { prisma } from "../../client.js";
+import { createResponseObject } from "../../lib/response.js";
+import { publicProcedure, t } from "../../trpc.js";
+import { AddFoodInputSchema } from "./validation.js";
+import { paginate } from "../../lib/pagination.js";
+import { Food } from "../../generated/prisma/index.js";
 
 export const foodRoutes = {
     getFoodByIds: publicProcedure.input(z.object({

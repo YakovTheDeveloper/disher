@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { useRef, useState, useEffect } from 'react';
 import styles from './FilterPanel.module.scss';
 
 // Generic types for category values
@@ -17,6 +18,9 @@ export interface CategoryOption<T extends string = string> {
 }
 
 export interface FilterPanelProps<T extends string = string> {
+  /** Whether the panel is open/visible */
+  isOpen?: boolean;
+  header?: React.ReactNode;
   /** Array of category groups to display */
   groups: CategoryGroup<T>[];
   /** Map of category values to their display options */
@@ -50,7 +54,9 @@ export interface FilterPanelProps<T extends string = string> {
  * />
  */
 const FilterPanel = <T extends CategoryValue>({
+  isOpen = true,
   groups,
+  header,
   options,
   selectedValues,
   onToggle,
@@ -59,13 +65,40 @@ const FilterPanel = <T extends CategoryValue>({
   className,
   testId,
 }: FilterPanelProps<T>) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [isScrollable, setIsScrollable] = useState(false);
   const hasSelection = selectedValues.length > 0;
 
   const isSelected = (value: T): boolean => selectedValues.includes(value);
 
+  // Detect if content overflows
+  useEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+
+    const checkScrollable = () => {
+      const hasOverflow = content.scrollHeight > content.clientHeight;
+      setIsScrollable(hasOverflow);
+    };
+
+    checkScrollable();
+
+    // Re-check on resize
+    const resizeObserver = new ResizeObserver(checkScrollable);
+    resizeObserver.observe(content);
+
+    return () => resizeObserver.disconnect();
+  }, [groups, options, selectedValues]);
+
+  if (!isOpen) return null;
+
   return (
-    <div className={clsx(styles.panel, className)} data-testid={testId}>
-      <div className={styles.content}>
+    <div
+      className={clsx(styles.panel, isScrollable && styles.scrollable, className)}
+      data-testid={testId}
+    >
+      <div className={styles.content} ref={contentRef}>
+        {header}
         {/* Header with title and clear button */}
         {(title || hasSelection) && (
           <div className={styles.header}>

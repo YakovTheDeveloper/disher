@@ -1,11 +1,12 @@
 import { SyncStatus } from "@/domain/commonListItem";
 import { ChildrenController } from "@/domain/shared/ChildrenController";
 import { PortionsController } from "@/domain/shared/PortionsController";
-import { FoodContentProduct, ProductContent } from "@/domain/shared/foodContent/foodContent";
+import { FoodContentProduct, FoodContentProductInstance, ProductContent } from "@/domain/shared/foodContent/foodContent";
 import { NutrientSource } from "@/domain/shared/NutrientSource";
 
 import { aggregateNutrients } from "@/lib/nutrients/aggregateNutrients";
 import { getSnapshot, Instance, types } from "mobx-state-tree";
+import { isEmpty } from "lodash";
 const DEFAULT_QUANTITY = 100;
 
 export const DishItem = types.model("DishItem", {
@@ -90,9 +91,8 @@ export const Dish = types.compose("Dish",
             self.description = description
         }
 
-        function addChildrenByProductContent(content: Instance<typeof FoodContentProduct> | Instance<typeof FoodContentProduct>[]) {
-            if (!Array.isArray(content)) {
-                self.addChildWithLocalData({ contentProduct: getSnapshot(content) })
+        function addChildrenByProductContent(content: FoodContentProductInstance[]) {
+            if (isEmpty(content)) {
                 return
             }
             const payload = content.map(item => ({ contentProduct: getSnapshot(item) }))

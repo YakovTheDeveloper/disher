@@ -1,4 +1,4 @@
-import { nutrientGroups } from "@/components/features/builders/TotalNutrients/Nutrients/constants";
+import { nutrientGroups } from "@/components/entities/nutrient/NutrientGroup/constants";
 import { Nutrient } from "@/domain/nutrient/Nutrient";
 import { getRoot, types } from "mobx-state-tree";
 

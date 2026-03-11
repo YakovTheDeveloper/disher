@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ScheduleItemCreateZod } from "./validation/scheduleItem.validation";
+import { ScheduleItemCreateZod } from "./validation/scheduleItem.validation.js";
 
 // Helper schema for OneToTen
 const OneToTenSchema = z.union([

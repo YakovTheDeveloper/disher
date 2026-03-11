@@ -1,5 +1,5 @@
 
-import { DishZod } from "../dish.route/dish.validation";
+import { DishZod } from "../dish.route/dish.validation.js";
 import { z } from "zod";
 
 // Base content types

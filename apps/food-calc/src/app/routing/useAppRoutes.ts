@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router';
-import { RouterLinks, RouterUrls, getScheduleFoodUrl, getScheduleEventUrl, getDishFoodDraftUrl } from '@/router';
+import { RouterLinks, RouterUrls, getScheduleFoodUrl, getScheduleEventUrl, getScheduleAnalyticsUrl, getDishFoodDraftUrl } from '@/router';
 
 export interface UseAppRoutesOptions {
     fallbackUrl?: string;
@@ -19,6 +19,7 @@ export interface UseAppRoutesReturn {
     toScheduleBuilder: (id: string) => void;
     toScheduleFood: (id: string, childId: string) => void;
     toScheduleEvent: (id: string, childId: string) => void;
+    toScheduleAnalytics: (id: string) => void;
     toLoadData: () => void;
     toDishes: () => void;
     toProducts: () => void;
@@ -69,6 +70,7 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
     const toScheduleBuilder = (id: string) => navigate(`${RouterLinks.ScheduleBuilder}/${id}`);
     const toScheduleFood = (id: string, childId: string) => navigate(getScheduleFoodUrl(id, childId));
     const toScheduleEvent = (id: string, childId: string) => navigate(getScheduleEventUrl(id, childId));
+    const toScheduleAnalytics = (id: string) => navigate(getScheduleAnalyticsUrl(id));
     const toLoadData = () => navigate(RouterLinks.LoadData);
     const toDishes = () => navigate(RouterLinks.Dishes);
     const toProducts = () => navigate(RouterLinks.Products);
@@ -89,6 +91,7 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
         toScheduleBuilder,
         toScheduleFood,
         toScheduleEvent,
+        toScheduleAnalytics,
         toLoadData,
         toDishes,
         toProducts,

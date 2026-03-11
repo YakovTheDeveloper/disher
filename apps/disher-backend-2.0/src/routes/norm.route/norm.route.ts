@@ -1,7 +1,7 @@
 import { z } from "zod"
-import { prisma } from "../../client"
-import { createResponseObject } from "../../lib/response"
-import { t } from "../../trpc"
+import { prisma } from "../../client.js"
+import { createResponseObject } from "../../lib/response.js"
+import { t } from "../../trpc.js"
 
 const defaultSelect = {
     id: true,

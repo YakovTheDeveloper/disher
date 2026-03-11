@@ -13,15 +13,17 @@ export interface FilteringOptions {
     debounce?: number;
     /** Category filter - items must have at least one of these categories */
     categoryFilter?: string[];
+    /** Default tab to show on initial render */
+    defaultTab?: string;
 }
 
 export function useFilteringStateV2(
     tabs: readonly TabFilterConfig<T>[],
     options: FilteringOptions = {}
 ) {
-    const { minLength = 2, limit = 50, categoryFilter } = options;
+    const { minLength = 2, limit = 50, categoryFilter, defaultTab } = options;
 
-    const [currentTab, setCurrentTab] = useState(tabs[0]?.tabName ?? '');
+    const [currentTab, setCurrentTab] = useState(defaultTab ?? tabs[0]?.tabName ?? '');
     const [searchQuery, setSearchQuery] = useState('');
 
     // Текущая конфигурация таба

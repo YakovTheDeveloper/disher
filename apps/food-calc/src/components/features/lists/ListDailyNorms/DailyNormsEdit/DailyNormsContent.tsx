@@ -5,10 +5,7 @@ import { ListItem } from '@/components/features/lists/ListDailyNorms/DailyNormsE
 import { UserDailyNorm } from '@/domain/dailyNorm/DailyNorm.model';
 import { Instance } from 'mobx-state-tree';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import {
-  Nutrient,
-  nutrientGroups,
-} from '@/components/features/builders/TotalNutrients/Nutrients/constants';
+import { Nutrient, nutrientGroups } from '@/components/entities/nutrient/NutrientGroup/constants';
 
 type NutrientGroup = {
   name: string;

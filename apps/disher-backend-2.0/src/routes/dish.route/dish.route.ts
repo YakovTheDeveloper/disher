@@ -1,12 +1,12 @@
 
 
 import z from "zod"
-import { prisma } from "../../client"
-import { idStringifier, publicProcedure, t } from "../../trpc"
-import { DishCreateWithoutUserInputSchema, DishItemCreateManyDishInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateManyScheduleInputSchema } from "../../../prisma/generated/zod"
-import { createResponseObject } from "../../lib/response"
-import { DishSyncInputZod, DishZodType } from "./dish.validation"
-import { getCreateItems, getUpdateItems } from "./dish.service"
+import { prisma } from "../../client.js"
+import { idStringifier, publicProcedure, t } from "../../trpc.js"
+import { DishCreateWithoutUserInputSchema, DishItemCreateManyDishInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateManyScheduleInputSchema } from "../../../prisma/generated/zod/index.js"
+import { createResponseObject } from "../../lib/response.js"
+import { DishSyncInputZod, DishZodType } from "./dish.validation.js"
+import { getCreateItems, getUpdateItems } from "./dish.service.js"
 
 export const dihesRoutes = {
     getDishes: publicProcedure

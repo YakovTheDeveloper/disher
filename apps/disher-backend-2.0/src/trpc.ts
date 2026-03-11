@@ -1,5 +1,5 @@
 import { initTRPC } from '@trpc/server';
-import { transformIds } from './plugins/transformIds';
+import { transformIds } from './plugins/transformIds.js';
 
 export const t = initTRPC.create();
 

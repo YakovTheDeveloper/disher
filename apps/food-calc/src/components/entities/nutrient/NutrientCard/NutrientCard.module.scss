@@ -1,0 +1,92 @@
+.card {
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+// Background colors by group (Mendeleev table style)
+.main {
+    background-color: #fff3e0; // Orange - macros
+}
+
+.vitaminsB {
+    background-color: #e3f2fd; // Blue - B vitamins
+}
+
+.minerals {
+    background-color: #e8f5e9; // Green - minerals
+}
+
+.rest {
+    background-color: #f3e5f5; // Purple - other vitamins
+}
+
+.symbol {
+    font-size: 20px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    font-family: "Merriweather", serif;
+}
+
+// Colored symbols by group
+.main .symbol {
+    color: #e65100;
+}
+
+.vitaminsB .symbol {
+    color: #1565c0;
+}
+
+.minerals .symbol {
+    color: #2e7d32;
+}
+
+.rest .symbol {
+    color: #7b1fa2;
+}
+
+.topRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.percent {
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.center {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+}
+
+.name {
+    font-size: 12px;
+    font-weight: 300;
+}
+
+.values {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    font-size: 13px;
+}
+
+.progressBar {
+    height: 5px;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.fill {
+    height: 100%;
+    border-radius: 4px;
+}

@@ -1,10 +1,9 @@
 
 import { ScheduleFoods } from "@/domain/schedule/scheduleFood";
-import { ISODate } from "@/types/common/common";
 import { Instance } from "mobx-state-tree";
 
 export function createFoodScheduleModel(
-    overrides: Partial<Instance<typeof ScheduleFoods>> & { id: ISODate }
+    overrides: Partial<Instance<typeof ScheduleFoods>> & { id: string }
 ) {
     const data = {
         id: overrides.id,

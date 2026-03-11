@@ -1,8 +1,9 @@
 import { observer } from 'mobx-react-lite';
 import styles from './TotalNutrients.module.scss';
-import { Nutrients } from '@/components/features/builders/TotalNutrients/Nutrients';
+import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
 import { useCallback, useMemo } from 'react';
-import { Overlay } from '@/components/features/builders/TotalNutrients/Nutrients/Overlay';
+import { Overlay } from '@/components/entities/nutrient/NutrientGroup/Overlay';
+import NutrientCardV2 from '@/components/entities/nutrient/NutrientCard/NutrientCardV2';
 import { Typography } from '@/components/ui/atoms/Typography';
 import { NavLink } from 'react-router';
 import { RouterLinks } from '@/router';
@@ -44,7 +45,6 @@ const TotalNutrients = ({ countable, children }: Props) => {
 
   return (
     <>
-      <Spacer variant="screen-header-offset" />
       {/* <Button
         onClick={async () => {
           const nutrients = await nutrientStore.loadNutrientsAndCalculate();
@@ -53,7 +53,18 @@ const TotalNutrients = ({ countable, children }: Props) => {
       >
         Го
       </Button> */}
-      <Nutrients store={nutrientStore} renderOverlay={renderOverlay} asControlledForm={false} />
+      <Nutrients
+        store={nutrientStore}
+        renderOverlay={renderOverlay}
+        asControlledForm={false}
+        renderCard={(nutrientData) => (
+          <NutrientCardV2
+            content={nutrientData}
+            getValue={nutrientStore.getValue}
+            renderOverlay={renderOverlay}
+          />
+        )}
+      />
       <OpenDailyNorms />
 
       {children}

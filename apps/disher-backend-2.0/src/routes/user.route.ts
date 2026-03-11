@@ -1,8 +1,8 @@
 
 import z from "zod";
-import { prisma } from "../client"
-import { t } from "../trpc"
-import { createResponseObject } from "../lib/response";
+import { prisma } from "../client.js"
+import { t } from "../trpc.js"
+import { createResponseObject } from "../lib/response.js";
 
 export const userRoutes = ({
     createUser: t.procedure

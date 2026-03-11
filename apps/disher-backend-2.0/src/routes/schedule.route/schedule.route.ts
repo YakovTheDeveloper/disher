@@ -1,14 +1,14 @@
 
 
 import z from "zod"
-import { prisma } from "../../client"
-import { publicProcedure, t } from "../../trpc"
-import { ScheduleCreateInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateInputSchema, ScheduleItemCreateManyFoodInputSchema, ScheduleItemCreateManyScheduleInputSchema, ScheduleItemCreateNestedManyWithoutScheduleInputSchema, ScheduleItemCreateWithoutScheduleInputSchema, ScheduleItemUncheckedCreateInputSchema, ScheduleItemUncheckedUpdateWithoutScheduleInputSchema, ScheduleItemUpdateInputSchema, ScheduleItemUpdateWithoutScheduleInputSchema, ScheduleUpdateInputSchema, ScheduleUpdateWithoutUserInputSchema, ScheduleWhereUniqueInputSchema } from "../../../prisma/generated/zod"
-import { createResponseObject } from "../../lib/response"
-import { DailyEventsUpdateSchema, ScheduleCreateInputZod, ScheduleUpdateInputZod } from "./validation"
+import { prisma } from "../../client.js"
+import { publicProcedure, t } from "../../trpc.js"
+import { ScheduleCreateInputSchema, ScheduleCreateWithoutUserInputSchema, ScheduleItemCreateInputSchema, ScheduleItemCreateManyFoodInputSchema, ScheduleItemCreateManyScheduleInputSchema, ScheduleItemCreateNestedManyWithoutScheduleInputSchema, ScheduleItemCreateWithoutScheduleInputSchema, ScheduleItemUncheckedCreateInputSchema, ScheduleItemUncheckedUpdateWithoutScheduleInputSchema, ScheduleItemUpdateInputSchema, ScheduleItemUpdateWithoutScheduleInputSchema, ScheduleUpdateInputSchema, ScheduleUpdateWithoutUserInputSchema, ScheduleWhereUniqueInputSchema } from "../../../prisma/generated/zod/index.js"
+import { createResponseObject } from "../../lib/response.js"
+import { DailyEventsUpdateSchema, ScheduleCreateInputZod, ScheduleUpdateInputZod } from "./validation.js"
 import { Prisma } from "@prisma/client"
-import { ScheduleSyncInputZod } from "./validationV3"
-import { mapScheduleItemData, syncSchedule } from "./schedule.service"
+import { ScheduleSyncInputZod } from "./validationV3.js"
+import { mapScheduleItemData, syncSchedule } from "./schedule.service.js"
 
 export const scheduleItemSelect = {
     dish: {
@@ -297,7 +297,7 @@ export const scheduleRoutes = {
                                     where: { id: item.id },
                                     data: {
                                         time: item.time,
-                                        
+
                                     },
                                 });
                             }

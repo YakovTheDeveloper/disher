@@ -14,6 +14,7 @@ import { useUserAgentDetection } from '@/hooks/useUserAgentDetection';
 import { useGlobalScrollBlur } from '@/hooks/useGlobalScrollBlur';
 import DrawerManagerV2 from '@/DrawerManagerV2';
 import DrawerManagerV3 from '@/components/DrawerManagerV3';
+import { FontSwitcher } from '@/components/dev/FontSwitcher/FontSwitcher';
 import { domainStore } from '@/store/store';
 import { observer } from 'mobx-react-lite';
 import { I18nextProvider } from 'react-i18next';
@@ -47,6 +48,7 @@ const App = () => {
           </Drawer>
 
           <AnimatedOutlet />
+          {/* <FontSwitcher /> */}
         </div>
       </QueryClientProvider>
     </I18nextProvider>

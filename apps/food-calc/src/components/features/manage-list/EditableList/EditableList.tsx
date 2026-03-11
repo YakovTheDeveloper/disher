@@ -1,7 +1,10 @@
 import { useState, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
-
-export type EditableListRef<T> = {
-  getItems: () => T[];
+import styles from './EditableList.module.scss';
+export type EditableListRef = {
+  getResultedItemsIds: () => {
+    asSet: Set<string>;
+    asArray: string[];
+  };
 };
 
 type Props<T extends { id: string }> = {
@@ -11,7 +14,7 @@ type Props<T extends { id: string }> = {
 
 function EditableListInner<T extends { id: string }>(
   { items, renderItem }: Props<T>,
-  ref: React.Ref<EditableListRef<T>>
+  ref: React.Ref<EditableListRef>
 ) {
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
 
@@ -40,23 +43,31 @@ function EditableListInner<T extends { id: string }>(
   useImperativeHandle(
     ref,
     () => ({
-      getItems: () => visibleItems,
+      getResultedItemsIds: () => {
+        const ids = visibleItems.map(({ id }) => id);
+        return {
+          asSet: new Set(ids),
+          asArray: ids,
+        };
+      },
     }),
     [visibleItems]
   );
 
+  const canDelete = visibleItems.length > 1;
+
   return (
-    <div>
+    <div className={styles.container}>
       {visibleItems.map((item) => (
         <div key={item.id}>
           {renderItem(item)}
-          <button onClick={() => handleDelete(item.id)}>×</button>
+          {canDelete && <button onClick={() => handleDelete(item.id)}>×</button>}
         </div>
       ))}
 
       {deletedItems.length > 0 && (
-        <div>
-          <div>Удалённые</div>
+        <div className={styles.deletedSection}>
+          <div className={styles.deletedLabel}>Удалённые</div>
 
           {deletedItems.map((item) => (
             <div key={item.id}>
@@ -71,5 +82,5 @@ function EditableListInner<T extends { id: string }>(
 }
 
 export const EditableList = forwardRef(EditableListInner) as <T extends { id: string }>(
-  props: Props<T> & { ref?: React.Ref<EditableListRef<T>> }
+  props: Props<T> & { ref?: React.Ref<EditableListRef> }
 ) => React.ReactElement;

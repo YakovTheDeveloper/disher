@@ -12,6 +12,7 @@ type Props = {
   children: React.ReactNode;
   actions?: React.ReactNode;
   bottomRight?: React.ReactNode;
+  topPanel?: React.ReactNode;
   header?: React.ReactNode;
   offsetTop: boolean;
   title?: React.ReactNode;
@@ -24,6 +25,7 @@ const Screen = ({
   header,
   children,
   bottomRight,
+  topPanel,
   actions,
   backgroundColor,
   offsetTop,
@@ -47,6 +49,7 @@ const Screen = ({
 
   return (
     <div className={clsx([styles.screen, backgroundColor && styles[`bg-${backgroundColor}`]])}>
+      {topPanel && <div className={styles.topPanel}>{topPanel}</div>}
       <div className={styles.screenScroll} ref={scrollContainerRef}>
         {offsetTop && <div className={styles.upperPlace}></div>}
 
@@ -76,8 +79,9 @@ const Screen = ({
 
       {actions && (
         <div
-          className={clsx(styles.actions, isBottomPanelsVisible ? styles.visible : styles.hidden)}
-          style={{ pointerEvents: isBottomPanelsVisible ? 'auto' : 'none' }}
+          className={clsx(styles.actions)}
+          // className={clsx(styles.actions, isBottomPanelsVisible ? styles.visible : styles.hidden)}
+          // style={{ pointerEvents: isBottomPanelsVisible ? 'auto' : 'none' }}
         >
           {actions}
         </div>

@@ -41,7 +41,6 @@ const SearchFoodControls = ({
         onFocus={() => onFocusChange?.(true)}
         onBlur={() => onFocusChange?.(false)}
         onChange={(e) => {
-          e.preventDefault();
           searchState.setSearch(e.target.value);
         }}
       />

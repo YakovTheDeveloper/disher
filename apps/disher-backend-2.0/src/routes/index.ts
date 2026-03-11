@@ -1,14 +1,15 @@
 import { initTRPC } from '@trpc/server';
 import superjson from 'superjson'
 import { z } from 'zod';
-import { prisma } from '../client';
-import { scheduleRoutes } from './schedule.route/schedule.route';
-import { t } from '../trpc';
-import { userRoutes } from './user.route';
-import { dihesRoutes } from './dish.route/dish.route';
-import { foodRoutes } from './food.route/food.route';
-import { questionnaireRoute } from './questionnaire.route/questionnaire.route';
-import { dailyNormRoute } from './norm.route/norm.route';
+import { prisma } from '../client.js';
+import { scheduleRoutes } from './schedule.route/schedule.route.js';
+import { t } from '../trpc.js';
+import { userRoutes } from './user.route.js';
+import { dihesRoutes } from './dish.route/dish.route.js';
+import { foodRoutes } from './food.route/food.route.js';
+import { questionnaireRoute } from './questionnaire.route/questionnaire.route.js';
+import { dailyNormRoute } from './norm.route/norm.route.js';
+import { analyticsRoutes } from './analytics/analytics.route.js';
 
 export const appRouter = t.router({
     ...scheduleRoutes,
@@ -17,6 +18,7 @@ export const appRouter = t.router({
     ...foodRoutes,
     ...questionnaireRoute,
     ...dailyNormRoute,
+    ...analyticsRoutes,
 })
 
 

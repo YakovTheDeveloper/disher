@@ -65,7 +65,7 @@ export function useListData<T extends ListItemBase>({
     });
 
     const items = useMemo(() => {
-        if (!debouncedSearch) return [];
+        if (!debouncedSearch) return [...filteredLocal];
         const remoteItems = data?.pages.flatMap((page) => page.items) ?? [];
         return mergeItems(filteredLocal, remoteItems);
     }, [data?.pages, filteredLocal, debouncedSearch]);

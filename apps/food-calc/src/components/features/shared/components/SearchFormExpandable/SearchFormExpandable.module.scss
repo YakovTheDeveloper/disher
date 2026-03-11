@@ -3,13 +3,19 @@
   cursor: pointer;
 }
 
-.container.expanded {
+.container.fixed {
   position: fixed;
+}
+
+.container.absolute {
   position: absolute;
+}
+
+.container.expanded {
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   background: white;
   z-index: 1000;
   display: flex;

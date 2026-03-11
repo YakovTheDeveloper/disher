@@ -1,7 +1,7 @@
 import { List } from '@/components/features/builders/shared/ContentEdit/Food/List';
 import { FoodName } from '@/components/features/builders/shared/ui/FoodName';
 import { observer } from 'mobx-react-lite';
-import { useCallback, useState, useMemo } from 'react';
+import { useCallback, useState } from 'react';
 import styles from './SearchFood.module.scss';
 import { domainStore } from '@/store/store';
 import { SearchListItem } from '@/components/ui/atoms/SearchListItem';
@@ -18,7 +18,7 @@ import {
   getProductCategoryOptions,
 } from '@/lib/filter/categoryOptions';
 
-export type SearchMode = 'products-only' | 'products-and-dishes';
+export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 
 type Props = {
   currentProductId?: string | null;
@@ -48,50 +48,43 @@ const SearchFood = ({
   // Логика фильтрации - создаётся внутри компонента
   const filterKeys = ['name'] as const;
 
-  const filterState = useFilteringStateV2(
-    useMemo(
-      () =>
-        [
-          {
-            tabName: 'продукты',
-            list: domainStore.foodStore.merged,
-            filterKeys,
-          },
-          {
-            tabName: 'блюда',
-            list: domainStore.dishStore.merged,
-            filterKeys,
-          },
-        ] as const,
-      []
-    )
-  );
+  // Initialize with default tab based on mode
+  const getDefaultTab = (searchMode: SearchMode) => {
+    switch (searchMode) {
+      case 'products-only':
+        return 'продукты';
+      case 'dishes-only':
+        return 'блюда';
+      case 'products-and-dishes':
+      default:
+        return 'продукты';
+    }
+  };
+
+  const tabs = [
+    {
+      tabName: 'продукты',
+      list: domainStore.foodStore.merged,
+      filterKeys,
+    },
+    {
+      tabName: 'блюда',
+      list: domainStore.dishStore.merged,
+      filterKeys,
+    },
+  ] as const;
+
+  // First pass to get current tab for category filter lookup
+  const filterState = useFilteringStateV2(tabs, { defaultTab: getDefaultTab(mode) });
 
   const currentFilterType = getCurrentFilterType(filterState.currentTab);
   const currentCategoryFilter = categoryFilter.getCategoryFilter(currentFilterType);
 
-  // Apply category filter to filtered list
-  const filterStateWithCategory = useFilteringStateV2(
-    useMemo(
-      () =>
-        [
-          {
-            tabName: 'продукты',
-            list: domainStore.foodStore.merged,
-            filterKeys,
-          },
-          {
-            tabName: 'блюда',
-            list: domainStore.dishStore.merged,
-            filterKeys,
-          },
-        ] as const,
-      []
-    ),
-    {
-      categoryFilter: currentCategoryFilter,
-    }
-  );
+  // Main filter state with category filter applied
+  const filterStateWithCategory = useFilteringStateV2(tabs, {
+    categoryFilter: currentCategoryFilter,
+    defaultTab: getDefaultTab(mode),
+  });
 
   const onBackButton = () => setCurrentInfoFood('');
 
@@ -124,6 +117,8 @@ const SearchFood = ({
   );
 
   const onProductClickSeeDetails = useCallback(() => {}, []);
+
+  console.log(filterStateWithCategory);
 
   const renderProductItem = useCallback(
     (item: any) => {
@@ -194,7 +189,7 @@ const SearchFood = ({
             onClose={() => {}}
           />
         )}
-        {filterStateWithCategory.currentTab === 'блюда' && mode === 'products-and-dishes' && (
+        {(filterStateWithCategory.currentTab === 'блюда' || mode === 'dishes-only') && (
           <List
             isShow={true}
             after={null}
@@ -209,24 +204,26 @@ const SearchFood = ({
         {/* Filter Panel at bottom of screen */}
         <section className={styles.filterWrapper}>
           {/* Tabs for switching between Products and Dishes */}
-          {mode === 'products-and-dishes' && (
-            <div className={styles.filterTabs}>
-              <button
-                className={`${styles.filterTab} ${filterStateWithCategory.currentTab === 'продукты' ? styles.filterTabActive : ''}`}
-                onClick={() => filterStateWithCategory.setTab('продукты')}
-              >
-                Продукты
-              </button>
-              <button
-                className={`${styles.filterTab} ${filterStateWithCategory.currentTab === 'блюда' ? styles.filterTabActive : ''}`}
-                onClick={() => filterStateWithCategory.setTab('блюда')}
-              >
-                Блюда
-              </button>
-            </div>
-          )}
-
           <FilterPanel
+            isOpen={filterPanelOpen}
+            header={
+              mode === 'products-and-dishes' && (
+                <div className={styles.filterTabs}>
+                  <button
+                    className={`${styles.filterTab} ${filterStateWithCategory.currentTab === 'продукты' ? styles.filterTabActive : ''}`}
+                    onClick={() => filterStateWithCategory.setTab('продукты')}
+                  >
+                    Продукты
+                  </button>
+                  <button
+                    className={`${styles.filterTab} ${filterStateWithCategory.currentTab === 'блюда' ? styles.filterTabActive : ''}`}
+                    onClick={() => filterStateWithCategory.setTab('блюда')}
+                  >
+                    Блюда
+                  </button>
+                </div>
+              )
+            }
             groups={
               filterStateWithCategory.currentTab === 'продукты'
                 ? getProductCategoryGroups()

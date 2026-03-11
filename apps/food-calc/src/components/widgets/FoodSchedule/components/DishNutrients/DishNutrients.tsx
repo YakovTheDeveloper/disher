@@ -1,7 +1,8 @@
 import { observer } from 'mobx-react-lite';
 import styles from './DishNutrients.module.scss';
-import { Nutrients } from '@/components/features/builders/TotalNutrients/Nutrients';
-import { Overlay } from '@/components/features/builders/TotalNutrients/Nutrients/Overlay';
+import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
+import { Overlay } from '@/components/entities/nutrient/NutrientGroup/Overlay';
+import NutrientCardV2 from '@/components/entities/nutrient/NutrientCard/NutrientCardV2';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Typography } from '@/components/ui/atoms/Typography';
@@ -62,7 +63,18 @@ const DishNutrients = ({ currentChild, currentDish }: Props) => {
 
       <div className={styles.main}>
         <div className={styles.content}>
-          <Nutrients renderOverlay={renderOverlay} store={nutrientStore} asControlledForm={false} />
+          <Nutrients
+            renderOverlay={renderOverlay}
+            store={nutrientStore}
+            asControlledForm={false}
+            renderCard={(nutrientData) => (
+              <NutrientCardV2
+                content={nutrientData}
+                getValue={nutrientStore.getValue}
+                renderOverlay={renderOverlay}
+              />
+            )}
+          />
           <Button
             variant="ghost"
             className={styles.link}

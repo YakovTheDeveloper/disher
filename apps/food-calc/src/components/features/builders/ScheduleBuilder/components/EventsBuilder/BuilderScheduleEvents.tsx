@@ -12,7 +12,7 @@ import { useOverlay } from '@/store/GlobalUiStore/OverlayStore';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { Navigation } from '@/components/features/builders/ScheduleBuilder/ui/Navigation';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import { ActionsHeader } from '@/components/features/builders/shared/components/ActionsHeader';
+import { ActionsPanel } from '@/components/features/builders/shared/components/ActionsPanel';
 import { getScheduleEventUrl } from '@/router';
 import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { domainStore } from '@/store/store';
@@ -27,22 +27,37 @@ type Props = {
 };
 
 export function getEventDescription(item: Instance<typeof ScheduleEvent>): string {
-  const variant = item.type;
+  const parts: string[] = [];
 
-  switch (variant) {
-    case 'sleep':
-      return `Сон: ${item.value}, качество ${item.value}/10`;
-    case 'mood':
-      return `Настроение: ${item.value}/10`;
-    case 'energy':
-      return `Энергия: ${item.value}/10`;
-    case 'digestion':
-      return `Пищеварение (${item.type}): ${item.value}/10`;
-    case 'activity':
-      return `Активность: ${item.type}, ${item.value}`;
-    case 'note':
-      return `Заметка: ${item.value}`;
+  // Add time if available
+  if (item.time) {
+    parts.push(item.time);
   }
+
+  // Add text if available
+  if (item.text) {
+    parts.push(item.text);
+  }
+
+  // Add relevant atoms for context
+  const tags = item.getAtomsByKind('tag');
+  if (tags.length > 0) {
+    const tagValues = tags.map((atom) => atom.value).join(', ');
+    parts.push(`[${tagValues}]`);
+  }
+
+  const flags = item.getAtomsByKind('flag');
+  if (flags.length > 0) {
+    const flagValues = flags.map((atom) => atom.value).join(', ');
+    parts.push(`★${flagValues}`);
+  }
+
+  // If nothing is set, show placeholder
+  if (parts.length === 0) {
+    return 'Новое событие';
+  }
+
+  return parts.join(' • ');
 }
 
 const BuilderScheduleEvents = ({ schedule }: Props) => {
@@ -71,7 +86,7 @@ const BuilderScheduleEvents = ({ schedule }: Props) => {
     <Screen
       offsetTop
       actions={
-        <ActionsHeader
+        <ActionsPanel
           show={selectionStoreEvents.isActionsMode}
           onBack={() => selectionStoreEvents.clearSelection()}
           left={
@@ -87,7 +102,7 @@ const BuilderScheduleEvents = ({ schedule }: Props) => {
           }
         >
           экшены событий
-        </ActionsHeader>
+        </ActionsPanel>
       }
       key={3}
       title={<ScreenLabel variant="screenHeader">События</ScreenLabel>}

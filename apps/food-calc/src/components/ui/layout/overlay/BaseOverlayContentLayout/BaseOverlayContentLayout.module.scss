@@ -3,12 +3,11 @@
   flex-direction: column;
   flex: 1;
   height: 100%;
+  padding: 1rem 0.5rem;
 }
 
-.header,
-.supFooter,
-.footer {
-  padding: 1rem;
+.header {
+  margin-bottom: 2rem;
 }
 
 .content {
@@ -21,5 +20,5 @@
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
+  padding-top: 1rem;
 }
-

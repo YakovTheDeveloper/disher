@@ -11,6 +11,8 @@ import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenL
 import { FoodSchedule } from '@/components/widgets/FoodSchedule';
 import { BuilderScheduleEvents } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder';
 import { TotalNutrients } from '@/components/features/builders/TotalNutrients/TotalNutrients';
+import { FilterButton } from '@/components/ui/atoms/Button';
+import { ScheduleFoodsNutrients } from '@/components/widgets/nutrients/ScheduleFoodsNutrients';
 
 const Page = observer(({ date }: { date: string }) => {
   console.log('schedule builder page render');
@@ -35,9 +37,8 @@ const Page = observer(({ date }: { date: string }) => {
   return (
     <>
       <SwipeableV2 defaultSlide={1} onIndexChange={onPageChange}>
-        <Screen title={<ScreenLabel variant="screenHeader">Нутри</ScreenLabel>}>
-          <TotalNutrients countable={foodSchedule} />
-        </Screen>
+        <ScheduleFoodsNutrients schedule={foodSchedule} />
+
         <FoodSchedule schedule={foodSchedule} />
         <BuilderScheduleEvents schedule={eventSchedule} />
       </SwipeableV2>

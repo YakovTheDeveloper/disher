@@ -4,7 +4,7 @@ import { DailyNorm, DailyNormItem } from "@/domain/dailyNorm/DailyNorm.model";
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel";
 import { createDataStoreModel } from "@/store/shared/DataStore";
 import { DailyNormsFactory } from "@/domain/dailyNorm/factory";
-import { defaultDailyNorms } from "@/components/features/builders/TotalNutrients/Nutrients/constants";
+import { defaultDailyNorms } from "@/components/entities/nutrient/NutrientGroup/constants";
 
 const dataStoreModel = createDataStoreModel(
     "DailyNormData",

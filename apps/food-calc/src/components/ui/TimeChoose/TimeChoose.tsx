@@ -74,10 +74,9 @@ const TimeChoose = observer(
     return (
       <div
         id={id}
-        className={clsx(styles.container)}
+        className={styles.container}
         role="group"
         aria-label="Time input"
-        style={{ cursor: 'text', display: 'inline-flex', alignItems: 'center' }}
       >
         {isNative ? (
           <div className={styles.wrapper}>
@@ -137,18 +136,18 @@ const TimeChoose = observer(
         )}
 
         <div className={styles.buttonsWrapper}>
+          <TimeNow onFinish={onNowSelect} time={`${hours}:${minutes}`}>
+            <button className={clsx(styles.toggleButton, styles.nowButton)}>Сейчас</button>
+          </TimeNow>
+
           <button
-            className={clsx([styles.toggleButton, styles.swapButton])}
+            className={clsx(styles.toggleButton, styles.swapButton)}
             onClick={() => {
               uiStore.toggleTimePickerVariant();
             }}
           >
-            Сменить вид
+            {isNative ? 'Ручной ввод' : 'Системный'}
           </button>
-
-          <TimeNow onFinish={onNowSelect} time={`${hours}:${minutes}`}>
-            <button className={clsx([styles.toggleButton, styles.nowButton])}>Текущее время</button>
-          </TimeNow>
         </div>
       </div>
     );

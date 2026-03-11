@@ -1,7 +1,7 @@
 .container {
     display: flex;
     position: relative;
-    padding: 0.5rem;
+    padding: 0.5rem 0;
 
     &::before {
         content: attr(data-text);

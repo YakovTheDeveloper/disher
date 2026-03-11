@@ -1,23 +1,89 @@
-import { types, Instance, onPatch } from "mobx-state-tree";
+import { types, Instance, onPatch, getRoot } from "mobx-state-tree";
 import { SyncStatus } from "@/domain/commonListItem";
 import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
 import { emitter } from "@/infrastructure/emitter/emitter";
 import { ChildrenController } from "@/domain/shared/ChildrenController";
 import { groupItemsByTime } from "@/domain/schedule/schedule.service";
-import { ContentControllerFood } from "@/domain/shared/foodContent/foodContent";
 import { ScheduleTime } from "@/store/common/ScheduleTime.model";
 import { DishModelInstance } from "@/domain/dish/Dish.model";
+import { FoodStoreInstance } from "@/store/FoodStore/FoodStore";
+import { DishStore } from "@/store/DishStore/DishStore";
+import { FoodContentDish, FoodContentProduct, FoodContentProductInstance } from "@/domain/shared/foodContent/foodContent";
+import { FoodInput } from "@/components/features/daySchedule/copy-food-to-day-schedule/CopyFoodFromDayScheduleOverlay/CopyFoodToDaySchedule";
+
+const DEFAULT_QUANTITY = 100;
 
 export type ScheduleItemType = Instance<typeof ScheduleFoodsItem>["type"];
 
-export const ScheduleFoodsItem = types.compose("ScheduleFood", types.model({
-    id: types.identifier,
-    time: types.string,
-}), ContentControllerFood).actions(self => ({
-    updateTime(time: string) {
-        self.time = time
-    },
-}))
+export const ScheduleFoodsItem = types
+    .model("ScheduleFood", {
+        id: types.identifier,
+        time: types.string,
+        contentProduct: types.maybeNull(FoodContentProduct),
+        contentDish: types.maybeNull(FoodContentDish),
+    })
+    .views(self => ({
+        get content() {
+            return self.contentDish || self.contentProduct || null
+        }
+    }))
+    .actions(self => {
+        function updateFood(id: string) {
+            if (self.contentProduct) {
+                self.contentProduct.update(id);
+                return;
+            }
+            self.contentDish = null;
+            self.contentProduct = FoodContentProduct.create({
+                variant: 'product',
+                foodId: id,
+                quantity: self.content?.quantity ?? DEFAULT_QUANTITY
+            });
+        }
+
+        function updateDish(id: string) {
+            if (self.contentDish) {
+                self.contentDish.update(id);
+                return;
+            }
+            self.contentProduct = null;
+            self.contentDish = FoodContentDish.create({
+                variant: 'dish',
+                dishId: id,
+                quantity: self.content?.quantity ?? DEFAULT_QUANTITY
+            });
+        }
+
+        function clear() {
+            self.contentProduct = null;
+            self.contentDish = null;
+        }
+
+        function update(variant: 'product' | 'dish', id: string) {
+            if (variant === 'product') {
+                updateFood(id);
+            } else {
+                updateDish(id);
+            }
+        }
+
+        function updateTime(time: string) {
+            self.time = time
+        }
+
+        function getTotalNutrients() {
+            return self.content?.getTotalNutrients()
+        }
+
+        return {
+            updateFood,
+            updateDish,
+            update,
+            clear,
+            updateTime,
+            getTotalNutrients,
+        }
+    })
 
 export type ScheduleFoodsItemType = Instance<typeof ScheduleFoodsItem>
 
@@ -57,8 +123,19 @@ export const ScheduleFoods = types.model({
 
         let disposer: any = null
 
-        function getProductOnlyChildrenByIds(ids: string[]) {
-            return self.foods.getChildrenByIds(ids).filter(item => item.content?.variant === "product")
+        function getChildrenListWithProductContentByIds(ids: string[]): { id: string, contentProduct: FoodContentProductInstance }[] {
+            return self.foods.getChildrenByIds(ids)
+                .filter(item => item.contentProduct != null)
+                .map(item => ({
+                    id: item.id,
+                    contentProduct: item.contentProduct!
+                }))
+        }
+
+        function getChildrenWithAnyExistingContentByIds(ids: string[]): ScheduleFoodsItemType[] {
+            return self.foods.getChildrenByIds(ids)
+                .filter(item => item.contentProduct != null)
+
         }
 
         function swapProductsToDish(productsIds: string[], dishId: string) {
@@ -117,7 +194,8 @@ export const ScheduleFoods = types.model({
         }
 
         return {
-            getProductOnlyChildrenByIds,
+            getChildrenWithAnyExistingContentByIds,
+            getChildrenListWithProductContentByIds,
             getTotalNutrients,
             swapProductsToDish,
             addScheduleItemOfDishType,
@@ -125,3 +203,5 @@ export const ScheduleFoods = types.model({
             beforeDestroy
         };
     })
+
+export type ScheduleFoodsType = Instance<typeof ScheduleFoods>

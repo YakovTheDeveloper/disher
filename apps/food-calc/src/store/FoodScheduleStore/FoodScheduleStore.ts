@@ -1,6 +1,5 @@
 import { types, cast, Instance, getSnapshot } from "mobx-state-tree"
 import { syncSchedules } from "@/api/schedule/schedule.api"
-import { ISODate } from "@/types/common/common"
 import { ScheduleFoods, ScheduleFoodsItem, ScheduleFoodsItemType } from "@/domain/schedule/scheduleFood/ScheduleFoods.model"
 import { createFoodScheduleModel } from "@/store/FoodScheduleStore/fabric"
 import { createRequestController } from "@/store/common/pureFabrication/createRequestController"
@@ -18,8 +17,8 @@ export const FoodScheduleStore = types
         }),
     })
     .views(self => ({
-        getLocal(date: ISODate) {
-            return self.data.get(date)
+        getLocal(date: string) {
+            return self.data.get(date);
         },
 
         has(date: string) {
@@ -32,12 +31,21 @@ export const FoodScheduleStore = types
             self.data.set(model.id, model)
             return model
         },
+    }))
+    .actions(self => ({
+        getOrCreateLocal(date: string) {
+            let schedule = self.data.get(date);
+            if (!schedule) {
+                schedule = self.addLocal({ id: date });
+            }
+            return schedule;
+        },
 
-        set(date: ISODate, schedule: Instance<typeof ScheduleFoods>) {
+        set(date: string, schedule: Instance<typeof ScheduleFoods>) {
             self.data.set(date, schedule)
         },
 
-        delete(date: ISODate) {
+        delete(date: string) {
             self.data.delete(date)
         },
 
@@ -56,7 +64,7 @@ export const FoodScheduleStore = types
             return instance.id
         },
 
-        updateDailyEventsLocal(date: ISODate, payload: string | null) {
+        updateDailyEventsLocal(date: string, payload: string | null) {
             const item = self.data.get(date)
             if (!item) return
             const schedule = item as any

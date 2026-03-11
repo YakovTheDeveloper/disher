@@ -57,7 +57,7 @@ export const TIME_OF_DAY_HEADER_GRADIENT: Record<TimeOfDay, { initial: string; f
 /** Фоновые градиенты V2 - яркие холодные оттенки */
 export const TIME_OF_DAY_BG_V2: Record<TimeOfDay, string> = {
   morning:
-    'linear-gradient(135deg, rgb(180, 235, 255) 0%, rgb(220, 250, 255) 70%, rgb(249, 255, 255) 100%)',
+    'linear-gradient(135deg, rgb(80, 67, 67) 0%, rgb(45, 54, 55) 70%, rgbrgb(98, 110, 110)0%)',
   day: 'linear-gradient(135deg, rgb(190, 210, 255) 0%, rgb(210, 225, 255) 70%, rgb(249, 255, 255) 100%)',
   evening:
     'linear-gradient(135deg, rgb(235, 210, 255) 0%, rgb(255, 235, 255) 70%, rgb(249, 255, 255) 100%)',
@@ -80,21 +80,21 @@ export const TIME_OF_DAY_HEADER_GRADIENT_V2: Record<
 > = {
   morning: {
     initial:
-      'linear-gradient(to bottom, rgba(180, 235, 255, 0) 0%, rgba(180, 235, 255, 0) 70%, rgba(180, 235, 255, 0) 100%)',
+      'linear-gradient(to bottom, rgba(215, 230, 245, 0) 0%, rgba(215, 230, 245, 0) 70%, rgba(215, 230, 245, 0) 100%)',
     finished:
-      'linear-gradient(to bottom, rgba(180, 235, 255, 0) 0%, rgba(80, 180, 220, 0.4) 70%, rgba(50, 150, 200, 0.6) 100%)',
+      'linear-gradient(to bottom, rgba(215, 230, 245, 0) 0%, rgba(255, 255, 255, 0.45) 70%, rgba(177, 46, 129, 0.65) 100%)',
   },
   day: {
     initial:
-      'linear-gradient(to bottom, rgba(190, 210, 255, 0) 0%, rgba(190, 210, 255, 0) 70%, rgba(190, 210, 255, 0) 100%)',
+      'linear-gradient(to bottom, rgba(220, 228, 245, 0) 0%, rgba(220, 228, 245, 0) 70%, rgba(220, 228, 245, 0) 100%)',
     finished:
-      'linear-gradient(to bottom, rgba(190, 210, 255, 0) 0%, rgba(100, 130, 220, 0.4) 70%, rgba(70, 100, 200, 0.6) 100%)',
+      'linear-gradient(to bottom, rgba(220, 228, 245, 0) 0%, rgba(200, 215, 242, 0.4) 70%, rgba(185, 205, 238, 0.6) 100%)',
   },
   evening: {
     initial:
-      'linear-gradient(to bottom, rgba(235, 210, 255, 0) 0%, rgba(235, 210, 255, 0) 70%, rgba(235, 210, 255, 0) 100%)',
+      'linear-gradient(to bottom, rgba(218, 220, 242, 0) 0%, rgba(218, 220, 242, 0) 70%, rgba(218, 220, 242, 0) 100%)',
     finished:
-      'linear-gradient(to bottom, rgba(235, 210, 255, 0) 0%, rgba(180, 120, 220, 0.4) 70%, rgba(150, 80, 200, 0.6) 100%)',
+      'linear-gradient(to bottom, rgba(218, 220, 242, 0) 0%, rgba(195, 200, 235, 0.45) 70%, rgba(178, 185, 228, 0.65) 100%)',
   },
   night: {
     initial:
@@ -124,8 +124,8 @@ const ScheduleItemCommonForm = ({ time, children, button }: Props) => {
   const dateInfoStyles = useMemo(
     () =>
       ({
-        '--di-text-default': TIME_OF_DAY_TEXT_V2[timeOfDay],
-        '--di-word-default': TIME_OF_DAY_TEXT_V2[timeOfDay],
+        '--di-text-default': 'white',
+        '--di-word-default': 'white',
       }) as React.CSSProperties,
     [timeOfDay]
   );
@@ -133,7 +133,7 @@ const ScheduleItemCommonForm = ({ time, children, button }: Props) => {
   const layoutContainerBgStyle = useMemo(
     () =>
       ({
-        '--clfh-bg-default': TIME_OF_DAY_BG_V2[timeOfDay],
+        '--clfh-bg-default': 'rgba(10, 25, 81, 0.89)',
       }) as React.CSSProperties,
     [timeOfDay]
   );
