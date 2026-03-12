@@ -53,8 +53,8 @@ const OpenDailyNorms = observer(({ className }: Props) => {
 
   const selectedNorm = React.useMemo(() => {
     if (!dailyNormStore.selectedNormId) return null;
-    return dailyNormStore.mergedMap.get(dailyNormStore.selectedNormId) || null;
-  }, [dailyNormStore.selectedNormId, dailyNormStore.mergedMap]);
+    return dailyNormStore.getEntity(dailyNormStore.selectedNormId) || null;
+  }, [dailyNormStore.selectedNormId, dailyNormStore.merged]);
 
   const handleNormClick = (id: string) => {
     dailyNormStore.setSelectedId(id);

@@ -1,0 +1,44 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100dvh;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.header {
+  padding: 20px 0 12px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.content {
+  flex: 1;
+}
+
+.section {
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.sectionDesc {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.footer {
+  padding: 16px 0 32px;
+}

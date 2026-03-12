@@ -19,6 +19,8 @@ type Props = {
   backgroundColor?: 'gray' | 'white';
   overlay?: React.ReactNode;
   topLeft?: React.ReactNode;
+  backgroundImage?: string;
+  backgroundImageOpacity?: number;
 };
 
 const Screen = ({
@@ -31,6 +33,8 @@ const Screen = ({
   offsetTop,
   overlay,
   topLeft,
+  backgroundImage,
+  backgroundImageOpacity = 0.05,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -49,6 +53,14 @@ const Screen = ({
 
   return (
     <div className={clsx([styles.screen, backgroundColor && styles[`bg-${backgroundColor}`]])}>
+      {backgroundImage && (
+        <img
+          src={backgroundImage}
+          className={styles.backgroundImage}
+          style={{ opacity: backgroundImageOpacity }}
+          alt=""
+        />
+      )}
       {topPanel && <div className={styles.topPanel}>{topPanel}</div>}
       <div className={styles.screenScroll} ref={scrollContainerRef}>
         {offsetTop && <div className={styles.upperPlace}></div>}

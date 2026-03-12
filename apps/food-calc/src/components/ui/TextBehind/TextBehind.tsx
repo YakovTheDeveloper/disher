@@ -6,11 +6,15 @@ export interface TextBehindProps {
   text?: string;
   children: ReactNode;
   className?: string;
+  variant?: 'default' | 'elegant';
 }
 
-const TextBehind: FC<TextBehindProps> = ({ text, children, className }) => {
+const TextBehind: FC<TextBehindProps> = ({ text, children, className, variant }) => {
   return (
-    <div className={clsx(styles.container, className)} data-text={text}>
+    <div
+      className={clsx(styles.container, variant && styles[variant], className)}
+      data-text={text}
+    >
       {children}
     </div>
   );

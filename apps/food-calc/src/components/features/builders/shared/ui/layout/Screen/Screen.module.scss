@@ -11,6 +11,17 @@
     overscroll-behavior: contain;
 }
 
+.backgroundImage {
+    position: absolute;
+    top: 40%;
+    right: -10%;
+    height: 50%;
+    width: auto;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+}
+
 .topPanel {}
 
 .bottomRight {
@@ -149,9 +160,9 @@
 .screenScroll {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     // padding-top: 40vh;
-
     // Performance optimizations for smooth scrolling
     will-change: transform;
     transform: translateZ(0);

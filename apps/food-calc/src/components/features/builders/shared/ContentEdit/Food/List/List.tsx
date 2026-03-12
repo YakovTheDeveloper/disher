@@ -25,6 +25,7 @@ function ListInner<T extends ListItemBase>({
   onFetch,
   renderListContent,
   after,
+  emptyContent,
   gapSize = DEFAULT_GAP_SIZE,
   closeOnSelect = true,
   closeOnOutsideClick = true,
@@ -146,7 +147,9 @@ function ListInner<T extends ListItemBase>({
 
         {showEmptyState && (
           <div className={styles.noResults}>
-            <p>{search.searchQuery ? 'По вашему запросу ничего не найдено' : ''}</p>
+            {emptyContent ?? (
+              <p>{search.searchQuery ? 'По вашему запросу ничего не найдено' : ''}</p>
+            )}
           </div>
         )}
 

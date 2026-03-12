@@ -37,7 +37,7 @@ export const InteractionsDelete = types.optional(types.model().actions((self) =>
     removeDishes(interactionsSelect: InteractionsSelect) {
         performBulkDelete(
             "removeDishes",
-            () => domainStore.dishStore.user.removeBulk(
+            () => domainStore.dishStore.removeBulk(
                 interactionsSelect.selectedIds
             ),
             "Блюда удалены",
@@ -81,7 +81,7 @@ export const InteractionsDelete = types.optional(types.model().actions((self) =>
     removeDailyNorms(interactionsSelect: InteractionsSelect) {
         performBulkDelete(
             "removeDailyNorms",
-            () => domainStore.dailyNormStore.user.removeBulk(
+            () => domainStore.dailyNormStore.removeBulk(
                 interactionsSelect.selectedIds
             ),
             "Дневные нормы удалены",
@@ -92,7 +92,7 @@ export const InteractionsDelete = types.optional(types.model().actions((self) =>
     removeUserFood(interactionsSelect: InteractionsSelect) {
         performBulkDelete(
             "removeUserFood",
-            () => domainStore.foodStore.user.removeBulk(
+            () => domainStore.foodStore.removeBulk(
                 interactionsSelect.selectedIds
             ),
             "Пользовательская еда удалена",

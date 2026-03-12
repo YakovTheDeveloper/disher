@@ -1,177 +1,52 @@
-import { StatusModel } from "@/store/common/pureFabrication/StatusModel";
-import { IAnyModelType, Instance, SnapshotIn, isStateTreeNode, types } from "mobx-state-tree";
+import { IAnyModelType, Instance, SnapshotIn, types } from "mobx-state-tree";
 
-export function createEntityDataStore<TModel extends IAnyModelType>(name: string, model: TModel) {
+export function DataStoreController<TModel extends IAnyModelType>(Model: TModel) {
     return types
-        .model(name, {
-            entities: types.optional(types.map(model), {}),
-            status: types.optional(StatusModel, {}),
-            meta: types.map(
-                types.model({
-                    status: types.enumeration([
-                        "new",
-                        "dirty",
-                        "synced",
-                        "deleted",
-                    ]),
-                    updatedAt: types.number,
-                })
-            ),
+        .model({
+            base: types.optional(types.map(Model), {}),
+            user: types.optional(types.map(Model), {}),
         })
 
         .views((self) => ({
-            get list(): Instance<TModel>[] {
-                return Array.from(self.entities.values()).filter(
-                    (e) => self.meta.get((e as Instance<TModel> & { id: string }).id)?.status !== "deleted"
-                );
-            },
-            getById(id: string) {
-                return self.entities.get(id);
-            },
-        }))
-
-        .actions((self) => ({
-            insert(entity: Instance<TModel>, status: "new" | "synced" = "new") {
-                const id = (entity as any).id.toString();
-
-                self.entities.set(id, entity);
-                self.meta.set(id, {
-                    status,
-                    updatedAt: Date.now(),
-                });
-                return entity
+            getEntity(id: string): Instance<TModel> | undefined {
+                return self.user.get(id) ?? self.base.get(id);
             },
 
-            removeBulk(idList: string[]) {
-                idList.forEach(id => {
-                    self.entities.delete(id);
-                });
+            get merged(): Instance<TModel>[] {
+                return [...self.base.values(), ...self.user.values()];
             },
 
-            replace(entity: Instance<TModel>) {
-                const id = (entity as Instance<TModel> & { id: string }).id.toString();
-                self.entities.set(id, entity);
-                self.meta.get(id)!.status = "dirty";
-                self.meta.get(id)!.updatedAt = Date.now();
-            },
-
-            markDeleted(id: string) {
-                const meta = self.meta.get(id);
-                if (!meta) return;
-
-                meta.status = "deleted";
-                meta.updatedAt = Date.now();
-            },
-
-            markSynced(id: string) {
-                const meta = self.meta.get(id);
-                if (!meta) return;
-
-                meta.status = "synced";
-            },
-
-        }));
-}
-
-export function createImmutableEntityStore<TModel extends IAnyModelType>(
-    name: string,
-    model: TModel,
-) {
-    return types
-        .model(name, {
-            entities: types.optional(types.map(model), {}),
-        })
-        .views((self) => ({
-            get list(): Instance<TModel>[] {
-                return Array.from(self.entities.values());
-            },
-            getById(id: string) {
-                return self.entities.get(id);
-            },
-        }))
-        .actions((self) => ({
-            load(items: Instance<TModel>[]) {
-                items.forEach((item) => {
-                    self.entities.set((item as any).id.toString(), item);
-                });
-            },
-            set(items: Record<string, Instance<TModel>>) {
-                if (!items || typeof items !== 'object') return;
-
-                self.entities.replace(new Map(Object.entries(items)));
-            },
-        }));
-}
-
-export function createDataStoreModel<
-    TBaseModel extends IAnyModelType,
->(
-    name: string,
-    model: TBaseModel,
-) {
-
-    const BaseStore = createImmutableEntityStore(
-        name + "Base",
-        model,
-    );
-
-    const UserStore = createEntityDataStore(
-        name + "User",
-        model
-    );
-
-    return types
-        .model(name, {
-            base: types.optional(BaseStore, {}),
-            user: types.optional(UserStore, {}),
-        })
-
-        .views(self => ({
-            get merged(): (Instance<TBaseModel>)[] {
-                return [...self.base.list, ...self.user.list]
-            },
-
-            get mergedMap(): Map<
-                string,
-                Instance<TBaseModel>
-            > {
-                const map = new Map<
-                    string,
-                    Instance<TBaseModel>
-                >()
-
-                for (const [id, entity] of self.base.entities) {
-                    map.set(id as string, entity)
-                }
-
-                self.user.entities.forEach((entity, id) => {
-                    const meta = self.user.meta.get(id)
-                    if (meta?.status !== "deleted") {
-                        map.set(id.toString(), entity)
-                    }
-                })
-
-                return map
-            },
-
-        }))
-
-        .views(self => ({
             get size() {
-                return self.mergedMap.size
-            },
-            getEntity(id: string) {
-                return self.mergedMap.get(id)
+                return self.base.size + self.user.size;
             },
 
             has(id: string) {
-                return self.base.entities.has(id) || self.user.entities.has(id);
+                return self.user.has(id) || self.base.has(id);
             },
-
         }))
 
+        .actions((self) => ({
+            seedBase(items: Record<string, Instance<TModel>>) {
+                if (!items || typeof items !== 'object') return;
+                self.base.replace(new Map(Object.entries(items)));
+            },
+
+            insert(entity: Instance<TModel>) {
+                const id = (entity as any).id.toString();
+                self.user.set(id, entity);
+                return entity;
+            },
+
+            set(id: string, value: Instance<TModel> | SnapshotIn<TModel>) {
+                self.user.set(id, value as Instance<TModel>);
+            },
+
+            removeBulk(ids: string[]) {
+                ids.forEach(id => self.user.delete(id));
+            },
+        }));
 }
 
 export type IDataStoreInstance<
     TBase extends IAnyModelType = IAnyModelType,
-> = Instance<ReturnType<typeof createDataStoreModel<TBase>>>;
+> = Instance<ReturnType<typeof DataStoreController<TBase>>>;

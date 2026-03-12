@@ -71,7 +71,7 @@ export const InteractionsService = types
 
             const dishItemsPayload = schedule.foods.getChildrenByIds(selectedIds)
 
-            const dish = root.dishStore.user.insert(DishFactory.createNewLocalFromScheduleProducts(dishItemsPayload))
+            const dish = root.dishStore.insert(DishFactory.createNewLocalFromScheduleProducts(dishItemsPayload))
 
             const dishId = dish.id
             // if (!dish) {

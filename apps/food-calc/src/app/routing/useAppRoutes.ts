@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router';
-import { RouterLinks, RouterUrls, getScheduleFoodUrl, getScheduleEventUrl, getScheduleAnalyticsUrl, getDishFoodDraftUrl } from '@/router';
+import { RouterLinks, RouterUrls, getScheduleFoodUrl, getScheduleEventUrl, getScheduleAnalyticsUrl, getDishFoodDraftUrl, getProductUrl } from '@/router';
 
 export interface UseAppRoutesOptions {
     fallbackUrl?: string;
@@ -24,6 +24,7 @@ export interface UseAppRoutesReturn {
     toDishes: () => void;
     toProducts: () => void;
     toUserProduct: (id: string) => void;
+    toProduct: (id: string) => void;
     toTest: () => void;
 }
 
@@ -75,6 +76,7 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
     const toDishes = () => navigate(RouterLinks.Dishes);
     const toProducts = () => navigate(RouterLinks.Products);
     const toUserProduct = (id: string) => navigate(`${RouterLinks.UserProduct}/${id}`);
+    const toProduct = (id: string) => navigate(getProductUrl(id));
     const toTest = () => navigate(RouterLinks.Test2);
 
     return {
@@ -96,6 +98,7 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
         toDishes,
         toProducts,
         toUserProduct,
+        toProduct,
         toTest,
     };
 };

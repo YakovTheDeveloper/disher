@@ -2,12 +2,11 @@ import { observer } from 'mobx-react-lite';
 import styles from './Nutrients.module.scss';
 import { nutrientGroups } from '@/components/entities/nutrient/NutrientGroup/constants';
 import React, { useEffect } from 'react';
-import { NutrientCardFormEntry } from '@/components/entities/nutrient/NutrientCard';
 import { Instance } from 'mobx-state-tree';
 import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
 import clsx from 'clsx';
 import { getNutrientColumn } from '@/components/entities/nutrient/NutrientGroup/constants/columnMapping';
-import { NutrientContentItem } from '@/components/entities/nutrient/NutrientGroup/constants';
+import { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
 
 // Groups of nutrients
 // const groups: Record<string, number[]> = {
@@ -17,35 +16,12 @@ import { NutrientContentItem } from '@/components/entities/nutrient/NutrientGrou
 //   Каротиноиды: [34, 35],
 // };
 
-interface CommonProps {
-  renderOverlay?: (percent: string) => React.ReactNode;
+interface Props {
   store: Instance<typeof TotalNutrientsStore>;
+  renderCard: (nutrientData: Nutrient) => React.ReactNode;
 }
 
-type ConditionalProps =
-  | {
-      asControlledForm: true;
-      onChange: (value: number, nutrientId: string) => void;
-      getValue: (id: string) => number;
-      renderCard?: never;
-    }
-  | {
-      asControlledForm: false;
-      onChange?: never;
-      getValue?: never;
-      renderCard: (nutrientData: NutrientContentItem) => React.ReactNode;
-    };
-
-type Props = CommonProps & ConditionalProps;
-
-const Nutrients = ({
-  store,
-  renderOverlay,
-  onChange,
-  asControlledForm,
-  getValue,
-  renderCard,
-}: Props) => {
+const Nutrients = ({ store, renderCard }: Props) => {
   useEffect(() => {
     console.log('new store nutrients', Array.from(store.nutrients.entries()));
   }, [Array.from(store.nutrients.entries())]);
@@ -57,19 +33,9 @@ const Nutrients = ({
           <div key={groupName} className={styles.group}>
             <div className={clsx([styles.groupContent])}>
               {/* <h2 className={styles.groupTitle}>{groupName}</h2> */}
-              {content.map((nutrientData) =>
-                asControlledForm ? (
-                  <NutrientCardFormEntry
-                    key={nutrientData.id}
-                    onChange={onChange}
-                    content={nutrientData}
-                    getValue={getValue}
-                    renderOverlay={renderOverlay}
-                  />
-                ) : (
-                  <React.Fragment key={nutrientData.id}>{renderCard(nutrientData)}</React.Fragment>
-                )
-              )}
+              {content.map((nutrientData) => (
+                <React.Fragment key={nutrientData.id}>{renderCard(nutrientData)}</React.Fragment>
+              ))}
             </div>
           </div>
         );

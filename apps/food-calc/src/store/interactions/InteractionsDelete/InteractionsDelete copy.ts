@@ -7,7 +7,7 @@ import { domainStore } from "@/store/store";
 export const InteractionsDelete = types.optional(types.model().actions((self) => ({
     removeDishes() {
         const ids = domainStore.interactionsService.interactionsSelect.selectedIds;
-        domainStore.dishStore.user.removeBulk(ids);
+        domainStore.dishStore.removeBulk(ids);
         domainStore.interactionsService.interactionsSelect.clearSelection();
         toaster.success("Блюда удалены");
         domainStore.globalUiStore.drawerStore.close();
@@ -39,7 +39,7 @@ export const InteractionsDelete = types.optional(types.model().actions((self) =>
 
     removeDailyNorms() {
         const ids = domainStore.interactionsService.interactionsSelect.selectedIds;
-        domainStore.dailyNormStore.user.removeBulk(ids);
+        domainStore.dailyNormStore.removeBulk(ids);
         // удаляемая норма может быть применена на данный момент, тогда установить стандартную норму перед удалением
         domainStore.interactionsService.interactionsSelect.clearSelection();
         toaster.success("Дневные нормы удалены");
@@ -48,7 +48,7 @@ export const InteractionsDelete = types.optional(types.model().actions((self) =>
 
     removeUserFood() {
         const ids = domainStore.interactionsService.interactionsSelect.selectedIds;
-        domainStore.foodStore.user.removeBulk(ids);
+        domainStore.foodStore.removeBulk(ids);
         domainStore.interactionsService.interactionsSelect.clearSelection();
         toaster.success("Пользовательская еда удалена");
         domainStore.globalUiStore.drawerStore.close();

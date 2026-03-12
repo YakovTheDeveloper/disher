@@ -5,17 +5,24 @@
 
 .quickButton {
     flex-grow: 1;
-    background: #f1f1f1;
-    border: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
+    background: rgba(115, 45, 255, 0.06);
+    border: 1.5px solid rgba(115, 45, 255, 0.12);
+    padding: 0.45rem 0.8rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-deep-blue);
     cursor: pointer;
-    transition: background 0.2s ease, border-radius 0.2s ease;
+    transition: all 0.2s ease;
     z-index: 2;
 
     &:hover {
-        background: #e0e0e0;
+        background: rgba(115, 45, 255, 0.12);
+        border-color: rgba(115, 45, 255, 0.25);
+    }
+
+    &:active {
+        transform: scale(0.96);
     }
 }
 
@@ -25,7 +32,7 @@
     left: 50%;
     width: 60px;
     height: 60px;
-    background: #7bbbff;
+    background: rgba(115, 45, 255, 0.25);
     border-radius: 50%;
     transform: translate(-50%, -50%);
     transform-origin: center;
@@ -34,17 +41,15 @@
 }
 
 .animating {
-    // color: white !important;
 }
 
 .activeButton {
-    background: #007bff;
+    background: linear-gradient(135deg, var(--color-purple), var(--color-deep-blue));
     color: white;
-    // font-weight: 600;
-
-    // border-radius: 1000px;
+    border-color: transparent;
 
     &:hover {
-        background: #007bff;
+        background: linear-gradient(135deg, var(--color-purple), var(--color-deep-blue));
+        opacity: 0.9;
     }
 }

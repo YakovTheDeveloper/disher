@@ -4,7 +4,7 @@ import { RequestState, ResponseStatus } from "@/api/RequestState";
 import { isEmpty } from "@/lib/empty";
 import { Food } from "@/domain/product/Food.model";
 import { runInAction } from "mobx";
-import { createDataStoreModel } from "@/store/shared/DataStore";
+import { DataStoreController } from "@/store/shared/DataStore";
 import { productFactory } from "@/domain/product/Food.factory";
 
 type GetFoodListResult = Awaited<ReturnType<typeof getFoodList>>;
@@ -125,15 +125,13 @@ export const StoreModel = types
 export const FoodModelStore = types.compose(
     "ProductStore",
     StoreModel,
-    createDataStoreModel("ProductStoreData", Food)
-).views((self) => ({
-    get data() { return self.mergedMap; }
-})).actions((self) => {
+    DataStoreController(Food)
+).actions((self) => {
 
     function getIdsMissingFoodWithNutrients(ids: number[]) {
         const missing: number[] = [];
         ids.forEach((id) => {
-            const exist = self.data.get(String(id));
+            const exist = self.getEntity(String(id));
             if (!exist || !exist.nutrients) missing.push(id);
         });
         return missing;
@@ -145,7 +143,7 @@ export const FoodModelStore = types.compose(
         if (!result?.data) return { items: [], hasMore: false };
 
         result.data.items.forEach((food) => {
-            self.data.set(food.id.toString(), { ...food, id: food.id.toString() });
+            self.set(food.id.toString(), { ...food, id: food.id.toString() });
         });
 
         return result.data;
@@ -154,13 +152,13 @@ export const FoodModelStore = types.compose(
     const getOne = flow(function* (id: number) {
         const res = yield getOneFood(id);
         if (!res.data) return;
-        self.data.set(String(res.data.id), res.data);
+        self.set(String(res.data.id), res.data);
     });
 
     const getOneByDate = flow(function* (date: number) {
         const res = yield getOneFood(date); // assuming same API
         if (!res.data) return;
-        self.data.set(String(res.data.id), res.data);
+        self.set(String(res.data.id), res.data);
     });
 
     const _loadFoodWithNutrientsByFoodIds = flow(function* (ids: string[]): Generator<
@@ -186,7 +184,7 @@ export const FoodModelStore = types.compose(
         ids.forEach((id) => self.requestState.getAllWithNutrients.delete(String(id)));
 
         res.data.forEach(({ id, nutrients }) => {
-            const food = self.data.get(String(id));
+            const food = self.getEntity(String(id));
             food?.setNutrients(nutrients)
         });
 
@@ -195,7 +193,7 @@ export const FoodModelStore = types.compose(
 
     const addFoodOrNutrientsIfNotExists = (food: typeof foodFullData[0]) => {
         const key = food.id
-        const existFood = self.user.getById(key) || self.base.getById(key)
+        const existFood = self.getEntity(key)
 
         try {
             if (!existFood) {
@@ -208,7 +206,7 @@ export const FoodModelStore = types.compose(
                     nutrients: convertedNutrients,
                     nameEng: '',
                 });
-                runInAction(() => self.user.set(key, newFood))
+                runInAction(() => self.set(key, newFood))
                 return
             }
 
@@ -223,7 +221,7 @@ export const FoodModelStore = types.compose(
 
     const applySeed = flow(function* () {
         const mappedData = yield createInitialProductMapping();
-        self.base.set(mappedData);
+        self.seedBase(mappedData);
     })
 
     // const loadInitialFoods = flow(function* (): Generator<any> {

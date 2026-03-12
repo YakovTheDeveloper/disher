@@ -8,11 +8,17 @@ const DishFoodDraftPage = () => {
 
   if (!id) return null;
 
+  const draft = domainStore.dishStore.getDraft();
+
+  const handleCommit = () => {
+    domainStore.dishStore.commitDraft(id);
+  };
+
   return (
     <DishFoodAdd
       dishId={id}
-      dishStore={domainStore.dishStore}
-      dishChildItem={domainStore.dishStore.itemDraft}
+      dishChildItem={draft}
+      onCommit={handleCommit}
     />
   );
 };

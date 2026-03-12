@@ -31,7 +31,7 @@ const FoodName = ({ className, onClick, onTouchEnd, after, content }: Props) => 
       onClick={onClick}
       onTouchEnd={onTouchEnd}
     >
-      {normalizedTitle}
+      <label htmlFor="search">{normalizedTitle}</label>
     </Typography>
   );
 };

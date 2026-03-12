@@ -8,7 +8,7 @@ export const InteractionsCreate = types.optional(types.model().actions((self) =>
     createProduct(name: string) {
         const root = getRoot(self) as InteractionsEnv;
 
-        const createdFood = root.foodStore.user.insert(
+        const createdFood = root.foodStore.insert(
             productFactory.createNewLocal({
                 name,
                 createdByUser: true,
@@ -22,7 +22,7 @@ export const InteractionsCreate = types.optional(types.model().actions((self) =>
     createDish(name: string) {
         const root = getRoot(self) as InteractionsEnv;
 
-        const createdDish = root.dishStore.user.insert(
+        const createdDish = root.dishStore.insert(
             DishFactory.createNewLocal({
                 name,
                 description: '',

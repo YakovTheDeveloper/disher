@@ -1,11 +1,9 @@
 import { List } from '@/components/features/builders/shared/ContentEdit/Food/List';
-import { FoodName } from '@/components/features/builders/shared/ui/FoodName';
 import { observer } from 'mobx-react-lite';
 import { useCallback, useState } from 'react';
 import styles from './SearchFood.module.scss';
 import { domainStore } from '@/store/store';
 import { SearchListItem } from '@/components/ui/atoms/SearchListItem';
-import { FoodNutrients } from '@/components/features/builders/shared/components/FoodNutrients';
 import { useFilteringStateV2 } from '@/components/features/shared/hooks/useFilteringStateV2';
 import { useCategoryFilterState } from '@/components/features/shared/hooks/useCategoryFilterState';
 import { SearchFoodControls } from '@/components/features/builders/shared/components/SearchFood/SearchFoodControls';
@@ -17,6 +15,10 @@ import {
   getDishCategoryOptions,
   getProductCategoryOptions,
 } from '@/lib/filter/categoryOptions';
+import { productFactory } from '@/domain/product/Food.factory';
+import { DishFactory } from '@/store/DishStore/Dish.factory';
+import toaster from '@/infrastructure/toaster/toaster';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 
@@ -36,7 +38,7 @@ const SearchFood = ({
   onFocusChange,
   mode = 'products-and-dishes',
 }: Props) => {
-  const [currentInfoFood, setCurrentInfoFood] = useState('');
+  const { toProduct, toDish } = useAppRoutes();
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
 
   // Category filter state
@@ -86,15 +88,12 @@ const SearchFood = ({
     defaultTab: getDefaultTab(mode),
   });
 
-  const onBackButton = () => setCurrentInfoFood('');
-
   const toggleFilterPanel = () => {
     setFilterPanelOpen((prev) => !prev);
   };
 
   const onFoodAdd = useCallback(
     (payload: any) => {
-      console.log('payload', payload);
       const id = payload.id.toString();
       onFinish({
         variant: 'product',
@@ -116,60 +115,76 @@ const SearchFood = ({
     [onFinish]
   );
 
-  const onProductClickSeeDetails = useCallback(() => {}, []);
+  const handleCreateProduct = useCallback(() => {
+    const name = filterStateWithCategory.searchQuery.trim();
+    if (!name) return;
+    const product = productFactory.createNewLocal({ name, nutrients: [], portions: [], description: '' });
+    domainStore.foodStore.insert(product);
+    toaster.success(`Продукт «${name}» создан`, {
+      action: { label: 'Открыть', href: `/product/${product.id}` },
+    });
+  }, [filterStateWithCategory.searchQuery]);
 
-  console.log(filterStateWithCategory);
+  const handleCreateDish = useCallback(() => {
+    const name = filterStateWithCategory.searchQuery.trim();
+    if (!name) return;
+    const dish = DishFactory.createNewLocal({ name, description: '', userId: 0 });
+    domainStore.dishStore.insert(dish);
+    toaster.success(`Блюдо «${name}» создано`, {
+      action: { label: 'Открыть', href: `/dish/${dish.id}` },
+    });
+  }, [filterStateWithCategory.searchQuery]);
+
+  const searchQuery = filterStateWithCategory.searchQuery.trim();
+  const isSearchActive = searchQuery.length >= 2;
+
+  const productEmptyContent = isSearchActive ? (
+    <button className={styles.createSuggestion} onClick={handleCreateProduct}>
+      Ничего не нашлось — создать продукт «{searchQuery}»
+    </button>
+  ) : undefined;
+
+  const dishEmptyContent = isSearchActive ? (
+    <button className={styles.createSuggestion} onClick={handleCreateDish}>
+      Ничего не нашлось — создать блюдо «{searchQuery}»
+    </button>
+  ) : undefined;
 
   const renderProductItem = useCallback(
     (item: any) => {
-      // Mobile click handler to work around keyboard dismissal issue
-
       return (
         <SearchListItem
           className=""
-          onInfoClick={() => setCurrentInfoFood(item.id)}
+          onInfoClick={() => toProduct(item.id.toString())}
           active={currentProductId === item.id.toString()}
           onClick={() => onFoodAdd(item)}
           item={item}
         />
       );
     },
-    [currentProductId, onFoodAdd]
+    [currentProductId, onFoodAdd, toProduct]
   );
 
   const renderDishtItem = useCallback(
     (item: any) => {
       const isActive = currentDishId === item.id.toString();
 
-      // Mobile click handler to work around keyboard dismissal issue
-
       return (
         <SearchListItem
           className=""
           item={item}
           active={isActive}
-          onInfoClick={() => setCurrentInfoFood(item.id)}
-        >
-          <FoodName content={item} className="ellipsis" onClick={() => onDishAdd(item)} />
-        </SearchListItem>
+          onInfoClick={() => toDish(item.id.toString())}
+          onClick={() => onDishAdd(item)}
+        />
       );
     },
-    [currentDishId, onDishAdd, onProductClickSeeDetails]
+    [currentDishId, onDishAdd, toDish]
   );
 
   return (
     <>
       <div className={styles.content}>
-        {currentInfoFood && (
-          <div className={styles.foodInfo}>
-            <FoodNutrients
-              foodId={currentInfoFood}
-              className={styles.foodInfoNutrients}
-              before={<button onClick={onBackButton}>{'<-'}</button>}
-            />
-          </div>
-        )}
-
         <div className={styles.header}>
           <SearchFoodControls
             searchState={filterStateWithCategory}
@@ -186,6 +201,7 @@ const SearchFood = ({
             onFetch={async () => ({ items: [], hasMore: false })}
             search={filterStateWithCategory}
             renderListContent={renderProductItem}
+            emptyContent={productEmptyContent}
             onClose={() => {}}
           />
         )}
@@ -197,6 +213,7 @@ const SearchFood = ({
             onFetch={async () => ({ items: [], hasMore: false })}
             search={filterStateWithCategory}
             renderListContent={renderDishtItem}
+            emptyContent={dishEmptyContent}
             onClose={() => {}}
           />
         )}

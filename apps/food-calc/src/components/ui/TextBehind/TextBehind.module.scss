@@ -20,3 +20,15 @@
         user-select: none;
     }
 }
+
+.elegant {
+    &::before {
+        text-transform: capitalize;
+        font-family: "Great Vibes", cursive;
+        font-style: normal;
+        font-weight: 400;
+        font-size: 54px;
+        letter-spacing: -1px;
+        color: rgba(0, 0, 0, 0.08);
+    }
+}

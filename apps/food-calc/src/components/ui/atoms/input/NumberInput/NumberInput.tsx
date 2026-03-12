@@ -14,11 +14,29 @@ type Props = {
   boxShadow?: boolean;
   size?: 'small' | 'big';
   color?: 'grey' | 'white';
+  variant?: 'default' | 'underline';
+  disabled?: boolean;
+  bottom?: React.ReactNode;
+  min?: number;
 };
 
 const NumberInput = forwardRef<HTMLInputElement, Props>(
   (
-    { id, value, onBlur, className, placeholder, autoFocus, boxShadow, onChange, size, color },
+    {
+      id,
+      value,
+      onBlur,
+      className,
+      placeholder,
+      autoFocus,
+      boxShadow,
+      onChange,
+      size,
+      color,
+      variant,
+      disabled,
+      bottom,
+    },
     ref
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -35,8 +53,9 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
       });
     };
 
-    return (
+    const input = (
       <input
+        disabled={disabled}
         autoFocus={autoFocus}
         ref={inputRef}
         id={id}
@@ -48,6 +67,7 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
           boxShadow && styles.boxShadow,
           color && styles[color],
           size && styles[size],
+          variant && styles[variant],
           className,
         ])}
         value={value}
@@ -63,6 +83,17 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
         onContextMenu={(e) => e.preventDefault()}
       />
     );
+
+    if (bottom) {
+      return (
+        <div className={styles.wrapper}>
+          {input}
+          <span className={styles.bottom}>{bottom}</span>
+        </div>
+      );
+    }
+
+    return input;
   }
 );
 

@@ -1,46 +1,42 @@
-import { types, Instance, getRoot, getSnapshot } from "mobx-state-tree"
-import { RequestState } from "@/store/shared/RequestState"
+import { types, Instance, getSnapshot } from "mobx-state-tree"
 import { Dish, DishItem } from "@/domain/dish/Dish.model"
-import { RootInstance } from "@/store/store"
-import { getDishById, syncDishes } from "@/api/dish/dish.api"
-import { createRequestController } from "@/store/common/pureFabrication/createRequestController"
-import { StatusModel } from "@/store/common/pureFabrication/StatusModel"
-import { createDataStoreModel, createEntityDataStore, createImmutableEntityStore } from "@/store/shared/DataStore"
-import { FoodContentProduct, FoodContentProductInstance } from "@/domain/shared/foodContent/foodContent"
+import { DataStoreController } from "@/store/shared/DataStore"
+import { FoodContentProductInstance } from "@/domain/shared/foodContent/foodContent"
 import { DishFactory } from "@/store/DishStore/Dish.factory"
 
-export const DishStore = types.compose(
-    types.model({
-        itemDraft: types.optional(DishItem, {
-            id: "DRAFT",
-            contentProduct: {
-                foodId: '0',
-                quantity: 100,
-                variant: "product"
-            }
-        }),
-    }),
-    createDataStoreModel("DishStoreData", Dish)
-).actions(self => ({
+const EMPTY_DRAFT = {
+    id: 'DRAFT',
+    contentProduct: { foodId: '0', quantity: 100, variant: 'product' as const },
+}
 
-    clearItemDraft() {
-        self.itemDraft.updateFood('0')
+export const DishStore = types.compose(
+    types.model({ draft: types.optional(DishItem, EMPTY_DRAFT) }),
+    DataStoreController(Dish)
+)
+.actions(self => ({
+
+    getDraft(): Instance<typeof DishItem> {
+        return self.draft
     },
 
-    commitItemDraft(dishId: string): void {
-        const dish = self.user.getById(dishId)
-        if (!dish) {
-            console.log('no such dish')
-            return
-        }
-        // const content = self.itemDraft.contentProduct
-        const { id, ...snapshot } = getSnapshot(self.itemDraft)
+    commitDraft(dishId: string) {
+        const dish = self.getEntity(dishId)
+        if (!dish) return
+        const { id: _draftId, ...snapshot } = getSnapshot(self.draft)
         dish.addChildWithLocalData(snapshot)
-        self.clearItemDraft()
+        self.draft = DishItem.create(EMPTY_DRAFT)
+    },
+
+    setDraftFood(foodId: string) {
+        self.draft.updateFood(foodId)
+    },
+
+    resetDraft() {
+        self.draft = DishItem.create(EMPTY_DRAFT)
     },
 
     createDishWithProductsContent(name: string, content: FoodContentProductInstance[]) {
-        const dish = self.user.insert(DishFactory.createNewLocal({
+        const dish = self.insert(DishFactory.createNewLocal({
             name,
             description: '',
             userId: 0,

@@ -80,3 +80,25 @@
         background-color: #4b99ff;
     }
 }
+
+.infoButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 8px;
+    border: none;
+    background: transparent;
+    color: #b0b8c8;
+    cursor: pointer;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: color 0.15s ease, background 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+        color: var(--color-deep-blue, #3b6cee);
+        background: #f0f2ff;
+    }
+}

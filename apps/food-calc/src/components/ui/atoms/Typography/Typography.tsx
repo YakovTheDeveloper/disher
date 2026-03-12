@@ -5,7 +5,7 @@ import { forwardRef, useImperativeHandle, useRef } from 'react';
 
 type Props = {
   children: React.ReactNode;
-  variant: 'action' | 'info' | 'custom';
+  variant: 'action' | 'info' | 'elegant' | 'custom';
   ellipsis?: boolean;
   className?: string;
   onClick?: () => void;

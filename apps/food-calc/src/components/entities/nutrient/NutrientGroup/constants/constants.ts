@@ -41,7 +41,7 @@ export const nutrientGroups: NutrientGroup[] = [
             { id: '25', name: 'vitaminB5', symbol: 'B5', displayName: 'Pantothenic acid', displayNameRu: 'Пантотеновая кислота', unit: 'mg', unitRu: 'мг', group: 'vitaminsB' },
             { id: '26', name: 'vitaminB6', symbol: 'B6', displayName: 'Pyridoxine', displayNameRu: 'Пиридоксин', unit: 'mg', unitRu: 'мг', group: 'vitaminsB' },
             { id: '27', name: 'vitaminB7', symbol: 'B7', displayName: 'Biotin', displayNameRu: 'Биотин', unit: 'mg', unitRu: 'мг', group: 'vitaminsB' },
-            { id: '28', name: 'vitaminB9', symbol: 'B9', displayName: 'Folate', displayNameRu: 'Фолат (Фолиевая кислота)', unit: 'μg', unitRu: 'мкг', group: 'vitaminsB' },
+            { id: '28', name: 'vitaminB9', symbol: 'B9', displayName: 'Folate', displayNameRu: 'Фолиевая кислота', unit: 'μg', unitRu: 'мкг', group: 'vitaminsB' },
             { id: '29', name: 'vitaminB12', symbol: 'B12', displayName: 'Cobalamin', displayNameRu: 'Кобаламин', unit: 'μg', unitRu: 'мкг', group: 'vitaminsB' },
         ]
     },

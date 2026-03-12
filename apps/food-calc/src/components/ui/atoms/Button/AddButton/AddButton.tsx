@@ -7,14 +7,17 @@ type Props = {
   onClick: VoidFunction;
   children?: string;
   animate?: () => boolean;
+  as?: 'button' | 'label';
+  htmlFor?: string;
 };
-const AddButton = ({ onClick }: Props) => {
+const AddButton = ({ onClick, as = 'button', htmlFor }: Props) => {
+  const Tag = as;
   return (
-    <button onClick={onClick} className={clsx([styles.container])}>
+    <Tag onClick={onClick} htmlFor={htmlFor} className={clsx([styles.container])}>
       <span className={styles.icon}>
         <PlusIcon />
       </span>
-    </button>
+    </Tag>
   );
 };
 

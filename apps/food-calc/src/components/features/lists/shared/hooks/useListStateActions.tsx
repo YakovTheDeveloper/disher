@@ -21,7 +21,7 @@ export const useListStateActions = <IModel extends IAnyModelType>({
   const navigate = useNavigate();
 
   const onAdd = () => {
-    const { id } = store.user.insert(createEntity());
+    const { id } = store.insert(createEntity());
     navigate(`${navigateTo}/${id}`);
   };
 

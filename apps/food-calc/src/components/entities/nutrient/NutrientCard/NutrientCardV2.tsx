@@ -15,6 +15,8 @@ interface Props {
   getValue: (id: string) => number;
   showValues?: boolean;
   showProgress?: boolean;
+  showPercent?: boolean;
+  children?: React.ReactNode;
 }
 
 const getRoundedPercent = (percentage: number) => {
@@ -34,7 +36,7 @@ const getStatusClass = (p: number) => {
   return 'excess';
 };
 
-const NutrientCard = ({ content, getValue, showValues: showValuesProp = true, showProgress: showProgressProp = true }: Props) => {
+const NutrientCard = ({ content, getValue, showValues: showValuesProp = true, showProgress: showProgressProp = true, showPercent = true, children }: Props) => {
   const showValues = showValuesProp;
   const showProgress = showProgressProp;
   const showUnits = true;
@@ -52,7 +54,7 @@ const NutrientCard = ({ content, getValue, showValues: showValuesProp = true, sh
     <div className={clsx(styles.card, styles[statusClass], styles[group])}>
       <div className={styles.topRow}>
         <span className={styles.symbol}>{symbol}</span>
-        <span className={clsx(styles.percent, styles[statusClass])}>{percentText}%</span>
+        {showPercent && <span className={clsx(styles.percent, styles[statusClass])}>{percentText}%</span>}
       </div>
 
       <div className={styles.center}>
@@ -78,6 +80,7 @@ const NutrientCard = ({ content, getValue, showValues: showValuesProp = true, sh
           />
         </div>
       )}
+      {children}
     </div>
   );
 };

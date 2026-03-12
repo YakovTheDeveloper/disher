@@ -21,13 +21,14 @@ const Quantity = ({ id, onClick, content, hide, unit = 'г' }: Props) => {
 
   const onClickHandler = () => onClick(id);
   return (
-    <p
+    <label
+      htmlFor="quantity-input"
       onClick={onClickHandler}
       className={`${styles.container} ${hide ? styles.hide : ''} ${className}`}
     >
       {quantity}
       {quantity != null && <span className={styles.unit}>{unit}.</span>}
-    </p>
+    </label>
   );
 };
 

@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import styles from './Nutrients.module.scss';
 import { nutrientGroups } from '@/components/entities/nutrient/NutrientGroup/constants';
 import { useEffect } from 'react';
-import { NutrientCardFormEntry } from '@/components/entities/nutrient/NutrientCard';
+import ChangeProductNutrientValue from '@/components/features/product/change-product-nutrient-value/ChangeProductNutrientValue';
 import { Instance } from 'mobx-state-tree';
 import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
@@ -52,7 +52,7 @@ const Nutrients = ({ store, renderOverlay, onChange, asControlledForm, getValue 
               <div className={clsx(styles.column, styles.columnFirst)}>
                 {column1.map((nutrientData) =>
                   asControlledForm ? (
-                    <NutrientCardFormEntry
+                    <ChangeProductNutrientValue
                       key={nutrientData.id}
                       onChange={onChange}
                       content={nutrientData}
@@ -72,7 +72,7 @@ const Nutrients = ({ store, renderOverlay, onChange, asControlledForm, getValue 
               <div className={clsx(styles.column, styles.columnShifted)}>
                 {column2.map((nutrientData) =>
                   asControlledForm ? (
-                    <NutrientCardFormEntry
+                    <ChangeProductNutrientValue
                       key={nutrientData.id}
                       onChange={onChange}
                       content={nutrientData}

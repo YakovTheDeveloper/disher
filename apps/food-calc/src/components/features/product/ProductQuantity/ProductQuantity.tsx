@@ -98,6 +98,7 @@ const ProductQuantity = ({ onFinish, content }: Props) => {
       {/* Input - full width */}
       <div className={style.inputWrapper}>
         <NumberInput
+          id="quantity-input"
           size="big"
           boxShadow
           placeholder="Введите количество"

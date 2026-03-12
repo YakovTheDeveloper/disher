@@ -31,6 +31,8 @@ export interface ListProps<T extends ListItemBase = ListItemBase> {
     renderListContent: (item: T) => ReactNode;
     /** Content after list items */
     after?: ReactNode;
+    /** Custom content shown when list is empty (replaces default empty state) */
+    emptyContent?: ReactNode;
     /** Gap between items in px */
     gapSize?: number;
     /** Close list when item selected (clicked) */

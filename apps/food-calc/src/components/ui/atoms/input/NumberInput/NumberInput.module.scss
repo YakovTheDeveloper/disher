@@ -1,4 +1,5 @@
 .input {
+    width: 100%;
     padding: 0.3rem 0.4rem;
     border: 1px solid transparent;
     border-radius: 6px;
@@ -48,4 +49,38 @@
 .white {
     border-color: #ffffff;
     background-color: rgb(255, 255, 255);
+}
+
+.underline {
+    border: none;
+    border-radius: 0;
+    border-bottom: 3px solid #c0c0c0;
+    background: transparent;
+    padding: 0.25rem 0.5rem;
+    padding-left: 50%;
+    font-size: 2.625rem;
+    font-weight: 300;
+    text-align: center;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+        border-color: #0070f3;
+        border-bottom: 3px solid #0070f3;
+        outline: none;
+        box-shadow: none;
+    }
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.bottom {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #999;
+    margin-top: 0.4rem;
 }

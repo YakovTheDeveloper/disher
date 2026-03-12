@@ -13,7 +13,8 @@ function ListItemComponent<T extends ListItemBase>({
   onClick,
 }: ListItemProps<T>) {
   return (
-    <div
+    <label
+      htmlFor="quantity-input"
       data-index={virtualRow.index}
       className={styles.virtualItem}
       style={{
@@ -29,7 +30,7 @@ function ListItemComponent<T extends ListItemBase>({
       aria-selected="false"
     >
       {renderListContent(item)}
-    </div>
+    </label>
   );
 }
 

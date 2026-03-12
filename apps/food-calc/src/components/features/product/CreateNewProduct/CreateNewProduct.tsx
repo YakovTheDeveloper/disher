@@ -19,7 +19,7 @@ const CreateNewProduct = ({ name }: Props) => {
       createdByUser: true,
     });
 
-    domainStore.foodStore.user.insert(food);
+    domainStore.foodStore.insert(food);
     toaster.success('Продукт создан');
   }, [name]);
 

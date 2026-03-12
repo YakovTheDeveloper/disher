@@ -2,14 +2,11 @@ import { types, Instance, SnapshotIn } from "mobx-state-tree";
 import { RequestState } from "@/store/shared/RequestState";
 import { DailyNorm, DailyNormItem } from "@/domain/dailyNorm/DailyNorm.model";
 import { StatusModel } from "@/store/common/pureFabrication/StatusModel";
-import { createDataStoreModel } from "@/store/shared/DataStore";
+import { DataStoreController } from "@/store/shared/DataStore";
 import { DailyNormsFactory } from "@/domain/dailyNorm/factory";
 import { defaultDailyNorms } from "@/components/entities/nutrient/NutrientGroup/constants";
 
-const dataStoreModel = createDataStoreModel(
-    "DailyNormData",
-    DailyNorm,
-);
+const dataStoreModel = DataStoreController(DailyNorm);
 
 // const optionsModel = types.model("DailyNormOptions", {
 //     selectedNormId: types.maybeNull(types.string),
@@ -45,7 +42,7 @@ export const DailyNormStore = dataStoreModel
                 [norm1.id]: norm1
             }
 
-            self.base.set(result)
+            self.seedBase(result)
         },
         setSelectedId(id: string) {
             self.selectedNormId = id

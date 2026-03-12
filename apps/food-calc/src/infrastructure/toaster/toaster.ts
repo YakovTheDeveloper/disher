@@ -1,33 +1,62 @@
-import toast, { Toaster } from 'react-hot-toast';
+import React from 'react';
+import toast from 'react-hot-toast';
+
+export interface ToastAction {
+    label: string;
+    href: string;
+}
+
+export interface ToastOptions {
+    action?: ToastAction;
+}
+
+function renderContent(message: string, action?: ToastAction): string | React.ReactElement {
+    if (!action) return message;
+    return React.createElement(
+        'span',
+        { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+        message,
+        ' ',
+        React.createElement(
+            'a',
+            {
+                href: action.href,
+                style: { color: 'inherit', fontWeight: 600, textDecoration: 'underline', whiteSpace: 'nowrap' },
+                onClick: (e: React.MouseEvent) => e.stopPropagation(),
+            },
+            action.label
+        )
+    );
+}
 
 interface ToasterAPI {
-    success(message: string): void;
-    error(message: string): void;
-    info(message: string): void;
-    warning(message: string): void;
+    success(message: string, options?: ToastOptions): void;
+    error(message: string, options?: ToastOptions): void;
+    info(message: string, options?: ToastOptions): void;
+    warning(message: string, options?: ToastOptions): void;
 }
 
 const toaster: ToasterAPI = {
-    success: (msg: string) =>
-        toast.success(msg, {
+    success: (msg, options) =>
+        toast.success(renderContent(msg, options?.action), {
             className: 'toast toast--success',
         }),
 
-    error: (msg: string) =>
-        toast.error(msg, {
+    error: (msg, options) =>
+        toast.error(renderContent(msg, options?.action), {
             className: 'toast toast--error',
         }),
 
-    info: (msg: string) =>
-        toast(msg, {
+    info: (msg, options) =>
+        toast(renderContent(msg, options?.action), {
             className: 'toast toast--info',
         }),
 
-    warning: (msg: string) =>
-        toast(msg, {
-            icon: "⚠️",
+    warning: (msg, options) =>
+        toast(renderContent(msg, options?.action), {
+            icon: '⚠️',
             className: 'toast toast--warning',
         }),
 };
 
-export default toaster
+export default toaster;

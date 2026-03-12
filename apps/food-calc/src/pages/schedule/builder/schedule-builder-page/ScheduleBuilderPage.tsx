@@ -30,7 +30,6 @@ const Page = observer(({ date }: { date: string }) => {
       document.body.style.backgroundColor = '#e6e6e6';
     } else {
       document.body.style.backgroundColor = '';
-      1;
     }
   };
 

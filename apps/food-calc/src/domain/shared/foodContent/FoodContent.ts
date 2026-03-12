@@ -21,7 +21,7 @@ export const FoodContentProduct = types
     .views(self => ({
         get food() {
             const root = getRoot(self) as RootStoreEnv
-            return root.foodStore.getEntity(self.foodId) ?? null
+            return root.foodStore?.getEntity(self.foodId) ?? null
         },
         get dish() {
             return null
@@ -62,7 +62,7 @@ export const FoodContentDish = types
     .views(self => ({
         get dish() {
             const root = getRoot(self) as RootStoreEnv
-            return root.dishStore.getEntity(self.dishId)
+            return root.dishStore?.getEntity(self.dishId)
         },
         get food() {
             return null

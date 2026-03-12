@@ -23,7 +23,7 @@ const Page = ({}: Props) => {
     return null;
   }
 
-  const current = domainStore.dishStore.user.entities.get(id);
+  const current = domainStore.dishStore.getEntity(id);
 
   const onSave = async (data: Instance<typeof Dish>) => {
     // domainStore.interactionsService.fetchSyncDishes([data]);

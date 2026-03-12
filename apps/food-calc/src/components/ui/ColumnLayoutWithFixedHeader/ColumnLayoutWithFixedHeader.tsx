@@ -60,7 +60,7 @@ const ColumnLayoutWithFixedHeader = ({
       ></motion.div>
 
       <div className={clsx(styles.content, contentClassName)}>{children}</div>
-      {footer}
+      {footer && <div>{footer}</div>}
     </section>
   );
 };
