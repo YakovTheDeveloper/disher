@@ -7,7 +7,7 @@ const ScheduleFoodPage = () => {
   const { id, childId } = useParams<{ id: string; childId: string }>();
 
   if (!id || !childId) {
-    window.location.href = RouterLinks.Schedule;
+    window.location.href = RouterLinks.ScheduleDateSelection;
     return null;
   }
 

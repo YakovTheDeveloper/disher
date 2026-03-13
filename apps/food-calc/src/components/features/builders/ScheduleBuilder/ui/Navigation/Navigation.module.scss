@@ -1,66 +1,13 @@
-.container {
+.date {
     display: flex;
     // justify-content: end;
     position: relative;
     justify-content: space-between;
     margin-left: auto;
+    margin-top: 16px;
+    z-index: 1;
 
 }
-
-
-
-.swipeButtons {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: 20px;
-}
-
-.swipeHint {
-    font-size: 3rem;
-    color: rgba(0, 0, 0, 0.1);
-    text-align: center;
-    margin-top: 4px;
-    user-select: none;
-    // animation: swipeHint 1.5s infinite alternate;
-    margin: auto;
-    width: 100%;
-    flex-shrink: 0;
-    font-style: italic;
-    color: #fff;
-}
-
-.menuButton {
-    width: fit-content;
-    opacity: 0.1;
-    padding: 0.5rem;
-}
-
-.menuNavIcon {
-    width: 30px;
-    height: 30px;
-    padding-left: 5px;
-    color: #fff;
-}
-
-@keyframes swipeHint {
-    0% {
-        transform: translateX(0);
-    }
-
-    100% {
-        transform: translateX(5px);
-    }
-}
-
-.buttonInMenu {
-    font-weight: 300;
-    font-style: italic;
-    font-size: 20px;
-    color: #fff;
-}
-
-// margin-right: 7px;
 
 
 .header {
@@ -77,9 +24,21 @@
     position: absolute;
 
     left: 0;
-    top: 10px;
+    top: 0;
     padding: 0 0.5rem;
     z-index: 1;
     font-size: 2rem;
     // transform-origin: top left;
+}
+
+.backgroundImage {
+    position: absolute;
+    top: 10px;
+    left: 30px;
+    height: auto;
+    width: 50%;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+    opacity: 0.1;
 }

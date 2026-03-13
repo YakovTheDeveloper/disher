@@ -44,6 +44,18 @@ const FlagAtomModel = types.model("FlagAtom", {
     value: types.string,
 });
 
+const BodyPointModel = types.model("BodyPoint", {
+    x: types.number,
+    y: types.number,
+    side: types.enumeration("BodySide", ["front", "back"]),
+});
+
+const BodyAtomModel = types.model("BodyAtom", {
+    kind: types.literal("body"),
+    points: types.array(BodyPointModel),
+    label: types.optional(types.string, ""),
+});
+
 const AtomModel = types.union(
     types.late(() => ScaleAtomModel),
     types.late(() => TimeAtomModel),
@@ -51,6 +63,7 @@ const AtomModel = types.union(
     types.late(() => TagAtomModel),
     types.late(() => RelationAtomModel),
     types.late(() => FlagAtomModel),
+    types.late(() => BodyAtomModel),
 );
 
 export const ScheduleEvent = types.model("ScheduleEvent", {

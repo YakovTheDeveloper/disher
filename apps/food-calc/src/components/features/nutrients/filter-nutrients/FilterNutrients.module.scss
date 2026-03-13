@@ -1,0 +1,99 @@
+.cardWrapper {
+    position: relative;
+    cursor: pointer;
+}
+
+.hiddenCard {
+    opacity: 0.35;
+}
+
+.eyeOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    color: rgba(100, 100, 100, 0.5);
+
+    svg {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+.cardOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 6px;
+    border-radius: inherit;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 2;
+}
+
+.cardOverlayLeft {
+    display: flex;
+    align-items: flex-start;
+}
+
+.cardOverlayRight {
+    display: flex;
+    align-items: flex-start;
+}
+
+.overlayEyeBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.15s;
+
+    &:active {
+        background: rgba(0, 0, 0, 0.12);
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.actionsPanel {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.toggleBtn {
+    padding: 6px 16px;
+    border-radius: 10px;
+    border: none;
+    font-size: 13px;
+    font-weight: 500;
+    background: rgba(0, 122, 255, 0.12);
+    color: rgb(0, 122, 255);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &Off {
+        background: rgba(0, 0, 0, 0.06);
+        color: rgba(0, 0, 0, 0.35);
+    }
+}

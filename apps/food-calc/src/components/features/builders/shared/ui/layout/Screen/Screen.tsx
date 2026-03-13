@@ -7,6 +7,7 @@ import { useRef, memo } from 'react';
 import { ScrollTopButton } from '@/components/features/builders/shared/ui/Actions/button/ScrollTopButton';
 import { useScrollHide } from '@/hooks/useScrollHide';
 import { useBottomPanelsVisibility } from './useBottomPanelsVisibility';
+import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 
 type Props = {
   children: React.ReactNode;
@@ -44,6 +45,7 @@ const Screen = ({
   });
 
   const { isBottomPanelsVisible } = useBottomPanelsVisibility({ isScrollingDown });
+  const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollContainerRef);
 
   const scrollTop = () => {
     if (scrollContainerRef.current) {
@@ -68,6 +70,13 @@ const Screen = ({
         {header && <ScreenScrollProvider value={scrollYProgress}>{header}</ScreenScrollProvider>}
 
         {children}
+        <div ref={sentinelRef} />
+      </div>
+
+      <div className={clsx(styles.scrollIndicator, hasMoreBelow && styles.visible)}>
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </div>
 
       {/* ScrollTopButton with CSS-based visibility to avoid DOM thrashing */}

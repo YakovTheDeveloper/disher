@@ -17,6 +17,7 @@ import { NumberAtomInput } from './NumberAtomInput';
 import { TagAtomInput } from './TagAtomInput';
 import { RelationAtomInput } from './RelationAtomInput';
 import { FlagAtomInput } from './FlagAtomInput';
+import { BodyAtomInput } from './BodyAtomInput';
 import styles from './AtomBuilder.module.css';
 
 export interface AtomBuilderProps {
@@ -25,7 +26,7 @@ export interface AtomBuilderProps {
   className?: string;
 }
 
-type AtomModalKind = 'scale' | 'time' | 'number' | 'tag' | 'relation' | 'flag' | null;
+type AtomModalKind = 'scale' | 'time' | 'number' | 'tag' | 'relation' | 'flag' | 'body' | null;
 
 export const AtomBuilder = observer(
   ({ event, onEventChange, className = '' }: AtomBuilderProps) => {
@@ -44,7 +45,7 @@ export const AtomBuilder = observer(
 
     return (
       <div className={`${styles.container} ${className}`}>
-        <AtomList atoms={event.atoms} onRemove={handleRemoveAtom} />
+        <AtomList atoms={event.atoms as unknown as Atom[]} onRemove={handleRemoveAtom} />
 
         <div className={styles.atomButtons}>
           <button onClick={() => setOpenModal('scale')} disabled={openModal !== null} type="button">
@@ -72,6 +73,9 @@ export const AtomBuilder = observer(
           </button>
           <button onClick={() => setOpenModal('flag')} disabled={openModal !== null} type="button">
             + Флаг
+          </button>
+          <button onClick={() => setOpenModal('body')} disabled={openModal !== null} type="button">
+            + Тело
           </button>
         </div>
 
@@ -115,6 +119,13 @@ export const AtomBuilder = observer(
             {openModal === 'flag' && (
               <FlagAtomInput
                 key="flag"
+                onAddAtom={handleAddAtom}
+                onClose={() => setOpenModal(null)}
+              />
+            )}
+            {openModal === 'body' && (
+              <BodyAtomInput
+                key="body"
                 onAddAtom={handleAddAtom}
                 onClose={() => setOpenModal(null)}
               />

@@ -10,9 +10,8 @@ import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { FoodSchedule } from '@/components/widgets/FoodSchedule';
 import { BuilderScheduleEvents } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder';
-import { TotalNutrients } from '@/components/features/builders/TotalNutrients/TotalNutrients';
 import { FilterButton } from '@/components/ui/atoms/Button';
-import { ScheduleFoodsNutrients } from '@/components/widgets/nutrients/ScheduleFoodsNutrients';
+import { FoodsNutrients } from '@/components/widgets/nutrients/FoodsNutrients';
 
 const Page = observer(({ date }: { date: string }) => {
   console.log('schedule builder page render');
@@ -36,7 +35,7 @@ const Page = observer(({ date }: { date: string }) => {
   return (
     <>
       <SwipeableV2 defaultSlide={1} onIndexChange={onPageChange}>
-        <ScheduleFoodsNutrients schedule={foodSchedule} />
+        <FoodsNutrients schedule={foodSchedule} />
 
         <FoodSchedule schedule={foodSchedule} />
         <BuilderScheduleEvents schedule={eventSchedule} />
@@ -52,7 +51,9 @@ const GetDatePageWrapper = () => {
 
   useEffect(() => {
     if (!date) {
-      navigate(RouterLinks.Schedule);
+      navigate(RouterLinks.ScheduleDateSelection);
+    } else {
+      sessionStorage.setItem('lastScheduleBuilderId', date);
     }
   }, [date]);
 

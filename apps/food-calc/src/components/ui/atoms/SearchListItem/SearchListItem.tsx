@@ -7,6 +7,7 @@ type Props = {
   iconElement?: React.ReactNode;
   decorativeAfterElement?: React.ReactNode | string; // Buttons, extra info, or icon class name
   actionBeforeElement?: React.ReactNode; // Buttons or extra info
+  actionAfterElement?: React.ReactNode; // Buttons or extra info
   active?: boolean;
   onClick?: () => void;
   onTouchEnd?: (e: React.TouchEvent<HTMLElement>) => void;
@@ -37,6 +38,7 @@ const SearchListItem = ({
   onInfoClick,
   item,
   decorativeAfterElement,
+  actionAfterElement,
   actionBeforeElement,
   active,
   onClick,
@@ -53,7 +55,7 @@ const SearchListItem = ({
         onTouchEnd={onTouchEnd}
         style={style}
       >
-        {item.name || item.label}
+        <span className={styles.itemName}>{item.name || item.label}</span>
         {decorativeAfterElement}
       </p>
       {onInfoClick && (
@@ -61,6 +63,7 @@ const SearchListItem = ({
           <InfoIcon />
         </button>
       )}
+      {actionAfterElement}
     </li>
   );
 };

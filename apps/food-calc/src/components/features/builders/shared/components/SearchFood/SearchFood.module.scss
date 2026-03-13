@@ -6,7 +6,6 @@
     min-height: 0;
     height: 100%;
     background: transparent;
-    // padding-right: var(--default-container-padding);
 }
 
 .header {
@@ -14,51 +13,14 @@
     display: flex;
     top: 0;
     z-index: 10;
-    padding: 8px 0;
-    background-color: #d2e8ff13;
-    backdrop-filter: blur(2px);
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-}
-
-.foodInfo {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background-color: white;
-}
-
-.foodInfoNutrients {
-    overflow: auto;
-}
-
-.customContainer {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    margin-top: 0.5rem;
-}
-
-.customInput {
-    flex: 1;
-    padding: 0.75rem 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fafafa;
-    outline: none;
-    transition: all 0.2s ease;
-
-    &:focus {
-        background-color: #fff;
-    }
+    padding: 6px 0;
+    border-bottom: 1px solid #e8e8e8;
 }
 
 .filterButtonWrapper {
     position: absolute;
-    bottom: 8px;
-    right: 8px;
+    bottom: 10px;
+    right: 10px;
     z-index: 50;
 }
 
@@ -68,55 +30,126 @@
     bottom: 0;
     left: 0;
     right: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.filterWrapper_hidden {
+    pointer-events: none;
 }
 
 .filterTabs {
     display: flex;
-    gap: 4px;
-    padding: 8px 12px;
-    background: #f5f5f5;
-    border-bottom: 1px solid #e0e0e0;
+    gap: 0;
+    border-bottom: 1px solid #e8e8e8;
 }
 
 .filterTab {
     flex: 1;
-    padding: 8px 16px;
+    padding: 12px 16px;
     border: none;
-    border-radius: 6px;
-    background: white;
-    color: #666;
-    font-size: 14px;
-    font-weight: 500;
+    background: transparent;
+    color: #aaa;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: #f0f0f0;
-    }
+    transition: color 0.15s ease;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .filterTabActive {
-    background: #007AFF;
-    color: white;
+    color: #111;
+    border-bottom-color: #111;
+}
 
-    &:hover {
-        background: #0066DD;
+.filterMessage {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: #f7f7f7;
+    border-bottom: 1px solid #ebebeb;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #888;
+
+    strong {
+        color: #111;
+        font-weight: 800;
     }
 }
+
+.filterChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #e8e8e8;
+    background: #fff;
+}
+
+.filterChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 11px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #555;
+    background: transparent;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    min-height: 28px;
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+        background: #f5f5f5;
+        border-color: #bbb;
+        color: #111;
+    }
+}
+
+.filterChipActive {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+
+    &:active {
+        background: #333;
+        border-color: #333;
+        color: #fff;
+    }
+}
+
 .createSuggestion {
     width: 100%;
-    padding: 12px 16px;
+    padding: 14px 16px;
     background: none;
-    border: 1.5px dashed #007AFF;
-    border-radius: 10px;
-    color: #007AFF;
-    font-size: 14px;
-    font-weight: 500;
-    text-align: center;
+    border: none;
+    border-top: 1px solid #e8e8e8;
+    color: #aaa;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: color 0.15s ease, background 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
 
-    &:hover {
-        background: #007AFF14;
+    &:active {
+        background: #f5f5f5;
+        color: #111;
     }
 }

@@ -1,24 +1,27 @@
 import { observer } from 'mobx-react-lite';
 import styles from './DailyNormsContent.module.scss';
 
-import { ListItem } from '@/components/features/lists/ListDailyNorms/DailyNormsEdit/ListItem';
-import { UserDailyNorm } from '@/domain/dailyNorm/DailyNorm.model';
+import { DailyNorm } from '@/domain/dailyNorm/DailyNorm.model';
 import { Instance } from 'mobx-state-tree';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import { Nutrient, nutrientGroups } from '@/components/entities/nutrient/NutrientGroup/constants';
-
-type NutrientGroup = {
-  name: string;
-  displayName: string;
-  content: Nutrient[];
-};
+import { Nutrient, NutrientGroup, nutrientGroups } from '@/components/entities/nutrient/NutrientGroup/constants';
+import NutrientNormCard from '@/components/features/dailyNorms/change-daily-norm-nutrient-value/NutrientNormCard/NutrientNormCard';
 
 type Props = {
   variant: 'view' | 'modify';
-  dailyNorm: Instance<typeof UserDailyNorm>;
+  dailyNorm: Instance<typeof DailyNorm>;
 };
 
 const DailyNormsContent = ({ dailyNorm, variant }: Props) => {
+  const readOnly = variant === 'view';
+
+  const getNormValue = (id: string) =>
+    dailyNorm.nutrientIdToDailyNormItem.get(id)?.quantity ?? 0;
+
+  const handleChange = (value: number, nutrientId: string) => {
+    dailyNorm.changeNutrientValue(nutrientId, value);
+  };
+
   return (
     <section className={styles.dailyNormNutrients}>
       {nutrientGroups.map((group: NutrientGroup) => (
@@ -26,16 +29,17 @@ const DailyNormsContent = ({ dailyNorm, variant }: Props) => {
           <ScreenLabel variant="nutrients" className={styles.groupTitle}>
             {group.displayName}
           </ScreenLabel>
-          {group.content.map((nutrient) => {
-            return (
-              <ListItem
+          <div className={styles.cards}>
+            {group.content.map((nutrient: Nutrient) => (
+              <NutrientNormCard
                 key={nutrient.id}
-                nutrient={nutrient}
-                dailyNorm={dailyNorm}
-                variant={variant}
+                content={nutrient}
+                getNormValue={getNormValue}
+                onChange={handleChange}
+                readOnly={readOnly}
               />
-            );
-          })}
+            ))}
+          </div>
         </div>
       ))}
     </section>

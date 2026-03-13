@@ -13,6 +13,7 @@ type Props = {
   hourAriaLabel?: string;
   minuteAriaLabel?: string;
   id?: string;
+  inputId?: string;
   uiStore?: UIViewOptionsInstance;
 };
 
@@ -23,6 +24,7 @@ const TimeChoose = observer(
     hourAriaLabel = 'Hour',
     minuteAriaLabel = 'Minute',
     id,
+    inputId,
     uiStore = domainStore.globalUiStore.options,
   }: Props) => {
     const [hours, setHours] = useState<string>(initialTime.split(':')[0]);
@@ -93,6 +95,7 @@ const TimeChoose = observer(
           <div className={styles.wrapper}>
             <label className={styles.inputWrapper}>
               <input
+                id={inputId}
                 ref={hhRef}
                 className={styles.input}
                 aria-label={hourAriaLabel}

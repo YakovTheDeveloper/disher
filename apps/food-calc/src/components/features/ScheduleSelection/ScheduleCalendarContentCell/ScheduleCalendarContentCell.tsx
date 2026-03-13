@@ -9,7 +9,6 @@ type Props = {
 
 const ScheduleCalendarContentCell = ({ date, getContentExist }: Props) => {
   const exist = getContentExist(date);
-  console.log('exist', exist);
 
   return (
     <span className={clsx([styles.container, exist && styles.container_exist])}>

@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/atoms/Button';
 import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
 import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { OpenDailyNorms } from '@/components/features/dailyNorms/OpenDailyNorms';
+import { Ornament } from '@/components/ui/Ornament';
 
 export interface TotalNutrientsRef {
   calculate: () => void;
@@ -53,6 +54,7 @@ const TotalNutrients = ({ countable, children }: Props) => {
       >
         Го
       </Button> */}
+      <Ornament text="нутриенты"></Ornament>
       <Nutrients
         store={nutrientStore}
         renderOverlay={renderOverlay}

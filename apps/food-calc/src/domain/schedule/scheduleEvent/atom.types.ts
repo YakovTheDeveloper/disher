@@ -77,7 +77,7 @@ export interface RelationAtom {
 
 /**
  * Flag Atom - Binary marker for states
- * 
+ *
  * Usage:
  * - "important", "recurring", "chronic", "urgent"
  * - "needs follow-up", "medication needed"
@@ -89,9 +89,31 @@ export interface FlagAtom {
 }
 
 /**
+ * Body Point - exact location on body silhouette
+ */
+export interface BodyPoint {
+    x: number // 0-1 normalized within body SVG viewBox
+    y: number // 0-1 normalized within body SVG viewBox
+    side: 'front' | 'back'
+}
+
+/**
+ * Body Atom - Mark exact body location for pain/discomfort
+ *
+ * Usage:
+ * - Pin exact pain point on body silhouette
+ * - Multiple points can be placed on front/back
+ */
+export interface BodyAtom {
+    kind: 'body'
+    points: BodyPoint[]
+    label?: string // e.g. "боль", "дискомфорт", "напряжение"
+}
+
+/**
  * Union type of all possible atoms
  */
-export type Atom = ScaleAtom | TimeAtom | NumberAtom | TagAtom | RelationAtom | FlagAtom
+export type Atom = ScaleAtom | TimeAtom | NumberAtom | TagAtom | RelationAtom | FlagAtom | BodyAtom
 
 /**
  * Type guard functions for atoms
@@ -102,6 +124,7 @@ export const isNumberAtom = (atom: Atom): atom is NumberAtom => atom.kind === 'n
 export const isTagAtom = (atom: Atom): atom is TagAtom => atom.kind === 'tag'
 export const isRelationAtom = (atom: Atom): atom is RelationAtom => atom.kind === 'relation'
 export const isFlagAtom = (atom: Atom): atom is FlagAtom => atom.kind === 'flag'
+export const isBodyAtom = (atom: Atom): atom is BodyAtom => atom.kind === 'body'
 
 /**
  * Event composed of atoms
@@ -144,6 +167,8 @@ export function isValidAtom(atom: any): atom is Atom {
             return typeof atom.value === 'string' && atom.value.length > 0
         case 'flag':
             return typeof atom.value === 'string' && atom.value.length > 0
+        case 'body':
+            return Array.isArray(atom.points) && atom.points.length > 0
         default:
             return false
     }

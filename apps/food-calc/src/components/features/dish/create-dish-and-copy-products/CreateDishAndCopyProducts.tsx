@@ -9,6 +9,7 @@ import { isEmpty } from 'lodash';
 import { FoodContentProductInstance } from '@/domain/shared/foodContent/foodContent';
 import TextBehind from '@/components/ui/TextBehind/TextBehind';
 import { TextInput } from '@/components/ui/atoms/input/TextInput';
+import { LabeledCheckbox } from '@/components/ui/LabeledCheckbox';
 
 type Props = {
   children?: React.ReactNode;
@@ -24,6 +25,7 @@ type Props = {
 const CreateDishAndCopyProducts = observer(({ children, items, onFinish, onClose }: Props) => {
   const editableListRef = useRef<EditableListRef>(null);
   const [step, setStep] = useState<'getDishName' | 'fixProducts'>('getDishName');
+  const swapProductsToDishCheckboxInputRef = useRef<HTMLInputElement>(null);
 
   const resetState = () => {
     setStep('getDishName');
@@ -66,6 +68,13 @@ const CreateDishAndCopyProducts = observer(({ children, items, onFinish, onClose
     onClose();
   };
 
+  const onCreateDishAndCopyFinish = (dishId: string, selectedProductIds: string[]) => {
+    if (swapProductsToDishCheckboxInputRef.current?.checked) {
+      schedule.swapProductsToDish(selectedProductIds, dishId);
+    }
+    closeDishCreateModal();
+  };
+
   return (
     <>
       <BaseOverlayContentLayout
@@ -87,7 +96,12 @@ const CreateDishAndCopyProducts = observer(({ children, items, onFinish, onClose
             />
           </>
         }
-        supFooter={children}
+        supFooter={
+          <LabeledCheckbox
+            ref={swapProductsToDishCheckboxInputRef}
+            label="Заменить выбранные продукты на новое блюдо"
+          />
+        }
         footer={
           <>
             <button className={styles.createNewDishFormButton} onClick={handleClose}>

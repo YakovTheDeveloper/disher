@@ -1,10 +1,6 @@
 @import '@/assets/style/mixin.scss';
 
-$header-padding: 10px;
 $header-height: 50px;
-$header-height-padding-included: calc($header-height + $header-padding * 2);
-$tab-button-width: auto;
-$filter-tabs-gap: 12px;
 
 .header {
     position: sticky;
@@ -12,23 +8,17 @@ $filter-tabs-gap: 12px;
     z-index: 11;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
     padding: 0;
-    min-height: $header-height-padding-included;
-    // background-color: #d2e8ff13;
-    // backdrop-filter: blur(2px);
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
+    min-height: $header-height;
     width: 100%;
     padding-right: 0.5rem;
 
-    display: grid;
-    grid-template-columns: auto 1fr auto;
+    display: flex;
 }
 
 .largeSearchInput {
     font-size: 1.6rem !important;
     flex-grow: 1;
-    transition: all 0.3s ease;
     width: 100%;
 }

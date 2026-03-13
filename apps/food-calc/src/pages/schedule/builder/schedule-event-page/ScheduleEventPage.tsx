@@ -9,7 +9,7 @@ const ScheduleEventPage = () => {
 
   // Validate params - redirect if missing
   if (!id || !childId) {
-    window.location.href = RouterLinks.Schedule;
+    window.location.href = RouterLinks.ScheduleDateSelection;
     return null;
   }
 

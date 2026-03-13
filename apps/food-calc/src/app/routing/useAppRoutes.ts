@@ -21,8 +21,7 @@ export interface UseAppRoutesReturn {
     toScheduleEvent: (id: string, childId: string) => void;
     toScheduleAnalytics: (id: string) => void;
     toLoadData: () => void;
-    toDishes: () => void;
-    toProducts: () => void;
+    toFood: () => void;
     toUserProduct: (id: string) => void;
     toProduct: (id: string) => void;
     toTest: () => void;
@@ -67,14 +66,13 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
     const toDish = (id: string) => navigate(RouterUrls.getDish(id));
     const toDishFoodDraft = (id: string) => navigate(getDishFoodDraftUrl(id));
     const toDishFood = (id: string, childId: string) => navigate(`/dish/${id}/food/${childId}`);
-    const toSchedule = () => navigate(RouterLinks.Schedule);
+    const toScheduleDateSelection = () => navigate(RouterLinks.ScheduleDateSelection);
     const toScheduleBuilder = (id: string) => navigate(`${RouterLinks.ScheduleBuilder}/${id}`);
     const toScheduleFood = (id: string, childId: string) => navigate(getScheduleFoodUrl(id, childId));
     const toScheduleEvent = (id: string, childId: string) => navigate(getScheduleEventUrl(id, childId));
     const toScheduleAnalytics = (id: string) => navigate(getScheduleAnalyticsUrl(id));
     const toLoadData = () => navigate(RouterLinks.LoadData);
-    const toDishes = () => navigate(RouterLinks.Dishes);
-    const toProducts = () => navigate(RouterLinks.Products);
+    const toFood = () => navigate(RouterLinks.Food);
     const toUserProduct = (id: string) => navigate(`${RouterLinks.UserProduct}/${id}`);
     const toProduct = (id: string) => navigate(getProductUrl(id));
     const toTest = () => navigate(RouterLinks.Test2);
@@ -89,14 +87,13 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
         toDish,
         toDishFoodDraft,
         toDishFood,
-        toSchedule,
+        toSchedule: toScheduleDateSelection,
         toScheduleBuilder,
         toScheduleFood,
         toScheduleEvent,
         toScheduleAnalytics,
         toLoadData,
-        toDishes,
-        toProducts,
+        toFood,
         toUserProduct,
         toProduct,
         toTest,

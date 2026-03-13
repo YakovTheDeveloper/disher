@@ -7,7 +7,6 @@ import {
   endOfMonth,
   eachDayOfInterval,
   isSameDay,
-  // isSameMonth,
   startOfToday,
   subDays,
   parse,
@@ -19,13 +18,16 @@ import { ru } from 'date-fns/locale';
 import { NavLink } from 'react-router';
 import { RouterLinks } from '@/router';
 
+const SHORT_DAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'] as const;
 const START_DATE = startOfMonth(new Date());
+
 type Props = {
   onSelect: (date: string) => void;
   selectedDate?: string;
   showFastButtons?: boolean;
   className?: string;
 };
+
 export const ScheduleSelection = ({
   onSelect,
   selectedDate,
@@ -34,50 +36,52 @@ export const ScheduleSelection = ({
 }: Props) => {
   const today = startOfToday();
 
-  const months = useMemo(() => {
-    const allMonths = Array.from({ length: 24 }, (_, i) => addMonths(START_DATE, i - 12));
-    return allMonths;
-  }, []);
+  const months = useMemo(
+    () => Array.from({ length: 24 }, (_, i) => addMonths(START_DATE, i - 12)),
+    [],
+  );
+
+  const selectedDateParsed = useMemo(
+    () => (selectedDate ? parse(selectedDate, 'dd-MM-yyyy', new Date()) : null),
+    [selectedDate],
+  );
 
   const renderMonth = (index: number) => {
     const monthStart = months[index];
     const monthEnd = endOfMonth(monthStart);
 
-    const daysInMonth = eachDayOfInterval({
-      start: monthStart,
-      end: monthEnd,
-    });
+    const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
     const firstDayOfWeek = monthStart.getDay();
     const startOffset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
     const emptyCells = Array.from({ length: startOffset }, (_, i) => (
-      <div key={`empty-${index}-${i}`} className={styles.emptyDay}></div>
+      <div key={`empty-${index}-${i}`} className={styles.emptyDay} />
     ));
 
     return (
       <div className={styles.monthSection}>
-        <div className={styles.stickyHeader}>{format(monthStart, 'LLLL yyyy', { locale: ru })}</div>
+        <div className={styles.stickyHeader}>
+          <span className={styles.monthName}>
+            {format(monthStart, 'LLLL', { locale: ru })}
+          </span>
+          <span className={styles.monthYear}>{format(monthStart, 'yyyy')}</span>
+        </div>
         <div className={styles.daysGrid}>
           {emptyCells}
           {daysInMonth.map((day) => {
-            const selectedDateParsed = selectedDate
-              ? parse(selectedDate, 'dd-MM-yyyy', new Date())
-              : null;
             const isSelected = selectedDateParsed && isSameDay(day, selectedDateParsed);
             const isCurrentDay = isSameDay(day, today);
+            const dayOfWeek = SHORT_DAYS[day.getDay()];
 
             return (
               <button
                 key={day.toISOString()}
-                className={`
-                  ${styles.day}
-                  ${isSelected ? styles.selected : ''}
-                  ${isCurrentDay ? styles.today : ''}
-                `}
+                className={`${styles.day} ${isSelected ? styles.selected : ''} ${isCurrentDay ? styles.today : ''}`}
                 onClick={() => onSelect(format(day, 'dd-MM-yyyy'))}
               >
-                {format(day, 'd')}
+                <span className={styles.dayNumber}>{format(day, 'd')}</span>
+                <span className={styles.dayName}>{dayOfWeek}</span>
               </button>
             );
           })}
@@ -87,7 +91,7 @@ export const ScheduleSelection = ({
   };
 
   return (
-    <div className={`${styles.calendarWrapper} ${className || ''} ${false ? styles.dark : ''}`}>
+    <div className={`${styles.calendarWrapper} ${className || ''}`}>
       <div className={styles.weekDaysHeader}>
         {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((d, i) => (
           <div key={i}>{d}</div>
@@ -95,36 +99,33 @@ export const ScheduleSelection = ({
       </div>
 
       <Virtuoso
-        className={`${styles.scrollContainer}`}
+        className={styles.scrollContainer}
         style={{ height: '100%', width: '100%' }}
         data={months}
         initialTopMostItemIndex={12}
         itemContent={(index) => renderMonth(index)}
         increaseViewportBy={300}
       />
+
       {showFastButtons && (
         <div className={styles.links}>
           <NavLink
-            to={
-              RouterLinks.ScheduleBuilder + '/' + format(subDays(startOfToday(), 1), 'dd-MM-yyyy')
-            }
+            to={RouterLinks.ScheduleBuilder + '/' + format(subDays(startOfToday(), 1), 'dd-MM-yyyy')}
             className={styles.goDay}
           >
-            <span className={styles.linkButtonText}>{'Вчера'}</span>
+            <span className={styles.linkButtonText}>Вчера</span>
           </NavLink>
           <NavLink
             to={RouterLinks.ScheduleBuilder + '/' + format(startOfToday(), 'dd-MM-yyyy')}
             className={styles.goDay}
           >
-            <span className={styles.linkButtonText}>{'Сегодня'}</span>
+            <span className={styles.linkButtonText}>Сегодня</span>
           </NavLink>
           <NavLink
-            to={
-              RouterLinks.ScheduleBuilder + '/' + format(addDays(startOfToday(), 1), 'dd-MM-yyyy')
-            }
+            to={RouterLinks.ScheduleBuilder + '/' + format(addDays(startOfToday(), 1), 'dd-MM-yyyy')}
             className={styles.goDay}
           >
-            <span className={styles.linkButtonText}>{'Завтра'}</span>
+            <span className={styles.linkButtonText}>Завтра</span>
           </NavLink>
         </div>
       )}

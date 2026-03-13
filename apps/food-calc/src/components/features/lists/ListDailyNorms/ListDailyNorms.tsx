@@ -1,18 +1,19 @@
 import { observer } from 'mobx-react-lite';
-import { ItemsList } from '@/components/ui/atoms/ItemsList';
+import { AnimatePresence, motion } from 'framer-motion';
+import clsx from 'clsx';
 import { DailyNormStoreInstance } from '@/store/DailyNormStore/DailyNormStore';
 import { domainStore } from '@/store/store';
 import { RouterLinks } from '@/router';
 import styles from './ListDailyNorms.module.scss';
 import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
 import { DailyNormsFactory } from '@/domain/dailyNorm/factory';
-import { SelectableItem } from '@/components/ui/SelectableItem';
-import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
 import FilterListLayout from '@/components/features/lists/shared/FilterListLayout/FilterListLayout';
 import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
 import { FilterPanel } from '@/components/features/lists/shared/FilterPanel';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
+import { ListItem } from '@/components/ui/list-item/ListItem';
+import TickIcon from '@icons/tick.svg';
 
 import commonStyles from '../shared/commonStyles.module.scss';
 
@@ -23,9 +24,33 @@ type Props = {
   addControls?: boolean;
 };
 
-const ListDailyNorms = ({ store = domainStore.dailyNormStore }: Props) => {
-  // const navigate = useNavigate();
+const SelectButton = ({ isSelected, onSelect }: { isSelected: boolean; onSelect: () => void }) => (
+  <button
+    type="button"
+    className={clsx(styles.selectBtn, isSelected && styles.selectBtn_active)}
+    onClick={(e) => {
+      e.stopPropagation();
+      onSelect();
+    }}
+  >
+    <AnimatePresence mode="wait">
+      {isSelected && (
+        <motion.span
+          key="tick"
+          initial={{ scale: 0, rotate: -90 }}
+          animate={{ scale: 1, rotate: 0 }}
+          exit={{ scale: 0, rotate: 90 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+          className={styles.tickWrap}
+        >
+          <TickIcon />
+        </motion.span>
+      )}
+    </AnimatePresence>
+  </button>
+);
 
+const ListDailyNorms = ({ store = domainStore.dailyNormStore }: Props) => {
   const { onAdd, navigate, filter } = useListStateActions({
     store,
     navigateTo: RouterLinks.DailyNorms,
@@ -51,29 +76,35 @@ const ListDailyNorms = ({ store = domainStore.dailyNormStore }: Props) => {
         }
         filterPanel={<FilterPanel selectedFilters={[]} columns={[]} onFilterChange={() => {}} />}
         mainContent={
-          <ItemsList>
-            {filter.filteredList.map((item) => (
-              <SelectableItem
-                key={item.id}
-                id={item.id}
-                isSelected={store.selectedNormId === item.id}
-                onSelect={(id) => store.setSelectedId(id)}
-              >
-                <CommonListItem
-                  id={item.id}
-                  variant={2}
-                  className={styles.listItem}
-                  isSelectMode={true}
-                  isSelected={store.selectedNormId === item.id}
-                  onSelect={(id) => store.setSelectedId(id)}
-                >
-                  <p onClick={() => navigate(`${RouterLinks.DailyNorms}/${item.id}`)}>
-                    {item.name || 'без имени'}
-                  </p>
-                </CommonListItem>
-              </SelectableItem>
-            ))}
-          </ItemsList>
+          <ul className={styles.list}>
+            <AnimatePresence initial={false}>
+              {filter.filteredList.map((item, i) => {
+                const isSelected = store.selectedNormId === item.id;
+                return (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: -40 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 28, delay: i * 0.03 }}
+                  >
+                    <ListItem
+                      active={isSelected}
+                      onClick={() => navigate(`${RouterLinks.DailyNorms}/${item.id}`)}
+                      before={
+                        <SelectButton
+                          isSelected={isSelected}
+                          onSelect={() => store.setSelectedId(item.id)}
+                        />
+                      }
+                    >
+                      {item.name || 'без имени'}
+                    </ListItem>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </ul>
         }
       />
     </Screen>

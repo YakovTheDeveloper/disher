@@ -6,14 +6,14 @@ type Props = {
   children: React.ReactNode;
 };
 
-const OpenDishes = ({ children }: Props) => {
-  const { toDishes } = useAppRoutes();
+const OpenFoods = ({ children }: Props) => {
+  const { toFood } = useAppRoutes();
 
   return (
-    <Button variant="ghost" onClick={toDishes}>
-      Открыть блюда
+    <Button variant="ghost" onClick={toFood}>
+      {children}
     </Button>
   );
 };
 
-export default observer(OpenDishes);
+export default observer(OpenFoods);

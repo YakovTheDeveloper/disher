@@ -8,6 +8,8 @@ import { MenuUiStore } from '@/store/uiStore/menu/menuUiStore';
 import { useScreenScroll } from '@/components/features/builders/shared/ui/layout/Screen/context/ScreenScrollContext';
 import { motion, MotionValue, useMotionValueEvent, useTransform } from 'framer-motion';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
+import { Typography } from '@/components/ui/atoms/Typography';
+import WatchImage from '@/assets/decarative/watch.png';
 
 type Props = {
   children?: React.ReactNode;
@@ -33,14 +35,22 @@ const Navigation = ({ title }: Props) => {
   const navigate = useNavigate();
 
   const scrollYProgress = useScreenScroll();
-  const titleOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const opacity = useTransform(scrollYProgress, [0.5, 0.6], [1, 0]);
+
+  const opacityImage = useTransform(scrollYProgress, [0.5, 0.8], [0.1, 0]);
 
   return (
     <header className={styles.header}>
-      <motion.div className={styles.title} style={{ opacity: titleOpacity }}>
-        <ScreenLabel variant="screenHeader">{title}</ScreenLabel>
+      <motion.img
+        src={WatchImage}
+        className={styles.backgroundImage}
+        alt=""
+        style={{ opacity: opacityImage }}
+      />
+      <motion.div className={styles.title} style={{ opacity }}>
+        {title}
       </motion.div>
-      <div className={styles.container}>
+      <div className={styles.date}>
         <DateInfo scrollYProgress={scrollYProgress} />
       </div>
     </header>

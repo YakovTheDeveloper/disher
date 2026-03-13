@@ -1,0 +1,154 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 0;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.portion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 4px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    transition: background-color 0.15s ease;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.portionInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.portionLabel {
+    font-family: "Raleway", sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: rgb(60, 60, 60);
+}
+
+.portionGrams {
+    font-family: "Jost", sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    color: rgba(0, 0, 0, 0.35);
+}
+
+.portionActions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.iconButton {
+    background: none;
+    border: none;
+    padding: 6px;
+    color: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: color 0.15s ease;
+    font-size: 14px;
+    line-height: 1;
+
+    &:hover {
+        color: rgba(0, 0, 0, 0.5);
+    }
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 4px;
+    animation: slideDown 0.2s ease;
+}
+
+.formRow {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+}
+
+.formInput {
+    flex: 1;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    background: transparent;
+    font-family: "Raleway", sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: rgb(50, 50, 50);
+    padding: 6px 0;
+    outline: none;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+        border-color: rgba(0, 0, 0, 0.2);
+    }
+
+    &::placeholder {
+        color: rgba(0, 0, 0, 0.15);
+    }
+}
+
+.formInputGrams {
+    composes: formInput;
+    max-width: 80px;
+    text-align: right;
+}
+
+.formActions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.addButton {
+    align-self: center;
+    background: none;
+    border: none;
+    font-family: "Raleway", sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    padding: 12px 16px;
+    transition: color 0.15s ease;
+
+    &:hover {
+        color: rgba(0, 0, 0, 0.45);
+    }
+}
+
+.empty {
+    text-align: center;
+    font-family: "Jost", sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    color: rgba(0, 0, 0, 0.2);
+    padding: 16px 0;
+    font-style: italic;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

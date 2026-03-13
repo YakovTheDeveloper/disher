@@ -1,83 +1,63 @@
 .searchListItemWrapper {
     display: flex;
     align-items: center;
+    border-bottom: 1px solid #e8e8e8;
+    position: relative;
+
+    &:last-child {
+        border-bottom: none;
+    }
 }
 
 .listItem {
     display: flex;
     align-items: center;
-    border: 2px solid transparent;
-    padding: 5px 5px 5px 10px;
-    border-radius: 8px;
-    background: #ffffff;
-    text-transform: capitalize;
+    padding: 0 8px 0 14px;
     flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
+
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    height: 48px;
+    gap: 8px;
+
+    &:active {
+        background: #f2f2f2;
+    }
+}
+
+.itemName {
+    flex: 1;
     min-width: 0;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: inherit;
-    height: 40px;
-
-    &:active {
-        background: rgb(215, 204, 255);
-        color: #fff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #111;
+    line-height: 1;
 }
 
 .listItem_active {
-    background: var(--color-deep-blue); // Light green background
-    border-color: #7cb9ff50; // Green border
-    color: white; // Darker green text
-    font-weight: 300;
+    background: #111;
 
-    * {
-        color: white;
+    .itemName {
+        color: #fff;
     }
 
-}
-
-.content {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    // Friendly typography for health app
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.4;
-}
-
-.after {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-left: auto;
-    color: #6b7280;
-    font-size: 12px;
-    font-weight: 400;
-}
-
-.before {
-    color: #a5a5a5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 5px 8px 8px;
+    * {
+        color: #fff;
+    }
 
     &:active {
-        color: #6b7280;
-        background-color: #4b99ff;
+        background: #222;
     }
 }
 
@@ -85,20 +65,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 40px;
-    height: 40px;
-    padding: 0 8px;
+    width: 44px;
+    height: 48px;
+    padding: 0;
     border: none;
     background: transparent;
-    color: #b0b8c8;
+    color: #bbb;
     cursor: pointer;
-    border-radius: 8px;
     flex-shrink: 0;
-    transition: color 0.15s ease, background 0.15s ease;
+    transition: color 0.15s ease;
     -webkit-tap-highlight-color: transparent;
 
     &:active {
-        color: var(--color-deep-blue, #3b6cee);
-        background: #f0f2ff;
+        color: #111;
     }
 }

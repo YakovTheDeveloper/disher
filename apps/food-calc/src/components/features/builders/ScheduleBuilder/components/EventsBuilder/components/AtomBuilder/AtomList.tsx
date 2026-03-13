@@ -10,7 +10,9 @@ import {
   isTagAtom,
   isRelationAtom,
   isFlagAtom,
+  isBodyAtom,
 } from '@/domain/schedule/scheduleEvent/atom.types';
+import { formatBodyPoints } from './BodyAtomInput';
 import styles from './AtomList.module.css';
 import { observer } from 'mobx-react-lite';
 
@@ -57,6 +59,11 @@ function formatAtom(atom: Atom): string {
   if (isFlagAtom(atom)) {
     return `⚡ ${atom.value}`;
   }
+  if (isBodyAtom(atom)) {
+    const summary = formatBodyPoints(atom.points);
+    const label = atom.label ? ` (${atom.label})` : '';
+    return `${summary}${label}`;
+  }
   return '?';
 }
 
@@ -71,6 +78,7 @@ function getAtomKindLabel(kind: Atom['kind']): string {
     tag: 'Тег',
     relation: 'Связь',
     flag: 'Флаг',
+    body: 'Тело',
   };
   return labels[kind];
 }

@@ -6,20 +6,35 @@
     position: relative;
 }
 
+// --- Old vibrant colors ---
+// .main {
+//     background-color: #fff3e0; // Orange - macros
+// }
+// .vitaminsB {
+//     background-color: #e3f2fd; // Blue - B vitamins
+// }
+// .minerals {
+//     background-color: #e8f5e9; // Green - minerals
+// }
+// .rest {
+//     background-color: #f3e5f5; // Purple - other vitamins
+// }
+
+// --- Semi-vivid palette ---
 .main {
-    background-color: #fff3e0; // Orange - macros
+    background-color: #fde8c8; // Warm amber - macros
 }
 
 .vitaminsB {
-    background-color: #e3f2fd; // Blue - B vitamins
+    background-color: #d5e8f8; // Sky blue - B vitamins
 }
 
 .minerals {
-    background-color: #e8f5e9; // Green - minerals
+    background-color: #ceeada; // Fresh sage - minerals
 }
 
 .rest {
-    background-color: #f3e5f5; // Purple - other vitamins
+    background-color: #e8d5f5; // Soft violet - other vitamins
 }
 
 .symbol {
@@ -30,21 +45,27 @@
     font-family: "Merriweather", serif;
 }
 
-// Colored symbols by group
+// --- Old vibrant symbol colors ---
+// .main .symbol { color: #e65100; }
+// .vitaminsB .symbol { color: #1565c0; }
+// .minerals .symbol { color: #2e7d32; }
+// .rest .symbol { color: #7b1fa2; }
+
+// --- Semi-vivid symbol colors ---
 .main .symbol {
-    color: #e65100;
+    color: #c07020; // Amber
 }
 
 .vitaminsB .symbol {
-    color: #1565c0;
+    color: #3a72b0; // Steel blue
 }
 
 .minerals .symbol {
-    color: #2e7d32;
+    color: #3a8f55; // Forest green
 }
 
 .rest .symbol {
-    color: #7b1fa2;
+    color: #8040b8; // Violet
 }
 
 .topRow {
@@ -53,9 +74,25 @@
     align-items: flex-start;
 }
 
+.statsColumn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+}
+
 .percent {
     font-size: 13px;
-    opacity: 0.8;
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+.valuesCompact {
+    display: flex;
+    gap: 2px;
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.45;
 }
 
 .center {
@@ -69,13 +106,6 @@
 .name {
     font-size: 12px;
     font-weight: 300;
-}
-
-.values {
-    display: flex;
-    justify-content: center;
-    gap: 4px;
-    font-size: 13px;
 }
 
 .progressBar {

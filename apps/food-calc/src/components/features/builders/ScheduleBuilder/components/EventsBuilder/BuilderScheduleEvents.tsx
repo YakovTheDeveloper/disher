@@ -11,15 +11,13 @@ import { ScheduleEvent } from '@/domain/schedule/scheduleEvent/ScheduleEvent.mod
 import { useOverlay } from '@/store/GlobalUiStore/OverlayStore';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { Navigation } from '@/components/features/builders/ScheduleBuilder/ui/Navigation';
-import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
+import Typography from '@/components/ui/atoms/Typography/Typography';
 import { ActionsPanel } from '@/components/features/builders/shared/components/ActionsPanel';
-import { getScheduleEventUrl } from '@/router';
 import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { domainStore } from '@/store/store';
-import { Buttons } from '@/components/features/builders/shared/ui/Actions/button';
-import { useNavigate } from 'react-router';
 import { useSelection } from '@/hooks/factoryHooks/useSelection';
 import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
+import AddEventItemToDaySchedule from '@/components/features/dayScheduleEvent/add-event-item-to-current-day-schedule/AddEventItemToDaySchedule';
 
 type Props = {
   children?: React.ReactNode;
@@ -62,7 +60,6 @@ export function getEventDescription(item: Instance<typeof ScheduleEvent>): strin
 
 const BuilderScheduleEvents = ({ schedule }: Props) => {
   const { openFormScheduleEventEdit } = useOverlay();
-  const navigate = useNavigate();
   const selectionStoreEvents = useSelection();
 
   const onEventEditModalOpen = (item: Instance<typeof ScheduleEvent>) => {
@@ -77,14 +74,10 @@ const BuilderScheduleEvents = ({ schedule }: Props) => {
     );
   }, []);
 
-  const onEventAdd = () => {
-    // TODO: make link to new route
-    navigate(getScheduleEventUrl(schedule.id, 'draft'));
-  };
-
   return (
     <Screen
       offsetTop
+      overlay={<AddEventItemToDaySchedule scheduleId={schedule.id} />}
       actions={
         <ActionsPanel
           show={selectionStoreEvents.isActionsMode}
@@ -105,9 +98,11 @@ const BuilderScheduleEvents = ({ schedule }: Props) => {
         </ActionsPanel>
       }
       key={3}
-      title={<ScreenLabel variant="screenHeader">События</ScreenLabel>}
-      header={<Navigation></Navigation>}
-      bottomRight={<AddButton onClick={onEventAdd} />}
+      title={<Typography variant="feature-title">События</Typography>}
+      header={
+        <Navigation title={<Typography variant="feature-title-2">События</Typography>}></Navigation>
+      }
+      bottomRight={<AddButton htmlFor="time-input" as="label" />}
     >
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList offsetTop>

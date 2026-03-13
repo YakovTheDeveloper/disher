@@ -54,21 +54,22 @@ const NutrientCard = ({ content, getValue, showValues: showValuesProp = true, sh
     <div className={clsx(styles.card, styles[statusClass], styles[group])}>
       <div className={styles.topRow}>
         <span className={styles.symbol}>{symbol}</span>
-        {showPercent && <span className={clsx(styles.percent, styles[statusClass])}>{percentText}%</span>}
+        <div className={styles.statsColumn}>
+          {showPercent && <span className={clsx(styles.percent, styles[statusClass])}>{percentText}%</span>}
+          {showValues && (
+            <div className={styles.valuesCompact}>
+              <span>{value.toFixed(1)}</span>
+              <span className={styles.separator}>/</span>
+              <span>{norm}</span>
+              {showUnits && <span className={styles.unit}>{unitRu}</span>}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className={styles.center}>
         <span className={styles.name}>{displayNameRu}</span>
       </div>
-
-      {showValues && (
-        <div className={styles.values}>
-          <span>{value.toFixed(1)}</span>
-          <span className={styles.separator}>/</span>
-          <span>{norm}</span>
-          {showUnits && <span className={styles.unit}>{unitRu}</span>}
-        </div>
-      )}
 
       {showProgress && (
         <div className={styles.progressBar}>

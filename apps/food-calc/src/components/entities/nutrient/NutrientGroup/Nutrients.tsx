@@ -7,6 +7,8 @@ import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrien
 import clsx from 'clsx';
 import { getNutrientColumn } from '@/components/entities/nutrient/NutrientGroup/constants/columnMapping';
 import { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
+import treeSrc from '@/assets/decarative/tree.png';
+import tree2Src from '@/assets/decarative/tree2.png';
 
 // Groups of nutrients
 // const groups: Record<string, number[]> = {
@@ -36,6 +38,12 @@ const Nutrients = ({ store, renderCard }: Props) => {
               {content.map((nutrientData) => (
                 <React.Fragment key={nutrientData.id}>{renderCard(nutrientData)}</React.Fragment>
               ))}
+              {content[0]?.group === 'main' && (
+                <img src={treeSrc} alt="" className={styles.decorativeImg} />
+              )}
+              {content[0]?.group === 'rest' && (
+                <img src={tree2Src} alt="" className={styles.decorativeImgLarge} />
+              )}
             </div>
           </div>
         );

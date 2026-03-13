@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:libraries.io)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm view react-muscle-highlighter version description)",
+      "Bash(npm install react-body-highlighter)",
+      "Bash(npm install react-muscle-highlighter)"
+    ]
+  }
+}

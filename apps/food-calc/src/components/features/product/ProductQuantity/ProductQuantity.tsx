@@ -95,64 +95,70 @@ const ProductQuantity = ({ onFinish, content }: Props) => {
 
   return (
     <div className={style.container}>
-      {/* Input - full width */}
+      {/* Editorial hero input */}
       <div className={style.inputWrapper}>
         <NumberInput
           id="quantity-input"
-          size="big"
-          boxShadow
-          placeholder="Введите количество"
+          placeholder="0"
           ref={inputRef}
           className={style.input}
           onChange={setValue}
           value={value}
           onBlur={onBlur}
+          bottom={<span className={style.unit}>граммы</span>}
         />
-        <span className={style.unit}>г.</span>
       </div>
 
       {/* Portions carousel */}
       {portionSlides.length > 0 && (
-        <div className={style.emblaViewport} ref={portionsEmblaRef}>
-          <div className={style.emblaContainer}>
-            {portionSlides.map((slideButtons, slideIndex) => (
-              <div key={slideIndex} className={style.emblaSlide}>
-                <div className={style.slideGrid}>
-                  {slideButtons.map((button) => (
-                    <QuickButton
-                      key={button.quantity}
-                      isActive={button.quantity === value}
-                      onClick={() => handleVariantClick(button.quantity)}
-                    >
-                      {button.label}
-                    </QuickButton>
-                  ))}
+        <div className={style.section}>
+          <span className={style.sectionLabel}>Порции</span>
+          <div className={style.emblaViewport} ref={portionsEmblaRef}>
+            <div className={style.emblaContainer}>
+              {portionSlides.map((slideButtons, slideIndex) => (
+                <div key={slideIndex} className={style.emblaSlide}>
+                  <div className={style.slideGrid}>
+                    {slideButtons.map((button) => (
+                      <QuickButton
+                        key={button.quantity}
+                        className={style.quickBtn}
+                        isActive={button.quantity === value}
+                        onClick={() => handleVariantClick(button.quantity)}
+                      >
+                        {button.label}
+                      </QuickButton>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       {/* Default quantities carousel */}
       {quantitySlides.length > 0 && (
-        <div className={style.emblaViewport} ref={quantitiesEmblaRef}>
-          <div className={style.emblaContainer}>
-            {quantitySlides.map((slideButtons, slideIndex) => (
-              <div key={slideIndex} className={style.emblaSlide}>
-                <div className={style.slideGrid}>
-                  {slideButtons.map((button) => (
-                    <QuickButton
-                      key={button.quantity}
-                      isActive={button.quantity === value}
-                      onClick={() => handleVariantClick(button.quantity)}
-                    >
-                      {button.label}
-                    </QuickButton>
-                  ))}
+        <div className={style.section}>
+          <span className={style.sectionLabel}>Количество</span>
+          <div className={style.emblaViewport} ref={quantitiesEmblaRef}>
+            <div className={style.emblaContainer}>
+              {quantitySlides.map((slideButtons, slideIndex) => (
+                <div key={slideIndex} className={style.emblaSlide}>
+                  <div className={style.slideGrid}>
+                    {slideButtons.map((button) => (
+                      <QuickButton
+                        key={button.quantity}
+                        className={style.quickBtn}
+                        isActive={button.quantity === value}
+                        onClick={() => handleVariantClick(button.quantity)}
+                      >
+                        {button.label}
+                      </QuickButton>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}

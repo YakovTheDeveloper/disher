@@ -1,9 +1,10 @@
 import { List } from '@/components/features/builders/shared/ContentEdit/Food/List';
 import { observer } from 'mobx-react-lite';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import clsx from 'clsx';
 import styles from './SearchFood.module.scss';
 import { domainStore } from '@/store/store';
-import { SearchListItem } from '@/components/ui/atoms/SearchListItem';
+import { FoodActionCard } from '@/components/features/food/food-action-card';
 import { useFilteringStateV2 } from '@/components/features/shared/hooks/useFilteringStateV2';
 import { useCategoryFilterState } from '@/components/features/shared/hooks/useCategoryFilterState';
 import { SearchFoodControls } from '@/components/features/builders/shared/components/SearchFood/SearchFoodControls';
@@ -18,7 +19,7 @@ import {
 import { productFactory } from '@/domain/product/Food.factory';
 import { DishFactory } from '@/store/DishStore/Dish.factory';
 import toaster from '@/infrastructure/toaster/toaster';
-import { useAppRoutes } from '@/app/routing/useAppRoutes';
+import { allNutrientsList } from '@/components/entities/nutrient/NutrientGroup/constants';
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 
@@ -29,6 +30,13 @@ type Props = {
   onFocusChange?: (focused: boolean) => void;
   onOpen?: () => void;
   mode: SearchMode;
+  showDelete?: boolean;
+  showAdd?: boolean;
+  showInfoButtonOnListItem?: boolean;
+  actionLeft?: React.ReactNode;
+  actionRight?: React.ReactNode;
+  sortByNutrientId?: string | null;
+  sortByNutrientUnit?: string;
 };
 
 const SearchFood = ({
@@ -37,9 +45,16 @@ const SearchFood = ({
   currentDishId,
   onFocusChange,
   mode = 'products-and-dishes',
+  showDelete = false,
+  showAdd = false,
+  showInfoButtonOnListItem = false,
+  actionLeft,
+  actionRight,
+  sortByNutrientId,
+  sortByNutrientUnit,
 }: Props) => {
-  const { toProduct, toDish } = useAppRoutes();
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [myFoodOnly, setMyFoodOnly] = useState(false);
 
   // Category filter state
   const categoryFilter = useCategoryFilterState();
@@ -63,10 +78,34 @@ const SearchFood = ({
     }
   };
 
+  const richNutrient = useMemo(
+    () => (sortByNutrientId ? allNutrientsList.find((n) => n.id === sortByNutrientId) : null),
+    [sortByNutrientId]
+  );
+
+  const sortedProducts = useMemo(() => {
+    const products = myFoodOnly
+      ? domainStore.foodStore.merged.filter((p) => p.createdByUser)
+      : domainStore.foodStore.merged;
+    if (!sortByNutrientId) return products;
+    return [...products].sort((a: any, b: any) => {
+      const aNutrients = a.getTotalNutrients?.(100) ?? {};
+      const bNutrients = b.getTotalNutrients?.(100) ?? {};
+      return (bNutrients[sortByNutrientId] ?? 0) - (aNutrients[sortByNutrientId] ?? 0);
+    });
+  }, [sortByNutrientId, myFoodOnly]);
+
+  const maxNutrientValue = useMemo(() => {
+    if (!sortByNutrientId || sortedProducts.length === 0) return 0;
+    const first = sortedProducts[0];
+    const nutrients = (first as { getTotalNutrients?: (qty: number) => Record<string, number> }).getTotalNutrients?.(100);
+    return nutrients?.[sortByNutrientId] ?? 0;
+  }, [sortByNutrientId, sortedProducts]);
+
   const tabs = [
     {
       tabName: 'продукты',
-      list: domainStore.foodStore.merged,
+      list: sortedProducts,
       filterKeys,
     },
     {
@@ -118,7 +157,12 @@ const SearchFood = ({
   const handleCreateProduct = useCallback(() => {
     const name = filterStateWithCategory.searchQuery.trim();
     if (!name) return;
-    const product = productFactory.createNewLocal({ name, nutrients: [], portions: [], description: '' });
+    const product = productFactory.createNewLocal({
+      name,
+      nutrients: [],
+      portions: [],
+      description: '',
+    });
     domainStore.foodStore.insert(product);
     toaster.success(`Продукт «${name}» создан`, {
       action: { label: 'Открыть', href: `/product/${product.id}` },
@@ -153,33 +197,40 @@ const SearchFood = ({
   const renderProductItem = useCallback(
     (item: any) => {
       return (
-        <SearchListItem
-          className=""
-          onInfoClick={() => toProduct(item.id.toString())}
+        <FoodActionCard
+          variant="product"
+          item={item}
           active={currentProductId === item.id.toString()}
           onClick={() => onFoodAdd(item)}
-          item={item}
+          onAdd={() => onFoodAdd(item)}
+          showDelete={showDelete}
+          showInfo={showInfoButtonOnListItem}
+          showAdd={showAdd}
+          richNutrientId={sortByNutrientId}
+          richNutrientUnit={sortByNutrientUnit}
+          richNutrientMax={maxNutrientValue}
         />
       );
     },
-    [currentProductId, onFoodAdd, toProduct]
+    [currentProductId, onFoodAdd, showInfoButtonOnListItem, showDelete, showAdd, sortByNutrientId, sortByNutrientUnit, maxNutrientValue]
   );
 
   const renderDishtItem = useCallback(
     (item: any) => {
-      const isActive = currentDishId === item.id.toString();
-
       return (
-        <SearchListItem
-          className=""
+        <FoodActionCard
+          variant="dish"
           item={item}
-          active={isActive}
-          onInfoClick={() => toDish(item.id.toString())}
+          active={currentDishId === item.id.toString()}
           onClick={() => onDishAdd(item)}
+          onAdd={() => onDishAdd(item)}
+          showDelete={showDelete}
+          showInfo={showInfoButtonOnListItem}
+          showAdd={showAdd}
         />
       );
     },
-    [currentDishId, onDishAdd, toDish]
+    [currentDishId, onDishAdd, showInfoButtonOnListItem, showDelete, showAdd]
   );
 
   return (
@@ -190,8 +241,17 @@ const SearchFood = ({
             searchState={filterStateWithCategory}
             onFocusChange={onFocusChange}
             toggleFilterPanel={toggleFilterPanel}
+            mode={mode}
+            actionLeft={actionLeft}
+            actionRight={actionRight}
           />
         </div>
+
+        {richNutrient && (
+          <div className={styles.filterMessage}>
+            Богатые по <strong>{richNutrient.displayNameRu}</strong>
+          </div>
+        )}
 
         {filterStateWithCategory.currentTab === 'продукты' && (
           <List
@@ -219,27 +279,41 @@ const SearchFood = ({
         )}
 
         {/* Filter Panel at bottom of screen */}
-        <section className={styles.filterWrapper}>
+        <section
+          className={clsx(styles.filterWrapper, !filterPanelOpen && styles.filterWrapper_hidden)}
+        >
           {/* Tabs for switching between Products and Dishes */}
           <FilterPanel
             isOpen={filterPanelOpen}
             header={
-              mode === 'products-and-dishes' && (
-                <div className={styles.filterTabs}>
-                  <button
-                    className={`${styles.filterTab} ${filterStateWithCategory.currentTab === 'продукты' ? styles.filterTabActive : ''}`}
-                    onClick={() => filterStateWithCategory.setTab('продукты')}
-                  >
-                    Продукты
-                  </button>
-                  <button
-                    className={`${styles.filterTab} ${filterStateWithCategory.currentTab === 'блюда' ? styles.filterTabActive : ''}`}
-                    onClick={() => filterStateWithCategory.setTab('блюда')}
-                  >
-                    Блюда
-                  </button>
-                </div>
-              )
+              <div>
+                {mode === 'products-and-dishes' && (
+                  <div className={styles.filterTabs}>
+                    <button
+                      className={`${styles.filterTab} ${filterStateWithCategory.currentTab === 'продукты' ? styles.filterTabActive : ''}`}
+                      onClick={() => filterStateWithCategory.setTab('продукты')}
+                    >
+                      Продукты
+                    </button>
+                    <button
+                      className={`${styles.filterTab} ${filterStateWithCategory.currentTab === 'блюда' ? styles.filterTabActive : ''}`}
+                      onClick={() => filterStateWithCategory.setTab('блюда')}
+                    >
+                      Блюда
+                    </button>
+                  </div>
+                )}
+                {filterStateWithCategory.currentTab === 'продукты' && (
+                  <div className={styles.filterChips}>
+                    <button
+                      className={`${styles.filterChip} ${myFoodOnly ? styles.filterChipActive : ''}`}
+                      onClick={() => setMyFoodOnly((prev) => !prev)}
+                    >
+                      Моя еда
+                    </button>
+                  </div>
+                )}
+              </div>
             }
             groups={
               filterStateWithCategory.currentTab === 'продукты'

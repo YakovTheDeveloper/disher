@@ -10,6 +10,7 @@ import React, {
 import useEmblaCarousel from 'embla-carousel-react';
 import styles from './SwipeableV2.module.scss';
 import WeatherBackground from '@/components/features/WeatherBackground/WeatherBacground';
+import { SwipeableLockContext } from './SwipeableLockContext';
 export type SwipeableRef = {
   goToPage: (index: number) => void;
 };
@@ -25,6 +26,11 @@ type Props = {
 const SwipeableV2 = forwardRef<SwipeableRef, Props>(
   ({ children, onIndexChange, hasDots = false, image, defaultSlide = 1 }, ref) => {
     const [selectedSlideModal, setSelectedSlideModal] = useState(defaultSlide);
+    const [lockCount, setLockCount] = useState(0);
+    const isLocked = lockCount > 0;
+    const lock = useCallback(() => setLockCount((c) => c + 1), []);
+    const unlock = useCallback(() => setLockCount((c) => Math.max(0, c - 1)), []);
+
     const [emblaRefModal, emblaApi] = useEmblaCarousel(
       {
         loop: false,
@@ -62,40 +68,47 @@ const SwipeableV2 = forwardRef<SwipeableRef, Props>(
       }
     }, [emblaApi, defaultSlide]);
 
-    return (
-      <div className={styles.carouselWrapper} data-carousel-container>
-        <div className={styles.emblaViewport} ref={emblaRefModal}>
-          <div className={styles.emblaContainer}>
-            {image && (
-              <div
-                className={styles.background}
-                style={{
-                  width: `${children.length * 200}%`,
-                }}
-              >
-                {image}
-              </div>
-            )}
-            {children.map((slide, index) => (
-              <div key={index} className={styles.emblaSlide}>
-                <div className={styles.slideContent}>{slide}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+    useEffect(() => {
+      if (!emblaApi) return;
+      emblaApi.reInit({ watchDrag: !isLocked });
+    }, [emblaApi, isLocked]);
 
-        {hasDots && (
-          <div className={styles.dotsContainer}>
-            {children.map((_, idx) => (
-              <button
-                key={idx}
-                className={`${styles.dot} ${idx === selectedSlideModal ? styles.dotActive : ''}`}
-                onClick={() => emblaApi?.scrollTo(idx)}
-              />
-            ))}
+    return (
+      <SwipeableLockContext.Provider value={{ lock, unlock }}>
+        <div className={styles.carouselWrapper} data-carousel-container>
+          <div className={styles.emblaViewport} ref={emblaRefModal}>
+            <div className={styles.emblaContainer}>
+              {image && (
+                <div
+                  className={styles.background}
+                  style={{
+                    width: `${children.length * 200}%`,
+                  }}
+                >
+                  {image}
+                </div>
+              )}
+              {children.map((slide, index) => (
+                <div key={index} className={styles.emblaSlide}>
+                  <div className={styles.slideContent}>{slide}</div>
+                </div>
+              ))}
+            </div>
           </div>
-        )}
-      </div>
+
+          {hasDots && (
+            <div className={styles.dotsContainer}>
+              {children.map((_, idx) => (
+                <button
+                  key={idx}
+                  className={`${styles.dot} ${idx === selectedSlideModal ? styles.dotActive : ''}`}
+                  onClick={() => emblaApi?.scrollTo(idx)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </SwipeableLockContext.Provider>
     );
   }
 );

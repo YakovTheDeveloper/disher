@@ -15,7 +15,7 @@ import { useSelection } from '@/hooks/factoryHooks/useSelection';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ActionsPanel } from '@/components/features/builders/shared/components/ActionsPanel';
 import { Navigation } from '@/components/features/builders/ScheduleBuilder/ui/Navigation';
-import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
+import Typography from '@/components/ui/atoms/Typography/Typography';
 import { getScheduleFoodUrl, RouterLinks } from '@/router';
 import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { domainStore } from '@/store/store';
@@ -25,11 +25,8 @@ import { Buttons } from '@/components/features/builders/shared/ui/Actions/button
 import { modalStoreV2 } from '@/store/GlobalUiStore/ModalStoreV2/ModalStoreV2';
 import { ModalCopyScheduleItemsToAnotherDay } from '@/components/features/builders/ScheduleBuilder/components/modal/ModalCopyScheduleItemsToAnotherDay';
 import toaster from '@/infrastructure/toaster/toaster';
-import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import { OpenDishes } from '@/components/features/dish/OpenDishes';
-import { OpenProducts } from '@/components/features/product/OpenProducts';
+import { OpenFoods } from '@/components/features/food/open-foods';
 import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
-import { LabeledCheckbox } from '@/components/ui/LabeledCheckbox';
 import { CopyProductsToExistingDish } from '@/components/features/dish/copy-products-to-dish/CreateDishFromProductList';
 import { CreateDishAndCopyProducts } from '@/components/features/dish/create-dish-and-copy-products';
 import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
@@ -38,8 +35,9 @@ import { CopyFoodToDaySchedule } from '@/components/features/daySchedule/copy-fo
 import TextBehind from '@/components/ui/TextBehind/TextBehind';
 import { CountBadge } from '@/components/ui/atoms/Button/CountBadge/CountBadge';
 import { TextInput } from '@/components/ui/atoms/input/TextInput';
-import { Nullable } from 'vitest';
 import { OpenScheduleFoodAnalytics } from '@/components/features/daySchedule/get-day-schedule-food-analytics/OpenScheduleFoodAnalytics';
+import AddFoodItemToDaySchedule from '@/components/features/daySchedule/add-food-item-to-current-day-schedule/AddFoodItemToDaySchedule';
+import { useSwipeableLock } from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableLockContext';
 
 type CommonProps = {
   schedule: Instance<typeof ScheduleFoods>;
@@ -50,16 +48,19 @@ const FoodSchedule = observer(
   ({ schedule, interactionsService = domainStore.interactionsService }: CommonProps) => {
     const navigate = useNavigate();
     const selectionStoreFood = useSelection();
-    const { toScheduleFood } = useAppRoutes();
+
     const [isOpen, setIsOpen] = useState<'create-dish-and-copy' | 'copy-to-existing-dish' | null>(
       null
     );
+    useSwipeableLock(isOpen !== null);
     const swapProductsToDishCheckboxInputRef = useRef<HTMLInputElement>(null);
     const closeDishCreateModal = () => setIsOpen(null);
     const openDishModal = (variant: 'create-dish-and-copy' | 'copy-to-existing-dish' | null) =>
       setIsOpen(variant);
 
-    const onFoodAddButtonClick = () => toScheduleFood(schedule.id, 'draft');
+    const onFoodAddButtonClick = () => {
+      // Step transition handled by label htmlFor="time-input-schedule-food" focus delegation
+    };
 
     const onCopyToAnotherDayButtonClick = async () => {
       const { date, mode } = await modalStoreV2.show(ModalCopyScheduleItemsToAnotherDay, {
@@ -129,6 +130,7 @@ const FoodSchedule = observer(
         offsetTop
         overlay={
           <>
+            <AddFoodItemToDaySchedule scheduleId={schedule.id} />
             <SearchFormExpandable
               position="absolute"
               isExpanded={isOpen === 'create-dish-and-copy'}
@@ -137,12 +139,7 @@ const FoodSchedule = observer(
                   onClose={closeDishCreateModal}
                   items={selectedProductsFromSelectedFoods}
                   onFinish={onCreateDishAndCopyFinish}
-                >
-                  <LabeledCheckbox
-                    ref={swapProductsToDishCheckboxInputRef}
-                    label="Заменить выбранные продукты на новое блюдо"
-                  />
-                </CreateDishAndCopyProducts>
+                ></CreateDishAndCopyProducts>
               }
             />
             <SearchFormExpandable
@@ -185,27 +182,34 @@ const FoodSchedule = observer(
             <button onClick={onCopyToAnotherSchedule}>copy</button>
           </ActionsPanel>
         }
-        title={<ScreenLabel variant="screenHeader">Еда</ScreenLabel>}
-        header={<Navigation title="Еда"></Navigation>}
+        // title={<Typography variant="feature-title">Еда</Typography>}
+        header={
+          <Navigation title={<Typography variant="feature-title">Еда</Typography>}></Navigation>
+        }
         topLeft={
           selectionStoreFood.selectedIds.length > 0 ? (
             <CountBadge count={selectionStoreFood.selectedIds.length} />
           ) : null
         }
         bottomRight={
-          selectionStoreFood.isActionsMode ? null : <AddButton onClick={onFoodAddButtonClick} />
+          selectionStoreFood.isActionsMode ? null : (
+            <AddButton
+              onClick={onFoodAddButtonClick}
+              as="label"
+              htmlFor="time-input-schedule-food"
+            />
+          )
         }
       >
         <div
           style={{
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             padding: '0.5rem',
             marginTop: '2rem',
           }}
         >
-          <OpenDishes />
-          <OpenProducts />
+          <OpenFoods>Список еды</OpenFoods>
         </div>
         <ItemsList offsetTop>
           {schedule.foodsGroupedByTime.map((group) => (

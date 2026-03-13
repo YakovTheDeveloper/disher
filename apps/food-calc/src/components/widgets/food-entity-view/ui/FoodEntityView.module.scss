@@ -1,0 +1,61 @@
+@keyframes nameRowAppear {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.nameRow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+    cursor: pointer;
+    animation: nameRowAppear 0.5s ease forwards;
+}
+
+.brandMarkClickable {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.renameButton {
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+    white-space: nowrap;
+
+    &.visible {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+}
+
+.backgroundImage {
+    position: absolute;
+    top: 40%;
+    right: -20%;
+    height: 50%;
+    width: auto;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+    opacity: 0.05;
+}
+
+.quantityInputWrapper {
+    width: 50%;
+    margin-left: auto;
+}
+
+.foodActionRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

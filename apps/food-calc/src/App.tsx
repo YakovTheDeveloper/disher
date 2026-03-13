@@ -48,7 +48,7 @@ const App = () => {
           </Drawer>
 
           <AnimatedOutlet />
-          {/* <FontSwitcher /> */}
+          <FontSwitcher />
         </div>
       </QueryClientProvider>
     </I18nextProvider>

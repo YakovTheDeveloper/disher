@@ -190,7 +190,7 @@ const GetDatePageWrapper = () => {
 
   useEffect(() => {
     if (!date) {
-      navigate(RouterLinks.Schedule);
+      navigate(RouterLinks.ScheduleDateSelection);
     }
   }, [date]);
 

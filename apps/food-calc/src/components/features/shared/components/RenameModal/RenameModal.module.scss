@@ -1,0 +1,65 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.25s ease;
+}
+
+.modal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 40px 32px;
+    width: min(360px, 90vw);
+}
+
+.label {
+    font-family: "Raleway", sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(0, 0, 0, 0.25);
+    user-select: none;
+}
+
+.input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    background: transparent;
+    font-family: "Raleway", sans-serif;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: rgb(50, 50, 50);
+    text-align: center;
+    padding: 8px 0;
+    outline: none;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+        border-color: rgba(0, 0, 0, 0.2);
+    }
+
+    &::placeholder {
+        color: rgba(0, 0, 0, 0.15);
+    }
+}
+
+.actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
