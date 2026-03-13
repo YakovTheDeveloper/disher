@@ -15,6 +15,8 @@ type Props<T> = {
 const TimeGroup = <T,>({ children, group, renderAside, onTimeClick }: Props<T>) => {
   console.log('TIME_GROUP');
 
+  const disabled = !onTimeClick;
+
   const timeOffsetFromPreviousGroupView = formatOffset(group.offset);
 
   return (
@@ -22,10 +24,11 @@ const TimeGroup = <T,>({ children, group, renderAside, onTimeClick }: Props<T>) 
       <header className={styles.header}>
         <div className={styles.headerCenter}>
           <motion.button
+            disabled={!onTimeClick}
             className={clsx([styles.message_time, styles.message])}
             onClick={() => onTimeClick?.(group)}
-            whileTap={{ scale: 0.7 }}
-            whileHover={{ scale: 1.2 }}
+            whileTap={disabled ? undefined : { scale: 0.7 }}
+            whileHover={disabled ? undefined : { scale: 1.2 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           >
             {group.time}
