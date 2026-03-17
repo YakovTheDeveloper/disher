@@ -1,7 +1,6 @@
 .wrapper {
     display: flex;
     align-items: center;
-    border-bottom: 1px solid #e8e8e8;
     position: relative;
 
     &:last-child {
@@ -10,8 +9,13 @@
 }
 
 @keyframes growBar {
-    from { transform: scaleX(0); }
-    to   { transform: scaleX(1); }
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(1);
+    }
 }
 
 .richBar {
@@ -43,7 +47,7 @@
     gap: 8px;
 
     &:active {
-        background: #f2f2f2;
+        background: #cccccc;
     }
 }
 

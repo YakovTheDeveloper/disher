@@ -126,9 +126,8 @@ const FoodPage = () => {
           }
           toProduct(id);
         }}
-        showAdd
-        showDelete
-        actionLeft={<ButtonBack size="small" onClick={handleBack} />}
+        showMore
+        actionLeft={<ButtonBack size="medium" onClick={handleBack} />}
         actionRight={
           <OpenFoodCreation
             onSelect={setCreationType}

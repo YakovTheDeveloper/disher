@@ -2,10 +2,8 @@ import { createTRPCProxyClient, httpBatchLink, httpLink, httpBatchStreamLink } f
 import type { AppRouter } from '@api';
 // import type { AppRouter } from '../../../../../packages/api/src/index'
 
-const host = import.meta.env.VITE_HOST || 'localhost';
 const port = Number(import.meta.env.VITE_PORT) || 3000;
-
-// 192.168.88.235:3000
+const host = window.location.hostname;
 
 export const trpc = createTRPCProxyClient<AppRouter>({
     links: [

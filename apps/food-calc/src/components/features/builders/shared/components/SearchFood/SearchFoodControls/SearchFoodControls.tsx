@@ -5,7 +5,6 @@ import styles from './SearchFoodControls.module.scss';
 
 import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
 import { emitter } from '@/infrastructure/emitter/emitter';
-import { Button } from '@/components/ui/atoms/Button';
 import { UseFilteringStateV2Return } from '@/components/features/shared/hooks/useFilteringStateV2';
 import { ButtonBack } from '@/components/ui/atoms/Button/ButtonBack';
 import TextBehind from '@/components/ui/TextBehind/TextBehind';
@@ -61,9 +60,9 @@ const SearchFoodControls = ({
         />
       </TextBehind>
 
-      <Button variant="filter" className={`${styles.active}`} onClick={toggleFilterPanel}>
+      <button className={styles.tabChip} onClick={toggleFilterPanel}>
         {searchState.currentTab}
-      </Button>
+      </button>
 
       {actionRight}
     </header>

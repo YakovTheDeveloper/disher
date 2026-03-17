@@ -15,6 +15,7 @@ import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
 import { ListItem } from '@/components/ui/list-item/ListItem';
 import TickIcon from '@icons/tick.svg';
 
+import normsImg from '@/assets/decarative/norms.png';
 import commonStyles from '../shared/commonStyles.module.scss';
 
 type Props = {
@@ -69,14 +70,18 @@ const ListDailyNorms = ({ store = domainStore.dailyNormStore }: Props) => {
         searchPanelTitle="Нормы"
         searchPanel={
           <SearchInput
+            size="medium"
             wrapperClassName={commonStyles.searchWrapper}
             value={filter.filterText}
             onChange={(e) => filter.setSearch(e.target.value)}
           />
         }
-        filterPanel={<FilterPanel selectedFilters={[]} columns={[]} onFilterChange={() => {}} />}
+        // filterPanel={<FilterPanel selectedFilters={[]} columns={[]} onFilterChange={() => {}} />}
         mainContent={
           <ul className={styles.list}>
+            <div className={styles.decorImg}>
+              <img src={normsImg} alt="" />
+            </div>
             <AnimatePresence initial={false}>
               {filter.filteredList.map((item, i) => {
                 const isSelected = store.selectedNormId === item.id;

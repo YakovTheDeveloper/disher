@@ -1,175 +1,283 @@
 import { RouterLinks } from '@/router';
 import { observer } from 'mobx-react-lite';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { trpc } from '@/api/trpc/trpc';
 import { getSnapshot } from 'mobx-state-tree';
-import { domainStore } from '@/store/store';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { Button } from '@/components/ui/atoms/Button';
 import styles from './ScheduleFoodAnalyticsPage.module.scss';
-import { useDishStore, useFoodScheduleStore } from '@/app/stores/helpers';
+import { useFoodScheduleStore } from '@/app/stores/helpers';
 import { ScheduleFoodsType } from '@/domain/schedule/scheduleFood/ScheduleFoods.model';
 import toaster from '@/infrastructure/toaster/toaster';
 
-interface AnalyzeScheduleSnapshot {
-  id: string;
-  foods: Array<{
-    id: string;
-    time: string;
-    contentProduct: {
-      foodId: string;
-      variant: 'product';
-      quantity: number;
-    } | null;
-    contentDish: {
-      dishId: string;
-      variant: 'dish';
-      quantity: number;
-    } | null;
-  }>;
+const port = Number(import.meta.env.VITE_PORT) || 3000;
+const API_BASE = `http://${window.location.hostname}:${port}`;
+
+type StreamStatus = 'idle' | 'connecting' | 'streaming' | 'done' | 'error' | 'stopped';
+
+function buildSnapshot(scheduleFood: ScheduleFoodsType) {
+  const snapshot = getSnapshot(scheduleFood);
+  return {
+    id: snapshot.id,
+    foods: snapshot.foods.items.map((item) => ({
+      id: item.id,
+      time: item.time,
+      contentProduct: item.contentProduct
+        ? {
+            foodId: item.contentProduct.foodId,
+            variant: 'product' as const,
+            quantity: item.contentProduct.quantity,
+          }
+        : null,
+      contentDish: item.contentDish
+        ? {
+            dishId: item.contentDish.dishId,
+            variant: 'dish' as const,
+            quantity: item.contentDish.quantity,
+          }
+        : null,
+    })),
+  };
 }
 
+async function readSSEStream(
+  response: Response,
+  onChunk: (chunk: string) => void,
+  signal: AbortSignal,
+) {
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (signal.aborted) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+
+        if (trimmed.startsWith('event: error')) {
+          const nextDataLine = lines.find((l) => l.trim().startsWith('data: '));
+          if (nextDataLine) {
+            throw new Error(JSON.parse(nextDataLine.trim().slice(6)));
+          }
+          throw new Error('Ошибка сервера');
+        }
+
+        if (!trimmed.startsWith('data: ')) continue;
+        const data = trimmed.slice(6);
+        if (data === '[DONE]') return;
+
+        try {
+          onChunk(JSON.parse(data));
+        } catch {
+          // skip malformed
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+const ThinkingIndicator = () => (
+  <div className={styles.thinking}>
+    <span className={styles.thinkingDot} />
+    <span className={styles.thinkingDot} />
+    <span className={styles.thinkingDot} />
+  </div>
+);
+
 const Page = observer(({ scheduleFood }: { scheduleFood: ScheduleFoodsType }) => {
-  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [text, setText] = useState('');
+  const [status, setStatus] = useState<StreamStatus>('idle');
+  const abortRef = useRef<AbortController | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+  const autoScrollRef = useRef(true);
 
-  const formatScheduleForAI = () => {
-    const snapshot = getSnapshot(scheduleFood);
-    const items = snapshot.foods.items;
+  const isActive = status === 'connecting' || status === 'streaming';
+  const hasContent = text.length > 0;
 
-    if (items.length === 0) {
-      return 'Нет данных о питании';
+  // Auto-scroll while streaming
+  useEffect(() => {
+    if (!isActive || !autoScrollRef.current) return;
+    const el = resultRef.current;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
     }
+  }, [text, isActive]);
 
-    const lines = items.map((item) => {
-      const time = item.time;
-      let name = '';
-      let quantity = 0;
+  // Disable auto-scroll if user scrolls up
+  useEffect(() => {
+    const el = resultRef.current;
+    if (!el) return;
 
-      if (item.contentProduct) {
-        const food = domainStore.foodStore.getEntity(item.contentProduct.foodId);
-        name = food?.name ?? 'Неизвестный продукт';
-        quantity = item.contentProduct.quantity;
-      } else if (item.contentDish) {
-        const dish = domainStore.dishStore.getEntity(item.contentDish.dishId);
-        name = dish?.name ?? 'Неизвестное блюдо';
-        quantity = item.contentDish.quantity;
-      }
+    const handleScroll = () => {
+      const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+      autoScrollRef.current = isAtBottom;
+    };
 
-      return `${time} - ${name}: ${quantity}г`;
-    });
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    return lines.join('\n');
-  };
+  const handleStop = useCallback(() => {
+    abortRef.current?.abort();
+    setStatus('stopped');
+  }, []);
 
-  const handleCopyToClipboard = async () => {
-    const scheduleText = formatScheduleForAI();
-    const prompt = `Проанализируй день:\n\n${scheduleText}`;
+  const handleAnalyze = useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
-    // Try modern Clipboard API first
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      try {
-        await navigator.clipboard.writeText(prompt);
-        return;
-      } catch (err) {
-        console.warn('Clipboard API failed, trying fallback:', err);
-      }
-    }
-
-    // Fallback for iOS Safari and older browsers
-    const textarea = document.createElement('textarea');
-    textarea.value = prompt;
-    textarea.style.position = 'fixed';
-    textarea.style.left = '-9999px';
-    textarea.style.top = '-9999px';
-    document.body.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
+    setStatus('connecting');
+    setText('');
+    autoScrollRef.current = true;
 
     try {
-      const success = document.execCommand('copy');
-      toaster.success('Скопировано!');
-      if (!success) {
-        console.error('Fallback copy failed');
-      }
-    } catch (err) {
-      console.error('Fallback copy error:', err);
-      toaster.success('Ошибка копирования!');
-    } finally {
-      document.body.removeChild(textarea);
-    }
-  };
-
-  const handleAnalyze = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const snapshot = getSnapshot(scheduleFood);
-
-      const transformedSnapshot: AnalyzeScheduleSnapshot = {
-        id: snapshot.id,
-        foods: snapshot.foods.items.map((item) => ({
-          id: item.id,
-          time: item.time,
-          contentProduct: item.contentProduct
-            ? {
-                foodId: item.contentProduct.foodId,
-                variant: 'product' as const,
-                quantity: item.contentProduct.quantity,
-              }
-            : null,
-          contentDish: item.contentDish
-            ? {
-                dishId: item.contentDish.dishId,
-                variant: 'dish' as const,
-                quantity: item.contentDish.quantity,
-              }
-            : null,
-        })),
-      };
-
-      const result = await trpc.analyzeSchedule.mutate({
-        snapshot: transformedSnapshot,
+      const response = await fetch(`${API_BASE}/api/analytics/analyze-stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ snapshot: buildSnapshot(scheduleFood) }),
+        signal: controller.signal,
       });
 
-      if (result.data) {
-        setAnalysisResult(result.data);
-      } else if (result.message) {
-        setError(result.message);
+      if (!response.ok) {
+        const body = await response.text().catch(() => '');
+        throw new Error(
+          response.status === 400
+            ? 'Некорректные данные расписания'
+            : response.status >= 500
+              ? 'Сервер временно недоступен'
+              : `Ошибка: ${response.status} ${body}`,
+        );
+      }
+
+      setStatus('streaming');
+
+      await readSSEStream(
+        response,
+        (chunk) => setText((prev) => prev + chunk),
+        controller.signal,
+      );
+
+      if (!controller.signal.aborted) {
+        setStatus('done');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to analyze schedule');
-    } finally {
-      setIsLoading(false);
+      if ((err as Error).name === 'AbortError') return;
+      setStatus('error');
+      setText((prev) => prev); // preserve partial text
+      toaster.error(err instanceof Error ? err.message : 'Ошибка анализа');
     }
-  };
+  }, [scheduleFood]);
+
+  const handleCopy = useCallback(async () => {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      toaster.success('Скопировано');
+    } catch {
+      // Fallback for iOS Safari
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      toaster.success('Скопировано');
+    }
+  }, [text]);
 
   useEffect(() => {
     if (scheduleFood.foods.items.length > 0) {
       handleAnalyze();
     }
+    return () => abortRef.current?.abort();
   }, [scheduleFood]);
+
+  const remarkPlugins = useMemo(() => [remarkGfm], []);
 
   return (
     <Screen title={<ScreenLabel variant="screenHeader">Аналитика питания</ScreenLabel>}>
       <div className={styles.container}>
-        <div className={styles.header}>
-          <Button variant="ghost" onClick={handleCopyToClipboard}>
-            СКОПИРОВАТЬ
-          </Button>
-        </div>
+        {/* Toolbar */}
+        {(hasContent || isActive) && (
+          <div className={styles.toolbar}>
+            {isActive && (
+              <Button variant="ghost" onClick={handleStop}>
+                Остановить
+              </Button>
+            )}
+            {!isActive && hasContent && (
+              <>
+                <Button variant="ghost" onClick={handleCopy}>
+                  Копировать
+                </Button>
+                <Button variant="ghost" onClick={handleAnalyze}>
+                  Повторить
+                </Button>
+              </>
+            )}
+          </div>
+        )}
 
-        {isLoading && <div className={styles.loading}>Анализируем рацион...</div>}
+        {/* Connecting state — thinking dots */}
+        {status === 'connecting' && <ThinkingIndicator />}
 
-        {error && <div className={styles.error}>{error}</div>}
+        {/* Streaming / completed result */}
+        {hasContent && (
+          <div className={styles.result} ref={resultRef}>
+            <div className={styles.markdown}>
+              <ReactMarkdown remarkPlugins={remarkPlugins}>{text}</ReactMarkdown>
+            </div>
+            {status === 'streaming' && <span className={styles.cursor} />}
+          </div>
+        )}
 
-        {analysisResult && <div className={styles.result}>{analysisResult}</div>}
+        {/* Error with retry */}
+        {status === 'error' && !hasContent && (
+          <div className={styles.error}>
+            <p>Не удалось получить анализ</p>
+            <Button variant="ghost" onClick={handleAnalyze}>
+              Попробовать снова
+            </Button>
+          </div>
+        )}
 
-        {!isLoading && !analysisResult && !error && (
+        {/* Partial result error banner */}
+        {status === 'error' && hasContent && (
+          <div className={styles.errorBanner}>
+            Генерация прервана из-за ошибки.{' '}
+            <button className={styles.retryLink} onClick={handleAnalyze}>
+              Повторить
+            </button>
+          </div>
+        )}
+
+        {/* Stopped banner */}
+        {status === 'stopped' && hasContent && (
+          <div className={styles.stoppedBanner}>
+            Генерация остановлена.{' '}
+            <button className={styles.retryLink} onClick={handleAnalyze}>
+              Начать заново
+            </button>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {status === 'idle' && !hasContent && (
           <div className={styles.empty}>
             Нет данных для анализа. Добавьте продукты в расписание.
           </div>

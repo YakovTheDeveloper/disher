@@ -7,6 +7,7 @@ import fastify from 'fastify';
 import { AppRouter, appRouter } from './routes/index.js';
 import { createContext } from './context.js'
 import cors from '@fastify/cors';
+import { registerAnalyticsSSE } from './routes/analytics/analytics.sse.js';
 
 
 const server = fastify();
@@ -19,8 +20,11 @@ server.register(cors, {
     credentials: true,
 });
 server.addHook('preHandler', async (request, reply) => {
+    if (request.url.startsWith('/api/')) return;
     await new Promise((resolve) => setTimeout(resolve, 3000));
 });
+
+registerAnalyticsSSE(server);
 
 server.register(fastifyTRPCPlugin, {
     prefix: '/trpc',

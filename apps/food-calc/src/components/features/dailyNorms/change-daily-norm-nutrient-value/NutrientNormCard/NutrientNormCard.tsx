@@ -28,19 +28,17 @@ const NutrientNormCard = ({ content, getNormValue, onChange, readOnly }: Props) 
         showProgress={false}
         showPercent={false}
       >
-        <div className={styles.inputRow}>
-          {readOnly ? (
-            <span className={styles.input}>{getNormValue(content.id)}</span>
-          ) : (
-            <NumberInput
-              ref={inputRef}
-              value={getNormValue(content.id)}
-              onChange={(value) => onChange(value, content.id)}
-              className={styles.input}
-            />
-          )}
-          <span className={styles.unit}>{content.unitRu}</span>
-        </div>
+        {readOnly ? (
+          <span className={styles.input}>{getNormValue(content.id)}</span>
+        ) : (
+          <NumberInput
+            ref={inputRef}
+            value={getNormValue(content.id)}
+            onChange={(value) => onChange(value, content.id)}
+            className={styles.input}
+          />
+        )}
+        <span className={styles.unit}>{content.unitRu}</span>
       </NutrientCard>
     </div>
   );

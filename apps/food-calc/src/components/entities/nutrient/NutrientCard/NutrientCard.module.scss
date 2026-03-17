@@ -4,6 +4,7 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    gap: 6px;
 }
 
 // --- Old vibrant colors ---
@@ -72,6 +73,14 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    flex: 1;
+}
+
+.leftColumn {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 4px;
 }
 
 .statsColumn {
@@ -93,14 +102,6 @@
     font-size: 10px;
     font-weight: 400;
     opacity: 0.45;
-}
-
-.center {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    text-align: center;
 }
 
 .name {

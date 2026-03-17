@@ -36,3 +36,29 @@
     color: #000;
     font-weight: 400;
 }
+
+.costWrapper {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.cost {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    min-width: 48px;
+    text-align: right;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+}
+
+.cost_empty {
+    color: #ccc;
+    font-weight: 400;
+}

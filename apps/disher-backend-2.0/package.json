@@ -1,15 +1,13 @@
 {
   "name": "wow",
   "scripts": {
-    "dev:local-hot-transpile-only": "cross-env HOST=localhost ts-node-dev --respawn --transpile-only -r ts-node/esm -r tsconfig-paths/register ./src/app.ts",
-    "dev:local": "cross-env HOST=localhost ts-node ./src/app.ts",
-    "dev:local-hot": "cross-env HOST=localhost ts-node-dev --respawn  -r ts-node/esm -r tsconfig-paths/register ./src/app.ts",
-    "dev:local:debug": "cross-env HOST=localhost node --inspect-brk=9229 -r ts-node/register ./src/app.ts",
-    "dev:local-hot2": "cross-env HOST=localhost ts-node-dev --loader ts-node/esm --respawn --transpile-only ./src/app.ts",
-    "dev:network": "cross-env HOST=0.0.0.0 ts-node ./src/app.ts",
-    "queries": "ts-node ./src/queries.ts",
-    "caching": "ts-node ./src/caching.ts",
-    "test": "ts-node ./src/test.ts",
+    "dev:local": "cross-env HOST=localhost tsx ./src/app.ts",
+    "dev:local-hot": "cross-env HOST=localhost tsx watch ./src/app.ts",
+    "dev:local:debug": "cross-env HOST=localhost node --inspect-brk=9229 --import tsx/esm ./src/app.ts",
+    "dev:network": "cross-env HOST=0.0.0.0 tsx watch ./src/app.ts",
+    "queries": "tsx ./src/queries.ts",
+    "caching": "tsx ./src/caching.ts",
+    "test": "tsx ./src/test.ts",
     "prisma-migrate": "npx prisma migrate dev",
     "zod-to-types": "node zod-to-types.js",
     "studio:local": "npx prisma studio",
@@ -40,6 +38,7 @@
     "prisma": "^6.15.0",
     "ts-node": "10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.2"
   }
 }

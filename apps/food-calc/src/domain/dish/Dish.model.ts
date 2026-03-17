@@ -1,5 +1,6 @@
 import { SyncStatus } from "@/domain/commonListItem";
 import { ChildrenController } from "@/domain/shared/ChildrenController";
+import { CostController } from "@/domain/shared/CostModel";
 import { PortionsController } from "@/domain/shared/PortionsController";
 import { FoodContentProduct, FoodContentProductInstance, ProductContent } from "@/domain/shared/foodContent/foodContent";
 import { NutrientSource } from "@/domain/shared/NutrientSource";
@@ -48,7 +49,8 @@ export const Dish = types.compose("Dish",
         lastSync: types.optional(types.string, ''),
     }),
     ChildrenController(DishItem),
-    PortionsController()
+    PortionsController(),
+    CostController()
 )
     .views(self => ({
         get itemsLength() {

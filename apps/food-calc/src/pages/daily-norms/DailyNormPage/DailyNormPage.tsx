@@ -6,7 +6,8 @@ import { domainStore } from '@/store/store';
 import { useParams } from 'react-router';
 import DailyNormsEdit from '@/components/features/lists/ListDailyNorms/DailyNormsEdit/DailyNormsContent';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import { HeaderInputName } from '@/components/features/builders/shared/components/HeaderInputName';
+import { ChangeName } from '@/components/features/shared/change-name';
+import { Ornament } from '@/components/ui/Ornament';
 type Props = {};
 
 const DailyNormPage = ({}: Props) => {
@@ -24,9 +25,10 @@ const DailyNormPage = ({}: Props) => {
   return (
     <Screen
       title={<ScreenLabel variant="screenHeader">Норма</ScreenLabel>}
-      header={<HeaderInputName entity={dailyNorm} asInput={createdByUser} />}
     >
+      <ChangeName entity={dailyNorm} canRename={createdByUser} />
       <Spacer variant="screen-header-offset" />
+      <Ornament text="описание дневной нормы"></Ornament>
       <label>
         <Textarea
           disabled={!createdByUser}
@@ -34,6 +36,7 @@ const DailyNormPage = ({}: Props) => {
           onChange={(val) => dailyNorm?.changeDescription(val || '')}
         />
       </label>
+      <Ornament text="нутриенты"></Ornament>
       <DailyNormsEdit dailyNorm={dailyNorm} variant={dailyNormsView}></DailyNormsEdit>
     </Screen>
   );

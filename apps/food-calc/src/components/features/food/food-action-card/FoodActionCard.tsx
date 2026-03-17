@@ -5,6 +5,8 @@ import styles from './FoodActionCard.module.scss';
 import { domainStore } from '@/store/store';
 import { PopoverTrigger } from '@/components/ui/popover/PopoverTrigger';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
+import { drawerStoreV3 } from '@/store/GlobalUiStore/DrawerStoreV3/DrawerStoreV3';
+import { FoodActionsDrawer } from '@/components/widgets/food/food-actions-drawer';
 
 type Props = {
   variant: 'product' | 'dish';
@@ -15,6 +17,7 @@ type Props = {
   showDelete?: boolean;
   showAdd?: boolean;
   showInfo?: boolean;
+  showMore?: boolean;
   richNutrientId?: string | null;
   richNutrientUnit?: string;
   richNutrientMax?: number;
@@ -81,6 +84,14 @@ const AddIcon = () => (
   </svg>
 );
 
+const MoreIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="5" r="1.5" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+    <circle cx="12" cy="19" r="1.5" fill="currentColor" />
+  </svg>
+);
+
 const FoodActionCard = ({
   variant,
   item,
@@ -90,6 +101,7 @@ const FoodActionCard = ({
   showDelete = false,
   showAdd = false,
   showInfo = false,
+  showMore = false,
   richNutrientId,
   richNutrientUnit,
   richNutrientMax = 0,
@@ -180,6 +192,24 @@ const FoodActionCard = ({
       {showAdd && onAdd && (
         <button className={styles.iconBtn} type="button" aria-label="Добавить" onClick={(e) => { e.stopPropagation(); onAdd(); }}>
           <AddIcon />
+        </button>
+      )}
+      {showMore && (
+        <button
+          className={styles.iconBtn}
+          type="button"
+          aria-label="Ещё"
+          onClick={(e) => {
+            e.stopPropagation();
+            drawerStoreV3.show(FoodActionsDrawer, {
+              variant,
+              itemId: item.id,
+              itemName: item.name,
+              isUserCreated,
+            });
+          }}
+        >
+          <MoreIcon />
         </button>
       )}
     </li>

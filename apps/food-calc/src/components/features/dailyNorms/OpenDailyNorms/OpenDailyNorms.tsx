@@ -68,10 +68,10 @@ const OpenDailyNorms = observer(({ className }: Props) => {
         className={`${styles.container} ${className || ''}`}
         {...interactions.getReferenceProps()}
       >
-        <span className={styles.label}>Текущая дневная норма:</span>
         <button className={styles.button} type="button">
           {selectedNorm?.name || 'Выбрать норму'}
         </button>
+        <span className={styles.label}>текущая</span>
       </div>
       <FloatingPortal>
         {isOpen && (

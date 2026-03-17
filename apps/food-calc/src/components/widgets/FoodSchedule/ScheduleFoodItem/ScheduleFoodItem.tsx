@@ -19,9 +19,11 @@ type Props = {
   className?: string;
   item: Instance<typeof ScheduleFoodItemModel>;
   selectionStore: SelectionStoreType;
+  showCost?: boolean;
+  costUnit?: string;
 };
 
-const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore }: Props) => {
+const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore, showCost, costUnit = '₽' }: Props) => {
   const { toScheduleFood } = useAppRoutes();
 
   const id = item.id;
@@ -51,7 +53,15 @@ const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore
     return <p className={styles.variant}>{getVariantLabelText()}</p>;
   }, [content]);
 
-  return (
+  const costText = useMemo(() => {
+    if (!showCost) return null;
+    const entity = content?.food ?? content?.dish;
+    if (!entity || !entity.hasCost) return `— ${costUnit}`;
+    const cost = entity.costForWeight(content!.quantity);
+    return `${cost.toFixed(1)} ${costUnit}`;
+  }, [showCost, content, costUnit]);
+
+  const listItem = (
     <CommonListItem
       className={clsx([className, styles.group])}
       id={id}
@@ -63,6 +73,17 @@ const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore
       <Quantity id={id} content={content} />
       {afterName}
     </CommonListItem>
+  );
+
+  if (!showCost) return listItem;
+
+  return (
+    <div className={styles.costWrapper}>
+      {listItem}
+      <span className={clsx(styles.cost, { [styles.cost_empty]: costText?.startsWith('—') })}>
+        {costText}
+      </span>
+    </div>
   );
 };
 

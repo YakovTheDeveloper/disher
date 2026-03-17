@@ -30,13 +30,12 @@ type Props = {
   onFocusChange?: (focused: boolean) => void;
   onOpen?: () => void;
   mode: SearchMode;
-  showDelete?: boolean;
-  showAdd?: boolean;
   showInfoButtonOnListItem?: boolean;
   actionLeft?: React.ReactNode;
   actionRight?: React.ReactNode;
   sortByNutrientId?: string | null;
   sortByNutrientUnit?: string;
+  showMore?: boolean;
 };
 
 const SearchFood = ({
@@ -45,13 +44,12 @@ const SearchFood = ({
   currentDishId,
   onFocusChange,
   mode = 'products-and-dishes',
-  showDelete = false,
-  showAdd = false,
   showInfoButtonOnListItem = false,
   actionLeft,
   actionRight,
   sortByNutrientId,
   sortByNutrientUnit,
+  showMore = false,
 }: Props) => {
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [myFoodOnly, setMyFoodOnly] = useState(false);
@@ -203,16 +201,15 @@ const SearchFood = ({
           active={currentProductId === item.id.toString()}
           onClick={() => onFoodAdd(item)}
           onAdd={() => onFoodAdd(item)}
-          showDelete={showDelete}
           showInfo={showInfoButtonOnListItem}
-          showAdd={showAdd}
+          showMore={showMore}
           richNutrientId={sortByNutrientId}
           richNutrientUnit={sortByNutrientUnit}
           richNutrientMax={maxNutrientValue}
         />
       );
     },
-    [currentProductId, onFoodAdd, showInfoButtonOnListItem, showDelete, showAdd, sortByNutrientId, sortByNutrientUnit, maxNutrientValue]
+    [currentProductId, onFoodAdd, showInfoButtonOnListItem, showMore, sortByNutrientId, sortByNutrientUnit, maxNutrientValue]
   );
 
   const renderDishtItem = useCallback(
@@ -224,13 +221,12 @@ const SearchFood = ({
           active={currentDishId === item.id.toString()}
           onClick={() => onDishAdd(item)}
           onAdd={() => onDishAdd(item)}
-          showDelete={showDelete}
           showInfo={showInfoButtonOnListItem}
-          showAdd={showAdd}
+          showMore={showMore}
         />
       );
     },
-    [currentDishId, onDishAdd, showInfoButtonOnListItem, showDelete, showAdd]
+    [currentDishId, onDishAdd, showInfoButtonOnListItem, showMore]
   );
 
   return (
@@ -334,7 +330,15 @@ const SearchFood = ({
 
         {/* Filter Button in bottom-right corner */}
         <div className={styles.filterButtonWrapper}>
-          <FilterButton isActive={filterPanelOpen} onClick={toggleFilterPanel} />
+          <FilterButton
+            isActive={filterPanelOpen}
+            onClick={toggleFilterPanel}
+            activeCount={
+              categoryFilter.getCategoryFilter('product').length +
+              categoryFilter.getCategoryFilter('dish').length +
+              (myFoodOnly ? 1 : 0)
+            }
+          />
         </div>
       </div>
     </>

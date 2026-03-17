@@ -36,7 +36,14 @@ const getStatusClass = (p: number) => {
   return 'excess';
 };
 
-const NutrientCard = ({ content, getValue, showValues: showValuesProp = true, showProgress: showProgressProp = true, showPercent = true, children }: Props) => {
+const NutrientCard = ({
+  content,
+  getValue,
+  showValues: showValuesProp = true,
+  showProgress: showProgressProp = true,
+  showPercent = true,
+  children,
+}: Props) => {
   const showValues = showValuesProp;
   const showProgress = showProgressProp;
   const showUnits = true;
@@ -53,9 +60,15 @@ const NutrientCard = ({ content, getValue, showValues: showValuesProp = true, sh
   return (
     <div className={clsx(styles.card, styles[statusClass], styles[group])}>
       <div className={styles.topRow}>
-        <span className={styles.symbol}>{symbol}</span>
+        <div className={styles.leftColumn}>
+          <span className={styles.symbol}>{symbol}</span>
+          <span className={styles.name}>{displayNameRu}</span>
+        </div>
         <div className={styles.statsColumn}>
-          {showPercent && <span className={clsx(styles.percent, styles[statusClass])}>{percentText}%</span>}
+          {showPercent && (
+            <span className={clsx(styles.percent, styles[statusClass])}>{percentText}%</span>
+          )}
+          {children}
           {showValues && (
             <div className={styles.valuesCompact}>
               <span>{value.toFixed(1)}</span>
@@ -65,10 +78,6 @@ const NutrientCard = ({ content, getValue, showValues: showValuesProp = true, sh
             </div>
           )}
         </div>
-      </div>
-
-      <div className={styles.center}>
-        <span className={styles.name}>{displayNameRu}</span>
       </div>
 
       {showProgress && (
@@ -81,7 +90,6 @@ const NutrientCard = ({ content, getValue, showValues: showValuesProp = true, sh
           />
         </div>
       )}
-      {children}
     </div>
   );
 };

@@ -202,6 +202,49 @@ export const FontSwitcher = () => {
           italic
         </button>
       </div>
+
+      {/* Preview */}
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 6, overflow: 'hidden' }}>
+        {activeTarget === 'date-word' && (
+          <span style={{
+            fontFamily: FONTS[s.fontIndex].family,
+            fontWeight: WEIGHTS[s.weightIndex],
+            fontStyle: s.italic ? 'italic' : 'normal',
+            fontSize: 35,
+            letterSpacing: -2,
+            color: 'rgba(188, 188, 188, 0.459)',
+            display: 'block',
+            lineHeight: 1,
+          }}>
+            понедельник
+          </span>
+        )}
+        {activeTarget === 'date-num' && (
+          <span style={{
+            fontFamily: FONTS[s.fontIndex].family,
+            fontWeight: WEIGHTS[s.weightIndex],
+            fontStyle: s.italic ? 'italic' : 'normal',
+            fontSize: 50,
+            fontVariantNumeric: 'tabular-nums',
+            display: 'block',
+            lineHeight: 1,
+          }}>
+            14 03
+          </span>
+        )}
+        {activeTarget === 'title' && (
+          <span style={{
+            fontFamily: FONTS[s.fontIndex].family,
+            fontWeight: WEIGHTS[s.weightIndex],
+            fontStyle: s.italic ? 'italic' : 'normal',
+            fontSize: 32,
+            display: 'block',
+            lineHeight: 1,
+          }}>
+            Расписание
+          </span>
+        )}
+      </div>
     </div>
   );
 };

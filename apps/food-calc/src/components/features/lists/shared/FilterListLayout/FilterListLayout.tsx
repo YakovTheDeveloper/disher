@@ -12,7 +12,11 @@ type Props = {
 const FilterListLayout = ({ filterPanel, searchPanel, searchPanelTitle, mainContent }: Props) => {
   return (
     <div className={styles.content}>
-      {searchPanel && <TextBehind text={searchPanelTitle}>{searchPanel}</TextBehind>}
+      {searchPanel && (
+        <TextBehind text={searchPanelTitle} position="middle-left">
+          {searchPanel}
+        </TextBehind>
+      )}
       {filterPanel && <div className={styles.filters}>{filterPanel}</div>}
       {mainContent}
     </div>

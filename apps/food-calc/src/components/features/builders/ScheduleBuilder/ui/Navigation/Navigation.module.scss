@@ -9,11 +9,37 @@
 
 }
 
+.dateWords {
+
+    position: absolute;
+    right: 0;
+    padding-right: 1rem;
+    font-size: 30px;
+    text-transform: uppercase;
+    // font-family: var(--dev-date-word-font, inherit);
+    // font-weight: var(--dev-date-word-weight, 200);
+    font-family: "Oswald", sans-serif;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: -2px;
+    transform: translateY(-110%);
+    color: rgba(188, 188, 188, 0.15);
+}
+
+.dateNumbers {
+    font-family: "Oswald", sans-serif;
+    color: rgba(188, 188, 188, 0.15);
+    line-height: 5rem;
+    font-size: 5rem;
+    text-align: right;
+    padding-right: 1rem;
+}
 
 .header {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
     width: 100%;
     position: sticky;
     z-index: 2;
@@ -41,4 +67,12 @@
     user-select: none;
     z-index: 0;
     opacity: 0.1;
+}
+
+.headerDateWords {
+    display: flex;
+    margin-left: 10%;
+
+    font-weight: 200;
+    font-size: 50px;
 }

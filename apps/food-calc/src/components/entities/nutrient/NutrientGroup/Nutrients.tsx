@@ -19,14 +19,15 @@ import tree2Src from '@/assets/decarative/tree2.png';
 // };
 
 interface Props {
-  store: Instance<typeof TotalNutrientsStore>;
+  store?: Instance<typeof TotalNutrientsStore>;
   renderCard: (nutrientData: Nutrient) => React.ReactNode;
 }
 
 const Nutrients = ({ store, renderCard }: Props) => {
   useEffect(() => {
+    if (!store) return;
     console.log('new store nutrients', Array.from(store.nutrients.entries()));
-  }, [Array.from(store.nutrients.entries())]);
+  }, [store ? Array.from(store.nutrients.entries()) : []]);
 
   return (
     <div className={clsx([styles.container])}>

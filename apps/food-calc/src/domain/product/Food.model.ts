@@ -1,4 +1,5 @@
 import { Nutrient } from "@/domain/nutrient/Nutrient";
+import { CostController } from "@/domain/shared/CostModel";
 import { PortionsController } from "@/domain/shared/PortionsController";
 import { isEmpty } from "@/lib/empty";
 import { NutrientStoreApi } from "@/store/RootStoreModel";
@@ -21,7 +22,7 @@ export const FoodNutrient = types.model("FoodNutrient", {
 });
 
 // Food
-export const Food = types.compose("Food", PortionsController(), types.model({
+export const Food = types.compose("Food", PortionsController(), CostController(), types.model({
     id: types.identifier,
     name: types.string,
     nameEng: types.maybe(types.string),

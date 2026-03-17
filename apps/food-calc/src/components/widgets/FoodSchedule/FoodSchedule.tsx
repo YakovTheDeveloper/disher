@@ -26,6 +26,7 @@ import { modalStoreV2 } from '@/store/GlobalUiStore/ModalStoreV2/ModalStoreV2';
 import { ModalCopyScheduleItemsToAnotherDay } from '@/components/features/builders/ScheduleBuilder/components/modal/ModalCopyScheduleItemsToAnotherDay';
 import toaster from '@/infrastructure/toaster/toaster';
 import { OpenFoods } from '@/components/features/food/open-foods';
+import { FoodShowCost } from '@/components/features/food/food-show-cost';
 import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
 import { CopyProductsToExistingDish } from '@/components/features/dish/copy-products-to-dish/CreateDishFromProductList';
 import { CreateDishAndCopyProducts } from '@/components/features/dish/create-dish-and-copy-products';
@@ -204,12 +205,14 @@ const FoodSchedule = observer(
         <div
           style={{
             display: 'flex',
-            justifyContent: 'center',
+            justifyContent: 'space-between',
             padding: '0.5rem',
             marginTop: '2rem',
           }}
         >
+          <OpenScheduleFoodAnalytics date={schedule.id} />
           <OpenFoods>Список еды</OpenFoods>
+          <FoodShowCost />
         </div>
         <ItemsList offsetTop>
           {schedule.foodsGroupedByTime.map((group) => (
@@ -224,6 +227,7 @@ const FoodSchedule = observer(
                   key={item.id}
                   item={item}
                   selectionStore={selectionStoreFood}
+                  showCost={domainStore.globalUiStore.options.showCost}
                 />
               ))}
             </TimeGroup>

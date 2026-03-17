@@ -1,6 +1,5 @@
 import { FC, useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import clsx from 'clsx';
 import { FoodEntityViewable, NutrientEditable } from '../types';
 import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
 import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
@@ -9,13 +8,11 @@ import ChangeProductNutrientValue from '@/components/features/product/change-pro
 import { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import TextBehind from '@/components/ui/TextBehind/TextBehind';
-import { Typography } from '@/components/ui/atoms/Typography';
-import { BrandMark } from '@/components/ui/BrandMark';
 import { Ornament } from '@/components/ui/Ornament';
 import { Spacer } from '@/components/ui/atoms/Spacer';
 import { OpenDailyNorms } from '@/components/features/dailyNorms/OpenDailyNorms';
 import { FoodPortionsManager } from '@/components/features/food/food-portions-manager';
-import { RenameModal } from '@/components/features/shared/components/RenameModal';
+import { ChangeName } from '@/components/features/shared/change-name';
 import {
   useFilterNutrients,
   FilterNutrientsPanel,
@@ -25,8 +22,6 @@ import { FilterButton } from '@/components/ui/atoms/Button';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import Textarea from '@/components/ui/atoms/Textarea/Textarea';
-import { modalStoreV2 } from '@/store/GlobalUiStore/ModalStoreV2/ModalStoreV2';
-import Button from '@/components/ui/atoms/Button/Button';
 import bagImage from '@/assets/decarative/bag.png';
 import s from './FoodEntityView.module.scss';
 
@@ -47,8 +42,6 @@ const FoodEntityView: FC<Props> = observer(
     const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);
     const [quantity, setQuantity] = useState(100);
     const filter = useFilterNutrients();
-    const [showRenameHint, setShowRenameHint] = useState(false);
-
     nutrientStore.setEntity(mstEntity);
 
     const isEditable = entity.isEditable;
@@ -61,22 +54,6 @@ const FoodEntityView: FC<Props> = observer(
 
     const onNutrientChange = (value: number, nutrientId: string) =>
       nutrientEditable?.changeNutrientValue(nutrientId, value);
-
-    const handleNameClick = () => {
-      setShowRenameHint((prev) => !prev);
-    };
-
-    const handleRename = async () => {
-      setShowRenameHint(false);
-      const newName = await modalStoreV2.show<
-        { currentName: string; label?: string; onClose: (result?: string) => void },
-        string
-      >(RenameModal, { currentName: entity.name });
-
-      if (newName) {
-        entity.changeName(newName);
-      }
-    };
 
     const renderCard = (nutrientData: Nutrient) => {
       const card = hasNutrientEdit ? (
@@ -133,24 +110,7 @@ const FoodEntityView: FC<Props> = observer(
         }
       >
         <img src={bagImage} className={s.backgroundImage} alt="" />
-        <div className={s.foodActionRow}>
-          <BrandMark size={40} variant="wave" className={s.brandMarkClickable} />
-          <span className={clsx(s.renameButton, showRenameHint && s.visible)}>
-            <Button
-              variant="ghost"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRename();
-              }}
-            >
-              поменять название
-            </Button>
-          </span>
-        </div>
-
-        <div className={s.nameRow} onClick={handleNameClick}>
-          <Typography variant="entity-title">{entity.name}</Typography>
-        </div>
+        <ChangeName entity={entity} />
 
         <Spacer variant="screen-header-offset" />
 

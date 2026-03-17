@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Navigation.module.scss';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { RouterLinks } from '@/router';
 import { DateInfo } from './DateInfo';
 import { ScheduleUIEventEmitter } from '@/components/features/builders/shared/emitter';
@@ -10,6 +10,7 @@ import { motion, MotionValue, useMotionValueEvent, useTransform } from 'framer-m
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { Typography } from '@/components/ui/atoms/Typography';
 import WatchImage from '@/assets/decarative/watch.png';
+import { getTitle } from '@/components/features/builders/ScheduleBuilder/ui/Navigation/methods';
 
 type Props = {
   children?: React.ReactNode;
@@ -33,6 +34,9 @@ function isToday(date: string | Date) {
 
 const Navigation = ({ title }: Props) => {
   const navigate = useNavigate();
+  const params = useParams();
+  const dateParam = params.id;
+  const { day, monthName, monthNumber, weekdayName, weekdayNameShort } = getTitle(dateParam);
 
   const scrollYProgress = useScreenScroll();
   const opacity = useTransform(scrollYProgress, [0.5, 0.6], [1, 0]);
@@ -41,6 +45,15 @@ const Navigation = ({ title }: Props) => {
 
   return (
     <header className={styles.header}>
+      <div className={styles.dateWords}>
+        <div className={styles.dateNumbers}>
+          {day}.{monthNumber}
+        </div>
+        <div>
+          <span className={styles.dateWord}>{weekdayName}, </span>
+          <span className={styles.dateWord}>{monthName}</span>
+        </div>
+      </div>
       <motion.img
         src={WatchImage}
         className={styles.backgroundImage}
