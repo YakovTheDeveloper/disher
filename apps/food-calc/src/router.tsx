@@ -10,8 +10,6 @@ import FoodPage from '@/pages/food/FoodPage.tsx';
 import UserProductPage from '@/pages/user-product-page/UserProductPage.tsx';
 import ProductPage from '@/pages/product-page/ProductPage.tsx';
 import DailyNormPage from '@/pages/daily-norms/DailyNormPage/DailyNormPage.tsx';
-import ScheduleFoodPage from './pages/schedule/builder/schedule-food-page/ScheduleFoodPage.tsx';
-import ScheduleEventPage from '@/pages/schedule/builder/schedule-event-page/ScheduleEventPage.tsx';
 import DishFoodPage from '@/pages/dish/DishFoodPage/DishFoodPage.tsx';
 import DishFoodDraftPage from '@/pages/dish/DishFoodPage/DishFoodDraftPage.tsx';
 import { ScheduleFoodAnalyticsPage } from '@/pages/schedule/analytics/schedule-analytics-page/ScheduleFoodAnalyticsPage/index.ts';
@@ -29,8 +27,6 @@ export enum RouterLinks {
   DishFood = '/dish/:id/food/:childId',
   ScheduleDateSelection = '/date',
   ScheduleBuilder = '/schedule',
-  ScheduleFood = `/schedule/:id/food/:childId`,
-  ScheduleEvent = `/schedule/:id/event/:childId`,
   ScheduleAnalytics = `/schedule/:id/analytics`,
   Product = '/product',
   LoadData = '/load-data',
@@ -39,12 +35,6 @@ export enum RouterLinks {
   Settings = '/settings',
   Reset = '/reset',
 }
-
-export const getScheduleFoodUrl = (id: string, childId: string) =>
-  `/schedule/${id}/food/${childId}`;
-
-export const getScheduleEventUrl = (id: string, childId: string) =>
-  `/schedule/${id}/event/${childId}`;
 
 export const getScheduleAnalyticsUrl = (id: string) => `/schedule/${id}/analytics`;
 
@@ -111,14 +101,6 @@ export const router = createBrowserRouter([
       {
         path: `${RouterLinks.UserProduct}/:id`,
         element: <UserProductPage />,
-      },
-      {
-        path: `${RouterLinks.ScheduleFood}/`,
-        element: <ScheduleFoodPage />,
-      },
-      {
-        path: `${RouterLinks.ScheduleEvent}`,
-        element: <ScheduleEventPage />,
       },
       {
         path: RouterLinks.Settings,

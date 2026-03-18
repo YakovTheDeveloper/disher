@@ -20,6 +20,7 @@ type QuickButtonData = {
 type Props = {
   content: FoodContentInstance;
   onFinish: () => void;
+  inputId?: string;
 };
 
 const SLIDE_SIZE = 8; // 2 rows x 4 columns
@@ -32,7 +33,7 @@ const chunkArray = <T,>(arr: T[], size: number): T[][] => {
   return chunks;
 };
 
-const ProductQuantity = ({ onFinish, content }: Props) => {
+const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Props) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [value, setValue] = useState(content.quantity);
@@ -92,7 +93,7 @@ const ProductQuantity = ({ onFinish, content }: Props) => {
       {/* Editorial hero input */}
       <div className={style.inputWrapper}>
         <NumberInput
-          id="quantity-input"
+          id={inputId}
           placeholder="0"
           ref={inputRef}
           className={style.input}

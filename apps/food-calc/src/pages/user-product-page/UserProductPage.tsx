@@ -5,8 +5,6 @@ import { useProduct, updateProduct, setProductNutrient } from '@/entities/produc
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { Spacer } from '@/components/ui/atoms/Spacer';
 import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
-import { useMemo } from 'react';
-import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
 import { HeaderInputName } from '@/components/features/builders/shared/components/HeaderInputName';
 import ChangeProductNutrientValue from '@/components/features/product/change-product-nutrient-value/ChangeProductNutrientValue';
 
@@ -15,10 +13,6 @@ const UserProductPage = () => {
   const { result: userFood } = useProduct(id);
 
   if (!userFood) return null;
-
-  const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);
-  // TODO: migrate to Triplit — userFood doesn't satisfy NutrientsCountableEntity
-  nutrientStore.setEntity(userFood as any);
 
   const onNutrientChange = (value: number, nutrientId: string) =>
     setProductNutrient(userFood.id, nutrientId, value);
@@ -47,7 +41,6 @@ const UserProductPage = () => {
         />
       </label>
       <Nutrients
-        store={nutrientStore}
         renderCard={(nutrientData) => (
           <ChangeProductNutrientValue
             content={nutrientData}

@@ -9,9 +9,10 @@ type Props = {
   after?: React.ReactNode;
   className?: string;
   content: { name: string } | null;
+  htmlFor?: string;
 };
 
-const FoodName = ({ className, onClick, onTouchEnd, after, content }: Props) => {
+const FoodName = ({ className, onClick, onTouchEnd, after, content, htmlFor }: Props) => {
   const initTitle = content?.name;
   const normalizedTitle = initTitle || 'не выбрано';
 
@@ -25,8 +26,10 @@ const FoodName = ({ className, onClick, onTouchEnd, after, content }: Props) => 
       className={clsx([className, animationClassName, !initTitle && styles.noTitle])}
       onClick={onClick}
       onTouchEnd={onTouchEnd ? () => onTouchEnd({} as React.TouchEvent<HTMLElement>) : undefined}
+      as={htmlFor ? 'label' : 'p'}
+      htmlFor={htmlFor}
     >
-      <label htmlFor="search">{normalizedTitle}</label>
+      {normalizedTitle}
     </Typography>
   );
 };

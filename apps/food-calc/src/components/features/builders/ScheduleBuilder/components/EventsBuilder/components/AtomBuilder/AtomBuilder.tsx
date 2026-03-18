@@ -1,14 +1,14 @@
 /**
  * AtomBuilder - Main component for composing events from atoms
  *
- * Replaces the old type-based event system with a flexible atomic approach.
+ * Works with the Zustand draft store during editing.
+ * Atoms are persisted to Triplit when the parent commits (create/update).
  */
 
 import { useState } from 'react';
-import { observer } from 'mobx-react-lite';
 import { AnimatePresence } from 'framer-motion';
-import { Atom } from '@/entities/schedule-event';
-import type { ScheduleEvent } from '@/entities/schedule-event';
+import type { Atom } from '@/entities/schedule-event';
+import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import { AtomList } from './AtomList';
 import { ScaleAtomInput } from './ScaleAtomInput';
 import { TimeAtomInput } from './TimeAtomInput';
@@ -20,35 +20,29 @@ import { BodyAtomInput } from './BodyAtomInput';
 import styles from './AtomBuilder.module.css';
 
 export interface AtomBuilderProps {
-  event: ScheduleEvent;
-  onEventChange?: (event: ScheduleEvent) => void;
   className?: string;
 }
 
 type AtomModalKind = 'scale' | 'time' | 'number' | 'tag' | 'relation' | 'flag' | 'body' | null;
 
-export const AtomBuilder = observer(
-  ({ event, onEventChange, className = '' }: AtomBuilderProps) => {
+export const AtomBuilder = ({ className = '' }: AtomBuilderProps) => {
+    const atoms = useEventDraftStore((s) => s.draft.atoms);
+    const addAtom = useEventDraftStore((s) => s.addAtom);
+    const removeAtom = useEventDraftStore((s) => s.removeAtom);
     const [openModal, setOpenModal] = useState<AtomModalKind>(null);
 
     const handleAddAtom = (atom: Atom) => {
-      // TODO: migrate to Triplit — addAtom was an MST action, use Triplit mutation instead
-      // event.addAtom(atom);
-      void atom;
+      addAtom(atom);
       setOpenModal(null);
-      onEventChange?.(event);
     };
 
     const handleRemoveAtom = (index: number) => {
-      // TODO: migrate to Triplit — removeAtom was an MST action, use Triplit mutation instead
-      // event.removeAtom(index);
-      void index;
-      onEventChange?.(event);
+      removeAtom(index);
     };
 
     return (
       <div className={`${styles.container} ${className}`}>
-        <AtomList atoms={event.atoms as unknown as Atom[]} onRemove={handleRemoveAtom} />
+        <AtomList atoms={atoms} onRemove={handleRemoveAtom} />
 
         <div className={styles.atomButtons}>
           <button onClick={() => setOpenModal('scale')} disabled={openModal !== null} type="button">
@@ -137,7 +131,4 @@ export const AtomBuilder = observer(
         </div>
       </div>
     );
-  }
-);
-
-AtomBuilder.displayName = 'AtomBuilder';
+};

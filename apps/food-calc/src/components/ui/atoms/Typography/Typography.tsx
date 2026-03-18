@@ -12,6 +12,8 @@ type Props = {
   onTouchEnd?: () => void;
   maxChars?: number;
   after?: React.ReactNode;
+  as?: 'p' | 'label';
+  htmlFor?: string;
 };
 
 type ExposedRefs = {
@@ -20,12 +22,13 @@ type ExposedRefs = {
 };
 
 const Typography = forwardRef<ExposedRefs, Props>(
-  ({ children, variant, ellipsis, className, onClick, onTouchEnd, after }, _ref) => {
+  ({ children, variant, ellipsis, className, onClick, onTouchEnd, after, as = 'p', htmlFor }, _ref) => {
     const isCustom = variant === 'custom';
+    const Tag = as;
 
     return (
       <>
-        <p
+        <Tag
           onClick={onClick}
           onTouchEnd={onTouchEnd}
           className={clsx(
@@ -34,10 +37,11 @@ const Typography = forwardRef<ExposedRefs, Props>(
             ellipsis && styles.ellipsis,
             className
           )}
+          {...(as === 'label' && htmlFor ? { htmlFor } : {})}
         >
           {children}
           {after}
-        </p>
+        </Tag>
       </>
     );
   }

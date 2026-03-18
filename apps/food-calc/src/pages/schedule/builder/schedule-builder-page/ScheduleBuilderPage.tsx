@@ -27,7 +27,8 @@ const Page = ({ date }: { date: string }) => {
   return (
     <>
       <SwipeableV2 defaultSlide={1} onIndexChange={onPageChange}>
-        <FoodsNutrients items={items as any[]} />
+        {/* TODO: compute totals from scheduleFoods using calculateProductNutrients/sumNutrients */}
+        <FoodsNutrients totals={{}} />
         <FoodSchedule date={date} items={items as any[]} />
         <BuilderScheduleEvents date={date} events={events} />
       </SwipeableV2>

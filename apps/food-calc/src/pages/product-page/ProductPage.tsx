@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useProduct, setProductNutrient, updateProduct } from '@/entities/product';
 import { FoodEntityView, foodToViewable } from '@/components/widgets/food-entity-view';
-import styles from './ProductPage.module.scss';
+
 
 const ProductPage = () => {
   const { id } = useParams<'id'>();
@@ -33,10 +33,8 @@ const ProductPage = () => {
   return (
     <FoodEntityView
       entity={entity}
-      mstEntity={food}
       nutrientEditable={nutrientEditable}
       title="Продукт"
-      quantityInputClassName={styles.quantityInput}
     />
   );
 };

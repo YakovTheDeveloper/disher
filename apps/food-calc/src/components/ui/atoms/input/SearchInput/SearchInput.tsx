@@ -40,7 +40,6 @@ const SearchInput = React.forwardRef<HTMLInputElement, Props>(
         </div>
         <input
           type="search"
-          id="search"
           inputMode="search"
           enterKeyHint="search"
           autoCapitalize="none"
@@ -53,6 +52,7 @@ const SearchInput = React.forwardRef<HTMLInputElement, Props>(
           onChange={onChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          {...{ id: inputProps.id ?? 'search' }}
         />
         {hasValue && (
           <button

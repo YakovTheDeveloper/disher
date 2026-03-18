@@ -7,6 +7,11 @@ export const roles: Roles = {
       sub: "$userId",
     },
   },
+  anon: {
+    match: {
+      "x-triplit-token-type": "anon",
+    },
+  },
 };
 
 export const schema = S.Collections({
@@ -94,7 +99,7 @@ export const schema = S.Collections({
   },
 
   // ─── Foods ───
-  // Reference data: readable by all authenticated users
+  // Reference data: readable by all (including anonymous)
   foods: {
     schema: S.Schema({
       id: S.Id(),
@@ -102,6 +107,7 @@ export const schema = S.Collections({
       nameEng: S.String(),
       description: S.String({ nullable: true, default: null }),
       descriptionEng: S.String({ nullable: true, default: null }),
+      pricePerKg: S.Number({ nullable: true, default: null }),
     }),
     relationships: {
       nutrients: S.RelationMany("foodNutrients", {
@@ -109,9 +115,8 @@ export const schema = S.Collections({
       }),
     },
     permissions: {
-      user: {
-        read: { filter: [true] },
-      },
+      user: { read: { filter: [true] } },
+      anon: { read: { filter: [true] } },
     },
   },
 
@@ -128,9 +133,8 @@ export const schema = S.Collections({
       nutrient: S.RelationById("nutrients", "$nutrientId"),
     },
     permissions: {
-      user: {
-        read: { filter: [true] },
-      },
+      user: { read: { filter: [true] } },
+      anon: { read: { filter: [true] } },
     },
   },
 
@@ -146,9 +150,8 @@ export const schema = S.Collections({
       displayNameEng: S.String({ nullable: true, default: null }),
     }),
     permissions: {
-      user: {
-        read: { filter: [true] },
-      },
+      user: { read: { filter: [true] } },
+      anon: { read: { filter: [true] } },
     },
   },
 
@@ -201,6 +204,7 @@ export const schema = S.Collections({
   },
 
   // ─── Daily Norms ───
+  // userId = "__system__" for shared default norms, readable by all users
   dailyNorms: {
     schema: S.Schema({
       id: S.Id(),
@@ -216,7 +220,17 @@ export const schema = S.Collections({
     },
     permissions: {
       user: {
-        read: { filter: [["userId", "=", "$role.userId"]] },
+        read: {
+          filter: [
+            {
+              mod: "or",
+              filters: [
+                ["userId", "=", "$role.userId"],
+                ["userId", "=", "__system__"],
+              ],
+            },
+          ],
+        },
         insert: { filter: [["userId", "=", "$role.userId"]] },
         update: { filter: [["userId", "=", "$role.userId"]] },
         delete: { filter: [["userId", "=", "$role.userId"]] },
@@ -225,6 +239,7 @@ export const schema = S.Collections({
   },
 
   // ─── Daily Norm Items ───
+  // userId = "__system__" for items belonging to shared default norms
   dailyNormItems: {
     schema: S.Schema({
       id: S.Id(),
@@ -239,7 +254,17 @@ export const schema = S.Collections({
     },
     permissions: {
       user: {
-        read: { filter: [["userId", "=", "$role.userId"]] },
+        read: {
+          filter: [
+            {
+              mod: "or",
+              filters: [
+                ["userId", "=", "$role.userId"],
+                ["userId", "=", "__system__"],
+              ],
+            },
+          ],
+        },
         insert: { filter: [["userId", "=", "$role.userId"]] },
         update: { filter: [["userId", "=", "$role.userId"]] },
         delete: { filter: [["userId", "=", "$role.userId"]] },

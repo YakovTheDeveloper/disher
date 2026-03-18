@@ -1,6 +1,8 @@
-import { makeAutoObservable } from "mobx";
-import React from "react";
-import type { BaseModalProps } from "./overlay-types";
+import { create } from 'zustand';
+import React from 'react';
+import type { BaseModalProps } from './overlay-types';
+
+type InferResult<P> = P extends { onClose: (result?: infer R) => void } ? R : void;
 
 interface ModalInstance {
   id: string;
@@ -9,41 +11,46 @@ interface ModalInstance {
   resolve: (value: any) => void;
 }
 
-export class ModalStore {
-  instances: ModalInstance[] = [];
+interface ModalState {
+  instances: ModalInstance[];
+}
 
-  constructor() {
-    makeAutoObservable(this);
-  }
+const useModalStore = create<ModalState>(() => ({
+  instances: [],
+}));
 
-  show<P extends BaseModalProps<R>, R = any>(
-    Component: React.ComponentType<P>,
-    props: Omit<P, keyof BaseModalProps>,
-  ): Promise<R | undefined> {
-    return new Promise((resolve) => {
-      const id = Math.random().toString(36).slice(2, 9);
-      this.instances.push({ id, Component, props, resolve });
-    });
-  }
+function show<P extends BaseModalProps<any>>(
+  Component: React.ComponentType<P>,
+  props: Omit<P, 'onClose'>,
+): Promise<InferResult<P> | undefined> {
+  return new Promise((resolve) => {
+    const id = Math.random().toString(36).slice(2, 9);
+    useModalStore.setState((state) => ({
+      instances: [...state.instances, { id, Component, props, resolve }],
+    }));
+  });
+}
 
-  close(id: string, result?: any) {
-    const index = this.instances.findIndex((i) => i.id === id);
-    if (index !== -1) {
-      this.instances[index].resolve(result);
-      this.instances.splice(index, 1);
-    }
-  }
-
-  closeLast(result?: any) {
-    if (this.instances.length > 0) {
-      const last = this.instances[this.instances.length - 1];
-      this.close(last.id, result);
-    }
-  }
-
-  get isModalOpen() {
-    return this.instances.length > 0;
+function close(id: string, result?: any) {
+  const instance = useModalStore.getState().instances.find((i) => i.id === id);
+  if (instance) {
+    instance.resolve(result);
+    useModalStore.setState((state) => ({
+      instances: state.instances.filter((i) => i.id !== id),
+    }));
   }
 }
 
-export const modalStore = new ModalStore();
+function closeLast(result?: any) {
+  const { instances } = useModalStore.getState();
+  if (instances.length > 0) {
+    close(instances[instances.length - 1].id, result);
+  }
+}
+
+export function useModals() {
+  const instances = useModalStore((s) => s.instances);
+  return { instances, show, close, closeLast, isOpen: instances.length > 0 };
+}
+
+export const modalStore = { show, close, closeLast };

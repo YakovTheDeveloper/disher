@@ -1,7 +1,5 @@
-import { FC, useMemo, useState } from 'react';
-import { observer } from 'mobx-react-lite';
+import { FC, useState } from 'react';
 import { FoodEntityViewable, NutrientEditable } from '../types';
-import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
 import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
 import { NutrientCard } from '@/components/entities/nutrient/NutrientCard';
 import ChangeProductNutrientValue from '@/components/features/product/change-product-nutrient-value/ChangeProductNutrientValue';
@@ -27,22 +25,16 @@ import s from './FoodEntityView.module.scss';
 
 type Props = {
   entity: FoodEntityViewable;
-  /** Original MST node for TotalNutrientsStore (requires onPatch) */
-  mstEntity: any;
   /** If provided, enables inline nutrient editing */
   nutrientEditable?: NutrientEditable;
   /** Screen title label */
   title?: string;
-  /** Custom quantity input CSS class */
-  quantityInputClassName?: string;
 };
 
-const FoodEntityView: FC<Props> = observer(
-  ({ entity, mstEntity, nutrientEditable, title = 'Продукт', quantityInputClassName: _quantityInputClassName }) => {
-    const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);
+const FoodEntityView: FC<Props> = (
+  ({ entity, nutrientEditable, title = 'Продукт' }) => {
     const [quantity, setQuantity] = useState(100);
     const filter = useFilterNutrients();
-    nutrientStore.setEntity(mstEntity);
 
     const isEditable = entity.isEditable;
     const hasNutrientEdit = !!nutrientEditable;
@@ -138,7 +130,7 @@ const FoodEntityView: FC<Props> = observer(
           </label>
         )}
 
-        <Nutrients renderCard={renderCard} store={nutrientStore} />
+        <Nutrients renderCard={renderCard} />
 
         <Ornament text="дневная норма" />
 

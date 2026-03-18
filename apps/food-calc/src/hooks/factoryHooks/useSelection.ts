@@ -1,67 +1,55 @@
-import { makeAutoObservable } from 'mobx';
+import { createStore, useStore } from 'zustand';
 import { useMemo } from 'react';
 
-class SelectionStore {
-  isActionsMode = false;
-  selectedIds: string[] = [];
-
-  constructor() {
-    makeAutoObservable(this);
-  }
-
-  setIsActionsMode = (value: boolean) => {
-    this.isActionsMode = value;
-
-    if (!value) {
-      this.selectedIds = [];
-    }
-  };
-
-  toggleSelectedId = (id: string) => {
-    const index = this.selectedIds.indexOf(id);
-
-    if (index >= 0) {
-      this.selectedIds.splice(index, 1);
-    } else {
-      this.selectedIds.push(id);
-    }
-
-    this.isActionsMode = this.selectedIds.length > 0;
-  };
-
-  setSelectedIds = (ids: string[]) => {
-    const selectedSet = new Set(this.selectedIds);
-    const idsSet = new Set(ids);
-
-    if (ids.every((id) => selectedSet.has(id))) {
-      this.selectedIds = this.selectedIds.filter((id) => !idsSet.has(id));
-    } else {
-      ids.forEach((id) => {
-        if (!selectedSet.has(id)) {
-          this.selectedIds.push(id);
-        }
-      });
-    }
-
-    this.isActionsMode = this.selectedIds.length > 0;
-  };
-
-  clearSelection = () => {
-    this.selectedIds = [];
-    this.isActionsMode = false;
-  };
-
-  isSelected = (id: string) => {
-    return this.selectedIds.includes(id);
-  };
-
-  get selectedCount() {
-    return this.selectedIds.length;
-  }
-}
-
-export const useSelection = () => {
-  return useMemo(() => new SelectionStore(), []);
+type SelectionState = {
+  isActionsMode: boolean;
+  selectedIds: string[];
+  setIsActionsMode: (value: boolean) => void;
+  toggleSelectedId: (id: string) => void;
+  setSelectedIds: (ids: string[]) => void;
+  clearSelection: () => void;
 };
 
-export type SelectionStoreType = SelectionStore;
+const createSelectionStore = () =>
+  createStore<SelectionState>((set, get) => ({
+    isActionsMode: false,
+    selectedIds: [],
+
+    setIsActionsMode: (value) => {
+      set({ isActionsMode: value, ...(value ? {} : { selectedIds: [] }) });
+    },
+
+    toggleSelectedId: (id) => {
+      const { selectedIds } = get();
+      const index = selectedIds.indexOf(id);
+      const newIds =
+        index >= 0 ? selectedIds.filter((sid) => sid !== id) : [...selectedIds, id];
+      set({ selectedIds: newIds, isActionsMode: newIds.length > 0 });
+    },
+
+    setSelectedIds: (ids) => {
+      const { selectedIds } = get();
+      const selectedSet = new Set(selectedIds);
+
+      let newIds: string[];
+      if (ids.every((id) => selectedSet.has(id))) {
+        const idsSet = new Set(ids);
+        newIds = selectedIds.filter((id) => !idsSet.has(id));
+      } else {
+        const merged = new Set([...selectedIds, ...ids]);
+        newIds = [...merged];
+      }
+
+      set({ selectedIds: newIds, isActionsMode: newIds.length > 0 });
+    },
+
+    clearSelection: () => set({ selectedIds: [], isActionsMode: false }),
+  }));
+
+export type SelectionStoreType = ReturnType<typeof createSelectionStore>;
+
+export const useSelection = () => {
+  return useMemo(() => createSelectionStore(), []);
+};
+
+export { useStore };

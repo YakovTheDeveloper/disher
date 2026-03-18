@@ -1,21 +1,12 @@
-import { observer } from 'mobx-react-lite';
 import styles from './Nutrients.module.scss';
 import { nutrientGroups, Nutrient, getNutrientColumn } from '@/components/entities/nutrient/NutrientGroup/constants';
-import { useEffect } from 'react';
-import { Instance } from 'mobx-state-tree';
-import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
 import clsx from 'clsx';
 
 interface Props {
-  store: Instance<typeof TotalNutrientsStore>;
   renderCard: (nutrientData: Nutrient) => React.ReactNode;
 }
 
-const Nutrients = ({ store, renderCard }: Props) => {
-  useEffect(() => {
-    console.log('new store nutrients', Array.from(store.nutrients.entries()));
-  }, [Array.from(store.nutrients.entries())]);
-
+const Nutrients = ({ renderCard }: Props) => {
   return (
     <div className={clsx([styles.container])}>
       {nutrientGroups.map(({ content, displayName: groupName }) => {
@@ -44,4 +35,4 @@ const Nutrients = ({ store, renderCard }: Props) => {
   );
 };
 
-export default observer(Nutrients);
+export default Nutrients;

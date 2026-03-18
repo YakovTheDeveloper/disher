@@ -1,6 +1,8 @@
-import { makeAutoObservable } from "mobx";
-import React from "react";
-import type { BaseDrawerProps } from "./overlay-types";
+import { create } from 'zustand';
+import React from 'react';
+import type { BaseDrawerProps } from './overlay-types';
+
+type InferResult<P> = P extends { onClose: (result?: infer R) => void } ? R : void;
 
 interface DrawerInstance {
   id: string;
@@ -9,41 +11,46 @@ interface DrawerInstance {
   resolve: (value: any) => void;
 }
 
-export class DrawerStore {
-  instances: DrawerInstance[] = [];
+interface DrawerState {
+  instances: DrawerInstance[];
+}
 
-  constructor() {
-    makeAutoObservable(this);
-  }
+const useDrawerStore = create<DrawerState>(() => ({
+  instances: [],
+}));
 
-  show<P extends BaseDrawerProps<R>, R = any>(
-    Component: React.ComponentType<P>,
-    props: Omit<P, keyof BaseDrawerProps>,
-  ): Promise<R | undefined> {
-    return new Promise((resolve) => {
-      const id = Math.random().toString(36).slice(2, 9);
-      this.instances.push({ id, Component, props, resolve });
-    });
-  }
+function show<P extends BaseDrawerProps<any>>(
+  Component: React.ComponentType<P>,
+  props: Omit<P, 'onClose'>,
+): Promise<InferResult<P> | undefined> {
+  return new Promise((resolve) => {
+    const id = Math.random().toString(36).slice(2, 9);
+    useDrawerStore.setState((state) => ({
+      instances: [...state.instances, { id, Component, props, resolve }],
+    }));
+  });
+}
 
-  close(id: string, result?: any) {
-    const index = this.instances.findIndex((i) => i.id === id);
-    if (index !== -1) {
-      this.instances[index].resolve(result);
-      this.instances.splice(index, 1);
-    }
-  }
-
-  closeLast(result?: any) {
-    if (this.instances.length > 0) {
-      const last = this.instances[this.instances.length - 1];
-      this.close(last.id, result);
-    }
-  }
-
-  get isDrawerOpen() {
-    return this.instances.length > 0;
+function close(id: string, result?: any) {
+  const instance = useDrawerStore.getState().instances.find((i) => i.id === id);
+  if (instance) {
+    instance.resolve(result);
+    useDrawerStore.setState((state) => ({
+      instances: state.instances.filter((i) => i.id !== id),
+    }));
   }
 }
 
-export const drawerStore = new DrawerStore();
+function closeLast(result?: any) {
+  const { instances } = useDrawerStore.getState();
+  if (instances.length > 0) {
+    close(instances[instances.length - 1].id, result);
+  }
+}
+
+export function useDrawers() {
+  const instances = useDrawerStore((s) => s.instances);
+  return { instances, show, close, closeLast, isOpen: instances.length > 0 };
+}
+
+export const drawerStore = { show, close, closeLast };

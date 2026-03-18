@@ -1,18 +1,17 @@
-import { drawerStore } from '@/shared/ui/drawer-store';
+import { useDrawers } from '@/shared/ui/drawer-store';
 import styles from './Drawer.module.scss';
 import { Drawer as DrawerLib } from 'vaul';
-import { observer } from 'mobx-react';
 
 type DrawerProps = {
   children: React.ReactNode;
 };
 
 export function Drawer({ children }: DrawerProps) {
-  const isOpen = drawerStore.isDrawerOpen;
+  const { isOpen, closeLast } = useDrawers();
 
   const handleClose = () => {
     if (isOpen) {
-      drawerStore.closeLast();
+      closeLast();
     }
   };
 
@@ -41,4 +40,4 @@ export function Drawer({ children }: DrawerProps) {
   );
 }
 
-export default observer(Drawer);
+export default Drawer;

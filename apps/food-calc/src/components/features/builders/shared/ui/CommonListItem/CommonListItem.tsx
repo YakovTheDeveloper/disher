@@ -77,6 +77,9 @@ const ListItem = ({
     // Only support primary mouse button / touch
     if (e.button !== 0) return;
 
+    // Capture pointer so browser can't steal it for scrolling / label handling
+    (e.target as Element).setPointerCapture(e.pointerId);
+
     isPendingRef.current = true;
     wasLongPressedRef.current = false;
     startPosRef.current = { x: e.clientX, y: e.clientY };
@@ -99,13 +102,15 @@ const ListItem = ({
     const shiftX = Math.abs(e.clientX - startPosRef.current.x);
     const shiftY = Math.abs(e.clientY - startPosRef.current.y);
 
-    // If user scrolls or moves significantly, cancel the selection timer
+    // If user scrolls or moves significantly, release capture and cancel
     if (shiftX > MOVE_THRESHOLD || shiftY > MOVE_THRESHOLD) {
+      (e.target as Element).releasePointerCapture?.(e.pointerId);
       cleanUp();
     }
   };
 
-  const onPointerUp = (_e: React.PointerEvent) => {
+  const onPointerUp = (e: React.PointerEvent) => {
+    (e.target as Element).releasePointerCapture?.(e.pointerId);
     const skipTap = wasLongPressedRef.current;
 
     cleanUp();
@@ -189,7 +194,10 @@ const ListItem = ({
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
         onPointerMove={onPointerMove}
-        onPointerCancel={cleanUp}
+        onPointerCancel={(e) => {
+          (e.target as Element).releasePointerCapture?.(e.pointerId);
+          cleanUp();
+        }}
         onPointerLeave={cleanUp}
         className={clsx(
           className,

@@ -6,6 +6,7 @@ import { SearchFood } from '@/components/features/builders/shared/components/Sea
 import { TimeChoose } from '@/components/ui/TimeChoose';
 import { ProductQuantity } from '@/components/features/product/ProductQuantity';
 import { addScheduleFood } from '@/entities/schedule-food';
+import toaster from '@/infrastructure/toaster/toaster';
 import Button from '@/components/ui/atoms/Button/Button';
 import s from './FoodScheduleModals.module.scss';
 
@@ -117,6 +118,7 @@ const ScheduleFoodCreationModals = ({ scheduleId }: Props) => {
         dishId: draft.variant === 'dish' ? draft.foodId : null,
         quantity: draft.quantity,
       });
+      toaster.success('Добавлено в расписание');
     }
     setDraft(createEmptyDraft());
     setStep('idle');
@@ -222,6 +224,8 @@ const ScheduleFoodCreationModals = ({ scheduleId }: Props) => {
               onFinish={handleFoodSelect}
               currentProductId={draft.variant === 'product' ? draft.foodId ?? undefined : undefined}
               currentDishId={draft.variant === 'dish' ? draft.foodId ?? undefined : undefined}
+              itemHtmlFor={MODAL_INPUT_IDS.QUANTITY_INPUT}
+              inputId={MODAL_INPUT_IDS.SEARCH_INPUT}
             />
           </div>
         }

@@ -1,8 +1,7 @@
 import { triplit } from "@/api/triplit/client";
+import { getCurrentUserId } from "@/api/triplit/session";
 import { v4 as uuid } from "uuid";
 import type { Atom } from "@/entities/schedule-event/model/atoms";
-
-const getUserId = () => "1"; // TODO: replace with actual auth
 
 export async function addScheduleEvent(params: {
   date: string;
@@ -17,7 +16,7 @@ export async function addScheduleEvent(params: {
     time: params.time,
     text: params.text ?? "",
     atoms: params.atoms ?? [],
-    userId: getUserId(),
+    userId: getCurrentUserId(),
   });
   return id;
 }

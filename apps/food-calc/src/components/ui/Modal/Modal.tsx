@@ -1,7 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { observer } from 'mobx-react-lite';
 import styles from './Modal.module.scss';
-import { modalStore } from '@/shared/ui/modal-store';
+import { useModals } from '@/shared/ui/modal-store';
 import { motion } from 'framer-motion';
 
 interface ModalProps {
@@ -9,14 +8,14 @@ interface ModalProps {
 }
 
 const ModalComponent = ({ children }: ModalProps) => {
-  const v2Open = modalStore.isModalOpen;
+  const { isOpen, closeLast } = useModals();
 
   return (
     <Dialog.Root
-      open={v2Open}
+      open={isOpen}
       onOpenChange={(open) => {
-        if (!open && modalStore.isModalOpen) {
-          modalStore.closeLast();
+        if (!open && isOpen) {
+          closeLast();
         }
       }}
     >
@@ -35,4 +34,4 @@ const ModalComponent = ({ children }: ModalProps) => {
   );
 };
 
-export default observer(ModalComponent);
+export default ModalComponent;

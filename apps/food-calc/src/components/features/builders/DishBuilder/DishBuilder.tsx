@@ -58,7 +58,7 @@ const DishBuilder = ({ init }: Props) => {
   return (
     <SwipeableV2>
       <Screen key={1} offsetTop={false} title={<ScreenLabel variant="screenHeader">Нутриенты</ScreenLabel>}>
-        {/* TODO: migrate to Triplit — TotalNutrients needs NutrientsCountableEntity interface */}
+        {/* TODO: compute dish totals from Triplit and pass to TotalNutrients */}
         {null}
       </Screen>
 

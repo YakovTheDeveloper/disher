@@ -1,10 +1,7 @@
-import { observer } from 'mobx-react-lite';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
-import { Overlay } from '@/components/entities/nutrient/NutrientGroup/Overlay';
 import { OpenDailyNorms } from '@/components/features/dailyNorms/OpenDailyNorms';
-import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
-import { useMemo, useCallback } from 'react';
+import { useCallback } from 'react';
 import { FilterButton } from '@/components/ui/atoms/Button';
 import NutrientCardV2 from '@/components/entities/nutrient/NutrientCard/NutrientCardV2';
 import {
@@ -15,27 +12,18 @@ import {
 import { OpenRichFood } from '@/components/features/food/open-rich-food';
 import './FoodsNutrients.module.scss';
 import { Ornament } from '@/components/ui/Ornament';
-import type { ScheduleFood } from '@/entities/schedule-food';
 import type { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
+import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';
+import type { NutrientTotals } from '@/shared/lib/nutrients';
 
 type Props = {
-  items: ScheduleFood[];
+  totals: NutrientTotals;
   after?: React.ReactNode;
 };
 
-const FoodsNutrients = ({ items: _items, after }: Props) => {
+const FoodsNutrients = ({ totals, after }: Props) => {
   const filter = useFilterNutrients();
-  const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);
-  // TODO: migrate — TotalNutrientsStore.setEntity expects an MST schedule model.
-  // Need to adapt it to work with ScheduleFood[] array.
-  // nutrientStore.setEntity(items);
-
-  const isLoading = useCallback(() => nutrientStore.isOneOfProductsIsLoading, [nutrientStore]);
-
-  const renderOverlay = useCallback(
-    (value: string) => <Overlay loading={isLoading}>{value}</Overlay>,
-    [isLoading]
-  );
+  const { getValue } = useNutrientTotals(totals);
 
   const renderCard = useCallback(
     (nutrientData: Nutrient) => (
@@ -51,14 +39,13 @@ const FoodsNutrients = ({ items: _items, after }: Props) => {
       >
         <NutrientCardV2
           content={nutrientData}
-          getValue={nutrientStore.getValue}
-          renderOverlay={renderOverlay}
+          getValue={getValue}
           showValues={filter.showValues}
           showProgress={filter.showProgress}
         />
       </FilterNutrientCardWrapper>
     ),
-    [filter, nutrientStore.getValue, renderOverlay]
+    [filter, getValue]
   );
 
   return (
@@ -81,19 +68,14 @@ const FoodsNutrients = ({ items: _items, after }: Props) => {
     >
       <Ornament text="нутриенты"></Ornament>
 
-      <Nutrients
-        store={nutrientStore}
-        renderCard={renderCard}
-      />
+      <Nutrients renderCard={renderCard} />
 
       <Ornament text="дневная норма"></Ornament>
       <OpenDailyNorms />
 
       {after}
-
-      {/* TODO: migrate — filter items without nutrient data from ScheduleFood[] */}
     </Screen>
   );
 };
 
-export default observer(FoodsNutrients);
+export default FoodsNutrients;

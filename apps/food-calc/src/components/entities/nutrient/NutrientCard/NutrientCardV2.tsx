@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import './NutrientCardCommon.module.scss';
 import styles from './NutrientCard.module.scss';
 import { motion } from 'framer-motion';
@@ -93,4 +92,4 @@ const NutrientCard = ({
   );
 };
 
-export default observer(NutrientCard);
+export default NutrientCard;

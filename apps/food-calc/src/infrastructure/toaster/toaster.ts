@@ -1,5 +1,6 @@
 import React from 'react';
 import toast from 'react-hot-toast';
+import { router } from '@/router';
 
 export interface ToastAction {
     label: string;
@@ -22,7 +23,12 @@ function renderContent(message: string, action?: ToastAction): string | React.Re
             {
                 href: action.href,
                 style: { color: 'inherit', fontWeight: 600, textDecoration: 'underline', whiteSpace: 'nowrap' },
-                onClick: (e: React.MouseEvent) => e.stopPropagation(),
+                onClick: (e: React.MouseEvent) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    router.navigate(action.href);
+                    toast.dismiss();
+                },
             },
             action.label
         )

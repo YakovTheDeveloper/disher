@@ -6,6 +6,7 @@ import { LabeledCheckbox } from '@/components/ui/LabeledCheckbox';
 import TextBehind from '@/components/ui/TextBehind/TextBehind';
 import { TextInput } from '@/components/ui/atoms/input/TextInput';
 import toaster from '@/infrastructure/toaster/toaster';
+import { RouterUrls } from '@/router';
 import { isEmpty } from 'lodash';
 import { useSwipeableLock } from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableLockContext';
 import { MODAL_INPUT_IDS } from './ScheduleFoodCreationModals';
@@ -72,8 +73,15 @@ const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props)
     }
 
     // TODO: implement Triplit mutation -- create dish with products
+    // const dishId = await createDish(name, selectedIds);
 
-    toaster.success(`Блюдо "${name}" создано`);
+    // TODO: replace with actual dishId from mutation
+    const dishId: string | null = null;
+
+    toaster.success(`Блюдо «${name}» создано`, dishId
+      ? { action: { label: 'Открыть', href: RouterUrls.getDish(dishId) } }
+      : undefined
+    );
     onFinish();
     setStep('name');
   };

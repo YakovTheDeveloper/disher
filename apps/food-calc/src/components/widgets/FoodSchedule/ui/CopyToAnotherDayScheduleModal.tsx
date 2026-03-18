@@ -7,6 +7,7 @@ import { useSwipeableLock } from '@/components/features/builders/shared/ui/layou
 import { copyScheduleFoods, removeScheduleFoods } from '@/entities/schedule-food';
 import toaster from '@/infrastructure/toaster/toaster';
 import type { ScheduleFood } from '@/entities/schedule-food';
+import { RouterLinks } from '@/router';
 import s from './FoodScheduleModals.module.scss';
 
 type Step = 'idle' | 'date' | 'confirm';
@@ -74,7 +75,8 @@ const CopyToAnotherDayScheduleModal = ({ isExpanded, sourceDate, items, onFinish
     toaster.success(
       mode === 'copy'
         ? `Скопировано на ${targetDate}`
-        : `Перемещено на ${targetDate}`
+        : `Перемещено на ${targetDate}`,
+      { action: { label: 'Открыть', href: `${RouterLinks.ScheduleBuilder}/${targetDate}` } }
     );
 
     handleClose();

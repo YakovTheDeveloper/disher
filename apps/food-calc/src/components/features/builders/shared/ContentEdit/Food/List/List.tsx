@@ -30,6 +30,7 @@ function ListInner<T extends ListItemBase>({
   closeOnOutsideClick = true,
   closeOnEscape = true,
   className,
+  itemHtmlFor,
 }: ListProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -139,6 +140,7 @@ function ListInner<T extends ListItemBase>({
               item={item}
               renderListContent={renderListContent}
               onClick={handleItemClick(item)}
+              htmlFor={itemHtmlFor}
             />
           );
         })}

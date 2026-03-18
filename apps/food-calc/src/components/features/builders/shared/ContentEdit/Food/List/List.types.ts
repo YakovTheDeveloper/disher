@@ -1,8 +1,16 @@
-import { UseFilteringStateV2Return } from '@/components/features/shared/hooks/useFilteringStateV2';
 import { ReactNode } from 'react';
 
 export interface ListItemBase {
     id: string | number;
+}
+
+export interface SearchState<T = unknown> {
+    searchQuery: string;
+    setSearch: (query: string) => void;
+    currentTab: string;
+    setTab: (tab: string) => void;
+    filteredList: readonly T[];
+    clearSearch: () => void;
 }
 
 export interface FetchResponse<T extends ListItemBase = ListItemBase> {
@@ -22,7 +30,7 @@ export interface ListProps<T extends ListItemBase = ListItemBase> {
     /** Callback when list should close */
     onClose: () => void;
     /** Search state with query and filtered local items */
-    search: UseFilteringStateV2Return<T>;
+    search: SearchState<T>;
     /** React Query key */
     queryKey: string;
     /** Fetch function for remote data */
@@ -43,6 +51,8 @@ export interface ListProps<T extends ListItemBase = ListItemBase> {
     closeOnEscape?: boolean;
     /** Additional className for container */
     className?: string;
+    /** htmlFor for list item labels */
+    itemHtmlFor?: string;
 }
 
 export interface ListItemProps<T extends ListItemBase = ListItemBase> {
@@ -55,6 +65,7 @@ export interface ListItemProps<T extends ListItemBase = ListItemBase> {
     item: T;
     renderListContent: (item: T) => ReactNode;
     onClick?: () => void;
+    htmlFor?: string;
 }
 
 export interface UseListVisibilityOptions {

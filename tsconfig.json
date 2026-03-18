@@ -5,9 +5,6 @@
             "path": "./apps/food-calc"
         },
         {
-            "path": "./apps/disher-backend-2.0"
-        },
-        {
             "path": "./packages/api"
         },
     ],

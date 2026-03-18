@@ -4,15 +4,26 @@
   "description": "Disher backend powered by Triplit",
   "type": "module",
   "scripts": {
-    "dev": "triplit dev",
+    "predev": "npx --yes kill-port 6543 6544 3100",
+    "dev": "triplit dev --storage lmdb",
+    "dev:api": "tsx watch src/api/server.ts",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\"",
+    "console": "tsx scripts/console.ts",
     "schema:push": "triplit schema push",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "triplit clear --token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ4LXRyaXBsaXQtdG9rZW4tdHlwZSI6InNlY3JldCIsIngtdHJpcGxpdC1wcm9qZWN0LWlkIjoibG9jYWwtcHJvamVjdC1pZCJ9.8Z76XXPc9esdlZb2b7NDC7IVajNXKc4eVcPsO7Ve0ug --remote http://localhost:6543 --ignoreDestructiveWarning && triplit seed run --all --token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ4LXRyaXBsaXQtdG9rZW4tdHlwZSI6InNlY3JldCIsIngtdHJpcGxpdC1wcm9qZWN0LWlkIjoibG9jYWwtcHJvamVjdC1pZCJ9.8Z76XXPc9esdlZb2b7NDC7IVajNXKc4eVcPsO7Ve0ug --remote http://localhost:6543"
   },
   "dependencies": {
-    "@triplit/client": "^1.0.50"
+    "@fastify/cors": "^11.0.0",
+    "@triplit/client": "^1.0.50",
+    "fastify": "^5.2.0",
+    "jose": "^6.0.0"
   },
   "devDependencies": {
     "@triplit/cli": "^1.0.61",
+    "@triplit/console": "^1.0.52",
+    "@types/node": "^25.5.0",
+    "concurrently": "^9.1.0",
+    "lmdb": "^3.5.2",
     "tsx": "^4.19.0",
     "typescript": "^5.9.3"
   }

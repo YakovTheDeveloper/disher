@@ -4,12 +4,12 @@ import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
 
 import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
-import { UseFilteringStateV2Return } from '@/components/features/shared/hooks/useFilteringStateV2';
+import { SearchState } from '@/components/features/builders/shared/ContentEdit/Food/List/List.types';
 import TextBehind from '@/components/ui/TextBehind/TextBehind';
 import { SearchMode } from '@/components/features/builders/shared/components/SearchFood/SearchFood';
 
 type Props = {
-  searchState: UseFilteringStateV2Return;
+  searchState: SearchState;
   className?: string;
   onFocusChange?: (focused: boolean) => void;
   hasBackButton?: boolean;
@@ -18,6 +18,7 @@ type Props = {
   mode: SearchMode;
   actionLeft?: React.ReactNode;
   actionRight?: React.ReactNode;
+  inputId?: string;
 };
 
 const SearchFoodControls = ({
@@ -28,6 +29,7 @@ const SearchFoodControls = ({
   mode,
   actionLeft,
   actionRight,
+  inputId,
 }: Props) => {
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -43,6 +45,7 @@ const SearchFoodControls = ({
 
       <TextBehind text={getBackTitle()} position="middle-left">
         <SearchInput
+          id={inputId}
           size="medium"
           ref={searchInputRef}
           className={styles.largeSearchInput}

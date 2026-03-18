@@ -12,7 +12,7 @@
  *   - Product: nutrients stored directly on the entity, scaled linearly by quantity
  *   - Dish: nutrients aggregated from child items, scaled relative to baseDishWeight
  *
- * Both implement NutrientSource (getTotalNutrients), so TotalNutrientsStore works
+ * Both implement NutrientSource (getTotalNutrients), so the shared component works
  * with either transparently.
  */
 

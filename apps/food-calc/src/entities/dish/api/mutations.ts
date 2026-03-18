@@ -1,11 +1,10 @@
 import { triplit } from "@/api/triplit/client";
+import { getCurrentUserId } from "@/api/triplit/session";
 import { v4 as uuid } from "uuid";
-
-const getUserId = () => "1"; // TODO: replace with actual auth
 
 export async function createDish(name: string) {
   const id = uuid();
-  await triplit.insert("dishes", { id, name, userId: getUserId() });
+  await triplit.insert("dishes", { id, name, userId: getCurrentUserId() });
   return id;
 }
 
@@ -41,7 +40,7 @@ export async function addDishItem(params: {
     dishId: params.dishId,
     foodId: params.foodId,
     quantity: params.quantity,
-    userId: getUserId(),
+    userId: getCurrentUserId(),
   });
   return id;
 }
@@ -118,7 +117,7 @@ export async function dishItemsToScheduleFoods(
         quantity: item.quantity,
         foodId: item.foodId,
         dishId: null,
-        userId: getUserId(),
+        userId: getCurrentUserId(),
       }),
     ),
   );

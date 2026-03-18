@@ -24,10 +24,7 @@ const ChangeName: FC<Props> = ({ entity, canRename = true }) => {
 
   const handleRename = async () => {
     setShowRenameHint(false);
-    const newName = await modalStore.show<
-      { currentName: string; label?: string; onClose: (result?: string) => void },
-      string
-    >(RenameModal, { currentName: entity.name });
+    const newName = await modalStore.show(RenameModal, { currentName: entity.name });
 
     if (newName) {
       entity.changeName(newName);

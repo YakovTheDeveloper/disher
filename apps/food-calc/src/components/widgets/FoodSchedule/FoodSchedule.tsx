@@ -4,7 +4,7 @@ import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { groupItemsByTime } from '@/shared/lib/schedule';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import ScheduleFoodItemComponent from '@/components/widgets/FoodSchedule/ScheduleFoodItem/ScheduleFoodItem';
-import { useSelection } from '@/hooks/factoryHooks/useSelection';
+import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ActionsPanel } from '@/components/features/builders/shared/components/ActionsPanel';
 import { Navigation } from '@/components/features/builders/ScheduleBuilder/ui/Navigation';
@@ -19,6 +19,8 @@ import {
   CreateDishAndCopyModal,
   CopyToExistingDishModal,
   CopyToAnotherDayScheduleModal,
+  EditScheduleFoodModal,
+  EDIT_MODAL_INPUT_IDS,
 } from '@/components/widgets/FoodSchedule/ui';
 import { CountBadge } from '@/components/ui/atoms/Button/CountBadge/CountBadge';
 import { OpenScheduleFoodAnalytics } from '@/components/features/daySchedule/get-day-schedule-food-analytics/OpenScheduleFoodAnalytics';
@@ -32,27 +34,43 @@ type CommonProps = {
 
 const FoodSchedule = ({ date, items }: CommonProps) => {
   const selectionStoreFood = useSelection();
+  const isActionsMode = useStore(selectionStoreFood, (s) => s.isActionsMode);
+  const selectedIds = useStore(selectionStoreFood, (s) => s.selectedIds);
+  const { clearSelection, setSelectedIds } = selectionStoreFood.getState();
 
   const [isOpen, setIsOpen] = useState<
     'create-dish-and-copy' | 'copy-to-existing-dish' | 'copy-to-another-day' | null
   >(null);
-  useSwipeableLock(isOpen !== null);
+  const [editingItem, setEditingItem] = useState<ScheduleFoodWithRelations | null>(null);
+  const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'search' | 'quantity'>('idle');
+
+  useSwipeableLock(isOpen !== null || editingItem !== null);
   const closeModal = () => setIsOpen(null);
   const openModal = (
     variant: 'create-dish-and-copy' | 'copy-to-existing-dish' | 'copy-to-another-day' | null
   ) => setIsOpen(variant);
 
+  const closeEditModal = () => {
+    setEditingItem(null);
+    setEditingStep('idle');
+  };
+
+  const openEditModal = (item: ScheduleFoodWithRelations, step: 'time' | 'search' | 'quantity') => {
+    setEditingItem(item);
+    setEditingStep(step);
+  };
+
   const getSelectedItemsWithProduct = () =>
-    items.filter((item) => selectionStoreFood.selectedIds.includes(item.id) && item.foodId != null);
+    items.filter((item) => selectedIds.includes(item.id) && item.foodId != null);
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
 
   const onDeleteSelected = async () => {
-    const ids = selectionStoreFood.selectedIds;
+    const ids = selectedIds;
     if (ids.length === 0) return;
     await removeScheduleFoods(ids);
-    selectionStoreFood.clearSelection();
-    toaster.success('Удалено');
+    clearSelection();
+    toaster.success(`Удалено: ${ids.length}`);
   };
 
   const onDishCreateButtonClick = () => {
@@ -82,7 +100,11 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
   // Adapt items for CopyToExistingDishModal which expects { id, contentProduct }
   const adaptedItemsForCopy = selectedProductsFromSelectedFoods.map((item) => ({
     id: item.id,
-    contentProduct: { name: (item as any).food?.name ?? '—', foodId: item.foodId, quantity: item.quantity },
+    contentProduct: {
+      name: (item as any).food?.name ?? '—',
+      foodId: item.foodId,
+      quantity: item.quantity,
+    },
   }));
 
   return (
@@ -91,6 +113,13 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
       overlay={
         <>
           <ScheduleFoodCreationModals scheduleId={date} />
+          {editingItem && (
+            <EditScheduleFoodModal
+              item={editingItem}
+              initialStep={editingStep}
+              onClose={closeEditModal}
+            />
+          )}
           <CreateDishAndCopyModal
             isExpanded={isOpen === 'create-dish-and-copy'}
             items={selectedProductsFromSelectedFoods}
@@ -109,7 +138,7 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
             items={getSelectedItemsWithProduct()}
             onFinish={() => {
               closeModal();
-              selectionStoreFood.clearSelection();
+              clearSelection();
             }}
             onClose={closeModal}
           />
@@ -117,8 +146,8 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
       }
       actions={
         <ActionsPanel
-          show={selectionStoreFood.isActionsMode}
-          onBack={() => selectionStoreFood.clearSelection()}
+          show={isActionsMode}
+          onBack={() => clearSelection()}
           left={<button onClick={onDeleteSelected}>удалить</button>}
         >
           <label onClick={openDishCreateModal} htmlFor={MODAL_INPUT_IDS.DISH_NAME_INPUT}>
@@ -134,12 +163,12 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
         <Navigation title={<Typography variant="feature-title">Еда</Typography>}></Navigation>
       }
       topLeft={
-        selectionStoreFood.selectedIds.length > 0 ? (
-          <CountBadge count={selectionStoreFood.selectedIds.length} />
+        selectedIds.length > 0 ? (
+          <CountBadge count={selectedIds.length} />
         ) : null
       }
       bottomRight={
-        selectionStoreFood.isActionsMode ? null : (
+        isActionsMode ? null : (
           <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.TIME_INPUT} />
         )
       }
@@ -161,15 +190,22 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
           <TimeGroup
             key={group.time}
             group={group}
-            onTimeClick={(group) => selectionStoreFood.setSelectedIds(group.items.map((i: any) => i.id))}
+            onTimeClick={(group) =>
+              setSelectedIds(group.items.map((i: any) => i.id))
+            }
           >
             {
-              group.items.map((item: any) => (
+              group.items.map((item) => (
                 <ScheduleFoodItemComponent
-                  scheduleId={date}
                   key={item.id}
                   item={item}
                   selectionStore={selectionStoreFood}
+                  onEditTime={() => openEditModal(item, 'time')}
+                  onEditFood={() => openEditModal(item, 'search')}
+                  onEditQuantity={() => openEditModal(item, 'quantity')}
+                  timeHtmlFor={EDIT_MODAL_INPUT_IDS.TIME_INPUT}
+                  foodHtmlFor={EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
+                  quantityHtmlFor={EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
                 />
               )) as unknown as JSX.Element
             }

@@ -8,16 +8,17 @@ type Props = {
   hide: boolean;
   unit: string;
   content: { quantity: number } | null;
+  htmlFor?: string;
 };
 
-const Quantity = ({ id, onClick, content, hide, unit = 'г' }: Props) => {
+const Quantity = ({ id, onClick, content, hide, unit = 'г', htmlFor }: Props) => {
   const quantity = content?.quantity || null;
   const className = useAnimationOnChange(quantity);
 
   const onClickHandler = () => onClick(id);
   return (
     <label
-      htmlFor="quantity-input"
+      htmlFor={htmlFor}
       onClick={onClickHandler}
       className={`${styles.container} ${hide ? styles.hide : ''} ${className}`}
     >

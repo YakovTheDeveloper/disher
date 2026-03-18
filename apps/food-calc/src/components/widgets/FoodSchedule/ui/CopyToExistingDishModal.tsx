@@ -5,6 +5,7 @@ import { SearchFood } from '@/components/features/builders/shared/components/Sea
 import { EditableList, EditableListRef } from '@/components/features/manage-list/EditableList';
 import { useSwipeableLock } from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableLockContext';
 import toaster from '@/infrastructure/toaster/toaster';
+import { RouterUrls } from '@/router';
 import { MODAL_INPUT_IDS } from './ScheduleFoodCreationModals';
 import s from './FoodScheduleModals.module.scss';
 
@@ -60,6 +61,11 @@ const CopyToExistingDishModal = ({ isExpanded, items, onFinish, onClose }: Props
     }
 
     // TODO: implement Triplit mutation -- copy selectedIds to selectedDishId
+
+    toaster.success('Скопировано в блюдо', selectedDishId
+      ? { action: { label: 'Открыть', href: RouterUrls.getDish(selectedDishId) } }
+      : undefined
+    );
     onFinish();
     setStep('selectDish');
     setSelectedDishId(null);

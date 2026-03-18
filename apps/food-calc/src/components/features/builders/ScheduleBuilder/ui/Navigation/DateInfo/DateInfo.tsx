@@ -6,6 +6,9 @@ import { Scalable } from '@/components/ui/Scalable';
 import { getTitle } from '@/components/features/builders/ScheduleBuilder/ui/Navigation/methods';
 import { CSSProperties } from 'react';
 import clsx from 'clsx';
+import { drawerStore } from '@/shared/ui';
+import { ScheduleSelectionDrawer } from '@/components/features/ScheduleSelection/ScheduleSelectionDrawer';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
 
 type Props = {
   scrollYProgress: MotionValue<number>;
@@ -18,6 +21,7 @@ type Props = {
 const DateInfo = ({ scrollYProgress, style, className }: Props) => {
   const params = useParams();
   const dateParam = params.id;
+  const { toScheduleBuilder } = useAppRoutes();
 
   const { day, monthName, monthNumber, weekdayName, weekdayNameShort } = getTitle(dateParam ?? '');
 
@@ -26,13 +30,21 @@ const DateInfo = ({ scrollYProgress, style, className }: Props) => {
   const shortDayNameOpacity = useTransform(scrollYProgress, [0.6, 1], [0, 1], { clamp: true });
   const shortDayNameScale = useTransform(scrollYProgress, [0.6, 1], [0, 1], { clamp: true });
 
+  const handleDateClick = async () => {
+    const selectedDate = await drawerStore.show(ScheduleSelectionDrawer, {
+      selectedDate: dateParam,
+    });
+
+    if (selectedDate) {
+      toScheduleBuilder(selectedDate);
+    }
+  };
+
   return (
     <div
       className={clsx(styles.dateLink, className)}
       style={style}
-      onClick={() => {
-        // TODO: implement date choose drawer with drawerStore.show()
-      }}
+      onClick={handleDateClick}
     >
       <motion.div className={styles.date}>
         <Scalable scrollYProgress={scrollYProgress} className={styles.dateNumbers}>

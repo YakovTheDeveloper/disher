@@ -1,18 +1,19 @@
-import { observer } from "mobx-react-lite";
-import { modalStore } from "@/shared/ui/modal-store";
+import { useModals } from "@/shared/ui/modal-store";
 
-export const ModalManagerV2 = observer(() => {
-  if (modalStore.instances.length === 0) return null;
+export const ModalManagerV2 = () => {
+  const { instances, close } = useModals();
+
+  if (instances.length === 0) return null;
 
   return (
     <>
-      {modalStore.instances.map(({ id, Component, props }) => (
+      {instances.map(({ id, Component, props }) => (
         <Component
           key={id}
           {...props}
-          onClose={(result: any) => modalStore.close(id, result)}
+          onClose={(result: any) => close(id, result)}
         />
       ))}
     </>
   );
-});
+};

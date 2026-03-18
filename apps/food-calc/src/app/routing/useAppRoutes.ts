@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router';
-import { RouterLinks, RouterUrls, getScheduleFoodUrl, getScheduleEventUrl, getScheduleAnalyticsUrl, getDishFoodDraftUrl, getProductUrl } from '@/router';
+import { RouterLinks, RouterUrls, getScheduleAnalyticsUrl, getDishFoodDraftUrl, getProductUrl } from '@/router';
 
 export interface UseAppRoutesOptions {
     fallbackUrl?: string;
@@ -17,8 +17,6 @@ export interface UseAppRoutesReturn {
     toDishFood: (id: string, childId: string) => void;
     toSchedule: () => void;
     toScheduleBuilder: (id: string) => void;
-    toScheduleFood: (id: string, childId: string) => void;
-    toScheduleEvent: (id: string, childId: string) => void;
     toScheduleAnalytics: (id: string) => void;
     toLoadData: () => void;
     toFood: () => void;
@@ -68,8 +66,6 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
     const toDishFood = (id: string, childId: string) => navigate(`/dish/${id}/food/${childId}`);
     const toScheduleDateSelection = () => navigate(RouterLinks.ScheduleDateSelection);
     const toScheduleBuilder = (id: string) => navigate(`${RouterLinks.ScheduleBuilder}/${id}`);
-    const toScheduleFood = (id: string, childId: string) => navigate(getScheduleFoodUrl(id, childId));
-    const toScheduleEvent = (id: string, childId: string) => navigate(getScheduleEventUrl(id, childId));
     const toScheduleAnalytics = (id: string) => navigate(getScheduleAnalyticsUrl(id));
     const toLoadData = () => navigate(RouterLinks.LoadData);
     const toFood = () => navigate(RouterLinks.Food);
@@ -89,8 +85,6 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
         toDishFood,
         toSchedule: toScheduleDateSelection,
         toScheduleBuilder,
-        toScheduleFood,
-        toScheduleEvent,
         toScheduleAnalytics,
         toLoadData,
         toFood,

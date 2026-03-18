@@ -11,10 +11,11 @@ function ListItemComponent<T extends ListItemBase>({
   item,
   renderListContent,
   onClick,
+  htmlFor,
 }: ListItemProps<T>) {
   return (
     <label
-      htmlFor="quantity-input"
+      htmlFor={htmlFor}
       data-index={virtualRow.index}
       className={styles.virtualItem}
       style={{

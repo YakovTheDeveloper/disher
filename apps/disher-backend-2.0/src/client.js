@@ -1,7 +1,0 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.prisma = void 0;
-var prisma_1 = require("./generated/prisma");
-var extension_accelerate_1 = require("@prisma/extension-accelerate");
-exports.prisma = new prisma_1.PrismaClient()
-    .$extends((0, extension_accelerate_1.withAccelerate)());

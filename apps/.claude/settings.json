@@ -56,7 +56,11 @@
       "Bash(node fix-unused-imports.mjs)",
       "Bash(node fix-unused.mjs)",
       "Bash(rm c:/Users/booty/Documents/GitHub/disher/apps/food-calc/fix-unused.mjs)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(netstat -ano)",
+      "Bash(npm run:*)",
+      "Bash(npm i:*)",
+      "Bash(npm show:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\booty\\Documents\\GitHub\\disher\\apps\\food-calc\\src\\pages\\swipe-test",

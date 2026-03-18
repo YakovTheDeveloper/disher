@@ -1,11 +1,10 @@
 import { triplit } from "@/api/triplit/client";
+import { getCurrentUserId } from "@/api/triplit/session";
 import { v4 as uuid } from "uuid";
-
-const getUserId = () => "1"; // TODO: replace with actual auth
 
 export async function createDailyNorm(name: string, description: string) {
   const id = uuid();
-  await triplit.insert("dailyNorms", { id, name, description, userId: getUserId() });
+  await triplit.insert("dailyNorms", { id, name, description, userId: getCurrentUserId() });
   return id;
 }
 
@@ -52,7 +51,7 @@ export async function setDailyNormNutrient(
       normId,
       nutrientId,
       quantity,
-      userId: getUserId(),
+      userId: getCurrentUserId(),
     });
   }
 }
@@ -66,7 +65,7 @@ export async function seedDefaultDailyNorm(defaults: Record<string, number>) {
     id: normId,
     name: "Стандарт",
     description: "Стандартная норма потребления, для среднестатистического человека",
-    userId: getUserId(),
+    userId: getCurrentUserId(),
   });
 
   await Promise.all(
@@ -76,7 +75,7 @@ export async function seedDefaultDailyNorm(defaults: Record<string, number>) {
         normId,
         nutrientId,
         quantity,
-        userId: getUserId(),
+        userId: getCurrentUserId(),
       }),
     ),
   );

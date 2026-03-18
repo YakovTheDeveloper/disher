@@ -16,7 +16,10 @@
 import { TriplitClient } from "@triplit/client";
 import { schema } from "../triplit/schema";
 import { readFileSync } from "fs";
-import { resolve } from "path";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const SERVICE_TOKEN =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ4LXRyaXBsaXQtdG9rZW4tdHlwZSI6InNlY3JldCIsIngtdHJpcGxpdC1wcm9qZWN0LWlkIjoibG9jYWwtcHJvamVjdC1pZCJ9.8Z76XXPc9esdlZb2b7NDC7IVajNXKc4eVcPsO7Ve0ug";
@@ -222,7 +225,8 @@ async function main() {
   await seedFoods();
   await seedDefaultDailyNorm();
 
-  console.log("\n=== Seed complete ===");
+  console.log("\n=== Seed complete, waiting for sync... ===");
+  await new Promise((r) => setTimeout(r, 5000));
   process.exit(0);
 }
 

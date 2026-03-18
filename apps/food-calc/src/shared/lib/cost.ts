@@ -1,29 +1,16 @@
 /**
  * Pure functions for cost/price calculations.
+ * All prices are stored normalised as pricePerKg (₽/kg).
  */
 
-export interface CostInfo {
-  price: number;
-  perGrams: number;
+export function pricePerGram(pricePerKg: number): number {
+  return pricePerKg / 1000;
 }
 
-export function hasCost(cost: CostInfo): boolean {
-  return cost.price > 0;
+export function pricePer100g(pricePerKg: number): number {
+  return pricePerKg / 10;
 }
 
-export function pricePerGram(cost: CostInfo): number {
-  if (cost.perGrams <= 0) return 0;
-  return cost.price / cost.perGrams;
-}
-
-export function pricePer100g(cost: CostInfo): number {
-  return pricePerGram(cost) * 100;
-}
-
-export function pricePerKg(cost: CostInfo): number {
-  return pricePerGram(cost) * 1000;
-}
-
-export function costForWeight(cost: CostInfo, grams: number): number {
-  return pricePerGram(cost) * grams;
+export function costForWeight(pricePerKg: number, grams: number): number {
+  return pricePerGram(pricePerKg) * grams;
 }

@@ -1,32 +1,16 @@
-import { observer } from 'mobx-react-lite';
 import styles from './Nutrients.module.scss';
 import { nutrientGroups } from '@/components/entities/nutrient/NutrientGroup/constants';
-import React, { useEffect } from 'react';
-import { Instance } from 'mobx-state-tree';
-import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
+import React from 'react';
 import clsx from 'clsx';
 import { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
 import treeSrc from '@/assets/decarative/tree.png';
 import tree2Src from '@/assets/decarative/tree2.png';
 
-// Groups of nutrients
-// const groups: Record<string, number[]> = {
-//   Макронутриенты: [1, 2, 3, 4, 5, 6, 7, 8],
-//   Минералы: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
-//   Витамины: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
-//   Каротиноиды: [34, 35],
-// };
-
 interface Props {
-  store?: Instance<typeof TotalNutrientsStore>;
   renderCard: (nutrientData: Nutrient) => React.ReactNode;
 }
 
-const Nutrients = ({ store, renderCard }: Props) => {
-  useEffect(() => {
-    if (!store) return;
-    console.log('new store nutrients', Array.from(store.nutrients.entries()));
-  }, [store ? Array.from(store.nutrients.entries()) : []]);
+const Nutrients = ({ renderCard }: Props) => {
 
   return (
     <div className={clsx([styles.container])}>
@@ -52,4 +36,4 @@ const Nutrients = ({ store, renderCard }: Props) => {
   );
 };
 
-export default observer(Nutrients);
+export default Nutrients;
