@@ -3,8 +3,7 @@
 // The MST model pattern (types.model + onPatch) needs to be replaced with
 // either a Zustand store or React hooks that use Triplit queries.
 
-import { reaction, runInAction, toJS } from "mobx";
-import { types, IAnyStateTreeNode, Instance, flow, onPatch } from "mobx-state-tree";
+import { types, flow, onPatch } from "mobx-state-tree";
 
 type FoodId = string
 type NutrientId = number
@@ -27,7 +26,7 @@ export const TotalNutrientsStore = types
         getValue(id: FoodId) {
             return self.nutrients.get(String(id)) ?? 0;
         },
-        getPercent(id: NutrientId) {
+        getPercent(_id: NutrientId) {
             return 0
         },
         get isOneOfProductsIsLoading() {

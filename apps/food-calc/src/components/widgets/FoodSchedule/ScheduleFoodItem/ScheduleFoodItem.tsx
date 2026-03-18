@@ -4,10 +4,8 @@ import { Quantity } from '@/components/features/builders/shared/ui/Quantity';
 import { useMemo } from 'react';
 import clsx from 'clsx';
 import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
-import { useNavigate, useParams } from 'react-router';
-import { RouterLinks } from '@/router';
 import type { ScheduleFood } from '@/entities/schedule-food';
-import { SelectionStoreType, useSelection } from '@/hooks/factoryHooks/useSelection';
+import { SelectionStoreType } from '@/hooks/factoryHooks/useSelection';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 
 type Props = {
@@ -19,43 +17,35 @@ type Props = {
   costUnit?: string;
 };
 
-const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore, showCost, costUnit = '\u20BD' }: Props) => {
+const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore, showCost }: Props) => {
   const { toScheduleFood } = useAppRoutes();
 
   const id = item.id;
-  const content = item.content;
+  // TODO: migrate to Triplit — content was an MST computed, now access flat fields
+  const content = item as any;
 
   const onFoodsOpenUpdate = () => {
     toScheduleFood(scheduleId, item.id);
   };
 
   const getVariantLabelText = () => {
-    if (content?.variant === 'product') {
-      if (content.isCustom) return '\u043A\u0430\u0441\u0442\u043E\u043C';
-      else return '\u043F\u0440\u043E\u0434\u0443\u043A\u0442';
+    if (content?.type === 'food') {
+      return '\u043F\u0440\u043E\u0434\u0443\u043A\u0442';
     }
-    if (content?.variant === 'dish') return '\u0431\u043B\u044E\u0434\u043E';
+    if (content?.type === 'dish') return '\u0431\u043B\u044E\u0434\u043E';
 
     return '';
   };
 
   const getFoodNameClassName = () => {
-    const prefix = content?.variant;
+    const prefix = content?.type;
     if (!prefix) return '';
-    return styles[`${prefix}Title`];
+    return styles[`${prefix}Title`] ?? '';
   };
 
   const afterName = useMemo(() => {
     return <p className={styles.variant}>{getVariantLabelText()}</p>;
   }, [content]);
-
-  const costText = useMemo(() => {
-    if (!showCost) return null;
-    const entity = content?.food ?? content?.dish;
-    if (!entity || !entity.hasCost) return `\u2014 ${costUnit}`;
-    const cost = entity.costForWeight(content!.quantity);
-    return `${cost.toFixed(1)} ${costUnit}`;
-  }, [showCost, content, costUnit]);
 
   const listItem = (
     <CommonListItem
@@ -66,7 +56,7 @@ const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore
       onSelect={selectionStore.toggleSelectedId}
     >
       <FoodName content={content} className={getFoodNameClassName()} onClick={onFoodsOpenUpdate} />
-      <Quantity id={id} content={content} />
+      <Quantity id={id} content={content} onClick={() => {}} hide={false} unit="г" />
       {afterName}
     </CommonListItem>
   );
@@ -76,9 +66,6 @@ const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore
   return (
     <div className={styles.costWrapper}>
       {listItem}
-      <span className={clsx(styles.cost, { [styles.cost_empty]: costText?.startsWith('\u2014') })}>
-        {costText}
-      </span>
     </div>
   );
 };

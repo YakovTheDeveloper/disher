@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { TimeGroupUI } from '@/shared/lib/schedule';
 
 type Props<T> = {
-  children: JSX.Element;
+  children: React.ReactNode;
   group: TimeGroupUI<T>;
   renderAside?: (group: TimeGroupUI<T>) => JSX.Element | null;
   onTimeClick?: (group: TimeGroupUI<T>) => void;

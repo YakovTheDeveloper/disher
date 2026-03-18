@@ -48,7 +48,7 @@ const ListDishes = () => {
   return (
     <Screen offsetTop bottomRight={<AddButton onClick={onAdd} />} actions={<></>}>
       <FilterListLayout
-        filterPanel={<FilterPanel selectedFilters={['breakfast']} columns={filterColumns} />}
+        filterPanel={<FilterPanel selectedFilters={['breakfast']} columns={filterColumns} onFilterChange={() => {}} />}
         searchPanel={
           <SearchInput
             wrapperClassName={styles.searchWrapper}

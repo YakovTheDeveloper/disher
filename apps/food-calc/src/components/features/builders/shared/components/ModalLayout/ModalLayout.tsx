@@ -2,7 +2,6 @@ import { observer } from 'mobx-react-lite';
 import styles from './ModalLayout.module.scss';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
-import { useKeyboardDetection } from '../DrawerLayout/useKeyboardDetection';
 import * as Dialog from '@radix-ui/react-dialog';
 
 type Props = {

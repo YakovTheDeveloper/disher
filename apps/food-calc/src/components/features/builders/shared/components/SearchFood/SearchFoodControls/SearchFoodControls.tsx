@@ -1,16 +1,12 @@
 import { observer } from 'mobx-react-lite';
-import { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
+import { useRef } from 'react';
 import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
 
 import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
-import { emitter } from '@/infrastructure/emitter/emitter';
 import { UseFilteringStateV2Return } from '@/components/features/shared/hooks/useFilteringStateV2';
-import { ButtonBack } from '@/components/ui/atoms/Button/ButtonBack';
 import TextBehind from '@/components/ui/TextBehind/TextBehind';
 import { SearchMode } from '@/components/features/builders/shared/components/SearchFood/SearchFood';
-
-type Tabs = 'продукты' | 'блюда';
 
 type Props = {
   searchState: UseFilteringStateV2Return;

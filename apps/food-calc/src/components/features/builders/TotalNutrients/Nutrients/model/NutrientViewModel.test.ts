@@ -1,7 +1,7 @@
 // TODO: full rewrite needed — tests relied on MST stores (FoodModelStore, DailyNormModelStore, DailyNormsStoreUI)
 // These need to be rewritten once the NutrientViewModelStore is migrated to Triplit.
 
-import { describe, it, expect } from "vitest";
+import { describe, it } from "vitest";
 
 describe("NutrientViewModelStore", () => {
     it.todo("calculates sums correctly");

@@ -1,4 +1,4 @@
-import { useState, FC } from 'react';
+import { FC, useState } from 'react';
 import clsx from 'clsx';
 import { BrandMark } from '@/components/ui/BrandMark';
 import Button from '@/components/ui/atoms/Button/Button';
@@ -53,7 +53,7 @@ const ChangeName: FC<Props> = ({ entity, canRename = true }) => {
         </div>
       )}
       <div className={s.nameRow} onClick={handleNameClick}>
-        <Typography variant="entity-title">{entity.name}</Typography>
+        <Typography variant="feature-title">{entity.name}</Typography>
       </div>
     </>
   );

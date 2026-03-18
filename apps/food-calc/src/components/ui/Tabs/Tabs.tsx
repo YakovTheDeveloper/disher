@@ -1,8 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Tabs.module.scss';
 import clsx from 'clsx';
-import InfoIcon from '@/assets/icons/cirlceInfo.svg';
-
 export type Tab = {
   value: string;
   label?: string;

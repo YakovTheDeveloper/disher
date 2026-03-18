@@ -7,7 +7,6 @@ import { createProduct } from '@/entities/product';
 import { createDish } from '@/entities/dish';
 import { RouterLinks } from '@/router';
 import { useNavigate } from 'react-router';
-import { DrawerProps } from '@/types/common/drawer.v2';
 
 type EntityType = 'product' | 'dish';
 
@@ -16,7 +15,8 @@ const tabs: Tab[] = [
   { value: 'dish', label: 'Блюдо', alternativeLabel: 'Блюдо' },
 ];
 
-interface FoodAddDrawerProps extends DrawerProps {
+interface FoodAddDrawerProps {
+  onClose: () => void;
   defaultTab?: EntityType;
 }
 
@@ -45,7 +45,6 @@ const FoodAddDrawer = ({
         tabs={tabs}
         current={activeTab}
         setTab={(tab) => setActiveTab(tab as EntityType)}
-        variant="foodCreate"
       />
       <FormCreateEntityWithName title={title} buttonText="Создать" onFinish={handleCreate} />
     </DrawerLayout>

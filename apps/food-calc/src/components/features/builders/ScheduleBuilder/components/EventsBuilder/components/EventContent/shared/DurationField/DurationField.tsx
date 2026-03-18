@@ -1,8 +1,8 @@
-import React from 'react';
 import styles from './DurationField.module.scss';
 import clsx from 'clsx';
 import { useLocalObservable } from 'mobx-react-lite';
-import { ContentEdit } from '@/components/features/builders/shared/ContentEdit';
+// TODO: migrate to Triplit — ContentEdit.Time was removed
+// import { ContentEdit } from '@/components/features/builders/shared/ContentEdit';
 
 type Props = {
   value: string; // "HH:MM" format
@@ -19,11 +19,12 @@ const DurationField = ({ value, onChange, className }: Props) => {
     },
   }));
 
-  const onFinish = () => {};
+  void onChange;
 
   return (
     <div className={clsx(styles.container, className)}>
-      <ContentEdit.Time timeState={timeState} onFinish={onFinish} asLongetivity={true} />
+      {/* TODO: migrate to Triplit — ContentEdit.Time was removed */}
+      <div>{timeState.localTime}</div>
     </div>
   );
 };

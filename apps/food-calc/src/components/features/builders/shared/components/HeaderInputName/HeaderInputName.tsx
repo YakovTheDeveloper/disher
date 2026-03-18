@@ -1,4 +1,3 @@
-import { MotionValue } from 'framer-motion';
 import EditableText from '@/components/ui/atoms/EditableText/EditableText';
 import styles from './HeaderInputName.module.scss';
 import { Scalable } from '@/components/ui/Scalable';
@@ -19,7 +18,7 @@ const HeaderInputName = ({ entity, asInput }: Props) => {
   return (
     <Scalable scrollYProgress={scrollYProgress} className={styles.HeaderInputName}>
       {!asInput ? (
-        <Typography>{entity?.name || ''}</Typography>
+        <Typography variant="custom">{entity?.name || ''}</Typography>
       ) : (
         <EditableText
           value={entity?.name || ''}

@@ -34,7 +34,7 @@ export function useTooltip({
     placement = "top",
     open: controlledOpen,
     onOpenChange: setControlledOpen,
-    isDismiss = true,
+    isDismiss: _isDismiss = true,
     isHover = false,
     isFocus = false,
     isClick = false

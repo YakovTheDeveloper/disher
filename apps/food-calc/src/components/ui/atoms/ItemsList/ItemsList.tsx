@@ -1,7 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import styles from './ItemsList.module.scss';
-import { useEffect, useRef } from 'react';
-import { emitter } from '@/infrastructure/emitter/emitter';
+import { useRef } from 'react';
 import clsx from 'clsx';
 
 type Props = {

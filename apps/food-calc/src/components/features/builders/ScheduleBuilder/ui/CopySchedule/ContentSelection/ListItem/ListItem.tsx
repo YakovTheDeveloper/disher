@@ -2,8 +2,11 @@ import { observer } from 'mobx-react-lite';
 import styles from './ListItem.module.scss';
 import commonListStyles from '@/components/blocks/builders/food/shared/ui/CommonListItem/CommonListItem.module.scss';
 import listItemStyles from '../../../List/Item/Item.module.scss';
-import { DayScheduleItemUI } from '@/components/features/builders/ScheduleBuilder/model/ScheduleBuilderViewModel';
+// TODO: migrate to Triplit — DayScheduleItemUI from ScheduleBuilderViewModel was removed
+// import { DayScheduleItemUI } from '@/components/features/builders/ScheduleBuilder/model/ScheduleBuilderViewModel';
 import clsx from 'clsx';
+
+type DayScheduleItemUI = any;
 
 type Props = {
   children?: React.ReactNode;

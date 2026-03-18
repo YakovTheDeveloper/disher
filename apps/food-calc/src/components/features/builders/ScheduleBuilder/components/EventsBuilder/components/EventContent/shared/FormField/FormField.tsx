@@ -4,7 +4,7 @@ type Props = {
   children: React.ReactNode;
 }
 
-const FormField = ({ children }: Props) => {
+const FormField = ({}: Props) => {
   return (
     <div className={styles.container}>FormField</div>
   )

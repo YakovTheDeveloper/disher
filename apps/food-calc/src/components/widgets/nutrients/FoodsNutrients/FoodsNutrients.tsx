@@ -13,16 +13,17 @@ import {
   FilterNutrientCardWrapper,
 } from '@/components/features/nutrients/filter-nutrients';
 import { OpenRichFood } from '@/components/features/food/open-rich-food';
-import styles from './FoodsNutrients.module.scss';
+import './FoodsNutrients.module.scss';
 import { Ornament } from '@/components/ui/Ornament';
 import type { ScheduleFood } from '@/entities/schedule-food';
+import type { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
 
 type Props = {
   items: ScheduleFood[];
   after?: React.ReactNode;
 };
 
-const FoodsNutrients = ({ items, after }: Props) => {
+const FoodsNutrients = ({ items: _items, after }: Props) => {
   const filter = useFilterNutrients();
   const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);
   // TODO: migrate — TotalNutrientsStore.setEntity expects an MST schedule model.
@@ -37,14 +38,7 @@ const FoodsNutrients = ({ items, after }: Props) => {
   );
 
   const renderCard = useCallback(
-    (nutrientData: {
-      id: string;
-      name: string;
-      displayName: string;
-      displayNameRu: string;
-      unit: string;
-      unitRu: string;
-    }) => (
+    (nutrientData: Nutrient) => (
       <FilterNutrientCardWrapper
         isHidden={filter.isHidden(nutrientData.id)}
         filterMode={filter.filterMode}
@@ -69,6 +63,7 @@ const FoodsNutrients = ({ items, after }: Props) => {
 
   return (
     <Screen
+      offsetTop
       bottomRight={<FilterButton onClick={filter.toggleFilterMode} isActive={filter.filterMode} />}
       actions={
         filter.filterMode ? (
@@ -88,8 +83,6 @@ const FoodsNutrients = ({ items, after }: Props) => {
 
       <Nutrients
         store={nutrientStore}
-        renderOverlay={renderOverlay}
-        asControlledForm={false}
         renderCard={renderCard}
       />
 

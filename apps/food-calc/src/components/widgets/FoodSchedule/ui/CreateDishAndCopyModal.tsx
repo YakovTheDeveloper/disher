@@ -8,9 +8,9 @@ import { TextInput } from '@/components/ui/atoms/input/TextInput';
 import toaster from '@/infrastructure/toaster/toaster';
 import { isEmpty } from 'lodash';
 import { useSwipeableLock } from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableLockContext';
+import { MODAL_INPUT_IDS } from './ScheduleFoodCreationModals';
 import s from './FoodScheduleModals.module.scss';
-
-type FoodContentProductInstance = any; // product content with name, foodId, quantity
+import { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 
 type Step = 'idle' | 'name' | 'products';
 
@@ -23,10 +23,7 @@ const STEP_LABELS: Record<Exclude<Step, 'idle'>, string> = {
 
 type Props = {
   isExpanded: boolean;
-  items: {
-    id: string;
-    contentProduct: FoodContentProductInstance;
-  }[];
+  items: ScheduleFoodWithRelations[];
   onFinish: () => void;
   onClose: () => void;
 };
@@ -48,7 +45,7 @@ const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props)
   };
 
   const handleNameNext = () => {
-    const nameInput = document.getElementById('dish-name-input') as HTMLInputElement;
+    const nameInput = document.getElementById(MODAL_INPUT_IDS.DISH_NAME_INPUT) as HTMLInputElement;
     const name = nameInput?.value?.trim();
     if (!name) {
       toaster.error('Введите название блюда');
@@ -58,7 +55,7 @@ const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props)
   };
 
   const handleConfirm = () => {
-    const nameInput = document.getElementById('dish-name-input') as HTMLInputElement;
+    const nameInput = document.getElementById(MODAL_INPUT_IDS.DISH_NAME_INPUT) as HTMLInputElement;
     const name = nameInput?.value?.trim();
 
     if (!name) {
@@ -74,12 +71,7 @@ const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props)
       return;
     }
 
-    const finalContent = items
-      .filter(({ id }) => selectedIds.asSet.has(id))
-      .map(({ contentProduct }) => contentProduct);
-
     // TODO: implement Triplit mutation -- create dish with products
-    const dishId = '';
 
     toaster.success(`Блюдо "${name}" создано`);
     onFinish();
@@ -89,7 +81,7 @@ const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props)
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
     const id = target.id;
-    if (id === 'dish-name-input') setStep('name');
+    if (id === MODAL_INPUT_IDS.DISH_NAME_INPUT) setStep('name');
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -147,7 +139,7 @@ const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props)
             <div className={s.content}>
               <h2>Как назовёте блюдо?</h2>
               <TextBehind text="Блюдо">
-                <TextInput id="dish-name-input" maxLength={255} />
+                <TextInput id={MODAL_INPUT_IDS.DISH_NAME_INPUT} maxLength={255} />
               </TextBehind>
               <div className={s.finishButton}>
                 <button className={s.nextButton} onClick={handleNameNext}>
@@ -171,11 +163,12 @@ const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props)
               <EditableList
                 ref={editableListRef}
                 items={items}
-                renderItem={(item) => item.contentProduct.name}
+                renderItem={(item) => (item as any).food?.name ?? '—'}
               />
               <LabeledCheckbox
                 ref={swapCheckboxRef}
                 label="Заменить выбранные продукты на новое блюдо"
+                onChange={() => {}}
               />
               <div className={s.finishButton}>
                 <button className={s.nextButton} onClick={handleConfirm}>

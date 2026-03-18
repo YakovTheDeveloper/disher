@@ -13,7 +13,7 @@ import { useUserAgentDetection } from '@/hooks/useUserAgentDetection';
 import { useGlobalScrollBlur } from '@/hooks/useGlobalScrollBlur';
 import DrawerManagerV3 from '@/components/DrawerManagerV3';
 import { I18nextProvider } from 'react-i18next';
-import '@/i18n';
+import i18n from '@/i18n';
 
 const queryClient = new QueryClient();
 
@@ -24,7 +24,7 @@ export default function App() {
   setupGlobalLog();
 
   return (
-    <I18nextProvider>
+    <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
         <Toaster />
         <div className={s.main}>

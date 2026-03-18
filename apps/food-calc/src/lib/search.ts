@@ -63,7 +63,7 @@ export function fuzzySearch<T extends Record<string, any>>(
     }
 
     // Fuse.js configuration for optimal performance and accuracy
-    const fuseOptions: Fuse.IFuseOptions<T> = {
+    const fuseOptions: ConstructorParameters<typeof Fuse<T>>[1] = {
         keys: searchOptions.weights
             ? Object.entries(searchOptions.weights).map(([key, weight]) => ({ name: key, weight }))
             : searchOptions.keys,
@@ -77,8 +77,7 @@ export function fuzzySearch<T extends Record<string, any>>(
         isCaseSensitive: false,
         ignoreFieldNorm: false,
         useExtendedSearch: false,
-        tokenize: true,
-        matchAllTokens: true,
+        // tokenize and matchAllTokens removed in Fuse.js v6
     };
 
     const fuse = new Fuse(filteredItems, fuseOptions);

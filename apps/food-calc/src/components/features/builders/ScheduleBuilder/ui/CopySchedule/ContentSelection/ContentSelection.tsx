@@ -1,20 +1,23 @@
-import { observer, useLocalObservable } from 'mobx-react-lite';
+import { observer } from 'mobx-react-lite';
 import styles from './ContentSelection.module.scss';
-import {
-  DayScheduleItemCopyPayloadUI,
-  DayScheduleItemUI,
-  TimeGroupUI,
-} from '@/components/features/builders/ScheduleBuilder/model/ScheduleBuilderViewModel';
-import { InitLoadingStore } from '@/components/features/builders/ScheduleBuilder/model/InitLoadingStore';
-import { debounce } from '@/lib/debounce';
-import { useMemo, useEffect, useCallback } from 'react';
+// TODO: migrate to Triplit — ScheduleBuilderViewModel was removed
+// import {
+//   DayScheduleItemUI,
+//   TimeGroupUI,
+// } from '@/components/features/builders/ScheduleBuilder/model/ScheduleBuilderViewModel';
+// TODO: migrate to Triplit — InitLoadingStore was removed
+// import { InitLoadingStore } from '@/components/features/builders/ScheduleBuilder/model/InitLoadingStore';
+import { useEffect, useCallback } from 'react';
 import { ISODate } from '@/types/common/common';
 import { TimeGroup } from '@/components/features/builders/ScheduleBuilder/components/List/TimeGroup';
-import { FoodName } from '@/components/features/builders/shared/ui/FoodName';
 import { ListItem } from './ListItem';
 import { useSelectStore } from '@/components/features/builders/ScheduleBuilder/ui/CopySchedule/ContentSelection/useSelectStore';
 import { Actions } from '@/components/features/builders/shared/ui/Actions';
 import { Buttons } from '@/components/features/builders/shared/ui/Actions/button';
+
+// TODO: migrate to Triplit — replace DayScheduleItemUI / TimeGroupUI with Triplit entity types
+type DayScheduleItemUI = any;
+type TimeGroupUI = any;
 
 type Props = {
   children?: React.ReactNode;
@@ -23,27 +26,17 @@ type Props = {
 };
 
 const ContentSelection = ({ date, onFinish }: Props) => {
-  const store = useMemo(() => new InitLoadingStore(), []);
-  const items = useMemo(() => store.initData?.itemsGroupedByTime || null, [store.initData]);
+  // TODO: migrate to Triplit — InitLoadingStore was removed, use Triplit queries instead
+  // const store = useMemo(() => new InitLoadingStore(), []);
+  // const items = useMemo(() => store.initData?.itemsGroupedByTime || null, [store.initData]);
+  const items: TimeGroupUI[] | null = null as TimeGroupUI[] | null;
 
   const selectStore = useSelectStore();
 
-  const onInit = useMemo(
-    () =>
-      debounce((date: string) => {
-        store.onInit(date);
-      }, 500),
-    [store]
-  );
-
   useEffect(() => {
-    store.reset();
-    onInit(date);
-
-    return () => {
-      onInit.cancel();
-    };
-  }, [date, onInit]);
+    // TODO: migrate to Triplit — trigger data loading via Triplit query
+    void date;
+  }, [date]);
 
   const renderItem = useCallback((item: DayScheduleItemUI) => {
     return <ListItem key={item.id} item={item} store={selectStore} />;
@@ -63,9 +56,9 @@ const ContentSelection = ({ date, onFinish }: Props) => {
       <h2>Выберите</h2>
       {items && (
         <ul className={styles.list}>
-          {items.map((group) => (
+          {items.map((group: TimeGroupUI) => (
             <TimeGroup key={group.time} group={group} renderAside={renderAside}>
-              {renderItem}
+              <>{group.items?.map((item: DayScheduleItemUI) => renderItem(item))}</>
             </TimeGroup>
           ))}
         </ul>

@@ -4,7 +4,7 @@ type Props = {
   children: React.ReactNode;
 }
 
-const EventSchedule = ({ children }: Props) => {
+const EventSchedule = ({ children: _children }: Props) => {
   return (
     <div className={styles.container}>EventSchedule</div>
   )

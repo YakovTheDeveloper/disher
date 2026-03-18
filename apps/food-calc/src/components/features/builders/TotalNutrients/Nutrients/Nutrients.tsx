@@ -1,43 +1,17 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Nutrients.module.scss';
-import { nutrientGroups } from '@/components/entities/nutrient/NutrientGroup/constants';
+import { nutrientGroups, Nutrient, getNutrientColumn } from '@/components/entities/nutrient/NutrientGroup/constants';
 import { useEffect } from 'react';
-import ChangeProductNutrientValue from '@/components/features/product/change-product-nutrient-value/ChangeProductNutrientValue';
 import { Instance } from 'mobx-state-tree';
 import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
-import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import clsx from 'clsx';
-import NutrientCardV2 from '@/components/entities/nutrient/NutrientCard/NutrientCardV2';
-import { getNutrientColumn } from '@/components/entities/nutrient/NutrientGroup/constants/columnMapping';
 
-// Groups of nutrients
-// const groups: Record<string, number[]> = {
-//   Макронутриенты: [1, 2, 3, 4, 5, 6, 7, 8],
-//   Минералы: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
-//   Витамины: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
-//   Каротиноиды: [34, 35],
-// };
-
-interface CommonProps {
-  renderOverlay?: (percent: string) => React.ReactNode;
+interface Props {
   store: Instance<typeof TotalNutrientsStore>;
+  renderCard: (nutrientData: Nutrient) => React.ReactNode;
 }
 
-type ConditionalProps =
-  | {
-      asControlledForm: true;
-      onChange: (value: number, nutrientId: string) => void;
-      getValue: (id: string) => number;
-    }
-  | {
-      asControlledForm: false;
-      onChange?: never;
-      getValue?: never;
-    };
-
-type Props = CommonProps & ConditionalProps;
-
-const Nutrients = ({ store, renderOverlay, onChange, asControlledForm, getValue }: Props) => {
+const Nutrients = ({ store, renderCard }: Props) => {
   useEffect(() => {
     console.log('new store nutrients', Array.from(store.nutrients.entries()));
   }, [Array.from(store.nutrients.entries())]);
@@ -45,49 +19,22 @@ const Nutrients = ({ store, renderOverlay, onChange, asControlledForm, getValue 
   return (
     <div className={clsx([styles.container])}>
       {nutrientGroups.map(({ content, displayName: groupName }) => {
+        const column1 = content.filter((n) => getNutrientColumn(n.id) === 1);
+        const column2 = content.filter((n) => getNutrientColumn(n.id) === 2);
+
         return (
           <div key={groupName} className={styles.group}>
             <h3 className={styles.groupTitle}>{groupName}</h3>
             <div className={clsx([styles.groupContent])}>
               <div className={clsx(styles.column, styles.columnFirst)}>
-                {column1.map((nutrientData) =>
-                  asControlledForm ? (
-                    <ChangeProductNutrientValue
-                      key={nutrientData.id}
-                      onChange={onChange}
-                      content={nutrientData}
-                      getValue={getValue}
-                      renderOverlay={renderOverlay}
-                    />
-                  ) : (
-                    <NutrientCardV2
-                      key={nutrientData.id}
-                      content={nutrientData}
-                      getValue={store.getValue}
-                      renderOverlay={renderOverlay}
-                    />
-                  )
-                )}
+                {column1.map((nutrientData) => (
+                  <div key={nutrientData.id}>{renderCard(nutrientData)}</div>
+                ))}
               </div>
               <div className={clsx(styles.column, styles.columnShifted)}>
-                {column2.map((nutrientData) =>
-                  asControlledForm ? (
-                    <ChangeProductNutrientValue
-                      key={nutrientData.id}
-                      onChange={onChange}
-                      content={nutrientData}
-                      getValue={getValue}
-                      renderOverlay={renderOverlay}
-                    />
-                  ) : (
-                    <NutrientCardV2
-                      key={nutrientData.id}
-                      content={nutrientData}
-                      getValue={store.getValue}
-                      renderOverlay={renderOverlay}
-                    />
-                  )
-                )}
+                {column2.map((nutrientData) => (
+                  <div key={nutrientData.id}>{renderCard(nutrientData)}</div>
+                ))}
               </div>
             </div>
           </div>

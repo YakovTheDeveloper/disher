@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router';
-import type { ScheduleEvent } from '@/entities/schedule-event';
 import { ScheduleFoodCommonForm } from '@/components/features/builders/ScheduleBuilder/components/layout/ScheduleItemCommonForm';
 import Button from '@/components/ui/atoms/Button/Button';
 import style from './ScheduleEventsAdd.module.scss';
@@ -27,16 +26,8 @@ const ScheduleEventsAdd = (props: ScheduleEventsAddProps) => {
   const handleTimeFinish = (time: string) => {
     currentChild.updateTime(time);
     // Auto-scroll to next section
-    document.activeElement?.blur(); // Dismiss keyboard on mobile
+    (document.activeElement as HTMLElement)?.blur(); // Dismiss keyboard on mobile
     scrollToElement('schedule-item-form', 'event-type-section', { behavior: 'auto', delay: 100 });
-  };
-
-  const handleEventTypeFinish = () => {
-    scrollToElement('schedule-item-form', 'value-section', { behavior: 'smooth' });
-  };
-
-  const handleValueFinish = () => {
-    handleFinish();
   };
 
   const onTextChange = (value: string) => {

@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './NumberInput.module.scss';
 import clsx from 'clsx';
@@ -37,14 +37,12 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
       disabled,
       bottom,
     },
-    ref
+    _ref
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
-    useImperativeHandle(ref, () => inputRef.current!, []);
-
     const handleBlur = () => {
-      onBlur?.();
+      onBlur?.(value);
     };
 
     const handleFocus = () => {

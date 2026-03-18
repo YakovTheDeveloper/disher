@@ -1,19 +1,23 @@
 import { observer } from 'mobx-react-lite';
 import styles from './ModalPhysicalActivityPulse.module.scss';
 import { emitter } from '@/infrastructure/emitter/emitter';
-import { ExercisePulse } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/EventContent/ActivityContent/ExercisePulse';
+// TODO: migrate to Triplit — ExercisePulse module was removed
+// import { ExercisePulse } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/EventContent/ActivityContent/ExercisePulse';
 type Props = {
   children: React.ReactNode;
 };
 
-const ModalPhysicalActivityPulse = ({ children }: Props) => {
+const ModalPhysicalActivityPulse = ({}: Props) => {
   const onFinish = (currentCount: string) => {
-    emitter.emit('EXERCISE_RESULT', currentCount);
+    // TODO: migrate to Triplit — EXERCISE_RESULT event was removed
+    emitter.emit('HIGHLIGHT_ITEM', { id: currentCount });
   };
 
   return (
     <div className={styles.ModalPhysicalActivityPulse}>
-      <ExercisePulse onFinish={onFinish} />
+      {/* TODO: migrate to Triplit — ExercisePulse was removed */}
+      {/* <ExercisePulse onFinish={onFinish} /> */}
+      <p>ExercisePulse placeholder (onFinish: {typeof onFinish})</p>
     </div>
   );
 };

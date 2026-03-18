@@ -26,7 +26,7 @@ const variants = {
   },
 };
 
-const WizardStep = ({ children, stepKey, helpButton }: Props) => {
+const WizardStep = ({ children, stepKey, helpButton: _helpButton }: Props) => {
   return (
     <div className={styles.wizardWrapper}>
       <AnimatePresence initial={false} mode="popLayout">

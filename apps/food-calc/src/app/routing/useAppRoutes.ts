@@ -75,7 +75,7 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
     const toFood = () => navigate(RouterLinks.Food);
     const toUserProduct = (id: string) => navigate(`${RouterLinks.UserProduct}/${id}`);
     const toProduct = (id: string) => navigate(getProductUrl(id));
-    const toTest = () => navigate(RouterLinks.Test2);
+    const toTest = () => navigate(RouterLinks.Root);
 
     return {
         navigate,

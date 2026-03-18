@@ -1,10 +1,8 @@
-import { useNavigate } from 'react-router';
 import { useState } from 'react';
 import {
   SearchFood,
   SearchFoodButton,
 } from '@/components/features/builders/shared/components/SearchFood';
-import { ContentEdit } from '@/components/features/builders/shared/ContentEdit';
 import style from './ScheduleFood.module.scss';
 import Button from '@/components/ui/atoms/Button/Button';
 import { ScheduleFoodCommonForm } from '@/components/features/builders/ScheduleBuilder/components/layout/ScheduleItemCommonForm';
@@ -13,13 +11,14 @@ import { SearchFormExpandable } from '@/components/features/shared/components/Se
 import { TimeChoose } from '@/components/ui/TimeChoose';
 import { useEmitter } from '@/hooks/useEmitter';
 import type { ScheduleFood as ScheduleFoodType } from '@/entities/schedule-food';
+import { updateScheduleFood } from '@/entities/schedule-food';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { scrollToElement } from '@/lib/scroll';
 
 interface ScheduleFoodProps {
   scheduleChildItem: ScheduleFoodType;
   parentScheduleId: string; // DD-MM-YYYY format, e.g. "15-09-2024"
-  scheduleStore?: any; // TODO: replace with Triplit mutation hooks
+  scheduleStore?: any; // TODO: migrate to Triplit — replace with Triplit mutation hooks
 }
 
 const ScheduleFoodComponent = (props: ScheduleFoodProps) => {
@@ -31,14 +30,26 @@ const ScheduleFoodComponent = (props: ScheduleFoodProps) => {
   const { parentScheduleId, scheduleChildItem: currentChild, scheduleStore } = props;
 
   const handleTimeFinish = (time: string) => {
-    currentChild.updateTime(time);
+    // TODO: migrate to Triplit — use updateScheduleFood for non-draft items
+    updateScheduleFood(currentChild.id, { time });
     // Auto-scroll to next section
     // Delay scroll to allow keyboard to dismiss and viewport to settle
     scrollToElement('schedule-item-form', 'food-section', { behavior: 'auto', delay: 100 });
   };
 
   const onFoodAdd = (payload: { variant: 'dish' | 'product'; id: string }) => {
-    currentChild.update(payload.variant, payload.id);
+    // TODO: migrate to Triplit — update food/dish reference
+    const updates: Parameters<typeof updateScheduleFood>[1] = {};
+    if (payload.variant === 'dish') {
+      updates.type = 'dish';
+      updates.dishId = payload.id;
+      updates.foodId = null;
+    } else {
+      updates.type = 'food';
+      updates.foodId = payload.id;
+      updates.dishId = null;
+    }
+    updateScheduleFood(currentChild.id, updates);
     setIsSearchExpanded(false);
   };
 
@@ -49,11 +60,7 @@ const ScheduleFoodComponent = (props: ScheduleFoodProps) => {
     toScheduleBuilder(parentScheduleId);
   };
 
-  const handleQuantityFinish = () => {
-    // handleFinish();
-  };
-
-  useEmitter('back', () => setIsSearchExpanded(false));
+  useEmitter('HIGHLIGHT_ITEM', () => setIsSearchExpanded(false));
 
   return (
     <ScheduleFoodCommonForm
@@ -86,24 +93,19 @@ const ScheduleFoodComponent = (props: ScheduleFoodProps) => {
                 </span>
               }
               placeholder="Добавить продукт или блюдо"
-              chosenFoodTitle={currentChild.content?.name}
             />
           }
           content={
             <SearchFood
               mode="products-and-dishes"
               onFinish={onFoodAdd}
-              currentDishId={currentChild.content?.dishId}
-              currentProductId={currentChild.content?.foodId}
+              currentDishId={currentChild.dishId}
+              currentProductId={currentChild.foodId}
             />
           }
         ></SearchFormExpandable>
       </div>
-      {currentChild.content && (
-        <div className={style.section} id="quantity-section">
-          <ContentEdit.Quantity content={currentChild.content} onFinish={handleQuantityFinish} />
-        </div>
-      )}
+      {/* TODO: migrate to Triplit — ContentEdit.Quantity needs content object adaptation */}
     </ScheduleFoodCommonForm>
   );
 };

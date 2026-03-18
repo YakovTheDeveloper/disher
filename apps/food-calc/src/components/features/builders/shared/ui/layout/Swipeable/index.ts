@@ -1,1 +1,1 @@
-export { default as Swipeable } from "./Swipeable.tsx";
+export { default as Swipeable } from "./SwipeableV2";

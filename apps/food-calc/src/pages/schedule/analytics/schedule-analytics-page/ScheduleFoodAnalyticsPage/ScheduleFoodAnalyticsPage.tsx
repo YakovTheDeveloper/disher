@@ -7,7 +7,8 @@ import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { Button } from '@/components/ui/atoms/Button';
 import styles from './ScheduleFoodAnalyticsPage.module.scss';
-import { useFoodScheduleStore } from '@/app/stores/helpers';
+// TODO: migrate to Triplit — useFoodScheduleStore removed
+const useFoodScheduleStore = () => null as any;
 import toaster from '@/infrastructure/toaster/toaster';
 
 const port = Number(import.meta.env.VITE_PORT) || 3000;
@@ -207,7 +208,7 @@ const Page = ({ scheduleFood }: { scheduleFood: any }) => {
   const remarkPlugins = useMemo(() => [remarkGfm], []);
 
   return (
-    <Screen title={<ScreenLabel variant="screenHeader">Аналитика питания</ScreenLabel>}>
+    <Screen offsetTop title={<ScreenLabel variant="screenHeader">Аналитика питания</ScreenLabel>}>
       <div className={styles.container}>
         {/* Toolbar */}
         {(hasContent || isActive) && (

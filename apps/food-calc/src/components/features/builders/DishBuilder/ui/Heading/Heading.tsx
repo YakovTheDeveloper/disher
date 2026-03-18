@@ -18,7 +18,7 @@ const Heading = ({ store }: Props) => {
     }
   }, []);
 
-  const onChange = (e) => {
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('heading e', e.target.value);
     store.updateName(e.target.value);
   };

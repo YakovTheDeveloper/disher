@@ -4,12 +4,10 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useEffect,
-  useRef,
 } from 'react';
 
 import useEmblaCarousel from 'embla-carousel-react';
 import styles from './SwipeableV2.module.scss';
-import WeatherBackground from '@/components/features/WeatherBackground/WeatherBacground';
 import { SwipeableLockContext } from './SwipeableLockContext';
 export type SwipeableRef = {
   goToPage: (index: number) => void;

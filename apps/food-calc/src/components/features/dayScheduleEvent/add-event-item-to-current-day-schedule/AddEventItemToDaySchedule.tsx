@@ -1,14 +1,13 @@
 import { useCallback, useState } from 'react';
 import clsx from 'clsx';
 import { useSwipeableLock } from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableLockContext';
-import { Instance } from 'mobx-state-tree';
 import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
+import type { ScheduleEvent } from '@/entities/schedule-event';
 import { TimeChoose } from '@/components/ui/TimeChoose';
 import { addScheduleEvent } from '@/entities/schedule-event';
 import Button from '@/components/ui/atoms/Button/Button';
 import Textarea from '@/components/ui/atoms/Textarea/Textarea';
 import { AtomBuilder } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/AtomBuilder';
-import { ScheduleEvent } from '@/entities/schedule-event';
 import s from './AddEventItemToDaySchedule.module.scss';
 
 export type Step = 'idle' | 'time' | 'text' | 'atoms';
@@ -44,7 +43,7 @@ const createEmptyDraft = (): DraftState => ({
 type Props = {
   scheduleId: string;
   /** If provided, edit an existing event instead of the draft */
-  event?: Instance<typeof ScheduleEvent>;
+  event?: ScheduleEvent;
   /** Open directly at a specific step */
   initialStep?: Exclude<Step, 'idle'>;
   /** Called when the modal should close (edit mode) */
@@ -61,12 +60,24 @@ const AddEventItemToDaySchedule = ({ scheduleId, event, initialStep, onClose }: 
   );
   useSwipeableLock(step !== 'idle');
 
-  const target = event ?? {
-    time: draft.time,
-    text: draft.text,
-    updateTime: (time: string) => setDraft((prev) => ({ ...prev, time })),
-    setText: (text: string) => setDraft((prev) => ({ ...prev, text })),
-  };
+  const target: {
+    time: string;
+    text: string;
+    updateTime: (time: string) => void;
+    setText: (text: string) => void;
+  } = event
+    ? {
+        time: event.time,
+        text: event.text,
+        updateTime: (_time: string) => { /* TODO: migrate to Triplit — update event time */ },
+        setText: (_text: string) => { /* TODO: migrate to Triplit — update event text */ },
+      }
+    : {
+        time: draft.time,
+        text: draft.text,
+        updateTime: (time: string) => setDraft((prev) => ({ ...prev, time })),
+        setText: (text: string) => setDraft((prev) => ({ ...prev, text })),
+      };
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const el = e.target as HTMLElement;
@@ -97,7 +108,7 @@ const AddEventItemToDaySchedule = ({ scheduleId, event, initialStep, onClose }: 
       return;
     }
     await addScheduleEvent({
-      scheduleId,
+      date: scheduleId,
       time: draft.time,
       text: draft.text,
     });
@@ -240,7 +251,7 @@ const AddEventItemToDaySchedule = ({ scheduleId, event, initialStep, onClose }: 
             <div className={s.spacer} />
             <div className={s.content}>
               <div id="event-atoms" tabIndex={-1}>
-                <AtomBuilder event={target} onEventChange={() => {}} />
+                <AtomBuilder event={target as any} onEventChange={() => {}} />
               </div>
               <div className={s.finishButton}>
                 <Button variant="primary" onClick={handleCommit}>

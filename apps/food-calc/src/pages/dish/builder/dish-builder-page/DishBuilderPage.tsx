@@ -1,15 +1,10 @@
 import { DishBuilder } from '@/components/features/builders/DishBuilder';
-import { ModalDishProvider } from '@/components/features/builders/DishBuilder/modalContext';
 import type { Dish } from '@/entities/dish';
-import { RouterLinks } from '@/router';
-import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useParams } from 'react-router';
 
 type Props = {};
 
 const Page = ({}: Props) => {
-  const navigate = useNavigate();
-
   const { id } = useParams<{ id: string }>();
 
   if (!id) {

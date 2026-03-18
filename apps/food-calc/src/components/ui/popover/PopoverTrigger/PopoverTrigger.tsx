@@ -13,7 +13,6 @@ import {
 } from '@floating-ui/react';
 import type { Placement } from '@floating-ui/react';
 import styles from './PopoverTrigger.module.scss';
-import clsx from 'clsx';
 
 interface PopoverTriggerProps {
   trigger: React.ReactNode;

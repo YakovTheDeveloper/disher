@@ -44,7 +44,7 @@ const Screen = ({
     collapseDistance: COLLAPSE_CONFIG.collapseDistance,
   });
 
-  const { isBottomPanelsVisible } = useBottomPanelsVisibility({ isScrollingDown });
+  const { isBottomPanelsVisible: _isBottomPanelsVisible } = useBottomPanelsVisibility({ isScrollingDown });
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollContainerRef);
 
   const scrollTop = () => {

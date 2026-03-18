@@ -1,4 +1,4 @@
-import { useRef, useMemo, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { observer } from 'mobx-react-lite';
 import clsx from 'clsx';
@@ -7,7 +7,6 @@ import styles from './List.module.scss';
 import { ListProps, ListItemBase } from './List.types';
 import { useListData, useListVisibility, useListScroll } from './List.hooks';
 import { ListItem } from './ListItem';
-import { Overlay } from '@/components/ui/Overlay';
 
 const DEFAULT_GAP_SIZE = 2;
 const DEFAULT_OVERSCAN = 5;
@@ -94,7 +93,7 @@ function ListInner<T extends ListItemBase>({
 
   // Handle item click with optional close
   const handleItemClick = useCallback(
-    (item: T) => {
+    (_item: T) => {
       return () => {
         if (closeOnSelect) {
           onClose();
@@ -104,7 +103,6 @@ function ListInner<T extends ListItemBase>({
     [closeOnSelect, onClose]
   );
 
-  const showInitialLoading = isLoading && items.length === 0;
   const showEmptyState = !isFetchingNextPage && !isLoading && virtualItems.length === 0;
   const showEndLoader = isFetchingNextPage || isLoading;
 

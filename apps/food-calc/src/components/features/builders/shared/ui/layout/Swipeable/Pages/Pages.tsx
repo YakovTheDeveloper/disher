@@ -1,7 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Pages.module.scss';
-import { useRef, useState, useMemo, useCallback } from 'react';
-import { throttle } from '@/lib/throttle';
+import { useState } from 'react';
 
 export type ScrollDirection = 'up' | 'down' | null;
 
@@ -10,9 +9,8 @@ type Props = {
   onScrollDirectionChange?: (direction: ScrollDirection) => void;
 };
 
-const Pages = ({ children, onScrollDirectionChange }: Props) => {
-  const [showGradient, setShowGradient] = useState(false);
-  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+const Pages = ({ children, onScrollDirectionChange: _onScrollDirectionChange }: Props) => {
+  const [showGradient] = useState(false);
 
   return (
     <>

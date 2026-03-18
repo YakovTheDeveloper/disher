@@ -1,9 +1,7 @@
-import React from 'react';
 import commonStyles from '../styles.module.scss';
 
 import { observer } from 'mobx-react-lite';
-import { DayScheduleUI } from '@/components/features/builders/ScheduleBuilder/model/ScheduleBuilderViewModel';
-type Props<T> = {
+type Props<_T> = {
   disabled?: boolean;
   content: { itemsLength: number };
   children?: string;

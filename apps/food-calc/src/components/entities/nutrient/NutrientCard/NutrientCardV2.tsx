@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import styles2 from './NutrientCardCommon.module.scss';
+import './NutrientCardCommon.module.scss';
 import styles from './NutrientCard.module.scss';
 import { motion } from 'framer-motion';
 import {
@@ -7,7 +7,6 @@ import {
   Nutrient,
 } from '@/components/entities/nutrient/NutrientGroup/constants';
 import clsx from 'clsx';
-import { useNutrientCard } from './useNutrientCard';
 
 interface Props {
   content: Nutrient;

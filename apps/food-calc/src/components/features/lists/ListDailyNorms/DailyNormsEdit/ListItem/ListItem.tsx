@@ -1,7 +1,7 @@
 import styles from './ListItem.module.scss';
 import { useRef } from 'react';
-import type { DailyNormItem, DailyNorm as UserDailyNorm } from '@/entities/daily-norm';
-import { Nutrient } from '@/components/features/builders/shared/ContentInfo/Nutrients/constants';
+import type { DailyNorm as UserDailyNorm } from '@/entities/daily-norm';
+import { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
 
 type Props = {
   nutrient: Nutrient;
@@ -10,7 +10,9 @@ type Props = {
 };
 
 const ListItem = ({ nutrient, variant, dailyNorm }: Props) => {
-  const item = dailyNorm.nutrientIdToDailyNormItem.get(nutrient.id);
+  // TODO: migrate to Triplit — dailyNorm no longer has nutrientIdToDailyNormItem or changeNutrientValue
+  const dn = dailyNorm as any;
+  const item = dn.nutrientIdToDailyNormItem?.get(nutrient.id);
   if (!item) return null;
 
   const prev = useRef<number | null>(null);
@@ -18,25 +20,24 @@ const ListItem = ({ nutrient, variant, dailyNorm }: Props) => {
   const handleNutrientChange = (nutrient: Nutrient, value: string) => {
     prev.current = null;
     if (value === '') {
-      // Keep it empty instead of forcing 0
-      dailyNorm.changeNutrientValue(nutrient.id, null);
+      dn.changeNutrientValue?.(nutrient.id, null);
       return;
     }
 
     const numericValue = Number(value);
     if (!Number.isNaN(numericValue)) {
-      dailyNorm.changeNutrientValue(nutrient.id, numericValue);
+      dn.changeNutrientValue?.(nutrient.id, numericValue);
     }
   };
 
   const onFocus = (nutrient: Nutrient) => {
     prev.current = item?.quantity || null;
-    dailyNorm.changeNutrientValue(nutrient.id, null);
+    dn.changeNutrientValue?.(nutrient.id, null);
   };
 
   const onBlur = () => {
     if (!prev.current) return;
-    dailyNorm.changeNutrientValue(nutrient.id, prev.current);
+    dn.changeNutrientValue?.(nutrient.id, prev.current);
   };
 
   return (

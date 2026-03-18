@@ -7,7 +7,31 @@ import { TimeChoose } from '@/components/ui/TimeChoose';
 import { ProductQuantity } from '@/components/features/product/ProductQuantity';
 import { addScheduleFood } from '@/entities/schedule-food';
 import Button from '@/components/ui/atoms/Button/Button';
-import s from './AddFoodItemToDaySchedule.module.scss';
+import s from './FoodScheduleModals.module.scss';
+
+/**
+ * Input IDs used for label→input focus delegation across all FoodSchedule modals.
+ *
+ * Each modal step is opened by a <label htmlFor={ID}> that focuses the corresponding <input id={ID}>.
+ * The onFocusCapture handler reads e.target.id to determine which step is active.
+ *
+ * ScheduleFoodCreationModals (this file):
+ *   - TIME_INPUT    → TimeChoose input (step: time)
+ *   - SEARCH_INPUT  → SearchFood input (step: search)
+ *   - QUANTITY_INPUT → ProductQuantity NumberInput (step: quantity)
+ *
+ * CreateDishAndCopyModal:
+ *   - DISH_NAME_INPUT → TextInput for dish name (step: name)
+ *
+ * CopyToExistingDishModal:
+ *   - SEARCH_INPUT    → SearchFood input (step: selectDish)
+ */
+export const MODAL_INPUT_IDS = {
+  TIME_INPUT: 'time-input-schedule-food',
+  SEARCH_INPUT: 'search',
+  QUANTITY_INPUT: 'quantity-input',
+  DISH_NAME_INPUT: 'dish-name-input',
+} as const;
 
 type Step = 'idle' | 'time' | 'search' | 'quantity';
 
@@ -20,8 +44,8 @@ const STEP_LABELS: Record<Exclude<Step, 'idle'>, string> = {
 };
 
 const NEXT_INPUT_ID: Record<string, string> = {
-  time: 'search',
-  search: 'quantity-input',
+  time: MODAL_INPUT_IDS.SEARCH_INPUT,
+  search: MODAL_INPUT_IDS.QUANTITY_INPUT,
 };
 
 type FoodContent = {
@@ -49,7 +73,7 @@ type Props = {
   scheduleId: string;
 };
 
-const AddFoodItemToDaySchedule = ({ scheduleId }: Props) => {
+const ScheduleFoodCreationModals = ({ scheduleId }: Props) => {
   const [step, setStep] = useState<Step>('idle');
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
   useSwipeableLock(step !== 'idle');
@@ -57,9 +81,9 @@ const AddFoodItemToDaySchedule = ({ scheduleId }: Props) => {
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
     const id = target.id;
-    if (id === 'time-input-schedule-food') setStep('time');
-    else if (id === 'search') setStep('search');
-    else if (id === 'quantity-input') setStep('quantity');
+    if (id === MODAL_INPUT_IDS.TIME_INPUT) setStep('time');
+    else if (id === MODAL_INPUT_IDS.SEARCH_INPUT) setStep('search');
+    else if (id === MODAL_INPUT_IDS.QUANTITY_INPUT) setStep('quantity');
     else return;
 
     requestAnimationFrame(() => {
@@ -162,7 +186,7 @@ const AddFoodItemToDaySchedule = ({ scheduleId }: Props) => {
 
   return (
     <div onFocusCapture={handleFocusCapture}>
-      {/* Step 1: Time */}
+      {/* Step 1: Time — trigger: <label htmlFor={MODAL_INPUT_IDS.TIME_INPUT}> */}
       <SearchFormExpandable
         position="absolute"
         isExpanded={step === 'time'}
@@ -174,7 +198,7 @@ const AddFoodItemToDaySchedule = ({ scheduleId }: Props) => {
               <TimeChoose
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
-                inputId="time-input-schedule-food"
+                inputId={MODAL_INPUT_IDS.TIME_INPUT}
               />
               <div className={s.finishButton}>
                 <NextStepLabel currentStep="time">
@@ -186,7 +210,7 @@ const AddFoodItemToDaySchedule = ({ scheduleId }: Props) => {
         }
       />
 
-      {/* Step 2: Search Food */}
+      {/* Step 2: Search Food — trigger: NextStepLabel(time) → htmlFor={MODAL_INPUT_IDS.SEARCH_INPUT} */}
       <SearchFormExpandable
         position="absolute"
         isExpanded={step === 'search'}
@@ -203,7 +227,7 @@ const AddFoodItemToDaySchedule = ({ scheduleId }: Props) => {
         }
       />
 
-      {/* Step 3: Quantity */}
+      {/* Step 3: Quantity — trigger: handleFoodSelect → setStep('quantity') */}
       <SearchFormExpandable
         position="absolute"
         isExpanded={step === 'quantity'}
@@ -226,4 +250,4 @@ const AddFoodItemToDaySchedule = ({ scheduleId }: Props) => {
   );
 };
 
-export default AddFoodItemToDaySchedule;
+export default ScheduleFoodCreationModals;

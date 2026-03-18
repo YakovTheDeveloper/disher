@@ -1,4 +1,4 @@
-import { useMemo, useRef, useCallback, useState, useEffect } from 'react';
+import { useMemo, useRef, useCallback, useState } from 'react';
 import { useScroll, useTransform, MotionValue, UseScrollOptions, useMotionValueEvent } from 'framer-motion';
 
 export interface UseScrollHideConfig {

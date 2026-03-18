@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { createProduct } from "@/entities/product";
 import toaster from "@/infrastructure/toaster/toaster";
-import styles from './CreateNewProduct.module.scss'
 
 type Props = {
   name: string;

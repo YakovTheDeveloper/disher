@@ -21,7 +21,7 @@ export async function deleteDish(dishId: string) {
     triplit.query("dishItems").Where("dishId", "=", dishId),
   );
   await Promise.all(
-    Array.from(items.keys()).map((id) => triplit.delete("dishItems", id)),
+    (Array.from(items.keys()) as unknown as string[]).map((id) => triplit.delete("dishItems", id)),
   );
   await triplit.delete("dishes", dishId);
 }
@@ -110,15 +110,14 @@ export async function dishItemsToScheduleFoods(
   );
   await Promise.all(
     items.map((item) =>
-      triplit.insert("scheduleItems", {
+      triplit.insert("scheduleFoods", {
         id: uuid(),
-        scheduleId,
+        date: scheduleId,
         time,
-        type: "food",
+        type: "food" as const,
         quantity: item.quantity,
         foodId: item.foodId,
         dishId: null,
-        customFoodName: null,
         userId: getUserId(),
       }),
     ),

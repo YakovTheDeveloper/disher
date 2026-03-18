@@ -2,20 +2,12 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect } from 'vitest';
 import '@testing-library/jest-dom/vitest';
-import TimePicker from './TimePicker';
-import React from 'react';
+import TimePicker from './TimeChoose';
 
 function Wrapper() {
-  const [hours, setHours] = React.useState('');
-  const [minutes, setMinutes] = React.useState('');
-
   return (
     <TimePicker
-      hours={hours}
-      minutes={minutes}
-      setHours={setHours}
-      setMinutes={setMinutes}
-      onChange={() => {}}
+      initialTime="00:00"
       onFinish={() => {}}
     />
   );

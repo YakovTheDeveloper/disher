@@ -24,7 +24,7 @@ const FoodName = ({ className, onClick, onTouchEnd, after, content }: Props) => 
       after={after}
       className={clsx([className, animationClassName, !initTitle && styles.noTitle])}
       onClick={onClick}
-      onTouchEnd={onTouchEnd}
+      onTouchEnd={onTouchEnd ? () => onTouchEnd({} as React.TouchEvent<HTMLElement>) : undefined}
     >
       <label htmlFor="search">{normalizedTitle}</label>
     </Typography>

@@ -1,6 +1,5 @@
 import { useParams } from 'react-router';
 import { DishFoodAdd } from '@/components/features/builders/DishBuilder/components/drawer/DishFoodAdd';
-import { addDishItem } from '@/entities/dish';
 
 const DishFoodDraftPage = () => {
   const { id } = useParams<{ id: string }>();

@@ -17,7 +17,7 @@ import { AddProductToDishOverlay } from '@/components/features/dish/add-product-
 import { useNavigate } from 'react-router';
 
 import commonStyles from '@/components/features/lists/shared/commonStyles.module.scss';
-import styles from './ListProducts.module.scss';
+import './ListProducts.module.scss';
 
 const ListProducts = () => {
   const navigate = useNavigate();

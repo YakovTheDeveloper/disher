@@ -4,7 +4,7 @@ type Props = {
   children: React.ReactNode;
 }
 
-const FoodFilterPanel = ({ children }: Props) => {
+const FoodFilterPanel = ({ children: _children }: Props) => {
   return (
     <div className={styles.container}>FoodFilterPanel</div>
   )

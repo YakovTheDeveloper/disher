@@ -21,7 +21,7 @@ export const useSchedule = (): CombinedScheduleView => {
 };
 
 const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { id: date } = useParams();
+  const { id: _date } = useParams();
 
   // TODO: replace with Triplit useQuery hooks for food + event schedules
   const combined = undefined;

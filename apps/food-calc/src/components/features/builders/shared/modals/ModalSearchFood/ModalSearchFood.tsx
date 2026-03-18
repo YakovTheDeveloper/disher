@@ -27,6 +27,7 @@ const ModalSearchFoodContent = observer(({ productId, dishId, onClose }: ModalSe
 
   return (
     <SearchFormExpandable
+      isExpanded={true}
       trigger={
         <div
           style={{

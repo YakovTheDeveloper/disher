@@ -14,11 +14,10 @@ const ScheduleFoodPage = () => {
   const { results: scheduleFoods } = useScheduleFoods(id);
   const child = scheduleFoods?.find((item) => item.id === childId) ?? null;
 
+  if (!child) return null;
+
   return (
     <ScheduleFood
-      foodStore={null}
-      dishStore={null}
-      scheduleStore={null}
       scheduleChildItem={child}
       parentScheduleId={id}
     />

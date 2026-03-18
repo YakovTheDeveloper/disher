@@ -39,10 +39,28 @@
       "Bash(grep \"from ''@triplit\" \"c:/Users/booty/Documents/GitHub/disher/apps/food-calc/node_modules/@triplit/react/dist/use-query.d.ts\")",
       "Bash(grep '\"\"version\"\"' \"c:/Users/booty/Documents/GitHub/disher/apps/disher-backend-3.0/node_modules/@triplit/client/package.json\")",
       "Bash(grep '\"\"version\"\"' \"c:/Users/booty/Documents/GitHub/disher/apps/disher-backend-3.0/node_modules/@triplit/client/node_modules/@triplit/db/package.json\")",
-      "Bash(grep '\"\"version\"\"' \"c:/Users/booty/Documents/GitHub/disher/apps/disher-backend-3.0/node_modules/@triplit/db/package.json\")"
+      "Bash(grep '\"\"version\"\"' \"c:/Users/booty/Documents/GitHub/disher/apps/disher-backend-3.0/node_modules/@triplit/db/package.json\")",
+      "Bash(grep -r \"get content\\\\|content\\(\\)\" /c/Users/booty/Documents/GitHub/disher/apps/food-calc/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -r \"makeObservable\\\\|makeAutoObservable\" /c/Users/booty/Documents/GitHub/disher/apps/food-calc/src --include=*.ts --include=*.tsx)",
+      "Bash(grep -r \"copyScheduleFoods\\\\|moveScheduleFoods\\\\|onCopyToAnotherSchedule\" /c/Users/booty/Documents/GitHub/disher/apps/food-calc/src --include=*.tsx --include=*.ts)",
+      "Bash(grep -r \"contentProduct\\\\|contentDish\" /c/Users/booty/Documents/GitHub/disher/apps/food-calc/src --include=*.tsx --include=*.ts)",
+      "Read(//tmp/**)",
+      "Bash(grep -rEl export.*Entity c:/Users/booty/Documents/GitHub/disher/apps/food-calc/node_modules/@triplit/db/dist/)",
+      "Bash(grep -rl Entity c:/Users/booty/Documents/GitHub/disher/apps/food-calc/node_modules/@triplit/ --include=*.d.ts)",
+      "Bash(node -e \":*)",
+      "Bash(while read:*)",
+      "Bash(do echo:*)",
+      "Bash(done)",
+      "Bash(cut -d'\\(' -f1)",
+      "Bash(sed 's/\\(.*//')",
+      "Bash(node fix-unused-imports.mjs)",
+      "Bash(node fix-unused.mjs)",
+      "Bash(rm c:/Users/booty/Documents/GitHub/disher/apps/food-calc/fix-unused.mjs)",
+      "Bash(npm uninstall:*)"
     ],
     "additionalDirectories": [
-      "c:\\Users\\booty\\Documents\\GitHub\\disher\\apps\\food-calc\\src\\pages\\swipe-test"
+      "c:\\Users\\booty\\Documents\\GitHub\\disher\\apps\\food-calc\\src\\pages\\swipe-test",
+      "c:\\Users\\booty\\.claude\\projects\\c--Users-booty-Documents-GitHub-disher-apps"
     ]
   }
 }

@@ -1,10 +1,9 @@
 import { createContext, ReactNode } from 'react';
-import { Instance } from 'mobx-state-tree';
-import { ScheduleFood as ScheduleFoodsItem } from '@/entities/schedule-food';
+import type { ScheduleFood } from '@/entities/schedule-food';
 import { useSchedule } from './ScheduleProvider';
 
 export const SelectedScheduleFoodContext = createContext<
-  Instance<typeof ScheduleFoodsItem> | undefined
+  ScheduleFood | undefined
 >(undefined);
 
 interface SelectedScheduleFoodProviderProps {

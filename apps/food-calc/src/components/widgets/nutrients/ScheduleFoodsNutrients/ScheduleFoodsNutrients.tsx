@@ -13,6 +13,7 @@ import {
 } from '@/components/features/nutrients/filter-nutrients';
 import styles from './ScheduleFoodsNutrients.module.scss';
 import { Ornament } from '@/components/ui/Ornament';
+import type { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
 
 type Props = {
   schedule: any; // TODO: type with Triplit schedule entity
@@ -32,14 +33,7 @@ const ScheduleFoodsNutrients = ({ schedule, after }: Props) => {
   );
 
   const renderCard = useCallback(
-    (nutrientData: {
-      id: string;
-      name: string;
-      displayName: string;
-      displayNameRu: string;
-      unit: string;
-      unitRu: string;
-    }) => (
+    (nutrientData: Nutrient) => (
       <FilterNutrientCardWrapper
         isHidden={filter.isHidden(nutrientData.id)}
         filterMode={filter.filterMode}
@@ -59,6 +53,7 @@ const ScheduleFoodsNutrients = ({ schedule, after }: Props) => {
 
   return (
     <Screen
+      offsetTop
       bottomRight={<FilterButton onClick={filter.toggleFilterMode} isActive={filter.filterMode} />}
       actions={
         filter.filterMode ? (
@@ -78,8 +73,6 @@ const ScheduleFoodsNutrients = ({ schedule, after }: Props) => {
 
       <Nutrients
         store={nutrientStore}
-        renderOverlay={renderOverlay}
-        asControlledForm={false}
         renderCard={renderCard}
       />
 
@@ -88,11 +81,11 @@ const ScheduleFoodsNutrients = ({ schedule, after }: Props) => {
 
       {after}
 
-      {schedule.foodWithNoNutrients.length > 0 && (
+      {schedule.foodWithNoNutrients?.length > 0 && (
         <div className={styles.messageContainer}>
           <p>Без продуктов</p>
           <div className={styles.messageContainerRow}>
-            {schedule.foodWithNoNutrients.map((food) => (
+            {schedule.foodWithNoNutrients.map((food: { id: string; name: string }) => (
               <span key={food.id}>{food.name}</span>
             ))}{' '}
           </div>

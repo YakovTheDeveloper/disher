@@ -3,9 +3,7 @@ import styles from './DrawerLayout.module.scss';
 import { useRef } from 'react';
 import clsx from 'clsx';
 import { Drawer as DrawerLib } from 'vaul';
-import { AnimatePresence, motion } from 'framer-motion';
 import CrossIcon from '@/assets/icons/cross.svg';
-import { emitter } from '@/infrastructure/emitter/emitter';
 
 type Props = {
   children: React.ReactNode;

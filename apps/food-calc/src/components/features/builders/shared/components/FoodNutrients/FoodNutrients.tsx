@@ -1,14 +1,11 @@
 import styles from './FoodNutrients.module.scss';
 import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
 import NutrientCardV2 from '@/components/entities/nutrient/NutrientCard/NutrientCardV2';
-import { RouterLinks } from '@/router';
-import { NavLink } from 'react-router';
 import { useCallback, useMemo } from 'react';
 import { Overlay } from '@/components/entities/nutrient/NutrientGroup/Overlay';
 import { Typography } from '@/components/ui/atoms/Typography';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
-import { drawerStore } from '@/shared/ui/drawer-store';
 import clsx from 'clsx';
 import { Button } from '@/components/ui/atoms/Button';
 
@@ -27,14 +24,14 @@ const FoodNutrients = ({ foodId, className, before }: Props) => {
 
   const nutrientStore = useMemo(
     () =>
-      TotalNutrientsStore.create({
-        quantity: 100,
-      }),
+      TotalNutrientsStore.create(),
     []
   );
   nutrientStore.setEntity(food);
 
-  const onChange = (value: number | null) => nutrientStore.setQuantity(value || undefined);
+  const onChange = (_value: number | null) => {
+    // TODO: migrate to Triplit — setQuantity not available on TotalNutrientsStore
+  };
 
   const isLoading = useCallback(() => nutrientStore.isOneOfProductsIsLoading, [nutrientStore]);
 
@@ -47,20 +44,18 @@ const FoodNutrients = ({ foodId, className, before }: Props) => {
     <div className={clsx([styles.container, className])}>
       <header className={styles.header}>
         {before}
-        <Typography className={styles.foodName}>{food.name}</Typography>
+        <Typography variant="feature-title" className={styles.foodName}>{food.name}</Typography>
         <NumberInput
           color="white"
           size="small"
           className={styles.numberInput}
           onChange={onChange}
-          value={nutrientStore.quantity}
+          value={100}
           placeholder="кол-во"
         />
       </header>
       <Nutrients
         store={nutrientStore}
-        renderOverlay={renderOverlay}
-        asControlledForm={false}
         renderCard={(nutrientData) => (
           <NutrientCardV2
             content={nutrientData}

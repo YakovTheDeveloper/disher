@@ -28,7 +28,7 @@ const QuantityInlineModal = (
             <button className={s.backButton} onClick={onClose}>
               ←
             </button>
-            <ScreenLabel>{title}</ScreenLabel>
+            <ScreenLabel variant="drawer">{title}</ScreenLabel>
           </header>
 
           <div className={s.spacer} />

@@ -47,7 +47,7 @@ export interface ListProps<T extends ListItemBase = ListItemBase> {
 
 export interface ListItemProps<T extends ListItemBase = ListItemBase> {
     virtualRow: {
-        key: string | number;
+        key: string | number | bigint;
         index: number;
         start: number;
         size: number;
@@ -71,7 +71,7 @@ export interface UseListDataOptions<T extends ListItemBase> {
     queryKey: string;
     onFetch: FetchFn<T>;
     searchQuery: string;
-    filteredLocal: T[];
+    filteredLocal: readonly T[];
     isEnabled: boolean;
 }
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import styles from './SelectField.module.scss';
 import clsx from 'clsx';
 import SelectableInput from '@/components/ui/atoms/Button/SelectableInput/SelectableInput';

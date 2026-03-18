@@ -1,7 +1,5 @@
 import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
-import { Instance } from 'mobx-state-tree';
-import { DishItem } from '@/entities/dish';
 import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
 import { SearchFood } from '@/components/features/builders/shared/components/SearchFood';
 import { SearchFoodButton } from '@/components/features/builders/shared/components/SearchFood';
@@ -11,9 +9,15 @@ import Logo from '@/assets/icons/logo.svg';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import s from './DishFoodInlineModal.module.scss';
 
+// TODO: migrate to Triplit — define proper dish item type
+type DishItemLike = {
+  updateFood: (id: string) => void;
+  content: { name?: string; foodId?: string; quantity?: number } | null;
+};
+
 type Props = {
   isOpen: boolean;
-  dishItem: Instance<typeof DishItem>;
+  dishItem: DishItemLike;
   onCommit: () => void;
   onClose: () => void;
   title?: string;
@@ -39,7 +43,7 @@ const DishFoodInlineModal = observer(
               <button className={s.backButton} onClick={onClose}>
                 ←
               </button>
-              <ScreenLabel>{title}</ScreenLabel>
+              <ScreenLabel variant="drawer">{title}</ScreenLabel>
             </header>
 
             <div className={s.spacer} />

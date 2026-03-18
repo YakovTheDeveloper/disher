@@ -5,7 +5,7 @@ interface Props extends BaseDrawerProps {
   productId: string;
 }
 
-const AddProductToDishOverlay = ({ productId, onClose }: Props) => {
+const AddProductToDishOverlay = ({ productId: _productId, onClose }: Props) => {
   return (
     <div className={styles.container}>
       AddProductToDishOverlay

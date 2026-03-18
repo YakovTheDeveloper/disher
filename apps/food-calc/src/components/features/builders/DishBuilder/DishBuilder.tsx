@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import type { Dish } from '@/entities/dish';
-import { drawerStore } from '@/shared/ui/drawer-store';
+import type { Dish, DishItem } from '@/entities/dish';
+import { updateDishName, useDishItems } from '@/entities/dish';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
-import { TotalNutrients } from '@/components/features/builders/TotalNutrients/TotalNutrients';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { ActionsPanel } from '@/components/features/builders/shared/components/ActionsPanel';
 import { DishFoodSelectionActions } from '@/components/features/builders/DishBuilder/components/header-actions/DishFoodSelectionActions';
@@ -25,11 +24,15 @@ type Props = {
 };
 
 const DishBuilder = ({ init }: Props) => {
-  const dishes = init;
   const navigate = useNavigate();
+  const { results: dishItems } = useDishItems(init.id);
   // 'draft' = adding new item, string = childId for replace-food or edit-quantity
   const [searchContext, setSearchContext] = useState<null | 'draft' | string>(null);
   const [quantityContext, setQuantityContext] = useState<null | 'draft' | string>(null);
+
+  // TODO: migrate to Triplit — find dish item by id from dishItems
+  const findItemById = (id: string): DishItem | undefined =>
+    dishItems?.find((item) => item.id === id);
 
   const onFoodSelected = (payload: { variant: 'product' | 'dish'; id: string }) => {
     if (payload.variant === 'dish') return;
@@ -38,7 +41,9 @@ const DishBuilder = ({ init }: Props) => {
       setSearchContext(null);
       setQuantityContext('draft');
     } else if (searchContext) {
-      dishes.getChildById(searchContext)?.updateFood(payload.id);
+      // TODO: migrate to Triplit — update food on dish item
+      // const item = findItemById(searchContext);
+      // if (item) updateDishItem(item.id, { foodId: payload.id });
       setSearchContext(null);
     }
   };
@@ -47,13 +52,14 @@ const DishBuilder = ({ init }: Props) => {
     quantityContext === 'draft'
       ? null // TODO: implement draft with Triplit
       : quantityContext
-        ? dishes.getChildById(quantityContext)
+        ? findItemById(quantityContext)
         : null;
 
   return (
     <SwipeableV2>
-      <Screen key={1} title={<ScreenLabel variant="screenHeader">Нутриенты</ScreenLabel>}>
-        <TotalNutrients store={dishes} countable={dishes} />
+      <Screen key={1} offsetTop={false} title={<ScreenLabel variant="screenHeader">Нутриенты</ScreenLabel>}>
+        {/* TODO: migrate to Triplit — TotalNutrients needs NutrientsCountableEntity interface */}
+        {null}
       </Screen>
 
       <Screen
@@ -66,13 +72,13 @@ const DishBuilder = ({ init }: Props) => {
               mode="products-only"
               currentProductId={
                 searchContext && searchContext !== 'draft'
-                  ? dishes.getChildById(searchContext)?.content?.foodId
+                  ? findItemById(searchContext)?.foodId
                   : undefined
               }
             />
             <QuantityInlineModal
               isOpen={quantityContext !== null}
-              content={quantityItem?.content ?? null}
+              content={quantityItem ? { quantity: quantityItem.quantity, name: quantityItem.foodId } : null}
               onClose={() => {
                 // TODO: implement draft reset with Triplit
                 setQuantityContext(null);
@@ -88,6 +94,7 @@ const DishBuilder = ({ init }: Props) => {
         }
         actions={
           <ActionsPanel
+            show={true}
             left={
               <button
                 onClick={() => {
@@ -116,7 +123,7 @@ const DishBuilder = ({ init }: Props) => {
           <TextBehind text="Блюдо">
             <EditableText
               value={init?.name || ''}
-              onChange={(val) => init?.changeName(val)}
+              onChange={(val) => updateDishName(init.id, val)}
               className={styles.textInput}
             />
           </TextBehind>
@@ -130,8 +137,7 @@ const DishBuilder = ({ init }: Props) => {
         }
       >
         <ItemsList offsetTop>
-          {dishes.items.map((item) => {
-            const content = item.content;
+          {(dishItems ?? []).map((item) => {
             const id = item.id;
 
             return (
@@ -140,9 +146,12 @@ const DishBuilder = ({ init }: Props) => {
                 id={id}
                 className={styles.group}
                 innerClassName={styles.dishFoodListItem}
+                isSelectMode={false}
+                isSelected={false}
+                onSelect={() => {}}
               >
-                <FoodName onClick={() => setSearchContext(id)} content={content} />
-                <Quantity id={id} onClick={() => setQuantityContext(id)} hide={false} unit="г" content={content} />
+                <FoodName onClick={() => setSearchContext(id)} content={{ name: item.foodId }} />
+                <Quantity id={id} onClick={() => setQuantityContext(id)} hide={false} unit="г" content={{ quantity: item.quantity }} />
               </CommonListItem>
             );
           })}

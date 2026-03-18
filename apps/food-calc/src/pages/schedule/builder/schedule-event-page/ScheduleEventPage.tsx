@@ -17,9 +17,6 @@ const ScheduleEventPage = () => {
 
   return (
     <ScheduleEventsAdd
-      foodStore={null}
-      dishStore={null}
-      scheduleStore={null}
       scheduleChildItem={child}
       parentScheduleId={id}
     />

@@ -5,7 +5,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-const DrawerChooseDailyNorm = ({ children }: Props) => {
+const DrawerChooseDailyNorm = ({ children: _children }: Props) => {
   return (
     <div className={styles.container}>
       <ListDailyNorms />

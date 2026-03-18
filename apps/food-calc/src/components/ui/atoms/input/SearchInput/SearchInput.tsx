@@ -4,7 +4,7 @@ import CrossIcon from '@/assets/icons/cross.svg';
 import clsx from 'clsx';
 import styles from './SearchInput.module.scss';
 
-type Props = React.InputHTMLAttributes<HTMLInputElement> & {
+type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> & {
   wrapperClassName?: string;
   size?: 'small' | 'medium' | 'large';
 };

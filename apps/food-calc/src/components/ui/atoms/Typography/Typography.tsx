@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Typography.module.scss';
 import clsx from 'clsx';
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { forwardRef } from 'react';
 
 type Props = {
   children: React.ReactNode;
@@ -20,7 +20,7 @@ type ExposedRefs = {
 };
 
 const Typography = forwardRef<ExposedRefs, Props>(
-  ({ children, variant, ellipsis, className, onClick, onTouchEnd, after }, ref) => {
+  ({ children, variant, ellipsis, className, onClick, onTouchEnd, after }, _ref) => {
     const isCustom = variant === 'custom';
 
     return (

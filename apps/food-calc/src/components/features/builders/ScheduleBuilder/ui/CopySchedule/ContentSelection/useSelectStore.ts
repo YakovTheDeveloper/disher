@@ -1,10 +1,14 @@
-import { DayScheduleItemUI, TimeGroupUI } from "@/components/features/builders/ScheduleBuilder/model/ScheduleBuilderViewModel";
+// TODO: migrate to Triplit — DayScheduleItemUI / TimeGroupUI from ScheduleBuilderViewModel was removed
+// import { DayScheduleItemUI, TimeGroupUI } from "@/components/features/builders/ScheduleBuilder/model/ScheduleBuilderViewModel";
 import { deepCopy } from "@/lib/copy/deepCopy";
 import { useLocalObservable } from "mobx-react-lite";
 
+type DayScheduleItemUI = any;
+type TimeGroupUI = any;
+
 export const useSelectStore = () => {
     const store = useLocalObservable(() => ({
-        // Map of selected items (id → item)
+        // Map of selected items (id -> item)
         content: new Map<string, DayScheduleItemUI>(),
 
         // Select or toggle an item

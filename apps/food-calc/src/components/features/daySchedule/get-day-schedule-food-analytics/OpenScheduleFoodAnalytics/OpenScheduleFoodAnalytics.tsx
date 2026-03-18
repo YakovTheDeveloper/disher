@@ -1,5 +1,4 @@
 import { observer } from 'mobx-react-lite';
-import styles from './OpenScheduleFoodAnalytics.module.scss';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { Button } from '@/components/ui/atoms/Button';
 type Props = {

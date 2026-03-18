@@ -2,7 +2,6 @@ import { observer } from 'mobx-react-lite';
 import ArrowLeftIcon from '@/assets/icons/arrowLeftLong.svg';
 import styles from './ButtonBack.module.scss';
 import clsx from 'clsx';
-import { emitter } from '@/infrastructure/emitter/emitter';
 
 type Props = {
   children?: React.ReactNode;

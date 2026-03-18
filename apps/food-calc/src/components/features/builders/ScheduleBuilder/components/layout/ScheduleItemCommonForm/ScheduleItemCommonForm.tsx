@@ -1,17 +1,10 @@
 import { observer } from 'mobx-react-lite';
 import { ReactNode, useMemo } from 'react';
 import { ColumnLayoutWithFixedHeader } from '@/components/ui/ColumnLayoutWithFixedHeader/index';
-import styles from './ScheduleFoodCommonForm.module.scss';
+import styles from './ScheduleItemCommonForm.module.scss';
 import { DateInfo } from '@/components/features/builders/ScheduleBuilder/ui/Navigation/DateInfo';
 import { MotionValue, useMotionValue } from 'framer-motion';
 import { getTimeOfDay, TimeOfDay } from '@/lib/time/getTimeOfDay';
-
-const TIME_OF_DAY_BG: Record<TimeOfDay, string> = {
-  morning: 'linear-gradient(135deg, #fdf6e3 0%, #faeec8 100%)',
-  day: 'linear-gradient(135deg, #e8e0f0 0%, #d4c8e8 100%)',
-  evening: 'linear-gradient(135deg, #fce4d6 0%, #f5c9b3 100%)',
-  night: 'linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 100%)',
-};
 
 /** Цвет текста для даты (DateInfo) каждого времени суток */
 export const TIME_OF_DAY_TEXT: Record<TimeOfDay, string> = {
@@ -114,7 +107,7 @@ type Props = {
 };
 
 const ScheduleFoodCommonForm = ({ time, children, button }: Props) => {
-  log(time);
+  console.log(time);
   const motionValue: MotionValue<number> = useMotionValue(0); // Здесь нужно передать реальное значение scrollYProgress
 
   // Определяем время суток на основе переданного времени

@@ -1,6 +1,6 @@
 import useEmblaCarousel from 'embla-carousel-react';
 import { EmblaCarouselType } from 'embla-carousel';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 type UseSwipeableProps = {
@@ -10,8 +10,6 @@ type UseSwipeableProps = {
   enableHashSync?: boolean;
   total: number;
 };
-
-const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
 
 export const useSwipeable = ({
   pageNames,

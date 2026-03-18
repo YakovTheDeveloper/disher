@@ -16,7 +16,7 @@ const slideDownAnimation = {
   initial: { opacity: 0, y: -10, height: 0 },
   animate: { opacity: 1, y: 0, height: 'auto' },
   exit: { opacity: 0, y: -10, height: 0 },
-  transition: { type: 'spring', stiffness: 300, damping: 25 },
+  transition: { type: "spring" as const, stiffness: 300, damping: 25 },
 };
 
 export const AtomInputLayout: React.FC<AtomInputLayoutProps> = ({

@@ -1,7 +1,6 @@
 import React from 'react';
 import s from './SearchFoodButton.module.scss';
 import clsx from 'clsx';
-import Logo from '@/assets/icons/logo.svg';
 
 export interface SearchFoodButtonProps {
   chosenFoodTitle?: string | null;
@@ -26,7 +25,6 @@ const SearchFoodButton: React.FC<SearchFoodButtonProps> = ({
   rightSlots,
   className,
 }) => {
-  const hasTopBar = topLeftAction || topRightAction;
   const hasText = !!chosenFoodTitle;
 
   return (

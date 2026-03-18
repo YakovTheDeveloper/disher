@@ -19,7 +19,7 @@ type Props = {
 const FOOD_NAME_PLACEHOLDER = 'Гречка...';
 
 const Food = ({ before, content, children, options }: Props) => {
-  const onFoodNameChange = (e) => content.setFilterText(e.target.value);
+  const onFoodNameChange = (e: React.ChangeEvent<HTMLInputElement>) => content.setFilterText(e.target.value);
   const message = options?.getFoodSelectMessage();
   return (
     <div className={clsx([style.content, commonStyle.SuggestionWrapper])}>

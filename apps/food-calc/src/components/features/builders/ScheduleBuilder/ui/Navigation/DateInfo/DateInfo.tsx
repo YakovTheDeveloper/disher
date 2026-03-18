@@ -1,12 +1,9 @@
 import styles from './DateInfo.module.scss';
-import { NavLink, useParams, useSearchParams } from 'react-router';
-import { RouterLinks } from '@/router';
+import { useParams } from 'react-router';
 import { motion, useTransform } from 'framer-motion';
 import { MotionValue } from 'framer-motion';
 import { Scalable } from '@/components/ui/Scalable';
 import { getTitle } from '@/components/features/builders/ScheduleBuilder/ui/Navigation/methods';
-import { useDailyScheduleModals } from '@/components/features/builders/ScheduleBuilder/modalContext';
-import { drawerStore } from '@/shared/ui/drawer-store';
 import { CSSProperties } from 'react';
 import clsx from 'clsx';
 
@@ -22,7 +19,7 @@ const DateInfo = ({ scrollYProgress, style, className }: Props) => {
   const params = useParams();
   const dateParam = params.id;
 
-  const { day, monthName, monthNumber, weekdayName, weekdayNameShort } = getTitle(dateParam);
+  const { day, monthName, monthNumber, weekdayName, weekdayNameShort } = getTitle(dateParam ?? '');
 
   const dateWordsScale = useTransform(scrollYProgress, [0, 0.4], [1, 0], { clamp: true });
 

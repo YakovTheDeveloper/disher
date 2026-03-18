@@ -74,11 +74,12 @@ export const useKeyboardDetection = () => {
         // Способ 3: VirtualKeyboard API если доступен
         if ('virtualKeyboard' in navigator) {
             try {
-                navigator.virtualKeyboard.overlaysContent = true;
+                const vk = (navigator as any).virtualKeyboard;
+                vk.overlaysContent = true;
                 console.log('[Keyboard] VirtualKeyboard API enabled');
 
                 const handleGeometryChange = () => {
-                    const { height } = navigator.virtualKeyboard.boundingRect;
+                    const { height } = vk.boundingRect;
                     console.log('[Keyboard] VirtualKeyboard geometry:', { height });
 
                     if (height > 0) {
@@ -91,7 +92,7 @@ export const useKeyboardDetection = () => {
                     }
                 };
 
-                navigator.virtualKeyboard.addEventListener('geometrychange', handleGeometryChange);
+                vk.addEventListener('geometrychange', handleGeometryChange);
             } catch (e) {
                 console.warn('[Keyboard] VirtualKeyboard API error:', e);
             }

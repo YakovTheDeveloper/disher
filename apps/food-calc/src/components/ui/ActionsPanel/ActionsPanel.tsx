@@ -1,10 +1,10 @@
 import { observer } from "mobx-react-lite";
-                    import styles from './ActionsPanel.module.scss'
+import styles from './ActionsPanel.module.scss'
 type Props = {
   children: React.ReactNode;
 }
 
-const ActionsPanel = ({ children }: Props) => {
+const ActionsPanel = ({ children: _children }: Props) => {
   return (
     <div className={styles.container}>ActionsPanel</div>
   )

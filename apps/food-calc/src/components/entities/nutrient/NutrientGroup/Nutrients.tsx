@@ -5,7 +5,6 @@ import React, { useEffect } from 'react';
 import { Instance } from 'mobx-state-tree';
 import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
 import clsx from 'clsx';
-import { getNutrientColumn } from '@/components/entities/nutrient/NutrientGroup/constants/columnMapping';
 import { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
 import treeSrc from '@/assets/decarative/tree.png';
 import tree2Src from '@/assets/decarative/tree2.png';

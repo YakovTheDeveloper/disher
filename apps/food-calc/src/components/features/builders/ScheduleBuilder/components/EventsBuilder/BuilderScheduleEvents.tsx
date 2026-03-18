@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import styles from './BuilderScheduleEvents.module.scss';
 import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { TimeGroup } from '@/components/features/builders/ScheduleBuilder/components/List/TimeGroup';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import clsx from 'clsx';
@@ -14,7 +14,6 @@ import { useSelection } from '@/hooks/factoryHooks/useSelection';
 import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
 import AddEventItemToDaySchedule from '@/components/features/dayScheduleEvent/add-event-item-to-current-day-schedule/AddEventItemToDaySchedule';
 import { groupItemsByTime } from '@/shared/lib/schedule';
-import { drawerStore } from '@/shared/ui/drawer-store';
 
 type Props = {
   children?: React.ReactNode;
@@ -48,7 +47,7 @@ const BuilderScheduleEvents = ({ date, events }: Props) => {
   const selectionStoreEvents = useSelection();
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
 
-  const onEventEditModalOpen = (item: ScheduleEvent) => {
+  const onEventEditModalOpen = (_item: ScheduleEvent) => {
     // TODO: migrate to drawerStore.show() for event edit
   };
 
@@ -76,9 +75,9 @@ const BuilderScheduleEvents = ({ date, events }: Props) => {
       key={3}
       title={<Typography variant="feature-title">События</Typography>}
       header={
-        <Navigation title={<Typography variant="feature-title-2">События</Typography>}></Navigation>
+        <Navigation title={<Typography variant="feature-title">События</Typography>}></Navigation>
       }
-      bottomRight={<AddButton htmlFor="time-input" as="label" />}
+      bottomRight={<AddButton htmlFor="time-input" as="label" onClick={() => {}} />}
     >
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList offsetTop>
@@ -90,8 +89,12 @@ const BuilderScheduleEvents = ({ date, events }: Props) => {
                     className={styles.listItemRow}
                     id={item.id}
                     key={item.id}
+                    isSelectMode={selectionStoreEvents.isActionsMode}
+                    isSelected={selectionStoreEvents.isSelected(item.id)}
+                    onSelect={(id) => selectionStoreEvents.toggleSelectedId(id)}
+                    onClick={() => onEventEditModalOpen(item)}
                   >
-                    <p onClick={() => onEventEditModalOpen(item)}>{getEventDescription(item)}</p>
+                    <p>{getEventDescription(item)}</p>
                   </CommonListItem>
                 );
               })}

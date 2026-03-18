@@ -8,7 +8,7 @@ import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
 import { useMemo } from 'react';
 import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
 import { HeaderInputName } from '@/components/features/builders/shared/components/HeaderInputName';
-import { Label } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/EventContent/shared/Label';
+import ChangeProductNutrientValue from '@/components/features/product/change-product-nutrient-value/ChangeProductNutrientValue';
 
 const UserProductPage = () => {
   const { id } = useParams<'id'>();
@@ -17,20 +17,27 @@ const UserProductPage = () => {
   if (!userFood) return null;
 
   const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);
-  nutrientStore.setEntity(userFood);
+  // TODO: migrate to Triplit — userFood doesn't satisfy NutrientsCountableEntity
+  nutrientStore.setEntity(userFood as any);
 
   const onNutrientChange = (value: number, nutrientId: string) =>
     setProductNutrient(userFood.id, nutrientId, value);
 
-  const getValue = (nutrientId: string) => {
+  const getValue = (_nutrientId: string) => {
     // TODO: use useProductNutrients hook for reactive nutrient values
     return 0;
   };
 
+  const entityForHeader = {
+    name: userFood.name,
+    changeName: (name: string) => updateProduct(userFood.id, { name }),
+  };
+
   return (
     <Screen
+      offsetTop
       title={<ScreenLabel variant="screenHeader">Продукт</ScreenLabel>}
-      header={<HeaderInputName entity={userFood} />}
+      header={<HeaderInputName entity={entityForHeader} asInput={true} />}
     >
       <Spacer variant="screen-header-offset" />
       <label>
@@ -40,11 +47,15 @@ const UserProductPage = () => {
         />
       </label>
       <Nutrients
-        asControlledForm
         store={nutrientStore}
-        onChange={onNutrientChange}
-        getValue={getValue}
-      ></Nutrients>
+        renderCard={(nutrientData) => (
+          <ChangeProductNutrientValue
+            content={nutrientData}
+            getValue={getValue}
+            onChange={onNutrientChange}
+          />
+        )}
+      />
     </Screen>
   );
 };

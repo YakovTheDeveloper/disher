@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from 'react';
-import { debounce } from '@/lib/debounce';
 
 export interface UseBottomPanelsVisibilityConfig {
     isScrollingDown: boolean;
@@ -9,7 +8,7 @@ export interface UseBottomPanelsVisibilityConfig {
 /**
  * Native CSS-based visibility management for bottom panels
  * Optimized for iOS with debounce to prevent rapid re-renders
- * 
+ *
  * Returns true when scrolling up or at rest, false when scrolling down
  */
 export function useBottomPanelsVisibility({
@@ -17,24 +16,19 @@ export function useBottomPanelsVisibility({
     debounceMs = 250,
 }: UseBottomPanelsVisibilityConfig) {
     const [isBottomPanelsVisible, setIsBottomPanelsVisible] = useState(true);
-    const debouncedSetVisibilityRef = useRef<ReturnType<typeof debounce>>();
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Initialize debounced function
     useEffect(() => {
-        debouncedSetVisibilityRef.current = debounce((visible: boolean) => {
-            setIsBottomPanelsVisible(visible);
+        if (timerRef.current !== null) clearTimeout(timerRef.current);
+        const newVisibility = !isScrollingDown;
+        timerRef.current = setTimeout(() => {
+            setIsBottomPanelsVisible(newVisibility);
         }, debounceMs);
 
         return () => {
-            debouncedSetVisibilityRef.current?.cancel();
+            if (timerRef.current !== null) clearTimeout(timerRef.current);
         };
-    }, [debounceMs]);
-
-    // Update visibility on scroll direction change
-    useEffect(() => {
-        const newVisibility = !isScrollingDown;
-        debouncedSetVisibilityRef.current?.(newVisibility);
-    }, [isScrollingDown]);
+    }, [isScrollingDown, debounceMs]);
 
     return { isBottomPanelsVisible };
 }

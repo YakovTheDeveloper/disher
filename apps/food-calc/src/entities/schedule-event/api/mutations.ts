@@ -1,5 +1,6 @@
 import { triplit } from "@/api/triplit/client";
 import { v4 as uuid } from "uuid";
+import type { Atom } from "@/entities/schedule-event/model/atoms";
 
 const getUserId = () => "1"; // TODO: replace with actual auth
 
@@ -7,7 +8,7 @@ export async function addScheduleEvent(params: {
   date: string;
   time: string;
   text?: string;
-  atoms?: unknown[];
+  atoms?: Atom[];
 }) {
   const id = uuid();
   await triplit.insert("scheduleEvents", {
@@ -23,7 +24,7 @@ export async function addScheduleEvent(params: {
 
 export async function updateScheduleEvent(
   eventId: string,
-  updates: Partial<{ time: string; text: string; atoms: unknown[] }>,
+  updates: Partial<{ time: string; text: string; atoms: Atom[] }>,
 ) {
   await triplit.update("scheduleEvents", eventId, (event) => {
     if (updates.time !== undefined) event.time = updates.time;

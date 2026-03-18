@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useProduct, setProductNutrient } from '@/entities/product';
+import { useProduct, setProductNutrient, updateProduct } from '@/entities/product';
 import { FoodEntityView, foodToViewable } from '@/components/widgets/food-entity-view';
 import styles from './ProductPage.module.scss';
 
@@ -15,7 +15,12 @@ const ProductPage = () => {
     description: food.description ?? undefined,
     createdByUser: true, // TODO: determine from food data if needed
     portions: [],
-    nutrientsMap: new Map(),
+    getTotalNutrients: (_quantity?: number) => ({}), // TODO: migrate to Triplit
+    changeName: (name: string) => updateProduct(food.id, { name }),
+    changeDescription: (description: string | undefined) => updateProduct(food.id, { description: description ?? '' }),
+    addPortion: () => {}, // TODO: migrate to Triplit
+    updatePortion: () => {}, // TODO: migrate to Triplit
+    removePortion: () => {}, // TODO: migrate to Triplit
   });
 
   const nutrientEditable = {

@@ -1,1 +1,0 @@
-// BuilderDailyNorms component was removed

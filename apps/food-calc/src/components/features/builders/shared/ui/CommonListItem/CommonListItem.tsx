@@ -105,7 +105,7 @@ const ListItem = ({
     }
   };
 
-  const onPointerUp = (e: React.PointerEvent) => {
+  const onPointerUp = (_e: React.PointerEvent) => {
     const skipTap = wasLongPressedRef.current;
 
     cleanUp();
@@ -132,7 +132,7 @@ const ListItem = ({
     }
   };
 
-  const onSelectButtonClick = (e: React.MouseEvent) => {
+  const onSelectButtonClick = (_e: React.MouseEvent) => {
     if (preventNextClickRef.current) {
       return;
     }

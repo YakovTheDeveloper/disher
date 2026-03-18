@@ -6,10 +6,9 @@
 
 import { useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Instance } from 'mobx-state-tree';
 import { AnimatePresence } from 'framer-motion';
 import { Atom } from '@/entities/schedule-event';
-import { ScheduleEvent } from '@/entities/schedule-event';
+import type { ScheduleEvent } from '@/entities/schedule-event';
 import { AtomList } from './AtomList';
 import { ScaleAtomInput } from './ScaleAtomInput';
 import { TimeAtomInput } from './TimeAtomInput';
@@ -21,8 +20,8 @@ import { BodyAtomInput } from './BodyAtomInput';
 import styles from './AtomBuilder.module.css';
 
 export interface AtomBuilderProps {
-  event: Instance<typeof ScheduleEvent>;
-  onEventChange?: (event: Instance<typeof ScheduleEvent>) => void;
+  event: ScheduleEvent;
+  onEventChange?: (event: ScheduleEvent) => void;
   className?: string;
 }
 
@@ -33,13 +32,17 @@ export const AtomBuilder = observer(
     const [openModal, setOpenModal] = useState<AtomModalKind>(null);
 
     const handleAddAtom = (atom: Atom) => {
-      event.addAtom(atom);
+      // TODO: migrate to Triplit — addAtom was an MST action, use Triplit mutation instead
+      // event.addAtom(atom);
+      void atom;
       setOpenModal(null);
       onEventChange?.(event);
     };
 
     const handleRemoveAtom = (index: number) => {
-      event.removeAtom(index);
+      // TODO: migrate to Triplit — removeAtom was an MST action, use Triplit mutation instead
+      // event.removeAtom(index);
+      void index;
       onEventChange?.(event);
     };
 

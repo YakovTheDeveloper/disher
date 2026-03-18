@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { useMutation } from '@tanstack/react-query';
 import { useDebounce } from 'use-debounce';
 import styles from './ProductBuilder.module.scss';
 import JSON5 from 'json5';
-import { nutrientGroups } from '@/components/features/builders/shared/ContentInfo/Nutrients/constants';
-import { addFood } from '@/api/food/food.api';
+import { nutrientGroups } from '@/components/entities/nutrient/NutrientGroup/constants';
+
+// TODO: migrate to Triplit — addFood was removed from @/api/food/food.api
+const addFood = async (_payload: any): Promise<void> => {
+  throw new Error('addFood not implemented — migrate to Triplit');
+};
 
 function ProductBuilder() {
   const [form, setForm] = useState({
@@ -19,21 +22,7 @@ function ProductBuilder() {
   const [importText, setImportText] = useState('');
   const [debouncedNutrients] = useDebounce(form.nutrients, 200); // optional
 
-  const mutation = useMutation({
-    mutationFn: (payload: typeof form & { nutrients: { id: number; value: number }[] }) =>
-      addFood(payload),
-    onSuccess: () => {
-      alert('Food added successfully!');
-      setForm({ name: '', nameEng: '', description: '', descriptionEng: '', nutrients: {} });
-      setImportText('');
-    },
-    onError: (err) => {
-      console.error(err);
-      alert('Error adding food');
-    },
-  });
-
-  const isLoading = mutation.isPending;
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (id: number, value: string) => {
     setForm((prev) => ({
@@ -42,12 +31,12 @@ function ProductBuilder() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const nutrients = Object.entries(form.nutrients)
       .filter(([_, val]) => val !== undefined)
-      .map(([id, value]) => ({ id: Number(id), value }));
+      .map(([id, value]) => ({ id: Number(id), value: value! }));
 
     const payload = {
       name: form.name,
@@ -57,7 +46,18 @@ function ProductBuilder() {
       nutrients,
     };
 
-    mutation.mutate(payload);
+    try {
+      setIsLoading(true);
+      await addFood(payload);
+      alert('Food added successfully!');
+      setForm({ name: '', nameEng: '', description: '', descriptionEng: '', nutrients: {} });
+      setImportText('');
+    } catch (err) {
+      console.error(err);
+      alert('Error adding food');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleImport = () => {
@@ -147,11 +147,11 @@ function ProductBuilder() {
         <div className={styles.nutrientContainer}>
           <h3>Nutrients</h3>
           <div className={styles.scrollArea}>
-            {nutrientGroups.map((group) => (
+            {nutrientGroups.map((group: { name: string; displayName: string; content: { id: string; displayNameRu: string; unitRu: string }[] }) => (
               <div key={group.name} className={styles.group}>
                 <h4>{group.displayName}</h4>
                 <div className={styles.grid}>
-                  {group.content.map((nutrient) => (
+                  {group.content.map((nutrient: { id: string; displayNameRu: string; unitRu: string }) => (
                     <div key={nutrient.id} className={styles.nutrient}>
                       <label>
                         {nutrient.displayNameRu} ({nutrient.unitRu})
@@ -160,8 +160,8 @@ function ProductBuilder() {
                         type="number"
                         step="any"
                         placeholder="0"
-                        value={debouncedNutrients[nutrient.id] ?? ''}
-                        onChange={(e) => handleChange(nutrient.id, e.target.value)}
+                        value={debouncedNutrients[Number(nutrient.id)] ?? ''}
+                        onChange={(e) => handleChange(Number(nutrient.id), e.target.value)}
                       />
                     </div>
                   ))}
@@ -174,9 +174,9 @@ function ProductBuilder() {
         <button
           type="submit"
           className={styles.submit}
-          disabled={isLoading} // ✅ use isMutating instead of isLoading
+          disabled={isLoading}
         >
-          {isLoading ? <span className={styles.spinner}>⏳ Saving...</span> : 'Save Product'}
+          {isLoading ? <span className={styles.spinner}>Saving...</span> : 'Save Product'}
         </button>
       </form>
     </div>

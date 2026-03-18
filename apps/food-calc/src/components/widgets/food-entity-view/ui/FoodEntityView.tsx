@@ -38,7 +38,7 @@ type Props = {
 };
 
 const FoodEntityView: FC<Props> = observer(
-  ({ entity, mstEntity, nutrientEditable, title = 'Продукт', quantityInputClassName }) => {
+  ({ entity, mstEntity, nutrientEditable, title = 'Продукт', quantityInputClassName: _quantityInputClassName }) => {
     const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);
     const [quantity, setQuantity] = useState(100);
     const filter = useFilterNutrients();

@@ -60,7 +60,7 @@ export async function deleteProduct(productId: string) {
     triplit.query("foodNutrients").Where("foodId", "=", productId),
   );
   await Promise.all(
-    Array.from(nutrients.keys()).map((id) => triplit.delete("foodNutrients", id)),
+    (Array.from(nutrients.keys()) as unknown as string[]).map((id) => triplit.delete("foodNutrients", id)),
   );
   await triplit.delete("foods", productId);
 }

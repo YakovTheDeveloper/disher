@@ -1,19 +1,26 @@
 import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
 import { SearchFood } from '@/components/features/builders/shared/components/SearchFood';
-import { DishItem } from '@/entities/dish';
 import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
 import { SearchFoodButton } from '@/components/features/builders/shared/components/SearchFood';
 import Logo from '@/assets/icons/logo.svg';
-import { Instance } from 'mobx-state-tree';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { ProductQuantity } from '@/components/features/product/ProductQuantity';
 import Button from '@/components/ui/atoms/Button/Button';
 import s from './DishFoodAdd.module.scss';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
+import { updateDishItem } from '@/entities/dish';
+
+// TODO: migrate to Triplit — this component still assumes MST-like content shape
+type DishItemLike = {
+  id: string;
+  foodId: string;
+  quantity: number;
+  food?: { name?: string } | null;
+};
 
 type Props = {
-  dishChildItem: Instance<typeof DishItem>;
+  dishChildItem: DishItemLike;
   dishId: string;
   onCommit: () => void;
 };
@@ -29,7 +36,8 @@ const DishFoodAdd = observer(({ dishId, dishChildItem, onCommit }: Props) => {
 
   const onFoodAdd = (payload: { variant: 'dish' | 'product'; id: string }) => {
     if (payload.variant === 'dish') return;
-    dishChildItem.updateFood(payload.id);
+    // TODO: migrate to Triplit — update food on dish item
+    updateDishItem(dishChildItem.id, { foodId: payload.id });
     setIsSearchExpanded(false);
   };
 
@@ -37,7 +45,7 @@ const DishFoodAdd = observer(({ dishId, dishChildItem, onCommit }: Props) => {
     <div className={s.page}>
       <header className={s.header}>
         <span className={s.headerTitle}>
-          <ScreenLabel>Редактировать блюдо</ScreenLabel>
+          <ScreenLabel variant="drawer">Редактировать блюдо</ScreenLabel>
         </span>
       </header>
 
@@ -62,7 +70,7 @@ const DishFoodAdd = observer(({ dishId, dishChildItem, onCommit }: Props) => {
                 </span>
               }
               placeholder="Добавить продукт или блюдо"
-              chosenFoodTitle={dishChildItem.content?.name}
+              chosenFoodTitle={dishChildItem.food?.name}
             />
           }
           content={
@@ -70,14 +78,13 @@ const DishFoodAdd = observer(({ dishId, dishChildItem, onCommit }: Props) => {
               mode="products-only"
               onFinish={onFoodAdd}
               currentDishId={null}
-              currentProductId={dishChildItem.content?.foodId}
+              currentProductId={dishChildItem.foodId}
             />
           }
         />
 
-        {dishChildItem.content && (
-          <ProductQuantity content={dishChildItem.content} onFinish={() => {}} />
-        )}
+        {/* TODO: migrate to Triplit — ProductQuantity expects MST content shape */}
+        <ProductQuantity content={dishChildItem as any} onFinish={() => {}} />
 
         <div className={s.finishButton}>
           <Button variant="primary" onClick={handleFinish}>

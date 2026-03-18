@@ -24,7 +24,7 @@ export async function deleteDailyNorm(normId: string) {
     triplit.query("dailyNormItems").Where("normId", "=", normId),
   );
   await Promise.all(
-    Array.from(items.keys()).map((id) => triplit.delete("dailyNormItems", id)),
+    (Array.from(items.keys()) as unknown as string[]).map((id) => triplit.delete("dailyNormItems", id)),
   );
   await triplit.delete("dailyNorms", normId);
 }

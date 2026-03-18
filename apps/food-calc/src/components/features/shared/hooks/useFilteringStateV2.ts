@@ -17,7 +17,7 @@ export interface FilteringOptions {
     defaultTab?: string;
 }
 
-export function useFilteringStateV2(
+export function useFilteringStateV2<T extends object = object>(
     tabs: readonly TabFilterConfig<T>[],
     options: FilteringOptions = {}
 ) {
@@ -49,7 +49,7 @@ export function useFilteringStateV2(
             categoryFilter: categoryFilter?.length ? categoryFilter : undefined,
         };
 
-        return fuzzySearch(list, searchQuery, searchOptions);
+        return fuzzySearch(list as any[], searchQuery, searchOptions);
     }, [searchQuery, currentConfig, minLength, limit, categoryFilter]);
 
     return {

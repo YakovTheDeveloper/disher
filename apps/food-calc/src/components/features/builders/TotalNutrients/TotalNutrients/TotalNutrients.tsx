@@ -3,15 +3,10 @@ import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
 import { useCallback, useMemo } from 'react';
 import { Overlay } from '@/components/entities/nutrient/NutrientGroup/Overlay';
 import NutrientCardV2 from '@/components/entities/nutrient/NutrientCard/NutrientCardV2';
-import { Typography } from '@/components/ui/atoms/Typography';
-import { NavLink } from 'react-router';
-import { RouterLinks } from '@/router';
 import {
   NutrientsCountableEntity,
   TotalNutrientsStore,
 } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
-import { Spacer } from '@/components/ui/atoms/Spacer';
-import { Button } from '@/components/ui/atoms/Button';
 import { OpenDailyNorms } from '@/components/features/dailyNorms/OpenDailyNorms';
 import { Ornament } from '@/components/ui/Ornament';
 
@@ -40,8 +35,6 @@ const TotalNutrients = ({ countable, children }: Props) => {
       <Ornament text="нутриенты"></Ornament>
       <Nutrients
         store={nutrientStore}
-        renderOverlay={renderOverlay}
-        asControlledForm={false}
         renderCard={(nutrientData) => (
           <NutrientCardV2
             content={nutrientData}
@@ -54,12 +47,12 @@ const TotalNutrients = ({ countable, children }: Props) => {
 
       {children}
 
-      {countable.foodWithNoNutrients.length && (
+      {countable.foodWithNoNutrients.length > 0 && (
         <div className={styles.messageContainer}>
           <p>Без продуктов</p>
           <div className={styles.messageContainerRow}>
             {countable.foodWithNoNutrients.map((food) => (
-              <span key={food.id}>{food.name}</span>
+              <span key={food.id}>{food.id}</span>
             ))}{' '}
           </div>
           <p>(нет данных по ценности)</p>

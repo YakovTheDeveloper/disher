@@ -1,10 +1,7 @@
 import { observer } from 'mobx-react-lite';
-import styles from './DishFoodSelectionActions.module.scss';
-type Props = {
-  children?: React.ReactNode;
-};
+import './DishFoodSelectionActions.module.scss';
 
-const DishFoodSelectionActions = ({ children }: Props) => {
+const DishFoodSelectionActions = () => {
   const onCopyDishItemsToScheduleButtonClick = () => {
     // TODO: move to new modal system
   };

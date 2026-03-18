@@ -89,7 +89,7 @@ function getAtomKindLabel(kind: Atom['kind']): string {
  * Displays atoms as removable chips
  */
 export const AtomList = observer(({ atoms, onRemove, className = '' }: AtomListProps) => {
-  if (atoms.length === 0) {
+  if (!atoms?.length) {
     return null;
   }
 

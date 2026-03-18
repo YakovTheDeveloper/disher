@@ -1,7 +1,6 @@
-import { Buttons } from '@/components/features/builders/shared/ui/Actions/button';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 import styles from './Actions.module.scss';
@@ -14,7 +13,7 @@ type Props = {
   isPortal?: boolean; // new prop to toggle portal
 };
 
-const Actions = ({ children, isShow, className, zIndex, isPortal = true }: Props) => {
+const Actions = ({ children, isShow: _isShow, className, zIndex, isPortal = true }: Props) => {
   const style = zIndex ? { zIndex } : {};
   // const show = isShow();
   const show = true;

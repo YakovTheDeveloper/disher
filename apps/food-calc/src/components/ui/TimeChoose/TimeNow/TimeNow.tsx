@@ -1,7 +1,6 @@
 import { observer } from 'mobx-react-lite';
-import React, { useState, useEffect } from 'react';
-import { getHours, getMinutes, subMinutes, addMinutes } from 'date-fns';
-import styles from './TimeNow.module.scss';
+import { useState, useEffect } from 'react';
+import { getHours, getMinutes } from 'date-fns';
 
 type Props = {
   time: string;
@@ -15,8 +14,6 @@ const formatTime = (date: Date): string => {
 
 const TimeNow = ({ onFinish, time, children }: Props) => {
   const [nowTime, setNowTime] = useState('');
-  const [minus15Time, setMinus15Time] = useState('');
-  const [plus15Time, setPlus15Time] = useState('');
 
   const timeNow = nowTime;
 
@@ -24,8 +21,6 @@ const TimeNow = ({ onFinish, time, children }: Props) => {
     const interval = setInterval(() => {
       const now = new Date();
       setNowTime(formatTime(now));
-      setMinus15Time(formatTime(subMinutes(now, 15)));
-      setPlus15Time(formatTime(addMinutes(now, 15)));
     }, 2000); // update every 2 seconds
     return () => clearInterval(interval);
   }, []);
@@ -34,20 +29,12 @@ const TimeNow = ({ onFinish, time, children }: Props) => {
     onFinish(formatTime(new Date()));
   };
 
-  const onMinus15Select = () => {
-    onFinish(formatTime(subMinutes(new Date(), 15)));
-  };
-
-  const onPlus15Select = () => {
-    onFinish(formatTime(addMinutes(new Date(), 15)));
-  };
-
   const timeMatch = timeNow === time;
 
   if (timeMatch) return null;
 
   return (
-    <div className={styles.timeNow} onClick={onNowSelect}>
+    <div onClick={onNowSelect}>
       {children}
       {/* <span className={styles.textMinutes}>({timeNow})</span> */}
     </div>

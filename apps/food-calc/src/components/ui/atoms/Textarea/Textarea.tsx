@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './Textarea.module.css';
-import { observer } from 'mobx-react-lite';
 
 interface TextareaProps {
   value: string;
@@ -19,7 +18,7 @@ interface TextareaProps {
   id?: string;
 }
 
-const Textarea: React.FC<TextareaProps> = observer(
+const Textarea: React.FC<TextareaProps> = (
   ({
     value,
     onChange,
@@ -88,7 +87,7 @@ const Textarea: React.FC<TextareaProps> = observer(
           placeholder={placeholder}
           rows={rows}
           className={styles.textarea}
-          aria-label={label || placeholder}
+          aria-label={typeof label === 'string' ? label : placeholder}
           disabled={disabled}
           required={required}
           readOnly={readOnly}
