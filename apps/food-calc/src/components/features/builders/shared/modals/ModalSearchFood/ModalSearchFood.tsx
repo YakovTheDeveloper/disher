@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { useCallback } from 'react';
 import { SearchFood } from '@/components/features/builders/shared/components/SearchFood';
-import { BaseModalProps } from '@/store/GlobalUiStore/ModalStoreV2/types';
+import { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/components/features/builders/shared/components/ModalLayout';
 import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
 

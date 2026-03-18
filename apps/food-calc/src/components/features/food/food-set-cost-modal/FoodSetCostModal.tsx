@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, FC } from 'react';
 import Button from '@/components/ui/atoms/Button/Button';
-import { BaseModalProps } from '@/store/GlobalUiStore/ModalStoreV2/types';
+import { BaseModalProps } from '@/shared/ui';
 import moneyImg from '@/assets/decarative/money.png';
 import s from './FoodSetCostModal.module.scss';
 

@@ -1,8 +1,6 @@
-import { observer } from 'mobx-react-lite';
 import styles from './DailyNormsContent.module.scss';
 
-import { DailyNorm } from '@/domain/dailyNorm/DailyNorm.model';
-import { Instance } from 'mobx-state-tree';
+import type { DailyNorm } from '@/entities/daily-norm';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
 import NutrientNormCard from '@/components/features/dailyNorms/change-daily-norm-nutrient-value/NutrientNormCard/NutrientNormCard';
@@ -10,7 +8,7 @@ import Nutrients from '@/components/entities/nutrient/NutrientGroup/Nutrients';
 
 type Props = {
   variant: 'view' | 'modify';
-  dailyNorm: Instance<typeof DailyNorm>;
+  dailyNorm: DailyNorm;
 };
 
 const DailyNormsContent = ({ dailyNorm, variant }: Props) => {
@@ -38,4 +36,4 @@ const DailyNormsContent = ({ dailyNorm, variant }: Props) => {
   );
 };
 
-export default observer(DailyNormsContent);
+export default DailyNormsContent;

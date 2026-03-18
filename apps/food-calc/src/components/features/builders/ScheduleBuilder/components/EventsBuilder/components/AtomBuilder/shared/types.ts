@@ -2,7 +2,7 @@
  * Shared types for Atom Input components
  */
 
-import { Atom } from '@/domain/schedule/scheduleEvent/atom.types';
+import { Atom } from '@/entities/schedule-event';
 
 export interface BaseAtomInputProps {
     onAddAtom: (atom: Atom) => void;

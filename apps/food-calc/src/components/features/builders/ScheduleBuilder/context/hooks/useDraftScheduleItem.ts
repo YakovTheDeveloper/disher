@@ -1,14 +1,14 @@
 import { useContext } from 'react';
-import { DraftScheduleItemContext } from '../providers/DraftScheduleItemProvider';
+import { DraftScheduleFoodContext } from '../providers/DraftScheduleItemProvider';
 
-export const useDraftEventScheduleItem = () => {
-    const ctx = useContext(DraftScheduleItemContext);
-    if (!ctx) throw new Error('useDraftScheduleItem must be used within DraftScheduleItemProvider');
+export const useDraftEventScheduleFood = () => {
+    const ctx = useContext(DraftScheduleFoodContext);
+    if (!ctx) throw new Error('useDraftScheduleFood must be used within DraftScheduleFoodProvider');
     return ctx.eventDraft;
 };
 
-export const useDraftFoodScheduleItem = () => {
-    const ctx = useContext(DraftScheduleItemContext);
-    if (!ctx) throw new Error('useDraftScheduleItem must be used within DraftScheduleItemProvider');
+export const useDraftFoodScheduleFood = () => {
+    const ctx = useContext(DraftScheduleFoodContext);
+    if (!ctx) throw new Error('useDraftScheduleFood must be used within DraftScheduleFoodProvider');
     return ctx.foodDraft;
 };

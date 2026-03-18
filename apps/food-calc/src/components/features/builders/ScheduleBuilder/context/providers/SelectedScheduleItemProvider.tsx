@@ -1,29 +1,29 @@
 import { createContext, ReactNode } from 'react';
 import { Instance } from 'mobx-state-tree';
-import { ScheduleFoodsItem } from '@/domain/schedule/scheduleFood/ScheduleFoods.model';
+import { ScheduleFood as ScheduleFoodsItem } from '@/entities/schedule-food';
 import { useSchedule } from './ScheduleProvider';
 
-export const SelectedScheduleItemContext = createContext<
+export const SelectedScheduleFoodContext = createContext<
   Instance<typeof ScheduleFoodsItem> | undefined
 >(undefined);
 
-interface SelectedScheduleItemProviderProps {
+interface SelectedScheduleFoodProviderProps {
   itemId: string;
   children: ReactNode;
 }
 
-export const SelectedScheduleItemProvider: React.FC<SelectedScheduleItemProviderProps> = ({
+export const SelectedScheduleFoodProvider: React.FC<SelectedScheduleFoodProviderProps> = ({
   itemId,
   children,
 }) => {
   const schedule = useSchedule();
   const item = schedule.foods.getChildById(itemId);
 
-  if (!item) throw new Error(`ScheduleItem with id "${itemId}" not found`);
+  if (!item) throw new Error(`ScheduleFood with id "${itemId}" not found`);
 
   return (
-    <SelectedScheduleItemContext.Provider value={item}>
+    <SelectedScheduleFoodContext.Provider value={item}>
       {children}
-    </SelectedScheduleItemContext.Provider>
+    </SelectedScheduleFoodContext.Provider>
   );
 };

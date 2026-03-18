@@ -1,8 +1,7 @@
 import { useParams } from 'react-router-dom';
-import { domainStore } from '@/store/store';
 import { RouterLinks } from '@/router';
-import { ScheduleFood } from '@/components/features/builders/ScheduleBuilder/components/schedule-food-actions/ScheduleFood';
 import { ScheduleEventsAdd } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/modal/ScheduleEventsAdd';
+import { useScheduleEvents } from '@/entities/schedule-event';
 
 const ScheduleEventPage = () => {
   const { id, childId } = useParams<{ id: string; childId: string }>();
@@ -13,15 +12,14 @@ const ScheduleEventPage = () => {
     return null;
   }
 
-  const child = domainStore.eventScheduleStore.getScheduleChildById(id, childId);
-
-  console.log('omg', child);
+  const { results: scheduleEvents } = useScheduleEvents(id);
+  const child = scheduleEvents?.find((item) => item.id === childId) ?? null;
 
   return (
     <ScheduleEventsAdd
-      foodStore={domainStore.foodStore}
-      dishStore={domainStore.dishStore}
-      scheduleStore={domainStore.eventScheduleStore}
+      foodStore={null}
+      dishStore={null}
+      scheduleStore={null}
       scheduleChildItem={child}
       parentScheduleId={id}
     />

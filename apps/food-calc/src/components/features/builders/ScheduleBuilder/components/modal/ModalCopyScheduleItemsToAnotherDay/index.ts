@@ -1,1 +1,1 @@
-export { default as ModalCopyScheduleItemsToAnotherDay } from "./ModalCopyScheduleItemsToAnotherDay.tsx";
+export { default as ModalCopyScheduleFoodsToAnotherDay } from "./ModalCopyScheduleItemsToAnotherDay.tsx";

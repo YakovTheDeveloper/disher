@@ -1,21 +1,16 @@
-import { observer } from 'mobx-react-lite';
 import styles from './CopyFoodToDaySchedule.module.scss';
 import { EditableListRef, EditableList } from '@/components/features/manage-list/EditableList';
 import { BaseOverlayContentLayout } from '@/components/ui/layout/overlay/BaseOverlayContentLayout';
 import TextBehind from '@/components/ui/TextBehind/TextBehind';
 import { useRef, useState } from 'react';
-import {
-  FoodContentProductInstance,
-  FoodContentDishInstance,
-} from '@/domain/shared/foodContent/foodContent';
-import { useFoodScheduleStore } from '@/app/stores/helpers';
+import { addScheduleFood } from '@/entities/schedule-food';
 import { ScheduleSelection } from '@/components/features/ScheduleSelection/ScheduleSelection';
 
 export type FoodInput = {
   id: string;
   time?: string;
-  contentProduct: FoodContentProductInstance | null;
-  contentDish?: FoodContentDishInstance | null;
+  contentProduct: { foodId: string; quantity: number; name?: string } | null;
+  contentDish?: { dishId: string; quantity: number; name?: string } | null;
 };
 
 type Props = {
@@ -27,8 +22,6 @@ const CopyFoodToDaySchedule = ({ items, onClose }: Props) => {
   const editableListRef = useRef<EditableListRef>(null);
   const [step, setStep] = useState<'date' | 'edit'>('date');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-
-  const foodScheduleStore = useFoodScheduleStore();
 
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
@@ -43,29 +36,21 @@ const CopyFoodToDaySchedule = ({ items, onClose }: Props) => {
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (!selectedDate) return;
 
-    const schedule = foodScheduleStore.getOrCreateLocal(selectedDate);
-    const itemsData = items.map((item) => ({
-      time: item.time || '12:00',
-      contentProduct: item.contentProduct
-        ? {
-            variant: 'product' as const,
-            foodId: item.contentProduct.foodId,
-            quantity: item.contentProduct.quantity,
-          }
-        : null,
-      contentDish: item.contentDish
-        ? {
-            variant: 'dish' as const,
-            dishId: item.contentDish.dishId,
-            quantity: item.contentDish.quantity,
-          }
-        : null,
-    }));
-
-    schedule.foods.addBulkEachWithNewId(itemsData);
+    await Promise.all(
+      items.map((item) =>
+        addScheduleFood({
+          date: selectedDate,
+          time: item.time || '12:00',
+          type: item.contentProduct ? 'food' : 'dish',
+          foodId: item.contentProduct?.foodId ?? null,
+          dishId: item.contentDish?.dishId ?? null,
+          quantity: item.contentProduct?.quantity ?? item.contentDish?.quantity ?? 100,
+        })
+      )
+    );
     onClose();
   };
 
@@ -103,4 +88,4 @@ const CopyFoodToDaySchedule = ({ items, onClose }: Props) => {
   );
 };
 
-export default observer(CopyFoodToDaySchedule);
+export default CopyFoodToDaySchedule;

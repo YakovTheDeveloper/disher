@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, FC } from 'react';
 import Button from '@/components/ui/atoms/Button/Button';
 import s from './RenameModal.module.scss';
-import { BaseModalProps } from '@/store/GlobalUiStore/ModalStoreV2/types';
+import { BaseModalProps } from '@/shared/ui';
 
 type Props = BaseModalProps<string> & {
   currentName: string;

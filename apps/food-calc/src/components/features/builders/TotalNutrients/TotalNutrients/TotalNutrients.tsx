@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './TotalNutrients.module.scss';
 import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
 import { useCallback, useMemo } from 'react';
@@ -7,16 +6,12 @@ import NutrientCardV2 from '@/components/entities/nutrient/NutrientCard/Nutrient
 import { Typography } from '@/components/ui/atoms/Typography';
 import { NavLink } from 'react-router';
 import { RouterLinks } from '@/router';
-import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule.model';
 import {
   NutrientsCountableEntity,
   TotalNutrientsStore,
 } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
 import { Spacer } from '@/components/ui/atoms/Spacer';
 import { Button } from '@/components/ui/atoms/Button';
-import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
-import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 import { OpenDailyNorms } from '@/components/features/dailyNorms/OpenDailyNorms';
 import { Ornament } from '@/components/ui/Ornament';
 
@@ -27,10 +22,6 @@ export interface TotalNutrientsRef {
 type Props = {
   children: React.ReactNode;
   countable: NutrientsCountableEntity & { customItems?: { name: string }[] };
-  // store: Instance<typeof DaySchedule>;
-  // ref: React.Ref<{
-  //   calculate: () => void;
-  // }>;
 };
 
 const TotalNutrients = ({ countable, children }: Props) => {
@@ -46,14 +37,6 @@ const TotalNutrients = ({ countable, children }: Props) => {
 
   return (
     <>
-      {/* <Button
-        onClick={async () => {
-          const nutrients = await nutrientStore.loadNutrientsAndCalculate();
-          console.log('nutrientStore.nutrients', nutrients);
-        }}
-      >
-        Го
-      </Button> */}
       <Ornament text="нутриенты"></Ornament>
       <Nutrients
         store={nutrientStore}
@@ -99,4 +82,4 @@ const TotalNutrients = ({ countable, children }: Props) => {
   );
 };
 
-export default observer(TotalNutrients);
+export default TotalNutrients;

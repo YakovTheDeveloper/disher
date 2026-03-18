@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
-import { observer } from 'mobx-react-lite';
 import clsx from 'clsx';
 import styles from './FoodActionCard.module.scss';
-import { domainStore } from '@/store/store';
+import { deleteProducts } from '@/entities/product';
+import { deleteDishes } from '@/entities/dish';
 import { PopoverTrigger } from '@/components/ui/popover/PopoverTrigger';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import { drawerStoreV3 } from '@/store/GlobalUiStore/DrawerStoreV3/DrawerStoreV3';
+import { drawerStore } from '@/shared/ui/drawer-store';
 import { FoodActionsDrawer } from '@/components/widgets/food/food-actions-drawer';
 
 type Props = {
@@ -116,9 +116,9 @@ const FoodActionCard = ({
 
   const handleDelete = () => {
     if (variant === 'product') {
-      domainStore.foodStore.removeBulk([item.id]);
+      deleteProducts([item.id]);
     } else {
-      domainStore.dishStore.removeBulk([item.id]);
+      deleteDishes([item.id]);
     }
   };
 
@@ -201,7 +201,7 @@ const FoodActionCard = ({
           aria-label="Ещё"
           onClick={(e) => {
             e.stopPropagation();
-            drawerStoreV3.show(FoodActionsDrawer, {
+            drawerStore.show(FoodActionsDrawer, {
               variant,
               itemId: item.id,
               itemName: item.name,
@@ -216,4 +216,4 @@ const FoodActionCard = ({
   );
 };
 
-export default observer(FoodActionCard);
+export default FoodActionCard;

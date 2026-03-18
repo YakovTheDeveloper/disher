@@ -1,10 +1,8 @@
-import { observer } from 'mobx-react-lite';
 import styles from './Navigation.module.scss';
 import { useNavigate, useParams } from 'react-router';
 import { RouterLinks } from '@/router';
 import { DateInfo } from './DateInfo';
 import { ScheduleUIEventEmitter } from '@/components/features/builders/shared/emitter';
-import { MenuUiStore } from '@/store/uiStore/menu/menuUiStore';
 import { useScreenScroll } from '@/components/features/builders/shared/ui/layout/Screen/context/ScreenScrollContext';
 import { motion, MotionValue, useMotionValueEvent, useTransform } from 'framer-motion';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
@@ -14,7 +12,6 @@ import { getTitle } from '@/components/features/builders/ScheduleBuilder/ui/Navi
 
 type Props = {
   children?: React.ReactNode;
-  menuUi?: MenuUiStore;
   title?: React.ReactNode;
 };
 
@@ -70,27 +67,4 @@ const Navigation = ({ title }: Props) => {
   );
 };
 
-export default observer(Navigation);
-
-//  <Menu store={menuUi}>
-//         <div className={styles.swipeButtons}>
-//           <button className={styles.swipeHint} onClick={handleBack}>
-//             ⬅︎
-//           </button>
-//           <button onClick={onCalendarButtonClick}>
-//             <CalendarIcon className={styles.menuNavIcon} />
-//           </button>
-//           <button className={styles.swipeHint} onClick={handleNext}>
-//             ➡︎
-//           </button>
-//         </div>
-//         <div>
-//           <button className={styles.buttonInMenu} onClick={onCopyFromSchedule}>
-//             Скопировать еду с другого дня
-//           </button>
-//           <button className={styles.buttonInMenu} onClick={onNewDish}>
-//             Создать блюдо
-//           </button>
-//         </div>
-//       </Menu>
-//           </button>
+export default Navigation;

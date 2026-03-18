@@ -1,15 +1,9 @@
-import { updateDish } from '@/api/dish/dish.api';
-import { updateSchedule } from '@/api/schedule/schedule.api';
 import { DishBuilder } from '@/components/features/builders/DishBuilder';
 import { ModalDishProvider } from '@/components/features/builders/DishBuilder/modalContext';
-import { Dish } from '@/domain/dish/Dish.model';
+import type { Dish } from '@/entities/dish';
 import { RouterLinks } from '@/router';
-import { domainStore } from '@/store/store';
-import { observer } from 'mobx-react-lite';
-import { Instance } from 'mobx-state-tree';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { useRequiredRouteParam } from '@/hooks/useRequiredRouteParam';
 
 type Props = {};
 
@@ -23,21 +17,10 @@ const Page = ({}: Props) => {
     return null;
   }
 
-  const current = domainStore.dishStore.getEntity(id);
-
-  const onSave = async (data: Instance<typeof Dish>) => {
-    // domainStore.interactionsService.fetchSyncDishes([data]);
-  };
-
-  const onInit = async () => {
-    return;
-  };
-
-  useEffect(() => {
-    onInit();
-  }, []);
+  // TODO: replace with Triplit useEntity query
+  const current = null as Dish | null; // TODO: get dish from Triplit
 
   return current ? <DishBuilder init={current} /> : null;
 };
 
-export default observer(Page);
+export default Page;

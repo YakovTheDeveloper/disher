@@ -3,7 +3,7 @@
  */
 
 import { useState } from 'react';
-import { FlagAtom } from '@/domain/schedule/scheduleEvent/atom.types';
+import { FlagAtom } from '@/entities/schedule-event';
 import { AtomInputLayout, AtomActionButtons } from './shared';
 import styles from './shared/AtomInputShared.module.css';
 

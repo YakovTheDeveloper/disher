@@ -1,13 +1,11 @@
-import { observer } from 'mobx-react-lite';
 import { DrawerLayout } from '@/components/features/builders/shared/components/DrawerLayout';
-import { BaseDrawerProps } from '@/store/GlobalUiStore/DrawerStoreV3/types';
-import { domainStore } from '@/store/store';
-import { drawerStoreV3 } from '@/store/GlobalUiStore/DrawerStoreV3/DrawerStoreV3';
+import { BaseDrawerProps } from '@/shared/ui';
+import { drawerStore } from '@/shared/ui/drawer-store';
 import { AddProductToDayScheduleOverlay } from '@/components/features/daySchedule/add-product-to-day-schedule/AddProductToDayScheduleOverlay';
 import { AddDishToDayScheduleOverlay } from '@/components/features/daySchedule/add-dish-to-day-schedule/AddDishToDayScheduleOverlay';
 import { AddProductToDishOverlay } from '@/components/features/dish/add-product-to-dish/AddProductToDishOverlay';
 import { FoodSetCostModal } from '@/components/features/food/food-set-cost-modal';
-import { modalStoreV2 } from '@/store/GlobalUiStore/ModalStoreV2/ModalStoreV2';
+import { modalStore } from '@/shared/ui/modal-store';
 import styles from './FoodActionsDrawer.module.scss';
 
 interface Props extends BaseDrawerProps {
@@ -17,47 +15,41 @@ interface Props extends BaseDrawerProps {
   isUserCreated: boolean;
 }
 
-const FoodActionsDrawer = observer(({ onClose, variant, itemId, itemName, isUserCreated }: Props) => {
+const FoodActionsDrawer = ({ onClose, variant, itemId, itemName, isUserCreated }: Props) => {
   const handleAddToSchedule = () => {
     onClose();
     if (variant === 'product') {
-      drawerStoreV3.show(AddProductToDayScheduleOverlay, { productId: itemId });
+      drawerStore.show(AddProductToDayScheduleOverlay, { productId: itemId });
     } else {
-      drawerStoreV3.show(AddDishToDayScheduleOverlay, { dishId: itemId });
+      drawerStore.show(AddDishToDayScheduleOverlay, { dishId: itemId });
     }
   };
 
   const handleAddToDish = () => {
     onClose();
-    drawerStoreV3.show(AddProductToDishOverlay, { productId: itemId });
+    drawerStore.show(AddProductToDishOverlay, { productId: itemId });
   };
 
   const handleSetCost = async () => {
-    const entity = variant === 'product'
-      ? domainStore.foodStore.getEntity(itemId)
-      : domainStore.dishStore.getEntity(itemId);
+    // TODO: get entity from Triplit query instead of domainStore
     onClose();
-    const result = await modalStoreV2.show(FoodSetCostModal, {
+    const result = await modalStore.show(FoodSetCostModal, {
       itemName,
-      currentPrice: entity?.price ?? 0,
-      currentPerGrams: entity?.perGrams ?? 100,
+      currentPrice: 0,
+      currentPerGrams: 100,
     });
     if (result) {
-      entity?.setCost(result.price, result.perGrams);
+      // TODO: update cost via Triplit mutation
     }
   };
 
   const handleDelete = () => {
-    if (variant === 'product') {
-      domainStore.foodStore.removeBulk([itemId]);
-    } else {
-      domainStore.dishStore.removeBulk([itemId]);
-    }
+    // TODO: delete via Triplit mutation
     onClose();
   };
 
   const typeLabel = variant === 'product' ? 'Продукт' : 'Блюдо';
-  const ownerLabel = isUserCreated ? ' · ваше' : '';
+  const ownerLabel = isUserCreated ? ' \u00B7 ваше' : '';
 
   return (
     <DrawerLayout>
@@ -89,7 +81,7 @@ const FoodActionsDrawer = observer(({ onClose, variant, itemId, itemName, isUser
       </div>
     </DrawerLayout>
   );
-});
+};
 
 const AddToDishIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

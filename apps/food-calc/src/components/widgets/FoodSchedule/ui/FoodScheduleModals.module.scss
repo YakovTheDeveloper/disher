@@ -1,0 +1,125 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: linear-gradient(160deg, rgb(235, 230, 255) 0%, rgb(220, 225, 250) 40%, rgb(235, 242, 250) 100%);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px 12px;
+  background: linear-gradient(160deg, rgba(235, 230, 255, 0.95) 0%, rgba(220, 225, 250, 0.95) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.backButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: var(--color-deep-blue);
+  padding: 0;
+  line-height: 1;
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.crumbWrapper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.separator {
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 0.85rem;
+  user-select: none;
+}
+
+.crumb {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.3);
+  cursor: default;
+  transition: all 0.2s ease;
+
+  &.completed {
+    color: var(--color-deep-blue);
+    cursor: pointer;
+    opacity: 0.6;
+
+    &:hover {
+      opacity: 1;
+      background: rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  &.current {
+    color: var(--color-deep-blue);
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  &:disabled:not(.current) {
+    cursor: default;
+  }
+}
+
+.spacer {
+  flex: 0 0 auto;
+  min-height: 25dvh;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 0 16px 2rem;
+}
+
+.finishButton {
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.nextButton {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  background: var(--color-blue-2);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

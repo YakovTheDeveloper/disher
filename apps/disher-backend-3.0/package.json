@@ -1,0 +1,19 @@
+{
+  "name": "disher-backend-3.0",
+  "version": "1.0.0",
+  "description": "Disher backend powered by Triplit",
+  "type": "module",
+  "scripts": {
+    "dev": "triplit dev",
+    "schema:push": "triplit schema push",
+    "seed": "tsx scripts/seed.ts"
+  },
+  "dependencies": {
+    "@triplit/client": "^1.0.50"
+  },
+  "devDependencies": {
+    "@triplit/cli": "^1.0.61",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3"
+  }
+}

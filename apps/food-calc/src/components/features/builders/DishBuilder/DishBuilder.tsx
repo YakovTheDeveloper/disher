@@ -1,13 +1,10 @@
-import { observer } from 'mobx-react-lite';
-import { Instance } from 'mobx-state-tree';
 import { useState } from 'react';
-import { Dish } from '@/domain/dish/Dish.model';
+import type { Dish } from '@/entities/dish';
+import { drawerStore } from '@/shared/ui/drawer-store';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { TotalNutrients } from '@/components/features/builders/TotalNutrients/TotalNutrients';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
-import { domainStore } from '@/store/store';
 import { ActionsPanel } from '@/components/features/builders/shared/components/ActionsPanel';
 import { DishFoodSelectionActions } from '@/components/features/builders/DishBuilder/components/header-actions/DishFoodSelectionActions';
 import { RouterLinks } from '@/router';
@@ -24,7 +21,7 @@ import EditableText from '@/components/ui/atoms/EditableText/EditableText';
 import TextBehind from '@/components/ui/TextBehind/TextBehind';
 
 type Props = {
-  init: Instance<typeof Dish>;
+  init: Dish;
 };
 
 const DishBuilder = ({ init }: Props) => {
@@ -37,7 +34,7 @@ const DishBuilder = ({ init }: Props) => {
   const onFoodSelected = (payload: { variant: 'product' | 'dish'; id: string }) => {
     if (payload.variant === 'dish') return;
     if (searchContext === 'draft') {
-      domainStore.dishStore.setDraftFood(payload.id);
+      // TODO: implement draft food flow with Triplit
       setSearchContext(null);
       setQuantityContext('draft');
     } else if (searchContext) {
@@ -48,7 +45,7 @@ const DishBuilder = ({ init }: Props) => {
 
   const quantityItem =
     quantityContext === 'draft'
-      ? domainStore.dishStore.getDraft()
+      ? null // TODO: implement draft with Triplit
       : quantityContext
         ? dishes.getChildById(quantityContext)
         : null;
@@ -77,11 +74,11 @@ const DishBuilder = ({ init }: Props) => {
               isOpen={quantityContext !== null}
               content={quantityItem?.content ?? null}
               onClose={() => {
-                if (quantityContext === 'draft') domainStore.dishStore.resetDraft();
+                // TODO: implement draft reset with Triplit
                 setQuantityContext(null);
               }}
               onCommit={() => {
-                if (quantityContext === 'draft') domainStore.dishStore.commitDraft(dishes.id);
+                // TODO: implement draft commit with Triplit
                 setQuantityContext(null);
               }}
               title={quantityContext === 'draft' ? 'Добавить продукт' : 'Количество'}
@@ -94,9 +91,7 @@ const DishBuilder = ({ init }: Props) => {
             left={
               <button
                 onClick={() => {
-                  domainStore.globalUiStore.drawerStore.open({
-                    type: DrawerTypesV2.Confirmation.RemoveDishItems,
-                  });
+                  // TODO: implement confirmation drawer with drawerStore.show()
                 }}
               >
                 удалить
@@ -157,4 +152,4 @@ const DishBuilder = ({ init }: Props) => {
   );
 };
 
-export default observer(DishBuilder);
+export default DishBuilder;

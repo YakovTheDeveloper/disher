@@ -1,34 +1,30 @@
-import { IAnyModelType, Instance } from 'mobx-state-tree';
 import { useFilteringState } from '@/components/features/shared/hooks/useFilteringState';
 import { useNavigate } from 'react-router';
-import { IDataStoreInstance } from '@/store/shared/DataStore';
 
-type ExtractEntryType<IModel extends IAnyModelType> = Instance<IModel>;
-
-interface ListActionsOptions<IModel extends IAnyModelType> {
-  store: IDataStoreInstance<IModel>;
+interface ListActionsOptions<T extends { id: string }> {
+  items: T[];
   navigateTo: string;
-  createEntity: () => Instance<IModel>;
-  filterKeys?: (keyof ExtractEntryType<IModel>)[]; // Типизируем ключи фильтрации
+  createEntity: () => Promise<string> | string;
+  filterKeys?: (keyof T)[];
 }
 
-export const useListStateActions = <IModel extends IAnyModelType>({
-  store,
+export const useListStateActions = <T extends { id: string }>({
+  items,
   navigateTo,
   createEntity,
-  filterKeys = ['name'],
-}: ListActionsOptions<IModel>) => {
+  filterKeys = ['name' as keyof T],
+}: ListActionsOptions<T>) => {
   const navigate = useNavigate();
 
-  const onAdd = () => {
-    const { id } = store.insert(createEntity());
+  const onAdd = async () => {
+    const id = await createEntity();
     navigate(`${navigateTo}/${id}`);
   };
 
   const filter = useFilteringState([
     {
       tabName: 'мои',
-      list: store.merged,
+      list: items,
       filterKeys: filterKeys,
     },
   ] as const);

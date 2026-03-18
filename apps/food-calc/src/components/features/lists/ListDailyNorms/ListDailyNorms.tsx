@@ -1,29 +1,19 @@
-import { observer } from 'mobx-react-lite';
+import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
-import { DailyNormStoreInstance } from '@/store/DailyNormStore/DailyNormStore';
-import { domainStore } from '@/store/store';
+import { useDailyNorms, createDailyNorm } from '@/entities/daily-norm';
 import { RouterLinks } from '@/router';
 import styles from './ListDailyNorms.module.scss';
-import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
-import { DailyNormsFactory } from '@/domain/dailyNorm/factory';
 import FilterListLayout from '@/components/features/lists/shared/FilterListLayout/FilterListLayout';
 import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
-import { FilterPanel } from '@/components/features/lists/shared/FilterPanel';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
 import { ListItem } from '@/components/ui/list-item/ListItem';
 import TickIcon from '@icons/tick.svg';
+import { useNavigate } from 'react-router';
 
 import normsImg from '@/assets/decarative/norms.png';
 import commonStyles from '../shared/commonStyles.module.scss';
-
-type Props = {
-  children?: React.ReactNode;
-  store?: DailyNormStoreInstance;
-  selectableItems?: boolean;
-  addControls?: boolean;
-};
 
 const SelectButton = ({ isSelected, onSelect }: { isSelected: boolean; onSelect: () => void }) => (
   <button
@@ -51,18 +41,28 @@ const SelectButton = ({ isSelected, onSelect }: { isSelected: boolean; onSelect:
   </button>
 );
 
-const ListDailyNorms = ({ store = domainStore.dailyNormStore }: Props) => {
-  const { onAdd, navigate, filter } = useListStateActions({
-    store,
-    navigateTo: RouterLinks.DailyNorms,
-    createEntity: () =>
-      DailyNormsFactory.createNewLocal({
-        name: 'Новая норма',
-        description: '',
-        createByUser: true,
-      }),
-    filterKeys: ['name', 'description'],
-  });
+const ListDailyNorms = () => {
+  const navigate = useNavigate();
+  const [searchText, setSearchText] = useState('');
+  const [selectedNormId, setSelectedNormId] = useState<string | null>(null);
+  const { results: norms } = useDailyNorms();
+
+  const normList = useMemo(() => {
+    if (!norms) return [];
+    const all = Array.from(norms.values());
+    if (!searchText) return all;
+    const lower = searchText.toLowerCase();
+    return all.filter(
+      (n) =>
+        n.name?.toLowerCase().includes(lower) ||
+        n.description?.toLowerCase().includes(lower)
+    );
+  }, [norms, searchText]);
+
+  const onAdd = async () => {
+    const id = await createDailyNorm('Новая норма', '');
+    navigate(`${RouterLinks.DailyNorms}/${id}`);
+  };
 
   return (
     <Screen offsetTop bottomRight={<AddButton onClick={onAdd} />} actions={<></>}>
@@ -72,19 +72,18 @@ const ListDailyNorms = ({ store = domainStore.dailyNormStore }: Props) => {
           <SearchInput
             size="medium"
             wrapperClassName={commonStyles.searchWrapper}
-            value={filter.filterText}
-            onChange={(e) => filter.setSearch(e.target.value)}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
           />
         }
-        // filterPanel={<FilterPanel selectedFilters={[]} columns={[]} onFilterChange={() => {}} />}
         mainContent={
           <ul className={styles.list}>
             <div className={styles.decorImg}>
               <img src={normsImg} alt="" />
             </div>
             <AnimatePresence initial={false}>
-              {filter.filteredList.map((item, i) => {
-                const isSelected = store.selectedNormId === item.id;
+              {normList.map((item, i) => {
+                const isSelected = selectedNormId === item.id;
                 return (
                   <motion.div
                     key={item.id}
@@ -99,7 +98,7 @@ const ListDailyNorms = ({ store = domainStore.dailyNormStore }: Props) => {
                       before={
                         <SelectButton
                           isSelected={isSelected}
-                          onSelect={() => store.setSelectedId(item.id)}
+                          onSelect={() => setSelectedNormId(item.id)}
                         />
                       }
                     >
@@ -116,4 +115,4 @@ const ListDailyNorms = ({ store = domainStore.dailyNormStore }: Props) => {
   );
 };
 
-export default observer(ListDailyNorms);
+export default ListDailyNorms;

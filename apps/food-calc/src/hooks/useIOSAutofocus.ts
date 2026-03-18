@@ -1,12 +1,12 @@
 import { useEffect, type RefObject } from 'react';
-import { domainStore } from '@/store/store';
+import { userAgentInfo } from './useUserAgentDetection';
 
 /**
  * Hook to enable autofocus on iOS devices by working around Safari's keyboard restrictions.
  * Uses industry-standard temp input trick based on best practices from top web apps.
  */
 export const useIOSAutofocus = (ref: RefObject<HTMLInputElement>, autoFocus?: boolean) => {
-    const isIOS = domainStore.globalUiStore.userAgentStore.isIOS;
+    const isIOS = userAgentInfo.isIOS;
 
     useEffect(() => {
         if (!autoFocus || !isIOS) return;

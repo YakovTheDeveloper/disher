@@ -1,15 +1,16 @@
 import { createContext, useContext } from 'react';
 import { useParams } from 'react-router';
-import { domainStore } from '@/store/store';
-import { Instance } from 'mobx-state-tree';
-import { DaySchedule, ScheduleFood, ScheduleEventContainer } from '@/domain/schedule/schedule.model';
-import { types } from 'mobx-state-tree';
 
-const CombinedSchedule = types.compose("CombinedSchedule", ScheduleFood, ScheduleEventContainer)
+// TODO: full rewrite needed — replace MST CombinedSchedule with Triplit queries
 
-export const ScheduleContext = createContext<Instance<typeof CombinedSchedule> | undefined>(undefined);
+type CombinedScheduleView = {
+  // Placeholder type until Triplit migration is complete
+  [key: string]: any;
+};
 
-export const useSchedule = (): Instance<typeof CombinedSchedule> => {
+export const ScheduleContext = createContext<CombinedScheduleView | undefined>(undefined);
+
+export const useSchedule = (): CombinedScheduleView => {
   const ctx = useContext(ScheduleContext);
 
   if (ctx === undefined) {
@@ -21,14 +22,9 @@ export const useSchedule = (): Instance<typeof CombinedSchedule> => {
 
 const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { id: date } = useParams();
-  const foodSchedule = domainStore.foodScheduleStore.data.get(date || '');
-  const eventSchedule = domainStore.eventScheduleStore.data.get(date || '');
 
-  // Create a combined view from both stores
-  const combined = foodSchedule ? {
-    ...foodSchedule,
-    events: eventSchedule?.events
-  } : undefined;
+  // TODO: replace with Triplit useQuery hooks for food + event schedules
+  const combined = undefined;
 
   return <ScheduleContext.Provider value={combined as any}>{children}</ScheduleContext.Provider>;
 };

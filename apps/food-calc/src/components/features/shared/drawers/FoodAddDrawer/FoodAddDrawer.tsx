@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { observer } from 'mobx-react-lite';
 import { DrawerLayout } from '@/components/features/builders/shared/components/DrawerLayout';
 import { FormCreateEntityWithName } from '@/components/features/shared/forms/FormCreateEntityWithName';
 import { Tabs } from '@/components/ui/Tabs';
 import type { Tab } from '@/components/ui/Tabs';
-import { domainStore } from '@/store/store';
+import { createProduct } from '@/entities/product';
+import { createDish } from '@/entities/dish';
 import { RouterLinks } from '@/router';
 import { useNavigate } from 'react-router';
-import { InteractionsCreateInstance } from '@/store/interactions/interactionsIndex';
 import { DrawerProps } from '@/types/common/drawer.v2';
 
 type EntityType = 'product' | 'dish';
@@ -18,24 +17,22 @@ const tabs: Tab[] = [
 ];
 
 interface FoodAddDrawerProps extends DrawerProps {
-  interactionsCreate?: InteractionsCreateInstance;
   defaultTab?: EntityType;
 }
 
 const FoodAddDrawer = ({
   onClose,
   defaultTab = 'product',
-  interactionsCreate = domainStore.interactionsService.interactionsCreate,
 }: FoodAddDrawerProps) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<EntityType>(defaultTab);
-  const handleCreate = (name: string) => {
+  const handleCreate = async (name: string) => {
     if (activeTab === 'product') {
-      const id = interactionsCreate.createProduct(name);
+      const id = await createProduct({ name });
       navigate(`${RouterLinks.UserProduct}/${id}`);
     } else {
-      interactionsCreate.createDish(name);
-      navigate(`${RouterLinks.DishBuilder}`);
+      const id = await createDish(name);
+      navigate(`${RouterLinks.DishBuilder}/${id}`);
     }
     onClose();
   };
@@ -55,4 +52,4 @@ const FoodAddDrawer = ({
   );
 };
 
-export default observer(FoodAddDrawer);
+export default FoodAddDrawer;

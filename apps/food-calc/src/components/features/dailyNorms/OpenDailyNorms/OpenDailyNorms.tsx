@@ -10,8 +10,7 @@ import {
   useInteractions,
   FloatingPortal,
 } from '@floating-ui/react';
-import { observer } from 'mobx-react-lite';
-import { useStore } from '@/store/store';
+import { useDailyNorms } from '@/entities/daily-norm';
 import styles from './OpenDailyNorms.module.scss';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 
@@ -19,11 +18,20 @@ type Props = {
   className?: string;
 };
 
-const OpenDailyNorms = observer(({ className }: Props) => {
+const OpenDailyNorms = ({ className }: Props) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [selectedNormId, setSelectedNormId] = React.useState<string | null>(null);
   const { toDailyNorms } = useAppRoutes();
-  const store = useStore();
-  const { dailyNormStore } = store;
+  const { results: normsMap } = useDailyNorms();
+
+  const norms = React.useMemo(() => {
+    return normsMap ? Array.from(normsMap.values()) : [];
+  }, [normsMap]);
+
+  const selectedNorm = React.useMemo(() => {
+    if (!selectedNormId) return null;
+    return norms.find((n) => n.id === selectedNormId) || null;
+  }, [selectedNormId, norms]);
 
   const { refs, floatingStyles, context } = useFloating({
     open: isOpen,
@@ -47,17 +55,8 @@ const OpenDailyNorms = observer(({ className }: Props) => {
 
   const interactions = useInteractions([click, dismiss]);
 
-  const norms = React.useMemo(() => {
-    return Array.from(dailyNormStore.merged);
-  }, [dailyNormStore.merged]);
-
-  const selectedNorm = React.useMemo(() => {
-    if (!dailyNormStore.selectedNormId) return null;
-    return dailyNormStore.getEntity(dailyNormStore.selectedNormId) || null;
-  }, [dailyNormStore.selectedNormId, dailyNormStore.merged]);
-
   const handleNormClick = (id: string) => {
-    dailyNormStore.setSelectedId(id);
+    setSelectedNormId(id);
     setIsOpen(false);
   };
 
@@ -91,7 +90,7 @@ const OpenDailyNorms = observer(({ className }: Props) => {
                 <div
                   key={norm.id}
                   className={`${styles.item} ${
-                    norm.id === dailyNormStore.selectedNormId ? styles.selected : ''
+                    norm.id === selectedNormId ? styles.selected : ''
                   }`}
                   onClick={() => handleNormClick(norm.id)}
                 >
@@ -108,6 +107,6 @@ const OpenDailyNorms = observer(({ className }: Props) => {
       </FloatingPortal>
     </>
   );
-});
+};
 
 export default OpenDailyNorms;

@@ -1,11 +1,11 @@
 import {
     DISH_CATEGORY_GROUPS,
     DishCategoryValue
-} from '@/domain/dish/Dish.types';
+} from '@/entities/dish';
 import {
     PRODUCT_CATEGORY_GROUPS,
     ProductCategoryValue
-} from '@/domain/product/Product.types';
+} from '@/entities/product';
 import { CategoryOption, CategoryGroup } from '@/components/ui/FilterPanel/FilterPanel';
 
 // Common categories that exist in both Dish and Product

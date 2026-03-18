@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
 import { ModalLayout } from '@/components/features/builders/shared/components/ModalLayout';
 import { ScheduleSelection } from '@/components/features/ScheduleSelection';
-import { BaseModalProps } from '@/store/GlobalUiStore/ModalStoreV2/types';
+import { BaseModalProps } from '@/shared/ui';
 import Toggle from '@/components/features/builders/shared/ui/Toggle/Toggle';
 
 type Mode = 'copy' | 'move';
@@ -12,7 +12,7 @@ interface Props extends BaseModalProps<{ date: string; mode: Mode }> {
   defaultMode?: Mode;
 }
 
-const ModalCopyScheduleItemsToAnotherDay = observer(
+const ModalCopyScheduleFoodsToAnotherDay = observer(
   ({ title, defaultMode = 'copy', onClose }: Props) => {
     const [mode, setMode] = useState<Mode>(defaultMode);
 
@@ -45,4 +45,4 @@ const ModalCopyScheduleItemsToAnotherDay = observer(
   }
 );
 
-export default ModalCopyScheduleItemsToAnotherDay;
+export default ModalCopyScheduleFoodsToAnotherDay;

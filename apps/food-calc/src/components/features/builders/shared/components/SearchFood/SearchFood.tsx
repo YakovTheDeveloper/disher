@@ -1,9 +1,7 @@
 import { List } from '@/components/features/builders/shared/ContentEdit/Food/List';
-import { observer } from 'mobx-react-lite';
 import { useCallback, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import styles from './SearchFood.module.scss';
-import { domainStore } from '@/store/store';
 import { FoodActionCard } from '@/components/features/food/food-action-card';
 import { useFilteringStateV2 } from '@/components/features/shared/hooks/useFilteringStateV2';
 import { useCategoryFilterState } from '@/components/features/shared/hooks/useCategoryFilterState';
@@ -16,8 +14,6 @@ import {
   getDishCategoryOptions,
   getProductCategoryOptions,
 } from '@/lib/filter/categoryOptions';
-import { productFactory } from '@/domain/product/Food.factory';
-import { DishFactory } from '@/store/DishStore/Dish.factory';
 import toaster from '@/infrastructure/toaster/toaster';
 import { allNutrientsList } from '@/components/entities/nutrient/NutrientGroup/constants';
 
@@ -60,7 +56,6 @@ const SearchFood = ({
   // Determine current filter type based on tab
   const getCurrentFilterType = (tab: string) => (tab === 'продукты' ? 'product' : 'dish');
 
-  // Логика фильтрации - создаётся внутри компонента
   const filterKeys = ['name'] as const;
 
   // Initialize with default tab based on mode
@@ -81,10 +76,9 @@ const SearchFood = ({
     [sortByNutrientId]
   );
 
+  // TODO: replace with Triplit useQuery for products
   const sortedProducts = useMemo(() => {
-    const products = myFoodOnly
-      ? domainStore.foodStore.merged.filter((p) => p.createdByUser)
-      : domainStore.foodStore.merged;
+    const products: any[] = []; // TODO: get from Triplit query
     if (!sortByNutrientId) return products;
     return [...products].sort((a: any, b: any) => {
       const aNutrients = a.getTotalNutrients?.(100) ?? {};
@@ -108,7 +102,7 @@ const SearchFood = ({
     },
     {
       tabName: 'блюда',
-      list: domainStore.dishStore.merged,
+      list: [] as any[], // TODO: get from Triplit query
       filterKeys,
     },
   ] as const;
@@ -155,26 +149,15 @@ const SearchFood = ({
   const handleCreateProduct = useCallback(() => {
     const name = filterStateWithCategory.searchQuery.trim();
     if (!name) return;
-    const product = productFactory.createNewLocal({
-      name,
-      nutrients: [],
-      portions: [],
-      description: '',
-    });
-    domainStore.foodStore.insert(product);
-    toaster.success(`Продукт «${name}» создан`, {
-      action: { label: 'Открыть', href: `/product/${product.id}` },
-    });
+    // TODO: use createProduct() from @/entities/product
+    toaster.success(`Продукт "${name}" создан`);
   }, [filterStateWithCategory.searchQuery]);
 
   const handleCreateDish = useCallback(() => {
     const name = filterStateWithCategory.searchQuery.trim();
     if (!name) return;
-    const dish = DishFactory.createNewLocal({ name, description: '', userId: 0 });
-    domainStore.dishStore.insert(dish);
-    toaster.success(`Блюдо «${name}» создано`, {
-      action: { label: 'Открыть', href: `/dish/${dish.id}` },
-    });
+    // TODO: use createDish() from @/entities/dish
+    toaster.success(`Блюдо "${name}" создано`);
   }, [filterStateWithCategory.searchQuery]);
 
   const searchQuery = filterStateWithCategory.searchQuery.trim();
@@ -182,13 +165,13 @@ const SearchFood = ({
 
   const productEmptyContent = isSearchActive ? (
     <button className={styles.createSuggestion} onClick={handleCreateProduct}>
-      Ничего не нашлось — создать продукт «{searchQuery}»
+      Ничего не нашлось — создать продукт "{searchQuery}"
     </button>
   ) : undefined;
 
   const dishEmptyContent = isSearchActive ? (
     <button className={styles.createSuggestion} onClick={handleCreateDish}>
-      Ничего не нашлось — создать блюдо «{searchQuery}»
+      Ничего не нашлось — создать блюдо "{searchQuery}"
     </button>
   ) : undefined;
 
@@ -345,4 +328,4 @@ const SearchFood = ({
   );
 };
 
-export default observer(SearchFood);
+export default SearchFood;

@@ -1,18 +1,15 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import styles from './CommonListItem.module.scss';
-import { observer } from 'mobx-react-lite';
 import clsx from 'clsx';
-import { Instance } from 'mobx-state-tree';
-import { SyncStatus } from '@/domain/commonListItem';
 import TickIcon from '@/assets/icons/tick.svg';
 import { AnimatePresence, motion } from 'framer-motion';
 import { emitter } from '@/infrastructure/emitter/emitter';
+
 type Props = {
   id: string;
   children?: React.ReactNode;
   className?: string;
   innerClassName?: string;
-  sync?: Instance<typeof SyncStatus>;
   variant?: 1 | 2 | 3;
   isSelectMode: boolean;
   isSelected: boolean;
@@ -28,7 +25,6 @@ const ListItem = ({
   children,
   className,
   innerClassName,
-  sync,
   variant,
   isSelectMode,
   isSelected,
@@ -81,9 +77,6 @@ const ListItem = ({
     // Only support primary mouse button / touch
     if (e.button !== 0) return;
 
-    // e.currentTarget.setPointerCapture(e.pointerId);
-    log(`${e.pointerId}`, 'red');
-
     isPendingRef.current = true;
     wasLongPressedRef.current = false;
     startPosRef.current = { x: e.clientX, y: e.clientY };
@@ -92,8 +85,6 @@ const ListItem = ({
     timerRef.current = setTimeout(() => {
       if (isPendingRef.current) {
         wasLongPressedRef.current = true;
-
-        log('блокирую кнопку', 'red');
         preventNextClickRef.current = true;
         handleSelect();
         // Visual indicator that press succeeded
@@ -115,8 +106,6 @@ const ListItem = ({
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
-    // log('pointer UP', 'red');
-
     const skipTap = wasLongPressedRef.current;
 
     cleanUp();
@@ -132,7 +121,6 @@ const ListItem = ({
     }
 
     setTimeout(() => {
-      // log('разблокировал кнопку', 'green');
       preventNextClickRef.current = false;
     }, 50);
   };
@@ -144,15 +132,12 @@ const ListItem = ({
     }
   };
 
-  const onSelectButtonClick = (e) => {
-    // log('click button', 'orange');
+  const onSelectButtonClick = (e: React.MouseEvent) => {
     if (preventNextClickRef.current) {
       return;
     }
     handleSelect();
   };
-
-  const status = sync?.status;
 
   return (
     <motion.div
@@ -212,7 +197,6 @@ const ListItem = ({
           styles.commonListItemInner,
           isSelectMode && styles.commonListItemInner_inActionsMode,
           isPressed && styles.commonListItemInner_tapped,
-          status && styles[status],
           variant && styles[`variant_${variant}`],
           isHighlighted && styles.highlighted
         )}
@@ -232,4 +216,4 @@ const ListItem = ({
   );
 };
 
-export default observer(ListItem);
+export default ListItem;

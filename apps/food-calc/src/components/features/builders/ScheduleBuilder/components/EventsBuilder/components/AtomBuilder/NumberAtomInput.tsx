@@ -3,7 +3,7 @@
  */
 
 import { useState } from 'react';
-import { NumberAtom } from '@/domain/schedule/scheduleEvent/atom.types';
+import { NumberAtom } from '@/entities/schedule-event';
 import { AtomInputLayout, AtomActionButtons, PresetChips } from './shared';
 
 export interface NumberAtomInputProps {

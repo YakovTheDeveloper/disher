@@ -4,7 +4,7 @@ import { Buttons } from '@/components/features/builders/shared/ui/Actions/button
 import { Heading } from '@/components/features/builders/DishBuilder/ui/Heading';
 import { Actions } from '@/components/features/builders/shared/ui/Actions';
 import { Instance } from 'mobx-state-tree';
-import { Dish } from '@/domain/dish/Dish.model';
+import { Dish } from '@/entities/dish';
 import DishListItemOnUniteProducts from '@/components/features/builders/DishBuilder/ui/DishListItemOnUniteProducts/DishListItemOnUniteProducts';
 
 export const Modals = {

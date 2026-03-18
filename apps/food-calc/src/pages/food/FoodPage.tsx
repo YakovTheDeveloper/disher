@@ -1,14 +1,12 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { observer } from 'mobx-react-lite';
 import SearchFood from '@/components/features/builders/shared/components/SearchFood/SearchFood';
 import { OpenFoodCreation } from '@/components/features/food/open-food-creation';
 import { FoodCreationModal } from '@/components/features/food/food-creation-modal';
 import { ButtonBack } from '@/components/ui/atoms/Button/ButtonBack';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import { productFactory } from '@/domain/product/Food.factory';
-import { DishFactory } from '@/store/DishStore/Dish.factory';
-import { domainStore } from '@/store/store';
+import { createProduct } from '@/entities/product';
+import { createDish } from '@/entities/dish';
 import toaster from '@/infrastructure/toaster/toaster';
 import { allNutrientsList } from '@/components/entities/nutrient/NutrientGroup/constants';
 
@@ -36,28 +34,21 @@ const FoodPage = () => {
     }
   }, [toScheduleBuilder, toSchedule]);
 
-  const handleCreateProduct = useCallback((name: string, onDone: () => void) => {
+  const handleCreateProduct = useCallback(async (name: string, onDone: () => void) => {
     if (!name) return;
-    const product = productFactory.createNewLocal({
-      name,
-      nutrients: [],
-      portions: [],
-      description: '',
-    });
-    domainStore.foodStore.insert(product);
+    const productId = await createProduct({ name });
     toaster.success(`Продукт «${name}» создан`, {
-      action: { label: 'Открыть', href: `/product/${product.id}` },
+      action: { label: 'Открыть', href: `/product/${productId}` },
     });
     onDone();
     setCreationType(null);
   }, []);
 
-  const handleCreateDish = useCallback((name: string, onDone: () => void) => {
+  const handleCreateDish = useCallback(async (name: string, onDone: () => void) => {
     if (!name) return;
-    const dish = DishFactory.createNewLocal({ name, description: '', userId: 0 });
-    domainStore.dishStore.insert(dish);
+    const dishId = await createDish(name);
     toaster.success(`Блюдо «${name}» создано`, {
-      action: { label: 'Открыть', href: `/dish/${dish.id}` },
+      action: { label: 'Открыть', href: `/dish/${dishId}` },
     });
     onDone();
     setCreationType(null);
@@ -153,4 +144,4 @@ const FoodPage = () => {
   );
 };
 
-export default observer(FoodPage);
+export default FoodPage;

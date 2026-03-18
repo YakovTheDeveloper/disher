@@ -1,8 +1,6 @@
-import { observer } from 'mobx-react-lite';
 import { useNavigate } from 'react-router';
-import { FoodStoreInstance } from '@/store/FoodStore/FoodStore';
-import { DishStoreInstance, RootInstance } from '@/store/RootStoreModel';
-import { ScheduleItemCommonForm } from '@/components/features/builders/ScheduleBuilder/components/layout/ScheduleItemCommonForm';
+import type { ScheduleEvent } from '@/entities/schedule-event';
+import { ScheduleFoodCommonForm } from '@/components/features/builders/ScheduleBuilder/components/layout/ScheduleItemCommonForm';
 import Button from '@/components/ui/atoms/Button/Button';
 import style from './ScheduleEventsAdd.module.scss';
 import Textarea from '@/components/ui/atoms/Textarea/Textarea';
@@ -11,10 +9,8 @@ import { scrollToElement } from '@/lib/scroll';
 import { TimeChoose } from '@/components/ui/TimeChoose';
 
 interface ScheduleEventsAddProps {
-  foodStore: FoodStoreInstance;
-  dishStore: DishStoreInstance;
-  scheduleStore: RootInstance['eventScheduleStore'];
-  scheduleChildItem: RootInstance['eventScheduleStore']['eventDraft'];
+  scheduleStore?: any; // TODO: replace with Triplit mutation hooks
+  scheduleChildItem: any; // TODO: type as event draft
   parentScheduleId: string;
 }
 
@@ -24,7 +20,7 @@ const ScheduleEventsAdd = (props: ScheduleEventsAddProps) => {
   const { parentScheduleId, scheduleChildItem: currentChild, scheduleStore } = props;
 
   const handleFinish = () => {
-    scheduleStore.commitEventDraft(parentScheduleId);
+    scheduleStore?.commitEventDraft(parentScheduleId);
     navigate(-1);
   };
 
@@ -52,7 +48,7 @@ const ScheduleEventsAdd = (props: ScheduleEventsAddProps) => {
   };
 
   return (
-    <ScheduleItemCommonForm
+    <ScheduleFoodCommonForm
       time={currentChild.time}
       button={
         <Button variant="primary" onClick={handleFinish}>
@@ -70,8 +66,8 @@ const ScheduleEventsAdd = (props: ScheduleEventsAddProps) => {
       <div className={style.section} id="value-section">
         <AtomBuilder event={currentChild} onEventChange={handleEventChange} />
       </div>
-    </ScheduleItemCommonForm>
+    </ScheduleFoodCommonForm>
   );
 };
 
-export default observer(ScheduleEventsAdd);
+export default ScheduleEventsAdd;

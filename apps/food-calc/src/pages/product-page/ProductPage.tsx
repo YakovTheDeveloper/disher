@@ -1,25 +1,29 @@
-import { observer } from 'mobx-react-lite';
 import { useParams } from 'react-router-dom';
-import { domainStore } from '@/store/store';
+import { useProduct, setProductNutrient } from '@/entities/product';
 import { FoodEntityView, foodToViewable } from '@/components/widgets/food-entity-view';
 import styles from './ProductPage.module.scss';
 
 const ProductPage = () => {
   const { id } = useParams<'id'>();
-  const food = id ? domainStore.foodStore.getEntity(id) : undefined;
+  const { result: food } = useProduct(id);
 
   if (!food) return null;
 
-  const entity = foodToViewable(food);
+  const entity = foodToViewable({
+    id: food.id,
+    name: food.name,
+    description: food.description ?? undefined,
+    createdByUser: true, // TODO: determine from food data if needed
+    portions: [],
+    nutrientsMap: new Map(),
+  });
 
-  const nutrientEditable = food.createdByUser
-    ? {
-        getNutrientValue: (nutrientId: string) =>
-          food.nutrientsMap.get(nutrientId)?.quantity || 0,
-        changeNutrientValue: (nutrientId: string, value: number) =>
-          food.changeNutrientValue(nutrientId, value),
-      }
-    : undefined;
+  const nutrientEditable = {
+    getNutrientValue: (_nutrientId: string) => 0,
+    changeNutrientValue: (nutrientId: string, value: number) => {
+      setProductNutrient(food.id, nutrientId, value);
+    },
+  };
 
   return (
     <FoodEntityView
@@ -32,4 +36,4 @@ const ProductPage = () => {
   );
 };
 
-export default observer(ProductPage);
+export default ProductPage;

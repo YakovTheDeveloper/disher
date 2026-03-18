@@ -1,4 +1,4 @@
-import { BaseDrawerProps } from '@/store/GlobalUiStore/DrawerStoreV3/types';
+import { BaseDrawerProps } from '@/shared/ui';
 import styles from './AddProductToDishOverlay.module.scss';
 
 interface Props extends BaseDrawerProps {

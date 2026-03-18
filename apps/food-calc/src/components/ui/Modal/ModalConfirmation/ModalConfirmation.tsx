@@ -1,6 +1,4 @@
-import { observer } from 'mobx-react-lite';
 import styles from './ModalConfirmation.module.scss';
-import { domainStore } from '@/store/store';
 
 interface ConfirmationData {
   action: string;
@@ -29,4 +27,4 @@ const ModalConfirmation = ({ data, onConfirm, onClose }: Props) => {
   );
 };
 
-export default observer(ModalConfirmation);
+export default ModalConfirmation;

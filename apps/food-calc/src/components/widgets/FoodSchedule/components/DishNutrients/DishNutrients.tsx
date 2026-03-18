@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './DishNutrients.module.scss';
 import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
 import { Overlay } from '@/components/entities/nutrient/NutrientGroup/Overlay';
@@ -10,18 +9,15 @@ import { NavLink } from 'react-router';
 import { RouterLinks } from '@/router';
 import clsx from 'clsx';
 import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
-import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule.model';
-import { ScheduleFoodsItem } from '@/domain/schedule/scheduleFood/ScheduleFoods.model';
-import { Dish } from '@/domain/dish/Dish.model';
+import type { ScheduleFood } from '@/entities/schedule-food';
+import type { Dish } from '@/entities/dish';
 import { useSchedule } from '@/components/features/builders/ScheduleBuilder/context';
 import { Button } from '@/components/ui/atoms/Button';
-import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
-import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
+import { drawerStore } from '@/shared/ui/drawer-store';
 
 type Props = {
-  currentChild: Instance<typeof ScheduleFoodsItem>;
-  currentDish: Instance<typeof Dish>;
+  currentChild: ScheduleFood;
+  currentDish: Dish;
 };
 
 const DishNutrients = ({ currentChild, currentDish }: Props) => {
@@ -36,7 +32,7 @@ const DishNutrients = ({ currentChild, currentDish }: Props) => {
     nutrientStore.loadNutrientsAndCalculate();
   }, [currentTab]);
 
-  const onChange = (e) => currentChild.content.updateQuantity(+e.target.value);
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => currentChild.content.updateQuantity(+e.target.value);
 
   const isLoading = useCallback(() => nutrientStore.isOneOfProductsIsLoading, [nutrientStore]);
 
@@ -78,9 +74,9 @@ const DishNutrients = ({ currentChild, currentDish }: Props) => {
           <Button
             variant="ghost"
             className={styles.link}
-            onClick={() =>
-              useModalsAndDrawers().drawerStore.open({ type: DrawerTypesV2.DailyNorm.Choose })
-            }
+            onClick={() => {
+              // TODO: implement daily norm chooser with drawerStore.show()
+            }}
           >
             поменять норму
           </Button>
@@ -103,4 +99,4 @@ const DishNutrients = ({ currentChild, currentDish }: Props) => {
   );
 };
 
-export default observer(DishNutrients);
+export default DishNutrients;

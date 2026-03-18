@@ -1,11 +1,6 @@
-import { observer } from 'mobx-react-lite';
 import styles from './Quantity.module.scss';
-import { spy } from 'mobx';
 import { useAnimationOnChange } from '@/components/features/builders/shared/hooks/useAnimationOnChange';
-import {
-  FoodContentDishInstance,
-  FoodContentProductInstance,
-} from '@/domain/shared/foodContent/foodContent';
+
 type Props = {
   id: string | number;
   onClick: (id: string | number) => void;
@@ -32,4 +27,4 @@ const Quantity = ({ id, onClick, content, hide, unit = 'г' }: Props) => {
   );
 };
 
-export default observer(Quantity);
+export default Quantity;

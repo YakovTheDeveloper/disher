@@ -1,10 +1,7 @@
-import { observer } from 'mobx-react-lite';
-import { domainStore } from '@/store/store';
+import { useState, useMemo } from 'react';
+import { useProducts, createProduct } from '@/entities/product';
 import { RouterLinks } from '@/router';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
-import { FoodStoreInstance } from '@/store/FoodStore/FoodStore';
-import { productFactory } from '@/domain/product/Food.factory';
-import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
 import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
 import FilterListLayout from '@/components/features/lists/shared/FilterListLayout/FilterListLayout';
 import { FilterPanel } from '@/components/features/lists/shared/FilterPanel';
@@ -14,29 +11,30 @@ import { SimpleListItem } from '@/components/ui/list-item/SimpleListItem';
 import { PopoverTrigger } from '@/components/ui/popover/PopoverTrigger';
 import AddListItemButton from '@/components/ui/atoms/Button/AddListItemButton/AddListItemButton';
 import Button from '@/components/ui/atoms/Button/Button';
-import { drawerStoreV3 } from '@/store/GlobalUiStore/DrawerStoreV3/DrawerStoreV3';
+import { drawerStore } from '@/shared/ui/drawer-store';
 import { AddProductToDayScheduleOverlay } from '@/components/features/daySchedule/add-product-to-day-schedule/AddProductToDayScheduleOverlay';
 import { AddProductToDishOverlay } from '@/components/features/dish/add-product-to-dish/AddProductToDishOverlay';
+import { useNavigate } from 'react-router';
 
 import commonStyles from '@/components/features/lists/shared/commonStyles.module.scss';
 import styles from './ListProducts.module.scss';
 
-type Props = {
-  foodStore?: FoodStoreInstance;
-};
+const ListProducts = () => {
+  const navigate = useNavigate();
+  const [searchText, setSearchText] = useState('');
+  const { results: products } = useProducts(searchText || undefined);
 
-const ListProducts = ({ foodStore = domainStore.foodStore }: Props) => {
-  const { onAdd, navigate, filter } = useListStateActions({
-    store: foodStore,
-    navigateTo: RouterLinks.UserProduct,
-    createEntity: () =>
-      productFactory.createNewLocal({
-        name: 'Новый продукт',
-        description: '',
-        createdByUser: true,
-      }),
-    filterKeys: ['name', 'description'],
-  });
+  const productList = useMemo(() => {
+    return products ? Array.from(products.values()) : [];
+  }, [products]);
+
+  const onAdd = async () => {
+    const id = await createProduct({
+      name: 'Новый продукт',
+      description: '',
+    });
+    navigate(`${RouterLinks.UserProduct}/${id}`);
+  };
 
   const filterColumns = [
     {
@@ -48,7 +46,7 @@ const ListProducts = ({ foodStore = domainStore.foodStore }: Props) => {
   ];
 
   const handleFilterChange = () => {
-    // TODO: implement filter logic
+    // filter logic placeholder
   };
 
   return (
@@ -64,15 +62,15 @@ const ListProducts = ({ foodStore = domainStore.foodStore }: Props) => {
         searchPanel={
           <SearchInput
             wrapperClassName={commonStyles.searchWrapper}
-            value={filter.filterText}
+            value={searchText}
             size="medium"
-            onChange={(e) => filter.setSearch(e.target.value)}
+            onChange={(e) => setSearchText(e.target.value)}
           />
         }
         searchPanelTitle="Продукты"
         mainContent={
           <ItemsList>
-            {filter.filteredList.map((item) => (
+            {productList.map((item) => (
               <SimpleListItem
                 key={item.id}
                 rightSlot={
@@ -83,7 +81,7 @@ const ListProducts = ({ foodStore = domainStore.foodStore }: Props) => {
                         <Button
                           variant="ghost"
                           onClick={() =>
-                            drawerStoreV3.show(AddProductToDayScheduleOverlay, {
+                            drawerStore.show(AddProductToDayScheduleOverlay, {
                               productId: item.id,
                             })
                           }
@@ -93,7 +91,7 @@ const ListProducts = ({ foodStore = domainStore.foodStore }: Props) => {
                         <Button
                           variant="ghost"
                           onClick={() =>
-                            drawerStoreV3.show(AddProductToDishOverlay, { productId: item.id })
+                            drawerStore.show(AddProductToDishOverlay, { productId: item.id })
                           }
                         >
                           Добавить в блюдо
@@ -115,4 +113,4 @@ const ListProducts = ({ foodStore = domainStore.foodStore }: Props) => {
   );
 };
 
-export default observer(ListProducts);
+export default ListProducts;

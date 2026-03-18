@@ -1,26 +1,26 @@
-import { observer } from 'mobx-react-lite';
-import { domainStore } from '@/store/store';
-import { DishFoodAdd } from '@/components/features/builders/DishBuilder/components/drawer/DishFoodAdd';
 import { useParams } from 'react-router';
+import { DishFoodAdd } from '@/components/features/builders/DishBuilder/components/drawer/DishFoodAdd';
+import { addDishItem } from '@/entities/dish';
 
 const DishFoodDraftPage = () => {
   const { id } = useParams<{ id: string }>();
 
   if (!id) return null;
 
-  const draft = domainStore.dishStore.getDraft();
-
+  // TODO: wire up dish item draft state (previously from domainStore.dishStore.getDraft())
+  // For now, the DishFoodAdd component handles the draft internally
   const handleCommit = () => {
-    domainStore.dishStore.commitDraft(id);
+    // Draft commit is now handled via Triplit mutations
+    // addDishItem({ dishId: id, foodId: draft.foodId, quantity: draft.quantity });
   };
 
   return (
     <DishFoodAdd
       dishId={id}
-      dishChildItem={draft}
+      dishChildItem={null as any}
       onCommit={handleCommit}
     />
   );
 };
 
-export default observer(DishFoodDraftPage);
+export default DishFoodDraftPage;

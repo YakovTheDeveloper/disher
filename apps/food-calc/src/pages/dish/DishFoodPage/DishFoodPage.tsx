@@ -1,6 +1,5 @@
-import { observer } from 'mobx-react-lite';
-import { domainStore } from '@/store/store';
 import { useParams } from 'react-router';
+import { useDishItems } from '@/entities/dish';
 import { DishFoodAdd } from '@/components/features/builders/DishBuilder/components/drawer/DishFoodAdd';
 
 const DishFoodPage = () => {
@@ -10,13 +9,14 @@ const DishFoodPage = () => {
     return <div>Блюдо не найдено</div>;
   }
 
-  const child = domainStore.dishStore.getEntity(id)?.getChildById(childId || '') || null;
+  const { results: dishItems } = useDishItems(id);
+  const child = dishItems?.find((item) => item.id === childId) ?? null;
 
   if (!child) {
     return <div>Блюдо не найдено</div>;
   }
 
-  return <DishFoodAdd dishId={id} dishStore={domainStore.dishStore} dishChildItem={child} />;
+  return <DishFoodAdd dishId={id} dishChildItem={child} onCommit={() => {}} />;
 };
 
-export default observer(DishFoodPage);
+export default DishFoodPage;

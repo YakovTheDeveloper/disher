@@ -1,10 +1,10 @@
 import { useContext } from 'react';
-import { SelectedScheduleItemContext } from '../providers/SelectedScheduleItemProvider';
+import { SelectedScheduleFoodContext } from '../providers/SelectedScheduleItemProvider';
 
-export const useSelectedScheduleItem = () => {
-    const ctx = useContext(SelectedScheduleItemContext);
-    if (!ctx) throw new Error('useSelectedScheduleItem must be used within SelectedScheduleItemProvider');
+export const useSelectedScheduleFood = () => {
+    const ctx = useContext(SelectedScheduleFoodContext);
+    if (!ctx) throw new Error('useSelectedScheduleFood must be used within SelectedScheduleFoodProvider');
     return ctx;
 };
 
-export default useSelectedScheduleItem;
+export default useSelectedScheduleFood;

@@ -1,10 +1,8 @@
-import { FoodWithQuantity } from "@/domain/schedule/types";
-import { FoodModelStore } from "@/store/models/food/foodModelStore";
-import { uiStore } from "@/store/rootStore";
-import { domainStore } from "@/store/store";
-import { DailyNormsStoreUI } from "@/store/uiStore/dailyNorms/DailyNormsStoreUI";
+// TODO: full rewrite needed — this class was heavily MST-dependent
+// It relied on FoodModelStore, uiStore, DailyNormsStoreUI from MST.
+// Needs to be reimplemented using Triplit queries.
+
 import { makeAutoObservable } from "mobx";
-import { Instance } from "mobx-state-tree";
 
 type FoodId = number
 type NutrientId = number
@@ -15,7 +13,7 @@ export class NutrientViewModelStore {
         id: FoodId;
     }[] = [];
 
-    constructor(private dailyNormStoreUI: DailyNormsStoreUI = uiStore.dailyNorms) {
+    constructor(private dailyNormStoreUI: any = null) {
         makeAutoObservable(this);
     }
 
@@ -28,8 +26,8 @@ export class NutrientViewModelStore {
     getValue = (id: FoodId) => this.sums[id] ?? 0;
 
     getPercent = (id: NutrientId) => {
-        const dailyNormNutrientQuantity = this.dailyNormStoreUI.currentNormNutrients[id]
-        console.log(dailyNormNutrientQuantity);
+        if (!this.dailyNormStoreUI) return null;
+        const dailyNormNutrientQuantity = this.dailyNormStoreUI.currentNormNutrients?.[id]
         const noNorm = dailyNormNutrientQuantity == null
         if (noNorm) return null
         const value = this.getValue(id);

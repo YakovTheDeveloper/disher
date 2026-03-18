@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
-import { domainStore } from '@/store/store';
 import { RouterLinks } from '@/router';
 import { ScheduleFood } from '@/components/features/builders/ScheduleBuilder/components/schedule-food-actions/ScheduleFood';
+import { useScheduleFoods } from '@/entities/schedule-food';
 
 const ScheduleFoodPage = () => {
   const { id, childId } = useParams<{ id: string; childId: string }>();
@@ -11,13 +11,14 @@ const ScheduleFoodPage = () => {
     return null;
   }
 
-  const child = domainStore.foodScheduleStore.getScheduleChildById(id, childId);
+  const { results: scheduleFoods } = useScheduleFoods(id);
+  const child = scheduleFoods?.find((item) => item.id === childId) ?? null;
 
   return (
     <ScheduleFood
-      foodStore={domainStore.foodStore}
-      dishStore={domainStore.dishStore}
-      scheduleStore={domainStore.foodScheduleStore}
+      foodStore={null}
+      dishStore={null}
+      scheduleStore={null}
       scheduleChildItem={child}
       parentScheduleId={id}
     />

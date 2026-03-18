@@ -6,7 +6,7 @@
  *   - Description (display / editable)
  *   - Quantity input (local state for scaling nutrient values)
  *   - Nutrient cards with filter/toggle
- *   - Portions (view / manage) — future
+ *   - Portions (view / manage) -- future
  *
  * The key difference is **how nutrients are calculated**:
  *   - Product: nutrients stored directly on the entity, scaled linearly by quantity
@@ -15,9 +15,6 @@
  * Both implement NutrientSource (getTotalNutrients), so TotalNutrientsStore works
  * with either transparently.
  */
-
-import { Instance } from 'mobx-state-tree';
-import { Portion } from '@/domain/product/ProductPortions/ProductPortions';
 
 /**
  * Minimal contract that both Food and Dish satisfy.
@@ -37,7 +34,7 @@ export interface FoodEntityViewable {
   isEditable: boolean;
 
   /** Portions defined for this entity */
-  portions: Instance<typeof Portion>[];
+  portions: { label: string; amount: number; unit: string; grams: number }[];
 
   /** Calculate total nutrients for a given quantity (NutrientSource) */
   getTotalNutrients(quantity?: number): Record<string, number>;
@@ -79,7 +76,7 @@ export function foodToViewable(food: {
   name: string;
   description: string | undefined;
   createdByUser: boolean;
-  portions: Instance<typeof Portion>[];
+  portions: { label: string; amount: number; unit: string; grams: number }[];
   getTotalNutrients(quantity?: number): Record<string, number>;
   changeName(name: string): void;
   changeDescription(description: string | undefined): void;
@@ -109,7 +106,7 @@ export function dishToViewable(dish: {
   id: string;
   name: string;
   description: string;
-  portions: Instance<typeof Portion>[];
+  portions: { label: string; amount: number; unit: string; grams: number }[];
   getTotalNutrients(quantity: number): Record<string, number>;
   changeName(name: string): void;
   changeDescription(description: string): void;

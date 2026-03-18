@@ -1,37 +1,32 @@
-import { observer } from 'mobx-react-lite';
-import { domainStore } from '@/store/store';
+import { useState, useMemo } from 'react';
+import { useDishes, createDish } from '@/entities/dish';
 import { RouterLinks } from '@/router';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
-import { DishStoreInstance } from '@/store/DishStore/DishStore';
-import { DishFactory } from '@/store/DishStore/Dish.factory';
-import { useListStateActions } from '@/components/features/lists/shared/hooks/useListStateActions';
 import SearchInput from '@/components/ui/atoms/input/SearchInput/SearchInput';
 import FilterListLayout from '@/components/features/lists/shared/FilterListLayout/FilterListLayout';
 import styles from '../shared/commonStyles.module.scss';
-
 import { FilterPanel } from '../shared/FilterPanel';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
 import { PopoverTrigger } from '@/components/ui/popover/PopoverTrigger';
 import AddListItemButton from '@/components/ui/atoms/Button/AddListItemButton/AddListItemButton';
-import { drawerStoreV3 } from '@/store/GlobalUiStore/DrawerStoreV3/DrawerStoreV3';
+import { drawerStore } from '@/shared/ui/drawer-store';
 import { AddDishToDayScheduleOverlay } from '@/components/features/daySchedule/add-dish-to-day-schedule/AddDishToDayScheduleOverlay';
-type Props = {
-  dishStore?: DishStoreInstance;
-};
+import { useNavigate } from 'react-router';
 
-const ListDishes = ({ dishStore = domainStore.dishStore }: Props) => {
-  const { onAdd, navigate, filter } = useListStateActions({
-    store: dishStore,
-    navigateTo: RouterLinks.DishBuilder,
-    createEntity: () =>
-      DishFactory.createNewLocal({
-        name: 'Новое блюдо',
-        description: '',
-        userId: 0,
-      }),
-    filterKeys: ['name', 'description'],
-  });
+const ListDishes = () => {
+  const navigate = useNavigate();
+  const [searchText, setSearchText] = useState('');
+  const { results: dishes } = useDishes(searchText || undefined);
+
+  const dishList = useMemo(() => {
+    return dishes ? Array.from(dishes.values()) : [];
+  }, [dishes]);
+
+  const onAdd = async () => {
+    const id = await createDish('Новое блюдо');
+    navigate(`${RouterLinks.DishBuilder}/${id}`);
+  };
 
   const filterColumns = [
     {
@@ -57,15 +52,15 @@ const ListDishes = ({ dishStore = domainStore.dishStore }: Props) => {
         searchPanel={
           <SearchInput
             wrapperClassName={styles.searchWrapper}
-            value={filter.filterText}
+            value={searchText}
             size="medium"
-            onChange={(e) => filter.setSearch(e.target.value)}
+            onChange={(e) => setSearchText(e.target.value)}
           />
         }
         searchPanelTitle="Блюда"
         mainContent={
           <ItemsList>
-            {filter.filteredList.map((item) => (
+            {dishList.map((item) => (
               <div key={item.id} className={styles.listItemWrapper}>
                 <li className={styles.listItem}>
                   <p onClick={() => navigate(`${RouterLinks.DishBuilder}/${item.id}`)}>
@@ -78,7 +73,7 @@ const ListDishes = ({ dishStore = domainStore.dishStore }: Props) => {
                     <button
                       type="button"
                       onClick={() =>
-                        drawerStoreV3.show(AddDishToDayScheduleOverlay, { dishId: item.id })
+                        drawerStore.show(AddDishToDayScheduleOverlay, { dishId: item.id })
                       }
                     >
                       Добавить в день
@@ -94,4 +89,4 @@ const ListDishes = ({ dishStore = domainStore.dishStore }: Props) => {
   );
 };
 
-export default observer(ListDishes);
+export default ListDishes;

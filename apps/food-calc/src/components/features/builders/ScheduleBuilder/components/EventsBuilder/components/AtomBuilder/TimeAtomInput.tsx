@@ -3,7 +3,7 @@
  */
 
 import { useState } from 'react';
-import { TimeAtom } from '@/domain/schedule/scheduleEvent/atom.types';
+import { TimeAtom } from '@/entities/schedule-event';
 import { AtomInputLayout, AtomActionButtons } from './shared';
 
 export interface TimeAtomInputProps {

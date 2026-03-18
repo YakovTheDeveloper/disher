@@ -3,10 +3,10 @@ import styles from './TimeGroup.module.scss';
 
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
-import { TimeGroupUI } from '@/domain/schedule/schedule.service';
+import { TimeGroupUI } from '@/shared/lib/schedule';
 
 type Props<T> = {
-  children: (item: T) => JSX.Element;
+  children: JSX.Element;
   group: TimeGroupUI<T>;
   renderAside?: (group: TimeGroupUI<T>) => JSX.Element | null;
   onTimeClick?: (group: TimeGroupUI<T>) => void;

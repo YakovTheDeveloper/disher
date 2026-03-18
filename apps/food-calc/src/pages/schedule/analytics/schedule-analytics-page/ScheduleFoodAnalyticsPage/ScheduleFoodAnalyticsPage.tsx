@@ -1,8 +1,6 @@
 import { RouterLinks } from '@/router';
-import { observer } from 'mobx-react-lite';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getSnapshot } from 'mobx-state-tree';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
@@ -10,7 +8,6 @@ import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenL
 import { Button } from '@/components/ui/atoms/Button';
 import styles from './ScheduleFoodAnalyticsPage.module.scss';
 import { useFoodScheduleStore } from '@/app/stores/helpers';
-import { ScheduleFoodsType } from '@/domain/schedule/scheduleFood/ScheduleFoods.model';
 import toaster from '@/infrastructure/toaster/toaster';
 
 const port = Number(import.meta.env.VITE_PORT) || 3000;
@@ -18,11 +15,11 @@ const API_BASE = `http://${window.location.hostname}:${port}`;
 
 type StreamStatus = 'idle' | 'connecting' | 'streaming' | 'done' | 'error' | 'stopped';
 
-function buildSnapshot(scheduleFood: ScheduleFoodsType) {
-  const snapshot = getSnapshot(scheduleFood);
+function buildSnapshot(scheduleFood: any) {
+  // TODO: adapt snapshot building for Triplit entities
   return {
-    id: snapshot.id,
-    foods: snapshot.foods.items.map((item) => ({
+    id: scheduleFood.id,
+    foods: (scheduleFood.foods?.items ?? []).map((item: any) => ({
       id: item.id,
       time: item.time,
       contentProduct: item.contentProduct
@@ -97,7 +94,7 @@ const ThinkingIndicator = () => (
   </div>
 );
 
-const Page = observer(({ scheduleFood }: { scheduleFood: ScheduleFoodsType }) => {
+const Page = ({ scheduleFood }: { scheduleFood: any }) => {
   const [text, setText] = useState('');
   const [status, setStatus] = useState<StreamStatus>('idle');
   const abortRef = useRef<AbortController | null>(null);
@@ -201,7 +198,7 @@ const Page = observer(({ scheduleFood }: { scheduleFood: ScheduleFoodsType }) =>
   }, [text]);
 
   useEffect(() => {
-    if (scheduleFood.foods.items.length > 0) {
+    if (scheduleFood.foods?.items?.length > 0) {
       handleAnalyze();
     }
     return () => abortRef.current?.abort();
@@ -233,7 +230,7 @@ const Page = observer(({ scheduleFood }: { scheduleFood: ScheduleFoodsType }) =>
           </div>
         )}
 
-        {/* Connecting state — thinking dots */}
+        {/* Connecting state -- thinking dots */}
         {status === 'connecting' && <ThinkingIndicator />}
 
         {/* Streaming / completed result */}
@@ -285,7 +282,7 @@ const Page = observer(({ scheduleFood }: { scheduleFood: ScheduleFoodsType }) =>
       </div>
     </Screen>
   );
-});
+};
 
 const GetDatePageWrapper = () => {
   const params = useParams();

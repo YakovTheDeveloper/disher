@@ -1,29 +1,25 @@
-import { observer } from 'mobx-react-lite';
 import styles from './ScheduleFoodItem.module.scss';
 import { FoodName } from '@/components/features/builders/shared/ui/FoodName';
 import { Quantity } from '@/components/features/builders/shared/ui/Quantity';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import clsx from 'clsx';
 import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
-import { domainStore } from '@/store/store';
 import { useNavigate, useParams } from 'react-router';
 import { RouterLinks } from '@/router';
-
-import { ScheduleFoodsItem as ScheduleFoodItemModel } from '@/domain/schedule/scheduleFood/ScheduleFoods.model';
-import { Instance } from 'mobx-state-tree';
+import type { ScheduleFood } from '@/entities/schedule-food';
 import { SelectionStoreType, useSelection } from '@/hooks/factoryHooks/useSelection';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 
 type Props = {
   scheduleId: string;
   className?: string;
-  item: Instance<typeof ScheduleFoodItemModel>;
+  item: ScheduleFood;
   selectionStore: SelectionStoreType;
   showCost?: boolean;
   costUnit?: string;
 };
 
-const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore, showCost, costUnit = '₽' }: Props) => {
+const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore, showCost, costUnit = '\u20BD' }: Props) => {
   const { toScheduleFood } = useAppRoutes();
 
   const id = item.id;
@@ -35,10 +31,10 @@ const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore
 
   const getVariantLabelText = () => {
     if (content?.variant === 'product') {
-      if (content.isCustom) return 'кастом';
-      else return 'продукт';
+      if (content.isCustom) return '\u043A\u0430\u0441\u0442\u043E\u043C';
+      else return '\u043F\u0440\u043E\u0434\u0443\u043A\u0442';
     }
-    if (content?.variant === 'dish') return 'блюдо';
+    if (content?.variant === 'dish') return '\u0431\u043B\u044E\u0434\u043E';
 
     return '';
   };
@@ -56,7 +52,7 @@ const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore
   const costText = useMemo(() => {
     if (!showCost) return null;
     const entity = content?.food ?? content?.dish;
-    if (!entity || !entity.hasCost) return `— ${costUnit}`;
+    if (!entity || !entity.hasCost) return `\u2014 ${costUnit}`;
     const cost = entity.costForWeight(content!.quantity);
     return `${cost.toFixed(1)} ${costUnit}`;
   }, [showCost, content, costUnit]);
@@ -80,11 +76,11 @@ const ScheduleFoodItemComponent = ({ scheduleId, item, className, selectionStore
   return (
     <div className={styles.costWrapper}>
       {listItem}
-      <span className={clsx(styles.cost, { [styles.cost_empty]: costText?.startsWith('—') })}>
+      <span className={clsx(styles.cost, { [styles.cost_empty]: costText?.startsWith('\u2014') })}>
         {costText}
       </span>
     </div>
   );
 };
 
-export default observer(ScheduleFoodItemComponent);
+export default ScheduleFoodItemComponent;

@@ -1,9 +1,10 @@
 import { sumRecordArray } from "@/lib/sumRecords/sumRecords";
-import { NutrientSource } from "@/domain/shared/NutrientSource";
+
+type NutrientSource = { getTotalNutrients(): Record<string, number> };
 
 /**
  * Aggregate nutrients from multiple sources and optionally scale to user quantity.
- * 
+ *
  * @param sources - Array of entities implementing NutrientSource
  * @param userQuantity - Optional quantity to scale the final result to
  * @param baseWeight - Total base weight of all items (used for scaling)

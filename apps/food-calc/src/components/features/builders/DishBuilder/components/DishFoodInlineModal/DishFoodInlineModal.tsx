@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
 import { Instance } from 'mobx-state-tree';
-import { DishItem } from '@/domain/dish/Dish.model';
+import { DishItem } from '@/entities/dish';
 import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
 import { SearchFood } from '@/components/features/builders/shared/components/SearchFood';
 import { SearchFoodButton } from '@/components/features/builders/shared/components/SearchFood';

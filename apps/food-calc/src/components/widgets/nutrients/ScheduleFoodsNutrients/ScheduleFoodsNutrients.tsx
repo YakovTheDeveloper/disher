@@ -1,6 +1,3 @@
-import { observer } from 'mobx-react-lite';
-import { Instance } from 'mobx-state-tree';
-import { ScheduleFoods } from '@/domain/schedule/scheduleFood';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
 import { Overlay } from '@/components/entities/nutrient/NutrientGroup/Overlay';
@@ -18,7 +15,7 @@ import styles from './ScheduleFoodsNutrients.module.scss';
 import { Ornament } from '@/components/ui/Ornament';
 
 type Props = {
-  schedule: Instance<typeof ScheduleFoods>;
+  schedule: any; // TODO: type with Triplit schedule entity
   after?: React.ReactNode;
 };
 
@@ -106,4 +103,4 @@ const ScheduleFoodsNutrients = ({ schedule, after }: Props) => {
   );
 };
 
-export default observer(ScheduleFoodsNutrients);
+export default ScheduleFoodsNutrients;

@@ -20,6 +20,8 @@
     "@radix-ui/react-dialog": "^1.1.15",
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-virtual": "^3.13.12",
+    "@triplit/client": "^1.0.50",
+    "@triplit/react": "^1.0.51",
     "@trpc/client": "^11.5.0",
     "@vitejs/plugin-react-swc": "^3.7.2",
     "axios": "1.7.8",
@@ -62,7 +64,8 @@
     "use-debounce": "^10.0.6",
     "uuid": "^11.0.3",
     "vaul": "^1.1.2",
-    "vite-plugin-checker": "^0.12.0"
+    "vite-plugin-checker": "^0.12.0",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
@@ -95,7 +98,7 @@
     "prettier-eslint": "^16.3.0",
     "sass": "^1.81.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.41.0",
     "vite": "^6.0.2",
     "vite-css-modules": "^1.10.0",

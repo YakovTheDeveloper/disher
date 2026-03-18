@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './FoodNutrients.module.scss';
 import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
 import NutrientCardV2 from '@/components/entities/nutrient/NutrientCard/NutrientCardV2';
@@ -9,11 +8,9 @@ import { Overlay } from '@/components/entities/nutrient/NutrientGroup/Overlay';
 import { Typography } from '@/components/ui/atoms/Typography';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import { TotalNutrientsStore } from '@/components/features/builders/TotalNutrients/TotalNutrients/store/TotalNutrientsStore';
-import { domainStore } from '@/store/store';
+import { drawerStore } from '@/shared/ui/drawer-store';
 import clsx from 'clsx';
 import { Button } from '@/components/ui/atoms/Button';
-import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
-import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
 
 type Props = {
   children?: React.ReactNode;
@@ -23,10 +20,9 @@ type Props = {
 };
 
 const FoodNutrients = ({ foodId, className, before }: Props) => {
-  // const [params] = useSearchParams();
-  // const foodId = params.get('id');
   if (!foodId) return null;
-  const food = domainStore.foodStore.data.get(foodId);
+  // TODO: replace with Triplit useEntity query
+  const food = null as any; // TODO: get food entity from Triplit
   if (!food) return null;
 
   const nutrientStore = useMemo(
@@ -76,9 +72,9 @@ const FoodNutrients = ({ foodId, className, before }: Props) => {
       <Button
         variant="ghost"
         className={styles.link}
-        onClick={() =>
-          useModalsAndDrawers().drawerStore.open({ type: DrawerTypesV2.DailyNorm.Choose })
-        }
+        onClick={() => {
+          // TODO: implement daily norm chooser with drawerStore.show()
+        }}
       >
         поменять норму
       </Button>
@@ -86,4 +82,4 @@ const FoodNutrients = ({ foodId, className, before }: Props) => {
   );
 };
 
-export default observer(FoodNutrients);
+export default FoodNutrients;

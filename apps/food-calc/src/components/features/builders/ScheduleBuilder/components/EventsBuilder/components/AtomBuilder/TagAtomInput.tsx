@@ -3,14 +3,17 @@
  */
 
 import { useState, useMemo } from 'react';
-import { useStore } from '@/store/store';
-import { TagAtom } from '@/domain/schedule/scheduleEvent/atom.types';
+import { TagAtom } from '@/entities/schedule-event';
 import { AtomInputLayout, AtomActionButtons } from './shared';
 import styles from './shared/AtomInputShared.module.css';
 
 export interface TagAtomInputProps {
   onAddAtom: (atom: TagAtom) => void;
   onClose: () => void;
+  /** Popular tags for autocomplete suggestions */
+  popularTags?: string[];
+  /** Recent tags for autocomplete suggestions */
+  recentTags?: string[];
 }
 
 /**
@@ -18,26 +21,25 @@ export interface TagAtomInputProps {
  *
  * Allows user to add a tag atom with autocomplete suggestions from history
  */
-export const TagAtomInput = ({ onAddAtom, onClose }: TagAtomInputProps) => {
+export const TagAtomInput = ({ onAddAtom, onClose, popularTags = [], recentTags = [] }: TagAtomInputProps) => {
   const [input, setInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const store = useStore();
 
   const suggestions = useMemo(() => {
     if (!input.trim()) {
-      return store.eventScheduleStore.getPopularTags();
+      return popularTags;
     }
 
     const lowerInput = input.toLowerCase();
     const allTags = [
-      ...store.eventScheduleStore.getPopularTags(),
-      ...store.eventScheduleStore.getRecentTags(),
+      ...popularTags,
+      ...recentTags,
     ];
 
     // Remove duplicates and filter by input
     const unique = Array.from(new Set(allTags));
     return unique.filter((tag) => tag.toLowerCase().includes(lowerInput)).slice(0, 10);
-  }, [input, store.eventScheduleStore]);
+  }, [input, popularTags, recentTags]);
 
   const handleAdd = (tagValue: string = input) => {
     const trimmed = tagValue.trim();

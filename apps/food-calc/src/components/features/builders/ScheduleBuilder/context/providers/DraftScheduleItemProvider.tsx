@@ -1,30 +1,26 @@
 import { createContext, ReactNode } from 'react';
-import { domainStore } from '@/store/store';
-import { observer } from 'mobx-react-lite';
 
-// Type for draft object compatible with existing hooks
+// TODO: full rewrite needed — replace MST drafts with Triplit/Zustand draft stores
+
 type DraftItem = {
-  eventDraft: typeof domainStore.eventScheduleStore.eventDraft;
-  foodDraft: typeof domainStore.foodScheduleStore.foodDraft;
+  eventDraft: any;
+  foodDraft: any;
 };
 
-export const DraftScheduleItemContext = createContext<DraftItem | undefined>(undefined);
+export const DraftScheduleFoodContext = createContext<DraftItem | undefined>(undefined);
 
-interface DraftScheduleItemProviderProps {
+interface DraftScheduleFoodProviderProps {
   children: ReactNode;
 }
 
-export const DraftScheduleItemProvider: React.FC<DraftScheduleItemProviderProps> = observer(
-  ({ children }) => {
-    const foodDraft = domainStore.foodScheduleStore.foodDraft;
-    const eventDraft = domainStore.eventScheduleStore.eventDraft;
+export const DraftScheduleFoodProvider: React.FC<DraftScheduleFoodProviderProps> = ({ children }) => {
+  // TODO: get drafts from Zustand draft stores in entities
+  const foodDraft = null;
+  const eventDraft = null;
 
-    if (!foodDraft || !eventDraft) throw new Error(`No draft exist in store`);
-
-    return (
-      <DraftScheduleItemContext.Provider value={{ eventDraft, foodDraft }}>
-        {children}
-      </DraftScheduleItemContext.Provider>
-    );
-  }
-);
+  return (
+    <DraftScheduleFoodContext.Provider value={{ eventDraft, foodDraft }}>
+      {children}
+    </DraftScheduleFoodContext.Provider>
+  );
+};

@@ -1,7 +1,5 @@
 import { useEffect } from "react";
-import { observer } from "mobx-react-lite";
-import { productFactory } from "@/domain/product/Food.factory";
-import { domainStore } from "@/store/store";
+import { createProduct } from "@/entities/product";
 import toaster from "@/infrastructure/toaster/toaster";
 import styles from './CreateNewProduct.module.scss'
 
@@ -13,17 +11,15 @@ const CreateNewProduct = ({ name }: Props) => {
   useEffect(() => {
     if (!name) return;
 
-    const food = productFactory.createNewLocal({
+    createProduct({
       name: name,
       description: '',
-      createdByUser: true,
     });
 
-    domainStore.foodStore.insert(food);
     toaster.success('Продукт создан');
   }, [name]);
 
   return null;
 }
 
-export default observer(CreateNewProduct);
+export default CreateNewProduct;

@@ -1,12 +1,10 @@
-import { observer } from 'mobx-react-lite';
 import { useRef, useState, useMemo } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import style from './ProductQuantity.module.scss';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import { QuickButton } from '@/components/features/builders/shared/atoms/QuickButtons/QuickButton';
-import { Instance } from 'mobx-state-tree';
-import { Portion } from '@/domain/product/ProductPortions/ProductPortions';
-import { FoodContentInstance } from '@/domain/shared/foodContent/foodContent';
+
+type FoodContentInstance = any;
 
 const variants = [
   [25, 50, 75, 100],
@@ -24,9 +22,8 @@ type Props = {
   onFinish: () => void;
 };
 
-const SLIDE_SIZE = 8; // 2 rows × 4 columns
+const SLIDE_SIZE = 8; // 2 rows x 4 columns
 
-// Разделить массив на слайды по 8 элементов (2×4 сетка)
 const chunkArray = <T,>(arr: T[], size: number): T[][] => {
   const chunks: T[][] = [];
   for (let i = 0; i < arr.length; i += size) {
@@ -46,7 +43,7 @@ const ProductQuantity = ({ onFinish, content }: Props) => {
   // Build quick buttons data
   const quickButtons: QuickButtonData[] =
     portions.length > 0
-      ? portions.map((portion: Instance<typeof Portion>) => ({
+      ? portions.map((portion: any) => ({
           quantity: portion.grams,
           label: `${portion.amount} ${portion.unit} (${portion.grams}г)`,
         }))
@@ -57,11 +54,9 @@ const ProductQuantity = ({ onFinish, content }: Props) => {
     label: quantity.toString(),
   }));
 
-  // Разбиваем на слайды по 8 элементов (2×4 сетка)
   const portionSlides = useMemo(() => chunkArray(quickButtons, SLIDE_SIZE), [quickButtons]);
   const quantitySlides = useMemo(() => chunkArray(quickButtons2, SLIDE_SIZE), [quickButtons2]);
 
-  // Embla carousel для порций
   const [portionsEmblaRef] = useEmblaCarousel(
     {
       loop: false,
@@ -72,7 +67,6 @@ const ProductQuantity = ({ onFinish, content }: Props) => {
     []
   );
 
-  // Embla carousel для количества
   const [quantitiesEmblaRef] = useEmblaCarousel(
     {
       loop: false,
@@ -166,4 +160,4 @@ const ProductQuantity = ({ onFinish, content }: Props) => {
   );
 };
 
-export default observer(ProductQuantity);
+export default ProductQuantity;

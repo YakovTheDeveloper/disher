@@ -1,7 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { observer } from 'mobx-react-lite';
 import styles from './Modal.module.scss';
-import { modalStoreV2 } from '@/store/GlobalUiStore/ModalStoreV2/ModalStoreV2';
+import { modalStore } from '@/shared/ui/modal-store';
 import { motion } from 'framer-motion';
 
 interface ModalProps {
@@ -9,15 +9,14 @@ interface ModalProps {
 }
 
 const ModalComponent = ({ children }: ModalProps) => {
-  // Subscribe to modalStoreV2 to trigger re-render when modals change
-  const v2Open = modalStoreV2.isModalOpen;
+  const v2Open = modalStore.isModalOpen;
 
   return (
     <Dialog.Root
       open={v2Open}
       onOpenChange={(open) => {
-        if (!open && modalStoreV2.isModalOpen) {
-          modalStoreV2.closeLast();
+        if (!open && modalStore.isModalOpen) {
+          modalStore.closeLast();
         }
       }}
     >

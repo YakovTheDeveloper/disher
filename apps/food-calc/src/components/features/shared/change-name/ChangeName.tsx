@@ -1,11 +1,10 @@
 import { useState, FC } from 'react';
-import { observer } from 'mobx-react-lite';
 import clsx from 'clsx';
 import { BrandMark } from '@/components/ui/BrandMark';
 import Button from '@/components/ui/atoms/Button/Button';
 import { Typography } from '@/components/ui/atoms/Typography';
 import { RenameModal } from '@/components/features/shared/components/RenameModal';
-import { modalStoreV2 } from '@/store/GlobalUiStore/ModalStoreV2/ModalStoreV2';
+import { modalStore } from '@/shared/ui/modal-store';
 import s from './ChangeName.module.scss';
 
 type Props = {
@@ -25,7 +24,7 @@ const ChangeName: FC<Props> = ({ entity, canRename = true }) => {
 
   const handleRename = async () => {
     setShowRenameHint(false);
-    const newName = await modalStoreV2.show<
+    const newName = await modalStore.show<
       { currentName: string; label?: string; onClose: (result?: string) => void },
       string
     >(RenameModal, { currentName: entity.name });
@@ -60,4 +59,4 @@ const ChangeName: FC<Props> = ({ entity, canRename = true }) => {
   );
 };
 
-export default observer(ChangeName);
+export default ChangeName;

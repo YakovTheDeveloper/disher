@@ -1,11 +1,10 @@
-import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
 import styles from './TimeChoose.module.scss';
 import { useTimeChooseV2 } from './useTimeChooseV2';
 import clsx from 'clsx';
 import { TimeNow } from './TimeNow';
-import { domainStore } from '@/store/store';
-import { UIViewOptionsInstance } from '@/store/GlobalUiStore/UiViewOptions/UiViewOptions';
+
+type TimePickerVariant = 'native' | 'manual';
 
 type Props = {
   onFinish: (timeString: string) => void; // "HH:MM" format
@@ -14,23 +13,24 @@ type Props = {
   minuteAriaLabel?: string;
   id?: string;
   inputId?: string;
-  uiStore?: UIViewOptionsInstance;
+  timePickerVariant?: TimePickerVariant;
 };
 
-const TimeChoose = observer(
-  ({
+const TimeChoose = ({
     onFinish,
     initialTime,
     hourAriaLabel = 'Hour',
     minuteAriaLabel = 'Minute',
     id,
     inputId,
-    uiStore = domainStore.globalUiStore.options,
+    timePickerVariant: controlledVariant,
   }: Props) => {
+    const [localVariant, setLocalVariant] = useState<TimePickerVariant>('manual');
+    const variant = controlledVariant ?? localVariant;
     const [hours, setHours] = useState<string>(initialTime.split(':')[0]);
     const [minutes, setMinutes] = useState<string>(initialTime.split(':')[1]);
 
-    const isNative = uiStore.timePickerVariant === 'native';
+    const isNative = variant === 'native';
 
     // Normalize hours and minutes to HH:MM format for native input
     const normalizeTime = (h: string, m: string) => {
@@ -146,7 +146,7 @@ const TimeChoose = observer(
           <button
             className={clsx(styles.toggleButton, styles.swapButton)}
             onClick={() => {
-              uiStore.toggleTimePickerVariant();
+              setLocalVariant((prev) => (prev === 'native' ? 'manual' : 'native'));
             }}
           >
             {isNative ? 'Ручной ввод' : 'Системный'}
@@ -154,7 +154,6 @@ const TimeChoose = observer(
         </div>
       </div>
     );
-  }
-);
+  };
 
 export default TimeChoose;

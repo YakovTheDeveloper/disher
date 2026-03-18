@@ -1,6 +1,4 @@
 import { observer } from 'mobx-react-lite';
-import { Instance } from 'mobx-state-tree';
-import { ScheduleFoods } from '@/domain/schedule/scheduleFood';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
 import { Overlay } from '@/components/entities/nutrient/NutrientGroup/Overlay';
@@ -17,16 +15,19 @@ import {
 import { OpenRichFood } from '@/components/features/food/open-rich-food';
 import styles from './FoodsNutrients.module.scss';
 import { Ornament } from '@/components/ui/Ornament';
+import type { ScheduleFood } from '@/entities/schedule-food';
 
 type Props = {
-  schedule: Instance<typeof ScheduleFoods>;
+  items: ScheduleFood[];
   after?: React.ReactNode;
 };
 
-const FoodsNutrients = ({ schedule, after }: Props) => {
+const FoodsNutrients = ({ items, after }: Props) => {
   const filter = useFilterNutrients();
   const nutrientStore = useMemo(() => TotalNutrientsStore.create(), []);
-  nutrientStore.setEntity(schedule);
+  // TODO: migrate — TotalNutrientsStore.setEntity expects an MST schedule model.
+  // Need to adapt it to work with ScheduleFood[] array.
+  // nutrientStore.setEntity(items);
 
   const isLoading = useCallback(() => nutrientStore.isOneOfProductsIsLoading, [nutrientStore]);
 
@@ -97,17 +98,7 @@ const FoodsNutrients = ({ schedule, after }: Props) => {
 
       {after}
 
-      {schedule.foodWithNoNutrients.length > 0 && (
-        <div className={styles.messageContainer}>
-          <p>Без продуктов</p>
-          <div className={styles.messageContainerRow}>
-            {schedule.foodWithNoNutrients.map((food) => (
-              <span key={food.id}>{food.name}</span>
-            ))}{' '}
-          </div>
-          <p>(нет данных по ценности)</p>
-        </div>
-      )}
+      {/* TODO: migrate — filter items without nutrient data from ScheduleFood[] */}
     </Screen>
   );
 };

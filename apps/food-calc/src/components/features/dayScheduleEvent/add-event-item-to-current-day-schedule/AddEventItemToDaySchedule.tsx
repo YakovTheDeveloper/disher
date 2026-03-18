@@ -1,15 +1,14 @@
-import { observer } from 'mobx-react-lite';
 import { useCallback, useState } from 'react';
 import clsx from 'clsx';
 import { useSwipeableLock } from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableLockContext';
 import { Instance } from 'mobx-state-tree';
 import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
 import { TimeChoose } from '@/components/ui/TimeChoose';
-import { domainStore } from '@/store/store';
+import { addScheduleEvent } from '@/entities/schedule-event';
 import Button from '@/components/ui/atoms/Button/Button';
 import Textarea from '@/components/ui/atoms/Textarea/Textarea';
 import { AtomBuilder } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/AtomBuilder';
-import { ScheduleEvent } from '@/domain/schedule/scheduleEvent/ScheduleEvent.model';
+import { ScheduleEvent } from '@/entities/schedule-event';
 import s from './AddEventItemToDaySchedule.module.scss';
 
 export type Step = 'idle' | 'time' | 'text' | 'atoms';
@@ -30,6 +29,18 @@ const NEXT_STEP: Partial<Record<Step, Exclude<Step, 'idle'>>> = {
   text: 'atoms',
 };
 
+type DraftState = {
+  time: string;
+  text: string;
+  atoms: any[];
+};
+
+const createEmptyDraft = (): DraftState => ({
+  time: new Date().toTimeString().slice(0, 5),
+  text: '',
+  atoms: [],
+});
+
 type Props = {
   scheduleId: string;
   /** If provided, edit an existing event instead of the draft */
@@ -40,16 +51,26 @@ type Props = {
   onClose?: () => void;
 };
 
-const AddEventItemToDaySchedule = observer(({ scheduleId, event, initialStep, onClose }: Props) => {
+const AddEventItemToDaySchedule = ({ scheduleId, event, initialStep, onClose }: Props) => {
   const isEditMode = !!event;
   const [step, setStep] = useState<Step>(initialStep ?? 'idle');
+  const [draft, setDraft] = useState<DraftState>(() =>
+    event
+      ? { time: event.time, text: event.text, atoms: [] }
+      : createEmptyDraft()
+  );
   useSwipeableLock(step !== 'idle');
-  const { eventScheduleStore } = domainStore;
-  const target = event ?? eventScheduleStore.eventDraft;
+
+  const target = event ?? {
+    time: draft.time,
+    text: draft.text,
+    updateTime: (time: string) => setDraft((prev) => ({ ...prev, time })),
+    setText: (text: string) => setDraft((prev) => ({ ...prev, text })),
+  };
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
-    const target = e.target as HTMLElement;
-    const id = target.id;
+    const el = e.target as HTMLElement;
+    const id = el.id;
     if (id === 'time-input') setStep('time');
     else if (id === 'event-text') setStep('text');
     else if (id === 'event-atoms') setStep('atoms');
@@ -57,7 +78,7 @@ const AddEventItemToDaySchedule = observer(({ scheduleId, event, initialStep, on
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
+        el.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
       });
     });
   }, []);
@@ -70,12 +91,17 @@ const AddEventItemToDaySchedule = observer(({ scheduleId, event, initialStep, on
     target.setText(value);
   };
 
-  const handleCommit = () => {
+  const handleCommit = async () => {
     if (isEditMode) {
       onClose?.();
       return;
     }
-    eventScheduleStore.commitEventDraft(scheduleId);
+    await addScheduleEvent({
+      scheduleId,
+      time: draft.time,
+      text: draft.text,
+    });
+    setDraft(createEmptyDraft());
     setStep('idle');
   };
 
@@ -84,7 +110,7 @@ const AddEventItemToDaySchedule = observer(({ scheduleId, event, initialStep, on
       onClose?.();
       return;
     }
-    eventScheduleStore.clearEventDraft();
+    setDraft(createEmptyDraft());
     setStep('idle');
   };
 
@@ -92,8 +118,8 @@ const AddEventItemToDaySchedule = observer(({ scheduleId, event, initialStep, on
     onClose?.();
   };
 
-  const goToStep = (target: Step) => {
-    setStep(target);
+  const goToStep = (t: Step) => {
+    setStep(t);
   };
 
   const Breadcrumbs = ({ current }: { current: Exclude<Step, 'idle'> }) => {
@@ -227,6 +253,6 @@ const AddEventItemToDaySchedule = observer(({ scheduleId, event, initialStep, on
       />
     </div>
   );
-});
+};
 
 export default AddEventItemToDaySchedule;

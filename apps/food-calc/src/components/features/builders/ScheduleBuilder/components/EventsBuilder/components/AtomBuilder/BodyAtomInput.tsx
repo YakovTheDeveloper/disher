@@ -8,7 +8,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BodyAtom, BodyPoint } from '@/domain/schedule/scheduleEvent/atom.types';
+import { BodyAtom, BodyPoint } from '@/entities/schedule-event';
 import { PresetChips } from './shared';
 import styles from './BodyAtomInput.module.css';
 

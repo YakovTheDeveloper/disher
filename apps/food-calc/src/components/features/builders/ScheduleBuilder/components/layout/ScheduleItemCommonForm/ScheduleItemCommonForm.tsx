@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { ReactNode, useMemo } from 'react';
 import { ColumnLayoutWithFixedHeader } from '@/components/ui/ColumnLayoutWithFixedHeader/index';
-import styles from './ScheduleItemCommonForm.module.scss';
+import styles from './ScheduleFoodCommonForm.module.scss';
 import { DateInfo } from '@/components/features/builders/ScheduleBuilder/ui/Navigation/DateInfo';
 import { MotionValue, useMotionValue } from 'framer-motion';
 import { getTimeOfDay, TimeOfDay } from '@/lib/time/getTimeOfDay';
@@ -113,7 +113,7 @@ type Props = {
   button: ReactNode;
 };
 
-const ScheduleItemCommonForm = ({ time, children, button }: Props) => {
+const ScheduleFoodCommonForm = ({ time, children, button }: Props) => {
   log(time);
   const motionValue: MotionValue<number> = useMotionValue(0); // Здесь нужно передать реальное значение scrollYProgress
 
@@ -157,4 +157,4 @@ const ScheduleItemCommonForm = ({ time, children, button }: Props) => {
     </ColumnLayoutWithFixedHeader>
   );
 };
-export default observer(ScheduleItemCommonForm);
+export default observer(ScheduleFoodCommonForm);

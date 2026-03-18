@@ -10,7 +10,6 @@ import FoodPage from '@/pages/food/FoodPage.tsx';
 import UserProductPage from '@/pages/user-product-page/UserProductPage.tsx';
 import ProductPage from '@/pages/product-page/ProductPage.tsx';
 import DailyNormPage from '@/pages/daily-norms/DailyNormPage/DailyNormPage.tsx';
-import TestModalPage from '@/pages/swipe-test/TestModalPage';
 import ScheduleFoodPage from './pages/schedule/builder/schedule-food-page/ScheduleFoodPage.tsx';
 import ScheduleEventPage from '@/pages/schedule/builder/schedule-event-page/ScheduleEventPage.tsx';
 import DishFoodPage from '@/pages/dish/DishFoodPage/DishFoodPage.tsx';
@@ -36,7 +35,6 @@ export enum RouterLinks {
   Product = '/product',
   LoadData = '/load-data',
   UserProduct = '/user-product',
-  Test2 = '/test-2',
   // DailyNormsCreateOrUpdate = '/daily-norms',
   Settings = '/settings',
   Reset = '/reset',
@@ -113,10 +111,6 @@ export const router = createBrowserRouter([
       {
         path: `${RouterLinks.UserProduct}/:id`,
         element: <UserProductPage />,
-      },
-      {
-        path: RouterLinks.Test2,
-        element: <TestModalPage />,
       },
       {
         path: `${RouterLinks.ScheduleFood}/`,

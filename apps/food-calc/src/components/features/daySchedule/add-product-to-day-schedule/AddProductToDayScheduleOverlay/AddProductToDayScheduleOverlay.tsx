@@ -1,20 +1,18 @@
-import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
 import { format, startOfToday } from 'date-fns';
-import { BaseDrawerProps } from '@/store/GlobalUiStore/DrawerStoreV3/types';
+import type { BaseDrawerProps } from '@/shared/ui';
 import { BaseOverlayContentLayout } from '@/components/ui/layout/overlay/BaseOverlayContentLayout';
 import { ScheduleSelection } from '@/components/features/ScheduleSelection';
-import { useFoodStore, useFoodScheduleStore } from '@/app/stores/helpers';
+import { useProduct } from '@/entities/product';
+import { addScheduleFood } from '@/entities/schedule-food';
 import styles from './AddProductToDayScheduleOverlay.module.scss';
 
 interface Props extends BaseDrawerProps {
   productId: string;
 }
 
-const AddProductToDayScheduleOverlay = observer(({ productId, onClose }: Props) => {
-  const foodStore = useFoodStore();
-  const foodScheduleStore = useFoodScheduleStore();
-  const product = foodStore.getById(productId);
+const AddProductToDayScheduleOverlay = ({ productId, onClose }: Props) => {
+  const { result: product } = useProduct(productId);
 
   const today = format(startOfToday(), 'dd-MM-yyyy');
   const [selectedDate, setSelectedDate] = useState<string>(today);
@@ -23,24 +21,17 @@ const AddProductToDayScheduleOverlay = observer(({ productId, onClose }: Props) 
     setSelectedDate(date);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (product) {
-      let schedule = foodScheduleStore.getLocal(selectedDate);
-
-      if (!schedule) {
-        foodScheduleStore.addLocal({ id: selectedDate });
-        schedule = foodScheduleStore.getLocal(selectedDate);
-      }
-
-      if (schedule) {
-        const currentTime = new Date().toTimeString().slice(0, 5);
-        schedule.foods.addChildWithLocalData({
-          time: currentTime,
-          contentProduct: { foodId: product.id, variant: 'product' as const, quantity: 100 },
-        });
-      }
-
-      console.log('Added product to schedule:', selectedDate, product.name);
+      const currentTime = new Date().toTimeString().slice(0, 5);
+      await addScheduleFood({
+        date: selectedDate,
+        time: currentTime,
+        type: 'food',
+        foodId: product.id,
+        dishId: null,
+        quantity: 100,
+      });
     }
     onClose();
   };
@@ -66,6 +57,6 @@ const AddProductToDayScheduleOverlay = observer(({ productId, onClose }: Props) 
       }
     />
   );
-});
+};
 
 export default AddProductToDayScheduleOverlay;

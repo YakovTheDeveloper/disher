@@ -3,7 +3,7 @@
  */
 
 import { useState } from 'react';
-import { ScaleAtom } from '@/domain/schedule/scheduleEvent/atom.types';
+import { ScaleAtom } from '@/entities/schedule-event';
 import { AtomInputLayout, AtomActionButtons, PresetChips } from './shared';
 
 export interface ScaleAtomInputProps {

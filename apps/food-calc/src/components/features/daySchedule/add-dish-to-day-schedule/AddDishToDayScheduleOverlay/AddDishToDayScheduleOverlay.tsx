@@ -1,20 +1,18 @@
-import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
 import { format, startOfToday } from 'date-fns';
-import { BaseDrawerProps } from '@/store/GlobalUiStore/DrawerStoreV3/types';
+import type { BaseDrawerProps } from '@/shared/ui';
 import { BaseOverlayContentLayout } from '@/components/ui/layout/overlay/BaseOverlayContentLayout';
 import { ScheduleSelection } from '@/components/features/ScheduleSelection';
-import { useDishStore, useFoodScheduleStore } from '@/app/stores/helpers';
+import { useDish } from '@/entities/dish';
+import { addScheduleFood } from '@/entities/schedule-food';
 import styles from './AddDishToDayScheduleOverlay.module.scss';
 
 interface Props extends BaseDrawerProps {
   dishId: string;
 }
 
-const AddDishToDayScheduleOverlay = observer(({ dishId, onClose }: Props) => {
-  const dishStore = useDishStore();
-  const foodScheduleStore = useFoodScheduleStore();
-  const dish = dishStore.getById(dishId);
+const AddDishToDayScheduleOverlay = ({ dishId, onClose }: Props) => {
+  const { result: dish } = useDish(dishId);
 
   const today = format(startOfToday(), 'dd-MM-yyyy');
   const [selectedDate, setSelectedDate] = useState<string>(today);
@@ -23,24 +21,16 @@ const AddDishToDayScheduleOverlay = observer(({ dishId, onClose }: Props) => {
     setSelectedDate(date);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (dish) {
-      let schedule = foodScheduleStore.getLocal(selectedDate);
-
-      if (!schedule) {
-        foodScheduleStore.addLocal({ id: selectedDate });
-        schedule = foodScheduleStore.getLocal(selectedDate);
-      }
-
-      if (schedule) {
-        const currentTime = new Date().toTimeString().slice(0, 5);
-        schedule.foods.addChildWithLocalData({
-          time: currentTime,
-          contentDish: { dishId: dish.id, variant: 'dish' as const, quantity: 100 },
-        });
-      }
-
-      console.log('Added dish to schedule:', selectedDate, dish.name);
+      const currentTime = new Date().toTimeString().slice(0, 5);
+      await addScheduleFood({
+        date: selectedDate,
+        time: currentTime,
+        type: 'dish',
+        dishId: dish.id,
+        quantity: 100,
+      });
     }
     onClose();
   };
@@ -66,6 +56,6 @@ const AddDishToDayScheduleOverlay = observer(({ dishId, onClose }: Props) => {
       }
     />
   );
-});
+};
 
 export default AddDishToDayScheduleOverlay;

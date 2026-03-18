@@ -1,16 +1,15 @@
-import { domainStore } from '@/store/store';
-
 const filterKeys = ['name'] as const;
 
+// TODO: migrate to Triplit hooks — lists should come from useQuery
 export const foodSearchConfing = [
     {
         tabName: 'продукты',
-        list: domainStore.foodStore.merged,
+        list: [] as any[],
         filterKeys,
     },
     {
         tabName: 'блюда',
-        list: domainStore.dishStore.merged,
+        list: [] as any[],
         filterKeys,
     },
 ] as const;

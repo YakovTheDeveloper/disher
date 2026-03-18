@@ -1,10 +1,6 @@
 import { RouterLinks } from '@/router';
-import { observer } from 'mobx-react-lite';
 import { useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { domainStore } from '@/store/store';
-import { DaySchedule } from '@/domain/schedule/schedule.model';
-import { Instance } from 'mobx-state-tree';
 import SwipeableV2 from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableV2';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
@@ -13,16 +9,12 @@ import { BuilderScheduleEvents } from '@/components/features/builders/ScheduleBu
 import { FilterButton } from '@/components/ui/atoms/Button';
 import { FoodsNutrients } from '@/components/widgets/nutrients/FoodsNutrients';
 
-const Page = observer(({ date }: { date: string }) => {
+const Page = ({ date }: { date: string }) => {
   console.log('schedule builder page render');
 
-  const foodSchedule =
-    domainStore.foodScheduleStore.data.get(date) ||
-    domainStore.foodScheduleStore.addLocal({ id: date });
-
-  const eventSchedule =
-    domainStore.eventScheduleStore.data.get(date) ||
-    domainStore.eventScheduleStore.addLocal({ id: date });
+  // TODO: replace with Triplit useQuery hooks for food + event schedules
+  const foodSchedule = null as any; // TODO: get from Triplit
+  const eventSchedule = null as any; // TODO: get from Triplit
 
   const onPageChange = (page: number, total: number) => {
     if (page === 2) {
@@ -42,7 +34,7 @@ const Page = observer(({ date }: { date: string }) => {
       </SwipeableV2>
     </>
   );
-});
+};
 
 const GetDatePageWrapper = () => {
   const params = useParams();

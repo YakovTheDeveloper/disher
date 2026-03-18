@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
 import { format, startOfToday } from 'date-fns';
 import { ScheduleSelection } from '@/components/features/ScheduleSelection';
-import { BaseDrawerProps } from '@/store/GlobalUiStore/DrawerStoreV3/types';
+import { BaseDrawerProps } from '@/shared/ui';
 import styles from './AddToDayScheduleDrawer.module.scss';
 import { DrawerLayout } from '@/components/features/builders/shared/components/DrawerLayout';
 import clsx from 'clsx';

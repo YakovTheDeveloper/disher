@@ -11,7 +11,7 @@ import {
   isRelationAtom,
   isFlagAtom,
   isBodyAtom,
-} from '@/domain/schedule/scheduleEvent/atom.types';
+} from '@/entities/schedule-event';
 import { formatBodyPoints } from './BodyAtomInput';
 import styles from './AtomList.module.css';
 import { observer } from 'mobx-react-lite';

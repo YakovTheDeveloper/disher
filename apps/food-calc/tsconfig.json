@@ -17,7 +17,7 @@
     "experimentalDecorators": true, // Required for MobX decorators
     "emitDecoratorMetadata": true, // Recommended but optional
     /* Bundler mode */
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -44,11 +44,15 @@
       ],
       "@types": [
         "../../packages/types/src"
+      ],
+      "@triplit-schema/*": [
+        "../disher-backend-3.0/triplit/*"
       ]
     }
   },
   "include": [
-    "src"
+    "src",
+    "../disher-backend-3.0/triplit"
   ],
   "extends": "../../tsconfig.json"
 }

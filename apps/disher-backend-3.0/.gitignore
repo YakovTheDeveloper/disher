@@ -1,0 +1,4 @@
+node_modules
+triplit/.data
+.env
+dist

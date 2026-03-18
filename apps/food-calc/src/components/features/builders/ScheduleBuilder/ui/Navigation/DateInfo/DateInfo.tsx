@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './DateInfo.module.scss';
 import { NavLink, useParams, useSearchParams } from 'react-router';
 import { RouterLinks } from '@/router';
@@ -7,10 +6,7 @@ import { MotionValue } from 'framer-motion';
 import { Scalable } from '@/components/ui/Scalable';
 import { getTitle } from '@/components/features/builders/ScheduleBuilder/ui/Navigation/methods';
 import { useDailyScheduleModals } from '@/components/features/builders/ScheduleBuilder/modalContext';
-import { domainStore } from '@/store/store';
-import { ScheduleDrawers } from '@/store/GlobalUiStore/DrawerStore/DrawerStore';
-import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
-import { useModalsAndDrawers } from '@/components/features/shared/hooks/useModalsAndDrawers';
+import { drawerStore } from '@/shared/ui/drawer-store';
 import { CSSProperties } from 'react';
 import clsx from 'clsx';
 
@@ -25,7 +21,6 @@ type Props = {
 const DateInfo = ({ scrollYProgress, style, className }: Props) => {
   const params = useParams();
   const dateParam = params.id;
-  const modals = domainStore.globalUiStore.drawerStore;
 
   const { day, monthName, monthNumber, weekdayName, weekdayNameShort } = getTitle(dateParam);
 
@@ -33,15 +28,14 @@ const DateInfo = ({ scrollYProgress, style, className }: Props) => {
 
   const shortDayNameOpacity = useTransform(scrollYProgress, [0.6, 1], [0, 1], { clamp: true });
   const shortDayNameScale = useTransform(scrollYProgress, [0.6, 1], [0, 1], { clamp: true });
-  // const containerGap = useTransform(scrollYProgress, [0, 1], ['8px', '0px']);
 
   return (
     <div
       className={clsx(styles.dateLink, className)}
       style={style}
-      onClick={() =>
-        useModalsAndDrawers().drawerStore.open({ type: DrawerTypesV2.Schedule.DateChoose })
-      }
+      onClick={() => {
+        // TODO: implement date choose drawer with drawerStore.show()
+      }}
     >
       <motion.div className={styles.date}>
         <Scalable scrollYProgress={scrollYProgress} className={styles.dateNumbers}>
@@ -79,4 +73,4 @@ const DateInfo = ({ scrollYProgress, style, className }: Props) => {
   );
 };
 
-export default observer(DateInfo);
+export default DateInfo;

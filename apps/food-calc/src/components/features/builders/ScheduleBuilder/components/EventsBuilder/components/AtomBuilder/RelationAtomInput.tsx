@@ -3,7 +3,7 @@
  */
 
 import { useState } from 'react';
-import { RelationAtom } from '@/domain/schedule/scheduleEvent/atom.types';
+import { RelationAtom } from '@/entities/schedule-event';
 import { AtomInputLayout, AtomActionButtons, PresetChips } from './shared';
 
 export interface RelationAtomInputProps {

@@ -1,19 +1,18 @@
 import { FC, useMemo } from 'react';
-import { observer } from 'mobx-react-lite';
-import { Instance } from 'mobx-state-tree';
-import { Portion } from '@/domain/product/ProductPortions/ProductPortions';
 import { PortionsManagerController } from './PortionsController';
 import Button from '@/components/ui/atoms/Button/Button';
 import s from './FoodPortionsManager.module.scss';
 
+type Portion = { label: string; amount: number; unit: string; grams: number };
+
 type Props = {
-  portions: Instance<typeof Portion>[];
-  onAdd: (portion: { label: string; amount: number; unit: string; grams: number }) => void;
-  onUpdate: (label: string, updates: Partial<{ label: string; amount: number; unit: string; grams: number }>) => void;
+  portions: Portion[];
+  onAdd: (portion: Portion) => void;
+  onUpdate: (label: string, updates: Partial<Portion>) => void;
   onRemove: (label: string) => void;
 };
 
-const FoodPortionsManager: FC<Props> = observer(({ portions, onAdd, onUpdate, onRemove }) => {
+const FoodPortionsManager: FC<Props> = ({ portions, onAdd, onUpdate, onRemove }) => {
   const ctrl = useMemo(() => new PortionsManagerController(), []);
 
   const handleSave = () => {
@@ -107,6 +106,6 @@ const FoodPortionsManager: FC<Props> = observer(({ portions, onAdd, onUpdate, on
       )}
     </div>
   );
-});
+};
 
 export default FoodPortionsManager;

@@ -66,7 +66,8 @@ export default defineConfig({
     alias: {
       '@icons': path.resolve(__dirname, './src/assets/icons'),
       '@': path.resolve(__dirname, './src'),
-      '@api': path.resolve(__dirname, '../../packages/api/src')
+      '@api': path.resolve(__dirname, '../../packages/api/src'),
+      '@triplit-schema': path.resolve(__dirname, '../disher-backend-3.0/triplit')
       // '@store': '/src/store',
     },
   },

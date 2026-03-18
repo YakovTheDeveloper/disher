@@ -1,4 +1,4 @@
-export { default as ScheduleItemCommonForm } from "./ScheduleItemCommonForm.tsx";
+export { default as ScheduleFoodCommonForm } from "./ScheduleItemCommonForm.tsx";
 export {
     TIME_OF_DAY_TEXT,
     TIME_OF_DAY_HEADER_GRADIENT,

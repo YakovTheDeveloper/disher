@@ -1,13 +1,11 @@
-import { observer } from 'mobx-react-lite';
 import styles from './ListItem.module.scss';
 import { useRef } from 'react';
-import { Instance } from 'mobx-state-tree';
-import { DailyNormItem, UserDailyNorm } from '@/domain/dailyNorm/DailyNorm.model';
+import type { DailyNormItem, DailyNorm as UserDailyNorm } from '@/entities/daily-norm';
 import { Nutrient } from '@/components/features/builders/shared/ContentInfo/Nutrients/constants';
 
 type Props = {
   nutrient: Nutrient;
-  dailyNorm: Instance<typeof UserDailyNorm>;
+  dailyNorm: UserDailyNorm;
   variant: 'view' | 'modify';
 };
 
@@ -72,4 +70,4 @@ const ListItem = ({ nutrient, variant, dailyNorm }: Props) => {
   );
 };
 
-export default observer(ListItem);
+export default ListItem;

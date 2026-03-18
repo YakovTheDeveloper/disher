@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import { useCallback, useState } from 'react';
 import { useSwipeableLock } from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableLockContext';
 import clsx from 'clsx';
@@ -6,7 +5,7 @@ import { SearchFormExpandable } from '@/components/features/shared/components/Se
 import { SearchFood } from '@/components/features/builders/shared/components/SearchFood';
 import { TimeChoose } from '@/components/ui/TimeChoose';
 import { ProductQuantity } from '@/components/features/product/ProductQuantity';
-import { domainStore } from '@/store/store';
+import { addScheduleFood } from '@/entities/schedule-food';
 import Button from '@/components/ui/atoms/Button/Button';
 import s from './AddFoodItemToDaySchedule.module.scss';
 
@@ -25,20 +24,36 @@ const NEXT_INPUT_ID: Record<string, string> = {
   search: 'quantity-input',
 };
 
+type FoodContent = {
+  quantity: number;
+  updateQuantity: (q: number) => void;
+};
+
+type DraftState = {
+  time: string;
+  variant: 'product' | 'dish' | null;
+  foodId: string | null;
+  quantity: number;
+  content: FoodContent | null;
+};
+
+const createEmptyDraft = (): DraftState => ({
+  time: new Date().toTimeString().slice(0, 5),
+  variant: null,
+  foodId: null,
+  quantity: 100,
+  content: null,
+});
+
 type Props = {
   scheduleId: string;
 };
 
-const AddFoodItemToDaySchedule = observer(({ scheduleId }: Props) => {
+const AddFoodItemToDaySchedule = ({ scheduleId }: Props) => {
   const [step, setStep] = useState<Step>('idle');
+  const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
   useSwipeableLock(step !== 'idle');
-  const { foodScheduleStore } = domainStore;
-  const draft = foodScheduleStore.foodDraft;
 
-  // Focus delegation: when a label htmlFor focuses an input inside a collapsed modal,
-  // the focus event bubbles up here and we open the corresponding step.
-  // Double rAF + scrollIntoView fixes iOS Safari issue where the focused input
-  // is not visible because iOS scrolled to its position while the modal was still collapsed.
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
     const id = target.id;
@@ -47,7 +62,6 @@ const AddFoodItemToDaySchedule = observer(({ scheduleId }: Props) => {
     else if (id === 'quantity-input') setStep('quantity');
     else return;
 
-    // Wait for React to re-render (expand the modal), then scroll input into view
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
@@ -56,21 +70,36 @@ const AddFoodItemToDaySchedule = observer(({ scheduleId }: Props) => {
   }, []);
 
   const handleTimeFinish = (time: string) => {
-    draft.updateTime(time);
+    setDraft((prev) => ({ ...prev, time }));
   };
 
   const handleFoodSelect = (payload: { variant: 'product' | 'dish'; id: string }) => {
-    draft.update(payload.variant, payload.id);
+    setDraft((prev) => ({
+      ...prev,
+      variant: payload.variant,
+      foodId: payload.id,
+      content: { quantity: prev.quantity, updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })) },
+    }));
     setStep('quantity');
   };
 
-  const handleCommit = () => {
-    foodScheduleStore.commitFoodDraft(scheduleId);
+  const handleCommit = async () => {
+    if (draft.variant && draft.foodId) {
+      await addScheduleFood({
+        date: scheduleId,
+        time: draft.time,
+        type: draft.variant === 'product' ? 'food' : 'dish',
+        foodId: draft.variant === 'product' ? draft.foodId : null,
+        dishId: draft.variant === 'dish' ? draft.foodId : null,
+        quantity: draft.quantity,
+      });
+    }
+    setDraft(createEmptyDraft());
     setStep('idle');
   };
 
   const handleClose = () => {
-    foodScheduleStore.clearFoodDraft();
+    setDraft(createEmptyDraft());
     setStep('idle');
   };
 
@@ -167,8 +196,8 @@ const AddFoodItemToDaySchedule = observer(({ scheduleId }: Props) => {
             <SearchFood
               mode="products-and-dishes"
               onFinish={handleFoodSelect}
-              currentProductId={draft.contentProduct?.foodId}
-              currentDishId={draft.contentDish?.dishId}
+              currentProductId={draft.variant === 'product' ? draft.foodId ?? undefined : undefined}
+              currentDishId={draft.variant === 'dish' ? draft.foodId ?? undefined : undefined}
             />
           </div>
         }
@@ -195,6 +224,6 @@ const AddFoodItemToDaySchedule = observer(({ scheduleId }: Props) => {
       />
     </div>
   );
-});
+};
 
 export default AddFoodItemToDaySchedule;

@@ -1,56 +1,42 @@
 import { observer } from 'mobx-react-lite';
 import styles from './BuilderScheduleEvents.module.scss';
 import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { TimeGroup } from '@/components/features/builders/ScheduleBuilder/components/List/TimeGroup';
-import { Instance } from 'mobx-state-tree';
-import { DaySchedule } from '@/domain/schedule/schedule.model';
+import type { ScheduleEvent } from '@/entities/schedule-event';
 import clsx from 'clsx';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';
-import { ScheduleEvent } from '@/domain/schedule/scheduleEvent/ScheduleEvent.model';
-import { useOverlay } from '@/store/GlobalUiStore/OverlayStore';
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
 import { Navigation } from '@/components/features/builders/ScheduleBuilder/ui/Navigation';
 import Typography from '@/components/ui/atoms/Typography/Typography';
 import { ActionsPanel } from '@/components/features/builders/shared/components/ActionsPanel';
-import { DrawerTypesV2 } from '@/store/GlobalUiStore/DrawerStore/DrawerStore.v2.types';
-import { domainStore } from '@/store/store';
 import { useSelection } from '@/hooks/factoryHooks/useSelection';
 import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
 import AddEventItemToDaySchedule from '@/components/features/dayScheduleEvent/add-event-item-to-current-day-schedule/AddEventItemToDaySchedule';
+import { groupItemsByTime } from '@/shared/lib/schedule';
+import { drawerStore } from '@/shared/ui/drawer-store';
 
 type Props = {
   children?: React.ReactNode;
-  schedule: Instance<typeof DaySchedule>;
+  date: string;
+  events: ScheduleEvent[];
 };
 
-export function getEventDescription(item: Instance<typeof ScheduleEvent>): string {
+export function getEventDescription(item: ScheduleEvent): string {
   const parts: string[] = [];
 
-  // Add time if available
   if (item.time) {
     parts.push(item.time);
   }
 
-  // Add text if available
   if (item.text) {
     parts.push(item.text);
   }
 
-  // Add relevant atoms for context
-  const tags = item.getAtomsByKind('tag');
-  if (tags.length > 0) {
-    const tagValues = tags.map((atom) => atom.value).join(', ');
-    parts.push(`[${tagValues}]`);
-  }
+  // TODO: atoms access — check if ScheduleEvent Triplit entity has getAtomsByKind or adapt
+  // const tags = item.getAtomsByKind('tag');
+  // const flags = item.getAtomsByKind('flag');
 
-  const flags = item.getAtomsByKind('flag');
-  if (flags.length > 0) {
-    const flagValues = flags.map((atom) => atom.value).join(', ');
-    parts.push(`★${flagValues}`);
-  }
-
-  // If nothing is set, show placeholder
   if (parts.length === 0) {
     return 'Новое событие';
   }
@@ -58,26 +44,18 @@ export function getEventDescription(item: Instance<typeof ScheduleEvent>): strin
   return parts.join(' • ');
 }
 
-const BuilderScheduleEvents = ({ schedule }: Props) => {
-  const { openFormScheduleEventEdit } = useOverlay();
+const BuilderScheduleEvents = ({ date, events }: Props) => {
   const selectionStoreEvents = useSelection();
+  const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
 
-  const onEventEditModalOpen = (item: Instance<typeof ScheduleEvent>) => {
-    openFormScheduleEventEdit({ itemToEditId: item.id, defaultTab: 'content' });
+  const onEventEditModalOpen = (item: ScheduleEvent) => {
+    // TODO: migrate to drawerStore.show() for event edit
   };
-
-  const renderEventListItem = useCallback((item: Instance<typeof ScheduleEvent>) => {
-    return (
-      <CommonListItem className={styles.listItemRow} id={item.id} key={item.id} sync={item.sync}>
-        <p onClick={() => onEventEditModalOpen(item)}>{getEventDescription(item)}</p>
-      </CommonListItem>
-    );
-  }, []);
 
   return (
     <Screen
       offsetTop
-      overlay={<AddEventItemToDaySchedule scheduleId={schedule.id} />}
+      overlay={<AddEventItemToDaySchedule scheduleId={date} />}
       actions={
         <ActionsPanel
           show={selectionStoreEvents.isActionsMode}
@@ -85,9 +63,7 @@ const BuilderScheduleEvents = ({ schedule }: Props) => {
           left={
             <button
               onClick={() => {
-                domainStore.globalUiStore.drawerStore.open({
-                  type: DrawerTypesV2.Confirmation.RemoveScheduleEvents,
-                });
+                // TODO: migrate to drawerStore.show() for delete confirmation
               }}
             >
               удалить
@@ -106,15 +82,14 @@ const BuilderScheduleEvents = ({ schedule }: Props) => {
     >
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList offsetTop>
-          {schedule.eventsGroupedByTime.map((timeGroup) => (
+          {eventsGroupedByTime.map((timeGroup) => (
             <TimeGroup key={timeGroup.time} group={timeGroup}>
-              {timeGroup.items.map((item: Instance<typeof ScheduleEvent>) => {
+              {timeGroup.items.map((item) => {
                 return (
                   <CommonListItem
                     className={styles.listItemRow}
                     id={item.id}
                     key={item.id}
-                    sync={item.sync}
                   >
                     <p onClick={() => onEventEditModalOpen(item)}>{getEventDescription(item)}</p>
                   </CommonListItem>
