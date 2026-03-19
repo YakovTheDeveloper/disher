@@ -1,19 +1,19 @@
-import { AnimatedOutlet } from '@/components/ui/PageTransition';
+import { AnimatedOutlet } from '@/shared/ui/PageTransition';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import s from '@/assets/style/App.module.scss';
 import '@/assets/style/index.scss';
 import '@/assets/style/App.module.scss';
 import { Toaster } from 'react-hot-toast';
-import { setupGlobalLog } from '@/lib/log/log';
-import { Modal } from '@/components/ui/Modal';
-import { ModalManagerV2 } from '@/components/ModalManagerV2';
-import { Drawer } from '@/components/ui/Drawer';
+import { setupGlobalLog } from '@/app/log';
+import { Modal } from '@/shared/ui/Modal';
+import { ModalManagerV2 } from '@/app/ui/ModalManager';
+import { Drawer } from '@/shared/ui/Drawer';
 import { useLastFocusMethod } from '@/hooks/useLastFocusMethod';
 import { useUserAgentDetection } from '@/hooks/useUserAgentDetection';
 import { useGlobalScrollBlur } from '@/hooks/useGlobalScrollBlur';
-import DrawerManagerV3 from '@/components/DrawerManagerV3';
+import DrawerManagerV3 from '@/app/ui/DrawerManager';
 import { I18nextProvider } from 'react-i18next';
-import i18n from '@/i18n';
+import i18n from '@/app/i18n';
 
 const queryClient = new QueryClient();
 

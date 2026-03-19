@@ -1,13 +1,13 @@
 import { useCallback, useRef, useState } from 'react';
 import clsx from 'clsx';
-import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
-import { SearchFood } from '@/components/features/builders/shared/components/SearchFood';
-import { EditableList, EditableListRef } from '@/components/features/manage-list/EditableList';
-import { useSwipeableLock } from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableLockContext';
+import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
+import { SearchFood } from '@/features/food/food-search';
+import { EditableList, EditableListRef } from '@/features/manage-list/EditableList';
+import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { copyDishItems } from '@/entities/dish';
-import toaster from '@/infrastructure/toaster/toaster';
+import toaster from '@/shared/lib/toaster/toaster';
 import { RouterUrls } from '@/router';
-import s from '@/components/widgets/FoodSchedule/ui/FoodScheduleModals.module.scss';
+import s from '@/widgets/FoodSchedule/ui/FoodScheduleModals.module.scss';
 
 export const COPY_TO_DISH_INPUT_IDS = {
   SEARCH_INPUT: 'copy-to-dish-search',
@@ -128,7 +128,7 @@ const CopyProductsToExistingDishModal = ({ isExpanded, sourceDishId, items, onFi
   return (
     <div onFocusCapture={handleFocusCapture}>
       {/* Step 1: Select Dish */}
-      <SearchFormExpandable
+      <ModalByLabel
         position="absolute"
         isExpanded={isExpanded && step === 'selectDish'}
         content={
@@ -145,7 +145,7 @@ const CopyProductsToExistingDishModal = ({ isExpanded, sourceDishId, items, onFi
       />
 
       {/* Step 2: Confirm Products */}
-      <SearchFormExpandable
+      <ModalByLabel
         position="absolute"
         isExpanded={isExpanded && step === 'products'}
         content={

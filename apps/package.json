@@ -2,9 +2,9 @@
   "name": "disher-apps",
   "private": true,
   "scripts": {
-    "dev:front": "cd food-calc && npm run dev-local",
     "dev:front:network": "cd food-calc && npm run dev-network",
     "dev:back": "cd disher-backend-3.0 && npm run dev:all",
+    "dev:front": "cd food-calc && npm run dev-local",
     "dev:back:triplit": "cd disher-backend-3.0 && npm run dev",
     "dev:back:api": "cd disher-backend-3.0 && npm run dev:api",
     "dev:all": "concurrently -n front,back -c cyan,green \"npm run dev:front\" \"npm run dev:back\"",

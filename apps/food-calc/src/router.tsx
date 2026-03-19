@@ -1,6 +1,7 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from '@/App.tsx';
 import HomePage from './pages/home-page/HomePage.tsx';
+import { format } from 'date-fns';
 import ScheduleDateSelectionPage from '@/pages/schedule/schedule-date-selection-page/ScheduleDateSelectionPage.tsx';
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
 import { DailyNormsPage } from '@/pages/daily-norms/dailyNormsPage/index.ts';
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
     path: RouterLinks.Root,
     element: <App />,
     children: [
+      {
+        index: true,
+        element: <Navigate to={`/schedule/${format(new Date(), 'dd-MM-yyyy')}`} replace />,
+      },
       {
         path: RouterLinks.DailyNorms,
         element: <DailyNormsPage />,

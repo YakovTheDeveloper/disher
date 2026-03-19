@@ -68,6 +68,61 @@ export const DISH_CATEGORY_GROUPS: DishCategoryGroup[] = [
   },
 ];
 
+import type { CategoryGroup, CategoryOption } from '@/shared/ui/FilterPanel/FilterPanel';
+
+export const DISH_CATEGORY_LABELS: Record<DishCategoryValue, string> = {
+    'vegetarian': 'Вегетарианское',
+    'vegan': 'Веганское',
+    'pescatarian': 'Пескатарианское',
+    'keto': 'Кето',
+    'low-carb': 'Низкоуглеводное',
+    'gluten-free': 'Без глютена',
+    'dairy-free': 'Без молочных продуктов',
+    'paleo': 'Палео',
+    'breakfast': 'Завтрак',
+    'lunch': 'Обед',
+    'dinner': 'Ужин',
+    'snack': 'Перекус',
+    'dessert': 'Десерт',
+    'italian': 'Итальянская',
+    'asian': 'Азиатская',
+    'mexican': 'Мексиканская',
+    'mediterranean': 'Средиземноморская',
+    'indian': 'Индийская',
+    'american': 'Американская',
+    'quick': 'Быстрое',
+    'meal-prep': 'На неделю',
+    'slow-cooker': 'Мультиварка',
+    'one-pot': 'Одно блюдо',
+    'no-cook': 'Без готовки',
+    'high-protein': 'Высокий белок',
+    'low-calorie': 'Низкокалорийное',
+    'high-fiber': 'Высокое содержание клетчатки',
+    'heart-healthy': 'Для сердца',
+    'energy-boosting': 'Энергетическое',
+    'summer': 'Летнее',
+    'winter': 'Зимнее',
+    'holiday': 'Праздничное',
+    'comfort-food': 'Комфортная еда',
+    'light-meal': 'Легкое блюдо',
+};
+
+export function getDishCategoryGroups(): CategoryGroup<DishCategoryValue>[] {
+    return DISH_CATEGORY_GROUPS.map(group => ({
+        groupName: group.groupName,
+        categories: group.categories as DishCategoryValue[],
+        icon: group.icon,
+    }));
+}
+
+export function getDishCategoryOptions(): Record<DishCategoryValue, CategoryOption<DishCategoryValue>> {
+    const options: Record<string, CategoryOption<DishCategoryValue>> = {};
+    for (const [value, label] of Object.entries(DISH_CATEGORY_LABELS)) {
+        options[value] = { value: value as DishCategoryValue, label };
+    }
+    return options as Record<DishCategoryValue, CategoryOption<DishCategoryValue>>;
+}
+
 export const DEFAULT_DISH_CATEGORY_POPULARITY: Record<DishCategoryValue, number> = {
   vegetarian: 7,
   vegan: 5,

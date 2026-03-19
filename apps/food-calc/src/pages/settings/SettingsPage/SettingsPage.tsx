@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import Button from '@/components/ui/atoms/Button/Button';
-import { db } from '@/infrastructure/storage/db';
+import Button from '@/shared/ui/atoms/Button/Button';
+import { db } from '@/shared/lib/storage/db';
 import styles from './SettingsPage.module.scss';
 
 const SettingsPage = () => {

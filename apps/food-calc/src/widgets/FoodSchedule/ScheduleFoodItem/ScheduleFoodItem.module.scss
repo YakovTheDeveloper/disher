@@ -1,0 +1,54 @@
+.group {
+    display: grid;
+    grid-template-columns: auto 1fr 5ch;
+    gap: 10px;
+    position: relative;
+}
+
+.variant {
+    display: block;
+    width: 100px;
+    position: absolute;
+    bottom: 6px;
+    right: 50px;
+    text-align: left;
+    transform: translate(50%, 50%);
+
+    font-size: 13px;
+    line-height: 9px;
+    font-style: italic;
+    color: rgba(0, 0, 0, 0.39);
+}
+
+.customTitle {
+    color: rgba(0, 0, 0, 0.586);
+    font-weight: 400;
+    font-style: italic;
+}
+
+.dishTitle {
+    color: #000;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+}
+
+.foodTitle {
+    color: #000;
+    font-weight: 400;
+}
+
+.rightStack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+}
+
+.priceText {
+    font-size: 10px;
+    color: rgba(0, 0, 0, 0.4);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+}

@@ -3,13 +3,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
-import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import { Button } from '@/components/ui/atoms/Button';
+import { Screen } from '@/shared/ui/Screen';
+import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
+import { Button } from '@/shared/ui/atoms/Button';
 import styles from './ScheduleFoodAnalyticsPage.module.scss';
 // TODO: migrate to Triplit — useFoodScheduleStore removed
 const useFoodScheduleStore = () => null as any;
-import toaster from '@/infrastructure/toaster/toaster';
+import toaster from '@/shared/lib/toaster/toaster';
 
 const port = Number(import.meta.env.VITE_PORT) || 3000;
 const API_BASE = `http://${window.location.hostname}:${port}`;

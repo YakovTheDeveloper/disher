@@ -1,0 +1,42 @@
+.normCardWrapper {
+    cursor: text;
+}
+
+.normInput {
+    max-width: 48px;
+    background: transparent;
+    border: 1px solid rgb(192, 192, 192);
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+
+    &::selection {
+        background-color: rgb(172, 172, 172);
+        color: white;
+    }
+}
+
+.normUnit {
+    font-size: 11px;
+    opacity: 0.5;
+}
+
+.dailyNormNutrients {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.groupTitle {
+    position: absolute;
+    top: -20px;
+    right: 0;
+    font-size: 2rem;
+    opacity: 0.1;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 6px;
+}

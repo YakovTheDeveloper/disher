@@ -13,23 +13,23 @@ import {
 import { Nutrients } from '@/entities/nutrient/ui/NutrientGroup';
 import { NutrientCard } from '@/entities/nutrient/ui/NutrientCard';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import ChangeProductNutrientValue from '@/components/features/product/change-product-nutrient-value/ChangeProductNutrientValue';
-import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
-import TextBehind from '@/components/ui/TextBehind/TextBehind';
-import { Ornament } from '@/components/ui/Ornament';
-import { Spacer } from '@/components/ui/atoms/Spacer';
-import { OpenDailyNorms } from '@/components/features/dailyNorms/OpenDailyNorms';
-import { FoodPortionsManager } from '@/components/features/food/food-portions-manager';
-import { ChangeName } from '@/components/features/shared/change-name';
+import ChangeProductNutrientValue from './ChangeProductNutrientValue';
+import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
+import TextBehind from '@/shared/ui/TextBehind/TextBehind';
+import { Ornament } from '@/shared/ui/Ornament';
+import { Spacer } from '@/shared/ui/atoms/Spacer';
+import { OpenDailyNorms } from '@/features/dailyNorms/OpenDailyNorms';
+import { FoodPortionsManager } from '@/features/food/food-portions-manager';
+import { ChangeName } from '@/features/shared/change-name';
 import {
   useFilterNutrients,
   FilterNutrientsPanel,
   FilterNutrientCardWrapper,
-} from '@/components/features/nutrients/filter-nutrients';
-import { FilterButton } from '@/components/ui/atoms/Button';
-import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
-import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import Textarea from '@/components/ui/atoms/Textarea/Textarea';
+} from '@/features/nutrients/filter-nutrients';
+import { FilterButton } from '@/shared/ui/atoms/Button';
+import { Screen } from '@/shared/ui/Screen';
+import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
+import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import bagImage from '@/assets/decarative/bag.png';
 import s from './ProductPage.module.scss';
 

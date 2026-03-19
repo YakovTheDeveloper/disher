@@ -1,13 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import SearchFood from '@/components/features/builders/shared/components/SearchFood/SearchFood';
-import { OpenFoodCreation } from '@/components/features/food/open-food-creation';
-import { FoodCreationModal } from '@/components/features/food/food-creation-modal';
-import { ButtonBack } from '@/components/ui/atoms/Button/ButtonBack';
+import SearchFood from '@/features/food/food-search/SearchFood';
+import { OpenFoodCreation } from '@/features/food/open-food-creation';
+import { FoodCreationModal } from '@/features/food/food-creation-modal';
+import { ButtonBack } from '@/shared/ui/atoms/Button/ButtonBack';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { createProduct } from '@/entities/product';
 import { createDish } from '@/entities/dish';
-import toaster from '@/infrastructure/toaster/toaster';
+import toaster from '@/shared/lib/toaster/toaster';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
 
 type CreationType = 'product' | 'dish' | null;

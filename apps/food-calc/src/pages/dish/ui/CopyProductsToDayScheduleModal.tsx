@@ -1,14 +1,14 @@
 import { useRef, useState } from 'react';
 import clsx from 'clsx';
-import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
-import { EditableList, EditableListRef } from '@/components/features/manage-list/EditableList';
-import { ScheduleSelection } from '@/components/features/ScheduleSelection/ScheduleSelection';
-import { TimeChoose } from '@/components/ui/TimeChoose';
-import { useSwipeableLock } from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableLockContext';
+import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
+import { EditableList, EditableListRef } from '@/features/manage-list/EditableList';
+import { ScheduleSelection } from '@/features/ScheduleSelection/ScheduleSelection';
+import { TimeChoose } from '@/shared/ui/TimeChoose';
+import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { dishItemsToScheduleFoods } from '@/entities/dish';
-import toaster from '@/infrastructure/toaster/toaster';
+import toaster from '@/shared/lib/toaster/toaster';
 import { RouterLinks } from '@/router';
-import s from '@/components/widgets/FoodSchedule/ui/FoodScheduleModals.module.scss';
+import s from '@/widgets/FoodSchedule/ui/FoodScheduleModals.module.scss';
 
 type Step = 'idle' | 'date' | 'confirm';
 
@@ -113,7 +113,7 @@ const CopyProductsToDayScheduleModal = ({ isExpanded, dishId, items, onFinish, o
   return (
     <div>
       {/* Step 1: Select Date */}
-      <SearchFormExpandable
+      <ModalByLabel
         position="absolute"
         isExpanded={isExpanded && step === 'date'}
         content={
@@ -125,7 +125,7 @@ const CopyProductsToDayScheduleModal = ({ isExpanded, dishId, items, onFinish, o
       />
 
       {/* Step 2: Time + Confirm Items */}
-      <SearchFormExpandable
+      <ModalByLabel
         position="absolute"
         isExpanded={isExpanded && step === 'confirm'}
         content={

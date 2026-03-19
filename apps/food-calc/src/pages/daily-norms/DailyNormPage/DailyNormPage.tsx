@@ -1,12 +1,51 @@
-import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
-import { Spacer } from '@/components/ui/atoms/Spacer';
-import Textarea from '@/components/ui/atoms/Textarea/Textarea';
+import { Screen } from '@/shared/ui/Screen';
+import { Spacer } from '@/shared/ui/atoms/Spacer';
+import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { useParams } from 'react-router';
 import { useDailyNorm, updateDailyNorm } from '@/entities/daily-norm';
-import DailyNormsEdit from '@/components/features/lists/ListDailyNorms/DailyNormsEdit/DailyNormsContent';
-import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import { ChangeName } from '@/components/features/shared/change-name';
-import { Ornament } from '@/components/ui/Ornament';
+import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
+import { ChangeName } from '@/features/shared/change-name';
+import { Ornament } from '@/shared/ui/Ornament';
+import { useRef } from 'react';
+import { observer } from 'mobx-react-lite';
+import type { DailyNorm } from '@/entities/daily-norm';
+import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
+import { NutrientCard } from '@/entities/nutrient/ui/NutrientCard';
+import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
+import Nutrients from '@/entities/nutrient/ui/NutrientGroup/Nutrients';
+
+interface NutrientNormCardProps {
+  content: Nutrient;
+  getNormValue: (id: string) => number;
+  onChange: (value: number, nutrientId: string) => void;
+  readOnly?: boolean;
+}
+
+const NutrientNormCard = observer(({ content, getNormValue, onChange, readOnly }: NutrientNormCardProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <div
+      className={styles.normCardWrapper}
+      onClick={() => !readOnly && inputRef.current?.focus()}
+      style={readOnly ? { cursor: 'default' } : undefined}
+    >
+      <NutrientCard content={content} getValue={() => 0} showValues={false} showProgress={false} showPercent={false}>
+        {readOnly ? (
+          <span className={styles.normInput}>{getNormValue(content.id)}</span>
+        ) : (
+          <NumberInput
+            ref={inputRef}
+            value={getNormValue(content.id)}
+            onChange={(value) => onChange(value, content.id)}
+            className={styles.normInput}
+          />
+        )}
+        <span className={styles.normUnit}>{content.unitRu}</span>
+      </NutrientCard>
+    </div>
+  );
+});
+import styles from './DailyNormPage.module.scss';
 
 type Props = {};
 
@@ -27,6 +66,24 @@ const DailyNormPage = ({}: Props) => {
     changeName: (name: string) => updateDailyNorm(dailyNorm.id, { name }),
   };
 
+  const readOnly = dailyNormsView === 'view';
+  const dn = dailyNorm as any;
+
+  const getNormValue = (id: string) => dn.nutrientIdToDailyNormItem?.get(id)?.quantity ?? 0;
+
+  const handleChange = (value: number, nutrientId: string) => {
+    dn.changeNutrientValue?.(nutrientId, value);
+  };
+
+  const renderCard = (nutrient: Nutrient) => (
+    <NutrientNormCard
+      content={nutrient}
+      getNormValue={getNormValue}
+      onChange={handleChange}
+      readOnly={readOnly}
+    />
+  );
+
   return (
     <Screen
       offsetTop
@@ -43,7 +100,9 @@ const DailyNormPage = ({}: Props) => {
         />
       </label>
       <Ornament text="нутриенты"></Ornament>
-      <DailyNormsEdit dailyNorm={dailyNorm} variant={dailyNormsView}></DailyNormsEdit>
+      <section className={styles.dailyNormNutrients}>
+        <Nutrients renderCard={renderCard} />
+      </section>
     </Screen>
   );
 };

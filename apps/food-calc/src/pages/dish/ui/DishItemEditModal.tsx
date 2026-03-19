@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react';
-import { useSwipeableLock } from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableLockContext';
-import { SearchFood } from '@/components/features/builders/shared/components/SearchFood';
-import { ProductQuantity } from '@/components/features/product/ProductQuantity';
+import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
+import { SearchFood } from '@/features/food/food-search';
+import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { updateDishItem } from '@/entities/dish';
-import Button from '@/components/ui/atoms/Button/Button';
-import { SearchFormExpandable } from '@/components/features/shared/components/SearchFormExpandable';
-import s from '@/components/widgets/FoodSchedule/ui/FoodScheduleModals.module.scss';
+import Button from '@/shared/ui/atoms/Button/Button';
+import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
+import s from '@/widgets/FoodSchedule/ui/FoodScheduleModals.module.scss';
 
 export const DISH_EDIT_MODAL_INPUT_IDS = {
   SEARCH_INPUT: 'dish-item-edit-search',
@@ -84,7 +84,7 @@ const DishItemEditModal = ({ item, initialStep = 'idle', onClose }: Props) => {
   return (
     <div onFocusCapture={handleFocusCapture}>
       {/* Search Food */}
-      <SearchFormExpandable
+      <ModalByLabel
         position="absolute"
         isExpanded={step === 'search'}
         content={
@@ -100,7 +100,7 @@ const DishItemEditModal = ({ item, initialStep = 'idle', onClose }: Props) => {
       />
 
       {/* Quantity */}
-      <SearchFormExpandable
+      <ModalByLabel
         position="absolute"
         isExpanded={step === 'quantity'}
         content={

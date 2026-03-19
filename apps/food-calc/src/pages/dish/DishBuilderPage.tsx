@@ -11,24 +11,24 @@ import {
   removeDishPortion,
 } from '@/entities/dish';
 import type { DishItem } from '@/entities/dish';
-import { ItemsList } from '@/components/ui/atoms/ItemsList';
-import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
-import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
-import { ActionsPanel } from '@/components/features/builders/shared/components/ActionsPanel';
+import { ItemsList } from '@/shared/ui/atoms/ItemsList';
+import { Screen } from '@/shared/ui/Screen';
+import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
+import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { DishFoodSelectionActions } from './components/header-actions/DishFoodSelectionActions';
 import { RouterLinks } from '@/router';
-import SwipeableV2 from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableV2';
-import { CommonListItem } from '@/components/features/builders/shared/ui/CommonListItem';
-import { FoodName } from '@/components/features/builders/shared/ui/FoodName';
-import { Quantity } from '@/components/features/builders/shared/ui/Quantity';
+import SwipeableV2 from '@/shared/ui/Swipeable/SwipeableV2';
+import { SelectableListItem } from '@/features/shared/selectable-list-item';
+import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
+import { Quantity } from '@/shared/ui/Quantity';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
-import { CountBadge } from '@/components/ui/atoms/Button/CountBadge/CountBadge';
-import { useSwipeableLock } from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableLockContext';
-import toaster from '@/infrastructure/toaster/toaster';
+import { CountBadge } from '@/shared/ui/atoms/Button/CountBadge/CountBadge';
+import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
+import toaster from '@/shared/lib/toaster/toaster';
 import styles from './DishBuilderPage.module.scss';
-import AddButton from '@/components/ui/atoms/Button/AddButton/AddButton';
-import EditableText from '@/components/ui/atoms/EditableText/EditableText';
-import TextBehind from '@/components/ui/TextBehind/TextBehind';
+import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
+import EditableText from '@/shared/ui/atoms/EditableText/EditableText';
+import TextBehind from '@/shared/ui/TextBehind/TextBehind';
 import {
   DishItemCreationModals,
   DISH_MODAL_INPUT_IDS,
@@ -38,9 +38,9 @@ import {
   CopyProductsToDayScheduleModal,
   COPY_TO_DISH_INPUT_IDS,
 } from './ui';
-import { FoodsNutrients } from '@/components/widgets/nutrients/FoodsNutrients';
-import { FoodPortionsManager } from '@/components/features/food/food-portions-manager';
-import { Ornament } from '@/components/ui/Ornament';
+import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
+import { FoodPortionsManager } from '@/features/food/food-portions-manager';
+import { Ornament } from '@/shared/ui/Ornament';
 import { useDishNutrientTotals } from '@/entities/dish';
 
 type DishItemWithFood = DishItem & { food?: { name: string } | null };
@@ -181,7 +181,7 @@ const DishBuilderPage = () => {
       >
         <ItemsList offsetTop>
           {items.map((item) => (
-            <CommonListItem
+            <SelectableListItem
               key={item.id}
               id={item.id}
               className={styles.group}
@@ -203,7 +203,7 @@ const DishBuilderPage = () => {
                 unit="г"
                 content={{ quantity: item.quantity }}
               />
-            </CommonListItem>
+            </SelectableListItem>
           ))}
         </ItemsList>
       </Screen>

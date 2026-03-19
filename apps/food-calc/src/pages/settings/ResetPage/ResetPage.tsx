@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { db } from '@/infrastructure/storage/db';
+import { db } from '@/shared/lib/storage/db';
 
 const ResetPage = () => {
   useEffect(() => {

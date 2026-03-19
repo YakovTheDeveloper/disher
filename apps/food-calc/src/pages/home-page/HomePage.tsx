@@ -1,10 +1,10 @@
 import { RouterLinks } from '@/router';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import SwipeableV2 from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableV2';
-import { FoodSchedule } from '@/components/widgets/FoodSchedule';
-import { ScheduleEvents } from '@/components/widgets/ScheduleEvents';
-import { FoodsNutrients } from '@/components/widgets/nutrients/FoodsNutrients';
+import SwipeableV2 from '@/shared/ui/Swipeable/SwipeableV2';
+import { FoodSchedule } from '@/widgets/FoodSchedule';
+import { ScheduleEvents } from '@/widgets/ScheduleEvents';
+import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
 import { useScheduleFoods, useScheduleNutrientTotals } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
 

@@ -84,6 +84,61 @@ export const PRODUCT_CATEGORY_GROUPS: ProductCategoryGroup[] = [
   },
 ];
 
+import type { CategoryGroup, CategoryOption } from '@/shared/ui/FilterPanel/FilterPanel';
+
+export const PRODUCT_CATEGORY_LABELS: Record<ProductCategoryValue, string> = {
+    'vegetable': 'Овощи',
+    'fruit': 'Фрукты',
+    'grain': 'Крупы',
+    'legume': 'Бобовые',
+    'nut': 'Орехи',
+    'seed': 'Семена',
+    'meat': 'Мясо',
+    'poultry': 'Птица',
+    'fish': 'Рыба',
+    'seafood': 'Морепродукты',
+    'dairy': 'Молочные продукты',
+    'egg': 'Яйца',
+    'oil': 'Масла',
+    'condiment': 'Соус',
+    'spice': 'Специи',
+    'herb': 'Травы',
+    'beverage': 'Напитки',
+    'juice': 'Сок',
+    'tea': 'Чай',
+    'coffee': 'Кофе',
+    'alcohol': 'Алкоголь',
+    'processed': 'Обработанные',
+    'snack': 'Перекус',
+    'dessert': 'Десерт',
+    'bakery': 'Выпечка',
+    'cereal': 'Каши',
+    'vegan': 'Веганское',
+    'vegetarian': 'Вегетарианское',
+    'gluten-free': 'Без глютена',
+    'dairy-free': 'Без молочных продуктов',
+    'low-carb': 'Низкоуглеводное',
+    'high-protein': 'Высокий белок',
+    'supplement': 'Добавка',
+    'other': 'Другое',
+};
+
+export function getProductCategoryGroups(): CategoryGroup<ProductCategoryValue>[] {
+    return PRODUCT_CATEGORY_GROUPS.map(group => ({
+        groupName: group.groupName,
+        categories: group.categories as ProductCategoryValue[],
+        icon: group.icon,
+    }));
+}
+
+export function getProductCategoryOptions(): Record<ProductCategoryValue, CategoryOption<ProductCategoryValue>> {
+    const options: Record<string, CategoryOption<ProductCategoryValue>> = {};
+    for (const [value, label] of Object.entries(PRODUCT_CATEGORY_LABELS)) {
+        options[value] = { value: value as ProductCategoryValue, label };
+    }
+    return options as Record<ProductCategoryValue, CategoryOption<ProductCategoryValue>>;
+}
+
 export const DEFAULT_PRODUCT_CATEGORY_POPULARITY: Record<ProductCategoryValue, number> = {
   vegetable: 9,
   fruit: 8,
