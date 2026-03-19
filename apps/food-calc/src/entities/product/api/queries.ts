@@ -29,3 +29,12 @@ export function useProductNutrients(productId: string | undefined) {
       .Include("nutrient"),
   );
 }
+
+export function useProductPortions(productId: string | undefined) {
+  return useQuery(
+    triplit,
+    triplit
+      .query("foodPortions")
+      .Where("foodId", "=", productId ?? ""),
+  );
+}

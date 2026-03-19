@@ -1,9 +1,9 @@
 import styles from './DailyNormsContent.module.scss';
 
 import type { DailyNorm } from '@/entities/daily-norm';
-import { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
+import { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import NutrientNormCard from '@/components/features/dailyNorms/change-daily-norm-nutrient-value/NutrientNormCard/NutrientNormCard';
-import Nutrients from '@/components/entities/nutrient/NutrientGroup/Nutrients';
+import Nutrients from '@/entities/nutrient/ui/NutrientGroup/Nutrients';
 
 type Props = {
   variant: 'view' | 'modify';

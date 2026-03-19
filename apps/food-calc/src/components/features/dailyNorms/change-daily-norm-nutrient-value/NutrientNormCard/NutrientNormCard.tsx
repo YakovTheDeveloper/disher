@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { useRef } from 'react';
-import { NutrientCard } from '@/components/entities/nutrient/NutrientCard';
-import { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
+import { NutrientCard } from '@/entities/nutrient/ui/NutrientCard';
+import { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
 import styles from './NutrientNormCard.module.scss';
 

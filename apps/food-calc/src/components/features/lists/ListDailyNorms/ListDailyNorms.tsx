@@ -47,15 +47,15 @@ const ListDailyNorms = () => {
   const [selectedNormId, setSelectedNormId] = useState<string | null>(null);
   const { results: norms } = useDailyNorms();
 
+  console.log('norms', norms);
+
   const normList = useMemo(() => {
     if (!norms) return [];
     const all = Array.from(norms.values());
     if (!searchText) return all;
     const lower = searchText.toLowerCase();
     return all.filter(
-      (n) =>
-        n.name?.toLowerCase().includes(lower) ||
-        n.description?.toLowerCase().includes(lower)
+      (n) => n.name?.toLowerCase().includes(lower) || n.description?.toLowerCase().includes(lower)
     );
   }, [norms, searchText]);
 

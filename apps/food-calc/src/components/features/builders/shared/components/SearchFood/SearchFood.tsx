@@ -15,9 +15,9 @@ import {
   getProductCategoryOptions,
 } from '@/lib/filter/categoryOptions';
 import toaster from '@/infrastructure/toaster/toaster';
-import { allNutrientsList } from '@/components/entities/nutrient/NutrientGroup/constants';
-import { useProducts } from '@/entities/product/api/queries';
-import { useDishes } from '@/entities/dish/api/queries';
+import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
+import { useProducts, createProduct } from '@/entities/product';
+import { useDishes, createDish } from '@/entities/dish';
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 
@@ -38,8 +38,7 @@ type Props = {
   inputId?: string;
 };
 
-const getDefaultTab = (mode: SearchMode) =>
-  mode === 'dishes-only' ? 'блюда' : 'продукты';
+const getDefaultTab = (mode: SearchMode) => (mode === 'dishes-only' ? 'блюда' : 'продукты');
 
 const SearchFood = ({
   onFinish,
@@ -61,22 +60,21 @@ const SearchFood = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [currentTab, setCurrentTab] = useState(getDefaultTab(mode));
 
-  const { results: productsMap, fetching: productsFetching } = useProducts(searchQuery || undefined);
+  const { results: productsMap, fetching: productsFetching } = useProducts(
+    searchQuery || undefined
+  );
   const { results: dishesMap, fetching: dishesFetching } = useDishes(searchQuery || undefined);
 
   const products = useMemo(
     () => (productsMap ? Array.from(productsMap.values()) : []),
     [productsMap]
   );
-  const dishes = useMemo(
-    () => (dishesMap ? Array.from(dishesMap.values()) : []),
-    [dishesMap]
-  );
+  const dishes = useMemo(() => (dishesMap ? Array.from(dishesMap.values()) : []), [dishesMap]);
 
   const categoryFilter = useCategoryFilterState();
   const currentFilterType = currentTab === 'продукты' ? 'product' : 'dish';
 
-  const searchState: SearchState<typeof products[number] | typeof dishes[number]> = {
+  const searchState: SearchState<(typeof products)[number] | (typeof dishes)[number]> = {
     searchQuery,
     setSearch: setSearchQuery,
     currentTab,
@@ -99,37 +97,41 @@ const SearchFood = ({
     [onFinish]
   );
 
-  const handleCreateProduct = useCallback(() => {
+  const handleCreateProduct = useCallback(async () => {
     const name = searchQuery.trim();
     if (!name) return;
-    // TODO: use createProduct() from @/entities/product
+    await createProduct({ name });
+    setSearchQuery('');
     toaster.success(`Продукт "${name}" создан`);
   }, [searchQuery]);
 
-  const handleCreateDish = useCallback(() => {
+  const handleCreateDish = useCallback(async () => {
     const name = searchQuery.trim();
     if (!name) return;
-    // TODO: use createDish() from @/entities/dish
+    await createDish(name);
+    setSearchQuery('');
     toaster.success(`Блюдо "${name}" создано`);
   }, [searchQuery]);
 
   const isSearchActive = searchQuery.trim().length >= 2;
   const isLoading = productsFetching || dishesFetching;
 
-  const productEmptyContent = !isLoading && isSearchActive ? (
-    <button className={styles.createSuggestion} onClick={handleCreateProduct}>
-      {'Ничего не нашлось — создать продукт "' + searchQuery.trim() + '"'}
-    </button>
-  ) : undefined;
+  const productEmptyContent =
+    !isLoading && isSearchActive ? (
+      <button className={styles.createSuggestion} onClick={handleCreateProduct}>
+        {'Ничего не нашлось — создать продукт "' + searchQuery.trim() + '"'}
+      </button>
+    ) : undefined;
 
-  const dishEmptyContent = !isLoading && isSearchActive ? (
-    <button className={styles.createSuggestion} onClick={handleCreateDish}>
-      {'Ничего не нашлось — создать блюдо "' + searchQuery.trim() + '"'}
-    </button>
-  ) : undefined;
+  const dishEmptyContent =
+    !isLoading && isSearchActive ? (
+      <button className={styles.createSuggestion} onClick={handleCreateDish}>
+        {'Ничего не нашлось — создать блюдо "' + searchQuery.trim() + '"'}
+      </button>
+    ) : undefined;
 
   const renderProductItem = useCallback(
-    (item: typeof products[number]) => (
+    (item: (typeof products)[number]) => (
       <FoodActionCard
         variant="product"
         item={item}
@@ -143,11 +145,18 @@ const SearchFood = ({
         richNutrientMax={0}
       />
     ),
-    [currentProductId, onFoodAdd, showInfoButtonOnListItem, showMore, sortByNutrientId, sortByNutrientUnit]
+    [
+      currentProductId,
+      onFoodAdd,
+      showInfoButtonOnListItem,
+      showMore,
+      sortByNutrientId,
+      sortByNutrientUnit,
+    ]
   );
 
   const renderDishItem = useCallback(
-    (item: typeof dishes[number]) => (
+    (item: (typeof dishes)[number]) => (
       <FoodActionCard
         variant="dish"
         item={item}
@@ -247,8 +256,12 @@ const SearchFood = ({
                 )}
               </div>
             }
-            groups={currentTab === 'продукты' ? getProductCategoryGroups() : getDishCategoryGroups()}
-            options={currentTab === 'продукты' ? getProductCategoryOptions() : getDishCategoryOptions()}
+            groups={
+              currentTab === 'продукты' ? getProductCategoryGroups() : getDishCategoryGroups()
+            }
+            options={
+              currentTab === 'продукты' ? getProductCategoryOptions() : getDishCategoryOptions()
+            }
             selectedValues={categoryFilter.getCategoryFilter(currentFilterType)}
             onToggle={(value) => categoryFilter.toggleCategory(currentFilterType, value as string)}
             onClear={() => categoryFilter.clearCategories(currentFilterType)}

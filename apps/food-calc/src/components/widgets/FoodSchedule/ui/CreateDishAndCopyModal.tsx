@@ -8,6 +8,8 @@ import { TextInput } from '@/components/ui/atoms/input/TextInput';
 import toaster from '@/infrastructure/toaster/toaster';
 import { RouterUrls } from '@/router';
 import { isEmpty } from 'lodash';
+import { createDishWithItems } from '@/entities/dish';
+import { addScheduleFood, removeScheduleFoods } from '@/entities/schedule-food';
 import { useSwipeableLock } from '@/components/features/builders/shared/ui/layout/Swipeable/SwipeableLockContext';
 import { MODAL_INPUT_IDS } from './ScheduleFoodCreationModals';
 import s from './FoodScheduleModals.module.scss';
@@ -55,7 +57,7 @@ const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props)
     setStep('products');
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const nameInput = document.getElementById(MODAL_INPUT_IDS.DISH_NAME_INPUT) as HTMLInputElement;
     const name = nameInput?.value?.trim();
 
@@ -65,23 +67,38 @@ const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props)
       return;
     }
 
-    const selectedIds = editableListRef.current?.getResultedItemsIds();
+    const resultIds = editableListRef.current?.getResultedItemsIds();
+    const selectedIds = resultIds?.asArray ?? [];
 
     if (!selectedIds || isEmpty(selectedIds)) {
       toaster.error('Выберите хотя бы 1 продукт');
       return;
     }
 
-    // TODO: implement Triplit mutation -- create dish with products
-    // const dishId = await createDish(name, selectedIds);
+    const selectedItems = items.filter((item) => selectedIds.includes(item.id));
+    const dishItems = selectedItems.map((item) => ({
+      foodId: item.foodId!,
+      quantity: item.quantity,
+    }));
 
-    // TODO: replace with actual dishId from mutation
-    const dishId: string | null = null;
+    const dishId = await createDishWithItems(name, dishItems);
 
-    toaster.success(`Блюдо «${name}» создано`, dishId
-      ? { action: { label: 'Открыть', href: RouterUrls.getDish(dishId) } }
-      : undefined
-    );
+    if (swapCheckboxRef.current?.checked && selectedItems.length > 0) {
+      const first = selectedItems[0];
+      const totalQuantity = selectedItems.reduce((sum, i) => sum + i.quantity, 0);
+      await removeScheduleFoods(selectedIds);
+      await addScheduleFood({
+        date: first.date,
+        time: first.time,
+        type: 'dish',
+        dishId,
+        quantity: totalQuantity,
+      });
+    }
+
+    toaster.success(`Блюдо «${name}» создано`, {
+      action: { label: 'Открыть', href: RouterUrls.getDish(dishId) },
+    });
     onFinish();
     setStep('name');
   };

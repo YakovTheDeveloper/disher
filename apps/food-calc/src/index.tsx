@@ -6,6 +6,7 @@ import DishIcon from '@/assets/icons/dish.svg';
 import DaysIcon from '@/assets/icons/days.svg';
 import Modal from 'react-modal';
 import { router } from '@/router.tsx';
+import { initSession } from '@/api/triplit/session';
 
 // import { registerSW } from 'virtual:pwa-register';
 
@@ -38,4 +39,7 @@ export const RouterPaths = {
 
 Modal.setAppElement('#modal-root');
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<RouterProvider router={router} />);
+// Pull __system__ data (anon) or restore authenticated session, then render
+initSession().then(() => {
+  ReactDOM.createRoot(document.getElementById('root')!).render(<RouterProvider router={router} />);
+});

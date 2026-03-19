@@ -1,60 +1,22 @@
-.date {
-    display: flex;
-    // justify-content: end;
-    position: relative;
-    justify-content: space-between;
-    margin-left: auto;
-    margin-top: 16px;
-    z-index: 1;
-
-}
-
-.dateWords {
-
-    position: absolute;
-    right: 0;
-    padding-right: 1rem;
-    font-size: 30px;
-    text-transform: uppercase;
-    // font-family: var(--dev-date-word-font, inherit);
-    // font-weight: var(--dev-date-word-weight, 200);
-    font-family: "Oswald", sans-serif;
-    font-weight: 700;
-    font-style: italic;
-    letter-spacing: -2px;
-    transform: translateY(-110%);
-    color: rgba(188, 188, 188, 0.15);
-}
-
-.dateNumbers {
-    font-family: "Oswald", sans-serif;
-    color: rgba(188, 188, 188, 0.15);
-    line-height: 5rem;
-    font-size: 5rem;
-    text-align: right;
-    padding-right: 1rem;
-}
-
 .header {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
     width: 100%;
+    flex-direction: column;
     position: sticky;
     z-index: 2;
     top: 0;
 }
 
 .title {
-    position: absolute;
-
-    left: 0;
-    top: 0;
     padding: 0 0.5rem;
     z-index: 1;
     font-size: 2rem;
-    // transform-origin: top left;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+
+    [data-collapsed="true"] & {
+        opacity: 0;
+    }
 }
 
 .backgroundImage {
@@ -62,17 +24,86 @@
     top: 10px;
     left: 30px;
     height: auto;
-    width: 50%;
+    width: 150%;
     pointer-events: none;
     user-select: none;
-    z-index: 0;
+    z-index: 2;
     opacity: 0.1;
 }
 
-.headerDateWords {
-    display: flex;
-    margin-left: 10%;
+.left {
+    position: relative;
+}
 
-    font-weight: 200;
-    font-size: 50px;
+.row {
+    display: flex;
+    flex-grow: 1;
+}
+
+// — Date display —
+
+.dateLink {
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+    cursor: pointer;
+}
+
+.date {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 25px;
+    line-height: 25px;
+    gap: 18px;
+}
+
+.dateNumbers {
+    margin-right: 8px;
+    font-size: 48px;
+    font-weight: 400;
+    line-height: 1;
+    display: flex;
+    gap: 10px 5px;
+    align-items: flex-end;
+    margin-left: auto;
+    padding: 0.5rem;
+    border-radius: 50px;
+    transition: font-size 0.4s ease, background-color 0.4s ease, backdrop-filter 0.4s ease;
+
+    [data-collapsed="true"] & {
+        font-size: 16px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(30px);
+    }
+}
+
+.weekdayShort {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+
+    [data-collapsed="true"] & {
+        opacity: 1;
+    }
+}
+
+.dateWords {
+    display: flex;
+    gap: 5px;
+    padding-right: 1rem;
+    transition: opacity 0.5s ease;
+
+    [data-collapsed="true"] & {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+.dateWord {
+    color: var(--di-word-default, rgb(0, 68, 255));
+    font-family: var(--dev-date-word-font);
+    font-weight: var(--dev-date-word-weight, 200);
+    font-style: var(--dev-date-word-style, italic);
+    font-size: 15px;
+    line-height: 0.8rem;
 }

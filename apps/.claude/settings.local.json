@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp -r \"c:/Users/booty/Documents/GitHub/disher/apps/food-calc/src/components/features/builders/DishBuilder/components\" \"c:/Users/booty/Documents/GitHub/disher/apps/food-calc/src/pages/dish/builder/dish-builder-page/components\")",
+      "Bash(cp -r \"c:/Users/booty/Documents/GitHub/disher/apps/food-calc/src/components/features/builders/DishBuilder/ui\" \"c:/Users/booty/Documents/GitHub/disher/apps/food-calc/src/pages/dish/builder/dish-builder-page/ui\")",
+      "Bash(cp -r dish-page/* dish/)",
+      "Bash(rm -rf dish-page)",
+      "Bash(mv ScheduleBuilderPage.tsx HomePage.tsx)",
+      "Bash(mv ScheduleBuilderPage.module.scss HomePage.module.scss)",
+      "Bash(mv BuilderScheduleEvents.tsx ScheduleEvents.tsx)",
+      "Bash(mv BuilderScheduleEvents.module.scss ScheduleEvents.module.scss)",
+      "Bash(mv product-page/ProductPage.tsx .)",
+      "Bash(mv product-page/ProductPage.module.scss .)",
+      "Bash(rmdir product-page:*)",
+      "Bash(find /c/Users/booty/Documents/GitHub/disher/apps/food-calc/src -name *FoodName* -o -name *Quantity*)"
+    ]
+  }
+}

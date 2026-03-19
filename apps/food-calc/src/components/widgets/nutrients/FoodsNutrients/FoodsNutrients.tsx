@@ -1,9 +1,9 @@
 import { Screen } from '@/components/features/builders/shared/ui/layout/Screen';
-import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
+import { Nutrients } from '@/entities/nutrient/ui/NutrientGroup';
 import { OpenDailyNorms } from '@/components/features/dailyNorms/OpenDailyNorms';
 import { useCallback } from 'react';
 import { FilterButton } from '@/components/ui/atoms/Button';
-import NutrientCardV2 from '@/components/entities/nutrient/NutrientCard/NutrientCardV2';
+import NutrientCardV2 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV2';
 import {
   useFilterNutrients,
   FilterNutrientsPanel,
@@ -12,7 +12,7 @@ import {
 import { OpenRichFood } from '@/components/features/food/open-rich-food';
 import './FoodsNutrients.module.scss';
 import { Ornament } from '@/components/ui/Ornament';
-import type { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
+import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 

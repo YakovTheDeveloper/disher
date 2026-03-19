@@ -1,7 +1,7 @@
 import styles from './ListItem.module.scss';
 import { useRef } from 'react';
 import type { DailyNorm as UserDailyNorm } from '@/entities/daily-norm';
-import { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
+import { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 
 type Props = {
   nutrient: Nutrient;

@@ -72,11 +72,13 @@ export default function seed(): BulkInsert<typeof schema> {
     nutrients,
     foods: rawFoods.map((f) => ({
       id: f.id,
+      userId: "__system__",
       name: f.name,
       nameEng: "",
       description: f.description ?? null,
       descriptionEng: null,
     })),
+    foodPortions: [],
     foodNutrients: rawFoods.flatMap(
       (f) =>
         f.nutrients?.map((n) => ({

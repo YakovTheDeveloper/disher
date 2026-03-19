@@ -8,7 +8,7 @@ import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { createProduct } from '@/entities/product';
 import { createDish } from '@/entities/dish';
 import toaster from '@/infrastructure/toaster/toaster';
-import { allNutrientsList } from '@/components/entities/nutrient/NutrientGroup/constants';
+import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
 
 type CreationType = 'product' | 'dish' | null;
 

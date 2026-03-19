@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { TimeGroup } from '@/components/features/builders/ScheduleBuilder/components/List/TimeGroup';
+import { TimeGroup } from '@/components/features/time-group';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { groupItemsByTime } from '@/shared/lib/schedule';
 import { ItemsList } from '@/components/ui/atoms/ItemsList';

@@ -19,9 +19,13 @@ export async function deleteDish(dishId: string) {
   const items = await triplit.fetch(
     triplit.query("dishItems").Where("dishId", "=", dishId),
   );
-  await Promise.all(
-    (Array.from(items.keys()) as unknown as string[]).map((id) => triplit.delete("dishItems", id)),
+  const portions = await triplit.fetch(
+    triplit.query("dishPortions").Where("dishId", "=", dishId),
   );
+  await Promise.all([
+    ...(Array.from(items.keys()) as unknown as string[]).map((id) => triplit.delete("dishItems", id)),
+    ...(Array.from(portions.keys()) as unknown as string[]).map((id) => triplit.delete("dishPortions", id)),
+  ]);
   await triplit.delete("dishes", dishId);
 }
 
@@ -95,6 +99,39 @@ export async function copyDishItems(
  * Copy DishItems into a schedule as ScheduleFoods.
  * Used when user wants to "copy dish items to a day".
  */
+// ─── Dish Portions ───
+
+export async function addDishPortion(
+  dishId: string,
+  portion: { label: string; amount: number; unit: string; grams: number },
+) {
+  await triplit.insert("dishPortions", {
+    id: uuid(),
+    dishId,
+    userId: getCurrentUserId(),
+    label: portion.label,
+    amount: portion.amount,
+    unit: portion.unit,
+    grams: portion.grams,
+  });
+}
+
+export async function updateDishPortion(
+  portionId: string,
+  updates: Partial<{ label: string; amount: number; unit: string; grams: number }>,
+) {
+  await triplit.update("dishPortions", portionId, (p) => {
+    if (updates.label !== undefined) p.label = updates.label;
+    if (updates.amount !== undefined) p.amount = updates.amount;
+    if (updates.unit !== undefined) p.unit = updates.unit;
+    if (updates.grams !== undefined) p.grams = updates.grams;
+  });
+}
+
+export async function removeDishPortion(portionId: string) {
+  await triplit.delete("dishPortions", portionId);
+}
+
 export async function dishItemsToScheduleFoods(
   dishId: string,
   scheduleId: string,

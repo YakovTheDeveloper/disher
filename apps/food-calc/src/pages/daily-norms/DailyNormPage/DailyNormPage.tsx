@@ -14,8 +14,7 @@ const DailyNormPage = ({}: Props) => {
   const { id } = useParams<'id'>();
   const { result: dailyNorm } = useDailyNorm(id);
 
-  // TODO: migrate to Triplit — createByUser not available on Triplit entity
-  const createdByUser = true;
+  const createdByUser = dailyNorm?.userId !== '__system__';
   const dailyNormsView = createdByUser ? 'modify' : 'view';
 
   if (!dailyNorm) {

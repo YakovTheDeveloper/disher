@@ -1,6 +1,6 @@
 import styles from './DishNutrients.module.scss';
-import { Nutrients } from '@/components/entities/nutrient/NutrientGroup';
-import NutrientCardV2 from '@/components/entities/nutrient/NutrientCard/NutrientCardV2';
+import { Nutrients } from '@/entities/nutrient/ui/NutrientGroup';
+import NutrientCardV2 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV2';
 import clsx from 'clsx';
 import type { ScheduleFood } from '@/entities/schedule-food';
 import type { Dish } from '@/entities/dish';
@@ -19,7 +19,8 @@ const DishNutrients = ({ currentChild, currentDish, totals }: Props) => {
 
   // TODO: migrate to Triplit — content was MST computed property
   const childAny = currentChild as any;
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => childAny.content?.updateQuantity?.(+e.target.value);
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    childAny.content?.updateQuantity?.(+e.target.value);
 
   return (
     <div className={styles.container}>
@@ -41,10 +42,7 @@ const DishNutrients = ({ currentChild, currentDish, totals }: Props) => {
         <div className={styles.content}>
           <Nutrients
             renderCard={(nutrientData) => (
-              <NutrientCardV2
-                content={nutrientData}
-                getValue={getValue}
-              />
+              <NutrientCardV2 content={nutrientData} getValue={getValue} />
             )}
           />
           <Button

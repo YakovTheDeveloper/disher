@@ -18,11 +18,22 @@ import { schema } from "../triplit/schema";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { SignJWT } from "jose";
+import { config } from "dotenv";
+
+config();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const SERVICE_TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ4LXRyaXBsaXQtdG9rZW4tdHlwZSI6InNlY3JldCIsIngtdHJpcGxpdC1wcm9qZWN0LWlkIjoibG9jYWwtcHJvamVjdC1pZCJ9.8Z76XXPc9esdlZb2b7NDC7IVajNXKc4eVcPsO7Ve0ug";
+const jwtSecret = process.env.TRIPLIT_JWT_SECRET ?? "secret";
+const projectId = process.env.TRIPLIT_PROJECT_ID ?? "local-project-id";
+
+const SERVICE_TOKEN = await new SignJWT({
+  "x-triplit-token-type": "secret",
+  "x-triplit-project-id": projectId,
+})
+  .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+  .sign(new TextEncoder().encode(jwtSecret));
 
 const client = new TriplitClient({
   schema,
@@ -141,6 +152,7 @@ async function seedFoods() {
     try {
       await client.insert("foods", {
         id: food.id,
+        userId: "__system__",
         name: food.name,
         nameEng: "",
         description: food.description ?? null,
@@ -188,28 +200,40 @@ async function seedDefaultDailyNorm() {
     "30": 900, "31": 90, "32": 15, "33": 15, "34": 120,
   };
 
-  try {
+  const existingNorm = await client.fetchById("dailyNorms", "DEFAULT_NORM");
+  if (existingNorm) {
+    if (existingNorm.userId !== "__system__") {
+      await client.update("dailyNorms", "DEFAULT_NORM", (norm) => {
+        norm.userId = "__system__";
+      });
+      console.log("  Updated DEFAULT_NORM userId to __system__");
+    }
+  } else {
     await client.insert("dailyNorms", {
       id: "DEFAULT_NORM",
       name: "Стандарт",
       description: "Стандартная норма потребления",
-      userId: "1",
+      userId: "__system__",
     });
-  } catch {
-    // Already exists
   }
 
   for (const [nutrientId, quantity] of Object.entries(defaults)) {
-    try {
+    const itemId = `default-${nutrientId}`;
+    const existing = await client.fetchById("dailyNormItems", itemId);
+    if (existing) {
+      if (existing.userId !== "__system__") {
+        await client.update("dailyNormItems", itemId, (item) => {
+          item.userId = "__system__";
+        });
+      }
+    } else {
       await client.insert("dailyNormItems", {
-        id: `default-${nutrientId}`,
+        id: itemId,
         normId: "DEFAULT_NORM",
         nutrientId,
         quantity,
-        userId: "1",
+        userId: "__system__",
       });
-    } catch {
-      // Already exists
     }
   }
 

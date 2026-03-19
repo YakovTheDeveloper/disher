@@ -33,7 +33,7 @@ const ListProducts = () => {
       name: 'Новый продукт',
       description: '',
     });
-    navigate(`${RouterLinks.UserProduct}/${id}`);
+    navigate(`${RouterLinks.Product}/${id}`);
   };
 
   const filterColumns = [
@@ -101,7 +101,7 @@ const ListProducts = () => {
                   />
                 }
               >
-                <p onClick={() => navigate(`${RouterLinks.UserProduct}/${item.id}`)}>
+                <p onClick={() => navigate(`${RouterLinks.Product}/${item.id}`)}>
                   {item.name || 'без имени'}
                 </p>
               </SimpleListItem>

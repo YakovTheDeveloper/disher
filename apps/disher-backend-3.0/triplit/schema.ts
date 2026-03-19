@@ -99,10 +99,11 @@ export const schema = S.Collections({
   },
 
   // ─── Foods ───
-  // Reference data: readable by all (including anonymous)
+  // userId = "__system__" for base reference products, user's ID for user-created products
   foods: {
     schema: S.Schema({
       id: S.Id(),
+      userId: S.String(),
       name: S.String(),
       nameEng: S.String(),
       description: S.String({ nullable: true, default: null }),
@@ -113,10 +114,63 @@ export const schema = S.Collections({
       nutrients: S.RelationMany("foodNutrients", {
         where: [["foodId", "=", "$id"]],
       }),
+      portions: S.RelationMany("foodPortions", {
+        where: [["foodId", "=", "$id"]],
+      }),
     },
     permissions: {
-      user: { read: { filter: [true] } },
-      anon: { read: { filter: [true] } },
+      user: {
+        read: {
+          filter: [
+            {
+              mod: "or",
+              filters: [
+                ["userId", "=", "$role.userId"],
+                ["userId", "=", "__system__"],
+              ],
+            },
+          ],
+        },
+        insert: { filter: [["userId", "=", "$role.userId"]] },
+        update: { filter: [["userId", "=", "$role.userId"]] },
+        delete: { filter: [["userId", "=", "$role.userId"]] },
+      },
+      anon: { read: { filter: [["userId", "=", "__system__"]] } },
+    },
+  },
+
+  // ─── Food Portions ───
+  // userId denormalized from parent food for permissions
+  foodPortions: {
+    schema: S.Schema({
+      id: S.Id(),
+      foodId: S.String(),
+      userId: S.String(), // denormalized for permissions
+      label: S.String(),
+      amount: S.Number(),
+      unit: S.String(),
+      grams: S.Number(),
+    }),
+    relationships: {
+      food: S.RelationById("foods", "$foodId"),
+    },
+    permissions: {
+      user: {
+        read: {
+          filter: [
+            {
+              mod: "or",
+              filters: [
+                ["userId", "=", "$role.userId"],
+                ["userId", "=", "__system__"],
+              ],
+            },
+          ],
+        },
+        insert: { filter: [["userId", "=", "$role.userId"]] },
+        update: { filter: [["userId", "=", "$role.userId"]] },
+        delete: { filter: [["userId", "=", "$role.userId"]] },
+      },
     },
   },
 
@@ -138,6 +192,8 @@ export const schema = S.Collections({
     },
   },
 
+
+
   // ─── Nutrients ───
   nutrients: {
     schema: S.Schema({
@@ -155,6 +211,30 @@ export const schema = S.Collections({
     },
   },
 
+  // ─── Dish Portions ───
+  dishPortions: {
+    schema: S.Schema({
+      id: S.Id(),
+      dishId: S.String(),
+      userId: S.String(), // denormalized for permissions
+      label: S.String(),
+      amount: S.Number(),
+      unit: S.String(),
+      grams: S.Number(),
+    }),
+    relationships: {
+      dish: S.RelationById("dishes", "$dishId"),
+    },
+    permissions: {
+      user: {
+        read: { filter: [["userId", "=", "$role.userId"]] },
+        insert: { filter: [["userId", "=", "$role.userId"]] },
+        update: { filter: [["userId", "=", "$role.userId"]] },
+        delete: { filter: [["userId", "=", "$role.userId"]] },
+      },
+    },
+  },
+
   // ─── Dishes ───
   dishes: {
     schema: S.Schema({
@@ -167,6 +247,9 @@ export const schema = S.Collections({
     relationships: {
       user: S.RelationById("users", "$userId"),
       items: S.RelationMany("dishItems", {
+        where: [["dishId", "=", "$id"]],
+      }),
+      portions: S.RelationMany("dishPortions", {
         where: [["dishId", "=", "$id"]],
       }),
     },
@@ -235,6 +318,7 @@ export const schema = S.Collections({
         update: { filter: [["userId", "=", "$role.userId"]] },
         delete: { filter: [["userId", "=", "$role.userId"]] },
       },
+      anon: { read: { filter: [["userId", "=", "__system__"]] } },
     },
   },
 
@@ -269,6 +353,7 @@ export const schema = S.Collections({
         update: { filter: [["userId", "=", "$role.userId"]] },
         delete: { filter: [["userId", "=", "$role.userId"]] },
       },
+      anon: { read: { filter: [["userId", "=", "__system__"]] } },
     },
   },
 

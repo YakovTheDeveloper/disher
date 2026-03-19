@@ -1,9 +1,9 @@
 import { observer } from 'mobx-react-lite';
 import { useRef } from 'react';
-import { Nutrient } from '@/components/entities/nutrient/NutrientGroup/constants';
-import { NutrientCard } from '@/components/entities/nutrient/NutrientCard';
+import { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
+import { NutrientCard } from '@/entities/nutrient/ui/NutrientCard';
 import { NumberInput } from '@/components/ui/atoms/input/NumberInput';
-import { useNutrientCard } from '@/components/entities/nutrient/NutrientCard/useNutrientCard';
+import { useNutrientCard } from '@/entities/nutrient/ui/NutrientCard/useNutrientCard';
 import styles from './ChangeProductNutrientValue.module.scss';
 
 interface Props {
@@ -25,7 +25,9 @@ const ChangeProductNutrientValue = ({ content, getValue, onChange }: Props) => {
           onChange={(val) => onChange(val, content.id)}
           className={styles.input}
         />
-        <span className={styles.norm}>/ {norm} {unitRu}</span>
+        <span className={styles.norm}>
+          / {norm} {unitRu}
+        </span>
       </div>
     </NutrientCard>
   );

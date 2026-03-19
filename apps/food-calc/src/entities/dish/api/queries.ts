@@ -19,3 +19,21 @@ export function useDishItems(dishId: string | undefined) {
       .Include("food"),
   );
 }
+
+export function useDishPortions(dishId: string | undefined) {
+  return useQuery(
+    triplit,
+    triplit
+      .query("dishPortions")
+      .Where("dishId", "=", dishId ?? ""),
+  );
+}
+
+export function useDishItemsByDishIds(dishIds: string[]) {
+  return useQuery(
+    triplit,
+    triplit
+      .query("dishItems")
+      .Where("dishId", "in", dishIds.length > 0 ? dishIds : ["__none__"]),
+  );
+}

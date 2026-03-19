@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { TextInput } from '@/components/ui/atoms/input/TextInput';
 import { ScreenLabel } from '@/components/features/builders/shared/atoms/ScreenLabel';
 import { Button } from '@/components/ui/atoms/Button';
-import { Label } from '@/components/features/builders/ScheduleBuilder/components/EventsBuilder/components/EventContent/shared/Label';
+import { Label } from '@/components/widgets/ScheduleEvents/components/EventContent/shared/Label';
 
 type Props = {
   title?: string;

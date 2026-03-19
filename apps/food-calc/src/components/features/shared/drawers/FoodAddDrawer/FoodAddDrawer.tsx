@@ -29,7 +29,7 @@ const FoodAddDrawer = ({
   const handleCreate = async (name: string) => {
     if (activeTab === 'product') {
       const id = await createProduct({ name });
-      navigate(`${RouterLinks.UserProduct}/${id}`);
+      navigate(`${RouterLinks.Product}/${id}`);
     } else {
       const id = await createDish(name);
       navigate(`${RouterLinks.DishBuilder}/${id}`);
