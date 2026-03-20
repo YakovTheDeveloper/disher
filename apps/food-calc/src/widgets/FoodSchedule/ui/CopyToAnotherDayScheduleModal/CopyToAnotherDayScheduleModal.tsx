@@ -1,45 +1,46 @@
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import clsx from 'clsx';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-import { SearchFood } from '@/features/food/food-search';
 import { EditableList, EditableListRef } from '@/features/manage-list/EditableList';
+import { ScheduleSelection } from '@/features/ScheduleSelection/ScheduleSelection';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
+import { copyScheduleFoods } from '@/entities/schedule-food';
 import toaster from '@/shared/lib/toaster/toaster';
-import { RouterUrls } from '@/router';
-import { MODAL_INPUT_IDS } from './ScheduleFoodCreationModals';
-import s from './FoodScheduleModals.module.scss';
+import type { ScheduleFood } from '@/entities/schedule-food';
+import { RouterLinks } from '@/router';
+import s from '../FoodScheduleModals.module.scss';
 
-type FoodContentProductInstance = any; // product content with name, foodId, quantity
+type Step = 'idle' | 'date' | 'confirm';
 
-type Step = 'idle' | 'selectDish' | 'products';
-
-const STEPS: Step[] = ['selectDish', 'products'];
+const STEPS: Step[] = ['date', 'confirm'];
 
 const STEP_LABELS: Record<Exclude<Step, 'idle'>, string> = {
-  selectDish: 'Блюдо',
-  products: 'Продукты',
+  date: 'Дата',
+  confirm: 'Подтверждение',
 };
 
 type Props = {
   isExpanded: boolean;
-  items: {
-    id: string;
-    contentProduct: FoodContentProductInstance;
-  }[];
+  sourceDate: string;
+  items: ScheduleFood[];
   onFinish: () => void;
   onClose: () => void;
 };
 
-const CopyToExistingDishModal = ({ isExpanded, items, onFinish, onClose }: Props) => {
-  const [step, setStep] = useState<Step>('selectDish');
-  const [selectedDishId, setSelectedDishId] = useState<string | null>(null);
+const getItemName = (item: ScheduleFood): string => {
+  return (item as any).food?.name ?? (item as any).dish?.name ?? '—';
+};
+
+const CopyToAnotherDayScheduleModal = ({ isExpanded, sourceDate, items, onFinish, onClose }: Props) => {
+  const [step, setStep] = useState<Step>('date');
+  const [targetDate, setTargetDate] = useState<string | null>(null);
   const editableListRef = useRef<EditableListRef>(null);
 
   useSwipeableLock(isExpanded);
 
   const handleClose = () => {
-    setStep('selectDish');
-    setSelectedDishId(null);
+    setStep('date');
+    setTargetDate(null);
     onClose();
   };
 
@@ -47,41 +48,29 @@ const CopyToExistingDishModal = ({ isExpanded, items, onFinish, onClose }: Props
     setStep(target);
   };
 
-  const handleDishSelect = (payload: { variant: 'product' | 'dish'; id: string }) => {
-    setSelectedDishId(payload.id);
-    setStep('products');
+  const handleDateSelect = (date: string) => {
+    setTargetDate(date);
+    setStep('confirm');
   };
 
-  const handleConfirm = () => {
-    const selectedIds = editableListRef.current?.getResultedItemsIds();
+  const handleConfirm = async () => {
+    if (!targetDate) return;
 
+    const selectedIds = editableListRef.current?.getResultedItemsIds();
     if (!selectedIds || selectedIds.asArray.length === 0) {
-      toaster.error('Выберите хотя бы 1 продукт');
+      toaster.error('Выберите хотя бы 1 элемент');
       return;
     }
 
-    // TODO: implement Triplit mutation -- copy selectedIds to selectedDishId
+    await copyScheduleFoods(sourceDate, targetDate, selectedIds.asArray);
 
-    toaster.success('Скопировано в блюдо', selectedDishId
-      ? { action: { label: 'Открыть', href: RouterUrls.getDish(selectedDishId) } }
-      : undefined
-    );
-    onFinish();
-    setStep('selectDish');
-    setSelectedDishId(null);
-  };
-
-  const handleFocusCapture = useCallback((e: React.FocusEvent) => {
-    const target = e.target as HTMLElement;
-    const id = target.id;
-    if (id === MODAL_INPUT_IDS.SEARCH_INPUT) setStep('selectDish');
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
-      });
+    toaster.success(`Скопировано на ${targetDate}`, {
+      action: { label: 'Открыть', href: `${RouterLinks.ScheduleBuilder}/${targetDate}` },
     });
-  }, []);
+
+    handleClose();
+    onFinish();
+  };
 
   const Breadcrumbs = ({ current }: { current: Exclude<Step, 'idle'> }) => {
     const currentIndex = STEPS.indexOf(current);
@@ -120,40 +109,35 @@ const CopyToExistingDishModal = ({ isExpanded, items, onFinish, onClose }: Props
   );
 
   return (
-    <div onFocusCapture={handleFocusCapture}>
-      {/* Step 1: Select Dish */}
+    <div>
+      {/* Step 1: Select Date */}
       <ModalByLabel
         position="absolute"
-        isExpanded={isExpanded && step === 'selectDish'}
+        isExpanded={isExpanded && step === 'date'}
         content={
           <div className={s.wrapper}>
-            <Header currentStep="selectDish" />
-            <SearchFood
-              onFinish={handleDishSelect}
-              mode="dishes-only"
-              currentDishId={selectedDishId}
-            />
+            <Header currentStep="date" />
+            <ScheduleSelection onSelect={handleDateSelect} selectedDate={targetDate ?? undefined} />
           </div>
         }
       />
 
-      {/* Step 2: Edit Products */}
+      {/* Step 2: Confirm Items + Mode */}
       <ModalByLabel
         position="absolute"
-        isExpanded={isExpanded && step === 'products'}
+        isExpanded={isExpanded && step === 'confirm'}
         content={
           <div className={s.wrapper}>
-            <Header currentStep="products" />
+            <Header currentStep="confirm" />
             <div className={s.content}>
-              <h2>Корректный список?</h2>
               <EditableList
                 ref={editableListRef}
                 items={items}
-                renderItem={(item) => item.contentProduct.name}
+                renderItem={(item) => getItemName(item)}
               />
               <div className={s.finishButton}>
                 <button className={s.nextButton} onClick={handleConfirm}>
-                  Выбрать
+                  Скопировать на {targetDate}
                 </button>
               </div>
             </div>
@@ -164,4 +148,4 @@ const CopyToExistingDishModal = ({ isExpanded, items, onFinish, onClose }: Props
   );
 };
 
-export default CopyToExistingDishModal;
+export default CopyToAnotherDayScheduleModal;

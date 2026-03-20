@@ -11,8 +11,8 @@ import { isEmpty } from 'lodash';
 import { createDishWithItems } from '@/entities/dish';
 import { addScheduleFood, removeScheduleFoods } from '@/entities/schedule-food';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
-import { MODAL_INPUT_IDS } from './ScheduleFoodCreationModals';
-import s from './FoodScheduleModals.module.scss';
+import { MODAL_INPUT_IDS } from '../ScheduleFoodCreationModals';
+import s from '../FoodScheduleModals.module.scss';
 import { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 
 type Step = 'idle' | 'name' | 'products';
@@ -31,7 +31,7 @@ type Props = {
   onClose: () => void;
 };
 
-const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props) => {
+const CopyToNewDishModal = ({ isExpanded, items, onFinish, onClose }: Props) => {
   const [step, setStep] = useState<Step>('name');
   const editableListRef = useRef<EditableListRef>(null);
   const swapCheckboxRef = useRef<HTMLInputElement>(null);
@@ -58,6 +58,7 @@ const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props)
   };
 
   const handleConfirm = async () => {
+    const shouldSwapProductsToDishInSchedule = swapCheckboxRef.current?.checked;
     const nameInput = document.getElementById(MODAL_INPUT_IDS.DISH_NAME_INPUT) as HTMLInputElement;
     const name = nameInput?.value?.trim();
 
@@ -83,17 +84,23 @@ const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props)
 
     const dishId = await createDishWithItems(name, dishItems);
 
-    if (swapCheckboxRef.current?.checked && selectedItems.length > 0) {
-      const first = selectedItems[0];
-      const totalQuantity = selectedItems.reduce((sum, i) => sum + i.quantity, 0);
+    if (selectedItems.length <= 0) {
+      toaster.error('Нет пересечений');
+      return;
+    }
+
+    const first = selectedItems[0];
+    const totalQuantity = selectedItems.reduce((sum, i) => sum + i.quantity, 0);
+    await addScheduleFood({
+      date: first.date,
+      time: first.time,
+      type: 'dish',
+      dishId,
+      quantity: totalQuantity,
+    });
+
+    if (shouldSwapProductsToDishInSchedule) {
       await removeScheduleFoods(selectedIds);
-      await addScheduleFood({
-        date: first.date,
-        time: first.time,
-        type: 'dish',
-        dishId,
-        quantity: totalQuantity,
-      });
     }
 
     toaster.success(`Блюдо «${name}» создано`, {
@@ -208,4 +215,4 @@ const CreateDishAndCopyModal = ({ isExpanded, items, onFinish, onClose }: Props)
   );
 };
 
-export default CreateDishAndCopyModal;
+export default CopyToNewDishModal;

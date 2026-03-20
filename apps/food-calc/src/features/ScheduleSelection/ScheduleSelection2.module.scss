@@ -104,6 +104,30 @@
     padding: 4px 0;
 }
 
+.daysGridExperimental {
+    position: relative;
+    overflow: visible;
+    padding: 16px 0;
+
+    &::before {
+        content: attr(data-month);
+        position: absolute;
+        bottom: -8px;
+        right: -12px;
+        font-family: "Great Vibes", cursive;
+        font-size: 72px;
+        font-weight: 400;
+        color: rgba(0, 0, 0, 0.05);
+        line-height: 1;
+        white-space: nowrap;
+        pointer-events: none;
+        user-select: none;
+        z-index: 0;
+        transform: rotate(-25deg);
+        transform-origin: bottom right;
+    }
+}
+
 .emptyDay {
     aspect-ratio: 1;
 }
@@ -156,6 +180,21 @@
 
     @media (max-width: 480px) {
         font-size: 8px;
+    }
+}
+
+.dayExperimental {
+    z-index: 1;
+}
+
+.dayNameExperimental {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--cal-text-muted);
+    letter-spacing: 0.08em;
+
+    @media (max-width: 480px) {
+        font-size: 9px;
     }
 }
 

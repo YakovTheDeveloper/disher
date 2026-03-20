@@ -1,9 +1,9 @@
 import React, {
-  useState,
   useCallback,
   forwardRef,
   useImperativeHandle,
   useEffect,
+  useRef,
 } from 'react';
 
 import useEmblaCarousel from 'embla-carousel-react';
@@ -23,38 +23,66 @@ type Props = {
 
 const SwipeableV2 = forwardRef<SwipeableRef, Props>(
   ({ children, onIndexChange, hasDots = false, image, defaultSlide = 1 }, ref) => {
-    const [selectedSlideModal, setSelectedSlideModal] = useState(defaultSlide);
-    const [lockCount, setLockCount] = useState(0);
-    const isLocked = lockCount > 0;
-    const lock = useCallback(() => setLockCount((c) => c + 1), []);
-    const unlock = useCallback(() => setLockCount((c) => Math.max(0, c - 1)), []);
+    const indexRef = useRef(defaultSlide);
+    const dotsRef = useRef<HTMLDivElement>(null);
+    const lockCountRef = useRef(0);
+    const emblaApiRef = useRef<ReturnType<typeof useEmblaCarousel>[1]>(null);
+
+    const lock = useCallback(() => {
+      lockCountRef.current++;
+      emblaApiRef.current?.reInit({ watchDrag: false });
+    }, []);
+    const unlock = useCallback(() => {
+      lockCountRef.current = Math.max(0, lockCountRef.current - 1);
+      if (lockCountRef.current === 0) {
+        emblaApiRef.current?.reInit({ watchDrag: true });
+      }
+    }, []);
 
     const [emblaRefModal, emblaApi] = useEmblaCarousel(
       {
         loop: false,
         dragFree: false,
-        containScroll: 'trimSnaps',
-        duration: 30,
-        watchResize: true,
+        containScroll: false,
+        duration: 0,
+        watchResize: false,
         axis: 'x',
       },
       []
     );
+    emblaApiRef.current = emblaApi;
 
-    const handleModalSlideChange = useCallback(() => {
-      if (!emblaApi) return;
-      const newSlideIndex = emblaApi.selectedScrollSnap();
-      setSelectedSlideModal(newSlideIndex);
-      onIndexChange?.(newSlideIndex, children.length);
-    }, [emblaApi, selectedSlideModal, onIndexChange, children.length]);
+    // Update dots via DOM directly — zero React re-renders
+    const updateDots = useCallback((index: number) => {
+      if (!dotsRef.current) return;
+      const dots = dotsRef.current.children;
+      for (let i = 0; i < dots.length; i++) {
+        dots[i].classList.toggle(styles.dotActive, i === index);
+      }
+    }, []);
 
-    React.useEffect(() => {
+    // 'settle' fires AFTER animation ends — no re-render mid-drag
+    useEffect(() => {
       if (!emblaApi) return;
-      emblaApi.on('select', handleModalSlideChange);
-      return () => {
-        emblaApi.off('select', handleModalSlideChange);
+      const onSettle = () => {
+        const newIndex = emblaApi.selectedScrollSnap();
+        if (newIndex !== indexRef.current) {
+          indexRef.current = newIndex;
+          onIndexChange?.(newIndex, children.length);
+          updateDots(newIndex);
+        }
       };
-    }, [emblaApi, handleModalSlideChange]);
+      // Also update on select for dots responsiveness, but without React state
+      const onSelect = () => {
+        updateDots(emblaApi.selectedScrollSnap());
+      };
+      emblaApi.on('settle', onSettle);
+      emblaApi.on('select', onSelect);
+      return () => {
+        emblaApi.off('settle', onSettle);
+        emblaApi.off('select', onSelect);
+      };
+    }, [emblaApi, onIndexChange, children.length, updateDots]);
 
     useImperativeHandle(ref, () => ({
       goToPage: (index: number) => emblaApi?.scrollTo(index),
@@ -65,11 +93,6 @@ const SwipeableV2 = forwardRef<SwipeableRef, Props>(
         emblaApi.scrollTo(defaultSlide, true);
       }
     }, [emblaApi, defaultSlide]);
-
-    useEffect(() => {
-      if (!emblaApi) return;
-      emblaApi.reInit({ watchDrag: !isLocked });
-    }, [emblaApi, isLocked]);
 
     return (
       <SwipeableLockContext.Provider value={{ lock, unlock }}>
@@ -95,11 +118,11 @@ const SwipeableV2 = forwardRef<SwipeableRef, Props>(
           </div>
 
           {hasDots && (
-            <div className={styles.dotsContainer}>
+            <div className={styles.dotsContainer} ref={dotsRef}>
               {children.map((_, idx) => (
                 <button
                   key={idx}
-                  className={`${styles.dot} ${idx === selectedSlideModal ? styles.dotActive : ''}`}
+                  className={`${styles.dot} ${idx === defaultSlide ? styles.dotActive : ''}`}
                   onClick={() => emblaApi?.scrollTo(idx)}
                 />
               ))}

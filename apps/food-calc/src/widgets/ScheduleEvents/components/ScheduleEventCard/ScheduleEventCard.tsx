@@ -1,0 +1,129 @@
+import styles from './ScheduleEventCard.module.scss';
+import clsx from 'clsx';
+import { SelectableListItem } from '@/features/shared/selectable-list-item';
+import type { ScheduleEvent } from '@/entities/schedule-event';
+import type { Atom } from '@/entities/schedule-event/model/atoms';
+
+type Props = {
+  item: ScheduleEvent;
+  isSelectMode: boolean;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  onEditTime: () => void;
+  onEditText: () => void;
+  onEditAtoms: () => void;
+  timeHtmlFor?: string;
+  textHtmlFor?: string;
+  atomsHtmlFor?: string;
+  className?: string;
+};
+
+function formatAtomChip(atom: Atom, index: number) {
+  switch (atom.kind) {
+    case 'scale': {
+      const pct = (atom.value / 10) * 100;
+      return (
+        <span className={clsx(styles.chip, styles.chipScale)} key={`scale-${index}`}>
+          {atom.label && <span>{atom.label}</span>}
+          <span className={styles.scaleBar}>
+            <span className={styles.scaleFill} style={{ width: `${pct}%` }} />
+          </span>
+          <span>{atom.value}/10</span>
+        </span>
+      );
+    }
+    case 'tag':
+      return (
+        <span className={clsx(styles.chip, styles.chipTag)} key={`tag-${index}`}>
+          {atom.value}
+        </span>
+      );
+    case 'flag':
+      return (
+        <span className={clsx(styles.chip, styles.chipFlag)} key={`flag-${index}`}>
+          {atom.value}
+        </span>
+      );
+    case 'number':
+      return (
+        <span className={clsx(styles.chip, styles.chipNumber)} key={`num-${index}`}>
+          {atom.label ? `${atom.label}: ` : ''}
+          {atom.value}
+          {atom.unit ? ` ${atom.unit}` : ''}
+        </span>
+      );
+    case 'time': {
+      const parts: string[] = [];
+      if (atom.start != null) parts.push(`с ${atom.start}`);
+      if (atom.end != null) parts.push(`до ${atom.end}`);
+      if (atom.durationMin != null) parts.push(`${atom.durationMin} мин`);
+      return (
+        <span className={clsx(styles.chip, styles.chipTime)} key={`time-${index}`}>
+          {parts.join(' ') || 'время'}
+        </span>
+      );
+    }
+    case 'body':
+      return (
+        <span className={clsx(styles.chip, styles.chipBody)} key={`body-${index}`}>
+          {atom.label || 'тело'}
+        </span>
+      );
+    case 'relation':
+      return (
+        <span className={clsx(styles.chip, styles.chipTag)} key={`rel-${index}`}>
+          {atom.value}
+        </span>
+      );
+    default:
+      return null;
+  }
+}
+
+export function ScheduleEventCard({
+  item,
+  isSelectMode,
+  isSelected,
+  onSelect,
+  onEditTime,
+  onEditText,
+  onEditAtoms,
+  timeHtmlFor,
+  textHtmlFor,
+  atomsHtmlFor,
+  className,
+}: Props) {
+  const title = item.text || 'Новое событие';
+  const atoms = item.atoms ?? [];
+  const hasAtoms = atoms.length > 0;
+
+  return (
+    <SelectableListItem
+      className={clsx(className, styles.row)}
+      id={item.id}
+      isSelectMode={isSelectMode}
+      isSelected={isSelected}
+      onSelect={onSelect}
+    >
+      <label htmlFor={timeHtmlFor} className={styles.time} onClick={onEditTime}>
+        {item.time || '—'}
+      </label>
+
+      <label htmlFor={textHtmlFor} className={styles.text} onClick={onEditText}>
+        {title}
+      </label>
+
+      <label
+        htmlFor={atomsHtmlFor}
+        className={clsx(styles.atomsZone, !hasAtoms && styles.atomsZoneEmpty)}
+        onClick={onEditAtoms}
+      >
+        {hasAtoms ? (
+          <span className={styles.atoms}>{atoms.map((atom, i) => formatAtomChip(atom, i))}</span>
+        ) : (
+          <span className={styles.atomsPlaceholder}>+ данные</span>
+        )}
+      </label>
+    </SelectableListItem>
+  );
+}

@@ -1,5 +1,4 @@
 import styles from './ScheduleEvents.module.scss';
-import { SelectableListItem } from '@/features/shared/selectable-list-item';
 import { useMemo, useState } from 'react';
 import { TimeGroup } from '@/features/time-group';
 import type { ScheduleEvent } from '@/entities/schedule-event';
@@ -16,31 +15,15 @@ import {
   ScheduleEventCreationModals,
   EVENT_MODAL_INPUT_IDS,
   EditScheduleEventModal,
+  EVENT_EDIT_MODAL_INPUT_IDS,
 } from './ui';
+import { ScheduleEventCard } from './components/ScheduleEventCard';
 
 type Props = {
   children?: React.ReactNode;
   date: string;
   events: ScheduleEvent[];
 };
-
-export function getEventDescription(item: ScheduleEvent): string {
-  const parts: string[] = [];
-
-  if (item.time) {
-    parts.push(item.time);
-  }
-
-  if (item.text) {
-    parts.push(item.text);
-  }
-
-  if (parts.length === 0) {
-    return 'Новое событие';
-  }
-
-  return parts.join(' • ');
-}
 
 const ScheduleEvents = ({ date, events }: Props) => {
   const selectionStoreEvents = useSelection();
@@ -97,29 +80,31 @@ const ScheduleEvents = ({ date, events }: Props) => {
       key={3}
       title={<Typography variant="feature-title">События</Typography>}
       header={
-        <Navigation title={<Typography variant="feature-title">События</Typography>}></Navigation>
+        <Navigation title={<Typography variant="feature-title-2">События</Typography>}></Navigation>
       }
-      bottomRight={<AddButton htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT} as="label" onClick={() => {}} />}
+      bottomRight={
+        <AddButton htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT} as="label" onClick={() => {}} />
+      }
     >
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList offsetTop>
           {eventsGroupedByTime.map((timeGroup) => (
             <TimeGroup key={timeGroup.time} group={timeGroup}>
-              {timeGroup.items.map((item) => {
-                return (
-                  <SelectableListItem
-                    className={styles.listItemRow}
-                    id={item.id}
-                    key={item.id}
-                    isSelectMode={isActionsMode}
-                    isSelected={selectedIds.includes(item.id)}
-                    onSelect={toggleSelectedId}
-                    onClick={() => openEditModal(item, 'time')}
-                  >
-                    <p>{getEventDescription(item)}</p>
-                  </SelectableListItem>
-                );
-              })}
+              {timeGroup.items.map((item) => (
+                <ScheduleEventCard
+                  key={item.id}
+                  item={item}
+                  isSelectMode={isActionsMode}
+                  isSelected={selectedIds.includes(item.id)}
+                  onSelect={toggleSelectedId}
+                  onEditTime={() => openEditModal(item, 'time')}
+                  onEditText={() => openEditModal(item, 'text')}
+                  onEditAtoms={() => openEditModal(item, 'atoms')}
+                  timeHtmlFor={EVENT_EDIT_MODAL_INPUT_IDS.TIME_INPUT}
+                  textHtmlFor={EVENT_EDIT_MODAL_INPUT_IDS.TEXT_INPUT}
+                  atomsHtmlFor={EVENT_EDIT_MODAL_INPUT_IDS.ATOMS_INPUT}
+                />
+              ))}
             </TimeGroup>
           ))}
         </ItemsList>

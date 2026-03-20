@@ -24,7 +24,7 @@
     top: 10px;
     left: 30px;
     height: auto;
-    width: 150%;
+    width: 50vw;
     pointer-events: none;
     user-select: none;
     z-index: 2;
@@ -33,6 +33,8 @@
 
 .left {
     position: relative;
+    width: 1px;
+    z-index: -1;
 }
 
 .row {

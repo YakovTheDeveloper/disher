@@ -1,7 +1,7 @@
 import { RouterLinks } from '@/router';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import SwipeableV2 from '@/shared/ui/Swipeable/SwipeableV2';
+import { Swipeable } from '@/shared/ui/Swipeable';
 import { FoodSchedule } from '@/widgets/FoodSchedule';
 import { ScheduleEvents } from '@/widgets/ScheduleEvents';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
@@ -13,25 +13,26 @@ const Page = ({ date }: { date: string }) => {
 
   const { results: scheduleFoods } = useScheduleFoods(date);
   const { results: scheduleEvents } = useScheduleEvents(date);
-  const scheduleTotals = useScheduleNutrientTotals(date);
+  const { totals: scheduleTotals, missingNutrientNames } = useScheduleNutrientTotals(date);
+
   const items = scheduleFoods ?? [];
   const events = scheduleEvents ?? [];
 
   const onPageChange = (page: number, _total: number) => {
-    if (page === 2) {
-      document.body.style.backgroundColor = '#e6e6e6';
-    } else {
-      document.body.style.backgroundColor = '';
-    }
+    // if (page === 2) {
+    //   document.body.style.backgroundColor = '#e6e6e6';
+    // } else {
+    //   document.body.style.backgroundColor = '';
+    // }
   };
 
   return (
     <>
-      <SwipeableV2 defaultSlide={1} onIndexChange={onPageChange}>
-        <FoodsNutrients totals={scheduleTotals} />
-        <FoodSchedule date={date} items={items as any[]} />
+      <Swipeable defaultSlide={1} onIndexChange={onPageChange}>
+        <FoodsNutrients totals={scheduleTotals} missingNutrientNames={missingNutrientNames} />
+        <FoodSchedule date={date} items={items} />
         <ScheduleEvents date={date} events={events} />
-      </SwipeableV2>
+      </Swipeable>
     </>
   );
 };

@@ -43,7 +43,6 @@ const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
     ref
   ) => {
     const [isFocused, setIsFocused] = useState(false);
-    const inputId = useId();
     const errorId = useId();
     const helperTextId = useId();
 
@@ -89,7 +88,7 @@ const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
     return (
       <div className={containerClasses}>
         {label && (
-          <label htmlFor={inputId} className={styles.label}>
+          <label htmlFor={props.id} className={styles.label}>
             {label}
             {required && (
               <span className={styles.required} aria-label="required">
@@ -104,7 +103,7 @@ const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
 
           <input
             ref={ref}
-            id={inputId}
+            id={props.id}
             className={styles.input}
             disabled={disabled || loading}
             required={required}

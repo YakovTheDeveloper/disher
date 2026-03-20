@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import {
   format,
   addDays,
@@ -10,8 +10,10 @@ import {
   startOfToday,
   subDays,
   parse,
+  differenceInMonths,
 } from 'date-fns';
 import { Virtuoso } from 'react-virtuoso';
+import type { VirtuosoHandle } from 'react-virtuoso';
 import styles from './ScheduleSelection2.module.scss';
 import { observer } from 'mobx-react-lite';
 import { ru } from 'date-fns/locale';
@@ -26,6 +28,7 @@ type Props = {
   selectedDate?: string;
   showFastButtons?: boolean;
   className?: string;
+  variant?: 'default' | 'experimental';
 };
 
 export const ScheduleSelection = ({
@@ -33,18 +36,40 @@ export const ScheduleSelection = ({
   selectedDate,
   showFastButtons = false,
   className,
+  variant = 'experimental',
 }: Props) => {
+  const isExperimental = variant === 'experimental';
   const today = startOfToday();
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   const months = useMemo(
     () => Array.from({ length: 24 }, (_, i) => addMonths(START_DATE, i - 12)),
-    [],
+    []
   );
 
   const selectedDateParsed = useMemo(
     () => (selectedDate ? parse(selectedDate, 'dd-MM-yyyy', new Date()) : null),
-    [selectedDate],
+    [selectedDate]
   );
+
+  const initialIndex = useMemo(() => {
+    if (!selectedDateParsed) return 12;
+    const selectedMonth = startOfMonth(selectedDateParsed);
+    const diff = differenceInMonths(selectedMonth, START_DATE);
+    const idx = 12 + diff;
+    return Math.max(0, Math.min(23, idx));
+  }, [selectedDateParsed]);
+
+  useEffect(() => {
+    if (virtuosoRef.current && selectedDateParsed) {
+      const selectedMonth = startOfMonth(selectedDateParsed);
+      const diff = differenceInMonths(selectedMonth, START_DATE);
+      const idx = 12 + diff;
+      if (idx >= 0 && idx <= 23) {
+        virtuosoRef.current.scrollToIndex({ index: idx, behavior: 'smooth' });
+      }
+    }
+  }, [selectedDateParsed]);
 
   const renderMonth = (index: number) => {
     const monthStart = months[index];
@@ -59,15 +84,20 @@ export const ScheduleSelection = ({
       <div key={`empty-${index}-${i}`} className={styles.emptyDay} />
     ));
 
+    const monthLabel = format(monthStart, 'LLLL', { locale: ru });
+
     return (
       <div className={styles.monthSection}>
-        <div className={styles.stickyHeader}>
-          <span className={styles.monthName}>
-            {format(monthStart, 'LLLL', { locale: ru })}
-          </span>
-          <span className={styles.monthYear}>{format(monthStart, 'yyyy')}</span>
-        </div>
-        <div className={styles.daysGrid}>
+        {!isExperimental && (
+          <div className={styles.stickyHeader}>
+            <span className={styles.monthName}>{monthLabel}</span>
+            <span className={styles.monthYear}>{format(monthStart, 'yyyy')}</span>
+          </div>
+        )}
+        <div
+          className={`${styles.daysGrid} ${isExperimental ? styles.daysGridExperimental : ''}`}
+          data-month={isExperimental ? monthLabel : undefined}
+        >
           {emptyCells}
           {daysInMonth.map((day) => {
             const isSelected = selectedDateParsed && isSameDay(day, selectedDateParsed);
@@ -77,11 +107,15 @@ export const ScheduleSelection = ({
             return (
               <button
                 key={day.toISOString()}
-                className={`${styles.day} ${isSelected ? styles.selected : ''} ${isCurrentDay ? styles.today : ''}`}
+                className={`${styles.day} ${isExperimental ? styles.dayExperimental : ''} ${isSelected ? styles.selected : ''} ${isCurrentDay ? styles.today : ''}`}
                 onClick={() => onSelect(format(day, 'dd-MM-yyyy'))}
               >
                 <span className={styles.dayNumber}>{format(day, 'd')}</span>
-                <span className={styles.dayName}>{dayOfWeek}</span>
+                <span
+                  className={`${styles.dayName} ${isExperimental ? styles.dayNameExperimental : ''}`}
+                >
+                  {dayOfWeek}
+                </span>
               </button>
             );
           })}
@@ -92,17 +126,20 @@ export const ScheduleSelection = ({
 
   return (
     <div className={`${styles.calendarWrapper} ${className || ''}`}>
-      <div className={styles.weekDaysHeader}>
-        {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((d, i) => (
-          <div key={i}>{d}</div>
-        ))}
-      </div>
+      {!isExperimental && (
+        <div className={styles.weekDaysHeader}>
+          {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((d, i) => (
+            <div key={i}>{d}</div>
+          ))}
+        </div>
+      )}
 
       <Virtuoso
+        ref={virtuosoRef}
         className={styles.scrollContainer}
         style={{ height: '100%', width: '100%' }}
         data={months}
-        initialTopMostItemIndex={12}
+        initialTopMostItemIndex={initialIndex}
         itemContent={(index) => renderMonth(index)}
         increaseViewportBy={300}
       />
@@ -110,7 +147,9 @@ export const ScheduleSelection = ({
       {showFastButtons && (
         <div className={styles.links}>
           <NavLink
-            to={RouterLinks.ScheduleBuilder + '/' + format(subDays(startOfToday(), 1), 'dd-MM-yyyy')}
+            to={
+              RouterLinks.ScheduleBuilder + '/' + format(subDays(startOfToday(), 1), 'dd-MM-yyyy')
+            }
             className={styles.goDay}
           >
             <span className={styles.linkButtonText}>Вчера</span>
@@ -122,7 +161,9 @@ export const ScheduleSelection = ({
             <span className={styles.linkButtonText}>Сегодня</span>
           </NavLink>
           <NavLink
-            to={RouterLinks.ScheduleBuilder + '/' + format(addDays(startOfToday(), 1), 'dd-MM-yyyy')}
+            to={
+              RouterLinks.ScheduleBuilder + '/' + format(addDays(startOfToday(), 1), 'dd-MM-yyyy')
+            }
             className={styles.goDay}
           >
             <span className={styles.linkButtonText}>Завтра</span>

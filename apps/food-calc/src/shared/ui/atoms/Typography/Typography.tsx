@@ -5,7 +5,7 @@ import { forwardRef } from 'react';
 
 type Props = {
   children: React.ReactNode;
-  variant: 'action' | 'info' | 'elegant' | 'custom' | 'feature-title';
+  variant: 'action' | 'info' | 'elegant' | 'custom' | 'feature-title' | 'feature-title-s';
   ellipsis?: boolean;
   className?: string;
   onClick?: () => void;
@@ -22,7 +22,10 @@ type ExposedRefs = {
 };
 
 const Typography = forwardRef<ExposedRefs, Props>(
-  ({ children, variant, ellipsis, className, onClick, onTouchEnd, after, as = 'p', htmlFor }, _ref) => {
+  (
+    { children, variant, ellipsis, className, onClick, onTouchEnd, after, as = 'p', htmlFor },
+    _ref
+  ) => {
     const isCustom = variant === 'custom';
     const Tag = as;
 

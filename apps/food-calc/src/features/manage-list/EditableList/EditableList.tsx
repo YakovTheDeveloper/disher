@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
+import clsx from 'clsx';
 import styles from './EditableList.module.scss';
 export type EditableListRef = {
   getResultedItemsIds: () => {
@@ -18,25 +19,20 @@ function EditableListInner<T extends { id: string }>(
 ) {
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
 
-  const handleDelete = useCallback((id: string) => {
-    setDeletedIds((prev) => new Set(prev).add(id));
-  }, []);
-
-  const handleRestore = useCallback((id: string) => {
+  const toggleDelete = useCallback((id: string) => {
     setDeletedIds((prev) => {
       const next = new Set(prev);
-      next.delete(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   }, []);
 
-  const visibleItems = useMemo(
-    () => items.filter((i) => !deletedIds.has(i.id)),
-    [items, deletedIds]
-  );
-
-  const deletedItems = useMemo(
-    () => items.filter((i) => deletedIds.has(i.id)),
+  const activeCount = useMemo(
+    () => items.filter((i) => !deletedIds.has(i.id)).length,
     [items, deletedIds]
   );
 
@@ -44,39 +40,33 @@ function EditableListInner<T extends { id: string }>(
     ref,
     () => ({
       getResultedItemsIds: () => {
-        const ids = visibleItems.map(({ id }) => id);
+        const ids = items.filter((i) => !deletedIds.has(i.id)).map(({ id }) => id);
         return {
           asSet: new Set(ids),
           asArray: ids,
         };
       },
     }),
-    [visibleItems]
+    [items, deletedIds]
   );
-
-  const canDelete = visibleItems.length > 1;
 
   return (
     <div className={styles.container}>
-      {visibleItems.map((item) => (
-        <div key={item.id}>
-          {renderItem(item)}
-          {canDelete && <button onClick={() => handleDelete(item.id)}>×</button>}
-        </div>
-      ))}
+      {items.map((item) => {
+        const isDeleted = deletedIds.has(item.id);
+        const canDelete = !isDeleted && activeCount > 1;
 
-      {deletedItems.length > 0 && (
-        <div className={styles.deletedSection}>
-          <div className={styles.deletedLabel}>Удалённые</div>
-
-          {deletedItems.map((item) => (
-            <div key={item.id}>
-              {renderItem(item)}
-              <button onClick={() => handleRestore(item.id)}>↩</button>
-            </div>
-          ))}
-        </div>
-      )}
+        return (
+          <div key={item.id} className={clsx(styles.row, isDeleted && styles.deleted)}>
+            <span className={styles.itemContent}>{renderItem(item)}</span>
+            {(canDelete || isDeleted) && (
+              <button className={styles.actionBtn} onClick={() => toggleDelete(item.id)}>
+                {isDeleted ? '↩' : '×'}
+              </button>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

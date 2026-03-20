@@ -21,7 +21,7 @@ import s from './FoodScheduleModals.module.scss';
  *   - SEARCH_INPUT  → SearchFood input (step: search)
  *   - QUANTITY_INPUT → ProductQuantity NumberInput (step: quantity)
  *
- * CreateDishAndCopyModal:
+ * CopyToNewDishModal:
  *   - DISH_NAME_INPUT → TextInput for dish name (step: name)
  *
  * CopyToExistingDishModal:

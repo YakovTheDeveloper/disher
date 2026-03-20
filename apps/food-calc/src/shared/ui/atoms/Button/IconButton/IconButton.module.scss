@@ -1,0 +1,44 @@
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 10px;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s;
+  min-width: 56px;
+
+  &:active {
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--color-text-primary, #1f2937);
+}
+
+.label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1f2937);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}

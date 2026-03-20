@@ -10,67 +10,77 @@ import {
   type NutrientEntry,
 } from '@/shared/lib/nutrients';
 
-export function useScheduleNutrientTotals(date: string): NutrientTotals {
+export type ScheduleNutrientResult = {
+  totals: NutrientTotals;
+  missingNutrientNames: string[];
+};
+
+export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult {
   const { results: scheduleFoods } = useScheduleFoods(date);
   const sfItems = scheduleFoods ?? [];
 
-  const foodItems = useMemo(
-    () => sfItems.filter((sf) => sf.type === 'food' && sf.foodId),
-    [sfItems],
-  );
-  const dishItems = useMemo(
-    () => sfItems.filter((sf) => sf.type === 'dish' && sf.dishId),
-    [sfItems],
-  );
+  const foodItems = sfItems.filter((sf) => sf.type === 'food' && sf.foodId);
+  const dishItems = sfItems.filter((sf) => sf.type === 'dish' && sf.dishId);
 
-  const dishIds = useMemo(
-    () => [...new Set(dishItems.map((d) => d.dishId!))],
-    [dishItems],
-  );
-
+  // No useMemo — Triplit deduplicates queries via JSON.stringify internally
+  const dishIds = [...new Set(dishItems.map((d) => d.dishId!))];
   const { results: allDishItems } = useDishItemsByDishIds(dishIds);
 
-  // Collect ALL food IDs: from direct food items + from dish items' foods
-  const allFoodIds = useMemo(() => {
+  const allFoodIds = (() => {
     const ids = new Set<string>();
     for (const fi of foodItems) if (fi.foodId) ids.add(fi.foodId);
     for (const di of allDishItems ?? []) ids.add(di.foodId);
     return [...ids];
-  }, [foodItems, allDishItems]);
-
+  })();
   const { results: foods } = useProductsByIds(allFoodIds);
 
-  return useMemo(() => {
-    if (!foods) return {};
+  // String key captures all schedule item data — reliable value comparison
+  const dataKey = sfItems
+    .map((sf) => `${sf.id}:${sf.quantity}:${sf.type}:${sf.foodId}:${sf.dishId}`)
+    .join('|');
 
-    // Build nutrient map for all foods
+  return useMemo(() => {
+    if (!foods) return { totals: {}, missingNutrientNames: [] };
+
     const nutrientsMap = new Map<string, NutrientEntry[]>();
+    const foodNameMap = new Map<string, string>();
     for (const food of foods) {
       const nutrients = food.nutrients
         ? Array.from(food.nutrients.values()).map((n) => ({
-            nutrientId: n.nutrientId,
-            quantity: n.quantity,
-          }))
+          nutrientId: n.nutrientId,
+          quantity: n.quantity,
+        }))
         : [];
       nutrientsMap.set(food.id, nutrients);
+      foodNameMap.set(food.id, food.name);
     }
 
     const totalsArray: NutrientTotals[] = [];
+    const missingNames: string[] = [];
 
-    // Food-type schedule items
     for (const fi of foodItems) {
       const nutrients = nutrientsMap.get(fi.foodId!);
-      if (nutrients) {
+      if (!nutrients || nutrients.length === 0) {
+        const name = foodNameMap.get(fi.foodId!) ?? fi.food?.name ?? fi.foodId!;
+        if (!missingNames.includes(name)) missingNames.push(name);
+      } else {
         totalsArray.push(calculateProductNutrients(nutrients, fi.quantity));
       }
     }
 
-    // Dish-type schedule items
     for (const di of dishItems) {
       const diItems = (allDishItems ?? []).filter(
         (item) => item.dishId === di.dishId!,
       );
       if (diItems.length > 0) {
+        const dishMissing = diItems.some((item) => {
+          const n = nutrientsMap.get(item.foodId);
+          return !n || n.length === 0;
+        });
+        if (dishMissing) {
+          const dishName = di.dish?.name ?? di.dishId!;
+          if (!missingNames.includes(dishName)) missingNames.push(dishName);
+        }
         totalsArray.push(
           calculateDishNutrients(
             diItems.map((item) => ({ foodId: item.foodId, quantity: item.quantity })),
@@ -81,6 +91,9 @@ export function useScheduleNutrientTotals(date: string): NutrientTotals {
       }
     }
 
-    return sumNutrients(...totalsArray);
-  }, [foodItems, dishItems, allDishItems, foods]);
+    return {
+      totals: sumNutrients(...totalsArray),
+      missingNutrientNames: missingNames,
+    };
+  }, [dataKey, allDishItems, foods]);
 }

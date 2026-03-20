@@ -18,10 +18,11 @@ import type { NutrientTotals } from '@/shared/lib/nutrients';
 
 type Props = {
   totals: NutrientTotals;
+  missingNutrientNames?: string[];
   after?: React.ReactNode;
 };
 
-const FoodsNutrients = ({ totals, after }: Props) => {
+const FoodsNutrients = ({ totals, missingNutrientNames = [], after }: Props) => {
   const filter = useFilterNutrients();
   const { getValue } = useNutrientTotals(totals);
 
@@ -50,7 +51,6 @@ const FoodsNutrients = ({ totals, after }: Props) => {
 
   return (
     <Screen
-      offsetTop
       bottomRight={<FilterButton onClick={filter.toggleFilterMode} isActive={filter.filterMode} />}
       actions={
         filter.filterMode ? (
@@ -69,6 +69,12 @@ const FoodsNutrients = ({ totals, after }: Props) => {
       <Ornament text="нутриенты"></Ornament>
 
       <Nutrients renderCard={renderCard} />
+
+      {missingNutrientNames.length > 0 && (
+        <p style={{ padding: '8px 16px', fontSize: 13, opacity: 0.5, lineHeight: 1.4 }}>
+          Нет данных о нутриентах: {missingNutrientNames.join(', ')}
+        </p>
+      )}
 
       <Ornament text="дневная норма"></Ornament>
       <OpenDailyNorms />

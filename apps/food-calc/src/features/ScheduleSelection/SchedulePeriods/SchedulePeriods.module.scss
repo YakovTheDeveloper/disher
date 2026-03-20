@@ -1,0 +1,245 @@
+$accent: #e5004f;
+$accent-soft: rgba(229, 0, 79, 0.06);
+$text: #111;
+$text-muted: rgba(17, 17, 17, 0.45);
+$border: rgba(17, 17, 17, 0.08);
+$bg: #fafafa;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: $bg;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    flex-shrink: 0;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    color: $text;
+}
+
+.addButton {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid $border;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    font-size: 20px;
+    color: $text-muted;
+    line-height: 1;
+
+    &:active {
+        background: $accent-soft;
+        border-color: $accent;
+        color: $accent;
+    }
+}
+
+.list {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 16px 24px;
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 32px;
+    gap: 12px;
+
+    .emptyIcon {
+        font-size: 48px;
+        opacity: 0.15;
+    }
+
+    .emptyText {
+        font-size: 14px;
+        color: $text-muted;
+        text-align: center;
+        line-height: 1.5;
+    }
+}
+
+// — Period Card —
+
+.periodCard {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid $border;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    transition: border-color 0.15s;
+
+    &:active {
+        border-color: rgba(0, 0, 0, 0.15);
+    }
+}
+
+.periodTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.periodName {
+    font-size: 15px;
+    font-weight: 500;
+    color: $text;
+    letter-spacing: -0.01em;
+}
+
+.periodDates {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: $text-muted;
+    text-transform: uppercase;
+}
+
+.periodDescription {
+    font-size: 13px;
+    color: $text-muted;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+// — Gantt bar —
+
+.ganttBar {
+    height: 6px;
+    border-radius: 3px;
+    background: $border;
+    position: relative;
+    overflow: hidden;
+}
+
+.ganttFill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+// Color variants
+.color0 { background: #6366f1; } // indigo
+.color1 { background: #f59e0b; } // amber
+.color2 { background: #10b981; } // emerald
+.color3 { background: #ef4444; } // red
+.color4 { background: #8b5cf6; } // violet
+.color5 { background: #06b6d4; } // cyan
+
+.ganttLabels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+}
+
+.ganttLabel {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+}
+
+// — Create form —
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 20px 24px;
+    flex-shrink: 0;
+}
+
+.formField {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.formLabel {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $text-muted;
+}
+
+.formInput {
+    padding: 12px 14px;
+    border: 1.5px solid $border;
+    border-radius: 10px;
+    font-size: 15px;
+    color: $text;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s;
+
+    &:focus {
+        border-color: rgba(0, 0, 0, 0.25);
+    }
+
+    &::placeholder {
+        color: rgba(0, 0, 0, 0.2);
+    }
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.formActions {
+    display: flex;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+.formButton {
+    flex: 1;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+
+    &:active {
+        transform: scale(0.97);
+    }
+}
+
+.formButtonPrimary {
+    background: $text;
+    color: #fff;
+}
+
+.formButtonSecondary {
+    background: transparent;
+    border: 1.5px solid $border;
+    color: $text;
+}

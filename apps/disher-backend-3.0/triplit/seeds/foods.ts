@@ -64,8 +64,20 @@ type FoodJson = {
   nutrients?: Array<{ nutrientId: string; quantity: number }>;
 };
 
+type FoodNutrientJson = {
+  id: number;
+  quantity: number;
+  nutrientId: number;
+  foodId: number;
+};
+
 const foodPath = resolve(process.cwd(), "../food-calc/public/foodFull.json");
 const rawFoods: FoodJson[] = JSON.parse(readFileSync(foodPath, "utf-8"));
+
+const foodNutrientPath = resolve(process.cwd(), "triplit/FoodNutrient.json");
+const rawFoodNutrients: FoodNutrientJson[] = JSON.parse(
+  readFileSync(foodNutrientPath, "utf-8")
+).FoodNutrient;
 
 export default function seed(): BulkInsert<typeof schema> {
   return {
@@ -79,15 +91,12 @@ export default function seed(): BulkInsert<typeof schema> {
       descriptionEng: null,
     })),
     foodPortions: [],
-    foodNutrients: rawFoods.flatMap(
-      (f) =>
-        f.nutrients?.map((n) => ({
-          id: `${f.id}-${n.nutrientId}`,
-          foodId: f.id,
-          nutrientId: n.nutrientId,
-          quantity: n.quantity,
-        })) ?? []
-    ),
+    foodNutrients: rawFoodNutrients.map((n) => ({
+      id: String(n.id),
+      foodId: String(n.foodId),
+      nutrientId: String(n.nutrientId),
+      quantity: n.quantity,
+    })),
     dailyNorms: [
       {
         id: "DEFAULT_NORM",

@@ -26,7 +26,7 @@ export default function App() {
   return (
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
-        <Toaster />
+        <Toaster toastOptions={{ duration: 6000 }} />
         <div className={s.main}>
           <Modal>
             <ModalManagerV2 />

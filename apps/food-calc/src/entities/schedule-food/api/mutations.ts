@@ -98,14 +98,3 @@ export async function scheduleFoodsToDishItems(
     ),
   );
 }
-
-/**
- * Move schedule foods into a dish (copy + delete originals).
- */
-export async function moveScheduleFoodsToDish(
-  scheduleFoodIds: string[],
-  dishId: string,
-) {
-  await scheduleFoodsToDishItems(scheduleFoodIds, dishId);
-  await removeScheduleFoods(scheduleFoodIds);
-}
