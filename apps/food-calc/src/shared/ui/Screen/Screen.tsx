@@ -1,6 +1,5 @@
 import { observer } from 'mobx-react-lite';
 import styles from './Screen.module.scss';
-import { COLLAPSE_CONFIG } from './types';
 import { ScreenScrollProvider } from './context/ScreenScrollContext';
 import clsx from 'clsx';
 import { useRef, memo } from 'react';
@@ -37,13 +36,16 @@ const Screen = ({
   backgroundImageOpacity = 0.05,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const COLLAPSE_DISTANCE = window.innerHeight * 0.4;
 
   const { scrollYProgress, isScrollingDown, isScrolledPastThreshold } = useScrollHide({
     containerRef: scrollContainerRef,
-    collapseDistance: COLLAPSE_CONFIG.collapseDistance,
+    collapseDistance: COLLAPSE_DISTANCE,
   });
 
-  const { isBottomPanelsVisible: _isBottomPanelsVisible } = useBottomPanelsVisibility({ isScrollingDown });
+  const { isBottomPanelsVisible: _isBottomPanelsVisible } = useBottomPanelsVisibility({
+    isScrollingDown,
+  });
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollContainerRef);
 
   const scrollTop = () => {
@@ -72,11 +74,7 @@ const Screen = ({
         <div ref={sentinelRef} />
       </div>
 
-      <div className={clsx(styles.scrollIndicator, hasMoreBelow && styles.visible)}>
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
+      <div className={clsx(styles.scrollIndicator, hasMoreBelow && styles.visible)} />
 
       {/* ScrollTopButton with CSS-based visibility to avoid DOM thrashing */}
       <div
@@ -86,9 +84,20 @@ const Screen = ({
         )}
         style={{ pointerEvents: isScrolledPastThreshold ? 'auto' : 'none' }}
       >
-        <button className={styles.scrollTopBtn} onClick={scrollTop} type="button" aria-label="Наверх">
+        <button
+          className={styles.scrollTopBtn}
+          onClick={scrollTop}
+          type="button"
+          aria-label="Наверх"
+        >
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M12 19V5M5 12l7-7 7 7"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
       </div>

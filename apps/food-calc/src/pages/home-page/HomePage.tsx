@@ -1,4 +1,4 @@
-import { RouterLinks } from '@/router';
+import { RouterLinks } from '@/app/router';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Swipeable } from '@/shared/ui/Swipeable';

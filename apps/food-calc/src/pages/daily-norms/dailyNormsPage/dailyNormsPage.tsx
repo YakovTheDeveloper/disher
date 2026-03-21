@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
 import { useDailyNorms, createDailyNorm } from '@/entities/daily-norm';
-import { RouterLinks } from '@/router';
+import { RouterLinks } from '@/app/router';
 import styles from './dailyNormsPage.module.scss';
 import SearchInput from '@/shared/ui/atoms/input/SearchInput/SearchInput';
 import { Screen } from '@/shared/ui/Screen';
@@ -12,7 +12,7 @@ import { ListItem } from '@/shared/ui/list-item/ListItem';
 import TickIcon from '@icons/tick.svg';
 import { useNavigate } from 'react-router';
 import TextBehind from '@/shared/ui/TextBehind/TextBehind';
-import normsImg from '@/assets/decarative/norms.png';
+import normsImg from '@/shared/assets/decarative/norms.png';
 import commonStyles from '@/features/lists/shared/commonStyles.module.scss';
 
 type Props = {

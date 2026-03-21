@@ -1,0 +1,51 @@
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.crumbWrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.separator {
+  color: rgba(0, 0, 0, 0.15);
+  font-size: 0.65rem;
+  font-weight: 300;
+  user-select: none;
+  letter-spacing: 0.05em;
+}
+
+.crumb {
+  background: none;
+  border: none;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(0, 0, 0, 0.2);
+  cursor: default;
+  transition: color 0.2s ease, opacity 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+
+  &.completed {
+    color: rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+
+    &:hover {
+      color: rgba(0, 0, 0, 0.7);
+    }
+  }
+
+  &.current {
+    color: #000;
+  }
+
+  &:disabled:not(.current) {
+    cursor: default;
+  }
+}

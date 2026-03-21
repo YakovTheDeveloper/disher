@@ -10,6 +10,16 @@ export async function addScheduleFood(params: {
   foodId?: string | null;
   dishId?: string | null;
 }) {
+  const hasFoodId = params.foodId != null;
+  const hasDishId = params.dishId != null;
+
+  if (hasFoodId && hasDishId) {
+    throw new Error("addScheduleFood: cannot set both foodId and dishId");
+  }
+  if (!hasFoodId && !hasDishId) {
+    throw new Error("addScheduleFood: must set either foodId or dishId");
+  }
+
   const id = uuid();
   await triplit.insert("scheduleFoods", {
     id,
@@ -34,6 +44,17 @@ export async function updateScheduleFood(
     type: "food" | "dish";
   }>,
 ) {
+  if (updates.foodId !== undefined && updates.dishId !== undefined) {
+    const hasFoodId = updates.foodId != null;
+    const hasDishId = updates.dishId != null;
+    if (hasFoodId && hasDishId) {
+      throw new Error("updateScheduleFood: cannot set both foodId and dishId");
+    }
+    if (!hasFoodId && !hasDishId) {
+      throw new Error("updateScheduleFood: must set either foodId or dishId");
+    }
+  }
+
   await triplit.update("scheduleFoods", itemId, (item) => {
     if (updates.time !== undefined) item.time = updates.time;
     if (updates.quantity !== undefined) item.quantity = updates.quantity;

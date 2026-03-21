@@ -3,8 +3,8 @@ import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import React from 'react';
 import clsx from 'clsx';
 import { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import treeSrc from '@/assets/decarative/tree.png';
-import tree2Src from '@/assets/decarative/tree2.png';
+import treeSrc from '@/shared/assets/decarative/tree.png';
+import tree2Src from '@/shared/assets/decarative/tree2.png';
 
 interface Props {
   renderCard: (nutrientData: Nutrient) => React.ReactNode;

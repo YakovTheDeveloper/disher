@@ -1,7 +1,7 @@
 import styles from './AddButton.module.scss';
 import clsx from 'clsx';
 import { observer } from 'mobx-react-lite';
-import PlusIcon from '@/assets/icons/rounded-plus-icon.svg';
+import PlusIcon from '@/shared/assets/icons/rounded-plus-icon.svg';
 
 type Props = {
   onClick: VoidFunction;
@@ -10,13 +10,14 @@ type Props = {
   as?: 'button' | 'label';
   htmlFor?: string;
 };
-const AddButton = ({ onClick, as = 'button', htmlFor }: Props) => {
+const AddButton = ({ onClick, children, as = 'button', htmlFor }: Props) => {
   const Tag = as;
   return (
-    <Tag onClick={onClick} htmlFor={htmlFor} className={clsx([styles.container])}>
+    <Tag onClick={onClick} htmlFor={htmlFor} className={clsx(styles.container, children && styles.withText)}>
       <span className={styles.icon}>
         <PlusIcon />
       </span>
+      {children && <span className={styles.text}>{children}</span>}
     </Tag>
   );
 };

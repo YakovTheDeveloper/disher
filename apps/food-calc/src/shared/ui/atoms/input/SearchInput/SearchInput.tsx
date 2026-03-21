@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
-import SearchIcon from '@/assets/icons/lupa.svg';
-import CrossIcon from '@/assets/icons/cross.svg';
+import SearchIcon from '@/shared/assets/icons/lupa.svg';
+import CrossIcon from '@/shared/assets/icons/cross.svg';
 import clsx from 'clsx';
 import styles from './SearchInput.module.scss';
 

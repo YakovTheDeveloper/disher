@@ -16,7 +16,7 @@ import { Screen } from '@/shared/ui/Screen';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { DishFoodSelectionActions } from './components/header-actions/DishFoodSelectionActions';
-import { RouterLinks } from '@/router';
+import { RouterLinks } from '@/app/router';
 import SwipeableV2 from '@/shared/ui/Swipeable/SwipeableV2';
 import { SelectableListItem } from '@/features/shared/selectable-list-item';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';

@@ -2,7 +2,7 @@ import styles from './Navigation.module.scss';
 import { useParams } from 'react-router';
 import { useScreenScroll } from '@/shared/ui/Screen/context/ScreenScrollContext';
 import { motion, useTransform, useMotionValueEvent } from 'framer-motion';
-import WatchImage from '@/assets/decarative/watch.png';
+import WatchImage from '@/shared/assets/decarative/watch.png';
 import { getTitle } from '@/pages/home-page/ui/methods';
 import { useState } from 'react';
 import { drawerStore } from '@/shared/ui';

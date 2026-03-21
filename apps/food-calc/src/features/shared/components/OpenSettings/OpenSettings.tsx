@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import Button from '@/shared/ui/atoms/Button/Button';
-import { RouterLinks } from '@/router';
+import { RouterLinks } from '@/app/router';
 
 const OpenSettings = () => {
   const navigate = useNavigate();

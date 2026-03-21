@@ -1,12 +1,13 @@
 import { useCallback, useRef, useState } from 'react';
-import clsx from 'clsx';
+import { Breadcrumbs } from '@/shared/ui/Breadcrumbs';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { EditableList, EditableListRef } from '@/features/manage-list/EditableList';
 import { LabeledCheckbox } from '@/shared/ui/LabeledCheckbox';
 import TextBehind from '@/shared/ui/TextBehind/TextBehind';
 import { TextInput } from '@/shared/ui/atoms/input/TextInput';
+import { Button } from '@/shared/ui/atoms/Button';
 import toaster from '@/shared/lib/toaster/toaster';
-import { RouterUrls } from '@/router';
+import { RouterUrls } from '@/app/router';
 import { isEmpty } from 'lodash';
 import { createDishWithItems } from '@/entities/dish';
 import { addScheduleFood, removeScheduleFoods } from '@/entities/schedule-food';
@@ -122,39 +123,12 @@ const CopyToNewDishModal = ({ isExpanded, items, onFinish, onClose }: Props) => 
     });
   }, []);
 
-  const Breadcrumbs = ({ current }: { current: Exclude<Step, 'idle'> }) => {
-    const currentIndex = STEPS.indexOf(current);
-
-    return (
-      <nav className={s.breadcrumbs}>
-        {STEPS.map((stepName, i) => {
-          if (stepName === 'idle') return null;
-          const isCompleted = currentIndex > i;
-          const isCurrent = current === stepName;
-
-          return (
-            <span key={stepName} className={s.crumbWrapper}>
-              {i > 0 && <span className={s.separator}>/</span>}
-              <button
-                className={clsx(s.crumb, isCompleted && s.completed, isCurrent && s.current)}
-                onClick={() => isCompleted && goToStep(stepName)}
-                disabled={!isCompleted}
-              >
-                {STEP_LABELS[stepName as Exclude<Step, 'idle'>]}
-              </button>
-            </span>
-          );
-        })}
-      </nav>
-    );
-  };
-
   const Header = ({ currentStep }: { currentStep: Exclude<Step, 'idle'> }) => (
     <header className={s.header}>
       <button className={s.backButton} onClick={handleClose}>
         ←
       </button>
-      <Breadcrumbs current={currentStep} />
+      <Breadcrumbs steps={STEPS} current={currentStep} stepLabels={STEP_LABELS} onStepClick={goToStep} />
     </header>
   );
 
@@ -174,9 +148,9 @@ const CopyToNewDishModal = ({ isExpanded, items, onFinish, onClose }: Props) => 
                 <TextInput id={MODAL_INPUT_IDS.DISH_NAME_INPUT} maxLength={255} />
               </TextBehind>
               <div className={s.finishButton}>
-                <button className={s.nextButton} onClick={handleNameNext}>
+                <Button variant="primary-form" onClick={handleNameNext}>
                   Далее
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -203,9 +177,9 @@ const CopyToNewDishModal = ({ isExpanded, items, onFinish, onClose }: Props) => 
                 onChange={() => {}}
               />
               <div className={s.finishButton}>
-                <button className={s.nextButton} onClick={handleConfirm}>
+                <Button variant="primary-form" onClick={handleConfirm}>
                   Создать блюдо
-                </button>
+                </Button>
               </div>
             </div>
           </div>

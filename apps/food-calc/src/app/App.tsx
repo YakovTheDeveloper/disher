@@ -1,8 +1,8 @@
 import { AnimatedOutlet } from '@/shared/ui/PageTransition';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import s from '@/assets/style/App.module.scss';
-import '@/assets/style/index.scss';
-import '@/assets/style/App.module.scss';
+import s from '@/shared/assets/style/App.module.scss';
+import '@/shared/assets/style/index.scss';
+import '@/shared/assets/style/App.module.scss';
 import { Toaster } from 'react-hot-toast';
 import { setupGlobalLog } from '@/app/log';
 import { Modal } from '@/shared/ui/Modal';

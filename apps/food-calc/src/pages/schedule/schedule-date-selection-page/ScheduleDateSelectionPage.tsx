@@ -1,5 +1,5 @@
 import { ScheduleSelection } from '@/features/ScheduleSelection';
-import { RouterLinks } from '@/router';
+import { RouterLinks } from '@/app/router';
 import { useNavigate } from 'react-router';
 
 const ScheduleDateSelectionPage = () => {

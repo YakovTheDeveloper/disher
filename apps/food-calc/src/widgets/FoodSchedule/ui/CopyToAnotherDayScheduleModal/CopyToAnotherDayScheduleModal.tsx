@@ -1,13 +1,14 @@
 import { useRef, useState } from 'react';
-import clsx from 'clsx';
+import { Breadcrumbs } from '@/shared/ui/Breadcrumbs';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { EditableList, EditableListRef } from '@/features/manage-list/EditableList';
+import { Button } from '@/shared/ui/atoms/Button';
 import { ScheduleSelection } from '@/features/ScheduleSelection/ScheduleSelection';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { copyScheduleFoods } from '@/entities/schedule-food';
 import toaster from '@/shared/lib/toaster/toaster';
 import type { ScheduleFood } from '@/entities/schedule-food';
-import { RouterLinks } from '@/router';
+import { RouterLinks } from '@/app/router';
 import s from '../FoodScheduleModals.module.scss';
 
 type Step = 'idle' | 'date' | 'confirm';
@@ -72,39 +73,12 @@ const CopyToAnotherDayScheduleModal = ({ isExpanded, sourceDate, items, onFinish
     onFinish();
   };
 
-  const Breadcrumbs = ({ current }: { current: Exclude<Step, 'idle'> }) => {
-    const currentIndex = STEPS.indexOf(current);
-
-    return (
-      <nav className={s.breadcrumbs}>
-        {STEPS.map((stepName, i) => {
-          if (stepName === 'idle') return null;
-          const isCompleted = currentIndex > i;
-          const isCurrent = current === stepName;
-
-          return (
-            <span key={stepName} className={s.crumbWrapper}>
-              {i > 0 && <span className={s.separator}>/</span>}
-              <button
-                className={clsx(s.crumb, isCompleted && s.completed, isCurrent && s.current)}
-                onClick={() => isCompleted && goToStep(stepName)}
-                disabled={!isCompleted}
-              >
-                {STEP_LABELS[stepName as Exclude<Step, 'idle'>]}
-              </button>
-            </span>
-          );
-        })}
-      </nav>
-    );
-  };
-
   const Header = ({ currentStep }: { currentStep: Exclude<Step, 'idle'> }) => (
     <header className={s.header}>
       <button className={s.backButton} onClick={handleClose}>
         ←
       </button>
-      <Breadcrumbs current={currentStep} />
+      <Breadcrumbs steps={STEPS} current={currentStep} stepLabels={STEP_LABELS} onStepClick={goToStep} />
     </header>
   );
 
@@ -136,9 +110,9 @@ const CopyToAnotherDayScheduleModal = ({ isExpanded, sourceDate, items, onFinish
                 renderItem={(item) => getItemName(item)}
               />
               <div className={s.finishButton}>
-                <button className={s.nextButton} onClick={handleConfirm}>
+                <Button variant="primary-form" onClick={handleConfirm}>
                   Скопировать на {targetDate}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

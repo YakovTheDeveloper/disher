@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import ArrowLeftIcon from '@/assets/icons/arrowLeftLong.svg';
+import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg';
 import styles from './ButtonBack.module.scss';
 import clsx from 'clsx';
 

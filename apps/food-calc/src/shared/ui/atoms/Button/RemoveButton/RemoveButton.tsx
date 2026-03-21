@@ -1,7 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import s from './RemoveButton.module.css';
-import CrossIcon from "@/assets/icons/cross.svg";
+import CrossIcon from "@/shared/assets/icons/cross.svg";
 
 interface RemoveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     size?: 'small' | 'medium' | 'large'; // Defines the allowed size variants

@@ -1,4 +1,4 @@
-import { RouterLinks } from '@/router';
+import { RouterLinks } from '@/app/router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';

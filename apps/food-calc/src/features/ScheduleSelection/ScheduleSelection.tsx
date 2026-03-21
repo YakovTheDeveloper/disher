@@ -18,7 +18,7 @@ import styles from './ScheduleSelection2.module.scss';
 import { observer } from 'mobx-react-lite';
 import { ru } from 'date-fns/locale';
 import { NavLink } from 'react-router';
-import { RouterLinks } from '@/router';
+import { RouterLinks } from '@/app/router';
 
 const SHORT_DAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'] as const;
 const START_DATE = startOfMonth(new Date());

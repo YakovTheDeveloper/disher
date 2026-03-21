@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, FC } from 'react';
 import Button from '@/shared/ui/atoms/Button/Button';
 import { BaseModalProps } from '@/shared/ui';
-import moneyImg from '@/assets/decarative/money.png';
+import moneyImg from '@/shared/assets/decarative/money.png';
 import s from './FoodSetCostModal.module.scss';
 
 export type CostResult = {

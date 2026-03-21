@@ -1,6 +1,6 @@
 import React from 'react';
 import toast from 'react-hot-toast';
-import { router } from '@/router';
+import { router } from '@/app/router';
 
 export interface ToastAction {
     label: string;

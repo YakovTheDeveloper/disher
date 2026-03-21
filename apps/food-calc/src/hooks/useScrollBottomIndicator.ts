@@ -11,7 +11,7 @@ export function useScrollBottomIndicator(containerRef: React.RefObject<HTMLDivEl
 
         const observer = new IntersectionObserver(
             ([entry]) => setHasMoreBelow(!entry.isIntersecting),
-            { root: container, threshold: 0 }
+            { root: container, threshold: 0, rootMargin: '0px 0px 80px 0px' }
         );
 
         observer.observe(sentinel);

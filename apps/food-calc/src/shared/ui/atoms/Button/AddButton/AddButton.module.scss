@@ -27,6 +27,19 @@
     }
 }
 
+.withText {
+    width: auto;
+    border-radius: 22px;
+    padding: 0 16px 0 12px;
+    gap: 8px;
+}
+
+.text {
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
 .icon {
     display: flex;
     align-items: center;

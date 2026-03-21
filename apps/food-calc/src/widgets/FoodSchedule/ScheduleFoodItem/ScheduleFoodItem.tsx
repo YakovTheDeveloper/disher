@@ -1,7 +1,7 @@
 import styles from './ScheduleFoodItem.module.scss';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Quantity } from '@/shared/ui/Quantity';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import clsx from 'clsx';
 import { SelectableListItem } from '@/features/shared/selectable-list-item';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
@@ -111,4 +111,4 @@ const ScheduleFoodItemComponent = ({
   );
 };
 
-export default ScheduleFoodItemComponent;
+export default memo(ScheduleFoodItemComponent);

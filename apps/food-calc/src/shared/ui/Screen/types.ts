@@ -9,8 +9,3 @@ export interface ScreenScrollValues {
     collapsedScale: MotionValue<number>;
 }
 
-export const COLLAPSE_CONFIG = {
-    expandedHeight: 400,
-    collapsedHeight: 60,
-    collapseDistance: 400,
-} as const;

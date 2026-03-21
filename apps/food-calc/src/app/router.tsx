@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import App from '@/App.tsx';
-import HomePage from './pages/home-page/HomePage.tsx';
+import App from '@/app/App.tsx';
+import HomePage from '@/pages/home-page/HomePage.tsx';
 import { format } from 'date-fns';
 import ScheduleDateSelectionPage from '@/pages/schedule/schedule-date-selection-page/ScheduleDateSelectionPage.tsx';
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';

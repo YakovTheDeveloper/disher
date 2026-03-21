@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router';
-import { RouterLinks, RouterUrls, getScheduleAnalyticsUrl, getProductUrl } from '@/router';
+import { RouterLinks, RouterUrls, getScheduleAnalyticsUrl, getProductUrl } from '@/app/router';
 
 export interface UseAppRoutesOptions {
     fallbackUrl?: string;

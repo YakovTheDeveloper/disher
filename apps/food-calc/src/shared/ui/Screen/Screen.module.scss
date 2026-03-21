@@ -152,9 +152,7 @@
 }
 
 .upperPlace {
-    position: sticky;
     height: 40vh;
-    top: 0;
 }
 
 .screenScroll {
@@ -184,21 +182,10 @@
     right: 0;
     height: 80px;
     background: linear-gradient(to top, rgba(245, 245, 247, 0.92) 0%, transparent 100%);
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: 10px;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.35s ease;
     z-index: 5;
-
-    svg {
-        width: 22px;
-        height: 22px;
-        color: rgba(0, 0, 0, 0.3);
-        animation: scroll-indicator-bounce 1.8s ease-in-out infinite;
-    }
 
     &.visible {
         opacity: 1;
@@ -234,7 +221,3 @@
     }
 }
 
-@keyframes scroll-indicator-bounce {
-    0%, 100% { transform: translateY(0); }
-    50%       { transform: translateY(5px); }
-}

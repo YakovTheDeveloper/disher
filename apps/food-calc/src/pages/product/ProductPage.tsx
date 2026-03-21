@@ -30,7 +30,7 @@ import { FilterButton } from '@/shared/ui/atoms/Button';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
-import bagImage from '@/assets/decarative/bag.png';
+import bagImage from '@/shared/assets/decarative/bag.png';
 import s from './ProductPage.module.scss';
 
 const ProductPage = () => {

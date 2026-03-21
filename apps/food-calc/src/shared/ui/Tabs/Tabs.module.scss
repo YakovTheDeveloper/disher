@@ -1,4 +1,4 @@
-@import '@/assets/style/mixin.scss';
+@import '@/shared/assets/style/mixin.scss';
 
 .tabs {
     overflow: hidden;
@@ -153,7 +153,7 @@
 
 .lastTabActive {
     position: relative;
-    @import '@/assets/style/mixin.scss';
+    @import '@/shared/assets/style/mixin.scss';
 
 
     &::after {

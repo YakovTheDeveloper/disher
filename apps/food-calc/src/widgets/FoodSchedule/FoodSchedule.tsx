@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { TimeGroup } from '@/features/time-group';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
@@ -11,7 +11,7 @@ import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { Navigation } from '@/pages/home-page/ui';
 import Typography from '@/shared/ui/atoms/Typography/Typography';
 import toaster from '@/shared/lib/toaster/toaster';
-import { OpenFoods } from '@/features/food/open-foods';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import Button from '@/shared/ui/atoms/Button/Button';
 import { useUiStore } from '@/shared/model/uiStore';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
@@ -26,7 +26,6 @@ import {
 } from '@/widgets/FoodSchedule/ui';
 import { CountBadge } from '@/shared/ui/atoms/Button/CountBadge/CountBadge';
 import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
-import { OpenScheduleFoodAnalytics } from '@/features/daySchedule/get-day-schedule-food-analytics/OpenScheduleFoodAnalytics';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { removeScheduleFoods } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
@@ -38,6 +37,7 @@ type CommonProps = {
 };
 
 const FoodSchedule = ({ date, items }: CommonProps) => {
+  const { toScheduleAnalytics, toFood } = useAppRoutes();
   const selectionStoreFood = useSelection();
   const isActionsMode = useStore(selectionStoreFood, (s) => s.isActionsMode);
   const selectedIds = useStore(selectionStoreFood, (s) => s.selectedIds);
@@ -68,6 +68,10 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
     setEditingItem(item);
     setEditingStep(step);
   };
+
+  const onEditTime = useCallback((item: ScheduleFoodWithRelations) => openEditModal(item, 'time'), []);
+  const onEditFood = useCallback((item: ScheduleFoodWithRelations) => openEditModal(item, 'search'), []);
+  const onEditQuantity = useCallback((item: ScheduleFoodWithRelations) => openEditModal(item, 'quantity'), []);
 
   const getSelectedItemsWithProduct = () =>
     items.filter((item) => selectedIds.includes(item.id) && item.foodId != null);
@@ -225,7 +229,9 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
       topLeft={null}
       bottomRight={
         isActionsMode ? null : (
-          <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.TIME_INPUT} />
+          <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.TIME_INPUT}>
+            {items.length === 0 ? 'Добавить еду в этот день' : undefined}
+          </AddButton>
         )
       }
     >
@@ -237,8 +243,8 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
           marginTop: '2rem',
         }}
       >
-        <OpenScheduleFoodAnalytics date={date}>Анализ</OpenScheduleFoodAnalytics>
-        <OpenFoods>Список еды</OpenFoods>
+        <Button variant="ghost" onClick={() => toScheduleAnalytics(date)}>Анализ</Button>
+        <Button variant="ghost" onClick={toFood}>Список еды</Button>
         <Button variant="ghost" onClick={toggleShowPrice} style={{ opacity: showPrice ? 1 : 0.5 }}>
           ₽
         </Button>
@@ -257,9 +263,9 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
                   item={item}
                   selectionStore={selectionStoreFood}
                   showPrice={showPrice}
-                  onEditTime={() => openEditModal(item, 'time')}
-                  onEditFood={() => openEditModal(item, 'search')}
-                  onEditQuantity={() => openEditModal(item, 'quantity')}
+                  onEditTime={onEditTime}
+                  onEditFood={onEditFood}
+                  onEditQuantity={onEditQuantity}
                   timeHtmlFor={EDIT_MODAL_INPUT_IDS.TIME_INPUT}
                   foodHtmlFor={EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
                   quantityHtmlFor={EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}

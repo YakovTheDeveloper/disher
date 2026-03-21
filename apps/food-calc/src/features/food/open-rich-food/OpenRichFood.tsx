@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RouterLinks } from '@/router';
+import { RouterLinks } from '@/app/router';
 import styles from './OpenRichFood.module.scss';
 
 const SearchIcon = () => (
