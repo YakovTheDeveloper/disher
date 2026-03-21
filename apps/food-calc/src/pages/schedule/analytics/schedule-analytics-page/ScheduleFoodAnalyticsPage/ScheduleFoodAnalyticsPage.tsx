@@ -5,41 +5,65 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
-import { Button } from '@/shared/ui/atoms/Button';
+import { AddButton } from '@/shared/ui/atoms/Button';
+import { Tabs, type Tab } from '@/shared/ui/Tabs';
+import { useScheduleFoods } from '@/entities/schedule-food/api/queries';
+import { useScheduleEvents } from '@/entities/schedule-event/api/queries';
+import type { ScheduleFoodWithRelations } from '@/entities/schedule-food/model/types';
+import type { ScheduleEvent } from '@/entities/schedule-event/model/types';
 import styles from './ScheduleFoodAnalyticsPage.module.scss';
-// TODO: migrate to Triplit — useFoodScheduleStore removed
-const useFoodScheduleStore = () => null as any;
 import toaster from '@/shared/lib/toaster/toaster';
 
 const port = Number(import.meta.env.VITE_PORT) || 3000;
 const API_BASE = `http://${window.location.hostname}:${port}`;
 
 type StreamStatus = 'idle' | 'connecting' | 'streaming' | 'done' | 'error' | 'stopped';
+type AnalyticsTab = 'food' | 'day';
 
-function buildSnapshot(scheduleFood: any) {
-  // TODO: adapt snapshot building for Triplit entities
-  return {
-    id: scheduleFood.id,
-    foods: (scheduleFood.foods?.items ?? []).map((item: any) => ({
-      id: item.id,
-      time: item.time,
-      contentProduct: item.contentProduct
-        ? {
-            foodId: item.contentProduct.foodId,
-            variant: 'product' as const,
-            quantity: item.contentProduct.quantity,
-          }
-        : null,
-      contentDish: item.contentDish
-        ? {
-            dishId: item.contentDish.dishId,
-            variant: 'dish' as const,
-            quantity: item.contentDish.quantity,
-          }
-        : null,
-    })),
-  };
+// ─── Local cache ───
+
+const CACHE_KEY_PREFIX = 'analytics_cache_';
+
+function getCacheKey(date: string, tab: AnalyticsTab): string {
+  return `${CACHE_KEY_PREFIX}${date}_${tab}`;
 }
+
+function getCachedResult(date: string, tab: AnalyticsTab): string | null {
+  try {
+    return localStorage.getItem(getCacheKey(date, tab));
+  } catch {
+    return null;
+  }
+}
+
+function setCachedResult(date: string, tab: AnalyticsTab, text: string): void {
+  try {
+    localStorage.setItem(getCacheKey(date, tab), text);
+  } catch {
+    // localStorage full or unavailable
+  }
+}
+
+// ─── Snapshot builders ───
+
+function buildFoodSnapshot(foods: ScheduleFoodWithRelations[]) {
+  return foods.map((sf) => ({
+    time: sf.time,
+    type: sf.type as 'food' | 'dish',
+    name: sf.food?.name || sf.dish?.name || 'Неизвестно',
+    quantity: sf.quantity,
+  }));
+}
+
+function buildEventSnapshot(events: ScheduleEvent[]) {
+  return events.map((ev) => ({
+    time: ev.time,
+    text: ev.text,
+    atoms: Array.isArray(ev.atoms) ? ev.atoms : [],
+  }));
+}
+
+// ─── SSE reader ───
 
 async function readSSEStream(
   response: Response,
@@ -87,6 +111,8 @@ async function readSSEStream(
   }
 }
 
+// ─── UI components ───
+
 const ThinkingIndicator = () => (
   <div className={styles.thinking}>
     <span className={styles.thinkingDot} />
@@ -95,9 +121,27 @@ const ThinkingIndicator = () => (
   </div>
 );
 
-const Page = ({ scheduleFood }: { scheduleFood: any }) => {
-  const [text, setText] = useState('');
-  const [status, setStatus] = useState<StreamStatus>('idle');
+const TABS: Tab[] = [
+  { value: 'food', alternativeLabel: 'Питание' },
+  { value: 'day', alternativeLabel: 'День' },
+];
+
+// ─── Main page ───
+
+const AnalyticsContent = ({
+  date,
+  foods,
+  events,
+}: {
+  date: string;
+  foods: ScheduleFoodWithRelations[];
+  events: ScheduleEvent[];
+}) => {
+  const [activeTab, setActiveTab] = useState<AnalyticsTab>('food');
+  const [text, setText] = useState(() => getCachedResult(date, 'food') || '');
+  const [status, setStatus] = useState<StreamStatus>(() =>
+    getCachedResult(date, 'food') ? 'done' : 'idle',
+  );
   const abortRef = useRef<AbortController | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const autoScrollRef = useRef(true);
@@ -142,96 +186,131 @@ const Page = ({ scheduleFood }: { scheduleFood: any }) => {
     setText('');
     autoScrollRef.current = true;
 
+    const isDay = activeTab === 'day';
+    const endpoint = isDay ? 'analyze-day-stream' : 'analyze-stream';
+    const body = isDay
+      ? { date, foods: buildFoodSnapshot(foods), events: buildEventSnapshot(events) }
+      : { date, foods: buildFoodSnapshot(foods) };
+
     try {
-      const response = await fetch(`${API_BASE}/api/analytics/analyze-stream`, {
+      const response = await fetch(`${API_BASE}/api/analytics/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ snapshot: buildSnapshot(scheduleFood) }),
+        body: JSON.stringify(body),
         signal: controller.signal,
       });
 
       if (!response.ok) {
-        const body = await response.text().catch(() => '');
+        const respBody = await response.text().catch(() => '');
         throw new Error(
           response.status === 400
-            ? 'Некорректные данные расписания'
+            ? 'Некорректные данные'
             : response.status >= 500
               ? 'Сервер временно недоступен'
-              : `Ошибка: ${response.status} ${body}`,
+              : `Ошибка: ${response.status} ${respBody}`,
         );
       }
 
       setStatus('streaming');
 
+      let fullText = '';
       await readSSEStream(
         response,
-        (chunk) => setText((prev) => prev + chunk),
+        (chunk) => {
+          fullText += chunk;
+          setText((prev) => prev + chunk);
+        },
         controller.signal,
       );
 
       if (!controller.signal.aborted) {
         setStatus('done');
+        setCachedResult(date, activeTab, fullText);
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return;
       setStatus('error');
-      setText((prev) => prev); // preserve partial text
       toaster.error(err instanceof Error ? err.message : 'Ошибка анализа');
     }
-  }, [scheduleFood]);
+  }, [date, foods, events, activeTab]);
 
-  const handleCopy = useCallback(async () => {
-    if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      toaster.success('Скопировано');
-    } catch {
-      // Fallback for iOS Safari
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      toaster.success('Скопировано');
-    }
-  }, [text]);
+  // On tab switch, load cached result or show idle
+  const handleTabChange = useCallback(
+    (tab: string) => {
+      abortRef.current?.abort();
+      const newTab = tab as AnalyticsTab;
+      setActiveTab(newTab);
+
+      const cached = getCachedResult(date, newTab);
+      if (cached) {
+        setText(cached);
+        setStatus('done');
+      } else {
+        setText('');
+        setStatus('idle');
+      }
+    },
+    [date],
+  );
 
   useEffect(() => {
-    if (scheduleFood.foods?.items?.length > 0) {
-      handleAnalyze();
-    }
     return () => abortRef.current?.abort();
-  }, [scheduleFood]);
+  }, []);
 
   const remarkPlugins = useMemo(() => [remarkGfm], []);
 
+  const hasFoods = foods.length > 0;
+  const hasEvents = events.length > 0;
+  const canAnalyze =
+    activeTab === 'food' ? hasFoods : hasFoods || hasEvents;
+
   return (
-    <Screen offsetTop title={<ScreenLabel variant="screenHeader">Аналитика питания</ScreenLabel>}>
+    <Screen
+      offsetTop
+      title={<ScreenLabel variant="screenHeader">Аналитика</ScreenLabel>}
+      topPanel={
+        <div className={styles.tabsWrapper}>
+          <Tabs tabs={TABS} current={activeTab} setTab={handleTabChange} />
+        </div>
+      }
+      bottomRight={
+        canAnalyze ? (
+          isActive ? (
+            <AddButton onClick={handleStop}>Отменить</AddButton>
+          ) : (
+            <AddButton onClick={handleAnalyze}>Анализ</AddButton>
+          )
+        ) : undefined
+      }
+    >
       <div className={styles.container}>
-        {/* Toolbar */}
-        {(hasContent || isActive) && (
+        {/* Toolbar — copy / retry when done */}
+        {!isActive && status === 'done' && hasContent && (
           <div className={styles.toolbar}>
-            {isActive && (
-              <Button variant="ghost" onClick={handleStop}>
-                Остановить
-              </Button>
-            )}
-            {!isActive && hasContent && (
-              <>
-                <Button variant="ghost" onClick={handleCopy}>
-                  Копировать
-                </Button>
-                <Button variant="ghost" onClick={handleAnalyze}>
-                  Повторить
-                </Button>
-              </>
-            )}
+            <button
+              className={styles.toolbarBtn}
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(text);
+                  toaster.success('Скопировано');
+                } catch {
+                  const textarea = document.createElement('textarea');
+                  textarea.value = text;
+                  textarea.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
+                  document.body.appendChild(textarea);
+                  textarea.select();
+                  document.execCommand('copy');
+                  document.body.removeChild(textarea);
+                  toaster.success('Скопировано');
+                }
+              }}
+            >
+              Копировать
+            </button>
           </div>
         )}
 
-        {/* Connecting state -- thinking dots */}
+        {/* Connecting — thinking dots */}
         {status === 'connecting' && <ThinkingIndicator />}
 
         {/* Streaming / completed result */}
@@ -248,9 +327,9 @@ const Page = ({ scheduleFood }: { scheduleFood: any }) => {
         {status === 'error' && !hasContent && (
           <div className={styles.error}>
             <p>Не удалось получить анализ</p>
-            <Button variant="ghost" onClick={handleAnalyze}>
+            <button className={styles.retryLink} onClick={handleAnalyze}>
               Попробовать снова
-            </Button>
+            </button>
           </div>
         )}
 
@@ -277,7 +356,11 @@ const Page = ({ scheduleFood }: { scheduleFood: any }) => {
         {/* Empty state */}
         {status === 'idle' && !hasContent && (
           <div className={styles.empty}>
-            Нет данных для анализа. Добавьте продукты в расписание.
+            {canAnalyze
+              ? 'Нажмите кнопку «Анализ» для начала.'
+              : activeTab === 'food'
+                ? 'Нет данных для анализа. Добавьте продукты в расписание.'
+                : 'Нет данных для анализа. Добавьте продукты или события.'}
           </div>
         )}
       </div>
@@ -285,14 +368,15 @@ const Page = ({ scheduleFood }: { scheduleFood: any }) => {
   );
 };
 
+// ─── Wrapper — fetches Triplit data ───
+
 const GetDatePageWrapper = () => {
   const params = useParams();
   const date = params.id;
   const navigate = useNavigate();
 
-  const scheduleFoodStore = useFoodScheduleStore();
-
-  const foodSchedule = scheduleFoodStore.getLocal(date || '');
+  const { results: scheduleFoods } = useScheduleFoods(date);
+  const { results: scheduleEvents } = useScheduleEvents(date);
 
   useEffect(() => {
     if (!date) {
@@ -300,10 +384,12 @@ const GetDatePageWrapper = () => {
     }
   }, [date]);
 
-  if (!foodSchedule) return null;
   if (!date) return null;
 
-  return <Page scheduleFood={foodSchedule} />;
+  const foods = scheduleFoods ? Array.from(scheduleFoods.values()) : [];
+  const events = scheduleEvents ? Array.from(scheduleEvents.values()) : [];
+
+  return <AnalyticsContent date={date} foods={foods} events={events} />;
 };
 
 export default GetDatePageWrapper;

@@ -21,7 +21,7 @@ const Navigation = ({ title }: Props) => {
   const { toScheduleBuilder } = useAppRoutes();
 
   const scrollYProgress = useScreenScroll();
-  const opacityImage = useTransform(scrollYProgress, [0.5, 0.8], [0.1, 0]);
+  // const opacityImage = useTransform(scrollYProgress, [0.5, 0.8], [0.1, 0]);
 
   const [collapsed, setCollapsed] = useState(false);
   useMotionValueEvent(scrollYProgress, 'change', (value) => {
@@ -41,21 +41,16 @@ const Navigation = ({ title }: Props) => {
     <header className={styles.header} data-collapsed={collapsed}>
       <section className={styles.row}>
         <div className={styles.left}>
-          <motion.img
-            src={WatchImage}
-            className={styles.backgroundImage}
-            alt=""
-            style={{ opacity: opacityImage }}
-          />
-          <div className={styles.title}>
-            {title}
-          </div>
+          <motion.img src={WatchImage} className={styles.backgroundImage} alt="" />
+          <div className={styles.title}>{title}</div>
         </div>
         <div className={styles.dateLink} onClick={handleDateClick}>
           <div className={styles.date}>
             <div className={styles.dateNumbers}>
               <span className={styles.weekdayShort}>{weekdayNameShort}</span>
-              <span>{day}.{monthNumber}</span>
+              <span>
+                {day}.{monthNumber}
+              </span>
             </div>
             <div className={styles.dateWords}>
               <span className={styles.dateWord}>{weekdayName},</span>

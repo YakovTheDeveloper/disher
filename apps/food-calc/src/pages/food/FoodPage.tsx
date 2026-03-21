@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import SearchFood from '@/features/food/food-search/SearchFood';
 import { OpenFoodCreation } from '@/features/food/open-food-creation';
 import { FoodCreationModal } from '@/features/food/food-creation-modal';
-import { ButtonBack } from '@/shared/ui/atoms/Button/ButtonBack';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { createProduct } from '@/entities/product';
 import { createDish } from '@/entities/dish';
@@ -108,8 +107,7 @@ const FoodPage = () => {
     <>
       <SearchFood
         mode="products-and-dishes"
-        sortByNutrientId={richNutrientId}
-        sortByNutrientUnit={richNutrient?.unitRu}
+        richNutrient={richNutrientId ? { id: richNutrientId, unit: richNutrient?.unitRu ?? '' } : null}
         onFinish={({ variant, id }) => {
           if (variant === 'dish') {
             toDish(id);
@@ -117,9 +115,9 @@ const FoodPage = () => {
           }
           toProduct(id);
         }}
-        showMore
-        actionLeft={<ButtonBack size="medium" onClick={handleBack} />}
-        actionRight={
+        listItemsHasAdditionalActions
+        onBack={handleBack}
+        searchBarRightChild={
           <OpenFoodCreation
             onSelect={setCreationType}
             productInputId={PRODUCT_INPUT_ID}

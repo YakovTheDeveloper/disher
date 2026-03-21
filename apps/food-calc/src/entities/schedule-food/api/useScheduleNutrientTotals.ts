@@ -13,10 +13,11 @@ import {
 export type ScheduleNutrientResult = {
   totals: NutrientTotals;
   missingNutrientNames: string[];
+  isLoading: boolean;
 };
 
 export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult {
-  const { results: scheduleFoods } = useScheduleFoods(date);
+  const { results: scheduleFoods, fetching: fetchingSchedule } = useScheduleFoods(date);
   const sfItems = scheduleFoods ?? [];
 
   const foodItems = sfItems.filter((sf) => sf.type === 'food' && sf.foodId);
@@ -24,7 +25,7 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
 
   // No useMemo — Triplit deduplicates queries via JSON.stringify internally
   const dishIds = [...new Set(dishItems.map((d) => d.dishId!))];
-  const { results: allDishItems } = useDishItemsByDishIds(dishIds);
+  const { results: allDishItems, fetching: fetchingDishItems } = useDishItemsByDishIds(dishIds);
 
   const allFoodIds = (() => {
     const ids = new Set<string>();
@@ -32,7 +33,9 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
     for (const di of allDishItems ?? []) ids.add(di.foodId);
     return [...ids];
   })();
-  const { results: foods } = useProductsByIds(allFoodIds);
+  const { results: foods, fetching: fetchingFoods } = useProductsByIds(allFoodIds);
+
+  const isLoading = fetchingSchedule || fetchingDishItems || fetchingFoods;
 
   // String key captures all schedule item data — reliable value comparison
   const dataKey = sfItems
@@ -40,7 +43,7 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
     .join('|');
 
   return useMemo(() => {
-    if (!foods) return { totals: {}, missingNutrientNames: [] };
+    if (!foods) return { totals: {}, missingNutrientNames: [], isLoading };
 
     const nutrientsMap = new Map<string, NutrientEntry[]>();
     const foodNameMap = new Map<string, string>();
@@ -94,6 +97,7 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
     return {
       totals: sumNutrients(...totalsArray),
       missingNutrientNames: missingNames,
+      isLoading,
     };
-  }, [dataKey, allDishItems, foods]);
+  }, [dataKey, allDishItems, foods, isLoading]);
 }

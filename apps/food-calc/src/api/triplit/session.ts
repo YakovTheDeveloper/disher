@@ -1,20 +1,25 @@
 import { v4 as uuid } from "uuid";
-import { triplit, syncSystemData } from "./client";
+import { triplit, startAnonSession } from "./client";
 
 const ANON_USER_ID_KEY = "anon_user_id";
 const AUTH_TOKEN_KEY = "triplit_token";
 
 /**
  * Initialize the Triplit session on app startup.
+ * Non-blocking — the app renders immediately while sync happens in background.
  * - If user token exists in localStorage → start authenticated session (full sync).
- * - Otherwise → pull __system__ data with anon token, then disconnect.
+ * - Otherwise → pull system data with anon token, then disconnect.
  */
-export async function initSession(): Promise<void> {
+export function initSession(): void {
   const savedToken = localStorage.getItem(AUTH_TOKEN_KEY);
   if (savedToken) {
-    await triplit.startSession(savedToken);
+    triplit.startSession(savedToken).catch((err) => {
+      console.error("[session] Failed to start authenticated session:", err);
+    });
   } else {
-    await syncSystemData();
+    startAnonSession().catch((err) => {
+      console.error("[session] Failed to start anon session:", err);
+    });
   }
 }
 
@@ -102,12 +107,12 @@ async function migrateAnonData(anonId: string, realUserId: string): Promise<void
 }
 
 /**
- * Logout: end authenticated session, pull __system__ data as anon, then disconnect.
+ * Logout: end authenticated session, start fresh anon session for system data.
  */
 export async function logout(): Promise<void> {
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(ANON_USER_ID_KEY);
 
   await triplit.endSession();
-  await syncSystemData();
+  await startAnonSession();
 }

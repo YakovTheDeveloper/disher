@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 import styles from './FoodActionCard.module.scss';
 import { deleteProducts } from '@/entities/product';
@@ -6,11 +6,17 @@ import { deleteDishes } from '@/entities/dish';
 import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { drawerStore } from '@/shared/ui/drawer-store';
+import { isCreatedByUser } from '@/shared/lib';
 import { FoodActionsDrawer } from './food-actions-drawer';
 
 type Props = {
   variant: 'product' | 'dish';
-  item: { id: string; name: string; createdByUser?: boolean; getTotalNutrients?: (qty: number) => Record<string, number> };
+  item: {
+    id: string;
+    name: string;
+    userId?: string;
+    getTotalNutrients?: (qty: number) => Record<string, number>;
+  };
   active?: boolean;
   onClick?: () => void;
   onAdd?: () => void;
@@ -24,26 +30,30 @@ type Props = {
 };
 
 const RICHNESS_COLORS = [
-  '#bbb',     // 0: none
-  '#999',     // very low
-  '#e8a838',  // low-mid warm
-  '#e07b28',  // mid amber
-  '#d45d1e',  // high amber
-  '#b83d15',  // deep
-  '#1a8c4e',  // rich green
-  '#0f7a3f',  // deep green
+  '#bbb', // 0: none
+  '#999', // very low
+  '#e8a838', // low-mid warm
+  '#e07b28', // mid amber
+  '#d45d1e', // high amber
+  '#b83d15', // deep
+  '#1a8c4e', // rich green
+  '#0f7a3f', // deep green
 ] as const;
 
 function getRichnessColor(ratio: number): string {
   if (ratio <= 0) return RICHNESS_COLORS[0];
-  const idx = Math.min(Math.floor(ratio * (RICHNESS_COLORS.length - 1)), RICHNESS_COLORS.length - 1);
+  const idx = Math.min(
+    Math.floor(ratio * (RICHNESS_COLORS.length - 1)),
+    RICHNESS_COLORS.length - 1
+  );
   return RICHNESS_COLORS[idx];
 }
 
 function getMassPercent(value: number, unit: string): string {
   if (unit === 'г' || unit === 'g') return `${value.toFixed(1)}%`;
   if (unit === 'мг' || unit === 'mg') return `${(value / 1000).toFixed(3)}%`;
-  if (unit === 'мкг' || unit === 'μg' || unit === 'mcg') return `${(value / 1_000_000).toFixed(6)}%`;
+  if (unit === 'мкг' || unit === 'μg' || unit === 'mcg')
+    return `${(value / 1_000_000).toFixed(6)}%`;
   return '';
 }
 
@@ -77,13 +87,6 @@ const InfoIcon = () => (
   </svg>
 );
 
-const AddIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="3" y="3" width="18" height="18" rx="4" fill="#9CA3AF" />
-    <path d="M12 7V17M7 12H17" stroke="white" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-
 const MoreIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="12" cy="5" r="1.5" fill="currentColor" />
@@ -97,9 +100,7 @@ const FoodActionCard = ({
   item,
   active,
   onClick,
-  onAdd,
   showDelete = false,
-  showAdd = false,
   showInfo = false,
   showMore = false,
   richNutrientId,
@@ -107,7 +108,8 @@ const FoodActionCard = ({
   richNutrientMax = 0,
 }: Props) => {
   const { toProduct, toDish } = useAppRoutes();
-  const isUserCreated = variant === 'dish' ? true : !!item.createdByUser;
+  const [inverted, setInverted] = useState(false);
+  const userCreated = variant === 'dish' ? true : isCreatedByUser(item.userId);
 
   const handleInfo = () => {
     if (variant === 'product') toProduct(item.id.toString());
@@ -123,11 +125,15 @@ const FoodActionCard = ({
   };
 
   const deleteButton = showDelete ? (
-    isUserCreated ? (
+    userCreated ? (
       <PopoverTrigger
         placement="bottom-start"
         trigger={
-          <button className={clsx(styles.iconBtn, styles.deleteBtn)} type="button" aria-label="Удалить">
+          <button
+            className={clsx(styles.iconBtn, styles.deleteBtn)}
+            type="button"
+            aria-label="Удалить"
+          >
             <TrashIcon />
           </button>
         }
@@ -144,9 +150,10 @@ const FoodActionCard = ({
     )
   ) : null;
 
-  const richNutrientValue = richNutrientId && item.getTotalNutrients
-    ? item.getTotalNutrients(100)[richNutrientId] ?? 0
-    : null;
+  const richNutrientValue =
+    richNutrientId && item.getTotalNutrients
+      ? (item.getTotalNutrients(100)[richNutrientId] ?? 0)
+      : null;
 
   const richness = useMemo(() => {
     if (richNutrientValue === null || richNutrientMax <= 0) return 0;
@@ -154,12 +161,13 @@ const FoodActionCard = ({
   }, [richNutrientValue, richNutrientMax]);
 
   const richnessColor = richNutrientValue !== null ? getRichnessColor(richness) : undefined;
-  const massPercent = richNutrientValue !== null && richNutrientValue > 0 && richNutrientUnit
-    ? getMassPercent(richNutrientValue, richNutrientUnit)
-    : null;
+  const massPercent =
+    richNutrientValue !== null && richNutrientValue > 0 && richNutrientUnit
+      ? getMassPercent(richNutrientValue, richNutrientUnit)
+      : null;
 
   return (
-    <li className={styles.wrapper}>
+    <li className={clsx(styles.wrapper, inverted && styles.wrapper_inverted)}>
       {richNutrientValue !== null && richness > 0 && (
         <span
           className={styles.richBar}
@@ -167,31 +175,33 @@ const FoodActionCard = ({
         />
       )}
       {richNutrientValue !== null && (
-        <span className={styles.richValue} style={richnessColor ? { color: richnessColor } : undefined}>
+        <span
+          className={styles.richValue}
+          style={richnessColor ? { color: richnessColor } : undefined}
+        >
           {richNutrientValue > 0 ? richNutrientValue.toFixed(1) : '—'}
           {richNutrientValue > 0 && richNutrientUnit && (
             <span className={styles.richUnit}>{richNutrientUnit}</span>
           )}
-          {massPercent && (
-            <span className={styles.richPercent}>{massPercent}</span>
-          )}
+          {massPercent && <span className={styles.richPercent}>{massPercent}</span>}
         </span>
       )}
       {deleteButton}
-      <p
-        className={clsx(styles.item, active && styles.item_active)}
-        onClick={onClick}
-      >
+      <p className={clsx(styles.item, active && styles.item_active)} onClick={onClick}>
         <span className={styles.name}>{item.name}</span>
       </p>
       {showInfo && (
-        <button className={styles.iconBtn} type="button" aria-label="Информация" onClick={(e) => { e.stopPropagation(); handleInfo(); }}>
+        <button
+          className={styles.iconBtn}
+          type="button"
+          aria-label="Информация"
+          onClick={(e) => {
+            e.stopPropagation();
+            setInverted(true);
+            handleInfo();
+          }}
+        >
           <InfoIcon />
-        </button>
-      )}
-      {showAdd && onAdd && (
-        <button className={styles.iconBtn} type="button" aria-label="Добавить" onClick={(e) => { e.stopPropagation(); onAdd(); }}>
-          <AddIcon />
         </button>
       )}
       {showMore && (
@@ -199,14 +209,16 @@ const FoodActionCard = ({
           className={styles.iconBtn}
           type="button"
           aria-label="Ещё"
-          onClick={(e) => {
+          onClick={async (e) => {
             e.stopPropagation();
-            drawerStore.show(FoodActionsDrawer, {
+            setInverted(true);
+            await drawerStore.show(FoodActionsDrawer, {
               variant,
               itemId: item.id,
               itemName: item.name,
-              isUserCreated,
+              isUserCreated: userCreated,
             });
+            setInverted(false);
           }}
         >
           <MoreIcon />

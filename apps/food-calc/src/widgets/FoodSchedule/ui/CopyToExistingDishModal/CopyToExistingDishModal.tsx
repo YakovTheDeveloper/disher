@@ -122,7 +122,7 @@ const CopyToExistingDishModal = ({ isExpanded, selectedIds, items, onFinish, onC
             <SearchFood
               onFinish={handleDishSelect}
               mode="dishes-only"
-              currentDishId={selectedDishId}
+              activeItemId={selectedDishId}
             />
           </div>
         }

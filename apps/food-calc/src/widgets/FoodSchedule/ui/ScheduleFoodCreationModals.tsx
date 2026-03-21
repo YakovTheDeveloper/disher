@@ -35,10 +35,11 @@ export const MODAL_INPUT_IDS = {
 } as const;
 
 type Step = 'idle' | 'time' | 'search' | 'quantity';
+type ActiveStep = Exclude<Step, 'idle'>;
 
-const STEPS: Step[] = ['time', 'search', 'quantity'];
+const STEPS: ActiveStep[] = ['time', 'search', 'quantity'];
 
-const STEP_LABELS: Record<Exclude<Step, 'idle'>, string> = {
+const STEP_LABELS: Record<ActiveStep, string> = {
   time: 'Время',
   search: 'Продукт',
   quantity: 'Количество',
@@ -49,25 +50,20 @@ const NEXT_INPUT_ID: Record<string, string> = {
   search: MODAL_INPUT_IDS.QUANTITY_INPUT,
 };
 
-type FoodContent = {
-  quantity: number;
-  updateQuantity: (q: number) => void;
-};
-
 type DraftState = {
   time: string;
   variant: 'product' | 'dish' | null;
-  foodId: string | null;
+  productId: string | null;
+  dishId: string | null;
   quantity: number;
-  content: FoodContent | null;
 };
 
 const createEmptyDraft = (): DraftState => ({
   time: new Date().toTimeString().slice(0, 5),
   variant: null,
-  foodId: null,
+  productId: null,
+  dishId: null,
   quantity: 100,
-  content: null,
 });
 
 type Props = {
@@ -102,20 +98,20 @@ const ScheduleFoodCreationModals = ({ scheduleId }: Props) => {
     setDraft((prev) => ({
       ...prev,
       variant: payload.variant,
-      foodId: payload.id,
-      content: { quantity: prev.quantity, updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })) },
+      productId: payload.variant === 'product' ? payload.id : null,
+      dishId: payload.variant === 'dish' ? payload.id : null,
     }));
     setStep('quantity');
   };
 
   const handleCommit = async () => {
-    if (draft.variant && draft.foodId) {
+    if (draft.variant && (draft.productId || draft.dishId)) {
       await addScheduleFood({
         date: scheduleId,
         time: draft.time,
         type: draft.variant === 'product' ? 'food' : 'dish',
-        foodId: draft.variant === 'product' ? draft.foodId : null,
-        dishId: draft.variant === 'dish' ? draft.foodId : null,
+        foodId: draft.productId,
+        dishId: draft.dishId,
         quantity: draft.quantity,
       });
       toaster.success('Добавлено в расписание');
@@ -133,12 +129,17 @@ const ScheduleFoodCreationModals = ({ scheduleId }: Props) => {
     setStep(target);
   };
 
-  const Header = ({ currentStep }: { currentStep: Exclude<Step, 'idle'> }) => (
+  const Header = ({ currentStep }: { currentStep: ActiveStep }) => (
     <header className={s.header}>
       <button className={s.backButton} onClick={handleClose}>
         ←
       </button>
-      <Breadcrumbs steps={STEPS} current={currentStep} stepLabels={STEP_LABELS} onStepClick={goToStep} />
+      <Breadcrumbs
+        steps={STEPS}
+        current={currentStep}
+        stepLabels={STEP_LABELS}
+        onStepClick={goToStep}
+      />
     </header>
   );
 
@@ -195,8 +196,7 @@ const ScheduleFoodCreationModals = ({ scheduleId }: Props) => {
             <SearchFood
               mode="products-and-dishes"
               onFinish={handleFoodSelect}
-              currentProductId={draft.variant === 'product' ? draft.foodId ?? undefined : undefined}
-              currentDishId={draft.variant === 'dish' ? draft.foodId ?? undefined : undefined}
+              activeItemId={draft.productId ?? draft.dishId ?? undefined}
               itemHtmlFor={MODAL_INPUT_IDS.QUANTITY_INPUT}
               inputId={MODAL_INPUT_IDS.SEARCH_INPUT}
             />
@@ -213,7 +213,7 @@ const ScheduleFoodCreationModals = ({ scheduleId }: Props) => {
             <Header currentStep="quantity" />
             <div className={s.spacer} />
             <div className={s.content}>
-              {draft.content && <ProductQuantity content={draft.content} onFinish={() => {}} />}
+              {draft.quantity && <ProductQuantity content={draft.quantity} onFinish={() => {}} />}
               <div className={s.finishButton}>
                 <Button variant="primary" onClick={handleCommit}>
                   Готово

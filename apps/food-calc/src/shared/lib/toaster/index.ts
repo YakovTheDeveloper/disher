@@ -1,1 +1,2 @@
-export { default as Toster } from './toaster'
+export { default as toaster } from './toaster';
+export type { ToastAction, ToastOptions } from './toaster';

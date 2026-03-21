@@ -90,16 +90,145 @@ const nutrientGroups = [
   {
     name: "vitamins",
     content: [
-      { id: "30", name: "vitaminA", nameEng: "Vitamin A", displayName: "Витамин А", displayNameEng: "Vitamin A", unit: "мкг", unitEng: "μg" },
-      { id: "31", name: "vitaminC", nameEng: "Vitamin C", displayName: "Витамин С", displayNameEng: "Vitamin C", unit: "мг", unitEng: "mg" },
-      { id: "32", name: "vitaminD", nameEng: "Vitamin D", displayName: "Витамин D", displayNameEng: "Vitamin D", unit: "мкг", unitEng: "μg" },
-      { id: "33", name: "vitaminE", nameEng: "Vitamin E", displayName: "Витамин Е", displayNameEng: "Vitamin E", unit: "мг", unitEng: "mg" },
-      { id: "34", name: "vitaminK", nameEng: "Vitamin K", displayName: "Витамин К", displayNameEng: "Vitamin K", unit: "мкг", unitEng: "μg" },
-      { id: "35", name: "betaCarotene", nameEng: "Beta-carotene", displayName: "Бета-каротин", displayNameEng: "Beta-carotene", unit: "мкг", unitEng: "μg" },
-      { id: "36", name: "alphaCarotene", nameEng: "Alpha-carotene", displayName: "Альфа-каротин", displayNameEng: "Alpha-carotene", unit: "мкг", unitEng: "μg" },
+      { id: "20", name: "vitaminA", nameEng: "Vitamin A", displayName: "Витамин А", displayNameEng: "Vitamin A", unit: "мкг", unitEng: "μg" },
+      { id: "30", name: "vitaminC", nameEng: "Vitamin C", displayName: "Витамин С", displayNameEng: "Vitamin C", unit: "мг", unitEng: "mg" },
+      { id: "31", name: "vitaminD", nameEng: "Vitamin D", displayName: "Витамин D", displayNameEng: "Vitamin D", unit: "мкг", unitEng: "μg" },
+      { id: "32", name: "vitaminE", nameEng: "Vitamin E", displayName: "Витамин Е", displayNameEng: "Vitamin E", unit: "мг", unitEng: "mg" },
+      { id: "33", name: "vitaminK", nameEng: "Vitamin K", displayName: "Витамин К", displayNameEng: "Vitamin K", unit: "мкг", unitEng: "μg" },
+      { id: "34", name: "betaCarotene", nameEng: "Beta-carotene", displayName: "Бета-каротин", displayNameEng: "Beta-carotene", unit: "мкг", unitEng: "μg" },
+      { id: "35", name: "alphaCarotene", nameEng: "Alpha-carotene", displayName: "Альфа-каротин", displayNameEng: "Alpha-carotene", unit: "мкг", unitEng: "μg" },
+    ],
+  },
+  {
+    name: "aminoAcids",
+    content: [
+      { id: "40", name: "tryptophan", nameEng: "Tryptophan", displayName: "Триптофан", displayNameEng: "Tryptophan", unit: "г", unitEng: "g" },
+      { id: "41", name: "threonine", nameEng: "Threonine", displayName: "Треонин", displayNameEng: "Threonine", unit: "г", unitEng: "g" },
+      { id: "42", name: "isoleucine", nameEng: "Isoleucine", displayName: "Изолейцин", displayNameEng: "Isoleucine", unit: "г", unitEng: "g" },
+      { id: "43", name: "leucine", nameEng: "Leucine", displayName: "Лейцин", displayNameEng: "Leucine", unit: "г", unitEng: "g" },
+      { id: "44", name: "lysine", nameEng: "Lysine", displayName: "Лизин", displayNameEng: "Lysine", unit: "г", unitEng: "g" },
+      { id: "45", name: "methionine", nameEng: "Methionine", displayName: "Метионин", displayNameEng: "Methionine", unit: "г", unitEng: "g" },
+      { id: "46", name: "cystine", nameEng: "Cystine", displayName: "Цистин", displayNameEng: "Cystine", unit: "г", unitEng: "g" },
+      { id: "47", name: "phenylalanine", nameEng: "Phenylalanine", displayName: "Фенилаланин", displayNameEng: "Phenylalanine", unit: "г", unitEng: "g" },
+      { id: "48", name: "tyrosine", nameEng: "Tyrosine", displayName: "Тирозин", displayNameEng: "Tyrosine", unit: "г", unitEng: "g" },
+      { id: "49", name: "valine", nameEng: "Valine", displayName: "Валин", displayNameEng: "Valine", unit: "г", unitEng: "g" },
+      { id: "50", name: "arginine", nameEng: "Arginine", displayName: "Аргинин", displayNameEng: "Arginine", unit: "г", unitEng: "g" },
+      { id: "51", name: "histidine", nameEng: "Histidine", displayName: "Гистидин", displayNameEng: "Histidine", unit: "г", unitEng: "g" },
+      { id: "52", name: "alanine", nameEng: "Alanine", displayName: "Аланин", displayNameEng: "Alanine", unit: "г", unitEng: "g" },
+      { id: "53", name: "asparticAcid", nameEng: "Aspartic acid", displayName: "Аспарагиновая кислота", displayNameEng: "Aspartic acid", unit: "г", unitEng: "g" },
+      { id: "54", name: "glutamicAcid", nameEng: "Glutamic acid", displayName: "Глутаминовая кислота", displayNameEng: "Glutamic acid", unit: "г", unitEng: "g" },
+      { id: "55", name: "glycine", nameEng: "Glycine", displayName: "Глицин", displayNameEng: "Glycine", unit: "г", unitEng: "g" },
+      { id: "56", name: "proline", nameEng: "Proline", displayName: "Пролин", displayNameEng: "Proline", unit: "г", unitEng: "g" },
+      { id: "57", name: "serine", nameEng: "Serine", displayName: "Серин", displayNameEng: "Serine", unit: "г", unitEng: "g" },
+      { id: "58", name: "hydroxyproline", nameEng: "Hydroxyproline", displayName: "Гидроксипролин", displayNameEng: "Hydroxyproline", unit: "г", unitEng: "g" },
     ],
   },
 ];
+
+// ─── Skurikhin mappings ───
+
+const SKURIKHIN_NUTRIENT_MAP: Record<string, string> = {
+  "Белок, в %":          "1",
+  "Жир, в %":            "2",
+  "Углеводы, в %":       "3",
+  "МДС, в %":            "4",
+  "Крахмал, в %":        "5",
+  "Пищ вол, в %":        "6",
+  "Энерг ценн, в ккал.": "7",
+  "Вода, в %":           "8",
+  "Железо, в мг%":       "9",
+  "Магний, в мг%":       "10",
+  "Фосфор, в мг%":       "11",
+  "Кальций, в мг%":      "12",
+  "Калий, в мг%":        "13",
+  "Натрий, в мг%":       "14",
+  "Тиамин, в мг%":       "21",
+  "Рибофлавин, в мг%":   "22",
+  "Ниацин, в мг%":       "23",
+  "Аскорб кисл, в мг%":  "30",
+  "Ретин экв, в мкг%":   "20",
+  "Токо экв, в мг%":     "32",
+  "Каротин, в мкг%":     "34",
+};
+
+const CATEGORY_MAP: Record<string, string> = {
+  "Молоко и молочные продукты": "dairy",
+  "Молоко":                     "dairy",
+  "Мясо и мясные продукты":     "meat",
+  "Мясо":                       "meat",
+  "Птица":                      "poultry",
+  "Рыба и рыбные продукты":     "fish",
+  "Рыба":                       "fish",
+  "Морепродукты":               "seafood",
+  "Яйца":                       "egg",
+  "Жиры и масла":               "oil",
+  "Масла":                      "oil",
+  "Зерновые и крупяные":        "grain",
+  "Крупы":                      "grain",
+  "Хлебобулочные изделия":      "bakery",
+  "Хлеб":                       "bakery",
+  "Бобовые":                    "legume",
+  "Овощи":                      "vegetable",
+  "Фрукты":                     "fruit",
+  "Ягоды":                      "fruit",
+  "Орехи":                      "nut",
+  "Семена":                     "seed",
+  "Напитки":                    "beverage",
+  "Соки":                       "juice",
+  "Чай":                        "tea",
+  "Кофе":                       "coffee",
+  "Алкоголь":                   "alcohol",
+  "Алкогольные напитки":        "alcohol",
+  "Кондитерские изделия":       "dessert",
+  "Сахар":                      "dessert",
+  "Специи":                     "spice",
+  "Приправы":                   "spice",
+  "Грибы":                      "vegetable",
+  "Соусы":                      "condiment",
+};
+
+// ─── Name normalization ───
+
+const ADJECTIVE_NOUN_MAP: Record<string, string> = {
+  "Соки фруктовые. Консервы": "сок",
+  "Соки овощные. Консервы": "сок",
+  "Капуста": "капуста",
+  "Карамель": "карамель",
+  "Орехи": "орех",
+  "Квас": "квас",
+  "Грибы": "грибы",
+  "Конфеты неглазированные": "конфеты",
+};
+
+const ORGAN_MEATS = new Set(["Мозги", "Почки", "Сердце", "Язык", "Печень", "Легкое", "Вымя"]);
+
+const ORGAN_SUFFIX_MAP: Record<string, string> = {
+  "Говяжьи": "говяжьи",
+  "Свиные": "свиные",
+};
+
+function normalizeProductName(name: string, categories: string[]): string {
+  const trimmed = name.trim();
+  const words = trimmed.split(/\s+/);
+  if (words.length > 1) return trimmed;
+
+  const lastCat = categories[categories.length - 1];
+  if (!lastCat) return trimmed;
+
+  // Single-word adjective → append noun from category
+  if (/(?:ый|ой|ий|ая|яя|ое|ее|ые|ая)$/.test(trimmed)) {
+    const noun = ADJECTIVE_NOUN_MAP[lastCat];
+    if (noun) return `${trimmed} ${noun}`;
+  }
+
+  // Organ meats → append animal type
+  if (ORGAN_MEATS.has(trimmed)) {
+    const suffix = ORGAN_SUFFIX_MAP[lastCat];
+    if (suffix) return `${trimmed} (${suffix})`;
+  }
+
+  return trimmed;
+}
 
 // ─── Seed functions ───
 
@@ -126,20 +255,41 @@ async function seedNutrients() {
 }
 
 async function seedFoods() {
-  console.log("Seeding foods from foodFull.json...");
+  // Try USDA format first, fall back to Skurikhin
+  const usdaPath = resolve(__dirname, "../parser/output/usda-foods.json");
+  const skurikhinPath = resolve(__dirname, "../parser/output/skurikhin-v2.json");
 
-  const foodPath = resolve(__dirname, "../../food-calc/public/foodFull.json");
+  let useUsda = false;
+  try {
+    readFileSync(usdaPath, "utf-8");
+    useUsda = true;
+  } catch {
+    // fall back to skurikhin
+  }
+
+  if (useUsda) {
+    await seedFoodsUsda(usdaPath);
+  } else {
+    await seedFoodsSkurikhin(skurikhinPath);
+  }
+}
+
+async function seedFoodsUsda(path: string) {
+  console.log("Seeding foods from usda-foods.json...");
+
   let foods: Array<{
     id: string;
     name: string;
-    description?: string;
-    nutrients?: Array<{ nutrientId: string; quantity: number }>;
+    nameEng: string;
+    description: string;
+    categories: string[];
+    nutrients: Array<{ nutrientId: string; quantity: number }>;
   }>;
 
   try {
-    foods = JSON.parse(readFileSync(foodPath, "utf-8"));
+    ({ foods } = JSON.parse(readFileSync(path, "utf-8")));
   } catch (e) {
-    console.error("  Could not read foodFull.json:", e);
+    console.error("  Could not read usda-foods.json:", e);
     return;
   }
 
@@ -154,25 +304,94 @@ async function seedFoods() {
         id: food.id,
         userId: "__system__",
         name: food.name,
-        nameEng: "",
+        nameEng: food.nameEng ?? "",
         description: food.description ?? null,
         descriptionEng: null,
+        categories: new Set(food.categories ?? []),
       });
       inserted++;
 
-      // Insert nutrients for this food
-      if (food.nutrients) {
-        for (const n of food.nutrients) {
-          try {
-            await client.insert("foodNutrients", {
-              id: `${food.id}-${n.nutrientId}`,
-              foodId: food.id,
-              nutrientId: n.nutrientId,
-              quantity: n.quantity,
-            });
-          } catch {
-            // skip
-          }
+      for (const n of food.nutrients ?? []) {
+        try {
+          await client.insert("foodNutrients", {
+            id: `${food.id}-${n.nutrientId}`,
+            foodId: food.id,
+            nutrientId: n.nutrientId,
+            quantity: n.quantity,
+          });
+        } catch {
+          // skip duplicate
+        }
+      }
+    } catch {
+      skipped++;
+    }
+
+    if ((inserted + skipped) % 200 === 0) {
+      console.log(`  Progress: ${inserted} inserted, ${skipped} skipped`);
+    }
+  }
+
+  console.log(`  Done: ${inserted} inserted, ${skipped} skipped`);
+}
+
+async function seedFoodsSkurikhin(path: string) {
+  console.log("Seeding foods from skurikhin-v2.json...");
+
+  let products: Array<{
+    id: number;
+    name: string;
+    categories?: string[];
+    nutrients?: Record<string, string>;
+  }>;
+
+  try {
+    ({ products } = JSON.parse(readFileSync(path, "utf-8")));
+  } catch (e) {
+    console.error("  Could not read skurikhin-v2.json:", e);
+    return;
+  }
+
+  console.log(`  Found ${products.length} products, inserting...`);
+
+  let inserted = 0;
+  let skipped = 0;
+
+  for (const product of products) {
+    const id = String(product.id);
+
+    const categories = new Set<string>();
+    for (const cat of product.categories ?? []) {
+      const slug = CATEGORY_MAP[cat];
+      if (slug) categories.add(slug);
+    }
+
+    try {
+      await client.insert("foods", {
+        id,
+        userId: "__system__",
+        name: normalizeProductName(product.name, product.categories ?? []),
+        nameEng: "",
+        description: null,
+        descriptionEng: null,
+        categories,
+      });
+      inserted++;
+
+      for (const [ruKey, nutrientId] of Object.entries(SKURIKHIN_NUTRIENT_MAP)) {
+        const raw = product.nutrients?.[ruKey];
+        if (raw == null) continue;
+        const quantity = parseFloat(String(raw).replace(",", "."));
+        if (!quantity || isNaN(quantity)) continue;
+        try {
+          await client.insert("foodNutrients", {
+            id: `${id}-${nutrientId}`,
+            foodId: id,
+            nutrientId,
+            quantity,
+          });
+        } catch {
+          // skip duplicate
         }
       }
     } catch {
@@ -197,7 +416,7 @@ async function seedDefaultDailyNorm() {
     "14": 2300, "15": 11, "16": 900, "17": 2300, "18": 55, "19": 150,
     "21": 1.2, "22": 1.3, "23": 16, "24": 550, "25": 5, "26": 1.3,
     "28": 400, "29": 2.4,
-    "30": 900, "31": 90, "32": 15, "33": 15, "34": 120,
+    "20": 900, "30": 90, "31": 15, "32": 15, "33": 120,
   };
 
   const existingNorm = await client.fetchById("dailyNorms", "DEFAULT_NORM");

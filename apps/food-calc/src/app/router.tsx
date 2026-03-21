@@ -4,14 +4,13 @@ import HomePage from '@/pages/home-page/HomePage.tsx';
 import { format } from 'date-fns';
 import ScheduleDateSelectionPage from '@/pages/schedule/schedule-date-selection-page/ScheduleDateSelectionPage.tsx';
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
-import { DailyNormsPage } from '@/pages/daily-norms/dailyNormsPage/index.ts';
 
 import FoodPage from '@/pages/food/FoodPage.tsx';
 import ProductPage from '@/pages/product/ProductPage.tsx';
 import DailyNormPage from '@/pages/daily-norms/DailyNormPage/DailyNormPage.tsx';
 import { ScheduleFoodAnalyticsPage } from '@/pages/schedule/analytics/schedule-analytics-page/ScheduleFoodAnalyticsPage/index.ts';
 import SettingsPage from '@/pages/settings/SettingsPage/SettingsPage.tsx';
-import ResetPage from '@/pages/settings/ResetPage/ResetPage.tsx';
+import SystemPage from '@/pages/settings/SystemPage/SystemPage.tsx';
 
 export enum RouterLinks {
   Root = '/',
@@ -25,7 +24,7 @@ export enum RouterLinks {
   ScheduleAnalytics = `/schedule/:id/analytics`,
   Product = '/product',
   Settings = '/settings',
-  Reset = '/reset',
+  System = '/system',
 }
 
 export const getScheduleAnalyticsUrl = (id: string) => `/schedule/${id}/analytics`;
@@ -46,10 +45,6 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <Navigate to={`/schedule/${format(new Date(), 'dd-MM-yyyy')}`} replace />,
-      },
-      {
-        path: RouterLinks.DailyNorms,
-        element: <DailyNormsPage />,
       },
       {
         path: `${RouterLinks.DailyNorms}/:id`,
@@ -84,8 +79,8 @@ export const router = createBrowserRouter([
         element: <SettingsPage />,
       },
       {
-        path: RouterLinks.Reset,
-        element: <ResetPage />,
+        path: RouterLinks.System,
+        element: <SystemPage />,
       },
     ],
   },

@@ -36,7 +36,7 @@ const Screen = ({
   backgroundImageOpacity = 0.05,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const COLLAPSE_DISTANCE = window.innerHeight * 0.4;
+  const COLLAPSE_DISTANCE = window.innerHeight;
 
   const { scrollYProgress, isScrollingDown, isScrolledPastThreshold } = useScrollHide({
     containerRef: scrollContainerRef,

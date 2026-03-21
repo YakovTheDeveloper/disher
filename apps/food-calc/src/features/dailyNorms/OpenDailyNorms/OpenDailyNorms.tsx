@@ -10,7 +10,8 @@ import {
   useInteractions,
   FloatingPortal,
 } from '@floating-ui/react';
-import { useDailyNorms } from '@/entities/daily-norm';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useDailyNorms, createDailyNorm } from '@/entities/daily-norm';
 import styles from './OpenDailyNorms.module.scss';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 
@@ -18,10 +19,40 @@ type Props = {
   className?: string;
 };
 
+const InfoIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="16" x2="12" y2="12" />
+    <line x1="12" y1="8" x2="12.01" y2="8" />
+  </svg>
+);
+
+const TickIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2.5}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
 const OpenDailyNorms = ({ className }: Props) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedNormId, setSelectedNormId] = React.useState<string | null>(null);
-  const { toDailyNorms } = useAppRoutes();
+  const { toDailyNorm } = useAppRoutes();
   const { results: normsMap } = useDailyNorms();
 
   const norms = React.useMemo(() => {
@@ -55,9 +86,20 @@ const OpenDailyNorms = ({ className }: Props) => {
 
   const interactions = useInteractions([click, dismiss]);
 
-  const handleNormClick = (id: string) => {
+  const handleNormSelect = (id: string) => {
     setSelectedNormId(id);
+  };
+
+  const handleInfoClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
     setIsOpen(false);
+    toDailyNorm(id);
+  };
+
+  const handleCreateNorm = async () => {
+    const id = await createDailyNorm('Новая норма', '');
+    setIsOpen(false);
+    toDailyNorm(id);
   };
 
   return (
@@ -86,21 +128,47 @@ const OpenDailyNorms = ({ className }: Props) => {
             </div>
 
             <div className={styles.list}>
-              {norms.map((norm) => (
-                <div
-                  key={norm.id}
-                  className={`${styles.item} ${
-                    norm.id === selectedNormId ? styles.selected : ''
-                  }`}
-                  onClick={() => handleNormClick(norm.id)}
-                >
-                  {norm.name}
-                </div>
-              ))}
+              <AnimatePresence initial={false}>
+                {norms.map((norm, i) => {
+                  const isSelected = norm.id === selectedNormId;
+                  return (
+                    <motion.div
+                      key={norm.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 30, delay: i * 0.02 }}
+                      className={`${styles.item} ${isSelected ? styles.selected : ''}`}
+                      onClick={() => handleNormSelect(norm.id)}
+                    >
+                      <span className={styles.itemName}>{norm.name}</span>
+                      <div className={styles.itemActions}>
+                        {isSelected && (
+                          <motion.span
+                            className={styles.tickWrap}
+                            initial={{ scale: 0, rotate: -90 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                          >
+                            <TickIcon />
+                          </motion.span>
+                        )}
+                        <button
+                          className={styles.infoBtn}
+                          onClick={(e) => handleInfoClick(e, norm.id)}
+                          type="button"
+                        >
+                          <InfoIcon />
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
 
-            <button className={styles.link} onClick={toDailyNorms}>
-              Перейти к настройке норм
+            <button className={styles.link} onClick={handleCreateNorm} type="button">
+              Создать новую норму
             </button>
           </div>
         )}

@@ -1,0 +1,60 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  gap: 16px;
+  padding: 24px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.text {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.textSuccess {
+  font-size: 15px;
+  color: #4caf50;
+}
+
+.textError {
+  font-size: 15px;
+  color: #ef5350;
+}
+
+.detail {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+}
+
+.retryButton {
+  margin-top: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:active {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}

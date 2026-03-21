@@ -2,9 +2,30 @@
     display: flex;
     align-items: center;
     position: relative;
+    transition: background 0.15s ease, color 0.15s ease;
 
     &:last-child {
         border-bottom: none;
+    }
+}
+
+.wrapper_inverted {
+    background: #111;
+
+    .name {
+        color: #fff;
+    }
+
+    .iconBtn {
+        color: rgba(255, 255, 255, 0.5);
+
+        &:active {
+            color: #fff;
+        }
+    }
+
+    .richValue {
+        color: rgba(255, 255, 255, 0.7);
     }
 }
 

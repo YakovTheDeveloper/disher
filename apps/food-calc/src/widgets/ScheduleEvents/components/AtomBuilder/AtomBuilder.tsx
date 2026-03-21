@@ -40,94 +40,48 @@ export const AtomBuilder = ({ className = '' }: AtomBuilderProps) => {
       removeAtom(index);
     };
 
+    const ATOM_BUTTONS: { kind: AtomModalKind; label: string }[] = [
+      { kind: 'scale', label: 'Оценка' },
+      { kind: 'time', label: 'Время' },
+      { kind: 'number', label: 'Число' },
+      { kind: 'tag', label: 'Тег' },
+      { kind: 'relation', label: 'Связь' },
+      { kind: 'flag', label: 'Флаг' },
+      { kind: 'body', label: 'Тело' },
+    ];
+
+    const INPUT_MAP: Record<string, React.ReactNode> = {
+      scale: <ScaleAtomInput key="scale" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      time: <TimeAtomInput key="time" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      number: <NumberAtomInput key="number" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      tag: <TagAtomInput key="tag" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      relation: <RelationAtomInput key="relation" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      flag: <FlagAtomInput key="flag" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      body: <BodyAtomInput key="body" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+    };
+
     return (
       <div className={`${styles.container} ${className}`}>
+        <div className={styles.inputContainer}>
+          <AnimatePresence mode="wait">
+            {openModal && INPUT_MAP[openModal]}
+          </AnimatePresence>
+        </div>
+
         <AtomList atoms={atoms} onRemove={handleRemoveAtom} />
 
         <div className={styles.atomButtons}>
-          <button onClick={() => setOpenModal('scale')} disabled={openModal !== null} type="button">
-            + Оценка (1-10)
-          </button>
-          <button onClick={() => setOpenModal('time')} disabled={openModal !== null} type="button">
-            + Время
-          </button>
-          <button
-            onClick={() => setOpenModal('number')}
-            disabled={openModal !== null}
-            type="button"
-          >
-            + Число
-          </button>
-          <button onClick={() => setOpenModal('tag')} disabled={openModal !== null} type="button">
-            + Тег
-          </button>
-          <button
-            onClick={() => setOpenModal('relation')}
-            disabled={openModal !== null}
-            type="button"
-          >
-            + Связь
-          </button>
-          <button onClick={() => setOpenModal('flag')} disabled={openModal !== null} type="button">
-            + Флаг
-          </button>
-          <button onClick={() => setOpenModal('body')} disabled={openModal !== null} type="button">
-            + Тело
-          </button>
-        </div>
-
-        <div className={styles.inputContainer}>
-          <AnimatePresence mode="wait">
-            {openModal === 'scale' && (
-              <ScaleAtomInput
-                key="scale"
-                onAddAtom={handleAddAtom}
-                onClose={() => setOpenModal(null)}
-              />
-            )}
-            {openModal === 'time' && (
-              <TimeAtomInput
-                key="time"
-                onAddAtom={handleAddAtom}
-                onClose={() => setOpenModal(null)}
-              />
-            )}
-            {openModal === 'number' && (
-              <NumberAtomInput
-                key="number"
-                onAddAtom={handleAddAtom}
-                onClose={() => setOpenModal(null)}
-              />
-            )}
-            {openModal === 'tag' && (
-              <TagAtomInput
-                key="tag"
-                onAddAtom={handleAddAtom}
-                onClose={() => setOpenModal(null)}
-              />
-            )}
-            {openModal === 'relation' && (
-              <RelationAtomInput
-                key="relation"
-                onAddAtom={handleAddAtom}
-                onClose={() => setOpenModal(null)}
-              />
-            )}
-            {openModal === 'flag' && (
-              <FlagAtomInput
-                key="flag"
-                onAddAtom={handleAddAtom}
-                onClose={() => setOpenModal(null)}
-              />
-            )}
-            {openModal === 'body' && (
-              <BodyAtomInput
-                key="body"
-                onAddAtom={handleAddAtom}
-                onClose={() => setOpenModal(null)}
-              />
-            )}
-          </AnimatePresence>
+          {ATOM_BUTTONS.map(({ kind, label }) => (
+            <button
+              key={kind}
+              onClick={() => setOpenModal(kind)}
+              disabled={openModal !== null}
+              type="button"
+              data-active={openModal === kind || undefined}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
     );

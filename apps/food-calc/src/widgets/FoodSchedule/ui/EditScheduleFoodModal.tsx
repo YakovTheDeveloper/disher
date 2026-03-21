@@ -131,8 +131,7 @@ const EditScheduleFoodModal = ({ item, initialStep = 'idle', onClose }: Props) =
             <SearchFood
               mode="products-and-dishes"
               onFinish={handleFoodSelect}
-              currentProductId={draft.variant === 'product' ? draft.foodId ?? undefined : undefined}
-              currentDishId={draft.variant === 'dish' ? draft.foodId ?? undefined : undefined}
+              activeItemId={draft.foodId ?? undefined}
               inputId={EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
             />
           </div>

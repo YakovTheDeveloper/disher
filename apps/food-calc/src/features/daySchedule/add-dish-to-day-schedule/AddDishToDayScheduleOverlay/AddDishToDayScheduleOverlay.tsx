@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { format, startOfToday } from 'date-fns';
 import type { BaseDrawerProps } from '@/shared/ui';
+import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { BaseOverlayContentLayout } from '@/shared/ui/layout/overlay/BaseOverlayContentLayout';
 import { ScheduleSelection } from '@/features/ScheduleSelection';
 import { useDish } from '@/entities/dish';
@@ -36,8 +37,9 @@ const AddDishToDayScheduleOverlay = ({ dishId, onClose }: Props) => {
   };
 
   return (
-    <BaseOverlayContentLayout
-      header={
+    <DrawerLayout>
+      <BaseOverlayContentLayout
+        header={
         <div className={styles.title}>
           Добавить <span className={styles.itemName}>{dish?.name || 'блюдо'}</span> в{' '}
           <span className={styles.date}>{selectedDate}</span>
@@ -54,7 +56,8 @@ const AddDishToDayScheduleOverlay = ({ dishId, onClose }: Props) => {
           </button>
         </div>
       }
-    />
+      />
+    </DrawerLayout>
   );
 };
 

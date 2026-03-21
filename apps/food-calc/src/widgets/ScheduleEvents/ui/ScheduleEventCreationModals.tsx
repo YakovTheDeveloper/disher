@@ -69,10 +69,13 @@ const ScheduleEventCreationModals = ({ scheduleId }: Props) => {
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
     const id = target.id;
-    if (id === MODAL_INPUT_IDS.TIME_INPUT) setStep('time');
-    else if (id === MODAL_INPUT_IDS.TEXT_INPUT) setStep('text');
-    else if (id === MODAL_INPUT_IDS.ATOMS_INPUT) setStep('atoms');
+    let nextStep: Step | null = null;
+    if (id === MODAL_INPUT_IDS.TIME_INPUT) nextStep = 'time';
+    else if (id === MODAL_INPUT_IDS.TEXT_INPUT) nextStep = 'text';
+    else if (id === MODAL_INPUT_IDS.ATOMS_INPUT) nextStep = 'atoms';
     else return;
+
+    setStep(nextStep);
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -116,7 +119,12 @@ const ScheduleEventCreationModals = ({ scheduleId }: Props) => {
       <button className={s.backButton} onClick={handleClose}>
         ←
       </button>
-      <Breadcrumbs steps={STEPS} current={currentStep} stepLabels={STEP_LABELS} onStepClick={goToStep} />
+      <Breadcrumbs
+        steps={STEPS}
+        current={currentStep}
+        stepLabels={STEP_LABELS}
+        onStepClick={goToStep}
+      />
     </header>
   );
 
@@ -172,7 +180,12 @@ const ScheduleEventCreationModals = ({ scheduleId }: Props) => {
             <Header currentStep="text" />
             <div className={s.spacer} />
             <div className={s.content}>
-              <Textarea id={MODAL_INPUT_IDS.TEXT_INPUT} onChange={handleTextChange} value={draft.text} />
+              <Textarea
+                placeholder="Опишите событие"
+                id={MODAL_INPUT_IDS.TEXT_INPUT}
+                onChange={handleTextChange}
+                value={draft.text}
+              />
               <div className={s.finishButton}>
                 {NEXT_STEP[step] ? (
                   <Button variant="primary" onClick={() => goToStep(NEXT_STEP[step]!)}>
@@ -192,8 +205,7 @@ const ScheduleEventCreationModals = ({ scheduleId }: Props) => {
         content={
           <div className={s.wrapper}>
             <Header currentStep="atoms" />
-            <div className={s.spacer} />
-            <div className={s.content}>
+            <div className={s.atomsContent}>
               <div id={MODAL_INPUT_IDS.ATOMS_INPUT} tabIndex={-1}>
                 <AtomBuilder />
               </div>

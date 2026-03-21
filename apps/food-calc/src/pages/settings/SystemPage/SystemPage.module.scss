@@ -1,0 +1,208 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.header {
+  padding: 20px 0 12px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+// ─── Tab Content ───
+
+.tabContent {
+  flex: 1;
+  padding-bottom: 32px;
+}
+
+.section {
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.sectionTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #555;
+}
+
+.sectionDesc {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+// ─── Info Grid ───
+
+.infoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.storageRow {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.label {
+  font-size: 0.75rem;
+  color: #888;
+  font-weight: 500;
+}
+
+.value {
+  font-size: 0.8125rem;
+  color: #222;
+  word-break: break-all;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+}
+
+// ─── Actions ───
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+// ─── Collections Table ───
+
+.table {
+  display: flex;
+  flex-direction: column;
+}
+
+.tableRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.tableName {
+  font-size: 0.8125rem;
+  color: #333;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+}
+
+.tableCount {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #222;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+}
+
+.tableError {
+  font-size: 0.75rem;
+  color: #ef5350;
+}
+
+// ─── Chips ───
+
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  color: #444;
+}
+
+// ─── Logs ───
+
+.logBox {
+  max-height: 240px;
+  overflow-y: auto;
+  background: #f8f8f8;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 0.75rem;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  line-height: 1.6;
+}
+
+.logLine {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.logTime {
+  color: #999;
+  margin-right: 6px;
+}
+
+.log_info {
+  color: #333;
+}
+
+.log_warn {
+  color: #f57c00;
+}
+
+.log_error {
+  color: #ef5350;
+}
+
+.muted {
+  font-size: 0.8125rem;
+  color: #999;
+  margin: 0;
+}
+
+// ─── Reset Tab Status ───
+
+.statusBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #555;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.successText {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.errorText {
+  color: #ef5350;
+  font-size: 0.875rem;
+}

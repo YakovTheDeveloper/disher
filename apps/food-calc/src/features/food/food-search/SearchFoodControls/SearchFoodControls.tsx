@@ -1,34 +1,35 @@
-import { observer } from 'mobx-react-lite';
 import { useRef } from 'react';
 import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
 
 import SearchInput from '@/shared/ui/atoms/input/SearchInput/SearchInput';
-import { SearchState } from '@/features/shared/virtual-list/List.types';
 import TextBehind from '@/shared/ui/TextBehind/TextBehind';
+import { ButtonBack } from '@/shared/ui/atoms/Button/ButtonBack';
 import { SearchMode } from '@/features/food/food-search/SearchFood';
 
 type Props = {
-  searchState: SearchState;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  currentTab: string;
   className?: string;
-  onFocusChange?: (focused: boolean) => void;
-  hasBackButton?: boolean;
   toggleFilterPanel: () => void;
-  selectedSubFilter?: string | null;
   mode: SearchMode;
-  actionLeft?: React.ReactNode;
-  actionRight?: React.ReactNode;
+  onBack?: () => void;
+  searchBarLeftChild?: React.ReactNode;
+  searchBarRightChild?: React.ReactNode;
   inputId?: string;
 };
 
 const SearchFoodControls = ({
-  searchState,
+  searchQuery,
+  onSearchChange,
+  currentTab,
   className,
-  onFocusChange,
   toggleFilterPanel,
   mode,
-  actionLeft,
-  actionRight,
+  onBack,
+  searchBarLeftChild,
+  searchBarRightChild,
   inputId,
 }: Props) => {
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -41,7 +42,8 @@ const SearchFoodControls = ({
 
   return (
     <header className={clsx([styles.header, className])}>
-      {actionLeft}
+      {onBack && <ButtonBack size="medium" onClick={onBack} />}
+      {searchBarLeftChild}
 
       <TextBehind text={getBackTitle()} position="middle-left">
         <SearchInput
@@ -50,22 +52,18 @@ const SearchFoodControls = ({
           ref={searchInputRef}
           className={styles.largeSearchInput}
           placeholder="Поиск"
-          value={searchState.searchQuery}
-          onFocus={() => onFocusChange?.(true)}
-          onBlur={() => onFocusChange?.(false)}
-          onChange={(e) => {
-            searchState.setSearch(e.target.value);
-          }}
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
         />
       </TextBehind>
 
       <button className={styles.tabChip} onClick={toggleFilterPanel}>
-        {searchState.currentTab}
+        {currentTab}
       </button>
 
-      {actionRight}
+      {searchBarRightChild}
     </header>
   );
 };
 
-export default observer(SearchFoodControls);
+export default SearchFoodControls;

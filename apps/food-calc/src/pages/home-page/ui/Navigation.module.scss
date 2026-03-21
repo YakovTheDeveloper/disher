@@ -29,6 +29,11 @@
     user-select: none;
     z-index: 2;
     opacity: 0.1;
+    transition: opacity 0.4s ease;
+
+    [data-collapsed="true"] & {
+        opacity: 0;
+    }
 }
 
 .left {
@@ -57,7 +62,6 @@
     align-items: flex-end;
     font-size: 25px;
     line-height: 25px;
-    gap: 18px;
 }
 
 .dateNumbers {
@@ -69,7 +73,7 @@
     gap: 10px 5px;
     align-items: flex-end;
     margin-left: auto;
-    padding: 0.5rem;
+    padding: 0 0.5rem;
     border-radius: 50px;
     transition: font-size 0.4s ease, background-color 0.4s ease, backdrop-filter 0.4s ease;
 

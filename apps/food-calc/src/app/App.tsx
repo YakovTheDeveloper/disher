@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import s from '@/shared/assets/style/App.module.scss';
 import '@/shared/assets/style/index.scss';
 import '@/shared/assets/style/App.module.scss';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from 'sonner';
 import { setupGlobalLog } from '@/app/log';
 import { Modal } from '@/shared/ui/Modal';
 import { ModalManagerV2 } from '@/app/ui/ModalManager';
@@ -26,7 +26,7 @@ export default function App() {
   return (
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
-        <Toaster toastOptions={{ duration: 6000 }} />
+        <Toaster position="top-center" duration={6000} richColors closeButton />
         <div className={s.main}>
           <Modal>
             <ModalManagerV2 />

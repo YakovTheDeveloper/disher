@@ -92,7 +92,7 @@ const DishItemEditModal = ({ item, initialStep = 'idle', onClose }: Props) => {
             <SearchFood
               mode="products-only"
               onFinish={handleFoodSelect}
-              currentProductId={draft.foodId ?? undefined}
+              activeItemId={draft.foodId ?? undefined}
               inputId={DISH_EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
             />
           </div>

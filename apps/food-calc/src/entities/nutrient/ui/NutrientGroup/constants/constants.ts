@@ -74,7 +74,32 @@ export const nutrientGroups: NutrientGroup[] = [
             { id: '34', name: 'betaCarotene', symbol: 'βC', displayName: 'Beta-carotene', displayNameRu: 'β-каротин', unit: 'μg', unitRu: 'мкг', group: 'rest' },
             { id: '35', name: 'alphaCarotene', symbol: 'αC', displayName: 'Alpha-carotene', displayNameRu: 'α-каротин', unit: 'μg', unitRu: 'мкг', group: 'rest' }
         ]
-    }
+    },
+    // {
+    //     name: 'aminoAcids',
+    //     displayName: 'Аминокислоты',
+    //     content: [
+    //         { id: '40', name: 'tryptophan', symbol: 'Trp', displayName: 'Tryptophan', displayNameRu: 'Триптофан', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '41', name: 'threonine', symbol: 'Thr', displayName: 'Threonine', displayNameRu: 'Треонин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '42', name: 'isoleucine', symbol: 'Ile', displayName: 'Isoleucine', displayNameRu: 'Изолейцин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '43', name: 'leucine', symbol: 'Leu', displayName: 'Leucine', displayNameRu: 'Лейцин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '44', name: 'lysine', symbol: 'Lys', displayName: 'Lysine', displayNameRu: 'Лизин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '45', name: 'methionine', symbol: 'Met', displayName: 'Methionine', displayNameRu: 'Метионин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '46', name: 'cystine', symbol: 'Cys', displayName: 'Cystine', displayNameRu: 'Цистин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '47', name: 'phenylalanine', symbol: 'Phe', displayName: 'Phenylalanine', displayNameRu: 'Фенилаланин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '48', name: 'tyrosine', symbol: 'Tyr', displayName: 'Tyrosine', displayNameRu: 'Тирозин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '49', name: 'valine', symbol: 'Val', displayName: 'Valine', displayNameRu: 'Валин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '50', name: 'arginine', symbol: 'Arg', displayName: 'Arginine', displayNameRu: 'Аргинин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '51', name: 'histidine', symbol: 'His', displayName: 'Histidine', displayNameRu: 'Гистидин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '52', name: 'alanine', symbol: 'Ala', displayName: 'Alanine', displayNameRu: 'Аланин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '53', name: 'asparticAcid', symbol: 'Asp', displayName: 'Aspartic acid', displayNameRu: 'Аспарагиновая к-та', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '54', name: 'glutamicAcid', symbol: 'Glu', displayName: 'Glutamic acid', displayNameRu: 'Глутаминовая к-та', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '55', name: 'glycine', symbol: 'Gly', displayName: 'Glycine', displayNameRu: 'Глицин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '56', name: 'proline', symbol: 'Pro', displayName: 'Proline', displayNameRu: 'Пролин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '57', name: 'serine', symbol: 'Ser', displayName: 'Serine', displayNameRu: 'Серин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //         { id: '58', name: 'hydroxyproline', symbol: 'Hyp', displayName: 'Hydroxyproline', displayNameRu: 'Гидроксипролин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+    //     ]
+    // }
 ]
 
 export const allNutrientsList = nutrientGroups.flatMap((item) => {
@@ -117,6 +142,26 @@ export const nutrientsHaveDailyNorm: Record<number, boolean> = {
     33: true,  // vitaminK
     34: false, // betaCarotene
     35: false, // alphaCarotene
+    // Amino acids — essential have daily norms
+    40: true,  // tryptophan
+    41: true,  // threonine
+    42: true,  // isoleucine
+    43: true,  // leucine
+    44: true,  // lysine
+    45: true,  // methionine
+    46: false, // cystine
+    47: true,  // phenylalanine
+    48: false, // tyrosine
+    49: true,  // valine
+    50: false, // arginine
+    51: true,  // histidine
+    52: false, // alanine
+    53: false, // asparticAcid
+    54: false, // glutamicAcid
+    55: false, // glycine
+    56: false, // proline
+    57: false, // serine
+    58: false, // hydroxyproline
 }
 
 export const defaultDailyNorms: Record<number, number> = {
@@ -154,4 +199,14 @@ export const defaultDailyNorms: Record<number, number> = {
     33: 120,
     34: 3000,
     35: 600,
+    // Essential amino acids (RDA for 70kg adult, g/day)
+    40: 0.28,  // tryptophan (4 mg/kg)
+    41: 1.05,  // threonine (15 mg/kg)
+    42: 1.4,   // isoleucine (20 mg/kg)
+    43: 2.73,  // leucine (39 mg/kg)
+    44: 2.1,   // lysine (30 mg/kg)
+    45: 0.73,  // methionine (10.4 mg/kg)
+    47: 1.75,  // phenylalanine (25 mg/kg)
+    49: 1.82,  // valine (26 mg/kg)
+    51: 0.7,   // histidine (10 mg/kg)
 };

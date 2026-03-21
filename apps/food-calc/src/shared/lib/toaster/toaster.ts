@@ -1,5 +1,4 @@
-import React from 'react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { router } from '@/app/router';
 
 export interface ToastAction {
@@ -11,28 +10,14 @@ export interface ToastOptions {
     action?: ToastAction;
 }
 
-function renderContent(message: string, action?: ToastAction): string | React.ReactElement {
-    if (!action) return message;
-    return React.createElement(
-        'span',
-        { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
-        message,
-        ' ',
-        React.createElement(
-            'a',
-            {
-                href: action.href,
-                style: { color: 'inherit', fontWeight: 600, textDecoration: 'underline', whiteSpace: 'nowrap' },
-                onClick: (e: React.MouseEvent) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    router.navigate(action.href);
-                    toast.dismiss();
-                },
-            },
-            action.label
-        )
-    );
+function buildAction(action?: ToastAction) {
+    if (!action) return undefined;
+    return {
+        label: action.label,
+        onClick: () => {
+            router.navigate(action.href);
+        },
+    };
 }
 
 interface ToasterAPI {
@@ -44,24 +29,23 @@ interface ToasterAPI {
 
 const toaster: ToasterAPI = {
     success: (msg, options) =>
-        toast.success(renderContent(msg, options?.action), {
-            className: 'toast toast--success',
+        toast.success(msg, {
+            action: buildAction(options?.action),
         }),
 
     error: (msg, options) =>
-        toast.error(renderContent(msg, options?.action), {
-            className: 'toast toast--error',
+        toast.error(msg, {
+            action: buildAction(options?.action),
         }),
 
     info: (msg, options) =>
-        toast(renderContent(msg, options?.action), {
-            className: 'toast toast--info',
+        toast.info(msg, {
+            action: buildAction(options?.action),
         }),
 
     warning: (msg, options) =>
-        toast(renderContent(msg, options?.action), {
-            icon: '⚠️',
-            className: 'toast toast--warning',
+        toast.warning(msg, {
+            action: buildAction(options?.action),
         }),
 };
 

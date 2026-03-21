@@ -119,7 +119,7 @@ const DishItemCreationModals = ({ dishId }: Props) => {
             <SearchFood
               mode="products-only"
               onFinish={handleFoodSelect}
-              currentProductId={draft.foodId ?? undefined}
+              activeItemId={draft.foodId ?? undefined}
               itemHtmlFor={DISH_MODAL_INPUT_IDS.QUANTITY_INPUT}
               inputId={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
             />

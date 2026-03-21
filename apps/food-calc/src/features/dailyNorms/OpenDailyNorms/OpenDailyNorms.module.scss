@@ -93,6 +93,9 @@
 }
 
 .item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 10px 12px;
     border-radius: 4px;
     cursor: pointer;
@@ -115,6 +118,74 @@
         background: #fff;
         color: #111;
         font-weight: 600;
+    }
+}
+
+.itemName {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.itemActions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.tickWrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+.infoBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.12s ease, color 0.12s ease;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    &:active {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .selected & {
+        background: rgba(0, 0, 0, 0.06);
+        color: rgba(0, 0, 0, 0.45);
+
+        &:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: rgba(0, 0, 0, 0.7);
+        }
     }
 }
 

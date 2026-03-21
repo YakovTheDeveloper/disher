@@ -1,20 +1,18 @@
 .container {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: opacity 0.2s;
   padding: 0;
-  color: #0d0d0d;
-
-  &:hover {
-    opacity: 0.7;
-  }
+  color: #111;
+  transition: opacity 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
 
   &:active {
-    opacity: 0.5;
+    opacity: 0.4;
   }
 }
 
@@ -23,7 +21,7 @@
 }
 
 .medium {
-  font-size: 24px;
+  font-size: 22px;
 }
 
 .large {

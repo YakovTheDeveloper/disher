@@ -1,5 +1,3 @@
-import { List } from '@/features/shared/virtual-list';
-import { SearchState } from '@/features/shared/virtual-list/List.types';
 import { useCallback, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import styles from './SearchFood.module.scss';
@@ -9,25 +7,33 @@ import { SearchFoodControls } from '@/features/food/food-search/SearchFoodContro
 import { FilterButton } from '@/shared/ui/atoms/Button';
 import { FilterPanel } from '@/shared/ui/FilterPanel';
 import toaster from '@/shared/lib/toaster/toaster';
+import { getProductUrl, RouterUrls } from '@/app/router';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import { useProducts, createProduct, getProductCategoryGroups, getProductCategoryOptions } from '@/entities/product';
-import { useDishes, createDish, getDishCategoryGroups, getDishCategoryOptions } from '@/entities/dish';
+import {
+  useProducts,
+  createProduct,
+  getProductCategoryGroups,
+  getProductCategoryOptions,
+} from '@/entities/product';
+import {
+  useDishes,
+  createDish,
+  getDishCategoryGroups,
+  getDishCategoryOptions,
+} from '@/entities/dish';
+import { VirtualList } from '@/shared/ui/VirtualList';
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 
 type Props = {
-  currentProductId?: string | null;
-  currentDishId?: string | null;
   onFinish: (payload: { variant: 'product' | 'dish'; id: string }) => void;
-  onFocusChange?: (focused: boolean) => void;
-  onOpen?: () => void;
   mode: SearchMode;
-  showInfoButtonOnListItem?: boolean;
-  actionLeft?: React.ReactNode;
-  actionRight?: React.ReactNode;
-  sortByNutrientId?: string | null;
-  sortByNutrientUnit?: string;
-  showMore?: boolean;
+  activeItemId?: string | null;
+  richNutrient?: { id: string; unit: string } | null;
+  listItemsHasAdditionalActions?: boolean;
+  onBack?: () => void;
+  searchBarLeftChild?: React.ReactNode;
+  searchBarRightChild?: React.ReactNode;
   itemHtmlFor?: string;
   inputId?: string;
 };
@@ -36,16 +42,13 @@ const getDefaultTab = (mode: SearchMode) => (mode === 'dishes-only' ? 'блюд�
 
 const SearchFood = ({
   onFinish,
-  currentProductId,
-  currentDishId,
-  onFocusChange,
   mode = 'products-and-dishes',
-  showInfoButtonOnListItem = false,
-  actionLeft,
-  actionRight,
-  sortByNutrientId,
-  sortByNutrientUnit,
-  showMore = false,
+  activeItemId,
+  richNutrient,
+  listItemsHasAdditionalActions = false,
+  onBack,
+  searchBarLeftChild,
+  searchBarRightChild,
   itemHtmlFor,
   inputId,
 }: Props) => {
@@ -68,18 +71,9 @@ const SearchFood = ({
   const categoryFilter = useCategoryFilterState();
   const currentFilterType = currentTab === 'продукты' ? 'product' : 'dish';
 
-  const searchState: SearchState<(typeof products)[number] | (typeof dishes)[number]> = {
-    searchQuery,
-    setSearch: setSearchQuery,
-    currentTab,
-    setTab: setCurrentTab,
-    filteredList: currentTab === 'продукты' ? products : dishes,
-    clearSearch: () => setSearchQuery(''),
-  };
-
-  const richNutrient = useMemo(
-    () => (sortByNutrientId ? allNutrientsList.find((n) => n.id === sortByNutrientId) : null),
-    [sortByNutrientId]
+  const richNutrientInfo = useMemo(
+    () => (richNutrient ? allNutrientsList.find((n) => n.id === richNutrient.id) : null),
+    [richNutrient]
   );
 
   const onFoodAdd = useCallback(
@@ -94,17 +88,21 @@ const SearchFood = ({
   const handleCreateProduct = useCallback(async () => {
     const name = searchQuery.trim();
     if (!name) return;
-    await createProduct({ name });
+    const productId = await createProduct({ name });
     setSearchQuery('');
-    toaster.success(`Продукт "${name}" создан`);
+    toaster.success(`Продукт «${name}» создан`, {
+      action: { label: 'Открыть', href: getProductUrl(productId) },
+    });
   }, [searchQuery]);
 
   const handleCreateDish = useCallback(async () => {
     const name = searchQuery.trim();
     if (!name) return;
-    await createDish(name);
+    const dishId = await createDish(name);
     setSearchQuery('');
-    toaster.success(`Блюдо "${name}" создано`);
+    toaster.success(`Блюдо «${name}» создано`, {
+      action: { label: 'Открыть', href: RouterUrls.getDish(dishId) },
+    });
   }, [searchQuery]);
 
   const isSearchActive = searchQuery.trim().length >= 2;
@@ -129,24 +127,15 @@ const SearchFood = ({
       <FoodActionCard
         variant="product"
         item={item}
-        active={currentProductId === item.id}
+        active={activeItemId === item.id}
         onClick={() => onFoodAdd(item)}
-        onAdd={() => onFoodAdd(item)}
-        showInfo={showInfoButtonOnListItem}
-        showMore={showMore}
-        richNutrientId={sortByNutrientId}
-        richNutrientUnit={sortByNutrientUnit}
+        showMore={listItemsHasAdditionalActions}
+        richNutrientId={richNutrient?.id}
+        richNutrientUnit={richNutrient?.unit}
         richNutrientMax={0}
       />
     ),
-    [
-      currentProductId,
-      onFoodAdd,
-      showInfoButtonOnListItem,
-      showMore,
-      sortByNutrientId,
-      sortByNutrientUnit,
-    ]
+    [activeItemId, onFoodAdd, listItemsHasAdditionalActions, richNutrient]
   );
 
   const renderDishItem = useCallback(
@@ -154,63 +143,50 @@ const SearchFood = ({
       <FoodActionCard
         variant="dish"
         item={item}
-        active={currentDishId === item.id}
+        active={activeItemId === item.id}
         onClick={() => onDishAdd(item)}
-        onAdd={() => onDishAdd(item)}
-        showInfo={showInfoButtonOnListItem}
-        showMore={showMore}
+        showMore={listItemsHasAdditionalActions}
       />
     ),
-    [currentDishId, onDishAdd, showInfoButtonOnListItem, showMore]
+    [activeItemId, onDishAdd, listItemsHasAdditionalActions]
   );
-
-  const productSearchState = { ...searchState, filteredList: products };
-  const dishSearchState = { ...searchState, filteredList: dishes };
 
   return (
     <>
       <div className={styles.content}>
         <div className={styles.header}>
           <SearchFoodControls
-            searchState={searchState}
-            onFocusChange={onFocusChange}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            currentTab={currentTab}
             toggleFilterPanel={() => setFilterPanelOpen((p) => !p)}
             mode={mode}
-            actionLeft={actionLeft}
-            actionRight={actionRight}
+            onBack={onBack}
+            searchBarLeftChild={searchBarLeftChild}
+            searchBarRightChild={searchBarRightChild}
             inputId={inputId}
           />
         </div>
 
-        {richNutrient && (
+        {richNutrientInfo && (
           <div className={styles.filterMessage}>
-            Богатые по <strong>{richNutrient.displayNameRu}</strong>
+            Богатые по <strong>{richNutrientInfo.displayNameRu}</strong>
           </div>
         )}
 
         {currentTab === 'продукты' && (
-          <List
-            isShow={true}
-            after={null}
-            queryKey="productSearch"
-            onFetch={async () => ({ items: [], hasMore: false })}
-            search={productSearchState}
-            renderListContent={renderProductItem}
+          <VirtualList
+            items={products}
+            renderItem={renderProductItem}
             emptyContent={productEmptyContent}
-            onClose={() => {}}
             itemHtmlFor={itemHtmlFor}
           />
         )}
         {(currentTab === 'блюда' || mode === 'dishes-only') && (
-          <List
-            isShow={true}
-            after={null}
-            queryKey="dishSearch"
-            onFetch={async () => ({ items: [], hasMore: false })}
-            search={dishSearchState}
-            renderListContent={renderDishItem}
+          <VirtualList
+            items={dishes}
+            renderItem={renderDishItem}
             emptyContent={dishEmptyContent}
-            onClose={() => {}}
             itemHtmlFor={itemHtmlFor}
           />
         )}

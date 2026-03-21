@@ -1,73 +1,53 @@
+/**
+ * AtomList.module.css — NYLON-magazine inspired chips
+ * Monochrome with minimal accent, editorial feel
+ */
+
 .atomList {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin: 12px 0;
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 8px;
-    min-height: 40px;
+    gap: 6px;
+    padding: 12px 0;
 }
 
 .atomChip {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 16px;
-    font-size: 13px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #000;
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    transition: opacity 0.15s;
 }
 
 .atomChip:hover {
-    border-color: #d0d0d0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+    opacity: 0.85;
 }
 
-.atomChip[data-kind='scale'] {
-    border-color: #ffb366;
-    background: #fff9f0;
-}
-
-.atomChip[data-kind='time'] {
-    border-color: #66b3ff;
-    background: #f0f8ff;
-}
-
-.atomChip[data-kind='number'] {
-    border-color: #99ff66;
-    background: #f8fff0;
-}
-
-.atomChip[data-kind='tag'] {
-    border-color: #ff99ff;
-    background: #fff0ff;
-}
-
-.atomChip[data-kind='relation'] {
-    border-color: #66ffcc;
-    background: #f0fffb;
-}
-
-.atomChip[data-kind='flag'] {
-    border-color: #ffff99;
-    background: #fffff0;
-}
+/* Subtle kind differentiation via left border accent */
+.atomChip[data-kind='scale'] { border-left: 3px solid #ff6b00; }
+.atomChip[data-kind='time'] { border-left: 3px solid #0066ff; }
+.atomChip[data-kind='number'] { border-left: 3px solid #00cc66; }
+.atomChip[data-kind='tag'] { border-left: 3px solid #cc00cc; }
+.atomChip[data-kind='relation'] { border-left: 3px solid #00ccaa; }
+.atomChip[data-kind='flag'] { border-left: 3px solid #ccaa00; }
+.atomChip[data-kind='body'] { border-left: 3px solid #cc3333; }
 
 .atomLabel {
-    font-weight: 500;
-    color: #666;
-    font-size: 11px;
+    font-weight: 700;
+    font-size: 9px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .atomValue {
-    color: #333;
     font-weight: 500;
+    color: #fff;
 }
 
 .removeButton {
@@ -80,18 +60,13 @@
     margin-left: 4px;
     background: transparent;
     border: none;
-    color: #999;
+    color: rgba(255, 255, 255, 0.4);
     cursor: pointer;
-    font-size: 14px;
-    transition: color 0.2s ease;
-    border-radius: 50%;
+    font-size: 12px;
+    transition: color 0.15s;
+    border-radius: 0;
 }
 
 .removeButton:hover {
-    color: #e74c3c;
-    background: rgba(231, 76, 60, 0.1);
-}
-
-.removeButton:active {
-    transform: scale(0.95);
+    color: #fff;
 }

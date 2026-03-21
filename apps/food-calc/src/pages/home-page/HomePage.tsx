@@ -13,7 +13,7 @@ const Page = ({ date }: { date: string }) => {
 
   const { results: scheduleFoods } = useScheduleFoods(date);
   const { results: scheduleEvents } = useScheduleEvents(date);
-  const { totals: scheduleTotals, missingNutrientNames } = useScheduleNutrientTotals(date);
+  const { totals: scheduleTotals, missingNutrientNames, isLoading: nutrientsLoading } = useScheduleNutrientTotals(date);
 
   const items = scheduleFoods ?? [];
   const events = scheduleEvents ?? [];
@@ -29,7 +29,7 @@ const Page = ({ date }: { date: string }) => {
   return (
     <>
       <Swipeable defaultSlide={1} onIndexChange={onPageChange}>
-        <FoodsNutrients totals={scheduleTotals} missingNutrientNames={missingNutrientNames} />
+        <FoodsNutrients totals={scheduleTotals} missingNutrientNames={missingNutrientNames} isLoading={nutrientsLoading} />
         <FoodSchedule date={date} items={items} />
         <ScheduleEvents date={date} events={events} />
       </Swipeable>

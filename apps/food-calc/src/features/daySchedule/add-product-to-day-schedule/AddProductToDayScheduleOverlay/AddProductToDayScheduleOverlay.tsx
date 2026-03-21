@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { format, startOfToday } from 'date-fns';
 import type { BaseDrawerProps } from '@/shared/ui';
+import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { BaseOverlayContentLayout } from '@/shared/ui/layout/overlay/BaseOverlayContentLayout';
 import { ScheduleSelection } from '@/features/ScheduleSelection';
 import { useProduct } from '@/entities/product';
@@ -37,25 +38,27 @@ const AddProductToDayScheduleOverlay = ({ productId, onClose }: Props) => {
   };
 
   return (
-    <BaseOverlayContentLayout
-      header={
-        <div className={styles.title}>
-          Добавить <span className={styles.itemName}>{product?.name || 'продукт'}</span> в{' '}
-          <span className={styles.date}>{selectedDate}</span>
-        </div>
-      }
-      content={<ScheduleSelection onSelect={handleSelect} selectedDate={selectedDate} />}
-      footer={
-        <div className={styles.footer}>
-          <button type="button" className={styles.cancelButton} onClick={() => onClose()}>
-            Отмена
-          </button>
-          <button type="button" className={styles.confirmButton} onClick={handleConfirm}>
-            Добавить
-          </button>
-        </div>
-      }
-    />
+    <DrawerLayout>
+      <BaseOverlayContentLayout
+        header={
+          <div className={styles.title}>
+            Добавить <span className={styles.itemName}>{product?.name || 'продукт'}</span> в{' '}
+            <span className={styles.date}>{selectedDate}</span>
+          </div>
+        }
+        content={<ScheduleSelection onSelect={handleSelect} selectedDate={selectedDate} />}
+        footer={
+          <div className={styles.footer}>
+            <button type="button" className={styles.cancelButton} onClick={() => onClose()}>
+              Отмена
+            </button>
+            <button type="button" className={styles.confirmButton} onClick={handleConfirm}>
+              Добавить
+            </button>
+          </div>
+        }
+      />
+    </DrawerLayout>
   );
 };
 

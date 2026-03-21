@@ -117,7 +117,12 @@ const EditScheduleEventModal = ({ item, initialStep = 'idle', onClose }: Props) 
           <div className={s.wrapper}>
             <div className={s.spacer} />
             <div className={s.content}>
-              <Textarea id={EDIT_MODAL_INPUT_IDS.TEXT_INPUT} onChange={handleTextChange} value={draft.text} />
+              <Textarea
+                placeholder="Опишите событие"
+                id={EDIT_MODAL_INPUT_IDS.TEXT_INPUT}
+                onChange={handleTextChange}
+                value={draft.text}
+              />
               <div className={s.finishButton}>
                 <Button variant="primary" onClick={handleCommit}>
                   Готово
@@ -134,8 +139,7 @@ const EditScheduleEventModal = ({ item, initialStep = 'idle', onClose }: Props) 
         isExpanded={step === 'atoms'}
         content={
           <div className={s.wrapper}>
-            <div className={s.spacer} />
-            <div className={s.content}>
+            <div className={s.atomsContent}>
               <div id={EDIT_MODAL_INPUT_IDS.ATOMS_INPUT} tabIndex={-1}>
                 <AtomBuilder />
               </div>

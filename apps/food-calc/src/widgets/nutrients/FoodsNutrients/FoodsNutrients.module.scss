@@ -1,3 +1,10 @@
+.statusHeader {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 16px 0;
+    min-height: 24px;
+}
+
 .messageContainer {
     margin-top: 50px;
     font-size: 12px;

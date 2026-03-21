@@ -15,14 +15,17 @@ import { Ornament } from '@/shared/ui/Ornament';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
+import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
+import styles from './FoodsNutrients.module.scss';
 
 type Props = {
   totals: NutrientTotals;
   missingNutrientNames?: string[];
+  isLoading?: boolean;
   after?: React.ReactNode;
 };
 
-const FoodsNutrients = ({ totals, missingNutrientNames = [], after }: Props) => {
+const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading, after }: Props) => {
   const filter = useFilterNutrients();
   const { getValue } = useNutrientTotals(totals);
 
@@ -66,6 +69,9 @@ const FoodsNutrients = ({ totals, missingNutrientNames = [], after }: Props) => 
         )
       }
     >
+      <div className={styles.statusHeader}>
+        {isLoading && <Spinner size={16} />}
+      </div>
       <Ornament text="нутриенты"></Ornament>
 
       <Nutrients renderCard={renderCard} />

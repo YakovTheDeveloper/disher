@@ -1,5 +1,6 @@
 import { FC, ReactNode, useRef, useState, useEffect, useCallback } from 'react';
 import clsx from 'clsx';
+import { AnimatePresence, motion } from 'framer-motion';
 import styles from './FilterNutrients.module.scss';
 
 const EyeOpenIcon = () => (
@@ -94,25 +95,45 @@ const FilterNutrientCardWrapper: FC<Props> = ({
         </div>
       )}
 
-      {overlayOpen && !filterMode && (
-        <div className={styles.cardOverlay}>
-          <div className={styles.cardOverlayLeft}>
-            {actionSlot}
-          </div>
-          <div className={styles.cardOverlayRight}>
-            <button
-              className={styles.overlayEyeBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggle();
-                setOverlayOpen(false);
-              }}
+      <AnimatePresence>
+        {overlayOpen && !filterMode && (
+          <motion.div
+            className={styles.cardOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+          >
+            <motion.div
+              className={styles.cardOverlayLeft}
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -6 }}
+              transition={{ duration: 0.12, delay: 0.03 }}
             >
-              {isHidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
-            </button>
-          </div>
-        </div>
-      )}
+              {actionSlot}
+            </motion.div>
+            <motion.div
+              className={styles.cardOverlayRight}
+              initial={{ opacity: 0, x: 6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 6 }}
+              transition={{ duration: 0.12, delay: 0.03 }}
+            >
+              <button
+                className={styles.overlayEyeBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggle();
+                  setOverlayOpen(false);
+                }}
+              >
+                {isHidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

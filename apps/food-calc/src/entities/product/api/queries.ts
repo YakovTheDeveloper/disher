@@ -5,8 +5,8 @@ export function useProduct(productId: string | undefined) {
   return useEntity(triplit, "foods", productId ?? "");
 }
 
-export function useProducts(search?: string, limit = 50) {
-  const query = triplit.query("foods").Limit(limit);
+export function useProducts(search?: string) {
+  const query = triplit.query("foods");
   return useQuery(triplit, search ? query.Where("name", "like", `%${search}%`) : query);
 }
 

@@ -1,54 +1,58 @@
 /**
- * AtomBuilder.module.css - Styles for AtomBuilder component
+ * AtomBuilder.module.css — NYLON-magazine inspired
+ * Monochrome, bold typography, editorial minimalism
  */
 
 .container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0;
 }
 
-.atomList {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin: 12px 0;
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 8px;
-    min-height: 40px;
+.inputContainer {
+    overflow: hidden;
+    margin-bottom: 12px;
 }
 
 .atomButtons {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .atomButtons button {
-    padding: 8px 12px;
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 500;
+    padding: 10px 16px;
+    background: transparent;
+    border: 1.5px solid #000;
+    border-radius: 0;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
     cursor: pointer;
-    color: #666;
-    transition: all 0.15s;
+    color: #000;
+    transition: background 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .atomButtons button:hover:not(:disabled) {
-    border-color: #4a90e2;
-    color: #4a90e2;
-    background: #f0f7ff;
+    background: #000;
+    color: #fff;
+}
+
+.atomButtons button:active:not(:disabled) {
+    background: #222;
+    color: #fff;
+}
+
+.atomButtons button[data-active] {
+    background: #000;
+    color: #fff;
 }
 
 .atomButtons button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.inputContainer {
-    overflow: hidden;
+    opacity: 0.25;
+    cursor: default;
 }

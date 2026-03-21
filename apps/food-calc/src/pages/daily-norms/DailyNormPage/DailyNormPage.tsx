@@ -8,7 +8,7 @@ import { ChangeName } from '@/features/shared/change-name';
 import { Ornament } from '@/shared/ui/Ornament';
 import { useRef } from 'react';
 import { observer } from 'mobx-react-lite';
-import type { DailyNorm } from '@/entities/daily-norm';
+import normsImg from '@/shared/assets/decarative/norms.png';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { NutrientCard } from '@/entities/nutrient/ui/NutrientCard';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
@@ -89,6 +89,7 @@ const DailyNormPage = ({}: Props) => {
       offsetTop
       title={<ScreenLabel variant="screenHeader">Норма</ScreenLabel>}
     >
+      <img src={normsImg} className={styles.backgroundImage} alt="" />
       <ChangeName entity={entityForChangeName} canRename={createdByUser} />
       <Spacer variant="screen-header-offset" />
       <Ornament text="описание дневной нормы"></Ornament>

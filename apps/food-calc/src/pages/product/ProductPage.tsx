@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   useProduct,
@@ -13,6 +13,7 @@ import {
 import { Nutrients } from '@/entities/nutrient/ui/NutrientGroup';
 import { NutrientCard } from '@/entities/nutrient/ui/NutrientCard';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
+import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import ChangeProductNutrientValue from './ChangeProductNutrientValue';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import TextBehind from '@/shared/ui/TextBehind/TextBehind';
@@ -30,8 +31,15 @@ import { FilterButton } from '@/shared/ui/atoms/Button';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
+import { isCreatedByUser } from '@/shared/lib';
 import bagImage from '@/shared/assets/decarative/bag.png';
 import s from './ProductPage.module.scss';
+
+type Mode = 'view' | 'edit';
+
+const gramNutrientIds = new Set(
+  allNutrientsList.filter((n) => n.unit === 'g').map((n) => n.id)
+);
 
 const ProductPage = () => {
   const { id } = useParams<'id'>();
@@ -39,11 +47,13 @@ const ProductPage = () => {
   const { results: portionsRaw } = useProductPortions(id);
   const { results: nutrientsRaw } = useProductNutrients(id);
   const [quantity, setQuantity] = useState(100);
+  const [mode, setMode] = useState<Mode>('view');
   const filter = useFilterNutrients();
 
   if (!food) return null;
 
-  const isUserCreated = food.userId !== '__system__';
+  const isUserCreated = isCreatedByUser(food.userId);
+  const isEditMode = isUserCreated && mode === 'edit';
 
   const nutrientValueMap = new Map<string, number>();
   for (const n of nutrientsRaw ?? []) {
@@ -53,6 +63,18 @@ const ProductPage = () => {
   const getNutrientValue = (nutrientId: string) => nutrientValueMap.get(nutrientId) ?? 0;
   const getScaledValue = (nutrientId: string) => getNutrientValue(nutrientId) * (quantity / 100);
 
+  const totalGramMass = useMemo(() => {
+    let sum = 0;
+    for (const [nutrientId, qty] of nutrientValueMap) {
+      if (gramNutrientIds.has(nutrientId)) {
+        sum += qty;
+      }
+    }
+    return sum;
+  }, [nutrientValueMap]);
+
+  const massExceeds100 = totalGramMass > 100;
+
   const portions = (portionsRaw ?? []).map((p) => ({
     label: p.label,
     amount: p.amount,
@@ -61,7 +83,7 @@ const ProductPage = () => {
   }));
 
   const renderCard = (nutrientData: Nutrient) => {
-    if (isUserCreated) {
+    if (isEditMode) {
       return (
         <ChangeProductNutrientValue
           content={nutrientData}
@@ -79,7 +101,7 @@ const ProductPage = () => {
       >
         <NutrientCard
           content={nutrientData}
-          getValue={getScaledValue}
+          getValue={isUserCreated ? getNutrientValue : getScaledValue}
           showValues={filter.showValues}
           showProgress={filter.showProgress}
         />
@@ -92,7 +114,7 @@ const ProductPage = () => {
       offsetTop
       title={<ScreenLabel variant="screenHeader">Продукт</ScreenLabel>}
       bottomRight={
-        !isUserCreated ? (
+        !isEditMode ? (
           <FilterButton onClick={filter.toggleFilterMode} isActive={filter.filterMode} />
         ) : undefined
       }
@@ -122,18 +144,44 @@ const ProductPage = () => {
 
       <Ornament text="состав" />
 
-      <TextBehind text="Количество" variant="elegant" position="middle-center">
-        <div className={s.quantityInputWrapper}>
-          <NumberInput
-            value={isUserCreated ? 100 : quantity}
-            disabled={isUserCreated}
-            min={0}
-            variant="underline"
-            onChange={(val) => setQuantity(val)}
-            bottom="грамм"
-          />
+      {!isEditMode && (
+        <TextBehind text="Количество" variant="elegant" position="middle-center">
+          <div className={s.quantityInputWrapper}>
+            <NumberInput
+              value={quantity}
+              min={0}
+              variant="underline"
+              onChange={(val) => setQuantity(val)}
+              bottom="грамм"
+            />
+          </div>
+        </TextBehind>
+      )}
+
+      {isUserCreated && (
+        <div className={s.modeToggleRow}>
+          <button
+            type="button"
+            className={`${s.modeBtn} ${mode === 'view' ? s.modeBtnActive : ''}`}
+            onClick={() => setMode('view')}
+          >
+            Просмотр
+          </button>
+          <button
+            type="button"
+            className={`${s.modeBtn} ${mode === 'edit' ? s.modeBtnActive : ''}`}
+            onClick={() => setMode('edit')}
+          >
+            Редактирование
+          </button>
         </div>
-      </TextBehind>
+      )}
+
+      {isEditMode && massExceeds100 && (
+        <div className={s.massWarning}>
+          Совокупная масса нутриентов ({totalGramMass.toFixed(1)} г) превышает 100 г
+        </div>
+      )}
 
       {isUserCreated && (
         <label>

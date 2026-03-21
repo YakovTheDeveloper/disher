@@ -10,7 +10,6 @@ export interface UseAppRoutesReturn {
     location: ReturnType<typeof useLocation>;
     goBack: (fallback?: string) => void;
     toRoot: () => void;
-    toDailyNorms: () => void;
     toDailyNorm: (id: string) => void;
     toDish: (id: string) => void;
     toSchedule: () => void;
@@ -37,7 +36,6 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
     };
 
     const toRoot = () => navigate(RouterLinks.Root);
-    const toDailyNorms = () => navigate(RouterLinks.DailyNorms);
     const toDailyNorm = (id: string) => navigate(`${RouterLinks.DailyNorms}/${id}`);
     const toDish = (id: string) => navigate(RouterUrls.getDish(id));
     const toScheduleDateSelection = () => navigate(RouterLinks.ScheduleDateSelection);
@@ -52,7 +50,6 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
         location,
         goBack,
         toRoot,
-        toDailyNorms,
         toDailyNorm,
         toDish,
         toSchedule: toScheduleDateSelection,
