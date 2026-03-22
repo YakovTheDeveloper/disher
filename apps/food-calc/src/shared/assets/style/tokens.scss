@@ -1,0 +1,52 @@
+// ─── Design Tokens ───────────────────────────────────────────────
+// Based on ProjectPrep.md — Nylon-inspired design system foundation.
+// Import this file in index.scss alongside palette.scss.
+
+:root {
+  // ─── Spacing (4px base) ──────────────────────────────────────
+  --space-1: 4px;    // 0.25rem — minimal gap
+  --space-2: 8px;    // 0.5rem — inside elements
+  --space-3: 12px;   // 0.75rem — between elements
+  --space-4: 16px;   // 1rem — standard padding
+  --space-5: 20px;   // 1.25rem — sections
+  --space-6: 24px;   // 1.5rem — large sections
+  --space-8: 32px;   // 2rem — between blocks
+  --space-10: 40px;  // 2.5rem — hero spacing
+  --space-12: 48px;  // 3rem — major section separation
+
+  // ─── Typography (modular scale 1.25) ─────────────────────────
+  --text-xs: 0.64rem;    // 10.2px — badges, micro labels
+  --text-sm: 0.8rem;     // 12.8px — secondary text, captions
+  --text-base: 1rem;     // 16px — body text
+  --text-lg: 1.25rem;    // 20px — subheadings
+  --text-xl: 1.563rem;   // 25px — section headings
+  --text-2xl: 1.953rem;  // 31.3px — page headings
+  --text-3xl: 2.441rem;  // 39px — hero text, accent numbers
+
+  // ─── Font families ───────────────────────────────────────────
+  --font-sans: "Jost", sans-serif;
+  --font-serif: "Merriweather", serif;
+  --font-display: "Raleway", sans-serif;
+
+  // ─── Border Radius ───────────────────────────────────────────
+  --radius-xs: 4px;       // progress bars, small pills
+  --radius-sm: 8px;       // buttons, inputs, small cards
+  --radius-md: 12px;      // cards, panels
+  --radius-lg: 16px;      // drawers, modals
+  --radius-xl: 24px;      // search bars, large pills
+  --radius-full: 9999px;  // circular buttons, badges
+
+  // ─── Shadows ─────────────────────────────────────────────────
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+
+  // ─── Animation ───────────────────────────────────────────────
+  --duration-fast: 120ms;     // hover, focus, micro-interactions
+  --duration-normal: 200ms;   // standard transitions
+  --duration-slow: 350ms;     // layout shifts, overlays
+  --easing-default: cubic-bezier(0.4, 0, 0.2, 1);      // Material-like
+  --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);   // bouncy/spring
+}

@@ -1,9 +1,7 @@
 .container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    // height: 100%;
-    // overflow-y: auto;
+    gap: var(--space-3);
     touch-action: pan-y;
 }
 
@@ -12,5 +10,5 @@
 }
 
 .offsetTop {
-    padding-top: 30px;
+    padding-top: var(--space-8);
 }

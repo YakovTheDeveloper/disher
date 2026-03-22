@@ -85,7 +85,7 @@ const ScheduleFoodItemComponent = ({
       onSelect={toggleSelectedId}
     >
       <label htmlFor={timeHtmlFor} onClick={handleTimeClick} style={{ cursor: onEditTime ? 'pointer' : 'default' }}>
-        <span style={{ fontSize: '0.85em', opacity: 0.7 }}>{content.time}</span>
+        <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>{content.time}</span>
       </label>
       <FoodName
         content={name}

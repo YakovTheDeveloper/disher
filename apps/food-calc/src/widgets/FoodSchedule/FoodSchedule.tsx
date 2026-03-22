@@ -176,7 +176,7 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -30 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
-                style={{ display: 'flex', gap: '0.5rem', flex: 1 }}
+                style={{ display: 'flex', gap: 'var(--space-2)', flex: 1 }}
               >
                 <label
                   htmlFor={MODAL_INPUT_IDS.DISH_NAME_INPUT}
@@ -202,7 +202,7 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -30 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
-                style={{ display: 'flex', gap: '1rem' }}
+                style={{ display: 'flex', gap: 'var(--space-4)' }}
               >
                 <IconButton
                   icon={<DishIcon />}
@@ -239,8 +239,8 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          padding: '0.5rem',
-          marginTop: '2rem',
+          padding: 'var(--space-2)',
+          marginTop: 'var(--space-8)',
         }}
       >
         <Button variant="ghost" onClick={() => toScheduleAnalytics(date)}>Анализ</Button>
@@ -321,10 +321,10 @@ const dishChoiceBtnStyle: React.CSSProperties = {
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: 4,
-  padding: '6px 8px',
-  borderRadius: 10,
-  fontSize: '0.7rem',
+  gap: 'var(--space-1)',
+  padding: 'var(--space-1) var(--space-2)',
+  borderRadius: 'var(--radius-md)',
+  fontSize: 'var(--text-sm)',
   fontWeight: 600,
   cursor: 'pointer',
   WebkitTapHighlightColor: 'transparent',
