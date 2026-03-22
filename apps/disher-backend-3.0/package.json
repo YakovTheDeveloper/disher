@@ -17,6 +17,7 @@
     "@fastify/cors": "^11.0.0",
     "@triplit/client": "^1.0.50",
     "fastify": "^5.2.0",
+    "google-translate-api-x": "^10.7.2",
     "jose": "^6.0.0"
   },
   "devDependencies": {

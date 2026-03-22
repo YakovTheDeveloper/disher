@@ -109,6 +109,7 @@ export const schema = S.Collections({
       description: S.String({ nullable: true, default: null }),
       descriptionEng: S.String({ nullable: true, default: null }),
       pricePerKg: S.Number({ nullable: true, default: null }),
+      source: S.String({ nullable: true, default: null }),
       categories: S.Set(S.String()),
     }),
     relationships: {

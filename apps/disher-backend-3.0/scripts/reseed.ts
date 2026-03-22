@@ -125,6 +125,19 @@ const nutrientGroups = [
     ],
   },
   {
+    name: "fattyAcids",
+    content: [
+      { id: "59", name: "saturatedFat", nameEng: "Saturated fat", displayName: "Насыщенные жиры", displayNameEng: "Saturated fat", unit: "г", unitEng: "g" },
+      { id: "60", name: "monounsaturatedFat", nameEng: "Monounsaturated fat", displayName: "Мононенасыщенные жиры", displayNameEng: "Monounsaturated fat", unit: "г", unitEng: "g" },
+      { id: "61", name: "polyunsaturatedFat", nameEng: "Polyunsaturated fat", displayName: "Полиненасыщенные жиры", displayNameEng: "Polyunsaturated fat", unit: "г", unitEng: "g" },
+      { id: "62", name: "transFat", nameEng: "Trans fat", displayName: "Трансжиры", displayNameEng: "Trans fat", unit: "г", unitEng: "g" },
+      { id: "63", name: "cholesterol", nameEng: "Cholesterol", displayName: "Холестерин", displayNameEng: "Cholesterol", unit: "мг", unitEng: "mg" },
+      { id: "64", name: "omega3EPA", nameEng: "Omega-3 EPA", displayName: "Омега-3 EPA", displayNameEng: "Omega-3 EPA", unit: "г", unitEng: "g" },
+      { id: "65", name: "omega3DHA", nameEng: "Omega-3 DHA", displayName: "Омега-3 DHA", displayNameEng: "Omega-3 DHA", unit: "г", unitEng: "g" },
+      { id: "66", name: "omega3ALA", nameEng: "Omega-3 ALA", displayName: "Омега-3 ALA", displayNameEng: "Omega-3 ALA", unit: "г", unitEng: "g" },
+    ],
+  },
+  {
     name: "aminoAcids",
     content: [
       { id: "40", name: "tryptophan", nameEng: "Tryptophan", displayName: "Триптофан", displayNameEng: "Tryptophan", unit: "г", unitEng: "g" },
@@ -302,8 +315,10 @@ async function seedFoodsUsda(path: string) {
     name: string;
     nameEng: string;
     description: string;
+    source: string;
     categories: string[];
     nutrients: Array<{ nutrientId: string; quantity: number }>;
+    portions: Array<{ label: string; amount: number; unit: string; grams: number }>;
   }>;
 
   try {
@@ -324,6 +339,7 @@ async function seedFoodsUsda(path: string) {
       nameEng: food.nameEng ?? "",
       description: food.description ?? null,
       descriptionEng: null,
+      source: food.source ?? null,
       categories: new Set(food.categories ?? []),
     });
 
@@ -333,6 +349,19 @@ async function seedFoodsUsda(path: string) {
         foodId: food.id,
         nutrientId: n.nutrientId,
         quantity: n.quantity,
+      });
+    }
+
+    for (let pi = 0; pi < (food.portions ?? []).length; pi++) {
+      const p = food.portions[pi];
+      await client.insert("foodPortions", {
+        id: `${food.id}-p-${pi}`,
+        foodId: food.id,
+        userId: "__system__",
+        label: p.label,
+        amount: p.amount,
+        unit: p.unit,
+        grams: p.grams,
       });
     }
 
@@ -381,6 +410,7 @@ async function seedFoodsSkurikhin(path: string) {
       nameEng: "",
       description: null,
       descriptionEng: null,
+      source: "skurikhin",
       categories,
     });
 
