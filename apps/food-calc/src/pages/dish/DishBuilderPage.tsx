@@ -39,6 +39,7 @@ import {
   COPY_TO_DISH_INPUT_IDS,
 } from './ui';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
+import { FoodToolbar } from '@/features/food/food-toolbar';
 import { FoodPortionsManager } from '@/features/food/food-portions-manager';
 import { Ornament } from '@/shared/ui/Ornament';
 import { useDishNutrientTotals } from '@/entities/dish';
@@ -174,11 +175,24 @@ const DishBuilderPage = () => {
         }
         topLeft={selectedIds.length > 0 ? <CountBadge count={selectedIds.length} /> : null}
         bottomRight={
-          isActionsMode ? null : (
+          isActionsMode || items.length === 0 ? null : (
             <AddButton as="label" htmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT} onClick={() => {}} />
           )
         }
       >
+        <FoodToolbar hasItems={items.length > 0} />
+        {items.length === 0 && (
+          <div style={{ padding: 'var(--space-10) var(--space-4) 0' }}>
+            <AddButton
+              onClick={() => {}}
+              as="label"
+              htmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
+              prominent
+            >
+              Добавить продукт в блюдо
+            </AddButton>
+          </div>
+        )}
         <ItemsList offsetTop>
           {items.map((item) => (
             <SelectableListItem

@@ -9,11 +9,20 @@ type Props = {
   animate?: () => boolean;
   as?: 'button' | 'label';
   htmlFor?: string;
+  prominent?: boolean;
 };
-const AddButton = ({ onClick, children, as = 'button', htmlFor }: Props) => {
+const AddButton = ({ onClick, children, as = 'button', htmlFor, prominent }: Props) => {
   const Tag = as;
   return (
-    <Tag onClick={onClick} htmlFor={htmlFor} className={clsx(styles.container, children && styles.withText)}>
+    <Tag
+      onClick={onClick}
+      htmlFor={htmlFor}
+      className={clsx(
+        styles.container,
+        children && styles.withText,
+        prominent && styles.prominent,
+      )}
+    >
       <span className={styles.icon}>
         <PlusIcon />
       </span>

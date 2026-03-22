@@ -83,9 +83,23 @@ const ScheduleEvents = ({ date, events }: Props) => {
         <Navigation title={<Typography variant="feature-title-2">События</Typography>}></Navigation>
       }
       bottomRight={
-        <AddButton htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT} as="label" onClick={() => {}} />
+        events.length > 0 ? (
+          <AddButton htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT} as="label" onClick={() => {}} />
+        ) : null
       }
     >
+      {events.length === 0 && (
+        <div style={{ padding: 'var(--space-10) var(--space-4) 0' }}>
+          <AddButton
+            onClick={() => {}}
+            as="label"
+            htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT}
+            prominent
+          >
+            Добавить событие
+          </AddButton>
+        </div>
+      )}
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList offsetTop>
           {eventsGroupedByTime.map((timeGroup) => (

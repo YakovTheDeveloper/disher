@@ -1,0 +1,26 @@
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: var(--space-2) var(--space-4);
+    margin-top: var(--space-6);
+    border-top: 1px solid var(--border-hairline);
+    border-bottom: 1px solid var(--border-hairline);
+}
+
+.btn {
+    flex: 1;
+    font-size: var(--text-sm);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+.divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border-hairline);
+    flex-shrink: 0;
+}

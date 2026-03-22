@@ -21,7 +21,7 @@ export const getTitle = (input: DDMMYYYY) => {
     }
 
     const day = date.getDate();
-    const monthNumber = date.getMonth() + 1;
+    const monthNumber = String(date.getMonth() + 1).padStart(2, '0');
 
     const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(date);
     const weekdayName = new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(date);

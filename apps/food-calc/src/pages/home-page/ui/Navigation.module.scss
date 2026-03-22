@@ -1,115 +1,106 @@
 .header {
     display: flex;
     width: 100%;
-    flex-direction: column;
     position: sticky;
     z-index: 2;
     top: 0;
 }
 
-.title {
-    padding: 0 0.5rem;
-    z-index: 1;
-    font-size: 2rem;
-    opacity: 1;
-    transition: opacity 0.4s ease;
-
-    [data-collapsed="true"] & {
-        opacity: 0;
-    }
-}
-
-.backgroundImage {
-    position: absolute;
-    top: 10px;
-    left: 30px;
-    height: auto;
-    width: 50vw;
-    pointer-events: none;
-    user-select: none;
-    z-index: 2;
-    opacity: 0.1;
-    transition: opacity 0.4s ease;
-
-    [data-collapsed="true"] & {
-        opacity: 0;
-    }
-}
-
-.left {
-    position: relative;
-    width: 1px;
-    z-index: -1;
-}
-
-.row {
-    display: flex;
-    flex-grow: 1;
-}
-
-// — Date display —
-
 .dateLink {
     display: flex;
     flex-direction: column;
-    margin-left: auto;
+    align-items: flex-end;
+    width: 100%;
     cursor: pointer;
+    padding: var(--space-4) var(--space-4) var(--space-2);
 }
 
-.date {
+// ─── Masthead (expanded) ───────────────────────────────────────
+
+.masthead {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    font-size: 25px;
-    line-height: 25px;
-}
-
-.dateNumbers {
-    margin-right: 8px;
-    font-size: 48px;
-    font-weight: 400;
-    line-height: 1;
-    display: flex;
-    gap: 10px 5px;
-    align-items: flex-end;
-    margin-left: auto;
-    padding: 0 0.5rem;
-    border-radius: 50px;
-    transition: font-size 0.4s ease, background-color 0.4s ease, backdrop-filter 0.4s ease;
-
-    [data-collapsed="true"] & {
-        font-size: 16px;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(30px);
-    }
-}
-
-.weekdayShort {
-    opacity: 0;
-    transition: opacity 0.5s ease;
-
-    [data-collapsed="true"] & {
-        opacity: 1;
-    }
-}
-
-.dateWords {
-    display: flex;
-    gap: 5px;
-    padding-right: 1rem;
-    transition: opacity 0.5s ease;
+    transition: opacity var(--duration-slow) ease, transform var(--duration-slow) ease;
 
     [data-collapsed="true"] & {
         opacity: 0;
         pointer-events: none;
+        position: absolute;
     }
 }
 
-.dateWord {
-    color: var(--di-word-default, rgb(0, 68, 255));
-    font-family: var(--dev-date-word-font);
-    font-weight: var(--dev-date-word-weight, 200);
-    font-style: var(--dev-date-word-style, italic);
-    font-size: 15px;
-    line-height: 0.8rem;
+.mastheadWeekday {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+}
+
+.mastheadDateRow {
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+}
+
+.mastheadDay {
+    font-family: var(--font-sans);
+    font-size: var(--text-3xl);
+    font-weight: 300;
+    line-height: 1;
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+}
+
+.mastheadDot {
+    font-family: var(--font-sans);
+    font-size: var(--text-2xl);
+    font-weight: 200;
+    color: var(--text-tertiary);
+    margin: 0 1px;
+}
+
+.mastheadMonthNum {
+    font-family: var(--font-sans);
+    font-size: var(--text-2xl);
+    font-weight: 200;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin-right: var(--space-3);
+}
+
+.mastheadMonth {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--text-xl);
+    color: var(--text-secondary);
+    letter-spacing: 0.01em;
+    align-self: center;
+}
+
+// ─── Masthead (collapsed) ──────────────────────────────────────
+
+.mastheadCollapsed {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: var(--text-base);
+    font-weight: 400;
+    color: var(--text-primary);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(30px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-slow) ease;
+
+    [data-collapsed="true"] & {
+        opacity: 1;
+        pointer-events: auto;
+    }
 }

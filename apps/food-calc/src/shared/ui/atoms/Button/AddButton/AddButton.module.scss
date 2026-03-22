@@ -11,31 +11,74 @@
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: var(--color-text-primary, #1f2937);
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--duration-normal) ease,
+                box-shadow var(--duration-normal) ease,
+                background var(--duration-normal) ease;
 
     &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: var(--shadow-md);
         background: rgba(255, 255, 255, 0.25);
     }
 
     &:active {
         transform: scale(0.95);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-xs);
         background: rgba(255, 255, 255, 0.1);
     }
 }
 
 .withText {
     width: auto;
-    border-radius: 22px;
-    padding: 0 16px 0 12px;
-    gap: 8px;
+    border-radius: var(--radius-xl);
+    padding: 0 var(--space-4) 0 var(--space-3);
+    gap: var(--space-2);
+}
+
+// ─── Prominent variant (empty-state CTA) ───────────────────────
+.prominent {
+    width: 100%;
+    height: 52px;
+    border-radius: var(--radius-md);
+    background: var(--color-accent);
+    color: var(--text-on-accent);
+    border: none;
+    backdrop-filter: none;
+    box-shadow: var(--shadow-md);
+    padding: 0 var(--space-5);
+    gap: var(--space-3);
+
+    .icon {
+        opacity: 0.8;
+
+        svg {
+            fill: currentColor;
+        }
+    }
+
+    .text {
+        font-size: var(--text-base);
+        font-weight: 500;
+        letter-spacing: 0.02em;
+    }
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-lg);
+        background: var(--color-accent);
+    }
+
+    &:active {
+        transform: scale(0.98);
+        box-shadow: var(--shadow-sm);
+        background: var(--color-accent);
+        opacity: 0.9;
+    }
 }
 
 .text {
-    font-size: 0.8rem;
+    font-size: var(--text-sm);
     font-weight: 500;
     white-space: nowrap;
 }

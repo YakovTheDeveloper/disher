@@ -9,11 +9,9 @@ import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { Navigation } from '@/pages/home-page/ui';
-import Typography from '@/shared/ui/atoms/Typography/Typography';
 import toaster from '@/shared/lib/toaster/toaster';
-import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import Button from '@/shared/ui/atoms/Button/Button';
 import { useUiStore } from '@/shared/model/uiStore';
+import { FoodToolbar } from '@/features/food/food-toolbar';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import {
   ScheduleFoodCreationModals,
@@ -37,14 +35,12 @@ type CommonProps = {
 };
 
 const FoodSchedule = ({ date, items }: CommonProps) => {
-  const { toScheduleAnalytics, toFood } = useAppRoutes();
   const selectionStoreFood = useSelection();
   const isActionsMode = useStore(selectionStoreFood, (s) => s.isActionsMode);
   const selectedIds = useStore(selectionStoreFood, (s) => s.selectedIds);
   const { clearSelection, setSelectedIds } = selectionStoreFood.getState();
 
   const showPrice = useUiStore((s) => s.scheduleFoodsShowPrice);
-  const toggleShowPrice = useUiStore((s) => s.toggleScheduleFoodsShowPrice);
 
   const [isOpen, setIsOpen] = useState<
     'create-dish-and-copy' | 'copy-to-existing-dish' | 'copy-to-another-day' | null
@@ -224,31 +220,28 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
         </ActionsPanel>
       }
       header={
-        <Navigation title={<Typography variant="feature-title">Еда</Typography>}></Navigation>
+        <Navigation />
       }
       topLeft={null}
       bottomRight={
-        isActionsMode ? null : (
-          <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.TIME_INPUT}>
-            {items.length === 0 ? 'Добавить еду в этот день' : undefined}
-          </AddButton>
+        isActionsMode || items.length === 0 ? null : (
+          <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.TIME_INPUT} />
         )
       }
     >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          padding: 'var(--space-2)',
-          marginTop: 'var(--space-8)',
-        }}
-      >
-        <Button variant="ghost" onClick={() => toScheduleAnalytics(date)}>Анализ</Button>
-        <Button variant="ghost" onClick={toFood}>Список еды</Button>
-        <Button variant="ghost" onClick={toggleShowPrice} style={{ opacity: showPrice ? 1 : 0.5 }}>
-          ₽
-        </Button>
-      </div>
+      <FoodToolbar date={date} hasItems={items.length > 0} />
+      {items.length === 0 && (
+        <div style={{ padding: `var(--space-10) var(--space-4) 0` }}>
+          <AddButton
+            onClick={() => {}}
+            as="label"
+            htmlFor={MODAL_INPUT_IDS.TIME_INPUT}
+            prominent
+          >
+            Добавить еду в этот день
+          </AddButton>
+        </div>
+      )}
       <ItemsList offsetTop>
         {groups.map((group) => (
           <TimeGroup
