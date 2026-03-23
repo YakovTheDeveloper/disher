@@ -1,35 +1,29 @@
 /**
- * NumberAtomInput - Input component for number atoms
+ * NumberAtomInput - Fullscreen input for number atoms
  */
 
 import { useState } from 'react';
 import { NumberAtom } from '@/entities/schedule-event';
-import { AtomInputLayout, AtomActionButtons, PresetChips } from './shared';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { AtomModalFooter, PresetChips } from './shared';
+import styles from './shared/AtomInputShared.module.css';
 
 export interface NumberAtomInputProps {
   onAddAtom: (atom: NumberAtom) => void;
   onClose: () => void;
   accentColor?: string;
+  inputId?: string;
 }
 
 const PRESET_UNITS = ['км', 'м', 'бпм', '°C', 'мг', 'шаги', 'ккал', 'г'];
 
-/**
- * NumberAtomInput Component
- *
- * Allows user to add a number atom with optional unit and label
- */
-export const NumberAtomInput = ({ onAddAtom, onClose, accentColor }: NumberAtomInputProps) => {
+export const NumberAtomInput = ({ onAddAtom, onClose, accentColor, inputId }: NumberAtomInputProps) => {
   const [value, setValue] = useState('');
   const [unit, setUnit] = useState('');
   const [label, setLabel] = useState('');
 
   const handleAdd = () => {
-    if (!value || isNaN(Number(value))) {
-      alert('Пожалуйста, введите число');
-      return;
-    }
-
+    if (!value || isNaN(Number(value))) return;
     onAddAtom({
       kind: 'number',
       value: Number(value),
@@ -39,27 +33,33 @@ export const NumberAtomInput = ({ onAddAtom, onClose, accentColor }: NumberAtomI
   };
 
   return (
-    <AtomInputLayout title="Добавить число" accentColor={accentColor}>
-      <div>
-        <label>Значение</label>
-        <input
-          type="number"
-          placeholder="5"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-        />
-      </div>
+    <ModalShell>
+      <ModalShell.Body>
+        <div
+          className={styles.atomModalContent}
+          style={accentColor ? ({ '--atom-accent': accentColor } as React.CSSProperties) : undefined}
+        >
+          <h3 className={styles.title}>Добавить число</h3>
 
-      {value && (
-        <>
           <div>
-            <label>Единица измерения (опционально)</label>
+            <label>Значение</label>
             <input
-              type="text"
-              placeholder="км, бпм, °C..."
-              value={unit}
-              onChange={(e) => setUnit(e.target.value)}
+              id={inputId}
+              type="number"
+              placeholder="0"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
             />
+            {value && (
+              <output>
+                {value}
+                {unit && <span style={{ fontSize: '1rem', fontWeight: 400, opacity: 0.6 }}> {unit}</span>}
+              </output>
+            )}
+          </div>
+
+          <div>
+            <label>Единица</label>
             <PresetChips presets={PRESET_UNITS} value={unit} onChange={setUnit} />
           </div>
 
@@ -72,11 +72,11 @@ export const NumberAtomInput = ({ onAddAtom, onClose, accentColor }: NumberAtomI
               onChange={(e) => setLabel(e.target.value)}
             />
           </div>
-        </>
-      )}
 
-      <AtomActionButtons onCancel={onClose} onAdd={handleAdd} addDisabled={!value} />
-    </AtomInputLayout>
+          <AtomModalFooter onCancel={onClose} onAdd={handleAdd} addDisabled={!value} accentColor={accentColor} />
+        </div>
+      </ModalShell.Body>
+    </ModalShell>
   );
 };
 

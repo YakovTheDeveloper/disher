@@ -1,13 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import clsx from 'clsx';
 import styles from './FoodActionCard.module.scss';
 import { deleteProducts } from '@/entities/product';
 import { deleteDishes } from '@/entities/dish';
 import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
-import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import { drawerStore } from '@/shared/ui/drawer-store';
 import { isCreatedByUser } from '@/shared/lib';
-import { FoodActionsDrawer } from './food-actions-drawer';
 
 type Props = {
   variant: 'product' | 'dish';
@@ -22,8 +19,7 @@ type Props = {
   onAdd?: () => void;
   showDelete?: boolean;
   showAdd?: boolean;
-  showInfo?: boolean;
-  showMore?: boolean;
+  rightChild?: React.ReactNode;
   richNutrientId?: string | null;
   richNutrientUnit?: string;
   richNutrientMax?: number;
@@ -70,45 +66,17 @@ const TrashIcon = () => (
   </svg>
 );
 
-const InfoIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="10" cy="10" r="8.5" stroke="currentColor" strokeWidth="1.2" />
-    <text
-      x="10.5"
-      y="15"
-      textAnchor="middle"
-      fontStyle="italic"
-      fontFamily="Georgia, 'Times New Roman', serif"
-      fontSize="13"
-      fill="currentColor"
-    >
-      i
-    </text>
-  </svg>
-);
-
-const MoreIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="5" r="1.5" fill="currentColor" />
-    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-    <circle cx="12" cy="19" r="1.5" fill="currentColor" />
-  </svg>
-);
-
 const FoodActionCard = ({
   variant,
   item,
   active,
   onClick,
   showDelete = false,
-  showInfo = false,
-  showMore = false,
+  rightChild,
   richNutrientId,
   richNutrientUnit,
   richNutrientMax = 0,
 }: Props) => {
-  const { toProduct, toDish } = useAppRoutes();
-  const [inverted, setInverted] = useState(false);
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.userId);
 
   const handleDelete = () => {
@@ -162,7 +130,7 @@ const FoodActionCard = ({
       : null;
 
   return (
-    <li className={clsx(styles.wrapper, inverted && styles.wrapper_inverted)}>
+    <li className={styles.wrapper}>
       {richNutrientValue !== null && richness > 0 && (
         <span
           className={styles.richBar}
@@ -190,42 +158,7 @@ const FoodActionCard = ({
       >
         <span className={styles.name}>{item.name}</span>
       </p>
-      {showInfo && (
-        <button
-          className={styles.iconBtn}
-          type="button"
-          aria-label="Информация"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (variant === 'product') toProduct(item.id.toString());
-            else toDish(item.id.toString());
-          }}
-        >
-          <InfoIcon />
-        </button>
-      )}
-      {showMore && (
-        <button
-          className={styles.iconBtn}
-          type="button"
-          aria-label="Ещё"
-          onClick={async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setInverted(true);
-            await drawerStore.show(FoodActionsDrawer, {
-              variant,
-              itemId: item.id,
-              itemName: item.name,
-              isUserCreated: userCreated,
-            });
-            setInverted(false);
-          }}
-        >
-          <MoreIcon />
-        </button>
-      )}
+      {rightChild}
     </li>
   );
 };

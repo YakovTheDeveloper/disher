@@ -1,0 +1,61 @@
+/**
+ * AtomModalFooter — mirrors ModalFooter layout with per-atom accent color.
+ */
+
+.panel {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.cancelBtn {
+  flex: 0 0 33%;
+  max-width: 33%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: transparent;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelBtn:hover {
+  border-color: rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.cancelBtn:active {
+  transform: translateY(1px);
+}
+
+.addBtn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  background: var(--atom-accent, #222);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addBtn:hover:not(:disabled) {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.addBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.addBtn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}

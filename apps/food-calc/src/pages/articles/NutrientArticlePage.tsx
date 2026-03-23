@@ -23,6 +23,7 @@ const NutrientArticlePage = () => {
     setLoading(true);
     fetchNutrientArticle(folder)
       .then(setContent)
+      .catch(() => setContent(null))
       .finally(() => setLoading(false));
   }, [folder]);
 

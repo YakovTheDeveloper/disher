@@ -5,4 +5,5 @@
 export * from './types';
 export * from './AtomInputLayout';
 export * from './AtomActionButtons';
+export * from './AtomModalFooter';
 export * from './PresetChips';

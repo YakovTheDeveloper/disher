@@ -13,11 +13,12 @@ export interface AtomInputLayoutProps {
   accentColor?: string;
 }
 
-const slideDownAnimation = {
-  initial: { opacity: 0, y: -10, height: 0 },
-  animate: { opacity: 1, y: 0, height: 'auto' },
-  exit: { opacity: 0, y: -10, height: 0 },
-  transition: { type: "spring" as const, stiffness: 300, damping: 25 },
+// Opacity + translate only — no height animation (height:auto is slow and janky)
+const slideAnimation = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 6 },
+  transition: { duration: 0.14, ease: [0.4, 0, 0.2, 1] as const },
 };
 
 export const AtomInputLayout: React.FC<AtomInputLayoutProps> = ({
@@ -30,7 +31,7 @@ export const AtomInputLayout: React.FC<AtomInputLayoutProps> = ({
     <motion.div
       className={styles.inputBlock}
       style={accentColor ? ({ '--atom-accent': accentColor } as React.CSSProperties) : undefined}
-      {...slideDownAnimation}
+      {...slideAnimation}
     >
       <h3 className={styles.title}>{title}</h3>
       {description && <p className={styles.description}>{description}</p>}

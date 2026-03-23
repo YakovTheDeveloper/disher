@@ -157,7 +157,7 @@ const FoodActionsDrawer = ({ onClose, variant, itemId, itemName, isUserCreated }
               </header>
               <SearchFood
                 mode="dishes-only"
-                onFinish={handleAddToExistingDish}
+                onSelectFood={handleAddToExistingDish}
                 inputId={MODAL_INPUT_IDS.ADD_TO_EXISTING_DISH}
               />
             </div>

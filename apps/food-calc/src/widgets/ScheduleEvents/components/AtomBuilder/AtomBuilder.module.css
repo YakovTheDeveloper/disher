@@ -1,16 +1,12 @@
 /**
- * AtomBuilder.module.css — NYLON editorial: sharp type-selector buttons with per-kind accent
+ * AtomBuilder.module.css — type-selector labels with per-kind accent
  */
 
 .container {
     display: flex;
     flex-direction: column;
-    gap: 0;
-}
-
-.inputContainer {
-    overflow: hidden;
-    margin-bottom: var(--space-3, 12px);
+    flex: 1;
+    min-height: 0;
 }
 
 .atomButtons {
@@ -19,8 +15,10 @@
     gap: var(--space-1, 4px);
     padding-top: var(--space-2, 8px);
     border-top: 1px solid rgba(0, 0, 0, 0.06);
+    margin-top: auto;
 }
 
+.atomButtons label,
 .atomButtons button {
     padding: 10px var(--space-4, 16px);
     background: transparent;
@@ -37,36 +35,34 @@
         color var(--duration-fast, 120ms),
         background var(--duration-fast, 120ms);
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 /* Per-kind accent variable */
-.atomButtons button[data-kind='scale']    { --btn-accent: var(--event-scale-accent); }
-.atomButtons button[data-kind='time']     { --btn-accent: var(--event-time-accent); }
-.atomButtons button[data-kind='number']   { --btn-accent: var(--event-number-accent); }
-.atomButtons button[data-kind='tag']      { --btn-accent: var(--event-tag-accent); }
-.atomButtons button[data-kind='relation'] { --btn-accent: var(--event-relation-accent); }
-.atomButtons button[data-kind='flag']     { --btn-accent: var(--event-flag-accent); }
-.atomButtons button[data-kind='body']     { --btn-accent: var(--event-body-accent); }
+.atomButtons [data-kind='scale']    { --btn-accent: var(--event-scale-accent); }
+.atomButtons [data-kind='time']     { --btn-accent: var(--event-time-accent); }
+.atomButtons [data-kind='number']   { --btn-accent: var(--event-number-accent); }
+.atomButtons [data-kind='tag']      { --btn-accent: var(--event-tag-accent); }
+.atomButtons [data-kind='relation'] { --btn-accent: var(--event-relation-accent); }
+.atomButtons [data-kind='flag']     { --btn-accent: var(--event-flag-accent); }
+.atomButtons [data-kind='body']     { --btn-accent: var(--event-body-accent); }
 
-.atomButtons button:hover:not(:disabled) {
+.atomButtons label:hover,
+.atomButtons button:hover {
     border-color: var(--btn-accent, #000);
     color: var(--btn-accent, #000);
     background: transparent;
 }
 
-.atomButtons button:active:not(:disabled) {
+.atomButtons label:active,
+.atomButtons button:active {
     background: var(--btn-accent, #222);
     border-color: var(--btn-accent, #222);
     color: #fff;
 }
 
-.atomButtons button[data-active] {
+.atomButtons [data-active] {
     background: var(--btn-accent, #000);
     border-color: var(--btn-accent, #000);
     color: #fff;
-}
-
-.atomButtons button:disabled {
-    opacity: 0.25;
-    cursor: default;
 }

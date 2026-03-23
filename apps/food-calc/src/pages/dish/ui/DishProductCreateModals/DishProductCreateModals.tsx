@@ -121,11 +121,17 @@ const DishProductCreateModals = ({ dishId }: Props) => {
         isExpanded={step === 'search'}
         content={
           <ModalShell>
-            <ModalStepHeader currentStep="search" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
+            <ModalStepHeader
+              currentStep="search"
+              steps={STEPS}
+              stepLabels={STEP_LABELS}
+              onBack={handleClose}
+              onStepClick={goToStep}
+            />
             <SearchFood
               key={sessionKey}
               mode="products-only"
-              onFinish={handleFoodSelect}
+              onSelectFood={handleFoodSelect}
               activeItemId={draft.foodId ?? undefined}
               itemHtmlFor={DISH_MODAL_INPUT_IDS.QUANTITY_INPUT}
               inputId={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
@@ -140,12 +146,20 @@ const DishProductCreateModals = ({ dishId }: Props) => {
         isExpanded={step === 'quantity'}
         content={
           <ModalShell>
-            <ModalStepHeader currentStep="quantity" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
+            <ModalStepHeader
+              currentStep="quantity"
+              steps={STEPS}
+              stepLabels={STEP_LABELS}
+              onBack={handleClose}
+              onStepClick={goToStep}
+            />
             <ModalShell.Spacer />
             <ModalShell.Body>
-              {draft.foodId && <ProductQuantity key={sessionKey} content={quantityContent} onFinish={() => {}} />}
+              {draft.foodId && (
+                <ProductQuantity key={sessionKey} content={quantityContent} onFinish={() => {}} />
+              )}
               <ModalFooter onBack={() => goToStep('search')}>
-                <Button variant="primary" onClick={handleCommit}>
+                <Button variant="primary-form" onClick={handleCommit}>
                   Готово
                 </Button>
               </ModalFooter>

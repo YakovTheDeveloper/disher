@@ -194,7 +194,7 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
             <SearchFood
               key={sessionKey}
               mode="products-and-dishes"
-              onFinish={handleFoodSelect}
+              onSelectFood={handleFoodSelect}
               activeItemId={draft.productId ?? draft.dishId ?? undefined}
               itemHtmlFor={MODAL_INPUT_IDS.QUANTITY_INPUT}
               inputId={MODAL_INPUT_IDS.SEARCH_INPUT}

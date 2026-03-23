@@ -1,16 +1,18 @@
 /**
- * FlagAtomInput - Input component for flag atoms
+ * FlagAtomInput - Fullscreen input for flag atoms
  */
 
 import { useState } from 'react';
 import { FlagAtom } from '@/entities/schedule-event';
-import { AtomInputLayout, AtomActionButtons } from './shared';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { AtomModalFooter } from './shared';
 import styles from './shared/AtomInputShared.module.css';
 
 export interface FlagAtomInputProps {
   onAddAtom: (atom: FlagAtom) => void;
   onClose: () => void;
   accentColor?: string;
+  inputId?: string;
 }
 
 const PRESET_FLAGS = [
@@ -22,73 +24,68 @@ const PRESET_FLAGS = [
   { value: 'reminder-needed', label: '⏰ Нужен напоминание' },
 ];
 
-/**
- * FlagAtomInput Component
- *
- * Allows user to add a flag atom expressing a binary state or marker
- */
-export const FlagAtomInput = ({ onAddAtom, onClose, accentColor }: FlagAtomInputProps) => {
+export const FlagAtomInput = ({ onAddAtom, onClose, accentColor, inputId }: FlagAtomInputProps) => {
   const [customValue, setCustomValue] = useState('');
   const [selectedFlag, setSelectedFlag] = useState<string | null>(null);
 
   const handleAdd = () => {
     const flagValue = selectedFlag || customValue.trim();
-
-    if (!flagValue) {
-      alert('Пожалуйста, выберите или введите флаг');
-      return;
-    }
-
-    onAddAtom({
-      kind: 'flag',
-      value: flagValue,
-    });
+    if (!flagValue) return;
+    onAddAtom({ kind: 'flag', value: flagValue });
   };
 
   return (
-    <AtomInputLayout
-      title="Добавить флаг"
-      description="Выберите одно из предложенных или введите свое"
-      accentColor={accentColor}
-    >
-      <div>
-        <label>Готовые флаги</label>
-        <div className={styles.presetLabels}>
-          {PRESET_FLAGS.map(({ value, label }) => (
-            <button
-              key={value}
-              type="button"
-              className={`${styles.presetChip} ${selectedFlag === value ? styles.active : ''}`}
-              onClick={() => {
-                setSelectedFlag(value);
-                setCustomValue('');
+    <ModalShell>
+      <ModalShell.Body>
+        <div
+          className={styles.atomModalContent}
+          style={accentColor ? ({ '--atom-accent': accentColor } as React.CSSProperties) : undefined}
+        >
+          <h3 className={styles.title}>Добавить флаг</h3>
+          <p className={styles.description}>Выберите одно из предложенных или введите свое</p>
+
+          <div>
+            <label>Свой флаг</label>
+            <input
+              id={inputId}
+              type="text"
+              placeholder="например: 'требует лечения'"
+              value={customValue}
+              onChange={(e) => {
+                setCustomValue(e.target.value);
+                setSelectedFlag(null);
               }}
-            >
-              {label}
-            </button>
-          ))}
+            />
+          </div>
+
+          <div>
+            <label>Готовые флаги</label>
+            <div className={styles.presetLabels}>
+              {PRESET_FLAGS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`${styles.presetChip} ${selectedFlag === value ? styles.active : ''}`}
+                  onClick={() => {
+                    setSelectedFlag(value);
+                    setCustomValue('');
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <AtomModalFooter
+            onCancel={onClose}
+            onAdd={handleAdd}
+            addDisabled={!selectedFlag && !customValue.trim()}
+            accentColor={accentColor}
+          />
         </div>
-      </div>
-
-      <div>
-        <label>Или введите свой флаг</label>
-        <input
-          type="text"
-          placeholder="например: 'требует лечения'"
-          value={customValue}
-          onChange={(e) => {
-            setCustomValue(e.target.value);
-            setSelectedFlag(null);
-          }}
-        />
-      </div>
-
-      <AtomActionButtons
-        onCancel={onClose}
-        onAdd={handleAdd}
-        addDisabled={!selectedFlag && !customValue.trim()}
-      />
-    </AtomInputLayout>
+      </ModalShell.Body>
+    </ModalShell>
   );
 };
 

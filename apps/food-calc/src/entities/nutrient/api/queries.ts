@@ -1,10 +1,2 @@
-import { useQuery, useEntity } from "@triplit/react";
-import { triplit } from "@/api/triplit/client";
-
-export function useNutrients() {
-  return useQuery(triplit, triplit.query("nutrients"));
-}
-
-export function useNutrient(nutrientId: string | undefined) {
-  return useEntity(triplit, "nutrients", nutrientId ?? "");
-}
+// Nutrient metadata lives in constants (src/entities/nutrient/ui/NutrientGroup/constants).
+// No Triplit queries needed — ~35 nutrients are static JS data.

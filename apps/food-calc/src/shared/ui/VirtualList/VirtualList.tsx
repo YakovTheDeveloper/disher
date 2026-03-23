@@ -70,8 +70,9 @@ function VirtualList<T extends { id: string | number }>({
         {virtualItems.map((vRow) => {
           const item = items[vRow.index];
           if (!item) return null;
+          const Tag = itemHtmlFor ? 'label' : 'div';
           return (
-            <label
+            <Tag
               key={vRow.key}
               htmlFor={itemHtmlFor}
               data-index={vRow.index}
@@ -87,7 +88,7 @@ function VirtualList<T extends { id: string | number }>({
               role="option"
             >
               {renderItem(item)}
-            </label>
+            </Tag>
           );
         })}
 

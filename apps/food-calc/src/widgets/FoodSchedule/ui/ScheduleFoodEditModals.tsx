@@ -53,9 +53,15 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
   const [step, setStep] = useState<Step>(initialStep);
   const [draft, setDraft] = useState<DraftState>(createInitialDraft);
   useSwipeableLock(step !== 'idle');
-  useOverlayHistory(step !== 'idle', () => { setStep('idle'); onClose(); });
+  useOverlayHistory(step !== 'idle', () => {
+    setStep('idle');
+    onClose();
+  });
 
-  const handleClose = () => { setStep('idle'); onClose(); };
+  const handleClose = () => {
+    setStep('idle');
+    onClose();
+  };
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
@@ -118,7 +124,7 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
                 inputId={EDIT_MODAL_INPUT_IDS.TIME_INPUT}
               />
               <ModalFooter onBack={handleClose}>
-                <Button variant="primary" onClick={handleCommit}>
+                <Button variant="primary-form" onClick={handleCommit}>
                   Готово
                 </Button>
               </ModalFooter>
@@ -135,7 +141,7 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
           <ModalShell>
             <SearchFood
               mode="products-and-dishes"
-              onFinish={handleFoodSelect}
+              onSelectFood={handleFoodSelect}
               activeItemId={draft.foodId ?? undefined}
               inputId={EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
             />
@@ -151,9 +157,15 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
           <ModalShell>
             <ModalShell.Spacer />
             <ModalShell.Body>
-              {draft.content && <ProductQuantity content={draft.content} onFinish={() => {}} inputId={EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT} />}
+              {draft.content && (
+                <ProductQuantity
+                  content={draft.content}
+                  onFinish={() => {}}
+                  inputId={EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
+                />
+              )}
               <ModalFooter onBack={handleClose}>
-                <Button variant="primary" onClick={handleCommit}>
+                <Button variant="primary-form" onClick={handleCommit}>
                   Готово
                 </Button>
               </ModalFooter>

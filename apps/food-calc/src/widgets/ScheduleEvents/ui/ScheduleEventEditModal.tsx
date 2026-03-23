@@ -12,6 +12,7 @@ import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
+import { Typography } from '@/shared/ui/atoms/Typography';
 
 export const EDIT_MODAL_INPUT_IDS = {
   TIME_INPUT: 'time-input-edit-schedule-event',
@@ -51,9 +52,15 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
   }, [item.id]);
 
   useSwipeableLock(step !== 'idle');
-  useOverlayHistory(step !== 'idle', () => { setStep('idle'); onClose(); });
+  useOverlayHistory(step !== 'idle', () => {
+    setStep('idle');
+    onClose();
+  });
 
-  const handleClose = () => { setStep('idle'); onClose(); };
+  const handleClose = () => {
+    setStep('idle');
+    onClose();
+  };
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
@@ -105,7 +112,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
                 inputId={EDIT_MODAL_INPUT_IDS.TIME_INPUT}
               />
               <ModalFooter onBack={handleClose}>
-                <Button variant="primary" onClick={handleCommit}>
+                <Button variant="primary-form" onClick={handleCommit}>
                   Готово
                 </Button>
               </ModalFooter>
@@ -122,14 +129,14 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
           <ModalShell>
             <ModalShell.Spacer />
             <ModalShell.Body>
+              <Typography variant="elegant">Опишите, что чувствуете или что произошло</Typography>
               <Textarea
-                placeholder="Опишите событие"
                 id={EDIT_MODAL_INPUT_IDS.TEXT_INPUT}
                 onChange={handleTextChange}
                 value={draft.text}
               />
               <ModalFooter onBack={handleClose}>
-                <Button variant="primary" onClick={handleCommit}>
+                <Button variant="primary-form" onClick={handleCommit}>
                   Готово
                 </Button>
               </ModalFooter>
@@ -149,7 +156,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
                 <AtomBuilder />
               </div>
               <ModalFooter onBack={handleClose}>
-                <Button variant="primary" onClick={handleCommit}>
+                <Button variant="primary-form" onClick={handleCommit}>
                   Готово
                 </Button>
               </ModalFooter>

@@ -8,12 +8,7 @@ import { drawerStore } from '@/shared/ui';
 import { ScheduleSelectionDrawer } from '@/features/ScheduleSelection/ScheduleSelectionDrawer';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 
-type Props = {
-  children?: React.ReactNode;
-  title?: React.ReactNode;
-};
-
-const Navigation = ({}: Props) => {
+const Navigation = () => {
   const params = useParams();
   const dateParam = params.id;
   const { day, monthName, monthNumber, weekdayName, weekdayNameShort } = getTitle(dateParam ?? '');
@@ -48,7 +43,9 @@ const Navigation = ({}: Props) => {
           </div>
         </div>
         <div className={styles.mastheadCollapsed}>
-          <span>{weekdayNameShort}, {day} {monthName}</span>
+          <span>
+            {weekdayNameShort}, {day} {monthName}
+          </span>
         </div>
       </div>
     </header>

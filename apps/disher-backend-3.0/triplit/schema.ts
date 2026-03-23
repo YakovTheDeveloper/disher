@@ -173,23 +173,31 @@ export const schema = S.Collections({
         update: { filter: [["userId", "=", "$role.userId"]] },
         delete: { filter: [["userId", "=", "$role.userId"]] },
       },
+      anon: { read: { filter: [["userId", "=", "__system__"]] } },
     },
   },
 
   // ─── Food Nutrients ───
+  // userId = "__system__" for USDA data (stored in Dexie), user's ID for user-created (stored in Triplit)
   foodNutrients: {
     schema: S.Schema({
       id: S.Id(),
       quantity: S.Number(),
       foodId: S.String(),
       nutrientId: S.String(),
+      userId: S.String({ default: "__system__" }),
     }),
     relationships: {
       food: S.RelationById("foods", "$foodId"),
       nutrient: S.RelationById("nutrients", "$nutrientId"),
     },
     permissions: {
-      user: { read: { filter: [true] } },
+      user: {
+        read: { filter: [true] },
+        insert: { filter: [["userId", "=", "$role.userId"]] },
+        update: { filter: [["userId", "=", "$role.userId"]] },
+        delete: { filter: [["userId", "=", "$role.userId"]] },
+      },
       anon: { read: { filter: [true] } },
     },
   },

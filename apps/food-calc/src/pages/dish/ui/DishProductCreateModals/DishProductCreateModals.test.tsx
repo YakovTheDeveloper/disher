@@ -43,13 +43,13 @@ vi.mock('@/features/food/food-search', () => ({
         <input id={props.inputId} data-testid="search-input" placeholder="search" />
         <button
           data-testid="select-product-1"
-          onClick={() => props.onFinish({ variant: 'product', id: 'prod-1', name: 'Яблоко' })}
+          onClick={() => props.onSelectFood({ variant: 'product', id: 'prod-1', name: 'Яблоко' })}
         >
           Яблоко
         </button>
         <button
           data-testid="select-product-2"
-          onClick={() => props.onFinish({ variant: 'product', id: 'prod-2', name: 'Молоко' })}
+          onClick={() => props.onSelectFood({ variant: 'product', id: 'prod-2', name: 'Молоко' })}
         >
           Молоко
         </button>

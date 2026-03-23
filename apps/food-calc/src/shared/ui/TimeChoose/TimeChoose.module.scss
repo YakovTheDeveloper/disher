@@ -18,7 +18,7 @@
     background-color: rgba(255, 255, 255, 0.5);
 
     backdrop-filter: blur(2px);
-    outline: 17px solid rgba(255, 0, 0, 0);
+    outline: 17px solid rgba(124, 58, 237, 0);
 
     &:focus-within {
         box-shadow: 0 4px 10px rgba(45, 66, 255, 0.1);
@@ -33,9 +33,9 @@
 
 .input {
     display: block;
-    width: 90px;
+    width: 100px;
     padding: 6px 4px;
-    font-size: 3.5rem;
+    font-size: 4rem;
     font-weight: 900;
     text-shadow: #ffd700;
     text-align: center;
@@ -53,7 +53,7 @@
     }
 
     &::selection {
-        color: red;
+        color: #7c3aed;
     }
 
     &:focus {
@@ -144,6 +144,6 @@
 
     &:focus {
         outline: none;
-        border-color: rgba(255, 0, 0, 0.8);
+        border-color: rgba(124, 58, 237, 0.8);
     }
 }

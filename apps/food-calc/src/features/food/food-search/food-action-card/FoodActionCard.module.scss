@@ -9,25 +9,6 @@
     }
 }
 
-.wrapper_inverted {
-    background: #111;
-
-    .name {
-        color: #fff;
-    }
-
-    .iconBtn {
-        color: rgba(255, 255, 255, 0.5);
-
-        &:active {
-            color: #fff;
-        }
-    }
-
-    .richValue {
-        color: rgba(255, 255, 255, 0.7);
-    }
-}
 
 @keyframes growBar {
     from {

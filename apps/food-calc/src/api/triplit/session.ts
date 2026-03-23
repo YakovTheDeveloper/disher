@@ -1,15 +1,19 @@
 import { v4 as uuid } from "uuid";
-import { triplit, SERVER_URL } from "./client";
+import { triplit } from "./client";
+import { referenceDb } from "@/api/dexie/client";
+import type { SyncWorkerResponse } from "@/api/dexie/sync.worker";
+import SyncWorker from "@/api/dexie/sync.worker?worker";
 
 // ─── Constants ───
 
 const AUTH_TOKEN_KEY = "triplit_token";
 const ANON_USER_ID_KEY = "anon_user_id";
 const ANON_TOKEN = import.meta.env.VITE_TRIPLIT_TOKEN as string | undefined;
+export const API_BASE = `http://${window.location.hostname}:3100`;
 
-const SYSTEM_COLLECTIONS = ["nutrients", "foods", "foodNutrients", "dailyNorms", "dailyNormItems"] as const;
-const SYNC_TIMEOUT = 8_000;
-const HEALTH_CHECK_TIMEOUT = 2_000;
+const SYSTEM_COLLECTIONS = ["foods", "foodPortions", "dailyNorms", "dailyNormItems"] as const;
+const COLLECTION_SYNC_TIMEOUT = 120_000; // 2 мин на коллекцию (страховка от зависания)
+const REFERENCE_VERSION_KEY = "reference_data_version";
 
 // ─── Sync Status (consumed by SyncProvider) ───
 
@@ -33,19 +37,81 @@ function setSyncStatus(status: SyncStatus) {
   _syncListeners.forEach((fn) => fn(status));
 }
 
+// ─── Sync Progress (per-collection state, consumed by SystemPage) ───
+
+export type CollectionSyncState = "pending" | "syncing" | "done" | "timeout";
+export type SyncProgress = Record<string, CollectionSyncState>;
+
+type SyncProgressListener = (progress: SyncProgress) => void;
+
+let _syncProgress: SyncProgress = {};
+const _syncProgressListeners = new Set<SyncProgressListener>();
+
+export function getSyncProgress(): SyncProgress {
+  return _syncProgress;
+}
+
+export function onSyncProgressChange(listener: SyncProgressListener): () => void {
+  _syncProgressListeners.add(listener);
+  return () => _syncProgressListeners.delete(listener);
+}
+
+function setCollectionState(name: string, state: CollectionSyncState) {
+  _syncProgress = { ..._syncProgress, [name]: state };
+  _syncProgressListeners.forEach((fn) => fn(_syncProgress));
+}
+
+function resetSyncProgress() {
+  const initial: SyncProgress = {};
+  for (const name of SYSTEM_COLLECTIONS) initial[name] = "pending";
+  _syncProgress = initial;
+  _syncProgressListeners.forEach((fn) => fn(_syncProgress));
+}
+
+// ─── Sync Log (consumed by SystemPage) ───
+
+export type SyncLogEntry = {
+  time: string;
+  level: "info" | "warn" | "error";
+  message: string;
+};
+
+type SyncLogListener = (entries: SyncLogEntry[]) => void;
+
+let _syncLog: SyncLogEntry[] = [];
+const _syncLogListeners = new Set<SyncLogListener>();
+
+export function getSyncLog(): SyncLogEntry[] {
+  return _syncLog;
+}
+
+export function onSyncLogChange(listener: SyncLogListener): () => void {
+  _syncLogListeners.add(listener);
+  return () => _syncLogListeners.delete(listener);
+}
+
+function addSyncLog(level: SyncLogEntry["level"], message: string) {
+  const time = new Date().toLocaleTimeString("ru-RU", { hour12: false });
+  _syncLog = [..._syncLog, { time, level, message }];
+  _syncLogListeners.forEach((fn) => fn(_syncLog));
+  if (level === "error") console.error(`[session] ${message}`);
+  else if (level === "warn") console.warn(`[session] ${message}`);
+  else console.log(`[session] ${message}`);
+}
+
 // ─── Session Info (consumed by SystemPage) ───
 
 export type SessionInfo = {
   mode: "user" | "anon";
   connected: boolean;
   skippedReason?: string;
-  localCounts: Record<string, number>;
+  syncComplete: boolean;
 };
 
 let _sessionInfo: SessionInfo = {
   mode: "anon",
   connected: false,
-  localCounts: {},
+  syncComplete: false,
 };
 
 export function getSessionInfo(): SessionInfo {
@@ -54,67 +120,90 @@ export function getSessionInfo(): SessionInfo {
 
 // ─── Internal helpers ───
 
-async function isServerReachable(): Promise<boolean> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT);
-  try {
-    const res = await fetch(SERVER_URL, {
-      method: "HEAD",
-      signal: controller.signal,
-    });
-    return res.ok || res.status === 426;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timer);
-  }
-}
+/**
+ * Fetch the server's reference data version — a single number equal to the
+ * sum of all system collection counts. Cheap: one SQLite COUNT per collection.
+ * Retries up to 3 times (500 ms apart) to handle the startup race where the
+ * TCP port is open but Fastify hasn't registered routes yet.
+ * Returns null if all attempts fail or the server is genuinely unreachable.
+ */
+async function fetchServerVersion(): Promise<number | null> {
+  const url = `${API_BASE}/api/system/version`;
+  const ATTEMPTS = 3;
+  const RETRY_DELAY = 500;
 
-async function fetchLocalCounts(): Promise<Record<string, number>> {
-  const counts: Record<string, number> = {};
-  for (const name of SYSTEM_COLLECTIONS) {
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
     try {
-      // @ts-expect-error — dynamic collection name
-      const res = await triplit.fetch(triplit.query(name));
-      counts[name] = res instanceof Map ? res.size : Array.isArray(res) ? res.length : 0;
+      const res = await fetch(url, { signal: AbortSignal.timeout(5_000) });
+      if (!res.ok) return null;
+      const data = await res.json() as { version: number };
+      addSyncLog("info", `Server version: ${data.version}`);
+      return data.version;
     } catch {
-      counts[name] = 0;
+      if (attempt < ATTEMPTS) {
+        addSyncLog("info", `Version check attempt ${attempt} failed, retrying...`);
+        await new Promise((r) => setTimeout(r, RETRY_DELAY));
+      }
     }
   }
-  return counts;
+  return null;
 }
 
-function waitForServerResponse(name: string): Promise<void> {
-  return new Promise<void>((resolve) => {
+function getLocalVersion(): number | null {
+  const v = localStorage.getItem(REFERENCE_VERSION_KEY);
+  return v !== null ? Number(v) : null;
+}
+
+function saveLocalVersion(version: number) {
+  localStorage.setItem(REFERENCE_VERSION_KEY, String(version));
+}
+
+/**
+ * Subscribe to one collection and wait for onRemoteFulfilled.
+ * Each collection has its own 2-minute timeout — independent of other collections.
+ */
+function waitForCollection(name: string): Promise<"done" | "timeout"> {
+  setCollectionState(name, "syncing");
+  addSyncLog("info", `  ${name}: syncing...`);
+
+  return new Promise<"done" | "timeout">((resolve) => {
+    let settled = false;
+
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      addSyncLog("warn", `  ${name}: timeout after ${COLLECTION_SYNC_TIMEOUT / 1000}s`);
+      setCollectionState(name, "timeout");
+      unsub();
+      resolve("timeout");
+    }, COLLECTION_SYNC_TIMEOUT);
+
     const unsub = triplit.subscribe(
       // @ts-expect-error — dynamic collection name
       triplit.query(name),
       () => {},
       (error) => {
-        console.error(`[session] ${name} sync error:`, error);
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        addSyncLog("error", `  ${name}: error — ${error}`);
+        setCollectionState(name, "timeout");
         unsub();
-        resolve();
+        resolve("timeout");
       },
       {
         onRemoteFulfilled: () => {
-          console.log(`[session] ${name}: synced`);
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          addSyncLog("info", `  ${name}: done`);
+          setCollectionState(name, "done");
           unsub();
-          resolve();
+          resolve("done");
         },
       },
     );
   });
-}
-
-async function syncSystemCollections(): Promise<void> {
-  const syncAll = Promise.all(SYSTEM_COLLECTIONS.map(waitForServerResponse));
-  const timeout = new Promise<void>((resolve) =>
-    setTimeout(() => {
-      console.warn(`[session] Sync timed out after ${SYNC_TIMEOUT / 1000}s`);
-      resolve();
-    }, SYNC_TIMEOUT),
-  );
-  await Promise.race([syncAll, timeout]);
 }
 
 // ─── initSession — single entry point ───
@@ -123,87 +212,195 @@ async function syncSystemCollections(): Promise<void> {
  * Initialize the Triplit session on app startup.
  *
  * Flow:
- * 1. User token in localStorage → connect and stay connected (full sync).
- * 2. Anon + local data cached   → don't connect at all.
- * 3. Anon + no local data       → connect, pull system data, disconnect.
+ * 1. User token → connect and stay connected (full sync, Triplit manages it).
+ * 2. Anon → fetch server version (single number), compare with localStorage.
+ *    Match  → already synced, done (no Triplit connection needed).
+ *    Mismatch → connect, sync all collections, save new version, disconnect.
+ * 3. Server unreachable + local version exists → use cached data (offline mode).
+ * 4. Server unreachable + no local version → offline, no data.
+ *
+ * No IDB reads, no retry loops, no race conditions.
+ * onRemoteFulfilled is the authoritative "sync done" signal — we trust it.
  */
 export async function initSession(): Promise<void> {
   const userToken = localStorage.getItem(AUTH_TOKEN_KEY);
 
-  // ── Step 1: Count what we have locally ──
-  const localCounts = await fetchLocalCounts();
-  const totalLocal = Object.values(localCounts).reduce((a, b) => a + b, 0);
-
-  // ── Step 2: User mode — connect and stay connected ──
+  // ── User mode: connect and stay connected ──
   if (userToken) {
-    console.log("[session] User token found, connecting...");
+    addSyncLog("info", "User token found, connecting...");
     setSyncStatus("syncing");
-    _sessionInfo = { mode: "user", connected: true, localCounts };
+    _sessionInfo = { mode: "user", connected: true, syncComplete: true };
 
     try {
       await triplit.startSession(userToken);
       setSyncStatus("synced");
-      console.log("[session] Authenticated session started.");
+      addSyncLog("info", "Authenticated session started.");
     } catch (err) {
-      console.error("[session] Failed to start authenticated session:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      addSyncLog("error", `Failed to start authenticated session: ${msg}`);
       setSyncStatus("offline");
-      _sessionInfo.connected = false;
-      _sessionInfo.skippedReason = "Failed to connect with user token";
+      _sessionInfo = { ...(_sessionInfo), connected: false, skippedReason: "Failed to connect with user token", syncComplete: false };
+    }
+
+    // Ensure Dexie has foodNutrients (may be missing if user never visited in anon mode)
+    ensureDexieFoodNutrients();
+    return;
+  }
+
+  // ── Anon mode: version check ──
+  addSyncLog("info", "Checking reference data version...");
+  const serverVersion = await fetchServerVersion();
+
+  if (serverVersion === null) {
+    const localVersion = getLocalVersion();
+    if (localVersion !== null) {
+      addSyncLog("info", "Server unreachable. Using cached reference data.");
+      setSyncStatus("synced");
+      _sessionInfo = { mode: "anon", connected: false, skippedReason: "Server unreachable, using cache", syncComplete: false };
+    } else {
+      addSyncLog("error", "Server unreachable and no local data.");
+      setSyncStatus("offline");
+      _sessionInfo = { mode: "anon", connected: false, skippedReason: "Server unreachable", syncComplete: false };
     }
     return;
   }
 
-  // ── Step 3: Anon + local data exists — don't connect ──
-  if (totalLocal > 0) {
-    console.log(`[session] Local data found (${totalLocal} rows), skipping sync.`);
+  const localVersion = getLocalVersion();
+  if (localVersion === serverVersion) {
+    addSyncLog("info", `Reference data up to date (v${serverVersion}). No sync needed.`);
     setSyncStatus("synced");
-    _sessionInfo = {
-      mode: "anon",
-      connected: false,
-      skippedReason: "Local data already cached",
-      localCounts,
-    };
+    _sessionInfo = { mode: "anon", connected: false, skippedReason: "Version match", syncComplete: true };
+    // IDB may have been cleared while localStorage version persisted — backfill Dexie if empty
+    ensureDexieFoodNutrients();
     return;
   }
 
-  // ── Step 4: Anon + no data — need to fetch from server ──
+  addSyncLog("info", `Version mismatch (local: ${localVersion ?? "none"} → server: ${serverVersion}). Syncing...`);
+  await syncReferenceData(serverVersion);
+}
+
+/**
+ * If Dexie foodNutrients table is empty, trigger a full sync.
+ * Runs in background (fire-and-forget) so it doesn't block session init.
+ */
+function ensureDexieFoodNutrients(): void {
+  referenceDb.foodNutrients.count().then((count) => {
+    if (count > 0) return;
+    addSyncLog("info", "Dexie foodNutrients empty, syncing...");
+    syncFoodNutrientsToDexie().catch((e) => {
+      addSyncLog("warn", `  foodNutrients (Dexie): failed — ${e instanceof Error ? e.message : String(e)}`);
+    });
+  });
+}
+
+/**
+ * Bulk-load USDA foodNutrients via Web Worker (no main-thread jank).
+ * Worker handles: fetch → parse ndjson → Dexie bulkPut.
+ * Main thread only receives progress/done/error messages.
+ */
+function syncFoodNutrientsToDexie(): Promise<void> {
+  addSyncLog("info", "  foodNutrients (Worker): syncing...");
+
+  // Clean up old v1 database if it exists
+  indexedDB.deleteDatabase("disher-reference");
+
+  return new Promise<void>((resolve, reject) => {
+    const worker = new SyncWorker();
+
+    worker.onmessage = (e: MessageEvent<SyncWorkerResponse>) => {
+      const msg = e.data;
+      if (msg.type === "progress") {
+        addSyncLog("info", `  foodNutrients (Worker): ${msg.count} foods...`);
+      } else if (msg.type === "done") {
+        addSyncLog("info", `  foodNutrients (Worker): done (${msg.total} foods)`);
+        worker.terminate();
+        resolve();
+      } else if (msg.type === "error") {
+        addSyncLog("error", `  foodNutrients (Worker): ${msg.message}`);
+        worker.terminate();
+        reject(new Error(msg.message));
+      }
+    };
+
+    worker.onerror = (e) => {
+      addSyncLog("error", `  foodNutrients (Worker): ${e.message}`);
+      worker.terminate();
+      reject(new Error(e.message));
+    };
+
+    worker.postMessage({
+      type: "start",
+      url: `${API_BASE}/api/system/export/food-nutrients`,
+      timeoutMs: COLLECTION_SYNC_TIMEOUT,
+    });
+  });
+}
+
+/**
+ * Connect with anon token, sync all system collections, disconnect.
+ * Saves the new version to localStorage on success so the next startup is instant.
+ */
+async function syncReferenceData(serverVersion: number | null): Promise<void> {
   if (!ANON_TOKEN) {
-    console.warn("[session] No anon token configured, cannot sync.");
+    addSyncLog("error", "No anon token (VITE_TRIPLIT_TOKEN), cannot sync.");
     setSyncStatus("offline");
-    _sessionInfo = {
-      mode: "anon",
-      connected: false,
-      skippedReason: "No anon token (VITE_TRIPLIT_TOKEN)",
-      localCounts,
-    };
+    _sessionInfo = { mode: "anon", connected: false, skippedReason: "No anon token", syncComplete: false };
     return;
   }
 
-  const reachable = await isServerReachable();
-  if (!reachable) {
-    console.warn("[session] Server unreachable.");
-    setSyncStatus("offline");
-    _sessionInfo = {
-      mode: "anon",
-      connected: false,
-      skippedReason: "Server unreachable",
-      localCounts,
-    };
-    return;
-  }
-
-  // Connect → pull system data → disconnect
-  console.log("[session] First visit — syncing system data...");
   setSyncStatus("syncing");
 
-  await triplit.startSession(ANON_TOKEN);
-  await syncSystemCollections();
-  await triplit.endSession();
+  try {
+    await triplit.startSession(ANON_TOKEN);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    addSyncLog("error", `Failed to connect: ${msg}`);
+    setSyncStatus("offline");
+    _sessionInfo = { mode: "anon", connected: false, skippedReason: `Connection failed: ${msg}`, syncComplete: false };
+    return;
+  }
 
-  const updatedCounts = await fetchLocalCounts();
+  addSyncLog("info", "Syncing system collections...");
+  resetSyncProgress();
+  const [results] = await Promise.all([
+    Promise.all(SYSTEM_COLLECTIONS.map(waitForCollection)),
+    syncFoodNutrientsToDexie().catch((e) => {
+      addSyncLog("warn", `  foodNutrients (Dexie): failed — ${e instanceof Error ? e.message : String(e)}`);
+    }),
+  ]);
+
+  // Save version before disconnecting.
+  // We trust onRemoteFulfilled as the authoritative sync-complete signal.
+  // Even if some collections timed out, save the version for those that succeeded;
+  // a forced re-sync can be triggered manually from SystemPage if needed.
+  if (serverVersion !== null) {
+    saveLocalVersion(serverVersion);
+  }
+
+  try {
+    await triplit.endSession();
+  } catch (e) {
+    addSyncLog("warn", `endSession error: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  const timedOut = SYSTEM_COLLECTIONS.filter((_, i) => results[i] === "timeout");
+  if (timedOut.length > 0) {
+    addSyncLog("warn", `Sync complete with timeouts: ${timedOut.join(", ")}`);
+  } else {
+    addSyncLog("info", "All system collections synced.");
+  }
+
   setSyncStatus("synced");
-  _sessionInfo = { mode: "anon", connected: false, localCounts: updatedCounts };
-  console.log("[session] System data synced, disconnected.");
+  _sessionInfo = { mode: "anon", connected: false, syncComplete: timedOut.length === 0 };
+}
+
+// ─── Public sync trigger ───
+
+/** Re-run the full init flow. Can be called from UI for manual retry after failure. */
+export async function syncNow(): Promise<void> {
+  // Force re-sync by clearing the cached version
+  localStorage.removeItem(REFERENCE_VERSION_KEY);
+  await initSession();
 }
 
 // ─── Auth helpers ───

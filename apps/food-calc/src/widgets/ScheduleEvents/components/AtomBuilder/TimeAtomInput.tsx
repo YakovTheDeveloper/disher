@@ -1,94 +1,100 @@
 /**
- * TimeAtomInput - Input component for time atoms
+ * TimeAtomInput - Fullscreen input for time atoms
  */
 
 import { useState } from 'react';
 import { TimeAtom } from '@/entities/schedule-event';
-import { AtomInputLayout, AtomActionButtons } from './shared';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { AtomModalFooter } from './shared';
+import styles from './shared/AtomInputShared.module.css';
 
 export interface TimeAtomInputProps {
   onAddAtom: (atom: TimeAtom) => void;
   onClose: () => void;
   accentColor?: string;
+  inputId?: string;
 }
 
 type TimeMode = 'duration' | 'end';
 
-/**
- * TimeAtomInput Component
- *
- * Allows user to add a time atom
- */
-export const TimeAtomInput = ({ onAddAtom, onClose, accentColor }: TimeAtomInputProps) => {
+export const TimeAtomInput = ({ onAddAtom, onClose, accentColor, inputId }: TimeAtomInputProps) => {
   const [mode, setMode] = useState<TimeMode>('duration');
   const [durationMin, setDurationMin] = useState(30);
   const [endTime, setEndTime] = useState('13:00');
 
   const handleAdd = () => {
     const atom: TimeAtom = { kind: 'time' };
-
     if (mode === 'duration') {
       atom.durationMin = durationMin;
     } else if (mode === 'end') {
       atom.end = timeToMs(endTime);
     }
-
     onAddAtom(atom);
   };
 
   return (
-    <AtomInputLayout title="Добавить время" accentColor={accentColor}>
-      <div>
-        <label>Тип времени</label>
-        <div>
-          <label>
-            <input
-              type="radio"
-              value="duration"
-              checked={mode === 'duration'}
-              onChange={(e) => setMode(e.target.value as TimeMode)}
-            />
-            Длительность
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="end"
-              checked={mode === 'end'}
-              onChange={(e) => setMode(e.target.value as TimeMode)}
-            />
-            Конец
-          </label>
-        </div>
-      </div>
+    <ModalShell>
+      <ModalShell.Body>
+        <div
+          className={styles.atomModalContent}
+          style={accentColor ? ({ '--atom-accent': accentColor } as React.CSSProperties) : undefined}
+        >
+          <h3 className={styles.title}>Добавить время</h3>
 
-      {mode === 'duration' && (
-        <div>
-          <label>Длительность (минуты)</label>
-          <input
-            type="number"
-            min="1"
-            value={durationMin}
-            onChange={(e) => setDurationMin(Number(e.target.value))}
-          />
-        </div>
-      )}
+          {mode === 'duration' ? (
+            <div>
+              <label>Длительность (минуты)</label>
+              <input
+                id={inputId}
+                type="number"
+                min="1"
+                value={durationMin}
+                onChange={(e) => setDurationMin(Number(e.target.value))}
+              />
+            </div>
+          ) : (
+            <div>
+              <label>Конец</label>
+              <input
+                id={inputId}
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+              />
+            </div>
+          )}
 
-      {mode === 'end' && (
-        <div>
-          <label>Конец</label>
-          <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-        </div>
-      )}
+          <div>
+            <label>Тип времени</label>
+            <div className={styles.radioGroup}>
+              <label>
+                <input
+                  type="radio"
+                  value="duration"
+                  checked={mode === 'duration'}
+                  onChange={(e) => setMode(e.target.value as TimeMode)}
+                />
+                Длительность
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="end"
+                  checked={mode === 'end'}
+                  onChange={(e) => setMode(e.target.value as TimeMode)}
+                />
+                Конец
+              </label>
+            </div>
+          </div>
 
-      <AtomActionButtons onCancel={onClose} onAdd={handleAdd} />
-    </AtomInputLayout>
+          <AtomModalFooter onCancel={onClose} onAdd={handleAdd} accentColor={accentColor} />
+        </div>
+      </ModalShell.Body>
+    </ModalShell>
   );
 };
 
-/**
- * Convert time string (HH:MM) to milliseconds since today start
- */
 function timeToMs(timeStr: string): number {
   const [hours, minutes] = timeStr.split(':').map(Number);
   const today = new Date();

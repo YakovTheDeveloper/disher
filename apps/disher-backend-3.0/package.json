@@ -4,14 +4,18 @@
   "description": "Disher backend powered by Triplit",
   "type": "module",
   "scripts": {
-    "predev": "npx --yes kill-port 6543 6544 3100 && tsx scripts/gen-anon-token.ts",
     "dev": "triplit dev --storage sqlite",
-    "dev:api": "tsx watch src/api/server.ts",
-    "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\"",
     "console": "tsx scripts/console.ts",
+    "predev": "npx --yes kill-port 6543 6544 && tsx scripts/gen-anon-token.ts",
+    "dev:api": "tsx watch src/api/server.ts",
+    "dev:api-network": "cross-env HOST=0.0.0.0 tsx watch src/api/server.ts",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\"",
+    "predev:all-network": "npx --yes kill-port 6543 6544 3100 && tsx scripts/gen-anon-token.ts",
+    "dev:all-network": "concurrently \"npm run dev\" \"npm run dev:api-network\"",
     "schema:push": "triplit schema push",
     "seed": "tsx scripts/seed.ts",
-    "reseed": "tsx scripts/reseed.ts"
+    "reseed": "tsx scripts/reseed.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.0",
@@ -27,9 +31,11 @@
     "@types/node": "^25.5.0",
     "better-sqlite3": "^12.8.0",
     "concurrently": "^9.1.0",
+    "cross-env": "^10.1.0",
     "dotenv": "^17.3.1",
     "lmdb": "^3.5.2",
     "tsx": "^4.19.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

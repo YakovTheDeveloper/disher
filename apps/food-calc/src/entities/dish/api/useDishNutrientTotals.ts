@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useDishItems } from './queries';
-import { useProductsByIds } from '@/entities/product';
-import { calculateDishNutrients, type NutrientTotals, type NutrientEntry } from '@/shared/lib/nutrients';
+import { useNutrientsByFoodIds } from '@/entities/product';
+import { calculateDishNutrients, type NutrientTotals } from '@/shared/lib/nutrients';
 
 export function useDishNutrientTotals(dishId: string | undefined): NutrientTotals {
   const { results: dishItems } = useDishItems(dishId);
@@ -12,25 +12,14 @@ export function useDishNutrientTotals(dishId: string | undefined): NutrientTotal
     [items],
   );
 
-  const { results: foods } = useProductsByIds(foodIds);
+  const nutrientsMap = useNutrientsByFoodIds(foodIds);
 
   return useMemo(() => {
-    if (!items.length || !foods) return {};
-
-    const productNutrientsMap = new Map<string, NutrientEntry[]>();
-    for (const food of foods) {
-      const nutrients = food.nutrients
-        ? Array.from(food.nutrients.values()).map((n) => ({
-            nutrientId: n.nutrientId,
-            quantity: n.quantity,
-          }))
-        : [];
-      productNutrientsMap.set(food.id, nutrients);
-    }
+    if (!items.length) return {};
 
     return calculateDishNutrients(
       items.map((i) => ({ foodId: i.foodId, quantity: i.quantity })),
-      productNutrientsMap,
+      nutrientsMap,
     );
-  }, [items, foods]);
+  }, [items, nutrientsMap]);
 }

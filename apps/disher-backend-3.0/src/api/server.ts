@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
 import { authRoutes } from "./routes/auth.js";
 import { analyticsRoutes } from "./routes/analytics.js";
+import { systemRoutes } from "./routes/system.js";
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -11,19 +12,19 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = Fastify({ logger: true });
 
 await app.register(cors, {
-  origin: ["http://localhost:5173", "http://localhost:4173", "http://localhost:3000"],
+  origin: true,
 });
 
 // Static content (MD articles)
 await app.register(fastifyStatic, {
-  root: path.join(__dirname, "../../../content"),
+  root: path.join(__dirname, "../../content"),
   prefix: "/content/",
 });
 
 // List available nutrient articles: GET /articles/nutrients → JSON array of { folder, nutrientId, nutrientName }
 app.get("/articles/nutrients", async (_req, reply) => {
   const fs = await import("fs/promises");
-  const nutrientsDir = path.join(__dirname, "../../../content/nutrients");
+  const nutrientsDir = path.join(__dirname, "../../content/nutrients");
   try {
     const entries = await fs.readdir(nutrientsDir, { withFileTypes: true });
     const articles = entries
@@ -46,9 +47,19 @@ app.get<{ Params: { folder: string } }>(
   }
 );
 
+// Health check
+app.get("/health", async (_req, reply) => {
+  return reply.send({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Routes
 await app.register(authRoutes, { prefix: "/api/auth" });
 await app.register(analyticsRoutes, { prefix: "/api/analytics" });
+await app.register(systemRoutes, { prefix: "/api/system" });
 
 const HOST = process.env.HOST ?? "localhost";
 const PORT = Number(process.env.PORT ?? 3100);

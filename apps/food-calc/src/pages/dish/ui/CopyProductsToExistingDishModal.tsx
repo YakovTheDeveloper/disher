@@ -100,7 +100,7 @@ const CopyProductsToExistingDishModal = ({ isExpanded, sourceDishId, items, onFi
           <div className={s.wrapper}>
             <ModalStepHeader currentStep="selectDish" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
             <SearchFood
-              onFinish={handleDishSelect}
+              onSelectFood={handleDishSelect}
               mode="dishes-only"
               activeItemId={selectedDishId}
               inputId={COPY_TO_DISH_INPUT_IDS.SEARCH_INPUT}

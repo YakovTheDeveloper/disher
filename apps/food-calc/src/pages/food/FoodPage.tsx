@@ -3,9 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import SearchFood from '@/features/food/food-search/SearchFood';
 import { OpenFoodCreation } from '@/features/food/open-food-creation';
 import { FoodCreationModal } from '@/features/food/food-creation-modal';
+import { FoodActionsDrawer } from '@/features/food/food-search/food-action-card/food-actions-drawer';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { createProduct } from '@/entities/product';
 import { createDish } from '@/entities/dish';
+import { drawerStore } from '@/shared/ui/drawer-store';
+import { isCreatedByUser } from '@/shared/lib';
 import toaster from '@/shared/lib/toaster/toaster';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
 
@@ -23,6 +26,48 @@ const FoodPage = () => {
   );
   const { toScheduleBuilder, toSchedule, toDish, toProduct } = useAppRoutes();
   const [creationType, setCreationType] = useState<CreationType>(null);
+
+  const renderSearchItemRight = useCallback(
+    (variant: 'product' | 'dish', item: { id: string; name: string; userId?: string }) => {
+      const userCreated = variant === 'dish' ? true : isCreatedByUser(item.userId);
+      return (
+        <button
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 44,
+            height: 48,
+            padding: 0,
+            border: 'none',
+            background: 'transparent',
+            color: '#bbb',
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+          type="button"
+          aria-label="Ещё"
+          onClick={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            await drawerStore.show(FoodActionsDrawer, {
+              variant,
+              itemId: item.id,
+              itemName: item.name,
+              isUserCreated: userCreated,
+            });
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="5" r="1.5" fill="currentColor" />
+            <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+            <circle cx="12" cy="19" r="1.5" fill="currentColor" />
+          </svg>
+        </button>
+      );
+    },
+    []
+  );
 
   const handleBack = useCallback(() => {
     const lastId = sessionStorage.getItem('lastScheduleBuilderId');
@@ -108,14 +153,14 @@ const FoodPage = () => {
       <SearchFood
         mode="products-and-dishes"
         richNutrient={richNutrientId ? { id: richNutrientId, unit: richNutrient?.unitRu ?? '' } : null}
-        onFinish={({ variant, id }) => {
+        onSelectFood={({ variant, id }) => {
           if (variant === 'dish') {
             toDish(id);
             return;
           }
           toProduct(id);
         }}
-        listItemsHasAdditionalActions
+        renderSearchItemRight={renderSearchItemRight}
         onBack={handleBack}
         searchBarRightChild={
           <OpenFoodCreation
