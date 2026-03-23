@@ -9,6 +9,7 @@ import { AtomInputLayout, AtomActionButtons, PresetChips } from './shared';
 export interface ScaleAtomInputProps {
   onAddAtom: (atom: ScaleAtom) => void;
   onClose: () => void;
+  accentColor?: string;
 }
 
 const PRESET_LABELS = ['боль', 'настроение', 'энергия', 'стресс', 'тревога', 'нагрузка'];
@@ -18,7 +19,7 @@ const PRESET_LABELS = ['боль', 'настроение', 'энергия', 'с
  *
  * Allows user to add a scale atom (1-10 rating)
  */
-export const ScaleAtomInput = ({ onAddAtom, onClose }: ScaleAtomInputProps) => {
+export const ScaleAtomInput = ({ onAddAtom, onClose, accentColor }: ScaleAtomInputProps) => {
   const [value, setValue] = useState(5);
   const [label, setLabel] = useState('');
 
@@ -31,7 +32,7 @@ export const ScaleAtomInput = ({ onAddAtom, onClose }: ScaleAtomInputProps) => {
   };
 
   return (
-    <AtomInputLayout title="Добавить оценку">
+    <AtomInputLayout title="Добавить оценку" accentColor={accentColor}>
       <div>
         <label>Оценка (1-10)</label>
         <input

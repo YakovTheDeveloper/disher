@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { triplit } from '@/api/triplit/client';
+import { getSessionInfo } from '@/api/triplit/session';
 import type { ConnectionStatus } from '@triplit/client';
 import Tabs from '@/shared/ui/Tabs/Tabs';
 import Button from '@/shared/ui/atoms/Button/Button';
@@ -68,7 +69,7 @@ function SyncTab() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [idbDatabases, setIdbDatabases] = useState<string[]>([]);
   const [serverUrl] = useState(() => (triplit as any).serverUrl ?? 'unknown');
-  const [token] = useState(() => {
+  const [tokenLabel] = useState(() => {
     const t = triplit.token;
     if (!t) return 'none';
     try {
@@ -79,6 +80,8 @@ function SyncTab() {
     }
   });
   const logsEndRef = useRef<HTMLDivElement>(null);
+
+  const sessionInfo = getSessionInfo();
 
   const addLog = useCallback((level: LogEntry['level'], message: string) => {
     setLogs((prev) => [...prev.slice(-99), { time: now(), level, message }]);
@@ -107,6 +110,7 @@ function SyncTab() {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
 
+  // Auto-fetch counts on mount
   const fetchCounts = useCallback(async () => {
     setLoading(true);
     addLog('info', 'Fetching collection counts...');
@@ -117,7 +121,6 @@ function SyncTab() {
         const res = await triplit.fetch(triplit.query(name as any) as any);
         const count = res instanceof Map ? res.size : Array.isArray(res) ? res.length : 0;
         results.push({ name, count });
-        addLog('info', `${name}: ${count} rows`);
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         results.push({ name, count: null, error: msg });
@@ -130,53 +133,104 @@ function SyncTab() {
     addLog('info', 'Done.');
   }, [addLog]);
 
+  useEffect(() => {
+    fetchCounts();
+  }, [fetchCounts]);
+
   const handleReconnect = useCallback(async () => {
     addLog('info', 'Forcing reconnect...');
     try {
       await triplit.endSession();
       const savedToken = localStorage.getItem('triplit_token');
-      if (savedToken) {
-        await triplit.startSession(savedToken);
-        addLog('info', 'Reconnected with saved token.');
+      const anonToken = import.meta.env.VITE_TRIPLIT_TOKEN;
+      const token = savedToken ?? anonToken;
+      if (token) {
+        await triplit.startSession(token);
+        addLog('info', savedToken ? 'Reconnected with user token.' : 'Reconnected with anon token.');
       } else {
-        addLog('warn', 'No saved token found.');
+        addLog('warn', 'No token available.');
       }
     } catch (e) {
       addLog('error', `Reconnect failed: ${e instanceof Error ? e.message : e}`);
     }
   }, [addLog]);
 
+  const totalCount = counts.reduce((sum, c) => sum + (c.count ?? 0), 0);
+
   return (
     <div className={styles.tabContent}>
+      {/* Session */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Session</h2>
+        <div className={styles.infoGrid}>
+          <div className={styles.infoRow}>
+            <span className={styles.label}>Mode</span>
+            <span className={styles.value}>{sessionInfo.mode}</span>
+          </div>
+          <div className={styles.infoRow}>
+            <span className={styles.label}>Connected</span>
+            <span className={styles.value}>{sessionInfo.connected ? 'yes' : 'no'}</span>
+          </div>
+          {sessionInfo.skippedReason && (
+            <div className={styles.infoRow}>
+              <span className={styles.label}>Reason</span>
+              <span className={styles.value}>{sessionInfo.skippedReason}</span>
+            </div>
+          )}
+          {Object.keys(sessionInfo.localCounts).length > 0 && (
+            <div className={styles.infoRow}>
+              <span className={styles.label}>Cached</span>
+              <span className={styles.value}>
+                {Object.entries(sessionInfo.localCounts)
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join(', ')}
+              </span>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Connection */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Connection</h2>
         <div className={styles.infoGrid}>
-          <span className={styles.label}>Status</span>
-          <span className={styles.value}>
-            {statusEmoji[connection]} {connection}
-          </span>
-          <span className={styles.label}>Server</span>
-          <span className={styles.value}>{serverUrl}</span>
-          <span className={styles.label}>Token</span>
-          <span className={styles.value}>{token}</span>
-          <span className={styles.label}>Schema ver.</span>
-          <span className={styles.value}>{localStorage.getItem('triplit_schema_version') ?? '—'}</span>
+          <div className={styles.infoRow}>
+            <span className={styles.label}>Status</span>
+            <span className={styles.value}>
+              {statusEmoji[connection]} {connection}
+            </span>
+          </div>
+          <div className={styles.infoRow}>
+            <span className={styles.label}>Server</span>
+            <span className={styles.value}>{serverUrl}</span>
+          </div>
+          <div className={styles.infoRow}>
+            <span className={styles.label}>Token</span>
+            <span className={styles.value}>{tokenLabel}</span>
+          </div>
+          <div className={styles.infoRow}>
+            <span className={styles.label}>Schema ver.</span>
+            <span className={styles.value}>{localStorage.getItem('triplit_schema_version') ?? '—'}</span>
+          </div>
         </div>
         <div className={styles.actions}>
           <Button variant="secondary" onClick={handleReconnect}>
             Reconnect
           </Button>
           <Button variant="secondary" onClick={fetchCounts} isLoading={loading}>
-            Fetch counts
+            Refresh counts
           </Button>
         </div>
       </section>
 
       {/* Collections */}
-      {counts.length > 0 && (
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Collections</h2>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>
+          Collections {counts.length > 0 && <span className={styles.totalBadge}>{totalCount}</span>}
+        </h2>
+        {counts.length === 0 ? (
+          <p className={styles.muted}>Loading...</p>
+        ) : (
           <div className={styles.table}>
             {counts.map((c) => (
               <div key={c.name} className={styles.tableRow}>
@@ -187,8 +241,8 @@ function SyncTab() {
               </div>
             ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* IndexedDB */}
       <section className={styles.section}>
@@ -254,11 +308,9 @@ const deleteDatabase = (name: string): Promise<void> =>
   });
 
 const clearAllLocal = async () => {
-  // Known Triplit databases
   const knownDBs = ['triplit', 'triplit-cache', 'triplit-outbox', 'triplit-metadata'];
   await Promise.all(knownDBs.map(deleteDatabase));
 
-  // Enumerate and delete ALL remaining databases
   if ('databases' in indexedDB) {
     const databases = await indexedDB.databases();
     await Promise.all(
@@ -268,7 +320,6 @@ const clearAllLocal = async () => {
     );
   }
 
-  // Clear Cache API
   if ('caches' in window) {
     const keys = await caches.keys();
     await Promise.all(keys.map((key) => caches.delete(key)));

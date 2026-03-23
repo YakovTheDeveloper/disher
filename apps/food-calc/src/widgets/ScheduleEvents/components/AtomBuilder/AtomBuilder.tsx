@@ -50,14 +50,24 @@ export const AtomBuilder = ({ className = '' }: AtomBuilderProps) => {
       { kind: 'body', label: 'Тело' },
     ];
 
+    const ATOM_ACCENT: Record<string, string> = {
+      scale:    'var(--event-scale-accent)',
+      time:     'var(--event-time-accent)',
+      number:   'var(--event-number-accent)',
+      tag:      'var(--event-tag-accent)',
+      relation: 'var(--event-relation-accent)',
+      flag:     'var(--event-flag-accent)',
+      body:     'var(--event-body-accent)',
+    };
+
     const INPUT_MAP: Record<string, React.ReactNode> = {
-      scale: <ScaleAtomInput key="scale" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
-      time: <TimeAtomInput key="time" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
-      number: <NumberAtomInput key="number" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
-      tag: <TagAtomInput key="tag" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
-      relation: <RelationAtomInput key="relation" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
-      flag: <FlagAtomInput key="flag" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
-      body: <BodyAtomInput key="body" onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      scale: <ScaleAtomInput key="scale" accentColor={ATOM_ACCENT.scale} onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      time: <TimeAtomInput key="time" accentColor={ATOM_ACCENT.time} onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      number: <NumberAtomInput key="number" accentColor={ATOM_ACCENT.number} onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      tag: <TagAtomInput key="tag" accentColor={ATOM_ACCENT.tag} onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      relation: <RelationAtomInput key="relation" accentColor={ATOM_ACCENT.relation} onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      flag: <FlagAtomInput key="flag" accentColor={ATOM_ACCENT.flag} onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
+      body: <BodyAtomInput key="body" accentColor={ATOM_ACCENT.body} onAddAtom={handleAddAtom} onClose={() => setOpenModal(null)} />,
     };
 
     return (
@@ -77,6 +87,7 @@ export const AtomBuilder = ({ className = '' }: AtomBuilderProps) => {
               onClick={() => setOpenModal(kind)}
               disabled={openModal !== null}
               type="button"
+              data-kind={kind}
               data-active={openModal === kind || undefined}
             >
               {label}

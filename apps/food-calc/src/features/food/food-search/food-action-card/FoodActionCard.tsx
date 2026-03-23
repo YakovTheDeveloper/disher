@@ -111,11 +111,6 @@ const FoodActionCard = ({
   const [inverted, setInverted] = useState(false);
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.userId);
 
-  const handleInfo = () => {
-    if (variant === 'product') toProduct(item.id.toString());
-    else toDish(item.id.toString());
-  };
-
   const handleDelete = () => {
     if (variant === 'product') {
       deleteProducts([item.id]);
@@ -187,7 +182,12 @@ const FoodActionCard = ({
         </span>
       )}
       {deleteButton}
-      <p className={clsx(styles.item, active && styles.item_active)} onClick={onClick}>
+      <p
+        className={clsx(styles.item, active && styles.item_active)}
+        onClick={() => {
+          onClick?.();
+        }}
+      >
         <span className={styles.name}>{item.name}</span>
       </p>
       {showInfo && (
@@ -196,9 +196,10 @@ const FoodActionCard = ({
           type="button"
           aria-label="Информация"
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
-            setInverted(true);
-            handleInfo();
+            if (variant === 'product') toProduct(item.id.toString());
+            else toDish(item.id.toString());
           }}
         >
           <InfoIcon />
@@ -210,6 +211,7 @@ const FoodActionCard = ({
           type="button"
           aria-label="Ещё"
           onClick={async (e) => {
+            e.preventDefault();
             e.stopPropagation();
             setInverted(true);
             await drawerStore.show(FoodActionsDrawer, {

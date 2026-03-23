@@ -10,6 +10,7 @@ export interface AtomInputLayoutProps {
   title: string;
   description?: string;
   children: React.ReactNode;
+  accentColor?: string;
 }
 
 const slideDownAnimation = {
@@ -23,9 +24,14 @@ export const AtomInputLayout: React.FC<AtomInputLayoutProps> = ({
   title,
   description,
   children,
+  accentColor,
 }) => {
   return (
-    <motion.div className={styles.inputBlock} {...slideDownAnimation}>
+    <motion.div
+      className={styles.inputBlock}
+      style={accentColor ? ({ '--atom-accent': accentColor } as React.CSSProperties) : undefined}
+      {...slideDownAnimation}
+    >
       <h3 className={styles.title}>{title}</h3>
       {description && <p className={styles.description}>{description}</p>}
       {children}

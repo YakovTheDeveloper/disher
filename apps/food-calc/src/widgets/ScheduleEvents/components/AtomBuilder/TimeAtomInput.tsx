@@ -9,6 +9,7 @@ import { AtomInputLayout, AtomActionButtons } from './shared';
 export interface TimeAtomInputProps {
   onAddAtom: (atom: TimeAtom) => void;
   onClose: () => void;
+  accentColor?: string;
 }
 
 type TimeMode = 'duration' | 'end';
@@ -18,7 +19,7 @@ type TimeMode = 'duration' | 'end';
  *
  * Allows user to add a time atom
  */
-export const TimeAtomInput = ({ onAddAtom, onClose }: TimeAtomInputProps) => {
+export const TimeAtomInput = ({ onAddAtom, onClose, accentColor }: TimeAtomInputProps) => {
   const [mode, setMode] = useState<TimeMode>('duration');
   const [durationMin, setDurationMin] = useState(30);
   const [endTime, setEndTime] = useState('13:00');
@@ -36,7 +37,7 @@ export const TimeAtomInput = ({ onAddAtom, onClose }: TimeAtomInputProps) => {
   };
 
   return (
-    <AtomInputLayout title="Добавить время">
+    <AtomInputLayout title="Добавить время" accentColor={accentColor}>
       <div>
         <label>Тип времени</label>
         <div>

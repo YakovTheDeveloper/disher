@@ -15,3 +15,21 @@
     flex-wrap: wrap;
     gap: 8px;
 }
+
+.nutrientsSection {
+    position: relative;
+    overflow: hidden;
+}
+
+.watermark {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    max-height: 200px;
+    object-fit: contain;
+    opacity: 0.06;
+    pointer-events: none;
+    z-index: 0;
+}

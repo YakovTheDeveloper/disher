@@ -11,10 +11,41 @@
 .header {
     position: sticky;
     display: flex;
+    flex-direction: column;
     top: 0;
     z-index: 10;
-    padding: 6px 0;
+    padding: 6px 0 0;
     border-bottom: 1px solid #e8e8e8;
+}
+
+.tabBar {
+    display: flex;
+    gap: 6px;
+    padding: 6px 12px 8px;
+}
+
+.tabBarItem {
+    flex: 1;
+    padding: 7px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: var(--radius-full);
+    background: transparent;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--easing-default),
+                color var(--duration-fast) var(--easing-default),
+                border-color var(--duration-fast) var(--easing-default);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tabBarItem_active {
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    border-color: transparent;
 }
 
 .filterButtonWrapper {
@@ -26,7 +57,7 @@
 
 .filterWrapper {
     position: absolute;
-    top: 60%;
+    top: 0;
     bottom: 0;
     left: 0;
     right: 0;
@@ -40,33 +71,6 @@
     pointer-events: none;
 }
 
-.filterTabs {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid #e8e8e8;
-}
-
-.filterTab {
-    flex: 1;
-    padding: 12px 16px;
-    border: none;
-    background: transparent;
-    color: #aaa;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: color 0.15s ease;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.filterTabActive {
-    color: #111;
-    border-bottom-color: #111;
-}
 
 .filterMessage {
     display: flex;
@@ -92,8 +96,7 @@
     flex-wrap: wrap;
     gap: 6px;
     padding: 10px 14px;
-    border-bottom: 1px solid #e8e8e8;
-    background: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .filterChip {
@@ -101,55 +104,83 @@
     align-items: center;
     gap: 4px;
     padding: 5px 11px;
-    font-size: 0.65rem;
+    font-size: var(--text-xs);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #555;
-    background: transparent;
-    border: 1px solid #ddd;
+    color: rgba(0, 0, 0, 0.45);
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    transition:
+        border-color var(--duration-fast) var(--easing-default),
+        color var(--duration-fast) var(--easing-default),
+        background var(--duration-fast) var(--easing-default);
     min-height: 28px;
     -webkit-tap-highlight-color: transparent;
 
     &:active {
-        background: #f5f5f5;
-        border-color: #bbb;
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(0, 0, 0, 0.15);
         color: #111;
     }
 }
 
 .filterChipActive {
-    background: #111;
+    background: rgba(0, 0, 0, 0.8);
     color: #fff;
-    border-color: #111;
+    border-color: transparent;
 
     &:active {
-        background: #333;
-        border-color: #333;
+        background: rgba(0, 0, 0, 0.65);
+        border-color: transparent;
         color: #fff;
     }
 }
 
-.createSuggestion {
-    width: 100%;
-    padding: 14px 16px;
-    background: none;
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-8) var(--space-4);
+}
+
+.emptyStateMessage {
+    font-size: var(--text-sm);
+    color: rgba(0, 0, 0, 0.35);
+    text-align: center;
+    margin: 0;
+
+    em {
+        font-style: normal;
+        color: rgba(0, 0, 0, 0.6);
+    }
+}
+
+.emptyStateAction {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 10px 20px;
+    border-radius: var(--radius-full);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    font-size: var(--text-sm);
+    font-weight: 600;
     border: none;
-    border-top: 1px solid #e8e8e8;
-    color: #aaa;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    text-align: left;
     cursor: pointer;
-    transition: color 0.15s ease, background 0.15s ease;
+    transition: background var(--duration-fast) var(--easing-default);
     -webkit-tap-highlight-color: transparent;
 
     &:active {
-        background: #f5f5f5;
-        color: #111;
+        background: rgba(0, 0, 0, 0.65);
     }
+}
+
+.emptyStateIcon {
+    font-size: 1.1em;
+    line-height: 1;
+    font-weight: 300;
 }

@@ -36,7 +36,7 @@ export const ScheduleSelection = ({
   selectedDate,
   showFastButtons = false,
   className,
-  variant = 'experimental',
+  variant = 'default',
 }: Props) => {
   const isExperimental = variant === 'experimental';
   const today = startOfToday();

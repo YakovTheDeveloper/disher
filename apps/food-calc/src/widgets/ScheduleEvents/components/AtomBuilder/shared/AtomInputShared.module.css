@@ -1,35 +1,35 @@
 /**
- * AtomInputShared.module.css — NYLON-magazine inspired
- * Clean, high-contrast, editorial input blocks
+ * AtomInputShared.module.css — per-kind accent via --atom-accent CSS variable
  */
 
 .inputBlock {
     background: #fff;
-    border-radius: 0;
-    padding: 20px;
+    border-radius: var(--radius-md, 12px);
+    padding: var(--space-5, 20px) var(--space-4, 16px);
     margin-top: 0;
-    border: 1.5px solid #000;
-    box-shadow: none;
+    border: none;
+    border-top: 3px solid var(--atom-accent, #000);
+    box-shadow: var(--shadow-sm, 0 2px 4px rgba(0,0,0,0.06));
 }
 
 .title {
-    margin: 0 0 16px 0;
+    margin: 0 0 var(--space-4, 16px) 0;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    color: #000;
+    color: var(--atom-accent, #000);
 }
 
 .description {
     font-size: 13px;
     color: #666;
-    margin: 0 0 16px 0;
+    margin: 0 0 var(--space-4, 16px) 0;
     line-height: 1.5;
 }
 
 .formGroup {
-    margin-bottom: 16px;
+    margin-bottom: var(--space-4, 16px);
 }
 
 .formGroup label {
@@ -62,7 +62,7 @@
     font-size: 15px;
     font-family: inherit;
     font-weight: 400;
-    transition: border-color 0.2s;
+    transition: border-color var(--duration-normal, 200ms);
     box-sizing: border-box;
     background: transparent;
 }
@@ -70,14 +70,14 @@
 .inputBlock > div > input:focus,
 .inputBlock > div > textarea:focus {
     outline: none;
-    border-bottom-color: #000;
+    border-bottom-color: var(--atom-accent, #000);
     box-shadow: none;
 }
 
 .inputBlock > div > input[type='range'] {
     width: 100%;
     margin: 12px 0;
-    accent-color: #000;
+    accent-color: var(--atom-accent, #000);
 }
 
 .inputBlock > div > input[type='number'],
@@ -90,7 +90,7 @@
     text-align: center;
     font-size: 32px;
     font-weight: 800;
-    color: #000;
+    color: var(--atom-accent, #000);
     margin-top: 4px;
     letter-spacing: -0.02em;
 }
@@ -100,7 +100,7 @@
     text-align: center;
     font-size: 32px;
     font-weight: 800;
-    color: #000;
+    color: var(--atom-accent, #000);
     margin-top: 4px;
     letter-spacing: -0.02em;
 }
@@ -108,13 +108,13 @@
 .radioGroup {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2, 8px);
 }
 
 .radioGroup label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2, 8px);
     font-weight: 400;
     font-size: 14px;
     margin-bottom: 0;
@@ -128,13 +128,13 @@
     width: auto;
     margin: 0;
     cursor: pointer;
-    accent-color: #000;
+    accent-color: var(--atom-accent, #000);
 }
 
 .presetLabels {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: var(--space-1, 4px);
     margin-top: 10px;
 }
 
@@ -148,18 +148,18 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all var(--duration-fast, 120ms);
     color: #666;
 }
 
 .presetChip:hover {
-    border-color: #000;
-    color: #000;
+    border-color: var(--atom-accent, #000);
+    color: var(--atom-accent, #000);
 }
 
 .presetChip.active {
-    background: #000;
-    border-color: #000;
+    background: var(--atom-accent, #000);
+    border-color: var(--atom-accent, #000);
     color: #fff;
 }
 
@@ -173,7 +173,7 @@
     left: 0;
     right: 0;
     background: #fff;
-    border: 1.5px solid #000;
+    border: 1.5px solid var(--atom-accent, #000);
     border-top: none;
     max-height: 150px;
     overflow-y: auto;
@@ -183,7 +183,7 @@
 .suggestionItem {
     display: block;
     width: 100%;
-    padding: 10px 12px;
+    padding: 10px var(--space-3, 12px);
     text-align: left;
     background: none;
     border: none;
@@ -194,19 +194,19 @@
 }
 
 .suggestionItem:hover {
-    background: #000;
+    background: var(--atom-accent, #000);
     color: #fff;
 }
 
 .actions {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
-    margin-top: 20px;
+    gap: var(--space-2, 8px);
+    margin-top: var(--space-5, 20px);
 }
 
 .cancelBtn {
-    padding: 10px 20px;
+    padding: 10px var(--space-5, 20px);
     background: transparent;
     border: 1.5px solid #ccc;
     border-radius: 0;
@@ -216,7 +216,7 @@
     letter-spacing: 0.1em;
     cursor: pointer;
     color: #666;
-    transition: all 0.15s;
+    transition: all var(--duration-fast, 120ms);
 }
 
 .cancelBtn:hover {
@@ -225,9 +225,9 @@
 }
 
 .addBtn {
-    padding: 10px 20px;
-    background: #000;
-    border: 1.5px solid #000;
+    padding: 10px var(--space-5, 20px);
+    background: var(--atom-accent, #000);
+    border: 1.5px solid var(--atom-accent, #000);
     border-radius: 0;
     font-size: 11px;
     font-weight: 700;
@@ -235,11 +235,11 @@
     letter-spacing: 0.1em;
     cursor: pointer;
     color: #fff;
-    transition: all 0.15s;
+    transition: all var(--duration-fast, 120ms);
 }
 
 .addBtn:hover:not(:disabled) {
-    background: #222;
+    opacity: 0.85;
 }
 
 .addBtn:disabled {
@@ -257,7 +257,7 @@
     border-radius: 0;
     font-size: 15px;
     font-family: inherit;
-    transition: border-color 0.2s;
+    transition: border-color var(--duration-normal, 200ms);
     box-sizing: border-box;
     background: transparent;
 }
@@ -265,14 +265,14 @@
 .formGroup input:focus,
 .formGroup textarea:focus {
     outline: none;
-    border-bottom-color: #000;
+    border-bottom-color: var(--atom-accent, #000);
     box-shadow: none;
 }
 
 .formGroup input[type='range'] {
     width: 100%;
     margin: 12px 0;
-    accent-color: #000;
+    accent-color: var(--atom-accent, #000);
 }
 
 .formGroup input[type='number'],

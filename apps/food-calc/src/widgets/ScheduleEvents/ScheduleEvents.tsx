@@ -12,9 +12,9 @@ import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import { groupItemsByTime } from '@/shared/lib/schedule';
 import {
-  ScheduleEventCreationModals,
+  ScheduleEventCreateModals,
   EVENT_MODAL_INPUT_IDS,
-  EditScheduleEventModal,
+  ScheduleEventEditModal,
   EVENT_EDIT_MODAL_INPUT_IDS,
 } from './ui';
 import { ScheduleEventCard } from './components/ScheduleEventCard';
@@ -50,9 +50,9 @@ const ScheduleEvents = ({ date, events }: Props) => {
       offsetTop
       overlay={
         <>
-          <ScheduleEventCreationModals scheduleId={date} />
+          <ScheduleEventCreateModals scheduleId={date} />
           {editingItem && (
-            <EditScheduleEventModal
+            <ScheduleEventEditModal
               item={editingItem}
               initialStep={editingStep}
               onClose={closeEditModal}

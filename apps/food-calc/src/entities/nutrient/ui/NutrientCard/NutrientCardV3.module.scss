@@ -1,0 +1,98 @@
+// NutrientCard V3 — "TRENDing" editorial pattern
+// Горизонтальные бордеры сверху и снизу, как в журнале.
+// Метка нутриента — сверху слева, название группы — крупно по центру, % — снизу справа.
+
+.card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-2) 0 var(--space-2);
+    border-top: 1.5px solid transparent;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.main {
+    border-top-color: var(--nutrient-accent-main);
+}
+
+.vitaminsB {
+    border-top-color: var(--nutrient-accent-vitaminsB);
+}
+
+.minerals {
+    border-top-color: var(--nutrient-accent-minerals);
+}
+
+.rest {
+    border-top-color: var(--nutrient-accent-rest);
+}
+
+// --- Метка: как дата в журнале ---
+.topRow {
+    display: flex;
+}
+
+.label {
+    font-family: var(--font-sans);
+    font-size: 0.58rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-tertiary);
+}
+
+// --- Заголовок группы: главный headline ---
+.headline {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+    text-align: center;
+    color: var(--text-primary);
+    padding: var(--space-1) 0 var(--space-2);
+}
+
+// --- Нижняя строка: значение слева, процент справа ---
+.bottomRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+// --- Абсолютное значение: снизу слева, чуть виднее чем метка ---
+.value {
+    font-family: var(--font-sans);
+    font-size: 0.58rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    align-self: flex-end;
+    padding-bottom: 0.15em;
+    opacity: 0.3;
+}
+
+.percent {
+    font-family: var(--font-sans);
+    font-size: 2rem;
+    font-weight: 200;
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.percent.low {
+    color: var(--text-tertiary);
+}
+
+.percent.medium {
+    color: #4a8ec4;
+}
+
+.percent.optimal {
+    color: #2d8a3e;
+}
+
+.percent.excess {
+    color: #c07020;
+}

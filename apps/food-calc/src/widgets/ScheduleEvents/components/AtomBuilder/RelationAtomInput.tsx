@@ -9,6 +9,7 @@ import { AtomInputLayout, AtomActionButtons, PresetChips } from './shared';
 export interface RelationAtomInputProps {
   onAddAtom: (atom: RelationAtom) => void;
   onClose: () => void;
+  accentColor?: string;
 }
 
 const PRESET_RELATIONS = [
@@ -25,7 +26,7 @@ const PRESET_RELATIONS = [
  *
  * Allows user to add a relation atom expressing causality or connection
  */
-export const RelationAtomInput = ({ onAddAtom, onClose }: RelationAtomInputProps) => {
+export const RelationAtomInput = ({ onAddAtom, onClose, accentColor }: RelationAtomInputProps) => {
   const [value, setValue] = useState('');
 
   const handleAdd = () => {
@@ -45,6 +46,7 @@ export const RelationAtomInput = ({ onAddAtom, onClose }: RelationAtomInputProps
     <AtomInputLayout
       title="Добавить связь"
       description="Выразите причину или связь с другим событием"
+      accentColor={accentColor}
     >
       <div>
         <label>Связь</label>

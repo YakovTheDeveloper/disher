@@ -1,5 +1,4 @@
 import { useRef, useState, useMemo } from 'react';
-import useEmblaCarousel from 'embla-carousel-react';
 import style from './ProductQuantity.module.scss';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import clsx from 'clsx';
@@ -12,16 +11,19 @@ type QuickButtonProps = {
 };
 
 const QuickButton = ({ children, isActive, onClick, className }: QuickButtonProps) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={clsx(className, isActive && 'is-selected')}
-  >
+  <button type="button" onClick={onClick} className={clsx(className, isActive && 'is-selected')}>
     {children}
   </button>
 );
 
-type FoodContentInstance = any;
+type Portion = { grams: number; amount: number; unit: string };
+
+type ProductQuantityContent = {
+  quantity: number;
+  updateQuantity: (q: number) => void;
+  food?: { portions?: Portion[] } | null;
+  dish?: { portions?: Portion[] } | null;
+};
 
 const variants = [
   [25, 50, 75, 100],
@@ -35,7 +37,7 @@ type QuickButtonData = {
 };
 
 type Props = {
-  content: FoodContentInstance;
+  content: ProductQuantityContent;
   onFinish: () => void;
   inputId?: string;
 };
@@ -61,7 +63,7 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
   // Build quick buttons data
   const quickButtons: QuickButtonData[] =
     portions.length > 0
-      ? portions.map((portion: any) => ({
+      ? portions.map((portion) => ({
           quantity: portion.grams,
           label: `${portion.amount} ${portion.unit} (${portion.grams}г)`,
         }))
@@ -74,26 +76,6 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
 
   const portionSlides = useMemo(() => chunkArray(quickButtons, SLIDE_SIZE), [quickButtons]);
   const quantitySlides = useMemo(() => chunkArray(quickButtons2, SLIDE_SIZE), [quickButtons2]);
-
-  const [portionsEmblaRef] = useEmblaCarousel(
-    {
-      loop: false,
-      dragFree: false,
-      containScroll: 'trimSnaps',
-      duration: 30,
-    },
-    []
-  );
-
-  const [quantitiesEmblaRef] = useEmblaCarousel(
-    {
-      loop: false,
-      dragFree: false,
-      containScroll: 'trimSnaps',
-      duration: 30,
-    },
-    []
-  );
 
   const onBlur = () => {
     content.updateQuantity(value);
@@ -111,7 +93,7 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
       <div className={style.inputWrapper}>
         <NumberInput
           id={inputId}
-          placeholder="0"
+          placeholder="Количество"
           ref={inputRef}
           className={style.input}
           onChange={setValue}
@@ -125,10 +107,10 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
       {portionSlides.length > 0 && (
         <div className={style.section}>
           <span className={style.sectionLabel}>Порции</span>
-          <div className={style.emblaViewport} ref={portionsEmblaRef}>
-            <div className={style.emblaContainer}>
+          <div className={style.snapViewport}>
+            <div className={style.snapContainer}>
               {portionSlides.map((slideButtons, slideIndex) => (
-                <div key={slideIndex} className={style.emblaSlide}>
+                <div key={slideIndex} className={style.snapSlide}>
                   <div className={style.slideGrid}>
                     {slideButtons.map((button) => (
                       <QuickButton
@@ -152,10 +134,10 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
       {quantitySlides.length > 0 && (
         <div className={style.section}>
           <span className={style.sectionLabel}>Количество</span>
-          <div className={style.emblaViewport} ref={quantitiesEmblaRef}>
-            <div className={style.emblaContainer}>
+          <div className={style.snapViewport}>
+            <div className={style.snapContainer}>
               {quantitySlides.map((slideButtons, slideIndex) => (
-                <div key={slideIndex} className={style.emblaSlide}>
+                <div key={slideIndex} className={style.snapSlide}>
                   <div className={style.slideGrid}>
                     {slideButtons.map((button) => (
                       <QuickButton

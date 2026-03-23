@@ -10,9 +10,7 @@ import { SearchMode } from '@/features/food/food-search/SearchFood';
 type Props = {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  currentTab: string;
   className?: string;
-  toggleFilterPanel: () => void;
   mode: SearchMode;
   onBack?: () => void;
   searchBarLeftChild?: React.ReactNode;
@@ -23,9 +21,7 @@ type Props = {
 const SearchFoodControls = ({
   searchQuery,
   onSearchChange,
-  currentTab,
   className,
-  toggleFilterPanel,
   mode,
   onBack,
   searchBarLeftChild,
@@ -56,10 +52,6 @@ const SearchFoodControls = ({
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </TextBehind>
-
-      <button className={styles.tabChip} onClick={toggleFilterPanel}>
-        {currentTab}
-      </button>
 
       {searchBarRightChild}
     </header>

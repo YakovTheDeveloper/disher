@@ -1,35 +1,17 @@
-import './NutrientCardCommon.module.scss';
 import styles from './NutrientCard.module.scss';
 import { motion } from 'framer-motion';
-import { defaultDailyNorms, Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
+import { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import clsx from 'clsx';
+import { useNutrientCard } from './useNutrientCard';
 
 interface Props {
   content: Nutrient;
-  renderOverlay?: (percent: string) => React.ReactNode;
   getValue: (id: string) => number;
   showValues?: boolean;
   showProgress?: boolean;
   showPercent?: boolean;
   children?: React.ReactNode;
 }
-
-const getRoundedPercent = (percentage: number) => {
-  if (percentage < 1 && percentage > 0) {
-    return percentage.toFixed(2);
-  } else if (percentage < 10) {
-    return percentage.toFixed(1);
-  } else {
-    return Math.round(percentage).toString();
-  }
-};
-
-const getStatusClass = (p: number) => {
-  if (p < 30) return 'low';
-  if (p < 60) return 'medium';
-  if (p <= 99) return 'optimal';
-  return 'excess';
-};
 
 const NutrientCard = ({
   content,
@@ -39,18 +21,18 @@ const NutrientCard = ({
   showPercent = true,
   children,
 }: Props) => {
-  const showValues = showValuesProp;
-  const showProgress = showProgressProp;
-  const showUnits = true;
+  const {
+    displayNameRu,
+    unitRu,
+    symbol,
+    value,
+    norm,
+    progressPercent,
+    percentText,
+    statusClass,
+  } = useNutrientCard({ content, getValue });
 
-  const { displayNameRu, id, unitRu, symbol, group } = content;
-  const value = getValue(id);
-  const norm = defaultDailyNorms[+id];
-
-  const percent = norm > 0 ? (value / norm) * 100 : 0;
-  const progressPercent = Math.min(100, percent);
-  const percentText = getRoundedPercent(percent);
-  const statusClass = getStatusClass(percent);
+  const { group } = content;
 
   return (
     <div className={clsx(styles.card, styles[statusClass], styles[group])}>
@@ -64,18 +46,18 @@ const NutrientCard = ({
             <span className={clsx(styles.percent, styles[statusClass])}>{percentText}%</span>
           )}
           {children}
-          {showValues && (
+          {showValuesProp && (
             <div className={styles.valuesCompact}>
               <span>{value.toFixed(1)}</span>
               <span className={styles.separator}>/</span>
               <span>{norm}</span>
-              {showUnits && <span className={styles.unit}>{unitRu}</span>}
+              <span className={styles.unit}>{unitRu}</span>
             </div>
           )}
         </div>
       </div>
 
-      {showProgress && (
+      {showProgressProp && (
         <div className={styles.progressBar}>
           <motion.div
             className={clsx(styles.fill, styles[statusClass])}

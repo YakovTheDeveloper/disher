@@ -1,5 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
+import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalFooter } from '@/shared/ui/ModalFooter';
 import { SearchFood } from '@/features/food/food-search';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
@@ -7,7 +10,6 @@ import { updateScheduleFood } from '@/entities/schedule-food';
 import Button from '@/shared/ui/atoms/Button/Button';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-import s from './FoodScheduleModals.module.scss';
 
 export const EDIT_MODAL_INPUT_IDS = {
   TIME_INPUT: 'time-input-edit-schedule-food',
@@ -36,7 +38,7 @@ type Props = {
   onClose: () => void;
 };
 
-const EditScheduleFoodModal = ({ item, initialStep = 'idle', onClose }: Props) => {
+const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) => {
   const createInitialDraft = (): DraftState => ({
     time: item.time,
     variant: item.type === 'food' ? 'product' : 'dish',
@@ -51,6 +53,9 @@ const EditScheduleFoodModal = ({ item, initialStep = 'idle', onClose }: Props) =
   const [step, setStep] = useState<Step>(initialStep);
   const [draft, setDraft] = useState<DraftState>(createInitialDraft);
   useSwipeableLock(step !== 'idle');
+  useOverlayHistory(step !== 'idle', () => { setStep('idle'); onClose(); });
+
+  const handleClose = () => { setStep('idle'); onClose(); };
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
@@ -104,21 +109,21 @@ const EditScheduleFoodModal = ({ item, initialStep = 'idle', onClose }: Props) =
         position="absolute"
         isExpanded={step === 'time'}
         content={
-          <div className={s.wrapper}>
-            <div className={s.spacer} />
-            <div className={s.content}>
+          <ModalShell>
+            <ModalShell.Spacer />
+            <ModalShell.Body>
               <TimeChoose
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
                 inputId={EDIT_MODAL_INPUT_IDS.TIME_INPUT}
               />
-              <div className={s.finishButton}>
+              <ModalFooter onBack={handleClose}>
                 <Button variant="primary" onClick={handleCommit}>
                   Готово
                 </Button>
-              </div>
-            </div>
-          </div>
+              </ModalFooter>
+            </ModalShell.Body>
+          </ModalShell>
         }
       />
 
@@ -127,14 +132,14 @@ const EditScheduleFoodModal = ({ item, initialStep = 'idle', onClose }: Props) =
         position="absolute"
         isExpanded={step === 'search'}
         content={
-          <div className={s.wrapper}>
+          <ModalShell>
             <SearchFood
               mode="products-and-dishes"
               onFinish={handleFoodSelect}
               activeItemId={draft.foodId ?? undefined}
               inputId={EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
             />
-          </div>
+          </ModalShell>
         }
       />
 
@@ -143,21 +148,21 @@ const EditScheduleFoodModal = ({ item, initialStep = 'idle', onClose }: Props) =
         position="absolute"
         isExpanded={step === 'quantity'}
         content={
-          <div className={s.wrapper}>
-            <div className={s.spacer} />
-            <div className={s.content}>
+          <ModalShell>
+            <ModalShell.Spacer />
+            <ModalShell.Body>
               {draft.content && <ProductQuantity content={draft.content} onFinish={() => {}} inputId={EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT} />}
-              <div className={s.finishButton}>
+              <ModalFooter onBack={handleClose}>
                 <Button variant="primary" onClick={handleCommit}>
                   Готово
                 </Button>
-              </div>
-            </div>
-          </div>
+              </ModalFooter>
+            </ModalShell.Body>
+          </ModalShell>
         }
       />
     </div>
   );
 };
 
-export default EditScheduleFoodModal;
+export default ScheduleFoodEditModals;

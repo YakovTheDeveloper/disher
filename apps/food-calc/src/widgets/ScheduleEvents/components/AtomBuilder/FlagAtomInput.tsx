@@ -10,6 +10,7 @@ import styles from './shared/AtomInputShared.module.css';
 export interface FlagAtomInputProps {
   onAddAtom: (atom: FlagAtom) => void;
   onClose: () => void;
+  accentColor?: string;
 }
 
 const PRESET_FLAGS = [
@@ -26,7 +27,7 @@ const PRESET_FLAGS = [
  *
  * Allows user to add a flag atom expressing a binary state or marker
  */
-export const FlagAtomInput = ({ onAddAtom, onClose }: FlagAtomInputProps) => {
+export const FlagAtomInput = ({ onAddAtom, onClose, accentColor }: FlagAtomInputProps) => {
   const [customValue, setCustomValue] = useState('');
   const [selectedFlag, setSelectedFlag] = useState<string | null>(null);
 
@@ -48,6 +49,7 @@ export const FlagAtomInput = ({ onAddAtom, onClose }: FlagAtomInputProps) => {
     <AtomInputLayout
       title="Добавить флаг"
       description="Выберите одно из предложенных или введите свое"
+      accentColor={accentColor}
     >
       <div>
         <label>Готовые флаги</label>

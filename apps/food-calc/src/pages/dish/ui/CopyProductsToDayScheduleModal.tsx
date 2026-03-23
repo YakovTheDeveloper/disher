@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Breadcrumbs } from '@/shared/ui/Breadcrumbs';
+import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { EditableList, EditableListRef } from '@/features/manage-list/EditableList';
 import { Button } from '@/shared/ui/atoms/Button';
@@ -75,15 +75,6 @@ const CopyProductsToDayScheduleModal = ({ isExpanded, dishId, items, onFinish, o
     onFinish();
   };
 
-  const Header = ({ currentStep }: { currentStep: Exclude<Step, 'idle'> }) => (
-    <header className={s.header}>
-      <button className={s.backButton} onClick={handleClose}>
-        ←
-      </button>
-      <Breadcrumbs steps={STEPS} current={currentStep} stepLabels={STEP_LABELS} onStepClick={goToStep} />
-    </header>
-  );
-
   return (
     <div>
       {/* Step 1: Select Date */}
@@ -92,7 +83,7 @@ const CopyProductsToDayScheduleModal = ({ isExpanded, dishId, items, onFinish, o
         isExpanded={isExpanded && step === 'date'}
         content={
           <div className={s.wrapper}>
-            <Header currentStep="date" />
+            <ModalStepHeader currentStep="date" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
             <ScheduleSelection onSelect={handleDateSelect} selectedDate={targetDate ?? undefined} />
           </div>
         }
@@ -104,7 +95,7 @@ const CopyProductsToDayScheduleModal = ({ isExpanded, dishId, items, onFinish, o
         isExpanded={isExpanded && step === 'confirm'}
         content={
           <div className={s.wrapper}>
-            <Header currentStep="confirm" />
+            <ModalStepHeader currentStep="confirm" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
             <div className={s.content}>
               <TimeChoose
                 onFinish={setTime}

@@ -217,20 +217,15 @@ export const useTimeChooseV2 = ({
     };
 
     const handleHoursBlur = () => {
-        if (hours.length === 0) {
-            setHours('00');
-        } else if (hours.length === 1) {
-            // Keep single digit visually, but it will be formatted on finish
-        }
+        const hhFormatted = hours.length === 0 ? '00' : pad2(clamp(Number(hours), 0, 23));
+        if (hours !== hhFormatted) setHours(hhFormatted);
+        onFinish(normalize(hhFormatted, minutes || '0'));
     };
 
     const handleMinutesBlur = () => {
-        if (minutes.length > 0 && minutes.length < 2) {
-            const mmFormatted = pad2(clamp(Number(minutes || '0'), 0, 59));
-            setMinutes(mmFormatted);
-        } else if (minutes.length === 0) {
-            setMinutes('00');
-        }
+        const mmFormatted = pad2(clamp(Number(minutes || '0'), 0, 59));
+        if (minutes !== mmFormatted) setMinutes(mmFormatted);
+        onFinish(normalize(hours || '0', mmFormatted));
     };
 
     return {

@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router';
-import { RouterLinks, RouterUrls, getScheduleAnalyticsUrl, getProductUrl } from '@/app/router';
+import { RouterLinks, RouterUrls, getScheduleAnalyticsUrl, getProductUrl, getNutrientArticleUrl } from '@/app/router';
 
 export interface UseAppRoutesOptions {
     fallbackUrl?: string;
@@ -17,6 +17,8 @@ export interface UseAppRoutesReturn {
     toScheduleAnalytics: (id: string) => void;
     toFood: () => void;
     toProduct: (id: string) => void;
+    toNutrientArticles: () => void;
+    toNutrientArticle: (folder: string) => void;
     toTest: () => void;
 }
 
@@ -43,6 +45,8 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
     const toScheduleAnalytics = (id: string) => navigate(getScheduleAnalyticsUrl(id));
     const toFood = () => navigate(RouterLinks.Food);
     const toProduct = (id: string) => navigate(getProductUrl(id));
+    const toNutrientArticles = () => navigate(RouterLinks.NutrientArticles);
+    const toNutrientArticle = (folder: string) => navigate(getNutrientArticleUrl(folder));
     const toTest = () => navigate(RouterLinks.Root);
 
     return {
@@ -57,6 +61,8 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
         toScheduleAnalytics,
         toFood,
         toProduct,
+        toNutrientArticles,
+        toNutrientArticle,
         toTest,
     };
 };

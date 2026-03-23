@@ -1,11 +1,13 @@
 import { useCallback, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
+import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalFooter } from '@/shared/ui/ModalFooter';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { updateDishItem } from '@/entities/dish';
 import Button from '@/shared/ui/atoms/Button/Button';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-import s from '@/widgets/FoodSchedule/ui/FoodScheduleModals.module.scss';
 
 export const DISH_EDIT_MODAL_INPUT_IDS = {
   SEARCH_INPUT: 'dish-item-edit-search',
@@ -37,7 +39,7 @@ type Props = {
   onClose: () => void;
 };
 
-const DishItemEditModal = ({ item, initialStep = 'idle', onClose }: Props) => {
+const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) => {
   const createInitialDraft = (): DraftState => ({
     foodId: item.foodId,
     quantity: item.quantity,
@@ -50,6 +52,9 @@ const DishItemEditModal = ({ item, initialStep = 'idle', onClose }: Props) => {
   const [step, setStep] = useState<Step>(initialStep);
   const [draft, setDraft] = useState<DraftState>(createInitialDraft);
   useSwipeableLock(step !== 'idle');
+  useOverlayHistory(step !== 'idle', () => { setStep('idle'); onClose(); });
+
+  const handleClose = () => { setStep('idle'); onClose(); };
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
@@ -88,14 +93,14 @@ const DishItemEditModal = ({ item, initialStep = 'idle', onClose }: Props) => {
         position="absolute"
         isExpanded={step === 'search'}
         content={
-          <div className={s.wrapper}>
+          <ModalShell>
             <SearchFood
               mode="products-only"
               onFinish={handleFoodSelect}
               activeItemId={draft.foodId ?? undefined}
               inputId={DISH_EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
             />
-          </div>
+          </ModalShell>
         }
       />
 
@@ -104,9 +109,9 @@ const DishItemEditModal = ({ item, initialStep = 'idle', onClose }: Props) => {
         position="absolute"
         isExpanded={step === 'quantity'}
         content={
-          <div className={s.wrapper}>
-            <div className={s.spacer} />
-            <div className={s.content}>
+          <ModalShell>
+            <ModalShell.Spacer />
+            <ModalShell.Body>
               {draft.content && (
                 <ProductQuantity
                   content={draft.content}
@@ -114,17 +119,17 @@ const DishItemEditModal = ({ item, initialStep = 'idle', onClose }: Props) => {
                   inputId={DISH_EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
                 />
               )}
-              <div className={s.finishButton}>
+              <ModalFooter onBack={handleClose}>
                 <Button variant="primary" onClick={handleCommit}>
                   Готово
                 </Button>
-              </div>
-            </div>
-          </div>
+              </ModalFooter>
+            </ModalShell.Body>
+          </ModalShell>
         }
       />
     </div>
   );
 };
 
-export default DishItemEditModal;
+export default DishProductEditModals;

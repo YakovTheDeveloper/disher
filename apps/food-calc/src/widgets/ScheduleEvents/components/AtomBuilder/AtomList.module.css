@@ -1,48 +1,45 @@
 /**
- * AtomList.module.css — NYLON-magazine inspired chips
- * Monochrome with minimal accent, editorial feel
+ * AtomList.module.css — per-kind color chips, editorial typography
  */
 
 .atomList {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    padding: 12px 0;
+    gap: var(--space-1, 4px);
+    padding: var(--space-3, 12px) 0;
 }
 
 .atomChip {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    background: #000;
-    color: #fff;
+    gap: var(--space-2, 8px);
+    padding: var(--space-1, 4px) var(--space-3, 12px);
+    background: var(--chip-bg, #333);
+    color: var(--chip-text, #fff);
     border: none;
-    border-radius: 0;
-    font-size: 12px;
-    letter-spacing: 0.04em;
-    transition: opacity 0.15s;
+    border-radius: var(--radius-xs, 4px);
+    font-size: var(--text-sm, 0.8rem);
+    transition: opacity var(--duration-fast, 120ms);
 }
 
 .atomChip:hover {
     opacity: 0.85;
 }
 
-/* Subtle kind differentiation via left border accent */
-.atomChip[data-kind='scale'] { border-left: 3px solid #ff6b00; }
-.atomChip[data-kind='time'] { border-left: 3px solid #0066ff; }
-.atomChip[data-kind='number'] { border-left: 3px solid #00cc66; }
-.atomChip[data-kind='tag'] { border-left: 3px solid #cc00cc; }
-.atomChip[data-kind='relation'] { border-left: 3px solid #00ccaa; }
-.atomChip[data-kind='flag'] { border-left: 3px solid #ccaa00; }
-.atomChip[data-kind='body'] { border-left: 3px solid #cc3333; }
+.atomChip[data-kind='scale']    { --chip-bg: var(--event-scale-accent);    --chip-text: #fff; }
+.atomChip[data-kind='time']     { --chip-bg: var(--event-time-accent);     --chip-text: #fff; }
+.atomChip[data-kind='number']   { --chip-bg: var(--event-number-accent);   --chip-text: #fff; }
+.atomChip[data-kind='tag']      { --chip-bg: var(--event-tag-accent);      --chip-text: #fff; }
+.atomChip[data-kind='relation'] { --chip-bg: var(--event-relation-accent); --chip-text: #fff; }
+.atomChip[data-kind='flag']     { --chip-bg: var(--event-flag-accent);     --chip-text: #fff; }
+.atomChip[data-kind='body']     { --chip-bg: var(--event-body-accent);     --chip-text: #fff; }
 
 .atomLabel {
+    font-size: var(--text-xs, 0.64rem);
     font-weight: 700;
-    font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.55);
 }
 
 .atomValue {
@@ -57,13 +54,13 @@
     width: 18px;
     height: 18px;
     padding: 0;
-    margin-left: 4px;
+    margin-left: 2px;
     background: transparent;
     border: none;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
     font-size: 12px;
-    transition: color 0.15s;
+    transition: color var(--duration-fast, 120ms);
     border-radius: 0;
 }
 

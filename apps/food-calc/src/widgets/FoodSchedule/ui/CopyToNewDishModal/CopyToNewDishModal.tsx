@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Breadcrumbs } from '@/shared/ui/Breadcrumbs';
+import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { EditableList, EditableListRef } from '@/features/manage-list/EditableList';
 import { LabeledCheckbox } from '@/shared/ui/LabeledCheckbox';
@@ -12,7 +12,7 @@ import { isEmpty } from 'lodash';
 import { createDishWithItems } from '@/entities/dish';
 import { addScheduleFood, removeScheduleFoods } from '@/entities/schedule-food';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
-import { MODAL_INPUT_IDS } from '../ScheduleFoodCreationModals';
+import { MODAL_INPUT_IDS } from '../ScheduleFoodCreateModals';
 import s from '../FoodScheduleModals.module.scss';
 import { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 
@@ -123,15 +123,6 @@ const CopyToNewDishModal = ({ isExpanded, items, onFinish, onClose }: Props) => 
     });
   }, []);
 
-  const Header = ({ currentStep }: { currentStep: Exclude<Step, 'idle'> }) => (
-    <header className={s.header}>
-      <button className={s.backButton} onClick={handleClose}>
-        ←
-      </button>
-      <Breadcrumbs steps={STEPS} current={currentStep} stepLabels={STEP_LABELS} onStepClick={goToStep} />
-    </header>
-  );
-
   return (
     <div onFocusCapture={handleFocusCapture}>
       {/* Step 1: Dish Name */}
@@ -140,7 +131,7 @@ const CopyToNewDishModal = ({ isExpanded, items, onFinish, onClose }: Props) => 
         isExpanded={isExpanded && step === 'name'}
         content={
           <div className={s.wrapper}>
-            <Header currentStep="name" />
+            <ModalStepHeader currentStep="name" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
             <div className={s.spacer} />
             <div className={s.content}>
               <h2>Как назовёте блюдо?</h2>
@@ -163,7 +154,7 @@ const CopyToNewDishModal = ({ isExpanded, items, onFinish, onClose }: Props) => 
         isExpanded={isExpanded && step === 'products'}
         content={
           <div className={s.wrapper}>
-            <Header currentStep="products" />
+            <ModalStepHeader currentStep="products" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
             <div className={s.content}>
               <h2>Корректный список?</h2>
               <EditableList

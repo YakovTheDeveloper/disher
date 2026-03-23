@@ -1,5 +1,5 @@
 import { createContext, useContext, useSyncExternalStore } from "react";
-import { getSyncStatus, onSyncStatusChange, type SyncStatus } from "./client";
+import { getSyncStatus, onSyncStatusChange, type SyncStatus } from "./session";
 
 const SyncContext = createContext<SyncStatus>("idle");
 

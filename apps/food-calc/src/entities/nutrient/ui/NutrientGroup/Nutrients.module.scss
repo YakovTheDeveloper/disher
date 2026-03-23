@@ -1,61 +1,40 @@
 .container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-
-    padding: 16px 8px;
-    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    padding: var(--space-4) var(--space-2);
     position: relative;
-    overflow: hidden;
-
-
-    .groupContent {
-        display: flex;
-        width: 100%;
-        flex-direction: column;
-        gap: 10px;
-        flex: 1;
-    }
-
-    .groupTitle {
-        font-weight: 900;
-        font-size: 32px;
-        line-height: 1;
-        letter-spacing: -1.5px;
-        text-transform: uppercase;
-        position: sticky;
-        top: 0;
-        z-index: 0;
-        margin: 0;
-        padding: 4px 2px;
-        color: rgba(88, 133, 255, 0.13);
-        pointer-events: none;
-        user-select: none;
-    }
 }
 
 .group {
     display: flex;
     flex-direction: column;
-    position: relative;
+    gap: var(--space-2);
 }
 
-.decorativeImg {
-    width: 60%;
-    max-height: 80px;
-    object-fit: contain;
-    align-self: center;
-    opacity: 0.25;
-    pointer-events: none;
-    margin-top: 4px;
-}
-
-.decorativeImgLarge {
+.groupContent {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
     width: 100%;
-    max-height: 500px;
-    object-fit: contain;
-    align-self: center;
-    opacity: 0.25;
-    pointer-events: none;
-    margin-top: auto;
 }
+
+.groupTitle {
+    font-family: var(--font-sans);
+    font-size: 2rem;
+    line-height: 1;
+    margin: 0;
+    padding: 0 var(--space-1);
+}
+
+.groupTitleBold {
+    font-weight: 900;
+    font-style: normal;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.group--main .groupTitleBold      { color: var(--nutrient-accent-main); }
+.group--vitaminsB .groupTitleBold { color: var(--nutrient-accent-vitaminsB); }
+.group--minerals .groupTitleBold  { color: var(--nutrient-accent-minerals); }
+.group--rest .groupTitleBold      { color: var(--nutrient-accent-rest); }

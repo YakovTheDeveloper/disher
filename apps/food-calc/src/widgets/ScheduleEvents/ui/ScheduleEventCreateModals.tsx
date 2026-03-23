@@ -1,6 +1,9 @@
 import { useCallback, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
-import { Breadcrumbs } from '@/shared/ui/Breadcrumbs';
+import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
+import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalFooter, NextStepButton } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { addScheduleEvent } from '@/entities/schedule-event';
@@ -8,7 +11,6 @@ import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import Button from '@/shared/ui/atoms/Button/Button';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
-import s from './ScheduleEventModals.module.scss';
 
 /**
  * Input IDs used for label→input focus delegation across ScheduleEvent modals.
@@ -16,7 +18,7 @@ import s from './ScheduleEventModals.module.scss';
  * Each modal step is opened by a <label htmlFor={ID}> that focuses the corresponding <input id={ID}>.
  * The onFocusCapture handler reads e.target.id to determine which step is active.
  *
- * ScheduleEventCreationModals (this file):
+ * ScheduleEventCreateModals (this file):
  *   - TIME_INPUT → TimeChoose input (step: time)
  *   - TEXT_INPUT → Textarea for event text (step: text)
  *   - ATOMS_INPUT → AtomBuilder container (step: atoms)
@@ -28,21 +30,14 @@ export const MODAL_INPUT_IDS = {
 } as const;
 
 type Step = 'idle' | 'time' | 'text' | 'atoms';
+type ActiveStep = Exclude<Step, 'idle'>;
 
-const STEPS: Step[] = ['time', 'text', 'atoms'];
+const STEPS: ActiveStep[] = ['time', 'text', 'atoms'];
 
-const STEP_LABELS: Record<Exclude<Step, 'idle'>, string> = {
+const STEP_LABELS: Record<ActiveStep, string> = {
   time: 'Время',
   text: 'Текст',
   atoms: 'Теги',
-};
-
-const NEXT_INPUT_ID: Record<string, string> = {
-  time: MODAL_INPUT_IDS.TEXT_INPUT,
-};
-
-const NEXT_STEP: Partial<Record<Step, Exclude<Step, 'idle'>>> = {
-  text: 'atoms',
 };
 
 type DraftState = {
@@ -59,23 +54,28 @@ type Props = {
   scheduleId: string;
 };
 
-const ScheduleEventCreationModals = ({ scheduleId }: Props) => {
+const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
   const [step, setStep] = useState<Step>('idle');
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
   const draftAtoms = useEventDraftStore((s) => s.draft.atoms);
   const clearAtoms = useEventDraftStore((s) => s.clearAtoms);
   useSwipeableLock(step !== 'idle');
 
+  const INPUT_TO_STEP: Record<string, ActiveStep> = {
+    [MODAL_INPUT_IDS.TIME_INPUT]: 'time',
+    [MODAL_INPUT_IDS.TEXT_INPUT]: 'text',
+    [MODAL_INPUT_IDS.ATOMS_INPUT]: 'atoms',
+  };
+
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
-    const id = target.id;
-    let nextStep: Step | null = null;
-    if (id === MODAL_INPUT_IDS.TIME_INPUT) nextStep = 'time';
-    else if (id === MODAL_INPUT_IDS.TEXT_INPUT) nextStep = 'text';
-    else if (id === MODAL_INPUT_IDS.ATOMS_INPUT) nextStep = 'atoms';
-    else return;
+    const nextStep = INPUT_TO_STEP[target.id];
+    if (!nextStep) return;
 
-    setStep(nextStep);
+    setStep((prev) => {
+      if (prev === 'idle') setDraft(createEmptyDraft());
+      return nextStep;
+    });
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -110,39 +110,10 @@ const ScheduleEventCreationModals = ({ scheduleId }: Props) => {
     setStep('idle');
   };
 
+  useOverlayHistory(step !== 'idle', handleClose);
+
   const goToStep = (target: Step) => {
     setStep(target);
-  };
-
-  const Header = ({ currentStep }: { currentStep: Exclude<Step, 'idle'> }) => (
-    <header className={s.header}>
-      <button className={s.backButton} onClick={handleClose}>
-        ←
-      </button>
-      <Breadcrumbs
-        steps={STEPS}
-        current={currentStep}
-        stepLabels={STEP_LABELS}
-        onStepClick={goToStep}
-      />
-    </header>
-  );
-
-  const NextStepLabel = ({
-    currentStep,
-    children,
-  }: {
-    currentStep: Step;
-    children: React.ReactNode;
-  }) => {
-    const nextInputId = NEXT_INPUT_ID[currentStep];
-    if (!nextInputId) return null;
-
-    return (
-      <label htmlFor={nextInputId} className={s.nextLabel}>
-        {children}
-      </label>
-    );
   };
 
   return (
@@ -152,49 +123,45 @@ const ScheduleEventCreationModals = ({ scheduleId }: Props) => {
         position="absolute"
         isExpanded={step === 'time'}
         content={
-          <div className={s.wrapper}>
-            <Header currentStep="time" />
-            <div className={s.spacer} />
-            <div className={s.content}>
+          <ModalShell>
+            <ModalStepHeader currentStep="time" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
+            <ModalShell.Spacer />
+            <ModalShell.Body>
               <TimeChoose
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
                 inputId={MODAL_INPUT_IDS.TIME_INPUT}
               />
-              <div className={s.finishButton}>
-                <NextStepLabel currentStep="time">
-                  <span className={s.nextButton}>Далее</span>
-                </NextStepLabel>
-              </div>
-            </div>
-          </div>
+              <ModalFooter onBack={handleClose}>
+                <NextStepButton htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} />
+              </ModalFooter>
+            </ModalShell.Body>
+          </ModalShell>
         }
       />
 
-      {/* Step 2: Text — trigger: NextStepLabel(time) → htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} */}
+      {/* Step 2: Text — trigger: NextStepButton(time) → htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'text'}
         content={
-          <div className={s.wrapper}>
-            <Header currentStep="text" />
-            <div className={s.spacer} />
-            <div className={s.content}>
+          <ModalShell>
+            <ModalStepHeader currentStep="text" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
+            <ModalShell.Spacer />
+            <ModalShell.Body>
               <Textarea
                 placeholder="Опишите событие"
                 id={MODAL_INPUT_IDS.TEXT_INPUT}
                 onChange={handleTextChange}
                 value={draft.text}
               />
-              <div className={s.finishButton}>
-                {NEXT_STEP[step] ? (
-                  <Button variant="primary" onClick={() => goToStep(NEXT_STEP[step]!)}>
-                    Далее
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-          </div>
+              <ModalFooter onBack={() => goToStep('time')}>
+                <Button variant="primary" onClick={() => goToStep('atoms')}>
+                  Далее
+                </Button>
+              </ModalFooter>
+            </ModalShell.Body>
+          </ModalShell>
         }
       />
 
@@ -203,23 +170,23 @@ const ScheduleEventCreationModals = ({ scheduleId }: Props) => {
         position="absolute"
         isExpanded={step === 'atoms'}
         content={
-          <div className={s.wrapper}>
-            <Header currentStep="atoms" />
-            <div className={s.atomsContent}>
+          <ModalShell>
+            <ModalStepHeader currentStep="atoms" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
+            <ModalShell.AtomsBody>
               <div id={MODAL_INPUT_IDS.ATOMS_INPUT} tabIndex={-1}>
                 <AtomBuilder />
               </div>
-              <div className={s.finishButton}>
+              <ModalFooter onBack={() => goToStep('text')}>
                 <Button variant="primary" onClick={handleCommit}>
                   Готово
                 </Button>
-              </div>
-            </div>
-          </div>
+              </ModalFooter>
+            </ModalShell.AtomsBody>
+          </ModalShell>
         }
       />
     </div>
   );
 };
 
-export default ScheduleEventCreationModals;
+export default ScheduleEventCreateModals;

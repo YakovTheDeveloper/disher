@@ -69,23 +69,28 @@
     padding-left: 0.125rem;
 }
 
-// ── Carousel ─────────────────────────────────────────────────────────────────
+// ── Snap carousel ───────────────────────────────────────────────────────────
 
-.emblaViewport {
-    overflow: hidden;
+.snapViewport {
+    overflow-x: auto;
     width: 100%;
-    touch-action: pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }
 
-.emblaContainer {
+.snapContainer {
     display: flex;
-    backface-visibility: hidden;
-    will-change: transform;
 }
 
-.emblaSlide {
+.snapSlide {
     flex: 0 0 100%;
     min-width: 0;
+    scroll-snap-align: start;
 }
 
 .slideGrid {

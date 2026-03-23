@@ -1,7 +1,24 @@
 import { FC, ReactNode, useRef, useState, useEffect, useCallback } from 'react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import styles from './FilterNutrients.module.scss';
+
+const InfoIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="16" x2="12" y2="12" />
+    <line x1="12" y1="8" x2="12.01" y2="8" />
+  </svg>
+);
 
 const EyeOpenIcon = () => (
   <svg
@@ -42,6 +59,8 @@ interface Props {
   children: ReactNode;
   nutrientId?: string;
   nutrientName?: string;
+  /** English name used as article folder key, e.g. "iron" */
+  nutrientKey?: string;
   actionSlot?: ReactNode;
 }
 
@@ -51,7 +70,10 @@ const FilterNutrientCardWrapper: FC<Props> = ({
   onToggle,
   children,
   actionSlot,
+  nutrientId,
+  nutrientKey,
 }) => {
+  const { toNutrientArticle } = useAppRoutes();
   const [overlayOpen, setOverlayOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -120,6 +142,18 @@ const FilterNutrientCardWrapper: FC<Props> = ({
               exit={{ opacity: 0, x: 6 }}
               transition={{ duration: 0.12, delay: 0.03 }}
             >
+              {nutrientId && nutrientKey && (
+                <button
+                  className={styles.overlayEyeBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toNutrientArticle(`${nutrientId}_${nutrientKey}`);
+                  }}
+                  aria-label="Статья о нутриенте"
+                >
+                  <InfoIcon />
+                </button>
+              )}
               <button
                 className={styles.overlayEyeBtn}
                 onClick={(e) => {

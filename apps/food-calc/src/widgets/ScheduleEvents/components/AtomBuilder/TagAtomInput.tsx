@@ -10,6 +10,7 @@ import styles from './shared/AtomInputShared.module.css';
 export interface TagAtomInputProps {
   onAddAtom: (atom: TagAtom) => void;
   onClose: () => void;
+  accentColor?: string;
   /** Popular tags for autocomplete suggestions */
   popularTags?: string[];
   /** Recent tags for autocomplete suggestions */
@@ -21,7 +22,7 @@ export interface TagAtomInputProps {
  *
  * Allows user to add a tag atom with autocomplete suggestions from history
  */
-export const TagAtomInput = ({ onAddAtom, onClose, popularTags = [], recentTags = [] }: TagAtomInputProps) => {
+export const TagAtomInput = ({ onAddAtom, onClose, accentColor, popularTags = [], recentTags = [] }: TagAtomInputProps) => {
   const [input, setInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -56,7 +57,7 @@ export const TagAtomInput = ({ onAddAtom, onClose, popularTags = [], recentTags 
   };
 
   return (
-    <AtomInputLayout title="Добавить тег">
+    <AtomInputLayout title="Добавить тег" accentColor={accentColor}>
       <div>
         <label>Тег</label>
         <div className={styles.autocompleteContainer}>

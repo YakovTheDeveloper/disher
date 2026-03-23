@@ -3,8 +3,6 @@ import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import React from 'react';
 import clsx from 'clsx';
 import { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import treeSrc from '@/shared/assets/decarative/tree.png';
-import tree2Src from '@/shared/assets/decarative/tree2.png';
 
 interface Props {
   renderCard: (nutrientData: Nutrient) => React.ReactNode;
@@ -12,21 +10,18 @@ interface Props {
 
 const Nutrients = ({ renderCard }: Props) => {
   return (
-    <div className={clsx([styles.container])}>
-      {nutrientGroups.map(({ content, displayName: groupName }) => {
+    <div className={styles.container}>
+      {nutrientGroups.map(({ content, displayName: groupName, name }) => {
+        const headline = groupName.toUpperCase();
         return (
-          <div key={groupName} className={styles.group}>
-            <div className={clsx([styles.groupContent])}>
-              {/* <h2 className={styles.groupTitle}>{groupName}</h2> */}
+          <div key={groupName} className={clsx(styles.group, styles[`group--${name}`])}>
+            <h2 className={styles.groupTitle}>
+              <span className={styles.groupTitleBold}>{headline}</span>
+            </h2>
+            <div className={styles.groupContent}>
               {content.map((nutrientData) => (
                 <React.Fragment key={nutrientData.id}>{renderCard(nutrientData)}</React.Fragment>
               ))}
-              {content[0]?.group === 'main' && (
-                <img src={treeSrc} alt="" className={styles.decorativeImg} />
-              )}
-              {content[0]?.group === 'rest' && (
-                <img src={tree2Src} alt="" className={styles.decorativeImgLarge} />
-              )}
             </div>
           </div>
         );

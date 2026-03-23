@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useRef, useState, useEffect } from 'react';
+import { useRef } from 'react';
 import styles from './FilterPanel.module.scss';
 
 // Generic types for category values
@@ -66,35 +66,15 @@ const FilterPanel = <T extends CategoryValue>({
   testId,
 }: FilterPanelProps<T>) => {
   const contentRef = useRef<HTMLDivElement>(null);
-  const [isScrollable, setIsScrollable] = useState(false);
   const hasSelection = selectedValues.length > 0;
 
   const isSelected = (value: T): boolean => selectedValues.includes(value);
-
-  // Detect if content overflows
-  useEffect(() => {
-    const content = contentRef.current;
-    if (!content) return;
-
-    const checkScrollable = () => {
-      const hasOverflow = content.scrollHeight > content.clientHeight;
-      setIsScrollable(hasOverflow);
-    };
-
-    checkScrollable();
-
-    // Re-check on resize
-    const resizeObserver = new ResizeObserver(checkScrollable);
-    resizeObserver.observe(content);
-
-    return () => resizeObserver.disconnect();
-  }, [groups, options, selectedValues]);
 
   if (!isOpen) return null;
 
   return (
     <div
-      className={clsx(styles.panel, isScrollable && styles.scrollable, className)}
+      className={clsx(styles.panel, className)}
       data-testid={testId}
     >
       <div className={styles.content} ref={contentRef}>
@@ -108,9 +88,9 @@ const FilterPanel = <T extends CategoryValue>({
                 type="button"
                 className={styles.clearButton}
                 onClick={onClear}
-                aria-label="Clear all filters"
+                aria-label="Сбросить все фильтры"
               >
-                Clear
+                Сбросить
               </button>
             )}
           </div>
@@ -150,12 +130,7 @@ const FilterPanel = <T extends CategoryValue>({
           ))}
         </div>
 
-        {/* Selected count indicator */}
-        {hasSelection && (
-          <div className={styles.footer}>
-            <span className={styles.selectedCount}>{selectedValues.length} selected</span>
-          </div>
-        )}
+
       </div>
     </div>
   );

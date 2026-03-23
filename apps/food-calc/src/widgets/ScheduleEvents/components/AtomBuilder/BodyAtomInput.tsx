@@ -15,6 +15,7 @@ import styles from './BodyAtomInput.module.css';
 export interface BodyAtomInputProps {
   onAddAtom: (atom: BodyAtom) => void;
   onClose: () => void;
+  accentColor?: string;
 }
 
 const PRESET_LABELS = ['боль', 'дискомфорт', 'напряжение', 'онемение', 'слабость'];

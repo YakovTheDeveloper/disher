@@ -9,6 +9,7 @@ import { AtomInputLayout, AtomActionButtons, PresetChips } from './shared';
 export interface NumberAtomInputProps {
   onAddAtom: (atom: NumberAtom) => void;
   onClose: () => void;
+  accentColor?: string;
 }
 
 const PRESET_UNITS = ['км', 'м', 'бпм', '°C', 'мг', 'шаги', 'ккал', 'г'];
@@ -18,7 +19,7 @@ const PRESET_UNITS = ['км', 'м', 'бпм', '°C', 'мг', 'шаги', 'кка
  *
  * Allows user to add a number atom with optional unit and label
  */
-export const NumberAtomInput = ({ onAddAtom, onClose }: NumberAtomInputProps) => {
+export const NumberAtomInput = ({ onAddAtom, onClose, accentColor }: NumberAtomInputProps) => {
   const [value, setValue] = useState('');
   const [unit, setUnit] = useState('');
   const [label, setLabel] = useState('');
@@ -38,7 +39,7 @@ export const NumberAtomInput = ({ onAddAtom, onClose }: NumberAtomInputProps) =>
   };
 
   return (
-    <AtomInputLayout title="Добавить число">
+    <AtomInputLayout title="Добавить число" accentColor={accentColor}>
       <div>
         <label>Значение</label>
         <input

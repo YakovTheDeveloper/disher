@@ -8,14 +8,12 @@ import { modalStore } from '@/shared/ui/modal-store';
 import s from './ChangeName.module.scss';
 
 type Props = {
-  entity: {
-    name: string;
-    changeName: (name: string) => void;
-  };
+  name: string;
+  onChangeName: (name: string) => void;
   canRename?: boolean;
 };
 
-const ChangeName: FC<Props> = ({ entity, canRename = true }) => {
+const ChangeName: FC<Props> = ({ name, onChangeName, canRename = true }) => {
   const [showRenameHint, setShowRenameHint] = useState(false);
 
   const handleNameClick = () => {
@@ -24,10 +22,10 @@ const ChangeName: FC<Props> = ({ entity, canRename = true }) => {
 
   const handleRename = async () => {
     setShowRenameHint(false);
-    const newName = await modalStore.show(RenameModal, { currentName: entity.name });
+    const newName = await modalStore.show(RenameModal, { currentName: name });
 
     if (newName) {
-      entity.changeName(newName);
+      onChangeName(newName);
     }
   };
 
@@ -50,7 +48,7 @@ const ChangeName: FC<Props> = ({ entity, canRename = true }) => {
         </div>
       )}
       <div className={s.nameRow} onClick={handleNameClick}>
-        <Typography variant="feature-title">{entity.name}</Typography>
+        <Typography variant="feature-title" className={s.name}>{name}</Typography>
       </div>
     </>
   );

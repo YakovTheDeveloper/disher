@@ -14,12 +14,12 @@ import { useUiStore } from '@/shared/model/uiStore';
 import { FoodToolbar } from '@/features/food/food-toolbar';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import {
-  ScheduleFoodCreationModals,
+  ScheduleFoodCreateModals,
   MODAL_INPUT_IDS,
   CopyToNewDishModal,
   CopyToExistingDishModal,
   CopyToAnotherDayScheduleModal,
-  EditScheduleFoodModal,
+  ScheduleFoodEditModals,
   EDIT_MODAL_INPUT_IDS,
 } from '@/widgets/FoodSchedule/ui';
 import { CountBadge } from '@/shared/ui/atoms/Button/CountBadge/CountBadge';
@@ -122,9 +122,9 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
       offsetTop
       overlay={
         <>
-          <ScheduleFoodCreationModals scheduleId={date} />
+          <ScheduleFoodCreateModals scheduleId={date} />
           {editingItem && (
-            <EditScheduleFoodModal
+            <ScheduleFoodEditModals
               item={editingItem}
               initialStep={editingStep}
               onClose={closeEditModal}
@@ -229,7 +229,7 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
         )
       }
     >
-      <FoodToolbar date={date} hasItems={items.length > 0} />
+      <FoodToolbar variant="schedule" date={date} hasItems={items.length > 0} />
       {items.length === 0 && (
         <div style={{ padding: `var(--space-10) var(--space-4) 0` }}>
           <AddButton

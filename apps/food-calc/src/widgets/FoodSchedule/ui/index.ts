@@ -1,7 +1,7 @@
-export { default as ScheduleFoodCreationModals } from './ScheduleFoodCreationModals';
-export { MODAL_INPUT_IDS } from './ScheduleFoodCreationModals';
-export { default as EditScheduleFoodModal } from './EditScheduleFoodModal';
-export { EDIT_MODAL_INPUT_IDS } from './EditScheduleFoodModal';
+export { default as ScheduleFoodCreateModals } from './ScheduleFoodCreateModals';
+export { MODAL_INPUT_IDS } from './ScheduleFoodCreateModals';
+export { default as ScheduleFoodEditModals } from './ScheduleFoodEditModals';
+export { EDIT_MODAL_INPUT_IDS } from './ScheduleFoodEditModals';
 export { CopyToNewDishModal } from './CopyToNewDishModal';
 export { CopyToExistingDishModal } from './CopyToExistingDishModal';
 export { CopyToAnotherDayScheduleModal } from './CopyToAnotherDayScheduleModal';

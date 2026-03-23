@@ -22,11 +22,12 @@ import {
   getDishCategoryOptions,
 } from '@/entities/dish';
 import { VirtualList } from '@/shared/ui/VirtualList';
+import { computeDishDietaryCategories } from '@/shared/lib/dishCategories';
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 
 type Props = {
-  onFinish: (payload: { variant: 'product' | 'dish'; id: string }) => void;
+  onFinish: (payload: { variant: 'product' | 'dish'; id: string; name: string }) => void;
   mode: SearchMode;
   activeItemId?: string | null;
   richNutrient?: { id: string; unit: string } | null;
@@ -37,6 +38,24 @@ type Props = {
   itemHtmlFor?: string;
   inputId?: string;
 };
+
+type EmptyStateProps = {
+  query: string;
+  label: string;
+  onCreate: () => void;
+};
+
+const EmptyState = ({ query, label, onCreate }: EmptyStateProps) => (
+  <div className={styles.emptyState}>
+    <p className={styles.emptyStateMessage}>
+      По запросу <em>«{query}»</em> ничего нет
+    </p>
+    <button className={styles.emptyStateAction} onClick={onCreate}>
+      <span className={styles.emptyStateIcon}>+</span>
+      Создать {label} «{query}»
+    </button>
+  </div>
+);
 
 const getDefaultTab = (mode: SearchMode) => (mode === 'dishes-only' ? 'блюда' : 'продукты');
 
@@ -66,10 +85,25 @@ const SearchFood = ({
     () => (productsMap ? Array.from(productsMap.values()) : []),
     [productsMap]
   );
-  const dishes = useMemo(() => (dishesMap ? Array.from(dishesMap.values()) : []), [dishesMap]);
+  const allDishes = useMemo(() => (dishesMap ? Array.from(dishesMap.values()) : []), [dishesMap]);
+
+  // Normalized products map keyed by id — used for dish dietary category computation
+  const productsById = useMemo(
+    () => new Map(products.map((p) => [p.id, p])),
+    [products]
+  );
 
   const categoryFilter = useCategoryFilterState();
   const currentFilterType = currentTab === 'продукты' ? 'product' : 'dish';
+
+  const selectedDishCategories = categoryFilter.getCategoryFilter('dish');
+  const dishes = useMemo(() => {
+    if (selectedDishCategories.length === 0) return allDishes;
+    return allDishes.filter((dish) => {
+      const computed = computeDishDietaryCategories(dish, productsById);
+      return selectedDishCategories.every((cat) => computed.has(cat as never));
+    });
+  }, [allDishes, selectedDishCategories, productsById]);
 
   const richNutrientInfo = useMemo(
     () => (richNutrient ? allNutrientsList.find((n) => n.id === richNutrient.id) : null),
@@ -77,11 +111,11 @@ const SearchFood = ({
   );
 
   const onFoodAdd = useCallback(
-    (item: { id: string }) => onFinish({ variant: 'product', id: item.id }),
+    (item: { id: string; name: string }) => onFinish({ variant: 'product', id: item.id, name: item.name }),
     [onFinish]
   );
   const onDishAdd = useCallback(
-    (item: { id: string }) => onFinish({ variant: 'dish', id: item.id }),
+    (item: { id: string; name: string }) => onFinish({ variant: 'dish', id: item.id, name: item.name }),
     [onFinish]
   );
 
@@ -107,19 +141,16 @@ const SearchFood = ({
 
   const isSearchActive = searchQuery.trim().length >= 2;
   const isLoading = productsFetching || dishesFetching;
+  const trimmedQuery = searchQuery.trim();
 
   const productEmptyContent =
     !isLoading && isSearchActive ? (
-      <button className={styles.createSuggestion} onClick={handleCreateProduct}>
-        {'Ничего не нашлось — создать продукт "' + searchQuery.trim() + '"'}
-      </button>
+      <EmptyState query={trimmedQuery} label="продукт" onCreate={handleCreateProduct} />
     ) : undefined;
 
   const dishEmptyContent =
     !isLoading && isSearchActive ? (
-      <button className={styles.createSuggestion} onClick={handleCreateDish}>
-        {'Ничего не нашлось — создать блюдо "' + searchQuery.trim() + '"'}
-      </button>
+      <EmptyState query={trimmedQuery} label="блюдо" onCreate={handleCreateDish} />
     ) : undefined;
 
   const renderProductItem = useCallback(
@@ -158,14 +189,28 @@ const SearchFood = ({
           <SearchFoodControls
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            currentTab={currentTab}
-            toggleFilterPanel={() => setFilterPanelOpen((p) => !p)}
             mode={mode}
             onBack={onBack}
             searchBarLeftChild={searchBarLeftChild}
             searchBarRightChild={searchBarRightChild}
             inputId={inputId}
           />
+          {mode === 'products-and-dishes' && (
+            <div className={styles.tabBar}>
+              <button
+                className={clsx(styles.tabBarItem, currentTab === 'продукты' && styles.tabBarItem_active)}
+                onClick={() => setCurrentTab('продукты')}
+              >
+                Продукты
+              </button>
+              <button
+                className={clsx(styles.tabBarItem, currentTab === 'блюда' && styles.tabBarItem_active)}
+                onClick={() => setCurrentTab('блюда')}
+              >
+                Блюда
+              </button>
+            </div>
+          )}
         </div>
 
         {richNutrientInfo && (
@@ -198,22 +243,6 @@ const SearchFood = ({
             isOpen={filterPanelOpen}
             header={
               <div>
-                {mode === 'products-and-dishes' && (
-                  <div className={styles.filterTabs}>
-                    <button
-                      className={`${styles.filterTab} ${currentTab === 'продукты' ? styles.filterTabActive : ''}`}
-                      onClick={() => setCurrentTab('продукты')}
-                    >
-                      Продукты
-                    </button>
-                    <button
-                      className={`${styles.filterTab} ${currentTab === 'блюда' ? styles.filterTabActive : ''}`}
-                      onClick={() => setCurrentTab('блюда')}
-                    >
-                      Блюда
-                    </button>
-                  </div>
-                )}
                 {currentTab === 'продукты' && (
                   <div className={styles.filterChips}>
                     <button

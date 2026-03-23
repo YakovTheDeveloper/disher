@@ -11,6 +11,8 @@ import DailyNormPage from '@/pages/daily-norms/DailyNormPage/DailyNormPage.tsx';
 import { ScheduleFoodAnalyticsPage } from '@/pages/schedule/analytics/schedule-analytics-page/ScheduleFoodAnalyticsPage/index.ts';
 import SettingsPage from '@/pages/settings/SettingsPage/SettingsPage.tsx';
 import SystemPage from '@/pages/settings/SystemPage/SystemPage.tsx';
+import NutrientArticlesPage from '@/pages/articles/NutrientArticlesPage.tsx';
+import NutrientArticlePage from '@/pages/articles/NutrientArticlePage.tsx';
 
 export enum RouterLinks {
   Root = '/',
@@ -25,11 +27,14 @@ export enum RouterLinks {
   Product = '/product',
   Settings = '/settings',
   System = '/system',
+  NutrientArticles = '/articles/nutrients',
+  NutrientArticle = '/articles/nutrients/:folder',
 }
 
 export const getScheduleAnalyticsUrl = (id: string) => `/schedule/${id}/analytics`;
 
 export const getProductUrl = (id: string) => `/product/${id}`;
+export const getNutrientArticleUrl = (folder: string) => `/articles/nutrients/${folder}`;
 
 export const RouterUrls = {
   Schedule: (id: string) => `/schedule/${id}`,
@@ -81,6 +86,14 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.System,
         element: <SystemPage />,
+      },
+      {
+        path: RouterLinks.NutrientArticles,
+        element: <NutrientArticlesPage />,
+      },
+      {
+        path: RouterLinks.NutrientArticle,
+        element: <NutrientArticlePage />,
       },
     ],
   },

@@ -61,10 +61,7 @@ const DailyNormPage = ({}: Props) => {
     return null;
   }
 
-  const entityForChangeName = {
-    name: dailyNorm.name,
-    changeName: (name: string) => updateDailyNorm(dailyNorm.id, { name }),
-  };
+  const handleChangeName = (name: string) => updateDailyNorm(dailyNorm.id, { name });
 
   const readOnly = dailyNormsView === 'view';
   const dn = dailyNorm as any;
@@ -90,7 +87,7 @@ const DailyNormPage = ({}: Props) => {
       title={<ScreenLabel variant="screenHeader">Норма</ScreenLabel>}
     >
       <img src={normsImg} className={styles.backgroundImage} alt="" />
-      <ChangeName entity={entityForChangeName} canRename={createdByUser} />
+      <ChangeName name={dailyNorm.name} onChangeName={handleChangeName} canRename={createdByUser} />
       <Spacer variant="screen-header-offset" />
       <Ornament text="описание дневной нормы"></Ornament>
       <label>

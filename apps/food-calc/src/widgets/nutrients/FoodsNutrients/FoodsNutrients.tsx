@@ -3,7 +3,7 @@ import { Nutrients } from '@/entities/nutrient/ui/NutrientGroup';
 import { OpenDailyNorms } from '@/features/dailyNorms/OpenDailyNorms';
 import { useCallback } from 'react';
 import { FilterButton } from '@/shared/ui/atoms/Button';
-import NutrientCardV2 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV2';
+import NutrientCardV3 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV3';
 import {
   useFilterNutrients,
   FilterNutrientsPanel,
@@ -17,6 +17,7 @@ import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import styles from './FoodsNutrients.module.scss';
+import treeSrc from '@/shared/assets/decarative/tree.png';
 
 type Props = {
   totals: NutrientTotals;
@@ -37,16 +38,12 @@ const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading, after }:
         onToggle={() => filter.toggleHidden(nutrientData.id)}
         nutrientId={nutrientData.id}
         nutrientName={nutrientData.displayNameRu}
+        nutrientKey={nutrientData.name}
         actionSlot={
           <OpenRichFood nutrientId={nutrientData.id} nutrientName={nutrientData.displayNameRu} />
         }
       >
-        <NutrientCardV2
-          content={nutrientData}
-          getValue={getValue}
-          showValues={filter.showValues}
-          showProgress={filter.showProgress}
-        />
+        <NutrientCardV3 content={nutrientData} getValue={getValue} />
       </FilterNutrientCardWrapper>
     ),
     [filter, getValue]
@@ -69,12 +66,13 @@ const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading, after }:
         )
       }
     >
-      <div className={styles.statusHeader}>
-        {isLoading && <Spinner size={16} />}
-      </div>
+      <div className={styles.statusHeader}>{isLoading && <Spinner size={16} />}</div>
       <Ornament text="нутриенты"></Ornament>
 
-      <Nutrients renderCard={renderCard} />
+      <div className={styles.nutrientsSection}>
+        <img src={treeSrc} alt="" className={styles.watermark} />
+        <Nutrients renderCard={renderCard} titleVariant="v2" />
+      </div>
 
       {missingNutrientNames.length > 0 && (
         <p style={{ padding: '8px 16px', fontSize: 13, opacity: 0.5, lineHeight: 1.4 }}>

@@ -27,12 +27,12 @@ import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import toaster from '@/shared/lib/toaster/toaster';
 import styles from './DishBuilderPage.module.scss';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
-import EditableText from '@/shared/ui/atoms/EditableText/EditableText';
+import { ChangeName } from '@/features/shared/change-name';
 import TextBehind from '@/shared/ui/TextBehind/TextBehind';
 import {
-  DishItemCreationModals,
+  DishProductCreateModals,
   DISH_MODAL_INPUT_IDS,
-  DishItemEditModal,
+  DishProductEditModals,
   DISH_EDIT_MODAL_INPUT_IDS,
   CopyProductsToExistingDishModal,
   CopyProductsToDayScheduleModal,
@@ -113,9 +113,9 @@ const DishBuilderPage = () => {
         offsetTop
         overlay={
           <>
-            <DishItemCreationModals dishId={id} />
+            <DishProductCreateModals dishId={id} />
             {editingItem && (
-              <DishItemEditModal
+              <DishProductEditModals
                 item={editingItem}
                 initialStep={editingStep}
                 onClose={closeEditModal}
@@ -166,10 +166,9 @@ const DishBuilderPage = () => {
         }
         header={
           <TextBehind text="Блюдо">
-            <EditableText
-              value={dish?.name || ''}
-              onChange={(val) => updateDishName(dish.id, val)}
-              className={styles.textInput}
+            <ChangeName
+              name={dish.name}
+              onChangeName={(val) => updateDishName(dish.id, val)}
             />
           </TextBehind>
         }
@@ -180,7 +179,7 @@ const DishBuilderPage = () => {
           )
         }
       >
-        <FoodToolbar hasItems={items.length > 0} />
+        <FoodToolbar variant="dishes" hasItems={items.length > 0} />
         {items.length === 0 && (
           <div style={{ padding: 'var(--space-10) var(--space-4) 0' }}>
             <AddButton

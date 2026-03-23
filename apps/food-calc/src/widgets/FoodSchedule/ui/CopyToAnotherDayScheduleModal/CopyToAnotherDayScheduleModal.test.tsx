@@ -154,10 +154,9 @@ describe('CopyToAnotherDayScheduleModal — confirm', () => {
 describe('CopyToAnotherDayScheduleModal — close', () => {
   it('calls onClose when back button is clicked', () => {
     const props = defaultProps();
-    render(<CopyToAnotherDayScheduleModal {...props} />);
+    const { container } = render(<CopyToAnotherDayScheduleModal {...props} />);
 
-    // Back button is ← (multiple rendered by ModalByLabel, click the first visible one)
-    fireEvent.click(screen.getAllByText('←')[0]);
+    fireEvent.click(container.querySelector('header button')!);
     expect(props.onClose).toHaveBeenCalled();
   });
 });

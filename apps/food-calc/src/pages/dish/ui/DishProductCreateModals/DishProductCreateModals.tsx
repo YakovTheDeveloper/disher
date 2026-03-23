@@ -1,13 +1,15 @@
 import { useCallback, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
-import { Breadcrumbs } from '@/shared/ui/Breadcrumbs';
+import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
+import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalFooter } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { addDishItem } from '@/entities/dish';
 import toaster from '@/shared/lib/toaster/toaster';
 import Button from '@/shared/ui/atoms/Button/Button';
-import s from '@/widgets/FoodSchedule/ui/FoodScheduleModals.module.scss';
 
 export const DISH_MODAL_INPUT_IDS = {
   SEARCH_INPUT: 'dish-item-search',
@@ -15,10 +17,11 @@ export const DISH_MODAL_INPUT_IDS = {
 } as const;
 
 type Step = 'idle' | 'search' | 'quantity';
+type ActiveStep = Exclude<Step, 'idle'>;
 
-const STEPS: Step[] = ['search', 'quantity'];
+const STEPS: ActiveStep[] = ['search', 'quantity'];
 
-const STEP_LABELS: Record<Exclude<Step, 'idle'>, string> = {
+const STEP_LABELS: Record<ActiveStep, string> = {
   search: 'Продукт',
   quantity: 'Количество',
 };
@@ -34,8 +37,10 @@ type DraftState = {
   content: FoodContent | null;
 };
 
+const DEFAULT_PRODUCT_ID = '1';
+
 const createEmptyDraft = (): DraftState => ({
-  foodId: null,
+  foodId: DEFAULT_PRODUCT_ID,
   quantity: 100,
   content: null,
 });
@@ -44,9 +49,10 @@ type Props = {
   dishId: string;
 };
 
-const DishItemCreationModals = ({ dishId }: Props) => {
+const DishProductCreateModals = ({ dishId }: Props) => {
   const [step, setStep] = useState<Step>('idle');
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
+  const [sessionKey, setSessionKey] = useState(0);
   useSwipeableLock(step !== 'idle');
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
@@ -86,26 +92,26 @@ const DishItemCreationModals = ({ dishId }: Props) => {
       toaster.success('Продукт добавлен');
     }
     setDraft(createEmptyDraft());
+    setSessionKey((k) => k + 1);
     setStep('idle');
   };
 
   const handleClose = () => {
     setDraft(createEmptyDraft());
+    setSessionKey((k) => k + 1);
     setStep('idle');
   };
+
+  useOverlayHistory(step !== 'idle', handleClose);
 
   const goToStep = (target: Step) => {
     setStep(target);
   };
 
-  const Header = ({ currentStep }: { currentStep: Exclude<Step, 'idle'> }) => (
-    <header className={s.header}>
-      <button className={s.backButton} onClick={handleClose}>
-        ←
-      </button>
-      <Breadcrumbs steps={STEPS} current={currentStep} stepLabels={STEP_LABELS} onStepClick={goToStep} />
-    </header>
-  );
+  const quantityContent: FoodContent = draft.content ?? {
+    quantity: draft.quantity,
+    updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
+  };
 
   return (
     <div onFocusCapture={handleFocusCapture}>
@@ -114,16 +120,17 @@ const DishItemCreationModals = ({ dishId }: Props) => {
         position="absolute"
         isExpanded={step === 'search'}
         content={
-          <div className={s.wrapper}>
-            <Header currentStep="search" />
+          <ModalShell>
+            <ModalStepHeader currentStep="search" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
             <SearchFood
+              key={sessionKey}
               mode="products-only"
               onFinish={handleFoodSelect}
               activeItemId={draft.foodId ?? undefined}
               itemHtmlFor={DISH_MODAL_INPUT_IDS.QUANTITY_INPUT}
               inputId={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
             />
-          </div>
+          </ModalShell>
         }
       />
 
@@ -132,22 +139,22 @@ const DishItemCreationModals = ({ dishId }: Props) => {
         position="absolute"
         isExpanded={step === 'quantity'}
         content={
-          <div className={s.wrapper}>
-            <Header currentStep="quantity" />
-            <div className={s.spacer} />
-            <div className={s.content}>
-              {draft.content && <ProductQuantity content={draft.content} onFinish={() => {}} />}
-              <div className={s.finishButton}>
+          <ModalShell>
+            <ModalStepHeader currentStep="quantity" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
+            <ModalShell.Spacer />
+            <ModalShell.Body>
+              {draft.foodId && <ProductQuantity key={sessionKey} content={quantityContent} onFinish={() => {}} />}
+              <ModalFooter onBack={() => goToStep('search')}>
                 <Button variant="primary" onClick={handleCommit}>
                   Готово
                 </Button>
-              </div>
-            </div>
-          </div>
+              </ModalFooter>
+            </ModalShell.Body>
+          </ModalShell>
         }
       />
     </div>
   );
 };
 
-export default DishItemCreationModals;
+export default DishProductCreateModals;

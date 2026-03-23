@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
+import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalFooter } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { updateScheduleEvent } from '@/entities/schedule-event';
@@ -9,7 +12,6 @@ import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
-import s from './ScheduleEventModals.module.scss';
 
 export const EDIT_MODAL_INPUT_IDS = {
   TIME_INPUT: 'time-input-edit-schedule-event',
@@ -30,7 +32,7 @@ type Props = {
   onClose: () => void;
 };
 
-const EditScheduleEventModal = ({ item, initialStep = 'idle', onClose }: Props) => {
+const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) => {
   const [step, setStep] = useState<Step>(initialStep);
   const [draft, setDraft] = useState<DraftState>(() => ({
     time: item.time,
@@ -49,6 +51,9 @@ const EditScheduleEventModal = ({ item, initialStep = 'idle', onClose }: Props) 
   }, [item.id]);
 
   useSwipeableLock(step !== 'idle');
+  useOverlayHistory(step !== 'idle', () => { setStep('idle'); onClose(); });
+
+  const handleClose = () => { setStep('idle'); onClose(); };
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
@@ -91,21 +96,21 @@ const EditScheduleEventModal = ({ item, initialStep = 'idle', onClose }: Props) 
         position="absolute"
         isExpanded={step === 'time'}
         content={
-          <div className={s.wrapper}>
-            <div className={s.spacer} />
-            <div className={s.content}>
+          <ModalShell>
+            <ModalShell.Spacer />
+            <ModalShell.Body>
               <TimeChoose
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
                 inputId={EDIT_MODAL_INPUT_IDS.TIME_INPUT}
               />
-              <div className={s.finishButton}>
+              <ModalFooter onBack={handleClose}>
                 <Button variant="primary" onClick={handleCommit}>
                   Готово
                 </Button>
-              </div>
-            </div>
-          </div>
+              </ModalFooter>
+            </ModalShell.Body>
+          </ModalShell>
         }
       />
 
@@ -114,22 +119,22 @@ const EditScheduleEventModal = ({ item, initialStep = 'idle', onClose }: Props) 
         position="absolute"
         isExpanded={step === 'text'}
         content={
-          <div className={s.wrapper}>
-            <div className={s.spacer} />
-            <div className={s.content}>
+          <ModalShell>
+            <ModalShell.Spacer />
+            <ModalShell.Body>
               <Textarea
                 placeholder="Опишите событие"
                 id={EDIT_MODAL_INPUT_IDS.TEXT_INPUT}
                 onChange={handleTextChange}
                 value={draft.text}
               />
-              <div className={s.finishButton}>
+              <ModalFooter onBack={handleClose}>
                 <Button variant="primary" onClick={handleCommit}>
                   Готово
                 </Button>
-              </div>
-            </div>
-          </div>
+              </ModalFooter>
+            </ModalShell.Body>
+          </ModalShell>
         }
       />
 
@@ -138,22 +143,22 @@ const EditScheduleEventModal = ({ item, initialStep = 'idle', onClose }: Props) 
         position="absolute"
         isExpanded={step === 'atoms'}
         content={
-          <div className={s.wrapper}>
-            <div className={s.atomsContent}>
+          <ModalShell>
+            <ModalShell.AtomsBody>
               <div id={EDIT_MODAL_INPUT_IDS.ATOMS_INPUT} tabIndex={-1}>
                 <AtomBuilder />
               </div>
-              <div className={s.finishButton}>
+              <ModalFooter onBack={handleClose}>
                 <Button variant="primary" onClick={handleCommit}>
                   Готово
                 </Button>
-              </div>
-            </div>
-          </div>
+              </ModalFooter>
+            </ModalShell.AtomsBody>
+          </ModalShell>
         }
       />
     </div>
   );
 };
 
-export default EditScheduleEventModal;
+export default ScheduleEventEditModal;

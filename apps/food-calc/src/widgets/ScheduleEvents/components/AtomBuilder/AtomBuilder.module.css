@@ -1,6 +1,5 @@
 /**
- * AtomBuilder.module.css — NYLON-magazine inspired
- * Monochrome, bold typography, editorial minimalism
+ * AtomBuilder.module.css — NYLON editorial: sharp type-selector buttons with per-kind accent
  */
 
 .container {
@@ -11,44 +10,59 @@
 
 .inputContainer {
     overflow: hidden;
-    margin-bottom: 12px;
+    margin-bottom: var(--space-3, 12px);
 }
 
 .atomButtons {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    padding-top: 8px;
+    gap: var(--space-1, 4px);
+    padding-top: var(--space-2, 8px);
     border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .atomButtons button {
-    padding: 10px 16px;
+    padding: 10px var(--space-4, 16px);
     background: transparent;
-    border: 1.5px solid #000;
+    border: 1.5px solid rgba(0, 0, 0, 0.15);
     border-radius: 0;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.12em;
     cursor: pointer;
-    color: #000;
-    transition: background 0.15s, color 0.15s;
+    color: #555;
+    transition:
+        border-color var(--duration-fast, 120ms),
+        color var(--duration-fast, 120ms),
+        background var(--duration-fast, 120ms);
     -webkit-tap-highlight-color: transparent;
 }
 
+/* Per-kind accent variable */
+.atomButtons button[data-kind='scale']    { --btn-accent: var(--event-scale-accent); }
+.atomButtons button[data-kind='time']     { --btn-accent: var(--event-time-accent); }
+.atomButtons button[data-kind='number']   { --btn-accent: var(--event-number-accent); }
+.atomButtons button[data-kind='tag']      { --btn-accent: var(--event-tag-accent); }
+.atomButtons button[data-kind='relation'] { --btn-accent: var(--event-relation-accent); }
+.atomButtons button[data-kind='flag']     { --btn-accent: var(--event-flag-accent); }
+.atomButtons button[data-kind='body']     { --btn-accent: var(--event-body-accent); }
+
 .atomButtons button:hover:not(:disabled) {
-    background: #000;
-    color: #fff;
+    border-color: var(--btn-accent, #000);
+    color: var(--btn-accent, #000);
+    background: transparent;
 }
 
 .atomButtons button:active:not(:disabled) {
-    background: #222;
+    background: var(--btn-accent, #222);
+    border-color: var(--btn-accent, #222);
     color: #fff;
 }
 
 .atomButtons button[data-active] {
-    background: #000;
+    background: var(--btn-accent, #000);
+    border-color: var(--btn-accent, #000);
     color: #fff;
 }
 

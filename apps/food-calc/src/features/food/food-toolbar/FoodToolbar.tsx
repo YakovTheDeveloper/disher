@@ -2,22 +2,32 @@ import styles from './FoodToolbar.module.scss';
 import Button from '@/shared/ui/atoms/Button/Button';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { useUiStore } from '@/shared/model/uiStore';
+import toaster from '@/shared/lib/toaster/toaster';
 
 type Props = {
+  variant: 'schedule' | 'dishes';
   date?: string;
   hasItems: boolean;
 };
 
-const FoodToolbar = ({ date, hasItems }: Props) => {
+const FoodToolbar = ({ variant, date, hasItems }: Props) => {
   const { toScheduleAnalytics, toFood } = useAppRoutes();
   const showPrice = useUiStore((s) => s.scheduleFoodsShowPrice);
   const toggleShowPrice = useUiStore((s) => s.toggleScheduleFoodsShowPrice);
 
+  const handleAnalytics = () => {
+    if (variant === 'schedule' && date) {
+      toScheduleAnalytics(date);
+    } else {
+      toaster.info('Не реализовано');
+    }
+  };
+
   return (
     <div className={styles.toolbar}>
-      {hasItems && date && (
+      {hasItems && (
         <>
-          <Button variant="ghost" onClick={() => toScheduleAnalytics(date)} className={styles.btn}>
+          <Button variant="ghost" onClick={handleAnalytics} className={styles.btn}>
             Анализ
           </Button>
           <span className={styles.divider} />

@@ -21,10 +21,10 @@ export const nutrientGroups: NutrientGroup[] = [
         displayName: 'Основные',
         content: [
             { id: '1', name: 'protein', symbol: 'PRO', displayName: 'Protein', displayNameRu: 'Белки', unit: 'g', unitRu: 'г', group: 'main' },
-            { id: '2', name: 'fats', symbol: 'FAT', displayName: 'Fats', displayNameRu: 'Жиры', unit: 'g', unitRu: 'г', group: 'main' },
-            { id: '3', name: 'carbohydrates', symbol: 'CARB', displayName: 'Carbohydrates', displayNameRu: 'Углеводы', unit: 'g', unitRu: 'г', group: 'main' },
             { id: '4', name: 'sugar', symbol: 'SUG', displayName: 'Sugar', displayNameRu: 'Сахар', unit: 'g', unitRu: 'г', group: 'main' },
+            { id: '2', name: 'fats', symbol: 'FAT', displayName: 'Fats', displayNameRu: 'Жиры', unit: 'g', unitRu: 'г', group: 'main' },
             { id: '5', name: 'starch', symbol: 'STA', displayName: 'Starch', displayNameRu: 'Крахмал', unit: 'g', unitRu: 'г', group: 'main' },
+            { id: '3', name: 'carbohydrates', symbol: 'CARB', displayName: 'Carbohydrates', displayNameRu: 'Углеводы', unit: 'g', unitRu: 'г', group: 'main' },
             { id: '6', name: 'fiber', symbol: 'FIB', displayName: 'Fiber', displayNameRu: 'Клетчатка', unit: 'g', unitRu: 'г', group: 'main' },
             { id: '7', name: 'energy', symbol: 'kcal', displayName: 'kcal', displayNameRu: 'Энергия', unit: 'kcal', unitRu: 'ккал', group: 'main' },
             { id: '8', name: 'water', symbol: 'H₂O', displayName: 'Water', displayNameRu: 'Вода', unit: 'g', unitRu: 'г', group: 'main' },

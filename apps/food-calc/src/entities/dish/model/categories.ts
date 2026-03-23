@@ -1,38 +1,18 @@
+// Dish categories are derived from ingredients — not stored in schema.
+// Each category is auto-computed from product categories and/or nutrient data.
+// See shared/lib/dishCategories.ts for the computation logic.
+
 export type DishCategoryValue =
+  // Derivable from product ingredient categories
   | "vegetarian"
   | "vegan"
   | "pescatarian"
-  | "keto"
-  | "low-carb"
   | "gluten-free"
   | "dairy-free"
-  | "paleo"
-  | "breakfast"
-  | "lunch"
-  | "dinner"
-  | "snack"
-  | "dessert"
-  | "italian"
-  | "asian"
-  | "mexican"
-  | "mediterranean"
-  | "indian"
-  | "american"
-  | "quick"
-  | "meal-prep"
-  | "slow-cooker"
-  | "one-pot"
-  | "no-cook"
+  // Derivable from nutrient calculations
   | "high-protein"
   | "low-calorie"
-  | "high-fiber"
-  | "heart-healthy"
-  | "energy-boosting"
-  | "summer"
-  | "winter"
-  | "holiday"
-  | "comfort-food"
-  | "light-meal";
+  | "low-carb";
 
 export interface DishCategoryGroup {
   groupName: string;
@@ -43,28 +23,12 @@ export interface DishCategoryGroup {
 
 export const DISH_CATEGORY_GROUPS: DishCategoryGroup[] = [
   {
-    groupName: "Dietary Preferences",
-    categories: ["vegetarian", "vegan", "pescatarian", "keto", "low-carb", "gluten-free", "dairy-free", "paleo"],
+    groupName: "Диета",
+    categories: ["vegetarian", "vegan", "pescatarian", "gluten-free", "dairy-free"],
   },
   {
-    groupName: "Meal Times",
-    categories: ["breakfast", "lunch", "dinner", "snack", "dessert"],
-  },
-  {
-    groupName: "World Cuisines",
-    categories: ["italian", "asian", "mexican", "mediterranean", "indian", "american"],
-  },
-  {
-    groupName: "Preparation Methods",
-    categories: ["quick", "meal-prep", "slow-cooker", "one-pot", "no-cook"],
-  },
-  {
-    groupName: "Nutritional Focus",
-    categories: ["high-protein", "low-calorie", "high-fiber", "heart-healthy", "energy-boosting"],
-  },
-  {
-    groupName: "Seasonality & Occasion",
-    categories: ["summer", "winter", "holiday", "comfort-food", "light-meal"],
+    groupName: "Питательность",
+    categories: ["high-protein", "low-calorie", "low-carb"],
   },
 ];
 
@@ -74,37 +38,11 @@ export const DISH_CATEGORY_LABELS: Record<DishCategoryValue, string> = {
     'vegetarian': 'Вегетарианское',
     'vegan': 'Веганское',
     'pescatarian': 'Пескатарианское',
-    'keto': 'Кето',
-    'low-carb': 'Низкоуглеводное',
     'gluten-free': 'Без глютена',
-    'dairy-free': 'Без молочных продуктов',
-    'paleo': 'Палео',
-    'breakfast': 'Завтрак',
-    'lunch': 'Обед',
-    'dinner': 'Ужин',
-    'snack': 'Перекус',
-    'dessert': 'Десерт',
-    'italian': 'Итальянская',
-    'asian': 'Азиатская',
-    'mexican': 'Мексиканская',
-    'mediterranean': 'Средиземноморская',
-    'indian': 'Индийская',
-    'american': 'Американская',
-    'quick': 'Быстрое',
-    'meal-prep': 'На неделю',
-    'slow-cooker': 'Мультиварка',
-    'one-pot': 'Одно блюдо',
-    'no-cook': 'Без готовки',
+    'dairy-free': 'Без молочного',
     'high-protein': 'Высокий белок',
     'low-calorie': 'Низкокалорийное',
-    'high-fiber': 'Высокое содержание клетчатки',
-    'heart-healthy': 'Для сердца',
-    'energy-boosting': 'Энергетическое',
-    'summer': 'Летнее',
-    'winter': 'Зимнее',
-    'holiday': 'Праздничное',
-    'comfort-food': 'Комфортная еда',
-    'light-meal': 'Легкое блюдо',
+    'low-carb': 'Низкоуглеводное',
 };
 
 export function getDishCategoryGroups(): CategoryGroup<DishCategoryValue>[] {
@@ -122,40 +60,3 @@ export function getDishCategoryOptions(): Record<DishCategoryValue, CategoryOpti
     }
     return options as Record<DishCategoryValue, CategoryOption<DishCategoryValue>>;
 }
-
-export const DEFAULT_DISH_CATEGORY_POPULARITY: Record<DishCategoryValue, number> = {
-  vegetarian: 7,
-  vegan: 5,
-  pescatarian: 4,
-  keto: 6,
-  "low-carb": 8,
-  "gluten-free": 5,
-  "dairy-free": 4,
-  paleo: 3,
-  breakfast: 9,
-  lunch: 8,
-  dinner: 9,
-  snack: 7,
-  dessert: 6,
-  italian: 8,
-  asian: 7,
-  mexican: 6,
-  mediterranean: 7,
-  indian: 5,
-  american: 6,
-  quick: 9,
-  "meal-prep": 7,
-  "slow-cooker": 4,
-  "one-pot": 6,
-  "no-cook": 5,
-  "high-protein": 8,
-  "low-calorie": 7,
-  "high-fiber": 6,
-  "heart-healthy": 5,
-  "energy-boosting": 6,
-  summer: 5,
-  winter: 5,
-  holiday: 4,
-  "comfort-food": 7,
-  "light-meal": 6,
-};

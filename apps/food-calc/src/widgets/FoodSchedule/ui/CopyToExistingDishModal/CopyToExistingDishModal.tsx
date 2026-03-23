@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Breadcrumbs } from '@/shared/ui/Breadcrumbs';
+import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { EditableList, EditableListRef } from '@/features/manage-list/EditableList';
@@ -9,7 +9,7 @@ import toaster from '@/shared/lib/toaster/toaster';
 import { RouterUrls } from '@/app/router';
 import { scheduleFoodsToDishItems } from '@/entities/schedule-food';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
-import { MODAL_INPUT_IDS } from '../ScheduleFoodCreationModals';
+import { MODAL_INPUT_IDS } from '../ScheduleFoodCreateModals';
 import s from '../FoodScheduleModals.module.scss';
 
 type Step = 'idle' | 'selectDish' | 'products';
@@ -101,15 +101,6 @@ const CopyToExistingDishModal = ({ isExpanded, selectedIds, items, onFinish, onC
     });
   }, []);
 
-  const Header = ({ currentStep }: { currentStep: Exclude<Step, 'idle'> }) => (
-    <header className={s.header}>
-      <button className={s.backButton} onClick={handleClose}>
-        ←
-      </button>
-      <Breadcrumbs steps={STEPS} current={currentStep} stepLabels={STEP_LABELS} onStepClick={goToStep} />
-    </header>
-  );
-
   return (
     <div onFocusCapture={handleFocusCapture}>
       {/* Step 1: Select Dish */}
@@ -118,7 +109,7 @@ const CopyToExistingDishModal = ({ isExpanded, selectedIds, items, onFinish, onC
         isExpanded={isExpanded && step === 'selectDish'}
         content={
           <div className={s.wrapper}>
-            <Header currentStep="selectDish" />
+            <ModalStepHeader currentStep="selectDish" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
             <SearchFood
               onFinish={handleDishSelect}
               mode="dishes-only"
@@ -134,7 +125,7 @@ const CopyToExistingDishModal = ({ isExpanded, selectedIds, items, onFinish, onC
         isExpanded={isExpanded && step === 'products'}
         content={
           <div className={s.wrapper}>
-            <Header currentStep="products" />
+            <ModalStepHeader currentStep="products" steps={STEPS} stepLabels={STEP_LABELS} onBack={handleClose} onStepClick={goToStep} />
             <div className={s.content}>
               <h2>Корректный список?</h2>
               <EditableList

@@ -26,7 +26,7 @@ vi.mock('@/entities/schedule-food', () => ({
   ScheduleFoodWithRelations: {},
 }));
 
-vi.mock('../ScheduleFoodCreationModals', () => ({
+vi.mock('../ScheduleFoodCreateModals', () => ({
   MODAL_INPUT_IDS: {
     TIME_INPUT: 'time-input-schedule-food',
     SEARCH_INPUT: 'search',
@@ -211,9 +211,9 @@ describe('CopyToNewDishModal — dish creation', () => {
 describe('CopyToNewDishModal — close', () => {
   it('calls onClose when back button is clicked', () => {
     const props = defaultProps();
-    render(<CopyToNewDishModal {...props} />);
+    const { container } = render(<CopyToNewDishModal {...props} />);
 
-    fireEvent.click(screen.getAllByText('←')[0]);
+    fireEvent.click(container.querySelector('header button')!);
     expect(props.onClose).toHaveBeenCalled();
   });
 });

@@ -30,16 +30,23 @@ function VirtualList<T extends { id: string | number }>({
     overscan: OVERSCAN,
   });
 
+  const isProgrammaticScrollRef = useRef(false);
+
   // Scroll to top when items change (search/filter)
   useEffect(() => {
+    isProgrammaticScrollRef.current = true;
     const timeout = setTimeout(() => {
       virtualizer.scrollToIndex(0, { align: 'start' });
+      requestAnimationFrame(() => {
+        isProgrammaticScrollRef.current = false;
+      });
     }, 0);
     return () => clearTimeout(timeout);
   }, [items.length, virtualizer]);
 
-  // Blur keyboard on scroll (mobile UX)
+  // Blur keyboard on scroll (mobile UX) — skip programmatic scrolls
   const handleScroll = useCallback(() => {
+    if (isProgrammaticScrollRef.current) return;
     const active = document.activeElement;
     if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
       active.blur();

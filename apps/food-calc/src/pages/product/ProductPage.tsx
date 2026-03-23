@@ -34,12 +34,11 @@ import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { isCreatedByUser } from '@/shared/lib';
 import bagImage from '@/shared/assets/decarative/bag.png';
 import s from './ProductPage.module.scss';
+import NutrientCardV3 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV3';
 
 type Mode = 'view' | 'edit';
 
-const gramNutrientIds = new Set(
-  allNutrientsList.filter((n) => n.unit === 'g').map((n) => n.id)
-);
+const gramNutrientIds = new Set(allNutrientsList.filter((n) => n.unit === 'g').map((n) => n.id));
 
 const ProductPage = () => {
   const { id } = useParams<'id'>();
@@ -50,18 +49,13 @@ const ProductPage = () => {
   const [mode, setMode] = useState<Mode>('view');
   const filter = useFilterNutrients();
 
-  if (!food) return null;
-
-  const isUserCreated = isCreatedByUser(food.userId);
-  const isEditMode = isUserCreated && mode === 'edit';
-
-  const nutrientValueMap = new Map<string, number>();
-  for (const n of nutrientsRaw ?? []) {
-    nutrientValueMap.set(n.nutrientId, n.quantity);
-  }
-
-  const getNutrientValue = (nutrientId: string) => nutrientValueMap.get(nutrientId) ?? 0;
-  const getScaledValue = (nutrientId: string) => getNutrientValue(nutrientId) * (quantity / 100);
+  const nutrientValueMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const n of nutrientsRaw ?? []) {
+      map.set(n.nutrientId, n.quantity);
+    }
+    return map;
+  }, [nutrientsRaw]);
 
   const totalGramMass = useMemo(() => {
     let sum = 0;
@@ -72,6 +66,14 @@ const ProductPage = () => {
     }
     return sum;
   }, [nutrientValueMap]);
+
+  if (!food) return null;
+
+  const isUserCreated = isCreatedByUser(food.userId);
+  const isEditMode = isUserCreated && mode === 'edit';
+
+  const getNutrientValue = (nutrientId: string) => nutrientValueMap.get(nutrientId) ?? 0;
+  const getScaledValue = (nutrientId: string) => getNutrientValue(nutrientId) * (quantity / 100);
 
   const massExceeds100 = totalGramMass > 100;
 
@@ -98,12 +100,12 @@ const ProductPage = () => {
         isHidden={filter.isHidden(nutrientData.id)}
         filterMode={filter.filterMode}
         onToggle={() => filter.toggleHidden(nutrientData.id)}
+        nutrientId={nutrientData.id}
+        nutrientKey={nutrientData.name}
       >
-        <NutrientCard
+        <NutrientCardV3
           content={nutrientData}
           getValue={isUserCreated ? getNutrientValue : getScaledValue}
-          showValues={filter.showValues}
-          showProgress={filter.showProgress}
         />
       </FilterNutrientCardWrapper>
     );
@@ -111,7 +113,6 @@ const ProductPage = () => {
 
   return (
     <Screen
-      offsetTop
       title={<ScreenLabel variant="screenHeader">Продукт</ScreenLabel>}
       bottomRight={
         !isEditMode ? (
@@ -133,12 +134,7 @@ const ProductPage = () => {
       }
     >
       <img src={bagImage} className={s.backgroundImage} alt="" />
-      <ChangeName
-        entity={{
-          name: food.name,
-          changeName: (name) => updateProduct(food.id, { name }),
-        }}
-      />
+      <ChangeName name={food.name} onChangeName={(name) => updateProduct(food.id, { name })} />
 
       <Spacer variant="screen-header-offset" />
 

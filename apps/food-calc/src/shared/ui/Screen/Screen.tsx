@@ -13,7 +13,7 @@ type Props = {
   bottomRight?: React.ReactNode;
   topPanel?: React.ReactNode;
   header?: React.ReactNode;
-  offsetTop: boolean;
+  offsetTop?: boolean;
   title?: React.ReactNode;
   backgroundColor?: 'gray' | 'white';
   overlay?: React.ReactNode;

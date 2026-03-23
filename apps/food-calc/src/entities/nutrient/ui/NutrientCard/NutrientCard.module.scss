@@ -1,72 +1,31 @@
 .card {
-    padding: 12px;
-    border-radius: 12px;
+    padding: var(--space-3) var(--space-3) var(--space-2);
+    border-radius: var(--nutrient-card-radius);
     display: flex;
     flex-direction: column;
+    gap: var(--space-1);
+    border: 0.5px solid rgba(0, 0, 0, 0.04);
     position: relative;
-    gap: 6px;
 }
 
-// --- Old vibrant colors ---
-// .main {
-//     background-color: #fff3e0; // Orange - macros
-// }
-// .vitaminsB {
-//     background-color: #e3f2fd; // Blue - B vitamins
-// }
-// .minerals {
-//     background-color: #e8f5e9; // Green - minerals
-// }
-// .rest {
-//     background-color: #f3e5f5; // Purple - other vitamins
-// }
+// --- Group backgrounds (light paper-like) ---
+.main      { background-color: var(--nutrient-bg-main); }
+.vitaminsB { background-color: var(--nutrient-bg-vitaminsB); }
+.minerals  { background-color: var(--nutrient-bg-minerals); }
+.rest      { background-color: var(--nutrient-bg-rest); }
 
-// --- Semi-vivid palette ---
-.main {
-    background-color: #fde8c8; // Warm amber - macros
-}
-
-.vitaminsB {
-    background-color: #d5e8f8; // Sky blue - B vitamins
-}
-
-.minerals {
-    background-color: #ceeada; // Fresh sage - minerals
-}
-
-.rest {
-    background-color: #e8d5f5; // Soft violet - other vitamins
-}
+// --- Symbol accent colors (deep, rich) ---
+.main .symbol      { color: var(--nutrient-accent-main); }
+.vitaminsB .symbol { color: var(--nutrient-accent-vitaminsB); }
+.minerals .symbol  { color: var(--nutrient-accent-minerals); }
+.rest .symbol      { color: var(--nutrient-accent-rest); }
 
 .symbol {
-    font-size: 20px;
+    font-size: var(--text-xl);
     line-height: 1;
     font-weight: 700;
-    letter-spacing: 0.04em;
-    font-family: "Merriweather", serif;
-}
-
-// --- Old vibrant symbol colors ---
-// .main .symbol { color: #e65100; }
-// .vitaminsB .symbol { color: #1565c0; }
-// .minerals .symbol { color: #2e7d32; }
-// .rest .symbol { color: #7b1fa2; }
-
-// --- Semi-vivid symbol colors ---
-.main .symbol {
-    color: #c07020; // Amber
-}
-
-.vitaminsB .symbol {
-    color: #3a72b0; // Steel blue
-}
-
-.minerals .symbol {
-    color: #3a8f55; // Forest green
-}
-
-.rest .symbol {
-    color: #8040b8; // Violet
+    letter-spacing: 0.06em;
+    font-family: var(--font-serif);
 }
 
 .topRow {
@@ -80,7 +39,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 4px;
+    gap: var(--space-1);
 }
 
 .statsColumn {
@@ -90,33 +49,59 @@
     gap: 1px;
 }
 
-.percent {
-    font-size: 13px;
-    font-weight: 600;
-    opacity: 0.85;
+.name {
+    font-size: var(--text-xs);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--font-display);
 }
+
+.percent {
+    font-size: var(--text-lg);
+    font-weight: 300;
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+// --- Status percent colors ---
+.percent.low     { color: var(--text-tertiary); }
+.percent.medium  { color: #4a8ec4; }
+.percent.optimal { color: #3a8a42; }
+.percent.excess  { color: #c07020; }
 
 .valuesCompact {
     display: flex;
     gap: 2px;
-    font-size: 10px;
+    font-size: var(--text-xs);
     font-weight: 400;
-    opacity: 0.45;
+    color: var(--text-tertiary);
 }
 
-.name {
-    font-size: 12px;
-    font-weight: 300;
+.unit {
+    opacity: 0.7;
+}
+
+.separator {
+    opacity: 0.5;
 }
 
 .progressBar {
-    height: 5px;
-    background: rgba(0, 0, 0, 0.08);
-    border-radius: 4px;
+    height: var(--nutrient-progress-height);
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius-full);
     overflow: hidden;
+    margin-top: var(--space-1);
 }
 
 .fill {
     height: 100%;
-    border-radius: 4px;
+    border-radius: var(--radius-full);
 }
+
+// --- Status fill colors (flat, no gradients) ---
+.fill.low     { background: #c4d5de; }
+.fill.medium  { background: #6ab0e8; }
+.fill.optimal { background: #5abd63; }
+.fill.excess  { background: #e8943a; }

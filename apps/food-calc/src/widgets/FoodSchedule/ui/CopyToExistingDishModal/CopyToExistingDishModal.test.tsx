@@ -13,7 +13,7 @@ vi.mock('@/api/triplit/client', () => ({
   triplit: {},
 }));
 
-vi.mock('../ScheduleFoodCreationModals', () => ({
+vi.mock('../ScheduleFoodCreateModals', () => ({
   MODAL_INPUT_IDS: {
     TIME_INPUT: 'time-input-schedule-food',
     SEARCH_INPUT: 'search',
@@ -160,9 +160,9 @@ describe('CopyToExistingDishModal — confirm', () => {
 describe('CopyToExistingDishModal — close', () => {
   it('calls onClose when back button is clicked', () => {
     const props = defaultProps();
-    render(<CopyToExistingDishModal {...props} />);
+    const { container } = render(<CopyToExistingDishModal {...props} />);
 
-    fireEvent.click(screen.getAllByText('←')[0]);
+    fireEvent.click(container.querySelector('header button')!);
     expect(props.onClose).toHaveBeenCalled();
   });
 });

@@ -42,6 +42,16 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
     .map((sf) => `${sf.id}:${sf.quantity}:${sf.type}:${sf.foodId}:${sf.dishId}`)
     .join('|');
 
+  // DEBUG — remove after investigation
+  console.log('[NutrientTotals] sfItems:', sfItems.length, 'foodItems:', foodItems.length, 'allFoodIds:', allFoodIds);
+  console.log('[NutrientTotals] foods from useProductsByIds:', foods?.map(f => ({
+    id: f.id,
+    name: f.name,
+    nutrientsType: f.nutrients ? f.nutrients.constructor?.name : typeof f.nutrients,
+    nutrientsSize: f.nutrients instanceof Map ? f.nutrients.size : (f.nutrients ? 'not-a-map' : 0),
+    nutrientsRaw: f.nutrients,
+  })));
+
   return useMemo(() => {
     if (!foods) return { totals: {}, missingNutrientNames: [], isLoading };
 
@@ -54,6 +64,7 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
           quantity: n.quantity,
         }))
         : [];
+      console.log('[NutrientTotals] food', food.id, food.name, '→ extracted nutrients:', nutrients.length, nutrients.slice(0, 3));
       nutrientsMap.set(food.id, nutrients);
       foodNameMap.set(food.id, food.name);
     }
