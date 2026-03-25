@@ -10,5 +10,6 @@ export default mergeConfig(viteConfig, defineConfig({
         },
         globals: true,  // For using global variables like `describe`, `it`, etc.
         environment: 'jsdom',  // Ensures the right test environment (JS DOM for React)
+        setupFiles: ['./vitest.setup.ts'],
     },
 }))

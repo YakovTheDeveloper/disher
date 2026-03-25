@@ -12,15 +12,12 @@ type Props = {
   activeCount?: number;
 };
 
-const FilterButton = ({ onClick, isActive = false, activeCount = 0 }: Props) => {
+const FilterButton = ({ onClick, isActive = false, activeCount = 0, children }: Props) => {
   return (
     <button onClick={onClick} className={clsx([styles.container])}>
-      <span className={styles.icon}>
-        {isActive ? <CrossIcon /> : <FilterIcon />}
-      </span>
-      {activeCount > 0 && (
-        <span className={styles.badge}>{activeCount}</span>
-      )}
+      <span className={styles.icon}>{isActive ? <CrossIcon /> : <FilterIcon />}</span>
+      {activeCount > 0 && <span className={styles.badge}>{activeCount}</span>}
+      {children}
     </button>
   );
 };

@@ -3,14 +3,16 @@ import Button from '@/shared/ui/atoms/Button/Button';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { useUiStore } from '@/shared/model/uiStore';
 import toaster from '@/shared/lib/toaster/toaster';
+import { PasteFromClipboardButton } from '@/features/clipboard';
 
 type Props = {
   variant: 'schedule' | 'dishes';
   date?: string;
   hasItems: boolean;
+  onSuggest?: () => void;
 };
 
-const FoodToolbar = ({ variant, date, hasItems }: Props) => {
+const FoodToolbar = ({ variant, date, hasItems, onSuggest }: Props) => {
   const { toScheduleAnalytics, toFood } = useAppRoutes();
   const showPrice = useUiStore((s) => s.scheduleFoodsShowPrice);
   const toggleShowPrice = useUiStore((s) => s.toggleScheduleFoodsShowPrice);
@@ -48,6 +50,21 @@ const FoodToolbar = ({ variant, date, hasItems }: Props) => {
             ₽
           </Button>
         </>
+      )}
+      {onSuggest && (
+        <>
+          <span className={styles.divider} />
+          <Button variant="ghost" onClick={onSuggest} className={styles.btn}>
+            Предложить
+          </Button>
+        </>
+      )}
+      {variant === 'schedule' && date && (
+        <PasteFromClipboardButton
+          targetDate={date}
+          btnClassName={styles.btn}
+          dividerClassName={styles.divider}
+        />
       )}
     </div>
   );

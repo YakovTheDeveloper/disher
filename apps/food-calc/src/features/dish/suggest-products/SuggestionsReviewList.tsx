@@ -1,0 +1,100 @@
+import { useState, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
+import clsx from 'clsx';
+import styles from './SuggestionsReviewList.module.scss';
+
+export type SuggestionItem = {
+  foodId: string;
+  name: string;
+  quantity: number;
+};
+
+export type SuggestionsReviewListRef = {
+  getResultedItems: () => SuggestionItem[];
+};
+
+type Props = {
+  items: SuggestionItem[];
+};
+
+function SuggestionsReviewListInner(
+  { items }: Props,
+  ref: React.Ref<SuggestionsReviewListRef>
+) {
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
+  const [quantities, setQuantities] = useState<Map<string, number>>(() => {
+    const map = new Map<string, number>();
+    items.forEach((item) => map.set(item.foodId, item.quantity));
+    return map;
+  });
+
+  const toggleDelete = useCallback((foodId: string) => {
+    setDeletedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(foodId)) next.delete(foodId);
+      else next.add(foodId);
+      return next;
+    });
+  }, []);
+
+  const updateQuantity = useCallback((foodId: string, value: number) => {
+    if (value < 0) return;
+    setQuantities((prev) => {
+      const next = new Map(prev);
+      next.set(foodId, value);
+      return next;
+    });
+  }, []);
+
+  const activeCount = useMemo(
+    () => items.filter((i) => !deletedIds.has(i.foodId)).length,
+    [items, deletedIds]
+  );
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getResultedItems: () =>
+        items
+          .filter((i) => !deletedIds.has(i.foodId))
+          .map((i) => ({
+            ...i,
+            quantity: quantities.get(i.foodId) ?? i.quantity,
+          })),
+    }),
+    [items, deletedIds, quantities]
+  );
+
+  return (
+    <div className={styles.container}>
+      {items.map((item) => {
+        const isDeleted = deletedIds.has(item.foodId);
+        const canDelete = !isDeleted && activeCount > 1;
+
+        return (
+          <div key={item.foodId} className={clsx(styles.row, isDeleted && styles.deleted)}>
+            <span className={styles.name}>{item.name}</span>
+            <div className={styles.quantityGroup}>
+              <input
+                type="number"
+                inputMode="numeric"
+                className={styles.quantityInput}
+                value={quantities.get(item.foodId) ?? item.quantity}
+                onChange={(e) => updateQuantity(item.foodId, Number(e.target.value))}
+                disabled={isDeleted}
+                min={0}
+              />
+              <span className={styles.unit}>г</span>
+            </div>
+            {(canDelete || isDeleted) && (
+              <button className={styles.actionBtn} onClick={() => toggleDelete(item.foodId)}>
+                {isDeleted ? '↩' : '×'}
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export const SuggestionsReviewList = forwardRef(SuggestionsReviewListInner);

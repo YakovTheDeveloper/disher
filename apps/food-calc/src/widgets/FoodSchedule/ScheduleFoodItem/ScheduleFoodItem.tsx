@@ -7,6 +7,7 @@ import { SelectableListItem } from '@/features/shared/selectable-list-item';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { SelectionStoreType, useStore } from '@/hooks/factoryHooks/useSelection';
 import { costForWeight } from '@/shared/lib/cost';
+import { isCreatedByUser } from '@/shared/lib/user';
 
 type Props = {
   className?: string;
@@ -70,6 +71,8 @@ const ScheduleFoodItemComponent = ({
 
   const name = content.food || content.dish;
 
+  const isCustom = content.type === 'food' && isCreatedByUser(content.food?.userId);
+
   const pricePerKg = content.type === 'food' ? content.food?.pricePerKg : null;
   const cost =
     showPrice && pricePerKg != null
@@ -78,7 +81,7 @@ const ScheduleFoodItemComponent = ({
 
   return (
     <SelectableListItem
-      className={clsx([className, styles.group])}
+      className={clsx([className, styles.group, isCustom && styles.customProduct])}
       id={id}
       isSelectMode={isActionsMode}
       isSelected={isSelected}

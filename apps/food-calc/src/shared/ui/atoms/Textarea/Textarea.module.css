@@ -15,26 +15,27 @@
 
 .textarea {
     max-width: 100%;
-    padding: 12px 0;
-    font-size: 15px;
+    min-height: 120px;
+    padding: 14px 16px;
+    font-size: 16px;
     font-weight: 400;
     line-height: 1.6;
     resize: none;
     overflow: hidden;
     outline: none;
-    border: none;
-    border-bottom: 1.5px solid #d0d0d0;
-    border-radius: 0;
-    background: transparent;
+    border: 1.5px solid #d8d8d8;
+    border-radius: var(--radius-md, 12px);
+    background: var(--surface-secondary, #f7f7f7);
     color: #111;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .textarea::placeholder {
-    color: #bbb;
+    color: #aaa;
     font-weight: 300;
 }
 
 .textarea:focus {
-    border-bottom-color: #111;
+    border-color: #111;
+    background: #fff;
 }

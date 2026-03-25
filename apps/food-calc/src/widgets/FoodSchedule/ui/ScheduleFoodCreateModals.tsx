@@ -9,8 +9,11 @@ import { SearchFood } from '@/features/food/food-search';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { addScheduleFood } from '@/entities/schedule-food';
+import { useProductPortions } from '@/entities/product';
+import { useDishPortions } from '@/entities/dish';
 import toaster from '@/shared/lib/toaster/toaster';
 import Button from '@/shared/ui/atoms/Button/Button';
+import type { Portion } from '@/features/product/ProductQuantity';
 
 /**
  * Input IDs used for label→input focus delegation across all FoodSchedule modals.
@@ -78,11 +81,17 @@ type Props = {
   scheduleId: string;
 };
 
+const mapPortions = (results: { label: string; amount: number; unit: string; grams: number }[] | undefined): Portion[] =>
+  results ? results.map(({ label, amount, unit, grams }) => ({ label, amount, unit, grams })) : [];
+
 const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
   const [step, setStep] = useState<Step>('idle');
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
   const [sessionKey, setSessionKey] = useState(0);
   useSwipeableLock(step !== 'idle');
+
+  const { results: foodPortionsMap } = useProductPortions(draft.variant === 'product' ? draft.productId ?? undefined : undefined);
+  const { results: dishPortionsMap } = useDishPortions(draft.variant === 'dish' ? draft.dishId ?? undefined : undefined);
 
   const INPUT_TO_STEP: Record<string, ActiveStep> = {
     [MODAL_INPUT_IDS.TIME_INPUT]: 'time',
@@ -155,9 +164,13 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
     setStep(target);
   };
 
-  const quantityContent: FoodContent = draft.content ?? {
-    quantity: draft.quantity,
-    updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
+  const quantityContent = {
+    ...(draft.content ?? {
+      quantity: draft.quantity,
+      updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
+    }),
+    food: draft.variant === 'product' ? { portions: mapPortions(foodPortionsMap) } : undefined,
+    dish: draft.variant === 'dish' ? { portions: mapPortions(dishPortionsMap) } : undefined,
   };
 
   return (

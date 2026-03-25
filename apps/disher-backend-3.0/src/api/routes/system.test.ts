@@ -40,7 +40,7 @@ describe("querySystemCounts — Triplit SQLite key format", () => {
     expect(counts.foodNutrients).toBe(1);
   });
 
-  it("counts only __system__ records in filtered collections (foods, foodPortions, dailyNorms, dailyNormItems)", () => {
+  it("counts only __system__ records in filtered collections (foods, foodPortions, dailyNorms)", () => {
     insert(db, "foods", "sys1", { userId: "__system__", name: "Apple" });
     insert(db, "foods", "sys2", { userId: "__system__", name: "Banana" });
     insert(db, "foods", "usr1", { userId: "user-abc", name: "My Food" });
@@ -48,16 +48,13 @@ describe("querySystemCounts — Triplit SQLite key format", () => {
     insert(db, "foodPortions", "fp1", { userId: "__system__", foodId: "sys1", label: "piece" });
     insert(db, "foodPortions", "fp2", { userId: "user-abc", foodId: "usr1", label: "cup" });
 
-    insert(db, "dailyNorms", "dn1", { userId: "__system__", name: "Default" });
-    insert(db, "dailyNormItems", "dni1", { userId: "__system__", normId: "dn1" });
-    insert(db, "dailyNormItems", "dni2", { userId: "user-abc", normId: "dn2" });
+    insert(db, "dailyNorms", "dn1", { userId: "__system__", name: "Default", items: {} });
 
     const counts = querySystemCounts(db);
 
     expect(counts.foods).toBe(2);
     expect(counts.foodPortions).toBe(1);
     expect(counts.dailyNorms).toBe(1);
-    expect(counts.dailyNormItems).toBe(1);
   });
 
   it("returns 0 for empty collections", () => {
@@ -68,7 +65,6 @@ describe("querySystemCounts — Triplit SQLite key format", () => {
     expect(counts.foods).toBe(0);
     expect(counts.foodPortions).toBe(0);
     expect(counts.dailyNorms).toBe(0);
-    expect(counts.dailyNormItems).toBe(0);
   });
 
   it("key prefix does not bleed into adjacent collections", () => {

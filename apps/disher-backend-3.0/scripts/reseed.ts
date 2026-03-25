@@ -6,7 +6,7 @@
  *   2. In another terminal: npx tsx scripts/reseed.ts
  *
  * This script:
- *   - Deletes ALL nutrients, foods, foodNutrients, foodPortions, dailyNorms, dailyNormItems
+ *   - Deletes ALL nutrients, foods, foodNutrients, foodPortions, dailyNorms
  *   - Re-inserts everything fresh with correct userId = "__system__"
  *
  * WARNING: This deletes all reference data. User-created data (dishes, schedules, etc.) is NOT touched.
@@ -62,7 +62,6 @@ async function wipeAll() {
   await wipeCollection("foodPortions");
   await wipeCollection("foods");
   await wipeCollection("nutrients");
-  await wipeCollection("dailyNormItems");
   await wipeCollection("dailyNorms");
 }
 
@@ -163,112 +162,65 @@ const nutrientGroups = [
   },
 ];
 
-// ─── Skurikhin mappings ───
-
-const SKURIKHIN_NUTRIENT_MAP: Record<string, string> = {
-  "Белок, в %":          "1",
-  "Жир, в %":            "2",
-  "Углеводы, в %":       "3",
-  "МДС, в %":            "4",
-  "Крахмал, в %":        "5",
-  "Пищ вол, в %":        "6",
-  "Энерг ценн, в ккал.": "7",
-  "Вода, в %":           "8",
-  "Железо, в мг%":       "9",
-  "Магний, в мг%":       "10",
-  "Фосфор, в мг%":       "11",
-  "Кальций, в мг%":      "12",
-  "Калий, в мг%":        "13",
-  "Натрий, в мг%":       "14",
-  "Тиамин, в мг%":       "21",
-  "Рибофлавин, в мг%":   "22",
-  "Ниацин, в мг%":       "23",
-  "Аскорб кисл, в мг%":  "30",
-  "Ретин экв, в мкг%":   "20",
-  "Токо экв, в мг%":     "32",
-  "Каротин, в мкг%":     "34",
-};
-
-const CATEGORY_MAP: Record<string, string> = {
-  "Молоко и молочные продукты": "dairy",
-  "Молоко":                     "dairy",
-  "Мясо и мясные продукты":     "meat",
-  "Мясо":                       "meat",
-  "Птица":                      "poultry",
-  "Рыба и рыбные продукты":     "fish",
-  "Рыба":                       "fish",
-  "Морепродукты":               "seafood",
-  "Яйца":                       "egg",
-  "Жиры и масла":               "oil",
-  "Масла":                      "oil",
-  "Зерновые и крупяные":        "grain",
-  "Крупы":                      "grain",
-  "Хлебобулочные изделия":      "bakery",
-  "Хлеб":                       "bakery",
-  "Бобовые":                    "legume",
-  "Овощи":                      "vegetable",
-  "Фрукты":                     "fruit",
-  "Ягоды":                      "fruit",
-  "Орехи":                      "nut",
-  "Семена":                     "seed",
-  "Напитки":                    "beverage",
-  "Соки":                       "juice",
-  "Чай":                        "tea",
-  "Кофе":                       "coffee",
-  "Алкоголь":                   "alcohol",
-  "Алкогольные напитки":        "alcohol",
-  "Кондитерские изделия":       "dessert",
-  "Сахар":                      "dessert",
-  "Специи":                     "spice",
-  "Приправы":                   "spice",
-  "Грибы":                      "vegetable",
-  "Соусы":                      "condiment",
-};
-
-// ─── Name normalization ───
-
-const ADJECTIVE_NOUN_MAP: Record<string, string> = {
-  "Соки фруктовые. Консервы": "сок",
-  "Соки овощные. Консервы": "сок",
-  "Капуста": "капуста",
-  "Карамель": "карамель",
-  "Орехи": "орех",
-  "Квас": "квас",
-  "Грибы": "грибы",
-  "Конфеты неглазированные": "конфеты",
-};
-
-const ORGAN_MEATS = new Set(["Мозги", "Почки", "Сердце", "Язык", "Печень", "Легкое", "Вымя"]);
-
-const ORGAN_SUFFIX_MAP: Record<string, string> = {
-  "Говяжьи": "говяжьи",
-  "Свиные": "свиные",
-};
-
-function normalizeProductName(name: string, categories: string[]): string {
-  const trimmed = name.trim();
-  const words = trimmed.split(/\s+/);
-  if (words.length > 1) return trimmed;
-
-  const lastCat = categories[categories.length - 1];
-  if (!lastCat) return trimmed;
-
-  // Single-word adjective → append noun from category
-  if (/(?:ый|ой|ий|ая|яя|ое|ее|ые|ая)$/.test(trimmed)) {
-    const noun = ADJECTIVE_NOUN_MAP[lastCat];
-    if (noun) return `${trimmed} ${noun}`;
-  }
-
-  // Organ meats → append animal type
-  if (ORGAN_MEATS.has(trimmed)) {
-    const suffix = ORGAN_SUFFIX_MAP[lastCat];
-    if (suffix) return `${trimmed} (${suffix})`;
-  }
-
-  return trimmed;
-}
 
 // ─── Seed functions ───
+
+async function seedFoodsCombined(path: string) {
+  console.log("Seeding foods from combined-foods.json...");
+
+  let data: {
+    meta: Record<string, unknown>;
+    foods: Array<{
+      id: string;
+      nameEng: string;
+      nameRu: string;
+      source: string;
+      categories: string[];
+      nutrients: Array<{ nutrientId: string; quantity: number }>;
+      portions: unknown[];
+    }>;
+  };
+
+  try {
+    data = JSON.parse(readFileSync(path, "utf-8"));
+  } catch (e) {
+    console.error("  Could not read combined-foods.json:", e);
+    return;
+  }
+
+  const foods = data.foods;
+  console.log(`  Found ${foods.length} foods, inserting...`);
+  let count = 0;
+
+  for (const food of foods) {
+    await client.insert("foods", {
+      id: food.id,
+      userId: "__system__",
+      name: food.nameRu || food.nameEng || food.id,
+      nameEng: food.nameEng ?? "",
+      description: null,
+      descriptionEng: null,
+      source: food.source,
+      categories: new Set(food.categories ?? []),
+    });
+
+    for (const nutrient of food.nutrients) {
+      await client.insert("foodNutrients", {
+        id: `${food.id}-${nutrient.nutrientId}`,
+        foodId: food.id,
+        nutrientId: nutrient.nutrientId,
+        quantity: nutrient.quantity,
+      });
+    }
+
+    count++;
+    if (count % 200 === 0) {
+      console.log(`  Progress: ${count}/${foods.length}`);
+    }
+  }
+
+  console.log(`  Inserted ${count} foods`);
+}
 
 async function seedNutrients() {
   console.log("Seeding nutrients...");
@@ -289,152 +241,10 @@ async function seedNutrients() {
 }
 
 async function seedFoods() {
-  const usdaPath = resolve(__dirname, "../parser/output/usda-foods.json");
-  const skurikhinPath = resolve(__dirname, "../parser/output/skurikhin-v2.json");
-
-  let useUsda = false;
-  try {
-    readFileSync(usdaPath, "utf-8");
-    useUsda = true;
-  } catch {
-    // fall back to skurikhin
-  }
-
-  if (useUsda) {
-    await seedFoodsUsda(usdaPath);
-  } else {
-    await seedFoodsSkurikhin(skurikhinPath);
-  }
+  const combinedPath = resolve(__dirname, "../parser/output/combined-foods.json");
+  await seedFoodsCombined(combinedPath);
 }
 
-async function seedFoodsUsda(path: string) {
-  console.log("Seeding foods from usda-foods.json...");
-
-  let foods: Array<{
-    id: string;
-    name: string;
-    nameEng: string;
-    description: string;
-    source: string;
-    categories: string[];
-    nutrients: Array<{ nutrientId: string; quantity: number }>;
-    portions: Array<{ label: string; amount: number; unit: string; grams: number }>;
-  }>;
-
-  try {
-    ({ foods } = JSON.parse(readFileSync(path, "utf-8")));
-  } catch (e) {
-    console.error("  Could not read usda-foods.json:", e);
-    return;
-  }
-
-  console.log(`  Found ${foods.length} foods, inserting...`);
-  let count = 0;
-
-  for (const food of foods) {
-    await client.insert("foods", {
-      id: food.id,
-      userId: "__system__",
-      name: food.name,
-      nameEng: food.nameEng ?? "",
-      description: food.description ?? null,
-      descriptionEng: null,
-      source: food.source ?? null,
-      categories: new Set(food.categories ?? []),
-    });
-
-    for (const n of food.nutrients ?? []) {
-      await client.insert("foodNutrients", {
-        id: `${food.id}-${n.nutrientId}`,
-        foodId: food.id,
-        nutrientId: n.nutrientId,
-        quantity: n.quantity,
-      });
-    }
-
-    for (let pi = 0; pi < (food.portions ?? []).length; pi++) {
-      const p = food.portions[pi];
-      await client.insert("foodPortions", {
-        id: `${food.id}-p-${pi}`,
-        foodId: food.id,
-        userId: "__system__",
-        label: p.label,
-        amount: p.amount,
-        unit: p.unit,
-        grams: p.grams,
-      });
-    }
-
-    count++;
-    if (count % 200 === 0) {
-      console.log(`  Progress: ${count}/${foods.length}`);
-    }
-  }
-
-  console.log(`  Inserted ${count} foods`);
-}
-
-async function seedFoodsSkurikhin(path: string) {
-  console.log("Seeding foods from skurikhin-v2.json...");
-
-  let products: Array<{
-    id: number;
-    name: string;
-    categories?: string[];
-    nutrients?: Record<string, string>;
-  }>;
-
-  try {
-    ({ products } = JSON.parse(readFileSync(path, "utf-8")));
-  } catch (e) {
-    console.error("  Could not read skurikhin-v2.json:", e);
-    return;
-  }
-
-  console.log(`  Found ${products.length} products, inserting...`);
-  let count = 0;
-
-  for (const product of products) {
-    const id = String(product.id);
-
-    const categories = new Set<string>();
-    for (const cat of product.categories ?? []) {
-      const slug = CATEGORY_MAP[cat];
-      if (slug) categories.add(slug);
-    }
-
-    await client.insert("foods", {
-      id,
-      userId: "__system__",
-      name: normalizeProductName(product.name, product.categories ?? []),
-      nameEng: "",
-      description: null,
-      descriptionEng: null,
-      source: "skurikhin",
-      categories,
-    });
-
-    for (const [ruKey, nutrientId] of Object.entries(SKURIKHIN_NUTRIENT_MAP)) {
-      const raw = product.nutrients?.[ruKey];
-      if (raw == null) continue;
-      const quantity = parseFloat(String(raw).replace(",", "."));
-      if (!quantity || isNaN(quantity)) continue;
-      await client.insert("foodNutrients", {
-        id: `${id}-${nutrientId}`,
-        foodId: id,
-        nutrientId,
-        quantity,
-      });
-    }
-
-    count++;
-    if (count % 200 === 0) {
-      console.log(`  Progress: ${count}/${products.length}`);
-    }
-  }
-
-  console.log(`  Inserted ${count} foods`);
-}
 
 async function seedDefaultDailyNorm() {
   console.log("Seeding default daily norm...");
@@ -454,17 +264,8 @@ async function seedDefaultDailyNorm() {
     name: "Стандарт",
     description: "Стандартная норма потребления",
     userId: "__system__",
+    items: defaults,
   });
-
-  for (const [nutrientId, quantity] of Object.entries(defaults)) {
-    await client.insert("dailyNormItems", {
-      id: `default-${nutrientId}`,
-      normId: "DEFAULT_NORM",
-      nutrientId,
-      quantity,
-      userId: "__system__",
-    });
-  }
 
   console.log("  Done");
 }

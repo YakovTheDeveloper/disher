@@ -1,5 +1,7 @@
 /**
  * TimeAtomInput - Fullscreen input for time atoms
+ *
+ * Segment control for mode switching + preset duration chips for quick one-tap selection.
  */
 
 import { useState } from 'react';
@@ -16,6 +18,8 @@ export interface TimeAtomInputProps {
 }
 
 type TimeMode = 'duration' | 'end';
+
+const DURATION_PRESETS = [15, 30, 45, 60, 90, 120];
 
 export const TimeAtomInput = ({ onAddAtom, onClose, accentColor, inputId }: TimeAtomInputProps) => {
   const [mode, setMode] = useState<TimeMode>('duration');
@@ -41,52 +45,64 @@ export const TimeAtomInput = ({ onAddAtom, onClose, accentColor, inputId }: Time
         >
           <h3 className={styles.title}>Добавить время</h3>
 
+          {/* Hidden focusable input for label→input pattern */}
+          <input id={inputId} className={styles.hiddenFocus} tabIndex={-1} readOnly />
+
+          {/* Segment control — two large tabs */}
+          <div className={styles.segmentControl}>
+            <button
+              type="button"
+              className={`${styles.segmentItem} ${mode === 'duration' ? styles.active : ''}`}
+              onClick={() => setMode('duration')}
+            >
+              Длительность
+            </button>
+            <button
+              type="button"
+              className={`${styles.segmentItem} ${mode === 'end' ? styles.active : ''}`}
+              onClick={() => setMode('end')}
+            >
+              Конец
+            </button>
+          </div>
+
           {mode === 'duration' ? (
-            <div>
-              <label>Длительность (минуты)</label>
-              <input
-                id={inputId}
-                type="number"
-                min="1"
-                value={durationMin}
-                onChange={(e) => setDurationMin(Number(e.target.value))}
-              />
-            </div>
+            <>
+              {/* Preset duration chips — one tap */}
+              <div className={styles.tagSuggestionsTop}>
+                {DURATION_PRESETS.map((min) => (
+                  <button
+                    key={min}
+                    type="button"
+                    className={`${styles.quickChip} ${durationMin === min ? styles.active : ''}`}
+                    onClick={() => setDurationMin(min)}
+                  >
+                    {min >= 60 ? `${min / 60}ч` : `${min}м`}
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                <label>Или введите минуты</label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min="1"
+                  value={durationMin}
+                  onChange={(e) => setDurationMin(Number(e.target.value))}
+                />
+              </div>
+            </>
           ) : (
             <div>
               <label>Конец</label>
               <input
-                id={inputId}
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
               />
             </div>
           )}
-
-          <div>
-            <label>Тип времени</label>
-            <div className={styles.radioGroup}>
-              <label>
-                <input
-                  type="radio"
-                  value="duration"
-                  checked={mode === 'duration'}
-                  onChange={(e) => setMode(e.target.value as TimeMode)}
-                />
-                Длительность
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  value="end"
-                  checked={mode === 'end'}
-                  onChange={(e) => setMode(e.target.value as TimeMode)}
-                />
-                Конец
-              </label>
-            </div>
-          </div>
 
           <AtomModalFooter onCancel={onClose} onAdd={handleAdd} accentColor={accentColor} />
         </div>

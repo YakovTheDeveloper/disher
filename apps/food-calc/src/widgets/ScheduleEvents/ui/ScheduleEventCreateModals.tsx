@@ -171,6 +171,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
                 id={MODAL_INPUT_IDS.TEXT_INPUT}
                 onChange={handleTextChange}
                 value={draft.text}
+                rows={5}
               />
               <ModalFooter onBack={() => goToStep('time')}>
                 <Button variant="primary-form" onClick={() => goToStep('atoms')}>
@@ -196,9 +197,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
               onStepClick={goToStep}
             />
             <ModalShell.AtomsBody>
-              <div id={MODAL_INPUT_IDS.ATOMS_INPUT} tabIndex={-1}>
-                {step === 'atoms' && <AtomBuilder />}
-              </div>
+              {step === 'atoms' && <AtomBuilder id={MODAL_INPUT_IDS.ATOMS_INPUT} />}
               <ModalFooter onBack={() => goToStep('text')}>
                 <Button variant="primary-form" onClick={handleCommit}>
                   Готово

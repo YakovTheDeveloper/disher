@@ -48,7 +48,7 @@ vi.mock('@/shared/ui/atoms/Button', () => ({
 }));
 
 // Exposes getValue result via data-value so tests can assert on it
-vi.mock('@/entities/nutrient/ui/NutrientCard/NutrientCardV2', () => ({
+vi.mock('@/entities/nutrient/ui/NutrientCard/NutrientCardV3', () => ({
   default: ({ content, getValue }: { content: { id: string; displayNameRu: string }; getValue: (id: string) => number }) => (
     <div
       data-testid={`nutrient-card-${content.id}`}
@@ -64,7 +64,7 @@ vi.mock('@/features/nutrients/filter-nutrients', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/features/nutrients/filter-nutrients')>();
   return {
     ...actual,
-    FilterNutrientCardWrapper: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    FilterNutrientCardWrapper: ({ renderCard }: { renderCard: (overrides: Record<string, unknown>) => React.ReactNode }) => <div>{renderCard({})}</div>,
     FilterNutrientsPanel: () => <div data-testid="filter-panel" />,
   };
 });

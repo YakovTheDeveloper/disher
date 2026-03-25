@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { drawerStore } from '@/shared/ui';
 import { ScheduleSelectionDrawer } from '@/features/ScheduleSelection/ScheduleSelectionDrawer';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
+import watchSrc from '@/shared/assets/decarative/watch.png';
 
 const Navigation = () => {
   const params = useParams();
@@ -32,6 +33,7 @@ const Navigation = () => {
 
   return (
     <header className={styles.header} data-collapsed={collapsed}>
+      <img src={watchSrc} alt="" className={styles.watermark} />
       <div className={styles.dateLink} onClick={handleDateClick}>
         <div className={styles.masthead}>
           <span className={styles.mastheadWeekday}>{weekdayName},</span>

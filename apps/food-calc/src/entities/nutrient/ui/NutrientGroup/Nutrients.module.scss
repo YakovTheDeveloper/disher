@@ -21,7 +21,7 @@
 
 .groupTitle {
     font-family: var(--font-sans);
-    font-size: 2rem;
+    font-size: 1.5rem;
     line-height: 1;
     margin: 0;
     padding: 0 var(--space-1);
@@ -34,7 +34,21 @@
     letter-spacing: -0.02em;
 }
 
-.group--main .groupTitleBold      { color: var(--nutrient-accent-main); }
-.group--vitaminsB .groupTitleBold { color: var(--nutrient-accent-vitaminsB); }
-.group--minerals .groupTitleBold  { color: var(--nutrient-accent-minerals); }
-.group--rest .groupTitleBold      { color: var(--nutrient-accent-rest); }
+.group--main .groupTitleBold {
+    color: var(--nutrient-accent-main);
+    text-align: right;
+
+}
+
+.group--vitaminsB .groupTitleBold {
+    color: var(--nutrient-accent-vitaminsB);
+    font-size: 1.5rem;
+}
+
+.group--minerals .groupTitleBold {
+    color: var(--nutrient-accent-minerals);
+}
+
+.group--rest .groupTitleBold {
+    color: var(--nutrient-accent-rest);
+}

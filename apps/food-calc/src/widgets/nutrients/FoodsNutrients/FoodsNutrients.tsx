@@ -37,14 +37,14 @@ const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading, after }:
         filterMode={filter.filterMode}
         onToggle={() => filter.toggleHidden(nutrientData.id)}
         nutrientId={nutrientData.id}
-        nutrientName={nutrientData.displayNameRu}
         nutrientKey={nutrientData.name}
         actionSlot={
           <OpenRichFood nutrientId={nutrientData.id} nutrientName={nutrientData.displayNameRu} />
         }
-      >
-        <NutrientCardV3 content={nutrientData} getValue={getValue} />
-      </FilterNutrientCardWrapper>
+        renderCard={(overrides) => (
+          <NutrientCardV3 content={nutrientData} getValue={getValue} {...overrides} />
+        )}
+      />
     ),
     [filter, getValue]
   );

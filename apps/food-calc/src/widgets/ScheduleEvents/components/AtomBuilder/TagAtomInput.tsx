@@ -1,5 +1,8 @@
 /**
  * TagAtomInput - Fullscreen input for tag atoms with inline suggestions
+ *
+ * Suggestions in thumb zone — tap a chip to instantly add the tag.
+ * Text input for custom tags, Enter to add.
  */
 
 import { useState, useMemo } from 'react';
@@ -43,8 +46,24 @@ export const TagAtomInput = ({ onAddAtom, onClose, accentColor, inputId, popular
         >
           <h3 className={styles.title}>Добавить тег</h3>
 
+          {/* Suggestions first — in thumb zone, instant add on tap */}
+          {suggestions.length > 0 && (
+            <div className={styles.tagSuggestionsTop}>
+              {suggestions.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`${styles.quickChip} ${input === tag ? styles.active : ''}`}
+                  onClick={() => handleAdd(tag)}
+                >
+                  #{tag}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div>
-            <label>Тег</label>
+            <label>Свой тег</label>
             <input
               id={inputId}
               type="text"
@@ -54,21 +73,6 @@ export const TagAtomInput = ({ onAddAtom, onClose, accentColor, inputId, popular
               onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
             />
           </div>
-
-          {suggestions.length > 0 && (
-            <div className={styles.tagSuggestions}>
-              {suggestions.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  className={`${styles.presetChip} ${input === tag ? styles.active : ''}`}
-                  onClick={() => handleAdd(tag)}
-                >
-                  #{tag}
-                </button>
-              ))}
-            </div>
-          )}
 
           <AtomModalFooter onCancel={onClose} onAdd={() => handleAdd()} addDisabled={!input.trim()} accentColor={accentColor} />
         </div>

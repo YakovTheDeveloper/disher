@@ -45,6 +45,13 @@
     gap: 2px;
 }
 
+// ─── User-created product indicator ───────────────────────────
+
+.customProduct {
+    border-left: 2px solid var(--text-tertiary);
+    padding-left: var(--space-2);
+}
+
 .priceText {
     font-size: var(--text-xs);
     color: var(--text-muted);

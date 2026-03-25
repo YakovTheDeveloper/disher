@@ -53,6 +53,16 @@
     }
 }
 
+.categoryIcon {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    
+    flex-shrink: 0;
+    object-fit: contain;
+    opacity: 0.8;
+}
+
 .item_active {
     background: #111;
 

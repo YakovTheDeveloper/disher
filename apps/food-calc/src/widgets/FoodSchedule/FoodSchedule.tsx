@@ -28,6 +28,8 @@ import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { removeScheduleFoods } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
+import { CopyToClipboardButton } from '@/features/clipboard';
+import type { ClipboardItem } from '@/shared/model/clipboardStore';
 
 type CommonProps = {
   date: string;
@@ -65,9 +67,18 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
     setEditingStep(step);
   };
 
-  const onEditTime = useCallback((item: ScheduleFoodWithRelations) => openEditModal(item, 'time'), []);
-  const onEditFood = useCallback((item: ScheduleFoodWithRelations) => openEditModal(item, 'search'), []);
-  const onEditQuantity = useCallback((item: ScheduleFoodWithRelations) => openEditModal(item, 'quantity'), []);
+  const onEditTime = useCallback(
+    (item: ScheduleFoodWithRelations) => openEditModal(item, 'time'),
+    []
+  );
+  const onEditFood = useCallback(
+    (item: ScheduleFoodWithRelations) => openEditModal(item, 'search'),
+    []
+  );
+  const onEditQuantity = useCallback(
+    (item: ScheduleFoodWithRelations) => openEditModal(item, 'quantity'),
+    []
+  );
 
   const getSelectedItemsWithProduct = () =>
     items.filter((item) => selectedIds.includes(item.id) && item.foodId != null);
@@ -111,6 +122,21 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
   };
 
   const selectedProductsFromSelectedFoods = getSelectedItemsWithProduct();
+
+  const selectedItemsForClipboard: ClipboardItem[] = useMemo(
+    () =>
+      items
+        .filter((item) => selectedIds.includes(item.id))
+        .map((item) => ({
+          time: item.time,
+          type: item.type as 'food' | 'dish',
+          quantity: item.quantity,
+          foodId: item.foodId ?? null,
+          dishId: item.dishId ?? null,
+          displayName: item.food?.name ?? item.dish?.name ?? '—',
+        })),
+    [items, selectedIds]
+  );
 
   const onModalActionFinish = () => {
     closeModal();
@@ -179,16 +205,14 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
                   onClick={() => handleDishChoiceSelect('create-dish-and-copy')}
                   style={dishChoiceBtnStyle}
                 >
-                  <NewDishIcon />
-                  В новое
+                  <NewDishIcon />В новое
                 </label>
                 <label
                   htmlFor={MODAL_INPUT_IDS.SEARCH_INPUT}
                   onClick={() => handleDishChoiceSelect('copy-to-existing-dish')}
                   style={dishChoiceBtnStyle}
                 >
-                  <ExistingDishIcon />
-                  В существующее
+                  <ExistingDishIcon />В существующее
                 </label>
               </motion.div>
             ) : (
@@ -202,26 +226,38 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
               >
                 <IconButton
                   icon={<DishIcon />}
-                  badge={selectedProductsFromSelectedFoods.length > 0 ? <CountBadge size="sm" count={selectedProductsFromSelectedFoods.length} /> : undefined}
+                  badge={
+                    selectedProductsFromSelectedFoods.length > 0 ? (
+                      <CountBadge size="sm" count={selectedProductsFromSelectedFoods.length} />
+                    ) : undefined
+                  }
                   onClick={openDishChoice}
                 >
                   В блюдо
                 </IconButton>
                 <IconButton
                   icon={<CopyIcon />}
-                  badge={selectedIds.length > 0 ? <CountBadge size="sm" count={selectedIds.length} /> : undefined}
+                  badge={
+                    selectedIds.length > 0 ? (
+                      <CountBadge size="sm" count={selectedIds.length} />
+                    ) : undefined
+                  }
                   onClick={onCopyToAnotherSchedule}
                 >
                   Скопировать
                 </IconButton>
+                <CopyToClipboardButton
+                  items={selectedItemsForClipboard}
+                  sourceDate={date}
+                  selectedCount={selectedIds.length}
+                  onCopied={clearSelection}
+                />
               </motion.div>
             )}
           </AnimatePresence>
         </ActionsPanel>
       }
-      header={
-        <Navigation />
-      }
+      header={<Navigation />}
       topLeft={null}
       bottomRight={
         isActionsMode || items.length === 0 ? null : (
@@ -232,13 +268,8 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
       <FoodToolbar variant="schedule" date={date} hasItems={items.length > 0} />
       {items.length === 0 && (
         <div style={{ padding: `var(--space-10) var(--space-4) 0` }}>
-          <AddButton
-            onClick={() => {}}
-            as="label"
-            htmlFor={MODAL_INPUT_IDS.TIME_INPUT}
-            prominent
-          >
-            Добавить еду в этот день
+          <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.TIME_INPUT} prominent>
+            Добавить еду
           </AddButton>
         </div>
       )}
@@ -274,14 +305,25 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
 
 const TrashIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
     <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
 
 const DishIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M3 14h18M5 14c0-3.87 3.13-7 7-7s7 3.13 7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path
+      d="M3 14h18M5 14c0-3.87 3.13-7 7-7s7 3.13 7 7"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
     <path d="M12 7V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     <path d="M5 17h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
@@ -290,13 +332,23 @@ const DishIcon = () => (
 const CopyIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M5 15H4a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h9a1 1 0 0 1 1 1v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path
+      d="M5 15H4a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h9a1 1 0 0 1 1 1v1"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
 const NewDishIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" strokeWidth="1.5" fill="none" />
+    <path
+      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      fill="none"
+    />
     <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
@@ -304,7 +356,13 @@ const NewDishIcon = () => (
 const ExistingDishIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M9 12l2 2 4-4"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 

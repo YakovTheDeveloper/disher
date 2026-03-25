@@ -17,15 +17,13 @@ const AddButton = ({ onClick, children, as = 'button', htmlFor, prominent }: Pro
     <Tag
       onClick={onClick}
       htmlFor={htmlFor}
-      className={clsx(
-        styles.container,
-        children && styles.withText,
-        prominent && styles.prominent,
-      )}
+      className={clsx(styles.container, children && styles.withText, prominent && styles.prominent)}
     >
-      <span className={styles.icon}>
-        <PlusIcon />
-      </span>
+      {!prominent && (
+        <span className={styles.icon}>
+          <PlusIcon />
+        </span>
+      )}
       {children && <span className={styles.text}>{children}</span>}
     </Tag>
   );

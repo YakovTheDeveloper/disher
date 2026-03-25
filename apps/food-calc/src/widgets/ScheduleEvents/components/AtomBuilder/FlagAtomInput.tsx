@@ -1,5 +1,8 @@
 /**
  * FlagAtomInput - Fullscreen input for flag atoms
+ *
+ * Preset flags first — one tap to select and done.
+ * Custom input hidden behind "Свой" toggle for less common use.
  */
 
 import { useState } from 'react';
@@ -27,6 +30,7 @@ const PRESET_FLAGS = [
 export const FlagAtomInput = ({ onAddAtom, onClose, accentColor, inputId }: FlagAtomInputProps) => {
   const [customValue, setCustomValue] = useState('');
   const [selectedFlag, setSelectedFlag] = useState<string | null>(null);
+  const [showCustom, setShowCustom] = useState(false);
 
   const handleAdd = () => {
     const flagValue = selectedFlag || customValue.trim();
@@ -42,40 +46,52 @@ export const FlagAtomInput = ({ onAddAtom, onClose, accentColor, inputId }: Flag
           style={accentColor ? ({ '--atom-accent': accentColor } as React.CSSProperties) : undefined}
         >
           <h3 className={styles.title}>Добавить флаг</h3>
-          <p className={styles.description}>Выберите одно из предложенных или введите свое</p>
 
-          <div>
-            <label>Свой флаг</label>
-            <input
-              id={inputId}
-              type="text"
-              placeholder="например: 'требует лечения'"
-              value={customValue}
-              onChange={(e) => {
-                setCustomValue(e.target.value);
-                setSelectedFlag(null);
-              }}
-            />
+          {/* Hidden focusable input for label→input pattern */}
+          <input id={inputId} className={styles.hiddenFocus} tabIndex={-1} readOnly />
+
+          {/* Preset flags first — main path, large touch targets */}
+          <div className={styles.tagSuggestionsTop}>
+            {PRESET_FLAGS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                className={`${styles.quickChip} ${selectedFlag === value ? styles.active : ''}`}
+                onClick={() => {
+                  setSelectedFlag(value);
+                  setCustomValue('');
+                  setShowCustom(false);
+                }}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
-          <div>
-            <label>Готовые флаги</label>
-            <div className={styles.presetLabels}>
-              {PRESET_FLAGS.map(({ value, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`${styles.presetChip} ${selectedFlag === value ? styles.active : ''}`}
-                  onClick={() => {
-                    setSelectedFlag(value);
-                    setCustomValue('');
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
+          {/* Custom input — toggled by "Свой" button */}
+          {!showCustom ? (
+            <button
+              type="button"
+              className={styles.showCustomBtn}
+              onClick={() => { setShowCustom(true); setSelectedFlag(null); }}
+            >
+              Свой флаг...
+            </button>
+          ) : (
+            <div>
+              <label>Свой флаг</label>
+              <input
+                type="text"
+                autoFocus
+                placeholder="например: 'требует лечения'"
+                value={customValue}
+                onChange={(e) => {
+                  setCustomValue(e.target.value);
+                  setSelectedFlag(null);
+                }}
+              />
             </div>
-          </div>
+          )}
 
           <AtomModalFooter
             onCancel={onClose}

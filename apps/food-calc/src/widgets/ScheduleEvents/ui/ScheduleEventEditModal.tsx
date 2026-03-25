@@ -134,6 +134,8 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
                 id={EDIT_MODAL_INPUT_IDS.TEXT_INPUT}
                 onChange={handleTextChange}
                 value={draft.text}
+                rows={5}
+                placeholder="Опишите событие"
               />
               <ModalFooter onBack={handleClose}>
                 <Button variant="primary-form" onClick={handleCommit}>
@@ -152,9 +154,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         content={
           <ModalShell>
             <ModalShell.AtomsBody>
-              <div id={EDIT_MODAL_INPUT_IDS.ATOMS_INPUT} tabIndex={-1}>
-                <AtomBuilder />
-              </div>
+              <AtomBuilder id={EDIT_MODAL_INPUT_IDS.ATOMS_INPUT} />
               <ModalFooter onBack={handleClose}>
                 <Button variant="primary-form" onClick={handleCommit}>
                   Готово

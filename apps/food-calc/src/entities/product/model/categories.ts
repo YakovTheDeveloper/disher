@@ -43,43 +43,43 @@ export interface ProductCategoryGroup {
 
 export const PRODUCT_CATEGORY_GROUPS: ProductCategoryGroup[] = [
   {
-    groupName: "Fresh Produce",
-    categories: ["vegetable", "fruit", "herb"],
+    groupName: "Овощи и фрукты",
+    categories: ["vegetable", "fruit"],
   },
   {
-    groupName: "Protein Sources",
-    categories: ["meat", "poultry", "fish", "seafood", "egg", "legume", "nut", "seed"],
+    groupName: "Белковые продукты",
+    categories: ["meat", "poultry", "fish", "seafood", "egg", "legume"],
   },
   {
-    groupName: "Dairy & Alternatives",
-    categories: ["dairy", "vegan", "dairy-free"],
+    groupName: "Молочные продукты",
+    categories: ["dairy"],
   },
   {
-    groupName: "Grains & Cereals",
-    categories: ["grain", "cereal", "bakery", "gluten-free"],
+    groupName: "Крупы и выпечка",
+    categories: ["grain", "cereal", "bakery"],
   },
   {
-    groupName: "Fats & Oils",
-    categories: ["oil", "nut", "seed"],
+    groupName: "Орехи, семена и масла",
+    categories: ["nut", "seed", "oil"],
   },
   {
-    groupName: "Beverages",
+    groupName: "Напитки",
     categories: ["beverage", "juice", "tea", "coffee", "alcohol"],
   },
   {
-    groupName: "Flavorings",
+    groupName: "Специи и приправы",
     categories: ["condiment", "spice", "herb"],
   },
   {
-    groupName: "Processed & Snacks",
+    groupName: "Обработанные и перекусы",
     categories: ["processed", "snack", "dessert"],
   },
   {
-    groupName: "Dietary Categories",
+    groupName: "Диетические",
     categories: ["vegan", "vegetarian", "gluten-free", "dairy-free", "low-carb", "high-protein"],
   },
   {
-    groupName: "Other",
+    groupName: "Прочее",
     categories: ["supplement", "other"],
   },
 ];

@@ -7,9 +7,15 @@ import { SearchFood } from '@/features/food/food-search';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { updateScheduleFood } from '@/entities/schedule-food';
+import { useProductPortions } from '@/entities/product';
+import { useDishPortions } from '@/entities/dish';
 import Button from '@/shared/ui/atoms/Button/Button';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
+import type { Portion } from '@/features/product/ProductQuantity';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
+
+const mapPortions = (results: { label: string; amount: number; unit: string; grams: number }[] | undefined): Portion[] =>
+  results ? results.map(({ label, amount, unit, grams }) => ({ label, amount, unit, grams })) : [];
 
 export const EDIT_MODAL_INPUT_IDS = {
   TIME_INPUT: 'time-input-edit-schedule-food',
@@ -52,6 +58,12 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
 
   const [step, setStep] = useState<Step>(initialStep);
   const [draft, setDraft] = useState<DraftState>(createInitialDraft);
+
+  const productId = draft.variant === 'product' ? draft.foodId ?? undefined : undefined;
+  const dishId = draft.variant === 'dish' ? draft.foodId ?? undefined : undefined;
+  const { results: foodPortionsMap } = useProductPortions(productId);
+  const { results: dishPortionsMap } = useDishPortions(dishId);
+
   useSwipeableLock(step !== 'idle');
   useOverlayHistory(step !== 'idle', () => {
     setStep('idle');
@@ -159,7 +171,11 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
             <ModalShell.Body>
               {draft.content && (
                 <ProductQuantity
-                  content={draft.content}
+                  content={{
+                    ...draft.content,
+                    food: draft.variant === 'product' ? { portions: mapPortions(foodPortionsMap) } : undefined,
+                    dish: draft.variant === 'dish' ? { portions: mapPortions(dishPortionsMap) } : undefined,
+                  }}
                   onFinish={() => {}}
                   inputId={EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
                 />

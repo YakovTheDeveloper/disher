@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   useProduct,
@@ -11,10 +11,11 @@ import {
   removeProductPortion,
 } from '@/entities/product';
 import { Nutrients } from '@/entities/nutrient/ui/NutrientGroup';
-import { NutrientCard } from '@/entities/nutrient/ui/NutrientCard';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import ChangeProductNutrientValue from './ChangeProductNutrientValue';
+import NutrientCardV3 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV3';
+import NutrientInput from '@/entities/nutrient/ui/NutrientCard/NutrientInput';
+import { useNutrientCard } from '@/entities/nutrient/ui/NutrientCard/useNutrientCard';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import TextBehind from '@/shared/ui/TextBehind/TextBehind';
 import { Ornament } from '@/shared/ui/Ornament';
@@ -34,7 +35,6 @@ import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { isCreatedByUser } from '@/shared/lib';
 import bagImage from '@/shared/assets/decarative/bag.png';
 import s from './ProductPage.module.scss';
-import NutrientCardV3 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV3';
 
 type Mode = 'view' | 'edit';
 
@@ -85,9 +85,11 @@ const ProductPage = () => {
   }));
 
   const renderCard = (nutrientData: Nutrient) => {
+    const getValue = isUserCreated ? getNutrientValue : getScaledValue;
+
     if (isEditMode) {
       return (
-        <ChangeProductNutrientValue
+        <EditNutrientCard
           content={nutrientData}
           getValue={getNutrientValue}
           onChange={(value, nutrientId) => setProductNutrient(food.id, nutrientId, value)}
@@ -102,12 +104,10 @@ const ProductPage = () => {
         onToggle={() => filter.toggleHidden(nutrientData.id)}
         nutrientId={nutrientData.id}
         nutrientKey={nutrientData.name}
-      >
-        <NutrientCardV3
-          content={nutrientData}
-          getValue={isUserCreated ? getNutrientValue : getScaledValue}
-        />
-      </FilterNutrientCardWrapper>
+        renderCard={(overrides) => (
+          <NutrientCardV3 content={nutrientData} getValue={getValue} {...overrides} />
+        )}
+      />
     );
   };
 
@@ -209,6 +209,34 @@ const ProductPage = () => {
         }}
       />
     </Screen>
+  );
+};
+
+interface EditNutrientCardProps {
+  content: Nutrient;
+  getValue: (id: string) => number;
+  onChange: (value: number, nutrientId: string) => void;
+}
+
+const EditNutrientCard = ({ content, getValue, onChange }: EditNutrientCardProps) => {
+  const { value, norm, unitRu } = useNutrientCard({ content, getValue });
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <NutrientCardV3
+      content={content}
+      getValue={getValue}
+      showValue={false}
+      onClick={() => inputRef.current?.focus()}
+    >
+      <NutrientInput
+        ref={inputRef}
+        value={value}
+        onChange={(val) => onChange(val, content.id)}
+        unit={unitRu}
+        norm={norm}
+      />
+    </NutrientCardV3>
   );
 };
 

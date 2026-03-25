@@ -20,6 +20,7 @@ import { BodyAtomInput } from './BodyAtomInput';
 import styles from './AtomBuilder.module.css';
 
 export interface AtomBuilderProps {
+  id?: string;
   className?: string;
 }
 
@@ -62,7 +63,7 @@ const ATOM_ACCENT: Record<AtomModalKind, string> = {
   body:     'var(--event-body-accent)',
 };
 
-export const AtomBuilder = ({ className = '' }: AtomBuilderProps) => {
+export const AtomBuilder = ({ id, className = '' }: AtomBuilderProps) => {
     const atoms = useEventDraftStore((s) => s.draft.atoms);
     const addAtom = useEventDraftStore((s) => s.addAtom);
     const removeAtom = useEventDraftStore((s) => s.removeAtom);
@@ -89,7 +90,7 @@ export const AtomBuilder = ({ className = '' }: AtomBuilderProps) => {
     }, []);
 
     return (
-      <div className={`${styles.container} ${className}`} onFocusCapture={handleFocusCapture}>
+      <div id={id} tabIndex={id ? -1 : undefined} className={`${styles.container} ${className}`} onFocusCapture={handleFocusCapture}>
         <AtomList atoms={atoms} onRemove={removeAtom} />
 
         {/* Fullscreen modals for each atom type */}

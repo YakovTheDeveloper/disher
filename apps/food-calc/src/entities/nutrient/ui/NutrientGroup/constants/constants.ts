@@ -18,7 +18,7 @@ export type NutrientGroup = {
 export const nutrientGroups: NutrientGroup[] = [
     {
         name: 'main',
-        displayName: 'Основные',
+        displayName: 'БЖУ',
         content: [
             { id: '1', name: 'protein', symbol: 'PRO', displayName: 'Protein', displayNameRu: 'Белки', unit: 'g', unitRu: 'г', group: 'main' },
             { id: '4', name: 'sugar', symbol: 'SUG', displayName: 'Sugar', displayNameRu: 'Сахар', unit: 'g', unitRu: 'г', group: 'main' },
@@ -32,7 +32,7 @@ export const nutrientGroups: NutrientGroup[] = [
     },
     {
         name: 'vitaminsB',
-        displayName: 'Витамины Б',
+        displayName: 'Витамины группы Б',
         content: [
             { id: '21', name: 'vitaminB1', symbol: 'B1', displayName: 'Thiamine', displayNameRu: 'Тиамин', unit: 'mg', unitRu: 'мг', group: 'vitaminsB' },
             { id: '22', name: 'vitaminB2', symbol: 'B2', displayName: 'Riboflavin', displayNameRu: 'Рибофлавин', unit: 'mg', unitRu: 'мг', group: 'vitaminsB' },

@@ -1,5 +1,4 @@
 import { FC, ReactNode, useRef, useState, useEffect, useCallback } from 'react';
-import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import styles from './FilterNutrients.module.scss';
@@ -52,14 +51,25 @@ const EyeClosedIcon = () => (
   </svg>
 );
 
+const EyeIcon: FC<{ open: boolean }> = ({ open }) => (
+  <span style={{ display: 'flex', alignItems: 'center' }}>
+    {open ? <EyeOpenIcon /> : <EyeClosedIcon />}
+  </span>
+);
+
+interface CardOverrideProps {
+  dimmed?: boolean;
+  onClick?: () => void;
+  children?: ReactNode;
+}
+
 interface Props {
   isHidden: boolean;
   filterMode: boolean;
   onToggle: () => void;
-  children: ReactNode;
+  renderCard: (overrides: CardOverrideProps) => ReactNode;
   nutrientId?: string;
   nutrientName?: string;
-  /** English name used as article folder key, e.g. "iron" */
   nutrientKey?: string;
   actionSlot?: ReactNode;
 }
@@ -68,7 +78,7 @@ const FilterNutrientCardWrapper: FC<Props> = ({
   isHidden,
   filterMode,
   onToggle,
-  children,
+  renderCard,
   actionSlot,
   nutrientId,
   nutrientKey,
@@ -95,30 +105,32 @@ const FilterNutrientCardWrapper: FC<Props> = ({
 
   if (isHidden && !filterMode) return null;
 
+  if (filterMode) {
+    return (
+      <div ref={wrapperRef} className={styles.cardWrapper}>
+        {renderCard({
+          dimmed: isHidden,
+          onClick: onToggle,
+          children: <EyeIcon open={!isHidden} />,
+        })}
+      </div>
+    );
+  }
+
   const handleCardClick = () => {
-    if (filterMode) {
-      onToggle();
-    } else {
-      setOverlayOpen((prev) => !prev);
-    }
+    setOverlayOpen((prev) => !prev);
   };
 
   return (
     <div
       ref={wrapperRef}
-      className={clsx(styles.cardWrapper, isHidden && styles.hiddenCard)}
+      className={styles.cardWrapper}
       onClick={handleCardClick}
     >
-      {children}
-
-      {filterMode && (
-        <div className={styles.eyeOverlay}>
-          {isHidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
-        </div>
-      )}
+      {renderCard({})}
 
       <AnimatePresence>
-        {overlayOpen && !filterMode && (
+        {overlayOpen && (
           <motion.div
             className={styles.cardOverlay}
             initial={{ opacity: 0 }}

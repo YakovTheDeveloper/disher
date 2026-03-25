@@ -1,10 +1,17 @@
 import { triplit } from "@/api/triplit/client";
 import { getCurrentUserId } from "@/api/triplit/session";
 import { v4 as uuid } from "uuid";
+import type { DailyNormItems } from "../model/types";
 
 export async function createDailyNorm(name: string, description: string) {
   const id = uuid();
-  await triplit.insert("dailyNorms", { id, name, description, userId: getCurrentUserId() });
+  await triplit.insert("dailyNorms", {
+    id,
+    name,
+    description,
+    userId: getCurrentUserId(),
+    items: {},
+  });
   return id;
 }
 
@@ -19,12 +26,6 @@ export async function updateDailyNorm(
 }
 
 export async function deleteDailyNorm(normId: string) {
-  const items = await triplit.fetch(
-    triplit.query("dailyNormItems").Where("normId", "=", normId),
-  );
-  await Promise.all(
-    (Array.from(items.keys()) as unknown as string[]).map((id) => triplit.delete("dailyNormItems", id)),
-  );
   await triplit.delete("dailyNorms", normId);
 }
 
@@ -33,27 +34,21 @@ export async function setDailyNormNutrient(
   nutrientId: string,
   quantity: number | null,
 ) {
-  const existing = await triplit.fetch(
-    triplit
-      .query("dailyNormItems")
-      .Where("normId", "=", normId)
-      .Where("nutrientId", "=", nutrientId),
-  );
-  const existingItem = Array.from(existing.values())[0];
+  const norm = await triplit.fetchById("dailyNorms", normId);
+  if (!norm) return;
 
-  if (existingItem) {
-    await triplit.update("dailyNormItems", existingItem.id, (item) => {
-      item.quantity = quantity;
-    });
+  const items = (norm.items ?? {}) as DailyNormItems;
+  const next = { ...items };
+
+  if (quantity === null || quantity === 0) {
+    delete next[nutrientId];
   } else {
-    await triplit.insert("dailyNormItems", {
-      id: uuid(),
-      normId,
-      nutrientId,
-      quantity,
-      userId: getCurrentUserId(),
-    });
+    next[nutrientId] = quantity;
   }
+
+  await triplit.update("dailyNorms", normId, (n) => {
+    n.items = next;
+  });
 }
 
 export async function seedDefaultDailyNorm(defaults: Record<string, number>) {
@@ -66,17 +61,6 @@ export async function seedDefaultDailyNorm(defaults: Record<string, number>) {
     name: "Стандарт",
     description: "Стандартная норма потребления, для среднестатистического человека",
     userId: getCurrentUserId(),
+    items: defaults,
   });
-
-  await Promise.all(
-    Object.entries(defaults).map(([nutrientId, quantity], index) =>
-      triplit.insert("dailyNormItems", {
-        id: (index + 1).toString(),
-        normId,
-        nutrientId,
-        quantity,
-        userId: getCurrentUserId(),
-      }),
-    ),
-  );
 }

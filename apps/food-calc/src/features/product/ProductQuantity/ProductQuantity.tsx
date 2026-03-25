@@ -16,7 +16,7 @@ const QuickButton = ({ children, isActive, onClick, className }: QuickButtonProp
   </button>
 );
 
-type Portion = { grams: number; amount: number; unit: string };
+export type Portion = { label: string; grams: number; amount: number; unit: string };
 
 type ProductQuantityContent = {
   quantity: number;
@@ -56,17 +56,26 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [value, setValue] = useState(content.quantity);
+  const [activePortion, setActivePortion] = useState<Portion | null>(null);
 
   // Get portions from food if available
   const portions = content.food?.portions || content.dish?.portions || [];
 
-  // Build quick buttons data
+  // Compute portion count for active portion
+  const portionCount = activePortion ? Math.round(value / activePortion.grams) : 0;
+
+  // Build quick buttons data with dynamic labels for active portion
   const quickButtons: QuickButtonData[] =
     portions.length > 0
-      ? portions.map((portion) => ({
-          quantity: portion.grams,
-          label: `${portion.amount} ${portion.unit} (${portion.grams}г)`,
-        }))
+      ? portions.map((portion) => {
+          const isActive = activePortion?.grams === portion.grams && activePortion?.label === portion.label;
+          const count = isActive ? portionCount : 1;
+          const totalGrams = isActive ? value : portion.grams;
+          const label = count > 1
+            ? `${count} × ${portion.label} (${totalGrams}г)`
+            : `${portion.label} (${portion.grams}г)`;
+          return { quantity: totalGrams, label };
+        })
       : [];
 
   const quickButtons2: QuickButtonData[] = variants.flat().map((quantity) => ({
@@ -82,9 +91,18 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
     onFinish();
   };
 
-  const handleVariantClick = (quantity: number) => {
+  const handlePortionClick = (portion: Portion) => {
+    const isSamePortion = activePortion?.grams === portion.grams && activePortion?.label === portion.label;
+    const newValue = isSamePortion ? value + portion.grams : portion.grams;
+    setValue(newValue);
+    content.updateQuantity(newValue);
+    setActivePortion(portion);
+  };
+
+  const handleQuantityClick = (quantity: number) => {
     setValue(quantity);
     content.updateQuantity(quantity);
+    setActivePortion(null);
   };
 
   return (
@@ -99,7 +117,7 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
           onChange={setValue}
           value={value}
           onBlur={onBlur}
-          bottom={<span className={style.unit}>граммы</span>}
+          bottom={<span className={style.unit}>{activePortion && portionCount > 0 ? `${portionCount} × ${activePortion.label}` : 'граммы'}</span>}
         />
       </div>
 
@@ -112,12 +130,12 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
               {portionSlides.map((slideButtons, slideIndex) => (
                 <div key={slideIndex} className={style.snapSlide}>
                   <div className={style.slideGrid}>
-                    {slideButtons.map((button) => (
+                    {slideButtons.map((button, i) => (
                       <QuickButton
-                        key={button.quantity}
+                        key={button.label}
                         className={style.quickBtn}
-                        isActive={button.quantity === value}
-                        onClick={() => handleVariantClick(button.quantity)}
+                        isActive={activePortion?.grams === portions[slideIndex * SLIDE_SIZE + i]?.grams && activePortion?.label === portions[slideIndex * SLIDE_SIZE + i]?.label}
+                        onClick={() => handlePortionClick(portions[slideIndex * SLIDE_SIZE + i])}
                       >
                         {button.label}
                       </QuickButton>
@@ -144,7 +162,7 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
                         key={button.quantity}
                         className={style.quickBtn}
                         isActive={button.quantity === value}
-                        onClick={() => handleVariantClick(button.quantity)}
+                        onClick={() => handleQuantityClick(button.quantity)}
                       >
                         {button.label}
                       </QuickButton>

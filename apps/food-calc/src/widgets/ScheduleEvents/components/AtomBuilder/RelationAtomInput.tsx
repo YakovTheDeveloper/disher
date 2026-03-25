@@ -1,11 +1,14 @@
 /**
  * RelationAtomInput - Fullscreen input for relation atoms
+ *
+ * Preset chips first — tap to auto-fill and enable "Add".
+ * Textarea for custom input shown on demand.
  */
 
 import { useState } from 'react';
 import { RelationAtom } from '@/entities/schedule-event';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { AtomModalFooter, PresetChips } from './shared';
+import { AtomModalFooter } from './shared';
 import styles from './shared/AtomInputShared.module.css';
 
 export interface RelationAtomInputProps {
@@ -26,11 +29,17 @@ const PRESET_RELATIONS = [
 
 export const RelationAtomInput = ({ onAddAtom, onClose, accentColor, inputId }: RelationAtomInputProps) => {
   const [value, setValue] = useState('');
+  const [showCustom, setShowCustom] = useState(false);
 
   const handleAdd = () => {
     const trimmed = value.trim();
     if (!trimmed) return;
     onAddAtom({ kind: 'relation', value: trimmed });
+  };
+
+  const handlePresetTap = (preset: string) => {
+    setValue(preset);
+    setShowCustom(false);
   };
 
   return (
@@ -43,21 +52,44 @@ export const RelationAtomInput = ({ onAddAtom, onClose, accentColor, inputId }: 
           <h3 className={styles.title}>Добавить связь</h3>
           <p className={styles.description}>Выразите причину или связь с другим событием</p>
 
-          <div>
-            <label>Связь</label>
-            <textarea
-              id={inputId}
-              placeholder="из-за стресса, после тренировки, связано с работой..."
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              rows={3}
-            />
+          {/* Hidden focusable input for label→input pattern */}
+          <input id={inputId} className={styles.hiddenFocus} tabIndex={-1} readOnly />
+
+          {/* Preset chips — tap to select, larger for thumb zone */}
+          <div className={styles.tagSuggestionsTop}>
+            {PRESET_RELATIONS.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                className={`${styles.quickChip} ${value === preset ? styles.active : ''}`}
+                onClick={() => handlePresetTap(preset)}
+              >
+                {preset}
+              </button>
+            ))}
           </div>
 
-          <div>
-            <label>Примеры</label>
-            <PresetChips presets={PRESET_RELATIONS} value={value} onChange={setValue} />
-          </div>
+          {/* Custom textarea — toggled by button */}
+          {!showCustom ? (
+            <button
+              type="button"
+              className={styles.showCustomBtn}
+              onClick={() => { setShowCustom(true); setValue(''); }}
+            >
+              Свой вариант...
+            </button>
+          ) : (
+            <div>
+              <label>Связь</label>
+              <textarea
+                autoFocus
+                placeholder="из-за стресса, после тренировки..."
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                rows={3}
+              />
+            </div>
+          )}
 
           <AtomModalFooter onCancel={onClose} onAdd={handleAdd} addDisabled={!value.trim()} accentColor={accentColor} />
         </div>

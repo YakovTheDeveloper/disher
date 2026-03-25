@@ -18,15 +18,59 @@
     flex-direction: column;
     flex: 1;
     min-height: 0;
+    /* Place inputs in lower 60% — thumb zone */
+    justify-content: flex-end;
+    gap: var(--space-2, 8px);
+}
+
+/* All labels inside atom modals — compact and subtle */
+.atomModalContent label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #999;
+    margin-bottom: 4px;
+}
+
+/* All inputs/textareas inside atom modals — consistent sizing */
+.atomModalContent input[type='text'],
+.atomModalContent input[type='number'],
+.atomModalContent input[type='time'],
+.atomModalContent textarea {
+    width: 100%;
+    padding: 12px 0;
+    border: none;
+    border-bottom: 1.5px solid #ddd;
+    border-radius: 0;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: 400;
+    background: transparent;
+    box-sizing: border-box;
+    transition: border-color var(--duration-normal, 200ms);
+    /* Prevent iOS zoom on focus */
+}
+
+.atomModalContent input[type='text']:focus,
+.atomModalContent input[type='number']:focus,
+.atomModalContent input[type='time']:focus,
+.atomModalContent textarea:focus {
+    outline: none;
+    border-bottom-color: var(--atom-accent, #000);
+    box-shadow: none;
 }
 
 .title {
-    margin: 0 0 var(--space-4, 16px) 0;
+    margin: 0 0 var(--space-3, 12px) 0;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.15em;
     color: var(--atom-accent, #000);
+    border-top: 3px solid var(--atom-accent, #000);
+    padding-top: var(--space-2, 8px);
 }
 
 .description {
@@ -149,17 +193,19 @@
 }
 
 .presetChip {
-    padding: 6px 14px;
+    padding: 8px 14px;
+    min-height: 36px;
     background: transparent;
     border: 1.5px solid #ccc;
-    border-radius: 0;
-    font-size: 11px;
+    border-radius: var(--radius-xs, 6px);
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     cursor: pointer;
     transition: all var(--duration-fast, 120ms);
     color: #666;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .presetChip:hover {
@@ -173,7 +219,43 @@
     color: #fff;
 }
 
-/* Tag suggestions — inline chips, no absolute positioning, no layout shift */
+/* Tag suggestions — positioned near thumb zone at top of action area */
+.tagSuggestionsTop {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: var(--space-3, 12px);
+}
+
+/* Quick-add chips — larger touch targets, instant action on tap */
+.quickChip {
+    min-height: 40px;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1.5px solid #ddd;
+    border-radius: var(--radius-md, 12px);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #555;
+    transition: all var(--duration-fast, 120ms);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.quickChip:active {
+    background: var(--atom-accent, #000);
+    border-color: var(--atom-accent, #000);
+    color: #fff;
+    transform: scale(0.95);
+}
+
+.quickChip.active {
+    background: var(--atom-accent, #000);
+    border-color: var(--atom-accent, #000);
+    color: #fff;
+}
+
+/* Legacy tag suggestions — kept for backward compat */
 .tagSuggestions {
     display: flex;
     flex-wrap: wrap;
@@ -264,62 +346,211 @@
     width: 100%;
 }
 
-/* ScaleAtomInput — large number input + score buttons */
-.scaleValueInput {
+/* ScaleAtomInput — snap-scroll wheel picker */
+.hiddenFocus {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+    padding: 0;
+    margin: -1px;
+}
+
+.scaleValueDisplay {
     display: block;
-    width: 100%;
     text-align: center;
-    font-size: var(--text-3xl, 2.441rem);
+    font-size: 3.5rem;
     font-weight: 800;
     color: var(--atom-accent, #000);
     letter-spacing: -0.03em;
     line-height: 1;
-    border: none;
-    border-bottom: 2px solid #ddd;
-    background: transparent;
-    padding: var(--space-3, 12px) 0;
-    margin-bottom: var(--space-4, 16px);
-    -moz-appearance: textfield;
+    margin: var(--space-2, 8px) 0 var(--space-3, 12px);
 }
 
-.scaleValueInput::-webkit-outer-spin-button,
-.scaleValueInput::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+.scaleWheel {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0 calc(-1 * var(--space-4, 16px));
+    padding: 0 var(--space-4, 16px);
+    mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
 }
 
-.scaleValueInput:focus {
-    outline: none;
-    border-bottom-color: var(--atom-accent, #000);
+.scaleWheel::-webkit-scrollbar {
+    display: none;
 }
 
-.scaleButtons {
+.scaleWheelTrack {
     display: flex;
-    gap: var(--space-1, 4px);
-    margin-bottom: var(--space-4, 16px);
+    gap: 4px;
+    /* Add padding so first and last items can center */
+    padding: 0 calc(50% - 32px);
 }
 
-.scaleButton {
-    flex: 1;
-    padding: 12px 0;
+.scaleWheelItem {
+    flex: 0 0 64px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: transparent;
     border: 1.5px solid #ddd;
-    border-radius: 0;
-    font-size: 15px;
+    border-radius: var(--radius-md, 12px);
+    font-size: 18px;
     font-weight: 700;
     cursor: pointer;
-    color: #666;
+    color: #999;
     transition: all var(--duration-fast, 120ms);
     -webkit-tap-highlight-color: transparent;
+    scroll-snap-align: center;
 }
 
-.scaleButton:hover {
+.scaleWheelItem:hover {
     border-color: var(--atom-accent, #000);
     color: var(--atom-accent, #000);
 }
 
-.scaleButton.active {
+.scaleWheelItem.active {
     background: var(--atom-accent, #000);
     border-color: var(--atom-accent, #000);
     color: #fff;
+    transform: scale(1.1);
+}
+
+/* NumberAtomInput — stepper with [-] value [+] */
+.numberStepper {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+    justify-content: center;
+    margin: var(--space-2, 8px) 0;
+}
+
+.stepperBtn {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    background: transparent;
+    border: 1.5px solid #ddd;
+    border-radius: var(--radius-md, 12px);
+    color: var(--atom-accent, #000);
+    cursor: pointer;
+    transition: all var(--duration-fast, 120ms);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.stepperBtn:active:not(:disabled) {
+    background: var(--atom-accent, #000);
+    color: #fff;
+    border-color: var(--atom-accent, #000);
+    transform: scale(0.93);
+}
+
+.stepperBtn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.stepperInput {
+    width: 100px;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--atom-accent, #000);
+    border: none;
+    border-bottom: 2px solid #ddd;
+    background: transparent;
+    padding: var(--space-2, 8px) 0;
+    -moz-appearance: textfield;
+}
+
+.stepperInput::-webkit-outer-spin-button,
+.stepperInput::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.stepperInput:focus {
+    outline: none;
+    border-bottom-color: var(--atom-accent, #000);
+}
+
+.numberOutput {
+    display: block;
+    text-align: center;
+    font-size: var(--text-3xl, 2.441rem);
+    font-weight: 800;
+    color: var(--atom-accent, #000);
+    margin: 0 0 var(--space-2, 8px);
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.numberOutputUnit {
+    font-size: 1rem;
+    font-weight: 400;
+    opacity: 0.6;
+}
+
+/* Segment control — two large tab buttons for mode switching */
+.segmentControl {
+    display: flex;
+    gap: 0;
+    border: 1.5px solid #ddd;
+    border-radius: var(--radius-md, 12px);
+    overflow: hidden;
+    margin-bottom: var(--space-3, 12px);
+}
+
+.segmentItem {
+    flex: 1;
+    min-height: 48px;
+    padding: 12px 8px;
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: all var(--duration-fast, 120ms);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.segmentItem + .segmentItem {
+    border-left: 1.5px solid #ddd;
+}
+
+.segmentItem.active {
+    background: var(--atom-accent, #000);
+    color: #fff;
+}
+
+/* "Свой" toggle button — shows custom input on demand */
+.showCustomBtn {
+    padding: 10px 16px;
+    background: transparent;
+    border: 1.5px dashed #ccc;
+    border-radius: var(--radius-md, 12px);
+    font-size: 14px;
+    font-weight: 500;
+    color: #888;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: all var(--duration-fast, 120ms);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.showCustomBtn:active {
+    border-color: var(--atom-accent, #000);
+    color: var(--atom-accent, #000);
 }

@@ -11,7 +11,7 @@ const ANON_USER_ID_KEY = "anon_user_id";
 const ANON_TOKEN = import.meta.env.VITE_TRIPLIT_TOKEN as string | undefined;
 export const API_BASE = `http://${window.location.hostname}:3100`;
 
-const SYSTEM_COLLECTIONS = ["foods", "foodPortions", "dailyNorms", "dailyNormItems"] as const;
+const SYSTEM_COLLECTIONS = ["foods", "foodPortions", "dailyNorms"] as const;
 const COLLECTION_SYNC_TIMEOUT = 120_000; // 2 мин на коллекцию (страховка от зависания)
 const REFERENCE_VERSION_KEY = "reference_data_version";
 
@@ -446,7 +446,7 @@ async function migrateAnonData(anonId: string, realUserId: string): Promise<void
 
   const collections = [
     "foods", "foodPortions", "scheduleFoods", "scheduleEvents",
-    "dishes", "dishItems", "dailyNorms", "dailyNormItems",
+    "dishes", "dishItems", "dailyNorms",
   ] as const;
 
   await Promise.all(

@@ -8,8 +8,10 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { addDishItem } from '@/entities/dish';
+import { useProductPortions } from '@/entities/product';
 import toaster from '@/shared/lib/toaster/toaster';
 import Button from '@/shared/ui/atoms/Button/Button';
+import type { Portion } from '@/features/product/ProductQuantity';
 
 export const DISH_MODAL_INPUT_IDS = {
   SEARCH_INPUT: 'dish-item-search',
@@ -49,11 +51,16 @@ type Props = {
   dishId: string;
 };
 
+const mapPortions = (results: { label: string; amount: number; unit: string; grams: number }[] | undefined): Portion[] =>
+  results ? results.map(({ label, amount, unit, grams }) => ({ label, amount, unit, grams })) : [];
+
 const DishProductCreateModals = ({ dishId }: Props) => {
   const [step, setStep] = useState<Step>('idle');
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
   const [sessionKey, setSessionKey] = useState(0);
   useSwipeableLock(step !== 'idle');
+
+  const { results: foodPortionsMap } = useProductPortions(draft.foodId ?? undefined);
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
@@ -108,9 +115,12 @@ const DishProductCreateModals = ({ dishId }: Props) => {
     setStep(target);
   };
 
-  const quantityContent: FoodContent = draft.content ?? {
-    quantity: draft.quantity,
-    updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
+  const quantityContent = {
+    ...(draft.content ?? {
+      quantity: draft.quantity,
+      updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
+    }),
+    food: { portions: mapPortions(foodPortionsMap) },
   };
 
   return (

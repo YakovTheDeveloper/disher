@@ -298,53 +298,17 @@ export const schema = S.Collections({
 
   // ─── Daily Norms ───
   // userId = "__system__" for shared default norms, readable by all users
+  // items: Record<nutrientId, quantity> — inlined nutrient targets
   dailyNorms: {
     schema: S.Schema({
       id: S.Id(),
       userId: S.String(),
       name: S.String(),
       description: S.String(),
+      items: S.Json({ default: {} }),
     }),
     relationships: {
       user: S.RelationById("users", "$userId"),
-      items: S.RelationMany("dailyNormItems", {
-        where: [["normId", "=", "$id"]],
-      }),
-    },
-    permissions: {
-      user: {
-        read: {
-          filter: [
-            {
-              mod: "or",
-              filters: [
-                ["userId", "=", "$role.userId"],
-                ["userId", "=", "__system__"],
-              ],
-            },
-          ],
-        },
-        insert: { filter: [["userId", "=", "$role.userId"]] },
-        update: { filter: [["userId", "=", "$role.userId"]] },
-        delete: { filter: [["userId", "=", "$role.userId"]] },
-      },
-      anon: { read: { filter: [["userId", "=", "__system__"]] } },
-    },
-  },
-
-  // ─── Daily Norm Items ───
-  // userId = "__system__" for items belonging to shared default norms
-  dailyNormItems: {
-    schema: S.Schema({
-      id: S.Id(),
-      normId: S.String(),
-      nutrientId: S.String(),
-      quantity: S.Number({ nullable: true, default: null }),
-      userId: S.String(), // denormalized for permissions
-    }),
-    relationships: {
-      norm: S.RelationById("dailyNorms", "$normId"),
-      nutrient: S.RelationById("nutrients", "$nutrientId"),
     },
     permissions: {
       user: {

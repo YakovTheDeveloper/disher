@@ -5,8 +5,11 @@
 .container {
     display: flex;
     flex-direction: column;
-    flex: 1;
+    flex: 1 0;
     min-height: 0;
+    margin-top: auto;
+    position: relative;
+    overflow: hidden;
 }
 
 .atomButtons {
@@ -39,13 +42,33 @@
 }
 
 /* Per-kind accent variable */
-.atomButtons [data-kind='scale']    { --btn-accent: var(--event-scale-accent); }
-.atomButtons [data-kind='time']     { --btn-accent: var(--event-time-accent); }
-.atomButtons [data-kind='number']   { --btn-accent: var(--event-number-accent); }
-.atomButtons [data-kind='tag']      { --btn-accent: var(--event-tag-accent); }
-.atomButtons [data-kind='relation'] { --btn-accent: var(--event-relation-accent); }
-.atomButtons [data-kind='flag']     { --btn-accent: var(--event-flag-accent); }
-.atomButtons [data-kind='body']     { --btn-accent: var(--event-body-accent); }
+.atomButtons [data-kind='scale'] {
+    --btn-accent: var(--event-scale-accent);
+}
+
+.atomButtons [data-kind='time'] {
+    --btn-accent: var(--event-time-accent);
+}
+
+.atomButtons [data-kind='number'] {
+    --btn-accent: var(--event-number-accent);
+}
+
+.atomButtons [data-kind='tag'] {
+    --btn-accent: var(--event-tag-accent);
+}
+
+.atomButtons [data-kind='relation'] {
+    --btn-accent: var(--event-relation-accent);
+}
+
+.atomButtons [data-kind='flag'] {
+    --btn-accent: var(--event-flag-accent);
+}
+
+.atomButtons [data-kind='body'] {
+    --btn-accent: var(--event-body-accent);
+}
 
 .atomButtons label:hover,
 .atomButtons button:hover {

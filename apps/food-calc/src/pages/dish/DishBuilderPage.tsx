@@ -37,7 +37,9 @@ import {
   CopyProductsToExistingDishModal,
   CopyProductsToDayScheduleModal,
   COPY_TO_DISH_INPUT_IDS,
+  DishSuggestionsModal,
 } from './ui';
+import { createShare } from '@/shared/lib/api/shares';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
 import { FoodToolbar } from '@/features/food/food-toolbar';
 import { FoodPortionsManager } from '@/features/food/food-portions-manager';
@@ -65,7 +67,7 @@ const DishBuilderPage = () => {
   const selectedIds = useStore(selectionStore, (s) => s.selectedIds);
   const { clearSelection } = selectionStore.getState();
 
-  const [isOpen, setIsOpen] = useState<'copy-to-existing-dish' | 'copy-to-day-schedule' | null>(
+  const [isOpen, setIsOpen] = useState<'copy-to-existing-dish' | 'copy-to-day-schedule' | 'suggestions' | null>(
     null
   );
   const [editingItem, setEditingItem] = useState<DishItemWithFood | null>(null);
@@ -105,6 +107,38 @@ const DishBuilderPage = () => {
     toaster.success(`Удалено: ${ids.length}`);
   };
 
+  const onShareSelected = async () => {
+    const selected = getSelectedItems();
+    if (selected.length === 0) return;
+
+    const shareItems = selected.map((item) => ({
+      foodId: item.foodId,
+      name: item.food?.name ?? '—',
+      quantity: item.quantity,
+    }));
+
+    try {
+      const { shareId } = await createShare({
+        items: shareItems,
+        source: { type: 'dish' as const, name: dish.name },
+      });
+
+      const url = `${window.location.origin}/share/${shareId}`;
+      await navigator.clipboard.writeText(url);
+      toaster.success('Ссылка скопирована');
+      clearSelection();
+    } catch {
+      toaster.error('Не удалось создать ссылку');
+    }
+  };
+
+  const getExistingItemsForSuggestions = () =>
+    items.map((item) => ({
+      foodId: item.foodId,
+      name: item.food?.name ?? '',
+      quantity: item.quantity,
+    }));
+
   return (
     <SwipeableV2>
       <FoodsNutrients totals={dishTotals} />
@@ -141,6 +175,13 @@ const DishBuilderPage = () => {
               }}
               onClose={closeModal}
             />
+            <DishSuggestionsModal
+              isExpanded={isOpen === 'suggestions'}
+              dishId={id}
+              dishName={dish.name}
+              existingItems={getExistingItemsForSuggestions()}
+              onClose={closeModal}
+            />
           </>
         }
         actions={
@@ -156,6 +197,7 @@ const DishBuilderPage = () => {
             >
               в блюдо
             </label>
+            <button onClick={onShareSelected}>поделиться</button>
           </ActionsPanel>
         }
         key={2}
@@ -179,7 +221,7 @@ const DishBuilderPage = () => {
           )
         }
       >
-        <FoodToolbar variant="dishes" hasItems={items.length > 0} />
+        <FoodToolbar variant="dishes" hasItems={items.length > 0} onSuggest={() => setIsOpen('suggestions')} />
         {items.length === 0 && (
           <div style={{ padding: 'var(--space-10) var(--space-4) 0' }}>
             <AddButton

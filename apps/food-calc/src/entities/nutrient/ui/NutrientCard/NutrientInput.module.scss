@@ -1,9 +1,7 @@
-.inputRow {
+.row {
     display: flex;
     align-items: center;
     gap: 4px;
-    justify-content: center;
-    margin-top: 2px;
     cursor: text;
 }
 
@@ -22,6 +20,11 @@
 }
 
 .norm {
+    font-size: 11px;
+    opacity: 0.5;
+}
+
+.unit {
     font-size: 11px;
     opacity: 0.5;
 }

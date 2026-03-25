@@ -5,6 +5,7 @@ import { deleteProducts } from '@/entities/product';
 import { deleteDishes } from '@/entities/dish';
 import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
 import { isCreatedByUser } from '@/shared/lib';
+import { getCategoryIcon } from './categoryIcons';
 
 type Props = {
   variant: 'product' | 'dish';
@@ -12,6 +13,7 @@ type Props = {
     id: string;
     name: string;
     userId?: string;
+    categories?: Set<string> | null;
     getTotalNutrients?: (qty: number) => Record<string, number>;
   };
   active?: boolean;
@@ -78,6 +80,7 @@ const FoodActionCard = ({
   richNutrientMax = 0,
 }: Props) => {
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.userId);
+  const categoryIcon = getCategoryIcon(item.categories);
 
   const handleDelete = () => {
     if (variant === 'product') {
@@ -156,6 +159,9 @@ const FoodActionCard = ({
           onClick?.();
         }}
       >
+        {categoryIcon && (
+          <img src={categoryIcon} alt="" className={styles.categoryIcon} aria-hidden="true" />
+        )}
         <span className={styles.name}>{item.name}</span>
       </p>
       {rightChild}

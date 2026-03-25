@@ -14,6 +14,7 @@ import { useGlobalScrollBlur } from '@/hooks/useGlobalScrollBlur';
 import DrawerManagerV3 from '@/app/ui/DrawerManager';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/app/i18n';
+import { BugReportButton } from '@/features/bug-report/BugReportButton';
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ export default function App() {
           </Drawer>
 
           <AnimatedOutlet />
+          <BugReportButton />
         </div>
       </QueryClientProvider>
     </I18nextProvider>

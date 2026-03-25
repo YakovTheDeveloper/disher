@@ -1,6 +1,7 @@
 import { triplit } from "@/api/triplit/client";
 import { getCurrentUserId } from "@/api/triplit/session";
 import { v4 as uuid } from "uuid";
+import type { ClipboardItem } from "@/shared/model/clipboardStore";
 
 export async function addScheduleFood(params: {
   date: string;
@@ -87,6 +88,24 @@ export async function copyScheduleFoods(
         date: toDate,
         time: item.time,
         type: item.type as "food" | "dish",
+        quantity: item.quantity,
+        foodId: item.foodId,
+        dishId: item.dishId,
+      }),
+    ),
+  );
+}
+
+export async function pasteClipboardItems(
+  items: ClipboardItem[],
+  targetDate: string,
+) {
+  await Promise.all(
+    items.map((item) =>
+      addScheduleFood({
+        date: targetDate,
+        time: item.time,
+        type: item.type,
         quantity: item.quantity,
         foodId: item.foodId,
         dishId: item.dishId,

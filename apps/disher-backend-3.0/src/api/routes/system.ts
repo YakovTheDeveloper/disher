@@ -9,7 +9,7 @@ const DB_PATH = path.join(__dirname, "../../../triplit/.data/sqlite/app.db");
 // Collections where ALL records are system data
 const UNFILTERED = ["nutrients", "foodNutrients"] as const;
 // Collections where system data has userId = "__system__"
-const FILTERED = ["foods", "foodPortions", "dailyNorms", "dailyNormItems"] as const;
+const FILTERED = ["foods", "foodPortions", "dailyNorms"] as const;
 
 /**
  * Read system-entity counts directly from Triplit's SQLite file.

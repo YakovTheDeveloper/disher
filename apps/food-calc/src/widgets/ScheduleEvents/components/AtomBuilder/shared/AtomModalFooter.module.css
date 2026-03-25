@@ -6,12 +6,17 @@
   display: flex;
   gap: 8px;
   margin-top: auto;
-  padding-top: 8px;
+  padding: 12px 0 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: inherit;
 }
 
 .cancelBtn {
-  flex: 0 0 33%;
-  max-width: 33%;
+  flex: 0 0 30%;
+  max-width: 30%;
+  min-height: 48px;
   padding: 0.75rem;
   border-radius: 0.5rem;
   background: transparent;
@@ -21,6 +26,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .cancelBtn:hover {
@@ -29,14 +35,16 @@
 }
 
 .cancelBtn:active {
-  transform: translateY(1px);
+  transform: scale(0.97);
+  opacity: 0.8;
 }
 
 .addBtn {
   flex: 1;
+  min-height: 48px;
   padding: 0.75rem 1.5rem;
-  font-size: 0.9375rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   background: var(--atom-accent, #222);
   color: white;
   border: none;
@@ -44,15 +52,15 @@
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .addBtn:hover:not(:disabled) {
   opacity: 0.85;
-  transform: translateY(-1px);
 }
 
 .addBtn:active:not(:disabled) {
-  transform: translateY(0);
+  transform: scale(0.97);
 }
 
 .addBtn:disabled {

@@ -2,78 +2,42 @@ import { Screen } from '@/shared/ui/Screen';
 import { Spacer } from '@/shared/ui/atoms/Spacer';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { useParams } from 'react-router';
-import { useDailyNorm, updateDailyNorm } from '@/entities/daily-norm';
+import { useDailyNorm, updateDailyNorm, setDailyNormNutrient } from '@/entities/daily-norm';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
 import { ChangeName } from '@/features/shared/change-name';
 import { Ornament } from '@/shared/ui/Ornament';
 import { useRef } from 'react';
-import { observer } from 'mobx-react-lite';
+import NutrientCardV3 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV3';
+import NutrientInput from '@/entities/nutrient/ui/NutrientCard/NutrientInput';
 import normsImg from '@/shared/assets/decarative/norms.png';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import { NutrientCard } from '@/entities/nutrient/ui/NutrientCard';
-import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
+import type { DailyNormItems } from '@/entities/daily-norm';
 import Nutrients from '@/entities/nutrient/ui/NutrientGroup/Nutrients';
-
-interface NutrientNormCardProps {
-  content: Nutrient;
-  getNormValue: (id: string) => number;
-  onChange: (value: number, nutrientId: string) => void;
-  readOnly?: boolean;
-}
-
-const NutrientNormCard = observer(({ content, getNormValue, onChange, readOnly }: NutrientNormCardProps) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  return (
-    <div
-      className={styles.normCardWrapper}
-      onClick={() => !readOnly && inputRef.current?.focus()}
-      style={readOnly ? { cursor: 'default' } : undefined}
-    >
-      <NutrientCard content={content} getValue={() => 0} showValues={false} showProgress={false} showPercent={false}>
-        {readOnly ? (
-          <span className={styles.normInput}>{getNormValue(content.id)}</span>
-        ) : (
-          <NumberInput
-            ref={inputRef}
-            value={getNormValue(content.id)}
-            onChange={(value) => onChange(value, content.id)}
-            className={styles.normInput}
-          />
-        )}
-        <span className={styles.normUnit}>{content.unitRu}</span>
-      </NutrientCard>
-    </div>
-  );
-});
 import styles from './DailyNormPage.module.scss';
 
-type Props = {};
-
-const DailyNormPage = ({}: Props) => {
+const DailyNormPage = () => {
   const { id } = useParams<'id'>();
   const { result: dailyNorm } = useDailyNorm(id);
 
   const createdByUser = dailyNorm?.userId !== '__system__';
-  const dailyNormsView = createdByUser ? 'modify' : 'view';
+  const readOnly = !createdByUser;
 
   if (!dailyNorm) {
     console.error('Daily norm not found for id:', id);
     return null;
   }
 
+  const items = (dailyNorm.items ?? {}) as DailyNormItems;
   const handleChangeName = (name: string) => updateDailyNorm(dailyNorm.id, { name });
 
-  const readOnly = dailyNormsView === 'view';
-  const dn = dailyNorm as any;
-
-  const getNormValue = (id: string) => dn.nutrientIdToDailyNormItem?.get(id)?.quantity ?? 0;
+  const getNormValue = (nutrientId: string) => items[nutrientId] ?? 0;
 
   const handleChange = (value: number, nutrientId: string) => {
-    dn.changeNutrientValue?.(nutrientId, value);
+    setDailyNormNutrient(dailyNorm.id, nutrientId, value || null);
   };
 
   const renderCard = (nutrient: Nutrient) => (
-    <NutrientNormCard
+    <NormCard
       content={nutrient}
       getNormValue={getNormValue}
       onChange={handleChange}
@@ -102,6 +66,41 @@ const DailyNormPage = ({}: Props) => {
         <Nutrients renderCard={renderCard} />
       </section>
     </Screen>
+  );
+};
+
+interface NormCardProps {
+  content: Nutrient;
+  getNormValue: (id: string) => number;
+  onChange: (value: number, nutrientId: string) => void;
+  readOnly: boolean;
+}
+
+const NormCard = ({ content, getNormValue, onChange, readOnly }: NormCardProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const normValue = getNormValue(content.id);
+
+  if (readOnly) {
+    return (
+      <NutrientCardV3 content={content} showValue={false}>
+        <span>{normValue} {content.unitRu}</span>
+      </NutrientCardV3>
+    );
+  }
+
+  return (
+    <NutrientCardV3
+      content={content}
+      showValue={false}
+      onClick={() => inputRef.current?.focus()}
+    >
+      <NutrientInput
+        ref={inputRef}
+        value={normValue}
+        onChange={(value) => onChange(value, content.id)}
+        unit={content.unitRu}
+      />
+    </NutrientCardV3>
   );
 };
 

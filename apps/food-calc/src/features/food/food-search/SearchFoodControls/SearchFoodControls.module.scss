@@ -3,6 +3,7 @@
 $header-height: 50px;
 
 .header {
+    position: relative;
     position: sticky;
     top: 0;
     z-index: 11;
@@ -15,6 +16,19 @@ $header-height: 50px;
     padding-right: 0.5rem;
 
     display: flex;
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url('@/shared/assets/decarative/bag3.png');
+        background-repeat: no-repeat;
+        background-position: right center;
+        background-size: $header-height;
+        opacity: 0.08;
+        pointer-events: none;
+        z-index: -1;
+    }
 }
 
 .largeSearchInput {

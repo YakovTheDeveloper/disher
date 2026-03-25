@@ -5,7 +5,6 @@ import {
   getSyncStatus, onSyncStatusChange,
   getSyncProgress, onSyncProgressChange,
 } from '@/api/triplit/session';
-import { referenceDb } from '@/api/dexie/client';
 import type { SyncLogEntry, SyncStatus, SyncProgress, CollectionSyncState } from '@/api/triplit/session';
 import type { ConnectionStatus } from '@triplit/client';
 import Tabs from '@/shared/ui/Tabs/Tabs';
@@ -15,9 +14,6 @@ import styles from './SystemPage.module.scss';
 // ─── Local count helpers ───
 
 async function countLocal(name: CollectionName): Promise<number> {
-  if (name === 'foodNutrients') {
-    return referenceDb.foodNutrients.count();
-  }
   // @ts-expect-error — dynamic collection name
   const results = await triplit.fetch(triplit.query(name));
   return results instanceof Map ? results.size : (results as unknown[]).length;
@@ -28,15 +24,15 @@ async function countLocal(name: CollectionName): Promise<number> {
 type CollectionName =
   | 'foods'
   | 'foodPortions'
-  | 'foodNutrients'
   | 'nutrients'
   | 'dishes'
   | 'dishItems'
   | 'dishPortions'
   | 'dailyNorms'
-  | 'dailyNormItems'
   | 'scheduleFoods'
-  | 'scheduleEvents';
+  | 'scheduleEvents'
+  | 'users'
+  | 'accounts';
 
 type Counts = Record<string, number | null>;
 
@@ -55,7 +51,6 @@ const ENTITY_GROUPS = [
     items: [
       { name: 'foods' as CollectionName,         label: 'foods',         hasServer: true },
       { name: 'foodPortions' as CollectionName,  label: 'foodPortions',  hasServer: true },
-      { name: 'foodNutrients' as CollectionName, label: 'foodNutrients', hasServer: true },
       { name: 'nutrients' as CollectionName,     label: 'nutrients',     hasServer: true },
     ],
   },
@@ -72,8 +67,7 @@ const ENTITY_GROUPS = [
     key: 'norms',
     title: 'Нормы',
     items: [
-      { name: 'dailyNorms' as CollectionName,     label: 'dailyNorms', hasServer: true },
-      { name: 'dailyNormItems' as CollectionName, label: 'items',      hasServer: true },
+      { name: 'dailyNorms' as CollectionName, label: 'dailyNorms', hasServer: true },
     ],
   },
   {
@@ -82,6 +76,14 @@ const ENTITY_GROUPS = [
     items: [
       { name: 'scheduleFoods' as CollectionName,  label: 'scheduleFoods',  hasServer: false },
       { name: 'scheduleEvents' as CollectionName, label: 'scheduleEvents', hasServer: false },
+    ],
+  },
+  {
+    key: 'account',
+    title: 'Аккаунт',
+    items: [
+      { name: 'users' as CollectionName,    label: 'users',    hasServer: false },
+      { name: 'accounts' as CollectionName,  label: 'accounts', hasServer: false },
     ],
   },
 ] as const;

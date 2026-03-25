@@ -125,110 +125,6 @@ const nutrientGroups = [
   },
 ];
 
-// ─── Skurikhin mappings ───
-
-const SKURIKHIN_NUTRIENT_MAP: Record<string, string> = {
-  "Белок, в %":          "1",
-  "Жир, в %":            "2",
-  "Углеводы, в %":       "3",
-  "МДС, в %":            "4",
-  "Крахмал, в %":        "5",
-  "Пищ вол, в %":        "6",
-  "Энерг ценн, в ккал.": "7",
-  "Вода, в %":           "8",
-  "Железо, в мг%":       "9",
-  "Магний, в мг%":       "10",
-  "Фосфор, в мг%":       "11",
-  "Кальций, в мг%":      "12",
-  "Калий, в мг%":        "13",
-  "Натрий, в мг%":       "14",
-  "Тиамин, в мг%":       "21",
-  "Рибофлавин, в мг%":   "22",
-  "Ниацин, в мг%":       "23",
-  "Аскорб кисл, в мг%":  "30",
-  "Ретин экв, в мкг%":   "20",
-  "Токо экв, в мг%":     "32",
-  "Каротин, в мкг%":     "34",
-};
-
-const CATEGORY_MAP: Record<string, string> = {
-  "Молоко и молочные продукты": "dairy",
-  "Молоко":                     "dairy",
-  "Мясо и мясные продукты":     "meat",
-  "Мясо":                       "meat",
-  "Птица":                      "poultry",
-  "Рыба и рыбные продукты":     "fish",
-  "Рыба":                       "fish",
-  "Морепродукты":               "seafood",
-  "Яйца":                       "egg",
-  "Жиры и масла":               "oil",
-  "Масла":                      "oil",
-  "Зерновые и крупяные":        "grain",
-  "Крупы":                      "grain",
-  "Хлебобулочные изделия":      "bakery",
-  "Хлеб":                       "bakery",
-  "Бобовые":                    "legume",
-  "Овощи":                      "vegetable",
-  "Фрукты":                     "fruit",
-  "Ягоды":                      "fruit",
-  "Орехи":                      "nut",
-  "Семена":                     "seed",
-  "Напитки":                    "beverage",
-  "Соки":                       "juice",
-  "Чай":                        "tea",
-  "Кофе":                       "coffee",
-  "Алкоголь":                   "alcohol",
-  "Алкогольные напитки":        "alcohol",
-  "Кондитерские изделия":       "dessert",
-  "Сахар":                      "dessert",
-  "Специи":                     "spice",
-  "Приправы":                   "spice",
-  "Грибы":                      "vegetable",
-  "Соусы":                      "condiment",
-};
-
-// ─── Name normalization ───
-
-const ADJECTIVE_NOUN_MAP: Record<string, string> = {
-  "Соки фруктовые. Консервы": "сок",
-  "Соки овощные. Консервы": "сок",
-  "Капуста": "капуста",
-  "Карамель": "карамель",
-  "Орехи": "орех",
-  "Квас": "квас",
-  "Грибы": "грибы",
-  "Конфеты неглазированные": "конфеты",
-};
-
-const ORGAN_MEATS = new Set(["Мозги", "Почки", "Сердце", "Язык", "Печень", "Легкое", "Вымя"]);
-
-const ORGAN_SUFFIX_MAP: Record<string, string> = {
-  "Говяжьи": "говяжьи",
-  "Свиные": "свиные",
-};
-
-function normalizeProductName(name: string, categories: string[]): string {
-  const trimmed = name.trim();
-  const words = trimmed.split(/\s+/);
-  if (words.length > 1) return trimmed;
-
-  const lastCat = categories[categories.length - 1];
-  if (!lastCat) return trimmed;
-
-  // Single-word adjective → append noun from category
-  if (/(?:ый|ой|ий|ая|яя|ое|ее|ые|ая)$/.test(trimmed)) {
-    const noun = ADJECTIVE_NOUN_MAP[lastCat];
-    if (noun) return `${trimmed} ${noun}`;
-  }
-
-  // Organ meats → append animal type
-  if (ORGAN_MEATS.has(trimmed)) {
-    const suffix = ORGAN_SUFFIX_MAP[lastCat];
-    if (suffix) return `${trimmed} (${suffix})`;
-  }
-
-  return trimmed;
-}
 
 // ─── Seed functions ───
 
@@ -255,44 +151,34 @@ async function seedNutrients() {
 }
 
 async function seedFoods() {
-  // Try USDA format first, fall back to Skurikhin
-  const usdaPath = resolve(__dirname, "../parser/output/usda-foods.json");
-  const skurikhinPath = resolve(__dirname, "../parser/output/skurikhin-v2.json");
-
-  let useUsda = false;
-  try {
-    readFileSync(usdaPath, "utf-8");
-    useUsda = true;
-  } catch {
-    // fall back to skurikhin
-  }
-
-  if (useUsda) {
-    await seedFoodsUsda(usdaPath);
-  } else {
-    await seedFoodsSkurikhin(skurikhinPath);
-  }
+  const combinedPath = resolve(__dirname, "../parser/output/combined-foods.json");
+  await seedFoodsCombined(combinedPath);
 }
 
-async function seedFoodsUsda(path: string) {
-  console.log("Seeding foods from usda-foods.json...");
+async function seedFoodsCombined(path: string) {
+  console.log("Seeding foods from combined-foods.json...");
 
-  let foods: Array<{
-    id: string;
-    name: string;
-    nameEng: string;
-    description: string;
-    categories: string[];
-    nutrients: Array<{ nutrientId: string; quantity: number }>;
-  }>;
+  let data: {
+    meta: Record<string, unknown>;
+    foods: Array<{
+      id: string;
+      nameEng: string;
+      nameRu: string;
+      source: string;
+      categories: string[];
+      nutrients: Array<{ nutrientId: string; quantity: number }>;
+      portions: unknown[];
+    }>;
+  };
 
   try {
-    ({ foods } = JSON.parse(readFileSync(path, "utf-8")));
+    data = JSON.parse(readFileSync(path, "utf-8"));
   } catch (e) {
-    console.error("  Could not read usda-foods.json:", e);
+    console.error("  Could not read combined-foods.json:", e);
     return;
   }
 
+  const foods = data.foods;
   console.log(`  Found ${foods.length} foods, inserting...`);
 
   let inserted = 0;
@@ -303,92 +189,22 @@ async function seedFoodsUsda(path: string) {
       await client.insert("foods", {
         id: food.id,
         userId: "__system__",
-        name: food.name,
+        name: food.nameRu || food.nameEng || food.id,
         nameEng: food.nameEng ?? "",
-        description: food.description ?? null,
+        description: null,
         descriptionEng: null,
+        source: food.source,
         categories: new Set(food.categories ?? []),
       });
       inserted++;
 
-      for (const n of food.nutrients ?? []) {
+      for (const nutrient of food.nutrients) {
         try {
           await client.insert("foodNutrients", {
-            id: `${food.id}-${n.nutrientId}`,
+            id: `${food.id}-${nutrient.nutrientId}`,
             foodId: food.id,
-            nutrientId: n.nutrientId,
-            quantity: n.quantity,
-          });
-        } catch {
-          // skip duplicate
-        }
-      }
-    } catch {
-      skipped++;
-    }
-
-    if ((inserted + skipped) % 200 === 0) {
-      console.log(`  Progress: ${inserted} inserted, ${skipped} skipped`);
-    }
-  }
-
-  console.log(`  Done: ${inserted} inserted, ${skipped} skipped`);
-}
-
-async function seedFoodsSkurikhin(path: string) {
-  console.log("Seeding foods from skurikhin-v2.json...");
-
-  let products: Array<{
-    id: number;
-    name: string;
-    categories?: string[];
-    nutrients?: Record<string, string>;
-  }>;
-
-  try {
-    ({ products } = JSON.parse(readFileSync(path, "utf-8")));
-  } catch (e) {
-    console.error("  Could not read skurikhin-v2.json:", e);
-    return;
-  }
-
-  console.log(`  Found ${products.length} products, inserting...`);
-
-  let inserted = 0;
-  let skipped = 0;
-
-  for (const product of products) {
-    const id = String(product.id);
-
-    const categories = new Set<string>();
-    for (const cat of product.categories ?? []) {
-      const slug = CATEGORY_MAP[cat];
-      if (slug) categories.add(slug);
-    }
-
-    try {
-      await client.insert("foods", {
-        id,
-        userId: "__system__",
-        name: normalizeProductName(product.name, product.categories ?? []),
-        nameEng: "",
-        description: null,
-        descriptionEng: null,
-        categories,
-      });
-      inserted++;
-
-      for (const [ruKey, nutrientId] of Object.entries(SKURIKHIN_NUTRIENT_MAP)) {
-        const raw = product.nutrients?.[ruKey];
-        if (raw == null) continue;
-        const quantity = parseFloat(String(raw).replace(",", "."));
-        if (!quantity || isNaN(quantity)) continue;
-        try {
-          await client.insert("foodNutrients", {
-            id: `${id}-${nutrientId}`,
-            foodId: id,
-            nutrientId,
-            quantity,
+            nutrientId: nutrient.nutrientId,
+            quantity: nutrient.quantity,
           });
         } catch {
           // skip duplicate
@@ -427,33 +243,18 @@ async function seedDefaultDailyNorm() {
       });
       console.log("  Updated DEFAULT_NORM userId to __system__");
     }
+    // Update items to latest defaults
+    await client.update("dailyNorms", "DEFAULT_NORM", (norm) => {
+      norm.items = defaults;
+    });
   } else {
     await client.insert("dailyNorms", {
       id: "DEFAULT_NORM",
       name: "Стандарт",
       description: "Стандартная норма потребления",
       userId: "__system__",
+      items: defaults,
     });
-  }
-
-  for (const [nutrientId, quantity] of Object.entries(defaults)) {
-    const itemId = `default-${nutrientId}`;
-    const existing = await client.fetchById("dailyNormItems", itemId);
-    if (existing) {
-      if (existing.userId !== "__system__") {
-        await client.update("dailyNormItems", itemId, (item) => {
-          item.userId = "__system__";
-        });
-      }
-    } else {
-      await client.insert("dailyNormItems", {
-        id: itemId,
-        normId: "DEFAULT_NORM",
-        nutrientId,
-        quantity,
-        userId: "__system__",
-      });
-    }
   }
 
   console.log("  Done");

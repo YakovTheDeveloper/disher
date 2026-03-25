@@ -13,6 +13,7 @@ import SettingsPage from '@/pages/settings/SettingsPage/SettingsPage.tsx';
 import SystemPage from '@/pages/settings/SystemPage/SystemPage.tsx';
 import NutrientArticlesPage from '@/pages/articles/NutrientArticlesPage.tsx';
 import NutrientArticlePage from '@/pages/articles/NutrientArticlePage.tsx';
+import ShareReceivePage from '@/pages/share/ShareReceivePage.tsx';
 
 export enum RouterLinks {
   Root = '/',
@@ -29,6 +30,7 @@ export enum RouterLinks {
   System = '/system',
   NutrientArticles = '/articles/nutrients',
   NutrientArticle = '/articles/nutrients/:folder',
+  Share = '/share/:id',
 }
 
 export const getScheduleAnalyticsUrl = (id: string) => `/schedule/${id}/analytics`;
@@ -94,6 +96,10 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.NutrientArticle,
         element: <NutrientArticlePage />,
+      },
+      {
+        path: RouterLinks.Share,
+        element: <ShareReceivePage />,
       },
     ],
   },

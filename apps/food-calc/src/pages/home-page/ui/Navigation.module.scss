@@ -4,11 +4,37 @@
     position: sticky;
     z-index: 2;
     top: 0;
+    // GPU layer for smooth transitions — prevents layout jitter
+    will-change: contents;
+    contain: layout style;
 }
 
+// ─── Watermark ────────────────────────────────────────────────
+
+.watermark {
+    position: absolute;
+    right: var(--space-4);
+    top: 0%;
+    transform: translateY(-40%) scaleX(-1);
+    width: 300px;
+    left: -70px;
+    height: 300px;
+    object-fit: contain;
+    opacity: 0.05;
+    pointer-events: none;
+    transition: opacity var(--duration-slow) ease;
+
+    [data-collapsed="true"] & {
+        opacity: 0.04;
+    }
+}
+
+// ─── Date link (clickable area) ───────────────────────────────
+
 .dateLink {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    // Both masthead variants occupy the same grid cell — no reflow on toggle
+    grid-template: 1fr / 1fr;
     align-items: flex-end;
     width: 100%;
     cursor: pointer;
@@ -18,15 +44,15 @@
 // ─── Masthead (expanded) ───────────────────────────────────────
 
 .masthead {
+    grid-area: 1 / 1;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    transition: opacity var(--duration-slow) ease, transform var(--duration-slow) ease;
+    transition: opacity var(--duration-slow) ease;
 
     [data-collapsed="true"] & {
         opacity: 0;
         pointer-events: none;
-        position: absolute;
     }
 }
 
@@ -66,7 +92,7 @@
 .mastheadMonthNum {
     font-family: var(--font-sans);
     font-size: var(--text-2xl);
-    font-weight: 200;
+    font-weight: 300;
     color: var(--text-primary);
     letter-spacing: -0.02em;
     margin-right: var(--space-3);
@@ -85,6 +111,7 @@
 // ─── Masthead (collapsed) ──────────────────────────────────────
 
 .mastheadCollapsed {
+    grid-area: 1 / 1;
     display: flex;
     align-items: center;
     justify-content: flex-end;
