@@ -31,21 +31,6 @@ export const nutrientGroups: NutrientGroup[] = [
         ]
     },
     {
-        name: 'vitaminsB',
-        displayName: 'Витамины группы Б',
-        content: [
-            { id: '21', name: 'vitaminB1', symbol: 'B1', displayName: 'Thiamine', displayNameRu: 'Тиамин', unit: 'mg', unitRu: 'мг', group: 'vitaminsB' },
-            { id: '22', name: 'vitaminB2', symbol: 'B2', displayName: 'Riboflavin', displayNameRu: 'Рибофлавин', unit: 'mg', unitRu: 'мг', group: 'vitaminsB' },
-            { id: '23', name: 'vitaminB3', symbol: 'B3', displayName: 'Niacin', displayNameRu: 'Ниацин', unit: 'mg', unitRu: 'мг', group: 'vitaminsB' },
-            { id: '24', name: 'vitaminB4', symbol: 'B4', displayName: 'Choline', displayNameRu: 'Холин', unit: 'mg', unitRu: 'мг', group: 'vitaminsB' },
-            { id: '25', name: 'vitaminB5', symbol: 'B5', displayName: 'Pantothenic acid', displayNameRu: 'Пантотеновая кислота', unit: 'mg', unitRu: 'мг', group: 'vitaminsB' },
-            { id: '26', name: 'vitaminB6', symbol: 'B6', displayName: 'Pyridoxine', displayNameRu: 'Пиридоксин', unit: 'mg', unitRu: 'мг', group: 'vitaminsB' },
-            { id: '27', name: 'vitaminB7', symbol: 'B7', displayName: 'Biotin', displayNameRu: 'Биотин', unit: 'mg', unitRu: 'мг', group: 'vitaminsB' },
-            { id: '28', name: 'vitaminB9', symbol: 'B9', displayName: 'Folate', displayNameRu: 'Фолиевая кислота', unit: 'μg', unitRu: 'мкг', group: 'vitaminsB' },
-            { id: '29', name: 'vitaminB12', symbol: 'B12', displayName: 'Cobalamin', displayNameRu: 'Кобаламин', unit: 'μg', unitRu: 'мкг', group: 'vitaminsB' },
-        ]
-    },
-    {
         name: 'minerals',
         displayName: 'Минералы',
         content: [
@@ -63,43 +48,52 @@ export const nutrientGroups: NutrientGroup[] = [
         ]
     },
     {
-        name: 'rest',
-        displayName: 'Остальные витамины',
+        name: 'vitamins',
+        displayName: 'Витамины',
         content: [
-            { id: '20', name: 'vitaminA', symbol: 'A', displayName: 'Vitamin A', displayNameRu: 'Витамин A', unit: 'μg', unitRu: 'мкг', group: 'rest' },
-            { id: '30', name: 'vitaminC', symbol: 'C', displayName: 'Vitamin C', displayNameRu: 'Витамин C', unit: 'mg', unitRu: 'мг', group: 'rest' },
-            { id: '31', name: 'vitaminD', symbol: 'D', displayName: 'Vitamin D', displayNameRu: 'Витамин D', unit: 'μg', unitRu: 'мкг', group: 'rest' },
-            { id: '32', name: 'vitaminE', symbol: 'E', displayName: 'Vitamin E', displayNameRu: 'Витамин E', unit: 'mg', unitRu: 'мг', group: 'rest' },
-            { id: '33', name: 'vitaminK', symbol: 'K', displayName: 'Vitamin K', displayNameRu: 'Витамин K', unit: 'μg', unitRu: 'мкг', group: 'rest' },
-            { id: '34', name: 'betaCarotene', symbol: 'βC', displayName: 'Beta-carotene', displayNameRu: 'β-каротин', unit: 'μg', unitRu: 'мкг', group: 'rest' },
-            { id: '35', name: 'alphaCarotene', symbol: 'αC', displayName: 'Alpha-carotene', displayNameRu: 'α-каротин', unit: 'μg', unitRu: 'мкг', group: 'rest' }
+            { id: '20', name: 'vitaminA', symbol: 'A', displayName: 'Vitamin A', displayNameRu: 'Витамин A', unit: 'μg', unitRu: 'мкг', group: 'vitamins' },
+            { id: '21', name: 'vitaminB1', symbol: 'B1', displayName: 'Thiamine', displayNameRu: 'Тиамин', unit: 'mg', unitRu: 'мг', group: 'vitamins' },
+            { id: '22', name: 'vitaminB2', symbol: 'B2', displayName: 'Riboflavin', displayNameRu: 'Рибофлавин', unit: 'mg', unitRu: 'мг', group: 'vitamins' },
+            { id: '23', name: 'vitaminB3', symbol: 'B3', displayName: 'Niacin', displayNameRu: 'Ниацин', unit: 'mg', unitRu: 'мг', group: 'vitamins' },
+            { id: '24', name: 'vitaminB4', symbol: 'B4', displayName: 'Choline', displayNameRu: 'Холин', unit: 'mg', unitRu: 'мг', group: 'vitamins' },
+            { id: '25', name: 'vitaminB5', symbol: 'B5', displayName: 'Pantothenic acid', displayNameRu: 'Пантотеновая кислота', unit: 'mg', unitRu: 'мг', group: 'vitamins' },
+            { id: '26', name: 'vitaminB6', symbol: 'B6', displayName: 'Pyridoxine', displayNameRu: 'Пиридоксин', unit: 'mg', unitRu: 'мг', group: 'vitamins' },
+            { id: '27', name: 'vitaminB7', symbol: 'B7', displayName: 'Biotin', displayNameRu: 'Биотин', unit: 'mg', unitRu: 'мг', group: 'vitamins' },
+            { id: '28', name: 'vitaminB9', symbol: 'B9', displayName: 'Folate', displayNameRu: 'Фолиевая кислота', unit: 'μg', unitRu: 'мкг', group: 'vitamins' },
+            { id: '29', name: 'vitaminB12', symbol: 'B12', displayName: 'Cobalamin', displayNameRu: 'Кобаламин', unit: 'μg', unitRu: 'мкг', group: 'vitamins' },
+            { id: '30', name: 'vitaminC', symbol: 'C', displayName: 'Vitamin C', displayNameRu: 'Витамин C', unit: 'mg', unitRu: 'мг', group: 'vitamins' },
+            { id: '31', name: 'vitaminD', symbol: 'D', displayName: 'Vitamin D', displayNameRu: 'Витамин D', unit: 'μg', unitRu: 'мкг', group: 'vitamins' },
+            { id: '32', name: 'vitaminE', symbol: 'E', displayName: 'Vitamin E', displayNameRu: 'Витамин E', unit: 'mg', unitRu: 'мг', group: 'vitamins' },
+            { id: '33', name: 'vitaminK', symbol: 'K', displayName: 'Vitamin K', displayNameRu: 'Витамин K', unit: 'μg', unitRu: 'мкг', group: 'vitamins' },
+            { id: '34', name: 'betaCarotene', symbol: 'βC', displayName: 'Beta-carotene', displayNameRu: 'β-каротин', unit: 'μg', unitRu: 'мкг', group: 'vitamins' },
+            { id: '35', name: 'alphaCarotene', symbol: 'αC', displayName: 'Alpha-carotene', displayNameRu: 'α-каротин', unit: 'μg', unitRu: 'мкг', group: 'vitamins' },
         ]
     },
-    // {
-    //     name: 'aminoAcids',
-    //     displayName: 'Аминокислоты',
-    //     content: [
-    //         { id: '40', name: 'tryptophan', symbol: 'Trp', displayName: 'Tryptophan', displayNameRu: 'Триптофан', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '41', name: 'threonine', symbol: 'Thr', displayName: 'Threonine', displayNameRu: 'Треонин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '42', name: 'isoleucine', symbol: 'Ile', displayName: 'Isoleucine', displayNameRu: 'Изолейцин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '43', name: 'leucine', symbol: 'Leu', displayName: 'Leucine', displayNameRu: 'Лейцин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '44', name: 'lysine', symbol: 'Lys', displayName: 'Lysine', displayNameRu: 'Лизин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '45', name: 'methionine', symbol: 'Met', displayName: 'Methionine', displayNameRu: 'Метионин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '46', name: 'cystine', symbol: 'Cys', displayName: 'Cystine', displayNameRu: 'Цистин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '47', name: 'phenylalanine', symbol: 'Phe', displayName: 'Phenylalanine', displayNameRu: 'Фенилаланин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '48', name: 'tyrosine', symbol: 'Tyr', displayName: 'Tyrosine', displayNameRu: 'Тирозин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '49', name: 'valine', symbol: 'Val', displayName: 'Valine', displayNameRu: 'Валин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '50', name: 'arginine', symbol: 'Arg', displayName: 'Arginine', displayNameRu: 'Аргинин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '51', name: 'histidine', symbol: 'His', displayName: 'Histidine', displayNameRu: 'Гистидин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '52', name: 'alanine', symbol: 'Ala', displayName: 'Alanine', displayNameRu: 'Аланин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '53', name: 'asparticAcid', symbol: 'Asp', displayName: 'Aspartic acid', displayNameRu: 'Аспарагиновая к-та', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '54', name: 'glutamicAcid', symbol: 'Glu', displayName: 'Glutamic acid', displayNameRu: 'Глутаминовая к-та', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '55', name: 'glycine', symbol: 'Gly', displayName: 'Glycine', displayNameRu: 'Глицин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '56', name: 'proline', symbol: 'Pro', displayName: 'Proline', displayNameRu: 'Пролин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '57', name: 'serine', symbol: 'Ser', displayName: 'Serine', displayNameRu: 'Серин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //         { id: '58', name: 'hydroxyproline', symbol: 'Hyp', displayName: 'Hydroxyproline', displayNameRu: 'Гидроксипролин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
-    //     ]
-    // }
+    {
+        name: 'aminoAcids',
+        displayName: 'Аминокислоты',
+        content: [
+            { id: '40', name: 'tryptophan', symbol: 'Trp', displayName: 'Tryptophan', displayNameRu: 'Триптофан', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '41', name: 'threonine', symbol: 'Thr', displayName: 'Threonine', displayNameRu: 'Треонин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '42', name: 'isoleucine', symbol: 'Ile', displayName: 'Isoleucine', displayNameRu: 'Изолейцин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '43', name: 'leucine', symbol: 'Leu', displayName: 'Leucine', displayNameRu: 'Лейцин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '44', name: 'lysine', symbol: 'Lys', displayName: 'Lysine', displayNameRu: 'Лизин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '45', name: 'methionine', symbol: 'Met', displayName: 'Methionine', displayNameRu: 'Метионин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '46', name: 'cystine', symbol: 'Cys', displayName: 'Cystine', displayNameRu: 'Цистин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '47', name: 'phenylalanine', symbol: 'Phe', displayName: 'Phenylalanine', displayNameRu: 'Фенилаланин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '48', name: 'tyrosine', symbol: 'Tyr', displayName: 'Tyrosine', displayNameRu: 'Тирозин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '49', name: 'valine', symbol: 'Val', displayName: 'Valine', displayNameRu: 'Валин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '50', name: 'arginine', symbol: 'Arg', displayName: 'Arginine', displayNameRu: 'Аргинин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '51', name: 'histidine', symbol: 'His', displayName: 'Histidine', displayNameRu: 'Гистидин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '52', name: 'alanine', symbol: 'Ala', displayName: 'Alanine', displayNameRu: 'Аланин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '53', name: 'asparticAcid', symbol: 'Asp', displayName: 'Aspartic acid', displayNameRu: 'Аспарагиновая к-та', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '54', name: 'glutamicAcid', symbol: 'Glu', displayName: 'Glutamic acid', displayNameRu: 'Глутаминовая к-та', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '55', name: 'glycine', symbol: 'Gly', displayName: 'Glycine', displayNameRu: 'Глицин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '56', name: 'proline', symbol: 'Pro', displayName: 'Proline', displayNameRu: 'Пролин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '57', name: 'serine', symbol: 'Ser', displayName: 'Serine', displayNameRu: 'Серин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+            { id: '58', name: 'hydroxyproline', symbol: 'Hyp', displayName: 'Hydroxyproline', displayNameRu: 'Гидроксипролин', unit: 'g', unitRu: 'г', group: 'aminoAcids' },
+        ]
+    }
 ]
 
 export const allNutrientsList = nutrientGroups.flatMap((item) => {

@@ -6,6 +6,7 @@ import { useRef, memo } from 'react';
 import { useScrollHide } from '@/hooks/useScrollHide';
 import { useBottomPanelsVisibility } from './useBottomPanelsVisibility';
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
+import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 
 type Props = {
   children: React.ReactNode;
@@ -16,8 +17,10 @@ type Props = {
   offsetTop?: boolean;
   title?: React.ReactNode;
   backgroundColor?: 'gray' | 'white';
+  className?: string;
   overlay?: React.ReactNode;
   topLeft?: React.ReactNode;
+  topRight?: React.ReactNode;
   backgroundImage?: string;
   backgroundImageOpacity?: number;
 };
@@ -29,9 +32,11 @@ const Screen = ({
   topPanel,
   actions,
   backgroundColor,
+  className,
   offsetTop,
   overlay,
   topLeft,
+  topRight,
   backgroundImage,
   backgroundImageOpacity = 0.05,
 }: Props) => {
@@ -55,7 +60,9 @@ const Screen = ({
   };
 
   return (
-    <div className={clsx([styles.screen, backgroundColor && styles[`bg-${backgroundColor}`]])}>
+    <div
+      className={clsx(styles.screen, backgroundColor && styles[`bg-${backgroundColor}`], className)}
+    >
       {backgroundImage && (
         <img
           src={backgroundImage}
@@ -66,15 +73,13 @@ const Screen = ({
       )}
       {topPanel && <div className={styles.topPanel}>{topPanel}</div>}
       <div className={styles.screenScroll} ref={scrollContainerRef}>
-        {offsetTop && <div className={styles.upperPlace}></div>}
-
         {header && <ScreenScrollProvider value={scrollYProgress}>{header}</ScreenScrollProvider>}
-
+        {offsetTop && <div className={styles.upperPlace}></div>}
         {children}
         <div ref={sentinelRef} />
       </div>
 
-      <div className={clsx(styles.scrollIndicator, hasMoreBelow && styles.visible)} />
+      <ScrollIndicator visible={hasMoreBelow} />
 
       {/* ScrollTopButton with CSS-based visibility to avoid DOM thrashing */}
       <div
@@ -109,6 +114,8 @@ const Screen = ({
           {topLeft}
         </div>
       )}
+
+      {topRight && <div className={clsx(styles.topRight)}>{topRight}</div>}
 
       {actions && (
         <div

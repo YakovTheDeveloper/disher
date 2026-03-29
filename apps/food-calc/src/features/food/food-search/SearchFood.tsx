@@ -143,34 +143,6 @@ const SearchFood = ({
           searchBarRightChild={searchBarRightChild}
           inputId={inputId}
         />
-        {mode === 'products-and-dishes' && (
-          <div className={styles.tabBar}>
-            <button
-              className={clsx(styles.tabBarItem, currentTab === 'все' && styles.tabBarItem_active)}
-              onClick={() => setCurrentTab('все')}
-            >
-              Все
-            </button>
-            <button
-              className={clsx(
-                styles.tabBarItem,
-                currentTab === 'продукты' && styles.tabBarItem_active
-              )}
-              onClick={() => setCurrentTab('продукты')}
-            >
-              Продукты
-            </button>
-            <button
-              className={clsx(
-                styles.tabBarItem,
-                currentTab === 'блюда' && styles.tabBarItem_active
-              )}
-              onClick={() => setCurrentTab('блюда')}
-            >
-              Блюда
-            </button>
-          </div>
-        )}
       </div>
 
       {richNutrientInfo && (
@@ -183,7 +155,7 @@ const SearchFood = ({
         <VirtualList
           items={products}
           renderItem={renderProductItem}
-          emptyContent={currentTab === 'продукты' ? productEmptyContent : undefined}
+          emptyContent={productEmptyContent}
           itemHtmlFor={itemHtmlFor}
         />
       )}
@@ -191,7 +163,7 @@ const SearchFood = ({
         <VirtualList
           items={dishes}
           renderItem={renderDishItem}
-          emptyContent={currentTab !== 'все' ? dishEmptyContent : undefined}
+          emptyContent={dishEmptyContent}
           itemHtmlFor={itemHtmlFor}
         />
       )}
@@ -202,16 +174,46 @@ const SearchFood = ({
         <FilterPanel
           isOpen={filterPanelOpen}
           header={
-            currentTab === 'продукты' ? (
-              <div className={styles.filterChips}>
-                <button
-                  className={clsx(styles.filterChip, myFoodOnly && styles.filterChipActive)}
-                  onClick={() => setMyFoodOnly((prev) => !prev)}
-                >
-                  Моя еда
-                </button>
-              </div>
-            ) : null
+            <>
+              {mode === 'products-and-dishes' && (
+                <div className={styles.tabBar}>
+                  <button
+                    className={clsx(styles.tabBarItem, currentTab === 'все' && styles.tabBarItem_active)}
+                    onClick={() => setCurrentTab('все')}
+                  >
+                    Все
+                  </button>
+                  <button
+                    className={clsx(
+                      styles.tabBarItem,
+                      currentTab === 'продукты' && styles.tabBarItem_active
+                    )}
+                    onClick={() => setCurrentTab('продукты')}
+                  >
+                    Продукты
+                  </button>
+                  <button
+                    className={clsx(
+                      styles.tabBarItem,
+                      currentTab === 'блюда' && styles.tabBarItem_active
+                    )}
+                    onClick={() => setCurrentTab('блюда')}
+                  >
+                    Блюда
+                  </button>
+                </div>
+              )}
+              {currentTab === 'продукты' && (
+                <div className={styles.filterChips}>
+                  <button
+                    className={clsx(styles.filterChip, myFoodOnly && styles.filterChipActive)}
+                    onClick={() => setMyFoodOnly((prev) => !prev)}
+                  >
+                    Моя еда
+                  </button>
+                </div>
+              )}
+            </>
           }
           groups={currentTab === 'продукты' ? getProductCategoryGroups() : getDishCategoryGroups()}
           options={

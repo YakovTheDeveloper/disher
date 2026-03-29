@@ -4,12 +4,12 @@
   "description": "Disher backend powered by Triplit",
   "type": "module",
   "scripts": {
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\"",
     "dev": "triplit dev --storage sqlite",
     "console": "tsx scripts/console.ts",
     "predev": "npx --yes kill-port 6543 6544 && tsx scripts/gen-anon-token.ts",
     "dev:api": "tsx watch src/api/server.ts",
     "dev:api-network": "cross-env HOST=0.0.0.0 tsx watch src/api/server.ts",
-    "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\"",
     "predev:all-network": "npx --yes kill-port 6543 6544 3100 && tsx scripts/gen-anon-token.ts",
     "dev:all-network": "concurrently \"npm run dev\" \"npm run dev:api-network\"",
     "schema:push": "triplit schema push",

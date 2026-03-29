@@ -93,9 +93,10 @@ export const AtomBuilder = ({ id, className = '' }: AtomBuilderProps) => {
       <div id={id} tabIndex={id ? -1 : undefined} className={`${styles.container} ${className}`} onFocusCapture={handleFocusCapture}>
         <AtomList atoms={atoms} onRemove={removeAtom} />
 
-        {/* Fullscreen modals for each atom type */}
+        {/* Fullscreen modals for each atom type — use fixed positioning
+            to escape the parent absolute-positioned ModalByLabel container */}
         <ModalByLabel
-          position="absolute"
+          position="fixed"
           isExpanded={openModal === 'scale'}
           content={
             <ScaleAtomInput
@@ -107,7 +108,7 @@ export const AtomBuilder = ({ id, className = '' }: AtomBuilderProps) => {
           }
         />
         <ModalByLabel
-          position="absolute"
+          position="fixed"
           isExpanded={openModal === 'time'}
           content={
             <TimeAtomInput
@@ -119,7 +120,7 @@ export const AtomBuilder = ({ id, className = '' }: AtomBuilderProps) => {
           }
         />
         <ModalByLabel
-          position="absolute"
+          position="fixed"
           isExpanded={openModal === 'number'}
           content={
             <NumberAtomInput
@@ -131,7 +132,7 @@ export const AtomBuilder = ({ id, className = '' }: AtomBuilderProps) => {
           }
         />
         <ModalByLabel
-          position="absolute"
+          position="fixed"
           isExpanded={openModal === 'tag'}
           content={
             <TagAtomInput
@@ -143,7 +144,7 @@ export const AtomBuilder = ({ id, className = '' }: AtomBuilderProps) => {
           }
         />
         <ModalByLabel
-          position="absolute"
+          position="fixed"
           isExpanded={openModal === 'relation'}
           content={
             <RelationAtomInput
@@ -155,7 +156,7 @@ export const AtomBuilder = ({ id, className = '' }: AtomBuilderProps) => {
           }
         />
         <ModalByLabel
-          position="absolute"
+          position="fixed"
           isExpanded={openModal === 'flag'}
           content={
             <FlagAtomInput
@@ -167,7 +168,7 @@ export const AtomBuilder = ({ id, className = '' }: AtomBuilderProps) => {
           }
         />
         <ModalByLabel
-          position="absolute"
+          position="fixed"
           isExpanded={openModal === 'body'}
           content={
             <BodyAtomInput

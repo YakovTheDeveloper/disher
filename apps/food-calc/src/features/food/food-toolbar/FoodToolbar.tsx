@@ -3,7 +3,6 @@ import Button from '@/shared/ui/atoms/Button/Button';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { useUiStore } from '@/shared/model/uiStore';
 import toaster from '@/shared/lib/toaster/toaster';
-import { PasteFromClipboardButton } from '@/features/clipboard';
 
 type Props = {
   variant: 'schedule' | 'dishes';
@@ -35,9 +34,6 @@ const FoodToolbar = ({ variant, date, hasItems, onSuggest }: Props) => {
           <span className={styles.divider} />
         </>
       )}
-      <Button variant="ghost" onClick={toFood} className={styles.btn}>
-        Список еды
-      </Button>
       {hasItems && (
         <>
           <span className={styles.divider} />
@@ -58,13 +54,6 @@ const FoodToolbar = ({ variant, date, hasItems, onSuggest }: Props) => {
             Предложить
           </Button>
         </>
-      )}
-      {variant === 'schedule' && date && (
-        <PasteFromClipboardButton
-          targetDate={date}
-          btnClassName={styles.btn}
-          dividerClassName={styles.divider}
-        />
       )}
     </div>
   );

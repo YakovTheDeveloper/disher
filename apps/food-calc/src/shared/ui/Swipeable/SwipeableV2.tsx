@@ -19,10 +19,11 @@ type Props = {
   hasDots?: boolean;
   image?: React.ReactNode;
   defaultSlide?: number;
+  className?: string;
 };
 
 const SwipeableV2 = forwardRef<SwipeableRef, Props>(
-  ({ children, onIndexChange, hasDots = false, image, defaultSlide = 1 }, ref) => {
+  ({ children, onIndexChange, hasDots = false, image, defaultSlide = 1, className }, ref) => {
     const indexRef = useRef(defaultSlide);
     const dotsRef = useRef<HTMLDivElement>(null);
     const lockCountRef = useRef(0);
@@ -96,7 +97,7 @@ const SwipeableV2 = forwardRef<SwipeableRef, Props>(
 
     return (
       <SwipeableLockContext.Provider value={{ lock, unlock }}>
-        <div className={styles.carouselWrapper} data-carousel-container>
+        <div className={className ? `${styles.carouselWrapper} ${className}` : styles.carouselWrapper} data-carousel-container>
           <div className={styles.emblaViewport} ref={emblaRefModal}>
             <div className={styles.emblaContainer}>
               {image && (

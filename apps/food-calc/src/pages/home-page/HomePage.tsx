@@ -2,6 +2,7 @@ import { RouterLinks } from '@/app/router';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Swipeable } from '@/shared/ui/Swipeable';
+import homeStyles from './HomePage.module.scss';
 import { FoodSchedule } from '@/widgets/FoodSchedule';
 import { ScheduleEvents } from '@/widgets/ScheduleEvents';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
@@ -13,7 +14,11 @@ const Page = ({ date }: { date: string }) => {
 
   const { results: scheduleFoods } = useScheduleFoods(date);
   const { results: scheduleEvents } = useScheduleEvents(date);
-  const { totals: scheduleTotals, missingNutrientNames, isLoading: nutrientsLoading } = useScheduleNutrientTotals(date);
+  const {
+    totals: scheduleTotals,
+    missingNutrientNames,
+    isLoading: nutrientsLoading,
+  } = useScheduleNutrientTotals(date);
 
   const items = scheduleFoods ?? [];
   const events = scheduleEvents ?? [];
@@ -28,10 +33,16 @@ const Page = ({ date }: { date: string }) => {
 
   return (
     <>
-      <Swipeable defaultSlide={1} onIndexChange={onPageChange}>
-        <FoodsNutrients totals={scheduleTotals} missingNutrientNames={missingNutrientNames} isLoading={nutrientsLoading} />
-        <FoodSchedule date={date} items={items} />
-        <ScheduleEvents date={date} events={events} />
+      <Swipeable defaultSlide={1} onIndexChange={onPageChange} key={date}>
+        <FoodsNutrients
+          key={date}
+          totals={scheduleTotals}
+          missingNutrientNames={missingNutrientNames}
+          isLoading={nutrientsLoading}
+          className={homeStyles.nutrientsSlide}
+        />
+        <FoodSchedule key={date} date={date} items={items} />
+        <ScheduleEvents key={date} date={date} events={events} />
       </Swipeable>
     </>
   );
@@ -47,6 +58,7 @@ const GetDatePageWrapper = () => {
       navigate(RouterLinks.ScheduleDateSelection);
     } else {
       sessionStorage.setItem('lastScheduleBuilderId', date);
+      localStorage.setItem('lastVisitedScheduleDate', date);
     }
   }, [date]);
 

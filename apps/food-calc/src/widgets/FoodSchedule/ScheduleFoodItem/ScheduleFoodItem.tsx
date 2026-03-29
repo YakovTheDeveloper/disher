@@ -8,10 +8,13 @@ import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { SelectionStoreType, useStore } from '@/hooks/factoryHooks/useSelection';
 import { costForWeight } from '@/shared/lib/cost';
 import { isCreatedByUser } from '@/shared/lib/user';
+import { getTimeOfDay } from '@/shared/lib/time-of-day';
 
 type Props = {
   className?: string;
   item: ScheduleFoodWithRelations;
+  index?: number;
+  totalCount?: number;
   selectionStore: SelectionStoreType;
   showPrice?: boolean;
   onEditTime?: (item: ScheduleFoodWithRelations) => void;
@@ -25,6 +28,8 @@ type Props = {
 const ScheduleFoodItemComponent = ({
   item,
   className,
+  index = 0,
+  totalCount = 1,
   selectionStore,
   showPrice,
   onEditTime,
@@ -74,21 +79,27 @@ const ScheduleFoodItemComponent = ({
   const isCustom = content.type === 'food' && isCreatedByUser(content.food?.userId);
 
   const pricePerKg = content.type === 'food' ? content.food?.pricePerKg : null;
-  const cost =
-    showPrice && pricePerKg != null
-      ? costForWeight(pricePerKg, content.quantity)
-      : null;
+  const cost = showPrice && pricePerKg != null ? costForWeight(pricePerKg, content.quantity) : null;
 
   return (
     <SelectableListItem
       className={clsx([className, styles.group, isCustom && styles.customProduct])}
+      style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={id}
+      tod={getTimeOfDay(content.time)}
+      data-schedule-food-id={id}
       isSelectMode={isActionsMode}
       isSelected={isSelected}
       onSelect={toggleSelectedId}
     >
-      <label htmlFor={timeHtmlFor} onClick={handleTimeClick} style={{ cursor: onEditTime ? 'pointer' : 'default' }}>
-        <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>{content.time}</span>
+      <label
+        htmlFor={timeHtmlFor}
+        onClick={handleTimeClick}
+        style={{ cursor: onEditTime ? 'pointer' : 'default' }}
+      >
+        <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+          {content.time}
+        </span>
       </label>
       <FoodName
         content={name}
@@ -97,9 +108,7 @@ const ScheduleFoodItemComponent = ({
         htmlFor={foodHtmlFor}
       />
       <div className={styles.rightStack}>
-        {cost != null && (
-          <span className={styles.priceText}>{cost.toFixed(1)}₽</span>
-        )}
+        {cost != null && <span className={styles.priceText}>{cost.toFixed(1)}₽</span>}
         <Quantity
           id={id}
           content={content}
@@ -109,7 +118,7 @@ const ScheduleFoodItemComponent = ({
           htmlFor={quantityHtmlFor}
         />
       </div>
-      {afterName}
+      {/* {afterName} */}
     </SelectableListItem>
   );
 };

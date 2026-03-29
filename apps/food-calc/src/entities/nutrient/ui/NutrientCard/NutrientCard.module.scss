@@ -10,15 +10,13 @@
 
 // --- Group backgrounds (light paper-like) ---
 .main      { background-color: var(--nutrient-bg-main); }
-.vitaminsB { background-color: var(--nutrient-bg-vitaminsB); }
 .minerals  { background-color: var(--nutrient-bg-minerals); }
-.rest      { background-color: var(--nutrient-bg-rest); }
+.vitamins  { background-color: var(--nutrient-bg-vitamins); }
 
 // --- Symbol accent colors (deep, rich) ---
 .main .symbol      { color: var(--nutrient-accent-main); }
-.vitaminsB .symbol { color: var(--nutrient-accent-vitaminsB); }
 .minerals .symbol  { color: var(--nutrient-accent-minerals); }
-.rest .symbol      { color: var(--nutrient-accent-rest); }
+.vitamins .symbol  { color: var(--nutrient-accent-vitamins); }
 
 .symbol {
     font-size: var(--text-xl);

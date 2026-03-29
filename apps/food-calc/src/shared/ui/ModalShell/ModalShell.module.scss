@@ -16,6 +16,8 @@
   flex-direction: column;
   gap: 20px;
   padding: 0 16px 2rem;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .atomsBody {
@@ -25,4 +27,6 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 16px 2rem;
+  min-height: 0;
+  overflow-y: auto;
 }

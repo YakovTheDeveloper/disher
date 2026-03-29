@@ -3,6 +3,7 @@ import styles from './TimeChoose.module.scss';
 import { useTimeChooseV2 } from './useTimeChooseV2';
 import clsx from 'clsx';
 import { TimeNow } from './TimeNow';
+import { NextArrow } from '@/shared/ui/ModalFooter';
 
 type TimePickerVariant = 'native' | 'manual';
 
@@ -14,6 +15,7 @@ type Props = {
   id?: string;
   inputId?: string;
   timePickerVariant?: TimePickerVariant;
+  nextLabelHtmlFor?: string;
 };
 
 const TimeChoose = ({
@@ -24,6 +26,7 @@ const TimeChoose = ({
     id,
     inputId,
     timePickerVariant: controlledVariant,
+    nextLabelHtmlFor,
   }: Props) => {
     const [localVariant, setLocalVariant] = useState<TimePickerVariant>('manual');
     const variant = controlledVariant ?? localVariant;
@@ -80,63 +83,66 @@ const TimeChoose = ({
         role="group"
         aria-label="Time input"
       >
-        {isNative ? (
-          <div className={styles.wrapper}>
-            <input
-              type="time"
-              className={styles.nativeInput}
-              value={normalizeTime(hours, minutes)}
-              onChange={handleNativeTimeChange}
-              onBlur={() => onFinish(normalizeTime(hours, minutes))}
-              aria-label={hourAriaLabel}
-            />
-          </div>
-        ) : (
-          <div className={styles.wrapper}>
-            <label className={styles.inputWrapper}>
+        <div className={styles.inputRow}>
+          {isNative ? (
+            <div className={styles.wrapper}>
               <input
-                id={inputId}
-                ref={hhRef}
-                className={styles.input}
+                type="time"
+                className={styles.nativeInput}
+                value={normalizeTime(hours, minutes)}
+                onChange={handleNativeTimeChange}
+                onBlur={() => onFinish(normalizeTime(hours, minutes))}
                 aria-label={hourAriaLabel}
-                placeholder="hh"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={hours}
-                onChange={handleHoursChange}
-                onKeyDown={handleHoursKeyDown}
-                onBlur={handleHoursBlur}
-                maxLength={2}
-                onFocus={(e) => {
-                  e.currentTarget.select();
-                }}
               />
-            </label>
+            </div>
+          ) : (
+            <div className={styles.wrapper}>
+              <label className={styles.inputWrapper}>
+                <input
+                  id={inputId}
+                  ref={hhRef}
+                  className={styles.input}
+                  aria-label={hourAriaLabel}
+                  placeholder="hh"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={hours}
+                  onChange={handleHoursChange}
+                  onKeyDown={handleHoursKeyDown}
+                  onBlur={handleHoursBlur}
+                  maxLength={2}
+                  onFocus={(e) => {
+                    e.currentTarget.select();
+                  }}
+                />
+              </label>
 
-            <span className={styles.separator} aria-hidden="true">
-              :
-            </span>
+              <span className={styles.separator} aria-hidden="true">
+                :
+              </span>
 
-            <label className={styles.inputWrapper}>
-              <input
-                ref={mmRef}
-                className={styles.input}
-                aria-label={minuteAriaLabel}
-                placeholder="mm"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={minutes}
-                onChange={handleMinutesChange}
-                onKeyDown={handleMinutesKeyDown}
-                onBlur={handleMinutesBlur}
-                maxLength={2}
-                onFocus={(e) => {
-                  e.currentTarget.select();
-                }}
-              />
-            </label>
-          </div>
-        )}
+              <label className={styles.inputWrapper}>
+                <input
+                  ref={mmRef}
+                  className={styles.input}
+                  aria-label={minuteAriaLabel}
+                  placeholder="mm"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={minutes}
+                  onChange={handleMinutesChange}
+                  onKeyDown={handleMinutesKeyDown}
+                  onBlur={handleMinutesBlur}
+                  maxLength={2}
+                  onFocus={(e) => {
+                    e.currentTarget.select();
+                  }}
+                />
+              </label>
+            </div>
+          )}
+          {nextLabelHtmlFor && <div className={styles.after}><NextArrow htmlFor={nextLabelHtmlFor} /></div>}
+        </div>
 
         <div className={styles.buttonsWrapper}>
           <TimeNow onFinish={onNowSelect} time={`${hours}:${minutes}`}>

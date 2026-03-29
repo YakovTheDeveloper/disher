@@ -8,6 +8,7 @@ import { SchedulePeriods } from './SchedulePeriods';
 
 interface Props extends BaseDrawerProps<string> {
   selectedDate?: string;
+  initialTab?: 'calendar' | 'periods';
 }
 
 const tabs: Tab[] = [
@@ -15,17 +16,19 @@ const tabs: Tab[] = [
   { value: 'periods', alternativeLabel: 'Периоды' },
 ];
 
-export const ScheduleSelectionDrawer = ({ onClose, selectedDate }: Props) => {
-  const [activeTab, setActiveTab] = useState('calendar');
+export const ScheduleSelectionDrawer = ({ onClose, selectedDate, initialTab }: Props) => {
+  const [activeTab, setActiveTab] = useState(initialTab ?? 'calendar');
 
   return (
     <DrawerLayout>
       <div style={{ height: '90dvh', display: 'flex', flexDirection: 'column' }}>
-        <Tabs tabs={tabs} current={activeTab} setTab={setActiveTab} />
-        {activeTab === 'calendar' && (
-          <ScheduleSelection selectedDate={selectedDate} onSelect={(date) => onClose(date)} />
-        )}
-        {activeTab === 'periods' && <SchedulePeriods />}
+        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          {activeTab === 'calendar' && (
+            <ScheduleSelection selectedDate={selectedDate} onSelect={(date) => onClose(date)} />
+          )}
+          {activeTab === 'periods' && <SchedulePeriods />}
+        </div>
+        <Tabs tabs={tabs} current={activeTab} setTab={(v) => setActiveTab(v as 'calendar' | 'periods')} />
       </div>
     </DrawerLayout>
   );

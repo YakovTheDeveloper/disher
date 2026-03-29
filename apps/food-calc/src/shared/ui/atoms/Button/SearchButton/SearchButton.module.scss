@@ -1,0 +1,201 @@
+// ─── Base ────────────────────────────────────────────────────────
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform var(--duration-normal) ease,
+        box-shadow var(--duration-normal) ease;
+
+    &:active {
+        transform: scale(0.92);
+    }
+}
+
+.withText {
+    width: auto;
+    border-radius: var(--radius-xl);
+    padding: 0 var(--space-4) 0 var(--space-3);
+    gap: var(--space-2);
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+
+    svg {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.text {
+    font-size: var(--text-l);
+    font-weight: 500;
+    white-space: nowrap;
+    color: white;
+}
+
+// ─── Prominent variant (empty-state CTA) ───────────────────────
+.prominent {
+    height: 52px;
+    border-radius: var(--radius-md);
+    color: var(--text-on-accent);
+    padding: 0 var(--space-5);
+    gap: var(--space-3);
+    position: fixed;
+    bottom: var(--space-6);
+    left: var(--space-3);
+    right: var(--space-3);
+    width: auto;
+
+    .icon {
+        opacity: 0.8;
+    }
+
+    .text {
+        font-size: var(--text-base);
+        font-weight: 500;
+        letter-spacing: 0.02em;
+    }
+
+    &:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+}
+
+// ─── Variant 0: Deep blue solid ──────────────────────────────────
+.v0 {
+    background: rgb(55, 0, 255);
+    box-shadow: 0 4px 16px rgba(55, 0, 255, 0.35);
+
+    &:hover {
+        box-shadow: 0 6px 20px rgba(55, 0, 255, 0.45);
+    }
+}
+
+// ─── Variant 1: Purple gradient ──────────────────────────────────
+.v1 {
+    background: linear-gradient(135deg, rgb(115, 45, 255), rgb(55, 0, 255));
+    box-shadow: 0 4px 16px rgba(115, 45, 255, 0.3);
+
+    &:hover {
+        box-shadow: 0 6px 20px rgba(115, 45, 255, 0.4);
+    }
+}
+
+// ─── Variant 2: Charcoal minimal ────────────────────────────────
+.v2 {
+    background: #1a1a1a;
+    box-shadow: var(--shadow-md);
+
+    &:hover {
+        box-shadow: var(--shadow-lg);
+    }
+}
+
+// ─── Variant 3: Glassmorphism dark ──────────────────────────────
+.v3 {
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.65);
+    }
+}
+
+// ─── Variant 4: Warm terracotta ─────────────────────────────────
+.v4 {
+    background: linear-gradient(145deg, #c2653a, #9e4a28);
+    box-shadow: 0 4px 16px rgba(194, 101, 58, 0.35);
+
+    &:hover {
+        box-shadow: 0 6px 20px rgba(194, 101, 58, 0.45);
+    }
+}
+
+// ─── Variant 5: Forest green ────────────────────────────────────
+.v5 {
+    background: linear-gradient(145deg, #2d7344, #1a5a32);
+    box-shadow: 0 4px 16px rgba(45, 115, 68, 0.3);
+
+    &:hover {
+        box-shadow: 0 6px 20px rgba(45, 115, 68, 0.4);
+    }
+}
+
+// ─── Variant 6: Outlined dark ring ──────────────────────────────
+.v6 {
+    background: transparent;
+    border: 2px solid #111;
+    box-shadow: none;
+
+    .icon svg {
+
+        circle,
+        path {
+            stroke: #111;
+        }
+    }
+
+    .text {
+        color: #111;
+    }
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.04);
+    }
+}
+
+// ─── Variant 7: Warm gold accent ────────────────────────────────
+.v7 {
+    background: linear-gradient(145deg, #b8860b, #8b6508);
+    box-shadow: 0 4px 16px rgba(184, 134, 11, 0.3);
+
+    &:hover {
+        box-shadow: 0 6px 20px rgba(184, 134, 11, 0.4);
+    }
+}
+
+// ─── Variant 8: Soft indigo pill ────────────────────────────────
+.v8 {
+    background: rgba(55, 0, 255, 0.1);
+    border: 1.5px solid rgba(55, 0, 255, 0.25);
+
+    .icon svg {
+
+        circle,
+        path {
+            stroke: rgb(55, 0, 255);
+        }
+    }
+
+    .text {
+        color: rgb(55, 0, 255);
+    }
+
+    &:hover {
+        background: rgba(55, 0, 255, 0.15);
+    }
+}
+
+// ─── Variant 9: Coral pink ──────────────────────────────────────
+.v9 {
+    background: linear-gradient(145deg, #e85d6f, #c94455);
+    box-shadow: 0 4px 16px rgba(232, 93, 111, 0.3);
+
+    &:hover {
+        box-shadow: 0 6px 20px rgba(232, 93, 111, 0.4);
+    }
+}

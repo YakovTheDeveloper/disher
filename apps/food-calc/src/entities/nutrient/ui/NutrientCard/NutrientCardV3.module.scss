@@ -20,16 +20,12 @@
     --card-accent: var(--nutrient-accent-main);
 }
 
-.vitaminsB {
-    --card-accent: var(--nutrient-accent-vitaminsB);
-}
-
 .minerals {
     --card-accent: var(--nutrient-accent-minerals);
 }
 
-.rest {
-    --card-accent: var(--nutrient-accent-rest);
+.vitamins {
+    --card-accent: var(--nutrient-accent-vitamins);
 }
 
 // --- Label ---
@@ -63,6 +59,14 @@
     align-self: flex-end;
     padding-bottom: 0.15em;
     opacity: 0.3;
+
+    &.valueHidden {
+        visibility: hidden;
+    }
+}
+
+label.card {
+    cursor: text;
 }
 
 .percent {
@@ -88,6 +92,22 @@
 
 .percent.excess {
     color: #c07020;
+}
+
+// --- Progress bar ---
+.progressBar {
+    height: var(--nutrient-progress-height, 3px);
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-top: var(--space-1);
+}
+
+.progressFill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    background: var(--card-accent);
+    transition: width 0.3s ease;
 }
 
 .rightSlot {

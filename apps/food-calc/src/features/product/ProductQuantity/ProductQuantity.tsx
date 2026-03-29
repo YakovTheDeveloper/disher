@@ -1,6 +1,7 @@
 import { useRef, useState, useMemo } from 'react';
 import style from './ProductQuantity.module.scss';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
+import { NextArrow } from '@/shared/ui/ModalFooter';
 import clsx from 'clsx';
 
 type QuickButtonProps = {
@@ -28,7 +29,6 @@ type ProductQuantityContent = {
 const variants = [
   [25, 50, 75, 100],
   [150, 200, 300, 400],
-  [500, 1000, 2000, 3000],
 ];
 
 type QuickButtonData = {
@@ -40,6 +40,7 @@ type Props = {
   content: ProductQuantityContent;
   onFinish: () => void;
   inputId?: string;
+  onNextButtonClick?: () => void;
 };
 
 const SLIDE_SIZE = 8; // 2 rows x 4 columns
@@ -52,7 +53,12 @@ const chunkArray = <T,>(arr: T[], size: number): T[][] => {
   return chunks;
 };
 
-const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Props) => {
+const ProductQuantity = ({
+  onFinish,
+  content,
+  inputId = 'quantity-input',
+  onNextButtonClick,
+}: Props) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [value, setValue] = useState(content.quantity);
@@ -68,12 +74,14 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
   const quickButtons: QuickButtonData[] =
     portions.length > 0
       ? portions.map((portion) => {
-          const isActive = activePortion?.grams === portion.grams && activePortion?.label === portion.label;
+          const isActive =
+            activePortion?.grams === portion.grams && activePortion?.label === portion.label;
           const count = isActive ? portionCount : 1;
           const totalGrams = isActive ? value : portion.grams;
-          const label = count > 1
-            ? `${count} × ${portion.label} (${totalGrams}г)`
-            : `${portion.label} (${portion.grams}г)`;
+          const label =
+            count > 1
+              ? `${count} × ${portion.label} (${totalGrams}г)`
+              : `${portion.label} (${portion.grams}г)`;
           return { quantity: totalGrams, label };
         })
       : [];
@@ -92,7 +100,8 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
   };
 
   const handlePortionClick = (portion: Portion) => {
-    const isSamePortion = activePortion?.grams === portion.grams && activePortion?.label === portion.label;
+    const isSamePortion =
+      activePortion?.grams === portion.grams && activePortion?.label === portion.label;
     const newValue = isSamePortion ? value + portion.grams : portion.grams;
     setValue(newValue);
     content.updateQuantity(newValue);
@@ -108,17 +117,34 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
   return (
     <div className={style.container}>
       {/* Editorial hero input */}
-      <div className={style.inputWrapper}>
-        <NumberInput
-          id={inputId}
-          placeholder="Количество"
-          ref={inputRef}
-          className={style.input}
-          onChange={setValue}
-          value={value}
-          onBlur={onBlur}
-          bottom={<span className={style.unit}>{activePortion && portionCount > 0 ? `${portionCount} × ${activePortion.label}` : 'граммы'}</span>}
-        />
+      <div className={style.inputRow}>
+        <div className={style.slotLeft}></div>
+        <div className={style.inputWrapper}>
+          <NumberInput
+            id={inputId}
+            placeholder="Количество"
+            ref={inputRef}
+            className={style.input}
+            onChange={setValue}
+            value={value}
+            onBlur={onBlur}
+            bottom={
+              <span className={style.unit}>
+                {activePortion && portionCount > 0
+                  ? `${portionCount} × ${activePortion.label}`
+                  : 'граммы'}
+              </span>
+            }
+          />
+        </div>
+        <div className={style.after}>
+          <NextArrow
+            onClick={() => {
+              onBlur();
+              onNextButtonClick?.();
+            }}
+          />
+        </div>
       </div>
 
       {/* Portions carousel */}
@@ -134,7 +160,10 @@ const ProductQuantity = ({ onFinish, content, inputId = 'quantity-input' }: Prop
                       <QuickButton
                         key={button.label}
                         className={style.quickBtn}
-                        isActive={activePortion?.grams === portions[slideIndex * SLIDE_SIZE + i]?.grams && activePortion?.label === portions[slideIndex * SLIDE_SIZE + i]?.label}
+                        isActive={
+                          activePortion?.grams === portions[slideIndex * SLIDE_SIZE + i]?.grams &&
+                          activePortion?.label === portions[slideIndex * SLIDE_SIZE + i]?.label
+                        }
                         onClick={() => handlePortionClick(portions[slideIndex * SLIDE_SIZE + i])}
                       >
                         {button.label}

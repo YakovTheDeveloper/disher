@@ -18,3 +18,10 @@ export function useScheduleFoodsByDates(dates: string[]) {
     triplit.query("scheduleFoods").Where("date", "in", dates),
   );
 }
+
+export function useAllScheduleFoods() {
+  return useQuery(
+    triplit,
+    triplit.query("scheduleFoods").Select(["date"]),
+  );
+}

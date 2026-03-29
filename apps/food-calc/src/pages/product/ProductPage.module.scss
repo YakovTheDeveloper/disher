@@ -62,23 +62,24 @@
 
 .modeToggleRow {
     display: flex;
-    gap: 4px;
-    padding: 0 16px;
-    margin-bottom: 12px;
+    gap: var(--space-1);
+    padding: 0 var(--space-4);
+    margin-bottom: var(--space-3);
 }
 
 .modeBtn {
     flex: 1;
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     border: 1.5px solid rgba(17, 17, 17, 0.1);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: transparent;
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 500;
     letter-spacing: 0.01em;
     color: rgba(17, 17, 17, 0.4);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all var(--duration-fast) var(--easing-default);
+    -webkit-tap-highlight-color: transparent;
 
     &:active {
         background: rgba(17, 17, 17, 0.04);
@@ -96,12 +97,12 @@
 }
 
 .massWarning {
-    margin: 0 16px 12px;
-    padding: 10px 14px;
-    border-radius: 8px;
+    margin: 0 var(--space-4) var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm);
     background: rgba(235, 137, 39, 0.1);
     border: 1px solid rgba(235, 137, 39, 0.25);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 500;
     color: #b86e1a;
     line-height: 1.4;

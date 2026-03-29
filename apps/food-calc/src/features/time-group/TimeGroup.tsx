@@ -10,9 +10,10 @@ type Props<T> = {
   group: TimeGroupUI<T>;
   renderAside?: (group: TimeGroupUI<T>) => JSX.Element | null;
   onTimeClick?: (group: TimeGroupUI<T>) => void;
+  isFuture?: boolean;
 };
 
-const TimeGroup = <T,>({ children, group, renderAside, onTimeClick }: Props<T>) => {
+const TimeGroup = <T,>({ children, group, renderAside, onTimeClick, isFuture }: Props<T>) => {
   console.log('TIME_GROUP');
 
   const disabled = !onTimeClick;
@@ -20,7 +21,7 @@ const TimeGroup = <T,>({ children, group, renderAside, onTimeClick }: Props<T>) 
   const timeOffsetFromPreviousGroupView = formatOffset(group.offset);
 
   return (
-    <ul className={styles.container}>
+    <ul className={clsx(styles.container, isFuture && styles.future)}>
       <header className={styles.header}>
         <div className={styles.headerCenter}>
           <motion.button

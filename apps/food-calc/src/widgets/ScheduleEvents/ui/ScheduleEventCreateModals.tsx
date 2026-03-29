@@ -3,7 +3,7 @@ import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalFooter, NextStepButton } from '@/shared/ui/ModalFooter';
+import { ModalFooter, NextArrow, NextStepButton } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { addScheduleEvent } from '@/entities/schedule-event';
@@ -68,25 +68,28 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
     [MODAL_INPUT_IDS.ATOMS_INPUT]: 'atoms',
   };
 
-  const handleFocusCapture = useCallback((e: React.FocusEvent) => {
-    const target = e.target as HTMLElement;
-    const nextStep = INPUT_TO_STEP[target.id];
-    if (!nextStep) return;
+  const handleFocusCapture = useCallback(
+    (e: React.FocusEvent) => {
+      const target = e.target as HTMLElement;
+      const nextStep = INPUT_TO_STEP[target.id];
+      if (!nextStep) return;
 
-    setStep((prev) => {
-      if (prev === 'idle') {
-        setDraft(createEmptyDraft());
-        clearAtoms();
-      }
-      return nextStep;
-    });
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
+      setStep((prev) => {
+        if (prev === 'idle') {
+          setDraft(createEmptyDraft());
+          clearAtoms();
+        }
+        return nextStep;
       });
-    });
-  }, [clearAtoms]);
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
+        });
+      });
+    },
+    [clearAtoms]
+  );
 
   const handleTimeFinish = (time: string) => {
     setDraft((prev) => ({ ...prev, time }));
@@ -141,6 +144,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
                 inputId={MODAL_INPUT_IDS.TIME_INPUT}
+                after={<NextArrow htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} />}
               />
               <ModalFooter onBack={handleClose}>
                 <NextStepButton htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} />

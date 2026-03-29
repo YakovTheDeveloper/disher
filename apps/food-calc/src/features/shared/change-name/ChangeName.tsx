@@ -33,9 +33,9 @@ const ChangeName: FC<Props> = ({ name, onChangeName, canRename = true }) => {
     <>
       {canRename && (
         <div className={s.actionRow}>
-          <BrandMark size={40} variant="wave" className={s.brandMarkClickable} />
-          <span className={clsx(s.renameButton, showRenameHint && s.visible)}>
+          <span className={clsx(s.renameButtonWrapper, showRenameHint && s.visible)}>
             <Button
+              className={s.renameButton}
               variant="ghost"
               onClick={(e) => {
                 e.stopPropagation();
@@ -48,7 +48,9 @@ const ChangeName: FC<Props> = ({ name, onChangeName, canRename = true }) => {
         </div>
       )}
       <div className={s.nameRow} onClick={handleNameClick}>
-        <Typography variant="feature-title" className={s.name}>{name}</Typography>
+        <Typography variant="feature-title" className={s.name}>
+          {name}
+        </Typography>
       </div>
     </>
   );

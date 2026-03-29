@@ -14,11 +14,19 @@ export function pushOverlayEntry(): void {
   history.pushState({ __overlay: sentinelCount }, '');
 }
 
-export function popOverlayEntry(): void {
+export function popOverlayEntry(): Promise<void> {
   if (sentinelCount > 0) {
     sentinelCount--;
-    history.back();
+    return new Promise<void>((resolve) => {
+      const onPop = () => {
+        window.removeEventListener('popstate', onPop);
+        resolve();
+      };
+      window.addEventListener('popstate', onPop);
+      history.back();
+    });
   }
+  return Promise.resolve();
 }
 
 export function registerCloseHandler(fn: () => void): void {

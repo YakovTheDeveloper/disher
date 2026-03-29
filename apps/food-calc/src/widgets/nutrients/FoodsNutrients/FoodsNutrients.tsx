@@ -2,6 +2,7 @@ import { Screen } from '@/shared/ui/Screen';
 import { Nutrients } from '@/entities/nutrient/ui/NutrientGroup';
 import { OpenDailyNorms } from '@/features/dailyNorms/OpenDailyNorms';
 import { useCallback } from 'react';
+import clsx from 'clsx';
 import { FilterButton } from '@/shared/ui/atoms/Button';
 import NutrientCardV3 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV3';
 import {
@@ -24,9 +25,10 @@ type Props = {
   missingNutrientNames?: string[];
   isLoading?: boolean;
   after?: React.ReactNode;
+  className?: string;
 };
 
-const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading, after }: Props) => {
+const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading, after, className }: Props) => {
   const filter = useFilterNutrients();
   const { getValue } = useNutrientTotals(totals);
 
@@ -51,6 +53,7 @@ const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading, after }:
 
   return (
     <Screen
+      className={clsx(styles.frostedGlass, className)}
       bottomRight={<FilterButton onClick={filter.toggleFilterMode} isActive={filter.filterMode} />}
       actions={
         filter.filterMode ? (

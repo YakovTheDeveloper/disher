@@ -15,7 +15,6 @@ import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
-import { DishFoodSelectionActions } from './components/header-actions/DishFoodSelectionActions';
 import { RouterLinks } from '@/app/router';
 import SwipeableV2 from '@/shared/ui/Swipeable/SwipeableV2';
 import { SelectableListItem } from '@/features/shared/selectable-list-item';
@@ -41,10 +40,11 @@ import {
 } from './ui';
 import { createShare } from '@/shared/lib/api/shares';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
-import { FoodToolbar } from '@/features/food/food-toolbar';
 import { FoodPortionsManager } from '@/features/food/food-portions-manager';
 import { Ornament } from '@/shared/ui/Ornament';
 import { useDishNutrientTotals } from '@/entities/dish';
+import { TopBar } from '@/shared/ui/TopBar';
+import Button from '@/shared/ui/atoms/Button/Button';
 
 type DishItemWithFood = DishItem & { food?: { name: string } | null };
 
@@ -207,12 +207,21 @@ const DishBuilderPage = () => {
           </ScreenLabel>
         }
         header={
-          <TextBehind text="Блюдо">
-            <ChangeName
-              name={dish.name}
-              onChangeName={(val) => updateDishName(dish.id, val)}
-            />
-          </TextBehind>
+          <>
+            <TopBar>
+              {items.length > 0 && (
+                <Button variant="menu" onClick={() => setIsOpen('suggestions')}>
+                  Предложить
+                </Button>
+              )}
+            </TopBar>
+            <TextBehind text="Блюдо">
+              <ChangeName
+                name={dish.name}
+                onChangeName={(val) => updateDishName(dish.id, val)}
+              />
+            </TextBehind>
+          </>
         }
         topLeft={selectedIds.length > 0 ? <CountBadge count={selectedIds.length} /> : null}
         bottomRight={
@@ -221,7 +230,6 @@ const DishBuilderPage = () => {
           )
         }
       >
-        <FoodToolbar variant="dishes" hasItems={items.length > 0} onSuggest={() => setIsOpen('suggestions')} />
         {items.length === 0 && (
           <div style={{ padding: 'var(--space-10) var(--space-4) 0' }}>
             <AddButton

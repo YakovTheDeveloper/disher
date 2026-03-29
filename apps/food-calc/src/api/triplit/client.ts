@@ -6,7 +6,7 @@ const host = window.location.hostname;
 export const SERVER_URL = `http://${host}:${serverPort}`;
 
 // Schema version — bump this when schema changes to auto-clear stale IndexedDB
-const SCHEMA_VERSION = "5";
+const SCHEMA_VERSION = "6";
 const SCHEMA_VERSION_KEY = "triplit_schema_version";
 
 const storedVersion = localStorage.getItem(SCHEMA_VERSION_KEY);
@@ -28,6 +28,9 @@ if (storedVersion !== SCHEMA_VERSION) {
       }
     });
   }
+  // Clear reference data version so initSession() will force a full re-sync
+  // instead of skipping sync due to a stale version match
+  localStorage.removeItem("reference_data_version");
   localStorage.setItem(SCHEMA_VERSION_KEY, SCHEMA_VERSION);
   console.log("[triplit] IndexedDB cleared, reloading...");
   window.location.reload();

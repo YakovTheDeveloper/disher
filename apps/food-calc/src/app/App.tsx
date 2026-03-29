@@ -15,6 +15,7 @@ import DrawerManagerV3 from '@/app/ui/DrawerManager';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/app/i18n';
 import { BugReportButton } from '@/features/bug-report/BugReportButton';
+import { ToggleStyleButton } from '@/features/toggle-style/ToggleStyleButton';
 
 const queryClient = new QueryClient();
 
@@ -38,7 +39,8 @@ export default function App() {
           </Drawer>
 
           <AnimatedOutlet />
-          <BugReportButton />
+          {/* <BugReportButton /> */}
+          {/* <ToggleStyleButton /> */}
         </div>
       </QueryClientProvider>
     </I18nextProvider>

@@ -3,6 +3,7 @@
         opacity: 0;
         transform: translateY(6px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -26,7 +27,7 @@
     cursor: pointer;
 }
 
-.renameButton {
+.renameButtonWrapper {
     opacity: 0;
     transform: translateX(-4px);
     transition: opacity 0.25s ease, transform 0.25s ease;
@@ -38,6 +39,10 @@
         transform: translateX(0);
         pointer-events: auto;
     }
+}
+
+.renameButton {
+    font-size: 1.5rem;
 }
 
 .name {

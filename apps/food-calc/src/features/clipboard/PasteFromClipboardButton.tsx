@@ -2,14 +2,19 @@ import { useClipboardStore } from '@/shared/model/clipboardStore';
 import { pasteClipboardItems } from '@/entities/schedule-food';
 import Button from '@/shared/ui/atoms/Button/Button';
 import toaster from '@/shared/lib/toaster/toaster';
+import s from './PasteFromClipboardButton.module.scss';
+import clsx from 'clsx';
 
 type Props = {
   targetDate: string;
   btnClassName?: string;
-  dividerClassName?: string;
+  wrapperClassName?: string;
+  wrapperStyle?: React.CSSProperties;
 };
 
-export const PasteFromClipboardButton = ({ targetDate, btnClassName, dividerClassName }: Props) => {
+const MAX_PREVIEW = 5;
+
+export const PasteFromClipboardButton = ({ targetDate, btnClassName, wrapperClassName, wrapperStyle }: Props) => {
   const items = useClipboardStore((s) => s.items);
   const clearClipboard = useClipboardStore((s) => s.clearClipboard);
 
@@ -17,31 +22,38 @@ export const PasteFromClipboardButton = ({ targetDate, btnClassName, dividerClas
 
   const handlePaste = async () => {
     await pasteClipboardItems(items, targetDate);
+    clearClipboard();
     toaster.success(`Вставлено: ${items.length}`);
   };
 
+  const preview = items.slice(0, MAX_PREVIEW);
+
   return (
-    <>
-      {dividerClassName && <span className={dividerClassName} />}
-      <Button variant="ghost" onClick={handlePaste} className={btnClassName}>
-        Вставить ({items.length})
-      </Button>
-      <button
-        type="button"
-        onClick={clearClipboard}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-secondary)',
-          fontSize: 'var(--text-sm)',
-          padding: '0 var(--space-1)',
-          cursor: 'pointer',
-          opacity: 0.6,
-        }}
-        aria-label="Очистить буфер"
-      >
-        ✕
-      </button>
-    </>
+    <div className={clsx(s.wrapper, wrapperClassName)} style={wrapperStyle}>
+      <div className={s.header}>
+        <span className={s.title}>скопировано:</span>
+        <button type="button" className={s.clearBtn} onClick={clearClipboard}>
+          ✕
+        </button>
+      </div>
+
+      <div className={s.items}>
+        {preview.map((item, i) => (
+          <div
+            key={`${item.displayName}-${item.time}-${i}`}
+            className={clsx(s.item, s[`item_${i}` as keyof typeof s])}
+          >
+            <span className={s.itemName}>{item.displayName}</span>
+            <span className={s.itemTime}>{item.time}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className={s.actions}>
+        <Button variant="ghost" onClick={handlePaste} className={clsx(s.pasteBtn, btnClassName)}>
+          Вставить ({items.length})
+        </Button>
+      </div>
+    </div>
   );
 };

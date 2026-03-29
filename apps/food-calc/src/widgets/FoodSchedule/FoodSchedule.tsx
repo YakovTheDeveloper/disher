@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { TimeGroup } from '@/features/time-group';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
-import { groupItemsByTime } from '@/shared/lib/schedule';
+import { groupItemsByTime, getNowMarkerIndex } from '@/shared/lib/schedule';
+import { NowMarker } from '@/shared/ui/NowMarker';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import ScheduleFoodItemComponent from '@/widgets/FoodSchedule/ScheduleFoodItem/ScheduleFoodItem';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
@@ -11,8 +12,10 @@ import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { Navigation } from '@/pages/home-page/ui';
 import toaster from '@/shared/lib/toaster/toaster';
 import { useUiStore } from '@/shared/model/uiStore';
-import { FoodToolbar } from '@/features/food/food-toolbar';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
+import { TopBar } from '@/shared/ui/TopBar';
+import Button from '@/shared/ui/atoms/Button/Button';
 import {
   ScheduleFoodCreateModals,
   MODAL_INPUT_IDS,
@@ -28,8 +31,10 @@ import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { removeScheduleFoods } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
-import { CopyToClipboardButton } from '@/features/clipboard';
+import { CopyToClipboardButton, PasteFromClipboardButton } from '@/features/clipboard';
 import type { ClipboardItem } from '@/shared/model/clipboardStore';
+import { AccountPanel } from '@/features/auth';
+import { PeriodBanner } from '@/features/ScheduleSelection/SchedulePeriods';
 
 type CommonProps = {
   date: string;
@@ -43,6 +48,8 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
   const { clearSelection, setSelectedIds } = selectionStoreFood.getState();
 
   const showPrice = useUiStore((s) => s.scheduleFoodsShowPrice);
+  const toggleShowPrice = useUiStore((s) => s.toggleScheduleFoodsShowPrice);
+  const { toScheduleAnalytics } = useAppRoutes();
 
   const [isOpen, setIsOpen] = useState<
     'create-dish-and-copy' | 'copy-to-existing-dish' | 'copy-to-another-day' | null
@@ -84,6 +91,7 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
     items.filter((item) => selectedIds.includes(item.id) && item.foodId != null);
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
+  const nowMarkerIndex = useMemo(() => getNowMarkerIndex(groups, date), [groups, date]);
 
   const onDeleteSelected = async () => {
     const ids = selectedIds;
@@ -257,47 +265,73 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
           </AnimatePresence>
         </ActionsPanel>
       }
-      header={<Navigation />}
-      topLeft={null}
+      header={
+        <TopBar>
+          {items.length > 0 && (
+            <>
+              <Button variant="menu" onClick={() => toScheduleAnalytics(date)}>
+                Анализ
+              </Button>
+            </>
+          )}
+          <AccountPanel />
+        </TopBar>
+      }
       bottomRight={
         isActionsMode || items.length === 0 ? null : (
-          <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.TIME_INPUT} />
+          <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.SEARCH_INPUT} />
         )
       }
     >
-      <FoodToolbar variant="schedule" date={date} hasItems={items.length > 0} />
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
+        <Navigation />
+      </div>
+      <PeriodBanner date={date} />
       {items.length === 0 && (
         <div style={{ padding: `var(--space-10) var(--space-4) 0` }}>
-          <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.TIME_INPUT} prominent>
-            Добавить еду
+          <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.SEARCH_INPUT} prominent>
+            Список еды
           </AddButton>
         </div>
       )}
       <ItemsList offsetTop>
-        {groups.map((group) => (
-          <TimeGroup
-            key={group.time}
-            group={group}
-            onTimeClick={(group) => setSelectedIds(group.items.map((i: any) => i.id))}
-          >
-            {
-              group.items.map((item) => (
-                <ScheduleFoodItemComponent
-                  key={item.id}
-                  item={item}
-                  selectionStore={selectionStoreFood}
-                  showPrice={showPrice}
-                  onEditTime={onEditTime}
-                  onEditFood={onEditFood}
-                  onEditQuantity={onEditQuantity}
-                  timeHtmlFor={EDIT_MODAL_INPUT_IDS.TIME_INPUT}
-                  foodHtmlFor={EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
-                  quantityHtmlFor={EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
-                />
-              )) as unknown as JSX.Element
-            }
-          </TimeGroup>
-        ))}
+        {(() => {
+          let globalIndex = 0;
+          return groups.map((group, idx) => (
+            <React.Fragment key={group.time}>
+              {nowMarkerIndex === idx && <NowMarker />}
+              <TimeGroup
+                group={group}
+                isFuture={nowMarkerIndex >= 0 && idx >= nowMarkerIndex}
+                onTimeClick={(group) => setSelectedIds(group.items.map((i: any) => i.id))}
+              >
+                {
+                  group.items.map((item) => {
+                    const itemIndex = globalIndex++;
+                    return (
+                      <ScheduleFoodItemComponent
+                        key={item.id}
+                        item={item}
+                        index={itemIndex}
+                        totalCount={items.length}
+                        selectionStore={selectionStoreFood}
+                        showPrice={showPrice}
+                        onEditTime={onEditTime}
+                        onEditFood={onEditFood}
+                        onEditQuantity={onEditQuantity}
+                        timeHtmlFor={EDIT_MODAL_INPUT_IDS.TIME_INPUT}
+                        foodHtmlFor={EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
+                        quantityHtmlFor={EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
+                      />
+                    );
+                  }) as unknown as JSX.Element
+                }
+              </TimeGroup>
+              {nowMarkerIndex === groups.length && idx === groups.length - 1 && <NowMarker />}
+            </React.Fragment>
+          ));
+        })()}
       </ItemsList>
     </Screen>
   );

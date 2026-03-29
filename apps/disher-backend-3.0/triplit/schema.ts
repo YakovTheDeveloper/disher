@@ -331,6 +331,29 @@ export const schema = S.Collections({
     },
   },
 
+  // ─── Periods ───
+  // User-defined time periods (diets, fasts, wellness programs, etc.)
+  periods: {
+    schema: S.Schema({
+      id: S.Id(),
+      userId: S.String(),
+      name: S.String(),
+      description: S.String({ nullable: true, default: null }),
+      startDate: S.String(), // "DD-MM-YYYY"
+      endDate: S.String(), // "DD-MM-YYYY"
+      colorIndex: S.Number({ default: 0 }),
+      createdAt: S.Date({ default: S.Default.now() }),
+    }),
+    permissions: {
+      user: {
+        read: { filter: [["userId", "=", "$role.userId"]] },
+        insert: { filter: [["userId", "=", "$role.userId"]] },
+        update: { filter: [["userId", "=", "$role.userId"]] },
+        delete: { filter: [["userId", "=", "$role.userId"]] },
+      },
+    },
+  },
+
   // ─── Accounts (OAuth) ───
   accounts: {
     schema: S.Schema({

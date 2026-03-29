@@ -8,7 +8,27 @@
 
 // ── Hero input ──────────────────────────────────────────────────────────────
 
+.inputRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.after {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    width: 50px;
+
+}
+
+.slotLeft {
+    width: 50px;
+}
+
 .inputWrapper {
+    flex: 1;
+    min-width: 0;
     padding: 0.5rem 0 0.25rem;
     text-align: center;
 

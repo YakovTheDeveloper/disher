@@ -7,6 +7,11 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, interactive-widget=resizes-content, viewport-fit=cover, user-scalable=no">
   <title>Disher.</title>
+  <style>
+    /* Prevent FOUC: hide root until CSS modules are loaded */
+    #root { opacity: 0; }
+    #root.ready { opacity: 1; transition: opacity 0.15s ease; }
+  </style>
 </head>
 
 <body>

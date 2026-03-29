@@ -1,13 +1,10 @@
 import styles from './Navigation.module.scss';
 import { useParams } from 'react-router';
-import { useScreenScroll } from '@/shared/ui/Screen/context/ScreenScrollContext';
-import { useMotionValueEvent } from 'framer-motion';
 import { getTitle } from '@/pages/home-page/ui/methods';
-import { useState } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { drawerStore } from '@/shared/ui';
 import { ScheduleSelectionDrawer } from '@/features/ScheduleSelection/ScheduleSelectionDrawer';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import watchSrc from '@/shared/assets/decarative/watch.png';
 
 const Navigation = () => {
   const params = useParams();
@@ -15,42 +12,54 @@ const Navigation = () => {
   const { day, monthName, monthNumber, weekdayName, weekdayNameShort } = getTitle(dateParam ?? '');
   const { toScheduleBuilder } = useAppRoutes();
 
-  const scrollYProgress = useScreenScroll();
+  const mastheadRef = useRef<HTMLDivElement>(null);
+  const [showMini, setShowMini] = useState(false);
 
-  const [collapsed, setCollapsed] = useState(false);
-  useMotionValueEvent(scrollYProgress, 'change', (value) => {
-    setCollapsed(value >= 0.5);
-  });
+  useEffect(() => {
+    const el = mastheadRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => setShowMini(!entry.isIntersecting), {
+      threshold: 0,
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
-  const handleDateClick = async () => {
+  const handleDateClick = useCallback(async () => {
     const selectedDate = await drawerStore.show(ScheduleSelectionDrawer, {
       selectedDate: dateParam,
     });
     if (selectedDate) {
       toScheduleBuilder(selectedDate);
     }
-  };
+  }, [dateParam, toScheduleBuilder]);
+
+  const dayPadded = String(day).padStart(2, '0');
 
   return (
-    <header className={styles.header} data-collapsed={collapsed}>
-      <img src={watchSrc} alt="" className={styles.watermark} />
-      <div className={styles.dateLink} onClick={handleDateClick}>
-        <div className={styles.masthead}>
-          <span className={styles.mastheadWeekday}>{weekdayName},</span>
-          <div className={styles.mastheadDateRow}>
-            <span className={styles.mastheadDay}>{day}</span>
-            <span className={styles.mastheadDot}>.</span>
-            <span className={styles.mastheadMonthNum}>{monthNumber}</span>
-            <span className={styles.mastheadMonth}>{monthName}</span>
+    <>
+      <header className={styles.header}>
+        <div className={styles.dateLink} onClick={handleDateClick} ref={mastheadRef}>
+          <div className={styles.v3}>
+            <span className={styles.v3Day}>{day}</span>
+            <div className={styles.v3Overlay}>
+              <span className={styles.v3Weekday}>{weekdayName}</span>
+              <span className={styles.v3MonthLine}>
+                {monthName} &rsquo;{monthNumber}
+              </span>
+            </div>
           </div>
         </div>
-        <div className={styles.mastheadCollapsed}>
-          <span>
-            {weekdayNameShort}, {day} {monthName}
+      </header>
+      {showMini && (
+        <div className={styles.miniDate} onClick={handleDateClick}>
+          <span className={styles.miniDateText}>
+            {dayPadded}.{monthNumber}
           </span>
+          <span className={styles.miniDateWeekday}>{weekdayNameShort}</span>
         </div>
-      </div>
-    </header>
+      )}
+    </>
   );
 };
 

@@ -2,6 +2,8 @@ import { useRef, useEffect, useCallback, type ReactNode } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import styles from './VirtualList.module.scss';
 import clsx from 'clsx';
+import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
+import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 
 const ESTIMATED_ITEM_HEIGHT = 44;
 const OVERSCAN = 5;
@@ -22,6 +24,7 @@ function VirtualList<T extends { id: string | number }>({
   className,
 }: Props<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(containerRef);
 
   const virtualizer = useVirtualizer({
     count: items.length,
@@ -57,45 +60,49 @@ function VirtualList<T extends { id: string | number }>({
   const totalHeight = virtualizer.getTotalSize();
 
   return (
-    <div
-      ref={containerRef}
-      className={clsx(styles.container, className)}
-      onScroll={handleScroll}
-      role="listbox"
-    >
-      <ul
-        className={styles.list}
-        style={{ height: totalHeight ? `${totalHeight}px` : 'auto', position: 'relative' }}
+    <div className={styles.wrapper}>
+      <div
+        ref={containerRef}
+        className={clsx(styles.container, className)}
+        onScroll={handleScroll}
+        role="listbox"
       >
-        {virtualItems.map((vRow) => {
-          const item = items[vRow.index];
-          if (!item) return null;
-          const Tag = itemHtmlFor ? 'label' : 'div';
-          return (
-            <Tag
-              key={vRow.key}
-              htmlFor={itemHtmlFor}
-              data-index={vRow.index}
-              className={styles.virtualItem}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                transform: `translateY(${vRow.start}px)`,
-                height: vRow.size,
-              }}
-              role="option"
-            >
-              {renderItem(item)}
-            </Tag>
-          );
-        })}
+        <ul
+          className={styles.list}
+          style={{ height: totalHeight ? `${totalHeight}px` : 'auto', position: 'relative' }}
+        >
+          {virtualItems.map((vRow) => {
+            const item = items[vRow.index];
+            if (!item) return null;
+            const Tag = itemHtmlFor ? 'label' : 'div';
+            return (
+              <Tag
+                key={vRow.key}
+                htmlFor={itemHtmlFor}
+                data-index={vRow.index}
+                className={styles.virtualItem}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${vRow.start}px)`,
+                  height: vRow.size,
+                }}
+                role="option"
+              >
+                {renderItem(item)}
+              </Tag>
+            );
+          })}
 
-        {items.length === 0 && emptyContent && (
-          <div className={styles.noResults}>{emptyContent}</div>
-        )}
-      </ul>
+          {items.length === 0 && emptyContent && (
+            <div className={styles.noResults}>{emptyContent}</div>
+          )}
+        </ul>
+        <div ref={sentinelRef} />
+      </div>
+      <ScrollIndicator visible={hasMoreBelow} variant="dark" />
     </div>
   );
 }

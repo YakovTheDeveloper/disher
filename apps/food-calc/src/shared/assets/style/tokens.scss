@@ -27,6 +27,7 @@
   --font-sans: "Jost", sans-serif;
   --font-serif: "Merriweather", serif;
   --font-display: "Raleway", sans-serif;
+  --font-mono: "Ubuntu Mono", monospace;
 
   // ─── Border Radius ───────────────────────────────────────────
   --radius-xs: 4px; // progress bars, small pills
@@ -50,15 +51,16 @@
   --easing-default: cubic-bezier(0.4, 0, 0.2, 1); // Material-like
   --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1); // bouncy/spring
 
+  // ─── Layout ────────────────────────────────────────────────
+  --upper-place-height: 15vh;
+
   // ─── Nutrient family ──────────────────────────────────────────
   --nutrient-bg-main: #fef5e7;
-  --nutrient-bg-vitaminsB: #edf4fb;
   --nutrient-bg-minerals: #ecf6ef;
-  --nutrient-bg-rest: #f3ecfa;
+  --nutrient-bg-vitamins: #edf4fb;
   --nutrient-accent-main: #6a30a0;
-  --nutrient-accent-vitaminsB: #2c5d8f;
   --nutrient-accent-minerals: #2d7344;
-  --nutrient-accent-rest: #17a761;
+  --nutrient-accent-vitamins: #2c5d8f;
   --nutrient-progress-height: 3px;
   --nutrient-card-radius: var(--radius-sm);
 
@@ -90,4 +92,36 @@
   --event-body-bg: rgba(180, 180, 180, 0.18);
   --event-body-text: #4a4a4a;
   --event-body-accent: #888888;
+
+  // ─── Time-of-day card palettes ────────────────────────────────
+  // Each palette defines a gradient range (from → to) for background & outline.
+  // Cards interpolate via --item-t (0 → 1) using color-mix().
+
+  // Morning (06–12): green (current default)
+  --tod-morning-bg-from: #e6ffed;
+  --tod-morning-bg-to: #e0faef;
+  --tod-morning-outline-from: #52ffba;
+  --tod-morning-outline-to: #52f0d0;
+  --tod-morning-tapped: #cdfce1;
+
+  // Day (12–18): warm amber/yellow
+  --tod-day-bg-from: #fff8e6;
+  --tod-day-bg-to: #faf0d8;
+  --tod-day-outline-from: #ffd666;
+  --tod-day-outline-to: #f0c850;
+  --tod-day-tapped: #fcf0c8;
+
+  // Evening (18–23): soft purple/lavender
+  --tod-evening-bg-from: #f3ecff;
+  --tod-evening-bg-to: #ece4fa;
+  --tod-evening-outline-from: #c4a8ff;
+  --tod-evening-outline-to: #b89cf0;
+  --tod-evening-tapped: #e4d6fc;
+
+  // Night (23–06): deep blue/slate
+  --tod-night-bg-from: #e8eeff;
+  --tod-night-bg-to: #e0e8fa;
+  --tod-night-outline-from: #8aa8ff;
+  --tod-night-outline-to: #7e9cf0;
+  --tod-night-tapped: #d0dcfc;
 }

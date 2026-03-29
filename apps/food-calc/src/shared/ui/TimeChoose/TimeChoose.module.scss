@@ -7,22 +7,31 @@
     gap: 24px;
 }
 
+.inputRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.after {
+    display: flex;
+    align-items: center;
+}
+
 .wrapper {
     display: inline-flex;
     align-items: center;
-    padding: 18px 24px;
-    border-radius: 20px;
-    transition: 0.2s box-shadow ease-in-out, outline-color 0.2s ease-in-out;
-    color: #787878;
-    box-shadow: 0 4px 25px rgba(203, 203, 203, 0.3);
-    background-color: rgba(255, 255, 255, 0.5);
-
-    backdrop-filter: blur(2px);
-    outline: 17px solid rgba(124, 58, 237, 0);
+    padding: 14px 20px;
+    border-radius: 0;
+    transition: 0.2s box-shadow ease-in-out;
+    color: #000;
+    box-shadow: none;
+    background: #fff;
+    border: 3px solid #000;
+    outline: none;
 
     &:focus-within {
-        box-shadow: 0 4px 10px rgba(45, 66, 255, 0.1);
-        outline-color: rgb(242, 242, 242);
+        box-shadow: 6px 6px 0 #000;
     }
 }
 
@@ -36,13 +45,13 @@
     width: 100px;
     padding: 6px 4px;
     font-size: 4rem;
-    font-weight: 900;
-    text-shadow: #ffd700;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
     text-align: center;
     border: none;
     background: transparent;
-    letter-spacing: 1px;
-    color: inherit;
+    letter-spacing: 4px;
+    color: #000;
 
     &[aria-label='Hour'] {
         padding-right: 0;
@@ -53,12 +62,13 @@
     }
 
     &::selection {
-        color: #7c3aed;
+        color: #fff;
+        background: #000;
     }
 
     &:focus {
         outline: none;
-        @include blink(#fff, #ffd700, 0.6s);
+        @include blink(#fff, #000, 0.8s);
     }
 
     &::placeholder {
@@ -71,15 +81,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: inherit;
-    font-weight: 400;
+    color: #000;
+    font-weight: 900;
     user-select: none;
     pointer-events: none;
     font-size: 2.5rem;
 }
 
 .blinking {
-    @include blink(#fff, #ffd700, 0.6s);
+    @include blink(#fff, #000, 0.8s);
 }
 
 .buttonsWrapper {
@@ -93,20 +103,22 @@
     align-items: center;
     gap: 6px;
     padding: 8px 14px;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 500;
     white-space: nowrap;
-    border-radius: 30px;
-    color: rgba(0, 0, 0, 0.85);
-    background-color: rgba(253, 253, 253, 0.5);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    transition: background-color 0.15s, border-color 0.15s;
+    border-radius: 0;
+    color: #000;
+    background: #fff;
+    border: 2px solid #000;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: background-color 0.15s, color 0.15s;
     cursor: pointer;
 
     &:active {
-        background-color: rgba(255, 255, 255, 0.18);
-        border-color: rgba(255, 255, 255, 0.25);
+        background: #000;
+        color: #fff;
     }
 
     &::before {
@@ -123,27 +135,28 @@
 
 .nowButton {
     &::before {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(60,60,60,0.85)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='square' stroke-linejoin='miter'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E");
     }
 }
 
 .swapButton {
     &::before {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(60,60,60,0.85)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 10H3l4-4'/%3E%3Cpath d='M7 14h14l-4 4'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='M17 10H3l4-4'/%3E%3Cpath d='M7 14h14l-4 4'/%3E%3C/svg%3E");
     }
 }
 
 .nativeInput {
     font-size: 2rem;
+    font-family: 'Courier New', monospace;
     padding: 8px 16px;
-    border-radius: 12px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.1);
-    color: inherit;
+    border-radius: 0;
+    border: 2px solid #000;
+    background: #fff;
+    color: #000;
     cursor: pointer;
 
     &:focus {
         outline: none;
-        border-color: rgba(124, 58, 237, 0.8);
+        box-shadow: 4px 4px 0 #000;
     }
 }

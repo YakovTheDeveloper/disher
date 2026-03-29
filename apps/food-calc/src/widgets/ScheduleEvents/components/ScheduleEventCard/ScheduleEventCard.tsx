@@ -1,11 +1,15 @@
+import React from 'react';
 import styles from './ScheduleEventCard.module.scss';
 import clsx from 'clsx';
 import { SelectableListItem } from '@/features/shared/selectable-list-item';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
+import { getTimeOfDay } from '@/shared/lib/time-of-day';
 
 type Props = {
   item: ScheduleEvent;
+  index?: number;
+  totalCount?: number;
   isSelectMode: boolean;
   isSelected: boolean;
   onSelect: (id: string) => void;
@@ -82,6 +86,8 @@ function formatAtomChip(atom: Atom, index: number) {
 
 export function ScheduleEventCard({
   item,
+  index = 0,
+  totalCount = 1,
   isSelectMode,
   isSelected,
   onSelect,
@@ -100,7 +106,9 @@ export function ScheduleEventCard({
   return (
     <SelectableListItem
       className={clsx(className, styles.row)}
+      style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={item.id}
+      tod={getTimeOfDay(item.time)}
       isSelectMode={isSelectMode}
       isSelected={isSelected}
       onSelect={onSelect}

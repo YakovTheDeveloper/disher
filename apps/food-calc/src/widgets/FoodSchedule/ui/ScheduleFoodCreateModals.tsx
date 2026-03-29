@@ -12,7 +12,10 @@ import { addScheduleFood } from '@/entities/schedule-food';
 import { useProductPortions } from '@/entities/product';
 import { useDishPortions } from '@/entities/dish';
 import toaster from '@/shared/lib/toaster/toaster';
+import { highlightListItem } from '@/shared/lib/emitter/emitter';
 import Button from '@/shared/ui/atoms/Button/Button';
+import CircleInfoIcon from '@/shared/assets/icons/cirlceInfo.svg';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import type { Portion } from '@/features/product/ProductQuantity';
 
 /**
@@ -22,8 +25,8 @@ import type { Portion } from '@/features/product/ProductQuantity';
  * The onFocusCapture handler reads e.target.id to determine which step is active.
  *
  * ScheduleFoodCreateModals (this file):
- *   - TIME_INPUT    → TimeChoose input (step: time)
  *   - SEARCH_INPUT  → SearchFood input (step: search)
+ *   - TIME_INPUT    → TimeChoose input (step: time)
  *   - QUANTITY_INPUT → ProductQuantity NumberInput (step: quantity)
  *
  * CopyToNewDishModal:
@@ -42,7 +45,7 @@ export const MODAL_INPUT_IDS = {
 type Step = 'idle' | 'time' | 'search' | 'quantity';
 type ActiveStep = Exclude<Step, 'idle'>;
 
-const STEPS: ActiveStep[] = ['time', 'search', 'quantity'];
+const STEPS: ActiveStep[] = ['search', 'time', 'quantity'];
 
 const STEP_LABELS: Record<ActiveStep, string> = {
   time: 'Время',
@@ -81,17 +84,24 @@ type Props = {
   scheduleId: string;
 };
 
-const mapPortions = (results: { label: string; amount: number; unit: string; grams: number }[] | undefined): Portion[] =>
+const mapPortions = (
+  results: { label: string; amount: number; unit: string; grams: number }[] | undefined
+): Portion[] =>
   results ? results.map(({ label, amount, unit, grams }) => ({ label, amount, unit, grams })) : [];
 
 const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
   const [step, setStep] = useState<Step>('idle');
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
   const [sessionKey, setSessionKey] = useState(0);
+  const { toProduct, toDish } = useAppRoutes();
   useSwipeableLock(step !== 'idle');
 
-  const { results: foodPortionsMap } = useProductPortions(draft.variant === 'product' ? draft.productId ?? undefined : undefined);
-  const { results: dishPortionsMap } = useDishPortions(draft.variant === 'dish' ? draft.dishId ?? undefined : undefined);
+  const { results: foodPortionsMap } = useProductPortions(
+    draft.variant === 'product' ? (draft.productId ?? undefined) : undefined
+  );
+  const { results: dishPortionsMap } = useDishPortions(
+    draft.variant === 'dish' ? (draft.dishId ?? undefined) : undefined
+  );
 
   const INPUT_TO_STEP: Record<string, ActiveStep> = {
     [MODAL_INPUT_IDS.TIME_INPUT]: 'time',
@@ -132,12 +142,12 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
         updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
       },
     }));
-    setStep('quantity');
+    setStep('time');
   };
 
   const handleCommit = async () => {
     if (draft.variant && (draft.productId || draft.dishId)) {
-      await addScheduleFood({
+      const newId = await addScheduleFood({
         date: scheduleId,
         time: draft.time,
         type: draft.variant === 'product' ? 'food' : 'dish',
@@ -146,6 +156,17 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
         quantity: draft.quantity,
       });
       toaster.success('Добавлено в расписание');
+
+      // Scroll to & highlight the newly added item after it renders
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const el = document.querySelector(`[data-schedule-food-id="${newId}"]`);
+          if (el) {
+            el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            highlightListItem(newId);
+          }
+        }, 150);
+      });
     }
     setDraft(createEmptyDraft());
     setSessionKey((k) => k + 1);
@@ -175,43 +196,89 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
 
   return (
     <div onFocusCapture={handleFocusCapture}>
-      {/* Step 1: Time — trigger: <label htmlFor={MODAL_INPUT_IDS.TIME_INPUT}> */}
+      {/* Step 1: Search Food — trigger: <label htmlFor={MODAL_INPUT_IDS.SEARCH_INPUT}> */}
+      <ModalByLabel
+        position="absolute"
+        isExpanded={step === 'search'}
+        content={
+          <ModalShell>
+            <ModalStepHeader
+              currentStep="search"
+              steps={STEPS}
+              stepLabels={STEP_LABELS}
+              stepResults={{ time: draft.time, search: draft.foodName ?? undefined }}
+              onBack={handleClose}
+              onStepClick={goToStep}
+            />
+            <SearchFood
+              renderSearchItemRight={(variant, item) => (
+                <button
+                  type="button"
+                  aria-label="Информация"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 44,
+                    height: 48,
+                    padding: 0,
+                    border: 'none',
+                    background: 'transparent',
+                    color: '#bbb',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleClose();
+                    requestAnimationFrame(() => {
+                      if (variant === 'product') toProduct(item.id);
+                      else toDish(item.id);
+                    });
+                  }}
+                >
+                  <CircleInfoIcon />
+                </button>
+              )}
+              key={sessionKey}
+              mode="products-and-dishes"
+              onSelectFood={handleFoodSelect}
+              activeItemId={draft.productId ?? draft.dishId ?? undefined}
+              itemHtmlFor={MODAL_INPUT_IDS.TIME_INPUT}
+              inputId={MODAL_INPUT_IDS.SEARCH_INPUT}
+            />
+          </ModalShell>
+        }
+      />
+
+      {/* Step 2: Time — trigger: food selection → setStep('time') */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'time'}
         content={
           <ModalShell>
-            <ModalStepHeader currentStep="time" steps={STEPS} stepLabels={STEP_LABELS} stepResults={{ time: draft.time, search: draft.foodName ?? undefined }} onBack={handleClose} onStepClick={goToStep} />
+            <ModalStepHeader
+              currentStep="time"
+              steps={STEPS}
+              stepLabels={STEP_LABELS}
+              stepResults={{ time: draft.time, search: draft.foodName ?? undefined }}
+              onBack={handleClose}
+              onStepClick={goToStep}
+            />
             <ModalShell.Spacer />
             <ModalShell.Body>
               <TimeChoose
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
                 inputId={MODAL_INPUT_IDS.TIME_INPUT}
+                nextLabelHtmlFor={MODAL_INPUT_IDS.QUANTITY_INPUT}
               />
-              <ModalFooter onBack={handleClose}>
-                <NextStepButton htmlFor={MODAL_INPUT_IDS.SEARCH_INPUT} />
+              <ModalFooter onBack={() => goToStep('search')}>
+                <NextStepButton htmlFor={MODAL_INPUT_IDS.QUANTITY_INPUT} />
               </ModalFooter>
             </ModalShell.Body>
-          </ModalShell>
-        }
-      />
-
-      {/* Step 2: Search Food — trigger: NextStepButton → htmlFor={MODAL_INPUT_IDS.SEARCH_INPUT} */}
-      <ModalByLabel
-        position="absolute"
-        isExpanded={step === 'search'}
-        content={
-          <ModalShell>
-            <ModalStepHeader currentStep="search" steps={STEPS} stepLabels={STEP_LABELS} stepResults={{ time: draft.time, search: draft.foodName ?? undefined }} onBack={handleClose} onStepClick={goToStep} />
-            <SearchFood
-              key={sessionKey}
-              mode="products-and-dishes"
-              onSelectFood={handleFoodSelect}
-              activeItemId={draft.productId ?? draft.dishId ?? undefined}
-              itemHtmlFor={MODAL_INPUT_IDS.QUANTITY_INPUT}
-              inputId={MODAL_INPUT_IDS.SEARCH_INPUT}
-            />
           </ModalShell>
         }
       />
@@ -222,13 +289,25 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
         isExpanded={step === 'quantity'}
         content={
           <ModalShell>
-            <ModalStepHeader currentStep="quantity" steps={STEPS} stepLabels={STEP_LABELS} stepResults={{ time: draft.time, search: draft.foodName ?? undefined }} onBack={handleClose} onStepClick={goToStep} />
+            <ModalStepHeader
+              currentStep="quantity"
+              steps={STEPS}
+              stepLabels={STEP_LABELS}
+              stepResults={{ time: draft.time, search: draft.foodName ?? undefined }}
+              onBack={handleClose}
+              onStepClick={goToStep}
+            />
             <ModalShell.Spacer />
             <ModalShell.Body>
               {(draft.productId || draft.dishId) && (
-                <ProductQuantity key={sessionKey} content={quantityContent} onFinish={() => {}} />
+                <ProductQuantity
+                  key={sessionKey}
+                  content={quantityContent}
+                  onFinish={() => {}}
+                  onNextButtonClick={handleCommit}
+                />
               )}
-              <ModalFooter onBack={() => goToStep('search')}>
+              <ModalFooter onBack={() => goToStep('time')}>
                 <Button variant="primary-form" onClick={handleCommit}>
                   Готово
                 </Button>

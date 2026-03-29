@@ -9,8 +9,16 @@ import { SyncProvider } from '@/api/triplit/SyncProvider';
 // Start session (non-blocking when local data exists), render immediately
 initSession();
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const root = document.getElementById('root')!;
+ReactDOM.createRoot(root).render(
   <SyncProvider>
     <RouterProvider router={router} />
   </SyncProvider>,
 );
+
+// Reveal UI after first paint to prevent FOUC
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    root.classList.add('ready');
+  });
+});

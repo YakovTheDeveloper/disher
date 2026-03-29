@@ -121,6 +121,21 @@ export function getSessionInfo(): SessionInfo {
 // ─── Internal helpers ───
 
 /**
+ * Quick sanity check: does the local Triplit IDB have any foods?
+ * If IndexedDB was cleared externally (browser settings, devtools, schema version bump)
+ * but localStorage still has the reference version, we'd skip sync and show nothing.
+ * This catches that case by doing a quick count query.
+ */
+async function verifyLocalDataExists(): Promise<boolean> {
+  try {
+    const result = await triplit.fetch(triplit.query("foods").Limit(1));
+    return result.size > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Fetch the server's reference data version — a single number equal to the
  * sum of all system collection counts. Cheap: one SQLite COUNT per collection.
  * Retries up to 3 times (500 ms apart) to handle the startup race where the
@@ -267,12 +282,19 @@ export async function initSession(): Promise<void> {
 
   const localVersion = getLocalVersion();
   if (localVersion === serverVersion) {
-    addSyncLog("info", `Reference data up to date (v${serverVersion}). No sync needed.`);
-    setSyncStatus("synced");
-    _sessionInfo = { mode: "anon", connected: false, skippedReason: "Version match", syncComplete: true };
-    // IDB may have been cleared while localStorage version persisted — backfill Dexie if empty
-    ensureDexieFoodNutrients();
-    return;
+    // Sanity check: verify IndexedDB actually has data.
+    // If IDB was cleared (e.g. browser, devtools) but localStorage version persisted,
+    // we'd skip sync and show zero products.
+    const hasLocalData = await verifyLocalDataExists();
+    if (hasLocalData) {
+      addSyncLog("info", `Reference data up to date (v${serverVersion}). No sync needed.`);
+      setSyncStatus("synced");
+      _sessionInfo = { mode: "anon", connected: false, skippedReason: "Version match", syncComplete: true };
+      ensureDexieFoodNutrients();
+      return;
+    }
+    addSyncLog("warn", "Version match but IndexedDB is empty — forcing re-sync.");
+    localStorage.removeItem(REFERENCE_VERSION_KEY);
   }
 
   addSyncLog("info", `Version mismatch (local: ${localVersion ?? "none"} → server: ${serverVersion}). Syncing...`);

@@ -1,0 +1,20 @@
+.topBar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border-hairline);
+    flex-shrink: 0;
+}

@@ -178,6 +178,7 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
                   }}
                   onFinish={() => {}}
                   inputId={EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
+                  onNextButtonClick={handleCommit}
                 />
               )}
               <ModalFooter onBack={handleClose}>

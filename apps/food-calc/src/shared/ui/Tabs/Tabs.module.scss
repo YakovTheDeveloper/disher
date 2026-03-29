@@ -1,61 +1,35 @@
-@import '@/shared/assets/style/mixin.scss';
+// ─── Nylon-magazine style tabs ───────────────────────────────
 
 .tabs {
-    overflow: hidden;
-    position: relative;
     display: flex;
-
-
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: transparent;
 }
-
-.place {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 100%;
-}
-
-
-.inner {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: auto;
-}
-
-.labelContainer {
-    height: 100%;
-    display: block;
-}
-
 
 .header {
     display: inline-block;
-    // width: 90%;
-    margin: 0 auto;
-    transition: opacity 0.3s ease-in-out, transform 0.5s ease-in-out;
-    opacity: 0.8;
-    font-size: 12px;
-    color: rgb(0, 0, 0);
-    // color: rgb(235, 234, 255);
-    font-style: italic;
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     text-align: center;
-    min-width: 0;
+    color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    z-index: 2;
+    transition: color var(--duration-fast) ease, opacity var(--duration-fast) ease;
 
-
-    &__inactive {}
+    &__inactive {
+        opacity: 0.6;
+    }
 
     &:empty::before {
         content: '\00a0';
     }
 }
-
 
 .tabContainer {
     display: flex;
@@ -63,14 +37,12 @@
     position: relative;
     flex: 1 1 auto;
 
-
     &.info {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='gray' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='12' y1='16' x2='12' y2='12'%3E%3C/line%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'%3E%3C/line%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: center;
         background-size: 1rem;
         font-size: 0;
-
     }
 
     &.foodSelect {
@@ -80,107 +52,85 @@
 
 .tab {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     position: relative;
-    // backdrop-filter: blur(1px);
-    // -webkit-backdrop-filter: blur(1px);
-    // background: rgba(255, 255, 255, 0.85);
-    border-bottom: 3px solid #fff;
-    padding: 10px 0.5rem 10px;
-
-
-
-    // min-height: 36px;
+    padding: 10px var(--space-3);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: transparent;
     cursor: pointer;
+    transition:
+        background var(--duration-fast) ease,
+        border-color var(--duration-fast) ease,
+        color var(--duration-fast) ease;
 
     &:disabled {
         opacity: 0.3;
         cursor: default;
     }
 
-    &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: -0;
-        opacity: 0;
-        // border-radius: 20px;
-        border-bottom: 1px solid transparent;
-        pointer-events: none;
-        z-index: -1;
+    &:active:not(:disabled) {
+        transform: scale(0.97);
     }
 
-    // #1976d2;
-
     &.active {
-        border-color: rgba(55, 0, 255, 1);
+        background: #111;
+        border-color: #111;
 
-
-        &::before {
+        .header {
+            color: #fff;
             opacity: 1;
+            font-weight: 600;
         }
-
-        & :is(.header, .tabButton) {
-            color: rgba(55, 0, 255, 1);
-            font-weight: 500;
-        }
-
-        color: white;
-        font-weight: 500;
-        // Bold underline for active tab
     }
 }
 
+// ─── Finish tab states ──────────────────────────────────────
 
 .finishHint {
-    font-size: 12px;
-    font-style: italic;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: #888;
     text-align: center;
     white-space: nowrap;
-    text-overflow: ellipsis;
     position: absolute;
-    top: -5px;
-    transform: translateX(-50%);
+    top: -14px;
     left: 50%;
-    color: red;
+    transform: translateX(-50%);
 
     &__active {
-        color: rgba(255, 7, 110, 0.8);
+        color: var(--color-danger);
     }
 }
 
 .lastTabActive {
     position: relative;
-    @import '@/shared/assets/style/mixin.scss';
-
 
     &::after {
         content: '';
         position: absolute;
-        bottom: -6px;
+        bottom: -8px;
         left: 50%;
         transform: translateX(-50%);
-        width: 6px;
-        height: 6px;
-        background: rgba(55, 0, 255, 1);
+        width: 5px;
+        height: 5px;
+        background: #111;
         border-radius: 50%;
         animation: pulse 1.5s ease-in-out infinite;
     }
 }
 
 @keyframes pulse {
-
-    0%,
-    100% {
+    0%, 100% {
         opacity: 1;
         transform: translateX(-50%) scale(1);
     }
-
     50% {
-        opacity: 0.5;
-        transform: translateX(-50%) scale(1.2);
+        opacity: 0.4;
+        transform: translateX(-50%) scale(1.3);
     }
 }
 
@@ -189,17 +139,10 @@
 }
 
 @keyframes blink {
-
-    0%,
-    100% {
+    0%, 100% {
         opacity: 1;
-        color: rgb(255, 40, 216);
-        border-color: rgb(255, 0, 212);
     }
-
     50% {
-        opacity: 0.1;
-        color: rgba(55, 0, 255, 1);
-        border-color: rgba(55, 0, 255, 1);
+        opacity: 0.2;
     }
 }

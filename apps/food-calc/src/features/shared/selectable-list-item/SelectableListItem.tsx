@@ -5,16 +5,21 @@ import TickIcon from '@/shared/assets/icons/tick.svg';
 import { AnimatePresence, motion } from 'framer-motion';
 import { emitter } from '@/shared/lib/emitter/emitter';
 
+import type { TimeOfDay } from '@/shared/lib/time-of-day';
+
 type Props = {
   id: string;
   children?: React.ReactNode;
   className?: string;
   innerClassName?: string;
+  style?: React.CSSProperties;
   variant?: 1 | 2 | 3;
+  tod?: TimeOfDay;
   isSelectMode: boolean;
   isSelected: boolean;
   onSelect: (id: string) => void;
   onClick?: () => void;
+  [key: `data-${string}`]: string | undefined;
 };
 
 const LONG_PRESS_DELAY = 450;
@@ -25,12 +30,19 @@ const ListItem = ({
   children,
   className,
   innerClassName,
+  style,
   variant,
+  tod,
   isSelectMode,
   isSelected,
   onSelect,
   onClick,
+  ...rest
 }: Props) => {
+  // Extract data-* attributes
+  const dataAttrs = Object.fromEntries(
+    Object.entries(rest).filter(([key]) => key.startsWith('data-'))
+  );
   const stringId = id.toString();
   const [isHighlighted, setIsHighlighted] = useState(false);
 
@@ -153,7 +165,9 @@ const ListItem = ({
         isSelected && styles.selected,
         isSelectMode && styles.inActionsMode
       )}
+      data-tod={tod}
       onContextMenu={onContextMenu}
+      {...dataAttrs}
     >
       <AnimatePresence>
         {isSelectMode && (
@@ -199,6 +213,7 @@ const ListItem = ({
           cleanUp();
         }}
         onPointerLeave={cleanUp}
+        style={style}
         className={clsx(
           className,
           innerClassName,

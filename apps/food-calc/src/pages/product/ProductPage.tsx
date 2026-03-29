@@ -133,6 +133,8 @@ const ProductPage = () => {
         )
       }
     >
+      <Ornament text="продукт" />
+
       <img src={bagImage} className={s.backgroundImage} alt="" />
       <ChangeName name={food.name} onChangeName={(name) => updateProduct(food.id, { name })} />
 

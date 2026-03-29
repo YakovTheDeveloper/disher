@@ -11,7 +11,7 @@ import {
   FloatingPortal,
 } from '@floating-ui/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useDailyNorms, createDailyNorm } from '@/entities/daily-norm';
+import { useDailyNorms, createDailyNorm, DEFAULT_NORM_ID, DEFAULT_NORM } from '@/entities/daily-norm';
 import styles from './OpenDailyNorms.module.scss';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 
@@ -51,12 +51,14 @@ const TickIcon = () => (
 
 const OpenDailyNorms = ({ className }: Props) => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [selectedNormId, setSelectedNormId] = React.useState<string | null>(null);
+  const [selectedNormId, setSelectedNormId] = React.useState<string | null>(DEFAULT_NORM_ID);
   const { toDailyNorm } = useAppRoutes();
   const { results: normsMap } = useDailyNorms();
 
   const norms = React.useMemo(() => {
-    return normsMap ? Array.from(normsMap.values()) : [];
+    const fetched = normsMap ? Array.from(normsMap.values()) : [];
+    const hasDefault = fetched.some((n) => n.id === DEFAULT_NORM_ID);
+    return hasDefault ? fetched : [DEFAULT_NORM as any, ...fetched];
   }, [normsMap]);
 
   const selectedNorm = React.useMemo(() => {

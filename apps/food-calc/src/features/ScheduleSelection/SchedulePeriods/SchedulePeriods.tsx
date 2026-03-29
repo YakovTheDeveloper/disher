@@ -2,15 +2,10 @@ import { useState } from 'react';
 import { format, differenceInDays, startOfToday, addDays, parse } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import styles from './SchedulePeriods.module.scss';
-
-type Period = {
-  id: string;
-  name: string;
-  description?: string;
-  startDate: string; // dd-MM-yyyy
-  endDate: string; // dd-MM-yyyy
-  colorIndex: number;
-};
+import { usePeriods, addPeriod, removePeriod } from '@/entities/period';
+import { drawerStore } from '@/shared/ui/drawer-store';
+import type { BaseDrawerProps } from '@/shared/ui/overlay-types';
+import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 
 const COLORS = [
   styles.color0,
@@ -43,12 +38,31 @@ const emptyForm = {
   endDate: format(addDays(startOfToday(), 7), 'yyyy-MM-dd'),
 };
 
+// Confirmation drawer for deletion
+const DeletePeriodDrawer = ({ onClose, periodName }: BaseDrawerProps<boolean> & { periodName: string }) => (
+  <DrawerLayout>
+    <div style={{ padding: 'var(--space-6) var(--space-4)', textAlign: 'center' }}>
+      <p style={{ fontSize: 'var(--text-base)', marginBottom: 'var(--space-4)' }}>
+        Удалить период «{periodName}»?
+      </p>
+      <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+        <button className={`${styles.formButton} ${styles.formButtonSecondary}`} onClick={() => onClose(false)} style={{ flex: 1 }}>
+          Отмена
+        </button>
+        <button className={`${styles.formButton} ${styles.formButtonPrimary}`} onClick={() => onClose(true)} style={{ flex: 1 }}>
+          Удалить
+        </button>
+      </div>
+    </div>
+  </DrawerLayout>
+);
+
 export const SchedulePeriods = () => {
-  const [periods, setPeriods] = useState<Period[]>([]);
+  const { results: periods } = usePeriods();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!form.name.trim() || !form.startDate || !form.endDate) return;
 
     const toInternal = (isoDate: string) => {
@@ -56,23 +70,26 @@ export const SchedulePeriods = () => {
       return `${d}-${m}-${y}`;
     };
 
-    const newPeriod: Period = {
-      id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    await addPeriod({
       name: form.name.trim(),
-      description: form.description.trim() || undefined,
+      description: form.description.trim() || null,
       startDate: toInternal(form.startDate),
       endDate: toInternal(form.endDate),
-      colorIndex: periods.length % COLORS.length,
-    };
+      colorIndex: (periods?.length ?? 0) % COLORS.length,
+    });
 
-    setPeriods((prev) => [...prev, newPeriod]);
     setForm(emptyForm);
     setShowForm(false);
   };
 
-  const handleRemove = (id: string) => {
-    setPeriods((prev) => prev.filter((p) => p.id !== id));
+  const handleRemove = async (id: string, name: string) => {
+    const confirmed = await drawerStore.show(DeletePeriodDrawer, { periodName: name });
+    if (confirmed) {
+      await removePeriod(id);
+    }
   };
+
+  const periodsList = periods ?? [];
 
   return (
     <div className={styles.container}>
@@ -151,7 +168,7 @@ export const SchedulePeriods = () => {
       )}
 
       <div className={styles.list}>
-        {periods.length === 0 && !showForm && (
+        {periodsList.length === 0 && !showForm && (
           <div className={styles.emptyState}>
             <span className={styles.emptyIcon}>◇</span>
             <span className={styles.emptyText}>
@@ -162,13 +179,13 @@ export const SchedulePeriods = () => {
           </div>
         )}
 
-        {periods.map((period) => {
+        {periodsList.map((period) => {
           const progress = getProgress(period.startDate, period.endDate);
           return (
             <div
               key={period.id}
               className={styles.periodCard}
-              onClick={() => handleRemove(period.id)}
+              onClick={() => handleRemove(period.id, period.name)}
             >
               <div className={styles.periodTop}>
                 <span className={styles.periodName}>{period.name}</span>

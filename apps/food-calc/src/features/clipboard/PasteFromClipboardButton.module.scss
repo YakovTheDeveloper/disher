@@ -1,0 +1,99 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-2);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-1);
+}
+
+.title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.03em;
+  text-transform: lowercase;
+}
+
+.clearBtn {
+  background: none;
+  border: none;
+  color: rgba(0, 0, 0, 0.3);
+  font-size: var(--text-sm);
+  padding: 2px 6px;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: background var(--duration-fast) ease;
+
+  &:active {
+    background: rgba(0, 0, 0, 0.06);
+  }
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item_0 {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.item_1 {
+  background: rgba(0, 0, 0, 0.045);
+}
+
+.item_2 {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.item_3 {
+  background: rgba(0, 0, 0, 0.018);
+}
+
+.item_4 {
+  background: rgba(0, 0, 0, 0.009);
+}
+
+.itemName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(0, 0, 0, 0.5);
+  font-weight: 400;
+}
+
+.itemTime {
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+  font-size: var(--text-xs);
+  color: rgba(0, 0, 0, 0.25);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  padding-top: 2px;
+}
+
+.pasteBtn {
+  flex: 1;
+}

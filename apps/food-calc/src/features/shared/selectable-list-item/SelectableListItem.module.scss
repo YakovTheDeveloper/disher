@@ -55,8 +55,17 @@
 }
 
 .commonListItemInner {
-    background-color: #e6ffed;
-    outline: 1px solid #52ffba;
+    --t: var(--item-t, 0);
+
+    // Time-of-day palette — defaults to morning (green)
+    --_bg-from: var(--tod-bg-from, var(--tod-morning-bg-from));
+    --_bg-to: var(--tod-bg-to, var(--tod-morning-bg-to));
+    --_outline-from: var(--tod-outline-from, var(--tod-morning-outline-from));
+    --_outline-to: var(--tod-outline-to, var(--tod-morning-outline-to));
+    --_tapped: var(--tod-tapped, var(--tod-morning-tapped));
+
+    background-color: color-mix(in oklch, var(--_bg-from) calc((1 - var(--t)) * 100%), var(--_bg-to));
+    outline: 1px solid color-mix(in oklch, var(--_outline-from) calc((1 - var(--t)) * 100%), var(--_outline-to));
 
     position: relative;
     padding: 9px 8px 9px 12px;
@@ -73,15 +82,46 @@
         box-shadow: 0px 10px 8px -11px rgba(0, 0, 0, 0.15);
     }
 
-
-
     &_tapped {
-        background-color: #cdfce1 !important;
+        background-color: var(--_tapped) !important;
     }
 
     &_inActionsMode {
         // background-color: #6cffc4 !important;
     }
+}
+
+// ─── Time-of-day palette overrides via data-tod ─────────────────
+.commonListItemWrapper[data-tod="morning"] .commonListItemInner {
+    --tod-bg-from: var(--tod-morning-bg-from);
+    --tod-bg-to: var(--tod-morning-bg-to);
+    --tod-outline-from: var(--tod-morning-outline-from);
+    --tod-outline-to: var(--tod-morning-outline-to);
+    --tod-tapped: var(--tod-morning-tapped);
+}
+
+.commonListItemWrapper[data-tod="day"] .commonListItemInner {
+    --tod-bg-from: var(--tod-day-bg-from);
+    --tod-bg-to: var(--tod-day-bg-to);
+    --tod-outline-from: var(--tod-day-outline-from);
+    --tod-outline-to: var(--tod-day-outline-to);
+    --tod-tapped: var(--tod-day-tapped);
+}
+
+.commonListItemWrapper[data-tod="evening"] .commonListItemInner {
+    --tod-bg-from: var(--tod-evening-bg-from);
+    --tod-bg-to: var(--tod-evening-bg-to);
+    --tod-outline-from: var(--tod-evening-outline-from);
+    --tod-outline-to: var(--tod-evening-outline-to);
+    --tod-tapped: var(--tod-evening-tapped);
+}
+
+.commonListItemWrapper[data-tod="night"] .commonListItemInner {
+    --tod-bg-from: var(--tod-night-bg-from);
+    --tod-bg-to: var(--tod-night-bg-to);
+    --tod-outline-from: var(--tod-night-outline-from);
+    --tod-outline-to: var(--tod-night-outline-to);
+    --tod-tapped: var(--tod-night-tapped);
 }
 
 
@@ -169,33 +209,33 @@
 }
 
 .highlighted {
-    animation: highlight-pulse 1s ease-in-out, long-outline 3s ease-in-out;
+    animation: added-highlight-bg 3s ease-out forwards, added-highlight-outline 3s ease-out forwards;
 }
 
-@keyframes highlight-pulse {
+@keyframes added-highlight-bg {
     0% {
-        background-color: rgba(125, 203, 255, 0.3);
+        background-color: rgba(255, 191, 71, 0.35);
+    }
+
+    70% {
+        background-color: rgba(255, 191, 71, 0.12);
     }
 
     100% {
-        background-color: #f1fbf9;
+        background-color: var(--_bg-from, #e6ffed);
     }
 }
 
-@keyframes long-outline {
+@keyframes added-highlight-outline {
     0% {
-        outline: 3px solid transparent;
+        outline: 2.5px solid rgba(255, 170, 30, 0.7);
     }
 
-    10% {
-        outline: 3px solid rgb(0, 255, 157);
-    }
-
-    80% {
-        outline: 3px solid rgb(125, 229, 255);
+    60% {
+        outline: 2.5px solid rgba(255, 170, 30, 0.25);
     }
 
     100% {
-        outline: 3px solid transparent;
+        outline: 1px solid var(--_outline-from, #52ffba);
     }
 }
