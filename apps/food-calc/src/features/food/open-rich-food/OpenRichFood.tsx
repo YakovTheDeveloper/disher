@@ -23,14 +23,20 @@ const SearchIcon = () => (
 interface Props {
   nutrientId: string;
   nutrientName: string;
+  nutrientUnit?: string;
+  onRichFood?: (nutrientId: string, unit: string) => void;
 }
 
-const OpenRichFood: FC<Props> = ({ nutrientId, nutrientName }) => {
+const OpenRichFood: FC<Props> = ({ nutrientId, nutrientName, nutrientUnit, onRichFood }) => {
   const navigate = useNavigate();
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`${RouterLinks.Food}?richNutrient=${nutrientId}`);
+    if (onRichFood) {
+      onRichFood(nutrientId, nutrientUnit ?? '');
+    } else {
+      navigate(`${RouterLinks.Food}?richNutrient=${nutrientId}`);
+    }
   };
 
   return (

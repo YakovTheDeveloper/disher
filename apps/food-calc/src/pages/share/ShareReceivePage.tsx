@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useStore } from '@livestore/react';
 import { useParams } from 'react-router';
 import { fetchShare } from '@/shared/lib/api/shares';
 import {
@@ -13,6 +14,7 @@ import { SearchFood } from '@/features/food/food-search';
 import { ScheduleSelection } from '@/features/ScheduleSelection/ScheduleSelection';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import toaster from '@/shared/lib/toaster/toaster';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import { RouterUrls, RouterLinks } from '@/app/router';
 import { useNavigate } from 'react-router';
 import styles from './ShareReceivePage.module.scss';
@@ -27,6 +29,7 @@ type ShareData = {
 type Mode = 'review' | 'select-dish' | 'select-date';
 
 const ShareReceivePage = () => {
+  const { store } = useStore();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const listRef = useRef<SuggestionsReviewListRef>(null);
@@ -60,9 +63,11 @@ const ShareReceivePage = () => {
     }
 
     const dishId = payload.id;
-    await Promise.all(
-      items.map((item) => addDishItem({ dishId, foodId: item.foodId, quantity: item.quantity }))
+    const result = await safeMutate(
+      () => Promise.all(items.map((item) => addDishItem(store, { dishId, foodId: item.foodId, quantity: item.quantity }))),
+      'Не удалось добавить продукты',
     );
+    if (result === undefined) return;
 
     toaster.success(`Добавлено ${items.length} продуктов`, {
       action: { label: 'Открыть', href: RouterUrls.getDish(dishId) },
@@ -77,17 +82,13 @@ const ShareReceivePage = () => {
       return;
     }
 
-    await Promise.all(
-      items.map((item) =>
-        addScheduleFood({
-          date,
-          time,
-          type: 'food',
-          quantity: item.quantity,
-          foodId: item.foodId,
-        })
-      )
+    const result = await safeMutate(
+      () => Promise.all(items.map((item) =>
+        addScheduleFood(store, { date, time, type: 'food', quantity: item.quantity, foodId: item.foodId })
+      )),
+      'Не удалось добавить продукты',
     );
+    if (result === undefined) return;
 
     toaster.success(`Добавлено ${items.length} продуктов на ${date}`, {
       action: { label: 'Открыть', href: `${RouterLinks.ScheduleBuilder}/${date}` },

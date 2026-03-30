@@ -1,3 +1,4 @@
+import { useStore } from '@livestore/react';
 import { Screen } from '@/shared/ui/Screen';
 import { Spacer } from '@/shared/ui/atoms/Spacer';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
@@ -18,11 +19,13 @@ import normsImg from '@/shared/assets/decarative/norms.png';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import type { DailyNormItems } from '@/entities/daily-norm';
 import Nutrients from '@/entities/nutrient/ui/NutrientGroup/Nutrients';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DailyNormPage.module.scss';
 
 const DailyNormPage = () => {
+  const { store } = useStore();
   const { id } = useParams<'id'>();
-  const { result: fetchedNorm } = useDailyNorm(id);
+  const fetchedNorm = useDailyNorm(id);
   const dailyNorm = id === DEFAULT_NORM_ID ? (fetchedNorm ?? DEFAULT_NORM) : fetchedNorm;
 
   const createdByUser = dailyNorm?.userId !== '__system__';
@@ -33,13 +36,13 @@ const DailyNormPage = () => {
     return null;
   }
 
-  const items = (dailyNorm.items ?? {}) as DailyNormItems;
-  const handleChangeName = (name: string) => updateDailyNorm(dailyNorm.id, { name });
+  const items = (typeof dailyNorm.items === 'string' ? JSON.parse(dailyNorm.items) : dailyNorm.items ?? {}) as DailyNormItems;
+  const handleChangeName = (name: string) => safeMutate(() => updateDailyNorm(store, dailyNorm.id, { name }), 'Не удалось переименовать');
 
   const getNormValue = (nutrientId: string) => items[nutrientId] ?? 0;
 
   const handleChange = (value: number, nutrientId: string) => {
-    setDailyNormNutrient(dailyNorm.id, nutrientId, value || null);
+    safeMutate(() => setDailyNormNutrient(store, dailyNorm.id, nutrientId, value || null, items), 'Не удалось сохранить нутриент');
   };
 
   const renderCard = (nutrient: Nutrient) => (
@@ -65,7 +68,7 @@ const DailyNormPage = () => {
           <Textarea
             disabled={!createdByUser}
             value={dailyNorm?.description || ''}
-            onChange={(val) => updateDailyNorm(dailyNorm.id, { description: val || '' })}
+            onChange={(val) => safeMutate(() => updateDailyNorm(store, dailyNorm.id, { description: val || '' }), 'Не удалось обновить описание')}
           />
         </label>
         <Ornament text="нутриенты"></Ornament>

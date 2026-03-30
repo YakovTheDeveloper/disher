@@ -1,5 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { TimeGroup } from '@/features/time-group';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { groupItemsByTime, getNowMarkerIndex } from '@/shared/lib/schedule';
@@ -7,6 +6,7 @@ import { NowMarker } from '@/shared/ui/NowMarker';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import ScheduleFoodItemComponent from '@/widgets/FoodSchedule/ScheduleFoodItem/ScheduleFoodItem';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
+import { useStore as useLiveStore } from '@livestore/react';
 import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { Navigation } from '@/pages/home-page/ui';
@@ -19,13 +19,9 @@ import Button from '@/shared/ui/atoms/Button/Button';
 import {
   ScheduleFoodCreateModals,
   MODAL_INPUT_IDS,
-  CopyToNewDishModal,
-  CopyToExistingDishModal,
-  CopyToAnotherDayScheduleModal,
   ScheduleFoodEditModals,
   EDIT_MODAL_INPUT_IDS,
 } from '@/widgets/FoodSchedule/ui';
-import { CountBadge } from '@/shared/ui/atoms/Button/CountBadge/CountBadge';
 import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { removeScheduleFoods } from '@/entities/schedule-food';
@@ -35,13 +31,17 @@ import { CopyToClipboardButton, PasteFromClipboardButton } from '@/features/clip
 import type { ClipboardItem } from '@/shared/model/clipboardStore';
 import { AccountPanel } from '@/features/auth';
 import { PeriodBanner } from '@/features/ScheduleSelection/SchedulePeriods';
+import { fetchDailyAnalysis, computeInputHash } from '@/entities/analytics';
 
 type CommonProps = {
   date: string;
   items: ScheduleFoodWithRelations[];
+  richNutrient?: { id: string; unit: string } | null;
+  onRichNutrientClear?: () => void;
 };
 
-const FoodSchedule = ({ date, items }: CommonProps) => {
+const FoodSchedule = ({ date, items, richNutrient, onRichNutrientClear }: CommonProps) => {
+  const { store } = useLiveStore();
   const selectionStoreFood = useSelection();
   const isActionsMode = useStore(selectionStoreFood, (s) => s.isActionsMode);
   const selectedIds = useStore(selectionStoreFood, (s) => s.selectedIds);
@@ -51,18 +51,35 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
   const toggleShowPrice = useUiStore((s) => s.toggleScheduleFoodsShowPrice);
   const { toScheduleAnalytics } = useAppRoutes();
 
-  const [isOpen, setIsOpen] = useState<
-    'create-dish-and-copy' | 'copy-to-existing-dish' | 'copy-to-another-day' | null
-  >(null);
   const [editingItem, setEditingItem] = useState<ScheduleFoodWithRelations | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'search' | 'quantity'>('idle');
-  const [dishChoiceMode, setDishChoiceMode] = useState(false);
 
-  useSwipeableLock(isOpen !== null || editingItem !== null);
-  const closeModal = () => setIsOpen(null);
-  const openModal = (
-    variant: 'create-dish-and-copy' | 'copy-to-existing-dish' | 'copy-to-another-day' | null
-  ) => setIsOpen(variant);
+  // Analytics staleness indicator: 'none' | 'fresh' | 'stale'
+  const [analyticsStatus, setAnalyticsStatus] = useState<'none' | 'fresh' | 'stale'>('none');
+  useEffect(() => {
+    let cancelled = false;
+    if (items.length === 0) { setAnalyticsStatus('none'); return; }
+
+    (async () => {
+      const persisted = await fetchDailyAnalysis(date, 'food');
+      if (cancelled) return;
+      if (!persisted) { setAnalyticsStatus('none'); return; }
+
+      const snap = items.map((sf) => ({
+        time: sf.time,
+        name: sf.food?.name || sf.dish?.name || '',
+        quantity: sf.quantity,
+        type: sf.type,
+      }));
+      const currentHash = await computeInputHash(snap);
+      if (cancelled) return;
+      setAnalyticsStatus(currentHash === persisted.inputHash ? 'fresh' : 'stale');
+    })();
+
+    return () => { cancelled = true; };
+  }, [date, items]);
+
+  useSwipeableLock(editingItem !== null);
 
   const closeEditModal = () => {
     setEditingItem(null);
@@ -87,9 +104,6 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
     []
   );
 
-  const getSelectedItemsWithProduct = () =>
-    items.filter((item) => selectedIds.includes(item.id) && item.foodId != null);
-
   const groups = useMemo(() => groupItemsByTime(items), [items]);
   const nowMarkerIndex = useMemo(() => getNowMarkerIndex(groups, date), [groups, date]);
 
@@ -98,38 +112,10 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
     if (ids.length === 0) return;
     const confirmed = await drawerStore.show(DeleteConfirmationModal, { count: ids.length });
     if (!confirmed) return;
-    await removeScheduleFoods(ids);
+    removeScheduleFoods(store, ids);
     clearSelection();
     toaster.success(`Удалено: ${ids.length}`);
   };
-
-  const openDishChoice = () => {
-    const selectedProducts = getSelectedItemsWithProduct();
-    if (selectedProducts.length === 0) {
-      toaster.error('Надо выбрать хотя бы 1 элемент с продуктом, чтобы создать блюдо');
-      return;
-    }
-    setDishChoiceMode(true);
-  };
-
-  const handleDishChoiceSelect = (variant: 'create-dish-and-copy' | 'copy-to-existing-dish') => {
-    openModal(variant);
-    setDishChoiceMode(false);
-  };
-
-  const onCopyToAnotherSchedule = () => {
-    openModal('copy-to-another-day');
-  };
-
-  const handleBack = () => {
-    if (dishChoiceMode) {
-      setDishChoiceMode(false);
-    } else {
-      clearSelection();
-    }
-  };
-
-  const selectedProductsFromSelectedFoods = getSelectedItemsWithProduct();
 
   const selectedItemsForClipboard: ClipboardItem[] = useMemo(
     () =>
@@ -139,6 +125,7 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
           time: item.time,
           type: item.type as 'food' | 'dish',
           quantity: item.quantity,
+          details: item.details ?? null,
           foodId: item.foodId ?? null,
           dishId: item.dishId ?? null,
           displayName: item.food?.name ?? item.dish?.name ?? '—',
@@ -146,17 +133,12 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
     [items, selectedIds]
   );
 
-  const onModalActionFinish = () => {
-    closeModal();
-    clearSelection();
-  };
-
   return (
     <Screen
       offsetTop
       overlay={
         <>
-          <ScheduleFoodCreateModals scheduleId={date} />
+          <ScheduleFoodCreateModals scheduleId={date} richNutrient={richNutrient} onRichNutrientClear={onRichNutrientClear} />
           {editingItem && (
             <ScheduleFoodEditModals
               item={editingItem}
@@ -164,105 +146,24 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
               onClose={closeEditModal}
             />
           )}
-          <CopyToNewDishModal
-            isExpanded={isOpen === 'create-dish-and-copy'}
-            items={selectedProductsFromSelectedFoods}
-            onFinish={onModalActionFinish}
-            onClose={onModalActionFinish}
-          />
-          <CopyToExistingDishModal
-            isExpanded={isOpen === 'copy-to-existing-dish'}
-            selectedIds={selectedIds}
-            items={items}
-            onFinish={onModalActionFinish}
-            onClose={onModalActionFinish}
-          />
-          <CopyToAnotherDayScheduleModal
-            isExpanded={isOpen === 'copy-to-another-day'}
-            sourceDate={date}
-            items={getSelectedItemsWithProduct()}
-            onFinish={onModalActionFinish}
-            onClose={onModalActionFinish}
-          />
         </>
       }
       actions={
         <ActionsPanel
           show={isActionsMode}
-          onBack={handleBack}
+          onBack={clearSelection}
           left={
-            dishChoiceMode ? null : (
-              <IconButton icon={<TrashIcon />} onClick={onDeleteSelected}>
-                Удалить
-              </IconButton>
-            )
+            <IconButton icon={<TrashIcon />} onClick={onDeleteSelected}>
+              Удалить
+            </IconButton>
           }
         >
-          <AnimatePresence mode="wait" initial={false}>
-            {dishChoiceMode ? (
-              <motion.div
-                key="dish-choice"
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -30 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-                style={{ display: 'flex', gap: 'var(--space-2)', flex: 1 }}
-              >
-                <label
-                  htmlFor={MODAL_INPUT_IDS.DISH_NAME_INPUT}
-                  onClick={() => handleDishChoiceSelect('create-dish-and-copy')}
-                  style={dishChoiceBtnStyle}
-                >
-                  <NewDishIcon />В новое
-                </label>
-                <label
-                  htmlFor={MODAL_INPUT_IDS.SEARCH_INPUT}
-                  onClick={() => handleDishChoiceSelect('copy-to-existing-dish')}
-                  style={dishChoiceBtnStyle}
-                >
-                  <ExistingDishIcon />В существующее
-                </label>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="default"
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -30 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-                style={{ display: 'flex', gap: 'var(--space-4)' }}
-              >
-                <IconButton
-                  icon={<DishIcon />}
-                  badge={
-                    selectedProductsFromSelectedFoods.length > 0 ? (
-                      <CountBadge size="sm" count={selectedProductsFromSelectedFoods.length} />
-                    ) : undefined
-                  }
-                  onClick={openDishChoice}
-                >
-                  В блюдо
-                </IconButton>
-                <IconButton
-                  icon={<CopyIcon />}
-                  badge={
-                    selectedIds.length > 0 ? (
-                      <CountBadge size="sm" count={selectedIds.length} />
-                    ) : undefined
-                  }
-                  onClick={onCopyToAnotherSchedule}
-                >
-                  Скопировать
-                </IconButton>
-                <CopyToClipboardButton
-                  items={selectedItemsForClipboard}
-                  sourceDate={date}
-                  selectedCount={selectedIds.length}
-                  onCopied={clearSelection}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <CopyToClipboardButton
+            items={selectedItemsForClipboard}
+            sourceDate={date}
+            selectedCount={selectedIds.length}
+            onCopied={clearSelection}
+          />
         </ActionsPanel>
       }
       header={
@@ -271,6 +172,19 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
             <>
               <Button variant="menu" onClick={() => toScheduleAnalytics(date)}>
                 Анализ
+                {analyticsStatus !== 'none' && (
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      marginLeft: 4,
+                      verticalAlign: 'middle',
+                      background: analyticsStatus === 'fresh' ? '#22c55e' : '#f59e0b',
+                    }}
+                  />
+                )}
               </Button>
             </>
           )}
@@ -291,7 +205,7 @@ const FoodSchedule = ({ date, items }: CommonProps) => {
       {items.length === 0 && (
         <div style={{ padding: `var(--space-10) var(--space-4) 0` }}>
           <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.SEARCH_INPUT} prominent>
-            Список еды
+            Добавить еду в этот день
           </AddButton>
         </div>
       )}
@@ -349,70 +263,5 @@ const TrashIcon = () => (
     <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
-
-const DishIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M3 14h18M5 14c0-3.87 3.13-7 7-7s7 3.13 7 7"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-    />
-    <path d="M12 7V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    <path d="M5 17h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
-
-const CopyIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" />
-    <path
-      d="M5 15H4a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h9a1 1 0 0 1 1 1v1"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-const NewDishIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      fill="none"
-    />
-    <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
-
-const ExistingDishIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
-    <path
-      d="M9 12l2 2 4-4"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const dishChoiceBtnStyle: React.CSSProperties = {
-  flex: 1,
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 'var(--space-1)',
-  padding: 'var(--space-1) var(--space-2)',
-  borderRadius: 'var(--radius-md)',
-  fontSize: 'var(--text-sm)',
-  fontWeight: 600,
-  cursor: 'pointer',
-  WebkitTapHighlightColor: 'transparent',
-};
 
 export default FoodSchedule;

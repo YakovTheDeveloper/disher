@@ -3,17 +3,19 @@ import * as ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 
 import { router } from '@/app/router.tsx';
-import { initSession } from '@/api/triplit/session';
-import { SyncProvider } from '@/api/triplit/SyncProvider';
+import { LiveStoreSetup } from '@/livestore/LiveStoreSetup';
+import { getCurrentUserId } from '@/api/triplit/session';
 
-// Start session (non-blocking when local data exists), render immediately
-initSession();
+// Request persistent storage (prevents iOS Safari 7-day IDB eviction)
+navigator.storage?.persist?.();
+
+const storeId = `user-${getCurrentUserId()}`;
 
 const root = document.getElementById('root')!;
 ReactDOM.createRoot(root).render(
-  <SyncProvider>
+  <LiveStoreSetup storeId={storeId}>
     <RouterProvider router={router} />
-  </SyncProvider>,
+  </LiveStoreSetup>,
 );
 
 // Reveal UI after first paint to prevent FOUC

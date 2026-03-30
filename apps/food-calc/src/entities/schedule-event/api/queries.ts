@@ -1,11 +1,12 @@
-import { useQuery } from "@triplit/react";
-import { triplit } from "@/api/triplit/client";
+import { queryDb } from "@livestore/livestore";
+import { useQuery } from "@livestore/react";
+import { tables } from "@/livestore/schema";
 
 export function useScheduleEvents(date: string | undefined) {
   return useQuery(
-    triplit,
-    triplit
-      .query("scheduleEvents")
-      .Where("date", "=", date ?? ""),
+    queryDb(
+      tables.scheduleEvents.where({ date: date ?? "", deletedAt: null }),
+      { label: `schedule-events-${date}` },
+    ),
   );
 }

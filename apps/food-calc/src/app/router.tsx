@@ -5,7 +5,6 @@ import { format } from 'date-fns';
 import ScheduleDateSelectionPage from '@/pages/schedule/schedule-date-selection-page/ScheduleDateSelectionPage.tsx';
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
 
-import FoodPage from '@/pages/food/FoodPage.tsx';
 import ProductPage from '@/pages/product/ProductPage.tsx';
 import DailyNormPage from '@/pages/daily-norms/DailyNormPage/DailyNormPage.tsx';
 import { ScheduleFoodAnalyticsPage } from '@/pages/schedule/analytics/schedule-analytics-page/ScheduleFoodAnalyticsPage/index.ts';
@@ -76,10 +75,6 @@ export const router = createBrowserRouter([
       {
         path: `${RouterLinks.Product}/:id`,
         element: <ProductPage />,
-      },
-      {
-        path: RouterLinks.Food,
-        element: <FoodPage />,
       },
       {
         path: RouterLinks.Settings,

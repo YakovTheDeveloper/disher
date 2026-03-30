@@ -27,12 +27,8 @@
 }
 
 .atomChip[data-kind='scale']    { --chip-bg: var(--event-scale-accent);    --chip-text: #fff; }
-.atomChip[data-kind='time']     { --chip-bg: var(--event-time-accent);     --chip-text: #fff; }
-.atomChip[data-kind='number']   { --chip-bg: var(--event-number-accent);   --chip-text: #fff; }
 .atomChip[data-kind='tag']      { --chip-bg: var(--event-tag-accent);      --chip-text: #fff; }
 .atomChip[data-kind='relation'] { --chip-bg: var(--event-relation-accent); --chip-text: #fff; }
-.atomChip[data-kind='flag']     { --chip-bg: var(--event-flag-accent);     --chip-text: #fff; }
-.atomChip[data-kind='body']     { --chip-bg: var(--event-body-accent);     --chip-text: #fff; }
 
 .atomLabel {
     font-size: var(--text-xs, 0.64rem);

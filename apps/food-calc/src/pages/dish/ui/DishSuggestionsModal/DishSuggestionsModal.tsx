@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { useStore } from '@livestore/react';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import {
   SuggestionsReviewList,
@@ -10,6 +11,7 @@ import { Button } from '@/shared/ui/atoms/Button';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import toaster from '@/shared/lib/toaster/toaster';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DishSuggestionsModal.module.scss';
 
 export const DISH_SUGGESTIONS_INPUT_IDS = {
@@ -25,6 +27,7 @@ type Props = {
 };
 
 const DishSuggestionsModal = ({ isExpanded, dishId, dishName, existingItems, onClose }: Props) => {
+  const { store } = useStore();
   const { state, fetchSuggestions, reset } = useDishSuggestions();
   const listRef = useRef<SuggestionsReviewListRef>(null);
 
@@ -48,11 +51,11 @@ const DishSuggestionsModal = ({ isExpanded, dishId, dishName, existingItems, onC
       return;
     }
 
-    await Promise.all(
-      items.map((item) =>
-        addDishItem({ dishId, foodId: item.foodId, quantity: item.quantity })
-      )
+    const result = await safeMutate(
+      () => Promise.all(items.map((item) => addDishItem(store, { dishId, foodId: item.foodId, quantity: item.quantity }))),
+      'Не удалось добавить продукты',
     );
+    if (result === undefined) return;
 
     toaster.success(`Добавлено: ${items.length}`);
     handleClose();

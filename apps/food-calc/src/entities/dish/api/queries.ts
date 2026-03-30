@@ -1,39 +1,58 @@
-import { useQuery, useEntity } from "@triplit/react";
-import { triplit } from "@/api/triplit/client";
+import { queryDb } from "@livestore/livestore";
+import { useQuery } from "@livestore/react";
+import { tables } from "@/livestore/schema";
 
 export function useDishes(search?: string) {
-  const query = triplit.query("dishes").Include("items");
-  return useQuery(triplit, search ? query.Where("name", "like", `%${search}%`) : query);
+  const rows = useQuery(
+    queryDb(
+      tables.dishes.where({ deletedAt: null }),
+      { label: 'dishes' },
+    ),
+  );
+  if (search) {
+    const lower = search.toLowerCase();
+    return rows.filter((r: any) => r.name?.toLowerCase().includes(lower));
+  }
+  return rows;
 }
 
 export function useDish(dishId: string | undefined) {
-  return useEntity(triplit, "dishes", dishId ?? "");
+  const rows = useQuery(
+    queryDb(
+      tables.dishes.where({ id: dishId ?? "", deletedAt: null }),
+      { label: `dish-${dishId}` },
+    ),
+  );
+  return rows[0] ?? null;
 }
 
 export function useDishItems(dishId: string | undefined) {
-  return useQuery(
-    triplit,
-    triplit
-      .query("dishItems")
-      .Where("dishId", "=", dishId ?? "")
-      .Include("food"),
+  const rows = useQuery(
+    queryDb(
+      tables.dishItems.where({ dishId: dishId ?? "", deletedAt: null }),
+      { label: `dish-items-${dishId}` },
+    ),
   );
+  return rows;
 }
 
 export function useDishPortions(dishId: string | undefined) {
-  return useQuery(
-    triplit,
-    triplit
-      .query("dishPortions")
-      .Where("dishId", "=", dishId ?? ""),
+  const rows = useQuery(
+    queryDb(
+      tables.dishPortions.where({ dishId: dishId ?? "", deletedAt: null }),
+      { label: `dish-portions-${dishId}` },
+    ),
   );
+  return rows;
 }
 
 export function useDishItemsByDishIds(dishIds: string[]) {
-  return useQuery(
-    triplit,
-    triplit
-      .query("dishItems")
-      .Where("dishId", "in", dishIds.length > 0 ? dishIds : ["__none__"]),
+  const rows = useQuery(
+    queryDb(
+      tables.dishItems.where({ deletedAt: null }),
+      { label: 'dish-items-all' },
+    ),
   );
+  const idSet = new Set(dishIds);
+  return rows.filter((r: any) => idSet.has(r.dishId));
 }

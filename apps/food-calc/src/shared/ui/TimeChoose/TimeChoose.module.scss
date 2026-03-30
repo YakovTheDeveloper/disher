@@ -145,6 +145,45 @@
     }
 }
 
+// ─── Range tabs (ОТ / ДО / Длит.) ──────────────────────────
+
+.rangeTabs {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    border: 2px solid #000;
+}
+
+.rangeTab {
+    flex: 1;
+    padding: 10px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: center;
+    color: #000;
+    background: #fff;
+    border: none;
+    border-right: 2px solid #000;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+
+    &:last-child {
+        border-right: none;
+    }
+
+    &:active {
+        transform: scale(0.97);
+    }
+}
+
+.rangeTabActive {
+    background: #000;
+    color: #fff;
+}
+
 .nativeInput {
     font-size: 2rem;
     font-family: 'Courier New', monospace;

@@ -14,28 +14,29 @@
 }
 
 .textarea {
-    max-width: 100%;
-    min-height: 120px;
-    padding: 14px 16px;
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 1.6;
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 12px 6px 12px;
+    font: inherit;
+    font-size: 20px;
+    line-height: 1.4;
+    color: #111;
+    caret-color: #000;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid black;
+    border-radius: 0;
+    outline: none;
     resize: none;
     overflow: hidden;
-    outline: none;
-    border: 1.5px solid #d8d8d8;
-    border-radius: var(--radius-md, 12px);
-    background: var(--surface-secondary, #f7f7f7);
-    color: #111;
-    transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .textarea::placeholder {
-    color: #aaa;
+    color: transparent;
     font-weight: 300;
 }
 
 .textarea:focus {
-    border-color: #111;
-    background: #fff;
+    /* border-bottom-width: 5px; */
 }

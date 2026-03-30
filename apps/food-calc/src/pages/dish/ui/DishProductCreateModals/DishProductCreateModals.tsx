@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
@@ -10,6 +11,7 @@ import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { addDishItem } from '@/entities/dish';
 import { useProductPortions } from '@/entities/product';
 import toaster from '@/shared/lib/toaster/toaster';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import Button from '@/shared/ui/atoms/Button/Button';
 import type { Portion } from '@/features/product/ProductQuantity';
 
@@ -55,12 +57,13 @@ const mapPortions = (results: { label: string; amount: number; unit: string; gra
   results ? results.map(({ label, amount, unit, grams }) => ({ label, amount, unit, grams })) : [];
 
 const DishProductCreateModals = ({ dishId }: Props) => {
+  const { store } = useStore();
   const [step, setStep] = useState<Step>('idle');
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
   const [sessionKey, setSessionKey] = useState(0);
   useSwipeableLock(step !== 'idle');
 
-  const { results: foodPortionsMap } = useProductPortions(draft.foodId ?? undefined);
+  const foodPortionsMap = useProductPortions(draft.foodId ?? undefined);
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
@@ -91,11 +94,11 @@ const DishProductCreateModals = ({ dishId }: Props) => {
 
   const handleCommit = async () => {
     if (draft.foodId) {
-      await addDishItem({
-        dishId,
-        foodId: draft.foodId,
-        quantity: draft.quantity,
-      });
+      const result = await safeMutate(
+        () => addDishItem(store, { dishId, foodId: draft.foodId!, quantity: draft.quantity }),
+        'Не удалось добавить продукт',
+      );
+      if (result === undefined) return;
       toaster.success('Продукт добавлен');
     }
     setDraft(createEmptyDraft());

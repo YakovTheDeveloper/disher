@@ -11,7 +11,9 @@ import {
   FloatingPortal,
 } from '@floating-ui/react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useStore } from '@livestore/react';
 import { useDailyNorms, createDailyNorm, DEFAULT_NORM_ID, DEFAULT_NORM } from '@/entities/daily-norm';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './OpenDailyNorms.module.scss';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 
@@ -50,16 +52,16 @@ const TickIcon = () => (
 );
 
 const OpenDailyNorms = ({ className }: Props) => {
+  const { store } = useStore();
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedNormId, setSelectedNormId] = React.useState<string | null>(DEFAULT_NORM_ID);
   const { toDailyNorm } = useAppRoutes();
-  const { results: normsMap } = useDailyNorms();
+  const normsList = useDailyNorms();
 
   const norms = React.useMemo(() => {
-    const fetched = normsMap ? Array.from(normsMap.values()) : [];
-    const hasDefault = fetched.some((n) => n.id === DEFAULT_NORM_ID);
-    return hasDefault ? fetched : [DEFAULT_NORM as any, ...fetched];
-  }, [normsMap]);
+    const hasDefault = normsList.some((n) => n.id === DEFAULT_NORM_ID);
+    return hasDefault ? normsList : [DEFAULT_NORM as any, ...normsList];
+  }, [normsList]);
 
   const selectedNorm = React.useMemo(() => {
     if (!selectedNormId) return null;
@@ -98,8 +100,9 @@ const OpenDailyNorms = ({ className }: Props) => {
     toDailyNorm(id);
   };
 
-  const handleCreateNorm = async () => {
-    const id = await createDailyNorm('Новая норма', '');
+  const handleCreateNorm = () => {
+    const id = safeMutate(() => createDailyNorm(store, 'Новая норма', ''), 'Не удалось создать норму');
+    if (id === undefined) return;
     setIsOpen(false);
     toDailyNorm(id);
   };

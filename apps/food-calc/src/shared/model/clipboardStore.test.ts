@@ -5,6 +5,7 @@ const makeItem = (overrides?: Partial<ClipboardItem>): ClipboardItem => ({
   time: '12:00',
   type: 'food',
   quantity: 100,
+  details: null,
   foodId: 'food-1',
   dishId: null,
   displayName: 'Tomato',

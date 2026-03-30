@@ -1,20 +1,24 @@
 import { useCallback, useState } from 'react';
+import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalFooter } from '@/shared/ui/ModalFooter';
+import { ModalFooter, ModalNextButton } from '@/shared/ui/ModalFooter';
 import { SearchFood } from '@/features/food/food-search';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { updateScheduleFood } from '@/entities/schedule-food';
 import { useProductPortions } from '@/entities/product';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import { useDishPortions } from '@/entities/dish';
 import Button from '@/shared/ui/atoms/Button/Button';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import type { Portion } from '@/features/product/ProductQuantity';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 
-const mapPortions = (results: { label: string; amount: number; unit: string; grams: number }[] | undefined): Portion[] =>
+const mapPortions = (
+  results: readonly { readonly label: string; readonly amount: number; readonly unit: string; readonly grams: number }[] | undefined
+): Portion[] =>
   results ? results.map(({ label, amount, unit, grams }) => ({ label, amount, unit, grams })) : [];
 
 export const EDIT_MODAL_INPUT_IDS = {
@@ -45,6 +49,7 @@ type Props = {
 };
 
 const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) => {
+  const { store } = useStore();
   const createInitialDraft = (): DraftState => ({
     time: item.time,
     variant: item.type === 'food' ? 'product' : 'dish',
@@ -59,10 +64,10 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
   const [step, setStep] = useState<Step>(initialStep);
   const [draft, setDraft] = useState<DraftState>(createInitialDraft);
 
-  const productId = draft.variant === 'product' ? draft.foodId ?? undefined : undefined;
-  const dishId = draft.variant === 'dish' ? draft.foodId ?? undefined : undefined;
-  const { results: foodPortionsMap } = useProductPortions(productId);
-  const { results: dishPortionsMap } = useDishPortions(dishId);
+  const productId = draft.variant === 'product' ? (draft.foodId ?? undefined) : undefined;
+  const dishId = draft.variant === 'dish' ? (draft.foodId ?? undefined) : undefined;
+  const foodPortions = useProductPortions(productId);
+  const dishPortions = useDishPortions(dishId);
 
   useSwipeableLock(step !== 'idle');
   useOverlayHistory(step !== 'idle', () => {
@@ -92,29 +97,40 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
 
   const handleTimeFinish = (time: string) => {
     setDraft((prev) => ({ ...prev, time }));
+    handleCommit();
   };
 
-  const handleFoodSelect = async (payload: { variant: 'product' | 'dish'; id: string }) => {
-    await updateScheduleFood(item.id, {
-      time: draft.time,
-      type: payload.variant === 'product' ? 'food' : 'dish',
-      foodId: payload.variant === 'product' ? payload.id : null,
-      dishId: payload.variant === 'dish' ? payload.id : null,
-      quantity: draft.quantity,
-    });
+  const handleFoodSelect = (payload: { variant: 'product' | 'dish'; id: string }) => {
+    const result = safeMutate(
+      () =>
+        updateScheduleFood(store, item.id, {
+          time: draft.time,
+          type: payload.variant === 'product' ? 'food' : 'dish',
+          foodId: payload.variant === 'product' ? payload.id : null,
+          dishId: payload.variant === 'dish' ? payload.id : null,
+          quantity: draft.quantity,
+        }),
+      'Не удалось обновить'
+    );
+    if (result === undefined) return;
     setStep('idle');
     onClose();
   };
 
-  const handleCommit = async () => {
+  const handleCommit = () => {
     if (draft.variant && draft.foodId) {
-      await updateScheduleFood(item.id, {
-        time: draft.time,
-        type: draft.variant === 'product' ? 'food' : 'dish',
-        foodId: draft.variant === 'product' ? draft.foodId : null,
-        dishId: draft.variant === 'dish' ? draft.foodId : null,
-        quantity: draft.quantity,
-      });
+      const result = safeMutate(
+        () =>
+          updateScheduleFood(store, item.id, {
+            time: draft.time,
+            type: draft.variant === 'product' ? 'food' : 'dish',
+            foodId: draft.variant === 'product' ? draft.foodId : null,
+            dishId: draft.variant === 'dish' ? draft.foodId : null,
+            quantity: draft.quantity,
+          }),
+        'Не удалось обновить'
+      );
+      if (result === undefined) return;
     }
     setStep('idle');
     onClose();
@@ -124,7 +140,7 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
     <div onFocusCapture={handleFocusCapture}>
       {/* Time */}
       <ModalByLabel
-        position="absolute"
+        position="fixed"
         isExpanded={step === 'time'}
         content={
           <ModalShell>
@@ -134,12 +150,8 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
                 inputId={EDIT_MODAL_INPUT_IDS.TIME_INPUT}
+                after={<ModalNextButton onClick={handleCommit} />}
               />
-              <ModalFooter onBack={handleClose}>
-                <Button variant="primary-form" onClick={handleCommit}>
-                  Готово
-                </Button>
-              </ModalFooter>
             </ModalShell.Body>
           </ModalShell>
         }
@@ -147,7 +159,7 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
 
       {/* Search Food */}
       <ModalByLabel
-        position="absolute"
+        position="fixed"
         isExpanded={step === 'search'}
         content={
           <ModalShell>
@@ -163,7 +175,7 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
 
       {/* Quantity */}
       <ModalByLabel
-        position="absolute"
+        position="fixed"
         isExpanded={step === 'quantity'}
         content={
           <ModalShell>
@@ -173,19 +185,20 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
                 <ProductQuantity
                   content={{
                     ...draft.content,
-                    food: draft.variant === 'product' ? { portions: mapPortions(foodPortionsMap) } : undefined,
-                    dish: draft.variant === 'dish' ? { portions: mapPortions(dishPortionsMap) } : undefined,
+                    food:
+                      draft.variant === 'product'
+                        ? { portions: mapPortions(foodPortions) }
+                        : undefined,
+                    dish:
+                      draft.variant === 'dish'
+                        ? { portions: mapPortions(dishPortions) }
+                        : undefined,
                   }}
                   onFinish={() => {}}
                   inputId={EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
                   onNextButtonClick={handleCommit}
                 />
               )}
-              <ModalFooter onBack={handleClose}>
-                <Button variant="primary-form" onClick={handleCommit}>
-                  Готово
-                </Button>
-              </ModalFooter>
             </ModalShell.Body>
           </ModalShell>
         }

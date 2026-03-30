@@ -21,16 +21,30 @@
   display: flex;
   flex-direction: column;
   cursor: default;
+
+  // iOS: prevent pull-to-refresh, rubber-banding, and white strips
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-touch-callout: none;
 }
 
 .content {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+
+  // iOS: contain scroll within modal, prevent bounce past edges
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .collapsed {
-  width: 0;
-  height: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 200px;
   overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
 }

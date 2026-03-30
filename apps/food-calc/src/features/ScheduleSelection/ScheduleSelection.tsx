@@ -118,12 +118,12 @@ export const ScheduleSelection = ({
     []
   );
 
-  const { results: allScheduleFoods } = useAllScheduleFoods();
+  const allScheduleFoods = useAllScheduleFoods();
 
   const filledDates = useMemo(() => {
     const set = new Set<string>();
     if (allScheduleFoods) {
-      for (const item of allScheduleFoods.values()) {
+      for (const item of allScheduleFoods) {
         set.add(item.date);
       }
     }

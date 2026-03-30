@@ -1,3 +1,4 @@
+import { SyncIndicator } from '@/shared/ui/SyncIndicator/SyncIndicator';
 import styles from './TopBar.module.scss';
 
 type Props = {
@@ -10,6 +11,7 @@ const TopBar = ({ children, right }: Props) => {
     <div className={styles.topBar}>
       {children}
       {right}
+      <SyncIndicator />
     </div>
   );
 };

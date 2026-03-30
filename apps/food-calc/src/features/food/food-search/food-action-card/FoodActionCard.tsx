@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
 import clsx from 'clsx';
 import styles from './FoodActionCard.module.scss';
+import { useStore } from '@livestore/react';
 import { deleteProducts } from '@/entities/product';
 import { deleteDishes } from '@/entities/dish';
 import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
 import { isCreatedByUser } from '@/shared/lib';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import { getCategoryIcon } from './categoryIcons';
 
 type Props = {
@@ -13,7 +15,7 @@ type Props = {
     id: string;
     name: string;
     userId?: string;
-    categories?: Set<string> | null;
+    categories?: string | null;
     getTotalNutrients?: (qty: number) => Record<string, number>;
   };
   active?: boolean;
@@ -79,14 +81,15 @@ const FoodActionCard = ({
   richNutrientUnit,
   richNutrientMax = 0,
 }: Props) => {
+  const { store } = useStore();
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.userId);
   const categoryIcon = getCategoryIcon(item.categories);
 
   const handleDelete = () => {
     if (variant === 'product') {
-      deleteProducts([item.id]);
+      safeMutate(() => deleteProducts(store, [item.id]), 'Не удалось удалить продукт');
     } else {
-      deleteDishes([item.id]);
+      safeMutate(() => deleteDishes(store, [{ id: item.id, itemIds: [], portionIds: [] }]), 'Не удалось удалить блюдо');
     }
   };
 

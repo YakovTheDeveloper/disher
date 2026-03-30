@@ -21,9 +21,11 @@ import { SelectableListItem } from '@/features/shared/selectable-list-item';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Quantity } from '@/shared/ui/Quantity';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
+import { useStore as useLiveStore } from '@livestore/react';
 import { CountBadge } from '@/shared/ui/atoms/Button/CountBadge/CountBadge';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import toaster from '@/shared/lib/toaster/toaster';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DishBuilderPage.module.scss';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import { ChangeName } from '@/features/shared/change-name';
@@ -33,9 +35,6 @@ import {
   DISH_MODAL_INPUT_IDS,
   DishProductEditModals,
   DISH_EDIT_MODAL_INPUT_IDS,
-  CopyProductsToExistingDishModal,
-  CopyProductsToDayScheduleModal,
-  COPY_TO_DISH_INPUT_IDS,
   DishSuggestionsModal,
 } from './ui';
 import { createShare } from '@/shared/lib/api/shares';
@@ -57,9 +56,10 @@ const DishBuilderPage = () => {
     return null;
   }
 
-  const { result: dish } = useDish(id);
-  const { results: dishItems } = useDishItems(id);
-  const { results: portionsRaw } = useDishPortions(id);
+  const { store } = useLiveStore();
+  const dish = useDish(id);
+  const dishItems = useDishItems(id);
+  const portionsRaw = useDishPortions(id);
   const dishTotals = useDishNutrientTotals(id);
 
   const selectionStore = useSelection();
@@ -67,9 +67,7 @@ const DishBuilderPage = () => {
   const selectedIds = useStore(selectionStore, (s) => s.selectedIds);
   const { clearSelection } = selectionStore.getState();
 
-  const [isOpen, setIsOpen] = useState<'copy-to-existing-dish' | 'copy-to-day-schedule' | 'suggestions' | null>(
-    null
-  );
+  const [isOpen, setIsOpen] = useState<'suggestions' | null>(null);
   const [editingItem, setEditingItem] = useState<DishItemWithFood | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'search' | 'quantity'>('idle');
 
@@ -89,20 +87,18 @@ const DishBuilderPage = () => {
 
   if (!dish) return null;
 
-  const items = (dishItems ?? []) as DishItemWithFood[];
+  const items = dishItems as unknown as DishItemWithFood[];
 
   const getSelectedItems = () => items.filter((item) => selectedIds.includes(item.id));
 
-  const getSelectedItemsForCopy = () =>
-    getSelectedItems().map((item) => ({
-      id: item.id,
-      foodName: item.food?.name ?? '—',
-    }));
-
-  const onDeleteSelected = async () => {
+  const onDeleteSelected = () => {
     const ids = selectedIds;
     if (ids.length === 0) return;
-    await Promise.all(ids.map(removeDishItem));
+    const result = safeMutate(
+      () => ids.map((id) => removeDishItem(store, id)),
+      'Не удалось удалить'
+    );
+    if (result === undefined) return;
     clearSelection();
     toaster.success(`Удалено: ${ids.length}`);
   };
@@ -155,26 +151,6 @@ const DishBuilderPage = () => {
                 onClose={closeEditModal}
               />
             )}
-            <CopyProductsToExistingDishModal
-              isExpanded={isOpen === 'copy-to-existing-dish'}
-              sourceDishId={id}
-              items={getSelectedItemsForCopy()}
-              onFinish={() => {
-                closeModal();
-                clearSelection();
-              }}
-              onClose={closeModal}
-            />
-            <CopyProductsToDayScheduleModal
-              isExpanded={isOpen === 'copy-to-day-schedule'}
-              dishId={id}
-              items={getSelectedItemsForCopy()}
-              onFinish={() => {
-                closeModal();
-                clearSelection();
-              }}
-              onClose={closeModal}
-            />
             <DishSuggestionsModal
               isExpanded={isOpen === 'suggestions'}
               dishId={id}
@@ -190,13 +166,6 @@ const DishBuilderPage = () => {
             onBack={() => clearSelection()}
             left={<button onClick={onDeleteSelected}>удалить</button>}
           >
-            <button onClick={() => setIsOpen('copy-to-day-schedule')}>в расписание</button>
-            <label
-              onClick={() => setIsOpen('copy-to-existing-dish')}
-              htmlFor={COPY_TO_DISH_INPUT_IDS.SEARCH_INPUT}
-            >
-              в блюдо
-            </label>
             <button onClick={onShareSelected}>поделиться</button>
           </ActionsPanel>
         }
@@ -218,12 +187,13 @@ const DishBuilderPage = () => {
             <TextBehind text="Блюдо">
               <ChangeName
                 name={dish.name}
-                onChangeName={(val) => updateDishName(dish.id, val)}
+                onChangeName={(val) =>
+                  safeMutate(() => updateDishName(store, dish.id, val), 'Не удалось переименовать')
+                }
               />
             </TextBehind>
           </>
         }
-        topLeft={selectedIds.length > 0 ? <CountBadge count={selectedIds.length} /> : null}
         bottomRight={
           isActionsMode || items.length === 0 ? null : (
             <AddButton as="label" htmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT} onClick={() => {}} />
@@ -274,20 +244,25 @@ const DishBuilderPage = () => {
       <Screen key={3} offsetTop title={<ScreenLabel variant="screenHeader">Порции</ScreenLabel>}>
         <Ornament text="порции" />
         <FoodPortionsManager
-          portions={(portionsRaw ?? []).map((p) => ({
+          portions={portionsRaw.map((p) => ({
             label: p.label,
             amount: p.amount,
             unit: p.unit,
             grams: p.grams,
           }))}
-          onAdd={(p) => addDishPortion(id, p)}
+          onAdd={(p) => safeMutate(() => addDishPortion(store, id, p), 'Не удалось добавить порцию')}
           onUpdate={(label, updates) => {
-            const portion = portionsRaw?.find((p) => p.label === label);
-            if (portion) updateDishPortion(portion.id, updates);
+            const portion = portionsRaw.find((p) => p.label === label);
+            if (portion)
+              safeMutate(
+                () => updateDishPortion(store, portion.id, updates),
+                'Не удалось обновить порцию'
+              );
           }}
           onRemove={(label) => {
-            const portion = portionsRaw?.find((p) => p.label === label);
-            if (portion) removeDishPortion(portion.id);
+            const portion = portionsRaw.find((p) => p.label === label);
+            if (portion)
+              safeMutate(() => removeDishPortion(store, portion.id), 'Не удалось удалить порцию');
           }}
         />
       </Screen>

@@ -1,32 +1,38 @@
-import { triplit } from '@/api/triplit/client';
-import { getCurrentUserId } from '@/api/triplit/session';
-import { v4 as uuid } from 'uuid';
+import { getCurrentUserId } from "@/api/triplit/session";
+import { events } from "@/livestore/schema";
+import type { Store } from "@livestore/livestore";
 
-export async function addPeriod(params: {
-  name: string;
-  description?: string | null;
-  startDate: string;
-  endDate: string;
-  colorIndex: number;
-}) {
-  const id = uuid();
-  await triplit.insert('periods', {
-    id,
-    userId: getCurrentUserId(),
-    name: params.name,
-    description: params.description ?? null,
-    startDate: params.startDate,
-    endDate: params.endDate,
-    colorIndex: params.colorIndex,
-  });
+export function addPeriod(
+  store: Store,
+  params: {
+    name: string;
+    description?: string | null;
+    startDate: string;
+    endDate: string;
+    colorIndex: number;
+  },
+) {
+  const id = crypto.randomUUID();
+  store.commit(
+    events.periodCreated({
+      id,
+      userId: getCurrentUserId(),
+      name: params.name,
+      description: params.description ?? "",
+      startDate: params.startDate,
+      endDate: params.endDate,
+      colorIndex: params.colorIndex,
+    }),
+  );
   return id;
 }
 
-export async function removePeriod(id: string) {
-  await triplit.delete('periods', id);
+export function removePeriod(store: Store, id: string) {
+  store.commit(events.periodDeleted({ id }));
 }
 
-export async function updatePeriod(
+export function updatePeriod(
+  store: Store,
   id: string,
   updates: Partial<{
     name: string;
@@ -34,13 +40,14 @@ export async function updatePeriod(
     startDate: string;
     endDate: string;
     colorIndex: number;
-  }>
+  }>,
 ) {
-  await triplit.update('periods', id, (period) => {
-    if (updates.name !== undefined) period.name = updates.name;
-    if (updates.description !== undefined) period.description = updates.description;
-    if (updates.startDate !== undefined) period.startDate = updates.startDate;
-    if (updates.endDate !== undefined) period.endDate = updates.endDate;
-    if (updates.colorIndex !== undefined) period.colorIndex = updates.colorIndex;
-  });
+  const mapped: Record<string, string | number> = { id };
+  if (updates.name !== undefined) mapped.name = updates.name;
+  if (updates.description !== undefined) mapped.description = updates.description ?? "";
+  if (updates.startDate !== undefined) mapped.startDate = updates.startDate;
+  if (updates.endDate !== undefined) mapped.endDate = updates.endDate;
+  if (updates.colorIndex !== undefined) mapped.colorIndex = updates.colorIndex;
+
+  store.commit(events.periodUpdated(mapped as Parameters<typeof events.periodUpdated>[0]));
 }

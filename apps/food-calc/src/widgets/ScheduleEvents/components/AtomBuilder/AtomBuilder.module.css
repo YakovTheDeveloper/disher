@@ -1,90 +1,67 @@
 /**
- * AtomBuilder.module.css — type-selector labels with per-kind accent
+ * AtomBuilder.module.css — layout for atom list + type selector + panel view
  */
 
 .container {
-    display: flex;
-    flex-direction: column;
-    flex: 1 0;
-    min-height: 0;
-    margin-top: auto;
-    position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 0;
+  min-height: 0;
+  margin-top: auto;
 }
 
+.noAtoms {
+  margin: auto;
+}
+
+/* When an atom input panel is open — fill the parent */
+.panelView {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Type selector buttons */
 .atomButtons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1, 4px);
-    padding-top: var(--space-2, 8px);
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
-    margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 12px;
+  margin-top: auto;
 }
 
-.atomButtons label,
-.atomButtons button {
-    padding: 10px var(--space-4, 16px);
-    background: transparent;
-    border: 1.5px solid rgba(0, 0, 0, 0.15);
-    border-radius: 0;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    cursor: pointer;
-    color: #555;
-    transition:
-        border-color var(--duration-fast, 120ms),
-        color var(--duration-fast, 120ms),
-        background var(--duration-fast, 120ms);
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
+.atomBtn {
+  flex-grow: 1;
+  padding: 12px 10px;
+  background: transparent;
+  border: 1px solid #000;
+  border-radius: 8px;
+  font-size: 2rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  color: rgb(0, 0, 0);
+  transition: all 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
-/* Per-kind accent variable */
-.atomButtons [data-kind='scale'] {
-    --btn-accent: var(--event-scale-accent);
+.atomBtn[data-kind='scale'] {
+  --btn-accent: var(--event-scale-accent);
 }
 
-.atomButtons [data-kind='time'] {
-    --btn-accent: var(--event-time-accent);
+.atomBtn[data-kind='tag'] {
+  --btn-accent: var(--event-tag-accent);
 }
 
-.atomButtons [data-kind='number'] {
-    --btn-accent: var(--event-number-accent);
+.atomBtn[data-kind='relation'] {
+  --btn-accent: var(--event-relation-accent);
 }
 
-.atomButtons [data-kind='tag'] {
-    --btn-accent: var(--event-tag-accent);
-}
-
-.atomButtons [data-kind='relation'] {
-    --btn-accent: var(--event-relation-accent);
-}
-
-.atomButtons [data-kind='flag'] {
-    --btn-accent: var(--event-flag-accent);
-}
-
-.atomButtons [data-kind='body'] {
-    --btn-accent: var(--event-body-accent);
-}
-
-.atomButtons label:hover,
-.atomButtons button:hover {
-    border-color: var(--btn-accent, #000);
-    color: var(--btn-accent, #000);
-    background: transparent;
-}
-
-.atomButtons label:active,
-.atomButtons button:active {
-    background: var(--btn-accent, #222);
-    border-color: var(--btn-accent, #222);
-    color: #fff;
-}
-
-.atomButtons [data-active] {
-    background: var(--btn-accent, #000);
-    border-color: var(--btn-accent, #000);
-    color: #fff;
+.atomBtn:active {
+  background: var(--btn-accent, #222);
+  border-color: var(--btn-accent, #222);
+  color: #fff;
+  transform: scale(0.97);
 }

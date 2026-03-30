@@ -9,6 +9,7 @@ import type { SyncLogEntry, SyncStatus, SyncProgress, CollectionSyncState } from
 import type { ConnectionStatus } from '@triplit/client';
 import Tabs from '@/shared/ui/Tabs/Tabs';
 import Button from '@/shared/ui/atoms/Button/Button';
+import { getMutationLog, clearMutationLog } from '@/shared/lib/mutationLog';
 import styles from './SystemPage.module.scss';
 
 // ─── Local count helpers ───
@@ -444,6 +445,9 @@ function SyncTab() {
           })}
         </div>
 
+        {/* Mutation errors card */}
+        <MutationLogCard />
+
         {/* Logs card */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
@@ -461,6 +465,36 @@ function SyncTab() {
         </div>
       </div>
     </>
+  );
+}
+
+// ─── Mutation Log Card ───
+
+function MutationLogCard() {
+  const [entries, setEntries] = useState(() => getMutationLog());
+
+  const handleClear = () => {
+    clearMutationLog();
+    setEntries([]);
+  };
+
+  if (entries.length === 0) return null;
+
+  return (
+    <div className={styles.card}>
+      <div className={styles.cardHeader}>
+        <span className={styles.cardTitle}>Ошибки мутаций ({entries.length})</span>
+        <Button variant="secondary" onClick={handleClear}>Очистить</Button>
+      </div>
+      <div className={styles.logBox}>
+        {entries.map((entry, i) => (
+          <div key={i} className={`${styles.logLine} ${styles.log_error}`}>
+            <span className={styles.logTime}>{new Date(entry.ts).toLocaleTimeString('ru-RU', { hour12: false })}</span>
+            <span>{entry.op}: {entry.err}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

@@ -28,20 +28,20 @@ const PortionsDrawer = ({ onClose: _onClose, portions, onSave }: Props) => {
     setDraft((prev) => [...prev, portion]);
   }, []);
 
-  const handleUpdate = useCallback((index: number, updates: Partial<Portion>) => {
+  const handleUpdate = useCallback((label: string, updates: Partial<Portion>) => {
     setDraft((prev) =>
-      prev.map((p, i) => (i === index ? { ...p, ...updates } : p)),
+      prev.map((p) => (p.label === label ? { ...p, ...updates } : p)),
     );
   }, []);
 
-  const handleRemove = useCallback((index: number) => {
-    setDraft((prev) => prev.filter((_, i) => i !== index));
+  const handleRemove = useCallback((label: string) => {
+    setDraft((prev) => prev.filter((p) => p.label !== label));
   }, []);
 
   return (
     <DrawerLayout>
       <FoodPortionsManager
-        portions={draft}
+        portions={draft as any}
         onAdd={handleAdd}
         onUpdate={handleUpdate}
         onRemove={handleRemove}

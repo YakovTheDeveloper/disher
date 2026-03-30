@@ -33,19 +33,31 @@ type Props = {
 
 type EmptyStateProps = {
   query: string;
-  label: string;
-  onCreate: () => void;
+  onCreateProduct?: () => void;
+  onCreateDish?: () => void;
 };
 
-const EmptyState = ({ query, label, onCreate }: EmptyStateProps) => (
+const EmptyState = ({ query, onCreateProduct, onCreateDish }: EmptyStateProps) => (
   <div className={styles.emptyState}>
     <p className={styles.emptyStateMessage}>
       По запросу <em>«{query}»</em> ничего нет
     </p>
-    <button className={styles.emptyStateAction} onClick={onCreate}>
-      <span className={styles.emptyStateIcon}>+</span>
-      Создать {label} «{query}»
-    </button>
+    <div className={styles.emptyStateActions}>
+      {onCreateDish && (
+        <button className={styles.emptyStateActionSecondary} onClick={onCreateDish}>
+          <span className={styles.emptyStateIcon}>+</span>
+          Блюдо
+          <span className={styles.emptyStateHint}>молекула</span>
+        </button>
+      )}
+      {onCreateProduct && (
+        <button className={styles.emptyStateAction} onClick={onCreateProduct}>
+          <span className={styles.emptyStateIcon}>+</span>
+          Продукт
+          <span className={styles.emptyStateHint}>атом</span>
+        </button>
+      )}
+    </div>
   </div>
 );
 
@@ -68,7 +80,7 @@ const SearchFood = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [currentTab, setCurrentTab] = useState(getDefaultTab(mode));
 
-  const { products, dishes, categoryFilter, isLoading } = useFilteredFoods(searchQuery, myFoodOnly);
+  const { products, dishes, categoryFilter, nutrientMap } = useFilteredFoods(searchQuery, myFoodOnly, richNutrient?.id);
   const { handleCreateProduct, handleCreateDish } = useFoodCreation(searchQuery, setSearchQuery);
 
   const currentFilterType = currentTab === 'блюда' ? 'dish' : 'product';
@@ -77,6 +89,17 @@ const SearchFood = ({
     () => (richNutrient ? allNutrientsList.find((n) => n.id === richNutrient.id) : null),
     [richNutrient]
   );
+
+  // Compute max nutrient value across all products for richness bar scaling
+  const richNutrientMax = useMemo(() => {
+    if (!richNutrient?.id || nutrientMap.size === 0) return 0;
+    let max = 0;
+    for (const entries of nutrientMap.values()) {
+      const val = entries.find((n) => n.nutrientId === richNutrient.id)?.quantity ?? 0;
+      if (val > max) max = val;
+    }
+    return max;
+  }, [richNutrient?.id, nutrientMap]);
 
   const onFoodAdd = useCallback(
     (item: { id: string; name: string }) =>
@@ -92,30 +115,46 @@ const SearchFood = ({
   const isSearchActive = searchQuery.trim().length >= 2;
   const trimmedQuery = searchQuery.trim();
 
-  const productEmptyContent =
-    !isLoading && isSearchActive ? (
-      <EmptyState query={trimmedQuery} label="продукт" onCreate={handleCreateProduct} />
-    ) : undefined;
+  const showProducts = mode !== 'dishes-only';
+  const showDishes = mode !== 'products-only';
 
-  const dishEmptyContent =
-    !isLoading && isSearchActive ? (
-      <EmptyState query={trimmedQuery} label="блюдо" onCreate={handleCreateDish} />
+  const emptyContent =
+    isSearchActive ? (
+      <EmptyState
+        query={trimmedQuery}
+        onCreateProduct={showProducts ? handleCreateProduct : undefined}
+        onCreateDish={showDishes ? handleCreateDish : undefined}
+      />
     ) : undefined;
 
   const renderProductItem = useCallback(
-    (item: (typeof products)[number]) => (
-      <FoodActionCard
-        variant="product"
-        item={item}
-        active={activeItemId === item.id}
-        onClick={() => onFoodAdd(item)}
-        rightChild={renderSearchItemRight?.('product', item)}
-        richNutrientId={richNutrient?.id}
-        richNutrientUnit={richNutrient?.unit}
-        richNutrientMax={0}
-      />
-    ),
-    [activeItemId, onFoodAdd, renderSearchItemRight, richNutrient]
+    (item: (typeof products)[number]) => {
+      const itemWithNutrients = richNutrient?.id
+        ? {
+            ...item,
+            getTotalNutrients: (_qty: number) => {
+              const entries = nutrientMap.get(item.id);
+              if (!entries) return {};
+              const result: Record<string, number> = {};
+              for (const e of entries) result[e.nutrientId] = e.quantity;
+              return result;
+            },
+          }
+        : item;
+      return (
+        <FoodActionCard
+          variant="product"
+          item={itemWithNutrients}
+          active={activeItemId === item.id}
+          onClick={() => onFoodAdd(item)}
+          rightChild={renderSearchItemRight?.('product', item)}
+          richNutrientId={richNutrient?.id}
+          richNutrientUnit={richNutrient?.unit}
+          richNutrientMax={richNutrientMax}
+        />
+      );
+    },
+    [activeItemId, onFoodAdd, renderSearchItemRight, richNutrient, nutrientMap, richNutrientMax]
   );
 
   const renderDishItem = useCallback(
@@ -155,7 +194,7 @@ const SearchFood = ({
         <VirtualList
           items={products}
           renderItem={renderProductItem}
-          emptyContent={productEmptyContent}
+          emptyContent={emptyContent}
           itemHtmlFor={itemHtmlFor}
         />
       )}
@@ -163,7 +202,7 @@ const SearchFood = ({
         <VirtualList
           items={dishes}
           renderItem={renderDishItem}
-          emptyContent={dishEmptyContent}
+          emptyContent={emptyContent}
           itemHtmlFor={itemHtmlFor}
         />
       )}

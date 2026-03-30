@@ -26,9 +26,17 @@ type Props = {
   isLoading?: boolean;
   after?: React.ReactNode;
   className?: string;
+  onRichFood?: (nutrientId: string, unit: string) => void;
 };
 
-const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading, after, className }: Props) => {
+const FoodsNutrients = ({
+  totals,
+  missingNutrientNames = [],
+  isLoading,
+  after,
+  className,
+  onRichFood,
+}: Props) => {
   const filter = useFilterNutrients();
   const { getValue } = useNutrientTotals(totals);
 
@@ -41,14 +49,14 @@ const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading, after, c
         nutrientId={nutrientData.id}
         nutrientKey={nutrientData.name}
         actionSlot={
-          <OpenRichFood nutrientId={nutrientData.id} nutrientName={nutrientData.displayNameRu} />
+          <OpenRichFood nutrientId={nutrientData.id} nutrientName={nutrientData.displayNameRu} nutrientUnit={nutrientData.unitRu} onRichFood={onRichFood} />
         }
         renderCard={(overrides) => (
           <NutrientCardV3 content={nutrientData} getValue={getValue} {...overrides} />
         )}
       />
     ),
-    [filter, getValue]
+    [filter, getValue, onRichFood]
   );
 
   return (
@@ -73,7 +81,7 @@ const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading, after, c
       <Ornament text="нутриенты"></Ornament>
 
       <div className={styles.nutrientsSection}>
-        <img src={treeSrc} alt="" className={styles.watermark} />
+        {/* <img src={treeSrc} alt="" className={styles.watermark} /> */}
         <Nutrients renderCard={renderCard} titleVariant="v2" />
       </div>
 

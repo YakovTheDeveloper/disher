@@ -59,16 +59,26 @@
 }
 
 .dotsContainer {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    background-color: transparent;
     display: flex;
+    width: fit-content;
+    user-select: none;
+    touch-action: none;
     justify-content: center;
+    margin: 0 auto;
     gap: 0.5rem;
-    padding: 1rem 0 0 0;
+    padding: 1rem 0;
     flex-shrink: 0;
+    z-index: -1;
 }
 
 .dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background-color: #d1d5db;
     border: none;
@@ -82,11 +92,7 @@
 }
 
 .dotActive {
-    background-color: #3b82f6;
-
-    &:hover {
-        background-color: #2563eb;
-    }
+    background-color: #000000;
 }
 
 .background {

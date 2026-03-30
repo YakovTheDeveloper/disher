@@ -247,7 +247,9 @@ export async function initSession(): Promise<void> {
     _sessionInfo = { mode: "user", connected: true, syncComplete: true };
 
     try {
-      await triplit.startSession(userToken);
+      await triplit.startSession(userToken, true, {
+        refreshHandler: refreshToken,
+      });
       setSyncStatus("synced");
       addSyncLog("info", "Authenticated session started.");
     } catch (err) {
@@ -452,10 +454,15 @@ export async function loginWithToken(jwt: string): Promise<void> {
 
   localStorage.setItem(AUTH_TOKEN_KEY, jwt);
 
+  // reset() clears sync metadata from the anon session — without it,
+  // the client reuses the anon sync cursor and may show stale/wrong data.
   if (triplit.token) {
     await triplit.endSession();
   }
-  await triplit.startSession(jwt);
+  await triplit.reset();
+  await triplit.startSession(jwt, true, {
+    refreshHandler: refreshToken,
+  });
 
   const payload = JSON.parse(atob(jwt.split(".")[1]));
   if (payload.sub) {
@@ -471,21 +478,26 @@ async function migrateAnonData(anonId: string, realUserId: string): Promise<void
     "dishes", "dishItems", "dailyNorms",
   ] as const;
 
-  await Promise.all(
-    collections.map(async (collection) => {
-      const records = await triplit.fetch(
+  // Fetch all records first, then update atomically in a single transaction
+  const allUpdates: Array<{ collection: string; id: string }> = [];
+  for (const collection of collections) {
+    const records = await triplit.fetch(
+      // @ts-expect-error — dynamic collection name
+      triplit.query(collection).Where("userId", "=", anonId),
+    );
+    for (const id of records.keys()) {
+      allUpdates.push({ collection, id: String(id) });
+    }
+  }
+
+  if (allUpdates.length > 0) {
+    await triplit.transact(async (tx) => {
+      for (const { collection, id } of allUpdates) {
         // @ts-expect-error — dynamic collection name
-        triplit.query(collection).Where("userId", "=", anonId),
-      );
-      await Promise.all(
-        Array.from(records.keys()).map((id) =>
-          triplit.update(
-            collection, String(id), (rec) => { rec.userId = realUserId; },
-          ),
-        ),
-      );
-    }),
-  );
+        await tx.update(collection, id, (rec) => { rec.userId = realUserId; });
+      }
+    });
+  }
 
   localStorage.removeItem(ANON_USER_ID_KEY);
 }
@@ -493,6 +505,39 @@ async function migrateAnonData(anonId: string, realUserId: string): Promise<void
 export async function logout(): Promise<void> {
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(ANON_USER_ID_KEY);
+  // reset() wipes sync metadata so the next user (or anon session)
+  // doesn't inherit stale sync cursors from the previous account.
   await triplit.endSession();
+  await triplit.reset();
   await initSession();
+}
+
+// ─── Token refresh ───
+
+/**
+ * Called by Triplit when the JWT is about to expire.
+ * Posts the current token to /api/auth/refresh to get a fresh one.
+ * Returns null on failure — Triplit will disconnect gracefully.
+ */
+async function refreshToken(): Promise<string | null> {
+  const currentToken = localStorage.getItem(AUTH_TOKEN_KEY);
+  if (!currentToken) return null;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${currentToken}`,
+      },
+    });
+    if (!res.ok) return null;
+    const { token } = await res.json();
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    addSyncLog("info", "Token refreshed successfully.");
+    return token;
+  } catch {
+    addSyncLog("warn", "Token refresh failed.");
+    return null;
+  }
 }

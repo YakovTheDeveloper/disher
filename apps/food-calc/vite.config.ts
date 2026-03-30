@@ -7,6 +7,7 @@ import { patchCssModules } from 'vite-css-modules';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import basicSsl from '@vitejs/plugin-basic-ssl';
+import { livestoreDevtoolsPlugin } from '@livestore/devtools-vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -56,8 +57,8 @@ export default defineConfig({
       },
       overlay: false,
       terminal: false,
-
     }),
+    livestoreDevtoolsPlugin({ schemaPath: './src/livestore/schema.ts' }),
   ],
   optimizeDeps: {
     include: ['react', 'react-dom'],
@@ -78,7 +79,14 @@ export default defineConfig({
     },
     devSourcemap: true
   },
+  worker: {
+    format: 'es',
+  },
   server: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
     hmr: {
       overlay: false,
     },

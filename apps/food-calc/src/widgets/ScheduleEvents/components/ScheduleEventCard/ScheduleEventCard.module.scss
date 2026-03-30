@@ -66,41 +66,22 @@
 }
 
 .chipScale {
-  background-color: rgba(108, 255, 196, 0.25);
-  color: #1a6b4a;
+  background-color: rgba(0, 0, 0, 0.06);
+  color: inherit;
 }
 
 .chipTag {
-  background-color: rgba(125, 203, 255, 0.2);
-  color: #2a5a8a;
+  background-color: rgba(0, 0, 0, 0.06);
+  color: inherit;
 }
 
-.chipFlag {
-  background-color: rgba(255, 200, 100, 0.25);
-  color: #7a5a1a;
-}
-
-.chipNumber {
-  background-color: rgba(200, 180, 255, 0.25);
-  color: #4a3a7a;
-}
-
-.chipTime {
-  background-color: rgba(255, 160, 180, 0.2);
-  color: #7a2a4a;
-}
-
-.chipBody {
-  background-color: rgba(180, 180, 180, 0.2);
-  color: #4a4a4a;
-}
 
 .scaleBar {
   display: inline-block;
   width: 32px;
   height: 4px;
   border-radius: 2px;
-  background-color: rgba(108, 255, 196, 0.3);
+  background-color: rgba(0, 0, 0, 0.08);
   position: relative;
   overflow: hidden;
   vertical-align: middle;
@@ -112,5 +93,5 @@
   top: 0;
   height: 100%;
   border-radius: 2px;
-  background-color: #3ac98a;
+  background-color: rgba(0, 0, 0, 0.3);
 }

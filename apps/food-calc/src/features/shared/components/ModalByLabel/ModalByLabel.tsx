@@ -7,17 +7,19 @@ export interface ModalByLabelProps {
   content: React.ReactNode;
   isExpanded: boolean;
   position?: 'fixed' | 'absolute';
+  className?: string;
 }
 
 const ModalByLabel: React.FC<ModalByLabelProps> = observer(
-  ({ content, isExpanded, position = 'fixed' }) => {
+  ({ content, isExpanded, position = 'fixed', className }) => {
     return (
       <div
         className={clsx(
           styles.container,
           position === 'fixed' && isExpanded && styles.fixed,
           position === 'absolute' && isExpanded && styles.absolute,
-          isExpanded && styles.expanded
+          isExpanded && styles.expanded,
+          className
         )}
       >
         {<div className={clsx(styles.content, !isExpanded && styles.collapsed)}>{content}</div>}

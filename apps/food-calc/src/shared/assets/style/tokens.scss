@@ -58,40 +58,24 @@
   --nutrient-bg-main: #fef5e7;
   --nutrient-bg-minerals: #ecf6ef;
   --nutrient-bg-vitamins: #edf4fb;
-  --nutrient-accent-main: #6a30a0;
-  --nutrient-accent-minerals: #2d7344;
-  --nutrient-accent-vitamins: #2c5d8f;
+  --nutrient-accent-main: var(--color-deep-blue);
+  --nutrient-accent-minerals: var(--color-deep-blue);
+  --nutrient-accent-vitamins: var(--color-deep-blue);
   --nutrient-progress-height: 3px;
   --nutrient-card-radius: var(--radius-sm);
 
   // ─── Event / Atom family ──────────────────────────────────────
   --event-scale-bg: rgba(108, 255, 196, 0.18);
-  --event-scale-text: #1a6b4a;
-  --event-scale-accent: #3ac98a;
-
-  --event-time-bg: rgba(125, 203, 255, 0.18);
-  --event-time-text: #2a5a8a;
-  --event-time-accent: #4a9edc;
-
-  --event-number-bg: rgba(200, 180, 255, 0.18);
-  --event-number-text: #4a3a7a;
-  --event-number-accent: #8b6fd8;
+  --event-scale-text: var(--color-deep-blue);
+  --event-scale-accent: var(--color-deep-blue);
 
   --event-tag-bg: rgba(255, 180, 220, 0.18);
-  --event-tag-text: #7a2a5a;
-  --event-tag-accent: #cc66aa;
+  --event-tag-text: var(--color-deep-blue);
+  --event-tag-accent: var(--color-deep-blue);
 
   --event-relation-bg: rgba(180, 245, 230, 0.18);
-  --event-relation-text: #1a5a4a;
-  --event-relation-accent: #2ecc9e;
-
-  --event-flag-bg: rgba(255, 200, 100, 0.18);
-  --event-flag-text: #7a5a1a;
-  --event-flag-accent: #e8a020;
-
-  --event-body-bg: rgba(180, 180, 180, 0.18);
-  --event-body-text: #4a4a4a;
-  --event-body-accent: #888888;
+  --event-relation-text: var(--color-deep-blue);
+  --event-relation-accent: var(--color-deep-blue);
 
   // ─── Time-of-day card palettes ────────────────────────────────
   // Each palette defines a gradient range (from → to) for background & outline.

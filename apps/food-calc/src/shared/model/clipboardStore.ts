@@ -5,6 +5,7 @@ export type ClipboardItem = {
   time: string;
   type: 'food' | 'dish';
   quantity: number;
+  details: string | null;
   foodId: string | null;
   dishId: string | null;
   displayName: string;

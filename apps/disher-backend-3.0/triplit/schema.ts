@@ -58,6 +58,7 @@ export const schema = S.Collections({
       date: S.String(), // "DD-MM-YYYY"
       userId: S.String(),
       time: S.String(),
+      endTime: S.Optional(S.String()),
       text: S.String({ default: "" }),
       createdAt: S.Date({ default: S.Default.now() }),
       atoms: S.Json(), // Atom[] — see atom.types.ts on frontend
@@ -81,6 +82,7 @@ export const schema = S.Collections({
       quantity: S.Number(),
       type: S.String({ enum: ["food", "dish"] }),
       time: S.String(),
+      details: S.String({ nullable: true, default: null }),
       foodId: S.String({ nullable: true, default: null }),
       dishId: S.String({ nullable: true, default: null }),
     }),
@@ -305,7 +307,7 @@ export const schema = S.Collections({
       userId: S.String(),
       name: S.String(),
       description: S.String(),
-      items: S.Json({ default: {} }),
+      items: S.Optional(S.Json({ default: {} })),
     }),
     relationships: {
       user: S.RelationById("users", "$userId"),

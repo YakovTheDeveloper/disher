@@ -1,8 +1,9 @@
 .header {
     display: flex;
-    width: 100%;
+    width: fit-content;
     position: relative;
     z-index: 2;
+    margin-left: auto;
 }
 
 // ─── Date link (clickable area) ───────────────────────────────

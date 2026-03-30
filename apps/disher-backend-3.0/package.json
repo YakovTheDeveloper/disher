@@ -23,13 +23,13 @@
     "@triplit/client": "^1.0.50",
     "fastify": "^5.2.0",
     "google-translate-api-x": "^10.7.2",
+    "better-sqlite3": "^12.8.0",
     "jose": "^6.0.0"
   },
   "devDependencies": {
     "@triplit/cli": "^1.0.61",
     "@triplit/console": "^1.0.52",
     "@types/node": "^25.5.0",
-    "better-sqlite3": "^12.8.0",
     "concurrently": "^9.1.0",
     "cross-env": "^10.1.0",
     "dotenv": "^17.3.1",

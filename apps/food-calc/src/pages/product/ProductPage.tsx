@@ -1,14 +1,13 @@
 import { useState, useMemo, useRef } from 'react';
+import { useStore } from '@livestore/react';
 import { useParams } from 'react-router-dom';
 import {
   useProduct,
   useProductPortions,
   useProductNutrients,
-  setProductNutrient,
+  setProductNutrients,
+  setProductPortions,
   updateProduct,
-  addProductPortion,
-  updateProductPortion,
-  removeProductPortion,
 } from '@/entities/product';
 import { Nutrients } from '@/entities/nutrient/ui/NutrientGroup';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
@@ -33,6 +32,7 @@ import { Screen } from '@/shared/ui/Screen';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { isCreatedByUser } from '@/shared/lib';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import bagImage from '@/shared/assets/decarative/bag.png';
 import s from './ProductPage.module.scss';
 
@@ -41,9 +41,10 @@ type Mode = 'view' | 'edit';
 const gramNutrientIds = new Set(allNutrientsList.filter((n) => n.unit === 'g').map((n) => n.id));
 
 const ProductPage = () => {
+  const { store } = useStore();
   const { id } = useParams<'id'>();
-  const { result: food } = useProduct(id);
-  const { results: portionsRaw } = useProductPortions(id);
+  const food = useProduct(id);
+  const portionsRaw = useProductPortions(id);
   const { results: nutrientsRaw } = useProductNutrients(id);
   const [quantity, setQuantity] = useState(100);
   const [mode, setMode] = useState<Mode>('view');
@@ -51,7 +52,7 @@ const ProductPage = () => {
 
   const nutrientValueMap = useMemo(() => {
     const map = new Map<string, number>();
-    for (const n of nutrientsRaw ?? []) {
+    for (const n of nutrientsRaw) {
       map.set(n.nutrientId, n.quantity);
     }
     return map;
@@ -77,7 +78,7 @@ const ProductPage = () => {
 
   const massExceeds100 = totalGramMass > 100;
 
-  const portions = (portionsRaw ?? []).map((p) => ({
+  const portions = portionsRaw.map((p) => ({
     label: p.label,
     amount: p.amount,
     unit: p.unit,
@@ -92,7 +93,13 @@ const ProductPage = () => {
         <EditNutrientCard
           content={nutrientData}
           getValue={getNutrientValue}
-          onChange={(value, nutrientId) => setProductNutrient(food.id, nutrientId, value)}
+          onChange={(value, nutrientId) => {
+            const current: Record<string, number> = {};
+            for (const n of nutrientsRaw) current[n.nutrientId] = n.quantity;
+            current[nutrientId] = value;
+            if (value === 0) delete current[nutrientId];
+            safeMutate(() => setProductNutrients(store, food.id, JSON.stringify(current)), 'Не удалось сохранить нутриент');
+          }}
         />
       );
     }
@@ -136,7 +143,7 @@ const ProductPage = () => {
       <Ornament text="продукт" />
 
       <img src={bagImage} className={s.backgroundImage} alt="" />
-      <ChangeName name={food.name} onChangeName={(name) => updateProduct(food.id, { name })} />
+      <ChangeName name={food.name} onChangeName={(name) => safeMutate(() => updateProduct(store, food.id, { name }), 'Не удалось переименовать')} />
 
       <Spacer variant="screen-header-offset" />
 
@@ -185,7 +192,7 @@ const ProductPage = () => {
         <label>
           <Textarea
             value={food.description || ''}
-            onChange={(val) => updateProduct(food.id, { description: val || '' })}
+            onChange={(val) => safeMutate(() => updateProduct(store, food.id, { description: val || '' }), 'Не удалось обновить описание')}
           />
         </label>
       )}
@@ -200,14 +207,19 @@ const ProductPage = () => {
 
       <FoodPortionsManager
         portions={portions}
-        onAdd={(p) => addProductPortion(food.id, p)}
+        onAdd={(p) => {
+          const updated = [...portionsRaw, p];
+          safeMutate(() => setProductPortions(store, food.id, JSON.stringify(updated)), 'Не удалось добавить порцию');
+        }}
         onUpdate={(label, updates) => {
-          const portion = portionsRaw?.find((p) => p.label === label);
-          if (portion) updateProductPortion(portion.id, updates);
+          const updated = portionsRaw.map((p) =>
+            p.label === label ? { ...p, ...updates } : p
+          );
+          safeMutate(() => setProductPortions(store, food.id, JSON.stringify(updated)), 'Не удалось обновить порцию');
         }}
         onRemove={(label) => {
-          const portion = portionsRaw?.find((p) => p.label === label);
-          if (portion) removeProductPortion(portion.id);
+          const updated = portionsRaw.filter((p) => p.label !== label);
+          safeMutate(() => setProductPortions(store, food.id, JSON.stringify(updated)), 'Не удалось удалить порцию');
         }}
       />
     </Screen>

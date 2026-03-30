@@ -42,37 +42,6 @@ function formatAtomChip(atom: Atom, index: number) {
           {atom.value}
         </span>
       );
-    case 'flag':
-      return (
-        <span className={clsx(styles.chip, styles.chipFlag)} key={`flag-${index}`}>
-          {atom.value}
-        </span>
-      );
-    case 'number':
-      return (
-        <span className={clsx(styles.chip, styles.chipNumber)} key={`num-${index}`}>
-          {atom.label ? `${atom.label}: ` : ''}
-          {atom.value}
-          {atom.unit ? ` ${atom.unit}` : ''}
-        </span>
-      );
-    case 'time': {
-      const parts: string[] = [];
-      if (atom.start != null) parts.push(`с ${atom.start}`);
-      if (atom.end != null) parts.push(`до ${atom.end}`);
-      if (atom.durationMin != null) parts.push(`${atom.durationMin} мин`);
-      return (
-        <span className={clsx(styles.chip, styles.chipTime)} key={`time-${index}`}>
-          {parts.join(' ') || 'время'}
-        </span>
-      );
-    }
-    case 'body':
-      return (
-        <span className={clsx(styles.chip, styles.chipBody)} key={`body-${index}`}>
-          {atom.label || 'тело'}
-        </span>
-      );
     case 'relation':
       return (
         <span className={clsx(styles.chip, styles.chipTag)} key={`rel-${index}`}>
@@ -100,7 +69,7 @@ export function ScheduleEventCard({
   className,
 }: Props) {
   const title = item.text || 'Новое событие';
-  const atoms = item.atoms ?? [];
+  const atoms: Atom[] = typeof item.atoms === 'string' ? (JSON.parse(item.atoms) as Atom[]) : (item.atoms ?? []);
   const hasAtoms = atoms.length > 0;
 
   return (
@@ -115,6 +84,7 @@ export function ScheduleEventCard({
     >
       <label htmlFor={timeHtmlFor} className={styles.time} onClick={onEditTime}>
         {item.time || '—'}
+        {item.endTime && ` — ${item.endTime}`}
       </label>
 
       <label htmlFor={textHtmlFor} className={styles.text} onClick={onEditText}>

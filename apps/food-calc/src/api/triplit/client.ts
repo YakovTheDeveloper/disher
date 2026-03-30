@@ -6,7 +6,7 @@ const host = window.location.hostname;
 export const SERVER_URL = `http://${host}:${serverPort}`;
 
 // Schema version — bump this when schema changes to auto-clear stale IndexedDB
-const SCHEMA_VERSION = "6";
+const SCHEMA_VERSION = "8";
 const SCHEMA_VERSION_KEY = "triplit_schema_version";
 
 const storedVersion = localStorage.getItem(SCHEMA_VERSION_KEY);

@@ -12,9 +12,12 @@ const CATEGORY_ICON_MAP: Partial<Record<string, string>> = {
  * Возвращает URL первой найденной иконки для набора категорий.
  * Приоритет определяется порядком итерации Set.
  */
-export function getCategoryIcon(categories: Set<string> | null | undefined): string | null {
+export function getCategoryIcon(categories: string | Set<string> | null | undefined): string | null {
   if (!categories) return null;
-  for (const cat of categories) {
+  const arr: string[] = typeof categories === 'string'
+    ? (() => { try { return JSON.parse(categories); } catch { return []; } })()
+    : Array.from(categories);
+  for (const cat of arr) {
     const icon = CATEGORY_ICON_MAP[cat];
     if (icon) return icon;
   }

@@ -19,8 +19,6 @@ type Props = {
   backgroundColor?: 'gray' | 'white';
   className?: string;
   overlay?: React.ReactNode;
-  topLeft?: React.ReactNode;
-  topRight?: React.ReactNode;
   backgroundImage?: string;
   backgroundImageOpacity?: number;
 };
@@ -35,8 +33,6 @@ const Screen = ({
   className,
   offsetTop,
   overlay,
-  topLeft,
-  topRight,
   backgroundImage,
   backgroundImageOpacity = 0.05,
 }: Props) => {
@@ -108,14 +104,6 @@ const Screen = ({
       </div>
 
       {bottomRight && <div className={clsx(styles.bottomRight)}>{bottomRight}</div>}
-
-      {topLeft && (
-        <div className={clsx(styles.topLeft, topLeft ? styles.visible : styles.hidden)}>
-          {topLeft}
-        </div>
-      )}
-
-      {topRight && <div className={clsx(styles.topRight)}>{topRight}</div>}
 
       {actions && (
         <div

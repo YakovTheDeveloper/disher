@@ -30,7 +30,7 @@ html,
 body {
   height: 100%;
   width: 100%;
-  // overscroll-behavior: none;
+  overscroll-behavior: none;
 }
 
 #root {
@@ -49,6 +49,9 @@ body {
   /* Thin scrollbar */
   scrollbar-color: #e6e6e6 #f8f9fa;
   /* Thumb color and track color */
+
+  // iOS: prevent pinch-zoom globally (iOS 13+ ignores user-scalable=no)
+  touch-action: manipulation;
 }
 
 a {

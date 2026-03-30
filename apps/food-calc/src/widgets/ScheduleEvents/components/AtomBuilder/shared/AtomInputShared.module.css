@@ -1,556 +1,204 @@
 /**
- * AtomInputShared.module.css — per-kind accent via --atom-accent CSS variable
+ * AtomInputShared.module.css — Shared styles for atom input panels.
+ * Minimal, iOS-first design. Per-kind accent via --atom-accent.
  */
 
-.inputBlock {
-    background: #fff;
-    border-radius: var(--radius-md, 12px);
-    padding: var(--space-4, 16px) var(--space-4, 16px) var(--space-3, 12px);
-    margin-top: 0;
-    border: none;
-    border-top: 3px solid var(--atom-accent, #000);
-    box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.08));
+/* Root panel — fills parent, flex column, content pushed to center-bottom */
+.atomPanel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
 }
 
-/* Fullscreen atom modal content — fills ModalShell.Body, pushes footer to bottom */
-.atomModalContent {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    /* Place inputs in lower 60% — thumb zone */
-    justify-content: flex-end;
-    gap: var(--space-2, 8px);
+/* Scrollable body — centered content for thumb-friendly reach */
+.panelBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-/* All labels inside atom modals — compact and subtle */
-.atomModalContent label {
-    display: block;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #999;
-    margin-bottom: 4px;
+/* Big input wrapper — centered column */
+.bigInputGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
-/* All inputs/textareas inside atom modals — consistent sizing */
-.atomModalContent input[type='text'],
-.atomModalContent input[type='number'],
-.atomModalContent input[type='time'],
-.atomModalContent textarea {
-    width: 100%;
-    padding: 12px 0;
-    border: none;
-    border-bottom: 1.5px solid #ddd;
-    border-radius: 0;
-    font-size: 16px;
-    font-family: inherit;
-    font-weight: 400;
-    background: transparent;
-    box-sizing: border-box;
-    transition: border-color var(--duration-normal, 200ms);
-    /* Prevent iOS zoom on focus */
+/* Big number input (ScaleAtomInput) — text type, numeric keyboard */
+.bigNumberInput {
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  text-align: center;
+  font-size: 96px;
+  font-weight: 300;
+  line-height: 1.1;
+  color: #000;
+  letter-spacing: -0.02em;
+  border: none;
+  background: transparent;
+  padding: 0;
+  caret-color: var(--atom-accent, #000);
+  -moz-appearance: textfield;
 }
 
-.atomModalContent input[type='text']:focus,
-.atomModalContent input[type='number']:focus,
-.atomModalContent input[type='time']:focus,
-.atomModalContent textarea:focus {
-    outline: none;
-    border-bottom-color: var(--atom-accent, #000);
-    box-shadow: none;
+.bigNumberInput:focus {
+  outline: none;
 }
 
-.title {
-    margin: 0 0 var(--space-3, 12px) 0;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: var(--atom-accent, #000);
-    border-top: 3px solid var(--atom-accent, #000);
-    padding-top: var(--space-2, 8px);
+/* Underline below big number */
+.bigInputUnderline {
+  width: 80px;
+  height: 0;
+  border-bottom: 2px solid var(--atom-accent, #000);
+  margin-top: 4px;
 }
 
-.description {
-    font-size: 13px;
-    color: #666;
-    margin: 0 0 var(--space-4, 16px) 0;
-    line-height: 1.5;
+/* Big text input (Tag/Relation) */
+.bigTextInput {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  text-align: center;
+  font-size: 36px;
+  font-weight: 300;
+  line-height: 1.2;
+  color: #000;
+  border: none;
+  background: transparent;
+  padding: 8px 0;
+  caret-color: var(--atom-accent, #000);
 }
 
-.formGroup {
-    margin-bottom: var(--space-4, 16px);
+.bigTextInput:focus {
+  outline: none;
 }
 
-.formGroup label {
-    display: block;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #999;
-    margin-bottom: 6px;
+.bigTextInput::placeholder {
+  color: rgba(0, 0, 0, 0.18);
 }
 
-.inputBlock > div > label {
-    display: block;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #999;
-    margin-bottom: 6px;
+/* Label field group (ScaleAtomInput label) */
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
-.inputBlock > div > input,
-.inputBlock > div > textarea {
-    width: 100%;
-    padding: 10px 0;
-    border: none;
-    border-bottom: 1.5px solid #ddd;
-    border-radius: 0;
-    font-size: 15px;
-    font-family: inherit;
-    font-weight: 400;
-    transition: border-color var(--duration-normal, 200ms);
-    box-sizing: border-box;
-    background: transparent;
+.labelInput {
+  width: 100%;
+  max-width: 200px;
+  height: 44px;
+  margin: 0 auto;
+  display: block;
+  background: rgba(0, 0, 0, 0.04);
+  border: none;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #000;
+  caret-color: var(--atom-accent, #000);
+  text-align: center;
 }
 
-.inputBlock > div > input:focus,
-.inputBlock > div > textarea:focus {
-    outline: none;
-    border-bottom-color: var(--atom-accent, #000);
-    box-shadow: none;
+.labelInput:focus {
+  outline: none;
+  background: rgba(0, 0, 0, 0.06);
 }
 
-.inputBlock > div > input[type='range'] {
-    width: 100%;
-    margin: 12px 0;
-    accent-color: var(--atom-accent, #000);
+.labelInput::placeholder {
+  color: rgba(0, 0, 0, 0.3);
 }
 
-.inputBlock > div > input[type='number'],
-.inputBlock > div > input[type='time'] {
-    width: 100%;
+/* Underline below fields */
+.fieldUnderline {
+  width: 200px;
+  max-width: 100%;
+  height: 0;
+  border-bottom: 2px solid var(--atom-accent, #000);
+  margin: 2px auto 0;
 }
 
-.inputBlock > div > output {
-    display: block;
-    text-align: center;
-    font-size: var(--text-3xl, 2.441rem);
-    font-weight: 800;
-    color: var(--atom-accent, #000);
-    margin: var(--space-2, 8px) 0 var(--space-1, 4px);
-    letter-spacing: -0.03em;
-    line-height: 1;
+/* Preset/suggestion chips */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 320px;
+  margin: 4px auto 0;
 }
 
-.valueDisplay {
-    display: block;
-    text-align: center;
-    font-size: var(--text-3xl, 2.441rem);
-    font-weight: 800;
-    color: var(--atom-accent, #000);
-    margin: var(--space-2, 8px) 0 var(--space-1, 4px);
-    letter-spacing: -0.03em;
-    line-height: 1;
+.chip {
+  padding: 8px 16px;
+  min-height: 36px;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  font-size: 15px;
+  font-weight: 400;
+  cursor: pointer;
+  color: black;
+  transition: all 120ms ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.radioGroup {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2, 8px);
+.chip:active {
+  transform: scale(0.96);
 }
 
-.radioGroup label {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2, 8px);
-    font-weight: 400;
-    font-size: 14px;
-    margin-bottom: 0;
-    cursor: pointer;
-    text-transform: none;
-    letter-spacing: 0;
-    color: #333;
+.chipActive {
+  background: var(--atom-accent, #000);
+  border-color: var(--atom-accent, #000);
+  color: #fff;
 }
 
-.radioGroup input[type='radio'] {
-    width: auto;
-    margin: 0;
-    cursor: pointer;
-    accent-color: var(--atom-accent, #000);
+/* Inline row: ← [input] → */
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
 }
 
-.presetLabels {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1, 4px);
-    margin-top: 10px;
+.navBtn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: rgba(0, 0, 0, 0.3);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 80ms ease;
 }
 
-.presetChip {
-    padding: 8px 14px;
-    min-height: 36px;
-    background: transparent;
-    border: 1.5px solid #ccc;
-    border-radius: var(--radius-xs, 6px);
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    cursor: pointer;
-    transition: all var(--duration-fast, 120ms);
-    color: #666;
-    -webkit-tap-highlight-color: transparent;
+.navBtn:active {
+  transform: scale(0.88);
 }
 
-.presetChip:hover {
-    border-color: var(--atom-accent, #000);
-    color: var(--atom-accent, #000);
+.doneBtn {
+  color: var(--atom-accent, #222);
 }
 
-.presetChip.active {
-    background: var(--atom-accent, #000);
-    border-color: var(--atom-accent, #000);
-    color: #fff;
+.navBtnDisabled {
+  opacity: 0.2;
+  pointer-events: none;
 }
 
-/* Tag suggestions — positioned near thumb zone at top of action area */
-.tagSuggestionsTop {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: var(--space-3, 12px);
-}
-
-/* Quick-add chips — larger touch targets, instant action on tap */
-.quickChip {
-    min-height: 40px;
-    padding: 8px 16px;
-    background: transparent;
-    border: 1.5px solid #ddd;
-    border-radius: var(--radius-md, 12px);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    color: #555;
-    transition: all var(--duration-fast, 120ms);
-    -webkit-tap-highlight-color: transparent;
-}
-
-.quickChip:active {
-    background: var(--atom-accent, #000);
-    border-color: var(--atom-accent, #000);
-    color: #fff;
-    transform: scale(0.95);
-}
-
-.quickChip.active {
-    background: var(--atom-accent, #000);
-    border-color: var(--atom-accent, #000);
-    color: #fff;
-}
-
-/* Legacy tag suggestions — kept for backward compat */
-.tagSuggestions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1, 4px);
-    margin-top: var(--space-2, 8px);
-    margin-bottom: var(--space-1, 4px);
-}
-
-.actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--space-2, 8px);
-    margin-top: var(--space-5, 20px);
-}
-
-.cancelBtn {
-    padding: 10px var(--space-5, 20px);
-    background: transparent;
-    border: 1.5px solid #ccc;
-    border-radius: 0;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    cursor: pointer;
-    color: #666;
-    transition: all var(--duration-fast, 120ms);
-}
-
-.cancelBtn:hover {
-    border-color: #000;
-    color: #000;
-}
-
-.addBtn {
-    padding: 10px var(--space-5, 20px);
-    background: var(--atom-accent, #000);
-    border: 1.5px solid var(--atom-accent, #000);
-    border-radius: 0;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    cursor: pointer;
-    color: #fff;
-    transition: all var(--duration-fast, 120ms);
-}
-
-.addBtn:hover:not(:disabled) {
-    opacity: 0.85;
-}
-
-.addBtn:disabled {
-    background: #ccc;
-    border-color: #ccc;
-    cursor: not-allowed;
-}
-
-.formGroup input,
-.formGroup textarea {
-    width: 100%;
-    padding: 10px 0;
-    border: none;
-    border-bottom: 1.5px solid #ddd;
-    border-radius: 0;
-    font-size: 15px;
-    font-family: inherit;
-    transition: border-color var(--duration-normal, 200ms);
-    box-sizing: border-box;
-    background: transparent;
-}
-
-.formGroup input:focus,
-.formGroup textarea:focus {
-    outline: none;
-    border-bottom-color: var(--atom-accent, #000);
-    box-shadow: none;
-}
-
-.formGroup input[type='range'] {
-    width: 100%;
-    margin: 12px 0;
-    accent-color: var(--atom-accent, #000);
-}
-
-.formGroup input[type='number'],
-.formGroup input[type='time'] {
-    width: 100%;
-}
-
-/* ScaleAtomInput — snap-scroll wheel picker */
-.hiddenFocus {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-    padding: 0;
-    margin: -1px;
-}
-
-.scaleValueDisplay {
-    display: block;
-    text-align: center;
-    font-size: 3.5rem;
-    font-weight: 800;
-    color: var(--atom-accent, #000);
-    letter-spacing: -0.03em;
-    line-height: 1;
-    margin: var(--space-2, 8px) 0 var(--space-3, 12px);
-}
-
-.scaleWheel {
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    margin: 0 calc(-1 * var(--space-4, 16px));
-    padding: 0 var(--space-4, 16px);
-    mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
-    -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
-}
-
-.scaleWheel::-webkit-scrollbar {
-    display: none;
-}
-
-.scaleWheelTrack {
-    display: flex;
-    gap: 4px;
-    /* Add padding so first and last items can center */
-    padding: 0 calc(50% - 32px);
-}
-
-.scaleWheelItem {
-    flex: 0 0 64px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 1.5px solid #ddd;
-    border-radius: var(--radius-md, 12px);
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-    color: #999;
-    transition: all var(--duration-fast, 120ms);
-    -webkit-tap-highlight-color: transparent;
-    scroll-snap-align: center;
-}
-
-.scaleWheelItem:hover {
-    border-color: var(--atom-accent, #000);
-    color: var(--atom-accent, #000);
-}
-
-.scaleWheelItem.active {
-    background: var(--atom-accent, #000);
-    border-color: var(--atom-accent, #000);
-    color: #fff;
-    transform: scale(1.1);
-}
-
-/* NumberAtomInput — stepper with [-] value [+] */
-.numberStepper {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2, 8px);
-    justify-content: center;
-    margin: var(--space-2, 8px) 0;
-}
-
-.stepperBtn {
-    width: 52px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    font-weight: 600;
-    background: transparent;
-    border: 1.5px solid #ddd;
-    border-radius: var(--radius-md, 12px);
-    color: var(--atom-accent, #000);
-    cursor: pointer;
-    transition: all var(--duration-fast, 120ms);
-    -webkit-tap-highlight-color: transparent;
-}
-
-.stepperBtn:active:not(:disabled) {
-    background: var(--atom-accent, #000);
-    color: #fff;
-    border-color: var(--atom-accent, #000);
-    transform: scale(0.93);
-}
-
-.stepperBtn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-.stepperInput {
-    width: 100px;
-    text-align: center;
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--atom-accent, #000);
-    border: none;
-    border-bottom: 2px solid #ddd;
-    background: transparent;
-    padding: var(--space-2, 8px) 0;
-    -moz-appearance: textfield;
-}
-
-.stepperInput::-webkit-outer-spin-button,
-.stepperInput::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-.stepperInput:focus {
-    outline: none;
-    border-bottom-color: var(--atom-accent, #000);
-}
-
-.numberOutput {
-    display: block;
-    text-align: center;
-    font-size: var(--text-3xl, 2.441rem);
-    font-weight: 800;
-    color: var(--atom-accent, #000);
-    margin: 0 0 var(--space-2, 8px);
-    letter-spacing: -0.03em;
-    line-height: 1;
-}
-
-.numberOutputUnit {
-    font-size: 1rem;
-    font-weight: 400;
-    opacity: 0.6;
-}
-
-/* Segment control — two large tab buttons for mode switching */
-.segmentControl {
-    display: flex;
-    gap: 0;
-    border: 1.5px solid #ddd;
-    border-radius: var(--radius-md, 12px);
-    overflow: hidden;
-    margin-bottom: var(--space-3, 12px);
-}
-
-.segmentItem {
-    flex: 1;
-    min-height: 48px;
-    padding: 12px 8px;
-    background: transparent;
-    border: none;
-    font-size: 14px;
-    font-weight: 600;
-    color: #888;
-    cursor: pointer;
-    transition: all var(--duration-fast, 120ms);
-    -webkit-tap-highlight-color: transparent;
-}
-
-.segmentItem + .segmentItem {
-    border-left: 1.5px solid #ddd;
-}
-
-.segmentItem.active {
-    background: var(--atom-accent, #000);
-    color: #fff;
-}
-
-/* "Свой" toggle button — shows custom input on demand */
-.showCustomBtn {
-    padding: 10px 16px;
-    background: transparent;
-    border: 1.5px dashed #ccc;
-    border-radius: var(--radius-md, 12px);
-    font-size: 14px;
-    font-weight: 500;
-    color: #888;
-    cursor: pointer;
-    text-align: left;
-    width: 100%;
-    transition: all var(--duration-fast, 120ms);
-    -webkit-tap-highlight-color: transparent;
-}
-
-.showCustomBtn:active {
-    border-color: var(--atom-accent, #000);
-    color: var(--atom-accent, #000);
+/* All inputs — prevent iOS zoom by ensuring font-size >= 16px */
+.atomPanel input[type='text'] {
+  font-size: max(16px, inherit);
 }

@@ -1,27 +1,34 @@
-import { useQuery } from "@triplit/react";
-import { triplit } from "@/api/triplit/client";
+import { queryDb } from "@livestore/livestore";
+import { useQuery } from "@livestore/react";
+import { tables } from "@/livestore/schema";
 
 export function useScheduleFoods(date: string | undefined) {
-  return useQuery(
-    triplit,
-    triplit
-      .query("scheduleFoods")
-      .Where("date", "=", date ?? "")
-      .Include("food")
-      .Include("dish"),
+  const rows = useQuery(
+    queryDb(
+      tables.scheduleFoods.where({ date: date ?? "", deletedAt: null }),
+      { label: `schedule-foods-${date}` },
+    ),
   );
+  return rows;
 }
 
 export function useScheduleFoodsByDates(dates: string[]) {
-  return useQuery(
-    triplit,
-    triplit.query("scheduleFoods").Where("date", "in", dates),
+  const rows = useQuery(
+    queryDb(
+      tables.scheduleFoods.where({ deletedAt: null }),
+      { label: 'schedule-foods-all' },
+    ),
   );
+  const dateSet = new Set(dates);
+  return rows.filter((r: any) => dateSet.has(r.date));
 }
 
 export function useAllScheduleFoods() {
-  return useQuery(
-    triplit,
-    triplit.query("scheduleFoods").Select(["date"]),
+  const rows = useQuery(
+    queryDb(
+      tables.scheduleFoods.where({ deletedAt: null }),
+      { label: 'all-schedule-foods' },
+    ),
   );
+  return rows;
 }

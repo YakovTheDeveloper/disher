@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useStore } from '@livestore/react';
 import { format, startOfToday } from 'date-fns';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
@@ -6,6 +7,7 @@ import { BaseOverlayContentLayout } from '@/shared/ui/layout/overlay/BaseOverlay
 import { ScheduleSelection } from '@/features/ScheduleSelection';
 import { useDish } from '@/entities/dish';
 import { addScheduleFood } from '@/entities/schedule-food';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './AddDishToDayScheduleOverlay.module.scss';
 
 interface Props extends BaseDrawerProps {
@@ -13,7 +15,8 @@ interface Props extends BaseDrawerProps {
 }
 
 const AddDishToDayScheduleOverlay = ({ dishId, onClose }: Props) => {
-  const { result: dish } = useDish(dishId);
+  const { store } = useStore();
+  const dish = useDish(dishId);
 
   const today = format(startOfToday(), 'dd-MM-yyyy');
   const [selectedDate, setSelectedDate] = useState<string>(today);
@@ -22,16 +25,14 @@ const AddDishToDayScheduleOverlay = ({ dishId, onClose }: Props) => {
     setSelectedDate(date);
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (dish) {
       const currentTime = new Date().toTimeString().slice(0, 5);
-      await addScheduleFood({
-        date: selectedDate,
-        time: currentTime,
-        type: 'dish',
-        dishId: dish.id,
-        quantity: 100,
-      });
+      const result = safeMutate(
+        () => addScheduleFood(store, { date: selectedDate, time: currentTime, type: 'dish', dishId: dish.id, quantity: 100 }),
+        'Не удалось добавить блюдо',
+      );
+      if (result === undefined) return;
     }
     onClose();
   };

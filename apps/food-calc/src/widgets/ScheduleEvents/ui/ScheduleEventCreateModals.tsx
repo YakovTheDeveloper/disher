@@ -1,17 +1,20 @@
 import { useCallback, useState } from 'react';
+import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalFooter, NextArrow, NextStepButton } from '@/shared/ui/ModalFooter';
+import { ModalFooter } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-import { TimeChoose } from '@/shared/ui/TimeChoose';
+import { TimeChoose, type TimeRangeState } from '@/shared/ui/TimeChoose';
 import { addScheduleEvent } from '@/entities/schedule-event';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import Button from '@/shared/ui/atoms/Button/Button';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
-import { Typography } from '@/shared/ui/atoms/Typography';
+import modalStyles from './ScheduleEventModals.module.scss';
+import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
 
 /**
  * Input IDs used for label→input focus delegation across ScheduleEvent modals.
@@ -43,11 +46,13 @@ const STEP_LABELS: Record<ActiveStep, string> = {
 
 type DraftState = {
   time: string;
+  endTime: string | null;
   text: string;
 };
 
 const createEmptyDraft = (): DraftState => ({
   time: new Date().toTimeString().slice(0, 5),
+  endTime: null,
   text: '',
 });
 
@@ -56,7 +61,9 @@ type Props = {
 };
 
 const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
+  const { store } = useStore();
   const [step, setStep] = useState<Step>('idle');
+  const [atomPanelOpen, setAtomPanelOpen] = useState(false);
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
   const draftAtoms = useEventDraftStore((s) => s.draft.atoms);
   const clearAtoms = useEventDraftStore((s) => s.clearAtoms);
@@ -95,17 +102,27 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
     setDraft((prev) => ({ ...prev, time }));
   };
 
+  const handleRangeChange = (range: TimeRangeState) => {
+    setDraft((prev) => ({ ...prev, time: range.from, endTime: range.to }));
+  };
+
   const handleTextChange = (value: string) => {
     setDraft((prev) => ({ ...prev, text: value }));
   };
 
-  const handleCommit = async () => {
-    await addScheduleEvent({
-      date: scheduleId,
-      time: draft.time,
-      text: draft.text,
-      atoms: draftAtoms,
-    });
+  const handleCommit = () => {
+    const result = safeMutate(
+      () =>
+        addScheduleEvent(store, {
+          date: scheduleId,
+          time: draft.time,
+          endTime: draft.endTime ?? undefined,
+          text: draft.text,
+          atoms: draftAtoms,
+        }),
+      'Не удалось создать событие'
+    );
+    if (result === undefined) return;
     setDraft(createEmptyDraft());
     clearAtoms();
     setStep('idle');
@@ -130,7 +147,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         position="absolute"
         isExpanded={step === 'time'}
         content={
-          <ModalShell>
+          <ModalShell className={modalStyles.whiteShell}>
             <ModalStepHeader
               currentStep="time"
               steps={STEPS}
@@ -138,17 +155,19 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
               onBack={handleClose}
               onStepClick={goToStep}
             />
-            <ModalShell.Spacer />
             <ModalShell.Body>
+              <ModalShell.Title>Выберите время</ModalShell.Title>
               <TimeChoose
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
                 inputId={MODAL_INPUT_IDS.TIME_INPUT}
-                after={<NextArrow htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} />}
+                nextLabelHtmlFor={MODAL_INPUT_IDS.TEXT_INPUT}
+                range={{
+                  initialFrom: draft.time,
+                  initialTo: draft.endTime ?? undefined,
+                  onChangeRange: handleRangeChange,
+                }}
               />
-              <ModalFooter onBack={handleClose}>
-                <NextStepButton htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} />
-              </ModalFooter>
             </ModalShell.Body>
           </ModalShell>
         }
@@ -159,7 +178,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         position="absolute"
         isExpanded={step === 'text'}
         content={
-          <ModalShell>
+          <ModalShell className={modalStyles.whiteShell}>
             <ModalStepHeader
               currentStep="text"
               steps={STEPS}
@@ -167,16 +186,17 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
               onBack={handleClose}
               onStepClick={goToStep}
             />
-            <ModalShell.Spacer />
             <ModalShell.Body>
-              <Typography variant="elegant">Опишите, что чувствуете или что произошло</Typography>
-              <Textarea
-                placeholder="Опишите событие"
-                id={MODAL_INPUT_IDS.TEXT_INPUT}
-                onChange={handleTextChange}
-                value={draft.text}
-                rows={5}
-              />
+              <ModalShell.Title>Опишите событие</ModalShell.Title>
+              <div>
+                <Textarea
+                  placeholder="Опишите событие"
+                  id={MODAL_INPUT_IDS.TEXT_INPUT}
+                  onChange={handleTextChange}
+                  value={draft.text}
+                />
+                <IconButton onClick={() => goToStep('atoms')}>стрелочка</IconButton>
+              </div>
               <ModalFooter onBack={() => goToStep('time')}>
                 <Button variant="primary-form" onClick={() => goToStep('atoms')}>
                   Далее
@@ -192,21 +212,28 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         position="absolute"
         isExpanded={step === 'atoms'}
         content={
-          <ModalShell>
-            <ModalStepHeader
-              currentStep="atoms"
-              steps={STEPS}
-              stepLabels={STEP_LABELS}
-              onBack={handleClose}
-              onStepClick={goToStep}
-            />
+          <ModalShell className={modalStyles.whiteShell}>
+            {!atomPanelOpen && (
+              <ModalStepHeader
+                currentStep="atoms"
+                steps={STEPS}
+                stepLabels={STEP_LABELS}
+                onBack={handleClose}
+                onStepClick={goToStep}
+              />
+            )}
             <ModalShell.AtomsBody>
-              {step === 'atoms' && <AtomBuilder id={MODAL_INPUT_IDS.ATOMS_INPUT} />}
-              <ModalFooter onBack={() => goToStep('text')}>
-                <Button variant="primary-form" onClick={handleCommit}>
-                  Готово
-                </Button>
-              </ModalFooter>
+              <ModalShell.Title>Добавьте теги</ModalShell.Title>
+              {step === 'atoms' && (
+                <AtomBuilder id={MODAL_INPUT_IDS.ATOMS_INPUT} onPanelChange={setAtomPanelOpen} />
+              )}
+              {!atomPanelOpen && (
+                <ModalFooter onBack={() => goToStep('text')}>
+                  <Button variant="primary-form" onClick={handleCommit}>
+                    Готово
+                  </Button>
+                </ModalFooter>
+              )}
             </ModalShell.AtomsBody>
           </ModalShell>
         }

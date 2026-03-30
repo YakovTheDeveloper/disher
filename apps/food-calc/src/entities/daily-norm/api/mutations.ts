@@ -1,44 +1,42 @@
-import { triplit } from "@/api/triplit/client";
 import { getCurrentUserId } from "@/api/triplit/session";
-import { v4 as uuid } from "uuid";
+import { events } from "@/livestore/schema";
+import type { Store } from "@livestore/livestore";
 import type { DailyNormItems } from "../model/types";
 
-export async function createDailyNorm(name: string, description: string) {
-  const id = uuid();
-  await triplit.insert("dailyNorms", {
-    id,
-    name,
-    description,
-    userId: getCurrentUserId(),
-    items: {},
-  });
+export function createDailyNorm(store: Store, name: string, description: string) {
+  const id = crypto.randomUUID();
+  store.commit(
+    events.dailyNormCreated({
+      id,
+      name,
+      description,
+      userId: getCurrentUserId(),
+      items: "{}",
+    }),
+  );
   return id;
 }
 
-export async function updateDailyNorm(
+export function updateDailyNorm(
+  store: Store,
   normId: string,
   updates: Partial<{ name: string; description: string }>,
 ) {
-  await triplit.update("dailyNorms", normId, (norm) => {
-    if (updates.name !== undefined) norm.name = updates.name;
-    if (updates.description !== undefined) norm.description = updates.description;
-  });
+  store.commit(events.dailyNormUpdated({ id: normId, ...updates }));
 }
 
-export async function deleteDailyNorm(normId: string) {
-  await triplit.delete("dailyNorms", normId);
+export function deleteDailyNorm(store: Store, normId: string) {
+  store.commit(events.dailyNormDeleted({ id: normId }));
 }
 
-export async function setDailyNormNutrient(
+export function setDailyNormNutrient(
+  store: Store,
   normId: string,
   nutrientId: string,
   quantity: number | null,
+  currentItems: DailyNormItems,
 ) {
-  const norm = await triplit.fetchById("dailyNorms", normId);
-  if (!norm) return;
-
-  const items = (norm.items ?? {}) as DailyNormItems;
-  const next = { ...items };
+  const next = { ...currentItems };
 
   if (quantity === null || quantity === 0) {
     delete next[nutrientId];
@@ -46,21 +44,18 @@ export async function setDailyNormNutrient(
     next[nutrientId] = quantity;
   }
 
-  await triplit.update("dailyNorms", normId, (n) => {
-    n.items = next;
-  });
+  store.commit(events.dailyNormUpdated({ id: normId, items: JSON.stringify(next) }));
 }
 
-export async function seedDefaultDailyNorm(defaults: Record<string, number>) {
+export function seedDefaultDailyNorm(store: Store, defaults: Record<string, number>) {
   const normId = "DEFAULT_NORM";
-  const existing = await triplit.fetchById("dailyNorms", normId);
-  if (existing) return;
-
-  await triplit.insert("dailyNorms", {
-    id: normId,
-    name: "Стандарт",
-    description: "Стандартная норма потребления, для среднестатистического человека",
-    userId: getCurrentUserId(),
-    items: defaults,
-  });
+  store.commit(
+    events.dailyNormCreated({
+      id: normId,
+      name: "Стандарт",
+      description: "Стандартная норма потребления, для среднестатистического человека",
+      userId: getCurrentUserId(),
+      items: JSON.stringify(defaults),
+    }),
+  );
 }

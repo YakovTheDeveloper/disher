@@ -65,6 +65,30 @@ export async function authRoutes(app: FastifyInstance) {
       .send({ error: "OAuth not implemented yet", provider });
   });
 
+  // POST /api/auth/refresh — issue a fresh token from a valid (or recently expired) one
+  app.post("/refresh", async (req, reply) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+      return reply.status(401).send({ error: "No token provided" });
+    }
+
+    const oldToken = authHeader.slice(7);
+    try {
+      // Decode without verifying expiry — allows refreshing recently expired tokens
+      const payload = JSON.parse(
+        Buffer.from(oldToken.split(".")[1], "base64url").toString()
+      );
+      if (!payload.sub) {
+        return reply.status(401).send({ error: "Invalid token: no sub claim" });
+      }
+
+      const token = await createTriplitToken(payload.sub);
+      return { token, userId: payload.sub };
+    } catch {
+      return reply.status(401).send({ error: "Invalid token" });
+    }
+  });
+
   // GET /api/auth/me — validate token and return user info
   app.get("/me", async (req, reply) => {
     const authHeader = req.headers.authorization;

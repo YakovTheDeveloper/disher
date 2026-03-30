@@ -1,10 +1,13 @@
-import type { Entity } from "@triplit/client";
-import type { schema } from "@triplit-schema/schema";
-import type { Atom } from "./atoms";
-
-// Override `atoms: any` (from S.Json()) with the actual typed union
-export type ScheduleEvent = Omit<Entity<typeof schema, "scheduleEvents">, "atoms"> & {
-  atoms: Atom[];
+/** Schedule event row from LiveStore. `atoms` is a JSON string that needs parsing. */
+export type ScheduleEvent = {
+  id: string;
+  date: string;
+  userId: string;
+  time: string;
+  endTime: string;
+  text: string;
+  atoms: string; // JSON: Atom[]
+  deletedAt: number | null;
 };
 
 export type ScheduleEventType = "negative" | "positive" | "custom" | "routine" | "sport";

@@ -26,26 +26,42 @@ export const NextStepButton = ({ htmlFor, label = 'Далее' }: NextStepButton
   </label>
 );
 
-type NextArrowProps = {
-  htmlFor?: string;
-  onClick?: () => void;
+type ModalNextButtonLabelProps = {
+  as: 'label';
+  htmlFor: string;
 };
 
-export const NextArrow = ({ htmlFor, onClick }: NextArrowProps) => {
-  const content = (
-    <svg viewBox="0 0 24 24" fill="none" width="32" height="32">
-      <path
-        d="M5 12h14M13 6l6 6-6 6"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+type ModalNextButtonButtonProps = {
+  as?: never;
+  htmlFor?: never;
+  onClick: () => void;
+};
+
+type ModalNextButtonProps = ModalNextButtonLabelProps | ModalNextButtonButtonProps;
+
+const arrowIcon = (
+  <svg viewBox="0 0 24 24" fill="none" width="32" height="32">
+    <path
+      d="M5 12h14M13 6l6 6-6 6"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const ModalNextButton = (props: ModalNextButtonProps) => {
+  if (props.as === 'label') {
+    return (
+      <label htmlFor={props.htmlFor} className={s.nextArrow} aria-label="Далее">
+        {arrowIcon}
+      </label>
+    );
+  }
   return (
-    <label onClick={onClick} htmlFor={htmlFor} className={s.nextArrow} aria-label="Далее">
-      {content}
-    </label>
+    <button type="button" onClick={props.onClick} className={s.nextArrow} aria-label="Далее">
+      {arrowIcon}
+    </button>
   );
 };

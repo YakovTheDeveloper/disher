@@ -12,7 +12,7 @@ type Props = {
 const COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 const PeriodBanner = ({ date }: Props) => {
-  const { results: allPeriods } = usePeriods();
+  const allPeriods = usePeriods();
 
   const activePeriods = useMemo(() => {
     if (!allPeriods?.length) return [];

@@ -1,10 +1,12 @@
-import { useQuery } from '@triplit/react';
-import { triplit } from '@/api/triplit/client';
-import { getCurrentUserId } from '@/api/triplit/session';
+import { queryDb } from "@livestore/livestore";
+import { useQuery } from "@livestore/react";
+import { tables } from "@/livestore/schema";
 
 export function usePeriods() {
   return useQuery(
-    triplit,
-    triplit.query('periods').Where('userId', '=', getCurrentUserId())
+    queryDb(
+      tables.periods.where({ deletedAt: null }),
+      { label: 'periods' },
+    ),
   );
 }

@@ -5,14 +5,9 @@
 import {
   Atom,
   isScaleAtom,
-  isTimeAtom,
-  isNumberAtom,
   isTagAtom,
   isRelationAtom,
-  isFlagAtom,
-  isBodyAtom,
 } from '@/entities/schedule-event';
-import { formatBodyPoints } from './BodyAtomInput';
 import styles from './AtomList.module.css';
 import { observer } from 'mobx-react-lite';
 
@@ -30,39 +25,11 @@ function formatAtom(atom: Atom): string {
     const label = atom.label ? ` (${atom.label})` : '';
     return `${atom.value}/10${label}`;
   }
-  if (isTimeAtom(atom)) {
-    if (atom.durationMin) {
-      return `${atom.durationMin} мин`;
-    }
-    if (atom.start && atom.end) {
-      return `${new Date(atom.start).toLocaleTimeString()} - ${new Date(atom.end).toLocaleTimeString()}`;
-    }
-    if (atom.start) {
-      return `С ${new Date(atom.start).toLocaleTimeString()}`;
-    }
-    if (atom.end) {
-      return `До ${new Date(atom.end).toLocaleTimeString()}`;
-    }
-    return 'Время';
-  }
-  if (isNumberAtom(atom)) {
-    const unit = atom.unit ? ` ${atom.unit}` : '';
-    const label = atom.label ? ` (${atom.label})` : '';
-    return `${atom.value}${unit}${label}`;
-  }
   if (isTagAtom(atom)) {
     return `#${atom.value}`;
   }
   if (isRelationAtom(atom)) {
     return `→ ${atom.value}`;
-  }
-  if (isFlagAtom(atom)) {
-    return `⚡ ${atom.value}`;
-  }
-  if (isBodyAtom(atom)) {
-    const summary = formatBodyPoints(atom.points);
-    const label = atom.label ? ` (${atom.label})` : '';
-    return `${summary}${label}`;
   }
   return '?';
 }
@@ -73,12 +40,8 @@ function formatAtom(atom: Atom): string {
 function getAtomKindLabel(kind: Atom['kind']): string {
   const labels: Record<Atom['kind'], string> = {
     scale: 'Оценка',
-    time: 'Время',
-    number: 'Число',
     tag: 'Тег',
     relation: 'Связь',
-    flag: 'Флаг',
-    body: 'Тело',
   };
   return labels[kind];
 }

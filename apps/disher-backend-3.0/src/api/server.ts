@@ -9,8 +9,11 @@ import { shareRoutes } from "./routes/shares.js";
 import { bugReportRoutes } from "./routes/bug-reports.js";
 import { fileURLToPath } from "url";
 import path from "path";
+import { initAnalyticsDb } from "./analytics-db.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+initAnalyticsDb();
 
 const app = Fastify({ logger: true });
 

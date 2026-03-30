@@ -1,27 +1,42 @@
 import { RouterLinks } from '@/app/router';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Swipeable } from '@/shared/ui/Swipeable';
+import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import homeStyles from './HomePage.module.scss';
 import { FoodSchedule } from '@/widgets/FoodSchedule';
 import { ScheduleEvents } from '@/widgets/ScheduleEvents';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
 import { useScheduleFoods, useScheduleNutrientTotals } from '@/entities/schedule-food';
+import type { ScheduleFood } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
+import type { ScheduleEvent } from '@/entities/schedule-event';
 
 const Page = ({ date }: { date: string }) => {
   console.log('schedule builder page render');
 
-  const { results: scheduleFoods } = useScheduleFoods(date);
-  const { results: scheduleEvents } = useScheduleEvents(date);
+  const scheduleFoods = useScheduleFoods(date);
+  const scheduleEvents = useScheduleEvents(date);
   const {
     totals: scheduleTotals,
     missingNutrientNames,
     isLoading: nutrientsLoading,
   } = useScheduleNutrientTotals(date);
 
-  const items = scheduleFoods ?? [];
-  const events = scheduleEvents ?? [];
+  const items = [...scheduleFoods] as ScheduleFood[];
+  const events = [...scheduleEvents] as ScheduleEvent[];
+
+  const swipeableRef = useRef<SwipeableRef>(null);
+  const [richNutrient, setRichNutrient] = useState<{ id: string; unit: string } | null>(null);
+
+  const handleRichFood = useCallback((nutrientId: string, unit: string) => {
+    setRichNutrient({ id: nutrientId, unit });
+    // Swipe to FoodSchedule slide (index 1)
+    swipeableRef.current?.goToPage(1);
+  }, []);
+
+  const handleRichNutrientClear = useCallback(() => {
+    setRichNutrient(null);
+  }, []);
 
   const onPageChange = (page: number, _total: number) => {
     // if (page === 2) {
@@ -33,15 +48,16 @@ const Page = ({ date }: { date: string }) => {
 
   return (
     <>
-      <Swipeable defaultSlide={1} onIndexChange={onPageChange} key={date}>
+      <Swipeable ref={swipeableRef} defaultSlide={1} onIndexChange={onPageChange} key={date} hasDots>
         <FoodsNutrients
           key={date}
           totals={scheduleTotals}
           missingNutrientNames={missingNutrientNames}
           isLoading={nutrientsLoading}
           className={homeStyles.nutrientsSlide}
+          onRichFood={handleRichFood}
         />
-        <FoodSchedule key={date} date={date} items={items} />
+        <FoodSchedule key={date} date={date} items={items} richNutrient={richNutrient} onRichNutrientClear={handleRichNutrientClear} />
         <ScheduleEvents key={date} date={date} events={events} />
       </Swipeable>
     </>

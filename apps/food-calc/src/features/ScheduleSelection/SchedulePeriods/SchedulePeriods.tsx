@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useStore } from '@livestore/react';
 import { format, differenceInDays, startOfToday, addDays, parse } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import styles from './SchedulePeriods.module.scss';
 import { usePeriods, addPeriod, removePeriod } from '@/entities/period';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import type { BaseDrawerProps } from '@/shared/ui/overlay-types';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
@@ -58,11 +60,12 @@ const DeletePeriodDrawer = ({ onClose, periodName }: BaseDrawerProps<boolean> & 
 );
 
 export const SchedulePeriods = () => {
-  const { results: periods } = usePeriods();
+  const { store } = useStore();
+  const periods = usePeriods();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
-  const handleAdd = async () => {
+  const handleAdd = () => {
     if (!form.name.trim() || !form.startDate || !form.endDate) return;
 
     const toInternal = (isoDate: string) => {
@@ -70,13 +73,17 @@ export const SchedulePeriods = () => {
       return `${d}-${m}-${y}`;
     };
 
-    await addPeriod({
-      name: form.name.trim(),
-      description: form.description.trim() || null,
-      startDate: toInternal(form.startDate),
-      endDate: toInternal(form.endDate),
-      colorIndex: (periods?.length ?? 0) % COLORS.length,
-    });
+    const result = safeMutate(
+      () => addPeriod(store, {
+        name: form.name.trim(),
+        description: form.description.trim() || null,
+        startDate: toInternal(form.startDate),
+        endDate: toInternal(form.endDate),
+        colorIndex: periods.length % COLORS.length,
+      }),
+      'Не удалось создать период',
+    );
+    if (result === undefined) return;
 
     setForm(emptyForm);
     setShowForm(false);
@@ -85,11 +92,11 @@ export const SchedulePeriods = () => {
   const handleRemove = async (id: string, name: string) => {
     const confirmed = await drawerStore.show(DeletePeriodDrawer, { periodName: name });
     if (confirmed) {
-      await removePeriod(id);
+      safeMutate(() => removePeriod(store, id), 'Не удалось удалить период');
     }
   };
 
-  const periodsList = periods ?? [];
+  const periodsList = periods;
 
   return (
     <div className={styles.container}>

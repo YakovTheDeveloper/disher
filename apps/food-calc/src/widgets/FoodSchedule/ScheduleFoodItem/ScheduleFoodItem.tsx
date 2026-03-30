@@ -74,7 +74,7 @@ const ScheduleFoodItemComponent = ({
     return <p className={styles.variant}>{getVariantLabelText()}</p>;
   }, [content]);
 
-  const name = content.food || content.dish;
+  const name = content.food ?? content.dish ?? null;
 
   const isCustom = content.type === 'food' && isCreatedByUser(content.food?.userId);
 

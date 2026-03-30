@@ -1,7 +1,7 @@
 import { useRef, useState, useMemo } from 'react';
 import style from './ProductQuantity.module.scss';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
-import { NextArrow } from '@/shared/ui/ModalFooter';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import clsx from 'clsx';
 
 type QuickButtonProps = {
@@ -138,7 +138,7 @@ const ProductQuantity = ({
           />
         </div>
         <div className={style.after}>
-          <NextArrow
+          <ModalNextButton
             onClick={() => {
               onBlur();
               onNextButtonClick?.();

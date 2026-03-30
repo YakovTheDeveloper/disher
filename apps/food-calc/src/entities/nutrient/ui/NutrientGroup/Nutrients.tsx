@@ -16,9 +16,9 @@ const Nutrients = ({ renderCard }: Props) => {
         const headline = groupName.toUpperCase();
         return (
           <div key={groupName} className={clsx(styles.group, styles[`group--${name}`])}>
-            {name === 'main' && (
+            {/* {name === 'main' && (
               <img src={treeSrc} alt="" className={styles.treeBackground} />
-            )}
+            )} */}
             <h2 className={styles.groupTitle}>
               <span className={styles.groupTitleBold}>{headline}</span>
             </h2>

@@ -11,16 +11,20 @@ import { useScheduleFoods } from '@/entities/schedule-food/api/queries';
 import { useScheduleEvents } from '@/entities/schedule-event/api/queries';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food/model/types';
 import type { ScheduleEvent } from '@/entities/schedule-event/model/types';
+import {
+  fetchDailyAnalysis,
+  fetchWeeklyAnalysis,
+  startDailyAnalysis,
+  startWeeklyAnalysis,
+  computeInputHash,
+} from '@/entities/analytics';
+import type { AnalyticsTab } from '@/entities/analytics';
 import styles from './ScheduleFoodAnalyticsPage.module.scss';
 import toaster from '@/shared/lib/toaster/toaster';
 
-const port = Number(import.meta.env.VITE_PORT) || 3000;
-const API_BASE = `http://${window.location.hostname}:${port}`;
-
 type StreamStatus = 'idle' | 'connecting' | 'streaming' | 'done' | 'error' | 'stopped';
-type AnalyticsTab = 'food' | 'day';
 
-// ─── Local cache ───
+// ─── localStorage fallback for offline ───
 
 const CACHE_KEY_PREFIX = 'analytics_cache_';
 
@@ -43,6 +47,38 @@ function setCachedResult(date: string, tab: AnalyticsTab, text: string): void {
     // localStorage full or unavailable
   }
 }
+
+// ─── Date helpers ───
+
+function parseDate(dateStr: string): Date {
+  const [d, m, y] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function formatDate(date: Date): string {
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+  return `${d}-${m}-${y}`;
+}
+
+function getWeekDates(dateStr: string): { weekStart: string; dates: string[] } {
+  const date = parseDate(dateStr);
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // Monday
+  const monday = new Date(date);
+  monday.setDate(date.getDate() + diff);
+
+  const dates: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dates.push(formatDate(d));
+  }
+  return { weekStart: dates[0], dates };
+}
+
+const DAY_NAMES = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 // ─── Snapshot builders ───
 
@@ -124,6 +160,7 @@ const ThinkingIndicator = () => (
 const TABS: Tab[] = [
   { value: 'food', alternativeLabel: 'Питание' },
   { value: 'day', alternativeLabel: 'День' },
+  { value: 'week', alternativeLabel: 'Неделя' },
 ];
 
 // ─── Main page ───
@@ -138,10 +175,9 @@ const AnalyticsContent = ({
   events: ScheduleEvent[];
 }) => {
   const [activeTab, setActiveTab] = useState<AnalyticsTab>('food');
-  const [text, setText] = useState(() => getCachedResult(date, 'food') || '');
-  const [status, setStatus] = useState<StreamStatus>(() =>
-    getCachedResult(date, 'food') ? 'done' : 'idle',
-  );
+  const [text, setText] = useState('');
+  const [status, setStatus] = useState<StreamStatus>('idle');
+  const [isStale, setIsStale] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const autoScrollRef = useRef(true);
@@ -172,6 +208,82 @@ const AnalyticsContent = ({
     return () => el.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Load persisted analysis on mount / tab change
+  useEffect(() => {
+    if (activeTab === 'week') return; // weekly has its own loading
+    let cancelled = false;
+
+    async function load() {
+      const persisted = await fetchDailyAnalysis(date, activeTab);
+      if (cancelled) return;
+
+      if (persisted) {
+        setText(persisted.content);
+        setStatus('done');
+        setCachedResult(date, activeTab, persisted.content);
+
+        // Check staleness
+        const foodSnap = buildFoodSnapshot(foods);
+        const eventSnap = activeTab === 'day' ? buildEventSnapshot(events) : undefined;
+        const currentHash = await computeInputHash(
+          foodSnap.map((f) => ({ time: f.time, name: f.name, quantity: f.quantity, type: f.type })),
+          eventSnap?.map((e) => ({ time: e.time, text: e.text })),
+        );
+        if (!cancelled) {
+          setIsStale(currentHash !== persisted.inputHash);
+        }
+      } else {
+        // Fallback to localStorage
+        const cached = getCachedResult(date, activeTab);
+        if (cached && !cancelled) {
+          setText(cached);
+          setStatus('done');
+          setIsStale(true); // no server version, always consider stale
+        } else if (!cancelled) {
+          setText('');
+          setStatus('idle');
+          setIsStale(false);
+        }
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, [date, activeTab, foods, events]);
+
+  // Load weekly analysis
+  useEffect(() => {
+    if (activeTab !== 'week') return;
+    let cancelled = false;
+
+    async function loadWeekly() {
+      const { weekStart } = getWeekDates(date);
+      const persisted = await fetchWeeklyAnalysis(weekStart);
+      if (cancelled) return;
+
+      if (persisted) {
+        setText(persisted.content);
+        setStatus('done');
+        setCachedResult(date, 'week', persisted.content);
+        setIsStale(false);
+      } else {
+        const cached = getCachedResult(date, 'week');
+        if (cached && !cancelled) {
+          setText(cached);
+          setStatus('done');
+          setIsStale(true);
+        } else if (!cancelled) {
+          setText('');
+          setStatus('idle');
+          setIsStale(false);
+        }
+      }
+    }
+
+    loadWeekly();
+    return () => { cancelled = true; };
+  }, [date, activeTab]);
+
   const handleStop = useCallback(() => {
     abortRef.current?.abort();
     setStatus('stopped');
@@ -184,48 +296,75 @@ const AnalyticsContent = ({
 
     setStatus('connecting');
     setText('');
+    setIsStale(false);
     autoScrollRef.current = true;
 
-    const isDay = activeTab === 'day';
-    const endpoint = isDay ? 'analyze-day-stream' : 'analyze-stream';
-    const body = isDay
-      ? { date, foods: buildFoodSnapshot(foods), events: buildEventSnapshot(events) }
-      : { date, foods: buildFoodSnapshot(foods) };
-
     try {
-      const response = await fetch(`${API_BASE}/api/analytics/${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
+      if (activeTab === 'week') {
+        // Weekly analysis
+        const { weekStart, dates } = getWeekDates(date);
+        const result = await startWeeklyAnalysis(weekStart, dates, controller.signal);
 
-      if (!response.ok) {
-        const respBody = await response.text().catch(() => '');
-        throw new Error(
-          response.status === 400
-            ? 'Некорректные данные'
-            : response.status >= 500
-              ? 'Сервер временно недоступен'
-              : `Ошибка: ${response.status} ${respBody}`,
+        if (result.cached) {
+          setText(result.content);
+          setStatus('done');
+          setCachedResult(date, 'week', result.content);
+          return;
+        }
+
+        setStatus('streaming');
+        let fullText = '';
+        await readSSEStream(
+          result.response,
+          (chunk) => {
+            fullText += chunk;
+            setText((prev) => prev + chunk);
+          },
+          controller.signal,
         );
-      }
 
-      setStatus('streaming');
+        if (!controller.signal.aborted) {
+          setStatus('done');
+          setCachedResult(date, 'week', fullText);
+        }
+      } else {
+        // Daily analysis
+        const foodSnap = buildFoodSnapshot(foods);
+        const eventSnap = buildEventSnapshot(events);
+        const hashInput = foodSnap.map((f) => ({
+          time: f.time, name: f.name, quantity: f.quantity, type: f.type,
+        }));
+        const hashEvents = activeTab === 'day'
+          ? eventSnap.map((e) => ({ time: e.time, text: e.text }))
+          : undefined;
+        const inputHash = await computeInputHash(hashInput, hashEvents);
 
-      let fullText = '';
-      await readSSEStream(
-        response,
-        (chunk) => {
-          fullText += chunk;
-          setText((prev) => prev + chunk);
-        },
-        controller.signal,
-      );
+        const result = await startDailyAnalysis(
+          date, activeTab, foodSnap, eventSnap, inputHash, controller.signal,
+        );
 
-      if (!controller.signal.aborted) {
-        setStatus('done');
-        setCachedResult(date, activeTab, fullText);
+        if (result.cached) {
+          setText(result.content);
+          setStatus('done');
+          setCachedResult(date, activeTab, result.content);
+          return;
+        }
+
+        setStatus('streaming');
+        let fullText = '';
+        await readSSEStream(
+          result.response,
+          (chunk) => {
+            fullText += chunk;
+            setText((prev) => prev + chunk);
+          },
+          controller.signal,
+        );
+
+        if (!controller.signal.aborted) {
+          setStatus('done');
+          setCachedResult(date, activeTab, fullText);
+        }
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return;
@@ -234,23 +373,15 @@ const AnalyticsContent = ({
     }
   }, [date, foods, events, activeTab]);
 
-  // On tab switch, load cached result or show idle
   const handleTabChange = useCallback(
     (tab: string) => {
       abortRef.current?.abort();
-      const newTab = tab as AnalyticsTab;
-      setActiveTab(newTab);
-
-      const cached = getCachedResult(date, newTab);
-      if (cached) {
-        setText(cached);
-        setStatus('done');
-      } else {
-        setText('');
-        setStatus('idle');
-      }
+      setActiveTab(tab as AnalyticsTab);
+      setText('');
+      setStatus('idle');
+      setIsStale(false);
     },
-    [date],
+    [],
   );
 
   useEffect(() => {
@@ -262,7 +393,11 @@ const AnalyticsContent = ({
   const hasFoods = foods.length > 0;
   const hasEvents = events.length > 0;
   const canAnalyze =
-    activeTab === 'food' ? hasFoods : hasFoods || hasEvents;
+    activeTab === 'week'
+      ? true // weekly always allows (server checks for daily analyses)
+      : activeTab === 'food'
+        ? hasFoods
+        : hasFoods || hasEvents;
 
   return (
     <Screen
@@ -278,13 +413,25 @@ const AnalyticsContent = ({
           isActive ? (
             <AddButton onClick={handleStop}>Отменить</AddButton>
           ) : (
-            <AddButton onClick={handleAnalyze}>Анализ</AddButton>
+            <AddButton onClick={handleAnalyze}>
+              {isStale ? 'Обновить' : 'Анализ'}
+            </AddButton>
           )
         ) : undefined
       }
     >
       <div className={styles.container}>
-        {/* Toolbar — copy / retry when done */}
+        {/* Stale indicator */}
+        {isStale && status === 'done' && hasContent && (
+          <div className={styles.staleBanner}>
+            Данные изменились с момента анализа.{' '}
+            <button className={styles.retryLink} onClick={handleAnalyze}>
+              Обновить
+            </button>
+          </div>
+        )}
+
+        {/* Toolbar — copy when done */}
         {!isActive && status === 'done' && hasContent && (
           <div className={styles.toolbar}>
             <button
@@ -356,11 +503,13 @@ const AnalyticsContent = ({
         {/* Empty state */}
         {status === 'idle' && !hasContent && (
           <div className={styles.empty}>
-            {canAnalyze
-              ? 'Нажмите кнопку «Анализ» для начала.'
-              : activeTab === 'food'
-                ? 'Нет данных для анализа. Добавьте продукты в расписание.'
-                : 'Нет данных для анализа. Добавьте продукты или события.'}
+            {activeTab === 'week'
+              ? 'Нажмите «Анализ» для недельного обзора.'
+              : canAnalyze
+                ? 'Нажмите кнопку «Анализ» для начала.'
+                : activeTab === 'food'
+                  ? 'Нет данных для анализа. Добавьте продукты в расписание.'
+                  : 'Нет данных для анализа. Добавьте продукты или события.'}
           </div>
         )}
       </div>
@@ -375,8 +524,8 @@ const GetDatePageWrapper = () => {
   const date = params.id;
   const navigate = useNavigate();
 
-  const { results: scheduleFoods } = useScheduleFoods(date);
-  const { results: scheduleEvents } = useScheduleEvents(date);
+  const scheduleFoods = useScheduleFoods(date);
+  const scheduleEvents = useScheduleEvents(date);
 
   useEffect(() => {
     if (!date) {
@@ -386,10 +535,7 @@ const GetDatePageWrapper = () => {
 
   if (!date) return null;
 
-  const foods = scheduleFoods ? Array.from(scheduleFoods.values()) : [];
-  const events = scheduleEvents ? Array.from(scheduleEvents.values()) : [];
-
-  return <AnalyticsContent date={date} foods={foods} events={events} />;
+  return <AnalyticsContent date={date} foods={[...scheduleFoods] as ScheduleFoodWithRelations[]} events={[...scheduleEvents] as ScheduleEvent[]} />;
 };
 
 export default GetDatePageWrapper;

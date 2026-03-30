@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  forwardRef,
-  useImperativeHandle,
-  useEffect,
-  useRef,
-} from 'react';
+import React, { useCallback, forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
 
 import useEmblaCarousel from 'embla-carousel-react';
 import styles from './SwipeableV2.module.scss';
@@ -97,7 +91,10 @@ const SwipeableV2 = forwardRef<SwipeableRef, Props>(
 
     return (
       <SwipeableLockContext.Provider value={{ lock, unlock }}>
-        <div className={className ? `${styles.carouselWrapper} ${className}` : styles.carouselWrapper} data-carousel-container>
+        <div
+          className={className ? `${styles.carouselWrapper} ${className}` : styles.carouselWrapper}
+          data-carousel-container
+        >
           <div className={styles.emblaViewport} ref={emblaRefModal}>
             <div className={styles.emblaContainer}>
               {image && (
@@ -124,7 +121,6 @@ const SwipeableV2 = forwardRef<SwipeableRef, Props>(
                 <button
                   key={idx}
                   className={`${styles.dot} ${idx === defaultSlide ? styles.dotActive : ''}`}
-                  onClick={() => emblaApi?.scrollTo(idx)}
                 />
               ))}
             </div>

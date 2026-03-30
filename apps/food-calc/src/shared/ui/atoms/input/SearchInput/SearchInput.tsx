@@ -15,7 +15,6 @@ const SearchInput = React.forwardRef<HTMLInputElement, Props>(
     const hasValue = typeof inputValue === 'string' && inputValue.length > 0;
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-      e.target.select();
       inputProps.onFocus?.(e);
     };
 
@@ -34,7 +33,7 @@ const SearchInput = React.forwardRef<HTMLInputElement, Props>(
     }, [ref, onChange]);
 
     return (
-      <label className={clsx(styles.searchWrapper, styles[size], wrapperClassName)}>
+      <div className={clsx(styles.searchWrapper, styles[size], wrapperClassName)}>
         <div className={styles.searchIcon}>
           <SearchIcon />
         </div>
@@ -64,7 +63,7 @@ const SearchInput = React.forwardRef<HTMLInputElement, Props>(
             <CrossIcon />
           </button>
         )}
-      </label>
+      </div>
     );
   }
 );

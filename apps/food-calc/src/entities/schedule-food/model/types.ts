@@ -1,16 +1,22 @@
-import type { Entity, QueryResult } from "@triplit/client";
-import type { schema } from "@triplit-schema/schema";
+/** Base schedule food row from LiveStore */
+export type ScheduleFood = {
+  id: string;
+  date: string;
+  userId: string;
+  quantity: number;
+  type: string; // 'food' | 'dish'
+  time: string;
+  details: string;
+  productId: string;
+  dishId: string;
+  deletedAt: number | null;
+  // Compatibility aliases (mapped in queries)
+  foodId?: string | null;
+  food?: { name: string; userId: string; pricePerKg?: number } | null;
+  dish?: { name: string } | null;
+};
 
-/** Base entity — no relations (foodId/dishId only, no .food/.dish) */
-export type ScheduleFood = Entity<typeof schema, "scheduleFoods">;
-
-/** With .Include("food").Include("dish") — has .food and .dish populated */
-export type ScheduleFoodWithRelations = QueryResult<
-  typeof schema,
-  {
-    collectionName: "scheduleFoods";
-    include: { food: true; dish: true };
-  }
->;
+/** Alias — LiveStore has no relations, flat rows only */
+export type ScheduleFoodWithRelations = ScheduleFood;
 
 export type ScheduleFoodType = "food" | "dish";

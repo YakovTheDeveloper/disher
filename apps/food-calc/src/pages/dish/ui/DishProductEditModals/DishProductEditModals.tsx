@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalShell } from '@/shared/ui/ModalShell';
@@ -7,6 +8,7 @@ import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { updateDishItem } from '@/entities/dish';
 import { useProductPortions } from '@/entities/product';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import Button from '@/shared/ui/atoms/Button/Button';
 import type { Portion } from '@/features/product/ProductQuantity';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
@@ -45,6 +47,7 @@ type Props = {
 };
 
 const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) => {
+  const { store } = useStore();
   const createInitialDraft = (): DraftState => ({
     foodId: item.foodId,
     quantity: item.quantity,
@@ -57,7 +60,7 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
   const [step, setStep] = useState<Step>(initialStep);
   const [draft, setDraft] = useState<DraftState>(createInitialDraft);
 
-  const { results: foodPortionsMap } = useProductPortions(draft.foodId ?? undefined);
+  const foodPortionsMap = useProductPortions(draft.foodId ?? undefined);
 
   useSwipeableLock(step !== 'idle');
   useOverlayHistory(step !== 'idle', () => {
@@ -86,16 +89,18 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
 
   const handleFoodSelect = async (payload: { variant: 'product' | 'dish'; id: string }) => {
     if (payload.variant === 'dish') return;
-    await updateDishItem(item.id, { foodId: payload.id });
+    const result = await safeMutate(() => updateDishItem(store, item.id, { foodId: payload.id }), 'Не удалось обновить');
+    if (result === undefined) return;
     setStep('idle');
     onClose();
   };
 
   const handleCommit = async () => {
-    await updateDishItem(item.id, {
-      foodId: draft.foodId ?? undefined,
-      quantity: draft.quantity,
-    });
+    const result = await safeMutate(
+      () => updateDishItem(store, item.id, { foodId: draft.foodId ?? undefined, quantity: draft.quantity }),
+      'Не удалось обновить',
+    );
+    if (result === undefined) return;
     setStep('idle');
     onClose();
   };

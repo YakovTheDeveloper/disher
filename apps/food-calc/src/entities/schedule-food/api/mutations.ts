@@ -1,16 +1,20 @@
-import { triplit } from "@/api/triplit/client";
 import { getCurrentUserId } from "@/api/triplit/session";
-import { v4 as uuid } from "uuid";
+import { events } from "@/livestore/schema";
+import type { Store } from "@livestore/livestore";
 import type { ClipboardItem } from "@/shared/model/clipboardStore";
 
-export async function addScheduleFood(params: {
-  date: string;
-  time: string;
-  type: "food" | "dish";
-  quantity: number;
-  foodId?: string | null;
-  dishId?: string | null;
-}) {
+export function addScheduleFood(
+  store: Store,
+  params: {
+    date: string;
+    time: string;
+    type: "food" | "dish";
+    quantity: number;
+    foodId?: string | null;
+    dishId?: string | null;
+    details?: string | null;
+  },
+) {
   const hasFoodId = params.foodId != null;
   const hasDishId = params.dishId != null;
 
@@ -21,25 +25,30 @@ export async function addScheduleFood(params: {
     throw new Error("addScheduleFood: must set either foodId or dishId");
   }
 
-  const id = uuid();
-  await triplit.insert("scheduleFoods", {
-    id,
-    date: params.date,
-    time: params.time,
-    type: params.type,
-    quantity: params.quantity,
-    foodId: params.foodId ?? null,
-    dishId: params.dishId ?? null,
-    userId: getCurrentUserId(),
-  });
+  const id = crypto.randomUUID();
+  store.commit(
+    events.scheduleFoodCreated({
+      id,
+      date: params.date,
+      time: params.time,
+      type: params.type,
+      quantity: params.quantity,
+      details: params.details ?? "",
+      foodId: params.foodId ?? "",
+      dishId: params.dishId ?? "",
+      userId: getCurrentUserId(),
+    }),
+  );
   return id;
 }
 
-export async function updateScheduleFood(
+export function updateScheduleFood(
+  store: Store,
   itemId: string,
   updates: Partial<{
     time: string;
     quantity: number;
+    details: string | null;
     foodId: string | null;
     dishId: string | null;
     type: "food" | "dish";
@@ -56,83 +65,41 @@ export async function updateScheduleFood(
     }
   }
 
-  await triplit.update("scheduleFoods", itemId, (item) => {
-    if (updates.time !== undefined) item.time = updates.time;
-    if (updates.quantity !== undefined) item.quantity = updates.quantity;
-    if (updates.foodId !== undefined) item.foodId = updates.foodId;
-    if (updates.dishId !== undefined) item.dishId = updates.dishId;
-    if (updates.type !== undefined) item.type = updates.type;
-  });
+  const mapped: Record<string, string | number | undefined> = { id: itemId };
+  if (updates.time !== undefined) mapped.time = updates.time;
+  if (updates.quantity !== undefined) mapped.quantity = updates.quantity;
+  if (updates.details !== undefined) mapped.details = updates.details ?? "";
+  if (updates.foodId !== undefined) mapped.foodId = updates.foodId ?? "";
+  if (updates.dishId !== undefined) mapped.dishId = updates.dishId ?? "";
+  if (updates.type !== undefined) mapped.type = updates.type;
+
+  store.commit(events.scheduleFoodUpdated(mapped as Parameters<typeof events.scheduleFoodUpdated>[0]));
 }
 
-export async function removeScheduleFood(itemId: string) {
-  await triplit.delete("scheduleFoods", itemId);
+export function removeScheduleFood(store: Store, itemId: string) {
+  store.commit(events.scheduleFoodDeleted({ id: itemId }));
 }
 
-export async function removeScheduleFoods(itemIds: string[]) {
-  await Promise.all(itemIds.map((id) => triplit.delete("scheduleFoods", id)));
+export function removeScheduleFoods(store: Store, itemIds: string[]) {
+  store.commit(...itemIds.map((id) => events.scheduleFoodDeleted({ id })));
 }
 
-export async function copyScheduleFoods(
-  fromDate: string,
-  toDate: string,
-  itemIds: string[],
-) {
-  const items = await triplit.fetch(
-    triplit.query("scheduleFoods").Where("date", "=", fromDate),
-  );
-  const toCopy = Array.from(items.values()).filter((item) => itemIds.includes(item.id));
-  await Promise.all(
-    toCopy.map((item) =>
-      addScheduleFood({
-        date: toDate,
-        time: item.time,
-        type: item.type as "food" | "dish",
-        quantity: item.quantity,
-        foodId: item.foodId,
-        dishId: item.dishId,
-      }),
-    ),
-  );
-}
-
-export async function pasteClipboardItems(
+export function pasteClipboardItems(
+  store: Store,
   items: ClipboardItem[],
   targetDate: string,
 ) {
-  await Promise.all(
-    items.map((item) =>
-      addScheduleFood({
+  store.commit(
+    ...items.map((item) =>
+      events.scheduleFoodCreated({
+        id: crypto.randomUUID(),
         date: targetDate,
         time: item.time,
         type: item.type,
         quantity: item.quantity,
-        foodId: item.foodId,
-        dishId: item.dishId,
-      }),
-    ),
-  );
-}
-
-/**
- * Copy schedule foods into a dish as DishItems.
- */
-export async function scheduleFoodsToDishItems(
-  scheduleFoodIds: string[],
-  dishId: string,
-) {
-  const allItems = await triplit.fetch(triplit.query("scheduleFoods"));
-  const items = Array.from(allItems.values()).filter(
-    (item) => scheduleFoodIds.includes(item.id) && item.type === "food" && item.foodId,
-  );
-
-  await Promise.all(
-    items.map((item) =>
-      triplit.insert("dishItems", {
-        id: uuid(),
-        dishId,
-        foodId: item.foodId!,
-        quantity: item.quantity,
+        details: item.details ?? "",
+        foodId: item.foodId ?? "",
+        dishId: item.dishId ?? "",
         userId: getCurrentUserId(),
       }),
     ),

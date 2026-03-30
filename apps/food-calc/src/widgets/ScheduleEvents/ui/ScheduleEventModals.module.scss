@@ -1,1 +1,5 @@
 // Event-modal-specific styles (shared shell styles are in ModalShell, footer styles in ModalFooter)
+
+.whiteShell {
+  background: linear-gradient(160deg, rgb(248, 248, 252) 0%, rgb(245, 246, 250) 40%, rgb(248, 250, 252) 100%);
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './Textarea.module.css';
 
 interface TextareaProps {
@@ -18,85 +18,82 @@ interface TextareaProps {
   id?: string;
 }
 
-const Textarea: React.FC<TextareaProps> = (
-  ({
-    value,
-    onChange,
-    placeholder = 'Enter text...',
-    label,
-    rows = 3,
-    maxLength,
-    debounceTime = 300,
-    className,
-    disabled,
-    required,
-    readOnly,
-    name,
-    autoFocus,
-    id: propId,
-  }) => {
-    const [internalValue, setInternalValue] = useState(value);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+function resize(el: HTMLTextAreaElement) {
+  el.style.height = '0';
+  el.style.height = el.scrollHeight + 'px';
+}
 
-    // Sync internal value with external value if external value changes
-    useEffect(() => {
-      if (value !== internalValue) {
-        setInternalValue(value);
-      }
-    }, [value]);
+const Textarea = ({
+  value,
+  onChange,
+  placeholder,
+  label,
+  rows = 1,
+  maxLength,
+  debounceTime = 300,
+  className,
+  disabled,
+  required,
+  readOnly,
+  name,
+  autoFocus,
+  id: propId,
+}: TextareaProps) => {
+  const [local, setLocal] = useState(value);
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
-    // Debounce effect to call onChange after a delay
-    useEffect(() => {
-      const handler = setTimeout(() => {
-        if (internalValue !== value) {
-          onChange(internalValue);
-        }
-      }, debounceTime);
+  // Sync external → local
+  useEffect(() => {
+    setLocal(value);
+  }, [value]);
 
-      return () => clearTimeout(handler);
-    }, [internalValue, debounceTime, onChange]);
+  // Auto-resize on content change
+  useEffect(() => {
+    if (ref.current) resize(ref.current);
+  }, [local]);
 
-    // Adjust height dynamically
-    useEffect(() => {
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-      }
-    }, [internalValue]);
+  // Debounced onChange
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const next = e.target.value;
+      if (maxLength && next.length > maxLength) return;
+      setLocal(next);
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => onChange(next), debounceTime);
+    },
+    [onChange, debounceTime, maxLength],
+  );
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      if (!maxLength || e.target.value.length <= maxLength) {
-        setInternalValue(e.target.value);
-      }
-    };
+  // Cleanup timer
+  useEffect(() => () => clearTimeout(timerRef.current), []);
 
-    const textareaId = propId || 'custom-textarea';
+  const textareaId = propId || undefined;
 
-    return (
-      <div className={`${styles.container} ${className || ''}`}>
-        {label && (
-          <label className={styles.label} htmlFor={textareaId}>
-            {label}
-          </label>
-        )}
-        <textarea
-          id={textareaId}
-          ref={textareaRef}
-          value={internalValue}
-          onChange={handleInputChange}
-          placeholder={placeholder}
-          rows={rows}
-          className={styles.textarea}
-          aria-label={typeof label === 'string' ? label : placeholder}
-          disabled={disabled}
-          required={required}
-          readOnly={readOnly}
-          name={name}
-          autoFocus={autoFocus}
-        />
-      </div>
-    );
-  }
-);
+  return (
+    <div className={`${styles.container} ${className || ''}`}>
+      {label && (
+        <label className={styles.label} htmlFor={textareaId}>
+          {label}
+        </label>
+      )}
+      <textarea
+        id={textareaId}
+        ref={ref}
+        value={local}
+        onChange={handleChange}
+        placeholder={placeholder}
+        rows={rows}
+        className={styles.textarea}
+        aria-label={typeof label === 'string' ? label : placeholder}
+        disabled={disabled}
+        required={required}
+        readOnly={readOnly}
+        name={name}
+        autoFocus={autoFocus}
+      />
+    </div>
+  );
+};
 
 export default Textarea;
