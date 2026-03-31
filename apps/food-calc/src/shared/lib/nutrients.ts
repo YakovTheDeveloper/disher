@@ -1,6 +1,6 @@
 /**
  * Pure functions for nutrient calculations.
- * Nutrients are stored per 100g in Triplit, scaled by quantity/100.
+ * Nutrients are stored per 100g, scaled by quantity/100.
  */
 
 export interface NutrientEntry {

@@ -23,73 +23,40 @@ import { useScheduleNutrientTotals } from './useScheduleNutrientTotals';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-/** Creates a Map mimicking Triplit RelationMany result */
-function nutrientsMap(entries: Array<{ id: string; nutrientId: string; quantity: number; foodId: string }>) {
-  const map = new Map<string, { id: string; nutrientId: string; quantity: number; foodId: string }>();
-  for (const e of entries) map.set(e.id, e);
-  return map;
-}
-
-function makeFood(
-  id: string,
-  nutrients: Array<{ id: string; nutrientId: string; quantity: number }>,
-  name?: string,
-) {
-  return {
-    id,
-    name: name ?? id,
-    nutrients: nutrientsMap(nutrients.map((n) => ({ ...n, foodId: id }))),
-  };
-}
-
 function makeScheduleFood(overrides: {
   id: string;
   type: 'food' | 'dish';
   quantity: number;
-  foodId?: string;
+  productId?: string;
   dishId?: string;
   date?: string;
-  food?: { name: string };
-  dish?: { name: string };
 }) {
   return {
     date: '2026-01-01',
-    foodId: null,
-    dishId: null,
+    productId: overrides.productId ?? '',
+    dishId: overrides.dishId ?? '',
     ...overrides,
   };
 }
 
-function buildNutrientsMap(products: ReturnType<typeof makeFood>[] | null | undefined) {
+function buildNutrientsMap(
+  products: Array<{ id: string; nutrients: Array<{ nutrientId: string; quantity: number }> }>,
+) {
   const map = new Map<string, Array<{ nutrientId: string; quantity: number }>>();
-  if (!products) return map;
   for (const p of products) {
-    if (!p.nutrients) continue;
-    const entries: Array<{ nutrientId: string; quantity: number }> = [];
-    for (const n of p.nutrients.values()) {
-      entries.push({ nutrientId: n.nutrientId, quantity: n.quantity });
-    }
-    if (entries.length > 0) map.set(p.id, entries);
+    if (p.nutrients.length > 0) map.set(p.id, p.nutrients);
   }
   return map;
 }
 
 function setupMocks(opts: {
-  scheduleFoods?: ReturnType<typeof makeScheduleFood>[] | null;
-  dishItems?: Array<{ id: string; dishId: string; foodId: string; quantity: number }> | null;
-  products?: ReturnType<typeof makeFood>[] | null;
-  fetchingSchedule?: boolean;
-  fetchingDishItems?: boolean;
+  scheduleFoods?: ReturnType<typeof makeScheduleFood>[];
+  dishItems?: Array<{ id: string; dishId: string; productId: string; quantity: number }>;
+  products?: Array<{ id: string; nutrients: Array<{ nutrientId: string; quantity: number }> }>;
 }) {
-  mockUseScheduleFoods.mockReturnValue({
-    results: opts.scheduleFoods ?? null,
-    fetching: opts.fetchingSchedule ?? false,
-  });
-  mockUseDishItemsByDishIds.mockReturnValue({
-    results: opts.dishItems ?? null,
-    fetching: opts.fetchingDishItems ?? false,
-  });
-  mockUseNutrientsByFoodIds.mockReturnValue(buildNutrientsMap(opts.products));
+  mockUseScheduleFoods.mockReturnValue(opts.scheduleFoods ?? []);
+  mockUseDishItemsByDishIds.mockReturnValue(opts.dishItems ?? []);
+  mockUseNutrientsByFoodIds.mockReturnValue(buildNutrientsMap(opts.products ?? []));
 }
 
 // ─── setup ────────────────────────────────────────────────────────────────────
@@ -102,38 +69,12 @@ beforeEach(() => {
 // ─── tests ────────────────────────────────────────────────────────────────────
 
 describe('useScheduleNutrientTotals', () => {
-  // ─── Loading & empty states ─────────────────────────────────────────────────
-
-  describe('loading states', () => {
-    it('returns empty totals when scheduleFoods is null (loading)', () => {
+  describe('empty states', () => {
+    it('returns empty totals when no schedule foods', () => {
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
       expect(result.current.totals).toEqual({});
       expect(result.current.missingNutrientNames).toEqual([]);
-    });
-
-    it('returns isLoading=true when scheduleFoods is fetching', () => {
-      setupMocks({ fetchingSchedule: true });
-      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      expect(result.current.isLoading).toBe(true);
-    });
-
-    it('returns isLoading=true when dish items are fetching', () => {
-      setupMocks({ scheduleFoods: [], fetchingDishItems: true });
-      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      expect(result.current.isLoading).toBe(true);
-    });
-
-    it('returns isLoading=false when all fetches complete', () => {
-      setupMocks({ scheduleFoods: [], dishItems: [] });
-      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
       expect(result.current.isLoading).toBe(false);
-    });
-
-    it('returns empty totals when there are no schedule foods', () => {
-      setupMocks({ scheduleFoods: [] });
-      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      expect(result.current.totals).toEqual({});
-      expect(result.current.missingNutrientNames).toEqual([]);
     });
   });
 
@@ -146,12 +87,12 @@ describe('useScheduleNutrientTotals', () => {
     });
 
     it('collects food IDs from both direct foods and dish items', () => {
-      const sfFood = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'apple', quantity: 100 });
+      const sfFood = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'apple', quantity: 100 });
       const sfDish = makeScheduleFood({ id: 'sf2', type: 'dish', dishId: 'salad', quantity: 100 });
 
       setupMocks({
         scheduleFoods: [sfFood, sfDish],
-        dishItems: [{ id: 'di1', dishId: 'salad', foodId: 'banana', quantity: 100 }],
+        dishItems: [{ id: 'di1', dishId: 'salad', productId: 'banana', quantity: 100 }],
       });
 
       renderHook(() => useScheduleNutrientTotals('2026-01-01'));
@@ -162,18 +103,17 @@ describe('useScheduleNutrientTotals', () => {
     });
 
     it('deduplicates food IDs when same product used in food and dish items', () => {
-      const sfFood = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'apple', quantity: 100 });
+      const sfFood = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'apple', quantity: 100 });
       const sfDish = makeScheduleFood({ id: 'sf2', type: 'dish', dishId: 'salad', quantity: 100 });
 
       setupMocks({
         scheduleFoods: [sfFood, sfDish],
-        dishItems: [{ id: 'di1', dishId: 'salad', foodId: 'apple', quantity: 50 }],
+        dishItems: [{ id: 'di1', dishId: 'salad', productId: 'apple', quantity: 50 }],
       });
 
       renderHook(() => useScheduleNutrientTotals('2026-01-01'));
 
       const calledIds = mockUseNutrientsByFoodIds.mock.calls.at(-1)?.[0] as string[];
-      // apple appears once, not twice
       expect(calledIds.filter((id: string) => id === 'apple')).toHaveLength(1);
     });
 
@@ -195,18 +135,14 @@ describe('useScheduleNutrientTotals', () => {
       expect(calledDishIds).toHaveLength(2);
     });
 
-    it('skips food items with null foodId', () => {
+    it('skips food items with empty productId', () => {
       const sf = makeScheduleFood({ id: 'sf1', type: 'food', quantity: 100 });
-      // foodId defaults to null
 
-      setupMocks({
-        scheduleFoods: [sf],
-        dishItems: [],
-      });
+      setupMocks({ scheduleFoods: [sf], dishItems: [] });
 
-      renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      // should not crash and should not request any food IDs
-      expect(result()).toEqual({ totals: {}, missingNutrientNames: [], isLoading: false });
+      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
+      expect(result.current.totals).toEqual({});
+      expect(result.current.missingNutrientNames).toEqual([]);
     });
   });
 
@@ -214,13 +150,13 @@ describe('useScheduleNutrientTotals', () => {
 
   describe('food item calculations', () => {
     it('calculates nutrients for a single food item', () => {
-      const sf = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'apple', quantity: 200 });
-      const apple = makeFood('apple', [
-        { id: 'fn1', nutrientId: 'kcal', quantity: 52 },
-        { id: 'fn2', nutrientId: 'fat', quantity: 0.3 },
-      ]);
+      const sf = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'apple', quantity: 200 });
 
-      setupMocks({ scheduleFoods: [sf], dishItems: [], products: [apple] });
+      setupMocks({
+        scheduleFoods: [sf],
+        dishItems: [],
+        products: [{ id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 52 }, { nutrientId: 'fat', quantity: 0.3 }] }],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
 
@@ -231,62 +167,63 @@ describe('useScheduleNutrientTotals', () => {
     });
 
     it('calculates nutrients for quantity < 100g', () => {
-      const sf = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'apple', quantity: 50 });
-      const apple = makeFood('apple', [
-        { id: 'fn1', nutrientId: 'kcal', quantity: 100 },
-      ]);
+      const sf = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'apple', quantity: 50 });
 
-      setupMocks({ scheduleFoods: [sf], dishItems: [], products: [apple] });
+      setupMocks({
+        scheduleFoods: [sf],
+        dishItems: [],
+        products: [{ id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 100 }] }],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      // 50g → scale 0.5: 100*0.5=50
       expect(result.current.totals.kcal).toBeCloseTo(50);
     });
 
     it('sums nutrients across multiple food items', () => {
-      const sf1 = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'apple', quantity: 100 });
-      const sf2 = makeScheduleFood({ id: 'sf2', type: 'food', foodId: 'banana', quantity: 100 });
+      const sf1 = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'apple', quantity: 100 });
+      const sf2 = makeScheduleFood({ id: 'sf2', type: 'food', productId: 'banana', quantity: 100 });
 
-      const apple = makeFood('apple', [{ id: 'fn1', nutrientId: 'kcal', quantity: 52 }]);
-      const banana = makeFood('banana', [{ id: 'fn2', nutrientId: 'kcal', quantity: 89 }]);
-
-      setupMocks({ scheduleFoods: [sf1, sf2], dishItems: [], products: [apple, banana] });
+      setupMocks({
+        scheduleFoods: [sf1, sf2],
+        dishItems: [],
+        products: [
+          { id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 52 }] },
+          { id: 'banana', nutrients: [{ nutrientId: 'kcal', quantity: 89 }] },
+        ],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
       expect(result.current.totals.kcal).toBeCloseTo(141);
     });
 
     it('sums different nutrients from different food items', () => {
-      const sf1 = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'apple', quantity: 100 });
-      const sf2 = makeScheduleFood({ id: 'sf2', type: 'food', foodId: 'oil', quantity: 10 });
+      const sf1 = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'apple', quantity: 100 });
+      const sf2 = makeScheduleFood({ id: 'sf2', type: 'food', productId: 'oil', quantity: 10 });
 
-      const apple = makeFood('apple', [
-        { id: 'fn1', nutrientId: 'kcal', quantity: 52 },
-        { id: 'fn2', nutrientId: 'carbs', quantity: 14 },
-      ]);
-      const oil = makeFood('oil', [
-        { id: 'fn3', nutrientId: 'kcal', quantity: 884 },
-        { id: 'fn4', nutrientId: 'fat', quantity: 100 },
-      ]);
-
-      setupMocks({ scheduleFoods: [sf1, sf2], dishItems: [], products: [apple, oil] });
+      setupMocks({
+        scheduleFoods: [sf1, sf2],
+        dishItems: [],
+        products: [
+          { id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 52 }, { nutrientId: 'carbs', quantity: 14 }] },
+          { id: 'oil', nutrients: [{ nutrientId: 'kcal', quantity: 884 }, { nutrientId: 'fat', quantity: 100 }] },
+        ],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      // apple: kcal=52, carbs=14; oil 10g: kcal=88.4, fat=10
       expect(result.current.totals.kcal).toBeCloseTo(140.4);
       expect(result.current.totals.carbs).toBeCloseTo(14);
       expect(result.current.totals.fat).toBeCloseTo(10);
     });
 
     it('handles same product added twice at different quantities', () => {
-      const sf1 = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'apple', quantity: 100 });
-      const sf2 = makeScheduleFood({ id: 'sf2', type: 'food', foodId: 'apple', quantity: 150 });
+      const sf1 = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'apple', quantity: 100 });
+      const sf2 = makeScheduleFood({ id: 'sf2', type: 'food', productId: 'apple', quantity: 150 });
 
-      const apple = makeFood('apple', [
-        { id: 'fn1', nutrientId: 'kcal', quantity: 52 },
-      ]);
-
-      setupMocks({ scheduleFoods: [sf1, sf2], dishItems: [], products: [apple] });
+      setupMocks({
+        scheduleFoods: [sf1, sf2],
+        dishItems: [],
+        products: [{ id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 52 }] }],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
       // 100g → 52kcal, 150g → 78kcal, total → 130kcal
@@ -300,38 +237,39 @@ describe('useScheduleNutrientTotals', () => {
     it('calculates nutrients for a dish schedule item', () => {
       const sf = makeScheduleFood({ id: 'sf1', type: 'dish', dishId: 'salad', quantity: 300 });
 
-      const dishItems = [
-        { id: 'di1', dishId: 'salad', foodId: 'apple', quantity: 100 },
-        { id: 'di2', dishId: 'salad', foodId: 'banana', quantity: 200 },
-      ];
-
-      const apple = makeFood('apple', [{ id: 'fn1', nutrientId: 'kcal', quantity: 52 }]);
-      const banana = makeFood('banana', [{ id: 'fn2', nutrientId: 'kcal', quantity: 89 }]);
-
-      setupMocks({ scheduleFoods: [sf], dishItems, products: [apple, banana] });
+      setupMocks({
+        scheduleFoods: [sf],
+        dishItems: [
+          { id: 'di1', dishId: 'salad', productId: 'apple', quantity: 100 },
+          { id: 'di2', dishId: 'salad', productId: 'banana', quantity: 200 },
+        ],
+        products: [
+          { id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 52 }] },
+          { id: 'banana', nutrients: [{ nutrientId: 'kcal', quantity: 89 }] },
+        ],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-
       // base: apple 100g→52kcal, banana 200g→178kcal = 230kcal for 300g base
-      // userQuantity=300, baseWeight=300 → scale=1.0
       expect(result.current.totals.kcal).toBeCloseTo(230);
     });
 
     it('scales dish nutrients when userQuantity differs from base weight', () => {
       const sf = makeScheduleFood({ id: 'sf1', type: 'dish', dishId: 'salad', quantity: 150 });
 
-      const dishItems = [
-        { id: 'di1', dishId: 'salad', foodId: 'apple', quantity: 100 },
-        { id: 'di2', dishId: 'salad', foodId: 'banana', quantity: 200 },
-      ];
-
-      const apple = makeFood('apple', [{ id: 'fn1', nutrientId: 'kcal', quantity: 52 }]);
-      const banana = makeFood('banana', [{ id: 'fn2', nutrientId: 'kcal', quantity: 89 }]);
-
-      setupMocks({ scheduleFoods: [sf], dishItems, products: [apple, banana] });
+      setupMocks({
+        scheduleFoods: [sf],
+        dishItems: [
+          { id: 'di1', dishId: 'salad', productId: 'apple', quantity: 100 },
+          { id: 'di2', dishId: 'salad', productId: 'banana', quantity: 200 },
+        ],
+        products: [
+          { id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 52 }] },
+          { id: 'banana', nutrients: [{ nutrientId: 'kcal', quantity: 89 }] },
+        ],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-
       // base 230kcal, scale 150/300=0.5 → 115kcal
       expect(result.current.totals.kcal).toBeCloseTo(115);
     });
@@ -340,21 +278,21 @@ describe('useScheduleNutrientTotals', () => {
       const sfA = makeScheduleFood({ id: 'sf1', type: 'dish', dishId: 'dishA', quantity: 100 });
       const sfB = makeScheduleFood({ id: 'sf2', type: 'dish', dishId: 'dishB', quantity: 100 });
 
-      const dishItems = [
-        { id: 'di1', dishId: 'dishA', foodId: 'apple', quantity: 100 },
-        { id: 'di2', dishId: 'dishB', foodId: 'banana', quantity: 200 },
-      ];
-
-      const apple = makeFood('apple', [{ id: 'fn1', nutrientId: 'kcal', quantity: 50 }]);
-      const banana = makeFood('banana', [{ id: 'fn2', nutrientId: 'kcal', quantity: 80 }]);
-
-      setupMocks({ scheduleFoods: [sfA, sfB], dishItems, products: [apple, banana] });
+      setupMocks({
+        scheduleFoods: [sfA, sfB],
+        dishItems: [
+          { id: 'di1', dishId: 'dishA', productId: 'apple', quantity: 100 },
+          { id: 'di2', dishId: 'dishB', productId: 'banana', quantity: 200 },
+        ],
+        products: [
+          { id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 50 }] },
+          { id: 'banana', nutrients: [{ nutrientId: 'kcal', quantity: 80 }] },
+        ],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-
-      // dishA: apple 100g → 50kcal, userQ=100, base=100, scale=1.0
+      // dishA: apple 100g → 50kcal, scale=1.0
       // dishB: banana 200g → 160kcal, userQ=100, base=200, scale=0.5 → 80kcal
-      // total: 130kcal
       expect(result.current.totals.kcal).toBeCloseTo(130);
     });
 
@@ -364,7 +302,6 @@ describe('useScheduleNutrientTotals', () => {
       setupMocks({ scheduleFoods: [sf], dishItems: [] });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      // No dish items → no calculation → empty totals
       expect(result.current.totals).toEqual({});
     });
   });
@@ -373,43 +310,37 @@ describe('useScheduleNutrientTotals', () => {
 
   describe('mixed food and dish items', () => {
     it('handles mix of food and dish items', () => {
-      const sfFood = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'apple', quantity: 100 });
+      const sfFood = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'apple', quantity: 100 });
       const sfDish = makeScheduleFood({ id: 'sf2', type: 'dish', dishId: 'salad', quantity: 200 });
 
-      const dishItems = [
-        { id: 'di1', dishId: 'salad', foodId: 'banana', quantity: 200 },
-      ];
-
-      const apple = makeFood('apple', [{ id: 'fn1', nutrientId: 'kcal', quantity: 52 }]);
-      const banana = makeFood('banana', [{ id: 'fn2', nutrientId: 'kcal', quantity: 89 }]);
-
-      setupMocks({ scheduleFoods: [sfFood, sfDish], dishItems, products: [apple, banana] });
+      setupMocks({
+        scheduleFoods: [sfFood, sfDish],
+        dishItems: [{ id: 'di1', dishId: 'salad', productId: 'banana', quantity: 200 }],
+        products: [
+          { id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 52 }] },
+          { id: 'banana', nutrients: [{ nutrientId: 'kcal', quantity: 89 }] },
+        ],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-
       // food: apple 100g → 52kcal
-      // dish: banana 200g base → 178kcal, user 200g → scale 1.0 → 178kcal
-      // total: 230
+      // dish: banana 200g base → 178kcal, user 200g → scale 1.0
       expect(result.current.totals.kcal).toBeCloseTo(230);
     });
 
     it('handles same product used as both standalone food and in a dish', () => {
-      const sfFood = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'apple', quantity: 100 });
+      const sfFood = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'apple', quantity: 100 });
       const sfDish = makeScheduleFood({ id: 'sf2', type: 'dish', dishId: 'salad', quantity: 200 });
 
-      const dishItems = [
-        { id: 'di1', dishId: 'salad', foodId: 'apple', quantity: 200 }, // same product
-      ];
-
-      const apple = makeFood('apple', [{ id: 'fn1', nutrientId: 'kcal', quantity: 52 }]);
-
-      setupMocks({ scheduleFoods: [sfFood, sfDish], dishItems, products: [apple] });
+      setupMocks({
+        scheduleFoods: [sfFood, sfDish],
+        dishItems: [{ id: 'di1', dishId: 'salad', productId: 'apple', quantity: 200 }],
+        products: [{ id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 52 }] }],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-
       // food: apple 100g → 52kcal
-      // dish: apple 200g base → 104kcal, user 200g → scale 1.0 → 104kcal
-      // total: 156
+      // dish: apple 200g base → 104kcal, user 200g → scale 1.0
       expect(result.current.totals.kcal).toBeCloseTo(156);
     });
   });
@@ -417,8 +348,8 @@ describe('useScheduleNutrientTotals', () => {
   // ─── Missing nutrients ──────────────────────────────────────────────────────
 
   describe('missing nutrients', () => {
-    it('reports missing when product has no nutrients', () => {
-      const sf = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'missing-id', quantity: 100 });
+    it('reports missing when product has no nutrients in map', () => {
+      const sf = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'missing-id', quantity: 100 });
 
       setupMocks({ scheduleFoods: [sf], dishItems: [] });
 
@@ -427,73 +358,29 @@ describe('useScheduleNutrientTotals', () => {
       expect(result.current.missingNutrientNames).toEqual(['missing-id']);
     });
 
-    it('reports missing when food has empty nutrients map', () => {
-      const sf = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'water', quantity: 250 });
-      const water = makeFood('water', []);
+    it('reports missing when food has empty nutrients', () => {
+      const sf = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'water', quantity: 250 });
 
-      setupMocks({ scheduleFoods: [sf], dishItems: [], products: [water] });
+      setupMocks({
+        scheduleFoods: [sf],
+        dishItems: [],
+        products: [{ id: 'water', nutrients: [] }],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
       expect(result.current.totals).toEqual({});
       expect(result.current.missingNutrientNames).toEqual(['water']);
     });
 
-    it('reports missing when food.nutrients is undefined (no Include)', () => {
-      const sf = makeScheduleFood({
-        id: 'sf1',
-        type: 'food',
-        foodId: 'broken',
-        quantity: 100,
-        food: { name: 'Рожь молотая жареная' },
-      });
+    it('does not duplicate missing names for same product added twice', () => {
+      const sf1 = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'water', quantity: 100 });
+      const sf2 = makeScheduleFood({ id: 'sf2', type: 'food', productId: 'water', quantity: 200 });
 
       setupMocks({
-        scheduleFoods: [sf],
+        scheduleFoods: [sf1, sf2],
         dishItems: [],
+        products: [{ id: 'water', nutrients: [] }],
       });
-
-      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      expect(result.current.totals).toEqual({});
-      expect(result.current.missingNutrientNames).toEqual(['Рожь молотая жареная']);
-    });
-
-    it('uses food name from schedule food relation for missing nutrient report', () => {
-      const sf = makeScheduleFood({
-        id: 'sf1',
-        type: 'food',
-        foodId: 'rye',
-        quantity: 100,
-        food: { name: 'Рожь молотая жареная' },
-      });
-
-      setupMocks({ scheduleFoods: [sf], dishItems: [] });
-
-      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      expect(result.current.missingNutrientNames).toEqual(['Рожь молотая жареная']);
-    });
-
-    it('falls back to food.name from schedule food relation for missing name', () => {
-      const sf = makeScheduleFood({
-        id: 'sf1',
-        type: 'food',
-        foodId: 'unknown-id',
-        quantity: 100,
-        food: { name: 'Продукт из расписания' },
-      });
-
-      setupMocks({ scheduleFoods: [sf], dishItems: [] });
-
-      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      // Falls back to sf.food?.name
-      expect(result.current.missingNutrientNames).toEqual(['Продукт из расписания']);
-    });
-
-    it('does not duplicate missing names for same product added twice', () => {
-      const sf1 = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'water', quantity: 100 });
-      const sf2 = makeScheduleFood({ id: 'sf2', type: 'food', foodId: 'water', quantity: 200 });
-      const water = makeFood('water', []);
-
-      setupMocks({ scheduleFoods: [sf1, sf2], dishItems: [], products: [water] });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
       expect(result.current.missingNutrientNames).toEqual(['water']);
@@ -501,130 +388,95 @@ describe('useScheduleNutrientTotals', () => {
     });
 
     it('reports dish as missing when one of its products has no nutrients', () => {
-      const sf = makeScheduleFood({
-        id: 'sf1',
-        type: 'dish',
-        dishId: 'salad',
-        quantity: 300,
-        dish: { name: 'Салат' },
+      const sf = makeScheduleFood({ id: 'sf1', type: 'dish', dishId: 'salad', quantity: 300 });
+
+      setupMocks({
+        scheduleFoods: [sf],
+        dishItems: [
+          { id: 'di1', dishId: 'salad', productId: 'apple', quantity: 100 },
+          { id: 'di2', dishId: 'salad', productId: 'water', quantity: 200 },
+        ],
+        products: [
+          { id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 52 }] },
+          { id: 'water', nutrients: [] },
+        ],
       });
 
-      const dishItems = [
-        { id: 'di1', dishId: 'salad', foodId: 'apple', quantity: 100 },
-        { id: 'di2', dishId: 'salad', foodId: 'water', quantity: 200 },
-      ];
-
-      const apple = makeFood('apple', [{ id: 'fn1', nutrientId: 'kcal', quantity: 52 }]);
-      const water = makeFood('water', []); // no nutrients
-
-      setupMocks({ scheduleFoods: [sf], dishItems, products: [apple, water] });
-
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      expect(result.current.missingNutrientNames).toContain('Салат');
+      expect(result.current.missingNutrientNames).toContain('salad');
     });
 
     it('still calculates dish nutrients even when flagged as missing', () => {
-      const sf = makeScheduleFood({
-        id: 'sf1',
-        type: 'dish',
-        dishId: 'salad',
-        quantity: 300,
-        dish: { name: 'Салат' },
+      const sf = makeScheduleFood({ id: 'sf1', type: 'dish', dishId: 'salad', quantity: 300 });
+
+      setupMocks({
+        scheduleFoods: [sf],
+        dishItems: [
+          { id: 'di1', dishId: 'salad', productId: 'apple', quantity: 100 },
+          { id: 'di2', dishId: 'salad', productId: 'water', quantity: 200 },
+        ],
+        products: [
+          { id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 52 }] },
+          { id: 'water', nutrients: [] },
+        ],
       });
 
-      const dishItems = [
-        { id: 'di1', dishId: 'salad', foodId: 'apple', quantity: 100 },
-        { id: 'di2', dishId: 'salad', foodId: 'water', quantity: 200 },
-      ];
-
-      const apple = makeFood('apple', [{ id: 'fn1', nutrientId: 'kcal', quantity: 52 }]);
-      const water = makeFood('water', []);
-
-      setupMocks({ scheduleFoods: [sf], dishItems, products: [apple, water] });
-
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      // Dish is flagged as missing but still calculated with available data
       // apple 100g → 52kcal base, scale 300/300=1.0 → 52kcal
       expect(result.current.totals.kcal).toBeCloseTo(52);
-      expect(result.current.missingNutrientNames).toContain('Салат');
+      expect(result.current.missingNutrientNames).toContain('salad');
     });
 
     it('reports both missing foods and missing dish nutrients', () => {
-      const sfFood = makeScheduleFood({
-        id: 'sf1',
-        type: 'food',
-        foodId: 'rye',
-        quantity: 100,
-        food: { name: 'Рожь молотая жареная' },
-      });
-      const sfDish = makeScheduleFood({
-        id: 'sf2',
-        type: 'dish',
-        dishId: 'salad',
-        quantity: 100,
-        dish: { name: 'Салат' },
-      });
-
-      const dishItems = [
-        { id: 'di1', dishId: 'salad', foodId: 'water', quantity: 100 },
-      ];
+      const sfFood = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'rye', quantity: 100 });
+      const sfDish = makeScheduleFood({ id: 'sf2', type: 'dish', dishId: 'salad', quantity: 100 });
 
       setupMocks({
         scheduleFoods: [sfFood, sfDish],
-        dishItems,
+        dishItems: [{ id: 'di1', dishId: 'salad', productId: 'water', quantity: 100 }],
       });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      expect(result.current.missingNutrientNames).toContain('Рожь молотая жареная');
-      expect(result.current.missingNutrientNames).toContain('Салат');
+      expect(result.current.missingNutrientNames).toContain('rye');
+      expect(result.current.missingNutrientNames).toContain('salad');
     });
   });
 
   // ─── Edge cases ─────────────────────────────────────────────────────────────
 
   describe('edge cases', () => {
-    it('handles food with nutrients=null', () => {
-      const sf = makeScheduleFood({
-        id: 'sf1',
-        type: 'food',
-        foodId: 'broken',
-        quantity: 100,
-        food: { name: 'Broken' },
-      });
+    it('handles zero quantity food item (contributes 0 to totals)', () => {
+      const sf = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'apple', quantity: 0 });
 
       setupMocks({
         scheduleFoods: [sf],
         dishItems: [],
+        products: [{ id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 52 }] }],
       });
-
-      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      expect(result.current.totals).toEqual({});
-      expect(result.current.missingNutrientNames).toEqual(['Broken']);
-    });
-
-    it('handles zero quantity food item (contributes 0 to totals)', () => {
-      const sf = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'apple', quantity: 0 });
-      const apple = makeFood('apple', [{ id: 'fn1', nutrientId: 'kcal', quantity: 52 }]);
-
-      setupMocks({ scheduleFoods: [sf], dishItems: [], products: [apple] });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
       expect(result.current.totals.kcal).toBeCloseTo(0);
     });
 
     it('handles food with many different nutrients', () => {
-      const sf = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'complete', quantity: 100 });
-      const complete = makeFood('complete', [
-        { id: 'fn1', nutrientId: 'kcal', quantity: 250 },
-        { id: 'fn2', nutrientId: 'protein', quantity: 20 },
-        { id: 'fn3', nutrientId: 'fat', quantity: 10 },
-        { id: 'fn4', nutrientId: 'carbs', quantity: 30 },
-        { id: 'fn5', nutrientId: 'fiber', quantity: 5 },
-        { id: 'fn6', nutrientId: 'sodium', quantity: 0.5 },
-        { id: 'fn7', nutrientId: 'calcium', quantity: 0.1 },
-      ]);
+      const sf = makeScheduleFood({ id: 'sf1', type: 'food', productId: 'complete', quantity: 100 });
 
-      setupMocks({ scheduleFoods: [sf], dishItems: [], products: [complete] });
+      setupMocks({
+        scheduleFoods: [sf],
+        dishItems: [],
+        products: [{
+          id: 'complete',
+          nutrients: [
+            { nutrientId: 'kcal', quantity: 250 },
+            { nutrientId: 'protein', quantity: 20 },
+            { nutrientId: 'fat', quantity: 10 },
+            { nutrientId: 'carbs', quantity: 30 },
+            { nutrientId: 'fiber', quantity: 5 },
+            { nutrientId: 'sodium', quantity: 0.5 },
+            { nutrientId: 'calcium', quantity: 0.1 },
+          ],
+        }],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
       expect(result.current.totals.kcal).toBeCloseTo(250);
@@ -637,23 +489,16 @@ describe('useScheduleNutrientTotals', () => {
       expect(result.current.missingNutrientNames).toEqual([]);
     });
 
-    it('reports missing when nutrients not in map (Dexie empty)', () => {
-      const sf = makeScheduleFood({ id: 'sf1', type: 'food', foodId: 'apple', quantity: 100, food: { name: 'Apple' } });
-
-      setupMocks({ scheduleFoods: [sf], dishItems: [] });
-
-      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-      expect(result.current.totals).toEqual({});
-      expect(result.current.missingNutrientNames).toEqual(['Apple']);
-    });
-
     it('large schedule with many items calculates correctly', () => {
       const scheduleFoods = Array.from({ length: 10 }, (_, i) =>
-        makeScheduleFood({ id: `sf${i}`, type: 'food', foodId: 'apple', quantity: 100 }),
+        makeScheduleFood({ id: `sf${i}`, type: 'food', productId: 'apple', quantity: 100 }),
       );
-      const apple = makeFood('apple', [{ id: 'fn1', nutrientId: 'kcal', quantity: 52 }]);
 
-      setupMocks({ scheduleFoods, dishItems: [], products: [apple] });
+      setupMocks({
+        scheduleFoods,
+        dishItems: [],
+        products: [{ id: 'apple', nutrients: [{ nutrientId: 'kcal', quantity: 52 }] }],
+      });
 
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
       // 10 × 52kcal = 520kcal
@@ -661,9 +506,3 @@ describe('useScheduleNutrientTotals', () => {
     });
   });
 });
-
-// helper to get result outside of renderHook
-function result() {
-  const { result: r } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
-  return r.current;
-}

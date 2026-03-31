@@ -1,6 +1,4 @@
 node_modules
-triplit/.data
 .env
 dist
-parser
-scripts/usda
+data

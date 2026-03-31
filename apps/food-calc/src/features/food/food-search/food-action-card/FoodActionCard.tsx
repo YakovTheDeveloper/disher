@@ -23,7 +23,7 @@ type Props = {
   onAdd?: () => void;
   showDelete?: boolean;
   showAdd?: boolean;
-  rightChild?: React.ReactNode;
+  onInfoClick?: () => void;
   richNutrientId?: string | null;
   richNutrientUnit?: string;
   richNutrientMax?: number;
@@ -70,13 +70,21 @@ const TrashIcon = () => (
   </svg>
 );
 
+const InfoIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"/>
+    <text x="12" y="17" textAnchor="middle" fill="currentColor"
+          fontFamily="Georgia, 'Times New Roman', serif" fontStyle="italic" fontSize="14" fontWeight="600">i</text>
+  </svg>
+);
+
 const FoodActionCard = ({
   variant,
   item,
   active,
   onClick,
   showDelete = false,
-  rightChild,
+  onInfoClick,
   richNutrientId,
   richNutrientUnit,
   richNutrientMax = 0,
@@ -167,7 +175,19 @@ const FoodActionCard = ({
         )}
         <span className={styles.name}>{item.name}</span>
       </p>
-      {rightChild}
+      {onInfoClick && (
+        <button
+          type="button"
+          className={styles.infoBtn}
+          aria-label="Информация"
+          onClick={(e) => {
+            e.stopPropagation();
+            onInfoClick();
+          }}
+        >
+          <InfoIcon />
+        </button>
+      )}
     </li>
   );
 };

@@ -15,16 +15,7 @@ const deleteDatabase = (name: string): Promise<void> =>
   });
 
 const clearAllIndexedDB = async () => {
-  // 1. Known Triplit databases
-  const knownDBs = [
-    'triplit',
-    'triplit-cache',
-    'triplit-outbox',
-    'triplit-metadata',
-  ];
-  await Promise.all(knownDBs.map(deleteDatabase));
-
-  // 2. Enumerate and delete ALL remaining databases
+  // Enumerate and delete ALL IndexedDB databases
   if ('databases' in indexedDB) {
     const databases = await indexedDB.databases();
     await Promise.all(

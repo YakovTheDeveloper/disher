@@ -6,7 +6,7 @@ export function useScheduleEvents(date: string | undefined) {
   return useQuery(
     queryDb(
       tables.scheduleEvents.where({ date: date ?? "", deletedAt: null }),
-      { label: `schedule-events-${date}` },
+      { label: `schedule-events-${date}`, deps: [date] },
     ),
   );
 }

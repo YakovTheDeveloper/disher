@@ -1,4 +1,4 @@
-import { getCurrentUserId } from "@/api/triplit/session";
+import { getCurrentUserId } from "@/shared/lib/user";
 import { events } from "@/livestore/schema";
 import type { Store } from "@livestore/livestore";
 
@@ -55,9 +55,10 @@ export function setProductPortions(
 }
 
 export function deleteProduct(store: Store, productId: string) {
-  store.commit(events.productDeleted({ id: productId }));
+  store.commit(events.productDeleted({ id: productId, deletedAt: Date.now() }));
 }
 
 export function deleteProducts(store: Store, productIds: string[]) {
-  store.commit(...productIds.map((id) => events.productDeleted({ id })));
+  const deletedAt = Date.now();
+  store.commit(...productIds.map((id) => events.productDeleted({ id, deletedAt })));
 }

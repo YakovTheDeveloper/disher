@@ -1,4 +1,4 @@
-/** Compact storage format in Triplit JSON fields */
+/** Compact storage format in JSON fields */
 export type StoredPortion = { l: string; g: number };
 
 /** Application-level portion with readable property names */

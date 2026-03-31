@@ -1,10 +1,12 @@
-import type { Entity } from "@triplit/client";
-import type { schema } from "@triplit-schema/schema";
+import type { tables } from '@/livestore/schema'
 
-export type Product = Entity<typeof schema, "foods">;
-export type ProductNutrient = Entity<typeof schema, "foodNutrients">;
-export type ProductPortion = Entity<typeof schema, "foodPortions">;
+type ProductRow = (typeof tables)['products']['Type']
+
+export type Product = ProductRow
+export type ProductNutrient = { nutrientId: string; quantity: number }
+export type ProductPortion = { label: string; amount: number; unit: string; grams: number }
 
 export type ProductWithNutrients = Product & {
   nutrients?: Map<string, ProductNutrient>;
+  portions?: ProductPortion[];
 };

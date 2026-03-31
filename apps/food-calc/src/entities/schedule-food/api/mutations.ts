@@ -1,4 +1,4 @@
-import { getCurrentUserId } from "@/api/triplit/session";
+import { getCurrentUserId } from "@/shared/lib/user";
 import { events } from "@/livestore/schema";
 import type { Store } from "@livestore/livestore";
 import type { ClipboardItem } from "@/shared/model/clipboardStore";
@@ -77,11 +77,12 @@ export function updateScheduleFood(
 }
 
 export function removeScheduleFood(store: Store, itemId: string) {
-  store.commit(events.scheduleFoodDeleted({ id: itemId }));
+  store.commit(events.scheduleFoodDeleted({ id: itemId, deletedAt: Date.now() }));
 }
 
 export function removeScheduleFoods(store: Store, itemIds: string[]) {
-  store.commit(...itemIds.map((id) => events.scheduleFoodDeleted({ id })));
+  const deletedAt = Date.now();
+  store.commit(...itemIds.map((id) => events.scheduleFoodDeleted({ id, deletedAt })));
 }
 
 export function pasteClipboardItems(

@@ -17,7 +17,7 @@ import { safeMutate } from '@/shared/lib/safeMutate';
 import { highlightListItem } from '@/shared/lib/emitter/emitter';
 import Button from '@/shared/ui/atoms/Button/Button';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
-import CircleInfoIcon from '@/shared/assets/icons/cirlceInfo.svg';
+
 import EditIcon from '@/shared/assets/icons/edit.svg';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import type { Portion } from '@/features/product/ProductQuantity';
@@ -223,41 +223,16 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         isExpanded={step === 'search'}
         content={
           <SearchFood
-            renderSearchItemRight={(variant, item) => (
-              <button
-                type="button"
-                aria-label="Информация"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 44,
-                  height: 48,
-                  padding: 0,
-                  border: 'none',
-                  background: 'transparent',
-                  color: '#bbb',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  WebkitTapHighlightColor: 'transparent',
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const id = item.id;
-                  const isProduct = variant === 'product';
-                  handleClose();
-                  // Navigate after modal collapse completes — two rAFs to let React flush
-                  requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                      if (isProduct) toProduct(id);
-                      else toDish(id);
-                    });
-                  });
-                }}
-              >
-                <CircleInfoIcon />
-              </button>
-            )}
+            onInfoClick={(variant, id) => {
+              const isProduct = variant === 'product';
+              handleClose();
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  if (isProduct) toProduct(id);
+                  else toDish(id);
+                });
+              });
+            }}
             searchBarRightChild={
               <label
                 htmlFor={MODAL_INPUT_IDS.DETAILS_INPUT}

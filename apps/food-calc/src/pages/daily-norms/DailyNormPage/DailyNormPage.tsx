@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useStore } from '@livestore/react';
 import { Screen } from '@/shared/ui/Screen';
 import { Spacer } from '@/shared/ui/atoms/Spacer';
-import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
+
 import { useParams } from 'react-router';
 import {
   useDailyNorm,
@@ -9,6 +10,9 @@ import {
   setDailyNormNutrient,
   DEFAULT_NORM_ID,
   DEFAULT_NORM,
+  SPORTS_NORM_ID,
+  SPORTS_NORM,
+  BASE_WEIGHT_KG,
 } from '@/entities/daily-norm';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
 import { ChangeName } from '@/features/shared/change-name';
@@ -22,14 +26,31 @@ import Nutrients from '@/entities/nutrient/ui/NutrientGroup/Nutrients';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DailyNormPage.module.scss';
 
+const SYSTEM_NORMS: Record<string, typeof DEFAULT_NORM> = {
+  [DEFAULT_NORM_ID]: DEFAULT_NORM,
+  [SPORTS_NORM_ID]: SPORTS_NORM,
+};
+
 const DailyNormPage = () => {
   const { store } = useStore();
   const { id } = useParams<'id'>();
   const fetchedNorm = useDailyNorm(id);
-  const dailyNorm = id === DEFAULT_NORM_ID ? (fetchedNorm ?? DEFAULT_NORM) : fetchedNorm;
+  const systemNorm = id ? SYSTEM_NORMS[id] : undefined;
+  const dailyNorm = systemNorm ? (fetchedNorm ?? systemNorm) : fetchedNorm;
 
   const createdByUser = dailyNorm?.userId !== '__system__';
   const readOnly = !createdByUser;
+
+  const [weight, setWeight] = useState<number>(() => {
+    const saved = localStorage.getItem('dailyNormWeight');
+    return saved ? Number(saved) : BASE_WEIGHT_KG;
+  });
+
+  const handleWeightChange = (val: number) => {
+    const clamped = Math.max(30, Math.min(250, val || BASE_WEIGHT_KG));
+    setWeight(clamped);
+    localStorage.setItem('dailyNormWeight', String(clamped));
+  };
 
   if (!dailyNorm) {
     console.error('Daily norm not found for id:', id);
@@ -39,7 +60,13 @@ const DailyNormPage = () => {
   const items = (typeof dailyNorm.items === 'string' ? JSON.parse(dailyNorm.items) : dailyNorm.items ?? {}) as DailyNormItems;
   const handleChangeName = (name: string) => safeMutate(() => updateDailyNorm(store, dailyNorm.id, { name }), 'Не удалось переименовать');
 
-  const getNormValue = (nutrientId: string) => items[nutrientId] ?? 0;
+  const getNormValue = (nutrientId: string) => {
+    const baseValue = items[nutrientId] ?? 0;
+    if (!createdByUser && baseValue > 0) {
+      return Math.round((baseValue / BASE_WEIGHT_KG) * weight * 100) / 100;
+    }
+    return baseValue;
+  };
 
   const handleChange = (value: number, nutrientId: string) => {
     safeMutate(() => setDailyNormNutrient(store, dailyNorm.id, nutrientId, value || null, items), 'Не удалось сохранить нутриент');
@@ -63,17 +90,22 @@ const DailyNormPage = () => {
         <Ornament text="название"></Ornament>
         <ChangeName name={dailyNorm.name} onChangeName={handleChangeName} canRename={createdByUser} />
         <Spacer variant="screen-header-offset" />
-        <Ornament text="описание дневной нормы"></Ornament>
-        <label>
-          <Textarea
-            disabled={!createdByUser}
-            value={dailyNorm?.description || ''}
-            onChange={(val) => safeMutate(() => updateDailyNorm(store, dailyNorm.id, { description: val || '' }), 'Не удалось обновить описание')}
-          />
-        </label>
+        {!createdByUser && (
+          <>
+            <Ornament text="ваш вес"></Ornament>
+            <div className={styles.weightInput}>
+              <NutrientInput
+                value={weight}
+                onChange={handleWeightChange}
+                unit="кг"
+              />
+            </div>
+            <Spacer variant="screen-header-offset" />
+          </>
+        )}
         <Ornament text="нутриенты"></Ornament>
         <section className={styles.dailyNormNutrients}>
-          <Nutrients renderCard={renderCard} />
+          <Nutrients renderCard={renderCard} excludeGroups={['aminoAcids']} />
         </section>
       </div>
     </Screen>

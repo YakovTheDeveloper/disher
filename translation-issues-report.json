@@ -1,0 +1,222 @@
+{
+  "metadata": {
+    "report_date": "2026-03-31",
+    "file_analyzed": "food-catalog-lite.json",
+    "total_products": 1632,
+    "total_issues_found": 20,
+    "categories": {
+      "Awkward Phrasing": 1,
+      "Spacing Bug": 2,
+      "Spacing + Format": 1,
+      "Overly Technical": 4,
+      "Confusing + Awkward": 1,
+      "Foreign Term + Awkward": 1,
+      "Foreign Terminology": 4,
+      "Awkward Literal Translation": 1,
+      "Confusing Structure": 1,
+      "Verbose Description": 1,
+      "Awkward State Term": 1,
+      "Wrong Category Prefix": 1,
+      "Duplication (Google Artifact)": 1
+    }
+  },
+  "issues": [
+    {
+      "rank": 1,
+      "product_id": "4193",
+      "category": "Awkward Phrasing",
+      "current_name": "Авокадо сырое, все коммерческие сорта",
+      "problem": "Literal 'all commercial varieties' - awkward and redundant in Russian. This phrase would confuse Russian users as it implies there are non-commercial varieties.",
+      "suggested_correction": "Авокадо сырое",
+      "explanation": "Remove the redundant 'all commercial varieties' phrase. In Russian grocery contexts, this is understood implicitly."
+    },
+    {
+      "rank": 2,
+      "product_id": "3175",
+      "category": "Spacing Bug",
+      "current_name": "Мука, ​​гречневая",
+      "problem": "Extra Unicode non-breaking spaces after comma - formatting corruption from data source",
+      "suggested_correction": "Мука гречневая",
+      "explanation": "Remove extra spaces. The name should follow pattern: Мука [type], not Мука, [spaces], [type]"
+    },
+    {
+      "rank": 3,
+      "product_id": "7863",
+      "category": "Spacing + Format",
+      "current_name": "Мука, ​​кокос.",
+      "problem": "Extra Unicode spaces AND odd abbreviation with period. Unclear if 'кокос.' means 'coconut' or something else.",
+      "suggested_correction": "Мука кокосовая",
+      "explanation": "Fix spacing and complete the word: 'кокосовая' (coconut flour) is the natural Russian term."
+    },
+    {
+      "rank": 4,
+      "product_id": "7834",
+      "category": "Spacing Bug",
+      "current_name": "Мука, ​​манная крупа, мелкая",
+      "problem": "Extra Unicode non-breaking spaces after comma",
+      "suggested_correction": "Мука манная",
+      "explanation": "Remove extra spaces and correct structure for natural Russian naming."
+    },
+    {
+      "rank": 5,
+      "product_id": "sk-1076",
+      "category": "Overly Technical",
+      "current_name": "Пиво светлое, с долей сухих веществ в исходном сусле 11%",
+      "problem": "Brewery technical jargon 'with share of dry matter in original wort' is incomprehensible to consumers. This is meant for brewmasters, not consumers.",
+      "suggested_correction": "Пиво светлое (11% плотности)",
+      "explanation": "Replace technical term with consumer-friendly 'gravity/density' or remove entirely. Russian drinkers use simple terms like 'светлое' (light) or 'темное' (dark)."
+    },
+    {
+      "rank": 6,
+      "product_id": "sk-1077",
+      "category": "Overly Technical",
+      "current_name": "Пиво светлое, с долей сухих веществ в исходном сусле 20%",
+      "problem": "Same technical jargon - confuses consumers",
+      "suggested_correction": "Пиво светлое (20% плотности)",
+      "explanation": "Use consumer-friendly terminology."
+    },
+    {
+      "rank": 7,
+      "product_id": "sk-1078",
+      "category": "Overly Technical",
+      "current_name": "Пиво темное, с долей сухих веществ в исходном сусле 13%",
+      "problem": "Same brewery jargon - not natural for Russian consumers",
+      "suggested_correction": "Пиво темное (13% плотности)",
+      "explanation": "Simplify to consumer-friendly terms."
+    },
+    {
+      "rank": 8,
+      "product_id": "sk-1079",
+      "category": "Overly Technical",
+      "current_name": "Пиво темное, с долей сухих веществ в исходном сусле 20%",
+      "problem": "Overly technical brewery jargon",
+      "suggested_correction": "Пиво темное (20% плотности)",
+      "explanation": "Simplify for consumer understanding."
+    },
+    {
+      "rank": 9,
+      "product_id": "5422",
+      "category": "Confusing + Awkward",
+      "current_name": "Свиная колбаса, звено/котлета, неподготовленная",
+      "problem": "'Звено' (sausage link) and 'котлета' (patty) describe completely different cuts and products. Cannot be both. Also 'неподготовленная' (unprepared) is awkward - should be 'сырая' (raw).",
+      "suggested_correction": "Свиная колбаса",
+      "explanation": "Choose one product form. Use 'сырая' instead of unclear 'неподготовленная'."
+    },
+    {
+      "rank": 10,
+      "product_id": "6350",
+      "category": "Foreign Term + Awkward",
+      "current_name": "Франкфуртер, говядина, неотапливаемый",
+      "problem": "'Франкфуртер' is German loanword - Russian uses 'сосиска'. 'Неотапливаемый' (unheated) is bizarre and confusing for sausages.",
+      "suggested_correction": "Сосиска говяжья",
+      "explanation": "Use natural Russian 'сосиска' and clear state 'сырая'."
+    },
+    {
+      "rank": 11,
+      "product_id": "4112",
+      "category": "Foreign Terminology",
+      "current_name": "Франкфуртер, курица",
+      "problem": "'Франкфуртер' is German loanword - not natural in Russian",
+      "suggested_correction": "Сосиска куриная",
+      "explanation": "Russian speakers use 'сосиска' for frankfurters/sausages."
+    },
+    {
+      "rank": 12,
+      "product_id": "5456",
+      "category": "Foreign Terminology",
+      "current_name": "Франкфуртер, мясо",
+      "problem": "'Франкфуртер' is not natural Russian terminology",
+      "suggested_correction": "Сосиска мясная",
+      "explanation": "Use 'сосиска' instead of German 'франкфуртер'."
+    },
+    {
+      "rank": 13,
+      "product_id": "1046",
+      "category": "Awkward Literal Translation",
+      "current_name": "Соленые огурцы, огурец, укроп или кошерный укроп",
+      "problem": "'Кошерный укроп' is a literal translation artifact. Dill does not have 'kosher' and 'non-kosher' variants. It's an odd phrasing for Russian consumers.",
+      "suggested_correction": "Соленые огурцы с укропом",
+      "explanation": "Remove 'кошерный' - just say it's dill-flavored pickles. 'Кошерный' is not a meaningful modifier for dill."
+    },
+    {
+      "rank": 14,
+      "product_id": "7405",
+      "category": "Confusing Structure",
+      "current_name": "Хлеб, белок (включая глютен)",
+      "problem": "Confusing structure: 'bread, protein (including gluten)' - unclear if this is describing nutritional content or ingredient warning. Sounds like broken English translation.",
+      "suggested_correction": "Хлеб пшеничный (содержит глютен)",
+      "explanation": "Clarify that it's wheat bread and note allergen. Structure is more natural this way."
+    },
+    {
+      "rank": 15,
+      "product_id": "6418",
+      "category": "Verbose Description",
+      "current_name": "Яблоки, консервированные, подслащенные, нарезанные, осушенные, подогретые",
+      "problem": "Overly verbose chain of 5 processing steps - 'sliced, drained, heated' is excessive detail that confuses rather than clarifies",
+      "suggested_correction": "Яблоки консервированные, подслащенные",
+      "explanation": "Include only key attributes consumers care about. Processing steps like 'heated' and 'drained' are implied in canned products."
+    },
+    {
+      "rank": 16,
+      "product_id": "2456",
+      "category": "Awkward State Term",
+      "current_name": "Брокколи, замороженная, нарезанная, неподготовленная",
+      "problem": "'Неподготовленная' (unprepared/unprepped) is awkward for frozen vegetables - consumers expect 'сырая' (raw) to indicate uncooked state",
+      "suggested_correction": "Брокколи замороженная",
+      "explanation": "Use 'сырая' for clarity - it's the standard Russian term for uncooked vegetables."
+    },
+    {
+      "rank": 17,
+      "product_id": "5715",
+      "category": "Wrong Category Prefix",
+      "current_name": "Напитки чай черный заварной, приготовленный на водопроводной воде",
+      "problem": "Odd structure 'Drinks tea brewed on tap water' - the word 'Напитки' (drinks) as a category prefix sounds wrong. Also 'на водопроводной воде' (on tap water) is unnecessary detail.",
+      "suggested_correction": "Чай черный заварной",
+      "explanation": "Remove category prefix and unnecessary water detail. Just 'Black tea brewed' is clear."
+    },
+    {
+      "rank": 18,
+      "product_id": "1702",
+      "category": "Duplication (Google Artifact)",
+      "current_name": "Кукуруза сладкая, желтая, консервированная, цельное зерно, с сухими сухими веществами",
+      "problem": "CLEAR GOOGLE TRANSLATE ERROR: 'с сухими сухими веществами' (with dry DRY substances) - duplicate word 'сухими' is unnatural Russian and indicates machine translation failure",
+      "suggested_correction": "Кукуруза сладкая, консервированная",
+      "explanation": "Remove duplicate and overly technical 'dry matter' phrase. Standard canned corn naming is simpler."
+    },
+    {
+      "rank": 19,
+      "product_id": "2375",
+      "category": "Foreign Terminology",
+      "current_name": "Франкфуртер, постный",
+      "problem": "'Франкфуртер' is German - Russian uses 'сосиска'",
+      "suggested_correction": "Сосиска постная",
+      "explanation": "Use natural Russian terminology."
+    },
+    {
+      "rank": 20,
+      "product_id": "5452",
+      "category": "Foreign Terminology",
+      "current_name": "Франкфуртер, свинина",
+      "problem": "'Франкфуртер' is German loanword - not natural Russian",
+      "suggested_correction": "Сосиска свиная",
+      "explanation": "Use 'сосиска' - standard Russian term for frankfurters."
+    }
+  ],
+  "key_findings": {
+    "most_common_issue": "Foreign terminology (франкфуртер -> сосиска): 6 instances",
+    "most_confusing_issue": "Overly technical brewery jargon: 4 beer products with incomprehensible wort composition terminology",
+    "clear_translation_artifacts": 1,
+    "spacing_bugs": 3,
+    "semantic_errors": 8,
+    "total_products_affected": 20
+  },
+  "recommendations": [
+    "Replace all 'франкфуртер' instances with natural Russian 'сосиска'",
+    "Simplify beer product names - remove technical 'сухих веществ' jargon",
+    "Fix Unicode spacing issues in flour products (мука entries)",
+    "Replace 'неподготовленная/неподготовленный' with 'сырая/сырой' for clarity",
+    "Remove redundant 'все коммерческие сорта' phrases",
+    "Review and shorten overly verbose product descriptions",
+    "Fix confusing product type combinations (звено/котлета)"
+  ]
+}

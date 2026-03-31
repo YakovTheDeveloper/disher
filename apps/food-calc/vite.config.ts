@@ -7,7 +7,7 @@ import { patchCssModules } from 'vite-css-modules';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import basicSsl from '@vitejs/plugin-basic-ssl';
-import { livestoreDevtoolsPlugin } from '@livestore/devtools-vite';
+// import { livestoreDevtoolsPlugin } from '@livestore/devtools-vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -58,17 +58,17 @@ export default defineConfig({
       overlay: false,
       terminal: false,
     }),
-    livestoreDevtoolsPlugin({ schemaPath: './src/livestore/schema.ts' }),
+    // livestoreDevtoolsPlugin({ schemaPath: './src/livestore/schema.ts' }),
   ],
   optimizeDeps: {
     include: ['react', 'react-dom'],
+    exclude: ['@livestore/wa-sqlite'],
   },
   resolve: {
     alias: {
       '@icons': path.resolve(__dirname, './src/shared/assets/icons'),
       '@': path.resolve(__dirname, './src'),
       '@api': path.resolve(__dirname, '../../packages/api/src'),
-      '@triplit-schema': path.resolve(__dirname, '../disher-backend-3.0/triplit')
       // '@store': '/src/store',
     },
   },

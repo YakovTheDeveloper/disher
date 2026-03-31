@@ -1,8 +1,10 @@
-import type { Entity } from "@triplit/client";
-import type { schema } from "@triplit-schema/schema";
+import type { tables } from '@/livestore/schema'
 
-export type Dish = Entity<typeof schema, "dishes">;
-export type DishItem = Entity<typeof schema, "dishItems">;
+type DishRow = (typeof tables)['dishes']['Type']
+type DishItemRow = (typeof tables)['dishItems']['Type']
+
+export type Dish = DishRow
+export type DishItem = DishItemRow
 
 export type DishWithItems = Dish & {
   items?: Map<string, DishItem>;

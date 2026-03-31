@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
+import fs from "fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = path.join(__dirname, "../../data/analytics.db");
@@ -9,6 +10,7 @@ const DB_PATH = path.join(__dirname, "../../data/analytics.db");
 let db: Database.Database;
 
 export function initAnalyticsDb(): void {
+  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   db = new Database(DB_PATH);
   db.pragma("journal_mode = WAL");
 

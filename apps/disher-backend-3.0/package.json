@@ -1,34 +1,22 @@
 {
   "name": "disher-backend-3.0",
   "version": "1.0.0",
-  "description": "Disher backend powered by Triplit",
+  "description": "Disher backend API server",
   "type": "module",
   "scripts": {
-    "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\"",
-    "dev": "triplit dev --storage sqlite",
-    "console": "tsx scripts/console.ts",
-    "predev": "npx --yes kill-port 6543 6544 && tsx scripts/gen-anon-token.ts",
-    "dev:api": "tsx watch src/api/server.ts",
-    "dev:api-network": "cross-env HOST=0.0.0.0 tsx watch src/api/server.ts",
-    "predev:all-network": "npx --yes kill-port 6543 6544 3100 && tsx scripts/gen-anon-token.ts",
-    "dev:all-network": "concurrently \"npm run dev\" \"npm run dev:api-network\"",
-    "schema:push": "triplit schema push",
-    "seed": "tsx scripts/seed.ts",
-    "reseed": "tsx scripts/reseed.ts",
+    "dev": "tsx watch src/api/server.ts",
+    "dev:network": "cross-env HOST=0.0.0.0 tsx watch src/api/server.ts",
     "test": "vitest run"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.0",
     "@fastify/static": "^9.0.0",
-    "@triplit/client": "^1.0.50",
     "fastify": "^5.2.0",
     "google-translate-api-x": "^10.7.2",
     "better-sqlite3": "^12.8.0",
     "jose": "^6.0.0"
   },
   "devDependencies": {
-    "@triplit/cli": "^1.0.61",
-    "@triplit/console": "^1.0.52",
     "@types/node": "^25.5.0",
     "concurrently": "^9.1.0",
     "cross-env": "^10.1.0",

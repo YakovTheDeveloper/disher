@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { API_BASE, loginWithToken, logout as sessionLogout, getCurrentUserId } from '@/api/triplit/session';
+import { API_BASE } from '@/shared/lib/api/base';
+import { getCurrentUserId } from '@/shared/lib/user';
 
 type AuthState = {
   isLoggedIn: boolean;
@@ -16,9 +17,10 @@ type AuthActions = {
 };
 
 const AUTH_EMAIL_KEY = 'auth_email';
+const AUTH_TOKEN_KEY = 'auth_token';
 
 export const useAuthStore = create<AuthState & AuthActions>((set) => ({
-  isLoggedIn: !!localStorage.getItem('triplit_token'),
+  isLoggedIn: !!localStorage.getItem(AUTH_TOKEN_KEY),
   email: localStorage.getItem(AUTH_EMAIL_KEY),
   userId: null,
   isLoading: false,
@@ -40,7 +42,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
 
       const { token, userId } = await res.json();
       localStorage.setItem(AUTH_EMAIL_KEY, email);
-      await loginWithToken(token);
+      localStorage.setItem(AUTH_TOKEN_KEY, token);
       set({ isLoggedIn: true, email, userId, isLoading: false });
     } catch (e) {
       set({ isLoading: false, error: e instanceof Error ? e.message : 'Ошибка' });
@@ -49,12 +51,12 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
 
   logout: async () => {
     localStorage.removeItem(AUTH_EMAIL_KEY);
-    await sessionLogout();
+    localStorage.removeItem(AUTH_TOKEN_KEY);
     set({ isLoggedIn: false, email: null, userId: null });
   },
 
   checkAuth: () => {
-    const token = localStorage.getItem('triplit_token');
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
     const email = localStorage.getItem(AUTH_EMAIL_KEY);
     if (token) {
       set({ isLoggedIn: true, email, userId: getCurrentUserId() });

@@ -9,19 +9,16 @@ export function useProduct(productId: string | undefined) {
   const rows = useQuery(
     queryDb(
       tables.products.where({ id: productId ?? "", deletedAt: null }),
-      { label: `product-${productId}` },
+      { label: `product-${productId}`, deps: [productId] },
     ),
   );
   return rows[0] ?? null;
 }
 
+const allProducts$ = queryDb(tables.products.where({ deletedAt: null }), { label: 'products' });
+
 export function useProducts(search?: string) {
-  const rows = useQuery(
-    queryDb(
-      tables.products.where({ deletedAt: null }),
-      { label: 'products' },
-    ),
-  );
+  const rows = useQuery(allProducts$);
   if (search) {
     const lower = search.toLowerCase();
     return rows.filter((r: any) => r.name?.toLowerCase().includes(lower));

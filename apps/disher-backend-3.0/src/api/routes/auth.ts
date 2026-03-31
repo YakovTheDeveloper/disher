@@ -1,27 +1,15 @@
 import { FastifyInstance } from "fastify";
 import { SignJWT } from "jose";
 
-// Same secret as Triplit dev server uses
-// In production: use env variable TRIPLIT_JWT_SECRET
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.TRIPLIT_JWT_SECRET ?? "secret"
+  process.env.JWT_SECRET ?? "secret"
 );
 
-const PROJECT_ID = process.env.TRIPLIT_PROJECT_ID ?? "local-project-id";
-
 /**
- * Generate a Triplit-compatible JWT for a user.
- * The token contains:
- * - sub: userId (used by Triplit roles to match $userId)
- * - x-triplit-project-id: project identifier
- * - x-triplit-token-type: "external" for user tokens
+ * Generate a JWT for a user.
  */
-async function createTriplitToken(userId: string): Promise<string> {
-  return new SignJWT({
-    sub: userId,
-    "x-triplit-project-id": PROJECT_ID,
-    "x-triplit-token-type": "external",
-  })
+async function createToken(userId: string): Promise<string> {
+  return new SignJWT({ sub: userId })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuedAt()
     .setExpirationTime("30d")
@@ -40,11 +28,10 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: "Email is required" });
     }
 
-    // TODO: look up or create user in Triplit via service token
-    // For now, derive a stable userId from email
+    // Derive a stable userId from email
     const userId = Buffer.from(email).toString("base64url");
 
-    const token = await createTriplitToken(userId);
+    const token = await createToken(userId);
 
     return { token, userId };
   });
@@ -57,8 +44,8 @@ export async function authRoutes(app: FastifyInstance) {
     const { provider, code } = req.body;
 
     // TODO: exchange code for user info via provider
-    // TODO: find or create user + account in Triplit
-    // TODO: return Triplit JWT
+    // TODO: find or create user + account
+    // TODO: return JWT
 
     return reply
       .status(501)
@@ -82,7 +69,7 @@ export async function authRoutes(app: FastifyInstance) {
         return reply.status(401).send({ error: "Invalid token: no sub claim" });
       }
 
-      const token = await createTriplitToken(payload.sub);
+      const token = await createToken(payload.sub);
       return { token, userId: payload.sub };
     } catch {
       return reply.status(401).send({ error: "Invalid token" });

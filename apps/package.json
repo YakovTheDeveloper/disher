@@ -2,9 +2,8 @@
   "name": "disher-apps",
   "private": true,
   "scripts": {
-    "dev": "concurrently -n back,front -c green,cyan --kill-others-on-fail \"cd disher-backend-3.0 && npm run dev:all-network\" \"wait-on tcp:3100 tcp:6543 && cd food-calc && npm run dev-network\"",
-    "seed": "cd disher-backend-3.0 && npm run seed",
-    "console": "cd disher-backend-3.0 && npm run console"
+    "dev": "concurrently -n back,front -c green,cyan --kill-others-on-fail \"cd disher-backend-3.0 && npm run dev:network\" \"cd food-calc && npm run dev-network\"",
+    "dev:front": "cd food-calc && npm run dev-network"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

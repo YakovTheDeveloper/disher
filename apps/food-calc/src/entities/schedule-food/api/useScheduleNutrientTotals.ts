@@ -45,7 +45,7 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
     for (const fi of foodItems) {
       const nutrients = nutrientsMap.get(fi.productId!);
       if (!nutrients || nutrients.length === 0) {
-        const name = fi.productId ?? fi.productId!;
+        const name = (fi as any).food?.name ?? fi.productId!;
         if (!missingNames.includes(name)) missingNames.push(name);
       } else {
         totalsArray.push(calculateProductNutrients(nutrients, fi.quantity));
@@ -60,7 +60,7 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
           return !n || n.length === 0;
         });
         if (dishMissing) {
-          const dishName = di.dishId!;
+          const dishName = (di as any).dish?.name ?? di.dishId!;
           if (!missingNames.includes(dishName)) missingNames.push(dishName);
         }
         totalsArray.push(
@@ -76,7 +76,7 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
     if (missingNames.length > 0) {
       console.warn(
         `[useScheduleNutrientTotals] Missing nutrients for: ${missingNames.join(", ")}. ` +
-        `These items have no nutrient data in Dexie or Triplit.`,
+        `These items have no nutrient data.`,
       );
     }
 

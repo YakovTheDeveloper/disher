@@ -1,7 +1,8 @@
-import type { Entity } from "@triplit/client";
-import type { schema } from "@triplit-schema/schema";
+import type { tables } from '@/livestore/schema'
 
-export type DailyNorm = Entity<typeof schema, "dailyNorms">;
+type DailyNormRow = (typeof tables)['dailyNorms']['Type']
+
+export type DailyNorm = DailyNormRow
 
 /** Record<nutrientId, quantity> */
 export type DailyNormItems = Record<string, number>;

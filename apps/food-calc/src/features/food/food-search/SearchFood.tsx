@@ -20,10 +20,7 @@ type Props = {
   mode: SearchMode;
   activeItemId?: string | null;
   richNutrient?: { id: string; unit: string } | null;
-  renderSearchItemRight?: (
-    variant: 'product' | 'dish',
-    item: { id: string; name: string; userId?: string }
-  ) => React.ReactNode;
+  onInfoClick?: (variant: 'product' | 'dish', id: string) => void;
   onBack?: () => void;
   searchBarLeftChild?: React.ReactNode;
   searchBarRightChild?: React.ReactNode;
@@ -68,7 +65,7 @@ const SearchFood = ({
   mode = 'products-and-dishes',
   activeItemId,
   richNutrient,
-  renderSearchItemRight,
+  onInfoClick,
   onBack,
   searchBarLeftChild,
   searchBarRightChild,
@@ -147,14 +144,14 @@ const SearchFood = ({
           item={itemWithNutrients}
           active={activeItemId === item.id}
           onClick={() => onFoodAdd(item)}
-          rightChild={renderSearchItemRight?.('product', item)}
+          onInfoClick={onInfoClick ? () => onInfoClick('product', item.id) : undefined}
           richNutrientId={richNutrient?.id}
           richNutrientUnit={richNutrient?.unit}
           richNutrientMax={richNutrientMax}
         />
       );
     },
-    [activeItemId, onFoodAdd, renderSearchItemRight, richNutrient, nutrientMap, richNutrientMax]
+    [activeItemId, onFoodAdd, onInfoClick, richNutrient, nutrientMap, richNutrientMax]
   );
 
   const renderDishItem = useCallback(
@@ -164,10 +161,10 @@ const SearchFood = ({
         item={item}
         active={activeItemId === item.id}
         onClick={() => onDishAdd(item)}
-        rightChild={renderSearchItemRight?.('dish', item)}
+        onInfoClick={onInfoClick ? () => onInfoClick('dish', item.id) : undefined}
       />
     ),
-    [activeItemId, onDishAdd, renderSearchItemRight]
+    [activeItemId, onDishAdd, onInfoClick]
   );
 
   return (

@@ -1,7 +1,7 @@
-import { API_BASE } from "@/api/triplit/session";
+import { API_BASE } from "@/shared/lib/api/base";
 
 function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem("triplit_token");
+  const token = localStorage.getItem("auth_token");
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),

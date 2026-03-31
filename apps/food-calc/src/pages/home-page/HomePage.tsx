@@ -7,7 +7,6 @@ import { FoodSchedule } from '@/widgets/FoodSchedule';
 import { ScheduleEvents } from '@/widgets/ScheduleEvents';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
 import { useScheduleFoods, useScheduleNutrientTotals } from '@/entities/schedule-food';
-import type { ScheduleFood } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 
@@ -22,7 +21,7 @@ const Page = ({ date }: { date: string }) => {
     isLoading: nutrientsLoading,
   } = useScheduleNutrientTotals(date);
 
-  const items = [...scheduleFoods] as ScheduleFood[];
+  const items = scheduleFoods;
   const events = [...scheduleEvents] as ScheduleEvent[];
 
   const swipeableRef = useRef<SwipeableRef>(null);

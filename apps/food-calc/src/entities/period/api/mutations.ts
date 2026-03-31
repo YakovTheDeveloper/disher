@@ -1,4 +1,4 @@
-import { getCurrentUserId } from "@/api/triplit/session";
+import { getCurrentUserId } from "@/shared/lib/user";
 import { events } from "@/livestore/schema";
 import type { Store } from "@livestore/livestore";
 
@@ -22,13 +22,14 @@ export function addPeriod(
       startDate: params.startDate,
       endDate: params.endDate,
       colorIndex: params.colorIndex,
+      createdAt: Date.now(),
     }),
   );
   return id;
 }
 
 export function removePeriod(store: Store, id: string) {
-  store.commit(events.periodDeleted({ id }));
+  store.commit(events.periodDeleted({ id, deletedAt: Date.now() }));
 }
 
 export function updatePeriod(

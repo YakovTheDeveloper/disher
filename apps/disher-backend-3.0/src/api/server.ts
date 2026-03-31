@@ -3,7 +3,6 @@ import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
 import { authRoutes } from "./routes/auth.js";
 import { analyticsRoutes } from "./routes/analytics.js";
-import { systemRoutes } from "./routes/system.js";
 import { suggestionsRoutes } from "./routes/suggestions.js";
 import { shareRoutes } from "./routes/shares.js";
 import { bugReportRoutes } from "./routes/bug-reports.js";
@@ -65,7 +64,6 @@ app.get("/health", async (_req, reply) => {
 // Routes
 await app.register(authRoutes, { prefix: "/api/auth" });
 await app.register(analyticsRoutes, { prefix: "/api/analytics" });
-await app.register(systemRoutes, { prefix: "/api/system" });
 await app.register(suggestionsRoutes, { prefix: "/api/suggestions" });
 await app.register(shareRoutes, { prefix: "/api/shares" });
 await app.register(bugReportRoutes, { prefix: "/api/bug-reports" });

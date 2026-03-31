@@ -37,7 +37,7 @@ const productUpdated = Events.synced({
 
 const productDeleted = Events.synced({
   name: 'v1.ProductDeleted',
-  schema: Schema.Struct({ id: Schema.String }),
+  schema: Schema.Struct({ id: Schema.String, deletedAt: Schema.Number }),
 })
 
 // Dishes
@@ -47,6 +47,7 @@ const dishCreated = Events.synced({
     id: Schema.String,
     name: Schema.String,
     userId: Schema.String,
+    createdAt: Schema.Number,
   }),
 })
 
@@ -55,12 +56,13 @@ const dishUpdated = Events.synced({
   schema: Schema.Struct({
     id: Schema.String,
     name: Schema.optional(Schema.String),
+    updatedAt: Schema.Number,
   }),
 })
 
 const dishDeleted = Events.synced({
   name: 'v1.DishDeleted',
-  schema: Schema.Struct({ id: Schema.String }),
+  schema: Schema.Struct({ id: Schema.String, deletedAt: Schema.Number }),
 })
 
 // Dish Items
@@ -86,7 +88,7 @@ const dishItemUpdated = Events.synced({
 
 const dishItemDeleted = Events.synced({
   name: 'v1.DishItemDeleted',
-  schema: Schema.Struct({ id: Schema.String }),
+  schema: Schema.Struct({ id: Schema.String, deletedAt: Schema.Number }),
 })
 
 // Dish Portions
@@ -116,7 +118,7 @@ const dishPortionUpdated = Events.synced({
 
 const dishPortionDeleted = Events.synced({
   name: 'v1.DishPortionDeleted',
-  schema: Schema.Struct({ id: Schema.String }),
+  schema: Schema.Struct({ id: Schema.String, deletedAt: Schema.Number }),
 })
 
 // Schedule Foods
@@ -150,7 +152,7 @@ const scheduleFoodUpdated = Events.synced({
 
 const scheduleFoodDeleted = Events.synced({
   name: 'v1.ScheduleFoodDeleted',
-  schema: Schema.Struct({ id: Schema.String }),
+  schema: Schema.Struct({ id: Schema.String, deletedAt: Schema.Number }),
 })
 
 // Schedule Events
@@ -180,7 +182,7 @@ const scheduleEventUpdated = Events.synced({
 
 const scheduleEventDeleted = Events.synced({
   name: 'v1.ScheduleEventDeleted',
-  schema: Schema.Struct({ id: Schema.String }),
+  schema: Schema.Struct({ id: Schema.String, deletedAt: Schema.Number }),
 })
 
 // Daily Norms
@@ -207,7 +209,7 @@ const dailyNormUpdated = Events.synced({
 
 const dailyNormDeleted = Events.synced({
   name: 'v1.DailyNormDeleted',
-  schema: Schema.Struct({ id: Schema.String }),
+  schema: Schema.Struct({ id: Schema.String, deletedAt: Schema.Number }),
 })
 
 // Periods
@@ -221,6 +223,7 @@ const periodCreated = Events.synced({
     startDate: Schema.String,
     endDate: Schema.String,
     colorIndex: Schema.optionalWith(Schema.Number, { default: () => 0 }),
+    createdAt: Schema.Number,
   }),
 })
 
@@ -238,7 +241,7 @@ const periodUpdated = Events.synced({
 
 const periodDeleted = Events.synced({
   name: 'v1.PeriodDeleted',
-  schema: Schema.Struct({ id: Schema.String }),
+  schema: Schema.Struct({ id: Schema.String, deletedAt: Schema.Number }),
 })
 
 // ─── All events ─────────────────────────────────────────────────────────────
@@ -401,67 +404,67 @@ export const tables = {
 const materializers = State.SQLite.materializers(events, {
   // Products
   'v1.ProductCreated': ({ id, userId, name, nameEng, description, descriptionEng, source, pricePerKg, nutrients, portions, categories }) =>
-    tables.products.insert({ id, userId, name, nameEng, description, descriptionEng, source, pricePerKg, nutrients, portions, categories }),
+    tables.products.insert({ id, userId, name, nameEng, description, descriptionEng, source, pricePerKg, nutrients, portions, categories }).onConflict('id', 'ignore'),
   'v1.ProductUpdated': ({ id, ...fields }) =>
     tables.products.update(fields).where({ id }),
-  'v1.ProductDeleted': ({ id }) =>
-    tables.products.update({ deletedAt: Date.now() }).where({ id }),
+  'v1.ProductDeleted': ({ id, deletedAt }) =>
+    tables.products.update({ deletedAt }).where({ id }),
 
   // Dishes
-  'v1.DishCreated': ({ id, name, userId }) =>
-    tables.dishes.insert({ id, name, userId, createdAt: Date.now(), updatedAt: Date.now() }),
-  'v1.DishUpdated': ({ id, ...fields }) =>
-    tables.dishes.update({ ...fields, updatedAt: Date.now() }).where({ id }),
-  'v1.DishDeleted': ({ id }) =>
-    tables.dishes.update({ deletedAt: Date.now() }).where({ id }),
+  'v1.DishCreated': ({ id, name, userId, createdAt }) =>
+    tables.dishes.insert({ id, name, userId, createdAt, updatedAt: createdAt }),
+  'v1.DishUpdated': ({ id, updatedAt, ...fields }) =>
+    tables.dishes.update({ ...fields, updatedAt }).where({ id }),
+  'v1.DishDeleted': ({ id, deletedAt }) =>
+    tables.dishes.update({ deletedAt }).where({ id }),
 
   // Dish Items
   'v1.DishItemCreated': ({ id, dishId, foodId, quantity, userId }) =>
     tables.dishItems.insert({ id, dishId, productId: foodId, quantity, userId }),
   'v1.DishItemUpdated': ({ id, ...fields }) =>
     tables.dishItems.update(fields).where({ id }),
-  'v1.DishItemDeleted': ({ id }) =>
-    tables.dishItems.update({ deletedAt: Date.now() }).where({ id }),
+  'v1.DishItemDeleted': ({ id, deletedAt }) =>
+    tables.dishItems.update({ deletedAt }).where({ id }),
 
   // Dish Portions
   'v1.DishPortionCreated': ({ id, dishId, userId, label, amount, unit, grams }) =>
     tables.dishPortions.insert({ id, dishId, userId, label, amount, unit, grams }),
   'v1.DishPortionUpdated': ({ id, ...fields }) =>
     tables.dishPortions.update(fields).where({ id }),
-  'v1.DishPortionDeleted': ({ id }) =>
-    tables.dishPortions.update({ deletedAt: Date.now() }).where({ id }),
+  'v1.DishPortionDeleted': ({ id, deletedAt }) =>
+    tables.dishPortions.update({ deletedAt }).where({ id }),
 
   // Schedule Foods
   'v1.ScheduleFoodCreated': ({ id, date, userId, quantity, type, time, details, foodId, dishId }) =>
     tables.scheduleFoods.insert({ id, date, userId, quantity, type, time, details, productId: foodId, dishId }),
   'v1.ScheduleFoodUpdated': ({ id, ...fields }) =>
     tables.scheduleFoods.update(fields).where({ id }),
-  'v1.ScheduleFoodDeleted': ({ id }) =>
-    tables.scheduleFoods.update({ deletedAt: Date.now() }).where({ id }),
+  'v1.ScheduleFoodDeleted': ({ id, deletedAt }) =>
+    tables.scheduleFoods.update({ deletedAt }).where({ id }),
 
   // Schedule Events
   'v1.ScheduleEventCreated': ({ id, date, userId, time, endTime, text, atoms }) =>
     tables.scheduleEvents.insert({ id, date, userId, time, endTime, text, atoms }),
   'v1.ScheduleEventUpdated': ({ id, ...fields }) =>
     tables.scheduleEvents.update(fields).where({ id }),
-  'v1.ScheduleEventDeleted': ({ id }) =>
-    tables.scheduleEvents.update({ deletedAt: Date.now() }).where({ id }),
+  'v1.ScheduleEventDeleted': ({ id, deletedAt }) =>
+    tables.scheduleEvents.update({ deletedAt }).where({ id }),
 
   // Daily Norms
   'v1.DailyNormCreated': ({ id, userId, name, description, items }) =>
-    tables.dailyNorms.insert({ id, userId, name, description, items }),
+    tables.dailyNorms.insert({ id, userId, name, description, items }).onConflict('id', 'ignore'),
   'v1.DailyNormUpdated': ({ id, ...fields }) =>
     tables.dailyNorms.update(fields).where({ id }),
-  'v1.DailyNormDeleted': ({ id }) =>
-    tables.dailyNorms.update({ deletedAt: Date.now() }).where({ id }),
+  'v1.DailyNormDeleted': ({ id, deletedAt }) =>
+    tables.dailyNorms.update({ deletedAt }).where({ id }),
 
   // Periods
-  'v1.PeriodCreated': ({ id, userId, name, description, startDate, endDate, colorIndex }) =>
-    tables.periods.insert({ id, userId, name, description, startDate, endDate, colorIndex, createdAt: Date.now() }),
+  'v1.PeriodCreated': ({ id, userId, name, description, startDate, endDate, colorIndex, createdAt }) =>
+    tables.periods.insert({ id, userId, name, description, startDate, endDate, colorIndex, createdAt }),
   'v1.PeriodUpdated': ({ id, ...fields }) =>
     tables.periods.update(fields).where({ id }),
-  'v1.PeriodDeleted': ({ id }) =>
-    tables.periods.update({ deletedAt: Date.now() }).where({ id }),
+  'v1.PeriodDeleted': ({ id, deletedAt }) =>
+    tables.periods.update({ deletedAt }).where({ id }),
 })
 
 // ─── State & Schema ────────────────────────────────────────────────────────

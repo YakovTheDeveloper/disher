@@ -1,13 +1,4 @@
-/** Schedule event row from LiveStore. `atoms` is a JSON string that needs parsing. */
-export type ScheduleEvent = {
-  id: string;
-  date: string;
-  userId: string;
-  time: string;
-  endTime: string;
-  text: string;
-  atoms: string; // JSON: Atom[]
-  deletedAt: number | null;
-};
+import type { tables } from '@/livestore/schema'
 
-export type ScheduleEventType = "negative" | "positive" | "custom" | "routine" | "sport";
+export type ScheduleEvent = (typeof tables)['scheduleEvents']['Type'];
+

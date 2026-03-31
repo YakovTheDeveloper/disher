@@ -517,7 +517,7 @@ const AnalyticsContent = ({
   );
 };
 
-// ─── Wrapper — fetches Triplit data ───
+// ─── Wrapper — fetches data ───
 
 const GetDatePageWrapper = () => {
   const params = useParams();
@@ -535,7 +535,7 @@ const GetDatePageWrapper = () => {
 
   if (!date) return null;
 
-  return <AnalyticsContent date={date} foods={[...scheduleFoods] as ScheduleFoodWithRelations[]} events={[...scheduleEvents] as ScheduleEvent[]} />;
+  return <AnalyticsContent date={date} foods={scheduleFoods} events={[...scheduleEvents] as ScheduleEvent[]} />;
 };
 
 export default GetDatePageWrapper;

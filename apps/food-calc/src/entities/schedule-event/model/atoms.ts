@@ -1,4 +1,4 @@
-// Canonical atom types — matches scheduleEvents.atoms in Triplit schema
+// Canonical atom types — matches scheduleEvents.atoms in LiveStore schema
 
 export interface ScaleAtom { kind: "scale"; value: number; label?: string }
 export interface TagAtom { kind: "tag"; value: string }

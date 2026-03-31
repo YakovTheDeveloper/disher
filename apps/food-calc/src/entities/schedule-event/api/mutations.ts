@@ -1,4 +1,4 @@
-import { getCurrentUserId } from "@/api/triplit/session";
+import { getCurrentUserId } from "@/shared/lib/user";
 import { events } from "@/livestore/schema";
 import type { Store } from "@livestore/livestore";
 import type { Atom } from "@/entities/schedule-event/model/atoms";
@@ -43,5 +43,5 @@ export function updateScheduleEvent(
 }
 
 export function removeScheduleEvent(store: Store, eventId: string) {
-  store.commit(events.scheduleEventDeleted({ id: eventId }));
+  store.commit(events.scheduleEventDeleted({ id: eventId, deletedAt: Date.now() }));
 }

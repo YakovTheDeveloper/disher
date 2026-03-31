@@ -1,4 +1,4 @@
-import { getCurrentUserId } from "@/api/triplit/session";
+import { getCurrentUserId } from "@/shared/lib/user";
 import { events } from "@/livestore/schema";
 import type { Store } from "@livestore/livestore";
 import type { DailyNormItems } from "../model/types";
@@ -26,7 +26,7 @@ export function updateDailyNorm(
 }
 
 export function deleteDailyNorm(store: Store, normId: string) {
-  store.commit(events.dailyNormDeleted({ id: normId }));
+  store.commit(events.dailyNormDeleted({ id: normId, deletedAt: Date.now() }));
 }
 
 export function setDailyNormNutrient(

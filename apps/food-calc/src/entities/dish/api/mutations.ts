@@ -1,15 +1,15 @@
-import { getCurrentUserId } from "@/api/triplit/session";
+import { getCurrentUserId } from "@/shared/lib/user";
 import { events } from "@/livestore/schema";
 import type { Store } from "@livestore/livestore";
 
 export function createDish(store: Store, name: string) {
   const id = crypto.randomUUID();
-  store.commit(events.dishCreated({ id, name, userId: getCurrentUserId() }));
+  store.commit(events.dishCreated({ id, name, userId: getCurrentUserId(), createdAt: Date.now() }));
   return id;
 }
 
 export function updateDishName(store: Store, dishId: string, name: string) {
-  store.commit(events.dishUpdated({ id: dishId, name }));
+  store.commit(events.dishUpdated({ id: dishId, name, updatedAt: Date.now() }));
 }
 
 export function deleteDish(
@@ -18,10 +18,11 @@ export function deleteDish(
   itemIds: string[],
   portionIds: string[],
 ) {
+  const deletedAt = Date.now();
   store.commit(
-    ...itemIds.map((id) => events.dishItemDeleted({ id })),
-    ...portionIds.map((id) => events.dishPortionDeleted({ id })),
-    events.dishDeleted({ id: dishId }),
+    ...itemIds.map((id) => events.dishItemDeleted({ id, deletedAt })),
+    ...portionIds.map((id) => events.dishPortionDeleted({ id, deletedAt })),
+    events.dishDeleted({ id: dishId, deletedAt }),
   );
 }
 
@@ -29,10 +30,11 @@ export function deleteDishes(
   store: Store,
   dishes: Array<{ id: string; itemIds: string[]; portionIds: string[] }>,
 ) {
+  const deletedAt = Date.now();
   const allEvents = dishes.flatMap((d) => [
-    ...d.itemIds.map((id) => events.dishItemDeleted({ id })),
-    ...d.portionIds.map((id) => events.dishPortionDeleted({ id })),
-    events.dishDeleted({ id: d.id }),
+    ...d.itemIds.map((id) => events.dishItemDeleted({ id, deletedAt })),
+    ...d.portionIds.map((id) => events.dishPortionDeleted({ id, deletedAt })),
+    events.dishDeleted({ id: d.id, deletedAt }),
   ]);
   store.commit(...allEvents);
 }
@@ -63,7 +65,7 @@ export function updateDishItem(
 }
 
 export function removeDishItem(store: Store, itemId: string) {
-  store.commit(events.dishItemDeleted({ id: itemId }));
+  store.commit(events.dishItemDeleted({ id: itemId, deletedAt: Date.now() }));
 }
 
 export function copyDishItems(
@@ -111,7 +113,7 @@ export function updateDishPortion(
 }
 
 export function removeDishPortion(store: Store, portionId: string) {
-  store.commit(events.dishPortionDeleted({ id: portionId }));
+  store.commit(events.dishPortionDeleted({ id: portionId, deletedAt: Date.now() }));
 }
 
 export function dishItemsToScheduleFoods(

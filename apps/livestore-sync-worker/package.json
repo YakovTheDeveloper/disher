@@ -1,0 +1,17 @@
+{
+  "name": "disher-livestore-sync",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@livestore/sync-cf": "^0.3.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250303.0",
+    "wrangler": "^3.99.0"
+  }
+}

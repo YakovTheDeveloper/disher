@@ -45,14 +45,10 @@
       "@types": [
         "../../packages/types/src"
       ],
-      "@triplit-schema/*": [
-        "../disher-backend-3.0/triplit/*"
-      ]
     }
   },
   "include": [
     "src",
-    "../disher-backend-3.0/triplit"
   ],
   "extends": "../../tsconfig.json"
 }

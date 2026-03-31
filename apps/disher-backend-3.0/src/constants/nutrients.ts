@@ -2,7 +2,6 @@
  * Shared nutrient constants — single source of truth for both backend and frontend.
  *
  * IDs match the USDA→project mapping in parser/usda/nutrient-map.ts.
- * Frontend imports via @triplit-schema/constants/nutrients.
  */
 
 // ─── Types ───

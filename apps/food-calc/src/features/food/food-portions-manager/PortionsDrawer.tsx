@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { Portion } from '@triplit-schema/constants/portions';
+import type { Portion } from '@/features/product/ProductQuantity';
 import type { BaseDrawerProps } from '@/shared/ui/overlay-types';
 import DrawerLayout from '@/shared/ui/DrawerLayout/DrawerLayout';
 import FoodPortionsManager from './FoodPortionsManager';

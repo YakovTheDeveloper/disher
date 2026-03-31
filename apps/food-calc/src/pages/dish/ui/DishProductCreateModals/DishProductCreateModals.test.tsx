@@ -16,9 +16,6 @@ vi.mock('@/shared/lib/useOverlayHistory', () => ({
   useOverlayHistory: vi.fn(),
 }));
 
-vi.mock('@/api/triplit/client', () => ({
-  triplit: {},
-}));
 
 const mockAddDishItem = vi.fn().mockResolvedValue(undefined);
 vi.mock('@/entities/dish', () => ({

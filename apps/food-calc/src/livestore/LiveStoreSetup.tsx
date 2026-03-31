@@ -21,7 +21,7 @@ const adapter = makePersistedAdapter({
 export function LiveStoreSetup({ children, storeId }: LiveStoreSetupProps) {
   return (
     <LiveStoreProvider
-      schema={schema as any}
+      schema={schema}
       storeId={storeId}
       adapter={adapter}
       batchUpdates={batchUpdates}

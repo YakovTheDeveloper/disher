@@ -2,7 +2,7 @@ import { jwtVerify } from "jose";
 import { FastifyRequest, FastifyReply } from "fastify";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.TRIPLIT_JWT_SECRET ?? "secret"
+  process.env.JWT_SECRET ?? "secret"
 );
 
 /**

@@ -7,12 +7,16 @@ import treeSrc from '@/shared/assets/decarative/tree2.png';
 
 interface Props {
   renderCard: (nutrientData: Nutrient) => React.ReactNode;
+  excludeGroups?: string[];
 }
 
-const Nutrients = ({ renderCard }: Props) => {
+const Nutrients = ({ renderCard, excludeGroups }: Props) => {
+  const groups = excludeGroups
+    ? nutrientGroups.filter(g => !excludeGroups.includes(g.name))
+    : nutrientGroups;
   return (
     <div className={styles.container}>
-      {nutrientGroups.map(({ content, displayName: groupName, name }) => {
+      {groups.map(({ content, displayName: groupName, name }) => {
         const headline = groupName.toUpperCase();
         return (
           <div key={groupName} className={clsx(styles.group, styles[`group--${name}`])}>

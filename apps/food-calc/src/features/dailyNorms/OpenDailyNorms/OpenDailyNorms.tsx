@@ -12,7 +12,7 @@ import {
 } from '@floating-ui/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useStore } from '@livestore/react';
-import { useDailyNorms, createDailyNorm, DEFAULT_NORM_ID, DEFAULT_NORM } from '@/entities/daily-norm';
+import { useDailyNorms, createDailyNorm, DEFAULT_NORM_ID, DEFAULT_NORM, SPORTS_NORM_ID, SPORTS_NORM } from '@/entities/daily-norm';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './OpenDailyNorms.module.scss';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
@@ -59,8 +59,10 @@ const OpenDailyNorms = ({ className }: Props) => {
   const normsList = useDailyNorms();
 
   const norms = React.useMemo(() => {
-    const hasDefault = normsList.some((n) => n.id === DEFAULT_NORM_ID);
-    return hasDefault ? normsList : [DEFAULT_NORM as any, ...normsList];
+    const result = [...normsList];
+    if (!result.some((n) => n.id === DEFAULT_NORM_ID)) result.unshift(DEFAULT_NORM as any);
+    if (!result.some((n) => n.id === SPORTS_NORM_ID)) result.splice(1, 0, SPORTS_NORM as any);
+    return result;
   }, [normsList]);
 
   const selectedNorm = React.useMemo(() => {

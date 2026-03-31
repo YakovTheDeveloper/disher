@@ -1,74 +1,75 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { Store } from '@livestore/livestore';
 
-const insertMock = vi.fn();
-
-vi.mock('@/api/triplit/client', () => ({
-  triplit: {
-    insert: insertMock,
-  },
-}));
-
-vi.mock('@/api/triplit/session', () => ({
+vi.mock('@/shared/lib/user', () => ({
   getCurrentUserId: vi.fn(() => 'test-user'),
 }));
+
+const mockCommit = vi.fn();
+const store = { commit: mockCommit } as unknown as Store;
 
 const { pasteClipboardItems } = await import('./mutations');
 
 describe('pasteClipboardItems', () => {
   beforeEach(() => {
-    insertMock.mockClear();
+    mockCommit.mockClear();
   });
 
-  it('creates a schedule food for each clipboard item', async () => {
-    await pasteClipboardItems(
+  it('creates a schedule food for each clipboard item', () => {
+    pasteClipboardItems(
+      store,
       [
-        { time: '08:00', type: 'food', quantity: 150, foodId: 'f1', dishId: null, displayName: 'Egg' },
-        { time: '12:00', type: 'dish', quantity: 300, foodId: null, dishId: 'd1', displayName: 'Salad' },
+        { time: '08:00', type: 'food' as const, quantity: 150, foodId: 'f1', dishId: null, displayName: 'Egg' },
+        { time: '12:00', type: 'dish' as const, quantity: 300, foodId: null, dishId: 'd1', displayName: 'Salad' },
       ],
       '26-03-2026',
     );
 
-    expect(insertMock).toHaveBeenCalledTimes(2);
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+    const args = mockCommit.mock.calls[0];
+    expect(args).toHaveLength(2);
 
-    const firstCall = insertMock.mock.calls[0];
-    expect(firstCall[0]).toBe('scheduleFoods');
-    expect(firstCall[1]).toMatchObject({
-      date: '26-03-2026',
-      time: '08:00',
-      type: 'food',
-      quantity: 150,
-      foodId: 'f1',
-      dishId: null,
-      userId: 'test-user',
+    expect(args[0]).toMatchObject({
+      args: expect.objectContaining({
+        date: '26-03-2026',
+        time: '08:00',
+        type: 'food',
+        quantity: 150,
+        foodId: 'f1',
+        userId: 'test-user',
+      }),
     });
 
-    const secondCall = insertMock.mock.calls[1];
-    expect(secondCall[0]).toBe('scheduleFoods');
-    expect(secondCall[1]).toMatchObject({
-      date: '26-03-2026',
-      time: '12:00',
-      type: 'dish',
-      quantity: 300,
-      foodId: null,
-      dishId: 'd1',
-      userId: 'test-user',
+    expect(args[1]).toMatchObject({
+      args: expect.objectContaining({
+        date: '26-03-2026',
+        time: '12:00',
+        type: 'dish',
+        quantity: 300,
+        dishId: 'd1',
+        userId: 'test-user',
+      }),
     });
   });
 
-  it('handles empty items array without inserting', async () => {
-    await pasteClipboardItems([], '26-03-2026');
-    expect(insertMock).not.toHaveBeenCalled();
+  it('handles empty items array without committing events', () => {
+    pasteClipboardItems(store, [], '26-03-2026');
+    // commit called with spread of empty array = 0 event args
+    expect(mockCommit).toHaveBeenCalledTimes(1);
   });
 
-  it('preserves original time from clipboard items', async () => {
-    await pasteClipboardItems(
-      [{ time: '19:30', type: 'food', quantity: 200, foodId: 'f2', dishId: null, displayName: 'Rice' }],
+  it('preserves original time from clipboard items', () => {
+    pasteClipboardItems(
+      store,
+      [{ time: '19:30', type: 'food' as const, quantity: 200, foodId: 'f2', dishId: null, displayName: 'Rice' }],
       '27-03-2026',
     );
 
-    expect(insertMock.mock.calls[0][1]).toMatchObject({
-      date: '27-03-2026',
-      time: '19:30',
+    expect(mockCommit.mock.calls[0][0]).toMatchObject({
+      args: expect.objectContaining({
+        date: '27-03-2026',
+        time: '19:30',
+      }),
     });
   });
 });
