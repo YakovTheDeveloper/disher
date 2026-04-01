@@ -19,6 +19,7 @@ import type { NutrientTotals } from '@/shared/lib/nutrients';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import styles from './FoodsNutrients.module.scss';
 import treeSrc from '@/shared/assets/decarative/tree.png';
+import NutrientDesignVariants from './NutrientDesignVariants';
 
 type Props = {
   totals: NutrientTotals;
@@ -82,7 +83,8 @@ const FoodsNutrients = ({
 
       <div className={styles.nutrientsSection}>
         {/* <img src={treeSrc} alt="" className={styles.watermark} /> */}
-        <Nutrients renderCard={renderCard} titleVariant="v2" />
+        {/* <Nutrients renderCard={renderCard} titleVariant="v2" /> */}
+        <NutrientDesignVariants getValue={getValue} />
       </div>
 
       {missingNutrientNames.length > 0 && (

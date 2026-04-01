@@ -1,15 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '@livestore/react';
-import { format, differenceInDays, startOfToday, addDays, parse } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { parse, format } from 'date-fns';
 import styles from './SchedulePeriods.module.scss';
 import { usePeriods, addPeriod, removePeriod } from '@/entities/period';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import type { BaseDrawerProps } from '@/shared/ui/overlay-types';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
+import { ModalShell } from '@/shared/ui/ModalShell/ModalShell';
+import { ModalPrevButton, ModalNextButton } from '@/shared/ui/ModalFooter';
+import { Tabs } from '@/shared/ui/Tabs';
+import type { Tab } from '@/shared/ui/Tabs';
 
-const COLORS = [
+const COLOR_CLASSES = [
   styles.color0,
   styles.color1,
   styles.color2,
@@ -18,26 +21,16 @@ const COLORS = [
   styles.color5,
 ];
 
-const formatDate = (dateStr: string) => {
-  const d = parse(dateStr, 'dd-MM-yyyy', new Date());
-  return format(d, 'd MMM', { locale: ru });
-};
+const COLOR_VALUES = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'];
 
-const getProgress = (startStr: string, endStr: string) => {
-  const start = parse(startStr, 'dd-MM-yyyy', new Date());
-  const end = parse(endStr, 'dd-MM-yyyy', new Date());
-  const today = startOfToday();
-  const total = differenceInDays(end, start);
-  if (total <= 0) return 100;
-  const elapsed = differenceInDays(today, start);
-  return Math.max(0, Math.min(100, (elapsed / total) * 100));
-};
+const FONTS = ['sans', 'serif', 'mono'] as const;
+const FONT_SIZES = [12, 14, 16, 18, 20] as const;
 
 const emptyForm = {
   name: '',
-  description: '',
-  startDate: format(startOfToday(), 'yyyy-MM-dd'),
-  endDate: format(addDays(startOfToday(), 7), 'yyyy-MM-dd'),
+  colorIndex: 0,
+  fontFamily: 'sans' as const,
+  fontSize: 16,
 };
 
 // Confirmation drawer for deletion
@@ -59,31 +52,48 @@ const DeletePeriodDrawer = ({ onClose, periodName }: BaseDrawerProps<boolean> & 
   </DrawerLayout>
 );
 
-export const SchedulePeriods = () => {
+type SchedulePeriodsProps = {
+  date?: string; // dd-MM-yyyy
+  onClose?: () => void;
+};
+
+const formatDateTab = (dateStr: string): string => {
+  const parsed = parse(dateStr, 'dd-MM-yyyy', new Date());
+  return format(parsed, 'dd-MM-yy');
+};
+
+export const SchedulePeriods = ({ date, onClose }: SchedulePeriodsProps) => {
   const { store } = useStore();
   const periods = usePeriods();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  // Default tab is 'day' (date) when date is provided
+  const [activeTab, setActiveTab] = useState<'periods' | 'day'>(date ? 'day' : 'periods');
+
+  // Delay ActionButtons appearance so drawer layout has time to build
+  const [showActions, setShowActions] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setShowActions(true), 350);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const tabs: Tab[] = useMemo(() => [
+    ...(date ? [{ value: 'day', alternativeLabel: formatDateTab(date) }] : []),
+    { value: 'periods', alternativeLabel: 'Периоды' },
+  ], [date]);
 
   const handleAdd = () => {
-    if (!form.name.trim() || !form.startDate || !form.endDate) return;
+    if (!form.name.trim()) return;
 
-    const toInternal = (isoDate: string) => {
-      const [y, m, d] = isoDate.split('-');
-      return `${d}-${m}-${y}`;
-    };
-
-    const result = safeMutate(
+    safeMutate(
       () => addPeriod(store, {
         name: form.name.trim(),
-        description: form.description.trim() || null,
-        startDate: toInternal(form.startDate),
-        endDate: toInternal(form.endDate),
-        colorIndex: periods.length % COLORS.length,
+        colorIndex: form.colorIndex,
+        fontFamily: form.fontFamily,
+        fontSize: form.fontSize,
       }),
       'Не удалось создать период',
     );
-    if (result === undefined) return;
 
     setForm(emptyForm);
     setShowForm(false);
@@ -96,127 +106,157 @@ export const SchedulePeriods = () => {
     }
   };
 
+  const handlePrev = () => {
+    if (showForm) {
+      setShowForm(false);
+      setForm(emptyForm);
+    } else if (onClose) {
+      onClose();
+    }
+  };
+
   const periodsList = periods;
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <span className={styles.title}>Периоды</span>
-        <button className={styles.addButton} onClick={() => setShowForm((v) => !v)}>
-          {showForm ? '×' : '+'}
-        </button>
-      </div>
+      <Tabs tabs={tabs} current={activeTab} setTab={(v) => setActiveTab(v as 'periods' | 'day')} />
 
-      {showForm && (
-        <form
-          className={styles.form}
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleAdd();
-          }}
-        >
-          <div className={styles.formField}>
-            <label className={styles.formLabel}>Название</label>
+      {/* Date tab — title input and period settings */}
+      {activeTab === 'day' && (
+        <>
+          <div className={styles.titleSection}>
+            <span className={styles.titleLabel}>В двух словах{'\n'}о текущем периоде жизни?</span>
             <input
-              className={styles.formInput}
+              className={styles.titleInput}
               placeholder="Пост, диета, оздоровление…"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              maxLength={50}
             />
           </div>
-          <div className={styles.formField}>
-            <label className={styles.formLabel}>Описание</label>
-            <input
-              className={styles.formInput}
-              placeholder="Необязательно"
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            />
-          </div>
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
-              <label className={styles.formLabel}>Начало</label>
-              <input
-                className={styles.formInput}
-                type="date"
-                value={form.startDate}
-                onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-              />
-            </div>
-            <div className={styles.formField}>
-              <label className={styles.formLabel}>Конец</label>
-              <input
-                className={styles.formInput}
-                type="date"
-                value={form.endDate}
-                onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-              />
-            </div>
-          </div>
-          <div className={styles.formActions}>
-            <button
-              type="button"
-              className={`${styles.formButton} ${styles.formButtonSecondary}`}
-              onClick={() => {
-                setShowForm(false);
-                setForm(emptyForm);
+
+          {showForm && (
+            <form
+              className={styles.form}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAdd();
               }}
             >
-              Отмена
-            </button>
-            <button
-              type="submit"
-              className={`${styles.formButton} ${styles.formButtonPrimary}`}
-            >
-              Добавить
-            </button>
-          </div>
-        </form>
+              <div className={styles.formField}>
+                <label className={styles.formLabel}>Цвет</label>
+                <div className={styles.colorGrid}>
+                  {COLOR_VALUES.map((color, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      className={`${styles.colorButton} ${form.colorIndex === idx ? styles.selected : ''}`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setForm((f) => ({ ...f, colorIndex: idx }))}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.formField}>
+                  <label className={styles.formLabel}>Шрифт</label>
+                  <select
+                    className={styles.formInput}
+                    value={form.fontFamily}
+                    onChange={(e) => setForm((f) => ({ ...f, fontFamily: e.target.value as typeof form.fontFamily }))}
+                  >
+                    {FONTS.map((font) => (
+                      <option key={font} value={font}>
+                        {font === 'sans' ? 'Без засечек' : font === 'serif' ? 'С засечками' : 'Моношрифт'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.formField}>
+                  <label className={styles.formLabel}>Размер</label>
+                  <select
+                    className={styles.formInput}
+                    value={form.fontSize}
+                    onChange={(e) => setForm((f) => ({ ...f, fontSize: Number(e.target.value) }))}
+                  >
+                    {FONT_SIZES.map((size) => (
+                      <option key={size} value={size}>
+                        {size}px
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {showActions && (
+            <ModalShell.ActionButtons
+              debugId="schedule-periods-day"
+              left={
+                <ModalPrevButton onClick={handlePrev} />
+              }
+              right={
+                <ModalNextButton onClick={() => {
+                  if (showForm) {
+                    handleAdd();
+                  } else {
+                    setShowForm(true);
+                  }
+                }} />
+              }
+            />
+          )}
+        </>
       )}
 
-      <div className={styles.list}>
-        {periodsList.length === 0 && !showForm && (
-          <div className={styles.emptyState}>
-            <span className={styles.emptyIcon}>◇</span>
-            <span className={styles.emptyText}>
-              Создайте период — пост, диету
-              <br />
-              или любой другой отрезок времени
-            </span>
-          </div>
-        )}
-
-        {periodsList.map((period) => {
-          const progress = getProgress(period.startDate, period.endDate);
-          return (
-            <div
-              key={period.id}
-              className={styles.periodCard}
-              onClick={() => handleRemove(period.id, period.name)}
-            >
-              <div className={styles.periodTop}>
-                <span className={styles.periodName}>{period.name}</span>
-                <span className={styles.periodDates}>
-                  {formatDate(period.startDate)} — {formatDate(period.endDate)}
+      {/* Periods tab — list of existing periods */}
+      {activeTab === 'periods' && (
+        <>
+          <div className={styles.list}>
+            {periodsList.length === 0 && (
+              <div className={styles.emptyState}>
+                <span className={styles.emptyIcon}>◇</span>
+                <span className={styles.emptyText}>
+                  Создайте период — пост, диету
+                  <br />
+                  или любой другой отрезок времени
                 </span>
               </div>
-              {period.description && (
-                <div className={styles.periodDescription}>{period.description}</div>
-              )}
-              <div className={styles.ganttBar}>
+            )}
+
+            {periodsList.map((period) => (
+              <div
+                key={period.id}
+                className={styles.periodCard}
+                onClick={() => handleRemove(period.id, period.name)}
+              >
                 <div
-                  className={`${styles.ganttFill} ${COLORS[period.colorIndex]}`}
-                  style={{ width: `${progress}%`, left: 0 }}
-                />
+                  className={`${styles.periodName} ${COLOR_CLASSES[period.colorIndex]}`}
+                  style={{
+                    fontFamily: period.fontFamily === 'serif' ? 'Georgia, serif' : period.fontFamily === 'mono' ? 'monospace' : 'system-ui, -apple-system, sans-serif',
+                    fontSize: `${period.fontSize}px`,
+                  }}
+                >
+                  {period.name}
+                </div>
               </div>
-              <div className={styles.ganttLabels}>
-                <span className={styles.ganttLabel}>{formatDate(period.startDate)}</span>
-                <span className={styles.ganttLabel}>{formatDate(period.endDate)}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            ))}
+          </div>
+
+          {showActions && (
+            <ModalShell.ActionButtons
+              debugId="schedule-periods"
+              left={
+                <ModalPrevButton onClick={handlePrev} />
+              }
+              right={null}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };

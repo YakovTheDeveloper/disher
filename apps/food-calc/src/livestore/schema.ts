@@ -219,10 +219,9 @@ const periodCreated = Events.synced({
     id: Schema.String,
     userId: Schema.String,
     name: Schema.String,
-    description: Schema.optionalWith(Schema.String, { default: () => '' }),
-    startDate: Schema.String,
-    endDate: Schema.String,
     colorIndex: Schema.optionalWith(Schema.Number, { default: () => 0 }),
+    fontFamily: Schema.optionalWith(Schema.String, { default: () => 'sans' }),
+    fontSize: Schema.optionalWith(Schema.Number, { default: () => 16 }),
     createdAt: Schema.Number,
   }),
 })
@@ -232,10 +231,9 @@ const periodUpdated = Events.synced({
   schema: Schema.Struct({
     id: Schema.String,
     name: Schema.optional(Schema.String),
-    description: Schema.optional(Schema.String),
-    startDate: Schema.optional(Schema.String),
-    endDate: Schema.optional(Schema.String),
     colorIndex: Schema.optional(Schema.Number),
+    fontFamily: Schema.optional(Schema.String),
+    fontSize: Schema.optional(Schema.Number),
   }),
 })
 
@@ -383,10 +381,9 @@ const periods = State.SQLite.table({
     id: State.SQLite.text({ primaryKey: true }),
     userId: State.SQLite.text(),
     name: State.SQLite.text(),
-    description: State.SQLite.text({ default: '' }),
-    startDate: State.SQLite.text(),
-    endDate: State.SQLite.text(),
     colorIndex: State.SQLite.integer({ default: 0 }),
+    fontFamily: State.SQLite.text({ default: 'sans' }),
+    fontSize: State.SQLite.integer({ default: 16 }),
     createdAt: State.SQLite.integer({ nullable: true }),
     deletedAt: State.SQLite.integer({ nullable: true }),
   },
@@ -463,8 +460,8 @@ const materializers = State.SQLite.materializers(events, {
     tables.dailyNorms.update({ deletedAt }).where({ id }),
 
   // Periods
-  'v1.PeriodCreated': ({ id, userId, name, description, startDate, endDate, colorIndex, createdAt }) =>
-    tables.periods.insert({ id, userId, name, description, startDate, endDate, colorIndex, createdAt }),
+  'v1.PeriodCreated': ({ id, userId, name, colorIndex, fontFamily, fontSize, createdAt }) =>
+    tables.periods.insert({ id, userId, name, colorIndex, fontFamily, fontSize, createdAt }),
   'v1.PeriodUpdated': ({ id, ...fields }) =>
     tables.periods.update(fields).where({ id }),
   'v1.PeriodDeleted': ({ id, deletedAt }) =>

@@ -1,34 +1,24 @@
-import { useState } from 'react';
 import type { BaseDrawerProps } from '@/shared/ui';
-import { Tabs } from '@/shared/ui/Tabs';
-import type { Tab } from '@/shared/ui/Tabs';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { ScheduleSelection } from './ScheduleSelection';
-import { SchedulePeriods } from './SchedulePeriods';
+import { useDesignVariants } from '@/shared/lib/useDesignVariants';
+import { CalendarVariantWrapper, CALENDAR_VARIANTS } from './CalendarDesignVariants';
 
 interface Props extends BaseDrawerProps<string> {
   selectedDate?: string;
-  initialTab?: 'calendar' | 'periods';
 }
 
-const tabs: Tab[] = [
-  { value: 'calendar', alternativeLabel: 'Календарь' },
-  { value: 'periods', alternativeLabel: 'Периоды' },
-];
-
-export const ScheduleSelectionDrawer = ({ onClose, selectedDate, initialTab }: Props) => {
-  const [activeTab, setActiveTab] = useState(initialTab ?? 'calendar');
+export const ScheduleSelectionDrawer = ({ onClose, selectedDate }: Props) => {
+  const { index, total } = useDesignVariants(CALENDAR_VARIANTS.length, 8000);
 
   return (
     <DrawerLayout>
       <div style={{ height: '90dvh', display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-          {activeTab === 'calendar' && (
+          <CalendarVariantWrapper index={index} total={total}>
             <ScheduleSelection selectedDate={selectedDate} onSelect={(date) => onClose(date)} />
-          )}
-          {activeTab === 'periods' && <SchedulePeriods />}
+          </CalendarVariantWrapper>
         </div>
-        <Tabs tabs={tabs} current={activeTab} setTab={(v) => setActiveTab(v as 'calendar' | 'periods')} />
       </div>
     </DrawerLayout>
   );

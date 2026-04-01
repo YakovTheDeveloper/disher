@@ -22,14 +22,13 @@ import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Quantity } from '@/shared/ui/Quantity';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import { useStore as useLiveStore } from '@livestore/react';
-import { CountBadge } from '@/shared/ui/atoms/Button/CountBadge/CountBadge';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DishBuilderPage.module.scss';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
-import { ChangeName } from '@/features/shared/change-name';
 import TextBehind from '@/shared/ui/TextBehind/TextBehind';
+import { ChangeName } from '@/features/shared/change-name';
 import {
   DishProductCreateModals,
   DISH_MODAL_INPUT_IDS,

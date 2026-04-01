@@ -1,2 +1,3 @@
 export { SchedulePeriods } from './SchedulePeriods';
-export { default as PeriodBanner } from './PeriodBanner';
+export { SchedulePeriodsDrawer } from './SchedulePeriodsDrawer';
+export { default as PeriodView } from './PeriodView';

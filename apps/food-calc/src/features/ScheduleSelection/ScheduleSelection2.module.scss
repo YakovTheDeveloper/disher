@@ -78,11 +78,11 @@
 }
 
 .monthName {
-    font-family: var(--font-serif);
+    font-family: var(--font-sans);
     font-size: 26px;
-    font-weight: 300;
-    font-style: italic;
-    letter-spacing: 0.01em;
+    font-weight: 700;
+    font-style: normal;
+    letter-spacing: -0.02em;
     text-transform: capitalize;
     color: var(--cal-text);
     line-height: 1;
@@ -162,14 +162,14 @@
 
 .dayNumber {
     font-family: var(--font-sans);
-    font-size: 15px;
-    font-weight: 300;
+    font-size: 18px;
+    font-weight: 600;
     color: var(--cal-text);
     line-height: 1;
     letter-spacing: -0.02em;
 
     @media (max-width: 480px) {
-        font-size: 14px;
+        font-size: 17px;
     }
 }
 

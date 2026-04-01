@@ -1,10 +1,7 @@
-import { FC, useState } from 'react';
+import { FC, useState, useCallback } from 'react';
 import clsx from 'clsx';
-import { BrandMark } from '@/shared/ui/BrandMark';
-import Button from '@/shared/ui/atoms/Button/Button';
 import { Typography } from '@/shared/ui/atoms/Typography';
-import { RenameModal } from './RenameModal';
-import { modalStore } from '@/shared/ui/modal-store';
+import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from './ChangeNameModal';
 import s from './ChangeName.module.scss';
 
 type Props = {
@@ -15,35 +12,39 @@ type Props = {
 
 const ChangeName: FC<Props> = ({ name, onChangeName, canRename = true }) => {
   const [showRenameHint, setShowRenameHint] = useState(false);
+  const [renameStep, setRenameStep] = useState<'idle' | 'details'>('idle');
 
   const handleNameClick = () => {
     if (canRename) setShowRenameHint((prev) => !prev);
   };
 
-  const handleRename = async () => {
-    setShowRenameHint(false);
-    const newName = await modalStore.show(RenameModal, { currentName: name });
-
-    if (newName) {
-      onChangeName(newName);
+  const handleFocusCapture = useCallback((e: React.FocusEvent) => {
+    const id = (e.target as HTMLElement).id;
+    if (id === CHANGE_NAME_INPUT_ID) {
+      setRenameStep('details');
+      setShowRenameHint(false);
     }
+  }, []);
+
+  const handleClose = () => {
+    setRenameStep('idle');
+    setShowRenameHint(false);
   };
 
   return (
-    <>
+    <div onFocusCapture={handleFocusCapture}>
       {canRename && (
         <div className={s.actionRow}>
           <span className={clsx(s.renameButtonWrapper, showRenameHint && s.visible)}>
-            <Button
-              className={s.renameButton}
-              variant="ghost"
+            <label
+              htmlFor={CHANGE_NAME_INPUT_ID}
               onClick={(e) => {
                 e.stopPropagation();
-                handleRename();
               }}
+              style={{ cursor: 'pointer', fontSize: '1.5rem' }}
             >
               поменять название
-            </Button>
+            </label>
           </span>
         </div>
       )}
@@ -52,7 +53,16 @@ const ChangeName: FC<Props> = ({ name, onChangeName, canRename = true }) => {
           {name}
         </Typography>
       </div>
-    </>
+      <ChangeNameModal
+        currentName={name}
+        isExpanded={renameStep === 'details'}
+        onClose={handleClose}
+        onChangeName={(newName) => {
+          onChangeName(newName);
+          handleClose();
+        }}
+      />
+    </div>
   );
 };
 

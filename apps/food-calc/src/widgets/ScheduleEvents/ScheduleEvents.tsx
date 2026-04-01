@@ -21,7 +21,6 @@ import {
   EVENT_EDIT_MODAL_INPUT_IDS,
 } from './ui';
 import { ScheduleEventCard } from './components/ScheduleEventCard';
-import { PeriodBanner } from '@/features/ScheduleSelection/SchedulePeriods';
 import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
 import toaster from '@/shared/lib/toaster/toaster';
 import { drawerStore } from '@/shared/ui/drawer-store';
@@ -40,7 +39,10 @@ const ScheduleEvents = ({ date, events }: Props) => {
   const selectedIds = useStore(selectionStoreEvents, (s) => s.selectedIds);
   const { clearSelection, toggleSelectedId } = selectionStoreEvents.getState();
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
-  const nowMarkerIndex = useMemo(() => getNowMarkerIndex(eventsGroupedByTime, date), [eventsGroupedByTime, date]);
+  const nowMarkerIndex = useMemo(
+    () => getNowMarkerIndex(eventsGroupedByTime, date),
+    [eventsGroupedByTime, date]
+  );
 
   const onDeleteSelected = async () => {
     const ids = selectedIds;
@@ -116,7 +118,6 @@ const ScheduleEvents = ({ date, events }: Props) => {
           </AddButton>
         </div>
       )}
-      <PeriodBanner date={date} />
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList offsetTop>
           {(() => {
@@ -124,7 +125,10 @@ const ScheduleEvents = ({ date, events }: Props) => {
             return eventsGroupedByTime.map((timeGroup, idx) => (
               <React.Fragment key={timeGroup.time}>
                 {nowMarkerIndex === idx && <NowMarker />}
-                <TimeGroup group={timeGroup} isFuture={nowMarkerIndex >= 0 && idx >= nowMarkerIndex}>
+                <TimeGroup
+                  group={timeGroup}
+                  isFuture={nowMarkerIndex >= 0 && idx >= nowMarkerIndex}
+                >
                   {timeGroup.items.map((item) => {
                     const itemIndex = globalIndex++;
                     return (
@@ -146,7 +150,8 @@ const ScheduleEvents = ({ date, events }: Props) => {
                     );
                   })}
                 </TimeGroup>
-                {nowMarkerIndex === eventsGroupedByTime.length && idx === eventsGroupedByTime.length - 1 && <NowMarker />}
+                {nowMarkerIndex === eventsGroupedByTime.length &&
+                  idx === eventsGroupedByTime.length - 1 && <NowMarker />}
               </React.Fragment>
             ));
           })()}
@@ -158,7 +163,13 @@ const ScheduleEvents = ({ date, events }: Props) => {
 
 const TrashIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
     <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );

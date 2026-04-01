@@ -9,10 +9,9 @@ export function addPeriod(
   store: Store,
   params: {
     name: string;
-    description?: string | null;
-    startDate: string;
-    endDate: string;
     colorIndex: number;
+    fontFamily?: string;
+    fontSize?: number;
   },
 ) {
   const id = crypto.randomUUID();
@@ -20,11 +19,10 @@ export function addPeriod(
     events.periodCreated({
       id,
       userId: getCurrentUserId(),
-      name: params.name,
-      description: params.description ?? "",
-      startDate: params.startDate,
-      endDate: params.endDate,
+      name: params.name.trim(),
       colorIndex: params.colorIndex,
+      fontFamily: params.fontFamily ?? 'sans',
+      fontSize: params.fontSize ?? 16,
       createdAt: Date.now(),
     }),
   );

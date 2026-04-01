@@ -29,7 +29,7 @@ import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
 import { CopyToClipboardButton, PasteFromClipboardButton } from '@/features/clipboard';
 import type { ClipboardItem } from '@/shared/model/clipboardStore';
 import { AccountPanel } from '@/features/auth';
-import { PeriodBanner } from '@/features/ScheduleSelection/SchedulePeriods';
+import { PeriodView } from '@/features/ScheduleSelection/SchedulePeriods';
 import { fetchDailyAnalysis, computeInputHash } from '@/entities/analytics';
 
 type CommonProps = {
@@ -217,7 +217,7 @@ const FoodSchedule = ({
         )
       }
     >
-      <PeriodBanner date={date} />
+      <PeriodView date={date} />
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
         <Navigation />
