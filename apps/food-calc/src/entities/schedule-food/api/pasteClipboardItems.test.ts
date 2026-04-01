@@ -19,8 +19,8 @@ describe('pasteClipboardItems', () => {
     pasteClipboardItems(
       store,
       [
-        { time: '08:00', type: 'food' as const, quantity: 150, foodId: 'f1', dishId: null, displayName: 'Egg' },
-        { time: '12:00', type: 'dish' as const, quantity: 300, foodId: null, dishId: 'd1', displayName: 'Salad' },
+        { time: '08:00', type: 'food' as const, quantity: 150, productId: 'f1', dishId: null, displayName: 'Egg' },
+        { time: '12:00', type: 'dish' as const, quantity: 300, productId: null, dishId: 'd1', displayName: 'Salad' },
       ],
       '26-03-2026',
     );
@@ -35,7 +35,7 @@ describe('pasteClipboardItems', () => {
         time: '08:00',
         type: 'food',
         quantity: 150,
-        foodId: 'f1',
+        productId: 'f1',
         userId: 'test-user',
       }),
     });
@@ -61,7 +61,7 @@ describe('pasteClipboardItems', () => {
   it('preserves original time from clipboard items', () => {
     pasteClipboardItems(
       store,
-      [{ time: '19:30', type: 'food' as const, quantity: 200, foodId: 'f2', dishId: null, displayName: 'Rice' }],
+      [{ time: '19:30', type: 'food' as const, quantity: 200, productId: 'f2', dishId: null, displayName: 'Rice' }],
       '27-03-2026',
     );
 

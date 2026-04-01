@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockUseScheduleFoods = vi.fn();
 const mockUseDishItemsByDishIds = vi.fn();
-const mockUseNutrientsByFoodIds = vi.fn();
+const mockUseNutrientsByProductIds = vi.fn();
 
 vi.mock('./queries', () => ({
   useScheduleFoods: (...args: unknown[]) => mockUseScheduleFoods(...args),
@@ -16,7 +16,7 @@ vi.mock('@/entities/dish', () => ({
 }));
 
 vi.mock('@/entities/product', () => ({
-  useNutrientsByFoodIds: (...args: unknown[]) => mockUseNutrientsByFoodIds(...args),
+  useNutrientsByProductIds: (...args: unknown[]) => mockUseNutrientsByProductIds(...args),
 }));
 
 import { useScheduleNutrientTotals } from './useScheduleNutrientTotals';
@@ -56,7 +56,7 @@ function setupMocks(opts: {
 }) {
   mockUseScheduleFoods.mockReturnValue(opts.scheduleFoods ?? []);
   mockUseDishItemsByDishIds.mockReturnValue(opts.dishItems ?? []);
-  mockUseNutrientsByFoodIds.mockReturnValue(buildNutrientsMap(opts.products ?? []));
+  mockUseNutrientsByProductIds.mockReturnValue(buildNutrientsMap(opts.products ?? []));
 }
 
 // ─── setup ────────────────────────────────────────────────────────────────────
@@ -97,7 +97,7 @@ describe('useScheduleNutrientTotals', () => {
 
       renderHook(() => useScheduleNutrientTotals('2026-01-01'));
 
-      const calledIds = mockUseNutrientsByFoodIds.mock.calls.at(-1)?.[0] as string[];
+      const calledIds = mockUseNutrientsByProductIds.mock.calls.at(-1)?.[0] as string[];
       expect(calledIds).toContain('apple');
       expect(calledIds).toContain('banana');
     });
@@ -113,7 +113,7 @@ describe('useScheduleNutrientTotals', () => {
 
       renderHook(() => useScheduleNutrientTotals('2026-01-01'));
 
-      const calledIds = mockUseNutrientsByFoodIds.mock.calls.at(-1)?.[0] as string[];
+      const calledIds = mockUseNutrientsByProductIds.mock.calls.at(-1)?.[0] as string[];
       expect(calledIds.filter((id: string) => id === 'apple')).toHaveLength(1);
     });
 

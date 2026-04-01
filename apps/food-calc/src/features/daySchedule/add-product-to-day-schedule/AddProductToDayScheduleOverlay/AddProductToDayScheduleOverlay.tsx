@@ -29,8 +29,16 @@ const AddProductToDayScheduleOverlay = ({ productId, onClose }: Props) => {
     if (product) {
       const currentTime = new Date().toTimeString().slice(0, 5);
       const result = safeMutate(
-        () => addScheduleFood(store, { date: selectedDate, time: currentTime, type: 'food', foodId: product.id, dishId: null, quantity: 100 }),
-        'Не удалось добавить продукт',
+        () =>
+          addScheduleFood(store, {
+            date: selectedDate,
+            time: currentTime,
+            type: 'food',
+            productId: product.id,
+            dishId: null,
+            quantity: 100,
+          }),
+        'Не удалось добавить продукт'
       );
       if (result === undefined) return;
     }

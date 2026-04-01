@@ -1,10 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { useStore } from '@livestore/react';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-import {
-  SuggestionsReviewList,
-  useDishSuggestions,
-} from '@/features/dish/suggest-products';
+import { SuggestionsReviewList, useDishSuggestions } from '@/features/dish/suggest-products';
 import type { SuggestionsReviewListRef } from '@/features/dish/suggest-products';
 import { addDishItem } from '@/entities/dish';
 import { Button } from '@/shared/ui/atoms/Button';
@@ -22,7 +19,7 @@ type Props = {
   isExpanded: boolean;
   dishId: string;
   dishName: string;
-  existingItems: Array<{ foodId: string; name: string; quantity: number }>;
+  existingItems: Array<{ productId: string; name: string; quantity: number }>;
   onClose: () => void;
 };
 
@@ -52,8 +49,13 @@ const DishSuggestionsModal = ({ isExpanded, dishId, dishName, existingItems, onC
     }
 
     const result = await safeMutate(
-      () => Promise.all(items.map((item) => addDishItem(store, { dishId, foodId: item.foodId, quantity: item.quantity }))),
-      'Не удалось добавить продукты',
+      () =>
+        Promise.all(
+          items.map((item) =>
+            addDishItem(store, { dishId, productId: item.productId, quantity: item.quantity })
+          )
+        ),
+      'Не удалось добавить продукты'
     );
     if (result === undefined) return;
 
@@ -85,7 +87,10 @@ const DishSuggestionsModal = ({ isExpanded, dishId, dishName, existingItems, onC
             {state.status === 'error' && (
               <div className={styles.center}>
                 <p className={styles.error}>{state.error}</p>
-                <Button variant="secondary" onClick={() => fetchSuggestions(dishName, existingItems)}>
+                <Button
+                  variant="secondary"
+                  onClick={() => fetchSuggestions(dishName, existingItems)}
+                >
                   Попробовать снова
                 </Button>
               </div>
@@ -109,11 +114,7 @@ const DishSuggestionsModal = ({ isExpanded, dishId, dishName, existingItems, onC
             )}
           </div>
           {/* Hidden input for ModalByLabel focus trigger */}
-          <input
-            id={DISH_SUGGESTIONS_INPUT_IDS.TRIGGER}
-            className={styles.hiddenInput}
-            readOnly
-          />
+          <input id={DISH_SUGGESTIONS_INPUT_IDS.TRIGGER} className={styles.hiddenInput} readOnly />
         </div>
       }
     />

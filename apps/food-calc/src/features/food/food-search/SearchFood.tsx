@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import styles from './SearchFood.module.scss';
 import { FoodActionCard } from './food-action-card';
@@ -8,8 +8,10 @@ import { FilterButton } from '@/shared/ui/atoms/Button';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { getProductCategoryGroups, getProductCategoryOptions } from '@/entities/product';
 import { getDishCategoryGroups, getDishCategoryOptions } from '@/entities/dish';
-import { VirtualList } from '@/shared/ui/VirtualList';
+import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
+import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 import { useFilteredFoods, useFoodCreation } from './model';
+import { FoodSearchEmpty } from './FoodSearchEmpty';
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 
@@ -27,36 +29,6 @@ type Props = {
   itemHtmlFor?: string;
   inputId?: string;
 };
-
-type EmptyStateProps = {
-  query: string;
-  onCreateProduct?: () => void;
-  onCreateDish?: () => void;
-};
-
-const EmptyState = ({ query, onCreateProduct, onCreateDish }: EmptyStateProps) => (
-  <div className={styles.emptyState}>
-    <p className={styles.emptyStateMessage}>
-      По запросу <em>«{query}»</em> ничего нет
-    </p>
-    <div className={styles.emptyStateActions}>
-      {onCreateDish && (
-        <button className={styles.emptyStateActionSecondary} onClick={onCreateDish}>
-          <span className={styles.emptyStateIcon}>+</span>
-          Блюдо
-          <span className={styles.emptyStateHint}>молекула</span>
-        </button>
-      )}
-      {onCreateProduct && (
-        <button className={styles.emptyStateAction} onClick={onCreateProduct}>
-          <span className={styles.emptyStateIcon}>+</span>
-          Продукт
-          <span className={styles.emptyStateHint}>атом</span>
-        </button>
-      )}
-    </div>
-  </div>
-);
 
 const getDefaultTab = (mode: SearchMode) => (mode === 'dishes-only' ? 'блюда' : 'все');
 
@@ -77,8 +49,36 @@ const SearchFood = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [currentTab, setCurrentTab] = useState(getDefaultTab(mode));
 
-  const { products, dishes, categoryFilter, nutrientMap } = useFilteredFoods(searchQuery, myFoodOnly, richNutrient?.id);
+  const listContainerRef = useRef<HTMLDivElement>(null);
+  const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(listContainerRef);
+  const isProgrammaticScrollRef = useRef(false);
+
+  const { products, dishes, categoryFilter, nutrientMap } = useFilteredFoods(
+    searchQuery,
+    myFoodOnly,
+    richNutrient?.id
+  );
   const { handleCreateProduct, handleCreateDish } = useFoodCreation(searchQuery, setSearchQuery);
+
+  const totalItems = products.length + dishes.length;
+
+  // Scroll to top when items change (search/filter)
+  useEffect(() => {
+    isProgrammaticScrollRef.current = true;
+    listContainerRef.current?.scrollTo({ top: 0 });
+    requestAnimationFrame(() => {
+      isProgrammaticScrollRef.current = false;
+    });
+  }, [totalItems]);
+
+  // Blur keyboard on user scroll (mobile UX)
+  const handleListScroll = useCallback(() => {
+    if (isProgrammaticScrollRef.current) return;
+    const active = document.activeElement;
+    if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
+      active.blur();
+    }
+  }, []);
 
   const currentFilterType = currentTab === 'блюда' ? 'dish' : 'product';
 
@@ -115,14 +115,18 @@ const SearchFood = ({
   const showProducts = mode !== 'dishes-only';
   const showDishes = mode !== 'products-only';
 
-  const emptyContent =
-    isSearchActive ? (
-      <EmptyState
-        query={trimmedQuery}
-        onCreateProduct={showProducts ? handleCreateProduct : undefined}
-        onCreateDish={showDishes ? handleCreateDish : undefined}
-      />
-    ) : undefined;
+  const emptyContent = isSearchActive ? (
+    <FoodSearchEmpty
+      query={trimmedQuery}
+      onCreateProduct={showProducts ? handleCreateProduct : undefined}
+      onCreateDish={showDishes ? handleCreateDish : undefined}
+    />
+  ) : undefined;
+
+  // When tab is "все", both lists render — avoid showing emptyContent twice.
+  // Show it only once: outside the lists when both are empty, or inside the single non-empty list otherwise.
+  const bothListsVisible = currentTab === 'все';
+  const bothEmpty = bothListsVisible && products.length === 0 && dishes.length === 0;
 
   const renderProductItem = useCallback(
     (item: (typeof products)[number]) => {
@@ -173,7 +177,6 @@ const SearchFood = ({
         <SearchFoodControls
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          mode={mode}
           onBack={onBack}
           searchBarLeftChild={searchBarLeftChild}
           searchBarRightChild={searchBarRightChild}
@@ -186,23 +189,47 @@ const SearchFood = ({
           Богатые по <strong>{richNutrientInfo.displayNameRu}</strong>
         </div>
       )}
+      {bothEmpty && emptyContent}
 
-      {(currentTab === 'продукты' || currentTab === 'все') && (
-        <VirtualList
-          items={products}
-          renderItem={renderProductItem}
-          emptyContent={emptyContent}
-          itemHtmlFor={itemHtmlFor}
-        />
-      )}
-      {(currentTab === 'блюда' || currentTab === 'все' || mode === 'dishes-only') && (
-        <VirtualList
-          items={dishes}
-          renderItem={renderDishItem}
-          emptyContent={emptyContent}
-          itemHtmlFor={itemHtmlFor}
-        />
-      )}
+      <div
+        ref={listContainerRef}
+        className={styles.listContainer}
+        onScroll={handleListScroll}
+        role="listbox"
+      >
+        {(currentTab === 'продукты' || currentTab === 'все') && (
+          <>
+            {products.length === 0 && !bothListsVisible && emptyContent}
+            <ul className={styles.list}>
+              {products.map((item) => {
+                const Tag = itemHtmlFor ? 'label' : 'div';
+                return (
+                  <Tag key={item.id} htmlFor={itemHtmlFor} role="option">
+                    {renderProductItem(item)}
+                  </Tag>
+                );
+              })}
+            </ul>
+          </>
+        )}
+        {(currentTab === 'блюда' || currentTab === 'все' || mode === 'dishes-only') && (
+          <>
+            {dishes.length === 0 && !bothListsVisible && emptyContent}
+            <ul className={styles.list}>
+              {dishes.map((item) => {
+                const Tag = itemHtmlFor ? 'label' : 'div';
+                return (
+                  <Tag key={item.id} htmlFor={itemHtmlFor} role="option">
+                    {renderDishItem(item)}
+                  </Tag>
+                );
+              })}
+            </ul>
+          </>
+        )}
+        <div ref={sentinelRef} />
+      </div>
+      <ScrollIndicator visible={hasMoreBelow} variant="dark" />
 
       <section
         className={clsx(styles.filterWrapper, !filterPanelOpen && styles.filterWrapper_hidden)}
@@ -214,7 +241,10 @@ const SearchFood = ({
               {mode === 'products-and-dishes' && (
                 <div className={styles.tabBar}>
                   <button
-                    className={clsx(styles.tabBarItem, currentTab === 'все' && styles.tabBarItem_active)}
+                    className={clsx(
+                      styles.tabBarItem,
+                      currentTab === 'все' && styles.tabBarItem_active
+                    )}
                     onClick={() => setCurrentTab('все')}
                   >
                     Все

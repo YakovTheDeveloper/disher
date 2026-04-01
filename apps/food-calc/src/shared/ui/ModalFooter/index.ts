@@ -1,1 +1,1 @@
-export { ModalFooter, NextStepButton, ModalNextButton } from './ModalFooter';
+export { ModalFooter, NextStepButton, ModalNextButton, ModalPrevButton } from './ModalFooter';

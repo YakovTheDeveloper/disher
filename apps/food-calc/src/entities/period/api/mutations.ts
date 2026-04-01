@@ -2,6 +2,9 @@ import { getCurrentUserId } from "@/shared/lib/user";
 import { events } from "@/livestore/schema";
 import type { Store } from "@livestore/livestore";
 
+type PeriodUpdatedPayload = Parameters<typeof events.periodUpdated>[0];
+type PeriodUpdates = Omit<PeriodUpdatedPayload, 'id'>;
+
 export function addPeriod(
   store: Store,
   params: {
@@ -35,20 +38,7 @@ export function removePeriod(store: Store, id: string) {
 export function updatePeriod(
   store: Store,
   id: string,
-  updates: Partial<{
-    name: string;
-    description: string | null;
-    startDate: string;
-    endDate: string;
-    colorIndex: number;
-  }>,
+  updates: PeriodUpdates,
 ) {
-  const mapped: Record<string, string | number> = { id };
-  if (updates.name !== undefined) mapped.name = updates.name;
-  if (updates.description !== undefined) mapped.description = updates.description ?? "";
-  if (updates.startDate !== undefined) mapped.startDate = updates.startDate;
-  if (updates.endDate !== undefined) mapped.endDate = updates.endDate;
-  if (updates.colorIndex !== undefined) mapped.colorIndex = updates.colorIndex;
-
-  store.commit(events.periodUpdated(mapped as Parameters<typeof events.periodUpdated>[0]));
+  store.commit(events.periodUpdated({ id, ...updates }));
 }

@@ -3,18 +3,13 @@ import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalFooter } from '@/shared/ui/ModalFooter';
+import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { updateDishItem } from '@/entities/dish';
 import { useProductPortions } from '@/entities/product';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import Button from '@/shared/ui/atoms/Button/Button';
-import type { Portion } from '@/features/product/ProductQuantity';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-
-const mapPortions = (results: { label: string; amount: number; unit: string; grams: number }[] | undefined): Portion[] =>
-  results ? results.map(({ label, amount, unit, grams }) => ({ label, amount, unit, grams })) : [];
 
 export const DISH_EDIT_MODAL_INPUT_IDS = {
   SEARCH_INPUT: 'dish-item-edit-search',
@@ -29,14 +24,14 @@ type FoodContent = {
 };
 
 type DraftState = {
-  foodId: string | null;
+  productId: string | null;
   quantity: number;
   content: FoodContent | null;
 };
 
 type EditItem = {
   id: string;
-  foodId: string;
+  productId: string;
   quantity: number;
 };
 
@@ -49,7 +44,7 @@ type Props = {
 const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) => {
   const { store } = useStore();
   const createInitialDraft = (): DraftState => ({
-    foodId: item.foodId,
+    productId: item.productId,
     quantity: item.quantity,
     content: {
       quantity: item.quantity,
@@ -60,7 +55,7 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
   const [step, setStep] = useState<Step>(initialStep);
   const [draft, setDraft] = useState<DraftState>(createInitialDraft);
 
-  const foodPortionsMap = useProductPortions(draft.foodId ?? undefined);
+  const foodPortionsMap = useProductPortions(draft.productId ?? undefined);
 
   useSwipeableLock(step !== 'idle');
   useOverlayHistory(step !== 'idle', () => {
@@ -89,7 +84,10 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
 
   const handleFoodSelect = async (payload: { variant: 'product' | 'dish'; id: string }) => {
     if (payload.variant === 'dish') return;
-    const result = await safeMutate(() => updateDishItem(store, item.id, { foodId: payload.id }), 'Не удалось обновить');
+    const result = await safeMutate(
+      () => updateDishItem(store, item.id, { productId: payload.id }),
+      'Не удалось обновить'
+    );
     if (result === undefined) return;
     setStep('idle');
     onClose();
@@ -97,8 +95,12 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
 
   const handleCommit = async () => {
     const result = await safeMutate(
-      () => updateDishItem(store, item.id, { foodId: draft.foodId ?? undefined, quantity: draft.quantity }),
-      'Не удалось обновить',
+      () =>
+        updateDishItem(store, item.id, {
+          productId: draft.productId ?? undefined,
+          quantity: draft.quantity,
+        }),
+      'Не удалось обновить'
     );
     if (result === undefined) return;
     setStep('idle');
@@ -116,7 +118,7 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
             <SearchFood
               mode="products-only"
               onSelectFood={handleFoodSelect}
-              activeItemId={draft.foodId ?? undefined}
+              activeItemId={draft.productId ?? undefined}
               inputId={DISH_EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
             />
           </ModalShell>
@@ -129,23 +131,24 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
         isExpanded={step === 'quantity'}
         content={
           <ModalShell>
-            <ModalShell.Spacer />
+
             <ModalShell.Body>
               {draft.content && (
-                <ProductQuantity
-                  content={{
-                    ...draft.content,
-                    food: { portions: mapPortions(foodPortionsMap) },
-                  }}
-                  onFinish={() => {}}
-                  inputId={DISH_EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
-                />
+                <>
+                  <ProductQuantity
+                    content={{
+                      ...draft.content,
+                      product: { portions: foodPortionsMap ?? [] },
+                    }}
+                    onFinish={() => {}}
+                    inputId={DISH_EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
+                  />
+                  <ModalShell.ActionButtons
+                    left={<ModalPrevButton onClick={handleClose} />}
+                    right={<ModalNextButton onClick={handleCommit} />}
+                  />
+                </>
               )}
-              <ModalFooter onBack={handleClose}>
-                <Button variant="primary-form" onClick={handleCommit}>
-                  Готово
-                </Button>
-              </ModalFooter>
             </ModalShell.Body>
           </ModalShell>
         }

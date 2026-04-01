@@ -13,7 +13,7 @@ interface SeedGateProps {
  */
 export function SeedGate({ children }: SeedGateProps) {
   const { store } = useStore();
-  const [seeding, setSeeding] = useState(() => isSeedNeeded());
+  const [seeding, setSeeding] = useState(() => isSeedNeeded(store));
   const [progress, setProgress] = useState({ done: 0, total: 1 });
   const [error, setError] = useState<string | null>(null);
 

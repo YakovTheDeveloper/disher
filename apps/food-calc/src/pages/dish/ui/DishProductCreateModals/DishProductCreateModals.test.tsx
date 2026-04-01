@@ -16,7 +16,6 @@ vi.mock('@/shared/lib/useOverlayHistory', () => ({
   useOverlayHistory: vi.fn(),
 }));
 
-
 const mockAddDishItem = vi.fn().mockResolvedValue(undefined);
 vi.mock('@/entities/dish', () => ({
   addDishItem: (...args: any[]) => mockAddDishItem(...args),
@@ -69,10 +68,7 @@ vi.mock('@/features/product/ProductQuantity', () => ({
           value={props.content.quantity}
           onChange={(e) => props.content.updateQuantity(Number(e.target.value))}
         />
-        <button
-          data-testid="quick-200"
-          onClick={() => props.content.updateQuantity(200)}
-        >
+        <button data-testid="quick-200" onClick={() => props.content.updateQuantity(200)}>
           200
         </button>
       </div>
@@ -143,7 +139,7 @@ describe('DishProductCreateModals — commit', () => {
     await waitFor(() => {
       expect(mockAddDishItem).toHaveBeenCalledWith({
         dishId: 'dish-123',
-        foodId: 'prod-1',
+        productId: 'prod-1',
         quantity: 100,
       });
     });
@@ -160,7 +156,7 @@ describe('DishProductCreateModals — commit', () => {
     await waitFor(() => {
       expect(mockAddDishItem).toHaveBeenCalledWith({
         dishId: 'dish-123',
-        foodId: 'prod-1',
+        productId: 'prod-1',
         quantity: 200,
       });
     });
@@ -179,14 +175,14 @@ describe('DishProductCreateModals — commit', () => {
 // ─── reset after commit ─────────────────────────────────────────────────────
 
 describe('DishProductCreateModals — reset after commit', () => {
-  it('resets draft foodId after commit (new flow gets default)', async () => {
+  it('resets draft productId after commit (new flow gets default)', async () => {
     renderAndSelectProduct();
 
     // Commit with prod-1
     fireEvent.click(screen.getByText('Готово'));
-    await waitFor(() => expect(mockAddDishItem).toHaveBeenCalledWith(
-      expect.objectContaining({ foodId: 'prod-1' }),
-    ));
+    await waitFor(() =>
+      expect(mockAddDishItem).toHaveBeenCalledWith(expect.objectContaining({ productId: 'prod-1' }))
+    );
 
     // Start a new flow — select a different product
     const searchInput = screen.getByTestId('search-input');
@@ -198,7 +194,7 @@ describe('DishProductCreateModals — reset after commit', () => {
     await waitFor(() => {
       expect(mockAddDishItem).toHaveBeenCalledTimes(2);
       expect(mockAddDishItem).toHaveBeenLastCalledWith(
-        expect.objectContaining({ foodId: 'prod-2' }),
+        expect.objectContaining({ productId: 'prod-2' })
       );
     });
   });
@@ -261,7 +257,9 @@ describe('DishProductCreateModals — breadcrumb navigation', () => {
     renderAndSelectProduct();
 
     // Click on "Продукт" breadcrumb to go back to search
-    const productCrumb = screen.getAllByRole('button').find((b) => b.textContent?.includes('Продукт'));
+    const productCrumb = screen
+      .getAllByRole('button')
+      .find((b) => b.textContent?.includes('Продукт'));
     expect(productCrumb).toBeDefined();
     fireEvent.click(productCrumb!);
 

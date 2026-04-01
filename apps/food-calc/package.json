@@ -28,7 +28,6 @@
     "@livestore/wa-sqlite": "^1.0.5-dev.2",
     "@radix-ui/react-dialog": "^1.1.15",
     "@tanstack/react-query": "^5.90.2",
-    "@tanstack/react-virtual": "^3.13.12",
     "@trpc/client": "^11.5.0",
     "@vitejs/plugin-react-swc": "^3.7.2",
     "axios": "1.7.8",

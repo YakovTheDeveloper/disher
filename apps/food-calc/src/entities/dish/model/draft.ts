@@ -3,20 +3,20 @@ import { devtools } from "zustand/middleware";
 
 export interface DishItemDraft {
   id: string;
-  foodId: string;
+  productId: string;
   quantity: number;
 }
 
 interface DishDraftStore {
   draft: DishItemDraft;
-  setFood: (foodId: string) => void;
+  setFood: (productId: string) => void;
   setQuantity: (quantity: number) => void;
   clear: () => void;
 }
 
 const DEFAULT: DishItemDraft = {
   id: "DRAFT",
-  foodId: "0",
+  productId: "0",
   quantity: 100,
 };
 
@@ -24,8 +24,8 @@ export const useDishDraftStore = create<DishDraftStore>()(
   devtools(
     (set) => ({
       draft: { ...DEFAULT },
-      setFood: (foodId) =>
-        set((s) => ({ draft: { ...s.draft, foodId } }), false, "setFood"),
+      setFood: (productId) =>
+        set((s) => ({ draft: { ...s.draft, productId } }), false, "setFood"),
       setQuantity: (quantity) =>
         set((s) => ({ draft: { ...s.draft, quantity } }), false, "setQuantity"),
       clear: () =>

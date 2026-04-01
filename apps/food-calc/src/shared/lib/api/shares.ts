@@ -1,7 +1,7 @@
 const API_BASE = `http://${window.location.hostname}:3100`;
 
 interface ShareItem {
-  foodId: string;
+  productId: string;
   name: string;
   quantity: number;
 }

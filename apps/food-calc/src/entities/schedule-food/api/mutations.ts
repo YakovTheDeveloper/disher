@@ -3,6 +3,16 @@ import { events } from "@/livestore/schema";
 import type { Store } from "@livestore/livestore";
 import type { ClipboardItem } from "@/shared/model/clipboardStore";
 
+type ScheduleFoodUpdatedPayload = Parameters<typeof events.scheduleFoodUpdated>[0];
+type ScheduleFoodUpdates = Omit<ScheduleFoodUpdatedPayload, 'id'>;
+
+/** Accepts null for nullable-feeling fields, coerces to "" before committing */
+type ScheduleFoodUpdateInput = {
+  [K in keyof ScheduleFoodUpdates]: K extends 'productId' | 'dishId' | 'details'
+    ? ScheduleFoodUpdates[K] | null
+    : ScheduleFoodUpdates[K];
+};
+
 export function addScheduleFood(
   store: Store,
   params: {
@@ -10,19 +20,19 @@ export function addScheduleFood(
     time: string;
     type: "food" | "dish";
     quantity: number;
-    foodId?: string | null;
+    productId?: string | null;
     dishId?: string | null;
     details?: string | null;
   },
 ) {
-  const hasFoodId = params.foodId != null;
+  const hasProductId = params.productId != null;
   const hasDishId = params.dishId != null;
 
-  if (hasFoodId && hasDishId) {
-    throw new Error("addScheduleFood: cannot set both foodId and dishId");
+  if (hasProductId && hasDishId) {
+    throw new Error("addScheduleFood: cannot set both productId and dishId");
   }
-  if (!hasFoodId && !hasDishId) {
-    throw new Error("addScheduleFood: must set either foodId or dishId");
+  if (!hasProductId && !hasDishId) {
+    throw new Error("addScheduleFood: must set either productId or dishId");
   }
 
   const id = crypto.randomUUID();
@@ -34,7 +44,7 @@ export function addScheduleFood(
       type: params.type,
       quantity: params.quantity,
       details: params.details ?? "",
-      foodId: params.foodId ?? "",
+      productId: params.productId ?? "",
       dishId: params.dishId ?? "",
       userId: getCurrentUserId(),
     }),
@@ -45,35 +55,28 @@ export function addScheduleFood(
 export function updateScheduleFood(
   store: Store,
   itemId: string,
-  updates: Partial<{
-    time: string;
-    quantity: number;
-    details: string | null;
-    foodId: string | null;
-    dishId: string | null;
-    type: "food" | "dish";
-  }>,
+  updates: ScheduleFoodUpdateInput,
 ) {
-  if (updates.foodId !== undefined && updates.dishId !== undefined) {
-    const hasFoodId = updates.foodId != null;
+  if (updates.productId !== undefined && updates.dishId !== undefined) {
+    const hasProductId = updates.productId != null;
     const hasDishId = updates.dishId != null;
-    if (hasFoodId && hasDishId) {
-      throw new Error("updateScheduleFood: cannot set both foodId and dishId");
+    if (hasProductId && hasDishId) {
+      throw new Error("updateScheduleFood: cannot set both productId and dishId");
     }
-    if (!hasFoodId && !hasDishId) {
-      throw new Error("updateScheduleFood: must set either foodId or dishId");
+    if (!hasProductId && !hasDishId) {
+      throw new Error("updateScheduleFood: must set either productId or dishId");
     }
   }
 
-  const mapped: Record<string, string | number | undefined> = { id: itemId };
-  if (updates.time !== undefined) mapped.time = updates.time;
-  if (updates.quantity !== undefined) mapped.quantity = updates.quantity;
-  if (updates.details !== undefined) mapped.details = updates.details ?? "";
-  if (updates.foodId !== undefined) mapped.foodId = updates.foodId ?? "";
-  if (updates.dishId !== undefined) mapped.dishId = updates.dishId ?? "";
-  if (updates.type !== undefined) mapped.type = updates.type;
+  const { productId, dishId, details, ...rest } = updates;
 
-  store.commit(events.scheduleFoodUpdated(mapped as Parameters<typeof events.scheduleFoodUpdated>[0]));
+  store.commit(events.scheduleFoodUpdated({
+    id: itemId,
+    ...rest,
+    ...(details !== undefined && { details: details ?? "" }),
+    ...(productId !== undefined && { productId: productId ?? "" }),
+    ...(dishId !== undefined && { dishId: dishId ?? "" }),
+  }));
 }
 
 export function removeScheduleFood(store: Store, itemId: string) {
@@ -99,7 +102,7 @@ export function pasteClipboardItems(
         type: item.type,
         quantity: item.quantity,
         details: item.details ?? "",
-        foodId: item.foodId ?? "",
+        productId: item.productId ?? "",
         dishId: item.dishId ?? "",
         userId: getCurrentUserId(),
       }),

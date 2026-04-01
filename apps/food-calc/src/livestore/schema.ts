@@ -71,7 +71,7 @@ const dishItemCreated = Events.synced({
   schema: Schema.Struct({
     id: Schema.String,
     dishId: Schema.String,
-    foodId: Schema.String,
+    productId: Schema.String,
     quantity: Schema.Number,
     userId: Schema.String,
   }),
@@ -81,7 +81,7 @@ const dishItemUpdated = Events.synced({
   name: 'v1.DishItemUpdated',
   schema: Schema.Struct({
     id: Schema.String,
-    foodId: Schema.optional(Schema.String),
+    productId: Schema.optional(Schema.String),
     quantity: Schema.optional(Schema.Number),
   }),
 })
@@ -132,7 +132,7 @@ const scheduleFoodCreated = Events.synced({
     type: Schema.String, // 'food' | 'dish'
     time: Schema.String,
     details: Schema.optionalWith(Schema.String, { default: () => '' }),
-    foodId: Schema.optionalWith(Schema.String, { default: () => '' }),
+    productId: Schema.optionalWith(Schema.String, { default: () => '' }),
     dishId: Schema.optionalWith(Schema.String, { default: () => '' }),
   }),
 })
@@ -144,7 +144,7 @@ const scheduleFoodUpdated = Events.synced({
     time: Schema.optional(Schema.String),
     quantity: Schema.optional(Schema.Number),
     details: Schema.optional(Schema.String),
-    foodId: Schema.optional(Schema.String),
+    productId: Schema.optional(Schema.String),
     dishId: Schema.optional(Schema.String),
     type: Schema.optional(Schema.String),
   }),
@@ -315,6 +315,7 @@ const dishItems = State.SQLite.table({
     userId: State.SQLite.text(),
     deletedAt: State.SQLite.integer({ nullable: true }),
   },
+  indexes: [{ name: 'idx_dish_items_dishId', columns: ['dishId'] }],
 })
 
 const dishPortions = State.SQLite.table({
@@ -329,6 +330,7 @@ const dishPortions = State.SQLite.table({
     grams: State.SQLite.real(),
     deletedAt: State.SQLite.integer({ nullable: true }),
   },
+  indexes: [{ name: 'idx_dish_portions_dishId', columns: ['dishId'] }],
 })
 
 const scheduleFoods = State.SQLite.table({
@@ -345,6 +347,7 @@ const scheduleFoods = State.SQLite.table({
     dishId: State.SQLite.text({ default: '' }),
     deletedAt: State.SQLite.integer({ nullable: true }),
   },
+  indexes: [{ name: 'idx_schedule_foods_date', columns: ['date'] }],
 })
 
 const scheduleEvents = State.SQLite.table({
@@ -359,6 +362,7 @@ const scheduleEvents = State.SQLite.table({
     atoms: State.SQLite.text({ default: '[]' }),
     deletedAt: State.SQLite.integer({ nullable: true }),
   },
+  indexes: [{ name: 'idx_schedule_events_date', columns: ['date'] }],
 })
 
 const dailyNorms = State.SQLite.table({
@@ -419,8 +423,8 @@ const materializers = State.SQLite.materializers(events, {
     tables.dishes.update({ deletedAt }).where({ id }),
 
   // Dish Items
-  'v1.DishItemCreated': ({ id, dishId, foodId, quantity, userId }) =>
-    tables.dishItems.insert({ id, dishId, productId: foodId, quantity, userId }),
+  'v1.DishItemCreated': ({ id, dishId, productId, quantity, userId }) =>
+    tables.dishItems.insert({ id, dishId, productId: productId, quantity, userId }),
   'v1.DishItemUpdated': ({ id, ...fields }) =>
     tables.dishItems.update(fields).where({ id }),
   'v1.DishItemDeleted': ({ id, deletedAt }) =>
@@ -435,10 +439,10 @@ const materializers = State.SQLite.materializers(events, {
     tables.dishPortions.update({ deletedAt }).where({ id }),
 
   // Schedule Foods
-  'v1.ScheduleFoodCreated': ({ id, date, userId, quantity, type, time, details, foodId, dishId }) =>
-    tables.scheduleFoods.insert({ id, date, userId, quantity, type, time, details, productId: foodId, dishId }),
-  'v1.ScheduleFoodUpdated': ({ id, ...fields }) =>
-    tables.scheduleFoods.update(fields).where({ id }),
+  'v1.ScheduleFoodCreated': ({ id, date, userId, quantity, type, time, details, productId, dishId }) =>
+    tables.scheduleFoods.insert({ id, date, userId, quantity, type, time, details, productId: productId, dishId }),
+  'v1.ScheduleFoodUpdated': ({ id, productId, ...fields }) =>
+    tables.scheduleFoods.update({ ...fields, ...(productId !== undefined && { productId: productId }) }).where({ id }),
   'v1.ScheduleFoodDeleted': ({ id, deletedAt }) =>
     tables.scheduleFoods.update({ deletedAt }).where({ id }),
 

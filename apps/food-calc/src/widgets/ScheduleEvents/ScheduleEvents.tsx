@@ -2,6 +2,7 @@ import styles from './ScheduleEvents.module.scss';
 import React, { useMemo, useState } from 'react';
 import { TimeGroup } from '@/features/time-group';
 import type { ScheduleEvent } from '@/entities/schedule-event';
+import { removeScheduleEvents } from '@/entities/schedule-event';
 import clsx from 'clsx';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
@@ -9,6 +10,7 @@ import { Navigation } from '@/pages/home-page/ui';
 import Typography from '@/shared/ui/atoms/Typography/Typography';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
+import { useStore as useLiveStore } from '@livestore/react';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import { groupItemsByTime, getNowMarkerIndex } from '@/shared/lib/schedule';
 import { NowMarker } from '@/shared/ui/NowMarker';
@@ -20,6 +22,10 @@ import {
 } from './ui';
 import { ScheduleEventCard } from './components/ScheduleEventCard';
 import { PeriodBanner } from '@/features/ScheduleSelection/SchedulePeriods';
+import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
+import toaster from '@/shared/lib/toaster/toaster';
+import { drawerStore } from '@/shared/ui/drawer-store';
+import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
 
 type Props = {
   children?: React.ReactNode;
@@ -28,12 +34,23 @@ type Props = {
 };
 
 const ScheduleEvents = ({ date, events }: Props) => {
+  const { store } = useLiveStore();
   const selectionStoreEvents = useSelection();
   const isActionsMode = useStore(selectionStoreEvents, (s) => s.isActionsMode);
   const selectedIds = useStore(selectionStoreEvents, (s) => s.selectedIds);
   const { clearSelection, toggleSelectedId } = selectionStoreEvents.getState();
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
   const nowMarkerIndex = useMemo(() => getNowMarkerIndex(eventsGroupedByTime, date), [eventsGroupedByTime, date]);
+
+  const onDeleteSelected = async () => {
+    const ids = selectedIds;
+    if (ids.length === 0) return;
+    const confirmed = await drawerStore.show(DeleteConfirmationModal, { count: ids.length });
+    if (!confirmed) return;
+    removeScheduleEvents(store, ids);
+    clearSelection();
+    toaster.success(`Удалено: ${ids.length}`);
+  };
 
   const [editingItem, setEditingItem] = useState<ScheduleEvent | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'text' | 'atoms'>('idle');
@@ -68,13 +85,9 @@ const ScheduleEvents = ({ date, events }: Props) => {
           show={isActionsMode}
           onBack={() => clearSelection()}
           left={
-            <button
-              onClick={() => {
-                // TODO: migrate to drawerStore.show() for delete confirmation
-              }}
-            >
-              удалить
-            </button>
+            <IconButton icon={<TrashIcon />} onClick={onDeleteSelected}>
+              Удалить
+            </IconButton>
           }
         >
           экшены событий
@@ -142,5 +155,12 @@ const ScheduleEvents = ({ date, events }: Props) => {
     </Screen>
   );
 };
+
+const TrashIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
 
 export default ScheduleEvents;

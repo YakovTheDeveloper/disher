@@ -3,37 +3,153 @@
 $header-height: 50px;
 
 .header {
-    position: relative;
     position: sticky;
     top: 0;
     z-index: 11;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
     padding: 0;
     min-height: $header-height;
     width: 100%;
-    padding-right: 0.5rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    padding: 0.5rem 0;
+}
 
+.backButton {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: 6px 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+    opacity: 0.85;
 
-    &::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background-image: url('@/shared/assets/decarative/bag3.png');
-        background-repeat: no-repeat;
-        background-position: right center;
-        background-size: $header-height;
-        opacity: 0.08;
-        pointer-events: none;
-        z-index: -1;
+    &:active {
+        opacity: 0.5;
     }
 }
 
-.largeSearchInput {
-    font-size: 1.6rem !important;
-    flex-grow: 1;
-    width: 100%;
+// ─── Inlined search input ────────────────────────────────────────────────────
+
+.searchWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: transparent;
+    border-radius: 0;
+    border-bottom: 2.5px solid rgba(0, 0, 0, 0.85);
+    padding: var(--space-2) 0;
+    transition: border-color var(--duration-normal) var(--easing-default);
+
+    &:has(input:focus) {
+        border-bottom-color: rgba(0, 0, 0, 0.85);
+
+        & .searchIcon {
+            opacity: 0.4;
+        }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        border-bottom-color: rgba(255, 255, 255, 0.85);
+
+        &:has(input:focus) {
+            border-bottom-color: rgba(255, 255, 255, 0.85);
+        }
+    }
 }
 
+.searchIcon {
+    opacity: 0.6;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 2rem;
+}
+
+.searchInput {
+    flex: 1;
+    border: none;
+    padding-left: 0.33rem;
+    padding-right: 1rem;
+    line-height: 1;
+    caret-color: black;
+    caret-width: 1px;
+    caret-animation: smooth;
+    font-size: 1.6rem;
+    outline: transparent;
+    background: transparent;
+
+    &::-webkit-search-cancel-button {
+        -webkit-appearance: none;
+        display: none;
+    }
+
+    &::-moz-search-cancel-button {
+        -moz-appearance: none;
+        display: none;
+    }
+
+    &::placeholder {
+        font-weight: 200;
+        color: rgb(205, 205, 205);
+        font-style: italic;
+        font-size: 2rem;
+    }
+
+    &:-internal-autofill-selected {
+        background-image: none !important;
+        background-color: transparent !important;
+        box-shadow: 0 0 0 100px transparent inset !important;
+        -webkit-text-fill-color: inherit !important;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        &:-internal-autofill-selected {
+            background-image: none !important;
+            background-color: transparent !important;
+            box-shadow: 0 0 0 100px transparent inset !important;
+            -webkit-text-fill-color: inherit !important;
+        }
+    }
+}
+
+.clearButton {
+    position: absolute;
+    right: var(--space-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    transition: color var(--duration-fast) var(--easing-default);
+    flex-shrink: 0;
+
+    &:active {
+        color: rgba(0, 0, 0, 0.8);
+    }
+
+    svg {
+        width: 0.75em;
+        height: 0.75em;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        color: rgba(255, 255, 255, 0.4);
+
+        &:active {
+            color: rgba(255, 255, 255, 0.9);
+        }
+    }
+}

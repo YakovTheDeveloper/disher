@@ -4,7 +4,7 @@ import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalFooter } from '@/shared/ui/ModalFooter';
+import { ModalFooter, ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { TimeChoose, type TimeRangeState } from '@/shared/ui/TimeChoose';
 import { addScheduleEvent } from '@/entities/schedule-event';
@@ -103,7 +103,11 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
   };
 
   const handleRangeChange = (range: TimeRangeState) => {
-    setDraft((prev) => ({ ...prev, time: range.from, endTime: range.to }));
+    setDraft((prev) => ({
+      ...prev,
+      time: range.from,
+      endTime: range.toExplicitlySet ? range.to : null,
+    }));
   };
 
   const handleTextChange = (value: string) => {
@@ -161,12 +165,15 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
                 inputId={MODAL_INPUT_IDS.TIME_INPUT}
-                nextLabelHtmlFor={MODAL_INPUT_IDS.TEXT_INPUT}
                 range={{
                   initialFrom: draft.time,
                   initialTo: draft.endTime ?? undefined,
                   onChangeRange: handleRangeChange,
                 }}
+              />
+              <ModalShell.ActionButtons
+                left={<ModalPrevButton onClick={handleClose} />}
+                right={<ModalNextButton as="label" htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} />}
               />
             </ModalShell.Body>
           </ModalShell>
@@ -188,15 +195,18 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
             />
             <ModalShell.Body>
               <ModalShell.Title>Опишите событие</ModalShell.Title>
-              <div>
-                <Textarea
-                  placeholder="Опишите событие"
-                  id={MODAL_INPUT_IDS.TEXT_INPUT}
-                  onChange={handleTextChange}
-                  value={draft.text}
-                />
-                <IconButton onClick={() => goToStep('atoms')}>стрелочка</IconButton>
-              </div>
+
+              <Textarea
+                placeholder="Опишите событие"
+                id={MODAL_INPUT_IDS.TEXT_INPUT}
+                onChange={handleTextChange}
+                value={draft.text}
+              />
+              <ModalShell.ActionButtons
+                left={<ModalPrevButton onClick={handleClose} />}
+                right={<ModalNextButton onClick={() => goToStep('atoms')} />}
+              />
+
               <ModalFooter onBack={() => goToStep('time')}>
                 <Button variant="primary-form" onClick={() => goToStep('atoms')}>
                   Далее

@@ -11,12 +11,12 @@
 // Base toast styles
 .toast {
   background: var(--toast-bg);
-  border-radius: 12px;
+  // border-radius: 12px;
   padding: 12px 16px;
   font-size: 14px;
   font-weight: 500;
   box-shadow: var(--toast-shadow);
-  border: 1px solid rgba(2, 6, 23, 0.04);
+  // border: 1px solid rgba(2, 6, 23, 0.04);
   display: flex;
   align-items: center;
   gap: 8px;

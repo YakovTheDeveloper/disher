@@ -8,7 +8,7 @@ const ANIMAL_CATS = new Set(['meat', 'poultry', 'fish', 'seafood', 'dairy', 'egg
 const GLUTEN_CATS = new Set(['grain', 'cereal', 'bakery']);
 const DAIRY_CATS = new Set(['dairy']);
 
-type DishItemLike = { foodId: string };
+type DishItemLike = { productId: string };
 type DishLike = { items?: Map<string, DishItemLike> | DishItemLike[] | null };
 
 /**
@@ -30,7 +30,7 @@ export function computeDishDietaryCategories(
 
   const itemCategories: string[][] = [];
   for (const item of rawItems) {
-    const product = productsById.get(item.foodId);
+    const product = productsById.get(item.productId);
     if (!product?.categories) continue;
     itemCategories.push(Array.from(product.categories));
   }

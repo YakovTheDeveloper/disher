@@ -32,7 +32,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-
+  display: flex;
   // iOS: contain scroll within modal, prevent bounce past edges
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;

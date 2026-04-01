@@ -6,7 +6,7 @@ const makeItem = (overrides?: Partial<ClipboardItem>): ClipboardItem => ({
   type: 'food',
   quantity: 100,
   details: null,
-  foodId: 'food-1',
+  productId: 'food-1',
   dishId: null,
   displayName: 'Tomato',
   ...overrides,
@@ -24,7 +24,7 @@ describe('clipboardStore', () => {
   });
 
   it('copies items to clipboard', () => {
-    const items = [makeItem(), makeItem({ foodId: 'food-2', displayName: 'Cucumber' })];
+    const items = [makeItem(), makeItem({ productId: 'food-2', displayName: 'Cucumber' })];
     useClipboardStore.getState().copyToClipboard(items, '25-03-2026');
 
     const state = useClipboardStore.getState();
@@ -37,7 +37,7 @@ describe('clipboardStore', () => {
   it('replaces clipboard on second copy', () => {
     useClipboardStore.getState().copyToClipboard([makeItem()], '25-03-2026');
     useClipboardStore.getState().copyToClipboard(
-      [makeItem({ foodId: 'food-3', displayName: 'Rice' })],
+      [makeItem({ productId: 'food-3', displayName: 'Rice' })],
       '26-03-2026',
     );
 
@@ -58,8 +58,8 @@ describe('clipboardStore', () => {
 
   it('stores both food and dish type items', () => {
     const items = [
-      makeItem({ type: 'food', foodId: 'f1', dishId: null }),
-      makeItem({ type: 'dish', foodId: null, dishId: 'd1', displayName: 'Salad' }),
+      makeItem({ type: 'food', productId: 'f1', dishId: null }),
+      makeItem({ type: 'dish', productId: null, dishId: 'd1', displayName: 'Salad' }),
     ];
     useClipboardStore.getState().copyToClipboard(items, '25-03-2026');
 

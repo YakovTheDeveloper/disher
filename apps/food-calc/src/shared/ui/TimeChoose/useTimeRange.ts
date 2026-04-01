@@ -36,6 +36,8 @@ export type TimeRangeState = {
   from: string;
   to: string;
   duration: string;
+  /** true only after the user explicitly changed "to" or "duration" */
+  toExplicitlySet: boolean;
 };
 
 export type UseTimeRangeParams = {
@@ -48,6 +50,7 @@ export const useTimeRange = ({ initialFrom, initialTo, onChangeRange }: UseTimeR
   const [activeTab, setActiveTab] = useState<RangeTab>('from');
   const [fromTime, setFromTime] = useState(initialFrom);
   const [toTime, setToTime] = useState(initialTo ?? initialFrom);
+  const [toExplicit, setToExplicit] = useState(initialTo !== undefined);
 
   const durationMinutes = (() => {
     const diff = timeToMinutes(toTime) - timeToMinutes(fromTime);
@@ -57,10 +60,10 @@ export const useTimeRange = ({ initialFrom, initialTo, onChangeRange }: UseTimeR
   const durationTime = minutesToDuration(durationMinutes);
 
   const notify = useCallback(
-    (from: string, to: string) => {
+    (from: string, to: string, explicit: boolean) => {
       const diff = timeToMinutes(to) - timeToMinutes(from);
       const dur = diff < 0 ? diff + 1440 : diff;
-      onChangeRange?.({ from, to, duration: minutesToDuration(dur) });
+      onChangeRange?.({ from, to, duration: minutesToDuration(dur), toExplicitlySet: explicit });
     },
     [onChangeRange],
   );
@@ -71,15 +74,16 @@ export const useTimeRange = ({ initialFrom, initialTo, onChangeRange }: UseTimeR
       // Recalculate: keep duration, shift "to"
       const newTo = minutesToTime(timeToMinutes(time) + durationMinutes);
       setToTime(newTo);
-      notify(time, newTo);
+      notify(time, newTo, toExplicit);
     },
-    [durationMinutes, notify],
+    [durationMinutes, notify, toExplicit],
   );
 
   const handleToFinish = useCallback(
     (time: string) => {
       setToTime(time);
-      notify(fromTime, time);
+      setToExplicit(true);
+      notify(fromTime, time, true);
     },
     [fromTime, notify],
   );
@@ -90,7 +94,8 @@ export const useTimeRange = ({ initialFrom, initialTo, onChangeRange }: UseTimeR
       const durMins = timeToMinutes(durString);
       const newTo = minutesToTime(timeToMinutes(fromTime) + durMins);
       setToTime(newTo);
-      notify(fromTime, newTo);
+      setToExplicit(true);
+      notify(fromTime, newTo, true);
     },
     [fromTime, notify],
   );

@@ -1,7 +1,6 @@
 import { useRef, useState, useMemo } from 'react';
 import style from './ProductQuantity.module.scss';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
-import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import clsx from 'clsx';
 
 type QuickButtonProps = {
@@ -22,7 +21,7 @@ export type Portion = { label: string; grams: number; amount: number; unit: stri
 type ProductQuantityContent = {
   quantity: number;
   updateQuantity: (q: number) => void;
-  food?: { portions?: Portion[] } | null;
+  product?: { portions?: Portion[] } | null;
   dish?: { portions?: Portion[] } | null;
 };
 
@@ -40,7 +39,6 @@ type Props = {
   content: ProductQuantityContent;
   onFinish: () => void;
   inputId?: string;
-  onNextButtonClick?: () => void;
 };
 
 const SLIDE_SIZE = 8; // 2 rows x 4 columns
@@ -57,15 +55,14 @@ const ProductQuantity = ({
   onFinish,
   content,
   inputId = 'quantity-input',
-  onNextButtonClick,
 }: Props) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [value, setValue] = useState(content.quantity);
   const [activePortion, setActivePortion] = useState<Portion | null>(null);
 
-  // Get portions from food if available
-  const portions = content.food?.portions || content.dish?.portions || [];
+  // Get portions from product if available
+  const portions = content.product?.portions || content.dish?.portions || [];
 
   // Compute portion count for active portion
   const portionCount = activePortion ? Math.round(value / activePortion.grams) : 0;
@@ -116,35 +113,24 @@ const ProductQuantity = ({
 
   return (
     <div className={style.container}>
-      {/* Editorial hero input */}
-      <div className={style.inputRow}>
-        <div className={style.slotLeft}></div>
-        <div className={style.inputWrapper}>
-          <NumberInput
-            id={inputId}
-            placeholder="Количество"
-            ref={inputRef}
-            className={style.input}
-            onChange={setValue}
-            value={value}
-            onBlur={onBlur}
-            bottom={
-              <span className={style.unit}>
-                {activePortion && portionCount > 0
-                  ? `${portionCount} × ${activePortion.label}`
-                  : 'граммы'}
-              </span>
-            }
-          />
-        </div>
-        <div className={style.after}>
-          <ModalNextButton
-            onClick={() => {
-              onBlur();
-              onNextButtonClick?.();
-            }}
-          />
-        </div>
+      {/* Hero input */}
+      <div className={style.inputWrapper}>
+        <NumberInput
+          id={inputId}
+          placeholder="Количество"
+          ref={inputRef}
+          className={style.input}
+          onChange={setValue}
+          value={value}
+          onBlur={onBlur}
+          bottom={
+            <span className={style.unit}>
+              {activePortion && portionCount > 0
+                ? `${portionCount} × ${activePortion.label}`
+                : 'граммы'}
+            </span>
+          }
+        />
       </div>
 
       {/* Portions carousel */}

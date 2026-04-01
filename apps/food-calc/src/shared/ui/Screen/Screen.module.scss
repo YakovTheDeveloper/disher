@@ -22,7 +22,9 @@
     z-index: 0;
 }
 
-.topPanel {}
+.topPanel {
+    min-height: 40px;
+}
 
 .bottomRight {
     position: absolute;

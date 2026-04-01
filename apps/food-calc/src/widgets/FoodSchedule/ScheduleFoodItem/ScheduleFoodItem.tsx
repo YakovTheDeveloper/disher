@@ -74,11 +74,11 @@ const ScheduleFoodItemComponent = ({
     return <p className={styles.variant}>{getVariantLabelText()}</p>;
   }, [content]);
 
-  const name = content.food ?? content.dish ?? null;
+  const name = content.product ?? content.dish ?? null;
 
-  const isCustom = content.type === 'food' && isCreatedByUser(content.food?.userId);
+  const isCustom = content.type === 'food' && isCreatedByUser(content.product?.userId);
 
-  const pricePerKg = content.type === 'food' ? content.food?.pricePerKg : null;
+  const pricePerKg = content.type === 'food' ? content.product?.pricePerKg : null;
   const cost = showPrice && pricePerKg != null ? costForWeight(pricePerKg, content.quantity) : null;
 
   return (

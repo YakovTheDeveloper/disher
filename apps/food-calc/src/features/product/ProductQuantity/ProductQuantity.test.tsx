@@ -12,21 +12,18 @@ const portions: Portion[] = [
 
 function renderQuantity({
   quantity = 100,
-  food,
+  product,
   dish,
 }: {
   quantity?: number;
-  food?: { portions?: Portion[] };
+  product?: { portions?: Portion[] };
   dish?: { portions?: Portion[] };
 } = {}) {
   const updateQuantity = vi.fn();
   const onFinish = vi.fn();
 
   render(
-    <ProductQuantity
-      content={{ quantity, updateQuantity, food, dish }}
-      onFinish={onFinish}
-    />,
+    <ProductQuantity content={{ quantity, updateQuantity, product, dish }} onFinish={onFinish} />
   );
 
   return { updateQuantity, onFinish };
@@ -40,8 +37,8 @@ describe('ProductQuantity — portions visibility', () => {
     expect(screen.queryByText('Порции')).not.toBeInTheDocument();
   });
 
-  it('shows portions section when food has portions', () => {
-    renderQuantity({ food: { portions } });
+  it('shows portions section when product has portions', () => {
+    renderQuantity({ product: { portions } });
     expect(screen.getByText('Порции')).toBeInTheDocument();
     expect(screen.getByText('среднее (50г)')).toBeInTheDocument();
     expect(screen.getByText('крупное (63г)')).toBeInTheDocument();
@@ -63,7 +60,7 @@ describe('ProductQuantity — portions visibility', () => {
 describe('ProductQuantity — additive taps', () => {
   it('first tap sets value to portion grams', async () => {
     const user = userEvent.setup();
-    const { updateQuantity } = renderQuantity({ quantity: 100, food: { portions } });
+    const { updateQuantity } = renderQuantity({ quantity: 100, product: { portions } });
 
     await user.click(screen.getByText('среднее (50г)'));
 
@@ -72,7 +69,7 @@ describe('ProductQuantity — additive taps', () => {
 
   it('second tap on same portion adds grams', async () => {
     const user = userEvent.setup();
-    const { updateQuantity } = renderQuantity({ quantity: 0, food: { portions } });
+    const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
 
     const btn = screen.getByText('среднее (50г)');
     await user.click(btn);
@@ -86,9 +83,10 @@ describe('ProductQuantity — additive taps', () => {
 
   it('third tap adds another portion', async () => {
     const user = userEvent.setup();
-    const { updateQuantity } = renderQuantity({ quantity: 0, food: { portions } });
+    const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
 
-    const getBtn = () => screen.getAllByRole('button').find((b) => b.textContent?.includes('среднее'))!;
+    const getBtn = () =>
+      screen.getAllByRole('button').find((b) => b.textContent?.includes('среднее'))!;
 
     await user.click(getBtn());
     await user.click(getBtn());
@@ -99,23 +97,25 @@ describe('ProductQuantity — additive taps', () => {
 
   it('tapping a different portion resets to that portion grams', async () => {
     const user = userEvent.setup();
-    const { updateQuantity } = renderQuantity({ quantity: 0, food: { portions } });
+    const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
 
     // Tap среднее twice = 100
-    const getMiddle = () => screen.getAllByRole('button').find((b) => b.textContent?.includes('среднее'))!;
+    const getMiddle = () =>
+      screen.getAllByRole('button').find((b) => b.textContent?.includes('среднее'))!;
     await user.click(getMiddle());
     await user.click(getMiddle());
     expect(updateQuantity).toHaveBeenLastCalledWith(100);
 
     // Tap крупное → resets to 63
-    const getLarge = () => screen.getAllByRole('button').find((b) => b.textContent?.includes('крупное'))!;
+    const getLarge = () =>
+      screen.getAllByRole('button').find((b) => b.textContent?.includes('крупное'))!;
     await user.click(getLarge());
     expect(updateQuantity).toHaveBeenLastCalledWith(63);
   });
 
   it('tapping a fixed quantity button clears active portion', async () => {
     const user = userEvent.setup();
-    const { updateQuantity } = renderQuantity({ quantity: 0, food: { portions } });
+    const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
 
     // Tap portion first
     await user.click(screen.getByText('среднее (50г)'));
@@ -135,9 +135,10 @@ describe('ProductQuantity — additive taps', () => {
 describe('ProductQuantity — dynamic labels', () => {
   it('shows count on active portion button after multiple taps', async () => {
     const user = userEvent.setup();
-    renderQuantity({ quantity: 0, food: { portions } });
+    renderQuantity({ quantity: 0, product: { portions } });
 
-    const getBtn = () => screen.getAllByRole('button').find((b) => b.textContent?.includes('среднее'))!;
+    const getBtn = () =>
+      screen.getAllByRole('button').find((b) => b.textContent?.includes('среднее'))!;
 
     await user.click(getBtn());
     await user.click(getBtn());
@@ -147,7 +148,7 @@ describe('ProductQuantity — dynamic labels', () => {
 
   it('shows portion info in hero subtitle when portion active', async () => {
     const user = userEvent.setup();
-    renderQuantity({ quantity: 0, food: { portions } });
+    renderQuantity({ quantity: 0, product: { portions } });
 
     // Initially shows "граммы"
     expect(screen.getByText('граммы')).toBeInTheDocument();
@@ -160,9 +161,10 @@ describe('ProductQuantity — dynamic labels', () => {
 
   it('updates hero subtitle count on additive taps', async () => {
     const user = userEvent.setup();
-    renderQuantity({ quantity: 0, food: { portions } });
+    renderQuantity({ quantity: 0, product: { portions } });
 
-    const getBtn = () => screen.getAllByRole('button').find((b) => b.textContent?.includes('среднее'))!;
+    const getBtn = () =>
+      screen.getAllByRole('button').find((b) => b.textContent?.includes('среднее'))!;
 
     await user.click(getBtn());
     expect(screen.getByText('1 × среднее')).toBeInTheDocument();
@@ -176,7 +178,7 @@ describe('ProductQuantity — dynamic labels', () => {
 
   it('inactive portion keeps default label', async () => {
     const user = userEvent.setup();
-    renderQuantity({ quantity: 0, food: { portions } });
+    renderQuantity({ quantity: 0, product: { portions } });
 
     // Tap среднее
     await user.click(screen.getByText('среднее (50г)'));

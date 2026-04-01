@@ -37,8 +37,8 @@
     color: rgba(0, 0, 0, 0.35);
     cursor: pointer;
     transition: background var(--duration-fast) var(--easing-default),
-                color var(--duration-fast) var(--easing-default),
-                border-color var(--duration-fast) var(--easing-default);
+        color var(--duration-fast) var(--easing-default),
+        border-color var(--duration-fast) var(--easing-default);
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -127,6 +127,24 @@
     }
 }
 
+// ─── Inline list (replaces VirtualList) ──────────────────────────────────────
+
+.listContainer {
+    overflow-y: auto;
+    border-radius: 8px;
+    position: relative;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-x: hidden;
+    background: transparent;
+}
+
 .filterChipActive {
     background: rgba(0, 0, 0, 0.8);
     color: #fff;
@@ -137,83 +155,4 @@
         border-color: transparent;
         color: #fff;
     }
-}
-
-.emptyState {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-8) var(--space-4);
-}
-
-.emptyStateMessage {
-    font-size: var(--text-sm);
-    color: rgba(0, 0, 0, 0.35);
-    text-align: center;
-    margin: 0;
-
-    em {
-        font-style: normal;
-        color: rgba(0, 0, 0, 0.6);
-    }
-}
-
-.emptyStateActions {
-    display: flex;
-    gap: var(--space-2);
-    width: 100%;
-    max-width: 320px;
-}
-
-.emptyStateAction,
-.emptyStateActionSecondary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    flex: 1;
-    padding: 10px 14px;
-    border-radius: 16px;
-    font-size: var(--text-sm);
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: background var(--duration-fast) var(--easing-default);
-    -webkit-tap-highlight-color: transparent;
-}
-
-.emptyStateAction {
-    background: rgba(0, 0, 0, 0.85);
-    color: #fff;
-
-    &:active {
-        background: rgba(0, 0, 0, 0.65);
-    }
-}
-
-.emptyStateActionSecondary {
-    background: rgba(0, 0, 0, 0.06);
-    color: rgba(0, 0, 0, 0.65);
-
-    &:active {
-        background: rgba(0, 0, 0, 0.12);
-    }
-}
-
-.emptyStateIcon {
-    font-size: 1.1em;
-    line-height: 1;
-    font-weight: 300;
-}
-
-.emptyStateHint {
-    display: block;
-    width: 100%;
-    font-size: 0.65rem;
-    font-style: italic;
-    font-weight: 400;
-    opacity: 0.45;
-    margin-top: 2px;
 }

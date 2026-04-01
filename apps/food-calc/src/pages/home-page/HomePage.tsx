@@ -26,6 +26,7 @@ const Page = ({ date }: { date: string }) => {
 
   const swipeableRef = useRef<SwipeableRef>(null);
   const [richNutrient, setRichNutrient] = useState<{ id: string; unit: string } | null>(null);
+  const [activeSlide, setActiveSlide] = useState(1);
 
   const handleRichFood = useCallback((nutrientId: string, unit: string) => {
     setRichNutrient({ id: nutrientId, unit });
@@ -38,11 +39,7 @@ const Page = ({ date }: { date: string }) => {
   }, []);
 
   const onPageChange = (page: number, _total: number) => {
-    // if (page === 2) {
-    //   document.body.style.backgroundColor = '#e6e6e6';
-    // } else {
-    //   document.body.style.backgroundColor = '';
-    // }
+    setActiveSlide(page);
   };
 
   return (
@@ -56,7 +53,7 @@ const Page = ({ date }: { date: string }) => {
           className={homeStyles.nutrientsSlide}
           onRichFood={handleRichFood}
         />
-        <FoodSchedule key={date} date={date} items={items} richNutrient={richNutrient} onRichNutrientClear={handleRichNutrientClear} />
+        <FoodSchedule key={date} date={date} items={items} richNutrient={richNutrient} onRichNutrientClear={handleRichNutrientClear} isActive={activeSlide === 1} />
         <ScheduleEvents key={date} date={date} events={events} />
       </Swipeable>
     </>

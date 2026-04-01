@@ -18,9 +18,8 @@ import { TopBar } from '@/shared/ui/TopBar';
 import Button from '@/shared/ui/atoms/Button/Button';
 import {
   ScheduleFoodCreateModals,
-  MODAL_INPUT_IDS,
   ScheduleFoodEditModals,
-  EDIT_MODAL_INPUT_IDS,
+  SCHEDULE_FOOD_INPUT_IDS,
 } from '@/widgets/FoodSchedule/ui';
 import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
@@ -38,9 +37,16 @@ type CommonProps = {
   items: ScheduleFoodWithRelations[];
   richNutrient?: { id: string; unit: string } | null;
   onRichNutrientClear?: () => void;
+  isActive?: boolean;
 };
 
-const FoodSchedule = ({ date, items, richNutrient, onRichNutrientClear }: CommonProps) => {
+const FoodSchedule = ({
+  date,
+  items,
+  richNutrient,
+  onRichNutrientClear,
+  isActive = true,
+}: CommonProps) => {
   const { store } = useLiveStore();
   const selectionStoreFood = useSelection();
   const isActionsMode = useStore(selectionStoreFood, (s) => s.isActionsMode);
@@ -58,16 +64,22 @@ const FoodSchedule = ({ date, items, richNutrient, onRichNutrientClear }: Common
   const [analyticsStatus, setAnalyticsStatus] = useState<'none' | 'fresh' | 'stale'>('none');
   useEffect(() => {
     let cancelled = false;
-    if (items.length === 0) { setAnalyticsStatus('none'); return; }
+    if (items.length === 0) {
+      setAnalyticsStatus('none');
+      return;
+    }
 
     (async () => {
       const persisted = await fetchDailyAnalysis(date, 'food');
       if (cancelled) return;
-      if (!persisted) { setAnalyticsStatus('none'); return; }
+      if (!persisted) {
+        setAnalyticsStatus('none');
+        return;
+      }
 
       const snap = items.map((sf) => ({
         time: sf.time,
-        name: sf.food?.name || sf.dish?.name || '',
+        name: sf.product?.name || sf.dish?.name || '',
         quantity: sf.quantity,
         type: sf.type,
       }));
@@ -76,7 +88,9 @@ const FoodSchedule = ({ date, items, richNutrient, onRichNutrientClear }: Common
       setAnalyticsStatus(currentHash === persisted.inputHash ? 'fresh' : 'stale');
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [date, items]);
 
   useSwipeableLock(editingItem !== null);
@@ -126,9 +140,9 @@ const FoodSchedule = ({ date, items, richNutrient, onRichNutrientClear }: Common
           type: item.type as 'food' | 'dish',
           quantity: item.quantity,
           details: item.details ?? null,
-          foodId: item.foodId ?? null,
+          productId: item.productId ?? null,
           dishId: item.dishId ?? null,
-          displayName: item.food?.name ?? item.dish?.name ?? '—',
+          displayName: item.product?.name ?? item.dish?.name ?? '—',
         })),
     [items, selectedIds]
   );
@@ -137,16 +151,22 @@ const FoodSchedule = ({ date, items, richNutrient, onRichNutrientClear }: Common
     <Screen
       offsetTop
       overlay={
-        <>
-          <ScheduleFoodCreateModals scheduleId={date} richNutrient={richNutrient} onRichNutrientClear={onRichNutrientClear} />
-          {editingItem && (
-            <ScheduleFoodEditModals
-              item={editingItem}
-              initialStep={editingStep}
-              onClose={closeEditModal}
+        isActive ? (
+          <>
+            <ScheduleFoodCreateModals
+              scheduleId={date}
+              richNutrient={richNutrient}
+              onRichNutrientClear={onRichNutrientClear}
             />
-          )}
-        </>
+            {editingItem && (
+              <ScheduleFoodEditModals
+                item={editingItem}
+                initialStep={editingStep}
+                onClose={closeEditModal}
+              />
+            )}
+          </>
+        ) : null
       }
       actions={
         <ActionsPanel
@@ -166,7 +186,7 @@ const FoodSchedule = ({ date, items, richNutrient, onRichNutrientClear }: Common
           />
         </ActionsPanel>
       }
-      header={
+      topPanel={
         <TopBar>
           {items.length > 0 && (
             <>
@@ -193,18 +213,23 @@ const FoodSchedule = ({ date, items, richNutrient, onRichNutrientClear }: Common
       }
       bottomRight={
         isActionsMode || items.length === 0 ? null : (
-          <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.SEARCH_INPUT} />
+          <AddButton onClick={() => {}} as="label" htmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT} />
         )
       }
     >
+      <PeriodBanner date={date} />
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
         <Navigation />
       </div>
-      <PeriodBanner date={date} />
       {items.length === 0 && (
         <div style={{ padding: `var(--space-10) var(--space-4) 0` }}>
-          <AddButton onClick={() => {}} as="label" htmlFor={MODAL_INPUT_IDS.SEARCH_INPUT} prominent>
+          <AddButton
+            onClick={() => {}}
+            as="label"
+            htmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
+            prominent
+          >
             Добавить еду в этот день
           </AddButton>
         </div>
@@ -234,9 +259,9 @@ const FoodSchedule = ({ date, items, richNutrient, onRichNutrientClear }: Common
                         onEditTime={onEditTime}
                         onEditFood={onEditFood}
                         onEditQuantity={onEditQuantity}
-                        timeHtmlFor={EDIT_MODAL_INPUT_IDS.TIME_INPUT}
-                        foodHtmlFor={EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
-                        quantityHtmlFor={EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
+                        timeHtmlFor={SCHEDULE_FOOD_INPUT_IDS.TIME_EDIT_INPUT}
+                        foodHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_EDIT_INPUT}
+                        quantityHtmlFor={SCHEDULE_FOOD_INPUT_IDS.QUANTITY_EDIT_INPUT}
                       />
                     );
                   }) as unknown as JSX.Element

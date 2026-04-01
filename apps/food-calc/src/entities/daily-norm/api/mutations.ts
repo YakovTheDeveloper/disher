@@ -3,6 +3,9 @@ import { events } from "@/livestore/schema";
 import type { Store } from "@livestore/livestore";
 import type { DailyNormItems } from "../model/types";
 
+type DailyNormUpdatedPayload = Parameters<typeof events.dailyNormUpdated>[0];
+type DailyNormUpdates = Omit<DailyNormUpdatedPayload, 'id'>;
+
 export function createDailyNorm(store: Store, name: string, description: string) {
   const id = crypto.randomUUID();
   store.commit(
@@ -20,7 +23,7 @@ export function createDailyNorm(store: Store, name: string, description: string)
 export function updateDailyNorm(
   store: Store,
   normId: string,
-  updates: Partial<{ name: string; description: string }>,
+  updates: DailyNormUpdates,
 ) {
   store.commit(events.dailyNormUpdated({ id: normId, ...updates }));
 }

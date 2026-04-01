@@ -19,7 +19,7 @@ interface TextareaProps {
 }
 
 function resize(el: HTMLTextAreaElement) {
-  el.style.height = '0';
+  el.style.height = 'auto';
   el.style.height = el.scrollHeight + 'px';
 }
 
@@ -41,6 +41,7 @@ const Textarea = ({
 }: TextareaProps) => {
   const [local, setLocal] = useState(value);
   const ref = useRef<HTMLTextAreaElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Sync external → local
@@ -52,6 +53,16 @@ const Textarea = ({
   useEffect(() => {
     if (ref.current) resize(ref.current);
   }, [local]);
+
+  // Re-measure when parent container resizes (handles ModalByLabel expand/collapse)
+  useEffect(() => {
+    const el = ref.current;
+    const container = containerRef.current;
+    if (!el || !container) return;
+    const ro = new ResizeObserver(() => resize(el));
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, []);
 
   // Debounced onChange
   const handleChange = useCallback(
@@ -71,7 +82,7 @@ const Textarea = ({
   const textareaId = propId || undefined;
 
   return (
-    <div className={`${styles.container} ${className || ''}`}>
+    <div ref={containerRef} className={`${styles.container} ${className || ''}`}>
       {label && (
         <label className={styles.label} htmlFor={textareaId}>
           {label}

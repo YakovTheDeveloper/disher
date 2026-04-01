@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { queryDb } from "@livestore/livestore";
 import { useQuery } from "@livestore/react";
 import { tables } from "@/livestore/schema";
@@ -6,11 +7,11 @@ const allDishes$ = queryDb(tables.dishes.where({ deletedAt: null }), { label: 'd
 
 export function useDishes(search?: string) {
   const rows = useQuery(allDishes$);
-  if (search) {
+  return useMemo(() => {
+    if (!search) return rows;
     const lower = search.toLowerCase();
-    return rows.filter((r: any) => r.name?.toLowerCase().includes(lower));
-  }
-  return rows;
+    return rows.filter((r) => r.name?.toLowerCase().includes(lower));
+  }, [rows, search]);
 }
 
 export function useDish(dishId: string | undefined) {
@@ -24,32 +25,30 @@ export function useDish(dishId: string | undefined) {
 }
 
 export function useDishItems(dishId: string | undefined) {
-  const rows = useQuery(
+  return useQuery(
     queryDb(
       tables.dishItems.where({ dishId: dishId ?? "", deletedAt: null }),
       { label: `dish-items-${dishId}`, deps: [dishId] },
     ),
   );
-  return rows;
 }
 
 export function useDishPortions(dishId: string | undefined) {
-  const rows = useQuery(
+  return useQuery(
     queryDb(
       tables.dishPortions.where({ dishId: dishId ?? "", deletedAt: null }),
       { label: `dish-portions-${dishId}`, deps: [dishId] },
     ),
   );
-  return rows;
 }
 
+const allDishItems$ = queryDb(tables.dishItems.where({ deletedAt: null }), { label: 'dish-items-all' });
+
 export function useDishItemsByDishIds(dishIds: string[]) {
-  const rows = useQuery(
-    queryDb(
-      tables.dishItems.where({ deletedAt: null }),
-      { label: 'dish-items-all' },
-    ),
-  );
-  const idSet = new Set(dishIds);
-  return rows.filter((r: any) => idSet.has(r.dishId));
+  const rows = useQuery(allDishItems$);
+  return useMemo(() => {
+    if (dishIds.length === 0) return [];
+    const idSet = new Set(dishIds);
+    return rows.filter((r) => idSet.has(r.dishId));
+  }, [rows, dishIds]);
 }

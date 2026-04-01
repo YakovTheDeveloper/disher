@@ -86,7 +86,7 @@ function buildFoodSnapshot(foods: ScheduleFoodWithRelations[]) {
   return foods.map((sf) => ({
     time: sf.time,
     type: sf.type as 'food' | 'dish',
-    name: sf.food?.name || sf.dish?.name || 'Неизвестно',
+    name: sf.product?.name || sf.dish?.name || 'Неизвестно',
     quantity: sf.quantity,
   }));
 }

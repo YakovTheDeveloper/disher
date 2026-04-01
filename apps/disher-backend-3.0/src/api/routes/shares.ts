@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 // ─── Types ───
 
 interface ShareItem {
-  foodId: string;
+  productId: string;
   name: string;
   quantity: number;
 }

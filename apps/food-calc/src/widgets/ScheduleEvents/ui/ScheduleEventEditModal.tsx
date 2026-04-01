@@ -3,7 +3,7 @@ import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalFooter } from '@/shared/ui/ModalFooter';
+import { ModalFooter, ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { TimeChoose, type TimeRangeState } from '@/shared/ui/TimeChoose';
 import { updateScheduleEvent } from '@/entities/schedule-event';
@@ -88,7 +88,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
   };
 
   const handleRangeChange = (range: TimeRangeState) => {
-    setDraft((prev) => ({ ...prev, time: range.from, endTime: range.to }));
+    setDraft((prev) => ({ ...prev, time: range.from, endTime: range.toExplicitlySet ? range.to : null }));
   };
 
   const handleTextChange = (value: string) => {
@@ -114,7 +114,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         isExpanded={step === 'time'}
         content={
           <ModalShell className={modalStyles.whiteShell}>
-            <ModalShell.Spacer />
+
             <ModalShell.Body>
               <ModalShell.Title>Выберите время</ModalShell.Title>
               <TimeChoose
@@ -127,11 +127,10 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
                   onChangeRange: handleRangeChange,
                 }}
               />
-              <ModalFooter onBack={handleClose}>
-                <Button variant="primary-form" onClick={handleCommit}>
-                  Готово
-                </Button>
-              </ModalFooter>
+              <ModalShell.ActionButtons
+                left={<ModalPrevButton onClick={handleClose} />}
+                right={<ModalNextButton onClick={handleCommit} />}
+              />
             </ModalShell.Body>
           </ModalShell>
         }
@@ -143,7 +142,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         isExpanded={step === 'text'}
         content={
           <ModalShell className={modalStyles.whiteShell}>
-            <ModalShell.Spacer />
+
             <ModalShell.Body>
               <ModalShell.Title>Опишите событие</ModalShell.Title>
               <Textarea

@@ -1,0 +1,38 @@
+Deduplication Report
+====================
+Original: 739 items
+After dedup: 708 items
+Merged groups: 29
+Items absorbed: 31
+
+--- Merge Details ---
+
+MERGED: "Ананас" → kept skurikhin/sk-897 (20→24 nutrients), absorbed: usda-foundation/1612 (18 nutrients)
+MERGED: "Апельсиновый сок" → kept usda-sr-legacy/1532 (27→30 nutrients), absorbed: skurikhin/sk-1016 (21 nutrients)
+MERGED: "Арахис" → kept skurikhin/sk-689 (20→24 nutrients), absorbed: usda-foundation/4918 (15 nutrients)
+MERGED: "Арбуз" → kept usda-sr-legacy/253 (49→50 nutrients), absorbed: skurikhin/sk-918 (20 nutrients)
+MERGED: "Баклажаны" → kept skurikhin/sk-824 (21→25 nutrients), absorbed: usda-foundation/1716 (16 nutrients)
+MERGED: "Горошек зеленый" → kept usda-sr-legacy/2907 (50→52 nutrients), absorbed: skurikhin/sk-678 (21 nutrients)
+MERGED: "Дыня" → kept usda-foundation/1580 (46→48 nutrients), absorbed: skurikhin/sk-919 (22 nutrients)
+MERGED: "Ежевика" → kept skurikhin/sk-914 (20→23 nutrients), absorbed: usda-foundation/6434 (14 nutrients)
+MERGED: "Инжир" → kept usda-sr-legacy/5509 (49→51 nutrients), absorbed: skurikhin/sk-884 (22 nutrients)
+MERGED: "Киви" → kept skurikhin/sk-886 (22→26 nutrients), absorbed: usda-foundation/7912 (17 nutrients)
+MERGED: "Клюква" → kept usda-sr-legacy/4210 (49→50 nutrients), absorbed: skurikhin/sk-915 (18 nutrients)
+MERGED: "Крыжовник" → kept usda-sr-legacy/5518 (28→30 nutrients), absorbed: skurikhin/sk-902 (20 nutrients)
+MERGED: "Лимонный сок" → kept usda-sr-legacy/235 (30→31 nutrients), absorbed: skurikhin/sk-1021 (17 nutrients)
+MERGED: "Малина" → kept skurikhin/sk-903 (21→25 nutrients), absorbed: usda-foundation/243 (15 nutrients)
+MERGED: "Мандарин" → kept skurikhin/sk-896 (20→23 nutrients), absorbed: usda-foundation/7913 (14 nutrients)
+MERGED: "Мандариновый сок" → kept usda-sr-legacy/2413 (49→51 nutrients), absorbed: skurikhin/sk-1022 (20 nutrients)
+MERGED: "Масло подсолнечное" → kept usda-foundation/7827 (8→12 nutrients), absorbed: skurikhin/sk-534 (6 nutrients)
+MERGED: "Мед" → kept usda-sr-legacy/2128 (40→43 nutrients), absorbed: skurikhin/sk-996 (15 nutrients)
+MERGED: "Петрушка" → kept usda-sr-legacy/2904 (49→51 nutrients), absorbed: skurikhin/sk-702 (22 nutrients)
+MERGED: "Ревень" → kept usda-sr-legacy/246 (31→33 nutrients), absorbed: skurikhin/sk-703 (21 nutrients)
+MERGED: "Редис" → kept usda-sr-legacy/1764 (47→50 nutrients), absorbed: skurikhin/sk-796 (19 nutrients)
+MERGED: "Репа" → kept skurikhin/sk-800 (21→27 nutrients), absorbed: usda-foundation/2953 (18 nutrients)
+MERGED: "Свекла" → kept skurikhin/sk-784 (21→25 nutrients), absorbed: usda-foundation/1633 (17 nutrients)
+MERGED: "Сельдерей" → kept usda-sr-legacy/2888 (29→33 nutrients), absorbed: skurikhin/sk-704 (21 nutrients), usda-foundation/2476 (12 nutrients)
+MERGED: "Укроп" → kept usda-sr-legacy/4721 (44→48 nutrients), absorbed: skurikhin/sk-713 (22 nutrients)
+MERGED: "Цветная капуста" → kept skurikhin/sk-735 (22→26 nutrients), absorbed: usda-foundation/2474 (16 nutrients)
+MERGED: "Черника" → kept skurikhin/sk-917 (18→21 nutrients), absorbed: usda-foundation/4199 (14 nutrients)
+MERGED: "Чеснок" → kept skurikhin/sk-745 (20→21 nutrients), absorbed: usda-foundation/1718 (8 nutrients)
+MERGED: "Чечевица" → kept usda-sr-legacy/4908 (50→51 nutrients), absorbed: skurikhin/sk-688 (21 nutrients), usda-foundation/7866 (13 nutrients)

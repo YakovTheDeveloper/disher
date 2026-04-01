@@ -1,6 +1,4 @@
-import { observer } from 'mobx-react-lite';
 import styles from './Screen.module.scss';
-import { ScreenScrollProvider } from './context/ScreenScrollContext';
 import clsx from 'clsx';
 import { useRef, memo } from 'react';
 import { useScrollHide } from '@/hooks/useScrollHide';
@@ -39,7 +37,7 @@ const Screen = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const COLLAPSE_DISTANCE = window.innerHeight;
 
-  const { scrollYProgress, isScrollingDown, isScrolledPastThreshold } = useScrollHide({
+  const { isScrollingDown, isScrolledPastThreshold } = useScrollHide({
     containerRef: scrollContainerRef,
     collapseDistance: COLLAPSE_DISTANCE,
   });
@@ -67,9 +65,9 @@ const Screen = ({
           alt=""
         />
       )}
-      {topPanel && <div className={styles.topPanel}>{topPanel}</div>}
       <div className={styles.screenScroll} ref={scrollContainerRef}>
-        {header && <ScreenScrollProvider value={scrollYProgress}>{header}</ScreenScrollProvider>}
+        <div className={styles.topPanel}>{topPanel}</div>
+        {header}
         {offsetTop && <div className={styles.upperPlace}></div>}
         {children}
         <div ref={sentinelRef} />
@@ -120,4 +118,4 @@ const Screen = ({
   );
 };
 
-export default memo(observer(Screen));
+export default memo(Screen);

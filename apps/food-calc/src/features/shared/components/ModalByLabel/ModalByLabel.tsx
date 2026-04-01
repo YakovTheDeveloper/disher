@@ -14,6 +14,7 @@ const ModalByLabel: React.FC<ModalByLabelProps> = observer(
   ({ content, isExpanded, position = 'fixed', className }) => {
     return (
       <div
+        data-modal-by-label={isExpanded ? 'expanded' : 'collapsed'}
         className={clsx(
           styles.container,
           position === 'fixed' && isExpanded && styles.fixed,

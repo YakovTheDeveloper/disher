@@ -2,7 +2,7 @@ import Dexie, { type Table } from "dexie";
 
 /** KV format: one row per food, nutrients packed as { nutrientId: quantity } */
 export interface DexieFoodNutrientKV {
-  foodId: string;
+  productId: string;
   nutrients: Record<string, number>;
 }
 
@@ -12,7 +12,7 @@ class ReferenceDb extends Dexie {
   constructor() {
     super("disher-reference-v2");
     this.version(1).stores({
-      foodNutrients: "foodId",
+      foodNutrients: "productId",
     });
   }
 }

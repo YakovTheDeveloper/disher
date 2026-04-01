@@ -3,7 +3,6 @@ import styles from './TimeChoose.module.scss';
 import { useTimeChooseV2 } from './useTimeChooseV2';
 import clsx from 'clsx';
 import { TimeNow } from './TimeNow';
-import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { useTimeRange, type RangeTab, type TimeRangeState } from './useTimeRange';
 
 type TimePickerVariant = 'native' | 'manual';
@@ -22,8 +21,6 @@ type Props = {
   id?: string;
   inputId?: string;
   timePickerVariant?: TimePickerVariant;
-  nextLabelHtmlFor?: string;
-  after?: React.ReactNode;
   range?: RangeProps;
 };
 
@@ -158,118 +155,107 @@ const RangeTabs = ({
 );
 
 const TimeChoose = ({
-    onFinish,
-    initialTime,
-    hourAriaLabel = 'Hour',
-    minuteAriaLabel = 'Minute',
-    id,
-    inputId,
-    timePickerVariant: controlledVariant,
-    nextLabelHtmlFor,
-    after,
-    range,
-  }: Props) => {
-    const [localVariant, setLocalVariant] = useState<TimePickerVariant>('manual');
-    const variant = controlledVariant ?? localVariant;
-    const [hours, setHours] = useState<string>(initialTime.split(':')[0]);
-    const [minutes, setMinutes] = useState<string>(initialTime.split(':')[1]);
+  onFinish,
+  initialTime,
+  hourAriaLabel = 'Hour',
+  minuteAriaLabel = 'Minute',
+  id,
+  inputId,
+  timePickerVariant: controlledVariant,
+  range,
+}: Props) => {
+  const [localVariant, setLocalVariant] = useState<TimePickerVariant>('manual');
+  const variant = controlledVariant ?? localVariant;
+  const [hours, setHours] = useState<string>(initialTime.split(':')[0]);
+  const [minutes, setMinutes] = useState<string>(initialTime.split(':')[1]);
 
-    const isNative = variant === 'native';
+  const isNative = variant === 'native';
 
-    const normalizeTime = (h: string, m: string) => {
-      const hNum = h === '' ? 0 : Math.max(0, Math.min(23, Number(h)));
-      const mNum = m === '' ? 0 : Math.max(0, Math.min(59, Number(m)));
-      return `${String(hNum).padStart(2, '0')}:${String(mNum).padStart(2, '0')}`;
-    };
-
-    const timeRange = useTimeRange({
-      initialFrom: range?.initialFrom ?? initialTime,
-      initialTo: range?.initialTo,
-      onChangeRange: range?.onChangeRange,
-    });
-    const isRange = !!range;
-
-    // In range mode, the inner time input is driven by the active tab
-    const effectiveOnFinish = isRange ? timeRange.currentTimeProps.onFinish : onFinish;
-    const effectiveInitialTime = isRange ? timeRange.currentTimeProps.initialTime : initialTime;
-
-    // Range mode needs its own hours/minutes state per tab switch
-    const [rangeHours, setRangeHours] = useState<string>(effectiveInitialTime.split(':')[0]);
-    const [rangeMinutes, setRangeMinutes] = useState<string>(effectiveInitialTime.split(':')[1]);
-
-    // Sync range hours/minutes when tab changes
-    const handleTabChange = (tab: RangeTab) => {
-      timeRange.setActiveTab(tab);
-      const timeForTab =
-        tab === 'from' ? timeRange.fromTime :
-        tab === 'to' ? timeRange.toTime :
-        timeRange.durationTime;
-      setRangeHours(timeForTab.split(':')[0]);
-      setRangeMinutes(timeForTab.split(':')[1]);
-    };
-
-    const activeHours = isRange ? rangeHours : hours;
-    const activeMinutes = isRange ? rangeMinutes : minutes;
-    const activeSetHours = isRange ? setRangeHours : setHours;
-    const activeSetMinutes = isRange ? setRangeMinutes : setMinutes;
-
-    const onNowSelect = (time: string) => {
-      const [nowHours, nowMinutes] = time.split(':');
-      activeSetHours(nowHours);
-      activeSetMinutes(nowMinutes);
-      effectiveOnFinish(`${nowHours}:${nowMinutes}`);
-    };
-
-    const afterContent = after ?? (nextLabelHtmlFor ? <ModalNextButton as="label" htmlFor={nextLabelHtmlFor} /> : null);
-
-    return (
-      <div
-        id={id}
-        className={styles.container}
-        role="group"
-        aria-label="Time input"
-      >
-        {isRange && (
-          <RangeTabs
-            activeTab={timeRange.activeTab}
-            onTabChange={handleTabChange}
-            tabs={timeRange.tabs}
-            tabLabels={timeRange.tabLabels}
-          />
-        )}
-
-        <div className={styles.inputRow}>
-          <TimeInput
-            variant={isNative ? 'native' : 'manual'}
-            hours={activeHours}
-            minutes={activeMinutes}
-            setHours={activeSetHours}
-            setMinutes={activeSetMinutes}
-            onFinish={effectiveOnFinish}
-            hourAriaLabel={hourAriaLabel}
-            minuteAriaLabel={minuteAriaLabel}
-            inputId={inputId}
-            normalizeTime={normalizeTime}
-          />
-          {afterContent && <div className={styles.after}>{afterContent}</div>}
-        </div>
-
-        <div className={styles.buttonsWrapper}>
-          <TimeNow onFinish={onNowSelect} time={`${activeHours}:${activeMinutes}`}>
-            <button className={clsx(styles.toggleButton, styles.nowButton)}>Сейчас</button>
-          </TimeNow>
-
-          <button
-            className={clsx(styles.toggleButton, styles.swapButton)}
-            onClick={() => {
-              setLocalVariant((prev) => (prev === 'native' ? 'manual' : 'native'));
-            }}
-          >
-            {isNative ? 'Ручной ввод' : 'Системный'}
-          </button>
-        </div>
-      </div>
-    );
+  const normalizeTime = (h: string, m: string) => {
+    const hNum = h === '' ? 0 : Math.max(0, Math.min(23, Number(h)));
+    const mNum = m === '' ? 0 : Math.max(0, Math.min(59, Number(m)));
+    return `${String(hNum).padStart(2, '0')}:${String(mNum).padStart(2, '0')}`;
   };
+
+  const timeRange = useTimeRange({
+    initialFrom: range?.initialFrom ?? initialTime,
+    initialTo: range?.initialTo,
+    onChangeRange: range?.onChangeRange,
+  });
+  const isRange = !!range;
+
+  // In range mode, the inner time input is driven by the active tab
+  const effectiveOnFinish = isRange ? timeRange.currentTimeProps.onFinish : onFinish;
+  const effectiveInitialTime = isRange ? timeRange.currentTimeProps.initialTime : initialTime;
+
+  // Range mode needs its own hours/minutes state per tab switch
+  const [rangeHours, setRangeHours] = useState<string>(effectiveInitialTime.split(':')[0]);
+  const [rangeMinutes, setRangeMinutes] = useState<string>(effectiveInitialTime.split(':')[1]);
+
+  // Sync range hours/minutes when tab changes
+  const handleTabChange = (tab: RangeTab) => {
+    timeRange.setActiveTab(tab);
+    const timeForTab =
+      tab === 'from'
+        ? timeRange.fromTime
+        : tab === 'to'
+          ? timeRange.toTime
+          : timeRange.durationTime;
+    setRangeHours(timeForTab.split(':')[0]);
+    setRangeMinutes(timeForTab.split(':')[1]);
+  };
+
+  const activeHours = isRange ? rangeHours : hours;
+  const activeMinutes = isRange ? rangeMinutes : minutes;
+  const activeSetHours = isRange ? setRangeHours : setHours;
+  const activeSetMinutes = isRange ? setRangeMinutes : setMinutes;
+
+  const onNowSelect = (time: string) => {
+    const [nowHours, nowMinutes] = time.split(':');
+    activeSetHours(nowHours);
+    activeSetMinutes(nowMinutes);
+    effectiveOnFinish(`${nowHours}:${nowMinutes}`);
+  };
+
+  return (
+    <div id={id} className={styles.container} role="group" aria-label="Time input">
+      <div className={styles.buttonsWrapper}>
+        <TimeNow onFinish={onNowSelect} time={`${activeHours}:${activeMinutes}`}>
+          <button className={clsx(styles.toggleButton, styles.nowButton)}>Сейчас</button>
+        </TimeNow>
+
+        <button
+          className={clsx(styles.toggleButton, styles.swapButton)}
+          onClick={() => {
+            setLocalVariant((prev) => (prev === 'native' ? 'manual' : 'native'));
+          }}
+        >
+          {isNative ? 'Ручной ввод' : 'Системный'}
+        </button>
+      </div>
+      {isRange && (
+        <RangeTabs
+          activeTab={timeRange.activeTab}
+          onTabChange={handleTabChange}
+          tabs={timeRange.tabs}
+          tabLabels={timeRange.tabLabels}
+        />
+      )}
+
+      <TimeInput
+        variant={isNative ? 'native' : 'manual'}
+        hours={activeHours}
+        minutes={activeMinutes}
+        setHours={activeSetHours}
+        setMinutes={activeSetMinutes}
+        onFinish={effectiveOnFinish}
+        hourAriaLabel={hourAriaLabel}
+        minuteAriaLabel={minuteAriaLabel}
+        inputId={inputId}
+        normalizeTime={normalizeTime}
+      />
+    </div>
+  );
+};
 
 export default TimeChoose;

@@ -2,9 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@livestore/react';
 import { useParams } from 'react-router';
 import { fetchShare } from '@/shared/lib/api/shares';
-import {
-  SuggestionsReviewList,
-} from '@/features/dish/suggest-products';
+import { SuggestionsReviewList } from '@/features/dish/suggest-products';
 import type { SuggestionsReviewListRef, SuggestionItem } from '@/features/dish/suggest-products';
 import { addDishItem } from '@/entities/dish';
 import { addScheduleFood } from '@/entities/schedule-food';
@@ -64,8 +62,13 @@ const ShareReceivePage = () => {
 
     const dishId = payload.id;
     const result = await safeMutate(
-      () => Promise.all(items.map((item) => addDishItem(store, { dishId, foodId: item.foodId, quantity: item.quantity }))),
-      'Не удалось добавить продукты',
+      () =>
+        Promise.all(
+          items.map((item) =>
+            addDishItem(store, { dishId, productId: item.productId, quantity: item.quantity })
+          )
+        ),
+      'Не удалось добавить продукты'
     );
     if (result === undefined) return;
 
@@ -83,10 +86,19 @@ const ShareReceivePage = () => {
     }
 
     const result = await safeMutate(
-      () => Promise.all(items.map((item) =>
-        addScheduleFood(store, { date, time, type: 'food', quantity: item.quantity, foodId: item.foodId })
-      )),
-      'Не удалось добавить продукты',
+      () =>
+        Promise.all(
+          items.map((item) =>
+            addScheduleFood(store, {
+              date,
+              time,
+              type: 'food',
+              quantity: item.quantity,
+              productId: item.productId,
+            })
+          )
+        ),
+      'Не удалось добавить продукты'
     );
     if (result === undefined) return;
 
@@ -153,9 +165,7 @@ const ShareReceivePage = () => {
       <div className={styles.header}>
         <span className={styles.title}>{sourceLabel}</span>
       </div>
-      {data.senderName && (
-        <p className={styles.sender}>От: {data.senderName}</p>
-      )}
+      {data.senderName && <p className={styles.sender}>От: {data.senderName}</p>}
       <div className={styles.content}>
         <SuggestionsReviewList ref={listRef} items={data.items} />
         <div className={styles.actions}>

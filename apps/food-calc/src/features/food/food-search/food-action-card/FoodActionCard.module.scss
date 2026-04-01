@@ -3,9 +3,14 @@
     align-items: center;
     position: relative;
     transition: background 0.15s ease, color 0.15s ease;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 
     &:last-child {
         border-bottom: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        border-bottom-color: rgba(255, 255, 255, 0.08);
     }
 }
 

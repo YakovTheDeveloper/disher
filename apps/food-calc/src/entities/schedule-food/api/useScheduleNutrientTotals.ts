@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useScheduleFoods } from './queries';
 import { useDishItemsByDishIds } from '@/entities/dish';
-import { useNutrientsByFoodIds } from '@/entities/product';
+import { useNutrientsByProductIds } from '@/entities/product';
 import {
   calculateProductNutrients,
   calculateDishNutrients,
@@ -24,15 +24,15 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
   const dishIds = [...new Set(dishItems.map((d) => d.dishId!))];
   const allDishItems = useDishItemsByDishIds(dishIds);
 
-  // Collect all unique foodIds from schedule foods + dish items
-  const allFoodIds = useMemo(() => {
+  // Collect all unique productIds from schedule foods + dish items
+  const allProductIds = useMemo(() => {
     const ids = new Set<string>();
     for (const fi of foodItems) if (fi.productId) ids.add(fi.productId);
     for (const di of allDishItems) ids.add(di.productId);
     return [...ids];
   }, [foodItems, allDishItems]);
 
-  const nutrientsMap = useNutrientsByFoodIds(allFoodIds);
+  const nutrientsMap = useNutrientsByProductIds(allProductIds);
 
   const dataKey = sfItems
     .map((sf) => `${sf.id}:${sf.quantity}:${sf.type}:${sf.productId}:${sf.dishId}`)
@@ -45,7 +45,7 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
     for (const fi of foodItems) {
       const nutrients = nutrientsMap.get(fi.productId!);
       if (!nutrients || nutrients.length === 0) {
-        const name = (fi as any).food?.name ?? fi.productId!;
+        const name = fi.product?.name ?? fi.productId!;
         if (!missingNames.includes(name)) missingNames.push(name);
       } else {
         totalsArray.push(calculateProductNutrients(nutrients, fi.quantity));
@@ -60,12 +60,12 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
           return !n || n.length === 0;
         });
         if (dishMissing) {
-          const dishName = (di as any).dish?.name ?? di.dishId!;
+          const dishName = di.dish?.name ?? di.dishId!;
           if (!missingNames.includes(dishName)) missingNames.push(dishName);
         }
         totalsArray.push(
           calculateDishNutrients(
-            diItems.map((item) => ({ foodId: item.productId, quantity: item.quantity })),
+            diItems.map((item) => ({ productId: item.productId, quantity: item.quantity })),
             nutrientsMap,
             di.quantity,
           ),

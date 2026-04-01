@@ -49,7 +49,7 @@
     },
     {
         "id": "4185",
-        "name": "Абрикос с кожицей, сырой",
+        "name": "Абрикос с кожицей",
         "source": "usda-foundation",
         "categories": [
             "fruit"
@@ -290,7 +290,7 @@
     },
     {
         "id": "7905",
-        "name": "Авокадо, Хасс, очищенный, сырой",
+        "name": "Авокадо, Хасс, очищенный",
         "source": "usda-foundation",
         "categories": [
             "fruit"
@@ -1115,7 +1115,7 @@
     },
     {
         "id": "6854",
-        "name": "Баранина, язык, сырой",
+        "name": "Баранина, язык",
         "source": "usda-sr-legacy",
         "categories": [
             "meat"
@@ -1170,7 +1170,7 @@
     },
     {
         "id": "6858",
-        "name": "Баранина, фарш, сырой",
+        "name": "Баранина, фарш",
         "source": "usda-foundation",
         "categories": [
             "meat"
@@ -2433,7 +2433,7 @@
     },
     {
         "id": "1096",
-        "name": "Говядина травяного откорма, фарш, сырой",
+        "name": "Говядина травяного откорма, фарш",
         "source": "usda-sr-legacy",
         "categories": [
             "meat"
@@ -2541,7 +2541,7 @@
     },
     {
         "id": "2684",
-        "name": "Говядина, язык сырой",
+        "name": "Говядина, язык",
         "source": "usda-sr-legacy",
         "categories": [
             "meat"
@@ -2597,7 +2597,7 @@
     },
     {
         "id": "7930",
-        "name": "Говядина, стейк из вырезки, сырой",
+        "name": "Говядина, стейк из вырезки",
         "source": "usda-foundation",
         "categories": [
             "meat"
@@ -6578,7 +6578,7 @@
     },
     {
         "id": "2478",
-        "name": "Кельтук, сырой",
+        "name": "Кельтук",
         "source": "usda-sr-legacy",
         "categories": [
             "vegetable"
@@ -8898,7 +8898,7 @@
     },
     {
         "id": "643",
-        "name": "Лайм сырой",
+        "name": "Лайм",
         "source": "usda-sr-legacy",
         "categories": [
             "fruit"
@@ -19283,7 +19283,7 @@
     },
     {
         "id": "763",
-        "name": "Свинина свежая, язык, сырой",
+        "name": "Свинина свежая, язык",
         "source": "usda-sr-legacy",
         "categories": [
             "meat"
@@ -27892,7 +27892,7 @@
     },
     {
         "id": "2772",
-        "name": "Ячмень перловый, сырой",
+        "name": "Ячмень перловый",
         "source": "usda-sr-legacy",
         "categories": [
             "grain"

@@ -2,6 +2,9 @@ import { getCurrentUserId } from "@/shared/lib/user";
 import { events } from "@/livestore/schema";
 import type { Store } from "@livestore/livestore";
 
+type ProductUpdatedPayload = Parameters<typeof events.productUpdated>[0];
+type ProductUpdates = Omit<ProductUpdatedPayload, 'id'>;
+
 export function createProduct(
   store: Store,
   params: {
@@ -33,7 +36,7 @@ export function createProduct(
 export function updateProduct(
   store: Store,
   productId: string,
-  updates: Partial<{ name: string; description: string; pricePerKg: number }>,
+  updates: ProductUpdates,
 ) {
   store.commit(events.productUpdated({ id: productId, ...updates }));
 }

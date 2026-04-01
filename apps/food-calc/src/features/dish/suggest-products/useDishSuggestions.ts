@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 
 export type SuggestionItem = {
-  foodId: string;
+  productId: string;
   name: string;
   quantity: number;
 };
@@ -24,7 +24,7 @@ export function useDishSuggestions() {
   const fetchSuggestions = useCallback(
     async (
       dishName: string,
-      existingItems: Array<{ foodId: string; name: string; quantity: number }> = []
+      existingItems: Array<{ productId: string; name: string; quantity: number }> = []
     ) => {
       setState({ status: 'loading', suggestions: [], error: null });
 

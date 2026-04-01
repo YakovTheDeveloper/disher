@@ -30,11 +30,11 @@ export function calculateProductNutrients(
 
 /**
  * Calculate total nutrients for a dish.
- * A dish has items, each with a foodId (product) and quantity.
+ * A dish has items, each with a productId (product) and quantity.
  * If userQuantity is provided, scale proportionally to baseDishWeight.
  */
 export function calculateDishNutrients(
-  dishItems: Array<{ foodId: string; quantity: number }>,
+  dishItems: Array<{ productId: string; quantity: number }>,
   productNutrientsMap: Map<string, NutrientEntry[]>,
   userQuantity?: number,
 ): NutrientTotals {
@@ -43,7 +43,7 @@ export function calculateDishNutrients(
 
   for (const item of dishItems) {
     baseDishWeight += item.quantity;
-    const nutrients = productNutrientsMap.get(item.foodId);
+    const nutrients = productNutrientsMap.get(item.productId);
     if (!nutrients) continue;
 
     const itemTotals = calculateProductNutrients(nutrients, item.quantity);

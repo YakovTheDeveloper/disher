@@ -17,8 +17,8 @@ describe("dishItemsToScheduleFoods", () => {
 
   it("creates schedule foods for all items", () => {
     const items = [
-      { foodId: "food-1", quantity: 100 },
-      { foodId: "food-2", quantity: 200 },
+      { productId: "food-1", quantity: 100 },
+      { productId: "food-2", quantity: 200 },
     ];
 
     dishItemsToScheduleFoods(store, items, "01-01-2025", "12:00");
@@ -32,14 +32,14 @@ describe("dishItemsToScheduleFoods", () => {
         date: "01-01-2025",
         time: "12:00",
         type: "food",
-        foodId: "food-1",
+        productId: "food-1",
         quantity: 100,
         userId: "test-user",
       }),
     });
     expect(args[1]).toMatchObject({
       args: expect.objectContaining({
-        foodId: "food-2",
+        productId: "food-2",
         quantity: 200,
       }),
     });
@@ -54,7 +54,7 @@ describe("dishItemsToScheduleFoods", () => {
   });
 
   it("sets dishId to empty string on created schedule foods", () => {
-    const items = [{ foodId: "food-1", quantity: 50 }];
+    const items = [{ productId: "food-1", quantity: 50 }];
 
     dishItemsToScheduleFoods(store, items, "02-02-2025", "08:00");
 

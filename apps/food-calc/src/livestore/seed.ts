@@ -1,5 +1,5 @@
-import type { Store } from '@livestore/livestore'
-import { events } from './schema'
+import { type Store, queryDb } from '@livestore/livestore'
+import { events, tables } from './schema'
 import { SYSTEM_USER_ID } from '@/shared/lib/user'
 import { DEFAULT_NORM } from '@/entities/daily-norm/model/default-norm'
 
@@ -16,12 +16,21 @@ interface FinalFood {
 
 // ─── Seed logic ──────────────────────────────────────────────────────────────
 
-const SEED_VERSION = 1
+const SEED_VERSION = 2
 const SEED_KEY = 'livestore_seed_version'
 
-export function isSeedNeeded(): boolean {
+/**
+ * Seed is needed when:
+ * 1. SEED_VERSION changed (new seed data available), OR
+ * 2. localStorage says seeded but the DB is actually empty (DB was wiped independently)
+ */
+export function isSeedNeeded(store: Store): boolean {
   const stored = localStorage.getItem(SEED_KEY)
-  return stored !== String(SEED_VERSION)
+  if (stored !== String(SEED_VERSION)) return true
+
+  // Version matches — verify the DB actually has data
+  const products = store.query(queryDb(tables.products.where({})))
+  return products.length === 0
 }
 
 function markSeeded(): void {

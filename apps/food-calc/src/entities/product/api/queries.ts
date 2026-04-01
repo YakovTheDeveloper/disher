@@ -2,8 +2,9 @@ import { useMemo } from "react";
 import { queryDb } from "@livestore/livestore";
 import { useQuery } from "@livestore/react";
 import { tables } from "@/livestore/schema";
+import { parseNutrients, parsePortions, type NutrientEntry, type PortionEntry } from "@/shared/lib/parsers";
 
-export type NutrientEntry = { nutrientId: string; quantity: number };
+export type { NutrientEntry, PortionEntry };
 
 export function useProduct(productId: string | undefined) {
   const rows = useQuery(
@@ -18,75 +19,56 @@ export function useProduct(productId: string | undefined) {
 const allProducts$ = queryDb(tables.products.where({ deletedAt: null }), { label: 'products' });
 
 export function useProducts(search?: string) {
-  const rows = useQuery(allProducts$);
-  if (search) {
+  const allRows = useQuery(allProducts$);
+
+  return useMemo(() => {
+    if (!search) return allRows;
     const lower = search.toLowerCase();
-    return rows.filter((r: any) => r.name?.toLowerCase().includes(lower));
-  }
-  return rows;
+    return allRows.filter((r) =>
+      r.name?.toLowerCase().includes(lower) ||
+      r.nameEng?.toLowerCase().includes(lower)
+    );
+  }, [allRows, search]);
 }
 
 export function useProductsByIds(productIds: string[]) {
-  const rows = useQuery(
-    queryDb(
-      tables.products.where({ deletedAt: null }),
-      { label: 'products-all-for-filter' },
-    ),
-  );
-  const idSet = new Set(productIds);
-  return rows.filter((r: any) => idSet.has(r.id));
+  const rows = useQuery(allProducts$);
+  return useMemo(() => {
+    if (productIds.length === 0) return [];
+    const idSet = new Set(productIds);
+    return rows.filter((r) => idSet.has(r.id));
+  }, [rows, productIds]);
 }
 
 export function useProductNutrients(productId: string | undefined): { results: NutrientEntry[] } {
   const product = useProduct(productId);
-  const results = useMemo(() => {
-    if (!product?.nutrients) return [];
-    try {
-      const parsed = JSON.parse(product.nutrients as string) as Record<string, number>;
-      return Object.entries(parsed).map(([nutrientId, quantity]) => ({ nutrientId, quantity }));
-    } catch {
-      return [];
-    }
-  }, [product?.nutrients]);
+  const results = useMemo(
+    () => parseNutrients(product?.nutrients),
+    [product?.nutrients],
+  );
   return { results };
 }
 
-export function useNutrientsByFoodIds(foodIds: string[]): Map<string, NutrientEntry[]> {
-  const rows = useQuery(
-    queryDb(
-      tables.products.where({ deletedAt: null }),
-      { label: 'products-for-nutrients' },
-    ),
-  );
+export function useNutrientsByProductIds(productIds: string[]): Map<string, NutrientEntry[]> {
+  const rows = useQuery(allProducts$);
 
   return useMemo(() => {
-    const idSet = new Set(foodIds);
     const map = new Map<string, NutrientEntry[]>();
+    if (productIds.length === 0) return map;
+    const idSet = new Set(productIds);
     for (const row of rows) {
-      const r = row as any;
-      if (!idSet.has(r.id)) continue;
-      try {
-        const parsed = JSON.parse(r.nutrients) as Record<string, number>;
-        map.set(
-          r.id,
-          Object.entries(parsed).map(([nutrientId, quantity]) => ({ nutrientId, quantity })),
-        );
-      } catch {
-        // skip malformed
-      }
+      if (!idSet.has(row.id)) continue;
+      const entries = parseNutrients(row.nutrients);
+      if (entries.length > 0) map.set(row.id, entries);
     }
     return map;
-  }, [rows, foodIds]);
+  }, [rows, productIds]);
 }
 
 export function useProductPortions(productId: string | undefined) {
   const product = useProduct(productId);
-  return useMemo(() => {
-    if (!product?.portions) return [];
-    try {
-      return JSON.parse(product.portions as string) as Array<{ label: string; amount: number; unit: string; grams: number }>;
-    } catch {
-      return [];
-    }
-  }, [product?.portions]);
+  return useMemo(
+    () => parsePortions(product?.portions),
+    [product?.portions],
+  );
 }

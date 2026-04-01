@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { useProducts, useNutrientsByFoodIds } from '@/entities/product';
+import { useProducts, useNutrientsByProductIds } from '@/entities/product';
 import { useDishes } from '@/entities/dish';
 import { useCategoryFilterState } from '@/features/shared/hooks/useCategoryFilterState';
 import { computeDishDietaryCategories } from '@/shared/lib/dishCategories';
-import { isCreatedByUser } from '@/shared/lib';
+import { isCreatedByUser, parseCategories } from '@/shared/lib';
 
 export function useFilteredFoods(searchQuery: string, myFoodOnly = false, richNutrientId?: string | null) {
   const allProducts = useProducts(
@@ -22,7 +22,7 @@ export function useFilteredFoods(searchQuery: string, myFoodOnly = false, richNu
 
   // Load nutrients for all products when richNutrient sorting is active
   const productIds = useMemo(() => allProducts.map((p) => p.id), [allProducts]);
-  const nutrientMap = useNutrientsByFoodIds(richNutrientId ? productIds : []);
+  const nutrientMap = useNutrientsByProductIds(richNutrientId ? productIds : []);
 
   // Product filtering — OR logic: show if product has ANY selected category
   const selectedProductCategories = categoryFilter.getCategoryFilter('product');
@@ -33,8 +33,7 @@ export function useFilteredFoods(searchQuery: string, myFoodOnly = false, richNu
     }
     if (selectedProductCategories.length > 0) {
       filtered = filtered.filter((p) => {
-        if (!p.categories) return false;
-        const parsed: string[] = (() => { try { return JSON.parse(p.categories as string); } catch { return []; } })();
+        const parsed = parseCategories(p.categories);
         return selectedProductCategories.some((cat) => parsed.includes(cat));
       });
     }

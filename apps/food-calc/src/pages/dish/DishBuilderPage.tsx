@@ -45,7 +45,7 @@ import { useDishNutrientTotals } from '@/entities/dish';
 import { TopBar } from '@/shared/ui/TopBar';
 import Button from '@/shared/ui/atoms/Button/Button';
 
-type DishItemWithFood = DishItem & { food?: { name: string } | null };
+type DishItemWithProduct = DishItem & { product?: { name: string } | null };
 
 const DishBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -68,7 +68,7 @@ const DishBuilderPage = () => {
   const { clearSelection } = selectionStore.getState();
 
   const [isOpen, setIsOpen] = useState<'suggestions' | null>(null);
-  const [editingItem, setEditingItem] = useState<DishItemWithFood | null>(null);
+  const [editingItem, setEditingItem] = useState<DishItemWithProduct | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'search' | 'quantity'>('idle');
 
   useSwipeableLock(isOpen !== null || editingItem !== null);
@@ -80,14 +80,14 @@ const DishBuilderPage = () => {
     setEditingStep('idle');
   };
 
-  const openEditModal = (item: DishItemWithFood, step: 'search' | 'quantity') => {
+  const openEditModal = (item: DishItemWithProduct, step: 'search' | 'quantity') => {
     setEditingItem(item);
     setEditingStep(step);
   };
 
   if (!dish) return null;
 
-  const items = dishItems as unknown as DishItemWithFood[];
+  const items = dishItems as unknown as DishItemWithProduct[];
 
   const getSelectedItems = () => items.filter((item) => selectedIds.includes(item.id));
 
@@ -108,8 +108,8 @@ const DishBuilderPage = () => {
     if (selected.length === 0) return;
 
     const shareItems = selected.map((item) => ({
-      foodId: item.foodId,
-      name: item.food?.name ?? '—',
+      productId: item.productId,
+      name: item.product?.name ?? '—',
       quantity: item.quantity,
     }));
 
@@ -130,8 +130,8 @@ const DishBuilderPage = () => {
 
   const getExistingItemsForSuggestions = () =>
     items.map((item) => ({
-      foodId: item.foodId,
-      name: item.food?.name ?? '',
+      productId: item.productId,
+      name: item.product?.name ?? '',
       quantity: item.quantity,
     }));
 
@@ -175,24 +175,24 @@ const DishBuilderPage = () => {
             {dish.name}
           </ScreenLabel>
         }
+        topPanel={
+          <TopBar>
+            {items.length > 0 && (
+              <Button variant="menu" onClick={() => setIsOpen('suggestions')}>
+                Предложить
+              </Button>
+            )}
+          </TopBar>
+        }
         header={
-          <>
-            <TopBar>
-              {items.length > 0 && (
-                <Button variant="menu" onClick={() => setIsOpen('suggestions')}>
-                  Предложить
-                </Button>
-              )}
-            </TopBar>
-            <TextBehind text="Блюдо">
-              <ChangeName
-                name={dish.name}
-                onChangeName={(val) =>
-                  safeMutate(() => updateDishName(store, dish.id, val), 'Не удалось переименовать')
-                }
-              />
-            </TextBehind>
-          </>
+          <TextBehind text="Блюдо">
+            <ChangeName
+              name={dish.name}
+              onChangeName={(val) =>
+                safeMutate(() => updateDishName(store, dish.id, val), 'Не удалось переименовать')
+              }
+            />
+          </TextBehind>
         }
         bottomRight={
           isActionsMode || items.length === 0 ? null : (
@@ -226,7 +226,7 @@ const DishBuilderPage = () => {
               <FoodName
                 htmlFor={DISH_EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
                 onClick={() => openEditModal(item, 'search')}
-                content={{ name: item.food?.name ?? item.foodId }}
+                content={{ name: item.product?.name ?? item.productId }}
               />
               <Quantity
                 htmlFor={DISH_EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
@@ -250,7 +250,9 @@ const DishBuilderPage = () => {
             unit: p.unit,
             grams: p.grams,
           }))}
-          onAdd={(p) => safeMutate(() => addDishPortion(store, id, p), 'Не удалось добавить порцию')}
+          onAdd={(p) =>
+            safeMutate(() => addDishPortion(store, id, p), 'Не удалось добавить порцию')
+          }
           onUpdate={(label, updates) => {
             const portion = portionsRaw.find((p) => p.label === label);
             if (portion)

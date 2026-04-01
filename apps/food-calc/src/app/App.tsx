@@ -19,6 +19,8 @@ import { ToggleStyleButton } from '@/features/toggle-style/ToggleStyleButton';
 
 const queryClient = new QueryClient();
 
+console.log('Debug methods: __debugLiveStore.dump(), __debugLiveStore.resetDatabase()');
+
 export default function App() {
   useLastFocusMethod();
   useUserAgentDetection();

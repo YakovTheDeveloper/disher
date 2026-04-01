@@ -4,7 +4,7 @@ import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalFooter } from '@/shared/ui/ModalFooter';
+import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
@@ -12,9 +12,6 @@ import { addDishItem } from '@/entities/dish';
 import { useProductPortions } from '@/entities/product';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import Button from '@/shared/ui/atoms/Button/Button';
-import type { Portion } from '@/features/product/ProductQuantity';
-
 export const DISH_MODAL_INPUT_IDS = {
   SEARCH_INPUT: 'dish-item-search',
   QUANTITY_INPUT: 'dish-item-quantity',
@@ -36,7 +33,7 @@ type FoodContent = {
 };
 
 type DraftState = {
-  foodId: string | null;
+  productId: string | null;
   quantity: number;
   content: FoodContent | null;
 };
@@ -44,7 +41,7 @@ type DraftState = {
 const DEFAULT_PRODUCT_ID = '1';
 
 const createEmptyDraft = (): DraftState => ({
-  foodId: DEFAULT_PRODUCT_ID,
+  productId: DEFAULT_PRODUCT_ID,
   quantity: 100,
   content: null,
 });
@@ -53,9 +50,6 @@ type Props = {
   dishId: string;
 };
 
-const mapPortions = (results: { label: string; amount: number; unit: string; grams: number }[] | undefined): Portion[] =>
-  results ? results.map(({ label, amount, unit, grams }) => ({ label, amount, unit, grams })) : [];
-
 const DishProductCreateModals = ({ dishId }: Props) => {
   const { store } = useStore();
   const [step, setStep] = useState<Step>('idle');
@@ -63,7 +57,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
   const [sessionKey, setSessionKey] = useState(0);
   useSwipeableLock(step !== 'idle');
 
-  const foodPortionsMap = useProductPortions(draft.foodId ?? undefined);
+  const foodPortionsMap = useProductPortions(draft.productId ?? undefined);
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
     const target = e.target as HTMLElement;
@@ -83,7 +77,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
     if (payload.variant === 'dish') return;
     setDraft((prev) => ({
       ...prev,
-      foodId: payload.id,
+      productId: payload.id,
       content: {
         quantity: prev.quantity,
         updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
@@ -93,10 +87,10 @@ const DishProductCreateModals = ({ dishId }: Props) => {
   };
 
   const handleCommit = async () => {
-    if (draft.foodId) {
+    if (draft.productId) {
       const result = await safeMutate(
-        () => addDishItem(store, { dishId, foodId: draft.foodId!, quantity: draft.quantity }),
-        'Не удалось добавить продукт',
+        () => addDishItem(store, { dishId, productId: draft.productId!, quantity: draft.quantity }),
+        'Не удалось добавить продукт'
       );
       if (result === undefined) return;
       toaster.success('Продукт добавлен');
@@ -123,7 +117,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
       quantity: draft.quantity,
       updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
     }),
-    food: { portions: mapPortions(foodPortionsMap) },
+    food: { portions: foodPortionsMap ?? [] },
   };
 
   return (
@@ -145,7 +139,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
               key={sessionKey}
               mode="products-only"
               onSelectFood={handleFoodSelect}
-              activeItemId={draft.foodId ?? undefined}
+              activeItemId={draft.productId ?? undefined}
               itemHtmlFor={DISH_MODAL_INPUT_IDS.QUANTITY_INPUT}
               inputId={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
             />
@@ -166,16 +160,17 @@ const DishProductCreateModals = ({ dishId }: Props) => {
               onBack={handleClose}
               onStepClick={goToStep}
             />
-            <ModalShell.Spacer />
+
             <ModalShell.Body>
-              {draft.foodId && (
-                <ProductQuantity key={sessionKey} content={quantityContent} onFinish={() => {}} />
+              {draft.productId && (
+                <>
+                  <ProductQuantity key={sessionKey} content={quantityContent} onFinish={() => {}} />
+                  <ModalShell.ActionButtons
+                    left={<ModalPrevButton onClick={() => goToStep('search')} />}
+                    right={<ModalNextButton onClick={handleCommit} />}
+                  />
+                </>
               )}
-              <ModalFooter onBack={() => goToStep('search')}>
-                <Button variant="primary-form" onClick={handleCommit}>
-                  Готово
-                </Button>
-              </ModalFooter>
             </ModalShell.Body>
           </ModalShell>
         }

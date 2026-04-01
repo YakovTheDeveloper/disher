@@ -61,8 +61,8 @@ describe('calculateDishNutrients', () => {
 
   it('sums nutrients across all dish items', () => {
     const items = [
-      { foodId: 'apple', quantity: 100 },
-      { foodId: 'banana', quantity: 100 },
+      { productId: 'apple', quantity: 100 },
+      { productId: 'banana', quantity: 100 },
     ];
     const result = calculateDishNutrients(items, productMap);
     expect(result.kcal).toBeCloseTo(141);
@@ -71,8 +71,8 @@ describe('calculateDishNutrients', () => {
 
   it('skips items without a match in productMap', () => {
     const items = [
-      { foodId: 'apple', quantity: 100 },
-      { foodId: 'missing', quantity: 200 },
+      { productId: 'apple', quantity: 100 },
+      { productId: 'missing', quantity: 200 },
     ];
     const result = calculateDishNutrients(items, productMap);
     expect(result.kcal).toBeCloseTo(52);
@@ -81,13 +81,13 @@ describe('calculateDishNutrients', () => {
 
   it('scales totals by userQuantity / baseDishWeight', () => {
     // base = 200g apple → kcal = 104; eat 100g → scale 0.5 → kcal = 52
-    const items = [{ foodId: 'apple', quantity: 200 }];
+    const items = [{ productId: 'apple', quantity: 200 }];
     const result = calculateDishNutrients(items, productMap, 100);
     expect(result.kcal).toBeCloseTo(52);
   });
 
   it('does not scale when userQuantity is undefined', () => {
-    const items = [{ foodId: 'apple', quantity: 200 }];
+    const items = [{ productId: 'apple', quantity: 200 }];
     const result = calculateDishNutrients(items, productMap);
     expect(result.kcal).toBeCloseTo(104);
   });
@@ -104,8 +104,8 @@ describe('calculateDishNutrients', () => {
 
   it('accumulates quantities from multiple items of different products', () => {
     const items = [
-      { foodId: 'apple', quantity: 100 }, // kcal = 52
-      { foodId: 'apple', quantity: 100 }, // kcal = 52
+      { productId: 'apple', quantity: 100 }, // kcal = 52
+      { productId: 'apple', quantity: 100 }, // kcal = 52
     ];
     const result = calculateDishNutrients(items, productMap);
     expect(result.kcal).toBeCloseTo(104);
