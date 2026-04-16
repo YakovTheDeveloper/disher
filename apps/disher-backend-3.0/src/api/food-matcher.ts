@@ -25,8 +25,23 @@ interface EmbeddingsFile {
 let embedder: FeatureExtractionPipeline | null = null;
 let catalogVectors: Float32Array[] = [];
 let catalogMeta: Array<{ id: string; name: string }> = [];
+let catalogTrigrams: Array<Set<string>> = [];
 let aliasMap: Map<string, string> = new Map();
 let ready = false;
+
+// Hybrid-matcher tuning constants. Picked from scripts/probe-hybrid-sim.ts
+// histogram (see catalog.md Baseline).
+//   TP top-1 Dice mean ≈ 0.86, FP-scored ≈ 0.48, OOV ≈ 0.38.
+//   At Dice ≥ 0.80 no FP compound confused "X+adjective" with another
+//   product in the probe set (the dangerous FPs like "тушёная капуста →
+//   цветная капуста" live at 0.75–0.77). So at ≥ 0.80 we commit to
+//   Dice top-1 directly.
+// For everything else we rank by hybrid = 0.5*cos + 0.5*dice over the full
+// catalog. 50/50 weights mirror the similar TP-FP separation both metrics
+// showed in the sim (Dice gap 0.86→0.48; cosine gap ~0.05→0.02).
+const DICE_HIGH_CONFIDENCE = 0.80;
+const HYBRID_WEIGHT_COSINE = 0.5;
+const HYBRID_WEIGHT_DICE = 0.5;
 
 export function isMatcherReady(): boolean {
   return ready;
@@ -55,6 +70,7 @@ export async function initMatcher(): Promise<void> {
 
   catalogVectors = data.vectors.map((v) => new Float32Array(v.v));
   catalogMeta = data.vectors.map((v) => ({ id: v.id, name: v.name }));
+  catalogTrigrams = catalogMeta.map((m) => trigrams(normalizeForEmbedding(m.name)));
 
   if (existsSync(aliasPath)) {
     const raw = JSON.parse(readFileSync(aliasPath, "utf-8")) as Record<string, string>;
@@ -86,6 +102,7 @@ export async function initMatcher(): Promise<void> {
 export function normalizeForEmbedding(text: string): string {
   return text
     .toLowerCase()
+    .replace(/ё/g, "е")
     .replace(/[.,!?;:()"'«»]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -96,6 +113,20 @@ function cosineSimilarity(a: Float32Array, b: Float32Array): number {
   let dot = 0;
   for (let i = 0; i < a.length; i++) dot += a[i] * b[i];
   return dot;
+}
+
+function trigrams(s: string): Set<string> {
+  const padded = `  ${s}  `;
+  const out = new Set<string>();
+  for (let i = 0; i <= padded.length - 3; i++) out.add(padded.slice(i, i + 3));
+  return out;
+}
+
+function diceSimilarity(a: Set<string>, b: Set<string>): number {
+  if (a.size === 0 || b.size === 0) return 0;
+  let overlap = 0;
+  for (const t of a) if (b.has(t)) overlap++;
+  return (2 * overlap) / (a.size + b.size);
 }
 
 export async function embedQuery(text: string): Promise<Float32Array> {
@@ -123,6 +154,63 @@ export function topKMatches(query: Float32Array, k = 3): MatchCandidate[] {
   return scored.slice(0, k);
 }
 
+/**
+ * Hybrid ranker: combines cosine embeddings with Dice trigram similarity.
+ *
+ * Strategy (picked from probe-hybrid-sim.ts histogram — see catalog.md Baseline):
+ *   1. If the top-1 Dice candidate has Dice ≥ DICE_HIGH_CONFIDENCE, trust it.
+ *      Almost no FP/OOV pollution above this threshold in the probe set.
+ *   2. Otherwise rank by hybrid = 0.5*cos + 0.5*dice over all products.
+ *
+ * Returned `score` is the hybrid score (or raw Dice if the high-confidence
+ * branch fired). Keep it bounded in [0, 1] so the OOV threshold in probe
+ * still behaves like before.
+ */
+export function topKHybrid(
+  queryVec: Float32Array,
+  queryNormalized: string,
+  k = 3,
+): MatchCandidate[] {
+  const qTri = trigrams(queryNormalized);
+  const diceScores = new Array<number>(catalogTrigrams.length);
+  let bestDice = -1;
+  let bestDiceIdx = -1;
+  for (let i = 0; i < catalogTrigrams.length; i++) {
+    const d = diceSimilarity(qTri, catalogTrigrams[i]);
+    diceScores[i] = d;
+    if (d > bestDice) {
+      bestDice = d;
+      bestDiceIdx = i;
+    }
+  }
+
+  const scored: MatchCandidate[] = new Array(catalogVectors.length);
+  for (let i = 0; i < catalogVectors.length; i++) {
+    const cos = cosineSimilarity(queryVec, catalogVectors[i]);
+    scored[i] = {
+      id: catalogMeta[i].id,
+      name: catalogMeta[i].name,
+      score: HYBRID_WEIGHT_COSINE * cos + HYBRID_WEIGHT_DICE * diceScores[i],
+    };
+  }
+  scored.sort((a, b) => b.score - a.score);
+
+  // High-confidence Dice override: promote Dice top-1 to position 0 if
+  // Dice ≥ DICE_HIGH_CONFIDENCE and it isn't already there.
+  if (bestDice >= DICE_HIGH_CONFIDENCE && bestDiceIdx >= 0) {
+    const winnerId = catalogMeta[bestDiceIdx].id;
+    if (scored[0].id !== winnerId) {
+      const pos = scored.findIndex((c) => c.id === winnerId);
+      if (pos > 0) {
+        const [winner] = scored.splice(pos, 1);
+        winner.score = bestDice;
+        scored.unshift(winner);
+      }
+    }
+  }
+  return scored.slice(0, k);
+}
+
 export function lookupAlias(text: string): MatchCandidate | null {
   const normalized = normalizeForEmbedding(text);
   const id = aliasMap.get(normalized);
@@ -137,5 +225,5 @@ export async function matchOne(text: string, k = 3): Promise<MatchCandidate[]> {
   if (alias) return [alias];
   const normalized = normalizeForEmbedding(text);
   const vec = await embedQuery(normalized);
-  return topKMatches(vec, k);
+  return topKHybrid(vec, normalized, k);
 }
