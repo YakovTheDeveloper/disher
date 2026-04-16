@@ -174,6 +174,43 @@ const FreeTextFoodPage = () => {
     setUnresolved((prev) => prev.map((u) => (u.uid === uid ? { ...u, ...updates } : u)));
   }, []);
 
+  // B1, B2, B3 handlers
+  const handleEditResolvedTime = useCallback((uid: string, time: string) => {
+    updateResolved(uid, { time });
+  }, [updateResolved]);
+
+  const handleEditAmbiguousTime = useCallback((uid: string, time: string) => {
+    updateAmbiguous(uid, { time });
+  }, [updateAmbiguous]);
+
+  const handleEditUnresolvedTime = useCallback((uid: string, time: string) => {
+    updateUnresolved(uid, { time });
+  }, [updateUnresolved]);
+
+  const handleEditResolvedQuantity = useCallback((uid: string, quantity: number) => {
+    updateResolved(uid, { quantity });
+  }, [updateResolved]);
+
+  const handleEditAmbiguousQuantity = useCallback((uid: string, quantity: number) => {
+    updateAmbiguous(uid, { quantity });
+  }, [updateAmbiguous]);
+
+  const handleEditUnresolvedQuantity = useCallback((uid: string, quantity: number) => {
+    updateUnresolved(uid, { quantity });
+  }, [updateUnresolved]);
+
+  const handleEditResolvedFood = useCallback((uid: string, productId: string, name: string) => {
+    updateResolved(uid, { productId, name });
+  }, [updateResolved]);
+
+  const handleEditAmbiguousFood = useCallback((uid: string, productId: string) => {
+    updateAmbiguous(uid, { selectedId: productId });
+  }, [updateAmbiguous]);
+
+  const handleEditUnresolvedFood = useCallback((uid: string, productId: string, name: string) => {
+    updateUnresolved(uid, { manual: { id: productId, name, score: 1 } });
+  }, [updateUnresolved]);
+
   const handleFindManually = useCallback(async (uid: string) => {
     const row = unresolved.find((u) => u.uid === uid);
     if (!row) return;
@@ -370,6 +407,9 @@ const FreeTextFoodPage = () => {
                     <li key={r.uid}>
                       <FreeTextFoodReviewItem
                         item={r}
+                        onEditTime={(time) => handleEditResolvedTime(r.uid, time)}
+                        onEditQuantity={(qty) => handleEditResolvedQuantity(r.uid, qty)}
+                        onEditFood={(id, name) => handleEditResolvedFood(r.uid, id, name)}
                         onDeleteNote={() => updateResolved(r.uid, { note: '' })}
                         onDeleteItem={() => deleteResolved(r.uid)}
                       />
@@ -403,6 +443,9 @@ const FreeTextFoodPage = () => {
                           onSelectCandidate={(id) =>
                             updateAmbiguous(a.uid, { selectedId: id })
                           }
+                          onEditTime={(time) => handleEditAmbiguousTime(a.uid, time)}
+                          onEditQuantity={(qty) => handleEditAmbiguousQuantity(a.uid, qty)}
+                          onEditFood={(id) => handleEditAmbiguousFood(a.uid, id)}
                           onDeleteNote={() => updateAmbiguous(a.uid, { note: '' })}
                           onDeleteItem={() => deleteAmbiguous(a.uid)}
                         />
@@ -428,6 +471,9 @@ const FreeTextFoodPage = () => {
                           productId: u.manual?.id ?? '',
                         }}
                         isUnresolved={!u.manual}
+                        onEditTime={(time) => handleEditUnresolvedTime(u.uid, time)}
+                        onEditQuantity={(qty) => handleEditUnresolvedQuantity(u.uid, qty)}
+                        onEditFood={(id, name) => handleEditUnresolvedFood(u.uid, id, name)}
                         onFindManually={() => handleFindManually(u.uid)}
                         onDeleteNote={() => updateUnresolved(u.uid, { note: '' })}
                         onDeleteItem={() => deleteUnresolved(u.uid)}

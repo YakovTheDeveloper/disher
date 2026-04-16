@@ -2,6 +2,11 @@ import { useState } from 'react';
 import clsx from 'clsx';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Quantity } from '@/shared/ui/Quantity';
+import TimeChoose from '@/shared/ui/TimeChoose/TimeChoose';
+import { modalStore, type BaseModalProps } from '@/shared/ui';
+import { ModalLayout } from '@/shared/ui/ModalLayout';
+import ModalConfirmation from '@/shared/ui/Modal/ModalConfirmation/ModalConfirmation';
+import { openFreeTextFoodSearch } from '@/features/daySchedule/free-text-food/openFreeTextFoodSearch';
 import styles from './FreeTextFoodReviewItem.module.scss';
 
 interface MatchCandidate {
@@ -9,6 +14,20 @@ interface MatchCandidate {
   name: string;
   score: number;
 }
+
+type ConfirmDeleteProps = BaseModalProps<boolean> & {
+  action: string;
+};
+
+const ConfirmDeleteModal = ({ onClose, action }: ConfirmDeleteProps) => (
+  <ModalLayout>
+    <ModalConfirmation
+      data={{ action }}
+      onConfirm={() => onClose(true)}
+      onClose={() => onClose(false)}
+    />
+  </ModalLayout>
+);
 
 interface FreeTextFoodReviewItemProps {
   item: {
@@ -25,6 +44,9 @@ interface FreeTextFoodReviewItemProps {
   candidates?: MatchCandidate[];
   selectedCandidateId?: string | null;
   onSelectCandidate?: (id: string) => void;
+  onEditTime?: (time: string) => void;
+  onEditFood?: (productId: string, name: string) => void;
+  onEditQuantity?: (quantity: number) => void;
   onDeleteNote?: () => void;
   onDeleteItem?: () => void;
   onFindManually?: () => void;
@@ -37,29 +59,55 @@ export const FreeTextFoodReviewItem = ({
   candidates,
   selectedCandidateId,
   onSelectCandidate,
+  onEditTime,
+  onEditFood,
+  onEditQuantity,
   onDeleteNote,
   onDeleteItem,
   onFindManually,
 }: FreeTextFoodReviewItemProps) => {
   const [expandCandidates, setExpandCandidates] = useState(false);
+  const [editingTime, setEditingTime] = useState(false);
+  const [editingQuantity, setEditingQuantity] = useState(false);
   const hasNote = item.note.trim().length > 0;
 
   return (
     <div className={clsx(styles.root)}>
       <div className={styles.header}>
-        {isAmbiguous && (
-          <div className={styles.ambiguousDot} title="Требует уточнения" />
-        )}
-        {isUnresolved && (
-          <div className={styles.unresolvedDot} title="Не распознано" />
-        )}
+        {isAmbiguous && <div className={styles.ambiguousDot} title="Требует уточнения" />}
+        {isUnresolved && <div className={styles.unresolvedDot} title="Не распознано" />}
 
         <div className={styles.timeGroup}>
-          <span className={styles.time}>{item.time}</span>
+          {editingTime ? (
+            <TimeChoose
+              initialTime={item.time}
+              onFinish={(newTime: string) => {
+                onEditTime?.(newTime);
+                setEditingTime(false);
+              }}
+            />
+          ) : (
+            <button
+              type="button"
+              className={styles.time}
+              onClick={() => setEditingTime(true)}
+            >
+              {item.time}
+            </button>
+          )}
         </div>
 
         <div className={styles.nameGroup}>
-          <FoodName className={styles.name}>{item.name}</FoodName>
+          <button
+            type="button"
+            className={styles.nameButton}
+            onClick={async () => {
+              const picked = await openFreeTextFoodSearch(item.originalName);
+              if (picked) onEditFood?.(picked.id, picked.name);
+            }}
+          >
+            <FoodName className={styles.name} content={{ name: item.name }} />
+          </button>
           {hasNote && (
             <button
               type="button"
@@ -81,27 +129,58 @@ export const FreeTextFoodReviewItem = ({
             </button>
           )}
           {isUnresolved && !item.productId && (
-            <button
-              type="button"
-              className={styles.findLink}
-              onClick={onFindManually}
-            >
+            <button type="button" className={styles.findLink} onClick={onFindManually}>
               Найти
             </button>
           )}
         </div>
 
         <div className={styles.quantityGroup}>
-          <Quantity className={styles.quantity}>
-            {item.quantity} г
-            {item.quantityGuessed && <span className={styles.guessed}>оценено</span>}
-          </Quantity>
+          {editingQuantity ? (
+            <input
+              type="number"
+              value={item.quantity}
+              onChange={(e) => {
+                const newQty = parseInt(e.target.value) || item.quantity;
+                onEditQuantity?.(newQty);
+              }}
+              onBlur={() => setEditingQuantity(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') setEditingQuantity(false);
+              }}
+              autoFocus
+              className={styles.quantityInput}
+              min="1"
+              max="9999"
+            />
+          ) : (
+            <button
+              type="button"
+              className={styles.quantityButton}
+              onClick={() => setEditingQuantity(true)}
+            >
+              <Quantity
+                id={`qty-${item.productId}`}
+                onClick={() => {}}
+                content={{ quantity: item.quantity }}
+                hide={false}
+                unit="г"
+                className={styles.quantity}
+              />
+            </button>
+          )}
+          {item.quantityGuessed && <span className={styles.guessed}>оценено</span>}
         </div>
 
         <button
           type="button"
           className={styles.deleteBtn}
-          onClick={onDeleteItem}
+          onClick={async () => {
+            const confirmed = await modalStore.show(ConfirmDeleteModal, {
+              action: 'удалить этот продукт?',
+            });
+            if (confirmed) onDeleteItem?.();
+          }}
           title="Удалить элемент"
         >
           ×
@@ -116,7 +195,7 @@ export const FreeTextFoodReviewItem = ({
               type="button"
               className={clsx(
                 styles.candidateOption,
-                candidate.id === selectedCandidateId && styles.candidateOptionActive,
+                candidate.id === selectedCandidateId && styles.candidateOptionActive
               )}
               onClick={() => {
                 onSelectCandidate?.(candidate.id);
