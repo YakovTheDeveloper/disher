@@ -33,6 +33,24 @@ export function useDishItems(dishId: string | undefined) {
   );
 }
 
+const allProducts$ = queryDb(tables.products.where({ deletedAt: null }), { label: 'di-products' });
+
+export function useDishItemsWithProducts(dishId: string | undefined) {
+  const items = useDishItems(dishId);
+  const products = useQuery(allProducts$);
+
+  return useMemo(() => {
+    const productMap = new Map(products.map((p) => [p.id, p]));
+    return items.map((item) => {
+      const product = item.productId ? productMap.get(item.productId) ?? null : null;
+      return {
+        ...item,
+        product: product ? { name: product.name } : null,
+      };
+    });
+  }, [items, products]);
+}
+
 export function useDishPortions(dishId: string | undefined) {
   return useQuery(
     queryDb(

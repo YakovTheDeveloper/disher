@@ -30,6 +30,7 @@ type ModalNextButtonLabelProps = {
   as: 'label';
   htmlFor: string;
   variant?: 'next' | 'finish';
+  label?: string;
 };
 
 type ModalNextButtonButtonProps = {
@@ -37,6 +38,7 @@ type ModalNextButtonButtonProps = {
   htmlFor?: never;
   onClick: () => void;
   variant?: 'next' | 'finish';
+  label?: string;
 };
 
 type ModalNextButtonProps = ModalNextButtonLabelProps | ModalNextButtonButtonProps;
@@ -115,9 +117,11 @@ export const ModalPrevButton = (props: ModalPrevButtonProps) => {
 
 export const ModalNextButton = (props: ModalNextButtonProps) => {
   const isFinish = props.variant === 'finish';
+  const defaultLabel = isFinish ? 'Готово' : 'Далее';
+  const label = props.label ?? defaultLabel;
   const content = (
     <>
-      <span className={s.nextArrowLabel}>{isFinish ? 'Готово' : 'Далее'}</span>
+      <span className={s.nextArrowLabel}>{label}</span>
       {isFinish ? doneIcon : arrowIcon}
     </>
   );

@@ -5,6 +5,8 @@ import { useCallback } from 'react';
 import clsx from 'clsx';
 import { FilterButton } from '@/shared/ui/atoms/Button';
 import NutrientCardV3 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV3';
+import { NutrientCardAlt } from '@/entities/nutrient/ui/NutrientCard';
+import type { NutrientCardAltVariant } from '@/entities/nutrient/ui/NutrientCard';
 import {
   useFilterNutrients,
   FilterNutrientsPanel,
@@ -28,6 +30,8 @@ type Props = {
   after?: React.ReactNode;
   className?: string;
   onRichFood?: (nutrientId: string, unit: string) => void;
+  variant?: 'view' | 'edit-norms' | 'edit-values';
+  cardVariant?: NutrientCardAltVariant;
 };
 
 const FoodsNutrients = ({
@@ -37,6 +41,8 @@ const FoodsNutrients = ({
   after,
   className,
   onRichFood,
+  variant = 'view',
+  cardVariant,
 }: Props) => {
   const filter = useFilterNutrients();
   const { getValue } = useNutrientTotals(totals);
@@ -50,14 +56,28 @@ const FoodsNutrients = ({
         nutrientId={nutrientData.id}
         nutrientKey={nutrientData.name}
         actionSlot={
-          <OpenRichFood nutrientId={nutrientData.id} nutrientName={nutrientData.displayNameRu} nutrientUnit={nutrientData.unitRu} onRichFood={onRichFood} />
+          <OpenRichFood
+            nutrientId={nutrientData.id}
+            nutrientName={nutrientData.displayNameRu}
+            nutrientUnit={nutrientData.unitRu}
+            onRichFood={onRichFood}
+          />
         }
-        renderCard={(overrides) => (
-          <NutrientCardV3 content={nutrientData} getValue={getValue} {...overrides} />
-        )}
+        renderCard={(overrides) =>
+          cardVariant ? (
+            <NutrientCardAlt
+              content={nutrientData}
+              getValue={getValue}
+              variant={cardVariant}
+              {...overrides}
+            />
+          ) : (
+            <NutrientCardV3 content={nutrientData} getValue={getValue} {...overrides} />
+          )
+        }
       />
     ),
-    [filter, getValue, onRichFood]
+    [filter, getValue, onRichFood, cardVariant]
   );
 
   return (
@@ -79,12 +99,18 @@ const FoodsNutrients = ({
       }
     >
       <div className={styles.statusHeader}>{isLoading && <Spinner size={16} />}</div>
-      <Ornament text="нутриенты"></Ornament>
+      <div className={styles.norms}>
+        <Ornament text="дневная норма" variant="horizontal"></Ornament>
+        <OpenDailyNorms />
+      </div>
+      {/* <Ornament text="нутриенты"></Ornament> */}
 
       <div className={styles.nutrientsSection}>
-        {/* <img src={treeSrc} alt="" className={styles.watermark} /> */}
-        {/* <Nutrients renderCard={renderCard} titleVariant="v2" /> */}
-        <NutrientDesignVariants getValue={getValue} />
+        {cardVariant ? (
+          <Nutrients renderCard={renderCard} />
+        ) : (
+          <NutrientDesignVariants getValue={getValue} variant={variant} onRichFood={onRichFood} />
+        )}
       </div>
 
       {missingNutrientNames.length > 0 && (
@@ -92,9 +118,6 @@ const FoodsNutrients = ({
           Нет данных о нутриентах: {missingNutrientNames.join(', ')}
         </p>
       )}
-
-      <Ornament text="дневная норма"></Ornament>
-      <OpenDailyNorms />
 
       {after}
     </Screen>

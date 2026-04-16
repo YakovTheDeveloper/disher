@@ -1,0 +1,119 @@
+.splashScreen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+  transition: opacity 0.5s ease-out;
+  opacity: 1;
+
+  &.unmounting {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #4facfe 0%, #00c9ff 50%, #0096ff 100%);
+  opacity: 0.95;
+  animation: fadeOut 0.8s ease-out forwards;
+  animation-delay: 1.4s;
+}
+
+.content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoWrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  animation: slideInScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+
+  @media (max-width: 480px) {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+.logo {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.15));
+  animation: float 3s ease-in-out infinite;
+  animation-delay: 0.4s;
+
+  svg {
+    filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.15));
+  }
+}
+
+.pulseRing {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  animation: pulse 2s ease-out forwards;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    animation: pulse 2s ease-out 0.2s forwards;
+  }
+}
+
+@keyframes slideInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes pulse {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 0.95;
+  }
+
+  to {
+    opacity: 0;
+  }
+}

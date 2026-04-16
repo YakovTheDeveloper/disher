@@ -2,6 +2,8 @@ import { useCallback, useState } from 'react';
 import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
+import { popOverlayEntry } from '@/shared/lib/overlay-history';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
@@ -52,6 +54,7 @@ type Props = {
 
 const DishProductCreateModals = ({ dishId }: Props) => {
   const { store } = useStore();
+  const { toProduct } = useAppRoutes();
   const [step, setStep] = useState<Step>('idle');
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
   const [sessionKey, setSessionKey] = useState(0);
@@ -139,6 +142,10 @@ const DishProductCreateModals = ({ dishId }: Props) => {
               key={sessionKey}
               mode="products-only"
               onSelectFood={handleFoodSelect}
+              onInfoClick={async (_variant, id) => {
+                await popOverlayEntry();
+                toProduct(id);
+              }}
               activeItemId={draft.productId ?? undefined}
               itemHtmlFor={DISH_MODAL_INPUT_IDS.QUANTITY_INPUT}
               inputId={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}

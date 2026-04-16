@@ -7,7 +7,6 @@ import { SearchFoodControls } from '@/features/food/food-search/SearchFoodContro
 import { FilterButton } from '@/shared/ui/atoms/Button';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { getProductCategoryGroups, getProductCategoryOptions } from '@/entities/product';
-import { getDishCategoryGroups, getDishCategoryOptions } from '@/entities/dish';
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 import { useFilteredFoods, useFoodCreation } from './model';
@@ -24,10 +23,10 @@ type Props = {
   richNutrient?: { id: string; unit: string } | null;
   onInfoClick?: (variant: 'product' | 'dish', id: string) => void;
   onBack?: () => void;
-  searchBarLeftChild?: React.ReactNode;
-  searchBarRightChild?: React.ReactNode;
+  bottomLeft?: React.ReactNode;
   itemHtmlFor?: string;
   inputId?: string;
+  initialSearchQuery?: string;
 };
 
 const getDefaultTab = (mode: SearchMode) => (mode === 'dishes-only' ? 'блюда' : 'все');
@@ -39,14 +38,14 @@ const SearchFood = ({
   richNutrient,
   onInfoClick,
   onBack,
-  searchBarLeftChild,
-  searchBarRightChild,
+  bottomLeft,
   itemHtmlFor,
   inputId,
+  initialSearchQuery,
 }: Props) => {
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [myFoodOnly, setMyFoodOnly] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery ?? '');
   const [currentTab, setCurrentTab] = useState(getDefaultTab(mode));
 
   const listContainerRef = useRef<HTMLDivElement>(null);
@@ -79,8 +78,6 @@ const SearchFood = ({
       active.blur();
     }
   }, []);
-
-  const currentFilterType = currentTab === 'блюда' ? 'dish' : 'product';
 
   const richNutrientInfo = useMemo(
     () => (richNutrient ? allNutrientsList.find((n) => n.id === richNutrient.id) : null),
@@ -178,8 +175,6 @@ const SearchFood = ({
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onBack={onBack}
-          searchBarLeftChild={searchBarLeftChild}
-          searchBarRightChild={searchBarRightChild}
           inputId={inputId}
         />
       </div>
@@ -269,38 +264,32 @@ const SearchFood = ({
                   </button>
                 </div>
               )}
-              {currentTab === 'продукты' && (
-                <div className={styles.filterChips}>
-                  <button
-                    className={clsx(styles.filterChip, myFoodOnly && styles.filterChipActive)}
-                    onClick={() => setMyFoodOnly((prev) => !prev)}
-                  >
-                    Моя еда
-                  </button>
-                </div>
-              )}
+              <div className={styles.filterChips}>
+                <button
+                  className={clsx(styles.filterChip, myFoodOnly && styles.filterChipActive)}
+                  onClick={() => setMyFoodOnly((prev) => !prev)}
+                >
+                  Моя еда
+                </button>
+              </div>
             </>
           }
-          groups={currentTab === 'продукты' ? getProductCategoryGroups() : getDishCategoryGroups()}
-          options={
-            currentTab === 'продукты' ? getProductCategoryOptions() : getDishCategoryOptions()
-          }
-          selectedValues={categoryFilter.getCategoryFilter(currentFilterType)}
-          onToggle={(value) => categoryFilter.toggleCategory(currentFilterType, value as string)}
-          onClear={() => categoryFilter.clearCategories(currentFilterType)}
+          groups={getProductCategoryGroups()}
+          options={getProductCategoryOptions()}
+          selectedValues={categoryFilter.selectedCategories}
+          onToggle={(value) => categoryFilter.toggleCategory(value as string)}
+          onClear={() => categoryFilter.clearCategories()}
           title="Фильтр по категории"
         />
       </section>
+
+      {bottomLeft && <div className={styles.bottomLeft}>{bottomLeft}</div>}
 
       <div className={styles.filterButtonWrapper}>
         <FilterButton
           isActive={filterPanelOpen}
           onClick={() => setFilterPanelOpen((p) => !p)}
-          activeCount={
-            categoryFilter.getCategoryFilter('product').length +
-            categoryFilter.getCategoryFilter('dish').length +
-            (myFoodOnly ? 1 : 0)
-          }
+          activeCount={categoryFilter.selectedCategories.length + (myFoodOnly ? 1 : 0)}
         >
           Фильтр
         </FilterButton>

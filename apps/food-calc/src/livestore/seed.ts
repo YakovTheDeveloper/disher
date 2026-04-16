@@ -16,7 +16,7 @@ interface FinalFood {
 
 // ─── Seed logic ──────────────────────────────────────────────────────────────
 
-const SEED_VERSION = 2
+const SEED_VERSION = 3
 const SEED_KEY = 'livestore_seed_version'
 
 /**
@@ -24,13 +24,17 @@ const SEED_KEY = 'livestore_seed_version'
  * 1. SEED_VERSION changed (new seed data available), OR
  * 2. localStorage says seeded but the DB is actually empty (DB was wiped independently)
  */
-export function isSeedNeeded(store: Store): boolean {
+export function isSeedNeeded(store: Store): { needed: boolean; isReseed: boolean } {
   const stored = localStorage.getItem(SEED_KEY)
-  if (stored !== String(SEED_VERSION)) return true
+  if (stored !== String(SEED_VERSION)) {
+    // Check if DB already has products (reseed vs fresh seed)
+    const products = store.query(queryDb(tables.products.where({})))
+    return { needed: true, isReseed: products.length > 0 }
+  }
 
   // Version matches — verify the DB actually has data
   const products = store.query(queryDb(tables.products.where({})))
-  return products.length === 0
+  return { needed: products.length === 0, isReseed: false }
 }
 
 function markSeeded(): void {
@@ -44,6 +48,7 @@ function markSeeded(): void {
 export async function runSeed(
   store: Store,
   onProgress: (done: number, total: number) => void,
+  isReseed = false,
 ): Promise<void> {
   // 1. Fetch combined-foods-final.json from public/
   const res = await fetch('/combined-foods-final.json')
@@ -57,8 +62,8 @@ export async function runSeed(
   const BATCH_SIZE = 50
   for (let i = 0; i < foods.length; i += BATCH_SIZE) {
     const batch = foods.slice(i, i + BATCH_SIZE)
-    const batchEvents = batch.map((food) => {
-      return events.productCreated({
+    const batchEvents = batch.flatMap((food) => {
+      const createEvent = events.productCreated({
         id: food.id,
         userId: SYSTEM_USER_ID,
         name: food.name,
@@ -71,6 +76,16 @@ export async function runSeed(
         portions: JSON.stringify(food.portions),
         categories: JSON.stringify(food.categories),
       })
+      if (!isReseed) return [createEvent]
+      // On reseed, also emit update to overwrite existing data
+      const updateEvent = events.productUpdated({
+        id: food.id,
+        name: food.name,
+        nutrients: JSON.stringify(food.nutrients),
+        portions: JSON.stringify(food.portions),
+        categories: JSON.stringify(food.categories),
+      })
+      return [createEvent, updateEvent]
     })
 
     store.commit(...batchEvents)

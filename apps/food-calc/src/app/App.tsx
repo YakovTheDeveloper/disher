@@ -30,7 +30,20 @@ export default function App() {
   return (
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
-        <Toaster position="top-center" duration={6000} richColors closeButton />
+        <Toaster
+          position="top-center"
+          duration={6000}
+          closeButton
+          toastOptions={{
+            classNames: {
+              toast: 'toast',
+              success: 'toast--success',
+              error: 'toast--error',
+              info: 'toast--info',
+              warning: 'toast--warning',
+            },
+          }}
+        />
         <div className={s.main}>
           <Modal>
             <ModalManagerV2 />

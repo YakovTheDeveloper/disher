@@ -1,9 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { readFileSync } from "fs";
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { loadCatalog, getCatalogIds } from "../catalog.js";
 
 // ─── Types ───
 
@@ -16,26 +12,6 @@ interface SuggestionItem {
   productId: string;
   name: string;
   quantity: number;
-}
-
-interface CatalogEntry {
-  id: string;
-  n: string;
-  c: string[];
-}
-
-// ─── Catalog (loaded once, ~146KB) ───
-
-let catalog: CatalogEntry[] | null = null;
-let catalogIds: Set<string> | null = null;
-
-function loadCatalog(): CatalogEntry[] {
-  if (!catalog) {
-    const catalogPath = resolve(__dirname, "../../../data/food-catalog-lite.json");
-    catalog = JSON.parse(readFileSync(catalogPath, "utf-8"));
-    catalogIds = new Set(catalog!.map((f) => f.id));
-  }
-  return catalog!;
 }
 
 // ─── Rate Limiting (in-memory) ───
@@ -156,9 +132,10 @@ async function callLLM(
 
   // Validate: only keep items with valid foodIds from catalog
   const existingIds = new Set(existingItems.map((i) => i.productId));
+  const catalogIds = getCatalogIds();
   return suggestions.filter(
     (s) =>
-      catalogIds!.has(s.productId) &&
+      catalogIds.has(s.productId) &&
       !existingIds.has(s.productId) &&
       typeof s.quantity === "number" &&
       s.quantity > 0

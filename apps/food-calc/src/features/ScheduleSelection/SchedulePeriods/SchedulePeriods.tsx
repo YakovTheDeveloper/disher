@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '@livestore/react';
 import { parse, format } from 'date-fns';
 import styles from './SchedulePeriods.module.scss';
@@ -11,6 +11,7 @@ import { ModalShell } from '@/shared/ui/ModalShell/ModalShell';
 import { ModalPrevButton, ModalNextButton } from '@/shared/ui/ModalFooter';
 import { Tabs } from '@/shared/ui/Tabs';
 import type { Tab } from '@/shared/ui/Tabs';
+import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
 
 const COLOR_CLASSES = [
   styles.color0,
@@ -52,9 +53,92 @@ const DeletePeriodDrawer = ({ onClose, periodName }: BaseDrawerProps<boolean> & 
   </DrawerLayout>
 );
 
+const LONG_PRESS_MS = 500;
+
+type PeriodCardProps = {
+  period: { id: string; name: string; colorIndex: number; fontFamily: string; fontSize: number };
+  onTap: (id: string) => void;
+  onLongPress: (id: string, name: string) => void;
+  appliedId: string | null;
+};
+
+const PeriodCard = ({ period, onTap, onLongPress, appliedId }: PeriodCardProps) => {
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const firedRef = useRef(false);
+  const isTouchRef = useRef(false);
+
+  const startPress = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    // Prevent mouse events from firing after touch events
+    if (e.type === 'touchstart') isTouchRef.current = true;
+    if (e.type === 'mousedown' && isTouchRef.current) return;
+
+    firedRef.current = false;
+    timerRef.current = setTimeout(() => {
+      firedRef.current = true;
+      onLongPress(period.id, period.name);
+    }, LONG_PRESS_MS);
+  }, [period.id, period.name, onLongPress]);
+
+  const endPress = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    if (e.type === 'mouseup' && isTouchRef.current) {
+      isTouchRef.current = false;
+      return;
+    }
+
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (firedRef.current) {
+      // Long press already fired — block the event from propagating
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    onTap(period.id);
+  }, [period.id, onTap]);
+
+  const cancelPress = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const isApplied = appliedId === period.id;
+
+  return (
+    <div
+      data-period-id={period.id}
+      className={`${styles.periodCard} ${isApplied ? styles.periodCardApplied : ''}`}
+      onTouchStart={startPress}
+      onTouchEnd={endPress}
+      onTouchCancel={cancelPress}
+      onMouseDown={startPress}
+      onMouseUp={endPress}
+      onMouseLeave={cancelPress}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      <div
+        className={`${styles.periodName} ${COLOR_CLASSES[period.colorIndex]}`}
+        style={{
+          fontFamily: period.fontFamily === 'serif' ? 'Georgia, serif' : period.fontFamily === 'mono' ? 'monospace' : 'system-ui, -apple-system, sans-serif',
+          fontSize: `${period.fontSize}px`,
+        }}
+      >
+        {period.name}
+      </div>
+      {isApplied && <span className={styles.appliedBadge}>✓ Применён</span>}
+    </div>
+  );
+};
+
 type SchedulePeriodsProps = {
   date?: string; // dd-MM-yyyy
   onClose?: () => void;
+  onPeriodCreated?: (periodId: string) => void;
 };
 
 const formatDateTab = (dateStr: string): string => {
@@ -62,18 +146,20 @@ const formatDateTab = (dateStr: string): string => {
   return format(parsed, 'dd-MM-yy');
 };
 
-export const SchedulePeriods = ({ date, onClose }: SchedulePeriodsProps) => {
+export const SchedulePeriods = ({ date, onClose, onPeriodCreated }: SchedulePeriodsProps) => {
   const { store } = useStore();
   const periods = usePeriods();
-  const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [stylingOpen, setStylingOpen] = useState(false);
+  const [applyToCurrentDay, setApplyToCurrentDay] = useState(true);
   // Default tab is 'day' (date) when date is provided
   const [activeTab, setActiveTab] = useState<'periods' | 'day'>(date ? 'day' : 'periods');
+  const createdPeriodRef = useRef<string | null>(null);
 
-  // Delay ActionButtons appearance so drawer layout has time to build
+  // Delay ActionButtons appearance so modal has time to expand
   const [showActions, setShowActions] = useState(false);
   useEffect(() => {
-    const timer = setTimeout(() => setShowActions(true), 350);
+    const timer = setTimeout(() => setShowActions(true), 0);
     return () => clearTimeout(timer);
   }, []);
 
@@ -85,7 +171,7 @@ export const SchedulePeriods = ({ date, onClose }: SchedulePeriodsProps) => {
   const handleAdd = () => {
     if (!form.name.trim()) return;
 
-    safeMutate(
+    const periodId = safeMutate(
       () => addPeriod(store, {
         name: form.name.trim(),
         colorIndex: form.colorIndex,
@@ -95,24 +181,51 @@ export const SchedulePeriods = ({ date, onClose }: SchedulePeriodsProps) => {
       'Не удалось создать период',
     );
 
-    setForm(emptyForm);
-    setShowForm(false);
+    if (periodId && onPeriodCreated) {
+      onPeriodCreated(periodId);
+    }
+
+    if (applyToCurrentDay) {
+      setForm(emptyForm);
+      setStylingOpen(false);
+      if (onClose) onClose();
+    } else {
+      createdPeriodRef.current = periodId ?? null;
+      setForm(emptyForm);
+      setStylingOpen(false);
+      setActiveTab('periods');
+    }
   };
 
-  const handleRemove = async (id: string, name: string) => {
+  // Scroll to newly created period when switching to periods tab
+  useEffect(() => {
+    if (activeTab === 'periods' && createdPeriodRef.current) {
+      const id = createdPeriodRef.current;
+      createdPeriodRef.current = null;
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-period-id="${id}"]`);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
+  }, [activeTab]);
+
+  const [appliedPeriodId, setAppliedPeriodId] = useState<string | null>(null);
+
+  const handleApplyPeriod = useCallback((id: string) => {
+    setAppliedPeriodId(id);
+    if (onPeriodCreated) onPeriodCreated(id);
+  }, [onPeriodCreated]);
+
+  const handleLongPressPeriod = useCallback(async (id: string, name: string) => {
     const confirmed = await drawerStore.show(DeletePeriodDrawer, { periodName: name });
     if (confirmed) {
       safeMutate(() => removePeriod(store, id), 'Не удалось удалить период');
+      if (appliedPeriodId === id) setAppliedPeriodId(null);
     }
-  };
+  }, [store, appliedPeriodId]);
 
   const handlePrev = () => {
-    if (showForm) {
-      setShowForm(false);
-      setForm(emptyForm);
-    } else if (onClose) {
-      onClose();
-    }
+    if (onClose) onClose();
   };
 
   const periodsList = periods;
@@ -121,7 +234,7 @@ export const SchedulePeriods = ({ date, onClose }: SchedulePeriodsProps) => {
     <div className={styles.container}>
       <Tabs tabs={tabs} current={activeTab} setTab={(v) => setActiveTab(v as 'periods' | 'day')} />
 
-      {/* Date tab — title input and period settings */}
+      {/* Date tab — name input + collapsible styling accordion */}
       {activeTab === 'day' && (
         <>
           <div className={styles.titleSection}>
@@ -135,62 +248,77 @@ export const SchedulePeriods = ({ date, onClose }: SchedulePeriodsProps) => {
             />
           </div>
 
-          {showForm && (
-            <form
-              className={styles.form}
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAdd();
-              }}
+          <div className={styles.accordion}>
+            <button
+              type="button"
+              className={styles.accordionToggle}
+              onClick={() => setStylingOpen((v) => !v)}
             >
-              <div className={styles.formField}>
-                <label className={styles.formLabel}>Цвет</label>
-                <div className={styles.colorGrid}>
-                  {COLOR_VALUES.map((color, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      className={`${styles.colorButton} ${form.colorIndex === idx ? styles.selected : ''}`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => setForm((f) => ({ ...f, colorIndex: idx }))}
-                    />
-                  ))}
+              <span>Оформление</span>
+              <span className={`${styles.accordionArrow} ${stylingOpen ? styles.open : ''}`}>▼</span>
+            </button>
+
+            {stylingOpen && (
+              <div className={styles.accordionBody}>
+                <div className={styles.form}>
+                  <div className={styles.formField}>
+                    <label className={styles.formLabel}>Цвет</label>
+                    <div className={styles.colorGrid}>
+                      {COLOR_VALUES.map((color, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className={`${styles.colorButton} ${form.colorIndex === idx ? styles.selected : ''}`}
+                          style={{ backgroundColor: color }}
+                          onClick={() => setForm((f) => ({ ...f, colorIndex: idx }))}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.formRow}>
+                    <div className={styles.formField}>
+                      <label className={styles.formLabel}>Шрифт</label>
+                      <select
+                        className={styles.formInput}
+                        value={form.fontFamily}
+                        onChange={(e) => setForm((f) => ({ ...f, fontFamily: e.target.value as typeof form.fontFamily }))}
+                      >
+                        {FONTS.map((font) => (
+                          <option key={font} value={font}>
+                            {font === 'sans' ? 'Без засечек' : font === 'serif' ? 'С засечками' : 'Моношрифт'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className={styles.formField}>
+                      <label className={styles.formLabel}>Размер</label>
+                      <select
+                        className={styles.formInput}
+                        value={form.fontSize}
+                        onChange={(e) => setForm((f) => ({ ...f, fontSize: Number(e.target.value) }))}
+                      >
+                        {FONT_SIZES.map((size) => (
+                          <option key={size} value={size}>
+                            {size}px
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
+            )}
+          </div>
 
-              <div className={styles.formRow}>
-                <div className={styles.formField}>
-                  <label className={styles.formLabel}>Шрифт</label>
-                  <select
-                    className={styles.formInput}
-                    value={form.fontFamily}
-                    onChange={(e) => setForm((f) => ({ ...f, fontFamily: e.target.value as typeof form.fontFamily }))}
-                  >
-                    {FONTS.map((font) => (
-                      <option key={font} value={font}>
-                        {font === 'sans' ? 'Без засечек' : font === 'serif' ? 'С засечками' : 'Моношрифт'}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className={styles.formField}>
-                  <label className={styles.formLabel}>Размер</label>
-                  <select
-                    className={styles.formInput}
-                    value={form.fontSize}
-                    onChange={(e) => setForm((f) => ({ ...f, fontSize: Number(e.target.value) }))}
-                  >
-                    {FONT_SIZES.map((size) => (
-                      <option key={size} value={size}>
-                        {size}px
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </form>
-          )}
+          <div className={styles.checkboxArea}>
+            <LabeledCheckbox
+              checked={applyToCurrentDay}
+              onChange={setApplyToCurrentDay}
+              label="Применить к текущему дню"
+            />
+          </div>
 
           {showActions && (
             <ModalShell.ActionButtons
@@ -199,13 +327,11 @@ export const SchedulePeriods = ({ date, onClose }: SchedulePeriodsProps) => {
                 <ModalPrevButton onClick={handlePrev} />
               }
               right={
-                <ModalNextButton onClick={() => {
-                  if (showForm) {
-                    handleAdd();
-                  } else {
-                    setShowForm(true);
-                  }
-                }} />
+                <ModalNextButton
+                  onClick={handleAdd}
+                  variant="finish"
+                  label="Создать"
+                />
               }
             />
           )}
@@ -228,22 +354,18 @@ export const SchedulePeriods = ({ date, onClose }: SchedulePeriodsProps) => {
             )}
 
             {periodsList.map((period) => (
-              <div
+              <PeriodCard
                 key={period.id}
-                className={styles.periodCard}
-                onClick={() => handleRemove(period.id, period.name)}
-              >
-                <div
-                  className={`${styles.periodName} ${COLOR_CLASSES[period.colorIndex]}`}
-                  style={{
-                    fontFamily: period.fontFamily === 'serif' ? 'Georgia, serif' : period.fontFamily === 'mono' ? 'monospace' : 'system-ui, -apple-system, sans-serif',
-                    fontSize: `${period.fontSize}px`,
-                  }}
-                >
-                  {period.name}
-                </div>
-              </div>
+                period={period}
+                onTap={handleApplyPeriod}
+                onLongPress={handleLongPressPeriod}
+                appliedId={appliedPeriodId}
+              />
             ))}
+
+            {periodsList.length > 0 && (
+              <p className={styles.hint}>Нажмите, чтобы применить. Удержите для удаления.</p>
+            )}
           </div>
 
           {showActions && (

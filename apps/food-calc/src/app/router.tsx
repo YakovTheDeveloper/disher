@@ -4,9 +4,9 @@ import HomePage from '@/pages/home-page/HomePage.tsx';
 import { format } from 'date-fns';
 import ScheduleDateSelectionPage from '@/pages/schedule/schedule-date-selection-page/ScheduleDateSelectionPage.tsx';
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
+import FreeTextFoodPage from '@/pages/free-text-food/FreeTextFoodPage.tsx';
 
 import ProductPage from '@/pages/product/ProductPage.tsx';
-import DailyNormPage from '@/pages/daily-norms/DailyNormPage/DailyNormPage.tsx';
 import { ScheduleFoodAnalyticsPage } from '@/pages/schedule/analytics/schedule-analytics-page/ScheduleFoodAnalyticsPage/index.ts';
 import SettingsPage from '@/pages/settings/SettingsPage/SettingsPage.tsx';
 import SystemPage from '@/pages/settings/SystemPage/SystemPage.tsx';
@@ -16,7 +16,6 @@ import ShareReceivePage from '@/pages/share/ShareReceivePage.tsx';
 
 export enum RouterLinks {
   Root = '/',
-  DailyNorms = '/daily-norms',
   Food = '/food',
   DishBuilder = '/dish',
 
@@ -24,18 +23,21 @@ export enum RouterLinks {
   ScheduleDateSelection = '/date',
   ScheduleBuilder = '/schedule',
   ScheduleAnalytics = `/schedule/:id/analytics`,
+  FreeTextFood = '/free-text-food/:date',
   Product = '/product',
   Settings = '/settings',
   System = '/system',
   NutrientArticles = '/articles/nutrients',
   NutrientArticle = '/articles/nutrients/:folder',
-  Share = '/share/:id',
+  Share = '/share',
 }
 
 export const getScheduleAnalyticsUrl = (id: string) => `/schedule/${id}/analytics`;
 
 export const getProductUrl = (id: string) => `/product/${id}`;
 export const getNutrientArticleUrl = (folder: string) => `/articles/nutrients/${folder}`;
+
+export const getFreeTextFoodUrl = (date: string) => `/free-text-food/${date}`;
 
 export const RouterUrls = {
   Schedule: (id: string) => `/schedule/${id}`,
@@ -53,10 +55,6 @@ export const router = createBrowserRouter([
         element: <Navigate to={`/schedule/${format(new Date(), 'dd-MM-yyyy')}`} replace />,
       },
       {
-        path: `${RouterLinks.DailyNorms}/:id`,
-        element: <DailyNormPage />,
-      },
-      {
         path: `${RouterLinks.Dish}`,
         element: <DishBuilderPage />,
       },
@@ -71,6 +69,10 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.ScheduleAnalytics,
         element: <ScheduleFoodAnalyticsPage />,
+      },
+      {
+        path: RouterLinks.FreeTextFood,
+        element: <FreeTextFoodPage />,
       },
       {
         path: `${RouterLinks.Product}/:id`,

@@ -11,11 +11,12 @@ const JWT_SECRET = new TextEncoder().encode(
  */
 export async function extractUserId(
   req: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
+  silent?: boolean
 ): Promise<string | null> {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
-    reply.status(401).send({ error: "No token provided" });
+    if (!silent) reply.status(401).send({ error: "No token provided" });
     return null;
   }
 
@@ -23,12 +24,12 @@ export async function extractUserId(
     const token = authHeader.slice(7);
     const { payload } = await jwtVerify(token, JWT_SECRET);
     if (!payload.sub) {
-      reply.status(401).send({ error: "Invalid token: no sub claim" });
+      if (!silent) reply.status(401).send({ error: "Invalid token: no sub claim" });
       return null;
     }
     return payload.sub;
   } catch {
-    reply.status(401).send({ error: "Invalid or expired token" });
+    if (!silent) reply.status(401).send({ error: "Invalid or expired token" });
     return null;
   }
 }

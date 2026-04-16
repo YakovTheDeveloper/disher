@@ -1,18 +1,26 @@
+import "dotenv/config";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
 import { authRoutes } from "./routes/auth.js";
 import { analyticsRoutes } from "./routes/analytics.js";
 import { suggestionsRoutes } from "./routes/suggestions.js";
-import { shareRoutes } from "./routes/shares.js";
+import { freeTextFoodRoutes } from "./routes/free-text-food.js";
 import { bugReportRoutes } from "./routes/bug-reports.js";
 import { fileURLToPath } from "url";
 import path from "path";
 import { initAnalyticsDb } from "./analytics-db.js";
+import { initMatcher } from "./food-matcher.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 initAnalyticsDb();
+
+// Kick off matcher init in background — don't block server startup.
+// Endpoints depending on it should call isMatcherReady() and return 503 if not ready.
+initMatcher().catch((err) => {
+  console.error("initMatcher failed:", err);
+});
 
 const app = Fastify({ logger: true });
 
@@ -61,11 +69,17 @@ app.get("/health", async (_req, reply) => {
   });
 });
 
+// Global error handler – log full error details
+app.setErrorHandler((error, _req, reply) => {
+  console.error("Unhandled error:", error);
+  reply.status(error.statusCode ?? 500).send({ error: error.message });
+});
+
 // Routes
 await app.register(authRoutes, { prefix: "/api/auth" });
 await app.register(analyticsRoutes, { prefix: "/api/analytics" });
 await app.register(suggestionsRoutes, { prefix: "/api/suggestions" });
-await app.register(shareRoutes, { prefix: "/api/shares" });
+await app.register(freeTextFoodRoutes, { prefix: "/api/free-text-food" });
 await app.register(bugReportRoutes, { prefix: "/api/bug-reports" });
 
 const HOST = process.env.HOST ?? "localhost";

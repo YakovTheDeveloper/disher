@@ -22,18 +22,42 @@
     }
 }
 
+.hiddenNormInput {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 2px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+
+    input {
+        width: 100%;
+        border: none;
+        outline: none;
+        background: transparent;
+    }
+}
+
 .cardOverlay {
     position: absolute;
     inset: 0;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: flex-start;
     padding: 6px;
     border-radius: inherit;
     background: rgba(255, 255, 255, 0.65);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     z-index: 2;
+}
+
+.cardOverlayTop {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
 .cardOverlayLeft {
@@ -45,6 +69,48 @@
     display: flex;
     align-items: flex-start;
     gap: 4px;
+}
+
+.cardOverlayBottom {
+    display: flex;
+}
+
+.normEditLabel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 8px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.06);
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+        background: rgba(0, 0, 0, 0.12);
+    }
+}
+
+.normEditActive {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.normEditValue {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.7);
+}
+
+.normEditHint {
+    font-size: 11px;
+    font-weight: 400;
+    color: rgba(0, 0, 0, 0.3);
 }
 
 .overlayEyeBtn {

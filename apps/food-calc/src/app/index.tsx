@@ -2,6 +2,10 @@ import * as ReactDOM from 'react-dom/client';
 
 import { RouterProvider } from 'react-router-dom';
 
+if (import.meta.env.DEV) {
+  import('vconsole').then(({ default: VConsole }) => new VConsole());
+}
+
 import { router } from '@/app/router.tsx';
 import { LiveStoreSetup } from '@/livestore/LiveStoreSetup';
 import { SeedGate } from '@/livestore/SeedGate';

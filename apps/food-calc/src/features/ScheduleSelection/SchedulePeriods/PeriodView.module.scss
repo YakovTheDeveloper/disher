@@ -12,6 +12,10 @@ $blue-border: rgba(59, 130, 246, 0.35);
     border-color var(--duration-fast) var(--easing-default);
 }
 
+label {
+  display: contents;
+}
+
 .button {
   display: flex;
   align-items: center;

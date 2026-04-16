@@ -219,20 +219,6 @@ const TimeChoose = ({
 
   return (
     <div id={id} className={styles.container} role="group" aria-label="Time input">
-      <div className={styles.buttonsWrapper}>
-        <TimeNow onFinish={onNowSelect} time={`${activeHours}:${activeMinutes}`}>
-          <button className={clsx(styles.toggleButton, styles.nowButton)}>Сейчас</button>
-        </TimeNow>
-
-        <button
-          className={clsx(styles.toggleButton, styles.swapButton)}
-          onClick={() => {
-            setLocalVariant((prev) => (prev === 'native' ? 'manual' : 'native'));
-          }}
-        >
-          {isNative ? 'Ручной ввод' : 'Системный'}
-        </button>
-      </div>
       {isRange && (
         <RangeTabs
           activeTab={timeRange.activeTab}
@@ -254,6 +240,20 @@ const TimeChoose = ({
         inputId={inputId}
         normalizeTime={normalizeTime}
       />
+      <div className={styles.buttonsWrapper}>
+        <TimeNow onFinish={onNowSelect} time={`${activeHours}:${activeMinutes}`}>
+          <button className={clsx(styles.toggleButton, styles.nowButton)}>Сейчас</button>
+        </TimeNow>
+
+        <button
+          className={clsx(styles.toggleButton, styles.swapButton)}
+          onClick={() => {
+            setLocalVariant((prev) => (prev === 'native' ? 'manual' : 'native'));
+          }}
+        >
+          {isNative ? 'Ручной ввод' : 'Системный'}
+        </button>
+      </div>
     </div>
   );
 };

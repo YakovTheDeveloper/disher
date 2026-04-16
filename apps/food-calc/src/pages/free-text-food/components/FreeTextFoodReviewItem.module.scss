@@ -1,0 +1,202 @@
+.root {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0 16px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ambiguousDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ffc107;
+  flex-shrink: 0;
+}
+
+.unresolvedDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #f44336;
+  flex-shrink: 0;
+}
+
+.timeGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.time {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+}
+
+.nameGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.noteChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #efefef;
+  }
+}
+
+.noteText {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noteClose {
+  font-size: 16px;
+  font-weight: bold;
+  opacity: 0.6;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.questionMark {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #ffc107;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 4px;
+  margin-left: 4px;
+}
+
+.findLink {
+  background: none;
+  border: none;
+  color: #2196f3;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.quantityGroup {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.quantity {
+  font-size: 14px;
+  color: #666;
+}
+
+.guessed {
+  font-size: 11px;
+  color: #999;
+  margin-left: 4px;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #ccc;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #f44336;
+  }
+}
+
+.candidatesPanel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.candidateOption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s, border-color 0.2s;
+
+  &:hover {
+    background-color: #f9f9f9;
+  }
+
+  &.candidateOptionActive {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+
+    .candidateName {
+      font-weight: 600;
+      color: #2196f3;
+    }
+  }
+}
+
+.candidateName {
+  flex: 1;
+  text-align: left;
+  color: #333;
+}
+
+.candidateScore {
+  font-size: 12px;
+  color: #999;
+  margin-left: 8px;
+  flex-shrink: 0;
+}

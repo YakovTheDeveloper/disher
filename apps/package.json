@@ -2,7 +2,8 @@
   "name": "disher-apps",
   "private": true,
   "scripts": {
-    "dev": "concurrently -n back,front -c green,cyan --kill-others-on-fail \"cd disher-backend-3.0 && npm run dev:network\" \"cd food-calc && npm run dev-network\"",
+    "dev": "concurrently -n back,front -c green,cyan \"npm run dev:back\" \"npm run dev:front\"",
+    "dev:back": "cd disher-backend-3.0 && npm run dev:network",
     "dev:front": "cd food-calc && npm run dev-network"
   },
   "devDependencies": {

@@ -86,12 +86,19 @@ $bg: #fafafa;
     border: 1px solid $border;
     padding: 16px 20px;
     margin-bottom: 10px;
-    transition: border-color 0.15s, transform 0.1s;
+    transition: border-color 0.25s, transform 0.1s, box-shadow 0.25s;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: pointer;
 
     &:active {
-        border-color: rgba(0, 0, 0, 0.15);
         transform: scale(0.98);
     }
+}
+
+.periodCardApplied {
+    border-color: rgba(0, 0, 0, 0.25);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
 .periodName {
@@ -99,6 +106,23 @@ $bg: #fafafa;
     letter-spacing: -0.01em;
     color: #fff;
     word-break: break-word;
+}
+
+.appliedBadge {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: $text-muted;
+    letter-spacing: 0.02em;
+}
+
+.hint {
+    text-align: center;
+    font-size: 12px;
+    color: $text-muted;
+    padding: 12px 0;
+    line-height: 1.4;
 }
 
 // Color variants
@@ -115,7 +139,6 @@ $bg: #fafafa;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 16px 20px 24px;
     flex-shrink: 0;
 }
 
@@ -211,4 +234,53 @@ $bg: #fafafa;
     background: transparent;
     border: 1.5px solid $border;
     color: $text;
+}
+
+// — Accordion —
+
+.accordion {
+    margin: 0 20px;
+    border: 1.5px solid $border;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.accordionToggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 14px 16px;
+    border: none;
+    background: none;
+    font-size: 15px;
+    font-weight: 500;
+    color: $text;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:active {
+        background: rgba(0, 0, 0, 0.03);
+    }
+}
+
+.accordionArrow {
+    font-size: 12px;
+    color: $text-muted;
+    transition: transform 0.2s;
+
+    &.open {
+        transform: rotate(180deg);
+    }
+}
+
+.accordionBody {
+    padding: 0 16px 16px;
+}
+
+// — Checkbox area —
+
+.checkboxArea {
+    padding: 8px 20px 0;
 }

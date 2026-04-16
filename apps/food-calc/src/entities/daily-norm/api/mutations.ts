@@ -6,7 +6,12 @@ import type { DailyNormItems } from "../model/types";
 type DailyNormUpdatedPayload = Parameters<typeof events.dailyNormUpdated>[0];
 type DailyNormUpdates = Omit<DailyNormUpdatedPayload, 'id'>;
 
-export function createDailyNorm(store: Store, name: string, description: string) {
+export function createDailyNorm(
+  store: Store,
+  name: string,
+  description: string,
+  items?: DailyNormItems,
+) {
   const id = crypto.randomUUID();
   store.commit(
     events.dailyNormCreated({
@@ -14,7 +19,7 @@ export function createDailyNorm(store: Store, name: string, description: string)
       name,
       description,
       userId: getCurrentUserId(),
-      items: "{}",
+      items: items ? JSON.stringify(items) : "{}",
     }),
   );
   return id;

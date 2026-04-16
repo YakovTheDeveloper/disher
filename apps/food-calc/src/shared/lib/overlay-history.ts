@@ -8,6 +8,7 @@
 const closeHandlerStack: (() => void)[] = [];
 let sentinelCount = 0;
 let closingFromPopstate = false;
+let programmaticBack = false;
 
 export function pushOverlayEntry(): void {
   sentinelCount++;
@@ -23,6 +24,7 @@ export function popOverlayEntry(): Promise<void> {
         resolve();
       };
       window.addEventListener('popstate', onPop);
+      programmaticBack = true;
       history.back();
     });
   }
@@ -43,6 +45,12 @@ export function isPopstateClosing(): boolean {
 }
 
 window.addEventListener('popstate', () => {
+  // Ignore popstate triggered by our own programmatic history.back()
+  if (programmaticBack) {
+    programmaticBack = false;
+    return;
+  }
+
   if (sentinelCount > 0 && closeHandlerStack.length > 0) {
     sentinelCount--;
     closingFromPopstate = true;

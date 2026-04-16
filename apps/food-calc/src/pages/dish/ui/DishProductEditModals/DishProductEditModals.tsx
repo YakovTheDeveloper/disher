@@ -2,6 +2,8 @@ import { useCallback, useState } from 'react';
 import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
+import { popOverlayEntry } from '@/shared/lib/overlay-history';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { SearchFood } from '@/features/food/food-search';
@@ -33,6 +35,7 @@ type EditItem = {
   id: string;
   productId: string;
   quantity: number;
+  product?: { name: string } | null;
 };
 
 type Props = {
@@ -43,6 +46,7 @@ type Props = {
 
 const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) => {
   const { store } = useStore();
+  const { toProduct } = useAppRoutes();
   const createInitialDraft = (): DraftState => ({
     productId: item.productId,
     quantity: item.quantity,
@@ -118,8 +122,13 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
             <SearchFood
               mode="products-only"
               onSelectFood={handleFoodSelect}
+              onInfoClick={async (_variant, id) => {
+                await popOverlayEntry();
+                toProduct(id);
+              }}
               activeItemId={draft.productId ?? undefined}
               inputId={DISH_EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
+              initialSearchQuery={item.product?.name ?? undefined}
             />
           </ModalShell>
         }
@@ -131,7 +140,6 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
         isExpanded={step === 'quantity'}
         content={
           <ModalShell>
-
             <ModalShell.Body>
               {draft.content && (
                 <>

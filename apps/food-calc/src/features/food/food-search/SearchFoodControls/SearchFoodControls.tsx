@@ -9,20 +9,10 @@ type Props = {
   onSearchChange: (query: string) => void;
   className?: string;
   onBack?: () => void;
-  searchBarLeftChild?: React.ReactNode;
-  searchBarRightChild?: React.ReactNode;
   inputId?: string;
 };
 
-const SearchFoodControls = ({
-  searchQuery,
-  onSearchChange,
-  className,
-  onBack,
-  searchBarLeftChild,
-  searchBarRightChild,
-  inputId,
-}: Props) => {
+const SearchFoodControls = ({ searchQuery, onSearchChange, className, onBack, inputId }: Props) => {
   return (
     <header className={clsx([styles.header, className])}>
       {onBack && (
@@ -54,7 +44,6 @@ const SearchFoodControls = ({
           </svg>
         </button>
       )}
-      {searchBarLeftChild}
 
       <div className={styles.searchWrapper}>
         <div className={styles.searchIcon}>
@@ -84,8 +73,6 @@ const SearchFoodControls = ({
           </button>
         )}
       </div>
-
-      {searchBarRightChild}
     </header>
   );
 };

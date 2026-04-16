@@ -1,14 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { drawerStore } from '@/shared/ui/drawer-store';
 import { graphVariants } from './graphVariants';
-import { SchedulePeriodsDrawer } from './SchedulePeriodsDrawer';
 import styles from './PeriodView.module.scss';
 
 type Props = {
-  date: string; // dd-MM-yyyy
+  onOpen: () => void;
 };
 
-const PeriodView = ({ date }: Props) => {
+const PeriodView = ({ onOpen }: Props) => {
   const [variantIndex, setVariantIndex] = useState(0);
   const [active, setActive] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,50 +41,51 @@ const PeriodView = ({ date }: Props) => {
   const handleClick = useCallback(() => {
     if (!active) {
       setActive(true);
-      return;
+    } else {
+      setActive(false);
+      onOpen();
     }
-    // Second click — open drawer
-    drawerStore.show(SchedulePeriodsDrawer, { date });
-    setActive(false);
-  }, [active, date]);
+  }, [active, onOpen]);
 
   return (
-    <div ref={containerRef} className={`${styles.container} ${active ? styles.active : ''}`}>
-      <button className={styles.button} onClick={handleClick}>
-        <svg className={styles.visualization} viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="softGlow">
-              <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-            <filter id="brightGlow">
-              <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
+    <div ref={containerRef} className={`${styles.container} ${active ? styles.active : ''}`} onClick={handleClick}>
+        <svg
+            className={styles.visualization}
+            viewBox="0 0 240 120"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <filter id="softGlow">
+                <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <filter id="brightGlow">
+                <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
 
-          <g className={styles.lines}>
-            {graphVariants[variantIndex].lines.map((line, i) => (
-              <line key={i} x1={line[0]} y1={line[1]} x2={line[2]} y2={line[3]} />
-            ))}
-          </g>
+            <g className={styles.lines}>
+              {graphVariants[variantIndex].lines.map((line, i) => (
+                <line key={i} x1={line[0]} y1={line[1]} x2={line[2]} y2={line[3]} />
+              ))}
+            </g>
 
-          <g className={styles.orbs}>
-            {graphVariants[variantIndex].nodes.map((node, i) => (
-              <circle key={i} className={styles.orb} cx={node[0]} cy={node[1]} r={node[2]} />
-            ))}
-          </g>
-        </svg>
-      </button>
+            <g className={styles.orbs}>
+              {graphVariants[variantIndex].nodes.map((node, i) => (
+                <circle key={i} className={styles.orb} cx={node[0]} cy={node[1]} r={node[2]} />
+              ))}
+            </g>
+          </svg>
 
-      <span className={styles.hint}>Нажмите, чтобы установить период жизни</span>
-    </div>
+        <span className={styles.hint}>Нажмите, чтобы установить период жизни</span>
+      </div>
   );
 };
 

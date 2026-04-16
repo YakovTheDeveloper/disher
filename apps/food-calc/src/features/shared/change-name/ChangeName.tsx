@@ -1,4 +1,4 @@
-import { FC, useState, useCallback } from 'react';
+import { FC, ReactNode, useState, useCallback } from 'react';
 import clsx from 'clsx';
 import { Typography } from '@/shared/ui/atoms/Typography';
 import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from './ChangeNameModal';
@@ -8,9 +8,11 @@ type Props = {
   name: string;
   onChangeName: (name: string) => void;
   canRename?: boolean;
+  /** Custom heading element rendered instead of the default Typography name row */
+  heading?: ReactNode;
 };
 
-const ChangeName: FC<Props> = ({ name, onChangeName, canRename = true }) => {
+const ChangeName: FC<Props> = ({ name, onChangeName, canRename = true, heading }) => {
   const [showRenameHint, setShowRenameHint] = useState(false);
   const [renameStep, setRenameStep] = useState<'idle' | 'details'>('idle');
 
@@ -48,11 +50,15 @@ const ChangeName: FC<Props> = ({ name, onChangeName, canRename = true }) => {
           </span>
         </div>
       )}
-      <div className={s.nameRow} onClick={handleNameClick}>
-        <Typography variant="feature-title" className={s.name}>
-          {name}
-        </Typography>
-      </div>
+      {heading ? (
+        <div onClick={handleNameClick}>{heading}</div>
+      ) : (
+        <div className={s.nameRow} onClick={handleNameClick}>
+          <Typography variant="feature-title" className={s.name}>
+            {name}
+          </Typography>
+        </div>
+      )}
       <ChangeNameModal
         currentName={name}
         isExpanded={renameStep === 'details'}

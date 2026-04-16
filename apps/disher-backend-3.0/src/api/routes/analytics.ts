@@ -102,7 +102,7 @@ function formatEventsForPrompt(events: ScheduleEventItem[]): string {
     .join("\n");
 }
 
-const MODEL = "anthropic/claude-sonnet-4-20250514";
+const MODEL = "deepseek/deepseek-chat";
 
 const SYSTEM_PROMPT = `Ты — профессиональный нутрициолог-диетолог.
 Проанализируй дневной рацион пользователя.
@@ -152,6 +152,7 @@ async function streamFromLLM(
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
     Connection: "keep-alive",
+    "Access-Control-Allow-Origin": "*",
   });
 
   const response = await fetch(
@@ -308,42 +309,46 @@ export async function analyticsRoutes(app: FastifyInstance) {
   app.post<{ Params: { date: string }; Body: DailyAnalyzeRequest }>(
     "/daily/:date",
     async (req, reply) => {
-      const userId = await extractUserId(req, reply);
-      if (!userId) return;
+      try {
+        const userId = (await extractUserId(req, reply, true)) || "anonymous";
 
-      const { tab, foods, events, inputHash } = req.body;
-      const date = req.params.date;
+        const { tab, foods, events, inputHash } = req.body;
+        const date = req.params.date;
 
-      // Check if we already have a fresh analysis
-      const existing = getDailyAnalysis(userId, date, tab);
-      if (existing && existing.input_hash === inputHash) {
-        return reply.send({
-          content: existing.content,
-          inputHash: existing.input_hash,
-          cached: true,
+        // Check if we already have a fresh analysis
+        const existing = getDailyAnalysis(userId, date, tab);
+        if (existing && existing.input_hash === inputHash) {
+          return reply.send({
+            content: existing.content,
+            inputHash: existing.input_hash,
+            cached: true,
+          });
+        }
+
+        // Build prompt
+        const isDay = tab === "day";
+        const foodsFormatted = formatScheduleForPrompt(foods);
+        let userMessage: string;
+
+        if (isDay) {
+          const eventsFormatted = formatEventsForPrompt(events || []);
+          userMessage = `День: ${date}\n\n`;
+          if (foods.length > 0) userMessage += `Рацион:\n${foodsFormatted}\n\n`;
+          if (events && events.length > 0)
+            userMessage += `События дня:\n${eventsFormatted}`;
+        } else {
+          userMessage = `Рацион за ${date}:\n${foodsFormatted}`;
+        }
+
+        const systemPrompt = isDay ? SYSTEM_PROMPT_DAY : SYSTEM_PROMPT;
+
+        await streamFromLLM(systemPrompt, userMessage, reply, (fullText) => {
+          upsertDailyAnalysis(userId, date, tab, fullText, inputHash, MODEL);
         });
+      } catch (err) {
+        console.error("POST /daily/:date error:", err);
+        if (!reply.sent) reply.status(500).send({ error: String(err) });
       }
-
-      // Build prompt
-      const isDay = tab === "day";
-      const foodsFormatted = formatScheduleForPrompt(foods);
-      let userMessage: string;
-
-      if (isDay) {
-        const eventsFormatted = formatEventsForPrompt(events || []);
-        userMessage = `День: ${date}\n\n`;
-        if (foods.length > 0) userMessage += `Рацион:\n${foodsFormatted}\n\n`;
-        if (events && events.length > 0)
-          userMessage += `События дня:\n${eventsFormatted}`;
-      } else {
-        userMessage = `Рацион за ${date}:\n${foodsFormatted}`;
-      }
-
-      const systemPrompt = isDay ? SYSTEM_PROMPT_DAY : SYSTEM_PROMPT;
-
-      await streamFromLLM(systemPrompt, userMessage, reply, (fullText) => {
-        upsertDailyAnalysis(userId, date, tab, fullText, inputHash, MODEL);
-      });
     }
   );
 
@@ -434,6 +439,149 @@ export async function analyticsRoutes(app: FastifyInstance) {
           );
         }
       );
+    }
+  );
+
+  // ─── V2 endpoints (no auth) ───
+
+  const V2_USER = "anonymous";
+
+  // GET /api/analytics/v2/daily/:date?tab=food|day
+  app.get<{ Params: { date: string }; Querystring: { tab?: string } }>(
+    "/v2/daily/:date",
+    async (req, reply) => {
+      const tab = req.query.tab || "food";
+      const analysis = getDailyAnalysis(V2_USER, req.params.date, tab);
+      if (!analysis) {
+        return reply.status(404).send({ error: "No analysis found" });
+      }
+      return {
+        content: analysis.content,
+        inputHash: analysis.input_hash,
+        date: analysis.date,
+        tab: analysis.tab,
+        createdAt: analysis.created_at,
+      };
+    }
+  );
+
+  // POST /api/analytics/v2/daily/:date
+  app.post<{ Params: { date: string }; Body: DailyAnalyzeRequest }>(
+    "/v2/daily/:date",
+    async (req, reply) => {
+      try {
+        const { tab, foods, events, inputHash } = req.body;
+        const date = req.params.date;
+
+        const existing = getDailyAnalysis(V2_USER, date, tab);
+        if (existing && existing.input_hash === inputHash) {
+          return reply.send({
+            content: existing.content,
+            inputHash: existing.input_hash,
+            cached: true,
+          });
+        }
+
+        const isDay = tab === "day";
+        const foodsFormatted = formatScheduleForPrompt(foods);
+        let userMessage: string;
+
+        if (isDay) {
+          const eventsFormatted = formatEventsForPrompt(events || []);
+          userMessage = `День: ${date}\n\n`;
+          if (foods.length > 0) userMessage += `Рацион:\n${foodsFormatted}\n\n`;
+          if (events && events.length > 0)
+            userMessage += `События дня:\n${eventsFormatted}`;
+        } else {
+          userMessage = `Рацион за ${date}:\n${foodsFormatted}`;
+        }
+
+        const systemPrompt = isDay ? SYSTEM_PROMPT_DAY : SYSTEM_PROMPT;
+
+        await streamFromLLM(systemPrompt, userMessage, reply, (fullText) => {
+          upsertDailyAnalysis(V2_USER, date, tab, fullText, inputHash, MODEL);
+        });
+      } catch (err) {
+        console.error("POST /v2/daily/:date error:", err);
+        if (!reply.sent) reply.status(500).send({ error: String(err) });
+      }
+    }
+  );
+
+  // GET /api/analytics/v2/weekly/:weekStart
+  app.get<{ Params: { weekStart: string } }>(
+    "/v2/weekly/:weekStart",
+    async (req, reply) => {
+      const analysis = getWeeklyAnalysis(V2_USER, req.params.weekStart);
+      if (!analysis) {
+        return reply.status(404).send({ error: "No weekly analysis found" });
+      }
+      return {
+        content: analysis.content,
+        dailyHashes: JSON.parse(analysis.daily_hashes),
+        weekStart: analysis.week_start,
+        createdAt: analysis.created_at,
+      };
+    }
+  );
+
+  // POST /api/analytics/v2/weekly/:weekStart
+  app.post<{ Params: { weekStart: string }; Body: WeeklyAnalyzeRequest }>(
+    "/v2/weekly/:weekStart",
+    async (req, reply) => {
+      try {
+        const weekStart = req.params.weekStart;
+        const { dates } = req.body;
+
+        const dailyAnalyses = getDailyAnalysesForWeek(V2_USER, dates);
+        if (dailyAnalyses.length === 0) {
+          return reply.status(400).send({
+            error: "No daily analyses found for this week",
+            missingDates: dates,
+          });
+        }
+
+        const dailyHashes = dailyAnalyses.map((a) => a.input_hash);
+        const existing = getWeeklyAnalysis(V2_USER, weekStart);
+
+        if (existing) {
+          const storedHashes = JSON.parse(existing.daily_hashes) as string[];
+          if (
+            storedHashes.length === dailyHashes.length &&
+            storedHashes.every((h, i) => h === dailyHashes[i])
+          ) {
+            return reply.send({
+              content: existing.content,
+              dailyHashes: storedHashes,
+              cached: true,
+            });
+          }
+        }
+
+        const daysText = dailyAnalyses
+          .map((a) => `### ${a.date}\n${a.content}`)
+          .join("\n\n");
+
+        const coveredDates = dailyAnalyses.map((a) => a.date);
+        const missingDates = dates.filter((d) => !coveredDates.includes(d));
+
+        let userMessage = `Ежедневные анализы за неделю (${weekStart}):\n\n${daysText}`;
+        if (missingDates.length > 0) {
+          userMessage += `\n\nПримечание: нет данных за: ${missingDates.join(", ")}`;
+        }
+
+        await streamFromLLM(
+          SYSTEM_PROMPT_WEEKLY,
+          userMessage,
+          reply,
+          (fullText) => {
+            upsertWeeklyAnalysis(V2_USER, weekStart, fullText, dailyHashes, MODEL);
+          }
+        );
+      } catch (err) {
+        console.error("POST /v2/weekly/:weekStart error:", err);
+        if (!reply.sent) reply.status(500).send({ error: String(err) });
+      }
     }
   );
 }

@@ -3,6 +3,7 @@ import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import styles from './NutrientInput.module.scss';
 
 interface NutrientInputProps {
+  id?: string;
   value: number;
   onChange: (value: number) => void;
   unit: string;
@@ -10,10 +11,11 @@ interface NutrientInputProps {
 }
 
 const NutrientInput = forwardRef<HTMLInputElement, NutrientInputProps>(
-  ({ value, onChange, unit, norm }, ref) => (
+  ({ id, value, onChange, unit, norm }, ref) => (
     <div className={styles.row}>
       <NumberInput
         ref={ref}
+        id={id}
         value={value}
         onChange={onChange}
         className={styles.input}

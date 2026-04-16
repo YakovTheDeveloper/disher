@@ -11,11 +11,17 @@ import {
   FloatingPortal,
 } from '@floating-ui/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useStore } from '@livestore/react';
-import { useDailyNorms, createDailyNorm, DEFAULT_NORM_ID, DEFAULT_NORM, SPORTS_NORM_ID, SPORTS_NORM } from '@/entities/daily-norm';
-import { safeMutate } from '@/shared/lib/safeMutate';
+import {
+  useDailyNorms,
+  DEFAULT_NORM_ID,
+  DEFAULT_NORM,
+  SPORTS_NORM_ID,
+  SPORTS_NORM,
+} from '@/entities/daily-norm';
 import styles from './OpenDailyNorms.module.scss';
-import { useAppRoutes } from '@/app/routing/useAppRoutes';
+import CreateDailyNormModal, { CREATE_NORM_INPUT_ID } from './CreateDailyNormModal';
+import { modalStore } from '@/shared/ui';
+import EditDailyNormModal from './EditDailyNormModal';
 
 type Props = {
   className?: string;
@@ -52,10 +58,9 @@ const TickIcon = () => (
 );
 
 const OpenDailyNorms = ({ className }: Props) => {
-  const { store } = useStore();
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedNormId, setSelectedNormId] = React.useState<string | null>(DEFAULT_NORM_ID);
-  const { toDailyNorm } = useAppRoutes();
+  const [createModalOpen, setCreateModalOpen] = React.useState(false);
   const normsList = useDailyNorms();
 
   const norms = React.useMemo(() => {
@@ -99,15 +104,22 @@ const OpenDailyNorms = ({ className }: Props) => {
   const handleInfoClick = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     setIsOpen(false);
-    toDailyNorm(id);
+    modalStore.show(EditDailyNormModal, { normId: id });
   };
 
-  const handleCreateNorm = () => {
-    const id = safeMutate(() => createDailyNorm(store, 'Новая норма', ''), 'Не удалось создать норму');
-    if (id === undefined) return;
+  const handleEditNorm = React.useCallback(() => {
+    if (!selectedNormId) return;
     setIsOpen(false);
-    toDailyNorm(id);
-  };
+    modalStore.show(EditDailyNormModal, { normId: selectedNormId });
+  }, [selectedNormId]);
+
+  const handleFocusCapture = React.useCallback((e: React.FocusEvent) => {
+    const id = (e.target as HTMLElement).id;
+    if (id === CREATE_NORM_INPUT_ID) {
+      setCreateModalOpen(true);
+      setIsOpen(false);
+    }
+  }, []);
 
   return (
     <>
@@ -119,7 +131,7 @@ const OpenDailyNorms = ({ className }: Props) => {
         <button className={styles.button} type="button">
           {selectedNorm?.name || 'Выбрать норму'}
         </button>
-        <span className={styles.label}>текущая</span>
+        {/* <span className={styles.label}>текущая</span> */}
       </div>
       <FloatingPortal>
         {isOpen && (
@@ -129,11 +141,6 @@ const OpenDailyNorms = ({ className }: Props) => {
             className={styles.popover}
             {...interactions.getFloatingProps()}
           >
-            <div className={styles.header}>
-              <span className={styles.popoverLabel}>Текущая норма:</span>
-              <span className={styles.value}>{selectedNorm?.name || 'Не выбрана'}</span>
-            </div>
-
             <div className={styles.list}>
               <AnimatePresence initial={false}>
                 {norms.map((norm, i) => {
@@ -174,12 +181,21 @@ const OpenDailyNorms = ({ className }: Props) => {
               </AnimatePresence>
             </div>
 
-            <button className={styles.link} onClick={handleCreateNorm} type="button">
-              Создать новую норму
+            <button type="button" className={styles.link} onClick={handleEditNorm}>
+              Изменить значения
             </button>
+            <label htmlFor={CREATE_NORM_INPUT_ID} className={styles.link}>
+              Создать новую норму
+            </label>
           </div>
         )}
       </FloatingPortal>
+      <div onFocusCapture={handleFocusCapture}>
+        <CreateDailyNormModal
+          isExpanded={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+        />
+      </div>
     </>
   );
 };

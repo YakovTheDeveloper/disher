@@ -1,13 +1,5 @@
 import { API_BASE } from "@/shared/lib/api/base";
 
-function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem("auth_token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
 interface FoodSnapshot {
   time: string;
   type: "food" | "dish";
@@ -37,9 +29,9 @@ export async function startDailyAnalysis(
 ): Promise<{ cached: true; content: string } | { cached: false; response: Response }> {
   const body = { tab, foods, events: tab === "day" ? events : undefined, inputHash };
 
-  const res = await fetch(`${API_BASE}/api/analytics/daily/${date}`, {
+  const res = await fetch(`${API_BASE}/api/analytics/v2/daily/${date}`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
     signal,
   });
@@ -74,9 +66,9 @@ export async function startWeeklyAnalysis(
   dates: string[],
   signal?: AbortSignal
 ): Promise<{ cached: true; content: string } | { cached: false; response: Response }> {
-  const res = await fetch(`${API_BASE}/api/analytics/weekly/${weekStart}`, {
+  const res = await fetch(`${API_BASE}/api/analytics/v2/weekly/${weekStart}`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ dates }),
     signal,
   });

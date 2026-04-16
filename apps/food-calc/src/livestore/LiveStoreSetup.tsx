@@ -4,6 +4,7 @@ import { LiveStoreProvider, useStore } from '@livestore/react'
 import { makePersistedAdapter } from '@livestore/adapter-web'
 import LiveStoreSharedWorker from '@livestore/adapter-web/shared-worker?sharedworker'
 import { queryDb } from '@livestore/livestore'
+import { SplashScreen } from '@/shared/ui/SplashScreen/SplashScreen'
 import { schema, tables } from './schema'
 
 const workerUrl = new URL('./worker.ts', import.meta.url)
@@ -80,11 +81,7 @@ export function LiveStoreSetup({ children, storeId }: LiveStoreSetupProps) {
       storeId={storeId}
       adapter={adapter}
       batchUpdates={batchUpdates}
-      renderLoading={() => (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', fontFamily: 'system-ui, sans-serif' }}>
-          <p style={{ fontSize: 16, color: '#888' }}>Загрузка...</p>
-        </div>
-      )}
+      renderLoading={() => <SplashScreen />}
       renderError={(error) => {
         console.error('LiveStore error:', error)
         return (

@@ -6,7 +6,6 @@ import { removeScheduleEvents } from '@/entities/schedule-event';
 import clsx from 'clsx';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
-import { Navigation } from '@/pages/home-page/ui';
 import Typography from '@/shared/ui/atoms/Typography/Typography';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
@@ -97,9 +96,6 @@ const ScheduleEvents = ({ date, events }: Props) => {
       }
       key={3}
       title={<Typography variant="feature-title">События</Typography>}
-      header={
-        <Navigation title={<Typography variant="feature-title-2">События</Typography>}></Navigation>
-      }
       bottomRight={
         events.length > 0 ? (
           <AddButton htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT} as="label" onClick={() => {}} />
@@ -118,6 +114,7 @@ const ScheduleEvents = ({ date, events }: Props) => {
           </AddButton>
         </div>
       )}
+
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList offsetTop>
           {(() => {

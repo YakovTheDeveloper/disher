@@ -5,9 +5,14 @@ import {
 } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import s from './NutrientDesignVariants.module.scss';
 import clsx from 'clsx';
+import { useCallback, useRef, useState, useEffect } from 'react';
+import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 
 interface Props {
   getValue: (id: string) => number;
+  variant?: 'view' | 'edit-norms' | 'edit-values';
+  onRichFood?: (nutrientId: string, unit: string) => void;
+  onValueChange?: (nutrientId: string, value: number) => void;
 }
 
 const PentagonDecoration = ({ nutrientName }: { nutrientName: string }) => {
@@ -61,7 +66,29 @@ const PentagonDecoration = ({ nutrientName }: { nutrientName: string }) => {
   );
 };
 
-const NutrientDesignVariants = ({ getValue }: Props) => {
+const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValueChange }: Props) => {
+  const isEditNorms = variant === 'edit-norms';
+  const isEditValues = variant === 'edit-values';
+  const isView = variant === 'view';
+  const [overlayOpen, setOverlayOpen] = useState<string | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const handleOutsideClick = useCallback(
+    (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOverlayOpen(null);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (overlayOpen) {
+      document.addEventListener('pointerdown', handleOutsideClick);
+      return () => document.removeEventListener('pointerdown', handleOutsideClick);
+    }
+  }, [overlayOpen, handleOutsideClick]);
+
   const findNutrient = (name: string) => allNutrientsList.find((n) => n.name === name);
 
   const mainNutrients = [
@@ -108,39 +135,98 @@ const NutrientDesignVariants = ({ getValue }: Props) => {
     const value = getValue(nutrient.id);
     const norm = getNorm(nutrient.id);
     const pct = getPercentage(nutrient.id);
+    const isOverlayOpen = overlayOpen === nutrient.id;
+    const showOverlay = isView && onRichFood;
 
-    return (
+    const handleRowClick = () => {
+      if (showOverlay) {
+        setOverlayOpen(isOverlayOpen ? null : nutrient.id);
+      }
+    };
+
+    const rowContent = (
       <div
         key={nutrient.id}
-        className={`${s.row} ${s[nutrient.group]}`}
+        className={`${s.row} ${s[nutrient.group]} ${showOverlay ? s.clickable : ''}`}
         data-nutrient={nutrient.name}
+        onClick={handleRowClick}
+        ref={showOverlay ? wrapperRef : undefined}
       >
         <div className={s.rowTop}>
           <span className={s.name}>{nutrient.displayNameRu}</span>
           <span className={s.dots} />
-          <span className={s.pct}>
-            {pct}
-            <span className={s.pctSign}>%</span>
-          </span>
+          {isView && (
+            <span className={s.pct}>
+              {pct}
+              <span className={s.pctSign}>%</span>
+            </span>
+          )}
         </div>
-        <div className={s.progressTrack} style={{ opacity: Math.min(pct, 100) / 100 }}>
-          <div
-            className={`${s.progressBar} ${getProgressClass(pct, nutrient.name)}`}
-            style={{ width: `${Math.min(pct, 100)}%` }}
-          />
-        </div>
+        {(isView || isEditValues) && (
+          <div className={s.progressTrack} style={{ opacity: Math.min(pct, 100) / 100 }}>
+            <div
+              className={`${s.progressBar} ${getProgressClass(pct, nutrient.name)}`}
+              style={{ width: `${Math.min(pct, 100)}%` }}
+            />
+          </div>
+        )}
         <div className={s.rowBottom}>
-          <span className={clsx(s.value, s.valueLeft)}>
-            <span>{Math.round(value)}</span>
-            <span>{nutrient.unitRu}</span>
-          </span>
-          <span className={`${s.value} ${s.valueRight}`}>
-            {norm}
-            {nutrient.unitRu}
-          </span>
+          {isView && (
+            <>
+              <span className={clsx(s.value, s.valueLeft)}>
+                <span>{Math.round(value)}</span>
+                <span>{nutrient.unitRu}</span>
+              </span>
+              <span className={`${s.value} ${s.valueRight}`}>
+                {norm}
+                {nutrient.unitRu}
+              </span>
+            </>
+          )}
+          {isEditNorms && (
+            <div className={s.editRow}>
+              <NumberInput
+                value={norm}
+                onChange={(v) => onValueChange?.(nutrient.id, v)}
+                className={s.editInput}
+              />
+              <span className={s.unitProminent}>{nutrient.unitRu}</span>
+            </div>
+          )}
+          {isEditValues && (
+            <div className={s.editRow}>
+              <span className={clsx(s.value, s.valueLeft)}>
+                {pct}<span className={s.pctSign}>%</span>
+              </span>
+              <div className={s.editInputRight}>
+                <NumberInput
+                  value={Math.round(value)}
+                  onChange={(v) => onValueChange?.(nutrient.id, v)}
+                  className={s.editInput}
+                />
+                <span className={s.unitProminent}>{nutrient.unitRu}</span>
+              </div>
+            </div>
+          )}
         </div>
+        {showOverlay && isOverlayOpen && (
+          <div className={s.overlay}>
+            <button
+              className={s.overlayBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onRichFood) onRichFood(nutrient.id, nutrient.unitRu);
+                setOverlayOpen(null);
+              }}
+            >
+              Богатые продукты
+            </button>
+          </div>
+        )}
       </div>
     );
+
+    return rowContent;
   };
 
   const renderGroupRow = (nutrient: (typeof mainNutrients)[0]) => {
@@ -154,16 +240,45 @@ const NutrientDesignVariants = ({ getValue }: Props) => {
         <div className={s.rowTop}>
           {isMineralGroup && <PentagonDecoration nutrientName={nutrient.name} />}
           <span className={s.name}>{nutrient.displayNameRu}</span>
-          <span className={s.pct}>{norm ? `${pct}%` : ''}</span>
+          {isView && <span className={s.pct}>{norm ? `${pct}%` : ''}</span>}
         </div>
         <div className={s.rowBottom}>
-          <span className={clsx(s.value, s.valueLeft)}>
-            {nutrient.unitRu === 'г' ? Math.round(value) : value.toFixed(1)}
-            {nutrient.unitRu}
-          </span>
-          <span className={`${s.value} ${s.valueRight}`}>
-            {norm ? `${norm}${nutrient.unitRu}` : ''}
-          </span>
+          {isView && (
+            <>
+              <span className={clsx(s.value, s.valueLeft)}>
+                {nutrient.unitRu === 'г' ? Math.round(value) : value.toFixed(1)}
+                {nutrient.unitRu}
+              </span>
+              <span className={`${s.value} ${s.valueRight}`}>
+                {norm ? `${norm}${nutrient.unitRu}` : ''}
+              </span>
+            </>
+          )}
+          {isEditNorms && (
+            <div className={s.editRow}>
+              <NumberInput
+                value={norm}
+                onChange={(v) => onValueChange?.(nutrient.id, v)}
+                className={s.editInput}
+              />
+              <span className={s.unitProminent}>{nutrient.unitRu}</span>
+            </div>
+          )}
+          {isEditValues && (
+            <div className={s.editRow}>
+              <span className={clsx(s.value, s.valueLeft)}>
+                {norm ? `${pct}%` : ''}
+              </span>
+              <div className={s.editInputRight}>
+                <NumberInput
+                  value={nutrient.unitRu === 'г' ? Math.round(value) : Number(value.toFixed(1))}
+                  onChange={(v) => onValueChange?.(nutrient.id, v)}
+                  className={s.editInput}
+                />
+                <span className={s.unitProminent}>{nutrient.unitRu}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );

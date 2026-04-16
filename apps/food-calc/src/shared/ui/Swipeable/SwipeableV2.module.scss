@@ -65,12 +65,13 @@
     transform: translateX(-50%);
     background-color: transparent;
     display: flex;
+    align-items: center;
     width: fit-content;
     user-select: none;
     touch-action: none;
     justify-content: center;
     margin: 0 auto;
-    gap: 0.5rem;
+    gap: 6px;
     padding: 1rem 0;
     flex-shrink: 0;
     z-index: -1;
@@ -79,20 +80,23 @@
 .dot {
     width: 6px;
     height: 6px;
-    border-radius: 50%;
-    background-color: #d1d5db;
+    border-radius: 100px;
+    background-color: rgba(0, 0, 0, 0.15);
     border: none;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s;
     padding: 0;
+    transition:
+        width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.35s ease;
 
     &:hover {
-        background-color: #9ca3af;
+        background-color: rgba(0, 0, 0, 0.25);
     }
 }
 
 .dotActive {
-    background-color: #000000;
+    width: 20px;
+    background-color: rgba(0, 0, 0, 0.4);
 }
 
 .background {

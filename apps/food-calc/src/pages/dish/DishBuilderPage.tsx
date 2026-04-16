@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import {
   useDish,
-  useDishItems,
+  useDishItemsWithProducts,
   useDishPortions,
   updateDishName,
   removeDishItem,
@@ -10,7 +10,6 @@ import {
   updateDishPortion,
   removeDishPortion,
 } from '@/entities/dish';
-import type { DishItem } from '@/entities/dish';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
@@ -27,8 +26,8 @@ import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DishBuilderPage.module.scss';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
-import TextBehind from '@/shared/ui/TextBehind/TextBehind';
 import { ChangeName } from '@/features/shared/change-name';
+import { PageHeading } from '@/shared/ui/PageHeading';
 import {
   DishProductCreateModals,
   DISH_MODAL_INPUT_IDS,
@@ -36,15 +35,15 @@ import {
   DISH_EDIT_MODAL_INPUT_IDS,
   DishSuggestionsModal,
 } from './ui';
-import { createShare } from '@/shared/lib/api/shares';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
 import { FoodPortionsManager } from '@/features/food/food-portions-manager';
 import { Ornament } from '@/shared/ui/Ornament';
 import { useDishNutrientTotals } from '@/entities/dish';
 import { TopBar } from '@/shared/ui/TopBar';
 import Button from '@/shared/ui/atoms/Button/Button';
+import { PasteFromClipboardToDishButton } from '@/features/clipboard';
 
-type DishItemWithProduct = DishItem & { product?: { name: string } | null };
+type DishItemWithProduct = { id: string; productId: string; quantity: number; product: { name: string } | null };
 
 const DishBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -57,7 +56,7 @@ const DishBuilderPage = () => {
 
   const { store } = useLiveStore();
   const dish = useDish(id);
-  const dishItems = useDishItems(id);
+  const dishItems = useDishItemsWithProducts(id);
   const portionsRaw = useDishPortions(id);
   const dishTotals = useDishNutrientTotals(id);
 
@@ -86,7 +85,7 @@ const DishBuilderPage = () => {
 
   if (!dish) return null;
 
-  const items = dishItems as unknown as DishItemWithProduct[];
+  const items = dishItems;
 
   const getSelectedItems = () => items.filter((item) => selectedIds.includes(item.id));
 
@@ -106,24 +105,15 @@ const DishBuilderPage = () => {
     const selected = getSelectedItems();
     if (selected.length === 0) return;
 
-    const shareItems = selected.map((item) => ({
-      productId: item.productId,
-      name: item.product?.name ?? '—',
-      quantity: item.quantity,
-    }));
+    const payload = selected.map((item) => `${item.productId}:${item.quantity}`).join(',');
+    const url = `${window.location.origin}/share?p=${encodeURIComponent(payload)}`;
 
     try {
-      const { shareId } = await createShare({
-        items: shareItems,
-        source: { type: 'dish' as const, name: dish.name },
-      });
-
-      const url = `${window.location.origin}/share/${shareId}`;
       await navigator.clipboard.writeText(url);
       toaster.success('Ссылка скопирована');
       clearSelection();
     } catch {
-      toaster.error('Не удалось создать ссылку');
+      toaster.error('Не удалось скопировать ссылку');
     }
   };
 
@@ -136,7 +126,7 @@ const DishBuilderPage = () => {
 
   return (
     <SwipeableV2>
-      <FoodsNutrients totals={dishTotals} />
+      <FoodsNutrients totals={dishTotals} cardVariant="dish" />
 
       <Screen
         offsetTop
@@ -184,14 +174,13 @@ const DishBuilderPage = () => {
           </TopBar>
         }
         header={
-          <TextBehind text="Блюдо">
-            <ChangeName
-              name={dish.name}
-              onChangeName={(val) =>
-                safeMutate(() => updateDishName(store, dish.id, val), 'Не удалось переименовать')
-              }
-            />
-          </TextBehind>
+          <ChangeName
+            name={dish.name}
+            onChangeName={(val) =>
+              safeMutate(() => updateDishName(store, dish.id, val), 'Не удалось переименовать')
+            }
+            heading={<PageHeading title={dish.name} subtitle="блюдо" />}
+          />
         }
         bottomRight={
           isActionsMode || items.length === 0 ? null : (
@@ -199,6 +188,7 @@ const DishBuilderPage = () => {
           )
         }
       >
+        <PasteFromClipboardToDishButton dishId={id} wrapperStyle={{ width: '50%' }} />
         {items.length === 0 && (
           <div style={{ padding: 'var(--space-10) var(--space-4) 0' }}>
             <AddButton

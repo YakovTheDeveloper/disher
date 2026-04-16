@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
+import { popOverlayEntry } from '@/shared/lib/overlay-history';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
@@ -18,6 +19,7 @@ type Props = {
 };
 
 const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) => {
+  const { toProduct, toDish } = useAppRoutes();
   const {
     step,
     setStep,
@@ -66,9 +68,15 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
             onBack={handleClose}
             mode="products-and-dishes"
             onSelectFood={handleFoodSelect}
+            onInfoClick={async (variant, id) => {
+              await popOverlayEntry();
+              if (variant === 'product') toProduct(id);
+              else toDish(id);
+            }}
             activeItemId={draft.productId ?? draft.dishId ?? undefined}
             inputId={SEARCH_INPUT}
-            searchBarRightChild={
+            initialSearchQuery={draft.foodName ?? undefined}
+            bottomLeft={
               <DetailsNoteButton htmlFor={DETAILS_INPUT} hasDetails={!!draft.details} />
             }
           />

@@ -1,4 +1,5 @@
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
+import { popOverlayEntry } from '@/shared/lib/overlay-history';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
@@ -8,9 +9,12 @@ import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { DetailsNoteButton } from '@/features/shared/components/DetailsNoteButton';
-
 import { useEffect } from 'react';
-import { useScheduleFoodFlow, CREATE_STEPS, STEP_LABELS } from './useScheduleFoodFlow';
+import {
+  useScheduleFoodFlow,
+  CREATE_STEPS,
+  STEP_LABELS,
+} from './useScheduleFoodFlow';
 
 type Props = {
   scheduleId: string;
@@ -18,7 +22,11 @@ type Props = {
   onRichNutrientClear?: () => void;
 };
 
-const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClear }: Props) => {
+const ScheduleFoodCreateModals = ({
+  scheduleId,
+  richNutrient,
+  onRichNutrientClear,
+}: Props) => {
   const { toProduct, toDish } = useAppRoutes();
 
   const {
@@ -55,18 +63,12 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         isExpanded={step === 'search'}
         content={
           <SearchFood
-            onInfoClick={(variant, id) => {
-              handleClose();
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  if (variant === 'product') toProduct(id);
-                  else toDish(id);
-                });
-              });
+            onInfoClick={async (variant, id) => {
+              await popOverlayEntry();
+              if (variant === 'product') toProduct(id);
+              else toDish(id);
             }}
-            searchBarRightChild={
-              <DetailsNoteButton htmlFor={DETAILS_INPUT} hasDetails={!!draft.details} />
-            }
+            bottomLeft={<DetailsNoteButton htmlFor={DETAILS_INPUT} hasDetails={!!draft.details} />}
             key={sessionKey}
             mode="products-and-dishes"
             richNutrient={richNutrient}
@@ -168,6 +170,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
           </ModalShell>
         }
       />
+
     </div>
   );
 };

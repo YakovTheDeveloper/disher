@@ -30,7 +30,14 @@ import { CopyToClipboardButton, PasteFromClipboardButton } from '@/features/clip
 import type { ClipboardItem } from '@/shared/model/clipboardStore';
 import { AccountPanel } from '@/features/auth';
 import { PeriodView } from '@/features/ScheduleSelection/SchedulePeriods';
+import { openSchedulePeriodsModal } from './ui';
 import { fetchDailyAnalysis, computeInputHash } from '@/entities/analytics';
+import { createProduct } from '@/entities/product';
+import { createDish } from '@/entities/dish';
+import { safeMutate } from '@/shared/lib/safeMutate';
+import { getProductUrl, getFreeTextFoodUrl, RouterUrls } from '@/app/router';
+import CreateFoodPanel from './ui/CreateFoodPanel';
+import { useNavigate } from 'react-router-dom';
 
 type CommonProps = {
   date: string;
@@ -56,9 +63,11 @@ const FoodSchedule = ({
   const showPrice = useUiStore((s) => s.scheduleFoodsShowPrice);
   const toggleShowPrice = useUiStore((s) => s.toggleScheduleFoodsShowPrice);
   const { toScheduleAnalytics } = useAppRoutes();
+  const navigate = useNavigate();
 
   const [editingItem, setEditingItem] = useState<ScheduleFoodWithRelations | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'search' | 'quantity'>('idle');
+  const [showCreatePanel, setShowCreatePanel] = useState(false);
 
   // Analytics staleness indicator: 'none' | 'fresh' | 'stale'
   const [analyticsStatus, setAnalyticsStatus] = useState<'none' | 'fresh' | 'stale'>('none');
@@ -92,6 +101,30 @@ const FoodSchedule = ({
       cancelled = true;
     };
   }, [date, items]);
+
+  const openCreateFoodPanel = useCallback(() => {
+    setShowCreatePanel((v) => !v);
+  }, []);
+
+  const handleCreateProduct = useCallback(() => {
+    const name = 'Новый продукт';
+    const productId = safeMutate(() => createProduct(store, { name }), 'Не удалось создать продукт');
+    if (productId === undefined) return;
+    setShowCreatePanel(false);
+    toaster.success(`Продукт «${name}» создан`, {
+      action: { label: 'Открыть', href: getProductUrl(productId) },
+    });
+  }, [store]);
+
+  const handleCreateDish = useCallback(() => {
+    const name = 'Новое блюдо';
+    const dishId = safeMutate(() => createDish(store, name), 'Не удалось создать блюдо');
+    if (dishId === undefined) return;
+    setShowCreatePanel(false);
+    toaster.success(`Блюдо «${name}» создано`, {
+      action: { label: 'Открыть', href: RouterUrls.getDish(dishId) },
+    });
+  }, [store]);
 
   useSwipeableLock(editingItem !== null);
 
@@ -149,7 +182,14 @@ const FoodSchedule = ({
 
   return (
     <Screen
-      offsetTop
+      offsetTop={
+        showCreatePanel ? (
+          <CreateFoodPanel
+            onCreateProduct={handleCreateProduct}
+            onCreateDish={handleCreateDish}
+          />
+        ) : true
+      }
       overlay={
         isActive ? (
           <>
@@ -190,6 +230,15 @@ const FoodSchedule = ({
         <TopBar>
           {items.length > 0 && (
             <>
+              <Button variant="menu" onClick={openCreateFoodPanel}>
+                Создать еду
+              </Button>
+              <Button
+                variant="menu"
+                onClick={() => navigate(getFreeTextFoodUrl(date))}
+              >
+                Рассказать, что ел
+              </Button>
               <Button variant="menu" onClick={() => toScheduleAnalytics(date)}>
                 Анализ
                 {analyticsStatus !== 'none' && (
@@ -217,7 +266,7 @@ const FoodSchedule = ({
         )
       }
     >
-      <PeriodView date={date} />
+      <PeriodView onOpen={() => openSchedulePeriodsModal(date)} />
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
         <Navigation />

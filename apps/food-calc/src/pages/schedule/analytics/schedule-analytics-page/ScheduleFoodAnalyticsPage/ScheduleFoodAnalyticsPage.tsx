@@ -101,12 +101,51 @@ function buildEventSnapshot(events: ScheduleEvent[]) {
 
 // ─── SSE reader ───
 
+function parseSSELines(
+  lines: string[],
+  onChunk: (chunk: string) => void,
+): boolean {
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('event: error')) {
+      const nextDataLine = lines.find((l) => l.trim().startsWith('data: '));
+      if (nextDataLine) {
+        throw new Error(JSON.parse(nextDataLine.trim().slice(6)));
+      }
+      throw new Error('Ошибка сервера');
+    }
+
+    if (!trimmed.startsWith('data: ')) continue;
+    const data = trimmed.slice(6);
+    if (data === '[DONE]') return true;
+
+    try {
+      const parsed = JSON.parse(data);
+      const content = parsed.choices?.[0]?.delta?.content;
+      if (content) onChunk(content);
+    } catch {
+      // skip malformed
+    }
+  }
+  return false;
+}
+
 async function readSSEStream(
   response: Response,
   onChunk: (chunk: string) => void,
   signal: AbortSignal,
 ) {
-  const reader = response.body!.getReader();
+  // iOS Safari may not support ReadableStream on fetch responses — fall back to text()
+  if (!response.body) {
+    const text = await response.text();
+    if (signal.aborted) return;
+    const lines = text.split('\n');
+    parseSSELines(lines, onChunk);
+    return;
+  }
+
+  const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
 
@@ -120,27 +159,8 @@ async function readSSEStream(
       const lines = buffer.split('\n');
       buffer = lines.pop() || '';
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-
-        if (trimmed.startsWith('event: error')) {
-          const nextDataLine = lines.find((l) => l.trim().startsWith('data: '));
-          if (nextDataLine) {
-            throw new Error(JSON.parse(nextDataLine.trim().slice(6)));
-          }
-          throw new Error('Ошибка сервера');
-        }
-
-        if (!trimmed.startsWith('data: ')) continue;
-        const data = trimmed.slice(6);
-        if (data === '[DONE]') return;
-
-        try {
-          onChunk(JSON.parse(data));
-        } catch {
-          // skip malformed
-        }
-      }
+      const isDone = parseSSELines(lines, onChunk);
+      if (isDone) return;
     }
   } finally {
     reader.releaseLock();

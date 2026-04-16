@@ -12,7 +12,7 @@ type Props = {
   bottomRight?: React.ReactNode;
   topPanel?: React.ReactNode;
   header?: React.ReactNode;
-  offsetTop?: boolean;
+  offsetTop?: boolean | React.ReactNode;
   title?: React.ReactNode;
   backgroundColor?: 'gray' | 'white';
   className?: string;
@@ -68,7 +68,11 @@ const Screen = ({
       <div className={styles.screenScroll} ref={scrollContainerRef}>
         <div className={styles.topPanel}>{topPanel}</div>
         {header}
-        {offsetTop && <div className={styles.upperPlace}></div>}
+        {offsetTop && (
+          <div className={styles.upperPlace}>
+            {typeof offsetTop !== 'boolean' && offsetTop}
+          </div>
+        )}
         {children}
         <div ref={sentinelRef} />
       </div>

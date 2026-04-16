@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useStore } from '@livestore/react';
 import { useParams } from 'react-router-dom';
 import {
@@ -12,22 +12,17 @@ import {
 import { Nutrients } from '@/entities/nutrient/ui/NutrientGroup';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import NutrientCardV3 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV3';
-import NutrientInput from '@/entities/nutrient/ui/NutrientCard/NutrientInput';
-import { useNutrientCard } from '@/entities/nutrient/ui/NutrientCard/useNutrientCard';
+import { NutrientCardAlt } from '@/entities/nutrient/ui/NutrientCard';
+import NutrientDesignVariants from '@/widgets/nutrients/FoodsNutrients/NutrientDesignVariants';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
-import TextBehind from '@/shared/ui/TextBehind/TextBehind';
 import { Ornament } from '@/shared/ui/Ornament';
+import { PageHeading } from '@/shared/ui/PageHeading';
 import { Spacer } from '@/shared/ui/atoms/Spacer';
 import { OpenDailyNorms } from '@/features/dailyNorms/OpenDailyNorms';
 import { FoodPortionsManager } from '@/features/food/food-portions-manager';
 import { ChangeName } from '@/features/shared/change-name';
-import {
-  useFilterNutrients,
-  FilterNutrientsPanel,
-  FilterNutrientCardWrapper,
-} from '@/features/nutrients/filter-nutrients';
-import { FilterButton } from '@/shared/ui/atoms/Button';
+import { useFilterNutrients, FilterNutrientsPanel } from '@/features/nutrients/filter-nutrients';
+import { Button, FilterButton } from '@/shared/ui/atoms/Button';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
@@ -35,6 +30,11 @@ import { isCreatedByUser } from '@/shared/lib';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import bagImage from '@/shared/assets/decarative/bag.png';
 import s from './ProductPage.module.scss';
+import { TopBar } from '@/shared/ui/TopBar';
+import { drawerStore } from '@/shared';
+import { ScheduleSelectionDrawer } from '@/features/ScheduleSelection/ScheduleSelectionDrawer';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
+import { Swipeable } from '@/shared/ui/Swipeable';
 
 type Mode = 'view' | 'edit';
 
@@ -49,6 +49,7 @@ const ProductPage = () => {
   const [quantity, setQuantity] = useState(100);
   const [mode, setMode] = useState<Mode>('view');
   const filter = useFilterNutrients();
+  const { toScheduleBuilder } = useAppRoutes();
 
   const nutrientValueMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -85,172 +86,189 @@ const ProductPage = () => {
     grams: p.grams,
   }));
 
-  const renderCard = (nutrientData: Nutrient) => {
-    const getValue = isUserCreated ? getNutrientValue : getScaledValue;
+  const handleNutrientValueChange = (nutrientId: string, value: number) => {
+    const current: Record<string, number> = {};
+    for (const n of nutrientsRaw) current[n.nutrientId] = n.quantity;
+    current[nutrientId] = value;
+    if (value === 0) delete current[nutrientId];
+    safeMutate(
+      () => setProductNutrients(store, food.id, JSON.stringify(current)),
+      'Не удалось сохранить нутриент'
+    );
+  };
 
-    if (isEditMode) {
-      return (
-        <EditNutrientCard
-          content={nutrientData}
-          getValue={getNutrientValue}
-          onChange={(value, nutrientId) => {
-            const current: Record<string, number> = {};
-            for (const n of nutrientsRaw) current[n.nutrientId] = n.quantity;
-            current[nutrientId] = value;
-            if (value === 0) delete current[nutrientId];
-            safeMutate(() => setProductNutrients(store, food.id, JSON.stringify(current)), 'Не удалось сохранить нутриент');
-          }}
-        />
-      );
+  const handleCalendarClick = useCallback(async () => {
+    const selectedDate = await drawerStore.show(ScheduleSelectionDrawer, {});
+    if (selectedDate) {
+      toScheduleBuilder(selectedDate);
     }
+  }, [toScheduleBuilder]);
 
+  const renderEditCard = (nutrientData: Nutrient) => {
     return (
-      <FilterNutrientCardWrapper
-        isHidden={filter.isHidden(nutrientData.id)}
-        filterMode={filter.filterMode}
-        onToggle={() => filter.toggleHidden(nutrientData.id)}
-        nutrientId={nutrientData.id}
-        nutrientKey={nutrientData.name}
-        renderCard={(overrides) => (
-          <NutrientCardV3 content={nutrientData} getValue={getValue} {...overrides} />
-        )}
+      <NutrientCardAlt
+        content={nutrientData}
+        getValue={getNutrientValue}
+        variant="product-edit"
+        editValue={getNutrientValue(nutrientData.id)}
+        onValueChange={handleNutrientValueChange}
       />
     );
   };
 
   return (
-    <Screen
-      title={<ScreenLabel variant="screenHeader">Продукт</ScreenLabel>}
-      bottomRight={
-        !isEditMode ? (
-          <FilterButton onClick={filter.toggleFilterMode} isActive={filter.filterMode} />
-        ) : undefined
-      }
-      actions={
-        filter.filterMode ? (
-          <FilterNutrientsPanel
-            showProgress={filter.showProgress}
-            showValues={filter.showValues}
-            onToggleProgress={filter.toggleShowProgress}
-            onToggleValues={filter.toggleShowValues}
-            onToggleFilterMode={filter.toggleFilterMode}
+    <Swipeable hasDots defaultSlide={0}>
+      {/* ── Slide 1: Nutrients ── */}
+      <Screen
+        topPanel={
+          <TopBar>
+            <Button variant="menu" onClick={handleCalendarClick}>
+              Календарь
+            </Button>
+          </TopBar>
+        }
+        title={<ScreenLabel variant="screenHeader">Продукт</ScreenLabel>}
+        bottomRight={
+          !isEditMode ? (
+            <FilterButton onClick={filter.toggleFilterMode} isActive={filter.filterMode} />
+          ) : undefined
+        }
+        actions={
+          filter.filterMode ? (
+            <FilterNutrientsPanel
+              showProgress={filter.showProgress}
+              showValues={filter.showValues}
+              onToggleProgress={filter.toggleShowProgress}
+              onToggleValues={filter.toggleShowValues}
+              onToggleFilterMode={filter.toggleFilterMode}
+            />
+          ) : (
+            <div></div>
+          )
+        }
+      >
+        <img src={bagImage} className={s.backgroundImage} alt="" />
+        <ChangeName
+          name={food.name}
+          canRename={isUserCreated}
+          onChangeName={(name) =>
+            safeMutate(() => updateProduct(store, food.id, { name }), 'Не удалось переименовать')
+          }
+          heading={
+            <PageHeading
+              align="left"
+              title={food.name}
+              subtitle={isUserCreated ? 'мой продукт' : 'базовый продукт'}
+            />
+          }
+        />
+
+        <Spacer variant="screen-header-offset" />
+
+        <section className={s.foodActions}>
+          <div className={s.foodActionRow}>
+            <Ornament text="состав, граммы" variant="horizontal" />
+            <span className={s.separator}>|</span>
+            {!isEditMode && (
+              <div className={s.quantityInputWrapper}>
+                <NumberInput
+                  value={quantity}
+                  min={0}
+                  variant="underline"
+                  onChange={(val) => setQuantity(val)}
+                />
+              </div>
+            )}
+          </div>
+          <div className={s.foodActionRow}>
+            <Ornament text="дневная норма" variant="horizontal" />
+            <span className={s.separator}>|</span>
+            <OpenDailyNorms />
+          </div>
+        </section>
+
+        {isUserCreated && (
+          <div className={s.modeToggleRow}>
+            <button
+              type="button"
+              className={`${s.modeBtn} ${mode === 'view' ? s.modeBtnActive : ''}`}
+              onClick={() => setMode('view')}
+            >
+              Просмотр
+            </button>
+            <button
+              type="button"
+              className={`${s.modeBtn} ${mode === 'edit' ? s.modeBtnActive : ''}`}
+              onClick={() => setMode('edit')}
+            >
+              Редактирование
+            </button>
+          </div>
+        )}
+
+        {isEditMode && massExceeds100 && (
+          <div className={s.massWarning}>
+            Совокупная масса нутриентов ({totalGramMass.toFixed(1)} г) превышает 100 г
+          </div>
+        )}
+
+        {isUserCreated && (
+          <label>
+            <Textarea
+              value={food.description || ''}
+              onChange={(val) =>
+                safeMutate(
+                  () => updateProduct(store, food.id, { description: val || '' }),
+                  'Не удалось обновить описание'
+                )
+              }
+            />
+          </label>
+        )}
+
+        {isEditMode ? (
+          <Nutrients renderCard={renderEditCard} />
+        ) : (
+          <NutrientDesignVariants getValue={isUserCreated ? getNutrientValue : getScaledValue} />
+        )}
+      </Screen>
+
+      {/* ── Slide 2: Portions ── */}
+      <div className={s.slide}>
+        <Ornament text="порции" />
+
+        {isUserCreated ? (
+          <FoodPortionsManager
+            portions={portions}
+            onAdd={(p) => {
+              const updated = [...portionsRaw, p];
+              safeMutate(
+                () => setProductPortions(store, food.id, JSON.stringify(updated)),
+                'Не удалось добавить порцию'
+              );
+            }}
+            onUpdate={(label, updates) => {
+              const updated = portionsRaw.map((p) =>
+                p.label === label ? { ...p, ...updates } : p
+              );
+              safeMutate(
+                () => setProductPortions(store, food.id, JSON.stringify(updated)),
+                'Не удалось обновить порцию'
+              );
+            }}
+            onRemove={(label) => {
+              const updated = portionsRaw.filter((p) => p.label !== label);
+              safeMutate(
+                () => setProductPortions(store, food.id, JSON.stringify(updated)),
+                'Не удалось удалить порцию'
+              );
+            }}
           />
         ) : (
-          <div></div>
-        )
-      }
-    >
-      <Ornament text="продукт" />
-
-      <img src={bagImage} className={s.backgroundImage} alt="" />
-      <ChangeName name={food.name} onChangeName={(name) => safeMutate(() => updateProduct(store, food.id, { name }), 'Не удалось переименовать')} />
-
-      <Spacer variant="screen-header-offset" />
-
-      <Ornament text="состав" />
-
-      {!isEditMode && (
-        <TextBehind text="Количество" variant="elegant" position="middle-center">
-          <div className={s.quantityInputWrapper}>
-            <NumberInput
-              value={quantity}
-              min={0}
-              variant="underline"
-              onChange={(val) => setQuantity(val)}
-              bottom="грамм"
-            />
-          </div>
-        </TextBehind>
-      )}
-
-      {isUserCreated && (
-        <div className={s.modeToggleRow}>
-          <button
-            type="button"
-            className={`${s.modeBtn} ${mode === 'view' ? s.modeBtnActive : ''}`}
-            onClick={() => setMode('view')}
-          >
-            Просмотр
-          </button>
-          <button
-            type="button"
-            className={`${s.modeBtn} ${mode === 'edit' ? s.modeBtnActive : ''}`}
-            onClick={() => setMode('edit')}
-          >
-            Редактирование
-          </button>
-        </div>
-      )}
-
-      {isEditMode && massExceeds100 && (
-        <div className={s.massWarning}>
-          Совокупная масса нутриентов ({totalGramMass.toFixed(1)} г) превышает 100 г
-        </div>
-      )}
-
-      {isUserCreated && (
-        <label>
-          <Textarea
-            value={food.description || ''}
-            onChange={(val) => safeMutate(() => updateProduct(store, food.id, { description: val || '' }), 'Не удалось обновить описание')}
-          />
-        </label>
-      )}
-
-      <Nutrients renderCard={renderCard} />
-
-      <Ornament text="дневная норма" />
-
-      <OpenDailyNorms />
-
-      <Ornament text="порции" />
-
-      <FoodPortionsManager
-        portions={portions}
-        onAdd={(p) => {
-          const updated = [...portionsRaw, p];
-          safeMutate(() => setProductPortions(store, food.id, JSON.stringify(updated)), 'Не удалось добавить порцию');
-        }}
-        onUpdate={(label, updates) => {
-          const updated = portionsRaw.map((p) =>
-            p.label === label ? { ...p, ...updates } : p
-          );
-          safeMutate(() => setProductPortions(store, food.id, JSON.stringify(updated)), 'Не удалось обновить порцию');
-        }}
-        onRemove={(label) => {
-          const updated = portionsRaw.filter((p) => p.label !== label);
-          safeMutate(() => setProductPortions(store, food.id, JSON.stringify(updated)), 'Не удалось удалить порцию');
-        }}
-      />
-    </Screen>
-  );
-};
-
-interface EditNutrientCardProps {
-  content: Nutrient;
-  getValue: (id: string) => number;
-  onChange: (value: number, nutrientId: string) => void;
-}
-
-const EditNutrientCard = ({ content, getValue, onChange }: EditNutrientCardProps) => {
-  const { value, norm, unitRu } = useNutrientCard({ content, getValue });
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  return (
-    <NutrientCardV3
-      content={content}
-      getValue={getValue}
-      showValue={false}
-      onClick={() => inputRef.current?.focus()}
-    >
-      <NutrientInput
-        ref={inputRef}
-        value={value}
-        onChange={(val) => onChange(val, content.id)}
-        unit={unitRu}
-        norm={norm}
-      />
-    </NutrientCardV3>
+          <FoodPortionsManager portions={portions} />
+        )}
+      </div>
+    </Swipeable>
   );
 };
 

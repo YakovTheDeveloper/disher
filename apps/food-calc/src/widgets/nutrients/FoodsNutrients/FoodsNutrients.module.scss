@@ -46,3 +46,11 @@
     pointer-events: none;
     z-index: 0;
 }
+
+
+.norms {
+    display: grid;
+    align-items: center;
+    grid-template-columns: auto 1fr;
+    padding: var(--space-6);
+}

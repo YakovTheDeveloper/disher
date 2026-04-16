@@ -25,16 +25,6 @@ type ProductQuantityContent = {
   dish?: { portions?: Portion[] } | null;
 };
 
-const variants = [
-  [25, 50, 75, 100],
-  [150, 200, 300, 400],
-];
-
-type QuickButtonData = {
-  quantity: number;
-  label: string;
-};
-
 type Props = {
   content: ProductQuantityContent;
   onFinish: () => void;
@@ -60,55 +50,51 @@ const ProductQuantity = ({
 
   const [value, setValue] = useState(content.quantity);
   const [activePortion, setActivePortion] = useState<Portion | null>(null);
+  const [multiplier, setMultiplier] = useState(1);
 
   // Get portions from product if available
   const portions = content.product?.portions || content.dish?.portions || [];
 
-  // Compute portion count for active portion
-  const portionCount = activePortion ? Math.round(value / activePortion.grams) : 0;
-
-  // Build quick buttons data with dynamic labels for active portion
-  const quickButtons: QuickButtonData[] =
-    portions.length > 0
-      ? portions.map((portion) => {
-          const isActive =
-            activePortion?.grams === portion.grams && activePortion?.label === portion.label;
-          const count = isActive ? portionCount : 1;
-          const totalGrams = isActive ? value : portion.grams;
-          const label =
-            count > 1
-              ? `${count} × ${portion.label} (${totalGrams}г)`
-              : `${portion.label} (${portion.grams}г)`;
-          return { quantity: totalGrams, label };
-        })
-      : [];
-
-  const quickButtons2: QuickButtonData[] = variants.flat().map((quantity) => ({
-    quantity,
-    label: quantity.toString(),
-  }));
-
-  const portionSlides = useMemo(() => chunkArray(quickButtons, SLIDE_SIZE), [quickButtons]);
-  const quantitySlides = useMemo(() => chunkArray(quickButtons2, SLIDE_SIZE), [quickButtons2]);
+  const portionSlides = useMemo(
+    () =>
+      chunkArray(
+        portions.map((p) => ({ label: `${p.label} (${p.grams}г)`, portion: p })),
+        SLIDE_SIZE,
+      ),
+    [portions],
+  );
 
   const onBlur = () => {
     content.updateQuantity(value);
     onFinish();
   };
 
-  const handlePortionClick = (portion: Portion) => {
-    const isSamePortion =
-      activePortion?.grams === portion.grams && activePortion?.label === portion.label;
-    const newValue = isSamePortion ? value + portion.grams : portion.grams;
+  const applyPortion = (portion: Portion, mult: number) => {
+    const newValue = Math.round(portion.grams * mult);
     setValue(newValue);
     content.updateQuantity(newValue);
-    setActivePortion(portion);
   };
 
-  const handleQuantityClick = (quantity: number) => {
-    setValue(quantity);
-    content.updateQuantity(quantity);
-    setActivePortion(null);
+  const handlePortionClick = (portion: Portion) => {
+    const isSame =
+      activePortion?.grams === portion.grams && activePortion?.label === portion.label;
+    if (isSame) {
+      // Deselect
+      setActivePortion(null);
+      setMultiplier(1);
+      return;
+    }
+    setActivePortion(portion);
+    setMultiplier(1);
+    applyPortion(portion, 1);
+  };
+
+  const handleMultiplierChange = (newMult: number) => {
+    const mult = Math.max(0.5, newMult);
+    setMultiplier(mult);
+    if (activePortion) {
+      applyPortion(activePortion, mult);
+    }
   };
 
   return (
@@ -125,8 +111,8 @@ const ProductQuantity = ({
           onBlur={onBlur}
           bottom={
             <span className={style.unit}>
-              {activePortion && portionCount > 0
-                ? `${portionCount} × ${activePortion.label}`
+              {activePortion
+                ? `${multiplier} × ${activePortion.label}`
                 : 'граммы'}
             </span>
           }
@@ -139,20 +125,20 @@ const ProductQuantity = ({
           <span className={style.sectionLabel}>Порции</span>
           <div className={style.snapViewport}>
             <div className={style.snapContainer}>
-              {portionSlides.map((slideButtons, slideIndex) => (
+              {portionSlides.map((slideItems, slideIndex) => (
                 <div key={slideIndex} className={style.snapSlide}>
                   <div className={style.slideGrid}>
-                    {slideButtons.map((button, i) => (
+                    {slideItems.map((item) => (
                       <QuickButton
-                        key={button.label}
+                        key={item.label}
                         className={style.quickBtn}
                         isActive={
-                          activePortion?.grams === portions[slideIndex * SLIDE_SIZE + i]?.grams &&
-                          activePortion?.label === portions[slideIndex * SLIDE_SIZE + i]?.label
+                          activePortion?.grams === item.portion.grams &&
+                          activePortion?.label === item.portion.label
                         }
-                        onClick={() => handlePortionClick(portions[slideIndex * SLIDE_SIZE + i])}
+                        onClick={() => handlePortionClick(item.portion)}
                       >
-                        {button.label}
+                        {item.label}
                       </QuickButton>
                     ))}
                   </div>
@@ -160,33 +146,32 @@ const ProductQuantity = ({
               ))}
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Default quantities carousel */}
-      {quantitySlides.length > 0 && (
-        <div className={style.section}>
-          <span className={style.sectionLabel}>Количество</span>
-          <div className={style.snapViewport}>
-            <div className={style.snapContainer}>
-              {quantitySlides.map((slideButtons, slideIndex) => (
-                <div key={slideIndex} className={style.snapSlide}>
-                  <div className={style.slideGrid}>
-                    {slideButtons.map((button) => (
-                      <QuickButton
-                        key={button.quantity}
-                        className={style.quickBtn}
-                        isActive={button.quantity === value}
-                        onClick={() => handleQuantityClick(button.quantity)}
-                      >
-                        {button.label}
-                      </QuickButton>
-                    ))}
-                  </div>
-                </div>
-              ))}
+          {/* Multiplier input — visible when a portion is selected */}
+          {activePortion && (
+            <div className={style.multiplierRow}>
+              <button
+                type="button"
+                className={style.multiplierBtn}
+                onClick={() => handleMultiplierChange(multiplier - 0.5)}
+              >
+                −
+              </button>
+              <NumberInput
+                className={style.multiplierInput}
+                value={multiplier}
+                onChange={handleMultiplierChange}
+                placeholder="×"
+              />
+              <button
+                type="button"
+                className={style.multiplierBtn}
+                onClick={() => handleMultiplierChange(multiplier + 0.5)}
+              >
+                +
+              </button>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>

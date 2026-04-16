@@ -1,61 +1,65 @@
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useStore } from '@livestore/react';
-import { useParams } from 'react-router';
-import { fetchShare } from '@/shared/lib/api/shares';
+import { useSearchParams, useNavigate } from 'react-router';
 import { SuggestionsReviewList } from '@/features/dish/suggest-products';
 import type { SuggestionsReviewListRef, SuggestionItem } from '@/features/dish/suggest-products';
 import { addDishItem } from '@/entities/dish';
 import { addScheduleFood } from '@/entities/schedule-food';
+import { useProductsByIds } from '@/entities/product/api/queries';
 import { Button } from '@/shared/ui/atoms/Button';
-import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { SearchFood } from '@/features/food/food-search';
 import { ScheduleSelection } from '@/features/ScheduleSelection/ScheduleSelection';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { RouterUrls, RouterLinks } from '@/app/router';
-import { useNavigate } from 'react-router';
 import styles from './ShareReceivePage.module.scss';
-
-type ShareData = {
-  items: SuggestionItem[];
-  source: { type: 'dish' | 'day'; name: string };
-  senderName?: string;
-  createdAt: string;
-};
 
 type Mode = 'review' | 'select-dish' | 'select-date';
 
+type ParsedEntry = { id: string; quantity: number };
+
+function parseShareParam(raw: string | null): ParsedEntry[] {
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((chunk) => {
+      const [id, qty] = chunk.split(':');
+      if (!id) return null;
+      const quantity = Number(qty);
+      return { id, quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 100 };
+    })
+    .filter((x): x is ParsedEntry => x !== null);
+}
+
 const ShareReceivePage = () => {
   const { store } = useStore();
-  const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const listRef = useRef<SuggestionsReviewListRef>(null);
 
-  const [status, setStatus] = useState<'loading' | 'done' | 'error'>('loading');
-  const [data, setData] = useState<ShareData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const entries = useMemo(() => parseShareParam(searchParams.get('p')), [searchParams]);
+  const products = useProductsByIds(entries.map((e) => e.id));
+
+  const items = useMemo<SuggestionItem[]>(() => {
+    const byId = new Map(products.map((p) => [p.id, p]));
+    return entries
+      .map((e) => {
+        const product = byId.get(e.id);
+        if (!product) return null;
+        return { productId: e.id, name: product.name, quantity: e.quantity };
+      })
+      .filter((x): x is SuggestionItem => x !== null);
+  }, [entries, products]);
+
   const [mode, setMode] = useState<Mode>('review');
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
-
-  useEffect(() => {
-    if (!id) return;
-    fetchShare(id)
-      .then((d) => {
-        setData(d);
-        setStatus('done');
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Ошибка загрузки');
-        setStatus('error');
-      });
-  }, [id]);
 
   const getItems = () => listRef.current?.getResultedItems() ?? [];
 
   const handleAddToDish = async (payload: { variant: 'product' | 'dish'; id: string }) => {
-    const items = getItems();
-    if (items.length === 0) {
+    const picked = getItems();
+    if (picked.length === 0) {
       toaster.error('Нет продуктов для добавления');
       return;
     }
@@ -64,7 +68,7 @@ const ShareReceivePage = () => {
     const result = await safeMutate(
       () =>
         Promise.all(
-          items.map((item) =>
+          picked.map((item) =>
             addDishItem(store, { dishId, productId: item.productId, quantity: item.quantity })
           )
         ),
@@ -72,15 +76,15 @@ const ShareReceivePage = () => {
     );
     if (result === undefined) return;
 
-    toaster.success(`Добавлено ${items.length} продуктов`, {
+    toaster.success(`Добавлено ${picked.length} продуктов`, {
       action: { label: 'Открыть', href: RouterUrls.getDish(dishId) },
     });
     navigate(RouterUrls.getDish(dishId));
   };
 
   const handleAddToDay = async (date: string) => {
-    const items = getItems();
-    if (items.length === 0) {
+    const picked = getItems();
+    if (picked.length === 0) {
       toaster.error('Нет продуктов для добавления');
       return;
     }
@@ -88,7 +92,7 @@ const ShareReceivePage = () => {
     const result = await safeMutate(
       () =>
         Promise.all(
-          items.map((item) =>
+          picked.map((item) =>
             addScheduleFood(store, {
               date,
               time,
@@ -102,24 +106,24 @@ const ShareReceivePage = () => {
     );
     if (result === undefined) return;
 
-    toaster.success(`Добавлено ${items.length} продуктов на ${date}`, {
+    toaster.success(`Добавлено ${picked.length} продуктов на ${date}`, {
       action: { label: 'Открыть', href: `${RouterLinks.ScheduleBuilder}/${date}` },
     });
     navigate(`${RouterLinks.ScheduleBuilder}/${date}`);
   };
 
-  if (status === 'loading') {
+  if (entries.length === 0) {
     return (
       <div className={styles.center}>
-        <Spinner size={24} />
+        <p className={styles.error}>Ссылка пуста</p>
       </div>
     );
   }
 
-  if (status === 'error' || !data) {
+  if (items.length === 0) {
     return (
       <div className={styles.center}>
-        <p className={styles.error}>{error ?? 'Ссылка не найдена'}</p>
+        <p className={styles.error}>Продукты не найдены</p>
       </div>
     );
   }
@@ -155,19 +159,13 @@ const ShareReceivePage = () => {
     );
   }
 
-  const sourceLabel =
-    data.source.type === 'dish'
-      ? `Продукты из блюда «${data.source.name}»`
-      : `Продукты за ${data.source.name}`;
-
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <span className={styles.title}>{sourceLabel}</span>
+        <span className={styles.title}>Продукты по ссылке</span>
       </div>
-      {data.senderName && <p className={styles.sender}>От: {data.senderName}</p>}
       <div className={styles.content}>
-        <SuggestionsReviewList ref={listRef} items={data.items} />
+        <SuggestionsReviewList ref={listRef} items={items} />
         <div className={styles.actions}>
           <Button variant="primary-form" onClick={() => setMode('select-dish')}>
             Добавить в блюдо

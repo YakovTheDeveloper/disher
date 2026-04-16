@@ -1,8 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useProducts, useNutrientsByProductIds } from '@/entities/product';
-import { useDishes } from '@/entities/dish';
-import { useCategoryFilterState } from '@/features/shared/hooks/useCategoryFilterState';
-import { computeDishDietaryCategories } from '@/shared/lib/dishCategories';
+import { useDishes, useDishItemsByDishIds } from '@/entities/dish';
 import { isCreatedByUser, parseCategories } from '@/shared/lib';
 
 export function useFilteredFoods(searchQuery: string, myFoodOnly = false, richNutrientId?: string | null) {
@@ -13,28 +11,33 @@ export function useFilteredFoods(searchQuery: string, myFoodOnly = false, richNu
     searchQuery || undefined,
   );
 
-  const productsById = useMemo(
-    () => new Map(allProducts.map((p) => [p.id, p])),
-    [allProducts],
-  );
+  // Single unified category filter (product categories apply to both products and dishes)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-  const categoryFilter = useCategoryFilterState();
+  const toggleCategory = useCallback((category: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
+    );
+  }, []);
+
+  const clearCategories = useCallback(() => {
+    setSelectedCategories([]);
+  }, []);
 
   // Load nutrients for all products when richNutrient sorting is active
   const productIds = useMemo(() => allProducts.map((p) => p.id), [allProducts]);
   const nutrientMap = useNutrientsByProductIds(richNutrientId ? productIds : []);
 
   // Product filtering — OR logic: show if product has ANY selected category
-  const selectedProductCategories = categoryFilter.getCategoryFilter('product');
   const products = useMemo(() => {
     let filtered = allProducts;
     if (myFoodOnly) {
       filtered = filtered.filter((p) => isCreatedByUser(p.userId));
     }
-    if (selectedProductCategories.length > 0) {
+    if (selectedCategories.length > 0) {
       filtered = filtered.filter((p) => {
         const parsed = parseCategories(p.categories);
-        return selectedProductCategories.some((cat) => parsed.includes(cat));
+        return selectedCategories.some((cat) => parsed.includes(cat));
       });
     }
     // Sort by richNutrient content (descending)
@@ -48,17 +51,42 @@ export function useFilteredFoods(searchQuery: string, myFoodOnly = false, richNu
       });
     }
     return filtered;
-  }, [allProducts, selectedProductCategories, myFoodOnly, richNutrientId, nutrientMap]);
+  }, [allProducts, selectedCategories, myFoodOnly, richNutrientId, nutrientMap]);
 
-  // Dish filtering — AND logic: show if dish satisfies ALL selected dietary categories
-  const selectedDishCategories = categoryFilter.getCategoryFilter('dish');
+  // Dish filtering — OR logic: show if ANY ingredient product has ANY selected category
+  const dishIds = useMemo(() => allDishes.map((d) => d.id), [allDishes]);
+  const allDishItems = useDishItemsByDishIds(dishIds);
+  const allProductsForLookup = useProducts();
+
+  const productsById = useMemo(
+    () => new Map(allProductsForLookup.map((p) => [p.id, p])),
+    [allProductsForLookup],
+  );
+
   const dishes = useMemo(() => {
-    if (selectedDishCategories.length === 0) return allDishes;
-    return allDishes.filter((dish) => {
-      const computed = computeDishDietaryCategories(dish as any, productsById as any);
-      return selectedDishCategories.every((cat) => computed.has(cat as never));
-    });
-  }, [allDishes, selectedDishCategories, productsById]);
+    let filtered = allDishes;
+    if (myFoodOnly) {
+      filtered = filtered.filter((d) => isCreatedByUser(d.userId));
+    }
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((dish) => {
+        const items = allDishItems.filter((di) => di.dishId === dish.id);
+        return items.some((item) => {
+          const product = productsById.get(item.productId);
+          if (!product) return false;
+          const parsed = parseCategories(product.categories);
+          return selectedCategories.some((cat) => parsed.includes(cat));
+        });
+      });
+    }
+    return filtered;
+  }, [allDishes, selectedCategories, myFoodOnly, allDishItems, productsById]);
+
+  const categoryFilter = useMemo(() => ({
+    selectedCategories,
+    toggleCategory,
+    clearCategories,
+  }), [selectedCategories, toggleCategory, clearCategories]);
 
   return { products, dishes, categoryFilter, nutrientMap };
 }

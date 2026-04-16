@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  padding: 0 var(--space-6);
+  padding: 0 var(--space-4);
 }
 
 .section {
@@ -68,7 +68,6 @@
 
 .progressTrack {
   position: absolute;
-  left: var(--space-3);
   bottom: 23px;
   width: 100%;
   height: 2px;
@@ -145,11 +144,12 @@
 
 
 .valueLeft {
-  padding-left: var(--space-3);
+  padding-left: var(--space-1);
 }
 
 
 .name {
+  position: relative;
   border-radius: 6px;
   font-family: "Raleway", sans-serif;
   font-weight: 400;
@@ -165,8 +165,8 @@
   .main & {
     // border-bottom-left-radius: 8px;
     // styles for main group
-    padding: var(--space-2) var(--space-3);
-    padding-right: var(--space-4);
+    // padding: var(--space-2) var(--space-3);
+    // padding-right: var(--space-4);
     padding-bottom: 0;
     line-height: 1.1;
     font-weight: 500;
@@ -175,19 +175,18 @@
 
   .minerals & {
     // styles for minerals group
-    font-size: 1.5rem;
-    font-weight: 700;
-
+    font-size: 1rem;
+    font-weight: 600;
   }
 
   .vitamins & {
     // styles for vitamins group
-    font-size: 1.5rem;
+    font-size: 1rem;
   }
 
   .aminoAcids & {
     // styles for aminoAcids group
-    font-size: 1.5rem;
+    font-size: 1rem;
   }
 }
 
@@ -207,46 +206,82 @@
   padding-left: 2px;
 }
 
-// Per-nutrient overrides (БЖУ group)
-:global([data-nutrient="protein"]) .name {
-  background: linear-gradient(120deg, transparent 0%, rgba(255, 227, 42, 0.15) 25%, #ffe32a78 55%, rgba(255, 227, 42, 0.25) 85%, transparent 100%);
-}
+// Smaller typography for non-main groups
+.minerals,
+.vitamins,
+.aminoAcids {
+  .pct {
+    font-size: 1.25rem;
+    line-height: 28px;
+  }
 
-:global([data-nutrient="fats"]) .name {
-  background: linear-gradient(120deg, transparent 0%, rgba(234, 150, 41, 0.08) 25%, #ea962925 55%, rgba(234, 150, 41, 0.12) 85%, transparent 100%);
-}
+  .value {
+    font-size: 0.75rem;
+  }
 
-:global([data-nutrient="carbohydrates"]) .name {
-  background: linear-gradient(120deg, transparent 0%, rgba(255, 69, 59, 0.08) 25%, #ff453b23 55%, rgba(255, 69, 59, 0.12) 85%, transparent 100%);
-}
-
-:global([data-nutrient="fiber"]) .name {
-  background: linear-gradient(120deg, transparent 0%, rgba(90, 249, 108, 0.12) 25%, #5af96c39 55%, rgba(90, 249, 108, 0.15) 85%, transparent 100%);
-  position: relative;
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0px;
-    right: 0px;
-    width: 20px;
-    height: 20px;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%235af96c" opacity="0.6"><path d="M12 2C12 2 8 8 8 14c0 2.2 1.8 4 4 4s4-1.8 4-4c0-6-4-12-4-12zm-2 12c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm4 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>');
-    background-size: contain;
-    background-repeat: no-repeat;
-    pointer-events: none;
+  .row {
+    min-height: 44px;
   }
 }
 
-:global([data-nutrient="water"]) .name {
+// Per-nutrient overrides (БЖУ group) — фон через ::before, не влияет на layout
+:global([data-nutrient="protein"]) .name::before,
+:global([data-nutrient="fats"]) .name::before,
+:global([data-nutrient="carbohydrates"]) .name::before,
+:global([data-nutrient="fiber"]) .name::before,
+:global([data-nutrient="water"]) .name::before,
+:global([data-nutrient="energy"]) .name::before,
+:global([data-nutrient="sugar"]) .name::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  bottom: -2px;
+  left: -10px;
+  right: -10px;
+  border-radius: 6px;
+  // width: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+:global([data-nutrient="protein"]) .name::before {
+  background: linear-gradient(120deg, transparent 0%, rgba(255, 227, 42, 0.15) 25%, #ffe32a78 55%, rgba(255, 227, 42, 0.25) 85%, transparent 100%);
+}
+
+:global([data-nutrient="fats"]) .name::before {
+  background: linear-gradient(120deg, transparent 0%, rgba(234, 150, 41, 0.08) 25%, #ea962925 55%, rgba(234, 150, 41, 0.12) 85%, transparent 100%);
+}
+
+:global([data-nutrient="carbohydrates"]) .name::before {
+  background: linear-gradient(120deg, transparent 0%, rgba(255, 69, 59, 0.08) 25%, #ff453b23 55%, rgba(255, 69, 59, 0.12) 85%, transparent 100%);
+}
+
+:global([data-nutrient="fiber"]) .name::before {
+  background: linear-gradient(120deg, transparent 0%, rgba(90, 249, 108, 0.12) 25%, #5af96c39 55%, rgba(90, 249, 108, 0.15) 85%, transparent 100%);
+}
+
+:global([data-nutrient="fiber"]) .name::after {
+  content: '';
+  position: absolute;
+  top: 0px;
+  right: -20px;
+  width: 20px;
+  height: 20px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%235af96c" opacity="0.6"><path d="M12 2C12 2 8 8 8 14c0 2.2 1.8 4 4 4s4-1.8 4-4c0-6-4-12-4-12zm-2 12c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm4 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>');
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+:global([data-nutrient="water"]) .name::before {
   background: linear-gradient(120deg, transparent 0%, rgba(0, 191, 255, 0.1) 25%, #00bfff1e 55%, rgba(0, 191, 255, 0.08) 85%, transparent 100%);
 }
 
-:global([data-nutrient="energy"]) .name {
+:global([data-nutrient="energy"]) .name::before {
   background: linear-gradient(120deg, transparent 0%, rgba(255, 94, 64, 0.1) 25%, #ff5e4018 55%, rgba(255, 94, 64, 0.08) 85%, transparent 100%);
 }
 
-:global([data-nutrient="sugar"]) .name {
+:global([data-nutrient="sugar"]) .name::before {
   background: linear-gradient(120deg, transparent 0%, rgba(255, 45, 128, 0.1) 25%, #ff2d8018 55%, rgba(255, 45, 128, 0.08) 85%, transparent 100%);
 }
 
@@ -288,5 +323,110 @@
 :global([data-nutrient="magnesium"]) .mineralsPentagon {
   svg {
     filter: drop-shadow(0 2px 4px rgba(76, 175, 80, 0.2));
+  }
+}
+
+// Edit mode styles
+.editRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-left: var(--space-3);
+}
+
+.editInput {
+  max-width: 72px;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid rgba(128, 128, 128, 0.25);
+  text-align: center;
+  font-family: "Raleway", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  padding: 2px 4px;
+  transition: border-color 0.15s ease;
+
+  &:focus {
+    outline: none;
+    border-bottom-color: var(--text-primary);
+  }
+
+  &::selection {
+    background-color: rgb(172, 172, 172);
+    color: white;
+  }
+}
+
+.editInputRight {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.unitProminent {
+  font-family: "Raleway", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+// Smaller edit input for group rows (minerals, vitamins, amino acids)
+.minerals,
+.vitamins,
+.aminoAcids {
+  .editInput {
+    max-width: 60px;
+    font-size: 0.9rem;
+  }
+
+  .unitProminent {
+    font-size: 0.75rem;
+  }
+}
+
+.clickable {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:active {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 2;
+}
+
+.overlayBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.65);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s;
+
+  &:active {
+    background: rgba(0, 0, 0, 0.12);
   }
 }
