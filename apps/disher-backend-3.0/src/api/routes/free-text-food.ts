@@ -1,7 +1,15 @@
-import { createHash } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import { FastifyInstance } from "fastify";
-import { isMatcherReady, lookupAlias, matchOne, type MatchCandidate } from "../food-matcher.js";
+import {
+  isMatcherReady,
+  lookupAlias,
+  matchOne,
+  normalizeForEmbedding,
+  type MatchCandidate,
+} from "../food-matcher.js";
 import { logMatcherQuery } from "../matcher-query-log.js";
+import { logLLMOutput } from "../llm-output-log.js";
+import { MATCHER_VERSION, getLLMModel } from "../build-info.js";
 
 // ─── Types ───
 
@@ -48,6 +56,7 @@ interface UnresolvedItem {
 }
 
 interface ParseResponse {
+  requestId: string;
   resolved: ResolvedItem[];
   ambiguous: AmbiguousItem[];
   unresolved: UnresolvedItem[];
@@ -168,7 +177,15 @@ const SYSTEM_PROMPT = `Ты — помощник по питанию. Польз
       "варёное яйцо" → name: "яйцо"
 - Не добавляй комментариев, объяснений, markdown — только чистый JSON.`;
 
-async function callLLM(text: string): Promise<LLMItem[]> {
+interface LLMCallResult {
+  items: LLMItem[];
+  latencyMs: number;
+  promptTokens?: number;
+  completionTokens?: number;
+  totalCost?: number;
+}
+
+async function callLLM(text: string): Promise<LLMCallResult> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
 
@@ -176,6 +193,7 @@ async function callLLM(text: string): Promise<LLMItem[]> {
 
   const MAX_RETRIES = 3;
   let response!: Response;
+  const startedAt = Date.now();
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     if (attempt > 0) await new Promise((r) => setTimeout(r, 1500 * attempt));
     response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -202,6 +220,7 @@ async function callLLM(text: string): Promise<LLMItem[]> {
   }
 
   const data = await response.json();
+  const latencyMs = Date.now() - startedAt;
   const content = data.choices?.[0]?.message?.content;
   if (!content) throw new Error("Empty LLM response");
 
@@ -210,9 +229,21 @@ async function callLLM(text: string): Promise<LLMItem[]> {
   if (fenceMatch) jsonStr = fenceMatch[1].trim();
 
   const parsed = JSON.parse(jsonStr);
-  const items: LLMItem[] = Array.isArray(parsed?.items) ? parsed.items : [];
-  // Keep every item with a non-empty name. Zero/missing quantity is filled in later.
-  return items.filter((i) => typeof i?.name === "string" && i.name.trim());
+  const rawItems: LLMItem[] = Array.isArray(parsed?.items) ? parsed.items : [];
+  const items = rawItems.filter((i) => typeof i?.name === "string" && i.name.trim());
+
+  const usage = (data as { usage?: { prompt_tokens?: number; completion_tokens?: number; total_cost?: number; cost?: number } }).usage;
+  return {
+    items,
+    latencyMs,
+    ...(typeof usage?.prompt_tokens === "number" ? { promptTokens: usage.prompt_tokens } : {}),
+    ...(typeof usage?.completion_tokens === "number" ? { completionTokens: usage.completion_tokens } : {}),
+    ...(typeof usage?.total_cost === "number"
+      ? { totalCost: usage.total_cost }
+      : typeof usage?.cost === "number"
+        ? { totalCost: usage.cost }
+        : {}),
+  };
 }
 
 // ─── Time defaults ───
@@ -247,8 +278,13 @@ function fillDefaultTimes(items: LLMItem[]): string[] {
 
 // ─── Pipeline ───
 
-async function resolveItems(items: LLMItem[], phrase: string): Promise<ParseResponse> {
+async function resolveItems(
+  items: LLMItem[],
+  phrase: string,
+  requestId: string,
+): Promise<ParseResponse> {
   const times = fillDefaultTimes(items);
+  const llmModel = getLLMModel();
 
   const resolved: ResolvedItem[] = [];
   const ambiguous: AmbiguousItem[] = [];
@@ -263,14 +299,27 @@ async function resolveItems(items: LLMItem[], phrase: string): Promise<ParseResp
     const quantityGuessed = rawQty <= 0;
     const quantity = quantityGuessed ? QUANTITY_FALLBACK_G : Math.round(rawQty);
 
+    const normalizedName = normalizeForEmbedding(item.name);
+    const logBase = {
+      requestId,
+      phrase,
+      originalName: item.name,
+      llmNote: note,
+      llmQuantity: typeof item.quantity === "number" ? item.quantity : null,
+      llmTime: typeof item.time === "string" ? item.time : null,
+      normalizedName,
+      matcherVersion: MATCHER_VERSION,
+      llmModel,
+    } as const;
+
     const alias = lookupAlias(item.name);
     if (alias) {
       logMatcherQuery({
-        phrase,
-        originalName: item.name,
+        ...logBase,
         verdict: "alias",
         top: [{ id: alias.id, name: alias.name, score: alias.score }],
         margin: null,
+        aliasHit: true,
       });
       resolved.push({
         productId: alias.id,
@@ -290,7 +339,13 @@ async function resolveItems(items: LLMItem[], phrase: string): Promise<ParseResp
     const second = candidates[1];
 
     if (!top) {
-      logMatcherQuery({ phrase, originalName: item.name, verdict: "unresolved", top: [], margin: null });
+      logMatcherQuery({
+        ...logBase,
+        verdict: "unresolved",
+        top: [],
+        margin: null,
+        aliasHit: false,
+      });
       unresolved.push({
         originalName: item.name,
         note,
@@ -311,12 +366,22 @@ async function resolveItems(items: LLMItem[], phrase: string): Promise<ParseResp
         ? "ambiguous"
         : "unresolved";
 
+    const scoreBreakdown =
+      top.trigram !== undefined || top.cosine !== undefined || top.hybrid !== undefined
+        ? {
+            ...(top.trigram !== undefined ? { trigram: top.trigram } : {}),
+            ...(top.cosine !== undefined ? { cosine: top.cosine } : {}),
+            ...(top.hybrid !== undefined ? { hybrid: top.hybrid } : {}),
+          }
+        : undefined;
+
     logMatcherQuery({
-      phrase,
-      originalName: item.name,
+      ...logBase,
       verdict,
       top: candidates.map((c) => ({ id: c.id, name: c.name, score: c.score })),
       margin,
+      aliasHit: false,
+      ...(scoreBreakdown ? { scoreBreakdown } : {}),
     });
 
     if (verdict === "resolved") {
@@ -379,24 +444,46 @@ export async function freeTextFoodRoutes(app: FastifyInstance) {
       });
     }
 
+    const requestId = randomUUID();
+
     try {
       const cached = getCachedLLM(text);
       let items: LLMItem[];
       if (cached) {
         items = cached;
-        app.log.info({ textPreview: text.slice(0, 80) }, "free-text-food/parse cache hit");
+        app.log.info({ textPreview: text.slice(0, 80), requestId }, "free-text-food/parse cache hit");
+        logLLMOutput({
+          requestId,
+          model: getLLMModel(),
+          phrase: text,
+          itemsReturned: items,
+          cached: true,
+          latencyMs: 0,
+        });
       } else {
-        items = await callLLM(text);
+        const result = await callLLM(text);
+        items = result.items;
         setCachedLLM(text, items);
         app.log.info(
-          { textPreview: text.slice(0, 80), itemCount: items.length },
+          { textPreview: text.slice(0, 80), itemCount: items.length, requestId, latencyMs: result.latencyMs },
           "free-text-food/parse LLM parsed"
         );
+        logLLMOutput({
+          requestId,
+          model: getLLMModel(),
+          phrase: text,
+          itemsReturned: items,
+          cached: false,
+          latencyMs: result.latencyMs,
+          ...(result.promptTokens !== undefined ? { promptTokens: result.promptTokens } : {}),
+          ...(result.completionTokens !== undefined ? { completionTokens: result.completionTokens } : {}),
+          ...(result.totalCost !== undefined ? { totalCost: result.totalCost } : {}),
+        });
       }
       if (items.length === 0) {
-        return reply.send({ resolved: [], ambiguous: [], unresolved: [] });
+        return reply.send({ requestId, resolved: [], ambiguous: [], unresolved: [] });
       }
-      const result = await resolveItems(items, text);
+      const result = await resolveItems(items, text, requestId);
       return reply.send(result);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";

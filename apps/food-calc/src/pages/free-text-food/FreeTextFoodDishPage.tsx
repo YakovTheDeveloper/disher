@@ -3,13 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import FreeTextFoodFlow from './FreeTextFoodFlow';
 import type { FreeTextFoodMode } from './mode';
 
-const FreeTextFoodPage = () => {
-  const { date } = useParams<{ date: string }>();
+const FreeTextFoodDishPage = () => {
+  const { dishId } = useParams<{ dishId: string }>();
   const navigate = useNavigate();
 
   const mode = useMemo<FreeTextFoodMode | null>(
-    () => (date ? { kind: 'schedule', date } : null),
-    [date],
+    () => (dishId ? { kind: 'dish', dishId } : null),
+    [dishId],
   );
 
   if (!mode) {
@@ -20,4 +20,4 @@ const FreeTextFoodPage = () => {
   return <FreeTextFoodFlow mode={mode} />;
 };
 
-export default FreeTextFoodPage;
+export default FreeTextFoodDishPage;

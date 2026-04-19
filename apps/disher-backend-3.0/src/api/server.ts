@@ -6,13 +6,34 @@ import { authRoutes } from "./routes/auth.js";
 import { analyticsRoutes } from "./routes/analytics.js";
 import { suggestionsRoutes } from "./routes/suggestions.js";
 import { freeTextFoodRoutes } from "./routes/free-text-food.js";
+import { matcherTelemetryRoutes } from "./routes/matcher-telemetry.js";
 import { bugReportRoutes } from "./routes/bug-reports.js";
 import { fileURLToPath } from "url";
 import path from "path";
+import { readFileSync, existsSync } from "fs";
 import { initAnalyticsDb } from "./analytics-db.js";
 import { initMatcher } from "./food-matcher.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// HTTPS configuration BEFORE creating Fastify app
+const CERTS_DIR = path.join(__dirname, "../../certs");
+const CERT_FILE = path.join(CERTS_DIR, "localhost-cert.pem");
+const KEY_FILE = path.join(CERTS_DIR, "localhost-key.pem");
+
+console.log("🔍 Certificate paths:");
+console.log("   CERTS_DIR:", CERTS_DIR);
+console.log("   CERT_FILE:", CERT_FILE, "exists:", existsSync(CERT_FILE));
+console.log("   KEY_FILE:", KEY_FILE, "exists:", existsSync(KEY_FILE));
+
+const httpsOptions = existsSync(CERT_FILE) && existsSync(KEY_FILE)
+  ? {
+    cert: readFileSync(CERT_FILE),
+    key: readFileSync(KEY_FILE),
+  }
+  : undefined;
+
+console.log("🔍 httpsOptions:", httpsOptions ? "DEFINED (will use HTTPS)" : "UNDEFINED (will use HTTP)");
 
 initAnalyticsDb();
 
@@ -22,7 +43,10 @@ initMatcher().catch((err) => {
   console.error("initMatcher failed:", err);
 });
 
-const app = Fastify({ logger: true });
+const app = Fastify({
+  logger: true,
+  ...(httpsOptions ? { https: httpsOptions } : {}),
+});
 
 await app.register(cors, {
   origin: true,
@@ -80,15 +104,18 @@ await app.register(authRoutes, { prefix: "/api/auth" });
 await app.register(analyticsRoutes, { prefix: "/api/analytics" });
 await app.register(suggestionsRoutes, { prefix: "/api/suggestions" });
 await app.register(freeTextFoodRoutes, { prefix: "/api/free-text-food" });
+await app.register(matcherTelemetryRoutes, { prefix: "/api/matcher-telemetry" });
 await app.register(bugReportRoutes, { prefix: "/api/bug-reports" });
 
 const HOST = process.env.HOST ?? "localhost";
 const PORT = Number(process.env.PORT ?? 3100);
+
+const protocol = httpsOptions ? "https" : "http";
 
 app.listen({ host: HOST, port: PORT }, (err) => {
   if (err) {
     app.log.error(err);
     process.exit(1);
   }
-  console.log(`API server running on http://${HOST}:${PORT}`);
+  console.log(`API server running on ${protocol}://${HOST}:${PORT}`);
 });

@@ -1,0 +1,826 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useStore } from '@livestore/react';
+import { Screen } from '@/shared/ui/Screen';
+import { ActionsPanel } from '@/shared/ui/ActionsPanel';
+import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
+import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
+import Button from '@/shared/ui/atoms/Button/Button';
+import toaster from '@/shared/lib/toaster/toaster';
+import { safeMutate } from '@/shared/lib/safeMutate';
+import { events } from '@/livestore/schema';
+import { getCurrentUserId } from '@/shared/lib/user';
+import { RouterUrls } from '@/app/router';
+import {
+  parseFreeTextFood,
+  openFreeTextFoodSearch,
+  sendMatcherTelemetry,
+  readParseState,
+  clearParseState,
+  FreeTextFoodReviewItem,
+  type ParseTarget,
+  type MatchCandidate,
+  type ParseResponse,
+  type ResolvedItem,
+  type AmbiguousItem,
+  type UnresolvedItem,
+  type TelemetryCorrection,
+  type TelemetryEventPayload,
+} from '@/features/food/food-free-text-parse';
+import type { FreeTextFoodMode, CommittedItem } from './mode';
+import { DayContextBar } from './components/DayContextBar';
+import { DishContextBar } from './components/DishContextBar';
+import styles from './FreeTextFoodFlow.module.scss';
+
+export interface FreeTextFoodFlowProps {
+  mode: FreeTextFoodMode;
+}
+
+type Step = 'input' | 'loading' | 'review';
+type ItemCategory = 'resolved' | 'ambiguous' | 'unresolved';
+
+interface EditFlags {
+  foodEdited: boolean;
+  timeEdited: boolean;
+  qtyEdited: boolean;
+}
+
+const EMPTY_FLAGS: EditFlags = { foodEdited: false, timeEdited: false, qtyEdited: false };
+
+type ResolvedRow = ResolvedItem & { uid: string; enabled: boolean } & EditFlags;
+type AmbiguousRow = AmbiguousItem & {
+  uid: string;
+  enabled: boolean;
+  selectedId: string | null;
+} & EditFlags;
+type UnresolvedRow = UnresolvedItem & {
+  uid: string;
+  manual: MatchCandidate | null;
+} & EditFlags;
+
+const makeUid = () => Math.random().toString(36).slice(2, 10);
+
+const PLACEHOLDER =
+  '8:00 овсянка 200, банан, кофе\n13:00 рис 150, курица 200, салат';
+
+export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { store } = useStore();
+
+  const scheduleDate = mode.kind === 'schedule' ? mode.date : null;
+
+  const parseTarget = useMemo<ParseTarget | null>(() => {
+    if (mode.kind === 'schedule') return { kind: 'schedule', date: mode.date };
+    if (mode.kind === 'dish') return { kind: 'dish', dishId: mode.dishId };
+    return null;
+  }, [mode]);
+
+  const [initialFromRouter] = useState<{ parseResult: ParseResponse; inputText: string } | null>(
+    () => {
+      const stateParse = (location.state as { parseResult?: ParseResponse } | null)?.parseResult;
+      if (stateParse) return { parseResult: stateParse, inputText: '' };
+      if (!parseTarget) return null;
+      const persisted = readParseState(parseTarget);
+      if (persisted && persisted.status === 'ready' && persisted.parseResult) {
+        return { parseResult: persisted.parseResult, inputText: persisted.inputText };
+      }
+      return null;
+    },
+  );
+
+  const [step, setStep] = useState<Step>(initialFromRouter ? 'review' : 'input');
+  const [text, setText] = useState(initialFromRouter?.inputText ?? '');
+  const [error, setError] = useState<string | null>(null);
+  const [resolved, setResolved] = useState<ResolvedRow[]>([]);
+  const [ambiguous, setAmbiguous] = useState<AmbiguousRow[]>([]);
+  const [unresolved, setUnresolved] = useState<UnresolvedRow[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletedItem, setDeletedItem] = useState<{
+    uid: string;
+    type: ItemCategory;
+    data: unknown;
+  } | null>(null);
+  const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const requestIdRef = useRef<string | null>(null);
+  const parseStartRef = useRef<number>(0);
+  const matcherLatencyRef = useRef<number>(0);
+  const reviewStartRef = useRef<number>(0);
+  const deletedCountRef = useRef<number>(0);
+  const telemetrySentRef = useRef<boolean>(false);
+  const originalChoicesRef = useRef<
+    Map<string, { originalName: string; matcherChoice: string }>
+  >(new Map());
+
+  useEffect(
+    () => () => {
+      abortRef.current?.abort();
+      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+      sendTelemetryRef.current('abandon');
+    },
+    [],
+  );
+
+  // If we arrived here with a pre-parsed result (from WriteFoodButton/storage),
+  // hydrate review rows once on mount.
+  useEffect(() => {
+    if (!initialFromRouter) return;
+    matcherLatencyRef.current = 0;
+    reviewStartRef.current = Date.now();
+    applyResponse(initialFromRouter.parseResult);
+  }, []);
+
+  const applyResponse = useCallback((response: ParseResponse) => {
+    requestIdRef.current = response.requestId;
+    const choices = originalChoicesRef.current;
+    choices.clear();
+
+    const resolvedRows: ResolvedRow[] = response.resolved.map((r) => {
+      const uid = makeUid();
+      choices.set(uid, { originalName: r.originalName, matcherChoice: r.productId });
+      return { ...r, uid, enabled: true, ...EMPTY_FLAGS };
+    });
+    const ambiguousRows: AmbiguousRow[] = response.ambiguous.map((a) => {
+      const uid = makeUid();
+      const initialId = a.candidates[0]?.id ?? '';
+      choices.set(uid, { originalName: a.originalName, matcherChoice: initialId });
+      return {
+        ...a,
+        uid,
+        enabled: true,
+        selectedId: a.candidates[0]?.id ?? null,
+        ...EMPTY_FLAGS,
+      };
+    });
+    const unresolvedRows: UnresolvedRow[] = response.unresolved.map((u) => {
+      const uid = makeUid();
+      choices.set(uid, { originalName: u.originalName, matcherChoice: '' });
+      return { ...u, uid, manual: null, ...EMPTY_FLAGS };
+    });
+
+    setResolved(resolvedRows);
+    setAmbiguous(ambiguousRows);
+    setUnresolved(unresolvedRows);
+  }, []);
+
+  const handleParse = useCallback(async () => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setError(null);
+    setStep('loading');
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    parseStartRef.current = Date.now();
+    deletedCountRef.current = 0;
+    telemetrySentRef.current = false;
+
+    try {
+      const response = await parseFreeTextFood(trimmed, controller.signal);
+      if (controller.signal.aborted) return;
+      matcherLatencyRef.current = Date.now() - parseStartRef.current;
+      reviewStartRef.current = Date.now();
+      applyResponse(response);
+      setStep('review');
+    } catch (err) {
+      if (controller.signal.aborted) return;
+      const message = err instanceof Error ? err.message : 'Не удалось разобрать текст';
+      setError(message);
+      setStep('input');
+    }
+  }, [text, applyResponse]);
+
+  const handleCancelLoading = useCallback(() => {
+    abortRef.current?.abort();
+    setStep('input');
+  }, []);
+
+  const handleBack = useCallback(() => {
+    if (step === 'review') {
+      sendTelemetryRef.current('abandon');
+      setStep('input');
+      return;
+    }
+    if (scheduleDate) navigate(RouterUrls.Schedule(scheduleDate));
+    else navigate('/');
+  }, [navigate, scheduleDate, step]);
+
+  // ─── Delete + Undo ───
+
+  const scheduleUndoExpiry = useCallback(() => {
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    undoTimeoutRef.current = setTimeout(() => setDeletedItem(null), 3000);
+  }, []);
+
+  const deleteItem = useCallback(
+    (uid: string, type: ItemCategory, data: unknown) => {
+      setDeletedItem({ uid, type, data });
+      deletedCountRef.current += 1;
+      scheduleUndoExpiry();
+    },
+    [scheduleUndoExpiry],
+  );
+
+  const deleteResolved = useCallback(
+    (uid: string) => {
+      setResolved((prev) => {
+        const item = prev.find((r) => r.uid === uid);
+        if (item) deleteItem(uid, 'resolved', item);
+        return prev.filter((r) => r.uid !== uid);
+      });
+    },
+    [deleteItem],
+  );
+
+  const deleteAmbiguous = useCallback(
+    (uid: string) => {
+      setAmbiguous((prev) => {
+        const item = prev.find((a) => a.uid === uid);
+        if (item) deleteItem(uid, 'ambiguous', item);
+        return prev.filter((a) => a.uid !== uid);
+      });
+    },
+    [deleteItem],
+  );
+
+  const deleteUnresolved = useCallback(
+    (uid: string) => {
+      setUnresolved((prev) => {
+        const item = prev.find((u) => u.uid === uid);
+        if (item) deleteItem(uid, 'unresolved', item);
+        return prev.filter((u) => u.uid !== uid);
+      });
+    },
+    [deleteItem],
+  );
+
+  const handleUndo = useCallback(() => {
+    if (!deletedItem) return;
+    if (deletedItem.type === 'resolved')
+      setResolved((prev) => [...prev, deletedItem.data as ResolvedRow]);
+    else if (deletedItem.type === 'ambiguous')
+      setAmbiguous((prev) => [...prev, deletedItem.data as AmbiguousRow]);
+    else setUnresolved((prev) => [...prev, deletedItem.data as UnresolvedRow]);
+    deletedCountRef.current = Math.max(0, deletedCountRef.current - 1);
+    setDeletedItem(null);
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+  }, [deletedItem]);
+
+  // ─── Update helpers ───
+
+  const editFlagsFromUpdates = useCallback(
+    (updates: Record<string, unknown>): Partial<EditFlags> => {
+      const flags: Partial<EditFlags> = {};
+      if ('time' in updates) flags.timeEdited = true;
+      if ('quantity' in updates) flags.qtyEdited = true;
+      if (
+        'productId' in updates ||
+        'selectedId' in updates ||
+        'manual' in updates ||
+        'name' in updates
+      ) {
+        flags.foodEdited = true;
+      }
+      return flags;
+    },
+    [],
+  );
+
+  const updateResolved = useCallback(
+    (uid: string, updates: Partial<ResolvedRow>) => {
+      const flags = editFlagsFromUpdates(updates as Record<string, unknown>);
+      setResolved((prev) =>
+        prev.map((r) => (r.uid === uid ? { ...r, ...updates, ...flags } : r)),
+      );
+    },
+    [editFlagsFromUpdates],
+  );
+
+  const updateAmbiguous = useCallback(
+    (uid: string, updates: Partial<AmbiguousRow>) => {
+      const flags = editFlagsFromUpdates(updates as Record<string, unknown>);
+      setAmbiguous((prev) =>
+        prev.map((a) => (a.uid === uid ? { ...a, ...updates, ...flags } : a)),
+      );
+    },
+    [editFlagsFromUpdates],
+  );
+
+  const updateUnresolved = useCallback(
+    (uid: string, updates: Partial<UnresolvedRow>) => {
+      const flags = editFlagsFromUpdates(updates as Record<string, unknown>);
+      setUnresolved((prev) =>
+        prev.map((u) => (u.uid === uid ? { ...u, ...updates, ...flags } : u)),
+      );
+    },
+    [editFlagsFromUpdates],
+  );
+
+  const handleFindManually = useCallback(
+    async (uid: string) => {
+      const row = unresolved.find((u) => u.uid === uid);
+      if (!row) return;
+      const picked = await openFreeTextFoodSearch(row.originalName);
+      if (!picked) return;
+      updateUnresolved(uid, { manual: picked });
+    },
+    [unresolved, updateUnresolved],
+  );
+
+  // ─── Commit ───
+
+  const userId = useMemo(() => getCurrentUserId(), []);
+
+  const buildTelemetry = useCallback(
+    (
+      action: 'commit' | 'abandon',
+      committedRows: {
+        resolved: ResolvedRow[];
+        ambiguous: AmbiguousRow[];
+        unresolved: UnresolvedRow[];
+      },
+    ): TelemetryEventPayload | null => {
+      if (!requestIdRef.current) return null;
+
+      const choices = originalChoicesRef.current;
+      const corrections: TelemetryCorrection[] = [];
+      let itemsCommitted = 0;
+      let foodEdited = 0;
+      let timeEdited = 0;
+      let qtyEdited = 0;
+
+      for (const r of committedRows.resolved) {
+        if (r.foodEdited) foodEdited += 1;
+        if (r.timeEdited) timeEdited += 1;
+        if (r.qtyEdited) qtyEdited += 1;
+        if (!r.enabled) continue;
+        itemsCommitted += 1;
+        const original = choices.get(r.uid);
+        if (!original) continue;
+        corrections.push({
+          originalName: original.originalName,
+          matcherChoice: original.matcherChoice,
+          userChoice: r.productId,
+          correctionType:
+            r.productId === original.matcherChoice ? 'accepted-top1' : 'manual-search',
+        });
+      }
+
+      for (const a of committedRows.ambiguous) {
+        if (a.foodEdited) foodEdited += 1;
+        if (a.timeEdited) timeEdited += 1;
+        if (a.qtyEdited) qtyEdited += 1;
+        if (!a.enabled || !a.selectedId) continue;
+        itemsCommitted += 1;
+        const original = choices.get(a.uid);
+        if (!original) continue;
+        corrections.push({
+          originalName: original.originalName,
+          matcherChoice: original.matcherChoice,
+          userChoice: a.selectedId,
+          correctionType:
+            a.selectedId === original.matcherChoice
+              ? 'accepted-top1'
+              : 'switched-ambiguous',
+        });
+      }
+
+      for (const u of committedRows.unresolved) {
+        if (u.foodEdited) foodEdited += 1;
+        if (u.timeEdited) timeEdited += 1;
+        if (u.qtyEdited) qtyEdited += 1;
+        if (!u.manual) continue;
+        itemsCommitted += 1;
+        const original = choices.get(u.uid);
+        if (!original) continue;
+        corrections.push({
+          originalName: original.originalName,
+          matcherChoice: '',
+          userChoice: u.manual.id,
+          correctionType: 'manual-search',
+        });
+      }
+
+      const itemsTotal =
+        committedRows.resolved.length +
+        committedRows.ambiguous.length +
+        committedRows.unresolved.length +
+        deletedCountRef.current;
+
+      return {
+        requestId: requestIdRef.current,
+        userId,
+        action,
+        itemsTotal,
+        itemsCommitted,
+        itemsDeleted: deletedCountRef.current,
+        itemsWithEditedFood: foodEdited,
+        itemsWithEditedTime: timeEdited,
+        itemsWithEditedQty: qtyEdited,
+        corrections,
+        llmLatencyMs: 0,
+        matcherLatencyMs: matcherLatencyRef.current,
+        reviewDurationMs: reviewStartRef.current
+          ? Date.now() - reviewStartRef.current
+          : 0,
+      };
+    },
+    [userId],
+  );
+
+  const sendTelemetryIfNotSent = useCallback(
+    (action: 'commit' | 'abandon') => {
+      if (telemetrySentRef.current) return;
+      const snapshot = buildTelemetry(action, { resolved, ambiguous, unresolved });
+      if (!snapshot) return;
+      telemetrySentRef.current = true;
+      sendMatcherTelemetry(snapshot);
+    },
+    [buildTelemetry, resolved, ambiguous, unresolved],
+  );
+
+  const sendTelemetryRef = useRef(sendTelemetryIfNotSent);
+  useEffect(() => {
+    sendTelemetryRef.current = sendTelemetryIfNotSent;
+  }, [sendTelemetryIfNotSent]);
+
+  const totalToAdd = useMemo(() => {
+    const a = resolved.filter((r) => r.enabled).length;
+    const b = ambiguous.filter((x) => x.enabled && x.selectedId).length;
+    const c = unresolved.filter((u) => u.manual).length;
+    return a + b + c;
+  }, [resolved, ambiguous, unresolved]);
+
+  const handleCommit = useCallback(() => {
+    if (isSubmitting || totalToAdd === 0) return;
+    setIsSubmitting(true);
+    try {
+      const committed: CommittedItem[] = [];
+
+      for (const r of resolved) {
+        if (!r.enabled) continue;
+        committed.push({
+          productId: r.productId,
+          quantity: r.quantity,
+          time: r.time,
+          note: r.note,
+        });
+      }
+
+      for (const a of ambiguous) {
+        if (!a.enabled || !a.selectedId) continue;
+        committed.push({
+          productId: a.selectedId,
+          quantity: a.quantity,
+          time: a.time,
+          note: a.note,
+        });
+      }
+
+      for (const u of unresolved) {
+        if (!u.manual) continue;
+        committed.push({
+          productId: u.manual.id,
+          quantity: u.quantity,
+          time: u.time,
+          note: u.note,
+        });
+      }
+
+      if (committed.length === 0) {
+        setIsSubmitting(false);
+        return;
+      }
+
+      let ok: unknown;
+      if (mode.kind === 'schedule') {
+        const date = mode.date;
+        ok = safeMutate(
+          () =>
+            store.commit(
+              ...committed.map((c) =>
+                events.scheduleFoodCreated({
+                  id: crypto.randomUUID(),
+                  date,
+                  time: c.time,
+                  type: 'food',
+                  quantity: c.quantity,
+                  details: c.note,
+                  productId: c.productId,
+                  dishId: '',
+                  userId,
+                }),
+              ),
+            ),
+          'Не удалось добавить продукты',
+        );
+      } else if (mode.kind === 'dish') {
+        const dishId = mode.dishId;
+        ok = safeMutate(
+          () =>
+            store.commit(
+              ...committed.map((c) =>
+                events.dishItemCreated({
+                  id: crypto.randomUUID(),
+                  dishId,
+                  productId: c.productId,
+                  quantity: c.quantity,
+                  userId,
+                }),
+              ),
+            ),
+          'Не удалось добавить продукты в блюдо',
+        );
+      } else {
+        mode.onCommit(committed);
+        ok = true;
+      }
+
+      if (ok === undefined) {
+        setIsSubmitting(false);
+        return;
+      }
+      sendTelemetryIfNotSent('commit');
+      toaster.success(`Добавлено: ${committed.length}`);
+
+      if (parseTarget) clearParseState(parseTarget);
+
+      if (mode.kind === 'schedule') navigate(RouterUrls.Schedule(mode.date));
+      else if (mode.kind === 'dish') navigate(-1);
+    } catch (e) {
+      setIsSubmitting(false);
+      const message = e instanceof Error ? e.message : 'Не удалось добавить продукты';
+      toaster.error(message);
+    }
+  }, [
+    isSubmitting,
+    totalToAdd,
+    resolved,
+    ambiguous,
+    unresolved,
+    mode,
+    userId,
+    store,
+    navigate,
+    sendTelemetryIfNotSent,
+    parseTarget,
+  ]);
+
+  const isDishMode = mode.kind === 'dish';
+
+  // ─── InputStep ───
+
+  if (step === 'input') {
+    return (
+      <Screen
+        actions={
+          <ActionsPanel show onBack={handleBack}>
+            <Button variant="primary" onClick={handleParse} disabled={!text.trim()}>
+              Разобрать
+            </Button>
+          </ActionsPanel>
+        }
+      >
+        <div className={styles.page}>
+          <div className={styles.inputStep}>
+            <h2 className={styles.heading}>Что вы ели?</h2>
+            <p className={styles.subheading}>
+              Время — в начале строки. Вес не обязателен.
+            </p>
+
+            <div className={styles.textareaShell}>
+              <Textarea
+                value={text}
+                onChange={setText}
+                placeholder={PLACEHOLDER}
+                rows={8}
+                maxLength={2000}
+                autoFocus
+              />
+              <p className={styles.hint}>
+                Можно надиктовать голосом через микрофон на клавиатуре.
+              </p>
+            </div>
+
+            {error && <div className={styles.error}>{error}</div>}
+          </div>
+        </div>
+      </Screen>
+    );
+  }
+
+  // ─── LoadingStep ───
+
+  if (step === 'loading') {
+    return (
+      <Screen
+        actions={
+          <ActionsPanel show onBack={handleBack}>
+            <Button variant="secondary" onClick={handleCancelLoading}>
+              Отмена
+            </Button>
+          </ActionsPanel>
+        }
+      >
+        <div className={styles.page}>
+          <div className={styles.loadingStep}>
+            <Spinner size={44} />
+            <p className={styles.loadingText}>Распознаём продукты…</p>
+            <p className={styles.loadingHint}>
+              Обычно 10–30 секунд. Можно отменить и вернуться к вводу.
+            </p>
+          </div>
+        </div>
+      </Screen>
+    );
+  }
+
+  // ─── ReviewStep ───
+
+  const isEmpty =
+    resolved.length === 0 && ambiguous.length === 0 && unresolved.length === 0;
+
+  const addableCount = totalToAdd;
+  const resolvedCount = resolved.length;
+  const ambiguousCount = ambiguous.length;
+  const unresolvedPending = unresolved.filter((u) => !u.manual).length;
+
+  return (
+    <Screen
+      actions={
+        <ActionsPanel show onBack={handleBack}>
+          <Button
+            variant="primary"
+            onClick={handleCommit}
+            disabled={isSubmitting || addableCount === 0}
+          >
+            {isSubmitting ? 'Добавляем…' : `Добавить ${addableCount}`}
+          </Button>
+        </ActionsPanel>
+      }
+    >
+      <div className={styles.page}>
+        {mode.kind === 'schedule' && (
+          <DayContextBar date={mode.date} />
+        )}
+        {mode.kind === 'dish' && (
+          <DishContextBar dishId={mode.dishId} />
+        )}
+        <div className={styles.reviewStep}>
+          {text && <div className={styles.originalText}>{text}</div>}
+
+          {!isEmpty && (
+            <div className={styles.summary}>
+              {resolvedCount > 0 && (
+                <span className={`${styles.summaryChip} ${styles.summaryChip_resolved}`}>
+                  Распознано {resolvedCount}
+                </span>
+              )}
+              {ambiguousCount > 0 && (
+                <span className={`${styles.summaryChip} ${styles.summaryChip_ambiguous}`}>
+                  Уточните {ambiguousCount}
+                </span>
+              )}
+              {unresolvedPending > 0 && (
+                <span
+                  className={`${styles.summaryChip} ${styles.summaryChip_unresolved}`}
+                >
+                  Не найдено {unresolvedPending}
+                </span>
+              )}
+            </div>
+          )}
+
+          {isEmpty ? (
+            <div className={styles.empty}>
+              <p className={styles.emptyText}>
+                Ничего не распозналось. Попробуйте описать подробнее.
+              </p>
+              <Button variant="secondary" onClick={() => setStep('input')}>
+                Попробовать снова
+              </Button>
+            </div>
+          ) : (
+            <div className={styles.sections}>
+              {resolved.length > 0 && (
+                <section className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Распознано</h3>
+                  <ul className={styles.list}>
+                    {resolved.map((r) => (
+                      <li key={r.uid}>
+                        <FreeTextFoodReviewItem
+                          item={r}
+                          hideTime={isDishMode}
+                          onEditTime={(time) => updateResolved(r.uid, { time })}
+                          onEditQuantity={(qty) =>
+                            updateResolved(r.uid, { quantity: qty })
+                          }
+                          onEditFood={(id, name) =>
+                            updateResolved(r.uid, { productId: id, name })
+                          }
+                          onDeleteNote={() => updateResolved(r.uid, { note: '' })}
+                          onDeleteItem={() => deleteResolved(r.uid)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              {ambiguous.length > 0 && (
+                <section className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Уточните</h3>
+                  <ul className={styles.list}>
+                    {ambiguous.map((a) => {
+                      const selected =
+                        a.candidates.find((c) => c.id === a.selectedId) ??
+                        a.candidates[0];
+                      return (
+                        <li key={a.uid}>
+                          <FreeTextFoodReviewItem
+                            item={{
+                              ...a,
+                              name: selected?.name ?? '—',
+                              productId: a.selectedId ?? '',
+                            }}
+                            hideTime={isDishMode}
+                            isAmbiguous
+                            candidates={a.candidates}
+                            selectedCandidateId={a.selectedId}
+                            onSelectCandidate={(id) =>
+                              updateAmbiguous(a.uid, { selectedId: id })
+                            }
+                            onEditTime={(time) => updateAmbiguous(a.uid, { time })}
+                            onEditQuantity={(qty) =>
+                              updateAmbiguous(a.uid, { quantity: qty })
+                            }
+                            onEditFood={(id) =>
+                              updateAmbiguous(a.uid, { selectedId: id })
+                            }
+                            onDeleteNote={() => updateAmbiguous(a.uid, { note: '' })}
+                            onDeleteItem={() => deleteAmbiguous(a.uid)}
+                          />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              )}
+
+              {unresolved.length > 0 && (
+                <section className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Не распознано</h3>
+                  <ul className={styles.list}>
+                    {unresolved.map((u) => (
+                      <li key={u.uid}>
+                        <FreeTextFoodReviewItem
+                          item={{
+                            ...u,
+                            name: u.manual?.name ?? u.originalName,
+                            productId: u.manual?.id ?? '',
+                          }}
+                          hideTime={isDishMode}
+                          isUnresolved={!u.manual}
+                          onEditTime={(time) => updateUnresolved(u.uid, { time })}
+                          onEditQuantity={(qty) =>
+                            updateUnresolved(u.uid, { quantity: qty })
+                          }
+                          onEditFood={(id, name) =>
+                            updateUnresolved(u.uid, {
+                              manual: { id, name, score: 1 },
+                            })
+                          }
+                          onFindManually={() => handleFindManually(u.uid)}
+                          onDeleteNote={() => updateUnresolved(u.uid, { note: '' })}
+                          onDeleteItem={() => deleteUnresolved(u.uid)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                  <p className={styles.unresolvedFootnote}>
+                    Без выбора эти пункты будут пропущены.
+                  </p>
+                </section>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {deletedItem && (
+        <div className={styles.undoSnackbar}>
+          <span>Удалено</span>
+          <button type="button" className={styles.undoBtn} onClick={handleUndo}>
+            ← Отменить
+          </button>
+        </div>
+      )}
+    </Screen>
+  );
+};
+
+export default FreeTextFoodFlow;

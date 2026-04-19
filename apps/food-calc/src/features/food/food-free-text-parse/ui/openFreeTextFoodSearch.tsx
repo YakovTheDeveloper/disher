@@ -1,7 +1,7 @@
 import { SearchFood } from '@/features/food/food-search';
 import { modalStore, type BaseModalProps } from '@/shared/ui';
-import type { MatchCandidate } from './api';
-import styles from './FreeTextFoodModal.module.scss';
+import type { MatchCandidate } from '../api/parseFreeTextFood';
+import styles from './openFreeTextFoodSearch.module.scss';
 
 type Props = BaseModalProps<MatchCandidate | null> & {
   initialQuery: string;

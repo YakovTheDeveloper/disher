@@ -139,6 +139,9 @@ export interface MatchCandidate {
   id: string;
   name: string;
   score: number;
+  trigram?: number;
+  cosine?: number;
+  hybrid?: number;
 }
 
 export function topKMatches(query: Float32Array, k = 3): MatchCandidate[] {
@@ -187,10 +190,14 @@ export function topKHybrid(
   const scored: MatchCandidate[] = new Array(catalogVectors.length);
   for (let i = 0; i < catalogVectors.length; i++) {
     const cos = cosineSimilarity(queryVec, catalogVectors[i]);
+    const hybrid = HYBRID_WEIGHT_COSINE * cos + HYBRID_WEIGHT_DICE * diceScores[i];
     scored[i] = {
       id: catalogMeta[i].id,
       name: catalogMeta[i].name,
-      score: HYBRID_WEIGHT_COSINE * cos + HYBRID_WEIGHT_DICE * diceScores[i],
+      score: hybrid,
+      trigram: diceScores[i],
+      cosine: cos,
+      hybrid,
     };
   }
   scored.sort((a, b) => b.score - a.score);

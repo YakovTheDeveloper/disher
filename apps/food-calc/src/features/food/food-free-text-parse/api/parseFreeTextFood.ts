@@ -35,6 +35,7 @@ export interface UnresolvedItem {
 }
 
 export interface ParseResponse {
+  requestId: string;
   resolved: ResolvedItem[];
   ambiguous: AmbiguousItem[];
   unresolved: UnresolvedItem[];

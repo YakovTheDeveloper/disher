@@ -1,1 +1,28 @@
+.navRow {
+  display: flex;
+  align-items: center;
+}
 
+.emptyState {
+  padding: var(--space-10) var(--space-4) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.analyticsDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.analyticsDot_fresh {
+  background: #22c55e;
+}
+
+.analyticsDot_stale {
+  background: #f59e0b;
+}

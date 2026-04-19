@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import {
   useDish,
@@ -15,6 +15,12 @@ import { Screen } from '@/shared/ui/Screen';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { RouterLinks } from '@/app/router';
+import {
+  WriteFoodButton,
+  WriteFoodModals,
+  useWriteFoodFlow,
+  getWriteFoodInputId,
+} from '@/features/food/food-free-text-parse';
 import SwipeableV2 from '@/shared/ui/Swipeable/SwipeableV2';
 import { SelectableListItem } from '@/features/shared/selectable-list-item';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
@@ -68,6 +74,13 @@ const DishBuilderPage = () => {
   const [isOpen, setIsOpen] = useState<'suggestions' | null>(null);
   const [editingItem, setEditingItem] = useState<DishItemWithProduct | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'search' | 'quantity'>('idle');
+
+  const writeFoodTarget = useMemo(
+    () => ({ kind: 'dish' as const, dishId: id }),
+    [id],
+  );
+  const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
+  const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
 
   useSwipeableLock(isOpen !== null || editingItem !== null);
 
@@ -147,6 +160,10 @@ const DishBuilderPage = () => {
               existingItems={getExistingItemsForSuggestions()}
               onClose={closeModal}
             />
+            <WriteFoodModals
+              flow={writeFoodFlow}
+              inputId={writeFoodInputId}
+            />
           </>
         }
         actions={
@@ -190,7 +207,14 @@ const DishBuilderPage = () => {
       >
         <PasteFromClipboardToDishButton dishId={id} wrapperStyle={{ width: '50%' }} />
         {items.length === 0 && (
-          <div style={{ padding: 'var(--space-10) var(--space-4) 0' }}>
+          <div
+            style={{
+              padding: 'var(--space-10) var(--space-4) 0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-3)',
+            }}
+          >
             <AddButton
               onClick={() => {}}
               as="label"
@@ -199,6 +223,20 @@ const DishBuilderPage = () => {
             >
               Добавить продукт в блюдо
             </AddButton>
+            <WriteFoodButton
+              flow={writeFoodFlow}
+              inputId={writeFoodInputId}
+              label="Описать ингредиенты"
+            />
+          </div>
+        )}
+        {items.length > 0 && !isActionsMode && (
+          <div style={{ padding: 'var(--space-2) var(--space-4) 0', display: 'flex', justifyContent: 'flex-end' }}>
+            <WriteFoodButton
+              flow={writeFoodFlow}
+              inputId={writeFoodInputId}
+              label="Описать ингредиенты"
+            />
           </div>
         )}
         <ItemsList offsetTop>

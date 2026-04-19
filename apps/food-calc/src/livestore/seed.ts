@@ -16,7 +16,7 @@ interface FinalFood {
 
 // ─── Seed logic ──────────────────────────────────────────────────────────────
 
-const SEED_VERSION = 3
+const SEED_VERSION = 4
 const SEED_KEY = 'livestore_seed_version'
 
 /**

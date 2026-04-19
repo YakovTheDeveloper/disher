@@ -7,13 +7,29 @@ const LOG_PATH = resolve(__dirname, "../../logs/matcher-queries.jsonl");
 
 export type MatchVerdict = "alias" | "resolved" | "ambiguous" | "unresolved";
 
+export interface ScoreBreakdown {
+  trigram?: number;
+  cosine?: number;
+  hybrid?: number;
+  levenshtein?: number;
+}
+
 export interface MatcherQueryLogEntry {
   ts: string;
+  requestId: string;
   phrase: string;
   originalName: string;
+  llmNote: string;
+  llmQuantity: number | null;
+  llmTime: string | null;
+  normalizedName: string;
   verdict: MatchVerdict;
   top: Array<{ id: string; name: string; score: number }>;
   margin: number | null;
+  scoreBreakdown?: ScoreBreakdown;
+  aliasHit: boolean;
+  matcherVersion: string;
+  llmModel: string;
 }
 
 let mkdirDone = false;

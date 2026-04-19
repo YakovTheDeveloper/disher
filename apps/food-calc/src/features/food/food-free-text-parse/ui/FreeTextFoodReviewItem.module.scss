@@ -1,0 +1,379 @@
+// ═══════════════════════════════════════════════════════════════
+// FreeTextFoodReviewItem — preliminary/draft styling
+// Mirrors SelectableListItem shell but uses a neutral pastel-grey
+// palette to signal "not yet committed".
+// ═══════════════════════════════════════════════════════════════
+
+.wrapper {
+  --pre-bg-from: #f7f7f5;
+  --pre-bg-to: #efefed;
+  --pre-outline-from: #e0ddd6;
+  --pre-outline-to: #d2cfc8;
+  --pre-tapped: #e8e8e4;
+  --pre-text-primary: #2a2a27;
+  --pre-text-secondary: #6b6b64;
+  --pre-text-muted: #a09d95;
+  --pre-accent: #b8b3a8;
+  --pre-accent-strong: #8b867c;
+  --pre-note-bg: #ece8df;
+  --pre-note-border: #ddd7ca;
+  --pre-status-ambiguous: #c9a94a;
+  --pre-status-unresolved: #b86b4a;
+
+  display: flex;
+  position: relative;
+  padding: 0 8px;
+  flex-grow: 1;
+}
+
+.inner {
+  background-color: color-mix(in oklch, var(--pre-bg-from) 50%, var(--pre-bg-to));
+  outline: 1px solid color-mix(in oklch, var(--pre-outline-from) 50%, var(--pre-outline-to));
+
+  position: relative;
+  padding: 10px 10px 10px 12px;
+  border-radius: 9px;
+  transition: background-color 0.2s ease, outline-color 0.2s ease;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+
+  &_ambiguous {
+    outline-color: color-mix(in oklch, var(--pre-status-ambiguous) 35%, var(--pre-outline-from));
+  }
+
+  &_unresolved {
+    outline-color: color-mix(in oklch, var(--pre-status-unresolved) 35%, var(--pre-outline-from));
+    background-color: color-mix(in oklch, var(--pre-status-unresolved) 4%, var(--pre-bg-from));
+  }
+}
+
+// ─── Row 1: time | name | qty | × ──────────────────────────────
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+// ─── Status dot (prefixing name if ambiguous/unresolved) ───────
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: middle;
+
+  &_ambiguous {
+    background: var(--pre-status-ambiguous);
+  }
+
+  &_unresolved {
+    background: var(--pre-status-unresolved);
+  }
+}
+
+// ─── Time cell ─────────────────────────────────────────────────
+
+.timeBtn {
+  background: transparent;
+  border: 1px dashed transparent;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: var(--text-sm, 13px);
+  font-weight: 500;
+  color: var(--pre-text-secondary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-color: var(--pre-outline-to);
+    outline: none;
+  }
+}
+
+.timeEdit {
+  grid-column: 1 / -1;
+  padding: 6px 4px 2px;
+}
+
+// ─── Name cell (flex so name can shrink and note chip can wrap) ─
+
+.nameCell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-width: 0;
+}
+
+.nameBtn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  min-width: 0;
+  max-width: 100%;
+  text-align: left;
+  cursor: pointer;
+  color: var(--pre-text-primary);
+  font-size: var(--text-base, 15px);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.1px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+    text-decoration-color: var(--pre-accent);
+    text-underline-offset: 3px;
+    outline: none;
+  }
+}
+
+.name {
+  display: inline;
+}
+
+.nameOriginal {
+  color: var(--pre-text-muted);
+  font-style: italic;
+}
+
+// ─── Note chip ─────────────────────────────────────────────────
+
+.noteChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: var(--pre-note-bg);
+  border: 1px solid var(--pre-note-border);
+  border-radius: 999px;
+  padding: 3px 8px 3px 10px;
+  font-size: 12px;
+  color: var(--pre-text-secondary);
+  cursor: pointer;
+  max-width: 100%;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background-color: #e2dcd0;
+    outline: none;
+  }
+}
+
+.noteText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.noteClose {
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.55;
+  font-weight: 600;
+}
+
+// ─── Qty cell ──────────────────────────────────────────────────
+
+.qtyBtn {
+  background: transparent;
+  border: 1px dashed transparent;
+  padding: 4px 6px;
+  border-radius: 6px;
+  min-width: 48px;
+  text-align: right;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-color: var(--pre-outline-to);
+    outline: none;
+  }
+}
+
+.qtyText {
+  font-size: var(--text-sm, 13px);
+  font-weight: 600;
+  color: var(--pre-text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.1px;
+}
+
+.qtyUnit {
+  font-size: 11px;
+  color: var(--pre-text-muted);
+  margin-left: 2px;
+  font-weight: 500;
+}
+
+.qtyGuessed {
+  display: block;
+  font-size: 10px;
+  color: var(--pre-text-muted);
+  margin-top: 1px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.qtyEdit {
+  grid-column: 1 / -1;
+  padding: 6px 4px 2px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  align-items: center;
+}
+
+.qtyInput {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pre-text-primary);
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--pre-outline-from);
+  border-radius: 6px;
+  padding: 6px 10px;
+  background-color: #fff;
+  width: 84px;
+  text-align: right;
+
+  &:focus {
+    outline: none;
+    border-color: var(--pre-accent-strong);
+    box-shadow: 0 0 0 3px rgba(139, 134, 124, 0.18);
+  }
+}
+
+.qtyDone {
+  background: var(--pre-accent-strong);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+// ─── Delete button ─────────────────────────────────────────────
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--pre-text-muted);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--pre-text-secondary);
+    outline: none;
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+}
+
+// ─── Row 2: candidates / manual find ───────────────────────────
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding-top: 2px;
+}
+
+.chipBtn {
+  background: #fff;
+  border: 1px solid var(--pre-outline-from);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--pre-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--pre-accent-strong);
+    color: var(--pre-text-primary);
+    outline: none;
+  }
+}
+
+.candidatesPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--pre-outline-from);
+}
+
+.candidate {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--pre-outline-from);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--pre-text-primary);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background-color: #faf9f5;
+    border-color: var(--pre-accent);
+    outline: none;
+  }
+
+  &_active {
+    background: linear-gradient(135deg, #eae5d8, #f6f4ee);
+    border-color: var(--pre-accent-strong);
+    font-weight: 600;
+  }
+}
+
+.candidateScore {
+  font-size: 11px;
+  color: var(--pre-text-muted);
+  font-variant-numeric: tabular-nums;
+}

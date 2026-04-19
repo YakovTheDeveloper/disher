@@ -5,6 +5,8 @@ import { format } from 'date-fns';
 import ScheduleDateSelectionPage from '@/pages/schedule/schedule-date-selection-page/ScheduleDateSelectionPage.tsx';
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
 import FreeTextFoodPage from '@/pages/free-text-food/FreeTextFoodPage.tsx';
+import FreeTextFoodDishPage from '@/pages/free-text-food/FreeTextFoodDishPage.tsx';
+import FreeTextFoodLegacyRedirect from '@/pages/free-text-food/FreeTextFoodLegacyRedirect.tsx';
 
 import ProductPage from '@/pages/product/ProductPage.tsx';
 import { ScheduleFoodAnalyticsPage } from '@/pages/schedule/analytics/schedule-analytics-page/ScheduleFoodAnalyticsPage/index.ts';
@@ -24,6 +26,8 @@ export enum RouterLinks {
   ScheduleBuilder = '/schedule',
   ScheduleAnalytics = `/schedule/:id/analytics`,
   FreeTextFood = '/free-text-food/:date',
+  FreeTextFoodSchedule = '/free-text-food/schedule/:date',
+  FreeTextFoodDish = '/free-text-food/dish/:dishId',
   Product = '/product',
   Settings = '/settings',
   System = '/system',
@@ -37,12 +41,15 @@ export const getScheduleAnalyticsUrl = (id: string) => `/schedule/${id}/analytic
 export const getProductUrl = (id: string) => `/product/${id}`;
 export const getNutrientArticleUrl = (folder: string) => `/articles/nutrients/${folder}`;
 
-export const getFreeTextFoodUrl = (date: string) => `/free-text-food/${date}`;
+export const getFreeTextFoodUrl = (date: string) => `/free-text-food/schedule/${date}`;
+export const getFreeTextFoodDishUrl = (dishId: string) => `/free-text-food/dish/${dishId}`;
 
 export const RouterUrls = {
   Schedule: (id: string) => `/schedule/${id}`,
   getDish: (id: string) => `/dish/${id}`,
   getDishDraft: () => `/dish/draft`,
+  FreeTextFoodSchedule: (date: string) => `/free-text-food/schedule/${date}`,
+  FreeTextFoodDish: (dishId: string) => `/free-text-food/dish/${dishId}`,
 };
 
 export const router = createBrowserRouter([
@@ -72,7 +79,15 @@ export const router = createBrowserRouter([
       },
       {
         path: RouterLinks.FreeTextFood,
+        element: <FreeTextFoodLegacyRedirect />,
+      },
+      {
+        path: RouterLinks.FreeTextFoodSchedule,
         element: <FreeTextFoodPage />,
+      },
+      {
+        path: RouterLinks.FreeTextFoodDish,
+        element: <FreeTextFoodDishPage />,
       },
       {
         path: `${RouterLinks.Product}/:id`,

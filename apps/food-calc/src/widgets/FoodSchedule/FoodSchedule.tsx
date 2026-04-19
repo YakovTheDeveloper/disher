@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import clsx from 'clsx';
 import { TimeGroup } from '@/features/time-group';
+import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { groupItemsByTime, getNowMarkerIndex } from '@/shared/lib/schedule';
 import { NowMarker } from '@/shared/ui/NowMarker';
@@ -35,9 +37,27 @@ import { fetchDailyAnalysis, computeInputHash } from '@/entities/analytics';
 import { createProduct } from '@/entities/product';
 import { createDish } from '@/entities/dish';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { getProductUrl, getFreeTextFoodUrl, RouterUrls } from '@/app/router';
+import { getProductUrl, RouterUrls } from '@/app/router';
 import CreateFoodPanel from './ui/CreateFoodPanel';
-import { useNavigate } from 'react-router-dom';
+import {
+  WriteFoodButton,
+  WriteFoodModals,
+  useWriteFoodFlow,
+  getWriteFoodInputId,
+} from '@/features/food/food-free-text-parse';
+
+const TrashIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
 
 type CommonProps = {
   date: string;
@@ -63,11 +83,17 @@ const FoodSchedule = ({
   const showPrice = useUiStore((s) => s.scheduleFoodsShowPrice);
   const toggleShowPrice = useUiStore((s) => s.toggleScheduleFoodsShowPrice);
   const { toScheduleAnalytics } = useAppRoutes();
-  const navigate = useNavigate();
 
   const [editingItem, setEditingItem] = useState<ScheduleFoodWithRelations | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'search' | 'quantity'>('idle');
   const [showCreatePanel, setShowCreatePanel] = useState(false);
+
+  const writeFoodTarget = useMemo(
+    () => ({ kind: 'schedule' as const, date }),
+    [date],
+  );
+  const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
+  const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
 
   // Analytics staleness indicator: 'none' | 'fresh' | 'stale'
   const [analyticsStatus, setAnalyticsStatus] = useState<'none' | 'fresh' | 'stale'>('none');
@@ -108,7 +134,10 @@ const FoodSchedule = ({
 
   const handleCreateProduct = useCallback(() => {
     const name = 'Новый продукт';
-    const productId = safeMutate(() => createProduct(store, { name }), 'Не удалось создать продукт');
+    const productId = safeMutate(
+      () => createProduct(store, { name }),
+      'Не удалось создать продукт'
+    );
     if (productId === undefined) return;
     setShowCreatePanel(false);
     toaster.success(`Продукт «${name}» создан`, {
@@ -154,6 +183,8 @@ const FoodSchedule = ({
   const groups = useMemo(() => groupItemsByTime(items), [items]);
   const nowMarkerIndex = useMemo(() => getNowMarkerIndex(groups, date), [groups, date]);
 
+  const showBottomControls = !isActionsMode && items.length > 0;
+
   const onDeleteSelected = async () => {
     const ids = selectedIds;
     if (ids.length === 0) return;
@@ -184,11 +215,10 @@ const FoodSchedule = ({
     <Screen
       offsetTop={
         showCreatePanel ? (
-          <CreateFoodPanel
-            onCreateProduct={handleCreateProduct}
-            onCreateDish={handleCreateDish}
-          />
-        ) : true
+          <CreateFoodPanel onCreateProduct={handleCreateProduct} onCreateDish={handleCreateDish} />
+        ) : (
+          true
+        )
       }
       overlay={
         isActive ? (
@@ -205,6 +235,10 @@ const FoodSchedule = ({
                 onClose={closeEditModal}
               />
             )}
+            <WriteFoodModals
+              flow={writeFoodFlow}
+              inputId={writeFoodInputId}
+            />
           </>
         ) : null
       }
@@ -233,25 +267,14 @@ const FoodSchedule = ({
               <Button variant="menu" onClick={openCreateFoodPanel}>
                 Создать еду
               </Button>
-              <Button
-                variant="menu"
-                onClick={() => navigate(getFreeTextFoodUrl(date))}
-              >
-                Рассказать, что ел
-              </Button>
               <Button variant="menu" onClick={() => toScheduleAnalytics(date)}>
                 Анализ
                 {analyticsStatus !== 'none' && (
                   <span
-                    style={{
-                      display: 'inline-block',
-                      width: 6,
-                      height: 6,
-                      borderRadius: '50%',
-                      marginLeft: 4,
-                      verticalAlign: 'middle',
-                      background: analyticsStatus === 'fresh' ? '#22c55e' : '#f59e0b',
-                    }}
+                    className={clsx(
+                      styles.analyticsDot,
+                      styles[`analyticsDot_${analyticsStatus}`]
+                    )}
                   />
                 )}
               </Button>
@@ -260,19 +283,32 @@ const FoodSchedule = ({
           <AccountPanel />
         </TopBar>
       }
+      bottomLeft={
+        !isActionsMode ? (
+          <WriteFoodButton
+            flow={writeFoodFlow}
+            inputId={writeFoodInputId}
+            label="Описать еду"
+          />
+        ) : null
+      }
       bottomRight={
-        isActionsMode || items.length === 0 ? null : (
-          <AddButton onClick={() => {}} as="label" htmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT} />
-        )
+        showBottomControls ? (
+          <AddButton
+            onClick={() => {}}
+            as="label"
+            htmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
+          />
+        ) : null
       }
     >
       <PeriodView onOpen={() => openSchedulePeriodsModal(date)} />
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div className={styles.navRow}>
         <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
         <Navigation />
       </div>
       {items.length === 0 && (
-        <div style={{ padding: `var(--space-10) var(--space-4) 0` }}>
+        <div className={styles.emptyState}>
           <AddButton
             onClick={() => {}}
             as="label"
@@ -324,18 +360,5 @@ const FoodSchedule = ({
     </Screen>
   );
 };
-
-const TrashIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
 
 export default FoodSchedule;

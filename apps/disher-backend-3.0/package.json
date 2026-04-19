@@ -4,6 +4,7 @@
   "description": "Disher backend API server",
   "type": "module",
   "scripts": {
+    "generate:certs": "tsx scripts/generate-certs.ts",
     "dev": "tsx watch src/api/server.ts",
     "dev:network": "cross-env HOST=0.0.0.0 tsx watch src/api/server.ts",
     "test": "vitest run",
@@ -13,7 +14,8 @@
     "probe:matcher:oov": "tsx scripts/probe-matcher.ts --set=oov",
     "probe:coverage": "tsx scripts/probe-coverage.ts",
     "probe:parse": "tsx scripts/probe-parse.ts",
-    "mine:queries": "tsx scripts/mine-queries.ts"
+    "mine:queries": "tsx scripts/mine-queries.ts",
+    "analyze:logs": "tsx scripts/analyze-logs.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.0",
@@ -30,6 +32,7 @@
     "cross-env": "^10.1.0",
     "dotenv": "^17.3.1",
     "lmdb": "^3.5.2",
+    "selfsigned": "^5.5.0",
     "tsx": "^4.19.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"

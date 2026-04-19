@@ -1,19 +1,18 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import react from '@vitejs/plugin-react-swc';
 import svgr from 'vite-plugin-svgr';
 import path from 'path';
 import { patchCssModules } from 'vite-css-modules';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
-import basicSsl from '@vitejs/plugin-basic-ssl';
+import { readFileSync, existsSync } from 'fs';
 // import { livestoreDevtoolsPlugin } from '@livestore/devtools-vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    basicSsl(),
     // VitePWA({
     //   registerType: 'autoUpdate',
 
@@ -90,6 +89,18 @@ export default defineConfig({
     hmr: {
       overlay: false,
     },
+    https: (() => {
+      const certPath = path.resolve(__dirname, '../disher-backend-3.0/certs');
+      const certFile = path.join(certPath, 'localhost-cert.pem');
+      const keyFile = path.join(certPath, 'localhost-key.pem');
+      if (existsSync(certFile) && existsSync(keyFile)) {
+        return {
+          cert: readFileSync(certFile),
+          key: readFileSync(keyFile),
+        };
+      }
+      return undefined;
+    })(),
   },
   build: {
     sourcemap: false,

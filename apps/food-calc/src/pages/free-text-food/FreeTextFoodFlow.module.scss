@@ -1,0 +1,263 @@
+// ═══════════════════════════════════════════════════════════════
+// FreeTextFoodPage layout
+// ═══════════════════════════════════════════════════════════════
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  // Reserve space for floating ActionsPanel (~72px) + safe area
+  padding: 0 0 calc(96px + env(safe-area-inset-bottom, 0px));
+  gap: 16px;
+}
+
+// ─── InputStep ─────────────────────────────────────────────────
+
+.inputStep {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 16px 0;
+}
+
+.heading {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary, #1a1a18);
+  letter-spacing: -0.4px;
+  margin: 4px 0 2px;
+}
+
+.subheading {
+  font-size: 14px;
+  color: var(--text-secondary, #6b6b66);
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.textareaShell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--text-muted, #a09d95);
+  margin: 0;
+  padding: 0 2px;
+}
+
+.error {
+  padding: 10px 12px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  color: #7a5d00;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+// ─── LoadingStep ───────────────────────────────────────────────
+
+.loadingStep {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 40px 24px;
+  text-align: center;
+  min-height: 60vh;
+}
+
+.loadingText {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a18);
+  margin: 0;
+}
+
+.loadingHint {
+  font-size: 13px;
+  color: var(--text-secondary, #6b6b66);
+  max-width: 320px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+// ─── ReviewStep ────────────────────────────────────────────────
+
+.reviewStep {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 12px 0 0;
+}
+
+.originalText {
+  margin: 0 16px;
+  padding: 10px 12px;
+  background-color: #f5f5f2;
+  border: 1px solid #eae8e2;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text-secondary, #6b6b66);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px;
+  align-items: center;
+}
+
+.summaryChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f5f5f2;
+  border: 1px solid #eae8e2;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary, #6b6b66);
+
+  &_resolved::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #6cae8a;
+  }
+
+  &_ambiguous::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #c9a94a;
+  }
+
+  &_unresolved::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #b86b4a;
+  }
+}
+
+.empty {
+  padding: 48px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.emptyText {
+  font-size: 15px;
+  color: var(--text-secondary, #6b6b66);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 320px;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted, #a09d95);
+  margin: 0;
+  padding: 0 20px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  > li {
+    margin: 0;
+    padding: 0;
+    display: flex;
+  }
+}
+
+.unresolvedFootnote {
+  font-size: 11px;
+  color: var(--text-muted, #a09d95);
+  padding: 0 20px;
+  margin: 4px 0 0;
+  line-height: 1.45;
+}
+
+// ─── Undo snackbar (sits above ActionsPanel) ───────────────────
+
+.undoSnackbar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  background-color: #2a2a27;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  z-index: 102;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  animation: snackbarIn 180ms ease-out;
+}
+
+@keyframes snackbarIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.undoBtn {
+  background: none;
+  border: none;
+  color: #ffd166;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: #ffe09f;
+  }
+}

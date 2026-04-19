@@ -1,0 +1,89 @@
+.wrapper {
+  display: inline-flex;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  min-height: 44px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(31, 42, 68, 0.12);
+  color: #1f2a44;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  backdrop-filter: blur(6px);
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(31, 42, 68, 0.24);
+    outline: none;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.state_idle {
+  // default style
+}
+
+.state_loading {
+  background: rgba(234, 237, 248, 0.85);
+  border-color: rgba(64, 82, 128, 0.18);
+  color: #40507a;
+}
+
+.state_ready {
+  background: linear-gradient(135deg, #d8eaff, #e7f3ff);
+  border-color: rgba(27, 90, 168, 0.24);
+  color: #1b5aa8;
+}
+
+.state_error {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.28);
+  color: #b91c1c;
+}
+
+.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(31, 42, 68, 0.12);
+  }
+}
+
+.iconSpin {
+  display: inline-flex;
+  align-items: center;
+}
+
+.text {
+  white-space: nowrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #1b5aa8;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

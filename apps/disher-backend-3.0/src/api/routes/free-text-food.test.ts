@@ -15,6 +15,8 @@ vi.mock("../food-matcher.js", () => {
     isMatcherReady: () => state.ready,
     lookupAlias: (text: string) => state.aliases.get(text.toLowerCase().trim()) ?? null,
     matchOne: async (text: string) => state.matches.get(text.toLowerCase().trim()) ?? [],
+    normalizeForEmbedding: (text: string) =>
+      text.toLowerCase().replace(/ё/g, "е").trim(),
   };
 });
 
@@ -426,7 +428,9 @@ describe("POST /api/free-text-food/parse — pipeline", () => {
     });
 
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual({ resolved: [], ambiguous: [], unresolved: [] });
+    const body = res.json();
+    expect(body).toMatchObject({ resolved: [], ambiguous: [], unresolved: [] });
+    expect(typeof body.requestId).toBe("string");
   });
 });
 

@@ -336,6 +336,381 @@ type FreeTextFoodReviewItemProps = {
 
 ---
 
+### Трек D — Operational improvements (после стабилизации A–C)
+**Зачем:** снять потолок perceived latency и закрыть пробел между metrics и real production feedback. Hybrid matcher (C) оптимизирован под probe-набор, но в проде пользователи делают запросы, которых в probe нет — и сидят по 10-30 секунд в ожидании. Трек D превращает matcher из «чёрного ящика» в самообучающуюся систему.
+
+**Контекст сессий:** каждая задача — отдельная сессия, файлы пересекаются минимально.
+
+- **D1.** **Telemetry для matcher-traffic.** Логировать каждый matchOne call: query, top-1 id, score, bucket (resolved/ambiguous/unresolved), final user choice (если пользователь поменял выбор в review-step).
+  - Backend: endpoint `POST /api/matcher-telemetry` + append-only jsonl в `data/matcher-logs/YYYY-MM-DD.jsonl`
+  - Frontend: fire-and-forget send при commit из FreeTextFoodPage (не блокирует UX)
+  - Acceptance: неделя данных в проде → можно построить confusion matrix из реальных кейсов, не из probe-set
+  - **Файлы:** `src/api/routes/matcher-telemetry.ts` (новый), `food-calc/src/features/daySchedule/free-text-food/api.ts` (добавить sendTelemetry)
+  - **Зависимость:** нет
+  - **Оценка:** ~20k tokens
+
+- **D2.** **Streaming LLM → matcher → UI (SSE).** Сейчас весь pipeline синхронный: LLM 8-15s → matcher 2-5s → render. Пользователь видит spinner ~15-25s. Переделать на SSE: LLM возвращает items по мере парсинга, matcher сразу резолвит, UI добавляет items в список incrementally.
+  - Backend: заменить `/api/parse-free-text-food` на SSE-стрим; LLM вызывать со `stream: true`, parsing по мере прихода completed JSON objects в массиве `items`
+  - Frontend: `parseFreeTextFood` возвращает AsyncIterable; `FreeTextFoodPage` добавляет items в resolved/ambiguous/unresolved по мере прихода
+  - LoadingStep исчезает — review-step показывается сразу после первого item
+  - Acceptance: первый item появляется в UI за 2-4 секунды (вместо 15-25); отмена работает (AbortController прерывает SSE)
+  - **Риски:** OpenRouter streaming на mistral/llama-моделях иногда ломается на escaped JSON — нужен robust partial-JSON parser (например `partial-json-parser` или incremental parsing через `JSONParser` из stream-json)
+  - **Файлы:** `src/api/routes/free-text-food.ts` (SSE refactor), `food-calc/src/features/daySchedule/free-text-food/api.ts` (AsyncIterable), `food-calc/src/pages/free-text-food/FreeTextFoodPage.tsx` (incremental append)
+  - **Зависимость:** нет (но лучше после D1 — чтобы мерить real-perceived-latency до и после)
+  - **Оценка:** ~60-80k tokens (SSE — нетривиальная работа, нужно правильно handle partial chunks, errors, abort)
+
+- **D3.** **Voice-first UX.** Явная кнопка-микрофон рядом с textarea (Web Speech API), вместо «голос через микрофон на клавиатуре».
+  - `InputStep`: кнопка-микрофон справа внутри textarea-shell, tap → `SpeechRecognition.start()`, interim results стримятся в textarea realtime
+  - Поддержка: Chrome/Safari/Edge (iOS Safari от 14.5+), Firefox не поддерживает — показывать кнопку только если `'SpeechRecognition' in window || 'webkitSpeechRecognition' in window`
+  - Язык: `lang = 'ru-RU'`, continuous = true, interimResults = true
+  - UX: во время записи — кнопка красная с pulse-анимацией; tap повторно → стоп; автоматический стоп через 2с тишины
+  - Acceptance: на iPhone Safari — сказать «на завтрак овсянка с бананом», текст появляется в textarea, можно нажать «Разобрать»
+  - **Файлы:** `food-calc/src/pages/free-text-food/FreeTextFoodPage.tsx` + новый `components/VoiceInputButton.tsx`
+  - **Зависимость:** нет
+  - **Оценка:** ~25-35k tokens (Web Speech API имеет quirks на iOS — нужна аккуратная error-handling)
+
+**Порядок выполнения:** D1 → (D2 и D3 параллельно в разных сессиях). D1 даёт baseline метрики perceived latency и miss-rate, без которых D2/D3 нельзя честно мерить.
+
+**Что НЕ делаем в треке D:**
+- Не строим ML-pipeline для обучения на telemetry (это трек E, если будет). Пока — только сбор данных.
+- Не делаем кэш эмбеддингов запросов — это уже попытка оптимизации; сначала надо увидеть распределение из D1, может быть cache-hit rate <20% и оно не стоит инфраструктуры.
+- Не делаем weekly LLM-teacher цикл — это тоже ждёт данных D1.
+
+---
+
+### Трек E — Система логирования и telemetry-аналитика
+
+**Зачем:** превратить matcher и LLM-парсер из «чёрных ящиков» в источник данных для улучшения сервиса. Сейчас `matcher-query-log.ts` пишет только top-3 кандидатов и verdict — этого мало для операционных выводов. Нужно логировать всю pipeline-цепочку **и действия пользователя в review-step**, чтобы на выходе отвечать на три вопроса:
+
+1. **Где matcher ошибается?** (нужны правки каталога / aliases / порогов)
+2. **Каких продуктов нет в базе?** (кандидаты на добавление через USDA/skurikhin импорт)
+3. **Где LLM галлюцинирует?** (нужны правки SYSTEM_PROMPT)
+
+**Контекст сессий:** каждая подзадача — отдельная сессия, файлы пересекаются мало.
+
+#### E1. Расширить структуру matcher-log
+
+**Файл:** `disher-backend-3.0/src/api/matcher-query-log.ts`
+
+Сейчас пишется только `{phrase, originalName, verdict, top, margin}`. Добавить:
+
+```typescript
+interface MatcherQueryLogEntry {
+  ts: string;
+  requestId: string;             // NEW — связать все items одного запроса
+  phrase: string;                // весь исходный пользовательский текст
+  originalName: string;          // то что LLM вернул в name
+  llmNote: string;               // NEW — note от LLM
+  llmQuantity: number | null;    // NEW — чтобы ловить "LLM вернул 0, fallback сработал"
+  llmTime: string | null;        // NEW — привязка ко времени
+  normalizedName: string;        // NEW — после normalizeForEmbedding (ё→е и т.д.)
+  verdict: MatchVerdict;
+  top: Array<{ id: string; name: string; score: number }>;
+  margin: number | null;
+
+  // NEW — score breakdown для Hybrid Matcher:
+  scoreBreakdown?: {
+    trigram: number;             // Dice coefficient
+    cosine: number;              // embedding similarity
+    hybrid: number;              // weighted sum
+    levenshtein?: number;        // если fallback сработал
+  };
+
+  // NEW — alias-hit:
+  aliasHit: boolean;             // true если попали в food-aliases.json
+
+  // NEW — environment:
+  matcherVersion: string;        // git sha или semver, чтобы сопоставлять метрики с версией
+  llmModel: string;              // какой OpenRouter-модел��ю обработали (deepseek-chat, etc.)
+}
+```
+
+**Acceptance:** jsonl теперь содержит полный audit trail одного pipeline-прохода. Можно ответить на вопрос «почему "яблочко" попало в unresolved» без запуска probe.
+
+#### E2. Telemetry от клиента (review-step actions)
+
+**Файлы:** `disher-backend-3.0/src/api/routes/matcher-telemetry.ts` (новый), `food-calc/src/features/daySchedule/free-text-food/api.ts`
+
+Без логов действий пользователя в review-step мы не знаем, **был ли top-1 правильным**. Сейчас matcher пишет, что вернул, но не знает, согласился ли с этим пользователь.
+
+**Что собираем (fire-and-forget POST из [FreeTextFoodPage.tsx](food-calc/src/pages/free-text-food/FreeTextFoodPage.tsx) при commit):**
+
+```typescript
+interface TelemetryEvent {
+  requestId: string;           // связь с matcher-log через E1
+  userId: string;              // аноним или реальный
+  action: 'commit' | 'abandon';
+  itemsTotal: number;
+  itemsCommitted: number;      // пользователь принял
+  itemsDeleted: number;        // удалил из review
+  itemsWithEditedFood: number; // клик на FoodName → SearchFood → выбрал другой
+  itemsWithEditedTime: number;
+  itemsWithEditedQty: number;
+
+  // Per-item actions:
+  corrections: Array<{
+    originalName: string;       // что LLM вернул
+    matcherChoice: string;      // top-1 matcher'а
+    userChoice: string | null;  // что пользователь выбрал в итоге (или null если удалил)
+    correctionType: 'accepted-top1' | 'switched-ambiguous' | 'manual-search' | 'deleted';
+  }>;
+
+  // Perceived latency:
+  llmLatencyMs: number;
+  matcherLatencyMs: number;
+  reviewDurationMs: number;    // сколько времени пользователь редактировал review
+}
+```
+
+Backend: append-only jsonl в `data/telemetry/YYYY-MM-DD.jsonl`.
+
+**Acceptance:** через неделю сбора можно построить реальную confusion matrix и найти топ-20 queries где `matcherChoice ≠ userChoice` — это и есть roadmap для aliases/каталога.
+
+#### E3. LLM output log
+
+**Файл:** `disher-backend-3.0/src/api/llm-output-log.ts` (новый), модификация `routes/free-text-food.ts`
+
+Помимо matcher-log нужен отдельный `llm-output-YYYY-MM-DD.jsonl`:
+
+```typescript
+interface LLMOutputLogEntry {
+  ts: string;
+  requestId: string;
+  model: string;
+  phrase: string;
+  itemsReturned: LLMItem[];    // полный output LLM
+  cached: boolean;             // из llmCache или свежий
+  latencyMs: number;
+  promptTokens?: number;       // если OpenRouter возвращает
+  completionTokens?: number;
+  totalCost?: number;          // если OpenRouter возвращает usage.cost
+}
+```
+
+**Acceptance:** можно построить метрики: % случаев когда LLM вернул пустой array, средний itemCount на запрос, доля cached (→ ROI от кэша), распределение стоимости, самые проблемные запросы (ноль items, но пользователь потом написал снова).
+
+#### E4. Scripts для еженедельного анализа логов
+
+**Файлы:** `disher-backend-3.0/scripts/analyze-logs.ts` (новый набор)
+
+Еженедельный ran, выводит markdown-отчёт в `data/reports/YYYY-WW.md`:
+
+**Секция 1: Качество matcher**
+- Топ-20 корректировок (`matcherChoice ≠ userChoice`) — roadmap для aliases и правок каталога
+- Распределение verdict: resolved/ambiguous/unresolved с тенденцией неделя-к-неделе
+- Accuracy по бакетам score (0.7-0.8 / 0.8-0.9 / 0.9+) — где реально проходит граница confidence
+- Stale-alias detector: aliases на которые приходит 0 запросов за месяц (кандидаты на удаление)
+
+**Секция 2: Кандидаты для добавления в базу**
+- Топ-30 unresolved queries по частоте — это и есть **продукты, которых нет в базе**
+- Группировка через simple clustering (Jaccard на trigrams) — "протеиновый батончик" и "протеиновый батончик 60г" склеиваются
+- Для каждого candidate auto-lookup в USDA (через `/search/foods` API) — если найден, показать FDC ID как быструю ссылку на импорт
+- Флаг "вероятно не продукт" — если query из нескольких слов и все — прилагательные/состояния ("то что мама приготовила") — отсеиваем
+
+**Секция 3: LLM-паттерны**
+- % галлюцинаций (LLM вернул name, которого нет в каталоге и который окажется unresolved) — тренд
+- Топ-10 cases где LLM вернул `quantity: 0` — нужна ли правка промпта?
+- Распределение itemCount на запрос — часто ли пользователи вводят много items за раз?
+- Средняя стоимость запроса в USD — для ROI расчётов
+
+**Секция 4: User behaviour**
+- Drop-off rate на каждом шаге (input → loading → review → commit)
+- Median time в review-step — если больше 30с, UI не справляется
+- % запросов с abandon (пользователь закрыл без commit)
+- % пользователей использующих голос vs клавиатуру (если реализован трек D3)
+
+**Зависимости между подзадачами:** E1 → E2 и E3 параллельно → E4 после всех.
+
+**Оценка:**
+- E1: ~15k tokens
+- E2: ~25k tokens (frontend изменения + backend endpoint + интеграция с matcher-log через requestId)
+- E3: ~10k tokens
+- E4: ~40k tokens (скрипты анализа — JSON агрегация + USDA API + markdown генерация)
+
+**Что НЕ делаем:**
+- Не кладём логи в БД (LiveStore/SQLite) — jsonl проще, ротация легче, анализ — offline скриптами
+- Не шлём telemetry в external системы (Mixpanel, PostHog) — данные чувствительные (пищевые привычки), лучше держать у себя
+- Не делаем realtime dashboards — weekly reports достаточно для sample size в 100-500 запросов
+- Не делаем ML на telemetry — сначала нужны месяцы данных. Пока — только aggregate metrics
+
+---
+
+### Трек F — База данных: абстракция + продвинутый note-pipeline
+
+**Зачем:** трек F — идеологическое продолжение шага 1. Мы свели 716 → 412 продуктов, но картофель и ещё ~30 кластеров остаются с разновидностями. Цель — **каталог чистых абстракций** (~250-300 продуктов), вся вариативность — в `note`.
+
+**Контекст сессий:** `disher-backend-3.0/seed/`, `data/catalog-mapping.json`, `food-calc/src/livestore/seed.ts`, probe-скрипты.
+
+#### F1. Аудит остаточных кластеров
+
+**Задача:** составить исчерпывающий список кластеров, которые всё ещё не сведены к одному абстрактному продукту.
+
+Запустить скрипт `scripts/analyze-catalog-clusters.ts` который группирует по trigram similarity > 0.6 и выводит отчёт:
+
+```
+Кластер «картофель» (5 items):
+  sk-746 картофель
+  2346 картофель молодой
+  2347 картофель жареный
+  2348 картофель варёный
+  2349 картофель запечённый
+
+Предложение: оставить только sk-746, остальные → note ("молодой" | "жареный" | ...)
+Разница в нутриентах: жареный +180 kcal, остальные в пределах ±15% → merge safe.
+```
+
+Аналогично пройти по: мясо (говядина/свинина/курица — мы уже начали, но не до конца), рыба (лосось остался с разновидностями), творог (жирность), сыр (сорта), хлеб, каши.
+
+**Acceptance:** список ~30-50 кластеров с предложением merge/skip и обоснованием (дельта нутриентов).
+
+#### F2. Применить merge + обновить catalog-mapping
+
+По каждому кластеру из F1:
+
+1. Выбрать канонический `base_id` (чаще всего — самый общий по названию)
+2. Занутриенты — average или id-based (как в шаге 1.5)
+3. Обновить `data/catalog-mapping.json` (добавить новые merged_clusters)
+4. Перегенерить `combined-foods-final.json`, `food-catalog-lite.json`, `food-embeddings.json`
+5. Обновить `food-aliases.json` — убрать aliases, которые стали избыточными
+
+**Acceptance:** каталог сокращается до ~250-300 продуктов. Probe-matcher basic R@1 остаётся ≥ 90%.
+
+#### F3. Note-nutrient adjustment (опционально)
+
+**Проблема:** если пользователь сказал "жареный картофель 200г", canonical product — "картофель" (nutrients сырого), но note="жареный" физически означает +180 kcal и +10g жира из масла. Пользователь получит заниженные нутриенты.
+
+**Решение (лёгкое):** добавить статический lookup `data/note-nutrient-modifiers.json`:
+
+```json
+{
+  "жареный": { "kcal": 1.3, "fat": 1.5 },
+  "тушёный": { "kcal": 1.1, "fat": 1.2 },
+  "варёный": { "kcal": 1.0 },
+  "запечённый": { "kcal": 1.15, "fat": 1.1 },
+  "на гриле": { "kcal": 1.05 },
+  "5%": { "for": "творог", "kcal": 0.7, "fat": 0.3 }
+}
+```
+
+При расчёте нутриентов в `shared/lib/nutrients.ts` — если у schedule-food есть `details` (note), применить modifier. Это **приблизительно** (не путать с точным расчётом), но UX > точность (философия проекта).
+
+**Acceptance:** "жареная куриная грудка 200г" даёт +30% kcal относительно сырой — это ближе к реальности, чем текущие нутриенты сырого мяса.
+
+#### F4. UI: отображение note в расписании
+
+Сейчас note попадает в `scheduleFoods.details` (поле `details`). Но [`ScheduleFoodItem`](food-calc/src/widgets/FoodSchedule/ScheduleFoodItem) его не отображает. Нужно:
+
+- Показывать `details` как subtitle или chip под названием продукта
+- Если note непустой и есть modifier из F3 — показать индикатор «≈ +30% kcal»
+- При открытии деталей (tap на item) — note редактируется (можно убрать или изменить)
+
+**Acceptance:** в расписании видно "Куриная грудка · жареная · ≈+30% ккал".
+
+**Оценка:**
+- F1: ~20k tokens (скрипт + ручной аудит)
+- F2: ~30k tokens (merge по кластерам + регенерация)
+- F3: ~25k tokens (lookup + интеграция в nutrient-calc + tests)
+- F4: ~20k tokens (UI изменения)
+
+**Что НЕ делаем:**
+- Не пишем динамический modifier-extractor через LLM (LLM уже делит name/note, этого достаточно)
+- Не пытаемся учесть масло/соль/приправы "по умолчанию" при жарке — приблизительно не хуже, чем точно-но-ложно
+- Не меняем schema scheduleFoods для структурированного note — строка достаточна
+
+---
+
+### Трек G — Переиспользуемость: FreeTextFoodPage → shared flow
+
+**Зачем:** [`FreeTextFoodPage.tsx`](food-calc/src/pages/free-text-food/FreeTextFoodPage.tsx) — идеальная абстракция для "ввод → распознавание → review → commit". Сейчас она жёстко привязана к расписанию (`RouterUrls.Schedule(date)` на коммит, `events.scheduleFoodCreated`). Цель: сделать её переиспользуемой для **добавления в блюдо** (DishItems) и возможно для **массового создания** в других контекстах.
+
+**Контекст сессий:** `food-calc/src/pages/free-text-food/`, `food-calc/src/pages/dish/`, `food-calc/src/app/router.tsx`.
+
+#### G1. Извлечь commit-logic через `mode` prop
+
+**Сейчас:** `handleCommit` хардкодит `events.scheduleFoodCreated`. Рефакторинг:
+
+```typescript
+type FreeTextFoodMode =
+  | { kind: 'schedule'; date: string }      // текущее поведение
+  | { kind: 'dish'; dishId: string }        // новое — добавление в блюдо
+  | { kind: 'standalone'; onCommit: (items: CommittedItem[]) => void }; // универсальное
+
+interface FreeTextFoodFlowProps {
+  mode: FreeTextFoodMode;
+}
+```
+
+`handleCommit` диспатчит по `mode.kind`:
+- `schedule` → `events.scheduleFoodCreated` + navigate к `Schedule(date)`
+- `dish` → `events.dishItemAdded` (или аналогичное событие) + navigate к `Dish(dishId)`
+- `standalone` → вызывает `mode.onCommit(items)` и всё
+
+#### G2. Разделить на страницу и hook + flow-компонент
+
+**Трёхслойная декомпозиция:**
+
+```
+pages/free-text-food/FreeTextFoodPage.tsx     — тонкий wrapper, читает URL params, строит mode
+features/free-text-food/FreeTextFoodFlow.tsx  — UI с 3 шагами (input → loading → review)
+features/free-text-food/useFreeTextFood.ts    — hook с state + parse + commit logic
+```
+
+Зачем: страница знает про route, flow знает про UI, hook не знает ничего кроме data + LiveStore.
+
+#### G3. Маршруты для разных контекстов
+
+**Новые URL:**
+- `/free-text-food/schedule/:date` — было `/free-text-food/:date`, переименовать
+- `/free-text-food/dish/:dishId` — добавление в блюдо
+
+Хелперы:
+- `RouterUrls.FreeTextFoodSchedule(date)`
+- `RouterUrls.FreeTextFoodDish(dishId)`
+
+Обратная совместимость: `/free-text-food/:date` → редирект на `/free-text-food/schedule/:date` (на случай если кто-то держит ссылки).
+
+#### G4. Интеграция в страницу блюда
+
+В [`pages/dish/`](food-calc/src/pages/dish/) — кнопка «Рассказать что в блюде» рядом с существующими способами добавления. Клик → navigate на `/free-text-food/dish/:dishId`.
+
+В review-step show должны отображаться name + qty + **игнорировать** time (для блюд time не применим). Использовать `mode` в FlowComponent для conditional UI.
+
+#### G5. Extract FreeTextFoodReviewItem в shared
+
+[`FreeTextFoodReviewItem.tsx`](food-calc/src/pages/free-text-food/components/FreeTextFoodReviewItem.tsx) — потенциально переиспользуемый паттерн для inline-редактирования item'а в списке (time + food + qty + note chip + delete). Можно перевести в `features/free-text-food/components/` и использовать в других местах, где нужен похожий inline-edit (например, "подтвердить список, созданный по шаблону").
+
+**Оценка:**
+- G1: ~20k tokens (refactor commit + types)
+- G2: ~30k tokens (декомпозиция + тесты)
+- G3: ~10k tokens (routes + helpers + редирект)
+- G4: ~25k tokens (UI + интеграция в dish-page)
+- G5: ~15k tokens (extract в shared)
+
+**Что НЕ делаем:**
+- Не создаём generic "EntityCreationFlow" абстракцию — YAGNI, пока только 2 mode'а
+- Не отказываемся от URL-маршрутов в пользу модалок — full-screen flow работает лучше для многошагового процесса (особенно на мобильном)
+- Не раскатываем flow на ScheduleEvents (health events) — у них другая логика, другая семантика
+
+---
+
+### Дополнительные идеи (бэклог, не план)
+
+Несколько мыслей, которые не тянут на отдельный трек, но стоит держать в голове:
+
+1. **Быстрое добавление из последних.** После 2-3 недель использования можно построить "топ-10 продуктов этого пользователя за последние 7 дней" → чип-бар над textarea на input-step. Tap на чип → вставка в textarea. Уменьшает typing friction.
+
+2. **Shared dictionary между users (анонимно).** Если multiple users пишут "протеиновый батончик RxBar" и мы нашли его в USDA — добавить в каталог для всех. E4 уже собирает такой список; остаётся цикл auto-import + review.
+
+3. **Повторяющиеся приёмы пищи.** Если пользователь 3 раза подряд вводит "утром овсянка 200 + банан + кофе" — предложить сохранить как "meal template" и добавлять одним тапом. Требует E2 (сбор данных) → затем template detection.
+
+4. **Note как запрос к LLM для нутриентного adjustment (дорогой).** Альтернатива F3: вместо статической таблицы — спрашивать LLM "насколько жареная курица калорийнее сырой?". Хорошо масштабируется, но latency + cost. Оставить до момента когда F3-lookup покроет < 60% случаев.
+
+5. **A/B testing для design variants.** Уже есть useDesignVariants — можно применить к review-step (разные layouts для resolved/ambiguous/unresolved), сохранять выбор в telemetry из E2.
+
+6. **Offline-first для free-text-food.** LiveStore offline, но matcher — сервер. Идея: в offline-режиме кэшировать последние embeddings и делать matching на клиенте (ONNX.js для e5-small, ~40MB модель). Дорого, но решает full-offline UX. Отдельная большая история.
+
+---
+
 ## Как взаимодействовать по трекам
 
 **Правила:**
@@ -345,12 +720,26 @@ type FreeTextFoodReviewItemProps = {
 4. Если в середине трека обнаруживается блокер — остановка, обсуждение, не переключаемся на другой трек «заодно».
 5. После закрытия трека — обновить раздел "Статус реализации" (поставить ✅) и зафиксировать метрики.
 
-**Порядок треков:** A → B и C параллельно (в разных сессиях) → C зависит от A.
+**Порядок треков:**
+1. A → B/C параллельно → C зависит от A → D после C (D1 первым, D2/D3 параллельно)
+2. **E (логирование)** параллельно с D — независим, но E2 (telemetry клиента) желательно делать после D1 либо объединить (E2 — это развитие D1). E1 и E3 изолированы от всего остального.
+3. **F (база)** независим, можно делать когда угодно; F1 — быстрая аудит-сессия, F2/F3/F4 — по мере необходимости
+4. **G (переиспользуемость)** — после B (UI стабилизирован), имеет смысл перед G4 иметь данные из E о том, как реально работает review-step
 
-**Оценка токенов:**
-- A: ~15–20k tokens (один файл + 1–2 прогона скрипта)
-- B: ~40–60k tokens (4 взаимодействия, навигация по компонентам)
-- C: ~50–80k tokens (симуляция + интеграция + несколько итераций probe)
+**Общий roadmap (грубо):**
+- A (сделано), B (сделано), C (сделано)
+- D1 / E1-E3 — одновременно (сбор данных → основа для всего дальнейшего)
+- F1 — аудит каталога (быстро, 1 сессия)
+- D2, D3, E4, F2 — параллельно в разных сессиях
+- G1-G5 — последовательно, после того как pipeline стабильный
+- F3, F4 — опционально, после F2
+
+**Оценка токенов (обновлено):**
+- A: ~15–20k | B: ~40–60k | C: ~50–80k
+- D1: ~20k | D2: ~60–80k | D3: ~25–35k
+- E1: ~15k | E2: ~25k | E3: ~10k | E4: ~40k
+- F1: ~20k | F2: ~30k | F3: ~25k | F4: ~20k
+- G1: ~20k | G2: ~30k | G3: ~10k | G4: ~25k | G5: ~15k
 
 ## Верификация (общий E2E после всех треков)
 
