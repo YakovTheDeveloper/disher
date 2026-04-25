@@ -13,8 +13,6 @@ type Props<T> = {
 };
 
 const TimeGroup = <T,>({ children, group, renderAside, onTimeClick, isFuture }: Props<T>) => {
-  console.log('TIME_GROUP');
-
   const disabled = !onTimeClick;
 
   const timeOffsetFromPreviousGroupView = formatOffset(group.offset);

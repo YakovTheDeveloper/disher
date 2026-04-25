@@ -1,6 +1,5 @@
 import styles from './SearchButton.module.scss';
 import clsx from 'clsx';
-import { useStyleVariant } from '@/features/toggle-style/ToggleStyleButton';
 
 type Props = {
   onClick: VoidFunction;
@@ -17,13 +16,7 @@ const SearchIcon = () => (
   </svg>
 );
 
-const variantStyles = [
-  styles.v0, styles.v1, styles.v2, styles.v3, styles.v4,
-  styles.v5, styles.v6, styles.v7, styles.v8, styles.v9,
-];
-
 export const SearchButton = ({ onClick, children, as = 'button', htmlFor, prominent }: Props) => {
-  const variant = useStyleVariant((s) => s.variant);
   const Tag = as;
 
   return (
@@ -32,7 +25,7 @@ export const SearchButton = ({ onClick, children, as = 'button', htmlFor, promin
       htmlFor={htmlFor}
       className={clsx(
         styles.container,
-        variantStyles[variant],
+        styles.v0,
         prominent && styles.prominent,
         children && styles.withText,
       )}

@@ -1,0 +1,51 @@
+.shell {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-height: 50px;
+  padding: 0 16px;
+  border-radius: 24px;
+  background: #fff;
+  border: 1px solid #dfe1e5;
+  box-shadow: 0 1px 6px rgba(32, 33, 36, 0.08);
+  transition: box-shadow 120ms ease, border-color 120ms ease;
+  color: rgb(31, 31, 31);
+
+  &:hover,
+  &:focus-within {
+    border-color: transparent;
+    box-shadow: 0 1px 8px rgba(32, 33, 36, 0.18);
+  }
+}
+
+.adornment {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 50px;
+  color: #9aa0a6;
+}
+
+.field {
+  flex: 1 1 100%;
+  min-width: 0;
+  border: none;
+  border-bottom: 8px solid transparent;
+  outline: none;
+  resize: none;
+  background: transparent;
+  font-family: 'Google Sans', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 22px;
+  color: rgb(31, 31, 31);
+  padding: 14px 0 3px;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  overflow-wrap: break-word;
+
+  &::placeholder {
+    color: #9aa0a6;
+  }
+}

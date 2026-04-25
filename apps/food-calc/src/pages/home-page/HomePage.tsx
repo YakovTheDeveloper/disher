@@ -11,8 +11,6 @@ import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 
 const Page = ({ date }: { date: string }) => {
-  console.log('schedule builder page render');
-
   const scheduleFoods = useScheduleFoods(date);
   const scheduleEvents = useScheduleEvents(date);
   const {

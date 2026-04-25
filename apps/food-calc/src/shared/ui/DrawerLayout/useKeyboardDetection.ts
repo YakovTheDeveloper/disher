@@ -11,13 +11,10 @@ export const useKeyboardDetection = () => {
         let hasInputFocus = false;
         let focusBlurTimeout: NodeJS.Timeout;
 
-        console.log('[Keyboard] Detection started');
-
         // Способ 1: Отслеживание focus/blur на input элементах (надежно на Android)
         const handleInputFocus = (e: Event) => {
             const target = e.target as HTMLElement;
             if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA') {
-                console.log('[Keyboard] Input focused:', target.tagName);
                 hasInputFocus = true;
                 clearTimeout(focusBlurTimeout);
                 setData((prev) => ({
@@ -30,11 +27,9 @@ export const useKeyboardDetection = () => {
         const handleInputBlur = (e: Event) => {
             const target = e.target as HTMLElement;
             if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA') {
-                console.log('[Keyboard] Input blurred:', target.tagName);
                 hasInputFocus = false;
                 focusBlurTimeout = setTimeout(() => {
                     if (!hasInputFocus) {
-                        console.log('[Keyboard] Setting visible to false after blur delay');
                         setData((prev) => ({
                             ...prev,
                             keyboardVisible: false,
@@ -57,8 +52,6 @@ export const useKeyboardDetection = () => {
             const windowHeight = window.innerHeight;
             const heightDiff = Math.max(0, windowHeight - vh);
 
-            console.log('[Keyboard] Viewport diff:', { vh, windowHeight, heightDiff, current: data.keyboardVisible });
-
             // На Android с overlays-content визуальный viewport все равно меняется немного
             // Проверяем наличие активного фокуса или разницу в высоте
             if (heightDiff > 50 || hasInputFocus) {
@@ -76,11 +69,9 @@ export const useKeyboardDetection = () => {
             try {
                 const vk = (navigator as any).virtualKeyboard;
                 vk.overlaysContent = true;
-                console.log('[Keyboard] VirtualKeyboard API enabled');
 
                 const handleGeometryChange = () => {
                     const { height } = vk.boundingRect;
-                    console.log('[Keyboard] VirtualKeyboard geometry:', { height });
 
                     if (height > 0) {
                         document.documentElement.style.setProperty('--keyboard-height', `${height}px`);

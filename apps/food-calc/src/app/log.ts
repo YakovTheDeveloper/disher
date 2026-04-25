@@ -6,7 +6,7 @@ export function setupGlobalLog() {
         const style = color
             ? `color: ${color}; background-color: #222; font-weight: bold; padding: 2px 6px; border-radius: 4px;`
             : defaultStyle;
-        console.log('%c' + message, style);
+        console.log('%c' + message, style); // eslint-disable-line no-console
     };
 
     (globalThis as any).log = window.log;

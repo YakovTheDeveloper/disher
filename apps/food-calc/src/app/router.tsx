@@ -6,7 +6,6 @@ import ScheduleDateSelectionPage from '@/pages/schedule/schedule-date-selection-
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
 import FreeTextFoodPage from '@/pages/free-text-food/FreeTextFoodPage.tsx';
 import FreeTextFoodDishPage from '@/pages/free-text-food/FreeTextFoodDishPage.tsx';
-import FreeTextFoodLegacyRedirect from '@/pages/free-text-food/FreeTextFoodLegacyRedirect.tsx';
 
 import ProductPage from '@/pages/product/ProductPage.tsx';
 import { ScheduleFoodAnalyticsPage } from '@/pages/schedule/analytics/schedule-analytics-page/ScheduleFoodAnalyticsPage/index.ts';
@@ -25,7 +24,6 @@ export enum RouterLinks {
   ScheduleDateSelection = '/date',
   ScheduleBuilder = '/schedule',
   ScheduleAnalytics = `/schedule/:id/analytics`,
-  FreeTextFood = '/free-text-food/:date',
   FreeTextFoodSchedule = '/free-text-food/schedule/:date',
   FreeTextFoodDish = '/free-text-food/dish/:dishId',
   Product = '/product',
@@ -76,10 +74,6 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.ScheduleAnalytics,
         element: <ScheduleFoodAnalyticsPage />,
-      },
-      {
-        path: RouterLinks.FreeTextFood,
-        element: <FreeTextFoodLegacyRedirect />,
       },
       {
         path: RouterLinks.FreeTextFoodSchedule,

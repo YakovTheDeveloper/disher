@@ -10,7 +10,7 @@ const FADE_MS = 120;
  *
  * Transitions between states use opacity fade to hide the layout jump.
  */
-export function useKeyboardStick<T extends HTMLElement>(debugId?: string) {
+export function useKeyboardStick<T extends HTMLElement>() {
   const ref = useRef<T>(null);
 
   useEffect(() => {
@@ -176,27 +176,7 @@ export function useKeyboardStick<T extends HTMLElement>(debugId?: string) {
     document.addEventListener('focusin', onFocusIn);
     document.addEventListener('focusout', onFocusOut);
 
-    // ── DEBUG: log action-buttons position every 500ms (only for matching debugId) ──
-    const debugInterval = debugId
-      ? setInterval(() => {
-          if (!el) return;
-          const rect = el.getBoundingClientRect();
-          const vvHeight = vv.height;
-          const vvOffsetTop = vv.offsetTop;
-          const computed = getComputedStyle(el);
-          console.log(
-            `[KB-STICK ${debugId}] pinned=${isPinned} tracking=${isTracking}`,
-            `| rect: top=${Math.round(rect.top)} bot=${Math.round(rect.bottom)} h=${Math.round(rect.height)}`,
-            `| vv: h=${Math.round(vvHeight)} offTop=${Math.round(vvOffsetTop)}`,
-            `| pos=${el.style.position || computed.position} top=${el.style.top || 'auto'}`,
-            `| opacity=${el.style.opacity || computed.opacity}`,
-            `| visible=${rect.bottom > 0 && rect.top < window.innerHeight}`,
-          );
-        }, 500)
-      : null;
-
     return () => {
-      if (debugInterval) clearInterval(debugInterval);
       isTracking = false;
       cancelAnimationFrame(rafId);
       cancelAnimationFrame(expandRafId);
