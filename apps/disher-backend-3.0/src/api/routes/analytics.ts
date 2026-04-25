@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { extractUserId } from "../auth-utils.js";
+import { verifySupabaseUser } from "../supabase-auth.js";
 import {
   getDailyAnalysis,
   upsertDailyAnalysis,
@@ -31,17 +31,6 @@ interface ScheduleEventItem {
     durationMin?: number;
     points?: Array<{ x: number; y: number; side: string }>;
   }>;
-}
-
-interface AnalyzeRequest {
-  date: string;
-  foods: ScheduleFoodItem[];
-}
-
-interface AnalyzeDayRequest {
-  date: string;
-  foods: ScheduleFoodItem[];
-  events: ScheduleEventItem[];
 }
 
 interface DailyAnalyzeRequest {
@@ -217,84 +206,23 @@ async function streamFromLLM(
 // ─── Routes ───
 
 export async function analyticsRoutes(app: FastifyInstance) {
-  // ─── Legacy endpoints (no auth, no persistence) ───
+  // ─── V2 endpoints (Supabase JWT auth) ───
+  // Cache is keyed by the user's Supabase UUID. Both anonymous and permanent
+  // users get a stable per-account `sub`, so analyses cannot leak across
+  // accounts that happen to produce the same `inputHash`.
 
-  // POST /api/analytics/analyze — one-shot analysis
-  app.post<{ Body: AnalyzeRequest }>("/analyze", async (req, reply) => {
-    const { date, foods } = req.body;
-    const formatted = formatScheduleForPrompt(foods);
-    const userMessage = `Рацион за ${date}:\n${formatted}`;
-
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
-      return reply.status(500).send({ error: "OPENROUTER_API_KEY not set" });
-    }
-
-    const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: userMessage },
-          ],
-        }),
-      }
-    );
-
-    const data = await response.json();
-    return { analysis: data.choices?.[0]?.message?.content ?? null };
-  });
-
-  // POST /api/analytics/analyze-stream — SSE streaming analysis (legacy)
-  app.post<{ Body: AnalyzeRequest }>(
-    "/analyze-stream",
-    async (req, reply) => {
-      const { date, foods } = req.body;
-      const formatted = formatScheduleForPrompt(foods);
-      const userMessage = `Рацион за ${date}:\n${formatted}`;
-      await streamFromLLM(SYSTEM_PROMPT, userMessage, reply);
-    }
-  );
-
-  // POST /api/analytics/analyze-day-stream — SSE streaming analysis of food + events (legacy)
-  app.post<{ Body: AnalyzeDayRequest }>(
-    "/analyze-day-stream",
-    async (req, reply) => {
-      const { date, foods, events } = req.body;
-      const foodsFormatted = formatScheduleForPrompt(foods);
-      const eventsFormatted = formatEventsForPrompt(events);
-
-      let userMessage = `День: ${date}\n\n`;
-      if (foods.length > 0) userMessage += `Рацион:\n${foodsFormatted}\n\n`;
-      if (events.length > 0) userMessage += `События дня:\n${eventsFormatted}`;
-
-      await streamFromLLM(SYSTEM_PROMPT_DAY, userMessage, reply);
-    }
-  );
-
-  // ─── Persisted endpoints (with auth) ───
-
-  // GET /api/analytics/daily/:date?tab=food|day — fetch persisted daily analysis
+  // GET /api/analytics/v2/daily/:date?tab=food|day
   app.get<{ Params: { date: string }; Querystring: { tab?: string } }>(
-    "/daily/:date",
+    "/v2/daily/:date",
     async (req, reply) => {
-      const userId = await extractUserId(req, reply);
+      const userId = await verifySupabaseUser(req, reply);
       if (!userId) return;
 
       const tab = req.query.tab || "food";
       const analysis = getDailyAnalysis(userId, req.params.date, tab);
-
       if (!analysis) {
         return reply.status(404).send({ error: "No analysis found" });
       }
-
       return {
         content: analysis.content,
         inputHash: analysis.input_hash,
@@ -305,17 +233,17 @@ export async function analyticsRoutes(app: FastifyInstance) {
     }
   );
 
-  // POST /api/analytics/daily/:date — generate + persist + stream daily analysis
+  // POST /api/analytics/v2/daily/:date
   app.post<{ Params: { date: string }; Body: DailyAnalyzeRequest }>(
-    "/daily/:date",
+    "/v2/daily/:date",
     async (req, reply) => {
       try {
-        const userId = (await extractUserId(req, reply, true)) || "anonymous";
+        const userId = await verifySupabaseUser(req, reply);
+        if (!userId) return;
 
         const { tab, foods, events, inputHash } = req.body;
         const date = req.params.date;
 
-        // Check if we already have a fresh analysis
         const existing = getDailyAnalysis(userId, date, tab);
         if (existing && existing.input_hash === inputHash) {
           return reply.send({
@@ -325,7 +253,6 @@ export async function analyticsRoutes(app: FastifyInstance) {
           });
         }
 
-        // Build prompt
         const isDay = tab === "day";
         const foodsFormatted = formatScheduleForPrompt(foods);
         let userMessage: string;
@@ -346,162 +273,6 @@ export async function analyticsRoutes(app: FastifyInstance) {
           upsertDailyAnalysis(userId, date, tab, fullText, inputHash, MODEL);
         });
       } catch (err) {
-        console.error("POST /daily/:date error:", err);
-        if (!reply.sent) reply.status(500).send({ error: String(err) });
-      }
-    }
-  );
-
-  // GET /api/analytics/weekly/:weekStart — fetch persisted weekly analysis
-  app.get<{ Params: { weekStart: string } }>(
-    "/weekly/:weekStart",
-    async (req, reply) => {
-      const userId = await extractUserId(req, reply);
-      if (!userId) return;
-
-      const analysis = getWeeklyAnalysis(userId, req.params.weekStart);
-
-      if (!analysis) {
-        return reply.status(404).send({ error: "No weekly analysis found" });
-      }
-
-      return {
-        content: analysis.content,
-        dailyHashes: JSON.parse(analysis.daily_hashes),
-        weekStart: analysis.week_start,
-        createdAt: analysis.created_at,
-      };
-    }
-  );
-
-  // POST /api/analytics/weekly/:weekStart — generate + persist + stream weekly analysis
-  app.post<{ Params: { weekStart: string }; Body: WeeklyAnalyzeRequest }>(
-    "/weekly/:weekStart",
-    async (req, reply) => {
-      const userId = await extractUserId(req, reply);
-      if (!userId) return;
-
-      const weekStart = req.params.weekStart;
-      const { dates } = req.body;
-
-      // Fetch daily analyses for this week
-      const dailyAnalyses = getDailyAnalysesForWeek(userId, dates);
-
-      if (dailyAnalyses.length === 0) {
-        return reply.status(400).send({
-          error: "No daily analyses found for this week",
-          missingDates: dates,
-        });
-      }
-
-      // Build daily hashes for cache check
-      const dailyHashes = dailyAnalyses.map((a) => a.input_hash);
-      const existing = getWeeklyAnalysis(userId, weekStart);
-
-      if (existing) {
-        const storedHashes = JSON.parse(existing.daily_hashes) as string[];
-        if (
-          storedHashes.length === dailyHashes.length &&
-          storedHashes.every((h, i) => h === dailyHashes[i])
-        ) {
-          return reply.send({
-            content: existing.content,
-            dailyHashes: storedHashes,
-            cached: true,
-          });
-        }
-      }
-
-      // Build prompt from daily analyses
-      const daysText = dailyAnalyses
-        .map((a) => `### ${a.date}\n${a.content}`)
-        .join("\n\n");
-
-      const coveredDates = dailyAnalyses.map((a) => a.date);
-      const missingDates = dates.filter((d) => !coveredDates.includes(d));
-
-      let userMessage = `Ежедневные анализы за неделю (${weekStart}):\n\n${daysText}`;
-      if (missingDates.length > 0) {
-        userMessage += `\n\nПримечание: нет данных за: ${missingDates.join(", ")}`;
-      }
-
-      await streamFromLLM(
-        SYSTEM_PROMPT_WEEKLY,
-        userMessage,
-        reply,
-        (fullText) => {
-          upsertWeeklyAnalysis(
-            userId,
-            weekStart,
-            fullText,
-            dailyHashes,
-            MODEL
-          );
-        }
-      );
-    }
-  );
-
-  // ─── V2 endpoints (no auth) ───
-
-  const V2_USER = "anonymous";
-
-  // GET /api/analytics/v2/daily/:date?tab=food|day
-  app.get<{ Params: { date: string }; Querystring: { tab?: string } }>(
-    "/v2/daily/:date",
-    async (req, reply) => {
-      const tab = req.query.tab || "food";
-      const analysis = getDailyAnalysis(V2_USER, req.params.date, tab);
-      if (!analysis) {
-        return reply.status(404).send({ error: "No analysis found" });
-      }
-      return {
-        content: analysis.content,
-        inputHash: analysis.input_hash,
-        date: analysis.date,
-        tab: analysis.tab,
-        createdAt: analysis.created_at,
-      };
-    }
-  );
-
-  // POST /api/analytics/v2/daily/:date
-  app.post<{ Params: { date: string }; Body: DailyAnalyzeRequest }>(
-    "/v2/daily/:date",
-    async (req, reply) => {
-      try {
-        const { tab, foods, events, inputHash } = req.body;
-        const date = req.params.date;
-
-        const existing = getDailyAnalysis(V2_USER, date, tab);
-        if (existing && existing.input_hash === inputHash) {
-          return reply.send({
-            content: existing.content,
-            inputHash: existing.input_hash,
-            cached: true,
-          });
-        }
-
-        const isDay = tab === "day";
-        const foodsFormatted = formatScheduleForPrompt(foods);
-        let userMessage: string;
-
-        if (isDay) {
-          const eventsFormatted = formatEventsForPrompt(events || []);
-          userMessage = `День: ${date}\n\n`;
-          if (foods.length > 0) userMessage += `Рацион:\n${foodsFormatted}\n\n`;
-          if (events && events.length > 0)
-            userMessage += `События дня:\n${eventsFormatted}`;
-        } else {
-          userMessage = `Рацион за ${date}:\n${foodsFormatted}`;
-        }
-
-        const systemPrompt = isDay ? SYSTEM_PROMPT_DAY : SYSTEM_PROMPT;
-
-        await streamFromLLM(systemPrompt, userMessage, reply, (fullText) => {
-          upsertDailyAnalysis(V2_USER, date, tab, fullText, inputHash, MODEL);
-        });
-      } catch (err) {
         console.error("POST /v2/daily/:date error:", err);
         if (!reply.sent) reply.status(500).send({ error: String(err) });
       }
@@ -512,7 +283,10 @@ export async function analyticsRoutes(app: FastifyInstance) {
   app.get<{ Params: { weekStart: string } }>(
     "/v2/weekly/:weekStart",
     async (req, reply) => {
-      const analysis = getWeeklyAnalysis(V2_USER, req.params.weekStart);
+      const userId = await verifySupabaseUser(req, reply);
+      if (!userId) return;
+
+      const analysis = getWeeklyAnalysis(userId, req.params.weekStart);
       if (!analysis) {
         return reply.status(404).send({ error: "No weekly analysis found" });
       }
@@ -530,10 +304,13 @@ export async function analyticsRoutes(app: FastifyInstance) {
     "/v2/weekly/:weekStart",
     async (req, reply) => {
       try {
+        const userId = await verifySupabaseUser(req, reply);
+        if (!userId) return;
+
         const weekStart = req.params.weekStart;
         const { dates } = req.body;
 
-        const dailyAnalyses = getDailyAnalysesForWeek(V2_USER, dates);
+        const dailyAnalyses = getDailyAnalysesForWeek(userId, dates);
         if (dailyAnalyses.length === 0) {
           return reply.status(400).send({
             error: "No daily analyses found for this week",
@@ -542,7 +319,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
         }
 
         const dailyHashes = dailyAnalyses.map((a) => a.input_hash);
-        const existing = getWeeklyAnalysis(V2_USER, weekStart);
+        const existing = getWeeklyAnalysis(userId, weekStart);
 
         if (existing) {
           const storedHashes = JSON.parse(existing.daily_hashes) as string[];
@@ -575,7 +352,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
           userMessage,
           reply,
           (fullText) => {
-            upsertWeeklyAnalysis(V2_USER, weekStart, fullText, dailyHashes, MODEL);
+            upsertWeeklyAnalysis(userId, weekStart, fullText, dailyHashes, MODEL);
           }
         );
       } catch (err) {

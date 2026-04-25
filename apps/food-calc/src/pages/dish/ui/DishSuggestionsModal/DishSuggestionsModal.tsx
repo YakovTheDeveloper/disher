@@ -1,5 +1,4 @@
 import { useRef, useEffect } from 'react';
-import { useStore } from '@livestore/react';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SuggestionsReviewList, useDishSuggestions } from '@/features/dish/suggest-products';
 import type { SuggestionsReviewListRef } from '@/features/dish/suggest-products';
@@ -24,7 +23,6 @@ type Props = {
 };
 
 const DishSuggestionsModal = ({ isExpanded, dishId, dishName, existingItems, onClose }: Props) => {
-  const { store } = useStore();
   const { state, fetchSuggestions, reset } = useDishSuggestions();
   const listRef = useRef<SuggestionsReviewListRef>(null);
 
@@ -52,7 +50,7 @@ const DishSuggestionsModal = ({ isExpanded, dishId, dishName, existingItems, onC
       () =>
         Promise.all(
           items.map((item) =>
-            addDishItem(store, { dishId, productId: item.productId, quantity: item.quantity })
+            addDishItem({ dishId, productId: item.productId, quantity: item.quantity })
           )
         ),
       'Не удалось добавить продукты'

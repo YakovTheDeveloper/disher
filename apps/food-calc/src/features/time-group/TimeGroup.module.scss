@@ -1,11 +1,64 @@
 .container {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
+    gap: 0;
 
     &:first-child {
         .header {
             margin-top: 0;
+        }
+    }
+
+    // Experiment: merged-list look — first/last items keep rounded corners
+    // on their outer edges, middle items stay flat. Middle items drop the
+    // full outline in favor of a soft hairline separator on top so the
+    // group reads as a single merged card.
+    >div,
+    >li {
+        li {
+            border-radius: 0;
+        }
+    }
+
+    // Non-first items: hide the top part of the outline and draw a hairline
+    // separator instead, so adjacent items merge into one continuous block.
+    >div:not(:first-of-type) li,
+    >li:not(:first-of-type) {
+        position: relative;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: var(--space-3);
+            right: var(--space-3);
+            height: 1px;
+            background: color-mix(in oklch, var(--_outline-from, currentColor) 35%, transparent);
+            pointer-events: none;
+            z-index: 2;
+        }
+    }
+
+    >div:first-of-type,
+    >li:first-of-type {
+        li {
+            border-top-left-radius: 9px;
+            border-top-right-radius: 9px;
+        }
+    }
+
+    >div:last-of-type,
+    >li:last-of-type {
+        li {
+            border-bottom-left-radius: 9px;
+            border-bottom-right-radius: 9px;
+        }
+    }
+
+    >div:only-of-type,
+    >li:only-of-type {
+        li {
+            border-radius: 9px;
         }
     }
 }
@@ -13,8 +66,8 @@
 .future {
     opacity: 0.85;
 
-    > div > li,
-    > li {
+    >div>li,
+    >li {
         border-left: 2.5px solid #1a6b3c;
     }
 }

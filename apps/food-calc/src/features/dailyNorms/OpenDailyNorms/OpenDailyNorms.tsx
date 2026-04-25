@@ -10,7 +10,7 @@ import {
   useInteractions,
   FloatingPortal,
 } from '@floating-ui/react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   useDailyNorms,
   DEFAULT_NORM_ID,
@@ -107,12 +107,6 @@ const OpenDailyNorms = ({ className }: Props) => {
     modalStore.show(EditDailyNormModal, { normId: id });
   };
 
-  const handleEditNorm = React.useCallback(() => {
-    if (!selectedNormId) return;
-    setIsOpen(false);
-    modalStore.show(EditDailyNormModal, { normId: selectedNormId });
-  }, [selectedNormId]);
-
   const handleFocusCapture = React.useCallback((e: React.FocusEvent) => {
     const id = (e.target as HTMLElement).id;
     if (id === CREATE_NORM_INPUT_ID) {
@@ -131,7 +125,8 @@ const OpenDailyNorms = ({ className }: Props) => {
         <button className={styles.button} type="button">
           {selectedNorm?.name || 'Выбрать норму'}
         </button>
-        {/* <span className={styles.label}>текущая</span> */}
+        <span className={styles.descriptionLabel}>дневная норма</span>
+        <span className={styles.decorative}>%</span>
       </div>
       <FloatingPortal>
         {isOpen && (
@@ -180,10 +175,6 @@ const OpenDailyNorms = ({ className }: Props) => {
                 })}
               </AnimatePresence>
             </div>
-
-            <button type="button" className={styles.link} onClick={handleEditNorm}>
-              Изменить значения
-            </button>
             <label htmlFor={CREATE_NORM_INPUT_ID} className={styles.link}>
               Создать новую норму
             </label>

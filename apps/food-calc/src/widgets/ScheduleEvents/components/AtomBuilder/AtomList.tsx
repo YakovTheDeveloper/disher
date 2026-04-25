@@ -9,7 +9,6 @@ import {
   isRelationAtom,
 } from '@/entities/schedule-event';
 import styles from './AtomList.module.css';
-import { observer } from 'mobx-react-lite';
 
 export interface AtomListProps {
   atoms: Atom[];
@@ -51,7 +50,7 @@ function getAtomKindLabel(kind: Atom['kind']): string {
  *
  * Displays atoms as removable chips
  */
-export const AtomList = observer(({ atoms, onRemove, className = '' }: AtomListProps) => {
+export const AtomList = ({ atoms, onRemove, className = '' }: AtomListProps) => {
   if (!atoms?.length) {
     return null;
   }
@@ -73,6 +72,4 @@ export const AtomList = observer(({ atoms, onRemove, className = '' }: AtomListP
       ))}
     </div>
   );
-});
-
-AtomList.displayName = 'AtomList';
+};

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useStore } from '@livestore/react';
 import { parse, format } from 'date-fns';
 import styles from './SchedulePeriods.module.scss';
 import { usePeriods, addPeriod, removePeriod } from '@/entities/period';
@@ -147,7 +146,6 @@ const formatDateTab = (dateStr: string): string => {
 };
 
 export const SchedulePeriods = ({ date, onClose, onPeriodCreated }: SchedulePeriodsProps) => {
-  const { store } = useStore();
   const periods = usePeriods();
   const [form, setForm] = useState(emptyForm);
   const [stylingOpen, setStylingOpen] = useState(false);
@@ -168,11 +166,11 @@ export const SchedulePeriods = ({ date, onClose, onPeriodCreated }: SchedulePeri
     { value: 'periods', alternativeLabel: 'Периоды' },
   ], [date]);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!form.name.trim()) return;
 
-    const periodId = safeMutate(
-      () => addPeriod(store, {
+    const periodId = await safeMutate(
+      () => addPeriod({
         name: form.name.trim(),
         colorIndex: form.colorIndex,
         fontFamily: form.fontFamily,
@@ -219,10 +217,10 @@ export const SchedulePeriods = ({ date, onClose, onPeriodCreated }: SchedulePeri
   const handleLongPressPeriod = useCallback(async (id: string, name: string) => {
     const confirmed = await drawerStore.show(DeletePeriodDrawer, { periodName: name });
     if (confirmed) {
-      safeMutate(() => removePeriod(store, id), 'Не удалось удалить период');
+      void safeMutate(() => removePeriod(id), 'Не удалось удалить период');
       if (appliedPeriodId === id) setAppliedPeriodId(null);
     }
-  }, [store, appliedPeriodId]);
+  }, [appliedPeriodId]);
 
   const handlePrev = () => {
     if (onClose) onClose();

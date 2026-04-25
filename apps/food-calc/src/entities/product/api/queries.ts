@@ -1,43 +1,54 @@
 import { useMemo } from "react";
-import { queryDb } from "@livestore/livestore";
-import { useQuery } from "@livestore/react";
-import { tables } from "@/livestore/schema";
+import { useQuery } from "@powersync/react";
+import { snakeToCamel } from "@/shared/lib/rowMapper";
 import { parseNutrients, parsePortions, type NutrientEntry, type PortionEntry } from "@/shared/lib/parsers";
+import type { Product } from "../model/types";
 
 export type { NutrientEntry, PortionEntry };
 
-export function useProduct(productId: string | undefined) {
-  const rows = useQuery(
-    queryDb(
-      tables.products.where({ id: productId ?? "", deletedAt: null }),
-      { label: `product-${productId}`, deps: [productId] },
-    ),
-  );
-  return rows[0] ?? null;
+const SELECT_PRODUCT = `
+  select id, user_id, name, name_eng, description, description_eng,
+         source, price_per_kg, nutrients, portions, categories,
+         created_at, updated_at, deleted_at
+  from products
+  where deleted_at is null
+`;
+
+function mapProductRow(row: Record<string, unknown>): Product {
+  return snakeToCamel(row) as unknown as Product;
 }
 
-const allProducts$ = queryDb(tables.products.where({ deletedAt: null }), { label: 'products' });
+export function useProduct(productId: string | undefined) {
+  const { data } = useQuery<Record<string, unknown>>(
+    `${SELECT_PRODUCT} and id = ?`,
+    [productId ?? ""],
+  );
+  return data[0] ? mapProductRow(data[0]) : null;
+}
 
-export function useProducts(search?: string) {
-  const allRows = useQuery(allProducts$);
+export function useProducts(search?: string): Product[] {
+  const { data } = useQuery<Record<string, unknown>>(SELECT_PRODUCT);
 
   return useMemo(() => {
-    if (!search) return allRows;
+    const rows = data.map(mapProductRow);
+    if (!search) return rows;
     const lower = search.toLowerCase();
-    return allRows.filter((r) =>
+    return rows.filter((r) =>
       r.name?.toLowerCase().includes(lower) ||
       r.nameEng?.toLowerCase().includes(lower)
     );
-  }, [allRows, search]);
+  }, [data, search]);
 }
 
-export function useProductsByIds(productIds: string[]) {
-  const rows = useQuery(allProducts$);
+export function useProductsByIds(productIds: string[]): Product[] {
+  const { data } = useQuery<Record<string, unknown>>(SELECT_PRODUCT);
   return useMemo(() => {
     if (productIds.length === 0) return [];
     const idSet = new Set(productIds);
-    return rows.filter((r) => idSet.has(r.id));
-  }, [rows, productIds]);
+    return data
+      .map(mapProductRow)
+      .filter((r) => idSet.has(r.id));
+  }, [data, productIds]);
 }
 
 export function useProductNutrients(productId: string | undefined): { results: NutrientEntry[] } {
@@ -50,19 +61,20 @@ export function useProductNutrients(productId: string | undefined): { results: N
 }
 
 export function useNutrientsByProductIds(productIds: string[]): Map<string, NutrientEntry[]> {
-  const rows = useQuery(allProducts$);
+  const { data } = useQuery<Record<string, unknown>>(SELECT_PRODUCT);
 
   return useMemo(() => {
     const map = new Map<string, NutrientEntry[]>();
     if (productIds.length === 0) return map;
     const idSet = new Set(productIds);
-    for (const row of rows) {
+    for (const raw of data) {
+      const row = mapProductRow(raw);
       if (!idSet.has(row.id)) continue;
       const entries = parseNutrients(row.nutrients);
       if (entries.length > 0) map.set(row.id, entries);
     }
     return map;
-  }, [rows, productIds]);
+  }, [data, productIds]);
 }
 
 export function useProductPortions(productId: string | undefined) {

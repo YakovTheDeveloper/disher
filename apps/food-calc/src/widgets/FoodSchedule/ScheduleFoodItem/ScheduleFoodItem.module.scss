@@ -52,6 +52,15 @@
     padding-left: var(--space-2);
 }
 
+// ─── Recently added via free-text flow ────────────────────────
+
+.recentFreeText {
+    background: var(--surface-muted, #e5e5e5);
+    outline: 3px dotted var(--color-danger, #d32f2f);
+    outline-offset: -3px;
+    border-radius: 8px;
+}
+
 .priceText {
     font-size: var(--text-xs);
     color: var(--text-muted);

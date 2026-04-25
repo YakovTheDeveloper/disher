@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import React from 'react';
 import styles from './BaseOverlayContentLayout.module.scss';
 
@@ -9,7 +8,7 @@ type Props = {
   footer?: React.ReactNode;
 };
 
-const BaseOverlayContentLayout = observer(({ header, content, supFooter, footer }: Props) => {
+const BaseOverlayContentLayout = ({ header, content, supFooter, footer }: Props) => {
   return (
     <div className={styles.container}>
       {header && <div className={styles.header}>{header}</div>}
@@ -18,6 +17,6 @@ const BaseOverlayContentLayout = observer(({ header, content, supFooter, footer 
       {footer && <div className={styles.footer}>{footer}</div>}
     </div>
   );
-});
+};
 
 export default BaseOverlayContentLayout;

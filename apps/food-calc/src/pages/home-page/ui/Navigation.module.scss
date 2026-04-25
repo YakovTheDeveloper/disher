@@ -4,6 +4,10 @@
     position: relative;
     z-index: 2;
     margin-left: auto;
+
+    &:hover .v3Weekday {
+        color: var(--text-secondary);
+    }
 }
 
 // ─── Date link (clickable area) ───────────────────────────────

@@ -222,6 +222,11 @@
   .row {
     min-height: 44px;
   }
+
+  .progressTrack {
+    bottom: 17px;
+    height: 1.5px;
+  }
 }
 
 // Per-nutrient overrides (БЖУ group) — фон через ::before, не влияет на layout
@@ -285,18 +290,24 @@
   background: linear-gradient(120deg, transparent 0%, rgba(255, 45, 128, 0.1) 25%, #ff2d8018 55%, rgba(255, 45, 128, 0.08) 85%, transparent 100%);
 }
 
-// Minerals group styling with pentagon SVG decoration
-.minerals .row {
+// Group decorations (minerals pentagon, vitamins sun, aminoAcids diamond)
+.minerals .row,
+.vitamins .row,
+.aminoAcids .row {
   position: relative;
 }
 
-.minerals .row .name {
+.minerals .row .name,
+.vitamins .row .name,
+.aminoAcids .row .name {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.mineralsPentagon {
+.mineralsPentagon,
+.vitaminSun,
+.aminoAcidDiamond {
   position: absolute;
   left: -20px;
   top: 0;
@@ -305,6 +316,18 @@
   height: 52px;
   flex-shrink: 0;
   pointer-events: none;
+}
+
+.vitaminSun {
+  width: 44px;
+  height: 44px;
+  top: -2px;
+}
+
+.aminoAcidDiamond {
+  width: 40px;
+  height: 40px;
+  top: 0;
 }
 
 // Pentagon gradients per nutrient

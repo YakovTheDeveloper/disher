@@ -1,5 +1,5 @@
 import { useMemo, useRef, useCallback, useState } from 'react';
-import { useScroll, useTransform, MotionValue, UseScrollOptions, useMotionValueEvent } from 'framer-motion';
+import { useScroll, useTransform, MotionValue, UseScrollOptions, useMotionValueEvent } from 'motion/react';
 
 export interface UseScrollHideConfig {
     collapseDistance?: number;

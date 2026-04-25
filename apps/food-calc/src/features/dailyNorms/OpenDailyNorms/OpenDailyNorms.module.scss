@@ -2,7 +2,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
     cursor: pointer;
     transition: opacity 0.15s ease;
 
@@ -11,26 +10,18 @@
     }
 }
 
-.label {
-    text-align: center;
-    font-size: 0.8rem;
-    color: #999;
-    margin-top: 0.4rem;
-}
-
 .button {
     width: 100%;
-    padding: 0.25rem 0.5rem;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 400;
     letter-spacing: -0.04em;
     color: #0d0d0d;
     background: transparent;
     border: none;
-    border-bottom: 2px solid #0d0d0d;
+    // border-bottom: 1px solid #949494;
     border-radius: 0;
     cursor: pointer;
-    text-align: center;
+    text-align: right;
     transition: border-color 0.2s ease;
 }
 
@@ -190,4 +181,24 @@
     &:active {
         background: rgba(255, 255, 255, 0.05);
     }
+}
+
+
+.descriptionLabel {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-purple);
+    letter-spacing: 0.06em;
+    font-weight: 400;
+}
+
+.decorative {
+    position: absolute;
+    font-family: var(--font-sans);
+    font-size: 7rem;
+    font-weight: 800;
+    line-height: 0.8;
+    color: rgba(0, 0, 0, 0.02);
+    letter-spacing: -0.05em;
+    user-select: none;
 }

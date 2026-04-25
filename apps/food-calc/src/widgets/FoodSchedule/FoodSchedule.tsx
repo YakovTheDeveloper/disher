@@ -8,14 +8,12 @@ import { NowMarker } from '@/shared/ui/NowMarker';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import ScheduleFoodItemComponent from '@/widgets/FoodSchedule/ScheduleFoodItem/ScheduleFoodItem';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
-import { useStore as useLiveStore } from '@livestore/react';
 import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { Navigation } from '@/pages/home-page/ui';
 import toaster from '@/shared/lib/toaster/toaster';
 import { useUiStore } from '@/shared/model/uiStore';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import { TopBar } from '@/shared/ui/TopBar';
 import Button from '@/shared/ui/atoms/Button/Button';
 import {
@@ -40,11 +38,11 @@ import { safeMutate } from '@/shared/lib/safeMutate';
 import { getProductUrl, RouterUrls } from '@/app/router';
 import CreateFoodPanel from './ui/CreateFoodPanel';
 import {
-  WriteFoodButton,
   WriteFoodModals,
   useWriteFoodFlow,
   getWriteFoodInputId,
 } from '@/features/food/food-free-text-parse';
+import { AddFoodActionBar } from '@/features/food/food-add-action-bar';
 
 const TrashIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -74,7 +72,6 @@ const FoodSchedule = ({
   onRichNutrientClear,
   isActive = true,
 }: CommonProps) => {
-  const { store } = useLiveStore();
   const selectionStoreFood = useSelection();
   const isActionsMode = useStore(selectionStoreFood, (s) => s.isActionsMode);
   const selectedIds = useStore(selectionStoreFood, (s) => s.selectedIds);
@@ -88,10 +85,7 @@ const FoodSchedule = ({
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'search' | 'quantity'>('idle');
   const [showCreatePanel, setShowCreatePanel] = useState(false);
 
-  const writeFoodTarget = useMemo(
-    () => ({ kind: 'schedule' as const, date }),
-    [date],
-  );
+  const writeFoodTarget = useMemo(() => ({ kind: 'schedule' as const, date }), [date]);
   const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
   const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
 
@@ -132,10 +126,10 @@ const FoodSchedule = ({
     setShowCreatePanel((v) => !v);
   }, []);
 
-  const handleCreateProduct = useCallback(() => {
+  const handleCreateProduct = useCallback(async () => {
     const name = 'Новый продукт';
-    const productId = safeMutate(
-      () => createProduct(store, { name }),
+    const productId = await safeMutate(
+      () => createProduct({ name }),
       'Не удалось создать продукт'
     );
     if (productId === undefined) return;
@@ -143,17 +137,17 @@ const FoodSchedule = ({
     toaster.success(`Продукт «${name}» создан`, {
       action: { label: 'Открыть', href: getProductUrl(productId) },
     });
-  }, [store]);
+  }, []);
 
-  const handleCreateDish = useCallback(() => {
+  const handleCreateDish = useCallback(async () => {
     const name = 'Новое блюдо';
-    const dishId = safeMutate(() => createDish(store, name), 'Не удалось создать блюдо');
+    const dishId = await safeMutate(() => createDish(name), 'Не удалось создать блюдо');
     if (dishId === undefined) return;
     setShowCreatePanel(false);
     toaster.success(`Блюдо «${name}» создано`, {
       action: { label: 'Открыть', href: RouterUrls.getDish(dishId) },
     });
-  }, [store]);
+  }, []);
 
   useSwipeableLock(editingItem !== null);
 
@@ -183,14 +177,12 @@ const FoodSchedule = ({
   const groups = useMemo(() => groupItemsByTime(items), [items]);
   const nowMarkerIndex = useMemo(() => getNowMarkerIndex(groups, date), [groups, date]);
 
-  const showBottomControls = !isActionsMode && items.length > 0;
-
   const onDeleteSelected = async () => {
     const ids = selectedIds;
     if (ids.length === 0) return;
     const confirmed = await drawerStore.show(DeleteConfirmationModal, { count: ids.length });
     if (!confirmed) return;
-    removeScheduleFoods(store, ids);
+    await removeScheduleFoods(ids);
     clearSelection();
     toaster.success(`Удалено: ${ids.length}`);
   };
@@ -235,10 +227,7 @@ const FoodSchedule = ({
                 onClose={closeEditModal}
               />
             )}
-            <WriteFoodModals
-              flow={writeFoodFlow}
-              inputId={writeFoodInputId}
-            />
+            <WriteFoodModals flow={writeFoodFlow} inputId={writeFoodInputId} />
           </>
         ) : null
       }
@@ -271,10 +260,7 @@ const FoodSchedule = ({
                 Анализ
                 {analyticsStatus !== 'none' && (
                   <span
-                    className={clsx(
-                      styles.analyticsDot,
-                      styles[`analyticsDot_${analyticsStatus}`]
-                    )}
+                    className={clsx(styles.analyticsDot, styles[`analyticsDot_${analyticsStatus}`])}
                   />
                 )}
               </Button>
@@ -285,19 +271,10 @@ const FoodSchedule = ({
       }
       bottomLeft={
         !isActionsMode ? (
-          <WriteFoodButton
-            flow={writeFoodFlow}
-            inputId={writeFoodInputId}
-            label="Описать еду"
-          />
-        ) : null
-      }
-      bottomRight={
-        showBottomControls ? (
-          <AddButton
-            onClick={() => {}}
-            as="label"
-            htmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
+          <AddFoodActionBar
+            writeFoodFlow={writeFoodFlow}
+            writeFoodInputId={writeFoodInputId}
+            searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
           />
         ) : null
       }
@@ -307,18 +284,6 @@ const FoodSchedule = ({
         <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
         <Navigation />
       </div>
-      {items.length === 0 && (
-        <div className={styles.emptyState}>
-          <AddButton
-            onClick={() => {}}
-            as="label"
-            htmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
-            prominent
-          >
-            Добавить еду в этот день
-          </AddButton>
-        </div>
-      )}
       <ItemsList offsetTop>
         {(() => {
           let globalIndex = 0;

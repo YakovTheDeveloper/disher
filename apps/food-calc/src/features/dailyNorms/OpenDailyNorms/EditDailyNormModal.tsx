@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useStore } from '@livestore/react';
 import { modalStore, type BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
 import { ModalConfirmation } from '@/shared/ui/Modal/ModalConfirmation';
@@ -54,7 +53,6 @@ function isDirty(initial: Record<string, number>, current: Record<string, number
 }
 
 const EditDailyNormModal = ({ normId, onClose }: Props) => {
-  const { store } = useStore();
   const dbNorm = useDailyNorm(normId);
   const { items, init, setNutrient, clear } = useDailyNormDraftStore();
   const initialItemsRef = useRef<Record<string, number>>({});
@@ -84,13 +82,15 @@ const EditDailyNormModal = ({ normId, onClose }: Props) => {
 
   const dirty = isDirty(initialItemsRef.current, items);
 
-  const handleSave = useCallback(() => {
-    safeMutate(() => {
-      updateDailyNorm(store, normId, { items: JSON.stringify(items) });
-    }, 'Не удалось сохранить норму');
+  const handleSave = useCallback(async () => {
+    const result = await safeMutate(
+      () => updateDailyNorm(normId, { items: JSON.stringify(items) }),
+      'Не удалось сохранить норму',
+    );
+    if (result === undefined) return;
     toaster.success('Норма сохранена');
     onClose();
-  }, [store, normId, items, onClose]);
+  }, [normId, items, onClose]);
 
   const handleRequestClose = useCallback(() => {
     if (!dirty) {

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { addScheduleFood, updateScheduleFood } from '@/entities/schedule-food';
@@ -92,8 +91,6 @@ type EditMode = {
 export type FlowMode = CreateMode | EditMode;
 
 export function useScheduleFoodFlow(mode: FlowMode) {
-  const { store } = useStore();
-
   const [step, setStep] = useState<Step>(
     mode.type === 'edit' ? (mode.initialStep ?? 'idle') : 'idle'
   );
@@ -177,7 +174,7 @@ export function useScheduleFoodFlow(mode: FlowMode) {
     setDraft((prev) => ({ ...prev, time }));
   };
 
-  const handleFoodSelect = (payload: { variant: 'product' | 'dish'; id: string; name: string }) => {
+  const handleFoodSelect = async (payload: { variant: 'product' | 'dish'; id: string; name: string }) => {
     if (mode.type === 'create') {
       setDraft((prev) => ({
         ...prev,
@@ -192,9 +189,9 @@ export function useScheduleFoodFlow(mode: FlowMode) {
       }));
       setStep('time');
     } else {
-      const ok = safeMutate(
-        () => {
-          updateScheduleFood(store, mode.item.id, {
+      const ok = await safeMutate(
+        async () => {
+          await updateScheduleFood(mode.item.id, {
             time: draft.time,
             type: payload.variant === 'product' ? 'food' : 'dish',
             productId: payload.variant === 'product' ? payload.id : null,
@@ -212,11 +209,11 @@ export function useScheduleFoodFlow(mode: FlowMode) {
     }
   };
 
-  const handleCommit = () => {
+  const handleCommit = async () => {
     if (mode.type === 'create') {
       if (draft.variant && (draft.productId || draft.dishId)) {
-        const newId = safeMutate(
-          () => addScheduleFood(store, {
+        const newId = await safeMutate(
+          () => addScheduleFood({
             date: mode.scheduleId,
             time: draft.time,
             type: draft.variant === 'product' ? 'food' : 'dish',
@@ -245,9 +242,9 @@ export function useScheduleFoodFlow(mode: FlowMode) {
       mode.onRichNutrientClear?.();
     } else {
       if (draft.variant && (draft.productId || draft.dishId)) {
-        const ok = safeMutate(
-          () => {
-            updateScheduleFood(store, mode.item.id, {
+        const ok = await safeMutate(
+          async () => {
+            await updateScheduleFood(mode.item.id, {
               time: draft.time,
               type: draft.variant === 'product' ? 'food' : 'dish',
               productId: draft.variant === 'product' ? draft.productId : null,

@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
@@ -61,7 +60,6 @@ type Props = {
 };
 
 const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
-  const { store } = useStore();
   const [step, setStep] = useState<Step>('idle');
   const [atomPanelOpen, setAtomPanelOpen] = useState(false);
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
@@ -114,10 +112,10 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
     setDraft((prev) => ({ ...prev, text: value }));
   };
 
-  const handleCommit = () => {
-    const result = safeMutate(
+  const handleCommit = async () => {
+    const result = await safeMutate(
       () =>
-        addScheduleEvent(store, {
+        addScheduleEvent({
           date: scheduleId,
           time: draft.time,
           endTime: draft.endTime ?? undefined,
@@ -152,13 +150,6 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         isExpanded={step === 'time'}
         content={
           <ModalShell className={modalStyles.whiteShell}>
-            <ModalStepHeader
-              currentStep="time"
-              steps={STEPS}
-              stepLabels={STEP_LABELS}
-              onBack={handleClose}
-              onStepClick={goToStep}
-            />
             <ModalShell.Body>
               <ModalShell.Title>Выберите время</ModalShell.Title>
               <TimeChoose

@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { ReactNode } from 'react';
 import styles from './SearchFoodModal.module.scss';
 

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useStore } from '@livestore/react';
 import clsx from 'clsx';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
@@ -65,7 +64,6 @@ const GOAL_OPTIONS: Array<{ value: Goal; label: string }> = [
 ];
 
 const CreateDailyNormModal = ({ isExpanded, onClose }: Props) => {
-  const { store } = useStore();
   const [step, setStep] = useState<Step>('choice');
   const [name, setName] = useState('');
   const [survey, setSurvey] = useState<SurveyDraft>(DEFAULT_SURVEY);
@@ -83,26 +81,26 @@ const CreateDailyNormModal = ({ isExpanded, onClose }: Props) => {
     return generateNormFromSurvey(survey as NormSurvey);
   }, [step, survey]);
 
-  const handleManualCommit = useCallback(() => {
+  const handleManualCommit = useCallback(async () => {
     const trimmed = name.trim();
     if (!trimmed) return;
-    const id = safeMutate(() => createDailyNorm(store, trimmed, ''), 'Не удалось создать норму');
+    const id = await safeMutate(() => createDailyNorm(trimmed, ''), 'Не удалось создать норму');
     if (id === undefined) return;
     toaster.success('Норма создана');
     onClose();
-  }, [name, store, onClose]);
+  }, [name, onClose]);
 
-  const handleAiCommit = useCallback(() => {
+  const handleAiCommit = useCallback(async () => {
     if (!previewItems) return;
     const autoName = `Под меня · ${survey.weightKg} кг`;
-    const id = safeMutate(
-      () => createDailyNorm(store, autoName, '', previewItems),
+    const id = await safeMutate(
+      () => createDailyNorm(autoName, '', previewItems),
       'Не удалось создать норму',
     );
     if (id === undefined) return;
     toaster.success('Норма подобрана');
     onClose();
-  }, [previewItems, survey.weightKg, store, onClose]);
+  }, [previewItems, survey.weightKg, onClose]);
 
   return (
     <ModalByLabel

@@ -2,7 +2,6 @@ import "dotenv/config";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
-import { authRoutes } from "./routes/auth.js";
 import { analyticsRoutes } from "./routes/analytics.js";
 import { suggestionsRoutes } from "./routes/suggestions.js";
 import { freeTextFoodRoutes } from "./routes/free-text-food.js";
@@ -100,7 +99,6 @@ app.setErrorHandler((error, _req, reply) => {
 });
 
 // Routes
-await app.register(authRoutes, { prefix: "/api/auth" });
 await app.register(analyticsRoutes, { prefix: "/api/analytics" });
 await app.register(suggestionsRoutes, { prefix: "/api/suggestions" });
 await app.register(freeTextFoodRoutes, { prefix: "/api/free-text-food" });

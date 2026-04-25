@@ -1,26 +1,135 @@
 @import '@/shared/assets/style/mixin.scss';
 
+// All visual tokens are driven by CSS custom properties so design variants
+// can re-skin the picker by setting different values on a wrapping shell.
+
+.shell {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    isolation: isolate;
+}
+
+// Brutalist — current/baseline. Defaults on .container already match.
+.shellBrutalist {
+    background: transparent;
+    padding: 0;
+}
+
+// OLED Minimal — pure black, ultra-thin Inter, zen calm.
+.shellOled {
+    background: #000000;
+    padding: 36px 40px 28px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+
+    :global(.tc-root) {
+        --tc-bg: transparent;
+        --tc-fg: #fff;
+        --tc-border: 0;
+        --tc-border-radius: 0;
+        --tc-shadow-focus: none;
+        --tc-input-font: 'Inter', system-ui, sans-serif;
+        --tc-input-size: 5rem;
+        --tc-input-letter-spacing: -0.04em;
+        --tc-input-weight: 200;
+        --tc-input-pad: 8px 0;
+        --tc-separator-color: rgba(255, 255, 255, 0.25);
+        --tc-separator-weight: 200;
+        --tc-placeholder: rgba(255, 255, 255, 0.15);
+        --tc-blink-bg: #fff;
+        --tc-blink-fg: #000;
+
+        --tc-btn-bg: transparent;
+        --tc-btn-fg: rgba(255, 255, 255, 0.55);
+        --tc-btn-border: 1px solid rgba(255, 255, 255, 0.12);
+        --tc-btn-radius: 999px;
+        --tc-btn-pad: 8px 16px;
+        --tc-btn-font: 'Inter', system-ui, sans-serif;
+        --tc-btn-size: 11px;
+        --tc-btn-weight: 400;
+        --tc-btn-tracking: 0.05em;
+        --tc-btn-transform: none;
+        --tc-btn-active-bg: #fff;
+        --tc-btn-active-fg: #000;
+
+        --tc-tab-border: 0;
+        --tc-tab-divider: 0;
+        --tc-tab-bg: transparent;
+        --tc-tab-fg: rgba(255, 255, 255, 0.35);
+        --tc-tab-font: 'Inter', system-ui, sans-serif;
+        --tc-tab-size: 11px;
+        --tc-tab-weight: 400;
+        --tc-tab-tracking: 0.1em;
+        --tc-tab-transform: lowercase;
+        --tc-tab-active-bg: transparent;
+        --tc-tab-active-fg: #fff;
+    }
+}
+
 .container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 24px;
+    gap: var(--tc-gap, 24px);
+
+    // Defaults (V1 Brutalist Mono — original look)
+    --tc-bg: #fff;
+    --tc-fg: #000;
+    --tc-border: 3px solid #000;
+    --tc-border-radius: 0;
+    --tc-shadow-focus: 6px 6px 0 #000;
+    --tc-input-font: 'Courier New', monospace;
+    --tc-input-size: 4rem;
+    --tc-input-letter-spacing: 4px;
+    --tc-input-weight: 700;
+    --tc-separator-color: #000;
+    --tc-separator-weight: 900;
+    --tc-input-pad: 14px 20px;
+    --tc-blink-fg: #fff;
+    --tc-blink-bg: #000;
+    --tc-placeholder: #999;
+
+    --tc-btn-bg: #fff;
+    --tc-btn-fg: #000;
+    --tc-btn-border: 2px solid #000;
+    --tc-btn-radius: 0;
+    --tc-btn-pad: 8px 14px;
+    --tc-btn-font: 'Courier New', monospace;
+    --tc-btn-size: 11px;
+    --tc-btn-weight: 500;
+    --tc-btn-tracking: 1px;
+    --tc-btn-transform: uppercase;
+    --tc-btn-active-bg: #000;
+    --tc-btn-active-fg: #fff;
+    --tc-icon-stroke: %23000;
+
+    --tc-tab-border: 2px solid #000;
+    --tc-tab-divider: 2px solid #000;
+    --tc-tab-bg: #fff;
+    --tc-tab-fg: #000;
+    --tc-tab-font: 'Courier New', monospace;
+    --tc-tab-size: 11px;
+    --tc-tab-weight: 600;
+    --tc-tab-tracking: 0.14em;
+    --tc-tab-transform: uppercase;
+    --tc-tab-active-bg: #000;
+    --tc-tab-active-fg: #fff;
 }
 
 .wrapper {
     display: inline-flex;
     align-items: center;
-    padding: 14px 20px;
-    border-radius: 0;
-    transition: 0.2s box-shadow ease-in-out;
-    color: #000;
-    box-shadow: none;
-    background: #fff;
-    border: 3px solid #000;
+    padding: var(--tc-input-pad);
+    border-radius: var(--tc-border-radius);
+    transition: 0.2s box-shadow ease-in-out, 0.2s border-color ease-in-out;
+    color: var(--tc-fg);
+    background: var(--tc-bg);
+    border: var(--tc-border);
     outline: none;
 
     &:focus-within {
-        box-shadow: 6px 6px 0 #000;
+        box-shadow: var(--tc-shadow-focus);
     }
 }
 
@@ -33,14 +142,14 @@
     display: block;
     width: 100px;
     padding: 6px 4px;
-    font-size: 4rem;
-    font-family: 'Courier New', monospace;
-    font-weight: 700;
+    font-size: var(--tc-input-size);
+    font-family: var(--tc-input-font);
+    font-weight: var(--tc-input-weight);
     text-align: center;
     border: none;
     background: transparent;
-    letter-spacing: 4px;
-    color: #000;
+    letter-spacing: var(--tc-input-letter-spacing);
+    color: var(--tc-fg);
 
     &[aria-label='Hour'] {
         padding-right: 0;
@@ -51,8 +160,8 @@
     }
 
     &::selection {
-        color: #fff;
-        background: #000;
+        color: var(--tc-blink-fg);
+        background: var(--tc-blink-bg);
     }
 
     &:focus {
@@ -61,7 +170,7 @@
     }
 
     &::placeholder {
-        color: #999;
+        color: var(--tc-placeholder);
         font-weight: 400;
     }
 }
@@ -70,8 +179,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #000;
-    font-weight: 900;
+    color: var(--tc-separator-color);
+    font-weight: var(--tc-separator-weight);
     user-select: none;
     pointer-events: none;
     font-size: 2.5rem;
@@ -87,27 +196,47 @@
     gap: 8px;
 }
 
+.rangeRow {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+
+    .rangeTabs {
+        flex-direction: column;
+        width: auto;
+    }
+
+    .rangeTab {
+        border-right: none;
+        border-bottom: var(--tc-tab-divider);
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+}
+
 .toggleButton {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 14px;
-    font-size: 11px;
-    font-weight: 500;
+    padding: var(--tc-btn-pad);
+    font-size: var(--tc-btn-size);
+    font-weight: var(--tc-btn-weight);
     white-space: nowrap;
-    border-radius: 0;
-    color: #000;
-    background: #fff;
-    border: 2px solid #000;
-    font-family: 'Courier New', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: background-color 0.15s, color 0.15s;
+    border-radius: var(--tc-btn-radius);
+    color: var(--tc-btn-fg);
+    background: var(--tc-btn-bg);
+    border: var(--tc-btn-border);
+    font-family: var(--tc-btn-font);
+    text-transform: var(--tc-btn-transform);
+    letter-spacing: var(--tc-btn-tracking);
+    transition: background-color 0.15s, color 0.15s, transform 0.1s;
     cursor: pointer;
 
     &:active {
-        background: #000;
-        color: #fff;
+        background: var(--tc-btn-active-bg);
+        color: var(--tc-btn-active-fg);
     }
 
     &::before {
@@ -115,22 +244,28 @@
         height: 16px;
         width: 16px;
         content: '';
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: 16px;
         flex-shrink: 0;
+        transition: background-color 0.15s;
+    }
+
+    &:active::before {
+        background-color: var(--tc-btn-active-fg);
     }
 }
 
 .nowButton {
     &::before {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='square' stroke-linejoin='miter'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E");
+        background-color: var(--tc-btn-fg);
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='square' stroke-linejoin='miter'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E") no-repeat center / 16px;
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='square' stroke-linejoin='miter'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E") no-repeat center / 16px;
     }
 }
 
 .swapButton {
     &::before {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='M17 10H3l4-4'/%3E%3Cpath d='M7 14h14l-4 4'/%3E%3C/svg%3E");
+        background-color: var(--tc-btn-fg);
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='M17 10H3l4-4'/%3E%3Cpath d='M7 14h14l-4 4'/%3E%3C/svg%3E") no-repeat center / 16px;
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='M17 10H3l4-4'/%3E%3Cpath d='M7 14h14l-4 4'/%3E%3C/svg%3E") no-repeat center / 16px;
     }
 }
 
@@ -140,24 +275,26 @@
     display: flex;
     gap: 0;
     width: 100%;
-    border: 2px solid #000;
+    border: var(--tc-tab-border);
+    border-radius: var(--tc-border-radius);
+    overflow: hidden;
 }
 
 .rangeTab {
     flex: 1;
     padding: 10px 0;
-    font-family: 'Courier New', monospace;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    font-family: var(--tc-tab-font);
+    font-size: var(--tc-tab-size);
+    font-weight: var(--tc-tab-weight);
+    letter-spacing: var(--tc-tab-tracking);
+    text-transform: var(--tc-tab-transform);
     text-align: center;
-    color: #000;
-    background: #fff;
+    color: var(--tc-tab-fg);
+    background: var(--tc-tab-bg);
     border: none;
-    border-right: 2px solid #000;
+    border-right: var(--tc-tab-divider);
     cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
+    transition: background-color 0.15s, color 0.15s, transform 0.1s;
 
     &:last-child {
         border-right: none;
@@ -169,22 +306,22 @@
 }
 
 .rangeTabActive {
-    background: #000;
-    color: #fff;
+    background: var(--tc-tab-active-bg);
+    color: var(--tc-tab-active-fg);
 }
 
 .nativeInput {
     font-size: 2rem;
-    font-family: 'Courier New', monospace;
+    font-family: var(--tc-input-font);
     padding: 8px 16px;
-    border-radius: 0;
-    border: 2px solid #000;
-    background: #fff;
-    color: #000;
+    border-radius: var(--tc-border-radius);
+    border: var(--tc-tab-border);
+    background: var(--tc-bg);
+    color: var(--tc-fg);
     cursor: pointer;
 
     &:focus {
         outline: none;
-        box-shadow: 4px 4px 0 #000;
+        box-shadow: var(--tc-shadow-focus);
     }
 }

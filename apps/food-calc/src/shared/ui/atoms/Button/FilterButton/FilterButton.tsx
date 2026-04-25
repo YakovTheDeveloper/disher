@@ -1,6 +1,5 @@
 import styles from './FilterButton.module.scss';
 import clsx from 'clsx';
-import { observer } from 'mobx-react-lite';
 import FilterIcon from '@/shared/assets/icons/filter-icon.svg';
 import CrossIcon from '@/shared/assets/icons/cross.svg';
 
@@ -22,4 +21,4 @@ const FilterButton = ({ onClick, isActive = false, activeCount = 0, children }: 
   );
 };
 
-export default observer(FilterButton);
+export default FilterButton;

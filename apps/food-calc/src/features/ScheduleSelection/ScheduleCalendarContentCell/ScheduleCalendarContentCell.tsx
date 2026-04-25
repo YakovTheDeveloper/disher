@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './ScheduleCalendarContentCell.module.scss';
 import clsx from 'clsx';
 type Props = {
@@ -17,4 +16,4 @@ const ScheduleCalendarContentCell = ({ date, getContentExist }: Props) => {
   );
 };
 
-export default observer(ScheduleCalendarContentCell);
+export default ScheduleCalendarContentCell;

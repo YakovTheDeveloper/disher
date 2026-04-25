@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';

@@ -1,27 +1,49 @@
 .wrapper {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     position: relative;
-    transition: background 0.15s ease, color 0.15s ease;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    transition: background 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
 
-    &:last-child {
-        border-bottom: none;
+    &::after {
+        content: '';
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(to right,
+                transparent 0%,
+                rgba(0, 0, 0, 0.06) 12%,
+                rgba(0, 0, 0, 0.06) 88%,
+                transparent 100%);
+        pointer-events: none;
+    }
+
+    &:last-child::after {
+        display: none;
     }
 
     @media (prefers-color-scheme: dark) {
-        border-bottom-color: rgba(255, 255, 255, 0.08);
+        &::after {
+            background: linear-gradient(to right,
+                    transparent 0%,
+                    rgba(255, 255, 255, 0.08) 12%,
+                    rgba(255, 255, 255, 0.08) 88%,
+                    transparent 100%);
+        }
     }
 }
-
 
 @keyframes growBar {
     from {
         transform: scaleX(0);
+        opacity: 0;
     }
 
     to {
         transform: scaleX(1);
+        opacity: 1;
     }
 }
 
@@ -29,50 +51,53 @@
     position: absolute;
     bottom: 0;
     left: 0;
-    height: 1px;
-    border-radius: 0 3px 3px 0;
-    opacity: 0.3;
+    height: 2px;
+    border-radius: 0 2px 2px 0;
+    opacity: 0.55;
     pointer-events: none;
     transform-origin: left;
-    animation: growBar 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: growBar 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    z-index: 1;
 }
 
 .item {
     display: flex;
     align-items: center;
-    padding: 0 8px 0 14px;
+    padding: 0 6px 0 18px;
     flex-grow: 1;
     min-width: 0;
     overflow: hidden;
+    position: relative;
 
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
 
     cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-    height: 48px;
-    gap: 8px;
+    transition: background 0.18s ease;
+    height: 54px;
+    gap: 10px;
+    margin: 0;
 
     &:active {
-        background: #cccccc;
+        background: rgba(0, 0, 0, 0.04);
     }
 }
 
 .categoryIcon {
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    
+    width: 22px;
+    height: 22px;
     flex-shrink: 0;
     object-fit: contain;
-    opacity: 0.8;
+    opacity: 0.75;
 }
 
 .item_active {
-    background: #111;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.92) 0%, rgba(20, 20, 20, 0.92) 100%);
 
     .name {
         color: #fff;
+        letter-spacing: 0.01em;
     }
 
     * {
@@ -80,7 +105,7 @@
     }
 
     &:active {
-        background: #222;
+        background: rgba(0, 0, 0, 0.98);
     }
 }
 
@@ -91,12 +116,16 @@
     white-space: nowrap;
     text-overflow: ellipsis;
 
-    font-size: 0.82rem;
+    font-size: 1rem;
     font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #111;
-    line-height: 1;
+    text-transform: capitalize;
+    color: #0a0a0a;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+
+    @media (prefers-color-scheme: dark) {
+        color: #f5f5f5;
+    }
 }
 
 .richValue {
@@ -104,50 +133,64 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-width: 48px;
-    height: 48px;
-    padding: 0 6px;
+    min-width: 52px;
+    height: 54px;
+    padding: 0 8px;
     flex-shrink: 0;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
-    color: #555;
+    color: #2a2a2a;
     letter-spacing: -0.02em;
     line-height: 1.1;
     text-align: center;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 25%;
+        bottom: 25%;
+        width: 1px;
+        background: rgba(0, 0, 0, 0.08);
+    }
 }
 
 .richUnit {
-    font-size: 9px;
-    font-weight: 400;
-    opacity: 0.5;
-    margin-top: 1px;
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0.75;
+    margin-top: 2px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
 }
 
 .richPercent {
-    font-size: 8px;
+    font-size: 9px;
     font-weight: 600;
-    opacity: 0.45;
+    opacity: 0.6;
     margin-top: 1px;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.03em;
 }
 
 .iconBtn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 48px;
+    width: 42px;
+    height: 54px;
     padding: 0;
     border: none;
     background: transparent;
-    color: #bbb;
+    color: #888;
     cursor: pointer;
     flex-shrink: 0;
-    transition: color 0.15s ease;
+    transition: color 0.18s ease, transform 0.12s ease;
     -webkit-tap-highlight-color: transparent;
 
     &:active {
         color: #111;
+        transform: scale(0.88);
     }
 }
 
@@ -155,27 +198,28 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 48px;
+    width: 42px;
+    height: 54px;
     padding: 0;
     border: none;
     background: transparent;
-    color: #999;
+    color: #777;
     cursor: pointer;
     flex-shrink: 0;
-    transition: color 0.15s ease;
+    transition: color 0.18s ease, transform 0.12s ease;
     -webkit-tap-highlight-color: transparent;
 
     &:active {
         color: #111;
+        transform: scale(0.88);
     }
 }
 
 .deleteBtn {
-    color: #e5534b;
+    color: #d66b63;
 
     &:active {
-        color: #c0392b;
+        color: #b8392f;
     }
 }
 
@@ -184,14 +228,14 @@
     flex-direction: column;
     gap: 2px;
     padding: 4px;
-    min-width: 140px;
+    min-width: 160px;
 }
 
 .popoverAction {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 12px;
+    padding: 11px 14px;
     border: none;
     background: transparent;
     cursor: pointer;
@@ -199,7 +243,7 @@
     font-weight: 600;
     letter-spacing: 0.04em;
     color: #e5534b;
-    border-radius: 6px;
+    border-radius: 8px;
     width: 100%;
     text-align: left;
     transition: background 0.12s;

@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './DrawerLayout.module.scss';
 import { useRef } from 'react';
 import clsx from 'clsx';
@@ -46,4 +45,4 @@ const DrawerLayout = ({ children, topRight, className }: Props) => {
   );
 };
 
-export default observer(DrawerLayout);
+export default DrawerLayout;

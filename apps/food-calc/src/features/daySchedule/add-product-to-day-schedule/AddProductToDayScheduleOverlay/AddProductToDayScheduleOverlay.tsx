@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useStore } from '@livestore/react';
 import { format, startOfToday } from 'date-fns';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
@@ -15,7 +14,6 @@ interface Props extends BaseDrawerProps {
 }
 
 const AddProductToDayScheduleOverlay = ({ productId, onClose }: Props) => {
-  const { store } = useStore();
   const product = useProduct(productId);
 
   const today = format(startOfToday(), 'dd-MM-yyyy');
@@ -25,12 +23,12 @@ const AddProductToDayScheduleOverlay = ({ productId, onClose }: Props) => {
     setSelectedDate(date);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (product) {
       const currentTime = new Date().toTimeString().slice(0, 5);
-      const result = safeMutate(
+      const result = await safeMutate(
         () =>
-          addScheduleFood(store, {
+          addScheduleFood({
             date: selectedDate,
             time: currentTime,
             type: 'food',

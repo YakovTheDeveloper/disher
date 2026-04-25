@@ -1,0 +1,86 @@
+.searchBar {
+  display: flex;
+  align-items: center;
+  width: calc(100vw - 1rem);
+  max-width: 560px;
+  padding: 0 8px 0 4px;
+  min-height: 52px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.searchBarWrite {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  min-height: 52px;
+  border-radius: 999px;
+  border: none;
+  box-shadow: none;
+  color: rgba(31, 42, 68, 0.55);
+  font-size: 15px;
+  font-weight: 400;
+  cursor: text;
+  user-select: none;
+  backdrop-filter: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:active {
+    transform: none;
+  }
+}
+
+.searchBarSearch {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 10px;
+  gap: 6px;
+  min-height: 44px;
+  border-radius: 12px;
+  background: white;
+  position: relative;
+  border: none;
+  color: rgba(31, 42, 68, 0.82);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: rgba(31, 42, 68, 1);
+    outline: none;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.searchBarSeparator {
+  margin: 0 12px;
+  font-weight: 400;
+  font-size: 1.5rem;
+  color: rgba(31, 42, 68, 0.12);
+}
+
+.searchBarSearchIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: currentColor;
+}

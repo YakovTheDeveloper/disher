@@ -104,11 +104,6 @@
   }
 }
 
-.timeEdit {
-  grid-column: 1 / -1;
-  padding: 6px 4px 2px;
-}
-
 // ─── Name cell (flex so name can shrink and note chip can wrap) ─
 
 .nameCell {
@@ -233,49 +228,6 @@
   margin-top: 1px;
   letter-spacing: 0.3px;
   text-transform: uppercase;
-}
-
-.qtyEdit {
-  grid-column: 1 / -1;
-  padding: 6px 4px 2px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  align-items: center;
-}
-
-.qtyInput {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--pre-text-primary);
-  font-variant-numeric: tabular-nums;
-  border: 1px solid var(--pre-outline-from);
-  border-radius: 6px;
-  padding: 6px 10px;
-  background-color: #fff;
-  width: 84px;
-  text-align: right;
-
-  &:focus {
-    outline: none;
-    border-color: var(--pre-accent-strong);
-    box-shadow: 0 0 0 3px rgba(139, 134, 124, 0.18);
-  }
-}
-
-.qtyDone {
-  background: var(--pre-accent-strong);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:active {
-    transform: scale(0.97);
-  }
 }
 
 // ─── Delete button ─────────────────────────────────────────────

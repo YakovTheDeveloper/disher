@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './Typography.module.scss';
 import clsx from 'clsx';
 import { forwardRef } from 'react';
@@ -52,4 +51,4 @@ const Typography = forwardRef<ExposedRefs, Props>(
 
 Typography.displayName = 'Typography';
 
-export default observer(Typography);
+export default Typography;

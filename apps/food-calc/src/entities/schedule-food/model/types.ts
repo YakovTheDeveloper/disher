@@ -1,13 +1,21 @@
-import type { tables } from '@/livestore/schema'
+export type ScheduleFoodType = "food" | "dish";
 
-/** Base schedule food row from LiveStore (flat, no relations) */
-export type ScheduleFood = (typeof tables)['scheduleFoods']['Type'];
+export interface ScheduleFood {
+  id: string;
+  userId: string;
+  date: string;
+  time: string;
+  type: ScheduleFoodType;
+  quantity: number;
+  details: string | null;
+  productId: string | null;
+  dishId: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+  deletedAt: string | null;
+}
 
-/** Schedule food enriched with product/dish data (mapped in queries) */
 export type ScheduleFoodWithRelations = ScheduleFood & {
-  productId: string;
-  product: { name: string; userId: string; pricePerKg?: number } | null;
+  product: { name: string; userId: string | null; pricePerKg?: number | null } | null;
   dish: { name: string } | null;
 };
-
-export type ScheduleFoodType = "food" | "dish";

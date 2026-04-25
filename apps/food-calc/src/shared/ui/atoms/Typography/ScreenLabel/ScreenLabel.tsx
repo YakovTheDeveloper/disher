@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './ScreenLabel.module.scss';
 import clsx from 'clsx';
 
@@ -33,4 +32,4 @@ const ScreenLabel = ({ children, opacity, className, variant, onClick }: Props) 
   );
 };
 
-export default observer(ScreenLabel);
+export default ScreenLabel;

@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { popOverlayEntry } from '@/shared/lib/overlay-history';
@@ -53,7 +52,6 @@ type Props = {
 };
 
 const DishProductCreateModals = ({ dishId }: Props) => {
-  const { store } = useStore();
   const { toProduct } = useAppRoutes();
   const [step, setStep] = useState<Step>('idle');
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
@@ -92,7 +90,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
   const handleCommit = async () => {
     if (draft.productId) {
       const result = await safeMutate(
-        () => addDishItem(store, { dishId, productId: draft.productId!, quantity: draft.quantity }),
+        () => addDishItem({ dishId, productId: draft.productId!, quantity: draft.quantity }),
         'Не удалось добавить продукт'
       );
       if (result === undefined) return;

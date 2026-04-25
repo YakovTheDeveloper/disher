@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from 'react';
-import { useStore } from '@livestore/react';
 import { useSearchParams, useNavigate } from 'react-router';
 import { SuggestionsReviewList } from '@/features/dish/suggest-products';
 import type { SuggestionsReviewListRef, SuggestionItem } from '@/features/dish/suggest-products';
@@ -33,7 +32,6 @@ function parseShareParam(raw: string | null): ParsedEntry[] {
 }
 
 const ShareReceivePage = () => {
-  const { store } = useStore();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const listRef = useRef<SuggestionsReviewListRef>(null);
@@ -69,7 +67,7 @@ const ShareReceivePage = () => {
       () =>
         Promise.all(
           picked.map((item) =>
-            addDishItem(store, { dishId, productId: item.productId, quantity: item.quantity })
+            addDishItem({ dishId, productId: item.productId, quantity: item.quantity })
           )
         ),
       'Не удалось добавить продукты'
@@ -93,7 +91,7 @@ const ShareReceivePage = () => {
       () =>
         Promise.all(
           picked.map((item) =>
-            addScheduleFood(store, {
+            addScheduleFood({
               date,
               time,
               type: 'food',

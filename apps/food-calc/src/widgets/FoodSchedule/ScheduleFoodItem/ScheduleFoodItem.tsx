@@ -9,6 +9,7 @@ import { SelectionStoreType, useStore } from '@/hooks/factoryHooks/useSelection'
 import { costForWeight } from '@/shared/lib/cost';
 import { isCreatedByUser } from '@/shared/lib/user';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
+import { useRecentlyAddedStore } from '@/features/food/food-free-text-parse';
 
 type Props = {
   className?: string;
@@ -43,18 +44,26 @@ const ScheduleFoodItemComponent = ({
   const isActionsMode = useStore(selectionStore, (s) => s.isActionsMode);
   const isSelected = useStore(selectionStore, (s) => s.selectedIds.includes(id));
   const toggleSelectedId = selectionStore.getState().toggleSelectedId;
+  const isRecentFromFreeText = useRecentlyAddedStore((s) => s.ids.has(id));
 
   const content = item;
 
+  const dismissRecent = () => {
+    if (isRecentFromFreeText) useRecentlyAddedStore.getState().remove(id);
+  };
+
   const handleTimeClick = () => {
+    dismissRecent();
     onEditTime?.(item);
   };
 
   const handleFoodClick = () => {
+    dismissRecent();
     onEditFood?.(item);
   };
 
   const handleQuantityClick = () => {
+    dismissRecent();
     onEditQuantity?.(item);
   };
 
@@ -83,7 +92,12 @@ const ScheduleFoodItemComponent = ({
 
   return (
     <SelectableListItem
-      className={clsx([className, styles.group, isCustom && styles.customProduct])}
+      className={clsx([
+        className,
+        styles.group,
+        isCustom && styles.customProduct,
+        isRecentFromFreeText && styles.recentFreeText,
+      ])}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={id}
       tod={getTimeOfDay(content.time)}

@@ -4,8 +4,38 @@ import { useTimeChooseV2 } from './useTimeChooseV2';
 import clsx from 'clsx';
 import { TimeNow } from './TimeNow';
 import { useTimeRange, type RangeTab, type TimeRangeState } from './useTimeRange';
+import { useDesignVariants } from '@/shared/lib/useDesignVariants';
+import { shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 
 type TimePickerVariant = 'native' | 'manual';
+
+export type TimeChooseVariant =
+  | 'oled'
+  | 'brutalist'
+  | 'ethereal'
+  | 'editorial'
+  | 'glassy'
+  | 'pastelDeco'
+  | 'monoZen';
+
+const DV_VARIANTS: TimeChooseVariant[] = [
+  'oled',
+  'ethereal',
+  'editorial',
+  'glassy',
+  'pastelDeco',
+  'monoZen',
+];
+
+const variantClassMap: Record<TimeChooseVariant, string> = {
+  oled: styles.shellOled,
+  brutalist: styles.shellBrutalist,
+  ethereal: styles.shellEthereal,
+  editorial: styles.shellEditorial,
+  glassy: styles.shellGlassy,
+  pastelDeco: styles.shellPastelDeco,
+  monoZen: styles.shellMonoZen,
+};
 
 type RangeProps = {
   initialFrom: string;
@@ -21,6 +51,7 @@ type Props = {
   id?: string;
   inputId?: string;
   timePickerVariant?: TimePickerVariant;
+  variant?: TimeChooseVariant;
   range?: RangeProps;
 };
 
@@ -162,10 +193,17 @@ const TimeChoose = ({
   id,
   inputId,
   timePickerVariant: controlledVariant,
+  variant: designVariant = 'oled',
   range,
 }: Props) => {
   const [localVariant, setLocalVariant] = useState<TimePickerVariant>('manual');
   const variant = controlledVariant ?? localVariant;
+
+  const showDv = shouldShowDvBar();
+  const { index: dvIndex } = useDesignVariants('TimeChoose', DV_VARIANTS.length);
+  const effectiveDesignVariant: TimeChooseVariant = showDv
+    ? DV_VARIANTS[dvIndex]
+    : designVariant;
   const [hours, setHours] = useState<string>(initialTime.split(':')[0]);
   const [minutes, setMinutes] = useState<string>(initialTime.split(':')[1]);
 
@@ -218,41 +256,44 @@ const TimeChoose = ({
   };
 
   return (
-    <div id={id} className={styles.container} role="group" aria-label="Time input">
-      {isRange && (
-        <RangeTabs
-          activeTab={timeRange.activeTab}
-          onTabChange={handleTabChange}
-          tabs={timeRange.tabs}
-          tabLabels={timeRange.tabLabels}
-        />
-      )}
+    <div className={clsx(styles.shell, variantClassMap[effectiveDesignVariant])}>
+      <div id={id} className={clsx(styles.container, 'tc-root')} role="group" aria-label="Time input">
+        <div className={clsx(isRange && styles.rangeRow)}>
+          <TimeInput
+            variant={isNative ? 'native' : 'manual'}
+            hours={activeHours}
+            minutes={activeMinutes}
+            setHours={activeSetHours}
+            setMinutes={activeSetMinutes}
+            onFinish={effectiveOnFinish}
+            hourAriaLabel={hourAriaLabel}
+            minuteAriaLabel={minuteAriaLabel}
+            inputId={inputId}
+            normalizeTime={normalizeTime}
+          />
+          {isRange && (
+            <RangeTabs
+              activeTab={timeRange.activeTab}
+              onTabChange={handleTabChange}
+              tabs={timeRange.tabs}
+              tabLabels={timeRange.tabLabels}
+            />
+          )}
+        </div>
+        <div className={styles.buttonsWrapper}>
+          <TimeNow onFinish={onNowSelect} time={`${activeHours}:${activeMinutes}`}>
+            <button className={clsx(styles.toggleButton, styles.nowButton)}>Сейчас</button>
+          </TimeNow>
 
-      <TimeInput
-        variant={isNative ? 'native' : 'manual'}
-        hours={activeHours}
-        minutes={activeMinutes}
-        setHours={activeSetHours}
-        setMinutes={activeSetMinutes}
-        onFinish={effectiveOnFinish}
-        hourAriaLabel={hourAriaLabel}
-        minuteAriaLabel={minuteAriaLabel}
-        inputId={inputId}
-        normalizeTime={normalizeTime}
-      />
-      <div className={styles.buttonsWrapper}>
-        <TimeNow onFinish={onNowSelect} time={`${activeHours}:${activeMinutes}`}>
-          <button className={clsx(styles.toggleButton, styles.nowButton)}>Сейчас</button>
-        </TimeNow>
-
-        <button
-          className={clsx(styles.toggleButton, styles.swapButton)}
-          onClick={() => {
-            setLocalVariant((prev) => (prev === 'native' ? 'manual' : 'native'));
-          }}
-        >
-          {isNative ? 'Ручной ввод' : 'Системный'}
-        </button>
+          <button
+            className={clsx(styles.toggleButton, styles.swapButton)}
+            onClick={() => {
+              setLocalVariant((prev) => (prev === 'native' ? 'manual' : 'native'));
+            }}
+          >
+            {isNative ? 'Ручной ввод' : 'Системный'}
+          </button>
+        </div>
       </div>
     </div>
   );

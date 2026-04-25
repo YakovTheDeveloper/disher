@@ -1,59 +1,66 @@
 import { useMemo } from "react";
-import { queryDb } from "@livestore/livestore";
-import { useQuery } from "@livestore/react";
-import { tables } from "@/livestore/schema";
-import type { ScheduleFoodWithRelations } from "../model/types";
+import { useQuery } from "@powersync/react";
+import { snakeToCamel } from "@/shared/lib/rowMapper";
+import type { ScheduleFood, ScheduleFoodWithRelations } from "../model/types";
 
-const allProducts$ = queryDb(tables.products.where({ deletedAt: null }), { label: 'sf-products' });
-const allDishes$ = queryDb(tables.dishes.where({ deletedAt: null }), { label: 'sf-dishes' });
+function mapRow(row: Record<string, unknown>): ScheduleFood {
+  return snakeToCamel(row) as unknown as ScheduleFood;
+}
 
-type ProductRow = (typeof tables)['products']['Type'];
-type DishRow = (typeof tables)['dishes']['Type'];
+const SELECT_SF = `
+  select id, user_id, date, time, type, quantity, details,
+         product_id, dish_id, created_at, updated_at, deleted_at
+  from schedule_foods
+  where deleted_at is null
+`;
 
-function useEnrichedScheduleFoods(rows: readonly Record<string, any>[]): ScheduleFoodWithRelations[] {
-  const products = useQuery(allProducts$);
-  const dishes = useQuery(allDishes$);
+function useEnriched(rows: ScheduleFood[]): ScheduleFoodWithRelations[] {
+  const { data: productData } = useQuery<Record<string, unknown>>(
+    `select id, name, user_id, price_per_kg from products where deleted_at is null`,
+  );
+  const { data: dishData } = useQuery<Record<string, unknown>>(
+    `select id, name from dishes where deleted_at is null`,
+  );
 
   return useMemo(() => {
-    const productMap = new Map<string, ProductRow>(products.map((p) => [p.id, p]));
-    const dishMap = new Map<string, DishRow>(dishes.map((d) => [d.id, d]));
-
-    return rows.map((row) => {
-      const product = row.productId ? productMap.get(row.productId) ?? null : null;
-      const dish = row.dishId ? dishMap.get(row.dishId) ?? null : null;
-      return {
-        ...row,
-        productId: row.productId,
-        product: product ? { name: product.name, userId: product.userId, pricePerKg: product.pricePerKg } : null,
-        dish: dish ? { name: dish.name } : null,
-      };
-    });
-  }, [rows, products, dishes]);
+    const productMap = new Map(
+      productData.map((p) => [
+        p.id as string,
+        { name: p.name as string, userId: (p.user_id as string) ?? null, pricePerKg: (p.price_per_kg as number) ?? null },
+      ]),
+    );
+    const dishMap = new Map(
+      dishData.map((d) => [d.id as string, { name: d.name as string }]),
+    );
+    return rows.map((row) => ({
+      ...row,
+      product: row.productId ? (productMap.get(row.productId) ?? null) : null,
+      dish: row.dishId ? (dishMap.get(row.dishId) ?? null) : null,
+    }));
+  }, [rows, productData, dishData]);
 }
 
 export function useScheduleFoods(date: string | undefined): ScheduleFoodWithRelations[] {
-  const rows = useQuery(
-    queryDb(
-      tables.scheduleFoods.where({ date: date ?? "", deletedAt: null }),
-      { label: `schedule-foods-${date}`, deps: [date] },
-    ),
+  const { data } = useQuery<Record<string, unknown>>(
+    `${SELECT_SF} and date = ?`,
+    [date ?? ""],
   );
-  return useEnrichedScheduleFoods(rows);
+  const rows = useMemo(() => data.map(mapRow), [data]);
+  return useEnriched(rows);
 }
 
-const allScheduleFoods$ = queryDb(tables.scheduleFoods.where({ deletedAt: null }), { label: 'schedule-foods-all' });
-
 export function useScheduleFoodsByDates(dates: string[]): ScheduleFoodWithRelations[] {
-  const rows = useQuery(allScheduleFoods$);
+  const { data } = useQuery<Record<string, unknown>>(SELECT_SF);
   const filtered = useMemo(() => {
     if (dates.length === 0) return [];
     const dateSet = new Set(dates);
-    return rows.filter((r) => dateSet.has(r.date));
-  }, [rows, dates]);
-  return useEnrichedScheduleFoods(filtered);
+    return data.map(mapRow).filter((r) => dateSet.has(r.date));
+  }, [data, dates]);
+  return useEnriched(filtered);
 }
 
 export function useAllScheduleFoods(): ScheduleFoodWithRelations[] {
-  const rows = useQuery(allScheduleFoods$);
-  return useEnrichedScheduleFoods(rows);
+  const { data } = useQuery<Record<string, unknown>>(SELECT_SF);
+  const rows = useMemo(() => data.map(mapRow), [data]);
+  return useEnriched(rows);
 }

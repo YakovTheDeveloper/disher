@@ -1,5 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
-// Calendar Design Variants — 5 visual themes for date picker
+// Calendar Design Variants — iOS 18 dark only
+// (Multi-variant scaffolding kept for future A/B work.)
 // ═══════════════════════════════════════════════════════════════
 
 .variantShell {
@@ -36,183 +37,15 @@
 }
 
 // ═══════════════════════════════════════════════════════════════
-// V1 — Minimal Paper
-// Clean white, subtle, no-nonsense
+// V1 — iOS 18 Dark
+// Pure black canvas; all calendar visuals live in
+// ScheduleSelection2.module.scss
 // ═══════════════════════════════════════════════════════════════
 
-.v1 {
-  --cal-bg: #fefefe;
-  --cal-text: #1a1a1a;
-  --cal-text-muted: rgba(26, 26, 26, 0.3);
-  --cal-text-faint: rgba(26, 26, 26, 0.12);
-  --cal-accent: #111;
-  --cal-accent-soft: rgba(17, 17, 17, 0.06);
-  --cal-selected-bg: #111;
-  --cal-selected-text: #fefefe;
-  --cal-hover: rgba(0, 0, 0, 0.02);
-  --cal-border: rgba(0, 0, 0, 0.05);
-  --cal-glass: rgba(254, 254, 254, 0.92);
-  background: #fefefe;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// V2 — Spring Glass (ModalShell-inspired)
-// Glassmorphism with soft color orbs
-// ═══════════════════════════════════════════════════════════════
-
-.v2 {
-  --cal-bg: transparent;
-  --cal-text: #2a2040;
-  --cal-text-muted: rgba(42, 32, 64, 0.35);
-  --cal-text-faint: rgba(42, 32, 64, 0.14);
-  --cal-accent: #7c3aed;
-  --cal-accent-soft: rgba(124, 58, 237, 0.1);
-  --cal-selected-bg: #7c3aed;
-  --cal-selected-text: #fff;
-  --cal-hover: rgba(124, 58, 237, 0.05);
-  --cal-border: rgba(124, 58, 237, 0.1);
-  --cal-glass: rgba(237, 233, 254, 0.55);
-  background:
-    linear-gradient(
-      145deg,
-      rgba(237, 233, 254, 0.92) 0%,      /* мягкий лавандовый */
-      rgba(224, 231, 255, 0.90) 35%,      /* сиренево-голубой */
-      rgba(245, 235, 255, 0.92) 65%,      /* розовато-лавандовый */
-      rgba(232, 240, 255, 0.90) 100%      /* прохладный лиловый */
-    );
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
-
-.v2Orbs {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.v2Orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.5;
-  animation: orbFloat 8s ease-in-out infinite alternate;
-}
-
-.v2Orb1 {
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, rgba(196, 181, 253, 0.7), rgba(139, 92, 246, 0.4));
-  top: -50px;
-  left: -40px;
-}
-
-.v2Orb2 {
-  width: 180px;
-  height: 180px;
-  background: radial-gradient(circle, rgba(165, 180, 252, 0.6), rgba(99, 102, 241, 0.35));
-  top: 25%;
-  right: -40px;
-  animation-delay: -3s;
-}
-
-.v2Orb3 {
-  width: 190px;
-  height: 190px;
-  background: radial-gradient(circle, rgba(221, 214, 254, 0.6), rgba(167, 139, 250, 0.35));
-  bottom: 5%;
-  left: 15%;
-  animation-delay: -5s;
-}
-
-@keyframes orbFloat {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(10px, -15px) scale(1.08); }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// V3 — Dark Elegant
-// Deep dark with amber accents
-// ═══════════════════════════════════════════════════════════════
-
-.v3 {
-  --cal-bg: #0f0f0f;
-  --cal-text: #e8e8e8;
-  --cal-text-muted: rgba(232, 232, 232, 0.3);
-  --cal-text-faint: rgba(232, 232, 232, 0.12);
-  --cal-accent: #f59e0b;
-  --cal-accent-soft: rgba(245, 158, 11, 0.1);
-  --cal-selected-bg: #f59e0b;
-  --cal-selected-text: #0f0f0f;
-  --cal-hover: rgba(255, 255, 255, 0.04);
-  --cal-border: rgba(255, 255, 255, 0.06);
-  --cal-glass: rgba(15, 15, 15, 0.92);
-  background: #0f0f0f;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// V4 — Warm Editorial
-// Warm beige palette, magazine feel
-// ═══════════════════════════════════════════════════════════════
-
-.v4 {
-  --cal-bg: #f5f0e8;
-  --cal-text: #2c2416;
-  --cal-text-muted: rgba(44, 36, 22, 0.35);
-  --cal-text-faint: rgba(44, 36, 22, 0.14);
-  --cal-accent: #c2410c;
-  --cal-accent-soft: rgba(194, 65, 12, 0.08);
-  --cal-selected-bg: #c2410c;
-  --cal-selected-text: #fff;
-  --cal-hover: rgba(44, 36, 22, 0.03);
-  --cal-border: rgba(44, 36, 22, 0.08);
-  --cal-glass: rgba(245, 240, 232, 0.9);
-  background: #f5f0e8;
-}
-
-.v4Stripe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #c2410c, #f59e0b, #c2410c);
-  z-index: 10;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// V5 — Brutalist Mono
-// High contrast, thick borders, red accent
-// ═══════════════════════════════════════════════════════════════
-
-.v5 {
-  --cal-bg: #fff;
-  --cal-text: #000;
-  --cal-text-muted: rgba(0, 0, 0, 0.4);
-  --cal-text-faint: rgba(0, 0, 0, 0.15);
-  --cal-accent: #e5004f;
-  --cal-accent-soft: rgba(229, 0, 79, 0.06);
-  --cal-selected-bg: #e5004f;
-  --cal-selected-text: #fff;
-  --cal-hover: rgba(0, 0, 0, 0.03);
-  --cal-border: rgba(0, 0, 0, 0.12);
-  --cal-glass: #fff;
+.v1ios {
+  --cal-accent: #ff3b30;
   background: #fff;
-}
-
-.v5Corner {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  z-index: 10;
-  font-family: 'Courier New', monospace;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.15);
-  pointer-events: none;
+  color: #000;
 }
 
 // ─── Calendar inner content z-index ───────────────────────────

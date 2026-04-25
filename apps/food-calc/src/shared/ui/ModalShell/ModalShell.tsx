@@ -4,7 +4,7 @@ import { useKeyboardStickV2 } from '@/shared/ui/hooks/useKeyboardStickV2';
 
 type Props = { children: ReactNode; className?: string; variant?: 'default' | 'spring' };
 
-export const ModalShell = ({ children, className, variant = 'default' }: Props) => (
+export const ModalShell = ({ children, className, variant = 'spring' }: Props) => (
   <div className={`${s.wrapper} ${variant === 'spring' ? s.wrapperSpring : ''} ${className ?? ''}`}>
     {variant === 'spring' && (
       <div className={s.springOrbs} aria-hidden>

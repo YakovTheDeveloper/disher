@@ -1,7 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import styles from './Modal.module.scss';
 import { useModals } from '@/shared/ui/modal-store';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 interface ModalProps {
   children: React.ReactNode;

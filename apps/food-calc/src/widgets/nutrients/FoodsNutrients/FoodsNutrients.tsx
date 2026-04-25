@@ -100,7 +100,6 @@ const FoodsNutrients = ({
     >
       <div className={styles.statusHeader}>{isLoading && <Spinner size={16} />}</div>
       <div className={styles.norms}>
-        <Ornament text="дневная норма" variant="horizontal"></Ornament>
         <OpenDailyNorms />
       </div>
       {/* <Ornament text="нутриенты"></Ornament> */}

@@ -7,7 +7,7 @@ interface FoodSnapshot {
 
 interface EventSnapshot {
   time: string;
-  text: string;
+  text: string | null;
 }
 
 export async function computeInputHash(

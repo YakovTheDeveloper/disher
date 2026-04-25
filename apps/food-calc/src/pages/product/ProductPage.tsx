@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useStore } from '@livestore/react';
 import { useParams } from 'react-router-dom';
 import {
   useProduct,
@@ -41,7 +40,6 @@ type Mode = 'view' | 'edit';
 const gramNutrientIds = new Set(allNutrientsList.filter((n) => n.unit === 'g').map((n) => n.id));
 
 const ProductPage = () => {
-  const { store } = useStore();
   const { id } = useParams<'id'>();
   const food = useProduct(id);
   const portionsRaw = useProductPortions(id);
@@ -91,8 +89,8 @@ const ProductPage = () => {
     for (const n of nutrientsRaw) current[n.nutrientId] = n.quantity;
     current[nutrientId] = value;
     if (value === 0) delete current[nutrientId];
-    safeMutate(
-      () => setProductNutrients(store, food.id, JSON.stringify(current)),
+    void safeMutate(
+      () => setProductNutrients(food.id, JSON.stringify(current)),
       'Не удалось сохранить нутриент'
     );
   };
@@ -152,7 +150,7 @@ const ProductPage = () => {
           name={food.name}
           canRename={isUserCreated}
           onChangeName={(name) =>
-            safeMutate(() => updateProduct(store, food.id, { name }), 'Не удалось переименовать')
+            void safeMutate(() => updateProduct(food.id, { name }), 'Не удалось переименовать')
           }
           heading={
             <PageHeading
@@ -217,8 +215,8 @@ const ProductPage = () => {
             <Textarea
               value={food.description || ''}
               onChange={(val) =>
-                safeMutate(
-                  () => updateProduct(store, food.id, { description: val || '' }),
+                void safeMutate(
+                  () => updateProduct(food.id, { description: val || '' }),
                   'Не удалось обновить описание'
                 )
               }
@@ -242,8 +240,8 @@ const ProductPage = () => {
             portions={portions}
             onAdd={(p) => {
               const updated = [...portionsRaw, p];
-              safeMutate(
-                () => setProductPortions(store, food.id, JSON.stringify(updated)),
+              void safeMutate(
+                () => setProductPortions(food.id, JSON.stringify(updated)),
                 'Не удалось добавить порцию'
               );
             }}
@@ -251,15 +249,15 @@ const ProductPage = () => {
               const updated = portionsRaw.map((p) =>
                 p.label === label ? { ...p, ...updates } : p
               );
-              safeMutate(
-                () => setProductPortions(store, food.id, JSON.stringify(updated)),
+              void safeMutate(
+                () => setProductPortions(food.id, JSON.stringify(updated)),
                 'Не удалось обновить порцию'
               );
             }}
             onRemove={(label) => {
               const updated = portionsRaw.filter((p) => p.label !== label);
-              safeMutate(
-                () => setProductPortions(store, food.id, JSON.stringify(updated)),
+              void safeMutate(
+                () => setProductPortions(food.id, JSON.stringify(updated)),
                 'Не удалось удалить порцию'
               );
             }}

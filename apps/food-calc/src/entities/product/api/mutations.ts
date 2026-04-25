@@ -1,67 +1,99 @@
-import { getCurrentUserId } from "@/shared/lib/user";
-import { events } from "@/livestore/schema";
-import type { Store } from "@livestore/livestore";
+import { db } from "@/powersync/database";
+import { supabase } from "@/powersync/supabase-client";
 
-type ProductUpdatedPayload = Parameters<typeof events.productUpdated>[0];
-type ProductUpdates = Omit<ProductUpdatedPayload, 'id'>;
+async function currentUserId(): Promise<string> {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) throw error;
+  if (!data.user) throw new Error("Not authenticated");
+  return data.user.id;
+}
 
-export function createProduct(
-  store: Store,
-  params: {
-    name: string;
-    nameEng?: string;
-    description?: string;
-    descriptionEng?: string;
-  },
-) {
+export async function createProduct(params: {
+  name: string;
+  nameEng?: string;
+  description?: string;
+  descriptionEng?: string;
+}): Promise<string> {
   const id = crypto.randomUUID();
-  store.commit(
-    events.productCreated({
+  const userId = await currentUserId();
+  await db.execute(
+    `insert into products
+      (id, user_id, name, name_eng, description, description_eng,
+       source, price_per_kg, nutrients, portions, categories)
+     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
       id,
-      userId: getCurrentUserId(),
-      name: params.name,
-      nameEng: params.nameEng ?? "",
-      description: params.description ?? "",
-      descriptionEng: params.descriptionEng ?? "",
-      source: "",
-      pricePerKg: 0,
-      nutrients: "{}",
-      portions: "[]",
-      categories: "[]",
-    }),
+      userId,
+      params.name,
+      params.nameEng ?? "",
+      params.description ?? "",
+      params.descriptionEng ?? "",
+      "",
+      0,
+      "{}",
+      "[]",
+      "[]",
+    ],
   );
   return id;
 }
 
-export function updateProduct(
-  store: Store,
-  productId: string,
-  updates: ProductUpdates,
-) {
-  store.commit(events.productUpdated({ id: productId, ...updates }));
+type ProductUpdates = Partial<{
+  name: string;
+  nameEng: string;
+  description: string;
+  descriptionEng: string;
+  source: string;
+  pricePerKg: number;
+  nutrients: string;
+  portions: string;
+  categories: string;
+}>;
+
+const COLUMN_MAP: Record<keyof ProductUpdates, string> = {
+  name: "name",
+  nameEng: "name_eng",
+  description: "description",
+  descriptionEng: "description_eng",
+  source: "source",
+  pricePerKg: "price_per_kg",
+  nutrients: "nutrients",
+  portions: "portions",
+  categories: "categories",
+};
+
+export async function updateProduct(productId: string, updates: ProductUpdates): Promise<void> {
+  const keys = Object.keys(updates) as (keyof ProductUpdates)[];
+  if (keys.length === 0) return;
+  const setClauses = keys.map((k) => `${COLUMN_MAP[k]} = ?`).join(", ");
+  const values = keys.map((k) => updates[k] as unknown);
+  await db.execute(
+    `update products set ${setClauses} where id = ?`,
+    [...values, productId],
+  );
 }
 
-export function setProductNutrients(
-  store: Store,
-  productId: string,
-  nutrients: string, // JSON: Record<nutrientId, quantity>
-) {
-  store.commit(events.productUpdated({ id: productId, nutrients }));
+export async function setProductNutrients(productId: string, nutrients: string): Promise<void> {
+  await db.execute(`update products set nutrients = ? where id = ?`, [nutrients, productId]);
 }
 
-export function setProductPortions(
-  store: Store,
-  productId: string,
-  portions: string, // JSON: Array<{label, amount, unit, grams}>
-) {
-  store.commit(events.productUpdated({ id: productId, portions }));
+export async function setProductPortions(productId: string, portions: string): Promise<void> {
+  await db.execute(`update products set portions = ? where id = ?`, [portions, productId]);
 }
 
-export function deleteProduct(store: Store, productId: string) {
-  store.commit(events.productDeleted({ id: productId, deletedAt: Date.now() }));
+export async function deleteProduct(productId: string): Promise<void> {
+  await db.execute(
+    `update products set deleted_at = ? where id = ?`,
+    [new Date().toISOString(), productId],
+  );
 }
 
-export function deleteProducts(store: Store, productIds: string[]) {
-  const deletedAt = Date.now();
-  store.commit(...productIds.map((id) => events.productDeleted({ id, deletedAt })));
+export async function deleteProducts(productIds: string[]): Promise<void> {
+  if (productIds.length === 0) return;
+  const deletedAt = new Date().toISOString();
+  const placeholders = productIds.map(() => "?").join(", ");
+  await db.execute(
+    `update products set deleted_at = ? where id in (${placeholders})`,
+    [deletedAt, ...productIds],
+  );
 }

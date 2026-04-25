@@ -1,19 +1,27 @@
-import { queryDb } from "@livestore/livestore";
-import { useQuery } from "@livestore/react";
-import { tables } from "@/livestore/schema";
+import { useQuery } from "@powersync/react";
+import { snakeToCamel } from "@/shared/lib/rowMapper";
+import type { DailyNorm } from "../model/types";
 
-const allDailyNorms$ = queryDb(tables.dailyNorms.where({ deletedAt: null }), { label: 'daily-norms' });
-
-export function useDailyNorms() {
-  return useQuery(allDailyNorms$);
+function mapRow(row: Record<string, unknown>): DailyNorm {
+  return snakeToCamel(row) as unknown as DailyNorm;
 }
 
-export function useDailyNorm(normId: string | undefined) {
-  const rows = useQuery(
-    queryDb(
-      tables.dailyNorms.where({ id: normId ?? "", deletedAt: null }),
-      { label: `daily-norm-${normId}`, deps: [normId] },
-    ),
+const SELECT_NORM = `
+  select id, user_id, name, description, items,
+         created_at, updated_at, deleted_at
+  from daily_norms
+  where deleted_at is null
+`;
+
+export function useDailyNorms(): DailyNorm[] {
+  const { data } = useQuery<Record<string, unknown>>(SELECT_NORM);
+  return data.map(mapRow);
+}
+
+export function useDailyNorm(normId: string | undefined): DailyNorm | null {
+  const { data } = useQuery<Record<string, unknown>>(
+    `${SELECT_NORM} and id = ?`,
+    [normId ?? ""],
   );
-  return rows[0] ?? null;
+  return data[0] ? mapRow(data[0]) : null;
 }

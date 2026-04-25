@@ -1,6 +1,5 @@
 import { FC, useCallback, useId, useState } from 'react';
 import clsx from 'clsx';
-import { useStore } from '@livestore/react';
 import { useNutrientCard } from './useNutrientCard';
 import NutrientInput from './NutrientInput';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
@@ -65,7 +64,6 @@ const NutrientCardAlt: FC<Props> = ({
   const normInputId = useId();
   const [normModalOpen, setNormModalOpen] = useState(false);
   const [normDraft, setNormDraft] = useState(0);
-  const { store } = useStore();
   const defaultNorm = useDailyNorm(DEFAULT_NORM_ID);
   const dailyNorm = defaultNorm ?? DEFAULT_NORM;
 
@@ -86,12 +84,12 @@ const NutrientCardAlt: FC<Props> = ({
 
   const handleNormSave = useCallback(() => {
     const items = getNormItems();
-    safeMutate(
-      () => setDailyNormNutrient(store, dailyNorm.id, id, normDraft || null, items),
+    void safeMutate(
+      () => setDailyNormNutrient(dailyNorm.id, id, normDraft || null, items),
       'Не удалось сохранить норму'
     );
     setNormModalOpen(false);
-  }, [id, normDraft, dailyNorm, store, getNormItems]);
+  }, [id, normDraft, dailyNorm, getNormItems]);
 
   const handleNormChange = useCallback((val: number) => {
     setNormDraft(val);

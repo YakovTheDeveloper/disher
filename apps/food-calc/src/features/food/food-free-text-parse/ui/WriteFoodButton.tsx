@@ -13,6 +13,29 @@ export interface WriteFoodButtonProps {
   className?: string;
 }
 
+const SerifTIcon = () => (
+  <svg
+    className={styles.serifT}
+    width="14"
+    height="16"
+    viewBox="0 0 14 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    {/* top serif bar */}
+    <path d="M1 2h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    {/* top-left serif tick */}
+    <path d="M1 2v1.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    {/* top-right serif tick */}
+    <path d="M13 2v1.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    {/* vertical stem */}
+    <path d="M7 2.2v11.4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    {/* bottom serif bar */}
+    <path d="M4.4 14h5.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
+
 export const WriteFoodButton = ({
   flow,
   inputId,
@@ -61,10 +84,12 @@ export const WriteFoodButton = ({
       )}
       aria-disabled={disabled || undefined}
     >
-      {flow.state === 'loading' && (
+      {flow.state === 'loading' ? (
         <span className={styles.iconSpin}>
           <Spinner size={16} />
         </span>
+      ) : (
+        <SerifTIcon />
       )}
 
       <span className={styles.text}>

@@ -1,7 +1,7 @@
 import styles from './FoodName.module.scss';
 import clsx from 'clsx';
-import { useAnimationOnChange } from '@/hooks/useAnimationOnChange';
 import { Typography } from '@/shared/ui/atoms/Typography';
+import { ChangeHighlight } from '@/shared/ui/ChangeHighlight';
 
 type Props = {
   onClick?: () => void;
@@ -16,20 +16,20 @@ const FoodName = ({ className, onClick, onTouchEnd, after, content, htmlFor }: P
   const initTitle = content?.name;
   const normalizedTitle = initTitle || 'не выбрано';
 
-  const animationClassName = useAnimationOnChange(initTitle);
-
   return (
     <Typography
       ellipsis={true}
       variant="custom"
       after={after}
-      className={clsx([className, animationClassName, !initTitle && styles.noTitle])}
+      className={clsx([className, styles.capitalize, !initTitle && styles.noTitle])}
       onClick={onClick}
       onTouchEnd={onTouchEnd ? () => onTouchEnd({} as React.TouchEvent<HTMLElement>) : undefined}
       as={htmlFor ? 'label' : 'p'}
       htmlFor={htmlFor}
     >
-      {normalizedTitle}
+      <ChangeHighlight trigger={initTitle} variant="sweep">
+        {normalizedTitle}
+      </ChangeHighlight>
     </Typography>
   );
 };

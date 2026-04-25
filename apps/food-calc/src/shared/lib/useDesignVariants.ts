@@ -1,25 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useDesignVariantsStore } from '@/shared/model/designVariantsStore';
 
 /**
- * Design variant picker — cycles through N variants on an interval.
+ * Design variant picker — reads the current variant index from the global
+ * DesignVariantsBar store. Components are registered statically in
+ * `KNOWN_VARIANT_COMPONENTS` so the bar dropdown is stable across mount/unmount.
  *
  * Usage:
- *   const { index, total } = useDesignVariants(VARIANTS.length, 2000);
+ *   const { index, total } = useDesignVariants('Calendar', VARIANTS.length);
  *   const V = VARIANTS[index];
- *
- * How to use for design selection:
- *   1. Define an array of variant components (Variant1, Variant2, …)
- *   2. Wrap the rendered component with <DesignVariantLabel index={index} total={total} />
- *      or render the label manually using the returned values
- *   3. Pick the one you like, remove the hook, hardcode that variant
  */
-export function useDesignVariants(total: number, intervalMs = 2000) {
-  const [index, setIndex] = useState(0);
+export function useDesignVariants(name: string, total: number) {
+  const syncTotal = useDesignVariantsStore((s) => s.syncTotal);
+  const entry = useDesignVariantsStore((s) => s.components[name]);
 
   useEffect(() => {
-    const t = setInterval(() => setIndex((i) => (i + 1) % total), intervalMs);
-    return () => clearInterval(t);
-  }, [total, intervalMs]);
+    syncTotal(name, total);
+  }, [name, total, syncTotal]);
 
-  return { index, total };
+  if (!entry && process.env.NODE_ENV !== 'production') {
+    console.warn(
+      `[useDesignVariants] "${name}" is not listed in KNOWN_VARIANT_COMPONENTS. Add it so the DesignVariantsBar can show it.`,
+    );
+  }
+
+  return { index: entry?.index ?? 0, total };
 }

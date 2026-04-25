@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useOutlet } from 'react-router-dom';
 import { usePageTransitionConfig } from '@/hooks/usePageTransitionConfig';
 import s from './PageTransition.module.scss';

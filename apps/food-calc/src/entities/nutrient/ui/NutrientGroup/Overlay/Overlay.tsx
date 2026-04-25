@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './Overlay.module.scss';
 import clsx from 'clsx';
 type Props = {
@@ -14,4 +13,4 @@ const Overlay = ({ children, loading }: Props) => {
   );
 };
 
-export default observer(Overlay);
+export default Overlay;

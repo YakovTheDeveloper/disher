@@ -1,10 +1,5 @@
 import { useState } from 'react';
 import clsx from 'clsx';
-import TimeChoose from '@/shared/ui/TimeChoose/TimeChoose';
-import { modalStore, type BaseModalProps } from '@/shared/ui';
-import { ModalLayout } from '@/shared/ui/ModalLayout';
-import ModalConfirmation from '@/shared/ui/Modal/ModalConfirmation/ModalConfirmation';
-import { openFreeTextFoodSearch } from './openFreeTextFoodSearch';
 import styles from './FreeTextFoodReviewItem.module.scss';
 
 interface MatchCandidate {
@@ -13,19 +8,10 @@ interface MatchCandidate {
   score: number;
 }
 
-type ConfirmDeleteProps = BaseModalProps<boolean> & { action: string };
-
-const ConfirmDeleteModal = ({ onClose, action }: ConfirmDeleteProps) => (
-  <ModalLayout>
-    <ModalConfirmation
-      data={{ action }}
-      onConfirm={() => onClose(true)}
-      onClose={() => onClose(false)}
-    />
-  </ModalLayout>
-);
+export type ReviewEditTarget = 'time' | 'search' | 'quantity' | 'details';
 
 interface FreeTextFoodReviewItemProps {
+  uid: string;
   item: {
     name: string;
     note: string;
@@ -40,55 +26,35 @@ interface FreeTextFoodReviewItemProps {
   candidates?: MatchCandidate[];
   selectedCandidateId?: string | null;
   onSelectCandidate?: (id: string) => void;
-  onEditTime?: (time: string) => void;
-  onEditFood?: (productId: string, name: string) => void;
-  onEditQuantity?: (quantity: number) => void;
+  onStartEdit: (uid: string, step: ReviewEditTarget) => void;
   onDeleteNote?: () => void;
   onDeleteItem?: () => void;
-  onFindManually?: () => void;
   hideTime?: boolean;
+  timeInputId: string;
+  quantityInputId: string;
+  detailsInputId: string;
 }
 
 export const FreeTextFoodReviewItem = ({
+  uid,
   item,
   isAmbiguous,
   isUnresolved,
   candidates,
   selectedCandidateId,
   onSelectCandidate,
-  onEditTime,
-  onEditFood,
-  onEditQuantity,
+  onStartEdit,
   onDeleteNote,
   onDeleteItem,
-  onFindManually,
   hideTime,
+  timeInputId,
+  quantityInputId,
+  detailsInputId,
 }: FreeTextFoodReviewItemProps) => {
   const [expandCandidates, setExpandCandidates] = useState(false);
-  const [editingTime, setEditingTime] = useState(false);
-  const [editingQty, setEditingQty] = useState(false);
-  const [qtyDraft, setQtyDraft] = useState<string>(String(item.quantity));
 
   const hasNote = item.note.trim().length > 0;
   const showOriginalFallback = isUnresolved && !item.productId;
-
-  const handlePickFood = async () => {
-    const picked = await openFreeTextFoodSearch(item.originalName || item.name);
-    if (picked) onEditFood?.(picked.id, picked.name);
-  };
-
-  const commitQty = () => {
-    const n = Math.max(1, Math.min(9999, parseInt(qtyDraft, 10) || item.quantity));
-    onEditQuantity?.(n);
-    setEditingQty(false);
-  };
-
-  const handleDelete = async () => {
-    const confirmed = await modalStore.show(ConfirmDeleteModal, {
-      action: 'удалить этот продукт?',
-    });
-    if (confirmed) onDeleteItem?.();
-  };
 
   return (
     <div className={styles.wrapper}>
@@ -101,24 +67,15 @@ export const FreeTextFoodReviewItem = ({
       >
         <div className={styles.row}>
           {/* Time */}
-          {hideTime ? null : editingTime ? (
-            <div className={styles.timeEdit}>
-              <TimeChoose
-                initialTime={item.time}
-                onFinish={(newTime: string) => {
-                  onEditTime?.(newTime);
-                  setEditingTime(false);
-                }}
-              />
-            </div>
-          ) : (
-            <button
-              type="button"
+          {hideTime ? null : (
+            <label
+              htmlFor={timeInputId}
               className={styles.timeBtn}
-              onClick={() => setEditingTime(true)}
+              onMouseDown={() => onStartEdit(uid, 'time')}
+              onTouchStart={() => onStartEdit(uid, 'time')}
             >
               {item.time || '—'}
-            </button>
+            </label>
           )}
 
           {/* Name + note */}
@@ -126,7 +83,7 @@ export const FreeTextFoodReviewItem = ({
             <button
               type="button"
               className={styles.nameBtn}
-              onClick={handlePickFood}
+              onClick={() => onStartEdit(uid, 'search')}
               title="Заменить продукт"
             >
               {(isAmbiguous || isUnresolved) && (
@@ -145,61 +102,49 @@ export const FreeTextFoodReviewItem = ({
               </span>
             </button>
 
-            {hasNote && (
-              <button
-                type="button"
+            {hasNote ? (
+              <label
+                htmlFor={detailsInputId}
                 className={styles.noteChip}
-                onClick={onDeleteNote}
-                title="Убрать уточнение"
+                onMouseDown={() => onStartEdit(uid, 'details')}
+                onTouchStart={() => onStartEdit(uid, 'details')}
+                title="Изменить заметку"
               >
                 <span className={styles.noteText}>{item.note}</span>
-                <span className={styles.noteClose}>×</span>
-              </button>
-            )}
+                <button
+                  type="button"
+                  className={styles.noteClose}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onDeleteNote?.();
+                  }}
+                  aria-label="Убрать уточнение"
+                >
+                  ×
+                </button>
+              </label>
+            ) : null}
           </div>
 
           {/* Quantity */}
-          {editingQty ? (
-            <div className={styles.qtyEdit}>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={qtyDraft}
-                onChange={(e) => setQtyDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') commitQty();
-                  if (e.key === 'Escape') setEditingQty(false);
-                }}
-                onBlur={commitQty}
-                autoFocus
-                className={styles.qtyInput}
-                min={1}
-                max={9999}
-              />
-              <button type="button" className={styles.qtyDone} onClick={commitQty}>
-                OK
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className={styles.qtyBtn}
-              onClick={() => {
-                setQtyDraft(String(item.quantity));
-                setEditingQty(true);
-              }}
-            >
-              <span className={styles.qtyText}>{item.quantity}</span>
-              <span className={styles.qtyUnit}>г</span>
-              {item.quantityGuessed && <span className={styles.qtyGuessed}>оценено</span>}
-            </button>
-          )}
+          <label
+            htmlFor={quantityInputId}
+            className={styles.qtyBtn}
+            onMouseDown={() => onStartEdit(uid, 'quantity')}
+            onTouchStart={() => onStartEdit(uid, 'quantity')}
+          >
+            <span className={styles.qtyText}>{item.quantity}</span>
+            <span className={styles.qtyUnit}>г</span>
+            {item.quantityGuessed && <span className={styles.qtyGuessed}>оценено</span>}
+          </label>
 
           {/* Delete */}
           <button
             type="button"
             className={styles.deleteBtn}
-            onClick={handleDelete}
+            onClick={onDeleteItem}
             aria-label="Удалить"
           >
             ×
@@ -219,7 +164,11 @@ export const FreeTextFoodReviewItem = ({
               </button>
             )}
             {showOriginalFallback && (
-              <button type="button" className={styles.chipBtn} onClick={onFindManually}>
+              <button
+                type="button"
+                className={styles.chipBtn}
+                onClick={() => onStartEdit(uid, 'search')}
+              >
                 Найти продукт
               </button>
             )}

@@ -1,7 +1,6 @@
 import { FC, ReactNode, useRef, useState, useEffect, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import { useStore } from '@livestore/react';
 import { useDailyNorm, setDailyNormNutrient, DEFAULT_NORM_ID, DEFAULT_NORM, type DailyNormItems } from '@/entities/daily-norm';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './FilterNutrients.module.scss';
@@ -89,7 +88,6 @@ const FilterNutrientCardWrapper: FC<Props> = ({
   nutrientKey,
 }) => {
   const { toNutrientArticle } = useAppRoutes();
-  const { store } = useStore();
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [normEditing, setNormEditing] = useState(false);
   const [normDraft, setNormDraft] = useState(0);
@@ -118,13 +116,13 @@ const FilterNutrientCardWrapper: FC<Props> = ({
   const handleNormBlur = useCallback(() => {
     if (!nutrientId) return;
     const items = getNormItems();
-    safeMutate(
-      () => setDailyNormNutrient(store, dailyNorm.id, nutrientId, normDraft || null, items),
+    void safeMutate(
+      () => setDailyNormNutrient(dailyNorm.id, nutrientId, normDraft || null, items),
       'Не удалось сохранить норму'
     );
     setNormEditing(false);
     setOverlayOpen(false);
-  }, [nutrientId, normDraft, dailyNorm, store, getNormItems]);
+  }, [nutrientId, normDraft, dailyNorm, getNormItems]);
 
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {

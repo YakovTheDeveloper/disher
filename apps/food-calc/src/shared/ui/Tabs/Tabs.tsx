@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './Tabs.module.scss';
 import clsx from 'clsx';
 export type Tab = {
@@ -139,4 +138,4 @@ const Tabs = ({ tabs, current, setTab, onFinish, finishHintText }: TabsProps) =>
 //   return [icon, normalizedLabel];
 // };
 
-export default observer(Tabs);
+export default Tabs;

@@ -1,23 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useStore } from '@livestore/react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
-import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
-import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import Button from '@/shared/ui/atoms/Button/Button';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { events } from '@/livestore/schema';
-import { getCurrentUserId } from '@/shared/lib/user';
+import { db } from '@/powersync/database';
+import { supabase } from '@/powersync/supabase-client';
 import { RouterUrls } from '@/app/router';
+import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import {
-  parseFreeTextFood,
-  openFreeTextFoodSearch,
   sendMatcherTelemetry,
   readParseState,
   clearParseState,
   FreeTextFoodReviewItem,
+  useRecentlyAddedStore,
   type ParseTarget,
   type MatchCandidate,
   type ParseResponse,
@@ -30,13 +27,18 @@ import {
 import type { FreeTextFoodMode, CommittedItem } from './mode';
 import { DayContextBar } from './components/DayContextBar';
 import { DishContextBar } from './components/DishContextBar';
+import {
+  FreeTextFoodReviewEditModals,
+  type ReviewEditStep,
+  type ReviewRowUpdates,
+  type ReviewRowView,
+} from './components/FreeTextFoodReviewEditModals';
 import styles from './FreeTextFoodFlow.module.scss';
 
 export interface FreeTextFoodFlowProps {
   mode: FreeTextFoodMode;
 }
 
-type Step = 'input' | 'loading' | 'review';
 type ItemCategory = 'resolved' | 'ambiguous' | 'unresolved';
 
 interface EditFlags {
@@ -60,13 +62,23 @@ type UnresolvedRow = UnresolvedItem & {
 
 const makeUid = () => Math.random().toString(36).slice(2, 10);
 
-const PLACEHOLDER =
-  '8:00 овсянка 200, банан, кофе\n13:00 рис 150, курица 200, салат';
+const REVIEW_INPUT_IDS = {
+  TIME_INPUT: 'free-text-review-time',
+  SEARCH_INPUT: 'free-text-review-search',
+  QUANTITY_INPUT: 'free-text-review-quantity',
+  DETAILS_INPUT: 'free-text-review-details',
+} as const;
+
+const INPUT_TO_STEP: Record<string, ReviewEditStep> = {
+  [REVIEW_INPUT_IDS.TIME_INPUT]: 'time',
+  [REVIEW_INPUT_IDS.SEARCH_INPUT]: 'search',
+  [REVIEW_INPUT_IDS.QUANTITY_INPUT]: 'quantity',
+  [REVIEW_INPUT_IDS.DETAILS_INPUT]: 'details',
+};
 
 export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { store } = useStore();
 
   const scheduleDate = mode.kind === 'schedule' ? mode.date : null;
 
@@ -89,9 +101,6 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
     },
   );
 
-  const [step, setStep] = useState<Step>(initialFromRouter ? 'review' : 'input');
-  const [text, setText] = useState(initialFromRouter?.inputText ?? '');
-  const [error, setError] = useState<string | null>(null);
   const [resolved, setResolved] = useState<ResolvedRow[]>([]);
   const [ambiguous, setAmbiguous] = useState<AmbiguousRow[]>([]);
   const [unresolved, setUnresolved] = useState<UnresolvedRow[]>([]);
@@ -101,11 +110,13 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
     type: ItemCategory;
     data: unknown;
   } | null>(null);
+
+  const [editingUid, setEditingUid] = useState<string | null>(null);
+  const [editingStep, setEditingStep] = useState<ReviewEditStep>('idle');
+
   const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
 
   const requestIdRef = useRef<string | null>(null);
-  const parseStartRef = useRef<number>(0);
   const matcherLatencyRef = useRef<number>(0);
   const reviewStartRef = useRef<number>(0);
   const deletedCountRef = useRef<number>(0);
@@ -114,23 +125,17 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
     Map<string, { originalName: string; matcherChoice: string }>
   >(new Map());
 
+  useSwipeableLock(editingStep !== 'idle');
+
+  const inputText = initialFromRouter?.inputText ?? '';
+
   useEffect(
     () => () => {
-      abortRef.current?.abort();
       if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
       sendTelemetryRef.current('abandon');
     },
     [],
   );
-
-  // If we arrived here with a pre-parsed result (from WriteFoodButton/storage),
-  // hydrate review rows once on mount.
-  useEffect(() => {
-    if (!initialFromRouter) return;
-    matcherLatencyRef.current = 0;
-    reviewStartRef.current = Date.now();
-    applyResponse(initialFromRouter.parseResult);
-  }, []);
 
   const applyResponse = useCallback((response: ParseResponse) => {
     requestIdRef.current = response.requestId;
@@ -165,49 +170,19 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
     setUnresolved(unresolvedRows);
   }, []);
 
-  const handleParse = useCallback(async () => {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-    setError(null);
-    setStep('loading');
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    parseStartRef.current = Date.now();
-    deletedCountRef.current = 0;
-    telemetrySentRef.current = false;
-
-    try {
-      const response = await parseFreeTextFood(trimmed, controller.signal);
-      if (controller.signal.aborted) return;
-      matcherLatencyRef.current = Date.now() - parseStartRef.current;
-      reviewStartRef.current = Date.now();
-      applyResponse(response);
-      setStep('review');
-    } catch (err) {
-      if (controller.signal.aborted) return;
-      const message = err instanceof Error ? err.message : 'Не удалось разобрать текст';
-      setError(message);
-      setStep('input');
-    }
-  }, [text, applyResponse]);
-
-  const handleCancelLoading = useCallback(() => {
-    abortRef.current?.abort();
-    setStep('input');
+  // Hydrate review rows once on mount.
+  useEffect(() => {
+    if (!initialFromRouter) return;
+    matcherLatencyRef.current = 0;
+    reviewStartRef.current = Date.now();
+    applyResponse(initialFromRouter.parseResult);
   }, []);
 
   const handleBack = useCallback(() => {
-    if (step === 'review') {
-      sendTelemetryRef.current('abandon');
-      setStep('input');
-      return;
-    }
+    sendTelemetryRef.current('abandon');
     if (scheduleDate) navigate(RouterUrls.Schedule(scheduleDate));
     else navigate('/');
-  }, [navigate, scheduleDate, step]);
+  }, [navigate, scheduleDate]);
 
   // ─── Delete + Undo ───
 
@@ -320,20 +295,130 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
     [editFlagsFromUpdates],
   );
 
-  const handleFindManually = useCallback(
-    async (uid: string) => {
-      const row = unresolved.find((u) => u.uid === uid);
-      if (!row) return;
-      const picked = await openFreeTextFoodSearch(row.originalName);
-      if (!picked) return;
-      updateUnresolved(uid, { manual: picked });
+  // ─── Edit orchestration ───
+
+  const findCategory = useCallback(
+    (uid: string): ItemCategory | null => {
+      if (resolved.some((r) => r.uid === uid)) return 'resolved';
+      if (ambiguous.some((a) => a.uid === uid)) return 'ambiguous';
+      if (unresolved.some((u) => u.uid === uid)) return 'unresolved';
+      return null;
     },
-    [unresolved, updateUnresolved],
+    [resolved, ambiguous, unresolved],
+  );
+
+  const handleStartEdit = useCallback((uid: string, step: Exclude<ReviewEditStep, 'idle'>) => {
+    setEditingUid(uid);
+    setEditingStep(step);
+  }, []);
+
+  const closeEdit = useCallback(() => {
+    setEditingUid(null);
+    setEditingStep('idle');
+  }, []);
+
+  const handleFocusCapture = useCallback(
+    (e: React.FocusEvent) => {
+      const target = e.target as HTMLElement;
+      const nextStep = INPUT_TO_STEP[target.id];
+      if (!nextStep || !editingUid) return;
+      setEditingStep(nextStep);
+    },
+    [editingUid],
+  );
+
+  const editingRowView = useMemo<ReviewRowView | null>(() => {
+    if (!editingUid) return null;
+    const r = resolved.find((row) => row.uid === editingUid);
+    if (r) {
+      return {
+        uid: r.uid,
+        time: r.time,
+        quantity: r.quantity,
+        productId: r.productId,
+        productName: r.name,
+        details: r.note,
+        originalName: r.originalName,
+      };
+    }
+    const a = ambiguous.find((row) => row.uid === editingUid);
+    if (a) {
+      const sel = a.candidates.find((c) => c.id === a.selectedId) ?? a.candidates[0];
+      return {
+        uid: a.uid,
+        time: a.time,
+        quantity: a.quantity,
+        productId: a.selectedId,
+        productName: sel?.name ?? '',
+        details: a.note,
+        originalName: a.originalName,
+      };
+    }
+    const u = unresolved.find((row) => row.uid === editingUid);
+    if (u) {
+      return {
+        uid: u.uid,
+        time: u.time,
+        quantity: u.quantity,
+        productId: u.manual?.id ?? null,
+        productName: u.manual?.name ?? '',
+        details: u.note,
+        originalName: u.originalName,
+      };
+    }
+    return null;
+  }, [editingUid, resolved, ambiguous, unresolved]);
+
+  const handleRowChange = useCallback(
+    (updates: ReviewRowUpdates) => {
+      if (!editingUid) return;
+      const cat = findCategory(editingUid);
+      if (!cat) return;
+      if (cat === 'resolved') {
+        const u: Partial<ResolvedRow> = {};
+        if (updates.time !== undefined) u.time = updates.time;
+        if (updates.quantity !== undefined) u.quantity = updates.quantity;
+        if (updates.productId !== undefined) u.productId = updates.productId;
+        if (updates.name !== undefined) u.name = updates.name;
+        if (updates.note !== undefined) u.note = updates.note;
+        updateResolved(editingUid, u);
+      } else if (cat === 'ambiguous') {
+        const u: Partial<AmbiguousRow> = {};
+        if (updates.time !== undefined) u.time = updates.time;
+        if (updates.quantity !== undefined) u.quantity = updates.quantity;
+        if (updates.productId !== undefined) u.selectedId = updates.productId;
+        if (updates.note !== undefined) u.note = updates.note;
+        updateAmbiguous(editingUid, u);
+      } else {
+        const u: Partial<UnresolvedRow> = {};
+        if (updates.time !== undefined) u.time = updates.time;
+        if (updates.quantity !== undefined) u.quantity = updates.quantity;
+        if (updates.productId !== undefined) {
+          u.manual = {
+            id: updates.productId,
+            name: updates.name ?? '',
+            score: 1,
+          };
+        }
+        if (updates.note !== undefined) u.note = updates.note;
+        updateUnresolved(editingUid, u);
+      }
+    },
+    [editingUid, findCategory, updateResolved, updateAmbiguous, updateUnresolved],
   );
 
   // ─── Commit ───
 
-  const userId = useMemo(() => getCurrentUserId(), []);
+  const [userId, setUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled) setUserId(data.user?.id ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const buildTelemetry = useCallback(
     (
@@ -413,7 +498,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
 
       return {
         requestId: requestIdRef.current,
-        userId,
+        userId: userId ?? '',
         action,
         itemsTotal,
         itemsCommitted,
@@ -455,7 +540,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
     return a + b + c;
   }, [resolved, ambiguous, unresolved]);
 
-  const handleCommit = useCallback(() => {
+  const handleCommit = useCallback(async () => {
     if (isSubmitting || totalToAdd === 0) return;
     setIsSubmitting(true);
     try {
@@ -497,44 +582,66 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
       }
 
       let ok: unknown;
+      let newScheduleIds: string[] = [];
       if (mode.kind === 'schedule') {
         const date = mode.date;
-        ok = safeMutate(
-          () =>
-            store.commit(
-              ...committed.map((c) =>
-                events.scheduleFoodCreated({
-                  id: crypto.randomUUID(),
+        newScheduleIds = committed.map(() => crypto.randomUUID());
+        ok = await safeMutate(async () => {
+          const { data: userData, error } = await supabase.auth.getUser();
+          if (error) throw error;
+          if (!userData.user) throw new Error('Not authenticated');
+          const writerUserId = userData.user.id;
+          const now = new Date().toISOString();
+          await db.writeTransaction(async (tx) => {
+            for (let idx = 0; idx < committed.length; idx += 1) {
+              const c = committed[idx];
+              await tx.execute(
+                `insert into schedule_foods
+                   (id, user_id, date, time, type, quantity, details, product_id, dish_id, created_at)
+                 values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                  newScheduleIds[idx],
+                  writerUserId,
                   date,
-                  time: c.time,
-                  type: 'food',
-                  quantity: c.quantity,
-                  details: c.note,
-                  productId: c.productId,
-                  dishId: '',
-                  userId,
-                }),
-              ),
-            ),
-          'Не удалось добавить продукты',
-        );
+                  c.time,
+                  'food',
+                  c.quantity,
+                  c.note ?? '',
+                  c.productId,
+                  '',
+                  now,
+                ],
+              );
+            }
+          });
+          return true;
+        }, 'Не удалось добавить продукты');
       } else if (mode.kind === 'dish') {
         const dishId = mode.dishId;
-        ok = safeMutate(
-          () =>
-            store.commit(
-              ...committed.map((c) =>
-                events.dishItemCreated({
-                  id: crypto.randomUUID(),
+        ok = await safeMutate(async () => {
+          const { data: userData, error } = await supabase.auth.getUser();
+          if (error) throw error;
+          if (!userData.user) throw new Error('Not authenticated');
+          const writerUserId = userData.user.id;
+          const now = new Date().toISOString();
+          await db.writeTransaction(async (tx) => {
+            for (const c of committed) {
+              await tx.execute(
+                `insert into dish_items (id, user_id, dish_id, product_id, quantity, created_at)
+                 values (?, ?, ?, ?, ?, ?)`,
+                [
+                  crypto.randomUUID(),
+                  writerUserId,
                   dishId,
-                  productId: c.productId,
-                  quantity: c.quantity,
-                  userId,
-                }),
-              ),
-            ),
-          'Не удалось добавить продукты в блюдо',
-        );
+                  c.productId,
+                  c.quantity,
+                  now,
+                ],
+              );
+            }
+          });
+          return true;
+        }, 'Не удалось добавить продукты в блюдо');
       } else {
         mode.onCommit(committed);
         ok = true;
@@ -549,8 +656,12 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
 
       if (parseTarget) clearParseState(parseTarget);
 
-      if (mode.kind === 'schedule') navigate(RouterUrls.Schedule(mode.date));
-      else if (mode.kind === 'dish') navigate(-1);
+      if (mode.kind === 'schedule') {
+        if (newScheduleIds.length > 0) {
+          useRecentlyAddedStore.getState().addMany(newScheduleIds);
+        }
+        navigate(RouterUrls.Schedule(mode.date));
+      } else if (mode.kind === 'dish') navigate(-1);
     } catch (e) {
       setIsSubmitting(false);
       const message = e instanceof Error ? e.message : 'Не удалось добавить продукты';
@@ -563,8 +674,6 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
     ambiguous,
     unresolved,
     mode,
-    userId,
-    store,
     navigate,
     sendTelemetryIfNotSent,
     parseTarget,
@@ -572,70 +681,14 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
 
   const isDishMode = mode.kind === 'dish';
 
-  // ─── InputStep ───
+  // ─── No parse result available — redirect ───
 
-  if (step === 'input') {
+  if (!initialFromRouter) {
     return (
-      <Screen
-        actions={
-          <ActionsPanel show onBack={handleBack}>
-            <Button variant="primary" onClick={handleParse} disabled={!text.trim()}>
-              Разобрать
-            </Button>
-          </ActionsPanel>
-        }
-      >
-        <div className={styles.page}>
-          <div className={styles.inputStep}>
-            <h2 className={styles.heading}>Что вы ели?</h2>
-            <p className={styles.subheading}>
-              Время — в начале строки. Вес не обязателен.
-            </p>
-
-            <div className={styles.textareaShell}>
-              <Textarea
-                value={text}
-                onChange={setText}
-                placeholder={PLACEHOLDER}
-                rows={8}
-                maxLength={2000}
-                autoFocus
-              />
-              <p className={styles.hint}>
-                Можно надиктовать голосом через микрофон на клавиатуре.
-              </p>
-            </div>
-
-            {error && <div className={styles.error}>{error}</div>}
-          </div>
-        </div>
-      </Screen>
-    );
-  }
-
-  // ─── LoadingStep ───
-
-  if (step === 'loading') {
-    return (
-      <Screen
-        actions={
-          <ActionsPanel show onBack={handleBack}>
-            <Button variant="secondary" onClick={handleCancelLoading}>
-              Отмена
-            </Button>
-          </ActionsPanel>
-        }
-      >
-        <div className={styles.page}>
-          <div className={styles.loadingStep}>
-            <Spinner size={44} />
-            <p className={styles.loadingText}>Распознаём продукты…</p>
-            <p className={styles.loadingHint}>
-              Обычно 10–30 секунд. Можно отменить и вернуться к вводу.
-            </p>
-          </div>
-        </div>
-      </Screen>
+      <Navigate
+        to={scheduleDate ? RouterUrls.Schedule(scheduleDate) : '/'}
+        replace
+      />
     );
   }
 
@@ -663,15 +716,11 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
         </ActionsPanel>
       }
     >
-      <div className={styles.page}>
-        {mode.kind === 'schedule' && (
-          <DayContextBar date={mode.date} />
-        )}
-        {mode.kind === 'dish' && (
-          <DishContextBar dishId={mode.dishId} />
-        )}
+      <div className={styles.page} onFocusCapture={handleFocusCapture}>
+        {mode.kind === 'schedule' && <DayContextBar date={mode.date} />}
+        {mode.kind === 'dish' && <DishContextBar dishId={mode.dishId} />}
         <div className={styles.reviewStep}>
-          {text && <div className={styles.originalText}>{text}</div>}
+          {inputText && <div className={styles.originalText}>{inputText}</div>}
 
           {!isEmpty && (
             <div className={styles.summary}>
@@ -700,9 +749,6 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
               <p className={styles.emptyText}>
                 Ничего не распозналось. Попробуйте описать подробнее.
               </p>
-              <Button variant="secondary" onClick={() => setStep('input')}>
-                Попробовать снова
-              </Button>
             </div>
           ) : (
             <div className={styles.sections}>
@@ -713,17 +759,15 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
                     {resolved.map((r) => (
                       <li key={r.uid}>
                         <FreeTextFoodReviewItem
+                          uid={r.uid}
                           item={r}
                           hideTime={isDishMode}
-                          onEditTime={(time) => updateResolved(r.uid, { time })}
-                          onEditQuantity={(qty) =>
-                            updateResolved(r.uid, { quantity: qty })
-                          }
-                          onEditFood={(id, name) =>
-                            updateResolved(r.uid, { productId: id, name })
-                          }
+                          onStartEdit={handleStartEdit}
                           onDeleteNote={() => updateResolved(r.uid, { note: '' })}
                           onDeleteItem={() => deleteResolved(r.uid)}
+                          timeInputId={REVIEW_INPUT_IDS.TIME_INPUT}
+                          quantityInputId={REVIEW_INPUT_IDS.QUANTITY_INPUT}
+                          detailsInputId={REVIEW_INPUT_IDS.DETAILS_INPUT}
                         />
                       </li>
                     ))}
@@ -742,6 +786,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
                       return (
                         <li key={a.uid}>
                           <FreeTextFoodReviewItem
+                            uid={a.uid}
                             item={{
                               ...a,
                               name: selected?.name ?? '—',
@@ -754,15 +799,12 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
                             onSelectCandidate={(id) =>
                               updateAmbiguous(a.uid, { selectedId: id })
                             }
-                            onEditTime={(time) => updateAmbiguous(a.uid, { time })}
-                            onEditQuantity={(qty) =>
-                              updateAmbiguous(a.uid, { quantity: qty })
-                            }
-                            onEditFood={(id) =>
-                              updateAmbiguous(a.uid, { selectedId: id })
-                            }
+                            onStartEdit={handleStartEdit}
                             onDeleteNote={() => updateAmbiguous(a.uid, { note: '' })}
                             onDeleteItem={() => deleteAmbiguous(a.uid)}
+                            timeInputId={REVIEW_INPUT_IDS.TIME_INPUT}
+                              quantityInputId={REVIEW_INPUT_IDS.QUANTITY_INPUT}
+                            detailsInputId={REVIEW_INPUT_IDS.DETAILS_INPUT}
                           />
                         </li>
                       );
@@ -778,6 +820,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
                     {unresolved.map((u) => (
                       <li key={u.uid}>
                         <FreeTextFoodReviewItem
+                          uid={u.uid}
                           item={{
                             ...u,
                             name: u.manual?.name ?? u.originalName,
@@ -785,18 +828,12 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
                           }}
                           hideTime={isDishMode}
                           isUnresolved={!u.manual}
-                          onEditTime={(time) => updateUnresolved(u.uid, { time })}
-                          onEditQuantity={(qty) =>
-                            updateUnresolved(u.uid, { quantity: qty })
-                          }
-                          onEditFood={(id, name) =>
-                            updateUnresolved(u.uid, {
-                              manual: { id, name, score: 1 },
-                            })
-                          }
-                          onFindManually={() => handleFindManually(u.uid)}
+                          onStartEdit={handleStartEdit}
                           onDeleteNote={() => updateUnresolved(u.uid, { note: '' })}
                           onDeleteItem={() => deleteUnresolved(u.uid)}
+                          timeInputId={REVIEW_INPUT_IDS.TIME_INPUT}
+                          quantityInputId={REVIEW_INPUT_IDS.QUANTITY_INPUT}
+                          detailsInputId={REVIEW_INPUT_IDS.DETAILS_INPUT}
                         />
                       </li>
                     ))}
@@ -809,6 +846,15 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
             </div>
           )}
         </div>
+
+        <FreeTextFoodReviewEditModals
+          row={editingRowView}
+          step={editingStep}
+          hideTime={isDishMode}
+          onChange={handleRowChange}
+          onClose={closeEdit}
+          inputIds={REVIEW_INPUT_IDS}
+        />
       </div>
 
       {deletedItem && (

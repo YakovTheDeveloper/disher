@@ -1,4 +1,5 @@
 import { API_BASE } from "@/shared/lib/api/base";
+import { authHeaders } from "@/shared/lib/api/authHeaders";
 
 interface FoodSnapshot {
   time: string;
@@ -10,12 +11,12 @@ interface FoodSnapshot {
 
 interface EventSnapshot {
   time: string;
-  text: string;
+  text: string | null;
   atoms: unknown[];
 }
 
 /**
- * Start a daily analysis stream (POST /api/analytics/daily/:date).
+ * Start a daily analysis stream (POST /api/analytics/v2/daily/:date).
  * If the server has a cached result with matching inputHash, returns it without streaming.
  * Otherwise returns a Response for SSE streaming.
  */
@@ -31,7 +32,7 @@ export async function startDailyAnalysis(
 
   const res = await fetch(`${API_BASE}/api/analytics/v2/daily/${date}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await authHeaders()) },
     body: JSON.stringify(body),
     signal,
   });
@@ -41,9 +42,11 @@ export async function startDailyAnalysis(
     throw new Error(
       res.status === 400
         ? "Некорректные данные"
-        : res.status >= 500
-          ? "Сервер временно недоступен"
-          : `Ошибка: ${res.status} ${text}`
+        : res.status === 401
+          ? "Сессия истекла, перезайдите"
+          : res.status >= 500
+            ? "Сервер временно недоступен"
+            : `Ошибка: ${res.status} ${text}`
     );
   }
 
@@ -59,7 +62,7 @@ export async function startDailyAnalysis(
 }
 
 /**
- * Start a weekly analysis stream (POST /api/analytics/weekly/:weekStart).
+ * Start a weekly analysis stream (POST /api/analytics/v2/weekly/:weekStart).
  */
 export async function startWeeklyAnalysis(
   weekStart: string,
@@ -68,7 +71,7 @@ export async function startWeeklyAnalysis(
 ): Promise<{ cached: true; content: string } | { cached: false; response: Response }> {
   const res = await fetch(`${API_BASE}/api/analytics/v2/weekly/${weekStart}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await authHeaders()) },
     body: JSON.stringify({ dates }),
     signal,
   });
@@ -78,9 +81,11 @@ export async function startWeeklyAnalysis(
     throw new Error(
       res.status === 400
         ? "Недостаточно данных для недельного анализа"
-        : res.status >= 500
-          ? "Сервер временно недоступен"
-          : `Ошибка: ${res.status} ${text}`
+        : res.status === 401
+          ? "Сессия истекла, перезайдите"
+          : res.status >= 500
+            ? "Сервер временно недоступен"
+            : `Ошибка: ${res.status} ${text}`
     );
   }
 

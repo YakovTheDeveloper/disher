@@ -9,7 +9,6 @@ import { Screen } from '@/shared/ui/Screen';
 import Typography from '@/shared/ui/atoms/Typography/Typography';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
-import { useStore as useLiveStore } from '@livestore/react';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import { groupItemsByTime, getNowMarkerIndex } from '@/shared/lib/schedule';
 import { NowMarker } from '@/shared/ui/NowMarker';
@@ -32,7 +31,6 @@ type Props = {
 };
 
 const ScheduleEvents = ({ date, events }: Props) => {
-  const { store } = useLiveStore();
   const selectionStoreEvents = useSelection();
   const isActionsMode = useStore(selectionStoreEvents, (s) => s.isActionsMode);
   const selectedIds = useStore(selectionStoreEvents, (s) => s.selectedIds);
@@ -48,7 +46,7 @@ const ScheduleEvents = ({ date, events }: Props) => {
     if (ids.length === 0) return;
     const confirmed = await drawerStore.show(DeleteConfirmationModal, { count: ids.length });
     if (!confirmed) return;
-    removeScheduleEvents(store, ids);
+    await removeScheduleEvents(ids);
     clearSelection();
     toaster.success(`Удалено: ${ids.length}`);
   };

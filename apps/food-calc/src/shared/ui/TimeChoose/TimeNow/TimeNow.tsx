@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import { useState, useEffect } from 'react';
 import { getHours, getMinutes } from 'date-fns';
 
@@ -41,4 +40,4 @@ const TimeNow = ({ onFinish, time, children }: Props) => {
   );
 };
 
-export default observer(TimeNow);
+export default TimeNow;

@@ -1,12 +1,18 @@
-import { queryDb } from "@livestore/livestore";
-import { useQuery } from "@livestore/react";
-import { tables } from "@/livestore/schema";
+import { useQuery } from "@powersync/react";
+import { snakeToCamel } from "@/shared/lib/rowMapper";
+import type { ScheduleEvent } from "../model/types";
 
-export function useScheduleEvents(date: string | undefined) {
-  return useQuery(
-    queryDb(
-      tables.scheduleEvents.where({ date: date ?? "", deletedAt: null }),
-      { label: `schedule-events-${date}`, deps: [date] },
-    ),
+function mapRow(row: Record<string, unknown>): ScheduleEvent {
+  return snakeToCamel(row) as unknown as ScheduleEvent;
+}
+
+export function useScheduleEvents(date: string | undefined): ScheduleEvent[] {
+  const { data } = useQuery<Record<string, unknown>>(
+    `select id, user_id, date, time, end_time, text, atoms,
+            created_at, updated_at, deleted_at
+     from schedule_events
+     where deleted_at is null and date = ?`,
+    [date ?? ""],
   );
+  return data.map(mapRow);
 }

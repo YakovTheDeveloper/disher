@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg';
 import styles from './ButtonBack.module.scss';
 import clsx from 'clsx';
@@ -19,4 +18,4 @@ const ButtonBack = ({ children, size = 'large', className, onClick }: Props) => 
   );
 };
 
-export default observer(ButtonBack);
+export default ButtonBack;

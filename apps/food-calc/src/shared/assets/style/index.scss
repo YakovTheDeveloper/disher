@@ -156,38 +156,3 @@ body {
   }
 }
 
-.change-data-with-animation {
-  transition: all 0.3s ease-out;
-}
-
-.change-data-animation-appear {
-  animation: highlight-pulse 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes highlight-pulse {
-  0% {
-    color: inherit;
-    background: linear-gradient(90deg, rgba(255, 190, 60, 0.45) 0%, rgba(255, 220, 120, 0.35) 100%);
-    background-size: 100% 80%;
-    background-position: center;
-    background-repeat: no-repeat;
-    border-radius: 3px;
-    scale: 1.04;
-  }
-
-  35% {
-    color: inherit;
-    background: linear-gradient(90deg, rgba(255, 190, 60, 0.25) 0%, rgba(255, 220, 120, 0.18) 100%);
-    background-size: 100% 80%;
-    background-position: center;
-    background-repeat: no-repeat;
-    border-radius: 3px;
-    scale: 1;
-  }
-
-  100% {
-    color: inherit;
-    background: transparent;
-    scale: 1;
-  }
-}

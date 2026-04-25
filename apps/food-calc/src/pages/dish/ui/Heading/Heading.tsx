@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import { useEffect, useRef } from 'react';
 import styles from './Heading.module.scss';
 
@@ -43,4 +42,4 @@ const Heading = ({ store }: Props) => {
   );
 };
 
-export default observer(Heading);
+export default Heading;

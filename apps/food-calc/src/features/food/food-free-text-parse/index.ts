@@ -2,7 +2,7 @@ export { WriteFoodButton } from './ui/WriteFoodButton';
 export { WriteFoodModal } from './ui/WriteFoodModal';
 export { WriteFoodModals } from './ui/WriteFoodModals';
 export { FreeTextFoodReviewItem } from './ui/FreeTextFoodReviewItem';
-export { openFreeTextFoodSearch } from './ui/openFreeTextFoodSearch';
+export { useRecentlyAddedStore } from './model/recentlyAddedStore';
 export { useWriteFoodFlow } from './model/useWriteFoodFlow';
 export type { UseWriteFoodFlowResult, WriteFoodFlowState } from './model/useWriteFoodFlow';
 export type { ParseTarget } from './model/target';

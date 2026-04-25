@@ -1,0 +1,164 @@
+.host {
+  position: relative;
+  display: contents;
+  isolation: isolate;
+  vertical-align: baseline;
+  max-width: 100%;
+}
+
+// sweep needs its own stacking / clipping box for the overlay band
+.hostSweep {
+  display: inline-block;
+  overflow: hidden;
+  max-width: 100%;
+  vertical-align: bottom;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+}
+
+// only while the ripple is alive: invert text where it overlaps the black circle
+.hostAnimating .content {
+  mix-blend-mode: difference;
+}
+
+// sweep variant: subtle color shift on text itself while the sweep is alive
+.hostSweepAnimating .content {
+  animation: change-highlight-text-flash 1.4s ease-out forwards;
+}
+
+.ripple {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 130%;
+  aspect-ratio: 1;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 50%;
+  background-color: #82ff95;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+  animation: change-highlight-ripple 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes change-highlight-ripple {
+  0% {
+    transform: translate(-50%, -50%);
+    opacity: 0;
+  }
+
+  8% {
+    transform: translate(-50%, -50%);
+    opacity: 0.25;
+  }
+
+  // hold around content for most of the animation
+  20% {
+    transform: translate(-50%, -50%);
+    opacity: 0.6;
+  }
+
+  70% {
+    transform: translate(-50%, -50%);
+    opacity: 0.25;
+  }
+
+  // sharp collapse at the end
+  100% {
+    transform: translate(-50%, -50%);
+    opacity: 0;
+  }
+}
+
+// sweep: soft highlight band traveling left→right behind the text
+.sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(149, 143, 255, 0) 20%,
+      rgba(149, 143, 255, 0.35) 45%,
+      rgba(149, 143, 255, 0.55) 50%,
+      rgba(149, 143, 255, 0.35) 55%,
+      rgba(149, 143, 255, 0) 80%,
+      transparent 100%);
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  background-position: -120% 0;
+  animation: change-highlight-sweep 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  border-radius: inherit;
+  mix-blend-mode: multiply;
+}
+
+@keyframes change-highlight-sweep {
+  0% {
+    background-position: -120% 0;
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    background-position: 120% 0;
+    opacity: 0;
+  }
+}
+
+@keyframes change-highlight-text-flash {
+  0% {
+    color: inherit;
+    letter-spacing: normal;
+  }
+
+  40% {
+    color: rgb(70, 60, 200);
+    letter-spacing: 0.01em;
+  }
+
+  100% {
+    color: inherit;
+    letter-spacing: normal;
+  }
+}
+
+// slide: old value slides out to the right & fades; new value enters from the right into place
+// (animation itself is driven by framer-motion in ChangeHighlight.tsx)
+.hostSlide {
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+  vertical-align: baseline;
+  align-items: baseline;
+}
+
+.hostSlide .content {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .ripple,
+  .sweep {
+    animation: none;
+    display: none;
+  }
+
+  .hostSweepAnimating .content {
+    animation: none;
+  }
+}

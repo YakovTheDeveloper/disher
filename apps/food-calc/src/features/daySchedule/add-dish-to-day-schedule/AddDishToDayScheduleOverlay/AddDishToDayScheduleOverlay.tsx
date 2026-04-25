@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useStore } from '@livestore/react';
 import { format, startOfToday } from 'date-fns';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
@@ -15,7 +14,6 @@ interface Props extends BaseDrawerProps {
 }
 
 const AddDishToDayScheduleOverlay = ({ dishId, onClose }: Props) => {
-  const { store } = useStore();
   const dish = useDish(dishId);
 
   const today = format(startOfToday(), 'dd-MM-yyyy');
@@ -25,11 +23,11 @@ const AddDishToDayScheduleOverlay = ({ dishId, onClose }: Props) => {
     setSelectedDate(date);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (dish) {
       const currentTime = new Date().toTimeString().slice(0, 5);
-      const result = safeMutate(
-        () => addScheduleFood(store, { date: selectedDate, time: currentTime, type: 'dish', dishId: dish.id, quantity: 100 }),
+      const result = await safeMutate(
+        () => addScheduleFood({ date: selectedDate, time: currentTime, type: 'dish', dishId: dish.id, quantity: 100 }),
         'Не удалось добавить блюдо',
       );
       if (result === undefined) return;

@@ -1,19 +1,15 @@
 import { useAuthStore } from './auth-store';
 import styles from './AccountPanel.module.scss';
 import { drawerStore } from '@/shared/ui/drawer-store';
-import { AuthDrawer } from './AuthDrawer';
 import { ProfileDrawer } from './ProfileDrawer';
 
 const AccountPanel = () => {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const isAnonymous = useAuthStore((s) => s.isAnonymous);
   const email = useAuthStore((s) => s.email);
 
   const openDrawer = () => {
-    if (isLoggedIn) {
-      drawerStore.show(ProfileDrawer, {});
-    } else {
-      drawerStore.show(AuthDrawer, {});
-    }
+    drawerStore.show(ProfileDrawer, {});
   };
 
   if (isLoggedIn) {
@@ -22,6 +18,18 @@ const AccountPanel = () => {
         <span className={styles.avatarLetter}>
           {email ? email[0].toUpperCase() : '?'}
         </span>
+      </button>
+    );
+  }
+
+  if (isAnonymous) {
+    return (
+      <button
+        className={styles.avatarButton}
+        onClick={openDrawer}
+        title="Анонимный режим"
+      >
+        <span className={styles.avatarLetter}>?</span>
       </button>
     );
   }

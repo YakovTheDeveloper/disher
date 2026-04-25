@@ -1,5 +1,5 @@
 import styles from './NutrientCard.module.scss';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import clsx from 'clsx';
 import { useNutrientCard } from './useNutrientCard';

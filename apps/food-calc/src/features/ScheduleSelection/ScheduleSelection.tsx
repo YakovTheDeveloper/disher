@@ -15,7 +15,6 @@ import {
 import { Virtuoso } from 'react-virtuoso';
 import type { VirtuosoHandle } from 'react-virtuoso';
 import styles from './ScheduleSelection2.module.scss';
-import { observer } from 'mobx-react-lite';
 import { ru } from 'date-fns/locale';
 import { NavLink } from 'react-router';
 import { RouterLinks } from '@/app/router';
@@ -183,7 +182,7 @@ export const ScheduleSelection = ({
     <div className={`${styles.calendarWrapper} ${className || ''}`}>
       {!isExperimental && (
         <div className={styles.weekDaysHeader}>
-          {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((d, i) => (
+          {['п', 'в', 'с', 'ч', 'п', 'с', 'в'].map((d, i) => (
             <div key={i}>{d}</div>
           ))}
         </div>
@@ -229,4 +228,4 @@ export const ScheduleSelection = ({
   );
 };
 
-export default observer(ScheduleSelection);
+export default ScheduleSelection;

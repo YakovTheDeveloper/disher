@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './LabeledCheckbox.module.scss';
 import React, { MutableRefObject } from 'react';
 
@@ -34,4 +33,4 @@ const LabeledCheckbox = ({ checked, onChange, label, disabled = false, id, ref }
   );
 };
 
-export default observer(LabeledCheckbox);
+export default LabeledCheckbox;

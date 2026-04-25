@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg';
 import styles from './ActionsPanel.module.scss';
 
@@ -25,4 +24,4 @@ const ActionsPanel = ({ children, left, show, onBack }: Props) => {
   );
 };
 
-export default observer(ActionsPanel);
+export default ActionsPanel;

@@ -1,146 +1,172 @@
-import { getCurrentUserId } from "@/shared/lib/user";
-import { events } from "@/livestore/schema";
-import type { Store } from "@livestore/livestore";
+import { db } from "@/powersync/database";
+import { supabase } from "@/powersync/supabase-client";
 
-type DishItemUpdatedPayload = Parameters<typeof events.dishItemUpdated>[0];
-type DishItemUpdates = Omit<DishItemUpdatedPayload, 'id'>;
+async function currentUserId(): Promise<string> {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) throw error;
+  if (!data.user) throw new Error("Not authenticated");
+  return data.user.id;
+}
 
-type DishPortionUpdatedPayload = Parameters<typeof events.dishPortionUpdated>[0];
-type DishPortionUpdates = Omit<DishPortionUpdatedPayload, 'id'>;
-
-export function createDish(store: Store, name: string) {
+export async function createDish(name: string): Promise<string> {
   const id = crypto.randomUUID();
-  store.commit(events.dishCreated({ id, name, userId: getCurrentUserId(), createdAt: Date.now() }));
+  const userId = await currentUserId();
+  const now = new Date().toISOString();
+  await db.execute(
+    `insert into dishes (id, user_id, name, created_at) values (?, ?, ?, ?)`,
+    [id, userId, name, now],
+  );
   return id;
 }
 
-export function updateDishName(store: Store, dishId: string, name: string) {
-  store.commit(events.dishUpdated({ id: dishId, name, updatedAt: Date.now() }));
+export async function updateDishName(dishId: string, name: string): Promise<void> {
+  await db.execute(
+    `update dishes set name = ?, updated_at = ? where id = ?`,
+    [name, new Date().toISOString(), dishId],
+  );
 }
 
-export function deleteDish(
-  store: Store,
+export async function deleteDish(
   dishId: string,
   itemIds: string[],
   portionIds: string[],
-) {
-  const deletedAt = Date.now();
-  store.commit(
-    ...itemIds.map((id) => events.dishItemDeleted({ id, deletedAt })),
-    ...portionIds.map((id) => events.dishPortionDeleted({ id, deletedAt })),
-    events.dishDeleted({ id: dishId, deletedAt }),
-  );
+): Promise<void> {
+  const deletedAt = new Date().toISOString();
+  await db.writeTransaction(async (tx) => {
+    for (const id of itemIds) {
+      await tx.execute(`update dish_items set deleted_at = ? where id = ?`, [deletedAt, id]);
+    }
+    for (const id of portionIds) {
+      await tx.execute(`update dish_portions set deleted_at = ? where id = ?`, [deletedAt, id]);
+    }
+    await tx.execute(`update dishes set deleted_at = ? where id = ?`, [deletedAt, dishId]);
+  });
 }
 
-export function deleteDishes(
-  store: Store,
+export async function deleteDishes(
   dishes: Array<{ id: string; itemIds: string[]; portionIds: string[] }>,
-) {
-  const deletedAt = Date.now();
-  const allEvents = dishes.flatMap((d) => [
-    ...d.itemIds.map((id) => events.dishItemDeleted({ id, deletedAt })),
-    ...d.portionIds.map((id) => events.dishPortionDeleted({ id, deletedAt })),
-    events.dishDeleted({ id: d.id, deletedAt }),
-  ]);
-  store.commit(...allEvents);
+): Promise<void> {
+  const deletedAt = new Date().toISOString();
+  await db.writeTransaction(async (tx) => {
+    for (const d of dishes) {
+      for (const id of d.itemIds) {
+        await tx.execute(`update dish_items set deleted_at = ? where id = ?`, [deletedAt, id]);
+      }
+      for (const id of d.portionIds) {
+        await tx.execute(`update dish_portions set deleted_at = ? where id = ?`, [deletedAt, id]);
+      }
+      await tx.execute(`update dishes set deleted_at = ? where id = ?`, [deletedAt, d.id]);
+    }
+  });
 }
 
-export function addDishItem(
-  store: Store,
-  params: { dishId: string; productId: string; quantity: number },
-) {
+export async function addDishItem(params: {
+  dishId: string;
+  productId: string;
+  quantity: number;
+}): Promise<string> {
   const id = crypto.randomUUID();
-  store.commit(
-    events.dishItemCreated({
-      id,
-      dishId: params.dishId,
-      productId: params.productId,
-      quantity: params.quantity,
-      userId: getCurrentUserId(),
-    }),
+  const userId = await currentUserId();
+  const now = new Date().toISOString();
+  await db.execute(
+    `insert into dish_items (id, user_id, dish_id, product_id, quantity, created_at)
+     values (?, ?, ?, ?, ?, ?)`,
+    [id, userId, params.dishId, params.productId, params.quantity, now],
   );
   return id;
 }
 
-export function updateDishItem(
-  store: Store,
+export async function updateDishItem(
   itemId: string,
-  updates: DishItemUpdates,
-) {
-  store.commit(events.dishItemUpdated({ id: itemId, ...updates }));
+  updates: Partial<{ quantity: number; productId: string }>,
+): Promise<void> {
+  const COLUMN_MAP: Record<string, string> = {
+    quantity: "quantity",
+    productId: "product_id",
+  };
+  const keys = Object.keys(updates) as (keyof typeof updates)[];
+  if (keys.length === 0) return;
+  const setClauses = keys.map((k) => `${COLUMN_MAP[k]} = ?`).join(", ");
+  const values = keys.map((k) => updates[k]);
+  await db.execute(
+    `update dish_items set ${setClauses}, updated_at = ? where id = ?`,
+    [...values, new Date().toISOString(), itemId],
+  );
 }
 
-export function removeDishItem(store: Store, itemId: string) {
-  store.commit(events.dishItemDeleted({ id: itemId, deletedAt: Date.now() }));
+export async function removeDishItem(itemId: string): Promise<void> {
+  await db.execute(
+    `update dish_items set deleted_at = ? where id = ?`,
+    [new Date().toISOString(), itemId],
+  );
 }
 
-export function copyDishItems(
-  store: Store,
+export async function copyDishItems(
   items: Array<{ productId: string; quantity: number }>,
   toDishId: string,
-) {
-  store.commit(
-    ...items.map((item) =>
-      events.dishItemCreated({
-        id: crypto.randomUUID(),
-        dishId: toDishId,
-        productId: item.productId,
-        quantity: item.quantity,
-        userId: getCurrentUserId(),
-      }),
-    ),
-  );
+): Promise<void> {
+  const userId = await currentUserId();
+  const now = new Date().toISOString();
+  await db.writeTransaction(async (tx) => {
+    for (const item of items) {
+      await tx.execute(
+        `insert into dish_items (id, user_id, dish_id, product_id, quantity, created_at)
+         values (?, ?, ?, ?, ?, ?)`,
+        [crypto.randomUUID(), userId, toDishId, item.productId, item.quantity, now],
+      );
+    }
+  });
 }
 
-export function addDishPortion(
-  store: Store,
+export async function addDishPortion(
   dishId: string,
   portion: { label: string; amount: number; unit: string; grams: number },
-) {
-  store.commit(
-    events.dishPortionCreated({
-      id: crypto.randomUUID(),
-      dishId,
-      userId: getCurrentUserId(),
-      label: portion.label,
-      amount: portion.amount,
-      unit: portion.unit,
-      grams: portion.grams,
-    }),
+): Promise<void> {
+  const userId = await currentUserId();
+  const now = new Date().toISOString();
+  await db.execute(
+    `insert into dish_portions (id, user_id, dish_id, label, amount, unit, grams, created_at)
+     values (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [crypto.randomUUID(), userId, dishId, portion.label, portion.amount, portion.unit, portion.grams, now],
   );
 }
 
-export function updateDishPortion(
-  store: Store,
+export async function updateDishPortion(
   portionId: string,
-  updates: DishPortionUpdates,
-) {
-  store.commit(events.dishPortionUpdated({ id: portionId, ...updates }));
+  updates: Partial<{ label: string; amount: number; unit: string; grams: number }>,
+): Promise<void> {
+  const keys = Object.keys(updates) as (keyof typeof updates)[];
+  if (keys.length === 0) return;
+  const setClauses = keys.map((k) => `${k} = ?`).join(", ");
+  const values = keys.map((k) => updates[k]);
+  await db.execute(
+    `update dish_portions set ${setClauses}, updated_at = ? where id = ?`,
+    [...values, new Date().toISOString(), portionId],
+  );
 }
 
-export function removeDishPortion(store: Store, portionId: string) {
-  store.commit(events.dishPortionDeleted({ id: portionId, deletedAt: Date.now() }));
+export async function removeDishPortion(portionId: string): Promise<void> {
+  await db.execute(
+    `update dish_portions set deleted_at = ? where id = ?`,
+    [new Date().toISOString(), portionId],
+  );
 }
 
-export function dishItemsToScheduleFoods(
-  store: Store,
+export async function dishItemsToScheduleFoods(
   items: Array<{ productId: string; quantity: number }>,
   date: string,
   time: string,
-) {
-  store.commit(
-    ...items.map((item) =>
-      events.scheduleFoodCreated({
-        id: crypto.randomUUID(),
-        date,
-        time,
-        type: "food",
-        quantity: item.quantity,
-        productId: item.productId,
-        dishId: "",
-        details: "",
-        userId: getCurrentUserId(),
-      }),
-    ),
-  );
+): Promise<void> {
+  const userId = await currentUserId();
+  const now = new Date().toISOString();
+  await db.writeTransaction(async (tx) => {
+    for (const item of items) {
+      await tx.execute(
+        `insert into schedule_foods
+           (id, user_id, date, time, type, quantity, product_id, dish_id, details, created_at)
+         values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [crypto.randomUUID(), userId, date, time, "food", item.quantity, item.productId, "", "", now],
+      );
+    }
+  });
 }

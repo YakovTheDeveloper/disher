@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalShell } from '@/shared/ui/ModalShell';
@@ -37,13 +36,12 @@ type Props = {
 };
 
 const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) => {
-  const { store } = useStore();
   const [step, setStep] = useState<Step>(initialStep);
   const [atomPanelOpen, setAtomPanelOpen] = useState(false);
   const [draft, setDraft] = useState<DraftState>(() => ({
     time: item.time,
     endTime: item.endTime ?? null,
-    text: item.text,
+    text: item.text ?? '',
   }));
   const draftAtoms = useEventDraftStore((s) => s.draft.atoms);
   const clearAtoms = useEventDraftStore((s) => s.clearAtoms);
@@ -95,9 +93,9 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
     setDraft((prev) => ({ ...prev, text: value }));
   };
 
-  const handleCommit = () => {
-    const result = safeMutate(
-      () => updateScheduleEvent(store, item.id, { time: draft.time, endTime: draft.endTime ?? undefined, text: draft.text, atoms: draftAtoms }),
+  const handleCommit = async () => {
+    const result = await safeMutate(
+      () => updateScheduleEvent(item.id, { time: draft.time, endTime: draft.endTime ?? undefined, text: draft.text, atoms: draftAtoms }),
       'Не удалось обновить событие',
     );
     if (result === undefined) return;

@@ -9,7 +9,7 @@ interface Props extends BaseDrawerProps<string> {
 }
 
 export const ScheduleSelectionDrawer = ({ onClose, selectedDate }: Props) => {
-  const { index, total } = useDesignVariants(CALENDAR_VARIANTS.length, 8000);
+  const { index, total } = useDesignVariants('Calendar', CALENDAR_VARIANTS.length);
 
   return (
     <DrawerLayout>

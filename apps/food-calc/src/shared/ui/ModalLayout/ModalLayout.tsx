@@ -1,6 +1,5 @@
-import { observer } from 'mobx-react-lite';
 import styles from './ModalLayout.module.scss';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import clsx from 'clsx';
 import * as Dialog from '@radix-ui/react-dialog';
 
@@ -39,4 +38,4 @@ const ModalLayout = ({ children, className }: Props) => {
   );
 };
 
-export default observer(ModalLayout);
+export default ModalLayout;

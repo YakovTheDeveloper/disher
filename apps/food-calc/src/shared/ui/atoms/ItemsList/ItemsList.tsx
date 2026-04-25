@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './ItemsList.module.scss';
 import { useRef } from 'react';
 import clsx from 'clsx';
@@ -55,4 +54,4 @@ const ItemsList = ({ children, offsetTop, count, backgroundImage, emptyContent }
   );
 };
 
-export default observer(ItemsList);
+export default ItemsList;

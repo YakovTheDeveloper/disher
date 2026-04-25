@@ -1,4 +1,3 @@
-import { useStore } from '@livestore/react';
 import { useClipboardStore } from '@/shared/model/clipboardStore';
 import { pasteClipboardItems } from '@/entities/schedule-food';
 import Button from '@/shared/ui/atoms/Button/Button';
@@ -17,14 +16,13 @@ type Props = {
 const MAX_PREVIEW = 5;
 
 export const PasteFromClipboardButton = ({ targetDate, btnClassName, wrapperClassName, wrapperStyle }: Props) => {
-  const { store } = useStore();
   const items = useClipboardStore((s) => s.items);
   const clearClipboard = useClipboardStore((s) => s.clearClipboard);
 
   if (items.length === 0) return null;
 
-  const handlePaste = () => {
-    const result = safeMutate(() => pasteClipboardItems(store, items, targetDate), 'Не удалось вставить');
+  const handlePaste = async () => {
+    const result = await safeMutate(() => pasteClipboardItems(items, targetDate), 'Не удалось вставить');
     if (result === undefined) return;
     clearClipboard();
     toaster.success(`Вставлено: ${items.length}`);

@@ -1,11 +1,11 @@
 import styles from './AddButton.module.scss';
 import clsx from 'clsx';
-import { observer } from 'mobx-react-lite';
 import PlusIcon from '@/shared/assets/icons/rounded-plus-icon.svg';
+import React from 'react';
 
 type Props = {
   onClick: VoidFunction;
-  children?: string;
+  children?: React.ReactNode;
   animate?: () => boolean;
   as?: 'button' | 'label';
   htmlFor?: string;
@@ -29,4 +29,4 @@ const AddButton = ({ onClick, children, as = 'button', htmlFor, prominent }: Pro
   );
 };
 
-export default observer(AddButton);
+export default AddButton;

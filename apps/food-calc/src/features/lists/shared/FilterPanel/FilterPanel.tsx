@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
-import { observer } from 'mobx-react-lite';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import clsx from 'clsx';
 import Button from '@/shared/ui/atoms/Button/Button';
 import styles from './FilterPanel.module.scss';
@@ -82,4 +81,4 @@ const FilterPanel = ({ columns, selectedFilters, onFilterChange }: FilterPanelPr
   );
 };
 
-export default observer(FilterPanel);
+export default FilterPanel;

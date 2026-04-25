@@ -1,30 +1,23 @@
-import { getCurrentUserId } from "@/shared/lib/user";
-import { events } from "@/livestore/schema";
-import type { Store } from "@livestore/livestore";
+import { db } from "@/powersync/database";
+import { supabase } from "@/powersync/supabase-client";
 import type { ClipboardItem } from "@/shared/model/clipboardStore";
 
-type ScheduleFoodUpdatedPayload = Parameters<typeof events.scheduleFoodUpdated>[0];
-type ScheduleFoodUpdates = Omit<ScheduleFoodUpdatedPayload, 'id'>;
+async function currentUserId(): Promise<string> {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) throw error;
+  if (!data.user) throw new Error("Not authenticated");
+  return data.user.id;
+}
 
-/** Accepts null for nullable-feeling fields, coerces to "" before committing */
-type ScheduleFoodUpdateInput = {
-  [K in keyof ScheduleFoodUpdates]: K extends 'productId' | 'dishId' | 'details'
-    ? ScheduleFoodUpdates[K] | null
-    : ScheduleFoodUpdates[K];
-};
-
-export function addScheduleFood(
-  store: Store,
-  params: {
-    date: string;
-    time: string;
-    type: "food" | "dish";
-    quantity: number;
-    productId?: string | null;
-    dishId?: string | null;
-    details?: string | null;
-  },
-) {
+export async function addScheduleFood(params: {
+  date: string;
+  time: string;
+  type: "food" | "dish";
+  quantity: number;
+  productId?: string | null;
+  dishId?: string | null;
+  details?: string | null;
+}): Promise<string> {
   const hasProductId = params.productId != null;
   const hasDishId = params.dishId != null;
 
@@ -36,27 +29,40 @@ export function addScheduleFood(
   }
 
   const id = crypto.randomUUID();
-  store.commit(
-    events.scheduleFoodCreated({
+  const userId = await currentUserId();
+  const now = new Date().toISOString();
+  await db.execute(
+    `insert into schedule_foods
+       (id, user_id, date, time, type, quantity, details, product_id, dish_id, created_at)
+     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
       id,
-      date: params.date,
-      time: params.time,
-      type: params.type,
-      quantity: params.quantity,
-      details: params.details ?? "",
-      productId: params.productId ?? "",
-      dishId: params.dishId ?? "",
-      userId: getCurrentUserId(),
-    }),
+      userId,
+      params.date,
+      params.time,
+      params.type,
+      params.quantity,
+      params.details ?? "",
+      params.productId ?? "",
+      params.dishId ?? "",
+      now,
+    ],
   );
   return id;
 }
 
-export function updateScheduleFood(
-  store: Store,
+export async function updateScheduleFood(
   itemId: string,
-  updates: ScheduleFoodUpdateInput,
-) {
+  updates: Partial<{
+    date: string;
+    time: string;
+    type: "food" | "dish";
+    quantity: number;
+    details: string | null;
+    productId: string | null;
+    dishId: string | null;
+  }>,
+): Promise<void> {
   if (updates.productId !== undefined && updates.dishId !== undefined) {
     const hasProductId = updates.productId != null;
     const hasDishId = updates.dishId != null;
@@ -68,44 +74,75 @@ export function updateScheduleFood(
     }
   }
 
-  const { productId, dishId, details, ...rest } = updates;
+  const COLUMN_MAP: Record<string, string> = {
+    date: "date",
+    time: "time",
+    type: "type",
+    quantity: "quantity",
+    details: "details",
+    productId: "product_id",
+    dishId: "dish_id",
+  };
 
-  store.commit(events.scheduleFoodUpdated({
-    id: itemId,
-    ...rest,
-    ...(details !== undefined && { details: details ?? "" }),
-    ...(productId !== undefined && { productId: productId ?? "" }),
-    ...(dishId !== undefined && { dishId: dishId ?? "" }),
-  }));
+  const keys = Object.keys(updates) as (keyof typeof updates)[];
+  if (keys.length === 0) return;
+  const setClauses = keys.map((k) => `${COLUMN_MAP[k]} = ?`).join(", ");
+  const values = keys.map((k) => {
+    const v = updates[k];
+    if (k === "details" || k === "productId" || k === "dishId") return v ?? "";
+    return v;
+  });
+
+  await db.execute(
+    `update schedule_foods set ${setClauses}, updated_at = ? where id = ?`,
+    [...values, new Date().toISOString(), itemId],
+  );
 }
 
-export function removeScheduleFood(store: Store, itemId: string) {
-  store.commit(events.scheduleFoodDeleted({ id: itemId, deletedAt: Date.now() }));
+export async function removeScheduleFood(itemId: string): Promise<void> {
+  await db.execute(
+    `update schedule_foods set deleted_at = ? where id = ?`,
+    [new Date().toISOString(), itemId],
+  );
 }
 
-export function removeScheduleFoods(store: Store, itemIds: string[]) {
-  const deletedAt = Date.now();
-  store.commit(...itemIds.map((id) => events.scheduleFoodDeleted({ id, deletedAt })));
+export async function removeScheduleFoods(itemIds: string[]): Promise<void> {
+  const deletedAt = new Date().toISOString();
+  await db.writeTransaction(async (tx) => {
+    for (const id of itemIds) {
+      await tx.execute(
+        `update schedule_foods set deleted_at = ? where id = ?`,
+        [deletedAt, id],
+      );
+    }
+  });
 }
 
-export function pasteClipboardItems(
-  store: Store,
+export async function pasteClipboardItems(
   items: ClipboardItem[],
   targetDate: string,
-) {
-  store.commit(
-    ...items.map((item) =>
-      events.scheduleFoodCreated({
-        id: crypto.randomUUID(),
-        date: targetDate,
-        time: item.time,
-        type: item.type,
-        quantity: item.quantity,
-        details: item.details ?? "",
-        productId: item.productId ?? "",
-        dishId: item.dishId ?? "",
-        userId: getCurrentUserId(),
-      }),
-    ),
-  );
+): Promise<void> {
+  const userId = await currentUserId();
+  const now = new Date().toISOString();
+  await db.writeTransaction(async (tx) => {
+    for (const item of items) {
+      await tx.execute(
+        `insert into schedule_foods
+           (id, user_id, date, time, type, quantity, details, product_id, dish_id, created_at)
+         values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          crypto.randomUUID(),
+          userId,
+          targetDate,
+          item.time,
+          item.type,
+          item.quantity,
+          item.details ?? "",
+          item.productId ?? "",
+          item.dishId ?? "",
+          now,
+        ],
+      );
+    }
+  });
 }

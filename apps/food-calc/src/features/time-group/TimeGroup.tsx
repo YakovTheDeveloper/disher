@@ -1,8 +1,7 @@
-import { observer } from 'mobx-react-lite';
 import styles from './TimeGroup.module.scss';
 
 import clsx from 'clsx';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { TimeGroupUI } from '@/shared/lib/schedule';
 
 type Props<T> = {
@@ -47,7 +46,7 @@ const TimeGroup = <T,>({ children, group, renderAside, onTimeClick, isFuture }: 
   );
 };
 
-export default observer(TimeGroup);
+export default TimeGroup;
 
 function formatOffset(offset: { hours: number; minutes: number } | null): string {
   if (!offset) return '';

@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import clsx from 'clsx';
 import styles from './FoodActionCard.module.scss';
-import { useStore } from '@livestore/react';
 import { deleteProducts } from '@/entities/product';
 import { deleteDishes } from '@/entities/dish';
 import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
@@ -14,7 +13,7 @@ type Props = {
   item: {
     id: string;
     name: string;
-    userId?: string;
+    userId?: string | null;
     categories?: string | null;
     getTotalNutrients?: (qty: number) => Record<string, number>;
   };
@@ -72,9 +71,19 @@ const TrashIcon = () => (
 
 const InfoIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"/>
-    <text x="12" y="17" textAnchor="middle" fill="currentColor"
-          fontFamily="Georgia, 'Times New Roman', serif" fontStyle="italic" fontSize="14" fontWeight="600">i</text>
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+    <text
+      x="12"
+      y="17"
+      textAnchor="middle"
+      fill="currentColor"
+      fontFamily="Georgia, 'Times New Roman', serif"
+      fontStyle="italic"
+      fontSize="14"
+      fontWeight="600"
+    >
+      i
+    </text>
   </svg>
 );
 
@@ -89,15 +98,17 @@ const FoodActionCard = ({
   richNutrientUnit,
   richNutrientMax = 0,
 }: Props) => {
-  const { store } = useStore();
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.userId);
   const categoryIcon = getCategoryIcon(item.categories);
 
   const handleDelete = () => {
     if (variant === 'product') {
-      safeMutate(() => deleteProducts(store, [item.id]), 'Не удалось удалить продукт');
+      void safeMutate(() => deleteProducts([item.id]), 'Не удалось удалить продукт');
     } else {
-      safeMutate(() => deleteDishes(store, [{ id: item.id, itemIds: [], portionIds: [] }]), 'Не удалось удалить блюдо');
+      void safeMutate(
+        () => deleteDishes([{ id: item.id, itemIds: [], portionIds: [] }]),
+        'Не удалось удалить блюдо'
+      );
     }
   };
 
@@ -170,9 +181,9 @@ const FoodActionCard = ({
           onClick?.();
         }}
       >
-        {categoryIcon && (
+        {/* {categoryIcon && (
           <img src={categoryIcon} alt="" className={styles.categoryIcon} aria-hidden="true" />
-        )}
+        )} */}
         <span className={styles.name}>{item.name}</span>
       </p>
       {onInfoClick && (

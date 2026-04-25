@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import styles from './Pages.module.scss';
 import { useState } from 'react';
 
@@ -27,4 +26,4 @@ const Pages = ({ children, onScrollDirectionChange: _onScrollDirectionChange }: 
   );
 };
 
-export default observer(Pages);
+export default Pages;

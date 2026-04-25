@@ -10,6 +10,42 @@
   gap: var(--space-3);
 }
 
+.minimalButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  min-height: 40px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+  color: rgba(31, 42, 68, 0.72);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease, transform 0.12s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: rgba(31, 42, 68, 1);
+    outline: none;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.minimalIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: currentColor;
+}
+
 .analyticsDot {
   display: inline-block;
   width: 6px;
@@ -26,3 +62,4 @@
 .analyticsDot_stale {
   background: #f59e0b;
 }
+

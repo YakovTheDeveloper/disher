@@ -16,17 +16,16 @@ import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { RouterLinks } from '@/app/router';
 import {
-  WriteFoodButton,
   WriteFoodModals,
   useWriteFoodFlow,
   getWriteFoodInputId,
 } from '@/features/food/food-free-text-parse';
+import { AddFoodActionBar } from '@/features/food/food-add-action-bar';
 import SwipeableV2 from '@/shared/ui/Swipeable/SwipeableV2';
 import { SelectableListItem } from '@/features/shared/selectable-list-item';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Quantity } from '@/shared/ui/Quantity';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
-import { useStore as useLiveStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
@@ -49,7 +48,7 @@ import { TopBar } from '@/shared/ui/TopBar';
 import Button from '@/shared/ui/atoms/Button/Button';
 import { PasteFromClipboardToDishButton } from '@/features/clipboard';
 
-type DishItemWithProduct = { id: string; productId: string; quantity: number; product: { name: string } | null };
+type DishItemWithProduct = { id: string; productId: string; quantity: number; product: { name: string | null } | null };
 
 const DishBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +59,6 @@ const DishBuilderPage = () => {
     return null;
   }
 
-  const { store } = useLiveStore();
   const dish = useDish(id);
   const dishItems = useDishItemsWithProducts(id);
   const portionsRaw = useDishPortions(id);
@@ -102,14 +100,13 @@ const DishBuilderPage = () => {
 
   const getSelectedItems = () => items.filter((item) => selectedIds.includes(item.id));
 
-  const onDeleteSelected = () => {
+  const onDeleteSelected = async () => {
     const ids = selectedIds;
     if (ids.length === 0) return;
-    const result = safeMutate(
-      () => ids.map((id) => removeDishItem(store, id)),
-      'Не удалось удалить'
+    const results = await Promise.all(
+      ids.map((id) => safeMutate(() => removeDishItem(id), 'Не удалось удалить'))
     );
-    if (result === undefined) return;
+    if (results.some((r) => r === undefined)) return;
     clearSelection();
     toaster.success(`Удалено: ${ids.length}`);
   };
@@ -194,7 +191,7 @@ const DishBuilderPage = () => {
           <ChangeName
             name={dish.name}
             onChangeName={(val) =>
-              safeMutate(() => updateDishName(store, dish.id, val), 'Не удалось переименовать')
+              void safeMutate(() => updateDishName(dish.id, val), 'Не удалось переименовать')
             }
             heading={<PageHeading title={dish.name} subtitle="блюдо" />}
           />
@@ -223,19 +220,23 @@ const DishBuilderPage = () => {
             >
               Добавить продукт в блюдо
             </AddButton>
-            <WriteFoodButton
-              flow={writeFoodFlow}
-              inputId={writeFoodInputId}
-              label="Описать ингредиенты"
+            <AddFoodActionBar
+              writeFoodFlow={writeFoodFlow}
+              writeFoodInputId={writeFoodInputId}
+              writeFoodLabel="Опишите ингредиенты..."
+              searchHtmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
+              searchLabel="Продукт"
             />
           </div>
         )}
         {items.length > 0 && !isActionsMode && (
           <div style={{ padding: 'var(--space-2) var(--space-4) 0', display: 'flex', justifyContent: 'flex-end' }}>
-            <WriteFoodButton
-              flow={writeFoodFlow}
-              inputId={writeFoodInputId}
-              label="Описать ингредиенты"
+            <AddFoodActionBar
+              writeFoodFlow={writeFoodFlow}
+              writeFoodInputId={writeFoodInputId}
+              writeFoodLabel="Опишите ингредиенты..."
+              searchHtmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
+              searchLabel="Продукт"
             />
           </div>
         )}
@@ -278,20 +279,20 @@ const DishBuilderPage = () => {
             grams: p.grams,
           }))}
           onAdd={(p) =>
-            safeMutate(() => addDishPortion(store, id, p), 'Не удалось добавить порцию')
+            void safeMutate(() => addDishPortion(id, p), 'Не удалось добавить порцию')
           }
           onUpdate={(label, updates) => {
             const portion = portionsRaw.find((p) => p.label === label);
             if (portion)
-              safeMutate(
-                () => updateDishPortion(store, portion.id, updates),
+              void safeMutate(
+                () => updateDishPortion(portion.id, updates),
                 'Не удалось обновить порцию'
               );
           }}
           onRemove={(label) => {
             const portion = portionsRaw.find((p) => p.label === label);
             if (portion)
-              safeMutate(() => removeDishPortion(store, portion.id), 'Не удалось удалить порцию');
+              void safeMutate(() => removeDishPortion(portion.id), 'Не удалось удалить порцию');
           }}
         />
       </Screen>

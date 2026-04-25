@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { useStore } from '@livestore/react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { popOverlayEntry } from '@/shared/lib/overlay-history';
@@ -35,7 +34,7 @@ type EditItem = {
   id: string;
   productId: string;
   quantity: number;
-  product?: { name: string } | null;
+  product?: { name: string | null } | null;
 };
 
 type Props = {
@@ -45,7 +44,6 @@ type Props = {
 };
 
 const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) => {
-  const { store } = useStore();
   const { toProduct } = useAppRoutes();
   const createInitialDraft = (): DraftState => ({
     productId: item.productId,
@@ -89,7 +87,7 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
   const handleFoodSelect = async (payload: { variant: 'product' | 'dish'; id: string }) => {
     if (payload.variant === 'dish') return;
     const result = await safeMutate(
-      () => updateDishItem(store, item.id, { productId: payload.id }),
+      () => updateDishItem(item.id, { productId: payload.id }),
       'Не удалось обновить'
     );
     if (result === undefined) return;
@@ -100,7 +98,7 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
   const handleCommit = async () => {
     const result = await safeMutate(
       () =>
-        updateDishItem(store, item.id, {
+        updateDishItem(item.id, {
           productId: draft.productId ?? undefined,
           quantity: draft.quantity,
         }),

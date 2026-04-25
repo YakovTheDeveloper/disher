@@ -85,7 +85,7 @@ export const WriteFoodModal = ({
                 value={inputText}
                 onChange={setInputText}
                 placeholder={placeholder || DEFAULT_PLACEHOLDER}
-                rows={6}
+                rows={2}
                 maxLength={2000}
                 readOnly={readOnly}
               />

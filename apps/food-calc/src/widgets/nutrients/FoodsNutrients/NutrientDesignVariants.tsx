@@ -15,8 +15,61 @@ interface Props {
   onValueChange?: (nutrientId: string, value: number) => void;
 }
 
+const mineralColors: Record<string, { color1: string; color2: string }> = {
+  iron: { color1: '#c0392b', color2: '#e57373' },
+  magnesium: { color1: '#4caf50', color2: '#81c784' },
+  phosphorus: { color1: '#ff9d4d', color2: '#ffc266' },
+  calcium: { color1: '#a855f7', color2: '#d8b4fe' },
+  potassium: { color1: '#5b9cf6', color2: '#90caf9' },
+  sodium: { color1: '#78909c', color2: '#b0bec5' },
+  zinc: { color1: '#90a4ae', color2: '#cfd8dc' },
+  copper: { color1: '#b87333', color2: '#d4a373' },
+  manganese: { color1: '#8d6e63', color2: '#bcaaa4' },
+  selenium: { color1: '#9e9d24', color2: '#cddc39' },
+  iodine: { color1: '#6a1b9a', color2: '#ba68c8' },
+};
+
+const vitaminColors: Record<string, { color1: string; color2: string }> = {
+  vitaminA: { color1: '#ff8c42', color2: '#ffcc80' },
+  vitaminC: { color1: '#ffd60a', color2: '#fff176' },
+  vitaminD: { color1: '#ffb800', color2: '#ffe082' },
+  vitaminE: { color1: '#9cc962', color2: '#c5e1a5' },
+  vitaminK: { color1: '#2e7d32', color2: '#81c784' },
+  vitaminB1: { color1: '#f48fb1', color2: '#f8bbd0' },
+  vitaminB2: { color1: '#f48fb1', color2: '#f8bbd0' },
+  vitaminB3: { color1: '#f48fb1', color2: '#f8bbd0' },
+  vitaminB4: { color1: '#f48fb1', color2: '#f8bbd0' },
+  vitaminB5: { color1: '#f48fb1', color2: '#f8bbd0' },
+  vitaminB6: { color1: '#f48fb1', color2: '#f8bbd0' },
+  vitaminB7: { color1: '#f48fb1', color2: '#f8bbd0' },
+  vitaminB9: { color1: '#f48fb1', color2: '#f8bbd0' },
+  vitaminB12: { color1: '#f48fb1', color2: '#f8bbd0' },
+  betaCarotene: { color1: '#ff7043', color2: '#ffab91' },
+  alphaCarotene: { color1: '#ff7043', color2: '#ffab91' },
+};
+
+const essentialAminoAcids = new Set([
+  'tryptophan', 'threonine', 'isoleucine', 'leucine', 'lysine',
+  'methionine', 'phenylalanine', 'valine', 'histidine',
+  'cystine', 'tyrosine',
+]);
+
+const aminoAcidEssentialColor = { color1: '#ff7a59', color2: '#ffab91' };
+const aminoAcidNonEssentialColor = { color1: '#7a9cc6', color2: '#b0c4de' };
+
+const getGroupColors = (nutrientName: string, group: string) => {
+  if (group === 'minerals') return mineralColors[nutrientName];
+  if (group === 'vitamins') return vitaminColors[nutrientName];
+  if (group === 'aminoAcids') {
+    return essentialAminoAcids.has(nutrientName)
+      ? aminoAcidEssentialColor
+      : aminoAcidNonEssentialColor;
+  }
+  return undefined;
+};
+
 const PentagonDecoration = ({ nutrientName }: { nutrientName: string }) => {
-  const gradients: Record<string, { color1: string; color2: string }> = {
+  const mainGradients: Record<string, { color1: string; color2: string }> = {
     protein: { color1: '#ffe32a', color2: '#ff9500' },
     fats: { color1: '#ea9629', color2: '#ff6b6b' },
     carbohydrates: { color1: '#ff453b', color2: '#ff9500' },
@@ -24,13 +77,10 @@ const PentagonDecoration = ({ nutrientName }: { nutrientName: string }) => {
     energy: { color1: '#ff5e40', color2: '#ff8c42' },
     sugar: { color1: '#ff2d80', color2: '#ff6eb4' },
     water: { color1: '#00bfff', color2: '#1e90ff' },
-    // Minerals defaults
-    calcium: { color1: '#a855f7', color2: '#d8b4fe' },
-    phosphorus: { color1: '#ff9d4d', color2: '#ffc266' },
-    magnesium: { color1: '#4caf50', color2: '#81c784' },
   };
 
-  const { color1 = '#999', color2 = '#ccc' } = gradients[nutrientName] || {};
+  const colors = mainGradients[nutrientName] || mineralColors[nutrientName];
+  const { color1 = '#999', color2 = '#ccc' } = colors || {};
   const gradientId = `pentagon-${nutrientName}`;
 
   return (
@@ -62,6 +112,57 @@ const PentagonDecoration = ({ nutrientName }: { nutrientName: string }) => {
         points="24,4 42,17 36,38 12,38 6,17"
         fill={`url(#${gradientId})`}
       />
+    </svg>
+  );
+};
+
+const VitaminSun = ({ nutrientName }: { nutrientName: string }) => {
+  const { color1 = '#ffb800', color2 = '#ffe082' } = vitaminColors[nutrientName] || {};
+  const gradientId = `sun-${nutrientName}`;
+
+  return (
+    <svg
+      className={s.vitaminSun}
+      viewBox="0 0 48 48"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ filter: 'blur(1.5px)', opacity: 0.65 }}
+    >
+      <defs>
+        <radialGradient id={gradientId} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={color1} stopOpacity="0.75" />
+          <stop offset="60%" stopColor={color2} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={color2} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="24" cy="24" r="18" fill={`url(#${gradientId})`} />
+    </svg>
+  );
+};
+
+const AminoAcidDiamond = ({ nutrientName }: { nutrientName: string }) => {
+  const isEssential = essentialAminoAcids.has(nutrientName);
+  const { color1, color2 } = isEssential
+    ? aminoAcidEssentialColor
+    : aminoAcidNonEssentialColor;
+  const gradientId = `diamond-${nutrientName}`;
+
+  return (
+    <svg
+      className={s.aminoAcidDiamond}
+      viewBox="0 0 48 48"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ filter: 'blur(1.5px)', opacity: isEssential ? 0.55 : 0.4 }}
+    >
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={color1} stopOpacity="0.55" />
+          <stop offset="100%" stopColor={color2} stopOpacity="0.25" />
+        </linearGradient>
+      </defs>
+      {/* Diamond (rotated square) */}
+      <polygon points="24,6 42,24 24,42 6,24" fill={`url(#${gradientId})`} />
     </svg>
   );
 };
@@ -233,15 +334,37 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
     const value = getValue(nutrient.id);
     const norm = getNorm(nutrient.id);
     const pct = getPercentage(nutrient.id);
-    const isMineralGroup = nutrient.group === 'minerals';
+    const groupColors = getGroupColors(nutrient.name, nutrient.group);
+
+    let decoration: JSX.Element | null = null;
+    if (nutrient.group === 'minerals') {
+      decoration = <PentagonDecoration nutrientName={nutrient.name} />;
+    } else if (nutrient.group === 'vitamins') {
+      decoration = <VitaminSun nutrientName={nutrient.name} />;
+    } else if (nutrient.group === 'aminoAcids') {
+      decoration = <AminoAcidDiamond nutrientName={nutrient.name} />;
+    }
+
+    const progressColor = groupColors?.color1;
 
     return (
-      <div key={nutrient.id} className={`${s.row} ${s[nutrient.group]}`}>
+      <div key={nutrient.id} className={`${s.row} ${s[nutrient.group]}`} data-nutrient={nutrient.name}>
         <div className={s.rowTop}>
-          {isMineralGroup && <PentagonDecoration nutrientName={nutrient.name} />}
+          {decoration}
           <span className={s.name}>{nutrient.displayNameRu}</span>
           {isView && <span className={s.pct}>{norm ? `${pct}%` : ''}</span>}
         </div>
+        {isView && norm > 0 && progressColor && (
+          <div className={s.progressTrack} style={{ opacity: Math.min(pct, 100) / 100 }}>
+            <div
+              className={s.progressBar}
+              style={{
+                width: `${Math.min(pct, 100)}%`,
+                background: `linear-gradient(45deg, transparent 0%, ${progressColor} 100%)`,
+              }}
+            />
+          </div>
+        )}
         <div className={s.rowBottom}>
           {isView && (
             <>

@@ -1,12 +1,12 @@
 import toaster from '@/shared/lib/toaster/toaster';
 import { logMutationError } from '@/shared/lib/mutationLog';
 
-export function safeMutate<T>(
-  fn: () => T,
+export async function safeMutate<T>(
+  fn: () => T | Promise<T>,
   errorMessage = 'Не удалось сохранить',
-): T | undefined {
+): Promise<T | undefined> {
   try {
-    return fn();
+    return await fn();
   } catch (error) {
     console.error('[mutation error]', error);
     logMutationError(errorMessage, error);

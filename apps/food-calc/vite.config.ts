@@ -7,7 +7,6 @@ import { patchCssModules } from 'vite-css-modules';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync, existsSync } from 'fs';
-// import { livestoreDevtoolsPlugin } from '@livestore/devtools-vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -57,11 +56,9 @@ export default defineConfig({
       overlay: false,
       terminal: false,
     }),
-    // livestoreDevtoolsPlugin({ schemaPath: './src/livestore/schema.ts' }),
   ],
   optimizeDeps: {
     include: ['react', 'react-dom'],
-    exclude: ['@livestore/wa-sqlite'],
   },
   resolve: {
     alias: {

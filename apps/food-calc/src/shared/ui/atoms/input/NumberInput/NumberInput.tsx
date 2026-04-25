@@ -1,5 +1,4 @@
 import { forwardRef, useRef } from 'react';
-import { observer } from 'mobx-react-lite';
 import styles from './NumberInput.module.scss';
 import clsx from 'clsx';
 
@@ -97,4 +96,4 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
 
 NumberInput.displayName = 'NumberInput';
 
-export default observer(NumberInput);
+export default NumberInput;
