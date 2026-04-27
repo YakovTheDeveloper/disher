@@ -7,16 +7,16 @@ import { RouterProvider } from 'react-router-dom';
 // }
 
 import { router } from '@/app/router.tsx';
-import { PowerSyncProvider } from '@/powersync/PowerSyncProvider';
+import { SyncProvider } from '@/shared/lib/sync/SyncProvider';
 
 // Request persistent storage (prevents iOS Safari 7-day IDB eviction)
 navigator.storage?.persist?.();
 
 const root = document.getElementById('root')!;
 ReactDOM.createRoot(root).render(
-  <PowerSyncProvider>
+  <SyncProvider>
     <RouterProvider router={router} />
-  </PowerSyncProvider>
+  </SyncProvider>
 );
 
 // Reveal UI after first paint to prevent FOUC

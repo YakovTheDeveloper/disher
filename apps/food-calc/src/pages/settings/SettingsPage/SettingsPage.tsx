@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import Button from '@/shared/ui/atoms/Button/Button';
-import { db } from '@/shared/lib/storage/db';
+import { clear as idbClear } from 'idb-keyval';
+import { clearPending } from '@/shared/lib/storage/pendingWrites';
+import { queryClient } from '@/shared/lib/storage/queryClient';
 import styles from './SettingsPage.module.scss';
 
 const SettingsPage = () => {
@@ -9,7 +11,9 @@ const SettingsPage = () => {
   const handleClearStorage = async () => {
     setIsClearing(true);
     try {
-      await db.snapshots.clear();
+      await clearPending();
+      queryClient.clear();
+      await idbClear();
       localStorage.clear();
       window.location.reload();
     } catch {

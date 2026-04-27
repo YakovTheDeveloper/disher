@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { devtools, persist, createJSONStorage } from "zustand/middleware";
+import { get as idbGet, set as idbSet, del as idbDel } from "idb-keyval";
 
 export interface ProductDraft {
   id: string;
@@ -28,28 +29,47 @@ const DEFAULT: ProductDraft = {
   quantity: 100,
 };
 
+const idbStorage = {
+  getItem: async (name: string) => {
+    const v = await idbGet(name);
+    return (v as string | undefined) ?? null;
+  },
+  setItem: async (name: string, value: string) => {
+    await idbSet(name, value);
+  },
+  removeItem: async (name: string) => {
+    await idbDel(name);
+  },
+};
+
 export const useProductDraftStore = create<ProductDraftStore>()(
   devtools(
-    (set) => ({
-      draft: { ...DEFAULT },
-      setProduct: (productId) =>
-        set(
-          (s) => ({ draft: { ...s.draft, variant: "product", productId, dishId: null } }),
-          false,
-          "setProduct",
-        ),
-      setDish: (dishId) =>
-        set(
-          (s) => ({ draft: { ...s.draft, variant: "dish", dishId, productId: null } }),
-          false,
-          "setDish",
-        ),
-      setTime: (time) =>
-        set((s) => ({ draft: { ...s.draft, time } }), false, "setTime"),
-      setQuantity: (quantity) =>
-        set((s) => ({ draft: { ...s.draft, quantity } }), false, "setQuantity"),
-      clear: () => set({ draft: { ...DEFAULT } }, false, "clear"),
-    }),
+    persist(
+      (set) => ({
+        draft: { ...DEFAULT },
+        setProduct: (productId) =>
+          set(
+            (s) => ({ draft: { ...s.draft, variant: "product", productId, dishId: null } }),
+            false,
+            "setProduct",
+          ),
+        setDish: (dishId) =>
+          set(
+            (s) => ({ draft: { ...s.draft, variant: "dish", dishId, productId: null } }),
+            false,
+            "setDish",
+          ),
+        setTime: (time) =>
+          set((s) => ({ draft: { ...s.draft, time } }), false, "setTime"),
+        setQuantity: (quantity) =>
+          set((s) => ({ draft: { ...s.draft, quantity } }), false, "setQuantity"),
+        clear: () => set({ draft: { ...DEFAULT } }, false, "clear"),
+      }),
+      {
+        name: "product-draft",
+        storage: createJSONStorage(() => idbStorage),
+      },
+    ),
     { name: "product-draft" },
   ),
 );

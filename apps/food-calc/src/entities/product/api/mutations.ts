@@ -1,11 +1,37 @@
-import { db } from "@/powersync/database";
-import { supabase } from "@/powersync/supabase-client";
+import { enqueue, drain } from "@/shared/lib/storage/pendingWrites";
+import { queryClient } from "@/shared/lib/storage/queryClient";
+import { getUserIdSync } from "@/shared/lib/auth/useUserId";
+import type { Product } from "../model/types";
 
-async function currentUserId(): Promise<string> {
-  const { data, error } = await supabase.auth.getUser();
-  if (error) throw error;
-  if (!data.user) throw new Error("Not authenticated");
-  return data.user.id;
+const TABLE = "products";
+
+function requireUserId(): string {
+  const userId = getUserIdSync();
+  if (!userId) throw new Error("Not authenticated");
+  return userId;
+}
+
+function invalidateProducts() {
+  void queryClient.invalidateQueries({ queryKey: ["products"] });
+}
+
+function safeParseJson<T>(json: string | undefined, fallback: T): T {
+  if (!json) return fallback;
+  try {
+    return JSON.parse(json) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function patchProductsCache(
+  predicate: (p: Product) => boolean,
+  patch: (p: Product) => Product,
+) {
+  queryClient.setQueriesData<Product[]>({ queryKey: ["products", "all"] }, (old) => {
+    if (!old) return old;
+    return old.map((p) => (predicate(p) ? patch(p) : p));
+  });
 }
 
 export async function createProduct(params: {
@@ -15,26 +41,50 @@ export async function createProduct(params: {
   descriptionEng?: string;
 }): Promise<string> {
   const id = crypto.randomUUID();
-  const userId = await currentUserId();
-  await db.execute(
-    `insert into products
-      (id, user_id, name, name_eng, description, description_eng,
-       source, price_per_kg, nutrients, portions, categories)
-     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      id,
-      userId,
-      params.name,
-      params.nameEng ?? "",
-      params.description ?? "",
-      params.descriptionEng ?? "",
-      "",
-      0,
-      "{}",
-      "[]",
-      "[]",
-    ],
+  const userId = requireUserId();
+  const now = new Date().toISOString();
+  const row = {
+    id,
+    user_id: userId,
+    name: params.name,
+    name_eng: params.nameEng ?? "",
+    description: params.description ?? "",
+    description_eng: params.descriptionEng ?? "",
+    source: "",
+    price_per_kg: 0,
+    nutrients: {},
+    portions: [],
+    categories: [],
+    created_at: now,
+    updated_at: now,
+    deleted_at: null,
+  };
+
+  // Optimistic add to all "products/all/*" caches.
+  const optimistic: Product = {
+    id,
+    userId,
+    name: params.name,
+    nameEng: params.nameEng ?? "",
+    description: params.description ?? "",
+    descriptionEng: params.descriptionEng ?? "",
+    source: "",
+    pricePerKg: 0,
+    nutrients: "{}",
+    portions: "[]",
+    categories: "[]",
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+  };
+  queryClient.setQueriesData<Product[]>(
+    { queryKey: ["products", "all"] },
+    (old) => (old ? [...old, optimistic] : old),
   );
+
+  await enqueue({ table: TABLE, op: "insert", payload: row });
+  void drain();
+  invalidateProducts();
   return id;
 }
 
@@ -62,38 +112,91 @@ const COLUMN_MAP: Record<keyof ProductUpdates, string> = {
   categories: "categories",
 };
 
-export async function updateProduct(productId: string, updates: ProductUpdates): Promise<void> {
+const JSON_FIELDS: ReadonlySet<keyof ProductUpdates> = new Set([
+  "nutrients",
+  "portions",
+  "categories",
+]);
+
+function buildUpdatePayload(productId: string, updates: ProductUpdates) {
+  const payload: Record<string, unknown> = {
+    id: productId,
+    updated_at: new Date().toISOString(),
+  };
+  for (const key of Object.keys(updates) as (keyof ProductUpdates)[]) {
+    const col = COLUMN_MAP[key];
+    const raw = updates[key];
+    if (JSON_FIELDS.has(key)) {
+      payload[col] = safeParseJson<unknown>(raw as string, key === "nutrients" ? {} : []);
+    } else {
+      payload[col] = raw;
+    }
+  }
+  return payload;
+}
+
+export async function updateProduct(
+  productId: string,
+  updates: ProductUpdates,
+): Promise<void> {
   const keys = Object.keys(updates) as (keyof ProductUpdates)[];
   if (keys.length === 0) return;
-  const setClauses = keys.map((k) => `${COLUMN_MAP[k]} = ?`).join(", ");
-  const values = keys.map((k) => updates[k] as unknown);
-  await db.execute(
-    `update products set ${setClauses} where id = ?`,
-    [...values, productId],
+
+  // Optimistic patch in cache.
+  patchProductsCache(
+    (p) => p.id === productId,
+    (p) => {
+      const next: Product = { ...p };
+      for (const k of keys) {
+        // Cache stores stringified jsonb (matches queryFn normalization).
+        (next as unknown as Record<string, unknown>)[k] = updates[k];
+      }
+      next.updatedAt = new Date().toISOString();
+      return next;
+    },
   );
+
+  const payload = buildUpdatePayload(productId, updates);
+  await enqueue({ table: TABLE, op: "upsert", payload });
+  void drain();
+  invalidateProducts();
 }
 
-export async function setProductNutrients(productId: string, nutrients: string): Promise<void> {
-  await db.execute(`update products set nutrients = ? where id = ?`, [nutrients, productId]);
+export async function setProductNutrients(
+  productId: string,
+  nutrients: string,
+): Promise<void> {
+  await updateProduct(productId, { nutrients });
 }
 
-export async function setProductPortions(productId: string, portions: string): Promise<void> {
-  await db.execute(`update products set portions = ? where id = ?`, [portions, productId]);
+export async function setProductPortions(
+  productId: string,
+  portions: string,
+): Promise<void> {
+  await updateProduct(productId, { portions });
 }
 
 export async function deleteProduct(productId: string): Promise<void> {
-  await db.execute(
-    `update products set deleted_at = ? where id = ?`,
-    [new Date().toISOString(), productId],
+  // Optimistic removal.
+  queryClient.setQueriesData<Product[]>(
+    { queryKey: ["products", "all"] },
+    (old) => (old ? old.filter((p) => p.id !== productId) : old),
   );
+  await enqueue({ table: TABLE, op: "delete", payload: { id: productId } });
+  void drain();
+  invalidateProducts();
 }
 
 export async function deleteProducts(productIds: string[]): Promise<void> {
   if (productIds.length === 0) return;
-  const deletedAt = new Date().toISOString();
-  const placeholders = productIds.map(() => "?").join(", ");
-  await db.execute(
-    `update products set deleted_at = ? where id in (${placeholders})`,
-    [deletedAt, ...productIds],
+  const idSet = new Set(productIds);
+  queryClient.setQueriesData<Product[]>(
+    { queryKey: ["products", "all"] },
+    (old) => (old ? old.filter((p) => !idSet.has(p.id)) : old),
   );
+  for (const id of productIds) {
+    await enqueue({ table: TABLE, op: "delete", payload: { id } });
+  }
+  void drain();
+  invalidateProducts();
 }

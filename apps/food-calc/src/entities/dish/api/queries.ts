@@ -1,7 +1,18 @@
 import { useMemo } from "react";
-import { useQuery } from "@powersync/react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/shared/api/supabase-client";
 import { snakeToCamel } from "@/shared/lib/rowMapper";
+import { useUserId } from "@/shared/lib/auth/useUserId";
 import type { Dish, DishItem, DishPortion } from "../model/types";
+
+const DISH_COLUMNS =
+  "id, user_id, name, created_at, updated_at, deleted_at";
+
+const DISH_ITEM_COLUMNS =
+  "id, user_id, dish_id, product_id, quantity, created_at, updated_at, deleted_at";
+
+const DISH_PORTION_COLUMNS =
+  "id, user_id, dish_id, label, amount, unit, grams, created_at, updated_at, deleted_at";
 
 function mapDish(row: Record<string, unknown>): Dish {
   return snakeToCamel(row) as unknown as Dish;
@@ -15,28 +26,67 @@ function mapDishPortion(row: Record<string, unknown>): DishPortion {
   return snakeToCamel(row) as unknown as DishPortion;
 }
 
-const SELECT_DISH = `
-  select id, user_id, name, created_at, updated_at, deleted_at
-  from dishes
-  where deleted_at is null
-`;
+async function fetchAllDishes(): Promise<Dish[]> {
+  const { data, error } = await supabase
+    .from("dishes")
+    .select(DISH_COLUMNS)
+    .is("deleted_at", null);
+  if (error) throw error;
+  return (data ?? []).map((r) => mapDish(r as unknown as Record<string, unknown>));
+}
 
-const SELECT_DISH_ITEM = `
-  select id, user_id, dish_id, product_id, quantity, created_at, updated_at, deleted_at
-  from dish_items
-  where deleted_at is null
-`;
+async function fetchAllDishItems(): Promise<DishItem[]> {
+  const { data, error } = await supabase
+    .from("dish_items")
+    .select(DISH_ITEM_COLUMNS)
+    .is("deleted_at", null);
+  if (error) throw error;
+  return (data ?? []).map((r) => mapDishItem(r as unknown as Record<string, unknown>));
+}
 
-const SELECT_DISH_PORTION = `
-  select id, user_id, dish_id, label, amount, unit, grams, created_at, updated_at, deleted_at
-  from dish_portions
-  where deleted_at is null
-`;
+async function fetchAllDishPortions(): Promise<DishPortion[]> {
+  const { data, error } = await supabase
+    .from("dish_portions")
+    .select(DISH_PORTION_COLUMNS)
+    .is("deleted_at", null);
+  if (error) throw error;
+  return (data ?? []).map((r) => mapDishPortion(r as unknown as Record<string, unknown>));
+}
+
+function useAllDishesQuery() {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: ["dishes", "all", userId],
+    queryFn: fetchAllDishes,
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
+  });
+}
+
+function useAllDishItemsQuery() {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: ["dish_items", "all", userId],
+    queryFn: fetchAllDishItems,
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
+  });
+}
+
+function useAllDishPortionsQuery() {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: ["dish_portions", "all", userId],
+    queryFn: fetchAllDishPortions,
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
+  });
+}
 
 export function useDishes(search?: string): Dish[] {
-  const { data } = useQuery<Record<string, unknown>>(SELECT_DISH);
+  const { data } = useAllDishesQuery();
   return useMemo(() => {
-    const rows = data.map(mapDish);
+    const rows = data ?? [];
     if (!search) return rows;
     const lower = search.toLowerCase();
     return rows.filter((r) => r.name?.toLowerCase().includes(lower));
@@ -44,30 +94,41 @@ export function useDishes(search?: string): Dish[] {
 }
 
 export function useDish(dishId: string | undefined): Dish | null {
-  const { data } = useQuery<Record<string, unknown>>(
-    `${SELECT_DISH} and id = ?`,
-    [dishId ?? ""],
-  );
-  return data[0] ? mapDish(data[0]) : null;
+  const { data } = useAllDishesQuery();
+  return useMemo(() => {
+    if (!dishId || !data) return null;
+    return data.find((d) => d.id === dishId) ?? null;
+  }, [data, dishId]);
 }
 
 export function useDishItems(dishId: string | undefined): DishItem[] {
-  const { data } = useQuery<Record<string, unknown>>(
-    `${SELECT_DISH_ITEM} and dish_id = ?`,
-    [dishId ?? ""],
-  );
-  return data.map(mapDishItem);
+  const { data } = useAllDishItemsQuery();
+  return useMemo(() => {
+    if (!dishId || !data) return [];
+    return data.filter((r) => r.dishId === dishId);
+  }, [data, dishId]);
 }
 
 export function useDishItemsWithProducts(dishId: string | undefined) {
   const items = useDishItems(dishId);
-  const { data: productData } = useQuery<Record<string, unknown>>(
-    `select id, name from products where deleted_at is null`,
-  );
+  const userId = useUserId();
+  const { data: productData } = useQuery({
+    queryKey: ["products", "lookup", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name")
+        .is("deleted_at", null);
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; name: string }>;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
+  });
 
   return useMemo(() => {
     const productMap = new Map(
-      productData.map((p) => [p.id as string, p.name as string]),
+      (productData ?? []).map((p) => [p.id, p.name]),
     );
     return items.map((item) => ({
       ...item,
@@ -77,18 +138,18 @@ export function useDishItemsWithProducts(dishId: string | undefined) {
 }
 
 export function useDishPortions(dishId: string | undefined): DishPortion[] {
-  const { data } = useQuery<Record<string, unknown>>(
-    `${SELECT_DISH_PORTION} and dish_id = ?`,
-    [dishId ?? ""],
-  );
-  return data.map(mapDishPortion);
+  const { data } = useAllDishPortionsQuery();
+  return useMemo(() => {
+    if (!dishId || !data) return [];
+    return data.filter((r) => r.dishId === dishId);
+  }, [data, dishId]);
 }
 
 export function useDishItemsByDishIds(dishIds: string[]): DishItem[] {
-  const { data } = useQuery<Record<string, unknown>>(SELECT_DISH_ITEM);
+  const { data } = useAllDishItemsQuery();
   return useMemo(() => {
-    if (dishIds.length === 0) return [];
+    if (dishIds.length === 0 || !data) return [];
     const idSet = new Set(dishIds);
-    return data.map(mapDishItem).filter((r) => idSet.has(r.dishId));
+    return data.filter((r) => idSet.has(r.dishId));
   }, [data, dishIds]);
 }

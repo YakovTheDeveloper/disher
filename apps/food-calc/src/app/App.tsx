@@ -1,5 +1,4 @@
 import { Outlet } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import s from '@/shared/assets/style/App.module.scss';
 import '@/shared/assets/style/index.scss';
 import '@/shared/assets/style/App.module.scss';
@@ -15,8 +14,7 @@ import DrawerManager from '@/app/ui/DrawerManager';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/app/i18n';
 import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
-
-const queryClient = new QueryClient();
+import { PendingWritesBadge } from '@/shared/lib/sync/PendingWritesBadge';
 
 export default function App() {
   useLastFocusMethod();
@@ -26,34 +24,33 @@ export default function App() {
 
   return (
     <I18nextProvider i18n={i18n}>
-      <QueryClientProvider client={queryClient}>
-        <Toaster
-          position="top-center"
-          duration={6000}
-          closeButton
-          toastOptions={{
-            classNames: {
-              toast: 'toast',
-              success: 'toast--success',
-              error: 'toast--error',
-              info: 'toast--info',
-              warning: 'toast--warning',
-            },
-          }}
-        />
-        <div className={s.main}>
-          {shouldShowDvBar() && <DesignVariantsBar />}
-          <Modal>
-            <ModalManager />
-          </Modal>
+      <Toaster
+        position="top-center"
+        duration={6000}
+        closeButton
+        toastOptions={{
+          classNames: {
+            toast: 'toast',
+            success: 'toast--success',
+            error: 'toast--error',
+            info: 'toast--info',
+            warning: 'toast--warning',
+          },
+        }}
+      />
+      <div className={s.main}>
+        {shouldShowDvBar() && <DesignVariantsBar />}
+        <Modal>
+          <ModalManager />
+        </Modal>
 
-          <Drawer>
-            <DrawerManager />
-          </Drawer>
+        <Drawer>
+          <DrawerManager />
+        </Drawer>
 
-          <Outlet />
-        </div>
-      </QueryClientProvider>
+        <PendingWritesBadge />
+        <Outlet />
+      </div>
     </I18nextProvider>
   );
 }

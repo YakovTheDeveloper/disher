@@ -1,12 +1,34 @@
-import { db } from "@/powersync/database";
-import { supabase } from "@/powersync/supabase-client";
-import type { DailyNormItems } from "../model/types";
+import { enqueue, drain } from "@/shared/lib/storage/pendingWrites";
+import { queryClient } from "@/shared/lib/storage/queryClient";
+import { getUserIdSync } from "@/shared/lib/auth/useUserId";
+import type { DailyNorm, DailyNormItems } from "../model/types";
 
-async function currentUserId(): Promise<string> {
-  const { data, error } = await supabase.auth.getUser();
-  if (error) throw error;
-  if (!data.user) throw new Error("Not authenticated");
-  return data.user.id;
+const TABLE = "daily_norms";
+
+function requireUserId(): string {
+  const userId = getUserIdSync();
+  if (!userId) throw new Error("Not authenticated");
+  return userId;
+}
+
+function invalidateDailyNorms() {
+  void queryClient.invalidateQueries({ queryKey: ["daily_norms"] });
+}
+
+function patchDailyNormsCache(updater: (rows: DailyNorm[]) => DailyNorm[]) {
+  queryClient.setQueriesData<DailyNorm[]>(
+    { queryKey: ["daily_norms", "all"] },
+    (old) => (old ? updater(old) : old),
+  );
+}
+
+function safeParseItems(json: string | undefined): DailyNormItems {
+  if (!json) return {};
+  try {
+    return JSON.parse(json) as DailyNormItems;
+  } catch {
+    return {};
+  }
 }
 
 export async function createDailyNorm(
@@ -15,35 +37,83 @@ export async function createDailyNorm(
   items?: DailyNormItems,
 ): Promise<string> {
   const id = crypto.randomUUID();
-  const userId = await currentUserId();
+  const userId = requireUserId();
   const now = new Date().toISOString();
-  await db.execute(
-    `insert into daily_norms (id, user_id, name, description, items, created_at)
-     values (?, ?, ?, ?, ?, ?)`,
-    [id, userId, name, description, JSON.stringify(items ?? {}), now],
-  );
+  const itemsObj = items ?? {};
+
+  const row = {
+    id,
+    user_id: userId,
+    name,
+    description,
+    items: itemsObj,
+    created_at: now,
+    updated_at: now,
+    deleted_at: null,
+  };
+
+  const optimistic: DailyNorm = {
+    id,
+    userId,
+    name,
+    description,
+    items: JSON.stringify(itemsObj),
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+  };
+  patchDailyNormsCache((rows) => [...rows, optimistic]);
+
+  await enqueue({ table: TABLE, op: "insert", payload: row });
+  void drain();
+  invalidateDailyNorms();
   return id;
 }
 
+type DailyNormUpdates = Partial<{
+  name: string;
+  description: string;
+  items: string; // serialized JSON; converted to object before enqueue.
+}>;
+
 export async function updateDailyNorm(
   normId: string,
-  updates: Partial<{ name: string; description: string; items: string }>,
+  updates: DailyNormUpdates,
 ): Promise<void> {
-  const keys = Object.keys(updates) as (keyof typeof updates)[];
+  const keys = Object.keys(updates) as (keyof DailyNormUpdates)[];
   if (keys.length === 0) return;
-  const setClauses = keys.map((k) => `${k} = ?`).join(", ");
-  const values = keys.map((k) => updates[k]);
-  await db.execute(
-    `update daily_norms set ${setClauses}, updated_at = ? where id = ?`,
-    [...values, new Date().toISOString(), normId],
+
+  const now = new Date().toISOString();
+  patchDailyNormsCache((rows) =>
+    rows.map((n) => {
+      if (n.id !== normId) return n;
+      const next: DailyNorm = { ...n };
+      for (const k of keys) {
+        if (k === "name") next.name = updates.name as string;
+        else if (k === "description") next.description = updates.description as string;
+        else if (k === "items") next.items = updates.items as string;
+      }
+      next.updatedAt = now;
+      return next;
+    }),
   );
+
+  const payload: Record<string, unknown> = { id: normId, updated_at: now };
+  for (const k of keys) {
+    if (k === "items") payload.items = safeParseItems(updates.items);
+    else payload[k] = updates[k];
+  }
+
+  await enqueue({ table: TABLE, op: "upsert", payload });
+  void drain();
+  invalidateDailyNorms();
 }
 
 export async function deleteDailyNorm(normId: string): Promise<void> {
-  await db.execute(
-    `update daily_norms set deleted_at = ? where id = ?`,
-    [new Date().toISOString(), normId],
-  );
+  patchDailyNormsCache((rows) => rows.filter((n) => n.id !== normId));
+  await enqueue({ table: TABLE, op: "delete", payload: { id: normId } });
+  void drain();
+  invalidateDailyNorms();
 }
 
 export async function setDailyNormNutrient(
@@ -58,29 +128,5 @@ export async function setDailyNormNutrient(
   } else {
     next[nutrientId] = quantity;
   }
-  await db.execute(
-    `update daily_norms set items = ?, updated_at = ? where id = ?`,
-    [JSON.stringify(next), new Date().toISOString(), normId],
-  );
-}
-
-export async function seedDefaultDailyNorm(
-  defaults: Record<string, number>,
-): Promise<void> {
-  const normId = "DEFAULT_NORM";
-  const userId = await currentUserId();
-  const now = new Date().toISOString();
-  await db.execute(
-    `insert into daily_norms (id, user_id, name, description, items, created_at)
-     values (?, ?, ?, ?, ?, ?)
-     on conflict(id) do nothing`,
-    [
-      normId,
-      userId,
-      "Стандарт",
-      "Стандартная норма потребления, для среднестатистического человека",
-      JSON.stringify(defaults),
-      now,
-    ],
-  );
+  await updateDailyNorm(normId, { items: JSON.stringify(next) });
 }

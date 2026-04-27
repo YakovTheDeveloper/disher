@@ -119,7 +119,13 @@ export const WriteFoodModal = ({
               }
               right={
                 state === 'idle' ? (
-                  <ModalNextButton onClick={() => submit(inputText)} label="Отправить" />
+                  <ModalNextButton
+                    onClick={() => {
+                      if (!online) return;
+                      submit(inputText);
+                    }}
+                    label={online ? 'Отправить' : 'Нет сети'}
+                  />
                 ) : state === 'loading' ? (
                   <ModalNextButton onClick={() => {}} label="Ожидаем…" />
                 ) : state === 'ready' ? (

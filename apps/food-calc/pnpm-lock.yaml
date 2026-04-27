@@ -11,24 +11,21 @@ importers:
       '@floating-ui/react':
         specifier: 0.27.0
         version: 0.27.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@journeyapps/wa-sqlite':
-        specifier: ^1.7.0
-        version: 1.7.0
-      '@powersync/react':
-        specifier: ^1.10.0
-        version: 1.10.0(@powersync/common@1.52.0)(react@19.2.4)
-      '@powersync/web':
-        specifier: ^1.37.2
-        version: 1.37.2(@journeyapps/wa-sqlite@1.7.0)(@powersync/common@1.52.0)
       '@radix-ui/react-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@supabase/supabase-js':
         specifier: ^2.104.1
         version: 2.104.1
+      '@tanstack/query-async-storage-persister':
+        specifier: ^5.100.5
+        version: 5.100.5
       '@tanstack/react-query':
-        specifier: ^5.90.2
-        version: 5.95.2(react@19.2.4)
+        specifier: ^5.100.5
+        version: 5.100.5(react@19.2.4)
+      '@tanstack/react-query-persist-client':
+        specifier: ^5.100.5
+        version: 5.100.5(@tanstack/react-query@5.100.5(react@19.2.4))(react@19.2.4)
       '@trpc/client':
         specifier: ^11.5.0
         version: 11.16.0(@trpc/server@11.16.0(typescript@5.9.3))(typescript@5.9.3)
@@ -44,9 +41,6 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
-      dexie:
-        specifier: ^4.2.1
-        version: 4.4.1
       embla-carousel:
         specifier: ^8.6.0
         version: 8.6.0
@@ -59,6 +53,9 @@ importers:
       i18next:
         specifier: ^25.8.1
         version: 25.10.10(typescript@5.9.3)
+      idb-keyval:
+        specifier: ^6.2.2
+        version: 6.2.2
       lodash:
         specifier: ^4.17.21
         version: 4.17.23
@@ -204,6 +201,9 @@ importers:
       fake-indexeddb:
         specifier: ^6.2.5
         version: 6.2.5
+      fast-check:
+        specifier: ^4.7.0
+        version: 4.7.0
       globals:
         specifier: ^16.3.0
         version: 16.5.0
@@ -1236,9 +1236,6 @@ packages:
     resolution: {integrity: sha512-u3UPsIilWKOM3F9CXtrG8LEJmNxwoCQC/XVj4IKYXvvpx7QIi/Kg1LI5uDmDpKlac62NUtX7eLjRh+jVZcLOzw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
-  '@journeyapps/wa-sqlite@1.7.0':
-    resolution: {integrity: sha512-xQZ670aKDo4FWxIFpLqY0AGDpURr09aYIO08UkLdWvFw8C018nCiqY0ILJudGRhRdXORhv7K2xD2OXZ2QxU39w==}
-
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
 
@@ -1367,22 +1364,6 @@ packages:
   '@pkgr/core@0.2.9':
     resolution: {integrity: sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
-
-  '@powersync/common@1.52.0':
-    resolution: {integrity: sha512-rs50iEPcUSjLdKjnQZ4VbtK3U5+MTaY/YVCruN0hGmDMIn6wlT+EDsNFosAUAh6waLDEDfuKbvtHRhPKdBQ/Qg==}
-
-  '@powersync/react@1.10.0':
-    resolution: {integrity: sha512-orM29qocbF8zYTBM27j9nPNztyplpbNVaw8djpqxl8N2wESqHTbHOKpatg+Fa5aofgjzmrkiGwevJvCbiWYYWQ==}
-    peerDependencies:
-      '@powersync/common': ^1.51.0
-      react: '*'
-
-  '@powersync/web@1.37.2':
-    resolution: {integrity: sha512-czCY8QFm3LGXAB8LD0O2D0dW2PAx+HZjuEPFMb+Y9MfsWBz124d4q//oJtChBXORfFIW/N6Bc9bxKod/OMXBxg==}
-    hasBin: true
-    peerDependencies:
-      '@journeyapps/wa-sqlite': ^1.5.0
-      '@powersync/common': ^1.52.0
 
   '@radix-ui/primitive@1.1.3':
     resolution: {integrity: sha512-JTF99U/6XIjCBo0wqkU5sK10glYe27MRRsfwoiq5zzOEZLHU3A3KCMa5X/azekYRCJ0HlwI0crAXS/5dEHTzDg==}
@@ -1958,11 +1939,23 @@ packages:
     resolution: {integrity: sha512-r5bClKrcIusDoo049dSL8CawnHR6mRdDwhlQuIgZRNty68q0x8k3Lf1BtPAMxRf/GgnHBnIO4ujd3+GQdLWzxQ==}
     engines: {node: '>=16.0.0'}
 
-  '@tanstack/query-core@5.95.2':
-    resolution: {integrity: sha512-o4T8vZHZET4Bib3jZ/tCW9/7080urD4c+0/AUaYVpIqOsr7y0reBc1oX3ttNaSW5mYyvZHctiQ/UOP2PfdmFEQ==}
+  '@tanstack/query-async-storage-persister@5.100.5':
+    resolution: {integrity: sha512-Jdke52IjYiv6WDcMbOT9ujWatJSqxwd4zarT8rqkRdc9VgFUaeuTJ57O1Vnu6RVDRnWB2B0mOV8fRZDZ1E4Scg==}
 
-  '@tanstack/react-query@5.95.2':
-    resolution: {integrity: sha512-/wGkvLj/st5Ud1Q76KF1uFxScV7WeqN1slQx5280ycwAyYkIPGaRZAEgHxe3bjirSd5Zpwkj6zNcR4cqYni/ZA==}
+  '@tanstack/query-core@5.100.5':
+    resolution: {integrity: sha512-t20KrhKkf0HXzqQkPbJ5erhFesup68BAbwFgYmTrS7bxMF7O5MdmL8jUkik4thsG7Hg00fblz30h6yF1d5TxGg==}
+
+  '@tanstack/query-persist-client-core@5.100.5':
+    resolution: {integrity: sha512-Vp8UL1GL/QRBWmUT+6pUmsjNhL72Vme8hJ7fTox2A8/syrCab0nCHBbskbhioRtJrdLw7k8sZos/068A8ZTEwA==}
+
+  '@tanstack/react-query-persist-client@5.100.5':
+    resolution: {integrity: sha512-yLnQlvhm1Dd4nbzyqDsgEonEGnBFz/t2gidqHx1mzOjZR/dknAYPmqFoiQwuVSVLrgmJVHsXEsXBjFDTA2CIDQ==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.100.5
+      react: ^18 || ^19
+
+  '@tanstack/react-query@5.100.5':
+    resolution: {integrity: sha512-aNwj1mi2v2bQ9IxkyR1grLOUkv3BYWoykHy9KDyLNbjC3tsahbOHJibK+Wjtr1wRhG59/AvJhiJG5OlthaCgJA==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -2487,10 +2480,6 @@ packages:
   bser@2.1.1:
     resolution: {integrity: sha512-gQxTNE/GAfIIrmHLUE3oJyp5FO6HRBfhjnw4/wMmA63ZGDJnWBmgY/lyQBpnDUkGmAhbSe39tx2d/iTOAfglwQ==}
 
-  bson@6.10.4:
-    resolution: {integrity: sha512-WIsKqkSC0ABoBJuT1LEX+2HEvNmNKKgnTAyd0fL8qzK4SH2i9NXg+t08YtdZp/V9IZ33cxe3iV4yM0qg8lMQng==}
-    engines: {node: '>=16.20.1'}
-
   buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
 
@@ -2608,15 +2597,8 @@ packages:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
     engines: {node: '>= 0.8'}
 
-  comlink@4.4.2:
-    resolution: {integrity: sha512-OxGdvBmJuNKSCMO4NTl1L47VRp6xn2wG4F/2hYzB6tiCb709otOxtEYCSvK80PtjODfXXZu8ds+Nw5kVCjqd2g==}
-
   comma-separated-tokens@2.0.3:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
-
-  commander@12.1.0:
-    resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
-    engines: {node: '>=18'}
 
   commander@2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
@@ -2782,9 +2764,6 @@ packages:
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
-
-  dexie@4.4.1:
-    resolution: {integrity: sha512-4Xec5+yrS+TgyFAnMrneFOt/QG8sD3FxlkUVpfypui3SriRN80UN0SZBWmkNAY7ulfKgk0ilvv7M6pBURprdgA==}
 
   diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
@@ -3041,9 +3020,6 @@ packages:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
 
-  event-iterator@2.0.0:
-    resolution: {integrity: sha512-KGft0ldl31BZVV//jj+IAIGCxkvvUkkON+ScH6zfoX+l+omX6001ggyRSpI0Io2Hlro0ThXotswCtfzS8UkIiQ==}
-
   eventemitter3@5.0.4:
     resolution: {integrity: sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw==}
 
@@ -3069,6 +3045,10 @@ packages:
   fake-indexeddb@6.2.5:
     resolution: {integrity: sha512-CGnyrvbhPlWYMngksqrSSUT1BAVP49dZocrHuK0SvtR0D5TMs5wP0o3j7jexDJW01KSadjBp1M/71o/KR3nD1w==}
     engines: {node: '>=18'}
+
+  fast-check@4.7.0:
+    resolution: {integrity: sha512-NsZRtqvSSoCP0HbNjUD+r1JH8zqZalyp6gLY9e7OYs7NK9b6AHOs2baBFeBG7bVNsuoukh89x2Yg3rPsul8ziQ==}
+    engines: {node: '>=12.17.0'}
 
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
@@ -3393,6 +3373,9 @@ packages:
     engines: {node: ^10 || ^12 || >= 14}
     peerDependencies:
       postcss: ^8.1.0
+
+  idb-keyval@6.2.2:
+    resolution: {integrity: sha512-yjD9nARJ/jb1g+CvD0tlhUHOrJ9Sy0P8T9MF3YaLlHnSRpwPfpTX0XIvpmw3gAJUmEu3FiICLBDPXVwyEvrleg==}
 
   idb@7.1.1:
     resolution: {integrity: sha512-gchesWBzyvGHRO9W8tzUWFDycow5gwjvFKfyV9FF32Y7F50yZMp7mP+T2mJIWFx49zicqyC4uefHM17o6xKIVQ==}
@@ -4433,6 +4416,9 @@ packages:
 
   pure-rand@6.1.0:
     resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
+
+  pure-rand@8.4.0:
+    resolution: {integrity: sha512-IoM8YF/jY0hiugFo/wOWqfmarlE6J0wc6fDK1PhftMk7MGhVZl88sZimmqBBFomLOCSmcCCpsfj7wXASCpvK9A==}
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
@@ -6770,8 +6756,6 @@ snapshots:
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
-  '@journeyapps/wa-sqlite@1.7.0': {}
-
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -6877,23 +6861,6 @@ snapshots:
   '@pixi/colord@2.9.6': {}
 
   '@pkgr/core@0.2.9': {}
-
-  '@powersync/common@1.52.0':
-    dependencies:
-      event-iterator: 2.0.0
-
-  '@powersync/react@1.10.0(@powersync/common@1.52.0)(react@19.2.4)':
-    dependencies:
-      '@powersync/common': 1.52.0
-      react: 19.2.4
-
-  '@powersync/web@1.37.2(@journeyapps/wa-sqlite@1.7.0)(@powersync/common@1.52.0)':
-    dependencies:
-      '@journeyapps/wa-sqlite': 1.7.0
-      '@powersync/common': 1.52.0
-      bson: 6.10.4
-      comlink: 4.4.2
-      commander: 12.1.0
 
   '@radix-ui/primitive@1.1.3': {}
 
@@ -7360,11 +7327,26 @@ snapshots:
 
   '@tabby_ai/hijri-converter@1.0.5': {}
 
-  '@tanstack/query-core@5.95.2': {}
-
-  '@tanstack/react-query@5.95.2(react@19.2.4)':
+  '@tanstack/query-async-storage-persister@5.100.5':
     dependencies:
-      '@tanstack/query-core': 5.95.2
+      '@tanstack/query-core': 5.100.5
+      '@tanstack/query-persist-client-core': 5.100.5
+
+  '@tanstack/query-core@5.100.5': {}
+
+  '@tanstack/query-persist-client-core@5.100.5':
+    dependencies:
+      '@tanstack/query-core': 5.100.5
+
+  '@tanstack/react-query-persist-client@5.100.5(@tanstack/react-query@5.100.5(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@tanstack/query-persist-client-core': 5.100.5
+      '@tanstack/react-query': 5.100.5(react@19.2.4)
+      react: 19.2.4
+
+  '@tanstack/react-query@5.100.5(react@19.2.4)':
+    dependencies:
+      '@tanstack/query-core': 5.100.5
       react: 19.2.4
 
   '@testing-library/dom@10.4.1':
@@ -8004,8 +7986,6 @@ snapshots:
     dependencies:
       node-int64: 0.4.0
 
-  bson@6.10.4: {}
-
   buffer-from@1.1.2: {}
 
   cac@6.7.14: {}
@@ -8109,11 +8089,7 @@ snapshots:
     dependencies:
       delayed-stream: 1.0.0
 
-  comlink@4.4.2: {}
-
   comma-separated-tokens@2.0.3: {}
-
-  commander@12.1.0: {}
 
   commander@2.20.3: {}
 
@@ -8258,8 +8234,6 @@ snapshots:
   devlop@1.1.0:
     dependencies:
       dequal: 2.0.3
-
-  dexie@4.4.1: {}
 
   diff-sequences@29.6.3: {}
 
@@ -8654,8 +8628,6 @@ snapshots:
 
   esutils@2.0.3: {}
 
-  event-iterator@2.0.0: {}
-
   eventemitter3@5.0.4: {}
 
   execa@5.1.1:
@@ -8685,6 +8657,10 @@ snapshots:
   extend@3.0.2: {}
 
   fake-indexeddb@6.2.5: {}
+
+  fast-check@4.7.0:
+    dependencies:
+      pure-rand: 8.4.0
 
   fast-deep-equal@3.1.3: {}
 
@@ -9027,6 +9003,8 @@ snapshots:
   icss-utils@5.1.0(postcss@8.5.8):
     dependencies:
       postcss: 8.5.8
+
+  idb-keyval@6.2.2: {}
 
   idb@7.1.1: {}
 
@@ -10440,6 +10418,8 @@ snapshots:
   punycode@2.3.1: {}
 
   pure-rand@6.1.0: {}
+
+  pure-rand@8.4.0: {}
 
   queue-microtask@1.2.3: {}
 

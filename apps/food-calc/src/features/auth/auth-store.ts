@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { supabase } from '@/powersync/supabase-client';
-import { db } from '@/powersync/database';
+import { supabase } from '@/shared/api/supabase-client';
+import { queryClient } from '@/shared/lib/storage/queryClient';
+import { clearPending } from '@/shared/lib/storage/pendingWrites';
 
 type AuthState = {
   isLoggedIn: boolean;
@@ -62,12 +63,14 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
 
   signIn: async (email, password) => {
     set({ isLoading: true, error: null });
-    // Wipe the local DB BEFORE switching identities — anon data must not bleed
-    // into the signed-in account's local cache.
+    // Wipe local cache + pending queue BEFORE switching identities — old uid's
+    // data must not bleed into the signed-in account, and old pending writes
+    // would now violate RLS (see план: 42501 митигация).
     try {
-      await db.disconnectAndClear();
+      await clearPending();
+      queryClient.clear();
     } catch (e) {
-      console.error('disconnectAndClear before signIn failed', e);
+      console.error('cache clear before signIn failed', e);
     }
     await supabase.auth.signOut();
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -93,18 +96,40 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   },
 
   upgradeAnonymous: async (email, password) => {
+    // Двухшаговый upgrade (см. план, Инвариант 13): updateUser({email, password})
+    // одним вызовом возвращает 422 — Supabase требует сначала привязать email
+    // (создаёт confirmation challenge), затем установить password.
     set({ isLoading: true, error: null });
-    const { data, error } = await supabase.auth.updateUser({ email, password });
-    if (error || !data.user) {
-      set({ isLoading: false, error: error?.message ?? 'Upgrade failed' });
+
+    const emailRes = await supabase.auth.updateUser({ email });
+    if (emailRes.error) {
+      set({ isLoading: false, error: emailRes.error.message });
       return false;
     }
-    applyUser(set, data.user);
+
+    const passRes = await supabase.auth.updateUser({ password });
+    if (passRes.error || !passRes.data.user) {
+      set({
+        isLoading: false,
+        error: passRes.error?.message ?? 'Не удалось установить пароль',
+      });
+      return false;
+    }
+
+    applyUser(set, passRes.data.user);
     set({ isLoading: false });
     return true;
   },
 
   signOut: async () => {
+    // Очистить очередь и cache ДО signOut — старая очередь принадлежит uid_old,
+    // после signOut RLS заблокирует все её записи (см. план: 42501).
+    try {
+      await clearPending();
+      queryClient.clear();
+    } catch (e) {
+      console.error('cache clear before signOut failed', e);
+    }
     await supabase.auth.signOut();
     applyUser(set, null);
   },

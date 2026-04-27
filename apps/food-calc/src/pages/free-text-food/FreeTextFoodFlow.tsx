@@ -5,8 +5,9 @@ import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import Button from '@/shared/ui/atoms/Button/Button';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { db } from '@/powersync/database';
-import { supabase } from '@/powersync/supabase-client';
+import { addScheduleFood } from '@/entities/schedule-food/api/mutations';
+import { addDishItem } from '@/entities/dish/api/mutations';
+import { useUserId } from '@/shared/lib/auth/useUserId';
 import { RouterUrls } from '@/app/router';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import {
@@ -409,16 +410,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
 
   // ─── Commit ───
 
-  const [userId, setUserId] = useState<string | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    void supabase.auth.getUser().then(({ data }) => {
-      if (!cancelled) setUserId(data.user?.id ?? null);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const userId = useUserId();
 
   const buildTelemetry = useCallback(
     (
@@ -581,65 +573,40 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
         return;
       }
 
+      if (!userId && mode.kind !== 'standalone') {
+        toaster.error('Не авторизованы');
+        setIsSubmitting(false);
+        return;
+      }
+
       let ok: unknown;
-      let newScheduleIds: string[] = [];
+      const newScheduleIds: string[] = [];
       if (mode.kind === 'schedule') {
         const date = mode.date;
-        newScheduleIds = committed.map(() => crypto.randomUUID());
         ok = await safeMutate(async () => {
-          const { data: userData, error } = await supabase.auth.getUser();
-          if (error) throw error;
-          if (!userData.user) throw new Error('Not authenticated');
-          const writerUserId = userData.user.id;
-          const now = new Date().toISOString();
-          await db.writeTransaction(async (tx) => {
-            for (let idx = 0; idx < committed.length; idx += 1) {
-              const c = committed[idx];
-              await tx.execute(
-                `insert into schedule_foods
-                   (id, user_id, date, time, type, quantity, details, product_id, dish_id, created_at)
-                 values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [
-                  newScheduleIds[idx],
-                  writerUserId,
-                  date,
-                  c.time,
-                  'food',
-                  c.quantity,
-                  c.note ?? '',
-                  c.productId,
-                  '',
-                  now,
-                ],
-              );
-            }
-          });
+          for (const c of committed) {
+            const id = await addScheduleFood({
+              date,
+              time: c.time,
+              type: 'food',
+              quantity: c.quantity,
+              productId: c.productId,
+              details: c.note ?? '',
+            });
+            newScheduleIds.push(id);
+          }
           return true;
         }, 'Не удалось добавить продукты');
       } else if (mode.kind === 'dish') {
         const dishId = mode.dishId;
         ok = await safeMutate(async () => {
-          const { data: userData, error } = await supabase.auth.getUser();
-          if (error) throw error;
-          if (!userData.user) throw new Error('Not authenticated');
-          const writerUserId = userData.user.id;
-          const now = new Date().toISOString();
-          await db.writeTransaction(async (tx) => {
-            for (const c of committed) {
-              await tx.execute(
-                `insert into dish_items (id, user_id, dish_id, product_id, quantity, created_at)
-                 values (?, ?, ?, ?, ?, ?)`,
-                [
-                  crypto.randomUUID(),
-                  writerUserId,
-                  dishId,
-                  c.productId,
-                  c.quantity,
-                  now,
-                ],
-              );
-            }
-          });
+          for (const c of committed) {
+            await addDishItem({
+              dishId,
+              productId: c.productId,
+              quantity: c.quantity,
+            });
+          }
           return true;
         }, 'Не удалось добавить продукты в блюдо');
       } else {
@@ -677,6 +644,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
     navigate,
     sendTelemetryIfNotSent,
     parseTarget,
+    userId,
   ]);
 
   const isDishMode = mode.kind === 'dish';

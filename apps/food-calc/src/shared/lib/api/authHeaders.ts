@@ -1,4 +1,4 @@
-import { supabase } from '@/powersync/supabase-client';
+import { supabase } from '@/shared/api/supabase-client';
 
 /**
  * Build an Authorization header from the current Supabase session.
