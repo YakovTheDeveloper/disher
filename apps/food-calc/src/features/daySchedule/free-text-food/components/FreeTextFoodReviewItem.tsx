@@ -6,7 +6,6 @@ import TimeChoose from '@/shared/ui/TimeChoose/TimeChoose';
 import { modalStore, type BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
 import ModalConfirmation from '@/shared/ui/Modal/ModalConfirmation/ModalConfirmation';
-import { openFreeTextFoodSearch } from '@/features/daySchedule/free-text-food/openFreeTextFoodSearch';
 import styles from './FreeTextFoodReviewItem.module.scss';
 
 interface MatchCandidate {
@@ -45,7 +44,6 @@ interface FreeTextFoodReviewItemProps {
   selectedCandidateId?: string | null;
   onSelectCandidate?: (id: string) => void;
   onEditTime?: (time: string) => void;
-  onEditFood?: (productId: string, name: string) => void;
   onEditQuantity?: (quantity: number) => void;
   onDeleteNote?: () => void;
   onDeleteItem?: () => void;
@@ -60,7 +58,6 @@ export const FreeTextFoodReviewItem = ({
   selectedCandidateId,
   onSelectCandidate,
   onEditTime,
-  onEditFood,
   onEditQuantity,
   onDeleteNote,
   onDeleteItem,
@@ -101,10 +98,7 @@ export const FreeTextFoodReviewItem = ({
           <button
             type="button"
             className={styles.nameButton}
-            onClick={async () => {
-              const picked = await openFreeTextFoodSearch(item.originalName);
-              if (picked) onEditFood?.(picked.id, picked.name);
-            }}
+            onClick={() => onFindManually?.()}
           >
             <FoodName className={styles.name} content={{ name: item.name }} />
           </button>

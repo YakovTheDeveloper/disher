@@ -3,6 +3,16 @@
   cursor: pointer;
 }
 
+.container:not(.expanded) {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  cursor: default;
+}
+
 .container.fixed {
   position: fixed;
 }
@@ -42,8 +52,6 @@
   position: fixed;
   top: 0;
   left: 0;
-  // width: 200px;
-  // height: 200px;
   overflow: hidden;
   opacity: 0;
   pointer-events: none;

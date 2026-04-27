@@ -1,40 +1,36 @@
 import { useState } from 'react';
 import styles from './TimeChoose.module.scss';
-import { useTimeChooseV2 } from './useTimeChooseV2';
 import clsx from 'clsx';
 import { TimeNow } from './TimeNow';
 import { useTimeRange, type RangeTab, type TimeRangeState } from './useTimeRange';
 import { useDesignVariants } from '@/shared/lib/useDesignVariants';
 import { shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
-
-type TimePickerVariant = 'native' | 'manual';
+import TimeInput, { type TimePickerVariant } from './TimeInput';
 
 export type TimeChooseVariant =
-  | 'oled'
-  | 'brutalist'
-  | 'ethereal'
-  | 'editorial'
-  | 'glassy'
-  | 'pastelDeco'
-  | 'monoZen';
+  | 'frostedGlass'
+  | 'naked'
+  | 'softMint'
+  | 'softMidnight'
+  | 'softVeil'
+  | 'smudge';
 
 const DV_VARIANTS: TimeChooseVariant[] = [
-  'oled',
-  'ethereal',
-  'editorial',
-  'glassy',
-  'pastelDeco',
-  'monoZen',
+  'frostedGlass',
+  'naked',
+  'softMint',
+  'softMidnight',
+  'softVeil',
+  'smudge',
 ];
 
 const variantClassMap: Record<TimeChooseVariant, string> = {
-  oled: styles.shellOled,
-  brutalist: styles.shellBrutalist,
-  ethereal: styles.shellEthereal,
-  editorial: styles.shellEditorial,
-  glassy: styles.shellGlassy,
-  pastelDeco: styles.shellPastelDeco,
-  monoZen: styles.shellMonoZen,
+  frostedGlass: styles.shellFrostedGlass,
+  naked: styles.shellNaked,
+  softMint: styles.shellSoftMint,
+  softMidnight: styles.shellSoftMidnight,
+  softVeil: styles.shellSoftVeil,
+  smudge: styles.shellSmudge,
 };
 
 type RangeProps = {
@@ -53,110 +49,6 @@ type Props = {
   timePickerVariant?: TimePickerVariant;
   variant?: TimeChooseVariant;
   range?: RangeProps;
-};
-
-/** Single time input (manual or native) — extracted for reuse in range mode */
-const TimeInput = ({
-  variant,
-  hours,
-  minutes,
-  setHours,
-  setMinutes,
-  onFinish,
-  hourAriaLabel,
-  minuteAriaLabel,
-  inputId,
-  normalizeTime,
-}: {
-  variant: TimePickerVariant;
-  hours: string;
-  minutes: string;
-  setHours: (v: string) => void;
-  setMinutes: (v: string) => void;
-  onFinish: (v: string) => void;
-  hourAriaLabel: string;
-  minuteAriaLabel: string;
-  inputId?: string;
-  normalizeTime: (h: string, m: string) => string;
-}) => {
-  const {
-    hhRef,
-    mmRef,
-    handleHoursChange,
-    handleMinutesChange,
-    handleHoursKeyDown,
-    handleMinutesKeyDown,
-    handleHoursBlur,
-    handleMinutesBlur,
-  } = useTimeChooseV2({ hours, minutes, setHours, setMinutes, onFinish });
-
-  const handleNativeTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value) {
-      const [h, m] = value.split(':');
-      setHours(h);
-      setMinutes(m);
-      onFinish(value);
-    }
-  };
-
-  if (variant === 'native') {
-    return (
-      <div className={styles.wrapper}>
-        <input
-          type="time"
-          className={styles.nativeInput}
-          value={normalizeTime(hours, minutes)}
-          onChange={handleNativeTimeChange}
-          onBlur={() => onFinish(normalizeTime(hours, minutes))}
-          aria-label={hourAriaLabel}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.wrapper}>
-      <label className={styles.inputWrapper}>
-        <input
-          id={inputId}
-          ref={hhRef}
-          className={styles.input}
-          aria-label={hourAriaLabel}
-          placeholder="hh"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          value={hours}
-          onChange={handleHoursChange}
-          onKeyDown={handleHoursKeyDown}
-          onBlur={handleHoursBlur}
-          maxLength={2}
-          onFocus={(e) => e.currentTarget.select()}
-        />
-      </label>
-
-      <span className={styles.separator} aria-hidden="true">
-        :
-      </span>
-
-      <label className={styles.inputWrapper}>
-        <input
-          ref={mmRef}
-          className={styles.input}
-          aria-label={minuteAriaLabel}
-          placeholder="mm"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          value={minutes}
-          onChange={handleMinutesChange}
-          onKeyDown={handleMinutesKeyDown}
-          onBlur={handleMinutesBlur}
-          maxLength={2}
-          onFocus={(e) => e.currentTarget.select()}
-        />
-      </label>
-    </div>
-  );
 };
 
 const RangeTabs = ({
@@ -193,7 +85,7 @@ const TimeChoose = ({
   id,
   inputId,
   timePickerVariant: controlledVariant,
-  variant: designVariant = 'oled',
+  variant: designVariant = 'frostedGlass',
   range,
 }: Props) => {
   const [localVariant, setLocalVariant] = useState<TimePickerVariant>('manual');
@@ -208,12 +100,6 @@ const TimeChoose = ({
   const [minutes, setMinutes] = useState<string>(initialTime.split(':')[1]);
 
   const isNative = variant === 'native';
-
-  const normalizeTime = (h: string, m: string) => {
-    const hNum = h === '' ? 0 : Math.max(0, Math.min(23, Number(h)));
-    const mNum = m === '' ? 0 : Math.max(0, Math.min(59, Number(m)));
-    return `${String(hNum).padStart(2, '0')}:${String(mNum).padStart(2, '0')}`;
-  };
 
   const timeRange = useTimeRange({
     initialFrom: range?.initialFrom ?? initialTime,
@@ -269,7 +155,6 @@ const TimeChoose = ({
             hourAriaLabel={hourAriaLabel}
             minuteAriaLabel={minuteAriaLabel}
             inputId={inputId}
-            normalizeTime={normalizeTime}
           />
           {isRange && (
             <RangeTabs

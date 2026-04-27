@@ -13,7 +13,7 @@ import styles from './AutoGrowSearch.module.scss';
 
 type TextareaProps = Omit<
   TextareaHTMLAttributes<HTMLTextAreaElement>,
-  'value' | 'onChange' | 'rows'
+  'value' | 'onChange' | 'rows' | 'onSubmit'
 >;
 
 export interface AutoGrowSearchProps extends TextareaProps {

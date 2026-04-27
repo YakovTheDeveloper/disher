@@ -1,5 +1,6 @@
 import styles from './ScheduleEvents.module.scss';
 import React, { useMemo, useState } from 'react';
+import { AnimatePresence, useReducedMotion } from 'motion/react';
 import { TimeGroup } from '@/features/time-group';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { removeScheduleEvents } from '@/entities/schedule-event';
@@ -64,6 +65,8 @@ const ScheduleEvents = ({ date, events }: Props) => {
     setEditingStep(step);
   };
 
+  const reducedMotion = useReducedMotion();
+
   return (
     <Screen
       offsetTop
@@ -117,7 +120,7 @@ const ScheduleEvents = ({ date, events }: Props) => {
         <ItemsList offsetTop>
           {(() => {
             let globalIndex = 0;
-            return eventsGroupedByTime.map((timeGroup, idx) => (
+            const rendered = eventsGroupedByTime.map((timeGroup, idx) => (
               <React.Fragment key={timeGroup.time}>
                 {nowMarkerIndex === idx && <NowMarker />}
                 <TimeGroup
@@ -149,6 +152,8 @@ const ScheduleEvents = ({ date, events }: Props) => {
                   idx === eventsGroupedByTime.length - 1 && <NowMarker />}
               </React.Fragment>
             ));
+            if (reducedMotion) return rendered;
+            return <AnimatePresence initial={false}>{rendered}</AnimatePresence>;
           })()}
         </ItemsList>
       </section>

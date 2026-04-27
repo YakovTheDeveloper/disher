@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { addScheduleFood, updateScheduleFood } from '@/entities/schedule-food';
@@ -34,11 +34,6 @@ export const STEP_LABELS: Record<ActiveStep, string> = {
   details: 'Заметка',
 };
 
-type FoodContent = {
-  quantity: number;
-  updateQuantity: (q: number) => void;
-};
-
 export type DraftState = {
   time: string;
   variant: 'product' | 'dish' | null;
@@ -47,7 +42,6 @@ export type DraftState = {
   foodName: string | null;
   quantity: number;
   details: string;
-  content: FoodContent | null;
 };
 
 const DEFAULT_PRODUCT_ID = '1';
@@ -60,7 +54,6 @@ const createEmptyDraft = (): DraftState => ({
   foodName: null,
   quantity: 100,
   details: '',
-  content: null,
 });
 
 const draftFromItem = (item: ScheduleFoodWithRelations): DraftState => ({
@@ -71,7 +64,6 @@ const draftFromItem = (item: ScheduleFoodWithRelations): DraftState => ({
   foodName: item.product?.name ?? item.dish?.name ?? null,
   quantity: item.quantity,
   details: item.details ?? '',
-  content: null,
 });
 
 type CreateMode = {
@@ -83,20 +75,16 @@ type CreateMode = {
 
 type EditMode = {
   type: 'edit';
-  item: ScheduleFoodWithRelations;
-  initialStep?: Step;
-  onClose: () => void;
 };
 
 export type FlowMode = CreateMode | EditMode;
 
+export type ScheduleFoodFlow = ReturnType<typeof useScheduleFoodFlow>;
+
 export function useScheduleFoodFlow(mode: FlowMode) {
-  const [step, setStep] = useState<Step>(
-    mode.type === 'edit' ? (mode.initialStep ?? 'idle') : 'idle'
-  );
-  const [draft, setDraft] = useState<DraftState>(() =>
-    mode.type === 'create' ? createEmptyDraft() : draftFromItem(mode.item)
-  );
+  const [step, setStep] = useState<Step>('idle');
+  const [draft, setDraft] = useState<DraftState>(() => createEmptyDraft());
+  const [editingItem, setEditingItem] = useState<ScheduleFoodWithRelations | null>(null);
   const [sessionKey, setSessionKey] = useState(0);
 
   useSwipeableLock(step !== 'idle');
@@ -149,12 +137,6 @@ export function useScheduleFoodFlow(mode: FlowMode) {
       if (prev === 'idle' && mode.type === 'create') setDraft(createEmptyDraft());
       return nextStep;
     });
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
-      });
-    });
   }, []);
 
   const handleClose = () => {
@@ -163,10 +145,29 @@ export function useScheduleFoodFlow(mode: FlowMode) {
       setSessionKey((k) => k + 1);
       mode.onRichNutrientClear?.();
     } else {
-      mode.onClose();
+      setEditingItem(null);
+      setDraft(createEmptyDraft());
     }
     setStep('idle');
   };
+
+  const startEdit = useCallback(
+    (item: ScheduleFoodWithRelations, nextStep: ActiveStep) => {
+      setEditingItem(item);
+      setDraft(draftFromItem(item));
+      setStep(nextStep);
+    },
+    []
+  );
+
+  // Prime editing state without changing step. Used when a <label htmlFor>
+  // delegates focus to the edit-search input — onFocusCapture will then
+  // flip step to 'search' on its own. Keeping the step transition in the
+  // focus handler is what lets iOS Safari actually pop the keyboard.
+  const primeEdit = useCallback((item: ScheduleFoodWithRelations) => {
+    setEditingItem(item);
+    setDraft(draftFromItem(item));
+  }, []);
 
   useOverlayHistory(step !== 'idle', handleClose);
 
@@ -182,16 +183,15 @@ export function useScheduleFoodFlow(mode: FlowMode) {
         productId: payload.variant === 'product' ? payload.id : null,
         dishId: payload.variant === 'dish' ? payload.id : null,
         foodName: payload.name,
-        content: {
-          quantity: prev.quantity,
-          updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
-        },
       }));
-      setStep('time');
+      // step переключит onFocusCapture после того, как <label htmlFor={TIME_INPUT}>
+      // передаст фокус. Синхронный setStep здесь размонтировал бы SearchFoodHeavy
+      // до того, как браузер обработает дефолт лейбла → фокус терялся.
     } else {
+      if (!editingItem) return;
       const ok = await safeMutate(
         async () => {
-          await updateScheduleFood(mode.item.id, {
+          await updateScheduleFood(editingItem.id, {
             time: draft.time,
             type: payload.variant === 'product' ? 'food' : 'dish',
             productId: payload.variant === 'product' ? payload.id : null,
@@ -205,78 +205,100 @@ export function useScheduleFoodFlow(mode: FlowMode) {
       );
       if (ok === undefined) return;
       setStep('idle');
-      mode.onClose();
+      setEditingItem(null);
+      setDraft(createEmptyDraft());
     }
   };
 
   const handleCommit = async () => {
     if (mode.type === 'create') {
-      if (draft.variant && (draft.productId || draft.dishId)) {
-        const newId = await safeMutate(
-          () => addScheduleFood({
+      const canCommit = draft.variant && (draft.productId || draft.dishId);
+      const snapshot = canCommit
+        ? {
             date: mode.scheduleId,
             time: draft.time,
-            type: draft.variant === 'product' ? 'food' : 'dish',
+            type: (draft.variant === 'product' ? 'food' : 'dish') as 'food' | 'dish',
             productId: draft.productId,
             dishId: draft.dishId,
             quantity: draft.quantity,
             details: draft.details.trim() || null,
-          }),
-          'Не удалось добавить в расписание',
-        );
-        if (newId === undefined) return;
-        toaster.success('Добавлено в расписание');
+          }
+        : null;
 
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            const el = document.querySelector(`[data-schedule-food-id="${newId}"]`);
-            if (el) {
-              el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-              highlightListItem(newId);
-            }
-          }, 150);
-        });
-      }
+      // Закрываем модалку сразу — мутация уходит в фон.
+      setStep('idle');
       setDraft(createEmptyDraft());
       setSessionKey((k) => k + 1);
       mode.onRichNutrientClear?.();
+
+      if (snapshot) {
+        void safeMutate(() => addScheduleFood(snapshot), 'Не удалось добавить в расписание')
+          .then((newId) => {
+            if (newId === undefined) return;
+            toaster.success('Добавлено в расписание');
+            requestAnimationFrame(() => {
+              setTimeout(() => {
+                const el = document.querySelector(`[data-schedule-food-id="${newId}"]`);
+                if (el) {
+                  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                  highlightListItem(newId);
+                }
+              }, 150);
+            });
+          });
+      }
     } else {
-      if (draft.variant && (draft.productId || draft.dishId)) {
-        const ok = await safeMutate(
-          async () => {
-            await updateScheduleFood(mode.item.id, {
+      const canCommit = editingItem && draft.variant && (draft.productId || draft.dishId);
+      const editSnapshot = canCommit && editingItem
+        ? {
+            id: editingItem.id,
+            patch: {
               time: draft.time,
-              type: draft.variant === 'product' ? 'food' : 'dish',
+              type: (draft.variant === 'product' ? 'food' : 'dish') as 'food' | 'dish',
               productId: draft.variant === 'product' ? draft.productId : null,
               dishId: draft.variant === 'dish' ? draft.dishId : null,
               quantity: draft.quantity,
               details: draft.details.trim() || null,
-            });
-            return true;
-          },
+            },
+          }
+        : null;
+
+      setStep('idle');
+      setEditingItem(null);
+      setDraft(createEmptyDraft());
+
+      if (editSnapshot) {
+        void safeMutate(
+          () => updateScheduleFood(editSnapshot.id, editSnapshot.patch),
           'Не удалось обновить'
         );
-        if (ok === undefined) return;
       }
-      mode.onClose();
     }
-    setStep('idle');
   };
 
-  const quantityContent = {
-    ...(draft.content ?? {
+  const updateQuantity = useCallback(
+    (q: number) => setDraft((d) => ({ ...d, quantity: q })),
+    [],
+  );
+
+  const quantityContent = useMemo(
+    () => ({
       quantity: draft.quantity,
-      updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
+      updateQuantity,
+      product: draft.variant === 'product' ? { portions: foodPortions ?? [] } : undefined,
+      dish: draft.variant === 'dish' ? { portions: dishPortions ?? [] } : undefined,
     }),
-    product: draft.variant === 'product' ? { portions: foodPortions ?? [] } : undefined,
-    dish: draft.variant === 'dish' ? { portions: dishPortions ?? [] } : undefined,
-  };
+    [draft.quantity, draft.variant, updateQuantity, foodPortions, dishPortions],
+  );
 
   return {
     step,
     setStep,
     draft,
     setDraft,
+    editingItem,
+    startEdit,
+    primeEdit,
     sessionKey,
     handleFocusCapture,
     handleClose,

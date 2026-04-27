@@ -1,4 +1,5 @@
-export type NutrientEntry = { nutrientId: string; quantity: number };
+import type { NutrientEntry } from './nutrients';
+
 export type PortionEntry = { label: string; amount: number; unit: string; grams: number };
 
 export function parseNutrients(json: string | null | undefined): NutrientEntry[] {

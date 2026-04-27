@@ -1,6 +1,6 @@
 import { useDrawers } from '@/shared/ui/drawer-store';
 
-const DrawerManagerV3 = () => {
+const DrawerManager = () => {
   const { instances, close } = useDrawers();
 
   if (instances.length === 0) return null;
@@ -14,4 +14,4 @@ const DrawerManagerV3 = () => {
   );
 };
 
-export default DrawerManagerV3;
+export default DrawerManager;

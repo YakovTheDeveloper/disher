@@ -2,36 +2,22 @@
     display: flex;
     align-items: stretch;
     position: relative;
-    transition: background 0.18s ease;
     -webkit-tap-highlight-color: transparent;
 
-    &::after {
-        content: '';
-        position: absolute;
-        left: 16px;
-        right: 16px;
-        bottom: 0;
-        height: 1px;
-        background: linear-gradient(to right,
-                transparent 0%,
-                rgba(0, 0, 0, 0.06) 12%,
-                rgba(0, 0, 0, 0.06) 88%,
-                transparent 100%);
-        pointer-events: none;
+    background: #ffffff;
+    border: 1px solid rgba(15, 15, 15, 0.06);
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(15, 15, 15, 0.03), 0 1px 1px rgba(15, 15, 15, 0.02);
+
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+
+    &:hover {
+        border-color: rgba(15, 15, 15, 0.12);
+        box-shadow: 0 2px 6px rgba(15, 15, 15, 0.05), 0 1px 2px rgba(15, 15, 15, 0.03);
     }
 
-    &:last-child::after {
-        display: none;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        &::after {
-            background: linear-gradient(to right,
-                    transparent 0%,
-                    rgba(255, 255, 255, 0.08) 12%,
-                    rgba(255, 255, 255, 0.08) 88%,
-                    transparent 100%);
-        }
+    &:active {
+        transform: scale(0.995);
     }
 }
 
@@ -63,7 +49,7 @@
 .item {
     display: flex;
     align-items: center;
-    padding: 0 6px 0 18px;
+    padding: 14px 8px 14px 18px;
     flex-grow: 1;
     min-width: 0;
     overflow: hidden;
@@ -74,12 +60,12 @@
 
     cursor: pointer;
     transition: background 0.18s ease;
-    height: 54px;
     gap: 10px;
     margin: 0;
+    border-radius: inherit;
 
     &:active {
-        background: rgba(0, 0, 0, 0.04);
+        background: rgba(15, 15, 15, 0.035);
     }
 }
 
@@ -93,7 +79,8 @@
 }
 
 .item_active {
-    background: linear-gradient(90deg, rgba(0, 0, 0, 0.92) 0%, rgba(20, 20, 20, 0.92) 100%);
+    background: linear-gradient(90deg, #0f0f0f 0%, #1a1a1a 100%);
+    border-radius: inherit;
 
     .name {
         color: #fff;
@@ -105,7 +92,7 @@
     }
 
     &:active {
-        background: rgba(0, 0, 0, 0.98);
+        background: #050505;
     }
 }
 
@@ -115,17 +102,13 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-
+    font-family: "Raleway", sans-serif;
     font-size: 1rem;
     font-weight: 600;
     text-transform: capitalize;
-    color: #0a0a0a;
+    color: #0f0f0f;
     line-height: 1.2;
     letter-spacing: -0.01em;
-
-    @media (prefers-color-scheme: dark) {
-        color: #f5f5f5;
-    }
 }
 
 .richValue {
@@ -134,8 +117,8 @@
     align-items: center;
     justify-content: center;
     min-width: 52px;
-    height: 54px;
-    padding: 0 8px;
+    height: 56px;
+    padding: 0 10px;
     flex-shrink: 0;
     font-size: 14px;
     font-weight: 700;
@@ -149,17 +132,17 @@
         content: '';
         position: absolute;
         right: 0;
-        top: 25%;
-        bottom: 25%;
+        top: 22%;
+        bottom: 22%;
         width: 1px;
-        background: rgba(0, 0, 0, 0.08);
+        background: rgba(15, 15, 15, 0.08);
     }
 }
 
 .richUnit {
     font-size: 10px;
     font-weight: 600;
-    opacity: 0.75;
+    opacity: 0.7;
     margin-top: 2px;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -168,7 +151,7 @@
 .richPercent {
     font-size: 9px;
     font-weight: 600;
-    opacity: 0.6;
+    opacity: 0.55;
     margin-top: 1px;
     letter-spacing: 0.03em;
 }
@@ -177,16 +160,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 54px;
+    width: 44px;
+    height: 56px;
     padding: 0;
     border: none;
     background: transparent;
-    color: #888;
+    color: #8a8a8a;
     cursor: pointer;
     flex-shrink: 0;
     transition: color 0.18s ease, transform 0.12s ease;
     -webkit-tap-highlight-color: transparent;
+    border-radius: inherit;
 
     &:active {
         color: #111;
@@ -198,16 +182,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 54px;
+    width: 44px;
+    height: 56px;
     padding: 0;
     border: none;
     background: transparent;
-    color: #777;
+    color: #8a8a8a;
     cursor: pointer;
     flex-shrink: 0;
     transition: color 0.18s ease, transform 0.12s ease;
     -webkit-tap-highlight-color: transparent;
+    border-radius: inherit;
 
     &:active {
         color: #111;

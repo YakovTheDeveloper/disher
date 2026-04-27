@@ -1,6 +1,6 @@
 import { useModals } from "@/shared/ui/modal-store";
 
-export const ModalManagerV2 = () => {
+export const ModalManager = () => {
   const { instances, close } = useModals();
 
   if (instances.length === 0) return null;

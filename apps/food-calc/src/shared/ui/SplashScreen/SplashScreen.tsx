@@ -1,8 +1,11 @@
+import type { FunctionComponent, SVGProps } from 'react'
 import { useEffect, useState } from 'react'
-import Logo from '@/shared/assets/icons/logo.svg'
+import LogoSrc from '@/shared/assets/icons/logo.svg'
 import styles from './SplashScreen.module.scss'
 
-interface SplashScreenProps {
+const Logo = LogoSrc as unknown as FunctionComponent<SVGProps<SVGSVGElement>>
+
+export interface SplashScreenProps {
   /** Время показа заставки в миллисекундах (по умолчанию 2000ms) */
   duration?: number
   /** Функция, вызываемая при завершении анимации */

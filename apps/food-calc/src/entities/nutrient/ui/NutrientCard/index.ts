@@ -1,5 +1,4 @@
-export { default as NutrientCard } from "./NutrientCardV2.tsx";
-export { default as NutrientCardV3 } from "./NutrientCardV3.tsx";
-export { default as NutrientCardAlt } from "./NutrientCardAlt.tsx";
+export { default as NutrientCard } from "./NutrientCard.tsx";
+export { default as NutrientCardEditor } from "./NutrientCardEditor.tsx";
 export { default as NutrientInput } from "./NutrientInput.tsx";
-export type { NutrientCardAltVariant } from "./NutrientCardAlt.tsx";
+export type { NutrientCardEditorVariant } from "./NutrientCardEditor.tsx";

@@ -63,3 +63,14 @@
   background: #f59e0b;
 }
 
+.actionBarWrapper {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  transform-origin: bottom left;
+}
+
+.actionBarWrapper_hidden {
+  opacity: 0;
+  transform: translateY(8px) scale(0.96);
+  pointer-events: none;
+}
+

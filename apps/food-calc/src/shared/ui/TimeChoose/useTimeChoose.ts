@@ -41,15 +41,10 @@ type Params = {
 };
 
 /**
- * Minimal time picker hook for TimeChoose V2
- * User enters 4 digits (HHMM) and onFinish fires automatically
- * Handles edge cases:
- * - Smart single-digit auto-advance (3+ in hours field)
- * - Auto-focus from hours to minutes
- * - Backspace navigation
- * - Paste format detection
+ * Minimal time picker hook. User enters 4 digits (HHMM) and onFinish fires automatically.
+ * Handles smart single-digit auto-advance, auto-focus to minutes, backspace navigation, paste format detection.
  */
-export const useTimeChooseV2 = ({
+export const useTimeChoose = ({
     hours,
     minutes,
     setHours,
@@ -219,7 +214,8 @@ export const useTimeChooseV2 = ({
     const handleHoursBlur = () => {
         const hhFormatted = hours.length === 0 ? '00' : pad2(clamp(Number(hours), 0, 23));
         if (hours !== hhFormatted) setHours(hhFormatted);
-        onFinish(normalize(hhFormatted, minutes || '0'));
+        // Intentionally does NOT call onFinish — commit happens only on MM blur or after 4 digits.
+        // Otherwise tabbing/focus-jumping HH→MM would commit prematurely.
     };
 
     const handleMinutesBlur = () => {

@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
-import { popOverlayEntry } from '@/shared/lib/overlay-history';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalShell } from '@/shared/ui/ModalShell';
@@ -140,8 +139,8 @@ const DishProductCreateModals = ({ dishId }: Props) => {
               key={sessionKey}
               mode="products-only"
               onSelectFood={handleFoodSelect}
-              onInfoClick={async (_variant, id) => {
-                await popOverlayEntry();
+              onInfoClick={(_variant, id) => {
+                handleClose();
                 toProduct(id);
               }}
               activeItemId={draft.productId ?? undefined}

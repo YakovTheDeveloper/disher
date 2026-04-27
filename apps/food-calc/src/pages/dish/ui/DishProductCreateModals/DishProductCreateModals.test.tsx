@@ -30,10 +30,8 @@ vi.mock('@/shared/lib/toaster/toaster', () => ({
 
 // Lightweight SearchFood stub — renders the input and exposes a click handler
 // that calls onFinish with a fake product.
-let latestSearchFoodProps: any = null;
 vi.mock('@/features/food/food-search', () => ({
   SearchFood: (props: any) => {
-    latestSearchFoodProps = props;
     return (
       <div data-testid="search-food">
         <input id={props.inputId} data-testid="search-input" placeholder="search" />
@@ -101,7 +99,6 @@ const renderAndSelectProduct = (testId = 'select-product-1') => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  latestSearchFoodProps = null;
   latestQuantityProps = null;
 });
 

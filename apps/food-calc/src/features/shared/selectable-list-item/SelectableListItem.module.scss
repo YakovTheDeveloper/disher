@@ -94,6 +94,19 @@
     &_inActionsMode {
         // background-color: #6cffc4 !important;
     }
+
+    // Editing state — when any input/textarea inside is focused, lift the row
+    // and outline it with the time-of-day accent colour.
+    &:focus-within {
+        outline: 2px solid var(--select-color-strong);
+        outline-offset: 1px;
+        box-shadow:
+            0 0 0 4px var(--select-shadow),
+            0 6px 18px -8px rgba(0, 0, 0, 0.18);
+        background-color: color-mix(in oklch, var(--select-color) 18%, var(--_bg-from));
+        transition: background-color 0.2s ease, outline-color 0.2s ease, box-shadow 0.2s ease;
+        z-index: 2;
+    }
 }
 
 // ─── Time-of-day palette overrides via data-tod ─────────────────

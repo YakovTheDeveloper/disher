@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import s from './ModalShell.module.scss';
-import { useKeyboardStickV2 } from '@/shared/ui/hooks/useKeyboardStickV2';
+import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
 
 type Props = { children: ReactNode; className?: string; variant?: 'default' | 'spring' };
 
@@ -40,7 +40,7 @@ type ActionButtonsProps = {
 };
 
 const ModalShellActionButtons = ({ left, right, debugId }: ActionButtonsProps) => {
-  const ref = useKeyboardStickV2<HTMLDivElement>(debugId);
+  const ref = useKeyboardStick<HTMLDivElement>(debugId);
 
   return (
     <div ref={ref} className={s.actionButtons}>

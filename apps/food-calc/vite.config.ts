@@ -59,6 +59,7 @@ export default defineConfig({
   ],
   optimizeDeps: {
     include: ['react', 'react-dom'],
+    exclude: ['@powersync/web', '@journeyapps/wa-sqlite'],
   },
   resolve: {
     alias: {

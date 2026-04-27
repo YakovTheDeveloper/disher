@@ -1,4 +1,4 @@
-import styles from './NutrientCardV3.module.scss';
+import styles from './NutrientCard.module.scss';
 import { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import clsx from 'clsx';
 import { useNutrientCard } from './useNutrientCard';
@@ -17,7 +17,7 @@ interface Props {
 
 const defaultGetValue = () => 0;
 
-const NutrientCardV3 = ({
+const NutrientCard = ({
   content,
   getValue = defaultGetValue,
   showValue = true,
@@ -47,7 +47,7 @@ const NutrientCardV3 = ({
       </div>
       <div className={styles.bottomRow}>
         <span className={clsx(styles.value, !showValue && styles.valueHidden)}>
-          {showValue ? <>{value.toFixed(1)} {unitRu}</> : '\u00A0'}
+          {showValue ? <>{value.toFixed(1)} {unitRu}</> : ' '}
         </span>
         {hasChildren ? (
           <div className={styles.rightSlot}>{children}</div>
@@ -83,4 +83,4 @@ const NutrientCardV3 = ({
   );
 };
 
-export default NutrientCardV3;
+export default NutrientCard;

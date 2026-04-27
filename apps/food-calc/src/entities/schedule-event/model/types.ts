@@ -1,3 +1,5 @@
+import type { Atom } from "./atoms";
+
 export interface ScheduleEvent {
   id: string;
   userId: string;
@@ -5,7 +7,7 @@ export interface ScheduleEvent {
   time: string;
   endTime: string | null;
   text: string | null;
-  atoms: string; // serialized JSON: Atom[]
+  atoms: Atom[];
   createdAt: string;
   updatedAt: string | null;
   deletedAt: string | null;

@@ -1,4 +1,4 @@
-import { useKeyboardStickV2 } from '@/shared/ui/hooks/useKeyboardStickV2';
+import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
 import styles from './FoodSearchEmpty.module.scss';
 
 type Props = {
@@ -8,7 +8,7 @@ type Props = {
 };
 
 export const FoodSearchEmpty = ({ query, onCreateProduct, onCreateDish }: Props) => {
-  const ref = useKeyboardStickV2<HTMLDivElement>();
+  const ref = useKeyboardStick<HTMLDivElement>();
 
   return (
     <div ref={ref} className={styles.root}>

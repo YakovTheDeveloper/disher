@@ -43,8 +43,8 @@ export async function addScheduleFood(params: {
       params.type,
       params.quantity,
       params.details ?? "",
-      params.productId ?? "",
-      params.dishId ?? "",
+      params.productId ?? null,
+      params.dishId ?? null,
       now,
     ],
   );
@@ -89,7 +89,8 @@ export async function updateScheduleFood(
   const setClauses = keys.map((k) => `${COLUMN_MAP[k]} = ?`).join(", ");
   const values = keys.map((k) => {
     const v = updates[k];
-    if (k === "details" || k === "productId" || k === "dishId") return v ?? "";
+    if (k === "details") return v ?? "";
+    if (k === "productId" || k === "dishId") return v ?? null;
     return v;
   });
 
@@ -138,8 +139,8 @@ export async function pasteClipboardItems(
           item.type,
           item.quantity,
           item.details ?? "",
-          item.productId ?? "",
-          item.dishId ?? "",
+          item.productId ?? null,
+          item.dishId ?? null,
           now,
         ],
       );

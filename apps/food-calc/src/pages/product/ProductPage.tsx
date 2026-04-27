@@ -11,7 +11,7 @@ import {
 import { Nutrients } from '@/entities/nutrient/ui/NutrientGroup';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import { NutrientCardAlt } from '@/entities/nutrient/ui/NutrientCard';
+import { NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
 import NutrientDesignVariants from '@/widgets/nutrients/FoodsNutrients/NutrientDesignVariants';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { Ornament } from '@/shared/ui/Ornament';
@@ -104,7 +104,7 @@ const ProductPage = () => {
 
   const renderEditCard = (nutrientData: Nutrient) => {
     return (
-      <NutrientCardAlt
+      <NutrientCardEditor
         content={nutrientData}
         getValue={getNutrientValue}
         variant="product-edit"

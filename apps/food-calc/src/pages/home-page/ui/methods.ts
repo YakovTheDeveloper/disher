@@ -1,4 +1,3 @@
-import { DDMMYYYY } from "@/types/common/timeAndDate";
 import { parse, isValid } from 'date-fns';
 
 export const nextDate = (currentDateISO: string) => {
@@ -13,7 +12,7 @@ export const prevDate = (currentDateISO: string) => {
     return date.toISOString();
 };
 
-export const getTitle = (input: DDMMYYYY) => {
+export const getTitle = (input: string) => {
     const date = parse(input, 'dd-MM-yyyy', new Date());
 
     if (!isValid(date)) {

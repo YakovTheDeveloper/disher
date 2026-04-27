@@ -21,7 +21,7 @@ import {
   getWriteFoodInputId,
 } from '@/features/food/food-free-text-parse';
 import { AddFoodActionBar } from '@/features/food/food-add-action-bar';
-import SwipeableV2 from '@/shared/ui/Swipeable/SwipeableV2';
+import { Swipeable } from '@/shared/ui/Swipeable';
 import { SelectableListItem } from '@/features/shared/selectable-list-item';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Quantity } from '@/shared/ui/Quantity';
@@ -135,7 +135,7 @@ const DishBuilderPage = () => {
     }));
 
   return (
-    <SwipeableV2>
+    <Swipeable>
       <FoodsNutrients totals={dishTotals} cardVariant="dish" />
 
       <Screen
@@ -296,7 +296,7 @@ const DishBuilderPage = () => {
           }}
         />
       </Screen>
-    </SwipeableV2>
+    </Swipeable>
   );
 };
 

@@ -48,8 +48,16 @@ vi.mock('@/shared/ui/atoms/Button', () => ({
 }));
 
 // Exposes getValue result via data-value so tests can assert on it
-vi.mock('@/entities/nutrient/ui/NutrientCard/NutrientCardV3', () => ({
-  default: ({ content, getValue }: { content: { id: string; displayNameRu: string }; getValue: (id: string) => number }) => (
+vi.mock('@/entities/nutrient/ui/NutrientCard', () => ({
+  NutrientCard: ({ content, getValue }: { content: { id: string; displayNameRu: string }; getValue: (id: string) => number }) => (
+    <div
+      data-testid={`nutrient-card-${content.id}`}
+      data-value={String(getValue(content.id))}
+    >
+      {content.displayNameRu}
+    </div>
+  ),
+  NutrientCardEditor: ({ content, getValue }: { content: { id: string; displayNameRu: string }; getValue: (id: string) => number }) => (
     <div
       data-testid={`nutrient-card-${content.id}`}
       data-value={String(getValue(content.id))}

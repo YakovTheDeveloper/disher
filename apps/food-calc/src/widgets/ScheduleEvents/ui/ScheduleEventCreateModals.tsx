@@ -13,7 +13,6 @@ import Button from '@/shared/ui/atoms/Button/Button';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
 import modalStyles from './ScheduleEventModals.module.scss';
-import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
 
 /**
  * Input IDs used for label→input focus delegation across ScheduleEvent modals.

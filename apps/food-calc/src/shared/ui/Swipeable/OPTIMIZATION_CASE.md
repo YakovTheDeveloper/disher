@@ -124,7 +124,7 @@ emblaApi.on('select', () => {
 
 При свайпе, в момент пересечения snap-точки, Embla стреляет `select`. `setState` → React ставит в очередь re-render → reconciliation → VDOM diff → DOM update. Это происходит **mid-drag**, пока палец ещё на экране и Embla анимирует transform каждый rAF.
 
-React re-render компонента SwipeableV2 означает re-render всех 3 children (FoodsNutrients, FoodSchedule, ScheduleEvents). Каждый из них — тяжёлый виджет с десятками DOM-элементов. Это забивает main thread на 10-50ms → пропущенные кадры.
+React re-render компонента Swipeable означает re-render всех 3 children (FoodsNutrients, FoodSchedule, ScheduleEvents). Каждый из них — тяжёлый виджет с десятками DOM-элементов. Это забивает main thread на 10-50ms → пропущенные кадры.
 
 ### Решение
 ```tsx

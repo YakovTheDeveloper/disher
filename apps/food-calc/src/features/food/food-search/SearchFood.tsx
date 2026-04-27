@@ -27,10 +27,16 @@ type Props = {
   itemHtmlFor?: string;
   inputId?: string;
   initialSearchQuery?: string;
+  isActive?: boolean;
 };
 
 const getDefaultTab = (mode: SearchMode) => (mode === 'dishes-only' ? 'блюда' : 'все');
 
+// Outer component: ALWAYS renders the <input id={inputId}> via SearchFoodControls so
+// the <label htmlFor> → input focus delegation keeps working on iOS, even when this
+// step is not the active one. Heavy work (PowerSync queries, list rendering, FilterPanel)
+// lives in <SearchFoodHeavy> which is conditionally mounted via {isActive && ...}.
+// See feedback_ios_focus.md for why the input must stay in the DOM in the same node.
 const SearchFood = ({
   onSelectFood,
   mode = 'products-and-dishes',
@@ -42,11 +48,70 @@ const SearchFood = ({
   itemHtmlFor,
   inputId,
   initialSearchQuery,
+  isActive = true,
 }: Props) => {
-  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
-  const [myFoodOnly, setMyFoodOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery ?? '');
   const [currentTab, setCurrentTab] = useState(getDefaultTab(mode));
+
+  return (
+    <div className={styles.content}>
+      <div className={styles.header}>
+        <SearchFoodControls
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onBack={onBack}
+          inputId={inputId}
+        />
+      </div>
+
+      {isActive && (
+        <SearchFoodHeavy
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          mode={mode}
+          activeItemId={activeItemId}
+          richNutrient={richNutrient}
+          onInfoClick={onInfoClick}
+          onSelectFood={onSelectFood}
+          bottomLeft={bottomLeft}
+          itemHtmlFor={itemHtmlFor}
+        />
+      )}
+    </div>
+  );
+};
+
+type HeavyProps = {
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+  currentTab: string;
+  setCurrentTab: (t: string) => void;
+  mode: SearchMode;
+  activeItemId?: string | null;
+  richNutrient?: { id: string; unit: string } | null;
+  onInfoClick?: (variant: 'product' | 'dish', id: string) => void;
+  onSelectFood: (payload: SelectFoodPayload) => void;
+  bottomLeft?: React.ReactNode;
+  itemHtmlFor?: string;
+};
+
+const SearchFoodHeavy = ({
+  searchQuery,
+  setSearchQuery,
+  currentTab,
+  setCurrentTab,
+  mode,
+  activeItemId,
+  richNutrient,
+  onInfoClick,
+  onSelectFood,
+  bottomLeft,
+  itemHtmlFor,
+}: HeavyProps) => {
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [myFoodOnly, setMyFoodOnly] = useState(false);
 
   const listContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(listContainerRef);
@@ -120,8 +185,6 @@ const SearchFood = ({
     />
   ) : undefined;
 
-  // When tab is "все", both lists render — avoid showing emptyContent twice.
-  // Show it only once: outside the lists when both are empty, or inside the single non-empty list otherwise.
   const bothListsVisible = currentTab === 'все';
   const bothEmpty = bothListsVisible && products.length === 0 && dishes.length === 0;
 
@@ -130,6 +193,7 @@ const SearchFood = ({
       const itemWithNutrients = richNutrient?.id
         ? {
             ...item,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             getTotalNutrients: (_qty: number) => {
               const entries = nutrientMap.get(item.id);
               if (!entries) return {};
@@ -169,16 +233,7 @@ const SearchFood = ({
   );
 
   return (
-    <div className={styles.content}>
-      <div className={styles.header}>
-        <SearchFoodControls
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onBack={onBack}
-          inputId={inputId}
-        />
-      </div>
-
+    <>
       {richNutrientInfo && (
         <div className={styles.filterMessage}>
           Богатые по <strong>{richNutrientInfo.displayNameRu}</strong>
@@ -294,7 +349,7 @@ const SearchFood = ({
           Фильтр
         </FilterButton>
       </div>
-    </div>
+    </>
   );
 };
 

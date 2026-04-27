@@ -84,7 +84,7 @@ export const PRODUCT_CATEGORY_GROUPS: ProductCategoryGroup[] = [
   },
 ];
 
-import type { CategoryGroup, CategoryOption } from '@/shared/ui/FilterPanel/FilterPanel';
+import type { CategoryGroup, CategoryOption } from '@/shared/model/types';
 
 export const PRODUCT_CATEGORY_LABELS: Record<ProductCategoryValue, string> = {
     'vegetable': 'Овощи',

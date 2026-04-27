@@ -1,12 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState, Fragment } from 'react';
 import clsx from 'clsx';
+import { AnimatePresence, useReducedMotion } from 'motion/react';
 import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { groupItemsByTime, getNowMarkerIndex } from '@/shared/lib/schedule';
 import { NowMarker } from '@/shared/ui/NowMarker';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
-import ScheduleFoodItemComponent from '@/widgets/FoodSchedule/ScheduleFoodItem/ScheduleFoodItem';
+import { ScheduleFoodItem } from '@/widgets/FoodSchedule/ScheduleFoodItem';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
@@ -20,9 +21,9 @@ import {
   ScheduleFoodCreateModals,
   ScheduleFoodEditModals,
   SCHEDULE_FOOD_INPUT_IDS,
+  useScheduleFoodFlow,
 } from '@/widgets/FoodSchedule/ui';
 import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
-import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { removeScheduleFoods } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
@@ -78,12 +79,33 @@ const FoodSchedule = ({
   const { clearSelection, setSelectedIds } = selectionStoreFood.getState();
 
   const showPrice = useUiStore((s) => s.scheduleFoodsShowPrice);
-  const toggleShowPrice = useUiStore((s) => s.toggleScheduleFoodsShowPrice);
   const { toScheduleAnalytics } = useAppRoutes();
 
-  const [editingItem, setEditingItem] = useState<ScheduleFoodWithRelations | null>(null);
-  const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'search' | 'quantity'>('idle');
+  const editFlow = useScheduleFoodFlow({ type: 'edit' });
   const [showCreatePanel, setShowCreatePanel] = useState(false);
+
+  // Hide bottom action bar while user is editing time/quantity inline on
+  // a schedule-food row — otherwise the bar covers the row being edited.
+  const [inlineEditing, setInlineEditing] = useState(false);
+  useEffect(() => {
+    const isInsideRow = (el: Element | null) =>
+      !!(el as HTMLElement | null)?.closest('[data-schedule-food-id] input');
+    const onFocusIn = (e: FocusEvent) => {
+      if (isInsideRow(e.target as Element)) setInlineEditing(true);
+    };
+    const onFocusOut = (e: FocusEvent) => {
+      if (!isInsideRow(e.target as Element)) return;
+      const next = e.relatedTarget as Element | null;
+      if (isInsideRow(next)) return;
+      setInlineEditing(false);
+    };
+    document.addEventListener('focusin', onFocusIn);
+    document.addEventListener('focusout', onFocusOut);
+    return () => {
+      document.removeEventListener('focusin', onFocusIn);
+      document.removeEventListener('focusout', onFocusOut);
+    };
+  }, []);
 
   const writeFoodTarget = useMemo(() => ({ kind: 'schedule' as const, date }), [date]);
   const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
@@ -149,33 +171,55 @@ const FoodSchedule = ({
     });
   }, []);
 
-  useSwipeableLock(editingItem !== null);
-
-  const closeEditModal = () => {
-    setEditingItem(null);
-    setEditingStep('idle');
-  };
-
-  const openEditModal = (item: ScheduleFoodWithRelations, step: 'time' | 'search' | 'quantity') => {
-    setEditingItem(item);
-    setEditingStep(step);
-  };
-
+  const startEdit = editFlow.startEdit;
   const onEditTime = useCallback(
-    (item: ScheduleFoodWithRelations) => openEditModal(item, 'time'),
-    []
+    (item: ScheduleFoodWithRelations) => startEdit(item, 'time'),
+    [startEdit]
   );
   const onEditFood = useCallback(
-    (item: ScheduleFoodWithRelations) => openEditModal(item, 'search'),
-    []
+    (item: ScheduleFoodWithRelations) => startEdit(item, 'search'),
+    [startEdit]
   );
   const onEditQuantity = useCallback(
-    (item: ScheduleFoodWithRelations) => openEditModal(item, 'quantity'),
-    []
+    (item: ScheduleFoodWithRelations) => startEdit(item, 'quantity'),
+    [startEdit]
+  );
+
+  // <label htmlFor={SEARCH_EDIT_INPUT}> on each FoodName focuses the
+  // already-mounted edit-search input directly (so iOS Safari pops the
+  // keyboard). The item id to edit is stashed on the input's data attribute
+  // synchronously on pointerdown; this capture handler reads it and primes
+  // editingItem + draft. The flow's own onFocusCapture then flips the step
+  // to 'search' from the same focus event.
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+  const primeEdit = editFlow.primeEdit;
+  const handleEditFocusCapture = useCallback(
+    (e: React.FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.id !== SCHEDULE_FOOD_INPUT_IDS.SEARCH_EDIT_INPUT) return;
+      const itemId = target.dataset.activeItemId;
+      if (!itemId) return;
+      const item = itemsRef.current.find((it) => it.id === itemId);
+      if (!item) return;
+      primeEdit(item);
+    },
+    [primeEdit]
   );
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
   const nowMarkerIndex = useMemo(() => getNowMarkerIndex(groups, date), [groups, date]);
+
+  const setSelectedIdsRef = useRef(setSelectedIds);
+  setSelectedIdsRef.current = setSelectedIds;
+  const onTimeClick = useCallback(
+    (group: { items: Array<{ id: string }> }) => {
+      setSelectedIdsRef.current(group.items.map((i) => i.id));
+    },
+    []
+  );
+
+  const reducedMotion = useReducedMotion();
 
   const onDeleteSelected = async () => {
     const ids = selectedIds;
@@ -220,13 +264,9 @@ const FoodSchedule = ({
               richNutrient={richNutrient}
               onRichNutrientClear={onRichNutrientClear}
             />
-            {editingItem && (
-              <ScheduleFoodEditModals
-                item={editingItem}
-                initialStep={editingStep}
-                onClose={closeEditModal}
-              />
-            )}
+            <div onFocusCapture={handleEditFocusCapture}>
+              <ScheduleFoodEditModals flow={editFlow} />
+            </div>
             <WriteFoodModals flow={writeFoodFlow} inputId={writeFoodInputId} />
           </>
         ) : null
@@ -271,11 +311,15 @@ const FoodSchedule = ({
       }
       bottomLeft={
         !isActionsMode ? (
-          <AddFoodActionBar
-            writeFoodFlow={writeFoodFlow}
-            writeFoodInputId={writeFoodInputId}
-            searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
-          />
+          <div
+            className={clsx(styles.actionBarWrapper, inlineEditing && styles.actionBarWrapper_hidden)}
+          >
+            <AddFoodActionBar
+              writeFoodFlow={writeFoodFlow}
+              writeFoodInputId={writeFoodInputId}
+              searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
+            />
+          </div>
         ) : null
       }
     >
@@ -287,19 +331,19 @@ const FoodSchedule = ({
       <ItemsList offsetTop>
         {(() => {
           let globalIndex = 0;
-          return groups.map((group, idx) => (
-            <React.Fragment key={group.time}>
+          const rendered = groups.map((group, idx) => (
+            <Fragment key={group.time}>
               {nowMarkerIndex === idx && <NowMarker />}
               <TimeGroup
                 group={group}
                 isFuture={nowMarkerIndex >= 0 && idx >= nowMarkerIndex}
-                onTimeClick={(group) => setSelectedIds(group.items.map((i: any) => i.id))}
+                onTimeClick={onTimeClick}
               >
                 {
                   group.items.map((item) => {
                     const itemIndex = globalIndex++;
                     return (
-                      <ScheduleFoodItemComponent
+                      <ScheduleFoodItem
                         key={item.id}
                         item={item}
                         index={itemIndex}
@@ -318,8 +362,10 @@ const FoodSchedule = ({
                 }
               </TimeGroup>
               {nowMarkerIndex === groups.length && idx === groups.length - 1 && <NowMarker />}
-            </React.Fragment>
+            </Fragment>
           ));
+          if (reducedMotion) return rendered;
+          return <AnimatePresence initial={false}>{rendered}</AnimatePresence>;
         })()}
       </ItemsList>
     </Screen>

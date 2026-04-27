@@ -12,7 +12,7 @@ type Props = {
 };
 
 const FoodToolbar = ({ variant, date, hasItems, onSuggest }: Props) => {
-  const { toScheduleAnalytics, toFood } = useAppRoutes();
+  const { toScheduleAnalytics } = useAppRoutes();
   const showPrice = useUiStore((s) => s.scheduleFoodsShowPrice);
   const toggleShowPrice = useUiStore((s) => s.toggleScheduleFoodsShowPrice);
 

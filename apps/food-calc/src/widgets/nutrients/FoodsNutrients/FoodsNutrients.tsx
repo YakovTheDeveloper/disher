@@ -4,9 +4,8 @@ import { OpenDailyNorms } from '@/features/dailyNorms/OpenDailyNorms';
 import { useCallback } from 'react';
 import clsx from 'clsx';
 import { FilterButton } from '@/shared/ui/atoms/Button';
-import NutrientCardV3 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV3';
-import { NutrientCardAlt } from '@/entities/nutrient/ui/NutrientCard';
-import type { NutrientCardAltVariant } from '@/entities/nutrient/ui/NutrientCard';
+import { NutrientCard, NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
+import type { NutrientCardEditorVariant } from '@/entities/nutrient/ui/NutrientCard';
 import {
   useFilterNutrients,
   FilterNutrientsPanel,
@@ -14,13 +13,11 @@ import {
 } from '@/features/nutrients/filter-nutrients';
 import { OpenRichFood } from '@/features/food/open-rich-food';
 import './FoodsNutrients.module.scss';
-import { Ornament } from '@/shared/ui/Ornament';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import styles from './FoodsNutrients.module.scss';
-import treeSrc from '@/shared/assets/decarative/tree.png';
 import NutrientDesignVariants from './NutrientDesignVariants';
 
 type Props = {
@@ -31,7 +28,7 @@ type Props = {
   className?: string;
   onRichFood?: (nutrientId: string, unit: string) => void;
   variant?: 'view' | 'edit-norms' | 'edit-values';
-  cardVariant?: NutrientCardAltVariant;
+  cardVariant?: NutrientCardEditorVariant;
 };
 
 const FoodsNutrients = ({
@@ -65,14 +62,14 @@ const FoodsNutrients = ({
         }
         renderCard={(overrides) =>
           cardVariant ? (
-            <NutrientCardAlt
+            <NutrientCardEditor
               content={nutrientData}
               getValue={getValue}
               variant={cardVariant}
               {...overrides}
             />
           ) : (
-            <NutrientCardV3 content={nutrientData} getValue={getValue} {...overrides} />
+            <NutrientCard content={nutrientData} getValue={getValue} {...overrides} />
           )
         }
       />

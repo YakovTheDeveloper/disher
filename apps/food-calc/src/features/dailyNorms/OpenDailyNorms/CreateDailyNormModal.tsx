@@ -18,7 +18,7 @@ import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import NutrientInput from '@/entities/nutrient/ui/NutrientCard/NutrientInput';
 import { Ornament } from '@/shared/ui/Ornament';
 import { Spacer } from '@/shared/ui/atoms/Spacer';
-import NutrientCardV3 from '@/entities/nutrient/ui/NutrientCard/NutrientCardV3';
+import { NutrientCard } from '@/entities/nutrient/ui/NutrientCard';
 import Nutrients from '@/entities/nutrient/ui/NutrientGroup/Nutrients';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import styles from './CreateDailyNormModal.module.scss';
@@ -317,9 +317,9 @@ const PreviewStep = ({ items, survey }: PreviewStepProps) => {
     (nutrient: Nutrient) => {
       const val = items[nutrient.id] ?? 0;
       return (
-        <NutrientCardV3 content={nutrient} showValue={false}>
+        <NutrientCard content={nutrient} showValue={false}>
           <span>{val} {nutrient.unitRu}</span>
-        </NutrientCardV3>
+        </NutrientCard>
       );
     },
     [items],

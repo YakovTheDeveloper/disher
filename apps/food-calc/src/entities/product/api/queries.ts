@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { useQuery } from "@powersync/react";
 import { snakeToCamel } from "@/shared/lib/rowMapper";
-import { parseNutrients, parsePortions, type NutrientEntry, type PortionEntry } from "@/shared/lib/parsers";
+import { parseNutrients, parsePortions, type PortionEntry } from "@/shared/lib/parsers";
+import type { NutrientEntry } from "@/shared/lib/nutrients";
 import type { Product } from "../model/types";
 
 export type { NutrientEntry, PortionEntry };
@@ -28,7 +29,6 @@ export function useProduct(productId: string | undefined) {
 
 export function useProducts(search?: string): Product[] {
   const { data } = useQuery<Record<string, unknown>>(SELECT_PRODUCT);
-
   return useMemo(() => {
     const rows = data.map(mapProductRow);
     if (!search) return rows;

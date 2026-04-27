@@ -1,0 +1,175 @@
+.group {
+    display: grid;
+    grid-template-columns: auto 1fr 5ch;
+    gap: var(--space-3);
+    align-items: center;
+    position: relative;
+}
+
+.timeDisplay,
+.timeEdit {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+}
+
+.timeDisplay {
+    cursor: pointer;
+}
+
+// Whole time block lights up while either HH/MM input is focused.
+.timeEdit {
+    padding: 2px 6px;
+    margin: -2px -6px;
+    border-radius: 6px;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:focus-within {
+        background-color: color-mix(in oklch, var(--select-color, #6cffc4) 22%, transparent);
+        box-shadow: inset 0 0 0 1.5px var(--select-color-strong, #34d399);
+    }
+}
+
+// Override TimeChoose CSS vars on the TimeInput root <div>.
+// TimeInput renders: <div.wrapper><label.inputWrapper><input.input></label>:<label>...
+// We don't have .tc-root here, so target * inside .timeEdit instead.
+.timeEdit * {
+    --tc-input-size: var(--text-sm);
+    --tc-input-weight: 400;
+    --tc-input-letter-spacing: 0;
+    --tc-input-pad: 0;
+    --tc-bg: transparent;
+    --tc-fg: var(--text-secondary);
+    --tc-border: 0;
+    --tc-border-radius: 0;
+    --tc-shadow-focus: none;
+}
+
+// Strip wrapper visual chrome (the .wrapper div has padding/border/bg/shadow).
+.timeEdit > div {
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    gap: 0;
+}
+
+.timeEdit input {
+    width: 2ch;
+    padding: 0;
+    font-size: var(--text-sm);
+    font-weight: 400;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 0;
+    text-align: center;
+    letter-spacing: 0;
+    line-height: 1;
+
+    &:focus {
+        outline: none;
+        animation: none;
+        box-shadow: none;
+        background: transparent;
+    }
+}
+
+.timeEdit span {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: 1;
+}
+
+.qtyEdit {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 2px;
+    cursor: pointer;
+    font-size: inherit;
+    color: inherit;
+    line-height: 1;
+    padding: 2px 6px;
+    margin: -2px -6px;
+    border-radius: 6px;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:focus-within {
+        background-color: color-mix(in oklch, var(--select-color, #6cffc4) 22%, transparent);
+        box-shadow: inset 0 0 0 1.5px var(--select-color-strong, #34d399);
+    }
+}
+
+// Make NumberInput visually identical to the static qty display.
+.qtyEdit input {
+    width: 4ch;
+    padding: 0 !important;
+    margin: 0;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    color: inherit !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    text-align: right;
+    letter-spacing: 0;
+    line-height: 1;
+
+    &:focus {
+        outline: none;
+        border: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+}
+
+.qtyUnit {
+    color: var(--text-muted);
+}
+
+.rightStack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+}
+
+.priceText {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+}
+
+.customProduct {
+    border-left: 2px solid var(--text-tertiary);
+    padding-left: var(--space-2);
+}
+
+.recentFreeText {
+    background: var(--surface-muted, #e5e5e5);
+    outline: 3px dotted var(--color-danger, #d32f2f);
+    outline-offset: -3px;
+    border-radius: 8px;
+}
+
+.customTitle {
+    color: var(--text-secondary);
+    font-weight: 400;
+    font-style: italic;
+}
+
+.dishTitle {
+    color: var(--text-primary);
+    font-weight: 400;
+    letter-spacing: 1.5px;
+}
+
+.foodTitle {
+    color: var(--text-primary);
+    font-weight: 400;
+}

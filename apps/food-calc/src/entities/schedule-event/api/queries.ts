@@ -1,9 +1,22 @@
 import { useQuery } from "@powersync/react";
 import { snakeToCamel } from "@/shared/lib/rowMapper";
 import type { ScheduleEvent } from "../model/types";
+import { isValidAtom, type Atom } from "../model/atoms";
+
+function parseAtoms(value: unknown): Atom[] {
+  if (Array.isArray(value)) return value.filter(isValidAtom);
+  if (typeof value !== "string" || value.length === 0) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.filter(isValidAtom) : [];
+  } catch {
+    return [];
+  }
+}
 
 function mapRow(row: Record<string, unknown>): ScheduleEvent {
-  return snakeToCamel(row) as unknown as ScheduleEvent;
+  const camel = snakeToCamel(row) as Record<string, unknown>;
+  return { ...camel, atoms: parseAtoms(camel.atoms) } as unknown as ScheduleEvent;
 }
 
 export function useScheduleEvents(date: string | undefined): ScheduleEvent[] {

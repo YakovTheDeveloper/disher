@@ -6,7 +6,6 @@ import { deleteDishes } from '@/entities/dish';
 import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
 import { isCreatedByUser } from '@/shared/lib';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { getCategoryIcon } from './categoryIcons';
 
 type Props = {
   variant: 'product' | 'dish';
@@ -99,7 +98,6 @@ const FoodActionCard = ({
   richNutrientMax = 0,
 }: Props) => {
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.userId);
-  const categoryIcon = getCategoryIcon(item.categories);
 
   const handleDelete = () => {
     if (variant === 'product') {

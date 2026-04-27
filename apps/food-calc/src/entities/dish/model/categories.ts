@@ -32,7 +32,7 @@ export const DISH_CATEGORY_GROUPS: DishCategoryGroup[] = [
   },
 ];
 
-import type { CategoryGroup, CategoryOption } from '@/shared/ui/FilterPanel/FilterPanel';
+import type { CategoryGroup, CategoryOption } from '@/shared/model/types';
 
 export const DISH_CATEGORY_LABELS: Record<DishCategoryValue, string> = {
     'vegetarian': 'Вегетарианское',

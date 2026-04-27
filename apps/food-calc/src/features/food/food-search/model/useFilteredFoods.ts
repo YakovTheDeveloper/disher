@@ -1,15 +1,50 @@
 import { useMemo, useState, useCallback } from 'react';
+import Fuse from 'fuse.js';
 import { useProducts, useNutrientsByProductIds } from '@/entities/product';
 import { useDishes, useDishItemsByDishIds } from '@/entities/dish';
 import { isCreatedByUser, parseCategories } from '@/shared/lib';
 
+const FUSE_THRESHOLD = 0.35;
+const FUSE_MIN_LEN = 2;
+
 export function useFilteredFoods(searchQuery: string, myFoodOnly = false, richNutrientId?: string | null) {
-  const allProducts = useProducts(
-    searchQuery || undefined,
+  // Pull the full lists — fuzzy ranking is done locally below.
+  const allProductsRaw = useProducts();
+  const allDishesRaw = useDishes();
+
+  const productFuse = useMemo(
+    () =>
+      new Fuse(allProductsRaw, {
+        keys: ['name', 'nameEng'],
+        threshold: FUSE_THRESHOLD,
+        ignoreLocation: true,
+        includeScore: true,
+      }),
+    [allProductsRaw]
   );
-  const allDishes = useDishes(
-    searchQuery || undefined,
+
+  const dishFuse = useMemo(
+    () =>
+      new Fuse(allDishesRaw, {
+        keys: ['name'],
+        threshold: FUSE_THRESHOLD,
+        ignoreLocation: true,
+        includeScore: true,
+      }),
+    [allDishesRaw]
   );
+
+  const allProducts = useMemo(() => {
+    const q = searchQuery.trim();
+    if (q.length < FUSE_MIN_LEN) return allProductsRaw;
+    return productFuse.search(q).map((r) => r.item);
+  }, [searchQuery, allProductsRaw, productFuse]);
+
+  const allDishes = useMemo(() => {
+    const q = searchQuery.trim();
+    if (q.length < FUSE_MIN_LEN) return allDishesRaw;
+    return dishFuse.search(q).map((r) => r.item);
+  }, [searchQuery, allDishesRaw, dishFuse]);
 
   // Single unified category filter (product categories apply to both products and dishes)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);

@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
-import { popOverlayEntry } from '@/shared/lib/overlay-history';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
@@ -120,8 +119,8 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
             <SearchFood
               mode="products-only"
               onSelectFood={handleFoodSelect}
-              onInfoClick={async (_variant, id) => {
-                await popOverlayEntry();
+              onInfoClick={(_variant, id) => {
+                handleClose();
                 toProduct(id);
               }}
               activeItemId={draft.productId ?? undefined}

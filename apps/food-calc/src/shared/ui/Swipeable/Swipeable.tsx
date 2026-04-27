@@ -1,8 +1,7 @@
 import React, { useCallback, forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
 
 import useEmblaCarousel from 'embla-carousel-react';
-import styles from './SwipeableV2.module.scss';
-import { SwipeableLockContext } from './SwipeableLockContext';
+import styles from './Swipeable.module.scss';
 export type SwipeableRef = {
   goToPage: (index: number) => void;
 };
@@ -16,23 +15,10 @@ type Props = {
   className?: string;
 };
 
-const SwipeableV2 = forwardRef<SwipeableRef, Props>(
+const Swipeable = forwardRef<SwipeableRef, Props>(
   ({ children, onIndexChange, hasDots = false, image, defaultSlide = 1, className }, ref) => {
     const indexRef = useRef(defaultSlide);
     const dotsRef = useRef<HTMLDivElement>(null);
-    const lockCountRef = useRef(0);
-    const emblaApiRef = useRef<ReturnType<typeof useEmblaCarousel>[1]>(null);
-
-    const lock = useCallback(() => {
-      lockCountRef.current++;
-      emblaApiRef.current?.reInit({ watchDrag: false });
-    }, []);
-    const unlock = useCallback(() => {
-      lockCountRef.current = Math.max(0, lockCountRef.current - 1);
-      if (lockCountRef.current === 0) {
-        emblaApiRef.current?.reInit({ watchDrag: true });
-      }
-    }, []);
 
     const [emblaRefModal, emblaApi] = useEmblaCarousel(
       {
@@ -45,7 +31,6 @@ const SwipeableV2 = forwardRef<SwipeableRef, Props>(
       },
       []
     );
-    emblaApiRef.current = emblaApi;
 
     // Update dots via DOM directly — zero React re-renders
     const updateDots = useCallback((index: number) => {
@@ -89,48 +74,58 @@ const SwipeableV2 = forwardRef<SwipeableRef, Props>(
       }
     }, [emblaApi, defaultSlide]);
 
-    return (
-      <SwipeableLockContext.Provider value={{ lock, unlock }}>
-        <div
-          className={className ? `${styles.carouselWrapper} ${className}` : styles.carouselWrapper}
-          data-carousel-container
-        >
-          <div className={styles.emblaViewport} ref={emblaRefModal}>
-            <div className={styles.emblaContainer}>
-              {image && (
-                <div
-                  className={styles.background}
-                  style={{
-                    width: `${children.length * 200}%`,
-                  }}
-                >
-                  {image}
-                </div>
-              )}
-              {children.map((slide, index) => (
-                <div key={index} className={styles.emblaSlide}>
-                  <div className={styles.slideContent}>{slide}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+    // Embla measures slide width once at mount with watchResize:false.
+    // If the container hasn't reached its final size yet (route transition,
+    // late-loading top panel), slides end up under-sized. Re-measure after
+    // the first paint when layout is settled.
+    useEffect(() => {
+      if (!emblaApi) return;
+      const id = requestAnimationFrame(() => {
+        emblaApi.reInit();
+      });
+      return () => cancelAnimationFrame(id);
+    }, [emblaApi]);
 
-          {hasDots && (
-            <div className={styles.dotsContainer} ref={dotsRef}>
-              {children.map((_, idx) => (
-                <button
-                  key={idx}
-                  className={`${styles.dot} ${idx === defaultSlide ? styles.dotActive : ''}`}
-                />
-              ))}
-            </div>
-          )}
+    return (
+      <div
+        className={className ? `${styles.carouselWrapper} ${className}` : styles.carouselWrapper}
+        data-carousel-container
+      >
+        <div className={styles.emblaViewport} ref={emblaRefModal}>
+          <div className={styles.emblaContainer}>
+            {image && (
+              <div
+                className={styles.background}
+                style={{
+                  width: `${children.length * 200}%`,
+                }}
+              >
+                {image}
+              </div>
+            )}
+            {children.map((slide, index) => (
+              <div key={index} className={styles.emblaSlide}>
+                <div className={styles.slideContent}>{slide}</div>
+              </div>
+            ))}
+          </div>
         </div>
-      </SwipeableLockContext.Provider>
+
+        {hasDots && (
+          <div className={styles.dotsContainer} ref={dotsRef}>
+            {children.map((_, idx) => (
+              <button
+                key={idx}
+                className={`${styles.dot} ${idx === defaultSlide ? styles.dotActive : ''}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     );
   }
 );
 
-SwipeableV2.displayName = 'SwipeableV2';
+Swipeable.displayName = 'Swipeable';
 
-export default SwipeableV2;
+export default Swipeable;

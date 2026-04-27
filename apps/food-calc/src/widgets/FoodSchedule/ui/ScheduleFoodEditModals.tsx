@@ -1,5 +1,4 @@
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import { popOverlayEntry } from '@/shared/lib/overlay-history';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
@@ -8,17 +7,14 @@ import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { DetailsNoteButton } from '@/features/shared/components/DetailsNoteButton';
-import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 
-import { useScheduleFoodFlow, type Step } from './useScheduleFoodFlow';
+import type { ScheduleFoodFlow } from './useScheduleFoodFlow';
 
 type Props = {
-  item: ScheduleFoodWithRelations;
-  initialStep?: Step;
-  onClose: () => void;
+  flow: ScheduleFoodFlow;
 };
 
-const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) => {
+const ScheduleFoodEditModals = ({ flow }: Props) => {
   const { toProduct, toDish } = useAppRoutes();
   const {
     step,
@@ -32,12 +28,12 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
     handleClose,
     quantityContent,
     inputIds: { TIME_INPUT, SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
-  } = useScheduleFoodFlow({ type: 'edit', item, initialStep, onClose });
+  } = flow;
 
   const goToStep = (target: typeof step) => setStep(target);
 
   return (
-    <div>
+    <div onFocusCapture={handleFocusCapture}>
       {/* Time */}
       <ModalByLabel
         position="absolute"
@@ -68,17 +64,16 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
             onBack={handleClose}
             mode="products-and-dishes"
             onSelectFood={handleFoodSelect}
-            onInfoClick={async (variant, id) => {
-              await popOverlayEntry();
+            onInfoClick={(variant, id) => {
+              handleClose();
               if (variant === 'product') toProduct(id);
               else toDish(id);
             }}
             activeItemId={draft.productId ?? draft.dishId ?? undefined}
             inputId={SEARCH_INPUT}
             initialSearchQuery={draft.foodName ?? undefined}
-            bottomLeft={
-              <DetailsNoteButton htmlFor={DETAILS_INPUT} hasDetails={!!draft.details} />
-            }
+            bottomLeft={<DetailsNoteButton htmlFor={DETAILS_INPUT} hasDetails={!!draft.details} />}
+            isActive={step === 'search'}
           />
         }
       />
@@ -94,6 +89,7 @@ const ScheduleFoodEditModals = ({ item, initialStep = 'idle', onClose }: Props) 
                 content={quantityContent}
                 onFinish={() => {}}
                 inputId={QUANTITY_INPUT}
+                isActive={step === 'quantity'}
               />
               <ModalShell.ActionButtons
                 left={<ModalPrevButton onClick={handleClose} />}

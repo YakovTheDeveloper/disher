@@ -17,6 +17,7 @@ type Props = {
   disabled?: boolean;
   bottom?: React.ReactNode;
   min?: number;
+  maxLength?: number;
 };
 
 const NumberInput = forwardRef<HTMLInputElement, Props>(
@@ -35,6 +36,7 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
       variant,
       disabled,
       bottom,
+      maxLength,
     },
     _ref
   ) => {
@@ -58,6 +60,7 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
         id={id}
         inputMode="numeric"
         pattern="[0-9]*"
+        maxLength={maxLength}
         onFocus={handleFocus}
         className={clsx([
           styles.input,
@@ -70,7 +73,8 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
         value={value}
         placeholder={placeholder}
         onChange={(e) => {
-          const val = e.target.value.replace(/\D/g, '');
+          let val = e.target.value.replace(/\D/g, '');
+          if (maxLength != null) val = val.slice(0, maxLength);
           onChange?.(val === '' ? 0 : Number(val));
         }}
         onBlur={handleBlur}

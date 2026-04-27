@@ -1,4 +1,4 @@
-import { AnimatedOutlet } from '@/shared/ui/PageTransition';
+import { Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import s from '@/shared/assets/style/App.module.scss';
 import '@/shared/assets/style/index.scss';
@@ -6,12 +6,12 @@ import '@/shared/assets/style/App.module.scss';
 import { Toaster } from 'sonner';
 import { setupGlobalLog } from '@/app/log';
 import { Modal } from '@/shared/ui/Modal';
-import { ModalManagerV2 } from '@/app/ui/ModalManager';
+import { ModalManager } from '@/app/ui/ModalManager';
 import { Drawer } from '@/shared/ui/Drawer';
 import { useLastFocusMethod } from '@/hooks/useLastFocusMethod';
 import { useUserAgentDetection } from '@/hooks/useUserAgentDetection';
 import { useGlobalScrollBlur } from '@/hooks/useGlobalScrollBlur';
-import DrawerManagerV3 from '@/app/ui/DrawerManager';
+import DrawerManager from '@/app/ui/DrawerManager';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/app/i18n';
 import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
@@ -44,14 +44,14 @@ export default function App() {
         <div className={s.main}>
           {shouldShowDvBar() && <DesignVariantsBar />}
           <Modal>
-            <ModalManagerV2 />
+            <ModalManager />
           </Modal>
 
           <Drawer>
-            <DrawerManagerV3 />
+            <DrawerManager />
           </Drawer>
 
-          <AnimatedOutlet />
+          <Outlet />
         </div>
       </QueryClientProvider>
     </I18nextProvider>

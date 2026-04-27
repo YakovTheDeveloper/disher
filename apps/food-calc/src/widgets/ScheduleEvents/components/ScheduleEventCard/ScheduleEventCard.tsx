@@ -69,7 +69,7 @@ export function ScheduleEventCard({
   className,
 }: Props) {
   const title = item.text || 'Новое событие';
-  const atoms: Atom[] = typeof item.atoms === 'string' ? (JSON.parse(item.atoms) as Atom[]) : (item.atoms ?? []);
+  const atoms: Atom[] = Array.isArray(item.atoms) ? item.atoms : [];
   const hasAtoms = atoms.length > 0;
 
   return (

@@ -25,6 +25,11 @@ type Props = {
 const LONG_PRESS_DELAY = 450;
 const MOVE_THRESHOLD = 10; // Pixels allowed before canceling long press
 
+const EASE_OUT = [0, 0, 0.2, 1] as const;
+const EASE_IN = [0.4, 0, 1, 1] as const;
+const ITEM_ENTER = { duration: 0.28, ease: EASE_OUT } as const;
+const ITEM_EXIT = { duration: 0.16, ease: EASE_IN } as const;
+
 const ListItem = ({
   id,
   children,
@@ -158,8 +163,9 @@ const ListItem = ({
 
   return (
     <motion.div
-      layout
-      whileTap={{ scale: 0.98 }}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0, transition: ITEM_ENTER }}
+      exit={{ opacity: 0, y: -4, transition: ITEM_EXIT }}
       className={clsx(
         styles.commonListItemWrapper,
         isSelected && styles.selected,
@@ -205,6 +211,7 @@ const ListItem = ({
       <motion.li
         animate={{ x: isSelectMode ? 44 : 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        whileTap={{ scale: 0.98 }}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
         onPointerMove={onPointerMove}

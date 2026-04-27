@@ -12,14 +12,14 @@ import {
 } from '@/entities/daily-norm';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import styles from './NutrientCardAlt.module.scss';
+import styles from './NutrientCardEditor.module.scss';
 
-export type NutrientCardAltVariant = 'schedule' | 'dish' | 'product-edit' | 'product-view';
+export type NutrientCardEditorVariant = 'schedule' | 'dish' | 'product-edit' | 'product-view';
 
 interface Props {
   content: Nutrient;
   getValue?: (id: string) => number;
-  variant: NutrientCardAltVariant;
+  variant: NutrientCardEditorVariant;
   showValue?: boolean;
   showProgress?: boolean;
   dimmed?: boolean;
@@ -32,7 +32,7 @@ interface Props {
 
 const defaultGetValue = () => 0;
 
-const NutrientCardAlt: FC<Props> = ({
+const NutrientCardEditor: FC<Props> = ({
   content,
   getValue = defaultGetValue,
   variant,
@@ -131,7 +131,7 @@ const NutrientCardAlt: FC<Props> = ({
       </div>
       <div className={styles.bottomRow}>
         <span className={clsx(styles.value, !showValue && styles.valueHidden)}>
-          {showValue ? <>{value.toFixed(1)} {unitRu}</> : '\u00A0'}
+          {showValue ? <>{value.toFixed(1)} {unitRu}</> : ' '}
         </span>
         <label htmlFor={normInputId} className={styles.percentLabel}>
           <span className={clsx(styles.percent, styles[statusClass])}>{percentText}%</span>
@@ -177,4 +177,4 @@ const NutrientCardAlt: FC<Props> = ({
   );
 };
 
-export default NutrientCardAlt;
+export default NutrientCardEditor;

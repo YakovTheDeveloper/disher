@@ -1,5 +1,4 @@
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import { popOverlayEntry } from '@/shared/lib/overlay-history';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
@@ -9,7 +8,6 @@ import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { DetailsNoteButton } from '@/features/shared/components/DetailsNoteButton';
-import { useEffect } from 'react';
 import {
   useScheduleFoodFlow,
   CREATE_STEPS,
@@ -46,15 +44,6 @@ const ScheduleFoodCreateModals = ({
 
   const goToStep = (target: typeof step) => setStep(target);
 
-  useEffect(() => {
-    if (step !== 'details') return;
-    const timer = setTimeout(() => {
-      const el = document.getElementById(DETAILS_INPUT);
-      el?.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [step, DETAILS_INPUT]);
-
   return (
     <div onFocusCapture={handleFocusCapture}>
       {/* Step 1: Search */}
@@ -63,8 +52,8 @@ const ScheduleFoodCreateModals = ({
         isExpanded={step === 'search'}
         content={
           <SearchFood
-            onInfoClick={async (variant, id) => {
-              await popOverlayEntry();
+            onInfoClick={(variant, id) => {
+              handleClose();
               if (variant === 'product') toProduct(id);
               else toDish(id);
             }}
@@ -77,6 +66,7 @@ const ScheduleFoodCreateModals = ({
             activeItemId={draft.productId ?? draft.dishId ?? undefined}
             itemHtmlFor={TIME_INPUT}
             inputId={SEARCH_INPUT}
+            isActive={step === 'search'}
           />
         }
       />
@@ -130,7 +120,13 @@ const ScheduleFoodCreateModals = ({
             <ModalShell.Body>
               {(draft.productId || draft.dishId) && (
                 <>
-                  <ProductQuantity key={sessionKey} content={quantityContent} onFinish={() => {}} />
+                  <ProductQuantity
+                    key={sessionKey}
+                    content={quantityContent}
+                    onFinish={() => {}}
+                    inputId={QUANTITY_INPUT}
+                    isActive={step === 'quantity'}
+                  />
                   <ModalShell.ActionButtons
                     debugId="create-qty"
                     left={<ModalPrevButton onClick={() => goToStep('time')} />}

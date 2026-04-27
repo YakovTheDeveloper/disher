@@ -78,8 +78,6 @@ function getWeekDates(dateStr: string): { weekStart: string; dates: string[] } {
   return { weekStart: dates[0], dates };
 }
 
-const DAY_NAMES = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-
 // ─── Snapshot builders ───
 
 function buildFoodSnapshot(foods: ScheduleFoodWithRelations[]) {
@@ -231,10 +229,11 @@ const AnalyticsContent = ({
   // Load persisted analysis on mount / tab change
   useEffect(() => {
     if (activeTab === 'week') return; // weekly has its own loading
+    const dailyTab: 'food' | 'day' = activeTab;
     let cancelled = false;
 
     async function load() {
-      const persisted = await fetchDailyAnalysis(date, activeTab);
+      const persisted = await fetchDailyAnalysis(date, dailyTab);
       if (cancelled) return;
 
       if (persisted) {

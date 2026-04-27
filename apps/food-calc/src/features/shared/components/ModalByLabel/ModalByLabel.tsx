@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import styles from './ModalByLabel.module.scss';
 import clsx from 'clsx';
 
@@ -15,7 +16,7 @@ const ModalByLabel: React.FC<ModalByLabelProps> = ({
   position = 'fixed',
   className,
 }) => {
-  return (
+  const node = (
     <div
       data-modal-by-label={isExpanded ? 'expanded' : 'collapsed'}
       className={clsx(
@@ -26,9 +27,12 @@ const ModalByLabel: React.FC<ModalByLabelProps> = ({
         className
       )}
     >
-      {<div className={clsx(styles.content, !isExpanded && styles.collapsed)}>{content}</div>}
+      <div className={clsx(styles.content, !isExpanded && styles.collapsed)}>{content}</div>
     </div>
   );
+
+  const target = document.getElementById('modal-by-label-root') ?? document.body;
+  return createPortal(node, target);
 };
 
 export default ModalByLabel;
