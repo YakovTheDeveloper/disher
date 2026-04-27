@@ -23,7 +23,13 @@
 
 -- ─── extensions ────────────────────────────────────────────────────────────
 
-create extension if not exists "uuid-ossp";
+-- pgcrypto ships with Supabase by default and provides gen_random_uuid().
+-- We previously used uuid-ossp's gen_random_uuid(), but on fresh Supabase
+-- projects uuid-ossp is installed under the `extensions` schema while the
+-- migration runs with search_path = public, so the unqualified call fails.
+-- gen_random_uuid() from pgcrypto is in `extensions` too, but Supabase keeps
+-- it on the default search_path for `public` migrations.
+create extension if not exists pgcrypto with schema extensions;
 
 -- ─── helpers ───────────────────────────────────────────────────────────────
 
@@ -40,7 +46,7 @@ $$;
 -- ─── products (foods catalog + user-created) ───────────────────────────────
 
 create table public.products (
-  id              uuid primary key default uuid_generate_v4(),
+  id              uuid primary key default gen_random_uuid(),
   user_id         uuid references auth.users(id) on delete cascade,
   name            text not null,
   name_eng        text not null default '',
@@ -66,7 +72,7 @@ create trigger products_set_updated_at
 -- ─── dishes ────────────────────────────────────────────────────────────────
 
 create table public.dishes (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users(id) on delete cascade,
   name        text not null,
   created_at  timestamptz not null default now(),
@@ -84,7 +90,7 @@ create trigger dishes_set_updated_at
 -- ─── dish_items (dish composition) ─────────────────────────────────────────
 
 create table public.dish_items (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users(id) on delete cascade,
   dish_id     uuid not null references public.dishes(id) on delete cascade,
   product_id  uuid not null references public.products(id),
@@ -105,7 +111,7 @@ create trigger dish_items_set_updated_at
 -- ─── dish_portions ─────────────────────────────────────────────────────────
 
 create table public.dish_portions (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users(id) on delete cascade,
   dish_id     uuid not null references public.dishes(id) on delete cascade,
   label       text not null,
@@ -130,7 +136,7 @@ create trigger dish_portions_set_updated_at
 create type schedule_food_type as enum ('food', 'dish');
 
 create table public.schedule_foods (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users(id) on delete cascade,
   date        date not null,
   time        text not null,
@@ -159,7 +165,7 @@ create trigger schedule_foods_set_updated_at
 -- ─── schedule_events (calendar / daily events with atoms) ──────────────────
 
 create table public.schedule_events (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users(id) on delete cascade,
   date        date not null,
   time        text not null,
@@ -181,7 +187,7 @@ create trigger schedule_events_set_updated_at
 -- ─── daily_norms ───────────────────────────────────────────────────────────
 
 create table public.daily_norms (
-  id          uuid primary key default uuid_generate_v4(),
+  id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users(id) on delete cascade,
   name        text not null,
   description text not null default '',
@@ -201,7 +207,7 @@ create trigger daily_norms_set_updated_at
 -- ─── periods (styling / tagging ranges) ────────────────────────────────────
 
 create table public.periods (
-  id           uuid primary key default uuid_generate_v4(),
+  id           uuid primary key default gen_random_uuid(),
   user_id      uuid not null references auth.users(id) on delete cascade,
   name         text not null,
   color_index  int not null default 0,
