@@ -5,38 +5,26 @@ import { ProfileDrawer } from './ProfileDrawer';
 
 const AccountPanel = () => {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  const isAnonymous = useAuthStore((s) => s.isAnonymous);
   const email = useAuthStore((s) => s.email);
+
+  // The app is gated behind AuthGate, so by the time AccountPanel renders the
+  // user is always logged in. Defensive null-check kept for the brief window
+  // after signOut when the gate re-mounts.
+  if (!isLoggedIn) return null;
 
   const openDrawer = () => {
     drawerStore.show(ProfileDrawer, {});
   };
 
-  if (isLoggedIn) {
-    return (
-      <button className={styles.avatarButton} onClick={openDrawer} title={email ?? 'Аккаунт'}>
-        <span className={styles.avatarLetter}>
-          {email ? email[0].toUpperCase() : '?'}
-        </span>
-      </button>
-    );
-  }
-
-  if (isAnonymous) {
-    return (
-      <button
-        className={styles.avatarButton}
-        onClick={openDrawer}
-        title="Анонимный режим"
-      >
-        <span className={styles.avatarLetter}>?</span>
-      </button>
-    );
-  }
-
   return (
-    <button className={styles.loginTrigger} onClick={openDrawer}>
-      Войти
+    <button
+      className={styles.avatarButton}
+      onClick={openDrawer}
+      aria-label={email ? `Аккаунт ${email}` : 'Аккаунт'}
+    >
+      <span className={styles.avatarLetter}>
+        {email ? email[0].toUpperCase() : '?'}
+      </span>
     </button>
   );
 };

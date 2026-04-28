@@ -3,7 +3,8 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { queryClient } from '@/shared/lib/storage/queryClient';
 import { persister, APP_VERSION } from '@/shared/lib/storage/persister';
 import { primePendingCache, drain } from '@/shared/lib/storage/pendingWrites';
-import { supabase } from '@/shared/api/supabase-client';
+import { useAuthStore } from '@/features/auth/auth-store';
+import { Sentry } from '@/shared/lib/observability/sentry';
 
 type Props = { children: ReactNode };
 
@@ -24,49 +25,65 @@ export function SyncProvider({ children }: Props) {
 }
 
 function SyncBootstrap() {
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const [error, setError] = useState<Error | null>(null);
 
+  // Resolve the initial session once at mount. Authentication is required —
+  // no anonymous fallback. AuthGate handles the unauthenticated UI.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        // 1. getSession первым: gotrue-js под внутренним lock'ом сделает refresh,
-        //    предотвращая race "Already Used refresh token" между boot drain и первым useQuery.
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (cancelled) return;
-
-        if (!session) {
-          const { error: anonErr } = await supabase.auth.signInAnonymously();
-          if (anonErr) throw anonErr;
-        }
-        if (cancelled) return;
-
-        // 2. Дроп записей со старой APP_VERSION (schema drift).
-        await primePendingCache();
-        if (cancelled) return;
-
-        // 3. Drain очереди.
-        void drain();
+        await useAuthStore.getState().bootstrap();
       } catch (e) {
-        if (!cancelled) setError(e as Error);
+        if (!cancelled) {
+          Sentry.captureException(e, { tags: { phase: 'auth-bootstrap' }, level: 'fatal' });
+          setError(e as Error);
+        }
       }
     })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
+  // Prime the outbox + drain whenever a real session is active. Re-runs after
+  // sign-in (the store flips isLoggedIn → true) so a fresh login picks up
+  // any writes the user queued before the network round-trip.
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await primePendingCache();
+        if (cancelled) return;
+        void drain();
+      } catch (e) {
+        if (!cancelled) {
+          Sentry.captureException(e, { tags: { phase: 'sync-bootstrap' }, level: 'fatal' });
+          setError(e as Error);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn]);
+
+  // Re-drain on connectivity / visibility transitions while signed in.
+  useEffect(() => {
+    if (!isLoggedIn) return;
     const onOnline = () => void drain();
     const onVisible = () => {
       if (!document.hidden) void drain();
     };
     window.addEventListener('online', onOnline);
     document.addEventListener('visibilitychange', onVisible);
-
     return () => {
-      cancelled = true;
       window.removeEventListener('online', onOnline);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, []);
+  }, [isLoggedIn]);
 
   if (error) {
     return (

@@ -1,7 +1,9 @@
-import { enqueue, drain } from "@/shared/lib/storage/pendingWrites";
+import { enqueue, enqueueMany, drain, type PendingWrite } from "@/shared/lib/storage/pendingWrites";
 import { queryClient } from "@/shared/lib/storage/queryClient";
 import { getUserIdSync } from "@/shared/lib/auth/useUserId";
 import type { Dish, DishItem, DishPortion } from "../model/types";
+
+type EnqueueInput = Pick<PendingWrite, "table" | "op" | "payload">;
 
 const DISH_TABLE = "dishes";
 const DISH_ITEM_TABLE = "dish_items";
@@ -12,22 +14,6 @@ function requireUserId(): string {
   const userId = getUserIdSync();
   if (!userId) throw new Error("Not authenticated");
   return userId;
-}
-
-function invalidateDishes() {
-  void queryClient.invalidateQueries({ queryKey: ["dishes"] });
-}
-
-function invalidateDishItems() {
-  void queryClient.invalidateQueries({ queryKey: ["dish_items"] });
-}
-
-function invalidateDishPortions() {
-  void queryClient.invalidateQueries({ queryKey: ["dish_portions"] });
-}
-
-function invalidateScheduleFoods() {
-  void queryClient.invalidateQueries({ queryKey: ["schedule_foods"] });
 }
 
 function patchDishesCache(updater: (rows: Dish[]) => Dish[]) {
@@ -74,7 +60,6 @@ export async function createDish(name: string): Promise<string> {
 
   await enqueue({ table: DISH_TABLE, op: "insert", payload: row });
   void drain();
-  invalidateDishes();
   return id;
 }
 
@@ -89,7 +74,6 @@ export async function updateDishName(dishId: string, name: string): Promise<void
     payload: { id: dishId, name, updated_at: now },
   });
   void drain();
-  invalidateDishes();
 }
 
 export async function deleteDish(
@@ -97,6 +81,7 @@ export async function deleteDish(
   itemIds: string[],
   portionIds: string[],
 ): Promise<void> {
+  // No invalidate after enqueue — see deleteProduct comment (delete-flicker race).
   const itemSet = new Set(itemIds);
   const portionSet = new Set(portionIds);
 
@@ -108,18 +93,22 @@ export async function deleteDish(
     patchDishPortionsCache((rows) => rows.filter((r) => !portionSet.has(r.id)));
   }
 
-  for (const id of itemIds) {
-    await enqueue({ table: DISH_ITEM_TABLE, op: "delete", payload: { id } });
-  }
-  for (const id of portionIds) {
-    await enqueue({ table: DISH_PORTION_TABLE, op: "delete", payload: { id } });
-  }
-  await enqueue({ table: DISH_TABLE, op: "delete", payload: { id: dishId } });
+  // FIFO order preserved: items → portions → dish (children before parent).
+  await enqueueMany([
+    ...itemIds.map((id) => ({
+      table: DISH_ITEM_TABLE,
+      op: "delete" as const,
+      payload: { id },
+    })),
+    ...portionIds.map((id) => ({
+      table: DISH_PORTION_TABLE,
+      op: "delete" as const,
+      payload: { id },
+    })),
+    { table: DISH_TABLE, op: "delete" as const, payload: { id: dishId } },
+  ]);
 
   void drain();
-  invalidateDishes();
-  invalidateDishItems();
-  invalidateDishPortions();
 }
 
 export async function deleteDishes(
@@ -139,20 +128,20 @@ export async function deleteDishes(
     patchDishPortionsCache((rows) => rows.filter((r) => !portionIdSet.has(r.id)));
   }
 
+  // Per-dish FIFO: items → portions → dish; preserved across the flat array.
+  const writes: EnqueueInput[] = [];
   for (const d of dishes) {
     for (const id of d.itemIds) {
-      await enqueue({ table: DISH_ITEM_TABLE, op: "delete", payload: { id } });
+      writes.push({ table: DISH_ITEM_TABLE, op: "delete", payload: { id } });
     }
     for (const id of d.portionIds) {
-      await enqueue({ table: DISH_PORTION_TABLE, op: "delete", payload: { id } });
+      writes.push({ table: DISH_PORTION_TABLE, op: "delete", payload: { id } });
     }
-    await enqueue({ table: DISH_TABLE, op: "delete", payload: { id: d.id } });
+    writes.push({ table: DISH_TABLE, op: "delete", payload: { id: d.id } });
   }
+  await enqueueMany(writes);
 
   void drain();
-  invalidateDishes();
-  invalidateDishItems();
-  invalidateDishPortions();
 }
 
 export async function addDishItem(params: {
@@ -189,7 +178,6 @@ export async function addDishItem(params: {
 
   await enqueue({ table: DISH_ITEM_TABLE, op: "insert", payload: row });
   void drain();
-  invalidateDishItems();
   return id;
 }
 
@@ -228,14 +216,13 @@ export async function updateDishItem(
 
   await enqueue({ table: DISH_ITEM_TABLE, op: "upsert", payload });
   void drain();
-  invalidateDishItems();
 }
 
 export async function removeDishItem(itemId: string): Promise<void> {
+  // No invalidate after enqueue — see deleteProduct comment (delete-flicker race).
   patchDishItemsCache((rows) => rows.filter((r) => r.id !== itemId));
   await enqueue({ table: DISH_ITEM_TABLE, op: "delete", payload: { id: itemId } });
   void drain();
-  invalidateDishItems();
 }
 
 export async function copyDishItems(
@@ -275,11 +262,10 @@ export async function copyDishItems(
 
   patchDishItemsCache((rows) => [...rows, ...optimisticRows]);
 
-  for (const payload of payloads) {
-    await enqueue({ table: DISH_ITEM_TABLE, op: "insert", payload });
-  }
+  await enqueueMany(
+    payloads.map((payload) => ({ table: DISH_ITEM_TABLE, op: "insert" as const, payload })),
+  );
   void drain();
-  invalidateDishItems();
 }
 
 export async function addDishPortion(
@@ -319,7 +305,6 @@ export async function addDishPortion(
 
   await enqueue({ table: DISH_PORTION_TABLE, op: "insert", payload: row });
   void drain();
-  invalidateDishPortions();
 }
 
 type DishPortionUpdates = Partial<{
@@ -359,14 +344,13 @@ export async function updateDishPortion(
 
   await enqueue({ table: DISH_PORTION_TABLE, op: "upsert", payload });
   void drain();
-  invalidateDishPortions();
 }
 
 export async function removeDishPortion(portionId: string): Promise<void> {
+  // No invalidate after enqueue — see deleteProduct comment (delete-flicker race).
   patchDishPortionsCache((rows) => rows.filter((r) => r.id !== portionId));
   await enqueue({ table: DISH_PORTION_TABLE, op: "delete", payload: { id: portionId } });
   void drain();
-  invalidateDishPortions();
 }
 
 export async function dishItemsToScheduleFoods(
@@ -416,9 +400,8 @@ export async function dishItemsToScheduleFoods(
     },
   );
 
-  for (const payload of payloads) {
-    await enqueue({ table: SCHEDULE_FOOD_TABLE, op: "insert", payload });
-  }
+  await enqueueMany(
+    payloads.map((payload) => ({ table: SCHEDULE_FOOD_TABLE, op: "insert" as const, payload })),
+  );
   void drain();
-  invalidateScheduleFoods();
 }

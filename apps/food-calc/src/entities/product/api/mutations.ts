@@ -1,4 +1,4 @@
-import { enqueue, drain } from "@/shared/lib/storage/pendingWrites";
+import { enqueue, enqueueMany, drain } from "@/shared/lib/storage/pendingWrites";
 import { queryClient } from "@/shared/lib/storage/queryClient";
 import { getUserIdSync } from "@/shared/lib/auth/useUserId";
 import type { Product } from "../model/types";
@@ -9,10 +9,6 @@ function requireUserId(): string {
   const userId = getUserIdSync();
   if (!userId) throw new Error("Not authenticated");
   return userId;
-}
-
-function invalidateProducts() {
-  void queryClient.invalidateQueries({ queryKey: ["products"] });
 }
 
 function safeParseJson<T>(json: string | undefined, fallback: T): T {
@@ -84,7 +80,6 @@ export async function createProduct(params: {
 
   await enqueue({ table: TABLE, op: "insert", payload: row });
   void drain();
-  invalidateProducts();
   return id;
 }
 
@@ -159,7 +154,6 @@ export async function updateProduct(
   const payload = buildUpdatePayload(productId, updates);
   await enqueue({ table: TABLE, op: "upsert", payload });
   void drain();
-  invalidateProducts();
 }
 
 export async function setProductNutrients(
@@ -177,14 +171,16 @@ export async function setProductPortions(
 }
 
 export async function deleteProduct(productId: string): Promise<void> {
-  // Optimistic removal.
+  // Optimistic removal. We don't invalidateQueries here — the refetch would
+  // race the outbox drain and bring the row back for ~1s on slow networks
+  // (план: «Delete + invalidate race»). The outbox poison-handler will
+  // invalidate if the delete fails to land.
   queryClient.setQueriesData<Product[]>(
     { queryKey: ["products", "all"] },
     (old) => (old ? old.filter((p) => p.id !== productId) : old),
   );
   await enqueue({ table: TABLE, op: "delete", payload: { id: productId } });
   void drain();
-  invalidateProducts();
 }
 
 export async function deleteProducts(productIds: string[]): Promise<void> {
@@ -194,9 +190,8 @@ export async function deleteProducts(productIds: string[]): Promise<void> {
     { queryKey: ["products", "all"] },
     (old) => (old ? old.filter((p) => !idSet.has(p.id)) : old),
   );
-  for (const id of productIds) {
-    await enqueue({ table: TABLE, op: "delete", payload: { id } });
-  }
+  await enqueueMany(
+    productIds.map((id) => ({ table: TABLE, op: "delete" as const, payload: { id } })),
+  );
   void drain();
-  invalidateProducts();
 }

@@ -207,6 +207,22 @@ describe('product mutations', () => {
     expect(getPendingCount()).toBe(0);
   });
 
+  it('createProduct does NOT invalidateQueries (avoid insert-flicker race with drain)', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    seedProductsCache([]);
+    await createProduct({ name: 'x' });
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('updateProduct does NOT invalidateQueries (avoid update-flicker race with drain)', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    seedProductsCache([baseProduct]);
+    await updateProduct('p-existing', { name: 'renamed' });
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
   it('queue persists across primePendingCache (durability check)', async () => {
     seedProductsCache([baseProduct]);
     await createProduct({ name: 'x' });

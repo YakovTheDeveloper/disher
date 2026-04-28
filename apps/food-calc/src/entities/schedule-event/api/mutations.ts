@@ -1,4 +1,4 @@
-import { enqueue, drain } from "@/shared/lib/storage/pendingWrites";
+import { enqueue, enqueueMany, drain } from "@/shared/lib/storage/pendingWrites";
 import { queryClient } from "@/shared/lib/storage/queryClient";
 import { getUserIdSync } from "@/shared/lib/auth/useUserId";
 import type { Atom } from "@/entities/schedule-event/model/atoms";
@@ -10,10 +10,6 @@ function requireUserId(): string {
   const userId = getUserIdSync();
   if (!userId) throw new Error("Not authenticated");
   return userId;
-}
-
-function invalidateScheduleEvents() {
-  void queryClient.invalidateQueries({ queryKey: ["schedule_events"] });
 }
 
 function patchScheduleEventsCache(updater: (rows: ScheduleEvent[]) => ScheduleEvent[]) {
@@ -64,7 +60,6 @@ export async function addScheduleEvent(params: {
 
   await enqueue({ table: TABLE, op: "insert", payload: row });
   void drain();
-  invalidateScheduleEvents();
   return id;
 }
 
@@ -117,23 +112,21 @@ export async function updateScheduleEvent(
 
   await enqueue({ table: TABLE, op: "upsert", payload });
   void drain();
-  invalidateScheduleEvents();
 }
 
 export async function removeScheduleEvent(eventId: string): Promise<void> {
+  // No invalidate after enqueue — see deleteProduct comment (delete-flicker race).
   patchScheduleEventsCache((rows) => rows.filter((r) => r.id !== eventId));
   await enqueue({ table: TABLE, op: "delete", payload: { id: eventId } });
   void drain();
-  invalidateScheduleEvents();
 }
 
 export async function removeScheduleEvents(eventIds: string[]): Promise<void> {
   if (eventIds.length === 0) return;
   const idSet = new Set(eventIds);
   patchScheduleEventsCache((rows) => rows.filter((r) => !idSet.has(r.id)));
-  for (const id of eventIds) {
-    await enqueue({ table: TABLE, op: "delete", payload: { id } });
-  }
+  await enqueueMany(
+    eventIds.map((id) => ({ table: TABLE, op: "delete" as const, payload: { id } })),
+  );
   void drain();
-  invalidateScheduleEvents();
 }

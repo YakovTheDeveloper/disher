@@ -185,6 +185,83 @@ describe('schedule-food mutations', () => {
     });
   });
 
+  it('addScheduleFood does NOT invalidateQueries (avoid insert-flicker race with drain)', async () => {
+    // Background: invalidateQueries right after enqueue used to trigger a refetch
+    // BEFORE drain finished POSTing the row. The server returned the list without
+    // the new row, blowing away the optimistic copy until next focus/reconnect.
+    // Optimistic patch + drain-success carries the same id/payload, so the cache
+    // already matches the server. No invalidate needed.
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    seedCache([]);
+
+    await addScheduleFood({
+      date: '2026-04-27',
+      time: '13:00',
+      type: 'food',
+      quantity: 100,
+      productId: 'p-2',
+    });
+
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('updateScheduleFood does NOT invalidateQueries (avoid update-flicker race with drain)', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    seedCache([baseRow]);
+
+    await updateScheduleFood('sf-existing', { quantity: 250 });
+
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('pasteClipboardItems does NOT invalidateQueries (avoid bulk-insert-flicker race)', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    seedCache([]);
+
+    await pasteClipboardItems(
+      [
+        {
+          time: '08:00',
+          type: 'food',
+          quantity: 100,
+          productId: 'p1',
+          dishId: null,
+          details: '',
+          displayName: 'A',
+        },
+      ],
+      '2026-05-01'
+    );
+
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('G3: removeScheduleFood does NOT invalidateQueries (avoid delete-flicker)', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    seedCache([baseRow]);
+
+    await removeScheduleFood('sf-existing');
+
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('G3: removeScheduleFoods (bulk) does NOT invalidateQueries', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    seedCache([
+      { ...baseRow, id: 'a' },
+      { ...baseRow, id: 'b' },
+    ]);
+
+    await removeScheduleFoods(['a', 'b']);
+
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
   it('removeScheduleFoods: bulk; preserves FIFO order in queue', async () => {
     seedCache([
       { ...baseRow, id: 'a' },

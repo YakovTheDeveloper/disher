@@ -121,4 +121,14 @@ describe('period mutations', () => {
     await updatePeriod('pe-1', {});
     expect(getPendingCount()).toBe(0);
   });
+
+  it('addPeriod / updatePeriod do NOT invalidateQueries (avoid flicker race with drain)', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    seed([]);
+    await addPeriod({ name: 'evening', colorIndex: 2 });
+    seed([basePeriod]);
+    await updatePeriod('pe-1', { colorIndex: 5 });
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
 });

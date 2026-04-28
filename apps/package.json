@@ -6,8 +6,5 @@
     "dev:back": "cd disher-backend-3.0 && npm run dev:network",
     "dev:front": "cd food-calc && npm run dev-network"
   },
-  "devDependencies": {
-    "concurrently": "^9.1.0",
-    "wait-on": "^9.0.4"
-  }
+  "devDependencies": {}
 }

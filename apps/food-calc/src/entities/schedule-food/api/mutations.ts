@@ -1,4 +1,4 @@
-import { enqueue, drain } from "@/shared/lib/storage/pendingWrites";
+import { enqueue, enqueueMany, drain } from "@/shared/lib/storage/pendingWrites";
 import { queryClient } from "@/shared/lib/storage/queryClient";
 import { getUserIdSync } from "@/shared/lib/auth/useUserId";
 import type { ClipboardItem } from "@/shared/model/clipboardStore";
@@ -10,10 +10,6 @@ function requireUserId(): string {
   const userId = getUserIdSync();
   if (!userId) throw new Error("Not authenticated");
   return userId;
-}
-
-function invalidateScheduleFoods() {
-  void queryClient.invalidateQueries({ queryKey: ["schedule_foods"] });
 }
 
 function patchScheduleFoodsCache(updater: (rows: ScheduleFood[]) => ScheduleFood[]) {
@@ -79,7 +75,6 @@ export async function addScheduleFood(params: {
 
   await enqueue({ table: TABLE, op: "insert", payload: row });
   void drain();
-  invalidateScheduleFoods();
   return id;
 }
 
@@ -160,25 +155,23 @@ export async function updateScheduleFood(
 
   await enqueue({ table: TABLE, op: "upsert", payload });
   void drain();
-  invalidateScheduleFoods();
 }
 
 export async function removeScheduleFood(itemId: string): Promise<void> {
+  // No invalidateQueries — see deleteProduct comment (delete-flicker race).
   patchScheduleFoodsCache((rows) => rows.filter((r) => r.id !== itemId));
   await enqueue({ table: TABLE, op: "delete", payload: { id: itemId } });
   void drain();
-  invalidateScheduleFoods();
 }
 
 export async function removeScheduleFoods(itemIds: string[]): Promise<void> {
   if (itemIds.length === 0) return;
   const idSet = new Set(itemIds);
   patchScheduleFoodsCache((rows) => rows.filter((r) => !idSet.has(r.id)));
-  for (const id of itemIds) {
-    await enqueue({ table: TABLE, op: "delete", payload: { id } });
-  }
+  await enqueueMany(
+    itemIds.map((id) => ({ table: TABLE, op: "delete" as const, payload: { id } })),
+  );
   void drain();
-  invalidateScheduleFoods();
 }
 
 export async function pasteClipboardItems(
@@ -226,9 +219,8 @@ export async function pasteClipboardItems(
 
   patchScheduleFoodsCache((rows) => [...rows, ...optimisticRows]);
 
-  for (const payload of payloads) {
-    await enqueue({ table: TABLE, op: "insert", payload });
-  }
+  await enqueueMany(
+    payloads.map((payload) => ({ table: TABLE, op: "insert" as const, payload })),
+  );
   void drain();
-  invalidateScheduleFoods();
 }

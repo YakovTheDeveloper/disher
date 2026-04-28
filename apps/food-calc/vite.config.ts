@@ -8,8 +8,15 @@ import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync, existsSync } from 'fs';
 
+const pkg = JSON.parse(
+  readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
+) as { version: string };
+
 // https://vitejs.dev/config/
 export default defineConfig({
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
+  },
   plugins: [
     react(),
     // VitePWA({
@@ -80,14 +87,17 @@ export default defineConfig({
     format: 'es',
   },
   server: {
-    headers: {
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
-    },
+    headers: process.env.VITE_E2E_HTTP
+      ? undefined
+      : {
+          'Cross-Origin-Opener-Policy': 'same-origin',
+          'Cross-Origin-Embedder-Policy': 'require-corp',
+        },
     hmr: {
       overlay: false,
     },
     https: (() => {
+      if (process.env.VITE_E2E_HTTP) return undefined;
       const certPath = path.resolve(__dirname, '../disher-backend-3.0/certs');
       const certFile = path.join(certPath, 'localhost-cert.pem');
       const keyFile = path.join(certPath, 'localhost-key.pem');

@@ -1,6 +1,8 @@
 import { get, update } from 'idb-keyval';
 import { supabase } from '@/shared/api/supabase-client';
 import { toaster } from '@/shared/lib/toaster';
+import { queryClient } from '@/shared/lib/storage/queryClient';
+import { Sentry } from '@/shared/lib/observability/sentry';
 import { APP_VERSION } from './persister';
 
 const KEY = 'foodcalc-pending-writes';
@@ -71,6 +73,25 @@ export async function enqueue(
   emit();
 }
 
+export async function enqueueMany(
+  writes: Array<Pick<PendingWrite, 'table' | 'op' | 'payload'>>
+): Promise<void> {
+  if (writes.length === 0) return;
+  await update<PendingWrite[]>(KEY, (list = []) => {
+    const additions: PendingWrite[] = writes.map((w) => ({
+      ...w,
+      qid: crypto.randomUUID(),
+      appVersion: APP_VERSION,
+      attempts: 0,
+      nextAttemptAt: 0,
+    }));
+    const next = [...(list ?? []), ...additions];
+    cache = next;
+    return next;
+  });
+  emit();
+}
+
 export async function clearPending(): Promise<void> {
   await update<PendingWrite[]>(KEY, () => {
     cache = [];
@@ -91,11 +112,24 @@ export async function drain(): Promise<void> {
       if (!head) break;
       if (head.nextAttemptAt > Date.now()) break;
 
-      const result = await dispatch(head);
+      const { result, status } = await dispatch(head);
 
       if (result === 'success' || result === 'poison') {
         if (result === 'poison') {
           toaster.error(`Не удалось сохранить запись в ${head.table}`);
+          Sentry.captureMessage('outbox.poison', {
+            level: 'warning',
+            tags: { table: head.table, op: head.op, status: String(status) },
+            extra: {
+              qid: head.qid,
+              attempts: head.attempts,
+              payloadKeys: Object.keys(head.payload),
+            },
+            fingerprint: ['outbox-poison', head.table, String(status)],
+          });
+          // Drop the optimistic copy from the UI — the row will not reach the
+          // server, so the cache is now stale (план: «Точки отказа», invariant 10).
+          void queryClient.invalidateQueries({ queryKey: [head.table] });
         }
         await update<PendingWrite[]>(KEY, (curr = []) => {
           const next = (curr ?? []).filter((x) => x.qid !== head.qid);
@@ -123,6 +157,14 @@ export async function drain(): Promise<void> {
           toaster.error(
             `Не удалось сохранить запись в ${head.table} после ${MAX_ATTEMPTS} попыток.`
           );
+          Sentry.captureMessage('outbox.exhausted', {
+            level: 'error',
+            tags: { table: head.table, op: head.op },
+            extra: { attempts: MAX_ATTEMPTS, qid: head.qid },
+            fingerprint: ['outbox-exhausted', head.table],
+          });
+          // Same reasoning as poison — UI must drop the optimistic copy.
+          void queryClient.invalidateQueries({ queryKey: [head.table] });
           continue;
         }
         break;
@@ -133,18 +175,23 @@ export async function drain(): Promise<void> {
   }
 }
 
-async function dispatch(w: PendingWrite): Promise<'success' | 'poison' | 'retry'> {
+type DispatchResult = {
+  result: 'success' | 'poison' | 'retry';
+  status: number;
+};
+
+async function dispatch(w: PendingWrite): Promise<DispatchResult> {
   try {
     await supabase.auth.getSession();
   } catch {
-    return 'retry';
+    return { result: 'retry', status: 0 };
   }
 
   let res;
   try {
     if (w.op === 'delete') {
       const id = (w.payload as { id?: string }).id;
-      if (!id) return 'poison';
+      if (!id) return { result: 'poison', status: 0 };
       res = await supabase
         .from(w.table)
         .update({ deleted_at: new Date().toISOString() })
@@ -153,16 +200,16 @@ async function dispatch(w: PendingWrite): Promise<'success' | 'poison' | 'retry'
       res = await supabase.from(w.table).upsert(w.payload, { onConflict: 'id' });
     }
   } catch {
-    return 'retry';
+    return { result: 'retry', status: 0 };
   }
 
-  if (!res.error) return 'success';
+  if (!res.error) return { result: 'success', status: 200 };
 
   const status = (res.error as { status?: number }).status ?? 0;
 
-  if (status === 401) return 'retry';
-  if ([408, 425, 429].includes(status)) return 'retry';
-  if (status === 0 || status >= 500) return 'retry';
-  if (status >= 400 && status < 500) return 'poison';
-  return 'retry';
+  if (status === 401) return { result: 'retry', status };
+  if ([408, 425, 429].includes(status)) return { result: 'retry', status };
+  if (status === 0 || status >= 500) return { result: 'retry', status };
+  if (status >= 400 && status < 500) return { result: 'poison', status };
+  return { result: 'retry', status };
 }

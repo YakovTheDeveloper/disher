@@ -11,10 +11,6 @@ function requireUserId(): string {
   return userId;
 }
 
-function invalidateDailyNorms() {
-  void queryClient.invalidateQueries({ queryKey: ["daily_norms"] });
-}
-
 function patchDailyNormsCache(updater: (rows: DailyNorm[]) => DailyNorm[]) {
   queryClient.setQueriesData<DailyNorm[]>(
     { queryKey: ["daily_norms", "all"] },
@@ -66,7 +62,6 @@ export async function createDailyNorm(
 
   await enqueue({ table: TABLE, op: "insert", payload: row });
   void drain();
-  invalidateDailyNorms();
   return id;
 }
 
@@ -106,14 +101,13 @@ export async function updateDailyNorm(
 
   await enqueue({ table: TABLE, op: "upsert", payload });
   void drain();
-  invalidateDailyNorms();
 }
 
 export async function deleteDailyNorm(normId: string): Promise<void> {
+  // No invalidate after enqueue — see deleteProduct comment (delete-flicker race).
   patchDailyNormsCache((rows) => rows.filter((n) => n.id !== normId));
   await enqueue({ table: TABLE, op: "delete", payload: { id: normId } });
   void drain();
-  invalidateDailyNorms();
 }
 
 export async function setDailyNormNutrient(

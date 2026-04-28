@@ -145,6 +145,16 @@ describe('schedule-event mutations', () => {
     });
   });
 
+  it('addScheduleEvent / updateScheduleEvent do NOT invalidateQueries (avoid flicker race with drain)', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    seed([]);
+    await addScheduleEvent({ date: '2026-04-27', time: '11:00' });
+    seed([baseEvent]);
+    await updateScheduleEvent('e-1', { text: 'updated' });
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
   it('removeScheduleEvents: bulk + FIFO order in queue', async () => {
     seed([
       { ...baseEvent, id: 'a' },

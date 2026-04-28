@@ -2,81 +2,92 @@ import { create } from 'zustand';
 import { supabase } from '@/shared/api/supabase-client';
 import { queryClient } from '@/shared/lib/storage/queryClient';
 import { clearPending } from '@/shared/lib/storage/pendingWrites';
+import { Sentry } from '@/shared/lib/observability/sentry';
 
 type AuthState = {
   isLoggedIn: boolean;
-  isAnonymous: boolean;
   email: string | null;
   userId: string | null;
+  /** True until the initial session check resolves. UI should show a splash while it is true. */
+  isReady: boolean;
   isLoading: boolean;
   error: string | null;
 };
 
 type AuthActions = {
-  checkAuth: () => Promise<void>;
+  /** Resolve the initial session from storage. Flips isReady to true when done. */
+  bootstrap: () => Promise<void>;
   clearError: () => void;
-  /** Sign in with email + password (existing account). Wipes local data first. */
+  /** Sign in with email + password. Wipes local cache + outbox on success. */
   signIn: (email: string, password: string) => Promise<boolean>;
-  /** Sign up a brand-new account (no existing anon session). */
+  /** Sign up a brand-new account. */
   signUp: (email: string, password: string) => Promise<boolean>;
-  /** Upgrade the current anonymous user to a permanent account. UUID stays the same. */
-  upgradeAnonymous: (email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
   /** Alias for signOut. */
   logout: () => Promise<void>;
 };
 
-function applyUser(set: (s: Partial<AuthState>) => void, user: { id: string; email?: string | null; is_anonymous?: boolean } | null) {
-  if (!user) {
-    set({ isLoggedIn: false, isAnonymous: false, email: null, userId: null });
+type SupabaseUser = { id: string; email?: string | null; is_anonymous?: boolean };
+
+function applyUser(set: (s: Partial<AuthState>) => void, user: SupabaseUser | null) {
+  // Anonymous Supabase sessions left over from the pre-required-auth era are
+  // treated as "no session" — the user must sign up or sign in to proceed.
+  // Once those sessions age out / the user signs out, this branch goes away.
+  const effective = user && !user.is_anonymous ? user : null;
+
+  if (!effective) {
+    set({ isLoggedIn: false, email: null, userId: null });
+    Sentry.setUser(null);
     return;
   }
   set({
-    isLoggedIn: !user.is_anonymous,
-    isAnonymous: !!user.is_anonymous,
-    email: user.email ?? null,
-    userId: user.id,
+    isLoggedIn: true,
+    email: effective.email ?? null,
+    userId: effective.id,
   });
+  // id only — email is PII (food diary).
+  Sentry.setUser({ id: effective.id });
 }
 
 export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   isLoggedIn: false,
-  isAnonymous: false,
   email: null,
   userId: null,
+  isReady: false,
   isLoading: false,
   error: null,
 
   clearError: () => set({ error: null }),
 
-  checkAuth: async () => {
-    set({ isLoading: true });
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) {
+  bootstrap: async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error || !data.session) {
       applyUser(set, null);
-      set({ isLoading: false });
+      set({ isReady: true });
       return;
     }
-    applyUser(set, data.user);
-    set({ isLoading: false });
+    applyUser(set, data.session.user);
+    set({ isReady: true });
   },
 
   signIn: async (email, password) => {
     set({ isLoading: true, error: null });
-    // Wipe local cache + pending queue BEFORE switching identities — old uid's
-    // data must not bleed into the signed-in account, and old pending writes
-    // would now violate RLS (see план: 42501 митигация).
-    try {
-      await clearPending();
-      queryClient.clear();
-    } catch (e) {
-      console.error('cache clear before signIn failed', e);
-    }
-    await supabase.auth.signOut();
+    // Try the network call FIRST. If credentials are wrong we keep the current
+    // session + local cache + outbox intact (G1 fix — the previous order wiped
+    // state before validating, so a typo logged the user out).
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data.user) {
       set({ isLoading: false, error: error?.message ?? 'Sign-in failed' });
       return false;
+    }
+    // Success — switch identities. Old uid's pending writes would violate RLS
+    // under the new user (план: 42501), and cached queries keyed by the old
+    // userId must not leak into the signed-in account.
+    try {
+      await clearPending();
+      queryClient.clear();
+    } catch (e) {
+      console.error('cache clear after signIn failed', e);
     }
     applyUser(set, data.user);
     set({ isLoading: false });
@@ -95,35 +106,9 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
     return true;
   },
 
-  upgradeAnonymous: async (email, password) => {
-    // Двухшаговый upgrade (см. план, Инвариант 13): updateUser({email, password})
-    // одним вызовом возвращает 422 — Supabase требует сначала привязать email
-    // (создаёт confirmation challenge), затем установить password.
-    set({ isLoading: true, error: null });
-
-    const emailRes = await supabase.auth.updateUser({ email });
-    if (emailRes.error) {
-      set({ isLoading: false, error: emailRes.error.message });
-      return false;
-    }
-
-    const passRes = await supabase.auth.updateUser({ password });
-    if (passRes.error || !passRes.data.user) {
-      set({
-        isLoading: false,
-        error: passRes.error?.message ?? 'Не удалось установить пароль',
-      });
-      return false;
-    }
-
-    applyUser(set, passRes.data.user);
-    set({ isLoading: false });
-    return true;
-  },
-
   signOut: async () => {
-    // Очистить очередь и cache ДО signOut — старая очередь принадлежит uid_old,
-    // после signOut RLS заблокирует все её записи (см. план: 42501).
+    // Clear queue + cache BEFORE signOut — the queue belongs to uid_old and
+    // RLS will block all of its rows after signOut (план: 42501).
     try {
       await clearPending();
       queryClient.clear();
@@ -139,8 +124,8 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   },
 }));
 
-// Keep the store in sync with Supabase auth events fired by PowerSyncProvider
-// (anonymous bootstrap, sign-in, sign-out, token refresh, user update).
+// Keep the store in sync with Supabase auth events (sign-in, sign-out, token
+// refresh, user update). Anonymous sessions are filtered out by applyUser.
 supabase.auth.onAuthStateChange((_event, session) => {
   applyUser(useAuthStore.setState, session?.user ?? null);
 });

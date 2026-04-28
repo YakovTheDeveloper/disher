@@ -16,13 +16,10 @@ const { supabaseMock, listenerHolder, clearPendingMock, qcClearSpy } = vi.hoiste
     listenerHolder,
     supabaseMock: {
       auth: {
-        getUser: vi.fn(),
-        getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+        getSession: vi.fn(),
         signInWithPassword: vi.fn(),
         signUp: vi.fn(),
-        signInAnonymously: vi.fn(),
         signOut: vi.fn().mockResolvedValue({ error: null }),
-        updateUser: vi.fn(),
         onAuthStateChange: vi.fn((cb: typeof listenerHolder.fn) => {
           listenerHolder.fn = cb;
           return { data: { subscription: { unsubscribe: vi.fn() } } };
@@ -36,9 +33,14 @@ const { supabaseMock, listenerHolder, clearPendingMock, qcClearSpy } = vi.hoiste
 
 vi.mock('@/shared/api/supabase-client', () => ({ supabase: supabaseMock }));
 
+vi.mock('@/shared/lib/observability/sentry', () => ({
+  Sentry: { setUser: vi.fn(), captureException: vi.fn(), captureMessage: vi.fn() },
+}));
+
 vi.mock('@/shared/lib/storage/pendingWrites', () => ({
   clearPending: clearPendingMock,
   enqueue: vi.fn(),
+  enqueueMany: vi.fn(),
   drain: vi.fn(),
   getPendingCount: () => 0,
   primePendingCache: vi.fn(),
@@ -63,77 +65,93 @@ describe('auth-store', () => {
     qcClearSpy.mockClear();
     useAuthStore.setState({
       isLoggedIn: false,
-      isAnonymous: false,
       email: null,
       userId: null,
+      isReady: false,
       isLoading: false,
       error: null,
     });
   });
 
-  it('checkAuth: populates state when getUser succeeds', async () => {
-    supabaseMock.auth.getUser.mockResolvedValueOnce({
-      data: { user: { id: 'u-1', email: 'a@b', is_anonymous: false } },
+  it('bootstrap: populates state when getSession returns a real (non-anonymous) user', async () => {
+    supabaseMock.auth.getSession.mockResolvedValueOnce({
+      data: { session: { user: { id: 'u-1', email: 'a@b', is_anonymous: false } } },
       error: null,
     });
 
-    await useAuthStore.getState().checkAuth();
+    await useAuthStore.getState().bootstrap();
 
     const s = useAuthStore.getState();
     expect(s.userId).toBe('u-1');
     expect(s.email).toBe('a@b');
     expect(s.isLoggedIn).toBe(true);
-    expect(s.isAnonymous).toBe(false);
-    expect(s.isLoading).toBe(false);
+    expect(s.isReady).toBe(true);
   });
 
-  it('checkAuth: clears state on getUser error', async () => {
-    supabaseMock.auth.getUser.mockResolvedValueOnce({
-      data: { user: null },
-      error: new Error('nope'),
+  it('bootstrap: treats anonymous session as no session', async () => {
+    supabaseMock.auth.getSession.mockResolvedValueOnce({
+      data: { session: { user: { id: 'anon-1', email: null, is_anonymous: true } } },
+      error: null,
     });
 
-    await useAuthStore.getState().checkAuth();
+    await useAuthStore.getState().bootstrap();
 
     const s = useAuthStore.getState();
     expect(s.userId).toBeNull();
     expect(s.isLoggedIn).toBe(false);
+    expect(s.isReady).toBe(true);
   });
 
-  it('signIn: calls clearPending + queryClient.clear BEFORE supabase.signOut + signInWithPassword', async () => {
+  it('bootstrap: clears state on no session', async () => {
+    supabaseMock.auth.getSession.mockResolvedValueOnce({
+      data: { session: null },
+      error: null,
+    });
+
+    await useAuthStore.getState().bootstrap();
+
+    const s = useAuthStore.getState();
+    expect(s.userId).toBeNull();
+    expect(s.isLoggedIn).toBe(false);
+    expect(s.isReady).toBe(true);
+  });
+
+  it('signIn: G1 ORDER — signInWithPassword FIRST, then clearPending + queryClient.clear (only on success)', async () => {
     const callOrder: string[] = [];
+    supabaseMock.auth.signInWithPassword.mockImplementationOnce(async () => {
+      callOrder.push('signInWithPassword');
+      return {
+        data: { user: { id: 'u-2', email: 'x@y', is_anonymous: false } },
+        error: null,
+      };
+    });
     clearPendingMock.mockImplementationOnce(async () => {
       callOrder.push('clearPending');
     });
     qcClearSpy.mockImplementationOnce(() => {
       callOrder.push('queryClient.clear');
     });
-    supabaseMock.auth.signOut.mockImplementationOnce(async () => {
-      callOrder.push('signOut');
-      return { error: null };
-    });
-    supabaseMock.auth.signInWithPassword.mockResolvedValueOnce({
-      data: { user: { id: 'u-2', email: 'x@y', is_anonymous: false } },
-      error: null,
-    });
 
     const ok = await useAuthStore.getState().signIn('x@y', 'pw');
 
     expect(ok).toBe(true);
-    expect(callOrder).toEqual(['clearPending', 'queryClient.clear', 'signOut']);
+    expect(callOrder).toEqual(['signInWithPassword', 'clearPending', 'queryClient.clear']);
     expect(useAuthStore.getState().userId).toBe('u-2');
   });
 
-  it('signIn: returns false on error and surfaces error message', async () => {
+  it('signIn: G1 — failure preserves cache + pending queue (no clearPending, no queryClient.clear)', async () => {
     supabaseMock.auth.signInWithPassword.mockResolvedValueOnce({
       data: { user: null },
       error: { message: 'bad credentials' },
     });
 
-    const ok = await useAuthStore.getState().signIn('x@y', 'pw');
+    const ok = await useAuthStore.getState().signIn('x@y', 'wrong');
 
     expect(ok).toBe(false);
     expect(useAuthStore.getState().error).toBe('bad credentials');
+    expect(clearPendingMock).not.toHaveBeenCalled();
+    expect(qcClearSpy).not.toHaveBeenCalled();
+    expect(supabaseMock.auth.signOut).not.toHaveBeenCalled();
   });
 
   it('signOut: calls clearPending + queryClient.clear BEFORE supabase.signOut', async () => {
@@ -155,57 +173,7 @@ describe('auth-store', () => {
     expect(useAuthStore.getState().userId).toBeNull();
   });
 
-  it('upgradeAnonymous: TWO-STEP — updateUser({email}) THEN updateUser({password})', async () => {
-    const calls: Array<Record<string, unknown>> = [];
-    supabaseMock.auth.updateUser
-      .mockImplementationOnce(async (args: Record<string, unknown>) => {
-        calls.push(args);
-        return { data: { user: { id: 'u-3', email: 'a@b' } }, error: null };
-      })
-      .mockImplementationOnce(async (args: Record<string, unknown>) => {
-        calls.push(args);
-        return {
-          data: { user: { id: 'u-3', email: 'a@b', is_anonymous: false } },
-          error: null,
-        };
-      });
-
-    const ok = await useAuthStore.getState().upgradeAnonymous('a@b', 'secret123');
-
-    expect(ok).toBe(true);
-    expect(calls).toEqual([{ email: 'a@b' }, { password: 'secret123' }]);
-    expect(useAuthStore.getState().email).toBe('a@b');
-  });
-
-  it('upgradeAnonymous: aborts if email step fails (does NOT call password step)', async () => {
-    supabaseMock.auth.updateUser.mockResolvedValueOnce({
-      data: { user: null },
-      error: { message: 'email taken' },
-    });
-
-    const ok = await useAuthStore.getState().upgradeAnonymous('a@b', 'secret');
-
-    expect(ok).toBe(false);
-    expect(useAuthStore.getState().error).toBe('email taken');
-    expect(supabaseMock.auth.updateUser).toHaveBeenCalledTimes(1);
-  });
-
-  it('upgradeAnonymous: surfaces error if password step fails', async () => {
-    supabaseMock.auth.updateUser
-      .mockResolvedValueOnce({ data: { user: { id: 'u-3', email: 'a@b' } }, error: null })
-      .mockResolvedValueOnce({
-        data: { user: null },
-        error: { message: 'weak password' },
-      });
-
-    const ok = await useAuthStore.getState().upgradeAnonymous('a@b', '123');
-
-    expect(ok).toBe(false);
-    expect(useAuthStore.getState().error).toBe('weak password');
-    expect(supabaseMock.auth.updateUser).toHaveBeenCalledTimes(2);
-  });
-
-  it('onAuthStateChange listener mirrors session into store', async () => {
+  it('onAuthStateChange listener mirrors a real session into store', async () => {
     expect(listenerHolder.fn).toBeTruthy();
     listenerHolder.fn!('SIGNED_IN', {
       user: { id: 'u-4', email: 'c@d', is_anonymous: false },
@@ -214,6 +182,14 @@ describe('auth-store', () => {
     expect(useAuthStore.getState().isLoggedIn).toBe(true);
 
     listenerHolder.fn!('SIGNED_OUT', null);
+    expect(useAuthStore.getState().userId).toBeNull();
+    expect(useAuthStore.getState().isLoggedIn).toBe(false);
+  });
+
+  it('onAuthStateChange listener filters anonymous sessions out (treated as logged-out)', async () => {
+    listenerHolder.fn!('SIGNED_IN', {
+      user: { id: 'anon-2', email: null, is_anonymous: true },
+    });
     expect(useAuthStore.getState().userId).toBeNull();
     expect(useAuthStore.getState().isLoggedIn).toBe(false);
   });
@@ -226,7 +202,6 @@ describe('useUserId', () => {
     useAuthStore.setState({ userId: 'sync-1' });
     expect(getUserIdSync()).toBe('sync-1');
 
-    // reactive read via the selector hook just calls into the store; check selector wiring.
     expect(useUserId.length).toBe(0);
   });
 });

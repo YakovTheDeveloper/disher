@@ -227,6 +227,52 @@ describe('dish mutations', () => {
     expect(queryClient.getQueryData<DishPortion[]>(['dish_portions', 'all', 'user-1'])).toEqual([]);
   });
 
+  it('createDish does NOT invalidateQueries (avoid insert-flicker race with drain)', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    queryClient.setQueryData(['dishes', 'all', 'user-1'], []);
+    await createDish('soup');
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('updateDishName does NOT invalidateQueries', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    queryClient.setQueryData(['dishes', 'all', 'user-1'], [baseDish]);
+    await updateDishName('d-1', 'salad-2');
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('addDishItem / updateDishItem / addDishPortion / updateDishPortion do NOT invalidateQueries', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    queryClient.setQueryData(['dish_items', 'all', 'user-1'], [baseItem]);
+    queryClient.setQueryData(['dish_portions', 'all', 'user-1'], [basePortion]);
+
+    await addDishItem({ dishId: 'd-1', productId: 'p-9', quantity: 100 });
+    await updateDishItem('i-1', { quantity: 200 });
+    await addDishPortion('d-1', { label: 'cup', amount: 1, unit: 'pc', grams: 250 });
+    await updateDishPortion('po-1', { grams: 300 });
+
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('copyDishItems / dishItemsToScheduleFoods do NOT invalidateQueries (bulk-insert-flicker race)', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    queryClient.setQueryData(['dish_items', 'all', 'user-1'], []);
+    queryClient.setQueryData(['schedule_foods', 'all', 'user-1'], []);
+
+    await copyDishItems([{ productId: 'p-1', quantity: 50 }], 'd-2');
+    await dishItemsToScheduleFoods(
+      [{ productId: 'p-1', quantity: 100 }],
+      '2026-05-10',
+      '07:30'
+    );
+
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
   it('dishItemsToScheduleFoods: writes into schedule_foods table with given date+time', async () => {
     queryClient.setQueryData(['schedule_foods', 'all', 'user-1'], []);
     await dishItemsToScheduleFoods(

@@ -11,10 +11,6 @@ function requireUserId(): string {
   return userId;
 }
 
-function invalidatePeriods() {
-  void queryClient.invalidateQueries({ queryKey: ["periods"] });
-}
-
 function patchPeriodsCache(updater: (rows: Period[]) => Period[]) {
   queryClient.setQueriesData<Period[]>(
     { queryKey: ["periods", "all"] },
@@ -63,15 +59,14 @@ export async function addPeriod(params: {
 
   await enqueue({ table: TABLE, op: "insert", payload: row });
   void drain();
-  invalidatePeriods();
   return id;
 }
 
 export async function removePeriod(id: string): Promise<void> {
+  // No invalidate after enqueue — see deleteProduct comment (delete-flicker race).
   patchPeriodsCache((rows) => rows.filter((p) => p.id !== id));
   await enqueue({ table: TABLE, op: "delete", payload: { id } });
   void drain();
-  invalidatePeriods();
 }
 
 type PeriodUpdates = Partial<{
@@ -118,5 +113,4 @@ export async function updatePeriod(
 
   await enqueue({ table: TABLE, op: "upsert", payload });
   void drain();
-  invalidatePeriods();
 }

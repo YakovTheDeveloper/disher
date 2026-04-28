@@ -132,6 +132,16 @@ describe('daily-norm mutations', () => {
     expect((queue[0]?.payload as { items: unknown }).items).toEqual({ protein: 50, fat: 80 });
   });
 
+  it('createDailyNorm / updateDailyNorm do NOT invalidateQueries (avoid flicker race with drain)', async () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
+    seed([]);
+    await createDailyNorm('low-carb', '');
+    seed([baseNorm]);
+    await updateDailyNorm('n-1', { name: 'renamed' });
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
   it('setDailyNormNutrient: null/0 deletes the nutrient', async () => {
     seed([baseNorm]);
     await setDailyNormNutrient('n-1', 'protein', null, { protein: 50, fat: 80 });

@@ -1,0 +1,195 @@
+// ─── Auth form (shared between AuthDrawer + AuthScreen) ────────
+// Two-step: email → password. Pill inputs on light grey, full-width
+// black submit, secondary mode-switch in the footer.
+
+.container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+}
+
+// ─── Header ────────────────────────────────────────────────────
+
+.header {
+  position: relative;
+  padding: var(--space-2) 0 var(--space-6);
+}
+
+.backBtn {
+  position: absolute;
+  left: calc(-1 * var(--space-2));
+  top: calc(-1 * var(--space-1));
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--easing-default);
+
+  &:active {
+    background: rgba(0, 0, 0, 0.06);
+  }
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.subheading {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  margin: var(--space-2) 0 0;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+// ─── Form ──────────────────────────────────────────────────────
+
+.formWrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.input {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  width: 100%;
+  height: 56px;
+  padding: 0 var(--space-5);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-lg);
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+  outline: none;
+  transition:
+    background var(--duration-fast) var(--easing-default),
+    border-color var(--duration-fast) var(--easing-default);
+
+  &::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.06);
+  }
+
+  &:focus {
+    background: #fff;
+    border-color: #111;
+  }
+
+  &[aria-invalid='true'] {
+    border-color: #dc2626;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.fieldError {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: #dc2626;
+  margin: 0;
+  padding-left: var(--space-2);
+  line-height: 1.4;
+}
+
+.submitBtn {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 600;
+  width: 100%;
+  height: 56px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--easing-default),
+    transform var(--duration-fast) var(--easing-default),
+    opacity var(--duration-fast) var(--easing-default);
+
+  &:disabled {
+    background: rgba(0, 0, 0, 0.08);
+    color: rgba(0, 0, 0, 0.35);
+    cursor: default;
+  }
+
+  &:not(:disabled):hover {
+    background: #000;
+  }
+
+  &:not(:disabled):active {
+    transform: scale(0.985);
+  }
+}
+
+// ─── Footer / mode switch ─────────────────────────────────────
+
+.footer {
+  padding-top: var(--space-6);
+  display: flex;
+  justify-content: center;
+}
+
+.switchBtn {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition:
+    background var(--duration-fast) var(--easing-default),
+    color var(--duration-fast) var(--easing-default);
+
+  &:hover:not(:disabled) {
+    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}

@@ -14,9 +14,19 @@ vi.mock('@/shared/lib/toaster', () => ({
   toaster: { error: vi.fn(), warning: vi.fn(), success: vi.fn(), info: vi.fn() },
 }));
 
+const { invalidateQueriesMock } = vi.hoisted(() => ({ invalidateQueriesMock: vi.fn() }));
+vi.mock('@/shared/lib/storage/queryClient', () => ({
+  queryClient: { invalidateQueries: invalidateQueriesMock },
+}));
+
+vi.mock('@/shared/lib/observability/sentry', () => ({
+  Sentry: { captureMessage: vi.fn(), captureException: vi.fn(), setUser: vi.fn() },
+}));
+
 import { supabase } from '@/shared/api/supabase-client';
 import {
   enqueue,
+  enqueueMany,
   drain,
   getPendingCount,
   primePendingCache,
@@ -59,6 +69,7 @@ describe('pendingWrites', () => {
     await clear();
     await clearPending();
     vi.clearAllMocks();
+    invalidateQueriesMock.mockClear();
   });
 
   it('enqueue → drain happy path: sends to supabase then removes', async () => {
@@ -396,5 +407,94 @@ describe('pendingWrites', () => {
     const idbAfter = (await get<PendingWrite[]>(KEY)) ?? [];
     expect(idbAfter.length).toBe(getPendingCount());
     expect(idbAfter.length).toBe(0);
+  });
+
+  it('G2: poison invalidates the table queryKey (drops stale optimistic copy)', async () => {
+    mockUpsert({ status: 422 });
+    await enqueue({ table: 'schedule_foods', op: 'insert', payload: { id: 'pz1' } });
+
+    await drain();
+
+    expect(getPendingCount()).toBe(0);
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ['schedule_foods'] });
+  });
+
+  it('G2: MAX_ATTEMPTS exhausted also invalidates the table queryKey', async () => {
+    const { set } = await import('idb-keyval');
+    const APP_VERSION = (await import('./persister')).APP_VERSION;
+    const head: PendingWrite = {
+      qid: 'exhaust-inv',
+      appVersion: APP_VERSION,
+      table: 'dishes',
+      op: 'insert',
+      payload: { id: 'd-exh' },
+      attempts: 9,
+      nextAttemptAt: 0,
+    };
+    await set(KEY, [head]);
+    await primePendingCache();
+    mockUpsert({ status: 503 }); // last attempt fails → exhaust
+
+    await drain();
+
+    expect(getPendingCount()).toBe(0);
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ['dishes'] });
+  });
+
+  it('G2: success does NOT invalidate (refetch would race the next mutation)', async () => {
+    mockUpsert(null);
+    await enqueue({ table: 'products', op: 'insert', payload: { id: 'ok1' } });
+
+    await drain();
+
+    expect(invalidateQueriesMock).not.toHaveBeenCalled();
+  });
+
+  it('G5: enqueueMany appends N writes with one update + one emit', async () => {
+    const listener = vi.fn();
+    const unsub = subscribePending(listener);
+
+    await enqueueMany([
+      { table: 'products', op: 'insert', payload: { id: 'm1' } },
+      { table: 'products', op: 'insert', payload: { id: 'm2' } },
+      { table: 'products', op: 'insert', payload: { id: 'm3' } },
+    ]);
+
+    expect(getPendingCount()).toBe(3);
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    const idb = (await get<PendingWrite[]>(KEY)) ?? [];
+    expect(idb.map((w) => (w.payload as { id: string }).id)).toEqual(['m1', 'm2', 'm3']);
+
+    unsub();
+  });
+
+  it('G5: enqueueMany([]) is a no-op (no IDB write, no emit)', async () => {
+    const listener = vi.fn();
+    const unsub = subscribePending(listener);
+
+    await enqueueMany([]);
+
+    expect(getPendingCount()).toBe(0);
+    expect(listener).not.toHaveBeenCalled();
+
+    unsub();
+  });
+
+  it('G5: enqueueMany preserves FIFO order across mixed tables/ops', async () => {
+    await enqueueMany([
+      { table: 'dish_items', op: 'delete', payload: { id: 'i1' } },
+      { table: 'dish_items', op: 'delete', payload: { id: 'i2' } },
+      { table: 'dish_portions', op: 'delete', payload: { id: 'p1' } },
+      { table: 'dishes', op: 'delete', payload: { id: 'd1' } },
+    ]);
+
+    const idb = (await get<PendingWrite[]>(KEY)) ?? [];
+    expect(idb.map((w) => `${w.table}:${(w.payload as { id: string }).id}`)).toEqual([
+      'dish_items:i1',
+      'dish_items:i2',
+      'dish_portions:p1',
+      'dishes:d1',
+    ]);
   });
 });

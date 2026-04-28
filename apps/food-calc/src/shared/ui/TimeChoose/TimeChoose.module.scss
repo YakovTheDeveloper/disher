@@ -547,6 +547,85 @@
     }
 }
 
+// ─── V7 Clean — светлый минимализм с жёлтым акцентом ──────
+// Чистый белый shell, крупные «полу-bold» цифры, серые пилюли-кнопки,
+// жёлтый фокус. Ничего лишнего: ни блюра, ни орбов, ни рефлексов.
+.shellClean {
+    background: #ffffff;
+    border: 1px solid #ececec;
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    padding: 0;
+
+    :global(.tc-root) {
+        --tc-shell-bg: #ffffff;
+        --tc-shell-border: 0;
+        --tc-shell-shadow: none;
+        --tc-shell-pad: 24px 24px 20px;
+        --tc-gap: 20px;
+
+        --tc-bg: transparent;
+        --tc-fg: #21201f;
+        --tc-border: 1px solid transparent;
+        --tc-border-radius: 12px;
+        --tc-input-font: 'Onest', 'Golos Text', 'YS Text', system-ui, sans-serif;
+        --tc-input-size: 5.5rem;
+        --tc-input-letter-spacing: -0.04em;
+        --tc-input-weight: 600;
+        --tc-input-pad: 8px 12px;
+        --tc-separator-color: rgba(33, 32, 31, 0.45);
+        --tc-separator-weight: 600;
+        --tc-placeholder: rgba(33, 32, 31, 0.22);
+        --tc-shadow-focus: 0 0 0 3px rgba(255, 204, 0, 0.55);
+        --tc-blink-bg: #ffcc00;
+        --tc-blink-fg: #21201f;
+
+        --tc-btn-bg: #f3f2f0;
+        --tc-btn-fg: #21201f;
+        --tc-btn-border: 1px solid transparent;
+        --tc-btn-radius: 999px;
+        --tc-btn-pad: 9px 16px;
+        --tc-btn-font: 'Onest', 'Golos Text', 'YS Text', system-ui, sans-serif;
+        --tc-btn-size: 14px;
+        --tc-btn-weight: 500;
+        --tc-btn-tracking: 0;
+        --tc-btn-transform: none;
+        --tc-btn-active-bg: #ffcc00;
+        --tc-btn-active-fg: #21201f;
+
+        --tc-tab-bg: #f3f2f0;
+        --tc-tab-fg: rgba(33, 32, 31, 0.6);
+        --tc-tab-font: 'Onest', 'Golos Text', 'YS Text', system-ui, sans-serif;
+        --tc-tab-size: 13px;
+        --tc-tab-weight: 500;
+        --tc-tab-tracking: 0;
+        --tc-tab-transform: none;
+        --tc-tab-active-bg: #ffffff;
+        --tc-tab-active-fg: #21201f;
+    }
+
+    :global(.tc-root) .toggleButton {
+        transition: background-color 0.12s ease, color 0.12s ease;
+
+        &:hover {
+            background: #e8e6e3;
+        }
+
+        &:active {
+            background: #ffcc00;
+            transform: none;
+        }
+    }
+
+    :global(.tc-root) .rangeTabs {
+        padding: 3px;
+    }
+
+    :global(.tc-root) .rangeTabActive {
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+}
+
 .wrapper {
     display: inline-flex;
     align-items: center;
