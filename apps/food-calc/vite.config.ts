@@ -72,8 +72,6 @@ export default defineConfig({
     alias: {
       '@icons': path.resolve(__dirname, './src/shared/assets/icons'),
       '@': path.resolve(__dirname, './src'),
-      '@api': path.resolve(__dirname, '../../packages/api/src'),
-      // '@store': '/src/store',
     },
   },
   css: {
@@ -109,6 +107,24 @@ export default defineConfig({
       }
       return undefined;
     })(),
+    // Proxy diag-logs through the dev server so iOS Safari doesn't have to
+    // accept the self-signed cert on :3100 separately. The phone already
+    // accepted the same cert on :3000 when loading the app.
+    proxy: {
+      '/api/diag-logs': {
+        target: 'https://localhost:3100',
+        changeOrigin: true,
+        secure: false,
+      },
+      // Supabase REST/Auth/Storage passthrough — see supabase-client.ts and
+      // disher-backend-3.0/src/api/routes/supabase-proxy.ts for rationale
+      // (iOS WebKit Bug #284946 H2 pool poisoning).
+      '/api/sb': {
+        target: 'https://localhost:3100',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   build: {
     sourcemap: false,

@@ -14,9 +14,11 @@ export type TimeChooseVariant =
   | 'softMidnight'
   | 'softVeil'
   | 'smudge'
-  | 'clean';
+  | 'clean'
+  | 'paper';
 
 const DV_VARIANTS: TimeChooseVariant[] = [
+  'paper',
   'clean',
   'frostedGlass',
   'naked',
@@ -34,6 +36,7 @@ const variantClassMap: Record<TimeChooseVariant, string> = {
   softVeil: styles.shellSoftVeil,
   smudge: styles.shellSmudge,
   clean: styles.shellClean,
+  paper: styles.shellPaper,
 };
 
 type RangeProps = {

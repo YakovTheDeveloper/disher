@@ -25,6 +25,13 @@ type Props = {
   richNutrientId?: string | null;
   richNutrientUnit?: string;
   richNutrientMax?: number;
+  /**
+   * If provided, the name area becomes a <label htmlFor={htmlFor}> so a tap on
+   * the text focuses the corresponding input (used by ModalByLabel step flows).
+   * Info / delete buttons stay outside the label in the DOM, so they don't need
+   * preventDefault to avoid the label's focus delegation.
+   */
+  htmlFor?: string;
 };
 
 const RICHNESS_COLORS = [
@@ -96,6 +103,7 @@ const FoodActionCard = ({
   richNutrientId,
   richNutrientUnit,
   richNutrientMax = 0,
+  htmlFor,
 }: Props) => {
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.userId);
 
@@ -153,7 +161,7 @@ const FoodActionCard = ({
       : null;
 
   return (
-    <li className={styles.wrapper}>
+    <li className={styles.wrapper} role="option">
       {richNutrientValue !== null && richness > 0 && (
         <span
           className={styles.richBar}
@@ -173,24 +181,32 @@ const FoodActionCard = ({
         </span>
       )}
       {deleteButton}
-      <p
-        className={clsx(styles.item, active && styles.item_active)}
-        onClick={() => {
-          onClick?.();
-        }}
-      >
-        {/* {categoryIcon && (
-          <img src={categoryIcon} alt="" className={styles.categoryIcon} aria-hidden="true" />
-        )} */}
-        <span className={styles.name}>{item.name}</span>
-      </p>
+      {htmlFor ? (
+        <label
+          htmlFor={htmlFor}
+          className={clsx(styles.item, active && styles.item_active)}
+          onClick={() => {
+            onClick?.();
+          }}
+        >
+          <span className={styles.name}>{item.name}</span>
+        </label>
+      ) : (
+        <p
+          className={clsx(styles.item, active && styles.item_active)}
+          onClick={() => {
+            onClick?.();
+          }}
+        >
+          <span className={styles.name}>{item.name}</span>
+        </p>
+      )}
       {onInfoClick && (
         <button
           type="button"
           className={styles.infoBtn}
           aria-label="Информация"
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={() => {
             onInfoClick();
           }}
         >

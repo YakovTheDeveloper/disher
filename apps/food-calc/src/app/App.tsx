@@ -14,7 +14,6 @@ import DrawerManager from '@/app/ui/DrawerManager';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/app/i18n';
 import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
-import { PendingWritesBadge } from '@/shared/lib/sync/PendingWritesBadge';
 
 export default function App() {
   useLastFocusMethod();
@@ -48,7 +47,6 @@ export default function App() {
           <DrawerManager />
         </Drawer>
 
-        <PendingWritesBadge />
         <Outlet />
       </div>
     </I18nextProvider>

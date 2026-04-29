@@ -1,155 +1,109 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/shared/api/supabase-client";
-import { snakeToCamel } from "@/shared/lib/rowMapper";
-import { useUserId } from "@/shared/lib/auth/useUserId";
-import type { Dish, DishItem, DishPortion } from "../model/types";
+import { useMemo } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/shared/lib/dexie/schema';
+import { useUserId } from '@/shared/lib/auth/useUserId';
+import type { Dish, DishItem, DishPortion } from '../model/types';
+import { mapDishRow, mapDishItemRow, mapDishPortionRow } from './mappers';
 
-const DISH_COLUMNS =
-  "id, user_id, name, created_at, updated_at, deleted_at";
-
-const DISH_ITEM_COLUMNS =
-  "id, user_id, dish_id, product_id, quantity, created_at, updated_at, deleted_at";
-
-const DISH_PORTION_COLUMNS =
-  "id, user_id, dish_id, label, amount, unit, grams, created_at, updated_at, deleted_at";
-
-function mapDish(row: Record<string, unknown>): Dish {
-  return snakeToCamel(row) as unknown as Dish;
-}
-
-function mapDishItem(row: Record<string, unknown>): DishItem {
-  return snakeToCamel(row) as unknown as DishItem;
-}
-
-function mapDishPortion(row: Record<string, unknown>): DishPortion {
-  return snakeToCamel(row) as unknown as DishPortion;
-}
-
-async function fetchAllDishes(): Promise<Dish[]> {
-  const { data, error } = await supabase
-    .from("dishes")
-    .select(DISH_COLUMNS)
-    .is("deleted_at", null);
-  if (error) throw error;
-  return (data ?? []).map((r) => mapDish(r as unknown as Record<string, unknown>));
-}
-
-async function fetchAllDishItems(): Promise<DishItem[]> {
-  const { data, error } = await supabase
-    .from("dish_items")
-    .select(DISH_ITEM_COLUMNS)
-    .is("deleted_at", null);
-  if (error) throw error;
-  return (data ?? []).map((r) => mapDishItem(r as unknown as Record<string, unknown>));
-}
-
-async function fetchAllDishPortions(): Promise<DishPortion[]> {
-  const { data, error } = await supabase
-    .from("dish_portions")
-    .select(DISH_PORTION_COLUMNS)
-    .is("deleted_at", null);
-  if (error) throw error;
-  return (data ?? []).map((r) => mapDishPortion(r as unknown as Record<string, unknown>));
-}
-
-function useAllDishesQuery() {
+function useAllDishes(): Dish[] {
   const userId = useUserId();
-  return useQuery({
-    queryKey: ["dishes", "all", userId],
-    queryFn: fetchAllDishes,
-    enabled: !!userId,
-    staleTime: 5 * 60_000,
-  });
+  const rows = useLiveQuery(async () => {
+    if (!userId) return [];
+    return db.dishes
+      .where('user_id')
+      .equals(userId)
+      .filter((d) => !d.deleted_at)
+      .toArray();
+  }, [userId]);
+  return useMemo(() => (rows ?? []).map(mapDishRow), [rows]);
 }
 
-function useAllDishItemsQuery() {
+function useAllDishItems(): DishItem[] {
   const userId = useUserId();
-  return useQuery({
-    queryKey: ["dish_items", "all", userId],
-    queryFn: fetchAllDishItems,
-    enabled: !!userId,
-    staleTime: 5 * 60_000,
-  });
+  const rows = useLiveQuery(async () => {
+    if (!userId) return [];
+    return db.dish_items
+      .where('user_id')
+      .equals(userId)
+      .filter((d) => !d.deleted_at)
+      .toArray();
+  }, [userId]);
+  return useMemo(() => (rows ?? []).map(mapDishItemRow), [rows]);
 }
 
-function useAllDishPortionsQuery() {
+function useAllDishPortions(): DishPortion[] {
   const userId = useUserId();
-  return useQuery({
-    queryKey: ["dish_portions", "all", userId],
-    queryFn: fetchAllDishPortions,
-    enabled: !!userId,
-    staleTime: 5 * 60_000,
-  });
+  const rows = useLiveQuery(async () => {
+    if (!userId) return [];
+    return db.dish_portions
+      .where('user_id')
+      .equals(userId)
+      .filter((d) => !d.deleted_at)
+      .toArray();
+  }, [userId]);
+  return useMemo(() => (rows ?? []).map(mapDishPortionRow), [rows]);
 }
 
 export function useDishes(search?: string): Dish[] {
-  const { data } = useAllDishesQuery();
+  const dishes = useAllDishes();
   return useMemo(() => {
-    const rows = data ?? [];
-    if (!search) return rows;
+    if (!search) return dishes;
     const lower = search.toLowerCase();
-    return rows.filter((r) => r.name?.toLowerCase().includes(lower));
-  }, [data, search]);
+    return dishes.filter((r) => r.name?.toLowerCase().includes(lower));
+  }, [dishes, search]);
 }
 
 export function useDish(dishId: string | undefined): Dish | null {
-  const { data } = useAllDishesQuery();
+  const dishes = useAllDishes();
   return useMemo(() => {
-    if (!dishId || !data) return null;
-    return data.find((d) => d.id === dishId) ?? null;
-  }, [data, dishId]);
+    if (!dishId) return null;
+    return dishes.find((d) => d.id === dishId) ?? null;
+  }, [dishes, dishId]);
 }
 
 export function useDishItems(dishId: string | undefined): DishItem[] {
-  const { data } = useAllDishItemsQuery();
+  const items = useAllDishItems();
   return useMemo(() => {
-    if (!dishId || !data) return [];
-    return data.filter((r) => r.dishId === dishId);
-  }, [data, dishId]);
+    if (!dishId) return [];
+    return items.filter((r) => r.dishId === dishId);
+  }, [items, dishId]);
 }
 
 export function useDishItemsWithProducts(dishId: string | undefined) {
   const items = useDishItems(dishId);
   const userId = useUserId();
-  const { data: productData } = useQuery({
-    queryKey: ["products", "lookup", userId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("id, name")
-        .is("deleted_at", null);
-      if (error) throw error;
-      return (data ?? []) as Array<{ id: string; name: string }>;
-    },
-    enabled: !!userId,
-    staleTime: 5 * 60_000,
-  });
+  const productNames = useLiveQuery(async () => {
+    if (!userId) return new Map<string, string>();
+    const rows = await db.products
+      .filter((p) => (p.user_id === userId || p.user_id === null) && !p.deleted_at)
+      .toArray();
+    return new Map(rows.map((p) => [p.id, p.name]));
+  }, [userId]);
 
   return useMemo(() => {
-    const productMap = new Map(
-      (productData ?? []).map((p) => [p.id, p.name]),
-    );
+    const productMap = productNames ?? new Map<string, string>();
     return items.map((item) => ({
       ...item,
-      product: item.productId ? { name: productMap.get(item.productId) ?? null } : null,
+      product: item.productId
+        ? { name: productMap.get(item.productId) ?? null }
+        : null,
     }));
-  }, [items, productData]);
+  }, [items, productNames]);
 }
 
 export function useDishPortions(dishId: string | undefined): DishPortion[] {
-  const { data } = useAllDishPortionsQuery();
+  const portions = useAllDishPortions();
   return useMemo(() => {
-    if (!dishId || !data) return [];
-    return data.filter((r) => r.dishId === dishId);
-  }, [data, dishId]);
+    if (!dishId) return [];
+    return portions.filter((r) => r.dishId === dishId);
+  }, [portions, dishId]);
 }
 
 export function useDishItemsByDishIds(dishIds: string[]): DishItem[] {
-  const { data } = useAllDishItemsQuery();
+  const items = useAllDishItems();
   return useMemo(() => {
-    if (dishIds.length === 0 || !data) return [];
+    if (dishIds.length === 0) return [];
     const idSet = new Set(dishIds);
-    return data.filter((r) => idSet.has(r.dishId));
-  }, [data, dishIds]);
+    return items.filter((r) => idSet.has(r.dishId));
+  }, [items, dishIds]);
 }

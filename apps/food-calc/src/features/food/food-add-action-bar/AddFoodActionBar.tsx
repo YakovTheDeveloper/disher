@@ -1,8 +1,6 @@
+import { useState } from 'react';
 import clsx from 'clsx';
-import {
-  WriteFoodButton,
-  type UseWriteFoodFlowResult,
-} from '@/features/food/food-free-text-parse';
+import { WriteFoodButton, type UseWriteFoodFlowResult } from '@/features/food/food-free-text-parse';
 import styles from './AddFoodActionBar.module.scss';
 
 const SearchIcon = () => (
@@ -29,16 +27,38 @@ export const AddFoodActionBar = ({
   searchLabel = 'Еда',
   className,
 }: AddFoodActionBarProps) => {
+  const [isWritePressed, setIsWritePressed] = useState(false);
+  const [isSearchPressed, setIsSearchPressed] = useState(false);
+
   return (
     <div className={clsx(styles.searchBar, className)}>
-      <WriteFoodButton
-        flow={writeFoodFlow}
-        inputId={writeFoodInputId}
-        label={writeFoodLabel}
-        className={styles.searchBarWrite}
-      />
+      <div
+        className={clsx(styles.searchBarWrite, { [styles.searchBarWriteActive]: isWritePressed })}
+        onMouseDown={() => setIsWritePressed(true)}
+        onMouseUp={() => setIsWritePressed(false)}
+        onMouseLeave={() => setIsWritePressed(false)}
+        onTouchStart={() => setIsWritePressed(true)}
+        onTouchEnd={() => setIsWritePressed(false)}
+      >
+        <WriteFoodButton
+          flow={writeFoodFlow}
+          inputId={writeFoodInputId}
+          label={writeFoodLabel}
+          className={styles.searchBarWriteButton}
+        />
+      </div>
       <span className={styles.searchBarSeparator}>~</span>
-      <label htmlFor={searchHtmlFor} className={styles.searchBarSearch}>
+      <label
+        htmlFor={searchHtmlFor}
+        className={clsx(styles.searchBarSearch, {
+          [styles.searchBarSearchActive]: isSearchPressed,
+        })}
+        onMouseDown={() => setIsSearchPressed(true)}
+        onMouseUp={() => setIsSearchPressed(false)}
+        onMouseLeave={() => setIsSearchPressed(false)}
+        onTouchStart={() => setIsSearchPressed(true)}
+        onTouchEnd={() => setIsSearchPressed(false)}
+      >
         <span className={styles.searchBarSearchIcon}>
           <SearchIcon />
         </span>

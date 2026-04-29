@@ -67,6 +67,7 @@ const ProductPage = () => {
     return sum;
   }, [nutrientValueMap]);
 
+  console.warn('[debug ProductPage] id=', id, 'food=', food);
   if (!food) return null;
 
   const isUserCreated = isCreatedByUser(food.userId);

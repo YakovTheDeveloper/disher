@@ -7,7 +7,9 @@ import styles from './AuthScreen.module.scss';
  */
 export function AuthScreen() {
   return (
-    <div className={styles.screen}>
+    <div className={styles.screen} data-auth-theme="dark">
+      <div className={styles.bg} aria-hidden="true" />
+      <div className={styles.scrim} aria-hidden="true" />
       <div className={styles.brand}>
         <span className={styles.logo}>Disher</span>
       </div>

@@ -2,6 +2,17 @@ import { useRef, useState, useMemo } from 'react';
 import style from './ProductQuantity.module.scss';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import clsx from 'clsx';
+import { useDesignVariants } from '@/shared/lib/useDesignVariants';
+import { shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
+
+export type ProductQuantityVariant = 'nylon' | 'paper';
+
+const DV_VARIANTS: ProductQuantityVariant[] = ['paper', 'nylon'];
+
+const variantClassMap: Record<ProductQuantityVariant, string | undefined> = {
+  nylon: undefined, // default scss styles
+  paper: style.containerPaper,
+};
 
 type QuickButtonProps = {
   children: React.ReactNode;
@@ -30,6 +41,7 @@ type Props = {
   onFinish: () => void;
   inputId?: string;
   isActive?: boolean;
+  variant?: ProductQuantityVariant;
 };
 
 const SLIDE_SIZE = 8; // 2 rows x 4 columns
@@ -52,11 +64,16 @@ const ProductQuantity = ({
   content,
   inputId = 'quantity-input',
   isActive = true,
+  variant = 'nylon',
 }: Props) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [value, setValue] = useState(content.quantity);
   const [activePortion, setActivePortion] = useState<Portion | null>(null);
   const [multiplier, setMultiplier] = useState(1);
+
+  const showDv = shouldShowDvBar();
+  const { index: dvIndex } = useDesignVariants('ProductQuantity', DV_VARIANTS.length);
+  const effectiveVariant: ProductQuantityVariant = showDv ? DV_VARIANTS[dvIndex] : variant;
 
   const onBlur = () => {
     content.updateQuantity(value);
@@ -91,7 +108,7 @@ const ProductQuantity = ({
   };
 
   return (
-    <div className={style.container}>
+    <div className={clsx(style.container, variantClassMap[effectiveVariant])}>
       <div className={style.inputWrapper}>
         <NumberInput
           id={inputId}

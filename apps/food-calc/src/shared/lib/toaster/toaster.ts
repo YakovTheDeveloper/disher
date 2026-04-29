@@ -15,7 +15,9 @@ function buildAction(action?: ToastAction) {
     return {
         label: action.label,
         onClick: () => {
-            router.navigate(action.href);
+            console.warn('[debug toaster] action click → navigate', action.href);
+            const result = router.navigate(action.href);
+            console.warn('[debug toaster] navigate result', result);
         },
     };
 }

@@ -1,5 +1,5 @@
 {
-  "name": "disher-backend-3.0",
+  "name": "@disher/backend",
   "version": "1.0.0",
   "description": "Disher backend API server",
   "type": "module",
@@ -7,7 +7,11 @@
     "generate:certs": "tsx scripts/generate-certs.ts",
     "dev": "tsx watch src/api/server.ts",
     "dev:network": "cross-env HOST=0.0.0.0 tsx watch src/api/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "lint": "echo 'no lint configured for backend'",
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist .turbo tsconfig.tsbuildinfo",
     "probe:matcher": "tsx scripts/probe-matcher.ts",
     "probe:matcher:basic": "tsx scripts/probe-matcher.ts --set=basic",
     "probe:matcher:tricky": "tsx scripts/probe-matcher.ts --set=tricky",
@@ -20,14 +24,17 @@
   "dependencies": {
     "@fastify/cors": "^11.0.0",
     "@fastify/static": "^9.0.0",
+    "@supabase/supabase-js": "^2.105.1",
     "@xenova/transformers": "^2.17.2",
     "better-sqlite3": "^12.8.0",
     "fastify": "^5.2.0",
     "google-translate-api-x": "^10.7.2",
-    "jose": "^6.0.0"
+    "jose": "^6.0.0",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "@types/pg": "^8.20.0",
     "concurrently": "^9.1.0",
     "cross-env": "^10.1.0",
     "dotenv": "^17.3.1",
@@ -36,15 +43,5 @@
     "tsx": "^4.19.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "sharp",
-      "better-sqlite3",
-      "esbuild",
-      "lmdb",
-      "msgpackr-extract",
-      "protobufjs"
-    ]
   }
 }

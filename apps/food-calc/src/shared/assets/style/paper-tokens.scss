@@ -1,0 +1,66 @@
+// ─── Paper design language ─────────────────────────────────────────
+// Shared visual tokens for the food-add flow:
+//   SearchFood → ProductQuantity → TimeChoose
+//
+// Inspired by Yandex Pogoda mobile (white, large display digits, pill chips,
+// Yandex blue accent). Tokens live inside @mixin, NOT :root, so HomePage and
+// other screens are not affected. Apply via `@include paper-tokens;` on a
+// component's scoping selector (e.g. `.shellPaper :global(.tc-root)`).
+
+@mixin paper-tokens {
+  // ─── Surfaces ────────────────────────────────────────────────
+  --paper-bg-page: #ffffff;
+  --paper-bg-elevated: #f2f4f7; // segmented track, search input fill
+  --paper-bg-pill: #eef1f5; // chip-кнопки, порции, pills
+  --paper-bg-pill-hover: #e6eaf0;
+
+  // ─── Text ────────────────────────────────────────────────────
+  --paper-text-1: #0a0a0a; // display, header
+  --paper-text-2: #5c6473; // secondary
+  --paper-text-3: #8e939e; // caption, placeholder
+
+  // ─── Lines ───────────────────────────────────────────────────
+  --paper-line: #e4e7ec;
+  --paper-line-strong: #cfd4dc;
+
+  // ─── Brand / state ───────────────────────────────────────────
+  --paper-brand: #3370ff; // active, focus
+  --paper-brand-hover: #2a5fdb;
+  --paper-brand-fg: #ffffff;
+  --paper-danger: #e5352b;
+
+  // ─── Radius ──────────────────────────────────────────────────
+  --paper-radius-sm: 8px;
+  --paper-radius-md: 16px;
+  --paper-radius-lg: 20px;
+  --paper-radius-pill: 9999px;
+
+  // ─── Spacing ─────────────────────────────────────────────────
+  --paper-pad-pill: 12px 20px;
+  --paper-pad-chip: 8px 16px;
+  --paper-pad-card: 16px 20px;
+
+  // ─── Typography ──────────────────────────────────────────────
+  --paper-font: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont,
+    system-ui, sans-serif;
+
+  --paper-display-size: 5rem; // 80px — TimeChoose digits, ProductQuantity hero
+  --paper-display-weight: 800;
+  --paper-display-tracking: -0.04em;
+
+  --paper-header-size: 1.375rem; // 22px
+  --paper-header-weight: 700;
+
+  --paper-body-size: 1rem; // 16px
+  --paper-body-weight: 400;
+
+  --paper-caption-size: 0.875rem; // 14px
+  --paper-caption-weight: 500;
+
+  // ─── Focus ring ──────────────────────────────────────────────
+  --paper-focus-ring: 0 0 0 3px rgba(51, 112, 255, 0.25);
+
+  // ─── Shadow ──────────────────────────────────────────────────
+  --paper-shadow-card: 0 1px 2px rgba(10, 10, 10, 0.04);
+  --paper-shadow-segment: 0 1px 2px rgba(10, 10, 10, 0.08);
+}

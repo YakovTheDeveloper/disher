@@ -1,4 +1,5 @@
 @import '@/shared/assets/style/mixin.scss';
+@import '@/shared/assets/style/paper-tokens.scss';
 
 // Все визуальные токены — CSS custom properties. Дизайн-варианты
 // перекрашивают пикер, переопределяя их на корневой .shell{Variant}.
@@ -623,6 +624,96 @@
 
     :global(.tc-root) .rangeTabActive {
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+}
+
+// ─── Paper — Yandex Pogoda inspired light minimalism ─────────
+// Чистый белый shell, огромные жирные display-цифры, pill-кнопки,
+// синий Яндекс-акцент. Часть paper-флоу: SearchFood → Quantity → TimeChoose.
+.shellPaper {
+    @include paper-tokens;
+
+    background: var(--paper-bg-page);
+    border: 1px solid var(--paper-line);
+    border-radius: var(--paper-radius-lg);
+    box-shadow: var(--paper-shadow-card);
+    padding: 0;
+
+    :global(.tc-root) {
+        @include paper-tokens;
+
+        --tc-shell-bg: var(--paper-bg-page);
+        --tc-shell-border: 0;
+        --tc-shell-shadow: none;
+        --tc-shell-pad: 24px 20px 20px;
+        --tc-gap: 18px;
+
+        --tc-bg: transparent;
+        --tc-fg: var(--paper-text-1);
+        --tc-border: 1px solid transparent;
+        --tc-border-radius: var(--paper-radius-md);
+        --tc-input-font: var(--paper-font);
+        --tc-input-size: var(--paper-display-size);
+        --tc-input-letter-spacing: var(--paper-display-tracking);
+        --tc-input-weight: var(--paper-display-weight);
+        --tc-input-pad: 8px 12px;
+        --tc-separator-color: rgba(10, 10, 10, 0.45);
+        --tc-separator-weight: 700;
+        --tc-placeholder: var(--paper-text-3);
+        --tc-shadow-focus: var(--paper-focus-ring);
+        --tc-blink-bg: var(--paper-brand);
+        --tc-blink-fg: var(--paper-brand-fg);
+
+        --tc-btn-bg: var(--paper-bg-pill);
+        --tc-btn-fg: var(--paper-text-1);
+        --tc-btn-border: 1px solid transparent;
+        --tc-btn-radius: var(--paper-radius-pill);
+        --tc-btn-pad: var(--paper-pad-pill);
+        --tc-btn-font: var(--paper-font);
+        --tc-btn-size: 15px;
+        --tc-btn-weight: 500;
+        --tc-btn-tracking: 0;
+        --tc-btn-transform: none;
+        --tc-btn-active-bg: var(--paper-brand);
+        --tc-btn-active-fg: var(--paper-brand-fg);
+
+        --tc-tab-bg: var(--paper-bg-elevated);
+        --tc-tab-fg: var(--paper-text-2);
+        --tc-tab-font: var(--paper-font);
+        --tc-tab-size: 14px;
+        --tc-tab-weight: 500;
+        --tc-tab-tracking: 0;
+        --tc-tab-transform: none;
+        --tc-tab-active-bg: var(--paper-bg-page);
+        --tc-tab-active-fg: var(--paper-text-1);
+    }
+
+    :global(.tc-root) .input,
+    :global(.tc-root) .separator,
+    :global(.tc-root) .nativeInput {
+        font-variant-numeric: tabular-nums;
+    }
+
+    :global(.tc-root) .toggleButton {
+        transition: background-color 0.12s ease, color 0.12s ease;
+
+        &:hover {
+            background: var(--paper-bg-pill-hover);
+        }
+
+        &:active {
+            background: var(--paper-brand);
+            color: var(--paper-brand-fg);
+            transform: none;
+        }
+    }
+
+    :global(.tc-root) .rangeTabs {
+        padding: 4px;
+    }
+
+    :global(.tc-root) .rangeTabActive {
+        box-shadow: var(--paper-shadow-segment);
     }
 }
 

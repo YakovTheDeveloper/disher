@@ -9,9 +9,9 @@ const fakeUser = {
   id: 'e2e-user',
   aud: 'authenticated',
   role: 'authenticated',
-  email: null,
-  is_anonymous: true,
-  app_metadata: { provider: 'anonymous', providers: ['anonymous'] },
+  email: 'e2e@disher.test',
+  is_anonymous: false,
+  app_metadata: { provider: 'email', providers: ['email'] },
   user_metadata: {},
   identities: [],
   created_at: '2026-04-27T00:00:00.000Z',
@@ -106,6 +106,60 @@ export async function installSupabaseMock(page: Page, mode: SupabaseMode = 'ok')
       contentType: 'application/json',
       headers: { 'Content-Range': '0-0/1' },
       body: JSON.stringify(Array.isArray(body) ? body : body ? [body] : []),
+    });
+  });
+
+  // Backup endpoints (Disher backend). API_BASE points at :3100 in dev/test;
+  // for E2E we don't run the Node backend — intercept and synthesize replies.
+  await page.route('**/api/backup/snapshot', async (route: Route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({}),
+    }),
+  );
+  await page.route('**/api/backup/stats', async (route: Route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        products: 0,
+        dishes: 0,
+        dish_items: 0,
+        dish_portions: 0,
+        schedule_foods: 0,
+        schedule_events: 0,
+        daily_norms: 0,
+        periods: 0,
+      }),
+    }),
+  );
+  await page.route('**/api/backup', async (route: Route) => {
+    const req = route.request();
+    let parsed: { rows?: Array<Record<string, unknown>> } = {};
+    try {
+      parsed = req.postData() ? JSON.parse(req.postData() as string) : {};
+    } catch {
+      /* keep empty */
+    }
+    const rows = parsed.rows ?? [];
+    state.restCalls.push({
+      url: req.url(),
+      method: req.method(),
+      body: parsed,
+    });
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        accepted: rows.map((r) => ({
+          table: r.table,
+          id: r.id,
+          server_edit_count: (r.edit_count as number) ?? 0,
+          server_received_at: new Date().toISOString(),
+        })),
+        rejected: [],
+      }),
     });
   });
 }

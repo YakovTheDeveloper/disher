@@ -1,0 +1,41 @@
+{
+  "name": "disher",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:frontend": "pnpm --filter @disher/frontend run dev-network",
+    "dev:backend": "pnpm --filter @disher/backend run dev:network",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rimraf node_modules **/node_modules **/.turbo **/dist"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.9.3",
+    "prettier": "^3.6.2",
+    "rimraf": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@swc/core",
+      "@parcel/watcher",
+      "msgpackr-extract",
+      "supabase",
+      "@journeyapps/wa-sqlite",
+      "sharp",
+      "better-sqlite3",
+      "lmdb",
+      "protobufjs",
+      "core-js"
+    ]
+  }
+}

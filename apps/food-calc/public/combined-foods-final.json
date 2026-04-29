@@ -1407,21 +1407,6 @@
     ]
   },
   {
-    "id": "custom-50",
-    "name": "валериана",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка",
-        "grams": 0.5
-      }
-    ]
-  },
-  {
     "id": "custom-23",
     "name": "ванильный экстракт",
     "source": "custom",
@@ -2459,96 +2444,6 @@
     ]
   },
   {
-    "id": "custom-31",
-    "name": "витамин A",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 капсула",
-        "grams": 0.3
-      }
-    ]
-  },
-  {
-    "id": "custom-29",
-    "name": "витамин B12",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка",
-        "grams": 0.001
-      }
-    ]
-  },
-  {
-    "id": "custom-28",
-    "name": "витамин C",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка (500 мг)",
-        "grams": 0.5
-      }
-    ]
-  },
-  {
-    "id": "custom-27",
-    "name": "витамин D3",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 капсула",
-        "grams": 0.025
-      }
-    ]
-  },
-  {
-    "id": "custom-32",
-    "name": "витамин E",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 капсула",
-        "grams": 0.4
-      }
-    ]
-  },
-  {
-    "id": "custom-33",
-    "name": "витамин K2",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 капсула",
-        "grams": 0.1
-      }
-    ]
-  },
-  {
     "id": "sk-865",
     "name": "вишня",
     "source": "skurikhin",
@@ -2725,21 +2620,6 @@
       {
         "label": "столовая ложка",
         "grams": 6.5
-      }
-    ]
-  },
-  {
-    "id": "custom-49",
-    "name": "глицин",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка (100 мг)",
-        "grams": 0.1
       }
     ]
   },
@@ -4334,21 +4214,6 @@
     ]
   },
   {
-    "id": "custom-34",
-    "name": "железо (добавка)",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка",
-        "grams": 0.3
-      }
-    ]
-  },
-  {
     "id": "sk-169",
     "name": "желток",
     "source": "skurikhin",
@@ -5207,21 +5072,6 @@
     ]
   },
   {
-    "id": "custom-38",
-    "name": "йод (добавка)",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка",
-        "grams": 0.001
-      }
-    ]
-  },
-  {
     "id": "sk-827",
     "name": "кабачок",
     "source": "skurikhin",
@@ -5360,21 +5210,6 @@
     ]
   },
   {
-    "id": "custom-40",
-    "name": "калий (добавка)",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка",
-        "grams": 0.6
-      }
-    ]
-  },
-  {
     "id": "sk-501",
     "name": "кальмар",
     "source": "skurikhin",
@@ -5442,21 +5277,6 @@
       {
         "label": "1 тушка",
         "grams": 150
-      }
-    ]
-  },
-  {
-    "id": "custom-36",
-    "name": "кальций (добавка)",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка",
-        "grams": 1
       }
     ]
   },
@@ -7252,21 +7072,6 @@
     ]
   },
   {
-    "id": "custom-44",
-    "name": "коллаген",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "мерная ложка (10 г)",
-        "grams": 10
-      }
-    ]
-  },
-  {
     "id": "sk-353",
     "name": "корейка",
     "source": "skurikhin",
@@ -7652,21 +7457,6 @@
       {
         "label": "столовая ложка",
         "grams": 15
-      }
-    ]
-  },
-  {
-    "id": "custom-45",
-    "name": "креатин",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "мерная ложка (5 г)",
-        "grams": 5
       }
     ]
   },
@@ -9397,21 +9187,6 @@
     ]
   },
   {
-    "id": "custom-35",
-    "name": "магний (добавка)",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка",
-        "grams": 0.5
-      }
-    ]
-  },
-  {
     "id": "sk-548",
     "name": "майонез",
     "source": "skurikhin",
@@ -10278,21 +10053,6 @@
       {
         "label": "чайная ложка",
         "grams": 8
-      }
-    ]
-  },
-  {
-    "id": "custom-48",
-    "name": "мелатонин",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка (3 мг)",
-        "grams": 0.003
       }
     ]
   },
@@ -11405,21 +11165,6 @@
     ]
   },
   {
-    "id": "custom-42",
-    "name": "мультивитамины",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка",
-        "grams": 1
-      }
-    ]
-  },
-  {
     "id": "custom-10",
     "name": "мускатный орех",
     "source": "custom",
@@ -12485,21 +12230,6 @@
       {
         "label": "½ банки",
         "grams": 50
-      }
-    ]
-  },
-  {
-    "id": "custom-41",
-    "name": "омега-3",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 капсула",
-        "grams": 1
       }
     ]
   },
@@ -14171,21 +13901,6 @@
     ]
   },
   {
-    "id": "custom-43",
-    "name": "пробиотик",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 капсула",
-        "grams": 0.5
-      }
-    ]
-  },
-  {
     "id": "2190",
     "name": "просо",
     "source": "usda-foundation",
@@ -14254,21 +13969,6 @@
       {
         "label": "стакан (200 мл)",
         "grams": 200
-      }
-    ]
-  },
-  {
-    "id": "custom-46",
-    "name": "протеин сывороточный",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "мерная ложка (30 г)",
-        "grams": 30
       }
     ]
   },
@@ -15912,21 +15612,6 @@
       {
         "label": "порция (100 г)",
         "grams": 100
-      }
-    ]
-  },
-  {
-    "id": "custom-39",
-    "name": "селен (добавка)",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка",
-        "grams": 0.001
       }
     ]
   },
@@ -18986,21 +18671,6 @@
     ]
   },
   {
-    "id": "custom-30",
-    "name": "фолиевая кислота",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка",
-        "grams": 0.001
-      }
-    ]
-  },
-  {
     "id": "1555",
     "name": "фрикадельки",
     "source": "usda-sr-legacy",
@@ -19426,21 +19096,6 @@
       {
         "label": "порция",
         "grams": 100
-      }
-    ]
-  },
-  {
-    "id": "custom-37",
-    "name": "цинк (добавка)",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 таблетка",
-        "grams": 0.025
       }
     ]
   },
@@ -20337,21 +19992,6 @@
       {
         "label": "порция (100 г)",
         "grams": 100
-      }
-    ]
-  },
-  {
-    "id": "custom-47",
-    "name": "L-карнитин",
-    "source": "custom",
-    "categories": [
-      "supplement"
-    ],
-    "nutrients": {},
-    "portions": [
-      {
-        "label": "1 капсула",
-        "grams": 0.5
       }
     ]
   },

@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/paper-tokens.scss';
+
 .content {
     display: flex;
     flex-direction: column;
@@ -162,5 +164,104 @@
         background: rgba(0, 0, 0, 0.65);
         border-color: transparent;
         color: #fff;
+    }
+}
+
+// ─── Paper variant — Yandex Pogoda inspired ──────────────────
+// Часть paper-флоу: SearchFood → Quantity → TimeChoose.
+// Белый фон, pill-таб-бар как segmented control, pill-чипы фильтров,
+// синий Яндекс-акцент для активных состояний.
+.contentPaper {
+    @include paper-tokens;
+
+    background: var(--paper-bg-page);
+
+    .header {
+        background: var(--paper-bg-page);
+        border-bottom: 1px solid var(--paper-line);
+        padding: 8px 0 0;
+    }
+
+    .tabBar {
+        gap: 4px;
+        padding: 8px 12px;
+        background: var(--paper-bg-elevated);
+        border-radius: var(--paper-radius-pill);
+        margin: 0 12px 8px;
+    }
+
+    .tabBarItem {
+        padding: 8px 14px;
+        border: 0;
+        border-radius: var(--paper-radius-pill);
+        background: transparent;
+        font-family: var(--paper-font);
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0;
+        text-transform: none;
+        color: var(--paper-text-2);
+    }
+
+    .tabBarItem_active {
+        background: var(--paper-bg-page);
+        color: var(--paper-text-1);
+        border-color: transparent;
+        box-shadow: var(--paper-shadow-segment);
+        font-weight: 600;
+    }
+
+    .filterChips {
+        padding: 8px 14px 12px;
+        border-bottom: 1px solid var(--paper-line);
+    }
+
+    .filterChip {
+        padding: 8px 14px;
+        font-family: var(--paper-font);
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0;
+        text-transform: none;
+        color: var(--paper-text-1);
+        background: var(--paper-bg-pill);
+        border: 1px solid transparent;
+        border-radius: var(--paper-radius-pill);
+        min-height: 32px;
+
+        &:active {
+            background: var(--paper-bg-pill-hover);
+            border-color: transparent;
+            color: var(--paper-text-1);
+        }
+    }
+
+    .filterChipActive {
+        background: var(--paper-brand);
+        color: var(--paper-brand-fg);
+        border-color: transparent;
+
+        &:active {
+            background: var(--paper-brand-hover);
+            border-color: transparent;
+            color: var(--paper-brand-fg);
+        }
+    }
+
+    .filterMessage {
+        background: var(--paper-bg-elevated);
+        border-bottom: 1px solid var(--paper-line);
+        font-family: var(--paper-font);
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0;
+        text-transform: none;
+        color: var(--paper-text-2);
+        padding: 10px 16px;
+
+        strong {
+            color: var(--paper-text-1);
+            font-weight: 700;
+        }
     }
 }
