@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { pool } from "../db.js";
-import { verifySupabaseUser } from "../supabase-auth.js";
+import { verifyUser } from "../auth.js";
 
 // POST   /api/backup            — push dirty rows from client, LWW upsert.
 // GET    /api/backup/snapshot   — full pull for fresh install / eviction recovery.
@@ -309,7 +309,7 @@ async function handlePush(req: FastifyRequest, reply: FastifyReply) {
     return reply.status(500).send({ error: "DB not configured" });
   }
 
-  const userId = await verifySupabaseUser(req, reply);
+  const userId = await verifyUser(req, reply);
   if (!userId) return;
 
   const body = req.body as BackupBody;
@@ -352,7 +352,7 @@ async function handleSnapshot(req: FastifyRequest, reply: FastifyReply) {
     return reply.status(500).send({ error: "DB not configured" });
   }
 
-  const userId = await verifySupabaseUser(req, reply);
+  const userId = await verifyUser(req, reply);
   if (!userId) return;
 
   const out: Record<string, unknown[]> = {};
@@ -380,7 +380,7 @@ async function handleStats(req: FastifyRequest, reply: FastifyReply) {
     return reply.status(500).send({ error: "DB not configured" });
   }
 
-  const userId = await verifySupabaseUser(req, reply);
+  const userId = await verifyUser(req, reply);
   if (!userId) return;
 
   const out: Record<string, number> = {};

@@ -1,8 +1,8 @@
 import { create } from 'zustand';
-import { supabase } from '@/shared/api/supabase-client';
-import { queryClient } from '@/shared/lib/storage/queryClient';
+import { authProvider, type AppUser, type AuthError } from '@/shared/lib/auth/authProvider';
 import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
 import { Sentry } from '@/shared/lib/observability/sentry';
+import { defaultUserMessage, type ErrorKind } from '@/shared/lib/errors/classify';
 
 // Wipe Dexie local rows before switching identities. uid_old's rows would
 // violate RLS under uid_new on next push (план: 42501), so we drop them
@@ -20,7 +20,14 @@ type AuthState = {
   /** True until the initial session check resolves. UI should show a splash while it is true. */
   isReady: boolean;
   isLoading: boolean;
+  /** Human-readable error string (already localized, dev-prefixed in dev). Read by AuthForm. */
   error: string | null;
+  /**
+   * Classified error kind for the last failed signIn/signUp. UI may use it to
+   * decorate fields (e.g. highlight password vs email vs network banner).
+   * Cleared on `clearError` and at the start of each new sign-in attempt.
+   */
+  errorKind: ErrorKind['kind'] | null;
 };
 
 type AuthActions = {
@@ -36,26 +43,35 @@ type AuthActions = {
   logout: () => Promise<void>;
 };
 
-type SupabaseUser = { id: string; email?: string | null; is_anonymous?: boolean };
-
-function applyUser(set: (s: Partial<AuthState>) => void, user: SupabaseUser | null) {
-  // Anonymous Supabase sessions left over from the pre-required-auth era are
-  // treated as "no session" — the user must sign up or sign in to proceed.
-  // Once those sessions age out / the user signs out, this branch goes away.
-  const effective = user && !user.is_anonymous ? user : null;
-
-  if (!effective) {
+function applyUser(set: (s: Partial<AuthState>) => void, user: AppUser | null) {
+  if (!user) {
     set({ isLoggedIn: false, email: null, userId: null });
     Sentry.setUser(null);
     return;
   }
   set({
     isLoggedIn: true,
-    email: effective.email ?? null,
-    userId: effective.id,
+    email: user.email,
+    userId: user.id,
   });
   // id only — email is PII (food diary).
-  Sentry.setUser({ id: effective.id });
+  Sentry.setUser({ id: user.id });
+}
+
+function authFail(set: (s: Partial<AuthState>) => void, error: AuthError, op: 'auth.signIn' | 'auth.signUp') {
+  Sentry.captureException(error.raw ?? error, {
+    tags: {
+      kind: error.kind,
+      op,
+      ...('status' in error && error.status !== undefined ? { status: String(error.status) } : {}),
+      ...('code' in error && error.code ? { code: error.code } : {}),
+    },
+  });
+  set({
+    isLoading: false,
+    error: defaultUserMessage(error),
+    errorKind: error.kind,
+  });
 }
 
 export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
@@ -65,66 +81,61 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   isReady: false,
   isLoading: false,
   error: null,
+  errorKind: null,
 
-  clearError: () => set({ error: null }),
+  clearError: () => set({ error: null, errorKind: null }),
 
   bootstrap: async () => {
-    const { data, error } = await supabase.auth.getSession();
-    if (error || !data.session) {
-      applyUser(set, null);
-      set({ isReady: true });
-      return;
-    }
-    applyUser(set, data.session.user);
+    const user = await authProvider.bootstrap();
+    applyUser(set, user);
     set({ isReady: true });
   },
 
   signIn: async (email, password) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, errorKind: null });
     // Try the network call FIRST. If credentials are wrong we keep the current
-    // session + local cache + outbox intact (G1 fix — the previous order wiped
-    // state before validating, so a typo logged the user out).
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error || !data.user) {
-      set({ isLoading: false, error: error?.message ?? 'Sign-in failed' });
+    // session + local cache intact (G1 fix — the previous order wiped state
+    // before validating, so a typo logged the user out).
+    const result = await authProvider.signIn(email, password);
+    if (!result.ok) {
+      authFail(set, result.error, 'auth.signIn');
       return false;
     }
     // Success — switch identities. Old uid's pending writes would violate RLS
-    // under the new user (план: 42501), and cached queries keyed by the old
-    // userId must not leak into the signed-in account.
+    // under the new user (план: 42501) — wipe Dexie before applying the new
+    // identity. useLiveQuery re-reads Dexie on the next tick.
     try {
       await wipeLocalData();
-      queryClient.clear();
     } catch (e) {
       console.error('cache clear after signIn failed', e);
     }
-    applyUser(set, data.user);
+    applyUser(set, result.user);
     set({ isLoading: false });
     return true;
   },
 
   signUp: async (email, password) => {
-    set({ isLoading: true, error: null });
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-      set({ isLoading: false, error: error.message });
+    set({ isLoading: true, error: null, errorKind: null });
+    const result = await authProvider.signUp(email, password);
+    if (!result.ok) {
+      authFail(set, result.error, 'auth.signUp');
       return false;
     }
-    if (data.user) applyUser(set, data.user);
+    applyUser(set, result.user);
     set({ isLoading: false });
     return true;
   },
 
   signOut: async () => {
-    // Clear queue + cache BEFORE signOut — the queue belongs to uid_old and
-    // RLS will block all of its rows after signOut (план: 42501).
+    // Clear local rows BEFORE signOut — they belong to uid_old and RLS will
+    // block them after signOut (план: 42501). useLiveQuery re-reads on the
+    // next tick, no separate query-cache to clear.
     try {
       await wipeLocalData();
-      queryClient.clear();
     } catch (e) {
       console.error('cache clear before signOut failed', e);
     }
-    await supabase.auth.signOut();
+    await authProvider.signOut();
     applyUser(set, null);
   },
 
@@ -133,8 +144,8 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   },
 }));
 
-// Keep the store in sync with Supabase auth events (sign-in, sign-out, token
-// refresh, user update). Anonymous sessions are filtered out by applyUser.
-supabase.auth.onAuthStateChange((_event, session) => {
-  applyUser(useAuthStore.setState, session?.user ?? null);
+// Keep the store in sync with auth events (sign-in, sign-out, token refresh,
+// user update). Anonymous sessions are filtered out inside the provider.
+authProvider.onAuthChange((_event, user) => {
+  applyUser(useAuthStore.setState, user);
 });

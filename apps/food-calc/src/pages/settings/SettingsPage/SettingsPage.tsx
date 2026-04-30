@@ -2,7 +2,6 @@ import { useState } from 'react';
 import Button from '@/shared/ui/atoms/Button/Button';
 import { clear as idbClear } from 'idb-keyval';
 import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
-import { queryClient } from '@/shared/lib/storage/queryClient';
 import styles from './SettingsPage.module.scss';
 
 const SettingsPage = () => {
@@ -14,7 +13,6 @@ const SettingsPage = () => {
       await db.transaction('rw', SYNCED_TABLES.map((t) => db[t]), async () => {
         for (const t of SYNCED_TABLES) await db[t].clear();
       });
-      queryClient.clear();
       await idbClear();
       localStorage.clear();
       window.location.reload();

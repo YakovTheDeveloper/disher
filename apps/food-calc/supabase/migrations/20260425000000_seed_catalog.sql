@@ -21202,4 +21202,4 @@ on conflict (id) do update set
   categories = excluded.categories,
   nutrients  = excluded.nutrients,
   portions   = excluded.portions,
-  updated_at = now();
+  client_modified_at = now();

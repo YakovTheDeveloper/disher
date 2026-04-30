@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { verifySupabaseUser } from "../supabase-auth.js";
+import { verifyUser } from "../auth.js";
 import {
   getDailyAnalysis,
   upsertDailyAnalysis,
@@ -215,7 +215,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
   app.get<{ Params: { date: string }; Querystring: { tab?: string } }>(
     "/v2/daily/:date",
     async (req, reply) => {
-      const userId = await verifySupabaseUser(req, reply);
+      const userId = await verifyUser(req, reply);
       if (!userId) return;
 
       const tab = req.query.tab || "food";
@@ -238,7 +238,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
     "/v2/daily/:date",
     async (req, reply) => {
       try {
-        const userId = await verifySupabaseUser(req, reply);
+        const userId = await verifyUser(req, reply);
         if (!userId) return;
 
         const { tab, foods, events, inputHash } = req.body;
@@ -283,7 +283,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
   app.get<{ Params: { weekStart: string } }>(
     "/v2/weekly/:weekStart",
     async (req, reply) => {
-      const userId = await verifySupabaseUser(req, reply);
+      const userId = await verifyUser(req, reply);
       if (!userId) return;
 
       const analysis = getWeeklyAnalysis(userId, req.params.weekStart);
@@ -304,7 +304,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
     "/v2/weekly/:weekStart",
     async (req, reply) => {
       try {
-        const userId = await verifySupabaseUser(req, reply);
+        const userId = await verifyUser(req, reply);
         if (!userId) return;
 
         const weekStart = req.params.weekStart;

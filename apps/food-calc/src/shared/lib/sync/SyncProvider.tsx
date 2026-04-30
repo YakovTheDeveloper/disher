@@ -1,7 +1,4 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { queryClient } from '@/shared/lib/storage/queryClient';
-import { persister, APP_VERSION } from '@/shared/lib/storage/persister';
 import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
 import { installDexieHooks } from '@/shared/lib/dexie/hooks';
 import { isStorageWritable } from '@/shared/lib/sync/storageProbe';
@@ -18,33 +15,15 @@ import { diagLog } from '@/shared/lib/observability/diagLog';
 //   3. Install Dexie hooks (auto-stamp _dirty/edit_count/client_modified_at).
 //   4. If Dexie is empty for this user, pull snapshot from /api/backup/snapshot.
 //   5. Start the push scheduler.
-//
-// We keep the TanStack PersistQueryClientProvider wrapper so existing code
-// that still calls supabase.from(...) keeps working until Step 4 migrates
-// everything to useLiveQuery. The query cache will be evicted file-by-file
-// as entities cut over to Dexie.
 
 type Props = { children: ReactNode };
 
 export function SyncProvider({ children }: Props) {
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{
-        persister,
-        maxAge: 7 * 24 * 60 * 60_000,
-        buster: APP_VERSION,
-      }}
-      onSuccess={() => {
-        diagLog('[PQC] hydration onSuccess', {
-          t_ms: Math.round(performance.now()),
-          queries: queryClient.getQueryCache().getAll().length,
-        });
-      }}
-    >
+    <>
       <SyncBootstrap />
       {children}
-    </PersistQueryClientProvider>
+    </>
   );
 }
 
