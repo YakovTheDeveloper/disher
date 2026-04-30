@@ -14,8 +14,8 @@ import pg from "pg";
 // Required env: SUPABASE_DB_URL, SUPABASE_URL, TEST_USER_ID. Without them the
 // suite skips with a clear message.
 
-vi.mock("../../supabase-auth.js", () => ({
-  verifySupabaseUser: vi.fn(async (req: any, reply: any) => {
+vi.mock("../../auth.js", () => ({
+  verifyUser: vi.fn(async (req: any, reply: any) => {
     const uid = req.headers["x-test-user-id"];
     if (!uid) {
       reply.status(401).send({ error: "x-test-user-id missing in test" });
