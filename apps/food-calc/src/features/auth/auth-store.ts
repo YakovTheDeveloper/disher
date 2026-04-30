@@ -3,6 +3,7 @@ import { supabase } from '@/shared/api/supabase-client';
 import { queryClient } from '@/shared/lib/storage/queryClient';
 import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
 import { Sentry } from '@/shared/lib/observability/sentry';
+import { classifyError, defaultUserMessage, type ErrorKind } from '@/shared/lib/errors/classify';
 
 // Wipe Dexie local rows before switching identities. uid_old's rows would
 // violate RLS under uid_new on next push (план: 42501), so we drop them
@@ -20,7 +21,14 @@ type AuthState = {
   /** True until the initial session check resolves. UI should show a splash while it is true. */
   isReady: boolean;
   isLoading: boolean;
+  /** Human-readable error string (already localized, dev-prefixed in dev). Read by AuthForm. */
   error: string | null;
+  /**
+   * Classified error kind for the last failed signIn/signUp. UI may use it to
+   * decorate fields (e.g. highlight password vs email vs network banner).
+   * Cleared on `clearError` and at the start of each new sign-in attempt.
+   */
+  errorKind: ErrorKind['kind'] | null;
 };
 
 type AuthActions = {
@@ -58,6 +66,23 @@ function applyUser(set: (s: Partial<AuthState>) => void, user: SupabaseUser | nu
   Sentry.setUser({ id: effective.id });
 }
 
+function authFail(set: (s: Partial<AuthState>) => void, error: unknown, op: 'auth.signIn' | 'auth.signUp') {
+  const kind = classifyError(error);
+  Sentry.captureException(error, {
+    tags: {
+      kind: kind.kind,
+      op,
+      ...('status' in kind && kind.status !== undefined ? { status: String(kind.status) } : {}),
+      ...('code' in kind && kind.code ? { code: kind.code } : {}),
+    },
+  });
+  set({
+    isLoading: false,
+    error: defaultUserMessage(kind),
+    errorKind: kind.kind,
+  });
+}
+
 export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   isLoggedIn: false,
   email: null,
@@ -65,8 +90,9 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   isReady: false,
   isLoading: false,
   error: null,
+  errorKind: null,
 
-  clearError: () => set({ error: null }),
+  clearError: () => set({ error: null, errorKind: null }),
 
   bootstrap: async () => {
     const { data, error } = await supabase.auth.getSession();
@@ -80,13 +106,13 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   },
 
   signIn: async (email, password) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, errorKind: null });
     // Try the network call FIRST. If credentials are wrong we keep the current
     // session + local cache + outbox intact (G1 fix — the previous order wiped
     // state before validating, so a typo logged the user out).
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data.user) {
-      set({ isLoading: false, error: error?.message ?? 'Sign-in failed' });
+      authFail(set, error ?? new Error('Sign-in failed'), 'auth.signIn');
       return false;
     }
     // Success — switch identities. Old uid's pending writes would violate RLS
@@ -104,10 +130,10 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   },
 
   signUp: async (email, password) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, errorKind: null });
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) {
-      set({ isLoading: false, error: error.message });
+      authFail(set, error, 'auth.signUp');
       return false;
     }
     if (data.user) applyUser(set, data.user);

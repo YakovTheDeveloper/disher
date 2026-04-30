@@ -1,5 +1,6 @@
 import { toast } from 'sonner';
 import { router } from '@/app/router';
+import type { ErrorKind } from '@/shared/lib/errors/classify';
 
 export interface ToastAction {
     label: string;
@@ -8,6 +9,15 @@ export interface ToastAction {
 
 export interface ToastOptions {
     action?: ToastAction;
+}
+
+export interface ErrorToastOptions extends ToastOptions {
+    /**
+     * Classified kind for the error. Drives toast duration and (in dev) the
+     * `[kind status code]` debug prefix. The visible message is whatever the
+     * caller passes in — pass `defaultUserMessage(kind)` for the localized text.
+     */
+    kind?: ErrorKind;
 }
 
 function buildAction(action?: ToastAction) {
@@ -22,9 +32,25 @@ function buildAction(action?: ToastAction) {
     };
 }
 
+// Network/timeout flap a lot — keep their toast short so it doesn't stack.
+// Auth/validation are user-actionable — keep them around longer.
+function durationFor(kind?: ErrorKind): number | undefined {
+    if (!kind) return undefined;
+    switch (kind.kind) {
+        case 'network':
+        case 'timeout':
+            return 3000;
+        case 'auth':
+        case 'validation':
+            return 6000;
+        default:
+            return undefined;
+    }
+}
+
 interface ToasterAPI {
     success(message: string, options?: ToastOptions): void;
-    error(message: string, options?: ToastOptions): void;
+    error(message: string, options?: ErrorToastOptions): void;
     info(message: string, options?: ToastOptions): void;
     warning(message: string, options?: ToastOptions): void;
 }
@@ -38,6 +64,7 @@ const toaster: ToasterAPI = {
     error: (msg, options) =>
         toast.error(msg, {
             action: buildAction(options?.action),
+            duration: durationFor(options?.kind),
         }),
 
     info: (msg, options) =>

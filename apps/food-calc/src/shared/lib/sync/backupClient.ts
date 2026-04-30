@@ -1,6 +1,7 @@
 import { supabase } from '@/shared/api/supabase-client';
 import { db, SYNCED_TABLES, type SyncedTable } from '@/shared/lib/dexie/schema';
 import { API_BASE } from '@/shared/lib/api/base';
+import { pickIdsSafeToClean } from './timestampGuard';
 
 // Push protocol with the backup endpoint — single source for `/api/backup/*`.
 // Conflict resolution lives on the server (LWW on edit_count, tie-break
@@ -108,17 +109,21 @@ export async function drainPush(userId: string): Promise<{
             .where('id')
             .anyOf([...acceptedIds])
             .toArray();
-          for (const row of persisted) {
-            const r = row as unknown as Record<string, unknown>;
-            const cma = r.client_modified_at as string | undefined;
-            if (cma && cma <= pushTimestamp) {
-              const ack = body.accepted.find((a) => a.id === r.id);
-              await db[table].update(r.id as string, {
-                __server_apply: true,
-                _dirty: 0,
-                server_received_at: ack?.server_received_at,
-              } as never);
-            }
+          const candidates = persisted.map((r) => {
+            const o = r as unknown as Record<string, unknown>;
+            return {
+              id: o.id as string,
+              client_modified_at: o.client_modified_at as string,
+            };
+          });
+          const safeIds = new Set(pickIdsSafeToClean(candidates, pushTimestamp));
+          for (const id of safeIds) {
+            const ack = body.accepted.find((a) => a.id === id);
+            await db[table].update(id, {
+              __server_apply: true,
+              _dirty: 0,
+              server_received_at: ack?.server_received_at,
+            } as never);
           }
         });
       }
