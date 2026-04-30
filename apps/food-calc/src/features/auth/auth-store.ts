@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { supabase } from '@/shared/api/supabase-client';
-import { queryClient } from '@/shared/lib/storage/queryClient';
 import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
 import { Sentry } from '@/shared/lib/observability/sentry';
 import { classifyError, defaultUserMessage, type ErrorKind } from '@/shared/lib/errors/classify';
@@ -116,11 +115,11 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       return false;
     }
     // Success — switch identities. Old uid's pending writes would violate RLS
-    // under the new user (план: 42501), and cached queries keyed by the old
-    // userId must not leak into the signed-in account.
+    // under the new user (план: 42501) — wipe Dexie before applying the new
+    // identity. There is no client-side query cache anymore (useLiveQuery
+    // re-reads Dexie on the next tick).
     try {
       await wipeLocalData();
-      queryClient.clear();
     } catch (e) {
       console.error('cache clear after signIn failed', e);
     }
@@ -142,11 +141,11 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   },
 
   signOut: async () => {
-    // Clear queue + cache BEFORE signOut — the queue belongs to uid_old and
-    // RLS will block all of its rows after signOut (план: 42501).
+    // Clear local rows BEFORE signOut — they belong to uid_old and RLS will
+    // block them after signOut (план: 42501). useLiveQuery re-reads on the
+    // next tick, no separate query-cache to clear.
     try {
       await wipeLocalData();
-      queryClient.clear();
     } catch (e) {
       console.error('cache clear before signOut failed', e);
     }

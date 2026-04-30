@@ -8,8 +8,6 @@ type DexieBridge = {
   pullSnapshot: () => Promise<{ rows: number }>;
   clearIdb: () => Promise<void>;
   idbKeys: () => Promise<string[]>;
-  invalidateAllQueries: () => Promise<void>;
-  queryCacheKeys: () => unknown[];
   getSession: () => Promise<{ user: { id: string; is_anonymous: boolean } } | null>;
   signOut: () => Promise<void>;
 };

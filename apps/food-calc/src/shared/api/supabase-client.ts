@@ -14,16 +14,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
 //   - REST/.from()/.storage()/.functions() are NOT called from the UI —
 //     all data goes through our own Node backend (/api/backup/*).
 //
-// The previous version of this file routed every call through a Node proxy
-// (/api/sb/*) to dodge iOS WebKit Bug #284946 (HTTP/2 pool poisoning when
-// 9+ parallel REST requests share one connection). That bug only triggers
-// with parallel REST traffic; with auth-only traffic (5 calls, never
-// concurrent) there is nothing to poison. The proxy was also the source of
-// a content-encoding regression — it forwarded `content-encoding: gzip`
-// after Node's fetch had already decompressed the body, so the browser saw
-// `200 OK` with empty / un-decodable bytes on signIn success.
-// Removing the proxy: simpler, fewer bugs, no behaviour change for users.
-//
 // What we keep: per-call AbortSignal.timeout + diagLog for observability.
 
 const FETCH_TIMEOUT_MS = 15_000;

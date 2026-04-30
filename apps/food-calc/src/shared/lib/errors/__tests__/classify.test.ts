@@ -55,13 +55,13 @@ describe('classifyError → network', () => {
 // ─── timeout — supabase wraps AbortSignal.timeout failures ───────────────────
 
 describe('classifyError → timeout (supabase wrapped)', () => {
-  // Regression: success-path signIn was hitting our 5s iOS fetch timeout (the
-  // /token?grant_type=password endpoint can take 1-3s for bcrypt verify;
-  // through the /api/sb/* proxy it can exceed 5s). AbortSignal.timeout fires,
-  // supabase wraps the AbortError as AuthRetryableFetchError(message, 0), and
-  // the previous classify mapped it to `network` ("Нет связи с сервером") even
-  // though the network was fine. Fixed by checking timeout-text in the message
-  // BEFORE the network bucket.
+  // Regression: success-path signIn was hitting our iOS fetch timeout (the
+  // /token?grant_type=password endpoint can take 1-3s for bcrypt verify, and
+  // can spike higher under noisy-neighbour CPU contention on free tier).
+  // AbortSignal.timeout fires, supabase wraps the AbortError as
+  // AuthRetryableFetchError(message, 0), and the previous classify mapped it
+  // to `network` ("Нет связи с сервером") even though the network was fine.
+  // Fixed by checking timeout-text in the message BEFORE the network bucket.
   it('AuthRetryableFetchError("signal is aborted without reason", 0) → timeout (Chromium AbortSignal.timeout)', () => {
     const e = new AuthRetryableFetchError('signal is aborted without reason', 0);
     expect(classifyError(e).kind).toBe('timeout');

@@ -5,7 +5,6 @@
  */
 import { clear as idbClear, keys as idbKeysFn } from 'idb-keyval';
 import { supabase } from '@/shared/api/supabase-client';
-import { queryClient } from '@/shared/lib/storage/queryClient';
 import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
 import { drainPush, pullSnapshot } from '@/shared/lib/sync/backupClient';
 import { areDexieHooksInstalled } from '@/shared/lib/dexie/hooks';
@@ -49,17 +48,9 @@ export function installE2EBridge(): void {
     createDish,
     addScheduleFood,
 
-    // idb-keyval for drafts / persister.
+    // idb-keyval for drafts.
     clearIdb: () => idbClear(),
     idbKeys: () => idbKeysFn().then((arr) => arr.map((k) => String(k))),
-
-    // TanStack Query (legacy cache may still be in flight during transition).
-    invalidateAllQueries: () => queryClient.invalidateQueries(),
-    queryCacheKeys: () =>
-      queryClient
-        .getQueryCache()
-        .getAll()
-        .map((q) => q.queryKey),
 
     // Auth.
     getSession: async () => {

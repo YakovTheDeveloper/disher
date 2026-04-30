@@ -66,8 +66,8 @@ navigator.storage?.estimate?.().then((est) => {
   diagLog('[boot] storage.estimate', est);
 }).catch(() => {});
 
-// Probe idb-keyval roundtrip BEFORE persister starts. If this hangs or fails
-// on iOS Safari, that pinpoints the persister hydration issue.
+// Probe idb-keyval roundtrip on boot. If this hangs or fails on iOS Safari,
+// that pinpoints an idb storage problem before drafts try to hydrate.
 (async () => {
   const t0 = performance.now();
   diagLog('[boot] idb probe START');
