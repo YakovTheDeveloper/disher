@@ -85,6 +85,7 @@ export default defineConfig({
     format: 'es',
   },
   server: {
+    host: process.env.VITE_E2E_HTTP ? '127.0.0.1' : undefined,
     headers: process.env.VITE_E2E_HTTP
       ? undefined
       : {

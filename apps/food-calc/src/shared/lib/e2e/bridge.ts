@@ -8,6 +8,10 @@ import { supabase } from '@/shared/api/supabase-client';
 import { queryClient } from '@/shared/lib/storage/queryClient';
 import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
 import { drainPush, pullSnapshot } from '@/shared/lib/sync/backupClient';
+import { areDexieHooksInstalled } from '@/shared/lib/dexie/hooks';
+import { createProduct } from '@/entities/product/api/mutations';
+import { createDish } from '@/entities/dish/api/mutations';
+import { addScheduleFood } from '@/entities/schedule-food/api/mutations';
 
 export function installE2EBridge(): void {
   if (import.meta.env.MODE !== 'test') return;
@@ -38,6 +42,12 @@ export function installE2EBridge(): void {
     // Sync triggers.
     drainPush,
     pullSnapshot,
+    hooksInstalled: () => areDexieHooksInstalled(),
+
+    // Entity mutations — proxy real entity api so E2E exercises the same code as UI.
+    createProduct,
+    createDish,
+    addScheduleFood,
 
     // idb-keyval for drafts / persister.
     clearIdb: () => idbClear(),
@@ -54,6 +64,11 @@ export function installE2EBridge(): void {
     // Auth.
     getSession: async () => {
       const { data } = await supabase.auth.getSession();
+      return data.session;
+    },
+    signInTest: async (email = 'e2e@disher.test', password = 'e2e-password') => {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
       return data.session;
     },
     signOut: async () => {

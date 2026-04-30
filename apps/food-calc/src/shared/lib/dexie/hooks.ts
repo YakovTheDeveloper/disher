@@ -28,7 +28,14 @@ function stripSentinel<T extends object>(obj: T): T {
   return obj;
 }
 
+let installed = false;
+
+export function areDexieHooksInstalled(): boolean {
+  return installed;
+}
+
 export function installDexieHooks(): void {
+  installed = true;
   for (const table of SYNCED_TABLES) {
     const t = db[table];
 
