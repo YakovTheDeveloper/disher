@@ -64,6 +64,38 @@
     }
 }
 
+// Pill toggle button: glass surface + ink text. Used in TimeChoose,
+// ProductQuantity portion chips, and similar inline pickers.
+@mixin pill-button() {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 20px;
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+    border-radius: 9999px;
+    color: var(--color-ink);
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    transition: background-color 0.15s, color 0.15s, transform 0.1s;
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.26);
+    }
+
+    &:active {
+        background: #ffffff;
+        color: var(--color-ink-strong);
+        transform: scale(0.97);
+    }
+}
+
 @mixin blink($color1, $color2, $time) {
     @keyframes blink {
 

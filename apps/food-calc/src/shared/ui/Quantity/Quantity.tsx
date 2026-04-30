@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
 import styles from './Quantity.module.scss';
 import { ChangeHighlight } from '@/shared/ui/ChangeHighlight';
 
@@ -47,28 +46,15 @@ const Quantity = ({ id, onClick, content, hide, unit = 'г', htmlFor }: Props) =
       onClick={onClickHandler}
       className={`${styles.container} ${hide ? styles.hide : ''}`}
     >
-      <AnimatePresence>
-        {diff && (
-          <motion.span
-            key={diff.key}
-            className={styles.diff}
-            initial={{ opacity: 1, x: '-100%' }}
-            animate={{ opacity: 1, x: '0%' }}
-            exit={{ opacity: 0 }}
-            transition={{
-              x: { duration: 3.5, ease: [0.25, 0.1, 0.25, 1] },
-              opacity: { duration: 0.4 },
-            }}
-            aria-hidden="true"
-          >
-            {diff.from} → {diff.to}
-          </motion.span>
-        )}
-      </AnimatePresence>
+      {diff && (
+        <span key={diff.key} className={styles.diff} aria-hidden="true">
+          {diff.from} → {diff.to}
+        </span>
+      )}
       <ChangeHighlight
         trigger={quantity}
         contentClassName={styles.valueOnly}
-        variant={['sweep', 'slide']}
+        variant="sweep"
       >
         {quantity}
       </ChangeHighlight>

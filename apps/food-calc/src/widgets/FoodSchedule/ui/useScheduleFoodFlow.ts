@@ -172,7 +172,11 @@ export function useScheduleFoodFlow(mode: FlowMode) {
   useOverlayHistory(step !== 'idle', handleClose);
 
   const handleTimeFinish = (time: string) => {
+
     setDraft((prev) => ({ ...prev, time }));
+    if (mode.type === 'create') {
+      setStep('quantity');
+    }
   };
 
   const handleFoodSelect = async (payload: { variant: 'product' | 'dish'; id: string; name: string }) => {
@@ -215,14 +219,14 @@ export function useScheduleFoodFlow(mode: FlowMode) {
       const canCommit = draft.variant && (draft.productId || draft.dishId);
       const snapshot = canCommit
         ? {
-            date: mode.scheduleId,
-            time: draft.time,
-            type: (draft.variant === 'product' ? 'food' : 'dish') as 'food' | 'dish',
-            productId: draft.productId,
-            dishId: draft.dishId,
-            quantity: draft.quantity,
-            details: draft.details.trim() || null,
-          }
+          date: mode.scheduleId,
+          time: draft.time,
+          type: (draft.variant === 'product' ? 'food' : 'dish') as 'food' | 'dish',
+          productId: draft.productId,
+          dishId: draft.dishId,
+          quantity: draft.quantity,
+          details: draft.details.trim() || null,
+        }
         : null;
 
       // Закрываем модалку сразу — мутация уходит в фон.
@@ -251,16 +255,16 @@ export function useScheduleFoodFlow(mode: FlowMode) {
       const canCommit = editingItem && draft.variant && (draft.productId || draft.dishId);
       const editSnapshot = canCommit && editingItem
         ? {
-            id: editingItem.id,
-            patch: {
-              time: draft.time,
-              type: (draft.variant === 'product' ? 'food' : 'dish') as 'food' | 'dish',
-              productId: draft.variant === 'product' ? draft.productId : null,
-              dishId: draft.variant === 'dish' ? draft.dishId : null,
-              quantity: draft.quantity,
-              details: draft.details.trim() || null,
-            },
-          }
+          id: editingItem.id,
+          patch: {
+            time: draft.time,
+            type: (draft.variant === 'product' ? 'food' : 'dish') as 'food' | 'dish',
+            productId: draft.variant === 'product' ? draft.productId : null,
+            dishId: draft.variant === 'dish' ? draft.dishId : null,
+            quantity: draft.quantity,
+            details: draft.details.trim() || null,
+          },
+        }
         : null;
 
       setStep('idle');

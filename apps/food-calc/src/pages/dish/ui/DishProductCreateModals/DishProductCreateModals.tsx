@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
-import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
@@ -12,10 +11,7 @@ import { addDishItem } from '@/entities/dish';
 import { useProductPortions } from '@/entities/product';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
-export const DISH_MODAL_INPUT_IDS = {
-  SEARCH_INPUT: 'dish-item-search',
-  QUANTITY_INPUT: 'dish-item-quantity',
-} as const;
+import { DISH_MODAL_INPUT_IDS } from './DishProductCreateModals.constants';
 
 type Step = 'idle' | 'search' | 'quantity';
 type ActiveStep = Exclude<Step, 'idle'>;
@@ -51,7 +47,6 @@ type Props = {
 };
 
 const DishProductCreateModals = ({ dishId }: Props) => {
-  const { toProduct } = useAppRoutes();
   const [step, setStep] = useState<Step>('idle');
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
   const [sessionKey, setSessionKey] = useState(0);
@@ -139,9 +134,8 @@ const DishProductCreateModals = ({ dishId }: Props) => {
               key={sessionKey}
               mode="products-only"
               onSelectFood={handleFoodSelect}
-              onInfoClick={(_variant, id) => {
+              onInfoClick={() => {
                 handleClose();
-                toProduct(id);
               }}
               activeItemId={draft.productId ?? undefined}
               itemHtmlFor={DISH_MODAL_INPUT_IDS.QUANTITY_INPUT}

@@ -1,27 +1,54 @@
 import type { ReactNode } from 'react';
 import s from './ModalShell.module.scss';
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
+import { useDesignVariants } from '@/shared/lib/useDesignVariants';
+import { shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 
-type Variant = 'default' | 'spring' | 'gradient1' | 'gradient2';
+type Variant =
+  | 'default'
+  | 'spring'
+  | 'spring2'
+  | 'spring4'
+  | 'spring5'
+  | 'gradient1'
+  | 'gradient2'
+  | 'gradient3';
 type Props = { children: ReactNode; className?: string; variant?: Variant };
 
-const GRADIENT_SOURCES: Record<'gradient1' | 'gradient2', { avif: string; webp: string; fallback: string }> = {
+const GRADIENT_SOURCES: Record<
+  'gradient1' | 'gradient2' | 'gradient3',
+  { avif: string; webp: string; fallback: string }
+> = {
   gradient1: { avif: '/bg/1.avif', webp: '/bg/1.webp', fallback: '/bg/1.png' },
   gradient2: { avif: '/bg/2.avif', webp: '/bg/2.webp', fallback: '/bg/2.jpg' },
+  gradient3: { avif: '/bg/3.png', webp: '/bg/3.png', fallback: '/bg/3.png' },
 };
 
-export const ModalShell = ({ children, className, variant = 'spring' }: Props) => {
-  const isGradient = variant === 'gradient1' || variant === 'gradient2';
-  const variantClass =
-    variant === 'spring'
-      ? s.wrapperSpring
-      : isGradient
-      ? s.wrapperGradient
-      : '';
+type SpringVariant = 'spring' | 'spring2' | 'spring4' | 'spring5';
+
+const SPRING_CLASSES: Record<SpringVariant, string> = {
+  spring: s.wrapperSpring,
+  spring2: s.wrapperSpring2,
+  spring4: s.wrapperSpring4,
+  spring5: s.wrapperSpring5,
+};
+
+const isSpringVariant = (v: Variant): v is SpringVariant => v in SPRING_CLASSES;
+
+const DV_VARIANTS: Variant[] = ['default', 'spring2', 'spring4', 'spring5'];
+
+export const ModalShell = ({ children, className, variant: variantProp = 'spring' }: Props) => {
+  const showDv = shouldShowDvBar();
+  const { index: dvIndex } = useDesignVariants('ModalShell', DV_VARIANTS.length);
+  const variant: Variant = showDv ? DV_VARIANTS[dvIndex] : variantProp;
+
+  const isSpring = isSpringVariant(variant);
+  const isGradient = variant === 'gradient1' || variant === 'gradient2' || variant === 'gradient3';
+  const variantClass = isSpring ? SPRING_CLASSES[variant] : isGradient ? s.wrapperGradient : '';
 
   return (
     <div className={`${s.wrapper} ${variantClass} ${className ?? ''}`}>
-      {variant === 'spring' && (
+      {isSpring && (
         <div className={s.springOrbs} aria-hidden>
           <span className={`${s.orb} ${s.orb1}`} />
           <span className={`${s.orb} ${s.orb2}`} />

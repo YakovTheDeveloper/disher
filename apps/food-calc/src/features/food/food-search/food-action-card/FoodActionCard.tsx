@@ -1,11 +1,14 @@
 import { useMemo } from 'react';
 import clsx from 'clsx';
+import { Link, useNavigate } from 'react-router';
 import styles from './FoodActionCard.module.scss';
 import { deleteProducts } from '@/entities/product';
 import { deleteDishes } from '@/entities/dish';
 import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
 import { isCreatedByUser } from '@/shared/lib';
 import { safeMutate } from '@/shared/lib/safeMutate';
+import { popOverlayEntry } from '@/shared/lib/overlay-history';
+import { getProductUrl, RouterUrls } from '@/app/router';
 
 type Props = {
   variant: 'product' | 'dish';
@@ -76,7 +79,7 @@ const TrashIcon = () => (
 );
 
 const InfoIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
     <text
       x="12"
@@ -105,6 +108,8 @@ const FoodActionCard = ({
   richNutrientMax = 0,
   htmlFor,
 }: Props) => {
+  const navigate = useNavigate();
+  const infoHref = variant === 'product' ? getProductUrl(item.id) : RouterUrls.getDish(item.id);
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.userId);
 
   const handleDelete = () => {
@@ -202,16 +207,25 @@ const FoodActionCard = ({
         </p>
       )}
       {onInfoClick && (
-        <button
-          type="button"
+        <Link
+          to={infoHref}
           className={styles.infoBtn}
           aria-label="Информация"
-          onClick={() => {
-            onInfoClick();
+          onClick={(e) => {
+            // Let cmd/ctrl/middle-click open in a new tab without closing the modal.
+            if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+            // Pop the overlay sentinel first (history.back, awaited), then close the modal
+            // and navigate. Otherwise the cleanup in useOverlayHistory would do its own
+            // history.back() AFTER our navigate(), which would undo the navigation.
+            e.preventDefault();
+            void popOverlayEntry().then(() => {
+              onInfoClick();
+              navigate(infoHref);
+            });
           }}
         >
           <InfoIcon />
-        </button>
+        </Link>
       )}
     </li>
   );

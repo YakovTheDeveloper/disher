@@ -5,6 +5,8 @@
 
 import { useState } from 'react';
 import { ScaleAtom } from '@/entities/schedule-event';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import styles from './shared/AtomInputShared.module.css';
 
 export interface ScaleAtomInputProps {
@@ -15,34 +17,10 @@ export interface ScaleAtomInputProps {
 
 const PRESET_LABELS = ['Боль', 'Настроение', 'Энергия', 'Стресс', 'Тревога', 'Нагрузка'];
 
-const BackArrow = () => (
-  <svg viewBox="0 0 24 24" fill="none" width="48" height="48">
-    <path
-      d="M19 12H5M11 18l-6-6 6-6"
-      stroke="#111"
-      strokeWidth="1"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const DoneIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" width="48" height="48">
-    <circle cx="12" cy="12" r="10" stroke="#111" strokeWidth="1" />
-    <path
-      d="M7.5 12l3 3 6-6"
-      stroke="#111"
-      strokeWidth="1"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
 export const ScaleAtomInput = ({ onAddAtom, onClose, accentColor }: ScaleAtomInputProps) => {
   const [value, setValue] = useState<number | ''>(5);
   const [label, setLabel] = useState('');
+  const [isReady, setIsReady] = useState(false);
 
   const handleAdd = () => {
     onAddAtom({ kind: 'scale', value: value || 5, label: label || undefined });
@@ -61,27 +39,18 @@ export const ScaleAtomInput = ({ onAddAtom, onClose, accentColor }: ScaleAtomInp
       style={accentColor ? ({ '--atom-accent': accentColor } as React.CSSProperties) : undefined}
     >
       <div className={styles.panelBody}>
-        {/* ← [number input] → */}
-        <div className={styles.inputRow}>
-          <button type="button" className={styles.navBtn} onClick={onClose}>
-            <BackArrow />
-          </button>
-          <div className={styles.bigInputGroup}>
-            <input
-              className={styles.bigNumberInput}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={value}
-              onChange={handleValueChange}
-              onFocus={(e) => e.target.select()}
-              autoFocus
-            />
-            <div className={styles.bigInputUnderline} />
-          </div>
-          <button type="button" className={`${styles.navBtn} ${styles.doneBtn}`} onClick={handleAdd}>
-            <DoneIcon />
-          </button>
+        <div className={styles.bigInputGroup}>
+          <input
+            className={styles.bigNumberInput}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={value}
+            onChange={handleValueChange}
+            onFocus={(e) => { setIsReady(true); e.target.select(); }}
+            autoFocus
+          />
+          <div className={styles.bigInputUnderline} />
         </div>
 
         {/* Label field */}
@@ -92,6 +61,7 @@ export const ScaleAtomInput = ({ onAddAtom, onClose, accentColor }: ScaleAtomInp
             placeholder="явление"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
+            onFocus={() => setIsReady(true)}
           />
           <div className={styles.fieldUnderline} />
         </div>
@@ -110,6 +80,13 @@ export const ScaleAtomInput = ({ onAddAtom, onClose, accentColor }: ScaleAtomInp
           ))}
         </div>
       </div>
+
+      {isReady && (
+        <ModalShell.ActionButtons
+          left={<ModalPrevButton onClick={onClose} theme="events" />}
+          right={<ModalNextButton onClick={handleAdd} variant="finish" theme="events" />}
+        />
+      )}
     </div>
   );
 };

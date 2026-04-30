@@ -30,7 +30,7 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
         const targetUrl = fallback ?? fallbackUrl;
 
         if (location.key === 'default') {
-            navigate(targetUrl, { replace: true });
+            navigate(targetUrl, { replace: true, viewTransition: true });
         } else {
             navigate(-1);
         }
@@ -39,8 +39,8 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
     const toRoot = () => navigate(RouterLinks.Root);
     const toDish = (id: string) => navigate(RouterUrls.getDish(id));
     const toScheduleDateSelection = () => navigate(RouterLinks.ScheduleDateSelection);
-    const toScheduleBuilder = (id: string) => navigate(`${RouterLinks.ScheduleBuilder}/${id}`);
-    const toScheduleAnalytics = (id: string) => navigate(getScheduleAnalyticsUrl(id));
+    const toScheduleBuilder = (id: string) => navigate(`${RouterLinks.ScheduleBuilder}/${id}`, { viewTransition: true });
+    const toScheduleAnalytics = (id: string) => navigate(getScheduleAnalyticsUrl(id), { viewTransition: true });
     const toFood = () => navigate(RouterLinks.Food);
     const toProduct = (id: string) => navigate(getProductUrl(id));
     const toNutrientArticles = () => navigate(RouterLinks.NutrientArticles);

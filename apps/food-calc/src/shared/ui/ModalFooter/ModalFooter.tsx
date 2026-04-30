@@ -26,10 +26,13 @@ export const NextStepButton = ({ htmlFor, label = 'Далее' }: NextStepButton
   </label>
 );
 
+type Theme = 'events';
+
 type ModalNextButtonLabelProps = {
   as: 'label';
   htmlFor: string;
   variant?: 'next' | 'finish';
+  theme?: Theme;
   label?: string;
 };
 
@@ -38,6 +41,7 @@ type ModalNextButtonButtonProps = {
   htmlFor?: never;
   onClick: () => void;
   variant?: 'next' | 'finish';
+  theme?: Theme;
   label?: string;
 };
 
@@ -71,12 +75,14 @@ type ModalPrevButtonLabelProps = {
   as: 'label';
   htmlFor: string;
   onClick?: never;
+  theme?: Theme;
 };
 
 type ModalPrevButtonButtonProps = {
   as?: never;
   htmlFor?: never;
   onClick: () => void;
+  theme?: Theme;
 };
 
 type ModalPrevButtonProps = ModalPrevButtonLabelProps | ModalPrevButtonButtonProps;
@@ -100,16 +106,17 @@ export const ModalPrevButton = (props: ModalPrevButtonProps) => {
       <span className={s.prevArrowLabel}>Назад</span>
     </>
   );
+  const className = `${s.prevArrow} ${props.theme === 'events' ? s.prevArrowEvents : ''}`;
 
   if (props.as === 'label') {
     return (
-      <label htmlFor={props.htmlFor} className={s.prevArrow} aria-label="Назад">
+      <label htmlFor={props.htmlFor} className={className} aria-label="Назад">
         {content}
       </label>
     );
   }
   return (
-    <button type="button" onClick={props.onClick} className={s.prevArrow} aria-label="Назад">
+    <button type="button" onClick={props.onClick} className={className} aria-label="Назад">
       {content}
     </button>
   );
@@ -125,16 +132,17 @@ export const ModalNextButton = (props: ModalNextButtonProps) => {
       {isFinish ? doneIcon : arrowIcon}
     </>
   );
+  const className = `${s.nextArrow} ${props.theme === 'events' ? s.nextArrowEvents : ''}`;
 
   if (props.as === 'label') {
     return (
-      <label htmlFor={props.htmlFor} className={s.nextArrow} aria-label={isFinish ? 'Готово' : 'Далее'}>
+      <label htmlFor={props.htmlFor} className={className} aria-label={isFinish ? 'Готово' : 'Далее'}>
         {content}
       </label>
     );
   }
   return (
-    <button type="button" onClick={props.onClick} className={s.nextArrow} aria-label={isFinish ? 'Готово' : 'Далее'}>
+    <button type="button" onClick={props.onClick} className={className} aria-label={isFinish ? 'Готово' : 'Далее'}>
       {content}
     </button>
   );

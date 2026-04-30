@@ -29,6 +29,7 @@ import { drainPush as drainPushReal } from '../backupClient';
 import {
     scheduleHot,
     scheduleCold,
+    setDragActive,
     startScheduler,
     stopScheduler,
     __test,
@@ -87,6 +88,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    // Drag flag lives in module scope — reset before stopping so a test that
+    // left the scheduler "dragging" doesn't leak the flag into the next test.
+    setDragActive(false);
     stopScheduler();
     vi.useRealTimers();
 });
@@ -223,6 +227,130 @@ describe('scheduler — events', () => {
         });
         document.dispatchEvent(new Event('visibilitychange'));
         for (let i = 0; i < 20; i++) await Promise.resolve();
+        expect(drainPushMock).not.toHaveBeenCalled();
+    });
+});
+
+describe('scheduler — drag pause', () => {
+    // Wired by Swipeable on embla pointerDown / pointerUp. Goal: while the
+    // user is mid-swipe, drainPush must NOT compete with the gesture for the
+    // main thread; queued drains coalesce and fire once on release.
+
+    it('scheduleHot during drag suppresses the drain until release', async () => {
+        await bootAndClear();
+        vi.useFakeTimers();
+
+        setDragActive(true);
+        scheduleHot();
+
+        // Even past the hot debounce (100ms) and far beyond, no drain fires
+        // while drag is held.
+        await vi.advanceTimersByTimeAsync(500);
+        for (let i = 0; i < 20; i++) await Promise.resolve();
+        expect(drainPushMock).not.toHaveBeenCalled();
+
+        // Release: scheduler queues a hot drain (100ms debounce).
+        setDragActive(false);
+        await vi.advanceTimersByTimeAsync(50);
+        expect(drainPushMock).not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(60); // total 110 > 100
+        for (let i = 0; i < 10; i++) await Promise.resolve();
+        expect(drainPushMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('many scheduleHot/Cold during drag coalesce into a single drain on release', async () => {
+        await bootAndClear();
+        vi.useFakeTimers();
+
+        setDragActive(true);
+        scheduleHot();
+        scheduleHot();
+        scheduleCold();
+        scheduleHot();
+        scheduleCold();
+
+        await vi.advanceTimersByTimeAsync(60_000);
+        for (let i = 0; i < 20; i++) await Promise.resolve();
+        expect(drainPushMock).not.toHaveBeenCalled();
+
+        setDragActive(false);
+        await vi.advanceTimersByTimeAsync(150);
+        for (let i = 0; i < 10; i++) await Promise.resolve();
+        // Coalesced — one drain regardless of how many schedule* fired.
+        expect(drainPushMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('release without any pending schedule call does NOT fire a drain', async () => {
+        await bootAndClear();
+        vi.useFakeTimers();
+
+        setDragActive(true);
+        // No scheduleHot/Cold during drag.
+        setDragActive(false);
+
+        await vi.advanceTimersByTimeAsync(60_000);
+        for (let i = 0; i < 20; i++) await Promise.resolve();
+        expect(drainPushMock).not.toHaveBeenCalled();
+    });
+
+    it('setDragActive is idempotent: redundant true/false do not re-arm', async () => {
+        await bootAndClear();
+        vi.useFakeTimers();
+
+        setDragActive(true);
+        setDragActive(true); // redundant, no-op
+        scheduleHot();
+        await vi.advanceTimersByTimeAsync(500);
+        expect(drainPushMock).not.toHaveBeenCalled();
+
+        setDragActive(false);
+        setDragActive(false); // redundant — must NOT re-fire the queued drain
+        await vi.advanceTimersByTimeAsync(150);
+        for (let i = 0; i < 10; i++) await Promise.resolve();
+        expect(drainPushMock).toHaveBeenCalledTimes(1);
+
+        // Confirm a second redundant `false` long after release also doesn't
+        // schedule a duplicate drain.
+        setDragActive(false);
+        await vi.advanceTimersByTimeAsync(150);
+        for (let i = 0; i < 10; i++) await Promise.resolve();
+        expect(drainPushMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('schedule* before drag fires normally; drag started after the timer is already armed does not cancel it', async () => {
+        // Edge: user mutates → scheduleHot arms 100ms timer → THEN starts a
+        // swipe before the timer fires. The flag-check is at scheduleHot()
+        // call time, so the already-armed timer is allowed to fire (it was
+        // queued before the drag began). This documents current behaviour;
+        // if we ever want stricter "absolutely no drain during drag", we'd
+        // also clearTimer() inside setDragActive(true).
+        await bootAndClear();
+        vi.useFakeTimers();
+
+        scheduleHot();
+        await vi.advanceTimersByTimeAsync(50);
+        setDragActive(true);
+        await vi.advanceTimersByTimeAsync(60); // 110 total → timer fires
+        for (let i = 0; i < 10; i++) await Promise.resolve();
+        expect(drainPushMock).toHaveBeenCalledTimes(1);
+
+        setDragActive(false);
+        await vi.advanceTimersByTimeAsync(150);
+        for (let i = 0; i < 10; i++) await Promise.resolve();
+        // No additional drain — nothing was queued during drag.
+        expect(drainPushMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('drain pause works without startScheduler (no-op safely)', async () => {
+        // Don't call startScheduler. setDragActive must not crash and
+        // schedule* must remain inert.
+        vi.useFakeTimers();
+        setDragActive(true);
+        scheduleHot();
+        scheduleCold();
+        setDragActive(false);
+        await vi.advanceTimersByTimeAsync(60_000);
+        for (let i = 0; i < 10; i++) await Promise.resolve();
         expect(drainPushMock).not.toHaveBeenCalled();
     });
 });

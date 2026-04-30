@@ -38,13 +38,38 @@ label {
   }
 }
 
+.visualizationStack {
+  position: relative;
+  width: 240px;
+  height: 120px;
+  flex-shrink: 0;
+}
+
 .visualization {
+  position: absolute;
+  inset: 0;
   width: 240px;
   height: 120px;
   display: block;
-  opacity: 0.175;
-  transition: opacity var(--duration-fast) var(--easing-default);
+  opacity: 0;
   flex-shrink: 0;
+  animation: showVariant 20s infinite;
+  // Compositor-only animation: opacity is GPU-friendly, no main-thread work.
+}
+
+// 5 variants × 4s each, with brief cross-fade window built into the keyframes.
+.variant1 { animation-delay: 0s; }
+.variant2 { animation-delay: 4s; }
+.variant3 { animation-delay: 8s; }
+.variant4 { animation-delay: 12s; }
+.variant5 { animation-delay: 16s; }
+
+@keyframes showVariant {
+  0%   { opacity: 0; }
+  2%   { opacity: 0.175; }
+  20%  { opacity: 0.175; }
+  22%  { opacity: 0; }
+  100% { opacity: 0; }
 }
 
 .lines {
@@ -86,6 +111,11 @@ label {
   border-color: $blue-border;
 
   .visualization {
+    animation: none;
+    opacity: 0;
+  }
+
+  .visualization.variant1 {
     opacity: 1;
   }
 

@@ -3,41 +3,7 @@ import styles from './TimeChoose.module.scss';
 import clsx from 'clsx';
 import { TimeNow } from './TimeNow';
 import { useTimeRange, type RangeTab, type TimeRangeState } from './useTimeRange';
-import { useDesignVariants } from '@/shared/lib/useDesignVariants';
-import { shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 import TimeInput, { type TimePickerVariant } from './TimeInput';
-
-export type TimeChooseVariant =
-  | 'frostedGlass'
-  | 'naked'
-  | 'softMint'
-  | 'softMidnight'
-  | 'softVeil'
-  | 'smudge'
-  | 'clean'
-  | 'paper';
-
-const DV_VARIANTS: TimeChooseVariant[] = [
-  'paper',
-  'clean',
-  'frostedGlass',
-  'naked',
-  'softMint',
-  'softMidnight',
-  'softVeil',
-  'smudge',
-];
-
-const variantClassMap: Record<TimeChooseVariant, string> = {
-  frostedGlass: styles.shellFrostedGlass,
-  naked: styles.shellNaked,
-  softMint: styles.shellSoftMint,
-  softMidnight: styles.shellSoftMidnight,
-  softVeil: styles.shellSoftVeil,
-  smudge: styles.shellSmudge,
-  clean: styles.shellClean,
-  paper: styles.shellPaper,
-};
 
 type RangeProps = {
   initialFrom: string;
@@ -53,7 +19,6 @@ type Props = {
   id?: string;
   inputId?: string;
   timePickerVariant?: TimePickerVariant;
-  variant?: TimeChooseVariant;
   range?: RangeProps;
 };
 
@@ -91,17 +56,11 @@ const TimeChoose = ({
   id,
   inputId,
   timePickerVariant: controlledVariant,
-  variant: designVariant = 'frostedGlass',
   range,
 }: Props) => {
   const [localVariant, setLocalVariant] = useState<TimePickerVariant>('manual');
   const variant = controlledVariant ?? localVariant;
 
-  const showDv = shouldShowDvBar();
-  const { index: dvIndex } = useDesignVariants('TimeChoose', DV_VARIANTS.length);
-  const effectiveDesignVariant: TimeChooseVariant = showDv
-    ? DV_VARIANTS[dvIndex]
-    : designVariant;
   const [hours, setHours] = useState<string>(initialTime.split(':')[0]);
   const [minutes, setMinutes] = useState<string>(initialTime.split(':')[1]);
 
@@ -148,7 +107,7 @@ const TimeChoose = ({
   };
 
   return (
-    <div className={clsx(styles.shell, variantClassMap[effectiveDesignVariant])}>
+    <div className={styles.shell}>
       <div id={id} className={clsx(styles.container, 'tc-root')} role="group" aria-label="Time input">
         <div className={clsx(isRange && styles.rangeRow)}>
           <TimeInput

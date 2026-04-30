@@ -21,6 +21,12 @@ let timer: ReturnType<typeof setTimeout> | null = null;
 let intervalHandle: ReturnType<typeof setInterval> | null = null;
 let started = false;
 let currentUserId: string | null = null;
+// While the user is mid-swipe, a drainPush would compete with the active
+// pointer for the main thread (Dexie cursor + JSON.stringify + fetch headers).
+// Swipeable flips this flag on pointerdown / pointerup; drains queued during
+// drag are coalesced and fired on release.
+let dragActive = false;
+let pendingDrainAfterDrag = false;
 
 function clearTimer(): void {
   if (timer) { clearTimeout(timer); timer = null; }
@@ -47,14 +53,30 @@ async function drainNow(): Promise<void> {
 
 export function scheduleHot(): void {
   if (!started) return;
+  if (dragActive) { pendingDrainAfterDrag = true; return; }
   clearTimer();
   timer = setTimeout(drainNow, HOT_DEBOUNCE_MS);
 }
 
 export function scheduleCold(): void {
   if (!started) return;
+  if (dragActive) { pendingDrainAfterDrag = true; return; }
   clearTimer();
   timer = setTimeout(drainNow, COLD_DEBOUNCE_MS);
+}
+
+// Called by Swipeable on pointerdown/pointerup. While dragging, drains are
+// suppressed and coalesced; on release we fire one hot drain.
+export function setDragActive(active: boolean): void {
+  if (active === dragActive) return;
+  dragActive = active;
+  if (!active && pendingDrainAfterDrag) {
+    pendingDrainAfterDrag = false;
+    if (started) {
+      clearTimer();
+      timer = setTimeout(drainNow, HOT_DEBOUNCE_MS);
+    }
+  }
 }
 
 function onVisibility(): void {

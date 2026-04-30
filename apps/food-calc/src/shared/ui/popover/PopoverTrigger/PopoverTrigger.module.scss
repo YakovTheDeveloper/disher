@@ -10,4 +10,29 @@
     padding: 8px;
     min-width: 160px;
     z-index: 1000;
+
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transform-origin: top center;
+    transition:
+        opacity var(--duration-fast) var(--easing-default),
+        transform var(--duration-fast) var(--easing-default),
+        display var(--duration-fast) var(--easing-default) allow-discrete;
+
+    @starting-style {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.96);
+    }
+
+    &.closed {
+        display: none;
+        opacity: 0;
+        transform: translateY(-4px) scale(0.96);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .content {
+        transition: none;
+    }
 }

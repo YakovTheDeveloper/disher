@@ -160,3 +160,21 @@ body {
 .vc-switch {
   bottom: 80px !important;
 }
+
+// ─── View Transitions API ────────────────────────────────────────
+// Same-document crossfade between routes (Baseline Newly Available, Oct 2025).
+// React Router triggers this via `navigate(url, { viewTransition: true })`.
+// In browsers without support the navigation just happens instantly —
+// progressive enhancement, no fallback code needed.
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--duration-normal);
+  animation-timing-function: var(--easing-default);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

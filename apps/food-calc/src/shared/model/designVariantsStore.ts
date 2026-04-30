@@ -22,6 +22,8 @@ export const KNOWN_VARIANT_COMPONENTS: readonly KnownVariantComponent[] = [
   { name: 'TimeChoose', total: 8 },
   { name: 'ProductQuantity', total: 2 },
   { name: 'SearchFood', total: 2 },
+  { name: 'AuthScreen', total: 4 },
+  { name: 'ModalShell', total: 5 },
 ] as const;
 
 const initialComponents: Record<string, VariantEntry> = Object.fromEntries(

@@ -14,12 +14,7 @@ import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
 import modalStyles from './ScheduleEventModals.module.scss';
-
-export const EDIT_MODAL_INPUT_IDS = {
-  TIME_INPUT: 'time-input-edit-schedule-event',
-  TEXT_INPUT: 'event-text-edit',
-  ATOMS_INPUT: 'event-atoms-edit',
-} as const;
+import { EDIT_MODAL_INPUT_IDS } from './ScheduleEventEditModal.constants';
 
 type Step = 'idle' | 'time' | 'text' | 'atoms';
 

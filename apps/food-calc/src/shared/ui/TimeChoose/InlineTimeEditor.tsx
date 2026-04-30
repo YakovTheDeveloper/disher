@@ -1,6 +1,7 @@
 import { memo, useEffect, useState } from 'react';
 import clsx from 'clsx';
-import TimeInput, { normalizeTime } from './TimeInput';
+import TimeInput from './TimeInput';
+import { normalizeTime } from './time-utils';
 import styles from './InlineTimeEditor.module.scss';
 
 type Props = {

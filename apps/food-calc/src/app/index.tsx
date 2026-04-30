@@ -2,9 +2,9 @@ import * as ReactDOM from 'react-dom/client';
 
 import { RouterProvider } from 'react-router-dom';
 
-if (import.meta.env.DEV) {
-  import('vconsole').then(({ default: VConsole }) => new VConsole());
-}
+// if (import.meta.env.DEV) {
+//   import('vconsole').then(({ default: VConsole }) => new VConsole());
+// }
 
 import { Sentry } from '@/shared/lib/observability/sentry';
 import { router } from '@/app/router.tsx';
@@ -13,6 +13,7 @@ import { AuthGate } from '@/features/auth';
 import { installE2EBridge } from '@/shared/lib/e2e/bridge';
 import { diagLog } from '@/shared/lib/observability/diagLog';
 import { DiagButton } from '@/shared/lib/observability/DiagButton';
+import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 
 // Diagnostics for iOS Supabase REST hang (research 2026-04-28):
 // #1 AbortSignal.any availability (iOS < 17.4 lacks it -> our wrapper drops timeoutSignal)
@@ -40,31 +41,43 @@ diagLog('[diag] env probe', {
 // Repeat lock snapshot at +5s and +15s so we catch deadlocks that form during
 // auth refresh / first background refetch.
 setTimeout(() => {
-  navigator.locks?.query?.().then((snap) => {
-    diagLog('[diag] locks.query@5s', {
-      held: snap.held?.map((l) => ({ name: l.name, mode: l.mode, clientId: l.clientId })) ?? [],
-      pending: snap.pending?.map((l) => ({ name: l.name, mode: l.mode })) ?? [],
-    });
-  }).catch(() => {});
+  navigator.locks
+    ?.query?.()
+    .then((snap) => {
+      diagLog('[diag] locks.query@5s', {
+        held: snap.held?.map((l) => ({ name: l.name, mode: l.mode, clientId: l.clientId })) ?? [],
+        pending: snap.pending?.map((l) => ({ name: l.name, mode: l.mode })) ?? [],
+      });
+    })
+    .catch(() => {});
 }, 5000);
 setTimeout(() => {
-  navigator.locks?.query?.().then((snap) => {
-    diagLog('[diag] locks.query@15s', {
-      held: snap.held?.map((l) => ({ name: l.name, mode: l.mode, clientId: l.clientId })) ?? [],
-      pending: snap.pending?.map((l) => ({ name: l.name, mode: l.mode })) ?? [],
-    });
-  }).catch(() => {});
+  navigator.locks
+    ?.query?.()
+    .then((snap) => {
+      diagLog('[diag] locks.query@15s', {
+        held: snap.held?.map((l) => ({ name: l.name, mode: l.mode, clientId: l.clientId })) ?? [],
+        pending: snap.pending?.map((l) => ({ name: l.name, mode: l.mode })) ?? [],
+      });
+    })
+    .catch(() => {});
 }, 15000);
 
 // Request persistent storage (prevents iOS Safari 7-day IDB eviction)
-navigator.storage?.persist?.().then((granted) => {
-  diagLog('[boot] storage.persist', { granted });
-}).catch((e) => diagLog('[boot] storage.persist failed', { err: String(e) }));
+navigator.storage
+  ?.persist?.()
+  .then((granted) => {
+    diagLog('[boot] storage.persist', { granted });
+  })
+  .catch((e) => diagLog('[boot] storage.persist failed', { err: String(e) }));
 
 // Probe storage estimate
-navigator.storage?.estimate?.().then((est) => {
-  diagLog('[boot] storage.estimate', est);
-}).catch(() => {});
+navigator.storage
+  ?.estimate?.()
+  .then((est) => {
+    diagLog('[boot] storage.estimate', est);
+  })
+  .catch(() => {});
 
 // Probe idb-keyval roundtrip on boot. If this hangs or fails on iOS Safari,
 // that pinpoints an idb storage problem before drafts try to hydrate.
@@ -101,10 +114,11 @@ ReactDOM.createRoot(root).render(
     showDialog={false}
   >
     <SyncProvider>
+      {shouldShowDvBar() && <DesignVariantsBar />}
       <AuthGate>
         <RouterProvider router={router} />
       </AuthGate>
-      {import.meta.env.DEV && <DiagButton />}
+      {/* {import.meta.env.DEV && <DiagButton />} */}
     </SyncProvider>
   </Sentry.ErrorBoundary>
 );

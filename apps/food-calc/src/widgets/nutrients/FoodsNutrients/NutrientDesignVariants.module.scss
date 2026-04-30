@@ -315,17 +315,33 @@
   pointer-events: none;
 }
 
+// Decoration filters: moved out of inline-style to let the browser cache the
+// rasterized layer (composite-only paint during swipe instead of per-frame
+// filter recompute). `transform` translates the element; the rotate happens
+// here too so React doesn't ship a fresh inline style object every render.
+.mineralsPentagon {
+  transform: translate(50%) rotate(45deg);
+  filter: blur(2px);
+  opacity: 0.5;
+}
+
 .vitaminSun {
   width: 44px;
   height: 44px;
   top: -2px;
+  filter: blur(1.5px);
+  opacity: 0.65;
 }
 
 .aminoAcidDiamond {
   width: 40px;
   height: 40px;
   top: 0;
+  filter: blur(1.5px);
 }
+
+.aminoAcidEssential { opacity: 0.55; }
+.aminoAcidNonEssential { opacity: 0.4; }
 
 // Pentagon gradients per nutrient
 :global([data-nutrient="calcium"]) .mineralsPentagon {

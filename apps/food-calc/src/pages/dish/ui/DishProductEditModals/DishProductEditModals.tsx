@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
-import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { SearchFood } from '@/features/food/food-search';
@@ -10,11 +9,7 @@ import { updateDishItem } from '@/entities/dish';
 import { useProductPortions } from '@/entities/product';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-
-export const DISH_EDIT_MODAL_INPUT_IDS = {
-  SEARCH_INPUT: 'dish-item-edit-search',
-  QUANTITY_INPUT: 'dish-item-edit-quantity',
-} as const;
+import { DISH_EDIT_MODAL_INPUT_IDS } from './DishProductEditModals.constants';
 
 type Step = 'idle' | 'search' | 'quantity';
 
@@ -43,7 +38,6 @@ type Props = {
 };
 
 const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) => {
-  const { toProduct } = useAppRoutes();
   const createInitialDraft = (): DraftState => ({
     productId: item.productId,
     quantity: item.quantity,
@@ -119,9 +113,8 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
             <SearchFood
               mode="products-only"
               onSelectFood={handleFoodSelect}
-              onInfoClick={(_variant, id) => {
+              onInfoClick={() => {
                 handleClose();
-                toProduct(id);
               }}
               activeItemId={draft.productId ?? undefined}
               inputId={DISH_EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}

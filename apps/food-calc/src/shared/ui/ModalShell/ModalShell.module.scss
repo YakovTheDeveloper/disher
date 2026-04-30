@@ -3,16 +3,32 @@
   flex-direction: column;
   height: 100dvh;
   width: 100%;
-  background: linear-gradient(160deg, rgb(235, 230, 255) 0%, rgb(220, 225, 250) 40%, rgb(235, 242, 250) 100%);
+  background: rgb(244, 251, 255);
 }
 
-// ── Spring variant ────────────────────────────────────────────────────────────
-.wrapperSpring {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+// ── Spring variants (shared scaffolding) ──────────────────────────────────────
+// .wrapperSpring* all use the same orb scaffolding; palette + positions are
+// overridden per-variant below.
+.wrapperSpring,
+.wrapperSpring2,
+.wrapperSpring4,
+.wrapperSpring5 {
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.wrapperSpring {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.wrapperSpring2 {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.wrapperSpring4 {
+  background: rgba(252, 253, 250, 0.88);
 }
 
 .springOrbs {
@@ -29,47 +45,115 @@
   filter: blur(48px);
 }
 
-.orb1 {
-  width: 260px;
-  height: 260px;
+// ── Variant 2 (original spring): pastel mint/sky/yellow ───────────────────────
+.wrapperSpring .orb1 {
+  width: 260px; height: 260px;
   background: radial-gradient(circle, #a8e6cf, #56c596);
-  top: -60px;
-  left: -60px;
+  top: -60px; left: -60px;
 }
-
-.orb2 {
-  width: 220px;
-  height: 220px;
+.wrapperSpring .orb2 {
+  width: 220px; height: 220px;
   background: radial-gradient(circle, #b3e5fc, #4fc3f7);
-  top: 80px;
-  right: -40px;
+  top: 80px; right: -40px;
 }
-
-.orb3 {
-  width: 200px;
-  height: 200px;
+.wrapperSpring .orb3 {
+  width: 200px; height: 200px;
   background: radial-gradient(circle, #fff9c4, #ffe082);
-  bottom: 120px;
-  left: 20px;
+  bottom: 120px; left: 20px;
 }
-
-.orb4 {
-  width: 180px;
-  height: 180px;
+.wrapperSpring .orb4 {
+  width: 180px; height: 180px;
   background: radial-gradient(circle, #c8e6c9, #81c784);
-  bottom: -40px;
-  right: 30px;
+  bottom: -40px; right: 30px;
 }
-
-.orb5 {
-  width: 150px;
-  height: 150px;
+.wrapperSpring .orb5 {
+  width: 150px; height: 150px;
   background: radial-gradient(circle, #e1f5fe, #80deea);
-  top: 35%;
-  left: 30%;
+  top: 35%; left: 30%;
 }
 
-.wrapperSpring>*:not(.springOrbs) {
+// ── Variant 3: blue + light-green orbs in opposite corners, whiter bg ─────────
+.wrapperSpring2 .orb {
+  opacity: 0.38;
+}
+.wrapperSpring2 .orb1 {
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, #bbdefb, #64b5f6);
+  top: -80px; left: -80px;
+}
+.wrapperSpring2 .orb2 {
+  width: 240px; height: 240px;
+  background: radial-gradient(circle, #d0f0c0, #aed581);
+  bottom: -60px; right: -60px;
+}
+.wrapperSpring2 .orb3 {
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, #e3f2fd, #90caf9);
+  top: 40%; right: -30px;
+}
+.wrapperSpring2 .orb4 {
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, #e8f5e9, #c5e1a5);
+  bottom: 25%; left: -20px;
+}
+.wrapperSpring2 .orb5 {
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, #f1f8ff, #bbdefb);
+  top: 15%; right: 30%;
+}
+
+// ── Variant 5: warm peach + sage spring ──────────────────────────────────────
+.wrapperSpring4 .orb1 {
+  width: 250px; height: 250px;
+  background: radial-gradient(circle, #ffe5d9, #ffb38a);
+  top: -50px; right: -60px;
+}
+.wrapperSpring4 .orb2 {
+  width: 220px; height: 220px;
+  background: radial-gradient(circle, #d4e9d4, #8bbf8b);
+  top: 100px; left: -60px;
+}
+.wrapperSpring4 .orb3 {
+  width: 190px; height: 190px;
+  background: radial-gradient(circle, #fff3e0, #ffcc80);
+  bottom: 140px; right: 30px;
+}
+.wrapperSpring4 .orb4 {
+  width: 170px; height: 170px;
+  background: radial-gradient(circle, #e0f2f1, #80cbc4);
+  bottom: -30px; left: 40px;
+}
+.wrapperSpring4 .orb5 {
+  width: 150px; height: 150px;
+  background: radial-gradient(circle, #fce4ec, #f8bbd0);
+  top: 50%; left: 45%;
+}
+
+// ── Variant 6: soft pastel — kept as-is per user feedback ────────────────────
+.wrapperSpring5 {
+  background: rgba(255, 255, 255, 0.95);
+
+  .orb {
+    opacity: 0.32;
+    filter: blur(64px);
+  }
+  .orb1 {
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, #cfe8fb, #9fd0f4);
+    top: -90px; left: -90px;
+  }
+  .orb2 {
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, #d8efd8, #b6dfb1);
+    bottom: -80px; right: -80px;
+  }
+  .orb3, .orb4, .orb5 { display: none; }
+}
+
+.wrapperSpring>*:not(.springOrbs),
+.wrapperSpring2>*:not(.springOrbs),
+.wrapperSpring4>*:not(.springOrbs),
+.wrapperSpring5>*:not(.springOrbs) {
   position: relative;
   z-index: 1;
 }
@@ -101,8 +185,8 @@
   pointer-events: none;
   z-index: 0;
   background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  // backdrop-filter: blur(12px);
+  // -webkit-backdrop-filter: blur(12px);
 }
 
 .wrapperGradient>*:not(.gradientImage):not(.gradientScrim) {

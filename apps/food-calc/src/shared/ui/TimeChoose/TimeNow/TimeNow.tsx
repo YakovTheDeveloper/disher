@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { getHours, getMinutes } from 'date-fns';
+import { memo } from 'react';
+import { useNow, formatNow } from '@/shared/lib/time/useNow';
 
 type Props = {
   time: string;
@@ -7,37 +7,16 @@ type Props = {
   onFinish: (time: string) => void;
 };
 
-const formatTime = (date: Date): string => {
-  return `${String(getHours(date)).padStart(2, '0')}:${String(getMinutes(date)).padStart(2, '0')}`;
-};
-
 const TimeNow = ({ onFinish, time, children }: Props) => {
-  const [nowTime, setNowTime] = useState('');
-
-  const timeNow = nowTime;
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      setNowTime(formatTime(now));
-    }, 2000); // update every 2 seconds
-    return () => clearInterval(interval);
-  }, []);
+  const timeNow = useNow();
 
   const onNowSelect = () => {
-    onFinish(formatTime(new Date()));
+    onFinish(formatNow(new Date()));
   };
 
-  const timeMatch = timeNow === time;
+  if (timeNow === time) return null;
 
-  if (timeMatch) return null;
-
-  return (
-    <div onClick={onNowSelect}>
-      {children}
-      {/* <span className={styles.textMinutes}>({timeNow})</span> */}
-    </div>
-  );
+  return <div onClick={onNowSelect}>{children}</div>;
 };
 
-export default TimeNow;
+export default memo(TimeNow);

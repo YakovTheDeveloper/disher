@@ -11,18 +11,8 @@ import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 import { useFilteredFoods, useFoodCreation } from './model';
 import { FoodSearchEmpty } from './FoodSearchEmpty';
-import { useDesignVariants } from '@/shared/lib/useDesignVariants';
-import { shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
-export type SearchFoodVariant = 'default' | 'paper';
-
-const DV_VARIANTS: SearchFoodVariant[] = ['paper', 'default'];
-
-const variantClassMap: Record<SearchFoodVariant, string | undefined> = {
-  default: undefined,
-  paper: styles.contentPaper,
-};
 
 type SelectFoodPayload = { variant: 'product' | 'dish'; id: string; name: string };
 
@@ -38,7 +28,6 @@ type Props = {
   inputId?: string;
   initialSearchQuery?: string;
   isActive?: boolean;
-  variant?: SearchFoodVariant;
 };
 
 const getDefaultTab = (mode: SearchMode) => (mode === 'dishes-only' ? 'блюда' : 'все');
@@ -60,17 +49,12 @@ const SearchFood = ({
   inputId,
   initialSearchQuery,
   isActive = true,
-  variant = 'default',
 }: Props) => {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery ?? '');
   const [currentTab, setCurrentTab] = useState(getDefaultTab(mode));
 
-  const showDv = shouldShowDvBar();
-  const { index: dvIndex } = useDesignVariants('SearchFood', DV_VARIANTS.length);
-  const effectiveVariant: SearchFoodVariant = showDv ? DV_VARIANTS[dvIndex] : variant;
-
   return (
-    <div className={clsx(styles.content, variantClassMap[effectiveVariant])}>
+    <div className={styles.content}>
       <div className={styles.header}>
         <SearchFoodControls
           searchQuery={searchQuery}
@@ -263,7 +247,7 @@ const SearchFoodHeavy = ({
 
       <div
         ref={listContainerRef}
-        className={styles.listContainer}
+        className={clsx(styles.listContainer, styles.listContainerOffset)}
         onScroll={handleListScroll}
         role="listbox"
       >

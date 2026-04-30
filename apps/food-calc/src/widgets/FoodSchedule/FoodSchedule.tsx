@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, Fragment } from 'react';
 import clsx from 'clsx';
-import { AnimatePresence, useReducedMotion } from 'motion/react';
 import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
@@ -219,8 +218,6 @@ const FoodSchedule = ({
     []
   );
 
-  const reducedMotion = useReducedMotion();
-
   const onDeleteSelected = async () => {
     const ids = selectedIds;
     if (ids.length === 0) return;
@@ -364,8 +361,7 @@ const FoodSchedule = ({
               {nowMarkerIndex === groups.length && idx === groups.length - 1 && <NowMarker />}
             </Fragment>
           ));
-          if (reducedMotion) return rendered;
-          return <AnimatePresence initial={false}>{rendered}</AnimatePresence>;
+          return rendered;
         })()}
       </ItemsList>
     </Screen>

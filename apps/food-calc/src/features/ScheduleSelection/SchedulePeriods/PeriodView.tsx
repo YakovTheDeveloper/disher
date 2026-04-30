@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { memo, useState, useEffect, useRef, useCallback } from 'react';
 import { graphVariants } from './graphVariants';
 import styles from './PeriodView.module.scss';
 
@@ -7,17 +7,8 @@ type Props = {
 };
 
 const PeriodView = ({ onOpen }: Props) => {
-  const [variantIndex, setVariantIndex] = useState(0);
   const [active, setActive] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setVariantIndex((prev) => (prev + 1) % graphVariants.length);
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Click outside to deactivate
   useEffect(() => {
@@ -49,44 +40,33 @@ const PeriodView = ({ onOpen }: Props) => {
 
   return (
     <div ref={containerRef} className={`${styles.container} ${active ? styles.active : ''}`} onClick={handleClick}>
-        <svg
-            className={styles.visualization}
+      <div className={styles.visualizationStack}>
+        {graphVariants.map((variant, idx) => (
+          <svg
+            key={variant.name}
+            className={`${styles.visualization} ${styles[`variant${idx + 1}`]}`}
             viewBox="0 0 240 120"
             xmlns="http://www.w3.org/2000/svg"
+            aria-hidden={idx !== 0 ? 'true' : undefined}
           >
-            <defs>
-              <filter id="softGlow">
-                <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
-                <feMerge>
-                  <feMergeNode in="coloredBlur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-              <filter id="brightGlow">
-                <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
-                <feMerge>
-                  <feMergeNode in="coloredBlur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-
             <g className={styles.lines}>
-              {graphVariants[variantIndex].lines.map((line, i) => (
+              {variant.lines.map((line, i) => (
                 <line key={i} x1={line[0]} y1={line[1]} x2={line[2]} y2={line[3]} />
               ))}
             </g>
 
             <g className={styles.orbs}>
-              {graphVariants[variantIndex].nodes.map((node, i) => (
+              {variant.nodes.map((node, i) => (
                 <circle key={i} className={styles.orb} cx={node[0]} cy={node[1]} r={node[2]} />
               ))}
             </g>
           </svg>
-
-        <span className={styles.hint}>Нажмите, чтобы установить период жизни</span>
+        ))}
       </div>
+
+      <span className={styles.hint}>Нажмите, чтобы установить период жизни</span>
+    </div>
   );
 };
 
-export default PeriodView;
+export default memo(PeriodView);
