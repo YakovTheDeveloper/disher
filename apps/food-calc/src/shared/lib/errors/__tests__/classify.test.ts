@@ -52,6 +52,44 @@ describe('classifyError → network', () => {
   });
 });
 
+// ─── timeout — supabase wraps AbortSignal.timeout failures ───────────────────
+
+describe('classifyError → timeout (supabase wrapped)', () => {
+  // Regression: success-path signIn was hitting our 5s iOS fetch timeout (the
+  // /token?grant_type=password endpoint can take 1-3s for bcrypt verify;
+  // through the /api/sb/* proxy it can exceed 5s). AbortSignal.timeout fires,
+  // supabase wraps the AbortError as AuthRetryableFetchError(message, 0), and
+  // the previous classify mapped it to `network` ("Нет связи с сервером") even
+  // though the network was fine. Fixed by checking timeout-text in the message
+  // BEFORE the network bucket.
+  it('AuthRetryableFetchError("signal is aborted without reason", 0) → timeout (Chromium AbortSignal.timeout)', () => {
+    const e = new AuthRetryableFetchError('signal is aborted without reason', 0);
+    expect(classifyError(e).kind).toBe('timeout');
+  });
+
+  it('AuthRetryableFetchError("The operation was aborted.", 0) → timeout (Safari)', () => {
+    const e = new AuthRetryableFetchError('The operation was aborted.', 0);
+    expect(classifyError(e).kind).toBe('timeout');
+  });
+
+  it('AuthRetryableFetchError("AbortError: aborted", 0) → timeout (firefox-style)', () => {
+    const e = new AuthRetryableFetchError('AbortError: aborted', 0);
+    expect(classifyError(e).kind).toBe('timeout');
+  });
+
+  it('Real AbortError (not wrapped) still classifies as timeout', () => {
+    const e = new DOMException('signal is aborted without reason', 'AbortError');
+    expect(classifyError(e).kind).toBe('timeout');
+  });
+
+  it('AuthRetryableFetchError("Load failed", 0) STAYS network (timeout regex must not match)', () => {
+    // Sanity: ensure the timeout-first check didn't accidentally swallow real
+    // network errors. "Load failed" has no abort/timeout token in it.
+    const e = new AuthRetryableFetchError('Load failed', 0);
+    expect(classifyError(e).kind).toBe('network');
+  });
+});
+
 // ─── timeout ─────────────────────────────────────────────────────────────────
 
 describe('classifyError → timeout', () => {

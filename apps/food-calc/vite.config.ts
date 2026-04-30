@@ -117,14 +117,6 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-      // Supabase REST/Auth/Storage passthrough — see supabase-client.ts and
-      // disher-backend-3.0/src/api/routes/supabase-proxy.ts for rationale
-      // (iOS WebKit Bug #284946 H2 pool poisoning).
-      '/api/sb': {
-        target: 'https://localhost:3100',
-        changeOrigin: true,
-        secure: false,
-      },
     },
   },
   build: {

@@ -8,7 +8,6 @@ import { freeTextFoodRoutes } from "./routes/free-text-food.js";
 import { matcherTelemetryRoutes } from "./routes/matcher-telemetry.js";
 import { bugReportRoutes } from "./routes/bug-reports.js";
 import { diagLogsRoutes } from "./routes/diag-logs.js";
-import { supabaseProxyRoutes } from "./routes/supabase-proxy.js";
 import { backupRoutes } from "./routes/backup.js";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -108,7 +107,6 @@ await app.register(freeTextFoodRoutes, { prefix: "/api/free-text-food" });
 await app.register(matcherTelemetryRoutes, { prefix: "/api/matcher-telemetry" });
 await app.register(bugReportRoutes, { prefix: "/api/bug-reports" });
 await app.register(diagLogsRoutes, { prefix: "/api/diag-logs" });
-await app.register(supabaseProxyRoutes, { prefix: "/api/sb" });
 await app.register(backupRoutes, { prefix: "/api/backup" });
 
 const HOST = process.env.HOST ?? "localhost";

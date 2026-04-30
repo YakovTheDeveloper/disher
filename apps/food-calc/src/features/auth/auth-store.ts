@@ -150,7 +150,16 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
     } catch (e) {
       console.error('cache clear before signOut failed', e);
     }
-    await supabase.auth.signOut();
+    // scope:'local' clears tokens locally without calling /auth/v1/logout —
+    // logout API can fail (network/403/etc) and would otherwise leave the
+    // store stuck `isLoggedIn: true` while local data is already wiped.
+    // Refresh token expiry on the server makes the orphaned session
+    // self-extinguishing within hours.
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (e) {
+      console.error('supabase.auth.signOut failed (local state cleared anyway)', e);
+    }
     applyUser(set, null);
   },
 

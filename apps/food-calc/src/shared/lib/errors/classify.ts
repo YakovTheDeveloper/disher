@@ -11,7 +11,7 @@ export type ErrorKind =
   | { kind: 'unknown';     message: string; raw: unknown };
 
 const NETWORK_TEXT_RE = /load failed|failed to fetch|network ?error|networkerror|fetch failed|err_network|network request failed/i;
-const TIMEOUT_TEXT_RE = /timed? ?out|timeout|aborted/i;
+const TIMEOUT_TEXT_RE = /timed? ?out|timeout|aborted|abort(?:ed)?|signal is aborted|the operation was aborted/i;
 
 function messageOf(err: unknown, fallback = 'Что-то пошло не так'): string {
   if (err instanceof Error && err.message) return err.message;
@@ -45,6 +45,16 @@ export function classifyError(err: unknown): ErrorKind {
   if (isAuthError(err)) {
     const e = err as Error & { status?: number; code?: string; name: string };
     if (e.name === 'AuthRetryableFetchError') {
+      // supabase wraps the original cause in `e.message`. Distinguish:
+      //   - timeout (our AbortSignal.timeout fired, or user aborted) → kind=timeout
+      //   - network (Safari "Load failed", Chromium "Failed to fetch") → kind=network
+      // Both arrive as status=0 from supabase fetch.js, so we discriminate
+      // on the wrapped message text. Check timeout FIRST — `aborted`/`signal
+      // is aborted without reason` is what AbortSignal.timeout produces and
+      // it is a configuration problem (timeout too short), not a real outage.
+      if ((!e.status || e.status === 0) && TIMEOUT_TEXT_RE.test(e.message ?? '')) {
+        return { kind: 'timeout', message: messageOf(e, 'Превышено время ожидания'), raw: err };
+      }
       // status===0 = the browser never got a response (network/CORS/offline/Safari).
       if (!e.status || e.status === 0) {
         return { kind: 'network', message: messageOf(e, 'Нет связи с сервером'), raw: err };
