@@ -1,0 +1,111 @@
+import Fastify, { FastifyError, FastifyInstance, FastifyServerOptions } from "fastify";
+import cors from "@fastify/cors";
+import sensible from "@fastify/sensible";
+import fastifyStatic from "@fastify/static";
+import { fileURLToPath } from "url";
+import path from "path";
+import { readFileSync, existsSync } from "fs";
+import { analyticsRoutes } from "./routes/analytics.js";
+import { suggestionsRoutes } from "./routes/suggestions.js";
+import { freeTextFoodRoutes } from "./routes/free-text-food.js";
+import { matcherTelemetryRoutes } from "./routes/matcher-telemetry.js";
+import { bugReportRoutes } from "./routes/bug-reports.js";
+import { diagLogsRoutes } from "./routes/diag-logs.js";
+import { backupRoutes } from "./routes/backup.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+export type BuildAppOptions = {
+  logger?: FastifyServerOptions["logger"];
+  https?: boolean;
+};
+
+export type BuiltApp = FastifyInstance & { __isHttps: boolean };
+
+export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
+  if (!process.env.BETTER_AUTH_SECRET) {
+    throw new Error(
+      "BETTER_AUTH_SECRET is required. Generate with `openssl rand -hex 32` and set in .env."
+    );
+  }
+
+  const httpsOptions = opts.https !== false
+    ? loadHttpsOptions()
+    : undefined;
+
+  const app = Fastify({
+    logger: opts.logger ?? true,
+    ...(httpsOptions ? { https: httpsOptions } : {}),
+  });
+
+  await app.register(sensible);
+  await app.register(cors, { origin: true });
+
+  await app.register(fastifyStatic, {
+    root: path.join(__dirname, "../../content"),
+    prefix: "/content/",
+  });
+
+  app.get("/articles/nutrients", async (_req, reply) => {
+    const fs = await import("fs/promises");
+    const nutrientsDir = path.join(__dirname, "../../content/nutrients");
+    try {
+      const entries = await fs.readdir(nutrientsDir, { withFileTypes: true });
+      const articles = entries
+        .filter((e) => e.isDirectory())
+        .map((e) => {
+          const [nutrientId, ...rest] = e.name.split("_");
+          return { folder: e.name, nutrientId, nutrientName: rest.join("_") };
+        });
+      return reply.send(articles);
+    } catch {
+      return reply.send([]);
+    }
+  });
+
+  app.get<{ Params: { folder: string } }>(
+    "/articles/nutrients/:folder",
+    async (req, reply) => {
+      return reply.sendFile(`nutrients/${req.params.folder}/index.md`);
+    }
+  );
+
+  app.get("/health", async (_req, reply) => {
+    return reply.send({
+      status: "ok",
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  app.setErrorHandler((error: FastifyError, _req, reply) => {
+    console.error("Unhandled error:", error);
+    reply.status(error.statusCode ?? 500).send({ error: error.message });
+  });
+
+  await app.register(analyticsRoutes, { prefix: "/api/analytics" });
+  await app.register(suggestionsRoutes, { prefix: "/api/suggestions" });
+  await app.register(freeTextFoodRoutes, { prefix: "/api/free-text-food" });
+  await app.register(matcherTelemetryRoutes, { prefix: "/api/matcher-telemetry" });
+  await app.register(bugReportRoutes, { prefix: "/api/bug-reports" });
+  await app.register(diagLogsRoutes, { prefix: "/api/diag-logs" });
+  await app.register(backupRoutes, { prefix: "/api/backup" });
+
+  const built = app as unknown as BuiltApp;
+  built.__isHttps = !!httpsOptions;
+  return built;
+}
+
+function loadHttpsOptions() {
+  const CERTS_DIR = path.join(__dirname, "../../certs");
+  const CERT_FILE = path.join(CERTS_DIR, "localhost-cert.pem");
+  const KEY_FILE = path.join(CERTS_DIR, "localhost-key.pem");
+
+  if (!existsSync(CERT_FILE) || !existsSync(KEY_FILE)) {
+    return undefined;
+  }
+  return {
+    cert: readFileSync(CERT_FILE),
+    key: readFileSync(KEY_FILE),
+  };
+}
