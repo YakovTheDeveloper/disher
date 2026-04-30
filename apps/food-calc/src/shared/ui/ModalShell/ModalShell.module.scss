@@ -74,6 +74,42 @@
   z-index: 1;
 }
 
+// ── Gradient variants (gradient1 / gradient2) ─────────────────────────────
+.wrapperGradient {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+}
+
+.gradientImage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.gradientScrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.wrapperGradient>*:not(.gradientImage):not(.gradientScrim) {
+  position: relative;
+  z-index: 1;
+}
+
 .spacer {
   flex: 0 0 auto;
   min-height: 25dvh;

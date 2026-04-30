@@ -1,13 +1,10 @@
-import { enqueue, enqueueMany, drain } from "@/shared/lib/storage/pendingWrites";
-import { queryClient } from "@/shared/lib/storage/queryClient";
-import { getUserIdSync } from "@/shared/lib/auth/useUserId";
-import type { Product } from "../model/types";
-
-const TABLE = "products";
+import { db, type ProductRow } from '@/shared/lib/dexie/schema';
+import { getUserIdSync } from '@/shared/lib/auth/useUserId';
+import { scheduleCold } from '@/shared/lib/sync/scheduler';
 
 function requireUserId(): string {
   const userId = getUserIdSync();
-  if (!userId) throw new Error("Not authenticated");
+  if (!userId) throw new Error('Not authenticated');
   return userId;
 }
 
@@ -20,16 +17,6 @@ function safeParseJson<T>(json: string | undefined, fallback: T): T {
   }
 }
 
-function patchProductsCache(
-  predicate: (p: Product) => boolean,
-  patch: (p: Product) => Product,
-) {
-  queryClient.setQueriesData<Product[]>({ queryKey: ["products", "all"] }, (old) => {
-    if (!old) return old;
-    return old.map((p) => (predicate(p) ? patch(p) : p));
-  });
-}
-
 export async function createProduct(params: {
   name: string;
   nameEng?: string;
@@ -38,48 +25,23 @@ export async function createProduct(params: {
 }): Promise<string> {
   const id = crypto.randomUUID();
   const userId = requireUserId();
-  const now = new Date().toISOString();
-  const row = {
+
+  // Hooks auto-stamp _dirty/edit_count/client_modified_at/created_at/deleted_at.
+  await db.products.add({
     id,
     user_id: userId,
     name: params.name,
-    name_eng: params.nameEng ?? "",
-    description: params.description ?? "",
-    description_eng: params.descriptionEng ?? "",
-    source: "",
+    name_eng: params.nameEng ?? '',
+    description: params.description ?? '',
+    description_eng: params.descriptionEng ?? '',
+    source: '',
     price_per_kg: 0,
     nutrients: {},
     portions: [],
     categories: [],
-    created_at: now,
-    updated_at: now,
-    deleted_at: null,
-  };
+  } as unknown as ProductRow);
 
-  // Optimistic add to all "products/all/*" caches.
-  const optimistic: Product = {
-    id,
-    userId,
-    name: params.name,
-    nameEng: params.nameEng ?? "",
-    description: params.description ?? "",
-    descriptionEng: params.descriptionEng ?? "",
-    source: "",
-    pricePerKg: 0,
-    nutrients: "{}",
-    portions: "[]",
-    categories: "[]",
-    createdAt: now,
-    updatedAt: now,
-    deletedAt: null,
-  };
-  queryClient.setQueriesData<Product[]>(
-    { queryKey: ["products", "all"] },
-    (old) => (old ? [...old, optimistic] : old),
-  );
-
-  await enqueue({ table: TABLE, op: "insert", payload: row });
-  void drain();
+  scheduleCold();
   return id;
 }
 
@@ -90,45 +52,29 @@ type ProductUpdates = Partial<{
   descriptionEng: string;
   source: string;
   pricePerKg: number;
+  /** UI passes JSON string; we store the parsed object in Dexie. */
   nutrients: string;
   portions: string;
   categories: string;
 }>;
 
 const COLUMN_MAP: Record<keyof ProductUpdates, string> = {
-  name: "name",
-  nameEng: "name_eng",
-  description: "description",
-  descriptionEng: "description_eng",
-  source: "source",
-  pricePerKg: "price_per_kg",
-  nutrients: "nutrients",
-  portions: "portions",
-  categories: "categories",
+  name: 'name',
+  nameEng: 'name_eng',
+  description: 'description',
+  descriptionEng: 'description_eng',
+  source: 'source',
+  pricePerKg: 'price_per_kg',
+  nutrients: 'nutrients',
+  portions: 'portions',
+  categories: 'categories',
 };
 
 const JSON_FIELDS: ReadonlySet<keyof ProductUpdates> = new Set([
-  "nutrients",
-  "portions",
-  "categories",
+  'nutrients',
+  'portions',
+  'categories',
 ]);
-
-function buildUpdatePayload(productId: string, updates: ProductUpdates) {
-  const payload: Record<string, unknown> = {
-    id: productId,
-    updated_at: new Date().toISOString(),
-  };
-  for (const key of Object.keys(updates) as (keyof ProductUpdates)[]) {
-    const col = COLUMN_MAP[key];
-    const raw = updates[key];
-    if (JSON_FIELDS.has(key)) {
-      payload[col] = safeParseJson<unknown>(raw as string, key === "nutrients" ? {} : []);
-    } else {
-      payload[col] = raw;
-    }
-  }
-  return payload;
-}
 
 export async function updateProduct(
   productId: string,
@@ -137,23 +83,21 @@ export async function updateProduct(
   const keys = Object.keys(updates) as (keyof ProductUpdates)[];
   if (keys.length === 0) return;
 
-  // Optimistic patch in cache.
-  patchProductsCache(
-    (p) => p.id === productId,
-    (p) => {
-      const next: Product = { ...p };
-      for (const k of keys) {
-        // Cache stores stringified jsonb (matches queryFn normalization).
-        (next as unknown as Record<string, unknown>)[k] = updates[k];
-      }
-      next.updatedAt = new Date().toISOString();
-      return next;
-    },
-  );
+  const patch: Record<string, unknown> = {};
+  for (const key of keys) {
+    const col = COLUMN_MAP[key];
+    if (JSON_FIELDS.has(key)) {
+      patch[col] = safeParseJson<unknown>(
+        updates[key] as string,
+        key === 'nutrients' ? {} : [],
+      );
+    } else {
+      patch[col] = updates[key];
+    }
+  }
 
-  const payload = buildUpdatePayload(productId, updates);
-  await enqueue({ table: TABLE, op: "upsert", payload });
-  void drain();
+  await db.products.update(productId, patch as never);
+  scheduleCold();
 }
 
 export async function setProductNutrients(
@@ -171,27 +115,19 @@ export async function setProductPortions(
 }
 
 export async function deleteProduct(productId: string): Promise<void> {
-  // Optimistic removal. We don't invalidateQueries here — the refetch would
-  // race the outbox drain and bring the row back for ~1s on slow networks
-  // (план: «Delete + invalidate race»). The outbox poison-handler will
-  // invalidate if the delete fails to land.
-  queryClient.setQueriesData<Product[]>(
-    { queryKey: ["products", "all"] },
-    (old) => (old ? old.filter((p) => p.id !== productId) : old),
-  );
-  await enqueue({ table: TABLE, op: "delete", payload: { id: productId } });
-  void drain();
+  await db.products.update(productId, {
+    deleted_at: new Date().toISOString(),
+  });
+  scheduleCold();
 }
 
 export async function deleteProducts(productIds: string[]): Promise<void> {
   if (productIds.length === 0) return;
-  const idSet = new Set(productIds);
-  queryClient.setQueriesData<Product[]>(
-    { queryKey: ["products", "all"] },
-    (old) => (old ? old.filter((p) => !idSet.has(p.id)) : old),
-  );
-  await enqueueMany(
-    productIds.map((id) => ({ table: TABLE, op: "delete" as const, payload: { id } })),
-  );
-  void drain();
+  const now = new Date().toISOString();
+  await db.transaction('rw', db.products, async () => {
+    for (const id of productIds) {
+      await db.products.update(id, { deleted_at: now });
+    }
+  });
+  scheduleCold();
 }

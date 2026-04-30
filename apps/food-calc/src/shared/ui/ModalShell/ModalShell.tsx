@@ -2,22 +2,48 @@ import type { ReactNode } from 'react';
 import s from './ModalShell.module.scss';
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
 
-type Props = { children: ReactNode; className?: string; variant?: 'default' | 'spring' };
+type Variant = 'default' | 'spring' | 'gradient1' | 'gradient2';
+type Props = { children: ReactNode; className?: string; variant?: Variant };
 
-export const ModalShell = ({ children, className, variant = 'spring' }: Props) => (
-  <div className={`${s.wrapper} ${variant === 'spring' ? s.wrapperSpring : ''} ${className ?? ''}`}>
-    {variant === 'spring' && (
-      <div className={s.springOrbs} aria-hidden>
-        <span className={`${s.orb} ${s.orb1}`} />
-        <span className={`${s.orb} ${s.orb2}`} />
-        <span className={`${s.orb} ${s.orb3}`} />
-        <span className={`${s.orb} ${s.orb4}`} />
-        <span className={`${s.orb} ${s.orb5}`} />
-      </div>
-    )}
-    {children}
-  </div>
-);
+const GRADIENT_SOURCES: Record<'gradient1' | 'gradient2', { avif: string; webp: string; fallback: string }> = {
+  gradient1: { avif: '/bg/1.avif', webp: '/bg/1.webp', fallback: '/bg/1.png' },
+  gradient2: { avif: '/bg/2.avif', webp: '/bg/2.webp', fallback: '/bg/2.jpg' },
+};
+
+export const ModalShell = ({ children, className, variant = 'spring' }: Props) => {
+  const isGradient = variant === 'gradient1' || variant === 'gradient2';
+  const variantClass =
+    variant === 'spring'
+      ? s.wrapperSpring
+      : isGradient
+      ? s.wrapperGradient
+      : '';
+
+  return (
+    <div className={`${s.wrapper} ${variantClass} ${className ?? ''}`}>
+      {variant === 'spring' && (
+        <div className={s.springOrbs} aria-hidden>
+          <span className={`${s.orb} ${s.orb1}`} />
+          <span className={`${s.orb} ${s.orb2}`} />
+          <span className={`${s.orb} ${s.orb3}`} />
+          <span className={`${s.orb} ${s.orb4}`} />
+          <span className={`${s.orb} ${s.orb5}`} />
+        </div>
+      )}
+      {isGradient && (
+        <>
+          <picture className={s.gradientImage} aria-hidden>
+            <source srcSet={GRADIENT_SOURCES[variant].avif} type="image/avif" />
+            <source srcSet={GRADIENT_SOURCES[variant].webp} type="image/webp" />
+            <img src={GRADIENT_SOURCES[variant].fallback} alt="" />
+          </picture>
+          <div className={s.gradientScrim} aria-hidden />
+        </>
+      )}
+      {children}
+    </div>
+  );
+};
 
 const ModalShellSpacer = () => <div className={s.spacer} />;
 ModalShellSpacer.displayName = 'ModalShell.Spacer';

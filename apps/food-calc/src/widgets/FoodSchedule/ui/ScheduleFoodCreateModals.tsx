@@ -53,9 +53,12 @@ const ScheduleFoodCreateModals = ({
         content={
           <SearchFood
             onInfoClick={(variant, id) => {
+              console.warn('[debug] onInfoClick', variant, id);
               handleClose();
+              console.warn('[debug] handleClose done');
               if (variant === 'product') toProduct(id);
               else toDish(id);
+              console.warn('[debug] navigate called, pathname=', window.location.pathname);
             }}
             bottomLeft={<DetailsNoteButton htmlFor={DETAILS_INPUT} hasDetails={!!draft.details} />}
             key={sessionKey}

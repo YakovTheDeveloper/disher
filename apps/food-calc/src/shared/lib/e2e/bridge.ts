@@ -1,42 +1,74 @@
 /**
  * E2E test bridge — exposed on window only when MODE === 'test'.
- * Lets Playwright drive the outbox / cache / auth state without touching real UI.
+ * Lets Playwright drive Dexie / sync / auth state without touching real UI.
  * Tree-shaken out in production builds.
  */
-import { get, clear as idbClear, keys as idbKeysFn } from 'idb-keyval';
+import { clear as idbClear, keys as idbKeysFn } from 'idb-keyval';
 import { supabase } from '@/shared/api/supabase-client';
 import { queryClient } from '@/shared/lib/storage/queryClient';
-import {
-  enqueue,
-  drain,
-  getPendingCount,
-  primePendingCache,
-  clearPending,
-  type PendingWrite,
-} from '@/shared/lib/storage/pendingWrites';
-
-const KEY = 'foodcalc-pending-writes';
+import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
+import { drainPush, pullSnapshot } from '@/shared/lib/sync/backupClient';
+import { areDexieHooksInstalled } from '@/shared/lib/dexie/hooks';
+import { createProduct } from '@/entities/product/api/mutations';
+import { createDish } from '@/entities/dish/api/mutations';
+import { addScheduleFood } from '@/entities/schedule-food/api/mutations';
 
 export function installE2EBridge(): void {
   if (import.meta.env.MODE !== 'test') return;
   if (typeof window === 'undefined') return;
   (window as unknown as Record<string, unknown>).__e2e = {
-    enqueue,
-    drain,
-    getPendingCount,
-    primePendingCache,
-    clearPending,
-    readIdbPending: () => get<PendingWrite[]>(KEY),
+    // Dexie state inspection.
+    countLocal: async () => {
+      const out: Record<string, number> = {};
+      for (const t of SYNCED_TABLES) out[t] = await db[t].count();
+      return out;
+    },
+    countDirty: async (userId: string) => {
+      const out: Record<string, number> = {};
+      for (const t of SYNCED_TABLES) {
+        out[t] = await db[t]
+          .where('[user_id+_dirty]')
+          .equals([userId, 1] as never)
+          .count();
+      }
+      return out;
+    },
+    wipeLocal: async () => {
+      await db.transaction('rw', SYNCED_TABLES.map((t) => db[t]), async () => {
+        for (const t of SYNCED_TABLES) await db[t].clear();
+      });
+    },
+
+    // Sync triggers.
+    drainPush,
+    pullSnapshot,
+    hooksInstalled: () => areDexieHooksInstalled(),
+
+    // Entity mutations — proxy real entity api so E2E exercises the same code as UI.
+    createProduct,
+    createDish,
+    addScheduleFood,
+
+    // idb-keyval for drafts / persister.
     clearIdb: () => idbClear(),
     idbKeys: () => idbKeysFn().then((arr) => arr.map((k) => String(k))),
+
+    // TanStack Query (legacy cache may still be in flight during transition).
     invalidateAllQueries: () => queryClient.invalidateQueries(),
     queryCacheKeys: () =>
       queryClient
         .getQueryCache()
         .getAll()
         .map((q) => q.queryKey),
+
+    // Auth.
     getSession: async () => {
       const { data } = await supabase.auth.getSession();
+      return data.session;
+    },
+    signInTest: async (email = 'e2e@disher.test', password = 'e2e-password') => {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
       return data.session;
     },
     signOut: async () => {

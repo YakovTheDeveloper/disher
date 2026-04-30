@@ -1,54 +1,18 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": [
-      "ESNext.Array",
-      "ES2020",
-      "DOM",
-      "DOM.Iterable",
-      "ES2023"
-    ],
-    "composite": true,
-    "module": "ESNext",
-    "noEmitOnError": false,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true, // Required for MobX decorators
-    "emitDecoratorMetadata": true, // Recommended but optional
-    /* Bundler mode */
-    "moduleResolution": "bundler",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    /* Linting */
-    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
     "baseUrl": "./",
     "paths": {
-      "@icons/*": [
-        "/src/shared/assets/icons/*"
-      ],
-      "@/*": [
-        "src/*"
-      ],
-      "@store/*": [
-        "src/store/*"
-      ],
-      "@api": [
-        "../../packages/api/src"
-      ],
-      "@types": [
-        "../../packages/types/src"
-      ],
+      "@icons/*": ["src/shared/assets/icons/*"],
+      "@/*": ["src/*"]
     }
   },
-  "include": [
-    "src",
-  ],
-  "extends": "../../tsconfig.json"
+  "include": ["src"]
 }

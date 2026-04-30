@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, interactive-widget=resizes-content, viewport-fit=cover, user-scalable=no">
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, interactive-widget=resizes-visual, viewport-fit=cover, user-scalable=no">
   <title>Disher.</title>
 
   <link rel="manifest" href="/manifest.webmanifest" />
@@ -19,14 +19,18 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Golos+Text:wght@400;500;600;700&display=swap"
-  />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Golos+Text:wght@400;500;600;700&display=swap" />
   <style>
     /* Prevent FOUC: hide root until CSS modules are loaded */
-    #root { opacity: 0; }
-    #root.ready { opacity: 1; transition: opacity 0.15s ease; }
+    #root {
+      opacity: 0;
+    }
+
+    #root.ready {
+      opacity: 1;
+      transition: opacity 0.15s ease;
+    }
   </style>
 </head>
 

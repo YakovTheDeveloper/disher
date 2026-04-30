@@ -1,7 +1,9 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 4173;
-const BASE_URL = `http://localhost:${PORT}`;
+const BASE_URL = `http://127.0.0.1:${PORT}`;
+const CONFIG_DIR = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -33,6 +35,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'pnpm run dev:e2e',
+    cwd: CONFIG_DIR,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

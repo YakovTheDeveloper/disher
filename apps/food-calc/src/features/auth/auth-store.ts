@@ -1,8 +1,17 @@
 import { create } from 'zustand';
 import { supabase } from '@/shared/api/supabase-client';
 import { queryClient } from '@/shared/lib/storage/queryClient';
-import { clearPending } from '@/shared/lib/storage/pendingWrites';
+import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
 import { Sentry } from '@/shared/lib/observability/sentry';
+
+// Wipe Dexie local rows before switching identities. uid_old's rows would
+// violate RLS under uid_new on next push (план: 42501), so we drop them
+// rather than leak them into the new account.
+async function wipeLocalData(): Promise<void> {
+  await db.transaction('rw', SYNCED_TABLES.map((t) => db[t]), async () => {
+    for (const t of SYNCED_TABLES) await db[t].clear();
+  });
+}
 
 type AuthState = {
   isLoggedIn: boolean;
@@ -84,7 +93,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
     // under the new user (план: 42501), and cached queries keyed by the old
     // userId must not leak into the signed-in account.
     try {
-      await clearPending();
+      await wipeLocalData();
       queryClient.clear();
     } catch (e) {
       console.error('cache clear after signIn failed', e);
@@ -110,7 +119,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
     // Clear queue + cache BEFORE signOut — the queue belongs to uid_old and
     // RLS will block all of its rows after signOut (план: 42501).
     try {
-      await clearPending();
+      await wipeLocalData();
       queryClient.clear();
     } catch (e) {
       console.error('cache clear before signOut failed', e);

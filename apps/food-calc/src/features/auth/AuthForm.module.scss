@@ -193,3 +193,98 @@
     cursor: default;
   }
 }
+
+// ─── Dark theme override (used by fullscreen AuthScreen) ──────
+// AuthDrawer keeps the light look; AuthScreen wraps the form in
+// [data-auth-theme="dark"] to flip palette to glassmorphism.
+
+[data-auth-theme='dark'] {
+  .container {
+    // Glass card framing the form on top of the blurred photo.
+    margin-top: var(--space-2);
+    padding: var(--space-7) var(--space-5) calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+    background: rgba(20, 17, 38, 0.42);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-2xl, 24px);
+    backdrop-filter: blur(18px) saturate(1.1);
+    -webkit-backdrop-filter: blur(18px) saturate(1.1);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.06) inset,
+      0 24px 60px -20px rgba(0, 0, 0, 0.55);
+    flex: 0 0 auto;
+    min-height: auto;
+    align-self: center;
+  }
+
+  .heading {
+    color: #fff;
+  }
+
+  .subheading {
+    color: rgba(245, 243, 255, 0.72);
+  }
+
+  .backBtn {
+    color: #fff;
+
+    &:active {
+      background: rgba(255, 255, 255, 0.12);
+    }
+  }
+
+  .input {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    caret-color: #c7b8ff;
+
+    &::placeholder {
+      color: rgba(245, 243, 255, 0.45);
+    }
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    &:focus {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(199, 184, 255, 0.7);
+      box-shadow: 0 0 0 3px rgba(140, 100, 255, 0.18);
+    }
+
+    &[aria-invalid='true'] {
+      border-color: #ff7a8a;
+    }
+  }
+
+  .fieldError {
+    color: #ff9aa6;
+  }
+
+  .submitBtn {
+    background: linear-gradient(135deg, #8c64ff 0%, #c7b8ff 100%);
+    color: #1a1330;
+    box-shadow:
+      0 8px 24px -8px rgba(140, 100, 255, 0.65),
+      0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+
+    &:disabled {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.35);
+      box-shadow: none;
+    }
+
+    &:not(:disabled):hover {
+      background: linear-gradient(135deg, #9a76ff 0%, #d4c8ff 100%);
+    }
+  }
+
+  .switchBtn {
+    color: rgba(245, 243, 255, 0.7);
+
+    &:hover:not(:disabled) {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+}

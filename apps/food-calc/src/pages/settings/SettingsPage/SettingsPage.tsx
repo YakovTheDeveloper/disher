@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Button from '@/shared/ui/atoms/Button/Button';
 import { clear as idbClear } from 'idb-keyval';
-import { clearPending } from '@/shared/lib/storage/pendingWrites';
+import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
 import { queryClient } from '@/shared/lib/storage/queryClient';
 import styles from './SettingsPage.module.scss';
 
@@ -11,7 +11,9 @@ const SettingsPage = () => {
   const handleClearStorage = async () => {
     setIsClearing(true);
     try {
-      await clearPending();
+      await db.transaction('rw', SYNCED_TABLES.map((t) => db[t]), async () => {
+        for (const t of SYNCED_TABLES) await db[t].clear();
+      });
       queryClient.clear();
       await idbClear();
       localStorage.clear();

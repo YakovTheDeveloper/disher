@@ -1,8 +1,7 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/shared/api/supabase-client";
-import { snakeToCamel } from "@/shared/lib/rowMapper";
-import { useUserId } from "@/shared/lib/auth/useUserId";
+import { useMemo } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, type PeriodRow } from '@/shared/lib/dexie/schema';
+import { useUserId } from '@/shared/lib/auth/useUserId';
 
 export interface Period {
   id: string;
@@ -16,30 +15,29 @@ export interface Period {
   deletedAt: string | null;
 }
 
-const PERIOD_COLUMNS =
-  "id, user_id, name, color_index, font_family, font_size, " +
-  "created_at, updated_at, deleted_at";
-
-function mapRow(row: Record<string, unknown>): Period {
-  return snakeToCamel(row) as unknown as Period;
-}
-
-async function fetchAllPeriods(): Promise<Period[]> {
-  const { data, error } = await supabase
-    .from("periods")
-    .select(PERIOD_COLUMNS)
-    .is("deleted_at", null);
-  if (error) throw error;
-  return (data ?? []).map((r) => mapRow(r as unknown as Record<string, unknown>));
+function mapRow(row: PeriodRow): Period {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    name: row.name,
+    colorIndex: row.color_index,
+    fontFamily: row.font_family,
+    fontSize: row.font_size,
+    createdAt: row.created_at,
+    updatedAt: row.client_modified_at ?? row.created_at,
+    deletedAt: row.deleted_at,
+  };
 }
 
 export function usePeriods(): Period[] {
   const userId = useUserId();
-  const { data } = useQuery({
-    queryKey: ["periods", "all", userId],
-    queryFn: fetchAllPeriods,
-    enabled: !!userId,
-    staleTime: 5 * 60_000,
-  });
-  return useMemo(() => data ?? [], [data]);
+  const rows = useLiveQuery(async () => {
+    if (!userId) return [];
+    return db.periods
+      .where('user_id')
+      .equals(userId)
+      .filter((r) => !r.deleted_at)
+      .toArray();
+  }, [userId]);
+  return useMemo(() => (rows ?? []).map(mapRow), [rows]);
 }

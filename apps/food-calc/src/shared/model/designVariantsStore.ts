@@ -19,7 +19,9 @@ export type KnownVariantComponent = {
  */
 export const KNOWN_VARIANT_COMPONENTS: readonly KnownVariantComponent[] = [
   { name: 'Calendar', total: 1 },
-  { name: 'TimeChoose', total: 13 },
+  { name: 'TimeChoose', total: 8 },
+  { name: 'ProductQuantity', total: 2 },
+  { name: 'SearchFood', total: 2 },
 ] as const;
 
 const initialComponents: Record<string, VariantEntry> = Object.fromEntries(

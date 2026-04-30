@@ -1,4 +1,7 @@
-// ProductQuantity.module.scss — Nylon editorial style
+@import '@/shared/assets/style/paper-tokens.scss';
+
+// ProductQuantity.module.scss — Nylon editorial style (default)
+// + Paper variant (Yandex-inspired light minimalism) at the bottom.
 
 .container {
     display: flex;
@@ -178,5 +181,110 @@
     &::-webkit-inner-spin-button,
     &::-webkit-outer-spin-button {
         -webkit-appearance: none;
+    }
+}
+
+// ─── Paper variant — Yandex Pogoda inspired ──────────────────
+// Огромная цифра без подчёркивания, pill-чипы порций, синий акцент.
+// Часть paper-флоу: SearchFood → Quantity → TimeChoose.
+.containerPaper {
+    @include paper-tokens;
+
+    gap: 1.5rem;
+
+    .inputWrapper .input {
+        font-family: var(--paper-font);
+        font-size: var(--paper-display-size);
+        font-weight: var(--paper-display-weight);
+        letter-spacing: var(--paper-display-tracking);
+        color: var(--paper-text-1);
+        border-bottom: none;
+        font-variant-numeric: tabular-nums;
+        transition: color 0.2s ease;
+
+        &:focus {
+            outline: none;
+            border-bottom-color: transparent;
+            box-shadow: none;
+            color: var(--paper-text-1);
+        }
+    }
+
+    .unit {
+        font-family: var(--paper-font);
+        font-size: var(--paper-caption-size);
+        font-weight: var(--paper-caption-weight);
+        letter-spacing: 0;
+        text-transform: none;
+        color: var(--paper-text-3);
+        margin-top: 0.5rem;
+    }
+
+    .sectionLabel {
+        font-family: var(--paper-font);
+        font-size: var(--paper-caption-size);
+        font-weight: 600;
+        letter-spacing: 0;
+        text-transform: none;
+        color: var(--paper-text-2);
+        padding-left: 0;
+    }
+
+    .slideGrid {
+        gap: 0.5rem;
+
+        .quickBtn {
+            border-radius: var(--paper-radius-pill);
+            font-family: var(--paper-font);
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0;
+            padding: 10px 14px;
+            background: var(--paper-bg-pill);
+            border: 1px solid transparent;
+            color: var(--paper-text-1);
+            transition: background 0.12s ease, color 0.12s ease;
+
+            &:hover {
+                border-color: transparent;
+                background: var(--paper-bg-pill-hover);
+            }
+
+            &:global(.is-selected) {
+                background: var(--paper-brand);
+                border-color: var(--paper-brand);
+                color: var(--paper-brand-fg);
+                font-weight: 600;
+            }
+        }
+    }
+
+    .multiplierBtn {
+        border: 1px solid var(--paper-line);
+        background: var(--paper-bg-page);
+        color: var(--paper-text-1);
+        font-family: var(--paper-font);
+
+        &:hover {
+            border-color: var(--paper-line-strong);
+            background: var(--paper-bg-elevated);
+        }
+
+        &:active {
+            background: var(--paper-brand);
+            border-color: var(--paper-brand);
+            color: var(--paper-brand-fg);
+        }
+    }
+
+    .multiplierInput {
+        font-family: var(--paper-font);
+        border-bottom: 2px solid var(--paper-line);
+        color: var(--paper-text-1);
+        font-variant-numeric: tabular-nums;
+
+        &:focus {
+            border-bottom-color: var(--paper-brand);
+        }
     }
 }
