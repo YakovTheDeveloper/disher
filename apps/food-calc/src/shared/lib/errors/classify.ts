@@ -1,5 +1,3 @@
-import { isAuthError } from '@supabase/supabase-js';
-
 export type ErrorKind =
   | { kind: 'network';     message: string; raw: unknown }
   | { kind: 'timeout';     message: string; raw: unknown }
@@ -23,6 +21,18 @@ function isResponseLike(err: unknown): err is { status: number; statusText?: str
   return typeof err === 'object' && err !== null && typeof (err as { status?: unknown }).status === 'number';
 }
 
+// Duck-type check for supabase-js AuthError. supabase tags every Auth*Error
+// instance with `__isAuthError === true` — see supabase-js/src/lib/errors.ts.
+// Doing this by shape lets classify.ts stay free of an `@supabase/supabase-js`
+// import (the contract for Stage 0 of the supabase isolation plan).
+function isSupabaseAuthErrorShape(err: unknown): err is Error & { __isAuthError: true; name: string; status?: number; code?: string } {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    (err as { __isAuthError?: unknown }).__isAuthError === true
+  );
+}
+
 function classifyByStatus(status: number, message: string, raw: unknown, extras: { code?: string; retryAfter?: number; fieldErrors?: Record<string, string> } = {}): ErrorKind {
   if (status === 401 || status === 403) return { kind: 'auth', status, message, code: extras.code, raw };
   if (status === 404) return { kind: 'not_found', status, message, code: extras.code, raw };
@@ -42,8 +52,9 @@ export function classifyError(err: unknown): ErrorKind {
   // Chromium "Failed to fetch", or 502/503/504/52x gateway errors). These are NOT
   // credential problems and must surface as network/server so the user sees the
   // right toast and we don't blame the password during an outage.
-  if (isAuthError(err)) {
-    const e = err as Error & { status?: number; code?: string; name: string };
+  // Detected by shape (`__isAuthError`) so this file stays vendor-agnostic.
+  if (isSupabaseAuthErrorShape(err)) {
+    const e = err;
     if (e.name === 'AuthRetryableFetchError') {
       // supabase wraps the original cause in `e.message`. Distinguish:
       //   - timeout (our AbortSignal.timeout fired, or user aborted) → kind=timeout

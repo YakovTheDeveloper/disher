@@ -1,6 +1,6 @@
-import { supabase } from '@/shared/api/supabase-client';
 import { db, SYNCED_TABLES, type SyncedTable } from '@/shared/lib/dexie/schema';
 import { API_BASE } from '@/shared/lib/api/base';
+import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { pickIdsSafeToClean } from './timestampGuard';
 
 // Push protocol with the backup endpoint — single source for `/api/backup/*`.
@@ -36,13 +36,6 @@ type RejectedRow = {
   };
 };
 
-async function authHeader(): Promise<Record<string, string>> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) throw new Error('Not authenticated');
-  return { Authorization: `Bearer ${token}` };
-}
-
 // Strip Dexie-only fields before sending to the server.
 function toWireRow<T extends Record<string, unknown>>(table: SyncedTable, row: T) {
   const { _dirty, server_received_at, ...rest } = row;
@@ -61,8 +54,6 @@ export async function drainPush(userId: string): Promise<{
   // from being silently marked clean.
   const pushTimestamp = new Date().toISOString();
 
-  const auth = await authHeader();
-
   let acceptedTotal = 0;
   let rejectedTotal = 0;
 
@@ -78,15 +69,15 @@ export async function drainPush(userId: string): Promise<{
       const chunk = dirty.slice(i, i + CHUNK_SIZE);
       const rows = chunk.map((r) => toWireRow(table, r as unknown as Record<string, unknown>));
 
-      const res = await fetch(PUSH_URL, {
+      const res = await authedFetch(PUSH_URL, {
         method: 'POST',
-        headers: { ...auth, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rows }),
       });
 
       if (res.status === 401) {
-        // Session may have expired between getSession() and fetch — let the
-        // caller retry after Supabase auto-refresh.
+        // Session may have expired between token read and fetch — let the
+        // caller retry after auto-refresh.
         throw new Error('Backup push unauthenticated (401) — will retry');
       }
       if (!res.ok) {
@@ -141,8 +132,7 @@ export async function drainPush(userId: string): Promise<{
 type SnapshotPayload = Partial<Record<SyncedTable, Array<Record<string, unknown>>>>;
 
 export async function pullSnapshot(): Promise<{ rows: number }> {
-  const auth = await authHeader();
-  const res = await fetch(SNAPSHOT_URL, { headers: auth });
+  const res = await authedFetch(SNAPSHOT_URL);
   if (!res.ok) {
     throw new Error(`Snapshot pull failed: ${res.status} ${res.statusText}`);
   }
@@ -170,8 +160,7 @@ export async function pullSnapshot(): Promise<{ rows: number }> {
 // ─── stats (reset-and-resync fail-safe) ────────────────────────────────────
 
 export async function fetchBackupStats(): Promise<Record<SyncedTable, number>> {
-  const auth = await authHeader();
-  const res = await fetch(STATS_URL, { headers: auth });
+  const res = await authedFetch(STATS_URL);
   if (!res.ok) {
     throw new Error(`Backup stats failed: ${res.status} ${res.statusText}`);
   }

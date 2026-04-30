@@ -4,7 +4,7 @@
  * Tree-shaken out in production builds.
  */
 import { clear as idbClear, keys as idbKeysFn } from 'idb-keyval';
-import { supabase } from '@/shared/api/supabase-client';
+import { authClient } from '@/shared/lib/auth/authClient';
 import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
 import { drainPush, pullSnapshot } from '@/shared/lib/sync/backupClient';
 import { areDexieHooksInstalled } from '@/shared/lib/dexie/hooks';
@@ -54,16 +54,16 @@ export function installE2EBridge(): void {
 
     // Auth.
     getSession: async () => {
-      const { data } = await supabase.auth.getSession();
+      const { data } = await authClient.getSession();
       return data.session;
     },
     signInTest: async (email = 'e2e@disher.test', password = 'e2e-password') => {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await authClient.signInWithPassword(email, password);
       if (error) throw error;
       return data.session;
     },
     signOut: async () => {
-      await supabase.auth.signOut();
+      await authClient.signOut();
     },
   };
 }
