@@ -3,14 +3,17 @@ import { authProvider, type AppUser, type AuthError } from '@/shared/lib/auth/au
 import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
 import { Sentry } from '@/shared/lib/observability/sentry';
 import { defaultUserMessage, type ErrorKind } from '@/shared/lib/errors/classify';
+import { clearAnalyticsCache } from '@/entities/analytics';
 
-// Wipe Dexie local rows before switching identities. uid_old's rows would
-// violate RLS under uid_new on next push (план: 42501), so we drop them
-// rather than leak them into the new account.
+// Wipe Dexie local rows + analytics localStorage cache before switching
+// identities. uid_old's Dexie rows would violate RLS under uid_new on next
+// push (план: 42501); analytics cache was historically keyed without userId
+// and could leak markdown across accounts on the same device.
 async function wipeLocalData(): Promise<void> {
   await db.transaction('rw', SYNCED_TABLES.map((t) => db[t]), async () => {
     for (const t of SYNCED_TABLES) await db[t].clear();
   });
+  clearAnalyticsCache();
 }
 
 type AuthState = {

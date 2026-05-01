@@ -17,36 +17,17 @@ import {
   startDailyAnalysis,
   startWeeklyAnalysis,
   computeInputHash,
+  getCachedAnalysis,
+  setCachedAnalysis,
+  AnalyticsAuthError,
 } from '@/entities/analytics';
 import type { AnalyticsTab } from '@/entities/analytics';
+import { useUserId } from '@/shared/lib/auth/useUserId';
+import { useAuthStore } from '@/features/auth/auth-store';
 import styles from './ScheduleFoodAnalyticsPage.module.scss';
 import toaster from '@/shared/lib/toaster/toaster';
 
 type StreamStatus = 'idle' | 'connecting' | 'streaming' | 'done' | 'error' | 'stopped';
-
-// ─── localStorage fallback for offline ───
-
-const CACHE_KEY_PREFIX = 'analytics_cache_';
-
-function getCacheKey(date: string, tab: AnalyticsTab): string {
-  return `${CACHE_KEY_PREFIX}${date}_${tab}`;
-}
-
-function getCachedResult(date: string, tab: AnalyticsTab): string | null {
-  try {
-    return localStorage.getItem(getCacheKey(date, tab));
-  } catch {
-    return null;
-  }
-}
-
-function setCachedResult(date: string, tab: AnalyticsTab, text: string): void {
-  try {
-    localStorage.setItem(getCacheKey(date, tab), text);
-  } catch {
-    // localStorage full or unavailable
-  }
-}
 
 // ─── Date helpers ───
 
@@ -185,13 +166,16 @@ const TABS: Tab[] = [
 
 const AnalyticsContent = ({
   date,
+  userId,
   foods,
   events,
 }: {
   date: string;
+  userId: string;
   foods: ScheduleFoodWithRelations[];
   events: ScheduleEvent[];
 }) => {
+  const signOut = useAuthStore((s) => s.signOut);
   const [activeTab, setActiveTab] = useState<AnalyticsTab>('food');
   const [text, setText] = useState('');
   const [status, setStatus] = useState<StreamStatus>('idle');
@@ -233,13 +217,21 @@ const AnalyticsContent = ({
     let cancelled = false;
 
     async function load() {
-      const persisted = await fetchDailyAnalysis(date, dailyTab);
+      let persisted;
+      try {
+        persisted = await fetchDailyAnalysis(date, dailyTab);
+      } catch (err) {
+        if (err instanceof AnalyticsAuthError) {
+          await signOut();
+        }
+        return;
+      }
       if (cancelled) return;
 
       if (persisted) {
         setText(persisted.content);
         setStatus('done');
-        setCachedResult(date, activeTab, persisted.content);
+        setCachedAnalysis(userId, date, activeTab, persisted.content);
 
         // Check staleness
         const foodSnap = buildFoodSnapshot(foods);
@@ -253,7 +245,7 @@ const AnalyticsContent = ({
         }
       } else {
         // Fallback to localStorage
-        const cached = getCachedResult(date, activeTab);
+        const cached = getCachedAnalysis(userId, date, activeTab);
         if (cached && !cancelled) {
           setText(cached);
           setStatus('done');
@@ -268,7 +260,7 @@ const AnalyticsContent = ({
 
     load();
     return () => { cancelled = true; };
-  }, [date, activeTab, foods, events]);
+  }, [date, activeTab, foods, events, userId, signOut]);
 
   // Load weekly analysis
   useEffect(() => {
@@ -277,16 +269,24 @@ const AnalyticsContent = ({
 
     async function loadWeekly() {
       const { weekStart } = getWeekDates(date);
-      const persisted = await fetchWeeklyAnalysis(weekStart);
+      let persisted;
+      try {
+        persisted = await fetchWeeklyAnalysis(weekStart);
+      } catch (err) {
+        if (err instanceof AnalyticsAuthError) {
+          await signOut();
+        }
+        return;
+      }
       if (cancelled) return;
 
       if (persisted) {
         setText(persisted.content);
         setStatus('done');
-        setCachedResult(date, 'week', persisted.content);
+        setCachedAnalysis(userId, date, 'week', persisted.content);
         setIsStale(false);
       } else {
-        const cached = getCachedResult(date, 'week');
+        const cached = getCachedAnalysis(userId, date, 'week');
         if (cached && !cancelled) {
           setText(cached);
           setStatus('done');
@@ -301,7 +301,7 @@ const AnalyticsContent = ({
 
     loadWeekly();
     return () => { cancelled = true; };
-  }, [date, activeTab]);
+  }, [date, activeTab, userId, signOut]);
 
   const handleStop = useCallback(() => {
     abortRef.current?.abort();
@@ -327,7 +327,7 @@ const AnalyticsContent = ({
         if (result.cached) {
           setText(result.content);
           setStatus('done');
-          setCachedResult(date, 'week', result.content);
+          setCachedAnalysis(userId, date, 'week', result.content);
           return;
         }
 
@@ -344,7 +344,7 @@ const AnalyticsContent = ({
 
         if (!controller.signal.aborted) {
           setStatus('done');
-          setCachedResult(date, 'week', fullText);
+          setCachedAnalysis(userId, date, 'week', fullText);
         }
       } else {
         // Daily analysis
@@ -365,7 +365,7 @@ const AnalyticsContent = ({
         if (result.cached) {
           setText(result.content);
           setStatus('done');
-          setCachedResult(date, activeTab, result.content);
+          setCachedAnalysis(userId, date, activeTab, result.content);
           return;
         }
 
@@ -382,15 +382,19 @@ const AnalyticsContent = ({
 
         if (!controller.signal.aborted) {
           setStatus('done');
-          setCachedResult(date, activeTab, fullText);
+          setCachedAnalysis(userId, date, activeTab, fullText);
         }
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return;
+      if (err instanceof AnalyticsAuthError) {
+        await signOut();
+        return;
+      }
       setStatus('error');
       toaster.error(err instanceof Error ? err.message : 'Ошибка анализа');
     }
-  }, [date, foods, events, activeTab]);
+  }, [date, foods, events, activeTab, userId, signOut]);
 
   const handleTabChange = useCallback(
     (tab: string) => {
@@ -542,6 +546,7 @@ const GetDatePageWrapper = () => {
   const params = useParams();
   const date = params.id;
   const navigate = useNavigate();
+  const userId = useUserId();
 
   const scheduleFoods = useScheduleFoods(date);
   const scheduleEvents = useScheduleEvents(date);
@@ -552,9 +557,16 @@ const GetDatePageWrapper = () => {
     }
   }, [date]);
 
-  if (!date) return null;
+  if (!date || !userId) return null;
 
-  return <AnalyticsContent date={date} foods={scheduleFoods} events={[...scheduleEvents] as ScheduleEvent[]} />;
+  return (
+    <AnalyticsContent
+      date={date}
+      userId={userId}
+      foods={scheduleFoods}
+      events={[...scheduleEvents] as ScheduleEvent[]}
+    />
+  );
 };
 
 export default GetDatePageWrapper;

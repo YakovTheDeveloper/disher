@@ -138,8 +138,11 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         isExpanded={step === 'time'}
         content={
           <ModalShell className={modalStyles.whiteShell}>
+            <ModalShell.Title>
+              <ButtonBack onClick={() => setStep('idle')} />
+              Выберите время
+            </ModalShell.Title>
             <ModalShell.Body>
-              <ModalShell.Title>Выберите время</ModalShell.Title>
               <TimeChoose
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
@@ -151,7 +154,6 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
                 }}
               />
               <ModalShell.ActionButtons
-                left={<ModalPrevButton onClick={handleClose} />}
                 right={<ModalNextButton as="label" htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} />}
               />
             </ModalShell.Body>

@@ -1,5 +1,6 @@
 import { API_BASE } from "@/shared/lib/api/base";
 import { authHeaders } from "@/shared/lib/api/authHeaders";
+import { AnalyticsAuthError } from "./queries";
 
 interface FoodSnapshot {
   time: string;
@@ -15,6 +16,34 @@ interface EventSnapshot {
   atoms: unknown[];
 }
 
+type StartResult =
+  | { cached: true; content: string }
+  | { cached: false; response: Response };
+
+async function handleStartResponse(
+  res: Response,
+  offlineLabel: string,
+): Promise<StartResult> {
+  if (res.status === 401) throw new AnalyticsAuthError();
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(
+      res.status === 400
+        ? offlineLabel
+        : res.status >= 500
+          ? "Сервер временно недоступен"
+          : `Ошибка: ${res.status} ${text}`,
+    );
+  }
+
+  const contentType = res.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    const data = await res.json();
+    return { cached: true, content: data.content };
+  }
+  return { cached: false, response: res };
+}
+
 /**
  * Start a daily analysis stream (POST /api/analytics/v2/daily/:date).
  * If the server has a cached result with matching inputHash, returns it without streaming.
@@ -26,8 +55,8 @@ export async function startDailyAnalysis(
   foods: FoodSnapshot[],
   events: EventSnapshot[],
   inputHash: string,
-  signal?: AbortSignal
-): Promise<{ cached: true; content: string } | { cached: false; response: Response }> {
+  signal?: AbortSignal,
+): Promise<StartResult> {
   const body = { tab, foods, events: tab === "day" ? events : undefined, inputHash };
 
   const res = await fetch(`${API_BASE}/api/analytics/v2/daily/${date}`, {
@@ -37,28 +66,7 @@ export async function startDailyAnalysis(
     signal,
   });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(
-      res.status === 400
-        ? "Некорректные данные"
-        : res.status === 401
-          ? "Сессия истекла, перезайдите"
-          : res.status >= 500
-            ? "Сервер временно недоступен"
-            : `Ошибка: ${res.status} ${text}`
-    );
-  }
-
-  // If server returned JSON (cached result), parse it
-  const contentType = res.headers.get("content-type") || "";
-  if (contentType.includes("application/json")) {
-    const data = await res.json();
-    return { cached: true, content: data.content };
-  }
-
-  // Otherwise it's an SSE stream
-  return { cached: false, response: res };
+  return handleStartResponse(res, "Некорректные данные");
 }
 
 /**
@@ -67,8 +75,8 @@ export async function startDailyAnalysis(
 export async function startWeeklyAnalysis(
   weekStart: string,
   dates: string[],
-  signal?: AbortSignal
-): Promise<{ cached: true; content: string } | { cached: false; response: Response }> {
+  signal?: AbortSignal,
+): Promise<StartResult> {
   const res = await fetch(`${API_BASE}/api/analytics/v2/weekly/${weekStart}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(await authHeaders()) },
@@ -76,24 +84,5 @@ export async function startWeeklyAnalysis(
     signal,
   });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(
-      res.status === 400
-        ? "Недостаточно данных для недельного анализа"
-        : res.status === 401
-          ? "Сессия истекла, перезайдите"
-          : res.status >= 500
-            ? "Сервер временно недоступен"
-            : `Ошибка: ${res.status} ${text}`
-    );
-  }
-
-  const contentType = res.headers.get("content-type") || "";
-  if (contentType.includes("application/json")) {
-    const data = await res.json();
-    return { cached: true, content: data.content };
-  }
-
-  return { cached: false, response: res };
+  return handleStartResponse(res, "Недостаточно данных для недельного анализа");
 }

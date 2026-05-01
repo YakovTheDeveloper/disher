@@ -5,13 +5,16 @@ import { randomUUID } from "crypto";
 import fs from "fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.join(__dirname, "../../data/analytics.db");
+const DEFAULT_DB_PATH = path.join(__dirname, "../../data/analytics.db");
 
 let db: Database.Database;
 
 export function initAnalyticsDb(): void {
-  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-  db = new Database(DB_PATH);
+  const dbPath = process.env.ANALYTICS_DB_PATH ?? DEFAULT_DB_PATH;
+  if (dbPath !== ":memory:") {
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+  }
+  db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
 
   db.exec(`
