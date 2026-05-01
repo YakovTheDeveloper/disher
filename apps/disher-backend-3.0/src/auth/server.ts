@@ -1,17 +1,24 @@
-// Minimal better-auth instance for the @better-auth/cli to introspect.
-// Wired up properly (handlers, plugins, secrets) in B3 — for now this only
-// needs to be enough for `npx @better-auth/cli generate` to emit schema SQL.
+// Production better-auth instance.
 //
-// Choices baked in here that the migration depends on:
-//  - postgres dialect (raw pg.Pool against LOCAL_DATABASE_URL)
+// Owns: schema-generating config (CLI generate reads this file), runtime
+// password verification (signUpEmail / signInEmail), session management,
+// bearer-token issuance for the SPA. HTTP route mounting is in B3 (the
+// Fastify handler that proxies to `auth.handler`).
+//
+// Schema baked in here (see ../../db/migrations/better-auth-schema.sql for
+// the CLI-generated SQL — do NOT regenerate without comparing the diff
+// against init.sql, or test/dev DBs will silently desync):
 //  - generateId: "uuid"          → user.id is `uuid`, not `text`
 //  - user.modelName: "users"     → table is `public.users` (matches the
 //                                  existing FK target name from `auth.users`)
 //
-// Everything else is left at default (singular `account`/`session`/`verification`,
-// camelCase columns) — those tables are private to better-auth.
+// Plugins:
+//  - bearer() — issues a `set-auth-token` response header on sign-in/-up that
+//    callers (browser SPA, tests via Fastify.inject) read once and then send
+//    back as `Authorization: Bearer <token>`. Required for non-cookie auth.
 
 import { betterAuth } from "better-auth";
+import { bearer } from "better-auth/plugins";
 import pg from "pg";
 
 const connectionString = process.env.LOCAL_DATABASE_URL;
@@ -31,4 +38,8 @@ export const auth = betterAuth({
       generateId: "uuid",
     },
   },
+  emailAndPassword: {
+    enabled: true,
+  },
+  plugins: [bearer()],
 });
