@@ -30,6 +30,7 @@
     "@trpc/client": "^11.5.0",
     "@vitejs/plugin-react-swc": "^3.7.2",
     "axios": "1.7.8",
+    "better-auth": "1.6.9",
     "clsx": "2.1.1",
     "date-fns": "^4.1.0",
     "dexie": "4.4.2",
