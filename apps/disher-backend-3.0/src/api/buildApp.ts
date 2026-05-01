@@ -12,6 +12,7 @@ import { matcherTelemetryRoutes } from "./routes/matcher-telemetry.js";
 import { bugReportRoutes } from "./routes/bug-reports.js";
 import { diagLogsRoutes } from "./routes/diag-logs.js";
 import { backupRoutes } from "./routes/backup.js";
+import { betterAuthPlugin } from "../auth/fastify-plugin.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -39,7 +40,13 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   });
 
   await app.register(sensible);
-  await app.register(cors, { origin: true });
+  await app.register(cors, {
+    origin: true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  });
+
+  await app.register(betterAuthPlugin);
 
   await app.register(fastifyStatic, {
     root: path.join(__dirname, "../../content"),
