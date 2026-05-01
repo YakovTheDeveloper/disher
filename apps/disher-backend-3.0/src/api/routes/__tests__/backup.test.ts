@@ -1,54 +1,60 @@
-import "dotenv/config";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import Fastify, { type FastifyInstance } from "fastify";
-import pg from "pg";
+import {
+  createTestUser,
+  type TestUser,
+} from "../../../test/auth-helpers.js";
+import {
+  makeTestPool,
+  truncateAllUserData,
+} from "../../../test/db-helpers.js";
 
-// 8.3 /api/backup integration smoke (P0).
+// /api/backup integration tests (B2.2 — own-auth rewrite).
 //
-// Registers backupRoutes against a Fastify instance with verifySupabaseUser
-// mocked to honor `x-test-user-id` header — auth is OUT OF SCOPE here, see
-// 8.10 for that. Hits the live Supabase via the real `pool` (same module
-// instance that handlePush uses), inserts test rows under TEST_USER_ID, and
-// cleans up every tracked id in afterAll. Idempotent — safe to re-run.
+// Replaces the legacy mock that forwarded `x-test-user-id` headers to the
+// handler. Now exercises the FULL stack:
+//   bearer token (created via better-auth signUpEmail)
+//     → verifyUserBearer (auth.api.getSession)
+//     → backupRoutes handler
+//     → pg.Pool against TEST_DATABASE_URL (disher_test).
 //
-// Required env: SUPABASE_DB_URL, SUPABASE_URL, TEST_USER_ID. Without them the
-// suite skips with a clear message.
+// The `vi.mock("../../auth.js")` is at the import boundary, not the behavior
+// boundary: the mocked verifyUser IS the real better-auth verifier
+// (verify-bearer.ts). When B4 makes auth.ts itself use verify-bearer, the
+// mock disappears with one line edit.
+//
+// truncateAllUserData in beforeEach replaces the manual cleanup tracker.
 
-vi.mock("../../auth.js", () => ({
-  verifyUser: vi.fn(async (req: any, reply: any) => {
-    const uid = req.headers["x-test-user-id"];
-    if (!uid) {
-      reply.status(401).send({ error: "x-test-user-id missing in test" });
-      return null;
-    }
-    return uid;
-  }),
-}));
+vi.mock("../../auth.js", async () => {
+  const { verifyUserBearer } = await import("../../../auth/verify-bearer.js");
+  return { verifyUser: verifyUserBearer };
+});
 
-const SUPABASE_DB_URL = process.env.SUPABASE_DB_URL;
-const TEST_USER_ID = process.env.TEST_USER_ID;
-const ready = Boolean(SUPABASE_DB_URL && TEST_USER_ID);
+const ready = Boolean(process.env.TEST_DATABASE_URL);
 const describeIfReady = ready ? describe : describe.skip;
 
-// Track every row id we insert so afterAll can purge.
-const inserted: Array<{ table: string; id: string }> = [];
-function trackId(table: string, id: string) {
-  inserted.push({ table, id });
-  return id;
-}
+let app: FastifyInstance;
+let pool: ReturnType<typeof makeTestPool>;
 
-// Minimal payloads per table — only required fields. user_id is set per call.
 function payloadFor(
   table: string,
+  userId: string,
   overrides: Partial<Record<string, unknown>> = {},
 ): Record<string, unknown> {
   const id = crypto.randomUUID();
-  trackId(table, id);
   const now = new Date().toISOString();
   const base: Record<string, unknown> = {
     table,
     id,
-    user_id: TEST_USER_ID,
+    user_id: userId,
     edit_count: 1,
     client_modified_at: now,
     created_at: now,
@@ -66,10 +72,8 @@ function payloadFor(
       };
     case "dishes":
       return { ...base, name: `_test_dish_${id.slice(0, 8)}`, ...overrides };
-    case "dish_items": {
-      // Needs valid dish_id + product_id refs. Caller provides via overrides.
+    case "dish_items":
       return { ...base, quantity: 100, ...overrides };
-    }
     case "dish_portions":
       return {
         ...base,
@@ -79,8 +83,7 @@ function payloadFor(
         grams: 100,
         ...overrides,
       };
-    case "schedule_foods": {
-      // Needs product_id OR dish_id depending on type.
+    case "schedule_foods":
       return {
         ...base,
         date: "01-01-2099",
@@ -90,7 +93,6 @@ function payloadFor(
         details: "",
         ...overrides,
       };
-    }
     case "schedule_events":
       return {
         ...base,
@@ -123,57 +125,29 @@ function payloadFor(
   }
 }
 
-let app: FastifyInstance;
-let pool: pg.Pool;
-
 beforeAll(async () => {
   if (!ready) return;
   const { backupRoutes } = await import("../backup.js");
   app = Fastify({ logger: false });
   await app.register(backupRoutes, { prefix: "/api/backup" });
   await app.ready();
-
-  pool = new pg.Pool({
-    connectionString: SUPABASE_DB_URL,
-    max: 2,
-    idleTimeoutMillis: 5_000,
-    connectionTimeoutMillis: 10_000,
-  });
+  pool = makeTestPool();
 });
 
 afterAll(async () => {
   if (!ready) return;
-  // Purge in reverse order to satisfy FK constraints (dish_items → dishes etc).
-  // Group by table, delete by id list per table.
-  const byTable = new Map<string, string[]>();
-  for (const { table, id } of inserted) {
-    const list = byTable.get(table) ?? [];
-    list.push(id);
-    byTable.set(table, list);
-  }
-  // Order matters: dish_items before dishes; schedule_foods before products/dishes.
-  const order = [
-    "dish_items",
-    "dish_portions",
-    "schedule_foods",
-    "schedule_events",
-    "daily_norms",
-    "periods",
-    "dishes",
-    "products",
-  ];
-  for (const t of order) {
-    const ids = byTable.get(t);
-    if (!ids?.length) continue;
-    await pool.query(`delete from public.${t} where id = any($1::uuid[])`, [
-      ids,
-    ]);
-  }
   await app?.close();
   await pool?.end();
 });
 
 describeIfReady("/api/backup integration", () => {
+  let user: TestUser;
+
+  beforeEach(async () => {
+    await truncateAllUserData(pool);
+    user = await createTestUser();
+  });
+
   describe("happy path: each table accepts a single row", () => {
     it.each([
       "products",
@@ -182,16 +156,11 @@ describeIfReady("/api/backup integration", () => {
       "daily_norms",
       "periods",
     ])("accepts a fresh %s row", async (table) => {
-      // dish_items / dish_portions / schedule_foods need FK refs and live in
-      // the chain test below.
-      const row = payloadFor(table);
+      const row = payloadFor(table, user.userId);
       const res = await app.inject({
         method: "POST",
         url: "/api/backup",
-        headers: {
-          authorization: "Bearer test",
-          "x-test-user-id": TEST_USER_ID!,
-        },
+        headers: user.headers,
         payload: { rows: [row] },
       });
       expect(res.statusCode, `${table}: ${res.body}`).toBe(200);
@@ -205,15 +174,14 @@ describeIfReady("/api/backup integration", () => {
     });
 
     it("accepts a dish + dish_items + dish_portions chain", async () => {
-      // Need a real product first to reference from dish_items.
-      const product = payloadFor("products");
-      const dish = payloadFor("dishes");
-      const dishItem = payloadFor("dish_items", {
+      const product = payloadFor("products", user.userId);
+      const dish = payloadFor("dishes", user.userId);
+      const dishItem = payloadFor("dish_items", user.userId, {
         dish_id: dish.id,
         product_id: product.id,
         quantity: 50,
       });
-      const dishPortion = payloadFor("dish_portions", {
+      const dishPortion = payloadFor("dish_portions", user.userId, {
         dish_id: dish.id,
         label: "small",
         amount: 1,
@@ -223,11 +191,7 @@ describeIfReady("/api/backup integration", () => {
       const res = await app.inject({
         method: "POST",
         url: "/api/backup",
-        headers: {
-          authorization: "Bearer test",
-          "x-test-user-id": TEST_USER_ID!,
-        },
-        // Order matters: products + dishes before dish_items (FK).
+        headers: user.headers,
         payload: { rows: [product, dish, dishItem, dishPortion] },
       });
       expect(res.statusCode).toBe(200);
@@ -244,18 +208,15 @@ describeIfReady("/api/backup integration", () => {
     });
 
     it("accepts a schedule_food referencing the product", async () => {
-      const product = payloadFor("products");
-      const sched = payloadFor("schedule_foods", {
+      const product = payloadFor("products", user.userId);
+      const sched = payloadFor("schedule_foods", user.userId, {
         product_id: product.id,
         type: "food",
       });
       const res = await app.inject({
         method: "POST",
         url: "/api/backup",
-        headers: {
-          authorization: "Bearer test",
-          "x-test-user-id": TEST_USER_ID!,
-        },
+        headers: user.headers,
         payload: { rows: [product, sched] },
       });
       expect(res.statusCode).toBe(200);
@@ -268,20 +229,25 @@ describeIfReady("/api/backup integration", () => {
     });
   });
 
-  describe("LWW edge cases", () => {
-    it("rejects rows with user_id != jwt sub (user_id_mismatch)", async () => {
-      // We craft a row but spoof user_id to a different uuid.
-      const otherUuid = "00000000-0000-0000-0000-000000000001";
-      const row = payloadFor("products", { user_id: otherUuid });
-      // Don't track for cleanup — it never lands.
-      inserted.pop();
+  describe("auth + LWW edge cases", () => {
+    it("rejects requests without a bearer token (401)", async () => {
       const res = await app.inject({
         method: "POST",
         url: "/api/backup",
-        headers: {
-          authorization: "Bearer test",
-          "x-test-user-id": TEST_USER_ID!,
-        },
+        payload: { rows: [] },
+      });
+      expect(res.statusCode).toBe(401);
+    });
+
+    it("rejects rows with user_id != jwt sub (user_id_mismatch)", async () => {
+      // Create a second user — the row will spoof their userId. Backend must
+      // reject because authenticated user (jwt sub) != row.user_id.
+      const otherUser = await createTestUser();
+      const row = payloadFor("products", otherUser.userId);
+      const res = await app.inject({
+        method: "POST",
+        url: "/api/backup",
+        headers: user.headers, // authenticated as `user`, NOT otherUser
         payload: { rows: [row] },
       });
       expect(res.statusCode).toBe(200);
@@ -299,31 +265,26 @@ describeIfReady("/api/backup integration", () => {
 
     it("rejects stale edit_count (lower or equal-with-older-time)", async () => {
       // Insert v2 first, then attempt v1 — v1 must be rejected as stale.
-      const v2 = payloadFor("products", {
+      const v2 = payloadFor("products", user.userId, {
         edit_count: 2,
         client_modified_at: new Date().toISOString(),
       });
       const fresh = await app.inject({
         method: "POST",
         url: "/api/backup",
-        headers: {
-          authorization: "Bearer test",
-          "x-test-user-id": TEST_USER_ID!,
-        },
+        headers: user.headers,
         payload: { rows: [v2] },
       });
       expect(fresh.statusCode).toBe(200);
-      expect((fresh.json() as { accepted: unknown[] }).accepted).toHaveLength(1);
+      expect((fresh.json() as { accepted: unknown[] }).accepted).toHaveLength(
+        1,
+      );
 
-      // Same id, lower edit_count — should be rejected.
       const v1 = { ...v2, edit_count: 1 };
       const stale = await app.inject({
         method: "POST",
         url: "/api/backup",
-        headers: {
-          authorization: "Bearer test",
-          "x-test-user-id": TEST_USER_ID!,
-        },
+        headers: user.headers,
         payload: { rows: [v1] },
       });
       expect(stale.statusCode).toBe(200);
@@ -341,24 +302,20 @@ describeIfReady("/api/backup integration", () => {
     });
 
     it("idempotent: same row twice → second is accepted no-op (>= tie-break)", async () => {
-      const row = payloadFor("products", {
+      const row = payloadFor("products", user.userId, {
         edit_count: 5,
         client_modified_at: new Date().toISOString(),
       });
-      const headers = {
-        authorization: "Bearer test",
-        "x-test-user-id": TEST_USER_ID!,
-      };
       const a = await app.inject({
         method: "POST",
         url: "/api/backup",
-        headers,
+        headers: user.headers,
         payload: { rows: [row] },
       });
       const b = await app.inject({
         method: "POST",
         url: "/api/backup",
-        headers,
+        headers: user.headers,
         payload: { rows: [row] },
       });
       expect(a.statusCode).toBe(200);
@@ -371,16 +328,12 @@ describeIfReady("/api/backup integration", () => {
     });
 
     it("soft-delete is sticky: insert after delete leaves row deleted", async () => {
-      const row = payloadFor("products");
-      const headers = {
-        authorization: "Bearer test",
-        "x-test-user-id": TEST_USER_ID!,
-      };
+      const row = payloadFor("products", user.userId);
       // 1. Create.
       await app.inject({
         method: "POST",
         url: "/api/backup",
-        headers,
+        headers: user.headers,
         payload: { rows: [row] },
       });
       // 2. Delete (set deleted_at, bump edit_count).
@@ -393,13 +346,12 @@ describeIfReady("/api/backup integration", () => {
       const delRes = await app.inject({
         method: "POST",
         url: "/api/backup",
-        headers,
+        headers: user.headers,
         payload: { rows: [deleteRow] },
       });
       expect(delRes.statusCode).toBe(200);
 
-      // 3. Try to "resurrect" with a re-insert (same id, no deleted_at, even
-      // higher edit_count) — backend's WHERE clause should keep it deleted.
+      // 3. Try to "resurrect" with re-insert; backend WHERE clause keeps it deleted.
       const resurrect = {
         ...row,
         edit_count: 99,
@@ -409,12 +361,11 @@ describeIfReady("/api/backup integration", () => {
       const resRes = await app.inject({
         method: "POST",
         url: "/api/backup",
-        headers,
+        headers: user.headers,
         payload: { rows: [resurrect] },
       });
       expect(resRes.statusCode).toBe(200);
 
-      // Verify in DB: row exists with deleted_at != null.
       const { rows: dbRows } = await pool.query<{ deleted_at: Date | null }>(
         "select deleted_at from public.products where id = $1::uuid",
         [row.id],
@@ -431,7 +382,7 @@ describeIfReady("/api/backup integration", () => {
 if (!ready) {
   describe("/api/backup integration", () => {
     it.skip(
-      "SUPABASE_DB_URL or TEST_USER_ID not set — see .env in apps/disher-backend-3.0",
+      "TEST_DATABASE_URL not set — see .env in apps/disher-backend-3.0",
       () => {},
     );
   });

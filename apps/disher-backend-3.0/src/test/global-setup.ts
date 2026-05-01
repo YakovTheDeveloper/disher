@@ -36,14 +36,20 @@ export async function setup(): Promise<void> {
     return;
   }
 
-  // Point the in-process better-auth pool at the test DB. ../auth/server.ts
-  // reads LOCAL_DATABASE_URL on module load (its pool is constructed there);
-  // overriding it here means every test that imports `auth` (transitively via
-  // auth-helpers.ts) writes users/sessions into disher_test, NOT disher_dev.
+  // Point the in-process pools at the test DB. Both:
+  //  - ../auth/server.ts reads LOCAL_DATABASE_URL (better-auth pool)
+  //  - ../api/db.ts reads SUPABASE_DB_URL (backup handler pool)
+  // construct their pg.Pool at module load. Overriding both env vars here
+  // means every test that imports `auth` or `pool` writes into disher_test,
+  // NOT into disher_dev or production Supabase. Critical for FK consistency:
+  // user created via auth.api.signUpEmail (auth pool) must be visible to the
+  // backup handler (db pool) on FK lookup.
+  //
   // Caveat: setup() runs in vitest's parent process; child workers inherit
-  // process.env, so the override propagates. singleFork:true in vitest.config
+  // process.env, so the overrides propagate. singleFork:true in vitest.config
   // keeps this true even with parallelism.
   process.env.LOCAL_DATABASE_URL = url;
+  process.env.SUPABASE_DB_URL = url;
 
   const pool = new pg.Pool({
     connectionString: url,
