@@ -7,7 +7,6 @@ import { removeScheduleEvents } from '@/entities/schedule-event';
 import clsx from 'clsx';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
-import Typography from '@/shared/ui/atoms/Typography/Typography';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
@@ -24,6 +23,7 @@ import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
 import toaster from '@/shared/lib/toaster/toaster';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
+import normsImg from '@/shared/assets/decarative/norms.png';
 
 type Props = {
   children?: React.ReactNode;
@@ -96,15 +96,10 @@ const ScheduleEvents = ({ date, events }: Props) => {
         </ActionsPanel>
       }
       key={3}
-      title={<Typography variant="feature-title">События</Typography>}
       bottomRight={
         events.length > 0 ? (
           <AddButton htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT} as="label" onClick={() => {}} />
-        ) : null
-      }
-    >
-      {events.length === 0 && (
-        <div style={{ padding: 'var(--space-10) var(--space-4) 0' }}>
+        ) : (
           <AddButton
             onClick={() => {}}
             as="label"
@@ -113,8 +108,13 @@ const ScheduleEvents = ({ date, events }: Props) => {
           >
             Добавить событие
           </AddButton>
-        </div>
-      )}
+        )
+      }
+    >
+      <header className={styles.dayHeader}>
+        <h2 className={styles.dayHeaderTitle}>События дня</h2>
+        <img className={styles.dayHeaderImg} src={normsImg} alt="" aria-hidden />
+      </header>
 
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList offsetTop>

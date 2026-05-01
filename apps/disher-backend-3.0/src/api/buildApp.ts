@@ -13,6 +13,7 @@ import { bugReportRoutes } from "./routes/bug-reports.js";
 import { diagLogsRoutes } from "./routes/diag-logs.js";
 import { backupRoutes } from "./routes/backup.js";
 import { betterAuthPlugin } from "../auth/fastify-plugin.js";
+import { registerUserIdDecorator } from "../auth/require-user.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -47,6 +48,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   });
 
   await app.register(betterAuthPlugin);
+  registerUserIdDecorator(app);
 
   await app.register(fastifyStatic, {
     root: path.join(__dirname, "../../content"),

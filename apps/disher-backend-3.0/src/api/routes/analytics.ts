@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { verifyUser } from "../auth.js";
+import { requireUser } from "../../auth/require-user.js";
 import {
   getDailyAnalysis,
   upsertDailyAnalysis,
@@ -206,17 +206,13 @@ async function streamFromLLM(
 // ─── Routes ───
 
 export async function analyticsRoutes(app: FastifyInstance) {
-  // ─── V2 endpoints (Supabase JWT auth) ───
-  // Cache is keyed by the user's Supabase UUID. Both anonymous and permanent
-  // users get a stable per-account `sub`, so analyses cannot leak across
-  // accounts that happen to produce the same `inputHash`.
+  app.addHook("preHandler", requireUser);
 
   // GET /api/analytics/v2/daily/:date?tab=food|day
   app.get<{ Params: { date: string }; Querystring: { tab?: string } }>(
     "/v2/daily/:date",
     async (req, reply) => {
-      const userId = await verifyUser(req, reply);
-      if (!userId) return;
+      const userId = req.userId;
 
       const tab = req.query.tab || "food";
       const analysis = getDailyAnalysis(userId, req.params.date, tab);
@@ -238,8 +234,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
     "/v2/daily/:date",
     async (req, reply) => {
       try {
-        const userId = await verifyUser(req, reply);
-        if (!userId) return;
+        const userId = req.userId;
 
         const { tab, foods, events, inputHash } = req.body;
         const date = req.params.date;
@@ -283,8 +278,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
   app.get<{ Params: { weekStart: string } }>(
     "/v2/weekly/:weekStart",
     async (req, reply) => {
-      const userId = await verifyUser(req, reply);
-      if (!userId) return;
+      const userId = req.userId;
 
       const analysis = getWeeklyAnalysis(userId, req.params.weekStart);
       if (!analysis) {
@@ -304,8 +298,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
     "/v2/weekly/:weekStart",
     async (req, reply) => {
       try {
-        const userId = await verifyUser(req, reply);
-        if (!userId) return;
+        const userId = req.userId;
 
         const weekStart = req.params.weekStart;
         const { dates } = req.body;

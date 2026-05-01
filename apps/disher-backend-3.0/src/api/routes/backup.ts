@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { pool } from "../db.js";
-import { verifyUser } from "../auth.js";
+import { requireUser } from "../../auth/require-user.js";
 
 // POST   /api/backup            — push dirty rows from client, LWW upsert.
 // GET    /api/backup/snapshot   — full pull for fresh install / eviction recovery.
@@ -309,8 +309,7 @@ async function handlePush(req: FastifyRequest, reply: FastifyReply) {
     return reply.status(500).send({ error: "DB not configured" });
   }
 
-  const userId = await verifyUser(req, reply);
-  if (!userId) return;
+  const userId = req.userId;
 
   const body = req.body as BackupBody;
   const rows = Array.isArray(body?.rows) ? body.rows : [];
@@ -352,8 +351,7 @@ async function handleSnapshot(req: FastifyRequest, reply: FastifyReply) {
     return reply.status(500).send({ error: "DB not configured" });
   }
 
-  const userId = await verifyUser(req, reply);
-  if (!userId) return;
+  const userId = req.userId;
 
   const out: Record<string, unknown[]> = {};
 
@@ -380,8 +378,7 @@ async function handleStats(req: FastifyRequest, reply: FastifyReply) {
     return reply.status(500).send({ error: "DB not configured" });
   }
 
-  const userId = await verifyUser(req, reply);
-  if (!userId) return;
+  const userId = req.userId;
 
   const out: Record<string, number> = {};
   for (const table of TABLE_NAMES) {
@@ -398,6 +395,7 @@ async function handleStats(req: FastifyRequest, reply: FastifyReply) {
 // ─── route registration ────────────────────────────────────────────────────
 
 export async function backupRoutes(app: FastifyInstance) {
+  app.addHook("preHandler", requireUser);
   app.post("/", handlePush);
   app.get("/snapshot", handleSnapshot);
   app.get("/stats", handleStats);

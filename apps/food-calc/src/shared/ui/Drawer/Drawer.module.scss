@@ -15,7 +15,7 @@
 .overlay {
     position: fixed;
     inset: 0;
-    background-color: hsla(0, 0%, 0%, var(--vaul-overlay-opacity));
+    background-color: rgba(0, 0, 0, 0.2);
     z-index: 5000;
     opacity: 0;
     transition: opacity var(--vaul-overlay-duration) ease-out;

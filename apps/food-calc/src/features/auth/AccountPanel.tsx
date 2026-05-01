@@ -10,7 +10,6 @@ const AccountPanel = () => {
   // The app is gated behind AuthGate, so by the time AccountPanel renders the
   // user is always logged in. Defensive null-check kept for the brief window
   // after signOut when the gate re-mounts.
-  if (!isLoggedIn) return null;
 
   const openDrawer = () => {
     drawerStore.show(ProfileDrawer, {});
@@ -22,9 +21,7 @@ const AccountPanel = () => {
       onClick={openDrawer}
       aria-label={email ? `Аккаунт ${email}` : 'Аккаунт'}
     >
-      <span className={styles.avatarLetter}>
-        {email ? email[0].toUpperCase() : '?'}
-      </span>
+      <span className={styles.avatarLetter}>{email ? email[0].toUpperCase() : '?'}</span>
     </button>
   );
 };

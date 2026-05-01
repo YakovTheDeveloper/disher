@@ -1,6 +1,5 @@
 // Better-auth bearer-token verifier. Sole bearer auth path for protected
-// routes; src/api/auth.ts re-exports `verifyUserBearer` as `verifyUser` so
-// route handlers (backup.ts, analytics.ts) keep their existing import path.
+// routes; called from `requireUser` preHandler hook (auth/require-user.ts).
 
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { auth } from "./server.js";

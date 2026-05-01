@@ -5,3 +5,45 @@
     grid-template-columns: 1fr;
     gap: 10px;
 }
+
+
+.dayHeaderTitle {
+    position: absolute;
+    left: var(--space-4, 16px);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    margin: 0;
+    white-space: nowrap;
+    color: var(--color-ink);
+    opacity: 0.7;
+    font-family: "Source Serif 4", serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 3.5rem;
+    line-height: 1.05;
+    letter-spacing: -1px;
+    max-width: 60%;
+}
+
+.dayHeaderImg {
+    position: absolute;
+    right: -20%;
+    opacity: 0.03;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 0;
+    width: 300px;
+    height: 300px;
+    max-width: 100%;
+    object-fit: contain;
+    object-position: right center;
+    pointer-events: none;
+    user-select: none;
+}
+
+
+.dayHeader {
+    position: relative;
+    min-height: 300px;
+}
