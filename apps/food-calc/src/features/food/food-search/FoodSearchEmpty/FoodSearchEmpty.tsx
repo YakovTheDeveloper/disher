@@ -5,33 +5,39 @@ type Props = {
   query: string;
   onCreateProduct?: () => void;
   onCreateDish?: () => void;
+  showMessage?: boolean;
 };
 
-export const FoodSearchEmpty = ({ query, onCreateProduct, onCreateDish }: Props) => {
+export const FoodSearchEmpty = ({
+  query,
+  onCreateProduct,
+  onCreateDish,
+  showMessage = true,
+}: Props) => {
   const ref = useKeyboardStick<HTMLDivElement>();
 
   return (
     <div ref={ref} className={styles.root}>
-      <p className={styles.message}>
-        По запросу <em>«{query}»</em> ничего нет
-      </p>
+      {showMessage && (
+        <p className={styles.message}>
+          По запросу <em>«{query}»</em> ничего нет
+        </p>
+      )}
       <div className={styles.actions}>
         {onCreateDish && (
           <button className={styles.card} onClick={onCreateDish}>
             <span className={styles.cardTitle}>{query}</span>
             <span className={styles.cardLabel}>
-              Добавить <span className={styles.cardMono}>блюдо</span>
+              <span className={styles.cardMono}>блюдо</span>
             </span>
-            <span className={styles.cardHint}>состоит из продуктов</span>
           </button>
         )}
         {onCreateProduct && (
           <button className={styles.cardPrimary} onClick={onCreateProduct}>
             <span className={styles.cardTitle}>{query}</span>
             <span className={styles.cardLabel}>
-              Добавить <span className={styles.cardMono}>продукт</span>
+              <span className={styles.cardMono}>продукт</span>
             </span>
-            <span className={styles.cardHint}>составляющая часть блюд</span>
           </button>
         )}
       </div>

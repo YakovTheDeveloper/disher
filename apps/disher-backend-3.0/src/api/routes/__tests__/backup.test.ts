@@ -5,7 +5,6 @@ import {
   describe,
   expect,
   it,
-  vi,
 } from "vitest";
 import Fastify, { type FastifyInstance } from "fastify";
 import {
@@ -19,24 +18,13 @@ import {
 
 // /api/backup integration tests (B2.2 — own-auth rewrite).
 //
-// Replaces the legacy mock that forwarded `x-test-user-id` headers to the
-// handler. Now exercises the FULL stack:
+// Exercises the FULL stack:
 //   bearer token (created via better-auth signUpEmail)
-//     → verifyUserBearer (auth.api.getSession)
+//     → verifyUser (better-auth getSession in src/api/auth.ts)
 //     → backupRoutes handler
 //     → pg.Pool against TEST_DATABASE_URL (disher_test).
 //
-// The `vi.mock("../../auth.js")` is at the import boundary, not the behavior
-// boundary: the mocked verifyUser IS the real better-auth verifier
-// (verify-bearer.ts). When B4 makes auth.ts itself use verify-bearer, the
-// mock disappears with one line edit.
-//
 // truncateAllUserData in beforeEach replaces the manual cleanup tracker.
-
-vi.mock("../../auth.js", async () => {
-  const { verifyUserBearer } = await import("../../../auth/verify-bearer.js");
-  return { verifyUser: verifyUserBearer };
-});
 
 const ready = Boolean(process.env.TEST_DATABASE_URL);
 const describeIfReady = ready ? describe : describe.skip;

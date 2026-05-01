@@ -1,123 +1,34 @@
-import { useCallback, useState } from 'react';
-import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
-import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
-import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
-import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
-import { addDishItem } from '@/entities/dish';
-import { useProductPortions } from '@/entities/product';
-import toaster from '@/shared/lib/toaster/toaster';
-import { safeMutate } from '@/shared/lib/safeMutate';
-import { DISH_MODAL_INPUT_IDS } from './DishProductCreateModals.constants';
-
-type Step = 'idle' | 'search' | 'quantity';
-type ActiveStep = Exclude<Step, 'idle'>;
-
-const STEPS: ActiveStep[] = ['search', 'quantity'];
-
-const STEP_LABELS: Record<ActiveStep, string> = {
-  search: 'Продукт',
-  quantity: 'Количество',
-};
-
-type FoodContent = {
-  quantity: number;
-  updateQuantity: (q: number) => void;
-};
-
-type DraftState = {
-  productId: string | null;
-  quantity: number;
-  content: FoodContent | null;
-};
-
-const DEFAULT_PRODUCT_ID = '1';
-
-const createEmptyDraft = (): DraftState => ({
-  productId: DEFAULT_PRODUCT_ID,
-  quantity: 100,
-  content: null,
-});
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
+import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
+import { useDishProductFlow, CREATE_STEPS, STEP_LABELS } from '../useDishProductFlow';
 
 type Props = {
   dishId: string;
 };
 
 const DishProductCreateModals = ({ dishId }: Props) => {
-  const [step, setStep] = useState<Step>('idle');
-  const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
-  const [sessionKey, setSessionKey] = useState(0);
-  useSwipeableLock(step !== 'idle');
+  const {
+    step,
+    setStep,
+    draft,
+    sessionKey,
+    handleFocusCapture,
+    handleClose,
+    handleFoodSelect,
+    handleCommit,
+    quantityContent,
+    inputIds: { SEARCH_INPUT, QUANTITY_INPUT },
+  } = useDishProductFlow({ type: 'create', dishId });
 
-  const foodPortionsMap = useProductPortions(draft.productId ?? undefined);
-
-  const handleFocusCapture = useCallback((e: React.FocusEvent) => {
-    const target = e.target as HTMLElement;
-    const id = target.id;
-    if (id === DISH_MODAL_INPUT_IDS.SEARCH_INPUT) setStep('search');
-    else if (id === DISH_MODAL_INPUT_IDS.QUANTITY_INPUT) setStep('quantity');
-    else return;
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
-      });
-    });
-  }, []);
-
-  const handleFoodSelect = (payload: { variant: 'product' | 'dish'; id: string }) => {
-    if (payload.variant === 'dish') return;
-    setDraft((prev) => ({
-      ...prev,
-      productId: payload.id,
-      content: {
-        quantity: prev.quantity,
-        updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
-      },
-    }));
-    setStep('quantity');
-  };
-
-  const handleCommit = async () => {
-    if (draft.productId) {
-      const result = await safeMutate(
-        () => addDishItem({ dishId, productId: draft.productId!, quantity: draft.quantity }),
-        'Не удалось добавить продукт'
-      );
-      if (result === undefined) return;
-      toaster.success('Продукт добавлен');
-    }
-    setDraft(createEmptyDraft());
-    setSessionKey((k) => k + 1);
-    setStep('idle');
-  };
-
-  const handleClose = () => {
-    setDraft(createEmptyDraft());
-    setSessionKey((k) => k + 1);
-    setStep('idle');
-  };
-
-  useOverlayHistory(step !== 'idle', handleClose);
-
-  const goToStep = (target: Step) => {
-    setStep(target);
-  };
-
-  const quantityContent = {
-    ...(draft.content ?? {
-      quantity: draft.quantity,
-      updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
-    }),
-    food: { portions: foodPortionsMap ?? [] },
-  };
+  const goToStep = (target: typeof step) => setStep(target);
 
   return (
     <div onFocusCapture={handleFocusCapture}>
-      {/* Step 1: Search Food */}
+      {/* Step 1: Search */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'search'}
@@ -125,7 +36,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
           <ModalShell>
             <ModalStepHeader
               currentStep="search"
-              steps={STEPS}
+              steps={CREATE_STEPS}
               stepLabels={STEP_LABELS}
               onBack={handleClose}
               onStepClick={goToStep}
@@ -138,8 +49,8 @@ const DishProductCreateModals = ({ dishId }: Props) => {
                 handleClose();
               }}
               activeItemId={draft.productId ?? undefined}
-              itemHtmlFor={DISH_MODAL_INPUT_IDS.QUANTITY_INPUT}
-              inputId={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
+              itemHtmlFor={QUANTITY_INPUT}
+              inputId={SEARCH_INPUT}
             />
           </ModalShell>
         }
@@ -153,7 +64,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
           <ModalShell>
             <ModalStepHeader
               currentStep="quantity"
-              steps={STEPS}
+              steps={CREATE_STEPS}
               stepLabels={STEP_LABELS}
               onBack={handleClose}
               onStepClick={goToStep}
@@ -162,7 +73,12 @@ const DishProductCreateModals = ({ dishId }: Props) => {
             <ModalShell.Body>
               {draft.productId && (
                 <>
-                  <ProductQuantity key={sessionKey} content={quantityContent} onFinish={() => {}} />
+                  <ProductQuantity
+                    key={sessionKey}
+                    content={quantityContent}
+                    onFinish={() => {}}
+                    inputId={QUANTITY_INPUT}
+                  />
                   <ModalShell.ActionButtons
                     left={<ModalPrevButton onClick={() => goToStep('search')} />}
                     right={<ModalNextButton onClick={handleCommit} />}

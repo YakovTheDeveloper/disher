@@ -1,106 +1,26 @@
-import { useCallback, useState } from 'react';
-import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
-import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
-import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
+import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
-import { updateDishItem } from '@/entities/dish';
-import { useProductPortions } from '@/entities/product';
-import { safeMutate } from '@/shared/lib/safeMutate';
-import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-import { DISH_EDIT_MODAL_INPUT_IDS } from './DishProductEditModals.constants';
-
-type Step = 'idle' | 'search' | 'quantity';
-
-type FoodContent = {
-  quantity: number;
-  updateQuantity: (q: number) => void;
-};
-
-type DraftState = {
-  productId: string | null;
-  quantity: number;
-  content: FoodContent | null;
-};
-
-type EditItem = {
-  id: string;
-  productId: string;
-  quantity: number;
-  product?: { name: string | null } | null;
-};
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
+import type { DishProductFlow } from '../useDishProductFlow';
 
 type Props = {
-  item: EditItem;
-  initialStep?: Step;
-  onClose: () => void;
+  flow: DishProductFlow;
 };
 
-const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) => {
-  const createInitialDraft = (): DraftState => ({
-    productId: item.productId,
-    quantity: item.quantity,
-    content: {
-      quantity: item.quantity,
-      updateQuantity: (q: number) => setDraft((d) => ({ ...d, quantity: q })),
-    },
-  });
-
-  const [step, setStep] = useState<Step>(initialStep);
-  const [draft, setDraft] = useState<DraftState>(createInitialDraft);
-
-  const foodPortionsMap = useProductPortions(draft.productId ?? undefined);
-
-  useSwipeableLock(step !== 'idle');
-  useOverlayHistory(step !== 'idle', () => {
-    setStep('idle');
-    onClose();
-  });
-
-  const handleClose = () => {
-    setStep('idle');
-    onClose();
-  };
-
-  const handleFocusCapture = useCallback((e: React.FocusEvent) => {
-    const target = e.target as HTMLElement;
-    const id = target.id;
-    if (id === DISH_EDIT_MODAL_INPUT_IDS.SEARCH_INPUT) setStep('search');
-    else if (id === DISH_EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT) setStep('quantity');
-    else return;
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
-      });
-    });
-  }, []);
-
-  const handleFoodSelect = async (payload: { variant: 'product' | 'dish'; id: string }) => {
-    if (payload.variant === 'dish') return;
-    const result = await safeMutate(
-      () => updateDishItem(item.id, { productId: payload.id }),
-      'Не удалось обновить'
-    );
-    if (result === undefined) return;
-    setStep('idle');
-    onClose();
-  };
-
-  const handleCommit = async () => {
-    const result = await safeMutate(
-      () =>
-        updateDishItem(item.id, {
-          productId: draft.productId ?? undefined,
-          quantity: draft.quantity,
-        }),
-      'Не удалось обновить'
-    );
-    if (result === undefined) return;
-    setStep('idle');
-    onClose();
-  };
+const DishProductEditModals = ({ flow }: Props) => {
+  const {
+    step,
+    draft,
+    editingItem,
+    handleFocusCapture,
+    handleFoodSelect,
+    handleCommit,
+    handleClose,
+    quantityContent,
+    inputIds: { SEARCH_INPUT, QUANTITY_INPUT },
+  } = flow;
 
   return (
     <div onFocusCapture={handleFocusCapture}>
@@ -116,9 +36,10 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
               onInfoClick={() => {
                 handleClose();
               }}
+              onBack={handleClose}
               activeItemId={draft.productId ?? undefined}
-              inputId={DISH_EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
-              initialSearchQuery={item.product?.name ?? undefined}
+              inputId={SEARCH_INPUT}
+              initialSearchQuery={editingItem?.product?.name ?? undefined}
             />
           </ModalShell>
         }
@@ -131,15 +52,12 @@ const DishProductEditModals = ({ item, initialStep = 'idle', onClose }: Props) =
         content={
           <ModalShell>
             <ModalShell.Body>
-              {draft.content && (
+              {editingItem && (
                 <>
                   <ProductQuantity
-                    content={{
-                      ...draft.content,
-                      product: { portions: foodPortionsMap ?? [] },
-                    }}
+                    content={quantityContent}
                     onFinish={() => {}}
-                    inputId={DISH_EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
+                    inputId={QUANTITY_INPUT}
                   />
                   <ModalShell.ActionButtons
                     left={<ModalPrevButton onClick={handleClose} />}

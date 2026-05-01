@@ -2,5 +2,12 @@ export { default as DishProductCreateModals } from './DishProductCreateModals/Di
 export { DISH_MODAL_INPUT_IDS } from './DishProductCreateModals/DishProductCreateModals.constants';
 export { default as DishProductEditModals } from './DishProductEditModals/DishProductEditModals';
 export { DISH_EDIT_MODAL_INPUT_IDS } from './DishProductEditModals/DishProductEditModals.constants';
+export {
+  useDishProductFlow,
+  DISH_PRODUCT_INPUT_IDS,
+  CREATE_STEPS as DISH_PRODUCT_CREATE_STEPS,
+  STEP_LABELS as DISH_PRODUCT_STEP_LABELS,
+} from './useDishProductFlow';
+export type { DishProductFlow, EditItem as DishEditItem } from './useDishProductFlow';
 export { Heading } from './Heading';
 export { DishSuggestionsModal, DISH_SUGGESTIONS_INPUT_IDS } from './DishSuggestionsModal';

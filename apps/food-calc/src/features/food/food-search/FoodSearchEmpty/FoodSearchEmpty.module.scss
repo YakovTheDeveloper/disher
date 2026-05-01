@@ -24,19 +24,21 @@
 .actions {
     display: flex;
     width: 100%;
+    gap: 1px;
 }
 
-// ─── Square action cards ──────────────
+// ─── Compact horizontal action cards ──────────────
 
 .card,
 .cardPrimary {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
     justify-content: space-between;
+    gap: 10px;
     flex: 1;
-    aspect-ratio: 1;
-    padding: 14px;
+    min-width: 0;
+    padding: 10px 14px;
     border: none;
     cursor: pointer;
     text-align: left;
@@ -45,7 +47,7 @@
     -webkit-tap-highlight-color: transparent;
 
     &:active {
-        transform: scale(0.97);
+        transform: scale(0.98);
     }
 }
 
@@ -69,16 +71,15 @@
 
 .cardTitle {
     font-family: var(--font-display);
-    font-size: var(--text-base);
+    font-size: var(--text-sm);
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: -0.01em;
     overflow: hidden;
     text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    word-break: break-word;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
 }
 
 .cardLabel {
@@ -86,19 +87,12 @@
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    line-height: 1.3;
+    line-height: 1;
+    flex-shrink: 0;
 }
 
 .cardMono {
     font-family: var(--font-mono);
     font-weight: 400;
     letter-spacing: 0.04em;
-}
-
-.cardHint {
-    font-size: 0.6rem;
-    font-weight: 400;
-    opacity: 0.45;
-    letter-spacing: 0.03em;
-    line-height: 1.3;
 }

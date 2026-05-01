@@ -5,7 +5,6 @@ import {
   describe,
   expect,
   it,
-  vi,
 } from "vitest";
 import Fastify, { type FastifyInstance } from "fastify";
 import {
@@ -22,11 +21,6 @@ import {
 // Push N products via /api/backup, then GET /api/backup/snapshot, assert
 // every pushed id comes back with right edit_count + jsonb shape preserved.
 // Same auth/DB pattern as backup.test.ts (real bearer + TEST_DATABASE_URL).
-
-vi.mock("../../auth.js", async () => {
-  const { verifyUserBearer } = await import("../../../auth/verify-bearer.js");
-  return { verifyUser: verifyUserBearer };
-});
 
 const ready = Boolean(process.env.TEST_DATABASE_URL);
 const describeIfReady = ready ? describe : describe.skip;

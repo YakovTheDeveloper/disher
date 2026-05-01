@@ -9,7 +9,7 @@ import { RouterProvider } from 'react-router-dom';
 import { Sentry } from '@/shared/lib/observability/sentry';
 import { router } from '@/app/router.tsx';
 import { SyncProvider } from '@/shared/lib/sync/SyncProvider';
-import { AuthGate } from '@/features/auth';
+// import { AuthGate } from '@/features/auth';
 import { installE2EBridge } from '@/shared/lib/e2e/bridge';
 import { diagLog } from '@/shared/lib/observability/diagLog';
 import { DiagButton } from '@/shared/lib/observability/DiagButton';
@@ -115,9 +115,7 @@ ReactDOM.createRoot(root).render(
   >
     <SyncProvider>
       {shouldShowDvBar() && <DesignVariantsBar />}
-      <AuthGate>
-        <RouterProvider router={router} />
-      </AuthGate>
+      <RouterProvider router={router} />
       {/* {import.meta.env.DEV && <DiagButton />} */}
     </SyncProvider>
   </Sentry.ErrorBoundary>

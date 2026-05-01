@@ -4,7 +4,7 @@
  * Tree-shaken out in production builds.
  */
 import { clear as idbClear, keys as idbKeysFn } from 'idb-keyval';
-import { authClient } from '@/shared/lib/auth/authClient';
+import { authProvider } from '@/shared/lib/auth/authProvider';
 import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
 import { drainPush, pullSnapshot } from '@/shared/lib/sync/backupClient';
 import { areDexieHooksInstalled } from '@/shared/lib/dexie/hooks';
@@ -54,16 +54,18 @@ export function installE2EBridge(): void {
 
     // Auth.
     getSession: async () => {
-      const { data } = await authClient.getSession();
-      return data.session;
+      const user = authProvider.getCurrentUser();
+      const accessToken = await authProvider.getAccessToken();
+      return user && accessToken ? { user, access_token: accessToken } : null;
     },
     signInTest: async (email = 'e2e@disher.test', password = 'e2e-password') => {
-      const { data, error } = await authClient.signInWithPassword(email, password);
-      if (error) throw error;
-      return data.session;
+      const result = await authProvider.signIn(email, password);
+      if (!result.ok) throw new Error(result.error.message);
+      const accessToken = await authProvider.getAccessToken();
+      return { user: result.user, access_token: accessToken };
     },
     signOut: async () => {
-      await authClient.signOut();
+      await authProvider.signOut();
     },
   };
 }

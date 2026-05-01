@@ -1,5 +1,5 @@
 // Auth contract for the app — provider-agnostic types that the rest of the
-// codebase consumes. Concrete implementations (currently supabaseAuthProvider)
+// codebase consumes. Concrete implementations (currently betterAuthProvider)
 // map vendor SDK types onto these.
 
 import type { ErrorKind } from '@/shared/lib/errors/classify';

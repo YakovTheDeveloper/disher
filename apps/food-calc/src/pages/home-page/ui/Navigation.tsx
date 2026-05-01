@@ -14,6 +14,7 @@ const Navigation = () => {
 
   const mastheadRef = useRef<HTMLDivElement>(null);
   const [showMini, setShowMini] = useState(false);
+  const [lifted, setLifted] = useState(false);
 
   useEffect(() => {
     const el = mastheadRef.current;
@@ -26,6 +27,9 @@ const Navigation = () => {
   }, []);
 
   const handleDateClick = useCallback(async () => {
+    setLifted(true);
+    await new Promise((resolve) => setTimeout(resolve, 220));
+    setLifted(false);
     const selectedDate = await drawerStore.show(ScheduleSelectionDrawer, {
       selectedDate: dateParam,
     });
@@ -41,7 +45,7 @@ const Navigation = () => {
       <header className={styles.header}>
         <div className={styles.dateLink} onClick={handleDateClick} ref={mastheadRef}>
           <div className={styles.v3}>
-            <span className={styles.v3Day}>{day}</span>
+            <span className={`${styles.v3Day} ${lifted ? styles.v3DayLifted : ''}`}>{day}</span>
             <div className={styles.v3Overlay}>
               <span className={styles.v3Weekday}>{weekdayName}</span>
               <span className={styles.v3MonthLine}>

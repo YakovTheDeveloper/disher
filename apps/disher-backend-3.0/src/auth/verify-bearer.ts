@@ -1,11 +1,6 @@
-// Better-auth bearer-token verifier. Drop-in replacement for the legacy
-// jose/JWKS verifier in src/api/auth.ts — same signature, same return shape,
-// new backend.
-//
-// Lives here ahead of B4 (the route-level swap) so that B2 backup tests can
-// exercise the real auth chain (mock the import in src/api/auth.js → this
-// function). When B4 lands, src/api/auth.ts becomes a thin re-export of this
-// and the test mocks disappear.
+// Better-auth bearer-token verifier. Sole bearer auth path for protected
+// routes; src/api/auth.ts re-exports `verifyUserBearer` as `verifyUser` so
+// route handlers (backup.ts, analytics.ts) keep their existing import path.
 
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { auth } from "./server.js";

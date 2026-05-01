@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import {
   useDish,
@@ -39,6 +39,7 @@ import {
   DishProductEditModals,
   DISH_EDIT_MODAL_INPUT_IDS,
   DishSuggestionsModal,
+  useDishProductFlow,
 } from './ui';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
 import { FoodPortionsManager } from '@/features/food/food-portions-manager';
@@ -70,8 +71,7 @@ const DishBuilderPage = () => {
   const { clearSelection } = selectionStore.getState();
 
   const [isOpen, setIsOpen] = useState<'suggestions' | null>(null);
-  const [editingItem, setEditingItem] = useState<DishItemWithProduct | null>(null);
-  const [editingStep, setEditingStep] = useState<'idle' | 'search' | 'quantity'>('idle');
+  const editFlow = useDishProductFlow({ type: 'edit' });
 
   const writeFoodTarget = useMemo(
     () => ({ kind: 'dish' as const, dishId: id }),
@@ -80,19 +80,19 @@ const DishBuilderPage = () => {
   const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
   const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
 
-  useSwipeableLock(isOpen !== null || editingItem !== null);
+  useSwipeableLock(isOpen !== null);
 
   const closeModal = () => setIsOpen(null);
 
-  const closeEditModal = () => {
-    setEditingItem(null);
-    setEditingStep('idle');
-  };
-
-  const openEditModal = (item: DishItemWithProduct, step: 'search' | 'quantity') => {
-    setEditingItem(item);
-    setEditingStep(step);
-  };
+  const startEdit = editFlow.startEdit;
+  const handleEditSearch = useCallback(
+    (item: DishItemWithProduct) => startEdit(item, 'search'),
+    [startEdit]
+  );
+  const handleEditQuantity = useCallback(
+    (item: DishItemWithProduct) => startEdit(item, 'quantity'),
+    [startEdit]
+  );
 
   if (!dish) return null;
 
@@ -143,13 +143,7 @@ const DishBuilderPage = () => {
         overlay={
           <>
             <DishProductCreateModals dishId={id} />
-            {editingItem && (
-              <DishProductEditModals
-                item={editingItem}
-                initialStep={editingStep}
-                onClose={closeEditModal}
-              />
-            )}
+            <DishProductEditModals flow={editFlow} />
             <DishSuggestionsModal
               isExpanded={isOpen === 'suggestions'}
               dishId={id}
@@ -253,13 +247,13 @@ const DishBuilderPage = () => {
             >
               <FoodName
                 htmlFor={DISH_EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
-                onClick={() => openEditModal(item, 'search')}
+                onClick={() => handleEditSearch(item)}
                 content={{ name: item.product?.name ?? item.productId }}
               />
               <Quantity
                 htmlFor={DISH_EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
                 id={item.id}
-                onClick={() => openEditModal(item, 'quantity')}
+                onClick={() => handleEditQuantity(item)}
                 hide={false}
                 unit="г"
                 content={{ quantity: item.quantity }}

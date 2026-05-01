@@ -10,7 +10,7 @@ interface Props extends BaseDrawerProps<string> {
 export const ScheduleSelectionDrawer = ({ onClose, selectedDate }: Props) => {
   return (
     <DrawerLayout>
-      <div className={s.shell}>
+      <div className={s.shell} data-schedule-drawer>
         <div className={s.content}>
           <ScheduleSelection selectedDate={selectedDate} onSelect={(date) => onClose(date)} />
         </div>

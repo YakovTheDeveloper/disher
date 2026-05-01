@@ -5,9 +5,9 @@
 :root {
     --vaul-drawer-duration: 0;
     /* Общая длительность анимации Drawer */
-    --vaul-overlay-duration: 0;
+    --vaul-overlay-duration: 280ms;
     /* Длительность анимации оверлея */
-    --vaul-overlay-opacity: 0.8;
+    --vaul-overlay-opacity: 0.35;
     /* Прозрачность оверлея */
 }
 
@@ -15,9 +15,16 @@
 .overlay {
     position: fixed;
     inset: 0;
-    // background-color: rgba(0, 0, 0, 0.4); // Vaul устанавливает это через --vaul-overlay-opacity
     background-color: hsla(0, 0%, 0%, var(--vaul-overlay-opacity));
-    /* Используем CSS-переменную для оверлея */
     z-index: 5000;
-    // Анимацией `opacity` оверлея управляет Vaul, используя --vaul-overlay-duration.
+    opacity: 0;
+    transition: opacity var(--vaul-overlay-duration) ease-out;
+
+    &[data-state='open'] {
+        opacity: 1;
+    }
+
+    &[data-state='closed'] {
+        opacity: 0;
+    }
 }

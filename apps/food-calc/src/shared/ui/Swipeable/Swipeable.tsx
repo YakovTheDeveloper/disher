@@ -95,9 +95,12 @@ const Swipeable = forwardRef<SwipeableRef, Props>(
       if (!emblaApi) return;
       const id = requestAnimationFrame(() => {
         emblaApi.reInit();
+        if (defaultSlide > 0) {
+          emblaApi.scrollTo(defaultSlide, true);
+        }
       });
       return () => cancelAnimationFrame(id);
-    }, [emblaApi]);
+    }, [emblaApi, defaultSlide]);
 
     return (
       <div

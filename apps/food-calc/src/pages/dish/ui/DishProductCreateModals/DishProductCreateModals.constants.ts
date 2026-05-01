@@ -1,4 +1,6 @@
+import { DISH_PRODUCT_INPUT_IDS } from '../useDishProductFlow';
+
 export const DISH_MODAL_INPUT_IDS = {
-  SEARCH_INPUT: 'dish-item-search',
-  QUANTITY_INPUT: 'dish-item-quantity',
+  SEARCH_INPUT: DISH_PRODUCT_INPUT_IDS.SEARCH_CREATE_INPUT,
+  QUANTITY_INPUT: DISH_PRODUCT_INPUT_IDS.QUANTITY_CREATE_INPUT,
 } as const;

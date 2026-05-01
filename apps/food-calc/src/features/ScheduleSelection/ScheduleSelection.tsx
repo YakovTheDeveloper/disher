@@ -11,83 +11,80 @@ import {
   subDays,
   parse,
   differenceInMonths,
+  differenceInCalendarDays,
 } from 'date-fns';
-import { Virtuoso } from 'react-virtuoso';
-import type { VirtuosoHandle } from 'react-virtuoso';
+import { GroupedVirtuoso } from 'react-virtuoso';
+import type { GroupedVirtuosoHandle } from 'react-virtuoso';
 import styles from './ScheduleSelection2.module.scss';
 import { ru } from 'date-fns/locale';
-import { NavLink } from 'react-router';
-import { RouterLinks } from '@/app/router';
 import { useAllScheduleFoods } from '@/entities/schedule-food';
 
-const SHORT_DAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'] as const;
+const WEEKDAY_FULL = [
+  'Воскресенье',
+  'Понедельник',
+  'Вторник',
+  'Среда',
+  'Четверг',
+  'Пятница',
+  'Суббота',
+] as const;
+
 const START_DATE = startOfMonth(new Date());
 
-// ─── Memoized month component to avoid re-rendering all months on selection change ──
-
-type MonthProps = {
-  monthStart: Date;
-  selectedDate: string | undefined;
-  today: Date;
+type DayRowProps = {
+  day: Date;
+  isSelected: boolean;
+  isToday: boolean;
+  isFilled: boolean;
+  isLastVisited: boolean;
   onSelect: (date: string) => void;
-  isExperimental: boolean;
-  filledDates: Set<string>;
-  lastVisitedDate: string | null;
 };
 
-const MonthSection = memo(function MonthSection({ monthStart, selectedDate, today, onSelect, isExperimental, filledDates, lastVisitedDate }: MonthProps) {
-  const monthEnd = endOfMonth(monthStart);
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+const DayRow = memo(function DayRow({
+  day,
+  isSelected,
+  isToday,
+  isFilled,
+  isLastVisited,
+  onSelect,
+}: DayRowProps) {
+  const dateStr = format(day, 'dd-MM-yyyy');
+  const weekday = WEEKDAY_FULL[day.getDay()];
+  const dayNumber = format(day, 'd');
+  const monthShort = format(day, 'LLL', { locale: ru });
+  const relativeLabel = isToday ? 'Сегодня' : null;
 
-  const firstDayOfWeek = monthStart.getDay();
-  const startOffset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
-  const monthLabel = format(monthStart, 'LLLL', { locale: ru });
-
-  const selectedDateParsed = selectedDate ? parse(selectedDate, 'dd-MM-yyyy', new Date()) : null;
+  const className = [
+    styles.dayRow,
+    isSelected && styles.dayRowSelected,
+    isToday && styles.dayRowToday,
+    isFilled && styles.dayRowFilled,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <div className={styles.monthSection}>
-      {!isExperimental && (
-        <div className={styles.stickyHeader}>
-          <span className={styles.monthName}>{monthLabel}</span>
-          <span className={styles.monthYear}>{format(monthStart, 'yyyy')}</span>
-        </div>
-      )}
-      <div
-        className={`${styles.daysGrid} ${isExperimental ? styles.daysGridExperimental : ''}`}
-        data-month={isExperimental ? monthLabel : undefined}
-      >
-        {Array.from({ length: startOffset }, (_, i) => (
-          <div key={`empty-${i}`} className={styles.emptyDay} />
-        ))}
-        {daysInMonth.map((day) => {
-          const dateStr = format(day, 'dd-MM-yyyy');
-          const isSelected = selectedDateParsed && isSameDay(day, selectedDateParsed);
-          const isCurrentDay = isSameDay(day, today);
-          const isFilled = filledDates.has(dateStr);
-          const isLastVisited = lastVisitedDate === dateStr;
-          const dayOfWeek = SHORT_DAYS[day.getDay()];
-
-          return (
-            <button
-              key={day.toISOString()}
-              className={`${styles.day} ${isExperimental ? styles.dayExperimental : ''} ${isSelected ? styles.selected : ''} ${isCurrentDay ? styles.today : ''} ${isFilled ? styles.filled : ''}`}
-              onClick={() => onSelect(dateStr)}
-            >
-              <span className={styles.dayNumber}>{format(day, 'd')}</span>
-              <span
-                className={`${styles.dayName} ${isExperimental ? styles.dayNameExperimental : ''}`}
-              >
-                {dayOfWeek}
-              </span>
-              {isLastVisited && !isSelected && (
-                <span className={styles.lastVisitedLabel}>Прошлое посещение</span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <button type="button" className={className} onClick={() => onSelect(dateStr)}>
+      <span className={styles.dayMain}>
+        <span className={styles.dayWeekday}>
+          {weekday}
+          {relativeLabel && <span className={styles.dayRelative}>, {relativeLabel.toLowerCase()}</span>}
+        </span>
+        <span className={styles.dayDate}>
+          <span className={styles.dayNumber}>{dayNumber}</span>
+          <span className={styles.dayMonth}>{monthShort}</span>
+        </span>
+      </span>
+      <span className={styles.daySide}>
+        {isFilled && <span className={styles.dayFilledDot} aria-label="есть записи" />}
+        {isLastVisited && !isSelected && (
+          <span className={styles.dayLastVisited}>прошлое посещение</span>
+        )}
+        <span className={styles.dayChevron} aria-hidden>
+          ›
+        </span>
+      </span>
+    </button>
   );
 });
 
@@ -106,25 +103,40 @@ export const ScheduleSelection = ({
   selectedDate,
   showFastButtons = false,
   className,
-  variant = 'default',
 }: Props) => {
-  const isExperimental = variant === 'experimental';
   const today = useMemo(() => startOfToday(), []);
-  const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const virtuosoRef = useRef<GroupedVirtuosoHandle>(null);
 
   const months = useMemo(
     () => Array.from({ length: 24 }, (_, i) => addMonths(START_DATE, i - 12)),
     []
   );
 
+  const { groupCounts, groupLabels, days, dayIndexByDateStr } = useMemo(() => {
+    const counts: number[] = [];
+    const labels: string[] = [];
+    const flatDays: Date[] = [];
+    const indexByDate = new Map<string, number>();
+
+    for (const monthStart of months) {
+      const monthEnd = endOfMonth(monthStart);
+      const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+      counts.push(monthDays.length);
+      labels.push(format(monthStart, 'LLLL yyyy', { locale: ru }));
+      for (const d of monthDays) {
+        indexByDate.set(format(d, 'dd-MM-yyyy'), flatDays.length);
+        flatDays.push(d);
+      }
+    }
+    return { groupCounts: counts, groupLabels: labels, days: flatDays, dayIndexByDateStr: indexByDate };
+  }, [months]);
+
   const allScheduleFoods = useAllScheduleFoods();
 
   const filledDates = useMemo(() => {
     const set = new Set<string>();
     if (allScheduleFoods) {
-      for (const item of allScheduleFoods) {
-        set.add(item.date);
-      }
+      for (const item of allScheduleFoods) set.add(item.date);
     }
     return set;
   }, [allScheduleFoods]);
@@ -142,88 +154,106 @@ export const ScheduleSelection = ({
     [selectedDate]
   );
 
+  const selectedDateStr = selectedDate ?? null;
+
   const initialIndex = useMemo(() => {
-    if (!selectedDateParsed) return 12;
-    const selectedMonth = startOfMonth(selectedDateParsed);
-    const diff = differenceInMonths(selectedMonth, START_DATE);
-    const idx = 12 + diff;
-    return Math.max(0, Math.min(23, idx));
-  }, [selectedDateParsed]);
+    const target = selectedDateParsed ?? today;
+    const targetStr = format(target, 'dd-MM-yyyy');
+    const idx = dayIndexByDateStr.get(targetStr);
+    if (idx !== undefined) return Math.max(0, idx - 1);
+    const monthDiff = differenceInMonths(startOfMonth(target), START_DATE);
+    const monthIdx = Math.max(0, Math.min(months.length - 1, 12 + monthDiff));
+    let acc = 0;
+    for (let i = 0; i < monthIdx; i++) acc += groupCounts[i];
+    return acc;
+  }, [selectedDateParsed, today, dayIndexByDateStr, months.length, groupCounts]);
 
   useEffect(() => {
-    if (virtuosoRef.current && selectedDateParsed) {
-      const selectedMonth = startOfMonth(selectedDateParsed);
-      const diff = differenceInMonths(selectedMonth, START_DATE);
-      const idx = 12 + diff;
-      if (idx >= 0 && idx <= 23) {
-        virtuosoRef.current.scrollToIndex({ index: idx, behavior: 'smooth' });
-      }
-    }
-  }, [selectedDateParsed]);
+    if (!virtuosoRef.current || !selectedDateParsed) return;
+    const targetStr = format(selectedDateParsed, 'dd-MM-yyyy');
+    const idx = dayIndexByDateStr.get(targetStr);
+    if (idx === undefined) return;
+    virtuosoRef.current.scrollToIndex({
+      index: Math.max(0, idx - 1),
+      behavior: 'smooth',
+    });
+  }, [selectedDateParsed, dayIndexByDateStr]);
 
   const handleSelect = useCallback((date: string) => onSelect(date), [onSelect]);
 
-  const renderMonth = useCallback(
-    (index: number) => (
-      <MonthSection
-        monthStart={months[index]}
-        selectedDate={selectedDate}
-        today={today}
-        onSelect={handleSelect}
-        isExperimental={isExperimental}
-        filledDates={filledDates}
-        lastVisitedDate={lastVisitedDate}
-      />
-    ),
-    [months, selectedDate, today, handleSelect, isExperimental, filledDates, lastVisitedDate]
+  const renderItem = useCallback(
+    (index: number) => {
+      const day = days[index];
+      const dateStr = format(day, 'dd-MM-yyyy');
+      return (
+        <DayRow
+          day={day}
+          isSelected={selectedDateStr === dateStr}
+          isToday={isSameDay(day, today)}
+          isFilled={filledDates.has(dateStr)}
+          isLastVisited={lastVisitedDate === dateStr}
+          onSelect={handleSelect}
+        />
+      );
+    },
+    [days, selectedDateStr, today, filledDates, lastVisitedDate, handleSelect]
   );
+
+  const renderGroup = useCallback(
+    (groupIndex: number) => (
+      <div className={styles.monthHeader}>
+        <span className={styles.monthHeaderText}>{groupLabels[groupIndex]}</span>
+      </div>
+    ),
+    [groupLabels]
+  );
+
+  const fastBaseDate = selectedDateParsed ?? today;
+  const goPrev = useCallback(() => {
+    handleSelect(format(subDays(fastBaseDate, 1), 'dd-MM-yyyy'));
+  }, [fastBaseDate, handleSelect]);
+  const goNext = useCallback(() => {
+    handleSelect(format(addDays(fastBaseDate, 1), 'dd-MM-yyyy'));
+  }, [fastBaseDate, handleSelect]);
+  const goToday = useCallback(() => {
+    handleSelect(format(today, 'dd-MM-yyyy'));
+  }, [today, handleSelect]);
+
+  const fastBaseLabel = useMemo(() => {
+    const diff = differenceInCalendarDays(fastBaseDate, today);
+    if (diff === 0) return 'Сегодня';
+    if (diff === -1) return 'Вчера';
+    if (diff === 1) return 'Завтра';
+    return format(fastBaseDate, 'd MMMM, EEEE', { locale: ru });
+  }, [fastBaseDate, today]);
 
   return (
     <div className={`${styles.calendarWrapper} ${className || ''}`}>
-      {!isExperimental && (
-        <div className={styles.weekDaysHeader}>
-          {['п', 'в', 'с', 'ч', 'п', 'с', 'в'].map((d, i) => (
-            <div key={i}>{d}</div>
-          ))}
+      {showFastButtons && (
+        <div className={styles.fastBar}>
+          <button type="button" className={styles.fastArrow} onClick={goPrev} aria-label="Предыдущий день">
+            ‹
+          </button>
+          <button type="button" className={styles.fastTodayLabel} onClick={goToday}>
+            <span className={styles.fastTodayMain}>{fastBaseLabel}</span>
+            <span className={styles.fastTodaySub}>нажмите, чтобы перейти к сегодня</span>
+          </button>
+          <button type="button" className={styles.fastArrow} onClick={goNext} aria-label="Следующий день">
+            ›
+          </button>
         </div>
       )}
 
-      <Virtuoso
+      <GroupedVirtuoso
         ref={virtuosoRef}
         className={styles.scrollContainer}
         style={{ height: '100%', width: '100%' }}
-        data={months}
+        groupCounts={groupCounts}
         initialTopMostItemIndex={initialIndex}
-        itemContent={(index) => renderMonth(index)}
-        increaseViewportBy={300}
+        groupContent={renderGroup}
+        itemContent={renderItem}
+        increaseViewportBy={400}
       />
-
-      {showFastButtons && (
-        <div className={styles.links}>
-          <NavLink
-            to={
-              RouterLinks.ScheduleBuilder + '/' + format(subDays(startOfToday(), 1), 'dd-MM-yyyy')
-            }
-            className={styles.goDay}
-          >
-            <span className={styles.linkButtonText}>Вчера</span>
-          </NavLink>
-          <NavLink
-            to={RouterLinks.ScheduleBuilder + '/' + format(startOfToday(), 'dd-MM-yyyy')}
-            className={styles.goDay}
-          >
-            <span className={styles.linkButtonText}>Сегодня</span>
-          </NavLink>
-          <NavLink
-            to={
-              RouterLinks.ScheduleBuilder + '/' + format(addDays(startOfToday(), 1), 'dd-MM-yyyy')
-            }
-            className={styles.goDay}
-          >
-            <span className={styles.linkButtonText}>Завтра</span>
-          </NavLink>
-        </div>
-      )}
     </div>
   );
 };

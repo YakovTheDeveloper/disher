@@ -1,38 +1,33 @@
 // ═══════════════════════════════════════════════════════════════
-// iOS 18 Calendar — light theme
-// Reference: native iOS Calendar app, "Year"/"Month" view
+// Vertical day list — Yandex Weather style
 // ═══════════════════════════════════════════════════════════════
 
 :root {
     --cal-bg: #ffffff;
-    --cal-text: #000;
-    --cal-text-muted: rgba(60, 60, 67, 0.6);         // iOS systemGray (light)
-    --cal-text-faint: rgba(60, 60, 67, 0.3);         // iOS systemGray2 (light)
-    --cal-text-out: rgba(60, 60, 67, 0.45);
-    --cal-accent: #ff3b30;                            // iOS systemRed
-    --cal-accent-soft: rgba(255, 59, 48, 0.12);
-    --cal-selected-bg: #ff3b30;
+    --cal-text: #14171c;
+    --cal-text-muted: rgba(20, 23, 28, 0.55);
+    --cal-text-faint: rgba(20, 23, 28, 0.35);
+    --cal-accent: #ff3b30;
+    --cal-accent-soft: rgba(255, 59, 48, 0.10);
+    --cal-selected-bg: #14171c;
     --cal-selected-text: #fff;
-    --cal-event-bg: rgba(175, 82, 222, 0.14);         // iOS systemPurple @ low alpha (light)
-    --cal-event-text: rgb(135, 50, 190);
-    --cal-divider: rgba(60, 60, 67, 0.29);            // iOS separator (light, opaque)
-    --cal-divider-soft: rgba(60, 60, 67, 0.18);
-    --cal-glass: rgba(255, 255, 255, 0.85);
+    --cal-event-bg: rgba(56, 132, 255, 0.14);
+    --cal-event-text: #1e6bff;
+    --cal-divider: rgba(20, 23, 28, 0.08);
+    --cal-row-active: rgba(20, 23, 28, 0.05);
+    --cal-glass: rgba(255, 255, 255, 0.96);
 }
 
 .calendarWrapper {
     background: var(--cal-bg);
     color: var(--cal-text);
-    border-radius: 0;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     min-height: 0;
     height: 100%;
+    overflow: hidden;
     touch-action: pan-y;
-    overflow-x: hidden;
-    max-width: 100vw;
     overscroll-behavior-y: contain;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', var(--font-sans), system-ui, sans-serif;
 }
@@ -42,284 +37,233 @@
     overscroll-behavior-y: contain;
     overflow-x: hidden !important;
     max-width: 100%;
+    flex: 1;
+    min-height: 0;
 }
 
-// ─── Weekday header (top, sticky in iOS feel) ───────────────────
-.weekDaysHeader {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    padding: 10px 16px 8px;
-    background: var(--cal-glass);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    z-index: 10;
-    border-bottom: 0.5px solid var(--cal-divider);
-
-    div {
-        text-align: center;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        color: var(--cal-text-muted);
-        text-transform: lowercase;
-    }
-}
-
-// ─── Month section ──────────────────────────────────────────────
-.monthSection {
-    padding: 0 16px 12px;
-}
-
-.stickyHeader {
+// ─── Sticky month header ────────────────────────────────────────
+.monthHeader {
     position: sticky;
     top: 0;
     z-index: 5;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    padding: 22px 0 10px;
-    background: transparent;
-    border-bottom: none;
-
-    // iOS: thin top divider above each month, except first
-    &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 0.5px;
-        background: var(--cal-divider-soft);
-    }
+    padding: 18px 20px 8px;
+    background: var(--cal-glass);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-bottom: 0.5px solid var(--cal-divider);
 }
 
-.monthName {
-    font-size: 34px;
+.monthHeaderText {
+    font-size: 17px;
     font-weight: 700;
-    letter-spacing: 0.37px;       // iOS Large Title spacing
+    letter-spacing: -0.01em;
     text-transform: capitalize;
     color: var(--cal-text);
-    line-height: 1.05;
 }
 
-.monthYear {
-    display: none;                 // iOS hides year unless != current
-}
-
-// Highlight current month name in red (iOS does this for the current month label in Year view; we mimic via :has when month contains today)
-.monthSection:has(.today) .monthName {
-    color: var(--cal-accent);
-}
-
-// ─── Days grid ─────────────────────────────────────────────────
-.daysGrid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0;
-    padding: 6px 0 0;
-}
-
-.daysGridExperimental {
-    position: relative;
-    overflow: visible;
-    padding: 10px 0 0;
-}
-
-.emptyDay {
-    aspect-ratio: 1;
-    min-height: 56px;
-}
-
-.day {
-    aspect-ratio: 1;
-    min-height: 56px;
+// ─── Day row ───────────────────────────────────────────────────
+.dayRow {
+    width: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding-top: 4px;
-    gap: 2px;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 20px;
     background: transparent;
-    cursor: pointer;
     border: none;
-    border-radius: 0;
-    transition: background 0.12s ease, transform 0.08s ease;
-    position: relative;
+    border-bottom: 0.5px solid var(--cal-divider);
+    cursor: pointer;
+    text-align: left;
     -webkit-tap-highlight-color: transparent;
+    transition: background 0.12s ease, transform 0.06s ease;
 
     &:active {
-        transform: scale(0.94);
+        background: var(--cal-row-active);
+        transform: scale(0.997);
     }
+}
+
+.dayMain {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+
+.dayWeekday {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cal-text);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    text-transform: capitalize;
+}
+
+.dayRelative {
+    font-weight: 500;
+    color: var(--cal-text-muted);
+}
+
+.dayDate {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    line-height: 1;
 }
 
 .dayNumber {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
     color: var(--cal-text);
-    line-height: 1;
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
-
-    @media (max-width: 480px) {
-        font-size: 19px;
-    }
 }
 
-// In iOS Calendar the weekday letter under the date is NOT shown in
-// the month grid. Hide it but keep the markup intact.
-.dayName {
-    display: none;
+.dayMonth {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--cal-text-muted);
+    text-transform: lowercase;
 }
 
-.dayExperimental {
-    z-index: 1;
+.daySide {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
 }
 
-.dayNameExperimental {
-    display: none;
+.dayFilledDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--cal-event-text);
+    box-shadow: 0 0 0 3px var(--cal-event-bg);
+}
+
+.dayLastVisited {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--cal-text-muted);
+    text-transform: lowercase;
+    letter-spacing: 0.01em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--cal-row-active);
+    white-space: nowrap;
+}
+
+.dayChevron {
+    font-size: 22px;
+    line-height: 1;
+    color: var(--cal-text-faint);
+    font-weight: 300;
 }
 
 // ─── States ────────────────────────────────────────────────────
+.dayRowToday {
+    .dayWeekday {
+        color: var(--cal-accent);
+    }
 
-// Today: red number, no fill (iOS only fills when selected)
-.today {
     .dayNumber {
         color: var(--cal-accent);
-        font-weight: 700;
     }
 }
 
-// Selected: red filled circle behind the number
-.selected {
-    .dayNumber {
-        position: relative;
-        color: var(--cal-selected-text);
-        font-weight: 700;
-        z-index: 1;
+.dayRowSelected {
+    background: var(--cal-row-active);
 
-        &::before {
-            content: '';
-            position: absolute;
-            inset: 50% auto auto 50%;
-            transform: translate(-50%, -50%);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--cal-selected-bg);
-            z-index: -1;
-        }
-    }
-
-    &.today .dayNumber {
-        color: var(--cal-selected-text);
-    }
-}
-
-// ─── Event chip (filled day) — iOS purple "День / Вербное" pill
-.filled {
-    &::after {
-        content: 'День';
-        position: absolute;
-        bottom: 8px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 9px;
-        font-weight: 600;
-        line-height: 1;
-        padding: 3px 6px 3px 14px;
-        border-radius: 999px;
-        background: var(--cal-event-bg);
-        color: var(--cal-event-text);
-        white-space: nowrap;
-        max-width: calc(100% - 4px);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        pointer-events: none;
-    }
-
-    // tiny star dot before label (mimic iOS event icon)
     &::before {
         content: '';
         position: absolute;
-        bottom: 11px;
-        left: 50%;
-        transform: translateX(calc(-50% - 16px));
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--cal-event-text);
-        opacity: 0.9;
-        z-index: 1;
-        pointer-events: none;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: var(--cal-accent);
     }
 
-    @media (max-width: 380px) {
-        &::after {
-            font-size: 8px;
-            padding: 2px 5px 2px 12px;
-        }
+    position: relative;
 
-        &::before {
-            width: 6px;
-            height: 6px;
-            transform: translateX(calc(-50% - 14px));
-            bottom: 10px;
-        }
+    .dayChevron {
+        color: var(--cal-text);
     }
 }
 
-// ─── Last visited tag (subtle, iOS-style caption) ──────────────
-.lastVisitedLabel {
-    position: absolute;
-    bottom: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 8px;
-    font-weight: 500;
-    letter-spacing: 0;
-    color: var(--cal-text-muted);
-    white-space: nowrap;
-    pointer-events: none;
-    line-height: 1;
+.dayRowFilled {
+    .dayWeekday {
+        font-weight: 700;
+    }
 }
 
-// ─── Bottom tab-bar buttons (Сегодня / Календари / Входящие) ───
-.links {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+// ─── Fast bar (Yesterday / Today / Tomorrow + arrows) ──────────
+.fastBar {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 56px 1fr 56px;
+    align-items: stretch;
     gap: 0;
-    z-index: 6;
-    padding: 10px 8px calc(env(safe-area-inset-bottom, 0px) + 14px);
-    background: rgba(249, 249, 249, 0.92);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-top: 0.5px solid var(--cal-divider);
+    padding: 10px 12px calc(env(safe-area-inset-bottom, 0px) + 0px);
+    background: var(--cal-glass);
+    border-bottom: 0.5px solid var(--cal-divider);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    z-index: 11;
+    flex-shrink: 0;
 }
 
-.goDay {
+.fastArrow {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 4px;
     background: transparent;
-    border-radius: 0;
-    text-decoration: none;
-    transition: opacity 0.12s ease, transform 0.08s ease;
+    border: none;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--cal-text);
+    cursor: pointer;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.12s ease, transform 0.06s ease;
 
     &:active {
+        background: var(--cal-row-active);
         transform: scale(0.96);
-        opacity: 0.6;
     }
 }
 
-.linkButtonText {
-    font-size: 15px;
-    font-weight: 400;
+.fastTodayLabel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background: transparent;
+    border: none;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.12s ease, transform 0.06s ease;
+
+    &:active {
+        background: var(--cal-row-active);
+        transform: scale(0.99);
+    }
+}
+
+.fastTodayMain {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cal-text);
     letter-spacing: -0.01em;
-    text-transform: none;
-    color: var(--cal-accent);
+    text-transform: capitalize;
+}
+
+.fastTodaySub {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--cal-text-muted);
+    text-transform: lowercase;
 }

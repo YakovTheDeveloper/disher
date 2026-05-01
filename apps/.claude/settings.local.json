@@ -492,7 +492,16 @@
       "PowerShell(npx vitest --root .\\\\disher-backend-3.0 run 2>&1)",
       "PowerShell(npx vitest --root C:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\\\\apps\\\\disher-backend-3.0 run 2>&1)",
       "PowerShell(npx tsc --noEmit -p C:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\\\\apps\\\\disher-backend-3.0\\\\tsconfig.json 2>&1)",
-      "PowerShell(npx vitest --root C:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\\\\apps\\\\disher-backend-3.0 run src/api/__tests__/auth-routes.test.ts 2>&1)"
+      "PowerShell(npx vitest --root C:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\\\\apps\\\\disher-backend-3.0 run src/api/__tests__/auth-routes.test.ts 2>&1)",
+      "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" stash list)",
+      "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" stash pop stash@{1})",
+      "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" diff apps/.claude/settings.local.json)",
+      "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" checkout -- apps/.claude/settings.local.json)",
+      "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" stash show --stat stash@{0})",
+      "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" stash pop stash@{0})",
+      "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" status --short)",
+      "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" stash drop stash@{0})",
+      "Bash(powershell -Command \"\\(Get-Item 'c:/Users/booty/Documents/GitHub/disher/apps/food-calc/src/shared/assets/seed/foodFull.json'\\).Length\")"
     ],
     "defaultMode": "bypassPermissions"
   }

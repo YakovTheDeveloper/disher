@@ -1,6 +1,30 @@
 import { describe, it, expect } from 'vitest';
-import { AuthError, AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js';
 import { classifyError, defaultUserMessage } from '../classify';
+
+// classify.ts detects supabase-js Auth*Error instances by shape (`__isAuthError === true`)
+// — so the tests fabricate that shape directly instead of pulling the supabase
+// SDK in. Keeps the error-handling layer fully vendor-agnostic post-B4.
+
+function makeAuthError(message: string, status?: number, code?: string): Error {
+  const err = new Error(message);
+  err.name = 'AuthError';
+  Object.assign(err, { __isAuthError: true, status, code });
+  return err;
+}
+
+function makeAuthApiError(message: string, status: number, code: string): Error {
+  const err = new Error(message);
+  err.name = 'AuthApiError';
+  Object.assign(err, { __isAuthError: true, status, code });
+  return err;
+}
+
+function makeAuthRetryableFetchError(message: string, status: number): Error {
+  const err = new Error(message);
+  err.name = 'AuthRetryableFetchError';
+  Object.assign(err, { __isAuthError: true, status });
+  return err;
+}
 
 // ─── network ─────────────────────────────────────────────────────────────────
 
@@ -32,20 +56,20 @@ describe('classifyError → network', () => {
   // implementation classified it as `auth` and the user saw "Проблема с
   // авторизацией" / "Load failed" while the password was correct.
   it('AuthRetryableFetchError("Load failed", 0) → network, NOT auth (Safari fetch failure)', () => {
-    const e = new AuthRetryableFetchError('Load failed', 0);
+    const e = makeAuthRetryableFetchError('Load failed', 0);
     const r = classifyError(e);
     expect(r.kind).toBe('network');
     expect(r.message).toBe('Load failed');
   });
 
   it('AuthRetryableFetchError("Failed to fetch", 0) → network (Chromium offline)', () => {
-    const e = new AuthRetryableFetchError('Failed to fetch', 0);
+    const e = makeAuthRetryableFetchError('Failed to fetch', 0);
     expect(classifyError(e).kind).toBe('network');
   });
 
   it('AuthRetryableFetchError with 502/503/504 → server (gateway / cloudflare)', () => {
     for (const status of [502, 503, 504, 521]) {
-      const e = new AuthRetryableFetchError('upstream down', status);
+      const e = makeAuthRetryableFetchError('upstream down', status);
       const r = classifyError(e);
       expect(r.kind, `status ${status} should map to server`).toBe('server');
     }
@@ -63,17 +87,17 @@ describe('classifyError → timeout (supabase wrapped)', () => {
   // to `network` ("Нет связи с сервером") even though the network was fine.
   // Fixed by checking timeout-text in the message BEFORE the network bucket.
   it('AuthRetryableFetchError("signal is aborted without reason", 0) → timeout (Chromium AbortSignal.timeout)', () => {
-    const e = new AuthRetryableFetchError('signal is aborted without reason', 0);
+    const e = makeAuthRetryableFetchError('signal is aborted without reason', 0);
     expect(classifyError(e).kind).toBe('timeout');
   });
 
   it('AuthRetryableFetchError("The operation was aborted.", 0) → timeout (Safari)', () => {
-    const e = new AuthRetryableFetchError('The operation was aborted.', 0);
+    const e = makeAuthRetryableFetchError('The operation was aborted.', 0);
     expect(classifyError(e).kind).toBe('timeout');
   });
 
   it('AuthRetryableFetchError("AbortError: aborted", 0) → timeout (firefox-style)', () => {
-    const e = new AuthRetryableFetchError('AbortError: aborted', 0);
+    const e = makeAuthRetryableFetchError('AbortError: aborted', 0);
     expect(classifyError(e).kind).toBe('timeout');
   });
 
@@ -85,7 +109,7 @@ describe('classifyError → timeout (supabase wrapped)', () => {
   it('AuthRetryableFetchError("Load failed", 0) STAYS network (timeout regex must not match)', () => {
     // Sanity: ensure the timeout-first check didn't accidentally swallow real
     // network errors. "Load failed" has no abort/timeout token in it.
-    const e = new AuthRetryableFetchError('Load failed', 0);
+    const e = makeAuthRetryableFetchError('Load failed', 0);
     expect(classifyError(e).kind).toBe('network');
   });
 });
@@ -108,7 +132,7 @@ describe('classifyError → timeout', () => {
 
 describe('classifyError → auth', () => {
   it('Supabase AuthApiError 400 invalid_credentials → auth (status preserved)', () => {
-    const e = new AuthApiError('Invalid login credentials', 400, 'invalid_credentials');
+    const e = makeAuthApiError('Invalid login credentials', 400, 'invalid_credentials');
     const r = classifyError(e);
     expect(r.kind).toBe('auth');
     if (r.kind === 'auth') {
@@ -118,7 +142,7 @@ describe('classifyError → auth', () => {
   });
 
   it('AuthError 401 → auth', () => {
-    const e = new AuthError('Unauthorized', 401, 'no_authorization');
+    const e = makeAuthError('Unauthorized', 401, 'no_authorization');
     const r = classifyError(e);
     expect(r.kind).toBe('auth');
     if (r.kind === 'auth') {
@@ -128,7 +152,7 @@ describe('classifyError → auth', () => {
   });
 
   it('AuthError without status, code=invalid_credentials → auth', () => {
-    const e = new AuthError('bad creds');
+    const e = makeAuthError('bad creds');
     Object.assign(e, { code: 'invalid_credentials' });
     const r = classifyError(e);
     expect(r.kind).toBe('auth');
@@ -228,13 +252,13 @@ describe('classifyError → unknown', () => {
 
 describe('defaultUserMessage prod', () => {
   it('auth invalid_credentials → russian text', () => {
-    const e = new AuthError('Invalid login credentials', 401, 'invalid_credentials');
+    const e = makeAuthError('Invalid login credentials', 401, 'invalid_credentials');
     const k = classifyError(e);
     expect(defaultUserMessage(k, false)).toBe('Неверный email или пароль');
   });
 
   it('auth email_not_confirmed → russian text', () => {
-    const e = new AuthError('Email not confirmed', 401, 'email_not_confirmed');
+    const e = makeAuthError('Email not confirmed', 401, 'email_not_confirmed');
     const k = classifyError(e);
     expect(defaultUserMessage(k, false)).toBe('Подтвердите email перед входом');
   });
@@ -263,7 +287,7 @@ describe('defaultUserMessage prod', () => {
 
 describe('defaultUserMessage dev', () => {
   it('prepends [kind status code] tag with raw message', () => {
-    const e = new AuthApiError('Invalid login credentials', 400, 'invalid_credentials');
+    const e = makeAuthApiError('Invalid login credentials', 400, 'invalid_credentials');
     const k = classifyError(e);
     const msg = defaultUserMessage(k, true);
     expect(msg).toContain('[auth 400 invalid_credentials]');

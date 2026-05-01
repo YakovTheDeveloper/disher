@@ -177,16 +177,21 @@ const SearchFoodHeavy = ({
   const showProducts = mode !== 'dishes-only';
   const showDishes = mode !== 'products-only';
 
-  const emptyContent = isSearchActive ? (
+  const bothListsVisible = currentTab === 'все';
+  const visibleHasResults =
+    (currentTab === 'продукты' && products.length > 0) ||
+    (currentTab === 'блюда' && dishes.length > 0) ||
+    (bothListsVisible && (products.length > 0 || dishes.length > 0)) ||
+    (mode === 'dishes-only' && dishes.length > 0);
+
+  const createButtons = isSearchActive ? (
     <FoodSearchEmpty
       query={trimmedQuery}
       onCreateProduct={showProducts ? handleCreateProduct : undefined}
       onCreateDish={showDishes ? handleCreateDish : undefined}
+      showMessage={!visibleHasResults}
     />
-  ) : undefined;
-
-  const bothListsVisible = currentTab === 'все';
-  const bothEmpty = bothListsVisible && products.length === 0 && dishes.length === 0;
+  ) : null;
 
   const renderProductItem = useCallback(
     (item: (typeof products)[number]) => {
@@ -243,8 +248,6 @@ const SearchFoodHeavy = ({
           Богатые по <strong>{richNutrientInfo.displayNameRu}</strong>
         </div>
       )}
-      {bothEmpty && emptyContent}
-
       <div
         ref={listContainerRef}
         className={clsx(styles.listContainer, styles.listContainerOffset)}
@@ -252,19 +255,14 @@ const SearchFoodHeavy = ({
         role="listbox"
       >
         {(currentTab === 'продукты' || currentTab === 'все') && (
-          <>
-            {products.length === 0 && !bothListsVisible && emptyContent}
-            <ul className={styles.list}>{products.map(renderProductItem)}</ul>
-          </>
+          <ul className={styles.list}>{products.map(renderProductItem)}</ul>
         )}
         {(currentTab === 'блюда' || currentTab === 'все' || mode === 'dishes-only') && (
-          <>
-            {dishes.length === 0 && !bothListsVisible && emptyContent}
-            <ul className={styles.list}>{dishes.map(renderDishItem)}</ul>
-          </>
+          <ul className={styles.list}>{dishes.map(renderDishItem)}</ul>
         )}
         <div ref={sentinelRef} />
       </div>
+      {createButtons}
       <ScrollIndicator visible={hasMoreBelow} variant="dark" />
 
       <section
