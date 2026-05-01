@@ -112,7 +112,8 @@ const ScheduleEvents = ({ date, events }: Props) => {
       }
     >
       <header className={styles.dayHeader}>
-        <h2 className={styles.dayHeaderTitle}>События дня</h2>
+        <p>09.12.26</p>
+        <h2 className={styles.dayHeaderTitle}>События</h2>
         <img className={styles.dayHeaderImg} src={normsImg} alt="" aria-hidden />
       </header>
 

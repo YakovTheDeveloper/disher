@@ -46,7 +46,7 @@ describeIfReady("better-auth HTTP routes", () => {
   });
 
   describe("POST /api/auth/sign-up/email", () => {
-    it("creates a user, returns token + user, and persists row", async () => {
+    it("creates an unverified user, returns token=null + user, and persists row", async () => {
       const res = await app.inject({
         method: "POST",
         url: "/api/auth/sign-up/email",
@@ -63,23 +63,43 @@ describeIfReady("better-auth HTTP routes", () => {
         token: string | null;
         user: { id: string; email: string; name: string };
       };
+      // C1 contract: requireEmailVerification + autoSignIn:false → no session
+      // is issued at signUp time. Bearer header is absent; client must
+      // wait for the verify-email click (or surface "check your inbox").
+      expect(body.token).toBeNull();
+      expect(res.headers["set-auth-token"]).toBeUndefined();
       expect(body.user.email).toBe("alice@example.com");
       expect(body.user.name).toBe("Alice");
       expect(body.user.id).toMatch(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
       );
-      expect(res.headers["set-auth-token"]).toBeTruthy();
 
-      const dbUser = await pool.query<{ id: string; email: string }>(
-        `select id, email from users where id = $1`,
+      const dbUser = await pool.query<{
+        id: string;
+        email: string;
+        emailVerified: boolean;
+      }>(
+        `select id, email, "emailVerified" from users where id = $1`,
         [body.user.id],
       );
       expect(dbUser.rows).toHaveLength(1);
       expect(dbUser.rows[0].email).toBe("alice@example.com");
+      expect(dbUser.rows[0].emailVerified).toBe(false);
     });
 
-    it("rejects duplicate email with 422", async () => {
+    it("returns 200 for a duplicate email (anti-enumeration; no new row inserted)", async () => {
+      // C1 contract: with requireEmailVerification, better-auth swallows the
+      // duplicate-email signal and returns 200 with token=null (same shape as
+      // a brand-new signUp) so an unauthenticated caller cannot probe which
+      // emails are already registered. We assert that no second user row was
+      // inserted.
       await createTestUser({ email: "dup@example.com" });
+
+      const before = await pool.query<{ count: string }>(
+        `select count(*)::text from users where email = $1`,
+        ["dup@example.com"],
+      );
+      expect(Number(before.rows[0].count)).toBe(1);
 
       const res = await app.inject({
         method: "POST",
@@ -92,11 +112,14 @@ describeIfReady("better-auth HTTP routes", () => {
         },
       });
 
-      expect(res.statusCode).toBe(422);
-      const body = res.json() as { code?: string; message?: string };
-      // better-auth returns code + message; assert on either being recognizable.
-      const blob = JSON.stringify(body).toLowerCase();
-      expect(blob).toContain("already");
+      expect(res.statusCode).toBe(200);
+      expect(res.headers["set-auth-token"]).toBeUndefined();
+
+      const after = await pool.query<{ count: string }>(
+        `select count(*)::text from users where email = $1`,
+        ["dup@example.com"],
+      );
+      expect(Number(after.rows[0].count)).toBe(1);
     });
 
     it("rejects too-short password with 400", async () => {

@@ -16,6 +16,15 @@
 //  - bearer() — issues a `set-auth-token` response header on sign-in/-up that
 //    callers (browser SPA, tests via Fastify.inject) read once and then send
 //    back as `Authorization: Bearer <token>`. Required for non-cookie auth.
+//
+// Email verification (C1): `requireEmailVerification: true` blocks signIn
+// (HTTP 403 EMAIL_NOT_VERIFIED) and forces signUp to return `token: null` —
+// no session is issued until the user clicks the link. `autoSignIn: false`
+// makes that explicit. `autoSignInAfterVerification: true` issues the session
+// on the verify-email click, so the SPA does not need a follow-up signIn.
+// `sendVerificationEmail` is a dev stub: it logs the URL/token to stdout and
+// stashes them on `globalThis` for E2E (Playwright) — replace with a real
+// transport (Resend/SES) before prod.
 
 import { betterAuth } from "better-auth";
 import { bearer } from "better-auth/plugins";
@@ -40,6 +49,26 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
+    autoSignIn: false,
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    expiresIn: 60 * 60,
+    sendVerificationEmail: async ({ user, url, token }) => {
+      console.log(
+        `[auth] verification email -> ${user.email}\n  url: ${url}\n  token: ${token}`
+      );
+      // Stash per-email token + url so test helpers + E2E bridges can pick
+      // them up without coupling to better-auth's internal token format
+      // (which is a signed JWT, not a DB row).
+      const g = globalThis as {
+        __verifyTokensByEmail?: Map<string, { url: string; token: string }>;
+      };
+      if (!g.__verifyTokensByEmail) g.__verifyTokensByEmail = new Map();
+      g.__verifyTokensByEmail.set(user.email, { url, token });
+    },
   },
   plugins: [bearer()],
 });
