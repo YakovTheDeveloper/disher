@@ -46,11 +46,11 @@ async function close(id: string, result?: any) {
   const instance = useDrawerStore.getState().instances.find((i) => i.id === id);
   if (instance) {
     unregisterCloseHandler(instance.historyHandler);
-    if (!isPopstateClosing()) await popOverlayEntry();
     useDrawerStore.setState((state) => ({
       instances: state.instances.filter((i) => i.id !== id),
     }));
     instance.resolve(result);
+    if (!isPopstateClosing()) await popOverlayEntry();
   }
 }
 

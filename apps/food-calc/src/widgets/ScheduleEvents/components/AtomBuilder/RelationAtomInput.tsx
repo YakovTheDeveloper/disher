@@ -47,7 +47,9 @@ export const RelationAtomInput = ({ onAddAtom, onClose, accentColor }: RelationA
             placeholder="причина или связь"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleAdd();
+            }}
             onFocus={() => setIsReady(true)}
             autoFocus
           />
@@ -70,7 +72,6 @@ export const RelationAtomInput = ({ onAddAtom, onClose, accentColor }: RelationA
 
       {isReady && (
         <ModalShell.ActionButtons
-          left={<ModalPrevButton onClick={onClose} theme="events" />}
           right={<ModalNextButton onClick={handleAdd} variant="finish" theme="events" />}
         />
       )}

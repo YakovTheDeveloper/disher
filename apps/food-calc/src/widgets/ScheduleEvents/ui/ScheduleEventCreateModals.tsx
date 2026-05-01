@@ -14,6 +14,7 @@ import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
 import modalStyles from './ScheduleEventModals.module.scss';
 import { MODAL_INPUT_IDS } from './ScheduleEventCreateModals.constants';
+import { ButtonBack } from '@/shared/ui/atoms/Button/ButtonBack';
 
 type Step = 'idle' | 'time' | 'text' | 'atoms';
 type ActiveStep = Exclude<Step, 'idle'>;
@@ -125,6 +126,10 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
     setStep(target);
   };
 
+  const timeResult = draft.endTime ? `${draft.time}–${draft.endTime}` : draft.time;
+  const textResult = draft.text ? draft.text : undefined;
+  const stepResults = { time: timeResult, text: textResult };
+
   return (
     <div onFocusCapture={handleFocusCapture}>
       {/* Step 1: Time — trigger: <label htmlFor={MODAL_INPUT_IDS.TIME_INPUT}> */}
@@ -164,6 +169,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
               currentStep="text"
               steps={STEPS}
               stepLabels={STEP_LABELS}
+              stepResults={stepResults}
               onBack={handleClose}
               onStepClick={goToStep}
             />
@@ -177,15 +183,8 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
                 value={draft.text}
               />
               <ModalShell.ActionButtons
-                left={<ModalPrevButton onClick={handleClose} />}
                 right={<ModalNextButton onClick={() => goToStep('atoms')} />}
               />
-
-              <ModalFooter onBack={() => goToStep('time')}>
-                <Button variant="primary-form" onClick={() => goToStep('atoms')}>
-                  Далее
-                </Button>
-              </ModalFooter>
             </ModalShell.Body>
           </ModalShell>
         }
@@ -202,20 +201,22 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
                 currentStep="atoms"
                 steps={STEPS}
                 stepLabels={STEP_LABELS}
+                stepResults={stepResults}
                 onBack={handleClose}
                 onStepClick={goToStep}
               />
             )}
             <ModalShell.AtomsBody>
-              <ModalShell.Title>Добавьте теги</ModalShell.Title>
+              <ModalShell.Title>
+                <ButtonBack onClick={() => goToStep('text')} />
+                Добавьте теги
+              </ModalShell.Title>
               {step === 'atoms' && (
                 <AtomBuilder id={MODAL_INPUT_IDS.ATOMS_INPUT} onPanelChange={setAtomPanelOpen} />
               )}
               {!atomPanelOpen && (
                 <ModalFooter onBack={() => goToStep('text')}>
-                  <Button variant="primary-form" onClick={handleCommit}>
-                    Готово
-                  </Button>
+                  <ModalNextButton onClick={handleCommit} />
                 </ModalFooter>
               )}
             </ModalShell.AtomsBody>

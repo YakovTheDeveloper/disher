@@ -28,7 +28,10 @@ export const ScaleAtomInput = ({ onAddAtom, onClose, accentColor }: ScaleAtomInp
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '');
-    if (!raw) { setValue(''); return; }
+    if (!raw) {
+      setValue('');
+      return;
+    }
     const n = Math.min(10, Math.max(1, Number(raw)));
     setValue(n);
   };
@@ -47,7 +50,10 @@ export const ScaleAtomInput = ({ onAddAtom, onClose, accentColor }: ScaleAtomInp
             pattern="[0-9]*"
             value={value}
             onChange={handleValueChange}
-            onFocus={(e) => { setIsReady(true); e.target.select(); }}
+            onFocus={(e) => {
+              setIsReady(true);
+              e.target.select();
+            }}
             autoFocus
           />
           <div className={styles.bigInputUnderline} />
@@ -83,7 +89,6 @@ export const ScaleAtomInput = ({ onAddAtom, onClose, accentColor }: ScaleAtomInp
 
       {isReady && (
         <ModalShell.ActionButtons
-          left={<ModalPrevButton onClick={onClose} theme="events" />}
           right={<ModalNextButton onClick={handleAdd} variant="finish" theme="events" />}
         />
       )}

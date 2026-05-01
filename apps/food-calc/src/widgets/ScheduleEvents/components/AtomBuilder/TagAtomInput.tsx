@@ -17,7 +17,13 @@ export interface TagAtomInputProps {
   recentTags?: string[];
 }
 
-export const TagAtomInput = ({ onAddAtom, onClose, accentColor, popularTags = [], recentTags = [] }: TagAtomInputProps) => {
+export const TagAtomInput = ({
+  onAddAtom,
+  onClose,
+  accentColor,
+  popularTags = [],
+  recentTags = [],
+}: TagAtomInputProps) => {
   const [input, setInput] = useState('');
   const [isReady, setIsReady] = useState(false);
 
@@ -48,7 +54,9 @@ export const TagAtomInput = ({ onAddAtom, onClose, accentColor, popularTags = []
             placeholder="тег"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleAdd();
+            }}
             onFocus={() => setIsReady(true)}
             autoFocus
           />
@@ -73,7 +81,6 @@ export const TagAtomInput = ({ onAddAtom, onClose, accentColor, popularTags = []
 
       {isReady && (
         <ModalShell.ActionButtons
-          left={<ModalPrevButton onClick={onClose} theme="events" />}
           right={<ModalNextButton onClick={() => handleAdd()} variant="finish" theme="events" />}
         />
       )}

@@ -501,7 +501,9 @@
       "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" stash pop stash@{0})",
       "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" status --short)",
       "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" stash drop stash@{0})",
-      "Bash(powershell -Command \"\\(Get-Item 'c:/Users/booty/Documents/GitHub/disher/apps/food-calc/src/shared/assets/seed/foodFull.json'\\).Length\")"
+      "Bash(powershell -Command \"\\(Get-Item 'c:/Users/booty/Documents/GitHub/disher/apps/food-calc/src/shared/assets/seed/foodFull.json'\\).Length\")",
+      "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" log --oneline -5)",
+      "Bash(git -C \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\" show --stat 30847a9)"
     ],
     "defaultMode": "bypassPermissions"
   }

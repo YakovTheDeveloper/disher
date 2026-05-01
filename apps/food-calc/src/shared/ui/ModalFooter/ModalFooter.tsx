@@ -8,9 +8,6 @@ type FooterProps = {
 
 export const ModalFooter = ({ onBack, children }: FooterProps) => (
   <div className={s.panel}>
-    <button className={s.backButton} type="button" onClick={onBack}>
-      Назад
-    </button>
     <div className={s.primary}>{children}</div>
   </div>
 );
@@ -136,13 +133,22 @@ export const ModalNextButton = (props: ModalNextButtonProps) => {
 
   if (props.as === 'label') {
     return (
-      <label htmlFor={props.htmlFor} className={className} aria-label={isFinish ? 'Готово' : 'Далее'}>
+      <label
+        htmlFor={props.htmlFor}
+        className={className}
+        aria-label={isFinish ? 'Готово' : 'Далее'}
+      >
         {content}
       </label>
     );
   }
   return (
-    <button type="button" onClick={props.onClick} className={className} aria-label={isFinish ? 'Готово' : 'Далее'}>
+    <button
+      type="button"
+      onClick={props.onClick}
+      className={className}
+      aria-label={isFinish ? 'Готово' : 'Далее'}
+    >
       {content}
     </button>
   );
