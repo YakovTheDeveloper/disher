@@ -14,7 +14,13 @@ const NoteIcon = () => (
       strokeWidth="1.6"
       strokeLinejoin="round"
     />
-    <path d="M12 3V7H16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    <path
+      d="M12 3V7H16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+    />
     <path d="M7 10H13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     <path d="M7 13H11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
   </svg>
@@ -25,7 +31,7 @@ const DetailsNoteButton = ({ htmlFor, hasDetails }: Props) => (
     <span className={styles.icon}>
       <NoteIcon />
     </span>
-    {hasDetails ? 'Изменить заметку' : 'Заметка'}
+    {hasDetails ? 'Изменить заметку' : 'Уточнение к еде'}
   </label>
 );
 

@@ -15,20 +15,30 @@
     min-width: 0;
     text-align: center;
 
+    // Shared font/sizing for the mirror span and the real input — they
+    // MUST match exactly or the input's caret/text won't sit on top of
+    // the mirror's box.
+    .mirror,
     .input {
         font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
         font-size: 7rem;
         font-weight: 800;
         letter-spacing: -0.06em;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+        padding: 0;
+    }
+
+    .input {
         color: var(--color-ink);
         background: transparent;
         border: none;
         border-radius: 0;
+        // Take the geometry from the mirror span via absolute positioning.
+        position: absolute;
+        inset: 0;
         width: 100%;
-        text-align: center;
-        padding: 0;
-        line-height: 1;
-        font-variant-numeric: tabular-nums;
         transition: color 0.2s ease;
 
         &:focus {
@@ -43,19 +53,44 @@
     }
 }
 
-// Outer wrapper: NumberInput's .bottom span. We override its baseline tone
-// (#999 + 0.8rem) with project-ink + larger label size so "граммы" reads
-// as a deliberate caption under the hero digit, not an after-thought.
+// inline-flex shrinks to its content (inputBox + unit), so the parent's
+// text-align: center centers the whole composition. align-items: baseline
+// drops the small unit onto the giant digits' baseline.
+.inputRow {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    max-width: 100%;
+}
+
+// Mirror box: relative-positioned inline-block whose width comes from the
+// hidden .mirror span (rendered text width). The real <input> is layered
+// on top via position: absolute. This pattern auto-grows the input to its
+// actual content width in every browser — no field-sizing dependency.
+.inputBox {
+    position: relative;
+    display: inline-block;
+    min-width: 1ch;
+}
+
+.mirror {
+    display: inline-block;
+    visibility: hidden;
+    white-space: pre;
+    color: transparent;
+    pointer-events: none;
+}
+
 .unit {
-    display: block;
-    text-align: center;
     font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 500;
     letter-spacing: 0;
     text-transform: none;
     color: rgba(38, 38, 51, 0.55);
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 // ── Sections ─────────────────────────────────────────────────────────────────
@@ -115,15 +150,13 @@
     // Portion chips share the TimeChoose toggleButton DNA: pill, glass, ink text.
     .quickBtn {
         @include pill-button();
-        padding: 10px 16px;
-        font-size: 14px;
 
         // Active state mirrors the toggleButton :active: solid white pill,
         // ink-strong text. Higher specificity (.slideGrid .quickBtn) overrides
         // the global body .is-selected blue.
         &:global(.is-selected) {
             background: #ffffff;
-            border-color: rgba(255, 255, 255, 0.4);
+            border-color: rgba(38, 38, 51, 0.12);
             color: var(--color-ink-strong);
             font-weight: 600;
         }

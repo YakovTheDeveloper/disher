@@ -1,35 +1,26 @@
+@import '@/shared/assets/style/mixin.scss';
+
 .wrapper {
   display: inline-flex;
 }
 
 .button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  min-height: 44px;
-  background: rgb(243, 243, 243);
-  color: #565b69;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
+  @include glass-button();
+  @include glass-button-with-text();
   user-select: none;
-  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
-  backdrop-filter: blur(6px);
+}
 
-  &:hover,
-  &:focus-visible {
-    outline: none;
-  }
+// ─── Prominent variant (empty-state CTA) ───────────────────────
+.prominent {
+  @include glass-button-prominent();
 
-  &:active {
-    transform: scale(0.97);
+  .text {
+    font-size: var(--text-xl);
+    font-weight: 300;
   }
 }
 
-.state_idle {
-  // default style
-}
+// .state_idle uses the default glass surface — no override.
 
 .state_loading {
   background: rgba(234, 237, 248, 0.85);
@@ -53,10 +44,10 @@
   opacity: 0.55;
   cursor: not-allowed;
 
-  &:hover,
-  &:focus-visible {
-    background: rgba(255, 255, 255, 0.85);
-    border-color: rgba(31, 42, 68, 0.12);
+  &:hover {
+    transform: none;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: var(--shadow-sm);
   }
 }
 
@@ -72,6 +63,8 @@
 }
 
 .text {
+  font-size: var(--text-sm);
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -82,6 +75,7 @@
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
+  border-radius: 9999px;
   background: #1b5aa8;
   color: #fff;
   font-size: 12px;

@@ -70,8 +70,7 @@ const ProductQuantity = ({
   };
 
   const handlePortionClick = (portion: Portion) => {
-    const isSame =
-      activePortion?.grams === portion.grams && activePortion?.label === portion.label;
+    const isSame = activePortion?.grams === portion.grams && activePortion?.label === portion.label;
     if (isSame) {
       setActivePortion(null);
       setMultiplier(1);
@@ -93,20 +92,30 @@ const ProductQuantity = ({
   return (
     <div className={style.container}>
       <div className={style.inputWrapper}>
-        <NumberInput
-          id={inputId}
-          placeholder="Количество"
-          ref={inputRef}
-          className={style.input}
-          onChange={setValue}
-          value={value}
-          onBlur={onBlur}
-          bottom={
-            <span className={style.unit}>
-              {activePortion ? `${multiplier} × ${activePortion.label}` : 'граммы'}
+        <div className={style.inputRow}>
+          {/* Auto-grow input: a span mirrors the digits with the same font,
+              so its width = the real rendered width of the number. The
+              <input> is absolutely placed on top of the span, so the
+              wrapper's flex layout sees the SPAN's width — and the .unit
+              sibling sits flush against the last digit, not a fixed ch box.
+              Works in every browser (no field-sizing dependency). */}
+          <span className={style.inputBox}>
+            <span aria-hidden className={style.mirror}>
+              {value || 0}
             </span>
-          }
-        />
+            <NumberInput
+              id={inputId}
+              placeholder="Количество"
+              ref={inputRef}
+              className={style.input}
+              onChange={setValue}
+              value={value}
+              onBlur={onBlur}
+              maxLength={5}
+            />
+          </span>
+          <span className={style.unit}>{'г'}</span>
+        </div>
       </div>
 
       {isActive && (
@@ -143,16 +152,15 @@ const ProductQuantityHeavy = ({
     () =>
       chunkArray(
         portions.map((p) => ({ label: `${p.label} (${p.grams}г)`, portion: p })),
-        SLIDE_SIZE,
+        SLIDE_SIZE
       ),
-    [portions],
+    [portions]
   );
 
   if (portionSlides.length === 0) return null;
 
   return (
     <div className={style.section}>
-      <span className={style.sectionLabel}>Порции</span>
       <div className={style.snapViewport}>
         <div className={style.snapContainer}>
           {portionSlides.map((slideItems, slideIndex) => (

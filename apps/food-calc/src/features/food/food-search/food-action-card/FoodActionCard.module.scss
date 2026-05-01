@@ -9,7 +9,9 @@
     border-radius: 16px;
     box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04);
 
-    transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+    transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease, outline-color 0.18s ease;
+    outline: 2px solid transparent;
+    outline-offset: -2px;
 
     &:nth-child(even) {
         background: #eef3fa; // лёгкий голубоватый zebra-tint
@@ -26,6 +28,10 @@
 
     &:active {
         transform: scale(0.995);
+    }
+
+    &:has(.item_active) {
+        outline-color: var(--color-ink);
     }
 }
 
@@ -87,20 +93,15 @@
 }
 
 .item_active {
-    background: #143988;
-    border-radius: inherit;
-
     .name {
-        color: #fff;
-        letter-spacing: 0.01em;
+        font-weight: 700;
+        color: var(--color-ink);
     }
+}
 
-    * {
-        color: #fff;
-    }
-
-    &:active {
-        background: #2a5fdb;
+.wrapper:has(.item_active) {
+    .infoBtn {
+        color: var(--color-ink);
     }
 }
 

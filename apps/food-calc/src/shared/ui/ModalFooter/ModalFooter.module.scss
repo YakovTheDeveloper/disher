@@ -72,13 +72,13 @@
   justify-content: center;
   gap: 6px;
   width: 100%;
-  background: #fff;
-  border: none;
+  // background: #f3f3ff;
   color: var(--color-ink);
   cursor: pointer;
   transition: transform 0.15s ease, opacity 0.15s ease;
   padding: 24px 0;
   padding-top: 28px;
+
 
   svg {
     width: 22px;
@@ -94,17 +94,19 @@
 
 .prevArrowLabel {
   font-family: var(--font-mono, monospace);
-  font-size: 0.9375rem;
+  font-size: 1.6rem;
   font-weight: 500;
 }
 
 .nextArrow {
+  border-top-left-radius: 24px;
+
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   width: 100%;
-  background: var(--color-ink);
+  background: rgba(66, 66, 117, 0.918);
   color: #fff;
   cursor: pointer;
   transition: transform 0.15s ease, opacity 0.15s ease;
@@ -126,7 +128,7 @@
 
 .nextArrowLabel {
   font-family: var(--font-mono, monospace);
-  font-size: 0.9375rem;
+  font-size: 1.6rem;
   font-weight: 500;
 }
 

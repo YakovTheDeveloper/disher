@@ -81,7 +81,6 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
               />
               <ModalShell.ActionButtons
                 debugId="create-time"
-                left={<ModalPrevButton onClick={() => goToStep('search')} />}
                 right={<ModalNextButton as="label" htmlFor={QUANTITY_INPUT} />}
               />
             </ModalShell.Body>
@@ -116,7 +115,6 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
                   />
                   <ModalShell.ActionButtons
                     debugId="create-qty"
-                    left={<ModalPrevButton onClick={() => goToStep('time')} />}
                     right={<ModalNextButton onClick={handleCommit} />}
                   />
                 </>
@@ -133,7 +131,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         content={
           <ModalShell variant="spring">
             <ModalShell.Body>
-              <ModalShell.Title>Заметка о еде</ModalShell.Title>
+              <ModalShell.Title>Уточнение к приему пищи</ModalShell.Title>
               <Textarea
                 id={DETAILS_INPUT}
                 value={draft.details}

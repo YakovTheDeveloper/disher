@@ -103,7 +103,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         content={
           <ModalShell>
             <ModalShell.Body>
-              <ModalShell.Title>Заметка о еде</ModalShell.Title>
+              <ModalShell.Title>Уточнение к приему пищи</ModalShell.Title>
               <Textarea
                 id={DETAILS_INPUT}
                 value={draft.details}

@@ -11,6 +11,7 @@ export interface WriteFoodButtonProps {
   inputId: string;
   label?: string;
   className?: string;
+  prominent?: boolean;
 }
 
 const SerifTIcon = () => (
@@ -41,6 +42,7 @@ export const WriteFoodButton = ({
   inputId,
   label = 'Описать еду',
   className,
+  prominent,
 }: WriteFoodButtonProps) => {
   const online = useOnline();
 
@@ -79,6 +81,7 @@ export const WriteFoodButton = ({
         styles.wrapper,
         styles.button,
         styles[`state_${flow.state}`],
+        prominent && styles.prominent,
         disabled && styles.disabled,
         className,
       )}

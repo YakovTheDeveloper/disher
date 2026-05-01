@@ -29,18 +29,18 @@
 
 .tabBar {
     display: flex;
-    gap: 4px;
-    padding: 4px;
-    margin: 8px 12px;
+    gap: var(--space-1);
+    padding: var(--space-1);
+    margin: var(--space-2) var(--space-3);
     background: #f2f4f7;
-    border-radius: 9999px;
+    border-radius: var(--radius-full);
 }
 
 .tabBarItem {
     flex: 1;
-    padding: 8px 14px;
+    padding: var(--space-2) 14px;
     border: none;
-    border-radius: 9999px;
+    border-radius: var(--radius-full);
     background: transparent;
     font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-size: 14px;
@@ -74,6 +74,7 @@
     z-index: 50;
 }
 
+
 .filterWrapper {
     position: absolute;
     top: 0;
@@ -95,7 +96,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 16px;
+    padding: 10px var(--space-4);
     background: #f7f8fa;
     border-bottom: none;
     font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
@@ -115,15 +116,15 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    padding: 8px 14px 12px;
+    padding: var(--space-2) 14px var(--space-3);
     border-bottom: none;
 }
 
 .filterChip {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 8px 16px;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-4);
     font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 13px;
     font-weight: 500;
@@ -132,12 +133,12 @@
     color: #0a0a0a;
     background: #eef1f5;
     border: none;
-    border-radius: 9999px;
+    border-radius: var(--radius-full);
     cursor: pointer;
     transition:
         color 0.15s ease,
         background 0.15s ease;
-    min-height: 32px;
+    min-height: var(--space-8);
     -webkit-tap-highlight-color: transparent;
 
     &:active {
@@ -150,11 +151,11 @@
 
 .listContainer {
     overflow-y: auto;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     position: relative;
     flex-grow: 1;
     min-height: 0;
-    padding: 8px 12px 12px;
+    padding: var(--space-2) var(--space-3) var(--space-3);
 }
 
 // Must come AFTER .listContainer to win the cascade — otherwise the shorthand
@@ -171,7 +172,7 @@
     background: transparent;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .filterChipActive {

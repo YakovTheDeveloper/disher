@@ -66,6 +66,8 @@
 
 // Pill toggle button: glass surface + ink text. Used in TimeChoose,
 // ProductQuantity portion chips, and similar inline pickers.
+// Border uses ink-tinted alpha so it reads correctly on both light
+// paper backgrounds and colored/glass surfaces.
 @mixin pill-button() {
     display: inline-flex;
     align-items: center;
@@ -80,20 +82,67 @@
     background: rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--color-ink);
     font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     transition: background-color 0.15s, color 0.15s, transform 0.1s;
     cursor: pointer;
 
-    &:hover {
-        background: rgba(255, 255, 255, 0.26);
-    }
-
     &:active {
-        background: #ffffff;
         color: var(--color-ink-strong);
         transform: scale(0.97);
     }
+}
+
+// Glass action button base. Shared by AddButton and WriteFoodButton.
+// $size controls the icon-only square (also the min-height when text is added).
+// Adding a `.withText` modifier turns the circle into a pill — see usage.
+@mixin glass-button($size: 44px) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: $size;
+    height: $size;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--color-text-primary, #1f2937);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--duration-normal) ease,
+        box-shadow var(--duration-normal) ease,
+        background var(--duration-normal) ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    &:active {
+        transform: scale(0.95);
+        box-shadow: var(--shadow-xs);
+        background: rgba(255, 255, 255, 0.1);
+    }
+}
+
+// Pill modifier for glass-button: turns the circle into a text+icon pill.
+@mixin glass-button-with-text() {
+    width: auto;
+    border-radius: var(--radius-xl);
+    padding: 0 var(--space-4) 0 var(--space-3);
+    gap: var(--space-2);
+}
+
+// Empty-state CTA modifier for glass-button: large outlined pill.
+@mixin glass-button-prominent() {
+    width: auto;
+    height: auto;
+    border: 1px solid #000;
+    border-radius: 32px;
+    padding: var(--space-4) var(--space-6);
+    text-align: left;
 }
 
 @mixin blink($color1, $color2, $time) {

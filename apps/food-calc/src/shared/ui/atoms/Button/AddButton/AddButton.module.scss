@@ -1,83 +1,20 @@
+@import '@/shared/assets/style/mixin.scss';
+
 .container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: var(--color-text-primary, #1f2937);
-    cursor: pointer;
-    box-shadow: var(--shadow-sm);
-    transition: transform var(--duration-normal) ease,
-        box-shadow var(--duration-normal) ease,
-        background var(--duration-normal) ease;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-        background: rgba(255, 255, 255, 0.25);
-    }
-
-    &:active {
-        transform: scale(0.95);
-        box-shadow: var(--shadow-xs);
-        background: rgba(255, 255, 255, 0.1);
-    }
+    @include glass-button();
 }
 
 .withText {
-    width: auto;
-    border-radius: var(--radius-xl);
-    padding: 0 var(--space-4) 0 var(--space-3);
-    gap: var(--space-2);
+    @include glass-button-with-text();
 }
 
 // ─── Prominent variant (empty-state CTA) ───────────────────────
 .prominent {
-    height: 52px;
-    border-radius: var(--radius-md);
-    background: var(--color-accent);
-    color: var(--text-on-accent);
-    border: none;
-    backdrop-filter: none;
-    box-shadow: var(--shadow-md);
-    padding: 0 var(--space-5);
-    margin-bottom: var(--space-4);
-    gap: var(--space-3);
-    position: fixed;
-    bottom: var(--space-6);
-    left: var(--space-3);
-    right: var(--space-3);
+    @include glass-button-prominent();
 
-    .icon {
-        opacity: 0.8;
-
-        svg {
-            fill: currentColor;
-        }
-    }
-
-    .text {
-        font-size: var(--text-base);
-        font-weight: 500;
-        letter-spacing: 0.02em;
-    }
-
-    &:hover {
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-lg);
-        background: var(--color-accent);
-    }
-
-    &:active {
-        transform: scale(0.98);
-        box-shadow: var(--shadow-sm);
-        background: var(--color-accent);
-        opacity: 0.9;
+    & .text {
+        font-size: var(--text-xl);
+        font-weight: 300;
     }
 }
 
