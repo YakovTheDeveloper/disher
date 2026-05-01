@@ -1,7 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import styles from './Modal.module.scss';
 import { useModals } from '@/shared/ui/modal-store';
-import { motion } from 'motion/react';
 
 interface ModalProps {
   children: React.ReactNode;
@@ -20,14 +19,7 @@ const ModalComponent = ({ children }: ModalProps) => {
       }}
     >
       <Dialog.Portal container={document.getElementById('modal-root')}>
-        <Dialog.Overlay asChild>
-          <motion.div
-            className={styles.overlay}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.9 }}
-            exit={{ opacity: 0 }}
-          />
-        </Dialog.Overlay>
+        <Dialog.Overlay className={styles.overlay} />
         {children}
       </Dialog.Portal>
     </Dialog.Root>

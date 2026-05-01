@@ -9,10 +9,7 @@ import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DishSuggestionsModal.module.scss';
-
-export const DISH_SUGGESTIONS_INPUT_IDS = {
-  TRIGGER: 'dish-suggestions-trigger',
-} as const;
+import { DISH_SUGGESTIONS_INPUT_IDS } from './DishSuggestionsModal.constants';
 
 type Props = {
   isExpanded: boolean;

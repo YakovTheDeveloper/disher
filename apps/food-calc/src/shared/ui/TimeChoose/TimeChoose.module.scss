@@ -1,736 +1,36 @@
 @import '@/shared/assets/style/mixin.scss';
-@import '@/shared/assets/style/paper-tokens.scss';
 
-// Все визуальные токены — CSS custom properties. Дизайн-варианты
-// перекрашивают пикер, переопределяя их на корневой .shell{Variant}.
+// Yandex Pogoda style: huge bold digits, no shell, no border, no shadow.
+// Just numbers floating on the parent background + light grey pill buttons.
 
 .shell {
     position: relative;
-    display: inline-flex;
+    display: flex;
     flex-direction: column;
     align-items: center;
-    isolation: isolate;
-    border-radius: var(--tc-shell-radius, 24px);
-    padding: var(--tc-shell-pad, 20px 24px 16px);
-    background: var(--tc-shell-bg, transparent);
-    box-shadow: var(--tc-shell-shadow, none);
-    backdrop-filter: var(--tc-shell-backdrop, none);
-    -webkit-backdrop-filter: var(--tc-shell-backdrop, none);
-    border: var(--tc-shell-border, 0);
-    transition: background-color 0.25s ease, box-shadow 0.25s ease;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
 }
 
 .container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--tc-gap, 16px);
+    gap: 18px;
     width: 100%;
-
-    // Defaults — нейтральные значения, перекрываемые вариантами.
-    --tc-shell-bg: transparent;
-    --tc-shell-radius: 24px;
-    --tc-shell-pad: 22px 26px 18px;
-    --tc-shell-backdrop: none;
-    --tc-shell-border: 0;
-    --tc-shell-shadow: none;
-
-    --tc-bg: transparent;
-    --tc-fg: #1f1c17;
-    --tc-border: 1px solid transparent;
-    --tc-border-radius: 16px;
-    --tc-shadow-focus: 0 0 0 2px rgba(31, 28, 23, 0.3);
-    --tc-input-font: 'Onest', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    --tc-input-size: 3.25rem;
-    --tc-input-letter-spacing: -0.02em;
-    --tc-input-weight: 600;
-    --tc-input-pad: 12px 18px;
-    --tc-separator-color: rgba(31, 28, 23, 0.45);
-    --tc-separator-weight: 500;
-    --tc-placeholder: rgba(31, 28, 23, 0.3);
-    --tc-blink-bg: rgba(31, 28, 23, 0.85);
-    --tc-blink-fg: #ffffff;
-
-    --tc-btn-bg: transparent;
-    --tc-btn-fg: #1f1c17;
-    --tc-btn-border: 1px solid rgba(31, 28, 23, 0.18);
-    --tc-btn-radius: 14px;
-    --tc-btn-pad: 10px 16px;
-    --tc-btn-font: 'Onest', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    --tc-btn-size: 14px;
-    --tc-btn-weight: 500;
-    --tc-btn-tracking: 0;
-    --tc-btn-transform: none;
-    --tc-btn-active-bg: #1f1c17;
-    --tc-btn-active-fg: #ffffff;
-
-    --tc-tab-border: 0;
-    --tc-tab-divider: 0;
-    --tc-tab-bg: rgba(31, 28, 23, 0.05);
-    --tc-tab-fg: rgba(31, 28, 23, 0.55);
-    --tc-tab-font: 'Onest', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    --tc-tab-size: 13px;
-    --tc-tab-weight: 500;
-    --tc-tab-tracking: 0;
-    --tc-tab-transform: none;
-    --tc-tab-active-bg: #ffffff;
-    --tc-tab-active-fg: #1f1c17;
-}
-
-// ─── V1 FrostedGlass — чистое стекло без подложки + яркий белый рефлекс
-// Без собственного фона: ModalShell spring (с орбами) просвечивает насквозь.
-// Только лёгкий blur, чтобы орбы за стеклом смягчились, и яркие
-// почти белые рефлексы по всем четырём краям — «мокрое» стекло.
-.shellFrostedGlass {
-    background: transparent;
-    backdrop-filter: blur(14px) saturate(1.4);
-    -webkit-backdrop-filter: blur(14px) saturate(1.4);
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    border-radius: 24px;
-    box-shadow:
-        // верхний рефлекс — почти чистый белый
-        inset 0 2px 0 rgba(255, 255, 255, 0.98),
-        // боковые рефлексы — яркие сияющие края
-        inset 2px 0 0 rgba(255, 255, 255, 0.85),
-        inset -2px 0 0 rgba(255, 255, 255, 0.8),
-        // нижний рефлекс — тоже белый, но чуть мягче
-        inset 0 -2px 0 rgba(255, 255, 255, 0.75),
-        // тонкий внутренний контур-сияние
-        inset 0 0 0 1px rgba(255, 255, 255, 0.4),
-        // лёгкая глубина под стеклом
-        0 18px 44px rgba(70, 50, 130, 0.12);
-    overflow: hidden;
-
-    // диагональный белый блик
-    &::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background:
-            linear-gradient(115deg,
-                transparent 0%,
-                rgba(255, 255, 255, 0.55) 38%,
-                rgba(255, 255, 255, 0.85) 42%,
-                rgba(255, 255, 255, 0.55) 46%,
-                transparent 70%);
-        opacity: 0.6;
-        pointer-events: none;
-        mix-blend-mode: overlay;
-    }
-
-    :global(.tc-root) {
-        --tc-shell-bg: transparent;
-        --tc-shell-border: 0;
-        --tc-shell-shadow: none;
-        --tc-shell-pad: 32px 28px 24px;
-        --tc-gap: 22px;
-
-        --tc-bg: transparent;
-        --tc-fg: #1a0f3a;
-        --tc-border: 1px solid transparent;
-        --tc-border-radius: 20px;
-        --tc-input-pad: 14px 22px;
-        --tc-shadow-focus: 0 0 0 2px #6b4dff;
-        --tc-input-font: 'Onest', 'Golos Text', system-ui, sans-serif;
-        --tc-input-size: 6.5rem;
-        --tc-input-letter-spacing: -0.06em;
-        --tc-input-weight: 800;
-        --tc-separator-color: rgba(26, 15, 58, 0.55);
-        --tc-separator-weight: 800;
-        --tc-placeholder: rgba(26, 15, 58, 0.22);
-        --tc-blink-bg: #6b4dff;
-        --tc-blink-fg: #ffffff;
-
-        --tc-btn-bg: rgba(255, 255, 255, 0.5);
-        --tc-btn-fg: #1a0f3a;
-        --tc-btn-border: 1px solid rgba(255, 255, 255, 0.6);
-        --tc-btn-radius: 999px;
-        --tc-btn-pad: 11px 20px;
-        --tc-btn-size: 14px;
-        --tc-btn-weight: 600;
-        --tc-btn-active-bg: #6b4dff;
-        --tc-btn-active-fg: #ffffff;
-
-        --tc-tab-bg: rgba(255, 255, 255, 0.35);
-        --tc-tab-fg: rgba(26, 15, 58, 0.55);
-        --tc-tab-size: 13px;
-        --tc-tab-weight: 600;
-        --tc-tab-active-bg: #6b4dff;
-        --tc-tab-active-fg: #ffffff;
-    }
-
-    // Контент над glint-слоем
-    > * {
-        position: relative;
-        z-index: 1;
-    }
-}
-
-// ─── V2 Naked — без подложки, только цифры на родительском фоне
-// Тот же размер/вес, что у FrostedGlass, но никакого shell — picker
-// «парит» в окружающем фоне ModalShell.
-.shellNaked {
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    padding: 0;
-
-    :global(.tc-root) {
-        --tc-shell-bg: transparent;
-        --tc-shell-border: 0;
-        --tc-shell-shadow: none;
-        --tc-shell-pad: 0;
-        --tc-gap: 18px;
-
-        --tc-bg: transparent;
-        --tc-fg: #1a0f3a;
-        --tc-border: 1px solid transparent;
-        --tc-border-radius: 18px;
-        --tc-input-pad: 8px 14px;
-        --tc-shadow-focus: 0 0 0 2px rgba(107, 77, 255, 0.6);
-        --tc-input-font: 'Onest', 'Golos Text', system-ui, sans-serif;
-        --tc-input-size: 6.5rem;
-        --tc-input-letter-spacing: -0.06em;
-        --tc-input-weight: 800;
-        --tc-separator-color: rgba(26, 15, 58, 0.55);
-        --tc-separator-weight: 800;
-        --tc-placeholder: rgba(26, 15, 58, 0.22);
-        --tc-blink-bg: #6b4dff;
-        --tc-blink-fg: #ffffff;
-
-        --tc-btn-bg: transparent;
-        --tc-btn-fg: #1a0f3a;
-        --tc-btn-border: 1px solid rgba(26, 15, 58, 0.2);
-        --tc-btn-radius: 999px;
-        --tc-btn-pad: 10px 18px;
-        --tc-btn-size: 14px;
-        --tc-btn-weight: 600;
-        --tc-btn-active-bg: #6b4dff;
-        --tc-btn-active-fg: #ffffff;
-
-        --tc-tab-bg: rgba(26, 15, 58, 0.05);
-        --tc-tab-fg: rgba(26, 15, 58, 0.55);
-        --tc-tab-size: 13px;
-        --tc-tab-weight: 600;
-        --tc-tab-active-bg: #6b4dff;
-        --tc-tab-active-fg: #ffffff;
-    }
-}
-
-// ─── V3 семейство SoftSpring — пластилин с едва заметными орбами
-// Гармоничные с ModalShell spring (мята/голубой/лимон/зелень) тона.
-// Цифры утоплены в лунку. Орбы ОЧЕНЬ слабые — atmospheric, не декоративные.
-@keyframes tcOrbDrift {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-    50%      { transform: translate3d(10px, -12px, 0) scale(1.05); }
-}
-
-@mixin tc-soft-orbs($color1, $color2, $opacity: 0.28) {
-    overflow: hidden;
-    isolation: isolate;
-
-    &::before,
-    &::after {
-        content: '';
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(48px);
-        opacity: $opacity;
-        pointer-events: none;
-        z-index: 0;
-        animation: tcOrbDrift 9s ease-in-out infinite;
-    }
-
-    &::before {
-        width: 240px;
-        height: 240px;
-        top: -80px;
-        left: -70px;
-        background: radial-gradient(circle, $color1 0%, rgba($color1, 0) 70%);
-    }
-
-    &::after {
-        width: 200px;
-        height: 200px;
-        bottom: -70px;
-        right: -60px;
-        background: radial-gradient(circle, $color2 0%, rgba($color2, 0) 70%);
-        animation-delay: -4.5s;
-    }
-
-    :global(.tc-root) {
-        position: relative;
-        z-index: 1;
-    }
-}
-
-// ─── V3a SoftMint — гармония с ModalShell (мята + небо) ────
-.shellSoftMint {
-    background: #e6f0ec;
-    border-radius: 28px;
-    box-shadow:
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.95),
-        inset 1px 0 0 rgba(255, 255, 255, 0.6),
-        inset -1px 0 0 rgba(86, 166, 154, 0.15),
-        inset 0 -1px 0 rgba(86, 166, 154, 0.22),
-        12px 12px 28px rgba(86, 166, 154, 0.28),
-        -12px -12px 28px rgba(255, 255, 255, 0.9);
-
-    @include tc-soft-orbs(#a8e6cf, #b3e5fc);
-
-    :global(.tc-root) {
-        --tc-shell-bg: transparent;
-        --tc-shell-border: 0;
-        --tc-shell-shadow: none;
-        --tc-shell-pad: 30px 28px 24px;
-        --tc-gap: 20px;
-
-        --tc-bg: #e6f0ec;
-        --tc-fg: #1a3a32;
-        --tc-border: 0;
-        --tc-border-radius: 22px;
-        --tc-input-pad: 18px 24px;
-        --tc-input-size: 4.5rem;
-        --tc-input-weight: 700;
-        --tc-input-letter-spacing: -0.04em;
-        --tc-separator-color: rgba(26, 58, 50, 0.5);
-        --tc-separator-weight: 700;
-        --tc-placeholder: rgba(26, 58, 50, 0.25);
-        --tc-shadow-focus:
-            inset 5px 5px 12px rgba(86, 166, 154, 0.4),
-            inset -5px -5px 12px rgba(255, 255, 255, 0.95);
-        --tc-blink-bg: #56c596;
-        --tc-blink-fg: #ffffff;
-
-        --tc-btn-bg: #e6f0ec;
-        --tc-btn-fg: #1a3a32;
-        --tc-btn-border: 0;
-        --tc-btn-radius: 999px;
-        --tc-btn-pad: 12px 22px;
-        --tc-btn-size: 13px;
-        --tc-btn-weight: 600;
-        --tc-btn-active-bg: #56c596;
-        --tc-btn-active-fg: #ffffff;
-
-        --tc-tab-bg: #e6f0ec;
-        --tc-tab-fg: rgba(26, 58, 50, 0.5);
-        --tc-tab-active-bg: #56c596;
-        --tc-tab-active-fg: #ffffff;
-    }
-
-    :global(.tc-root) .wrapper {
-        box-shadow:
-            inset 5px 5px 12px rgba(86, 166, 154, 0.4),
-            inset -5px -5px 12px rgba(255, 255, 255, 0.95),
-            inset 0 1px 0 rgba(86, 166, 154, 0.18);
-    }
-
-    :global(.tc-root) .toggleButton {
-        box-shadow:
-            5px 5px 12px rgba(86, 166, 154, 0.28),
-            -5px -5px 12px rgba(255, 255, 255, 0.9),
-            inset 0 1px 0 rgba(255, 255, 255, 0.85);
-
-        &:active {
-            box-shadow:
-                inset 4px 4px 10px rgba(86, 166, 154, 0.4),
-                inset -4px -4px 10px rgba(255, 255, 255, 0.95);
-        }
-    }
-
-    :global(.tc-root) .rangeTabs {
-        box-shadow:
-            inset 4px 4px 10px rgba(86, 166, 154, 0.28),
-            inset -4px -4px 10px rgba(255, 255, 255, 0.9);
-    }
-}
-
-// ─── V3b SoftMidnight — глубокий тёмно-синий с лунным рефлексом
-// Тот же neumorphism, но в ночном modus — индиго/сапфир, мягкое золото акцент.
-.shellSoftMidnight {
-    background: #1d2a4a;
-    border-radius: 28px;
-    box-shadow:
-        // лунный верхний рефлекс
-        inset 0 1.5px 0 rgba(150, 175, 255, 0.55),
-        inset 1px 0 0 rgba(150, 175, 255, 0.25),
-        inset -1px 0 0 rgba(0, 0, 0, 0.4),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.5),
-        12px 12px 32px rgba(0, 0, 0, 0.45),
-        -10px -10px 28px rgba(60, 80, 140, 0.35);
-
-    @include tc-soft-orbs(#5168b8, #5da9c9, 0.42);
-
-    :global(.tc-root) {
-        --tc-shell-bg: transparent;
-        --tc-shell-border: 0;
-        --tc-shell-shadow: none;
-        --tc-shell-pad: 30px 28px 24px;
-        --tc-gap: 20px;
-
-        --tc-bg: #1d2a4a;
-        --tc-fg: #e8edff;
-        --tc-border: 0;
-        --tc-border-radius: 22px;
-        --tc-input-pad: 18px 24px;
-        --tc-input-size: 4.5rem;
-        --tc-input-weight: 700;
-        --tc-input-letter-spacing: -0.04em;
-        --tc-separator-color: rgba(232, 237, 255, 0.55);
-        --tc-separator-weight: 700;
-        --tc-placeholder: rgba(232, 237, 255, 0.25);
-        --tc-shadow-focus:
-            inset 5px 5px 12px rgba(0, 0, 0, 0.5),
-            inset -5px -5px 12px rgba(80, 105, 175, 0.35);
-        --tc-blink-bg: #ffd28a;
-        --tc-blink-fg: #1d2a4a;
-
-        --tc-btn-bg: #1d2a4a;
-        --tc-btn-fg: #e8edff;
-        --tc-btn-border: 0;
-        --tc-btn-radius: 999px;
-        --tc-btn-pad: 12px 22px;
-        --tc-btn-size: 13px;
-        --tc-btn-weight: 600;
-        --tc-btn-active-bg: #ffd28a;
-        --tc-btn-active-fg: #1d2a4a;
-
-        --tc-tab-bg: #1d2a4a;
-        --tc-tab-fg: rgba(232, 237, 255, 0.5);
-        --tc-tab-active-bg: #ffd28a;
-        --tc-tab-active-fg: #1d2a4a;
-    }
-
-    :global(.tc-root) .wrapper {
-        box-shadow:
-            inset 5px 5px 14px rgba(0, 0, 0, 0.5),
-            inset -5px -5px 14px rgba(80, 105, 175, 0.35),
-            inset 0 1px 0 rgba(150, 175, 255, 0.2);
-    }
-
-    :global(.tc-root) .toggleButton {
-        box-shadow:
-            5px 5px 12px rgba(0, 0, 0, 0.4),
-            -5px -5px 12px rgba(60, 80, 140, 0.3),
-            inset 0 1px 0 rgba(150, 175, 255, 0.25);
-
-        &:active {
-            box-shadow:
-                inset 4px 4px 10px rgba(0, 0, 0, 0.5),
-                inset -4px -4px 10px rgba(80, 105, 175, 0.35);
-        }
-    }
-
-    :global(.tc-root) .rangeTabs {
-        box-shadow:
-            inset 4px 4px 10px rgba(0, 0, 0, 0.4),
-            inset -4px -4px 10px rgba(60, 80, 140, 0.3);
-    }
-}
-
-// ─── V3c SoftVeil — полупрозрачная вуаль, сильно играет фон ─
-// Очень прозрачный shell — пропускает spring-фон ModalShell, но имеет
-// собственный edva заметный налёт + 2 внутренние пастельные сферы.
-// Без neumorphism-теней, потому что они требуют непрозрачного фона.
-.shellSoftVeil {
-    background: rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(10px) saturate(1.3);
-    -webkit-backdrop-filter: blur(10px) saturate(1.3);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 28px;
-    box-shadow:
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
-        inset 1px 0 0 rgba(255, 255, 255, 0.55),
-        inset -1px 0 0 rgba(255, 255, 255, 0.5),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.4),
-        0 12px 32px rgba(80, 100, 140, 0.12);
-
-    @include tc-soft-orbs(#fff9c4, #c8e6c9, 0.32);
-
-    :global(.tc-root) {
-        --tc-shell-bg: transparent;
-        --tc-shell-border: 0;
-        --tc-shell-shadow: none;
-        --tc-shell-pad: 30px 28px 24px;
-        --tc-gap: 20px;
-
-        --tc-bg: rgba(255, 255, 255, 0.22);
-        --tc-fg: #1a2840;
-        --tc-border: 1px solid rgba(255, 255, 255, 0.5);
-        --tc-border-radius: 22px;
-        --tc-input-pad: 16px 22px;
-        --tc-input-size: 4.5rem;
-        --tc-input-weight: 700;
-        --tc-input-letter-spacing: -0.04em;
-        --tc-separator-color: rgba(26, 40, 64, 0.5);
-        --tc-separator-weight: 700;
-        --tc-placeholder: rgba(26, 40, 64, 0.25);
-        --tc-shadow-focus: 0 0 0 2px rgba(95, 130, 200, 0.6);
-        --tc-blink-bg: #5f82c8;
-        --tc-blink-fg: #ffffff;
-
-        --tc-btn-bg: rgba(255, 255, 255, 0.32);
-        --tc-btn-fg: #1a2840;
-        --tc-btn-border: 1px solid rgba(255, 255, 255, 0.55);
-        --tc-btn-radius: 999px;
-        --tc-btn-pad: 11px 20px;
-        --tc-btn-size: 13px;
-        --tc-btn-weight: 600;
-        --tc-btn-active-bg: #5f82c8;
-        --tc-btn-active-fg: #ffffff;
-
-        --tc-tab-bg: rgba(255, 255, 255, 0.22);
-        --tc-tab-fg: rgba(26, 40, 64, 0.55);
-        --tc-tab-active-bg: rgba(255, 255, 255, 0.85);
-        --tc-tab-active-fg: #1a2840;
-    }
-}
-
-// ─── V4 Smudge — упор на смазанные RGB-цифры, без подложки
-// Никакого shell, никакой плашки под цифрами — только огромные
-// тёмные цифры с фуксия/синим RGB-сдвигом (как у risograph-печати).
-.shellSmudge {
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    padding: 0;
-
-    :global(.tc-root) {
-        --tc-shell-bg: transparent;
-        --tc-shell-border: 0;
-        --tc-shell-shadow: none;
-        --tc-shell-pad: 0;
-        --tc-gap: 20px;
-
-        --tc-bg: transparent;
-        --tc-fg: #2a1838;
-        --tc-border: 0;
-        --tc-border-radius: 0;
-        --tc-input-font: 'Onest', 'Golos Text', system-ui, sans-serif;
-        --tc-input-pad: 4px 10px;
-        --tc-input-size: 6.75rem;
-        --tc-input-weight: 800;
-        --tc-input-letter-spacing: -0.05em;
-        --tc-separator-color: #e13c82;
-        --tc-separator-weight: 800;
-        --tc-placeholder: rgba(42, 24, 56, 0.22);
-        --tc-shadow-focus: 0 3px 0 #005ac8;
-        --tc-blink-bg: #e13c82;
-        --tc-blink-fg: #ffffff;
-
-        --tc-btn-bg: transparent;
-        --tc-btn-fg: #2a1838;
-        --tc-btn-border: 1.5px solid #2a1838;
-        --tc-btn-radius: 6px;
-        --tc-btn-pad: 9px 16px;
-        --tc-btn-size: 12px;
-        --tc-btn-weight: 700;
-        --tc-btn-tracking: 0.08em;
-        --tc-btn-transform: uppercase;
-        --tc-btn-active-bg: #e13c82;
-        --tc-btn-active-fg: #ffffff;
-
-        --tc-tab-bg: rgba(42, 24, 56, 0.06);
-        --tc-tab-fg: rgba(42, 24, 56, 0.55);
-        --tc-tab-size: 11px;
-        --tc-tab-weight: 700;
-        --tc-tab-tracking: 0.1em;
-        --tc-tab-transform: uppercase;
-        --tc-tab-active-bg: #005ac8;
-        --tc-tab-active-fg: #ffffff;
-    }
-
-    :global(.tc-root) .input,
-    :global(.tc-root) .separator {
-        text-shadow:
-            2px 0 0 rgba(225, 60, 130, 0.55),
-            -2px 0 0 rgba(0, 90, 200, 0.5);
-    }
-}
-
-// ─── V7 Clean — светлый минимализм с жёлтым акцентом ──────
-// Чистый белый shell, крупные «полу-bold» цифры, серые пилюли-кнопки,
-// жёлтый фокус. Ничего лишнего: ни блюра, ни орбов, ни рефлексов.
-.shellClean {
-    background: #ffffff;
-    border: 1px solid #ececec;
-    border-radius: 16px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    padding: 0;
-
-    :global(.tc-root) {
-        --tc-shell-bg: #ffffff;
-        --tc-shell-border: 0;
-        --tc-shell-shadow: none;
-        --tc-shell-pad: 24px 24px 20px;
-        --tc-gap: 20px;
-
-        --tc-bg: transparent;
-        --tc-fg: #21201f;
-        --tc-border: 1px solid transparent;
-        --tc-border-radius: 12px;
-        --tc-input-font: 'Onest', 'Golos Text', 'YS Text', system-ui, sans-serif;
-        --tc-input-size: 5.5rem;
-        --tc-input-letter-spacing: -0.04em;
-        --tc-input-weight: 600;
-        --tc-input-pad: 8px 12px;
-        --tc-separator-color: rgba(33, 32, 31, 0.45);
-        --tc-separator-weight: 600;
-        --tc-placeholder: rgba(33, 32, 31, 0.22);
-        --tc-shadow-focus: 0 0 0 3px rgba(255, 204, 0, 0.55);
-        --tc-blink-bg: #ffcc00;
-        --tc-blink-fg: #21201f;
-
-        --tc-btn-bg: #f3f2f0;
-        --tc-btn-fg: #21201f;
-        --tc-btn-border: 1px solid transparent;
-        --tc-btn-radius: 999px;
-        --tc-btn-pad: 9px 16px;
-        --tc-btn-font: 'Onest', 'Golos Text', 'YS Text', system-ui, sans-serif;
-        --tc-btn-size: 14px;
-        --tc-btn-weight: 500;
-        --tc-btn-tracking: 0;
-        --tc-btn-transform: none;
-        --tc-btn-active-bg: #ffcc00;
-        --tc-btn-active-fg: #21201f;
-
-        --tc-tab-bg: #f3f2f0;
-        --tc-tab-fg: rgba(33, 32, 31, 0.6);
-        --tc-tab-font: 'Onest', 'Golos Text', 'YS Text', system-ui, sans-serif;
-        --tc-tab-size: 13px;
-        --tc-tab-weight: 500;
-        --tc-tab-tracking: 0;
-        --tc-tab-transform: none;
-        --tc-tab-active-bg: #ffffff;
-        --tc-tab-active-fg: #21201f;
-    }
-
-    :global(.tc-root) .toggleButton {
-        transition: background-color 0.12s ease, color 0.12s ease;
-
-        &:hover {
-            background: #e8e6e3;
-        }
-
-        &:active {
-            background: #ffcc00;
-            transform: none;
-        }
-    }
-
-    :global(.tc-root) .rangeTabs {
-        padding: 3px;
-    }
-
-    :global(.tc-root) .rangeTabActive {
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-    }
-}
-
-// ─── Paper — Yandex Pogoda inspired light minimalism ─────────
-// Чистый белый shell, огромные жирные display-цифры, pill-кнопки,
-// синий Яндекс-акцент. Часть paper-флоу: SearchFood → Quantity → TimeChoose.
-.shellPaper {
-    @include paper-tokens;
-
-    background: var(--paper-bg-page);
-    border: 1px solid var(--paper-line);
-    border-radius: var(--paper-radius-lg);
-    box-shadow: var(--paper-shadow-card);
-    padding: 0;
-
-    :global(.tc-root) {
-        @include paper-tokens;
-
-        --tc-shell-bg: var(--paper-bg-page);
-        --tc-shell-border: 0;
-        --tc-shell-shadow: none;
-        --tc-shell-pad: 24px 20px 20px;
-        --tc-gap: 18px;
-
-        --tc-bg: transparent;
-        --tc-fg: var(--paper-text-1);
-        --tc-border: 1px solid transparent;
-        --tc-border-radius: var(--paper-radius-md);
-        --tc-input-font: var(--paper-font);
-        --tc-input-size: var(--paper-display-size);
-        --tc-input-letter-spacing: var(--paper-display-tracking);
-        --tc-input-weight: var(--paper-display-weight);
-        --tc-input-pad: 8px 12px;
-        --tc-separator-color: rgba(10, 10, 10, 0.45);
-        --tc-separator-weight: 700;
-        --tc-placeholder: var(--paper-text-3);
-        --tc-shadow-focus: var(--paper-focus-ring);
-        --tc-blink-bg: var(--paper-brand);
-        --tc-blink-fg: var(--paper-brand-fg);
-
-        --tc-btn-bg: var(--paper-bg-pill);
-        --tc-btn-fg: var(--paper-text-1);
-        --tc-btn-border: 1px solid transparent;
-        --tc-btn-radius: var(--paper-radius-pill);
-        --tc-btn-pad: var(--paper-pad-pill);
-        --tc-btn-font: var(--paper-font);
-        --tc-btn-size: 15px;
-        --tc-btn-weight: 500;
-        --tc-btn-tracking: 0;
-        --tc-btn-transform: none;
-        --tc-btn-active-bg: var(--paper-brand);
-        --tc-btn-active-fg: var(--paper-brand-fg);
-
-        --tc-tab-bg: var(--paper-bg-elevated);
-        --tc-tab-fg: var(--paper-text-2);
-        --tc-tab-font: var(--paper-font);
-        --tc-tab-size: 14px;
-        --tc-tab-weight: 500;
-        --tc-tab-tracking: 0;
-        --tc-tab-transform: none;
-        --tc-tab-active-bg: var(--paper-bg-page);
-        --tc-tab-active-fg: var(--paper-text-1);
-    }
-
-    :global(.tc-root) .input,
-    :global(.tc-root) .separator,
-    :global(.tc-root) .nativeInput {
-        font-variant-numeric: tabular-nums;
-    }
-
-    :global(.tc-root) .toggleButton {
-        transition: background-color 0.12s ease, color 0.12s ease;
-
-        &:hover {
-            background: var(--paper-bg-pill-hover);
-        }
-
-        &:active {
-            background: var(--paper-brand);
-            color: var(--paper-brand-fg);
-            transform: none;
-        }
-    }
-
-    :global(.tc-root) .rangeTabs {
-        padding: 4px;
-    }
-
-    :global(.tc-root) .rangeTabActive {
-        box-shadow: var(--paper-shadow-segment);
-    }
 }
 
 .wrapper {
     display: inline-flex;
     align-items: center;
-    padding: var(--tc-input-pad);
-    border-radius: var(--tc-border-radius);
-    transition: 0.2s box-shadow ease-in-out, 0.2s border-color ease-in-out, 0.2s background ease-in-out;
-    color: var(--tc-fg);
-    background: var(--tc-bg);
-    border: var(--tc-border);
+    justify-content: center;
+    // color: #ffffff;
+    background: transparent;
+    border: 0;
     outline: none;
-
-    &:focus-within {
-        box-shadow: var(--tc-shadow-focus);
-    }
 }
 
 .inputWrapper {
@@ -740,38 +40,32 @@
 
 .input {
     display: block;
-    width: 130px;
-    padding: 6px 4px;
-    font-size: var(--tc-input-size);
-    font-family: var(--tc-input-font);
-    font-weight: var(--tc-input-weight);
+    width: 2ch;
+    // padding: 0;
+    font-size: 7rem;
+    font-family: 'Onest', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.085em;
     text-align: center;
     border: none;
     background: transparent;
-    letter-spacing: var(--tc-input-letter-spacing);
-    color: var(--tc-fg);
-
-    &[aria-label='Hour'] {
-        padding-right: 0;
-    }
-
-    &[aria-label='Minute'] {
-        padding-left: 0;
-    }
+    color: var(--color-ink);
+    font-variant-numeric: tabular-nums;
 
     &::selection {
-        color: var(--tc-blink-fg);
-        background: var(--tc-blink-bg);
+        color: #0a0a0a;
+        background: #ffffff;
     }
 
     &:focus {
         outline: none;
-        @include blink(#fff, #000, 0.8s);
+        @include blink(#000, #fff, 0.8s);
     }
 
     &::placeholder {
-        color: var(--tc-placeholder);
-        font-weight: 400;
+        color: rgba(38, 38, 51, 0.45);
+        font-weight: 800;
     }
 }
 
@@ -779,11 +73,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--tc-separator-color);
-    font-weight: var(--tc-separator-weight);
+    color: rgba(38, 38, 51, 0.8);
+    // font-weight: 800;
     user-select: none;
     pointer-events: none;
-    font-size: 3rem;
+    font-size: 7rem;
+    line-height: 1;
+    width: 10px;
+    transform: translateY(-10%);
+    // letter-spacing: -0.085em;
+    padding: 0 1px;
 }
 
 .blinking {
@@ -808,7 +107,6 @@
 
     .rangeTab {
         border-right: none;
-        border-bottom: var(--tc-tab-divider);
 
         &:last-child {
             border-bottom: none;
@@ -817,28 +115,7 @@
 }
 
 .toggleButton {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: var(--tc-btn-pad);
-    font-size: var(--tc-btn-size);
-    font-weight: var(--tc-btn-weight);
-    white-space: nowrap;
-    border-radius: var(--tc-btn-radius);
-    color: var(--tc-btn-fg);
-    background: var(--tc-btn-bg);
-    border: var(--tc-btn-border);
-    font-family: var(--tc-btn-font);
-    text-transform: var(--tc-btn-transform);
-    letter-spacing: var(--tc-btn-tracking);
-    transition: background-color 0.15s, color 0.15s, transform 0.1s;
-    cursor: pointer;
-
-    &:active {
-        background: var(--tc-btn-active-bg);
-        color: var(--tc-btn-active-fg);
-        transform: scale(0.97);
-    }
+    @include pill-button();
 
     &::before {
         display: inline-block;
@@ -850,13 +127,13 @@
     }
 
     &:active::before {
-        background-color: var(--tc-btn-active-fg);
+        background-color: var(--color-ink-strong);
     }
 }
 
 .nowButton {
     &::before {
-        background-color: var(--tc-btn-fg);
+        background-color: var(--color-ink);
         mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E") no-repeat center / 16px;
         -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E") no-repeat center / 16px;
     }
@@ -864,7 +141,7 @@
 
 .swapButton {
     &::before {
-        background-color: var(--tc-btn-fg);
+        background-color: var(--color-ink);
         mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 10H3l4-4'/%3E%3Cpath d='M7 14h14l-4 4'/%3E%3C/svg%3E") no-repeat center / 16px;
         -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 10H3l4-4'/%3E%3Cpath d='M7 14h14l-4 4'/%3E%3C/svg%3E") no-repeat center / 16px;
     }
@@ -876,25 +153,23 @@
     display: flex;
     gap: 4px;
     width: 100%;
-    border: var(--tc-tab-border);
-    border-radius: var(--tc-border-radius);
+    border: 0;
+    border-radius: 16px;
     padding: 4px;
-    background: var(--tc-tab-bg);
+    background: #f2f4f7;
 }
 
 .rangeTab {
     flex: 1;
     padding: 10px 0;
-    font-family: var(--tc-tab-font);
-    font-size: var(--tc-tab-size);
-    font-weight: var(--tc-tab-weight);
-    letter-spacing: var(--tc-tab-tracking);
-    text-transform: var(--tc-tab-transform);
+    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
     text-align: center;
-    color: var(--tc-tab-fg);
+    color: #5c6473;
     background: transparent;
     border: none;
-    border-radius: calc(var(--tc-border-radius) - 6px);
+    border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.15s, color 0.15s, transform 0.1s;
 
@@ -904,23 +179,23 @@
 }
 
 .rangeTabActive {
-    background: var(--tc-tab-active-bg);
-    color: var(--tc-tab-active-fg);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    background: #ffffff;
+    color: #0a0a0a;
+    box-shadow: 0 1px 2px rgba(10, 10, 10, 0.08);
 }
 
 .nativeInput {
     font-size: 2rem;
-    font-family: var(--tc-input-font);
+    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     padding: 12px 18px;
-    border-radius: var(--tc-border-radius);
-    border: var(--tc-border);
-    background: var(--tc-bg);
-    color: var(--tc-fg);
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #0a0a0a;
     cursor: pointer;
 
     &:focus {
         outline: none;
-        box-shadow: var(--tc-shadow-focus);
+        box-shadow: 0 0 0 3px rgba(51, 112, 255, 0.25);
     }
 }

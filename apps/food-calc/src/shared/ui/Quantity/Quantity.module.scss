@@ -20,6 +20,16 @@
     white-space: nowrap;
     pointer-events: none;
     letter-spacing: 0.02em;
+    // Mirrors the previous Framer Motion animation:
+    // 3.5s slide from x:-100% to x:0%, then short fade-out before unmount.
+    // Pure CSS = compositor only, no Framer reconciliation overhead.
+    animation: quantityDiff 4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+@keyframes quantityDiff {
+    0%   { transform: translateX(-100%); opacity: 1; }
+    87%  { transform: translateX(0%); opacity: 1; }
+    100% { transform: translateX(0%); opacity: 0; }
 }
 
 .hide {

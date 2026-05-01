@@ -24,20 +24,29 @@
 
 .modal {
     position: absolute;
-    // top: 50%;
-    // left: 50%;
     bottom: 0;
     left: 0;
     right: 0;
     top: 0;
-    // transform: translate(-50%, -50%);
-
-    // border-radius: 16px;
     overflow: hidden;
-    // padding: 12px;
-    // max-height: 100vh;
     z-index: 4001;
 
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+        transform var(--duration-slow) var(--easing-spring),
+        opacity var(--duration-normal) var(--easing-default),
+        display var(--duration-slow) var(--easing-spring) allow-discrete;
+
+    @starting-style {
+        opacity: 0;
+        transform: translateY(20%);
+    }
+
+    &[data-state='closed'] {
+        opacity: 0;
+        transform: translateY(20%);
+    }
 }
 
 
@@ -57,4 +66,10 @@
     /* IE and Edge */
     scrollbar-width: none;
     /* Firefox */
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .modal {
+        transition: none;
+    }
 }

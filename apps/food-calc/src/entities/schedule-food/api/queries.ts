@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/shared/lib/dexie/schema';
 import { useUserId } from '@/shared/lib/auth/useUserId';
@@ -70,23 +70,72 @@ function useDishLookup(): Map<string, DishLite> {
   );
 }
 
-function enrich(
+// Stable-reference enrich: re-uses the previous enriched object when
+// (updatedAt, productId, dishId, product-ref, dish-ref) are unchanged.
+// Without this, every mutation makes mapScheduleFoodRow allocate fresh `row`
+// objects → enrich allocates fresh enriched objects → all 50 ScheduleFoodItems
+// re-render even though only one row actually changed.
+type EnrichCache = Map<
+  string,
+  {
+    updatedAt: string | null;
+    product: ScheduleFoodWithRelations['product'];
+    dish: ScheduleFoodWithRelations['dish'];
+    enriched: ScheduleFoodWithRelations;
+  }
+>;
+
+function enrichWithCache(
   rows: ScheduleFood[],
   products: Map<string, ProductLite>,
   dishes: Map<string, DishLite>,
+  cache: EnrichCache,
 ): ScheduleFoodWithRelations[] {
-  return rows.map((row) => ({
-    ...row,
-    product: row.productId
-      ? (() => {
-          const p = products.get(row.productId);
-          return p
-            ? { name: p.name, userId: p.userId, pricePerKg: p.pricePerKg }
-            : null;
-        })()
-      : null,
-    dish: row.dishId ? (dishes.get(row.dishId) ?? null) : null,
-  }));
+  const next: EnrichCache = new Map();
+  const result = rows.map((row) => {
+    const productLite = row.productId ? products.get(row.productId) : undefined;
+    const product = productLite
+      ? { name: productLite.name, userId: productLite.userId, pricePerKg: productLite.pricePerKg }
+      : null;
+    const dish = row.dishId ? (dishes.get(row.dishId) ?? null) : null;
+
+    const cached = cache.get(row.id);
+    if (
+      cached &&
+      cached.updatedAt === row.updatedAt &&
+      sameProduct(cached.product, product) &&
+      sameDish(cached.dish, dish)
+    ) {
+      next.set(row.id, cached);
+      return cached.enriched;
+    }
+
+    const enriched: ScheduleFoodWithRelations = { ...row, product, dish };
+    next.set(row.id, { updatedAt: row.updatedAt, product, dish, enriched });
+    return enriched;
+  });
+
+  cache.clear();
+  next.forEach((v, k) => cache.set(k, v));
+  return result;
+}
+
+function sameProduct(
+  a: ScheduleFoodWithRelations['product'],
+  b: ScheduleFoodWithRelations['product'],
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.name === b.name && a.userId === b.userId && a.pricePerKg === b.pricePerKg;
+}
+
+function sameDish(
+  a: ScheduleFoodWithRelations['dish'],
+  b: ScheduleFoodWithRelations['dish'],
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.name === b.name;
 }
 
 export function useScheduleFoods(
@@ -95,10 +144,11 @@ export function useScheduleFoods(
   const all = useAllScheduleFoods();
   const products = useProductLookup();
   const dishes = useDishLookup();
+  const cacheRef = useRef<EnrichCache>(new Map());
   return useMemo(() => {
     if (!date) return [];
     const filtered = all.filter((r) => r.date === date);
-    return enrich(filtered, products, dishes);
+    return enrichWithCache(filtered, products, dishes, cacheRef.current);
   }, [all, date, products, dishes]);
 }
 
@@ -108,11 +158,12 @@ export function useScheduleFoodsByDates(
   const all = useAllScheduleFoods();
   const products = useProductLookup();
   const dishes = useDishLookup();
+  const cacheRef = useRef<EnrichCache>(new Map());
   return useMemo(() => {
     if (dates.length === 0) return [];
     const dateSet = new Set(dates);
     const filtered = all.filter((r) => dateSet.has(r.date));
-    return enrich(filtered, products, dishes);
+    return enrichWithCache(filtered, products, dishes, cacheRef.current);
   }, [all, dates, products, dishes]);
 }
 
@@ -120,8 +171,9 @@ export function useAllScheduleFoodsList(): ScheduleFoodWithRelations[] {
   const all = useAllScheduleFoods();
   const products = useProductLookup();
   const dishes = useDishLookup();
+  const cacheRef = useRef<EnrichCache>(new Map());
   return useMemo(
-    () => enrich(all, products, dishes),
+    () => enrichWithCache(all, products, dishes, cacheRef.current),
     [all, products, dishes],
   );
 }

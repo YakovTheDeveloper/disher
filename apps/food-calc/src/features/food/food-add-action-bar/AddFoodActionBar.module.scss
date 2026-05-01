@@ -6,7 +6,7 @@
   padding: 0 8px 0 4px;
   min-height: 52px;
   border-radius: 999px;
-  background: transparent;
+
 }
 
 .searchBarWrite {
@@ -15,22 +15,22 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 0 12px;
   min-height: 52px;
   border-radius: 999px;
-  border: none;
+
+  border: 1px solid whitesmoke;
   box-shadow: none;
   color: rgba(31, 42, 68, 0.55);
   font-size: 15px;
   font-weight: 400;
   cursor: text;
   user-select: none;
-  backdrop-filter: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  background: rgba(255, 255, 255, 0);
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  transition: transform 0.12s ease;
+  backdrop-filter: blur(12px);
+  background: rgba(244, 251, 255, 0.7);
 
   &:hover,
   &:focus-visible {
@@ -50,6 +50,7 @@
   box-shadow: none;
   background: transparent;
   cursor: text;
+  border-radius: 999px;
 }
 
 .searchBarWriteActive {

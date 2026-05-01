@@ -1,4 +1,3 @@
-import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
@@ -8,11 +7,7 @@ import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { DetailsNoteButton } from '@/features/shared/components/DetailsNoteButton';
-import {
-  useScheduleFoodFlow,
-  CREATE_STEPS,
-  STEP_LABELS,
-} from './useScheduleFoodFlow';
+import { useScheduleFoodFlow, CREATE_STEPS, STEP_LABELS } from './useScheduleFoodFlow';
 
 type Props = {
   scheduleId: string;
@@ -20,13 +15,7 @@ type Props = {
   onRichNutrientClear?: () => void;
 };
 
-const ScheduleFoodCreateModals = ({
-  scheduleId,
-  richNutrient,
-  onRichNutrientClear,
-}: Props) => {
-  const { toProduct, toDish } = useAppRoutes();
-
+const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClear }: Props) => {
   const {
     step,
     setStep,
@@ -52,13 +41,8 @@ const ScheduleFoodCreateModals = ({
         isExpanded={step === 'search'}
         content={
           <SearchFood
-            onInfoClick={(variant, id) => {
-              console.warn('[debug] onInfoClick', variant, id);
+            onInfoClick={() => {
               handleClose();
-              console.warn('[debug] handleClose done');
-              if (variant === 'product') toProduct(id);
-              else toDish(id);
-              console.warn('[debug] navigate called, pathname=', window.location.pathname);
             }}
             bottomLeft={<DetailsNoteButton htmlFor={DETAILS_INPUT} hasDetails={!!draft.details} />}
             key={sessionKey}
@@ -79,7 +63,7 @@ const ScheduleFoodCreateModals = ({
         position="absolute"
         isExpanded={step === 'time'}
         content={
-          <ModalShell>
+          <ModalShell variant="gradient1">
             <ModalStepHeader
               currentStep="time"
               steps={CREATE_STEPS}
@@ -169,7 +153,6 @@ const ScheduleFoodCreateModals = ({
           </ModalShell>
         }
       />
-
     </div>
   );
 };

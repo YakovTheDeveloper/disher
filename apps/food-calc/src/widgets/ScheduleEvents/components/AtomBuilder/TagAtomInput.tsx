@@ -5,6 +5,8 @@
 
 import { useState, useMemo } from 'react';
 import { TagAtom } from '@/entities/schedule-event';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import styles from './shared/AtomInputShared.module.css';
 
 export interface TagAtomInputProps {
@@ -15,33 +17,9 @@ export interface TagAtomInputProps {
   recentTags?: string[];
 }
 
-const BackArrow = () => (
-  <svg viewBox="0 0 24 24" fill="none" width="48" height="48">
-    <path
-      d="M19 12H5M11 18l-6-6 6-6"
-      stroke="#111"
-      strokeWidth="1"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const DoneIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" width="48" height="48">
-    <circle cx="12" cy="12" r="10" stroke="#111" strokeWidth="1" />
-    <path
-      d="M7.5 12l3 3 6-6"
-      stroke="#111"
-      strokeWidth="1"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
 export const TagAtomInput = ({ onAddAtom, onClose, accentColor, popularTags = [], recentTags = [] }: TagAtomInputProps) => {
   const [input, setInput] = useState('');
+  const [isReady, setIsReady] = useState(false);
 
   const suggestions = useMemo(() => {
     const all = Array.from(new Set([...popularTags, ...recentTags]));
@@ -57,38 +35,24 @@ export const TagAtomInput = ({ onAddAtom, onClose, accentColor, popularTags = []
     setInput('');
   };
 
-  const addDisabled = !input.trim();
-
   return (
     <div
       className={styles.atomPanel}
       style={accentColor ? ({ '--atom-accent': accentColor } as React.CSSProperties) : undefined}
     >
       <div className={styles.panelBody}>
-        {/* ← [text input] → */}
-        <div className={styles.inputRow}>
-          <button type="button" className={styles.navBtn} onClick={onClose}>
-            <BackArrow />
-          </button>
-          <div className={styles.bigInputGroup}>
-            <input
-              className={styles.bigTextInput}
-              type="text"
-              placeholder="тег"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
-              autoFocus
-            />
-            <div className={styles.fieldUnderline} />
-          </div>
-          <button
-            type="button"
-            className={`${styles.navBtn} ${styles.doneBtn} ${addDisabled ? styles.navBtnDisabled : ''}`}
-            onClick={() => handleAdd()}
-          >
-            <DoneIcon />
-          </button>
+        <div className={styles.bigInputGroup}>
+          <input
+            className={styles.bigTextInput}
+            type="text"
+            placeholder="тег"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
+            onFocus={() => setIsReady(true)}
+            autoFocus
+          />
+          <div className={styles.fieldUnderline} />
         </div>
 
         {suggestions.length > 0 && (
@@ -106,6 +70,13 @@ export const TagAtomInput = ({ onAddAtom, onClose, accentColor, popularTags = []
           </div>
         )}
       </div>
+
+      {isReady && (
+        <ModalShell.ActionButtons
+          left={<ModalPrevButton onClick={onClose} theme="events" />}
+          right={<ModalNextButton onClick={() => handleAdd()} variant="finish" theme="events" />}
+        />
+      )}
     </div>
   );
 };

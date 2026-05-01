@@ -1,4 +1,3 @@
-import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
@@ -15,7 +14,6 @@ type Props = {
 };
 
 const ScheduleFoodEditModals = ({ flow }: Props) => {
-  const { toProduct, toDish } = useAppRoutes();
   const {
     step,
     setStep,
@@ -64,10 +62,8 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
             onBack={handleClose}
             mode="products-and-dishes"
             onSelectFood={handleFoodSelect}
-            onInfoClick={(variant, id) => {
+            onInfoClick={() => {
               handleClose();
-              if (variant === 'product') toProduct(id);
-              else toDish(id);
             }}
             activeItemId={draft.productId ?? draft.dishId ?? undefined}
             inputId={SEARCH_INPUT}

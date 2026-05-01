@@ -1,42 +1,41 @@
-@import '@/shared/assets/style/paper-tokens.scss';
+@import '@/shared/assets/style/mixin.scss';
 
-// ProductQuantity.module.scss — Nylon editorial style (default)
-// + Paper variant (Yandex-inspired light minimalism) at the bottom.
+// ProductQuantity — Yandex Pogoda inspired light minimalism.
+// Big bold display digit, pill portion chips, blue accent.
 
 .container {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: var(--space-6);
+    padding-inline: var(--space-4);
 }
 
 .inputWrapper {
     flex: 1;
     min-width: 0;
-    padding: 0.5rem 0 0.25rem;
     text-align: center;
 
     .input {
-        font-size: 4.5rem;
+        font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        font-size: 7rem;
         font-weight: 800;
-        letter-spacing: -0.04em;
-        color: #0d0d0d;
+        letter-spacing: -0.06em;
+        color: var(--color-ink);
         background: transparent;
         border: none;
-        border-bottom: 2px solid #0d0d0d;
         border-radius: 0;
         width: 100%;
         text-align: center;
-        padding: 0 0.5rem 0.25rem;
+        padding: 0;
         line-height: 1;
-        transition: border-color 0.2s ease;
+        font-variant-numeric: tabular-nums;
+        transition: color 0.2s ease;
 
         &:focus {
             outline: none;
-            border-bottom-color: var(--color-purple);
             box-shadow: none;
         }
 
-        // Suppress browser number input spinners
         &::-webkit-inner-spin-button,
         &::-webkit-outer-spin-button {
             -webkit-appearance: none;
@@ -44,15 +43,19 @@
     }
 }
 
+// Outer wrapper: NumberInput's .bottom span. We override its baseline tone
+// (#999 + 0.8rem) with project-ink + larger label size so "граммы" reads
+// as a deliberate caption under the hero digit, not an after-thought.
 .unit {
     display: block;
     text-align: center;
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: #bbb;
-    margin-top: 0.5rem;
+    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgba(38, 38, 51, 0.55);
+    font-variant-numeric: tabular-nums;
 }
 
 // ── Sections ─────────────────────────────────────────────────────────────────
@@ -60,23 +63,31 @@
 .section {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--space-3);
 }
 
 .sectionLabel {
-    font-size: 0.575rem;
-    font-weight: 700;
-    letter-spacing: 0.32em;
-    text-transform: uppercase;
-    color: #c8c8c8;
-    padding-left: 0.125rem;
+    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--color-ink);
+    opacity: 0.75;
+    padding-left: 0;
 }
 
 // ── Snap carousel ───────────────────────────────────────────────────────────
 
+// Full-bleed: cancel the container's padding-inline so the carousel can
+// swipe edge-to-edge, then re-apply the same padding via scroll-padding so
+// each snapped slide aligns with the rest of the section's content.
 .snapViewport {
     overflow-x: auto;
-    width: 100%;
+    width: auto;
+    margin-inline: calc(var(--space-4) * -1);
+    padding-inline: var(--space-4);
+    scroll-padding-inline: var(--space-4);
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
@@ -98,31 +109,22 @@
 
 .slideGrid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.35rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2);
 
-    // Override QuickButton styles — higher specificity wins (.slideGrid .quickBtn > .quickButton)
+    // Portion chips share the TimeChoose toggleButton DNA: pill, glass, ink text.
     .quickBtn {
-        border-radius: 4px;
+        @include pill-button();
+        padding: 10px 16px;
         font-size: 14px;
-        padding: 4px 0;
-        font-weight: 500;
-        letter-spacing: 0.02em;
-        background: transparent;
-        border: 1px solid #e4e4e4;
-        color: #2a2a2a;
-        transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 
-        &:hover {
-            border-color: #2a2a2a;
-            background: transparent;
-        }
-
-        // Override global body .is-selected (specificity: 2 classes + 1 class = 030 > 011)
+        // Active state mirrors the toggleButton :active: solid white pill,
+        // ink-strong text. Higher specificity (.slideGrid .quickBtn) overrides
+        // the global body .is-selected blue.
         &:global(.is-selected) {
-            background: #0d0d0d;
-            border-color: #0d0d0d;
-            color: #fff;
+            background: #ffffff;
+            border-color: rgba(255, 255, 255, 0.4);
+            color: var(--color-ink-strong);
             font-weight: 600;
         }
     }
@@ -134,157 +136,59 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: var(--space-3);
 }
 
 .multiplierBtn {
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 50%;
-    border: 1px solid #e4e4e4;
-    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 1.25rem;
     font-weight: 600;
-    color: #2a2a2a;
+    color: var(--color-ink);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition: background-color 0.15s, color 0.15s, transform 0.1s;
+    cursor: pointer;
 
     &:hover {
-        border-color: #2a2a2a;
+        background: rgba(255, 255, 255, 0.26);
     }
 
     &:active {
-        background: #0d0d0d;
-        border-color: #0d0d0d;
-        color: #fff;
+        background: #ffffff;
+        color: var(--color-ink-strong);
+        transform: scale(0.97);
     }
 }
 
 .multiplierInput {
     width: 4rem;
     text-align: center;
+    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 1.5rem;
     font-weight: 700;
+    color: var(--color-ink);
     border: none;
-    border-bottom: 2px solid #e4e4e4;
+    border-bottom: 2px solid rgba(38, 38, 51, 0.15);
     border-radius: 0;
     background: transparent;
-    padding: 0.25rem 0;
+    padding: var(--space-1) 0;
+    font-variant-numeric: tabular-nums;
 
     &:focus {
         outline: none;
-        border-bottom-color: var(--color-purple);
+        border-bottom-color: var(--color-ink);
     }
 
     &::-webkit-inner-spin-button,
     &::-webkit-outer-spin-button {
         -webkit-appearance: none;
-    }
-}
-
-// ─── Paper variant — Yandex Pogoda inspired ──────────────────
-// Огромная цифра без подчёркивания, pill-чипы порций, синий акцент.
-// Часть paper-флоу: SearchFood → Quantity → TimeChoose.
-.containerPaper {
-    @include paper-tokens;
-
-    gap: 1.5rem;
-
-    .inputWrapper .input {
-        font-family: var(--paper-font);
-        font-size: var(--paper-display-size);
-        font-weight: var(--paper-display-weight);
-        letter-spacing: var(--paper-display-tracking);
-        color: var(--paper-text-1);
-        border-bottom: none;
-        font-variant-numeric: tabular-nums;
-        transition: color 0.2s ease;
-
-        &:focus {
-            outline: none;
-            border-bottom-color: transparent;
-            box-shadow: none;
-            color: var(--paper-text-1);
-        }
-    }
-
-    .unit {
-        font-family: var(--paper-font);
-        font-size: var(--paper-caption-size);
-        font-weight: var(--paper-caption-weight);
-        letter-spacing: 0;
-        text-transform: none;
-        color: var(--paper-text-3);
-        margin-top: 0.5rem;
-    }
-
-    .sectionLabel {
-        font-family: var(--paper-font);
-        font-size: var(--paper-caption-size);
-        font-weight: 600;
-        letter-spacing: 0;
-        text-transform: none;
-        color: var(--paper-text-2);
-        padding-left: 0;
-    }
-
-    .slideGrid {
-        gap: 0.5rem;
-
-        .quickBtn {
-            border-radius: var(--paper-radius-pill);
-            font-family: var(--paper-font);
-            font-size: 14px;
-            font-weight: 500;
-            letter-spacing: 0;
-            padding: 10px 14px;
-            background: var(--paper-bg-pill);
-            border: 1px solid transparent;
-            color: var(--paper-text-1);
-            transition: background 0.12s ease, color 0.12s ease;
-
-            &:hover {
-                border-color: transparent;
-                background: var(--paper-bg-pill-hover);
-            }
-
-            &:global(.is-selected) {
-                background: var(--paper-brand);
-                border-color: var(--paper-brand);
-                color: var(--paper-brand-fg);
-                font-weight: 600;
-            }
-        }
-    }
-
-    .multiplierBtn {
-        border: 1px solid var(--paper-line);
-        background: var(--paper-bg-page);
-        color: var(--paper-text-1);
-        font-family: var(--paper-font);
-
-        &:hover {
-            border-color: var(--paper-line-strong);
-            background: var(--paper-bg-elevated);
-        }
-
-        &:active {
-            background: var(--paper-brand);
-            border-color: var(--paper-brand);
-            color: var(--paper-brand-fg);
-        }
-    }
-
-    .multiplierInput {
-        font-family: var(--paper-font);
-        border-bottom: 2px solid var(--paper-line);
-        color: var(--paper-text-1);
-        font-variant-numeric: tabular-nums;
-
-        &:focus {
-            border-bottom-color: var(--paper-brand);
-        }
     }
 }

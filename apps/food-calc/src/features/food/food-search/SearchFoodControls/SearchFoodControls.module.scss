@@ -3,26 +3,41 @@
 $header-height: 50px;
 
 .header {
+    position: relative;
+    isolation: isolate;
     z-index: 11;
     align-items: center;
     min-height: $header-height;
     width: 100%;
     display: flex;
-    gap: 0;
-    padding: 0.5rem 0;
-    overflow: hidden;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(247, 248, 250, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: none;
 }
 
 .backButton {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: none;
+    background: transparent;
     border: none;
-    padding: 6px 8px;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 9999px;
     cursor: pointer;
     flex-shrink: 0;
+    transition: opacity 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
     opacity: 0.85;
+
+    svg line,
+    svg path {
+        stroke: #0a0a0a;
+    }
 
     &:active {
         opacity: 0.5;
@@ -35,51 +50,53 @@ $header-height: 50px;
     display: flex;
     align-items: center;
     position: relative;
-    background: transparent;
+    background: #f2f4f7;
     flex: 1;
     min-width: 0;
-    border-radius: 0;
-    border-bottom: 2.5px solid rgba(0, 0, 0, 0.85);
-    padding: var(--space-2) 0;
-    transition: border-color var(--duration-normal) var(--easing-default);
+    border-radius: 9999px;
+    border: none;
+    padding: 0 14px;
+    height: 44px;
+    transition: background 0.15s ease;
 
     &:has(input:focus) {
-        border-bottom-color: rgba(0, 0, 0, 0.85);
+        background: #eef1f5;
+        box-shadow: 0 0 0 3px rgba(51, 112, 255, 0.18);
 
         & .searchIcon {
-            opacity: 0.4;
-        }
-    }
-
-    @media (prefers-color-scheme: dark) {
-        border-bottom-color: rgba(255, 255, 255, 0.85);
-
-        &:has(input:focus) {
-            border-bottom-color: rgba(255, 255, 255, 0.85);
+            opacity: 0.85;
         }
     }
 }
 
 .searchIcon {
-    opacity: 0.6;
+    opacity: 0.55;
     pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 2rem;
+    font-size: 1.1rem;
+    color: #5c6473;
+
+    svg {
+        width: 18px;
+        height: 18px;
+    }
 }
 
 .searchInput {
     flex: 1;
     border: none;
-    padding-left: 0.33rem;
-    padding-right: 1rem;
-    line-height: 1;
-    caret-color: black;
-    caret-width: 1px;
-    caret-animation: smooth;
-    font-size: 1.6rem;
+    padding-left: 10px;
+    padding-right: 8px;
+    line-height: 1.2;
+    caret-color: #3370ff;
+    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: rgb(38, 38, 51);
     outline: transparent;
     background: transparent;
 
@@ -94,10 +111,11 @@ $header-height: 50px;
     }
 
     &::placeholder {
-        font-weight: 200;
-        color: rgb(205, 205, 205);
-        font-style: italic;
-        font-size: 2rem;
+        font-weight: 500;
+        color: #8e939e;
+        font-style: normal;
+        font-size: 1rem;
+        letter-spacing: -0.005em;
     }
 
     &:-internal-autofill-selected {
@@ -106,48 +124,29 @@ $header-height: 50px;
         box-shadow: 0 0 0 100px transparent inset !important;
         -webkit-text-fill-color: inherit !important;
     }
-
-    @media (prefers-color-scheme: dark) {
-        &:-internal-autofill-selected {
-            background-image: none !important;
-            background-color: transparent !important;
-            box-shadow: 0 0 0 100px transparent inset !important;
-            -webkit-text-fill-color: inherit !important;
-        }
-    }
 }
 
 .clearButton {
-    position: absolute;
-    right: var(--space-3);
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
+    width: 22px;
+    height: 22px;
     padding: 0;
     border: none;
-    border-radius: var(--radius-full);
-    background: transparent;
-    color: rgba(0, 0, 0, 0.35);
+    border-radius: 9999px;
+    background: rgba(10, 10, 10, 0.12);
+    color: #ffffff;
     cursor: pointer;
-    transition: color var(--duration-fast) var(--easing-default);
+    transition: background 0.15s ease;
     flex-shrink: 0;
 
     &:active {
-        color: rgba(0, 0, 0, 0.8);
+        background: rgba(10, 10, 10, 0.28);
     }
 
     svg {
-        width: 0.75em;
-        height: 0.75em;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        color: rgba(255, 255, 255, 0.4);
-
-        &:active {
-            color: rgba(255, 255, 255, 0.9);
-        }
+        width: 10px;
+        height: 10px;
     }
 }

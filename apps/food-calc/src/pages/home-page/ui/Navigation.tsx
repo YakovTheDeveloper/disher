@@ -1,7 +1,7 @@
 import styles from './Navigation.module.scss';
 import { useParams } from 'react-router';
 import { getTitle } from '@/pages/home-page/ui/methods';
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { memo, useRef, useState, useEffect, useCallback } from 'react';
 import { drawerStore } from '@/shared/ui';
 import { ScheduleSelectionDrawer } from '@/features/ScheduleSelection/ScheduleSelectionDrawer';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
@@ -19,7 +19,7 @@ const Navigation = () => {
     const el = mastheadRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(([entry]) => setShowMini(!entry.isIntersecting), {
-      threshold: 0,
+      threshold: 0.5,
     });
     observer.observe(el);
     return () => observer.disconnect();
@@ -63,4 +63,4 @@ const Navigation = () => {
   );
 };
 
-export default Navigation;
+export default memo(Navigation);

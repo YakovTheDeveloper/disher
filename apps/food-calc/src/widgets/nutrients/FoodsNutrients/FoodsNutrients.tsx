@@ -1,7 +1,7 @@
 import { Screen } from '@/shared/ui/Screen';
 import { Nutrients } from '@/entities/nutrient/ui/NutrientGroup';
 import { OpenDailyNorms } from '@/features/dailyNorms/OpenDailyNorms';
-import { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import clsx from 'clsx';
 import { FilterButton } from '@/shared/ui/atoms/Button';
 import { NutrientCard, NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
@@ -120,4 +120,4 @@ const FoodsNutrients = ({
   );
 };
 
-export default FoodsNutrients;
+export default memo(FoodsNutrients);

@@ -74,7 +74,10 @@
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    will-change: transform;
+    // `translateZ(0)` is enough to promote the scroller to its own compositor
+    // layer (smooth scroll on iOS). `will-change: transform` was redundant —
+    // the element's transform never actually animates, so the hint only
+    // reserved memory.
     transform: translateZ(0);
     backface-visibility: hidden;
 

@@ -5,7 +5,7 @@ import {
 } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import s from './NutrientDesignVariants.module.scss';
 import clsx from 'clsx';
-import { useCallback, useRef, useState, useEffect } from 'react';
+import { memo, useCallback, useRef, useState, useEffect } from 'react';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 
 interface Props {
@@ -89,11 +89,6 @@ const PentagonDecoration = ({ nutrientName }: { nutrientName: string }) => {
       viewBox="0 0 48 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{
-        transform: 'rotate(45deg)',
-        filter: 'blur(2px)',
-        opacity: 0.5
-      }}
     >
       <defs>
         <linearGradient
@@ -107,7 +102,6 @@ const PentagonDecoration = ({ nutrientName }: { nutrientName: string }) => {
           <stop offset="100%" stopColor={color2} stopOpacity="0.2" />
         </linearGradient>
       </defs>
-      {/* Pentagon: 5 points around a circle */}
       <polygon
         points="24,4 42,17 36,38 12,38 6,17"
         fill={`url(#${gradientId})`}
@@ -126,7 +120,6 @@ const VitaminSun = ({ nutrientName }: { nutrientName: string }) => {
       viewBox="0 0 48 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ filter: 'blur(1.5px)', opacity: 0.65 }}
     >
       <defs>
         <radialGradient id={gradientId} cx="50%" cy="50%" r="50%">
@@ -149,11 +142,10 @@ const AminoAcidDiamond = ({ nutrientName }: { nutrientName: string }) => {
 
   return (
     <svg
-      className={s.aminoAcidDiamond}
+      className={clsx(s.aminoAcidDiamond, isEssential ? s.aminoAcidEssential : s.aminoAcidNonEssential)}
       viewBox="0 0 48 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ filter: 'blur(1.5px)', opacity: isEssential ? 0.55 : 0.4 }}
     >
       <defs>
         <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -161,7 +153,6 @@ const AminoAcidDiamond = ({ nutrientName }: { nutrientName: string }) => {
           <stop offset="100%" stopColor={color2} stopOpacity="0.25" />
         </linearGradient>
       </defs>
-      {/* Diamond (rotated square) */}
       <polygon points="24,6 42,24 24,42 6,24" fill={`url(#${gradientId})`} />
     </svg>
   );
@@ -421,4 +412,4 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
   );
 };
 
-export default NutrientDesignVariants;
+export default memo(NutrientDesignVariants);

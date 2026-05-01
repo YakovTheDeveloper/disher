@@ -1,5 +1,3 @@
-@import '@/shared/assets/style/paper-tokens.scss';
-
 .content {
     display: flex;
     flex-direction: column;
@@ -12,43 +10,54 @@
 }
 
 .header {
-    position: sticky;
+    position: absolute;
     display: flex;
     flex-direction: column;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 10;
-    padding: 6px 0 0;
-    border-bottom: 1px solid #e8e8e8;
+    padding: 0;
+    background: transparent;
+    border: none;
+    pointer-events: none;
+
+    > * {
+        pointer-events: auto;
+    }
 }
 
 .tabBar {
     display: flex;
-    gap: 6px;
-    padding: 6px 12px 8px;
+    gap: 4px;
+    padding: 4px;
+    margin: 8px 12px;
+    background: #f2f4f7;
+    border-radius: 9999px;
 }
 
 .tabBarItem {
     flex: 1;
-    padding: 7px 12px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: var(--radius-full);
+    padding: 8px 14px;
+    border: none;
+    border-radius: 9999px;
     background: transparent;
-    font-size: var(--text-xs);
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba(0, 0, 0, 0.35);
+    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #5c6473;
     cursor: pointer;
-    transition: background var(--duration-fast) var(--easing-default),
-        color var(--duration-fast) var(--easing-default),
-        border-color var(--duration-fast) var(--easing-default);
+    transition: background 0.15s ease, color 0.15s ease;
     -webkit-tap-highlight-color: transparent;
 }
 
 .tabBarItem_active {
-    background: rgba(0, 0, 0, 0.85);
-    color: #fff;
-    border-color: transparent;
+    background: #ffffff;
+    color: #0a0a0a;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(10, 10, 10, 0.08);
 }
 
 .filterButtonWrapper {
@@ -86,18 +95,19 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 7px 14px;
-    background: #f7f7f7;
-    border-bottom: 1px solid #ebebeb;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #888;
+    padding: 10px 16px;
+    background: #f7f8fa;
+    border-bottom: none;
+    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #5c6473;
 
     strong {
-        color: #111;
-        font-weight: 800;
+        color: #0a0a0a;
+        font-weight: 700;
     }
 }
 
@@ -105,35 +115,34 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    padding: 10px 14px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 8px 14px 12px;
+    border-bottom: none;
 }
 
 .filterChip {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 5px 11px;
-    font-size: var(--text-xs);
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba(0, 0, 0, 0.45);
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #0a0a0a;
+    background: #eef1f5;
+    border: none;
+    border-radius: 9999px;
     cursor: pointer;
     transition:
-        border-color var(--duration-fast) var(--easing-default),
-        color var(--duration-fast) var(--easing-default),
-        background var(--duration-fast) var(--easing-default);
-    min-height: 28px;
+        color 0.15s ease,
+        background 0.15s ease;
+    min-height: 32px;
     -webkit-tap-highlight-color: transparent;
 
     &:active {
-        background: rgba(255, 255, 255, 0.8);
-        border-color: rgba(0, 0, 0, 0.15);
-        color: #111;
+        background: #e6eaf0;
+        color: #0a0a0a;
     }
 }
 
@@ -145,6 +154,13 @@
     position: relative;
     flex-grow: 1;
     min-height: 0;
+    padding: 8px 12px 12px;
+}
+
+// Must come AFTER .listContainer to win the cascade — otherwise the shorthand
+// `padding: 8px ...` above clobbers our padding-top.
+.listContainerOffset {
+    padding-top: 68px; // ~60px header (50 min-height + 2×8 padding) + 8px breathing room
 }
 
 .list {
@@ -153,115 +169,20 @@
     margin: 0;
     overflow-x: hidden;
     background: transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .filterChipActive {
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
+    background: #3370ff;
+    color: #ffffff;
     border-color: transparent;
 
     &:active {
-        background: rgba(0, 0, 0, 0.65);
+        background: #2a5fdb;
         border-color: transparent;
-        color: #fff;
+        color: #ffffff;
     }
 }
 
-// ─── Paper variant — Yandex Pogoda inspired ──────────────────
-// Часть paper-флоу: SearchFood → Quantity → TimeChoose.
-// Белый фон, pill-таб-бар как segmented control, pill-чипы фильтров,
-// синий Яндекс-акцент для активных состояний.
-.contentPaper {
-    @include paper-tokens;
-
-    background: var(--paper-bg-page);
-
-    .header {
-        background: var(--paper-bg-page);
-        border-bottom: 1px solid var(--paper-line);
-        padding: 8px 0 0;
-    }
-
-    .tabBar {
-        gap: 4px;
-        padding: 8px 12px;
-        background: var(--paper-bg-elevated);
-        border-radius: var(--paper-radius-pill);
-        margin: 0 12px 8px;
-    }
-
-    .tabBarItem {
-        padding: 8px 14px;
-        border: 0;
-        border-radius: var(--paper-radius-pill);
-        background: transparent;
-        font-family: var(--paper-font);
-        font-size: 14px;
-        font-weight: 500;
-        letter-spacing: 0;
-        text-transform: none;
-        color: var(--paper-text-2);
-    }
-
-    .tabBarItem_active {
-        background: var(--paper-bg-page);
-        color: var(--paper-text-1);
-        border-color: transparent;
-        box-shadow: var(--paper-shadow-segment);
-        font-weight: 600;
-    }
-
-    .filterChips {
-        padding: 8px 14px 12px;
-        border-bottom: 1px solid var(--paper-line);
-    }
-
-    .filterChip {
-        padding: 8px 14px;
-        font-family: var(--paper-font);
-        font-size: 13px;
-        font-weight: 500;
-        letter-spacing: 0;
-        text-transform: none;
-        color: var(--paper-text-1);
-        background: var(--paper-bg-pill);
-        border: 1px solid transparent;
-        border-radius: var(--paper-radius-pill);
-        min-height: 32px;
-
-        &:active {
-            background: var(--paper-bg-pill-hover);
-            border-color: transparent;
-            color: var(--paper-text-1);
-        }
-    }
-
-    .filterChipActive {
-        background: var(--paper-brand);
-        color: var(--paper-brand-fg);
-        border-color: transparent;
-
-        &:active {
-            background: var(--paper-brand-hover);
-            border-color: transparent;
-            color: var(--paper-brand-fg);
-        }
-    }
-
-    .filterMessage {
-        background: var(--paper-bg-elevated);
-        border-bottom: 1px solid var(--paper-line);
-        font-family: var(--paper-font);
-        font-size: 13px;
-        font-weight: 500;
-        letter-spacing: 0;
-        text-transform: none;
-        color: var(--paper-text-2);
-        padding: 10px 16px;
-
-        strong {
-            color: var(--paper-text-1);
-            font-weight: 700;
-        }
-    }
-}

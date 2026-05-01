@@ -13,23 +13,7 @@ import Button from '@/shared/ui/atoms/Button/Button';
 import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
 import modalStyles from './ScheduleEventModals.module.scss';
-
-/**
- * Input IDs used for label→input focus delegation across ScheduleEvent modals.
- *
- * Each modal step is opened by a <label htmlFor={ID}> that focuses the corresponding <input id={ID}>.
- * The onFocusCapture handler reads e.target.id to determine which step is active.
- *
- * ScheduleEventCreateModals (this file):
- *   - TIME_INPUT → TimeChoose input (step: time)
- *   - TEXT_INPUT → Textarea for event text (step: text)
- *   - ATOMS_INPUT → AtomBuilder container (step: atoms)
- */
-export const MODAL_INPUT_IDS = {
-  TIME_INPUT: 'time-input-schedule-event',
-  TEXT_INPUT: 'event-text',
-  ATOMS_INPUT: 'event-atoms',
-} as const;
+import { MODAL_INPUT_IDS } from './ScheduleEventCreateModals.constants';
 
 type Step = 'idle' | 'time' | 'text' | 'atoms';
 type ActiveStep = Exclude<Step, 'idle'>;

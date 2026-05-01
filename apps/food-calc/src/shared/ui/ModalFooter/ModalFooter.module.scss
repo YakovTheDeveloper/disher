@@ -48,7 +48,7 @@
   padding: 0.75rem 1.5rem;
   font-size: 0.9375rem;
   font-weight: 500;
-  background: #222222;
+  background: var(--color-ink);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -74,7 +74,7 @@
   width: 100%;
   background: #fff;
   border: none;
-  color: #1a1a1a;
+  color: var(--color-ink);
   cursor: pointer;
   transition: transform 0.15s ease, opacity 0.15s ease;
   padding: 24px 0;
@@ -104,7 +104,7 @@
   justify-content: center;
   gap: 6px;
   width: 100%;
-  background: #000;
+  background: var(--color-ink);
   color: #fff;
   cursor: pointer;
   transition: transform 0.15s ease, opacity 0.15s ease;
@@ -128,4 +128,17 @@
   font-family: var(--font-mono, monospace);
   font-size: 0.9375rem;
   font-weight: 500;
+}
+
+// ── 'events' variant — atom builder accent (deep-blue) ─────────────────────
+.prevArrowEvents {
+  background: transparent;
+  color: var(--color-deep-blue);
+  border: 1.5px solid var(--color-deep-blue);
+}
+
+.nextArrowEvents {
+  background: var(--color-deep-blue);
+  color: #fff;
+  border: 1.5px solid var(--color-deep-blue);
 }

@@ -1,7 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
-import DishProductCreateModals, { DISH_MODAL_INPUT_IDS } from './DishProductCreateModals';
+import DishProductCreateModals from './DishProductCreateModals';
+import { DISH_MODAL_INPUT_IDS } from './DishProductCreateModals.constants';
 
 // jsdom doesn't implement scrollIntoView
 Element.prototype.scrollIntoView = vi.fn();

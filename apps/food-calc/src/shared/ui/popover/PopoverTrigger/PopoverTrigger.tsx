@@ -12,6 +12,7 @@ import {
   FloatingPortal,
 } from '@floating-ui/react';
 import type { Placement } from '@floating-ui/react';
+import clsx from 'clsx';
 import styles from './PopoverTrigger.module.scss';
 
 interface PopoverTriggerProps {
@@ -55,16 +56,15 @@ const PopoverTrigger: React.FC<PopoverTriggerProps> = ({
         {trigger}
       </div>
       <FloatingPortal>
-        {isOpen && (
-          <div
-            ref={refs.setFloating}
-            style={floatingStyles}
-            {...getFloatingProps()}
-            className={styles.content}
-          >
-            {content}
-          </div>
-        )}
+        <div
+          ref={refs.setFloating}
+          style={floatingStyles}
+          {...getFloatingProps()}
+          className={clsx(styles.content, !isOpen && styles.closed)}
+          aria-hidden={!isOpen}
+        >
+          {content}
+        </div>
       </FloatingPortal>
     </>
   );

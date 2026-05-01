@@ -4,16 +4,24 @@
     position: relative;
     -webkit-tap-highlight-color: transparent;
 
-    background: #ffffff;
-    border: 1px solid rgba(15, 15, 15, 0.06);
-    border-radius: 14px;
-    box-shadow: 0 1px 2px rgba(15, 15, 15, 0.03), 0 1px 1px rgba(15, 15, 15, 0.02);
+    background: #f7f8fa;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04);
 
-    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+    transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+
+    &:nth-child(even) {
+        background: #eef3fa; // лёгкий голубоватый zebra-tint
+    }
 
     &:hover {
-        border-color: rgba(15, 15, 15, 0.12);
-        box-shadow: 0 2px 6px rgba(15, 15, 15, 0.05), 0 1px 2px rgba(15, 15, 15, 0.03);
+        background: #f2f4f7;
+        box-shadow: 0 2px 6px rgba(10, 10, 10, 0.06);
+    }
+
+    &:nth-child(even):hover {
+        background: #e6ecf5;
     }
 
     &:active {
@@ -65,7 +73,7 @@
     border-radius: inherit;
 
     &:active {
-        background: rgba(15, 15, 15, 0.035);
+        background: rgba(51, 112, 255, 0.06);
     }
 }
 
@@ -79,7 +87,7 @@
 }
 
 .item_active {
-    background: linear-gradient(90deg, #0f0f0f 0%, #1a1a1a 100%);
+    background: #143988;
     border-radius: inherit;
 
     .name {
@@ -92,7 +100,7 @@
     }
 
     &:active {
-        background: #050505;
+        background: #2a5fdb;
     }
 }
 
@@ -102,13 +110,13 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-family: "Raleway", sans-serif;
+    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 500;
     text-transform: capitalize;
-    color: #0f0f0f;
+    color: rgb(38, 38, 51);
     line-height: 1.2;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.005em;
 }
 
 .richValue {
@@ -121,22 +129,12 @@
     padding: 0 10px;
     flex-shrink: 0;
     font-size: 14px;
-    font-weight: 700;
-    color: #2a2a2a;
+    font-weight: 600;
+    color: #5c6473;
     letter-spacing: -0.02em;
     line-height: 1.1;
     text-align: center;
     position: relative;
-
-    &::after {
-        content: '';
-        position: absolute;
-        right: 0;
-        top: 22%;
-        bottom: 22%;
-        width: 1px;
-        background: rgba(15, 15, 15, 0.08);
-    }
 }
 
 .richUnit {
@@ -182,20 +180,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
+    width: 48px;
     height: 56px;
     padding: 0;
     border: none;
     background: transparent;
-    color: #8a8a8a;
+    color: #315daf38;
     cursor: pointer;
     flex-shrink: 0;
-    transition: color 0.18s ease, transform 0.12s ease;
+    // opacity: 0.3;
+    transition: opacity 0.18s ease, color 0.18s ease, transform 0.12s ease;
     -webkit-tap-highlight-color: transparent;
     border-radius: inherit;
 
     &:active {
-        color: #111;
+        color: #0a0a0a;
+        opacity: 1;
         transform: scale(0.88);
     }
 }

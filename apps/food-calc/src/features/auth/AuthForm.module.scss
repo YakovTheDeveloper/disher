@@ -200,10 +200,13 @@
 
 [data-auth-theme='dark'] {
   .container {
-    // Glass card framing the form on top of the blurred photo.
-    margin-top: var(--space-2);
-    padding: var(--space-7) var(--space-5) calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
-    background: rgba(20, 17, 38, 0.42);
+    // Glass card framing the form on top of the (non-blurred) photo.
+    align-self: center;
+    flex: 0 0 auto;
+    min-height: auto;
+    margin: 0 auto var(--space-4);
+    padding: var(--space-6) var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+    background: rgba(20, 17, 38, 0.55);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-2xl, 24px);
     backdrop-filter: blur(18px) saturate(1.1);
@@ -211,9 +214,6 @@
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.06) inset,
       0 24px 60px -20px rgba(0, 0, 0, 0.55);
-    flex: 0 0 auto;
-    min-height: auto;
-    align-self: center;
   }
 
   .heading {
@@ -285,6 +285,180 @@
     &:hover:not(:disabled) {
       color: #fff;
       background: rgba(255, 255, 255, 0.08);
+    }
+  }
+}
+
+// ─── Yandex light theme (V2) ───────────────────────────────────
+// Радикальная пустота: белый фон, чёрный текст, оранжевый акцент.
+// Без glass-card — форма дышит прямо в фон.
+
+[data-auth-theme='yandex-light'] {
+  .container {
+    align-self: stretch;
+    margin: 0;
+    padding: var(--space-2) var(--space-6) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+    max-width: none;
+  }
+
+  .header {
+    padding: var(--space-2) 0 var(--space-8);
+  }
+
+  .heading {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .subheading {
+    font-size: var(--text-base);
+    color: rgba(0, 0, 0, 0.55);
+    margin-top: var(--space-3);
+  }
+
+  .form {
+    gap: var(--space-5);
+  }
+
+  .input {
+    height: 60px;
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 14px;
+    border-color: transparent;
+
+    &:focus {
+      background: #fff;
+      border-color: #111;
+      box-shadow: none;
+    }
+  }
+
+  .submitBtn {
+    height: 60px;
+    border-radius: 14px;
+    background: #fc3f1d; // Yandex orange-red
+    color: #fff;
+    font-weight: 700;
+
+    &:not(:disabled):hover {
+      background: #e8351a;
+    }
+
+    &:disabled {
+      background: rgba(0, 0, 0, 0.06);
+      color: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .switchBtn {
+    color: rgba(0, 0, 0, 0.55);
+
+    &:hover:not(:disabled) {
+      color: #111;
+      background: rgba(0, 0, 0, 0.04);
+    }
+  }
+}
+
+// ─── Yandex on-photo theme (V3, V4) ────────────────────────────
+// Тот же Яндекс-стиль, но поверх фотографии — белый текст,
+// прозрачные инпуты, оранжевый CTA как единственный акцент.
+
+[data-auth-theme='yandex-photo'] {
+  .container {
+    align-self: stretch;
+    margin: 0;
+    padding: var(--space-2) var(--space-6) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+    max-width: none;
+  }
+
+  .header {
+    padding: var(--space-2) 0 var(--space-8);
+  }
+
+  .heading {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #fff;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.4);
+  }
+
+  .subheading {
+    font-size: var(--text-base);
+    color: rgba(255, 255, 255, 0.78);
+    margin-top: var(--space-3);
+  }
+
+  .backBtn {
+    color: #fff;
+
+    &:active {
+      background: rgba(255, 255, 255, 0.14);
+    }
+  }
+
+  .form {
+    gap: var(--space-5);
+  }
+
+  .input {
+    height: 60px;
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.16);
+    border-radius: 14px;
+    color: #fff;
+    caret-color: #fc3f1d;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.55);
+    }
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    &:focus {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.45);
+      box-shadow: none;
+    }
+
+    &[aria-invalid='true'] {
+      border-color: #ff7a8a;
+    }
+  }
+
+  .fieldError {
+    color: #ffb3bb;
+  }
+
+  .submitBtn {
+    height: 60px;
+    border-radius: 14px;
+    background: #fc3f1d;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 10px 30px -10px rgba(252, 63, 29, 0.6);
+
+    &:not(:disabled):hover {
+      background: #e8351a;
+    }
+
+    &:disabled {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.35);
+      box-shadow: none;
+    }
+  }
+
+  .switchBtn {
+    color: rgba(255, 255, 255, 0.72);
+
+    &:hover:not(:disabled) {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
     }
   }
 }
