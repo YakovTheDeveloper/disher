@@ -11,7 +11,7 @@ import {
   FilterNutrientsPanel,
   FilterNutrientCardWrapper,
 } from '@/features/nutrients/filter-nutrients';
-import { OpenRichFood } from '@/features/food/open-rich-food';
+import OpenRichFood from './OpenRichFood';
 import './FoodsNutrients.module.scss';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';

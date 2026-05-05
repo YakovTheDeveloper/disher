@@ -7,7 +7,7 @@
     "dev": "cross-env VITE_HOST=0.0.0.0 VITE_PORT=3000 vite --host",
     "dev-local": "cross-env VITE_HOST=localhost VITE_PORT=3000 vite",
     "dev-network": "cross-env VITE_HOST=0.0.0.0 VITE_PORT=3000 vite --host",
-    "dev:e2e": "cross-env VITE_HOST=127.0.0.1 VITE_PORT=4173 VITE_E2E_HTTP=1 vite --mode test --host 127.0.0.1 --port 4173 --strictPort",
+    "dev:e2e": "cross-env VITE_HOST=127.0.0.1 VITE_PORT=4173 VITE_E2E_HTTP=1 VITE_BACKEND_PORT=3101 vite --mode test --host 127.0.0.1 --port 4173 --strictPort",
     "build": "vite build",
     "preview": "vite preview --host",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

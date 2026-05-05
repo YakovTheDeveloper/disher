@@ -32,9 +32,15 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
     );
   }
 
-  const httpsOptions = opts.https !== false
-    ? loadHttpsOptions()
-    : undefined;
+  // BACKEND_E2E_HTTP=1 forces plain HTTP regardless of cert presence — the
+  // Playwright e2e setup binds a separate backend on a separate port and the
+  // frontend's API_BASE is HTTP (Vite dev:e2e uses VITE_E2E_HTTP=1).
+  const httpsOptions =
+    process.env.BACKEND_E2E_HTTP === "1"
+      ? undefined
+      : opts.https !== false
+        ? loadHttpsOptions()
+        : undefined;
 
   const app = Fastify({
     logger: opts.logger ?? true,

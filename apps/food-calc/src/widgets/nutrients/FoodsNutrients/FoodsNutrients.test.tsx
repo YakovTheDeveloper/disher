@@ -77,8 +77,8 @@ vi.mock('@/features/nutrients/filter-nutrients', async (importOriginal) => {
   };
 });
 
-vi.mock('@/features/food/open-rich-food', () => ({
-  OpenRichFood: () => null,
+vi.mock('./OpenRichFood', () => ({
+  default: () => null,
 }));
 
 vi.mock('@/shared/ui/Ornament', () => ({
