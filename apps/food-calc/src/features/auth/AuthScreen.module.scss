@@ -30,15 +30,21 @@
 
 .brand {
   display: flex;
-  justify-content: center;
-  padding: var(--space-6) 0 var(--space-4);
+  margin-top: auto;
+  // padding: var(--space-6) 0 var(--space-4);
+  // transform: rotate(-9deg);
+  position: relative;
+  z-index: -1;
 }
 
+// Wrapper around the raster <img> from DisherLogo. Size is set inside
+// DisherLogo.module.scss; per-variant tint/glow lives below in each
+// `[data-auth-variant=...]` block.
 .logo {
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  display: inline-block;
+  margin-right: auto;
+  transform: rotate(-10deg);
+
 }
 
 // ─── V1 — photo (без блюра) ────────────────────────────────────
@@ -57,14 +63,13 @@
 
   .scrim {
     background:
-      radial-gradient(ellipse at 50% 30%, rgba(11, 10, 24, 0.2) 0%, rgba(11, 10, 24, 0.55) 60%, rgba(11, 10, 24, 0.78) 100%),
-      linear-gradient(to bottom, rgba(11, 10, 24, 0.3) 0%, rgba(11, 10, 24, 0.6) 100%);
+      radial-gradient(ellipse at 50% 30%, rgba(11, 10, 24, 0.1) 0%, rgba(11, 10, 24, 0.3) 60%, rgba(11, 10, 24, 0.4) 100%),
+      linear-gradient(to bottom, rgba(11, 10, 24, 0.2) 0%, rgba(11, 10, 24, 0.3) 100%);
   }
 
   .logo {
-    font-size: var(--text-xl);
     color: #fff;
-    text-shadow: 0 1px 18px rgba(140, 100, 255, 0.45);
+    filter: drop-shadow(0 1px 18px rgba(140, 100, 255, 0.45));
   }
 }
 
@@ -85,17 +90,7 @@
   }
 
   .logo {
-    font-size: 64px;
-    line-height: 0.95;
-    letter-spacing: -0.02em;
-    text-transform: none;
-    font-weight: 800;
     color: #111;
-  }
-
-  .logo::after {
-    content: '.';
-    color: #fc3f1d; // Yandex orange-red
   }
 }
 
@@ -112,55 +107,31 @@
     filter: brightness(0.62) saturate(1.05);
   }
 
-  .scrim {
-    background:
-      linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.45) 60%, rgba(0, 0, 0, 0.7) 100%);
-  }
-
   .brand {
     justify-content: flex-start;
     padding: var(--space-8) var(--space-6) var(--space-4);
   }
 
   .logo {
-    font-size: 64px;
-    line-height: 0.95;
-    letter-spacing: -0.02em;
-    text-transform: none;
-    font-weight: 800;
     color: #fff;
-    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.4);
-  }
-
-  .logo::after {
-    content: '.';
-    color: #fc3f1d;
-    text-shadow: 0 0 24px rgba(252, 63, 29, 0.55);
+    filter: drop-shadow(0 2px 24px rgba(0, 0, 0, 0.4));
   }
 }
 
 .screen[data-auth-variant='v3-yandex-bg1'] .bg {
-  background-image: image-set(
-    url('/bg/1.avif') type('image/avif'),
-    url('/bg/1.webp') type('image/webp'),
-    url('/bg/1.png') type('image/png')
-  );
-  background-image: -webkit-image-set(
-    url('/bg/1.avif') type('image/avif'),
-    url('/bg/1.webp') type('image/webp'),
-    url('/bg/1.png') type('image/png')
-  );
+  background-image: image-set(url('/bg/1.avif') type('image/avif'),
+      url('/bg/1.webp') type('image/webp'),
+      url('/bg/1.png') type('image/png'));
+  background-image: -webkit-image-set(url('/bg/1.avif') type('image/avif'),
+      url('/bg/1.webp') type('image/webp'),
+      url('/bg/1.png') type('image/png'));
 }
 
 .screen[data-auth-variant='v4-yandex-bg2'] .bg {
-  background-image: image-set(
-    url('/bg/2.avif') type('image/avif'),
-    url('/bg/2.webp') type('image/webp'),
-    url('/bg/2.jpg') type('image/jpeg')
-  );
-  background-image: -webkit-image-set(
-    url('/bg/2.avif') type('image/avif'),
-    url('/bg/2.webp') type('image/webp'),
-    url('/bg/2.jpg') type('image/jpeg')
-  );
+  background-image: image-set(url('/bg/2.avif') type('image/avif'),
+      url('/bg/2.webp') type('image/webp'),
+      url('/bg/2.jpg') type('image/jpeg'));
+  background-image: -webkit-image-set(url('/bg/2.avif') type('image/avif'),
+      url('/bg/2.webp') type('image/webp'),
+      url('/bg/2.jpg') type('image/jpeg'));
 }

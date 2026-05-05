@@ -9,9 +9,6 @@
 -- No RLS, no policies, no auth schema. Backend uses a direct pg.Pool with the
 -- DB owner and validates `row.user_id === jwt.sub` itself (see CLAUDE.md →
 -- "Data Layer").
---
--- For the prod migration (transforming an existing Supabase DB in place),
--- see 20260501000001_own_auth_migrate_supabase.sql — applied in phase F0.
 
 begin;
 

@@ -19,6 +19,7 @@ import type {
   AuthError,
   AuthProvider,
   AuthResult,
+  SignUpResult,
 } from './types';
 import { classifyError } from '@/shared/lib/errors/classify';
 
@@ -86,6 +87,15 @@ let cachedUser: AppUser | null = null;
 
 export const betterAuthProvider: AuthProvider = {
   async bootstrap() {
+    // Idempotent legacy-cleanup: drop any pre-migration `sb-*` localStorage
+    // keys (Supabase auth tokens). Greenfield deploys won't have them; this
+    // protects users who hit the new build with a stale Supabase token cached
+    // from a preview install. Reverse-iterate to mutate while scanning.
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('sb-')) localStorage.removeItem(key);
+    }
+
     // Skip the network entirely if there is no token — fresh install or
     // post-signOut. The reactive store will stay logged-out and AuthGate
     // shows the sign-in screen.
@@ -126,22 +136,42 @@ export const betterAuthProvider: AuthProvider = {
     }
   },
 
-  async signUp(email, password): Promise<AuthResult> {
+  async signUp(email, password): Promise<SignUpResult> {
     try {
       // better-auth requires `name` on sign-up by default. Default to the
       // email local-part — the app doesn't surface the name field anywhere
       // and it is not used for auth decisions.
       const name = email.split('@')[0] || email;
-      const { data, error } = await authClient.signUp.email({ email, password, name });
-      if (error || !data?.user) {
+      const { error } = await authClient.signUp.email({ email, password, name });
+      // Under requireEmailVerification + autoSignIn:false, the server
+      // returns 200 with `token: null` and (currently) no `user` field. We
+      // treat absence of `error` as success — the verification email has
+      // been queued. Anti-enumeration: better-auth also returns 200 for a
+      // duplicate email, which is fine for this flow (the inbox-check view
+      // is identical either way).
+      if (error) {
         return { ok: false, error: classifyBetterAuthError(error ?? undefined, error) };
       }
-      const user = toAppUser(data.user);
-      if (!user) {
-        return { ok: false, error: { kind: 'auth', message: 'Empty user in sign-up response', raw: data } };
+      // Do NOT touch cachedUser — there is no session yet.
+      return { ok: true, pendingVerification: true, email };
+    } catch (e) {
+      return { ok: false, error: classifyError(e) };
+    }
+  },
+
+  async sendVerificationEmail(email) {
+    try {
+      // `callbackURL` is what better-auth's email-verify route uses to build
+      // the `?callbackURL=...` link the user clicks. In bearer-mode SPA we
+      // override the link to point at our frontend route in the dev-stub
+      // (C2.4); for resend we still need to pass *something* — the home
+      // page is a safe default. C2.4 will rewrite this on the backend so the
+      // value here doesn't actually drive the SPA route.
+      const { error } = await authClient.sendVerificationEmail({ email, callbackURL: '/' });
+      if (error) {
+        return { ok: false, error: classifyBetterAuthError(error ?? undefined, error) };
       }
-      cachedUser = user;
-      return { ok: true, user };
+      return { ok: true };
     } catch (e) {
       return { ok: false, error: classifyError(e) };
     }

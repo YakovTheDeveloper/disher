@@ -9,7 +9,7 @@ import { RouterProvider } from 'react-router-dom';
 import { Sentry } from '@/shared/lib/observability/sentry';
 import { router } from '@/app/router.tsx';
 import { SyncProvider } from '@/shared/lib/sync/SyncProvider';
-// import { AuthGate } from '@/features/auth';
+import { AuthGate } from '@/features/auth';
 import { installE2EBridge } from '@/shared/lib/e2e/bridge';
 import { diagLog } from '@/shared/lib/observability/diagLog';
 import { DiagButton } from '@/shared/lib/observability/DiagButton';
@@ -105,6 +105,11 @@ navigator.storage
 
 installE2EBridge();
 
+// Dev override: disable AuthGate via .env (VITE_AUTH_GATE_ENABLED=false) so the
+// design-flow on a "naked" app keeps working without a real session. In prod
+// the flag is unset → gate is on. /auth/* paths are always public — see AuthGate.
+const authGateEnabled = import.meta.env.VITE_AUTH_GATE_ENABLED !== 'false';
+
 const root = document.getElementById('root')!;
 ReactDOM.createRoot(root).render(
   <Sentry.ErrorBoundary
@@ -115,7 +120,13 @@ ReactDOM.createRoot(root).render(
   >
     <SyncProvider>
       {shouldShowDvBar() && <DesignVariantsBar />}
-      <RouterProvider router={router} />
+      {authGateEnabled ? (
+        <AuthGate>
+          <RouterProvider router={router} />
+        </AuthGate>
+      ) : (
+        <RouterProvider router={router} />
+      )}
       {/* {import.meta.env.DEV && <DiagButton />} */}
     </SyncProvider>
   </Sentry.ErrorBoundary>

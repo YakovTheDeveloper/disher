@@ -12,6 +12,7 @@ import { matcherTelemetryRoutes } from "./routes/matcher-telemetry.js";
 import { bugReportRoutes } from "./routes/bug-reports.js";
 import { diagLogsRoutes } from "./routes/diag-logs.js";
 import { backupRoutes } from "./routes/backup.js";
+import { devRoutes } from "./routes/dev.js";
 import { betterAuthPlugin } from "../auth/fastify-plugin.js";
 import { registerUserIdDecorator } from "../auth/require-user.js";
 
@@ -99,6 +100,14 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   await app.register(bugReportRoutes, { prefix: "/api/bug-reports" });
   await app.register(diagLogsRoutes, { prefix: "/api/diag-logs" });
   await app.register(backupRoutes, { prefix: "/api/backup" });
+
+  // Dev/test-only: e2e bridge endpoint for verify-email. The route handler
+  // itself rejects with 404 when NODE_ENV === 'production' as a second line
+  // of defense, but skip registration entirely in prod so the route is not
+  // even discoverable.
+  if (process.env.NODE_ENV !== "production") {
+    await app.register(devRoutes, { prefix: "/api/dev" });
+  }
 
   const built = app as unknown as BuiltApp;
   built.__isHttps = !!httpsOptions;

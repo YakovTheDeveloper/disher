@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Screen } from '@/shared/ui/Screen';
-import { ActionsPanel } from '@/shared/ui/ActionsPanel';
-import Button from '@/shared/ui/atoms/Button/Button';
+import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
+import { db } from '@/shared/lib/dexie/schema';
 import { addScheduleFood } from '@/entities/schedule-food/api/mutations';
 import { addDishItem } from '@/entities/dish/api/mutations';
 import { useUserId } from '@/shared/lib/auth/useUserId';
@@ -559,7 +559,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
       }
 
       for (const u of unresolved) {
-        if (!u.manual) continue;
+        if (!u.manual || !u.manual.id) continue;
         committed.push({
           productId: u.manual.id,
           quantity: u.quantity,
@@ -583,32 +583,40 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
       const newScheduleIds: string[] = [];
       if (mode.kind === 'schedule') {
         const date = mode.date;
-        ok = await safeMutate(async () => {
-          for (const c of committed) {
-            const id = await addScheduleFood({
-              date,
-              time: c.time,
-              type: 'food',
-              quantity: c.quantity,
-              productId: c.productId,
-              details: c.note ?? '',
-            });
-            newScheduleIds.push(id);
-          }
-          return true;
-        }, 'Не удалось добавить продукты');
+        ok = await safeMutate(
+          () =>
+            db.transaction('rw', db.schedule_foods, async () => {
+              for (const c of committed) {
+                const id = await addScheduleFood({
+                  date,
+                  time: c.time,
+                  type: 'food',
+                  quantity: c.quantity,
+                  productId: c.productId,
+                  details: c.note ?? '',
+                });
+                newScheduleIds.push(id);
+              }
+              return true;
+            }),
+          'Не удалось добавить продукты'
+        );
       } else if (mode.kind === 'dish') {
         const dishId = mode.dishId;
-        ok = await safeMutate(async () => {
-          for (const c of committed) {
-            await addDishItem({
-              dishId,
-              productId: c.productId,
-              quantity: c.quantity,
-            });
-          }
-          return true;
-        }, 'Не удалось добавить продукты в блюдо');
+        ok = await safeMutate(
+          () =>
+            db.transaction('rw', db.dish_items, async () => {
+              for (const c of committed) {
+                await addDishItem({
+                  dishId,
+                  productId: c.productId,
+                  quantity: c.quantity,
+                });
+              }
+              return true;
+            }),
+          'Не удалось добавить продукты в блюдо'
+        );
       } else {
         mode.onCommit(committed);
         ok = true;
@@ -628,7 +636,11 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
           useRecentlyAddedStore.getState().addMany(newScheduleIds);
         }
         navigate(RouterUrls.Schedule(mode.date));
-      } else if (mode.kind === 'dish') navigate(-1);
+      } else if (mode.kind === 'dish') {
+        navigate(-1);
+      } else {
+        setIsSubmitting(false);
+      }
     } catch (e) {
       setIsSubmitting(false);
       const message = e instanceof Error ? e.message : 'Не удалось добавить продукты';
@@ -666,51 +678,24 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
     resolved.length === 0 && ambiguous.length === 0 && unresolved.length === 0;
 
   const addableCount = totalToAdd;
-  const resolvedCount = resolved.length;
-  const ambiguousCount = ambiguous.length;
-  const unresolvedPending = unresolved.filter((u) => !u.manual).length;
 
   return (
-    <Screen
-      actions={
-        <ActionsPanel show onBack={handleBack}>
-          <Button
-            variant="primary"
-            onClick={handleCommit}
-            disabled={isSubmitting || addableCount === 0}
-          >
-            {isSubmitting ? 'Добавляем…' : `Добавить ${addableCount}`}
-          </Button>
-        </ActionsPanel>
-      }
-    >
+    <Screen>
       <div className={styles.page} onFocusCapture={handleFocusCapture}>
+        <header className={styles.topBar}>
+          <button
+            type="button"
+            className={styles.backBtn}
+            onClick={handleBack}
+            aria-label="Назад"
+          >
+            <ArrowLeftIcon />
+          </button>
+        </header>
         {mode.kind === 'schedule' && <DayContextBar date={mode.date} />}
         {mode.kind === 'dish' && <DishContextBar dishId={mode.dishId} />}
         <div className={styles.reviewStep}>
           {inputText && <div className={styles.originalText}>{inputText}</div>}
-
-          {!isEmpty && (
-            <div className={styles.summary}>
-              {resolvedCount > 0 && (
-                <span className={`${styles.summaryChip} ${styles.summaryChip_resolved}`}>
-                  Распознано {resolvedCount}
-                </span>
-              )}
-              {ambiguousCount > 0 && (
-                <span className={`${styles.summaryChip} ${styles.summaryChip_ambiguous}`}>
-                  Уточните {ambiguousCount}
-                </span>
-              )}
-              {unresolvedPending > 0 && (
-                <span
-                  className={`${styles.summaryChip} ${styles.summaryChip_unresolved}`}
-                >
-                  Не найдено {unresolvedPending}
-                </span>
-              )}
-            </div>
-          )}
 
           {isEmpty ? (
             <div className={styles.empty}>
@@ -722,7 +707,6 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
             <div className={styles.sections}>
               {resolved.length > 0 && (
                 <section className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Распознано</h3>
                   <ul className={styles.list}>
                     {resolved.map((r) => (
                       <li key={r.uid}>
@@ -745,7 +729,10 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
 
               {ambiguous.length > 0 && (
                 <section className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Уточните</h3>
+                  <h3 className={styles.sectionTitle}>
+                    Уточните
+                    <span className={styles.sectionCount}>{ambiguous.length}</span>
+                  </h3>
                   <ul className={styles.list}>
                     {ambiguous.map((a) => {
                       const selected =
@@ -783,7 +770,10 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
 
               {unresolved.length > 0 && (
                 <section className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Не распознано</h3>
+                  <h3 className={styles.sectionTitle}>
+                    Не распознано
+                    <span className={styles.sectionCount}>{unresolved.length}</span>
+                  </h3>
                   <ul className={styles.list}>
                     {unresolved.map((u) => (
                       <li key={u.uid}>
@@ -806,9 +796,6 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
                       </li>
                     ))}
                   </ul>
-                  <p className={styles.unresolvedFootnote}>
-                    Без выбора эти пункты будут пропущены.
-                  </p>
                 </section>
               )}
             </div>
@@ -833,6 +820,17 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
           </button>
         </div>
       )}
+
+      <div className={styles.commitDock}>
+        <button
+          type="button"
+          className={styles.commitBtn}
+          onClick={handleCommit}
+          disabled={isSubmitting || addableCount === 0}
+        >
+          {isSubmitting ? 'Добавляем…' : `Добавить ${addableCount}`}
+        </button>
+      </div>
     </Screen>
   );
 };

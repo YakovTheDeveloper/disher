@@ -5,6 +5,8 @@
  */
 import { clear as idbClear, keys as idbKeysFn } from 'idb-keyval';
 import { authProvider } from '@/shared/lib/auth/authProvider';
+import { authClient } from '@/shared/lib/auth/betterAuthClient';
+import { API_BASE } from '@/shared/lib/api/base';
 import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
 import { drainPush, pullSnapshot } from '@/shared/lib/sync/backupClient';
 import { areDexieHooksInstalled } from '@/shared/lib/dexie/hooks';
@@ -66,6 +68,32 @@ export function installE2EBridge(): void {
     },
     signOut: async () => {
       await authProvider.signOut();
+    },
+
+    // C2.5 verify-email bridge — fetches the JWT token from the dev-only
+    // backend route (which reads it from globalThis.__verifyTokensByEmail
+    // populated by the sendVerificationEmail callback) and feeds it into
+    // authClient.verifyEmail. Same code path as a real user clicking the
+    // link in their inbox: better-auth issues the bearer in set-auth-token,
+    // betterAuthClient onSuccess hook captures it, the session atom flips,
+    // and auth-store.applyUser logs the SPA in.
+    verifyEmail: async (email: string) => {
+      const res = await fetch(
+        `${API_BASE}/api/dev/verify-tokens?email=${encodeURIComponent(email)}`,
+      );
+      if (!res.ok) {
+        throw new Error(
+          `dev verify-tokens lookup failed: ${res.status} ${res.statusText}`,
+        );
+      }
+      const { token } = (await res.json()) as { token: string };
+      const result = await authClient.verifyEmail({ query: { token } });
+      if (result.error) {
+        throw new Error(
+          `authClient.verifyEmail failed: ${result.error.message ?? result.error.statusText ?? 'unknown'}`,
+        );
+      }
+      return { ok: true };
     },
   };
 }

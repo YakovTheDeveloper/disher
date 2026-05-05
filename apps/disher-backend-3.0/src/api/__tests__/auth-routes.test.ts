@@ -238,4 +238,85 @@ describeIfReady("better-auth HTTP routes", () => {
       expect(body.session.userId).toBe(user.userId);
     });
   });
+
+  // Closes acceptance gap from sec 1.8: explicit assertion that signIn
+  // exposes no observable difference between "this email is not registered"
+  // and "this email is registered, but the password is wrong". Both must
+  // collapse to the same 401 + body shape; otherwise an unauthenticated
+  // caller could probe which emails exist by diffing responses.
+  describe("email enumeration prevention", () => {
+    it("returns identical 401 shape for non-existent email vs wrong password on verified user", async () => {
+      await createTestUser({
+        email: "registered@example.com",
+        password: "test-password-12345",
+      });
+
+      const wrongPassword = await app.inject({
+        method: "POST",
+        url: "/api/auth/sign-in/email",
+        headers: { "content-type": "application/json" },
+        payload: {
+          email: "registered@example.com",
+          password: "wrong-password-99999",
+        },
+      });
+
+      const unknownEmail = await app.inject({
+        method: "POST",
+        url: "/api/auth/sign-in/email",
+        headers: { "content-type": "application/json" },
+        payload: {
+          email: "never-registered@example.com",
+          password: "any-password-12345",
+        },
+      });
+
+      expect(wrongPassword.statusCode).toBe(401);
+      expect(unknownEmail.statusCode).toBe(401);
+
+      const wrongBody = wrongPassword.json() as Record<string, unknown>;
+      const unknownBody = unknownEmail.json() as Record<string, unknown>;
+
+      expect(Object.keys(wrongBody).sort()).toEqual(
+        Object.keys(unknownBody).sort(),
+      );
+      if ("code" in wrongBody || "code" in unknownBody) {
+        expect(wrongBody.code).toBe(unknownBody.code);
+      }
+      if ("message" in wrongBody || "message" in unknownBody) {
+        expect(wrongBody.message).toBe(unknownBody.message);
+      }
+    });
+  });
+
+  // Closes acceptance gap from sec 1.8: opaque-session model invariant. Since
+  // bearers resolve to a `session` row on every authed request, deleting that
+  // row instantly invalidates every device holding the token — the runtime
+  // equivalent of a JWT revocation. Smoke: bearer works against a protected
+  // route, DELETE FROM session, same bearer is rejected with 401.
+  describe("session revocation", () => {
+    it("DELETE FROM session → next request with same bearer is rejected with 401", async () => {
+      const user = await createTestUser({ email: "revoke@example.com" });
+
+      const before = await app.inject({
+        method: "GET",
+        url: "/api/backup/stats",
+        headers: user.headers,
+      });
+      expect(before.statusCode).toBe(200);
+
+      const result = await pool.query(
+        `delete from session where "userId" = $1`,
+        [user.userId],
+      );
+      expect(result.rowCount).toBe(1);
+
+      const after = await app.inject({
+        method: "GET",
+        url: "/api/backup/stats",
+        headers: user.headers,
+      });
+      expect(after.statusCode).toBe(401);
+    });
+  });
 });

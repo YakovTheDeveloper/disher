@@ -20,7 +20,10 @@ import { makeTestPool, truncateAllUserData } from "../../test/db-helpers.js";
 const ready = Boolean(process.env.TEST_DATABASE_URL);
 const describeIfReady = ready ? describe : describe.skip;
 
-type VerifyTokenMap = Map<string, { url: string; token: string }>;
+type VerifyTokenMap = Map<
+  string,
+  { url: string; frontendUrl: string; token: string }
+>;
 
 function getVerifyMap(): VerifyTokenMap {
   const g = globalThis as { __verifyTokensByEmail?: VerifyTokenMap };

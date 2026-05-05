@@ -38,7 +38,10 @@ export type TestUser = {
 
 let counter = 0;
 
-type VerifyTokenMap = Map<string, { url: string; token: string }>;
+type VerifyTokenMap = Map<
+  string,
+  { url: string; frontendUrl: string; token: string }
+>;
 
 function getVerifyTokensMap(): VerifyTokenMap {
   const g = globalThis as { __verifyTokensByEmail?: VerifyTokenMap };

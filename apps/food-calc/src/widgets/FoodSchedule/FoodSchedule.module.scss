@@ -1,6 +1,7 @@
 .navRow {
   display: flex;
   align-items: center;
+  margin-top: 123px;
 }
 
 .emptyState {
@@ -73,4 +74,3 @@
   transform: translateY(8px) scale(0.96);
   pointer-events: none;
 }
-

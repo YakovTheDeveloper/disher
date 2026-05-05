@@ -139,10 +139,75 @@
 @mixin glass-button-prominent() {
     width: auto;
     height: auto;
-    border: 1px solid #000;
+    border: 1px solid #0000002d;
     border-radius: 32px;
     padding: var(--space-4) var(--space-6);
+    box-shadow: var(--shadow-xs);
     text-align: left;
+}
+
+// ── ModalShell-style background variants ─────────────────────────────────────
+// Extracted from src/shared/ui/ModalShell/ModalShell.module.scss so the same
+// "spring orb" / glass / gradient look can be reused on full-page screens.
+//
+// The original ModalShell uses positioned <span> orbs with `filter: blur(...)`.
+// These mixins approximate that look with stacked CSS radial-gradients so no
+// extra DOM is required — drop `@include modal-bg-spring2()` (etc.) onto the
+// host element and you're done. The host should be `position: relative` (the
+// mixin sets it) and own its own stacking context.
+
+@mixin modal-bg-spring() {
+    position: relative;
+    background:
+        radial-gradient(circle 220px at -8% -8%, rgba(86, 197, 150, 0.45) 0%, transparent 60%),
+        radial-gradient(circle 200px at 110% 18%, rgba(79, 195, 247, 0.45) 0%, transparent 60%),
+        radial-gradient(circle 180px at 8% 78%, rgba(255, 224, 130, 0.45) 0%, transparent 60%),
+        radial-gradient(circle 170px at 95% 100%, rgba(129, 199, 132, 0.45) 0%, transparent 60%),
+        rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+
+@mixin modal-bg-spring2() {
+    position: relative;
+    background:
+        radial-gradient(circle 240px at -8% -10%, rgba(100, 181, 246, 0.38) 0%, transparent 65%),
+        radial-gradient(circle 210px at 108% 110%, rgba(174, 213, 129, 0.38) 0%, transparent 65%),
+        radial-gradient(circle 160px at 100% 40%, rgba(144, 202, 249, 0.32) 0%, transparent 70%),
+        radial-gradient(circle 150px at 0% 75%, rgba(197, 225, 165, 0.32) 0%, transparent 70%),
+        rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+
+@mixin modal-bg-spring4() {
+    position: relative;
+    background:
+        radial-gradient(circle 220px at 108% -8%, rgba(255, 179, 138, 0.45) 0%, transparent 65%),
+        radial-gradient(circle 200px at -8% 22%, rgba(139, 191, 139, 0.45) 0%, transparent 65%),
+        radial-gradient(circle 170px at 95% 78%, rgba(255, 204, 128, 0.40) 0%, transparent 65%),
+        radial-gradient(circle 150px at 8% 100%, rgba(128, 203, 196, 0.40) 0%, transparent 65%),
+        rgba(252, 253, 250, 0.88);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+
+@mixin modal-bg-spring5() {
+    position: relative;
+    background:
+        radial-gradient(circle 200px at -10% -10%, rgba(159, 208, 244, 0.32) 0%, transparent 70%),
+        radial-gradient(circle 200px at 110% 110%, rgba(182, 223, 177, 0.32) 0%, transparent 70%),
+        rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+
+// Glass scrim only — matches `.wrapperGradient` + `.gradientScrim` from
+// ModalShell when no decorative image is in play. Gives a flat soft white
+// surface above whatever the parent paints.
+@mixin modal-bg-glass($alpha: 0.7) {
+    position: relative;
+    background: rgba(255, 255, 255, $alpha);
 }
 
 @mixin blink($color1, $color2, $time) {

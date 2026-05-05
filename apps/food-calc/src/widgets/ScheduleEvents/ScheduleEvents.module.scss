@@ -8,30 +8,49 @@
 
 
 .dayHeaderTitle {
+    position: relative;
     display: flex;
-    position: absolute;
-    gap: 14px;
-    left: var(--space-4, 16px);
-    top: 40%;
-    transform: translateY(-50%);
-    z-index: 1;
+    top: 50%;
+    z-index: 2;
     margin: 0;
-    // white-space: nowrap;
+    padding-left: var(--space-4, 16px);
     color: var(--color-ink);
-    font-family: var(--font-display);
-    font-weight: 200;
-    font-size: 3.5rem;
-    line-height: 1;
-    letter-spacing: -2px;
+    font-family: "Source Serif 4", "Merriweather", serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 2.5rem;
+    line-height: 0.95;
+    letter-spacing: -0.5px;
+    z-index: 1;
+}
 
-    .upperWord {}
+.arc {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    color: var(--color-ink);
+    opacity: 0.25;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.addAnchor {
+    display: inline-flex;
+}
+
+.dayHeaderTitleInitial {
+    font-size: 1.7em;
+    line-height: 1;
 }
 
 .dayHeaderImg {
     position: absolute;
     left: 0;
     opacity: 0.03;
-    top: 0;
+    bottom: 0;
+    transform: translateY(52%);
     z-index: 0;
     width: 300px;
     height: 300px;
@@ -44,6 +63,22 @@
 
 
 .dayHeader {
-    position: relative;
-    min-height: 300px;
+
+    position: absolute;
+    top: 38%;
+    z-index: 2;
+    background: white;
+}
+
+.dayHeaderDate {
+    position: absolute;
+    right: -12px;
+    margin: 0;
+    transform: translateY(-100%);
+    padding-left: var(--space-6);
+    font-family: var(--font-mono);
+    font-size: var(--text-base);
+    font-weight: 400;
+    color: var(--color-purple);
+    letter-spacing: 0.06em;
 }

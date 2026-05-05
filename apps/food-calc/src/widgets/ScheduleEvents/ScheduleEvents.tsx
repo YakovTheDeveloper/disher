@@ -1,5 +1,5 @@
 import styles from './ScheduleEvents.module.scss';
-import React, { useMemo, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, useReducedMotion } from 'motion/react';
 import { TimeGroup } from '@/features/time-group';
 import type { ScheduleEvent } from '@/entities/schedule-event';
@@ -12,6 +12,7 @@ import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import { groupItemsByTime, getNowMarkerIndex } from '@/shared/lib/schedule';
 import { NowMarker } from '@/shared/ui/NowMarker';
+import { getTitle } from '@/pages/home-page/ui/methods';
 import {
   ScheduleEventCreateModals,
   EVENT_MODAL_INPUT_IDS,
@@ -67,6 +68,61 @@ const ScheduleEvents = ({ date, events }: Props) => {
 
   const reducedMotion = useReducedMotion();
 
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const addAnchorRef = useRef<HTMLSpanElement>(null);
+  const [arc, setArc] = useState<{
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    cx: number;
+    cy: number;
+  } | null>(null);
+
+  useLayoutEffect(() => {
+    const titleEl = titleRef.current;
+    const addEl = addAnchorRef.current;
+    if (!titleEl || !addEl) return;
+
+    const recompute = () => {
+      const t = titleEl.getBoundingClientRect();
+      const a = addEl.getBoundingClientRect();
+      const x1 = t.right - 8;
+      const y1 = t.bottom - t.height * 0.35;
+      const x2 = a.left + a.width / 2;
+      const y2 = a.top + a.height / 2;
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const cx = x1 + dx * 0.15 + Math.abs(dy) * 0.55;
+      const cy = y1 + dy * 0.85;
+      setArc({ x1, y1, x2, y2, cx, cy });
+    };
+
+    recompute();
+
+    const ro = new ResizeObserver(recompute);
+    ro.observe(titleEl);
+    ro.observe(addEl);
+    window.addEventListener('resize', recompute);
+    window.addEventListener('scroll', recompute, true);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', recompute);
+      window.removeEventListener('scroll', recompute, true);
+    };
+  }, [events.length]);
+
+  const dateLabel = useMemo(() => {
+    try {
+      const { day, monthNumber } = getTitle(date);
+      const dayPadded = String(day).padStart(2, '0');
+      const yearShort = String(new Date().getFullYear()).slice(-2);
+      return `${dayPadded}.${monthNumber}.${yearShort}`;
+    } catch {
+      return '';
+    }
+  }, [date]);
+
   return (
     <Screen
       offsetTop
@@ -97,26 +153,42 @@ const ScheduleEvents = ({ date, events }: Props) => {
       }
       key={3}
       bottomRight={
-        events.length > 0 ? (
-          <AddButton htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT} as="label" onClick={() => {}} />
-        ) : (
-          <AddButton
-            onClick={() => {}}
-            as="label"
-            htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT}
-            prominent
-          >
-            Добавить событие
-          </AddButton>
-        )
+        <span ref={addAnchorRef} className={styles.addAnchor}>
+          {events.length > 0 ? (
+            <AddButton htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT} as="label" onClick={() => {}} />
+          ) : (
+            <AddButton
+              onClick={() => {}}
+              as="label"
+              htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT}
+              prominent
+            >
+              Добавить
+            </AddButton>
+          )}
+        </span>
       }
     >
       <header className={styles.dayHeader}>
-        <p>09.12.26</p>
-        <h2 className={styles.dayHeaderTitle}>События</h2>
+        <h2 ref={titleRef} className={styles.dayHeaderTitle}>
+          <span className={styles.dayHeaderTitleInitial}>С</span>обытия
+        </h2>
+        <p className={styles.dayHeaderDate}>{dateLabel}</p>
         <img className={styles.dayHeaderImg} src={normsImg} alt="" aria-hidden />
       </header>
-
+      {arc && (
+        <svg className={styles.arc} aria-hidden>
+          <path
+            d={`M ${arc.x1} ${arc.y1} Q ${arc.cx} ${arc.cy} ${arc.x2} ${arc.y2}`}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1"
+            strokeDasharray="2 6"
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+      )}
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList offsetTop>
           {(() => {

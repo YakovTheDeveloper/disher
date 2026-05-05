@@ -1,0 +1,11 @@
+// Disher wordmark — raster /logo/logo.png. Final size is set by the host
+// (AuthScreen.module.scss `.logo`); we just make sure the image scales
+// proportionally and stays crisp.
+
+.logo {
+  display: block;
+  height: 96px;
+  width: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}

@@ -1,6 +1,17 @@
 // ─── Auth form (shared between AuthDrawer + AuthScreen) ────────
-// Two-step: email → password. Pill inputs on light grey, full-width
-// black submit, secondary mode-switch in the footer.
+// Two-step: email → password.
+//
+// Stylesheet contract (don't violate this):
+//   • Base rules below own ALL geometry: padding, margin, gap, height,
+//     border-radius, font-size, font-weight, max-width, align-self.
+//   • Theme overrides ([data-auth-theme=...]) own ONLY palette: color,
+//     background, border-color, box-shadow, text-shadow, caret-color.
+//   • Per-variant layout tweaks (stretch vs centered card, fullscreen vs
+//     drawer) live in AuthScreen.module.scss under [data-auth-variant=...]
+//     using :global(.<className>) — NOT in this file.
+//
+// This is what fixes "dark theme overrides paddings": themes can no
+// longer touch geometry, full stop.
 
 .container {
   display: flex;
@@ -8,8 +19,9 @@
   flex: 1;
   min-height: 0;
   width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
+  position: relative;
+  max-width: 360px;
+  margin: 50px auto 0;
   padding: 0 var(--space-5);
   padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
 }
@@ -52,6 +64,7 @@
   color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.01em;
+  text-align: right;
 }
 
 .subheading {
@@ -194,28 +207,80 @@
   }
 }
 
-// ─── Dark theme override (used by fullscreen AuthScreen) ──────
-// AuthDrawer keeps the light look; AuthScreen wraps the form in
-// [data-auth-theme="dark"] to flip palette to glassmorphism.
+// ═══════════════════════════════════════════════════════════════
+//   LAYOUT VARIANTS — geometry only (padding, margin, gap, height,
+//   max-width, border-radius, font-size). Selected via
+//   `data-auth-layout` on the form root, independent of theme.
+// ═══════════════════════════════════════════════════════════════
 
-[data-auth-theme='dark'] {
-  .container {
-    // Glass card framing the form on top of the (non-blurred) photo.
+// ─── stretch — fullscreen, edge-to-edge, larger type/inputs ───
+// Used by V2/V3/V4 on AuthScreen. Drops the centered 360px card
+// in favour of a stretched layout that breathes.
+
+[data-auth-layout='stretch'] {
+  &.container {
+    align-self: stretch;
+    margin: 0;
+    padding: var(--space-2) var(--space-6) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+    max-width: none;
+  }
+
+  .header {
+    padding: var(--space-2) 0 var(--space-8);
+  }
+
+  .heading {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .subheading {
+    font-size: var(--text-base);
+    margin-top: var(--space-3);
+  }
+
+  .form {
+    gap: var(--space-5);
+  }
+
+  .input {
+    height: 60px;
+    border-radius: 14px;
+  }
+
+  .submitBtn {
+    height: 60px;
+    border-radius: 14px;
+    font-weight: 700;
+  }
+}
+
+// ─── card — fullscreen glass-card framing (V1 photo) ──────────
+// Centers the form in the viewport and gives it card-like padding
+// so it sits cleanly on top of a background photo.
+
+[data-auth-layout='card'] {
+  &.container {
     align-self: center;
     flex: 0 0 auto;
     min-height: auto;
     margin: 0 auto var(--space-4);
     padding: var(--space-6) var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
-    background: rgba(20, 17, 38, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-2xl, 24px);
-    backdrop-filter: blur(18px) saturate(1.1);
-    -webkit-backdrop-filter: blur(18px) saturate(1.1);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.06) inset,
-      0 24px 60px -20px rgba(0, 0, 0, 0.55);
   }
+}
 
+// ═══════════════════════════════════════════════════════════════
+//   THEME OVERRIDES — palette only (color / background / border /
+//   shadow / caret). NEVER set padding, margin, gap, height, width,
+//   max-width, border-radius, font-size, font-weight, align-self,
+//   or flex here. Geometry belongs to the base + layout rules above.
+// ═══════════════════════════════════════════════════════════════
+
+// ─── Dark theme (V1 photo) ────────────────────────────────────
+
+[data-auth-theme='dark'] {
   .heading {
     color: #fff;
   }
@@ -289,42 +354,15 @@
   }
 }
 
-// ─── Yandex light theme (V2) ───────────────────────────────────
-// Радикальная пустота: белый фон, чёрный текст, оранжевый акцент.
-// Без glass-card — форма дышит прямо в фон.
+// ─── Yandex light (V2) ────────────────────────────────────────
 
 [data-auth-theme='yandex-light'] {
-  .container {
-    align-self: stretch;
-    margin: 0;
-    padding: var(--space-2) var(--space-6) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
-    max-width: none;
-  }
-
-  .header {
-    padding: var(--space-2) 0 var(--space-8);
-  }
-
-  .heading {
-    font-size: 32px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
-
   .subheading {
-    font-size: var(--text-base);
     color: rgba(0, 0, 0, 0.55);
-    margin-top: var(--space-3);
-  }
-
-  .form {
-    gap: var(--space-5);
   }
 
   .input {
-    height: 60px;
     background: rgba(0, 0, 0, 0.04);
-    border-radius: 14px;
     border-color: transparent;
 
     &:focus {
@@ -335,11 +373,8 @@
   }
 
   .submitBtn {
-    height: 60px;
-    border-radius: 14px;
     background: #fc3f1d; // Yandex orange-red
     color: #fff;
-    font-weight: 700;
 
     &:not(:disabled):hover {
       background: #e8351a;
@@ -361,34 +396,16 @@
   }
 }
 
-// ─── Yandex on-photo theme (V3, V4) ────────────────────────────
-// Тот же Яндекс-стиль, но поверх фотографии — белый текст,
-// прозрачные инпуты, оранжевый CTA как единственный акцент.
+// ─── Yandex on-photo (V3, V4) ─────────────────────────────────
 
 [data-auth-theme='yandex-photo'] {
-  .container {
-    align-self: stretch;
-    margin: 0;
-    padding: var(--space-2) var(--space-6) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
-    max-width: none;
-  }
-
-  .header {
-    padding: var(--space-2) 0 var(--space-8);
-  }
-
   .heading {
-    font-size: 32px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
     color: #fff;
     text-shadow: 0 2px 18px rgba(0, 0, 0, 0.4);
   }
 
   .subheading {
-    font-size: var(--text-base);
     color: rgba(255, 255, 255, 0.78);
-    margin-top: var(--space-3);
   }
 
   .backBtn {
@@ -399,15 +416,9 @@
     }
   }
 
-  .form {
-    gap: var(--space-5);
-  }
-
   .input {
-    height: 60px;
     background: rgba(255, 255, 255, 0.14);
     border-color: rgba(255, 255, 255, 0.16);
-    border-radius: 14px;
     color: #fff;
     caret-color: #fc3f1d;
 
@@ -435,11 +446,8 @@
   }
 
   .submitBtn {
-    height: 60px;
-    border-radius: 14px;
     background: #fc3f1d;
     color: #fff;
-    font-weight: 700;
     box-shadow: 0 10px 30px -10px rgba(252, 63, 29, 0.6);
 
     &:not(:disabled):hover {

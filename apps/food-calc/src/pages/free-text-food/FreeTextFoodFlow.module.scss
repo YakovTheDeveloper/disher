@@ -1,14 +1,49 @@
 // ═══════════════════════════════════════════════════════════════
-// FreeTextFoodPage layout
+// FreeTextFoodPage layout — paper-style review screen.
+// All sizing/colors via design tokens. Section status conveyed by
+// row-level left-stripe (see FreeTextFoodReviewItem), not by chips.
 // ═══════════════════════════════════════════════════════════════
+
+@import '@/shared/assets/style/mixin.scss';
 
 .page {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  // Reserve space for floating ActionsPanel (~72px) + safe area
-  padding: 0 0 calc(96px + env(safe-area-inset-bottom, 0px));
-  gap: 16px;
+  // Reserve space for the fixed-bottom commit pill + safe area.
+  padding: 0 0 calc(112px + env(safe-area-inset-bottom, 0px));
+  gap: var(--space-4);
+
+  // Default surface — same calm white-with-blue/green-corners as
+  // ModalShell variant=spring2. Override per data-variant below.
+  @include modal-bg-spring2();
+}
+
+// ─── Top bar — back arrow only, no chrome ──────────────────────
+
+.topBar {
+  display: flex;
+  align-items: center;
+  padding: 12px 12px 0;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  color: var(--text-primary, #111);
+  font-size: 18px;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s ease;
+
+  &:active {
+    opacity: 0.4;
+  }
 }
 
 // ─── ReviewStep ────────────────────────────────────────────────
@@ -16,81 +51,37 @@
 .reviewStep {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 12px 0 0;
+  gap: var(--space-5);
+  padding: var(--space-3) 0 0;
 }
 
+// Original transcript — italic quote, no card chrome.
 .originalText {
-  margin: 0 16px;
-  padding: 10px 12px;
-  background-color: #f5f5f2;
-  border: 1px solid #eae8e2;
-  border-radius: 10px;
-  font-size: 13px;
-  color: var(--text-secondary, #6b6b66);
+  margin: 0 var(--space-4);
+  padding: 0 var(--space-3);
+  border-left: 2px solid var(--border-subtle);
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--text-secondary);
   line-height: 1.5;
   white-space: pre-wrap;
   max-height: 90px;
   overflow-y: auto;
 }
 
-.summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 0 16px;
-  align-items: center;
-}
-
-.summaryChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #f5f5f2;
-  border: 1px solid #eae8e2;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary, #6b6b66);
-
-  &_resolved::before {
-    content: '';
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #6cae8a;
-  }
-
-  &_ambiguous::before {
-    content: '';
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #c9a94a;
-  }
-
-  &_unresolved::before {
-    content: '';
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #b86b4a;
-  }
-}
-
 .empty {
-  padding: 48px 24px;
+  padding: var(--space-12) var(--space-6) 0;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
   align-items: center;
 }
 
 .emptyText {
-  font-size: 15px;
-  color: var(--text-secondary, #6b6b66);
+  font-size: var(--text-base);
+  font-style: italic;
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.5;
   max-width: 320px;
@@ -99,23 +90,84 @@
 .sections {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--space-6);
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .sectionTitle {
-  font-size: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--text-muted, #a09d95);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
   margin: 0;
-  padding: 0 20px;
+  padding: 0 var(--space-5);
+}
+
+.sectionCount {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+// ─── Per-variant section header overrides ──────────────────────
+
+.page[data-variant='v2'] {
+  @include modal-bg-spring();
+
+  .sectionTitle {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-secondary);
+    padding: 0 var(--space-4);
+  }
+
+  .sectionCount {
+    color: var(--text-tertiary);
+  }
+}
+
+.page[data-variant='v3'] {
+  @include modal-bg-spring4();
+
+  .sectionTitle {
+    padding: 0 var(--space-4);
+    font-size: var(--text-xl);
+  }
+}
+
+.page[data-variant='v5'] {
+  @include modal-bg-spring5();
+
+  .sectionTitle {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-tertiary);
+    padding: 0 var(--space-4);
+    margin-top: var(--space-3);
+  }
+
+  .sectionCount {
+    color: var(--text-muted);
+  }
+
+  .reviewStep {
+    gap: var(--space-3);
+  }
 }
 
 .list {
@@ -124,21 +176,17 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
 
   > li {
     margin: 0;
     padding: 0;
     display: flex;
   }
-}
 
-.unresolvedFootnote {
-  font-size: 11px;
-  color: var(--text-muted, #a09d95);
-  padding: 0 20px;
-  margin: 4px 0 0;
-  line-height: 1.45;
+  // Last row in a section drops its bottom hairline.
+  > li:last-child > div > div {
+    border-bottom: 0;
+  }
 }
 
 // ─── Undo snackbar (sits above ActionsPanel) ───────────────────
@@ -146,19 +194,19 @@
 .undoSnackbar {
   position: fixed;
   left: 50%;
-  bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(120px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
-  background-color: #2a2a27;
-  color: #fff;
-  padding: 10px 14px;
-  border-radius: 10px;
+  background-color: var(--color-ink);
+  color: var(--color-white);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
-  gap: 14px;
-  font-size: 13px;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
   z-index: 102;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  animation: snackbarIn 180ms ease-out;
+  box-shadow: var(--shadow-lg);
+  animation: snackbarIn var(--duration-normal) var(--easing-spring);
 }
 
 @keyframes snackbarIn {
@@ -174,14 +222,65 @@
 
 .undoBtn {
   background: none;
-  border: none;
-  color: #ffd166;
-  font-size: 13px;
+  border: 0;
+  color: var(--tod-day-outline-from, #ffd666);
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
   padding: 0;
 
   &:hover {
-    color: #ffe09f;
+    color: var(--tod-day-outline-to, #f0c850);
+  }
+}
+
+// ─── Floating commit dock ──────────────────────────────────────
+// Single accent on the screen — ink-filled pill, full-width with
+// generous side padding, large touch target. Sits above the safe
+// area; no surrounding panel chrome.
+
+.commitDock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 100;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+.commitBtn {
+  width: 100%;
+  max-width: 480px;
+  min-height: 56px;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--color-ink, #1a1a2e);
+  color: var(--color-white, #fff);
+  font-family: var(--font-sans);
+  font-size: var(--text-base, 16px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(26, 26, 46, 0.18);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease, opacity 0.15s ease, box-shadow 0.2s ease;
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+    box-shadow: 0 4px 12px rgba(26, 26, 46, 0.22);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    box-shadow: none;
   }
 }

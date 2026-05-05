@@ -149,10 +149,7 @@ const FoodSchedule = ({
 
   const handleCreateProduct = useCallback(async () => {
     const name = 'Новый продукт';
-    const productId = await safeMutate(
-      () => createProduct({ name }),
-      'Не удалось создать продукт'
-    );
+    const productId = await safeMutate(() => createProduct({ name }), 'Не удалось создать продукт');
     if (productId === undefined) return;
     setShowCreatePanel(false);
     toaster.success(`Продукт «${name}» создан`, {
@@ -211,12 +208,9 @@ const FoodSchedule = ({
 
   const setSelectedIdsRef = useRef(setSelectedIds);
   setSelectedIdsRef.current = setSelectedIds;
-  const onTimeClick = useCallback(
-    (group: { items: Array<{ id: string }> }) => {
-      setSelectedIdsRef.current(group.items.map((i) => i.id));
-    },
-    []
-  );
+  const onTimeClick = useCallback((group: { items: Array<{ id: string }> }) => {
+    setSelectedIdsRef.current(group.items.map((i) => i.id));
+  }, []);
 
   const onDeleteSelected = async () => {
     const ids = selectedIds;
@@ -309,7 +303,10 @@ const FoodSchedule = ({
       bottomLeft={
         !isActionsMode ? (
           <div
-            className={clsx(styles.actionBarWrapper, inlineEditing && styles.actionBarWrapper_hidden)}
+            className={clsx(
+              styles.actionBarWrapper,
+              inlineEditing && styles.actionBarWrapper_hidden
+            )}
           >
             <AddFoodActionBar
               writeFoodFlow={writeFoodFlow}
@@ -320,7 +317,7 @@ const FoodSchedule = ({
         ) : null
       }
     >
-      <PeriodView onOpen={() => openSchedulePeriodsModal(date)} />
+      {/* <PeriodView onOpen={() => openSchedulePeriodsModal(date)} /> */}
       <div className={styles.navRow}>
         <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
         <Navigation />

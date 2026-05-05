@@ -131,7 +131,11 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         content={
           <ModalShell variant="spring">
             <ModalShell.Body>
-              <ModalShell.Title>Уточнение к приему пищи</ModalShell.Title>
+              <ModalShell.Title>
+                {draft.foodName
+                  ? `Уточнение: ${draft.foodName}`
+                  : 'Уточнение к приему пищи'}
+              </ModalShell.Title>
               <Textarea
                 id={DETAILS_INPUT}
                 value={draft.details}
@@ -139,6 +143,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
                 placeholder="Заметка к записи..."
                 rows={3}
                 maxLength={500}
+                debounceTime={0}
               />
               {step === 'details' && (
                 <ModalShell.ActionButtons

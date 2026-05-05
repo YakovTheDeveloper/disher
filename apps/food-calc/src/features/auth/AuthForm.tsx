@@ -6,7 +6,8 @@ type Mode = 'signIn' | 'signUp';
 type Step = 'email' | 'password';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD = 6;
+// Synced with backend auth/server.ts emailAndPassword.minPasswordLength.
+const MIN_PASSWORD = 12;
 
 type Props = {
   /** Initial mode for the form. Defaults to signIn. */
@@ -16,6 +17,8 @@ type Props = {
   /** Headline copy override for the email step. */
   signInSubheadline?: string;
   signUpSubheadline?: string;
+  /** Geometry preset. `card` = centered glass card (V1 photo), `stretch` = edge-to-edge fullscreen (V2/V3/V4). Drawer hosts pass nothing → base centered 360px layout. */
+  layout?: 'card' | 'stretch';
 };
 
 /**
@@ -26,8 +29,9 @@ type Props = {
 export function AuthForm({
   initialMode = 'signIn',
   onSuccess,
-  signInSubheadline = 'Войдите, чтобы синхронизировать данные между устройствами',
-  signUpSubheadline = 'Создайте аккаунт, чтобы данные были доступны на любом устройстве',
+  signInSubheadline = '',
+  signUpSubheadline = '',
+  layout,
 }: Props) {
   const isLoading = useAuthStore((s) => s.isLoading);
   const error = useAuthStore((s) => s.error);
@@ -91,11 +95,16 @@ export function AuthForm({
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!passwordValid || isLoading) return;
-    const ok =
-      mode === 'signIn'
-        ? await signIn(normalizedEmail, password)
-        : await signUp(normalizedEmail, password);
-    if (ok) onSuccess?.();
+    if (mode === 'signIn') {
+      const ok = await signIn(normalizedEmail, password);
+      if (ok) onSuccess?.();
+      return;
+    }
+    // signUp under requireEmailVerification: success means "verification email
+    // sent", not "logged in". onSuccess closes the host (drawer) — skip it so
+    // AuthScreen / AuthDrawer can render the CheckInbox branch driven by
+    // pendingVerificationEmail.
+    await signUp(normalizedEmail, password);
   };
 
   const handleBack = () => {
@@ -110,22 +119,13 @@ export function AuthForm({
     setStep('email');
   };
 
-  const submitLabel = isLoading
-    ? '…'
-    : mode === 'signUp'
-      ? 'Создать аккаунт'
-      : 'Войти';
+  const submitLabel = isLoading ? '…' : mode === 'signUp' ? 'Создать аккаунт' : 'Войти';
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-auth-layout={layout}>
       <header className={styles.header}>
         {step === 'password' && (
-          <button
-            type="button"
-            className={styles.backBtn}
-            onClick={handleBack}
-            aria-label="Назад"
-          >
+          <button type="button" className={styles.backBtn} onClick={handleBack} aria-label="Назад">
             ←
           </button>
         )}
@@ -163,11 +163,7 @@ export function AuthForm({
               )}
             </div>
 
-            <button
-              type="submit"
-              className={styles.submitBtn}
-              disabled={!emailValid}
-            >
+            <button type="submit" className={styles.submitBtn} disabled={!emailValid}>
               Продолжить
             </button>
           </form>
@@ -212,9 +208,7 @@ export function AuthForm({
           onClick={handleSwitchMode}
           disabled={isLoading}
         >
-          {mode === 'signIn'
-            ? 'Нет аккаунта? Зарегистрироваться'
-            : 'Уже есть аккаунт? Войти'}
+          {mode === 'signIn' ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти'}
         </button>
       </footer>
     </div>

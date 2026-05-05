@@ -103,7 +103,11 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         content={
           <ModalShell>
             <ModalShell.Body>
-              <ModalShell.Title>Уточнение к приему пищи</ModalShell.Title>
+              <ModalShell.Title>
+                {draft.foodName
+                  ? `Уточнение: ${draft.foodName}`
+                  : 'Уточнение к приему пищи'}
+              </ModalShell.Title>
               <Textarea
                 id={DETAILS_INPUT}
                 value={draft.details}
@@ -111,6 +115,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
                 placeholder="Заметка к записи..."
                 rows={3}
                 maxLength={500}
+                debounceTime={0}
               />
               <ModalShell.ActionButtons
                 left={<ModalPrevButton onClick={() => goToStep('search')} />}

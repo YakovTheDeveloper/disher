@@ -13,6 +13,7 @@ import { useGlobalScrollBlur } from '@/hooks/useGlobalScrollBlur';
 import DrawerManager from '@/app/ui/DrawerManager';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/app/i18n';
+import { AuthGate } from '@/features/auth';
 
 export default function App() {
   useLastFocusMethod();
@@ -45,7 +46,9 @@ export default function App() {
           <DrawerManager />
         </Drawer>
 
-        <Outlet />
+        <AuthGate>
+          <Outlet />
+        </AuthGate>
       </div>
     </I18nextProvider>
   );

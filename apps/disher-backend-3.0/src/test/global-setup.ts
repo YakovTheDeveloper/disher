@@ -51,6 +51,14 @@ export async function setup(): Promise<void> {
   process.env.LOCAL_DATABASE_URL = url;
   process.env.SUPABASE_DB_URL = url;
 
+  // Tests must run with the gated email-verification flow regardless of what
+  // the dev `.env` does. Local dev sets REQUIRE_EMAIL_VERIFICATION=false to
+  // skip the inbox-click loop, but the C1 contract test asserts the gated
+  // path (signUp returns token=null, signIn returns 403 EMAIL_NOT_VERIFIED,
+  // verifyEmail flips the bit). Force-enable it before auth/server.ts imports
+  // and constructs `betterAuth` — it reads process.env at module load.
+  process.env.REQUIRE_EMAIL_VERIFICATION = "true";
+
   const pool = new pg.Pool({
     connectionString: url,
     max: 1,
