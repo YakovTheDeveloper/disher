@@ -22,9 +22,8 @@ type Props = {
 };
 
 /**
- * Two-step email → password auth form. Hosted by AuthDrawer (transient) and
- * AuthScreen (fullscreen blocker). All state is local except auth-store
- * loading / error.
+ * Two-step email → password auth form. Hosted by AuthScreen (fullscreen
+ * blocker). All state is local except auth-store loading / error.
  */
 export function AuthForm({
   initialMode = 'signIn',
@@ -101,9 +100,8 @@ export function AuthForm({
       return;
     }
     // signUp under requireEmailVerification: success means "verification email
-    // sent", not "logged in". onSuccess closes the host (drawer) — skip it so
-    // AuthScreen / AuthDrawer can render the CheckInbox branch driven by
-    // pendingVerificationEmail.
+    // sent", not "logged in" — skip onSuccess so AuthScreen renders the
+    // CheckInbox branch driven by pendingVerificationEmail.
     await signUp(normalizedEmail, password);
   };
 

@@ -9,7 +9,7 @@ type Props = {
 };
 
 /**
- * "Check your inbox" branch. Rendered by AuthScreen / AuthDrawer when
+ * "Check your inbox" branch. Rendered by AuthScreen when
  * `auth-store.pendingVerificationEmail` is set (a fresh signUp succeeded or a
  * signIn returned 403 EMAIL_NOT_VERIFIED). Reuses AuthForm.module.scss so the
  * fullscreen theme overrides apply exactly the same way.
