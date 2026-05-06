@@ -21,20 +21,6 @@ function isResponseLike(err: unknown): err is { status: number; statusText?: str
   return typeof err === 'object' && err !== null && typeof (err as { status?: unknown }).status === 'number';
 }
 
-// Duck-type check by `__isAuthError === true`, the tag supabase-js used to put
-// on Auth*Error instances. Kept post-migration to better-auth as a defensive
-// shape match — protects against any leftover Supabase token / cached error
-// surfacing during the rollout window. Candidate for removal in Phase 1 retro
-// once we're confident no Supabase code paths can fire (no @supabase/supabase-js
-// in runtime deps, only the CLI in devDeps).
-function isSupabaseAuthErrorShape(err: unknown): err is Error & { __isAuthError: true; name: string; status?: number; code?: string } {
-  return (
-    typeof err === 'object' &&
-    err !== null &&
-    (err as { __isAuthError?: unknown }).__isAuthError === true
-  );
-}
-
 function classifyByStatus(status: number, message: string, raw: unknown, extras: { code?: string; retryAfter?: number; fieldErrors?: Record<string, string> } = {}): ErrorKind {
   if (status === 401 || status === 403) return { kind: 'auth', status, message, code: extras.code, raw };
   if (status === 404) return { kind: 'not_found', status, message, code: extras.code, raw };
@@ -47,35 +33,6 @@ function classifyByStatus(status: number, message: string, raw: unknown, extras:
 export function classifyError(err: unknown): ErrorKind {
   if (err === null || err === undefined) {
     return { kind: 'unknown', message: 'Что-то пошло не так', raw: err };
-  }
-
-  // Legacy supabase-shaped AuthError handler. Post-migration this branch is
-  // not exercised by runtime code (we use better-auth, see betterAuthProvider).
-  // Kept as a safety net + because the test suite still pins these mappings;
-  // earmarked for removal in Phase 1 retro.
-  if (isSupabaseAuthErrorShape(err)) {
-    const e = err;
-    if (e.name === 'AuthRetryableFetchError') {
-      // supabase wraps the original cause in `e.message`. Distinguish:
-      //   - timeout (our AbortSignal.timeout fired, or user aborted) → kind=timeout
-      //   - network (Safari "Load failed", Chromium "Failed to fetch") → kind=network
-      // Both arrive as status=0 from supabase fetch.js, so we discriminate
-      // on the wrapped message text. Check timeout FIRST — `aborted`/`signal
-      // is aborted without reason` is what AbortSignal.timeout produces and
-      // it is a configuration problem (timeout too short), not a real outage.
-      if ((!e.status || e.status === 0) && TIMEOUT_TEXT_RE.test(e.message ?? '')) {
-        return { kind: 'timeout', message: messageOf(e, 'Превышено время ожидания'), raw: err };
-      }
-      // status===0 = the browser never got a response (network/CORS/offline/Safari).
-      if (!e.status || e.status === 0) {
-        return { kind: 'network', message: messageOf(e, 'Нет связи с сервером'), raw: err };
-      }
-      // 502/503/504/52x = upstream/gateway — supabase considers these retryable.
-      if (e.status >= 500) {
-        return { kind: 'server', message: messageOf(e), status: e.status, raw: err };
-      }
-    }
-    return { kind: 'auth', message: e.message, status: e.status, code: e.code, raw: err };
   }
 
   // AbortError / DOMException timeout
