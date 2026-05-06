@@ -2,10 +2,6 @@ import * as ReactDOM from 'react-dom/client';
 
 import { RouterProvider } from 'react-router-dom';
 
-// if (import.meta.env.DEV) {
-//   import('vconsole').then(({ default: VConsole }) => new VConsole());
-// }
-
 import { Sentry } from '@/shared/lib/observability/sentry';
 import { router } from '@/app/router.tsx';
 import { SyncProvider } from '@/shared/lib/sync/SyncProvider';
@@ -14,10 +10,12 @@ import { installE2EBridge } from '@/shared/lib/e2e/bridge';
 import { diagLog } from '@/shared/lib/observability/diagLog';
 import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 
-// Diagnostics for iOS Supabase REST hang (research 2026-04-28):
-// #1 AbortSignal.any availability (iOS < 17.4 lacks it -> our wrapper drops timeoutSignal)
-// #2 navigator.locks state (Supabase auth Web-Locks deadlock per supabase-js#2111/#1594)
-// #3 UA so we can correlate with iOS version in the dump
+// Boot env probe — UA + AbortSignal.any/timeout availability + navigator.locks
+// state. The locks snapshots also help diagnose scheduler leader-election
+// (drainPush holds 'disher-drain' via navigator.locks.request) — if it ever
+// hangs we'll see the holder/queue here. Originally added during the iOS
+// Supabase REST hang research (2026-04-28); the proxy is gone but the probes
+// are cheap and still useful.
 diagLog('[diag] env probe', {
   ua: navigator.userAgent,
   abortAny: typeof (AbortSignal as unknown as { any?: unknown }).any,
@@ -126,7 +124,6 @@ ReactDOM.createRoot(root).render(
       ) : (
         <RouterProvider router={router} />
       )}
-      {/* {import.meta.env.DEV && <DiagButton />} */}
     </SyncProvider>
   </Sentry.ErrorBoundary>
 );

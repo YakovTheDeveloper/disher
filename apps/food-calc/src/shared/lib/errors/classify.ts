@@ -21,10 +21,12 @@ function isResponseLike(err: unknown): err is { status: number; statusText?: str
   return typeof err === 'object' && err !== null && typeof (err as { status?: unknown }).status === 'number';
 }
 
-// Duck-type check for supabase-js AuthError. supabase tags every Auth*Error
-// instance with `__isAuthError === true` — see supabase-js/src/lib/errors.ts.
-// Doing this by shape lets classify.ts stay free of an `@supabase/supabase-js`
-// import (the contract for Stage 0 of the supabase isolation plan).
+// Duck-type check by `__isAuthError === true`, the tag supabase-js used to put
+// on Auth*Error instances. Kept post-migration to better-auth as a defensive
+// shape match — protects against any leftover Supabase token / cached error
+// surfacing during the rollout window. Candidate for removal in Phase 1 retro
+// once we're confident no Supabase code paths can fire (no @supabase/supabase-js
+// in runtime deps, only the CLI in devDeps).
 function isSupabaseAuthErrorShape(err: unknown): err is Error & { __isAuthError: true; name: string; status?: number; code?: string } {
   return (
     typeof err === 'object' &&
@@ -47,12 +49,10 @@ export function classifyError(err: unknown): ErrorKind {
     return { kind: 'unknown', message: 'Что-то пошло не так', raw: err };
   }
 
-  // Supabase AuthError — semantic auth boundary EXCEPT for AuthRetryableFetchError,
-  // which supabase-js throws when the underlying fetch fails (Safari "Load failed",
-  // Chromium "Failed to fetch", or 502/503/504/52x gateway errors). These are NOT
-  // credential problems and must surface as network/server so the user sees the
-  // right toast and we don't blame the password during an outage.
-  // Detected by shape (`__isAuthError`) so this file stays vendor-agnostic.
+  // Legacy supabase-shaped AuthError handler. Post-migration this branch is
+  // not exercised by runtime code (we use better-auth, see betterAuthProvider).
+  // Kept as a safety net + because the test suite still pins these mappings;
+  // earmarked for removal in Phase 1 retro.
   if (isSupabaseAuthErrorShape(err)) {
     const e = err;
     if (e.name === 'AuthRetryableFetchError') {

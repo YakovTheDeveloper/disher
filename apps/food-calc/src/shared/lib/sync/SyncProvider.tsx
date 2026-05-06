@@ -9,7 +9,7 @@ import { Sentry } from '@/shared/lib/observability/sentry';
 import { diagLog } from '@/shared/lib/observability/diagLog';
 
 // Boot sequence (Dexie + backup-polling):
-//   1. Auth bootstrap (Supabase getSession).
+//   1. Auth bootstrap (better-auth get-session).
 //   2. Storage probe — surface eviction immediately, before Dexie tries to
 //      open and gives obscure errors.
 //   3. Install Dexie hooks (auto-stamp _dirty/edit_count/client_modified_at).

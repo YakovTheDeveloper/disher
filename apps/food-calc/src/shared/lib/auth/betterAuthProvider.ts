@@ -23,9 +23,8 @@ import type {
 } from './types';
 import { classifyError } from '@/shared/lib/errors/classify';
 
-// Map better-auth user shape onto our AppUser. Anonymous-session filtering
-// (relevant in supabase) is moot here — the anonymous plugin is not loaded
-// on the backend, so every user is "real" by construction.
+// Map better-auth user shape onto our AppUser. The anonymous plugin is not
+// loaded on the backend, so every user is "real" — no anon filtering needed.
 function toAppUser(user: { id?: string; email?: string | null } | null | undefined): AppUser | null {
   if (!user || !user.id) return null;
   return { id: user.id, email: user.email ?? null };
@@ -161,12 +160,10 @@ export const betterAuthProvider: AuthProvider = {
 
   async sendVerificationEmail(email) {
     try {
-      // `callbackURL` is what better-auth's email-verify route uses to build
-      // the `?callbackURL=...` link the user clicks. In bearer-mode SPA we
-      // override the link to point at our frontend route in the dev-stub
-      // (C2.4); for resend we still need to pass *something* — the home
-      // page is a safe default. C2.4 will rewrite this on the backend so the
-      // value here doesn't actually drive the SPA route.
+      // `callbackURL` is the final SPA route the user lands on after a
+      // successful verification click. The backend rewrites the verification
+      // link itself, so this value just needs to be a valid SPA path — '/'
+      // sends them to the home page.
       const { error } = await authClient.sendVerificationEmail({ email, callbackURL: '/' });
       if (error) {
         return { ok: false, error: classifyBetterAuthError(error ?? undefined, error) };
@@ -180,8 +177,7 @@ export const betterAuthProvider: AuthProvider = {
   async signOut() {
     // Best-effort server revoke — even if /sign-out fails (network/500/etc)
     // we MUST clear the local bearer + cached user, otherwise the UI stays
-    // "logged in" against a dead session. Same pattern as the supabase
-    // implementation (see project_signout_unconditional_local memory).
+    // "logged in" against a dead session.
     try {
       await authClient.signOut();
     } catch (e) {

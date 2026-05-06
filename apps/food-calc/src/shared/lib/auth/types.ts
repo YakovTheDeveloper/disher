@@ -27,8 +27,9 @@ export type SignUpResult =
   | { ok: true; pendingVerification: true; email: string }
   | { ok: false; error: AuthError };
 
-// AuthChangeEvent is intentionally a small superset of supabase's events —
-// only the ones the app reacts to. New providers must map onto this set.
+// Provider-agnostic session lifecycle events. `token_refreshed` is included
+// for providers that auto-refresh; the current better-auth bearer-mode impl
+// never emits it (sessions are opaque, no refresh — a 401 means sign-out).
 export type AuthChangeEvent =
   | 'signed_in'
   | 'signed_out'
@@ -44,8 +45,9 @@ export interface AuthProvider {
   bootstrap(): Promise<AppUser | null>;
 
   /**
-   * Current access token (JWT) if signed in, null otherwise. Implementations
-   * are expected to refresh transparently when close to expiry.
+   * Current access token if signed in, null otherwise. The active better-auth
+   * impl returns an opaque bearer (not a JWT) read straight from
+   * localStorage — there is no refresh.
    */
   getAccessToken(): Promise<string | null>;
 
