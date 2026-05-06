@@ -3,16 +3,13 @@
  * Lets Playwright drive Dexie / sync / auth state without touching real UI.
  * Tree-shaken out in production builds.
  */
-import { clear as idbClear, keys as idbKeysFn } from 'idb-keyval';
 import { authProvider } from '@/shared/lib/auth/authProvider';
 import { authClient } from '@/shared/lib/auth/betterAuthClient';
 import { API_BASE } from '@/shared/lib/api/base';
 import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
-import { drainPush, pullSnapshot } from '@/shared/lib/sync/backupClient';
+import { drainPush } from '@/shared/lib/sync/backupClient';
 import { areDexieHooksInstalled } from '@/shared/lib/dexie/hooks';
 import { createProduct } from '@/entities/product/api/mutations';
-import { createDish } from '@/entities/dish/api/mutations';
-import { addScheduleFood } from '@/entities/schedule-food/api/mutations';
 
 export function installE2EBridge(): void {
   if (import.meta.env.MODE !== 'test') return;
@@ -42,17 +39,10 @@ export function installE2EBridge(): void {
 
     // Sync triggers.
     drainPush,
-    pullSnapshot,
     hooksInstalled: () => areDexieHooksInstalled(),
 
     // Entity mutations — proxy real entity api so E2E exercises the same code as UI.
     createProduct,
-    createDish,
-    addScheduleFood,
-
-    // idb-keyval for drafts.
-    clearIdb: () => idbClear(),
-    idbKeys: () => idbKeysFn().then((arr) => arr.map((k) => String(k))),
 
     // Auth.
     getSession: async () => {

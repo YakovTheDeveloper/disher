@@ -5,9 +5,6 @@ type DexieBridge = {
   countDirty: (userId: string) => Promise<Record<string, number>>;
   wipeLocal: () => Promise<void>;
   drainPush: (userId: string) => Promise<{ accepted: number; rejected: number }>;
-  pullSnapshot: () => Promise<{ rows: number }>;
-  clearIdb: () => Promise<void>;
-  idbKeys: () => Promise<string[]>;
   getSession: () => Promise<{ user: { id: string; is_anonymous: boolean } } | null>;
   signOut: () => Promise<void>;
 };
