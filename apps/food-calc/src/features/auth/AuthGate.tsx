@@ -26,10 +26,10 @@ function isPublicPath(pathname: string): boolean {
  * triggers the auth-store onAuthChange subscription → isLoggedIn flips → next
  * navigation lands on the gated app.
  *
- * NB: we read `window.location.pathname` instead of `useLocation()` because
- * AuthGate wraps `<RouterProvider>` from above — there is no Router context
- * at this depth. The prefix check only fires on initial render anyway: once
- * verify-email succeeds, AuthScreen unmounts on the next state flip.
+ * NB: we read `window.location.pathname` directly. AuthGate is mounted inside
+ * App's Outlet so a Router context is available, but the public-path check is
+ * only meaningful on initial render — the auth-store state flip handles the
+ * "after verify-email" transition without needing reactive pathname tracking.
  */
 export function AuthGate({ children }: Props) {
   const isReady = useAuthStore((s) => s.isReady);
