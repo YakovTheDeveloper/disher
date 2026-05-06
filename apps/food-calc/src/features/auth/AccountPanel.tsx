@@ -4,7 +4,6 @@ import { drawerStore } from '@/shared/ui/drawer-store';
 import { ProfileDrawer } from './ProfileDrawer';
 
 const AccountPanel = () => {
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const email = useAuthStore((s) => s.email);
 
   // The app is gated behind AuthGate, so by the time AccountPanel renders the

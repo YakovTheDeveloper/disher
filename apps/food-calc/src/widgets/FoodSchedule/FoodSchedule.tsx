@@ -29,8 +29,6 @@ import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
 import { CopyToClipboardButton, PasteFromClipboardButton } from '@/features/clipboard';
 import type { ClipboardItem } from '@/shared/model/clipboardStore';
 import { AccountPanel } from '@/features/auth';
-import { PeriodView } from '@/features/ScheduleSelection/SchedulePeriods';
-import { openSchedulePeriodsModal } from './ui';
 import { fetchDailyAnalysis, computeInputHash } from '@/entities/analytics';
 import { createProduct } from '@/entities/product';
 import { createDish } from '@/entities/dish';

@@ -6,7 +6,7 @@ type FooterProps = {
   children: ReactNode;
 };
 
-export const ModalFooter = ({ onBack, children }: FooterProps) => (
+export const ModalFooter = ({ children }: FooterProps) => (
   <div className={s.panel}>
     <div className={s.primary}>{children}</div>
   </div>

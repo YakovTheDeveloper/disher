@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { RelationAtom } from '@/entities/schedule-event';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import styles from './shared/AtomInputShared.module.css';
 
 export interface RelationAtomInputProps {
@@ -24,7 +24,7 @@ const PRESET_RELATIONS = [
   'на фоне болезни',
 ];
 
-export const RelationAtomInput = ({ onAddAtom, onClose, accentColor }: RelationAtomInputProps) => {
+export const RelationAtomInput = ({ onAddAtom, accentColor }: RelationAtomInputProps) => {
   const [value, setValue] = useState('');
   const [isReady, setIsReady] = useState(false);
 

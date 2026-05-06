@@ -415,7 +415,7 @@ async function resolveItems(
     }
   }
 
-  return { resolved, ambiguous, unresolved };
+  return { requestId, resolved, ambiguous, unresolved };
 }
 
 // ─── Routes ───

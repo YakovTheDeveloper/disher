@@ -12,7 +12,6 @@ import { SyncProvider } from '@/shared/lib/sync/SyncProvider';
 import { AuthGate } from '@/features/auth';
 import { installE2EBridge } from '@/shared/lib/e2e/bridge';
 import { diagLog } from '@/shared/lib/observability/diagLog';
-import { DiagButton } from '@/shared/lib/observability/DiagButton';
 import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 
 // Diagnostics for iOS Supabase REST hang (research 2026-04-28):

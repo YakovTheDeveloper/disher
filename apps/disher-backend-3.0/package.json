@@ -8,10 +8,12 @@
     "dev": "tsx watch src/api/server.ts",
     "dev:network": "cross-env HOST=0.0.0.0 tsx watch src/api/server.ts",
     "dev:e2e": "cross-env HOST=127.0.0.1 PORT=3101 BACKEND_E2E_HTTP=1 NODE_ENV=test REQUIRE_EMAIL_VERIFICATION=true FRONTEND_ORIGIN=http://127.0.0.1:4173 BETTER_AUTH_TRUSTED_ORIGINS=http://127.0.0.1:4173,http://localhost:4173 tsx src/api/server.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/src/api/server.js",
     "lint": "echo 'no lint configured for backend'",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "typecheck:scripts": "tsc -p tsconfig.json --noEmit",
     "clean": "rimraf dist .turbo tsconfig.tsbuildinfo",
     "probe:matcher": "tsx scripts/probe-matcher.ts",
     "probe:matcher:basic": "tsx scripts/probe-matcher.ts --set=basic",
@@ -35,6 +37,7 @@
     "resend": "^6.12.2"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.5.0",
     "@types/pg": "^8.20.0",
     "concurrently": "^9.1.0",
