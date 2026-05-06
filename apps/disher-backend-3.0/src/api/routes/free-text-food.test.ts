@@ -449,7 +449,13 @@ describe("POST /api/free-text-food/parse — caching", () => {
     expect(r1.statusCode).toBe(200);
     expect(r2.statusCode).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(r1.json()).toEqual(r2.json());
+    // requestId is fresh per request (randomUUID at handler entry); only the
+    // LLM-extracted items are cached, so resolved/ambiguous/unresolved must
+    // match but requestId must NOT.
+    const { requestId: id1, ...rest1 } = r1.json();
+    const { requestId: id2, ...rest2 } = r2.json();
+    expect(rest1).toEqual(rest2);
+    expect(id1).not.toBe(id2);
   });
 });
 

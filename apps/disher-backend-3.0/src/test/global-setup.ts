@@ -59,6 +59,17 @@ export async function setup(): Promise<void> {
   // and constructs `betterAuth` — it reads process.env at module load.
   process.env.REQUIRE_EMAIL_VERIFICATION = "true";
 
+  // Disable the Resend transport in tests. The dev .env carries a real
+  // RESEND_API_KEY; if we leave it set, every signUp inside a test triggers a
+  // real send via the sandbox `onboarding@resend.dev` sender, which 403s on
+  // any address other than the account owner's own — flooding stderr with
+  // `[auth] Resend send failed validation_error` per spec. Token capture for
+  // the C1 contract happens via `globalThis.__verifyTokensByEmail` BEFORE the
+  // dispatch (auth/server.ts), so disabling Resend doesn't affect any
+  // assertion. Re-enable per-test by setting RESEND_API_KEY back if you ever
+  // want to assert the dispatch payload (consider MSW for that).
+  delete process.env.RESEND_API_KEY;
+
   const pool = new pg.Pool({
     connectionString: url,
     max: 1,
