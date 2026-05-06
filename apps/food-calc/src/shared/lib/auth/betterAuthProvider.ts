@@ -84,15 +84,19 @@ function classifyBetterAuthError(err: BetterAuthErrorShape | undefined, raw: unk
 
 let cachedUser: AppUser | null = null;
 
+const SB_CLEANED_FLAG = 'disher.sb-cleaned';
+
 export const betterAuthProvider: AuthProvider = {
   async bootstrap() {
-    // Idempotent legacy-cleanup: drop any pre-migration `sb-*` localStorage
-    // keys (Supabase auth tokens). Greenfield deploys won't have them; this
-    // protects users who hit the new build with a stale Supabase token cached
-    // from a preview install. Reverse-iterate to mutate while scanning.
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('sb-')) localStorage.removeItem(key);
+    // One-shot legacy cleanup: drop any pre-migration `sb-*` localStorage keys
+    // (Supabase auth tokens) from preview installs that hit this build. Gated
+    // by `disher.sb-cleaned` so we only scan localStorage once per device.
+    if (localStorage.getItem(SB_CLEANED_FLAG) !== '1') {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('sb-')) localStorage.removeItem(key);
+      }
+      localStorage.setItem(SB_CLEANED_FLAG, '1');
     }
 
     // Skip the network entirely if there is no token — fresh install or
