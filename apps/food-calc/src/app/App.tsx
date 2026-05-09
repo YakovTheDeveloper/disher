@@ -14,6 +14,7 @@ import DrawerManager from '@/app/ui/DrawerManager';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/app/i18n';
 import { AuthGate } from '@/features/auth';
+import { BackupGate } from '@/features/backup/BackupGate';
 
 export default function App() {
   useLastFocusMethod();
@@ -47,7 +48,9 @@ export default function App() {
         </Drawer>
 
         <AuthGate>
-          <Outlet />
+          <BackupGate>
+            <Outlet />
+          </BackupGate>
         </AuthGate>
       </div>
     </I18nextProvider>

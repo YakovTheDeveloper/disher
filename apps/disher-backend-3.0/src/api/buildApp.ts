@@ -12,6 +12,7 @@ import { matcherTelemetryRoutes } from "./routes/matcher-telemetry.js";
 import { bugReportRoutes } from "./routes/bug-reports.js";
 import { diagLogsRoutes } from "./routes/diag-logs.js";
 import { backupRoutes } from "./routes/backup.js";
+import { analyzeRoutes } from "./routes/analyze.js";
 import { devRoutes } from "./routes/dev.js";
 import { betterAuthPlugin } from "../auth/fastify-plugin.js";
 import { registerUserIdDecorator } from "../auth/require-user.js";
@@ -44,6 +45,9 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
 
   const app = Fastify({
     logger: opts.logger ?? true,
+    // 5MB body limit — analyze payloads with 30 days of foods/events can
+    // legitimately reach 1-2MB; the default 1MB tripped power-user accounts.
+    bodyLimit: 5 * 1024 * 1024,
     ...(httpsOptions ? { https: httpsOptions } : {}),
   });
 
@@ -106,6 +110,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   await app.register(bugReportRoutes, { prefix: "/api/bug-reports" });
   await app.register(diagLogsRoutes, { prefix: "/api/diag-logs" });
   await app.register(backupRoutes, { prefix: "/api/backup" });
+  await app.register(analyzeRoutes, { prefix: "/api" });
 
   // Dev/test-only: e2e bridge endpoint for verify-email. The route handler
   // itself rejects with 404 when NODE_ENV === 'production' as a second line

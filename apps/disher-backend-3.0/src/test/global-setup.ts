@@ -1,6 +1,6 @@
 import { config as loadDotenv } from "dotenv";
 import pg from "pg";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -21,10 +21,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // from (process.cwd() can be the monorepo apps/ dir if run via --prefix).
 loadDotenv({ path: join(__dirname, "../../.env") });
 
-const INIT_MIGRATION = join(
-  __dirname,
-  "../../db/migrations/20260501000000_own_auth_init.sql",
-);
+const MIGRATIONS_DIR = join(__dirname, "../../db/migrations");
+
+function listMigrations(): string[] {
+  return readdirSync(MIGRATIONS_DIR)
+    .filter((f) => /^\d+.*\.sql$/.test(f))
+    .sort()
+    .map((f) => join(MIGRATIONS_DIR, f));
+}
 
 export async function setup(): Promise<void> {
   const url = process.env.TEST_DATABASE_URL;
@@ -38,7 +42,7 @@ export async function setup(): Promise<void> {
 
   // Point the in-process pools at the test DB. Both:
   //  - ../auth/server.ts reads LOCAL_DATABASE_URL (better-auth pool)
-  //  - ../api/db.ts reads SUPABASE_DB_URL (backup handler pool)
+  //  - ../api/db.ts reads REMOTE_DATABASE_URL (backup handler pool)
   // construct their pg.Pool at module load. Overriding both env vars here
   // means every test that imports `auth` or `pool` writes into disher_test,
   // NOT into disher_dev or production Supabase. Critical for FK consistency:
@@ -49,7 +53,7 @@ export async function setup(): Promise<void> {
   // process.env, so the overrides propagate. singleFork:true in vitest.config
   // keeps this true even with parallelism.
   process.env.LOCAL_DATABASE_URL = url;
-  process.env.SUPABASE_DB_URL = url;
+  process.env.REMOTE_DATABASE_URL = url;
 
   // Tests must run with the gated email-verification flow regardless of what
   // the dev `.env` does. Local dev sets REQUIRE_EMAIL_VERIFICATION=false to
@@ -85,8 +89,10 @@ export async function setup(): Promise<void> {
     // inside the migration succeeds.
     await pool.query("grant all on schema public to public");
 
-    const migration = readFileSync(INIT_MIGRATION, "utf8");
-    await pool.query(migration);
+    for (const migration of listMigrations()) {
+      const sql = readFileSync(migration, "utf8");
+      await pool.query(sql);
+    }
   } finally {
     await pool.end();
   }

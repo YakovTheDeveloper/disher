@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/shared/lib/dexie/schema';
-import { useUserId } from '@/shared/lib/auth/useUserId';
+import { catalog } from '@/shared/data/catalog';
 import { parseNutrients, parsePortions, type PortionEntry } from '@/shared/lib/parsers';
 import type { NutrientEntry } from '@/shared/lib/nutrients';
 import type { Product } from '../model/types';
@@ -9,18 +9,15 @@ import { mapProductRow } from './mappers';
 
 export type { NutrientEntry, PortionEntry };
 
-// Catalog rows have user_id IS NULL — visible to everyone, plus the user's own
-// rows. Soft-deleted rows (deleted_at != null) are filtered out.
+// Merged catalog + user-products view. Catalog is a build artifact (no
+// IndexedDB roundtrip); user rows come from Dexie via useLiveQuery.
 function useAllProducts(): Product[] {
-  const userId = useUserId();
-  const rows = useLiveQuery(async () => {
-    if (!userId) return [];
-    const all = await db.products
-      .filter((p) => (p.user_id === userId || p.user_id === null) && !p.deleted_at)
-      .toArray();
-    return all;
-  }, [userId]);
-  return useMemo(() => (rows ?? []).map(mapProductRow), [rows]);
+  const userRows = useLiveQuery(() => db.products.toArray(), []);
+  const catalogProducts = useMemo(() => catalog.map(mapProductRow), []);
+  return useMemo(() => {
+    const userProducts = (userRows ?? []).map(mapProductRow);
+    return [...catalogProducts, ...userProducts];
+  }, [catalogProducts, userRows]);
 }
 
 export function useProduct(productId: string | undefined): Product | null {
@@ -76,6 +73,28 @@ export function useNutrientsByProductIds(
       if (!idSet.has(row.id)) continue;
       const entries = parseNutrients(row.nutrients);
       if (entries.length > 0) map.set(row.id, entries);
+    }
+    return map;
+  }, [products, productIds]);
+}
+
+/**
+ * Map of productId → servingBasis. Schedule/product nutrient calculators need
+ * this to choose between scale = quantity / 100 (food, default) and
+ * scale = quantity (supplements). Products absent from the map fall back to
+ * '100g' at the call site.
+ */
+export function useBasisByProductIds(
+  productIds: string[],
+): Map<string, '100g' | 'serving'> {
+  const products = useAllProducts();
+  return useMemo(() => {
+    const map = new Map<string, '100g' | 'serving'>();
+    if (productIds.length === 0) return map;
+    const idSet = new Set(productIds);
+    for (const row of products) {
+      if (!idSet.has(row.id)) continue;
+      map.set(row.id, row.servingBasis);
     }
     return map;
   }, [products, productIds]);

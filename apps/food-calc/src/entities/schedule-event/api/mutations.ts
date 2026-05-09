@@ -1,13 +1,7 @@
 import { db, type ScheduleEventRow } from '@/shared/lib/dexie/schema';
-import { getUserIdSync } from '@/shared/lib/auth/useUserId';
-import { scheduleHot } from '@/shared/lib/sync/scheduler';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
 
-function requireUserId(): string {
-  const userId = getUserIdSync();
-  if (!userId) throw new Error('Not authenticated');
-  return userId;
-}
+const now = () => new Date().toISOString();
 
 export async function addScheduleEvent(params: {
   date: string;
@@ -17,17 +11,16 @@ export async function addScheduleEvent(params: {
   atoms?: Atom[];
 }): Promise<string> {
   const id = crypto.randomUUID();
-  const userId = requireUserId();
-  await db.schedule_events.add({
+  const row: ScheduleEventRow = {
     id,
-    user_id: userId,
     date: params.date,
     time: params.time,
     end_time: params.endTime ?? '',
     text: params.text ?? '',
     atoms: params.atoms ?? [],
-  } as unknown as ScheduleEventRow);
-  scheduleHot();
+    created_at: now(),
+  };
+  await db.schedule_events.add(row);
   return id;
 }
 
@@ -60,23 +53,13 @@ export async function updateScheduleEvent(
     else patch[col] = updates[k];
   }
   await db.schedule_events.update(eventId, patch);
-  scheduleHot();
 }
 
 export async function removeScheduleEvent(eventId: string): Promise<void> {
-  await db.schedule_events.update(eventId, {
-    deleted_at: new Date().toISOString(),
-  });
-  scheduleHot();
+  await db.schedule_events.delete(eventId);
 }
 
 export async function removeScheduleEvents(eventIds: string[]): Promise<void> {
   if (eventIds.length === 0) return;
-  const now = new Date().toISOString();
-  await db.transaction('rw', db.schedule_events, async () => {
-    for (const id of eventIds) {
-      await db.schedule_events.update(id, { deleted_at: now });
-    }
-  });
-  scheduleHot();
+  await db.schedule_events.bulkDelete(eventIds);
 }

@@ -1,81 +1,61 @@
 import Dexie, { type Table } from 'dexie';
 
-// Disher local Dexie DB — source of truth for the client. Backend Postgres
-// is a durability layer that we push to via POST /api/backup. Rows here
-// mirror the Postgres column names (snake_case) so push/pull is
-// JSON.stringify with no field renaming.
+// Disher local Dexie DB. The user is the only writer; rows are dumped daily
+// as a single JSON blob to /api/backup. There is no sync metadata, no
+// soft-delete, no user_id discriminator — sign-out wipes the DB instead.
 //
-// Sync metadata (every user-row table):
-//   client_modified_at  ISO string set by the writing-hook on every edit
-//   edit_count          counter, +1 per mutation, primary LWW key
-//   _dirty              client-only flag (not in Postgres). 1 = needs push.
-//                       Cleared by push module after server ACK using a
-//                       Notesnook-style timestamp guard:
-//                       `_dirty=0 WHERE client_modified_at <= pushTimestamp`.
-//                       Indexed so the drain collector is index-bound.
-//   deleted_at          tombstone. Soft-delete via `dirty + deleted_at`
-//                       update; the row is never removed from Dexie until
-//                       the server confirms. Filter `!deleted_at` in queries.
+// See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md.
 
-// ─── shared row shape pieces ───────────────────────────────────────────────
+// ─── per-table row interfaces ──────────────────────────────────────────────
+//
+// `created_at` is the only timestamp on every row. `id` is a uuid stamped at
+// mutation time. Everything else is domain.
 
-interface SyncMeta {
-  client_modified_at: string;
-  edit_count: number;
-  _dirty: 0 | 1;
-  deleted_at: string | null;
-  created_at: string;
-  /** Server-stamped on accept; only used for clock-skew telemetry. */
-  server_received_at?: string;
-}
-
-// ─── per-table row interfaces (mirror Postgres exactly) ────────────────────
-
-export interface ProductRow extends SyncMeta {
+export interface ProductRow {
   id: string;
-  /** null = global catalog row. */
-  user_id: string | null;
   name: string;
   name_eng: string;
   description: string;
   description_eng: string;
   source: string;
   price_per_kg: number;
-  /** jsonb — stored as parsed object, not stringified. */
+  /** Stored as a parsed object, not stringified. */
   nutrients: Record<string, unknown>;
   portions: Array<Record<string, unknown>>;
   categories: Array<unknown>;
+  serving_basis: '100g' | 'serving';
+  serving_unit: 'IU' | 'mg' | 'mcg' | 'g' | 'шт' | null;
+  created_at: string;
 }
 
-export interface DishRow extends SyncMeta {
+export interface DishRow {
   id: string;
-  user_id: string;
   name: string;
+  created_at: string;
 }
 
-export interface DishItemRow extends SyncMeta {
+export interface DishItemRow {
   id: string;
-  user_id: string;
   dish_id: string;
   product_id: string;
   quantity: number;
+  created_at: string;
 }
 
-export interface DishPortionRow extends SyncMeta {
+export interface DishPortionRow {
   id: string;
-  user_id: string;
   dish_id: string;
   label: string;
   amount: number;
   unit: string;
   grams: number;
+  created_at: string;
 }
 
 export type ScheduleFoodType = 'food' | 'dish';
 
-export interface ScheduleFoodRow extends SyncMeta {
+export interface ScheduleFoodRow {
   id: string;
-  user_id: string;
   date: string;
   time: string;
   type: ScheduleFoodType;
@@ -83,33 +63,49 @@ export interface ScheduleFoodRow extends SyncMeta {
   details: string;
   product_id: string | null;
   dish_id: string | null;
+  created_at: string;
 }
 
-export interface ScheduleEventRow extends SyncMeta {
+export interface ScheduleEventRow {
   id: string;
-  user_id: string;
   date: string;
   time: string;
   end_time: string;
   text: string;
   atoms: Array<unknown>;
+  created_at: string;
 }
 
-export interface DailyNormRow extends SyncMeta {
+export interface DailyNormRow {
   id: string;
-  user_id: string;
   name: string;
   description: string;
   items: Record<string, unknown>;
+  created_at: string;
 }
 
-export interface PeriodRow extends SyncMeta {
+export interface PeriodRow {
   id: string;
-  user_id: string;
   name: string;
   color_index: number;
   font_family: string;
   font_size: number;
+  created_at: string;
+}
+
+export interface HypothesisRow {
+  id: string;
+  title: string;
+  body: string;
+  days: number | null;
+  source_analysis_id: string | null;
+  saved_at: string;
+  /** Set when the user clicks "Тестирую сейчас". */
+  started_at: string | null;
+  ended_at: string | null;
+  outcome: string | null;
+  note: string | null;
+  created_at: string;
 }
 
 // ─── DB ────────────────────────────────────────────────────────────────────
@@ -123,16 +119,15 @@ export class DisherDB extends Dexie {
   schedule_events!: Table<ScheduleEventRow,  string>;
   daily_norms!:     Table<DailyNormRow,      string>;
   periods!:         Table<PeriodRow,         string>;
+  hypotheses!:      Table<HypothesisRow,     string>;
 
   constructor() {
     super('disher');
 
-    // Index strategy:
-    //   id              primary key (uuid)
-    //   user_id         every list-by-user query
-    //   [user_id+_dirty]  drain collector — pull dirty rows for one user
-    //   [user_id+date]    schedule_foods / schedule_events daily views
-    //   [dish_id+...]     fk-bound joins for dish_items / dish_portions
+    // v1-v3: legacy schema with sync columns. Replaced wholesale in v4 — the
+    // upgrade clears every store. Snapshot pull on next BackupGate mount
+    // re-hydrates from the server vault, so this is non-destructive for users
+    // whose data is already up there.
     this.version(1).stores({
       products:        'id, user_id, [user_id+_dirty]',
       dishes:          'id, user_id, [user_id+_dirty]',
@@ -143,20 +138,34 @@ export class DisherDB extends Dexie {
       daily_norms:     'id, user_id, [user_id+_dirty]',
       periods:         'id, user_id, [user_id+_dirty]',
     });
+    this.version(2).stores({
+      analyses:    'id, user_id, [user_id+_dirty], experiment_id, [user_id+kind]',
+      experiments: 'id, user_id, [user_id+_dirty], [user_id+ended_at]',
+    });
+    this.version(3).stores({
+      analyses:    'id, user_id, [user_id+_dirty], [user_id+status]',
+      experiments: null,
+      hypotheses:  'id, user_id, [user_id+_dirty], [user_id+started_at], [user_id+ended_at]',
+    });
+
+    // v4 (2026-05-09): zero-base rewrite. Drop sync columns, drop user_id,
+    // drop the analyses Dexie table (analyses live in pg only now). Indexes
+    // serve queries, not sync collectors.
+    this.version(4)
+      .stores({
+        products:        'id',
+        dishes:          'id',
+        dish_items:      'id, dish_id',
+        dish_portions:   'id, dish_id',
+        schedule_foods:  'id, date',
+        schedule_events: 'id, date',
+        daily_norms:     'id',
+        periods:         'id',
+        analyses:        null,
+        hypotheses:      'id, started_at',
+      })
+      .upgrade((tx) => Promise.all(tx.storeNames.map((n) => tx.table(n).clear())));
   }
 }
 
 export const db = new DisherDB();
-
-export const SYNCED_TABLES = [
-  'products',
-  'dishes',
-  'dish_items',
-  'dish_portions',
-  'schedule_foods',
-  'schedule_events',
-  'daily_norms',
-  'periods',
-] as const;
-
-export type SyncedTable = (typeof SYNCED_TABLES)[number];

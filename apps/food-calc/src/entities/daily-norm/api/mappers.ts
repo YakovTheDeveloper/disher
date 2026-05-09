@@ -10,12 +10,9 @@ function stringifyItems(value: unknown): string {
 export function mapDailyNormRow(row: DailyNormRow): DailyNorm {
   return {
     id: row.id,
-    userId: row.user_id,
     name: row.name,
     description: row.description,
     items: stringifyItems(row.items),
     createdAt: row.created_at,
-    updatedAt: row.client_modified_at ?? row.created_at,
-    deletedAt: row.deleted_at,
   };
 }

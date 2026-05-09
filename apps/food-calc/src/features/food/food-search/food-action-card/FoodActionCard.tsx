@@ -17,6 +17,7 @@ type Props = {
     name: string;
     userId?: string | null;
     categories?: string | null;
+    servingBasis?: '100g' | 'serving';
     getTotalNutrients?: (qty: number) => Record<string, number>;
   };
   active?: boolean;
@@ -110,7 +111,7 @@ const FoodActionCard = ({
 }: Props) => {
   const navigate = useNavigate();
   const infoHref = variant === 'product' ? getProductUrl(item.id) : RouterUrls.getDish(item.id);
-  const userCreated = variant === 'dish' ? true : isCreatedByUser(item.userId);
+  const userCreated = variant === 'dish' ? true : isCreatedByUser(item.id);
 
   const handleDelete = () => {
     if (variant === 'product') {
@@ -195,6 +196,9 @@ const FoodActionCard = ({
           }}
         >
           <span className={styles.name}>{item.name}</span>
+          {variant === 'product' && item.servingBasis === 'serving' && (
+            <span className={styles.supplementBadge}> · добавка</span>
+          )}
         </label>
       ) : (
         <p
@@ -204,6 +208,9 @@ const FoodActionCard = ({
           }}
         >
           <span className={styles.name}>{item.name}</span>
+          {variant === 'product' && item.servingBasis === 'serving' && (
+            <span className={styles.supplementBadge}> · добавка</span>
+          )}
         </p>
       )}
       {onInfoClick && (

@@ -1,19 +1,18 @@
 import { create } from 'zustand';
 import { authProvider, type AppUser, type AuthError } from '@/shared/lib/auth/authProvider';
-import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
+import { db } from '@/shared/lib/dexie/schema';
 import { Sentry } from '@/shared/lib/observability/sentry';
 import { defaultUserMessage, type ErrorKind } from '@/shared/lib/errors/classify';
-import { clearAnalyticsCache } from '@/entities/analytics';
+import { clear as idbKeyvalClear } from 'idb-keyval';
 
-// Wipe Dexie local rows + analytics localStorage cache before switching
-// identities. uid_old's Dexie rows would violate RLS under uid_new on next
-// push (план: 42501); analytics cache was historically keyed without userId
-// and could leak markdown across accounts on the same device.
+// Wipe every Dexie store + the parallel idb-keyval namespace (Zustand persist
+// drafts) before switching identities. Without this clear, user B on a shared
+// device sees user A's data through one of two storages.
 async function wipeLocalData(): Promise<void> {
-  await db.transaction('rw', SYNCED_TABLES.map((t) => db[t]), async () => {
-    for (const t of SYNCED_TABLES) await db[t].clear();
+  await db.transaction('rw', db.tables, async () => {
+    await Promise.all(db.tables.map((t) => t.clear()));
   });
-  clearAnalyticsCache();
+  await idbKeyvalClear().catch(() => {});
 }
 
 type AuthState = {

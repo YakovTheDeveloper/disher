@@ -1,0 +1,29 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/app/index.tsx",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "vitest.setup.ts",
+    "playwright.config.ts",
+    "tests/e2e/**/*.spec.ts",
+    "src/**/__tests__/**/*.{ts,tsx}",
+    "src/**/*.test.{ts,tsx}"
+  ],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": [
+    "src/migrations/**",
+    "src/**/*.module.scss.d.ts"
+  ],
+  "ignoreDependencies": [
+    "vconsole",
+    "ts-node",
+    "supabase"
+  ],
+  "vitest": {
+    "config": "vitest.config.ts"
+  },
+  "playwright": {
+    "config": "playwright.config.ts"
+  }
+}

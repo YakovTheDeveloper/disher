@@ -1,4 +1,6 @@
-/** True when the item was created by a real user (not part of the system catalog). */
-export function isCreatedByUser(userId: string | undefined | null): boolean {
-  return userId != null && userId !== '';
+import { isCatalogId } from '@/shared/data/catalog';
+
+/** True when the entity's id was minted by the user (not in the system catalog). */
+export function isCreatedByUser(id: string | undefined | null): boolean {
+  return id != null && id !== '' && !isCatalogId(id);
 }

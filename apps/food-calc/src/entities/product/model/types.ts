@@ -1,19 +1,24 @@
+/** '100g' = nutrients-per-100g (food). 'serving' = nutrients-per-serving (supplements). */
+export type ServingBasis = '100g' | 'serving';
+
+/** Unit of one "quantity" tick. null = граммы (food default). */
+export type ServingUnit = 'IU' | 'mg' | 'mcg' | 'g' | 'шт';
+
 export interface Product {
   id: string;
-  userId: string | null;
   name: string;
   nameEng: string;
   description: string;
   descriptionEng: string;
   source: string;
   pricePerKg: number;
-  // jsonb columns arrive as serialized strings from PowerSync.
+  // jsonb columns are kept as serialized strings for the UI parsers.
   nutrients: string;
   portions: string;
   categories: string;
+  servingBasis: ServingBasis;
+  servingUnit: ServingUnit | null;
   createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
 }
 
 export type ProductNutrient = { nutrientId: string; quantity: number };

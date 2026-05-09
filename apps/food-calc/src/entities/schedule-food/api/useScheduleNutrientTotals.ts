@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useScheduleFoods } from './queries';
 import { useDishItemsByDishIds } from '@/entities/dish';
-import { useNutrientsByProductIds } from '@/entities/product';
+import { useNutrientsByProductIds, useBasisByProductIds } from '@/entities/product';
 import {
   calculateProductNutrients,
   calculateDishNutrients,
@@ -33,6 +33,7 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
   }, [foodItems, allDishItems]);
 
   const nutrientsMap = useNutrientsByProductIds(allProductIds);
+  const basisMap = useBasisByProductIds(allProductIds);
 
   const dataKey = sfItems
     .map((sf) => `${sf.id}:${sf.quantity}:${sf.type}:${sf.productId}:${sf.dishId}`)
@@ -48,7 +49,9 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
         const name = fi.product?.name ?? fi.productId!;
         if (!missingNames.includes(name)) missingNames.push(name);
       } else {
-        totalsArray.push(calculateProductNutrients(nutrients, fi.quantity));
+        // Supplement (basis='serving') scales by quantity directly; food by /100.
+        const basis = basisMap.get(fi.productId!) ?? '100g';
+        totalsArray.push(calculateProductNutrients(nutrients, fi.quantity, basis));
       }
     }
 
@@ -85,5 +88,5 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
       missingNutrientNames: missingNames,
       isLoading: false,
     };
-  }, [dataKey, allDishItems, nutrientsMap]);
+  }, [dataKey, allDishItems, nutrientsMap, basisMap]);
 }

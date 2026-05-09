@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/shared/lib/dexie/schema';
-import { useUserId } from '@/shared/lib/auth/useUserId';
+import { catalog, isCatalogId } from '@/shared/data/catalog';
 import type {
   ScheduleFood,
   ScheduleFoodWithRelations,
@@ -9,81 +9,103 @@ import type {
 import { mapScheduleFoodRow } from './mappers';
 
 function useAllScheduleFoods(): ScheduleFood[] {
-  const userId = useUserId();
-  const rows = useLiveQuery(async () => {
-    if (!userId) return [];
-    return db.schedule_foods
-      .where('user_id')
-      .equals(userId)
-      .filter((r) => !r.deleted_at)
-      .toArray();
-  }, [userId]);
+  const rows = useLiveQuery(() => db.schedule_foods.toArray(), []);
   return useMemo(() => (rows ?? []).map(mapScheduleFoodRow), [rows]);
 }
 
 type ProductLite = {
   id: string;
   name: string;
-  userId: string | null;
+  isUserCreated: boolean;
   pricePerKg: number | null;
+  servingUnit: string | null;
 };
 type DishLite = { id: string; name: string };
 
 function useProductLookup(): Map<string, ProductLite> {
-  const userId = useUserId();
-  const rows = useLiveQuery(async () => {
-    if (!userId) return [];
-    return db.products
-      .filter((p) => (p.user_id === userId || p.user_id === null) && !p.deleted_at)
-      .toArray();
-  }, [userId]);
-  return useMemo(
-    () =>
-      new Map(
-        (rows ?? []).map((r) => [
-          r.id,
-          {
-            id: r.id,
-            name: r.name,
-            userId: r.user_id,
-            pricePerKg: r.price_per_kg ?? null,
-          },
-        ]),
-      ),
-    [rows],
-  );
+  const userRows = useLiveQuery(() => db.products.toArray(), []);
+  return useMemo(() => {
+    const map = new Map<string, ProductLite>();
+    for (const r of catalog) {
+      map.set(r.id, {
+        id: r.id,
+        name: r.name,
+        isUserCreated: false,
+        pricePerKg: r.price_per_kg ?? null,
+        servingUnit: r.serving_unit ?? null,
+      });
+    }
+    for (const r of userRows ?? []) {
+      map.set(r.id, {
+        id: r.id,
+        name: r.name,
+        isUserCreated: !isCatalogId(r.id),
+        pricePerKg: r.price_per_kg ?? null,
+        servingUnit: r.serving_unit ?? null,
+      });
+    }
+    return map;
+  }, [userRows]);
 }
 
 function useDishLookup(): Map<string, DishLite> {
-  const userId = useUserId();
-  const rows = useLiveQuery(async () => {
-    if (!userId) return [];
-    return db.dishes
-      .where('user_id')
-      .equals(userId)
-      .filter((d) => !d.deleted_at)
-      .toArray();
-  }, [userId]);
+  const rows = useLiveQuery(() => db.dishes.toArray(), []);
   return useMemo(
     () => new Map((rows ?? []).map((r) => [r.id, { id: r.id, name: r.name }])),
     [rows],
   );
 }
 
-// Stable-reference enrich: re-uses the previous enriched object when
-// (updatedAt, productId, dishId, product-ref, dish-ref) are unchanged.
-// Without this, every mutation makes mapScheduleFoodRow allocate fresh `row`
-// objects → enrich allocates fresh enriched objects → all 50 ScheduleFoodItems
-// re-render even though only one row actually changed.
+// Stable-reference enrich. Without it, every Dexie change forces a fresh
+// enriched object for every row → all visible ScheduleFoodItems re-render.
+type RowSig = Pick<
+  ScheduleFood,
+  'date' | 'time' | 'type' | 'quantity' | 'details' | 'productId' | 'dishId'
+>;
 type EnrichCache = Map<
   string,
   {
-    updatedAt: string | null;
+    sig: RowSig;
     product: ScheduleFoodWithRelations['product'];
     dish: ScheduleFoodWithRelations['dish'];
     enriched: ScheduleFoodWithRelations;
   }
 >;
+
+function sameSig(a: RowSig, b: RowSig): boolean {
+  return (
+    a.date === b.date &&
+    a.time === b.time &&
+    a.type === b.type &&
+    a.quantity === b.quantity &&
+    a.details === b.details &&
+    a.productId === b.productId &&
+    a.dishId === b.dishId
+  );
+}
+
+function sameProduct(
+  a: ScheduleFoodWithRelations['product'],
+  b: ScheduleFoodWithRelations['product'],
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.name === b.name &&
+    a.isUserCreated === b.isUserCreated &&
+    a.pricePerKg === b.pricePerKg &&
+    a.servingUnit === b.servingUnit
+  );
+}
+
+function sameDish(
+  a: ScheduleFoodWithRelations['dish'],
+  b: ScheduleFoodWithRelations['dish'],
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.name === b.name;
+}
 
 function enrichWithCache(
   rows: ScheduleFood[],
@@ -95,14 +117,28 @@ function enrichWithCache(
   const result = rows.map((row) => {
     const productLite = row.productId ? products.get(row.productId) : undefined;
     const product = productLite
-      ? { name: productLite.name, userId: productLite.userId, pricePerKg: productLite.pricePerKg }
+      ? {
+          name: productLite.name,
+          isUserCreated: productLite.isUserCreated,
+          pricePerKg: productLite.pricePerKg,
+          servingUnit: productLite.servingUnit,
+        }
       : null;
     const dish = row.dishId ? (dishes.get(row.dishId) ?? null) : null;
+    const sig: RowSig = {
+      date: row.date,
+      time: row.time,
+      type: row.type,
+      quantity: row.quantity,
+      details: row.details,
+      productId: row.productId,
+      dishId: row.dishId,
+    };
 
     const cached = cache.get(row.id);
     if (
       cached &&
-      cached.updatedAt === row.updatedAt &&
+      sameSig(cached.sig, sig) &&
       sameProduct(cached.product, product) &&
       sameDish(cached.dish, dish)
     ) {
@@ -111,31 +147,13 @@ function enrichWithCache(
     }
 
     const enriched: ScheduleFoodWithRelations = { ...row, product, dish };
-    next.set(row.id, { updatedAt: row.updatedAt, product, dish, enriched });
+    next.set(row.id, { sig, product, dish, enriched });
     return enriched;
   });
 
   cache.clear();
   next.forEach((v, k) => cache.set(k, v));
   return result;
-}
-
-function sameProduct(
-  a: ScheduleFoodWithRelations['product'],
-  b: ScheduleFoodWithRelations['product'],
-): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return a.name === b.name && a.userId === b.userId && a.pricePerKg === b.pricePerKg;
-}
-
-function sameDish(
-  a: ScheduleFoodWithRelations['dish'],
-  b: ScheduleFoodWithRelations['dish'],
-): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return a.name === b.name;
 }
 
 export function useScheduleFoods(

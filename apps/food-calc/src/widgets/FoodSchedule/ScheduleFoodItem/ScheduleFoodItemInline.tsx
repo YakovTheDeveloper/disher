@@ -7,12 +7,12 @@ import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { updateScheduleFood } from '@/entities/schedule-food';
 import { SelectionStoreType, useStore } from '@/hooks/factoryHooks/useSelection';
 import { costForWeight } from '@/shared/lib/cost';
-import { isCreatedByUser } from '@/shared/lib/user';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { useRecentlyAddedStore } from '@/features/food/food-free-text-parse';
 import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { safeMutate } from '@/shared/lib/safeMutate';
+import { getQtyUnit } from '@/shared/lib/servingUnit';
 
 type Props = {
   className?: string;
@@ -108,7 +108,7 @@ const ScheduleFoodItemInline = ({
   };
 
   const name = item.product ?? item.dish ?? null;
-  const isCustom = item.type === 'food' && isCreatedByUser(item.product?.userId);
+  const isCustom = item.type === 'food' && (item.product?.isUserCreated ?? false);
   const pricePerKg = item.type === 'food' ? item.product?.pricePerKg : null;
   const cost = showPrice && pricePerKg != null ? costForWeight(pricePerKg, item.quantity) : null;
 
@@ -166,7 +166,7 @@ const ScheduleFoodItemInline = ({
               min={1}
               maxLength={4}
             />
-            <span className={styles.qtyUnit}>г.</span>
+            <span className={styles.qtyUnit}>{getQtyUnit(item.product)}</span>
           </span>
         ) : (
           <span
@@ -177,7 +177,7 @@ const ScheduleFoodItemInline = ({
             }}
           >
             {qtyDisplay}
-            <span className={styles.qtyUnit}>г.</span>
+            <span className={styles.qtyUnit}>{getQtyUnit(item.product)}</span>
           </span>
         )}
       </div>

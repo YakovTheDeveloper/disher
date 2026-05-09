@@ -5,30 +5,18 @@ import {
   type DishPortionRow,
   type ScheduleFoodRow,
 } from '@/shared/lib/dexie/schema';
-import { getUserIdSync } from '@/shared/lib/auth/useUserId';
-import { scheduleCold, scheduleHot } from '@/shared/lib/sync/scheduler';
 
-function requireUserId(): string {
-  const userId = getUserIdSync();
-  if (!userId) throw new Error('Not authenticated');
-  return userId;
-}
+const now = () => new Date().toISOString();
 
 export async function createDish(name: string): Promise<string> {
   const id = crypto.randomUUID();
-  const userId = requireUserId();
-  await db.dishes.add({
-    id,
-    user_id: userId,
-    name,
-  } as unknown as DishRow);
-  scheduleCold();
+  const row: DishRow = { id, name, created_at: now() };
+  await db.dishes.add(row);
   return id;
 }
 
 export async function updateDishName(dishId: string, name: string): Promise<void> {
   await db.dishes.update(dishId, { name });
-  scheduleCold();
 }
 
 export async function deleteDish(
@@ -36,44 +24,32 @@ export async function deleteDish(
   itemIds: string[],
   portionIds: string[],
 ): Promise<void> {
-  const now = new Date().toISOString();
   await db.transaction(
     'rw',
     [db.dishes, db.dish_items, db.dish_portions],
     async () => {
-      for (const id of itemIds) {
-        await db.dish_items.update(id, { deleted_at: now });
-      }
-      for (const id of portionIds) {
-        await db.dish_portions.update(id, { deleted_at: now });
-      }
-      await db.dishes.update(dishId, { deleted_at: now });
+      if (itemIds.length) await db.dish_items.bulkDelete(itemIds);
+      if (portionIds.length) await db.dish_portions.bulkDelete(portionIds);
+      await db.dishes.delete(dishId);
     },
   );
-  scheduleCold();
 }
 
 export async function deleteDishes(
   dishes: Array<{ id: string; itemIds: string[]; portionIds: string[] }>,
 ): Promise<void> {
   if (dishes.length === 0) return;
-  const now = new Date().toISOString();
   await db.transaction(
     'rw',
     [db.dishes, db.dish_items, db.dish_portions],
     async () => {
       for (const d of dishes) {
-        for (const id of d.itemIds) {
-          await db.dish_items.update(id, { deleted_at: now });
-        }
-        for (const id of d.portionIds) {
-          await db.dish_portions.update(id, { deleted_at: now });
-        }
-        await db.dishes.update(d.id, { deleted_at: now });
+        if (d.itemIds.length) await db.dish_items.bulkDelete(d.itemIds);
+        if (d.portionIds.length) await db.dish_portions.bulkDelete(d.portionIds);
+        await db.dishes.delete(d.id);
       }
     },
   );
-  scheduleCold();
 }
 
 export async function addDishItem(params: {
@@ -82,15 +58,14 @@ export async function addDishItem(params: {
   quantity: number;
 }): Promise<string> {
   const id = crypto.randomUUID();
-  const userId = requireUserId();
-  await db.dish_items.add({
+  const row: DishItemRow = {
     id,
-    user_id: userId,
     dish_id: params.dishId,
     product_id: params.productId,
     quantity: params.quantity,
-  } as unknown as DishItemRow);
-  scheduleCold();
+    created_at: now(),
+  };
+  await db.dish_items.add(row);
   return id;
 }
 
@@ -112,12 +87,10 @@ export async function updateDishItem(
     patch[DISH_ITEM_COLUMN_MAP[k]] = updates[k];
   }
   await db.dish_items.update(itemId, patch);
-  scheduleCold();
 }
 
 export async function removeDishItem(itemId: string): Promise<void> {
-  await db.dish_items.update(itemId, { deleted_at: new Date().toISOString() });
-  scheduleCold();
+  await db.dish_items.delete(itemId);
 }
 
 export async function copyDishItems(
@@ -125,37 +98,31 @@ export async function copyDishItems(
   toDishId: string,
 ): Promise<void> {
   if (items.length === 0) return;
-  const userId = requireUserId();
-  await db.transaction('rw', db.dish_items, async () => {
-    for (const item of items) {
-      await db.dish_items.add({
-        id: crypto.randomUUID(),
-        user_id: userId,
-        dish_id: toDishId,
-        product_id: item.productId,
-        quantity: item.quantity,
-      } as unknown as DishItemRow);
-    }
-  });
-  scheduleCold();
+  const stamped = now();
+  const rows: DishItemRow[] = items.map((item) => ({
+    id: crypto.randomUUID(),
+    dish_id: toDishId,
+    product_id: item.productId,
+    quantity: item.quantity,
+    created_at: stamped,
+  }));
+  await db.dish_items.bulkAdd(rows);
 }
 
 export async function addDishPortion(
   dishId: string,
   portion: { label: string; amount: number; unit: string; grams: number },
 ): Promise<void> {
-  const id = crypto.randomUUID();
-  const userId = requireUserId();
-  await db.dish_portions.add({
-    id,
-    user_id: userId,
+  const row: DishPortionRow = {
+    id: crypto.randomUUID(),
     dish_id: dishId,
     label: portion.label,
     amount: portion.amount,
     unit: portion.unit,
     grams: portion.grams,
-  } as unknown as DishPortionRow);
-  scheduleCold();
+    created_at: now(),
+  };
+  await db.dish_portions.add(row);
 }
 
 type DishPortionUpdates = Partial<{
@@ -172,14 +139,10 @@ export async function updateDishPortion(
   const keys = Object.keys(updates) as (keyof DishPortionUpdates)[];
   if (keys.length === 0) return;
   await db.dish_portions.update(portionId, updates as Record<string, unknown>);
-  scheduleCold();
 }
 
 export async function removeDishPortion(portionId: string): Promise<void> {
-  await db.dish_portions.update(portionId, {
-    deleted_at: new Date().toISOString(),
-  });
-  scheduleCold();
+  await db.dish_portions.delete(portionId);
 }
 
 export async function dishItemsToScheduleFoods(
@@ -188,21 +151,17 @@ export async function dishItemsToScheduleFoods(
   time: string,
 ): Promise<void> {
   if (items.length === 0) return;
-  const userId = requireUserId();
-  await db.transaction('rw', db.schedule_foods, async () => {
-    for (const item of items) {
-      await db.schedule_foods.add({
-        id: crypto.randomUUID(),
-        user_id: userId,
-        date,
-        time,
-        type: 'food',
-        quantity: item.quantity,
-        details: '',
-        product_id: item.productId,
-        dish_id: null,
-      } as unknown as ScheduleFoodRow);
-    }
-  });
-  scheduleHot();
+  const stamped = now();
+  const rows: ScheduleFoodRow[] = items.map((item) => ({
+    id: crypto.randomUUID(),
+    date,
+    time,
+    type: 'food',
+    quantity: item.quantity,
+    details: '',
+    product_id: item.productId,
+    dish_id: null,
+    created_at: stamped,
+  }));
+  await db.schedule_foods.bulkAdd(rows);
 }

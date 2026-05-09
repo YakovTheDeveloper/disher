@@ -1,0 +1,70 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 32px 20px;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+    background-color: #ffffff;
+}
+
+.block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background-color: rgba(0, 0, 0, 0.015);
+    color: inherit;
+    text-decoration: none;
+}
+
+.blockTitle {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.45;
+    margin: 0 0 4px;
+}
+
+.blockBody {
+    font-size: 15px;
+    line-height: 1.4;
+    opacity: 0.7;
+    margin: 0;
+}
+
+.blockHint {
+    font-size: 12px;
+    opacity: 0.45;
+    margin: 0;
+}
+
+.hypothesesList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.runButton {
+    align-self: flex-start;
+    margin-top: 4px;
+    padding: 12px 22px;
+    border-radius: 999px;
+    border: none;
+    background-color: rgb(20, 20, 20);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    -webkit-appearance: none;
+
+    &:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+    }
+}

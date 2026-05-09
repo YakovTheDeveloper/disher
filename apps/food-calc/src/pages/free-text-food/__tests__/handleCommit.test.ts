@@ -1,14 +1,6 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-
-// Mock the sync scheduler so addScheduleFood / addDishItem don't actually
-// trigger debounced drains during the test (no network, no timers leaking).
-vi.mock('@/shared/lib/sync/scheduler', () => ({
-  scheduleHot: vi.fn(),
-  scheduleCold: vi.fn(),
-}));
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { db } from '@/shared/lib/dexie/schema';
-import { areDexieHooksInstalled, installDexieHooks } from '@/shared/lib/dexie/hooks';
 import { addScheduleFood } from '@/entities/schedule-food/api/mutations';
 import { addDishItem } from '@/entities/dish/api/mutations';
 import { useAuthStore } from '@/features/auth/auth-store';
@@ -17,14 +9,11 @@ import type { CommittedItem } from '../mode';
 // Tests for the mutation block of FreeTextFoodFlow.handleCommit.
 //
 // Scope: the loop+transaction that turns a CommittedItem[] into real Dexie
-// rows (schedule_foods or dish_items). We don't render the component — the
-// mutation block is exercised directly so the test stays focused on what the
-// fix actually changed (atomic db.transaction wrapping).
+// rows (schedule_foods or dish_items).
 
 const USER_ID = '11111111-1111-1111-1111-111111111111';
 
 beforeAll(() => {
-  if (!areDexieHooksInstalled()) installDexieHooks();
   useAuthStore.setState({ userId: USER_ID });
 });
 
@@ -79,7 +68,7 @@ async function commitDishItems(
 }
 
 describe('FreeTextFoodFlow handleCommit — schedule mode', () => {
-  it('persists every committed item with correct fields and _dirty=1', async () => {
+  it('persists every committed item with correct fields', async () => {
     const date = '02-05-2026';
     const committed: CommittedItem[] = [
       { productId: 'p-a', quantity: 100, time: '08:00', note: '' },
@@ -93,19 +82,15 @@ describe('FreeTextFoodFlow handleCommit — schedule mode', () => {
     const rows = await db.schedule_foods.toArray();
     expect(rows).toHaveLength(3);
 
-    // Every row landed with its committed fields.
     for (const c of committed) {
       const row = rows.find((r) => r.product_id === c.productId);
       expect(row, `no row for productId ${c.productId}`).toBeTruthy();
-      expect(row!.user_id).toBe(USER_ID);
       expect(row!.date).toBe(date);
       expect(row!.time).toBe(c.time);
       expect(row!.type).toBe('food');
       expect(row!.quantity).toBe(c.quantity);
       expect(row!.details).toBe(c.note);
       expect(row!.dish_id).toBeNull();
-      expect(row!._dirty).toBe(1);
-      expect(row!.deleted_at).toBeNull();
     }
   });
 
@@ -199,9 +184,7 @@ describe('FreeTextFoodFlow handleCommit — dish mode', () => {
       const row = rows.find((r) => r.product_id === c.productId);
       expect(row).toBeTruthy();
       expect(row!.dish_id).toBe(dishId);
-      expect(row!.user_id).toBe(USER_ID);
       expect(row!.quantity).toBe(c.quantity);
-      expect(row!._dirty).toBe(1);
     }
   });
 

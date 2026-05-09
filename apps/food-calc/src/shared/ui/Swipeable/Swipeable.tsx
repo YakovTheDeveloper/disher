@@ -2,7 +2,6 @@ import React, { useCallback, forwardRef, useImperativeHandle, useEffect, useRef 
 
 import useEmblaCarousel from 'embla-carousel-react';
 import styles from './Swipeable.module.scss';
-import { setDragActive } from '@/shared/lib/sync/scheduler';
 export type SwipeableRef = {
   goToPage: (index: number) => void;
 };
@@ -57,23 +56,11 @@ const Swipeable = forwardRef<SwipeableRef, Props>(
       const onSelect = () => {
         updateDots(emblaApi.selectedScrollSnap());
       };
-      // Pause the sync scheduler while a drag is in flight: drainPush
-      // competes with the gesture for the main thread (Dexie read +
-      // JSON.stringify + fetch). Coalesced drains fire on pointerUp.
-      const onPointerDown = () => setDragActive(true);
-      const onPointerUp = () => setDragActive(false);
       emblaApi.on('settle', onSettle);
       emblaApi.on('select', onSelect);
-      emblaApi.on('pointerDown', onPointerDown);
-      emblaApi.on('pointerUp', onPointerUp);
       return () => {
         emblaApi.off('settle', onSettle);
         emblaApi.off('select', onSelect);
-        emblaApi.off('pointerDown', onPointerDown);
-        emblaApi.off('pointerUp', onPointerUp);
-        // If the component unmounts mid-drag, release the lock so the next
-        // mutation isn't permanently queued.
-        setDragActive(false);
       };
     }, [emblaApi, onIndexChange, children.length, updateDots]);
 

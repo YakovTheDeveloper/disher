@@ -10,7 +10,6 @@ function stringifyJson(value: unknown, fallback: string): string {
 export function mapProductRow(row: ProductRow): Product {
   return {
     id: row.id,
-    userId: row.user_id,
     name: row.name,
     nameEng: row.name_eng,
     description: row.description,
@@ -20,8 +19,8 @@ export function mapProductRow(row: ProductRow): Product {
     nutrients: stringifyJson(row.nutrients, '{}'),
     portions: stringifyJson(row.portions, '[]'),
     categories: stringifyJson(row.categories, '[]'),
+    servingBasis: row.serving_basis ?? '100g',
+    servingUnit: row.serving_unit ?? null,
     createdAt: row.created_at,
-    updatedAt: row.client_modified_at ?? row.created_at,
-    deletedAt: row.deleted_at,
   };
 }

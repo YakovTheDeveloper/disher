@@ -1,12 +1,4 @@
 import { db, type ProductRow } from '@/shared/lib/dexie/schema';
-import { getUserIdSync } from '@/shared/lib/auth/useUserId';
-import { scheduleCold } from '@/shared/lib/sync/scheduler';
-
-function requireUserId(): string {
-  const userId = getUserIdSync();
-  if (!userId) throw new Error('Not authenticated');
-  return userId;
-}
 
 function safeParseJson<T>(json: string | undefined, fallback: T): T {
   if (!json) return fallback;
@@ -24,12 +16,8 @@ export async function createProduct(params: {
   descriptionEng?: string;
 }): Promise<string> {
   const id = crypto.randomUUID();
-  const userId = requireUserId();
-
-  // Hooks auto-stamp _dirty/edit_count/client_modified_at/created_at/deleted_at.
-  await db.products.add({
+  const row: ProductRow = {
     id,
-    user_id: userId,
     name: params.name,
     name_eng: params.nameEng ?? '',
     description: params.description ?? '',
@@ -39,9 +27,11 @@ export async function createProduct(params: {
     nutrients: {},
     portions: [],
     categories: [],
-  } as unknown as ProductRow);
-
-  scheduleCold();
+    serving_basis: '100g',
+    serving_unit: null,
+    created_at: new Date().toISOString(),
+  };
+  await db.products.add(row);
   return id;
 }
 
@@ -56,6 +46,8 @@ type ProductUpdates = Partial<{
   nutrients: string;
   portions: string;
   categories: string;
+  servingBasis: '100g' | 'serving';
+  servingUnit: 'IU' | 'mg' | 'mcg' | 'g' | 'шт' | null;
 }>;
 
 const COLUMN_MAP: Record<keyof ProductUpdates, string> = {
@@ -68,6 +60,8 @@ const COLUMN_MAP: Record<keyof ProductUpdates, string> = {
   nutrients: 'nutrients',
   portions: 'portions',
   categories: 'categories',
+  servingBasis: 'serving_basis',
+  servingUnit: 'serving_unit',
 };
 
 const JSON_FIELDS: ReadonlySet<keyof ProductUpdates> = new Set([
@@ -97,7 +91,6 @@ export async function updateProduct(
   }
 
   await db.products.update(productId, patch as never);
-  scheduleCold();
 }
 
 export async function setProductNutrients(
@@ -115,19 +108,10 @@ export async function setProductPortions(
 }
 
 export async function deleteProduct(productId: string): Promise<void> {
-  await db.products.update(productId, {
-    deleted_at: new Date().toISOString(),
-  });
-  scheduleCold();
+  await db.products.delete(productId);
 }
 
 export async function deleteProducts(productIds: string[]): Promise<void> {
   if (productIds.length === 0) return;
-  const now = new Date().toISOString();
-  await db.transaction('rw', db.products, async () => {
-    for (const id of productIds) {
-      await db.products.update(id, { deleted_at: now });
-    }
-  });
-  scheduleCold();
+  await db.products.bulkDelete(productIds);
 }

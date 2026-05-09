@@ -15,6 +15,7 @@ import NutrientArticlesPage from '@/pages/articles/NutrientArticlesPage.tsx';
 import NutrientArticlePage from '@/pages/articles/NutrientArticlePage.tsx';
 import ShareReceivePage from '@/pages/share/ShareReceivePage.tsx';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage.tsx';
+import KnowledgePage from '@/pages/knowledge/KnowledgePage.tsx';
 
 export enum RouterLinks {
   Root = '/',
@@ -34,6 +35,7 @@ export enum RouterLinks {
   NutrientArticle = '/articles/nutrients/:folder',
   Share = '/share',
   VerifyEmail = '/auth/verify-email',
+  Knowledge = '/knowledge',
 }
 
 export const getScheduleAnalyticsUrl = (id: string) => `/schedule/${id}/analytics`;
@@ -112,6 +114,10 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.VerifyEmail,
         element: <VerifyEmailPage />,
+      },
+      {
+        path: RouterLinks.Knowledge,
+        element: <KnowledgePage />,
       },
     ],
   },

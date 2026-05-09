@@ -4,17 +4,14 @@ import { RouterProvider } from 'react-router-dom';
 
 import { Sentry } from '@/shared/lib/observability/sentry';
 import { router } from '@/app/router.tsx';
-import { SyncProvider } from '@/shared/lib/sync/SyncProvider';
+import { useAuthStore } from '@/features/auth/auth-store';
 import { installE2EBridge } from '@/shared/lib/e2e/bridge';
 import { diagLog } from '@/shared/lib/observability/diagLog';
 import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 
-// Boot diagnostics — UA + AbortSignal.any/timeout availability + navigator.locks
-// snapshots (boot, +5s, +15s) + storage.estimate + idb-keyval roundtrip probe.
-// Help diagnose scheduler leader-election deadlocks (drainPush holds
-// 'disher-drain' via navigator.locks.request) and iOS Safari IDB issues.
-// Gated behind VITE_DIAG=1 so cold-start (incl. prod) stays clean by default;
-// re-enable per-session when investigating an issue.
+// Boot diagnostics — UA + AbortSignal.any/timeout + storage.estimate +
+// idb-keyval roundtrip probe. Gated behind VITE_DIAG=1 so cold-start (incl.
+// prod) stays clean by default.
 const DIAG_ENABLED = import.meta.env.VITE_DIAG === '1';
 
 if (DIAG_ENABLED) {
@@ -22,47 +19,8 @@ if (DIAG_ENABLED) {
     ua: navigator.userAgent,
     abortAny: typeof (AbortSignal as unknown as { any?: unknown }).any,
     abortTimeout: typeof (AbortSignal as unknown as { timeout?: unknown }).timeout,
-    locksApi: typeof navigator.locks,
   });
-  (async () => {
-    try {
-      if (navigator.locks?.query) {
-        const snap = await navigator.locks.query();
-        diagLog('[diag] locks.query@boot', {
-          held: snap.held?.map((l) => ({ name: l.name, mode: l.mode, clientId: l.clientId })) ?? [],
-          pending: snap.pending?.map((l) => ({ name: l.name, mode: l.mode })) ?? [],
-        });
-      }
-    } catch (e) {
-      diagLog('[diag] locks.query@boot THROW', { err: String(e) });
-    }
-  })();
-  // Repeat lock snapshot at +5s and +15s so we catch deadlocks that form during
-  // auth refresh / first background refetch.
-  setTimeout(() => {
-    navigator.locks
-      ?.query?.()
-      .then((snap) => {
-        diagLog('[diag] locks.query@5s', {
-          held: snap.held?.map((l) => ({ name: l.name, mode: l.mode, clientId: l.clientId })) ?? [],
-          pending: snap.pending?.map((l) => ({ name: l.name, mode: l.mode })) ?? [],
-        });
-      })
-      .catch(() => {});
-  }, 5000);
-  setTimeout(() => {
-    navigator.locks
-      ?.query?.()
-      .then((snap) => {
-        diagLog('[diag] locks.query@15s', {
-          held: snap.held?.map((l) => ({ name: l.name, mode: l.mode, clientId: l.clientId })) ?? [],
-          pending: snap.pending?.map((l) => ({ name: l.name, mode: l.mode })) ?? [],
-        });
-      })
-      .catch(() => {});
-  }, 15000);
 
-  // Probe storage estimate
   navigator.storage
     ?.estimate?.()
     .then((est) => {
@@ -70,8 +28,6 @@ if (DIAG_ENABLED) {
     })
     .catch(() => {});
 
-  // Probe idb-keyval roundtrip on boot. If this hangs or fails on iOS Safari,
-  // that pinpoints an idb storage problem before drafts try to hydrate.
   (async () => {
     const t0 = performance.now();
     diagLog('[boot] idb probe START');
@@ -108,6 +64,10 @@ navigator.storage
 
 installE2EBridge();
 
+// Resolve the initial session. AuthGate flips to `isReady` and either renders
+// AuthScreen or BackupGate→app accordingly.
+void useAuthStore.getState().bootstrap();
+
 const root = document.getElementById('root')!;
 ReactDOM.createRoot(root).render(
   <Sentry.ErrorBoundary
@@ -116,10 +76,8 @@ ReactDOM.createRoot(root).render(
     }
     showDialog={false}
   >
-    <SyncProvider>
-      {shouldShowDvBar() && <DesignVariantsBar />}
-      <RouterProvider router={router} />
-    </SyncProvider>
+    {shouldShowDvBar() && <DesignVariantsBar />}
+    <RouterProvider router={router} />
   </Sentry.ErrorBoundary>
 );
 

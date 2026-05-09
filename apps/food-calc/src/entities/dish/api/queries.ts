@@ -1,46 +1,22 @@
 import { useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/shared/lib/dexie/schema';
-import { useUserId } from '@/shared/lib/auth/useUserId';
+import { catalog } from '@/shared/data/catalog';
 import type { Dish, DishItem, DishPortion } from '../model/types';
 import { mapDishRow, mapDishItemRow, mapDishPortionRow } from './mappers';
 
 function useAllDishes(): Dish[] {
-  const userId = useUserId();
-  const rows = useLiveQuery(async () => {
-    if (!userId) return [];
-    return db.dishes
-      .where('user_id')
-      .equals(userId)
-      .filter((d) => !d.deleted_at)
-      .toArray();
-  }, [userId]);
+  const rows = useLiveQuery(() => db.dishes.toArray(), []);
   return useMemo(() => (rows ?? []).map(mapDishRow), [rows]);
 }
 
 function useAllDishItems(): DishItem[] {
-  const userId = useUserId();
-  const rows = useLiveQuery(async () => {
-    if (!userId) return [];
-    return db.dish_items
-      .where('user_id')
-      .equals(userId)
-      .filter((d) => !d.deleted_at)
-      .toArray();
-  }, [userId]);
+  const rows = useLiveQuery(() => db.dish_items.toArray(), []);
   return useMemo(() => (rows ?? []).map(mapDishItemRow), [rows]);
 }
 
 function useAllDishPortions(): DishPortion[] {
-  const userId = useUserId();
-  const rows = useLiveQuery(async () => {
-    if (!userId) return [];
-    return db.dish_portions
-      .where('user_id')
-      .equals(userId)
-      .filter((d) => !d.deleted_at)
-      .toArray();
-  }, [userId]);
+  const rows = useLiveQuery(() => db.dish_portions.toArray(), []);
   return useMemo(() => (rows ?? []).map(mapDishPortionRow), [rows]);
 }
 
@@ -71,24 +47,28 @@ export function useDishItems(dishId: string | undefined): DishItem[] {
 
 export function useDishItemsWithProducts(dishId: string | undefined) {
   const items = useDishItems(dishId);
-  const userId = useUserId();
-  const productNames = useLiveQuery(async () => {
-    if (!userId) return new Map<string, string>();
-    const rows = await db.products
-      .filter((p) => (p.user_id === userId || p.user_id === null) && !p.deleted_at)
-      .toArray();
-    return new Map(rows.map((p) => [p.id, p.name]));
-  }, [userId]);
+  const userProducts = useLiveQuery(
+    () => db.products.toArray().then((rs) => new Map(rs.map((p) => [p.id, p.name]))),
+    [],
+  );
+  const catalogNames = useMemo(
+    () => new Map(catalog.map((p) => [p.id, p.name])),
+    [],
+  );
 
   return useMemo(() => {
-    const productMap = productNames ?? new Map<string, string>();
     return items.map((item) => ({
       ...item,
       product: item.productId
-        ? { name: productMap.get(item.productId) ?? null }
+        ? {
+            name:
+              catalogNames.get(item.productId) ??
+              userProducts?.get(item.productId) ??
+              null,
+          }
         : null,
     }));
-  }, [items, productNames]);
+  }, [items, userProducts, catalogNames]);
 }
 
 export function useDishPortions(dishId: string | undefined): DishPortion[] {

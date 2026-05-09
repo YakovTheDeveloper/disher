@@ -46,6 +46,42 @@ describe('calculateProductNutrients', () => {
     // 33.3g → scale = 0.333
     expect(calculateProductNutrients(nutrients, 33.3).vit).toBeCloseTo(0.333);
   });
+
+  // ─── basis: 'serving' (supplements P0) ───────────────────────────────────
+
+  it("basis='serving' scales by quantity directly (no /100)", () => {
+    // 1 капсула = 2000 IU vit D. Принял 2 капсулы → 4000 IU.
+    const nutrients: NutrientEntry[] = [{ nutrientId: 'vitD_iu', quantity: 2000 }];
+    expect(
+      calculateProductNutrients(nutrients, 2, 'serving').vitD_iu,
+    ).toBe(4000);
+  });
+
+  it("basis='serving' returns the per-serving value at quantity=1", () => {
+    const nutrients: NutrientEntry[] = [{ nutrientId: 'b12_mcg', quantity: 1000 }];
+    expect(
+      calculateProductNutrients(nutrients, 1, 'serving').b12_mcg,
+    ).toBe(1000);
+  });
+
+  it("basis='serving' returns zero at quantity=0", () => {
+    const nutrients: NutrientEntry[] = [{ nutrientId: 'mg_mg', quantity: 400 }];
+    expect(
+      calculateProductNutrients(nutrients, 0, 'serving').mg_mg,
+    ).toBe(0);
+  });
+
+  it("basis='serving' supports fractional servings (half a capsule)", () => {
+    const nutrients: NutrientEntry[] = [{ nutrientId: 'vitD_iu', quantity: 2000 }];
+    expect(
+      calculateProductNutrients(nutrients, 0.5, 'serving').vitD_iu,
+    ).toBeCloseTo(1000);
+  });
+
+  it("basis defaults to '100g' when omitted (food semantics preserved)", () => {
+    const nutrients: NutrientEntry[] = [{ nutrientId: 'kcal', quantity: 100 }];
+    expect(calculateProductNutrients(nutrients, 50).kcal).toBe(50);
+  });
 });
 
 // ─── calculateDishNutrients ──────────────────────────────────────────────────

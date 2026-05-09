@@ -1,6 +1,9 @@
 /**
  * Pure functions for nutrient calculations.
- * Nutrients are stored per 100g, scaled by quantity/100.
+ *
+ * Two basis modes:
+ *   '100g'    — nutrients per 100g, scale = quantity / 100   (food default)
+ *   'serving' — nutrients per single serving, scale = quantity (supplements)
  */
 
 export interface NutrientEntry {
@@ -10,16 +13,20 @@ export interface NutrientEntry {
 
 export type NutrientTotals = Record<string, number>;
 
+export type ServingBasis = '100g' | 'serving';
+
 /**
  * Calculate total nutrients for a product at a given quantity.
- * Nutrients are stored per 100g, so we scale by quantity/100.
+ * basis '100g' (default) — nutrients are per 100g, scale by quantity / 100.
+ * basis 'serving' — nutrients are per single serving, scale by quantity directly.
  */
 export function calculateProductNutrients(
   nutrients: NutrientEntry[],
   quantity: number,
+  basis: ServingBasis = '100g',
 ): NutrientTotals {
   const totals: NutrientTotals = {};
-  const scale = quantity / 100;
+  const scale = basis === '100g' ? quantity / 100 : quantity;
 
   for (const n of nutrients) {
     totals[n.nutrientId] = (totals[n.nutrientId] ?? 0) + n.quantity * scale;

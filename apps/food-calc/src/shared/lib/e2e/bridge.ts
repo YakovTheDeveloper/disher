@@ -1,50 +1,38 @@
 /**
  * E2E test bridge — exposed on window only when MODE === 'test'.
- * Lets Playwright drive Dexie / sync / auth state without touching real UI.
+ * Lets Playwright drive Dexie / backup / auth state without touching real UI.
  * Tree-shaken out in production builds.
  */
 import { authProvider } from '@/shared/lib/auth/authProvider';
 import { authClient } from '@/shared/lib/auth/betterAuthClient';
 import { API_BASE } from '@/shared/lib/api/base';
-import { db, SYNCED_TABLES } from '@/shared/lib/dexie/schema';
-import { drainPush } from '@/shared/lib/sync/backupClient';
-import { areDexieHooksInstalled } from '@/shared/lib/dexie/hooks';
+import { db } from '@/shared/lib/dexie/schema';
+import { push, pull, apply } from '@/shared/lib/snapshot';
 import { createProduct } from '@/entities/product/api/mutations';
 
 export function installE2EBridge(): void {
   if (import.meta.env.MODE !== 'test') return;
   if (typeof window === 'undefined') return;
   (window as unknown as Record<string, unknown>).__e2e = {
-    // Dexie state inspection.
     countLocal: async () => {
       const out: Record<string, number> = {};
-      for (const t of SYNCED_TABLES) out[t] = await db[t].count();
-      return out;
-    },
-    countDirty: async (userId: string) => {
-      const out: Record<string, number> = {};
-      for (const t of SYNCED_TABLES) {
-        out[t] = await db[t]
-          .where('[user_id+_dirty]')
-          .equals([userId, 1] as never)
-          .count();
-      }
+      for (const t of db.tables) out[t.name] = await t.count();
       return out;
     },
     wipeLocal: async () => {
-      await db.transaction('rw', SYNCED_TABLES.map((t) => db[t]), async () => {
-        for (const t of SYNCED_TABLES) await db[t].clear();
+      await db.transaction('rw', db.tables, async () => {
+        await Promise.all(db.tables.map((t) => t.clear()));
       });
     },
+    pushSnapshot: push,
+    pullSnapshot: async () => {
+      const snap = await pull();
+      if (snap) await apply(snap);
+      return snap;
+    },
 
-    // Sync triggers.
-    drainPush,
-    hooksInstalled: () => areDexieHooksInstalled(),
-
-    // Entity mutations — proxy real entity api so E2E exercises the same code as UI.
     createProduct,
 
-    // Auth.
     getSession: async () => {
       const user = authProvider.getCurrentUser();
       const accessToken = await authProvider.getAccessToken();
@@ -60,13 +48,6 @@ export function installE2EBridge(): void {
       await authProvider.signOut();
     },
 
-    // C2.5 verify-email bridge — fetches the JWT token from the dev-only
-    // backend route (which reads it from globalThis.__verifyTokensByEmail
-    // populated by the sendVerificationEmail callback) and feeds it into
-    // authClient.verifyEmail. Same code path as a real user clicking the
-    // link in their inbox: better-auth issues the bearer in set-auth-token,
-    // betterAuthClient onSuccess hook captures it, the session atom flips,
-    // and auth-store.applyUser logs the SPA in.
     verifyEmail: async (email: string) => {
       const res = await fetch(
         `${API_BASE}/api/dev/verify-tokens?email=${encodeURIComponent(email)}`,

@@ -37,6 +37,9 @@ import { Swipeable } from '@/shared/ui/Swipeable';
 
 type Mode = 'view' | 'edit';
 
+type ServingUnitOpt = 'IU' | 'mg' | 'mcg' | 'g' | 'шт';
+const SERVING_UNIT_OPTIONS: ServingUnitOpt[] = ['IU', 'mg', 'mcg', 'g', 'шт'];
+
 const gramNutrientIds = new Set(allNutrientsList.filter((n) => n.unit === 'g').map((n) => n.id));
 
 const ProductPage = () => {
@@ -70,11 +73,13 @@ const ProductPage = () => {
   console.warn('[debug ProductPage] id=', id, 'food=', food);
   if (!food) return null;
 
-  const isUserCreated = isCreatedByUser(food.userId);
+  const isUserCreated = isCreatedByUser(food.id);
   const isEditMode = isUserCreated && mode === 'edit';
 
   const getNutrientValue = (nutrientId: string) => nutrientValueMap.get(nutrientId) ?? 0;
-  const getScaledValue = (nutrientId: string) => getNutrientValue(nutrientId) * (quantity / 100);
+  // basis '100g' → scale = quantity / 100 (food). 'serving' → scale = quantity (supplement).
+  const scale = food.servingBasis === 'serving' ? quantity : quantity / 100;
+  const getScaledValue = (nutrientId: string) => getNutrientValue(nutrientId) * scale;
 
   const massExceeds100 = totalGramMass > 100;
 
@@ -166,7 +171,14 @@ const ProductPage = () => {
 
         <section className={s.foodActions}>
           <div className={s.foodActionRow}>
-            <Ornament text="состав, граммы" variant="horizontal" />
+            <Ornament
+              text={
+                food.servingBasis === 'serving'
+                  ? `состав, на 1 ${food.servingUnit ?? 'порцию'}`
+                  : 'состав, граммы'
+              }
+              variant="horizontal"
+            />
             <span className={s.separator}>|</span>
             {!isEditMode && (
               <div className={s.quantityInputWrapper}>
@@ -202,6 +214,70 @@ const ProductPage = () => {
             >
               Редактирование
             </button>
+          </div>
+        )}
+
+        {isEditMode && (
+          <div className={s.servingBlock}>
+            <div className={s.modeToggleRow}>
+              <button
+                type="button"
+                className={`${s.modeBtn} ${food.servingBasis === '100g' ? s.modeBtnActive : ''}`}
+                onClick={() =>
+                  void safeMutate(
+                    () =>
+                      updateProduct(food.id, {
+                        servingBasis: '100g',
+                        servingUnit: null,
+                      }),
+                    'Не удалось сменить режим продукта',
+                  )
+                }
+              >
+                Еда (на 100 г)
+              </button>
+              <button
+                type="button"
+                className={`${s.modeBtn} ${food.servingBasis === 'serving' ? s.modeBtnActive : ''}`}
+                onClick={() =>
+                  void safeMutate(
+                    () =>
+                      updateProduct(food.id, {
+                        servingBasis: 'serving',
+                        // default unit when switching to supplement; user can change it.
+                        servingUnit: food.servingUnit ?? 'шт',
+                      }),
+                    'Не удалось сменить режим продукта',
+                  )
+                }
+              >
+                Добавка (на 1 порцию)
+              </button>
+            </div>
+            {food.servingBasis === 'serving' && (
+              <div className={s.servingRow}>
+                <ScreenLabel variant="formValueLabel">Единица:</ScreenLabel>
+                <select
+                  className={s.servingUnitSelect}
+                  value={food.servingUnit ?? 'шт'}
+                  onChange={(e) =>
+                    void safeMutate(
+                      () =>
+                        updateProduct(food.id, {
+                          servingUnit: e.target.value as ServingUnitOpt,
+                        }),
+                      'Не удалось сменить единицу',
+                    )
+                  }
+                >
+                  {SERVING_UNIT_OPTIONS.map((u) => (
+                    <option key={u} value={u}>
+                      {u}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         )}
 

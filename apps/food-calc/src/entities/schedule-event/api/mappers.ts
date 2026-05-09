@@ -16,14 +16,11 @@ function parseAtoms(value: unknown): Atom[] {
 export function mapScheduleEventRow(row: ScheduleEventRow): ScheduleEvent {
   return {
     id: row.id,
-    userId: row.user_id,
     date: row.date,
     time: row.time,
     endTime: row.end_time ?? '',
     text: row.text ?? '',
     atoms: parseAtoms(row.atoms),
     createdAt: row.created_at,
-    updatedAt: row.client_modified_at ?? row.created_at,
-    deletedAt: row.deleted_at,
   };
 }

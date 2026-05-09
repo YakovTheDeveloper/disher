@@ -1,12 +1,6 @@
 import { db, type PeriodRow } from '@/shared/lib/dexie/schema';
-import { getUserIdSync } from '@/shared/lib/auth/useUserId';
-import { scheduleCold } from '@/shared/lib/sync/scheduler';
 
-function requireUserId(): string {
-  const userId = getUserIdSync();
-  if (!userId) throw new Error('Not authenticated');
-  return userId;
-}
+const now = () => new Date().toISOString();
 
 export async function addPeriod(params: {
   name: string;
@@ -15,22 +9,20 @@ export async function addPeriod(params: {
   fontSize?: number;
 }): Promise<string> {
   const id = crypto.randomUUID();
-  const userId = requireUserId();
-  await db.periods.add({
+  const row: PeriodRow = {
     id,
-    user_id: userId,
     name: params.name.trim(),
     color_index: params.colorIndex,
     font_family: params.fontFamily ?? 'sans',
     font_size: params.fontSize ?? 16,
-  } as unknown as PeriodRow);
-  scheduleCold();
+    created_at: now(),
+  };
+  await db.periods.add(row);
   return id;
 }
 
 export async function removePeriod(id: string): Promise<void> {
-  await db.periods.update(id, { deleted_at: new Date().toISOString() });
-  scheduleCold();
+  await db.periods.delete(id);
 }
 
 type PeriodUpdates = Partial<{
@@ -58,5 +50,4 @@ export async function updatePeriod(
     patch[COLUMN_MAP[k]] = updates[k];
   }
   await db.periods.update(id, patch);
-  scheduleCold();
 }

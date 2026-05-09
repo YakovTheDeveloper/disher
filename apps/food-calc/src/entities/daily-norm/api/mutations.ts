@@ -1,13 +1,7 @@
 import { db, type DailyNormRow } from '@/shared/lib/dexie/schema';
-import { getUserIdSync } from '@/shared/lib/auth/useUserId';
-import { scheduleCold } from '@/shared/lib/sync/scheduler';
 import type { DailyNormItems } from '../model/types';
 
-function requireUserId(): string {
-  const userId = getUserIdSync();
-  if (!userId) throw new Error('Not authenticated');
-  return userId;
-}
+const now = () => new Date().toISOString();
 
 function safeParseItems(json: string | undefined): DailyNormItems {
   if (!json) return {};
@@ -24,15 +18,14 @@ export async function createDailyNorm(
   items?: DailyNormItems,
 ): Promise<string> {
   const id = crypto.randomUUID();
-  const userId = requireUserId();
-  await db.daily_norms.add({
+  const row: DailyNormRow = {
     id,
-    user_id: userId,
     name,
     description,
     items: items ?? {},
-  } as unknown as DailyNormRow);
-  scheduleCold();
+    created_at: now(),
+  };
+  await db.daily_norms.add(row);
   return id;
 }
 
@@ -56,14 +49,10 @@ export async function updateDailyNorm(
     else patch[k] = updates[k];
   }
   await db.daily_norms.update(normId, patch);
-  scheduleCold();
 }
 
 export async function deleteDailyNorm(normId: string): Promise<void> {
-  await db.daily_norms.update(normId, {
-    deleted_at: new Date().toISOString(),
-  });
-  scheduleCold();
+  await db.daily_norms.delete(normId);
 }
 
 export async function setDailyNormNutrient(

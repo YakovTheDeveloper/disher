@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const mockUseScheduleFoods = vi.fn();
 const mockUseDishItemsByDishIds = vi.fn();
 const mockUseNutrientsByProductIds = vi.fn();
+const mockUseBasisByProductIds = vi.fn();
 
 vi.mock('./queries', () => ({
   useScheduleFoods: (...args: unknown[]) => mockUseScheduleFoods(...args),
@@ -17,6 +18,7 @@ vi.mock('@/entities/dish', () => ({
 
 vi.mock('@/entities/product', () => ({
   useNutrientsByProductIds: (...args: unknown[]) => mockUseNutrientsByProductIds(...args),
+  useBasisByProductIds: (...args: unknown[]) => mockUseBasisByProductIds(...args),
 }));
 
 import { useScheduleNutrientTotals } from './useScheduleNutrientTotals';
@@ -52,11 +54,20 @@ function buildNutrientsMap(
 function setupMocks(opts: {
   scheduleFoods?: ReturnType<typeof makeScheduleFood>[];
   dishItems?: Array<{ id: string; dishId: string; productId: string; quantity: number }>;
-  products?: Array<{ id: string; nutrients: Array<{ nutrientId: string; quantity: number }> }>;
+  products?: Array<{
+    id: string;
+    nutrients: Array<{ nutrientId: string; quantity: number }>;
+    servingBasis?: '100g' | 'serving';
+  }>;
 }) {
   mockUseScheduleFoods.mockReturnValue(opts.scheduleFoods ?? []);
   mockUseDishItemsByDishIds.mockReturnValue(opts.dishItems ?? []);
   mockUseNutrientsByProductIds.mockReturnValue(buildNutrientsMap(opts.products ?? []));
+  // Default every product to '100g' (food). Tests for supplements override
+  // by passing servingBasis: 'serving' on the product.
+  const basisMap = new Map<string, '100g' | 'serving'>();
+  for (const p of opts.products ?? []) basisMap.set(p.id, p.servingBasis ?? '100g');
+  mockUseBasisByProductIds.mockReturnValue(basisMap);
 }
 
 // ─── setup ────────────────────────────────────────────────────────────────────

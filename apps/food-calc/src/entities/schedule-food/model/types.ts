@@ -2,20 +2,24 @@ export type ScheduleFoodType = "food" | "dish";
 
 export interface ScheduleFood {
   id: string;
-  userId: string;
   date: string;
   time: string;
   type: ScheduleFoodType;
   quantity: number;
-  details: string | null;
+  details: string;
   productId: string | null;
   dishId: string | null;
   createdAt: string;
-  updatedAt: string | null;
-  deletedAt: string | null;
 }
 
 export type ScheduleFoodWithRelations = ScheduleFood & {
-  product: { name: string; userId: string | null; pricePerKg?: number | null } | null;
+  product: {
+    name: string;
+    /** True when the product was created by the user (not a catalog row). */
+    isUserCreated: boolean;
+    pricePerKg?: number | null;
+    /** null = граммы (food). Иначе единица одной порции (IU/mg/mcg/g/шт). */
+    servingUnit?: string | null;
+  } | null;
   dish: { name: string } | null;
 };

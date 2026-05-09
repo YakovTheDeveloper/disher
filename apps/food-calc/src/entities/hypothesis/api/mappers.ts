@@ -1,0 +1,18 @@
+import type { HypothesisRow } from '@/shared/lib/dexie/schema';
+import type { Hypothesis } from '../model/types';
+
+export function mapHypothesisRow(row: HypothesisRow): Hypothesis {
+  return {
+    id: row.id,
+    title: row.title,
+    body: row.body,
+    days: typeof row.days === 'number' && Number.isFinite(row.days) ? row.days : null,
+    sourceAnalysisId: row.source_analysis_id,
+    savedAt: row.saved_at,
+    startedAt: row.started_at,
+    endedAt: row.ended_at,
+    outcome: row.outcome,
+    note: row.note,
+    createdAt: row.created_at,
+  };
+}

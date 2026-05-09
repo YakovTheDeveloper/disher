@@ -67,7 +67,7 @@ export function useFilteredFoods(searchQuery: string, myFoodOnly = false, richNu
   const products = useMemo(() => {
     let filtered = allProducts;
     if (myFoodOnly) {
-      filtered = filtered.filter((p) => isCreatedByUser(p.userId));
+      filtered = filtered.filter((p) => isCreatedByUser(p.id));
     }
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((p) => {
@@ -101,7 +101,9 @@ export function useFilteredFoods(searchQuery: string, myFoodOnly = false, richNu
   const dishes = useMemo(() => {
     let filtered = allDishes;
     if (myFoodOnly) {
-      filtered = filtered.filter((d) => isCreatedByUser(d.userId));
+      // Dishes are always user-created (no catalog dishes), so the
+      // myFoodOnly toggle is a no-op here — kept for symmetry with products.
+      filtered = filtered.filter((d) => isCreatedByUser(d.id));
     }
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((dish) => {

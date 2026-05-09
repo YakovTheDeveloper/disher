@@ -4,9 +4,9 @@ import pg from "pg";
 // without paying the cost of dropping/recreating the schema (which is what
 // global-setup.ts does once per run).
 //
-// Truncating "users" CASCADE wipes account/session (FK to users.id) and all
-// 8 disher user-data tables (also FK to users.id). `verification` has no FK,
-// truncated separately.
+// Truncating "users" CASCADE wipes account/session, user_backups, and
+// analyses (all FK to users.id). `verification` has no FK, truncated
+// separately.
 
 /**
  * Wipe every row from every user-data table on the connected pool.

@@ -30,12 +30,17 @@ vi.mock('@/shared/lib/auth/authProvider', () => ({
 }));
 
 vi.mock('@/shared/lib/dexie/schema', () => ({
-  db: { transaction: vi.fn(async (_mode, _tables, fn) => fn()) },
-  SYNCED_TABLES: [],
+  db: {
+    tables: [],
+    transaction: vi.fn(
+      async (_mode: unknown, _tables: unknown, fn: () => Promise<unknown>) =>
+        fn(),
+    ),
+  },
 }));
 
-vi.mock('@/entities/analytics', () => ({
-  clearAnalyticsCache: vi.fn(),
+vi.mock('idb-keyval', () => ({
+  clear: vi.fn(async () => {}),
 }));
 
 vi.mock('@/shared/lib/observability/sentry', () => ({

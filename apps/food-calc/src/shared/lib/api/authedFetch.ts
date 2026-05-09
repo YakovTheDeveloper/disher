@@ -1,6 +1,4 @@
-// fetch() with Authorization: Bearer <token> attached. Centralizes the
-// "get the token, set the header" logic that was previously duplicated in
-// backupClient + authHeaders.
+// fetch() with Authorization: Bearer <token> attached.
 
 import { authProvider } from '@/shared/lib/auth/authProvider';
 
