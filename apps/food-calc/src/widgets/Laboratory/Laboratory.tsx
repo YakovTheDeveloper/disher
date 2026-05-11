@@ -5,6 +5,7 @@ import { parse, format, subDays, isValid } from 'date-fns';
 import { db } from '@/shared/lib/dexie/schema';
 import { RunAnalysisButton } from '@/features/analysis/RunAnalysisButton';
 import { useOpenHypotheses, useClosedHypotheses } from '@/entities/hypothesis';
+import { Screen } from '@/shared/ui/Screen';
 import HypothesisCard from './HypothesisCard';
 import styles from './Laboratory.module.scss';
 
@@ -39,47 +40,52 @@ const Laboratory = ({ date }: Props) => {
   const closed = useClosedHypotheses();
 
   return (
-    <div className={styles.container}>
-      <section className={styles.block}>
-        <p className={styles.blockTitle}>Мои гипотезы</p>
-        {open.length === 0 ? (
-          <>
-            <p className={styles.blockBody}>Сейчас ничего не тестируешь.</p>
-            <p className={styles.blockHint}>
-              Запусти разбор — получишь идеи для проверки.
-            </p>
-          </>
-        ) : (
-          <div className={styles.hypothesesList}>
-            {open.map((h) => (
-              <HypothesisCard key={h.id} hypothesis={h} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className={styles.block}>
-        <p className={styles.blockTitle}>Разбор данных</p>
-        <p className={styles.blockBody}>
-          За 7 дней — {eventCount ?? '…'} {pluralEvents(eventCount)}.
-        </p>
+    <Screen
+      backgroundColor="white"
+      bottomRight={
         <RunAnalysisButton
-          className={styles.runButton}
           date={date}
           disabled={(eventCount ?? 0) === 0}
           disabledHint="Нет данных за последние 7 дней"
         />
-      </section>
+      }
+    >
+      <div className={styles.container}>
+        <section className={styles.block}>
+          <p className={styles.blockTitle}>Мои гипотезы</p>
+          {open.length === 0 ? (
+            <>
+              <p className={styles.blockBody}>Сейчас ничего не тестируешь.</p>
+              <p className={styles.blockHint}>
+                Запусти разбор — получишь идеи для проверки.
+              </p>
+            </>
+          ) : (
+            <div className={styles.hypothesesList}>
+              {open.map((h) => (
+                <HypothesisCard key={h.id} hypothesis={h} />
+              ))}
+            </div>
+          )}
+        </section>
 
-      <Link to="/knowledge" className={styles.block}>
-        <p className={styles.blockTitle}>Что я знаю про себя</p>
-        <p className={styles.blockBody}>
-          {closed.length > 0
-            ? `${closed.length} ${pluralRecords(closed.length)}`
-            : 'Закрытые гипотезы появятся здесь.'}
-        </p>
-      </Link>
-    </div>
+        <section className={styles.block}>
+          <p className={styles.blockTitle}>Разбор данных</p>
+          <p className={styles.blockBody}>
+            За 7 дней — {eventCount ?? '…'} {pluralEvents(eventCount)}.
+          </p>
+        </section>
+
+        <Link to="/knowledge" className={styles.block}>
+          <p className={styles.blockTitle}>Что я знаю про себя</p>
+          <p className={styles.blockBody}>
+            {closed.length > 0
+              ? `${closed.length} ${pluralRecords(closed.length)}`
+              : 'Закрытые гипотезы появятся здесь.'}
+          </p>
+        </Link>
+      </div>
+    </Screen>
   );
 };
 

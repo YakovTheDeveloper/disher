@@ -6,7 +6,7 @@
     padding: 12px 22px;
     border-radius: 999px;
     border: none;
-    background-color: rgb(20, 20, 20);
+    background-color: rgba(66, 66, 117, 0.918);
     color: #fff;
     font-size: 15px;
     font-weight: 500;
@@ -19,6 +19,13 @@
         opacity: 0.4;
         cursor: not-allowed;
     }
+}
+
+// Inverse variant — white fill, purple text + border. Same pill shape.
+.buttonInverse {
+    background-color: #fff;
+    color: rgba(66, 66, 117, 0.918);
+    border: 1px solid rgba(66, 66, 117, 0.918);
 }
 
 .spinner {

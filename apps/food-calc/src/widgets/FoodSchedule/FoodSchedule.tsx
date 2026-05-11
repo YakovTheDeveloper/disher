@@ -12,7 +12,6 @@ import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { Navigation } from '@/pages/home-page/ui';
 import toaster from '@/shared/lib/toaster/toaster';
-import { useUiStore } from '@/shared/model/uiStore';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { TopBar } from '@/shared/ui/TopBar';
 import Button from '@/shared/ui/atoms/Button/Button';
@@ -40,7 +39,7 @@ import {
   useWriteFoodFlow,
   getWriteFoodInputId,
 } from '@/features/food/food-free-text-parse';
-import { AddFoodActionBar } from '@/features/food/food-add-action-bar';
+import { WriteFoodButton } from '@/features/food/food-free-text-parse';
 
 const TrashIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -52,6 +51,13 @@ const TrashIcon = () => (
       strokeLinejoin="round"
     />
     <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
+
+const SearchIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="11" cy="11" r="6.25" stroke="currentColor" strokeWidth="1.6" />
+    <path d="M20 20l-4.2-4.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
   </svg>
 );
 
@@ -75,7 +81,6 @@ const FoodSchedule = ({
   const selectedIds = useStore(selectionStoreFood, (s) => s.selectedIds);
   const { clearSelection, setSelectedIds } = selectionStoreFood.getState();
 
-  const showPrice = useUiStore((s) => s.scheduleFoodsShowPrice);
   const { toScheduleAnalytics } = useAppRoutes();
 
   const editFlow = useScheduleFoodFlow({ type: 'edit' });
@@ -306,12 +311,27 @@ const FoodSchedule = ({
               inlineEditing && styles.actionBarWrapper_hidden
             )}
           >
-            <AddFoodActionBar
-              writeFoodFlow={writeFoodFlow}
-              writeFoodInputId={writeFoodInputId}
-              searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
+            <WriteFoodButton
+              flow={writeFoodFlow}
+              inputId={writeFoodInputId}
+              label="Опишите, что вы ели..."
+              inverse
             />
           </div>
+        ) : null
+      }
+      bottomRight={
+        !isActionsMode ? (
+          <label
+            htmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
+            className={clsx(
+              styles.searchPill,
+              inlineEditing && styles.actionBarWrapper_hidden
+            )}
+          >
+            <SearchIcon />
+            <span>Еда</span>
+          </label>
         ) : null
       }
     >
@@ -341,7 +361,6 @@ const FoodSchedule = ({
                         index={itemIndex}
                         totalCount={items.length}
                         selectionStore={selectionStoreFood}
-                        showPrice={showPrice}
                         onEditTime={onEditTime}
                         onEditFood={onEditFood}
                         onEditQuantity={onEditQuantity}

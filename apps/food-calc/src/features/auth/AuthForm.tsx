@@ -146,7 +146,6 @@ export function AuthForm({
                   if (emailError) setEmailError(null);
                 }}
                 className={styles.input}
-                autoFocus
                 autoComplete="email"
                 spellCheck={false}
                 autoCapitalize="off"

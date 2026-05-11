@@ -9,6 +9,32 @@
     background: transparent;
 }
 
+// Wrapper around SearchFoodHeavy: replicates .content's flex/positioning so
+// absolute children (filterWrapper, filterButtonWrapper) still anchor correctly,
+// and fades in one frame after isActive flips. Pure opacity (no translate) so
+// reduced-motion is safe; Material 3 "Emphasized" easing.
+.heavyFade {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+    position: relative;
+    opacity: 0;
+    animation: heavyFadeIn 260ms cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+@keyframes heavyFadeIn {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .heavyFade {
+        opacity: 1;
+        animation: none;
+    }
+}
+
 .header {
     position: absolute;
     display: flex;

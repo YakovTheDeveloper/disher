@@ -74,3 +74,29 @@
   transform: translateY(8px) scale(0.96);
   pointer-events: none;
 }
+
+// Search pill at bottom-right — dark purple-navy fill, matches
+// "Разобрать день" style. Paired with the inverse description button
+// at bottom-left.
+.searchPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  min-height: 44px;
+  border-radius: 999px;
+  background: rgba(66, 66, 117, 0.918);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  border: none;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+  transform-origin: bottom right;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    transform: scale(0.97);
+  }
+}

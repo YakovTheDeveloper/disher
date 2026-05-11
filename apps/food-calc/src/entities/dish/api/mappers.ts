@@ -28,8 +28,6 @@ export function mapDishPortionRow(row: DishPortionRow): DishPortion {
     id: row.id,
     dishId: row.dish_id,
     label: row.label,
-    amount: row.amount,
-    unit: row.unit,
     grams: row.grams,
     createdAt: row.created_at,
   };

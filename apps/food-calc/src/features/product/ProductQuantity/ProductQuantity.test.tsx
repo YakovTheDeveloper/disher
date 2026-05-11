@@ -6,8 +6,8 @@ import ProductQuantity from './ProductQuantity';
 import type { Portion } from './ProductQuantity';
 
 const portions: Portion[] = [
-  { label: 'среднее', grams: 50, amount: 1, unit: 'шт' },
-  { label: 'крупное', grams: 63, amount: 1, unit: 'шт' },
+  { label: 'среднее', grams: 50 },
+  { label: 'крупное', grams: 63 },
 ];
 
 function renderQuantity({

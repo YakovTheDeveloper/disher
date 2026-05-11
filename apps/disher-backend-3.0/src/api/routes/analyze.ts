@@ -8,6 +8,7 @@ import {
   type CallLLM,
   type HypothesisContext,
 } from "./analyze.runJob.js";
+import type { AnalysisMode } from "../../shared/analysis-output.js";
 
 // POST /api/analyze         — kick off an analysis. Idempotent on `id`.
 // GET  /api/analyses/:id    — poll an analysis row. State is derived from
@@ -31,8 +32,13 @@ type AnalyzeBody = {
     scheduleFoods?: unknown[];
     scheduleEvents?: unknown[];
     hypotheses?: HypothesisContext[];
+    mode?: AnalysisMode;
   };
 };
+
+function parseMode(value: unknown): AnalysisMode {
+  return value === "foods-only" ? "foods-only" : "foods-and-events";
+}
 
 type AnalysisRow = {
   id: string;
@@ -83,18 +89,23 @@ export async function analyzeRoutes(
         .send({ error: "windowStart/windowEnd required" });
     }
 
+    const mode = parseMode(body.payload?.mode);
     const payload: AnalyzePayload = {
       windowStart: start,
       windowEnd: end,
       scheduleFoods: Array.isArray(body.payload?.scheduleFoods)
         ? body.payload!.scheduleFoods!
         : [],
-      scheduleEvents: Array.isArray(body.payload?.scheduleEvents)
-        ? body.payload!.scheduleEvents!
-        : [],
+      scheduleEvents:
+        mode === "foods-only"
+          ? []
+          : Array.isArray(body.payload?.scheduleEvents)
+            ? body.payload!.scheduleEvents!
+            : [],
       ...(Array.isArray(body.payload?.hypotheses)
         ? { hypotheses: body.payload!.hypotheses! }
         : {}),
+      mode,
     };
 
     // INSERT pending row. The row id IS the idempotency key — a duplicate POST

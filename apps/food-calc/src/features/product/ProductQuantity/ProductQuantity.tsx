@@ -16,7 +16,7 @@ const QuickButton = ({ children, isActive, onClick, className }: QuickButtonProp
   </button>
 );
 
-export type Portion = { label: string; grams: number; amount: number; unit: string };
+export type Portion = { label: string; grams: number };
 
 type ProductQuantityContent = {
   quantity: number;

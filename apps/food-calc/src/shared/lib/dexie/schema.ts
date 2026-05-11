@@ -14,11 +14,7 @@ import Dexie, { type Table } from 'dexie';
 export interface ProductRow {
   id: string;
   name: string;
-  name_eng: string;
-  description: string;
-  description_eng: string;
   source: string;
-  price_per_kg: number;
   /** Stored as a parsed object, not stringified. */
   nutrients: Record<string, unknown>;
   portions: Array<Record<string, unknown>>;
@@ -46,8 +42,6 @@ export interface DishPortionRow {
   id: string;
   dish_id: string;
   label: string;
-  amount: number;
-  unit: string;
   grams: number;
   created_at: string;
 }

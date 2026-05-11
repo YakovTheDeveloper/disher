@@ -24,7 +24,6 @@ import { useFilterNutrients, FilterNutrientsPanel } from '@/features/nutrients/f
 import { Button, FilterButton } from '@/shared/ui/atoms/Button';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
-import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { isCreatedByUser } from '@/shared/lib';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import bagImage from '@/shared/assets/decarative/bag.png';
@@ -85,8 +84,6 @@ const ProductPage = () => {
 
   const portions = portionsRaw.map((p) => ({
     label: p.label,
-    amount: p.amount,
-    unit: p.unit,
     grams: p.grams,
   }));
 
@@ -161,7 +158,7 @@ const ProductPage = () => {
           heading={
             <PageHeading
               align="left"
-              title={food.name}
+              title={<span className={s.heroTitle}>{food.name}</span>}
               subtitle={isUserCreated ? 'мой продукт' : 'базовый продукт'}
             />
           }
@@ -170,30 +167,22 @@ const ProductPage = () => {
         <Spacer variant="screen-header-offset" />
 
         <section className={s.foodActions}>
-          <div className={s.foodActionRow}>
-            <Ornament
-              text={
-                food.servingBasis === 'serving'
-                  ? `состав, на 1 ${food.servingUnit ?? 'порцию'}`
-                  : 'состав, граммы'
-              }
-              variant="horizontal"
-            />
-            <span className={s.separator}>|</span>
-            {!isEditMode && (
-              <div className={s.quantityInputWrapper}>
+          {!isEditMode && (
+            <div className={s.quantityInputWrapper}>
+              <div className={s.quantityInputRow}>
                 <NumberInput
                   value={quantity}
                   min={0}
-                  variant="underline"
+                  className={s.quantityInput}
                   onChange={(val) => setQuantity(val)}
                 />
+                <span className={s.quantityUnit}>
+                  {food.servingBasis === 'serving' ? (food.servingUnit ?? 'шт') : 'г'}
+                </span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
           <div className={s.foodActionRow}>
-            <Ornament text="дневная норма" variant="horizontal" />
-            <span className={s.separator}>|</span>
             <OpenDailyNorms />
           </div>
         </section>
@@ -230,7 +219,7 @@ const ProductPage = () => {
                         servingBasis: '100g',
                         servingUnit: null,
                       }),
-                    'Не удалось сменить режим продукта',
+                    'Не удалось сменить режим продукта'
                   )
                 }
               >
@@ -247,7 +236,7 @@ const ProductPage = () => {
                         // default unit when switching to supplement; user can change it.
                         servingUnit: food.servingUnit ?? 'шт',
                       }),
-                    'Не удалось сменить режим продукта',
+                    'Не удалось сменить режим продукта'
                   )
                 }
               >
@@ -266,7 +255,7 @@ const ProductPage = () => {
                         updateProduct(food.id, {
                           servingUnit: e.target.value as ServingUnitOpt,
                         }),
-                      'Не удалось сменить единицу',
+                      'Не удалось сменить единицу'
                     )
                   }
                 >
@@ -285,20 +274,6 @@ const ProductPage = () => {
           <div className={s.massWarning}>
             Совокупная масса нутриентов ({totalGramMass.toFixed(1)} г) превышает 100 г
           </div>
-        )}
-
-        {isUserCreated && (
-          <label>
-            <Textarea
-              value={food.description || ''}
-              onChange={(val) =>
-                void safeMutate(
-                  () => updateProduct(food.id, { description: val || '' }),
-                  'Не удалось обновить описание'
-                )
-              }
-            />
-          </label>
         )}
 
         {isEditMode ? (

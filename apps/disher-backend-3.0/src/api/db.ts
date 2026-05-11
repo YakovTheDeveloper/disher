@@ -12,17 +12,22 @@ import pg from "pg";
 // validates user_id === jwt.sub itself before every write. RLS does not run.
 // (Supabase here is just managed Postgres hosting; auth is better-auth bearer.)
 
-const REMOTE_DATABASE_URL = process.env.REMOTE_DATABASE_URL;
+// Prefer REMOTE_DATABASE_URL (prod). In dev it's typically unset — fall back
+// to LOCAL_DATABASE_URL so the same Postgres serves better-auth and /api/backup.
+const connectionString =
+  process.env.REMOTE_DATABASE_URL ?? process.env.LOCAL_DATABASE_URL;
 
-if (!REMOTE_DATABASE_URL) {
+if (!connectionString) {
   console.warn(
-    "[db] REMOTE_DATABASE_URL not set — backup endpoint will reject all requests"
+    "[db] neither REMOTE_DATABASE_URL nor LOCAL_DATABASE_URL is set — backup endpoint will reject all requests"
   );
+} else if (!process.env.REMOTE_DATABASE_URL) {
+  console.log("[db] using LOCAL_DATABASE_URL for /api/backup (dev fallback)");
 }
 
-export const pool = REMOTE_DATABASE_URL
+export const pool = connectionString
   ? new pg.Pool({
-      connectionString: REMOTE_DATABASE_URL,
+      connectionString,
       max: 10,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,

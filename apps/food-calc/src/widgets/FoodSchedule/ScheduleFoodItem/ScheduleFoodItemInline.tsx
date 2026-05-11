@@ -6,7 +6,6 @@ import { SelectableListItem } from '@/features/shared/selectable-list-item';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { updateScheduleFood } from '@/entities/schedule-food';
 import { SelectionStoreType, useStore } from '@/hooks/factoryHooks/useSelection';
-import { costForWeight } from '@/shared/lib/cost';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { useRecentlyAddedStore } from '@/features/food/food-free-text-parse';
 import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
@@ -20,7 +19,6 @@ type Props = {
   index?: number;
   totalCount?: number;
   selectionStore: SelectionStoreType;
-  showPrice?: boolean;
   foodHtmlFor?: string;
   // Accepted for backwards-compatible call sites; unused — Inline edits in place.
   onEditTime?: (item: ScheduleFoodWithRelations) => void;
@@ -36,7 +34,6 @@ const ScheduleFoodItemInline = ({
   index = 0,
   totalCount = 1,
   selectionStore,
-  showPrice,
   foodHtmlFor,
 }: Props) => {
   const id = item.id;
@@ -109,8 +106,6 @@ const ScheduleFoodItemInline = ({
 
   const name = item.product ?? item.dish ?? null;
   const isCustom = item.type === 'food' && (item.product?.isUserCreated ?? false);
-  const pricePerKg = item.type === 'food' ? item.product?.pricePerKg : null;
-  const cost = showPrice && pricePerKg != null ? costForWeight(pricePerKg, item.quantity) : null;
 
   return (
     <SelectableListItem
@@ -144,7 +139,6 @@ const ScheduleFoodItemInline = ({
       </span>
 
       <div className={styles.rightStack}>
-        {cost != null && <span className={styles.priceText}>{cost.toFixed(1)}₽</span>}
         {editingQty ? (
           <span
             className={styles.qtyEdit}

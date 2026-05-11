@@ -140,9 +140,10 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       authFail(set, result.error, 'auth.signIn');
       return false;
     }
-    // Success — switch identities. Old uid's pending writes would violate RLS
-    // under the new user (план: 42501) — wipe Dexie before applying the new
-    // identity. useLiveQuery re-reads Dexie on the next tick.
+    // Success — switch identities. Wipe Dexie + idb-keyval before applying the
+    // new identity so user A's rows/drafts don't bleed into user B on the same
+    // device (single-user-per-device invariant). BackupGate then pulls user
+    // B's snapshot from the vault on its fresh mount.
     try {
       await wipeLocalData();
     } catch (e) {
@@ -171,15 +172,19 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   },
 
   signOut: async () => {
-    // Clear local rows BEFORE signOut — they belong to uid_old and RLS will
-    // block them after signOut (план: 42501). useLiveQuery re-reads on the
-    // next tick, no separate query-cache to clear.
+    // Server revoke is best-effort — if the server is unreachable we still
+    // want to drop the local session so the user isn't stuck logged-in over
+    // wiped Dexie. Local wipe is the load-bearing step.
+    try {
+      await authProvider.signOut();
+    } catch (e) {
+      console.error('server signOut failed; proceeding locally', e);
+    }
     try {
       await wipeLocalData();
     } catch (e) {
-      console.error('cache clear before signOut failed', e);
+      console.error('cache clear during signOut failed', e);
     }
-    await authProvider.signOut();
     applyUser(set, null);
     set({ pendingVerificationEmail: null });
   },

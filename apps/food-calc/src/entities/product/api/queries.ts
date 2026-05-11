@@ -33,11 +33,7 @@ export function useProducts(search?: string): Product[] {
   return useMemo(() => {
     if (!search) return products;
     const lower = search.toLowerCase();
-    return products.filter(
-      (r) =>
-        r.name?.toLowerCase().includes(lower) ||
-        r.nameEng?.toLowerCase().includes(lower),
-    );
+    return products.filter((r) => r.name?.toLowerCase().includes(lower));
   }, [products, search]);
 }
 

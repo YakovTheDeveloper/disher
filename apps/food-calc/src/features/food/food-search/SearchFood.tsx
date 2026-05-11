@@ -34,9 +34,9 @@ const getDefaultTab = (mode: SearchMode) => (mode === 'dishes-only' ? 'блюд�
 
 // Outer component: ALWAYS renders the <input id={inputId}> via SearchFoodControls so
 // the <label htmlFor> → input focus delegation keeps working on iOS, even when this
-// step is not the active one. Heavy work (PowerSync queries, list rendering, FilterPanel)
-// lives in <SearchFoodHeavy> which is conditionally mounted via {isActive && ...}.
-// See feedback_ios_focus.md for why the input must stay in the DOM in the same node.
+// step is not the active one. Heavy work (Fuse indexes over the catalog, list rendering,
+// FilterPanel) lives in <SearchFoodHeavy> which is mounted one frame after isActive flips
+// to true — letting the modal frame paint first instead of blocking on ~400 cards.
 const SearchFood = ({
   onSelectFood,
   mode = 'products-and-dishes',
@@ -52,6 +52,20 @@ const SearchFood = ({
 }: Props) => {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery ?? '');
   const [currentTab, setCurrentTab] = useState(getDefaultTab(mode));
+  const [showHeavy, setShowHeavy] = useState(false);
+  const [openTicket, setOpenTicket] = useState(0);
+
+  useEffect(() => {
+    if (!isActive) {
+      setShowHeavy(false);
+      return;
+    }
+    const id = requestAnimationFrame(() => {
+      setOpenTicket((t) => t + 1);
+      setShowHeavy(true);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isActive]);
 
   return (
     <div className={styles.content}>
@@ -64,20 +78,22 @@ const SearchFood = ({
         />
       </div>
 
-      {isActive && (
-        <SearchFoodHeavy
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          currentTab={currentTab}
-          setCurrentTab={setCurrentTab}
-          mode={mode}
-          activeItemId={activeItemId}
-          richNutrient={richNutrient}
-          onInfoClick={onInfoClick}
-          onSelectFood={onSelectFood}
-          bottomLeft={bottomLeft}
-          itemHtmlFor={itemHtmlFor}
-        />
+      {showHeavy && (
+        <div key={openTicket} className={styles.heavyFade}>
+          <SearchFoodHeavy
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            currentTab={currentTab}
+            setCurrentTab={setCurrentTab}
+            mode={mode}
+            activeItemId={activeItemId}
+            richNutrient={richNutrient}
+            onInfoClick={onInfoClick}
+            onSelectFood={onSelectFood}
+            bottomLeft={bottomLeft}
+            itemHtmlFor={itemHtmlFor}
+          />
+        </div>
       )}
     </div>
   );

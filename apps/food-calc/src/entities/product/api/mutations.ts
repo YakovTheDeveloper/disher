@@ -11,19 +11,12 @@ function safeParseJson<T>(json: string | undefined, fallback: T): T {
 
 export async function createProduct(params: {
   name: string;
-  nameEng?: string;
-  description?: string;
-  descriptionEng?: string;
 }): Promise<string> {
   const id = crypto.randomUUID();
   const row: ProductRow = {
     id,
     name: params.name,
-    name_eng: params.nameEng ?? '',
-    description: params.description ?? '',
-    description_eng: params.descriptionEng ?? '',
     source: '',
-    price_per_kg: 0,
     nutrients: {},
     portions: [],
     categories: [],
@@ -37,11 +30,7 @@ export async function createProduct(params: {
 
 type ProductUpdates = Partial<{
   name: string;
-  nameEng: string;
-  description: string;
-  descriptionEng: string;
   source: string;
-  pricePerKg: number;
   /** UI passes JSON string; we store the parsed object in Dexie. */
   nutrients: string;
   portions: string;
@@ -52,11 +41,7 @@ type ProductUpdates = Partial<{
 
 const COLUMN_MAP: Record<keyof ProductUpdates, string> = {
   name: 'name',
-  nameEng: 'name_eng',
-  description: 'description',
-  descriptionEng: 'description_eng',
   source: 'source',
-  pricePerKg: 'price_per_kg',
   nutrients: 'nutrients',
   portions: 'portions',
   categories: 'categories',

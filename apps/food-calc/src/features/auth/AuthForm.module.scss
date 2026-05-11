@@ -192,6 +192,9 @@
   color: var(--text-secondary);
   cursor: pointer;
   border-radius: var(--radius-md);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
   transition:
     background var(--duration-fast) var(--easing-default),
     color var(--duration-fast) var(--easing-default);
@@ -345,7 +348,7 @@
   }
 
   .switchBtn {
-    color: rgba(245, 243, 255, 0.7);
+    color: rgba(255, 255, 255, 0.95);
 
     &:hover:not(:disabled) {
       color: #fff;
@@ -462,7 +465,7 @@
   }
 
   .switchBtn {
-    color: rgba(255, 255, 255, 0.72);
+    color: rgba(255, 255, 255, 0.95);
 
     &:hover:not(:disabled) {
       color: #fff;

@@ -11,11 +11,7 @@ export function mapProductRow(row: ProductRow): Product {
   return {
     id: row.id,
     name: row.name,
-    nameEng: row.name_eng,
-    description: row.description,
-    descriptionEng: row.description_eng,
     source: row.source,
-    pricePerKg: row.price_per_kg,
     nutrients: stringifyJson(row.nutrients, '{}'),
     portions: stringifyJson(row.portions, '[]'),
     categories: stringifyJson(row.categories, '[]'),

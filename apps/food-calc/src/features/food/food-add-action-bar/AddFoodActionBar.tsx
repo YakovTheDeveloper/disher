@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import clsx from 'clsx';
 import { WriteFoodButton, type UseWriteFoodFlowResult } from '@/features/food/food-free-text-parse';
 import styles from './AddFoodActionBar.module.scss';
@@ -17,6 +16,8 @@ export interface AddFoodActionBarProps {
   searchHtmlFor: string;
   searchLabel?: string;
   className?: string;
+  dark?: boolean;
+  inverse?: boolean;
 }
 
 export const AddFoodActionBar = ({
@@ -26,46 +27,33 @@ export const AddFoodActionBar = ({
   searchHtmlFor,
   searchLabel = 'Еда',
   className,
-}: AddFoodActionBarProps) => {
-  const [isWritePressed, setIsWritePressed] = useState(false);
-  const [isSearchPressed, setIsSearchPressed] = useState(false);
-
-  return (
-    <div className={clsx(styles.searchBar, className)}>
-      <div
-        className={clsx(styles.searchBarWrite, { [styles.searchBarWriteActive]: isWritePressed })}
-        onMouseDown={() => setIsWritePressed(true)}
-        onMouseUp={() => setIsWritePressed(false)}
-        onMouseLeave={() => setIsWritePressed(false)}
-        onTouchStart={() => setIsWritePressed(true)}
-        onTouchEnd={() => setIsWritePressed(false)}
-      >
-        <WriteFoodButton
-          flow={writeFoodFlow}
-          inputId={writeFoodInputId}
-          label={writeFoodLabel}
-          className={styles.searchBarWriteButton}
-        />
-      </div>
-      <span className={styles.searchBarSeparator}>~</span>
-      <label
-        htmlFor={searchHtmlFor}
-        className={clsx(styles.searchBarSearch, {
-          [styles.searchBarSearchActive]: isSearchPressed,
-        })}
-        onMouseDown={() => setIsSearchPressed(true)}
-        onMouseUp={() => setIsSearchPressed(false)}
-        onMouseLeave={() => setIsSearchPressed(false)}
-        onTouchStart={() => setIsSearchPressed(true)}
-        onTouchEnd={() => setIsSearchPressed(false)}
-      >
-        <span className={styles.searchBarSearchIcon}>
-          <SearchIcon />
-        </span>
-        <p>{searchLabel}</p>
-      </label>
+  dark,
+  inverse,
+}: AddFoodActionBarProps) => (
+  <div
+    className={clsx(
+      styles.bar,
+      dark && styles.barDark,
+      inverse && styles.barInverse,
+      className,
+    )}
+  >
+    <div className={styles.write}>
+      <WriteFoodButton
+        flow={writeFoodFlow}
+        inputId={writeFoodInputId}
+        label={writeFoodLabel}
+        className={styles.writeButton}
+      />
     </div>
-  );
-};
+    <span className={styles.separator} aria-hidden>~</span>
+    <label htmlFor={searchHtmlFor} className={styles.search}>
+      <span className={styles.searchIcon}>
+        <SearchIcon />
+      </span>
+      <span>{searchLabel}</span>
+    </label>
+  </div>
+);
 
 export default AddFoodActionBar;

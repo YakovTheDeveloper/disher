@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { format, parse, subDays } from 'date-fns';
 import { modalStore } from '@/shared/ui';
+import { drawerStore } from '@/shared/ui/drawer-store';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import { useActiveHypotheses } from '@/entities/hypothesis';
 import { AnalysisResultModal } from '../AnalysisResultModal';
+import { AnalysisModeDrawer } from '../AnalysisModeDrawer';
 import {
   startAnalysis,
   useAnalysis,
@@ -11,6 +13,24 @@ import {
   isFailedAnalysis,
 } from '../api';
 import styles from './RunAnalysisButton.module.scss';
+
+// 4-point sparkle — signals "AI / insight / analysis". Uses
+// currentColor so it adapts to dark vs inverse variants.
+const SparkleIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <path
+      d="M12 3 L13.6 9.4 L20 11 L13.6 12.6 L12 19 L10.4 12.6 L4 11 L10.4 9.4 Z"
+      fill="currentColor"
+    />
+  </svg>
+);
 
 type Props = {
   className?: string;
@@ -20,6 +40,7 @@ type Props = {
   days?: number;
   disabled?: boolean;
   disabledHint?: string;
+  inverse?: boolean;
 };
 
 function buildDayKeys(date: string, days: number): string[] {
@@ -47,11 +68,12 @@ function dayWindowIso(date: string, days: number): { start: string; end: string 
 
 const RunAnalysisButton = ({
   className,
-  label = 'Разобрать',
+  label = 'Разобрать день',
   date,
   days = 7,
   disabled,
   disabledHint,
+  inverse,
 }: Props) => {
   const isOnline = useOnline();
   const activeHypotheses = useActiveHypotheses();
@@ -89,6 +111,10 @@ const RunAnalysisButton = ({
   const handleClick = useCallback(async () => {
     if (running) return;
     setError(null);
+
+    const mode = await drawerStore.show(AnalysisModeDrawer, {});
+    if (!mode) return;
+
     try {
       const dayKeys = buildDayKeys(date, days);
       const { start, end } = dayWindowIso(date, days);
@@ -106,6 +132,7 @@ const RunAnalysisButton = ({
         windowStart: start,
         windowEnd: end,
         dayKeys,
+        mode,
         ...(hypothesesContext.length > 0 ? { hypotheses: hypothesesContext } : {}),
       });
       setAnalysisId(started.analysisId);
@@ -118,13 +145,15 @@ const RunAnalysisButton = ({
     <>
       <button
         type="button"
-        className={[styles.button, className].filter(Boolean).join(' ')}
+        className={[styles.button, inverse && styles.buttonInverse, className]
+          .filter(Boolean)
+          .join(' ')}
         onClick={handleClick}
         disabled={finalDisabled}
         title={finalHint}
         aria-label={label}
       >
-        {running && <span className={styles.spinner} />}
+        {running ? <span className={styles.spinner} /> : <SparkleIcon />}
         {running ? 'Разбираем…' : label}
       </button>
       {error && <p className={styles.error}>{error}</p>}

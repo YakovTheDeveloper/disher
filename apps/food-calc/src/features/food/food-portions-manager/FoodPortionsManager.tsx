@@ -2,7 +2,7 @@ import { FC, useState, useCallback } from 'react';
 import Button from '@/shared/ui/atoms/Button/Button';
 import s from './FoodPortionsManager.module.scss';
 
-type Portion = { label: string; amount: number; unit: string; grams: number };
+type Portion = { label: string; grams: number };
 
 type Props = {
   portions: Portion[];
@@ -49,8 +49,6 @@ const FoodPortionsManager: FC<Props> = ({ portions, onAdd, onUpdate, onRemove })
     if (state.mode === 'adding') {
       onAdd?.({
         label: draft.label.trim(),
-        amount: 1,
-        unit: 'порц.',
         grams: draft.grams,
       });
     } else if (state.mode === 'editing') {

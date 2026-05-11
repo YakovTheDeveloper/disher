@@ -268,8 +268,6 @@ const DishBuilderPage = () => {
         <FoodPortionsManager
           portions={portionsRaw.map((p) => ({
             label: p.label,
-            amount: p.amount,
-            unit: p.unit,
             grams: p.grams,
           }))}
           onAdd={(p) =>

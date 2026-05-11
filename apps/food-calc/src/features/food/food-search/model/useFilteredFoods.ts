@@ -15,7 +15,7 @@ export function useFilteredFoods(searchQuery: string, myFoodOnly = false, richNu
   const productFuse = useMemo(
     () =>
       new Fuse(allProductsRaw, {
-        keys: ['name', 'nameEng'],
+        keys: ['name'],
         threshold: FUSE_THRESHOLD,
         ignoreLocation: true,
         includeScore: true,

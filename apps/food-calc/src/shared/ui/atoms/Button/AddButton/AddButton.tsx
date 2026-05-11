@@ -30,8 +30,18 @@ type Props = {
   as?: 'button' | 'label';
   htmlFor?: string;
   prominent?: boolean;
+  dark?: boolean;
+  inverse?: boolean;
 };
-const AddButton = ({ onClick, children, as = 'button', htmlFor, prominent }: Props) => {
+const AddButton = ({
+  onClick,
+  children,
+  as = 'button',
+  htmlFor,
+  prominent,
+  dark,
+  inverse,
+}: Props) => {
   const Tag = as;
   const handleClick = () => {
     toast.dismiss();
@@ -41,7 +51,13 @@ const AddButton = ({ onClick, children, as = 'button', htmlFor, prominent }: Pro
     <Tag
       onClick={handleClick}
       htmlFor={htmlFor}
-      className={clsx(styles.container, children && styles.withText, prominent && styles.prominent)}
+      className={clsx(
+        styles.container,
+        children && styles.withText,
+        prominent && styles.prominent,
+        dark && styles.dark,
+        inverse && styles.inverse
+      )}
     >
       <span className={styles.icon}>
         <PlusIcon />

@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm run *)",
+      "Bash(pnpm install *)",
+      "Bash(Start-Sleep -Seconds 6)",
+      "Bash(PGPASSWORD=0912 psql -h localhost -p 5433 -U postgres -d disher_dev -c \"\\\\dt\")",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(tail -25 /c/Users/booty/AppData/Local/Temp/claude/c--Users-booty-Documents-GitHub-disher/6b3389d3-cfbd-4f0b-98fb-f4b686c94d61/tasks/brqqrec92.output)",
+      "Read(//c/Users/booty/AppData/Local/Temp/claude/c--Users-booty-Documents-GitHub-disher/6b3389d3-cfbd-4f0b-98fb-f4b686c94d61/tasks/**)",
+      "WebSearch",
+      "Bash(node -e \"const c=require\\('./apps/food-calc/src/shared/data/catalog.json'\\); console.log\\('count:', c.length\\); console.log\\('first:', JSON.stringify\\(c[0],null,2\\).slice\\(0,400\\)\\); console.log\\('last id:', c[c.length-1]?.id\\);\")",
+      "Bash(node -e ' *)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue | Select-Object LocalAddress,LocalPort,State,OwningProcess | Format-Table -AutoSize; Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue | ForEach-Object { Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue } | Select-Object Id,ProcessName,Path | Format-Table -AutoSize)",
+      "PowerShell(Get-Process -Id 1872,272 -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,StartTime,@{n='CmdLine';e={\\(Get-CimInstance Win32_Process -Filter \"ProcessId=$\\($_.Id\\)\"\\).CommandLine}} | Format-List)",
+      "Bash(pnpm --filter @disher/frontend add -D kill-port@^2.0.1)",
+      "Bash(node scripts/free-port.mjs 5173)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:developer.chrome.com)",
+      "WebFetch(domain:www.sitepoint.com)",
+      "Bash(npx tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(grep -rn \"--text-sm:\\\\|--text-xl:\" \"c:/Users/booty/Documents/GitHub/disher/apps/food-calc/src/\")",
+      "Bash(node -e \"const c = require\\('./src/shared/data/catalog.json'\\); console.log\\('catalog size:', c.length\\)\")",
+      "Bash(node -e \"const c = require\\('c:/Users/booty/Documents/GitHub/disher/apps/food-calc/src/shared/data/catalog.json'\\); console.log\\('catalog size:', c.length\\)\")",
+      "WebFetch(domain:blog.logrocket.com)",
+      "WebFetch(domain:m3.material.io)",
+      "WebFetch(domain:www.joshwcomeau.com)",
+      "WebFetch(domain:www.ripplix.com)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/.claude/settings.local.json','utf8'\\)\\); console.log\\('JSON OK'\\)\")"
+    ]
+  }
+}

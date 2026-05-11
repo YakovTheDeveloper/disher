@@ -12,6 +12,8 @@ export interface WriteFoodButtonProps {
   label?: string;
   className?: string;
   prominent?: boolean;
+  inverse?: boolean;
+  dark?: boolean;
 }
 
 const SerifTIcon = () => (
@@ -43,6 +45,8 @@ export const WriteFoodButton = ({
   label = 'Описать еду',
   className,
   prominent,
+  inverse,
+  dark,
 }: WriteFoodButtonProps) => {
   const online = useOnline();
 
@@ -83,6 +87,8 @@ export const WriteFoodButton = ({
         styles[`state_${flow.state}`],
         prominent && styles.prominent,
         disabled && styles.disabled,
+        inverse && styles.inverse,
+        dark && styles.dark,
         className,
       )}
       aria-disabled={disabled || undefined}

@@ -545,7 +545,8 @@
       "WebFetch(domain:doc.replicache.dev)",
       "WebFetch(domain:connordisselkoen.com)",
       "Bash(git -C \"c:/Users/booty/Documents/GitHub/disher\" log --oneline -20)",
-      "Bash(dir apps\\\\disher-backend-3.0\\\\src\\\\api\\\\routes\\\\backup.ts)"
+      "Bash(dir apps\\\\disher-backend-3.0\\\\src\\\\api\\\\routes\\\\backup.ts)",
+      "Bash(git cherry-pick *)"
     ],
     "defaultMode": "bypassPermissions"
   }

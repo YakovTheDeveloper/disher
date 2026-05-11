@@ -37,3 +37,100 @@
         fill: currentColor;
     }
 }
+
+// ─── Dark variant — matches RunAnalysisButton ("Разобрать день") ──────
+// Solid purple-navy pill with white glyph. Plus icon inherits currentColor.
+.dark {
+    background: rgba(66, 66, 117, 0.918);
+    border: none;
+    color: #fff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+
+    &:hover,
+    &:active {
+        background: rgba(66, 66, 117, 0.918);
+        box-shadow: none;
+        transform: none;
+    }
+
+    &:active {
+        transform: scale(0.97);
+    }
+
+    &.withText {
+        border-radius: 999px;
+        padding: 12px 22px;
+        min-height: 44px;
+        font-size: 15px;
+        font-weight: 500;
+    }
+
+    // Prominent (empty-state CTA) inherits the same pill shape and
+    // 15px/500 typography as "Разобрать день" — overrides the larger
+    // 25px / weight-300 from the base .prominent rule.
+    &.prominent {
+        border: none;
+        background: rgba(66, 66, 117, 0.918);
+        color: #fff;
+        border-radius: 999px;
+        padding: 12px 22px;
+        min-height: 44px;
+        height: auto;
+        width: auto;
+        box-shadow: none;
+
+        & .text {
+            font-size: 15px;
+            font-weight: 500;
+        }
+    }
+}
+
+// ─── Inverse variant — white fill, purple text + border ───────────────
+.inverse {
+    background: #fff;
+    border: 1px solid rgba(66, 66, 117, 0.918);
+    color: rgba(66, 66, 117, 0.918);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+
+    &:hover {
+        background: #fff;
+        box-shadow: none;
+        transform: none;
+    }
+
+    &:active {
+        background: #fff;
+        box-shadow: none;
+        transform: scale(0.97);
+    }
+
+    &.withText {
+        border-radius: 999px;
+        padding: 12px 22px;
+        min-height: 44px;
+        font-size: 15px;
+        font-weight: 500;
+    }
+
+    &.prominent {
+        background: #fff;
+        color: rgba(66, 66, 117, 0.918);
+        border: 1px solid rgba(66, 66, 117, 0.918);
+        border-radius: 999px;
+        padding: 12px 22px;
+        min-height: 44px;
+        height: auto;
+        width: auto;
+        box-shadow: none;
+
+        & .text {
+            font-size: 15px;
+            font-weight: 500;
+        }
+    }
+}

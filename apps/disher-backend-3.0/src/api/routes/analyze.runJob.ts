@@ -2,9 +2,11 @@ import { pool } from "../db.js";
 import {
   ANALYSIS_OUTPUT_PROMPT_SPEC,
   SYSTEM_PROMPT_BASE,
+  SYSTEM_PROMPT_FOODS_ONLY,
   safeStringifyArray,
   stripNullBytes,
   tryParseOutput,
+  type AnalysisMode,
   type AnalysisOutput,
 } from "../../shared/analysis-output.js";
 
@@ -37,6 +39,9 @@ export type AnalyzePayload = {
   scheduleFoods: unknown[];
   scheduleEvents: unknown[];
   hypotheses?: HypothesisContext[];
+  /** 'foods-only' suppresses events from the prompt and picks a food-focused
+   *  system prompt. Defaults to 'foods-and-events' when absent. */
+  mode?: AnalysisMode;
 };
 
 export type CallLLMOptions = {
@@ -49,7 +54,7 @@ export type CallLLM = (
   options: CallLLMOptions,
 ) => Promise<string>;
 
-export { SYSTEM_PROMPT_BASE, ANALYSIS_OUTPUT_PROMPT_SPEC };
+export { SYSTEM_PROMPT_BASE, SYSTEM_PROMPT_FOODS_ONLY, ANALYSIS_OUTPUT_PROMPT_SPEC };
 
 function buildUserPrompt(payload: AnalyzePayload): string {
   const lines: string[] = [];
@@ -61,11 +66,13 @@ function buildUserPrompt(payload: AnalyzePayload): string {
   );
   lines.push(foods.json);
 
-  const events = safeStringifyArray(payload.scheduleEvents, EVENTS_BUDGET);
-  lines.push(
-    `События (всего ${payload.scheduleEvents.length}, в промпте ${events.kept}):`,
-  );
-  lines.push(events.json);
+  if (payload.mode !== "foods-only") {
+    const events = safeStringifyArray(payload.scheduleEvents, EVENTS_BUDGET);
+    lines.push(
+      `События (всего ${payload.scheduleEvents.length}, в промпте ${events.kept}):`,
+    );
+    lines.push(events.json);
+  }
 
   if (payload.hypotheses && payload.hypotheses.length > 0) {
     const safe = payload.hypotheses.map((h) => ({
@@ -153,10 +160,12 @@ export async function runAnalysisJob(
 
   const signal = AbortSignal.timeout(LLM_TIMEOUT_MS);
   const userPrompt = buildUserPrompt(payload);
+  const systemPrompt =
+    payload.mode === "foods-only" ? SYSTEM_PROMPT_FOODS_ONLY : SYSTEM_PROMPT_BASE;
 
   try {
     const result = await callLLMWithValidation(
-      SYSTEM_PROMPT_BASE,
+      systemPrompt,
       userPrompt,
       signal,
       callLLM,

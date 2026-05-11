@@ -17,7 +17,6 @@ type ProductLite = {
   id: string;
   name: string;
   isUserCreated: boolean;
-  pricePerKg: number | null;
   servingUnit: string | null;
 };
 type DishLite = { id: string; name: string };
@@ -31,7 +30,6 @@ function useProductLookup(): Map<string, ProductLite> {
         id: r.id,
         name: r.name,
         isUserCreated: false,
-        pricePerKg: r.price_per_kg ?? null,
         servingUnit: r.serving_unit ?? null,
       });
     }
@@ -40,7 +38,6 @@ function useProductLookup(): Map<string, ProductLite> {
         id: r.id,
         name: r.name,
         isUserCreated: !isCatalogId(r.id),
-        pricePerKg: r.price_per_kg ?? null,
         servingUnit: r.serving_unit ?? null,
       });
     }
@@ -93,7 +90,6 @@ function sameProduct(
   return (
     a.name === b.name &&
     a.isUserCreated === b.isUserCreated &&
-    a.pricePerKg === b.pricePerKg &&
     a.servingUnit === b.servingUnit
   );
 }
@@ -120,7 +116,6 @@ function enrichWithCache(
       ? {
           name: productLite.name,
           isUserCreated: productLite.isUserCreated,
-          pricePerKg: productLite.pricePerKg,
           servingUnit: productLite.servingUnit,
         }
       : null;

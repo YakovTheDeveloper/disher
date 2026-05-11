@@ -53,14 +53,14 @@ export function AuthScreen() {
     <div className={styles.screen} data-auth-variant={variant} data-auth-theme={theme}>
       {hasBg && <div className={styles.bg} aria-hidden="true" />}
       {hasBg && <div className={styles.scrim} aria-hidden="true" />}
-      <div className={styles.brand}>
-        <DisherLogo className={styles.logo} />
-      </div>
       {pendingEmail ? (
         <CheckInboxView email={pendingEmail} layout={layout} />
       ) : (
         <AuthForm layout={layout} />
       )}
+      <div className={styles.brand}>
+        <DisherLogo className={styles.logo} />
+      </div>
     </div>
   );
 }

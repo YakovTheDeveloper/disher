@@ -111,14 +111,12 @@ export async function copyDishItems(
 
 export async function addDishPortion(
   dishId: string,
-  portion: { label: string; amount: number; unit: string; grams: number },
+  portion: { label: string; grams: number },
 ): Promise<void> {
   const row: DishPortionRow = {
     id: crypto.randomUUID(),
     dish_id: dishId,
     label: portion.label,
-    amount: portion.amount,
-    unit: portion.unit,
     grams: portion.grams,
     created_at: now(),
   };
@@ -127,8 +125,6 @@ export async function addDishPortion(
 
 type DishPortionUpdates = Partial<{
   label: string;
-  amount: number;
-  unit: string;
   grams: number;
 }>;
 

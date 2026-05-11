@@ -1,81 +1,61 @@
-.searchBar {
-  display: flex;
-  align-items: center;
-  width: calc(100vw - 1rem);
-  max-width: 560px;
-  padding: 0 8px 0 4px;
-  min-height: 52px;
-  border-radius: 999px;
+// AddFoodActionBar — write-food + search pair, three visual modes:
+//   .bar             base (light glass — DishBuilderPage)
+//   .bar.barDark     purple-navy fill, white glyphs (HomePage)
+//   .bar.barInverse  white fill, purple text + 1px border
+//
+// The bar is content-sized (inline-flex) — it does NOT stretch to the
+// viewport. That keeps it visually a pill like "Разобрать день".
 
-}
-
-.searchBarWrite {
-  flex: 1;
-  min-width: 0;
+.bar {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-height: 52px;
+  min-height: 44px;
   border-radius: 999px;
+}
 
+// ── Base (light glass) ─────────────────────────────────────────────
+
+.write {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  border-radius: 999px;
   border: 1px solid whitesmoke;
-  box-shadow: none;
+  background: rgba(244, 251, 255, 0.7);
+  backdrop-filter: blur(12px);
   color: rgba(31, 42, 68, 0.55);
-  font-size: 15px;
-  font-weight: 400;
   cursor: text;
   user-select: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   transition: transform 0.12s ease;
-  backdrop-filter: blur(12px);
-  background: rgba(244, 251, 255, 0.7);
-
-  &:hover,
-  &:focus-visible {
-    outline: none;
-  }
 
   &:active {
-    transform: none;
+    transform: scale(0.98);
   }
 }
 
-.searchBarWriteButton {
-  flex: 1;
-  min-width: 0;
+.writeButton {
   gap: 10px;
   border: none;
-  box-shadow: none;
   background: transparent;
   cursor: text;
   border-radius: 999px;
 }
 
-.searchBarWriteActive {
-  background: rgba(98, 0, 255, 1);
-  color: rgba(31, 42, 68, 0.9);
-  transform: scale(0.98);
-}
-
-.searchBarSearch {
+.search {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  padding: 10px 10px;
   gap: 6px;
   min-height: 44px;
+  padding: 10px;
   border-radius: 12px;
   background: white;
-  position: relative;
-  border: none;
   color: rgba(31, 42, 68, 0.82);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  transition: color 0.15s ease, transform 0.12s ease;
 
   &:hover,
   &:focus-visible {
@@ -85,28 +65,80 @@
 
   &:active {
     transform: scale(0.97);
-    background: red;
   }
 }
 
-.searchBarSearchActive {
-  background: rgba(64, 114, 230, 1);
-  color: rgba(31, 42, 68, 1);
-  transform: scale(0.97);
-}
-
-.searchBarSeparator {
-  margin: 0 12px;
-  font-weight: 400;
-  font-size: 1.5rem;
-  color: rgba(31, 42, 68, 0.12);
-}
-
-.searchBarSearchIcon {
+.searchIcon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 16px;
   height: 16px;
-  color: currentColor;
+}
+
+.separator {
+  margin: 0 12px;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: rgba(31, 42, 68, 0.12);
+}
+
+// ── Dark / Inverse — single unified pill ───────────────────────────
+// Background lives on the bar; inner zones go transparent so the bar
+// reads as one shape, not two highlight patches.
+
+%unified-pill {
+  border-radius: 999px;
+
+  .write,
+  .search {
+    background: transparent;
+    border: none;
+    color: inherit;
+    backdrop-filter: none;
+    min-height: 44px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  // WriteFoodButton renders the actual <label>; > span targets the
+  // inner text span (separate CSS module — can't reference its class
+  // by name from here).
+  .writeButton {
+    background: transparent;
+    color: inherit;
+    padding: 12px 22px;
+    min-height: 44px;
+
+    > span {
+      font-size: 15px;
+      font-weight: 500;
+    }
+  }
+
+  .search {
+    padding: 12px 22px;
+  }
+}
+
+.barDark {
+  @extend %unified-pill;
+  background: rgba(66, 66, 117, 0.918);
+  color: #fff;
+
+  .separator {
+    color: rgba(255, 255, 255, 0.25);
+  }
+}
+
+.barInverse {
+  @extend %unified-pill;
+  background: #fff;
+  color: rgba(66, 66, 117, 0.918);
+  border: 1px solid rgba(66, 66, 117, 0.918);
+
+  .separator {
+    color: rgba(66, 66, 117, 0.3);
+  }
 }

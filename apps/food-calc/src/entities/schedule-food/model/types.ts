@@ -17,7 +17,6 @@ export type ScheduleFoodWithRelations = ScheduleFood & {
     name: string;
     /** True when the product was created by the user (not a catalog row). */
     isUserCreated: boolean;
-    pricePerKg?: number | null;
     /** null = граммы (food). Иначе единица одной порции (IU/mg/mcg/g/шт). */
     servingUnit?: string | null;
   } | null;

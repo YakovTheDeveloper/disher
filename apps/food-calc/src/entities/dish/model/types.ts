@@ -16,8 +16,6 @@ export interface DishPortion {
   id: string;
   dishId: string;
   label: string;
-  amount: number;
-  unit: string;
   grams: number;
   createdAt: string;
 }
