@@ -4,11 +4,9 @@ import { useNutrientCard } from './useNutrientCard';
 import NutrientInput from './NutrientInput';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import {
-  useDailyNorm,
-  setDailyNormNutrient,
-  DEFAULT_NORM_ID,
-  DEFAULT_NORM,
-  type DailyNormItems,
+  useUserNormItems,
+  setUserNormNutrient,
+  DEFAULT_NORM_ITEMS,
 } from '@/entities/daily-norm';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
@@ -64,18 +62,12 @@ const NutrientCardEditor: FC<Props> = ({
   const normInputId = useId();
   const [normModalOpen, setNormModalOpen] = useState(false);
   const [normDraft, setNormDraft] = useState(0);
-  const defaultNorm = useDailyNorm(DEFAULT_NORM_ID);
-  const dailyNorm = defaultNorm ?? DEFAULT_NORM;
-
-  const getNormItems = useCallback(() => {
-    return (typeof dailyNorm.items === 'string'
-      ? JSON.parse(dailyNorm.items)
-      : dailyNorm.items ?? {}) as DailyNormItems;
-  }, [dailyNorm.items]);
+  const userItems = useUserNormItems();
 
   const getCurrentNormValue = useCallback(() => {
-    return getNormItems()[id] ?? 0;
-  }, [id, getNormItems]);
+    const items = userItems ?? DEFAULT_NORM_ITEMS;
+    return items[id] ?? 0;
+  }, [id, userItems]);
 
   const handleNormFocus = useCallback(() => {
     setNormDraft(getCurrentNormValue());
@@ -83,13 +75,12 @@ const NutrientCardEditor: FC<Props> = ({
   }, [getCurrentNormValue]);
 
   const handleNormSave = useCallback(() => {
-    const items = getNormItems();
     void safeMutate(
-      () => setDailyNormNutrient(dailyNorm.id, id, normDraft || null, items),
+      () => setUserNormNutrient(id, normDraft || null),
       'Не удалось сохранить норму'
     );
     setNormModalOpen(false);
-  }, [id, normDraft, dailyNorm, getNormItems]);
+  }, [id, normDraft]);
 
   const handleNormChange = useCallback((val: number) => {
     setNormDraft(val);

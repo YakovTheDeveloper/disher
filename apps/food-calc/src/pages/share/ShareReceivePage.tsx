@@ -72,7 +72,7 @@ const ShareReceivePage = () => {
         ),
       'Не удалось добавить продукты'
     );
-    if (result === undefined) return;
+    if (!result.ok) return;
 
     toaster.success(`Добавлено ${picked.length} продуктов`, {
       action: { label: 'Открыть', href: RouterUrls.getDish(dishId) },
@@ -102,7 +102,7 @@ const ShareReceivePage = () => {
         ),
       'Не удалось добавить продукты'
     );
-    if (result === undefined) return;
+    if (!result.ok) return;
 
     toaster.success(`Добавлено ${picked.length} продуктов на ${date}`, {
       action: { label: 'Открыть', href: `${RouterLinks.ScheduleBuilder}/${date}` },

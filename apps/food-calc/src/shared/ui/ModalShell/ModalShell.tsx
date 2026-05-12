@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import s from './ModalShell.module.scss';
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
-import { useDesignVariants } from '@/shared/lib/useDesignVariants';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 
 type Variant =
@@ -35,19 +35,19 @@ const SPRING_CLASSES: Record<SpringVariant, string> = {
 
 const isSpringVariant = (v: Variant): v is SpringVariant => v in SPRING_CLASSES;
 
-const DV_VARIANTS: Variant[] = ['default', 'spring2', 'spring4', 'spring5'];
+const DV_VARIANTS = ['default', 'spring2', 'spring4', 'spring5'] as const;
 
 export const ModalShell = ({ children, className, variant: variantProp = 'spring' }: Props) => {
   const showDv = shouldShowDvBar();
-  const { index: dvIndex } = useDesignVariants('ModalShell', DV_VARIANTS.length);
-  const variant: Variant = showDv ? DV_VARIANTS[dvIndex] : variantProp;
+  const { variant: dvVariant, anchor: dvAnchor } = useDesignVariant('ModalShell', DV_VARIANTS);
+  const variant: Variant = showDv ? dvVariant : variantProp;
 
   const isSpring = isSpringVariant(variant);
   const isGradient = variant === 'gradient1' || variant === 'gradient2' || variant === 'gradient3';
   const variantClass = isSpring ? SPRING_CLASSES[variant] : isGradient ? s.wrapperGradient : '';
 
   return (
-    <div className={`${s.wrapper} ${variantClass} ${className ?? ''}`}>
+    <div {...dvAnchor} className={`${s.wrapper} ${variantClass} ${className ?? ''}`}>
       {isSpring && (
         <div className={s.springOrbs} aria-hidden>
           <span className={`${s.orb} ${s.orb1}`} />

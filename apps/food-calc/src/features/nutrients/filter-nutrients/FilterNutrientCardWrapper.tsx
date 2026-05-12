@@ -1,7 +1,7 @@
 import { FC, ReactNode, useRef, useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import { useDailyNorm, setDailyNormNutrient, DEFAULT_NORM_ID, DEFAULT_NORM, type DailyNormItems } from '@/entities/daily-norm';
+import { useUserNormItems, setUserNormNutrient, DEFAULT_NORM_ITEMS } from '@/entities/daily-norm';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './FilterNutrients.module.scss';
 
@@ -93,20 +93,14 @@ const FilterNutrientCardWrapper: FC<Props> = ({
   const [normDraft, setNormDraft] = useState(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Get default daily norm for editing
-  const defaultNorm = useDailyNorm(DEFAULT_NORM_ID);
-  const dailyNorm = defaultNorm ?? DEFAULT_NORM;
-
-  const getNormItems = useCallback(() => {
-    return (typeof dailyNorm.items === 'string'
-      ? JSON.parse(dailyNorm.items)
-      : dailyNorm.items ?? {}) as DailyNormItems;
-  }, [dailyNorm.items]);
+  // Edit value comes from the user norm if set up, else from factory defaults.
+  const userItems = useUserNormItems();
 
   const getCurrentNormValue = useCallback(() => {
     if (!nutrientId) return 0;
-    return getNormItems()[nutrientId] ?? 0;
-  }, [nutrientId, getNormItems]);
+    const items = userItems ?? DEFAULT_NORM_ITEMS;
+    return items[nutrientId] ?? 0;
+  }, [nutrientId, userItems]);
 
   const handleNormFocus = useCallback(() => {
     setNormDraft(getCurrentNormValue());
@@ -115,14 +109,13 @@ const FilterNutrientCardWrapper: FC<Props> = ({
 
   const handleNormBlur = useCallback(() => {
     if (!nutrientId) return;
-    const items = getNormItems();
     void safeMutate(
-      () => setDailyNormNutrient(dailyNorm.id, nutrientId, normDraft || null, items),
+      () => setUserNormNutrient(nutrientId, normDraft || null),
       'Не удалось сохранить норму'
     );
     setNormEditing(false);
     setOverlayOpen(false);
-  }, [nutrientId, normDraft, dailyNorm, getNormItems]);
+  }, [nutrientId, normDraft]);
 
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {

@@ -2,6 +2,7 @@ import {
     defaultDailyNorms,
     Nutrient,
 } from '@/entities/nutrient/ui/NutrientGroup/constants';
+import { useUserNormItems } from '@/entities/daily-norm';
 
 export interface UseNutrientCardProps {
     content: Nutrient;
@@ -44,7 +45,9 @@ export const useNutrientCard = ({
 }: UseNutrientCardProps): UseNutrientCardReturn => {
     const { displayNameRu, id, unitRu, symbol } = content;
     const value = getValue(id);
-    const norm = defaultDailyNorms[+id];
+    const userItems = useUserNormItems();
+    const userNorm = userItems?.[id];
+    const norm = userNorm ?? defaultDailyNorms[+id];
 
     const percent = norm > 0 ? (value / norm) * 100 : 0;
     const progressPercent = Math.min(100, percent);

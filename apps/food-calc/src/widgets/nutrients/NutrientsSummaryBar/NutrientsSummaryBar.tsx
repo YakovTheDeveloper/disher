@@ -1,15 +1,16 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
+import { parse, isValid } from 'date-fns';
 import { drawerStore } from '@/shared/ui';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
+import { ScheduleSelectionDrawer } from '@/features/ScheduleSelection/ScheduleSelectionDrawer';
+import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import styles from './NutrientsSummaryBar.module.scss';
 
-const ENERGY_ID = '7';
-const PROTEIN_ID = '1';
-
 type Props = {
+  date: string;
   totals: NutrientTotals;
   missingNutrientNames?: string[];
   isLoading?: boolean;
@@ -33,38 +34,50 @@ const NutrientsDrawer = ({ totals, missingNutrientNames, isLoading }: DrawerProp
   </DrawerLayout>
 );
 
-const NutrientsSummaryBar = ({ totals, missingNutrientNames, isLoading }: Props) => {
-  const energy = totals[ENERGY_ID] ?? 0;
-  const protein = totals[PROTEIN_ID] ?? 0;
-  const hasData = energy > 0 || protein > 0;
+const formatDateLabel = (input: string) => {
+  const date = parse(input, 'dd-MM-yyyy', new Date());
+  if (!isValid(date)) return input;
+  const weekday = new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(date);
+  const month = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(date);
+  return `${weekday} ${date.getDate()} ${month}`;
+};
 
-  const handleOpen = useCallback(() => {
+const NutrientsSummaryBar = ({ date, totals, missingNutrientNames, isLoading }: Props) => {
+  const { toScheduleBuilder } = useAppRoutes();
+  const dateLabel = useMemo(() => formatDateLabel(date), [date]);
+
+  const handleNutrientsClick = useCallback(() => {
     drawerStore.show(NutrientsDrawer, { totals, missingNutrientNames, isLoading });
   }, [totals, missingNutrientNames, isLoading]);
 
+  const handleDateClick = useCallback(async () => {
+    const selectedDate = await drawerStore.show(ScheduleSelectionDrawer, {
+      selectedDate: date,
+    });
+    if (selectedDate && selectedDate !== date) {
+      toScheduleBuilder(selectedDate);
+    }
+  }, [date, toScheduleBuilder]);
+
   return (
-    <button
-      type="button"
-      className={styles.bar}
-      onClick={handleOpen}
-      aria-label="Открыть детали по нутриентам"
-    >
-      {hasData ? (
-        <>
-          <span className={styles.metric}>
-            <span className={styles.metricValue}>{Math.round(energy)}</span>
-            <span className={styles.metricUnit}>ккал</span>
-          </span>
-          <span className={styles.divider} />
-          <span className={styles.metric}>
-            <span className={styles.metricValue}>{Math.round(protein)}</span>
-            <span className={styles.metricUnit}>г белка</span>
-          </span>
-        </>
-      ) : (
-        <span className={styles.empty}>Тапни — детали по нутриентам</span>
-      )}
-    </button>
+    <div className={styles.bar}>
+      <button
+        type="button"
+        className={styles.segment}
+        onClick={handleNutrientsClick}
+        aria-label="Открыть детали по нутриентам"
+      >
+        нутриенты
+      </button>
+      <button
+        type="button"
+        className={styles.segment}
+        onClick={handleDateClick}
+        aria-label="Выбрать дату"
+      >
+        {dateLabel}
+      </button>
+    </div>
   );
 };
 

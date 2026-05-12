@@ -1,4 +1,4 @@
-import { useDesignVariants } from '@/shared/lib/useDesignVariants';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 import { AuthForm } from './AuthForm';
 import { CheckInboxView } from './CheckInboxView';
@@ -42,15 +42,20 @@ const LAYOUT_BY_VARIANT: Record<Variant, 'card' | 'stretch'> = {
  */
 export function AuthScreen() {
   const showDv = shouldShowDvBar();
-  const { index } = useDesignVariants('AuthScreen', VARIANTS.length);
-  const variant: Variant = showDv ? VARIANTS[index] : VARIANTS[0];
+  const { variant: dvVariant, anchor: dvAnchor } = useDesignVariant('AuthScreen', VARIANTS);
+  const variant: Variant = showDv ? dvVariant : VARIANTS[0];
   const theme = THEME_BY_VARIANT[variant];
   const hasBg = HAS_BG[variant];
   const layout = LAYOUT_BY_VARIANT[variant];
   const pendingEmail = useAuthStore((s) => s.pendingVerificationEmail);
 
   return (
-    <div className={styles.screen} data-auth-variant={variant} data-auth-theme={theme}>
+    <div
+      {...dvAnchor}
+      className={styles.screen}
+      data-auth-variant={variant}
+      data-auth-theme={theme}
+    >
       {hasBg && <div className={styles.bg} aria-hidden="true" />}
       {hasBg && <div className={styles.scrim} aria-hidden="true" />}
       {pendingEmail ? (

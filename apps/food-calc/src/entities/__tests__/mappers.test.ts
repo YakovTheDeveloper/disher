@@ -8,7 +8,7 @@ import {
 } from '@/entities/dish/api/mappers';
 import { mapScheduleFoodRow } from '@/entities/schedule-food/api/mappers';
 import { mapScheduleEventRow } from '@/entities/schedule-event/api/mappers';
-import { mapDailyNormRow } from '@/entities/daily-norm/api/mappers';
+import { readNormItems } from '@/entities/daily-norm/api/mappers';
 import { mapHypothesisRow } from '@/entities/hypothesis/api/mappers';
 import type { HypothesisRow } from '@/shared/lib/dexie/schema';
 
@@ -226,31 +226,19 @@ describe('mapScheduleEventRow', () => {
   });
 });
 
-describe('mapDailyNormRow', () => {
-  it('stringifies items object', () => {
+describe('readNormItems', () => {
+  it('returns the items object as-is when stored as a parsed object', () => {
     const row = {
       id: 'dn1',
       name: 'goal',
       description: 'd',
-      items: { kcal: 2000 },
+      items: { protein: 80 } as unknown as Record<string, unknown>,
       created_at: ISO_A,
     };
-    const ui = mapDailyNormRow(row);
-    expect(ui.items).toBe('{"kcal":2000}');
+    expect(readNormItems(row)).toEqual({ protein: 80 });
   });
 
-  it('items defaults to {} when row.items is null/undefined', () => {
-    const row = {
-      id: 'dn2',
-      name: 'g',
-      description: '',
-      items: null as unknown as Record<string, unknown>,
-      created_at: ISO_A,
-    };
-    expect(mapDailyNormRow(row).items).toBe('{}');
-  });
-
-  it('preserves jsonb that arrives as a string (idempotent stringify)', () => {
+  it('parses items when stored as a JSON string (legacy / snapshot path)', () => {
     const row = {
       id: 'dn3',
       name: 'g',
@@ -258,7 +246,30 @@ describe('mapDailyNormRow', () => {
       items: '{"protein":80}' as unknown as Record<string, unknown>,
       created_at: ISO_A,
     };
-    expect(mapDailyNormRow(row).items).toBe('{"protein":80}');
+    expect(readNormItems(row)).toEqual({ protein: 80 });
+  });
+
+  it('defaults to {} when row is missing / items is null', () => {
+    expect(readNormItems(undefined)).toEqual({});
+    const row = {
+      id: 'dn2',
+      name: 'g',
+      description: '',
+      items: null as unknown as Record<string, unknown>,
+      created_at: ISO_A,
+    };
+    expect(readNormItems(row)).toEqual({});
+  });
+
+  it('returns {} on malformed JSON string', () => {
+    const row = {
+      id: 'dn4',
+      name: 'g',
+      description: '',
+      items: 'not valid json' as unknown as Record<string, unknown>,
+      created_at: ISO_A,
+    };
+    expect(readNormItems(row)).toEqual({});
   });
 });
 

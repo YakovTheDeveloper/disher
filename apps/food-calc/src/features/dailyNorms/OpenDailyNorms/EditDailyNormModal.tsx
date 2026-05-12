@@ -4,47 +4,36 @@ import { ModalLayout } from '@/shared/ui/ModalLayout';
 import { ModalConfirmation } from '@/shared/ui/Modal/ModalConfirmation';
 import {
   useDailyNormDraftStore,
-  DEFAULT_NORM_ID,
-  DEFAULT_NORM,
-  SPORTS_NORM_ID,
-  SPORTS_NORM,
-  useDailyNorm,
+  useUserNormItems,
+  patchUserNormItems,
+  DEFAULT_NORM_ITEMS,
+  USER_NORM_NAME,
+  type DailyNormItems,
 } from '@/entities/daily-norm';
-import { updateDailyNorm } from '@/entities/daily-norm';
 import { defaultDailyNorms } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import toaster from '@/shared/lib/toaster/toaster';
 import NutrientDesignVariants from '@/widgets/nutrients/FoodsNutrients/NutrientDesignVariants';
+import CreateDailyNormModal from './CreateDailyNormModal';
 import styles from './EditDailyNormModal.module.scss';
 
-type Props = BaseModalProps & {
-  normId: string;
-};
+type Props = BaseModalProps;
 
-type DbNorm = { name?: string; items: string } | null;
-
-function resolveNormItems(normId: string, dbNorm: DbNorm): Record<string, number> {
-  if (normId === DEFAULT_NORM_ID) return { ...DEFAULT_NORM.items };
-  if (normId === SPORTS_NORM_ID) return { ...SPORTS_NORM.items };
-  if (!dbNorm) return {};
-  try { return JSON.parse(dbNorm.items); } catch { return {}; }
-}
-
-function resolveNormName(normId: string, dbNorm: DbNorm): string {
-  if (normId === DEFAULT_NORM_ID) return DEFAULT_NORM.name;
-  if (normId === SPORTS_NORM_ID) return SPORTS_NORM.name;
-  return dbNorm?.name ?? 'Норма';
-}
-
-function buildMerged(resolved: Record<string, number>): Record<string, number> {
-  const merged: Record<string, number> = {};
+function buildMerged(items: DailyNormItems | null): DailyNormItems {
+  const base = items ?? DEFAULT_NORM_ITEMS;
+  const merged: DailyNormItems = {};
   for (const [id, val] of Object.entries(defaultDailyNorms)) {
-    merged[String(id)] = resolved[String(id)] ?? val;
+    merged[String(id)] = base[String(id)] ?? val;
+  }
+  // Preserve any nutrient id present in the user norm but missing from
+  // defaultDailyNorms (e.g. amino acids not listed there).
+  for (const [id, val] of Object.entries(base)) {
+    if (!(id in merged)) merged[id] = val;
   }
   return merged;
 }
 
-function isDirty(initial: Record<string, number>, current: Record<string, number>): boolean {
+function isDirty(initial: DailyNormItems, current: DailyNormItems): boolean {
   const keys = new Set([...Object.keys(initial), ...Object.keys(current)]);
   for (const k of keys) {
     if ((initial[k] ?? 0) !== (current[k] ?? 0)) return true;
@@ -52,21 +41,21 @@ function isDirty(initial: Record<string, number>, current: Record<string, number
   return false;
 }
 
-const EditDailyNormModal = ({ normId, onClose }: Props) => {
-  const dbNorm = useDailyNorm(normId);
+const EditDailyNormModal = ({ onClose }: Props) => {
+  const userItems = useUserNormItems();
   const { items, init, setNutrient, clear } = useDailyNormDraftStore();
-  const initialItemsRef = useRef<Record<string, number>>({});
+  const initialItemsRef = useRef<DailyNormItems>({});
   const bodyRef = useRef<HTMLDivElement>(null);
-
-  const normName = useMemo(() => resolveNormName(normId, dbNorm), [normId, dbNorm]);
+  const initialisedRef = useRef(false);
 
   useEffect(() => {
-    const resolved = resolveNormItems(normId, dbNorm);
-    const merged = buildMerged(resolved);
+    if (initialisedRef.current) return;
+    const merged = buildMerged(userItems);
     initialItemsRef.current = merged;
-    init(normId, merged);
+    init(merged);
+    initialisedRef.current = true;
     return () => clear();
-  }, [normId]);
+  }, [userItems, init, clear]);
 
   const getDraftValue = useCallback(
     (nutrientId: string) => items[nutrientId] ?? 0,
@@ -80,17 +69,20 @@ const EditDailyNormModal = ({ normId, onClose }: Props) => {
     [setNutrient],
   );
 
-  const dirty = isDirty(initialItemsRef.current, items);
+  const dirty = useMemo(
+    () => isDirty(initialItemsRef.current, items),
+    [items],
+  );
 
   const handleSave = useCallback(async () => {
     const result = await safeMutate(
-      () => updateDailyNorm(normId, { items: JSON.stringify(items) }),
+      () => patchUserNormItems(items),
       'Не удалось сохранить норму',
     );
-    if (result === undefined) return;
+    if (!result.ok) return;
     toaster.success('Норма сохранена');
     onClose();
-  }, [normId, items, onClose]);
+  }, [items, onClose]);
 
   const handleRequestClose = useCallback(() => {
     if (!dirty) {
@@ -102,6 +94,24 @@ const EditDailyNormModal = ({ normId, onClose }: Props) => {
       onConfirm: () => {
         modalStore.closeLast();
         onClose();
+      },
+    });
+  }, [dirty, onClose]);
+
+  const handleRecalc = useCallback(() => {
+    const proceed = () => {
+      onClose();
+      void modalStore.show(CreateDailyNormModal, {});
+    };
+    if (!dirty) {
+      proceed();
+      return;
+    }
+    modalStore.show(ModalConfirmation, {
+      data: { action: 'пересчитать норму? Текущие изменения будут потеряны.' },
+      onConfirm: () => {
+        modalStore.closeLast();
+        proceed();
       },
     });
   }, [dirty, onClose]);
@@ -122,7 +132,7 @@ const EditDailyNormModal = ({ normId, onClose }: Props) => {
         <div className={styles.header}>
           <div className={styles.titleWrap}>
             <span className={styles.kicker}>Дневная норма</span>
-            <span className={styles.title}>{normName}</span>
+            <span className={styles.title}>{USER_NORM_NAME}</span>
           </div>
           <button
             className={styles.saveBtn}
@@ -146,11 +156,18 @@ const EditDailyNormModal = ({ normId, onClose }: Props) => {
         </div>
         <div className={styles.footer}>
           <button
+            className={styles.recalcBtn}
+            onClick={handleRecalc}
+            type="button"
+          >
+            Пересчитать по анкете
+          </button>
+          <button
             className={styles.closeBtn}
             onClick={handleRequestClose}
             type="button"
           >
-            Закрыть редактирование
+            Закрыть
           </button>
         </div>
       </div>

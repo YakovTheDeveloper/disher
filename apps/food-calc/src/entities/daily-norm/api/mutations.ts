@@ -1,71 +1,44 @@
 import { db, type DailyNormRow } from '@/shared/lib/dexie/schema';
 import type { DailyNormItems } from '../model/types';
+import { USER_NORM_ID, USER_NORM_NAME } from '../model/default-norm';
 
 const now = () => new Date().toISOString();
 
-function safeParseItems(json: string | undefined): DailyNormItems {
-  if (!json) return {};
-  try {
-    return JSON.parse(json) as DailyNormItems;
-  } catch {
-    return {};
-  }
-}
-
-export async function createDailyNorm(
-  name: string,
-  description: string,
-  items?: DailyNormItems,
-): Promise<string> {
-  const id = crypto.randomUUID();
+/** Create or replace the single user-norm row. */
+export async function upsertUserNorm(items: DailyNormItems): Promise<void> {
+  const existing = await db.daily_norms.get(USER_NORM_ID);
   const row: DailyNormRow = {
-    id,
-    name,
-    description,
-    items: items ?? {},
-    created_at: now(),
+    id: USER_NORM_ID,
+    name: USER_NORM_NAME,
+    description: '',
+    items,
+    created_at: existing?.created_at ?? now(),
   };
-  await db.daily_norms.add(row);
-  return id;
+  await db.daily_norms.put(row);
 }
 
-type DailyNormUpdates = Partial<{
-  name: string;
-  description: string;
-  /** UI passes JSON string; we store the parsed object in Dexie. */
-  items: string;
-}>;
-
-export async function updateDailyNorm(
-  normId: string,
-  updates: DailyNormUpdates,
-): Promise<void> {
-  const keys = Object.keys(updates) as (keyof DailyNormUpdates)[];
-  if (keys.length === 0) return;
-
-  const patch: Record<string, unknown> = {};
-  for (const k of keys) {
-    if (k === 'items') patch.items = safeParseItems(updates.items);
-    else patch[k] = updates[k];
+/** Patch items on the user-norm row. Creates the row if missing. */
+export async function patchUserNormItems(items: DailyNormItems): Promise<void> {
+  const existing = await db.daily_norms.get(USER_NORM_ID);
+  if (!existing) {
+    await upsertUserNorm(items);
+    return;
   }
-  await db.daily_norms.update(normId, patch);
+  await db.daily_norms.update(USER_NORM_ID, { items });
 }
 
-export async function deleteDailyNorm(normId: string): Promise<void> {
-  await db.daily_norms.delete(normId);
-}
-
-export async function setDailyNormNutrient(
-  normId: string,
+/** Set a single nutrient value on the user-norm; null/0 removes it. */
+export async function setUserNormNutrient(
   nutrientId: string,
   quantity: number | null,
-  currentItems: DailyNormItems,
 ): Promise<void> {
-  const next = { ...currentItems };
+  const existing = await db.daily_norms.get(USER_NORM_ID);
+  const current = (existing?.items as DailyNormItems | undefined) ?? {};
+  const next: DailyNormItems = { ...current };
   if (quantity === null || quantity === 0) {
     delete next[nutrientId];
   } else {
     next[nutrientId] = quantity;
   }
-  await updateDailyNorm(normId, { items: JSON.stringify(next) });
+  await patchUserNormItems(next);
 }

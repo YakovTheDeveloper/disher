@@ -32,7 +32,7 @@ export const PasteFromClipboardToDishButton = ({ dishId, btnClassName, wrapperCl
         });
       }
     }, 'Не удалось вставить');
-    if (result === undefined) return;
+    if (!result.ok) return;
     clearClipboard();
     toaster.success(`Вставлено: ${foodItems.length}`);
   };

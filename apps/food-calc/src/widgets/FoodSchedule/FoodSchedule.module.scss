@@ -1,8 +1,4 @@
-.navRow {
-  display: flex;
-  align-items: center;
-  margin-top: 123px;
-}
+@import '@/shared/assets/style/design-variant-palettes.scss';
 
 .emptyState {
   padding: var(--space-10) var(--space-4) 0;
@@ -10,6 +6,51 @@
   flex-direction: column;
   gap: var(--space-3);
 }
+
+// Anchor wrapper around the food list — gives the design-variant bar a
+// hook for visibility tracking + flash. Plain block so the outline-based
+// flash animation can render; the inner ItemsList carries its own layout.
+.foodListAnchor {
+  display: block;
+}
+
+// Palette variants for the food list. Each variant binds shared time-of-
+// day surface tokens (`@include dv-palette-<name>`) AND text tokens for
+// the inline row labels. Text stays in the family's dark anchor hue so
+// contrast holds on every period's gentle pastel background.
+
+$dv-text-graphite: (
+  primary: rgba(31, 42, 68, 0.92),
+  secondary: rgba(31, 42, 68, 0.62),
+  tertiary: rgba(31, 42, 68, 0.45),
+  muted: rgba(31, 42, 68, 0.42),
+);
+
+$dv-text-twilight: (
+  primary: rgba(45, 31, 68, 0.92),
+  secondary: rgba(45, 31, 68, 0.62),
+  tertiary: rgba(45, 31, 68, 0.45),
+  muted: rgba(45, 31, 68, 0.42),
+);
+
+@mixin dv-text($map) {
+  --text-primary: #{map-get($map, primary)};
+  --text-secondary: #{map-get($map, secondary)};
+  --text-tertiary: #{map-get($map, tertiary)};
+  --text-muted: #{map-get($map, muted)};
+}
+
+[data-dv='ScheduleFood'][data-dv-v='meadow']   { @include dv-palette-meadow;   @include dv-text($dv-text-graphite); }
+[data-dv='ScheduleFood'][data-dv-v='sunrise']  { @include dv-palette-sunrise;  @include dv-text($dv-text-graphite); }
+[data-dv='ScheduleFood'][data-dv-v='sorbet']   { @include dv-palette-sorbet;   @include dv-text($dv-text-graphite); }
+[data-dv='ScheduleFood'][data-dv-v='citrus']   { @include dv-palette-citrus;   @include dv-text($dv-text-graphite); }
+[data-dv='ScheduleFood'][data-dv-v='lagoon']   { @include dv-palette-lagoon;   @include dv-text($dv-text-graphite); }
+[data-dv='ScheduleFood'][data-dv-v='bouquet']  { @include dv-palette-bouquet;  @include dv-text($dv-text-graphite); }
+[data-dv='ScheduleFood'][data-dv-v='garden']   { @include dv-palette-garden;   @include dv-text($dv-text-graphite); }
+[data-dv='ScheduleFood'][data-dv-v='candy']    { @include dv-palette-candy;    @include dv-text($dv-text-graphite); }
+[data-dv='ScheduleFood'][data-dv-v='dawn']     { @include dv-palette-dawn;     @include dv-text($dv-text-graphite); }
+[data-dv='ScheduleFood'][data-dv-v='tropic']   { @include dv-palette-tropic;   @include dv-text($dv-text-graphite); }
+[data-dv='ScheduleFood'][data-dv-v='twilight'] { @include dv-palette-twilight; @include dv-text($dv-text-twilight); }
 
 .minimalButton {
   display: inline-flex;

@@ -107,7 +107,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         }),
       'Не удалось создать событие'
     );
-    if (result === undefined) return;
+    if (!result.ok) return;
     setDraft(createEmptyDraft());
     clearAtoms();
     setStep('idle');

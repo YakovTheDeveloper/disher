@@ -120,11 +120,11 @@ export function useDishProductFlow(mode: FlowMode) {
     }
 
     if (!editingItem) return;
-    const ok = await safeMutate(
+    const result = await safeMutate(
       () => updateDishItem(editingItem.id, { productId: payload.id }),
       'Не удалось обновить'
     );
-    if (ok === undefined) return;
+    if (!result.ok) return;
     setEditingItem(null);
     setDraft(createEmptyDraft());
     setStep('idle');
@@ -137,7 +137,7 @@ export function useDishProductFlow(mode: FlowMode) {
           () => addDishItem({ dishId: mode.dishId, productId: draft.productId!, quantity: draft.quantity }),
           'Не удалось добавить продукт'
         );
-        if (result === undefined) return;
+        if (!result.ok) return;
         toaster.success('Продукт добавлен');
       }
       setDraft(createEmptyDraft());
@@ -147,7 +147,7 @@ export function useDishProductFlow(mode: FlowMode) {
     }
 
     if (!editingItem) return;
-    const ok = await safeMutate(
+    const result = await safeMutate(
       () =>
         updateDishItem(editingItem.id, {
           productId: draft.productId ?? undefined,
@@ -155,7 +155,7 @@ export function useDishProductFlow(mode: FlowMode) {
         }),
       'Не удалось обновить'
     );
-    if (ok === undefined) return;
+    if (!result.ok) return;
     setEditingItem(null);
     setDraft(createEmptyDraft());
     setStep('idle');

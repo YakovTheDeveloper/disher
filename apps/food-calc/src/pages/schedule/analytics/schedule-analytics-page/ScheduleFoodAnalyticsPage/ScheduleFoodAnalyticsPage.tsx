@@ -424,7 +424,6 @@ const AnalyticsContent = ({
 
   return (
     <Screen
-      offsetTop
       title={<ScreenLabel variant="screenHeader">Аналитика</ScreenLabel>}
       topPanel={
         <div className={styles.tabsWrapper}>

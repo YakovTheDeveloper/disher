@@ -579,11 +579,11 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
         return;
       }
 
-      let ok: unknown;
+      let ok = true;
       const newScheduleIds: string[] = [];
       if (mode.kind === 'schedule') {
         const date = mode.date;
-        ok = await safeMutate(
+        const result = await safeMutate(
           () =>
             db.transaction('rw', db.schedule_foods, async () => {
               for (const c of committed) {
@@ -597,13 +597,13 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
                 });
                 newScheduleIds.push(id);
               }
-              return true;
             }),
           'Не удалось добавить продукты'
         );
+        ok = result.ok;
       } else if (mode.kind === 'dish') {
         const dishId = mode.dishId;
-        ok = await safeMutate(
+        const result = await safeMutate(
           () =>
             db.transaction('rw', db.dish_items, async () => {
               for (const c of committed) {
@@ -613,16 +613,15 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
                   quantity: c.quantity,
                 });
               }
-              return true;
             }),
           'Не удалось добавить продукты в блюдо'
         );
+        ok = result.ok;
       } else {
         mode.onCommit(committed);
-        ok = true;
       }
 
-      if (ok === undefined) {
+      if (!ok) {
         setIsSubmitting(false);
         return;
       }

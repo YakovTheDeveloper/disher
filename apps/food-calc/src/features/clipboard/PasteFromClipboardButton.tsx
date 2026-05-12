@@ -23,7 +23,7 @@ export const PasteFromClipboardButton = ({ targetDate, btnClassName, wrapperClas
 
   const handlePaste = async () => {
     const result = await safeMutate(() => pasteClipboardItems(items, targetDate), 'Не удалось вставить');
-    if (result === undefined) return;
+    if (!result.ok) return;
     clearClipboard();
     toaster.success(`Вставлено: ${items.length}`);
   };

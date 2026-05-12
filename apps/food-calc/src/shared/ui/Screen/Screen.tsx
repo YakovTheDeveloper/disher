@@ -9,9 +9,9 @@ type Props = {
   actions?: React.ReactNode;
   bottomRight?: React.ReactNode;
   bottomLeft?: React.ReactNode;
+  bottomBar?: React.ReactNode;
   topPanel?: React.ReactNode;
   header?: React.ReactNode;
-  offsetTop?: boolean | React.ReactNode;
   title?: React.ReactNode;
   backgroundColor?: 'gray' | 'white';
   className?: string;
@@ -25,11 +25,11 @@ const Screen = ({
   children,
   bottomRight,
   bottomLeft,
+  bottomBar,
   topPanel,
   actions,
   backgroundColor,
   className,
-  offsetTop,
   overlay,
   backgroundImage,
   backgroundImageOpacity = 0.05,
@@ -49,19 +49,17 @@ const Screen = ({
           alt=""
         />
       )}
-      <div className={styles.screenScroll} ref={scrollContainerRef}>
-        <div className={styles.topPanel}>{topPanel}</div>
-        {header}
-        {offsetTop && (
-          <div className={styles.upperPlace}>
-            {typeof offsetTop !== 'boolean' && offsetTop}
-          </div>
-        )}
-        {children}
-        <div ref={sentinelRef} />
+      <div className={styles.scrollWrap}>
+        <div className={styles.screenScroll} ref={scrollContainerRef}>
+          <div className={styles.topPanel}>{topPanel}</div>
+          {header}
+          {children}
+          <div ref={sentinelRef} />
+        </div>
+        <ScrollIndicator visible={hasMoreBelow} />
       </div>
 
-      <ScrollIndicator visible={hasMoreBelow} />
+      {bottomBar && <div className={styles.bottomBar}>{bottomBar}</div>}
 
       {bottomLeft && <div className={styles.bottomLeft}>{bottomLeft}</div>}
 

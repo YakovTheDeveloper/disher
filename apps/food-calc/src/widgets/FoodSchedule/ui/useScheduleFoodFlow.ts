@@ -193,21 +193,19 @@ export function useScheduleFoodFlow(mode: FlowMode) {
       // до того, как браузер обработает дефолт лейбла → фокус терялся.
     } else {
       if (!editingItem) return;
-      const ok = await safeMutate(
-        async () => {
-          await updateScheduleFood(editingItem.id, {
+      const result = await safeMutate(
+        () =>
+          updateScheduleFood(editingItem.id, {
             time: draft.time,
             type: payload.variant === 'product' ? 'food' : 'dish',
             productId: payload.variant === 'product' ? payload.id : null,
             dishId: payload.variant === 'dish' ? payload.id : null,
             quantity: draft.quantity,
             details: draft.details.trim() || null,
-          });
-          return true;
-        },
+          }),
         'Не удалось обновить'
       );
-      if (ok === undefined) return;
+      if (!result.ok) return;
       setStep('idle');
       setEditingItem(null);
       setDraft(createEmptyDraft());
@@ -237,8 +235,9 @@ export function useScheduleFoodFlow(mode: FlowMode) {
 
       if (snapshot) {
         void safeMutate(() => addScheduleFood(snapshot), 'Не удалось добавить в расписание')
-          .then((newId) => {
-            if (newId === undefined) return;
+          .then((res) => {
+            if (!res.ok) return;
+            const newId = res.value;
             toaster.success('Добавлено в расписание');
             requestAnimationFrame(() => {
               setTimeout(() => {

@@ -10,7 +10,6 @@ import { ScheduleFoodItem } from '@/widgets/FoodSchedule/ScheduleFoodItem';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
-import { Navigation } from '@/pages/home-page/ui';
 import toaster from '@/shared/lib/toaster/toaster';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { TopBar } from '@/shared/ui/TopBar';
@@ -20,13 +19,33 @@ import {
   ScheduleFoodEditModals,
   SCHEDULE_FOOD_INPUT_IDS,
   useScheduleFoodFlow,
+  HomeBottomBar,
 } from '@/widgets/FoodSchedule/ui';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
 import { removeScheduleFoods } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
 import { CopyToClipboardButton, PasteFromClipboardButton } from '@/features/clipboard';
 import type { ClipboardItem } from '@/shared/model/clipboardStore';
+
+const HOME_BOTTOM_BAR_DV_VARIANTS = ['floating', 'dock', 'omnibox', 'composer', 'segmented'] as const;
+// Cheerful pastel families with semantic time-of-day progression
+// (lightest at morning, deepening towards graphite at night).
+const FOOD_DV_VARIANTS = [
+  'baseline',
+  'meadow',
+  'sunrise',
+  'sorbet',
+  'citrus',
+  'lagoon',
+  'bouquet',
+  'garden',
+  'candy',
+  'dawn',
+  'tropic',
+  'twilight',
+] as const;
 import { AccountPanel } from '@/features/auth';
 import { fetchDailyAnalysis, computeInputHash } from '@/entities/analytics';
 import { createProduct } from '@/entities/product';
@@ -67,6 +86,7 @@ type CommonProps = {
   richNutrient?: { id: string; unit: string } | null;
   onRichNutrientClear?: () => void;
   isActive?: boolean;
+  indicator?: React.ReactNode;
 };
 
 const FoodSchedule = ({
@@ -75,6 +95,7 @@ const FoodSchedule = ({
   richNutrient,
   onRichNutrientClear,
   isActive = true,
+  indicator,
 }: CommonProps) => {
   const selectionStoreFood = useSelection();
   const isActionsMode = useStore(selectionStoreFood, (s) => s.isActionsMode);
@@ -112,6 +133,18 @@ const FoodSchedule = ({
   const writeFoodTarget = useMemo(() => ({ kind: 'schedule' as const, date }), [date]);
   const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
   const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
+
+  // Design-variant picker for the bottom action area.
+  // 'floating' = pills (current). The others = integrated dock variants.
+  const { variant: bottomBarVariant } = useDesignVariant(
+    'HomeBottomBar',
+    HOME_BOTTOM_BAR_DV_VARIANTS,
+  );
+  const bottomBarVariantIndex = HOME_BOTTOM_BAR_DV_VARIANTS.indexOf(bottomBarVariant);
+  const useFloatingBottom = bottomBarVariant === 'floating';
+
+  // Design-variant picker for the food list palette (graphite-blue family).
+  const { anchor: foodAnchor } = useDesignVariant('ScheduleFood', FOOD_DV_VARIANTS);
 
   // Analytics staleness indicator: 'none' | 'fresh' | 'stale'
   const [analyticsStatus, setAnalyticsStatus] = useState<'none' | 'fresh' | 'stale'>('none');
@@ -152,21 +185,21 @@ const FoodSchedule = ({
 
   const handleCreateProduct = useCallback(async () => {
     const name = 'Новый продукт';
-    const productId = await safeMutate(() => createProduct({ name }), 'Не удалось создать продукт');
-    if (productId === undefined) return;
+    const result = await safeMutate(() => createProduct({ name }), 'Не удалось создать продукт');
+    if (!result.ok) return;
     setShowCreatePanel(false);
     toaster.success(`Продукт «${name}» создан`, {
-      action: { label: 'Открыть', href: getProductUrl(productId) },
+      action: { label: 'Открыть', href: getProductUrl(result.value) },
     });
   }, []);
 
   const handleCreateDish = useCallback(async () => {
     const name = 'Новое блюдо';
-    const dishId = await safeMutate(() => createDish(name), 'Не удалось создать блюдо');
-    if (dishId === undefined) return;
+    const result = await safeMutate(() => createDish(name), 'Не удалось создать блюдо');
+    if (!result.ok) return;
     setShowCreatePanel(false);
     toaster.success(`Блюдо «${name}» создано`, {
-      action: { label: 'Открыть', href: RouterUrls.getDish(dishId) },
+      action: { label: 'Открыть', href: RouterUrls.getDish(result.value) },
     });
   }, []);
 
@@ -243,13 +276,7 @@ const FoodSchedule = ({
 
   return (
     <Screen
-      offsetTop={
-        showCreatePanel ? (
-          <CreateFoodPanel onCreateProduct={handleCreateProduct} onCreateDish={handleCreateDish} />
-        ) : (
-          true
-        )
-      }
+      header={indicator}
       overlay={
         isActive ? (
           <>
@@ -304,7 +331,7 @@ const FoodSchedule = ({
         </TopBar>
       }
       bottomLeft={
-        !isActionsMode ? (
+        useFloatingBottom && !isActionsMode ? (
           <div
             className={clsx(
               styles.actionBarWrapper,
@@ -321,25 +348,33 @@ const FoodSchedule = ({
         ) : null
       }
       bottomRight={
-        !isActionsMode ? (
+        useFloatingBottom && !isActionsMode ? (
           <label
             htmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
-            className={clsx(
-              styles.searchPill,
-              inlineEditing && styles.actionBarWrapper_hidden
-            )}
+            className={clsx(styles.searchPill, inlineEditing && styles.actionBarWrapper_hidden)}
           >
             <SearchIcon />
             <span>Еда</span>
           </label>
         ) : null
       }
+      bottomBar={
+        !useFloatingBottom && !isActionsMode ? (
+          <HomeBottomBar
+            variantIndex={bottomBarVariantIndex}
+            writeFoodFlow={writeFoodFlow}
+            writeFoodInputId={writeFoodInputId}
+            onPlusClick={openCreateFoodPanel}
+            hidden={inlineEditing}
+          />
+        ) : null
+      }
     >
-      {/* <PeriodView onOpen={() => openSchedulePeriodsModal(date)} /> */}
-      <div className={styles.navRow}>
-        <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
-        <Navigation />
-      </div>
+      {showCreatePanel && (
+        <CreateFoodPanel onCreateProduct={handleCreateProduct} onCreateDish={handleCreateDish} />
+      )}
+      <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
+      <div {...foodAnchor} className={styles.foodListAnchor}>
       <ItemsList offsetTop>
         {(() => {
           let globalIndex = 0;
@@ -378,6 +413,7 @@ const FoodSchedule = ({
           return rendered;
         })()}
       </ItemsList>
+      </div>
     </Screen>
   );
 };

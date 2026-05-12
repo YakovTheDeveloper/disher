@@ -106,7 +106,7 @@ const DishBuilderPage = () => {
     const results = await Promise.all(
       ids.map((id) => safeMutate(() => removeDishItem(id), 'Не удалось удалить'))
     );
-    if (results.some((r) => r === undefined)) return;
+    if (results.some((r) => !r.ok)) return;
     clearSelection();
     toaster.success(`Удалено: ${ids.length}`);
   };
@@ -139,7 +139,6 @@ const DishBuilderPage = () => {
       <FoodsNutrients totals={dishTotals} cardVariant="dish" />
 
       <Screen
-        offsetTop
         overlay={
           <>
             <DishProductCreateModals dishId={id} />
@@ -263,7 +262,7 @@ const DishBuilderPage = () => {
         </ItemsList>
       </Screen>
 
-      <Screen key={3} offsetTop title={<ScreenLabel variant="screenHeader">Порции</ScreenLabel>}>
+      <Screen key={3} title={<ScreenLabel variant="screenHeader">Порции</ScreenLabel>}>
         <Ornament text="порции" />
         <FoodPortionsManager
           portions={portionsRaw.map((p) => ({

@@ -3,6 +3,7 @@ import {
   allNutrientsList,
   defaultDailyNorms,
 } from '@/entities/nutrient/ui/NutrientGroup/constants';
+import { useUserNormItems } from '@/entities/daily-norm';
 import s from './NutrientDesignVariants.module.scss';
 import clsx from 'clsx';
 import { memo, useCallback, useRef, useState, useEffect } from 'react';
@@ -164,6 +165,7 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
   const isView = variant === 'view';
   const [overlayOpen, setOverlayOpen] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const userItems = useUserNormItems();
 
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
@@ -193,13 +195,14 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
     findNutrient('water')!,
   ];
 
+  const getNorm = (nutrientId: string) =>
+    userItems?.[nutrientId] ?? defaultDailyNorms[Number(nutrientId)] ?? 0;
+
   const getPercentage = (nutrientId: string) => {
-    const norm = defaultDailyNorms[Number(nutrientId)];
+    const norm = getNorm(nutrientId);
     if (!norm) return 0;
     return Math.round(Math.min((getValue(nutrientId) / norm) * 100, 999));
   };
-
-  const getNorm = (nutrientId: string) => defaultDailyNorms[Number(nutrientId)] || 0;
 
   const getProgressClass = (pct: number, nutrientName?: string) => {
     // Nutrient-specific progress colors

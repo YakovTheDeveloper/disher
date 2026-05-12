@@ -12,7 +12,6 @@ import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import { groupItemsByTime, getNowMarkerIndex } from '@/shared/lib/schedule';
 import { NowMarker } from '@/shared/ui/NowMarker';
-import { getTitle } from '@/pages/home-page/ui/methods';
 import {
   ScheduleEventCreateModals,
   EVENT_MODAL_INPUT_IDS,
@@ -24,15 +23,32 @@ import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
 import toaster from '@/shared/lib/toaster/toaster';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
-import normsImg from '@/shared/assets/decarative/norms.png';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 
+// Cheerful pastel families with semantic time-of-day progression
+// (lightest at morning, deepening towards graphite at night).
+const EVENTS_VARIANTS = [
+  'baseline',
+  'meadow',
+  'sunrise',
+  'sorbet',
+  'citrus',
+  'lagoon',
+  'bouquet',
+  'garden',
+  'candy',
+  'dawn',
+  'tropic',
+  'twilight',
+] as const;
 type Props = {
   children?: React.ReactNode;
   date: string;
   events: ScheduleEvent[];
+  indicator?: React.ReactNode;
 };
 
-const ScheduleEvents = ({ date, events }: Props) => {
+const ScheduleEvents = ({ date, events, indicator }: Props) => {
   const selectionStoreEvents = useSelection();
   const isActionsMode = useStore(selectionStoreEvents, (s) => s.isActionsMode);
   const selectedIds = useStore(selectionStoreEvents, (s) => s.selectedIds);
@@ -42,6 +58,8 @@ const ScheduleEvents = ({ date, events }: Props) => {
     () => getNowMarkerIndex(eventsGroupedByTime, date),
     [eventsGroupedByTime, date]
   );
+
+  const { anchor: eventsAnchor } = useDesignVariant('ScheduleEvents', EVENTS_VARIANTS);
 
   const onDeleteSelected = async () => {
     const ids = selectedIds;
@@ -68,20 +86,9 @@ const ScheduleEvents = ({ date, events }: Props) => {
 
   const reducedMotion = useReducedMotion();
 
-  const dateLabel = useMemo(() => {
-    try {
-      const { day, monthNumber } = getTitle(date);
-      const dayPadded = String(day).padStart(2, '0');
-      const yearShort = String(new Date().getFullYear()).slice(-2);
-      return `${dayPadded}.${monthNumber}.${yearShort}`;
-    } catch {
-      return '';
-    }
-  }, [date]);
-
   return (
     <Screen
-      offsetTop
+      header={indicator}
       overlay={
         <>
           <ScheduleEventCreateModals scheduleId={date} />
@@ -110,7 +117,12 @@ const ScheduleEvents = ({ date, events }: Props) => {
       key={3}
       bottomRight={
         events.length > 0 ? (
-          <AddButton htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT} as="label" onClick={() => {}} dark />
+          <AddButton
+            htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT}
+            as="label"
+            onClick={() => {}}
+            dark
+          />
         ) : (
           <AddButton
             onClick={() => {}}
@@ -124,14 +136,10 @@ const ScheduleEvents = ({ date, events }: Props) => {
         )
       }
     >
-      <header className={styles.dayHeader}>
-        <h2 className={styles.dayHeaderTitle}>
-          <span className={styles.dayHeaderTitleInitial}>С</span>обытия
-        </h2>
-        <p className={styles.dayHeaderDate}>{dateLabel}</p>
-        <img className={styles.dayHeaderImg} src={normsImg} alt="" aria-hidden />
-      </header>
-      <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
+      <section
+        {...eventsAnchor}
+        className={clsx(['builder__time-groups', styles.eventsBuilder])}
+      >
         <ItemsList offsetTop>
           {(() => {
             let globalIndex = 0;

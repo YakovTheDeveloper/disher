@@ -65,12 +65,35 @@
     z-index: 101;
 }
 
-.upperPlace {
-    height: var(--upper-place-height);
+// Integrated bottom bar — part of layout flow (NOT overlay).
+// Sits below the scroll area; the scroller shrinks to make room.
+// Solid surface + top hairline separator → reads as "part of structure",
+// not "floating over content" (M3 2025-26 pattern: FAB-density drops,
+// primary actions integrated into the dock).
+.bottomBar {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+    background: #ffffff;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+// Wrapper around the scroller + ScrollIndicator gradient.
+// Anchors the gradient to the bottom of the scroll area, NOT to the bottom
+// of the whole Screen — otherwise the indicator (position:absolute, bottom:0,
+// z-index:5) overlays the `.bottomBar` sibling below it.
+.scrollWrap {
+    flex: 1;
+    min-height: 0; // critical: lets the nested flex scroller actually shrink
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .screenScroll {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;

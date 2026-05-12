@@ -78,15 +78,6 @@ export interface DailyNormRow {
   created_at: string;
 }
 
-export interface PeriodRow {
-  id: string;
-  name: string;
-  color_index: number;
-  font_family: string;
-  font_size: number;
-  created_at: string;
-}
-
 export interface HypothesisRow {
   id: string;
   title: string;
@@ -112,7 +103,6 @@ export class DisherDB extends Dexie {
   schedule_foods!:  Table<ScheduleFoodRow,   string>;
   schedule_events!: Table<ScheduleEventRow,  string>;
   daily_norms!:     Table<DailyNormRow,      string>;
-  periods!:         Table<PeriodRow,         string>;
   hypotheses!:      Table<HypothesisRow,     string>;
 
   constructor() {

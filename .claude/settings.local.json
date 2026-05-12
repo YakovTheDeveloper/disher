@@ -27,7 +27,16 @@
       "WebFetch(domain:m3.material.io)",
       "WebFetch(domain:www.joshwcomeau.com)",
       "WebFetch(domain:www.ripplix.com)",
-      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/.claude/settings.local.json','utf8'\\)\\); console.log\\('JSON OK'\\)\")"
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/.claude/settings.local.json','utf8'\\)\\); console.log\\('JSON OK'\\)\")",
+      "Bash(git stash *)",
+      "Bash(git checkout *)",
+      "Bash(git ls-tree *)",
+      "Bash(git cat-file *)",
+      "Read(//tmp/**)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=8192\" npx tsc --noEmit)",
+      "Bash(git fsck *)",
+      "Bash(git rm *)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=12288\" npx tsc --noEmit)"
     ]
   }
 }

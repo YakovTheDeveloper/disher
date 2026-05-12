@@ -12,22 +12,22 @@ export function useFoodCreation(
   const handleCreateProduct = useCallback(async () => {
     const name = searchQuery.trim();
     if (!name) return;
-    const productId = await safeMutate(() => createProduct({ name }), 'Не удалось создать продукт');
-    if (productId === undefined) return;
+    const result = await safeMutate(() => createProduct({ name }), 'Не удалось создать продукт');
+    if (!result.ok) return;
     setSearchQuery('');
     toaster.success(`Продукт «${name}» создан`, {
-      action: { label: 'Открыть', href: getProductUrl(productId) },
+      action: { label: 'Открыть', href: getProductUrl(result.value) },
     });
   }, [searchQuery, setSearchQuery]);
 
   const handleCreateDish = useCallback(async () => {
     const name = searchQuery.trim();
     if (!name) return;
-    const dishId = await safeMutate(() => createDish(name), 'Не удалось создать блюдо');
-    if (dishId === undefined) return;
+    const result = await safeMutate(() => createDish(name), 'Не удалось создать блюдо');
+    if (!result.ok) return;
     setSearchQuery('');
     toaster.success(`Блюдо «${name}» создано`, {
-      action: { label: 'Открыть', href: RouterUrls.getDish(dishId) },
+      action: { label: 'Открыть', href: RouterUrls.getDish(result.value) },
     });
   }, [searchQuery, setSearchQuery]);
 

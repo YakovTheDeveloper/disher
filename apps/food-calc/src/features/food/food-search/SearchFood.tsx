@@ -2,11 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import styles from './SearchFood.module.scss';
 import { FoodActionCard } from './food-action-card';
-import { FilterPanel } from './FilterPanel';
 import { SearchFoodControls } from '@/features/food/food-search/SearchFoodControls';
-import { FilterButton } from '@/shared/ui/atoms/Button';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import { getProductCategoryGroups, getProductCategoryOptions } from '@/entities/product';
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 import { useFilteredFoods, useFoodCreation } from './model';
@@ -30,13 +27,11 @@ type Props = {
   isActive?: boolean;
 };
 
-const getDefaultTab = (mode: SearchMode) => (mode === 'dishes-only' ? 'блюда' : 'все');
-
 // Outer component: ALWAYS renders the <input id={inputId}> via SearchFoodControls so
 // the <label htmlFor> → input focus delegation keeps working on iOS, even when this
-// step is not the active one. Heavy work (Fuse indexes over the catalog, list rendering,
-// FilterPanel) lives in <SearchFoodHeavy> which is mounted one frame after isActive flips
-// to true — letting the modal frame paint first instead of blocking on ~400 cards.
+// step is not the active one. Heavy work (Fuse indexes over the catalog, list rendering)
+// lives in <SearchFoodHeavy> which is mounted one frame after isActive flips to true —
+// letting the modal frame paint first instead of blocking on ~400 cards.
 const SearchFood = ({
   onSelectFood,
   mode = 'products-and-dishes',
@@ -51,7 +46,6 @@ const SearchFood = ({
   isActive = true,
 }: Props) => {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery ?? '');
-  const [currentTab, setCurrentTab] = useState(getDefaultTab(mode));
   const [showHeavy, setShowHeavy] = useState(false);
   const [openTicket, setOpenTicket] = useState(0);
 
@@ -83,8 +77,6 @@ const SearchFood = ({
           <SearchFoodHeavy
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
-            currentTab={currentTab}
-            setCurrentTab={setCurrentTab}
             mode={mode}
             activeItemId={activeItemId}
             richNutrient={richNutrient}
@@ -102,8 +94,6 @@ const SearchFood = ({
 type HeavyProps = {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
-  currentTab: string;
-  setCurrentTab: (t: string) => void;
   mode: SearchMode;
   activeItemId?: string | null;
   richNutrient?: { id: string; unit: string } | null;
@@ -116,8 +106,6 @@ type HeavyProps = {
 const SearchFoodHeavy = ({
   searchQuery,
   setSearchQuery,
-  currentTab,
-  setCurrentTab,
   mode,
   activeItemId,
   richNutrient,
@@ -126,23 +114,18 @@ const SearchFoodHeavy = ({
   bottomLeft,
   itemHtmlFor,
 }: HeavyProps) => {
-  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
-  const [myFoodOnly, setMyFoodOnly] = useState(false);
-
   const listContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(listContainerRef);
   const isProgrammaticScrollRef = useRef(false);
 
-  const { products, dishes, categoryFilter, nutrientMap } = useFilteredFoods(
-    searchQuery,
-    myFoodOnly,
-    richNutrient?.id
-  );
+  const { products, dishes, nutrientMap } = useFilteredFoods(searchQuery, richNutrient?.id);
   const { handleCreateProduct, handleCreateDish } = useFoodCreation(searchQuery, setSearchQuery);
 
-  const totalItems = products.length + dishes.length;
+  const showProducts = mode !== 'dishes-only';
+  const showDishes = mode !== 'products-only';
+  const totalItems = (showProducts ? products.length : 0) + (showDishes ? dishes.length : 0);
 
-  // Scroll to top when items change (search/filter)
+  // Scroll to top when items change (search)
   useEffect(() => {
     isProgrammaticScrollRef.current = true;
     listContainerRef.current?.scrollTo({ top: 0 });
@@ -190,15 +173,8 @@ const SearchFoodHeavy = ({
   const isSearchActive = searchQuery.trim().length >= 2;
   const trimmedQuery = searchQuery.trim();
 
-  const showProducts = mode !== 'dishes-only';
-  const showDishes = mode !== 'products-only';
-
-  const bothListsVisible = currentTab === 'все';
   const visibleHasResults =
-    (currentTab === 'продукты' && products.length > 0) ||
-    (currentTab === 'блюда' && dishes.length > 0) ||
-    (bothListsVisible && (products.length > 0 || dishes.length > 0)) ||
-    (mode === 'dishes-only' && dishes.length > 0);
+    (showProducts && products.length > 0) || (showDishes && dishes.length > 0);
 
   const createButtons = isSearchActive ? (
     <FoodSearchEmpty
@@ -270,85 +246,14 @@ const SearchFoodHeavy = ({
         onScroll={handleListScroll}
         role="listbox"
       >
-        {(currentTab === 'продукты' || currentTab === 'все') && (
-          <ul className={styles.list}>{products.map(renderProductItem)}</ul>
-        )}
-        {(currentTab === 'блюда' || currentTab === 'все' || mode === 'dishes-only') && (
-          <ul className={styles.list}>{dishes.map(renderDishItem)}</ul>
-        )}
+        {showProducts && <ul className={styles.list}>{products.map(renderProductItem)}</ul>}
+        {showDishes && <ul className={styles.list}>{dishes.map(renderDishItem)}</ul>}
         <div ref={sentinelRef} />
       </div>
       {createButtons}
       <ScrollIndicator visible={hasMoreBelow} variant="dark" />
 
-      <section
-        className={clsx(styles.filterWrapper, !filterPanelOpen && styles.filterWrapper_hidden)}
-      >
-        <FilterPanel
-          isOpen={filterPanelOpen}
-          header={
-            <>
-              {mode === 'products-and-dishes' && (
-                <div className={styles.tabBar}>
-                  <button
-                    className={clsx(
-                      styles.tabBarItem,
-                      currentTab === 'все' && styles.tabBarItem_active
-                    )}
-                    onClick={() => setCurrentTab('все')}
-                  >
-                    Все
-                  </button>
-                  <button
-                    className={clsx(
-                      styles.tabBarItem,
-                      currentTab === 'продукты' && styles.tabBarItem_active
-                    )}
-                    onClick={() => setCurrentTab('продукты')}
-                  >
-                    Продукты
-                  </button>
-                  <button
-                    className={clsx(
-                      styles.tabBarItem,
-                      currentTab === 'блюда' && styles.tabBarItem_active
-                    )}
-                    onClick={() => setCurrentTab('блюда')}
-                  >
-                    Блюда
-                  </button>
-                </div>
-              )}
-              <div className={styles.filterChips}>
-                <button
-                  className={clsx(styles.filterChip, myFoodOnly && styles.filterChipActive)}
-                  onClick={() => setMyFoodOnly((prev) => !prev)}
-                >
-                  Моя еда
-                </button>
-              </div>
-            </>
-          }
-          groups={getProductCategoryGroups()}
-          options={getProductCategoryOptions()}
-          selectedValues={categoryFilter.selectedCategories}
-          onToggle={(value) => categoryFilter.toggleCategory(value as string)}
-          onClear={() => categoryFilter.clearCategories()}
-          title="Фильтр по категории"
-        />
-      </section>
-
       {bottomLeft && <div className={styles.bottomLeft}>{bottomLeft}</div>}
-
-      <div className={styles.filterButtonWrapper}>
-        <FilterButton
-          isActive={filterPanelOpen}
-          onClick={() => setFilterPanelOpen((p) => !p)}
-          activeCount={categoryFilter.selectedCategories.length + (myFoodOnly ? 1 : 0)}
-        >
-          Фильтр
-        </FilterButton>
-      </div>
     </>
   );
 };

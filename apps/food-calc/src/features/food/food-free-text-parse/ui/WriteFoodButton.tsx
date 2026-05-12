@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, type ReactNode } from 'react';
 import clsx from 'clsx';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -10,6 +10,10 @@ export interface WriteFoodButtonProps {
   flow: UseWriteFoodFlowResult;
   inputId: string;
   label?: string;
+  /** Second text line rendered under `label` (idle state only). */
+  subLabel?: string;
+  /** Custom leading icon. Replaces the default SerifT in idle state. */
+  icon?: ReactNode;
   className?: string;
   prominent?: boolean;
   inverse?: boolean;
@@ -43,6 +47,8 @@ export const WriteFoodButton = ({
   flow,
   inputId,
   label = 'Описать еду',
+  subLabel,
+  icon,
   className,
   prominent,
   inverse,
@@ -76,6 +82,18 @@ export const WriteFoodButton = ({
       : 0;
 
   const disabled = flow.state === 'idle' && !online;
+  const showStacked = flow.state === 'idle' && !disabled && Boolean(subLabel);
+
+  const leadingIcon =
+    flow.state === 'loading' ? (
+      <span className={styles.iconSpin}>
+        <Spinner size={16} />
+      </span>
+    ) : flow.state === 'idle' && icon ? (
+      <span className={styles.iconSlot}>{icon}</span>
+    ) : (
+      <SerifTIcon />
+    );
 
   return (
     <label
@@ -89,24 +107,30 @@ export const WriteFoodButton = ({
         disabled && styles.disabled,
         inverse && styles.inverse,
         dark && styles.dark,
+        showStacked && styles.stacked,
         className,
       )}
       aria-disabled={disabled || undefined}
     >
-      {flow.state === 'loading' ? (
-        <span className={styles.iconSpin}>
-          <Spinner size={16} />
-        </span>
+      {showStacked ? (
+        <>
+          <span className={styles.stackedTop}>
+            {leadingIcon}
+            <span className={styles.text}>{label}</span>
+          </span>
+          <span className={styles.subText}>{subLabel}</span>
+        </>
       ) : (
-        <SerifTIcon />
+        <>
+          {leadingIcon}
+          <span className={styles.text}>
+            {flow.state === 'idle' && (disabled ? 'Нет сети' : label)}
+            {flow.state === 'loading' && 'Обрабатываем'}
+            {flow.state === 'ready' && 'К проверке'}
+            {flow.state === 'error' && 'Повторить'}
+          </span>
+        </>
       )}
-
-      <span className={styles.text}>
-        {flow.state === 'idle' && (disabled ? 'Нет сети' : label)}
-        {flow.state === 'loading' && 'Обрабатываем'}
-        {flow.state === 'ready' && 'К проверке'}
-        {flow.state === 'error' && 'Повторить'}
-      </span>
 
       {flow.state === 'ready' && badgeCount > 0 && (
         <span className={styles.badge}>{badgeCount}</span>

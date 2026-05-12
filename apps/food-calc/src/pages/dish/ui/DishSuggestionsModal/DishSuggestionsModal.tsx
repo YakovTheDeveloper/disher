@@ -52,7 +52,7 @@ const DishSuggestionsModal = ({ isExpanded, dishId, dishName, existingItems, onC
         ),
       'Не удалось добавить продукты'
     );
-    if (result === undefined) return;
+    if (!result.ok) return;
 
     toaster.success(`Добавлено: ${items.length}`);
     handleClose();

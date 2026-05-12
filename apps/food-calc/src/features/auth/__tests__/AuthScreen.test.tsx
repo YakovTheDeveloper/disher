@@ -32,8 +32,11 @@ vi.mock('../DisherLogo', () => ({
   DisherLogo: () => <div data-testid="logo" />,
 }));
 
-vi.mock('@/shared/lib/useDesignVariants', () => ({
-  useDesignVariants: () => ({ index: 0, total: 4 }),
+vi.mock('@/shared/lib/useDesignVariant', () => ({
+  useDesignVariant: () => ({
+    variant: 'v1-photo',
+    anchor: { ref: () => {}, 'data-dv': 'AuthScreen', 'data-dv-v': 'v1-photo' },
+  }),
 }));
 
 vi.mock('@/app/ui/DesignVariantsBar', () => ({

@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { parse, format, subDays, isValid } from 'date-fns';
@@ -11,6 +11,7 @@ import styles from './Laboratory.module.scss';
 
 type Props = {
   date: string;
+  indicator?: ReactNode;
 };
 
 function useEventCountLast7Days(date: string): number | undefined {
@@ -34,7 +35,7 @@ function useEventCountLast7Days(date: string): number | undefined {
   }, [dateSet]);
 }
 
-const Laboratory = ({ date }: Props) => {
+const Laboratory = ({ date, indicator }: Props) => {
   const eventCount = useEventCountLast7Days(date);
   const open = useOpenHypotheses();
   const closed = useClosedHypotheses();
@@ -42,6 +43,7 @@ const Laboratory = ({ date }: Props) => {
   return (
     <Screen
       backgroundColor="white"
+      header={indicator}
       bottomRight={
         <RunAnalysisButton
           date={date}

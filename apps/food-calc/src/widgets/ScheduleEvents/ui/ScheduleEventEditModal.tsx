@@ -93,7 +93,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
       () => updateScheduleEvent(item.id, { time: draft.time, endTime: draft.endTime ?? undefined, text: draft.text, atoms: draftAtoms }),
       'Не удалось обновить событие',
     );
-    if (result === undefined) return;
+    if (!result.ok) return;
     clearAtoms();
     setStep('idle');
     onClose();
