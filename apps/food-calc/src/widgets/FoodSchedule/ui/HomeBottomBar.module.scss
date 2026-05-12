@@ -1,0 +1,256 @@
+// HomeBottomBar — integrated bottom dock for HomePage / FoodSchedule.
+//
+// Sits in the Screen `bottomBar` slot, which is part of the flex flow
+// (NOT position: absolute over content). The wrapper provides the
+// solid surface + hairline separator — each variant only handles the
+// internal row layout.
+
+@import '@/shared/assets/style/mixin.scss';
+
+// ─── Common dock row (shared by all integrated variants) ──────────────
+
+.dock {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    min-height: 60px;
+    box-sizing: border-box;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.hidden {
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+}
+
+// Generic ghost icon button — used as leading/trailing affordances.
+.iconButton {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: transparent;
+    border: none;
+    color: rgba(31, 42, 68, 0.72);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+
+    &:hover,
+    &:focus-visible {
+        color: rgba(31, 42, 68, 1);
+        background: rgba(0, 0, 0, 0.04);
+        outline: none;
+    }
+
+    &:active {
+        transform: scale(0.94);
+    }
+}
+
+.leadingIcon {
+    @extend .iconButton;
+}
+
+// ─── V2 — Dock: + · primary pill · search ─────────────────────────────
+
+.dockV2 {
+    justify-content: space-between;
+}
+
+// Override WriteFoodButton's `dark` defaults to make it stretch as the
+// central primary. `dark` already gives us purple-navy fill + white text.
+.dockPrimary {
+    flex: 1;
+    justify-content: center;
+    margin: 0 4px;
+}
+
+// ─── V3 — Omnibox: leading icon · field · trailing icon ───────────────
+
+.dockV3 {
+    // standard row
+}
+
+// Make WriteFoodButton look like an input field — wide, left-aligned,
+// muted background, no border-radius pill (use a softer corner).
+.omniboxField {
+    flex: 1;
+    justify-content: flex-start;
+    background: rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    color: rgba(31, 42, 68, 0.7) !important;
+    border-radius: 12px !important;
+    padding: 10px 14px !important;
+    min-height: 44px;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.05) !important;
+        transform: none;
+    }
+
+    &:active {
+        background: rgba(0, 0, 0, 0.06) !important;
+    }
+}
+
+// ─── V4 — Composer (chat-style) ───────────────────────────────────────
+
+.dockV4 {
+    align-items: flex-end;
+}
+
+.composerWrap {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.composerField {
+    flex: 1;
+    justify-content: flex-start;
+    background: #fff !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    color: rgba(31, 42, 68, 0.7) !important;
+    border-radius: 22px !important;
+    padding: 10px 44px 10px 16px !important;
+    min-height: 44px;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+
+    &:hover {
+        transform: none;
+    }
+}
+
+.composerMic {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(66, 66, 117, 0.7);
+    pointer-events: none;
+}
+
+// ─── V5 — Segmented (3 equal actions) ─────────────────────────────────
+
+.dockV5 {
+    padding: 8px 8px;
+    gap: 0;
+}
+
+.segItem {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 10px 12px;
+    background: transparent !important;
+    border: none !important;
+    color: rgba(31, 42, 68, 0.85) !important;
+    font-size: 14px !important;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    border-radius: 10px;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+
+    & > span {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.04) !important;
+        color: rgba(31, 42, 68, 1) !important;
+        transform: none;
+    }
+
+    &:active {
+        transform: scale(0.97);
+    }
+}
+
+.segDivider {
+    flex-shrink: 0;
+    width: 1px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.08);
+    align-self: center;
+}
+
+// Stacked variants — two-line layout used for "Найти" and "Описать".
+// Bumping segDivider height a bit so the divider visually spans both rows.
+.dockV5 {
+    .segItemStacked,
+    .segItemWrite {
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        line-height: 1.15;
+    }
+
+    // Когда соседняя сегментная "кнопка" двустрочная — делаем разделитель повыше.
+    .segDivider {
+        height: 32px;
+    }
+}
+
+// Верхняя строка «Найти» — иконка лупы + текст inline.
+.segPrimary {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px !important;
+    font-weight: 500;
+    color: rgba(31, 42, 68, 0.92);
+    white-space: nowrap;
+
+    // Вложенный текстовый <span> — наследует размер от родителя.
+    & > span {
+        font-size: 13px !important;
+        font-weight: 500;
+    }
+}
+
+.segSecondary {
+    font-size: 13px !important;
+    font-weight: 400;
+    color: rgba(31, 42, 68, 0.62);
+    white-space: nowrap;
+    // Слегка расширяем «вручную», чтобы зрительно совпало с длиной верхней
+    // строки ("Найти еду" с лупой чуть шире).
+    letter-spacing: 0.02em;
+}
+
+// «T / 🎤» composite leading-icon (см. TypeMicIcon в HomeBottomBar.tsx).
+.tmIcon {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: currentColor;
+}
+
+.tmSlash {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: 0.55;
+    line-height: 1;
+}

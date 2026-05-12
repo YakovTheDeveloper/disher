@@ -1,0 +1,151 @@
+// HomeScreenIndicator — 3-tile indicator above each HomePage slide.
+// Lives inside each slide's Screen.header (scrolls with content, not sticky).
+// Typography per screen — see .tileTitleSerif / .tileTitleDisplay / .tileTitleMono.
+
+.tilesRow {
+    display: flex;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+// Equal-width tiles (flex: 1 1 0) — width is NEVER animated to avoid
+// reflow on every frame. The active/inactive contrast is composite-only:
+//   transform: scale  (GPU)
+//   opacity            (GPU)
+//   border-color       (paint, but on 4 pixels — negligible)
+// The right-edge fade for narrow viewports is a ::after pseudo gradient
+// whose opacity is animated — also composite-only.
+.tile {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 14px;
+    min-height: 92px;
+    cursor: pointer;
+    text-align: left;
+    overflow: hidden;
+    background: #ffffff;
+    color: #000000;
+    // 1px transparent frame on all tiles → active state only flips
+    // border-color, no layout shift from the frame appearing/disappearing.
+    border: 1px solid transparent;
+    border-radius: 0;
+    opacity: 0.45;
+    transform: scale(0.92);
+    transform-origin: center;
+    transition:
+        opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+// Right-edge fade for inactive tiles — softens any text overflow on
+// narrow viewports without the harsh straight clip of `overflow: hidden`.
+.tile::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 28%;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff);
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tileActive {
+    opacity: 1;
+    transform: scale(1);
+    border-color: #000000;
+    // Layer the active tile above its neighbors so the black frame is
+    // never clipped by an adjacent tile's edge during the transform.
+    z-index: 1;
+}
+
+.tileActive::after {
+    opacity: 0;
+}
+
+// Base wrapper for the title — shared positioning/flow for all 3 typography
+// styles. Per-style class brings the actual font, size, weight, casing.
+.tileTitle {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    margin: 0;
+    color: inherit;
+}
+
+// ─── Style A: serif italic with enlarged initial (events) ──────────────
+// Copied 1:1 from .dayHeaderTitle in ScheduleEvents.module.scss.
+// `display: flex` (inherited from .tileTitle) without align-items keeps
+// the default `stretch`, which causes the 1.7em initial to drop low
+// while the rest floats high — the signature events typographic move.
+.tileTitleSerif {
+    font-family: "Source Serif 4", "Merriweather", serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.35rem;
+    line-height: 0.95;
+    letter-spacing: -0.5px;
+}
+
+// ─── Style B: heavy display sans, uppercase, tight (laboratory) ────────
+// Industrial / clinical / brutalist marker vibe.
+.tileTitleDisplay {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 0.78rem;
+    line-height: 1;
+    letter-spacing: -0.005em;
+    text-transform: uppercase;
+    align-items: center;
+}
+
+// ─── Style C: mono with tracking, lowercase (schedule) ─────────────────
+// Typewriter / printed-schedule feel.
+.tileTitleMono {
+    font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+    font-weight: 400;
+    font-size: 0.78rem;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    text-transform: lowercase;
+    align-items: center;
+}
+
+.tileTitleFirst {
+    flex-shrink: 0;
+}
+
+// Only the serif style enlarges its initial.
+.tileTitleFirstEnlarged {
+    font-size: 1.7em;
+    line-height: 1;
+}
+
+.tileTitleRest {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.tileImg {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    transform: translateY(38%);
+    z-index: 0;
+    width: 160px;
+    height: 160px;
+    max-width: 100%;
+    object-fit: contain;
+    object-position: right center;
+    opacity: 0.05;
+    pointer-events: none;
+    user-select: none;
+}

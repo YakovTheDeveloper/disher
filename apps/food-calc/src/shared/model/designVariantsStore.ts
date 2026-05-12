@@ -1,99 +1,145 @@
 import { create } from 'zustand';
 
-type VariantEntry = { total: number; index: number };
-
-export type KnownVariantComponent = {
-  name: string;
-  total: number;
+/** Per-component state used by `useDesignVariant`. */
+export type RegistryEntry = {
+  variants: readonly string[];
+  variant: string;
+  visible: boolean;
+  /** Timestamp of last visibility report — used to pick "most recently visible" when no pin. */
+  lastSeen: number;
 };
 
-/**
- * Static registry of all components that expose design variants.
- *
- * Registering here — rather than from inside each component's effect — keeps
- * the DesignVariantsBar dropdown stable even when the variant component is
- * unmounted (e.g. inside a drawer/modal that was just closed).
- *
- * To add a new variant set: append an entry here AND call
- * `useDesignVariants(name, total)` inside the component with matching values.
- */
-export const KNOWN_VARIANT_COMPONENTS: readonly KnownVariantComponent[] = [
-  { name: 'Calendar', total: 1 },
-  { name: 'TimeChoose', total: 8 },
-  { name: 'ProductQuantity', total: 2 },
-  { name: 'SearchFood', total: 2 },
-  { name: 'AuthScreen', total: 4 },
-  { name: 'ModalShell', total: 5 },
-] as const;
+function loadStoredVariant(key: string, fallback: string): string {
+  try {
+    return localStorage.getItem(`dv:${key}`) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
 
-const initialComponents: Record<string, VariantEntry> = Object.fromEntries(
-  KNOWN_VARIANT_COMPONENTS.map((c) => [c.name, { total: c.total, index: 0 }]),
-);
-
-const initialActive = KNOWN_VARIANT_COMPONENTS[0]?.name ?? null;
+function persistVariant(key: string, variant: string): void {
+  try {
+    localStorage.setItem(`dv:${key}`, variant);
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
 
 type DesignVariantsStore = {
-  components: Record<string, VariantEntry>;
-  activeComponent: string | null;
-  syncTotal: (name: string, total: number) => void;
-  setIndex: (name: string, index: number) => void;
+  /** Registered components, keyed by `key` passed to `useDesignVariant`. */
+  entries: Record<string, RegistryEntry>;
+  /** When set, overrides "most recently visible" → the bar pins to this key. */
+  pinned: string | null;
+
+  register: (key: string, variants: readonly string[]) => void;
+  unregister: (key: string) => void;
+  markVisible: (key: string) => void;
+  setVariant: (key: string, variant: string) => void;
+  setPinned: (key: string | null) => void;
+  /** Advance the active entry to next variant (wraps). */
   next: () => void;
+  /** Step the active entry back one variant (wraps). */
   prev: () => void;
-  setActive: (name: string) => void;
 };
 
-export const useDesignVariantsStore = create<DesignVariantsStore>((set) => ({
-  components: initialComponents,
-  activeComponent: initialActive,
+export const useDesignVariantsStore = create<DesignVariantsStore>((set, get) => ({
+  entries: {},
+  pinned: null,
 
-  syncTotal: (name, total) =>
+  register: (key, variants) =>
     set((state) => {
-      const existing = state.components[name];
-      if (!existing || existing.total === total) return state;
-      const clampedIndex = existing.index >= total ? 0 : existing.index;
+      const fallback = variants[0] ?? '';
+      const existing = state.entries[key];
+      const stored = loadStoredVariant(key, existing?.variant ?? fallback);
+      const variant = variants.includes(stored) ? stored : fallback;
       return {
-        components: { ...state.components, [name]: { total, index: clampedIndex } },
-      };
-    }),
-
-  setIndex: (name, index) =>
-    set((state) => {
-      const entry = state.components[name];
-      if (!entry) return state;
-      const normalized = ((index % entry.total) + entry.total) % entry.total;
-      return {
-        components: { ...state.components, [name]: { ...entry, index: normalized } },
-      };
-    }),
-
-  next: () =>
-    set((state) => {
-      const name = state.activeComponent;
-      if (!name) return state;
-      const entry = state.components[name];
-      if (!entry) return state;
-      return {
-        components: {
-          ...state.components,
-          [name]: { ...entry, index: (entry.index + 1) % entry.total },
+        entries: {
+          ...state.entries,
+          [key]: {
+            variants,
+            variant,
+            visible: existing?.visible ?? false,
+            lastSeen: existing?.lastSeen ?? 0,
+          },
         },
       };
     }),
 
-  prev: () =>
+  unregister: (key) =>
     set((state) => {
-      const name = state.activeComponent;
-      if (!name) return state;
-      const entry = state.components[name];
+      if (!(key in state.entries)) return state;
+      const { [key]: _, ...rest } = state.entries;
+      return {
+        entries: rest,
+        pinned: state.pinned === key ? null : state.pinned,
+      };
+    }),
+
+  markVisible: (key) =>
+    set((state) => {
+      const entry = state.entries[key];
       if (!entry) return state;
       return {
-        components: {
-          ...state.components,
-          [name]: { ...entry, index: (entry.index - 1 + entry.total) % entry.total },
+        entries: {
+          ...state.entries,
+          [key]: { ...entry, visible: true, lastSeen: Date.now() },
         },
       };
     }),
 
-  setActive: (name) =>
-    set((state) => (name in state.components ? { activeComponent: name } : state)),
+  setVariant: (key, variant) =>
+    set((state) => {
+      const entry = state.entries[key];
+      if (!entry || !entry.variants.includes(variant)) return state;
+      persistVariant(key, variant);
+      return { entries: { ...state.entries, [key]: { ...entry, variant } } };
+    }),
+
+  setPinned: (key) => set({ pinned: key }),
+
+  next: () => {
+    const activeKey = selectActiveKey(get());
+    if (!activeKey) return;
+    const entry = get().entries[activeKey];
+    if (!entry) return;
+    const idx = entry.variants.indexOf(entry.variant);
+    const nextIdx = (idx + 1 + entry.variants.length) % entry.variants.length;
+    get().setVariant(activeKey, entry.variants[nextIdx] ?? entry.variant);
+  },
+
+  prev: () => {
+    const activeKey = selectActiveKey(get());
+    if (!activeKey) return;
+    const entry = get().entries[activeKey];
+    if (!entry) return;
+    const idx = entry.variants.indexOf(entry.variant);
+    const prevIdx = (idx - 1 + entry.variants.length) % entry.variants.length;
+    get().setVariant(activeKey, entry.variants[prevIdx] ?? entry.variant);
+  },
 }));
+
+/**
+ * Resolves which registered key the bar currently operates on:
+ *   1. user-pinned key (if still registered),
+ *   2. otherwise the most recently visible one,
+ *   3. otherwise the first registered key,
+ *   4. otherwise null.
+ */
+export function selectActiveKey(state: {
+  entries: Record<string, RegistryEntry>;
+  pinned: string | null;
+}): string | null {
+  if (state.pinned && state.entries[state.pinned]) return state.pinned;
+  const keys = Object.keys(state.entries);
+  if (keys.length === 0) return null;
+  let bestKey: string | null = null;
+  let bestSeen = -1;
+  for (const k of keys) {
+    const e = state.entries[k];
+    if (e.visible && e.lastSeen > bestSeen) {
+      bestKey = k;
+      bestSeen = e.lastSeen;
+    }
+  }
+  return bestKey ?? keys[0];
+}
