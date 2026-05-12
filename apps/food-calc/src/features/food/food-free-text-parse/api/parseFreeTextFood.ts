@@ -10,7 +10,7 @@ export interface ResolvedItem {
   productId: string;
   name: string;
   originalName: string;
-  note: string;
+  details: string;
   quantity: number;
   time: string;
   confidence: number;
@@ -19,7 +19,7 @@ export interface ResolvedItem {
 
 export interface AmbiguousItem {
   originalName: string;
-  note: string;
+  details: string;
   quantity: number;
   time: string;
   candidates: MatchCandidate[];
@@ -28,7 +28,7 @@ export interface AmbiguousItem {
 
 export interface UnresolvedItem {
   originalName: string;
-  note: string;
+  details: string;
   quantity: number;
   time: string;
   quantityGuessed?: boolean;

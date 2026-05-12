@@ -1,9 +1,8 @@
 .bar {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 6px;
-    padding: 8px 16px;
+    padding: 8px 12px;
     width: 100%;
     box-sizing: border-box;
     background-color: rgba(255, 255, 255, 0.85);
@@ -11,6 +10,13 @@
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     font-size: 13px;
     line-height: 1.2;
+}
+
+.accountSlot {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-right: 4px;
 }
 
 .segment {

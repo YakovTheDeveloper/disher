@@ -1,6 +1,18 @@
-// HomeScreenIndicator — 3-tile indicator above each HomePage slide.
-// Lives inside each slide's Screen.header (scrolls with content, not sticky).
-// Typography per screen — see .tileTitleSerif / .tileTitleDisplay / .tileTitleMono.
+// HomeScreenIndicator — 3-tile indicator with shared-element title
+// migration via the **CSS View Transitions API**. The label visibly
+// flies from its tile to the centered band and back, all driven by the
+// browser's compositor — zero JS animation, zero layout work per frame.
+//
+// Source/destination of the morph MUST share font-family/style/weight,
+// otherwise the morph reads as a font swap mid-flight. Only font-size /
+// letter-spacing differ between `.tileTitle` and `.bandLabel` — the
+// browser interpolates the bounding box and cross-fades the snapshots.
+
+.root {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
 
 .tilesRow {
     display: flex;
@@ -9,12 +21,10 @@
 }
 
 // Equal-width tiles (flex: 1 1 0) — width is NEVER animated to avoid
-// reflow on every frame. The active/inactive contrast is composite-only:
+// reflow on every frame. Active/inactive contrast is composite-only:
 //   transform: scale  (GPU)
 //   opacity            (GPU)
 //   border-color       (paint, but on 4 pixels — negligible)
-// The right-edge fade for narrow viewports is a ::after pseudo gradient
-// whose opacity is animated — also composite-only.
 .tile {
     position: relative;
     flex: 1 1 0;
@@ -27,24 +37,18 @@
     cursor: pointer;
     text-align: left;
     overflow: hidden;
-    background: #ffffff;
+    background: transparent;
     color: #000000;
-    // 1px transparent frame on all tiles → active state only flips
-    // border-color, no layout shift from the frame appearing/disappearing.
     border: 1px solid transparent;
     border-radius: 0;
-    opacity: 0.45;
     transform: scale(0.92);
     transform-origin: center;
     transition:
-        opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1),
         transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
         border-color 0.18s ease;
     -webkit-tap-highlight-color: transparent;
 }
 
-// Right-edge fade for inactive tiles — softens any text overflow on
-// narrow viewports without the harsh straight clip of `overflow: hidden`.
 .tile::after {
     content: '';
     position: absolute;
@@ -52,18 +56,14 @@
     right: 0;
     bottom: 0;
     width: 28%;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff);
     pointer-events: none;
     opacity: 1;
     transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tileActive {
-    opacity: 1;
     transform: scale(1);
     border-color: #000000;
-    // Layer the active tile above its neighbors so the black frame is
-    // never clipped by an adjacent tile's edge during the transform.
     z-index: 1;
 }
 
@@ -71,67 +71,35 @@
     opacity: 0;
 }
 
-// Base wrapper for the title — shared positioning/flow for all 3 typography
-// styles. Per-style class brings the actual font, size, weight, casing.
+// Small source state of the migration. Same typographic DNA as
+// .bandLabel — only size + letter-spacing differ. Dimming lives on the
+// text itself (not the tile) so the bg/image stay crisp; opacity is
+// animated short-and-fast on mount via tileTitleFadeIn.
 .tileTitle {
     position: relative;
     z-index: 1;
-    display: flex;
+    display: inline-block;
     margin: 0;
     color: inherit;
-}
-
-// ─── Style A: serif italic with enlarged initial (events) ──────────────
-// Copied 1:1 from .dayHeaderTitle in ScheduleEvents.module.scss.
-// `display: flex` (inherited from .tileTitle) without align-items keeps
-// the default `stretch`, which causes the 1.7em initial to drop low
-// while the rest floats high — the signature events typographic move.
-.tileTitleSerif {
     font-family: "Source Serif 4", "Merriweather", serif;
     font-style: italic;
     font-weight: 400;
-    font-size: 1.35rem;
-    line-height: 0.95;
-    letter-spacing: -0.5px;
-}
-
-// ─── Style B: heavy display sans, uppercase, tight (laboratory) ────────
-// Industrial / clinical / brutalist marker vibe.
-.tileTitleDisplay {
-    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
-    font-weight: 800;
-    font-size: 0.78rem;
+    font-size: 1.05rem;
     line-height: 1;
-    letter-spacing: -0.005em;
-    text-transform: uppercase;
-    align-items: center;
-}
-
-// ─── Style C: mono with tracking, lowercase (schedule) ─────────────────
-// Typewriter / printed-schedule feel.
-.tileTitleMono {
-    font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
-    font-weight: 400;
-    font-size: 0.78rem;
-    line-height: 1;
-    letter-spacing: 0.05em;
-    text-transform: lowercase;
-    align-items: center;
-}
-
-.tileTitleFirst {
-    flex-shrink: 0;
-}
-
-// Only the serif style enlarges its initial.
-.tileTitleFirstEnlarged {
-    font-size: 1.7em;
-    line-height: 1;
-}
-
-.tileTitleRest {
-    display: inline-block;
+    letter-spacing: -0.3px;
     white-space: nowrap;
+    opacity: 0.45;
+    animation: tileTitleFadeIn 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes tileTitleFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 0.45;
+    }
 }
 
 .tileImg {
@@ -148,4 +116,118 @@
     opacity: 0.05;
     pointer-events: none;
     user-select: none;
+}
+
+// "Shadow" text inside the active tile: light-gray serif italic echo of
+// the bandLabel below. Bottom-anchored so it reads as a projection of
+// the big title upward into the tile (source = band immediately below).
+// Sized to mirror bandLabel; the tile's overflow:hidden trims any
+// horizontal overrun on narrow tiles.
+.tileShadow {
+    position: absolute;
+    left: 14px;
+    right: 0;
+    bottom: 8px;
+    z-index: 1;
+    font-family: "Source Serif 4", "Merriweather", serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0.35;
+    letter-spacing: -0.1px;
+    color: #9a9a9a;
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+}
+
+// Centered destination state. The browser captures position+size of
+// .tileTitle (source) and .bandLabel (destination) and interpolates
+// between them via ::view-transition-group(home-title-N).
+.band {
+    position: relative;
+    width: 100%;
+    height: 88px;
+    background: transparent;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bandLabel {
+    display: inline-block;
+    font-family: "Source Serif 4", "Merriweather", serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 2.6rem;
+    line-height: 1;
+    letter-spacing: -0.7px;
+    color: #000000;
+    white-space: nowrap;
+}
+
+// ─── View Transitions pseudos (global) ──────────────────────────────────
+// The browser appends ::view-transition pseudos to <html> at the moment
+// startViewTransition() runs — they are NOT scoped to any element, so
+// these rules must be `:global()` to escape CSS-modules hashing.
+//
+// Duration/easing live in CSS vars on :root (locked to a back-out
+// overshoot "bounce") and are read by both the VT pseudos and the
+// WAAPI FLIP fallback in the component.
+
+:root {
+    --vt-home-duration: 0.6s;
+    --vt-home-easing: cubic-bezier(0.34, 1.56, 0.64, 1); // back-out overshoot ("bounce")
+}
+
+// The `home-title-N` pair: group animates the bounding box, image-pair
+// crossfades the snapshots. Listing each name explicitly because the
+// CSS-pseudo grammar does not accept wildcards or commas within the
+// parentheses — only a single ident per pseudo. We list 3 here.
+:global(::view-transition-group(home-title-0)),
+:global(::view-transition-group(home-title-1)),
+:global(::view-transition-group(home-title-2)) {
+    animation-duration: var(--vt-home-duration);
+    animation-timing-function: var(--vt-home-easing);
+}
+
+// Cross-fade old → new snapshots. Same timing so the position morph
+// and the fade complete in lockstep — otherwise you see a ghost frame
+// hanging at the source while the new one lands.
+:global(::view-transition-old(home-title-0)),
+:global(::view-transition-old(home-title-1)),
+:global(::view-transition-old(home-title-2)),
+:global(::view-transition-new(home-title-0)),
+:global(::view-transition-new(home-title-1)),
+:global(::view-transition-new(home-title-2)) {
+    animation-duration: var(--vt-home-duration);
+    animation-timing-function: var(--vt-home-easing);
+}
+
+// Snapshots use `mix-blend-mode: plus-lighter` by default, which can
+// brighten overlapping ink mid-flight on white backgrounds. Plain
+// normal blend keeps the serif's ink black throughout the morph.
+:global(::view-transition-image-pair(home-title-0)),
+:global(::view-transition-image-pair(home-title-1)),
+:global(::view-transition-image-pair(home-title-2)) {
+    isolation: auto;
+}
+
+// Reduced motion: collapse to an instant swap. Browsers do not respect
+// prefers-reduced-motion automatically for view transitions — explicit.
+@media (prefers-reduced-motion: reduce) {
+
+    :global(::view-transition-group(home-title-0)),
+    :global(::view-transition-group(home-title-1)),
+    :global(::view-transition-group(home-title-2)),
+    :global(::view-transition-old(home-title-0)),
+    :global(::view-transition-old(home-title-1)),
+    :global(::view-transition-old(home-title-2)),
+    :global(::view-transition-new(home-title-0)),
+    :global(::view-transition-new(home-title-1)),
+    :global(::view-transition-new(home-title-2)) {
+        animation-duration: 0.001s;
+    }
 }

@@ -1,6 +1,8 @@
 import clsx from 'clsx';
 import { WriteFoodButton } from '@/features/food/food-free-text-parse';
 import type { UseWriteFoodFlowResult } from '@/features/food/food-free-text-parse';
+import { getTimeOfDay } from '@/shared/lib/time-of-day';
+import { useNow } from '@/shared/lib/time/useNow';
 import { SCHEDULE_FOOD_INPUT_IDS } from './useScheduleFoodFlow';
 import s from './HomeBottomBar.module.scss';
 
@@ -17,14 +19,6 @@ const PlusIcon = ({ size = 20 }: { size?: number }) => (
   </svg>
 );
 
-const MoreIcon = ({ size = 20 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="6" cy="12" r="1.6" fill="currentColor" />
-    <circle cx="12" cy="12" r="1.6" fill="currentColor" />
-    <circle cx="18" cy="12" r="1.6" fill="currentColor" />
-  </svg>
-);
-
 const MicIcon = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="9" y="3" width="6" height="12" rx="3" stroke="currentColor" strokeWidth="1.6" />
@@ -32,8 +26,8 @@ const MicIcon = ({ size = 18 }: { size?: number }) => (
   </svg>
 );
 
-// Compound "T/M" icon used in V5 «Описать» — signals оба входа:
-// печатать (Т, как в WriteFoodButton) и голос (микрофон).
+// Compound "T/M" icon used in segmented «Описать» — signals both inputs:
+// typing (T, как в WriteFoodButton) и голос (микрофон).
 const TypeMicIcon = () => (
   <span className={s.tmIcon} aria-hidden>
     <svg width="12" height="14" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -48,9 +42,9 @@ const TypeMicIcon = () => (
   </span>
 );
 
-type Variant = 'floating' | 'dock' | 'omnibox' | 'composer' | 'segmented';
+type Variant = 'dock' | 'segmented';
 
-const VARIANTS: readonly Variant[] = ['floating', 'dock', 'omnibox', 'composer', 'segmented'];
+const VARIANTS: readonly Variant[] = ['dock', 'segmented'];
 
 export const HOME_BOTTOM_BAR_VARIANTS = VARIANTS;
 
@@ -70,14 +64,13 @@ export const HomeBottomBar = ({
   hidden,
 }: Props) => {
   const variant = VARIANTS[variantIndex] ?? VARIANTS[0];
-
-  if (variant === 'floating') return null;
+  const tod = getTimeOfDay(useNow());
 
   if (variant === 'dock') {
-    // V2 — Solid dock + central primary
-    // 3 elements: [+] ghost · [Описать] filled accent · [Q] ghost
+    // Solid dock + central primary, tinted by current time-of-day.
+    // 3 elements: [+] ghost · [Описать] tod-tinted primary · [Q] ghost
     return (
-      <div className={clsx(s.dock, s.dockV2, hidden && s.hidden)}>
+      <div className={clsx(s.dock, s.dockV2, hidden && s.hidden)} data-tod={tod}>
         <button
           type="button"
           className={s.iconButton}
@@ -106,69 +99,8 @@ export const HomeBottomBar = ({
     );
   }
 
-  if (variant === 'omnibox') {
-    // V3 — Omnibox: single input pill spanning the bar
-    // Tap = open write modal (primary intent). Trailing [⋯] opens create menu.
-    // Leading [Q] still routes to search modal for explicit search intent.
-    return (
-      <div className={clsx(s.dock, s.dockV3, hidden && s.hidden)}>
-        <label
-          htmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
-          className={s.leadingIcon}
-          aria-label="Найти еду"
-        >
-          <SearchIcon />
-        </label>
-
-        <WriteFoodButton
-          flow={writeFoodFlow}
-          inputId={writeFoodInputId}
-          label="Найти или описать что ели…"
-          className={s.omniboxField}
-        />
-
-        <button
-          type="button"
-          className={s.iconButton}
-          onClick={onPlusClick}
-          aria-label="Создать"
-        >
-          <MoreIcon />
-        </button>
-      </div>
-    );
-  }
-
-  if (variant === 'composer') {
-    // V4 — Composer (chat-style)
-    // Wide write-pill with mic trailing inside, send-style accent on right.
-    return (
-      <div className={clsx(s.dock, s.dockV4, hidden && s.hidden)}>
-        <label
-          htmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
-          className={s.leadingIcon}
-          aria-label="Найти еду"
-        >
-          <SearchIcon />
-        </label>
-
-        <div className={s.composerWrap}>
-          <WriteFoodButton
-            flow={writeFoodFlow}
-            inputId={writeFoodInputId}
-            label="Что ел? Например, овсянка 200г"
-            className={s.composerField}
-          />
-          <span className={s.composerMic} aria-hidden>
-            <MicIcon />
-          </span>
-        </div>
-      </div>
-    );
-  }
-
   if (variant === 'segmented') {
-    // V5 — Segmented bar: three equal-weight actions (no single accent).
+    // Segmented bar: three equal-weight actions (no single accent).
     // «Найти» и «Описать» — двустрочные с иконкой в верхней строке.
     return (
       <div className={clsx(s.dock, s.dockV5, hidden && s.hidden)}>

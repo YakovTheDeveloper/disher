@@ -247,3 +247,253 @@
         background: #fef2f2;
     }
 }
+
+// ──────────────────────────────────────────────────────────────────────
+// Stripe-family mixin — shared structure for v5 forks (stripe-warm/mint/
+// rose/graphite/sand/lavender). Encodes the v5 skeleton: full-height 3px
+// richness-stripe on the left, fading hairline ::after, tabular numerics,
+// nth-child rhythm (2n warm-left blush, 3n cool-right blush; 3n wins on 6n).
+// Each fork supplies its own gradient palette + text colors.
+// ──────────────────────────────────────────────────────────────────────
+@mixin stripe-fork(
+    $base, $wash-2n, $wash-3n, $hover, $active,
+    $hairline-rgba,
+    $text-rest, $text-active, $rich-text
+) {
+    .wrapper {
+        background: $base;
+        border: none;
+        border-bottom: none;
+        border-radius: 0;
+        box-shadow: none;
+        outline: none;
+
+        &::after {
+            content: '';
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            bottom: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                $hairline-rgba 18%,
+                $hairline-rgba 82%,
+                transparent 100%);
+            pointer-events: none;
+        }
+        &:last-child::after { display: none; }
+
+        &:nth-child(2n) { background: $wash-2n, $base; }
+        &:nth-child(3n) { background: $wash-3n, $base; }
+
+        &:hover { background: $hover; box-shadow: none; }
+        &:active { transform: none; }
+        &:has(.item_active) {
+            outline: none;
+            background: $active;
+        }
+    }
+    .richBar {
+        top: 0;
+        bottom: 0;
+        left: 0;
+        height: auto !important;
+        width: 3px !important;
+        opacity: 0.85;
+        border-radius: 0;
+        animation: none;
+    }
+    .wrapper:has(.item_active) .richBar { width: 5px !important; }
+    .item { padding: 11px 6px 11px 14px; gap: 10px; }
+    .name { font-weight: 500; font-size: 0.94rem; color: $text-rest; }
+    .item_active .name { color: $text-active; font-weight: 700; }
+    .richValue {
+        min-width: 60px;
+        height: auto;
+        padding: 0 10px;
+        font-feature-settings: 'tnum' 1, 'lnum' 1;
+        font-size: 13px;
+        font-weight: 600;
+        color: $rich-text;
+        letter-spacing: -0.01em;
+    }
+    .richUnit { margin-top: 1px; font-size: 9px; color: rgba($rich-text, 0.65); }
+    .richPercent { font-size: 9px; color: rgba($rich-text, 0.45); }
+    .infoBtn {
+        color: rgba($text-active, 0.30);
+        &:active { color: $text-active; }
+    }
+}
+
+// info-density B — vertical color-stripe (richness) + tabular numerics
+// Base row gradient is cool white → faint blue. Positional rhythm adds an
+// extra barely-perceptible wash overlay:
+//   :nth-child(2n) — warm blush from the LEFT (fades out at ~55%)
+//   :nth-child(3n) — cool blush from the RIGHT (fades in from ~45%)
+// 6n rows match BOTH selectors; source order means 3n's cool-right wins —
+// giving a 6-row pattern of (default → warm → cool → warm → default → cool).
+// Hover/active gradients are position-independent and stay clean.
+:global([data-dv='SearchFood'][data-dv-v='column-stripe']) {
+    .wrapper {
+        background: linear-gradient(90deg, #ffffff 0%, #fdfeff 55%, #f9fbfd 100%);
+        border: none;
+        border-bottom: none;
+        border-radius: 0;
+        box-shadow: none;
+        outline: none;
+
+        // Fading hairline divider (replaces flat border-bottom)
+        &::after {
+            content: '';
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            bottom: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(15, 23, 42, 0.08) 18%,
+                rgba(15, 23, 42, 0.08) 82%,
+                transparent 100%);
+            pointer-events: none;
+        }
+        &:last-child::after { display: none; }
+
+        // Rhythm: every 2nd row picks up a barely-warm wash from the left
+        &:nth-child(2n) {
+            background:
+                linear-gradient(90deg,
+                    rgba(255, 220, 180, 0.07) 0%,
+                    rgba(255, 220, 180, 0) 55%),
+                linear-gradient(90deg, #ffffff 0%, #fdfeff 55%, #f9fbfd 100%);
+        }
+
+        // Rhythm: every 3rd row picks up a cool wash from the right (wins over 2n at 6n)
+        &:nth-child(3n) {
+            background:
+                linear-gradient(90deg,
+                    transparent 45%,
+                    rgba(180, 210, 255, 0.08) 100%),
+                linear-gradient(90deg, #ffffff 0%, #fdfeff 55%, #f9fbfd 100%);
+        }
+
+        &:hover {
+            background: linear-gradient(90deg, #ffffff 0%, #f6f9fd 60%, #eef3fa 100%);
+            box-shadow: none;
+        }
+        &:active { transform: none; }
+        &:has(.item_active) {
+            outline: none;
+            background: linear-gradient(90deg, #f4f7fc 0%, #e9f0fa 60%, #def0f8 100%);
+        }
+    }
+    // richBar → full-height 3px stripe on the left, richness colors it
+    .richBar {
+        top: 0;
+        bottom: 0;
+        left: 0;
+        height: auto !important;
+        width: 3px !important;
+        opacity: 0.85;
+        border-radius: 0;
+        animation: none;
+    }
+    .wrapper:has(.item_active) .richBar { width: 5px !important; }
+    .item { padding: 11px 6px 11px 14px; gap: 10px; }
+    .name { font-weight: 500; font-size: 0.94rem; color: #1f2937; }
+    .item_active .name { color: #0f172a; font-weight: 700; }
+    .richValue {
+        min-width: 60px;
+        height: auto;
+        padding: 0 10px;
+        font-feature-settings: 'tnum' 1, 'lnum' 1;
+        font-size: 13px;
+        font-weight: 600;
+        color: #1f2937;
+        letter-spacing: -0.01em;
+    }
+    .richUnit { margin-top: 1px; font-size: 9px; color: #6b7280; }
+    .richPercent { font-size: 9px; color: #9ca3af; }
+    .infoBtn { color: rgba(31, 41, 55, 0.25); &:active { color: #0f172a; } }
+}
+
+// ─── Stripe-family forks (v5 structure, different palettes) ──────────
+
+// stripe-warm — honey / peach
+:global([data-dv='SearchFood'][data-dv-v='stripe-warm']) {
+    @include stripe-fork(
+        linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%),
+        linear-gradient(90deg, rgba(255, 200, 130, 0.08) 0%, rgba(255, 200, 130, 0) 55%),
+        linear-gradient(90deg, transparent 45%, rgba(255, 220, 180, 0.10) 100%),
+        linear-gradient(90deg, #fffefb 0%, #fdf6e7 60%, #f9ecd1 100%),
+        linear-gradient(90deg, #fef3df 0%, #fce0b3 60%, #f9c97e 100%),
+        rgba(124, 65, 15, 0.09),
+        #3a2e14, #5a3e0f, #4a3617
+    );
+}
+
+// stripe-mint — sage / mint
+:global([data-dv='SearchFood'][data-dv-v='stripe-mint']) {
+    @include stripe-fork(
+        linear-gradient(90deg, #fefffe 0%, #f8fcf9 55%, #eef7f1 100%),
+        linear-gradient(90deg, rgba(160, 230, 190, 0.06) 0%, rgba(160, 230, 190, 0) 55%),
+        linear-gradient(90deg, transparent 45%, rgba(180, 230, 200, 0.07) 100%),
+        linear-gradient(90deg, #fafffb 0%, #eaf7ee 60%, #d9eede 100%),
+        linear-gradient(90deg, #e6f6ec 0%, #c9eed5 60%, #a5deb8 100%),
+        rgba(20, 80, 50, 0.08),
+        #1f2937, #13533d, #22473a
+    );
+}
+
+// stripe-rose — dusty pink
+:global([data-dv='SearchFood'][data-dv-v='stripe-rose']) {
+    @include stripe-fork(
+        linear-gradient(90deg, #fffefe 0%, #fdf9fb 55%, #faf0f4 100%),
+        linear-gradient(90deg, rgba(245, 200, 215, 0.06) 0%, rgba(245, 200, 215, 0) 55%),
+        linear-gradient(90deg, transparent 45%, rgba(255, 215, 230, 0.07) 100%),
+        linear-gradient(90deg, #fffafc 0%, #fbedf3 60%, #f5d7e2 100%),
+        linear-gradient(90deg, #fce4ec 0%, #f6c2d4 60%, #ea98b6 100%),
+        rgba(120, 30, 70, 0.08),
+        #2c1924, #6b1f47, #4a2237
+    );
+}
+
+// stripe-graphite — neutral grey, slightly more contrast on rules
+:global([data-dv='SearchFood'][data-dv-v='stripe-graphite']) {
+    @include stripe-fork(
+        linear-gradient(90deg, #ffffff 0%, #fafafb 55%, #f3f3f5 100%),
+        linear-gradient(90deg, rgba(80, 70, 60, 0.025) 0%, rgba(80, 70, 60, 0) 55%),
+        linear-gradient(90deg, transparent 45%, rgba(70, 80, 100, 0.04) 100%),
+        linear-gradient(90deg, #ffffff 0%, #f4f4f6 60%, #e8e8ec 100%),
+        linear-gradient(90deg, #ededf0 0%, #dadadf 60%, #c0c0c8 100%),
+        rgba(15, 23, 42, 0.12),
+        #1f2024, #0a0a0d, #2a2b30
+    );
+}
+
+// stripe-sand — warm beige / cream
+:global([data-dv='SearchFood'][data-dv-v='stripe-sand']) {
+    @include stripe-fork(
+        linear-gradient(90deg, #fffefa 0%, #fdf9ef 55%, #f8f1de 100%),
+        linear-gradient(90deg, rgba(220, 180, 110, 0.05) 0%, rgba(220, 180, 110, 0) 55%),
+        linear-gradient(90deg, transparent 45%, rgba(245, 220, 170, 0.08) 100%),
+        linear-gradient(90deg, #fffefa 0%, #faf3df 60%, #f1e5c4 100%),
+        linear-gradient(90deg, #f6eccc 0%, #ecd9a0 60%, #dcc174 100%),
+        rgba(110, 80, 30, 0.10),
+        #3a2f15, #54400f, #4b3a17
+    );
+}
+
+// stripe-lavender — soft purple
+:global([data-dv='SearchFood'][data-dv-v='stripe-lavender']) {
+    @include stripe-fork(
+        linear-gradient(90deg, #fefefe 0%, #fbfafe 55%, #f5f1fa 100%),
+        linear-gradient(90deg, rgba(200, 180, 240, 0.06) 0%, rgba(200, 180, 240, 0) 55%),
+        linear-gradient(90deg, transparent 45%, rgba(215, 200, 245, 0.08) 100%),
+        linear-gradient(90deg, #fbfafe 0%, #f0eafa 60%, #ddd0f0 100%),
+        linear-gradient(90deg, #ebe4fa 0%, #d6c3f5 60%, #b89cee 100%),
+        rgba(70, 30, 110, 0.08),
+        #241836, #4a1a7a, #332247
+    );
+}

@@ -4,6 +4,7 @@ import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { addScheduleFood, updateScheduleFood } from '@/entities/schedule-food';
 import { useProductPortions } from '@/entities/product';
 import { useDishPortions } from '@/entities/dish';
+import { persistCustomTagsFromDetails } from '@/features/food/details-chips';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { highlightListItem } from '@/shared/lib/emitter/emitter';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -26,7 +27,7 @@ export const SCHEDULE_FOOD_INPUT_IDS = {
 export type Step = 'idle' | 'time' | 'search' | 'quantity' | 'details';
 type ActiveStep = Exclude<Step, 'idle'>;
 
-export const CREATE_STEPS: ActiveStep[] = ['search', 'time', 'quantity'];
+export const CREATE_STEPS: ActiveStep[] = ['search', 'time', 'quantity', 'details'];
 export const STEP_LABELS: Record<ActiveStep, string> = {
   time: 'Время',
   search: 'Продукт',
@@ -193,6 +194,8 @@ export function useScheduleFoodFlow(mode: FlowMode) {
       // до того, как браузер обработает дефолт лейбла → фокус терялся.
     } else {
       if (!editingItem) return;
+      const detailsValue = draft.details.trim() || null;
+      const productIdForCustom = payload.variant === 'product' ? payload.id : null;
       const result = await safeMutate(
         () =>
           updateScheduleFood(editingItem.id, {
@@ -201,11 +204,12 @@ export function useScheduleFoodFlow(mode: FlowMode) {
             productId: payload.variant === 'product' ? payload.id : null,
             dishId: payload.variant === 'dish' ? payload.id : null,
             quantity: draft.quantity,
-            details: draft.details.trim() || null,
+            details: detailsValue,
           }),
         'Не удалось обновить'
       );
       if (!result.ok) return;
+      void persistCustomTagsFromDetails(productIdForCustom, detailsValue);
       setStep('idle');
       setEditingItem(null);
       setDraft(createEmptyDraft());
@@ -238,6 +242,7 @@ export function useScheduleFoodFlow(mode: FlowMode) {
           .then((res) => {
             if (!res.ok) return;
             const newId = res.value;
+            void persistCustomTagsFromDetails(snapshot.productId, snapshot.details);
             toaster.success('Добавлено в расписание');
             requestAnimationFrame(() => {
               setTimeout(() => {
@@ -274,7 +279,13 @@ export function useScheduleFoodFlow(mode: FlowMode) {
         void safeMutate(
           () => updateScheduleFood(editSnapshot.id, editSnapshot.patch),
           'Не удалось обновить'
-        );
+        ).then((res) => {
+          if (!res.ok) return;
+          void persistCustomTagsFromDetails(
+            editSnapshot.patch.productId,
+            editSnapshot.patch.details,
+          );
+        });
       }
     }
   };

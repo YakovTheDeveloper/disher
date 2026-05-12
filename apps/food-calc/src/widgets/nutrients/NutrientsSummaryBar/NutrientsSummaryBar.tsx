@@ -7,6 +7,7 @@ import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
 import { ScheduleSelectionDrawer } from '@/features/ScheduleSelection/ScheduleSelectionDrawer';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
+import { AccountPanel } from '@/features/auth';
 import styles from './NutrientsSummaryBar.module.scss';
 
 type Props = {
@@ -61,6 +62,9 @@ const NutrientsSummaryBar = ({ date, totals, missingNutrientNames, isLoading }: 
 
   return (
     <div className={styles.bar}>
+      <div className={styles.accountSlot}>
+        <AccountPanel />
+      </div>
       <button
         type="button"
         className={styles.segment}

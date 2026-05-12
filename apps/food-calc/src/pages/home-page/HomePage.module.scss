@@ -5,8 +5,76 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    // Высота `HomeScreenIndicator` фиксирована: `.tile { min-height: 92px }`
+    // + `.band { height: 88px }` = 180px. Прокидывается в потомков; читает
+    // `Screen.module.scss .screenScroll { padding-top: var(--page-top-inset) }` —
+    // контент в слайдах стартует под индикатором и уезжает за него при скролле.
+    --page-top-inset: 180px;
 }
 
-.nutrientsSlide {
-    background-color: #ffffff;
+.swipeArea {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+// Индикатор absolute-«приклеен» к верху swipeArea, не скроллится. Лежит
+// ПОД `.swipeableLayer` (z:0 < z:1) — клики к нему пробрасываются через
+// `.indicatorClickLayer` (z:2) сверху Swipeable. Каждый слайд внутри
+// прозрачный — индикатор «просвечивает» сквозь содержимое.
+.indicatorFloat {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 0;
+    pointer-events: auto;
+}
+
+// Подняли Swipeable над absolute-индикатором. Сам слой transparent —
+// видно индикатор; solid рисует только `.headerOverlap` внутри слайдов.
+.swipeableLayer {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+// Невидимый click-capture поверх Swipeable. Embla-viewport (z:1) ловит
+// все pointer events на своей площади и не даёт кликам пройти к
+// `.indicatorFloat` (z:0) под ним. Этот слой лежит ВЫШЕ Swipeable, но
+// только в зоне `.tilesRow` индикатора (92px = `.tile { min-height }`),
+// и содержит три прозрачные кнопки строго над визуальными плитками.
+//
+// Нижние 88px индикатора (`.band`) НЕ покрыты — там белая плашка
+// `.headerOverlap` (z:1 внутри swipeable z:1) остаётся поверх band,
+// Самокат-overlap на нижние 24px индикатора сохранён.
+//
+// Host — pointer-events:none, чтобы свайп Embla работал в щелях между
+// плитками (если они появятся). Сами `<button>` — pointer-events:auto.
+.indicatorClickLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    min-height: 92px;
+    pointer-events: none;
+}
+
+.indicatorClickTile {
+    flex: 1 1 0;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
 }

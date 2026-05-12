@@ -7,6 +7,7 @@ import { safeMutate } from '@/shared/lib/safeMutate';
 import { db } from '@/shared/lib/dexie/schema';
 import { addScheduleFood } from '@/entities/schedule-food/api/mutations';
 import { addDishItem } from '@/entities/dish/api/mutations';
+import { persistCustomTagsFromDetails } from '@/features/food/details-chips';
 import { useUserId } from '@/shared/lib/auth/useUserId';
 import { RouterUrls } from '@/app/router';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
@@ -338,7 +339,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
         quantity: r.quantity,
         productId: r.productId,
         productName: r.name,
-        details: r.note,
+        details: r.details,
         originalName: r.originalName,
       };
     }
@@ -351,7 +352,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
         quantity: a.quantity,
         productId: a.selectedId,
         productName: sel?.name ?? '',
-        details: a.note,
+        details: a.details,
         originalName: a.originalName,
       };
     }
@@ -363,7 +364,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
         quantity: u.quantity,
         productId: u.manual?.id ?? null,
         productName: u.manual?.name ?? '',
-        details: u.note,
+        details: u.details,
         originalName: u.originalName,
       };
     }
@@ -381,14 +382,14 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
         if (updates.quantity !== undefined) u.quantity = updates.quantity;
         if (updates.productId !== undefined) u.productId = updates.productId;
         if (updates.name !== undefined) u.name = updates.name;
-        if (updates.note !== undefined) u.note = updates.note;
+        if (updates.details !== undefined) u.details = updates.details;
         updateResolved(editingUid, u);
       } else if (cat === 'ambiguous') {
         const u: Partial<AmbiguousRow> = {};
         if (updates.time !== undefined) u.time = updates.time;
         if (updates.quantity !== undefined) u.quantity = updates.quantity;
         if (updates.productId !== undefined) u.selectedId = updates.productId;
-        if (updates.note !== undefined) u.note = updates.note;
+        if (updates.details !== undefined) u.details = updates.details;
         updateAmbiguous(editingUid, u);
       } else {
         const u: Partial<UnresolvedRow> = {};
@@ -401,7 +402,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
             score: 1,
           };
         }
-        if (updates.note !== undefined) u.note = updates.note;
+        if (updates.details !== undefined) u.details = updates.details;
         updateUnresolved(editingUid, u);
       }
     },
@@ -544,7 +545,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
           productId: r.productId,
           quantity: r.quantity,
           time: r.time,
-          note: r.note,
+          details: r.details,
         });
       }
 
@@ -554,7 +555,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
           productId: a.selectedId,
           quantity: a.quantity,
           time: a.time,
-          note: a.note,
+          details: a.details,
         });
       }
 
@@ -564,7 +565,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
           productId: u.manual.id,
           quantity: u.quantity,
           time: u.time,
-          note: u.note,
+          details: u.details,
         });
       }
 
@@ -593,7 +594,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
                   type: 'food',
                   quantity: c.quantity,
                   productId: c.productId,
-                  details: c.note ?? '',
+                  details: c.details ?? '',
                 });
                 newScheduleIds.push(id);
               }
@@ -624,6 +625,13 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
       if (!ok) {
         setIsSubmitting(false);
         return;
+      }
+      // Fire-and-forget: stash any free-form details the user (or the LLM)
+      // attached as custom_tags so they show up as chips next time.
+      if (mode.kind === 'schedule') {
+        for (const c of committed) {
+          void persistCustomTagsFromDetails(c.productId, c.details);
+        }
       }
       sendTelemetryIfNotSent('commit');
       toaster.success(`Добавлено: ${committed.length}`);
@@ -714,7 +722,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
                           item={r}
                           hideTime={isDishMode}
                           onStartEdit={handleStartEdit}
-                          onDeleteNote={() => updateResolved(r.uid, { note: '' })}
+                          onDeleteNote={() => updateResolved(r.uid, { details: '' })}
                           onDeleteItem={() => deleteResolved(r.uid)}
                           timeInputId={REVIEW_INPUT_IDS.TIME_INPUT}
                           quantityInputId={REVIEW_INPUT_IDS.QUANTITY_INPUT}
@@ -754,7 +762,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
                               updateAmbiguous(a.uid, { selectedId: id })
                             }
                             onStartEdit={handleStartEdit}
-                            onDeleteNote={() => updateAmbiguous(a.uid, { note: '' })}
+                            onDeleteNote={() => updateAmbiguous(a.uid, { details: '' })}
                             onDeleteItem={() => deleteAmbiguous(a.uid)}
                             timeInputId={REVIEW_INPUT_IDS.TIME_INPUT}
                               quantityInputId={REVIEW_INPUT_IDS.QUANTITY_INPUT}
@@ -786,7 +794,7 @@ export const FreeTextFoodFlow = ({ mode }: FreeTextFoodFlowProps) => {
                           hideTime={isDishMode}
                           isUnresolved={!u.manual}
                           onStartEdit={handleStartEdit}
-                          onDeleteNote={() => updateUnresolved(u.uid, { note: '' })}
+                          onDeleteNote={() => updateUnresolved(u.uid, { details: '' })}
                           onDeleteItem={() => deleteUnresolved(u.uid)}
                           timeInputId={REVIEW_INPUT_IDS.TIME_INPUT}
                           quantityInputId={REVIEW_INPUT_IDS.QUANTITY_INPUT}

@@ -43,12 +43,8 @@ $dv-text-twilight: (
 [data-dv='ScheduleFood'][data-dv-v='meadow']   { @include dv-palette-meadow;   @include dv-text($dv-text-graphite); }
 [data-dv='ScheduleFood'][data-dv-v='sunrise']  { @include dv-palette-sunrise;  @include dv-text($dv-text-graphite); }
 [data-dv='ScheduleFood'][data-dv-v='sorbet']   { @include dv-palette-sorbet;   @include dv-text($dv-text-graphite); }
-[data-dv='ScheduleFood'][data-dv-v='citrus']   { @include dv-palette-citrus;   @include dv-text($dv-text-graphite); }
-[data-dv='ScheduleFood'][data-dv-v='lagoon']   { @include dv-palette-lagoon;   @include dv-text($dv-text-graphite); }
-[data-dv='ScheduleFood'][data-dv-v='bouquet']  { @include dv-palette-bouquet;  @include dv-text($dv-text-graphite); }
 [data-dv='ScheduleFood'][data-dv-v='garden']   { @include dv-palette-garden;   @include dv-text($dv-text-graphite); }
-[data-dv='ScheduleFood'][data-dv-v='candy']    { @include dv-palette-candy;    @include dv-text($dv-text-graphite); }
-[data-dv='ScheduleFood'][data-dv-v='dawn']     { @include dv-palette-dawn;     @include dv-text($dv-text-graphite); }
+[data-dv='ScheduleFood'][data-dv-v='lagoon']   { @include dv-palette-lagoon;   @include dv-text($dv-text-graphite); }
 [data-dv='ScheduleFood'][data-dv-v='tropic']   { @include dv-palette-tropic;   @include dv-text($dv-text-graphite); }
 [data-dv='ScheduleFood'][data-dv-v='twilight'] { @include dv-palette-twilight; @include dv-text($dv-text-twilight); }
 
@@ -105,39 +101,3 @@ $dv-text-twilight: (
   background: #f59e0b;
 }
 
-.actionBarWrapper {
-  transition: opacity 0.18s ease, transform 0.18s ease;
-  transform-origin: bottom left;
-}
-
-.actionBarWrapper_hidden {
-  opacity: 0;
-  transform: translateY(8px) scale(0.96);
-  pointer-events: none;
-}
-
-// Search pill at bottom-right — dark purple-navy fill, matches
-// "Разобрать день" style. Paired with the inverse description button
-// at bottom-left.
-.searchPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 22px;
-  min-height: 44px;
-  border-radius: 999px;
-  background: rgba(66, 66, 117, 0.918);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  user-select: none;
-  border: none;
-  transition: transform 0.18s ease, opacity 0.18s ease;
-  transform-origin: bottom right;
-  -webkit-tap-highlight-color: transparent;
-
-  &:active {
-    transform: scale(0.97);
-  }
-}

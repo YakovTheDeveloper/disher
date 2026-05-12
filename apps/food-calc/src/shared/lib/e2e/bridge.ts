@@ -7,7 +7,7 @@ import { authProvider } from '@/shared/lib/auth/authProvider';
 import { authClient } from '@/shared/lib/auth/betterAuthClient';
 import { API_BASE } from '@/shared/lib/api/base';
 import { db } from '@/shared/lib/dexie/schema';
-import { push, pull, apply } from '@/shared/lib/snapshot';
+import { push, pull, apply, dump } from '@/shared/lib/snapshot';
 import { createProduct } from '@/entities/product/api/mutations';
 
 export function installE2EBridge(): void {
@@ -30,6 +30,13 @@ export function installE2EBridge(): void {
       if (snap) await apply(snap);
       return snap;
     },
+    // Local round-trip helpers — bypass the HTTP transport so tests can
+    // verify dump/apply integrity without spinning up the backend mock.
+    dumpLocal: dump,
+    applyLocal: apply,
+    listTable: async (name: string) => db.table(name).toArray(),
+    bulkAdd: async (name: string, rows: unknown[]) =>
+      db.table(name).bulkAdd(rows as never),
 
     createProduct,
 

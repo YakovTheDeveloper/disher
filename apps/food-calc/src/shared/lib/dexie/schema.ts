@@ -93,6 +93,19 @@ export interface HypothesisRow {
   created_at: string;
 }
 
+// Per-product user-coined tags. The user types something into a schedule_food
+// `details` textarea that isn't in TAG_SUGGESTIONS for that product's category
+// — we remember it so next time the same product is selected, that tag shows
+// up as a clickable chip. Keyed by product_id (catalog id or user products.id).
+// `tag` is already normalised (lowercase, NFC, trimmed); the
+// (product_id, tag) pair is unique by construction in the writer.
+export interface CustomTagRow {
+  id: string;
+  product_id: string;
+  tag: string;
+  created_at: string;
+}
+
 // ─── DB ────────────────────────────────────────────────────────────────────
 
 export class DisherDB extends Dexie {
@@ -104,6 +117,7 @@ export class DisherDB extends Dexie {
   schedule_events!: Table<ScheduleEventRow,  string>;
   daily_norms!:     Table<DailyNormRow,      string>;
   hypotheses!:      Table<HypothesisRow,     string>;
+  custom_tags!:     Table<CustomTagRow,      string>;
 
   constructor() {
     super('disher');
@@ -149,6 +163,13 @@ export class DisherDB extends Dexie {
         hypotheses:      'id, started_at',
       })
       .upgrade((tx) => Promise.all(tx.storeNames.map((n) => tx.table(n).clear())));
+
+    // v5 (2026-05-12): add custom_tags. Existing stores are unchanged — Dexie
+    // keeps prior data, just opens the new objectStore. Index on product_id so
+    // useCustomTagsByProduct can do an indexed lookup instead of full scan.
+    this.version(5).stores({
+      custom_tags: 'id, product_id',
+    });
   }
 }
 

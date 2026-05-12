@@ -4,7 +4,7 @@ import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
-import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
+import { DetailsChips } from '@/features/food/details-chips';
 import { useProductPortions } from '@/entities/product';
 
 export type ReviewEditStep = 'idle' | 'time' | 'search' | 'quantity' | 'details';
@@ -31,7 +31,7 @@ export interface ReviewRowUpdates {
   quantity?: number;
   productId?: string;
   name?: string;
-  note?: string;
+  details?: string;
 }
 
 interface Props {
@@ -134,13 +134,11 @@ export const FreeTextFoodReviewEditModals = ({
           <ModalShell>
             <ModalShell.Body>
               <ModalShell.Title>Заметка о еде</ModalShell.Title>
-              <Textarea
-                id={DETAILS_INPUT}
+              <DetailsChips
+                textareaId={DETAILS_INPUT}
                 value={row?.details ?? ''}
-                onChange={(value) => onChange({ note: value })}
-                placeholder="Заметка к записи..."
-                rows={3}
-                maxLength={500}
+                onChange={(value) => onChange({ details: value })}
+                productId={row?.productId ?? null}
               />
               <ModalShell.ActionButtons
                 left={<ModalPrevButton onClick={onClose} />}

@@ -2,7 +2,7 @@ export interface CommittedItem {
   productId: string;
   quantity: number;
   time: string;
-  note: string;
+  details: string;
 }
 
 export type FreeTextFoodMode =

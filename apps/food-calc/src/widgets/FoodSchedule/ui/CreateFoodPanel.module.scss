@@ -58,3 +58,21 @@
     letter-spacing: 0.03em;
     line-height: 1.3;
 }
+
+.dotFresh,
+.dotStale {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.dotFresh {
+    background: #22c55e;
+}
+
+.dotStale {
+    background: #f59e0b;
+}

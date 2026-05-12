@@ -22,7 +22,7 @@ interface ParseRequest {
 interface LLMItem {
   type?: "product" | "dish";
   name: string;
-  note?: string;
+  details?: string;
   quantity: number | null;
   time: string | null;
 }
@@ -31,7 +31,7 @@ interface ResolvedItem {
   productId: string;
   name: string;
   originalName: string;
-  note: string;
+  details: string;
   quantity: number;
   time: string;
   confidence: number;
@@ -40,7 +40,7 @@ interface ResolvedItem {
 
 interface AmbiguousItem {
   originalName: string;
-  note: string;
+  details: string;
   quantity: number;
   time: string;
   candidates: MatchCandidate[];
@@ -49,7 +49,7 @@ interface AmbiguousItem {
 
 interface UnresolvedItem {
   originalName: string;
-  note: string;
+  details: string;
   quantity: number;
   time: string;
   quantityGuessed?: boolean;
@@ -81,10 +81,18 @@ const QUANTITY_FALLBACK_G = 100;
 const LLM_CACHE_TTL_MS = 10 * 60 * 1000;
 const LLM_CACHE_MAX = 200;
 
+// Bump whenever SYSTEM_PROMPT meaningfully changes — older cached LLM outputs
+// were produced under a different contract and would otherwise leak through.
+// v2 (2026-05-12): renamed `note` → `details`, broadened the field to cover
+// prep method / aging / source / marinade / peel / cuisine style.
+const PROMPT_VERSION = 2;
+
 const llmCache = new Map<string, { items: LLMItem[]; expiresAt: number }>();
 
 function cacheKey(text: string): string {
-  return createHash("sha1").update(text.trim().toLowerCase()).digest("hex");
+  return createHash("sha1")
+    .update(`${text.trim().toLowerCase()}|v${PROMPT_VERSION}`)
+    .digest("hex");
 }
 
 function getCachedLLM(text: string): LLMItem[] | null {
@@ -136,7 +144,7 @@ const SYSTEM_PROMPT = `Ты — помощник по питанию. Польз
     {
       "type": "product",
       "name": "каноничное название продукта на русском",
-      "note": "уточняющая информация или пустая строка",
+      "details": "детали приготовления и особенности через запятую, или пустая строка",
       "quantity": число_в_граммах,
       "time": "HH:MM" или null
     }
@@ -153,13 +161,25 @@ const SYSTEM_PROMPT = `Ты — помощник по питанию. Польз
     "вечером" / "на ужин"    → "19:00"
     явное "в 10:30" и т.п.   → "10:30"
   Null — только если в тексте нет вообще никакой привязки ко времени.
-- note: уточняющая информация, всё что не является каноничным названием продукта:
-    "бурый рис 200г" → name: "рис", note: "бурый"
-    "творог 5%" → name: "творог", note: "5%"
-    "сельдь солёная" → name: "сельдь", note: "солёная"
-    "куриная грудка на гриле" → name: "куриная грудка", note: "на гриле"
-    "просто банан" → name: "банан", note: ""
-  Пустая строка, если уточнений нет.
+- details: детали приготовления и особенности продукта, дословно как сказано в тексте.
+  Что класть в details (через запятую, lowercase):
+    • Способ готовки: «жареное», «варёное», «тушёное», «на пару», «запечённое», «фритюр», «на гриле».
+    • Жир/масло: «без масла», «на гхи», «на сливочном», «во фритюре».
+    • Выдержка / зрелость: «выдержанный», «молодой», «свежий», «спелый», «зелёный».
+    • Кожура / нарезка: «с кожурой», «без кожуры», «целиком», «мелко нарезанный».
+    • Источник: «домашнее», «ресторан», «магазинное», «готовое», «фермерское».
+    • Маринад / соус: «маринованное», «с соевым», «острое», «солёное».
+    • Жирность/процент: «5%», «обезжиренное».
+    • Стиль кухни: «индийское», «тайское», «итальянское» — только если явно сказано.
+  Примеры:
+    "бурый рис 200г" → name: "рис", details: "бурый"
+    "творог 5%" → name: "творог", details: "5%"
+    "сельдь солёная" → name: "сельдь", details: "солёная"
+    "куриная грудка на гриле без масла" → name: "куриная грудка", details: "на гриле, без масла"
+    "домашний борщ" → name: "борщ", details: "домашнее"
+    "просто банан" → name: "банан", details: ""
+  Пустая строка, если уточнений нет. Не угадывай — клади только то, что прямо сказано.
+  Не клади в details название продукта или количество — они в отдельных полях.
 - name: ОБЯЗАТЕЛЬНО в канонической форме:
     • именительный падеж, единственное число (кроме продуктов, у которых только мн.ч.: макароны, сливки, дрожжи)
     • "ё" заменяй на "е" (мёд → мед, свёкла → свекла, зелёный → зеленый)
@@ -293,7 +313,7 @@ async function resolveItems(
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     const time = times[i];
-    const note = typeof item.note === "string" ? item.note.trim() : "";
+    const details = typeof item.details === "string" ? item.details.trim() : "";
 
     const rawQty = typeof item.quantity === "number" && isFinite(item.quantity) ? item.quantity : 0;
     const quantityGuessed = rawQty <= 0;
@@ -304,7 +324,7 @@ async function resolveItems(
       requestId,
       phrase,
       originalName: item.name,
-      llmNote: note,
+      llmNote: details,
       llmQuantity: typeof item.quantity === "number" ? item.quantity : null,
       llmTime: typeof item.time === "string" ? item.time : null,
       normalizedName,
@@ -325,7 +345,7 @@ async function resolveItems(
         productId: alias.id,
         name: alias.name,
         originalName: item.name,
-        note,
+        details,
         quantity,
         time,
         confidence: alias.score,
@@ -348,7 +368,7 @@ async function resolveItems(
       });
       unresolved.push({
         originalName: item.name,
-        note,
+        details,
         quantity,
         time,
         ...(quantityGuessed ? { quantityGuessed: true } : {}),
@@ -389,7 +409,7 @@ async function resolveItems(
         productId: top.id,
         name: top.name,
         originalName: item.name,
-        note,
+        details,
         quantity,
         time,
         confidence: top.score,
@@ -398,7 +418,7 @@ async function resolveItems(
     } else if (verdict === "ambiguous") {
       ambiguous.push({
         originalName: item.name,
-        note,
+        details,
         quantity,
         time,
         candidates,
@@ -407,7 +427,7 @@ async function resolveItems(
     } else {
       unresolved.push({
         originalName: item.name,
-        note,
+        details,
         quantity,
         time,
         ...(quantityGuessed ? { quantityGuessed: true } : {}),

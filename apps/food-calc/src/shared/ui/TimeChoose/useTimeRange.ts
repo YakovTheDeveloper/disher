@@ -46,11 +46,14 @@ export type UseTimeRangeParams = {
   onChangeRange?: (range: TimeRangeState) => void;
 };
 
+const isValidHHMM = (t: string | undefined | null): t is string =>
+  typeof t === 'string' && /^\d{1,2}:\d{2}$/.test(t);
+
 export const useTimeRange = ({ initialFrom, initialTo, onChangeRange }: UseTimeRangeParams) => {
   const [activeTab, setActiveTab] = useState<RangeTab>('from');
   const [fromTime, setFromTime] = useState(initialFrom);
-  const [toTime, setToTime] = useState(initialTo ?? initialFrom);
-  const [toExplicit, setToExplicit] = useState(initialTo !== undefined);
+  const [toTime, setToTime] = useState(() => (isValidHHMM(initialTo) ? initialTo : initialFrom));
+  const [toExplicit, setToExplicit] = useState(() => isValidHHMM(initialTo));
 
   const durationMinutes = (() => {
     const diff = timeToMinutes(toTime) - timeToMinutes(fromTime);
@@ -118,6 +121,8 @@ export const useTimeRange = ({ initialFrom, initialTo, onChangeRange }: UseTimeR
     fromTime,
     toTime,
     durationTime,
+    durationMinutes,
+    toExplicit,
     currentTimeProps,
     tabs: RANGE_TABS,
     tabLabels: RANGE_TAB_LABELS,

@@ -13,10 +13,23 @@ type Props = {
   image?: React.ReactNode;
   defaultSlide?: number;
   className?: string;
+  /** Embla scroll duration. 0 = instant snap, ~25 = smooth swipe. */
+  duration?: number;
 };
 
 const Swipeable = forwardRef<SwipeableRef, Props>(
-  ({ children, onIndexChange, hasDots = false, image, defaultSlide = 1, className }, ref) => {
+  (
+    {
+      children,
+      onIndexChange,
+      hasDots = false,
+      image,
+      defaultSlide = 1,
+      className,
+      duration = 0,
+    },
+    ref
+  ) => {
     const indexRef = useRef(defaultSlide);
     const dotsRef = useRef<HTMLDivElement>(null);
 
@@ -25,7 +38,7 @@ const Swipeable = forwardRef<SwipeableRef, Props>(
         loop: false,
         dragFree: false,
         containScroll: false,
-        duration: 0,
+        duration,
         watchResize: false,
         axis: 'x',
       },

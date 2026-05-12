@@ -64,84 +64,54 @@
     justify-content: space-between;
 }
 
-// Override WriteFoodButton's `dark` defaults to make it stretch as the
-// central primary. `dark` already gives us purple-navy fill + white text.
+// Central primary pill. Default look = WriteFoodButton's `dark` (purple-navy).
+// When the parent dock carries [data-tod="<period>"], the pill is repainted
+// from the tokens.scss --tod-*-bg-* family so the action chip follows the
+// current time-of-day. Selector specificity (0,2,0) wins over .dark (0,1,0)
+// without needing !important.
 .dockPrimary {
     flex: 1;
     justify-content: center;
     margin: 0 4px;
 }
 
-// ─── V3 — Omnibox: leading icon · field · trailing icon ───────────────
-
-.dockV3 {
-    // standard row
+.dockV2[data-tod='morning'] .dockPrimary {
+    background: linear-gradient(135deg, var(--tod-morning-bg-from), var(--tod-morning-bg-to));
+    color: rgba(31, 42, 68, 0.92);
+}
+.dockV2[data-tod='day'] .dockPrimary {
+    background: linear-gradient(135deg, var(--tod-day-bg-from), var(--tod-day-bg-to));
+    color: rgba(31, 42, 68, 0.92);
+}
+.dockV2[data-tod='evening'] .dockPrimary {
+    background: linear-gradient(135deg, var(--tod-evening-bg-from), var(--tod-evening-bg-to));
+    color: rgba(31, 42, 68, 0.92);
+}
+.dockV2[data-tod='night'] .dockPrimary {
+    background: linear-gradient(135deg, var(--tod-night-bg-from), var(--tod-night-bg-to));
+    color: rgba(31, 42, 68, 0.92);
 }
 
-// Make WriteFoodButton look like an input field — wide, left-aligned,
-// muted background, no border-radius pill (use a softer corner).
-.omniboxField {
-    flex: 1;
-    justify-content: flex-start;
-    background: rgba(0, 0, 0, 0.04) !important;
-    border: 1px solid rgba(0, 0, 0, 0.06) !important;
-    color: rgba(31, 42, 68, 0.7) !important;
-    border-radius: 12px !important;
-    padding: 10px 14px !important;
-    min-height: 44px;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
+// ─── Shell — chrome-only wrapper for slides 1/3 (single centered action) ───
+// Same dock geometry + tod-tinted surface (variant `dock`) or plain
+// segmented chrome (variant `segmented`). No 3-slot logic — children
+// are centered. Used by Laboratory / ScheduleEvents.
 
-    &:hover {
-        background: rgba(0, 0, 0, 0.05) !important;
-        transform: none;
-    }
-
-    &:active {
-        background: rgba(0, 0, 0, 0.06) !important;
-    }
-}
-
-// ─── V4 — Composer (chat-style) ───────────────────────────────────────
-
-.dockV4 {
-    align-items: flex-end;
-}
-
-.composerWrap {
-    flex: 1;
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.composerField {
-    flex: 1;
-    justify-content: flex-start;
-    background: #fff !important;
-    border: 1px solid rgba(0, 0, 0, 0.12) !important;
-    color: rgba(31, 42, 68, 0.7) !important;
-    border-radius: 22px !important;
-    padding: 10px 44px 10px 16px !important;
-    min-height: 44px;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-
-    &:hover {
-        transform: none;
-    }
-}
-
-.composerMic {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: inline-flex;
-    align-items: center;
+.shellSolo {
     justify-content: center;
-    color: rgba(66, 66, 117, 0.7);
-    pointer-events: none;
+}
+
+.dockV2.shellSolo[data-tod='morning'] {
+    background: linear-gradient(135deg, var(--tod-morning-bg-from), var(--tod-morning-bg-to));
+}
+.dockV2.shellSolo[data-tod='day'] {
+    background: linear-gradient(135deg, var(--tod-day-bg-from), var(--tod-day-bg-to));
+}
+.dockV2.shellSolo[data-tod='evening'] {
+    background: linear-gradient(135deg, var(--tod-evening-bg-from), var(--tod-evening-bg-to));
+}
+.dockV2.shellSolo[data-tod='night'] {
+    background: linear-gradient(135deg, var(--tod-night-bg-from), var(--tod-night-bg-to));
 }
 
 // ─── V5 — Segmented (3 equal actions) ─────────────────────────────────

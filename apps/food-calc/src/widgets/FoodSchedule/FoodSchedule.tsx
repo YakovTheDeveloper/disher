@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, Fragment } from 'react';
-import clsx from 'clsx';
 import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
@@ -12,8 +11,6 @@ import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import toaster from '@/shared/lib/toaster/toaster';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import { TopBar } from '@/shared/ui/TopBar';
-import Button from '@/shared/ui/atoms/Button/Button';
 import {
   ScheduleFoodCreateModals,
   ScheduleFoodEditModals,
@@ -29,24 +26,17 @@ import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
 import { CopyToClipboardButton, PasteFromClipboardButton } from '@/features/clipboard';
 import type { ClipboardItem } from '@/shared/model/clipboardStore';
 
-const HOME_BOTTOM_BAR_DV_VARIANTS = ['floating', 'dock', 'omnibox', 'composer', 'segmented'] as const;
 // Cheerful pastel families with semantic time-of-day progression
 // (lightest at morning, deepening towards graphite at night).
 const FOOD_DV_VARIANTS = [
-  'baseline',
   'meadow',
   'sunrise',
   'sorbet',
-  'citrus',
-  'lagoon',
-  'bouquet',
   'garden',
-  'candy',
-  'dawn',
+  'lagoon',
   'tropic',
   'twilight',
 ] as const;
-import { AccountPanel } from '@/features/auth';
 import { fetchDailyAnalysis, computeInputHash } from '@/entities/analytics';
 import { createProduct } from '@/entities/product';
 import { createDish } from '@/entities/dish';
@@ -58,7 +48,6 @@ import {
   useWriteFoodFlow,
   getWriteFoodInputId,
 } from '@/features/food/food-free-text-parse';
-import { WriteFoodButton } from '@/features/food/food-free-text-parse';
 
 const TrashIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -73,20 +62,14 @@ const TrashIcon = () => (
   </svg>
 );
 
-const SearchIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="11" cy="11" r="6.25" stroke="currentColor" strokeWidth="1.6" />
-    <path d="M20 20l-4.2-4.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-  </svg>
-);
-
 type CommonProps = {
   date: string;
   items: ScheduleFoodWithRelations[];
   richNutrient?: { id: string; unit: string } | null;
   onRichNutrientClear?: () => void;
   isActive?: boolean;
-  indicator?: React.ReactNode;
+  /** Provided by HomePage so all three slides share one variant index. */
+  bottomBarVariantIndex?: number;
 };
 
 const FoodSchedule = ({
@@ -95,7 +78,7 @@ const FoodSchedule = ({
   richNutrient,
   onRichNutrientClear,
   isActive = true,
-  indicator,
+  bottomBarVariantIndex = 0,
 }: CommonProps) => {
   const selectionStoreFood = useSelection();
   const isActionsMode = useStore(selectionStoreFood, (s) => s.isActionsMode);
@@ -133,15 +116,6 @@ const FoodSchedule = ({
   const writeFoodTarget = useMemo(() => ({ kind: 'schedule' as const, date }), [date]);
   const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
   const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
-
-  // Design-variant picker for the bottom action area.
-  // 'floating' = pills (current). The others = integrated dock variants.
-  const { variant: bottomBarVariant } = useDesignVariant(
-    'HomeBottomBar',
-    HOME_BOTTOM_BAR_DV_VARIANTS,
-  );
-  const bottomBarVariantIndex = HOME_BOTTOM_BAR_DV_VARIANTS.indexOf(bottomBarVariant);
-  const useFloatingBottom = bottomBarVariant === 'floating';
 
   // Design-variant picker for the food list palette (graphite-blue family).
   const { anchor: foodAnchor } = useDesignVariant('ScheduleFood', FOOD_DV_VARIANTS);
@@ -274,9 +248,14 @@ const FoodSchedule = ({
     [items, selectedIds]
   );
 
+  const handleOpenAnalysis = useCallback(() => {
+    setShowCreatePanel(false);
+    toScheduleAnalytics(date);
+  }, [toScheduleAnalytics, date]);
+
   return (
     <Screen
-      header={indicator}
+      headerOverlap
       overlay={
         isActive ? (
           <>
@@ -310,56 +289,8 @@ const FoodSchedule = ({
           />
         </ActionsPanel>
       }
-      topPanel={
-        <TopBar>
-          {items.length > 0 && (
-            <>
-              <Button variant="menu" onClick={openCreateFoodPanel}>
-                Создать еду
-              </Button>
-              <Button variant="menu" onClick={() => toScheduleAnalytics(date)}>
-                Анализ
-                {analyticsStatus !== 'none' && (
-                  <span
-                    className={clsx(styles.analyticsDot, styles[`analyticsDot_${analyticsStatus}`])}
-                  />
-                )}
-              </Button>
-            </>
-          )}
-          <AccountPanel />
-        </TopBar>
-      }
-      bottomLeft={
-        useFloatingBottom && !isActionsMode ? (
-          <div
-            className={clsx(
-              styles.actionBarWrapper,
-              inlineEditing && styles.actionBarWrapper_hidden
-            )}
-          >
-            <WriteFoodButton
-              flow={writeFoodFlow}
-              inputId={writeFoodInputId}
-              label="Опишите, что вы ели..."
-              inverse
-            />
-          </div>
-        ) : null
-      }
-      bottomRight={
-        useFloatingBottom && !isActionsMode ? (
-          <label
-            htmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
-            className={clsx(styles.searchPill, inlineEditing && styles.actionBarWrapper_hidden)}
-          >
-            <SearchIcon />
-            <span>Еда</span>
-          </label>
-        ) : null
-      }
       bottomBar={
-        !useFloatingBottom && !isActionsMode ? (
+        !isActionsMode ? (
           <HomeBottomBar
             variantIndex={bottomBarVariantIndex}
             writeFoodFlow={writeFoodFlow}
@@ -371,7 +302,12 @@ const FoodSchedule = ({
       }
     >
       {showCreatePanel && (
-        <CreateFoodPanel onCreateProduct={handleCreateProduct} onCreateDish={handleCreateDish} />
+        <CreateFoodPanel
+          onCreateProduct={handleCreateProduct}
+          onCreateDish={handleCreateDish}
+          onOpenAnalysis={items.length > 0 ? handleOpenAnalysis : undefined}
+          analysisStatus={analyticsStatus}
+        />
       )}
       <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
       <div {...foodAnchor} className={styles.foodListAnchor}>

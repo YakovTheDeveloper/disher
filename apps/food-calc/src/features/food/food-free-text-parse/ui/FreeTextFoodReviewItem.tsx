@@ -17,7 +17,7 @@ interface FreeTextFoodReviewItemProps {
   uid: string;
   item: {
     name: string;
-    note: string;
+    details: string;
     originalName: string;
     quantity: number;
     time: string;
@@ -78,7 +78,7 @@ export const FreeTextFoodReviewItem = ({
   quantityInputId,
   detailsInputId,
 }: FreeTextFoodReviewItemProps) => {
-  const hasNote = item.note.trim().length > 0;
+  const hasNote = item.details.trim().length > 0;
   const showOriginalFallback = isUnresolved && !item.productId;
   const showOriginalHint =
     !showOriginalFallback &&
@@ -111,7 +111,7 @@ export const FreeTextFoodReviewItem = ({
           </label>
         )}
 
-        {/* Name + (optional original hint) + note */}
+        {/* Name + (optional original hint) + details */}
         <div className={styles.nameCell}>
           <button
             type="button"
@@ -138,7 +138,7 @@ export const FreeTextFoodReviewItem = ({
               onTouchStart={() => onStartEdit(uid, 'details')}
               title="Изменить заметку"
             >
-              <span className={styles.noteText}>{item.note}</span>
+              <span className={styles.noteText}>{item.details}</span>
               <button
                 type="button"
                 className={styles.noteClose}

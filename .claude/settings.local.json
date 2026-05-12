@@ -36,7 +36,25 @@
       "Bash(NODE_OPTIONS=\"--max-old-space-size=8192\" npx tsc --noEmit)",
       "Bash(git fsck *)",
       "Bash(git rm *)",
-      "Bash(NODE_OPTIONS=\"--max-old-space-size=12288\" npx tsc --noEmit)"
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=12288\" npx tsc --noEmit)",
+      "Bash(ls -lt /c/Users/booty/.claude/plans/ 2>/dev/null | head -10)",
+      "Read(//c/Users/booty/.claude/plans//**)",
+      "Bash(npm run *)",
+      "WebFetch(domain:samokat.ru)",
+      "PowerShell($ua = \"Mozilla/5.0 \\(iPhone; CPU iPhone OS 17_0 like Mac OS X\\) AppleWebKit/605.1.15 \\(KHTML, like Gecko\\) Version/17.0 Mobile/15E148 Safari/604.1\"; $resp = Invoke-WebRequest -Uri \"https://samokat.ru/\" -UserAgent $ua -UseBasicParsing -MaximumRedirection 5; $resp.Content.Length; $resp.StatusCode)",
+      "PowerShell($ua = \"Mozilla/5.0 \\(iPhone; CPU iPhone OS 17_0 like Mac OS X\\) AppleWebKit/605.1.15 \\(KHTML, like Gecko\\) Version/17.0 Mobile/15E148 Safari/604.1\"; $resp = Invoke-WebRequest -Uri \"https://samokat.ru/\" -UserAgent $ua -UseBasicParsing; $resp.Content)",
+      "PowerShell($ErrorActionPreference='Continue'; Push-Location \"C:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\\\\apps\\\\food-calc\"; & node \"node_modules/typescript/bin/tsc\" --noEmit 2>&1 | Select-Object -Last 10; Write-Output \"TSC_EXIT=$LASTEXITCODE\"; & node \"node_modules/eslint/bin/eslint.js\" src/features/food/food-search/SearchFood.tsx 2>&1 | Select-Object -Last 6; Write-Output \"ESLINT_EXIT=$LASTEXITCODE\"; Pop-Location)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3100 -ErrorAction SilentlyContinue | Select-Object LocalAddress,LocalPort,State,OwningProcess | Format-Table -AutoSize; Get-NetTCPConnection -LocalPort 3100 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,StartTime,Path })",
+      "PowerShell(Get-Process -Id 18320 -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-CimInstance Win32_Process -Filter \"ProcessId=18320\")",
+      "PowerShell(Stop-Process -Id 18320 -Force; Start-Sleep -Milliseconds 300; $still = Get-NetTCPConnection -LocalPort 3100 -ErrorAction SilentlyContinue; if \\($still\\) { \"STILL IN USE: $\\($still.OwningProcess -join ','\\)\" } else { \"Port 3100 free\" })",
+      "Bash(pnpm --filter @disher/backend install)",
+      "Bash(node scripts/free-port.mjs 3100)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3100 -State Listen -ErrorAction SilentlyContinue)",
+      "Bash(openssl x509 *)",
+      "Bash(curl -sk -o /dev/null -w \"HTTP:%{http_code} time:%{time_total}s\\\\n\" https://192.168.88.235:3100/api/health --max-time 5)",
+      "Bash(curl -sk -o /dev/null -w \"HTTP:%{http_code} time:%{time_total}s\\\\n\" https://localhost:3100/api/health --max-time 5)",
+      "Bash(npx playwright *)"
     ]
   }
 }

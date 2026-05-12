@@ -4,7 +4,7 @@ import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
-import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
+import { DetailsChips } from '@/features/food/details-chips';
 import { DetailsNoteButton } from '@/features/shared/components/DetailsNoteButton';
 
 import type { ScheduleFoodFlow } from './useScheduleFoodFlow';
@@ -108,14 +108,11 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
                   ? `Уточнение: ${draft.foodName}`
                   : 'Уточнение к приему пищи'}
               </ModalShell.Title>
-              <Textarea
-                id={DETAILS_INPUT}
+              <DetailsChips
+                textareaId={DETAILS_INPUT}
                 value={draft.details}
                 onChange={(value) => setDraft((d) => ({ ...d, details: value }))}
-                placeholder="Заметка к записи..."
-                rows={3}
-                maxLength={500}
-                debounceTime={0}
+                productId={draft.productId}
               />
               <ModalShell.ActionButtons
                 left={<ModalPrevButton onClick={() => goToStep('search')} />}

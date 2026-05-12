@@ -16,8 +16,6 @@ export interface AddFoodActionBarProps {
   searchHtmlFor: string;
   searchLabel?: string;
   className?: string;
-  dark?: boolean;
-  inverse?: boolean;
 }
 
 export const AddFoodActionBar = ({
@@ -27,17 +25,8 @@ export const AddFoodActionBar = ({
   searchHtmlFor,
   searchLabel = 'Еда',
   className,
-  dark,
-  inverse,
 }: AddFoodActionBarProps) => (
-  <div
-    className={clsx(
-      styles.bar,
-      dark && styles.barDark,
-      inverse && styles.barInverse,
-      className,
-    )}
-  >
+  <div className={clsx(styles.bar, className)}>
     <div className={styles.write}>
       <WriteFoodButton
         flow={writeFoodFlow}

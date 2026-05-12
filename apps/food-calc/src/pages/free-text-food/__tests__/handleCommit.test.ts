@@ -44,7 +44,7 @@ async function commitScheduleItems(
         type: 'food',
         quantity: c.quantity,
         productId: c.productId,
-        details: c.note ?? '',
+        details: c.details ?? '',
       });
       newScheduleIds.push(id);
     }
@@ -71,9 +71,9 @@ describe('FreeTextFoodFlow handleCommit — schedule mode', () => {
   it('persists every committed item with correct fields', async () => {
     const date = '02-05-2026';
     const committed: CommittedItem[] = [
-      { productId: 'p-a', quantity: 100, time: '08:00', note: '' },
-      { productId: 'p-b', quantity: 250, time: '13:00', note: 'обед' },
-      { productId: 'p-c', quantity: 50, time: '21:00', note: '' },
+      { productId: 'p-a', quantity: 100, time: '08:00', details: '' },
+      { productId: 'p-b', quantity: 250, time: '13:00', details: 'обед' },
+      { productId: 'p-c', quantity: 50, time: '21:00', details: '' },
     ];
 
     const ids = await commitScheduleItems(committed, date);
@@ -89,7 +89,7 @@ describe('FreeTextFoodFlow handleCommit — schedule mode', () => {
       expect(row!.time).toBe(c.time);
       expect(row!.type).toBe('food');
       expect(row!.quantity).toBe(c.quantity);
-      expect(row!.details).toBe(c.note);
+      expect(row!.details).toBe(c.details);
       expect(row!.dish_id).toBeNull();
     }
   });
@@ -100,9 +100,9 @@ describe('FreeTextFoodFlow handleCommit — schedule mode', () => {
     // nor dishId set) — addScheduleFood throws. With db.transaction the 1st
     // and 3rd writes must roll back.
     const committed: CommittedItem[] = [
-      { productId: 'p-a', quantity: 100, time: '08:00', note: '' },
-      { productId: '', quantity: 100, time: '09:00', note: '' },
-      { productId: 'p-c', quantity: 100, time: '10:00', note: '' },
+      { productId: 'p-a', quantity: 100, time: '08:00', details: '' },
+      { productId: '', quantity: 100, time: '09:00', details: '' },
+      { productId: 'p-c', quantity: 100, time: '10:00', details: '' },
     ];
 
     // Replace the 2nd item's productId with null at the addScheduleFood
@@ -119,7 +119,7 @@ describe('FreeTextFoodFlow handleCommit — schedule mode', () => {
             type: 'food',
             quantity: c.quantity,
             productId: i === 1 ? null : c.productId,
-            details: c.note ?? '',
+            details: c.details ?? '',
           });
         }
       });
@@ -136,7 +136,7 @@ describe('FreeTextFoodFlow handleCommit — schedule mode', () => {
   it('handles a single-item commit', async () => {
     const date = '02-05-2026';
     const committed: CommittedItem[] = [
-      { productId: 'only', quantity: 42, time: '12:00', note: 'solo' },
+      { productId: 'only', quantity: 42, time: '12:00', details: 'solo' },
     ];
 
     const ids = await commitScheduleItems(committed, date);
@@ -151,8 +151,8 @@ describe('FreeTextFoodFlow handleCommit — schedule mode', () => {
   it('returns the generated ids in commit order', async () => {
     const date = '02-05-2026';
     const committed: CommittedItem[] = [
-      { productId: 'p-a', quantity: 100, time: '08:00', note: '' },
-      { productId: 'p-b', quantity: 100, time: '09:00', note: '' },
+      { productId: 'p-a', quantity: 100, time: '08:00', details: '' },
+      { productId: 'p-b', quantity: 100, time: '09:00', details: '' },
     ];
 
     const ids = await commitScheduleItems(committed, date);
@@ -172,8 +172,8 @@ describe('FreeTextFoodFlow handleCommit — dish mode', () => {
   it('persists every committed item as a dish_item', async () => {
     const dishId = 'dish-xyz';
     const committed: CommittedItem[] = [
-      { productId: 'p-a', quantity: 100, time: '00:00', note: '' },
-      { productId: 'p-b', quantity: 200, time: '00:00', note: '' },
+      { productId: 'p-a', quantity: 100, time: '00:00', details: '' },
+      { productId: 'p-b', quantity: 200, time: '00:00', details: '' },
     ];
 
     await commitDishItems(committed, dishId);
@@ -191,8 +191,8 @@ describe('FreeTextFoodFlow handleCommit — dish mode', () => {
   it('rolls back dish_items atomically on mid-loop error', async () => {
     const dishId = 'dish-xyz';
     const committed: CommittedItem[] = [
-      { productId: 'p-a', quantity: 100, time: '00:00', note: '' },
-      { productId: 'p-b', quantity: 200, time: '00:00', note: '' },
+      { productId: 'p-a', quantity: 100, time: '00:00', details: '' },
+      { productId: 'p-b', quantity: 200, time: '00:00', details: '' },
     ];
 
     let threw = false;
@@ -221,9 +221,9 @@ describe('FreeTextFoodFlow handleCommit — committed[] filter', () => {
   // The filter is pure JS — we replicate it directly to confirm behavior
   // matches the source (and to lock in the unresolved-empty-id guard).
 
-  type ResolvedRow = { enabled: boolean; productId: string; quantity: number; time: string; note: string };
-  type AmbiguousRow = { enabled: boolean; selectedId: string | null; quantity: number; time: string; note: string };
-  type UnresolvedRow = { manual: { id: string } | null; quantity: number; time: string; note: string };
+  type ResolvedRow = { enabled: boolean; productId: string; quantity: number; time: string; details: string };
+  type AmbiguousRow = { enabled: boolean; selectedId: string | null; quantity: number; time: string; details: string };
+  type UnresolvedRow = { manual: { id: string } | null; quantity: number; time: string; details: string };
 
   function buildCommitted(
     resolved: ResolvedRow[],
@@ -233,15 +233,15 @@ describe('FreeTextFoodFlow handleCommit — committed[] filter', () => {
     const out: CommittedItem[] = [];
     for (const r of resolved) {
       if (!r.enabled) continue;
-      out.push({ productId: r.productId, quantity: r.quantity, time: r.time, note: r.note });
+      out.push({ productId: r.productId, quantity: r.quantity, time: r.time, details: r.details });
     }
     for (const a of ambiguous) {
       if (!a.enabled || !a.selectedId) continue;
-      out.push({ productId: a.selectedId, quantity: a.quantity, time: a.time, note: a.note });
+      out.push({ productId: a.selectedId, quantity: a.quantity, time: a.time, details: a.details });
     }
     for (const u of unresolved) {
       if (!u.manual || !u.manual.id) continue;
-      out.push({ productId: u.manual.id, quantity: u.quantity, time: u.time, note: u.note });
+      out.push({ productId: u.manual.id, quantity: u.quantity, time: u.time, details: u.details });
     }
     return out;
   }
@@ -249,8 +249,8 @@ describe('FreeTextFoodFlow handleCommit — committed[] filter', () => {
   it('drops disabled resolved rows', () => {
     const committed = buildCommitted(
       [
-        { enabled: true, productId: 'a', quantity: 1, time: '08:00', note: '' },
-        { enabled: false, productId: 'b', quantity: 1, time: '08:00', note: '' },
+        { enabled: true, productId: 'a', quantity: 1, time: '08:00', details: '' },
+        { enabled: false, productId: 'b', quantity: 1, time: '08:00', details: '' },
       ],
       [],
       [],
@@ -262,10 +262,10 @@ describe('FreeTextFoodFlow handleCommit — committed[] filter', () => {
     const committed = buildCommitted(
       [],
       [
-        { enabled: true, selectedId: 'x', quantity: 1, time: '08:00', note: '' },
-        { enabled: true, selectedId: null, quantity: 1, time: '08:00', note: '' },
-        { enabled: true, selectedId: '', quantity: 1, time: '08:00', note: '' },
-        { enabled: false, selectedId: 'y', quantity: 1, time: '08:00', note: '' },
+        { enabled: true, selectedId: 'x', quantity: 1, time: '08:00', details: '' },
+        { enabled: true, selectedId: null, quantity: 1, time: '08:00', details: '' },
+        { enabled: true, selectedId: '', quantity: 1, time: '08:00', details: '' },
+        { enabled: false, selectedId: 'y', quantity: 1, time: '08:00', details: '' },
       ],
       [],
     );
@@ -277,9 +277,9 @@ describe('FreeTextFoodFlow handleCommit — committed[] filter', () => {
       [],
       [],
       [
-        { manual: { id: 'm1' }, quantity: 1, time: '08:00', note: '' },
-        { manual: null, quantity: 1, time: '08:00', note: '' },
-        { manual: { id: '' }, quantity: 1, time: '08:00', note: '' },
+        { manual: { id: 'm1' }, quantity: 1, time: '08:00', details: '' },
+        { manual: null, quantity: 1, time: '08:00', details: '' },
+        { manual: { id: '' }, quantity: 1, time: '08:00', details: '' },
       ],
     );
     expect(committed.map((c) => c.productId)).toEqual(['m1']);
@@ -287,9 +287,9 @@ describe('FreeTextFoodFlow handleCommit — committed[] filter', () => {
 
   it('combines all three categories preserving order resolved → ambiguous → unresolved', () => {
     const committed = buildCommitted(
-      [{ enabled: true, productId: 'r1', quantity: 1, time: '08:00', note: '' }],
-      [{ enabled: true, selectedId: 'a1', quantity: 1, time: '08:00', note: '' }],
-      [{ manual: { id: 'u1' }, quantity: 1, time: '08:00', note: '' }],
+      [{ enabled: true, productId: 'r1', quantity: 1, time: '08:00', details: '' }],
+      [{ enabled: true, selectedId: 'a1', quantity: 1, time: '08:00', details: '' }],
+      [{ manual: { id: 'u1' }, quantity: 1, time: '08:00', details: '' }],
     );
     expect(committed.map((c) => c.productId)).toEqual(['r1', 'a1', 'u1']);
   });

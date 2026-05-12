@@ -1,10 +1,9 @@
-// AddFoodActionBar — write-food + search pair, three visual modes:
-//   .bar             base (light glass — DishBuilderPage)
-//   .bar.barDark     purple-navy fill, white glyphs (HomePage)
-//   .bar.barInverse  white fill, purple text + 1px border
-//
-// The bar is content-sized (inline-flex) — it does NOT stretch to the
-// viewport. That keeps it visually a pill like "Разобрать день".
+// AddFoodActionBar — write-food + search pair (DishBuilderPage).
+// No time-of-day tint here: this bar is for recipe composition, which has no
+// "time" semantic. The HomePage bar (HomeBottomBar) is the one that follows
+// time-of-day. Three legacy visual modes (.bar / .barDark / .barInverse) were
+// removed in 2026-05 along with the unused dark/inverse props — only `dark` is
+// preserved as light-glass.
 
 .bar {
   display: inline-flex;
@@ -12,8 +11,6 @@
   min-height: 44px;
   border-radius: 999px;
 }
-
-// ── Base (light glass) ─────────────────────────────────────────────
 
 .write {
   display: inline-flex;
@@ -81,64 +78,4 @@
   font-size: 1.5rem;
   font-weight: 400;
   color: rgba(31, 42, 68, 0.12);
-}
-
-// ── Dark / Inverse — single unified pill ───────────────────────────
-// Background lives on the bar; inner zones go transparent so the bar
-// reads as one shape, not two highlight patches.
-
-%unified-pill {
-  border-radius: 999px;
-
-  .write,
-  .search {
-    background: transparent;
-    border: none;
-    color: inherit;
-    backdrop-filter: none;
-    min-height: 44px;
-    border-radius: 999px;
-    font-size: 15px;
-    font-weight: 500;
-  }
-
-  // WriteFoodButton renders the actual <label>; > span targets the
-  // inner text span (separate CSS module — can't reference its class
-  // by name from here).
-  .writeButton {
-    background: transparent;
-    color: inherit;
-    padding: 12px 22px;
-    min-height: 44px;
-
-    > span {
-      font-size: 15px;
-      font-weight: 500;
-    }
-  }
-
-  .search {
-    padding: 12px 22px;
-  }
-}
-
-.barDark {
-  @extend %unified-pill;
-  background: rgba(66, 66, 117, 0.918);
-  color: #fff;
-
-  .separator {
-    color: rgba(255, 255, 255, 0.25);
-  }
-}
-
-.barInverse {
-  @extend %unified-pill;
-  background: #fff;
-  color: rgba(66, 66, 117, 0.918);
-  border: 1px solid rgba(66, 66, 117, 0.918);
-
-  .separator {
-    color: rgba(66, 66, 117, 0.3);
-  }
 }

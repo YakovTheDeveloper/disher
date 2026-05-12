@@ -97,6 +97,11 @@
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    // Когда страница рендерится с floating-overlay сверху (например, плитки
+    // навигации в HomePage) — родитель задаёт `--page-top-inset` равный высоте
+    // оверлея. Контент стартует под оверлеем; при скролле визуально уезжает
+    // за него. Другие страницы переменную не задают — паддинг = 0.
+    padding-top: var(--page-top-inset, 0);
     // `translateZ(0)` is enough to promote the scroller to its own compositor
     // layer (smooth scroll on iOS). `will-change: transform` was redundant —
     // the element's transform never actually animates, so the hint only
@@ -110,4 +115,30 @@
 .overlay {
     position: fixed;
     inset: 0;
+}
+
+// Samokat-style: контент-плашка наезжает на низ `header`'а скруглением.
+// Реализация чисто на CSS — никаких scroll-listener'ов.
+//   • `position: relative; z-index: 1` поднимает плашку над `header`
+//     (хедер в normal-flow, без своего z → проигрывает).
+//   • `background: #fff` обязателен: без него видна часть хедера сквозь
+//     радиус. Если родительская поверхность другого цвета — поменять.
+//   • `border-top-radius` создаёт визуальный «лист бумаги».
+//   • `margin-top: -16px` сдвигает плашку поверх хедера на величину
+//     радиуса. Стык под скруглением — глазом не виден.
+// При скролле всей панели вверх и хедер, и плашка едут в lockstep
+// (один scroll-container), но плашка всегда отрисовывается поверх —
+// получается эффект «хедер уезжает под контент».
+.headerOverlap {
+    position: relative;
+    z-index: 1;
+    background: #ffffff;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    margin-top: -24px;
+    // Самокат: `box-shadow: 0 0 6px #0000000d` (rgba 0,0,0,0.05). У нас
+    // нижний контур плашки уходит вниз бесконечно — тень нужна только
+    // сверху, поэтому `0 -2px 6px ...`. Очень тонкая, добавляет легкий
+    // объём над скруглением.
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05);
 }

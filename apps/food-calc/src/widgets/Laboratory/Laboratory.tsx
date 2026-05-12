@@ -1,4 +1,4 @@
-import { memo, useMemo, type ReactNode } from 'react';
+import { memo, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { parse, format, subDays, isValid } from 'date-fns';
@@ -6,12 +6,14 @@ import { db } from '@/shared/lib/dexie/schema';
 import { RunAnalysisButton } from '@/features/analysis/RunAnalysisButton';
 import { useOpenHypotheses, useClosedHypotheses } from '@/entities/hypothesis';
 import { Screen } from '@/shared/ui/Screen';
+import { HomeBottomBarShell } from '@/widgets/FoodSchedule/ui';
 import HypothesisCard from './HypothesisCard';
 import styles from './Laboratory.module.scss';
 
 type Props = {
   date: string;
-  indicator?: ReactNode;
+  /** Variant index shared with sibling home slides. */
+  bottomBarVariantIndex?: number;
 };
 
 function useEventCountLast7Days(date: string): number | undefined {
@@ -35,21 +37,22 @@ function useEventCountLast7Days(date: string): number | undefined {
   }, [dateSet]);
 }
 
-const Laboratory = ({ date, indicator }: Props) => {
+const Laboratory = ({ date, bottomBarVariantIndex = 0 }: Props) => {
   const eventCount = useEventCountLast7Days(date);
   const open = useOpenHypotheses();
   const closed = useClosedHypotheses();
 
   return (
     <Screen
-      backgroundColor="white"
-      header={indicator}
-      bottomRight={
-        <RunAnalysisButton
-          date={date}
-          disabled={(eventCount ?? 0) === 0}
-          disabledHint="Нет данных за последние 7 дней"
-        />
+      headerOverlap
+      bottomBar={
+        <HomeBottomBarShell variantIndex={bottomBarVariantIndex}>
+          <RunAnalysisButton
+            date={date}
+            disabled={(eventCount ?? 0) === 0}
+            disabledHint="Нет данных за последние 7 дней"
+          />
+        </HomeBottomBarShell>
       }
     >
       <div className={styles.container}>

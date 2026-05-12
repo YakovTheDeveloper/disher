@@ -6,8 +6,20 @@ import { SearchFoodControls } from '@/features/food/food-search/SearchFoodContro
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { useFilteredFoods, useFoodCreation } from './model';
 import { FoodSearchEmpty } from './FoodSearchEmpty';
+
+const SEARCH_FOOD_VARIANTS = [
+  'baseline',
+  'column-stripe',
+  'stripe-warm',
+  'stripe-mint',
+  'stripe-rose',
+  'stripe-graphite',
+  'stripe-sand',
+  'stripe-lavender',
+] as const;
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 
@@ -48,6 +60,7 @@ const SearchFood = ({
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery ?? '');
   const [showHeavy, setShowHeavy] = useState(false);
   const [openTicket, setOpenTicket] = useState(0);
+  const { anchor } = useDesignVariant('SearchFood', SEARCH_FOOD_VARIANTS);
 
   useEffect(() => {
     if (!isActive) {
@@ -62,7 +75,7 @@ const SearchFood = ({
   }, [isActive]);
 
   return (
-    <div className={styles.content}>
+    <div className={styles.content} {...anchor}>
       <div className={styles.header}>
         <SearchFoodControls
           searchQuery={searchQuery}
@@ -170,20 +183,20 @@ const SearchFoodHeavy = ({
     [onSelectFood]
   );
 
-  const isSearchActive = searchQuery.trim().length >= 2;
   const trimmedQuery = searchQuery.trim();
+  const isSearchActive = trimmedQuery.length >= 2;
 
   const visibleHasResults =
     (showProducts && products.length > 0) || (showDishes && dishes.length > 0);
 
-  const createButtons = isSearchActive ? (
+  const createButtons = (
     <FoodSearchEmpty
       query={trimmedQuery}
       onCreateProduct={showProducts ? handleCreateProduct : undefined}
       onCreateDish={showDishes ? handleCreateDish : undefined}
-      showMessage={!visibleHasResults}
+      showMessage={isSearchActive && !visibleHasResults}
     />
-  ) : null;
+  );
 
   const renderProductItem = useCallback(
     (item: (typeof products)[number]) => {

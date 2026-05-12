@@ -18,6 +18,13 @@ type Props = {
   overlay?: React.ReactNode;
   backgroundImage?: string;
   backgroundImageOpacity?: number;
+  /**
+   * Samokat-style: children обёрнуты в opaque-белую плашку с
+   * top-radius и `margin-top: -16px`, накрывающую низ `header`'а.
+   * При скролле всей панели контент «всплывает» поверх хедера —
+   * хедер уходит «под» контент. Без JS.
+   */
+  headerOverlap?: boolean;
 };
 
 const Screen = ({
@@ -33,6 +40,7 @@ const Screen = ({
   overlay,
   backgroundImage,
   backgroundImageOpacity = 0.05,
+  headerOverlap = false,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollContainerRef);
@@ -53,7 +61,11 @@ const Screen = ({
         <div className={styles.screenScroll} ref={scrollContainerRef}>
           <div className={styles.topPanel}>{topPanel}</div>
           {header}
-          {children}
+          {headerOverlap ? (
+            <div className={styles.headerOverlap}>{children}</div>
+          ) : (
+            children
+          )}
           <div ref={sentinelRef} />
         </div>
         <ScrollIndicator visible={hasMoreBelow} />

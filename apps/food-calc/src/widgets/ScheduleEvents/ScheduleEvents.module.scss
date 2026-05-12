@@ -40,12 +40,8 @@ $dv-ev-twilight: (
 .eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='meadow']   { @include dv-palette-meadow;   @include dv-ev($dv-ev-graphite); }
 .eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='sunrise']  { @include dv-palette-sunrise;  @include dv-ev($dv-ev-graphite); }
 .eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='sorbet']   { @include dv-palette-sorbet;   @include dv-ev($dv-ev-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='citrus']   { @include dv-palette-citrus;   @include dv-ev($dv-ev-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='lagoon']   { @include dv-palette-lagoon;   @include dv-ev($dv-ev-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='bouquet']  { @include dv-palette-bouquet;  @include dv-ev($dv-ev-graphite); }
 .eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='garden']   { @include dv-palette-garden;   @include dv-ev($dv-ev-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='candy']    { @include dv-palette-candy;    @include dv-ev($dv-ev-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='dawn']     { @include dv-palette-dawn;     @include dv-ev($dv-ev-graphite); }
+.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='lagoon']   { @include dv-palette-lagoon;   @include dv-ev($dv-ev-graphite); }
 .eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='tropic']   { @include dv-palette-tropic;   @include dv-ev($dv-ev-graphite); }
 .eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='twilight'] { @include dv-palette-twilight; @include dv-ev($dv-ev-twilight); }
 

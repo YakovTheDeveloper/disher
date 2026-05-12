@@ -18,6 +18,7 @@ import {
   ScheduleEventEditModal,
   EVENT_EDIT_MODAL_INPUT_IDS,
 } from './ui';
+import { HomeBottomBarShell } from '@/widgets/FoodSchedule/ui';
 import { ScheduleEventCard } from './components/ScheduleEventCard';
 import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -28,16 +29,11 @@ import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 // Cheerful pastel families with semantic time-of-day progression
 // (lightest at morning, deepening towards graphite at night).
 const EVENTS_VARIANTS = [
-  'baseline',
   'meadow',
   'sunrise',
   'sorbet',
-  'citrus',
-  'lagoon',
-  'bouquet',
   'garden',
-  'candy',
-  'dawn',
+  'lagoon',
   'tropic',
   'twilight',
 ] as const;
@@ -45,10 +41,11 @@ type Props = {
   children?: React.ReactNode;
   date: string;
   events: ScheduleEvent[];
-  indicator?: React.ReactNode;
+  /** Variant index shared with sibling home slides. */
+  bottomBarVariantIndex?: number;
 };
 
-const ScheduleEvents = ({ date, events, indicator }: Props) => {
+const ScheduleEvents = ({ date, events, bottomBarVariantIndex = 0 }: Props) => {
   const selectionStoreEvents = useSelection();
   const isActionsMode = useStore(selectionStoreEvents, (s) => s.isActionsMode);
   const selectedIds = useStore(selectionStoreEvents, (s) => s.selectedIds);
@@ -88,7 +85,7 @@ const ScheduleEvents = ({ date, events, indicator }: Props) => {
 
   return (
     <Screen
-      header={indicator}
+      headerOverlap
       overlay={
         <>
           <ScheduleEventCreateModals scheduleId={date} />
@@ -115,25 +112,27 @@ const ScheduleEvents = ({ date, events, indicator }: Props) => {
         </ActionsPanel>
       }
       key={3}
-      bottomRight={
-        events.length > 0 ? (
-          <AddButton
-            htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT}
-            as="label"
-            onClick={() => {}}
-            dark
-          />
-        ) : (
-          <AddButton
-            onClick={() => {}}
-            as="label"
-            htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT}
-            prominent
-            dark
-          >
-            Добавить
-          </AddButton>
-        )
+      bottomBar={
+        <HomeBottomBarShell variantIndex={bottomBarVariantIndex}>
+          {events.length > 0 ? (
+            <AddButton
+              htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT}
+              as="label"
+              onClick={() => {}}
+              dark
+            />
+          ) : (
+            <AddButton
+              onClick={() => {}}
+              as="label"
+              htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT}
+              prominent
+              dark
+            >
+              Добавить
+            </AddButton>
+          )}
+        </HomeBottomBarShell>
       }
     >
       <section

@@ -22,6 +22,15 @@ type Props = {
   range?: RangeProps;
 };
 
+const formatDurationLabel = (mins: number): string => {
+  if (!Number.isFinite(mins) || mins <= 0) return '0 мин';
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `${m} мин`;
+  if (m === 0) return `${h} ч`;
+  return `${h} ч ${m} мин`;
+};
+
 const RangeTabs = ({
   activeTab,
   onTabChange,
@@ -130,6 +139,11 @@ const TimeChoose = ({
             />
           )}
         </div>
+        {isRange && timeRange.toExplicit && (
+          <div className={styles.rangeSummary} aria-live="polite">
+            {timeRange.fromTime} – {timeRange.toTime} · {formatDurationLabel(timeRange.durationMinutes)}
+          </div>
+        )}
         <div className={styles.buttonsWrapper}>
           <TimeNow onFinish={onNowSelect} time={`${activeHours}:${activeMinutes}`}>
             <button className={clsx(styles.toggleButton, styles.nowButton)}>Сейчас</button>

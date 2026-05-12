@@ -16,7 +16,6 @@ export interface WriteFoodButtonProps {
   icon?: ReactNode;
   className?: string;
   prominent?: boolean;
-  inverse?: boolean;
   dark?: boolean;
 }
 
@@ -51,7 +50,6 @@ export const WriteFoodButton = ({
   icon,
   className,
   prominent,
-  inverse,
   dark,
 }: WriteFoodButtonProps) => {
   const online = useOnline();
@@ -105,7 +103,6 @@ export const WriteFoodButton = ({
         styles[`state_${flow.state}`],
         prominent && styles.prominent,
         disabled && styles.disabled,
-        inverse && styles.inverse,
         dark && styles.dark,
         showStacked && styles.stacked,
         className,

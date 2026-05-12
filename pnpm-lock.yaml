@@ -75,6 +75,9 @@ importers:
       fast-check:
         specifier: ^4.7.0
         version: 4.7.0
+      kill-port:
+        specifier: ^2.0.1
+        version: 2.0.1
       lmdb:
         specifier: ^3.5.2
         version: 3.5.4
