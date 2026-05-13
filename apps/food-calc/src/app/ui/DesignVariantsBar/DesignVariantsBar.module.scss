@@ -32,14 +32,12 @@ $pad-right: max(10px, env(safe-area-inset-right));
   min-width: 44px;
   padding: 0 12px;
 
-  background: $panel-bg;
-  border: 1px solid $panel-border;
+  // Ghost mode — barely-there so it doesn't fight with the actual UI.
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 999px;
-  box-shadow:
-    0 8px 24px -8px rgba(0, 0, 0, 0.55),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: none;
+  opacity: 0.05;
 
   color: $ink;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -53,15 +51,28 @@ $pad-right: max(10px, env(safe-area-inset-right));
   touch-action: manipulation;
 
   transition:
+    opacity 160ms ease,
     transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 160ms ease,
     border-color 140ms ease,
-    box-shadow 140ms ease;
+    box-shadow 160ms ease,
+    backdrop-filter 160ms ease;
 
-  &:hover {
-    border-color: rgba(167, 139, 250, 0.5);
+  // Reveal only on direct intent — hover (desktop) or focus (keyboard / tap).
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    background: $panel-bg;
+    border-color: $panel-border;
+    box-shadow:
+      0 8px 24px -8px rgba(0, 0, 0, 0.55),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
   }
 
   &:active {
+    opacity: 1;
     transform: scale(0.94);
   }
 }

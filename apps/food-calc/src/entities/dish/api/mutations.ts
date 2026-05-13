@@ -8,11 +8,11 @@ import {
 
 const now = () => new Date().toISOString();
 
-export async function createDish(name: string): Promise<string> {
-  const id = crypto.randomUUID();
-  const row: DishRow = { id, name, created_at: now() };
+export async function createDish(name: string, id?: string): Promise<string> {
+  const dishId = id ?? crypto.randomUUID();
+  const row: DishRow = { id: dishId, name, created_at: now() };
   await db.dishes.add(row);
-  return id;
+  return dishId;
 }
 
 export async function updateDishName(dishId: string, name: string): Promise<void> {

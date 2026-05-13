@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { addScheduleFood, updateScheduleFood } from '@/entities/schedule-food';
-import { useProductPortions } from '@/entities/product';
-import { useDishPortions } from '@/entities/dish';
+import { createProduct, useProductPortions } from '@/entities/product';
+import { createDish, useDishPortions } from '@/entities/dish';
 import { persistCustomTagsFromDetails } from '@/features/food/details-chips';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { highlightListItem } from '@/shared/lib/emitter/emitter';
@@ -14,6 +14,7 @@ export const SCHEDULE_FOOD_INPUT_IDS = {
   // create
   SEARCH_INPUT: 'search',
   DETAILS_INPUT: 'details-input',
+  CREATE_INPUT: 'create-food-name-input',
   // edit
   SEARCH_EDIT_INPUT: 'search-edit',
   QUANTITY_EDIT_INPUT: 'quantity-input-edit',
@@ -24,7 +25,7 @@ export const SCHEDULE_FOOD_INPUT_IDS = {
   QUANTITY_CREATE_INPUT: 'quantity-input',
 } as const;
 
-export type Step = 'idle' | 'time' | 'search' | 'quantity' | 'details';
+export type Step = 'idle' | 'time' | 'search' | 'quantity' | 'details' | 'create';
 type ActiveStep = Exclude<Step, 'idle'>;
 
 // Full flow (4 steps) — used when the selected product has either a curated
@@ -40,6 +41,7 @@ export const STEP_LABELS: Record<ActiveStep, string> = {
   search: 'Продукт',
   quantity: 'Количество',
   details: 'Заметка',
+  create: 'Создать',
 };
 
 export type DraftState = {
@@ -129,11 +131,15 @@ export function useScheduleFoodFlow(mode: FlowMode) {
     ? SCHEDULE_FOOD_INPUT_IDS.DETAILS_INPUT
     : SCHEDULE_FOOD_INPUT_IDS.DETAILS_EDIT_INPUT;
 
+  const CREATE_INPUT = SCHEDULE_FOOD_INPUT_IDS.CREATE_INPUT;
+
   const INPUT_TO_STEP: Record<string, ActiveStep> = {
     [TIME_INPUT]: 'time',
     [SEARCH_INPUT]: 'search',
     [QUANTITY_INPUT]: 'quantity',
     [DETAILS_INPUT]: 'details',
+    // CREATE_INPUT only exists in create mode — edit flow never touches it.
+    ...(mode.type === 'create' ? { [CREATE_INPUT]: 'create' as ActiveStep } : {}),
   };
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
@@ -186,6 +192,67 @@ export function useScheduleFoodFlow(mode: FlowMode) {
       setStep('quantity');
     }
   };
+
+  // Stash the chosen variant + proposed name in the draft when the user clicks
+  // a "Нет нужного…" label inside SearchFood. The step transition to 'create'
+  // happens via onFocusCapture once the label delegates focus to CREATE_INPUT.
+  const handlePickCreate = useCallback(
+    (variant: 'product' | 'dish', name: string) => {
+      setDraft((d) => ({
+        ...d,
+        variant,
+        productId: null,
+        dishId: null,
+        foodName: name,
+      }));
+    },
+    [],
+  );
+
+  // Confirm the create-name step: optimistically stamp a UUID into draft so the
+  // subsequent quantity step has a stable id, then fire-and-forget the Dexie
+  // write. setStep is NOT called here — the confirm element is a <label
+  // htmlFor={TIME_INPUT}> and onFocusCapture flips step→'time' once the
+  // browser's default action lands focus. Doing setStep synchronously here
+  // would unmount this modal before the native event finishes bubbling and
+  // kill the focus delegation (see CLAUDE.md "Label focus delegation").
+  const handleConfirmCreate = useCallback(
+    (name: string) => {
+      if (mode.type !== 'create') return;
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      const variant = draft.variant;
+      if (variant !== 'product' && variant !== 'dish') return;
+      const id = crypto.randomUUID();
+      setDraft((d) => ({
+        ...d,
+        variant,
+        productId: variant === 'product' ? id : null,
+        dishId: variant === 'dish' ? id : null,
+        foodName: trimmed,
+      }));
+      // Rollback the flow if the Dexie write fails (quota / IDB locked). Otherwise
+      // draft.productId would point to a non-existent row and a downstream
+      // handleCommit could write an orphan schedule_food. Toaster surfaces the
+      // error via safeMutate; we just unwind to 'idle'.
+      const rollback = () => {
+        setStep('idle');
+        setDraft(createEmptyDraft());
+        setSessionKey((k) => k + 1);
+        if (mode.type === 'create') mode.onRichNutrientClear?.();
+      };
+      const errorMsg =
+        variant === 'product' ? 'Не удалось создать продукт' : 'Не удалось создать блюдо';
+      const mutation =
+        variant === 'product'
+          ? () => createProduct({ id, name: trimmed })
+          : () => createDish(trimmed, id);
+      void safeMutate(mutation, errorMsg).then((res) => {
+        if (!res.ok) rollback();
+      });
+    },
+    [draft.variant, mode],
+  );
 
   const handleFoodSelect = async (payload: { variant: 'product' | 'dish'; id: string; name: string }) => {
     if (mode.type === 'create') {
@@ -325,8 +392,10 @@ export function useScheduleFoodFlow(mode: FlowMode) {
     handleClose,
     handleTimeFinish,
     handleFoodSelect,
+    handlePickCreate,
+    handleConfirmCreate,
     handleCommit,
     quantityContent,
-    inputIds: { TIME_INPUT, SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
+    inputIds: { TIME_INPUT, SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT, CREATE_INPUT },
   };
 }

@@ -25,6 +25,12 @@ type Props = {
    * хедер уходит «под» контент. Без JS.
    */
   headerOverlap?: boolean;
+  /**
+   * Когда `true` — visual `.headerOverlap` «лист» становится прозрачным
+   * и теряет тень. Использовать для пустых экранов (нет событий → нет
+   * «листа»). Триггер через `data-hollow` атрибут, чтобы стили жили в CSS.
+   */
+  hollow?: boolean;
 };
 
 const Screen = ({
@@ -41,6 +47,7 @@ const Screen = ({
   backgroundImage,
   backgroundImageOpacity = 0.05,
   headerOverlap = false,
+  hollow = false,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollContainerRef);
@@ -62,7 +69,12 @@ const Screen = ({
           <div className={styles.topPanel}>{topPanel}</div>
           {header}
           {headerOverlap ? (
-            <div className={styles.headerOverlap}>{children}</div>
+            <div
+              className={styles.headerOverlap}
+              data-hollow={hollow ? 'true' : undefined}
+            >
+              {children}
+            </div>
           ) : (
             children
           )}

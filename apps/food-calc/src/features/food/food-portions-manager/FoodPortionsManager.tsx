@@ -6,6 +6,12 @@ type Portion = { label: string; grams: number };
 
 type Props = {
   portions: Portion[];
+  /**
+   * Derived non-editable row pinned to the top of the list (e.g. for Dish:
+   * `{ label: 'Всё блюдо', grams: Σ dish_items.quantity }`). Always recomputed
+   * by the parent — never persisted; bypassing the empty-state.
+   */
+  implicitPortion?: Portion;
   onAdd?: (portion: Portion) => void;
   onUpdate?: (label: string, updates: Partial<Portion>) => void;
   onRemove?: (label: string) => void;
@@ -16,7 +22,7 @@ type EditState =
   | { mode: 'adding'; draft: { label: string; grams: number } }
   | { mode: 'editing'; editingLabel: string; draft: { label: string; grams: number } };
 
-const FoodPortionsManager: FC<Props> = ({ portions, onAdd, onUpdate, onRemove }) => {
+const FoodPortionsManager: FC<Props> = ({ portions, implicitPortion, onAdd, onUpdate, onRemove }) => {
   const editable = !!(onAdd && onUpdate && onRemove);
   const [state, setState] = useState<EditState>({ mode: 'idle' });
 
@@ -68,11 +74,19 @@ const FoodPortionsManager: FC<Props> = ({ portions, onAdd, onUpdate, onRemove })
 
   return (
     <div className={s.container}>
-      {portions.length === 0 && !isEditing && (
+      {portions.length === 0 && !implicitPortion && !isEditing && (
         <div className={s.empty}>нет порций</div>
       )}
 
       <div className={s.list}>
+        {implicitPortion && (
+          <div className={s.portion}>
+            <div className={s.portionInfo}>
+              <span className={s.portionLabel}>{implicitPortion.label}</span>
+              <span className={s.portionGrams}>{implicitPortion.grams} г</span>
+            </div>
+          </div>
+        )}
         {portions.map((p) => (
           <div key={p.label} className={s.portion}>
             <div className={s.portionInfo}>

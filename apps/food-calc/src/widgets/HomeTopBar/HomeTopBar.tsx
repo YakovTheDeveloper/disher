@@ -19,6 +19,8 @@ type Props = {
   totals: NutrientTotals;
   missingNutrientNames?: string[];
   isLoading?: boolean;
+  /** Override the date-segment text entirely (bypasses dateVariant rendering). */
+  dateButtonLabel?: string;
 };
 
 type DrawerProps = BaseDrawerProps<void> & {
@@ -95,7 +97,13 @@ const DateButtonContent = ({ variant, parts }: DateContentProps) => {
   );
 };
 
-const HomeTopBar = ({ date, totals, missingNutrientNames, isLoading }: Props) => {
+const HomeTopBar = ({
+  date,
+  totals,
+  missingNutrientNames,
+  isLoading,
+  dateButtonLabel,
+}: Props) => {
   const { toScheduleBuilder } = useAppRoutes();
   const dateParts = useMemo(() => formatDateParts(date), [date]);
 
@@ -139,7 +147,11 @@ const HomeTopBar = ({ date, totals, missingNutrientNames, isLoading }: Props) =>
           aria-label="Выбрать дату"
           {...dateAnchor}
         >
-          <DateButtonContent variant={dateVariant} parts={dateParts} />
+          {dateButtonLabel != null ? (
+            <span className={styles.dateLabel}>{dateButtonLabel}</span>
+          ) : (
+            <DateButtonContent variant={dateVariant} parts={dateParts} />
+          )}
         </button>
       </div>
     </div>

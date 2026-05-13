@@ -1,0 +1,207 @@
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { db } from '@/shared/lib/dexie/schema';
+import { __testing, formatDishNameWithDetails } from '../runAnalysis';
+
+const { collectFoods } = __testing;
+
+const ISO = '2026-05-13T10:00:00.000Z';
+
+async function clearDb() {
+  await Promise.all([
+    db.products.clear(),
+    db.dishes.clear(),
+    db.dish_items.clear(),
+    db.dish_portions.clear(),
+    db.schedule_foods.clear(),
+  ]);
+}
+
+beforeEach(async () => {
+  await clearDb();
+});
+
+afterEach(async () => {
+  await clearDb();
+});
+
+// Pure formatter — covers the bracket-tag composition independent of Dexie.
+describe('formatDishNameWithDetails', () => {
+  it('returns dish name unchanged when ingredient list is empty', () => {
+    expect(formatDishNameWithDetails('Борщ', [])).toBe('Борщ');
+  });
+
+  it('returns dish name unchanged when every ingredient has empty details', () => {
+    expect(
+      formatDishNameWithDetails('Борщ', [
+        { productName: 'свёкла', details: '' },
+        { productName: 'говядина', details: '   ' },
+      ]),
+    ).toBe('Борщ');
+  });
+
+  it('joins productName + details with comma into [особенности: …]', () => {
+    expect(
+      formatDishNameWithDetails('Борщ', [
+        { productName: 'свёкла', details: 'печёная' },
+        { productName: 'говядина', details: 'тушёная 2ч' },
+      ]),
+    ).toBe('Борщ [особенности: свёкла печёная, говядина тушёная 2ч]');
+  });
+
+  it('falls back to details only when productName is unknown', () => {
+    expect(
+      formatDishNameWithDetails('Борщ', [
+        { productName: '', details: 'без зажарки' },
+      ]),
+    ).toBe('Борщ [особенности: без зажарки]');
+  });
+
+  it('skips ingredients whose details are blank', () => {
+    expect(
+      formatDishNameWithDetails('Борщ', [
+        { productName: 'свёкла', details: 'печёная' },
+        { productName: 'лук', details: '' },
+        { productName: 'морковь', details: 'тёртая' },
+      ]),
+    ).toBe('Борщ [особенности: свёкла печёная, морковь тёртая]');
+  });
+});
+
+// Integration: real fake-indexeddb, real Dexie, real collectFoods.
+describe('collectFoods — bracket-tag for dish details', () => {
+  const dayKey = '13-05-2026';
+
+  it('appends [особенности: …] when dish_items have non-empty details', async () => {
+    await db.products.bulkAdd([
+      {
+        id: 'p-svekla',
+        name: 'свёкла',
+        source: '',
+        nutrients: {},
+        portions: [],
+        categories: [],
+        serving_basis: '100g',
+        serving_unit: null,
+        created_at: ISO,
+      },
+      {
+        id: 'p-meat',
+        name: 'говядина',
+        source: '',
+        nutrients: {},
+        portions: [],
+        categories: [],
+        serving_basis: '100g',
+        serving_unit: null,
+        created_at: ISO,
+      },
+    ]);
+    await db.dishes.add({ id: 'd-borsch', name: 'Борщ', created_at: ISO });
+    await db.dish_items.bulkAdd([
+      {
+        id: 'di1',
+        dish_id: 'd-borsch',
+        product_id: 'p-svekla',
+        quantity: 200,
+        details: 'печёная',
+        created_at: ISO,
+      },
+      {
+        id: 'di2',
+        dish_id: 'd-borsch',
+        product_id: 'p-meat',
+        quantity: 150,
+        details: 'тушёная 2ч',
+        created_at: ISO,
+      },
+    ]);
+    await db.schedule_foods.add({
+      id: 'sf1',
+      date: dayKey,
+      time: '13:00',
+      type: 'dish',
+      quantity: 300,
+      details: '',
+      product_id: null,
+      dish_id: 'd-borsch',
+      created_at: ISO,
+    });
+
+    const out = await collectFoods([dayKey]);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({
+      date: dayKey,
+      time: '13:00',
+      type: 'dish',
+      quantity: 300,
+      details: '',
+      name: 'Борщ [особенности: свёкла печёная, говядина тушёная 2ч]',
+    });
+  });
+
+  it('payload is unchanged when dish has no item details', async () => {
+    await db.products.add({
+      id: 'p-svekla',
+      name: 'свёкла',
+      source: '',
+      nutrients: {},
+      portions: [],
+      categories: [],
+      serving_basis: '100g',
+      serving_unit: null,
+      created_at: ISO,
+    });
+    await db.dishes.add({ id: 'd-borsch', name: 'Борщ', created_at: ISO });
+    await db.dish_items.add({
+      id: 'di1',
+      dish_id: 'd-borsch',
+      product_id: 'p-svekla',
+      quantity: 200,
+      details: '',
+      created_at: ISO,
+    });
+    await db.schedule_foods.add({
+      id: 'sf1',
+      date: dayKey,
+      time: '13:00',
+      type: 'dish',
+      quantity: 300,
+      details: '',
+      product_id: null,
+      dish_id: 'd-borsch',
+      created_at: ISO,
+    });
+
+    const out = await collectFoods([dayKey]);
+    expect(out[0].name).toBe('Борщ');
+  });
+
+  it('product-typed schedule_food keeps the product name as-is', async () => {
+    await db.products.add({
+      id: 'p-apple',
+      name: 'яблоко',
+      source: '',
+      nutrients: {},
+      portions: [],
+      categories: [],
+      serving_basis: '100g',
+      serving_unit: null,
+      created_at: ISO,
+    });
+    await db.schedule_foods.add({
+      id: 'sf-apple',
+      date: dayKey,
+      time: '09:00',
+      type: 'food',
+      quantity: 150,
+      details: 'свежее',
+      product_id: 'p-apple',
+      dish_id: null,
+      created_at: ISO,
+    });
+
+    const out = await collectFoods([dayKey]);
+    expect(out[0].name).toBe('яблоко');
+    expect(out[0].details).toBe('свежее');
+  });
+});

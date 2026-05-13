@@ -7,6 +7,12 @@
     position: relative;
     overscroll-behavior: none;
     max-height: 100%;
+
+    // Embla-recommended slide-gap pattern (padding + negative container margin).
+    // `gap` / `margin` are NOT picked up by Embla's ResizeObserver, so they
+    // visually do nothing — Embla still snaps as if slides are flush.
+    // See: https://www.embla-carousel.com/docs/guides/slide-gaps
+    --slide-spacing: 40px;
 }
 
 .emblaViewport {
@@ -20,13 +26,14 @@
     display: flex;
     backface-visibility: hidden;
     height: 100%;
-    gap: 2px;
+    margin-left: calc(var(--slide-spacing) * -1);
 }
 
 .emblaSlide {
     flex: 0 0 100%;
     min-width: 0;
-    padding: 0;
+    padding-left: var(--slide-spacing);
+    box-sizing: border-box;
     height: 100%;
     display: flex;
     flex-direction: column;

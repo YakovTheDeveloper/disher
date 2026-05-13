@@ -132,6 +132,12 @@
   font-weight: 500;
 }
 
+.nextArrowDisabled {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: default;
+}
+
 // ── 'events' variant — atom builder accent (deep-blue) ─────────────────────
 .prevArrowEvents {
   background: transparent;

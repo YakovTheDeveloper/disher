@@ -10,9 +10,9 @@ import { HomeTopBar } from '@/widgets/HomeTopBar';
 import { useScheduleFoods, useScheduleNutrientTotals } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
-import { HomeScreenIndicator, runTileMigration, type ScreenEntry } from './ui';
+import { ScreenIndicator, runTileMigration, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { HOME_BOTTOM_BAR_VARIANTS } from '@/widgets/FoodSchedule/ui';
+import { APP_BOTTOM_BAR_BG_VARIANTS } from '@/shared/ui/AppBottomBar';
 import normsImg from '@/shared/assets/decarative/norms.png';
 import watchImg from '@/shared/assets/decarative/watch.png';
 import tree2Img from '@/shared/assets/decarative/tree2.png';
@@ -41,14 +41,14 @@ const Page = ({ date }: { date: string }) => {
   const [activeIndex, setActiveIndex] = useState(DEFAULT_SLIDE);
   const swipeableRef = useRef<SwipeableRef>(null);
 
-  // Single source of truth for the bottom-bar design variant across all
-  // three home slides (Laboratory / FoodSchedule / ScheduleEvents) so the
-  // pill chrome stays consistent as the user swipes between them.
-  const { variant: bottomBarVariant } = useDesignVariant(
-    'HomeBottomBar',
-    HOME_BOTTOM_BAR_VARIANTS,
+  // Palette picker for the shell variant of screens 1 & 3 (Laboratory /
+  // ScheduleEvents). Data attrs land on the page container; CSS targets
+  // `:global([data-dv='HomeBottomBarBg'][data-dv-v='X']) .dockV2.shellSolo`
+  // in AppBottomBar.module.scss.
+  const { anchor: bottomBarBgAnchor } = useDesignVariant(
+    'HomeBottomBarBg',
+    APP_BOTTOM_BAR_BG_VARIANTS,
   );
-  const bottomBarVariantIndex = HOME_BOTTOM_BAR_VARIANTS.indexOf(bottomBarVariant);
 
   const handleIndexChange = useCallback((idx: number) => {
     setActiveIndex(idx);
@@ -73,7 +73,7 @@ const Page = ({ date }: { date: string }) => {
   );
 
   return (
-    <div className={homeStyles.container}>
+    <div {...bottomBarBgAnchor} className={homeStyles.container}>
       <HomeTopBar
         date={date}
         totals={scheduleTotals}
@@ -82,7 +82,7 @@ const Page = ({ date }: { date: string }) => {
       />
       <div className={homeStyles.swipeArea}>
         <div className={homeStyles.indicatorFloat}>
-          <HomeScreenIndicator
+          <ScreenIndicator
             screens={SCREENS}
             activeIndex={activeIndex}
             onSelect={handleSelect}
@@ -97,23 +97,9 @@ const Page = ({ date }: { date: string }) => {
             hasDots={false}
             onIndexChange={handleIndexChange}
           >
-            <Laboratory
-              key={date}
-              date={date}
-              bottomBarVariantIndex={bottomBarVariantIndex}
-            />
-            <FoodSchedule
-              key={date}
-              date={date}
-              items={items}
-              bottomBarVariantIndex={bottomBarVariantIndex}
-            />
-            <ScheduleEvents
-              key={date}
-              date={date}
-              events={events}
-              bottomBarVariantIndex={bottomBarVariantIndex}
-            />
+            <Laboratory key={date} date={date} />
+            <FoodSchedule key={date} date={date} items={items} />
+            <ScheduleEvents key={date} date={date} events={events} />
           </Swipeable>
         </div>
         <div className={homeStyles.indicatorClickLayer} aria-hidden>

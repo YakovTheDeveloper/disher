@@ -37,6 +37,15 @@ type Props = {
   inputId?: string;
   initialSearchQuery?: string;
   isActive?: boolean;
+  /**
+   * When provided, the empty-state "create product/dish" actions become
+   * <label htmlFor={createInputHtmlFor}> instead of standalone buttons, and
+   * onPickCreate is invoked on click with the current search query as the
+   * proposed name. The host can stash {variant, name} into its draft and let
+   * onFocusCapture flip the step to the create modal.
+   */
+  createInputHtmlFor?: string;
+  onPickCreate?: (variant: 'product' | 'dish', name: string) => void;
 };
 
 // Outer component: ALWAYS renders the <input id={inputId}> via SearchFoodControls so
@@ -56,6 +65,8 @@ const SearchFood = ({
   inputId,
   initialSearchQuery,
   isActive = true,
+  createInputHtmlFor,
+  onPickCreate,
 }: Props) => {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery ?? '');
   const [showHeavy, setShowHeavy] = useState(false);
@@ -97,6 +108,8 @@ const SearchFood = ({
             onSelectFood={onSelectFood}
             bottomLeft={bottomLeft}
             itemHtmlFor={itemHtmlFor}
+            createInputHtmlFor={createInputHtmlFor}
+            onPickCreate={onPickCreate}
           />
         </div>
       )}
@@ -114,6 +127,8 @@ type HeavyProps = {
   onSelectFood: (payload: SelectFoodPayload) => void;
   bottomLeft?: React.ReactNode;
   itemHtmlFor?: string;
+  createInputHtmlFor?: string;
+  onPickCreate?: (variant: 'product' | 'dish', name: string) => void;
 };
 
 const SearchFoodHeavy = ({
@@ -126,6 +141,8 @@ const SearchFoodHeavy = ({
   onSelectFood,
   bottomLeft,
   itemHtmlFor,
+  createInputHtmlFor,
+  onPickCreate,
 }: HeavyProps) => {
   const listContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(listContainerRef);
@@ -189,12 +206,23 @@ const SearchFoodHeavy = ({
   const visibleHasResults =
     (showProducts && products.length > 0) || (showDishes && dishes.length > 0);
 
+  // When the host provides onPickCreate + createInputHtmlFor, the empty-state
+  // actions delegate to a create-name modal via <label htmlFor> focus. Otherwise
+  // fall back to the legacy toaster-based useFoodCreation flow.
+  const productHandler = onPickCreate
+    ? () => onPickCreate('product', trimmedQuery)
+    : handleCreateProduct;
+  const dishHandler = onPickCreate
+    ? () => onPickCreate('dish', trimmedQuery)
+    : handleCreateDish;
+
   const createButtons = (
     <FoodSearchEmpty
       query={trimmedQuery}
-      onCreateProduct={showProducts ? handleCreateProduct : undefined}
-      onCreateDish={showDishes ? handleCreateDish : undefined}
+      onCreateProduct={showProducts ? productHandler : undefined}
+      onCreateDish={showDishes ? dishHandler : undefined}
       showMessage={isSearchActive && !visibleHasResults}
+      createInputHtmlFor={createInputHtmlFor}
     />
   );
 

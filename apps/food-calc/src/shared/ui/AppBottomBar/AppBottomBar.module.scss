@@ -1,0 +1,183 @@
+// AppBottomBar — integrated bottom dock for HomePage / FoodSchedule / Dish.
+//
+// Sits in the Screen `bottomBar` slot (part of the flex flow, NOT
+// position: absolute over content). The wrapper provides the surface +
+// hairline separator — the dock vs. shell row just toggles 3-slot vs.
+// centered children.
+//
+// Color flow for the CTA pill: `.dockV2[data-tod='<period>']` publishes
+// `--cta-bg-from`, `--cta-bg-to`, `--cta-text` so any descendant that
+// uses the `dark-pill-button()` mixin (WriteFoodButton.dark inside the
+// dock, RunAnalysisButton + AddButton.dark inside the shell) gets the
+// SAME tod-tinted gradient as `.dockPrimary` on screen 2.
+
+@import '@/shared/assets/style/mixin.scss';
+
+// ─── Common dock row (shared by dock + shell) ─────────────────────────
+
+.dock {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    min-height: 60px;
+    box-sizing: border-box;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.hidden {
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+}
+
+// Generic ghost icon button — used as leading/trailing affordances.
+.iconButton {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: transparent;
+    border: none;
+    color: rgba(31, 42, 68, 0.72);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+
+    &:hover,
+    &:focus-visible {
+        color: rgba(31, 42, 68, 1);
+        background: rgba(0, 0, 0, 0.04);
+        outline: none;
+    }
+
+    &:active {
+        transform: scale(0.94);
+    }
+}
+
+.leadingIcon {
+    @extend .iconButton;
+}
+
+// ─── Dock — 3-slot row: + · primary pill · search ─────────────────────
+
+.dockV2 {
+    justify-content: space-between;
+}
+
+.dockPrimary {
+    flex: 1;
+    justify-content: center;
+    margin: 0 4px;
+}
+
+// ─── TOD palette tokens ───────────────────────────────────────────────
+// One source of truth: setting `--cta-*` on `.dockV2[data-tod=...]`.
+// The `dark-pill-button()` mixin (used by WriteFoodButton.dark,
+// RunAnalysisButton, AddButton.dark) reads them via `var()` with a
+// purple fallback — so the CTA pill auto-tints by time of day on every
+// home screen.
+
+.dockV2[data-tod='morning'] {
+    --cta-bg-from: var(--tod-morning-bg-from);
+    --cta-bg-to: var(--tod-morning-bg-to);
+    --cta-text: rgba(31, 42, 68, 0.92);
+}
+
+.dockV2[data-tod='day'] {
+    --cta-bg-from: var(--tod-day-bg-from);
+    --cta-bg-to: var(--tod-day-bg-to);
+    --cta-text: rgba(31, 42, 68, 0.92);
+}
+
+.dockV2[data-tod='evening'] {
+    --cta-bg-from: var(--tod-evening-bg-from);
+    --cta-bg-to: var(--tod-evening-bg-to);
+    --cta-text: rgba(31, 42, 68, 0.92);
+}
+
+.dockV2[data-tod='night'] {
+    --cta-bg-from: var(--tod-night-bg-from);
+    --cta-bg-to: var(--tod-night-bg-to);
+    --cta-text: rgba(31, 42, 68, 0.92);
+}
+
+// ─── Shell — chrome-only wrapper for slides without 3-slot dock ───────
+// Used by Laboratory + ScheduleEvents (HomePage screens 1 & 3). Surface
+// borrows the "stripe-fork" idiom from FoodActionCard: horizontal 3-stop
+// gradient + a fading hairline pinned to the TOP edge. Palettes are
+// switched at HomePage level via `data-dv='HomeBottomBarBg'`.
+
+.shellSolo {
+    justify-content: center;
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        top: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(15, 23, 42, 0.08) 18%,
+            rgba(15, 23, 42, 0.08) 82%,
+            transparent 100%);
+        pointer-events: none;
+    }
+}
+
+// Default surface — column-stripe (cool white → faint blue).
+.dockV2.shellSolo {
+    background: linear-gradient(90deg, #ffffff 0%, #fdfeff 55%, #f9fbfd 100%);
+}
+
+// ─── BG palettes (HomeBottomBarBg design-variant) ─────────────────────
+
+:global([data-dv='HomeBottomBarBg'][data-dv-v='column-stripe']) {
+    .dockV2.shellSolo {
+        background: linear-gradient(90deg, #ffffff 0%, #fdfeff 55%, #f9fbfd 100%);
+
+        &::before {
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(15, 23, 42, 0.08) 18%,
+                rgba(15, 23, 42, 0.08) 82%,
+                transparent 100%);
+        }
+    }
+}
+
+:global([data-dv='HomeBottomBarBg'][data-dv-v='stripe-warm']) {
+    .dockV2.shellSolo {
+        background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
+
+        &::before {
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(124, 65, 15, 0.09) 18%,
+                rgba(124, 65, 15, 0.09) 82%,
+                transparent 100%);
+        }
+    }
+}
+
+:global([data-dv='HomeBottomBarBg'][data-dv-v='stripe-lavender']) {
+    .dockV2.shellSolo {
+        background: linear-gradient(90deg, #fefefe 0%, #fbfafe 55%, #f5f1fa 100%);
+
+        &::before {
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(70, 30, 110, 0.08) 18%,
+                rgba(70, 30, 110, 0.08) 82%,
+                transparent 100%);
+        }
+    }
+}

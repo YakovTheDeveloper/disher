@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" role="img" aria-label="Disher">
+  <!-- Off-white rounded tile -->
+  <rect width="32" height="32" rx="12" fill="#fefcf7"/>
+
+  <!-- Gold cloche, generous padding -->
+  <g fill="none" stroke="#c79a52" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Knob -->
+    <circle cx="16" cy="9.5" r="0.9" fill="#c79a52"/>
+    <line x1="16" y1="10.4" x2="16" y2="12"/>
+    <!-- Dome -->
+    <path d="M 8.5 19.5 C 8.5 12.8, 23.5 12.8, 23.5 19.5"/>
+    <!-- Plate -->
+    <line x1="7" y1="21.5" x2="25" y2="21.5"/>
+    <line x1="5.5" y1="23.5" x2="26.5" y2="23.5" stroke-width="1.1" opacity="0.7"/>
+  </g>
+</svg>

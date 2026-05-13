@@ -16,8 +16,8 @@ import {
   ScheduleFoodEditModals,
   SCHEDULE_FOOD_INPUT_IDS,
   useScheduleFoodFlow,
-  HomeBottomBar,
 } from '@/widgets/FoodSchedule/ui';
+import { AppBottomBar } from '@/shared/ui/AppBottomBar';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
 import { removeScheduleFoods } from '@/entities/schedule-food';
@@ -68,8 +68,6 @@ type CommonProps = {
   richNutrient?: { id: string; unit: string } | null;
   onRichNutrientClear?: () => void;
   isActive?: boolean;
-  /** Provided by HomePage so all three slides share one variant index. */
-  bottomBarVariantIndex?: number;
 };
 
 const FoodSchedule = ({
@@ -78,7 +76,6 @@ const FoodSchedule = ({
   richNutrient,
   onRichNutrientClear,
   isActive = true,
-  bottomBarVariantIndex = 0,
 }: CommonProps) => {
   const selectionStoreFood = useSelection();
   const isActionsMode = useStore(selectionStoreFood, (s) => s.isActionsMode);
@@ -256,6 +253,7 @@ const FoodSchedule = ({
   return (
     <Screen
       headerOverlap
+      hollow={items.length === 0}
       overlay={
         isActive ? (
           <>
@@ -291,10 +289,12 @@ const FoodSchedule = ({
       }
       bottomBar={
         !isActionsMode ? (
-          <HomeBottomBar
-            variantIndex={bottomBarVariantIndex}
+          <AppBottomBar
             writeFoodFlow={writeFoodFlow}
             writeFoodInputId={writeFoodInputId}
+            searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
+            searchLabel="Найти еду"
+            writeFoodLabel="Опишите, что ели…"
             onPlusClick={openCreateFoodPanel}
             hidden={inlineEditing}
           />

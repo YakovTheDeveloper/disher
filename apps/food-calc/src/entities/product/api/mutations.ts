@@ -11,8 +11,9 @@ function safeParseJson<T>(json: string | undefined, fallback: T): T {
 
 export async function createProduct(params: {
   name: string;
+  id?: string;
 }): Promise<string> {
-  const id = crypto.randomUUID();
+  const id = params.id ?? crypto.randomUUID();
   const row: ProductRow = {
     id,
     name: params.name,

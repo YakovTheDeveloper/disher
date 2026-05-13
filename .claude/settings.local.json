@@ -54,7 +54,18 @@
       "Bash(openssl x509 *)",
       "Bash(curl -sk -o /dev/null -w \"HTTP:%{http_code} time:%{time_total}s\\\\n\" https://192.168.88.235:3100/api/health --max-time 5)",
       "Bash(curl -sk -o /dev/null -w \"HTTP:%{http_code} time:%{time_total}s\\\\n\" https://localhost:3100/api/health --max-time 5)",
-      "Bash(npx playwright *)"
+      "Bash(npx playwright *)",
+      "PowerShell(npx eslint src/pages/home-page/HomePage.tsx src/widgets/Laboratory/Laboratory.tsx src/widgets/ScheduleEvents/ScheduleEvents.tsx src/widgets/FoodSchedule/FoodSchedule.tsx src/widgets/FoodSchedule/ui/HomeBottomBar.tsx src/widgets/FoodSchedule/ui/HomeBottomBarShell.tsx src/widgets/FoodSchedule/ui/index.ts)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(npx vitest *)",
+      "WebFetch(domain:www.embla-carousel.com)",
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:addyosmani.com)",
+      "WebFetch(domain:blog.tedivm.com)",
+      "Bash(dir tsconfig*.json /B)",
+      "Bash(pnpm typecheck *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit)"
     ]
   }
 }

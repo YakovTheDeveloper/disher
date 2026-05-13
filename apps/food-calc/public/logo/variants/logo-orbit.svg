@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 260" role="img" aria-label="Disher">
+  <defs>
+    <linearGradient id="orbitGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"  stop-color="#fbf1d4"/>
+      <stop offset="55%" stop-color="#d4ae6c"/>
+      <stop offset="100%" stop-color="#8a6536"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Mark: plate + tilted orbit (the "short-distance horizon") -->
+  <g fill="none" stroke="url(#orbitGrad)" stroke-width="2.5" stroke-linecap="round">
+    <ellipse cx="160" cy="140" rx="80" ry="13"/>
+    <ellipse cx="160" cy="140" rx="80" ry="50" transform="rotate(-18 160 140)"/>
+    <circle cx="108" cy="92" r="3.5" fill="url(#orbitGrad)"/>
+    <circle cx="220" cy="180" r="2"   fill="url(#orbitGrad)" opacity="0.7"/>
+  </g>
+
+  <!-- Wordmark: light, wide-spaced sans -->
+  <text x="300" y="160"
+        font-family="'Inter', 'Helvetica Neue', 'Segoe UI', sans-serif"
+        font-weight="300"
+        font-size="78"
+        letter-spacing="14"
+        fill="url(#orbitGrad)">DISHER</text>
+
+  <!-- Hairline under -->
+  <line x1="300" y1="186" x2="788" y2="186" stroke="url(#orbitGrad)" stroke-width="0.8" opacity="0.55"/>
+</svg>

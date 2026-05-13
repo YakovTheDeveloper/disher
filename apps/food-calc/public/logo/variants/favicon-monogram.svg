@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" role="img" aria-label="Disher">
+  <!-- White rounded tile -->
+  <rect width="32" height="32" rx="14" fill="#ffffff"/>
+
+  <!-- Soft cream inner ring for warmth -->
+  <rect x="1" y="1" width="30" height="30" rx="13" fill="none" stroke="#f0e4c8" stroke-width="0.8"/>
+
+  <!-- Elegant serif "D" -->
+  <text x="16" y="23.5"
+        text-anchor="middle"
+        font-family="'Cormorant Garamond', 'Playfair Display', 'Didot', 'Times New Roman', serif"
+        font-weight="500"
+        font-size="22"
+        fill="#b88a3e"
+        letter-spacing="0">D</text>
+</svg>

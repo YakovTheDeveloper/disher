@@ -1,38 +1,34 @@
-.button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 22px;
-    border-radius: 999px;
-    border: none;
-    background-color: rgba(66, 66, 117, 0.918);
-    color: #fff;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    -webkit-appearance: none;
-    -webkit-tap-highlight-color: transparent;
-    min-height: 44px;
+@import '@/shared/assets/style/mixin.scss';
 
-    &:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-    }
+// Shared visual with WriteFoodButton.dark + AddButton.dark via dark-pill-button().
+.button {
+    @include dark-pill-button();
 }
 
 // Inverse variant — white fill, purple text + border. Same pill shape.
+// Must re-pin hover/active here so the dark mixin's purple states don't bleed in.
 .buttonInverse {
-    background-color: #fff;
+    background: #fff;
     color: rgba(66, 66, 117, 0.918);
     border: 1px solid rgba(66, 66, 117, 0.918);
+
+    &:hover {
+        background: #fff;
+    }
+
+    &:active {
+        background: #fff;
+    }
 }
 
+// Spinner adapts to the parent's `color` (dark ink on tod-tinted pill,
+// white on the purple fallback) — hardcoded white was invisible on the
+// pastel morning/day/evening/night gradients.
 .spinner {
     width: 14px;
     height: 14px;
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    border-top-color: #fff;
+    border: 2px solid color-mix(in srgb, currentColor 35%, transparent);
+    border-top-color: currentColor;
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
 }

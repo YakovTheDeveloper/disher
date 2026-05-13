@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" role="img" aria-label="Disher">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&amp;family=Allura&amp;display=swap');
+      .script {
+        font-family: 'Pinyon Script', 'Allura', 'Great Vibes', 'Apple Chancery', cursive;
+        font-size: 170px;
+        fill: url(#textGrad);
+      }
+    </style>
+    <linearGradient id="clocheGrad" x1="0%" y1="0%" x2="60%" y2="100%">
+      <stop offset="0%"  stop-color="#fbf1d4"/>
+      <stop offset="45%" stop-color="#d4ae6c"/>
+      <stop offset="100%" stop-color="#8a6536"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"  stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e8e2d4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Cloche mark -->
+  <g fill="none" stroke="url(#clocheGrad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="380" cy="30" r="3.6" fill="url(#clocheGrad)"/>
+    <line x1="380" y1="33" x2="380" y2="55"/>
+    <path d="M 295 135 C 295 58, 465 58, 465 135"/>
+    <ellipse cx="380" cy="135" rx="85" ry="9"/>
+    <path d="M 270 148 C 270 170, 490 170, 490 148"/>
+    <ellipse cx="380" cy="148" rx="110" ry="6"/>
+    <!-- Saturn-ring swoosh -->
+    <path d="M 130 110 C 250 180, 510 180, 630 95" stroke-width="1.8"/>
+    <path d="M 130 110 C 250 38,  510 38,  630 95" stroke-width="0.7" opacity="0.55"/>
+  </g>
+
+  <!-- Cursive wordmark -->
+  <text class="script" x="400" y="250" text-anchor="middle">Disher</text>
+
+  <!-- Underline flourish -->
+  <path d="M 130 295 Q 400 325 670 280" stroke="url(#textGrad)" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.85"/>
+</svg>

@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { useCallback } from 'react';
 import { flushSync } from 'react-dom';
-import s from './HomeScreenIndicator.module.scss';
+import s from './ScreenIndicator.module.scss';
 
 export type TileTitleStyle = 'serif-initial' | 'display-sans' | 'mono-track';
 
@@ -27,9 +27,9 @@ type DocWithVT = Document & {
 
 /**
  * Wrap a state mutation so the title morph (tile ↔ band) animates.
- * Exported so callers OUTSIDE `HomeScreenIndicator` (e.g. a separate
- * click-capture layer in `HomePage`) can drive the same animation
- * without duplicating the VT plumbing.
+ * Exported so callers OUTSIDE `ScreenIndicator` (e.g. a separate
+ * click-capture layer) can drive the same animation without
+ * duplicating the VT plumbing.
  *
  * Uses the **View Transitions API** — Chrome 111+, Safari 18.2+, FF 144+.
  * On browsers without VT support (iOS Safari <18.2) the state just
@@ -55,11 +55,11 @@ export const runTileMigration = (
 
 /**
  * Tile indicator with shared-element title migration. Timing reads from
- * `--vt-home-duration` / `--vt-home-easing` on `<html>` — currently
+ * `--vt-screen-duration` / `--vt-screen-easing` on `<html>` — currently
  * locked to a back-out overshoot ("bounce"). See `runTileMigration`
  * for the View Transitions transport details.
  */
-export const HomeScreenIndicator = ({ screens, activeIndex, onSelect }: Props) => {
+export const ScreenIndicator = ({ screens, activeIndex, onSelect }: Props) => {
   const handleSelect = useCallback(
     (idx: number) => {
       runTileMigration(activeIndex, idx, () => onSelect(idx));
@@ -89,21 +89,13 @@ export const HomeScreenIndicator = ({ screens, activeIndex, onSelect }: Props) =
               {!active && (
                 <span
                   className={s.tileTitle}
-                  // `data-vt-name` is the queryable handle for the WAAPI
-                  // fallback; `viewTransitionName` (inline style) is the
-                  // hook the View Transitions API matches on. Both use
-                  // the same identifier so the two transports stay in
-                  // sync.
-                  data-vt-name={`home-title-${i}`}
-                  style={{ viewTransitionName: `home-title-${i}` } as React.CSSProperties}
+                  data-vt-name={`screen-title-${i}`}
+                  style={{ viewTransitionName: `screen-title-${i}` } as React.CSSProperties}
                 >
                   {screen.label}
                 </span>
               )}
               {active && (
-                // Light-gray serif "shadow" inside the active tile —
-                // reads as the bandLabel's projection upward into the
-                // tile (source = band immediately below).
                 <span className={s.tileShadow} aria-hidden>
                   {screen.label}
                 </span>
@@ -116,8 +108,8 @@ export const HomeScreenIndicator = ({ screens, activeIndex, onSelect }: Props) =
       <div className={s.band}>
         <span
           className={s.bandLabel}
-          data-vt-name={`home-title-${activeIndex}`}
-          style={{ viewTransitionName: `home-title-${activeIndex}` } as React.CSSProperties}
+          data-vt-name={`screen-title-${activeIndex}`}
+          style={{ viewTransitionName: `screen-title-${activeIndex}` } as React.CSSProperties}
         >
           {activeLabel}
         </span>
@@ -126,4 +118,4 @@ export const HomeScreenIndicator = ({ screens, activeIndex, onSelect }: Props) =
   );
 };
 
-export default HomeScreenIndicator;
+export default ScreenIndicator;

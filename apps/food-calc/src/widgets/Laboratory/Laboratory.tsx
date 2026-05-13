@@ -6,14 +6,12 @@ import { db } from '@/shared/lib/dexie/schema';
 import { RunAnalysisButton } from '@/features/analysis/RunAnalysisButton';
 import { useOpenHypotheses, useClosedHypotheses } from '@/entities/hypothesis';
 import { Screen } from '@/shared/ui/Screen';
-import { HomeBottomBarShell } from '@/widgets/FoodSchedule/ui';
+import { AppBottomBarShell } from '@/shared/ui/AppBottomBar';
 import HypothesisCard from './HypothesisCard';
 import styles from './Laboratory.module.scss';
 
 type Props = {
   date: string;
-  /** Variant index shared with sibling home slides. */
-  bottomBarVariantIndex?: number;
 };
 
 function useEventCountLast7Days(date: string): number | undefined {
@@ -37,7 +35,7 @@ function useEventCountLast7Days(date: string): number | undefined {
   }, [dateSet]);
 }
 
-const Laboratory = ({ date, bottomBarVariantIndex = 0 }: Props) => {
+const Laboratory = ({ date }: Props) => {
   const eventCount = useEventCountLast7Days(date);
   const open = useOpenHypotheses();
   const closed = useClosedHypotheses();
@@ -45,14 +43,15 @@ const Laboratory = ({ date, bottomBarVariantIndex = 0 }: Props) => {
   return (
     <Screen
       headerOverlap
+      hollow={open.length === 0 && (eventCount ?? 0) === 0}
       bottomBar={
-        <HomeBottomBarShell variantIndex={bottomBarVariantIndex}>
+        <AppBottomBarShell>
           <RunAnalysisButton
             date={date}
             disabled={(eventCount ?? 0) === 0}
             disabledHint="Нет данных за последние 7 дней"
           />
-        </HomeBottomBarShell>
+        </AppBottomBarShell>
       }
     >
       <div className={styles.container}>

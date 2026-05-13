@@ -1,4 +1,4 @@
-// HomeScreenIndicator — 3-tile indicator with shared-element title
+// ScreenIndicator — 3-tile indicator with shared-element title
 // migration via the **CSS View Transitions API**. The label visibly
 // flies from its tile to the centered band and back, all driven by the
 // browser's compositor — zero JS animation, zero layout work per frame.
@@ -71,10 +71,6 @@
     opacity: 0;
 }
 
-// Small source state of the migration. Same typographic DNA as
-// .bandLabel — only size + letter-spacing differ. Dimming lives on the
-// text itself (not the tile) so the bg/image stay crisp; opacity is
-// animated short-and-fast on mount via tileTitleFadeIn.
 .tileTitle {
     position: relative;
     z-index: 1;
@@ -118,11 +114,6 @@
     user-select: none;
 }
 
-// "Shadow" text inside the active tile: light-gray serif italic echo of
-// the bandLabel below. Bottom-anchored so it reads as a projection of
-// the big title upward into the tile (source = band immediately below).
-// Sized to mirror bandLabel; the tile's overflow:hidden trims any
-// horizontal overrun on narrow tiles.
 .tileShadow {
     position: absolute;
     left: 14px;
@@ -142,9 +133,6 @@
     user-select: none;
 }
 
-// Centered destination state. The browser captures position+size of
-// .tileTitle (source) and .bandLabel (destination) and interpolates
-// between them via ::view-transition-group(home-title-N).
 .band {
     position: relative;
     width: 100%;
@@ -178,56 +166,51 @@
 // WAAPI FLIP fallback in the component.
 
 :root {
-    --vt-home-duration: 0.6s;
-    --vt-home-easing: cubic-bezier(0.34, 1.56, 0.64, 1); // back-out overshoot ("bounce")
+    --vt-screen-duration: 0.6s;
+    --vt-screen-easing: cubic-bezier(0.34, 1.56, 0.64, 1); // back-out overshoot ("bounce")
 }
 
-// The `home-title-N` pair: group animates the bounding box, image-pair
+// The `screen-title-N` pair: group animates the bounding box, image-pair
 // crossfades the snapshots. Listing each name explicitly because the
 // CSS-pseudo grammar does not accept wildcards or commas within the
 // parentheses — only a single ident per pseudo. We list 3 here.
-:global(::view-transition-group(home-title-0)),
-:global(::view-transition-group(home-title-1)),
-:global(::view-transition-group(home-title-2)) {
-    animation-duration: var(--vt-home-duration);
-    animation-timing-function: var(--vt-home-easing);
+:global(::view-transition-group(screen-title-0)),
+:global(::view-transition-group(screen-title-1)),
+:global(::view-transition-group(screen-title-2)) {
+    animation-duration: var(--vt-screen-duration);
+    animation-timing-function: var(--vt-screen-easing);
 }
 
 // Cross-fade old → new snapshots. Same timing so the position morph
 // and the fade complete in lockstep — otherwise you see a ghost frame
 // hanging at the source while the new one lands.
-:global(::view-transition-old(home-title-0)),
-:global(::view-transition-old(home-title-1)),
-:global(::view-transition-old(home-title-2)),
-:global(::view-transition-new(home-title-0)),
-:global(::view-transition-new(home-title-1)),
-:global(::view-transition-new(home-title-2)) {
-    animation-duration: var(--vt-home-duration);
-    animation-timing-function: var(--vt-home-easing);
+:global(::view-transition-old(screen-title-0)),
+:global(::view-transition-old(screen-title-1)),
+:global(::view-transition-old(screen-title-2)),
+:global(::view-transition-new(screen-title-0)),
+:global(::view-transition-new(screen-title-1)),
+:global(::view-transition-new(screen-title-2)) {
+    animation-duration: var(--vt-screen-duration);
+    animation-timing-function: var(--vt-screen-easing);
 }
 
-// Snapshots use `mix-blend-mode: plus-lighter` by default, which can
-// brighten overlapping ink mid-flight on white backgrounds. Plain
-// normal blend keeps the serif's ink black throughout the morph.
-:global(::view-transition-image-pair(home-title-0)),
-:global(::view-transition-image-pair(home-title-1)),
-:global(::view-transition-image-pair(home-title-2)) {
+:global(::view-transition-image-pair(screen-title-0)),
+:global(::view-transition-image-pair(screen-title-1)),
+:global(::view-transition-image-pair(screen-title-2)) {
     isolation: auto;
 }
 
-// Reduced motion: collapse to an instant swap. Browsers do not respect
-// prefers-reduced-motion automatically for view transitions — explicit.
 @media (prefers-reduced-motion: reduce) {
 
-    :global(::view-transition-group(home-title-0)),
-    :global(::view-transition-group(home-title-1)),
-    :global(::view-transition-group(home-title-2)),
-    :global(::view-transition-old(home-title-0)),
-    :global(::view-transition-old(home-title-1)),
-    :global(::view-transition-old(home-title-2)),
-    :global(::view-transition-new(home-title-0)),
-    :global(::view-transition-new(home-title-1)),
-    :global(::view-transition-new(home-title-2)) {
+    :global(::view-transition-group(screen-title-0)),
+    :global(::view-transition-group(screen-title-1)),
+    :global(::view-transition-group(screen-title-2)),
+    :global(::view-transition-old(screen-title-0)),
+    :global(::view-transition-old(screen-title-1)),
+    :global(::view-transition-old(screen-title-2)),
+    :global(::view-transition-new(screen-title-0)),
+    :global(::view-transition-new(screen-title-1)),
+    :global(::view-transition-new(screen-title-2)) {
         animation-duration: 0.001s;
     }
 }

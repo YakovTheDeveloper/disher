@@ -28,6 +28,7 @@ type Theme = 'events';
 type ModalNextButtonLabelProps = {
   as: 'label';
   htmlFor: string;
+  onClick?: () => void;
   variant?: 'next' | 'finish';
   theme?: Theme;
   label?: string;
@@ -40,6 +41,7 @@ type ModalNextButtonButtonProps = {
   variant?: 'next' | 'finish';
   theme?: Theme;
   label?: string;
+  disabled?: boolean;
 };
 
 type ModalNextButtonProps = ModalNextButtonLabelProps | ModalNextButtonButtonProps;
@@ -129,12 +131,20 @@ export const ModalNextButton = (props: ModalNextButtonProps) => {
       {isFinish ? doneIcon : arrowIcon}
     </>
   );
-  const className = `${s.nextArrow} ${props.theme === 'events' ? s.nextArrowEvents : ''}`;
+  const isDisabled = props.as !== 'label' && props.disabled === true;
+  const className = [
+    s.nextArrow,
+    props.theme === 'events' ? s.nextArrowEvents : '',
+    isDisabled ? s.nextArrowDisabled : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   if (props.as === 'label') {
     return (
       <label
         htmlFor={props.htmlFor}
+        onClick={props.onClick}
         className={className}
         aria-label={isFinish ? 'Готово' : 'Далее'}
       >
@@ -146,6 +156,7 @@ export const ModalNextButton = (props: ModalNextButtonProps) => {
     <button
       type="button"
       onClick={props.onClick}
+      disabled={isDisabled}
       className={className}
       aria-label={isFinish ? 'Готово' : 'Далее'}
     >

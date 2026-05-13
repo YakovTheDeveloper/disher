@@ -72,6 +72,14 @@ type Props = {
   onCreateProduct?: () => void;
   onCreateDish?: () => void;
   showMessage?: boolean;
+  /**
+   * If provided, the two actions render as <label htmlFor={createInputHtmlFor}>
+   * so focus delegates to a create-name input elsewhere in the DOM. The
+   * onCreateProduct / onCreateDish handlers still fire on click (e.g. to stash
+   * the chosen variant in a draft) — step transitions happen via onFocusCapture
+   * on the host. Without this prop the actions render as plain <button>.
+   */
+  createInputHtmlFor?: string;
 };
 
 export const FoodSearchEmpty = ({
@@ -79,9 +87,24 @@ export const FoodSearchEmpty = ({
   onCreateProduct,
   onCreateDish,
   showMessage = true,
+  createInputHtmlFor,
 }: Props) => {
   const ref = useKeyboardStick<HTMLDivElement>();
   const hasQuery = query.length > 0;
+  const asLabel = Boolean(createInputHtmlFor);
+
+  const productContent = (
+    <>
+      <AppleIcon />
+      <span className={styles.pillTitle}>Нет нужного продукта?</span>
+    </>
+  );
+  const dishContent = (
+    <>
+      <BowlIcon />
+      <span className={styles.pillTitle}>Нет нужного блюда?</span>
+    </>
+  );
 
   return (
     <div ref={ref} className={styles.root}>
@@ -92,30 +115,34 @@ export const FoodSearchEmpty = ({
       )}
       <div className={styles.actions}>
         {onCreateProduct && (
-          <button className={styles.pillPrimary} onClick={onCreateProduct}>
-            <AppleIcon />
-            {hasQuery ? (
-              <>
-                <span className={styles.pillTitle}>Создать «{query}»</span>
-                <span className={styles.pillTag}>продукт</span>
-              </>
-            ) : (
-              <span className={styles.pillTitle}>Создать продукт</span>
-            )}
-          </button>
+          asLabel ? (
+            <label
+              htmlFor={createInputHtmlFor}
+              className={styles.pillPrimary}
+              onClick={onCreateProduct}
+            >
+              {productContent}
+            </label>
+          ) : (
+            <button className={styles.pillPrimary} onClick={onCreateProduct}>
+              {productContent}
+            </button>
+          )
         )}
         {onCreateDish && (
-          <button className={styles.pillSecondary} onClick={onCreateDish}>
-            <BowlIcon />
-            {hasQuery ? (
-              <>
-                <span className={styles.pillTitle}>Создать «{query}»</span>
-                <span className={styles.pillTag}>блюдо</span>
-              </>
-            ) : (
-              <span className={styles.pillTitle}>Создать блюдо</span>
-            )}
-          </button>
+          asLabel ? (
+            <label
+              htmlFor={createInputHtmlFor}
+              className={styles.pillSecondary}
+              onClick={onCreateDish}
+            >
+              {dishContent}
+            </label>
+          ) : (
+            <button className={styles.pillSecondary} onClick={onCreateDish}>
+              {dishContent}
+            </button>
+          )
         )}
       </div>
     </div>

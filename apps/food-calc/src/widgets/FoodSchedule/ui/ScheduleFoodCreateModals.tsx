@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
@@ -5,6 +6,7 @@ import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
+import { TextInput } from '@/shared/ui/atoms/input/TextInput';
 import { DetailsChips, useHasDetailsHints } from '@/features/food/details-chips';
 import {
   useScheduleFoodFlow,
@@ -31,15 +33,33 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
     handleClose,
     handleTimeFinish,
     handleFoodSelect,
+    handlePickCreate,
+    handleConfirmCreate,
     handleCommit,
     quantityContent,
-    inputIds: { TIME_INPUT, SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
+    inputIds: { TIME_INPUT, SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT, CREATE_INPUT },
   } = useScheduleFoodFlow({ type: 'create', scheduleId, richNutrient, onRichNutrientClear });
 
   const hasHints = useHasDetailsHints(draft.productId);
   const createSteps = hasHints ? CREATE_STEPS_WITH_DETAILS : CREATE_STEPS_NO_DETAILS;
 
   const goToStep = (target: typeof step) => setStep(target);
+
+  // Local state for the create-name input. Re-synced from draft.foodName on
+  // every transition INTO the 'create' step (so a fresh prefill from
+  // handlePickCreate lands without clobbering mid-edit user input within the
+  // same step session).
+  const [createName, setCreateName] = useState('');
+  const prevStepRef = useRef(step);
+  useEffect(() => {
+    if (prevStepRef.current !== 'create' && step === 'create') {
+      setCreateName(draft.foodName ?? '');
+    }
+    prevStepRef.current = step;
+  }, [step, draft.foodName]);
+
+  const createVariantLabel = draft.variant === 'dish' ? 'блюдо' : 'продукт';
+  const createTrimmed = createName.trim();
 
   return (
     <div onFocusCapture={handleFocusCapture}>
@@ -61,7 +81,54 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
             itemHtmlFor={TIME_INPUT}
             inputId={SEARCH_INPUT}
             isActive={step === 'search'}
+            createInputHtmlFor={CREATE_INPUT}
+            onPickCreate={handlePickCreate}
           />
+        }
+      />
+
+      {/* Step 1a: Create product/dish — opened from the "Нет нужного…" labels
+          inside SearchFood. Confirm is a <label htmlFor={TIME_INPUT}> so the
+          step transition to 'time' happens via onFocusCapture after focus
+          delegation lands. */}
+      <ModalByLabel
+        position="absolute"
+        isExpanded={step === 'create'}
+        content={
+          <ModalShell variant="spring2">
+            <ModalShell.Body>
+              <div className={styles.createBody}>
+                <h2 className={styles.createTitle}>Новый {createVariantLabel}</h2>
+                <TextInput
+                  id={CREATE_INPUT}
+                  value={createName}
+                  onChange={(e) => setCreateName(e.target.value)}
+                  placeholder={`Название ${createVariantLabel === 'блюдо' ? 'блюда' : 'продукта'}`}
+                  fullWidth
+                  autoComplete="off"
+                />
+                <p className={styles.createHint}>
+                  Сейчас создадим — детали можно будет добавить позже.
+                </p>
+              </div>
+              <ModalShell.ActionButtons
+                debugId="create-name"
+                left={<ModalPrevButton as="label" htmlFor={SEARCH_INPUT} />}
+                right={
+                  createTrimmed ? (
+                    <ModalNextButton
+                      as="label"
+                      htmlFor={TIME_INPUT}
+                      onClick={() => handleConfirmCreate(createName)}
+                      label="Создать"
+                    />
+                  ) : (
+                    <ModalNextButton onClick={() => {}} label="Создать" disabled />
+                  )
+                }
+              />
+            </ModalShell.Body>
+          </ModalShell>
         }
       />
 
