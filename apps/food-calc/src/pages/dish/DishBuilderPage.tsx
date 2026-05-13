@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import {
   useDish,
@@ -49,7 +49,13 @@ import { TopBar } from '@/shared/ui/TopBar';
 import Button from '@/shared/ui/atoms/Button/Button';
 import { PasteFromClipboardToDishButton } from '@/features/clipboard';
 
-type DishItemWithProduct = { id: string; productId: string; quantity: number; product: { name: string | null } | null };
+type DishItemWithProduct = {
+  id: string;
+  productId: string;
+  quantity: number;
+  details: string;
+  product: { name: string | null } | null;
+};
 
 const DishBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -85,13 +91,30 @@ const DishBuilderPage = () => {
   const closeModal = () => setIsOpen(null);
 
   const startEdit = editFlow.startEdit;
-  const handleEditSearch = useCallback(
-    (item: DishItemWithProduct) => startEdit(item, 'search'),
-    [startEdit]
-  );
   const handleEditQuantity = useCallback(
     (item: DishItemWithProduct) => startEdit(item, 'quantity'),
     [startEdit]
+  );
+
+  // tap-on-name on a dish-item row delegates focus to the already-mounted
+  // edit-details textarea (so iOS Safari pops the keyboard). The capture
+  // handler reads data-active-item-id off the textarea synchronously on
+  // focusin, primes editingItem + draft; the flow's own onFocusCapture
+  // then flips step to 'details' on the same focus event.
+  const itemsRef = useRef(dishItems);
+  itemsRef.current = dishItems;
+  const primeEdit = editFlow.primeEdit;
+  const handleEditFocusCapture = useCallback(
+    (e: React.FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.id !== DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT) return;
+      const itemId = target.dataset.activeItemId;
+      if (!itemId) return;
+      const item = itemsRef.current.find((it) => it.id === itemId);
+      if (!item) return;
+      primeEdit(item);
+    },
+    [primeEdit]
   );
 
   if (!dish) return null;
@@ -142,7 +165,9 @@ const DishBuilderPage = () => {
         overlay={
           <>
             <DishProductCreateModals dishId={id} />
-            <DishProductEditModals flow={editFlow} />
+            <div onFocusCapture={handleEditFocusCapture}>
+              <DishProductEditModals flow={editFlow} />
+            </div>
             <DishSuggestionsModal
               isExpanded={isOpen === 'suggestions'}
               dishId={id}
@@ -244,11 +269,18 @@ const DishBuilderPage = () => {
               isSelected={selectedIds.includes(item.id)}
               onSelect={() => selectionStore.getState().toggleSelectedId(item.id)}
             >
-              <FoodName
-                htmlFor={DISH_EDIT_MODAL_INPUT_IDS.SEARCH_INPUT}
-                onClick={() => handleEditSearch(item)}
-                content={{ name: item.product?.name ?? item.productId }}
-              />
+              <span
+                onPointerDown={() => {
+                  const trigger = document.getElementById(DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT);
+                  if (trigger) trigger.dataset.activeItemId = item.id;
+                }}
+              >
+                <FoodName
+                  htmlFor={DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT}
+                  onClick={() => {}}
+                  content={{ name: item.product?.name ?? item.productId }}
+                />
+              </span>
               <Quantity
                 htmlFor={DISH_EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
                 id={item.id}

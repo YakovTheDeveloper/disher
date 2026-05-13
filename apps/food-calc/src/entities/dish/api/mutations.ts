@@ -56,6 +56,7 @@ export async function addDishItem(params: {
   dishId: string;
   productId: string;
   quantity: number;
+  details?: string;
 }): Promise<string> {
   const id = crypto.randomUUID();
   const row: DishItemRow = {
@@ -63,17 +64,19 @@ export async function addDishItem(params: {
     dish_id: params.dishId,
     product_id: params.productId,
     quantity: params.quantity,
+    details: params.details ?? '',
     created_at: now(),
   };
   await db.dish_items.add(row);
   return id;
 }
 
-type DishItemUpdates = Partial<{ quantity: number; productId: string }>;
+type DishItemUpdates = Partial<{ quantity: number; productId: string; details: string }>;
 
 const DISH_ITEM_COLUMN_MAP: Record<keyof DishItemUpdates, string> = {
   quantity: 'quantity',
   productId: 'product_id',
+  details: 'details',
 };
 
 export async function updateDishItem(
@@ -94,7 +97,7 @@ export async function removeDishItem(itemId: string): Promise<void> {
 }
 
 export async function copyDishItems(
-  items: Array<{ productId: string; quantity: number }>,
+  items: Array<{ productId: string; quantity: number; details?: string }>,
   toDishId: string,
 ): Promise<void> {
   if (items.length === 0) return;
@@ -104,6 +107,7 @@ export async function copyDishItems(
     dish_id: toDishId,
     product_id: item.productId,
     quantity: item.quantity,
+    details: item.details ?? '',
     created_at: stamped,
   }));
   await db.dish_items.bulkAdd(rows);

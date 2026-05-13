@@ -6,6 +6,8 @@ export {
   useDishProductFlow,
   DISH_PRODUCT_INPUT_IDS,
   CREATE_STEPS as DISH_PRODUCT_CREATE_STEPS,
+  CREATE_STEPS_WITH_DETAILS as DISH_PRODUCT_CREATE_STEPS_WITH_DETAILS,
+  CREATE_STEPS_NO_DETAILS as DISH_PRODUCT_CREATE_STEPS_NO_DETAILS,
   STEP_LABELS as DISH_PRODUCT_STEP_LABELS,
 } from './useDishProductFlow';
 export type { DishProductFlow, EditItem as DishEditItem } from './useDishProductFlow';

@@ -101,6 +101,7 @@ describe('mapDishRow + mapDishItemRow + mapDishPortionRow', () => {
       dish_id: 'd1',
       product_id: 'p1',
       quantity: 50,
+      details: 'варёное',
       created_at: ISO_A,
     };
     expect(mapDishItemRow(row)).toEqual({
@@ -108,8 +109,22 @@ describe('mapDishRow + mapDishItemRow + mapDishPortionRow', () => {
       dishId: 'd1',
       productId: 'p1',
       quantity: 50,
+      details: 'варёное',
       createdAt: ISO_A,
     });
+  });
+
+  it('mapDishItemRow defaults details to empty string for pre-v6 snapshot rows', () => {
+    // Snapshot pulls from devices that dumped before details was added contain
+    // dish_items without the field. Mapper must coerce to '' for UI types.
+    const row = {
+      id: 'di1',
+      dish_id: 'd1',
+      product_id: 'p1',
+      quantity: 50,
+      created_at: ISO_A,
+    } as unknown as Parameters<typeof mapDishItemRow>[0];
+    expect(mapDishItemRow(row).details).toBe('');
   });
 
   it('mapDishPortionRow renames every field', () => {

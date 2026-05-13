@@ -1,11 +1,9 @@
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { DetailsChips } from '@/features/food/details-chips';
-import { DetailsNoteButton } from '@/features/shared/components/DetailsNoteButton';
 
 import type { ScheduleFoodFlow } from './useScheduleFoodFlow';
 
@@ -16,19 +14,15 @@ type Props = {
 const ScheduleFoodEditModals = ({ flow }: Props) => {
   const {
     step,
-    setStep,
     draft,
     setDraft,
     handleFocusCapture,
     handleTimeFinish,
-    handleFoodSelect,
     handleCommit,
     handleClose,
     quantityContent,
-    inputIds: { TIME_INPUT, SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
+    inputIds: { TIME_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
   } = flow;
-
-  const goToStep = (target: typeof step) => setStep(target);
 
   return (
     <div onFocusCapture={handleFocusCapture}>
@@ -50,27 +44,6 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
               />
             </ModalShell.Body>
           </ModalShell>
-        }
-      />
-
-      {/* Search Food */}
-      <ModalByLabel
-        position="absolute"
-        isExpanded={step === 'search'}
-        content={
-          <SearchFood
-            onBack={handleClose}
-            mode="products-and-dishes"
-            onSelectFood={handleFoodSelect}
-            onInfoClick={() => {
-              handleClose();
-            }}
-            activeItemId={draft.productId ?? draft.dishId ?? undefined}
-            inputId={SEARCH_INPUT}
-            initialSearchQuery={draft.foodName ?? undefined}
-            bottomLeft={<DetailsNoteButton htmlFor={DETAILS_INPUT} hasDetails={!!draft.details} />}
-            isActive={step === 'search'}
-          />
         }
       />
 
@@ -96,7 +69,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         }
       />
 
-      {/* Details (optional, side-step) */}
+      {/* Details — entry point in edit is now tap-on-name on a schedule-food row */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'details'}
@@ -115,7 +88,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
                 productId={draft.productId}
               />
               <ModalShell.ActionButtons
-                left={<ModalPrevButton onClick={() => goToStep('search')} />}
+                left={<ModalPrevButton onClick={handleClose} />}
                 right={<ModalNextButton onClick={handleCommit} />}
               />
             </ModalShell.Body>

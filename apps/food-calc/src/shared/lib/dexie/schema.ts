@@ -35,6 +35,10 @@ export interface DishItemRow {
   dish_id: string;
   product_id: string;
   quantity: number;
+  /** Per-ingredient note (e.g. "варёное", "печёное вместо жареного"). Empty
+   *  string when the user didn't add a detail. Non-indexed — no schema bump
+   *  needed; rows from pre-2026-05-13 snapshots fall back to '' in the mapper. */
+  details: string;
   created_at: string;
 }
 

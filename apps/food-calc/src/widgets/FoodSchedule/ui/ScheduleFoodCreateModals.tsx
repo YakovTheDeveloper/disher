@@ -5,8 +5,14 @@ import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
-import { DetailsChips } from '@/features/food/details-chips';
-import { useScheduleFoodFlow, CREATE_STEPS, STEP_LABELS } from './useScheduleFoodFlow';
+import { DetailsChips, useHasDetailsHints } from '@/features/food/details-chips';
+import {
+  useScheduleFoodFlow,
+  CREATE_STEPS_WITH_DETAILS,
+  CREATE_STEPS_NO_DETAILS,
+  STEP_LABELS,
+} from './useScheduleFoodFlow';
+import styles from './ScheduleFoodCreateModals.module.scss';
 
 type Props = {
   scheduleId: string;
@@ -30,6 +36,9 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
     inputIds: { TIME_INPUT, SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
   } = useScheduleFoodFlow({ type: 'create', scheduleId, richNutrient, onRichNutrientClear });
 
+  const hasHints = useHasDetailsHints(draft.productId);
+  const createSteps = hasHints ? CREATE_STEPS_WITH_DETAILS : CREATE_STEPS_NO_DETAILS;
+
   const goToStep = (target: typeof step) => setStep(target);
 
   return (
@@ -43,7 +52,6 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
             onInfoClick={() => {
               handleClose();
             }}
-            bottomLeft={<DetailsNoteButton htmlFor={DETAILS_INPUT} hasDetails={!!draft.details} />}
             key={sessionKey}
             mode="products-and-dishes"
             richNutrient={richNutrient}
@@ -65,7 +73,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
           <ModalShell variant="gradient1">
             <ModalStepHeader
               currentStep="time"
-              steps={CREATE_STEPS}
+              steps={createSteps}
               stepLabels={STEP_LABELS}
               stepResults={{ time: draft.time, search: draft.foodName ?? undefined }}
               onBack={handleClose}
@@ -95,7 +103,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
           <ModalShell>
             <ModalStepHeader
               currentStep="quantity"
-              steps={CREATE_STEPS}
+              steps={createSteps}
               stepLabels={STEP_LABELS}
               stepResults={{ time: draft.time, search: draft.foodName ?? undefined }}
               onBack={handleClose}
@@ -112,10 +120,22 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
                     inputId={QUANTITY_INPUT}
                     isActive={step === 'quantity'}
                   />
-                  <ModalShell.ActionButtons
-                    debugId="create-qty"
-                    right={<ModalNextButton onClick={handleCommit} />}
-                  />
+                  {hasHints ? (
+                    <ModalShell.ActionButtons
+                      debugId="create-qty"
+                      right={<ModalNextButton as="label" htmlFor={DETAILS_INPUT} />}
+                    />
+                  ) : (
+                    <ModalShell.ActionButtons
+                      debugId="create-qty"
+                      left={
+                        <label htmlFor={DETAILS_INPUT} className={styles.detailsOptIn}>
+                          + деталь
+                        </label>
+                      }
+                      right={<ModalNextButton onClick={handleCommit} variant="finish" />}
+                    />
+                  )}
                 </>
               )}
             </ModalShell.Body>
@@ -123,31 +143,36 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         }
       />
 
-      {/* Details (optional, side-step) */}
+      {/* Step 4: Details */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'details'}
         content={
           <ModalShell variant="spring">
+            <ModalStepHeader
+              currentStep="details"
+              steps={createSteps.includes('details') ? createSteps : CREATE_STEPS_WITH_DETAILS}
+              stepLabels={STEP_LABELS}
+              stepResults={{
+                time: draft.time,
+                search: draft.foodName ?? undefined,
+                quantity: draft.quantity,
+              }}
+              onBack={handleClose}
+              onStepClick={goToStep}
+            />
             <ModalShell.Body>
-              <ModalShell.Title>
-                {draft.foodName
-                  ? `Уточнение: ${draft.foodName}`
-                  : 'Уточнение к приему пищи'}
-              </ModalShell.Title>
               <DetailsChips
                 textareaId={DETAILS_INPUT}
                 value={draft.details}
                 onChange={(value) => setDraft((d) => ({ ...d, details: value }))}
                 productId={draft.productId}
               />
-              {step === 'details' && (
-                <ModalShell.ActionButtons
-                  debugId="create-details"
-                  left={<ModalPrevButton onClick={() => goToStep('search')} />}
-                  right={<ModalNextButton onClick={() => goToStep('search')} />}
-                />
-              )}
+              <ModalShell.ActionButtons
+                debugId="create-details"
+                left={<ModalPrevButton onClick={() => goToStep('quantity')} />}
+                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
+              />
             </ModalShell.Body>
           </ModalShell>
         }

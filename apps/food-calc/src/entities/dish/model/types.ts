@@ -9,6 +9,7 @@ export interface DishItem {
   dishId: string;
   productId: string;
   quantity: number;
+  details: string;
   createdAt: string;
 }
 

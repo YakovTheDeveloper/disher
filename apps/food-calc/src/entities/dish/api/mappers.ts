@@ -19,6 +19,9 @@ export function mapDishItemRow(row: DishItemRow): DishItem {
     dishId: row.dish_id,
     productId: row.product_id,
     quantity: row.quantity,
+    // `?? ''` covers snapshot pulls from devices that dumped before
+    // 2026-05-13 (when `details` was added). Local writes always include it.
+    details: row.details ?? '',
     createdAt: row.created_at,
   };
 }

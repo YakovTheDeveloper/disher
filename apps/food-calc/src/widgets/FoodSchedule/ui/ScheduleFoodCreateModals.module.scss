@@ -1,0 +1,22 @@
+.detailsOptIn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 24px 8px;
+  padding-top: 28px;
+  color: var(--color-ink);
+  font-family: var(--font-mono, monospace);
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+
+  &:active {
+    transform: scale(0.97);
+    opacity: 0.65;
+  }
+}

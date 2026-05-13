@@ -4,7 +4,14 @@ import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
-import { useDishProductFlow, CREATE_STEPS, STEP_LABELS } from '../useDishProductFlow';
+import { DetailsChips, useHasDetailsHints } from '@/features/food/details-chips';
+import {
+  useDishProductFlow,
+  CREATE_STEPS_WITH_DETAILS,
+  CREATE_STEPS_NO_DETAILS,
+  STEP_LABELS,
+} from '../useDishProductFlow';
+import styles from './DishProductCreateModals.module.scss';
 
 type Props = {
   dishId: string;
@@ -15,14 +22,18 @@ const DishProductCreateModals = ({ dishId }: Props) => {
     step,
     setStep,
     draft,
+    setDraft,
     sessionKey,
     handleFocusCapture,
     handleClose,
     handleFoodSelect,
     handleCommit,
     quantityContent,
-    inputIds: { SEARCH_INPUT, QUANTITY_INPUT },
+    inputIds: { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
   } = useDishProductFlow({ type: 'create', dishId });
+
+  const hasHints = useHasDetailsHints(draft.productId);
+  const createSteps = hasHints ? CREATE_STEPS_WITH_DETAILS : CREATE_STEPS_NO_DETAILS;
 
   const goToStep = (target: typeof step) => setStep(target);
 
@@ -36,7 +47,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
           <ModalShell>
             <ModalStepHeader
               currentStep="search"
-              steps={CREATE_STEPS}
+              steps={createSteps}
               stepLabels={STEP_LABELS}
               onBack={handleClose}
               onStepClick={goToStep}
@@ -64,7 +75,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
           <ModalShell>
             <ModalStepHeader
               currentStep="quantity"
-              steps={CREATE_STEPS}
+              steps={createSteps}
               stepLabels={STEP_LABELS}
               onBack={handleClose}
               onStepClick={goToStep}
@@ -79,12 +90,52 @@ const DishProductCreateModals = ({ dishId }: Props) => {
                     onFinish={() => {}}
                     inputId={QUANTITY_INPUT}
                   />
-                  <ModalShell.ActionButtons
-                    left={<ModalPrevButton onClick={() => goToStep('search')} />}
-                    right={<ModalNextButton onClick={handleCommit} />}
-                  />
+                  {hasHints ? (
+                    <ModalShell.ActionButtons
+                      left={<ModalPrevButton onClick={() => goToStep('search')} />}
+                      right={<ModalNextButton as="label" htmlFor={DETAILS_INPUT} />}
+                    />
+                  ) : (
+                    <ModalShell.ActionButtons
+                      left={
+                        <label htmlFor={DETAILS_INPUT} className={styles.detailsOptIn}>
+                          + деталь
+                        </label>
+                      }
+                      right={<ModalNextButton onClick={handleCommit} variant="finish" />}
+                    />
+                  )}
                 </>
               )}
+            </ModalShell.Body>
+          </ModalShell>
+        }
+      />
+
+      {/* Step 3: Details */}
+      <ModalByLabel
+        position="absolute"
+        isExpanded={step === 'details'}
+        content={
+          <ModalShell variant="spring">
+            <ModalStepHeader
+              currentStep="details"
+              steps={createSteps.includes('details') ? createSteps : CREATE_STEPS_WITH_DETAILS}
+              stepLabels={STEP_LABELS}
+              onBack={handleClose}
+              onStepClick={goToStep}
+            />
+            <ModalShell.Body>
+              <DetailsChips
+                textareaId={DETAILS_INPUT}
+                value={draft.details}
+                onChange={(value) => setDraft((d) => ({ ...d, details: value }))}
+                productId={draft.productId}
+              />
+              <ModalShell.ActionButtons
+                left={<ModalPrevButton onClick={() => goToStep('quantity')} />}
+                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
+              />
             </ModalShell.Body>
           </ModalShell>
         }

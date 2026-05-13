@@ -22,12 +22,40 @@ vi.mock('@/entities/dish', () => ({
   addDishItem: (...args: any[]) => mockAddDishItem(...args),
 }));
 
+vi.mock('@/entities/product', () => ({
+  useProductPortions: () => [],
+}));
+
 const mockToasterSuccess = vi.fn();
 vi.mock('@/shared/lib/toaster/toaster', () => ({
   default: {
     success: (...args: any[]) => mockToasterSuccess(...args),
   },
 }));
+
+// details-chips bundle is mocked so the test doesn't depend on Dexie-backed
+// tag suggestions. `useHasDetailsHints` returns whatever the test sets via
+// `setHasHints()` before render.
+let hasHintsValue = false;
+const mockPersistCustomTagsFromDetails = vi.fn().mockResolvedValue(undefined);
+vi.mock('@/features/food/details-chips', () => ({
+  useHasDetailsHints: () => hasHintsValue,
+  DetailsChips: (props: any) => (
+    <div data-testid="details-chips">
+      <textarea
+        id={props.textareaId}
+        data-testid="details-textarea"
+        value={props.value}
+        onChange={(e) => props.onChange(e.target.value)}
+      />
+    </div>
+  ),
+  persistCustomTagsFromDetails: (...args: any[]) => mockPersistCustomTagsFromDetails(...args),
+}));
+
+const setHasHints = (v: boolean) => {
+  hasHintsValue = v;
+};
 
 // Lightweight SearchFood stub — renders the input and exposes a click handler
 // that calls onFinish with a fake product.
@@ -83,7 +111,8 @@ vi.mock('@/features/product/ProductQuantity', () => ({
 const renderAndOpenSearch = () => {
   const result = render(<DishProductCreateModals dishId="dish-123" />);
   // Simulate label → focus delegation that opens the search step
-  const searchInput = result.container.querySelector(`#${DISH_MODAL_INPUT_IDS.SEARCH_INPUT}`);
+  // ModalByLabel portals to document.body — query the document, not result.container.
+  const searchInput = document.getElementById(DISH_MODAL_INPUT_IDS.SEARCH_INPUT);
   expect(searchInput).not.toBeNull();
   fireEvent.focus(searchInput!);
   return result;
@@ -101,7 +130,36 @@ const renderAndSelectProduct = (testId = 'select-product-1') => {
 beforeEach(() => {
   vi.clearAllMocks();
   latestQuantityProps = null;
+  setHasHints(false);
 });
+
+// ─── DOM helpers ────────────────────────────────────────────────────────────
+// ModalByLabel always-mounts every step's content and only flips a
+// `data-modal-by-label="expanded"` attribute. So `getByText('Готово')`
+// matches multiple steps simultaneously. Scope queries to the currently
+// expanded modal.
+
+const expanded = (): HTMLElement => {
+  const node = document.querySelector('[data-modal-by-label="expanded"]');
+  if (!node) throw new Error('No expanded ModalByLabel in document');
+  return node as HTMLElement;
+};
+
+const clickActiveByText = (text: string) => {
+  const btn = Array.from(expanded().querySelectorAll('button')).find(
+    (b) => b.textContent?.trim() === text,
+  );
+  if (!btn) throw new Error(`No button with text "${text}" in active modal`);
+  fireEvent.click(btn);
+};
+
+const clickActiveCommit = () => clickActiveByText('Готово');
+
+const clickActiveBack = () => {
+  const btn = expanded().querySelector('header button');
+  if (!btn) throw new Error('No header button in active modal');
+  fireEvent.click(btn);
+};
 
 // ─── step transitions ───────────────────────────────────────────────────────
 
@@ -127,18 +185,19 @@ describe('DishProductCreateModals — step transitions', () => {
   });
 });
 
-// ─── commit flow ────────────────────────────────────────────────────────────
+// ─── commit flow (no-hints path) ────────────────────────────────────────────
 
-describe('DishProductCreateModals — commit', () => {
-  it('calls addDishItem with correct data on "Готово"', async () => {
+describe('DishProductCreateModals — commit (no hints, finish on quantity)', () => {
+  it('calls addDishItem with empty details on "Готово"', async () => {
     renderAndSelectProduct();
-    fireEvent.click(screen.getByText('Готово'));
+    clickActiveCommit();
 
     await waitFor(() => {
       expect(mockAddDishItem).toHaveBeenCalledWith({
         dishId: 'dish-123',
         productId: 'prod-1',
         quantity: 100,
+        details: '',
       });
     });
   });
@@ -149,24 +208,103 @@ describe('DishProductCreateModals — commit', () => {
     // Change quantity via quick button
     fireEvent.click(screen.getByTestId('quick-200'));
 
-    fireEvent.click(screen.getByText('Готово'));
+    clickActiveCommit();
 
     await waitFor(() => {
       expect(mockAddDishItem).toHaveBeenCalledWith({
         dishId: 'dish-123',
         productId: 'prod-1',
         quantity: 200,
+        details: '',
       });
     });
   });
 
   it('shows success toast after commit', async () => {
     renderAndSelectProduct();
-    fireEvent.click(screen.getByText('Готово'));
+    clickActiveCommit();
 
     await waitFor(() => {
       expect(mockToasterSuccess).toHaveBeenCalledWith('Продукт добавлен');
     });
+  });
+
+  it('does not persist custom tags when details are empty', async () => {
+    renderAndSelectProduct();
+    clickActiveCommit();
+
+    await waitFor(() => {
+      expect(mockAddDishItem).toHaveBeenCalled();
+    });
+    // Called with empty details — persistCustomTagsFromDetails is invoked
+    // but is a no-op internally (we can still assert it was attempted).
+    expect(mockPersistCustomTagsFromDetails).toHaveBeenCalledWith('prod-1', '');
+  });
+});
+
+// ─── opt-in details (no-hints path) ─────────────────────────────────────────
+
+describe('DishProductCreateModals — opt-in "+ деталь" link', () => {
+  it('renders "+ деталь" label on quantity step when hasHints=false', () => {
+    renderAndSelectProduct();
+    expect(screen.getByText('+ деталь')).toBeInTheDocument();
+  });
+
+  it('opens details step when "+ деталь" label triggers details input focus', () => {
+    renderAndSelectProduct();
+    const detailsInput = document.getElementById(DISH_MODAL_INPUT_IDS.DETAILS_INPUT);
+    expect(detailsInput).not.toBeNull();
+    fireEvent.focus(detailsInput!);
+    expect(screen.getByTestId('details-chips')).toBeInTheDocument();
+  });
+
+  it('commits with details text when user fills opt-in and finishes', async () => {
+    renderAndSelectProduct();
+    const detailsInput = document.getElementById(DISH_MODAL_INPUT_IDS.DETAILS_INPUT);
+    fireEvent.focus(detailsInput!);
+
+    const textarea = screen.getByTestId('details-textarea') as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: 'варёное' } });
+
+    // Find the "Готово" button on the details step (variant=finish)
+    clickActiveCommit();
+
+    await waitFor(() => {
+      expect(mockAddDishItem).toHaveBeenCalledWith({
+        dishId: 'dish-123',
+        productId: 'prod-1',
+        quantity: 100,
+        details: 'варёное',
+      });
+    });
+    expect(mockPersistCustomTagsFromDetails).toHaveBeenCalledWith('prod-1', 'варёное');
+  });
+});
+
+// ─── 3-step flow (hasHints path) ────────────────────────────────────────────
+
+describe('DishProductCreateModals — 3-step flow (hasHints=true)', () => {
+  beforeEach(() => {
+    setHasHints(true);
+  });
+
+  it('does NOT render "+ деталь" opt-in label when hasHints=true', () => {
+    renderAndSelectProduct();
+    expect(screen.queryByText('+ деталь')).not.toBeInTheDocument();
+  });
+
+  it('renders "Заметка" in the steps header on quantity step', () => {
+    renderAndSelectProduct();
+    const breadcrumbs = screen.getAllByRole('button');
+    const detailsCrumb = breadcrumbs.find((b) => b.textContent?.includes('Заметка'));
+    expect(detailsCrumb).toBeDefined();
+  });
+
+  it('proceeding from quantity opens details step (label htmlFor=DETAILS_INPUT)', () => {
+    renderAndSelectProduct();
+    const detailsInput = document.getElementById(DISH_MODAL_INPUT_IDS.DETAILS_INPUT);
+    fireEvent.focus(detailsInput!);
+    expect(screen.getByTestId('details-chips')).toBeInTheDocument();
   });
 });
 
@@ -177,7 +315,7 @@ describe('DishProductCreateModals — reset after commit', () => {
     renderAndSelectProduct();
 
     // Commit with prod-1
-    fireEvent.click(screen.getByText('Готово'));
+    clickActiveCommit();
     await waitFor(() =>
       expect(mockAddDishItem).toHaveBeenCalledWith(expect.objectContaining({ productId: 'prod-1' }))
     );
@@ -186,7 +324,7 @@ describe('DishProductCreateModals — reset after commit', () => {
     const searchInput = screen.getByTestId('search-input');
     fireEvent.focus(searchInput);
     fireEvent.click(screen.getByTestId('select-product-2'));
-    fireEvent.click(screen.getByText('Готово'));
+    clickActiveCommit();
 
     // Second commit should use the new product, not the old one
     await waitFor(() => {
@@ -197,10 +335,35 @@ describe('DishProductCreateModals — reset after commit', () => {
     });
   });
 
+  it('resets details to empty string after commit', async () => {
+    renderAndSelectProduct();
+    const detailsInput = document.getElementById(DISH_MODAL_INPUT_IDS.DETAILS_INPUT);
+    fireEvent.focus(detailsInput!);
+
+    const textarea = screen.getByTestId('details-textarea') as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: 'варёное' } });
+    clickActiveCommit();
+
+    await waitFor(() => expect(mockAddDishItem).toHaveBeenCalled());
+
+    // Start a new flow
+    const searchInput = screen.getByTestId('search-input');
+    fireEvent.focus(searchInput);
+    fireEvent.click(screen.getByTestId('select-product-2'));
+    clickActiveCommit();
+
+    // Second commit should have empty details, not "варёное"
+    await waitFor(() => {
+      expect(mockAddDishItem).toHaveBeenLastCalledWith(
+        expect.objectContaining({ details: '' })
+      );
+    });
+  });
+
   it('resets quantity to default (100) after commit', async () => {
     renderAndSelectProduct();
     fireEvent.click(screen.getByTestId('quick-200'));
-    fireEvent.click(screen.getByText('Готово'));
+    clickActiveCommit();
     await waitFor(() => expect(mockAddDishItem).toHaveBeenCalled());
 
     // Start a new flow
@@ -217,25 +380,23 @@ describe('DishProductCreateModals — reset after commit', () => {
 
 describe('DishProductCreateModals — close', () => {
   it('resets state when back button is clicked', () => {
-    const { container } = renderAndSelectProduct();
+    renderAndSelectProduct();
 
-    // Click the back button (SVG arrow)
-    const backButton = container.querySelector('header button')!;
-    fireEvent.click(backButton);
+    // Click the back button (SVG arrow) on the currently active modal
+    clickActiveBack();
 
     // Should NOT have called addDishItem
     expect(mockAddDishItem).not.toHaveBeenCalled();
   });
 
   it('resets draft on close so next flow starts fresh', async () => {
-    const { container } = renderAndSelectProduct();
+    renderAndSelectProduct();
 
     // Change quantity
     fireEvent.click(screen.getByTestId('quick-200'));
 
     // Close without committing
-    const backButton = container.querySelector('header button')!;
-    fireEvent.click(backButton);
+    clickActiveBack();
     expect(mockAddDishItem).not.toHaveBeenCalled();
 
     // Start a new flow

@@ -183,7 +183,7 @@ const FoodSchedule = ({
     [startEdit]
   );
   const onEditFood = useCallback(
-    (item: ScheduleFoodWithRelations) => startEdit(item, 'search'),
+    (item: ScheduleFoodWithRelations) => startEdit(item, 'details'),
     [startEdit]
   );
   const onEditQuantity = useCallback(
@@ -191,19 +191,19 @@ const FoodSchedule = ({
     [startEdit]
   );
 
-  // <label htmlFor={SEARCH_EDIT_INPUT}> on each FoodName focuses the
-  // already-mounted edit-search input directly (so iOS Safari pops the
-  // keyboard). The item id to edit is stashed on the input's data attribute
+  // <label htmlFor={DETAILS_EDIT_INPUT}> on each FoodName focuses the
+  // already-mounted edit-details textarea directly (so iOS Safari pops the
+  // keyboard). The item id to edit is stashed on the textarea's data attribute
   // synchronously on pointerdown; this capture handler reads it and primes
   // editingItem + draft. The flow's own onFocusCapture then flips the step
-  // to 'search' from the same focus event.
+  // to 'details' from the same focus event.
   const itemsRef = useRef(items);
   itemsRef.current = items;
   const primeEdit = editFlow.primeEdit;
   const handleEditFocusCapture = useCallback(
     (e: React.FocusEvent) => {
       const target = e.target as HTMLElement;
-      if (target.id !== SCHEDULE_FOOD_INPUT_IDS.SEARCH_EDIT_INPUT) return;
+      if (target.id !== SCHEDULE_FOOD_INPUT_IDS.DETAILS_EDIT_INPUT) return;
       const itemId = target.dataset.activeItemId;
       if (!itemId) return;
       const item = itemsRef.current.find((it) => it.id === itemId);
@@ -336,7 +336,7 @@ const FoodSchedule = ({
                         onEditFood={onEditFood}
                         onEditQuantity={onEditQuantity}
                         timeHtmlFor={SCHEDULE_FOOD_INPUT_IDS.TIME_EDIT_INPUT}
-                        foodHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_EDIT_INPUT}
+                        foodHtmlFor={SCHEDULE_FOOD_INPUT_IDS.DETAILS_EDIT_INPUT}
                         quantityHtmlFor={SCHEDULE_FOOD_INPUT_IDS.QUANTITY_EDIT_INPUT}
                       />
                     );

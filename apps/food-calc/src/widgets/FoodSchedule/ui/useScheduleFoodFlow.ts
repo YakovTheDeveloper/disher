@@ -27,7 +27,14 @@ export const SCHEDULE_FOOD_INPUT_IDS = {
 export type Step = 'idle' | 'time' | 'search' | 'quantity' | 'details';
 type ActiveStep = Exclude<Step, 'idle'>;
 
-export const CREATE_STEPS: ActiveStep[] = ['search', 'time', 'quantity', 'details'];
+// Full flow (4 steps) — used when the selected product has either a curated
+// suggestion list or saved custom tags, so the details step is worth visiting.
+export const CREATE_STEPS_WITH_DETAILS: ActiveStep[] = ['search', 'time', 'quantity', 'details'];
+// Compact flow (3 steps) — used when there's nothing to put on a chip-row.
+// Details is reachable via an opt-in "+ деталь" link on the quantity step.
+export const CREATE_STEPS_NO_DETAILS: ActiveStep[] = ['search', 'time', 'quantity'];
+// Backwards-compatible export (any external import still resolves to the full flow).
+export const CREATE_STEPS = CREATE_STEPS_WITH_DETAILS;
 export const STEP_LABELS: Record<ActiveStep, string> = {
   time: 'Время',
   search: 'Продукт',
