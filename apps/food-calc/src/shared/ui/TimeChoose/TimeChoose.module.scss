@@ -60,12 +60,24 @@
 
     &:focus {
         outline: none;
-        @include blink(#000, #fff, 0.8s);
+        animation: time-input-blink 1.2s ease-in-out infinite;
     }
 
     &::placeholder {
         color: rgba(38, 38, 51, 0.45);
         font-weight: 800;
+    }
+}
+
+@keyframes time-input-blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.55;
     }
 }
 
@@ -83,10 +95,6 @@
     transform: translateY(-10%);
     // letter-spacing: -0.085em;
     padding: 0 1px;
-}
-
-.blinking {
-    @include blink(#fff, #000, 0.8s);
 }
 
 .buttonsWrapper {

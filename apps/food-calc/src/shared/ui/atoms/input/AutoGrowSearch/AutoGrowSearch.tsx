@@ -4,6 +4,7 @@ import {
   useEffect,
   useImperativeHandle,
   useRef,
+  type FocusEvent,
   type FormEvent,
   type KeyboardEvent,
   type ReactNode,
@@ -41,19 +42,30 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
       className,
       onKeyDown,
       onBlur,
+      onFocus,
+      spellCheck,
+      autoCorrect,
+      autoCapitalize,
       ...rest
     },
     ref
   ) => {
     const innerRef = useRef<HTMLTextAreaElement | null>(null);
-    useImperativeHandle(ref, () => innerRef.current as HTMLTextAreaElement);
+    const lineHeightRef = useRef(0);
+    useImperativeHandle(ref, () => innerRef.current!, []);
 
     const recomputeRows = useCallback(() => {
       const el = innerRef.current;
       if (!el) return;
+      if (!lineHeightRef.current) {
+        const parsed = parseFloat(getComputedStyle(el).lineHeight);
+        lineHeightRef.current = Number.isFinite(parsed) && parsed > 0 ? parsed : 22;
+      }
       el.style.height = '0';
-      const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || 22;
-      const next = Math.min(Math.max(1, Math.floor(el.scrollHeight / lineHeight)), maxRows);
+      const next = Math.min(
+        Math.max(1, Math.floor(el.scrollHeight / lineHeightRef.current)),
+        maxRows
+      );
       if (el.rows !== next) el.rows = next;
       el.style.height = '';
     }, [maxRows]);
@@ -62,20 +74,45 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
       recomputeRows();
     }, [value, recomputeRows]);
 
+    useEffect(() => {
+      const el = innerRef.current;
+      if (!el || typeof ResizeObserver === 'undefined') return;
+      let lastWidth = Math.round(el.clientWidth);
+      const ro = new ResizeObserver((entries) => {
+        const w = Math.round(entries[0]?.contentRect.width ?? 0);
+        if (w !== lastWidth) {
+          lastWidth = w;
+          recomputeRows();
+        }
+      });
+      ro.observe(el);
+      return () => ro.disconnect();
+    }, [recomputeRows]);
+
     const handleInput = (e: FormEvent<HTMLTextAreaElement>) => {
       onChange(e.currentTarget.value);
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
+      if (
+        onSubmit &&
+        e.key === 'Enter' &&
+        !e.shiftKey &&
+        !e.nativeEvent.isComposing
+      ) {
         e.preventDefault();
-        onSubmit?.(value);
+        onSubmit(value);
       }
       onKeyDown?.(e);
     };
 
-    const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
-      if (collapseOnBlur && innerRef.current) {
+    const handleFocus = (e: FocusEvent<HTMLTextAreaElement>) => {
+      recomputeRows();
+      onFocus?.(e);
+    };
+
+    const handleBlur = (e: FocusEvent<HTMLTextAreaElement>) => {
+      if (collapseOnBlur && value === '' && innerRef.current) {
         innerRef.current.rows = 1;
       }
       onBlur?.(e);
@@ -85,19 +122,19 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
       <div className={[styles.shell, className].filter(Boolean).join(' ')}>
         {startAdornment && <span className={styles.adornment}>{startAdornment}</span>}
         <textarea
+          spellCheck={spellCheck ?? false}
+          autoCorrect={autoCorrect ?? 'off'}
+          autoCapitalize={autoCapitalize ?? 'off'}
           {...rest}
           ref={innerRef}
           rows={1}
           value={value}
           placeholder={placeholder}
-          onInput={handleInput}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
           onBlur={handleBlur}
           className={styles.field}
-          spellCheck={false}
-          autoCorrect="off"
-          autoCapitalize="off"
         />
         {endAdornment && <span className={styles.adornment}>{endAdornment}</span>}
       </div>

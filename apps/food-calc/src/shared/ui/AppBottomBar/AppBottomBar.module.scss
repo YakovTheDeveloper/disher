@@ -64,6 +64,45 @@
     @extend .iconButton;
 }
 
+// Leading slot variant: 2-line gray macros + kcal summary. Tap opens the
+// nutrients SideDrawer (replaces the old "+" icon button).
+.nutrientsBtn {
+    flex-shrink: 0;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 1px;
+    min-height: 40px;
+    padding: 4px 8px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: rgba(31, 42, 68, 0.5);
+    font-size: 11px;
+    line-height: 1.15;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+
+    &:hover,
+    &:focus-visible {
+        color: rgba(31, 42, 68, 0.78);
+        background: rgba(0, 0, 0, 0.04);
+        outline: none;
+    }
+
+    &:active {
+        transform: scale(0.96);
+    }
+}
+
+.nutrientsLine {
+    white-space: nowrap;
+}
+
 // ─── Dock — 3-slot row: + · primary pill · search ─────────────────────
 
 .dockV2 {
@@ -77,41 +116,47 @@
 }
 
 // ─── TOD palette tokens ───────────────────────────────────────────────
-// One source of truth: setting `--cta-*` on `.dockV2[data-tod=...]`.
-// The `dark-pill-button()` mixin (used by WriteFoodButton.dark,
-// RunAnalysisButton, AddButton.dark) reads them via `var()` with a
-// purple fallback — so the CTA pill auto-tints by time of day on every
-// home screen.
+// One source of truth: setting `--cta-*` AND `--bar-tint` on
+// `.dockV2[data-tod=...]`. The `dark-pill-button()` mixin (used by
+// WriteFoodButton.dark, RunAnalysisButton, AddButton.dark) reads
+// `--cta-*` via `var()`; the shellSolo background reads `--bar-tint` to
+// draw a TOD-tinted horizontal gradient. CTA pill + bar background
+// share the same hue.
 
 .dockV2[data-tod='morning'] {
     --cta-bg-from: var(--tod-morning-bg-from);
     --cta-bg-to: var(--tod-morning-bg-to);
     --cta-text: rgba(31, 42, 68, 0.92);
+    --bar-tint: var(--tod-morning-bg-from);
 }
 
 .dockV2[data-tod='day'] {
     --cta-bg-from: var(--tod-day-bg-from);
     --cta-bg-to: var(--tod-day-bg-to);
     --cta-text: rgba(31, 42, 68, 0.92);
+    --bar-tint: var(--tod-day-bg-from);
 }
 
 .dockV2[data-tod='evening'] {
     --cta-bg-from: var(--tod-evening-bg-from);
     --cta-bg-to: var(--tod-evening-bg-to);
     --cta-text: rgba(31, 42, 68, 0.92);
+    --bar-tint: var(--tod-evening-bg-from);
 }
 
 .dockV2[data-tod='night'] {
     --cta-bg-from: var(--tod-night-bg-from);
     --cta-bg-to: var(--tod-night-bg-to);
     --cta-text: rgba(31, 42, 68, 0.92);
+    --bar-tint: var(--tod-night-bg-from);
 }
 
 // ─── Shell — chrome-only wrapper for slides without 3-slot dock ───────
 // Used by Laboratory + ScheduleEvents (HomePage screens 1 & 3). Surface
-// borrows the "stripe-fork" idiom from FoodActionCard: horizontal 3-stop
-// gradient + a fading hairline pinned to the TOP edge. Palettes are
-// switched at HomePage level via `data-dv='HomeBottomBarBg'`.
+// is a horizontal TOD-tinted gradient + a fading top hairline.
+// Direction follows the screen's position in the home swipe via
+// `data-shell-side`: leftmost screen gets saturated→transparent,
+// rightmost gets transparent→saturated.
 
 .shellSolo {
     justify-content: center;
@@ -133,51 +178,24 @@
     }
 }
 
-// Default surface — column-stripe (cool white → faint blue).
-.dockV2.shellSolo {
-    background: linear-gradient(90deg, #ffffff 0%, #fdfeff 55%, #f9fbfd 100%);
+// 3-stop gradient per design-DNA canon — saturation on the matching edge,
+// soft mid-tone at 55%, transparent on the opposite edge. `color-mix`
+// halves the tint alpha at the middle stop so the fade reads as a curve,
+// not a hard line.
+
+// Default (left): saturated TOD tint on the left fading to transparent.
+.dockV2.shellSolo,
+.dockV2.shellSolo[data-shell-side='left'] {
+    background: linear-gradient(90deg,
+        var(--bar-tint, #ffffff) 0%,
+        color-mix(in srgb, var(--bar-tint, #ffffff) 45%, transparent) 55%,
+        transparent 100%);
 }
 
-// ─── BG palettes (HomeBottomBarBg design-variant) ─────────────────────
-
-:global([data-dv='HomeBottomBarBg'][data-dv-v='column-stripe']) {
-    .dockV2.shellSolo {
-        background: linear-gradient(90deg, #ffffff 0%, #fdfeff 55%, #f9fbfd 100%);
-
-        &::before {
-            background: linear-gradient(90deg,
-                transparent 0%,
-                rgba(15, 23, 42, 0.08) 18%,
-                rgba(15, 23, 42, 0.08) 82%,
-                transparent 100%);
-        }
-    }
-}
-
-:global([data-dv='HomeBottomBarBg'][data-dv-v='stripe-warm']) {
-    .dockV2.shellSolo {
-        background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
-
-        &::before {
-            background: linear-gradient(90deg,
-                transparent 0%,
-                rgba(124, 65, 15, 0.09) 18%,
-                rgba(124, 65, 15, 0.09) 82%,
-                transparent 100%);
-        }
-    }
-}
-
-:global([data-dv='HomeBottomBarBg'][data-dv-v='stripe-lavender']) {
-    .dockV2.shellSolo {
-        background: linear-gradient(90deg, #fefefe 0%, #fbfafe 55%, #f5f1fa 100%);
-
-        &::before {
-            background: linear-gradient(90deg,
-                transparent 0%,
-                rgba(70, 30, 110, 0.08) 18%,
-                rgba(70, 30, 110, 0.08) 82%,
-                transparent 100%);
-        }
-    }
+// Right: mirrored — transparent on the left, saturated TOD tint on right.
+.dockV2.shellSolo[data-shell-side='right'] {
+    background: linear-gradient(90deg,
+        transparent 0%,
+        color-mix(in srgb, var(--bar-tint, #ffffff) 45%, transparent) 45%,
+        var(--bar-tint, #ffffff) 100%);
 }

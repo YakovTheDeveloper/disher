@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import clsx from 'clsx';
 import { modalStore, type BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
 import { ModalConfirmation } from '@/shared/ui/Modal/ModalConfirmation';
@@ -14,10 +15,20 @@ import { defaultDailyNorms } from '@/entities/nutrient/ui/NutrientGroup/constant
 import { safeMutate } from '@/shared/lib/safeMutate';
 import toaster from '@/shared/lib/toaster/toaster';
 import NutrientDesignVariants from '@/widgets/nutrients/FoodsNutrients/NutrientDesignVariants';
+import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import CreateDailyNormModal from './CreateDailyNormModal';
 import styles from './EditDailyNormModal.module.scss';
 
-type Props = BaseModalProps;
+// chrome:
+//   'modal' (default) — full modal with ModalLayout, kicker+title header, Close in footer
+//   'panel' — inline content for a drawer that already provides its own header/back.
+//             Skips ModalLayout, kicker+title, and the bottom Close button.
+//             onRecalc: when provided, called instead of opening CreateDailyNormModal
+//             on top (used by the drawer-two-state to swap to the 'create' panel).
+type Props = BaseModalProps & {
+  chrome?: 'modal' | 'panel';
+  onRecalc?: () => void;
+};
 
 function buildMerged(items: DailyNormItems | null): DailyNormItems {
   const base = items ?? DEFAULT_NORM_ITEMS;
@@ -41,21 +52,31 @@ function isDirty(initial: DailyNormItems, current: DailyNormItems): boolean {
   return false;
 }
 
-const EditDailyNormModal = ({ onClose }: Props) => {
+const EditDailyNormModal = ({ onClose, chrome = 'modal', onRecalc }: Props) => {
   const userItems = useUserNormItems();
   const { items, init, setNutrient, clear } = useDailyNormDraftStore();
   const initialItemsRef = useRef<DailyNormItems>({});
   const bodyRef = useRef<HTMLDivElement>(null);
   const initialisedRef = useRef(false);
 
+  // Two effects on purpose:
+  // 1) init runs once, but ONLY after Dexie has resolved. `userItems`
+  //    starts as `undefined` while useLiveQuery loads; treating that as
+  //    "no row" (and initing with defaults) races: when the real row
+  //    later arrives, the guard short-circuits and the draft is stuck on
+  //    defaults — Save would then overwrite the real norm with defaults.
+  // 2) cleanup is its own zero-dep effect so `clear()` fires on unmount
+  //    only — never between re-runs of effect (1).
   useEffect(() => {
     if (initialisedRef.current) return;
+    if (userItems === undefined) return; // still loading
     const merged = buildMerged(userItems);
     initialItemsRef.current = merged;
     init(merged);
     initialisedRef.current = true;
-    return () => clear();
-  }, [userItems, init, clear]);
+  }, [userItems, init]);
+
+  useEffect(() => () => clear(), [clear]);
 
   const getDraftValue = useCallback(
     (nutrientId: string) => items[nutrientId] ?? 0,
@@ -100,8 +121,14 @@ const EditDailyNormModal = ({ onClose }: Props) => {
 
   const handleRecalc = useCallback(() => {
     const proceed = () => {
-      onClose();
-      void modalStore.show(CreateDailyNormModal, {});
+      if (onRecalc) {
+        // Panel mode (inside a drawer two-state) — parent switches to its
+        // own 'create' panel instead of stacking a modal on top.
+        onRecalc();
+      } else {
+        onClose();
+        void modalStore.show(CreateDailyNormModal, {});
+      }
     };
     if (!dirty) {
       proceed();
@@ -114,7 +141,7 @@ const EditDailyNormModal = ({ onClose }: Props) => {
         proceed();
       },
     });
-  }, [dirty, onClose]);
+  }, [dirty, onClose, onRecalc]);
 
   const handleFocusCapture = useCallback((e: React.FocusEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement | null;
@@ -126,42 +153,54 @@ const EditDailyNormModal = ({ onClose }: Props) => {
     }, 120);
   }, []);
 
-  return (
-    <ModalLayout>
-      <div className={styles.root}>
-        <div className={styles.header}>
+  const isPanel = chrome === 'panel';
+  const isLoading = userItems === undefined;
+
+  const content = (
+    <div className={clsx(styles.root, isPanel && styles.rootPanel)}>
+      <div className={clsx(styles.header, isPanel && styles.headerPanel)}>
+        {!isPanel && (
           <div className={styles.titleWrap}>
             <span className={styles.kicker}>Дневная норма</span>
             <span className={styles.title}>{USER_NORM_NAME}</span>
           </div>
-          <button
-            className={styles.saveBtn}
-            onClick={handleSave}
-            disabled={!dirty}
-            type="button"
-          >
-            Сохранить
-          </button>
-        </div>
-        <div
-          ref={bodyRef}
-          className={styles.body}
-          onFocusCapture={handleFocusCapture}
+        )}
+        <button
+          className={styles.saveBtn}
+          onClick={handleSave}
+          disabled={!dirty || isLoading}
+          type="button"
         >
+          Сохранить
+        </button>
+      </div>
+      <div
+        ref={bodyRef}
+        className={clsx(styles.body, isPanel && styles.bodyPanel)}
+        onFocusCapture={handleFocusCapture}
+      >
+        {isLoading ? (
+          <div className={styles.loadingState} aria-live="polite">
+            <Spinner size={20} />
+            <span className={styles.loadingText}>Загружаем норму…</span>
+          </div>
+        ) : (
           <NutrientDesignVariants
             variant="edit-norms"
             getValue={getDraftValue}
             onValueChange={handleValueChange}
           />
-        </div>
-        <div className={styles.footer}>
-          <button
-            className={styles.recalcBtn}
-            onClick={handleRecalc}
-            type="button"
-          >
-            Пересчитать по анкете
-          </button>
+        )}
+      </div>
+      <div className={clsx(styles.footer, isPanel && styles.footerPanel)}>
+        <button
+          className={styles.recalcBtn}
+          onClick={handleRecalc}
+          type="button"
+        >
+          Пересчитать по анкете
+        </button>
+        {!isPanel && (
           <button
             className={styles.closeBtn}
             onClick={handleRequestClose}
@@ -169,10 +208,12 @@ const EditDailyNormModal = ({ onClose }: Props) => {
           >
             Закрыть
           </button>
-        </div>
+        )}
       </div>
-    </ModalLayout>
+    </div>
   );
+
+  return isPanel ? content : <ModalLayout>{content}</ModalLayout>;
 };
 
 export default EditDailyNormModal;

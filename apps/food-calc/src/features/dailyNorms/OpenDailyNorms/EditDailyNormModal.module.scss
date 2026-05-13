@@ -115,3 +115,56 @@
     opacity: 0.6;
   }
 }
+
+// ── chrome="panel" overrides — render inside a SideDrawer body ─────
+//
+// The drawer body already provides its own scroll container, header, and
+// safe-area padding. In panel mode we therefore:
+//   • drop the panel's own height: 100% so it flows naturally
+//   • drop the body's inner overflow + flex-grow (drawer scrolls instead)
+//   • shrink the header to just the Save action (back-arrow lives in the
+//     drawer header)
+//   • drop the footer's top border (already separated visually) and its
+//     bottom safe-area padding (drawer adds it).
+.rootPanel {
+  height: auto;
+  min-height: 0;
+}
+
+.headerPanel {
+  justify-content: flex-end;
+  padding: 4px 4px 12px;
+  padding-top: 0;
+  border-bottom: none;
+}
+
+.bodyPanel {
+  flex: 0 0 auto;
+  min-height: 0;
+  overflow: visible;
+  padding: 4px 0 12px;
+}
+
+.footerPanel {
+  padding: 12px 4px 4px;
+  padding-bottom: 4px;
+  border-top: none;
+}
+
+// Cold-start: useLiveQuery hasn't resolved yet. Show spinner instead of
+// the form to avoid flashing default values that would later jump to
+// real ones (and a Save mid-flash would corrupt the norm).
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 28px 0;
+  color: var(--text-secondary);
+}
+
+.loadingText {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}

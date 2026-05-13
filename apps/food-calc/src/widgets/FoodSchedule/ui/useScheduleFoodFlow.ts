@@ -40,7 +40,7 @@ export const STEP_LABELS: Record<ActiveStep, string> = {
   time: 'Время',
   search: 'Продукт',
   quantity: 'Количество',
-  details: 'Заметка',
+  details: 'Уточнение',
   create: 'Создать',
 };
 

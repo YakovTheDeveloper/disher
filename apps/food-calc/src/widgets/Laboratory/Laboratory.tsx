@@ -45,7 +45,7 @@ const Laboratory = ({ date }: Props) => {
       headerOverlap
       hollow={open.length === 0 && (eventCount ?? 0) === 0}
       bottomBar={
-        <AppBottomBarShell>
+        <AppBottomBarShell side="left">
           <RunAnalysisButton
             date={date}
             disabled={(eventCount ?? 0) === 0}

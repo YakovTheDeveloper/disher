@@ -229,6 +229,11 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
               onStepClick={goToStep}
             />
             <ModalShell.Body>
+              <ModalShell.Title>
+                {draft.foodName
+                  ? `Уточнение: ${draft.foodName}`
+                  : 'Уточнение к приему пищи'}
+              </ModalShell.Title>
               <DetailsChips
                 textareaId={DETAILS_INPUT}
                 value={draft.details}

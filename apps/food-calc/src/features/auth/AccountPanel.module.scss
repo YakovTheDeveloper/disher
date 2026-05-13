@@ -4,21 +4,19 @@
   width: 32px;
   height: 32px;
   border-radius: var(--radius-full);
-  border: none;
-  background: #111;
+  border: 1px solid #111;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition:
     background var(--duration-fast) var(--easing-default),
     transform var(--duration-fast) var(--easing-default);
 
-  &:hover {
-    background: #000;
-  }
-
   &:active {
+    background: rgba(0, 0, 0, 0.05);
     transform: scale(0.94);
   }
 }
@@ -26,7 +24,7 @@
 .avatarLetter {
   font-family: var(--font-sans);
   font-size: var(--text-sm);
-  font-weight: 600;
-  color: #fff;
+  font-weight: 400;
+  color: #111;
   line-height: 1;
 }

@@ -5,173 +5,295 @@ import { type BaseModalProps } from '@/shared/ui';
 import {
   upsertUserNorm,
   generateNormFromSurvey,
-  calcBmr,
+  calcMacros,
   calcTdee,
   type NormSurvey,
-  type Sex,
   type Activity,
+  type Goal,
 } from '@/entities/daily-norm';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import toaster from '@/shared/lib/toaster/toaster';
-import NutrientInput from '@/entities/nutrient/ui/NutrientCard/NutrientInput';
-import { Ornament } from '@/shared/ui/Ornament';
-import { Spacer } from '@/shared/ui/atoms/Spacer';
+import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import styles from './CreateDailyNormModal.module.scss';
 
-type Props = BaseModalProps;
-
-type SurveyDraft = {
-  sex: Sex;
-  age: number;
-  weightKg: number;
-  heightCm: number;
-  activity: Activity;
+// chrome:
+//   'modal' (default) — full modal with ModalLayout, hero kicker+title header
+//                       and the top-right × button.
+//   'panel' — inline content for a drawer that already provides its own header
+//             with back-button. Skips ModalLayout, hero header, Cancel button.
+type Props = BaseModalProps & {
+  chrome?: 'modal' | 'panel';
 };
 
-const DEFAULT_SURVEY: SurveyDraft = {
+const DEFAULT_SURVEY: NormSurvey = {
   sex: 'male',
   age: 30,
   weightKg: 70,
   heightCm: 175,
-  activity: 'medium',
+  activity: 'moderate',
+  goal: 'maintain',
 };
 
 const ACTIVITY_OPTIONS: Array<{ value: Activity; label: string; hint: string }> = [
-  { value: 'low', label: 'Низкая', hint: 'сидячий' },
-  { value: 'medium', label: 'Средняя', hint: '3–5 тренировок' },
-  { value: 'high', label: 'Высокая', hint: 'ежедневные' },
+  { value: 'sedentary', label: 'Сидячий', hint: 'офис, без спорта' },
+  { value: 'light', label: 'Лёгкий', hint: '1–2 трен/нед, прогулки' },
+  { value: 'moderate', label: 'Умеренный', hint: '3–5 трен/нед' },
+  { value: 'very_active', label: 'Высокий', hint: '6–7 трен/нед' },
+  { value: 'extra_active', label: 'Очень высокий', hint: 'спорт + физ. работа' },
 ];
 
-const clamp = (v: number, min: number, max: number) =>
-  Math.max(min, Math.min(max, v || min));
+const GOAL_OPTIONS: Array<{ value: Goal; label: string; hint: string }> = [
+  { value: 'lose', label: 'Худеть', hint: '−15% от поддержания' },
+  { value: 'maintain', label: 'Поддерживать', hint: 'текущий вес' },
+  { value: 'gain', label: 'Набирать', hint: '+15% к поддержанию' },
+  { value: 'health', label: 'Улучшить рацион', hint: 'поддержание + акцент на качестве' },
+];
 
-const CreateDailyNormModal = ({ onClose }: Props) => {
-  const [survey, setSurvey] = useState<SurveyDraft>(DEFAULT_SURVEY);
+const LIMITS = {
+  age: { min: 14, max: 100 },
+  weightKg: { min: 30, max: 250 },
+  heightCm: { min: 100, max: 230 },
+} as const;
 
-  const { bmr, tdee } = useMemo(() => {
-    const survey_: NormSurvey = survey;
-    return {
-      bmr: Math.round(calcBmr(survey_) / 5) * 5,
-      tdee: Math.round(calcTdee(survey_) / 10) * 10,
-    };
-  }, [survey]);
+const clampToLimits = (s: NormSurvey): NormSurvey => ({
+  ...s,
+  age: clamp(s.age, LIMITS.age.min, LIMITS.age.max),
+  weightKg: clamp(s.weightKg, LIMITS.weightKg.min, LIMITS.weightKg.max),
+  heightCm: clamp(s.heightCm, LIMITS.heightCm.min, LIMITS.heightCm.max),
+});
+
+function clamp(v: number, min: number, max: number): number {
+  if (!Number.isFinite(v)) return min;
+  return Math.max(min, Math.min(max, v));
+}
+
+const fmt = (v: number) => v.toLocaleString('ru-RU');
+
+const isInRange = (v: number, range: { min: number; max: number }) =>
+  Number.isFinite(v) && v >= range.min && v <= range.max;
+
+const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
+  const [survey, setSurvey] = useState<NormSurvey>(DEFAULT_SURVEY);
+
+  // Preview is computed from clamped snapshot — state stays as user typed so
+  // they can freely backspace a digit without the value jumping to min.
+  const safeSurvey = useMemo(() => clampToLimits(survey), [survey]);
+
+  const isValid = useMemo(
+    () =>
+      isInRange(survey.age, LIMITS.age) &&
+      isInRange(survey.weightKg, LIMITS.weightKg) &&
+      isInRange(survey.heightCm, LIMITS.heightCm),
+    [survey],
+  );
+
+  const { bmr, tdee, macros } = useMemo(
+    () => ({
+      bmr: Math.round(
+        (10 * safeSurvey.weightKg + 6.25 * safeSurvey.heightCm - 5 * safeSurvey.age +
+          (safeSurvey.sex === 'male' ? 5 : -161)) / 5,
+      ) * 5,
+      tdee: Math.round(calcTdee(safeSurvey) / 10) * 10,
+      macros: calcMacros(safeSurvey),
+    }),
+    [safeSurvey],
+  );
 
   const patch = useCallback(
-    (p: Partial<SurveyDraft>) => setSurvey((prev) => ({ ...prev, ...p })),
+    (p: Partial<NormSurvey>) => setSurvey((prev) => ({ ...prev, ...p })),
     [],
   );
 
   const handleCommit = useCallback(async () => {
-    const items = generateNormFromSurvey(survey);
+    if (!isValid) {
+      toaster.error('Возраст 14–100, вес 30–250 кг, рост 100–230 см');
+      return;
+    }
+    const items = generateNormFromSurvey(safeSurvey);
     const result = await safeMutate(
       () => upsertUserNorm(items),
-      'Не удалось создать норму',
+      'Не удалось сохранить норму',
     );
     if (!result.ok) return;
     toaster.success('Норма подобрана');
     onClose();
-  }, [survey, onClose]);
+  }, [safeSurvey, onClose, isValid]);
 
-  return (
-    <ModalLayout>
-      <div className={styles.root}>
-        <div className={styles.header}>
+  const isPanel = chrome === 'panel';
+
+  const content = (
+    <div className={clsx(styles.root, isPanel && styles.rootPanel)}>
+      {!isPanel && (
+        <header className={styles.header}>
+          <button
+            type="button"
+            className={styles.closeIcon}
+            onClick={onClose}
+            aria-label="Закрыть"
+          >
+            ×
+          </button>
           <span className={styles.kicker}>Дневная норма</span>
-          <span className={styles.title}>Моя норма</span>
+          <h2 className={styles.title}>Моя норма</h2>
           <p className={styles.subtitle}>
-            Ответьте на несколько вопросов — рассчитаем калории, БЖУ и микроэлементы под вас.
+            Несколько ответов — и калории, БЖУ, основные микроэлементы посчитаются
+            по формуле Mifflin-St Jeor. Точные числа можно поправить руками позже.
           </p>
-        </div>
+        </header>
+      )}
+      {isPanel && (
+        <p className={styles.panelSubtitle}>
+          Несколько ответов — и калории, БЖУ, основные микроэлементы посчитаются
+          по формуле Mifflin-St Jeor. Точные числа можно поправить руками позже.
+        </p>
+      )}
 
         <div className={styles.body}>
-          <Ornament text="пол" />
-          <div className={styles.pillRow}>
-            <PillButton active={survey.sex === 'male'} onClick={() => patch({ sex: 'male' })}>
-              Мужской
-            </PillButton>
-            <PillButton active={survey.sex === 'female'} onClick={() => patch({ sex: 'female' })}>
-              Женский
-            </PillButton>
-          </div>
+          <Section label="Пол" hint="нужен только для формулы калорий">
+            <div className={styles.pillRow}>
+              <Pill active={survey.sex === 'male'} onClick={() => patch({ sex: 'male' })}>
+                Мужской
+              </Pill>
+              <Pill active={survey.sex === 'female'} onClick={() => patch({ sex: 'female' })}>
+                Женский
+              </Pill>
+            </div>
+          </Section>
 
-          <div className={styles.numbersRow}>
-            <NumberField
-              label="возраст"
-              value={survey.age}
-              onChange={(v) => patch({ age: clamp(v, 10, 100) })}
-              unit="лет"
-            />
-            <NumberField
-              label="вес"
-              value={survey.weightKg}
-              onChange={(v) => patch({ weightKg: clamp(v, 30, 250) })}
-              unit="кг"
-            />
-            <NumberField
-              label="рост"
-              value={survey.heightCm}
-              onChange={(v) => patch({ heightCm: clamp(v, 100, 230) })}
-              unit="см"
-            />
-          </div>
+          <Section label="Возраст · Вес · Рост" hint="14–100 · 30–250 кг · 100–230 см">
+            <div className={styles.numbersRow}>
+              <NumberField
+                label="возраст"
+                unit="лет"
+                value={survey.age}
+                min={LIMITS.age.min}
+                max={LIMITS.age.max}
+                onChange={(v) => patch({ age: v })}
+              />
+              <NumberField
+                label="вес"
+                unit="кг"
+                value={survey.weightKg}
+                min={LIMITS.weightKg.min}
+                max={LIMITS.weightKg.max}
+                onChange={(v) => patch({ weightKg: v })}
+              />
+              <NumberField
+                label="рост"
+                unit="см"
+                value={survey.heightCm}
+                min={LIMITS.heightCm.min}
+                max={LIMITS.heightCm.max}
+                onChange={(v) => patch({ heightCm: v })}
+              />
+            </div>
+          </Section>
 
-          <Ornament text="активность" />
-          <div className={styles.pillRow}>
-            {ACTIVITY_OPTIONS.map((o) => (
-              <PillButton
-                key={o.value}
-                active={survey.activity === o.value}
-                onClick={() => patch({ activity: o.value })}
-              >
-                <span className={styles.pillTitle}>{o.label}</span>
-                <span className={styles.pillHint}>{o.hint}</span>
-              </PillButton>
-            ))}
-          </div>
+          <Section label="Активность" hint="дневная, не только спорт">
+            <div className={clsx(styles.pillRow, styles.pillRowWrap)}>
+              {ACTIVITY_OPTIONS.map((o) => (
+                <Pill
+                  key={o.value}
+                  active={survey.activity === o.value}
+                  onClick={() => patch({ activity: o.value })}
+                  stacked
+                >
+                  <span className={styles.pillTitle}>{o.label}</span>
+                  <span className={styles.pillHint}>{o.hint}</span>
+                </Pill>
+              ))}
+            </div>
+          </Section>
+
+          <Section label="Цель">
+            <div className={clsx(styles.pillRow, styles.pillRowWrap)}>
+              {GOAL_OPTIONS.map((o) => (
+                <Pill
+                  key={o.value}
+                  active={survey.goal === o.value}
+                  onClick={() => patch({ goal: o.value })}
+                  stacked
+                >
+                  <span className={styles.pillTitle}>{o.label}</span>
+                  <span className={styles.pillHint}>{o.hint}</span>
+                </Pill>
+              ))}
+            </div>
+          </Section>
 
           <div className={styles.preview}>
-            <div className={styles.previewRow}>
-              <span className={styles.previewLabel}>BMR</span>
-              <span className={styles.previewValue}>~{bmr} <span className={styles.previewUnit}>ккал</span></span>
+            <div className={styles.previewKcal}>
+              <span className={styles.previewKcalValue}>{fmt(macros.kcal)}</span>
+              <span className={styles.previewKcalUnit}>ккал в день</span>
             </div>
-            <div className={styles.previewRow}>
-              <span className={styles.previewLabel}>дневная норма</span>
-              <span className={clsx(styles.previewValue, styles.previewValueStrong)}>
-                ~{tdee} <span className={styles.previewUnit}>ккал</span>
-              </span>
+            <div className={styles.macros}>
+              <MacroChip label="Б" value={macros.proteinG} />
+              <MacroChip label="Ж" value={macros.fatG} />
+              <MacroChip label="У" value={macros.carbsG} />
             </div>
-            <p className={styles.previewHint}>
-              Значения нутриентов потом можно править руками.
+            <p className={styles.previewMeta}>
+              BMR ~{fmt(bmr)} · поддержание ~{fmt(tdee)} ккал
+            </p>
+            <p className={styles.disclaimer}>
+              Это ориентир, не медицинская рекомендация. Disher — про корреляции
+              «что съел / как себя чувствую», не про точный калькулятор.
             </p>
           </div>
-
-          <Spacer variant="screen-header-offset" />
         </div>
 
-        <div className={styles.footer}>
-          <button className={styles.cancelBtn} onClick={onClose} type="button">
-            Отмена
-          </button>
-          <button className={styles.commitBtn} onClick={handleCommit} type="button">
+        <footer className={clsx(styles.footer, isPanel && styles.footerPanel)}>
+          {!isPanel && (
+            <button className={styles.cancelBtn} onClick={onClose} type="button">
+              Отмена
+            </button>
+          )}
+          <button
+            className={clsx(styles.commitBtn, !isValid && styles.commitBtnInactive)}
+            onClick={handleCommit}
+            type="button"
+            aria-disabled={!isValid}
+          >
             Готово
           </button>
-        </div>
+        </footer>
       </div>
-    </ModalLayout>
   );
+
+  return isPanel ? content : <ModalLayout>{content}</ModalLayout>;
 };
 
-type PillButtonProps = {
-  active: boolean;
-  onClick: () => void;
+type SectionProps = {
+  label: string;
+  hint?: string;
   children: React.ReactNode;
 };
 
-const PillButton = ({ active, onClick, children }: PillButtonProps) => (
+const Section = ({ label, hint, children }: SectionProps) => (
+  <section className={styles.section}>
+    <div className={styles.sectionHead}>
+      <span className={styles.sectionLabel}>{label}</span>
+      {hint && <span className={styles.sectionHint}>{hint}</span>}
+    </div>
+    {children}
+  </section>
+);
+
+type PillProps = {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  stacked?: boolean;
+};
+
+const Pill = ({ active, onClick, children, stacked }: PillProps) => (
   <button
     type="button"
     onClick={onClick}
-    className={clsx(styles.pill, active && styles.pillActive)}
+    className={clsx(
+      styles.pill,
+      active && styles.pillActive,
+      stacked && styles.pillStacked,
+    )}
   >
     {children}
   </button>
@@ -179,15 +301,36 @@ const PillButton = ({ active, onClick, children }: PillButtonProps) => (
 
 type NumberFieldProps = {
   label: string;
-  value: number;
-  onChange: (v: number) => void;
   unit: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (v: number) => void;
 };
 
-const NumberField = ({ label, value, onChange, unit }: NumberFieldProps) => (
-  <div className={styles.numberField}>
-    <span className={styles.numberLabel}>{label}</span>
-    <NutrientInput value={value} onChange={onChange} unit={unit} />
+const NumberField = ({ label, unit, value, min, max, onChange }: NumberFieldProps) => {
+  const invalid = !isInRange(value, { min, max });
+  return (
+    <label className={clsx(styles.numberField, invalid && styles.numberFieldInvalid)}>
+      <span className={styles.numberLabel}>{label}</span>
+      <div className={styles.numberInputRow}>
+        <NumberInput value={value} onChange={onChange} maxLength={3} />
+        <span className={styles.numberUnit}>{unit}</span>
+      </div>
+    </label>
+  );
+};
+
+type MacroChipProps = {
+  label: string;
+  value: number;
+};
+
+const MacroChip = ({ label, value }: MacroChipProps) => (
+  <div className={styles.macroChip}>
+    <span className={styles.macroLabel}>{label}</span>
+    <span className={styles.macroValue}>{fmt(value)}</span>
+    <span className={styles.macroUnit}>г</span>
   </div>
 );
 

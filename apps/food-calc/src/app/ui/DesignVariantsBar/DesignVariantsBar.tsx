@@ -5,6 +5,9 @@ import s from './DesignVariantsBar.module.scss';
 const FLASH_DURATION_MS = 320;
 const FLASH_CLASS = 'dv-anchor-flash';
 const OPEN_STORAGE_KEY = 'disher.dvBar.open';
+const POS_STORAGE_KEY = 'disher.dvBar.pos';
+
+type Pos = { x: number; y: number };
 
 const readInitialOpen = (): boolean => {
   if (typeof window === 'undefined') return false;
@@ -13,6 +16,30 @@ const readInitialOpen = (): boolean => {
   } catch {
     return false;
   }
+};
+
+const readInitialPos = (): Pos | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(POS_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed?.x === 'number' && typeof parsed?.y === 'number') return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const clampPos = (pos: Pos, el: HTMLElement | null): Pos => {
+  if (typeof window === 'undefined' || !el) return pos;
+  const rect = el.getBoundingClientRect();
+  const maxX = Math.max(0, window.innerWidth - rect.width);
+  const maxY = Math.max(0, window.innerHeight - rect.height);
+  return {
+    x: Math.min(Math.max(0, pos.x), maxX),
+    y: Math.min(Math.max(0, pos.y), maxY),
+  };
 };
 
 export const DesignVariantsBar = () => {
@@ -25,6 +52,11 @@ export const DesignVariantsBar = () => {
   const pinned = useDesignVariantsStore((st) => st.pinned);
 
   const [open, setOpen] = useState<boolean>(readInitialOpen);
+  const [pos, setPos] = useState<Pos | null>(readInitialPos);
+  const [dragging, setDragging] = useState(false);
+
+  const shellRef = useRef<HTMLDivElement | null>(null);
+  const dragOffsetRef = useRef<{ dx: number; dy: number } | null>(null);
 
   useEffect(() => {
     try {
@@ -33,6 +65,55 @@ export const DesignVariantsBar = () => {
       // ignore quota / privacy-mode errors
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!pos) return;
+    try {
+      window.localStorage.setItem(POS_STORAGE_KEY, JSON.stringify(pos));
+    } catch {
+      // ignore
+    }
+  }, [pos]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onResize = () => {
+      setPos((p) => (p ? clampPos(p, shellRef.current) : p));
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [open]);
+
+  const onHandlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button')) return; // let the close button work
+    const shell = shellRef.current;
+    if (!shell) return;
+    const rect = shell.getBoundingClientRect();
+    dragOffsetRef.current = { dx: e.clientX - rect.left, dy: e.clientY - rect.top };
+    setPos({ x: rect.left, y: rect.top });
+    setDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  };
+
+  const onHandlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragging || !dragOffsetRef.current) return;
+    const next = {
+      x: e.clientX - dragOffsetRef.current.dx,
+      y: e.clientY - dragOffsetRef.current.dy,
+    };
+    setPos(clampPos(next, shellRef.current));
+  };
+
+  const onHandlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragging) return;
+    dragOffsetRef.current = null;
+    setDragging(false);
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  };
 
   const active = activeKey ? entries[activeKey] : null;
   const keys = Object.keys(entries);
@@ -102,9 +183,25 @@ export const DesignVariantsBar = () => {
     );
   }
 
+  const shellStyle = pos
+    ? { top: pos.y, left: pos.x, right: 'auto' as const }
+    : undefined;
+
   return (
-    <div className={s.shell} role="dialog" aria-label="Design variants">
-      <div className={s.handle}>
+    <div
+      ref={shellRef}
+      className={`${s.shell} ${dragging ? s.shellDragging : ''}`}
+      role="dialog"
+      aria-label="Design variants"
+      style={shellStyle}
+    >
+      <div
+        className={`${s.handle} ${dragging ? s.handleDragging : ''}`}
+        onPointerDown={onHandlePointerDown}
+        onPointerMove={onHandlePointerMove}
+        onPointerUp={onHandlePointerUp}
+        onPointerCancel={onHandlePointerUp}
+      >
         <span className={s.handleTitle}>
           <span className={s.handleDot} aria-hidden />
           design&nbsp;variants

@@ -7,8 +7,8 @@ $accent: #a78bfa; // violet-400
 $accent-soft: rgba(167, 139, 250, 0.22);
 $ink: #f3f0ff;
 $ink-dim: rgba(243, 240, 255, 0.62);
-$panel-bg: rgba(15, 13, 25, 0.78);
-$panel-border: rgba(167, 139, 250, 0.28);
+$panel-bg: rgba(15, 13, 25, 0.62);
+$panel-border: rgba(167, 139, 250, 0.32);
 $z: 10001;
 
 // safe-area insets so we don't sit under the iOS notch / status bar
@@ -117,8 +117,8 @@ $pad-right: max(10px, env(safe-area-inset-right));
   box-shadow:
     0 18px 48px -12px rgba(0, 0, 0, 0.65),
     inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
 
   color: $ink;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -128,6 +128,12 @@ $pad-right: max(10px, env(safe-area-inset-right));
 
   transform-origin: top right;
   animation: dvShellIn 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.shellDragging {
+  animation: none;
+  transition: none;
+  user-select: none;
 }
 
 @keyframes dvShellIn {
@@ -151,6 +157,14 @@ $pad-right: max(10px, env(safe-area-inset-right));
   justify-content: space-between;
   padding: 10px 8px 10px 14px;
   border-bottom: 1px solid rgba(167, 139, 250, 0.14);
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.handleDragging {
+  cursor: grabbing;
 }
 
 .handleTitle {

@@ -112,7 +112,7 @@ const ScheduleEvents = ({ date, events }: Props) => {
       }
       key={3}
       bottomBar={
-        <AppBottomBarShell>
+        <AppBottomBarShell side="right">
           <AddButton
             htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT}
             as="label"
@@ -120,15 +120,12 @@ const ScheduleEvents = ({ date, events }: Props) => {
             prominent={events.length === 0}
             dark
           >
-            Добавить
+            Добавить событие дня
           </AddButton>
         </AppBottomBarShell>
       }
     >
-      <section
-        {...eventsAnchor}
-        className={clsx(['builder__time-groups', styles.eventsBuilder])}
-      >
+      <section {...eventsAnchor} className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList offsetTop>
           {(() => {
             let globalIndex = 0;

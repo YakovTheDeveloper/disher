@@ -1,5 +1,7 @@
 # Yandex mobile design — research dump
 
+> **⚠️ [SUPERSEDED как design-канон 2026-05-13]** Этот файл — исторический research, а не текущая дизайн-стратегия. Реальный канон Disher оказался **не** клон Gravity UI / DivKit, а свой **stripe-fork** (3-stop gradient surface + fading hairline + vertical accent + nth-child rhythm + Source Serif 4 italic для display). Актуальный канон описан в `apps/food-calc/CLAUDE.md` → секция **Design Philosophy**. Reference-имплементация: `src/features/food/food-search/food-action-card/FoodActionCard.module.scss` (`@mixin stripe-fork`). Принципы про «иерархия > красота» и «главный экран всё» (раздел 1 и 7 ниже) — остаются валидными; всё остальное (Gravity-токены, 4 темы, Inter, anatomy DivKit-карточек) **не применять** — стек ушёл в другую сторону.
+
 Собрано 2026-04-29. Источники в конце. Цель: зафиксировать **что именно** делает мобильный Яндекс «крутым», чтобы при дизайне Disher я мог опираться на конкретику, а не на «вайб».
 
 ---

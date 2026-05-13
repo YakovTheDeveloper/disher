@@ -138,7 +138,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         content={
           <ModalShell className={modalStyles.whiteShell}>
             <ModalShell.Title>
-              <ButtonBack onClick={() => setStep('idle')} />
+              <ButtonBack size="medium" onClick={() => setStep('idle')} />
               Выберите время
             </ModalShell.Title>
             <ModalShell.Body>
@@ -209,7 +209,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
             )}
             <ModalShell.AtomsBody>
               <ModalShell.Title>
-                <ButtonBack onClick={() => goToStep('text')} />
+                <ButtonBack size="medium" onClick={() => goToStep('text')} />
                 Добавьте теги
               </ModalShell.Title>
               {step === 'atoms' && (

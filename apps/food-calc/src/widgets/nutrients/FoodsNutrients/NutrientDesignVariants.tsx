@@ -166,6 +166,15 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
   const [overlayOpen, setOverlayOpen] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const userItems = useUserNormItems();
+  // Hide percent / progress / target column in view mode until the user has
+  // configured their own daily norm. The empty-state banner ("подбери норму…")
+  // is the call to action; showing default-based percentages alongside would
+  // contradict it.
+  // `!= null` covers both null (no row) AND undefined (still loading from
+  // IDB). Showing pct/progress while loading would briefly flash defaults.
+  const hasNorm = userItems != null;
+  const showProgress = (isView && hasNorm) || isEditValues;
+  const showPctView = isView && hasNorm;
 
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
@@ -250,14 +259,14 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
         <div className={s.rowTop}>
           <span className={s.name}>{nutrient.displayNameRu}</span>
           <span className={s.dots} />
-          {isView && (
+          {showPctView && (
             <span className={s.pct}>
               {pct}
               <span className={s.pctSign}>%</span>
             </span>
           )}
         </div>
-        {(isView || isEditValues) && (
+        {showProgress && (
           <div className={s.progressTrack} style={{ opacity: Math.min(pct, 100) / 100 }}>
             <div
               className={`${s.progressBar} ${getProgressClass(pct, nutrient.name)}`}
@@ -272,10 +281,12 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
                 <span>{Math.round(value)}</span>
                 <span>{nutrient.unitRu}</span>
               </span>
-              <span className={`${s.value} ${s.valueRight}`}>
-                {norm}
-                {nutrient.unitRu}
-              </span>
+              {hasNorm && (
+                <span className={`${s.value} ${s.valueRight}`}>
+                  {norm}
+                  {nutrient.unitRu}
+                </span>
+              )}
             </>
           )}
           {isEditNorms && (
@@ -346,9 +357,9 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
         <div className={s.rowTop}>
           {decoration}
           <span className={s.name}>{nutrient.displayNameRu}</span>
-          {isView && <span className={s.pct}>{norm ? `${pct}%` : ''}</span>}
+          {showPctView && <span className={s.pct}>{norm ? `${pct}%` : ''}</span>}
         </div>
-        {isView && norm > 0 && progressColor && (
+        {showProgress && norm > 0 && progressColor && (
           <div className={s.progressTrack} style={{ opacity: Math.min(pct, 100) / 100 }}>
             <div
               className={s.progressBar}
@@ -366,9 +377,11 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
                 {nutrient.unitRu === 'г' ? Math.round(value) : value.toFixed(1)}
                 {nutrient.unitRu}
               </span>
-              <span className={`${s.value} ${s.valueRight}`}>
-                {norm ? `${norm}${nutrient.unitRu}` : ''}
-              </span>
+              {hasNorm && (
+                <span className={`${s.value} ${s.valueRight}`}>
+                  {norm ? `${norm}${nutrient.unitRu}` : ''}
+                </span>
+              )}
             </>
           )}
           {isEditNorms && (

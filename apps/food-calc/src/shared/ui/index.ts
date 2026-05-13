@@ -3,4 +3,5 @@ export { modalStore, useModals } from "./modal-store";
 export type { BaseDrawerProps, BaseModalProps, OverlayComponentProps } from "./overlay-types";
 export { ModalStepHeader } from "./ModalStepHeader";
 export { ModalShell } from "./ModalShell";
+export { SideDrawer } from "./SideDrawer";
 export { ModalFooter, NextStepButton } from "./ModalFooter";

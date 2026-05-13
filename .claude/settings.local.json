@@ -65,7 +65,14 @@
       "Bash(dir tsconfig*.json /B)",
       "Bash(pnpm typecheck *)",
       "Bash(echo \"EXIT: $?\")",
-      "Bash(NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit)"
+      "Bash(NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit)",
+      "Bash(node -e \"const c=require\\('./apps/food-calc/src/shared/data/catalog.json'\\); console.log\\(JSON.stringify\\(c[0]?.nutrients?.slice?.\\(0,10\\) ?? c[0]?.nutrients, null, 2\\)\\);\")",
+      "Bash(Select-String -Pattern \"\\(Note|Zametka|ScheduleFoodItem|HomeTopBar|AppBottomBar\\)\")",
+      "Bash(Select-Object -First 40)",
+      "WebFetch(domain:vaul.emilkowal.ski)",
+      "WebFetch(domain:base-ui.com)",
+      "Bash(echo \"EXITCODE=$?\")",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=8192\" npm run build)"
     ]
   }
 }

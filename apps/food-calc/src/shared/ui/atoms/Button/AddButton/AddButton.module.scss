@@ -70,8 +70,8 @@
 // ─── Inverse variant — white fill, purple text + border ───────────────
 .inverse {
     background: #fff;
-    border: 1px solid rgba(66, 66, 117, 0.918);
-    color: rgba(66, 66, 117, 0.918);
+    border: 1px solid rgba(24, 24, 105, 0.92);
+    color: rgba(24, 24, 105, 0.92);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     box-shadow: none;
@@ -98,8 +98,8 @@
 
     &.prominent {
         background: #fff;
-        color: rgba(66, 66, 117, 0.918);
-        border: 1px solid rgba(66, 66, 117, 0.918);
+        color: rgba(24, 24, 105, 0.92);
+        border: 1px solid rgba(24, 24, 105, 0.92);
         border-radius: 999px;
         padding: 12px 22px;
         min-height: 44px;

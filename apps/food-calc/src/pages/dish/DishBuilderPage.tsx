@@ -52,7 +52,10 @@ import {
   runTileMigration,
   type ScreenEntry,
 } from '@/shared/ui/ScreenIndicator';
-import { AppBottomBar } from '@/shared/ui/AppBottomBar';
+import { AppBottomBar, NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
+import { SideDrawer } from '@/shared/ui';
+import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
+import { useNutrientNormSlots } from '@/features/dailyNorms/NutrientNormDrawerControl';
 import jazzImg from '@/shared/assets/decarative/jazz.png';
 import bagImg from '@/shared/assets/decarative/bag3.png';
 import moneyImg from '@/shared/assets/decarative/money.png';
@@ -93,6 +96,9 @@ const DishBuilderPage = () => {
   const { clearSelection } = selectionStore.getState();
 
   const [isOpen, setIsOpen] = useState<'suggestions' | null>(null);
+  const [nutrientsOpen, setNutrientsOpen] = useState(false);
+  const openNutrients = useCallback(() => setNutrientsOpen(true), []);
+  const normSlots = useNutrientNormSlots({ isOpen: nutrientsOpen });
   const editFlow = useDishProductFlow({ type: 'edit' });
 
   const writeFoodTarget = useMemo(
@@ -201,7 +207,6 @@ const DishBuilderPage = () => {
     <div className={homeStyles.container}>
       <HomeTopBar
         date={dateForTopBar}
-        totals={dishTotals}
         dateButtonLabel="К расписанию"
       />
       <div className={homeStyles.swipeArea}>
@@ -245,6 +250,20 @@ const DishBuilderPage = () => {
                     flow={writeFoodFlow}
                     inputId={writeFoodInputId}
                   />
+                  <SideDrawer
+                    open={nutrientsOpen}
+                    onOpenChange={setNutrientsOpen}
+                    title={normSlots.title}
+                    headerAction={normSlots.headerAction}
+                  >
+                    {normSlots.bodyContent ?? (
+                      <>
+                        {normSlots.devToggle}
+                        {normSlots.emptyStateBanner}
+                        <FoodsNutrients totals={dishTotals} />
+                      </>
+                    )}
+                  </SideDrawer>
                 </>
               }
               actions={
@@ -264,6 +283,9 @@ const DishBuilderPage = () => {
                     searchHtmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
                     searchLabel="Найти продукт"
                     writeFoodLabel="Опишите ингредиенты…"
+                    leadingSlot={
+                      <NutrientsSummaryButton totals={dishTotals} onClick={openNutrients} />
+                    }
                   />
                 ) : null
               }

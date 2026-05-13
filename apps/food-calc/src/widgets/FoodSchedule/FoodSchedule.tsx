@@ -10,7 +10,6 @@ import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import toaster from '@/shared/lib/toaster/toaster';
-import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import {
   ScheduleFoodCreateModals,
   ScheduleFoodEditModals,
@@ -24,7 +23,12 @@ import { removeScheduleFoods } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
 import { CopyToClipboardButton, PasteFromClipboardButton } from '@/features/clipboard';
+import { SideDrawer } from '@/shared/ui';
+import { NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
+import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
+import type { NutrientTotals } from '@/shared/lib/nutrients';
 import type { ClipboardItem } from '@/shared/model/clipboardStore';
+import { useNutrientNormSlots } from '@/features/dailyNorms/NutrientNormDrawerControl';
 
 // Cheerful pastel families with semantic time-of-day progression
 // (lightest at morning, deepening towards graphite at night).
@@ -37,12 +41,6 @@ const FOOD_DV_VARIANTS = [
   'tropic',
   'twilight',
 ] as const;
-import { fetchDailyAnalysis, computeInputHash } from '@/entities/analytics';
-import { createProduct } from '@/entities/product';
-import { createDish } from '@/entities/dish';
-import { safeMutate } from '@/shared/lib/safeMutate';
-import { getProductUrl, RouterUrls } from '@/app/router';
-import CreateFoodPanel from './ui/CreateFoodPanel';
 import {
   WriteFoodModals,
   useWriteFoodFlow,
@@ -65,6 +63,9 @@ const TrashIcon = () => (
 type CommonProps = {
   date: string;
   items: ScheduleFoodWithRelations[];
+  totals: NutrientTotals;
+  missingNutrientNames?: string[];
+  isLoading?: boolean;
   richNutrient?: { id: string; unit: string } | null;
   onRichNutrientClear?: () => void;
   isActive?: boolean;
@@ -73,6 +74,9 @@ type CommonProps = {
 const FoodSchedule = ({
   date,
   items,
+  totals,
+  missingNutrientNames,
+  isLoading,
   richNutrient,
   onRichNutrientClear,
   isActive = true,
@@ -82,10 +86,7 @@ const FoodSchedule = ({
   const selectedIds = useStore(selectionStoreFood, (s) => s.selectedIds);
   const { clearSelection, setSelectedIds } = selectionStoreFood.getState();
 
-  const { toScheduleAnalytics } = useAppRoutes();
-
   const editFlow = useScheduleFoodFlow({ type: 'edit' });
-  const [showCreatePanel, setShowCreatePanel] = useState(false);
 
   // Hide bottom action bar while user is editing time/quantity inline on
   // a schedule-food row — otherwise the bar covers the row being edited.
@@ -117,62 +118,10 @@ const FoodSchedule = ({
   // Design-variant picker for the food list palette (graphite-blue family).
   const { anchor: foodAnchor } = useDesignVariant('ScheduleFood', FOOD_DV_VARIANTS);
 
-  // Analytics staleness indicator: 'none' | 'fresh' | 'stale'
-  const [analyticsStatus, setAnalyticsStatus] = useState<'none' | 'fresh' | 'stale'>('none');
-  useEffect(() => {
-    let cancelled = false;
-    if (items.length === 0) {
-      setAnalyticsStatus('none');
-      return;
-    }
+  const [nutrientsOpen, setNutrientsOpen] = useState(false);
+  const openNutrients = useCallback(() => setNutrientsOpen(true), []);
 
-    (async () => {
-      const persisted = await fetchDailyAnalysis(date, 'food');
-      if (cancelled) return;
-      if (!persisted) {
-        setAnalyticsStatus('none');
-        return;
-      }
-
-      const snap = items.map((sf) => ({
-        time: sf.time,
-        name: sf.product?.name || sf.dish?.name || '',
-        quantity: sf.quantity,
-        type: sf.type,
-      }));
-      const currentHash = await computeInputHash(snap);
-      if (cancelled) return;
-      setAnalyticsStatus(currentHash === persisted.inputHash ? 'fresh' : 'stale');
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [date, items]);
-
-  const openCreateFoodPanel = useCallback(() => {
-    setShowCreatePanel((v) => !v);
-  }, []);
-
-  const handleCreateProduct = useCallback(async () => {
-    const name = 'Новый продукт';
-    const result = await safeMutate(() => createProduct({ name }), 'Не удалось создать продукт');
-    if (!result.ok) return;
-    setShowCreatePanel(false);
-    toaster.success(`Продукт «${name}» создан`, {
-      action: { label: 'Открыть', href: getProductUrl(result.value) },
-    });
-  }, []);
-
-  const handleCreateDish = useCallback(async () => {
-    const name = 'Новое блюдо';
-    const result = await safeMutate(() => createDish(name), 'Не удалось создать блюдо');
-    if (!result.ok) return;
-    setShowCreatePanel(false);
-    toaster.success(`Блюдо «${name}» создано`, {
-      action: { label: 'Открыть', href: RouterUrls.getDish(result.value) },
-    });
-  }, []);
+  const normSlots = useNutrientNormSlots({ isOpen: nutrientsOpen });
 
   const startEdit = editFlow.startEdit;
   const onEditTime = useCallback(
@@ -245,29 +194,44 @@ const FoodSchedule = ({
     [items, selectedIds]
   );
 
-  const handleOpenAnalysis = useCallback(() => {
-    setShowCreatePanel(false);
-    toScheduleAnalytics(date);
-  }, [toScheduleAnalytics, date]);
-
   return (
     <Screen
       headerOverlap
       hollow={items.length === 0}
       overlay={
-        isActive ? (
-          <>
-            <ScheduleFoodCreateModals
-              scheduleId={date}
-              richNutrient={richNutrient}
-              onRichNutrientClear={onRichNutrientClear}
-            />
-            <div onFocusCapture={handleEditFocusCapture}>
-              <ScheduleFoodEditModals flow={editFlow} />
-            </div>
-            <WriteFoodModals flow={writeFoodFlow} inputId={writeFoodInputId} />
-          </>
-        ) : null
+        <>
+          {isActive ? (
+            <>
+              <ScheduleFoodCreateModals
+                scheduleId={date}
+                richNutrient={richNutrient}
+                onRichNutrientClear={onRichNutrientClear}
+              />
+              <div onFocusCapture={handleEditFocusCapture}>
+                <ScheduleFoodEditModals flow={editFlow} />
+              </div>
+              <WriteFoodModals flow={writeFoodFlow} inputId={writeFoodInputId} />
+            </>
+          ) : null}
+          <SideDrawer
+            open={nutrientsOpen}
+            onOpenChange={setNutrientsOpen}
+            title={normSlots.title}
+            headerAction={normSlots.headerAction}
+          >
+            {normSlots.bodyContent ?? (
+              <>
+                {normSlots.devToggle}
+                {normSlots.emptyStateBanner}
+                <FoodsNutrients
+                  totals={totals}
+                  missingNutrientNames={missingNutrientNames}
+                  isLoading={isLoading}
+                />
+              </>
+            )}
+          </SideDrawer>
+        </>
       }
       actions={
         <ActionsPanel
@@ -295,20 +259,14 @@ const FoodSchedule = ({
             searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
             searchLabel="Найти еду"
             writeFoodLabel="Опишите, что ели…"
-            onPlusClick={openCreateFoodPanel}
+            leadingSlot={
+              <NutrientsSummaryButton totals={totals} onClick={openNutrients} />
+            }
             hidden={inlineEditing}
           />
         ) : null
       }
     >
-      {showCreatePanel && (
-        <CreateFoodPanel
-          onCreateProduct={handleCreateProduct}
-          onCreateDish={handleCreateDish}
-          onOpenAnalysis={items.length > 0 ? handleOpenAnalysis : undefined}
-          analysisStatus={analyticsStatus}
-        />
-      )}
       <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
       <div {...foodAnchor} className={styles.foodListAnchor}>
       <ItemsList offsetTop>

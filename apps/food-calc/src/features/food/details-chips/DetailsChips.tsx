@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import clsx from 'clsx';
-import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
 import { getSuggestionsForProduct } from '@/shared/data/tag-suggestions';
 import { useCustomTagsByProduct } from '@/entities/custom-tag';
 import { useProduct } from '@/entities/product';
 import { hasTag, normalizeTag, toggleTag } from '@/shared/lib/details/tags';
 import styles from './DetailsChips.module.scss';
+import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 
 type Props = {
   value: string;
@@ -37,68 +37,76 @@ export function DetailsChips({
   onChange,
   productId,
   textareaId,
-  placeholder = 'Заметка к записи...',
+  placeholder = 'Уточнение к записи...',
 }: Props) {
   const product = useProduct(productId ?? undefined);
   const customTagRows = useCustomTagsByProduct(productId);
 
-  const chips = useMemo<ChipEntry[]>(() => {
+  const { suggestionChips, customChips } = useMemo(() => {
     const categories = readCategories(product);
     const suggestions = getSuggestionsForProduct(categories);
     const seen = new Set<string>();
-    const out: ChipEntry[] = [];
+    const suggestionOut: ChipEntry[] = [];
+    const customOut: ChipEntry[] = [];
     for (const s of suggestions) {
       const norm = normalizeTag(s);
       if (!norm || seen.has(norm)) continue;
       seen.add(norm);
-      out.push({ tag: s, source: 'suggestion' });
+      suggestionOut.push({ tag: s, source: 'suggestion' });
     }
     for (const row of customTagRows) {
       const norm = normalizeTag(row.tag);
       if (!norm || seen.has(norm)) continue;
       seen.add(norm);
-      out.push({ tag: row.tag, source: 'custom' });
+      customOut.push({ tag: row.tag, source: 'custom' });
     }
-    return out;
+    return { suggestionChips: suggestionOut, customChips: customOut };
   }, [product, customTagRows]);
 
   const handleToggle = (tag: string) => {
     onChange(toggleTag(value, tag));
   };
 
+  const renderChip = ({ tag }: ChipEntry) => {
+    const active = hasTag(value, tag);
+    return (
+      <button
+        key={tag}
+        type="button"
+        className={clsx(styles.chip, active && styles.active)}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => handleToggle(tag)}
+        aria-pressed={active}
+      >
+        {tag}
+      </button>
+    );
+  };
+
   return (
     <div className={styles.root}>
-      {chips.length > 0 && (
-        <div className={styles.chips} role="group" aria-label="Особенности">
-          {chips.map(({ tag, source }) => {
-            const active = hasTag(value, tag);
-            return (
-              <button
-                key={tag}
-                type="button"
-                className={clsx(
-                  styles.chip,
-                  active && styles.active,
-                  source === 'custom' && styles.custom,
-                )}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => handleToggle(tag)}
-                aria-pressed={active}
-              >
-                {tag}
-              </button>
-            );
-          })}
+      {suggestionChips.length > 0 && (
+        <div className={styles.section}>
+          <div className={styles.sectionLabel}>Особенности</div>
+          <div className={styles.chips} role="group" aria-label="Особенности">
+            {suggestionChips.map(renderChip)}
+          </div>
         </div>
       )}
-      <Textarea
+      {customChips.length > 0 && (
+        <div className={styles.section}>
+          <div className={styles.sectionLabel}>Ваши теги</div>
+          <div className={styles.chips} role="group" aria-label="Ваши теги">
+            {customChips.map(renderChip)}
+          </div>
+        </div>
+      )}
+      <AutoGrowSearch
         id={textareaId}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        rows={3}
         maxLength={500}
-        debounceTime={0}
       />
     </div>
   );

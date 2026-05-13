@@ -11,8 +11,6 @@ import { useScheduleFoods, useScheduleNutrientTotals } from '@/entities/schedule
 import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { ScreenIndicator, runTileMigration, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { APP_BOTTOM_BAR_BG_VARIANTS } from '@/shared/ui/AppBottomBar';
 import normsImg from '@/shared/assets/decarative/norms.png';
 import watchImg from '@/shared/assets/decarative/watch.png';
 import tree2Img from '@/shared/assets/decarative/tree2.png';
@@ -41,15 +39,6 @@ const Page = ({ date }: { date: string }) => {
   const [activeIndex, setActiveIndex] = useState(DEFAULT_SLIDE);
   const swipeableRef = useRef<SwipeableRef>(null);
 
-  // Palette picker for the shell variant of screens 1 & 3 (Laboratory /
-  // ScheduleEvents). Data attrs land on the page container; CSS targets
-  // `:global([data-dv='HomeBottomBarBg'][data-dv-v='X']) .dockV2.shellSolo`
-  // in AppBottomBar.module.scss.
-  const { anchor: bottomBarBgAnchor } = useDesignVariant(
-    'HomeBottomBarBg',
-    APP_BOTTOM_BAR_BG_VARIANTS,
-  );
-
   const handleIndexChange = useCallback((idx: number) => {
     setActiveIndex(idx);
   }, []);
@@ -73,13 +62,8 @@ const Page = ({ date }: { date: string }) => {
   );
 
   return (
-    <div {...bottomBarBgAnchor} className={homeStyles.container}>
-      <HomeTopBar
-        date={date}
-        totals={scheduleTotals}
-        missingNutrientNames={missingNutrientNames}
-        isLoading={nutrientsLoading}
-      />
+    <div className={homeStyles.container}>
+      <HomeTopBar date={date} />
       <div className={homeStyles.swipeArea}>
         <div className={homeStyles.indicatorFloat}>
           <ScreenIndicator
@@ -98,7 +82,14 @@ const Page = ({ date }: { date: string }) => {
             onIndexChange={handleIndexChange}
           >
             <Laboratory key={date} date={date} />
-            <FoodSchedule key={date} date={date} items={items} />
+            <FoodSchedule
+              key={date}
+              date={date}
+              items={items}
+              totals={scheduleTotals}
+              missingNutrientNames={missingNutrientNames}
+              isLoading={nutrientsLoading}
+            />
             <ScheduleEvents key={date} date={date} events={events} />
           </Swipeable>
         </div>

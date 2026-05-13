@@ -1,4 +1,16 @@
 .shell {
+  --field-bg-from: #fffefb;
+  --field-bg-mid: #fffaf2;
+  --field-bg-to: #fdf4e3;
+  --field-text: rgb(31, 31, 31);
+  --field-adornment: rgba(124, 65, 15, 0.55);
+  --field-placeholder: rgba(124, 65, 15, 0.45);
+  --field-hairline: rgba(124, 65, 15, 0.18);
+  --field-hairline-focus: rgba(124, 65, 15, 0.36);
+  --field-shadow: 0 1px 3px rgba(124, 65, 15, 0.06);
+  --field-shadow-focus: 0 1px 8px rgba(124, 65, 15, 0.12);
+
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -6,16 +18,48 @@
   min-height: 50px;
   padding: 0 16px;
   border-radius: 24px;
-  background: #fff;
-  border: 1px solid #dfe1e5;
-  box-shadow: 0 1px 6px rgba(32, 33, 36, 0.08);
-  transition: box-shadow 120ms ease, border-color 120ms ease;
-  color: rgb(31, 31, 31);
+  background: linear-gradient(
+    90deg,
+    var(--field-bg-from) 0%,
+    var(--field-bg-mid) 55%,
+    var(--field-bg-to) 100%
+  );
+  color: var(--field-text);
+  box-shadow: var(--field-shadow);
+  transition: box-shadow 120ms ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--field-hairline) 18%,
+      var(--field-hairline) 82%,
+      transparent 100%
+    );
+    pointer-events: none;
+    transition: background 120ms ease;
+  }
 
   &:hover,
   &:focus-within {
-    border-color: transparent;
-    box-shadow: 0 1px 8px rgba(32, 33, 36, 0.18);
+    box-shadow: var(--field-shadow-focus);
+  }
+
+  &:hover::after,
+  &:focus-within::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--field-hairline-focus) 18%,
+      var(--field-hairline-focus) 82%,
+      transparent 100%
+    );
   }
 }
 
@@ -24,7 +68,7 @@
   align-items: center;
   flex-shrink: 0;
   height: 50px;
-  color: #9aa0a6;
+  color: var(--field-adornment);
 }
 
 .field {
@@ -35,10 +79,12 @@
   outline: none;
   resize: none;
   background: transparent;
-  font-family: 'Google Sans', Arial, sans-serif;
+  font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
+  font-weight: 500;
   font-size: 16px;
   line-height: 22px;
-  color: rgb(31, 31, 31);
+  letter-spacing: -0.005em;
+  color: var(--field-text);
   padding: 14px 0 3px;
   margin: 0;
   overflow-x: hidden;
@@ -46,6 +92,6 @@
   overflow-wrap: break-word;
 
   &::placeholder {
-    color: #9aa0a6;
+    color: var(--field-placeholder);
   }
 }
