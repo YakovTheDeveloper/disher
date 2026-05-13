@@ -6,7 +6,7 @@ import homeStyles from './HomePage.module.scss';
 import { FoodSchedule } from '@/widgets/FoodSchedule';
 import { ScheduleEvents } from '@/widgets/ScheduleEvents';
 import { Laboratory } from '@/widgets/Laboratory';
-import { NutrientsSummaryBar } from '@/widgets/nutrients/NutrientsSummaryBar';
+import { HomeTopBar } from '@/widgets/HomeTopBar';
 import { useScheduleFoods, useScheduleNutrientTotals } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
@@ -74,7 +74,7 @@ const Page = ({ date }: { date: string }) => {
 
   return (
     <div className={homeStyles.container}>
-      <NutrientsSummaryBar
+      <HomeTopBar
         date={date}
         totals={scheduleTotals}
         missingNutrientNames={missingNutrientNames}

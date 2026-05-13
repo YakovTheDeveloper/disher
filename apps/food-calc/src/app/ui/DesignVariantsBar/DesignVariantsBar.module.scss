@@ -1,85 +1,392 @@
-.bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10001;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  background: rgba(0, 0, 0, 0.048);
+// ---------------------------------------------------------------------------
+// DesignVariantsBar — collapsed-by-default floating dev tool.
+// Mobile-first: large touch targets (≥40px), frosted dark glass, purple accent.
+// ---------------------------------------------------------------------------
 
-  color: #fff;
+$accent: #a78bfa; // violet-400
+$accent-soft: rgba(167, 139, 250, 0.22);
+$ink: #f3f0ff;
+$ink-dim: rgba(243, 240, 255, 0.62);
+$panel-bg: rgba(15, 13, 25, 0.78);
+$panel-border: rgba(167, 139, 250, 0.28);
+$z: 10001;
+
+// safe-area insets so we don't sit under the iOS notch / status bar
+$pad-top: max(10px, env(safe-area-inset-top));
+$pad-right: max(10px, env(safe-area-inset-right));
+
+// ---------------------------------------------------------------------------
+// Collapsed trigger — small circular pill in the top-right.
+// ---------------------------------------------------------------------------
+
+.trigger {
+  position: fixed;
+  top: $pad-top;
+  right: $pad-right;
+  z-index: $z;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+
+  background: $panel-bg;
+  border: 1px solid $panel-border;
+  border-radius: 999px;
+  box-shadow:
+    0 8px 24px -8px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+
+  color: $ink;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   line-height: 1;
+  letter-spacing: 0.04em;
+
+  cursor: pointer;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  transition:
+    transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+
+  &:hover {
+    border-color: rgba(167, 139, 250, 0.5);
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
 }
 
-.icon {
-  font-size: 14px;
+.triggerIcon {
+  font-size: 16px;
+  filter: drop-shadow(0 0 6px rgba(167, 139, 250, 0.45));
+}
+
+.triggerBadge {
+  padding: 3px 7px;
+  background: $accent-soft;
+  border-radius: 6px;
+  color: $accent;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+// ---------------------------------------------------------------------------
+// Expanded shell — anchored top-right, fans out as a vertical panel.
+// On narrow screens it stretches to fill the viewport width minus margins.
+// ---------------------------------------------------------------------------
+
+.shell {
+  position: fixed;
+  top: $pad-top;
+  right: $pad-right;
+  z-index: $z;
+
+  width: min(340px, calc(100vw - #{$pad-right} - 10px));
+  max-height: calc(100vh - #{$pad-top} - 10px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  display: flex;
+  flex-direction: column;
+
+  background: $panel-bg;
+  border: 1px solid $panel-border;
+  border-radius: 14px;
+  box-shadow:
+    0 18px 48px -12px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+
+  color: $ink;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+
+  transform-origin: top right;
+  animation: dvShellIn 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes dvShellIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Header strip.
+// ---------------------------------------------------------------------------
+
+.handle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 8px 10px 14px;
+  border-bottom: 1px solid rgba(167, 139, 250, 0.14);
+}
+
+.handleTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: $ink-dim;
+}
+
+.handleDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $accent;
+  box-shadow: 0 0 8px $accent;
+  animation: dvPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes dvPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+.close {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: $ink;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background 120ms ease, border-color 120ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  &:active {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Body.
+// ---------------------------------------------------------------------------
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
 }
 
 .empty {
-  opacity: 0.6;
+  padding: 22px 16px 24px;
+  text-align: center;
+  color: $ink-dim;
   font-style: italic;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: $ink-dim;
 }
 
 .select {
   appearance: none;
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-  padding: 4px 8px;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 34px 0 12px;
+
+  background:
+    rgba(255, 255, 255, 0.04)
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23a78bfa' stroke-width='1.4' stroke-linecap='round'/></svg>")
+    no-repeat right 12px center;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: $ink;
   font: inherit;
   cursor: pointer;
-  max-width: 180px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  transition: border-color 120ms ease, background-color 120ms ease;
 
   &:focus {
     outline: none;
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: $accent;
+    background-color: rgba(167, 139, 250, 0.08);
   }
 
   option {
-    background: #1a1a1a;
-    color: #fff;
+    background: #15131f;
+    color: $ink;
   }
 }
 
-.arrow {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-  padding: 4px 10px;
-  font: inherit;
+// ---------------------------------------------------------------------------
+// Prev / next row.
+// ---------------------------------------------------------------------------
+
+.nav {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.navBtn {
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: $ink;
+  font-size: 14px;
   cursor: pointer;
-  transition: background 120ms;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
 
   &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(167, 139, 250, 0.1);
+    border-color: rgba(167, 139, 250, 0.4);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+    background: rgba(167, 139, 250, 0.18);
   }
 
   &:disabled {
-    opacity: 0.4;
+    opacity: 0.35;
     cursor: not-allowed;
   }
 }
 
-.badge {
-  min-width: 44px;
-  text-align: center;
-  padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 4px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+.counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+
+  padding: 0 8px;
+  background: rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 10px;
 }
 
-// Visual flash applied to the anchor element when its variant changes,
-// so the user sees exactly which element on screen just switched.
+.counterNum {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: $accent;
+}
+
+.counterName {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-size: 12px;
+  color: $ink;
+}
+
+// ---------------------------------------------------------------------------
+// Variants chip grid — direct-pick row, the easiest tap target on mobile.
+// ---------------------------------------------------------------------------
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 12px;
+
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+
+  color: $ink-dim;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
+
+  &:hover {
+    color: $ink;
+    border-color: rgba(167, 139, 250, 0.4);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.chipActive {
+  background: $accent-soft;
+  border-color: $accent;
+  color: $ink;
+  font-weight: 700;
+  box-shadow: 0 0 0 1px $accent inset;
+}
+
+// ---------------------------------------------------------------------------
+// Anchor flash — unchanged from the previous design.
+// ---------------------------------------------------------------------------
+
 :global(.dv-anchor-flash) {
   animation: dvAnchorFlash 320ms ease-out;
   position: relative;
