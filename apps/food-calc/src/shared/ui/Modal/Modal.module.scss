@@ -2,17 +2,13 @@
     position: fixed;
     inset: 0;
     background: #000000b3;
-    z-index: 4000;
+    z-index: 6000;
 
     opacity: 0.9;
-    transition: opacity var(--duration-normal) var(--easing-default),
-                display var(--duration-normal) var(--easing-default) allow-discrete;
+    transition: opacity var(--duration-normal) var(--easing-default);
 
-    @starting-style {
-        opacity: 0;
-    }
-
-    &[data-state='closed'] {
+    &[data-starting-style],
+    &[data-ending-style] {
         opacity: 0;
     }
 }

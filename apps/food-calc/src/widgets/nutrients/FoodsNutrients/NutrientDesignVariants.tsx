@@ -11,7 +11,7 @@ import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 
 interface Props {
   getValue: (id: string) => number;
-  variant?: 'view' | 'edit-norms' | 'edit-values';
+  variant?: 'view' | 'edit-norms' | 'edit-values' | 'view-norms';
   onRichFood?: (nutrientId: string, unit: string) => void;
   onValueChange?: (nutrientId: string, value: number) => void;
 }
@@ -163,6 +163,7 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
   const isEditNorms = variant === 'edit-norms';
   const isEditValues = variant === 'edit-values';
   const isView = variant === 'view';
+  const isViewNorms = variant === 'view-norms';
   const [overlayOpen, setOverlayOpen] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const userItems = useUserNormItems();
@@ -314,6 +315,12 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
               </div>
             </div>
           )}
+          {isViewNorms && (
+            <span className={clsx(s.value, s.valueLeft)}>
+              <span>{Math.round(norm)}</span>
+              <span>{nutrient.unitRu}</span>
+            </span>
+          )}
         </div>
         {showOverlay && isOverlayOpen && (
           <div className={s.overlay}>
@@ -408,6 +415,13 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
                 <span className={s.unitProminent}>{nutrient.unitRu}</span>
               </div>
             </div>
+          )}
+          {isViewNorms && (
+            <span className={clsx(s.value, s.valueLeft)}>
+              {norm
+                ? `${nutrient.unitRu === 'г' ? Math.round(norm) : norm}${nutrient.unitRu}`
+                : '—'}
+            </span>
           )}
         </div>
       </div>

@@ -29,9 +29,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  min-height: 60px;
   position: relative;
-  padding: 6px 12px;
   margin: 0;
   border-radius: 6px;
   overflow: hidden;
@@ -49,27 +47,29 @@
     bottom: 0;
     height: 1px;
     background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(124, 65, 15, 0.09) 18%,
-      rgba(124, 65, 15, 0.09) 82%,
-      transparent 100%);
+        transparent 0%,
+        rgba(124, 65, 15, 0.09) 18%,
+        rgba(124, 65, 15, 0.09) 82%,
+        transparent 100%);
     pointer-events: none;
   }
 
-  &:last-child::after { display: none; }
+  &:last-child::after {
+    display: none;
+  }
 
   &:nth-child(2n) {
     background: linear-gradient(90deg,
-      rgba(250, 200, 120, 0.08) 0%,
-      rgba(250, 200, 120, 0.04) 35%,
-      transparent 55%);
+        rgba(250, 200, 120, 0.08) 0%,
+        rgba(250, 200, 120, 0.04) 35%,
+        transparent 55%);
   }
 
   &:nth-child(3n) {
     background: linear-gradient(90deg,
-      transparent 45%,
-      rgba(148, 170, 195, 0.05) 65%,
-      rgba(148, 170, 195, 0.09) 100%);
+        transparent 45%,
+        rgba(148, 170, 195, 0.05) 65%,
+        rgba(148, 170, 195, 0.09) 100%);
   }
 }
 
@@ -83,7 +83,7 @@
 }
 
 .dots {
-  opacity: 0.1;
+  opacity: 0.01;
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -96,10 +96,9 @@
     width: 100%;
     height: 8px;
     background-image: radial-gradient(circle, currentColor 2.5px, transparent 2.5px);
-    background-size: 14px 8px;
+    background-size: 8px 8px;
     background-position: left center;
     background-repeat: repeat-x;
-    opacity: 0.22;
   }
 }
 
@@ -166,11 +165,49 @@
   background: linear-gradient(45deg, transparent 0%, #ff9500 100%);
 }
 
+
+
+.name {
+  position: relative;
+  border-radius: 6px;
+  font-family: "Raleway", sans-serif;
+  font-weight: 400;
+  color: var(--text-primary);
+  line-height: 1.15;
+  min-width: 0;
+  width: 100%;
+  line-break: break-word;
+  line-height: 24px;
+  width: fit-content;
+  margin-right: auto;
+
+  .main & {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .minerals & {
+    // styles for minerals group
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .vitamins & {
+    // styles for vitamins group
+    font-size: 1rem;
+  }
+
+  .aminoAcids & {
+    // styles for aminoAcids group
+    font-size: 1rem;
+  }
+}
+
 .value {
   display: flex;
   gap: 2px;
   font-family: "Raleway", sans-serif;
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "lnum" 1;
   color: var(--text-secondary);
@@ -191,56 +228,14 @@
 }
 
 
-.name {
-  position: relative;
-  border-radius: 6px;
-  font-family: "Raleway", sans-serif;
-  font-weight: 400;
-  color: var(--text-primary);
-  line-height: 1.15;
-  min-width: 0;
-  width: 100%;
-  line-break: break-word;
-  line-height: 36px;
-  width: fit-content;
-  margin-right: auto;
-
-  .main & {
-    // border-bottom-left-radius: 8px;
-    // styles for main group
-    // padding: var(--space-2) var(--space-3);
-    // padding-right: var(--space-4);
-    padding-bottom: 0;
-    line-height: 1.1;
-    font-weight: 500;
-    font-size: 28px;
-  }
-
-  .minerals & {
-    // styles for minerals group
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .vitamins & {
-    // styles for vitamins group
-    font-size: 1rem;
-  }
-
-  .aminoAcids & {
-    // styles for aminoAcids group
-    font-size: 1rem;
-  }
-}
-
 .pct {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 1.25rem;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "lnum" 1;
   text-align: right;
-  line-height: 36px;
+  line-height: 28px;
 }
 
 .pctSign {
@@ -250,17 +245,10 @@
 }
 
 // Smaller typography for non-main groups
+.main,
 .minerals,
 .vitamins,
 .aminoAcids {
-  .pct {
-    font-size: 1.25rem;
-    line-height: 28px;
-  }
-
-  .value {
-    font-size: 0.75rem;
-  }
 
   .row {
     min-height: 44px;

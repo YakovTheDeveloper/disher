@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { Drawer as DrawerLib } from 'vaul';
+import { Drawer } from '@base-ui/react/drawer';
 import clsx from 'clsx';
 import CrossIcon from '@/shared/assets/icons/cross.svg';
 import styles from './SideDrawer.module.scss';
@@ -36,43 +36,38 @@ export function SideDrawer({
   const style = { '--side-drawer-width': width ?? 'min(85vw, 360px)' } as CSSProperties;
 
   return (
-    <DrawerLib.Root
+    <Drawer.Root
       open={open}
       onOpenChange={onOpenChange}
-      direction={direction}
-      dismissible
-      repositionInputs={false}
-      container={portalTarget}
+      modal="trap-focus"
+      swipeDirection={direction}
     >
-      <DrawerLib.Portal>
-        <DrawerLib.Overlay className={styles.overlay} />
-        <DrawerLib.Content
-          className={clsx(styles.content, styles[`content_${direction}`], className)}
-          style={style}
-        >
-          <DrawerLib.Handle
-            className={clsx(styles.handle, styles[`handle_${direction}`])}
-          />
-          <header className={styles.header}>
-            <DrawerLib.Title className={title != null ? styles.title : styles.srOnly}>
-              {title ?? 'Панель'}
-            </DrawerLib.Title>
-            {description != null && (
-              <DrawerLib.Description className={styles.srOnly}>
-                {description}
-              </DrawerLib.Description>
-            )}
-            {headerAction != null && (
-              <div className={styles.headerAction}>{headerAction}</div>
-            )}
-            <DrawerLib.Close className={styles.close} aria-label="Закрыть">
-              <CrossIcon />
-            </DrawerLib.Close>
-          </header>
-          <div className={styles.body}>{children}</div>
-        </DrawerLib.Content>
-      </DrawerLib.Portal>
-    </DrawerLib.Root>
+      <Drawer.Portal container={portalTarget}>
+        <Drawer.Backdrop className={styles.overlay} />
+        <Drawer.Viewport>
+          <Drawer.Popup
+            className={clsx(styles.content, styles[`content_${direction}`], className)}
+            style={style}
+          >
+            <header className={styles.header}>
+              <Drawer.Title className={title != null ? styles.title : styles.srOnly}>
+                {title ?? 'Панель'}
+              </Drawer.Title>
+              {description != null && (
+                <Drawer.Description className={styles.srOnly}>{description}</Drawer.Description>
+              )}
+              {headerAction != null && (
+                <div className={styles.headerAction}>{headerAction}</div>
+              )}
+              <Drawer.Close className={styles.close} aria-label="Закрыть">
+                <CrossIcon />
+              </Drawer.Close>
+            </header>
+            <div className={styles.body}>{children}</div>
+          </Drawer.Popup>
+        </Drawer.Viewport>
+      </Drawer.Portal>
+    </Drawer.Root>
   );
 }
 

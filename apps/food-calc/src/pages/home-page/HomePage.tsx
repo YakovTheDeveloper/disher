@@ -1,6 +1,7 @@
 import { RouterLinks } from '@/app/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import clsx from 'clsx';
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import homeStyles from './HomePage.module.scss';
 import { FoodSchedule } from '@/widgets/FoodSchedule';
@@ -22,7 +23,12 @@ const SCREENS: ScreenEntry[] = [
 ];
 
 const DEFAULT_SLIDE = 1;
-const SWIPE_DURATION = 25;
+// Embla programmatic-scroll duration (frame-loop units). Сокращён
+// относительно дефолта 25, потому что юзер добавил margin между слайдами:
+// scroll-дистанция выросла → spring-кривая Embla в конце давала visible
+// drop ("11111110099"). Меньшее окно (~300ms) делает spring менее заметным.
+// На пользовательский свайп не влияет — там momentum, не `duration`.
+const SWIPE_DURATION = 18;
 
 const Page = ({ date }: { date: string }) => {
   const scheduleFoods = useScheduleFoods(date);
@@ -34,26 +40,32 @@ const Page = ({ date }: { date: string }) => {
   } = useScheduleNutrientTotals(date);
 
   const items = scheduleFoods;
-  const events = [...scheduleEvents] as ScheduleEvent[];
+  // НЕ делать `[...scheduleEvents]` — spread даёт новую ссылку на каждом
+  // рендере HomePage и убивает memo на ScheduleEvents (props всегда «новые»).
+  const events = scheduleEvents as ScheduleEvent[];
 
   const [activeIndex, setActiveIndex] = useState(DEFAULT_SLIDE);
   const swipeableRef = useRef<SwipeableRef>(null);
 
+  // На свайпе VT-морф title НЕ запускаем намеренно — Swipeable вызывает
+  // onIndexChange на `settle` event (после полного завершения scroll-
+  // анимации, см. OPTIMIZATION_CASE.md), и пуск 600ms VT в этот момент
+  // даёт perceived "title застрял": контент уже на новой позиции, а
+  // title только начинает морфить. Свайп = utility (instant title),
+  // click = декор (VT-морф ниже в handleSelectAnimated). Та же асимметрия
+  // живёт в DishBuilderPage.
   const handleIndexChange = useCallback((idx: number) => {
     setActiveIndex(idx);
   }, []);
 
-  // Raw commit — передаётся в `HomeScreenIndicator.onSelect`, который
-  // сам оборачивает вызов в `runTileMigration` через свой `handleSelect`.
-  // Двойную VT-обёртку отсюда поэтому не делаем.
   const handleSelect = useCallback((idx: number) => {
     swipeableRef.current?.goToPage(idx);
     setActiveIndex(idx);
   }, []);
 
-  // Для невидимого click-layer'а (он лежит ПОВЕРХ Swipeable и перехватывает
-  // клики до visible-плитки) — VT/FLIP надо запустить вручную: иначе
-  // активная плитка меняется без анимации морфа title ↔ band.
+  // Невидимый click-layer перехватывает клики ДО visible-плитки в
+  // ScreenIndicator — VT-обёртку нужно дёргать тут вручную, иначе
+  // активная плитка меняется без морфа title ↔ band.
   const handleSelectAnimated = useCallback(
     (idx: number) => {
       runTileMigration(activeIndex, idx, () => handleSelect(idx));
@@ -77,7 +89,6 @@ const Page = ({ date }: { date: string }) => {
             ref={swipeableRef}
             defaultSlide={DEFAULT_SLIDE}
             duration={SWIPE_DURATION}
-            key={date}
             hasDots={false}
             onIndexChange={handleIndexChange}
           >
@@ -100,7 +111,10 @@ const Page = ({ date }: { date: string }) => {
               type="button"
               tabIndex={-1}
               aria-label={screen.label}
-              className={homeStyles.indicatorClickTile}
+              className={clsx(
+                homeStyles.indicatorClickTile,
+                i === activeIndex && homeStyles.indicatorClickTileActive,
+              )}
               onClick={() => handleSelectAnimated(i)}
             />
           ))}

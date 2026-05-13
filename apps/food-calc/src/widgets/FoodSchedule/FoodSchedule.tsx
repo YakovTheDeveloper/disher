@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState, Fragment } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState, Fragment } from 'react';
 import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
@@ -312,4 +312,4 @@ const FoodSchedule = ({
   );
 };
 
-export default FoodSchedule;
+export default memo(FoodSchedule);

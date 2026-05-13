@@ -43,28 +43,6 @@
   white-space: nowrap;
 }
 
-.saveBtn {
-  border: none;
-  background: var(--text-primary, #111);
-  color: var(--bg-primary, #fff);
-  padding: 8px 20px;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-  flex-shrink: 0;
-
-  &:active {
-    opacity: 0.75;
-  }
-
-  &:disabled {
-    opacity: 0.35;
-    cursor: default;
-  }
-}
-
 .body {
   flex: 1 1 auto;
   min-height: 0;

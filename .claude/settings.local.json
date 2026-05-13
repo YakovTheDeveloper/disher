@@ -72,7 +72,14 @@
       "WebFetch(domain:vaul.emilkowal.ski)",
       "WebFetch(domain:base-ui.com)",
       "Bash(echo \"EXITCODE=$?\")",
-      "Bash(NODE_OPTIONS=\"--max-old-space-size=8192\" npm run build)"
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=8192\" npm run build)",
+      "Bash(echo \"TSC_EXIT=$?\")",
+      "Bash(echo \"ESLINT_EXIT=$?\")",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:piccalil.li)",
+      "Bash(findstr /i swipe)",
+      "Bash(gh api *)",
+      "Bash(gh search *)"
     ]
   }
 }

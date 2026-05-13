@@ -42,14 +42,17 @@
 }
 
 // ─── Sticky month header ────────────────────────────────────────
+// backdrop-filter намеренно НЕ используем: month-header'ов в DOM до 24
+// одновременно, и каждый blur(16px) форсит full-screen GPU pass на
+// каждый кадр slide-up drawer'а — заметный jank при открытии. Solid
+// opaque background даёт тот же визуальный «sticky over content» без
+// composite cost. См. shadcn-ui/ui#327, Firefox bug 1718471.
 .monthHeader {
     position: sticky;
     top: 0;
     z-index: 5;
     padding: 18px 20px 8px;
-    background: var(--cal-glass);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    background: var(--cal-bg);
     border-bottom: 0.5px solid var(--cal-divider);
 }
 

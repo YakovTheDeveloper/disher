@@ -125,6 +125,7 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
           spellCheck={spellCheck ?? false}
           autoCorrect={autoCorrect ?? 'off'}
           autoCapitalize={autoCapitalize ?? 'off'}
+          data-base-ui-swipe-ignore=""
           {...rest}
           ref={innerRef}
           rows={1}

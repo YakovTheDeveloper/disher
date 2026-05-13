@@ -1,5 +1,4 @@
 import clsx from 'clsx';
-import { useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import s from './ScreenIndicator.module.scss';
 
@@ -58,15 +57,13 @@ export const runTileMigration = (
  * `--vt-screen-duration` / `--vt-screen-easing` on `<html>` — currently
  * locked to a back-out overshoot ("bounce"). See `runTileMigration`
  * for the View Transitions transport details.
+ *
+ * NB: HomePage перекрывает эти кнопки невидимым click-layer'ом и сам
+ * оборачивает коммит в `runTileMigration`. Поэтому `onClick` здесь —
+ * raw commit без VT-обёртки (она бы дала double-VT, если бы кликам
+ * удалось добраться до этих кнопок).
  */
 export const ScreenIndicator = ({ screens, activeIndex, onSelect }: Props) => {
-  const handleSelect = useCallback(
-    (idx: number) => {
-      runTileMigration(activeIndex, idx, () => onSelect(idx));
-    },
-    [activeIndex, onSelect],
-  );
-
   const activeLabel = screens[activeIndex]?.label ?? '';
 
   return (
@@ -81,7 +78,7 @@ export const ScreenIndicator = ({ screens, activeIndex, onSelect }: Props) => {
               role="tab"
               aria-selected={active}
               className={clsx(s.tile, active && s.tileActive)}
-              onClick={() => handleSelect(i)}
+              onClick={() => onSelect(i)}
             >
               {screen.image && (
                 <img src={screen.image} className={s.tileImg} alt="" aria-hidden />

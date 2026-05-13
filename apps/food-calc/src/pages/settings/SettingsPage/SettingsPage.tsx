@@ -3,6 +3,7 @@ import Button from '@/shared/ui/atoms/Button/Button';
 import { clear as idbClear } from 'idb-keyval';
 import { db } from '@/shared/lib/dexie/schema';
 import { dump, apply, push } from '@/shared/lib/snapshot';
+import { ThemePicker } from '@/features/theme';
 import styles from './SettingsPage.module.scss';
 
 const downloadJson = (name: string, obj: unknown) => {
@@ -77,6 +78,14 @@ const SettingsPage = () => {
       </header>
 
       <div className={styles.content}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Тема</h2>
+          <p className={styles.sectionDesc}>
+            Семь палитр, основанных на оттенках расписания. Выбор сохраняется на этом устройстве.
+          </p>
+          <ThemePicker />
+        </section>
+
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Бэкап</h2>
           <p className={styles.sectionDesc}>

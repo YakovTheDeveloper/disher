@@ -1,17 +1,21 @@
+import { useNavigate } from 'react-router-dom';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { DetailsChips } from '@/features/food/details-chips';
+import { getProductUrl, RouterUrls } from '@/app/router';
 
 import type { ScheduleFoodFlow } from './useScheduleFoodFlow';
+import styles from './ScheduleFoodEditModals.module.scss';
 
 type Props = {
   flow: ScheduleFoodFlow;
 };
 
 const ScheduleFoodEditModals = ({ flow }: Props) => {
+  const navigate = useNavigate();
   const {
     step,
     draft,
@@ -23,6 +27,23 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
     quantityContent,
     inputIds: { TIME_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
   } = flow;
+
+  const infoTarget = (() => {
+    if (draft.variant === 'dish' && draft.dishId) {
+      return { label: 'Информация о блюде', href: RouterUrls.getDish(draft.dishId) };
+    }
+    if (draft.variant === 'product' && draft.productId) {
+      // Catalog products don't have a user-mutable detail page; route still
+      // exists and shows read-only catalog data, so we link to it.
+      return { label: 'Информация о продукте', href: getProductUrl(draft.productId) };
+    }
+    return null;
+  })();
+
+  const handleInfoClick = (href: string) => () => {
+    handleClose();
+    navigate(href);
+  };
 
   return (
     <div onFocusCapture={handleFocusCapture}>
@@ -76,11 +97,22 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         content={
           <ModalShell>
             <ModalShell.Body>
-              <ModalShell.Title>
-                {draft.foodName
-                  ? `Уточнение: ${draft.foodName}`
-                  : 'Уточнение к приему пищи'}
-              </ModalShell.Title>
+              <div className={styles.detailsHeader}>
+                <ModalShell.Title>
+                  {draft.foodName
+                    ? `Уточнение: ${draft.foodName}`
+                    : 'Уточнение к приему пищи'}
+                </ModalShell.Title>
+                {infoTarget && (
+                  <button
+                    type="button"
+                    className={styles.infoLink}
+                    onClick={handleInfoClick(infoTarget.href)}
+                  >
+                    {infoTarget.label}
+                  </button>
+                )}
+              </div>
               <DetailsChips
                 textareaId={DETAILS_INPUT}
                 value={draft.details}

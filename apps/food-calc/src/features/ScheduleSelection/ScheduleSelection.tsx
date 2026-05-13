@@ -168,6 +168,13 @@ export const ScheduleSelection = ({
     return acc;
   }, [selectedDateParsed, today, dayIndexByDateStr, months.length, groupCounts]);
 
+  // На cold-open Virtuoso уже стартует в нужной позиции через
+  // `initialTopMostItemIndex` — этот useEffect нужен только для случая,
+  // когда selectedDate меняется БЕЗ ремаунта (свой `selectedDate` prop
+  // без закрытия drawer'а). behavior:'smooth' тут провоцирует smooth
+  // scroll внутри transforming parent (drawer slide-up) → видимый jank,
+  // см. petyosi/react-virtuoso #122/#458. 'auto' даёт мгновенный jump
+  // без анимации — корректный fallback.
   useEffect(() => {
     if (!virtuosoRef.current || !selectedDateParsed) return;
     const targetStr = format(selectedDateParsed, 'dd-MM-yyyy');
@@ -175,7 +182,7 @@ export const ScheduleSelection = ({
     if (idx === undefined) return;
     virtuosoRef.current.scrollToIndex({
       index: Math.max(0, idx - 1),
-      behavior: 'smooth',
+      behavior: 'auto',
     });
   }, [selectedDateParsed, dayIndexByDateStr]);
 

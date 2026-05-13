@@ -113,6 +113,7 @@ const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
             onBlur={handleBlur}
             aria-invalid={!!error}
             aria-describedby={error ? errorId : helperText ? helperTextId : undefined}
+            data-base-ui-swipe-ignore=""
             {...props}
           />
 

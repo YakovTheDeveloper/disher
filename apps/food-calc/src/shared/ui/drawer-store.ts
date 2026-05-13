@@ -11,12 +11,31 @@ import {
 
 type InferResult<P> = P extends { onClose: (result?: infer R) => void } ? R : void;
 
+// Two-phase open + two-phase close:
+//
+// OPEN (this is the load-bearing part for the slide-up animation):
+// Base UI's `useTransitionStatus` initializes `mounted = useState(open)`. If Drawer.Root
+// mounts with `open={true}` from frame 1, `mounted` is `true` immediately, the
+// `if (open && !mounted) setTransitionStatus('starting')` branch never fires, and
+// `data-starting-style` is never set → no enter animation. We work around that with a
+// `mounting` phase that maps to `open={false}` for one frame, then flips to `open={true}`
+// on the next rAF — Base UI sees the false→true transition and applies the starting
+// attribute.
+//
+// CLOSE:
+// 1. `close(id)` flips phase → 'closing'. DrawerManager re-renders Drawer.Root with open=false,
+//    Base UI plays its exit transition.
+// 2. Manager passes `onOpenChangeComplete` to Drawer.Root. When Base UI signals animation
+//    finished, it calls `finishClose(id)`, which fully removes the instance.
+// No magic timer — exit duration is governed by the real CSS transition.
+
 interface DrawerInstance {
   id: string;
   Component: React.ComponentType<any>;
   props: any;
   resolve: (value: any) => void;
   historyHandler: () => void;
+  phase: 'mounting' | 'open' | 'closing';
 }
 
 interface DrawerState {
@@ -37,33 +56,73 @@ function show<P extends BaseDrawerProps<any>>(
     pushOverlayEntry();
     registerCloseHandler(historyHandler);
     useDrawerStore.setState((state) => ({
-      instances: [...state.instances, { id, Component, props, resolve, historyHandler }],
+      instances: [
+        ...state.instances,
+        { id, Component, props, resolve, historyHandler, phase: 'mounting' },
+      ],
     }));
+    // Flip to 'open' on the next animation frame so Base UI's Drawer.Root re-renders
+    // with open: false → true. That transition is what makes useTransitionStatus fire
+    // setTransitionStatus('starting') and apply [data-starting-style] on the popup,
+    // which the slide-up CSS transition keys off of. See drawer-store.ts header comment.
+    requestAnimationFrame(() => {
+      useDrawerStore.setState((state) => ({
+        instances: state.instances.map((i) =>
+          i.id === id && i.phase === 'mounting' ? { ...i, phase: 'open' } : i,
+        ),
+      }));
+    });
   });
 }
 
-async function close(id: string, result?: any) {
+function close(id: string, result?: any) {
   const instance = useDrawerStore.getState().instances.find((i) => i.id === id);
-  if (instance) {
-    unregisterCloseHandler(instance.historyHandler);
-    if (!isPopstateClosing()) await popOverlayEntry();
+  if (!instance) return;
+  if (instance.phase === 'closing') return;
+
+  unregisterCloseHandler(instance.historyHandler);
+  instance.resolve(result);
+
+  // Closing during the 'mounting' frame: Drawer.Root never reached open=true, so
+  // Base UI won't fire onOpenChangeComplete for a false→false transition. Skip the
+  // exit animation and drop the instance directly.
+  if (instance.phase === 'mounting') {
     useDrawerStore.setState((state) => ({
       instances: state.instances.filter((i) => i.id !== id),
     }));
-    instance.resolve(result);
+    if (!isPopstateClosing()) {
+      void popOverlayEntry().catch(() => {});
+    }
+    return;
+  }
+
+  useDrawerStore.setState((state) => ({
+    instances: state.instances.map((i) => (i.id === id ? { ...i, phase: 'closing' } : i)),
+  }));
+
+  if (!isPopstateClosing()) {
+    void popOverlayEntry().catch(() => {});
   }
 }
 
+function finishClose(id: string) {
+  useDrawerStore.setState((state) => ({
+    instances: state.instances.filter((i) => i.id !== id),
+  }));
+}
+
 function closeLast(result?: any) {
-  const { instances } = useDrawerStore.getState();
-  if (instances.length > 0) {
-    close(instances[instances.length - 1].id, result);
+  const open = useDrawerStore
+    .getState()
+    .instances.filter((i) => i.phase === 'open' || i.phase === 'mounting');
+  if (open.length > 0) {
+    close(open[open.length - 1].id, result);
   }
 }
 
 export function useDrawers() {
   const instances = useDrawerStore((s) => s.instances);
-  return { instances, show, close, closeLast, isOpen: instances.length > 0 };
+  return { instances, show, close, closeLast, finishClose, isOpen: instances.length > 0 };
 }
 
 export const drawerStore = { show, close, closeLast };

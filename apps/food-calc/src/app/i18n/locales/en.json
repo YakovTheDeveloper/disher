@@ -2,6 +2,14 @@
     "common": {
         "frequent": "Frequent"
     },
+    "overlay": {
+        "modal": {
+            "defaultA11yLabel": "Modal dialog"
+        },
+        "drawer": {
+            "defaultA11yLabel": "Drawer"
+        }
+    },
     "category": {
         "physical": "Physical",
         "mental": "Mental",

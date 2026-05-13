@@ -23,8 +23,11 @@
 // Equal-width tiles (flex: 1 1 0) — width is NEVER animated to avoid
 // reflow on every frame. Active/inactive contrast is composite-only:
 //   transform: scale  (GPU)
-//   opacity            (GPU)
 //   border-color       (paint, but on 4 pixels — negligible)
+//
+// Border-color и transform используют ОДИН и тот же timing —
+// рассинхрон (transform 0.28s vs border 0.18s) давал visible pop
+// рамки через ~100ms после увеличения плитки.
 .tile {
     position: relative;
     flex: 1 1 0;
@@ -45,20 +48,8 @@
     transform-origin: center;
     transition:
         transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-        border-color 0.18s ease;
+        border-color 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     -webkit-tap-highlight-color: transparent;
-}
-
-.tile::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 28%;
-    pointer-events: none;
-    opacity: 1;
-    transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tileActive {
@@ -67,10 +58,17 @@
     z-index: 1;
 }
 
-.tileActive::after {
-    opacity: 0;
+@media (prefers-reduced-motion: reduce) {
+    .tile {
+        transition: none;
+    }
 }
 
+// Анимацию появления title НЕ навешиваем: cross-fade snapshot'ов уже
+// делает View Transitions API (см. `::view-transition-old/new` ниже).
+// Прежний `tileTitleFadeIn 0.18s` накладывался поверх VT 0.6s и давал
+// рассинхрон. В браузерах без VT смена будет мгновенной — то же
+// поведение, что у свайпа, так что консистентность не страдает.
 .tileTitle {
     position: relative;
     z-index: 1;
@@ -85,17 +83,6 @@
     letter-spacing: -0.3px;
     white-space: nowrap;
     opacity: 0.45;
-    animation: tileTitleFadeIn 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes tileTitleFadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 0.45;
-    }
 }
 
 .tileImg {

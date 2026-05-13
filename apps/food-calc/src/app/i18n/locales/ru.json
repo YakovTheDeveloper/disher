@@ -2,6 +2,14 @@
     "common": {
         "frequent": "Частые"
     },
+    "overlay": {
+        "modal": {
+            "defaultA11yLabel": "Модальное окно"
+        },
+        "drawer": {
+            "defaultA11yLabel": "Панель"
+        }
+    },
     "category": {
         "physical": "Физическое",
         "mental": "Ментальное",

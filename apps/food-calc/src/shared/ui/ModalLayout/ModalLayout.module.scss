@@ -29,21 +29,21 @@
     right: 0;
     top: 0;
     overflow: hidden;
-    z-index: 4001;
+    z-index: calc(6001 + var(--nested-dialogs, 0) * 10);
 
     opacity: 1;
     transform: translateY(0);
     transition:
         transform var(--duration-slow) var(--easing-spring),
-        opacity var(--duration-normal) var(--easing-default),
-        display var(--duration-slow) var(--easing-spring) allow-discrete;
+        opacity var(--duration-normal) var(--easing-default);
 
-    @starting-style {
-        opacity: 0;
-        transform: translateY(20%);
-    }
+    // Pre-promote to GPU + isolate layout/paint so heavy modal contents don't trigger
+    // a first-paint stutter against the entry transition.
+    will-change: transform, opacity;
+    contain: layout style paint;
 
-    &[data-state='closed'] {
+    &[data-starting-style],
+    &[data-ending-style] {
         opacity: 0;
         transform: translateY(20%);
     }
@@ -66,6 +66,18 @@
     /* IE and Edge */
     scrollbar-width: none;
     /* Firefox */
+}
+
+.srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

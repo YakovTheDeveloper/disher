@@ -4,9 +4,7 @@ import '@/shared/assets/style/index.scss';
 import '@/shared/assets/style/App.module.scss';
 import { Toaster } from 'sonner';
 import { setupGlobalLog } from '@/app/log';
-import { Modal } from '@/shared/ui/Modal';
 import { ModalManager } from '@/app/ui/ModalManager';
-import { Drawer } from '@/shared/ui/Drawer';
 import { useLastFocusMethod } from '@/hooks/useLastFocusMethod';
 import { useUserAgentDetection } from '@/hooks/useUserAgentDetection';
 import { useGlobalScrollBlur } from '@/hooks/useGlobalScrollBlur';
@@ -15,11 +13,13 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from '@/app/i18n';
 import { AuthGate } from '@/features/auth';
 import { BackupGate } from '@/features/backup/BackupGate';
+import { useApplyUserTheme } from '@/shared/lib/user-theme';
 
 export default function App() {
   useLastFocusMethod();
   useUserAgentDetection();
   useGlobalScrollBlur();
+  useApplyUserTheme();
   setupGlobalLog();
 
   return (
@@ -39,13 +39,8 @@ export default function App() {
         }}
       />
       <div className={s.main}>
-        <Modal>
-          <ModalManager />
-        </Modal>
-
-        <Drawer>
-          <DrawerManager />
-        </Drawer>
+        <ModalManager />
+        <DrawerManager />
 
         <AuthGate>
           <BackupGate>

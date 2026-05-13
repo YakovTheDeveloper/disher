@@ -19,8 +19,3 @@
   overflow: hidden;
 }
 
-// Hide vaul overlay only while THIS drawer is open.
-// data-schedule-drawer is set on .shell; :has lifts the variable to :root.
-:global(html):has([data-schedule-drawer]) {
-  --vaul-overlay-opacity: 0;
-}

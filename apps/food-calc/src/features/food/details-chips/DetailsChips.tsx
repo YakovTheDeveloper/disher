@@ -85,6 +85,13 @@ export function DetailsChips({
 
   return (
     <div className={styles.root}>
+      <AutoGrowSearch
+        id={textareaId}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        maxLength={500}
+      />
       {suggestionChips.length > 0 && (
         <div className={styles.section}>
           <div className={styles.sectionLabel}>Особенности</div>
@@ -101,13 +108,6 @@ export function DetailsChips({
           </div>
         </div>
       )}
-      <AutoGrowSearch
-        id={textareaId}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        maxLength={500}
-      />
     </div>
   );
 }

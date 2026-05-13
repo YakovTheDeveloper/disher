@@ -5,11 +5,59 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    // Высота HomeTopBar = safe-area сверху + padding pill'а + содержимое
+    // (avatar 32px / date numeral). Грубо ~60px без safe-area; на iOS PWA
+    // прибавляется ~47px статус-бара. Переменная читается:
+    //   • `.indicatorFloat { top }` — чтобы ScreenIndicator стартовал ПОД баром,
+    //     не из-под него.
+    //   • `--page-top-inset` — чтобы контент в Screens учитывал и бар, и индикатор.
+    --top-bar-h: calc(env(safe-area-inset-top, 0px) + 80px);
     // Высота `HomeScreenIndicator` фиксирована: `.tile { min-height: 92px }`
-    // + `.band { height: 88px }` = 180px. Прокидывается в потомков; читает
-    // `Screen.module.scss .screenScroll { padding-top: var(--page-top-inset) }` —
+    // + `.band { height: 88px }` = 180px. Плюс высота HomeTopBar (absolute сверху).
+    // Читает `Screen.module.scss .screenScroll { padding-top: var(--page-top-inset) }` —
     // контент в слайдах стартует под индикатором и уезжает за него при скролле.
-    --page-top-inset: 180px;
+    --page-top-inset: calc(var(--top-bar-h) + 180px);
+    // Дефолт — чистый white body (без свечения). Ambient-glow подложки
+    // живут на вариантах `[data-dv='HomeAmbient']` ниже; переключаются
+    // через `DesignVariantsBar`. Радиальные градиенты выбраны вместо
+    // линейных, чтобы у фона не было видимой прямоугольной рамки при
+    // свайпе слайдов.
+}
+
+// ─── Ambient backdrop variants ───────────────────────────────────────
+// Все варианты — radial-glow из верхних углов, угасают в transparent.
+// Никаких чётких границ, никаких квадратных коробок.
+
+// 1) plain — чистый white body. Дефолт.
+.container[data-dv='HomeAmbient'][data-dv-v='plain'] {
+    background: none;
+}
+
+// 2) peach-rose — тёплый peach слева + холодный rose справа.
+.container[data-dv='HomeAmbient'][data-dv-v='peach-rose'] {
+    background:
+        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(253, 230, 200, 0.55), transparent 60%),
+        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(252, 225, 235, 0.45), transparent 60%);
+}
+
+// 3) mint-sky — прохладный mint + sky-blue.
+.container[data-dv='HomeAmbient'][data-dv-v='mint-sky'] {
+    background:
+        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(210, 240, 220, 0.55), transparent 60%),
+        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(210, 228, 245, 0.5), transparent 60%);
+}
+
+// 4) lavender-cream — лавандовый + кремовый.
+.container[data-dv='HomeAmbient'][data-dv-v='lavender-cream'] {
+    background:
+        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(225, 215, 245, 0.5), transparent 60%),
+        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(252, 245, 220, 0.55), transparent 60%);
+}
+
+// 5) sunrise — широкий single-glow по центру сверху, имитирует рассвет.
+.container[data-dv='HomeAmbient'][data-dv-v='sunrise'] {
+    background:
+        radial-gradient(ellipse 120% 50% at 50% 0%, rgba(255, 220, 180, 0.6), transparent 65%);
 }
 
 .swipeArea {
@@ -26,7 +74,7 @@
 // прозрачный — индикатор «просвечивает» сквозь содержимое.
 .indicatorFloat {
     position: absolute;
-    top: 0;
+    top: var(--top-bar-h, 60px);
     left: 0;
     right: 0;
     z-index: 0;
@@ -58,7 +106,7 @@
 // плитками (если они появятся). Сами `<button>` — pointer-events:auto.
 .indicatorClickLayer {
     position: absolute;
-    top: 0;
+    top: var(--top-bar-h, 60px);
     left: 0;
     right: 0;
     z-index: 2;
@@ -67,6 +115,10 @@
     pointer-events: none;
 }
 
+// Hit-зона ОБЯЗАНА совпадать с визуальной плиткой `.tile`, иначе тап
+// «по краю активной» попадает в соседнюю invisible-кнопку. Та же
+// scale(0.92/1) и тот же transition, что у `.tile` — внешне 0
+// изменений (кнопки прозрачны), но геометрия hit-area синхронна.
 .indicatorClickTile {
     flex: 1 1 0;
     min-width: 0;
@@ -77,4 +129,17 @@
     cursor: pointer;
     pointer-events: auto;
     -webkit-tap-highlight-color: transparent;
+    transform: scale(0.92);
+    transform-origin: center;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.indicatorClickTileActive {
+    transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .indicatorClickTile {
+        transition: none;
+    }
 }

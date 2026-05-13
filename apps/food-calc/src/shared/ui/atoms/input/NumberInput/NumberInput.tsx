@@ -61,6 +61,7 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
         inputMode="numeric"
         pattern="[0-9]*"
         maxLength={maxLength}
+        data-base-ui-swipe-ignore=""
         onFocus={handleFocus}
         className={clsx([
           styles.input,

@@ -102,6 +102,7 @@ const Textarea = ({
         readOnly={readOnly}
         name={name}
         autoFocus={autoFocus}
+        data-base-ui-swipe-ignore=""
       />
     </div>
   );

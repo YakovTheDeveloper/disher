@@ -1,30 +1,50 @@
-// Эти CSS-переменные управляют внутренней анимацией Vaul.
-// Можно настроить их для ускорения или замедления анимации.
-// Взяты из примеров Vaul для более резкой и отзывчивой анимации.
-// vaul-overlay-duration также управляет скоростью появления/исчезновения оверлея.
+// CSS variables for Base UI Drawer overlay (Backdrop). Tune duration and opacity
+// from a single place. Per-drawer overrides (e.g. ScheduleSelectionDrawer hides
+// backdrop) flip --overlay-opacity at the document level via :has().
 :root {
-    --vaul-drawer-duration: 0;
-    /* Общая длительность анимации Drawer */
-    --vaul-overlay-duration: 280ms;
-    /* Длительность анимации оверлея */
-    --vaul-overlay-opacity: 0.35;
-    /* Прозрачность оверлея */
+    --overlay-duration: 280ms;
+    --overlay-opacity: 0.2;
 }
 
 
+// Canonical Vaul/Base-UI backdrop pattern, см.
+// https://base-ui.com/react/components/drawer (hero demo CSS).
 .overlay {
     position: fixed;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.2);
+    min-height: 100dvh;
+    background-color: black;
     z-index: 5000;
-    opacity: 0;
-    transition: opacity var(--vaul-overlay-duration) ease-out;
+    // Opacity линкована со swipe-progress: backdrop progressively
+    // transparent во время свайпа закрытия.
+    opacity: calc(var(--overlay-opacity, 0.2) * (1 - var(--drawer-swipe-progress, 0)));
+    transition-duration: 450ms;
+    transition-property: opacity;
+    transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 
-    &[data-state='open'] {
-        opacity: 1;
+    // iOS 26+: position:absolute обеспечивает покрытие visible viewport'а
+    // (fixed на iOS не всегда корректно расширяется до URL bar area).
+    @supports (-webkit-touch-callout: none) {
+        position: absolute;
     }
 
-    &[data-state='closed'] {
+    &[data-starting-style],
+    &[data-ending-style] {
         opacity: 0;
+    }
+
+    &[data-swiping] {
+        transition-duration: 0ms;
+    }
+
+    // Скорость закрытия = скорости свайпа (быстрый свайп → быстрое закрытие).
+    &[data-ending-style] {
+        transition-duration: calc(var(--drawer-swipe-strength, 1) * 400ms);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .overlay {
+        transition: none;
     }
 }

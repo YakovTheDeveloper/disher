@@ -5,22 +5,59 @@
 
 
 .content {
-    position: absolute;
-    transform: translateY(0);
-    right: 0;
-    left: 0;
+    // SideDrawer-style геометрия для bottom-drawer: `position: fixed` +
+    // якоря `bottom/left/right` → ширина и позиция известны браузеру ДО
+    // рендера тяжёлых детей (Virtuoso, useLiveQuery и т.п.). Flex-viewport
+    // паттерн из base-ui demos требует content-driven height на 1-м кадре
+    // и ломается на heavy content. См. SideDrawer.module.scss — там тот же
+    // подход (`position: fixed; top:0; bottom:0` для side-drawer'а).
+    position: fixed;
     bottom: 0;
-    box-shadow: 0px -2px 4px rgba(0, 0, 0, 0.03);
+    left: 0;
+    right: 0;
     max-height: 100svh;
+    box-sizing: border-box;
+    box-shadow: 0px -2px 4px rgba(0, 0, 0, 0.03);
 
-    // background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 25%, rgba(255, 255, 255, 0.75) 50%, rgba(255, 255, 255, 1) 100%);
-    backdrop-filter: blur(1px);
+    // Live gesture-driven transform during user swipe; --drawer-swipe-movement-y is set
+    // by Base UI on the Popup. When no gesture, fallback 0.
+    transform: translateY(var(--drawer-swipe-movement-y, 0));
+    transition: transform var(--overlay-duration, 280ms) cubic-bezier(0.32, 0.72, 0, 1);
+
+    // Pre-promote to GPU composite layer so the slide-in animation doesn't trigger a
+    // first-paint cost on cold open. Combined with `contain` to isolate layout/style/paint
+    // work of the heavy drawer body (e.g. nutrient grids) from the surrounding page.
+    will-change: transform;
+    contain: layout style paint;
+
+    // Base UI sets [data-starting-style] on the first frame after mount, then removes it
+    // on the next animation frame — the diff vs. resting `translateY(0)` triggers the
+    // slide-up via the `transition: transform` declared above. [data-ending-style] is
+    // present during the exit transition.
+    &[data-starting-style],
+    &[data-ending-style] {
+        transform: translateY(100%);
+    }
+
+    // Fling-close: shorten exit duration proportional to swipe velocity. Base UI sets
+    // --drawer-swipe-strength on release (0.1–1).
+    &[data-ending-style] {
+        transition-duration: calc(var(--drawer-swipe-strength, 1) * 400ms);
+    }
+
+    // Disable the transition while the user is actively dragging — Base UI updates
+    // --drawer-swipe-movement-y on every pointer move, transitions would fight that.
+    // user-select:none prevents accidental text selection during the drag.
+    &[data-swiping] {
+        transition: none;
+        user-select: none;
+    }
+
     background-color: white;
-    // filter: blur(1px);
 
     border-top-left-radius: var(--radius-lg);
     border-top-right-radius: var(--radius-lg);
-    z-index: 5001;
+    z-index: calc(5001 + var(--nested-drawers, 0) * 10);
 
     overscroll-behavior: contain;
     display: flex;
@@ -28,7 +65,6 @@
 
     overflow: hidden;
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    box-sizing: border-box;
     outline: none;
 
     &:focus-visible {
@@ -47,20 +83,6 @@
         // position: absolute;
         top: 0;
         z-index: 20;
-
-
-
-        .handleBar {
-            margin: auto;
-            width: 60px;
-            height: 4px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border-radius: 6px;
-            background-color: #e6e6e6;
-        }
     }
 
 
@@ -111,7 +133,75 @@
     flex-grow: 1;
     -webkit-overflow-scrolling: touch;
     transition: max-height 0.2s ease-out;
-    mask-image: linear-gradient(to bottom,
-            black 85%,
-            transparent 100%);
+
+    // Isolate scroll-induced repaints from the drawer surface — combined with the
+    // .content `contain` above this stops scroll repainting the chrome/handle.
+    contain: layout paint;
+
+    // Named scroll timeline for the bottom fade hint below. Browsers that don't support
+    // scroll-driven animations ignore this property — fade falls back to invisible
+    // (opacity:0 default), which is the safe degradation.
+    scroll-timeline: --scrollerY block;
+
+    // Bottom scroll-hint: sticky pseudo overlay with white→transparent gradient.
+    // Visible only when the user can scroll further — driven by the scroll-timeline.
+    // No JS / ResizeObserver — pure CSS scroll-driven animation (industry 2026 pattern,
+    // CSS-Tricks "Modern Scroll Shadows"). When there's no overflow, scroll progress
+    // can't change and the keyframe sits at 0% → opacity 0 (hint hidden).
+    position: relative;
+
+    &::after {
+        content: '';
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        margin-top: -40px;
+        background: linear-gradient(to top, white 30%, rgba(255, 255, 255, 0));
+        pointer-events: none;
+        flex-shrink: 0;
+        z-index: 2;
+
+        opacity: 0;
+        animation: scroll-fade-hint linear forwards;
+        animation-timeline: --scrollerY;
+    }
+}
+
+@keyframes scroll-fade-hint {
+    // 0% (top of scroll) → invisible
+    // small range (~3%) to fade in
+    // hold visible while there's more to scroll
+    // last 5% fades back out as user approaches bottom
+    0% {
+        opacity: 0;
+    }
+
+    3%,
+    95% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .content {
+        transition: none;
+    }
 }

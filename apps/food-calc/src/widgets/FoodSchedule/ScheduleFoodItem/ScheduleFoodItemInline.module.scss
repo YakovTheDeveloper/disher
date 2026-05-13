@@ -4,6 +4,20 @@
     gap: var(--space-3);
     align-items: center;
     position: relative;
+
+    // ─── Color boundary (industry pattern: shadcn / Radix Themes / Pigment) ───
+    // Ground row text color in the semantic --text-primary token here at the
+    // component root. Every descendant either:
+    //   • inherits naturally (e.g. .qtyEdit { color: inherit })
+    //   • reads a sibling token directly (e.g. .timeDisplay → --text-secondary,
+    //     .qtyUnit → --text-muted)
+    //
+    // Result: switching theme (or per-period overrides like tropic night's
+    // white text) re-flows through inheritance without leaf-level color rules
+    // shadowing it. The leaf-level color reads on .foodTitle / .dishTitle /
+    // .customTitle below are technically redundant after this; kept for now
+    // to preserve italic/weight modifiers without disturbing class shape.
+    color: var(--text-primary);
 }
 
 .timeDisplay,

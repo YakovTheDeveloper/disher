@@ -90,7 +90,12 @@
   );
 }
 
-// tropic — lime → mango → coral → deep teal (vibrant tropical).
+// tropic — lime → mango → coral → cool slate (vibrant tropical day → night).
+// Night bg stays in the cool blue-grey family (the original palette anchor).
+// The nested `[data-tod='night']` rule flips text + CTA-text tokens to
+// white so content stays legible on the deeper background (rows AND
+// the bottom-bar pill both pick it up — the latter via descendant match
+// on .dockV2's data-tod).
 @mixin dv-palette-tropic {
   @include _tod-palette(
     (rgba(232, 250, 200, 0.88), rgba(220, 245, 185, 0.88), rgba(120, 175, 50, 0.32), rgba(120, 175, 50, 0.22), rgba(212, 238, 178, 0.92)),
@@ -98,6 +103,14 @@
     (rgba(252, 210, 210, 0.85), rgba(245, 195, 195, 0.85), rgba(220, 90, 90, 0.32), rgba(220, 90, 90, 0.22), rgba(240, 188, 188, 0.90)),
     (rgba(135, 165, 195, 0.85), rgba(118, 148, 178, 0.85), rgba(31, 42, 68, 0.35), rgba(31, 42, 68, 0.24), rgba(110, 142, 172, 0.90))
   );
+
+  [data-tod='night'] {
+    --text-primary: rgba(255, 255, 255, 0.94);
+    --text-secondary: rgba(255, 255, 255, 0.72);
+    --text-tertiary: rgba(255, 255, 255, 0.56);
+    --text-muted: rgba(255, 255, 255, 0.52);
+    --cta-text: rgba(255, 255, 255, 0.94);
+  }
 }
 
 // twilight — lilac mist → mauve → dusty plum → deep violet (purple family).

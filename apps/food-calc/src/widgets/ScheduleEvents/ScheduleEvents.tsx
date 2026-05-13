@@ -1,5 +1,5 @@
 import styles from './ScheduleEvents.module.scss';
-import React, { useMemo, useState } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import { AnimatePresence, useReducedMotion } from 'motion/react';
 import { TimeGroup } from '@/features/time-group';
 import type { ScheduleEvent } from '@/entities/schedule-event';
@@ -183,4 +183,4 @@ const TrashIcon = () => (
   </svg>
 );
 
-export default ScheduleEvents;
+export default memo(ScheduleEvents);

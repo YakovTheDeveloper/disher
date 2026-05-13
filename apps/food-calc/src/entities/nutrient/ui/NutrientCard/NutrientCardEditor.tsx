@@ -1,14 +1,7 @@
-import { FC, useCallback, useId, useState } from 'react';
+import { FC, useId } from 'react';
 import clsx from 'clsx';
 import { useNutrientCard } from './useNutrientCard';
 import NutrientInput from './NutrientInput';
-import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-import {
-  useUserNormItems,
-  setUserNormNutrient,
-  DEFAULT_NORM_ITEMS,
-} from '@/entities/daily-norm';
-import { safeMutate } from '@/shared/lib/safeMutate';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import styles from './NutrientCardEditor.module.scss';
 
@@ -58,34 +51,6 @@ const NutrientCardEditor: FC<Props> = ({
   // --- product-edit: input focus via label ---
   const editInputId = useId();
 
-  // --- norm editing modal (for non product-edit variants) ---
-  const normInputId = useId();
-  const [normModalOpen, setNormModalOpen] = useState(false);
-  const [normDraft, setNormDraft] = useState(0);
-  const userItems = useUserNormItems();
-
-  const getCurrentNormValue = useCallback(() => {
-    const items = userItems ?? DEFAULT_NORM_ITEMS;
-    return items[id] ?? 0;
-  }, [id, userItems]);
-
-  const handleNormFocus = useCallback(() => {
-    setNormDraft(getCurrentNormValue());
-    setNormModalOpen(true);
-  }, [getCurrentNormValue]);
-
-  const handleNormSave = useCallback(() => {
-    void safeMutate(
-      () => setUserNormNutrient(id, normDraft || null),
-      'Не удалось сохранить норму'
-    );
-    setNormModalOpen(false);
-  }, [id, normDraft]);
-
-  const handleNormChange = useCallback((val: number) => {
-    setNormDraft(val);
-  }, []);
-
   // --- product-edit variant ---
   if (isProductEdit) {
     return (
@@ -109,24 +74,17 @@ const NutrientCardEditor: FC<Props> = ({
 
   // --- schedule / dish / product-view variants ---
   return (
-    <div
-      className={clsx(styles.card, styles[group], dimmed && styles.dimmed, className)}
-      onFocusCapture={(e) => {
-        if ((e.target as HTMLElement).id === normInputId) {
-          handleNormFocus();
-        }
-      }}
-    >
+    <div className={clsx(styles.card, styles[group], dimmed && styles.dimmed, className)}>
       <div className={styles.topRow}>
         <span className={styles.label}>{displayNameRu}</span>
       </div>
       <div className={styles.bottomRow}>
         <span className={clsx(styles.value, !showValue && styles.valueHidden)}>
-          {showValue ? <>{value.toFixed(1)} {unitRu}</> : ' '}
+          {showValue ? <>{value.toFixed(1)} {unitRu}</> : ' '}
         </span>
-        <label htmlFor={normInputId} className={styles.percentLabel}>
+        <span className={styles.percentLabel}>
           <span className={clsx(styles.percent, styles[statusClass])}>{percentText}%</span>
-        </label>
+        </span>
       </div>
       {showProgress && (
         <div className={styles.progressBar}>
@@ -136,34 +94,6 @@ const NutrientCardEditor: FC<Props> = ({
           />
         </div>
       )}
-
-      {/* Norm edit modal */}
-      <ModalByLabel
-        isExpanded={normModalOpen}
-        position="fixed"
-        content={
-          <div className={styles.normModal}>
-            <div className={styles.normModalHeader}>
-              <span className={styles.normModalTitle}>{displayNameRu}</span>
-              <button
-                className={styles.normModalClose}
-                onClick={handleNormSave}
-              >
-                Готово
-              </button>
-            </div>
-            <div className={styles.normModalBody}>
-              <NutrientInput
-                id={normInputId}
-                value={normModalOpen ? normDraft : getCurrentNormValue()}
-                onChange={handleNormChange}
-                unit={unitRu}
-                norm={undefined}
-              />
-            </div>
-          </div>
-        }
-      />
     </div>
   );
 };

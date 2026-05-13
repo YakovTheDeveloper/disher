@@ -1,0 +1,69 @@
+@import '@/shared/assets/style/design-variant-palettes.scss';
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.swatch {
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 140ms ease, transform 100ms ease, box-shadow 140ms ease;
+}
+
+.swatch:hover,
+.swatch:focus-visible {
+  border-color: rgba(0, 0, 0, 0.18);
+  outline: none;
+}
+
+.swatch:active {
+  transform: scale(0.97);
+}
+
+.swatch.active {
+  border-color: rgba(31, 42, 68, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(31, 42, 68, 0.7);
+}
+
+// Each swatch publishes its own --tod-* tokens via the palette mixin,
+// then the preview gradient reads them off the parent scope. Stays DRY
+// with the production theme rules in `themes.scss`.
+.swatch[data-theme='tropic']   { @include dv-palette-tropic; }
+.swatch[data-theme='meadow']   { @include dv-palette-meadow; }
+.swatch[data-theme='sunrise']  { @include dv-palette-sunrise; }
+.swatch[data-theme='sorbet']   { @include dv-palette-sorbet; }
+.swatch[data-theme='garden']   { @include dv-palette-garden; }
+.swatch[data-theme='lagoon']   { @include dv-palette-lagoon; }
+.swatch[data-theme='twilight'] { @include dv-palette-twilight; }
+
+.preview {
+  display: block;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg,
+    var(--tod-morning-bg-from) 0%,
+    var(--tod-day-bg-from) 33%,
+    var(--tod-evening-bg-from) 66%,
+    var(--tod-night-bg-from) 100%);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.label {
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: rgba(31, 42, 68, 0.78);
+  text-align: center;
+}

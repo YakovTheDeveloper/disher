@@ -41,6 +41,10 @@ const Swipeable = forwardRef<SwipeableRef, Props>(
         duration,
         watchResize: false,
         axis: 'x',
+        // First paint = defaultSlide. Без startIndex Embla mount'ится на 0
+        // и юзер видит slide 0 ~16ms перед тем как rAF effect ниже
+        // прыгнет на defaultSlide (mount-flicker).
+        startIndex: defaultSlide,
       },
       []
     );
@@ -54,10 +58,22 @@ const Swipeable = forwardRef<SwipeableRef, Props>(
       }
     }, []);
 
-    // 'settle' fires AFTER animation ends — no re-render mid-drag
+    // Подписываемся на ОБА события — 'select' (target snap выбран) и
+    // 'settle' (анимация завершена). `indexRef` дедупит вызовы:
+    // `onIndexChange` стрельнет максимум один раз per реальная смена snap.
+    //
+    // Почему оба, а не только 'settle' (как было): при click → scrollTo,
+    // если юзер прерывает анимацию свайпом, оригинальный 'settle' для
+    // target'а scrollTo НЕ fires. `indexRef` остаётся stale, и финальный
+    // 'settle' для drag-snap'а сравнивается с устаревшим значением →
+    // `onIndexChange` не вызывается → state в parent рассинхронится с
+    // Embla ("title События на экране Приемы пищи").
+    //
+    // 'select' fires при каждом изменении target snap'а (вкл. cancelled
+    // scrollTo), поэтому indexRef обновляется вовремя.
     useEffect(() => {
       if (!emblaApi) return;
-      const onSettle = () => {
+      const handleSnapChange = () => {
         const newIndex = emblaApi.selectedScrollSnap();
         if (newIndex !== indexRef.current) {
           indexRef.current = newIndex;
@@ -65,15 +81,11 @@ const Swipeable = forwardRef<SwipeableRef, Props>(
           updateDots(newIndex);
         }
       };
-      // Also update on select for dots responsiveness, but without React state
-      const onSelect = () => {
-        updateDots(emblaApi.selectedScrollSnap());
-      };
-      emblaApi.on('settle', onSettle);
-      emblaApi.on('select', onSelect);
+      emblaApi.on('select', handleSnapChange);
+      emblaApi.on('settle', handleSnapChange);
       return () => {
-        emblaApi.off('settle', onSettle);
-        emblaApi.off('select', onSelect);
+        emblaApi.off('select', handleSnapChange);
+        emblaApi.off('settle', handleSnapChange);
       };
     }, [emblaApi, onIndexChange, children.length, updateDots]);
 
@@ -81,16 +93,12 @@ const Swipeable = forwardRef<SwipeableRef, Props>(
       goToPage: (index: number) => emblaApi?.scrollTo(index),
     }));
 
-    useEffect(() => {
-      if (emblaApi && defaultSlide > 0) {
-        emblaApi.scrollTo(defaultSlide, true);
-      }
-    }, [emblaApi, defaultSlide]);
-
     // Embla measures slide width once at mount with watchResize:false.
     // If the container hasn't reached its final size yet (route transition,
     // late-loading top panel), slides end up under-sized. Re-measure after
-    // the first paint when layout is settled.
+    // the first paint when layout is settled, и тогда же прыгаем на
+    // defaultSlide — отдельного scrollTo до reInit'а не нужно, мерки
+    // там всё равно ещё кривые.
     useEffect(() => {
       if (!emblaApi) return;
       const id = requestAnimationFrame(() => {

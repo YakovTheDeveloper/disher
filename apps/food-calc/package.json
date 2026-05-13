@@ -21,8 +21,8 @@
     "create-component": "node create-boilerplate-component.js"
   },
   "dependencies": {
+    "@base-ui/react": "^1.4.1",
     "@floating-ui/react": "0.27.0",
-    "@radix-ui/react-dialog": "^1.1.15",
     "@sentry/react": "^10.50.0",
     "@vitejs/plugin-react-swc": "^3.7.2",
     "axios": "1.7.8",
@@ -59,7 +59,6 @@
     "swiper": "^12.0.3",
     "use-debounce": "^10.0.6",
     "uuid": "^11.0.3",
-    "vaul": "^1.1.2",
     "vite-plugin-checker": "^0.12.0",
     "zustand": "^5.0.12"
   },

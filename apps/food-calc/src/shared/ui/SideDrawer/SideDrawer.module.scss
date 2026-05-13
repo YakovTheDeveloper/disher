@@ -1,10 +1,43 @@
+// Canonical Vaul/Base-UI backdrop pattern, см.
+// https://base-ui.com/react/components/drawer (hero demo CSS).
 .overlay {
+  --backdrop-opacity: 0.35;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  min-height: 100dvh;
+  background-color: black;
   z-index: 5000;
+  // Opacity линкована со swipe-progress: backdrop progressively
+  // transparent во время свайпа закрытия.
+  opacity: calc(var(--backdrop-opacity) * (1 - var(--drawer-swipe-progress, 0)));
+  transition-duration: 450ms;
+  transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+
+  // iOS 26+: position:absolute обеспечивает покрытие visible viewport'а
+  // (fixed на iOS не всегда корректно расширяется до URL bar area).
+  @supports (-webkit-touch-callout: none) {
+    position: absolute;
+  }
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+  }
+
+  &[data-swiping] {
+    transition-duration: 0ms;
+  }
+
+  // Скорость закрытия = скорости свайпа (быстрый свайп → быстрое закрытие).
+  &[data-ending-style] {
+    transition-duration: calc(var(--drawer-swipe-strength, 1) * 400ms);
+  }
 }
 
+// Canonical Vaul/Base-UI popup pattern. После PR #4099
+// (mui/base-ui) `--drawer-swipe-movement-x/y` зарегистрированы через
+// CSS.registerProperty с initial value 0px → fallback `0` не нужен.
 .content {
   position: fixed;
   top: 0;
@@ -12,7 +45,7 @@
   width: var(--side-drawer-width, min(85vw, 360px));
   max-width: 100vw;
   background: white;
-  z-index: 5001;
+  z-index: calc(5001 + var(--nested-drawers, 0) * 10);
   display: flex;
   flex-direction: column;
   outline: none;
@@ -20,9 +53,26 @@
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
   overscroll-behavior: contain;
+  transform: translateX(var(--drawer-swipe-movement-x));
+  transition: transform 450ms cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
 
   &:focus-visible {
     outline-color: transparent;
+  }
+
+  // По канон-пример'у `[data-swiping]` НЕ отключает transition — только
+  // user-select, чтобы пользовательский drag не выделял текст. Сам
+  // transform во время свайпа управляется напрямую через
+  // --drawer-swipe-movement-x (transition с длительностью просто
+  // догоняет, что выглядит естественно).
+  &[data-swiping] {
+    user-select: none;
+  }
+
+  // Скорость закрытия = скорости свайпа.
+  &[data-ending-style] {
+    transition-duration: calc(var(--drawer-swipe-strength, 1) * 400ms);
   }
 }
 
@@ -31,6 +81,11 @@
   box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
   border-top-right-radius: var(--radius-lg, 16px);
   border-bottom-right-radius: var(--radius-lg, 16px);
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    transform: translateX(-100%);
+  }
 }
 
 .content_right {
@@ -38,44 +93,11 @@
   box-shadow: -4px 0 16px rgba(0, 0, 0, 0.08);
   border-top-left-radius: var(--radius-lg, 16px);
   border-bottom-left-radius: var(--radius-lg, 16px);
-}
 
-// Compact centered drag-affordance — does NOT span full height so horizontal
-// inertia inside body cannot be hijacked by Vaul drag detection.
-.handle {
-  position: absolute;
-  top: 50%;
-  height: 64px;
-  width: 16px;
-  margin: 0;
-  transform: translateY(-50%);
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: grab;
-  z-index: 1;
-  touch-action: none;
-
-  &:active {
-    cursor: grabbing;
+  &[data-starting-style],
+  &[data-ending-style] {
+    transform: translateX(100%);
   }
-
-  &::after {
-    content: '';
-    width: 3px;
-    height: 48px;
-    background-color: rgba(0, 0, 0, 0.18);
-    border-radius: 6px;
-  }
-}
-
-.handle_left {
-  right: 0;
-}
-
-.handle_right {
-  left: 0;
 }
 
 .header {
@@ -158,4 +180,11 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .content {
+    transition: none;
+  }
 }

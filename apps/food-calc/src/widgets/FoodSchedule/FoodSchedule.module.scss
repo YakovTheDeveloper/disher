@@ -1,23 +1,7 @@
 @import '@/shared/assets/style/design-variant-palettes.scss';
 
-.emptyState {
-  padding: var(--space-10) var(--space-4) 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-// Anchor wrapper around the food list — gives the design-variant bar a
-// hook for visibility tracking + flash. Plain block so the outline-based
-// flash animation can render; the inner ItemsList carries its own layout.
-.foodListAnchor {
-  display: block;
-}
-
-// Palette variants for the food list. Each variant binds shared time-of-
-// day surface tokens (`@include dv-palette-<name>`) AND text tokens for
-// the inline row labels. Text stays in the family's dark anchor hue so
-// contrast holds on every period's gentle pastel background.
+// Palette text tokens shared across the food-list base + every named
+// variant. Defined up-front so they're available to the base anchor.
 
 $dv-text-graphite: (
   primary: rgba(31, 42, 68, 0.92),
@@ -39,6 +23,31 @@ $dv-text-twilight: (
   --text-tertiary: #{map-get($map, tertiary)};
   --text-muted: #{map-get($map, muted)};
 }
+
+.emptyState {
+  padding: var(--space-10) var(--space-4) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+// Anchor wrapper around the food list — gives the design-variant bar a
+// hook for visibility tracking + flash. Plain block so the outline-based
+// flash animation can render; the inner ItemsList carries its own layout.
+//
+// NO base palette here on purpose: when the active DV-variant is `unset`
+// (default, and only choice in production), this anchor publishes no
+// `--tod-*` of its own and child rows inherit from `:root[data-theme]`
+// set by `useApplyUserTheme`. Named-variant selectors below override
+// when the dev DV-bar picks a specific palette (dev only).
+.foodListAnchor {
+  display: block;
+}
+
+// Palette variants for the food list. Each variant binds shared time-of-
+// day surface tokens (`@include dv-palette-<name>`) AND text tokens for
+// the inline row labels. Text stays in the family's dark anchor hue so
+// contrast holds on every period's gentle pastel background.
 
 [data-dv='ScheduleFood'][data-dv-v='meadow']   { @include dv-palette-meadow;   @include dv-text($dv-text-graphite); }
 [data-dv='ScheduleFood'][data-dv-v='sunrise']  { @include dv-palette-sunrise;  @include dv-text($dv-text-graphite); }

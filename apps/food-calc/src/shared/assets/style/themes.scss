@@ -1,0 +1,22 @@
+// ─── User themes ─────────────────────────────────────────────────────
+// Production theme picker (SettingsPage → «Тема»). Mirrors the seven
+// ScheduleFood DV palettes. The chosen value lives on
+// `<html data-theme="...">` (see `useApplyUserTheme`); each rule binds
+// the global `--tod-*` tokens via the shared `dv-palette-<name>` mixin
+// in `design-variant-palettes.scss`.
+//
+// Coexistence with dev DV-bar: `[data-dv='ScheduleFood'][data-dv-v=X]`
+// has higher specificity (0,2,0) than `:root[data-theme=X]` (0,1,1),
+// so dev variant selectors win inside their anchor — user theme covers
+// the rest of the app (AppBottomBar pill, schedule selection cells,
+// any other --tod-* reader).
+
+@import './design-variant-palettes.scss';
+
+:root[data-theme='tropic']   { @include dv-palette-tropic; }
+:root[data-theme='meadow']   { @include dv-palette-meadow; }
+:root[data-theme='sunrise']  { @include dv-palette-sunrise; }
+:root[data-theme='sorbet']   { @include dv-palette-sorbet; }
+:root[data-theme='garden']   { @include dv-palette-garden; }
+:root[data-theme='lagoon']   { @include dv-palette-lagoon; }
+:root[data-theme='twilight'] { @include dv-palette-twilight; }

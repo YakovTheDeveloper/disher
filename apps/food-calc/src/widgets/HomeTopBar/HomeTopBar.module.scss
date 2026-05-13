@@ -12,7 +12,7 @@
   --bar-bg: rgba(255, 255, 255, 0.85);
   --bar-blur: 8px;
   --bar-border: 1px solid rgba(0, 0, 0, 0.05);
-  --bar-radius: 0;
+  --bar-radius: 18px;
   --bar-shadow: none;
   --bar-pad-x: 12px;
   --bar-pad-y: 8px;
@@ -23,10 +23,23 @@
   --seg-font: inherit;
   --seg-letter: 0;
 
-  width: 100%;
+  // Floating overlay над контентом: иначе HomeTopBar занимает строку
+  // в flex-layout родителя, swipeArea получает свою прямоугольную
+  // область, и её рамка читается как «коробка» при свайпе слайдов.
+  // z-index должен быть выше swipeableLayer (z:1) и indicatorClickLayer (z:2).
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
   box-sizing: border-box;
-  padding: var(--bar-margin);
-  background: transparent;
+  padding: 0 var(--space-2);
+  background: none;
+  pointer-events: none;
+
+  >* {
+    pointer-events: auto;
+  }
 }
 
 .bar {
@@ -46,6 +59,8 @@
   line-height: 1.2;
   font-family: var(--seg-font);
   letter-spacing: var(--seg-letter);
+  // background: none;
+  // box-shadow: none;
 }
 
 .accountSlot {
@@ -112,12 +127,10 @@
 
 // 2) ribbon — warm tri-tone gradient flush at top.
 .shell[data-dv='HomeTopBar'][data-dv-v='ribbon'] {
-  --bar-bg: linear-gradient(
-    90deg,
-    rgba(255, 230, 215, 0.92) 0%,
-    rgba(232, 248, 220, 0.92) 50%,
-    rgba(220, 205, 238, 0.92) 100%
-  );
+  --bar-bg: linear-gradient(90deg,
+      rgba(255, 230, 215, 0.92) 0%,
+      rgba(232, 248, 220, 0.92) 50%,
+      rgba(220, 205, 238, 0.92) 100%);
   --bar-blur: 0px;
   --bar-border: 1px solid rgba(31, 42, 68, 0.07);
   --bar-pad-y: 6px;
@@ -152,4 +165,3 @@
   text-transform: lowercase;
   opacity: 0.7;
 }
-

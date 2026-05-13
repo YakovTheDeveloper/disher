@@ -1,8 +1,7 @@
 import { FC, ReactNode, useRef, useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
-import { useUserNormItems, setUserNormNutrient, DEFAULT_NORM_ITEMS } from '@/entities/daily-norm';
-import { safeMutate } from '@/shared/lib/safeMutate';
+import { useUserNormItems, DEFAULT_NORM_ITEMS } from '@/entities/daily-norm';
 import styles from './FilterNutrients.module.scss';
 
 const InfoIcon = () => (
@@ -59,8 +58,6 @@ const EyeIcon: FC<{ open: boolean }> = ({ open }) => (
   </span>
 );
 
-const getNormInputId = (nutrientId: string) => `norm-edit-${nutrientId}`;
-
 interface CardOverrideProps {
   dimmed?: boolean;
   onClick?: () => void;
@@ -89,11 +86,8 @@ const FilterNutrientCardWrapper: FC<Props> = ({
 }) => {
   const { toNutrientArticle } = useAppRoutes();
   const [overlayOpen, setOverlayOpen] = useState(false);
-  const [normEditing, setNormEditing] = useState(false);
-  const [normDraft, setNormDraft] = useState(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Edit value comes from the user norm if set up, else from factory defaults.
   const userItems = useUserNormItems();
 
   const getCurrentNormValue = useCallback(() => {
@@ -102,26 +96,10 @@ const FilterNutrientCardWrapper: FC<Props> = ({
     return items[nutrientId] ?? 0;
   }, [nutrientId, userItems]);
 
-  const handleNormFocus = useCallback(() => {
-    setNormDraft(getCurrentNormValue());
-    setNormEditing(true);
-  }, [getCurrentNormValue]);
-
-  const handleNormBlur = useCallback(() => {
-    if (!nutrientId) return;
-    void safeMutate(
-      () => setUserNormNutrient(nutrientId, normDraft || null),
-      'Не удалось сохранить норму'
-    );
-    setNormEditing(false);
-    setOverlayOpen(false);
-  }, [nutrientId, normDraft]);
-
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOverlayOpen(false);
-        setNormEditing(false);
       }
     },
     []
@@ -152,8 +130,6 @@ const FilterNutrientCardWrapper: FC<Props> = ({
     setOverlayOpen((prev) => !prev);
   };
 
-  const normInputId = nutrientId ? getNormInputId(nutrientId) : undefined;
-
   return (
     <div
       ref={wrapperRef}
@@ -161,24 +137,6 @@ const FilterNutrientCardWrapper: FC<Props> = ({
       onClick={handleCardClick}
     >
       {renderCard({})}
-
-      {/* Hidden norm input — always rendered for iOS label+htmlFor focus */}
-      {normInputId && (
-        <div className={styles.hiddenNormInput}>
-          <input
-            id={normInputId}
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={normEditing ? normDraft : getCurrentNormValue()}
-            onFocus={handleNormFocus}
-            onChange={(e) => {
-              const val = e.target.value.replace(/\D/g, '');
-              setNormDraft(val === '' ? 0 : Number(val));
-            }}
-            onBlur={handleNormBlur}
-          />
-        </div>
-      )}
 
       <AnimatePresence>
         {overlayOpen && (
@@ -231,7 +189,7 @@ const FilterNutrientCardWrapper: FC<Props> = ({
               </motion.div>
             </div>
 
-            {normInputId && (
+            {nutrientId && (
               <motion.div
                 className={styles.cardOverlayBottom}
                 initial={{ opacity: 0, y: 4 }}
@@ -239,20 +197,9 @@ const FilterNutrientCardWrapper: FC<Props> = ({
                 exit={{ opacity: 0, y: 4 }}
                 transition={{ duration: 0.12, delay: 0.05 }}
               >
-                <label
-                  htmlFor={normInputId}
-                  className={styles.normEditLabel}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {normEditing ? (
-                    <span className={styles.normEditActive}>
-                      <span className={styles.normEditValue}>{normDraft}</span>
-                      <span className={styles.normEditHint}>введите значение</span>
-                    </span>
-                  ) : (
-                    <span>Норма: {getCurrentNormValue() || '—'}</span>
-                  )}
-                </label>
+                <span className={styles.normEditLabel}>
+                  Норма: {getCurrentNormValue() || '—'}
+                </span>
               </motion.div>
             )}
           </motion.div>
