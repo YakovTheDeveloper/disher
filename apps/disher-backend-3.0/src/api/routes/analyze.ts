@@ -11,6 +11,8 @@ import {
 import type { AnalysisMode } from "../../shared/analysis-output.js";
 
 // POST /api/analyze         — kick off an analysis. Idempotent on `id`.
+// GET  /api/analyses        — list current user's analyses (id + window only,
+//                              no result_md) for schedule-navigator pробирки.
 // GET  /api/analyses/:id    — poll an analysis row. State is derived from
 //                              result_md (empty = pending, anything else =
 //                              done; failure rows start with "⚠️").
@@ -19,7 +21,8 @@ import type { AnalysisMode } from "../../shared/analysis-output.js";
 // stale-pending sweep. A job that never finishes stays pending forever; the
 // user starts a fresh analysis with a new id.
 //
-// See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md §Server route.
+// See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md §Server route
+// and apps/food-calc/tds/schedule-navigator.md §Q6 (list endpoint contract).
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -135,6 +138,33 @@ export async function analyzeRoutes(
     const row = existing.rows[0];
     if (!row) return reply.status(404).send({ error: "analysis not found" });
     return reply.send({ analysis: serialiseRow(row) });
+  });
+
+  app.get("/analyses", async (req: FastifyRequest, reply: FastifyReply) => {
+    if (!pool) return reply.status(500).send({ error: "DB not configured" });
+    // Only return DONE analyses — pending (result_md='') and failed
+    // (result_md starts with "⚠️") are not yet useful as пробирка markers
+    // in the schedule-navigator. See tds/schedule-navigator.md §Q5.
+    const result = await pool.query<
+      Pick<AnalysisRow, "id" | "window_start" | "window_end" | "created_at">
+    >(
+      `select id, window_start, window_end, created_at
+       from public.analyses
+       where user_id = $1::uuid
+         and result_md <> ''
+         and result_md not like '⚠️%'
+       order by created_at desc
+       limit 500`,
+      [req.userId],
+    );
+    return reply.send({
+      analyses: result.rows.map((row) => ({
+        id: row.id,
+        window_start: row.window_start.toISOString(),
+        window_end: row.window_end.toISOString(),
+        created_at: row.created_at.toISOString(),
+      })),
+    });
   });
 
   app.get<{ Params: { id: string } }>("/analyses/:id", async (req, reply) => {

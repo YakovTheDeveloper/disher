@@ -10,21 +10,26 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const signUpEmailMock = vi.fn();
 const sendVerificationEmailMock = vi.fn();
+const signInEmailMock = vi.fn();
+const getSessionMock = vi.fn();
+const signOutMock = vi.fn();
 
 vi.mock('../betterAuthClient', () => ({
   BEARER_KEY: 'disher.bearer',
   authClient: {
     signUp: { email: signUpEmailMock },
     sendVerificationEmail: sendVerificationEmailMock,
-    // The provider only references these in other code paths — stubs are fine.
-    signIn: { email: vi.fn() },
-    getSession: vi.fn(async () => ({ data: null, error: null })),
-    signOut: vi.fn(async () => undefined),
+    signIn: { email: signInEmailMock },
+    getSession: getSessionMock,
+    signOut: signOutMock,
     $store: { atoms: { session: { subscribe: () => () => {} } } },
   },
 }));
 
 const { betterAuthProvider } = await import('../betterAuthProvider');
+
+const BEARER_KEY = 'disher.bearer';
+const LAST_USER_KEY = 'disher.lastUser';
 
 beforeEach(() => {
   signUpEmailMock.mockReset();
@@ -111,5 +116,105 @@ describe('betterAuthProvider.sendVerificationEmail', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.kind).toBe('rate_limit');
+  });
+});
+
+describe('betterAuthProvider.bootstrap', () => {
+  let warnSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    localStorage.clear();
+    getSessionMock.mockReset();
+    signInEmailMock.mockReset();
+    signOutMock.mockReset();
+    signOutMock.mockResolvedValue(undefined);
+    // Silence the network-warn from the throw branch.
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it('returns null without hitting the network when no bearer', async () => {
+    const user = await betterAuthProvider.bootstrap();
+    expect(user).toBeNull();
+    expect(getSessionMock).not.toHaveBeenCalled();
+  });
+
+  it('falls back to last-known user when getSession throws (network down) — bearer survives', async () => {
+    localStorage.setItem(BEARER_KEY, 'opaque-token');
+    localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
+    getSessionMock.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toEqual({ id: 'u1', email: 'u1@example.com' });
+    // Critical: do NOT wipe the bearer on a network throw — the session may
+    // still be valid, the backend is just unreachable right now.
+    expect(localStorage.getItem(BEARER_KEY)).toBe('opaque-token');
+    expect(localStorage.getItem(LAST_USER_KEY)).toBeTruthy();
+  });
+
+  it('returns null on network throw when no last-known user is cached', async () => {
+    localStorage.setItem(BEARER_KEY, 'opaque-token');
+    getSessionMock.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toBeNull();
+    expect(localStorage.getItem(BEARER_KEY)).toBe('opaque-token');
+  });
+
+  it('wipes bearer AND lastUser when server returns 401 (token revoked)', async () => {
+    localStorage.setItem(BEARER_KEY, 'dead-token');
+    localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
+    getSessionMock.mockResolvedValue({ data: null, error: { status: 401, message: 'Unauthorized' } });
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toBeNull();
+    expect(localStorage.getItem(BEARER_KEY)).toBeNull();
+    expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
+  });
+
+  it('persists last-known user on successful bootstrap', async () => {
+    localStorage.setItem(BEARER_KEY, 'valid-token');
+    getSessionMock.mockResolvedValue({
+      data: { user: { id: 'u9', email: 'u9@example.com' } },
+      error: null,
+    });
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toEqual({ id: 'u9', email: 'u9@example.com' });
+    expect(localStorage.getItem(LAST_USER_KEY)).toBe(
+      JSON.stringify({ id: 'u9', email: 'u9@example.com' }),
+    );
+  });
+});
+
+describe('betterAuthProvider.signOut', () => {
+  let errorSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    localStorage.clear();
+    signOutMock.mockReset();
+    errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    errorSpy.mockRestore();
+  });
+
+  it('wipes bearer + lastUser even if server revoke throws', async () => {
+    localStorage.setItem(BEARER_KEY, 'tok');
+    localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
+    signOutMock.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    await betterAuthProvider.signOut();
+
+    expect(localStorage.getItem(BEARER_KEY)).toBeNull();
+    expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
   });
 });

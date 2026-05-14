@@ -1,0 +1,74 @@
+// HomeHero — большая декоративная обложка активного экрана.
+// Лежит внутри `.indicatorFloat` (под Embla viewport) — НЕинтерактивна:
+// клики/свайпы Embla viewport'а перехватывает первым. Кликабельная навигация
+// между экранами живёт отдельно в `.navTiles` (HomePage.module.scss).
+//
+// Каждый экран = одна `.layer`-обёртка (flex-column, image сверху, title
+// снизу, всё центрировано). Все layer'ы position:absolute стэком в root'е;
+// активный получает `.layerActive` (opacity:1 + translateY:0), неактивные
+// fade-out + сдвиг на 8px вниз. Cross-fade через CSS transition.
+
+$hero-easing: cubic-bezier(0.4, 0, 0.2, 1);
+$hero-duration: 0.32s;
+$hero-shift: 8px;
+
+.root {
+    position: relative;
+    width: 100%;
+    height: 140px;
+    overflow: hidden;
+}
+
+.layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    box-sizing: border-box;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY($hero-shift);
+    transition:
+        opacity $hero-duration $hero-easing,
+        transform $hero-duration $hero-easing;
+}
+
+.layerActive {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.heroImg {
+    width: auto;
+    height: 64px;
+    max-width: 70%;
+    object-fit: contain;
+    opacity: 0.7;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+// Serif-italic title — типографически связан с `HomeTopBar .dateNumeralDay`
+// (та же Source Serif 4 italic). Размер чуть меньше прежних 2.6rem — в
+// вертикальном стэке с картинкой плотнее читается ~2rem.
+.heroTitle {
+    font-family: "Source Serif 4", "Merriweather", serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 2rem;
+    line-height: 1;
+    letter-spacing: -0.5px;
+    color: #000000;
+    text-align: center;
+    margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .layer {
+        transition: none;
+    }
+}

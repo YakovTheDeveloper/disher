@@ -1,36 +1,19 @@
 import { useEffect, useRef } from 'react';
-import {
-  pushOverlayEntry,
-  popOverlayEntry,
-  registerCloseHandler,
-  unregisterCloseHandler,
-  isPopstateClosing,
-} from './overlay-history';
+import { registerCloseHandler, unregisterCloseHandler } from './overlay-history';
 
 /**
- * Pushes a sentinel history entry while `isExpanded` is true,
- * so that browser Back calls `onClose` instead of navigating away.
+ * Registers `onClose` as the top-of-stack close handler while `isExpanded` is true,
+ * so that browser Back / Android-back / iOS-swipe close this overlay instead of
+ * navigating away. No history entries are pushed — see `overlay-history.ts`.
  */
 export function useOverlayHistory(isExpanded: boolean, onClose: () => void): void {
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
-  const handlerRef = useRef<(() => void) | null>(null);
-
   useEffect(() => {
-    if (isExpanded) {
-      const handler = () => onCloseRef.current();
-      handlerRef.current = handler;
-      pushOverlayEntry();
-      registerCloseHandler(handler);
-
-      return () => {
-        unregisterCloseHandler(handler);
-        handlerRef.current = null;
-        if (!isPopstateClosing()) {
-          popOverlayEntry();
-        }
-      };
-    }
+    if (!isExpanded) return;
+    const handler = () => onCloseRef.current();
+    registerCloseHandler(handler);
+    return () => unregisterCloseHandler(handler);
   }, [isExpanded]);
 }

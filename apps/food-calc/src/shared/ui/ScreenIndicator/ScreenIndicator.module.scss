@@ -1,17 +1,16 @@
-// ScreenIndicator — 3-tile indicator with shared-element title
-// migration via the **CSS View Transitions API**. The label visibly
-// flies from its tile to the centered band and back, all driven by the
-// browser's compositor — zero JS animation, zero layout work per frame.
-//
-// Source/destination of the morph MUST share font-family/style/weight,
-// otherwise the morph reads as a font swap mid-flight. Only font-size /
-// letter-spacing differ between `.tileTitle` and `.bandLabel` — the
-// browser interpolates the bounding box and cross-fades the snapshots.
+// ScreenIndicator — 3-tile indicator. Анимации сведены к одной opacity-
+// transition по запросу юзера. Никаких transform/scale/border-color
+// переходов, никакого View Transitions морфа title — title в band просто
+// меняется на новый. Активная плитка скрывается через `opacity: 0`,
+// при этом ОСТАЁТСЯ в layout (место в потоке сохраняется → 3-колоночная
+// сетка не схлопывается).
 
 .root {
+    position: relative;
     display: flex;
     flex-direction: column;
     width: 100%;
+    background: transparent;
 }
 
 .tilesRow {
@@ -20,14 +19,6 @@
     flex-shrink: 0;
 }
 
-// Equal-width tiles (flex: 1 1 0) — width is NEVER animated to avoid
-// reflow on every frame. Active/inactive contrast is composite-only:
-//   transform: scale  (GPU)
-//   border-color       (paint, but on 4 pixels — negligible)
-//
-// Border-color и transform используют ОДИН и тот же timing —
-// рассинхрон (transform 0.28s vs border 0.18s) давал visible pop
-// рамки через ~100ms после увеличения плитки.
 .tile {
     position: relative;
     flex: 1 1 0;
@@ -44,31 +35,18 @@
     color: #000000;
     border: 1px solid transparent;
     border-radius: 0;
-    transform: scale(0.92);
-    transform-origin: center;
-    transition:
-        transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-        border-color 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
     -webkit-tap-highlight-color: transparent;
 }
 
+// Активная плитка скрыта (opacity:0), место в потоке сохраняется.
+// Transition'а нет: со slideIndex каждый инстанс статичный per-slide,
+// смены состояния «не активна → активна» внутри одного инстанса нет.
 .tileActive {
-    transform: scale(1);
-    border-color: #000000;
-    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .tile {
-        transition: none;
-    }
-}
-
-// Анимацию появления title НЕ навешиваем: cross-fade snapshot'ов уже
-// делает View Transitions API (см. `::view-transition-old/new` ниже).
-// Прежний `tileTitleFadeIn 0.18s` накладывался поверх VT 0.6s и давал
-// рассинхрон. В браузерах без VT смена будет мгновенной — то же
-// поведение, что у свайпа, так что консистентность не страдает.
 .tileTitle {
     position: relative;
     z-index: 1;
@@ -76,26 +54,35 @@
     margin: 0;
     color: inherit;
     font-family: "Source Serif 4", "Merriweather", serif;
+    font-weight: 300;
     font-style: italic;
-    font-weight: 400;
-    font-size: 1.05rem;
+    font-size: 16px;
     line-height: 1;
-    letter-spacing: -0.3px;
     white-space: nowrap;
+    text-align: center;
     opacity: 0.45;
+
+    &:after {
+        content: '';
+        position: absolute;
+        left: -4px;
+        right: -4px;
+        bottom: -4px;
+        height: 1px;
+        background-color: #000000;
+        opacity: 0.4;
+    }
 }
 
 .tileImg {
     position: absolute;
-    left: 0;
+    right: 0;
     bottom: 0;
-    transform: translateY(38%);
     z-index: 0;
-    width: 160px;
-    height: 160px;
-    max-width: 100%;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    object-position: right center;
+    object-position: right bottom;
     opacity: 0.05;
     pointer-events: none;
     user-select: none;
@@ -129,75 +116,61 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: visible;
 }
 
-.bandLabel {
-    display: inline-block;
-    font-family: "Source Serif 4", "Merriweather", serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 2.6rem;
-    line-height: 1;
-    letter-spacing: -0.7px;
-    color: #000000;
-    white-space: nowrap;
+// Картинка активного экрана. Живёт в `.root` (не в `.band`), занимает
+// всю высоту индикатора — от верха тайлов до низа band. Колонка
+// активного тайла задаётся через `--active-idx` / `--tiles-total`
+// CSS-vars, прокинутые из JSX. Ширина — 2× ширины одного тайла,
+// opacity 0.04 (вдвое меньше, чем `.tileImg` в плиточке).
+.bandImg {
+    position: absolute;
+    top: 50%;
+    left: calc((var(--active-idx, 0) + 0.5) * (100% / var(--tiles-total, 3)));
+    transform: translate(-50%, -50%);
+    width: calc((100% / var(--tiles-total, 3)) * 2);
+    aspect-ratio: 1;
+    height: auto;
+    object-fit: contain;
+    opacity: 0.04;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+    will-change: opacity;
+    animation: bandImgFadeIn 1s ease-out both;
 }
 
-// ─── View Transitions pseudos (global) ──────────────────────────────────
-// The browser appends ::view-transition pseudos to <html> at the moment
-// startViewTransition() runs — they are NOT scoped to any element, so
-// these rules must be `:global()` to escape CSS-modules hashing.
-//
-// Duration/easing live in CSS vars on :root (locked to a back-out
-// overshoot "bounce") and are read by both the VT pseudos and the
-// WAAPI FLIP fallback in the component.
+@keyframes bandImgFadeIn {
+    from {
+        opacity: 0;
+    }
 
-:root {
-    --vt-screen-duration: 0.6s;
-    --vt-screen-easing: cubic-bezier(0.34, 1.56, 0.64, 1); // back-out overshoot ("bounce")
-}
-
-// The `screen-title-N` pair: group animates the bounding box, image-pair
-// crossfades the snapshots. Listing each name explicitly because the
-// CSS-pseudo grammar does not accept wildcards or commas within the
-// parentheses — only a single ident per pseudo. We list 3 here.
-:global(::view-transition-group(screen-title-0)),
-:global(::view-transition-group(screen-title-1)),
-:global(::view-transition-group(screen-title-2)) {
-    animation-duration: var(--vt-screen-duration);
-    animation-timing-function: var(--vt-screen-easing);
-}
-
-// Cross-fade old → new snapshots. Same timing so the position morph
-// and the fade complete in lockstep — otherwise you see a ghost frame
-// hanging at the source while the new one lands.
-:global(::view-transition-old(screen-title-0)),
-:global(::view-transition-old(screen-title-1)),
-:global(::view-transition-old(screen-title-2)),
-:global(::view-transition-new(screen-title-0)),
-:global(::view-transition-new(screen-title-1)),
-:global(::view-transition-new(screen-title-2)) {
-    animation-duration: var(--vt-screen-duration);
-    animation-timing-function: var(--vt-screen-easing);
-}
-
-:global(::view-transition-image-pair(screen-title-0)),
-:global(::view-transition-image-pair(screen-title-1)),
-:global(::view-transition-image-pair(screen-title-2)) {
-    isolation: auto;
+    to {
+        opacity: 0.04;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-
-    :global(::view-transition-group(screen-title-0)),
-    :global(::view-transition-group(screen-title-1)),
-    :global(::view-transition-group(screen-title-2)),
-    :global(::view-transition-old(screen-title-0)),
-    :global(::view-transition-old(screen-title-1)),
-    :global(::view-transition-old(screen-title-2)),
-    :global(::view-transition-new(screen-title-0)),
-    :global(::view-transition-new(screen-title-1)),
-    :global(::view-transition-new(screen-title-2)) {
-        animation-duration: 0.001s;
+    .bandImg {
+        animation: none;
     }
+}
+
+.bandLabel {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    // `--heading-font` / `--heading-size` / `--heading-style` / `--heading-letter`
+    // / `--heading-weight` ставятся HomePage.swipeArea через design-variant
+    // 'HomeHeading' (см. HomePage.module.scss). Фоллбэки = текущий канон
+    // (Source Serif 4 italic 400).
+    font-family: var(--heading-font, "Source Serif 4", "Merriweather", serif);
+    font-style: var(--heading-style, italic);
+    font-weight: var(--heading-weight, 400);
+    font-size: var(--heading-size, 2.6rem);
+    line-height: 1;
+    letter-spacing: var(--heading-letter, -0.7px);
+    color: #000000;
+    white-space: nowrap;
 }

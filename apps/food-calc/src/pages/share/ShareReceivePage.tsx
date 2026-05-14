@@ -7,7 +7,7 @@ import { addScheduleFood } from '@/entities/schedule-food';
 import { useProductsByIds } from '@/entities/product/api/queries';
 import { Button } from '@/shared/ui/atoms/Button';
 import { SearchFood } from '@/features/food/food-search';
-import { ScheduleSelection } from '@/features/ScheduleSelection/ScheduleSelection';
+import { ScheduleNavigator } from '@/features/schedule-navigator';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
@@ -151,7 +151,7 @@ const ShareReceivePage = () => {
         </div>
         <div className={styles.content}>
           <TimeChoose onFinish={setTime} initialTime={time} />
-          <ScheduleSelection onSelect={handleAddToDay} />
+          <ScheduleNavigator onSelect={handleAddToDay} />
         </div>
       </div>
     );

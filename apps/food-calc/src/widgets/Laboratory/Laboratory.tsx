@@ -12,6 +12,7 @@ import styles from './Laboratory.module.scss';
 
 type Props = {
   date: string;
+  topSlot?: React.ReactNode;
 };
 
 function useEventCountLast7Days(date: string): number | undefined {
@@ -35,13 +36,14 @@ function useEventCountLast7Days(date: string): number | undefined {
   }, [dateSet]);
 }
 
-const Laboratory = ({ date }: Props) => {
+const Laboratory = ({ date, topSlot }: Props) => {
   const eventCount = useEventCountLast7Days(date);
   const open = useOpenHypotheses();
   const closed = useClosedHypotheses();
 
   return (
     <Screen
+      stickyTop={topSlot}
       headerOverlap
       hollow={open.length === 0 && (eventCount ?? 0) === 0}
       bottomBar={

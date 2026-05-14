@@ -141,14 +141,38 @@ export const DesignVariantsBar = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [next, prev]);
 
-  const lastVariantRef = useRef<string | null>(null);
+  // Flash management: при смене `activeKey` (через IntersectionObserver на скролле)
+  // нужно ОБЯЗАТЕЛЬНО снимать FLASH_CLASS со старого элемента, иначе через
+  // 5-6 свайпов у пользователя 6 элементов с фиолетовым outline'ом
+  // одновременно (визуальный мусор на пол-экрана). Раньше cleanup убивал
+  // только таймер, а класс оставался на старом anchor'е навсегда.
+  //
+  // Сравнение по `activeKey + variant`, а не только по variant — иначе при
+  // переходе с anchor'а A (variant=floating) на B (variant=floating) flash
+  // не сработает (variant строка не изменилась).
+  const flashRef = useRef<{ el: HTMLElement; timer: number } | null>(null);
+  const lastKeyVariantRef = useRef<string | null>(null);
   useEffect(() => {
+    const cleanup = () => {
+      if (flashRef.current) {
+        window.clearTimeout(flashRef.current.timer);
+        flashRef.current.el.classList.remove(FLASH_CLASS);
+        flashRef.current = null;
+      }
+    };
+
     if (!activeKey || !active) {
-      lastVariantRef.current = null;
+      lastKeyVariantRef.current = null;
+      cleanup();
       return;
     }
-    if (lastVariantRef.current === active.variant) return;
-    lastVariantRef.current = active.variant;
+
+    const keyVariant = `${activeKey}:${active.variant}`;
+    if (lastKeyVariantRef.current === keyVariant) return;
+    lastKeyVariantRef.current = keyVariant;
+
+    cleanup();
+
     const el = document.querySelector<HTMLElement>(`[data-dv="${activeKey}"]`);
     if (!el) return;
     el.classList.remove(FLASH_CLASS);
@@ -156,9 +180,21 @@ export const DesignVariantsBar = () => {
     el.classList.add(FLASH_CLASS);
     const timer = window.setTimeout(() => {
       el.classList.remove(FLASH_CLASS);
+      flashRef.current = null;
     }, FLASH_DURATION_MS);
-    return () => window.clearTimeout(timer);
+    flashRef.current = { el, timer };
+
+    return cleanup;
   }, [activeKey, active]);
+
+  // One-shot стирание залежавшегося FLASH_CLASS на любых [data-dv] при mount —
+  // на случай если до этого фикса у юзера в DOM уже накопилось N anchor'ов
+  // с навсегда залипшим классом (фиолетовые полоски через всю страницу).
+  useEffect(() => {
+    document.querySelectorAll<HTMLElement>(`[data-dv].${FLASH_CLASS}`).forEach((el) => {
+      el.classList.remove(FLASH_CLASS);
+    });
+  }, []);
 
   const currentIdx = active ? active.variants.indexOf(active.variant) : -1;
   const total = active?.variants.length ?? 0;

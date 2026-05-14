@@ -41,9 +41,10 @@ type Props = {
   children?: React.ReactNode;
   date: string;
   events: ScheduleEvent[];
+  topSlot?: React.ReactNode;
 };
 
-const ScheduleEvents = ({ date, events }: Props) => {
+const ScheduleEvents = ({ date, events, topSlot }: Props) => {
   const selectionStoreEvents = useSelection();
   const isActionsMode = useStore(selectionStoreEvents, (s) => s.isActionsMode);
   const selectedIds = useStore(selectionStoreEvents, (s) => s.selectedIds);
@@ -83,6 +84,7 @@ const ScheduleEvents = ({ date, events }: Props) => {
 
   return (
     <Screen
+      stickyTop={topSlot}
       headerOverlap
       hollow={events.length === 0}
       overlay={

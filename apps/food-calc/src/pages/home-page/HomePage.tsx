@@ -1,7 +1,6 @@
 import { RouterLinks } from '@/app/router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import clsx from 'clsx';
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import homeStyles from './HomePage.module.scss';
 import { FoodSchedule } from '@/widgets/FoodSchedule';
@@ -11,18 +10,26 @@ import { HomeTopBar } from '@/widgets/HomeTopBar';
 import { useScheduleFoods, useScheduleNutrientTotals } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
-import { ScreenIndicator, runTileMigration, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
+import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import normsImg from '@/shared/assets/decarative/norms.png';
-import watchImg from '@/shared/assets/decarative/watch.png';
-import tree2Img from '@/shared/assets/decarative/tree2.png';
 
 const SCREENS: ScreenEntry[] = [
-  { label: 'Лаборатория', image: tree2Img, titleStyle: 'display-sans' },
-  { label: 'Приемы пищи', image: watchImg, titleStyle: 'display-sans' },
+  { label: 'Лаборатория', image: '/art/experiment.png', titleStyle: 'display-sans' },
+  { label: 'Приемы пищи', image: '/art/schedule-food.png', titleStyle: 'display-sans' },
   { label: 'События', image: normsImg, titleStyle: 'display-sans' },
 ];
 
 const DEFAULT_SLIDE = 1;
+// Ambient backdrop варианты — radial-glow подложки на `.container`. CSS
+// живёт в HomePage.module.scss (`[data-dv='HomeAmbient']`).
+const HOME_AMBIENT_VARIANTS = [
+  'plain',
+  'peach-rose',
+  'mint-sky',
+  'lavender-cream',
+  'sunrise',
+] as const;
 // Embla programmatic-scroll duration (frame-loop units). Сокращён
 // относительно дефолта 25, потому что юзер добавил margin между слайдами:
 // scroll-дистанция выросла → spring-кривая Embla в конце давала visible
@@ -47,13 +54,28 @@ const Page = ({ date }: { date: string }) => {
   const [activeIndex, setActiveIndex] = useState(DEFAULT_SLIDE);
   const swipeableRef = useRef<SwipeableRef>(null);
 
+  // Preload bandImg PNG'шек: на первый клик по тайлу image уже в HTTP-кеше,
+  // decode <1ms → CSS-fade стартует на готовых пикселях, нет "pop"
+  // (cold-cache decode ~50-150ms на iOS WebKit съедал первую часть
+  // opacity-анимации).
+  useEffect(() => {
+    SCREENS.forEach((s) => {
+      if (!s.image) return;
+      const img = new Image();
+      img.src = s.image;
+    });
+  }, []);
+
+  const { anchor: ambientAnchor } = useDesignVariant(
+    'HomeAmbient',
+    HOME_AMBIENT_VARIANTS,
+  );
+
   // На свайпе VT-морф title НЕ запускаем намеренно — Swipeable вызывает
   // onIndexChange на `settle` event (после полного завершения scroll-
-  // анимации, см. OPTIMIZATION_CASE.md), и пуск 600ms VT в этот момент
-  // даёт perceived "title застрял": контент уже на новой позиции, а
-  // title только начинает морфить. Свайп = utility (instant title),
-  // click = декор (VT-морф ниже в handleSelectAnimated). Та же асимметрия
-  // живёт в DishBuilderPage.
+  // анимации), и пуск 600ms VT в этот момент даёт perceived "title застрял":
+  // контент уже на новой позиции, а title только начинает морфить. Свайп =
+  // utility (instant title), click = декор (VT-морф внутри ScreenIndicator).
   const handleIndexChange = useCallback((idx: number) => {
     setActiveIndex(idx);
   }, []);
@@ -63,62 +85,84 @@ const Page = ({ date }: { date: string }) => {
     setActiveIndex(idx);
   }, []);
 
-  // Невидимый click-layer перехватывает клики ДО visible-плитки в
-  // ScreenIndicator — VT-обёртку нужно дёргать тут вручную, иначе
-  // активная плитка меняется без морфа title ↔ band.
-  const handleSelectAnimated = useCallback(
-    (idx: number) => {
-      runTileMigration(activeIndex, idx, () => handleSelect(idx));
-    },
+  // ScreenIndicator передаётся в каждый слайд как `topSlot`. Sticky-обёртка
+  // в `Screen.screenScroll` резервирует своё место в потоке — контент идёт
+  // после него без `padding-top`-компенсации. VT-имена и runTileMigration
+  // живут только в активной копии (см. ScreenIndicator.isActive prop) —
+  // иначе VT API ругается на дубликаты `view-transition-name`.
+  //
+  // useMemo — каждый виджет слайда обёрнут в memo(...); нестабильный JSX
+  // в `topSlot` бы ломал memoization. Зависимости — activeIndex (active
+  // changes) + handleSelect (stable через useCallback).
+  // slideIndex={0/1/2} → каждый инстанс показывает СВОЙ статичный экран
+  // (label, image, highlight'нутый тайл) и не реагирует на activeIndex.
+  // При свайпе юзер видит title слайда A → пролистывает → title слайда B
+  // через нативную DOM-смену слайдов, без cross-fade морфа.
+  const labIndicator = useMemo(
+    () => (
+      <ScreenIndicator
+        screens={SCREENS}
+        activeIndex={activeIndex}
+        onSelect={handleSelect}
+        isActive={activeIndex === 0}
+        slideIndex={0}
+      />
+    ),
+    [activeIndex, handleSelect],
+  );
+  const foodIndicator = useMemo(
+    () => (
+      <ScreenIndicator
+        screens={SCREENS}
+        activeIndex={activeIndex}
+        onSelect={handleSelect}
+        isActive={activeIndex === 1}
+        slideIndex={1}
+      />
+    ),
+    [activeIndex, handleSelect],
+  );
+  const eventsIndicator = useMemo(
+    () => (
+      <ScreenIndicator
+        screens={SCREENS}
+        activeIndex={activeIndex}
+        onSelect={handleSelect}
+        isActive={activeIndex === 2}
+        slideIndex={2}
+      />
+    ),
     [activeIndex, handleSelect],
   );
 
   return (
-    <div className={homeStyles.container}>
+    <div className={homeStyles.container} {...ambientAnchor}>
       <HomeTopBar date={date} />
       <div className={homeStyles.swipeArea}>
-        <div className={homeStyles.indicatorFloat}>
-          <ScreenIndicator
-            screens={SCREENS}
-            activeIndex={activeIndex}
-            onSelect={handleSelect}
+        <Swipeable
+          ref={swipeableRef}
+          defaultSlide={DEFAULT_SLIDE}
+          duration={SWIPE_DURATION}
+          hasDots={false}
+          onIndexChange={handleIndexChange}
+        >
+          <Laboratory key={date} date={date} topSlot={labIndicator} />
+          <FoodSchedule
+            key={date}
+            date={date}
+            items={items}
+            totals={scheduleTotals}
+            missingNutrientNames={missingNutrientNames}
+            isLoading={nutrientsLoading}
+            topSlot={foodIndicator}
           />
-        </div>
-        <div className={homeStyles.swipeableLayer}>
-          <Swipeable
-            ref={swipeableRef}
-            defaultSlide={DEFAULT_SLIDE}
-            duration={SWIPE_DURATION}
-            hasDots={false}
-            onIndexChange={handleIndexChange}
-          >
-            <Laboratory key={date} date={date} />
-            <FoodSchedule
-              key={date}
-              date={date}
-              items={items}
-              totals={scheduleTotals}
-              missingNutrientNames={missingNutrientNames}
-              isLoading={nutrientsLoading}
-            />
-            <ScheduleEvents key={date} date={date} events={events} />
-          </Swipeable>
-        </div>
-        <div className={homeStyles.indicatorClickLayer} aria-hidden>
-          {SCREENS.map((screen, i) => (
-            <button
-              key={screen.label}
-              type="button"
-              tabIndex={-1}
-              aria-label={screen.label}
-              className={clsx(
-                homeStyles.indicatorClickTile,
-                i === activeIndex && homeStyles.indicatorClickTileActive,
-              )}
-              onClick={() => handleSelectAnimated(i)}
-            />
-          ))}
-        </div>
+          <ScheduleEvents
+            key={date}
+            date={date}
+            events={events}
+            topSlot={eventsIndicator}
+          />
+        </Swipeable>
       </div>
     </div>
   );

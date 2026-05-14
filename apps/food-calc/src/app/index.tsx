@@ -1,3 +1,8 @@
+// Side-effect: registers the Navigation API `navigate` listener (or popstate
+// fallback) BEFORE createBrowserRouter installs its own listeners. See
+// apps/food-calc/tds/overlay-navigation-api-migration.md.
+import '@/shared/lib/overlay-history';
+
 import * as ReactDOM from 'react-dom/client';
 
 import { RouterProvider } from 'react-router-dom';

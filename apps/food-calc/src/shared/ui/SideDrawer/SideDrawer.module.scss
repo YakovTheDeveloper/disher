@@ -82,6 +82,16 @@
   border-top-right-radius: var(--radius-lg, 16px);
   border-bottom-right-radius: var(--radius-lg, 16px);
 
+  // Kill Base UI's rubber-band over-drag. Во время свайпа useSwipeDismiss
+  // выставляет inline style.transform с sqrt-damped opposite-direction
+  // движением (useSwipeDismiss.js:919) — inline побеждает обычный CSS, поэтому
+  // нужен !important. Для left-anchored clamp'им к ≤0 (свайп-закрытие влево
+  // работает; rubber-band вправо обрезается до 0). translateY=0 и scale=1
+  // для side-drawer'а, так что одного translateX достаточно.
+  &[data-swiping] {
+    transform: translateX(min(var(--drawer-swipe-movement-x), 0px)) !important;
+  }
+
   &[data-starting-style],
   &[data-ending-style] {
     transform: translateX(-100%);
@@ -93,6 +103,10 @@
   box-shadow: -4px 0 16px rgba(0, 0, 0, 0.08);
   border-top-left-radius: var(--radius-lg, 16px);
   border-bottom-left-radius: var(--radius-lg, 16px);
+
+  &[data-swiping] {
+    transform: translateX(max(var(--drawer-swipe-movement-x), 0px)) !important;
+  }
 
   &[data-starting-style],
   &[data-ending-style] {

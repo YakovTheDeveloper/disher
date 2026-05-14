@@ -39,9 +39,10 @@
     flex-direction: column;
     position: relative;
 
-    // Force own compositor layer — browser moves a ready GPU texture
-    // instead of repainting during container transform animation
-    transform: translateZ(0);
+    // Раньше тут был `transform: translateZ(0)` для принудительного промоутинга
+    // в свой compositor layer. Удалён: на iOS Safari совмещение с `backdrop-
+    // filter` родителя давало синеватые швы на границах слайдов. Embla сама
+    // управляет transform'ом контейнера, отдельный хинт на slide избыточен.
 
     // Strict containment: size + layout + style + paint
     // Browser won't recalculate this slide's geometry during sibling changes

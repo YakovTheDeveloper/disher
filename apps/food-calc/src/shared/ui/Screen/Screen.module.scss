@@ -74,7 +74,9 @@
     flex-shrink: 0;
     position: relative;
     z-index: 2;
-    background: #ffffff;
+    // Родитель может переопределить через `--bottom-bar-bg` (например на
+    // ambient-страницах — `transparent`, чтобы свечение проступало).
+    background: var(--bottom-bar-bg, #ffffff);
     border-top: 1px solid rgba(0, 0, 0, 0.08);
     padding-bottom: env(safe-area-inset-bottom);
 }
@@ -101,20 +103,44 @@
     // навигации в HomePage) — родитель задаёт `--page-top-inset` равный высоте
     // оверлея. Контент стартует под оверлеем; при скролле визуально уезжает
     // за него. Другие страницы переменную не задают — паддинг = 0.
+    // HomePage больше не задаёт эту переменную — индикатор едет в потоке через
+    // `.stickyTop`-слот; переменная оставлена для других страниц / future-use.
     padding-top: var(--page-top-inset, 0);
-    // `translateZ(0)` is enough to promote the scroller to its own compositor
-    // layer (smooth scroll on iOS). `will-change: transform` was redundant —
-    // the element's transform never actually animates, so the hint only
-    // reserved memory.
-    transform: translateZ(0);
-    backface-visibility: hidden;
-
+    // Раньше тут жили `transform: translateZ(0)` + `backface-visibility: hidden`
+    // как GPU-хинты для smooth scroll. На iOS Safari они создавали тонкие
+    // синеватые швы на границах composited-слоя (fringe от alpha-compositing
+    // под `.bar` с `backdrop-filter` сверху). Хинт избыточен — iOS сама
+    // промоутит scrollable areas, удаление швы устранило.
     overscroll-behavior: contain;
 }
 
 .overlay {
     position: fixed;
     inset: 0;
+}
+
+// Sticky-слот внутри `screenScroll`. Прилипает к `top: var(--top-bar-h)` —
+// под `HomeTopBar` (absolute поверх контейнера).
+//
+// z-index СПЕЦИАЛЬНО оставлен `auto` (без override) — samokat-style паттерн
+// «контент рисуется поверх sticky-header'а»:
+//   • sticky-индикатор рендерится первым в потоке screenScroll.
+//   • `.headerOverlap` (margin-top: -24 + border-top-radius + z-index: 1)
+//     идёт после в source order. При равных z-index source order побеждает →
+//     контент-плашка визуально поверх индикатора.
+//   • При скролле контент проезжает над залипшим индикатором, индикатор
+//     постепенно «уходит под бумагу». Самокатовский эффект.
+//   • Клики: в зоне overlap (24px нижней части индикатора) клик попадает
+//     в headerOverlap = в контент (правильно). Выше overlap — в плитки
+//     индикатора (правильно).
+.stickyTop {
+    position: sticky;
+    top: 0;
+    // Непрозрачный фон обязателен: между «залипанием» и моментом когда
+    // `headerOverlap` накрывает индикатор есть прозрачные пиксели через
+    // которые виден контент. Дефолт — белый; родитель может переопределить
+    // через `--sticky-top-bg` (например на ambient-страницах).
+    background: var(--sticky-top-bg, #fff);
 }
 
 // Samokat-style: контент-плашка наезжает на низ `header`'а скруглением.
@@ -132,7 +158,9 @@
 .headerOverlap {
     position: relative;
     z-index: 1;
-    background: #ffffff;
+    // Родитель может переопределить через `--header-overlap-bg` (например на
+    // ambient-страницах — `transparent`, чтобы свечение проступало).
+    background: var(--header-overlap-bg, #ffffff);
     border-top-left-radius: 24px;
     border-top-right-radius: 24px;
     margin-top: -24px;

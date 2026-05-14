@@ -1,7 +1,7 @@
 import { memo, useCallback, useMemo } from 'react';
 import { parse, isValid } from 'date-fns';
 import { drawerStore } from '@/shared/ui';
-import { ScheduleSelectionDrawer } from '@/features/ScheduleSelection/ScheduleSelectionDrawer';
+import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
@@ -13,6 +13,10 @@ type Props = {
   date: string;
   /** Override the date-segment text entirely (bypasses dateVariant rendering). */
   dateButtonLabel?: string;
+  /** Slot rendered as the FIRST child of `.bar` (before the date segment).
+   *  Used by HomePage to mount mini-tile navigation inside the bar pill
+   *  itself instead of stacking another absolute layer over it. */
+  leadingSlot?: React.ReactNode;
 };
 
 type DateParts = { weekday: string; day: string; month: string; full: string };
@@ -41,14 +45,14 @@ const DateButtonContent = ({ parts }: { parts: DateParts }) => {
   );
 };
 
-const HomeTopBar = ({ date, dateButtonLabel }: Props) => {
+const HomeTopBar = ({ date, dateButtonLabel, leadingSlot }: Props) => {
   const { toScheduleBuilder } = useAppRoutes();
   const dateParts = useMemo(() => formatDateParts(date), [date]);
 
   const { anchor: barAnchor } = useDesignVariant('HomeTopBar', BAR_VARIANTS);
 
   const handleDateClick = useCallback(async () => {
-    const selectedDate = await drawerStore.show(ScheduleSelectionDrawer, {
+    const selectedDate = await drawerStore.show(ScheduleNavigatorDrawer, {
       selectedDate: date,
     });
     if (selectedDate && selectedDate !== date) {
@@ -62,6 +66,7 @@ const HomeTopBar = ({ date, dateButtonLabel }: Props) => {
         <div className={styles.accountSlot}>
           <AccountPanel />
         </div>
+        {leadingSlot}
         <button
           type="button"
           className={`${styles.segment} ${styles.dateSegment}`}

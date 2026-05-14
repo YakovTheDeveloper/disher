@@ -1,60 +1,54 @@
 /**
- * Overlay History Coordinator
+ * Overlay back-gesture coordinator.
  *
- * Pushes sentinel history entries when overlays open,
- * so that browser Back closes the topmost overlay instead of navigating away.
+ * Closes the topmost overlay on browser back / Android-back / iOS-swipe via the
+ * Navigation API. No fake history entries are pushed — URL stays untouched while
+ * overlays open and close.
+ *
+ * Fallback for browsers without `window.navigation` (Safari < TP 18.4): a bare
+ * popstate listener that closes the topmost overlay. URL will have already
+ * traversed at that point — the close is honest, not transparent.
+ *
+ * Imported as a side-effect from `app/index.tsx` so the listener is registered
+ * before `createBrowserRouter` initializes its own listeners.
  */
 
-const closeHandlerStack: (() => void)[] = [];
-let sentinelCount = 0;
-let closingFromPopstate = false;
-let programmaticBack = false;
-
-export function pushOverlayEntry(): void {
-  sentinelCount++;
-  history.pushState({ __overlay: sentinelCount }, '');
-}
-
-export function popOverlayEntry(): Promise<void> {
-  if (sentinelCount > 0) {
-    sentinelCount--;
-    return new Promise<void>((resolve) => {
-      const onPop = () => {
-        window.removeEventListener('popstate', onPop);
-        resolve();
-      };
-      window.addEventListener('popstate', onPop);
-      programmaticBack = true;
-      history.back();
-    });
-  }
-  return Promise.resolve();
-}
+const closeHandlerStack: Array<() => void> = [];
 
 export function registerCloseHandler(fn: () => void): void {
   closeHandlerStack.push(fn);
 }
 
 export function unregisterCloseHandler(fn: () => void): void {
-  const idx = closeHandlerStack.indexOf(fn);
+  const idx = closeHandlerStack.lastIndexOf(fn);
   if (idx !== -1) closeHandlerStack.splice(idx, 1);
 }
 
-export function isPopstateClosing(): boolean {
-  return closingFromPopstate;
+function closeTop(): boolean {
+  if (closeHandlerStack.length === 0) return false;
+  closeHandlerStack[closeHandlerStack.length - 1]();
+  return true;
 }
 
-window.addEventListener('popstate', () => {
-  // Ignore popstate triggered by our own programmatic history.back()
-  if (programmaticBack) {
-    programmaticBack = false;
-    return;
+if (typeof window !== 'undefined') {
+  const nav = (window as unknown as { navigation?: EventTarget }).navigation;
+  if (nav && typeof nav.addEventListener === 'function') {
+    nav.addEventListener('navigate', (e: Event) => {
+      const ev = e as Event & {
+        navigationType?: string;
+        preventDefault: () => void;
+      };
+      if (ev.navigationType !== 'traverse') return;
+      if (closeHandlerStack.length === 0) return;
+      ev.preventDefault();
+      closeTop();
+    });
+  } else {
+    // Safari < TP 18.4 / older Chromium. Without Navigation API we can't block
+    // traverse — the URL will have changed by the time popstate fires. We still
+    // call closeTop so the React tree doesn't keep rendering a stale overlay.
+    window.addEventListener('popstate', () => {
+      closeTop();
+    });
   }
-
-  if (sentinelCount > 0 && closeHandlerStack.length > 0) {
-    sentinelCount--;
-    closingFromPopstate = true;
-    closeHandlerStack[closeHandlerStack.length - 1]();
-    closingFromPopstate = false;
-  }
-});
+}

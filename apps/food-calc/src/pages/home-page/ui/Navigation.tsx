@@ -3,7 +3,7 @@ import { useParams } from 'react-router';
 import { getTitle } from '@/pages/home-page/ui/methods';
 import { memo, useRef, useState, useEffect, useCallback } from 'react';
 import { drawerStore } from '@/shared/ui';
-import { ScheduleSelectionDrawer } from '@/features/ScheduleSelection/ScheduleSelectionDrawer';
+import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 
 const Navigation = () => {
@@ -30,7 +30,7 @@ const Navigation = () => {
     setLifted(true);
     await new Promise((resolve) => setTimeout(resolve, 220));
     setLifted(false);
-    const selectedDate = await drawerStore.show(ScheduleSelectionDrawer, {
+    const selectedDate = await drawerStore.show(ScheduleNavigatorDrawer, {
       selectedDate: dateParam,
     });
     if (selectedDate) {

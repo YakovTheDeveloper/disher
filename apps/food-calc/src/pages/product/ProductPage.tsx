@@ -30,7 +30,7 @@ import bagImage from '@/shared/assets/decarative/bag.png';
 import s from './ProductPage.module.scss';
 import { TopBar } from '@/shared/ui/TopBar';
 import { drawerStore } from '@/shared';
-import { ScheduleSelectionDrawer } from '@/features/ScheduleSelection/ScheduleSelectionDrawer';
+import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { Swipeable } from '@/shared/ui/Swipeable';
 
@@ -99,7 +99,7 @@ const ProductPage = () => {
   };
 
   const handleCalendarClick = useCallback(async () => {
-    const selectedDate = await drawerStore.show(ScheduleSelectionDrawer, {});
+    const selectedDate = await drawerStore.show(ScheduleNavigatorDrawer, {});
     if (selectedDate) {
       toScheduleBuilder(selectedDate);
     }

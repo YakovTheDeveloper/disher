@@ -1,0 +1,401 @@
+// schedule-navigator — lives inside the HomePage mint chrome.
+// Ambient mint+sky backdrop (mirrors HomeAmbient mint-sky variant).
+// Date typography mirrors HomeTopBar.dateNumeral{Day,Meta}:
+// Source Serif 4 for the day number, 9px lowercase letter-spacing meta.
+// Warm honey is reserved for selected/today data-accents only.
+//
+// Layout: CSS grid `1fr / auto / auto / 1fr`. Row 1 is the scrollable past
+// section (collapses to 0 visual height when empty thanks to align-self:end
+// + flex-bottom packing). Rows 2-3 are the divider + anchor block (Вчера /
+// Сегодня / Завтра). Row 4 is an empty spacer that balances row 1 so the
+// anchor block sits at the geometric centre of the drawer regardless of how
+// much past content there is. The past section uses mask-image to fade its
+// top edge — that's the visual "there's more above" hint without resorting
+// to ResizeObserver + slice() math.
+
+$ink: #1f2a44;
+$ink-soft: rgba(31, 42, 68, 0.62);
+$ink-faint: rgba(31, 42, 68, 0.38);
+$hairline: rgba(31, 42, 68, 0.08);
+
+$accent-honey: #d99a4c;
+$accent-honey-deep: #a35a14;
+$accent-today: #e07a3a;
+
+.shell {
+  position: relative;
+  display: grid;
+  // row 1 — past (scrollable, grows up to 1fr)
+  // row 2 — divider (auto, hidden when no past)
+  // row 3 — anchor block (auto, always rendered)
+  // row 4 — empty balance spacer (1fr)
+  // Anchor sits in the geometric centre because rows 1 + 4 share the
+  // remaining flex equally.
+  grid-template-rows: 1fr auto auto 1fr;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  color: $ink;
+  font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: #fdfdfb;
+}
+
+.ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 60% at 0% 0%, rgba(210, 240, 220, 0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 60% at 100% 0%, rgba(210, 228, 245, 0.50) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 100% 100%, rgba(215, 235, 230, 0.30) 0%, transparent 60%);
+  z-index: 0;
+}
+
+// ─── Past section (row 1) ──────────────────────────────────────────────────
+// Content is bottom-packed (align-self: end), so the newest past day sits
+// flush against the divider/anchor block above. If pastFilledAsc.length === 0,
+// the section is empty and its 1fr share collapses visually.
+.pastSection {
+  grid-row: 1;
+  align-self: end;
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  // Top fade — "there's more above" visual signal. Same gradient used as
+  // a mask so the content underneath shows through with a soft transition
+  // instead of a hard scrollbar/clip edge.
+  mask-image: linear-gradient(to bottom, transparent 0, #000 36px, #000 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 36px, #000 100%);
+  position: relative;
+  z-index: 1;
+  padding-top: 24px;
+}
+
+.monthGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.monthHeader {
+  padding: 4px 24px 6px;
+  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
+  font-style: italic;
+  font-size: 12px;
+  font-weight: 500;
+  color: $ink-faint;
+  text-transform: lowercase;
+  letter-spacing: -0.005em;
+  line-height: 1.1;
+}
+
+// Past chips — flex-wrap of 44×52 cells, gap-aligned. Compact enough to fit
+// many past days without consuming vertical space; anchors below stay full-row.
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 22px 12px;
+}
+
+.dayChip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 44px;
+  height: 52px;
+  padding: 6px 0 7px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid $hairline;
+  border-radius: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    transform 0.06s ease;
+
+  &:active {
+    transform: scale(0.94);
+    background: rgba(255, 255, 255, 0.85);
+  }
+}
+
+.dayChipNumber {
+  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
+  font-style: italic;
+  font-size: 20px;
+  font-weight: 500;
+  color: $ink;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+.dayChipWeekday {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+  color: $ink-faint;
+  line-height: 1;
+}
+
+.dayChipToday {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 240, 220, 0.85) 0%,
+    rgba(255, 230, 200, 0.55) 100%
+  );
+  border-color: rgba(224, 122, 58, 0.30);
+
+  .dayChipNumber {
+    color: $accent-today;
+  }
+  .dayChipWeekday {
+    color: $accent-today;
+    opacity: 0.85;
+  }
+}
+
+.dayChipSelected {
+  background: linear-gradient(
+    180deg,
+    rgba(252, 224, 179, 0.95) 0%,
+    rgba(249, 201, 126, 0.7) 100%
+  );
+  border-color: rgba(163, 90, 20, 0.30);
+
+  .dayChipNumber {
+    color: $accent-honey-deep;
+  }
+  .dayChipWeekday {
+    color: $accent-honey-deep;
+    opacity: 0.85;
+  }
+}
+
+// ─── Divider (row 2) ───────────────────────────────────────────────────────
+.divider {
+  grid-row: 2;
+  height: 1px;
+  margin: 10px 28px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    $hairline 25%,
+    $hairline 75%,
+    transparent 100%
+  );
+  position: relative;
+  z-index: 1;
+}
+
+// ─── Anchor list (row 3) ───────────────────────────────────────────────────
+.anchorList {
+  grid-row: 3;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+// ─── Day row ───────────────────────────────────────────────────────────────
+.dayRow {
+  position: relative;
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  align-items: center;
+  column-gap: 14px;
+  padding: 14px 22px 14px 28px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  color: inherit;
+  transition: background 0.14s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      $hairline 20%,
+      $hairline 80%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+
+  &:last-child::after {
+    display: none;
+  }
+
+  &:active {
+    background: rgba(31, 42, 68, 0.03);
+  }
+}
+
+.dayAccent {
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: $accent-honey;
+  opacity: 0;
+  transition: opacity 0.12s ease, width 0.12s ease, background 0.12s ease;
+  pointer-events: none;
+}
+
+.dayRowFilled .dayAccent {
+  opacity: 0.85;
+}
+
+.dayRowToday .dayAccent {
+  background: $accent-today;
+  opacity: 1;
+}
+
+.dayRowSelected .dayAccent {
+  background: $accent-honey-deep;
+  width: 5px;
+  opacity: 1;
+}
+
+// ─── Typography ────────────────────────────────────────────────────────────
+.dayNumber {
+  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
+  font-style: italic;
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: $ink;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  text-align: right;
+  justify-self: end;
+}
+
+.dayRowEmpty .dayNumber {
+  color: $ink-faint;
+  font-weight: 400;
+}
+
+.dayRowToday .dayNumber {
+  color: $accent-today;
+}
+
+.dayRowSelected .dayNumber {
+  color: $accent-honey-deep;
+}
+
+.dayMeta {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dayWeekday {
+  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
+  font-style: italic;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: $ink;
+  text-transform: lowercase;
+  letter-spacing: -0.005em;
+}
+
+.dayRowEmpty .dayWeekday {
+  color: $ink-soft;
+  font-weight: 400;
+}
+
+.dayRowToday .dayWeekday,
+.dayRowSelected .dayWeekday {
+  color: inherit;
+}
+
+.dayMonth {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  color: $ink-faint;
+  line-height: 1.1;
+}
+
+.dayRelative {
+  align-self: center;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: $ink-faint;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid $hairline;
+  white-space: nowrap;
+}
+
+.dayRowToday .dayRelative {
+  color: $accent-today;
+  background: rgba(255, 240, 225, 0.7);
+  border-color: rgba(224, 122, 58, 0.20);
+}
+
+.dayRowSelected .dayRelative {
+  color: $accent-honey-deep;
+  background: rgba(253, 232, 200, 0.85);
+  border-color: rgba(163, 90, 20, 0.22);
+}
+
+.dayRowToday {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 240, 220, 0.45) 0%,
+    rgba(255, 240, 220, 0.10) 60%,
+    transparent 100%
+  );
+}
+
+.dayRowSelected {
+  background: linear-gradient(
+    90deg,
+    rgba(252, 224, 179, 0.55) 0%,
+    rgba(252, 224, 179, 0.18) 70%,
+    transparent 100%
+  );
+}
+
+.dayRowFilled:not(.dayRowToday):not(.dayRowSelected) {
+  background: linear-gradient(
+    90deg,
+    rgba(217, 154, 76, 0.07) 0%,
+    rgba(217, 154, 76, 0.02) 60%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dayRow,
+  .dayAccent,
+  .dayChip {
+    transition: none;
+  }
+}

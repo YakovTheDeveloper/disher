@@ -31,6 +31,14 @@ type Props = {
    * «листа»). Триггер через `data-hollow` атрибут, чтобы стили жили в CSS.
    */
   hollow?: boolean;
+  /**
+   * Sticky-блок внутри `screenScroll`. Прилипает к `top: var(--top-bar-h, 0)`
+   * (см. `.stickyTop` в CSS). Используется HomePage'ем чтобы класть
+   * ScreenIndicator В ПОТОК каждого слайда — sticky резервирует место
+   * естественно, контент идёт после без `padding-top`-компенсации,
+   * клики ловятся самим элементом без invisible-overlay'ев.
+   */
+  stickyTop?: React.ReactNode;
 };
 
 const Screen = ({
@@ -48,6 +56,7 @@ const Screen = ({
   backgroundImageOpacity = 0.05,
   headerOverlap = false,
   hollow = false,
+  stickyTop,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollContainerRef);
@@ -66,6 +75,7 @@ const Screen = ({
       )}
       <div className={styles.scrollWrap}>
         <div className={styles.screenScroll} ref={scrollContainerRef}>
+          {stickyTop && <div className={styles.stickyTop}>{stickyTop}</div>}
           <div className={styles.topPanel}>{topPanel}</div>
           {header}
           {headerOverlap ? (

@@ -4,39 +4,12 @@ import s from './ScreenIndicator.module.scss';
 
 export type TileTitleStyle = 'serif-initial' | 'display-sans' | 'mono-track';
 
-export type ScreenEntry = {
-  label: string;
-  /** Decorative background image, faded inside the tile. */
-  image?: string;
-  /** Retained for back-compat with HomePage's SCREENS array; the migrate
-   *  behaviour overrides typography so source (tile) and destination
-   *  (band) are identical and the morph reads as one growing word. */
-  titleStyle?: TileTitleStyle;
-};
-
-type Props = {
-  screens: ScreenEntry[];
-  activeIndex: number;
-  onSelect: (index: number) => void;
-};
-
 type DocWithVT = Document & {
   startViewTransition?: (cb: () => void) => { finished: Promise<void> };
 };
 
-/**
- * Wrap a state mutation so the title morph (tile ↔ band) animates.
- * Exported so callers OUTSIDE `ScreenIndicator` (e.g. a separate
- * click-capture layer) can drive the same animation without
- * duplicating the VT plumbing.
- *
- * Uses the **View Transitions API** — Chrome 111+, Safari 18.2+, FF 144+.
- * On browsers without VT support (iOS Safari <18.2) the state just
- * changes instantly without animation.
- *
- * `commit` must perform the state change synchronously when called —
- * `flushSync` wraps it so React commits before the second snapshot.
- */
+// Сохранён ради обратной совместимости с DishBuilderPage. В HomePage
+// больше не используется: tiles анимируются только opacity-transition'ом.
 export const runTileMigration = (
   prevIdx: number,
   idx: number,
@@ -52,25 +25,58 @@ export const runTileMigration = (
   });
 };
 
-/**
- * Tile indicator with shared-element title migration. Timing reads from
- * `--vt-screen-duration` / `--vt-screen-easing` on `<html>` — currently
- * locked to a back-out overshoot ("bounce"). See `runTileMigration`
- * for the View Transitions transport details.
- *
- * NB: HomePage перекрывает эти кнопки невидимым click-layer'ом и сам
- * оборачивает коммит в `runTileMigration`. Поэтому `onClick` здесь —
- * raw commit без VT-обёртки (она бы дала double-VT, если бы кликам
- * удалось добраться до этих кнопок).
- */
-export const ScreenIndicator = ({ screens, activeIndex, onSelect }: Props) => {
-  const activeLabel = screens[activeIndex]?.label ?? '';
+export type ScreenEntry = {
+  label: string;
+  image?: string;
+  titleStyle?: TileTitleStyle;
+};
+
+type Props = {
+  screens: ScreenEntry[];
+  activeIndex: number;
+  onSelect: (index: number) => void;
+  isActive?: boolean;
+  // Если задан — индикатор показывает СВОЙ экран (label/image/highlight)
+  // статично, независимо от activeIndex. Используется в HomePage, где
+  // каждый слайд Swipeable рендерит свой инстанс ScreenIndicator; title
+  // не должен прыгать при перелистывании. Если не задан — fallback на
+  // activeIndex (legacy: DishBuilderPage, один инстанс на странице).
+  slideIndex?: number;
+};
+
+export const ScreenIndicator = ({
+  screens,
+  activeIndex,
+  onSelect,
+  slideIndex,
+}: Props) => {
+  const displayIndex = slideIndex ?? activeIndex;
+  const activeScreen = screens[displayIndex];
+  const activeLabel = activeScreen?.label ?? '';
+  const activeImage = activeScreen?.image;
+  const total = screens.length;
 
   return (
-    <div className={s.root}>
+    <div
+      className={s.root}
+      style={{
+        ['--active-idx' as string]: displayIndex,
+        ['--tiles-total' as string]: total,
+      }}
+    >
+      {activeImage && (
+        <img
+          key={activeImage}
+          src={activeImage}
+          className={s.bandImg}
+          alt=""
+          aria-hidden
+          decoding="async"
+        />
+      )}
       <div className={s.tilesRow} role="tablist" aria-label="Экран">
         {screens.map((screen, i) => {
-          const active = i === activeIndex;
+          const active = i === displayIndex;
           return (
             <button
               key={screen.label}
@@ -83,15 +89,7 @@ export const ScreenIndicator = ({ screens, activeIndex, onSelect }: Props) => {
               {screen.image && (
                 <img src={screen.image} className={s.tileImg} alt="" aria-hidden />
               )}
-              {!active && (
-                <span
-                  className={s.tileTitle}
-                  data-vt-name={`screen-title-${i}`}
-                  style={{ viewTransitionName: `screen-title-${i}` } as React.CSSProperties}
-                >
-                  {screen.label}
-                </span>
-              )}
+              {!active && <span className={s.tileTitle}>{screen.label}</span>}
               {active && (
                 <span className={s.tileShadow} aria-hidden>
                   {screen.label}
@@ -103,13 +101,7 @@ export const ScreenIndicator = ({ screens, activeIndex, onSelect }: Props) => {
       </div>
 
       <div className={s.band}>
-        <span
-          className={s.bandLabel}
-          data-vt-name={`screen-title-${activeIndex}`}
-          style={{ viewTransitionName: `screen-title-${activeIndex}` } as React.CSSProperties}
-        >
-          {activeLabel}
-        </span>
+        <span className={s.bandLabel}>{activeLabel}</span>
       </div>
     </div>
   );

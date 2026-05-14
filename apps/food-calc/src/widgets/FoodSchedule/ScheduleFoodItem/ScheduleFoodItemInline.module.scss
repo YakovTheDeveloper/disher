@@ -143,6 +143,26 @@
     color: var(--text-muted);
 }
 
+.foodCol {
+    display: inline-flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 1px;
+    line-height: 1.15;
+}
+
+.detailsSubtitle {
+    font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+    font-style: italic;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .rightStack {
     display: flex;
     flex-direction: column;

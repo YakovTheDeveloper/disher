@@ -1,13 +1,7 @@
 import { create } from 'zustand';
 import React from 'react';
 import type { BaseDrawerProps } from './overlay-types';
-import {
-  pushOverlayEntry,
-  popOverlayEntry,
-  registerCloseHandler,
-  unregisterCloseHandler,
-  isPopstateClosing,
-} from '@/shared/lib/overlay-history';
+import { registerCloseHandler, unregisterCloseHandler } from '@/shared/lib/overlay-history';
 
 type InferResult<P> = P extends { onClose: (result?: infer R) => void } ? R : void;
 
@@ -53,7 +47,6 @@ function show<P extends BaseDrawerProps<any>>(
   return new Promise((resolve) => {
     const id = Math.random().toString(36).slice(2, 9);
     const historyHandler = () => closeLast();
-    pushOverlayEntry();
     registerCloseHandler(historyHandler);
     useDrawerStore.setState((state) => ({
       instances: [
@@ -90,19 +83,12 @@ function close(id: string, result?: any) {
     useDrawerStore.setState((state) => ({
       instances: state.instances.filter((i) => i.id !== id),
     }));
-    if (!isPopstateClosing()) {
-      void popOverlayEntry().catch(() => {});
-    }
     return;
   }
 
   useDrawerStore.setState((state) => ({
     instances: state.instances.map((i) => (i.id === id ? { ...i, phase: 'closing' } : i)),
   }));
-
-  if (!isPopstateClosing()) {
-    void popOverlayEntry().catch(() => {});
-  }
 }
 
 function finishClose(id: string) {

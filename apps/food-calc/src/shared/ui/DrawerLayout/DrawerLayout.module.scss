@@ -20,8 +20,11 @@
     box-shadow: 0px -2px 4px rgba(0, 0, 0, 0.03);
 
     // Live gesture-driven transform during user swipe; --drawer-swipe-movement-y is set
-    // by Base UI on the Popup. When no gesture, fallback 0.
-    transform: translateY(var(--drawer-swipe-movement-y, 0));
+    // by Base UI on the Popup. Clamp to >=0 to kill upward rubber-band over-drag
+    // (Base UI's applyDirectionalDamping применяет sqrt-damp в open-direction, что
+    // визуально отрывает drawer от нижнего края). Industry-standard 2026 паттерн
+    // (Material 3 modal sheets, iOS UISheetPresentationController, Vaul) — hard stop.
+    transform: translateY(max(var(--drawer-swipe-movement-y, 0px), 0px));
     transition: transform var(--overlay-duration, 280ms) cubic-bezier(0.32, 0.72, 0, 1);
 
     // Pre-promote to GPU composite layer so the slide-in animation doesn't trigger a

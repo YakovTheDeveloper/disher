@@ -130,12 +130,15 @@ const ScheduleFoodItemInline = ({
         editClassName={styles.timeEdit}
       />
 
-      <span onPointerDown={handleFoodPointerDown}>
+      <span className={styles.foodCol} onPointerDown={handleFoodPointerDown}>
         <FoodName
           content={name}
           className={getFoodNameClassName()}
           htmlFor={foodHtmlFor}
         />
+        {item.details ? (
+          <span className={styles.detailsSubtitle}>{item.details}</span>
+        ) : null}
       </span>
 
       <div className={styles.rightStack}>

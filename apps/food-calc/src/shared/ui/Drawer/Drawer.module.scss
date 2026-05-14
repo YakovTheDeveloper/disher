@@ -1,6 +1,6 @@
 // CSS variables for Base UI Drawer overlay (Backdrop). Tune duration and opacity
-// from a single place. Per-drawer overrides (e.g. ScheduleSelectionDrawer hides
-// backdrop) flip --overlay-opacity at the document level via :has().
+// from a single place. Per-drawer overrides (e.g. ScheduleNavigatorDrawer)
+// can flip --overlay-opacity at the document level via :has().
 :root {
     --overlay-duration: 280ms;
     --overlay-opacity: 0.2;

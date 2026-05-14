@@ -23,6 +23,8 @@
   --seg-font: inherit;
   --seg-letter: 0;
 
+
+
   // Floating overlay над контентом: иначе HomeTopBar занимает строку
   // в flex-layout родителя, swipeArea получает свою прямоугольную
   // область, и её рамка читается как «коробка» при свайпе слайдов.
@@ -33,7 +35,6 @@
   right: 0;
   z-index: 10;
   box-sizing: border-box;
-  padding: 0 var(--space-2);
   background: none;
   pointer-events: none;
 
@@ -53,16 +54,22 @@
   backdrop-filter: blur(var(--bar-blur));
   -webkit-backdrop-filter: blur(var(--bar-blur));
   border-bottom: var(--bar-border);
-  border-radius: var(--bar-radius);
+  border-bottom-right-radius: var(--bar-radius);
+  border-bottom-left-radius: var(--bar-radius);
   box-shadow: var(--bar-shadow);
   font-size: 13px;
   line-height: 1.2;
   font-family: var(--seg-font);
   letter-spacing: var(--seg-letter);
-  // background: none;
-  // box-shadow: none;
+
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
+// AccountPanel — первый flex-child pill'а. Слева, перед leadingSlot
+// (nav-tiles в hero-варианте) и dateSegment (margin-left:auto уводит
+// дату вправо). Без своего фона — avatar читается как есть.
 .accountSlot {
   display: flex;
   align-items: center;

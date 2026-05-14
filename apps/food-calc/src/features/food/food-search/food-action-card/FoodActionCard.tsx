@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { Link, useNavigate } from 'react-router';
 import styles from './FoodActionCard.module.scss';
@@ -7,8 +7,8 @@ import { deleteDishes } from '@/entities/dish';
 import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
 import { isCreatedByUser } from '@/shared/lib';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { popOverlayEntry } from '@/shared/lib/overlay-history';
 import { getProductUrl, RouterUrls } from '@/app/router';
+import { CatalogProductNutrientsDrawer } from './CatalogProductNutrientsDrawer';
 
 type Props = {
   variant: 'product' | 'dish';
@@ -112,6 +112,9 @@ const FoodActionCard = ({
   const navigate = useNavigate();
   const infoHref = variant === 'product' ? getProductUrl(item.id) : RouterUrls.getDish(item.id);
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.id);
+  const isCatalogProduct = variant === 'product' && !userCreated;
+  const [nutrientsOpen, setNutrientsOpen] = useState(false);
+  const [nutrientsMounted, setNutrientsMounted] = useState(false);
 
   const handleDelete = () => {
     if (variant === 'product') {
@@ -214,25 +217,42 @@ const FoodActionCard = ({
         </p>
       )}
       {onInfoClick && (
-        <Link
-          to={infoHref}
-          className={styles.infoBtn}
-          aria-label="Информация"
-          onClick={(e) => {
-            // Let cmd/ctrl/middle-click open in a new tab without closing the modal.
-            if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-            // Pop the overlay sentinel first (history.back, awaited), then close the modal
-            // and navigate. Otherwise the cleanup in useOverlayHistory would do its own
-            // history.back() AFTER our navigate(), which would undo the navigation.
-            e.preventDefault();
-            void popOverlayEntry().then(() => {
+        isCatalogProduct ? (
+          <button
+            type="button"
+            className={styles.infoBtn}
+            aria-label="Нутриенты"
+            onClick={() => {
+              setNutrientsMounted(true);
+              setNutrientsOpen(true);
+            }}
+          >
+            <InfoIcon />
+          </button>
+        ) : (
+          <Link
+            to={infoHref}
+            className={styles.infoBtn}
+            aria-label="Информация"
+            onClick={(e) => {
+              // Let cmd/ctrl/middle-click open in a new tab without closing the modal.
+              if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+              e.preventDefault();
               onInfoClick();
               navigate(infoHref);
-            });
-          }}
-        >
-          <InfoIcon />
-        </Link>
+            }}
+          >
+            <InfoIcon />
+          </Link>
+        )
+      )}
+      {isCatalogProduct && nutrientsMounted && (
+        <CatalogProductNutrientsDrawer
+          open={nutrientsOpen}
+          onOpenChange={setNutrientsOpen}
+          productId={item.id}
+          productName={item.name}
+        />
       )}
     </li>
   );

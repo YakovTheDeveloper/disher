@@ -69,6 +69,7 @@ type CommonProps = {
   richNutrient?: { id: string; unit: string } | null;
   onRichNutrientClear?: () => void;
   isActive?: boolean;
+  topSlot?: React.ReactNode;
 };
 
 const FoodSchedule = ({
@@ -80,6 +81,7 @@ const FoodSchedule = ({
   richNutrient,
   onRichNutrientClear,
   isActive = true,
+  topSlot,
 }: CommonProps) => {
   const selectionStoreFood = useSelection();
   const isActionsMode = useStore(selectionStoreFood, (s) => s.isActionsMode);
@@ -196,6 +198,7 @@ const FoodSchedule = ({
 
   return (
     <Screen
+      stickyTop={topSlot}
       headerOverlap
       hollow={items.length === 0}
       overlay={

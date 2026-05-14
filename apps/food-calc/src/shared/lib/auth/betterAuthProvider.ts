@@ -86,6 +86,44 @@ let cachedUser: AppUser | null = null;
 
 const SB_CLEANED_FLAG = 'disher.sb-cleaned';
 
+// Persisted last-known user. Used as a fallback when bootstrap can't reach
+// the server (network down / backend offline) but a bearer is still on disk
+// — we keep the user signed in instead of bouncing them to AuthScreen. Wiped
+// on explicit signOut or on a real 401/403 from the server. See
+// project_auth_invariant.md: «окно логина юзер не видит вне явного logout».
+const LAST_USER_KEY = 'disher.lastUser';
+
+function readLastUser(): AppUser | null {
+  try {
+    const raw = localStorage.getItem(LAST_USER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as unknown;
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      typeof (parsed as { id?: unknown }).id === 'string'
+    ) {
+      const obj = parsed as { id: string; email?: unknown };
+      return { id: obj.id, email: typeof obj.email === 'string' ? obj.email : null };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function persistLastUser(user: AppUser | null) {
+  if (!user) {
+    localStorage.removeItem(LAST_USER_KEY);
+    return;
+  }
+  try {
+    localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: user.id, email: user.email }));
+  } catch {
+    // Quota / private mode — ignore; next successful bootstrap will retry.
+  }
+}
+
 export const betterAuthProvider: AuthProvider = {
   async bootstrap() {
     // One-shot legacy cleanup: drop any pre-migration `sb-*` localStorage keys
@@ -104,17 +142,35 @@ export const betterAuthProvider: AuthProvider = {
     // shows the sign-in screen.
     if (!localStorage.getItem(BEARER_KEY)) {
       cachedUser = null;
+      persistLastUser(null);
       return null;
     }
-    const { data, error } = await authClient.getSession();
+    // better-auth rejects (TypeError: Failed to fetch) instead of returning
+    // `{ error }` on network failure — backend down, offline, DNS, etc. We
+    // do NOT drop the token AND we fall back to the persisted last-known user
+    // so AuthGate doesn't bounce a signed-in user to AuthScreen just because
+    // the backend is unreachable. BackupGate will fail its push/pull quietly
+    // and Dexie keeps serving as the local-first source of truth.
+    let getSessionResult: Awaited<ReturnType<typeof authClient.getSession>>;
+    try {
+      getSessionResult = await authClient.getSession();
+    } catch (e) {
+      console.warn('betterAuthProvider.bootstrap: getSession failed (network?)', e);
+      cachedUser = readLastUser();
+      return cachedUser;
+    }
+    const { data, error } = getSessionResult;
     if (error || !data?.user) {
-      // 401 / expired / revoked — drop the dead token so future bootstraps
-      // skip the network (and auth UI doesn't get stuck "loading").
+      // 401 / expired / revoked — server explicitly says this token is dead,
+      // so wipe both the bearer and the last-known user (don't let a future
+      // network-flake resurrect a revoked session).
       localStorage.removeItem(BEARER_KEY);
+      persistLastUser(null);
       cachedUser = null;
       return null;
     }
     cachedUser = toAppUser(data.user);
+    persistLastUser(cachedUser);
     return cachedUser;
   },
 
@@ -133,6 +189,7 @@ export const betterAuthProvider: AuthProvider = {
         return { ok: false, error: { kind: 'auth', message: 'Empty user in sign-in response', raw: data } };
       }
       cachedUser = user;
+      persistLastUser(user);
       return { ok: true, user };
     } catch (e) {
       return { ok: false, error: classifyError(e) };
@@ -188,6 +245,7 @@ export const betterAuthProvider: AuthProvider = {
       console.error('signOut failed (clearing local bearer anyway)', e);
     }
     localStorage.removeItem(BEARER_KEY);
+    persistLastUser(null);
     cachedUser = null;
   },
 
@@ -225,6 +283,9 @@ export const betterAuthProvider: AuthProvider = {
 
       prevId = nextId;
       cachedUser = nextUser;
+
+      if (event === 'signed_out') persistLastUser(null);
+      else if (event === 'signed_in' || event === 'user_updated') persistLastUser(nextUser);
 
       if (event) cb(event, nextUser);
     });

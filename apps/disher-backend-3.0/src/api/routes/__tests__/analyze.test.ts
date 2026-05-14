@@ -230,4 +230,96 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
     expect(userPromptArg).toContain("<active_hypotheses>");
     expect(userPromptArg).toContain("no dairy");
   });
+
+  it("GET /api/analyses returns only DONE windows (no pending, no failed)", async () => {
+    const idDone1 = crypto.randomUUID();
+    const idDone2 = crypto.randomUUID();
+    const idFailed = crypto.randomUUID();
+    const idPending = crypto.randomUUID();
+
+    // Two successful analyses.
+    await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id: idDone1,
+        windowStart: "2026-05-01T00:00:00Z",
+        windowEnd: "2026-05-07T00:00:00Z",
+        payload: { scheduleFoods: [], scheduleEvents: [] },
+      },
+    });
+    await pollUntilDone(idDone1, user.headers);
+
+    await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id: idDone2,
+        windowStart: "2026-04-20T00:00:00Z",
+        windowEnd: "2026-04-26T00:00:00Z",
+        payload: { scheduleFoods: [], scheduleEvents: [] },
+      },
+    });
+    await pollUntilDone(idDone2, user.headers);
+
+    // One failed analysis — make the LLM return garbage, runJob writes
+    // "⚠️ Анализ не удался: invalid-output ..." into result_md.
+    mockCallLLM.mockResolvedValueOnce("not-json-not-valid");
+    await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id: idFailed,
+        windowStart: "2026-04-10T00:00:00Z",
+        windowEnd: "2026-04-16T00:00:00Z",
+        payload: { scheduleFoods: [], scheduleEvents: [] },
+      },
+    });
+    await pollUntilDone(idFailed, user.headers);
+
+    // One pending analysis — never resolves (LLM hangs).
+    let releasePending: (() => void) | null = null;
+    mockCallLLM.mockImplementationOnce(
+      () =>
+        new Promise<string>((resolve) => {
+          releasePending = () => resolve(validResponse);
+        }),
+    );
+    await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id: idPending,
+        windowStart: "2026-04-01T00:00:00Z",
+        windowEnd: "2026-04-07T00:00:00Z",
+        payload: { scheduleFoods: [], scheduleEvents: [] },
+      },
+    });
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/analyses",
+      headers: user.headers,
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as {
+      analyses: Array<{
+        id: string;
+        window_start: string;
+        window_end: string;
+        created_at: string;
+      }>;
+    };
+    // Only the two DONE analyses, ordered by created_at desc (newest first).
+    expect(body.analyses).toHaveLength(2);
+    expect(body.analyses.map((a) => a.id)).toEqual([idDone2, idDone1]);
+    expect(body.analyses[0]).not.toHaveProperty("result_md");
+
+    // Release the still-pending job so afterAll can clean up cleanly.
+    releasePending?.();
+  });
 });

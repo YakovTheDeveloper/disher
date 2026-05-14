@@ -137,7 +137,7 @@ const DishBuilderPage = () => {
     [primeEdit]
   );
 
-  // HomeTopBar is date-aware (click on date-segment → ScheduleSelectionDrawer
+  // HomeTopBar is date-aware (click on date-segment → ScheduleNavigatorDrawer
   // → navigate to /schedule/<date>). Dish has no date — show "К расписанию"
   // override text, but keep the underlying drawer+navigation so the button
   // remains a useful escape hatch back to the schedule.

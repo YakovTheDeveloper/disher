@@ -1,4 +1,4 @@
-import { ScheduleSelection } from '@/features/ScheduleSelection';
+import { ScheduleNavigator } from '@/features/schedule-navigator';
 import { RouterLinks } from '@/app/router';
 import { useNavigate } from 'react-router';
 
@@ -9,11 +9,7 @@ const ScheduleDateSelectionPage = () => {
     navigate(`${RouterLinks.ScheduleBuilder}/${date}`);
   };
 
-  return (
-    <>
-      <ScheduleSelection onSelect={onDateChoose} showFastButtons />
-    </>
-  );
+  return <ScheduleNavigator onSelect={onDateChoose} />;
 };
 
 export default ScheduleDateSelectionPage;
