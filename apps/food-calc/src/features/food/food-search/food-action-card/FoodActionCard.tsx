@@ -81,16 +81,16 @@ const TrashIcon = () => (
 
 const InfoIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="0.75" />
     <text
       x="12"
       y="17"
       textAnchor="middle"
       fill="currentColor"
-      fontFamily="Georgia, 'Times New Roman', serif"
+      fontFamily="'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif"
       fontStyle="italic"
-      fontSize="14"
-      fontWeight="600"
+      fontSize="16"
+      fontWeight="300"
     >
       i
     </text>
@@ -126,6 +126,9 @@ const FoodActionCard = ({
       );
     }
   };
+
+  const ownershipLabel = variant === 'product' ? 'мой' : 'моё';
+  const showOwnershipLabel = userCreated;
 
   const deleteButton = showDelete ? (
     userCreated ? (
@@ -228,6 +231,9 @@ const FoodActionCard = ({
             }}
           >
             <InfoIcon />
+            {showOwnershipLabel && (
+              <span className={styles.ownershipLabel}>{ownershipLabel}</span>
+            )}
           </button>
         ) : (
           <Link
@@ -243,6 +249,9 @@ const FoodActionCard = ({
             }}
           >
             <InfoIcon />
+            {showOwnershipLabel && (
+              <span className={styles.ownershipLabel}>{ownershipLabel}</span>
+            )}
           </Link>
         )
       )}

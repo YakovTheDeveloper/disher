@@ -1,29 +1,7 @@
 import clsx from 'clsx';
-import { flushSync } from 'react-dom';
 import s from './ScreenIndicator.module.scss';
 
 export type TileTitleStyle = 'serif-initial' | 'display-sans' | 'mono-track';
-
-type DocWithVT = Document & {
-  startViewTransition?: (cb: () => void) => { finished: Promise<void> };
-};
-
-// Сохранён ради обратной совместимости с DishBuilderPage. В HomePage
-// больше не используется: tiles анимируются только opacity-transition'ом.
-export const runTileMigration = (
-  prevIdx: number,
-  idx: number,
-  commit: () => void,
-): void => {
-  const startVT = (document as DocWithVT).startViewTransition;
-  if (idx === prevIdx || typeof startVT !== 'function') {
-    commit();
-    return;
-  }
-  startVT.call(document, () => {
-    flushSync(commit);
-  });
-};
 
 export type ScreenEntry = {
   label: string;
@@ -44,12 +22,7 @@ type Props = {
   slideIndex?: number;
 };
 
-export const ScreenIndicator = ({
-  screens,
-  activeIndex,
-  onSelect,
-  slideIndex,
-}: Props) => {
+export const ScreenIndicator = ({ screens, activeIndex, onSelect, slideIndex }: Props) => {
   const displayIndex = slideIndex ?? activeIndex;
   const activeScreen = screens[displayIndex];
   const activeLabel = activeScreen?.label ?? '';
@@ -76,25 +49,18 @@ export const ScreenIndicator = ({
       )}
       <div className={s.tilesRow} role="tablist" aria-label="Экран">
         {screens.map((screen, i) => {
-          const active = i === displayIndex;
           return (
             <button
               key={screen.label}
               type="button"
               role="tab"
-              aria-selected={active}
-              className={clsx(s.tile, active && s.tileActive)}
+              aria-selected={false}
+              className={clsx([s.tile, screen.label === activeLabel && s.tileActive])}
+              style={{ gridColumnStart: i + 1 }}
               onClick={() => onSelect(i)}
             >
-              {screen.image && (
-                <img src={screen.image} className={s.tileImg} alt="" aria-hidden />
-              )}
-              {!active && <span className={s.tileTitle}>{screen.label}</span>}
-              {active && (
-                <span className={s.tileShadow} aria-hidden>
-                  {screen.label}
-                </span>
-              )}
+              {screen.image && <img src={screen.image} className={s.tileImg} alt="" aria-hidden />}
+              <span className={s.tileTitle}>{screen.label}</span>
             </button>
           );
         })}

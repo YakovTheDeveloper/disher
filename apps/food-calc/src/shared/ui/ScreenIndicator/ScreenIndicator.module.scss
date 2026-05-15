@@ -9,81 +9,84 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    width: 100%;
+    padding: 0 var(--space-1);
     background: transparent;
 }
 
 .tilesRow {
-    display: flex;
-    width: 100%;
+    display: grid;
     flex-shrink: 0;
+    gap: var(--space-1);
+    // 3 равные колонки. Активная плитка НЕ рендерится в DOM, но её
+    // колонка остаётся пустой — оставшиеся плитки попадают в свои
+    // позиции через inline `grid-column-start` (см. ScreenIndicator.tsx).
+    grid-template-columns: repeat(var(--tiles-total, 3), 1fr);
 }
 
+// Квадратные плиточки навигации (восстановлено из 29df90b — «before
+// redesign» паттерн). aspect-ratio:1 + видимая рамка. Активная плитка
+// НЕ рендерится в DOM (ScreenIndicator.tsx skip'ает её), поэтому в
+// строке остаются только 2 неактивные → flex:1 даёт каждой 50%
+// ширины → квадрат получается визуально-крупным.
 .tile {
     position: relative;
-    flex: 1 1 0;
     min-width: 0;
+    aspect-ratio: 1;
     display: flex;
     align-items: flex-end;
-    justify-content: flex-start;
-    padding: 14px;
-    min-height: 92px;
+    justify-content: center;
+    padding: 0 var(--space-1) var(--space-2);
     cursor: pointer;
     text-align: left;
-    overflow: hidden;
     background: transparent;
     color: #000000;
-    border: 1px solid transparent;
+    border: 2px dotted rgba(0, 0, 0, 0.05);
     border-radius: 0;
     opacity: 1;
     -webkit-tap-highlight-color: transparent;
-}
+    overflow: hidden;
+    border-radius: var(--space-1);
 
-// Активная плитка скрыта (opacity:0), место в потоке сохраняется.
-// Transition'а нет: со slideIndex каждый инстанс статичный per-slide,
-// смены состояния «не активна → активна» внутри одного инстанса нет.
-.tileActive {
-    opacity: 0;
-    pointer-events: none;
+    &Active {
+        border: 1px solid rgba(0, 0, 0, 0.9);
+
+        .tileTitle {
+            opacity: 0.2;
+            font-weight: 200;
+        }
+
+        .tileImg {
+            opacity: 0.2;
+            bottom: 5px;
+        }
+    }
 }
 
 .tileTitle {
     position: relative;
     z-index: 1;
     display: inline-block;
-    margin: 0;
     color: inherit;
     font-family: "Source Serif 4", "Merriweather", serif;
-    font-weight: 300;
     font-style: italic;
-    font-size: 16px;
-    line-height: 1;
-    white-space: nowrap;
+    font-weight: 300;
+    font-size: 1rem;
     text-align: center;
+    line-height: 1;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
     opacity: 0.45;
 
-    &:after {
-        content: '';
-        position: absolute;
-        left: -4px;
-        right: -4px;
-        bottom: -4px;
-        height: 1px;
-        background-color: #000000;
-        opacity: 0.4;
-    }
 }
 
 .tileImg {
     position: absolute;
     right: 0;
-    bottom: 0;
+    bottom: -10px;
     z-index: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    object-position: right bottom;
-    opacity: 0.05;
+    opacity: 0.07;
     pointer-events: none;
     user-select: none;
 }
@@ -124,12 +127,25 @@
 // активного тайла задаётся через `--active-idx` / `--tiles-total`
 // CSS-vars, прокинутые из JSX. Ширина — 2× ширины одного тайла,
 // opacity 0.04 (вдвое меньше, чем `.tileImg` в плиточке).
+//
+// `left` КЛАМПИТСЯ через clamp(): родитель (Screen.screenScroll) имеет
+// overflow-x:hidden, поэтому image для крайних тайлов (0 и 2) при
+// «центр под колонкой»-позиционировании вылезала за границу .root и
+// обрезалась. clamp удерживает image целиком внутри .root: для tile=0
+// упирается левым краем в 0, для tile=2 — правым в 100%, для центра
+// остаётся под колонкой.
 .bandImg {
+    --tile-w: calc(100% / var(--tiles-total, 3));
+    --img-w: calc(var(--tile-w) * 2);
+    --raw-center: calc((var(--active-idx, 0) + 0.5) * var(--tile-w));
+
     position: absolute;
     top: 50%;
-    left: calc((var(--active-idx, 0) + 0.5) * (100% / var(--tiles-total, 3)));
+    left: clamp(calc(var(--img-w) / 2),
+            var(--raw-center),
+            calc(100% - var(--img-w) / 2));
     transform: translate(-50%, -50%);
-    width: calc((100% / var(--tiles-total, 3)) * 2);
+    width: var(--img-w);
     aspect-ratio: 1;
     height: auto;
     object-fit: contain;
@@ -161,14 +177,10 @@
     position: relative;
     z-index: 1;
     display: inline-block;
-    // `--heading-font` / `--heading-size` / `--heading-style` / `--heading-letter`
-    // / `--heading-weight` ставятся HomePage.swipeArea через design-variant
-    // 'HomeHeading' (см. HomePage.module.scss). Фоллбэки = текущий канон
-    // (Source Serif 4 italic 400).
     font-family: var(--heading-font, "Source Serif 4", "Merriweather", serif);
     font-style: var(--heading-style, italic);
-    font-weight: var(--heading-weight, 400);
-    font-size: var(--heading-size, 2.6rem);
+    font-weight: var(--heading-weight, 600);
+    font-size: var(--heading-size, 2.5rem);
     line-height: 1;
     letter-spacing: var(--heading-letter, -0.7px);
     color: #000000;
