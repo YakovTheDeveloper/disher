@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/shared/lib/dexie/schema';
-import { buildDishAnalysisPayload, __testing } from '../api/runDishAnalysis';
+import { buildDishAnalysisPayload } from '../api/runDishAnalysis';
 
-const { parseSSELines } = __testing;
+// SSE parsing moved to shared/lib/sse/parseSSELines — covered by its own test.
 const ISO = '2026-05-13T10:00:00.000Z';
 
 async function clearDb() {
@@ -126,62 +126,5 @@ describe('buildDishAnalysisPayload', () => {
     const out = await buildDishAnalysisPayload('does-not-exist');
     expect(out.dishName).toBe('');
     expect(out.totalGrams).toBe(0);
-  });
-});
-
-describe('parseSSELines', () => {
-  it('accumulates content from delta tokens', () => {
-    const chunks: string[] = [];
-    const result = parseSSELines(
-      [
-        'data: {"choices":[{"delta":{"content":"Hello"}}]}',
-        'data: {"choices":[{"delta":{"content":" world"}}]}',
-      ],
-      (c) => chunks.push(c),
-    );
-    expect(result).toEqual({ done: false, error: null });
-    expect(chunks).toEqual(['Hello', ' world']);
-  });
-
-  it('signals done on [DONE]', () => {
-    const result = parseSSELines(
-      [
-        'data: {"choices":[{"delta":{"content":"ok"}}]}',
-        'data: [DONE]',
-      ],
-      () => {},
-    );
-    expect(result).toEqual({ done: true, error: null });
-  });
-
-  it('surfaces server error event with message', () => {
-    const result = parseSSELines(
-      [
-        'event: error',
-        'data: "OpenRouter 500: boom"',
-      ],
-      () => {},
-    );
-    expect(result.done).toBe(true);
-    expect(result.error).toBe('OpenRouter 500: boom');
-  });
-
-  it('skips malformed JSON lines without throwing', () => {
-    const chunks: string[] = [];
-    const result = parseSSELines(
-      [
-        'data: not-json',
-        'data: {"choices":[{"delta":{"content":"ok"}}]}',
-      ],
-      (c) => chunks.push(c),
-    );
-    expect(result).toEqual({ done: false, error: null });
-    expect(chunks).toEqual(['ok']);
-  });
-
-  it('ignores lines without data: prefix', () => {
-    const chunks: string[] = [];
-    parseSSELines([': heartbeat', '', 'whatever'], (c) => chunks.push(c));
-    expect(chunks).toEqual([]);
   });
 });

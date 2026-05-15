@@ -1,0 +1,27 @@
+@import '@/shared/assets/style/mixin.scss';
+
+// Primary CTA pill — inherits the TOD-tinted `--cta-*` tokens published by
+// the AppBottomBar shell, same as WriteFoodButton on the food screen.
+.cta {
+    @include dark-pill-button();
+}
+
+.sparkle {
+    font-size: 13px;
+    line-height: 1;
+}
+
+.spinner {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    animation: cta-spin 0.7s linear infinite;
+}
+
+@keyframes cta-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

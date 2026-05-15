@@ -82,18 +82,14 @@ export interface DailyNormRow {
   created_at: string;
 }
 
+// A hypothesis the user wants to check. Simplified in v6 (2026-05-15): the
+// old lifecycle model (testing/closed status, dates, outcome, private note,
+// source-analysis link) is gone — a hypothesis is just a title + body the
+// user attaches to an analysis via checkbox.
 export interface HypothesisRow {
   id: string;
   title: string;
   body: string;
-  days: number | null;
-  source_analysis_id: string | null;
-  saved_at: string;
-  /** Set when the user clicks "Тестирую сейчас". */
-  started_at: string | null;
-  ended_at: string | null;
-  outcome: string | null;
-  note: string | null;
   created_at: string;
 }
 
@@ -108,6 +104,21 @@ export interface CustomTagRow {
   product_id: string;
   tag: string;
   created_at: string;
+}
+
+// Drops the v5-era hypothesis lifecycle columns from a row, in place. Run by
+// the v6 upgrade over every existing hypothesis row. Exported so the
+// migration unit test can exercise the exact stripping logic the upgrade
+// applies (the singleton `db` opens at v6, so old-shape data can't be seeded
+// against it directly).
+export function stripLegacyHypothesisFields(row: Record<string, unknown>): void {
+  delete row.days;
+  delete row.started_at;
+  delete row.ended_at;
+  delete row.outcome;
+  delete row.source_analysis_id;
+  delete row.note;
+  delete row.saved_at;
 }
 
 // ─── DB ────────────────────────────────────────────────────────────────────
@@ -174,6 +185,26 @@ export class DisherDB extends Dexie {
     this.version(5).stores({
       custom_tags: 'id, product_id',
     });
+
+    // v6 (2026-05-15): hypothesis simplification. Drop the lifecycle columns
+    // (days, started_at, ended_at, outcome, source_analysis_id, note,
+    // saved_at) from existing rows and drop the started_at index — a
+    // hypothesis is now just {id, title, body, created_at}. On a fresh device
+    // the modify() runs over an empty table (no-op). The list now sorts by
+    // created_at instead of saved_at.
+    // See apps/food-calc/tds/home-and-analyses-ui.md.
+    this.version(6)
+      .stores({
+        hypotheses: 'id',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('hypotheses')
+          .toCollection()
+          .modify((row: Record<string, unknown>) =>
+            stripLegacyHypothesisFields(row),
+          ),
+      );
   }
 }
 

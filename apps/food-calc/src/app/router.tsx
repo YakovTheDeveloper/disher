@@ -9,13 +9,13 @@ import FreeTextFoodDishPage from '@/pages/free-text-food/FreeTextFoodDishPage.ts
 
 import ProductPage from '@/pages/product/ProductPage.tsx';
 import { ScheduleFoodAnalyticsPage } from '@/pages/schedule/analytics/schedule-analytics-page/ScheduleFoodAnalyticsPage/index.ts';
+import AnalysesPage from '@/pages/analyses/AnalysesPage.tsx';
 import SettingsPage from '@/pages/settings/SettingsPage/SettingsPage.tsx';
 import SystemPage from '@/pages/settings/SystemPage/SystemPage.tsx';
 import NutrientArticlesPage from '@/pages/articles/NutrientArticlesPage.tsx';
 import NutrientArticlePage from '@/pages/articles/NutrientArticlePage.tsx';
 import ShareReceivePage from '@/pages/share/ShareReceivePage.tsx';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage.tsx';
-import KnowledgePage from '@/pages/knowledge/KnowledgePage.tsx';
 
 export enum RouterLinks {
   Root = '/',
@@ -26,6 +26,7 @@ export enum RouterLinks {
   ScheduleDateSelection = '/date',
   ScheduleBuilder = '/schedule',
   ScheduleAnalytics = `/schedule/:id/analytics`,
+  Analyses = '/analyses',
   FreeTextFoodSchedule = '/free-text-food/schedule/:date',
   FreeTextFoodDish = '/free-text-food/dish/:dishId',
   Product = '/product',
@@ -35,7 +36,6 @@ export enum RouterLinks {
   NutrientArticle = '/articles/nutrients/:folder',
   Share = '/share',
   VerifyEmail = '/auth/verify-email',
-  Knowledge = '/knowledge',
 }
 
 export const getScheduleAnalyticsUrl = (id: string) => `/schedule/${id}/analytics`;
@@ -80,6 +80,10 @@ export const router = createBrowserRouter([
         element: <ScheduleFoodAnalyticsPage />,
       },
       {
+        path: RouterLinks.Analyses,
+        element: <AnalysesPage />,
+      },
+      {
         path: RouterLinks.FreeTextFoodSchedule,
         element: <FreeTextFoodPage />,
       },
@@ -114,10 +118,6 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.VerifyEmail,
         element: <VerifyEmailPage />,
-      },
-      {
-        path: RouterLinks.Knowledge,
-        element: <KnowledgePage />,
       },
     ],
   },

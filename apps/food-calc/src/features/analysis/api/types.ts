@@ -4,12 +4,21 @@ export type IdeaCardData = {
   days?: number;
 };
 
+// Frozen snapshot of a hypothesis the user ticked when starting the analysis.
+// Immutable — survives editing or deleting the live hypothesis.
+export type AppliedHypothesis = {
+  id: string;
+  title: string;
+  body: string;
+};
+
 export type Analysis = {
   id: string;
   windowStart: string;
   windowEnd: string;
   resultMd: string;
   ideaCards: IdeaCardData[];
+  appliedHypotheses: AppliedHypothesis[];
   createdAt: string;
 };
 
@@ -25,6 +34,7 @@ type ServerRow = {
   window_end: string;
   result_md: string;
   idea_cards: unknown;
+  applied_hypotheses: unknown;
   created_at: string;
 };
 
@@ -44,6 +54,23 @@ function asIdeaCards(value: unknown): IdeaCardData[] {
   return out;
 }
 
+// Permissive parse — drop malformed entries, default a missing id to ''.
+function asAppliedHypotheses(value: unknown): AppliedHypothesis[] {
+  if (!Array.isArray(value)) return [];
+  const out: AppliedHypothesis[] = [];
+  for (const h of value) {
+    if (!h || typeof h !== 'object') continue;
+    const row = h as Record<string, unknown>;
+    if (typeof row.title !== 'string' || typeof row.body !== 'string') continue;
+    out.push({
+      id: typeof row.id === 'string' ? row.id : '',
+      title: row.title,
+      body: row.body,
+    });
+  }
+  return out;
+}
+
 export function mapServerAnalysis(row: ServerRow): Analysis {
   return {
     id: row.id,
@@ -51,6 +78,7 @@ export function mapServerAnalysis(row: ServerRow): Analysis {
     windowEnd: row.window_end,
     resultMd: row.result_md ?? '',
     ideaCards: asIdeaCards(row.idea_cards),
+    appliedHypotheses: asAppliedHypotheses(row.applied_hypotheses),
     createdAt: row.created_at,
   };
 }

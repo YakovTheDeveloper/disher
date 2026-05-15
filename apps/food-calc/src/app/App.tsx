@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import s from '@/shared/assets/style/App.module.scss';
 import '@/shared/assets/style/index.scss';
 import '@/shared/assets/style/App.module.scss';
 import { Toaster } from 'sonner';
 import { setupGlobalLog } from '@/app/log';
+import { hydrateDailyAnalyses } from '@/features/analysis/daily';
 import { ModalManager } from '@/app/ui/ModalManager';
 import { useLastFocusMethod } from '@/hooks/useLastFocusMethod';
 import { useUserAgentDetection } from '@/hooks/useUserAgentDetection';
@@ -21,6 +23,15 @@ export default function App() {
   useGlobalScrollBlur();
   useApplyUserTheme();
   setupGlobalLog();
+
+  // Boot-hydrate the daily-analysis store from idb-keyval. Without this the
+  // store starts empty on every reload — a completed daily review would not
+  // reappear, and a mid-stream reload would never flip `streaming` →
+  // `interrupted`. Fire-and-forget: the store sets `hydrated` and any mounted
+  // DailyAnalysisSection re-renders when `byDate` arrives.
+  useEffect(() => {
+    void hydrateDailyAnalyses();
+  }, []);
 
   return (
     <I18nextProvider i18n={i18n}>

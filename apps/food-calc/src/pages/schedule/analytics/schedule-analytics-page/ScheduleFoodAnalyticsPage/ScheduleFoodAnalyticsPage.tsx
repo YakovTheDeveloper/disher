@@ -24,6 +24,7 @@ import {
 import type { AnalyticsTab } from '@/entities/analytics';
 import { useUserId } from '@/shared/lib/auth/useUserId';
 import { useAuthStore } from '@/features/auth/auth-store';
+import { createSSEParser } from '@/shared/lib/sse/parseSSELines';
 import styles from './ScheduleFoodAnalyticsPage.module.scss';
 import toaster from '@/shared/lib/toaster/toaster';
 
@@ -80,53 +81,26 @@ function buildEventSnapshot(events: ScheduleEvent[]) {
 
 // ─── SSE reader ───
 
-function parseSSELines(
-  lines: string[],
-  onChunk: (chunk: string) => void,
-): boolean {
-  for (const line of lines) {
-    const trimmed = line.trim();
-
-    if (trimmed.startsWith('event: error')) {
-      const nextDataLine = lines.find((l) => l.trim().startsWith('data: '));
-      if (nextDataLine) {
-        throw new Error(JSON.parse(nextDataLine.trim().slice(6)));
-      }
-      throw new Error('Ошибка сервера');
-    }
-
-    if (!trimmed.startsWith('data: ')) continue;
-    const data = trimmed.slice(6);
-    if (data === '[DONE]') return true;
-
-    try {
-      const parsed = JSON.parse(data);
-      const content = parsed.choices?.[0]?.delta?.content;
-      if (content) onChunk(content);
-    } catch {
-      // skip malformed
-    }
-  }
-  return false;
-}
-
 async function readSSEStream(
   response: Response,
   onChunk: (chunk: string) => void,
   signal: AbortSignal,
 ) {
+  const parser = createSSEParser(onChunk);
+
   // iOS Safari may not support ReadableStream on fetch responses — fall back to text()
   if (!response.body) {
     const text = await response.text();
     if (signal.aborted) return;
-    const lines = text.split('\n');
-    parseSSELines(lines, onChunk);
+    const fed = parser.feed(text);
+    if (fed.error) throw new Error(fed.error);
+    const flushed = parser.end();
+    if (flushed.error) throw new Error(flushed.error);
     return;
   }
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
-  let buffer = '';
 
   try {
     while (true) {
@@ -134,13 +108,12 @@ async function readSSEStream(
       if (done) break;
       if (signal.aborted) break;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-
-      const isDone = parseSSELines(lines, onChunk);
-      if (isDone) return;
+      const result = parser.feed(decoder.decode(value, { stream: true }));
+      if (result.error) throw new Error(result.error);
+      if (result.done) return;
     }
+    const tail = parser.end();
+    if (tail.error) throw new Error(tail.error);
   } finally {
     reader.releaseLock();
   }

@@ -1,0 +1,181 @@
+// Stripe-fork hypothesis row. Palette CSS-vars (`--lh-*`) are published by
+// the parent `[data-dv='LabHypothesis'][data-dv-v=...]` anchor in
+// HypothesisListCollapsible.module.scss — this file only consumes them.
+
+.row {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    overflow: hidden;
+    background: linear-gradient(90deg,
+        var(--lh-bg-from, #fffefb) 0%,
+        var(--lh-bg-mid, #fffaf2) 55%,
+        var(--lh-bg-to, #fdf4e3) 100%);
+
+    // Vertical accent stripe — 3px idle, 5px + saturated when selected.
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 7px;
+        bottom: 7px;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--lh-accent, rgba(214, 158, 70, 0.55));
+        transition: width 0.14s ease, background 0.14s ease;
+    }
+
+    // Fading hairline divider — never a full border.
+    &::after {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+            transparent 0%,
+            var(--lh-hairline, rgba(124, 65, 15, 0.09)) 18%,
+            var(--lh-hairline, rgba(124, 65, 15, 0.09)) 82%,
+            transparent 100%);
+        pointer-events: none;
+    }
+
+    &:last-child::after {
+        display: none;
+    }
+
+    &[data-selected]::before {
+        width: 5px;
+        background: var(--lh-accent-strong, rgba(214, 158, 70, 1));
+    }
+
+    // nth-child rhythm — surfaces are not identical (design-DNA rule 4).
+    &:nth-child(2n)::after {
+        background: linear-gradient(90deg,
+            transparent 0%,
+            var(--lh-hairline, rgba(124, 65, 15, 0.09)) 18%,
+            var(--lh-hairline, rgba(124, 65, 15, 0.09)) 82%,
+            transparent 100%);
+    }
+
+    &:nth-child(2n) {
+        background-image:
+            linear-gradient(90deg,
+                color-mix(in srgb, var(--lh-accent, rgba(214, 158, 70, 0.55)) 8%, transparent) 0%,
+                transparent 55%),
+            linear-gradient(90deg,
+                var(--lh-bg-from, #fffefb) 0%,
+                var(--lh-bg-mid, #fffaf2) 55%,
+                var(--lh-bg-to, #fdf4e3) 100%);
+    }
+
+    &:nth-child(3n) {
+        background-image:
+            linear-gradient(90deg,
+                transparent 45%,
+                color-mix(in srgb, var(--lh-accent, rgba(214, 158, 70, 0.55)) 7%, transparent) 100%),
+            linear-gradient(90deg,
+                var(--lh-bg-from, #fffefb) 0%,
+                var(--lh-bg-mid, #fffaf2) 55%,
+                var(--lh-bg-to, #fdf4e3) 100%);
+    }
+}
+
+.checkboxWrap {
+    display: flex;
+    align-items: center;
+    padding: 0 6px 0 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.checkbox {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.checkboxBox {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    border: 1.5px solid var(--lh-accent-strong, rgba(214, 158, 70, 0.85));
+    background: rgba(255, 255, 255, 0.7);
+    transition: background 0.13s ease, transform 0.1s ease;
+
+    &::after {
+        content: '';
+        width: 11px;
+        height: 6px;
+        margin-top: -2px;
+        border-left: 2px solid #fff;
+        border-bottom: 2px solid #fff;
+        transform: rotate(-45deg) scale(0);
+        transition: transform 0.13s ease;
+    }
+}
+
+.checkbox:checked + .checkboxBox {
+    background: var(--lh-accent-strong, rgba(214, 158, 70, 1));
+    border-color: var(--lh-accent-strong, rgba(214, 158, 70, 1));
+
+    &::after {
+        transform: rotate(-45deg) scale(1);
+    }
+}
+
+.checkbox:disabled + .checkboxBox {
+    opacity: 0.4;
+}
+
+.checkboxWrap:active .checkboxBox {
+    transform: scale(0.92);
+}
+
+// No checkbox — the text button carries the full row, so it needs the left
+// inset the checkboxWrap used to provide (clear of the accent stripe).
+.row[data-no-checkbox] .textButton {
+    padding-left: 16px;
+}
+
+.textButton {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 13px 16px 13px 6px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    &:disabled {
+        cursor: default;
+    }
+}
+
+.title {
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--lh-text, rgba(60, 38, 10, 0.92));
+}
+
+.body {
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--lh-text-dim, rgba(60, 38, 10, 0.58));
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}

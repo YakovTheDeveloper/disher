@@ -1,0 +1,27 @@
+// AnalysesPage chrome. Ambient backdrop (radial-glow from the top corners,
+// design-DNA «ambient-backdrop page chrome») shows through the sticky top
+// bar and bottom dock; the `.headerOverlap` content sheet stays opaque so
+// list rows never read over the glow.
+.ambient {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+
+    background:
+        radial-gradient(ellipse 90% 55% at 0% 0%,
+            rgba(253, 230, 200, 0.55), transparent 60%),
+        radial-gradient(ellipse 90% 55% at 100% 0%,
+            rgba(252, 225, 235, 0.4), transparent 60%);
+
+    // Let the ambient glow through the chrome; keep the content sheet white.
+    --sticky-top-bg: transparent;
+    --bottom-bar-bg: transparent;
+}
+
+.swipeArea {
+    flex: 1;
+    min-height: 0;
+}

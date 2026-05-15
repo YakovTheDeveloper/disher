@@ -8,11 +8,10 @@ import {
   type CallLLM,
   type HypothesisContext,
 } from "./analyze.runJob.js";
-import type { AnalysisMode } from "../../shared/analysis-output.js";
 
 // POST /api/analyze         — kick off an analysis. Idempotent on `id`.
-// GET  /api/analyses        — list current user's analyses (id + window only,
-//                              no result_md) for schedule-navigator pробирки.
+// GET  /api/analyses        — list the current user's analyses (pending,
+//                              failed and done) for the AnalysesPage list.
 // GET  /api/analyses/:id    — poll an analysis row. State is derived from
 //                              result_md (empty = pending, anything else =
 //                              done; failure rows start with "⚠️").
@@ -22,10 +21,16 @@ import type { AnalysisMode } from "../../shared/analysis-output.js";
 // user starts a fresh analysis with a new id.
 //
 // See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md §Server route
-// and apps/food-calc/tds/schedule-navigator.md §Q6 (list endpoint contract).
+// and apps/food-calc/tds/home-and-analyses-ui.md.
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Long-analysis window bounds — kept in sync with the RangePickerWithFallback
+// presets (7/14/21/28/35) on the frontend. The client also disables submit
+// outside this range; this is the server-side backstop.
+const MIN_WINDOW_DAYS = 7;
+const MAX_WINDOW_DAYS = 35;
 
 type AnalyzeBody = {
   id?: string;
@@ -35,12 +40,16 @@ type AnalyzeBody = {
     scheduleFoods?: unknown[];
     scheduleEvents?: unknown[];
     hypotheses?: HypothesisContext[];
-    mode?: AnalysisMode;
   };
 };
 
-function parseMode(value: unknown): AnalysisMode {
-  return value === "foods-only" ? "foods-only" : "foods-and-events";
+// Whole-day span between two ISO timestamps. Returns null if either is
+// unparseable.
+function windowSpanDays(start: string, end: string): number | null {
+  const s = Date.parse(start);
+  const e = Date.parse(end);
+  if (Number.isNaN(s) || Number.isNaN(e)) return null;
+  return Math.round((e - s) / 86_400_000);
 }
 
 type AnalysisRow = {
@@ -50,6 +59,8 @@ type AnalysisRow = {
   window_end: Date;
   result_md: string;
   idea_cards: unknown;
+  /** Snapshot of {id,title,body}[] the user ticked when starting the job. */
+  applied_hypotheses: unknown;
   created_at: Date;
 };
 
@@ -66,6 +77,7 @@ function serialiseRow(row: AnalysisRow) {
     window_end: row.window_end.toISOString(),
     result_md: row.result_md,
     idea_cards: row.idea_cards,
+    applied_hypotheses: row.applied_hypotheses,
     created_at: row.created_at.toISOString(),
   };
 }
@@ -92,34 +104,40 @@ export async function analyzeRoutes(
         .send({ error: "windowStart/windowEnd required" });
     }
 
-    const mode = parseMode(body.payload?.mode);
+    const span = windowSpanDays(start, end);
+    if (span === null) {
+      return reply.status(400).send({ error: "invalid window dates" });
+    }
+    if (span < MIN_WINDOW_DAYS || span > MAX_WINDOW_DAYS) {
+      return reply.status(400).send({
+        error: `window must span ${MIN_WINDOW_DAYS}..${MAX_WINDOW_DAYS} days`,
+      });
+    }
+
     const payload: AnalyzePayload = {
       windowStart: start,
       windowEnd: end,
       scheduleFoods: Array.isArray(body.payload?.scheduleFoods)
         ? body.payload!.scheduleFoods!
         : [],
-      scheduleEvents:
-        mode === "foods-only"
-          ? []
-          : Array.isArray(body.payload?.scheduleEvents)
-            ? body.payload!.scheduleEvents!
-            : [],
+      scheduleEvents: Array.isArray(body.payload?.scheduleEvents)
+        ? body.payload!.scheduleEvents!
+        : [],
       ...(Array.isArray(body.payload?.hypotheses)
         ? { hypotheses: body.payload!.hypotheses! }
         : {}),
-      mode,
     };
 
     // INSERT pending row. The row id IS the idempotency key — a duplicate POST
     // hits the conflict path and returns the existing row without re-firing
     // the LLM.
     const insert = await pool.query<AnalysisRow>(
-      `insert into public.analyses (id, user_id, window_start, window_end)
-       values ($1::uuid, $2::uuid, $3::timestamptz, $4::timestamptz)
+      `insert into public.analyses
+         (id, user_id, window_start, window_end, applied_hypotheses)
+       values ($1::uuid, $2::uuid, $3::timestamptz, $4::timestamptz, $5::jsonb)
        on conflict (id) do nothing
        returning *`,
-      [id, req.userId, start, end],
+      [id, req.userId, start, end, JSON.stringify(payload.hypotheses ?? [])],
     );
 
     if ((insert.rowCount ?? 0) > 0) {
@@ -142,17 +160,26 @@ export async function analyzeRoutes(
 
   app.get("/analyses", async (req: FastifyRequest, reply: FastifyReply) => {
     if (!pool) return reply.status(500).send({ error: "DB not configured" });
-    // Only return DONE analyses — pending (result_md='') and failed
-    // (result_md starts with "⚠️") are not yet useful as пробирка markers
-    // in the schedule-navigator. See tds/schedule-navigator.md §Q5.
+    // Returns pending (result_md=''), failed (result_md starts with "⚠️")
+    // and done rows alike — the AnalysesPage list derives the status
+    // client-side. result_md is sent whole; trimming it to a server-side
+    // status enum is a later optimisation.
     const result = await pool.query<
-      Pick<AnalysisRow, "id" | "window_start" | "window_end" | "created_at">
+      Pick<
+        AnalysisRow,
+        | "id"
+        | "window_start"
+        | "window_end"
+        | "created_at"
+        | "result_md"
+        | "idea_cards"
+        | "applied_hypotheses"
+      >
     >(
-      `select id, window_start, window_end, created_at
+      `select id, window_start, window_end, created_at,
+              result_md, idea_cards, applied_hypotheses
        from public.analyses
        where user_id = $1::uuid
-         and result_md <> ''
-         and result_md not like '⚠️%'
        order by created_at desc
        limit 500`,
       [req.userId],
@@ -163,6 +190,9 @@ export async function analyzeRoutes(
         window_start: row.window_start.toISOString(),
         window_end: row.window_end.toISOString(),
         created_at: row.created_at.toISOString(),
+        result_md: row.result_md,
+        idea_cards: row.idea_cards,
+        applied_hypotheses: row.applied_hypotheses,
       })),
     });
   });

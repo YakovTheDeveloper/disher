@@ -1,6 +1,7 @@
 import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { API_BASE } from '@/shared/lib/api/base';
 import { db } from '@/shared/lib/dexie/schema';
+import { createSSEParser } from '@/shared/lib/sse/parseSSELines';
 import { saveDishAnalysis } from './storage';
 import type { DishAnalysisIngredient, DishAnalysisPayload } from './types';
 
@@ -59,48 +60,6 @@ type StreamArgs = {
   signal?: AbortSignal;
 };
 
-type SSEParseResult = { done: boolean; error: string | null };
-
-function parseSSELines(
-  lines: string[],
-  onChunk: (chunk: string) => void,
-): SSEParseResult {
-  for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
-    if (!trimmed) continue;
-
-    // Custom `event: error` followed by a `data: ...` line on the next index.
-    if (trimmed.startsWith('event: error')) {
-      const next = lines[i + 1]?.trim();
-      if (next?.startsWith('data: ')) {
-        try {
-          const errMsg = JSON.parse(next.slice(6));
-          return {
-            done: true,
-            error: typeof errMsg === 'string' ? errMsg : 'server error',
-          };
-        } catch {
-          return { done: true, error: 'server error' };
-        }
-      }
-      return { done: true, error: 'server error' };
-    }
-
-    if (!trimmed.startsWith('data: ')) continue;
-    const data = trimmed.slice(6);
-    if (data === '[DONE]') return { done: true, error: null };
-
-    try {
-      const parsed = JSON.parse(data);
-      const content = parsed.choices?.[0]?.delta?.content;
-      if (typeof content === 'string' && content.length > 0) onChunk(content);
-    } catch {
-      // malformed line — skip
-    }
-  }
-  return { done: false, error: null };
-}
-
 // Stream the LLM response into onChunk and return the full accumulated text.
 // Caller is responsible for persisting the result (or not, if aborted).
 export async function streamDishAnalysis(args: StreamArgs): Promise<string> {
@@ -133,13 +92,17 @@ export async function streamDishAnalysis(args: StreamArgs): Promise<string> {
   if (!res.body) {
     const text = await res.text();
     if (signal?.aborted) return accumulated;
-    parseSSELines(text.split('\n'), collect);
+    const parser = createSSEParser(collect);
+    const fed = parser.feed(text);
+    if (fed.error) throw new Error(fed.error);
+    const flushed = parser.end();
+    if (flushed.error) throw new Error(flushed.error);
     return accumulated;
   }
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
-  let buffer = '';
+  const parser = createSSEParser(collect);
 
   try {
     while (true) {
@@ -147,19 +110,12 @@ export async function streamDishAnalysis(args: StreamArgs): Promise<string> {
       if (done) break;
       if (signal?.aborted) break;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() ?? '';
-
-      const result = parseSSELines(lines, collect);
+      const result = parser.feed(decoder.decode(value, { stream: true }));
       if (result.error) throw new Error(result.error);
       if (result.done) return accumulated;
     }
-    // Drain trailing buffer.
-    if (buffer.length > 0) {
-      const result = parseSSELines(buffer.split('\n'), collect);
-      if (result.error) throw new Error(result.error);
-    }
+    const tail = parser.end();
+    if (tail.error) throw new Error(tail.error);
   } finally {
     reader.releaseLock();
   }
@@ -188,5 +144,3 @@ export async function runDishAnalysis(args: {
   });
   return resultMd;
 }
-
-export const __testing = { parseSSELines };

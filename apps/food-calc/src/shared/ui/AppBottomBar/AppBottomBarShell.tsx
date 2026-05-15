@@ -10,9 +10,11 @@ type Props = {
    * Which edge of the home swipe the gradient should be saturated on:
    *   - 'left'  — saturated TOD tint → transparent (leftmost screen)
    *   - 'right' — transparent → saturated TOD tint (rightmost screen)
+   *   - 'split' — symmetric tint on both edges; children laid out
+   *     space-between (two CTAs, e.g. Laboratory: analyse + new hypothesis).
    * Defaults to 'left'.
    */
-  side?: 'left' | 'right';
+  side?: 'left' | 'right' | 'split';
 };
 
 /**

@@ -1,0 +1,160 @@
+// Stripe-fork analysis row. Palette CSS-vars (`--la-*`) are published by the
+// parent `[data-dv='LabAnalysis'][data-dv-v=…]` anchor in AnalysesSlide —
+// this file only consumes them.
+
+.row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 16px 14px 18px;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    background: linear-gradient(90deg,
+        var(--la-bg-from, #fffefb) 0%,
+        var(--la-bg-mid, #fffaf2) 55%,
+        var(--la-bg-to, #fdf4e3) 100%);
+
+    // Vertical accent stripe — colour carries status.
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 7px;
+        bottom: 7px;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--la-accent, rgba(214, 158, 70, 0.55));
+    }
+
+    // Fading hairline divider — never a full border.
+    &::after {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+            transparent 0%,
+            var(--la-hairline, rgba(124, 65, 15, 0.09)) 18%,
+            var(--la-hairline, rgba(124, 65, 15, 0.09)) 82%,
+            transparent 100%);
+        pointer-events: none;
+    }
+
+    &:last-child::after {
+        display: none;
+    }
+
+    &:active {
+        transform: scale(0.995);
+    }
+
+    // Status overrides the accent stripe colour.
+    &[data-status='done']::before {
+        background: var(--la-accent-strong, rgba(206, 142, 45, 1));
+    }
+    &[data-status='failed']::before {
+        background: #c0392b;
+    }
+    &[data-status='stale']::before {
+        background: #d98324;
+    }
+
+    // nth-child rhythm — surfaces are not identical (design-DNA rule 4).
+    &:nth-child(2n) {
+        background-image:
+            linear-gradient(90deg,
+                color-mix(in srgb, var(--la-accent, rgba(214, 158, 70, 0.55)) 8%, transparent) 0%,
+                transparent 55%),
+            linear-gradient(90deg,
+                var(--la-bg-from, #fffefb) 0%,
+                var(--la-bg-mid, #fffaf2) 55%,
+                var(--la-bg-to, #fdf4e3) 100%);
+    }
+
+    &:nth-child(3n) {
+        background-image:
+            linear-gradient(90deg,
+                transparent 45%,
+                color-mix(in srgb, var(--la-accent, rgba(214, 158, 70, 0.55)) 7%, transparent) 100%),
+            linear-gradient(90deg,
+                var(--la-bg-from, #fffefb) 0%,
+                var(--la-bg-mid, #fffaf2) 55%,
+                var(--la-bg-to, #fdf4e3) 100%);
+    }
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.period {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.2;
+    color: var(--la-text, rgba(60, 38, 10, 0.92));
+}
+
+.meta {
+    font-size: 12.5px;
+    color: var(--la-text-dim, rgba(60, 38, 10, 0.58));
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+.status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 500;
+    white-space: nowrap;
+
+    &[data-status='running'] {
+        background: rgba(15, 23, 42, 0.06);
+        color: rgba(15, 23, 42, 0.62);
+    }
+    &[data-status='done'] {
+        background: rgba(62, 146, 98, 0.14);
+        color: rgba(30, 96, 58, 1);
+    }
+    &[data-status='failed'] {
+        background: rgba(192, 57, 43, 0.13);
+        color: #a5281c;
+    }
+    &[data-status='stale'] {
+        background: rgba(217, 131, 36, 0.15);
+        color: #8a4e0e;
+    }
+}
+
+.statusDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .statusDot { animation: none; opacity: 0.7; }
+}

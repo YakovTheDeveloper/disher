@@ -1,7 +1,9 @@
 import { memo, useCallback, useMemo } from 'react';
 import { parse, isValid } from 'date-fns';
-import { drawerStore } from '@/shared/ui';
+import { drawerStore, modalStore } from '@/shared/ui';
+import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
+import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
@@ -55,9 +57,25 @@ const HomeTopBar = ({ date, dateButtonLabel, leadingSlot }: Props) => {
     const selectedDate = await drawerStore.show(ScheduleNavigatorDrawer, {
       selectedDate: date,
     });
-    if (selectedDate && selectedDate !== date) {
-      toScheduleBuilder(selectedDate);
+    if (!selectedDate || selectedDate === date) return;
+
+    // Leaving the date mid-stream interrupts the daily analysis (the SSE
+    // cannot resume). Confirm before navigating away; on confirm, abort the
+    // stream with the `date-switch` reason so the banner reads correctly.
+    const streaming =
+      useDailyAnalysisStore.getState().byDate[date]?.status === 'streaming';
+    if (streaming) {
+      const confirmed = await modalStore.show(ConfirmModal, {
+        title: 'Разбор ещё идёт',
+        message: 'Если уйти на другую дату, разбор дня прервётся.',
+        confirmLabel: 'Уйти',
+        cancelLabel: 'Остаться',
+      });
+      if (confirmed !== true) return;
+      useDailyAnalysisStore.getState().interrupt(date, 'date-switch');
     }
+
+    toScheduleBuilder(selectedDate);
   }, [date, toScheduleBuilder]);
 
   return (

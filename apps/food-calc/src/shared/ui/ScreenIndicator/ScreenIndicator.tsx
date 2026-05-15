@@ -32,6 +32,7 @@ export const ScreenIndicator = ({ screens, activeIndex, onSelect, slideIndex }: 
   return (
     <div
       className={s.root}
+      data-screen={displayIndex}
       style={{
         ['--active-idx' as string]: displayIndex,
         ['--tiles-total' as string]: total,
@@ -67,7 +68,9 @@ export const ScreenIndicator = ({ screens, activeIndex, onSelect, slideIndex }: 
       </div>
 
       <div className={s.band}>
-        <span className={s.bandLabel}>{activeLabel}</span>
+        <span className={clsx([s.bandLabel, s[`bandLabel_${activeScreen.label}`]])}>
+          {activeLabel}
+        </span>
       </div>
     </div>
   );

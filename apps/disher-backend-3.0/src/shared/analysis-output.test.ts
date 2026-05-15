@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   ANALYSIS_OUTPUT_PROMPT_SPEC,
   SYSTEM_PROMPT_BASE,
-  SYSTEM_PROMPT_FOODS_ONLY,
   safeStringifyArray,
   stripNullBytes,
   tryParseOutput,
@@ -24,17 +23,13 @@ describe("ANALYSIS_OUTPUT_PROMPT_SPEC", () => {
   });
 });
 
-describe("system prompts — dish-name [особенности: …] hint", () => {
+describe("system prompt — dish-name [особенности: …] hint", () => {
   // Tripwire: the frontend (apps/food-calc/src/features/analysis/api/runAnalysis.ts)
   // emits dish names with a `[особенности: …]` bracket-tag for ingredient
-  // modifications. Both system prompts must mention this format so the LLM
+  // modifications. The system prompt must mention this format so the LLM
   // doesn't treat it as a meal-level tag.
   it("SYSTEM_PROMPT_BASE explains the [особенности: …] dish suffix", () => {
     expect(SYSTEM_PROMPT_BASE).toContain("[особенности:");
-  });
-
-  it("SYSTEM_PROMPT_FOODS_ONLY explains the [особенности: …] dish suffix", () => {
-    expect(SYSTEM_PROMPT_FOODS_ONLY).toContain("[особенности:");
   });
 });
 

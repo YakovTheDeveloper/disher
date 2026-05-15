@@ -1,8 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/shared/lib/dexie/schema';
-import { __testing, formatDishNameWithDetails } from '../runAnalysis';
-
-const { collectFoods } = __testing;
+import { collectFoods, formatDishNameWithDetails } from '../runAnalysis';
 
 const ISO = '2026-05-13T10:00:00.000Z';
 

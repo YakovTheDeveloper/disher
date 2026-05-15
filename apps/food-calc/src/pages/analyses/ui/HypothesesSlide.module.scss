@@ -1,0 +1,13 @@
+@import '@/shared/assets/style/mixin.scss';
+
+.container {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 16px 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.cta {
+    @include dark-pill-button();
+}

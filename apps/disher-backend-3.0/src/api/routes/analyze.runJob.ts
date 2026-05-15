@@ -2,11 +2,9 @@ import { pool } from "../db.js";
 import {
   ANALYSIS_OUTPUT_PROMPT_SPEC,
   SYSTEM_PROMPT_BASE,
-  SYSTEM_PROMPT_FOODS_ONLY,
   safeStringifyArray,
   stripNullBytes,
   tryParseOutput,
-  type AnalysisMode,
   type AnalysisOutput,
 } from "../../shared/analysis-output.js";
 
@@ -26,11 +24,14 @@ const HYPOTHESES_BUDGET = 8_000;
 
 const FAILURE_PREFIX = "⚠️ Анализ не удался";
 
+// Snapshot shape of a hypothesis the user ticked for this analysis. `id` is
+// kept for the persisted `applied_hypotheses` snapshot (future link to the
+// live hypothesis); it is NOT projected into the LLM prompt — see
+// buildUserPrompt.
 export type HypothesisContext = {
+  id: string;
   title: string;
   body: string;
-  days?: number | null;
-  startedAt: string;
 };
 
 export type AnalyzePayload = {
@@ -39,9 +40,6 @@ export type AnalyzePayload = {
   scheduleFoods: unknown[];
   scheduleEvents: unknown[];
   hypotheses?: HypothesisContext[];
-  /** 'foods-only' suppresses events from the prompt and picks a food-focused
-   *  system prompt. Defaults to 'foods-and-events' when absent. */
-  mode?: AnalysisMode;
 };
 
 export type CallLLMOptions = {
@@ -54,7 +52,7 @@ export type CallLLM = (
   options: CallLLMOptions,
 ) => Promise<string>;
 
-export { SYSTEM_PROMPT_BASE, SYSTEM_PROMPT_FOODS_ONLY, ANALYSIS_OUTPUT_PROMPT_SPEC };
+export { SYSTEM_PROMPT_BASE, ANALYSIS_OUTPUT_PROMPT_SPEC };
 
 function buildUserPrompt(payload: AnalyzePayload): string {
   const lines: string[] = [];
@@ -66,28 +64,28 @@ function buildUserPrompt(payload: AnalyzePayload): string {
   );
   lines.push(foods.json);
 
-  if (payload.mode !== "foods-only") {
-    const events = safeStringifyArray(payload.scheduleEvents, EVENTS_BUDGET);
-    lines.push(
-      `События (всего ${payload.scheduleEvents.length}, в промпте ${events.kept}):`,
-    );
-    lines.push(events.json);
-  }
+  const events = safeStringifyArray(payload.scheduleEvents, EVENTS_BUDGET);
+  lines.push(
+    `События (всего ${payload.scheduleEvents.length}, в промпте ${events.kept}):`,
+  );
+  lines.push(events.json);
 
   if (payload.hypotheses && payload.hypotheses.length > 0) {
+    // Project to {title, body} only — the id (UUID) is snapshot bookkeeping,
+    // useless noise in the LLM prompt. Strip the <hypotheses> tag from user
+    // text so it can't break out of the wrapper.
     const safe = payload.hypotheses.map((h) => ({
-      ...h,
-      title: h.title.replace(/<\/?active_hypotheses>/g, ""),
-      body: h.body.replace(/<\/?active_hypotheses>/g, ""),
+      title: h.title.replace(/<\/?hypotheses>/g, ""),
+      body: h.body.replace(/<\/?hypotheses>/g, ""),
     }));
     const wrapped = safeStringifyArray(safe, HYPOTHESES_BUDGET);
     lines.push("");
     lines.push(
-      "Юзер сейчас тестирует следующие гипотезы — учти их в разборе и не предлагай дубли:",
+      "Юзер хочет проверить следующие гипотезы — учти их в разборе и не предлагай дубли:",
     );
-    lines.push("<active_hypotheses>");
+    lines.push("<hypotheses>");
     lines.push(wrapped.json);
-    lines.push("</active_hypotheses>");
+    lines.push("</hypotheses>");
   }
 
   return lines.join("\n");
@@ -160,12 +158,10 @@ export async function runAnalysisJob(
 
   const signal = AbortSignal.timeout(LLM_TIMEOUT_MS);
   const userPrompt = buildUserPrompt(payload);
-  const systemPrompt =
-    payload.mode === "foods-only" ? SYSTEM_PROMPT_FOODS_ONLY : SYSTEM_PROMPT_BASE;
 
   try {
     const result = await callLLMWithValidation(
-      systemPrompt,
+      SYSTEM_PROMPT_BASE,
       userPrompt,
       signal,
       callLLM,

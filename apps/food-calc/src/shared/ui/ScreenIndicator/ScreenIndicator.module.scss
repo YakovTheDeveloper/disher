@@ -135,41 +135,22 @@
 // упирается левым краем в 0, для tile=2 — правым в 100%, для центра
 // остаётся под колонкой.
 .bandImg {
-    --tile-w: calc(100% / var(--tiles-total, 3));
-    --img-w: calc(var(--tile-w) * 2);
-    --raw-center: calc((var(--active-idx, 0) + 0.5) * var(--tile-w));
-
     position: absolute;
-    top: 50%;
-    left: clamp(calc(var(--img-w) / 2),
-            var(--raw-center),
-            calc(100% - var(--img-w) / 2));
-    transform: translate(-50%, -50%);
-    width: var(--img-w);
+    left: -20%;
+    top: 0;
+    width: 100%;
     aspect-ratio: 1;
     height: auto;
-    object-fit: contain;
-    opacity: 0.04;
+    opacity: 0.03;
     pointer-events: none;
     user-select: none;
     z-index: 0;
-    will-change: opacity;
-    animation: bandImgFadeIn 1s ease-out both;
-}
 
-@keyframes bandImgFadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 0.04;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .bandImg {
-        animation: none;
+    // 3-й экран (index 2): картинка прижата вправо. 1 и 2 — как сейчас.
+    .root[data-screen='2'] & {
+        left: auto;
+        right: 20px;
+        top: 30%;
     }
 }
 

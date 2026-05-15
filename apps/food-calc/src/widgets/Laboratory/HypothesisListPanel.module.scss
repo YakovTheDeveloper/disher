@@ -1,0 +1,128 @@
+.section {
+    display: flex;
+    flex-direction: column;
+}
+
+// ─── Header label (static — no collapse) ──────────────────────────────
+.header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 6px 4px 10px;
+}
+
+.headerTitle {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1;
+    color: rgba(15, 23, 42, 0.88);
+}
+
+.headerCount {
+    font-size: 12.5px;
+    color: rgba(15, 23, 42, 0.45);
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+// ─── Bounded scroll body ──────────────────────────────────────────────
+// `.scrollWrap` is the non-scrolling, rounded, shadowed frame; `.scrollBody`
+// is the inner element that actually scrolls. A long list scrolls here while
+// the outer ScreenScroll still reaches the daily-analysis section below.
+.scrollWrap {
+    position: relative;
+    border-radius: 14px;
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04),
+        0 6px 20px -14px rgba(15, 23, 42, 0.25);
+}
+
+.scrollBody {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-radius: 14px;
+    // Keep the inner scroll from chaining into the page scroll mid-list.
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.capHint {
+    margin: 8px 4px 0;
+    font-size: 11.5px;
+    color: rgba(15, 23, 42, 0.45);
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────
+.empty {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 22px 18px;
+    border-radius: 14px;
+    background: linear-gradient(90deg, #fffdff 0%, #f7f4fb 55%, #ece6f5 100%);
+}
+
+.emptyTitle {
+    margin: 0;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-style: italic;
+    font-size: 19px;
+    color: rgba(36, 26, 60, 0.85);
+}
+
+.emptyBody {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(36, 26, 60, 0.58);
+}
+
+// ─── Design-variant palettes — published as `--lh-*` for the rows ─────
+
+// lavender — cool white → muted violet (default).
+.scrollBody[data-dv-v='lavender'] {
+    --lh-bg-from: #fffdff;
+    --lh-bg-mid: #f7f4fb;
+    --lh-bg-to: #ece6f5;
+    --lh-accent: rgba(140, 116, 200, 0.5);
+    --lh-accent-strong: rgba(112, 88, 178, 1);
+    --lh-hairline: rgba(48, 30, 90, 0.1);
+    --lh-text: rgba(36, 26, 60, 0.9);
+    --lh-text-dim: rgba(36, 26, 60, 0.55);
+}
+
+// warm — honey / peach, the FoodActionCard canon.
+.scrollBody[data-dv-v='warm'] {
+    --lh-bg-from: #fffefb;
+    --lh-bg-mid: #fffaf2;
+    --lh-bg-to: #fdf4e3;
+    --lh-accent: rgba(214, 158, 70, 0.5);
+    --lh-accent-strong: rgba(206, 142, 45, 1);
+    --lh-hairline: rgba(124, 65, 15, 0.09);
+    --lh-text: rgba(60, 38, 10, 0.92);
+    --lh-text-dim: rgba(60, 38, 10, 0.58);
+}
+
+// sand — neutral warm grey, lowest contrast.
+.scrollBody[data-dv-v='sand'] {
+    --lh-bg-from: #fffefc;
+    --lh-bg-mid: #faf8f3;
+    --lh-bg-to: #f1ece1;
+    --lh-accent: rgba(150, 130, 95, 0.45);
+    --lh-accent-strong: rgba(132, 110, 72, 1);
+    --lh-hairline: rgba(60, 48, 24, 0.1);
+    --lh-text: rgba(38, 32, 20, 0.9);
+    --lh-text-dim: rgba(38, 32, 20, 0.55);
+}
+
+// mint — cool white → soft green.
+.scrollBody[data-dv-v='mint'] {
+    --lh-bg-from: #fdfffe;
+    --lh-bg-mid: #f3fbf6;
+    --lh-bg-to: #e6f4ec;
+    --lh-accent: rgba(86, 168, 120, 0.5);
+    --lh-accent-strong: rgba(62, 146, 98, 1);
+    --lh-hairline: rgba(15, 70, 40, 0.1);
+    --lh-text: rgba(18, 46, 32, 0.9);
+    --lh-text-dim: rgba(18, 46, 32, 0.55);
+}

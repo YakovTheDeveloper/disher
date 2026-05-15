@@ -289,49 +289,18 @@ describe('readNormItems', () => {
 });
 
 describe('mapHypothesisRow', () => {
-  it('renames every field, preserves null markers for saved-but-not-testing', () => {
+  it('maps the simplified hypothesis row to camelCase', () => {
     const row: HypothesisRow = {
       id: 'h1',
       title: 'без молочки',
-      body: 'тестируем неделю',
-      days: 7,
-      source_analysis_id: 'a1',
-      saved_at: ISO_A,
-      started_at: null,
-      ended_at: null,
-      outcome: null,
-      note: null,
+      body: 'проверяю неделю',
       created_at: ISO_A,
     };
     expect(mapHypothesisRow(row)).toEqual({
       id: 'h1',
       title: 'без молочки',
-      body: 'тестируем неделю',
-      days: 7,
-      sourceAnalysisId: 'a1',
-      savedAt: ISO_A,
-      startedAt: null,
-      endedAt: null,
-      outcome: null,
-      note: null,
+      body: 'проверяю неделю',
       createdAt: ISO_A,
     });
-  });
-
-  it('coerces non-finite days to null', () => {
-    const row: HypothesisRow = {
-      id: 'h3',
-      title: 'x',
-      body: '',
-      days: NaN as unknown as number,
-      source_analysis_id: null,
-      saved_at: ISO_A,
-      started_at: null,
-      ended_at: null,
-      outcome: null,
-      note: null,
-      created_at: ISO_A,
-    };
-    expect(mapHypothesisRow(row).days).toBeNull();
   });
 });

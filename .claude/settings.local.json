@@ -117,7 +117,20 @@
       "Bash(grep -rn \"element.animate\\\\\\\\|\\\\\\\\.animate\\(\\\\\\\\[\" \"c:/Users/booty/Documents/GitHub/disher/apps/food-calc/src\" --include=\"*.ts\" --include=\"*.tsx\")",
       "PowerShell(Get-ChildItem -Path \"apps\\\\food-calc\\\\node_modules\\\\@base-ui\" -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"useDrawer|drawerPopup\" } | Select-Object -First 20 FullName)",
       "Skill(critique)",
-      "Skill(critique:*)"
+      "Skill(critique:*)",
+      "Bash(rm -f widgets/Laboratory/HypothesisCard.tsx widgets/Laboratory/HypothesisCard.module.scss)",
+      "Bash(rm -rf features/analysis/RunAnalysisButton pages/knowledge)",
+      "Bash(git check-ignore *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./apps/food-calc/package.json'\\).scripts,null,1\\)\\)\")",
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./apps/disher-backend-3.0/package.json'\\).scripts,null,1\\)\\)\")",
+      "Bash(npm --prefix apps/food-calc run typecheck)",
+      "Bash(npm --prefix apps/disher-backend-3.0 run typecheck)",
+      "Bash(npm --prefix apps/food-calc run lint)",
+      "Bash(npm --prefix apps/food-calc run lint 2>&1 > /tmp/lint.txt; echo \"=== files with errors \\(non parserOptions\\) ===\"; grep -B1 \"error\" /tmp/lint.txt | grep -E \"^C:\" | sort -u; echo \"=== error types ===\"; grep -oE \"\\(Parsing error|error  [a-z@/-]+\\)\" /tmp/lint.txt | sort | uniq -c)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
     ]
   }
 }
