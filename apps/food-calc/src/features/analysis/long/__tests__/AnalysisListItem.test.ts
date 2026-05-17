@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Analysis } from '../../api';
-import { deriveStatus, STALE_PENDING_MS } from '../AnalysisListItem';
+import { deriveStatus, STALE_PENDING_MS, type Analysis } from '../../api';
 
 const NOW = Date.parse('2026-05-15T12:00:00Z');
 

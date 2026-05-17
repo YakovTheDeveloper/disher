@@ -43,7 +43,7 @@ const AnalysisCtaButton = ({ date, selectedIds }: Props) => {
           <span className={styles.sparkle} aria-hidden="true">
             ✦
           </span>
-          Анализировать
+          Разбор
         </>
       )}
     </button>

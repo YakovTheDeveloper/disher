@@ -1,0 +1,89 @@
+// Шаг «Уточнение» — финальная вёрстка (без plate, без design-variants).
+// Все размеры — токены из tokens.scss.
+
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--modal-title-offset);
+  padding-bottom: var(--space-4);
+
+  // Инпут (AutoGrowSearch читает по наследованию): менее жёлтый + мелкий
+  // радиус как у плитки ScreenIndicator.
+  --field-bg-from: #fdfcfa;
+  --field-bg-mid: #fbf9f4;
+  --field-bg-to: #f6f1e6;
+  --field-radius: var(--radius-sm);
+  --field-placeholder: rgba(31, 42, 68, 0.4);
+  --field-hairline: rgba(31, 42, 68, 0.12);
+  --field-hairline-focus: rgba(31, 42, 68, 0.32);
+
+  // Чипы — плотный gap (больше помещается над клавиатурой).
+  --dc-chip-gap: var(--space-1);
+}
+
+// Главный заголовок — канонический примитив Heading (size="modal").
+// Здесь только горизонтальный отступ под общую колонку; типографика и
+// margin — внутри примитива.
+.heading {
+  padding-inline: var(--space-4);
+}
+
+// Эйброу — вспомогательная строка «название еды + ⓘ», прижата вправо,
+// над инпутом (аннотирует поле).
+.eyebrow {
+  display: flex;
+  align-items: center;
+  // justify-content: flex-end;
+  gap: var(--space-1);
+  padding-inline: var(--space-4);
+  margin-top: var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
+.eyebrowName {
+  min-width: 0;
+  font-family: "Onest", "YS Text", "Golos Text", system-ui, sans-serif;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: rgba(31, 42, 68, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+.infoBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  // тач-зона 40px; padding + равный отрицательный margin схлопывают её в
+  // вёрстке — строка эйброу остаётся высотой по тексту.
+  padding: 12px;
+  margin: -12px;
+  border: none;
+  background: transparent;
+  color: rgba(31, 42, 68, 0.5);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 140ms ease, transform 80ms ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: rgba(31, 42, 68, 0.8);
+    outline: none;
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+}

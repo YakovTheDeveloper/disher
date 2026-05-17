@@ -1,15 +1,20 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { format, isValid, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { toast } from 'sonner';
 import type { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { IdeaCard } from '../IdeaCard';
-import { isFailedAnalysis, isPendingAnalysis, useAnalysis, type Analysis } from '../api';
+import { deriveStatus, startAnalysis, useAnalysis, type Analysis } from '../api';
+import { restartArgs } from './restart';
 import styles from './AnalysisDetailModal.module.scss';
 
-type Props = BaseModalProps<void> & {
+// The modal resolves with a freshly-started analysis when the user restarts a
+// stale/failed run, so AnalysesPage can show the new pending row. Plain close
+// resolves with undefined.
+type Props = BaseModalProps<Analysis | null> & {
   /** The row tapped in the list — used as the initial seed while polling. */
   analysis: Analysis;
 };
@@ -22,16 +27,30 @@ function formatRange(startIso: string, endIso: string): string {
 }
 
 // Detail view of one long analysis. Seeded with the list row, then kept fresh
-// by useAnalysis(id) polling — a row opened while still «идёт» flips to the
-// result in place. Renders the markdown + idea cards + a read-only snapshot
-// of the hypotheses the user ticked when the job was started.
+// by useAnalysis(id) polling. A stale (hung) or failed run gets a «Запустить
+// заново» action — it starts a fresh analysis over the same window and
+// resolves the modal with it (TDS §edge «тап по такой строке → перезапуск»).
 const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
   const { data } = useAnalysis(seed.id);
   const analysis = data ?? seed;
+  const [restarting, setRestarting] = useState(false);
 
-  const pending = isPendingAnalysis(analysis);
-  const failed = isFailedAnalysis(analysis);
+  const status = deriveStatus(analysis);
   const { appliedHypotheses, ideaCards } = analysis;
+
+  async function handleRestart() {
+    if (restarting) return;
+    setRestarting(true);
+    try {
+      const { analysis: created } = await startAnalysis(restartArgs(analysis));
+      toast.success('Разбор запущен заново');
+      onClose(created);
+    } catch (err) {
+      console.error('restart analysis failed', err);
+      toast.error('Не удалось перезапустить разбор');
+      setRestarting(false);
+    }
+  }
 
   return (
     <ModalLayout className={styles.layout} a11yLabel="Детали разбора">
@@ -53,7 +72,7 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
       </header>
 
       <div className={styles.body}>
-        {pending && (
+        {status === 'running' && (
           <div className={styles.pending}>
             <Spinner />
             <p className={styles.pendingText}>
@@ -63,20 +82,41 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
           </div>
         )}
 
-        {!pending && failed && (
+        {status === 'stale' && (
+          <div className={styles.failed}>
+            <p className={styles.failedTitle}>Разбор, похоже, не удался</p>
+            <p className={styles.failedBody}>
+              Он завис надолго без результата. Обычно это сбой на сервере —
+              можно запустить его заново за то же окно.
+            </p>
+          </div>
+        )}
+
+        {status === 'failed' && (
           <div className={styles.failed}>
             <p className={styles.failedTitle}>Разбор не удался</p>
             <p className={styles.failedBody}>{analysis.resultMd}</p>
           </div>
         )}
 
-        {!pending && !failed && (
+        {status === 'done' && (
           <div className={styles.markdown}>
             <ReactMarkdown>{analysis.resultMd}</ReactMarkdown>
           </div>
         )}
 
-        {!pending && !failed && ideaCards.length > 0 && (
+        {(status === 'stale' || status === 'failed') && (
+          <button
+            type="button"
+            className={styles.restart}
+            disabled={restarting}
+            onClick={handleRestart}
+          >
+            {restarting ? 'Запускаем…' : 'Запустить заново'}
+          </button>
+        )}
+
+        {status === 'done' && ideaCards.length > 0 && (
           <section className={styles.section}>
             <p className={styles.sectionTitle}>Идеи для эксперимента</p>
             <div className={styles.ideas}>

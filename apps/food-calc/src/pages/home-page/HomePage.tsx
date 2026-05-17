@@ -1,5 +1,5 @@
 import { RouterLinks } from '@/app/router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import homeStyles from './HomePage.module.scss';
@@ -35,7 +35,7 @@ const HOME_AMBIENT_VARIANTS = [
 // scroll-дистанция выросла → spring-кривая Embla в конце давала visible
 // drop ("11111110099"). Меньшее окно (~300ms) делает spring менее заметным.
 // На пользовательский свайп не влияет — там momentum, не `duration`.
-const SWIPE_DURATION = 18;
+const SWIPE_DURATION = 0;
 
 const Page = ({ date }: { date: string }) => {
   const scheduleFoods = useScheduleFoods(date);
@@ -51,7 +51,6 @@ const Page = ({ date }: { date: string }) => {
   // рендере HomePage и убивает memo на ScheduleEvents (props всегда «новые»).
   const events = scheduleEvents as ScheduleEvent[];
 
-  const [activeIndex, setActiveIndex] = useState(DEFAULT_SLIDE);
   const swipeableRef = useRef<SwipeableRef>(null);
 
   // Preload bandImg PNG'шек: на первый клик по тайлу image уже в HTTP-кеше,
@@ -66,73 +65,32 @@ const Page = ({ date }: { date: string }) => {
     });
   }, []);
 
-  const { anchor: ambientAnchor } = useDesignVariant(
-    'HomeAmbient',
-    HOME_AMBIENT_VARIANTS,
-  );
+  const { anchor: ambientAnchor } = useDesignVariant('HomeAmbient', HOME_AMBIENT_VARIANTS);
 
-  // На свайпе VT-морф title НЕ запускаем намеренно — Swipeable вызывает
-  // onIndexChange на `settle` event (после полного завершения scroll-
-  // анимации), и пуск 600ms VT в этот момент даёт perceived "title застрял":
-  // контент уже на новой позиции, а title только начинает морфить. Свайп =
-  // utility (instant title), click = декор (VT-морф внутри ScreenIndicator).
-  const handleIndexChange = useCallback((idx: number) => {
-    setActiveIndex(idx);
-  }, []);
-
+  // Свайп НЕ прокидывается в React-стейт намеренно: каждый слайд рендерит
+  // свой статичный ScreenIndicator (slideIndex={0/1/2}), поэтому Page не
+  // зависит от активного индекса. Без onIndexChange/activeIndex свайп не
+  // вызывает ре-рендер Page и memo'нутых слайдов — Embla двигает DOM сам.
   const handleSelect = useCallback((idx: number) => {
     swipeableRef.current?.goToPage(idx);
-    setActiveIndex(idx);
   }, []);
 
-  // ScreenIndicator передаётся в каждый слайд как `topSlot`. Sticky-обёртка
-  // в `Screen.screenScroll` резервирует своё место в потоке — контент идёт
-  // после него без `padding-top`-компенсации. VT-имена и runTileMigration
-  // живут только в активной копии (см. ScreenIndicator.isActive prop) —
-  // иначе VT API ругается на дубликаты `view-transition-name`.
-  //
-  // useMemo — каждый виджет слайда обёрнут в memo(...); нестабильный JSX
-  // в `topSlot` бы ломал memoization. Зависимости — activeIndex (active
-  // changes) + handleSelect (stable через useCallback).
-  // slideIndex={0/1/2} → каждый инстанс показывает СВОЙ статичный экран
-  // (label, image, highlight'нутый тайл) и не реагирует на activeIndex.
-  // При свайпе юзер видит title слайда A → пролистывает → title слайда B
-  // через нативную DOM-смену слайдов, без cross-fade морфа.
+  // ScreenIndicator передаётся в каждый слайд как `topSlot`. slideIndex={0/1/2}
+  // → каждый инстанс статично показывает СВОЙ экран (label, image, highlight'-
+  // нутый тайл). Единственная зависимость useMemo — stable handleSelect, поэтому
+  // ссылки на topSlot никогда не меняются → memo на слайд-виджетах держит,
+  // свайп = ноль React-ре-рендеров (Embla двигает DOM сам).
   const labIndicator = useMemo(
-    () => (
-      <ScreenIndicator
-        screens={SCREENS}
-        activeIndex={activeIndex}
-        onSelect={handleSelect}
-        isActive={activeIndex === 0}
-        slideIndex={0}
-      />
-    ),
-    [activeIndex, handleSelect],
+    () => <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={0} />,
+    [handleSelect]
   );
   const foodIndicator = useMemo(
-    () => (
-      <ScreenIndicator
-        screens={SCREENS}
-        activeIndex={activeIndex}
-        onSelect={handleSelect}
-        isActive={activeIndex === 1}
-        slideIndex={1}
-      />
-    ),
-    [activeIndex, handleSelect],
+    () => <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={1} />,
+    [handleSelect]
   );
   const eventsIndicator = useMemo(
-    () => (
-      <ScreenIndicator
-        screens={SCREENS}
-        activeIndex={activeIndex}
-        onSelect={handleSelect}
-        isActive={activeIndex === 2}
-        slideIndex={2}
-      />
-    ),
-    [activeIndex, handleSelect],
+    () => <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={2} />,
+    [handleSelect]
   );
 
   return (
@@ -144,7 +102,6 @@ const Page = ({ date }: { date: string }) => {
           defaultSlide={DEFAULT_SLIDE}
           duration={SWIPE_DURATION}
           hasDots={false}
-          onIndexChange={handleIndexChange}
         >
           <Laboratory key={date} date={date} topSlot={labIndicator} />
           <FoodSchedule
@@ -156,12 +113,7 @@ const Page = ({ date }: { date: string }) => {
             isLoading={nutrientsLoading}
             topSlot={foodIndicator}
           />
-          <ScheduleEvents
-            key={date}
-            date={date}
-            events={events}
-            topSlot={eventsIndicator}
-          />
+          <ScheduleEvents key={date} date={date} events={events} topSlot={eventsIndicator} />
         </Swipeable>
       </div>
     </div>

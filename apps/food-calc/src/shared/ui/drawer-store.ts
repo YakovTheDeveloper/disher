@@ -106,9 +106,21 @@ function closeLast(result?: any) {
   }
 }
 
+// Hard-drop every instance. Used on sign-out: when AuthGate unmounts the app
+// subtree, DrawerManager goes with it and can never call `finishClose`, so any
+// open drawer would orphan its instance here forever. Resolve pending promises
+// (undefined) and unregister history handlers so nothing leaks.
+function reset() {
+  for (const i of useDrawerStore.getState().instances) {
+    unregisterCloseHandler(i.historyHandler);
+    i.resolve(undefined);
+  }
+  useDrawerStore.setState({ instances: [] });
+}
+
 export function useDrawers() {
   const instances = useDrawerStore((s) => s.instances);
   return { instances, show, close, closeLast, finishClose, isOpen: instances.length > 0 };
 }
 
-export const drawerStore = { show, close, closeLast };
+export const drawerStore = { show, close, closeLast, reset };

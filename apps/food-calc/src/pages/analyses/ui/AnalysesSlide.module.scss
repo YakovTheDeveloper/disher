@@ -43,6 +43,24 @@
     color: rgba(60, 38, 10, 0.58);
 }
 
+.retry {
+    align-self: flex-start;
+    margin-top: 6px;
+    padding: 9px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(124, 65, 15, 0.22);
+    background: rgba(255, 255, 255, 0.6);
+    color: rgba(60, 38, 10, 0.8);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+        transform: scale(0.97);
+    }
+}
+
 // ─── List frame ───────────────────────────────────────────────────────
 .listWrap {
     border-radius: 14px;

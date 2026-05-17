@@ -79,10 +79,7 @@ const Screen = ({
           <div className={styles.topPanel}>{topPanel}</div>
           {header}
           {headerOverlap ? (
-            <div
-              className={styles.headerOverlap}
-              data-hollow={hollow ? 'true' : undefined}
-            >
+            <div className={styles.headerOverlap} data-hollow={hollow ? 'true' : undefined}>
               {children}
             </div>
           ) : (

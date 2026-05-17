@@ -8,11 +8,12 @@
     overscroll-behavior: none;
     max-height: 100%;
 
-    // Embla-recommended slide-gap pattern (padding + negative container margin).
-    // `gap` / `margin` are NOT picked up by Embla's ResizeObserver, so they
-    // visually do nothing — Embla still snaps as if slides are flush.
+    // Slide-gap (padding + negative container margin, Embla's recommended
+    // pattern). Set to 0 — the 40px gap grew the per-slide scroll distance,
+    // and Embla's spring easing gave a visible "drop" at the end of that
+    // longer travel = the jitter on slide change. With 0 the snap is flush.
     // See: https://www.embla-carousel.com/docs/guides/slide-gaps
-    --slide-spacing: 40px;
+    --slide-spacing: 0px;
 }
 
 .emblaViewport {
@@ -39,18 +40,39 @@
     flex-direction: column;
     position: relative;
 
-    // Раньше тут был `transform: translateZ(0)` для принудительного промоутинга
-    // в свой compositor layer. Удалён: на iOS Safari совмещение с `backdrop-
-    // filter` родителя давало синеватые швы на границах слайдов. Embla сама
-    // управляет transform'ом контейнера, отдельный хинт на slide избыточен.
+    // Слои/CV настроены по Call-tree профиля свайпа: в длинном кадре (~82ms)
+    // main-thread делал лишь ~1.8ms (Recalculate style — 0.1ms). Style/
+    // Layout/JS — НЕ узкое место; узкое — GPU-растеризация. Отсюда:
+    //  • translateZ НЕ ставим: промоушен каждого слайда даёт 4 больших
+    //    composited-слоя, iOS Safari перерастеризует их на фазе доводки.
+    //    Контейнер едет одним слоем (backface-visibility на .emblaContainer).
+    //  • content-visibility оставляем: off-screen слайды не растеризуются
+    //    → iOS держит ~1.5 экрана пикселей вместо 3 = меньше raster-работы.
 
     // Strict containment: size + layout + style + paint
-    // Browser won't recalculate this slide's geometry during sibling changes
     contain: strict;
 
-    // Skip rendering off-screen slides entirely
     content-visibility: auto;
     contain-intrinsic-size: 100vw 100dvh;
+}
+
+// ─── EXPERIMENT #1 (2026-05-16) — content-visibility off on iOS ──────────
+// `content-visibility: auto` исполняется только с Safari 18 (iOS 18) —
+// реализация первого поколения. При свайпе к off-screen слайду WebKit
+// синхронно платит reveal-cost (style+layout+paint) → pop-in/рывок ровно
+// в момент входа слайда. Chrome (Android) имеет зрелую реализацию с 2020 —
+// поэтому свайп на iOS субъективно хуже Android.
+//
+// `@supports (-webkit-touch-callout: none)` — iOS-Safari-only гейт
+// (`-webkit-touch-callout` не поддерживается ни Chrome, ни macOS Safari).
+// На iOS отключаем CV (control = Android остаётся на зрелой реализации).
+// Если свайп станет гладким — гипотеза подтверждена; дальше вариант 2
+// (lazy mount активного ±1 слайда) заменит CV окончательно.
+@supports (-webkit-touch-callout: none) {
+    .emblaSlide {
+        content-visibility: visible;
+        contain-intrinsic-size: auto;
+    }
 }
 
 .slideContent {

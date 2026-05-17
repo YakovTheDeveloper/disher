@@ -7,7 +7,10 @@
     height: 100%;
     overflow-y: auto;
 
-    -webkit-overflow-scrolling: touch;
+    // #3 — `-webkit-overflow-scrolling: touch` снят (эксперимент 2026-05-16):
+    // на Android это no-op, на iOS — deprecated и форсит лишний accelerated-
+    // scroll-слой на каждый скроллер, что нагружает композитор поверх
+    // свайп-слоя. iOS и так скроллит momentum-ом по умолчанию.
     overscroll-behavior: contain;
 }
 
@@ -98,7 +101,7 @@
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    // `-webkit-overflow-scrolling: touch` снят — см. `.screen` выше (#3).
     // Когда страница рендерится с floating-overlay сверху (например, плитки
     // навигации в HomePage) — родитель задаёт `--page-top-inset` равный высоте
     // оверлея. Контент стартует под оверлеем; при скролле визуально уезжает

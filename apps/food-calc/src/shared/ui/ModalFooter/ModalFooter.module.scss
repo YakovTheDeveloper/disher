@@ -37,99 +37,53 @@
   }
 }
 
-.nextLabel {
-  display: block;
+/* .nextLabel / .nextButton removed with the dead NextStepButton component. */
+
+// ── Назад / Далее — общий футер модалок ──────────────────────────────────
+// Полоса во всю ширину, прижата к низу. Левая — светлая заливка, правая —
+// ink-заливка. Шрифт Onest (не моно), оба угла прямые. Тема `events` ниже
+// сохраняет свои цвета поверх этой базы.
+.prevArrow,
+.nextArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  border: none;
   cursor: pointer;
+  padding: var(--space-5) 0 calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+  font-family: "Onest", "YS Text", "Golos Text", system-ui, sans-serif;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
 }
 
-.nextButton {
-  display: block;
-  width: 100%;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  background: var(--color-ink);
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    opacity: 0.85;
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
+.prevArrow:active,
+.nextArrow:active {
+  opacity: 0.7;
 }
 
 .prevArrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  // background: #f3f3ff;
+  background: rgba(38, 38, 51, 0.1);
   color: var(--color-ink);
-  cursor: pointer;
-  transition: transform 0.15s ease, opacity 0.15s ease;
-  padding: 24px 0;
-  padding-top: 28px;
-
-
-  svg {
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-  }
-
-  &:active {
-    transform: scale(0.97);
-    opacity: 0.6;
-  }
-}
-
-.prevArrowLabel {
-  font-family: var(--font-mono, monospace);
-  font-size: 1.6rem;
-  font-weight: 500;
 }
 
 .nextArrow {
-  border-top-left-radius: 24px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  background: rgba(24, 24, 105, 0.92);
+  background: var(--color-ink);
   color: #fff;
-  cursor: pointer;
-  transition: transform 0.15s ease, opacity 0.15s ease;
-  border: none;
-  padding: 24px 0;
-  padding-top: 28px;
-
-  svg {
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-  }
-
-  &:active {
-    transform: scale(0.97);
-    opacity: 0.75;
-  }
 }
 
+.prevArrowLabel,
 .nextArrowLabel {
-  font-family: var(--font-mono, monospace);
-  font-size: 1.6rem;
-  font-weight: 500;
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: -0.005em;
 }
 
 .nextArrowDisabled {

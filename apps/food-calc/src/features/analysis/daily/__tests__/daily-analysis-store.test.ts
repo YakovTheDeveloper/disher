@@ -201,4 +201,32 @@ describe('hydrateDailyAnalyses', () => {
       'done',
     );
   });
+
+  it('does not clobber an in-memory record written before the idb read', async () => {
+    // idb holds a stale snapshot from a previous session…
+    await idbSet(STORAGE_KEY, { '14-05-2026': doneRecord('14-05-2026') });
+    // …but a stream already started and wrote a streaming record in-memory
+    // before this boot read resolved.
+    useDailyAnalysisStore.setState({
+      byDate: { '15-05-2026': streamingRecord('15-05-2026') },
+      hydrated: false,
+    });
+    await hydrateDailyAnalyses(NOW);
+
+    const { byDate } = useDailyAnalysisStore.getState();
+    // The in-flight stream survives — it is NOT replaced by the stale snapshot.
+    expect(byDate['15-05-2026']?.status).toBe('streaming');
+    // The stored record is still merged in alongside it.
+    expect(byDate['14-05-2026']?.status).toBe('done');
+  });
+
+  it('is a no-op once the store is already hydrated', async () => {
+    useDailyAnalysisStore.setState({ byDate: {}, hydrated: true });
+    await idbSet(STORAGE_KEY, { '15-05-2026': doneRecord('15-05-2026') });
+    await hydrateDailyAnalyses(NOW);
+    // A second call must not re-read idb and overwrite live state.
+    expect(
+      useDailyAnalysisStore.getState().byDate['15-05-2026'],
+    ).toBeUndefined();
+  });
 });

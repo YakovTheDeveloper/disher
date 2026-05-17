@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { ScaleAtom } from '@/entities/schedule-event';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton } from '@/shared/ui/ModalFooter';
+import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import styles from './shared/AtomInputShared.module.css';
 
 export interface ScaleAtomInputProps {
@@ -17,7 +17,7 @@ export interface ScaleAtomInputProps {
 
 const PRESET_LABELS = ['Боль', 'Настроение', 'Энергия', 'Стресс', 'Тревога', 'Нагрузка'];
 
-export const ScaleAtomInput = ({ onAddAtom, accentColor }: ScaleAtomInputProps) => {
+export const ScaleAtomInput = ({ onAddAtom, onClose, accentColor }: ScaleAtomInputProps) => {
   const [value, setValue] = useState<number | ''>(5);
   const [label, setLabel] = useState('');
   const [isReady, setIsReady] = useState(false);
@@ -89,6 +89,7 @@ export const ScaleAtomInput = ({ onAddAtom, accentColor }: ScaleAtomInputProps) 
 
       {isReady && (
         <ModalShell.ActionButtons
+          left={<ModalPrevButton theme="events" onClick={onClose} />}
           right={<ModalNextButton onClick={handleAdd} variant="finish" theme="events" />}
         />
       )}

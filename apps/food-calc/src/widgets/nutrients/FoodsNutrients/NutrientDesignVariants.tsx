@@ -6,7 +6,7 @@ import {
 import { useUserNormItems } from '@/entities/daily-norm';
 import s from './NutrientDesignVariants.module.scss';
 import clsx from 'clsx';
-import { memo, useCallback, useRef, useState, useEffect } from 'react';
+import { memo, useCallback, useRef, useState, useEffect, type CSSProperties } from 'react';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 
 interface Props {
@@ -69,96 +69,6 @@ const getGroupColors = (nutrientName: string, group: string) => {
   return undefined;
 };
 
-const PentagonDecoration = ({ nutrientName }: { nutrientName: string }) => {
-  const mainGradients: Record<string, { color1: string; color2: string }> = {
-    protein: { color1: '#ffe32a', color2: '#ff9500' },
-    fats: { color1: '#ea9629', color2: '#ff6b6b' },
-    carbohydrates: { color1: '#ff453b', color2: '#ff9500' },
-    fiber: { color1: '#5af96c', color2: '#00d084' },
-    energy: { color1: '#ff5e40', color2: '#ff8c42' },
-    sugar: { color1: '#ff2d80', color2: '#ff6eb4' },
-    water: { color1: '#00bfff', color2: '#1e90ff' },
-  };
-
-  const colors = mainGradients[nutrientName] || mineralColors[nutrientName];
-  const { color1 = '#999', color2 = '#ccc' } = colors || {};
-  const gradientId = `pentagon-${nutrientName}`;
-
-  return (
-    <svg
-      className={s.mineralsPentagon}
-      viewBox="0 0 48 48"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <linearGradient
-          id={gradientId}
-          x1="0%"
-          y1="0%"
-          x2="100%"
-          y2="100%"
-        >
-          <stop offset="0%" stopColor={color1} stopOpacity="0.4" />
-          <stop offset="100%" stopColor={color2} stopOpacity="0.2" />
-        </linearGradient>
-      </defs>
-      <polygon
-        points="24,4 42,17 36,38 12,38 6,17"
-        fill={`url(#${gradientId})`}
-      />
-    </svg>
-  );
-};
-
-const VitaminSun = ({ nutrientName }: { nutrientName: string }) => {
-  const { color1 = '#ffb800', color2 = '#ffe082' } = vitaminColors[nutrientName] || {};
-  const gradientId = `sun-${nutrientName}`;
-
-  return (
-    <svg
-      className={s.vitaminSun}
-      viewBox="0 0 48 48"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <radialGradient id={gradientId} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor={color1} stopOpacity="0.75" />
-          <stop offset="60%" stopColor={color2} stopOpacity="0.35" />
-          <stop offset="100%" stopColor={color2} stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <circle cx="24" cy="24" r="18" fill={`url(#${gradientId})`} />
-    </svg>
-  );
-};
-
-const AminoAcidDiamond = ({ nutrientName }: { nutrientName: string }) => {
-  const isEssential = essentialAminoAcids.has(nutrientName);
-  const { color1, color2 } = isEssential
-    ? aminoAcidEssentialColor
-    : aminoAcidNonEssentialColor;
-  const gradientId = `diamond-${nutrientName}`;
-
-  return (
-    <svg
-      className={clsx(s.aminoAcidDiamond, isEssential ? s.aminoAcidEssential : s.aminoAcidNonEssential)}
-      viewBox="0 0 48 48"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={color1} stopOpacity="0.55" />
-          <stop offset="100%" stopColor={color2} stopOpacity="0.25" />
-        </linearGradient>
-      </defs>
-      <polygon points="24,6 42,24 24,42 6,24" fill={`url(#${gradientId})`} />
-    </svg>
-  );
-};
-
 const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValueChange }: Props) => {
   const isEditNorms = variant === 'edit-norms';
   const isEditValues = variant === 'edit-values';
@@ -214,28 +124,6 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
     return Math.round(Math.min((getValue(nutrientId) / norm) * 100, 999));
   };
 
-  const getProgressClass = (pct: number, nutrientName?: string) => {
-    // Nutrient-specific progress colors
-    switch (nutrientName) {
-      case 'fiber':
-        return s.progressPurple;
-      case 'carbohydrates':
-        return s.progressOrange;
-      case 'energy':
-        return s.progressRed;
-      case 'sugar':
-        return s.progressPink;
-      case 'water':
-        return s.progressCyan;
-      // Default gradient for protein, fats
-      default:
-        if (pct >= 100) return s.progressBlue;
-        if (pct >= 70) return s.progressGreen;
-        if (pct >= 30) return s.progressYellow;
-        return s.progressGray;
-    }
-  };
-
   const renderRow = (nutrient: (typeof mainNutrients)[0]) => {
     const value = getValue(nutrient.id);
     const norm = getNorm(nutrient.id);
@@ -268,9 +156,9 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
           )}
         </div>
         {showProgress && (
-          <div className={s.progressTrack} style={{ opacity: Math.min(pct, 100) / 100 }}>
+          <div className={s.progressTrack}>
             <div
-              className={`${s.progressBar} ${getProgressClass(pct, nutrient.name)}`}
+              className={s.progressBar}
               style={{ width: `${Math.min(pct, 100)}%` }}
             />
           </div>
@@ -347,27 +235,28 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
     const norm = getNorm(nutrient.id);
     const pct = getPercentage(nutrient.id);
     const groupColors = getGroupColors(nutrient.name, nutrient.group);
-
-    let decoration: JSX.Element | null = null;
-    if (nutrient.group === 'minerals') {
-      decoration = <PentagonDecoration nutrientName={nutrient.name} />;
-    } else if (nutrient.group === 'vitamins') {
-      decoration = <VitaminSun nutrientName={nutrient.name} />;
-    } else if (nutrient.group === 'aminoAcids') {
-      decoration = <AminoAcidDiamond nutrientName={nutrient.name} />;
-    }
-
     const progressColor = groupColors?.color1;
 
     return (
       <div key={nutrient.id} className={`${s.row} ${s[nutrient.group]}`} data-nutrient={nutrient.name}>
         <div className={s.rowTop}>
-          {decoration}
+          {groupColors && (
+            <span
+              className={s.deco}
+              aria-hidden="true"
+              style={
+                {
+                  '--deco-c1': groupColors.color1,
+                  '--deco-c2': groupColors.color2,
+                } as CSSProperties
+              }
+            />
+          )}
           <span className={s.name}>{nutrient.displayNameRu}</span>
           {showPctView && <span className={s.pct}>{norm ? `${pct}%` : ''}</span>}
         </div>
         {showProgress && norm > 0 && progressColor && (
-          <div className={s.progressTrack} style={{ opacity: Math.min(pct, 100) / 100 }}>
+          <div className={s.progressTrack}>
             <div
               className={s.progressBar}
               style={{

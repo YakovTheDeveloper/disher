@@ -4,6 +4,7 @@ import { parse, isValid, format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import { useScheduleFoods } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
@@ -60,7 +61,7 @@ const AnalysisKindDrawer = ({ date, hypothesisIds, onClose }: Props) => {
   return (
     <DrawerLayout a11yLabel="Выбор разбора">
       <div className={styles.body}>
-        <h2 className={styles.heading}>Что разобрать?</h2>
+        <Heading size="drawer">Что разобрать?</Heading>
 
         <button
           type="button"

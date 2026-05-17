@@ -104,9 +104,21 @@ function closeLast(result?: any) {
   }
 }
 
+// Hard-drop every instance. Used on sign-out: when AuthGate unmounts the app
+// subtree, ModalManager goes with it and can never call `finishClose`, so any
+// open modal would orphan its instance here forever. Resolve pending promises
+// (undefined) and unregister history handlers so nothing leaks.
+function reset() {
+  for (const i of useModalStore.getState().instances) {
+    unregisterCloseHandler(i.historyHandler);
+    i.resolve(undefined);
+  }
+  useModalStore.setState({ instances: [] });
+}
+
 export function useModals() {
   const instances = useModalStore((s) => s.instances);
   return { instances, show, close, closeLast, finishClose, isOpen: instances.length > 0 };
 }
 
-export const modalStore = { show, close, closeLast };
+export const modalStore = { show, close, closeLast, reset };

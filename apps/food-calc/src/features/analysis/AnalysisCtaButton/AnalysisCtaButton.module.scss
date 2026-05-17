@@ -6,8 +6,10 @@
     @include dark-pill-button();
 }
 
+// Bumped 13px → 18px: at 13px the sparkle visually disappeared next to the
+// label («теряется»).
 .sparkle {
-    font-size: 13px;
+    font-size: 18px;
     line-height: 1;
 }
 

@@ -43,13 +43,14 @@ type AnalyzeBody = {
   };
 };
 
-// Whole-day span between two ISO timestamps. Returns null if either is
-// unparseable.
+// Number of calendar days the window covers — INCLUSIVE of both ends, so it
+// agrees with the frontend RangePickerWithFallback (a «7 дней» preset sends a
+// start/end 6 days apart). Returns null if either timestamp is unparseable.
 function windowSpanDays(start: string, end: string): number | null {
   const s = Date.parse(start);
   const e = Date.parse(end);
   if (Number.isNaN(s) || Number.isNaN(e)) return null;
-  return Math.round((e - s) / 86_400_000);
+  return Math.round((e - s) / 86_400_000) + 1;
 }
 
 type AnalysisRow = {

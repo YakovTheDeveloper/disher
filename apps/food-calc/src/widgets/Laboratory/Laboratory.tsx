@@ -10,6 +10,7 @@ import {
   openEditHypothesisDrawer,
 } from '@/features/analysis/hypothesis-drawers';
 import { RouterLinks } from '@/app/router';
+import { PlusIcon } from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import HypothesisListPanel from './HypothesisListPanel';
 import DailyAnalysisSection from './DailyAnalysisSection';
 import styles from './Laboratory.module.scss';
@@ -21,8 +22,8 @@ type Props = {
 
 // HomePage slot 0 — the Laboratory. Hypothesis list (tick → ride into the
 // analysis, tap → edit) + the inline daily-analysis surface. The bottom bar
-// carries two CTAs: «Анализировать» (opens the kind chooser) and
-// «+ Гипотеза» (manual create).
+// carries two CTAs: «Разбор» (opens the kind chooser) and «Добавить
+// гипотезу» (manual create).
 const Laboratory = ({ date, topSlot }: Props) => {
   const navigate = useNavigate();
   const hypotheses = useAllHypotheses();
@@ -60,7 +61,10 @@ const Laboratory = ({ date, topSlot }: Props) => {
         className={styles.newHypothesisButton}
         onClick={openCreate}
       >
-        + Гипотеза
+        <span className={styles.plusIcon} aria-hidden="true">
+          <PlusIcon />
+        </span>
+        Добавить гипотезу
       </button>
     </AppBottomBarShell>
   );

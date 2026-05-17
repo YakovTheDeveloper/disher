@@ -23,7 +23,7 @@ $accent-bg: #fdf2dc;
 .header {
     position: relative;
     padding: 20px 22px 16px;
-    padding-top: max(20px, env(safe-area-inset-top));
+    padding-top: max(var(--modal-title-offset), env(safe-area-inset-top));
     flex-shrink: 0;
 
     &::after {
@@ -75,12 +75,12 @@ $accent-bg: #fdf2dc;
 
 .title {
     margin: 0 40px 6px 0;
-    font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
-    font-style: italic;
-    font-size: clamp(1.6rem, 6vw, 2.1rem);
-    font-weight: 500;
+    font-family: var(--heading-font);
+    font-style: var(--heading-style);
+    font-size: var(--heading-size-modal);
+    font-weight: var(--heading-weight);
     color: $ink;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--heading-letter);
     line-height: 1.05;
 }
 

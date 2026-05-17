@@ -22,7 +22,10 @@ const ModalLayout = ({ children, className, a11yLabel }: Props) => {
         <motion.main
           className={styles.content}
           layout
-          transition={{ duration: 0.1, ease: 'easeOut' }}
+          // Step morph: glide instead of snap. The footer / «Далее» button
+          // rides the layout reflow — at duration 0.1 it visibly jumped, so
+          // a longer run on the drawer-canon cubic-bezier eases it out.
+          transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
         >
           {children}
         </motion.main>

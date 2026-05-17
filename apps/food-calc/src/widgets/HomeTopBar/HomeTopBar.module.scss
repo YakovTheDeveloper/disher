@@ -51,8 +51,6 @@
   box-sizing: border-box;
   padding: var(--bar-pad-y) var(--bar-pad-x);
   background: var(--bar-bg);
-  backdrop-filter: blur(var(--bar-blur));
-  -webkit-backdrop-filter: blur(var(--bar-blur));
   border-bottom: var(--bar-border);
   border-bottom-right-radius: var(--bar-radius);
   border-bottom-left-radius: var(--bar-radius);
@@ -62,9 +60,7 @@
   font-family: var(--seg-font);
   letter-spacing: var(--seg-letter);
 
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  background: rgba(255, 255, 255, 1);
 }
 
 // AccountPanel — первый flex-child pill'а. Слева, перед leadingSlot

@@ -2,6 +2,7 @@ import { memo, useState } from 'react';
 import { toast } from 'sonner';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import { saveHypothesis } from '@/entities/hypothesis';
 import styles from './HypothesisDrawer.module.scss';
 
@@ -34,7 +35,7 @@ const CreateHypothesisDrawer = ({ onClose }: Props) => {
   return (
     <DrawerLayout a11yLabel="Новая гипотеза">
       <div className={styles.form}>
-        <h2 className={styles.heading}>Новая гипотеза</h2>
+        <Heading size="drawer">Новая гипотеза</Heading>
 
         <div className={styles.field}>
           <span className={styles.label}>Коротко — что проверяем</span>

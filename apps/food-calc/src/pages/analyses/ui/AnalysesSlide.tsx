@@ -21,11 +21,11 @@ type Props = {
 const PALETTE_VARIANTS = ['warm', 'graphite', 'sand', 'mint'] as const;
 
 // AnalysesPage slide 1 — the long-analyses list. The list is NOT polled;
-// useAnalysesList refetches on mount + tab refocus. A freshly created row is
-// merged in optimistically so it shows as «идёт» without waiting for the
-// refetch to land.
+// useAnalysesList refetches on mount + tab refocus. A freshly created (or
+// restarted) row is merged in optimistically so it shows as «идёт» without
+// waiting for the refetch to land.
 const AnalysesSlide = ({ topBar }: Props) => {
-  const { data, refetch } = useAnalysesList();
+  const { data, error, refetch } = useAnalysesList();
   const [optimistic, setOptimistic] = useState<Analysis[]>([]);
   const { anchor } = useDesignVariant('LabAnalysis', PALETTE_VARIANTS);
 
@@ -36,20 +36,31 @@ const AnalysesSlide = ({ topBar }: Props) => {
     return [...optimistic.filter((a) => !serverIds.has(a.id)), ...server];
   }, [data, optimistic]);
 
+  const addOptimistic = useCallback(
+    (a: Analysis) => {
+      setOptimistic((prev) => [a, ...prev]);
+      refetch();
+    },
+    [refetch],
+  );
+
   const openCreate = useCallback(async () => {
     const created = await drawerStore.show(CreateLongAnalysisDrawer, {});
-    if (created) {
-      setOptimistic((prev) => [created, ...prev]);
-      refetch();
-    }
-  }, [refetch]);
+    if (created) addOptimistic(created);
+  }, [addOptimistic]);
 
   const openDetail = useCallback(
-    (id: string) => {
+    async (id: string) => {
       const analysis = analyses.find((a) => a.id === id);
-      if (analysis) void modalStore.show(AnalysisDetailModal, { analysis });
+      if (!analysis) return;
+      // The modal resolves with a fresh analysis when the user restarts a
+      // stale/failed run — show it right away.
+      const restarted = await modalStore.show(AnalysisDetailModal, {
+        analysis,
+      });
+      if (restarted) addOptimistic(restarted);
     },
-    [analyses],
+    [analyses, addOptimistic],
   );
 
   const bottomBar = (
@@ -60,7 +71,10 @@ const AnalysesSlide = ({ topBar }: Props) => {
     </AppBottomBarShell>
   );
 
-  const loading = data === null && optimistic.length === 0;
+  // Distinguish: never-loaded-yet (spinner) vs failed-with-nothing (error).
+  const nothingYet = data === null && optimistic.length === 0;
+  const loading = nothingYet && error === null;
+  const failedToLoad = nothingYet && error !== null;
 
   return (
     <Screen stickyTop={topBar} headerOverlap bottomBar={bottomBar}>
@@ -68,6 +82,20 @@ const AnalysesSlide = ({ topBar }: Props) => {
         {loading ? (
           <div className={styles.centered}>
             <Spinner />
+          </div>
+        ) : failedToLoad ? (
+          <div className={styles.empty}>
+            <p className={styles.emptyTitle}>Не удалось загрузить</p>
+            <p className={styles.emptyBody}>
+              Список разборов не подгрузился — проверь сеть.
+            </p>
+            <button
+              type="button"
+              className={styles.retry}
+              onClick={() => refetch()}
+            >
+              Повторить
+            </button>
           </div>
         ) : analyses.length === 0 ? (
           <div className={styles.empty}>

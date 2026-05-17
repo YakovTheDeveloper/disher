@@ -6,7 +6,7 @@
 import { useState, useMemo } from 'react';
 import { TagAtom } from '@/entities/schedule-event';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton } from '@/shared/ui/ModalFooter';
+import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import styles from './shared/AtomInputShared.module.css';
 
 export interface TagAtomInputProps {
@@ -19,6 +19,7 @@ export interface TagAtomInputProps {
 
 export const TagAtomInput = ({
   onAddAtom,
+  onClose,
   accentColor,
   popularTags = [],
   recentTags = [],
@@ -80,6 +81,7 @@ export const TagAtomInput = ({
 
       {isReady && (
         <ModalShell.ActionButtons
+          left={<ModalPrevButton theme="events" onClick={onClose} />}
           right={<ModalNextButton onClick={() => handleAdd()} variant="finish" theme="events" />}
         />
       )}

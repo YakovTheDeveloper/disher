@@ -1,15 +1,10 @@
+// Holds the input + hint below ModalShell.Title. Horizontal padding only —
+// the title brings its own top offset, vertical rhythm is the Body's gap.
 .createBody {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px 16px 0;
-}
-
-.createTitle {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-ink);
+  padding: 0 16px;
 }
 
 .createHint {

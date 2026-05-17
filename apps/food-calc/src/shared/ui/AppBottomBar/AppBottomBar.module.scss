@@ -22,13 +22,6 @@
     padding: 10px 12px;
     min-height: 60px;
     box-sizing: border-box;
-    transition: opacity 0.18s ease, transform 0.18s ease;
-}
-
-.hidden {
-    opacity: 0;
-    transform: translateY(8px);
-    pointer-events: none;
 }
 
 // Generic ghost icon button — used as leading/trailing affordances.
@@ -178,34 +171,18 @@
     }
 }
 
-// 3-stop gradient per design-DNA canon — saturation on the matching edge,
-// soft mid-tone at 55%, transparent on the opposite edge. `color-mix`
-// halves the tint alpha at the middle stop so the fade reads as a curve,
-// not a hard line.
-
-// Default (left): saturated TOD tint on the left fading to transparent.
+// Plain white surface — the TOD-tinted gradients were removed per user
+// request (too strong on HomePage screens 1 & 3). The `data-tod` attribute
+// still publishes `--cta-*` tokens for the CTA pill inside the shell;
+// only the bar background itself is now flat white.
 .dockV2.shellSolo,
-.dockV2.shellSolo[data-shell-side='left'] {
-    background: linear-gradient(90deg,
-        var(--bar-tint, #ffffff) 0%,
-        color-mix(in srgb, var(--bar-tint, #ffffff) 45%, transparent) 55%,
-        transparent 100%);
-}
-
-// Right: mirrored — transparent on the left, saturated TOD tint on right.
+.dockV2.shellSolo[data-shell-side='left'],
 .dockV2.shellSolo[data-shell-side='right'] {
-    background: linear-gradient(90deg,
-        transparent 0%,
-        color-mix(in srgb, var(--bar-tint, #ffffff) 45%, transparent) 45%,
-        var(--bar-tint, #ffffff) 100%);
+    background: #ffffff;
 }
 
-// Split: two CTAs pushed to the edges; tint is symmetric (saturated on
-// both ends, soft in the middle) so neither button reads as primary.
+// Split: two CTAs pushed to the edges; layout only, no tint.
 .dockV2.shellSolo[data-shell-side='split'] {
     justify-content: space-between;
-    background: linear-gradient(90deg,
-        var(--bar-tint, #ffffff) 0%,
-        color-mix(in srgb, var(--bar-tint, #ffffff) 35%, transparent) 50%,
-        var(--bar-tint, #ffffff) 100%);
+    background: #ffffff;
 }

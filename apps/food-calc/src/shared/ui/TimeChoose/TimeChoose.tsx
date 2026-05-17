@@ -117,7 +117,12 @@ const TimeChoose = ({
 
   return (
     <div className={styles.shell}>
-      <div id={id} className={clsx(styles.container, 'tc-root')} role="group" aria-label="Time input">
+      <div
+        id={id}
+        className={clsx(styles.container, 'tc-root')}
+        role="group"
+        aria-label="Time input"
+      >
         <div className={clsx(isRange && styles.rangeRow)}>
           <TimeInput
             variant={isNative ? 'native' : 'manual'}
@@ -141,7 +146,8 @@ const TimeChoose = ({
         </div>
         {isRange && timeRange.toExplicit && (
           <div className={styles.rangeSummary} aria-live="polite">
-            {timeRange.fromTime} – {timeRange.toTime} · {formatDurationLabel(timeRange.durationMinutes)}
+            {timeRange.fromTime} – {timeRange.toTime} ·{' '}
+            {formatDurationLabel(timeRange.durationMinutes)}
           </div>
         )}
         <div className={styles.buttonsWrapper}>
@@ -155,7 +161,7 @@ const TimeChoose = ({
               setLocalVariant((prev) => (prev === 'native' ? 'manual' : 'native'));
             }}
           >
-            {isNative ? 'Ручной ввод' : 'Системный'}
+            {isNative ? 'Ручной ввод' : 'Другой вид'}
           </button>
         </div>
       </div>

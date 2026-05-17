@@ -109,15 +109,27 @@ export default defineConfig({
       return undefined;
     })(),
     // Proxy diag-logs through the dev server so iOS Safari doesn't have to
-    // accept the self-signed cert on :3100 separately. The phone already
-    // accepted the same cert on :3000 when loading the app.
-    proxy: {
-      '/api/diag-logs': {
-        target: 'https://localhost:3100',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
+    // accept the self-signed cert on :3100 separately.
+    //
+    // CRITICAL: a defined `server.proxy` forces Vite's dev server down to
+    // HTTP/1.1 (see Vite `resolveHttpServer`, "#484 fallback to http1 when
+    // proxy is needed"). With `https` and NO proxy, Vite serves over HTTP/2.
+    // On a real mobile device over Wi-Fi, HTTP/1.1's 6-connection limit turns
+    // the hundreds of unbundled dev-module requests into a multi-minute
+    // cascade. So the proxy is gated behind VITE_DIAG: normal dev gets HTTP/2;
+    // a diag session (VITE_DIAG=1) opts back into the proxy + HTTP/1.1.
+    // Must be `undefined` (not `{}`) when off — an empty object is truthy and
+    // would still trip the HTTP/1.1 fallback.
+    proxy:
+      process.env.VITE_DIAG === '1'
+        ? {
+            '/api/diag-logs': {
+              target: 'https://localhost:3100',
+              changeOrigin: true,
+              secure: false,
+            },
+          }
+        : undefined,
   },
   build: {
     sourcemap: false,

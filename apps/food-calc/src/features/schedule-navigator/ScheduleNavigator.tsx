@@ -68,12 +68,15 @@ const DayRow = memo(function DayRow({
       data-date={day.dateStr}
     >
       <span className={s.dayAccent} aria-hidden />
-      <span className={s.dayNumber}>{dayNumber}</span>
-      <span className={s.dayMeta}>
-        <span className={s.dayWeekday}>{weekday}</span>
-        <span className={s.dayMonth}>{monthLong}</span>
-      </span>
       {relativeLabel && <span className={s.dayRelative}>{relativeLabel}</span>}
+      {/* HomeTopBar date pattern: big serif day + tiny stacked weekday/month. */}
+      <span className={s.dayNumeral}>
+        <span className={s.dayNumeralDay}>{dayNumber}</span>
+        <span className={s.dayNumeralMeta}>
+          <span>{weekday}</span>
+          <span>{monthLong}</span>
+        </span>
+      </span>
     </button>
   );
 });
@@ -175,6 +178,7 @@ export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
     <div className={s.shell}>
       <div className={s.ambient} aria-hidden />
       <div className={s.pastSection} ref={pastSectionRef}>
+        {hasPast && <div className={s.sectionTitle}>Дни с активностью</div>}
         {pastGroups.map((g) => (
           <div key={g.key} className={s.monthGroup}>
             <div className={s.monthHeader}>{g.label}</div>

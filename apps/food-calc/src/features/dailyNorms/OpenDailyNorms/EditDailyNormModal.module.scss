@@ -11,7 +11,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 20px 20px 12px;
-  padding-top: max(20px, env(safe-area-inset-top));
+  padding-top: max(var(--modal-title-offset), env(safe-area-inset-top));
   border-bottom: 1px solid rgba(128, 128, 128, 0.1);
   flex-shrink: 0;
 }
@@ -34,9 +34,11 @@
 }
 
 .title {
-  font-family: "Raleway", sans-serif;
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-family: var(--heading-font);
+  font-style: var(--heading-style);
+  font-size: var(--heading-size-modal);
+  font-weight: var(--heading-weight);
+  letter-spacing: var(--heading-letter);
   color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;

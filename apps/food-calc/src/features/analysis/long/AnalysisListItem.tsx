@@ -1,37 +1,13 @@
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { format, isValid, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import {
-  isFailedAnalysis,
-  isPendingAnalysis,
+  deriveStatus,
+  STALE_PENDING_MS,
+  type AnalysisRowStatus,
   type Analysis,
 } from '../api';
 import styles from './AnalysisListItem.module.scss';
-
-// ─── Pure status derivation (unit-tested) ─────────────────────────────────
-
-/**
- * A pending row whose job died (backend restart, crash) sits at result_md=''
- * forever. After this much wall-clock the list stops calling it «идёт» and
- * marks it «возможно, не удалось» — a client-side heuristic, no extra request.
- */
-export const STALE_PENDING_MS = 15 * 60 * 1000;
-
-export type AnalysisRowStatus = 'running' | 'stale' | 'failed' | 'done';
-
-export function deriveStatus(
-  a: Analysis,
-  now: number = Date.now(),
-): AnalysisRowStatus {
-  if (isFailedAnalysis(a)) return 'failed';
-  if (isPendingAnalysis(a)) {
-    const created = Date.parse(a.createdAt);
-    if (Number.isNaN(created)) return 'running';
-    // Boundary: exactly STALE_PENDING_MS old is still «идёт».
-    return now - created > STALE_PENDING_MS ? 'stale' : 'running';
-  }
-  return 'done';
-}
 
 const STATUS_LABEL: Record<AnalysisRowStatus, string> = {
   running: 'идёт',
@@ -58,8 +34,23 @@ type Props = {
 // pill carry the derived state; the palette CSS-vars (`--la-*`) and the
 // nth-child rhythm come from the parent `[data-dv='LabAnalysis']` anchor.
 const AnalysisListItem = ({ analysis, onOpen }: Props) => {
+  // `deriveStatus` reads the wall clock, so a `running` row that crosses the
+  // 15-min staleness line will not re-flip on its own without a re-render.
+  // Schedule one tick at the exact crossing so the row updates even if the
+  // user just sits on the page (no list refetch).
+  const [, forceTick] = useState(0);
   const status = deriveStatus(analysis);
   const hypothesisCount = analysis.appliedHypotheses.length;
+
+  useEffect(() => {
+    if (status !== 'running') return;
+    const created = Date.parse(analysis.createdAt);
+    if (Number.isNaN(created)) return;
+    const msLeft = STALE_PENDING_MS - (Date.now() - created);
+    if (msLeft <= 0) return;
+    const t = setTimeout(() => forceTick((n) => n + 1), msLeft + 500);
+    return () => clearTimeout(t);
+  }, [status, analysis.createdAt]);
 
   return (
     <button

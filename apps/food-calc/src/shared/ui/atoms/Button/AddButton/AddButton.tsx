@@ -3,7 +3,9 @@ import clsx from 'clsx';
 import React from 'react';
 import { toast } from 'sonner';
 
-const PlusIcon = () => (
+// Rounded thick plus glyph — exported so secondary CTAs (e.g. the Laboratory
+// «Добавить гипотезу» button) can reuse the exact same icon as this button.
+export const PlusIcon = () => (
   <svg
     width="50"
     height="50"

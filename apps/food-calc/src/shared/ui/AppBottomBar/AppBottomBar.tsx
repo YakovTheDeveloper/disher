@@ -26,7 +26,6 @@ type Props = {
    * node (e.g. <NutrientsSummaryButton/>) and gate visibility themselves.
    */
   leadingSlot?: ReactNode;
-  hidden?: boolean;
 };
 
 export const AppBottomBar = ({
@@ -36,12 +35,11 @@ export const AppBottomBar = ({
   searchHtmlFor,
   searchLabel,
   leadingSlot,
-  hidden,
 }: Props) => {
   const tod = getTimeOfDay(useNow());
 
   return (
-    <div className={clsx(s.dock, s.dockV2, hidden && s.hidden)} data-tod={tod}>
+    <div className={clsx(s.dock, s.dockV2)} data-tod={tod}>
       {leadingSlot ?? <span className={s.iconButton} aria-hidden />}
 
       <WriteFoodButton

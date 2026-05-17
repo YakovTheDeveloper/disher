@@ -1,0 +1,19 @@
+// Text — body-tier typography primitive (sibling of Heading).
+// Add a new variant as a class here; keep each one anchored to the
+// `--text-*` / `--space-*` token scale rather than raw px.
+
+.text {
+  margin: 0;
+  font-family: var(--font-sans);
+}
+
+// hint — small, calm helper text under a field or an overlay title.
+.hint {
+  font-size: var(--text-sm); // 12.8px
+  line-height: 1.45;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  // Muted slate. TODO: swap for a semantic --text-muted token once the
+  // token layer grows one (see the design-system primitives discussion).
+  color: rgba(15, 23, 42, 0.55);
+}

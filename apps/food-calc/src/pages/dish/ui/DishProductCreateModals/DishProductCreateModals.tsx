@@ -2,7 +2,6 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { DetailsChips, useHasDetailsHints } from '@/features/food/details-chips';
 import {
@@ -45,7 +44,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
         isExpanded={step === 'search'}
         content={
           <ModalShell>
-            <ModalStepHeader
+            <ModalShell.StepHeader
               currentStep="search"
               steps={createSteps}
               stepLabels={STEP_LABELS}
@@ -73,7 +72,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
         isExpanded={step === 'quantity'}
         content={
           <ModalShell>
-            <ModalStepHeader
+            <ModalShell.StepHeader
               currentStep="quantity"
               steps={createSteps}
               stepLabels={STEP_LABELS}
@@ -118,7 +117,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
         isExpanded={step === 'details'}
         content={
           <ModalShell variant="spring">
-            <ModalStepHeader
+            <ModalShell.StepHeader
               currentStep="details"
               steps={createSteps.includes('details') ? createSteps : CREATE_STEPS_WITH_DETAILS}
               stepLabels={STEP_LABELS}

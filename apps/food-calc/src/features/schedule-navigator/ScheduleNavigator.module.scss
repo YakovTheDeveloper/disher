@@ -44,10 +44,17 @@ $accent-today: #e07a3a;
   position: absolute;
   inset: 0;
   pointer-events: none;
+  // Strong top-to-bottom wash: pure white at the top so it meets the white
+  // drawer chrome (drag handle) with no visible seam, then deepens into a
+  // mint → sky tint toward the bottom.
   background:
-    radial-gradient(ellipse 90% 60% at 0% 0%, rgba(210, 240, 220, 0.55) 0%, transparent 60%),
-    radial-gradient(ellipse 90% 60% at 100% 0%, rgba(210, 228, 245, 0.50) 0%, transparent 60%),
-    radial-gradient(ellipse 80% 50% at 100% 100%, rgba(215, 235, 230, 0.30) 0%, transparent 60%);
+    linear-gradient(
+      to bottom,
+      #ffffff 0%,
+      #ffffff 14%,
+      rgba(213, 236, 224, 0.55) 52%,
+      rgba(199, 224, 238, 0.9) 100%
+    );
   z-index: 0;
 }
 
@@ -71,6 +78,18 @@ $accent-today: #e07a3a;
   position: relative;
   z-index: 1;
   padding-top: 24px;
+}
+
+// Title for the whole past-days bar — sits above all month groups.
+.sectionTitle {
+  padding: 0 24px 10px;
+  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
+  font-style: italic;
+  font-size: 15px;
+  font-weight: 600;
+  color: $ink-soft;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
 }
 
 .monthGroup {
@@ -99,6 +118,9 @@ $accent-today: #e07a3a;
   padding: 0 22px 12px;
 }
 
+// Past-day chips — mirror the HomePage navigation tiles: transparent
+// surface, faint dotted border, a barely-there 4px radius. ~20% larger
+// than before (44×52 → 53×62).
 .dayChip {
   position: relative;
   display: flex;
@@ -106,12 +128,12 @@ $accent-today: #e07a3a;
   align-items: center;
   justify-content: center;
   gap: 2px;
-  width: 44px;
-  height: 52px;
-  padding: 6px 0 7px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid $hairline;
-  border-radius: 12px;
+  width: 53px;
+  height: 62px;
+  padding: 7px 0 8px;
+  background: transparent;
+  border: 2px dotted rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -121,7 +143,7 @@ $accent-today: #e07a3a;
 
   &:active {
     transform: scale(0.94);
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(31, 42, 68, 0.04);
   }
 }
 
@@ -151,6 +173,7 @@ $accent-today: #e07a3a;
     rgba(255, 240, 220, 0.85) 0%,
     rgba(255, 230, 200, 0.55) 100%
   );
+  border-style: solid;
   border-color: rgba(224, 122, 58, 0.30);
 
   .dayChipNumber {
@@ -168,6 +191,7 @@ $accent-today: #e07a3a;
     rgba(252, 224, 179, 0.95) 0%,
     rgba(249, 201, 126, 0.7) 100%
   );
+  border-style: solid;
   border-color: rgba(163, 90, 20, 0.30);
 
   .dayChipNumber {
@@ -208,10 +232,14 @@ $accent-today: #e07a3a;
 .dayRow {
   position: relative;
   display: grid;
-  grid-template-columns: 60px 1fr auto;
+  // col1 — relative label (Вчера/Сегодня/Завтра, the focal element),
+  // col2 — the numeral block (day + weekday/month), pinned to the right.
+  // The numeral block is fixed-width, so the varying length of the relative
+  // word ("Вчера" vs "Сегодня") no longer shifts it — all rows line up.
+  grid-template-columns: 1fr auto;
   align-items: center;
   column-gap: 14px;
-  padding: 14px 22px 14px 28px;
+  padding: 16px 22px 16px 28px;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -274,95 +302,84 @@ $accent-today: #e07a3a;
   opacity: 1;
 }
 
-// ─── Typography ────────────────────────────────────────────────────────────
-.dayNumber {
+// ─── Numeral block — reused HomeTopBar date pattern ────────────────────────
+// Big serif day number + a tiny stacked weekday/month column (mirrors
+// HomeTopBar `.dateNumeral`). Colours stay ScheduleSelection's own. Pinned
+// to the right edge; the meta column is fixed-width so the day number stays
+// column-aligned across rows regardless of weekday-name length.
+.dayNumeral {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dayNumeralDay {
+  min-width: 2ch;
+  text-align: right;
   font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
-  font-style: italic;
-  font-size: 32px;
+  font-size: 26px;
   font-weight: 500;
-  letter-spacing: -0.02em;
   line-height: 1;
+  letter-spacing: -0.02em;
   color: $ink;
   font-feature-settings: 'tnum' 1, 'lnum' 1;
-  text-align: right;
-  justify-self: end;
 }
 
-.dayRowEmpty .dayNumber {
-  color: $ink-faint;
-  font-weight: 400;
-}
-
-.dayRowToday .dayNumber {
-  color: $accent-today;
-}
-
-.dayRowSelected .dayNumber {
-  color: $accent-honey-deep;
-}
-
-.dayMeta {
+.dayNumeralMeta {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
-  min-width: 0;
-}
-
-.dayWeekday {
-  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
-  font-style: italic;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.1;
-  color: $ink;
-  text-transform: lowercase;
-  letter-spacing: -0.005em;
-}
-
-.dayRowEmpty .dayWeekday {
-  color: $ink-soft;
-  font-weight: 400;
-}
-
-.dayRowToday .dayWeekday,
-.dayRowSelected .dayWeekday {
-  color: inherit;
-}
-
-.dayMonth {
+  gap: 1px;
+  // Fixed width — longest weekday is «понедельник»; a constant column keeps
+  // every row's day number at the same x.
+  width: 78px;
   font-size: 9px;
   font-weight: 600;
+  line-height: 1.25;
   letter-spacing: 0.1em;
   text-transform: lowercase;
   color: $ink-faint;
-  line-height: 1.1;
 }
 
-.dayRelative {
-  align-self: center;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: lowercase;
+.dayRowEmpty .dayNumeralDay {
   color: $ink-faint;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid $hairline;
+  font-weight: 400;
+}
+
+.dayRowToday .dayNumeralDay {
+  color: $accent-today;
+}
+
+.dayRowSelected .dayNumeralDay {
+  color: $accent-honey-deep;
+}
+
+// Relative label — the focal element of each anchor row. No plate/border:
+// a plain serif-italic word, capitalised, set before the day number.
+.dayRelative {
+  justify-self: start;
+  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
+  font-style: italic;
+  font-size: 27px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.015em;
+  text-transform: capitalize;
+  color: $ink;
   white-space: nowrap;
+}
+
+.dayRowEmpty .dayRelative {
+  color: $ink-soft;
 }
 
 .dayRowToday .dayRelative {
   color: $accent-today;
-  background: rgba(255, 240, 225, 0.7);
-  border-color: rgba(224, 122, 58, 0.20);
 }
 
 .dayRowSelected .dayRelative {
   color: $accent-honey-deep;
-  background: rgba(253, 232, 200, 0.85);
-  border-color: rgba(163, 90, 20, 0.22);
 }
 
 .dayRowToday {

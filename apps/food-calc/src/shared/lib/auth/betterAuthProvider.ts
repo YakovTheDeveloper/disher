@@ -86,6 +86,13 @@ let cachedUser: AppUser | null = null;
 
 const SB_CLEANED_FLAG = 'disher.sb-cleaned';
 
+// Hard cap on the boot-time getSession call. The whole app render is gated
+// behind it (AuthGate → null until bootstrap resolves), so it must never wait
+// on the OS network timeout. A healthy call returns in well under a second;
+// anything past this is treated as a hung socket and we boot local-first
+// instead (cachedUser ← readLastUser, session reconciles in the background).
+const BOOTSTRAP_NET_TIMEOUT_MS = 1000;
+
 // Persisted last-known user. Used as a fallback when bootstrap can't reach
 // the server (network down / backend offline) but a bearer is still on disk
 // — we keep the user signed in instead of bouncing them to AuthScreen. Wiped
@@ -151,11 +158,37 @@ export const betterAuthProvider: AuthProvider = {
     // so AuthGate doesn't bounce a signed-in user to AuthScreen just because
     // the backend is unreachable. BackupGate will fail its push/pull quietly
     // and Dexie keeps serving as the local-first source of truth.
+    //
+    // CRITICAL: this await blocks the whole app boot — AuthGate renders
+    // nothing until bootstrap resolves. fetch() has no default timeout, so a
+    // hung socket (iOS reaching the backend's separate self-signed cert on
+    // :3100, captive portal, dead TCP) freezes the splash for ~60s until the
+    // OS network stack gives up. Cap it with an AbortController exactly like
+    // signOut does — on timeout we treat it as a network failure (keep the
+    // bearer, fall back to the last-known user, boot local-first).
+    const controller = new AbortController();
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, BOOTSTRAP_NET_TIMEOUT_MS);
     let getSessionResult: Awaited<ReturnType<typeof authClient.getSession>>;
     try {
-      getSessionResult = await authClient.getSession();
+      getSessionResult = await authClient.getSession({
+        fetchOptions: { signal: controller.signal },
+      });
     } catch (e) {
       console.warn('betterAuthProvider.bootstrap: getSession failed (network?)', e);
+      cachedUser = readLastUser();
+      return cachedUser;
+    } finally {
+      clearTimeout(timer);
+    }
+    // An abort can surface as a thrown error (handled above) OR as a resolved
+    // `{ error }` shape. The latter must NOT hit the token-wipe branch below —
+    // a timeout is never a real revocation. Force the network-failure path.
+    if (timedOut) {
+      console.warn('betterAuthProvider.bootstrap: getSession timed out');
       cachedUser = readLastUser();
       return cachedUser;
     }
@@ -238,11 +271,18 @@ export const betterAuthProvider: AuthProvider = {
   async signOut() {
     // Best-effort server revoke — even if /sign-out fails (network/500/etc)
     // we MUST clear the local bearer + cached user, otherwise the UI stays
-    // "logged in" against a dead session.
+    // "logged in" against a dead session. A 7s AbortController cap stops a
+    // hung socket (dead TCP / captive portal — fetch has no default timeout)
+    // from freezing sign-out forever; on abort we proceed to the local clear
+    // exactly as on any other failure (the server session expires on its own).
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
     try {
-      await authClient.signOut();
+      await authClient.signOut({ fetchOptions: { signal: controller.signal } });
     } catch (e) {
       console.error('signOut failed (clearing local bearer anyway)', e);
+    } finally {
+      clearTimeout(timer);
     }
     localStorage.removeItem(BEARER_KEY);
     persistLastUser(null);

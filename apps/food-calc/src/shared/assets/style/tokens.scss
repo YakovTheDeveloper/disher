@@ -29,6 +29,21 @@
   --font-display: "Raleway", sans-serif;
   --font-mono: "Ubuntu Mono", monospace;
 
+  // ─── Headings (canon: ScreenIndicator.bandLabel — HomePage nav) ──
+  // One italic-serif voice for every section/overlay title. Consume via
+  // the <Heading> component or these vars directly. Size is the only
+  // axis that varies — see the `--heading-size-*` scale below.
+  --heading-font: "Source Serif 4", "Merriweather", serif;
+  --heading-style: italic;
+  --heading-weight: 600;
+  --heading-letter: -0.01em;
+  --heading-size-screen: 2.5rem; // 40px — page / screen header (HomePage band)
+  --heading-size-modal: 2rem; //    32px — wizard-flow modal header
+  --heading-size-drawer: 1.5rem; // 24px — drawer header
+  // Single top gap above an overlay title — owned by the title itself, so it
+  // stays constant regardless of how the modal nests it (see ModalShell).
+  --modal-title-offset: var(--space-6); // 24px
+
   // ─── Border Radius ───────────────────────────────────────────
   --radius-xs: 4px; // progress bars, small pills
   --radius-sm: 8px; // buttons, inputs, small cards

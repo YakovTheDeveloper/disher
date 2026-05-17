@@ -1,0 +1,169 @@
+.container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #ffffff;
+    // Высота верхней панели — её же используют слайды как top-inset.
+    --top-h: calc(env(safe-area-inset-top, 0px) + 52px);
+}
+
+// ─── Верхняя панель ────────────────────────────────────────────────────
+// absolute поверх слайдера (как HomeTopBar) — слайды свайпают под ней.
+.topBar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    height: var(--top-h);
+    box-sizing: border-box;
+    padding: env(safe-area-inset-top, 0px) 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.brand {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: rgba(0, 0, 0, 0.55);
+}
+
+.activeChip {
+    font-family: "Source Serif 4", "Merriweather", serif;
+    font-style: italic;
+    font-size: 19px;
+    color: #111111;
+}
+
+// ─── Экран ─────────────────────────────────────────────────────────────
+.screen {
+    min-height: 100%;
+    box-sizing: border-box;
+    // Контент стартует под верхней панелью.
+    padding-top: var(--top-h);
+}
+
+// Sticky-шапка — проверяем, что не дёргается при свайпе. Прилипает
+// ровно под верхнюю панель.
+.stickyHead {
+    position: sticky;
+    top: var(--top-h);
+    z-index: 2;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.screenTitle {
+    font-family: "Source Serif 4", "Merriweather", serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 28px;
+    line-height: 1;
+    color: #111111;
+}
+
+.screenMeta {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: rgba(0, 0, 0, 0.4);
+}
+
+// ─── Список строк (overflow-контент) ───────────────────────────────────
+.rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 12px calc(env(safe-area-inset-bottom, 0px) + 72px);
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 64px;
+    padding: 0 16px;
+    border-radius: 14px;
+    // 3-стоповый градиент — реальная работа покраски, как в боевых строках.
+    background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
+    box-shadow: 0 1px 2px rgba(31, 42, 68, 0.05);
+}
+
+.rowIndex {
+    font-family: "Source Serif 4", "Merriweather", serif;
+    font-style: italic;
+    font-size: 17px;
+    font-variant-numeric: tabular-nums;
+    color: rgba(0, 0, 0, 0.32);
+    flex-shrink: 0;
+}
+
+.rowText {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: rgba(0, 0, 0, 0.78);
+}
+
+.rowDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 99px;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.12);
+}
+
+// ─── Тинты экранов ─────────────────────────────────────────────────────
+.screen[data-tint='mint'] .row {
+    background: linear-gradient(90deg, #fbfffe 0%, #f1fbf6 55%, #e3f4ec 100%);
+}
+
+.screen[data-tint='lavender'] .row {
+    background: linear-gradient(90deg, #fefdff 0%, #f6f3fb 55%, #ebe5f4 100%);
+}
+
+// ─── Точки-индикатор ───────────────────────────────────────────────────
+.dots {
+    position: absolute;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 1px 6px rgba(31, 42, 68, 0.12);
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: none;
+    border-radius: 99px;
+    background: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.3s ease;
+}
+
+.dotActive {
+    width: 22px;
+    background: rgba(0, 0, 0, 0.6);
+}

@@ -37,9 +37,16 @@ const Swipeable = forwardRef<SwipeableRef, Props>(
       {
         loop: false,
         dragFree: false,
-        containScroll: false,
+        // #5 — `'trimSnaps'` (Embla default) обрезает snap'ы по краям, чтобы
+        // нельзя было перетащить контейнер в пустоту за первым/последним
+        // слайдом. `false` давал over-drag с видимым пустым местом.
+        containScroll: 'trimSnaps',
         duration,
-        watchResize: false,
+        // #6 — `true`: Embla переснимает ширину слайда при ресайзе вьюпорта.
+        // На iOS вьюпорт меняется постоянно (адресная строка Safari,
+        // клавиатура, поворот); с `false` мерки устаревали → свайп доезжал
+        // не до края. Мерка на маунте по-прежнему форсится rAF-reInit'ом ниже.
+        watchResize: true,
         axis: 'x',
         // First paint = defaultSlide. Без startIndex Embla mount'ится на 0
         // и юзер видит slide 0 ~16ms перед тем как rAF effect ниже
@@ -93,12 +100,12 @@ const Swipeable = forwardRef<SwipeableRef, Props>(
       goToPage: (index: number) => emblaApi?.scrollTo(index),
     }));
 
-    // Embla measures slide width once at mount with watchResize:false.
-    // If the container hasn't reached its final size yet (route transition,
-    // late-loading top panel), slides end up under-sized. Re-measure after
-    // the first paint when layout is settled, и тогда же прыгаем на
-    // defaultSlide — отдельного scrollTo до reInit'а не нужно, мерки
-    // там всё равно ещё кривые.
+    // `watchResize` ловит ПОЗДНИЕ ресайзы, но не первый кадр: при маунте
+    // контейнер может ещё не достичь финального размера (route transition,
+    // late-loading top panel) → слайды under-sized. Принудительно
+    // переснимаем после первого paint'а, когда layout устоялся, и тогда же
+    // прыгаем на defaultSlide — отдельного scrollTo до reInit'а не нужно,
+    // мерки там всё равно ещё кривые.
     useEffect(() => {
       if (!emblaApi) return;
       const id = requestAnimationFrame(() => {

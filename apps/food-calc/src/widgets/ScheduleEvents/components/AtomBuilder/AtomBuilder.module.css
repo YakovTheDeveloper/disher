@@ -10,10 +10,6 @@
   margin-top: auto;
 }
 
-.noAtoms {
-  margin: auto;
-}
-
 /* When an atom input panel is open — fill the parent */
 .panelView {
   display: flex;
@@ -22,46 +18,32 @@
   min-height: 0;
 }
 
-/* Type selector buttons */
-.atomButtons {
+/* Блок «можно уточниться» — заголовок + ряд плиток + подсказка.
+   Прижат к низу (margin-top: auto), плитки в центре блока. */
+.tileSection {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding-top: 12px;
+  flex-direction: column;
   margin-top: auto;
+  padding-bottom: var(--space-6);
 }
 
-.atomBtn {
-  flex-grow: 1;
-  padding: 12px 10px;
-  background: transparent;
-  border: 1px solid #000;
-  border-radius: 8px;
-  font-size: 2rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  color: rgb(0, 0, 0);
-  transition: all 120ms ease;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
+/* Заголовок прямо над рядом плиток (раньше — у верха экрана). */
+.tileHeading {
+  margin-bottom: 12px;
 }
 
-.atomBtn[data-kind='scale'] {
-  --btn-accent: var(--event-scale-accent);
+/* Селектор типов атома — ряд из 3 плиток. Сами плитки — примитив NavTile
+   (shared/ui/NavTile), здесь только grid-раскладка ряда. */
+.atomButtons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-1);
+  padding: var(--space-2) 0 var(--space-4);
 }
 
-.atomBtn[data-kind='tag'] {
-  --btn-accent: var(--event-tag-accent);
-}
-
-.atomBtn[data-kind='relation'] {
-  --btn-accent: var(--event-relation-accent);
-}
-
-.atomBtn:active {
-  background: var(--btn-accent, #222);
-  border-color: var(--btn-accent, #222);
-  color: #fff;
-  transform: scale(0.97);
+/* Подсказка под рядом плиток — служит безопасной зоной между плитками
+   и кнопкой «Далее», чтобы юзер не промахнулся мимо плитки. */
+.tileHint {
+  margin-top: 12px;
+  text-align: center;
 }

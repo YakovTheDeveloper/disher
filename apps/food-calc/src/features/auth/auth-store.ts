@@ -4,6 +4,8 @@ import { db } from '@/shared/lib/dexie/schema';
 import { Sentry } from '@/shared/lib/observability/sentry';
 import { defaultUserMessage, type ErrorKind } from '@/shared/lib/errors/classify';
 import { clear as idbKeyvalClear } from 'idb-keyval';
+import { drawerStore } from '@/shared/ui/drawer-store';
+import { modalStore } from '@/shared/ui/modal-store';
 
 // Wipe every Dexie store + the parallel idb-keyval namespace (Zustand persist
 // drafts) before switching identities. Without this clear, user B on a shared
@@ -187,6 +189,12 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
     }
     applyUser(set, null);
     set({ pendingVerificationEmail: null });
+    // applyUser(null) flips AuthGate → it unmounts App and with it the
+    // Drawer/Modal managers, which can then never run their close animation /
+    // `finishClose`. Drop every overlay instance now so nothing (e.g. the
+    // ProfileDrawer this signOut was triggered from) orphans in its store.
+    drawerStore.reset();
+    modalStore.reset();
   },
 
   logout: async () => {

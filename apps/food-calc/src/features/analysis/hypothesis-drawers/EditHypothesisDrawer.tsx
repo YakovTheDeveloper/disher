@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { drawerStore, modalStore } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import {
   useHypothesis,
@@ -70,7 +71,7 @@ const EditForm = ({
 
   return (
     <div className={styles.form}>
-      <h2 className={styles.heading}>Гипотеза</h2>
+      <Heading size="drawer">Гипотеза</Heading>
 
       <div className={styles.field}>
         <span className={styles.label}>Коротко — что проверяем</span>

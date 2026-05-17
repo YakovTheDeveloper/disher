@@ -1,9 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
-import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalFooter, ModalNextButton } from '@/shared/ui/ModalFooter';
+import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { TimeChoose, type TimeRangeState } from '@/shared/ui/TimeChoose';
 import { addScheduleEvent } from '@/entities/schedule-event';
@@ -160,13 +159,13 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         }
       />
 
-      {/* Step 2: Text — trigger: NextStepButton(time) → htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} */}
+      {/* Step 2: Text — trigger: ModalNextButton(time) → htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'text'}
         content={
           <ModalShell className={modalStyles.whiteShell}>
-            <ModalStepHeader
+            <ModalShell.StepHeader
               currentStep="text"
               steps={STEPS}
               stepLabels={STEP_LABELS}
@@ -197,30 +196,21 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         isExpanded={step === 'atoms'}
         content={
           <ModalShell className={modalStyles.whiteShell}>
-            {!atomPanelOpen && (
-              <ModalStepHeader
-                currentStep="atoms"
-                steps={STEPS}
-                stepLabels={STEP_LABELS}
-                stepResults={stepResults}
-                onBack={handleClose}
-                onStepClick={goToStep}
-              />
-            )}
             <ModalShell.AtomsBody>
-              <ModalShell.Title>
-                <ButtonBack size="medium" onClick={() => goToStep('text')} />
-                Добавьте теги
-              </ModalShell.Title>
               {step === 'atoms' && (
                 <AtomBuilder id={MODAL_INPUT_IDS.ATOMS_INPUT} onPanelChange={setAtomPanelOpen} />
               )}
-              {!atomPanelOpen && (
-                <ModalFooter onBack={() => goToStep('text')}>
-                  <ModalNextButton onClick={handleCommit} />
-                </ModalFooter>
-              )}
             </ModalShell.AtomsBody>
+            {!atomPanelOpen && (
+              <div className={modalStyles.atomsFooter}>
+                <div className={modalStyles.atomsFooterSlotPrev}>
+                  <ModalPrevButton onClick={() => goToStep('text')} />
+                </div>
+                <div className={modalStyles.atomsFooterSlotNext}>
+                  <ModalNextButton onClick={handleCommit} />
+                </div>
+              </div>
+            )}
           </ModalShell>
         }
       />

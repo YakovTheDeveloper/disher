@@ -3,11 +3,10 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { TextInput } from '@/shared/ui/atoms/input/TextInput';
-import { DetailsChips, useHasDetailsHints } from '@/features/food/details-chips';
+import { DetailsStep, useHasDetailsHints } from '@/features/food/details-chips';
 import {
   useScheduleFoodFlow,
   CREATE_STEPS_WITH_DETAILS,
@@ -97,8 +96,8 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         content={
           <ModalShell variant="spring2">
             <ModalShell.Body>
+              <ModalShell.Title>Новый {createVariantLabel}</ModalShell.Title>
               <div className={styles.createBody}>
-                <h2 className={styles.createTitle}>Новый {createVariantLabel}</h2>
                 <TextInput
                   id={CREATE_INPUT}
                   value={createName}
@@ -138,7 +137,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         isExpanded={step === 'time'}
         content={
           <ModalShell variant="gradient1">
-            <ModalStepHeader
+            <ModalShell.StepHeader
               currentStep="time"
               steps={createSteps}
               stepLabels={STEP_LABELS}
@@ -168,7 +167,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         isExpanded={step === 'quantity'}
         content={
           <ModalShell>
-            <ModalStepHeader
+            <ModalShell.StepHeader
               currentStep="quantity"
               steps={createSteps}
               stepLabels={STEP_LABELS}
@@ -215,8 +214,8 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         position="absolute"
         isExpanded={step === 'details'}
         content={
-          <ModalShell variant="spring">
-            <ModalStepHeader
+          <ModalShell>
+            <ModalShell.StepHeader
               currentStep="details"
               steps={createSteps.includes('details') ? createSteps : CREATE_STEPS_WITH_DETAILS}
               stepLabels={STEP_LABELS}
@@ -228,13 +227,9 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
               onBack={handleClose}
               onStepClick={goToStep}
             />
-            <ModalShell.Body>
-              <ModalShell.Title>
-                {draft.foodName
-                  ? `Уточнение: ${draft.foodName}`
-                  : 'Уточнение к приему пищи'}
-              </ModalShell.Title>
-              <DetailsChips
+            <ModalShell.Body flush>
+              <DetailsStep
+                title={draft.foodName || 'Уточнение'}
                 textareaId={DETAILS_INPUT}
                 value={draft.details}
                 onChange={(value) => setDraft((d) => ({ ...d, details: value }))}

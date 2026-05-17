@@ -1,68 +1,19 @@
 import { memo, useState } from 'react';
 import { DayPicker } from 'react-day-picker';
 import { ru } from 'date-fns/locale';
-import {
-  addDays,
-  differenceInCalendarDays,
-  format,
-  isValid,
-  parseISO,
-  startOfDay,
-  subDays,
-} from 'date-fns';
+import { format, isValid, parseISO, startOfDay, subDays } from 'date-fns';
 import 'react-day-picker/style.css';
+import {
+  MAX_RETRO_DAYS,
+  MIN_WINDOW_DAYS,
+  MAX_WINDOW_DAYS,
+  RANGE_PRESETS,
+  isValidWindow,
+  toKey,
+  windowSpanDays,
+  type DateRange,
+} from './range';
 import styles from './RangePickerWithFallback.module.scss';
-
-// ─── Pure window helpers (unit-tested) ────────────────────────────────────
-
-/** Span presets, in days. The window = [end − N, end]. */
-export const RANGE_PRESETS = [7, 14, 21, 28, 35] as const;
-export const MIN_WINDOW_DAYS = 7;
-export const MAX_WINDOW_DAYS = 35;
-/** How far back the end date may sit on the calendar (retro picker bound). */
-export const MAX_RETRO_DAYS = 30;
-
-/** Canonical range — `yyyy-MM-dd` strings (timezone-free, server-parseable). */
-export type DateRange = { start: string; end: string };
-
-export const toKey = (d: Date): string => format(d, 'yyyy-MM-dd');
-
-/** Span in days between the two ends. NaN if either side is unparseable. */
-export function windowSpanDays(range: DateRange): number {
-  const s = parseISO(range.start);
-  const e = parseISO(range.end);
-  if (!isValid(s) || !isValid(e)) return NaN;
-  return differenceInCalendarDays(e, s);
-}
-
-/** A range the long analysis will accept — span inside [7, 35], end ≥ start. */
-export function isValidWindow(range: DateRange): boolean {
-  const span = windowSpanDays(range);
-  return (
-    Number.isFinite(span) && span >= MIN_WINDOW_DAYS && span <= MAX_WINDOW_DAYS
-  );
-}
-
-/**
- * `dd-MM-yyyy` keys for every day in [start, end] inclusive — feeds the Dexie
- * collectors (`collectFoods` / `collectEvents` key schedule rows by date).
- */
-export function rangeDayKeys(range: DateRange): string[] {
-  const s = parseISO(range.start);
-  const e = parseISO(range.end);
-  if (!isValid(s) || !isValid(e)) return [];
-  const keys: string[] = [];
-  for (let d = startOfDay(s); d <= e; d = addDays(d, 1)) {
-    keys.push(format(d, 'dd-MM-yyyy'));
-  }
-  return keys;
-}
-
-/** Default range — last 14 days ending today. */
-export function defaultRange(): DateRange {
-  const end = startOfDay(new Date());
-  return { start: toKey(subDays(end, 14)), end: toKey(end) };
-}
 
 function formatHuman(key: string): string {
   const d = parseISO(key);
@@ -91,9 +42,11 @@ const RangePickerWithFallback = ({ value, onChange }: Props) => {
   const endDate = parseISO(value.end);
 
   // Calendar: tapping a preset keeps the end date, recomputes the start.
+  // `days` is an INCLUSIVE day count, so the start sits `days − 1` back —
+  // a «7 дней» preset really covers 7 dates, not 8.
   function applyPreset(days: number) {
     const end = isValid(endDate) ? endDate : today;
-    onChange({ start: toKey(subDays(end, days)), end: toKey(end) });
+    onChange({ start: toKey(subDays(end, days - 1)), end: toKey(end) });
   }
 
   // Calendar: picking an end date keeps the current span (default 14).
@@ -102,7 +55,7 @@ const RangePickerWithFallback = ({ value, onChange }: Props) => {
     const keepSpan =
       Number.isFinite(span) && span >= 1 ? span : 14;
     const end = startOfDay(date);
-    onChange({ start: toKey(subDays(end, keepSpan)), end: toKey(end) });
+    onChange({ start: toKey(subDays(end, keepSpan - 1)), end: toKey(end) });
   }
 
   return (

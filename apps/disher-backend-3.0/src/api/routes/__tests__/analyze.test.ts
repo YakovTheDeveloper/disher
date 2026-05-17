@@ -234,6 +234,7 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
   });
 
   it("rejects a window shorter than 7 days with 400", async () => {
+    // 01-05 … 06-05 — 5 days apart = 6 inclusive days, just under the floor.
     const res = await app.inject({
       method: "POST",
       url: "/api/analyze",
@@ -241,7 +242,7 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
       payload: {
         id: crypto.randomUUID(),
         windowStart: "2026-05-01T00:00:00Z",
-        windowEnd: "2026-05-04T00:00:00Z",
+        windowEnd: "2026-05-06T00:00:00Z",
         payload: { scheduleFoods: [], scheduleEvents: [] },
       },
     });
@@ -249,34 +250,8 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
   });
 
   it("rejects a window longer than 35 days with 400", async () => {
+    // 01-04 … 06-05 — 35 days apart = 36 inclusive days, just over the cap.
     const res = await app.inject({
-      method: "POST",
-      url: "/api/analyze",
-      headers: user.headers,
-      payload: {
-        id: crypto.randomUUID(),
-        windowStart: "2026-03-01T00:00:00Z",
-        windowEnd: "2026-05-01T00:00:00Z",
-        payload: { scheduleFoods: [], scheduleEvents: [] },
-      },
-    });
-    expect(res.statusCode).toBe(400);
-  });
-
-  it("accepts a window of exactly 7 and exactly 35 days", async () => {
-    const r7 = await app.inject({
-      method: "POST",
-      url: "/api/analyze",
-      headers: user.headers,
-      payload: {
-        id: crypto.randomUUID(),
-        windowStart: "2026-05-01T00:00:00Z",
-        windowEnd: "2026-05-08T00:00:00Z",
-        payload: { scheduleFoods: [], scheduleEvents: [] },
-      },
-    });
-    expect(r7.statusCode).toBe(200);
-    const r35 = await app.inject({
       method: "POST",
       url: "/api/analyze",
       headers: user.headers,
@@ -284,6 +259,35 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
         id: crypto.randomUUID(),
         windowStart: "2026-04-01T00:00:00Z",
         windowEnd: "2026-05-06T00:00:00Z",
+        payload: { scheduleFoods: [], scheduleEvents: [] },
+      },
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("accepts a window of exactly 7 and exactly 35 inclusive days", async () => {
+    // 7 inclusive days = endpoints 6 days apart (the «7 дней» preset).
+    const r7 = await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id: crypto.randomUUID(),
+        windowStart: "2026-05-01T00:00:00Z",
+        windowEnd: "2026-05-07T00:00:00Z",
+        payload: { scheduleFoods: [], scheduleEvents: [] },
+      },
+    });
+    expect(r7.statusCode).toBe(200);
+    // 35 inclusive days = endpoints 34 days apart.
+    const r35 = await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id: crypto.randomUUID(),
+        windowStart: "2026-04-01T00:00:00Z",
+        windowEnd: "2026-05-05T00:00:00Z",
         payload: { scheduleFoods: [], scheduleEvents: [] },
       },
     });

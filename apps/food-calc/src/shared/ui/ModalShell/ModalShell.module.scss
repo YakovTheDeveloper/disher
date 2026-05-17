@@ -47,86 +47,129 @@
 
 // ── Variant 2 (original spring): pastel mint/sky/yellow ───────────────────────
 .wrapperSpring .orb1 {
-  width: 260px; height: 260px;
+  width: 260px;
+  height: 260px;
   background: radial-gradient(circle, #a8e6cf, #56c596);
-  top: -60px; left: -60px;
+  top: -60px;
+  left: -60px;
 }
+
 .wrapperSpring .orb2 {
-  width: 220px; height: 220px;
+  width: 220px;
+  height: 220px;
   background: radial-gradient(circle, #b3e5fc, #4fc3f7);
-  top: 80px; right: -40px;
+  top: 80px;
+  right: -40px;
 }
+
 .wrapperSpring .orb3 {
-  width: 200px; height: 200px;
+  width: 200px;
+  height: 200px;
   background: radial-gradient(circle, #fff9c4, #ffe082);
-  bottom: 120px; left: 20px;
+  bottom: 120px;
+  left: 20px;
 }
+
 .wrapperSpring .orb4 {
-  width: 180px; height: 180px;
+  width: 180px;
+  height: 180px;
   background: radial-gradient(circle, #c8e6c9, #81c784);
-  bottom: -40px; right: 30px;
+  bottom: -40px;
+  right: 30px;
 }
+
 .wrapperSpring .orb5 {
-  width: 150px; height: 150px;
+  width: 150px;
+  height: 150px;
   background: radial-gradient(circle, #e1f5fe, #80deea);
-  top: 35%; left: 30%;
+  top: 35%;
+  left: 30%;
 }
 
 // ── Variant 3: blue + light-green orbs in opposite corners, whiter bg ─────────
 .wrapperSpring2 .orb {
   opacity: 0.38;
 }
+
 .wrapperSpring2 .orb1 {
-  width: 280px; height: 280px;
+  width: 280px;
+  height: 280px;
   background: radial-gradient(circle, #bbdefb, #64b5f6);
-  top: -80px; left: -80px;
+  top: -80px;
+  left: -80px;
 }
+
 .wrapperSpring2 .orb2 {
-  width: 240px; height: 240px;
+  width: 240px;
+  height: 240px;
   background: radial-gradient(circle, #d0f0c0, #aed581);
-  bottom: -60px; right: -60px;
+  bottom: -60px;
+  right: -60px;
 }
+
 .wrapperSpring2 .orb3 {
-  width: 180px; height: 180px;
+  width: 180px;
+  height: 180px;
   background: radial-gradient(circle, #e3f2fd, #90caf9);
-  top: 40%; right: -30px;
+  top: 40%;
+  right: -30px;
 }
+
 .wrapperSpring2 .orb4 {
-  width: 160px; height: 160px;
+  width: 160px;
+  height: 160px;
   background: radial-gradient(circle, #e8f5e9, #c5e1a5);
-  bottom: 25%; left: -20px;
+  bottom: 25%;
+  left: -20px;
 }
+
 .wrapperSpring2 .orb5 {
-  width: 140px; height: 140px;
+  width: 140px;
+  height: 140px;
   background: radial-gradient(circle, #f1f8ff, #bbdefb);
-  top: 15%; right: 30%;
+  top: 15%;
+  right: 30%;
 }
 
 // ── Variant 5: warm peach + sage spring ──────────────────────────────────────
 .wrapperSpring4 .orb1 {
-  width: 250px; height: 250px;
+  width: 250px;
+  height: 250px;
   background: radial-gradient(circle, #ffe5d9, #ffb38a);
-  top: -50px; right: -60px;
+  top: -50px;
+  right: -60px;
 }
+
 .wrapperSpring4 .orb2 {
-  width: 220px; height: 220px;
+  width: 220px;
+  height: 220px;
   background: radial-gradient(circle, #d4e9d4, #8bbf8b);
-  top: 100px; left: -60px;
+  top: 100px;
+  left: -60px;
 }
+
 .wrapperSpring4 .orb3 {
-  width: 190px; height: 190px;
+  width: 190px;
+  height: 190px;
   background: radial-gradient(circle, #fff3e0, #ffcc80);
-  bottom: 140px; right: 30px;
+  bottom: 140px;
+  right: 30px;
 }
+
 .wrapperSpring4 .orb4 {
-  width: 170px; height: 170px;
+  width: 170px;
+  height: 170px;
   background: radial-gradient(circle, #e0f2f1, #80cbc4);
-  bottom: -30px; left: 40px;
+  bottom: -30px;
+  left: 40px;
 }
+
 .wrapperSpring4 .orb5 {
-  width: 150px; height: 150px;
+  width: 150px;
+  height: 150px;
   background: radial-gradient(circle, #fce4ec, #f8bbd0);
-  top: 50%; left: 45%;
+  top: 50%;
+  left: 45%;
 }
 
 // ── Variant 6: soft pastel — kept as-is per user feedback ────────────────────
@@ -137,17 +180,28 @@
     opacity: 0.32;
     filter: blur(64px);
   }
+
   .orb1 {
-    width: 220px; height: 220px;
+    width: 220px;
+    height: 220px;
     background: radial-gradient(circle, #cfe8fb, #9fd0f4);
-    top: -90px; left: -90px;
+    top: -90px;
+    left: -90px;
   }
+
   .orb2 {
-    width: 200px; height: 200px;
+    width: 200px;
+    height: 200px;
     background: radial-gradient(circle, #d8efd8, #b6dfb1);
-    bottom: -80px; right: -80px;
+    bottom: -80px;
+    right: -80px;
   }
-  .orb3, .orb4, .orb5 { display: none; }
+
+  .orb3,
+  .orb4,
+  .orb5 {
+    display: none;
+  }
 }
 
 .wrapperSpring>*:not(.springOrbs),
@@ -209,19 +263,43 @@
   padding-top: 2rem;
 }
 
+// Снимает дефолтные 2rem сверху, но сохраняет cushion под вырез экрана —
+// ModalShell больше нигде safe-area не учитывает, а body может упираться
+// в верх экрана (модалка без ModalStepHeader).
+.bodyFlush {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+// Layout shell for ModalShell.Title — typography comes from the <Heading>
+// primitive it renders (size="modal"). `display: flex` keeps a leading
+// ButtonBack icon beside the title text (see ScheduleEventCreateModals time
+// step). The title owns its top gap via `--modal-title-offset` so it is
+// identical whether it sits inside a Body/AtomsBody or directly under
+// ModalShell. The `:has()` rules below cancel the container's own top
+// padding when the title leads it — otherwise the two stack into a doubled
+// offset. `:not(.bodyFlush)` keeps the flush body's safe-area padding intact.
 .title {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.3;
-  color: #1a1a2e;
   padding: var(--space-4);
+  padding-top: var(--modal-title-offset);
   padding-bottom: 4px;
   padding-left: var(--space-1);
+}
+
+.body:not(.bodyFlush):has(> .title:first-child),
+.atomsBody:has(> .title:first-child) {
+  padding-top: 0;
+}
+
+// Layout shell for ModalShell.Hint — typography comes from <Text variant="hint">.
+// Sits directly under the Title; the negative margin cancels most of the
+// .body `gap` (20px) so the hint reads as part of the header block, not a
+// detached paragraph. Intended placement is right after ModalShell.Title.
+.hint {
+  padding-inline: var(--space-4);
+  margin-top: calc(var(--space-2) - 20px);
 }
 
 // ── ActionButtons ─────────────────────────────────────────────────────────
@@ -259,7 +337,7 @@
   flex-direction: column;
   justify-content: flex-end;
   gap: 12px;
-  padding: 16px 16px 2rem;
+  padding: var(--space-2);
   min-height: 0;
   overflow-y: auto;
 }

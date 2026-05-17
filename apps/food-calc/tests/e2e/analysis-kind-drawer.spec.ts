@@ -18,14 +18,12 @@ test.describe('AnalysisKindDrawer', () => {
       page.getByRole('heading', { name: 'Что разобрать?' }),
     ).toBeVisible();
 
-    const dailyOption = page
-      .getByRole('button')
-      .filter({ hasText: 'Текущий день' });
+    // Anchored name match — `По неделям` is also a substring of the HomePage
+    // «Анализ по неделям →» link, so `^` keeps this to the drawer option.
+    const dailyOption = page.getByRole('button', { name: /^Текущий день/ });
     await expect(dailyOption).toBeDisabled();
 
-    const longOption = page
-      .getByRole('button')
-      .filter({ hasText: 'По неделям' });
+    const longOption = page.getByRole('button', { name: /^По неделям/ });
     await expect(longOption).toBeEnabled();
 
     await longOption.click();
@@ -41,9 +39,7 @@ test.describe('AnalysisKindDrawer', () => {
     await page.getByRole('tab', { name: 'Лаборатория' }).first().click();
     await page.getByRole('button', { name: 'Анализировать' }).click();
 
-    const dailyOption = page
-      .getByRole('button')
-      .filter({ hasText: 'Текущий день' });
+    const dailyOption = page.getByRole('button', { name: /^Текущий день/ });
     await expect(dailyOption).toBeDisabled();
     await expect(page.getByText(/Нет сети/)).toBeVisible();
 

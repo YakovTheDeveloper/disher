@@ -4,11 +4,10 @@ import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
-import { DetailsChips } from '@/features/food/details-chips';
+import { DetailsStep } from '@/features/food/details-chips';
 import { getProductUrl, RouterUrls } from '@/app/router';
 
 import type { ScheduleFoodFlow } from './useScheduleFoodFlow';
-import styles from './ScheduleFoodEditModals.module.scss';
 
 type Props = {
   flow: ScheduleFoodFlow;
@@ -96,24 +95,14 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         isExpanded={step === 'details'}
         content={
           <ModalShell>
-            <ModalShell.Body>
-              <div className={styles.detailsHeader}>
-                <ModalShell.Title>
-                  {draft.foodName
-                    ? `Уточнение: ${draft.foodName}`
-                    : 'Уточнение к приему пищи'}
-                </ModalShell.Title>
-                {infoTarget && (
-                  <button
-                    type="button"
-                    className={styles.infoLink}
-                    onClick={handleInfoClick(infoTarget.href)}
-                  >
-                    {infoTarget.label}
-                  </button>
-                )}
-              </div>
-              <DetailsChips
+            <ModalShell.Body flush>
+              <DetailsStep
+                title={draft.foodName || 'Уточнение'}
+                info={
+                  infoTarget
+                    ? { label: infoTarget.label, onClick: handleInfoClick(infoTarget.href) }
+                    : null
+                }
                 textareaId={DETAILS_INPUT}
                 value={draft.details}
                 onChange={(value) => setDraft((d) => ({ ...d, details: value }))}

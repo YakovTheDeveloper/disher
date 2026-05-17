@@ -13,7 +13,7 @@
     //   • `HomeTopBar.shell` — собственная высота.
     //   • `Screen.module.scss .stickyTop` — `top` для sticky-индикатора в
     //     каждом слайде. Sticky прилипает под bar, не под ним.
-    --top-bar-h: calc(env(safe-area-inset-top, 0px) + 80px);
+    --top-bar-h: calc(env(safe-area-inset-top, 0px) + 60px);
     // Контент в `Screen.screenScroll` стартует под top-bar'ом. Используем
     // существующую переменную `--page-top-inset`, читаемую `screenScroll`.
     --page-top-inset: var(--top-bar-h);

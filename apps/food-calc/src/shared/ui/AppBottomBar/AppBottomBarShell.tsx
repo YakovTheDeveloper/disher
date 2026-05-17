@@ -5,7 +5,6 @@ import s from './AppBottomBar.module.scss';
 
 type Props = {
   children: React.ReactNode;
-  hidden?: boolean;
   /**
    * Which edge of the home swipe the gradient should be saturated on:
    *   - 'left'  — saturated TOD tint → transparent (leftmost screen)
@@ -25,12 +24,12 @@ type Props = {
  * is set here so the CTA button inside the shell inherits the same
  * `--cta-*` tokens as WriteFoodButton on screen 2.
  */
-export const AppBottomBarShell = ({ children, hidden, side = 'left' }: Props) => {
+export const AppBottomBarShell = ({ children, side = 'left' }: Props) => {
   const tod = getTimeOfDay(useNow());
 
   return (
     <div
-      className={clsx(s.dock, s.dockV2, s.shellSolo, hidden && s.hidden)}
+      className={clsx(s.dock, s.dockV2, s.shellSolo)}
       data-tod={tod}
       data-shell-side={side}
     >

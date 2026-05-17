@@ -127,13 +127,20 @@
 .title {
   margin: 0;
   font-family: 'Source Serif 4', 'Merriweather', serif;
-  font-style: italic;
-  font-size: 22px;
-  font-weight: 500;
+  // Upright + larger + heavier than the italic in-body section headings
+  // (.groupTitle) — reads as the drawer's primary header, not a sibling.
+  font-style: normal;
+  font-size: 26px;
+  font-weight: 600;
   letter-spacing: -0.01em;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.88);
   flex: 1 1 auto;
   min-width: 0;
+}
+
+// Sentence-case the title — food names arrive lowercase ("абрикос").
+.title::first-letter {
+  text-transform: uppercase;
 }
 
 .headerAction {
@@ -177,6 +184,9 @@
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
+  // x hidden: clips decorative bleed (e.g. nutrient-group blobs) at the
+  // drawer edge without ever showing a horizontal scrollbar.
+  overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;

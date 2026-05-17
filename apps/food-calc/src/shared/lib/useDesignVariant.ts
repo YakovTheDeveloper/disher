@@ -47,7 +47,12 @@ export function useDesignVariant<const V extends readonly string[]>(
   const register = useDesignVariantsStore((s) => s.register);
   const unregister = useDesignVariantsStore((s) => s.unregister);
   const markVisible = useDesignVariantsStore((s) => s.markVisible);
-  const entry = useDesignVariantsStore((s) => s.entries[key]);
+  // Подписка ТОЛЬКО на `variant` (примитив), а не на весь entry-объект.
+  // `markVisible` (IntersectionObserver на свайпе) пересоздаёт entry с новыми
+  // `visible`/`lastSeen` — если подписаться на объект, консьюмер ре-рендерится
+  // на каждом свайпе впустую. Селектор по строке → ре-рендер только при
+  // реальной смене варианта.
+  const storedVariant = useDesignVariantsStore((s) => s.entries[key]?.variant);
 
   // Stabilize the variants identity so the effect doesn't re-run on every
   // render — callers typically pass an array literal which is a fresh ref
@@ -95,7 +100,7 @@ export function useDesignVariant<const V extends readonly string[]>(
     };
   }, []);
 
-  const variant = (entry?.variant ?? stableVariants[0]) as V[number];
+  const variant = (storedVariant ?? stableVariants[0]) as V[number];
 
   return {
     variant,

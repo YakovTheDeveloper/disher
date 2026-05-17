@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { NavTile } from '@/shared/ui/NavTile';
 import s from './ScreenIndicator.module.scss';
 
 export type TileTitleStyle = 'serif-initial' | 'display-sans' | 'mono-track';
@@ -11,19 +12,20 @@ export type ScreenEntry = {
 
 type Props = {
   screens: ScreenEntry[];
-  activeIndex: number;
   onSelect: (index: number) => void;
-  isActive?: boolean;
-  // Если задан — индикатор показывает СВОЙ экран (label/image/highlight)
-  // статично, независимо от activeIndex. Используется в HomePage, где
-  // каждый слайд Swipeable рендерит свой инстанс ScreenIndicator; title
-  // не должен прыгать при перелистывании. Если не задан — fallback на
-  // activeIndex (legacy: DishBuilderPage, один инстанс на странице).
+  // Один из двух режимов выбора отображаемого экрана:
+  // - slideIndex задан → индикатор статично показывает СВОЙ экран
+  //   (label/image/highlight). Используется в HomePage, где каждый слайд
+  //   Swipeable рендерит свой инстанс; title не прыгает при перелистывании
+  //   и Page не зависит от активного индекса (ноль ре-рендеров на свайпе).
+  // - slideIndex не задан → fallback на activeIndex (legacy: DishBuilderPage,
+  //   один инстанс на странице).
+  activeIndex?: number;
   slideIndex?: number;
 };
 
 export const ScreenIndicator = ({ screens, activeIndex, onSelect, slideIndex }: Props) => {
-  const displayIndex = slideIndex ?? activeIndex;
+  const displayIndex = slideIndex ?? activeIndex ?? 0;
   const activeScreen = screens[displayIndex];
   const activeLabel = activeScreen?.label ?? '';
   const activeImage = activeScreen?.image;
@@ -49,22 +51,18 @@ export const ScreenIndicator = ({ screens, activeIndex, onSelect, slideIndex }: 
         />
       )}
       <div className={s.tilesRow} role="tablist" aria-label="Экран">
-        {screens.map((screen, i) => {
-          return (
-            <button
-              key={screen.label}
-              type="button"
-              role="tab"
-              aria-selected={false}
-              className={clsx([s.tile, screen.label === activeLabel && s.tileActive])}
-              style={{ gridColumnStart: i + 1 }}
-              onClick={() => onSelect(i)}
-            >
-              {screen.image && <img src={screen.image} className={s.tileImg} alt="" aria-hidden />}
-              <span className={s.tileTitle}>{screen.label}</span>
-            </button>
-          );
-        })}
+        {screens.map((screen, i) => (
+          <NavTile
+            key={screen.label}
+            role="tab"
+            aria-selected={false}
+            label={screen.label}
+            image={screen.image}
+            active={screen.label === activeLabel}
+            style={{ gridColumnStart: i + 1 }}
+            onClick={() => onSelect(i)}
+          />
+        ))}
       </div>
 
       <div className={s.band}>

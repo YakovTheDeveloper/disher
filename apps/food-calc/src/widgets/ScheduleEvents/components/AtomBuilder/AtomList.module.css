@@ -1,12 +1,35 @@
 /**
- * AtomList.module.css — per-kind color chips, editorial typography
+ * AtomList.module.css — атомы, сгруппированные по типу. Секция = заголовок
+ * + ряд чипов (per-kind цвет). Чип несёт только значение — тип в заголовке.
  */
 
 .atomList {
     display: flex;
+    flex-direction: column;
+    gap: var(--space-3, 12px);
+    padding: var(--space-3, 12px) 0;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 8px);
+}
+
+.sectionTitle {
+    margin: 0;
+    font-family: "Source Serif 4", "Merriweather", serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
+    color: rgba(0, 0, 0, 0.55);
+}
+
+.chips {
+    display: flex;
     flex-wrap: wrap;
     gap: var(--space-1, 4px);
-    padding: var(--space-3, 12px) 0;
 }
 
 .atomChip {
@@ -29,14 +52,6 @@
 .atomChip[data-kind='scale']    { --chip-bg: var(--event-scale-accent);    --chip-text: #fff; }
 .atomChip[data-kind='tag']      { --chip-bg: var(--event-tag-accent);      --chip-text: #fff; }
 .atomChip[data-kind='relation'] { --chip-bg: var(--event-relation-accent); --chip-text: #fff; }
-
-.atomLabel {
-    font-size: var(--text-xs, 0.64rem);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: rgba(255, 255, 255, 0.55);
-}
 
 .atomValue {
     font-weight: 500;

@@ -20,8 +20,8 @@ const AnalysesTopBar = ({ activeSlide, onSelectSlide }: Props) => {
       <button
         type="button"
         className={styles.back}
-        onClick={() => navigate(-1)}
-        aria-label="Назад"
+        onClick={() => navigate('/')}
+        aria-label="На главную"
       >
         ‹
       </button>

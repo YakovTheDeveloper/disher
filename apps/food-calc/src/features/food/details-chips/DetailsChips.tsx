@@ -15,6 +15,10 @@ type Props = {
   productId: string | null;
   textareaId: string;
   placeholder?: string;
+  /** When false — suggestion + custom chips render as one flat flow without
+   *  the «Особенности» / «Ваши теги» sub-labels (used by DetailsStep, where a
+   *  single section heading sits above and vertical space is at a premium). */
+  showSectionLabels?: boolean;
 };
 
 function readCategories(product: { categories: string } | null): readonly string[] {
@@ -38,6 +42,7 @@ export function DetailsChips({
   productId,
   textareaId,
   placeholder = 'Уточнение к записи...',
+  showSectionLabels = true,
 }: Props) {
   const product = useProduct(productId ?? undefined);
   const customTagRows = useCustomTagsByProduct(productId);
@@ -83,30 +88,45 @@ export function DetailsChips({
     );
   };
 
+  const allChips = [...suggestionChips, ...customChips];
+
   return (
     <div className={styles.root}>
-      <AutoGrowSearch
-        id={textareaId}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        maxLength={500}
-      />
-      {suggestionChips.length > 0 && (
-        <div className={styles.section}>
-          <div className={styles.sectionLabel}>Особенности</div>
+      <div className={styles.inputArea}>
+        <AutoGrowSearch
+          id={textareaId}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          maxLength={500}
+        />
+      </div>
+
+      {showSectionLabels ? (
+        <>
+          {suggestionChips.length > 0 && (
+            <div className={styles.section}>
+              <div className={styles.sectionLabel}>Особенности</div>
+              <div className={styles.chips} role="group" aria-label="Особенности">
+                {suggestionChips.map(renderChip)}
+              </div>
+            </div>
+          )}
+          {customChips.length > 0 && (
+            <div className={styles.section}>
+              <div className={styles.sectionLabel}>Ваши теги</div>
+              <div className={styles.chips} role="group" aria-label="Ваши теги">
+                {customChips.map(renderChip)}
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        allChips.length > 0 && (
           <div className={styles.chips} role="group" aria-label="Особенности">
-            {suggestionChips.map(renderChip)}
+            {allChips.map(renderChip)}
           </div>
-        </div>
-      )}
-      {customChips.length > 0 && (
-        <div className={styles.section}>
-          <div className={styles.sectionLabel}>Ваши теги</div>
-          <div className={styles.chips} role="group" aria-label="Ваши теги">
-            {customChips.map(renderChip)}
-          </div>
-        </div>
+        )
       )}
     </div>
   );

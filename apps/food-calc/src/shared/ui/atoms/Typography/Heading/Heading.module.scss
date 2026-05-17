@@ -1,0 +1,26 @@
+// Canonical section/overlay heading — one italic-serif voice, matching
+// ScreenIndicator.bandLabel (HomePage navigation). Only `font-size` varies
+// per `size` prop; everything else is the shared canon. Tokens live in
+// shared/assets/style/tokens.scss.
+.heading {
+    margin: 0;
+    font-family: var(--heading-font);
+    font-style: var(--heading-style);
+    font-weight: var(--heading-weight);
+    letter-spacing: var(--heading-letter);
+    line-height: 1.1;
+    color: #000000;
+}
+
+.screen {
+    font-size: var(--heading-size-screen);
+    line-height: 1;
+}
+
+.modal {
+    font-size: var(--heading-size-modal);
+}
+
+.drawer {
+    font-size: var(--heading-size-drawer);
+}

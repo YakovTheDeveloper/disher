@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState, Fragment } from 'react';
+import React, { memo, useCallback, useMemo, useRef, useState, Fragment } from 'react';
 import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
@@ -89,29 +89,6 @@ const FoodSchedule = ({
   const { clearSelection, setSelectedIds } = selectionStoreFood.getState();
 
   const editFlow = useScheduleFoodFlow({ type: 'edit' });
-
-  // Hide bottom action bar while user is editing time/quantity inline on
-  // a schedule-food row — otherwise the bar covers the row being edited.
-  const [inlineEditing, setInlineEditing] = useState(false);
-  useEffect(() => {
-    const isInsideRow = (el: Element | null) =>
-      !!(el as HTMLElement | null)?.closest('[data-schedule-food-id] input');
-    const onFocusIn = (e: FocusEvent) => {
-      if (isInsideRow(e.target as Element)) setInlineEditing(true);
-    };
-    const onFocusOut = (e: FocusEvent) => {
-      if (!isInsideRow(e.target as Element)) return;
-      const next = e.relatedTarget as Element | null;
-      if (isInsideRow(next)) return;
-      setInlineEditing(false);
-    };
-    document.addEventListener('focusin', onFocusIn);
-    document.addEventListener('focusout', onFocusOut);
-    return () => {
-      document.removeEventListener('focusin', onFocusIn);
-      document.removeEventListener('focusout', onFocusOut);
-    };
-  }, []);
 
   const writeFoodTarget = useMemo(() => ({ kind: 'schedule' as const, date }), [date]);
   const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
@@ -265,7 +242,6 @@ const FoodSchedule = ({
             leadingSlot={
               <NutrientsSummaryButton totals={totals} onClick={openNutrients} />
             }
-            hidden={inlineEditing}
           />
         ) : null
       }

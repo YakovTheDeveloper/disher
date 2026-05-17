@@ -8,6 +8,8 @@
 import { useState } from 'react';
 import type { Atom } from '@/entities/schedule-event';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
+import { NavTile } from '@/shared/ui/NavTile';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { AtomList } from './AtomList';
 import { ScaleAtomInput } from './ScaleAtomInput';
 import { TagAtomInput } from './TagAtomInput';
@@ -22,10 +24,10 @@ export interface AtomBuilderProps {
 
 type AtomPanel = 'scale' | 'tag' | 'relation';
 
-const ATOM_BUTTONS: { kind: AtomPanel; label: string }[] = [
-  { kind: 'scale', label: 'Оценка' },
-  { kind: 'tag', label: 'Тег' },
-  { kind: 'relation', label: 'Связь' },
+const ATOM_BUTTONS: { kind: AtomPanel; label: string; image: string }[] = [
+  { kind: 'scale', label: 'Оценка', image: '/art/scale-2.png' },
+  { kind: 'tag', label: 'Тег', image: '/art/tag-2.png' },
+  { kind: 'relation', label: 'Связь', image: '/art/link-2.png' },
 ];
 
 const ATOM_ACCENT: Record<AtomPanel, string> = {
@@ -75,25 +77,32 @@ export const AtomBuilder = ({ id, className = '', onPanelChange }: AtomBuilderPr
     );
   }
 
-  const hasAtoms = atoms.length > 0;
-
   // Default: show atom list + type selector buttons
   return (
     <div id={id} tabIndex={id ? -1 : undefined} className={`${styles.container} ${className}`}>
       <AtomList atoms={atoms} onRemove={removeAtom} />
 
-      <div className={`${styles.atomButtons} ${!hasAtoms ? styles.noAtoms : ''}`}>
-        {ATOM_BUTTONS.map(({ kind, label }) => (
-          <button
-            key={kind}
-            type="button"
-            data-kind={kind}
-            className={styles.atomBtn}
-            onClick={() => openAtomPanel(kind)}
-          >
-            {label}
-          </button>
-        ))}
+      <div className={styles.tileSection}>
+        <Heading size="modal" as="h2" className={styles.tileHeading}>
+          Особенности
+        </Heading>
+
+        <div className={styles.atomButtons}>
+          {ATOM_BUTTONS.map(({ kind, label, image }) => (
+            <NavTile
+              key={kind}
+              label={label}
+              image={image}
+              active
+              solidLabel
+              onClick={() => openAtomPanel(kind)}
+            />
+          ))}
+        </div>
+
+        <Text variant="hint" as="p" className={styles.tileHint}>
+          Если особо нечего уточнять - пропускаем.
+        </Text>
       </div>
     </div>
   );

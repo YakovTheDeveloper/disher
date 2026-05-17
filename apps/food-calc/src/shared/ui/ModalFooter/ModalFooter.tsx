@@ -12,17 +12,6 @@ export const ModalFooter = ({ children }: FooterProps) => (
   </div>
 );
 
-type NextStepButtonProps = {
-  htmlFor: string;
-  label?: string;
-};
-
-export const NextStepButton = ({ htmlFor, label = 'Далее' }: NextStepButtonProps) => (
-  <label htmlFor={htmlFor} className={s.nextLabel}>
-    <span className={s.nextButton}>{label}</span>
-  </label>
-);
-
 type Theme = 'events';
 
 type ModalNextButtonLabelProps = {

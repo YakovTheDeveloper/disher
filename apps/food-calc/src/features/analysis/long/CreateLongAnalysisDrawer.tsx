@@ -2,15 +2,17 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import { useAllHypotheses } from '@/entities/hypothesis';
 import HypothesisListPanel from '@/widgets/Laboratory/HypothesisListPanel';
 import { startAnalysis, type Analysis } from '../api';
-import RangePickerWithFallback, {
+import RangePickerWithFallback from './RangePickerWithFallback';
+import {
   defaultRange,
   isValidWindow,
   rangeDayKeys,
   type DateRange,
-} from './RangePickerWithFallback';
+} from './range';
 import styles from './CreateLongAnalysisDrawer.module.scss';
 
 // The drawer resolves with the created (pending) analysis so AnalysesPage can
@@ -70,7 +72,7 @@ const CreateLongAnalysisDrawer = ({ onClose }: Props) => {
   return (
     <DrawerLayout a11yLabel="Новый разбор по неделям">
       <div className={styles.body}>
-        <h2 className={styles.heading}>Разбор по неделям</h2>
+        <Heading size="drawer">Разбор по неделям</Heading>
 
         <RangePickerWithFallback value={range} onChange={setRange} />
 

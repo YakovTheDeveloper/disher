@@ -82,3 +82,33 @@ export function mapServerAnalysis(row: ServerRow): Analysis {
     createdAt: row.created_at,
   };
 }
+
+// ─── Derived status ───────────────────────────────────────────────────────
+
+/**
+ * A pending row whose job died (backend restart, crash) sits at result_md=''
+ * forever. After this much wall-clock both the list row and the detail modal
+ * stop calling it «идёт» and treat it as «возможно, не удалось» — a
+ * client-side heuristic, no extra request.
+ */
+export const STALE_PENDING_MS = 15 * 60 * 1000;
+
+export type AnalysisRowStatus = 'running' | 'stale' | 'failed' | 'done';
+
+// Single source of truth for the four-way analysis status — used by the list
+// row, the detail modal, and useAnalysis() polling so they never disagree
+// (a dead job must not poll forever in the modal while the list already
+// shows it as stale).
+export function deriveStatus(
+  a: Analysis,
+  now: number = Date.now(),
+): AnalysisRowStatus {
+  if (isFailedAnalysis(a)) return 'failed';
+  if (isPendingAnalysis(a)) {
+    const created = Date.parse(a.createdAt);
+    if (Number.isNaN(created)) return 'running';
+    // Boundary: exactly STALE_PENDING_MS old is still «идёт».
+    return now - created > STALE_PENDING_MS ? 'stale' : 'running';
+  }
+  return 'done';
+}

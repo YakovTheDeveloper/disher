@@ -3,6 +3,8 @@ import s from './ModalShell.module.scss';
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 
 type Variant =
   | 'default'
@@ -75,16 +77,33 @@ export const ModalShell = ({ children, className, variant: variantProp = 'spring
 const ModalShellSpacer = () => <div className={s.spacer} />;
 ModalShellSpacer.displayName = 'ModalShell.Spacer';
 
-const ModalShellBody = ({ children }: Props) => <div className={s.body}>{children}</div>;
+/** `flush` drops the default top padding — for bodies whose first child
+ *  brings its own surface/spacing (e.g. the details-step plate). */
+const ModalShellBody = ({ children, flush }: { children: ReactNode; flush?: boolean }) => (
+  <div className={`${s.body} ${flush ? s.bodyFlush : ''}`}>{children}</div>
+);
 ModalShellBody.displayName = 'ModalShell.Body';
 
 const ModalShellAtomsBody = ({ children }: Props) => <div className={s.atomsBody}>{children}</div>;
 ModalShellAtomsBody.displayName = 'ModalShell.AtomsBody';
 
+// The canonical Heading primitive carries the typography; ModalShell.Title
+// adds the modal-tier layout (top offset, flex slot for a leading icon).
 const ModalShellTitle = ({ children }: { children: ReactNode }) => (
-  <h2 className={s.title}>{children}</h2>
+  <Heading size="modal" as="h2" className={s.title}>
+    {children}
+  </Heading>
 );
 ModalShellTitle.displayName = 'ModalShell.Title';
+
+// The Text primitive carries the typography (variant="hint"); ModalShell.Hint
+// adds only the modal-tier layout — a small gap tucked under the Title.
+const ModalShellHint = ({ children }: { children: ReactNode }) => (
+  <Text variant="hint" className={s.hint}>
+    {children}
+  </Text>
+);
+ModalShellHint.displayName = 'ModalShell.Hint';
 
 type ActionButtonsProps = {
   left?: ReactNode;
@@ -108,4 +127,8 @@ ModalShell.Spacer = ModalShellSpacer;
 ModalShell.Body = ModalShellBody;
 ModalShell.AtomsBody = ModalShellAtomsBody;
 ModalShell.Title = ModalShellTitle;
+ModalShell.Hint = ModalShellHint;
+// Multi-step header (back button + breadcrumbs). Lives under the ModalShell
+// namespace so there is one entry point for modal header pieces.
+ModalShell.StepHeader = ModalStepHeader;
 ModalShell.ActionButtons = ModalShellActionButtons;

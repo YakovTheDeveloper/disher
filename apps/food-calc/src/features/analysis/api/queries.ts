@@ -1,9 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { API_BASE } from '@/shared/lib/api/base';
-import { isPendingAnalysis, mapServerAnalysis, type Analysis } from './types';
+import { deriveStatus, mapServerAnalysis, type Analysis } from './types';
 
-const POLL_INTERVAL_MS = 2000;
+// Poll backoff: a long analysis takes ~1–2 min, so a fixed 2s poll is far
+// more chatty than useful — especially for a job that has hung. Start gentle
+// and grow toward a cap; a fresh analysis still resolves within ~20s of its
+// completion, a stuck one isn't hammered.
+const POLL_START_MS = 3000;
+const POLL_MAX_MS = 20000;
+const POLL_GROWTH = 1.6;
+
+const nextDelay = (prev: number): number =>
+  Math.min(POLL_MAX_MS, Math.round(prev * POLL_GROWTH));
 
 type UseAnalysisResult = {
   data: Analysis | null;
@@ -11,9 +20,9 @@ type UseAnalysisResult = {
 };
 
 // Custom polling hook — server data lives outside Dexie. While result_md is
-// empty (pending), refetch every 2s. Failure rows have result_md set with the
-// "⚠️ Анализ не удался" prefix; downstream code can call isFailedAnalysis to
-// branch.
+// empty (pending), refetch with a growing backoff (3s → 20s cap). Failure
+// rows have result_md set with the "⚠️ Анализ не удался" prefix; downstream
+// code can call isFailedAnalysis to branch.
 export function useAnalysis(id: string | undefined): UseAnalysisResult {
   const [data, setData] = useState<Analysis | null>(null);
   const [error, setError] = useState<Error | null>(null);
@@ -26,7 +35,13 @@ export function useAnalysis(id: string | undefined): UseAnalysisResult {
     }
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let delay = POLL_START_MS;
     const url = `${API_BASE}/api/analyses/${id}`;
+
+    const schedule = () => {
+      timer = setTimeout(tick, delay);
+      delay = nextDelay(delay);
+    };
 
     const tick = async () => {
       try {
@@ -39,7 +54,7 @@ export function useAnalysis(id: string | undefined): UseAnalysisResult {
         if (!r.ok) {
           setError(new Error(`HTTP ${r.status}`));
           // Retry on transient errors.
-          timer = setTimeout(tick, POLL_INTERVAL_MS);
+          schedule();
           return;
         }
         const body = (await r.json()) as { analysis: Parameters<typeof mapServerAnalysis>[0] };
@@ -47,13 +62,17 @@ export function useAnalysis(id: string | undefined): UseAnalysisResult {
         const analysis = mapServerAnalysis(body.analysis);
         setData(analysis);
         setError(null);
-        if (isPendingAnalysis(analysis)) {
-          timer = setTimeout(tick, POLL_INTERVAL_MS);
+        // Keep polling only while genuinely «идёт». A pending job that has
+        // outlived STALE_PENDING_MS is presumed dead — stop polling so the
+        // modal does not hammer the server forever (matches the list row,
+        // which already shows it as «возможно, не удалось»).
+        if (deriveStatus(analysis) === 'running') {
+          schedule();
         }
       } catch (e) {
         if (cancelled) return;
         setError(e instanceof Error ? e : new Error(String(e)));
-        timer = setTimeout(tick, POLL_INTERVAL_MS);
+        schedule();
       }
     };
 

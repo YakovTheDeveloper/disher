@@ -1,0 +1,44 @@
+// Press-and-hold confirmation button. The fill bar is a composite-only
+// scaleX transform driven imperatively from JS (see HoldButton.tsx).
+
+.holdBtn {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 50px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(176, 52, 35, 0.38);
+  background: #fff;
+  color: #b03423;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: border-color 140ms ease;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.holding {
+  border-color: rgba(176, 52, 35, 0.7);
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: rgba(176, 52, 35, 0.18);
+  pointer-events: none;
+}
+
+.holdLabel {
+  position: relative;
+  z-index: 1;
+}

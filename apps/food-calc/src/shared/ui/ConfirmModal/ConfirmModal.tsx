@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import type { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import styles from './ConfirmModal.module.scss';
 
 // Generic confirm dialog. `modalStore.show(ConfirmModal, {...})` resolves to
@@ -24,14 +25,15 @@ const ConfirmModal = ({
   onClose,
 }: ConfirmModalProps) => (
   <ModalLayout className={styles.layout} a11yLabel={title}>
-    <h2 className={styles.title}>{title}</h2>
-    <p className={styles.message}>{message}</p>
+    {/* Canonical typography — title via Heading, message via Text(hint). */}
+    <Heading size="drawer" as="h2">
+      {title}
+    </Heading>
+    <Text variant="hint" className={styles.message}>
+      {message}
+    </Text>
     <div className={styles.actions}>
-      <button
-        type="button"
-        className={styles.cancel}
-        onClick={() => onClose(false)}
-      >
+      <button type="button" className={styles.cancel} onClick={() => onClose(false)}>
         {cancelLabel}
       </button>
       <button

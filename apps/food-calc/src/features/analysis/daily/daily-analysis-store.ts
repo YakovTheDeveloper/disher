@@ -183,8 +183,12 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
 // Boot-time hydration. Reads idb-keyval, flips any stream that was mid-flight
 // at unload to `interrupted` (it cannot resume), and drops analyses older
 // than 30 days. Must be called once at app boot before the UI reads the
-// store. Idempotent.
+// store. Idempotent — a second call (or a call after the store already has
+// records) is a no-op and never clobbers in-memory state.
 export async function hydrateDailyAnalyses(nowMs: number = Date.now()): Promise<void> {
+  // Already hydrated — do not re-read or overwrite.
+  if (useDailyAnalysisStore.getState().hydrated) return;
+
   let stored: ByDate | undefined;
   try {
     stored = await idbGet<ByDate>(STORAGE_KEY);
@@ -201,6 +205,14 @@ export async function hydrateDailyAnalyses(nowMs: number = Date.now()): Promise<
       analysis.status === 'streaming'
         ? { ...analysis, status: 'interrupted', reason: 'reload' }
         : analysis;
+  }
+
+  // A stream started before this idb read resolved already wrote a record
+  // into the store. The stored snapshot is stale relative to it — let the
+  // in-memory record win so a just-started stream is not dropped on boot.
+  const live = useDailyAnalysisStore.getState().byDate;
+  for (const [date, analysis] of Object.entries(live)) {
+    byDate[date] = analysis;
   }
 
   useDailyAnalysisStore.setState({ byDate, hydrated: true });

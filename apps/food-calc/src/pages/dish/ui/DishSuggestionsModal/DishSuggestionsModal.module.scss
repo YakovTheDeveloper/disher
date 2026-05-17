@@ -32,8 +32,11 @@
 }
 
 .title {
-  font-size: 1rem;
-  font-weight: 500;
+  font-family: var(--heading-font);
+  font-style: var(--heading-style);
+  font-size: var(--heading-size-drawer);
+  font-weight: var(--heading-weight);
+  letter-spacing: var(--heading-letter);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

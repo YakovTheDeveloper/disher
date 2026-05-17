@@ -37,15 +37,6 @@
   line-height: 1;
 }
 
-.heading {
-  font-family: var(--font-display);
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-
 .email {
   font-family: var(--font-sans);
   font-size: var(--text-sm);
@@ -54,33 +45,114 @@
   word-break: break-all;
 }
 
-.actions {
+// ─── Оформление section ─────────────────────────────────────────
+
+.section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  margin-top: auto;
+  gap: var(--space-2);
 }
 
-.secondaryBtn {
+.sectionLabel {
+  margin: 0;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-style: italic;
+  font-size: 19px;
+  color: var(--text-primary);
+}
+
+// ─── Опасная зона (collapsed by default) ────────────────────────
+
+.danger {
+  margin-top: auto;
+  border-radius: var(--radius-md);
+  background: rgba(176, 52, 35, 0.045);
+  border: 1px solid rgba(176, 52, 35, 0.14);
+  overflow: hidden;
+}
+
+.dangerToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  background: transparent;
   font-family: var(--font-sans);
   font-size: var(--text-base);
-  font-weight: 500;
-  width: 100%;
-  height: 56px;
-  border: none;
-  border-radius: var(--radius-lg);
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--text-primary);
+  font-weight: 600;
+  color: #b03423;
   cursor: pointer;
-  transition:
-    background var(--duration-fast) var(--easing-default),
-    transform var(--duration-fast) var(--easing-default);
+  -webkit-tap-highlight-color: transparent;
+}
 
-  &:hover {
-    background: rgba(0, 0, 0, 0.07);
+.chevron {
+  font-size: 18px;
+  line-height: 1;
+  transition: transform 180ms var(--easing-default);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.dangerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 16px 16px;
+  animation: dangerReveal 200ms var(--easing-default);
+}
+
+@keyframes dangerReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dangerHint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.backupBtn {
+  width: 100%;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(176, 52, 35, 0.28);
+  background: #fff;
+  color: #b03423;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--duration-fast) var(--easing-default);
 
   &:active {
     transform: scale(0.985);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+
+  .dangerBody {
+    animation: none;
   }
 }

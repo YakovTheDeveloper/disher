@@ -22,7 +22,7 @@ $pad-right: max(10px, env(safe-area-inset-right));
 .trigger {
   position: fixed;
   top: $pad-top;
-  right: $pad-right;
+  right: calc(50% - 44px);
   z-index: $z;
 
   display: inline-flex;
@@ -50,13 +50,6 @@ $pad-right: max(10px, env(safe-area-inset-right));
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 
-  transition:
-    opacity 160ms ease,
-    transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    background-color 160ms ease,
-    border-color 140ms ease,
-    box-shadow 160ms ease,
-    backdrop-filter 160ms ease;
 
   // Reveal only on direct intent — hover (desktop) or focus (keyboard / tap).
   &:hover,
@@ -67,8 +60,6 @@ $pad-right: max(10px, env(safe-area-inset-right));
     box-shadow:
       0 8px 24px -8px rgba(0, 0, 0, 0.55),
       inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(14px) saturate(140%);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
   }
 
   &:active {
@@ -117,8 +108,7 @@ $pad-right: max(10px, env(safe-area-inset-right));
   box-shadow:
     0 18px 48px -12px rgba(0, 0, 0, 0.65),
     inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
+
 
   color: $ink;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -141,6 +131,7 @@ $pad-right: max(10px, env(safe-area-inset-right));
     opacity: 0;
     transform: scale(0.92) translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -187,8 +178,15 @@ $pad-right: max(10px, env(safe-area-inset-right));
 }
 
 @keyframes dvPulse {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 .close {
@@ -258,9 +256,7 @@ $pad-right: max(10px, env(safe-area-inset-right));
   padding: 0 34px 0 12px;
 
   background:
-    rgba(255, 255, 255, 0.04)
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23a78bfa' stroke-width='1.4' stroke-linecap='round'/></svg>")
-    no-repeat right 12px center;
+    rgba(255, 255, 255, 0.04) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23a78bfa' stroke-width='1.4' stroke-linecap='round'/></svg>") no-repeat right 12px center;
 
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;

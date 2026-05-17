@@ -3,3 +3,19 @@
 .whiteShell {
   background: linear-gradient(160deg, rgb(248, 248, 252) 0%, rgb(245, 246, 250) 40%, rgb(248, 250, 252) 100%);
 }
+
+// Футер атом-шага — ряд Назад / Далее, прижат к низу экрана (sibling
+// AtomsBody, вне его padding). Раскладка слотов 40/60 повторяет
+// ModalShell.ActionButtons; кнопки сами тянут width:100% и safe-area.
+.atomsFooter {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.atomsFooterSlotPrev {
+  flex: 0 0 40%;
+}
+
+.atomsFooterSlotNext {
+  flex: 1;
+}

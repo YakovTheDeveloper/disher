@@ -26,11 +26,13 @@ const SESSION_ID =
     : Math.random().toString(36).slice(2, 10);
 
 const FLUSH_INTERVAL_MS = 2000;
-// Same-origin path: in dev Vite proxies /api/diag-logs to backend :3100,
-// which sidesteps iOS Safari's per-port self-signed cert prompt. In prod
-// builds we don't ship diag flushing — gated by import.meta.env.DEV.
+// Same-origin path: the /api/diag-logs proxy to backend :3100 sidesteps iOS
+// Safari's per-port self-signed cert prompt. That proxy only exists when
+// VITE_DIAG=1 (otherwise it would force the dev server to HTTP/1.1 — see
+// vite.config.ts). So flushing is gated on the same flag: without VITE_DIAG
+// the proxy is absent and a POST here would just 404. Prod never flushes.
 const FLUSH_URL = '/api/diag-logs/';
-const FLUSH_ENABLED = import.meta.env.DEV;
+const FLUSH_ENABLED = import.meta.env.DEV && import.meta.env.VITE_DIAG === '1';
 
 // Index of the next entry that has not been shipped yet. We ship slices to
 // the backend so it accumulates the full timeline across many flushes.
