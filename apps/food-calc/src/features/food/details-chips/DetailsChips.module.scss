@@ -29,44 +29,11 @@
   padding-inline: var(--space-4);
 }
 
+// Чипы рендерятся унифицированным <Chip> из shared/ui/atoms/Chip — здесь
+// остаётся только раскладка контейнера.
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: var(--dc-chip-gap, var(--space-2));
   padding: 2px var(--space-1);
-}
-
-.chip {
-  appearance: none;
-  -webkit-tap-highlight-color: transparent;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 42px;
-  padding: 7px 14px;
-  border-radius: 999px;
-  border: 1px solid rgb(255, 198, 160);
-  background: linear-gradient(135deg, #fffbf1 0%, #fffcf8 60%, #fff9ee 100%);
-  color: rgb(0, 0, 0);
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.1;
-  cursor: pointer;
-  transition: background 140ms ease, color 140ms ease, border-color 140ms ease, transform 80ms ease, box-shadow 140ms ease;
-}
-
-.chip:hover,
-.chip:focus-visible {
-  border-color: rgba(124, 65, 15, 0.24);
-  outline: none;
-}
-
-.chip:active {
-  transform: scale(0.96);
-}
-
-.chip.active {
-  background: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
-  border-color: rgba(124, 65, 15, 0.5);
-  color: rgba(255, 255, 255, 1);
 }

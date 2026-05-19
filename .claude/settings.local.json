@@ -149,7 +149,24 @@
       "Bash(xargs grep -l \"createTitle\")",
       "WebFetch(domain:dev.to)",
       "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
-      "Bash(xargs wc -l)"
+      "Bash(xargs wc -l)",
+      "Bash(node -e \"const p=require\\('./node_modules/@base-ui/react/package.json'\\); console.log\\('version:', p.version\\)\")",
+      "Bash(ls node_modules/@base-ui/react/drawer/)",
+      "Bash(ls node_modules/@base-ui/react/esm/drawer/)",
+      "Bash(node -e \"const s=require\\('./package.json'\\).scripts; console.log\\(JSON.stringify\\(s,null,1\\)\\)\")",
+      "Bash(npx vite *)",
+      "Read(//c/c/Users/booty/Documents/GitHub/disher/apps/food-calc/**)",
+      "Read(//c/c/Users/booty/Documents/GitHub/disher/apps/food-calc/node_modules/@base-ui/**)",
+      "Read(//c/c/Users/booty/Documents/GitHub/disher/apps/food-calc/node_modules/**)",
+      "Bash(node -p \"require\\('./package.json'\\).version\")",
+      "Bash(Find /c/Users/booty/Documents/GitHub/disher/apps/food-calc -type d -name \"FoodSchedule\")",
+      "Bash(Find /c/Users/booty/Documents/GitHub/disher/apps/food-calc/src/widgets/FoodSchedule -type f -name \"*.tsx\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts,null,1\\)\\)\")",
+      "Bash(Find /c/Users/booty/Documents/GitHub/disher/apps/food-calc/src/widgets/FoodSchedule -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) -exec grep -l \"Details\" {} \\\\;)",
+      "Bash(grep -A3 -iE \"\\\\\\\\\\\\\\\\src\\\\\\\\\\\\\\\\\")",
+      "Bash(grep -iE \"src\\\\\\\\\\\\\\\\|error|warning\")",
+      "Bash(grep -iE \"[\\\\\\\\/]src[\\\\\\\\/]\")",
+      "Bash(grep -E \"ModalHeader|ModalShell\\\\\\\\\\\\\\\\Modal|ModalFooter|ScheduleFoodCreateModals|ScheduleEventCreateModals|ScheduleFoodEditModals|DishProduct|FreeTextFoodReviewEdit|ChangeNameModal|WriteFoodModal|DishSuggestionsModal|ScheduleEventEditModal|AtomInput|SearchFood\\\\.tsx|ModalStepHeader\")"
     ],
     "additionalDirectories": [
       "\\tmp"

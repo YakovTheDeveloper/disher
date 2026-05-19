@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { DetailsStep } from '@/features/food/details-chips';
 import { getProductUrl, RouterUrls } from '@/app/router';
@@ -52,6 +52,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         isExpanded={step === 'time'}
         content={
           <ModalShell>
+            <ModalShell.Header title="Время" onBack={handleClose} />
             <ModalShell.Body>
               <TimeChoose
                 onFinish={handleTimeFinish}
@@ -59,8 +60,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
                 inputId={TIME_INPUT}
               />
               <ModalShell.ActionButtons
-                left={<ModalPrevButton onClick={handleClose} />}
-                right={<ModalNextButton onClick={handleCommit} />}
+                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
               />
             </ModalShell.Body>
           </ModalShell>
@@ -73,6 +73,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         isExpanded={step === 'quantity'}
         content={
           <ModalShell>
+            <ModalShell.Header title="Количество" onBack={handleClose} />
             <ModalShell.Body>
               <ProductQuantity
                 content={quantityContent}
@@ -81,8 +82,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
                 isActive={step === 'quantity'}
               />
               <ModalShell.ActionButtons
-                left={<ModalPrevButton onClick={handleClose} />}
-                right={<ModalNextButton onClick={handleCommit} />}
+                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
               />
             </ModalShell.Body>
           </ModalShell>
@@ -95,6 +95,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         isExpanded={step === 'details'}
         content={
           <ModalShell>
+            <ModalShell.Header title="Уточнение" onBack={handleClose} />
             <ModalShell.Body flush>
               <DetailsStep
                 title={draft.foodName || 'Уточнение'}
@@ -109,8 +110,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
                 productId={draft.productId}
               />
               <ModalShell.ActionButtons
-                left={<ModalPrevButton onClick={handleClose} />}
-                right={<ModalNextButton onClick={handleCommit} />}
+                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
               />
             </ModalShell.Body>
           </ModalShell>

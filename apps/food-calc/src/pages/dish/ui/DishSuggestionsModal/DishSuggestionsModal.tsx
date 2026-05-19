@@ -5,6 +5,8 @@ import type { SuggestionsReviewListRef } from '@/features/dish/suggest-products'
 import { addDishItem } from '@/entities/dish';
 import { Button } from '@/shared/ui/atoms/Button';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
@@ -64,12 +66,7 @@ const DishSuggestionsModal = ({ isExpanded, dishId, dishName, existingItems, onC
       isExpanded={isExpanded}
       content={
         <div className={styles.wrapper}>
-          <div className={styles.header}>
-            <button className={styles.backBtn} onClick={handleClose}>
-              ←
-            </button>
-            <span className={styles.title}>Предложения для «{dishName}»</span>
-          </div>
+          <ModalShell.Header title={`Предложения для «${dishName}»`} onBack={handleClose} />
 
           <div className={styles.content}>
             {state.status === 'loading' && (
@@ -100,11 +97,16 @@ const DishSuggestionsModal = ({ isExpanded, dishId, dishName, existingItems, onC
             {state.status === 'done' && state.suggestions.length > 0 && (
               <>
                 <SuggestionsReviewList ref={listRef} items={state.suggestions} />
-                <div className={styles.actions}>
-                  <Button variant="primary-form" onClick={handleConfirm}>
-                    Добавить выбранные
-                  </Button>
-                </div>
+                <ModalShell.ActionButtons
+                  debugId="dish-suggestions"
+                  right={
+                    <ModalNextButton
+                      onClick={handleConfirm}
+                      label="Добавить выбранные"
+                      variant="finish"
+                    />
+                  }
+                />
               </>
             )}
           </div>

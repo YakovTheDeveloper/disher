@@ -1,37 +1,44 @@
-import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg';
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs';
+import { ModalHeader, type ModalHeaderProps } from '@/shared/ui/ModalHeader';
 import s from './ModalStepHeader.module.scss';
 
-type Props<T extends string> = {
+type Props<T extends string> = ModalHeaderProps & {
   currentStep: T;
   steps: T[];
   stepLabels: Record<T, string>;
   stepResults?: Partial<Record<T, React.ReactNode>>;
-  onBack: () => void;
   onStepClick: (step: T) => void;
 };
 
+/**
+ * ModalStepHeader — обвязка многошаговых wizard-флоу. Композиция:
+ * `ModalHeader` (стрелка назад + title флоу) + ряд `Breadcrumbs` под ним.
+ * Стрелка = шаг −1; breadcrumbs `onStepClick` = прыжок на пройденный шаг.
+ */
 function ModalStepHeader<T extends string>({
+  title,
+  onBack,
+  backLabel,
+  trailing,
   currentStep,
   steps,
   stepLabels,
   stepResults,
-  onBack,
   onStepClick,
 }: Props<T>) {
   return (
-    <header className={s.header}>
-      <button className={s.backButton} onClick={onBack} type="button">
-        <ArrowLeftIcon />
-      </button>
-      <Breadcrumbs
-        steps={steps}
-        current={currentStep}
-        stepLabels={stepLabels}
-        stepResults={stepResults}
-        onStepClick={onStepClick}
-      />
-    </header>
+    <div className={s.stepHeader}>
+      <ModalHeader title={title} onBack={onBack} backLabel={backLabel} trailing={trailing} />
+      <div className={s.crumbs}>
+        <Breadcrumbs
+          steps={steps}
+          current={currentStep}
+          stepLabels={stepLabels}
+          stepResults={stepResults}
+          onStepClick={onStepClick}
+        />
+      </div>
+    </div>
   );
 }
 

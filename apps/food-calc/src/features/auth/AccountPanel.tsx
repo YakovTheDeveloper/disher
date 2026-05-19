@@ -11,7 +11,10 @@ const AccountPanel = () => {
   // after signOut when the gate re-mounts.
 
   const openDrawer = () => {
-    drawerStore.show(ProfileDrawer, {});
+    // Account/settings is a global navigation surface, not a contextual action
+    // sheet — it slides in from the side. Full viewport height fits the profile
+    // + theme picker + danger zone without scrolling.
+    drawerStore.show(ProfileDrawer, {}, { side: 'left' });
   };
 
   return (

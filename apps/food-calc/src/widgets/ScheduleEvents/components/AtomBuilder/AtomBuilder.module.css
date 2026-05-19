@@ -30,6 +30,7 @@
 /* Заголовок прямо над рядом плиток (раньше — у верха экрана). */
 .tileHeading {
   margin-bottom: 12px;
+  text-align: center;
 }
 
 /* Селектор типов атома — ряд из 3 плиток. Сами плитки — примитив NavTile
@@ -46,4 +47,163 @@
 .tileHint {
   margin-top: 12px;
   text-align: center;
+}
+
+/* ─── Accent variants (DesignVariantsBar anchor "AtomAccent") ──────────
+ * Three tokens per atom kind:
+ *   --event-<kind>-accent — solid: caret / underline / borders / icons.
+ *   --event-<kind>-fill   — background of the selected chip + «Готово»
+ *                           button. A gradient; falls back to the accent.
+ *   --event-<kind>-on     — text colour over the fill. Default white;
+ *                           pastels set a dark ink so the value reads.
+ *
+ * The old neon --color-deep-blue (rgb 55,0,255) is retired. Override lands
+ * on this element; the atom inputs (descendants) resolve the tokens.
+ *
+ * Vivid variants hold the saturated accent to 42%, then sweep sharply to a
+ * bright light stop — striking, white text. Pastels invert it: a soft tint
+ * sweeps to a paler one, carrying dark ink text.
+ *
+ * sage     — dusty green → muted teal → deep teal (flat, calm default)
+ * meadow   — same sage hues, now with the bright-sweep gradient
+ * grape    — vivid purple → lavender sweep
+ * lilac    — bright amethyst / orchid → light-violet sweep
+ * ocean    — teal → aqua → cornflower sweep
+ * berry    — magenta / raspberry → pink sweep
+ * marigold — deep amber → warm gold sweep (the yellow family)
+ * lemon    — pastel butter-yellow, dark ink text
+ * bloom    — pastel rose-pink, dark ink text
+ * sky      — pastel periwinkle-blue, dark ink text
+ * mint     — pastel sage → teal, keyed to the ModalShell spring4 backdrop
+ * aqua     — pastel aqua / cyan, dark ink text */
+
+[data-dv='AtomAccent'][data-dv-v='sage'] {
+  --event-scale-accent: #52784a;
+  --event-tag-accent: #37786a;
+  --event-relation-accent: #2c6a72;
+}
+
+[data-dv='AtomAccent'][data-dv-v='meadow'] {
+  --event-scale-accent: #52784a;
+  --event-tag-accent: #37786a;
+  --event-relation-accent: #2c6a72;
+  --event-scale-fill: linear-gradient(120deg, #52784a 0%, #52784a 42%, #76aa64 100%);
+  --event-tag-fill: linear-gradient(120deg, #37786a 0%, #37786a 42%, #56a892 100%);
+  --event-relation-fill: linear-gradient(120deg, #2c6a72 0%, #2c6a72 42%, #509da1 100%);
+}
+
+[data-dv='AtomAccent'][data-dv-v='grape'] {
+  --event-scale-accent: #6e3eb8;
+  --event-tag-accent: #7d3cae;
+  --event-relation-accent: #5b39a6;
+  --event-scale-fill: linear-gradient(120deg, #6e3eb8 0%, #6e3eb8 42%, #9d7ccb 100%);
+  --event-tag-fill: linear-gradient(120deg, #7d3cae 0%, #7d3cae 42%, #a888ce 100%);
+  --event-relation-fill: linear-gradient(120deg, #5b39a6 0%, #5b39a6 42%, #9077c0 100%);
+}
+
+[data-dv='AtomAccent'][data-dv-v='lilac'] {
+  --event-scale-accent: #9648c4;
+  --event-tag-accent: #a046bc;
+  --event-relation-accent: #8a48c8;
+  --event-scale-fill: linear-gradient(120deg, #9648c4 0%, #9648c4 42%, #b283d2 100%);
+  --event-tag-fill: linear-gradient(120deg, #a046bc 0%, #a046bc 42%, #b07fc8 100%);
+  --event-relation-fill: linear-gradient(120deg, #8a48c8 0%, #8a48c8 42%, #a07ace 100%);
+}
+
+[data-dv='AtomAccent'][data-dv-v='ocean'] {
+  --event-scale-accent: #13808f;
+  --event-tag-accent: #1f6f9e;
+  --event-relation-accent: #2a5aa0;
+  --event-scale-fill: linear-gradient(120deg, #13808f 0%, #13808f 42%, #54b4b9 100%);
+  --event-tag-fill: linear-gradient(120deg, #1f6f9e 0%, #1f6f9e 42%, #5fa6cb 100%);
+  --event-relation-fill: linear-gradient(120deg, #2a5aa0 0%, #2a5aa0 42%, #7790cc 100%);
+}
+
+[data-dv='AtomAccent'][data-dv-v='berry'] {
+  --event-scale-accent: #bd3f8a;
+  --event-tag-accent: #c1357a;
+  --event-relation-accent: #a23a96;
+  --event-scale-fill: linear-gradient(120deg, #bd3f8a 0%, #bd3f8a 42%, #d97cb0 100%);
+  --event-tag-fill: linear-gradient(120deg, #c1357a 0%, #c1357a 42%, #dc7ca2 100%);
+  --event-relation-fill: linear-gradient(120deg, #a23a96 0%, #a23a96 42%, #c67dbd 100%);
+}
+
+/* marigold — deep amber accents so the white value text stays legible;
+   the sweep climbs to a warm gold. */
+[data-dv='AtomAccent'][data-dv-v='marigold'] {
+  --event-scale-accent: #9c6510;
+  --event-tag-accent: #a66a0e;
+  --event-relation-accent: #8f5d12;
+  --event-scale-fill: linear-gradient(120deg, #9c6510 0%, #9c6510 42%, #c89030 100%);
+  --event-tag-fill: linear-gradient(120deg, #a66a0e 0%, #a66a0e 42%, #cf9836 100%);
+  --event-relation-fill: linear-gradient(120deg, #8f5d12 0%, #8f5d12 42%, #bf8728 100%);
+}
+
+/* ── Pastel family ────────────────────────────────────────────────────
+   Light fills carrying dark ink text (--*-on). The accent stays a
+   medium-dark hue so caret / underline / «Назад» button keep contrast on
+   the white input surface. Gradient: a soft tint (0–42%) sweeping to a
+   paler tint — gentler than the vivid set, but still a visible step. */
+
+[data-dv='AtomAccent'][data-dv-v='lemon'] {
+  --event-scale-accent: #8a6a14;
+  --event-tag-accent: #947214;
+  --event-relation-accent: #806113;
+  --event-scale-fill: linear-gradient(120deg, #ead07a 0%, #ead07a 42%, #f6ecc4 100%);
+  --event-tag-fill: linear-gradient(120deg, #eed687 0%, #eed687 42%, #f8efcc 100%);
+  --event-relation-fill: linear-gradient(120deg, #e6c96e 0%, #e6c96e 42%, #f3e7ba 100%);
+  --event-scale-on: #534210;
+  --event-tag-on: #5a4912;
+  --event-relation-on: #4d3d0f;
+}
+
+[data-dv='AtomAccent'][data-dv-v='bloom'] {
+  --event-scale-accent: #a8466a;
+  --event-tag-accent: #b04668;
+  --event-relation-accent: #9c4878;
+  --event-scale-fill: linear-gradient(120deg, #e9aabf 0%, #e9aabf 42%, #f5d4de 100%);
+  --event-tag-fill: linear-gradient(120deg, #eca9bb 0%, #eca9bb 42%, #f6d3dc 100%);
+  --event-relation-fill: linear-gradient(120deg, #e3a6c8 0%, #e3a6c8 42%, #f1d0e2 100%);
+  --event-scale-on: #6b2740;
+  --event-tag-on: #702940;
+  --event-relation-on: #5e2a48;
+}
+
+[data-dv='AtomAccent'][data-dv-v='sky'] {
+  --event-scale-accent: #3f6aa0;
+  --event-tag-accent: #4666a4;
+  --event-relation-accent: #5560a4;
+  --event-scale-fill: linear-gradient(120deg, #a8c2e6 0%, #a8c2e6 42%, #d2dff2 100%);
+  --event-tag-fill: linear-gradient(120deg, #aabfe8 0%, #aabfe8 42%, #d3ddf3 100%);
+  --event-relation-fill: linear-gradient(120deg, #b4b8e6 0%, #b4b8e6 42%, #dadcf3 100%);
+  --event-scale-on: #274566;
+  --event-tag-on: #2b4170;
+  --event-relation-on: #383a72;
+}
+
+/* mint — tuned to the ModalShell `spring4` backdrop: its fills echo the
+   sage-green orb (#8bbf8b) and soft-teal orb (#80cbc4) of that variant, so
+   the chip reads as the same pigment family as the surface behind it. */
+[data-dv='AtomAccent'][data-dv-v='mint'] {
+  --event-scale-accent: #4f7a48;
+  --event-tag-accent: #447a5e;
+  --event-relation-accent: #3d7770;
+  --event-scale-fill: linear-gradient(120deg, #b6d6ad 0%, #b6d6ad 42%, #d9e9d2 100%);
+  --event-tag-fill: linear-gradient(120deg, #aed6c0 0%, #aed6c0 42%, #d4e9de 100%);
+  --event-relation-fill: linear-gradient(120deg, #a6d4cd 0%, #a6d4cd 42%, #d2e9e5 100%);
+  --event-scale-on: #2b4a26;
+  --event-tag-on: #264a39;
+  --event-relation-on: #234742;
+}
+
+[data-dv='AtomAccent'][data-dv-v='aqua'] {
+  --event-scale-accent: #208089;
+  --event-tag-accent: #268193;
+  --event-relation-accent: #2d7a9e;
+  --event-scale-fill: linear-gradient(120deg, #98d9dd 0%, #98d9dd 42%, #c9eef0 100%);
+  --event-tag-fill: linear-gradient(120deg, #9bd9e2 0%, #9bd9e2 42%, #caedf1 100%);
+  --event-relation-fill: linear-gradient(120deg, #a0d2e6 0%, #a0d2e6 42%, #cee9f2 100%);
+  --event-scale-on: #184348;
+  --event-tag-on: #1a464f;
+  --event-relation-on: #1d4356;
 }

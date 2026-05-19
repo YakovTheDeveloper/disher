@@ -4,8 +4,7 @@
   display: flex;
   flex-direction: column;
   min-height: 50vh;
-  padding: 0 var(--space-5);
-  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  padding: 0 var(--space-5) var(--space-4);
   gap: var(--space-8);
 }
 
@@ -61,10 +60,16 @@
   color: var(--text-primary);
 }
 
-// ─── Опасная зона (collapsed by default) ────────────────────────
+// ─── Опасная зона (pinned footer, collapsed by default) ─────────
+
+// Wrapper supplies the padding the footer slot loses by sitting outside
+// .container; bottom padding carries the safe-area inset.
+.dangerFooter {
+  padding: var(--space-2) var(--space-5)
+    calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+}
 
 .danger {
-  margin-top: auto;
   border-radius: var(--radius-md);
   background: rgba(176, 52, 35, 0.045);
   border: 1px solid rgba(176, 52, 35, 0.14);

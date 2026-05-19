@@ -5,6 +5,7 @@ import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
+import { ModalHeader } from '@/shared/ui/ModalHeader';
 
 type Variant =
   | 'default'
@@ -106,8 +107,10 @@ const ModalShellHint = ({ children }: { children: ReactNode }) => (
 ModalShellHint.displayName = 'ModalShell.Hint';
 
 type ActionButtonsProps = {
+  /** Primary Confirm — обязателен, когда footer рендерится. */
+  right: ReactNode;
+  /** Опциональный контекстный слот (НЕ «Назад»). Пуст → right на всю ширину. */
   left?: ReactNode;
-  right?: ReactNode;
   debugId?: string;
 };
 
@@ -116,7 +119,7 @@ const ModalShellActionButtons = ({ left, right, debugId }: ActionButtonsProps) =
 
   return (
     <div ref={ref} className={s.actionButtons}>
-      <div className={s.actionButtonsSlotPrev}>{left}</div>
+      {left != null && <div className={s.actionButtonsSlotPrev}>{left}</div>}
       <div className={s.actionButtonsSlotNext}>{right}</div>
     </div>
   );
@@ -128,7 +131,8 @@ ModalShell.Body = ModalShellBody;
 ModalShell.AtomsBody = ModalShellAtomsBody;
 ModalShell.Title = ModalShellTitle;
 ModalShell.Hint = ModalShellHint;
-// Multi-step header (back button + breadcrumbs). Lives under the ModalShell
-// namespace so there is one entry point for modal header pieces.
+// Header pieces live under the ModalShell namespace so there is one entry
+// point. `Header` — back + title; `StepHeader` — back + title + breadcrumbs.
+ModalShell.Header = ModalHeader;
 ModalShell.StepHeader = ModalStepHeader;
 ModalShell.ActionButtons = ModalShellActionButtons;

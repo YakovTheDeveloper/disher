@@ -7,6 +7,7 @@ import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { ModalHeader } from '@/shared/ui/ModalHeader';
 import { useFilteredFoods, useFoodCreation } from './model';
 import { FoodSearchEmpty } from './FoodSearchEmpty';
 
@@ -32,6 +33,12 @@ type Props = {
   richNutrient?: { id: string; unit: string } | null;
   onInfoClick?: (variant: 'product' | 'dish', id: string) => void;
   onBack?: () => void;
+  /**
+   * Когда задан — экран поиска получает единый `ModalHeader` сверху
+   * (заголовок + стрелка назад). Стрелка берёт `onBack`; back-кнопка
+   * внутри `SearchFoodControls` при этом не рендерится.
+   */
+  title?: string;
   bottomLeft?: React.ReactNode;
   itemHtmlFor?: string;
   inputId?: string;
@@ -60,6 +67,7 @@ const SearchFood = ({
   richNutrient,
   onInfoClick,
   onBack,
+  title,
   bottomLeft,
   itemHtmlFor,
   inputId,
@@ -87,11 +95,12 @@ const SearchFood = ({
 
   return (
     <div className={styles.content} {...anchor}>
+      {title && onBack && <ModalHeader title={title} onBack={onBack} />}
       <div className={styles.header}>
         <SearchFoodControls
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onBack={onBack}
+          onBack={title ? undefined : onBack}
           inputId={inputId}
         />
       </div>

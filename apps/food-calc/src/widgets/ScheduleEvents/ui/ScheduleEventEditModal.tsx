@@ -2,14 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalFooter, ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { TimeChoose, type TimeRangeState } from '@/shared/ui/TimeChoose';
 import { updateScheduleEvent } from '@/entities/schedule-event';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
-import Button from '@/shared/ui/atoms/Button/Button';
-import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
+import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
@@ -69,6 +68,11 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
     else if (id === EDIT_MODAL_INPUT_IDS.ATOMS_INPUT) setStep('atoms');
     else return;
 
+    // Контейнер атомов — flex:1 во весь экран; scrollIntoView({block:'center'})
+    // на нём тащит модалку / visual viewport на iOS. Скроллим только мелкие
+    // инпуты (время/текст).
+    if (id === EDIT_MODAL_INPUT_IDS.ATOMS_INPUT) return;
+
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
@@ -107,9 +111,8 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         isExpanded={step === 'time'}
         content={
           <ModalShell className={modalStyles.whiteShell}>
-
+            <ModalShell.Header title="Выберите время" onBack={handleClose} />
             <ModalShell.Body>
-              <ModalShell.Title>Выберите время</ModalShell.Title>
               <TimeChoose
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
@@ -121,8 +124,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
                 }}
               />
               <ModalShell.ActionButtons
-                left={<ModalPrevButton onClick={handleClose} />}
-                right={<ModalNextButton onClick={handleCommit} />}
+                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
               />
             </ModalShell.Body>
           </ModalShell>
@@ -135,20 +137,17 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         isExpanded={step === 'text'}
         content={
           <ModalShell className={modalStyles.whiteShell}>
-
+            <ModalShell.Header title="Опишите событие" onBack={handleClose} />
             <ModalShell.Body>
-              <ModalShell.Title>Опишите событие</ModalShell.Title>
-              <Textarea
+              <AutoGrowSearch
                 id={EDIT_MODAL_INPUT_IDS.TEXT_INPUT}
                 onChange={handleTextChange}
                 value={draft.text}
                 placeholder="Опишите событие"
               />
-              <ModalFooter onBack={handleClose}>
-                <Button variant="primary-form" onClick={handleCommit}>
-                  Готово
-                </Button>
-              </ModalFooter>
+              <ModalShell.ActionButtons
+                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
+              />
             </ModalShell.Body>
           </ModalShell>
         }
@@ -160,15 +159,13 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         isExpanded={step === 'atoms'}
         content={
           <ModalShell className={modalStyles.whiteShell}>
+            {!atomPanelOpen && <ModalShell.Header title="Добавьте теги" onBack={handleClose} />}
             <ModalShell.AtomsBody>
-              <ModalShell.Title>Добавьте теги</ModalShell.Title>
               <AtomBuilder id={EDIT_MODAL_INPUT_IDS.ATOMS_INPUT} onPanelChange={setAtomPanelOpen} />
               {!atomPanelOpen && (
-                <ModalFooter onBack={handleClose}>
-                  <Button variant="primary-form" onClick={handleCommit}>
-                    Готово
-                  </Button>
-                </ModalFooter>
+                <ModalShell.ActionButtons
+                  right={<ModalNextButton onClick={handleCommit} variant="finish" />}
+                />
               )}
             </ModalShell.AtomsBody>
           </ModalShell>

@@ -2,17 +2,16 @@ import { useCallback, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { TimeChoose, type TimeRangeState } from '@/shared/ui/TimeChoose';
 import { addScheduleEvent } from '@/entities/schedule-event';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
-import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
+import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
 import modalStyles from './ScheduleEventModals.module.scss';
 import { MODAL_INPUT_IDS } from './ScheduleEventCreateModals.constants';
-import { ButtonBack } from '@/shared/ui/atoms/Button/ButtonBack';
 
 type Step = 'idle' | 'time' | 'text' | 'atoms';
 type ActiveStep = Exclude<Step, 'idle'>;
@@ -24,6 +23,8 @@ const STEP_LABELS: Record<ActiveStep, string> = {
   text: 'Текст',
   atoms: 'Теги',
 };
+
+const FLOW_TITLE = 'Новое событие';
 
 type DraftState = {
   time: string;
@@ -69,11 +70,17 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         return nextStep;
       });
 
-      requestAnimationFrame(() => {
+      // scrollIntoView только для мелких инпутов (время/текст). Цель шага
+      // 'atoms' — корневой <div> AtomBuilder, а он flex:1 во весь экран:
+      // block:'center' попытается «отцентрировать» стоэкранный элемент и
+      // протащит модалку / visual viewport на iOS.
+      if (nextStep !== 'atoms') {
         requestAnimationFrame(() => {
-          target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
+          requestAnimationFrame(() => {
+            target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
+          });
         });
-      });
+      }
     },
     [clearAtoms]
   );
@@ -124,6 +131,16 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
     setStep(target);
   };
 
+  // Step-aware «назад»: шаг визарда >1 → предыдущий шаг; первый → закрыть флоу.
+  const handleBack = () => {
+    const idx = (STEPS as string[]).indexOf(step);
+    if (idx <= 0) {
+      handleClose();
+      return;
+    }
+    setStep(STEPS[idx - 1]);
+  };
+
   const timeResult = draft.endTime ? `${draft.time}–${draft.endTime}` : draft.time;
   const textResult = draft.text ? draft.text : undefined;
   const stepResults = { time: timeResult, text: textResult };
@@ -136,10 +153,15 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         isExpanded={step === 'time'}
         content={
           <ModalShell className={modalStyles.whiteShell}>
-            <ModalShell.Title>
-              <ButtonBack size="medium" onClick={() => setStep('idle')} />
-              Выберите время
-            </ModalShell.Title>
+            <ModalShell.StepHeader
+              title={FLOW_TITLE}
+              currentStep="time"
+              steps={STEPS}
+              stepLabels={STEP_LABELS}
+              stepResults={stepResults}
+              onBack={handleBack}
+              onStepClick={goToStep}
+            />
             <ModalShell.Body>
               <TimeChoose
                 onFinish={handleTimeFinish}
@@ -166,17 +188,16 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         content={
           <ModalShell className={modalStyles.whiteShell}>
             <ModalShell.StepHeader
+              title={FLOW_TITLE}
               currentStep="text"
               steps={STEPS}
               stepLabels={STEP_LABELS}
               stepResults={stepResults}
-              onBack={handleClose}
+              onBack={handleBack}
               onStepClick={goToStep}
             />
             <ModalShell.Body>
-              <ModalShell.Title>Опишите событие</ModalShell.Title>
-
-              <Textarea
+              <AutoGrowSearch
                 placeholder="Опишите событие"
                 id={MODAL_INPUT_IDS.TEXT_INPUT}
                 onChange={handleTextChange}
@@ -196,20 +217,26 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         isExpanded={step === 'atoms'}
         content={
           <ModalShell className={modalStyles.whiteShell}>
+            {!atomPanelOpen && (
+              <ModalShell.StepHeader
+                title={FLOW_TITLE}
+                currentStep="atoms"
+                steps={STEPS}
+                stepLabels={STEP_LABELS}
+                stepResults={stepResults}
+                onBack={handleBack}
+                onStepClick={goToStep}
+              />
+            )}
             <ModalShell.AtomsBody>
               {step === 'atoms' && (
                 <AtomBuilder id={MODAL_INPUT_IDS.ATOMS_INPUT} onPanelChange={setAtomPanelOpen} />
               )}
             </ModalShell.AtomsBody>
             {!atomPanelOpen && (
-              <div className={modalStyles.atomsFooter}>
-                <div className={modalStyles.atomsFooterSlotPrev}>
-                  <ModalPrevButton onClick={() => goToStep('text')} />
-                </div>
-                <div className={modalStyles.atomsFooterSlotNext}>
-                  <ModalNextButton onClick={handleCommit} />
-                </div>
-              </div>
+              <ModalShell.ActionButtons
+                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
+              />
             )}
           </ModalShell>
         }

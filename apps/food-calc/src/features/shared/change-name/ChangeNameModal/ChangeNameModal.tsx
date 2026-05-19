@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
-import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
+import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 
 export const CHANGE_NAME_INPUT_ID = 'change-name-input';
 
@@ -47,22 +47,21 @@ const ChangeNameModal = ({ currentName, isExpanded, onClose, onChangeName }: Pro
       isExpanded={isExpanded}
       content={
         <ModalShell variant="spring">
+          <ModalShell.Header title="Изменить название" onBack={onClose} />
           <ModalShell.Body>
-            <ModalShell.Title>Изменить название</ModalShell.Title>
-            <Textarea
+            <AutoGrowSearch
+              singleLine
               id={CHANGE_NAME_INPUT_ID}
               value={value}
               onChange={setValue}
               placeholder={currentName}
-              rows={3}
               maxLength={500}
               autoFocus={isExpanded}
             />
             {isExpanded && (
               <ModalShell.ActionButtons
                 debugId="change-name"
-                left={<ModalPrevButton onClick={onClose} />}
-                right={<ModalNextButton onClick={handleSave} />}
+                right={<ModalNextButton onClick={handleSave} variant="finish" />}
               />
             )}
           </ModalShell.Body>

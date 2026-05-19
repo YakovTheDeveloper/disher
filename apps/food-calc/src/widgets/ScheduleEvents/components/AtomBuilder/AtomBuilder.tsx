@@ -5,11 +5,12 @@
  * The parent ModalByLabel provides the fullscreen context.
  */
 
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import type { Atom } from '@/entities/schedule-event';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import { NavTile } from '@/shared/ui/NavTile';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { AtomList } from './AtomList';
 import { ScaleAtomInput } from './ScaleAtomInput';
 import { TagAtomInput } from './TagAtomInput';
@@ -24,23 +25,52 @@ export interface AtomBuilderProps {
 
 type AtomPanel = 'scale' | 'tag' | 'relation';
 
-const ATOM_BUTTONS: { kind: AtomPanel; label: string; image: string }[] = [
-  { kind: 'scale', label: 'Оценка', image: '/art/scale-2.png' },
-  { kind: 'tag', label: 'Тег', image: '/art/tag-2.png' },
-  { kind: 'relation', label: 'Связь', image: '/art/link-2.png' },
+// imgOffset — сдвиг картинки-призрака в ПРОЦЕНТАХ (translate относительно
+// размера .tileImg = 100% плитки), чтобы композиция держалась на любом
+// размере экрана. Подобрано на компе при ширине плитки 101px и переведено
+// из px в %: scale −23/4 → −22.8/4, tag 14/6 → 13.9/5.9, relation 29/3 → 28.7/3.
+const ATOM_BUTTONS: {
+  kind: AtomPanel;
+  label: string;
+  image: string;
+  imgOffset: { x: string; y: string };
+}[] = [
+  { kind: 'scale', label: 'Оценка', image: '/art/scale-2.png', imgOffset: { x: '-22.8%', y: '4%' } },
+  { kind: 'tag', label: 'Тег', image: '/art/tag-2.png', imgOffset: { x: '13.9%', y: '5.9%' } },
+  { kind: 'relation', label: 'Связь', image: '/art/link-2.png', imgOffset: { x: '28.7%', y: '3%' } },
 ];
 
+// Solid accent — caret / underline / borders / icon colour.
 const ATOM_ACCENT: Record<AtomPanel, string> = {
   scale: 'var(--event-scale-accent)',
   tag: 'var(--event-tag-accent)',
   relation: 'var(--event-relation-accent)',
 };
 
+// Accent palettes for scale/tag/relation. Each keeps the three kinds as
+// close-but-distinct shades — never the old neon. Flip live via the
+// DesignVariantsBar; CSS lives in AtomBuilder.module.css. First = default.
+const ATOM_ACCENT_VARIANTS = [
+  'sage',
+  'meadow',
+  'grape',
+  'lilac',
+  'ocean',
+  'berry',
+  'marigold',
+  'lemon',
+  'bloom',
+  'sky',
+  'mint',
+  'aqua',
+] as const;
+
 export const AtomBuilder = ({ id, className = '', onPanelChange }: AtomBuilderProps) => {
   const atoms = useEventDraftStore((s) => s.draft.atoms);
   const addAtom = useEventDraftStore((s) => s.addAtom);
   const removeAtom = useEventDraftStore((s) => s.removeAtom);
   const [openPanel, setOpenPanel] = useState<AtomPanel | null>(null);
+  const { anchor: accentAnchor } = useDesignVariant('AtomAccent', ATOM_ACCENT_VARIANTS);
 
   const openAtomPanel = (panel: AtomPanel) => {
     setOpenPanel(panel);
@@ -67,7 +97,12 @@ export const AtomBuilder = ({ id, className = '', onPanelChange }: AtomBuilderPr
     }[openPanel];
 
     return (
-      <div id={id} tabIndex={id ? -1 : undefined} className={`${styles.panelView} ${className}`}>
+      <div
+        id={id}
+        {...accentAnchor}
+        tabIndex={id ? -1 : undefined}
+        className={`${styles.panelView} ${className}`}
+      >
         <InputComponent
           accentColor={ATOM_ACCENT[openPanel]}
           onAddAtom={handleAddAtom}
@@ -79,7 +114,12 @@ export const AtomBuilder = ({ id, className = '', onPanelChange }: AtomBuilderPr
 
   // Default: show atom list + type selector buttons
   return (
-    <div id={id} tabIndex={id ? -1 : undefined} className={`${styles.container} ${className}`}>
+    <div
+      id={id}
+      {...accentAnchor}
+      tabIndex={id ? -1 : undefined}
+      className={`${styles.container} ${className}`}
+    >
       <AtomList atoms={atoms} onRemove={removeAtom} />
 
       <div className={styles.tileSection}>
@@ -88,13 +128,14 @@ export const AtomBuilder = ({ id, className = '', onPanelChange }: AtomBuilderPr
         </Heading>
 
         <div className={styles.atomButtons}>
-          {ATOM_BUTTONS.map(({ kind, label, image }) => (
+          {ATOM_BUTTONS.map(({ kind, label, image, imgOffset }) => (
             <NavTile
               key={kind}
               label={label}
               image={image}
               active
               solidLabel
+              style={{ '--tile-img-x': imgOffset.x, '--tile-img-y': imgOffset.y } as CSSProperties}
               onClick={() => openAtomPanel(kind)}
             />
           ))}

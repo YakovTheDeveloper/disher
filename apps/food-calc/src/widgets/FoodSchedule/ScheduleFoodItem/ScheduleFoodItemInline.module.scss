@@ -38,7 +38,14 @@
     padding: 2px 6px;
     margin: -2px -6px;
     border-radius: 6px;
-    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    transition: background-color var(--press-out) ease, box-shadow var(--press-out) ease;
+
+    // Мгновенный тёплый flash на тап — pre-attentive отклик до того,
+    // как доедет focus-within (зелёный) ниже.
+    &:active {
+        background-color: rgba(216, 140, 40, 0.16);
+        transition-duration: var(--press-in);
+    }
 
     &:focus-within {
         background-color: color-mix(in oklch, var(--select-color, #6cffc4) 22%, transparent);
@@ -108,7 +115,12 @@
     padding: 2px 6px;
     margin: -2px -6px;
     border-radius: 6px;
-    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    transition: background-color var(--press-out) ease, box-shadow var(--press-out) ease;
+
+    &:active {
+        background-color: rgba(216, 140, 40, 0.16);
+        transition-duration: var(--press-in);
+    }
 
     &:focus-within {
         background-color: color-mix(in oklch, var(--select-color, #6cffc4) 22%, transparent);

@@ -2,7 +2,7 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { DetailsChips } from '@/features/food/details-chips';
 import type { DishProductFlow } from '../useDishProductFlow';
 
@@ -24,6 +24,10 @@ const DishProductEditModals = ({ flow }: Props) => {
     inputIds: { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
   } = flow;
 
+  const detailsTitle = editingItem?.product?.name
+    ? `Уточнение: ${editingItem.product.name}`
+    : 'Уточнение к ингредиенту';
+
   return (
     <div onFocusCapture={handleFocusCapture}>
       {/* Search Food */}
@@ -34,6 +38,7 @@ const DishProductEditModals = ({ flow }: Props) => {
           <ModalShell>
             <SearchFood
               mode="products-only"
+              title="Продукт"
               onSelectFood={handleFoodSelect}
               onInfoClick={() => {
                 handleClose();
@@ -53,6 +58,7 @@ const DishProductEditModals = ({ flow }: Props) => {
         isExpanded={step === 'quantity'}
         content={
           <ModalShell>
+            <ModalShell.Header title="Количество" onBack={handleClose} />
             <ModalShell.Body>
               {editingItem && (
                 <>
@@ -62,8 +68,7 @@ const DishProductEditModals = ({ flow }: Props) => {
                     inputId={QUANTITY_INPUT}
                   />
                   <ModalShell.ActionButtons
-                    left={<ModalPrevButton onClick={handleClose} />}
-                    right={<ModalNextButton onClick={handleCommit} />}
+                    right={<ModalNextButton onClick={handleCommit} variant="finish" />}
                   />
                 </>
               )}
@@ -78,12 +83,8 @@ const DishProductEditModals = ({ flow }: Props) => {
         isExpanded={step === 'details'}
         content={
           <ModalShell>
+            <ModalShell.Header title={detailsTitle} onBack={handleClose} />
             <ModalShell.Body>
-              <ModalShell.Title>
-                {editingItem?.product?.name
-                  ? `Уточнение: ${editingItem.product.name}`
-                  : 'Уточнение к ингредиенту'}
-              </ModalShell.Title>
               <DetailsChips
                 textareaId={DETAILS_INPUT}
                 value={draft.details}
@@ -91,8 +92,7 @@ const DishProductEditModals = ({ flow }: Props) => {
                 productId={draft.productId}
               />
               <ModalShell.ActionButtons
-                left={<ModalPrevButton onClick={handleClose} />}
-                right={<ModalNextButton onClick={handleCommit} />}
+                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
               />
             </ModalShell.Body>
           </ModalShell>

@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from 'react';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
-import Textarea from '@/shared/ui/atoms/Textarea/Textarea';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
+import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import type { UseWriteFoodFlowResult } from '../model/useWriteFoodFlow';
@@ -65,27 +65,33 @@ export const WriteFoodModal = ({
 
   const readOnly = state === 'loading' || state === 'ready';
 
+  // Back-стрелка состояние-зависима: во время обработки «назад» = свернуть
+  // (джоба продолжается в фоне); в остальных состояниях — отменить.
+  const handleBack = state === 'loading' ? handleMinimize : handleCancel;
+
+  const title =
+    state === 'idle'
+      ? 'Опишите, что вы ели'
+      : state === 'loading'
+        ? 'Обрабатываем…'
+        : state === 'ready'
+          ? `Готово · ${readyCount} ${pluralizeItems(readyCount)}`
+          : 'Не получилось';
+
   return (
     <ModalByLabel
       position="absolute"
       isExpanded={isExpanded}
       content={
         <ModalShell>
+          <ModalShell.Header title={title} onBack={handleBack} />
           <ModalShell.Body>
-            <ModalShell.Title>
-              {state === 'idle' && 'Опишите, что вы ели'}
-              {state === 'loading' && 'Обрабатываем…'}
-              {state === 'ready' && `Готово · ${readyCount} ${pluralizeItems(readyCount)}`}
-              {state === 'error' && 'Не получилось'}
-            </ModalShell.Title>
-
             <div className={styles.textareaWrap}>
-              <Textarea
+              <AutoGrowSearch
                 id={inputId}
                 value={inputText}
                 onChange={setInputText}
                 placeholder={placeholder || DEFAULT_PLACEHOLDER}
-                rows={2}
                 maxLength={2000}
                 readOnly={readOnly}
               />
@@ -110,13 +116,6 @@ export const WriteFoodModal = ({
 
             <ModalShell.ActionButtons
               debugId="write-food"
-              left={
-                state === 'loading' ? (
-                  <ModalPrevButton onClick={handleMinimize} />
-                ) : (
-                  <ModalPrevButton onClick={handleCancel} />
-                )
-              }
               right={
                 state === 'idle' ? (
                   <ModalNextButton

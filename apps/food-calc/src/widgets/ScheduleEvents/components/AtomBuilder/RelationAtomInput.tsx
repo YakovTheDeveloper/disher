@@ -3,10 +3,13 @@
  * Renders inline (no ModalShell), fills parent flex container.
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RelationAtom } from '@/entities/schedule-event';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
+import { ModalHeader } from '@/shared/ui/ModalHeader';
+import { Chip } from '@/shared/ui/atoms/Chip';
+import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import styles from './shared/AtomInputShared.module.css';
 
 export interface RelationAtomInputProps {
@@ -27,6 +30,12 @@ const PRESET_RELATIONS = [
 export const RelationAtomInput = ({ onAddAtom, onClose, accentColor }: RelationAtomInputProps) => {
   const [value, setValue] = useState('');
   const [isReady, setIsReady] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Autofocus without scrolling — see ScaleAtomInput for the rationale.
+  useEffect(() => {
+    inputRef.current?.focus({ preventScroll: true });
+  }, []);
 
   const handleAdd = () => {
     const trimmed = value.trim();
@@ -39,41 +48,45 @@ export const RelationAtomInput = ({ onAddAtom, onClose, accentColor }: RelationA
       className={styles.atomPanel}
       style={accentColor ? ({ '--atom-accent': accentColor } as React.CSSProperties) : undefined}
     >
+      <ModalHeader title="Связь" onBack={onClose} />
       <div className={styles.panelBody}>
-        <div className={styles.bigInputGroup}>
-          <input
-            className={styles.bigTextInput}
-            type="text"
-            placeholder="причина или связь"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleAdd();
-            }}
-            onFocus={() => setIsReady(true)}
-            autoFocus
-          />
-          <div className={styles.fieldUnderline} />
-        </div>
+        <AutoGrowSearch
+          ref={inputRef}
+          singleLine
+          placeholder="причина или связь"
+          value={value}
+          onChange={setValue}
+          onSubmit={handleAdd}
+          onFocus={() => setIsReady(true)}
+        />
 
         <div className={styles.chips}>
           {PRESET_RELATIONS.map((preset) => (
-            <button
+            <Chip
               key={preset}
-              type="button"
-              className={`${styles.chip} ${value === preset ? styles.chipActive : ''}`}
+              active={value === preset}
+              // Keep the focused input from blurring on tap — otherwise the
+              // keyboard collapses and the viewport reflows mid-tap. See
+              // ScaleAtomInput for the same guard.
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => setValue(preset)}
             >
               {preset}
-            </button>
+            </Chip>
           ))}
         </div>
       </div>
 
       {isReady && (
         <ModalShell.ActionButtons
-          left={<ModalPrevButton theme="events" onClick={onClose} />}
-          right={<ModalNextButton onClick={handleAdd} variant="finish" theme="events" />}
+          right={
+            <ModalNextButton
+              onClick={handleAdd}
+              variant="finish"
+              theme="events"
+              label="Добавить"
+            />
+          }
         />
       )}
     </div>

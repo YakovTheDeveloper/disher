@@ -325,10 +325,14 @@
   width: 40%;
 }
 
+// Без левого слота — Confirm на всю ширину; с левым — занимает остаток.
 .actionButtonsSlotNext {
-  flex: 0 0 60%;
-  flex-grow: 1;
+  flex: 1;
+  display: flex;
 
+  > * {
+    flex: 1;
+  }
 }
 
 .atomsBody {

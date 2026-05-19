@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import React from 'react';
-import type { BaseDrawerProps } from './overlay-types';
+import type { BaseDrawerProps, DrawerOptions, ResolvedDrawerOptions } from './overlay-types';
 import { registerCloseHandler, unregisterCloseHandler } from '@/shared/lib/overlay-history';
 
 type InferResult<P> = P extends { onClose: (result?: infer R) => void } ? R : void;
@@ -30,6 +30,10 @@ interface DrawerInstance {
   resolve: (value: any) => void;
   historyHandler: () => void;
   phase: 'mounting' | 'open' | 'closing';
+  // Side/width after defaults applied. DrawerManager turns `side` into the
+  // Base UI `swipeDirection` and feeds the whole thing into DrawerSideContext,
+  // which DrawerLayout reads to pick its geometry.
+  options: ResolvedDrawerOptions;
 }
 
 interface DrawerState {
@@ -43,15 +47,28 @@ const useDrawerStore = create<DrawerState>(() => ({
 function show<P extends BaseDrawerProps<any>>(
   Component: React.ComponentType<P>,
   props: Omit<P, 'onClose'>,
+  options?: DrawerOptions,
 ): Promise<InferResult<P> | undefined> {
   return new Promise((resolve) => {
     const id = Math.random().toString(36).slice(2, 9);
     const historyHandler = () => closeLast();
     registerCloseHandler(historyHandler);
+    const resolvedOptions: ResolvedDrawerOptions = {
+      side: options?.side ?? 'bottom',
+      width: options?.width,
+    };
     useDrawerStore.setState((state) => ({
       instances: [
         ...state.instances,
-        { id, Component, props, resolve, historyHandler, phase: 'mounting' },
+        {
+          id,
+          Component,
+          props,
+          resolve,
+          historyHandler,
+          phase: 'mounting',
+          options: resolvedOptions,
+        },
       ],
     }));
     // Flip to 'open' on the next animation frame so Base UI's Drawer.Root re-renders

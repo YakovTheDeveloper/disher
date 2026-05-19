@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- lightweight test-mock props */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
@@ -378,24 +379,25 @@ describe('DishProductCreateModals — reset after commit', () => {
 
 // ─── close / back ───────────────────────────────────────────────────────────
 
-describe('DishProductCreateModals — close', () => {
-  it('resets state when back button is clicked', () => {
+describe('DishProductCreateModals — back / close', () => {
+  it('header back on quantity step returns to the search step (not commit)', () => {
     renderAndSelectProduct();
 
-    // Click the back button (SVG arrow) on the currently active modal
+    // ModalHeader back arrow — step-aware: quantity → search.
     clickActiveBack();
 
-    // Should NOT have called addDishItem
     expect(mockAddDishItem).not.toHaveBeenCalled();
+    expect(screen.getByTestId('search-food')).toBeInTheDocument();
   });
 
-  it('resets draft on close so next flow starts fresh', async () => {
+  it('resets draft on full close so next flow starts fresh', () => {
     renderAndSelectProduct();
 
     // Change quantity
     fireEvent.click(screen.getByTestId('quick-200'));
 
-    // Close without committing
+    // Back twice: quantity → search → close the whole flow.
+    clickActiveBack();
     clickActiveBack();
     expect(mockAddDishItem).not.toHaveBeenCalled();
 

@@ -88,3 +88,15 @@
     color: var(--field-placeholder, rgba(124, 65, 15, 0.45));
   }
 }
+
+// Single-line mode — behave like an `<input>`: no wrapping, the caret drags
+// the text horizontally instead of pushing it onto a (hidden) second row.
+.fieldSingleLine {
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

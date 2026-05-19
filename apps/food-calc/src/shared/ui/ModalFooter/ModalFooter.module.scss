@@ -92,15 +92,19 @@
   cursor: default;
 }
 
-// ── 'events' variant — atom builder accent (deep-blue) ─────────────────────
+// ── 'events' variant — atom builder accent ─────────────────────────────────
+// Follows the live per-atom accent: the atom-input panel publishes
+// --atom-accent (= --event-<kind>-accent), so these buttons change colour
+// together with the chip / caret / underline when the DesignVariantsBar
+// flips the "AtomAccent" palette. Fallback to the tag token if unset.
 .prevArrowEvents {
   background: transparent;
-  color: var(--color-deep-blue);
-  border: 1.5px solid var(--color-deep-blue);
+  color: var(--atom-accent, var(--event-tag-accent));
+  border: 1.5px solid var(--atom-accent, var(--event-tag-accent));
 }
 
 .nextArrowEvents {
-  background: var(--color-deep-blue);
-  color: #fff;
-  border: 1.5px solid var(--color-deep-blue);
+  background: var(--atom-fill, var(--atom-accent, var(--event-tag-accent)));
+  color: var(--atom-on, #fff);
+  border: 1.5px solid var(--atom-accent, var(--event-tag-accent));
 }

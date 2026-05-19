@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import clsx from 'clsx';
+import { Chip } from '@/shared/ui/atoms/Chip';
 import { getSuggestionsForProduct } from '@/shared/data/tag-suggestions';
 import { useCustomTagsByProduct } from '@/entities/custom-tag';
 import { useProduct } from '@/entities/product';
@@ -75,16 +75,15 @@ export function DetailsChips({
   const renderChip = ({ tag }: ChipEntry) => {
     const active = hasTag(value, tag);
     return (
-      <button
+      <Chip
         key={tag}
-        type="button"
-        className={clsx(styles.chip, active && styles.active)}
+        active={active}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => handleToggle(tag)}
         aria-pressed={active}
       >
         {tag}
-      </button>
+      </Chip>
     );
   };
 

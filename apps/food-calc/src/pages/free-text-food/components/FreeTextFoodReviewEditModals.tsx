@@ -2,7 +2,7 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { DetailsChips } from '@/features/food/details-chips';
 import { useProductPortions } from '@/entities/product';
@@ -67,6 +67,7 @@ export const FreeTextFoodReviewEditModals = ({
         isExpanded={!hideTime && step === 'time'}
         content={
           <ModalShell>
+            <ModalShell.Header title="Время" onBack={onClose} />
             <ModalShell.Body>
               <TimeChoose
                 onFinish={(time) => {
@@ -77,8 +78,7 @@ export const FreeTextFoodReviewEditModals = ({
                 inputId={TIME_INPUT}
               />
               <ModalShell.ActionButtons
-                left={<ModalPrevButton onClick={onClose} />}
-                right={<ModalNextButton onClick={onClose} />}
+                right={<ModalNextButton onClick={onClose} variant="finish" />}
               />
             </ModalShell.Body>
           </ModalShell>
@@ -92,6 +92,7 @@ export const FreeTextFoodReviewEditModals = ({
         content={
           <SearchFood
             onBack={onClose}
+            title="Продукт"
             mode="products-only"
             onSelectFood={({ variant, id, name }) => {
               if (variant !== 'product') return;
@@ -111,6 +112,7 @@ export const FreeTextFoodReviewEditModals = ({
         isExpanded={step === 'quantity'}
         content={
           <ModalShell>
+            <ModalShell.Header title="Количество" onBack={onClose} />
             <ModalShell.Body>
               <ProductQuantity
                 content={quantityContent}
@@ -118,8 +120,7 @@ export const FreeTextFoodReviewEditModals = ({
                 inputId={QUANTITY_INPUT}
               />
               <ModalShell.ActionButtons
-                left={<ModalPrevButton onClick={onClose} />}
-                right={<ModalNextButton onClick={onClose} />}
+                right={<ModalNextButton onClick={onClose} variant="finish" />}
               />
             </ModalShell.Body>
           </ModalShell>
@@ -132,8 +133,8 @@ export const FreeTextFoodReviewEditModals = ({
         isExpanded={step === 'details'}
         content={
           <ModalShell>
+            <ModalShell.Header title="Заметка о еде" onBack={onClose} />
             <ModalShell.Body>
-              <ModalShell.Title>Заметка о еде</ModalShell.Title>
               <DetailsChips
                 textareaId={DETAILS_INPUT}
                 value={row?.details ?? ''}
@@ -141,8 +142,7 @@ export const FreeTextFoodReviewEditModals = ({
                 productId={row?.productId ?? null}
               />
               <ModalShell.ActionButtons
-                left={<ModalPrevButton onClick={onClose} />}
-                right={<ModalNextButton onClick={onClose} />}
+                right={<ModalNextButton onClick={onClose} variant="finish" />}
               />
             </ModalShell.Body>
           </ModalShell>

@@ -60,8 +60,57 @@ export function ProfileDrawer() {
 
   const initial = email ? email[0].toUpperCase() : '?';
 
+  // «Опасная зона» lives in DrawerLayout's pinned footer — not in the scroll
+  // area — so it's always visible without scrolling past the theme picker.
+  const dangerFooter = (
+    <div className={styles.dangerFooter}>
+      <section className={styles.danger}>
+        <button
+          type="button"
+          className={styles.dangerToggle}
+          onClick={() => setDangerOpen((v) => !v)}
+          aria-expanded={dangerOpen}
+        >
+          <span>Опасная зона</span>
+          <span
+            className={clsx(styles.chevron, dangerOpen && styles.chevronOpen)}
+            aria-hidden
+          >
+            ⌄
+          </span>
+        </button>
+
+        {dangerOpen && (
+          <div className={styles.dangerBody}>
+            <p className={styles.dangerHint}>
+              При выходе данные на этом устройстве очищаются. Они хранятся в
+              облаке и вернутся при следующем входе — но лучше сохранить
+              свежую копию прямо сейчас.
+            </p>
+            <button
+              type="button"
+              className={styles.backupBtn}
+              onClick={handleBackup}
+              disabled={backupState === 'saving'}
+            >
+              {BACKUP_LABEL[backupState]}
+            </button>
+            <HoldButton
+              holdMs={HOLD_MS}
+              onComplete={handleSignOut}
+              busy={loggingOut}
+              label="Удерживайте, чтобы выйти"
+              activeLabel="Не отпускайте…"
+              busyLabel="Выходим…"
+            />
+          </div>
+        )}
+      </section>
+    </div>
+  );
+
   return (
-    <DrawerLayout a11yLabel="Аккаунт и настройки">
+    <DrawerLayout a11yLabel="Аккаунт и настройки" footer={dangerFooter}>
       <div className={styles.container}>
         <div className={styles.profile}>
           <div className={styles.avatar}>
@@ -74,49 +123,6 @@ export function ProfileDrawer() {
         <section className={styles.section}>
           <h2 className={styles.sectionLabel}>Оформление</h2>
           <ThemePicker />
-        </section>
-
-        <section className={styles.danger}>
-          <button
-            type="button"
-            className={styles.dangerToggle}
-            onClick={() => setDangerOpen((v) => !v)}
-            aria-expanded={dangerOpen}
-          >
-            <span>Опасная зона</span>
-            <span
-              className={clsx(styles.chevron, dangerOpen && styles.chevronOpen)}
-              aria-hidden
-            >
-              ⌄
-            </span>
-          </button>
-
-          {dangerOpen && (
-            <div className={styles.dangerBody}>
-              <p className={styles.dangerHint}>
-                При выходе данные на этом устройстве очищаются. Они хранятся в
-                облаке и вернутся при следующем входе — но лучше сохранить
-                свежую копию прямо сейчас.
-              </p>
-              <button
-                type="button"
-                className={styles.backupBtn}
-                onClick={handleBackup}
-                disabled={backupState === 'saving'}
-              >
-                {BACKUP_LABEL[backupState]}
-              </button>
-              <HoldButton
-                holdMs={HOLD_MS}
-                onComplete={handleSignOut}
-                busy={loggingOut}
-                label="Удерживайте, чтобы выйти"
-                activeLabel="Не отпускайте…"
-                busyLabel="Выходим…"
-              />
-            </div>
-          )}
         </section>
       </div>
     </DrawerLayout>

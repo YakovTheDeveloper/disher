@@ -16,7 +16,12 @@ const mockPush = vi.fn();
 vi.mock('@/shared/lib/snapshot', () => ({ push: () => mockPush() }));
 
 vi.mock('@/shared/ui/DrawerLayout', () => ({
-  DrawerLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DrawerLayout: ({ children, footer }: { children: ReactNode; footer?: ReactNode }) => (
+    <div>
+      {children}
+      {footer}
+    </div>
+  ),
 }));
 
 vi.mock('@/features/theme', () => ({

@@ -5,5 +5,3 @@
 export * from './types';
 export * from './AtomInputLayout';
 export * from './AtomActionButtons';
-
-export * from './PresetChips';

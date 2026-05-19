@@ -8,7 +8,11 @@
     border: none;
     box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04);
 
-    transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease, outline-color 0.18s ease;
+    transition:
+        background var(--press-out) ease,
+        box-shadow var(--press-out) ease,
+        transform var(--press-out) var(--easing-spring),
+        outline-color 0.18s ease;
     outline: 2px solid transparent;
     outline-offset: -2px;
 
@@ -26,7 +30,10 @@
     }
 
     &:active {
-        transform: scale(0.995);
+        // pop: ощутимое сжатие. Вход мгновенный (--press-in), возврат —
+        // с overshoot через --easing-spring (см. transition выше).
+        transform: scale(0.965);
+        transition-duration: var(--press-in);
     }
 
     &:has(.item_active) {
@@ -72,13 +79,15 @@
     -webkit-touch-callout: none;
 
     cursor: pointer;
-    transition: background 0.18s ease;
+    transition: background var(--press-out) ease;
     gap: 10px;
     margin: 0;
     border-radius: inherit;
 
     &:active {
-        background: rgba(51, 112, 255, 0.06);
+        // тёплый highlight-flash; вход мгновенный, гаснет за --press-out
+        background: rgba(216, 140, 40, 0.2);
+        transition-duration: var(--press-in);
     }
 }
 
@@ -319,7 +328,6 @@
         &:nth-child(3n) { background: $wash-3n, $base; }
 
         &:hover { background: $hover; box-shadow: none; }
-        &:active { transform: none; }
         &:has(.item_active) {
             outline: none;
             background: $active;
@@ -334,8 +342,20 @@
         opacity: 0.85;
         border-radius: 0;
         animation: none;
+        transition:
+            transform var(--press-out) var(--easing-spring),
+            opacity var(--press-out) ease;
     }
     .wrapper:has(.item_active) .richBar { width: 5px !important; }
+    // pop: акцент-штрих «выстреливает» в ширину при нажатии — motion
+    // у самого края строки, сильнейший pre-attentive канал.
+    @media (prefers-reduced-motion: no-preference) {
+        .wrapper:active .richBar {
+            transform: scaleX(2.4);
+            opacity: 1;
+            transition-duration: var(--press-in);
+        }
+    }
     .item { padding: 11px 6px 11px 14px; gap: 10px; }
     .name { font-weight: 500; font-size: 0.94rem; color: $text-rest; }
     .item_active .name { color: $text-active; font-weight: 700; }
@@ -413,7 +433,6 @@
             background: linear-gradient(90deg, #ffffff 0%, #f6f9fd 60%, #eef3fa 100%);
             box-shadow: none;
         }
-        &:active { transform: none; }
         &:has(.item_active) {
             outline: none;
             background: linear-gradient(90deg, #f4f7fc 0%, #e9f0fa 60%, #def0f8 100%);
@@ -429,8 +448,18 @@
         opacity: 0.85;
         border-radius: 0;
         animation: none;
+        transition:
+            transform var(--press-out) var(--easing-spring),
+            opacity var(--press-out) ease;
     }
     .wrapper:has(.item_active) .richBar { width: 5px !important; }
+    @media (prefers-reduced-motion: no-preference) {
+        .wrapper:active .richBar {
+            transform: scaleX(2.4);
+            opacity: 1;
+            transition-duration: var(--press-in);
+        }
+    }
     .item { padding: 11px 6px 11px 14px; gap: 10px; }
     .name { font-weight: 500; font-size: 0.94rem; color: #1f2937; }
     .item_active .name { color: #0f172a; font-weight: 700; }
@@ -527,4 +556,12 @@
         rgba(70, 30, 110, 0.08),
         #241836, #4a1a7a, #332247
     );
+}
+
+// ─── Reduced-motion ──────────────────────────────────────────────────
+// Press highlight (смена фона) остаётся — это не motion, а abrupt
+// luminance change. Гасим только transform-составляющую pop'а (scale
+// строки). scaleX штриха уже под `no-preference`-гейтом в миксине.
+@media (prefers-reduced-motion: reduce) {
+    .wrapper:active { transform: none; }
 }

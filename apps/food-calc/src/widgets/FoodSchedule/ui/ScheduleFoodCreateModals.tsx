@@ -3,9 +3,9 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
-import { TextInput } from '@/shared/ui/atoms/input/TextInput';
+import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { DetailsStep, useHasDetailsHints } from '@/features/food/details-chips';
 import {
   useScheduleFoodFlow,
@@ -20,6 +20,8 @@ type Props = {
   richNutrient?: { id: string; unit: string } | null;
   onRichNutrientClear?: () => void;
 };
+
+const FLOW_TITLE = 'Добавить еду';
 
 const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClear }: Props) => {
   const {
@@ -43,6 +45,21 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
   const createSteps = hasHints ? CREATE_STEPS_WITH_DETAILS : CREATE_STEPS_NO_DETAILS;
 
   const goToStep = (target: typeof step) => setStep(target);
+
+  // Step-aware «назад» для ModalHeader: шаг визарда >1 → предыдущий шаг;
+  // первый шаг → закрыть флоу. Лечит ловушку, где back закрывал весь флоу.
+  const handleBack = () => {
+    if (step === 'create') {
+      setStep('search');
+      return;
+    }
+    const idx = (createSteps as string[]).indexOf(step);
+    if (idx <= 0) {
+      handleClose();
+      return;
+    }
+    setStep(createSteps[idx - 1]);
+  };
 
   // Local state for the create-name input. Re-synced from draft.foodName on
   // every transition INTO the 'create' step (so a fresh prefill from
@@ -76,6 +93,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
             richNutrient={richNutrient}
             onSelectFood={handleFoodSelect}
             onBack={handleClose}
+            title={FLOW_TITLE}
             activeItemId={draft.productId ?? draft.dishId ?? undefined}
             itemHtmlFor={TIME_INPUT}
             inputId={SEARCH_INPUT}
@@ -95,15 +113,15 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         isExpanded={step === 'create'}
         content={
           <ModalShell variant="spring2">
+            <ModalShell.Header title={`Новый ${createVariantLabel}`} onBack={handleBack} />
             <ModalShell.Body>
-              <ModalShell.Title>Новый {createVariantLabel}</ModalShell.Title>
               <div className={styles.createBody}>
-                <TextInput
+                <AutoGrowSearch
+                  singleLine
                   id={CREATE_INPUT}
                   value={createName}
-                  onChange={(e) => setCreateName(e.target.value)}
+                  onChange={setCreateName}
                   placeholder={`Название ${createVariantLabel === 'блюдо' ? 'блюда' : 'продукта'}`}
-                  fullWidth
                   autoComplete="off"
                 />
                 <p className={styles.createHint}>
@@ -112,7 +130,6 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
               </div>
               <ModalShell.ActionButtons
                 debugId="create-name"
-                left={<ModalPrevButton as="label" htmlFor={SEARCH_INPUT} />}
                 right={
                   createTrimmed ? (
                     <ModalNextButton
@@ -138,11 +155,12 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         content={
           <ModalShell variant="gradient1">
             <ModalShell.StepHeader
+              title={FLOW_TITLE}
               currentStep="time"
               steps={createSteps}
               stepLabels={STEP_LABELS}
               stepResults={{ time: draft.time, search: draft.foodName ?? undefined }}
-              onBack={handleClose}
+              onBack={handleBack}
               onStepClick={goToStep}
             />
 
@@ -168,11 +186,12 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         content={
           <ModalShell>
             <ModalShell.StepHeader
+              title={FLOW_TITLE}
               currentStep="quantity"
               steps={createSteps}
               stepLabels={STEP_LABELS}
               stepResults={{ time: draft.time, search: draft.foodName ?? undefined }}
-              onBack={handleClose}
+              onBack={handleBack}
               onStepClick={goToStep}
             />
 
@@ -216,6 +235,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         content={
           <ModalShell>
             <ModalShell.StepHeader
+              title={FLOW_TITLE}
               currentStep="details"
               steps={createSteps.includes('details') ? createSteps : CREATE_STEPS_WITH_DETAILS}
               stepLabels={STEP_LABELS}
@@ -224,7 +244,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
                 search: draft.foodName ?? undefined,
                 quantity: draft.quantity,
               }}
-              onBack={handleClose}
+              onBack={handleBack}
               onStepClick={goToStep}
             />
             <ModalShell.Body flush>
@@ -237,7 +257,6 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
               />
               <ModalShell.ActionButtons
                 debugId="create-details"
-                left={<ModalPrevButton onClick={() => goToStep('quantity')} />}
                 right={<ModalNextButton onClick={handleCommit} variant="finish" />}
               />
             </ModalShell.Body>

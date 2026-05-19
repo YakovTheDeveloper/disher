@@ -24,111 +24,90 @@
   overscroll-behavior: contain;
 }
 
-/* Big input wrapper — centered column */
-.bigInputGroup {
+/* ─── ScaleAtomInput keyboard-first layout ────────────────────────────
+ * Value number floated top-left, preset chips wrap around it. Everything
+ * sits in the top zone so an open keyboard (which eats the bottom half)
+ * never covers the chips — the whole «явление» choice stays reachable. */
+
+/* Scrollable body for the scale panel — content anchored to the top,
+   not vertically centered (centered content fights the keyboard). */
+.scalePanelBody {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: 8px;
+}
+
+/* Top zone — the value block floats left, chips flow around it. */
+.scaleTopZone {
   width: 100%;
 }
 
-/* Big number input (ScaleAtomInput) — text type, numeric keyboard */
-.bigNumberInput {
-  display: block;
-  width: 100%;
-  max-width: 200px;
+/* Value block — floated left so chips wrap around it (огибают): the
+   first chip rows sit beside the number, later rows fill the width
+   under it instead of leaving the space empty. */
+.scaleValueBlock {
+  float: left;
+  margin: 0 16px 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Value number — text type so the numeric keyboard shows; sized down
+   from the old 96px hero to a corner-friendly 72px. */
+.scaleNumberInput {
+  width: 1.6em;
   text-align: center;
-  font-size: 96px;
+  font-size: 72px;
   font-weight: 300;
-  line-height: 1.1;
+  line-height: 1;
   color: #000;
   letter-spacing: -0.02em;
   border: none;
   background: transparent;
   padding: 0;
   caret-color: var(--atom-accent, #000);
-  -moz-appearance: textfield;
 }
 
-.bigNumberInput:focus {
+.scaleNumberInput:focus {
   outline: none;
 }
 
-/* Underline below big number */
-.bigInputUnderline {
-  width: 80px;
+.scaleNumberUnderline {
+  width: 100%;
   height: 0;
   border-bottom: 2px solid var(--atom-accent, #000);
+  margin-top: 6px;
+}
+
+/* Chips area — a plain block (NOT a flex/BFC container, so its inline
+   chips can wrap around the floated value block). gap is faked with
+   per-chip margins since there is no flexbox here. */
+.scaleChipsArea {
+  display: block;
+}
+
+/* Layout-only override for the shared <Chip> in this float-wrap context:
+   the chip stays inline-level so it wraps around the floated value block;
+   margins fake the gap since there is no flexbox here. */
+.scaleChip {
+  vertical-align: top;
+  margin: 0 8px 8px 0;
+}
+
+/* Custom-value field (unified AutoGrowSearch pill) — clear: left drops it
+   onto its own full-width row below the floated value number. */
+.scaleCustomField {
+  clear: left;
   margin-top: 4px;
 }
 
-/* Big text input (Tag/Relation) */
-.bigTextInput {
-  display: block;
-  min-width: 100%;
-  text-align: center;
-  font-size: 36px;
-  font-weight: 300;
-  line-height: 1.2;
-  color: #000;
-  border: none;
-  background: transparent;
-  padding: 8px 0;
-  caret-color: var(--atom-accent, #000);
-}
-
-.bigTextInput:focus {
-  outline: none;
-}
-
-.bigTextInput::placeholder {
-  color: rgba(0, 0, 0, 0.18);
-}
-
-/* Label field group (ScaleAtomInput label) */
-.fieldGroup {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-.labelInput {
-  width: 100%;
-  max-width: 200px;
-  height: 44px;
-  margin: 0 auto;
-  display: block;
-  background: rgba(0, 0, 0, 0.04);
-  border: none;
-  border-radius: 8px;
-  padding: 0 14px;
-  font-size: 16px;
-  font-weight: 400;
-  color: #000;
-  caret-color: var(--atom-accent, #000);
-  text-align: center;
-}
-
-.labelInput:focus {
-  outline: none;
-  background: rgba(0, 0, 0, 0.06);
-}
-
-.labelInput::placeholder {
-  color: rgba(0, 0, 0, 0.3);
-}
-
-/* Underline below fields */
-.fieldUnderline {
-  /* width: 200px; */
-  width: 100%;
-  height: 0;
-  border-bottom: 2px solid var(--atom-accent, #000);
-  margin: 2px auto 0;
-}
-
-/* Preset/suggestion chips */
+/* Preset/suggestion chips container — the chips themselves are the shared
+   <Chip> from shared/ui/atoms/Chip; only the layout lives here. */
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -136,29 +115,6 @@
   gap: 6px;
   max-width: 320px;
   margin: 4px auto 0;
-}
-
-.chip {
-  padding: 8px 16px;
-  min-height: 36px;
-  background: transparent;
-  border: 1px solid rgba(0, 0, 0, 0.8);
-  font-size: 15px;
-  font-weight: 400;
-  cursor: pointer;
-  color: black;
-  transition: all 120ms ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.chip:active {
-  transform: scale(0.96);
-}
-
-.chipActive {
-  background: var(--atom-accent, #000);
-  border-color: var(--atom-accent, #000);
-  color: #fff;
 }
 
 /* Inline row: ← [input] → */
@@ -194,9 +150,4 @@
 .navBtnDisabled {
   opacity: 0.2;
   pointer-events: none;
-}
-
-/* All inputs — prevent iOS zoom by ensuring font-size >= 16px */
-.atomPanel input[type='text'] {
-  font-size: max(16px, inherit);
 }

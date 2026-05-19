@@ -2,7 +2,7 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton, ModalPrevButton } from '@/shared/ui/ModalFooter';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { DetailsChips, useHasDetailsHints } from '@/features/food/details-chips';
 import {
   useDishProductFlow,
@@ -15,6 +15,8 @@ import styles from './DishProductCreateModals.module.scss';
 type Props = {
   dishId: string;
 };
+
+const FLOW_TITLE = 'Добавить продукт';
 
 const DishProductCreateModals = ({ dishId }: Props) => {
   const {
@@ -36,6 +38,16 @@ const DishProductCreateModals = ({ dishId }: Props) => {
 
   const goToStep = (target: typeof step) => setStep(target);
 
+  // Step-aware «назад»: шаг визарда >1 → предыдущий шаг; первый → закрыть флоу.
+  const handleBack = () => {
+    const idx = (createSteps as string[]).indexOf(step);
+    if (idx <= 0) {
+      handleClose();
+      return;
+    }
+    setStep(createSteps[idx - 1]);
+  };
+
   return (
     <div onFocusCapture={handleFocusCapture}>
       {/* Step 1: Search */}
@@ -45,10 +57,11 @@ const DishProductCreateModals = ({ dishId }: Props) => {
         content={
           <ModalShell>
             <ModalShell.StepHeader
+              title={FLOW_TITLE}
               currentStep="search"
               steps={createSteps}
               stepLabels={STEP_LABELS}
-              onBack={handleClose}
+              onBack={handleBack}
               onStepClick={goToStep}
             />
             <SearchFood
@@ -73,10 +86,11 @@ const DishProductCreateModals = ({ dishId }: Props) => {
         content={
           <ModalShell>
             <ModalShell.StepHeader
+              title={FLOW_TITLE}
               currentStep="quantity"
               steps={createSteps}
               stepLabels={STEP_LABELS}
-              onBack={handleClose}
+              onBack={handleBack}
               onStepClick={goToStep}
             />
 
@@ -91,7 +105,6 @@ const DishProductCreateModals = ({ dishId }: Props) => {
                   />
                   {hasHints ? (
                     <ModalShell.ActionButtons
-                      left={<ModalPrevButton onClick={() => goToStep('search')} />}
                       right={<ModalNextButton as="label" htmlFor={DETAILS_INPUT} />}
                     />
                   ) : (
@@ -118,10 +131,11 @@ const DishProductCreateModals = ({ dishId }: Props) => {
         content={
           <ModalShell variant="spring">
             <ModalShell.StepHeader
+              title={FLOW_TITLE}
               currentStep="details"
               steps={createSteps.includes('details') ? createSteps : CREATE_STEPS_WITH_DETAILS}
               stepLabels={STEP_LABELS}
-              onBack={handleClose}
+              onBack={handleBack}
               onStepClick={goToStep}
             />
             <ModalShell.Body>
@@ -132,7 +146,6 @@ const DishProductCreateModals = ({ dishId }: Props) => {
                 productId={draft.productId}
               />
               <ModalShell.ActionButtons
-                left={<ModalPrevButton onClick={() => goToStep('quantity')} />}
                 right={<ModalNextButton onClick={handleCommit} variant="finish" />}
               />
             </ModalShell.Body>

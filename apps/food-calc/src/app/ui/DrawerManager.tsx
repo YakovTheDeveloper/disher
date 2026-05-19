@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Drawer } from '@base-ui/react/drawer';
 import { useDrawers } from '@/shared/ui/drawer-store';
+import { DrawerSideProvider } from '@/shared/ui/DrawerLayout';
 import overlayStyles from '@/shared/ui/Drawer/Drawer.module.scss';
 
 const DrawerManager = () => {
@@ -14,7 +15,7 @@ const DrawerManager = () => {
 
   return (
     <>
-      {instances.map(({ id, Component, props, phase }) => (
+      {instances.map(({ id, Component, props, phase, options }) => (
         <Drawer.Root
           key={id}
           open={phase === 'open'}
@@ -23,6 +24,9 @@ const DrawerManager = () => {
           // scroll-lock форсит full-document reflow при первом open и
           // блокирует main thread → 1s cold-start lag, см. vaul#318/#622.
           modal="trap-focus"
+          // Swipe-to-dismiss direction follows the anchor edge: bottom drawers
+          // swipe down, side drawers swipe toward their own edge.
+          swipeDirection={options.side === 'bottom' ? 'down' : options.side}
           onOpenChange={(open) => {
             if (!open) close(id);
           }}
@@ -33,7 +37,9 @@ const DrawerManager = () => {
           <Drawer.Portal container={container}>
             <Drawer.Backdrop className={overlayStyles.overlay} />
             <Drawer.Viewport>
-              <Component {...props} onClose={(result: unknown) => close(id, result)} />
+              <DrawerSideProvider value={options}>
+                <Component {...props} onClose={(result: unknown) => close(id, result)} />
+              </DrawerSideProvider>
             </Drawer.Viewport>
           </Drawer.Portal>
         </Drawer.Root>

@@ -26,6 +26,13 @@ export interface AutoGrowSearchProps extends TextareaProps {
   collapseOnBlur?: boolean;
   startAdornment?: ReactNode;
   endAdornment?: ReactNode;
+  /**
+   * Single-line mode: the field never grows past one row, text does not wrap
+   * (it scrolls horizontally like an `<input>`), and Enter never inserts a
+   * newline — it submits via `onSubmit` if provided, otherwise it is a no-op.
+   * Use for name/tag fields; omit for free-form note fields.
+   */
+  singleLine?: boolean;
 }
 
 export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProps>(
@@ -39,6 +46,7 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
       collapseOnBlur = true,
       startAdornment,
       endAdornment,
+      singleLine = false,
       className,
       onKeyDown,
       onBlur,
@@ -62,13 +70,14 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
         lineHeightRef.current = Number.isFinite(parsed) && parsed > 0 ? parsed : 22;
       }
       el.style.height = '0';
+      const cap = singleLine ? 1 : maxRows;
       const next = Math.min(
         Math.max(1, Math.floor(el.scrollHeight / lineHeightRef.current)),
-        maxRows
+        cap
       );
       if (el.rows !== next) el.rows = next;
       el.style.height = '';
-    }, [maxRows]);
+    }, [maxRows, singleLine]);
 
     useEffect(() => {
       recomputeRows();
@@ -94,14 +103,13 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (
-        onSubmit &&
-        e.key === 'Enter' &&
-        !e.shiftKey &&
-        !e.nativeEvent.isComposing
-      ) {
+      const isEnter =
+        e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing;
+      // Single-line: Enter must never insert a newline. Submit if a handler
+      // exists, otherwise just swallow the keystroke.
+      if (isEnter && (onSubmit || singleLine)) {
         e.preventDefault();
-        onSubmit(value);
+        onSubmit?.(value);
       }
       onKeyDown?.(e);
     };
@@ -135,7 +143,9 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          className={styles.field}
+          className={[styles.field, singleLine && styles.fieldSingleLine]
+            .filter(Boolean)
+            .join(' ')}
         />
         {endAdornment && <span className={styles.adornment}>{endAdornment}</span>}
       </div>

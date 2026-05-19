@@ -18,7 +18,7 @@
   border-radius: var(--space-1);
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
-  transition: opacity 120ms ease;
+  transition: opacity var(--press-out) ease;
 
   // Картинка-призрак: ручки положения. Потребитель переопределяет через
   // inline style или свой .module.scss — composite-only сдвиг/масштаб,
@@ -30,9 +30,11 @@
 }
 
 // Press-feedback — только opacity (анимационный бюджет HomePage: никаких
-// transform/scale, см. ScreenIndicator).
+// transform/scale, см. ScreenIndicator). Вход мгновенный (--press-in) —
+// pre-attentive отклик в том же кадре; выход плавный (--press-out).
 .tile:active {
-  opacity: 0.6;
+  opacity: 0.45;
+  transition-duration: var(--press-in);
 }
 
 .tileActive {
