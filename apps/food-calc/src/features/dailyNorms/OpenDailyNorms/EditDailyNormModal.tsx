@@ -5,6 +5,7 @@ import { ModalLayout } from '@/shared/ui/ModalLayout';
 import { useUserNormItems, USER_NORM_NAME } from '@/entities/daily-norm';
 import NutrientDesignVariants from '@/widgets/nutrients/FoodsNutrients/NutrientDesignVariants';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
+import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import CreateDailyNormModal from './CreateDailyNormModal';
 import styles from './EditDailyNormModal.module.scss';
 
@@ -44,12 +45,29 @@ const EditDailyNormModal = ({ onClose, chrome = 'modal', onRecalc }: Props) => {
     <div className={clsx(styles.root, isPanel && styles.rootPanel)}>
       {!isPanel && (
         <div className={clsx(styles.header)}>
+          <button
+            type="button"
+            className={styles.backButton}
+            onClick={onClose}
+            aria-label="Назад"
+          >
+            <ArrowLeftIcon />
+          </button>
           <div className={styles.titleWrap}>
             <span className={styles.kicker}>Дневная норма</span>
             <span className={styles.title}>{USER_NORM_NAME}</span>
           </div>
         </div>
       )}
+      <div className={clsx(styles.recalcBar, isPanel && styles.recalcBarPanel)}>
+        <button
+          className={styles.recalcBtn}
+          onClick={handleRecalc}
+          type="button"
+        >
+          Пересчитать по анкете
+        </button>
+      </div>
       <div className={clsx(styles.body, isPanel && styles.bodyPanel)}>
         {isLoading ? (
           <div className={styles.loadingState} aria-live="polite">
@@ -61,24 +79,6 @@ const EditDailyNormModal = ({ onClose, chrome = 'modal', onRecalc }: Props) => {
             variant="view-norms"
             getValue={ZERO_VALUE}
           />
-        )}
-      </div>
-      <div className={clsx(styles.footer, isPanel && styles.footerPanel)}>
-        <button
-          className={styles.recalcBtn}
-          onClick={handleRecalc}
-          type="button"
-        >
-          Пересчитать по анкете
-        </button>
-        {!isPanel && (
-          <button
-            className={styles.closeBtn}
-            onClick={onClose}
-            type="button"
-          >
-            Закрыть
-          </button>
         )}
       </div>
     </div>

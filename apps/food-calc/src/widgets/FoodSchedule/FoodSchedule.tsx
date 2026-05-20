@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useRef, useState, Fragment } from 'react';
+import React, { memo, useCallback, useMemo, useRef, Fragment } from 'react';
 import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
@@ -23,12 +23,10 @@ import { removeScheduleFoods } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
 import { CopyToClipboardButton, PasteFromClipboardButton } from '@/features/clipboard';
-import { SideDrawer } from '@/shared/ui';
 import { NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
-import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
+import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import type { ClipboardItem } from '@/shared/model/clipboardStore';
-import { useNutrientNormSlots } from '@/features/dailyNorms/NutrientNormDrawerControl';
 
 // Cheerful pastel families with semantic time-of-day progression
 // (lightest at morning, deepening towards graphite at night).
@@ -97,10 +95,13 @@ const FoodSchedule = ({
   // Design-variant picker for the food list palette (graphite-blue family).
   const { anchor: foodAnchor } = useDesignVariant('ScheduleFood', FOOD_DV_VARIANTS);
 
-  const [nutrientsOpen, setNutrientsOpen] = useState(false);
-  const openNutrients = useCallback(() => setNutrientsOpen(true), []);
-
-  const normSlots = useNutrientNormSlots({ isOpen: nutrientsOpen });
+  const openNutrients = useCallback(() => {
+    void drawerStore.show(
+      NutrientsDrawer,
+      { totals, missingNutrientNames, isLoading },
+      { side: 'left', width: 'min(85vw, 360px)' },
+    );
+  }, [totals, missingNutrientNames, isLoading]);
 
   const startEdit = editFlow.startEdit;
   const onEditTime = useCallback(
@@ -193,24 +194,6 @@ const FoodSchedule = ({
               <WriteFoodModals flow={writeFoodFlow} inputId={writeFoodInputId} />
             </>
           ) : null}
-          <SideDrawer
-            open={nutrientsOpen}
-            onOpenChange={setNutrientsOpen}
-            title={normSlots.title}
-            headerAction={normSlots.headerAction}
-          >
-            {normSlots.bodyContent ?? (
-              <>
-                {normSlots.devToggle}
-                {normSlots.emptyStateBanner}
-                <FoodsNutrients
-                  totals={totals}
-                  missingNutrientNames={missingNutrientNames}
-                  isLoading={isLoading}
-                />
-              </>
-            )}
-          </SideDrawer>
         </>
       }
       actions={
@@ -238,6 +221,7 @@ const FoodSchedule = ({
             writeFoodInputId={writeFoodInputId}
             searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
             searchLabel="Найти еду"
+            searchText={'список\nеды'}
             writeFoodLabel="Опишите, что ели…"
             leadingSlot={
               <NutrientsSummaryButton totals={totals} onClick={openNutrients} />

@@ -7,6 +7,7 @@
 @import './palette.scss';
 @import './tokens.scss';
 @import './themes.scss';
+@import './heading-font-variants.scss';
 
 :root {
   margin: 0 auto;
@@ -83,6 +84,13 @@ button {
   cursor: pointer;
   background-color: unset;
   border: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease;
+
+  &:active {
+    transform: scale(0.96);
+    transition-duration: 0.04s;
+  }
 }
 
 input,

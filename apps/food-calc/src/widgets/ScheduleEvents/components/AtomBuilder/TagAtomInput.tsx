@@ -15,7 +15,6 @@ import styles from './shared/AtomInputShared.module.css';
 export interface TagAtomInputProps {
   onAddAtom: (atom: TagAtom) => void;
   onClose: () => void;
-  accentColor?: string;
   popularTags?: string[];
   recentTags?: string[];
 }
@@ -23,7 +22,6 @@ export interface TagAtomInputProps {
 export const TagAtomInput = ({
   onAddAtom,
   onClose,
-  accentColor,
   popularTags = [],
   recentTags = [],
 }: TagAtomInputProps) => {
@@ -51,11 +49,8 @@ export const TagAtomInput = ({
   };
 
   return (
-    <div
-      className={styles.atomPanel}
-      style={accentColor ? ({ '--atom-accent': accentColor } as React.CSSProperties) : undefined}
-    >
-      <ModalHeader title="Тег" onBack={onClose} />
+    <div className={styles.atomPanel}>
+      <ModalHeader title="Тег" onBack={onClose} size="compact" />
       <div className={styles.panelBody}>
         <AutoGrowSearch
           ref={inputRef}
@@ -88,12 +83,7 @@ export const TagAtomInput = ({
       {isReady && (
         <ModalShell.ActionButtons
           right={
-            <ModalNextButton
-              onClick={() => handleAdd()}
-              variant="finish"
-              theme="events"
-              label="Добавить"
-            />
+            <ModalNextButton onClick={() => handleAdd()} variant="finish" label="Добавить" />
           }
         />
       )}

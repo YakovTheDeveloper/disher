@@ -1,20 +1,7 @@
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState } from 'react';
 import style from './ProductQuantity.module.scss';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
-import clsx from 'clsx';
-
-type QuickButtonProps = {
-  children: React.ReactNode;
-  isActive: boolean;
-  onClick: () => void;
-  className?: string;
-};
-
-const QuickButton = ({ children, isActive, onClick, className }: QuickButtonProps) => (
-  <button type="button" onClick={onClick} className={clsx(className, isActive && 'is-selected')}>
-    {children}
-  </button>
-);
+import { Chip } from '@/shared/ui/atoms/Chip';
 
 export type Portion = { label: string; grams: number };
 
@@ -32,19 +19,9 @@ type Props = {
   isActive?: boolean;
 };
 
-const SLIDE_SIZE = 6; // 3 rows x 2 columns of pill chips
-
-const chunkArray = <T,>(arr: T[], size: number): T[][] => {
-  const chunks: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) {
-    chunks.push(arr.slice(i, i + size));
-  }
-  return chunks;
-};
-
 // Outer component: ALWAYS renders the hero <NumberInput id={inputId}> in the same
 // DOM node so <label htmlFor={inputId}> focus delegation keeps working on iOS even
-// when this step is not active. Heavy work (portions carousel, multiplier UI) lives
+// when this step is not active. Heavy work (portion chips, multiplier UI) lives
 // in <ProductQuantityHeavy> which is conditionally mounted via {isActive && ...}.
 // See feedback_ios_focus.md for why the input must stay in the same DOM node.
 const ProductQuantity = ({
@@ -148,41 +125,25 @@ const ProductQuantityHeavy = ({
 }: HeavyProps) => {
   const portions = content.product?.portions || content.dish?.portions || [];
 
-  const portionSlides = useMemo(
-    () =>
-      chunkArray(
-        portions.map((p) => ({ label: `${p.label} (${p.grams}г)`, portion: p })),
-        SLIDE_SIZE
-      ),
-    [portions]
-  );
-
-  if (portionSlides.length === 0) return null;
+  if (portions.length === 0) return null;
 
   return (
     <div className={style.section}>
-      <div className={style.snapViewport}>
-        <div className={style.snapContainer}>
-          {portionSlides.map((slideItems, slideIndex) => (
-            <div key={slideIndex} className={style.snapSlide}>
-              <div className={style.slideGrid}>
-                {slideItems.map((item) => (
-                  <QuickButton
-                    key={item.label}
-                    className={style.quickBtn}
-                    isActive={
-                      activePortion?.grams === item.portion.grams &&
-                      activePortion?.label === item.portion.label
-                    }
-                    onClick={() => onPortionClick(item.portion)}
-                  >
-                    {item.label}
-                  </QuickButton>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Plain wrapping row — the portion set is small, so showing every chip
+          at once beats a horizontal scroll (no hidden affordance, no JS). */}
+      <div className={style.portionChips}>
+        {portions.map((portion) => (
+          <Chip
+            key={`${portion.label}-${portion.grams}`}
+            className={style.portionChip}
+            active={
+              activePortion?.grams === portion.grams && activePortion?.label === portion.label
+            }
+            onClick={() => onPortionClick(portion)}
+          >
+            {portion.label} ({portion.grams}г)
+          </Chip>
+        ))}
       </div>
 
       {activePortion && (

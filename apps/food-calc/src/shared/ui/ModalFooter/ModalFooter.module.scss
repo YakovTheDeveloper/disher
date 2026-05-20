@@ -41,8 +41,7 @@
 
 // ── Назад / Далее — общий футер модалок ──────────────────────────────────
 // Полоса во всю ширину, прижата к низу. Левая — светлая заливка, правая —
-// ink-заливка. Шрифт Onest (не моно), оба угла прямые. Тема `events` ниже
-// сохраняет свои цвета поверх этой базы.
+// ink-заливка. Шрифт Onest (не моно), оба угла прямые.
 .prevArrow,
 .nextArrow {
   display: flex;
@@ -53,6 +52,7 @@
   border: none;
   cursor: pointer;
   padding: var(--space-5) 0 calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+  // margin: var(--space-5);
   font-family: "Onest", "YS Text", "Golos Text", system-ui, sans-serif;
   transition: opacity 0.15s ease, background-color 0.15s ease;
   -webkit-tap-highlight-color: transparent;
@@ -61,6 +61,8 @@
     width: 20px;
     height: 20px;
     flex-shrink: 0;
+    position: relative;
+    z-index: 1;
   }
 }
 
@@ -74,9 +76,22 @@
   color: var(--color-ink);
 }
 
+// Кнопка остаётся во всю ширину/высоту полосы — тач-зона и место в layout
+// не меняются. Видимая тёмная заливка рисуется псевдоэлементом, вставленным
+// внутрь с отступами, поэтому визуально кнопка «меньше с воздухом вокруг».
 .nextArrow {
-  background: var(--color-ink);
+  position: relative;
+  background: transparent;
   color: #fff;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: var(--space-1) var(--space-1) calc(var(--space-1) + env(safe-area-inset-bottom, 0px));
+    background: var(--color-ink);
+    border-radius: var(--radius-sm);
+    z-index: 0;
+  }
 }
 
 .prevArrowLabel,
@@ -84,6 +99,8 @@
   font-size: var(--text-base);
   font-weight: 600;
   letter-spacing: -0.005em;
+  position: relative;
+  z-index: 1;
 }
 
 .nextArrowDisabled {
@@ -92,19 +109,3 @@
   cursor: default;
 }
 
-// ── 'events' variant — atom builder accent ─────────────────────────────────
-// Follows the live per-atom accent: the atom-input panel publishes
-// --atom-accent (= --event-<kind>-accent), so these buttons change colour
-// together with the chip / caret / underline when the DesignVariantsBar
-// flips the "AtomAccent" palette. Fallback to the tag token if unset.
-.prevArrowEvents {
-  background: transparent;
-  color: var(--atom-accent, var(--event-tag-accent));
-  border: 1.5px solid var(--atom-accent, var(--event-tag-accent));
-}
-
-.nextArrowEvents {
-  background: var(--atom-fill, var(--atom-accent, var(--event-tag-accent)));
-  color: var(--atom-on, #fff);
-  border: 1.5px solid var(--atom-accent, var(--event-tag-accent));
-}

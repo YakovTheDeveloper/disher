@@ -67,6 +67,44 @@
         radial-gradient(ellipse 120% 50% at 50% 0%, rgba(255, 220, 180, 0.6), transparent 65%);
 }
 
+// ─── ProductAmbient variants ─────────────────────────────────────────
+// Тот же идиом radial-glow из углов, что HomeAmbient, но голубая гамма.
+// Anchor общий для ProductPage и DishBuilderPage (детальные экраны
+// продукта/блюда). Селекторы навешиваются на тот же scoped-класс
+// `.container` — обе страницы применяют `homeStyles.container`.
+
+// 1) plain — чистый white body. Дефолт (скриншоты/тесты).
+.container[data-dv='ProductAmbient'][data-dv-v='plain'] {
+    background: none;
+}
+
+// 2) sky-mist — мягкий небесно-голубой слева + белёсо-голубой справа.
+.container[data-dv='ProductAmbient'][data-dv-v='sky-mist'] {
+    background:
+        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(205, 230, 250, 0.55), transparent 60%),
+        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(225, 238, 248, 0.5), transparent 60%);
+}
+
+// 3) ice-blue — холодный лёд слева + бледно-стальной справа.
+.container[data-dv='ProductAmbient'][data-dv-v='ice-blue'] {
+    background:
+        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(212, 235, 240, 0.55), transparent 60%),
+        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(220, 228, 240, 0.5), transparent 60%);
+}
+
+// 4) periwinkle — барвинково-голубой + светло-сиреневый край.
+.container[data-dv='ProductAmbient'][data-dv-v='periwinkle'] {
+    background:
+        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(212, 220, 248, 0.5), transparent 60%),
+        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(230, 226, 246, 0.5), transparent 60%);
+}
+
+// 5) dawn-blue — широкий single-glow по центру сверху, холодный аналог sunrise.
+.container[data-dv='ProductAmbient'][data-dv-v='dawn-blue'] {
+    background:
+        radial-gradient(ellipse 120% 50% at 50% 0%, rgba(200, 224, 248, 0.6), transparent 65%);
+}
+
 .swipeArea {
     position: relative;
     flex: 1;
@@ -75,7 +113,6 @@
     flex-direction: column;
 }
 
-// Heading-font design-variants свёрнуты 2026-05-14 — после серии итераций
-// юзер вернулся к канону Source Serif 4 italic. `ScreenIndicator.bandLabel`
-// использует свои встроенные фоллбэки для `--heading-font` / `--heading-style`
-// / `--heading-size` / `--heading-letter` — снаружи их теперь никто не ставит.
+// Heading-font trial теперь глобальный — анкер `data-dv='Heading'` на <html>
+// (useHeadingFontTrial.ts), CSS — shared/assets/style/heading-font-variants.scss.
+// Применяется ко всем `<Heading>` приложения, не только к HomePage.

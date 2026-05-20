@@ -19,26 +19,72 @@ export interface WriteFoodButtonProps {
   dark?: boolean;
 }
 
-const SerifTIcon = () => (
+const InputModesIcon = () => (
   <svg
     className={styles.serifT}
-    width="14"
-    height="16"
-    viewBox="0 0 14 16"
+    width="32"
+    height="18"
+    viewBox="0 0 32 18"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
   >
-    {/* top serif bar */}
-    <path d="M1 2h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    {/* top-left serif tick */}
-    <path d="M1 2v1.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    {/* top-right serif tick */}
-    <path d="M13 2v1.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    {/* vertical stem */}
-    <path d="M7 2.2v11.4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    {/* bottom serif bar */}
-    <path d="M4.4 14h5.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    {/* keyboard body */}
+    <rect
+      x="0.6"
+      y="4.4"
+      width="11.8"
+      height="9.2"
+      rx="1.3"
+      stroke="currentColor"
+      strokeWidth="1.2"
+    />
+    {/* row 1 — 5 mini keys */}
+    <rect x="1.8" y="6.2" width="1.6" height="1.6" rx="0.3" stroke="currentColor" strokeWidth="0.9" />
+    <rect x="3.7" y="6.2" width="1.6" height="1.6" rx="0.3" stroke="currentColor" strokeWidth="0.9" />
+    <rect x="5.6" y="6.2" width="1.6" height="1.6" rx="0.3" stroke="currentColor" strokeWidth="0.9" />
+    <rect x="7.5" y="6.2" width="1.6" height="1.6" rx="0.3" stroke="currentColor" strokeWidth="0.9" />
+    <rect x="9.4" y="6.2" width="1.6" height="1.6" rx="0.3" stroke="currentColor" strokeWidth="0.9" />
+    {/* row 2 — 5 mini keys */}
+    <rect x="1.8" y="8.2" width="1.6" height="1.6" rx="0.3" stroke="currentColor" strokeWidth="0.9" />
+    <rect x="3.7" y="8.2" width="1.6" height="1.6" rx="0.3" stroke="currentColor" strokeWidth="0.9" />
+    <rect x="5.6" y="8.2" width="1.6" height="1.6" rx="0.3" stroke="currentColor" strokeWidth="0.9" />
+    <rect x="7.5" y="8.2" width="1.6" height="1.6" rx="0.3" stroke="currentColor" strokeWidth="0.9" />
+    <rect x="9.4" y="8.2" width="1.6" height="1.6" rx="0.3" stroke="currentColor" strokeWidth="0.9" />
+    {/* spacebar */}
+    <rect x="3.4" y="10.2" width="6.2" height="1.6" rx="0.3" stroke="currentColor" strokeWidth="0.9" />
+    {/* divider slash */}
+    <path
+      d="M17.5 2 L15.5 16"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+    />
+    {/* microphone capsule */}
+    <rect
+      x="22"
+      y="2"
+      width="4"
+      height="8.4"
+      rx="2"
+      stroke="currentColor"
+      strokeWidth="1.3"
+    />
+    {/* microphone stand bracket (U-arc under capsule) */}
+    <path
+      d="M20.5 8.5 a3.5 3.5 0 0 0 7 0"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      fill="none"
+    />
+    {/* microphone stem + foot */}
+    <path
+      d="M24 12 v 2.5 M22.5 14.5 h 3"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -90,7 +136,7 @@ export const WriteFoodButton = ({
     ) : flow.state === 'idle' && icon ? (
       <span className={styles.iconSlot}>{icon}</span>
     ) : (
-      <SerifTIcon />
+      <InputModesIcon />
     );
 
   return (

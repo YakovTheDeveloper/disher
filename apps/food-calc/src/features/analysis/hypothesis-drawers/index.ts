@@ -1,5 +1,8 @@
-export { default as CreateHypothesisDrawer } from './CreateHypothesisDrawer';
 export {
-  default as EditHypothesisDrawer,
-  openEditHypothesisDrawer,
-} from './EditHypothesisDrawer';
+  default as CreateHypothesisModal,
+  CREATE_HYPOTHESIS_TITLE_INPUT_ID,
+} from './CreateHypothesisModal';
+export {
+  default as EditHypothesisModal,
+  EDIT_HYPOTHESIS_TITLE_INPUT_ID,
+} from './EditHypothesisModal';

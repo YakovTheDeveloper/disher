@@ -13,6 +13,13 @@
   color: rgba(0, 0, 0, 0.5);
 }
 
+// Чекбокс «Таблетка / лекарство / БАД» — рядом с warm-pill инпутом имени.
+// Тот же горизонтальный паддинг, что у инпута, чтобы галочка визуально шла
+// с ним по одной линии (createBody уже задаёт padding контейнера).
+.createSupplementRow {
+  padding: 0 4px;
+}
+
 .detailsOptIn {
   display: inline-flex;
   align-items: center;

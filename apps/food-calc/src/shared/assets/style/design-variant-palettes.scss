@@ -4,9 +4,11 @@
 // `--tod-<period>-outline-*`, and `--tod-<period>-tapped` tokens that
 // `SelectableListItem` consumes for row backgrounds and outlines.
 //
-// Consumers also need to define text tokens (`--text-*` for FoodSchedule,
-// `--ev-*` for ScheduleEvents) on the same anchor — the palettes here
-// only control surfaces, not foreground.
+// Consumers also need to define text tokens (`--text-*`) on the same
+// anchor — the palettes here only control surfaces, not foreground.
+// FoodSchedule and ScheduleEvents share one foreground system: the
+// `dv-text` mixin + `$dv-text-*` maps below (see task: collapse the
+// old ScheduleEvents-only `--ev-*` tokens into `--text-*`).
 //
 // Family conventions:
 // - All palettes deepen morning → night for semantic time-of-day match.
@@ -111,6 +113,33 @@
     --text-muted: rgba(255, 255, 255, 0.52);
     --cta-text: rgba(255, 255, 255, 0.94);
   }
+}
+
+// ─── Shared foreground (text) tokens ────────────────────────────────
+// One foreground system for every design-variant row — FoodSchedule and
+// ScheduleEvents both publish these so their colour schemes are identical.
+// Text stays in the family's dark anchor hue for clean contrast on the
+// gentle pastel surfaces above.
+
+$dv-text-graphite: (
+  primary: rgba(31, 42, 68, 0.92),
+  secondary: rgba(31, 42, 68, 0.62),
+  tertiary: rgba(31, 42, 68, 0.45),
+  muted: rgba(31, 42, 68, 0.42),
+);
+
+$dv-text-twilight: (
+  primary: rgba(45, 31, 68, 0.92),
+  secondary: rgba(45, 31, 68, 0.62),
+  tertiary: rgba(45, 31, 68, 0.45),
+  muted: rgba(45, 31, 68, 0.42),
+);
+
+@mixin dv-text($map) {
+  --text-primary: #{map-get($map, primary)};
+  --text-secondary: #{map-get($map, secondary)};
+  --text-tertiary: #{map-get($map, tertiary)};
+  --text-muted: #{map-get($map, muted)};
 }
 
 // twilight — lilac mist → mauve → dusty plum → deep violet (purple family).

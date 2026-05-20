@@ -1,25 +1,23 @@
 import { useMemo } from 'react';
-import { SideDrawer } from '@/shared/ui';
 import { useNutrientsByProductIds } from '@/entities/product';
 import { calculateProductNutrients, type NutrientTotals } from '@/shared/lib/nutrients';
-import { useNutrientNormSlots } from '@/features/dailyNorms/NutrientNormDrawerControl';
-import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
+import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
+import type { BaseDrawerProps } from '@/shared/ui';
 
-type Props = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+interface Props extends BaseDrawerProps {
   productId: string;
   productName: string;
-};
+}
 
 const PER_100G = 100;
 
-export function CatalogProductNutrientsDrawer({
-  open,
-  onOpenChange,
-  productId,
-  productName,
-}: Props) {
+/**
+ * Store-driven nutrients drawer for a catalog product. Opened via
+ * `drawerStore.show(CatalogProductNutrientsDrawer, props, { side: 'left' })`,
+ * so `useNutrientsByProductIds` only runs once the drawer is actually mounted
+ * (not eagerly per food-search card).
+ */
+export function CatalogProductNutrientsDrawer({ onClose, productId, productName }: Props) {
   const productIds = useMemo(() => [productId], [productId]);
   const nutrientsMap = useNutrientsByProductIds(productIds);
 
@@ -29,25 +27,7 @@ export function CatalogProductNutrientsDrawer({
     return calculateProductNutrients(entries, PER_100G, '100g');
   }, [productId, nutrientsMap]);
 
-  const slots = useNutrientNormSlots({ isOpen: open });
-  const title = slots.bodyContent == null ? productName : slots.title;
-
-  return (
-    <SideDrawer
-      open={open}
-      onOpenChange={onOpenChange}
-      title={title}
-      headerAction={slots.headerAction}
-    >
-      {slots.bodyContent ?? (
-        <>
-          {slots.devToggle}
-          {slots.emptyStateBanner}
-          <FoodsNutrients totals={totals} />
-        </>
-      )}
-    </SideDrawer>
-  );
+  return <NutrientsDrawer onClose={onClose} totals={totals} viewTitle={productName} />;
 }
 
 export default CatalogProductNutrientsDrawer;

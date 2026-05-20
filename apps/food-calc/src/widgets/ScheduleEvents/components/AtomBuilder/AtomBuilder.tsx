@@ -9,8 +9,7 @@ import { useState, type CSSProperties } from 'react';
 import type { Atom } from '@/entities/schedule-event';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import { NavTile } from '@/shared/ui/NavTile';
-import { Heading, Text } from '@/shared/ui/atoms/Typography';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { Text } from '@/shared/ui/atoms/Typography';
 import { AtomList } from './AtomList';
 import { ScaleAtomInput } from './ScaleAtomInput';
 import { TagAtomInput } from './TagAtomInput';
@@ -40,37 +39,11 @@ const ATOM_BUTTONS: {
   { kind: 'relation', label: 'Связь', image: '/art/link-2.png', imgOffset: { x: '28.7%', y: '3%' } },
 ];
 
-// Solid accent — caret / underline / borders / icon colour.
-const ATOM_ACCENT: Record<AtomPanel, string> = {
-  scale: 'var(--event-scale-accent)',
-  tag: 'var(--event-tag-accent)',
-  relation: 'var(--event-relation-accent)',
-};
-
-// Accent palettes for scale/tag/relation. Each keeps the three kinds as
-// close-but-distinct shades — never the old neon. Flip live via the
-// DesignVariantsBar; CSS lives in AtomBuilder.module.css. First = default.
-const ATOM_ACCENT_VARIANTS = [
-  'sage',
-  'meadow',
-  'grape',
-  'lilac',
-  'ocean',
-  'berry',
-  'marigold',
-  'lemon',
-  'bloom',
-  'sky',
-  'mint',
-  'aqua',
-] as const;
-
 export const AtomBuilder = ({ id, className = '', onPanelChange }: AtomBuilderProps) => {
   const atoms = useEventDraftStore((s) => s.draft.atoms);
   const addAtom = useEventDraftStore((s) => s.addAtom);
   const removeAtom = useEventDraftStore((s) => s.removeAtom);
   const [openPanel, setOpenPanel] = useState<AtomPanel | null>(null);
-  const { anchor: accentAnchor } = useDesignVariant('AtomAccent', ATOM_ACCENT_VARIANTS);
 
   const openAtomPanel = (panel: AtomPanel) => {
     setOpenPanel(panel);
@@ -99,15 +72,10 @@ export const AtomBuilder = ({ id, className = '', onPanelChange }: AtomBuilderPr
     return (
       <div
         id={id}
-        {...accentAnchor}
         tabIndex={id ? -1 : undefined}
         className={`${styles.panelView} ${className}`}
       >
-        <InputComponent
-          accentColor={ATOM_ACCENT[openPanel]}
-          onAddAtom={handleAddAtom}
-          onClose={handleClose}
-        />
+        <InputComponent onAddAtom={handleAddAtom} onClose={handleClose} />
       </div>
     );
   }
@@ -116,17 +84,12 @@ export const AtomBuilder = ({ id, className = '', onPanelChange }: AtomBuilderPr
   return (
     <div
       id={id}
-      {...accentAnchor}
       tabIndex={id ? -1 : undefined}
       className={`${styles.container} ${className}`}
     >
       <AtomList atoms={atoms} onRemove={removeAtom} />
 
       <div className={styles.tileSection}>
-        <Heading size="modal" as="h2" className={styles.tileHeading}>
-          Особенности
-        </Heading>
-
         <div className={styles.atomButtons}>
           {ATOM_BUTTONS.map(({ kind, label, image, imgOffset }) => (
             <NavTile

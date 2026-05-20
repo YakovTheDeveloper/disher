@@ -1,6 +1,7 @@
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
+import { useProduct } from '@/entities/product';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { DetailsChips, useHasDetailsHints } from '@/features/food/details-chips';
@@ -16,8 +17,6 @@ type Props = {
   dishId: string;
 };
 
-const FLOW_TITLE = 'Добавить продукт';
-
 const DishProductCreateModals = ({ dishId }: Props) => {
   const {
     step,
@@ -30,52 +29,57 @@ const DishProductCreateModals = ({ dishId }: Props) => {
     handleFoodSelect,
     handleCommit,
     quantityContent,
+    visitedSteps,
     inputIds: { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
   } = useDishProductFlow({ type: 'create', dishId });
 
   const hasHints = useHasDetailsHints(draft.productId);
   const createSteps = hasHints ? CREATE_STEPS_WITH_DETAILS : CREATE_STEPS_NO_DETAILS;
 
+  // Один список шагов на ВСЕ StepHeader флоу. `details` — опт-ин; как только
+  // шаг посещён, он остаётся в строке на всех шагах, иначе крошка пропадает
+  // при прыжке назад (трейл «тасуется»).
+  const stepsForBar =
+    visitedSteps.includes('details') && !createSteps.includes('details')
+      ? [...createSteps, 'details' as const]
+      : createSteps;
+
   const goToStep = (target: typeof step) => setStep(target);
 
-  // Step-aware «назад»: шаг визарда >1 → предыдущий шаг; первый → закрыть флоу.
-  const handleBack = () => {
-    const idx = (createSteps as string[]).indexOf(step);
-    if (idx <= 0) {
-      handleClose();
-      return;
-    }
-    setStep(createSteps[idx - 1]);
+  // `results`-вид Breadcrumbs показывает результаты пройденных шагов.
+  // Имя продукта флоу в draft не хранит — берём из каталога/Dexie по id.
+  const selectedProduct = useProduct(draft.productId ?? undefined);
+  const stepResults = {
+    search: selectedProduct?.name ?? undefined,
+    quantity: draft.quantity,
+    details: draft.details.trim() || undefined,
   };
+
+  // Стрелка «назад» в модалках со Steps bar закрывает весь флоу: вернуться на
+  // пройденный шаг можно кликом по табу в Steps, отдельная step-−1 не нужна.
 
   return (
     <div onFocusCapture={handleFocusCapture}>
-      {/* Step 1: Search */}
+      {/* Step 1: Search — единый бар [← Еда 🔍], как на HomePage. Полоса
+          шагов на шаге поиска не нужна: продвинуться можно только выбрав
+          продукт, а вернуться сюда — кликом по «Поиск» в Steps других шагов. */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'search'}
         content={
-          <ModalShell>
-            <ModalShell.StepHeader
-              title={FLOW_TITLE}
-              currentStep="search"
-              steps={createSteps}
-              stepLabels={STEP_LABELS}
-              onBack={handleBack}
-              onStepClick={goToStep}
-            />
-            <SearchFood
-              key={sessionKey}
-              mode="products-only"
-              onSelectFood={handleFoodSelect}
-              onInfoClick={() => {
-                handleClose();
-              }}
-              activeItemId={draft.productId ?? undefined}
-              itemHtmlFor={QUANTITY_INPUT}
-              inputId={SEARCH_INPUT}
-            />
-          </ModalShell>
+          <SearchFood
+            key={sessionKey}
+            mode="products-only"
+            title="Еда"
+            onSelectFood={handleFoodSelect}
+            onBack={handleClose}
+            onInfoClick={() => {
+              handleClose();
+            }}
+            activeItemId={draft.productId ?? undefined}
+            itemHtmlFor={QUANTITY_INPUT}
+            inputId={SEARCH_INPUT}
+          />
         }
       />
 
@@ -86,11 +90,13 @@ const DishProductCreateModals = ({ dishId }: Props) => {
         content={
           <ModalShell>
             <ModalShell.StepHeader
-              title={FLOW_TITLE}
+              title={STEP_LABELS.quantity}
               currentStep="quantity"
-              steps={createSteps}
+              steps={stepsForBar}
               stepLabels={STEP_LABELS}
-              onBack={handleBack}
+              stepResults={stepResults}
+              visitedSteps={visitedSteps}
+              onBack={handleClose}
               onStepClick={goToStep}
             />
 
@@ -131,11 +137,13 @@ const DishProductCreateModals = ({ dishId }: Props) => {
         content={
           <ModalShell variant="spring">
             <ModalShell.StepHeader
-              title={FLOW_TITLE}
+              title={STEP_LABELS.details}
               currentStep="details"
-              steps={createSteps.includes('details') ? createSteps : CREATE_STEPS_WITH_DETAILS}
+              steps={stepsForBar}
               stepLabels={STEP_LABELS}
-              onBack={handleBack}
+              stepResults={stepResults}
+              visitedSteps={visitedSteps}
+              onBack={handleClose}
               onStepClick={goToStep}
             />
             <ModalShell.Body>

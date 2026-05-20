@@ -31,181 +31,82 @@ function renderQuantity({
 
 // ─── portions carousel visibility ────────────────────────────────────────────
 
-describe('ProductQuantity — portions visibility', () => {
-  it('does not show portions section when no portions provided', () => {
+describe('ProductQuantity — portions carousel', () => {
+  it('always renders the quantity input', () => {
     renderQuantity();
-    expect(screen.queryByText('Порции')).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Количество')).toBeInTheDocument();
   });
 
-  it('shows portions section when product has portions', () => {
+  it('renders no portion chips when no portions provided', () => {
+    renderQuantity();
+    expect(screen.queryByText(/среднее/)).not.toBeInTheDocument();
+  });
+
+  it('renders a chip per portion when product has portions', () => {
     renderQuantity({ product: { portions } });
-    expect(screen.getByText('Порции')).toBeInTheDocument();
     expect(screen.getByText('среднее (50г)')).toBeInTheDocument();
     expect(screen.getByText('крупное (63г)')).toBeInTheDocument();
   });
 
-  it('shows portions section when dish has portions', () => {
+  it('renders portion chips when dish has portions', () => {
     renderQuantity({ dish: { portions } });
-    expect(screen.getByText('Порции')).toBeInTheDocument();
-  });
-
-  it('always shows quantity section', () => {
-    renderQuantity();
-    expect(screen.getByText('Количество')).toBeInTheDocument();
+    expect(screen.getByText('среднее (50г)')).toBeInTheDocument();
   });
 });
 
-// ─── additive tap logic ──────────────────────────────────────────────────────
+// ─── portion selection ───────────────────────────────────────────────────────
 
-describe('ProductQuantity — additive taps', () => {
-  it('first tap sets value to portion grams', async () => {
+describe('ProductQuantity — portion selection', () => {
+  it('tapping a portion sets the quantity to its grams', async () => {
     const user = userEvent.setup();
-    const { updateQuantity } = renderQuantity({ quantity: 100, product: { portions } });
+    const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
 
     await user.click(screen.getByText('среднее (50г)'));
 
     expect(updateQuantity).toHaveBeenLastCalledWith(50);
   });
 
-  it('second tap on same portion adds grams', async () => {
+  it('tapping a different portion switches to its grams', async () => {
     const user = userEvent.setup();
     const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
 
-    const btn = screen.getByText('среднее (50г)');
-    await user.click(btn);
-    expect(updateQuantity).toHaveBeenLastCalledWith(50);
+    await user.click(screen.getByText('среднее (50г)'));
+    await user.click(screen.getByText('крупное (63г)'));
 
-    // After first click, button label updates to show count
-    const btn2 = screen.getByRole('button', { name: /среднее/ });
-    await user.click(btn2);
-    expect(updateQuantity).toHaveBeenLastCalledWith(100);
-  });
-
-  it('third tap adds another portion', async () => {
-    const user = userEvent.setup();
-    const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
-
-    const getBtn = () =>
-      screen.getAllByRole('button').find((b) => b.textContent?.includes('среднее'))!;
-
-    await user.click(getBtn());
-    await user.click(getBtn());
-    await user.click(getBtn());
-
-    expect(updateQuantity).toHaveBeenLastCalledWith(150);
-  });
-
-  it('tapping a different portion resets to that portion grams', async () => {
-    const user = userEvent.setup();
-    const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
-
-    // Tap среднее twice = 100
-    const getMiddle = () =>
-      screen.getAllByRole('button').find((b) => b.textContent?.includes('среднее'))!;
-    await user.click(getMiddle());
-    await user.click(getMiddle());
-    expect(updateQuantity).toHaveBeenLastCalledWith(100);
-
-    // Tap крупное → resets to 63
-    const getLarge = () =>
-      screen.getAllByRole('button').find((b) => b.textContent?.includes('крупное'))!;
-    await user.click(getLarge());
     expect(updateQuantity).toHaveBeenLastCalledWith(63);
   });
 
-  it('tapping a fixed quantity button clears active portion', async () => {
+  it('shows the multiplier row only after a portion is active', async () => {
+    const user = userEvent.setup();
+    renderQuantity({ quantity: 0, product: { portions } });
+
+    expect(screen.queryByPlaceholderText('×')).not.toBeInTheDocument();
+
+    await user.click(screen.getByText('среднее (50г)'));
+
+    expect(screen.getByPlaceholderText('×')).toBeInTheDocument();
+  });
+
+  it('tapping the active portion again deselects it and hides the multiplier row', async () => {
+    const user = userEvent.setup();
+    renderQuantity({ quantity: 0, product: { portions } });
+
+    await user.click(screen.getByText('среднее (50г)'));
+    expect(screen.getByPlaceholderText('×')).toBeInTheDocument();
+
+    // Second tap on the same portion clears the selection.
+    await user.click(screen.getByText('среднее (50г)'));
+    expect(screen.queryByPlaceholderText('×')).not.toBeInTheDocument();
+  });
+
+  it('increasing the multiplier scales the active portion grams', async () => {
     const user = userEvent.setup();
     const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
 
-    // Tap portion first
     await user.click(screen.getByText('среднее (50г)'));
-    expect(updateQuantity).toHaveBeenLastCalledWith(50);
+    // "+" → multiplier 1.5 → round(50 × 1.5) = 75
+    await user.click(screen.getByRole('button', { name: '+' }));
 
-    // Tap fixed quantity 200
-    await user.click(screen.getByText('200'));
-    expect(updateQuantity).toHaveBeenLastCalledWith(200);
-
-    // Subtitle should revert to "граммы"
-    expect(screen.getByText('граммы')).toBeInTheDocument();
-  });
-});
-
-// ─── dynamic labels ──────────────────────────────────────────────────────────
-
-describe('ProductQuantity — dynamic labels', () => {
-  it('shows count on active portion button after multiple taps', async () => {
-    const user = userEvent.setup();
-    renderQuantity({ quantity: 0, product: { portions } });
-
-    const getBtn = () =>
-      screen.getAllByRole('button').find((b) => b.textContent?.includes('среднее'))!;
-
-    await user.click(getBtn());
-    await user.click(getBtn());
-
-    expect(getBtn().textContent).toBe('2 × среднее (100г)');
-  });
-
-  it('shows portion info in hero subtitle when portion active', async () => {
-    const user = userEvent.setup();
-    renderQuantity({ quantity: 0, product: { portions } });
-
-    // Initially shows "граммы"
-    expect(screen.getByText('граммы')).toBeInTheDocument();
-
-    await user.click(screen.getByText('среднее (50г)'));
-
-    expect(screen.getByText('1 × среднее')).toBeInTheDocument();
-    expect(screen.queryByText('граммы')).not.toBeInTheDocument();
-  });
-
-  it('updates hero subtitle count on additive taps', async () => {
-    const user = userEvent.setup();
-    renderQuantity({ quantity: 0, product: { portions } });
-
-    const getBtn = () =>
-      screen.getAllByRole('button').find((b) => b.textContent?.includes('среднее'))!;
-
-    await user.click(getBtn());
-    expect(screen.getByText('1 × среднее')).toBeInTheDocument();
-
-    await user.click(getBtn());
-    expect(screen.getByText('2 × среднее')).toBeInTheDocument();
-
-    await user.click(getBtn());
-    expect(screen.getByText('3 × среднее')).toBeInTheDocument();
-  });
-
-  it('inactive portion keeps default label', async () => {
-    const user = userEvent.setup();
-    renderQuantity({ quantity: 0, product: { portions } });
-
-    // Tap среднее
-    await user.click(screen.getByText('среднее (50г)'));
-
-    // крупное should still show default label
-    expect(screen.getByText('крупное (63г)')).toBeInTheDocument();
-  });
-});
-
-// ─── fixed quantity buttons ──────────────────────────────────────────────────
-
-describe('ProductQuantity — fixed quantity buttons', () => {
-  it('sets value directly when clicking a fixed quantity', async () => {
-    const user = userEvent.setup();
-    const { updateQuantity } = renderQuantity({ quantity: 0 });
-
-    await user.click(screen.getByText('100'));
-    expect(updateQuantity).toHaveBeenLastCalledWith(100);
-  });
-
-  it('highlights active fixed quantity button', async () => {
-    const user = userEvent.setup();
-    renderQuantity({ quantity: 0 });
-
-    const btn = screen.getByText('100');
-    await user.click(btn);
-
-    expect(btn.closest('button')).toHaveClass('is-selected');
+    expect(updateQuantity).toHaveBeenLastCalledWith(75);
   });
 });

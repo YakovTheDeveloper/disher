@@ -133,21 +133,27 @@
 :global([data-nutrient='protein']) .progressBar {
   background: linear-gradient(45deg, transparent 0%, #a855f7 100%);
 }
+
 :global([data-nutrient='fats']) .progressBar {
   background: linear-gradient(45deg, transparent 0%, #14e0c8 100%);
 }
+
 :global([data-nutrient='carbohydrates']) .progressBar {
   background: linear-gradient(45deg, transparent 0%, #2563eb 100%);
 }
+
 :global([data-nutrient='fiber']) .progressBar {
   background: linear-gradient(45deg, transparent 0%, #d000ff 100%);
 }
+
 :global([data-nutrient='energy']) .progressBar {
   background: linear-gradient(45deg, transparent 0%, #ff2d6a 100%);
 }
+
 :global([data-nutrient='sugar']) .progressBar {
   background: linear-gradient(45deg, transparent 0%, #00e5a0 100%);
 }
+
 :global([data-nutrient='water']) .progressBar {
   background: linear-gradient(45deg, transparent 0%, #6028ff 100%);
 }
@@ -194,12 +200,11 @@
   display: flex;
   gap: 2px;
   font-family: "Raleway", sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "lnum" 1;
   color: var(--text-secondary);
-  opacity: 0.8;
-  min-width: 32px;
+  opacity: 0.9;
   line-height: 1;
   align-self: flex-end;
   padding-bottom: 2px;
@@ -226,8 +231,9 @@
 }
 
 .pctSign {
-  font-size: 0.5em;
+  font-size: 0.8em;
   opacity: 0.5;
+  font-weight: 200;
   padding-left: 2px;
 }
 

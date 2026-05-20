@@ -94,9 +94,9 @@
 }
 
 // ─── Side drawers (left / right) ────────────────────────────────
-// Full-viewport-height panels. Geometry mirrors the standalone
-// SideDrawer.module.scss so the two converge while the 4 legacy SideDrawer
-// callers are migrated off (Phase 2).
+// Full-viewport-height panels. This is the only side-drawer geometry — the
+// standalone SideDrawer component was removed once every caller moved onto
+// the store path.
 //
 // Layout is a horizontal flex row: an edge swipe-handle on the page-facing
 // side + the `.panel` body. The popup widens by `--drawer-handle-w` — taken
@@ -313,6 +313,15 @@
     // and ::after are descendants, so they resolve --scrollerY directly — no
     // timeline-scope needed.
     scroll-timeline: --scrollerY block;
+
+    // Scroll-state query container — lets descendant drawers react to sticky
+    // headers being held by their `top` constraint via `@container
+    // scroll-state(stuck: top)`. Modern path of the two-tier scroll-seam
+    // affordance (see NutrientsDrawer.header for the canonical consumer).
+    // Chrome 133+; Safari ≤18.x / Firefox silently ignore the unsupported value
+    // and fall back to the scroll-driven `--scrollerY` path. `scroll-state`
+    // adds no layout/style/paint containment side effects (CSS Containment 3).
+    container-type: scroll-state;
 
     // Top/bottom scroll-hints: sticky white→transparent gradients, content fades
     // into the surface. White-on-white means no hard edge — the fade only ever

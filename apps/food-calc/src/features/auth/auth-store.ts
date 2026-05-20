@@ -126,11 +126,13 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
     // before validating, so a typo logged the user out).
     const result = await authProvider.signIn(email, password);
     if (!result.ok) {
-      // requireEmailVerification: better-auth returns HTTP 403 when an
-      // unverified user tries to signIn. Surface that as the "check your
-      // inbox" branch instead of a generic auth error so the user can resend
-      // the link without retyping the email.
-      if (result.error.kind === 'auth' && result.error.status === 403) {
+      // requireEmailVerification: better-auth returns HTTP 403 + code
+      // EMAIL_NOT_VERIFIED (mapped to 'email_not_confirmed' by
+      // classifyBetterAuthError) when an unverified user tries to signIn.
+      // Match on the code, NOT bare status — origin/CSRF rejections are also
+      // 403 and previously landed on this branch, showing CheckInbox for a
+      // CORS failure.
+      if (result.error.kind === 'auth' && result.error.code === 'email_not_confirmed') {
         set({
           isLoading: false,
           pendingVerificationEmail: email,

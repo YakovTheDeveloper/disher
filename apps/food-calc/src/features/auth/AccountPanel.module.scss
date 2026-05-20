@@ -1,30 +1,30 @@
-// ─── Account trigger (logged-in avatar) ─────────────────────────
+// ─── Account trigger — иконка-шестерёнка (настройки + аккаунт + темы) ──
 
 .avatarButton {
   width: 32px;
   height: 32px;
   border-radius: var(--radius-full);
-  border: 1px solid #111;
+  border: none;
   background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  color: rgba(0, 0, 0, 0.2);
   -webkit-tap-highlight-color: transparent;
   transition:
     background var(--duration-fast) var(--easing-default),
     transform var(--duration-fast) var(--easing-default);
 
   &:active {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(0, 0, 0, 0.06);
     transform: scale(0.94);
   }
 }
 
-.avatarLetter {
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  font-weight: 400;
-  color: #111;
-  line-height: 1;
+.icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+  flex-shrink: 0;
 }

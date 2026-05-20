@@ -12,6 +12,8 @@ function safeParseJson<T>(json: string | undefined, fallback: T): T {
 export async function createProduct(params: {
   name: string;
   id?: string;
+  /** true → продукт-добавка: nutrients per serving, единица 'шт' по умолчанию. */
+  isSupplement?: boolean;
 }): Promise<string> {
   const id = params.id ?? crypto.randomUUID();
   const row: ProductRow = {
@@ -21,8 +23,8 @@ export async function createProduct(params: {
     nutrients: {},
     portions: [],
     categories: [],
-    serving_basis: '100g',
-    serving_unit: null,
+    serving_basis: params.isSupplement ? 'serving' : '100g',
+    serving_unit: params.isSupplement ? 'шт' : null,
     created_at: new Date().toISOString(),
   };
   await db.products.add(row);

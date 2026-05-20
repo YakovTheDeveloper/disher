@@ -1,12 +1,12 @@
-import { Heading } from '@/shared/ui/atoms/Typography';
 import { DetailsChips } from './DetailsChips';
 import s from './DetailsStep.module.scss';
 
 /**
- * Шаг «Уточнение» — открывается с уже поднятой клавиатурой, свёрстан плотно.
- * Главный — заголовок задачи; название еды вспомогательное, вынесено в мелкий
- * эйброу справа над инпутом рядом с кнопкой-инфо. Чипы — единый поток без
- * под-групп (больше влезает над клавиатурой).
+ * Шаг «Особенности» — открывается с уже поднятой клавиатурой, свёрстан плотно.
+ * Свой заголовок не несёт: его даёт заголовок модалки (StepHeader). Название
+ * еды опционально — вспомогательный эйброу справа над инпутом рядом с кнопкой-
+ * инфо; на шаге создания еды ссылки на конкретную еду ещё нет, эйброу скрыт.
+ * Чипы — единый поток без под-групп (больше влезает над клавиатурой).
  */
 const InfoIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -27,8 +27,9 @@ const InfoIcon = () => (
 );
 
 type Props = {
-  /** Название еды — вспомогательный эйброу + хвост плейсхолдера. */
-  title: string;
+  /** Название еды — вспомогательный эйброу + хвост плейсхолдера. Опционально:
+   *  на шаге создания еды ссылки на конкретную еду ещё нет. */
+  title?: string;
   /** Кнопка-иконка «Информация о продукте/блюде». null на шаге создания. */
   info?: { label: string; onClick: () => void } | null;
   textareaId: string;
@@ -38,32 +39,35 @@ type Props = {
 };
 
 export function DetailsStep({ title, info, textareaId, value, onChange, productId }: Props) {
+  const placeholder = title
+    ? `Особенности приема ${title.toLowerCase()}`
+    : 'Особенности приема';
+  const showEyebrow = Boolean(title) || Boolean(info);
+
   return (
     <div className={s.root}>
-      <Heading size="modal" as="h2" className={s.heading}>
-        Особенности приема
-      </Heading>
-
-      <div className={s.eyebrow}>
-        <span className={s.eyebrowName}>{title}</span>
-        {info && (
-          <button
-            type="button"
-            className={s.infoBtn}
-            aria-label={info.label}
-            onClick={info.onClick}
-          >
-            <InfoIcon />
-          </button>
-        )}
-      </div>
+      {showEyebrow && (
+        <div className={s.eyebrow}>
+          {title && <span className={s.eyebrowName}>{title}</span>}
+          {info && (
+            <button
+              type="button"
+              className={s.infoBtn}
+              aria-label={info.label}
+              onClick={info.onClick}
+            >
+              <InfoIcon />
+            </button>
+          )}
+        </div>
+      )}
 
       <DetailsChips
         textareaId={textareaId}
         value={value}
         onChange={onChange}
         productId={productId}
-        placeholder={`Особенности приема ${title.toLowerCase()}`}
+        placeholder={placeholder}
         showSectionLabels={false}
       />
     </div>

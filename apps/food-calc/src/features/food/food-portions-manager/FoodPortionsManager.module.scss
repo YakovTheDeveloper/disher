@@ -5,6 +5,16 @@
     padding: 8px 0;
 }
 
+.hint {
+    margin: 0 4px 8px;
+    font-family: "Raleway", sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    line-height: 1.45;
+    letter-spacing: 0.01em;
+    color: rgba(0, 0, 0, 0.42);
+}
+
 .list {
     display: flex;
     flex-direction: column;
@@ -18,6 +28,19 @@
     padding: 12px 4px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.04);
     transition: background-color 0.15s ease;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.portionEdit {
+    display: grid;
+    grid-template-columns: 1fr 10ch auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 4px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
 
     &:last-child {
         border-bottom: none;
@@ -45,10 +68,12 @@
     color: rgba(0, 0, 0, 0.35);
 }
 
-.portionActions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
+.portionUnitSuffix {
+    font-family: "Jost", sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    color: rgba(0, 0, 0, 0.4);
+    user-select: none;
 }
 
 .iconButton {
@@ -58,7 +83,7 @@
     color: rgba(0, 0, 0, 0.2);
     cursor: pointer;
     transition: color 0.15s ease;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1;
 
     &:hover {
@@ -66,22 +91,7 @@
     }
 }
 
-.form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 16px 4px;
-    animation: slideDown 0.2s ease;
-}
-
-.formRow {
-    display: flex;
-    gap: 16px;
-    align-items: flex-end;
-}
-
 .formInput {
-    flex: 1;
     border: none;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     background: transparent;
@@ -91,6 +101,7 @@
     color: rgb(50, 50, 50);
     padding: 6px 0;
     outline: none;
+    min-width: 0;
     transition: border-color 0.2s ease;
 
     &:focus {
@@ -98,20 +109,18 @@
     }
 
     &::placeholder {
-        color: rgba(0, 0, 0, 0.15);
+        color: rgba(0, 0, 0, 0.18);
+        font-weight: 300;
     }
 }
 
 .formInputGrams {
     composes: formInput;
-    max-width: 80px;
     text-align: right;
-}
 
-.formActions {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
+    &::placeholder {
+        font-size: 12px;
+    }
 }
 
 .addButton {
@@ -140,15 +149,4 @@
     color: rgba(0, 0, 0, 0.2);
     padding: 16px 0;
     font-style: italic;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }

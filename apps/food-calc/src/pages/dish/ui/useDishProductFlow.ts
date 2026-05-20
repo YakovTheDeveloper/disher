@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { addDishItem, updateDishItem } from '@/entities/dish';
@@ -29,8 +29,8 @@ export const CREATE_STEPS_NO_DETAILS: ActiveStep[] = ['search', 'quantity'];
 // Backwards-compatible export — anything still importing CREATE_STEPS gets the full flow.
 export const CREATE_STEPS = CREATE_STEPS_WITH_DETAILS;
 export const STEP_LABELS: Record<ActiveStep, string> = {
-  search: 'Продукт',
-  quantity: 'Количество',
+  search: 'Еда',
+  quantity: 'Порция',
   details: 'Заметка',
 };
 
@@ -73,8 +73,19 @@ export function useDishProductFlow(mode: FlowMode) {
   const [draft, setDraft] = useState<DraftState>(() => createEmptyDraft());
   const [editingItem, setEditingItem] = useState<EditItem | null>(null);
   const [sessionKey, setSessionKey] = useState(0);
+  // Посещённые шаги текущей сессии — для `results`-вида Breadcrumbs.
+  // Обнуляется при возврате в 'idle' (любое закрытие/коммит).
+  const [visitedSteps, setVisitedSteps] = useState<ActiveStep[]>([]);
 
   useSwipeableLock(step !== 'idle');
+
+  useEffect(() => {
+    if (step === 'idle') {
+      setVisitedSteps((prev) => (prev.length ? [] : prev));
+      return;
+    }
+    setVisitedSteps((prev) => (prev.includes(step) ? prev : [...prev, step]));
+  }, [step]);
 
   const foodPortions = useProductPortions(draft.productId ?? undefined);
 
@@ -141,8 +152,12 @@ export function useDishProductFlow(mode: FlowMode) {
     if (payload.variant === 'dish') return;
 
     if (mode.type === 'create') {
+      // Только пишем draft — НЕ зовём setStep. Переход на 'quantity' делает
+      // делегирование фокуса: карточка в SearchFood это <label htmlFor=
+      // {QUANTITY_INPUT}>, фокус на инпуте ловит onFocusCapture. Синхронный
+      // setStep здесь размонтировал бы <label> до делегирования фокуса
+      // (см. CLAUDE.md «Label focus delegation»). Совпадает с HomePage-флоу.
       setDraft((prev) => ({ ...prev, productId: payload.id }));
-      setStep('quantity');
       return;
     }
 
@@ -223,6 +238,7 @@ export function useDishProductFlow(mode: FlowMode) {
     startEdit,
     primeEdit,
     sessionKey,
+    visitedSteps,
     handleFocusCapture,
     handleClose,
     handleFoodSelect,

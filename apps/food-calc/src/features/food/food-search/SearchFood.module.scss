@@ -35,22 +35,16 @@
     }
 }
 
+// В потоке: единый бар SearchFoodControls (стрелка + заголовок + поиск)
+// стоит сверху, список ниже ложится сам — без абсолютного позиционирования
+// и магического padding-top-офсета. flex-shrink:0 не даёт шапке сжаться.
 .header {
-    position: absolute;
     display: flex;
     flex-direction: column;
-    top: 0;
-    left: 0;
-    right: 0;
+    flex-shrink: 0;
     z-index: 10;
-    padding: 0;
     background: transparent;
     border: none;
-    pointer-events: none;
-
-    > * {
-        pointer-events: auto;
-    }
 }
 
 .tabBar {
@@ -186,10 +180,10 @@
     padding-bottom: calc(60px + env(safe-area-inset-bottom) + 8px);
 }
 
-// Must come AFTER .listContainer to win the cascade — otherwise the shorthand
-// `padding: 8px ...` above clobbers our padding-top.
+// Шапка теперь в потоке, поэтому офсет под абсолютную полосу больше не нужен —
+// остаётся лишь небольшой воздух между поиском и первой карточкой.
 .listContainerOffset {
-    padding-top: 68px; // ~60px header (50 min-height + 2×8 padding) + 8px breathing room
+    padding-top: var(--space-2);
 }
 
 .list {

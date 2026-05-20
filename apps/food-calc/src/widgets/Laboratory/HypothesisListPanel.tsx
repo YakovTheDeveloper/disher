@@ -12,13 +12,20 @@ const PALETTE_VARIANTS = ['lavender', 'warm', 'sand', 'mint'] as const;
 // prompt bounded — extra checkboxes are disabled with a hint.
 const MAX_SELECTED = 10;
 
+type EditProps =
+  | {
+      /** Записать parent editingId. focus → step перевернёт onFocusCapture. */
+      onEditHypothesis: (id: string) => void;
+      /** Общий input id единственного EditHypothesisModal в parent. */
+      editInputHtmlFor: string;
+    }
+  | { onEditHypothesis?: undefined; editInputHtmlFor?: undefined };
+
 type Props = {
   hypotheses: Hypothesis[];
   /** Ids ticked for the next analysis. */
   selectedIds: Set<string>;
   onToggle: (id: string) => void;
-  /** Tap on a row body opens its edit drawer. Omit for read-only contexts. */
-  onEditHypothesis?: (id: string) => void;
   /**
    * Caps the scrollable body. A long list scrolls inside this box while the
    * surrounding Screen still scrolls down to the daily-analysis section.
@@ -31,7 +38,7 @@ type Props = {
    * Defaults to `true`.
    */
   selectable?: boolean;
-};
+} & EditProps;
 
 // The hypothesis list: a static header label + a height-bounded, internally
 // scrollable body of stripe-fork rows. No collapse — the body cap keeps the
@@ -41,6 +48,7 @@ const HypothesisListPanel = ({
   selectedIds,
   onToggle,
   onEditHypothesis,
+  editInputHtmlFor,
   maxBodyHeight = '58vh',
   selectable = true,
 }: Props) => {
@@ -79,19 +87,22 @@ const HypothesisListPanel = ({
         >
           {hypotheses.map((h) => {
             const selected = selectedIds.has(h.id);
+            const editProps =
+              onEditHypothesis && editInputHtmlFor
+                ? {
+                    onEdit: () => onEditHypothesis(h.id),
+                    editInputHtmlFor,
+                  }
+                : {};
             return (
               <HypothesisListItem
                 key={h.id}
                 hypothesis={h}
                 selected={selected}
                 onToggle={() => onToggle(h.id)}
-                onEdit={
-                  onEditHypothesis
-                    ? () => onEditHypothesis(h.id)
-                    : undefined
-                }
                 checkboxDisabled={capReached && !selected}
                 hideCheckbox={!selectable}
+                {...editProps}
               />
             );
           })}

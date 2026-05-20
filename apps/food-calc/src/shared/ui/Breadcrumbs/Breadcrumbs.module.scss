@@ -1,6 +1,7 @@
 .breadcrumbs {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
 }
 
@@ -83,4 +84,50 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 80px;
+}
+
+/* ── `results` variant — компактный трейл результатов ───────────── */
+
+// min-height резервирует строку: на 1-м шаге трейл пуст, и без этого
+// переход шаг→шаг дёргал бы layout (ModalLayout морфит через motion).
+.results {
+  min-height: 16px;
+  overflow: hidden;
+}
+
+.dot {
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
+}
+
+.resultCrumb {
+  background: none;
+  border: none;
+  padding: 3px 2px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.55);
+  letter-spacing: 0.01em;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: rgba(0, 0, 0, 0.8);
+  }
+}
+
+// Текущий шаг остаётся в трейле (не вырезается) — просто подсвечен,
+// чтобы было видно «где я», без отдельной подписи.
+.resultCrumbCurrent {
+  color: rgba(0, 0, 0, 0.9);
+  font-weight: 600;
 }

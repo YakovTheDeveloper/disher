@@ -74,8 +74,9 @@ const STATIC_DEV_ORIGINS = [
   "https://127.0.0.1:5173",
 ];
 
-const LAN_ORIGIN_5173 =
-  /^https?:\/\/(?:localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+):5173$/;
+// Ports: 5173 = vite dev (dev-network), 4173 = vite preview --host.
+const LAN_ORIGIN_DEV =
+  /^https?:\/\/(?:localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+):(?:5173|4173)$/;
 
 function staticAllowedOrigins(): string[] {
   const fromEnv = process.env.BETTER_AUTH_TRUSTED_ORIGINS
@@ -99,7 +100,7 @@ async function trustedOriginsResolver(
   if (process.env.NODE_ENV === "production") return base;
   if (!request) return base;
   const origin = request.headers.get("origin");
-  if (origin && LAN_ORIGIN_5173.test(origin)) {
+  if (origin && LAN_ORIGIN_DEV.test(origin)) {
     return [...base, origin];
   }
   return base;
@@ -185,17 +186,14 @@ export const auth = betterAuth({
     // Synced with frontend AuthForm.tsx MIN_PASSWORD. NIST 800-63-4 minimum
     // is 8; 12 is plan default (recommended for personal app, no HIBP check).
     minPasswordLength: 12,
-    // Dev escape hatch: REQUIRE_EMAIL_VERIFICATION=false lets us register +
-    // sign in without clicking the link. In prod the flag must stay unset
-    // (default → true). Tests rely on the gated behaviour, so do NOT remove
-    // requireEmailVerification entirely — keep it driven by env.
+    // Email verification is opt-IN: default is OFF (signIn doesn't 403,
+    // signUp auto-issues a session). Tests that exercise the gated flow
+    // (auth-routes.test.ts, auth-helpers.ts, dev:e2e in package.json,
+    // global-setup.ts) set REQUIRE_EMAIL_VERIFICATION=true explicitly.
     requireEmailVerification:
-      process.env.REQUIRE_EMAIL_VERIFICATION !== "false",
-    // When verification is required we keep autoSignIn=false (better-auth
-    // returns token=null on signup until the user clicks the link). When
-    // verification is dev-disabled we want signup to issue a session right
-    // away — otherwise the SPA gets stuck on "check your inbox".
-    autoSignIn: process.env.REQUIRE_EMAIL_VERIFICATION === "false",
+      process.env.REQUIRE_EMAIL_VERIFICATION === "true",
+    autoSignIn:
+      process.env.REQUIRE_EMAIL_VERIFICATION !== "true",
   },
   emailVerification: {
     sendOnSignUp: true,

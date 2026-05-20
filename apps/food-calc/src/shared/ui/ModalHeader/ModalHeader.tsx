@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg';
+import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import s from './ModalHeader.module.scss';
 
@@ -16,18 +16,29 @@ export type ModalHeaderProps = {
   backLabel?: string;
   /** Опциональный правый слот (инфо / доп. действие). */
   trailing?: ReactNode;
+  /**
+   * `modal` (default) — 32px serif заголовок для полноэкранных модалок.
+   * `compact` — 24px, для вложенных мелких панелей (atom-панели).
+   */
+  size?: 'modal' | 'compact';
 };
 
 /**
  * ModalHeader — единая верхняя обвязка модалок: стрелка назад слева + заголовок.
  * `ModalStepHeader` строится поверх него, добавляя ряд breadcrumbs.
  */
-export const ModalHeader = ({ title, onBack, backLabel = 'Назад', trailing }: ModalHeaderProps) => (
-  <header className={s.header}>
+export const ModalHeader = ({
+  title,
+  onBack,
+  backLabel = 'Назад',
+  trailing,
+  size = 'modal',
+}: ModalHeaderProps) => (
+  <header className={size === 'compact' ? `${s.header} ${s.compact}` : s.header}>
     <button className={s.backButton} onClick={onBack} type="button" aria-label={backLabel}>
       <ArrowLeftIcon />
     </button>
-    <Heading size="modal" as="h2" className={s.title}>
+    <Heading size={size === 'compact' ? 'drawer' : 'modal'} as="h2" className={s.title}>
       {title}
     </Heading>
     {trailing != null && <div className={s.trailing}>{trailing}</div>}

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Screen } from '@/shared/ui/Screen';
-import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg';
+import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { db } from '@/shared/lib/dexie/schema';

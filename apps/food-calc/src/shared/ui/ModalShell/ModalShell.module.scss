@@ -260,7 +260,7 @@
   gap: 20px;
   min-height: 0;
   overflow-y: auto;
-  padding-top: 2rem;
+  padding: var(--space-3) var(--space-1) 0;
 }
 
 // Снимает дефолтные 2rem сверху, но сохраняет cushion под вырез экрана —
@@ -330,7 +330,7 @@
   flex: 1;
   display: flex;
 
-  > * {
+  >* {
     flex: 1;
   }
 }

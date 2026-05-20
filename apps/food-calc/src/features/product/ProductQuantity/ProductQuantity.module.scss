@@ -21,7 +21,7 @@
     .mirror,
     .input {
         font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-        font-size: 7rem;
+        font-size: 6rem;
         font-weight: 800;
         letter-spacing: -0.06em;
         line-height: 1;
@@ -112,55 +112,17 @@
     padding-left: 0;
 }
 
-// ── Snap carousel ───────────────────────────────────────────────────────────
-
-// Full-bleed: cancel the container's padding-inline so the carousel can
-// swipe edge-to-edge, then re-apply the same padding via scroll-padding so
-// each snapped slide aligns with the rest of the section's content.
-.snapViewport {
-    overflow-x: auto;
-    width: auto;
-    margin-inline: calc(var(--space-4) * -1);
-    padding-inline: var(--space-4);
-    scroll-padding-inline: var(--space-4);
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-        display: none;
-    }
-}
-
-.snapContainer {
+// ── Portion chips ───────────────────────────────────────────────────────────
+// Plain wrapping row — the portion set is small, so every chip stays visible
+// at once. No carousel, no scroll, no JS.
+.portionChips {
     display: flex;
-}
-
-.snapSlide {
-    flex: 0 0 100%;
-    min-width: 0;
-    scroll-snap-align: start;
-}
-
-.slideGrid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    flex-wrap: wrap;
     gap: var(--space-2);
+}
 
-    // Portion chips share the TimeChoose toggleButton DNA: pill, glass, ink text.
-    .quickBtn {
-        @include pill-button();
-
-        // Active state mirrors the toggleButton :active: solid white pill,
-        // ink-strong text. Higher specificity (.slideGrid .quickBtn) overrides
-        // the global body .is-selected blue.
-        &:global(.is-selected) {
-            background: #ffffff;
-            border-color: rgba(38, 38, 51, 0.12);
-            color: var(--color-ink-strong);
-            font-weight: 600;
-        }
-    }
+.portionChip {
+    flex: 0 0 auto;
 }
 
 // ── Multiplier row ──────────────────────────────────────────────────────────

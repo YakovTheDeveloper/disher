@@ -1,11 +1,23 @@
-import { FC, useState, useCallback } from 'react';
-import Button from '@/shared/ui/atoms/Button/Button';
+import { FC, useCallback } from 'react';
 import s from './FoodPortionsManager.module.scss';
 
 type Portion = { label: string; grams: number };
 
 type Props = {
   portions: Portion[];
+  /**
+   * Единица измерения порции — `'г'` для еды, `servingUnit` для добавок
+   * (IU / mg / mcg / g / шт). Используется в placeholder инпута и в
+   * suffix-подписи рядом с числом.
+   */
+  unit?: string;
+  /**
+   * Подсказка над виджетом — объясняет юзеру, что хранят порции в его
+   * контексте. Если не задана, виджет покажет дефолт по `unit`.
+   * Передавай явный текст из модалки создания еды/добавки, где контекст
+   * («еда vs БАД») известен на момент рендера.
+   */
+  hint?: string;
   /**
    * Derived non-editable row pinned to the top of the list (e.g. for Dish:
    * `{ label: 'Всё блюдо', grams: Σ dish_items.quantity }`). Always recomputed
@@ -17,64 +29,77 @@ type Props = {
   onRemove?: (label: string) => void;
 };
 
-type EditState =
-  | { mode: 'idle' }
-  | { mode: 'adding'; draft: { label: string; grams: number } }
-  | { mode: 'editing'; editingLabel: string; draft: { label: string; grams: number } };
+const GRAM_UNITS = new Set(['г', 'g', 'G']);
 
-const FoodPortionsManager: FC<Props> = ({ portions, implicitPortion, onAdd, onUpdate, onRemove }) => {
+function defaultHint(unit: string): string {
+  if (GRAM_UNITS.has(unit)) {
+    return 'Порции — твои часто-используемые веса. Например, «миска» = 250 г.';
+  }
+  return `Порции — твои дозы. Например, «утренняя» = 1 ${unit}.`;
+}
+
+const DEFAULT_LABEL_BASE = 'моя порция';
+
+function nextDefaultLabel(existing: Portion[]): string {
+  const labels = new Set(existing.map((p) => p.label));
+  if (!labels.has(DEFAULT_LABEL_BASE)) return DEFAULT_LABEL_BASE;
+  let n = 2;
+  while (labels.has(`${DEFAULT_LABEL_BASE} ${n}`)) n += 1;
+  return `${DEFAULT_LABEL_BASE} ${n}`;
+}
+
+const FoodPortionsManager: FC<Props> = ({
+  portions,
+  unit = 'г',
+  hint,
+  implicitPortion,
+  onAdd,
+  onUpdate,
+  onRemove,
+}) => {
   const editable = !!(onAdd && onUpdate && onRemove);
-  const [state, setState] = useState<EditState>({ mode: 'idle' });
+  const hintText = hint ?? defaultHint(unit);
 
-  const isEditing = state.mode !== 'idle';
-  const draft = state.mode !== 'idle' ? state.draft : null;
-  const isValid = draft ? draft.label.trim().length > 0 && draft.grams > 0 : false;
+  const handleAdd = useCallback(() => {
+    onAdd?.({ label: nextDefaultLabel(portions), grams: 0 });
+  }, [portions, onAdd]);
 
-  const startAdding = useCallback(() => {
-    setState({ mode: 'adding', draft: { label: '', grams: 0 } });
-  }, []);
+  // Label is the row key — collisions break React reconciliation. На blur
+  // откатываем пустые/дублирующие значения визуально, в state не уходим.
+  const handleLabelBlur =
+    (originalLabel: string) => (e: React.FocusEvent<HTMLInputElement>) => {
+      const next = e.target.value.trim();
+      if (!next || next === originalLabel) {
+        e.target.value = originalLabel;
+        return;
+      }
+      const collision = portions.some(
+        (p) => p.label !== originalLabel && p.label === next,
+      );
+      if (collision) {
+        e.target.value = originalLabel;
+        return;
+      }
+      onUpdate?.(originalLabel, { label: next });
+    };
 
-  const startEditing = useCallback((label: string, grams: number) => {
-    setState({ mode: 'editing', editingLabel: label, draft: { label, grams } });
-  }, []);
-
-  const cancel = useCallback(() => {
-    setState({ mode: 'idle' });
-  }, []);
-
-  const updateDraft = useCallback((field: 'label' | 'grams', value: string | number) => {
-    setState((prev) => {
-      if (prev.mode === 'idle') return prev;
-      return { ...prev, draft: { ...prev.draft, [field]: value } };
-    });
-  }, []);
-
-  const handleSave = () => {
-    if (!draft || !isValid) return;
-
-    if (state.mode === 'adding') {
-      onAdd?.({
-        label: draft.label.trim(),
-        grams: draft.grams,
-      });
-    } else if (state.mode === 'editing') {
-      onUpdate?.(state.editingLabel, {
-        label: draft.label.trim(),
-        grams: draft.grams,
-      });
-    }
-
-    cancel();
-  };
-
-  const handleGramsInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/[^0-9]/g, '');
-    updateDraft('grams', val ? parseInt(val, 10) : 0);
-  };
+  const handleGramsBlur =
+    (originalLabel: string, prevGrams: number) =>
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const sanitized = e.target.value.replace(/[^0-9]/g, '');
+      const next = sanitized ? parseInt(sanitized, 10) : 0;
+      if (next === prevGrams) {
+        e.target.value = next ? String(next) : '';
+        return;
+      }
+      onUpdate?.(originalLabel, { grams: next });
+    };
 
   return (
     <div className={s.container}>
-      {portions.length === 0 && !implicitPortion && !isEditing && (
+      {editable && <p className={s.hint}>{hintText}</p>}
+
+      {portions.length === 0 && !implicitPortion && !editable && (
         <div className={s.empty}>нет порций</div>
       )}
 
@@ -83,66 +108,54 @@ const FoodPortionsManager: FC<Props> = ({ portions, implicitPortion, onAdd, onUp
           <div className={s.portion}>
             <div className={s.portionInfo}>
               <span className={s.portionLabel}>{implicitPortion.label}</span>
-              <span className={s.portionGrams}>{implicitPortion.grams} г</span>
+              <span className={s.portionGrams}>
+                {implicitPortion.grams} {unit}
+              </span>
             </div>
           </div>
         )}
-        {portions.map((p) => (
-          <div key={p.label} className={s.portion}>
-            <div className={s.portionInfo}>
-              <span className={s.portionLabel}>{p.label}</span>
-              <span className={s.portionGrams}>{p.grams} г</span>
+
+        {portions.map((p) =>
+          editable ? (
+            <div key={p.label} className={s.portionEdit}>
+              <input
+                className={s.formInput}
+                defaultValue={p.label}
+                placeholder="название"
+                onBlur={handleLabelBlur(p.label)}
+              />
+              <input
+                className={s.formInputGrams}
+                defaultValue={p.grams || ''}
+                placeholder={GRAM_UNITS.has(unit) ? 'вес, г' : unit}
+                inputMode="numeric"
+                onBlur={handleGramsBlur(p.label, p.grams)}
+              />
+              <span className={s.portionUnitSuffix}>{unit}</span>
+              <button
+                type="button"
+                className={s.iconButton}
+                onClick={() => onRemove?.(p.label)}
+                aria-label="Удалить порцию"
+              >
+                ×
+              </button>
             </div>
-            {editable && (
-              <div className={s.portionActions}>
-                <button
-                  className={s.iconButton}
-                  onClick={() => startEditing(p.label, p.grams)}
-                >
-                  ✎
-                </button>
-                <button
-                  className={s.iconButton}
-                  onClick={() => onRemove?.(p.label)}
-                >
-                  ×
-                </button>
+          ) : (
+            <div key={p.label} className={s.portion}>
+              <div className={s.portionInfo}>
+                <span className={s.portionLabel}>{p.label}</span>
+                <span className={s.portionGrams}>
+                  {p.grams} {unit}
+                </span>
               </div>
-            )}
-          </div>
-        ))}
+            </div>
+          ),
+        )}
       </div>
 
-      {isEditing && draft && (
-        <div className={s.form}>
-          <div className={s.formRow}>
-            <input
-              className={s.formInput}
-              placeholder="название"
-              value={draft.label}
-              onChange={(e) => updateDraft('label', e.target.value)}
-              autoFocus
-            />
-            <input
-              className={s.formInputGrams}
-              placeholder="г"
-              value={draft.grams || ''}
-              onChange={handleGramsInput}
-            />
-          </div>
-          <div className={s.formActions}>
-            <Button variant="ghost" onClick={cancel}>
-              отмена
-            </Button>
-            <Button variant="ghost" onClick={handleSave} disabled={!isValid}>
-              сохранить
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {editable && !isEditing && (
-        <button className={s.addButton} onClick={startAdding}>
+      {editable && (
+        <button type="button" className={s.addButton} onClick={handleAdd}>
           + добавить порцию
         </button>
       )}

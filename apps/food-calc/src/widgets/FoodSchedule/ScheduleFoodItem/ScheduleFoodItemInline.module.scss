@@ -105,13 +105,20 @@
 
 .qtyEdit {
     display: inline-flex;
-    align-items: baseline;
+    // `center`, not `baseline`: an <input>'s baseline differs from a plain
+    // text node's, so a baseline-aligned cell grew taller the moment the
+    // static qty was swapped for the NumberInput — making the whole row
+    // jump on focus. Centering + a fixed height keeps the cell (and row)
+    // identical in display and edit states.
+    align-items: center;
     justify-content: flex-end;
     gap: 2px;
     cursor: pointer;
     font-size: inherit;
     color: inherit;
     line-height: 1;
+    box-sizing: border-box;
+    height: calc(1em + 4px);
     padding: 2px 6px;
     margin: -2px -6px;
     border-radius: 6px;

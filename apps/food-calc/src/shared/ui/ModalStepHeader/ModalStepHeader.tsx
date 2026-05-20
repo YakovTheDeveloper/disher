@@ -7,6 +7,8 @@ type Props<T extends string> = ModalHeaderProps & {
   steps: T[];
   stepLabels: Record<T, string>;
   stepResults?: Partial<Record<T, React.ReactNode>>;
+  /** Шаги, посещённые в текущей сессии флоу — см. `Breadcrumbs`. */
+  visitedSteps?: readonly T[];
   onStepClick: (step: T) => void;
 };
 
@@ -24,6 +26,7 @@ function ModalStepHeader<T extends string>({
   steps,
   stepLabels,
   stepResults,
+  visitedSteps,
   onStepClick,
 }: Props<T>) {
   return (
@@ -35,6 +38,7 @@ function ModalStepHeader<T extends string>({
           current={currentStep}
           stepLabels={stepLabels}
           stepResults={stepResults}
+          visitedSteps={visitedSteps}
           onStepClick={onStepClick}
         />
       </div>

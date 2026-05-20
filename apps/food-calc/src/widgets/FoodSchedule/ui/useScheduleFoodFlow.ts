@@ -38,9 +38,9 @@ export const CREATE_STEPS_NO_DETAILS: ActiveStep[] = ['search', 'time', 'quantit
 export const CREATE_STEPS = CREATE_STEPS_WITH_DETAILS;
 export const STEP_LABELS: Record<ActiveStep, string> = {
   time: 'Время',
-  search: 'Продукт',
-  quantity: 'Количество',
-  details: 'Уточнение',
+  search: 'Еда',
+  quantity: 'Порция',
+  details: 'Особенности',
   create: 'Создать',
 };
 
@@ -96,8 +96,21 @@ export function useScheduleFoodFlow(mode: FlowMode) {
   const [draft, setDraft] = useState<DraftState>(() => createEmptyDraft());
   const [editingItem, setEditingItem] = useState<ScheduleFoodWithRelations | null>(null);
   const [sessionKey, setSessionKey] = useState(0);
+  // Шаги, посещённые в текущей сессии флоу. Накапливается при смене `step`,
+  // обнуляется при возврате в 'idle' (т.е. при любом закрытии/коммите) —
+  // следующая сессия стартует с чистой историей. Breadcrumbs `results`-вид
+  // показывает крошку только для посещённого шага.
+  const [visitedSteps, setVisitedSteps] = useState<ActiveStep[]>([]);
 
   useSwipeableLock(step !== 'idle');
+
+  useEffect(() => {
+    if (step === 'idle') {
+      setVisitedSteps((prev) => (prev.length ? [] : prev));
+      return;
+    }
+    setVisitedSteps((prev) => (prev.includes(step) ? prev : [...prev, step]));
+  }, [step]);
 
   const richNutrient = mode.type === 'create' ? mode.richNutrient : null;
 
@@ -217,7 +230,7 @@ export function useScheduleFoodFlow(mode: FlowMode) {
   // would unmount this modal before the native event finishes bubbling and
   // kill the focus delegation (see CLAUDE.md "Label focus delegation").
   const handleConfirmCreate = useCallback(
-    (name: string) => {
+    (name: string, opts?: { isSupplement?: boolean }) => {
       if (mode.type !== 'create') return;
       const trimmed = name.trim();
       if (!trimmed) return;
@@ -230,6 +243,10 @@ export function useScheduleFoodFlow(mode: FlowMode) {
         productId: variant === 'product' ? id : null,
         dishId: variant === 'dish' ? id : null,
         foodName: trimmed,
+        // БАД считается per-serving (1 = одна капсула/таблетка). Дефолт 100
+        // в createEmptyDraft рассчитан на еду (граммы) и для supplement даёт
+        // абсурдные числа в дневной сводке (basis='serving' умножает напрямую).
+        quantity: opts?.isSupplement ? 1 : d.quantity,
       }));
       // Rollback the flow if the Dexie write fails (quota / IDB locked). Otherwise
       // draft.productId would point to a non-existent row and a downstream
@@ -245,7 +262,7 @@ export function useScheduleFoodFlow(mode: FlowMode) {
         variant === 'product' ? 'Не удалось создать продукт' : 'Не удалось создать блюдо';
       const mutation =
         variant === 'product'
-          ? () => createProduct({ id, name: trimmed })
+          ? () => createProduct({ id, name: trimmed, isSupplement: opts?.isSupplement })
           : () => createDish(trimmed, id);
       void safeMutate(mutation, errorMsg).then((res) => {
         if (!res.ok) rollback();
@@ -388,6 +405,7 @@ export function useScheduleFoodFlow(mode: FlowMode) {
     startEdit,
     primeEdit,
     sessionKey,
+    visitedSteps,
     handleFocusCapture,
     handleClose,
     handleTimeFinish,

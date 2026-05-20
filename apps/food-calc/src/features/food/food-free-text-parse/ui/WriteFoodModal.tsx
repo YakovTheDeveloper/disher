@@ -16,7 +16,7 @@ export interface WriteFoodModalProps {
   inputId: string;
 }
 
-const DEFAULT_PLACEHOLDER = 'Например: на завтрак овсянка 200, кофе. В обед борщ 300, хлеб';
+const DEFAULT_PLACEHOLDER = 'На завтрак овсянка 200, кофе.';
 
 export const WriteFoodModal = ({
   isExpanded,

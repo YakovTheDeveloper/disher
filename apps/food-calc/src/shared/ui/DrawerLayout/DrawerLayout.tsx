@@ -3,7 +3,7 @@ import styles from './DrawerLayout.module.scss';
 import clsx from 'clsx';
 import { Drawer } from '@base-ui/react/drawer';
 import { useTranslation } from 'react-i18next';
-import CrossIcon from '@/shared/assets/icons/cross.svg';
+import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import { useDrawerSide } from './drawerSide';
 
 type Props = {
@@ -13,9 +13,23 @@ type Props = {
   footer?: React.ReactNode;
   className?: string;
   a11yLabel?: string;
+  /**
+   * Hide the 40px top drag-handle row (with the Close cross + topRight slot).
+   * Closing is still available via edge-swipe handle (side drawers) and
+   * backdrop click. Used by NutrientsDrawer where the row eats vertical space
+   * the content needs.
+   */
+  hideTopChrome?: boolean;
 };
 
-const DrawerLayout = ({ children, topRight, footer, className, a11yLabel }: Props) => {
+const DrawerLayout = ({
+  children,
+  topRight,
+  footer,
+  className,
+  a11yLabel,
+  hideTopChrome,
+}: Props) => {
   const { t } = useTranslation();
   // Side/width are decided at `drawerStore.show(..., { side })` call time and
   // delivered through DrawerManager → DrawerSideContext, so the drawer content
@@ -52,15 +66,17 @@ const DrawerLayout = ({ children, topRight, footer, className, a11yLabel }: Prop
         />
       )}
       <div className={styles.panel}>
-        <div className={styles.dragHandle}>
-          <Drawer.Close
-            className={clsx(styles.topLeft, styles.actionHeaderButton, styles.actionHeaderButton_back)}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <CrossIcon />
-          </Drawer.Close>
-          <div className={clsx(styles.actionHeaderButton, styles.topRight)}>{topRight}</div>
-        </div>
+        {!hideTopChrome && (
+          <div className={styles.dragHandle}>
+            <Drawer.Close
+              className={clsx(styles.topLeft, styles.actionHeaderButton, styles.actionHeaderButton_back)}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <CrossIcon />
+            </Drawer.Close>
+            <div className={clsx(styles.actionHeaderButton, styles.topRight)}>{topRight}</div>
+          </div>
+        )}
         <Drawer.Content
           id="drawer-content-scrollable"
           className={styles.scrollableContent}

@@ -2,48 +2,17 @@
 
 .eventsBuilder {}
 
-// Palette variants for the events list. Surface tokens come from the
-// shared `dv-palette-*` mixins; `--ev-*` tokens (consumed by
-// ScheduleEventCard) are defined here per variant so text stays in the
-// family's dark anchor hue for clean contrast on every period.
+// ScheduleEvents использует тот же DesignBar-якорь, что и FoodSchedule
+// (`useDesignVariant('ScheduleFood', …)`), поэтому селекторы здесь
+// читают `[data-dv='ScheduleFood']` — события и еда меняют палитру вместе.
 
-$dv-ev-graphite: (
-  text: rgba(31, 42, 68, 0.92),
-  time: rgba(31, 42, 68, 0.62),
-  placeholder: rgba(31, 42, 68, 0.42),
-  chip-bg: rgba(31, 42, 68, 0.1),
-  chip-fg: rgba(31, 42, 68, 0.85),
-  scale-track: rgba(31, 42, 68, 0.12),
-  scale-fill: rgba(31, 42, 68, 0.55),
-);
-
-$dv-ev-twilight: (
-  text: rgba(45, 31, 68, 0.92),
-  time: rgba(45, 31, 68, 0.62),
-  placeholder: rgba(45, 31, 68, 0.42),
-  chip-bg: rgba(45, 31, 68, 0.1),
-  chip-fg: rgba(45, 31, 68, 0.85),
-  scale-track: rgba(45, 31, 68, 0.12),
-  scale-fill: rgba(45, 31, 68, 0.55),
-);
-
-@mixin dv-ev($map) {
-  --ev-text: #{map-get($map, text)};
-  --ev-time: #{map-get($map, time)};
-  --ev-placeholder: #{map-get($map, placeholder)};
-  --ev-chip-bg: #{map-get($map, chip-bg)};
-  --ev-chip-fg: #{map-get($map, chip-fg)};
-  --ev-scale-track: #{map-get($map, scale-track)};
-  --ev-scale-fill: #{map-get($map, scale-fill)};
-}
-
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='meadow']   { @include dv-palette-meadow;   @include dv-ev($dv-ev-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='sunrise']  { @include dv-palette-sunrise;  @include dv-ev($dv-ev-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='sorbet']   { @include dv-palette-sorbet;   @include dv-ev($dv-ev-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='garden']   { @include dv-palette-garden;   @include dv-ev($dv-ev-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='lagoon']   { @include dv-palette-lagoon;   @include dv-ev($dv-ev-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='tropic']   { @include dv-palette-tropic;   @include dv-ev($dv-ev-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='twilight'] { @include dv-palette-twilight; @include dv-ev($dv-ev-twilight); }
+.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='meadow']   { @include dv-palette-meadow;   @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='sunrise']  { @include dv-palette-sunrise;  @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='sorbet']   { @include dv-palette-sorbet;   @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='garden']   { @include dv-palette-garden;   @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='lagoon']   { @include dv-palette-lagoon;   @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='tropic']   { @include dv-palette-tropic;   @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='twilight'] { @include dv-palette-twilight; @include dv-text($dv-text-twilight); }
 
 .listItemRow {
     display: grid;

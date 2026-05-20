@@ -43,6 +43,8 @@ function mapBetterAuthErrorCode(code: string | undefined): string | undefined {
       return 'user_already_exists';
     case 'PASSWORD_TOO_SHORT':
       return 'weak_password';
+    case 'EMAIL_NOT_VERIFIED':
+      return 'email_not_confirmed';
     case 'INVALID_EMAIL':
       return undefined; // surfaces as validation; classify uses message
     default:

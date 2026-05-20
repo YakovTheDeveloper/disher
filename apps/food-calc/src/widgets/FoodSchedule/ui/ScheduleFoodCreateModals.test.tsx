@@ -48,6 +48,16 @@ vi.mock('@/features/food/food-search', () => ({
       }>
         Яблоко
       </button>
+      <button data-testid="pick-create-dish" onClick={() =>
+        props.onPickCreate?.('dish', 'Борщ')
+      }>
+        Создать блюдо
+      </button>
+      <button data-testid="pick-create-product" onClick={() =>
+        props.onPickCreate?.('product', 'Морковь')
+      }>
+        Создать продукт
+      </button>
     </div>
   ),
 }));
@@ -91,9 +101,14 @@ beforeEach(() => {
 });
 
 // ── back-correctness ─────────────────────────────────────────────────────────
+// In Steps-bar modals the header back arrow closes the whole flow — a
+// completed step is re-reachable via the Steps breadcrumb, not step-−1.
 
-describe('ScheduleFoodCreateModals — header back is step-aware', () => {
-  it('back from the time step returns to the search step', () => {
+describe('ScheduleFoodCreateModals — header back closes the Steps-bar flow', () => {
+  const expectFlowClosed = () =>
+    expect(document.querySelector('[data-modal-by-label="expanded"]')).toBeNull();
+
+  it('back from the time step closes the whole flow', () => {
     render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
 
     focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
@@ -103,10 +118,10 @@ describe('ScheduleFoodCreateModals — header back is step-aware', () => {
 
     clickActiveBack();
 
-    expect(expanded().querySelector('[data-testid="search-food"]')).not.toBeNull();
+    expectFlowClosed();
   });
 
-  it('back from the quantity step returns to the time step', () => {
+  it('back from the quantity step closes the whole flow', () => {
     render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
 
     focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
@@ -117,6 +132,47 @@ describe('ScheduleFoodCreateModals — header back is step-aware', () => {
 
     clickActiveBack();
 
-    expect(expanded().querySelector('[data-testid="time-choose"]')).not.toBeNull();
+    expectFlowClosed();
+  });
+
+  it('back from the opt-in details step closes the whole flow', () => {
+    render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
+
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
+    fireEvent.click(expanded().querySelector('[data-testid="select-product"]')!);
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.TIME_CREATE_INPUT);
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.QUANTITY_CREATE_INPUT);
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.DETAILS_INPUT);
+    expect(expanded().querySelector('[data-testid="details-step"]')).not.toBeNull();
+
+    clickActiveBack();
+
+    expectFlowClosed();
+  });
+});
+
+// Русский падеж: variantLabel 'блюдо' (ср.р.) → «Новое блюдо», 'продукт'
+// (м.р.) → «Новый продукт». Раньше тут была шаблонная строка `Новый
+// ${variantLabel}` → «Новый блюдо» для блюд. Ловим обратно регрессию.
+describe('ScheduleFoodCreateModals — create-step header literal', () => {
+  it('shows "Новое блюдо" when creating a dish', () => {
+    render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
+
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
+    fireEvent.click(expanded().querySelector('[data-testid="pick-create-dish"]')!);
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.CREATE_INPUT);
+
+    expect(expanded().textContent).toContain('Новое блюдо');
+    expect(expanded().textContent).not.toContain('Новый блюдо');
+  });
+
+  it('shows "Новый продукт" when creating a product', () => {
+    render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
+
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
+    fireEvent.click(expanded().querySelector('[data-testid="pick-create-product"]')!);
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.CREATE_INPUT);
+
+    expect(expanded().textContent).toContain('Новый продукт');
   });
 });

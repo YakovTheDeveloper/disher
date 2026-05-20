@@ -79,45 +79,48 @@ beforeEach(() => {
 });
 
 // ── back-correctness ─────────────────────────────────────────────────────────
+// In Steps-bar modals the header back arrow closes the whole flow — a
+// completed step is re-reachable via the Steps breadcrumb, not step-−1.
 
-describe('ScheduleEventCreateModals — header back is step-aware', () => {
-  it('back from the text step returns to the time step', () => {
+describe('ScheduleEventCreateModals — header back closes the Steps-bar flow', () => {
+  const expectFlowClosed = () =>
+    expect(document.querySelector('[data-modal-by-label="expanded"]')).toBeNull();
+
+  it('back from the time step closes the whole flow', () => {
     render(<ScheduleEventCreateModals scheduleId="2026-05-19" />);
 
-    focusInput(MODAL_INPUT_IDS.TIME_INPUT);
+    // Step 1: text → Step 2: time (label htmlFor delegation simulated as focus).
     focusInput(MODAL_INPUT_IDS.TEXT_INPUT);
-    // sanity: we're on the text step
-    expect(expanded().querySelector('[data-testid="text-input"]')).not.toBeNull();
+    focusInput(MODAL_INPUT_IDS.TIME_INPUT);
+    expect(expanded().querySelector('[data-testid="time-choose"]')).not.toBeNull();
 
     clickActiveBack();
 
-    // back → time step
-    expect(expanded().querySelector('[data-testid="time-choose"]')).not.toBeNull();
+    expectFlowClosed();
   });
 
-  it('back from the atoms step returns to the text step', () => {
+  it('back from the atoms step closes the whole flow', () => {
     render(<ScheduleEventCreateModals scheduleId="2026-05-19" />);
 
-    focusInput(MODAL_INPUT_IDS.TIME_INPUT);
     focusInput(MODAL_INPUT_IDS.TEXT_INPUT);
-    // text → atoms is driven by the "Далее" button, not focus delegation.
+    focusInput(MODAL_INPUT_IDS.TIME_INPUT);
+    // time → atoms is driven by the "Далее" button, not focus delegation.
     clickActiveByText('Далее');
     expect(expanded().querySelector('[data-testid="atom-builder"]')).not.toBeNull();
 
     clickActiveBack();
 
-    expect(expanded().querySelector('[data-testid="text-input"]')).not.toBeNull();
+    expectFlowClosed();
   });
 
-  it('back from the first step (time) closes the whole flow', () => {
+  it('back from the first step (text) closes the whole flow', () => {
     render(<ScheduleEventCreateModals scheduleId="2026-05-19" />);
 
-    focusInput(MODAL_INPUT_IDS.TIME_INPUT);
-    expect(expanded().querySelector('[data-testid="time-choose"]')).not.toBeNull();
+    focusInput(MODAL_INPUT_IDS.TEXT_INPUT);
+    expect(expanded().querySelector('[data-testid="text-input"]')).not.toBeNull();
 
     clickActiveBack();
 
-    // flow closed — nothing expanded
-    expect(document.querySelector('[data-modal-by-label="expanded"]')).toBeNull();
+    expectFlowClosed();
   });
 });

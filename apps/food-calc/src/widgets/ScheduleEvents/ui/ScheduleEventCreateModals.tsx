@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalShell } from '@/shared/ui/ModalShell';
@@ -16,15 +16,16 @@ import { MODAL_INPUT_IDS } from './ScheduleEventCreateModals.constants';
 type Step = 'idle' | 'time' | 'text' | 'atoms';
 type ActiveStep = Exclude<Step, 'idle'>;
 
-const STEPS: ActiveStep[] = ['time', 'text', 'atoms'];
+// Порядок шагов: сначала описание (что произошло), потом время, потом
+// особенности. Поменяно с прежнего ['time', 'text', 'atoms'] — описание
+// читается как «о чём событие?», а время уточняет «когда».
+const STEPS: ActiveStep[] = ['text', 'time', 'atoms'];
 
 const STEP_LABELS: Record<ActiveStep, string> = {
   time: 'Время',
-  text: 'Текст',
-  atoms: 'Теги',
+  text: 'Описание',
+  atoms: 'Особенности',
 };
-
-const FLOW_TITLE = 'Новое событие';
 
 type DraftState = {
   time: string;
@@ -46,9 +47,20 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
   const [step, setStep] = useState<Step>('idle');
   const [atomPanelOpen, setAtomPanelOpen] = useState(false);
   const [draft, setDraft] = useState<DraftState>(createEmptyDraft);
+  // Посещённые шаги текущей сессии — для `results`-вида Breadcrumbs.
+  // Обнуляется при возврате в 'idle' (любое закрытие/коммит).
+  const [visitedSteps, setVisitedSteps] = useState<ActiveStep[]>([]);
   const draftAtoms = useEventDraftStore((s) => s.draft.atoms);
   const clearAtoms = useEventDraftStore((s) => s.clearAtoms);
   useSwipeableLock(step !== 'idle');
+
+  useEffect(() => {
+    if (step === 'idle') {
+      setVisitedSteps((prev) => (prev.length ? [] : prev));
+      return;
+    }
+    setVisitedSteps((prev) => (prev.includes(step) ? prev : [...prev, step]));
+  }, [step]);
 
   const INPUT_TO_STEP: Record<string, ActiveStep> = {
     [MODAL_INPUT_IDS.TIME_INPUT]: 'time',
@@ -131,15 +143,8 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
     setStep(target);
   };
 
-  // Step-aware «назад»: шаг визарда >1 → предыдущий шаг; первый → закрыть флоу.
-  const handleBack = () => {
-    const idx = (STEPS as string[]).indexOf(step);
-    if (idx <= 0) {
-      handleClose();
-      return;
-    }
-    setStep(STEPS[idx - 1]);
-  };
+  // Стрелка «назад» в модалках со Steps bar закрывает весь флоу: вернуться на
+  // пройденный шаг можно кликом по табу в Steps.
 
   const timeResult = draft.endTime ? `${draft.time}–${draft.endTime}` : draft.time;
   const textResult = draft.text ? draft.text : undefined;
@@ -147,19 +152,51 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
 
   return (
     <div onFocusCapture={handleFocusCapture}>
-      {/* Step 1: Time — trigger: <label htmlFor={MODAL_INPUT_IDS.TIME_INPUT}> */}
+      {/* Step 1: Text (Описание) — trigger: <label htmlFor={MODAL_INPUT_IDS.TEXT_INPUT}> */}
+      <ModalByLabel
+        position="absolute"
+        isExpanded={step === 'text'}
+        content={
+          <ModalShell className={modalStyles.whiteShell}>
+            <ModalShell.StepHeader
+              title={STEP_LABELS.text}
+              currentStep="text"
+              steps={STEPS}
+              stepLabels={STEP_LABELS}
+              stepResults={stepResults}
+              visitedSteps={visitedSteps}
+              onBack={handleClose}
+              onStepClick={goToStep}
+            />
+            <ModalShell.Body>
+              <AutoGrowSearch
+                placeholder="Опишите событие"
+                id={MODAL_INPUT_IDS.TEXT_INPUT}
+                onChange={handleTextChange}
+                value={draft.text}
+              />
+              <ModalShell.ActionButtons
+                right={<ModalNextButton as="label" htmlFor={MODAL_INPUT_IDS.TIME_INPUT} />}
+              />
+            </ModalShell.Body>
+          </ModalShell>
+        }
+      />
+
+      {/* Step 2: Time (Время) — trigger: ModalNextButton(text) → htmlFor={MODAL_INPUT_IDS.TIME_INPUT} */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'time'}
         content={
           <ModalShell className={modalStyles.whiteShell}>
             <ModalShell.StepHeader
-              title={FLOW_TITLE}
+              title={STEP_LABELS.time}
               currentStep="time"
               steps={STEPS}
               stepLabels={STEP_LABELS}
               stepResults={stepResults}
-              onBack={handleBack}
+              visitedSteps={visitedSteps}
+              onBack={handleClose}
               onStepClick={goToStep}
             />
             <ModalShell.Body>
@@ -172,36 +209,6 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
                   initialTo: draft.endTime ?? undefined,
                   onChangeRange: handleRangeChange,
                 }}
-              />
-              <ModalShell.ActionButtons
-                right={<ModalNextButton as="label" htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} />}
-              />
-            </ModalShell.Body>
-          </ModalShell>
-        }
-      />
-
-      {/* Step 2: Text — trigger: ModalNextButton(time) → htmlFor={MODAL_INPUT_IDS.TEXT_INPUT} */}
-      <ModalByLabel
-        position="absolute"
-        isExpanded={step === 'text'}
-        content={
-          <ModalShell className={modalStyles.whiteShell}>
-            <ModalShell.StepHeader
-              title={FLOW_TITLE}
-              currentStep="text"
-              steps={STEPS}
-              stepLabels={STEP_LABELS}
-              stepResults={stepResults}
-              onBack={handleBack}
-              onStepClick={goToStep}
-            />
-            <ModalShell.Body>
-              <AutoGrowSearch
-                placeholder="Опишите событие"
-                id={MODAL_INPUT_IDS.TEXT_INPUT}
-                onChange={handleTextChange}
-                value={draft.text}
               />
               <ModalShell.ActionButtons
                 right={<ModalNextButton onClick={() => goToStep('atoms')} />}
@@ -219,12 +226,12 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
           <ModalShell className={modalStyles.whiteShell}>
             {!atomPanelOpen && (
               <ModalShell.StepHeader
-                title={FLOW_TITLE}
+                title={STEP_LABELS.atoms}
                 currentStep="atoms"
                 steps={STEPS}
                 stepLabels={STEP_LABELS}
                 stepResults={stepResults}
-                onBack={handleBack}
+                onBack={handleClose}
                 onStepClick={goToStep}
               />
             )}

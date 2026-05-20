@@ -14,6 +14,35 @@
     }
 }
 
+// Compact icon-only button — reused in product/dish hero where the norm is a
+// secondary affordance, not a hero element. Shares the gear icon with the
+// nutrient drawer (useNutrientNormSlots) for visual consistency.
+.iconButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(0, 0, 0, 0.55);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: rgba(0, 0, 0, 0.75);
+    }
+
+    &:active {
+        background: rgba(0, 0, 0, 0.08);
+    }
+}
+
 .button {
     width: 100%;
     font-size: 1.25rem;

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { requireUser } from "../../auth/require-user.js";
 import { DISH_DETAILS_INSTRUCTION } from "../../shared/analysis-output.js";
+import { applySSECorsHeaders } from "../lib/sse-cors.js";
 
 // POST /api/analyze/daily — SSE stream. The "daily analysis" — a one-day
 // review of the user's meals + health tags. The frontend hydrates the day's
@@ -270,6 +271,12 @@ export async function analyzeDailyRoutes(
     if (scheduleFoods.length === 0 && scheduleEvents.length === 0) {
       return reply.status(400).send({ error: "empty day" });
     }
+
+    // @fastify/cors writes Access-Control-* via reply.header(), which is only
+    // flushed by reply.send(). SSE handlers stream through reply.raw and
+    // bypass that path entirely — set the headers on the raw socket so they
+    // survive writeHead() inside runDailySSE.
+    applySSECorsHeaders(reply.raw, req.headers.origin);
 
     const userPrompt = buildDailyUserPrompt(
       date,

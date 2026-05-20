@@ -110,10 +110,10 @@ describe('signUp under requireEmailVerification', () => {
 });
 
 describe('signIn with requireEmailVerification', () => {
-  it('on 403 EMAIL_NOT_VERIFIED: sets pendingVerificationEmail and errorKind=auth', async () => {
+  it('on EMAIL_NOT_VERIFIED code: sets pendingVerificationEmail and errorKind=auth', async () => {
     authProviderMock.signIn.mockResolvedValue({
       ok: false,
-      error: { kind: 'auth', message: 'verify your email', status: 403, raw: null },
+      error: { kind: 'auth', message: 'verify your email', status: 403, code: 'email_not_confirmed', raw: null },
     });
 
     const ok = await useAuthStore.getState().signIn('a@b.com', 'password123');
@@ -121,6 +121,21 @@ describe('signIn with requireEmailVerification', () => {
     expect(ok).toBe(false);
     const s = useAuthStore.getState();
     expect(s.pendingVerificationEmail).toBe('a@b.com');
+    expect(s.errorKind).toBe('auth');
+    expect(s.isLoggedIn).toBe(false);
+  });
+
+  it('on bare 403 (no code, e.g. CORS/CSRF reject): does NOT set pendingVerificationEmail', async () => {
+    authProviderMock.signIn.mockResolvedValue({
+      ok: false,
+      error: { kind: 'auth', message: 'Invalid origin', status: 403, raw: null },
+    });
+
+    const ok = await useAuthStore.getState().signIn('a@b.com', 'password123');
+
+    expect(ok).toBe(false);
+    const s = useAuthStore.getState();
+    expect(s.pendingVerificationEmail).toBeNull();
     expect(s.errorKind).toBe('auth');
     expect(s.isLoggedIn).toBe(false);
   });

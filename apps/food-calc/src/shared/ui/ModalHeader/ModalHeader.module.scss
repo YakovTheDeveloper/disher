@@ -1,13 +1,21 @@
 // Единая верхняя обвязка модалок. Структура заимствована у ModalStepHeader:
-// липкая полоса сверху, back-кнопка слева. Здесь вместо breadcrumbs — заголовок.
+// липкая полоса сверху, back-кнопка слева. Заголовок центрируется
+// относительно всей полосы (= ширины экрана у полноэкранной модалки),
+// поэтому он позиционируется абсолютно — стрелка «назад» его не сдвигает.
 .header {
   position: sticky;
   top: 0;
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 16px 20px 12px;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-2) var(--space-3);
+}
+
+// compact — вложенные мелкие панели (atom-панели): меньше вертикали.
+.compact {
+  padding: var(--space-2) var(--space-4);
 }
 
 .backButton {
@@ -18,8 +26,8 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
+  padding: var(--space-1);
+  border-radius: var(--radius-xs);
   color: #111;
   -webkit-tap-highlight-color: transparent;
   transition: opacity 0.15s ease;
@@ -34,9 +42,24 @@
   }
 }
 
+// Абсолютное центрирование относительно полосы: 50% — середина экрана,
+// независимо от ширины back-кнопки / trailing-слота. max-width резервирует
+// поля под оба боковых слота, чтобы длинный заголовок не наезжал на них.
 .title {
-  flex: 1;
-  min-width: 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: calc(100% - var(--space-12) * 2);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Чуть меньший кегль для заголовка-полосы (28px против 32px у ModalShell.Title).
+.header:not(.compact) .title {
+  font-size: var(--heading-size-modal-header);
 }
 
 .trailing {

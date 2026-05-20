@@ -1,10 +1,10 @@
 /**
  * ScaleAtomInput — 1–10 scale rating with phenomenon label.
  *
- * Keyboard-first layout: value number pinned top-left, preset chips +
- * custom-value field top-right. Everything lives in the top zone so the
- * keyboard (numeric for the value, text for the custom field) never
- * covers the chips — the «явление» choice stays one tap away.
+ * Keyboard-first layout: the value number and the phenomenon text field
+ * share the first row (baseline-aligned); preset chips sit on the second
+ * row. A chip tap just fills the text field — the field is the single
+ * source of the label.
  *
  * Renders inline (no ModalShell), fills parent flex container.
  */
@@ -21,16 +21,13 @@ import styles from './shared/AtomInputShared.module.css';
 export interface ScaleAtomInputProps {
   onAddAtom: (atom: ScaleAtom) => void;
   onClose: () => void;
-  accentColor?: string;
 }
 
 const PRESET_LABELS = ['Боль', 'Настроение', 'Энергия', 'Стресс', 'Тревога', 'Нагрузка'];
 
-export const ScaleAtomInput = ({ onAddAtom, onClose, accentColor }: ScaleAtomInputProps) => {
+export const ScaleAtomInput = ({ onAddAtom, onClose }: ScaleAtomInputProps) => {
   const [value, setValue] = useState<number | ''>(5);
-  // Single-select label: either one preset OR a custom string — never both.
-  const [preset, setPreset] = useState<string | null>(null);
-  const [custom, setCustom] = useState('');
+  const [label, setLabel] = useState('');
   const [isReady, setIsReady] = useState(false);
   const numberRef = useRef<HTMLInputElement>(null);
 
@@ -42,10 +39,8 @@ export const ScaleAtomInput = ({ onAddAtom, onClose, accentColor }: ScaleAtomInp
     numberRef.current?.focus({ preventScroll: true });
   }, []);
 
-  const label = custom.trim() || preset || undefined;
-
   const handleAdd = () => {
-    onAddAtom({ kind: 'scale', value: value || 5, label });
+    onAddAtom({ kind: 'scale', value: value || 5, label: label.trim() || undefined });
   };
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,80 +53,56 @@ export const ScaleAtomInput = ({ onAddAtom, onClose, accentColor }: ScaleAtomInp
     setValue(n);
   };
 
-  const selectPreset = (next: string) => {
-    setPreset(next);
-    setCustom('');
-  };
-
-  const handleCustomChange = (next: string) => {
-    setCustom(next);
-    if (next.trim()) setPreset(null);
-  };
-
   return (
-    <div
-      className={styles.atomPanel}
-      style={accentColor ? ({ '--atom-accent': accentColor } as React.CSSProperties) : undefined}
-    >
-      <ModalHeader title="Шкала 1–10" onBack={onClose} />
+    <div className={styles.atomPanel}>
+      <ModalHeader title="Шкала 1–10" onBack={onClose} size="compact" />
       <div className={styles.scalePanelBody}>
-        <div className={styles.scaleTopZone}>
-          {/* Value — top-left */}
-          <div className={styles.scaleValueBlock}>
-            <input
-              ref={numberRef}
-              className={styles.scaleNumberInput}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={value}
-              onChange={handleValueChange}
-              onFocus={(e) => {
-                setIsReady(true);
-                e.target.select();
-              }}
-            />
-            <div className={styles.scaleNumberUnderline} />
-          </div>
+        {/* Row 1 — value number + phenomenon text field, baseline-aligned. */}
+        <div className={styles.scaleFirstRow}>
+          <input
+            ref={numberRef}
+            className={styles.scaleNumberInput}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={value}
+            onChange={handleValueChange}
+            onFocus={(e) => {
+              setIsReady(true);
+              e.target.select();
+            }}
+          />
+          <AutoGrowSearch
+            className={styles.scaleCustomField}
+            singleLine
+            placeholder="Явление"
+            value={label}
+            onChange={setLabel}
+            onFocus={() => setIsReady(true)}
+          />
+        </div>
 
-          {/* Preset chips + custom-value field — top-right */}
-          <div className={styles.scaleChipsArea}>
-            {PRESET_LABELS.map((item) => (
-              <Chip
-                key={item}
-                className={styles.scaleChip}
-                active={preset === item}
-                // Prevent the tap from blurring the focused input: keeps the
-                // keyboard up (no viewport reshuffle) so the chip activates
-                // instantly instead of after the keyboard-dismiss animation.
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => selectPreset(item)}
-              >
-                {item}
-              </Chip>
-            ))}
-            <AutoGrowSearch
-              className={styles.scaleCustomField}
-              singleLine
-              placeholder="Или выберите свой вариант"
-              value={custom}
-              onChange={handleCustomChange}
-              onFocus={() => setIsReady(true)}
-            />
-          </div>
+        {/* Row 2 — preset chips. A tap replaces the text field's value. */}
+        <div className={styles.scaleChipsRow}>
+          {PRESET_LABELS.map((item) => (
+            <Chip
+              key={item}
+              active={label.trim() === item}
+              // Prevent the tap from blurring the focused input: keeps the
+              // keyboard up (no viewport reshuffle) so the chip activates
+              // instantly instead of after the keyboard-dismiss animation.
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => setLabel(item)}
+            >
+              {item}
+            </Chip>
+          ))}
         </div>
       </div>
 
       {isReady && (
         <ModalShell.ActionButtons
-          right={
-            <ModalNextButton
-              onClick={handleAdd}
-              variant="finish"
-              theme="events"
-              label="Добавить"
-            />
-          }
+          right={<ModalNextButton onClick={handleAdd} variant="finish" label="Добавить" />}
         />
       )}
     </div>

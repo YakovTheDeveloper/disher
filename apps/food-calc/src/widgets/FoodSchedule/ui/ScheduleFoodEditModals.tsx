@@ -7,7 +7,7 @@ import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { DetailsStep } from '@/features/food/details-chips';
 import { getProductUrl, RouterUrls } from '@/app/router';
 
-import type { ScheduleFoodFlow } from './useScheduleFoodFlow';
+import { STEP_LABELS, type ScheduleFoodFlow } from './useScheduleFoodFlow';
 
 type Props = {
   flow: ScheduleFoodFlow;
@@ -52,7 +52,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         isExpanded={step === 'time'}
         content={
           <ModalShell>
-            <ModalShell.Header title="Время" onBack={handleClose} />
+            <ModalShell.Header title={STEP_LABELS.time} onBack={handleClose} />
             <ModalShell.Body>
               <TimeChoose
                 onFinish={handleTimeFinish}
@@ -73,7 +73,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         isExpanded={step === 'quantity'}
         content={
           <ModalShell>
-            <ModalShell.Header title="Количество" onBack={handleClose} />
+            <ModalShell.Header title={STEP_LABELS.quantity} onBack={handleClose} />
             <ModalShell.Body>
               <ProductQuantity
                 content={quantityContent}
@@ -95,7 +95,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         isExpanded={step === 'details'}
         content={
           <ModalShell>
-            <ModalShell.Header title="Уточнение" onBack={handleClose} />
+            <ModalShell.Header title={STEP_LABELS.details} onBack={handleClose} />
             <ModalShell.Body flush>
               <DetailsStep
                 title={draft.foodName || 'Уточнение'}

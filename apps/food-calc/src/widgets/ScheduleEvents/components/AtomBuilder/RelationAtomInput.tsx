@@ -15,7 +15,6 @@ import styles from './shared/AtomInputShared.module.css';
 export interface RelationAtomInputProps {
   onAddAtom: (atom: RelationAtom) => void;
   onClose: () => void;
-  accentColor?: string;
 }
 
 const PRESET_RELATIONS = [
@@ -27,7 +26,7 @@ const PRESET_RELATIONS = [
   'на фоне болезни',
 ];
 
-export const RelationAtomInput = ({ onAddAtom, onClose, accentColor }: RelationAtomInputProps) => {
+export const RelationAtomInput = ({ onAddAtom, onClose }: RelationAtomInputProps) => {
   const [value, setValue] = useState('');
   const [isReady, setIsReady] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -44,11 +43,8 @@ export const RelationAtomInput = ({ onAddAtom, onClose, accentColor }: RelationA
   };
 
   return (
-    <div
-      className={styles.atomPanel}
-      style={accentColor ? ({ '--atom-accent': accentColor } as React.CSSProperties) : undefined}
-    >
-      <ModalHeader title="Связь" onBack={onClose} />
+    <div className={styles.atomPanel}>
+      <ModalHeader title="Связь" onBack={onClose} size="compact" />
       <div className={styles.panelBody}>
         <AutoGrowSearch
           ref={inputRef}
@@ -80,12 +76,7 @@ export const RelationAtomInput = ({ onAddAtom, onClose, accentColor }: RelationA
       {isReady && (
         <ModalShell.ActionButtons
           right={
-            <ModalNextButton
-              onClick={handleAdd}
-              variant="finish"
-              theme="events"
-              label="Добавить"
-            />
+            <ModalNextButton onClick={handleAdd} variant="finish" label="Добавить" />
           }
         />
       )}

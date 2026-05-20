@@ -19,42 +19,43 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    // VitePWA({
-    //   registerType: 'autoUpdate',
-
-    //   includeAssets: [
-    //     'favicon.ico',
-    //     'robots.txt',
-    //     'apple-touch-icon.png'
-    //   ],
-
-    //   manifest: {
-    //     name: 'My React PWA',
-    //     short_name: 'ReactPWA',
-    //     description: 'React + Vite Progressive Web App',
-    //     theme_color: '#1976d2',
-    //     background_color: '#ffffff',
-    //     display: 'standalone',
-    //     start_url: '/',
-    //     icons: [
-    //       {
-    //         src: '/pwa-192x192.png',
-    //         sizes: '192x192',
-    //         type: 'image/png'
-    //       },
-    //       {
-    //         src: '/pwa-512x512.png',
-    //         sizes: '512x512',
-    //         type: 'image/png'
-    //       }
-    //     ]
-    //   }
-    // }),
+    VitePWA({
+      registerType: 'autoUpdate',
+      injectRegister: 'auto',
+      // Manifest lives in public/manifest.webmanifest — don't let the plugin
+      // regenerate one; we own the source of truth.
+      manifest: false,
+      includeAssets: [
+        'logo.svg',
+        'logo-maskable.svg',
+        'icon-192.png',
+        'icon-512.png',
+        'icon-512-maskable.png',
+        'apple-touch-icon.png',
+      ],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // wa-sqlite + powersync ship large wasm/worker bundles that we don't
+        // want eagerly precached; they're loaded on demand.
+        globIgnores: ['**/wa-sqlite*', '**/powersync*', '**/sql-wasm*'],
+        navigateFallbackDenylist: [/^\/api\//],
+        cleanupOutdatedCaches: true,
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
+      devOptions: {
+        enabled: false,
+      },
+    }),
     patchCssModules(),
     svgr({
       // svgr options: https://react-svgr.com/docs/options/
       svgrOptions: { exportType: "default", ref: true, svgo: false, titleProp: true },
-      include: "**/*.svg",
+      // `?react` suffix — industry 2026 split: `from '...svg'` → URL string
+      // (vite/client typing), `from '...svg?react'` → React component (svgr
+      // typing с полными SVGProps). Без split TS-типизация конфликтует с
+      // vite/client `declare module '*.svg' { const src: string }` и теряет
+      // props на JSX callsite.
+      include: "**/*.svg?react",
     }),
     checker({
       typescript: {

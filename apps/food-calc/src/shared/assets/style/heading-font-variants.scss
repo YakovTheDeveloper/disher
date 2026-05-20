@@ -1,0 +1,47 @@
+// ─── Heading-font trial ──────────────────────────────────────────────
+// Анкер `data-dv='Heading'` ставится на <html> (см. useHeadingFontTrial.ts),
+// поэтому `--heading-*` каскадирует НА ВСЕ заголовки — `<Heading>` в модалках
+// и drawer'ах (которые портятся в #modal-root / #drawer-root вне #root) тоже.
+// Атрибутный селектор перебивает дефолты `:root` из tokens.scss по
+// специфичности. Шрифты грузятся в index.html (Google Fonts). Переключение —
+// DesignVariantsBar (?dv=1, селект `Heading`).
+
+// Source Serif 4 — текущий канон заголовков (дефолт из tokens.scss).
+// В trial — как baseline для сравнения с остальными.
+[data-dv='Heading'][data-dv-v='source-serif'] {
+    --heading-font: 'Source Serif 4', 'Merriweather', serif;
+    --heading-style: italic;
+    --heading-weight: 600;
+}
+
+// Lora — гуманистический сериф, тёплый курсив, кириллица.
+[data-dv='Heading'][data-dv-v='lora'] {
+    --heading-font: 'Lora', serif;
+    --heading-style: italic;
+    --heading-weight: 500;
+}
+
+// Charis SIL — переходный сериф (SIL, наследник Bitstream Charter). Курсив
+// есть, обширная кириллица. Берём regular italic (400).
+[data-dv='Heading'][data-dv-v='charis-sil'] {
+    --heading-font: 'Charis SIL', serif;
+    --heading-style: italic;
+    --heading-weight: 400;
+}
+
+// Alice — изящный сериф студии Cyreal, кириллица-native (создан под
+// русское издание «Алисы»). Настоящего курсива у шрифта нет → оставляем
+// normal (синтетический oblique юзер отверг).
+[data-dv='Heading'][data-dv-v='alice'] {
+    --heading-font: 'Alice', serif;
+    --heading-style: normal;
+    --heading-weight: 400;
+}
+
+// PT Serif — литературный сериф ParaType, кириллица-native (русская школа).
+// Настоящий курсив есть. Только 400/700 — берём regular italic (400).
+[data-dv='Heading'][data-dv-v='pt-serif'] {
+    --heading-font: 'PT Serif', serif;
+    --heading-style: italic;
+    --heading-weight: 400;
+}

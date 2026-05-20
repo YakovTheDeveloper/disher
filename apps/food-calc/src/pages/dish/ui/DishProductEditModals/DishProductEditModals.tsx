@@ -30,25 +30,24 @@ const DishProductEditModals = ({ flow }: Props) => {
 
   return (
     <div onFocusCapture={handleFocusCapture}>
-      {/* Search Food */}
+      {/* Search Food — голый SearchFood с единым баром [← Продукт 🔍],
+          flush к краю как на HomePage / создании продукта в блюде. */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'search'}
         content={
-          <ModalShell>
-            <SearchFood
-              mode="products-only"
-              title="Продукт"
-              onSelectFood={handleFoodSelect}
-              onInfoClick={() => {
-                handleClose();
-              }}
-              onBack={handleClose}
-              activeItemId={draft.productId ?? undefined}
-              inputId={SEARCH_INPUT}
-              initialSearchQuery={editingItem?.product?.name ?? undefined}
-            />
-          </ModalShell>
+          <SearchFood
+            mode="products-only"
+            title="Продукт"
+            onSelectFood={handleFoodSelect}
+            onInfoClick={() => {
+              handleClose();
+            }}
+            onBack={handleClose}
+            activeItemId={draft.productId ?? undefined}
+            inputId={SEARCH_INPUT}
+            initialSearchQuery={editingItem?.product?.name ?? undefined}
+          />
         }
       />
 

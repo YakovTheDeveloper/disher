@@ -52,11 +52,10 @@ $hero-shift: 8px;
     flex-shrink: 0;
 }
 
-// Serif-italic title — типографически связан с `HomeTopBar .dateNumeralDay`
-// (та же Source Serif 4 italic). Размер чуть меньше прежних 2.6rem — в
-// вертикальном стэке с картинкой плотнее читается ~2rem.
+// Serif-italic title — heading-канон. Размер чуть меньше прежних 2.6rem —
+// в вертикальном стэке с картинкой плотнее читается ~2rem.
 .heroTitle {
-    font-family: "Source Serif 4", "Merriweather", serif;
+    font-family: var(--heading-font);
     font-style: italic;
     font-weight: 400;
     font-size: 2rem;

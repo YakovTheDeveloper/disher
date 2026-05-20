@@ -36,9 +36,10 @@
   --heading-font: "Source Serif 4", "Merriweather", serif;
   --heading-style: italic;
   --heading-weight: 600;
-  --heading-letter: -0.01em;
+  --heading-letter: 0.01em;
   --heading-size-screen: 2.5rem; // 40px — page / screen header (HomePage band)
-  --heading-size-modal: 2rem; //    32px — wizard-flow modal header
+  --heading-size-modal: 2rem; //    32px — wizard-flow modal title (ModalShell.Title)
+  --heading-size-modal-header: 1.75rem; // 28px — ModalHeader bar title (centered)
   --heading-size-drawer: 1.5rem; // 24px — drawer header
   // Single top gap above an overlay title — owned by the title itself, so it
   // stays constant regardless of how the modal nests it (see ModalShell).

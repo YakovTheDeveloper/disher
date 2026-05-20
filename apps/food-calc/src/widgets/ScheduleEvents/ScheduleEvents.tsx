@@ -26,8 +26,9 @@ import { drawerStore } from '@/shared/ui/drawer-store';
 import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 
-// Cheerful pastel families with semantic time-of-day progression
-// (lightest at morning, deepening towards graphite at night).
+// Цветовая схема общая с FoodSchedule (`useDesignVariant('ScheduleFood', …)`):
+// один anchor в DesignBar управляет обоими списками. Порядок и имена должны
+// совпадать с `FOOD_DV_VARIANTS` в FoodSchedule.tsx.
 const EVENTS_VARIANTS = [
   'meadow',
   'sunrise',
@@ -55,7 +56,7 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
     [eventsGroupedByTime, date]
   );
 
-  const { anchor: eventsAnchor } = useDesignVariant('ScheduleEvents', EVENTS_VARIANTS);
+  const { anchor: eventsAnchor } = useDesignVariant('ScheduleFood', EVENTS_VARIANTS);
 
   const onDeleteSelected = async () => {
     const ids = selectedIds;
@@ -116,7 +117,7 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
       bottomBar={
         <AppBottomBarShell side="right">
           <AddButton
-            htmlFor={EVENT_MODAL_INPUT_IDS.TIME_INPUT}
+            htmlFor={EVENT_MODAL_INPUT_IDS.TEXT_INPUT}
             as="label"
             onClick={() => {}}
             prominent={events.length === 0}

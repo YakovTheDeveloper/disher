@@ -1,28 +1,7 @@
 @import '@/shared/assets/style/design-variant-palettes.scss';
 
-// Palette text tokens shared across the food-list base + every named
-// variant. Defined up-front so they're available to the base anchor.
-
-$dv-text-graphite: (
-  primary: rgba(31, 42, 68, 0.92),
-  secondary: rgba(31, 42, 68, 0.62),
-  tertiary: rgba(31, 42, 68, 0.45),
-  muted: rgba(31, 42, 68, 0.42),
-);
-
-$dv-text-twilight: (
-  primary: rgba(45, 31, 68, 0.92),
-  secondary: rgba(45, 31, 68, 0.62),
-  tertiary: rgba(45, 31, 68, 0.45),
-  muted: rgba(45, 31, 68, 0.42),
-);
-
-@mixin dv-text($map) {
-  --text-primary: #{map-get($map, primary)};
-  --text-secondary: #{map-get($map, secondary)};
-  --text-tertiary: #{map-get($map, tertiary)};
-  --text-muted: #{map-get($map, muted)};
-}
+// `dv-text` mixin + `$dv-text-*` maps now live in design-variant-palettes.scss
+// so ScheduleEvents shares the exact same foreground system.
 
 .emptyState {
   padding: var(--space-10) var(--space-4) 0;

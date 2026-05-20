@@ -1,8 +1,9 @@
 import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
+import { Heading } from '@/shared/ui/atoms/Typography';
 
-import SearchIcon from '@/shared/assets/icons/lupa.svg';
-import CrossIcon from '@/shared/assets/icons/cross.svg';
+import SearchIcon from '@/shared/assets/icons/lupa.svg?react';
+import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 
 type Props = {
   searchQuery: string;
@@ -10,9 +11,18 @@ type Props = {
   className?: string;
   onBack?: () => void;
   inputId?: string;
+  /** Когда задан — слева от поля поиска встаёт заголовок (serif italic). */
+  title?: string;
 };
 
-const SearchFoodControls = ({ searchQuery, onSearchChange, className, onBack, inputId }: Props) => {
+const SearchFoodControls = ({
+  searchQuery,
+  onSearchChange,
+  className,
+  onBack,
+  inputId,
+  title,
+}: Props) => {
   return (
     <header className={clsx([styles.header, className])}>
       {onBack && (
@@ -43,6 +53,12 @@ const SearchFoodControls = ({ searchQuery, onSearchChange, className, onBack, in
             />
           </svg>
         </button>
+      )}
+
+      {title && (
+        <Heading size="drawer" as="h2" className={styles.title}>
+          {title}
+        </Heading>
       )}
 
       <div className={styles.searchWrapper}>

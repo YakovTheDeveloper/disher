@@ -16,12 +16,14 @@ import i18n from '@/app/i18n';
 import { AuthGate } from '@/features/auth';
 import { BackupGate } from '@/features/backup/BackupGate';
 import { useApplyUserTheme } from '@/shared/lib/user-theme';
+import { useHeadingFontTrial } from '@/shared/lib/useHeadingFontTrial';
 
 export default function App() {
   useLastFocusMethod();
   useUserAgentDetection();
   useGlobalScrollBlur();
   useApplyUserTheme();
+  useHeadingFontTrial();
   setupGlobalLog();
 
   // Boot-hydrate the daily-analysis store from idb-keyval. Without this the

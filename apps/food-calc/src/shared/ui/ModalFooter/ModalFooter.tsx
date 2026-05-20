@@ -1,13 +1,10 @@
 import s from './ModalFooter.module.scss';
 
-type Theme = 'events';
-
 type ModalNextButtonLabelProps = {
   as: 'label';
   htmlFor: string;
   onClick?: () => void;
   variant?: 'next' | 'finish';
-  theme?: Theme;
   label?: string;
 };
 
@@ -16,7 +13,6 @@ type ModalNextButtonButtonProps = {
   htmlFor?: never;
   onClick: () => void;
   variant?: 'next' | 'finish';
-  theme?: Theme;
   label?: string;
   disabled?: boolean;
 };
@@ -63,11 +59,7 @@ export const ModalNextButton = (props: ModalNextButtonProps) => {
     </>
   );
   const isDisabled = props.as !== 'label' && props.disabled === true;
-  const className = [
-    s.nextArrow,
-    props.theme === 'events' ? s.nextArrowEvents : '',
-    isDisabled ? s.nextArrowDisabled : '',
-  ]
+  const className = [s.nextArrow, isDisabled ? s.nextArrowDisabled : '']
     .filter(Boolean)
     .join(' ');
 

@@ -14,6 +14,7 @@ import {
 import { safeMutate } from '@/shared/lib/safeMutate';
 import toaster from '@/shared/lib/toaster/toaster';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
+import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import styles from './CreateDailyNormModal.module.scss';
 
 // chrome:
@@ -127,11 +128,11 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
         <header className={styles.header}>
           <button
             type="button"
-            className={styles.closeIcon}
+            className={styles.backButton}
             onClick={onClose}
-            aria-label="Закрыть"
+            aria-label="Назад"
           >
-            ×
+            <ArrowLeftIcon />
           </button>
           <span className={styles.kicker}>Дневная норма</span>
           <h2 className={styles.title}>Моя норма</h2>
@@ -148,7 +149,7 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
         </p>
       )}
 
-        <div className={styles.body}>
+        <div className={clsx(styles.body, isPanel && styles.bodyPanel)}>
           <Section label="Пол" hint="нужен только для формулы калорий">
             <div className={styles.pillRow}>
               <Pill active={survey.sex === 'male'} onClick={() => patch({ sex: 'male' })}>
@@ -242,11 +243,6 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
         </div>
 
         <footer className={clsx(styles.footer, isPanel && styles.footerPanel)}>
-          {!isPanel && (
-            <button className={styles.cancelBtn} onClick={onClose} type="button">
-              Отмена
-            </button>
-          )}
           <button
             className={clsx(styles.commitBtn, !isValid && styles.commitBtnInactive)}
             onClick={handleCommit}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import clsx from 'clsx';
 import { Link, useNavigate } from 'react-router';
 import styles from './FoodActionCard.module.scss';
@@ -8,6 +8,7 @@ import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
 import { isCreatedByUser } from '@/shared/lib';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { getProductUrl, RouterUrls } from '@/app/router';
+import { drawerStore } from '@/shared/ui/drawer-store';
 import { CatalogProductNutrientsDrawer } from './CatalogProductNutrientsDrawer';
 
 type Props = {
@@ -113,8 +114,6 @@ const FoodActionCard = ({
   const infoHref = variant === 'product' ? getProductUrl(item.id) : RouterUrls.getDish(item.id);
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.id);
   const isCatalogProduct = variant === 'product' && !userCreated;
-  const [nutrientsOpen, setNutrientsOpen] = useState(false);
-  const [nutrientsMounted, setNutrientsMounted] = useState(false);
 
   const handleDelete = () => {
     if (variant === 'product') {
@@ -226,8 +225,11 @@ const FoodActionCard = ({
             className={styles.infoBtn}
             aria-label="Нутриенты"
             onClick={() => {
-              setNutrientsMounted(true);
-              setNutrientsOpen(true);
+              drawerStore.show(
+                CatalogProductNutrientsDrawer,
+                { productId: item.id, productName: item.name },
+                { side: 'left', width: 'min(85vw, 360px)' },
+              );
             }}
           >
             <InfoIcon />
@@ -254,14 +256,6 @@ const FoodActionCard = ({
             )}
           </Link>
         )
-      )}
-      {isCatalogProduct && nutrientsMounted && (
-        <CatalogProductNutrientsDrawer
-          open={nutrientsOpen}
-          onOpenChange={setNutrientsOpen}
-          productId={item.id}
-          productName={item.name}
-        />
       )}
     </li>
   );

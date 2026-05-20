@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { requireUser } from "../../auth/require-user.js";
+import { applySSECorsHeaders } from "../lib/sse-cors.js";
 
 // POST /api/analyze-dish — SSE stream. The frontend hydrates the dish payload
 // from Dexie + catalog and posts it; the backend forwards the OpenRouter
@@ -191,6 +192,11 @@ export async function analyzeDishRoutes(
         .status(400)
         .send({ error: "dishName or ingredients required" });
     }
+
+    // SSE streams reply.raw directly — @fastify/cors only writes Access-Control-*
+    // through reply.send(), so for raw-socket responses we have to seed those
+    // headers ourselves before writeHead().
+    applySSECorsHeaders(reply.raw, req.headers.origin);
 
     const userPrompt = buildDishUserPrompt(dishName, totalGrams, ingredients);
 

@@ -25,6 +25,7 @@ vi.mock('@/entities/dish', () => ({
 
 vi.mock('@/entities/product', () => ({
   useProductPortions: () => [],
+  useProduct: () => null,
 }));
 
 const mockToasterSuccess = vi.fn();
@@ -58,25 +59,35 @@ const setHasHints = (v: boolean) => {
   hasHintsValue = v;
 };
 
-// Lightweight SearchFood stub — renders the input and exposes a click handler
-// that calls onFinish with a fake product.
+// Faithful SearchFood stub. Each product card is a <label htmlFor={itemHtmlFor}>
+// — exactly like the real FoodActionCard. Selecting one (a) calls onSelectFood
+// and (b) delegates focus to the itemHtmlFor input. jsdom + fireEvent does not
+// move focus through a label, so the stub focuses the target explicitly,
+// reproducing what a real browser <label> does. The step transition is then
+// driven by the host's onFocusCapture — NOT by a setStep inside onSelectFood.
 vi.mock('@/features/food/food-search', () => ({
   SearchFood: (props: any) => {
+    const select = (id: string, name: string) => {
+      props.onSelectFood({ variant: 'product', id, name });
+      if (props.itemHtmlFor) document.getElementById(props.itemHtmlFor)?.focus();
+    };
     return (
       <div data-testid="search-food">
         <input id={props.inputId} data-testid="search-input" placeholder="search" />
-        <button
+        <label
           data-testid="select-product-1"
-          onClick={() => props.onSelectFood({ variant: 'product', id: 'prod-1', name: 'Яблоко' })}
+          htmlFor={props.itemHtmlFor}
+          onClick={() => select('prod-1', 'Яблоко')}
         >
           Яблоко
-        </button>
-        <button
+        </label>
+        <label
           data-testid="select-product-2"
-          onClick={() => props.onSelectFood({ variant: 'product', id: 'prod-2', name: 'Молоко' })}
+          htmlFor={props.itemHtmlFor}
+          onClick={() => select('prod-2', 'Молоко')}
         >
           Молоко
-        </button>
+        </label>
       </div>
     );
   },
@@ -173,16 +184,21 @@ describe('DishProductCreateModals — step transitions', () => {
 
   it('opens search step when search input receives focus', () => {
     renderAndOpenSearch();
-    // Breadcrumb should show "Продукт" as current
+    // Breadcrumb should show "Еда" as current
     const breadcrumbs = screen.getAllByRole('button');
-    const productCrumb = breadcrumbs.find((b) => b.textContent?.includes('Продукт'));
+    const productCrumb = breadcrumbs.find((b) => b.textContent?.includes('Еда'));
     expect(productCrumb).toBeDefined();
   });
 
-  it('advances to quantity step after selecting a product', () => {
+  it('advances to quantity step via focus delegation after selecting a product', () => {
     renderAndSelectProduct();
-    // Quantity step should now be active — the quantity input is rendered
-    expect(screen.getByTestId('product-quantity')).toBeInTheDocument();
+    // The product card is a <label htmlFor={QUANTITY_INPUT}>: selecting it
+    // delegates focus to the quantity input, and onFocusCapture flips the
+    // step — handleFoodSelect itself no longer calls setStep. This guards
+    // against a regression that unmounts SearchFood mid-click (the label
+    // would vanish before focus delegation lands).
+    expect(document.activeElement?.id).toBe(DISH_MODAL_INPUT_IDS.QUANTITY_INPUT);
+    expect(expanded()).toContainElement(screen.getByTestId('product-quantity'));
   });
 });
 
@@ -380,24 +396,35 @@ describe('DishProductCreateModals — reset after commit', () => {
 // ─── close / back ───────────────────────────────────────────────────────────
 
 describe('DishProductCreateModals — back / close', () => {
-  it('header back on quantity step returns to the search step (not commit)', () => {
+  // In Steps-bar modals the header back arrow closes the whole flow — a
+  // completed step is re-reachable via the Steps breadcrumb, not step-−1.
+  it('header back on a Steps-bar step closes the whole flow', () => {
     renderAndSelectProduct();
 
-    // ModalHeader back arrow — step-aware: quantity → search.
     clickActiveBack();
 
     expect(mockAddDishItem).not.toHaveBeenCalled();
-    expect(screen.getByTestId('search-food')).toBeInTheDocument();
+    expect(document.querySelector('[data-modal-by-label="expanded"]')).toBeNull();
   });
 
-  it('resets draft on full close so next flow starts fresh', () => {
+  it('header back from the opt-in details step closes the whole flow', () => {
+    renderAndSelectProduct();
+    const detailsInput = document.getElementById(DISH_MODAL_INPUT_IDS.DETAILS_INPUT);
+    fireEvent.focus(detailsInput!);
+    expect(screen.getByTestId('details-chips')).toBeInTheDocument();
+
+    clickActiveBack();
+
+    expect(document.querySelector('[data-modal-by-label="expanded"]')).toBeNull();
+  });
+
+  it('resets draft on close so next flow starts fresh', () => {
     renderAndSelectProduct();
 
     // Change quantity
     fireEvent.click(screen.getByTestId('quick-200'));
 
-    // Back twice: quantity → search → close the whole flow.
-    clickActiveBack();
+    // Header back closes the whole flow.
     clickActiveBack();
     expect(mockAddDishItem).not.toHaveBeenCalled();
 
@@ -417,14 +444,41 @@ describe('DishProductCreateModals — breadcrumb navigation', () => {
   it('can navigate back to search from quantity via breadcrumb', () => {
     renderAndSelectProduct();
 
-    // Click on "Продукт" breadcrumb to go back to search
+    // Click on "Еда" breadcrumb to go back to search
     const productCrumb = screen
       .getAllByRole('button')
-      .find((b) => b.textContent?.includes('Продукт'));
+      .find((b) => b.textContent?.includes('Еда'));
     expect(productCrumb).toBeDefined();
     fireEvent.click(productCrumb!);
 
     // Search should be active again — the search food component should be visible
     expect(screen.getByTestId('search-food')).toBeInTheDocument();
+  });
+
+  // Regression for the "trail shuffles" bug: in the no-hints flow `details`
+  // is opt-in and absent from `createSteps`. Once visited it must stay in the
+  // steps row on EVERY step — earlier the quantity StepHeader got a shorter
+  // steps array and the `details` crumb vanished on jump-back.
+  it('keeps the details step in the breadcrumb after visiting it, even back on quantity', () => {
+    renderAndSelectProduct(); // no hints → quantity step
+
+    // Open the opt-in details step.
+    const detailsInput = document.getElementById(DISH_MODAL_INPUT_IDS.DETAILS_INPUT);
+    fireEvent.focus(detailsInput!);
+    expect(screen.getByTestId('details-chips')).toBeInTheDocument();
+
+    // Jump back to quantity via the breadcrumb.
+    const quantityCrumb = Array.from(expanded().querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Порция'),
+    );
+    expect(quantityCrumb).toBeDefined();
+    fireEvent.click(quantityCrumb!);
+    expect(screen.getByTestId('product-quantity')).toBeInTheDocument();
+
+    // The `details` crumb must still be present on the quantity step.
+    const detailsCrumb = Array.from(expanded().querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Заметка'),
+    );
+    expect(detailsCrumb).toBeDefined();
   });
 });

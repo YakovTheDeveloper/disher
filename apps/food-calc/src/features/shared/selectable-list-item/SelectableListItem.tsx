@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import styles from './SelectableListItem.module.scss';
 import clsx from 'clsx';
-import TickIcon from '@/shared/assets/icons/tick.svg';
+import TickIcon from '@/shared/assets/icons/tick.svg?react';
 import { AnimatePresence, motion } from 'motion/react';
 import { emitter } from '@/shared/lib/emitter/emitter';
 

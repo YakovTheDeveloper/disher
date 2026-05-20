@@ -1,4 +1,4 @@
-import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg';
+import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import styles from './ButtonBack.module.scss';
 import clsx from 'clsx';
 

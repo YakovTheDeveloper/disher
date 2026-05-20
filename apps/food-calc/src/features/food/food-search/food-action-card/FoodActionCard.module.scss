@@ -222,7 +222,7 @@
     flex-shrink: 0;
     position: relative;
     // opacity: 0.3;
-    transition: opacity 0.18s ease, color 0.18s ease, transform 0.12s ease;
+    transition: opacity 0.18s ease, transform 0.12s ease;
     -webkit-tap-highlight-color: transparent;
     border-radius: inherit;
 
@@ -244,7 +244,7 @@
     }
 
     &:active {
-        color: #0a0a0a;
+        color: #0a1f4f;
         opacity: 1;
         transform: scale(0.88);
     }
@@ -475,7 +475,7 @@
     }
     .richUnit { margin-top: 1px; font-size: 9px; color: #6b7280; }
     .richPercent { font-size: 9px; color: #9ca3af; }
-    .infoBtn { color: rgba(31, 41, 55, 0.25); &:active { color: #0f172a; } }
+    .infoBtn { color: rgba(31, 41, 55, 0.25); &:active { color: #0a1f4f; } }
 }
 
 // ─── Stripe-family forks (v5 structure, different palettes) ──────────

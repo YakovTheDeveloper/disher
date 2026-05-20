@@ -6,10 +6,19 @@ import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { useNow } from '@/shared/lib/time/useNow';
 import s from './AppBottomBar.module.scss';
 
-const SearchIcon = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="11" cy="11" r="6.25" stroke="currentColor" strokeWidth="1.6" />
-    <path d="M20 20l-4.2-4.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+const SearchIcon = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="10.3" cy="10.3" r="9.6" stroke="currentColor" strokeWidth="1.1" />
+    <path d="M21.5 21.5 L17.1 17.1" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+    {/* checkmark inside the lupa — smaller, more air to circle edge */}
+    <path
+      d="M7 10.8 L10 13.5 L14 8"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
   </svg>
 );
 
@@ -20,6 +29,11 @@ type Props = {
   /** htmlFor of the search input. Each consumer points at its own MODAL_INPUT_IDS.SEARCH_INPUT. */
   searchHtmlFor: string;
   searchLabel?: string;
+  /**
+   * Visible 2-line caption next to the lupa icon (e.g. "список\nеды"). When
+   * omitted, the trailing slot stays icon-only.
+   */
+  searchText?: string;
   /**
    * Content for the leading 40px slot (left of the CTA pill). When omitted —
    * a 40px placeholder keeps the row centered. Consumers compose their own
@@ -34,6 +48,7 @@ export const AppBottomBar = ({
   writeFoodLabel = 'Опишите, что ели…',
   searchHtmlFor,
   searchLabel,
+  searchText,
   leadingSlot,
 }: Props) => {
   const tod = getTimeOfDay(useNow());
@@ -52,10 +67,11 @@ export const AppBottomBar = ({
 
       <label
         htmlFor={searchHtmlFor}
-        className={s.iconButton}
+        className={clsx(s.iconButton, searchText && s.searchWithText)}
         aria-label={searchLabel ?? 'Найти'}
       >
         <SearchIcon />
+        {searchText && <span className={s.searchTextLabel}>{searchText}</span>}
       </label>
     </div>
   );

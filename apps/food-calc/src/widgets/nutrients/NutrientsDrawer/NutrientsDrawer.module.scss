@@ -1,0 +1,126 @@
+// Sticky header row inside DrawerLayout's scroll area. DrawerLayout renders
+// no visible title (only an sr-only Drawer.Title) and pins just its 40px
+// drag-handle chrome, so the title + gear/back live here. `sticky` keeps the
+// back button reachable when the edit/create norm form scrolls.
+//
+// Scroll-seam affordance lives ON this header (industry 2026 canon — Material 3,
+// Polaris, Carbon, Ryan Mulligan's "Sticky Page Header Shadow on Scroll", Chrome
+// dev blog on `scroll-state` queries): hairline + soft shadow appear when the
+// header is held by its `top` constraint. Two-tier delivery:
+//   1. Modern path — `@container scroll-state(stuck: top)` on .scrollableContent
+//      (Chrome 133+). Discrete state, no per-frame work.
+//   2. Fallback for Safari ≤18.x / older Chromium — scroll-driven animation on
+//      the existing `--scrollerY` timeline (Chrome 115+, Safari 18+).
+//   3. Browsers without either degrade to a static header (no shadow). Matches
+//      CSS-Tricks consensus that JS scroll-listener polyfills hurt more than
+//      they help.
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 12px 8px;
+    background: white;
+    flex-shrink: 0;
+    transition: box-shadow 180ms ease;
+}
+
+// 1. Modern scroll-state query (Chrome 133+, Feb 2025).
+@container scroll-state(stuck: top) {
+    .header {
+        box-shadow: 0 1px 0 rgba(124, 65, 15, 0.09),
+                    0 6px 12px -6px rgba(124, 65, 15, 0.08);
+    }
+}
+
+// 2. Fallback: scroll-driven animation on --scrollerY (declared by DrawerLayout
+//    on .scrollableContent). Only kicks in when scroll-state is unsupported.
+@supports not (container-type: scroll-state) {
+    .header {
+        animation: header-stuck-shadow linear forwards;
+        animation-timeline: --scrollerY;
+    }
+}
+
+// Pad start to a 2-shadow list so box-shadow interpolates cleanly with the end
+// state (CSS Animations requires matching shadow-list lengths to lerp).
+@keyframes header-stuck-shadow {
+    0% {
+        box-shadow: 0 0 0 transparent,
+                    0 0 0 transparent;
+    }
+
+    3%, 100% {
+        box-shadow: 0 1px 0 rgba(124, 65, 15, 0.09),
+                    0 6px 12px -6px rgba(124, 65, 15, 0.08);
+    }
+}
+
+.title {
+    flex: 1 1 auto;
+    min-width: 0;
+
+    // Food names arrive lowercase ("абрикос") — sentence-case the first letter.
+    &::first-letter {
+        text-transform: uppercase;
+    }
+}
+
+.headerAction {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+// Mirrors the legacy SideDrawer `.body` padding so the nutrient grid and norm
+// form keep their inset against the drawer edge. `overflow-x: hidden` clips
+// the decorative nutrient-group bleed (NutrientDesignVariants `.deco`) at the
+// padded content box.
+//
+// DO NOT add sticky pseudo-elements here. `overflow-x: hidden` makes `.body`
+// a sticky scroll-container per CSS Position spec — sticky descendants would
+// be trapped to `.body`'s box (which doesn't actually scroll) instead of
+// reacting to the real scroll container `.scrollableContent` in DrawerLayout.
+// The scroll-seam affordance lives on `.header` above; bottom-edge fade is
+// provided by DrawerLayout's `.scrollableContent::after`.
+.body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 0 12px 24px;
+    overflow-x: hidden;
+}
+
+// ─── Panel-mode overrides ───────────────────────────────────────
+// When the drawer hosts the embedded norm form (slots.bodyContent != null),
+// surface owns bg + the content owns padding. See industry-2026 canon:
+// surface owns colour and reaches every edge regardless of content height;
+// padding is set exactly once, by whoever renders the form children. The
+// nested form (CreateDailyNormModal/EditDailyNormModal) is that owner here,
+// so the drawer body drops its own padding and lets the form sit flush.
+
+// Drawer.Popup (DrawerLayout passes this through as the popup className).
+// Warm gradient mirrors `.root` in CreateDailyNormModal — horizontal 3-stop
+// stripe-warm. Lives on the surface so it covers the entire popup rectangle
+// even when the form is short; previously the gradient was on the form
+// element and clipped to content height → visible white floor.
+.contentWarm {
+    background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
+}
+
+// Sticky header in panel mode: warm-on-warm so scrolling content disappears
+// behind it cleanly. The existing scroll-state shadow (warm-tinted) still
+// fires when stuck — gives the seam affordance without a white band.
+.headerWarm {
+    background: transparent;
+}
+
+// Content owns its own padding (CreateDailyNormModal `.bodyPanel` = 16px).
+// Removing the outer 12px here means no double-padded inset and no 12px
+// white frame along the drawer edges.
+.bodyFlush {
+    padding: 0;
+}

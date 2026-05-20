@@ -1,0 +1,16 @@
+.fields {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.counter {
+    align-self: flex-end;
+    font-size: 11px;
+    color: rgba(15, 23, 42, 0.4);
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+.counterOver {
+    color: #c0392b;
+}

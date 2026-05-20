@@ -11,6 +11,7 @@ import {
   updateDishPortion,
   removeDishPortion,
 } from '@/entities/dish';
+import { ChangeNameModal } from '@/features/shared/change-name';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
@@ -29,8 +30,6 @@ import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DishBuilderPage.module.scss';
 import homeStyles from '@/pages/home-page/HomePage.module.scss';
-import { ChangeName } from '@/features/shared/change-name';
-import { PageHeading } from '@/shared/ui/PageHeading';
 import {
   DishProductCreateModals,
   DISH_MODAL_INPUT_IDS,
@@ -41,21 +40,17 @@ import {
 } from './ui';
 import { FoodPortionsManager } from '@/features/food/food-portions-manager';
 import { DishAnalysisScreen } from '@/features/dish-analysis';
-import { Ornament } from '@/shared/ui/Ornament';
 import { useDishNutrientTotals } from '@/entities/dish';
 import { TopBar } from '@/shared/ui/TopBar';
 import Button from '@/shared/ui/atoms/Button/Button';
 import { PasteFromClipboardToDishButton } from '@/features/clipboard';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
-import {
-  ScreenIndicator,
-  runTileMigration,
-  type ScreenEntry,
-} from '@/shared/ui/ScreenIndicator';
+import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
+import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { AppBottomBar, NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
-import { SideDrawer } from '@/shared/ui';
-import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
-import { useNutrientNormSlots } from '@/features/dailyNorms/NutrientNormDrawerControl';
+import { drawerStore } from '@/shared/ui/drawer-store';
+import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 import jazzImg from '@/shared/assets/decarative/jazz.png';
 import bagImg from '@/shared/assets/decarative/bag3.png';
 import moneyImg from '@/shared/assets/decarative/money.png';
@@ -77,6 +72,16 @@ const DISH_SCREENS: ScreenEntry[] = [
 const DEFAULT_SLIDE = 1;
 const SWIPE_DURATION = 25;
 
+// Общий ambient-anchor со страницей продукта (CSS в HomePage.module.scss) —
+// детальные экраны продукта и блюда делят одну голубую подложку.
+const PRODUCT_AMBIENT_VARIANTS = [
+  'plain',
+  'sky-mist',
+  'ice-blue',
+  'periwinkle',
+  'dawn-blue',
+] as const;
+
 const DishBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
 
@@ -96,9 +101,14 @@ const DishBuilderPage = () => {
   const { clearSelection } = selectionStore.getState();
 
   const [isOpen, setIsOpen] = useState<'suggestions' | null>(null);
-  const [nutrientsOpen, setNutrientsOpen] = useState(false);
-  const openNutrients = useCallback(() => setNutrientsOpen(true), []);
-  const normSlots = useNutrientNormSlots({ isOpen: nutrientsOpen });
+  const [renameOpen, setRenameOpen] = useState(false);
+  const openNutrients = useCallback(() => {
+    void drawerStore.show(
+      NutrientsDrawer,
+      { totals: dishTotals },
+      { side: 'left', width: 'min(85vw, 360px)' },
+    );
+  }, [dishTotals]);
   const editFlow = useDishProductFlow({ type: 'edit' });
 
   const writeFoodTarget = useMemo(
@@ -108,9 +118,10 @@ const DishBuilderPage = () => {
   const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
   const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
 
-  const [activeIndex, setActiveIndex] = useState(DEFAULT_SLIDE);
   const swipeableRef = useRef<SwipeableRef>(null);
 
+  // НЕ убирать: блокирует свайп между экранами, пока открыта
+  // DishSuggestionsModal — иначе свайп уводит из-под модалки.
   useSwipeableLock(isOpen !== null);
 
   const closeModal = () => setIsOpen(null);
@@ -147,20 +158,29 @@ const DishBuilderPage = () => {
     return stored ?? format(new Date(), 'dd-MM-yyyy');
   }, []);
 
-  const handleIndexChange = useCallback((idx: number) => {
-    setActiveIndex(idx);
-  }, []);
-
+  // Свайп не прокидывается в стейт: каждый слайд рендерит свой статичный
+  // ScreenIndicator (slideIndex={0/1/2}). Тот же паттерн, что HomePage.
   const handleSelect = useCallback((idx: number) => {
     swipeableRef.current?.goToPage(idx);
-    setActiveIndex(idx);
   }, []);
 
-  const handleSelectAnimated = useCallback(
-    (idx: number) => {
-      runTileMigration(activeIndex, idx, () => handleSelect(idx));
-    },
-    [activeIndex, handleSelect],
+  const { anchor: ambientAnchor } = useDesignVariant('ProductAmbient', PRODUCT_AMBIENT_VARIANTS);
+
+  // Инстансы индикатора держим стабильными (useMemo на стабильном
+  // handleSelect) по канону HomePage. Прямого выигрыша от memo(Screen) тут
+  // нет — соседние пропы Screen (children/actions/...) инлайн-JSX, memo
+  // пробивается всё равно; вреда тоже нет.
+  const analysisIndicator = useMemo(
+    () => <ScreenIndicator screens={DISH_SCREENS} onSelect={handleSelect} slideIndex={0} />,
+    [handleSelect],
+  );
+  const ingredientsIndicator = useMemo(
+    () => <ScreenIndicator screens={DISH_SCREENS} onSelect={handleSelect} slideIndex={1} />,
+    [handleSelect],
+  );
+  const portionsIndicator = useMemo(
+    () => <ScreenIndicator screens={DISH_SCREENS} onSelect={handleSelect} slideIndex={2} />,
+    [handleSelect],
   );
 
   if (!dish) return null;
@@ -204,199 +224,160 @@ const DishBuilderPage = () => {
     }));
 
   return (
-    <div className={homeStyles.container}>
+    <div className={homeStyles.container} {...ambientAnchor}>
       <HomeTopBar
         date={dateForTopBar}
-        dateButtonLabel="К расписанию"
+        dateButtonLabel={<CalendarIcon width={22} height={22} />}
+        centerLabel={dish.name}
+        onTitleClick={() => setRenameOpen(true)}
+        noInterruptGuard
+      />
+      <ChangeNameModal
+        currentName={dish.name}
+        isExpanded={renameOpen}
+        onClose={() => setRenameOpen(false)}
+        onChangeName={(name) => {
+          void safeMutate(() => updateDishName(dish.id, name), 'Не удалось переименовать');
+          setRenameOpen(false);
+        }}
       />
       <div className={homeStyles.swipeArea}>
-        <div className={homeStyles.indicatorFloat}>
-          <ScreenIndicator
-            screens={DISH_SCREENS}
-            activeIndex={activeIndex}
-            onSelect={handleSelect}
-          />
-        </div>
-        <div className={homeStyles.swipeableLayer}>
-          <Swipeable
-            ref={swipeableRef}
-            defaultSlide={DEFAULT_SLIDE}
-            duration={SWIPE_DURATION}
-            onIndexChange={handleIndexChange}
-            hasDots={false}
-          >
-            <Screen key={1} headerOverlap>
-              <DishAnalysisScreen dishId={id} hasIngredients={items.length > 0} />
-            </Screen>
+        <Swipeable
+          ref={swipeableRef}
+          defaultSlide={DEFAULT_SLIDE}
+          duration={SWIPE_DURATION}
+          hasDots={false}
+        >
+          <Screen key={1} headerOverlap stickyTop={analysisIndicator}>
+            <DishAnalysisScreen dishId={id} hasIngredients={items.length > 0} />
+          </Screen>
 
-            <Screen
-              key={2}
-              headerOverlap
-              hollow={items.length === 0}
-              overlay={
-                <>
-                  <DishProductCreateModals dishId={id} />
-                  <div onFocusCapture={handleEditFocusCapture}>
-                    <DishProductEditModals flow={editFlow} />
-                  </div>
-                  <DishSuggestionsModal
-                    isExpanded={isOpen === 'suggestions'}
-                    dishId={id}
-                    dishName={dish.name}
-                    existingItems={getExistingItemsForSuggestions()}
-                    onClose={closeModal}
-                  />
-                  <WriteFoodModals
-                    flow={writeFoodFlow}
-                    inputId={writeFoodInputId}
-                  />
-                  <SideDrawer
-                    open={nutrientsOpen}
-                    onOpenChange={setNutrientsOpen}
-                    title={normSlots.title}
-                    headerAction={normSlots.headerAction}
-                  >
-                    {normSlots.bodyContent ?? (
-                      <>
-                        {normSlots.devToggle}
-                        {normSlots.emptyStateBanner}
-                        <FoodsNutrients totals={dishTotals} />
-                      </>
-                    )}
-                  </SideDrawer>
-                </>
-              }
-              actions={
-                <ActionsPanel
-                  show={isActionsMode}
-                  onBack={() => clearSelection()}
-                  left={<button onClick={onDeleteSelected}>удалить</button>}
-                >
-                  <button onClick={onShareSelected}>поделиться</button>
-                </ActionsPanel>
-              }
-              bottomBar={
-                !isActionsMode ? (
-                  <AppBottomBar
-                    writeFoodFlow={writeFoodFlow}
-                    writeFoodInputId={writeFoodInputId}
-                    searchHtmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
-                    searchLabel="Найти продукт"
-                    writeFoodLabel="Опишите ингредиенты…"
-                    leadingSlot={
-                      <NutrientsSummaryButton totals={dishTotals} onClick={openNutrients} />
-                    }
-                  />
-                ) : null
-              }
-              topPanel={
-                <TopBar>
-                  {items.length > 0 && (
-                    <Button variant="menu" onClick={() => setIsOpen('suggestions')}>
-                      Предложить
-                    </Button>
-                  )}
-                </TopBar>
-              }
-              header={
-                <ChangeName
-                  name={dish.name}
-                  onChangeName={(val) =>
-                    void safeMutate(() => updateDishName(dish.id, val), 'Не удалось переименовать')
-                  }
-                  heading={
-                    <PageHeading
-                      title={dish.name}
-                      subtitle="блюдо"
-                    />
+          <Screen
+            key={2}
+            headerOverlap
+            stickyTop={ingredientsIndicator}
+            hollow={items.length === 0}
+            overlay={
+              <>
+                <DishProductCreateModals dishId={id} />
+                <div onFocusCapture={handleEditFocusCapture}>
+                  <DishProductEditModals flow={editFlow} />
+                </div>
+                <DishSuggestionsModal
+                  isExpanded={isOpen === 'suggestions'}
+                  dishId={id}
+                  dishName={dish.name}
+                  existingItems={getExistingItemsForSuggestions()}
+                  onClose={closeModal}
+                />
+                <WriteFoodModals flow={writeFoodFlow} inputId={writeFoodInputId} />
+              </>
+            }
+            actions={
+              <ActionsPanel
+                show={isActionsMode}
+                onBack={() => clearSelection()}
+                left={<button onClick={onDeleteSelected}>удалить</button>}
+              >
+                <button onClick={onShareSelected}>поделиться</button>
+              </ActionsPanel>
+            }
+            bottomBar={
+              !isActionsMode ? (
+                <AppBottomBar
+                  writeFoodFlow={writeFoodFlow}
+                  writeFoodInputId={writeFoodInputId}
+                  searchHtmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
+                  searchLabel="Найти продукт"
+                  writeFoodLabel="Опишите ингредиенты…"
+                  leadingSlot={
+                    <NutrientsSummaryButton totals={dishTotals} onClick={openNutrients} />
                   }
                 />
-              }
-            >
-              <PasteFromClipboardToDishButton dishId={id} wrapperStyle={{ width: '50%' }} />
-              <ItemsList offsetTop>
-                {items.map((item) => (
-                  <SelectableListItem
-                    key={item.id}
-                    id={item.id}
-                    className={styles.group}
-                    innerClassName={styles.dishFoodListItem}
-                    isSelectMode={isActionsMode}
-                    isSelected={selectedIds.includes(item.id)}
-                    onSelect={() => selectionStore.getState().toggleSelectedId(item.id)}
+              ) : null
+            }
+            topPanel={
+              <TopBar>
+                {items.length > 0 && (
+                  <Button variant="menu" onClick={() => setIsOpen('suggestions')}>
+                    Предложить
+                  </Button>
+                )}
+              </TopBar>
+            }
+          >
+            <PasteFromClipboardToDishButton dishId={id} wrapperStyle={{ width: '50%' }} />
+            <ItemsList offsetTop>
+              {items.map((item) => (
+                <SelectableListItem
+                  key={item.id}
+                  id={item.id}
+                  className={styles.group}
+                  innerClassName={styles.dishFoodListItem}
+                  isSelectMode={isActionsMode}
+                  isSelected={selectedIds.includes(item.id)}
+                  onSelect={() => selectionStore.getState().toggleSelectedId(item.id)}
+                >
+                  <span
+                    onPointerDown={() => {
+                      const trigger = document.getElementById(
+                        DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT
+                      );
+                      if (trigger) trigger.dataset.activeItemId = item.id;
+                    }}
                   >
-                    <span
-                      onPointerDown={() => {
-                        const trigger = document.getElementById(DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT);
-                        if (trigger) trigger.dataset.activeItemId = item.id;
-                      }}
-                    >
-                      <FoodName
-                        htmlFor={DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT}
-                        onClick={() => {}}
-                        content={{ name: item.product?.name ?? item.productId }}
-                      />
-                    </span>
-                    <Quantity
-                      htmlFor={DISH_EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
-                      id={item.id}
-                      onClick={() => handleEditQuantity(item)}
-                      hide={false}
-                      unit="г"
-                      content={{ quantity: item.quantity }}
+                    <FoodName
+                      htmlFor={DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT}
+                      onClick={() => {}}
+                      content={{ name: item.product?.name ?? item.productId }}
                     />
-                  </SelectableListItem>
-                ))}
-              </ItemsList>
-            </Screen>
+                  </span>
+                  <Quantity
+                    htmlFor={DISH_EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
+                    id={item.id}
+                    onClick={() => handleEditQuantity(item)}
+                    hide={false}
+                    unit="г"
+                    content={{ quantity: item.quantity }}
+                  />
+                </SelectableListItem>
+              ))}
+            </ItemsList>
+          </Screen>
 
-            <Screen key={3} headerOverlap>
-              <Ornament text="порции" />
-              <FoodPortionsManager
-                portions={portionsRaw.map((p) => ({
-                  label: p.label,
-                  grams: p.grams,
-                }))}
-                implicitPortion={
-                  items.length > 0
-                    ? {
-                        label: 'Всё блюдо',
-                        grams: items.reduce((sum, it) => sum + it.quantity, 0),
-                      }
-                    : undefined
-                }
-                onAdd={(p) =>
-                  void safeMutate(() => addDishPortion(id, p), 'Не удалось добавить порцию')
-                }
-                onUpdate={(label, updates) => {
-                  const portion = portionsRaw.find((p) => p.label === label);
-                  if (portion)
-                    void safeMutate(
-                      () => updateDishPortion(portion.id, updates),
-                      'Не удалось обновить порцию'
-                    );
-                }}
-                onRemove={(label) => {
-                  const portion = portionsRaw.find((p) => p.label === label);
-                  if (portion)
-                    void safeMutate(() => removeDishPortion(portion.id), 'Не удалось удалить порцию');
-                }}
-              />
-            </Screen>
-          </Swipeable>
-        </div>
-        <div className={homeStyles.indicatorClickLayer} aria-hidden>
-          {DISH_SCREENS.map((screen, i) => (
-            <button
-              key={screen.label}
-              type="button"
-              tabIndex={-1}
-              aria-label={screen.label}
-              className={homeStyles.indicatorClickTile}
-              onClick={() => handleSelectAnimated(i)}
+          <Screen key={3} headerOverlap stickyTop={portionsIndicator}>
+            <FoodPortionsManager
+              portions={portionsRaw.map((p) => ({
+                label: p.label,
+                grams: p.grams,
+              }))}
+              implicitPortion={
+                items.length > 0
+                  ? {
+                      label: 'Всё блюдо',
+                      grams: items.reduce((sum, it) => sum + it.quantity, 0),
+                    }
+                  : undefined
+              }
+              onAdd={(p) =>
+                void safeMutate(() => addDishPortion(id, p), 'Не удалось добавить порцию')
+              }
+              onUpdate={(label, updates) => {
+                const portion = portionsRaw.find((p) => p.label === label);
+                if (portion)
+                  void safeMutate(
+                    () => updateDishPortion(portion.id, updates),
+                    'Не удалось обновить порцию'
+                  );
+              }}
+              onRemove={(label) => {
+                const portion = portionsRaw.find((p) => p.label === label);
+                if (portion)
+                  void safeMutate(() => removeDishPortion(portion.id), 'Не удалось удалить порцию');
+              }}
             />
-          ))}
-        </div>
+          </Screen>
+        </Swipeable>
       </div>
     </div>
   );

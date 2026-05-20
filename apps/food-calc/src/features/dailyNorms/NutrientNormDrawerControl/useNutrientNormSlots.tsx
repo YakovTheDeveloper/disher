@@ -4,20 +4,8 @@ import { USER_NORM_ID } from '@/entities/daily-norm/model/default-norm';
 import { db } from '@/shared/lib/dexie/schema';
 import CreateDailyNormModal from '@/features/dailyNorms/OpenDailyNorms/CreateDailyNormModal';
 import EditDailyNormModal from '@/features/dailyNorms/OpenDailyNorms/EditDailyNormModal';
+import FlagIcon from '@/shared/assets/icons/flag.svg?react';
 import s from './NutrientNormDrawerControl.module.scss';
-
-const GearIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
-    <path
-      d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z"
-      stroke="currentColor"
-      strokeWidth="1.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 const BackIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -50,16 +38,14 @@ export type NutrientNormSlots = {
 /**
  * Two-state nutrients drawer: 'view' (nutrients list) ↔ 'edit'/'create' (norm form).
  *
- * Consumer wiring:
- *   const slots = useNutrientNormSlots({ isOpen: nutrientsOpen });
- *   <SideDrawer title={slots.title} headerAction={slots.headerAction}>
- *     {slots.bodyContent ?? (
- *       <>{slots.devToggle}{slots.emptyStateBanner}<FoodsNutrients .../></>
- *     )}
- *   </SideDrawer>
+ * Sole consumer is `widgets/nutrients/NutrientsDrawer`, opened on the store
+ * path via `drawerStore.show(NutrientsDrawer, props, { side: 'left' })`. Each
+ * `show()` is a fresh mount, so `mode` naturally starts at 'view' — call this
+ * with no args.
  *
- * `isOpen` is used to reset the mode back to 'view' when the drawer closes,
- * so reopening always starts from the nutrients list rather than mid-form.
+ * `isOpen` (default `true`) is a legacy escape hatch: it resets the mode back
+ * to 'view' on a false→true transition, for a consumer that keeps this hook
+ * mounted across opens instead of remounting. The store path never needs it.
  */
 export function useNutrientNormSlots(
   opts: { isOpen?: boolean } = {},
@@ -107,11 +93,11 @@ export function useNutrientNormSlots(
     ) : hasNorm ? (
       <button
         type="button"
-        className={s.gearBtn}
+        className={s.flagBtn}
         onClick={goToEdit}
         aria-label="Перенастроить дневную норму"
       >
-        <GearIcon />
+        <FlagIcon width={18} height={18} />
       </button>
     ) : null;
 

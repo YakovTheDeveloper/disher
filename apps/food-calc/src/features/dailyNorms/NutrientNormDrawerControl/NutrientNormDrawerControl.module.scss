@@ -1,5 +1,5 @@
-// Back button rendered as SideDrawer.headerAction when the drawer is in
-// 'edit' or 'create' mode. Replaces the gear; returns to the nutrients list.
+// Back button rendered as the drawer headerAction when it is in 'edit' or
+// 'create' mode. Replaces the gear; returns to the nutrients list.
 .backBtn {
     display: inline-flex;
     align-items: center;
@@ -18,9 +18,9 @@
     &:active { background: rgba(0, 0, 0, 0.08); }
 }
 
-// Gear button rendered as SideDrawer.headerAction when the user already has
+// Flag button rendered as the drawer headerAction when the user already has
 // a daily norm configured. Quiet affordance — discoverable, not loud.
-.gearBtn {
+.flagBtn {
     display: inline-flex;
     align-items: center;
     justify-content: center;

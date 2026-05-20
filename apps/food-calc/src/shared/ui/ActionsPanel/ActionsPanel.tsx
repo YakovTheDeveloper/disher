@@ -1,4 +1,4 @@
-import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg';
+import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import styles from './ActionsPanel.module.scss';
 
 type Props = {
