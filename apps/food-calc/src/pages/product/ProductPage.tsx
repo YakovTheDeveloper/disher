@@ -9,16 +9,15 @@ import {
   setProductPortions,
   updateProduct,
 } from '@/entities/product';
-import { Nutrients } from '@/entities/nutrient/ui/NutrientGroup';
-import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import { NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
 import NutrientDesignVariants from '@/widgets/nutrients/FoodsNutrients/NutrientDesignVariants';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { OpenDailyNorms } from '@/features/dailyNorms/OpenDailyNorms';
-import { FoodPortionsManager } from '@/features/food/food-portions-manager';
-import { ChangeNameModal } from '@/features/shared/change-name';
+import { FoodPortionsManager, nextDefaultPortionLabel } from '@/features/food/food-portions-manager';
+import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-name';
+import { PlusIcon } from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import { Screen } from '@/shared/ui/Screen';
+import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
 import { isCreatedByUser } from '@/shared/lib';
 import { safeMutate } from '@/shared/lib/safeMutate';
@@ -31,8 +30,6 @@ import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import bagImg from '@/shared/assets/decarative/bag.png';
 import moneyImg from '@/shared/assets/decarative/money.png';
-
-type Mode = 'view' | 'edit';
 
 type ServingUnitOpt = 'IU' | 'mg' | 'mcg' | 'g' | 'шт';
 const SERVING_UNIT_OPTIONS: ServingUnitOpt[] = ['IU', 'mg', 'mcg', 'g', 'шт'];
@@ -50,22 +47,77 @@ const PRODUCT_AMBIENT_VARIANTS = [
   'dawn-blue',
 ] as const;
 
-const PRODUCT_SCREENS: ScreenEntry[] = [
+// NavTile ambient — radial-glow per nth-child. Общий anchor-ключ с
+// DishBuilderPage: переключение варианта в баре синхронно меняет подсветку
+// на обеих страницах. Дефолтная семантика тайла — в base-стилях NavTile.
+// Общий ключ с DishBuilderPage; переключение в баре синхронно меняет
+// подсветку на обеих страницах. Дефолт `ice-blue` (subtle cool glow,
+// согласуется с ProductAmbient.ice-blue фоном).
+const NAVTILE_AMBIENT_VARIANTS = [
+  'ice-blue',
+  'paper-warm',
+  'mint-fog',
+  'lavender-haze',
+  'peach-fog',
+  'silver-mist',
+  'rose-quartz',
+  'none',
+] as const;
+
+const PRODUCT_SCREENS_FOOD: ScreenEntry[] = [
   { label: 'Нутриенты', image: bagImg, titleStyle: 'display-sans' },
   { label: 'Порции', image: moneyImg, titleStyle: 'display-sans' },
 ];
+// БАД (servingBasis='serving'): фиксированная доза, кастомные порции не нужны
+// — юзер вводит дробное число (0.5, 1, 2). Оставляем только «Нутриенты».
+const PRODUCT_SCREENS_SUPPLEMENT: ScreenEntry[] = [PRODUCT_SCREENS_FOOD[0]];
 
 const ProductPage = () => {
   const { id } = useParams<'id'>();
   const food = useProduct(id);
   const portionsRaw = useProductPortions(id);
   const { results: nutrientsRaw } = useProductNutrients(id);
-  const [quantity, setQuantity] = useState(100);
-  const [mode, setMode] = useState<Mode>('view');
+  // Lazy default depends on food, which is undefined on first tick; keep
+  // user-entered values as a concrete number, otherwise derive the default
+  // from servingBasis (БАД → 1 шт, еда → 100 г). When basis flips in the
+  // edit flow, defaultQty re-derives — the input visibly snaps to the new
+  // baseline, which is what we want during initial setup.
+  const [quantity, setQuantity] = useState<number | null>(null);
+  const defaultQty = food?.servingBasis === 'serving' ? 1 : 100;
+  const displayQuantity = quantity ?? defaultQty;
   const [renameOpen, setRenameOpen] = useState(false);
+  const handleNameFocusCapture = useCallback((e: React.FocusEvent) => {
+    if ((e.target as HTMLElement).id === CHANGE_NAME_INPUT_ID) {
+      setRenameOpen(true);
+    }
+  }, []);
+  // Per-slide scroll-стейт: Embla сохраняет позицию каждого Screen, поэтому
+  // нам нужно знать scrollY активного слайда (не «последнего скроллившего»).
+  // При scrollY > 120 активного слайда — возвращаем имя продукта в
+  // HomeTopBar.centerLabel. Активный индекс — из Swipeable.onIndexChange ниже.
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [scrollByIndex, setScrollByIndex] = useState<number[]>([0, 0]);
+  const isScrolled = (scrollByIndex[activeSlide] ?? 0) > 120;
+  const makeScrollHandler = useCallback(
+    (idx: number) => (y: number) => {
+      setScrollByIndex((prev) => {
+        if (prev[idx] === y) return prev;
+        const next = prev.slice();
+        next[idx] = y;
+        return next;
+      });
+    },
+    [],
+  );
 
   const { anchor: ambientAnchor } = useDesignVariant('ProductAmbient', PRODUCT_AMBIENT_VARIANTS);
+  const { anchor: navTileAnchor } = useDesignVariant('NavTileAmbient', NAVTILE_AMBIENT_VARIANTS);
   const swipeableRef = useRef<SwipeableRef>(null);
+
+  const isSupplementProduct = food?.servingBasis === 'serving';
+  // Для БАД — единственный screen «Нутриенты», индикатор не нужен. Для еды —
+  // обе вкладки + индикатор.
+  const screens = isSupplementProduct ? PRODUCT_SCREENS_SUPPLEMENT : PRODUCT_SCREENS_FOOD;
 
   // Свайп НЕ прокидывается в стейт: каждый слайд рендерит свой статичный
   // ScreenIndicator (slideIndex={0/1}). Тот же паттерн, что HomePage —
@@ -79,12 +131,26 @@ const ProductPage = () => {
   // нет — соседние пропы Screen (children/actions/bottomRight) инлайн-JSX,
   // memo пробивается всё равно; вреда тоже нет.
   const nutrientsIndicator = useMemo(
-    () => <ScreenIndicator screens={PRODUCT_SCREENS} onSelect={handleSelect} slideIndex={0} />,
-    [handleSelect]
+    () =>
+      screens.length > 1 ? (
+        <ScreenIndicator
+          screens={screens}
+          onSelect={handleSelect}
+          slideIndex={0}
+        />
+      ) : null,
+    [handleSelect, screens]
   );
   const portionsIndicator = useMemo(
-    () => <ScreenIndicator screens={PRODUCT_SCREENS} onSelect={handleSelect} slideIndex={1} />,
-    [handleSelect]
+    () =>
+      screens.length > 1 ? (
+        <ScreenIndicator
+          screens={screens}
+          onSelect={handleSelect}
+          slideIndex={1}
+        />
+      ) : null,
+    [handleSelect, screens]
   );
 
   // У продукта нет своей даты — `HomeTopBar` нужен как обвязка + escape-hatch
@@ -118,13 +184,15 @@ const ProductPage = () => {
   if (!food) return null;
 
   const isUserCreated = isCreatedByUser(food.id);
-  const isEditMode = isUserCreated && mode === 'edit';
 
   const getNutrientValue = (nutrientId: string) => nutrientValueMap.get(nutrientId) ?? 0;
   // basis '100g' → scale = quantity / 100 (food). 'serving' → scale = quantity (supplement).
-  const scale = food.servingBasis === 'serving' ? quantity : quantity / 100;
+  const scale = food.servingBasis === 'serving' ? displayQuantity : displayQuantity / 100;
   const getScaledValue = (nutrientId: string) => getNutrientValue(nutrientId) * scale;
-  const portionUnit = food.servingBasis === 'serving' ? (food.servingUnit ?? 'шт') : 'г';
+  // Screen «Порции» рендерится только для еды (servingBasis !== 'serving' —
+  // см. условный рендер ниже), так что unit здесь всегда 'г'. Прежняя ветка
+  // про servingUnit стала мёртвой после скрытия вкладки для БАД.
+  const portionUnit = 'г';
 
   const massExceeds100 = totalGramMass > 100;
 
@@ -144,57 +212,73 @@ const ProductPage = () => {
     );
   };
 
-  const renderEditCard = (nutrientData: Nutrient) => {
-    return (
-      <NutrientCardEditor
-        content={nutrientData}
-        getValue={getNutrientValue}
-        variant="product-edit"
-        editValue={getNutrientValue(nutrientData.id)}
-        onValueChange={handleNutrientValueChange}
-      />
-    );
-  };
-
   return (
     <div className={homeStyles.container} {...ambientAnchor}>
       <HomeTopBar
         date={dateForTopBar}
         dateButtonLabel={<CalendarIcon width={22} height={22} />}
         centerLabel={food.name}
-        onTitleClick={isUserCreated ? () => setRenameOpen(true) : undefined}
+        centerLabelHtmlFor={isUserCreated ? CHANGE_NAME_INPUT_ID : undefined}
+        centerLabelVisible={isScrolled}
         noInterruptGuard
       />
-      <ChangeNameModal
-        currentName={food.name}
-        isExpanded={renameOpen}
-        onClose={() => setRenameOpen(false)}
-        onChangeName={(name) => {
-          void safeMutate(() => updateProduct(food.id, { name }), 'Не удалось переименовать');
-          setRenameOpen(false);
-        }}
-      />
-      <div className={homeStyles.swipeArea}>
-        <Swipeable ref={swipeableRef} defaultSlide={0} hasDots={false}>
+      <div onFocusCapture={handleNameFocusCapture}>
+        <ChangeNameModal
+          currentName={food.name}
+          isExpanded={renameOpen}
+          onClose={() => setRenameOpen(false)}
+          onChangeName={(name) => {
+            void safeMutate(() => updateProduct(food.id, { name }), 'Не удалось переименовать');
+            setRenameOpen(false);
+          }}
+        />
+      </div>
+      <div className={homeStyles.swipeArea} {...navTileAnchor}>
+        {/* При смене количества слайдов (toggle "еда ↔ БАД" у своих продуктов
+            прямо на странице) нужен ремаунт Embla — иначе selectedSnap может
+            остаться на несуществующей странице. */}
+        <Swipeable
+          key={`swipe-${screens.length}`}
+          ref={swipeableRef}
+          defaultSlide={0}
+          hasDots={false}
+          onIndexChange={(idx) => setActiveSlide(idx)}
+        >
           {/* ── Slide 0: Nutrients ── */}
           <Screen
             key={0}
             headerOverlap
+            heroTop={
+              // `<label>` лежит ВНУТРИ heading-а и оборачивает span — валидный
+              // HTML, в отличие от `label>h1`. h2 (не h1) — чтобы у страницы
+              // остался один h1 даже после дублирования heroTop в 2 Screen-ах.
+              isUserCreated ? (
+                <Heading size="screen" as="h2">
+                  <label htmlFor={CHANGE_NAME_INPUT_ID} aria-label="Изменить название">
+                    <span>{food.name}</span>
+                  </label>
+                </Heading>
+              ) : (
+                <Heading size="screen" as="h2">{food.name}</Heading>
+              )
+            }
             stickyTop={nutrientsIndicator}
+            onScrollY={makeScrollHandler(0)}
           >
-            {/* Hero-заголовок продукта убран — имя теперь живёт в centerLabel
-                HomeTopBar (sticky сверху). Rename UI временно потерян вместе
-                с <ChangeName>; вернуть отдельной кнопкой, если понадобится. */}
+            {/* Имя продукта живёт в centerLabel HomeTopBar (sticky сверху).
+                Для своих продуктов нутриенты редактируются inline (как
+                ингредиенты блюда) — отдельного view/edit-режима нет.
+                Системные продукты — read-only со скейлом по quantity. */}
 
-            <section className={s.foodActions}>
-              {!isEditMode && (
+            {!isUserCreated && (
+              <section className={s.foodActions}>
                 <span className={s.quantityInputRow}>
                   <span className={s.quantityInputBox}>
                     <span aria-hidden className={s.quantityMirror}>
-                      {quantity || 0}
+                      {displayQuantity || 0}
                     </span>
                     <NumberInput
-                      value={quantity}
+                      value={displayQuantity}
                       min={0}
                       maxLength={4}
                       className={s.quantityInput}
@@ -205,30 +289,11 @@ const ProductPage = () => {
                     {food.servingBasis === 'serving' ? (food.servingUnit ?? 'шт') : 'г'}
                   </span>
                 </span>
-              )}
-              <OpenDailyNorms className={s.normIcon} variant="icon" />
-            </section>
-
-            {isUserCreated && (
-              <div className={s.modeToggleRow}>
-                <button
-                  type="button"
-                  className={`${s.modeBtn} ${mode === 'view' ? s.modeBtnActive : ''}`}
-                  onClick={() => setMode('view')}
-                >
-                  Просмотр
-                </button>
-                <button
-                  type="button"
-                  className={`${s.modeBtn} ${mode === 'edit' ? s.modeBtnActive : ''}`}
-                  onClick={() => setMode('edit')}
-                >
-                  Редактирование
-                </button>
-              </div>
+                <OpenDailyNorms className={s.normIcon} variant="icon" />
+              </section>
             )}
 
-            {isEditMode && (
+            {isUserCreated && (
               <div className={s.servingBlock}>
                 <div className={s.modeToggleRow}>
                   <button
@@ -292,32 +357,78 @@ const ProductPage = () => {
               </div>
             )}
 
-            {isEditMode && massExceeds100 && (
+            {isUserCreated && massExceeds100 && (
               <div className={s.massWarning}>
                 Совокупная масса нутриентов ({totalGramMass.toFixed(1)} г) превышает 100 г
               </div>
             )}
 
             <div className={s.nutrientsTail}>
-              {isEditMode ? (
-                <Nutrients renderCard={renderEditCard} />
+              {isUserCreated ? (
+                <NutrientDesignVariants
+                  getValue={getNutrientValue}
+                  variant="edit-values"
+                  onValueChange={handleNutrientValueChange}
+                />
               ) : (
-                <NutrientDesignVariants getValue={isUserCreated ? getNutrientValue : getScaledValue} />
+                <NutrientDesignVariants getValue={getScaledValue} />
               )}
             </div>
           </Screen>
 
-          {/* ── Slide 1: Portions ── */}
+          {/* ── Slide 1: Portions ── (только для еды; у БАД доза вводится
+              числом, кастомные порции не нужны) */}
+          {!isSupplementProduct && (
           <Screen
             key={1}
             headerOverlap
+            heroTop={
+              isUserCreated ? (
+                <Heading size="screen" as="h2">
+                  <label htmlFor={CHANGE_NAME_INPUT_ID} aria-label="Изменить название">
+                    <span>{food.name}</span>
+                  </label>
+                </Heading>
+              ) : (
+                <Heading size="screen" as="h2">{food.name}</Heading>
+              )
+            }
             stickyTop={portionsIndicator}
+            onScrollY={makeScrollHandler(1)}
             hollow={portionsRaw.length === 0}
+            bottomBar={
+              isUserCreated ? (
+                <div className={s.portionsBar}>
+                  <button
+                    type="button"
+                    className={s.addPortionButton}
+                    onClick={() => {
+                      const updated = [
+                        ...portionsRaw,
+                        { label: nextDefaultPortionLabel(portions), grams: 0 },
+                      ];
+                      void safeMutate(
+                        () => setProductPortions(food.id, JSON.stringify(updated)),
+                        'Не удалось добавить порцию'
+                      );
+                    }}
+                  >
+                    <span className={s.addPortionPlus} aria-hidden="true">
+                      <PlusIcon />
+                    </span>
+                    Добавить порцию
+                  </button>
+                </div>
+              ) : null
+            }
           >
+            <div className={s.portionsScreenInset}>
             {isUserCreated ? (
               <FoodPortionsManager
                 portions={portions}
                 unit={portionUnit}
+                showAddButton={false}
+                showHint={false}
                 onAdd={(p) => {
                   const updated = [...portionsRaw, p];
                   void safeMutate(
@@ -345,7 +456,9 @@ const ProductPage = () => {
             ) : (
               <FoodPortionsManager portions={portions} unit={portionUnit} />
             )}
+            </div>
           </Screen>
+          )}
         </Swipeable>
       </div>
     </div>

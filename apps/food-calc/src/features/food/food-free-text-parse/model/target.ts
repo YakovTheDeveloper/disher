@@ -1,5 +1,3 @@
-import { RouterUrls } from '@/app/router';
-
 export type ParseTarget =
   | { kind: 'schedule'; date: string }
   | { kind: 'dish'; dishId: string };
@@ -9,11 +7,6 @@ export function getStorageKey(target: ParseTarget): string {
     return `freeTextFood:parseState:schedule:${target.date}`;
   }
   return `freeTextFood:parseState:dish:${target.dishId}`;
-}
-
-export function getReviewUrl(target: ParseTarget): string {
-  if (target.kind === 'schedule') return RouterUrls.FreeTextFoodSchedule(target.date);
-  return RouterUrls.FreeTextFoodDish(target.dishId);
 }
 
 export function targetId(target: ParseTarget): string {

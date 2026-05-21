@@ -189,10 +189,25 @@
       "PowerShell(npx --prefix apps/food-calc tsc --noEmit -p apps/food-calc/tsconfig.json 2>&1)",
       "Bash(echo \"ESLINT=$?\")",
       "Bash(echo \"EXIT_CODE=$?\")",
-      "Bash(xargs grep -l \"ModalByLabel\\\\|saveHypothesis\")"
+      "Bash(xargs grep -l \"ModalByLabel\\\\|saveHypothesis\")",
+      "PowerShell(npx --prefix apps/food-calc eslint apps/food-calc/src/widgets/FoodSchedule/ui/ScheduleFoodCreateModals.tsx apps/food-calc/src/widgets/FoodSchedule/ui/useScheduleFoodFlow.ts apps/food-calc/src/pages/product/ProductPage.tsx apps/food-calc/src/features/food/food-portions-manager 2>&1)",
+      "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1)",
+      "PowerShell(npx --prefix apps/food-calc vitest run apps/food-calc/src/widgets/FoodSchedule/ui/ScheduleFoodCreateModals.test.tsx 2>&1)",
+      "Bash(npx --prefix apps/food-calc tsc --noEmit -p apps/food-calc/tsconfig.json)",
+      "PowerShell(Set-Location apps\\\\food-calc; npx tsc --noEmit; \"exit=$LASTEXITCODE\")",
+      "PowerShell(npx tsc --noEmit -p apps\\\\food-calc; \"exit=$LASTEXITCODE\")",
+      "Bash(grep -E \"src[/\\\\\\\\\\\\\\\\].+\\\\.\\(ts|tsx\\)\")",
+      "PowerShell(Set-Location apps/food-calc; npx tsc --noEmit 2>&1 | Select-Object -Last 30; \"EXIT=$LASTEXITCODE\")",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -Last 40; \"EXIT=$LASTEXITCODE\")",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-String -Pattern 'food-search|SearchFood' | Select-Object -First 30; \"EXIT=$LASTEXITCODE\")",
+      "Bash(rm \"/c/Users/booty/.claude/projects/c--Users-booty-Documents-GitHub-disher/memory/feedback_details_chips_label_only_custom.md\" \"/c/Users/booty/.claude/projects/c--Users-booty-Documents-GitHub-disher/memory/feedback_details_chips_a11y_touch_only.md\" \"/c/Users/booty/.claude/projects/c--Users-booty-Documents-GitHub-disher/memory/feedback_details_chips_silent_delete.md\" && echo \"deleted\")",
+      "PowerShell(npx --prefix apps\\\\food-calc eslint apps/food-calc/src/shared/ui/ModalShell/)",
+      "PowerShell(npx --prefix apps\\\\food-calc tsc -p apps\\\\food-calc\\\\tsconfig.json --noEmit 2>&1)",
+      "Bash(dir apps\\\\\\\\food-calc\\\\\\\\tsconfig*)"
     ],
     "additionalDirectories": [
-      "\\tmp"
+      "\\tmp",
+      "C:\\Users\\booty\\.claude\\projects\\c--Users-booty-Documents-GitHub-disher\\memory"
     ]
   }
 }

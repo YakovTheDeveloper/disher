@@ -25,6 +25,11 @@ type Props = {
   /** When provided, the centre title becomes a button (clickable). Detail
    *  pages wire this to ChangeNameModal so tap-on-name = rename flow. */
   onTitleClick?: () => void;
+  /** When provided, the centre title becomes `<label htmlFor=...>`. Used by
+   *  detail pages (product / dish) to focus the rename input inside a
+   *  `ModalByLabel`, which expands on focus capture. Takes precedence over
+   *  `onTitleClick` if both are provided. */
+  centerLabelHtmlFor?: string;
   /** Slot rendered as the FIRST child of `.bar` (before the date segment).
    *  Used by HomePage to mount mini-tile navigation inside the bar pill
    *  itself instead of stacking another absolute layer over it. */
@@ -38,6 +43,12 @@ type Props = {
    *  navigation away). Schedule pages (HomePage) leave this off so leaving
    *  a date they actually display still aborts the stream. */
   noInterruptGuard?: boolean;
+  /** Если `false`, centerLabel не рендерится (даже если значение передано).
+   *  Используется страницами блюда/продукта: сначала имя живёт в hero на
+   *  странице, при скролле > N — страница выставляет `true`, и имя
+   *  «возвращается» в центр бара. По умолчанию `true` для backward-compat
+   *  с HomePage и любыми callers, которые не управляют видимостью. */
+  centerLabelVisible?: boolean;
 };
 
 type DateParts = { weekday: string; day: string; month: string; full: string };
@@ -71,8 +82,10 @@ const HomeTopBar = ({
   dateButtonLabel,
   centerLabel,
   onTitleClick,
+  centerLabelHtmlFor,
   leadingSlot,
   noInterruptGuard,
+  centerLabelVisible = true,
 }: Props) => {
   const { toScheduleBuilder } = useAppRoutes();
   const dateParts = useMemo(() => formatDateParts(date), [date]);
@@ -118,17 +131,32 @@ const HomeTopBar = ({
         </div>
         {leadingSlot}
         {centerLabel != null && (
-          onTitleClick ? (
+          centerLabelHtmlFor ? (
+            <label
+              htmlFor={centerLabelHtmlFor}
+              className={`${styles.centerLabel} ${styles.centerLabelButton}`}
+              data-hidden={centerLabelVisible ? undefined : 'true'}
+              aria-label="Изменить название"
+            >
+              {centerLabel}
+            </label>
+          ) : onTitleClick ? (
             <button
               type="button"
               className={`${styles.centerLabel} ${styles.centerLabelButton}`}
+              data-hidden={centerLabelVisible ? undefined : 'true'}
               onClick={onTitleClick}
               aria-label="Изменить название"
             >
               {centerLabel}
             </button>
           ) : (
-            <span className={styles.centerLabel}>{centerLabel}</span>
+            <span
+              className={styles.centerLabel}
+              data-hidden={centerLabelVisible ? undefined : 'true'}
+            >
+              {centerLabel}
+            </span>
           )
         )}
         <button

@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 .wrapper {
     display: flex;
     align-items: stretch;
@@ -36,8 +38,11 @@
         transition-duration: var(--press-in);
     }
 
+    // Active = «Сегодня» из ScheduleNavigator: тёплый cream wash + accent text.
+    // Канон — warm-row из mixin.scss, единый язык состояний на всех row-card'ах.
     &:has(.item_active) {
-        outline-color: var(--color-ink);
+        outline-color: transparent;
+        @include warm-row-bg(today);
     }
 }
 
@@ -103,13 +108,14 @@
 .item_active {
     .name {
         font-weight: 700;
-        color: var(--color-ink);
+        color: $row-accent-today;
+        font-style: italic;
     }
 }
 
 .wrapper:has(.item_active) {
     .infoBtn {
-        color: var(--color-ink);
+        color: $row-accent-today;
     }
 }
 
@@ -120,7 +126,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    font-size: 1rem;
+    font-size: var(--text-lg);
     font-weight: 500;
     text-transform: capitalize;
     color: rgb(38, 38, 51);
@@ -236,10 +242,10 @@
         bottom: 10px;
         width: 1px;
         background: linear-gradient(180deg,
-            transparent 0%,
-            rgba(15, 23, 42, 0.10) 18%,
-            rgba(15, 23, 42, 0.10) 82%,
-            transparent 100%);
+                transparent 0%,
+                rgba(15, 23, 42, 0.10) 18%,
+                rgba(15, 23, 42, 0.10) 82%,
+                transparent 100%);
         pointer-events: none;
     }
 
@@ -295,11 +301,9 @@
 // nth-child rhythm (2n warm-left blush, 3n cool-right blush; 3n wins on 6n).
 // Each fork supplies its own gradient palette + text colors.
 // ──────────────────────────────────────────────────────────────────────
-@mixin stripe-fork(
-    $base, $wash-2n, $wash-3n, $hover, $active,
+@mixin stripe-fork($base, $wash-2n, $wash-3n, $hover, $active,
     $hairline-rgba,
-    $text-rest, $text-active, $rich-text
-) {
+    $text-rest, $text-active, $rich-text) {
     .wrapper {
         background: $base;
         border: none;
@@ -316,23 +320,36 @@
             bottom: 0;
             height: 1px;
             background: linear-gradient(90deg,
-                transparent 0%,
-                $hairline-rgba 18%,
-                $hairline-rgba 82%,
-                transparent 100%);
+                    transparent 0%,
+                    $hairline-rgba 18%,
+                    $hairline-rgba 82%,
+                    transparent 100%);
             pointer-events: none;
         }
-        &:last-child::after { display: none; }
 
-        &:nth-child(2n) { background: $wash-2n, $base; }
-        &:nth-child(3n) { background: $wash-3n, $base; }
+        &:last-child::after {
+            display: none;
+        }
 
-        &:hover { background: $hover; box-shadow: none; }
+        &:nth-child(2n) {
+            background: $wash-2n, $base;
+        }
+
+        &:nth-child(3n) {
+            background: $wash-3n, $base;
+        }
+
+        &:hover {
+            background: $hover;
+            box-shadow: none;
+        }
+
         &:has(.item_active) {
             outline: none;
             background: $active;
         }
     }
+
     .richBar {
         top: 0;
         bottom: 0;
@@ -346,7 +363,11 @@
             transform var(--press-out) var(--easing-spring),
             opacity var(--press-out) ease;
     }
-    .wrapper:has(.item_active) .richBar { width: 5px !important; }
+
+    .wrapper:has(.item_active) .richBar {
+        width: 5px !important;
+    }
+
     // pop: акцент-штрих «выстреливает» в ширину при нажатии — motion
     // у самого края строки, сильнейший pre-attentive канал.
     @media (prefers-reduced-motion: no-preference) {
@@ -356,9 +377,23 @@
             transition-duration: var(--press-in);
         }
     }
-    .item { padding: 11px 6px 11px 14px; gap: 10px; }
-    .name { font-weight: 500; font-size: 0.94rem; color: $text-rest; }
-    .item_active .name { color: $text-active; font-weight: 700; }
+
+    .item {
+        padding: 11px 6px 11px 14px;
+        gap: 10px;
+    }
+
+    .name {
+        font-weight: 500;
+        font-size: 0.94rem;
+        color: $text-rest;
+    }
+
+    .item_active .name {
+        color: $text-active;
+        font-weight: 700;
+    }
+
     .richValue {
         min-width: 60px;
         height: auto;
@@ -369,11 +404,24 @@
         color: $rich-text;
         letter-spacing: -0.01em;
     }
-    .richUnit { margin-top: 1px; font-size: 9px; color: rgba($rich-text, 0.65); }
-    .richPercent { font-size: 9px; color: rgba($rich-text, 0.45); }
+
+    .richUnit {
+        margin-top: 1px;
+        font-size: 9px;
+        color: rgba($rich-text, 0.65);
+    }
+
+    .richPercent {
+        font-size: 9px;
+        color: rgba($rich-text, 0.45);
+    }
+
     .infoBtn {
         color: rgba($text-active, 0.30);
-        &:active { color: $text-active; }
+
+        &:active {
+            color: $text-active;
+        }
     }
 }
 
@@ -403,13 +451,16 @@
             bottom: 0;
             height: 1px;
             background: linear-gradient(90deg,
-                transparent 0%,
-                rgba(15, 23, 42, 0.08) 18%,
-                rgba(15, 23, 42, 0.08) 82%,
-                transparent 100%);
+                    transparent 0%,
+                    rgba(15, 23, 42, 0.08) 18%,
+                    rgba(15, 23, 42, 0.08) 82%,
+                    transparent 100%);
             pointer-events: none;
         }
-        &:last-child::after { display: none; }
+
+        &:last-child::after {
+            display: none;
+        }
 
         // Rhythm: every 2nd row picks up a barely-warm wash from the left
         &:nth-child(2n) {
@@ -433,11 +484,13 @@
             background: linear-gradient(90deg, #ffffff 0%, #f6f9fd 60%, #eef3fa 100%);
             box-shadow: none;
         }
+
         &:has(.item_active) {
             outline: none;
             background: linear-gradient(90deg, #f4f7fc 0%, #e9f0fa 60%, #def0f8 100%);
         }
     }
+
     // richBar → full-height 3px stripe on the left, richness colors it
     .richBar {
         top: 0;
@@ -452,7 +505,11 @@
             transform var(--press-out) var(--easing-spring),
             opacity var(--press-out) ease;
     }
-    .wrapper:has(.item_active) .richBar { width: 5px !important; }
+
+    .wrapper:has(.item_active) .richBar {
+        width: 5px !important;
+    }
+
     @media (prefers-reduced-motion: no-preference) {
         .wrapper:active .richBar {
             transform: scaleX(2.4);
@@ -460,9 +517,23 @@
             transition-duration: var(--press-in);
         }
     }
-    .item { padding: 11px 6px 11px 14px; gap: 10px; }
-    .name { font-weight: 500; font-size: 0.94rem; color: #1f2937; }
-    .item_active .name { color: #0f172a; font-weight: 700; }
+
+    .item {
+        padding: 11px 6px 11px 14px;
+        gap: 10px;
+    }
+
+    .name {
+        font-weight: 500;
+        font-size: 0.94rem;
+        color: #1f2937;
+    }
+
+    .item_active .name {
+        color: #0f172a;
+        font-weight: 700;
+    }
+
     .richValue {
         min-width: 60px;
         height: auto;
@@ -473,89 +544,95 @@
         color: #1f2937;
         letter-spacing: -0.01em;
     }
-    .richUnit { margin-top: 1px; font-size: 9px; color: #6b7280; }
-    .richPercent { font-size: 9px; color: #9ca3af; }
-    .infoBtn { color: rgba(31, 41, 55, 0.25); &:active { color: #0a1f4f; } }
+
+    .richUnit {
+        margin-top: 1px;
+        font-size: 9px;
+        color: #6b7280;
+    }
+
+    .richPercent {
+        font-size: 9px;
+        color: #9ca3af;
+    }
+
+    .infoBtn {
+        color: rgba(31, 41, 55, 0.25);
+
+        &:active {
+            color: #0a1f4f;
+        }
+    }
 }
 
 // ─── Stripe-family forks (v5 structure, different palettes) ──────────
 
-// stripe-warm — honey / peach
+// stripe-warm — honey / peach. Active state приведён к «Сегодня»-канону:
+// subtle cream wash + accent-today (#e07a3a) вместо saturated honey/dark-brown.
+// Источник: warm-row-bg(today) в mixin.scss + ScheduleNavigator.dayRowToday.
 :global([data-dv='SearchFood'][data-dv-v='stripe-warm']) {
-    @include stripe-fork(
-        linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%),
+    @include stripe-fork(linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%),
         linear-gradient(90deg, rgba(255, 200, 130, 0.08) 0%, rgba(255, 200, 130, 0) 55%),
         linear-gradient(90deg, transparent 45%, rgba(255, 220, 180, 0.10) 100%),
         linear-gradient(90deg, #fffefb 0%, #fdf6e7 60%, #f9ecd1 100%),
-        linear-gradient(90deg, #fef3df 0%, #fce0b3 60%, #f9c97e 100%),
+        linear-gradient(90deg, rgba(255, 240, 220, 0.45) 0%, rgba(255, 240, 220, 0.10) 60%, transparent 100%),
         rgba(124, 65, 15, 0.09),
-        #3a2e14, #5a3e0f, #4a3617
-    );
+        #3a2e14, $row-accent-today, #4a3617);
 }
 
 // stripe-mint — sage / mint
 :global([data-dv='SearchFood'][data-dv-v='stripe-mint']) {
-    @include stripe-fork(
-        linear-gradient(90deg, #fefffe 0%, #f8fcf9 55%, #eef7f1 100%),
+    @include stripe-fork(linear-gradient(90deg, #fefffe 0%, #f8fcf9 55%, #eef7f1 100%),
         linear-gradient(90deg, rgba(160, 230, 190, 0.06) 0%, rgba(160, 230, 190, 0) 55%),
         linear-gradient(90deg, transparent 45%, rgba(180, 230, 200, 0.07) 100%),
         linear-gradient(90deg, #fafffb 0%, #eaf7ee 60%, #d9eede 100%),
         linear-gradient(90deg, #e6f6ec 0%, #c9eed5 60%, #a5deb8 100%),
         rgba(20, 80, 50, 0.08),
-        #1f2937, #13533d, #22473a
-    );
+        #1f2937, #13533d, #22473a);
 }
 
 // stripe-rose — dusty pink
 :global([data-dv='SearchFood'][data-dv-v='stripe-rose']) {
-    @include stripe-fork(
-        linear-gradient(90deg, #fffefe 0%, #fdf9fb 55%, #faf0f4 100%),
+    @include stripe-fork(linear-gradient(90deg, #fffefe 0%, #fdf9fb 55%, #faf0f4 100%),
         linear-gradient(90deg, rgba(245, 200, 215, 0.06) 0%, rgba(245, 200, 215, 0) 55%),
         linear-gradient(90deg, transparent 45%, rgba(255, 215, 230, 0.07) 100%),
         linear-gradient(90deg, #fffafc 0%, #fbedf3 60%, #f5d7e2 100%),
         linear-gradient(90deg, #fce4ec 0%, #f6c2d4 60%, #ea98b6 100%),
         rgba(120, 30, 70, 0.08),
-        #2c1924, #6b1f47, #4a2237
-    );
+        #2c1924, #6b1f47, #4a2237);
 }
 
 // stripe-graphite — neutral grey, slightly more contrast on rules
 :global([data-dv='SearchFood'][data-dv-v='stripe-graphite']) {
-    @include stripe-fork(
-        linear-gradient(90deg, #ffffff 0%, #fafafb 55%, #f3f3f5 100%),
+    @include stripe-fork(linear-gradient(90deg, #ffffff 0%, #fafafb 55%, #f3f3f5 100%),
         linear-gradient(90deg, rgba(80, 70, 60, 0.025) 0%, rgba(80, 70, 60, 0) 55%),
         linear-gradient(90deg, transparent 45%, rgba(70, 80, 100, 0.04) 100%),
         linear-gradient(90deg, #ffffff 0%, #f4f4f6 60%, #e8e8ec 100%),
         linear-gradient(90deg, #ededf0 0%, #dadadf 60%, #c0c0c8 100%),
         rgba(15, 23, 42, 0.12),
-        #1f2024, #0a0a0d, #2a2b30
-    );
+        #1f2024, #0a0a0d, #2a2b30);
 }
 
 // stripe-sand — warm beige / cream
 :global([data-dv='SearchFood'][data-dv-v='stripe-sand']) {
-    @include stripe-fork(
-        linear-gradient(90deg, #fffefa 0%, #fdf9ef 55%, #f8f1de 100%),
+    @include stripe-fork(linear-gradient(90deg, #fffefa 0%, #fdf9ef 55%, #f8f1de 100%),
         linear-gradient(90deg, rgba(220, 180, 110, 0.05) 0%, rgba(220, 180, 110, 0) 55%),
         linear-gradient(90deg, transparent 45%, rgba(245, 220, 170, 0.08) 100%),
         linear-gradient(90deg, #fffefa 0%, #faf3df 60%, #f1e5c4 100%),
         linear-gradient(90deg, #f6eccc 0%, #ecd9a0 60%, #dcc174 100%),
         rgba(110, 80, 30, 0.10),
-        #3a2f15, #54400f, #4b3a17
-    );
+        #3a2f15, #54400f, #4b3a17);
 }
 
 // stripe-lavender — soft purple
 :global([data-dv='SearchFood'][data-dv-v='stripe-lavender']) {
-    @include stripe-fork(
-        linear-gradient(90deg, #fefefe 0%, #fbfafe 55%, #f5f1fa 100%),
+    @include stripe-fork(linear-gradient(90deg, #fefefe 0%, #fbfafe 55%, #f5f1fa 100%),
         linear-gradient(90deg, rgba(200, 180, 240, 0.06) 0%, rgba(200, 180, 240, 0) 55%),
         linear-gradient(90deg, transparent 45%, rgba(215, 200, 245, 0.08) 100%),
         linear-gradient(90deg, #fbfafe 0%, #f0eafa 60%, #ddd0f0 100%),
         linear-gradient(90deg, #ebe4fa 0%, #d6c3f5 60%, #b89cee 100%),
         rgba(70, 30, 110, 0.08),
-        #241836, #4a1a7a, #332247
-    );
+        #241836, #4a1a7a, #332247);
 }
 
 // ─── Reduced-motion ──────────────────────────────────────────────────
@@ -563,5 +640,7 @@
 // luminance change. Гасим только transform-составляющую pop'а (scale
 // строки). scaleX штриха уже под `no-preference`-гейтом в миксине.
 @media (prefers-reduced-motion: reduce) {
-    .wrapper:active { transform: none; }
+    .wrapper:active {
+        transform: none;
+    }
 }

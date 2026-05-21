@@ -12,6 +12,7 @@ type Props = {
   children?: React.ReactNode;
   className?: string;
   innerClassName?: string;
+  wrapperClassName?: string;
   style?: React.CSSProperties;
   variant?: 1 | 2 | 3;
   tod?: TimeOfDay;
@@ -35,6 +36,7 @@ const ListItem = ({
   children,
   className,
   innerClassName,
+  wrapperClassName,
   style,
   variant,
   tod,
@@ -169,7 +171,8 @@ const ListItem = ({
       className={clsx(
         styles.commonListItemWrapper,
         isSelected && styles.selected,
-        isSelectMode && styles.inActionsMode
+        isSelectMode && styles.inActionsMode,
+        wrapperClassName
       )}
       data-tod={tod}
       onContextMenu={onContextMenu}

@@ -17,6 +17,13 @@ export interface WriteFoodButtonProps {
   className?: string;
   prominent?: boolean;
   dark?: boolean;
+  /**
+   * Sky-tinted variant. Overrides `dark` palette with the solid sky-blue
+   * canon shared with FoodPortionsManager + DishAnalysisScreen CTA. Used on
+   * DishBuilderPage to break visual rhyme with HomePage's time-of-day dark
+   * pill.
+   */
+  sky?: boolean;
 }
 
 const InputModesIcon = () => (
@@ -97,25 +104,19 @@ export const WriteFoodButton = ({
   className,
   prominent,
   dark,
+  sky,
 }: WriteFoodButtonProps) => {
   const online = useOnline();
 
   const handleLabelClick = useCallback(
     (e: React.MouseEvent<HTMLLabelElement>) => {
-      // Ready: navigate straight to review instead of opening modal.
-      if (flow.state === 'ready') {
-        e.preventDefault();
-        flow.goToReview();
-        return;
-      }
-
       // Offline + idle → show toast, prevent opening.
       if (flow.state === 'idle' && !online) {
         e.preventDefault();
         toaster.error('Нужен интернет для обработки текста');
       }
     },
-    [flow, online],
+    [flow.state, online],
   );
 
   const badgeCount =
@@ -150,6 +151,7 @@ export const WriteFoodButton = ({
         prominent && styles.prominent,
         disabled && styles.disabled,
         dark && styles.dark,
+        sky && styles.sky,
         showStacked && styles.stacked,
         className,
       )}

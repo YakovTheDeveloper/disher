@@ -6,7 +6,6 @@ import s from './DetailsStep.module.scss';
  * Свой заголовок не несёт: его даёт заголовок модалки (StepHeader). Название
  * еды опционально — вспомогательный эйброу справа над инпутом рядом с кнопкой-
  * инфо; на шаге создания еды ссылки на конкретную еду ещё нет, эйброу скрыт.
- * Чипы — единый поток без под-групп (больше влезает над клавиатурой).
  */
 const InfoIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -41,7 +40,7 @@ type Props = {
 export function DetailsStep({ title, info, textareaId, value, onChange, productId }: Props) {
   const placeholder = title
     ? `Особенности приема ${title.toLowerCase()}`
-    : 'Особенности приема';
+    : 'Особенности приема, если есть';
   const showEyebrow = Boolean(title) || Boolean(info);
 
   return (
@@ -68,7 +67,6 @@ export function DetailsStep({ title, info, textareaId, value, onChange, productI
         onChange={onChange}
         productId={productId}
         placeholder={placeholder}
-        showSectionLabels={false}
       />
     </div>
   );

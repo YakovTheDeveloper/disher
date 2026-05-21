@@ -88,7 +88,7 @@ const Laboratory = ({ date, topSlot }: Props) => {
   );
 
   return (
-    <div onFocusCapture={handleFocusCapture}>
+    <div className={styles.focusPassthrough} onFocusCapture={handleFocusCapture}>
       <Screen stickyTop={topSlot} headerOverlap bottomBar={bottomBar}>
         <div className={styles.container}>
           <div className={styles.topLinkRow}>

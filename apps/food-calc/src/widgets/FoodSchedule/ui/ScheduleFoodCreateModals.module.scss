@@ -1,10 +1,14 @@
 // Holds the input + hint below ModalShell.Title. Horizontal padding only —
 // the title brings its own top offset, vertical rhythm is the Body's gap.
+// padding-bottom: оставляем зазор под высоту sticky ActionButtons («Создать»)
+// плюс iOS safe-area (~34px на iPhone 14+, 0 на Android/desktop), иначе
+// раскрытая последняя группа («Аминокислоты») уезжает за бар и становится
+// некликабельной.
 .createBody {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 0 16px;
+  padding: 0 16px calc(96px + env(safe-area-inset-bottom));
 }
 
 .createHint {
@@ -13,11 +17,170 @@
   color: rgba(0, 0, 0, 0.5);
 }
 
-// Чекбокс «Таблетка / лекарство / БАД» — рядом с warm-pill инпутом имени.
-// Тот же горизонтальный паддинг, что у инпута, чтобы галочка визуально шла
-// с ним по одной линии (createBody уже задаёт padding контейнера).
+// Чекбокс «Таблетка / лекарство / БАД» — warm-pill блок шириной с инпут.
+// Горизонтальный отступ задаёт createBody (padding: 0 16px); сам LabeledCheckbox
+// растягивается на 100% ширины, поэтому его рамка садится ровно под рамку
+// инпута имени сверху.
 .createSupplementRow {
+  display: flex;
+}
+
+// Блок дополнительных полей БАД: подпись «1 приём = 1 шт» и раскрывающийся
+// аккордеон нутриентов. Появляется только при checked isSupplement.
+.supplementBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   padding: 0 4px;
+  margin-top: 4px;
+}
+
+.supplementUnit {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+  font-family: "Source Serif 4", "Source Serif Pro", serif;
+  font-style: italic;
+}
+
+.nutrientsToggle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  // padding-left чуть больше — оставляем место под 3px vertical accent.
+  padding: 14px 16px 14px 18px;
+  background: transparent;
+  border: none;
+  // Source Serif italic — канон display/section title из project_design_dna.
+  font-family: "Source Serif 4", "Source Serif Pro", serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.78);
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s ease;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.nutrientsToggleHint {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.4);
+  font-family: "Jost", sans-serif;
+}
+
+.nutrientGroupsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+// Группа аккордеона = stripe-fork surface: палитра, vertical accent слева,
+// fading hairline-разделитель при раскрытии, Source Serif italic в header'е.
+// Каждая группа — своя палитра (см. data-group ниже), без этого пять
+// одинаковых pills тянут на «Laboratory trap» из project_design_dna.
+.nutrientGroupItem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  overflow: hidden;
+
+  // Default stripe (main / БЖУ) — warm honey. Остальные группы перекрывают
+  // фон и accent ниже через [data-group="..."].
+  background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
+  --group-accent: rgba(170, 110, 30, 0.55);
+  --group-hairline: rgba(124, 65, 15, 0.09);
+
+  // Vertical accent 3px слева на палитру группы (правило 3 stripe-fork).
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    background: var(--group-accent);
+    border-radius: 0 2px 2px 0;
+    pointer-events: none;
+  }
+
+  // Палитры по группам — нутриенты дают 4 различимые stripe-палитры.
+  &[data-group='minerals'] {
+    background: linear-gradient(90deg, #fbfffd 0%, #f1faf5 55%, #e3f1e8 100%);
+    --group-accent: rgba(45, 120, 80, 0.55);
+    --group-hairline: rgba(20, 80, 50, 0.10);
+  }
+  &[data-group='vitamins'] {
+    background: linear-gradient(90deg, #fffcfa 0%, #fff3ed 55%, #fde2d2 100%);
+    --group-accent: rgba(195, 95, 35, 0.55);
+    --group-hairline: rgba(140, 60, 20, 0.10);
+  }
+  &[data-group='aminoAcids'] {
+    background: linear-gradient(90deg, #fcfbff 0%, #f3eefc 55%, #e6dcf5 100%);
+    --group-accent: rgba(110, 75, 165, 0.55);
+    --group-hairline: rgba(70, 40, 130, 0.10);
+  }
+}
+
+// Fading hairline-разделитель (правило 2 stripe-fork) появляется только
+// когда группа раскрыта. Без сплошной линии — затухает к краям.
+.nutrientGroupOpen .nutrientsToggle {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--group-hairline) 18%,
+      var(--group-hairline) 82%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+}
+
+.nutrientsGrid {
+  // Одна колонка: карточка NutrientCardEditor (product-edit variant)
+  // проектировалась под full-width ряд на ProductPage. На узком экране
+  // модалки 2-колоночная сетка обрезала label/значение.
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 6px 10px;
+}
+
+// Override стилей NutrientCardEditor при использовании внутри warm-stripe
+// группы. Передаётся как className prop. Карточка сидит на общей подложке
+// группы — собственный bg/shadow/radius лишние. Также убираем uppercase у
+// label'а («Белки», «Сахар» и т.п.) — внутри открытой группы заголовок
+// «БЖУ» уже uppercase, повтор читался бы как scaffolding.
+.inlineCard {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 8px 12px !important;
+
+  // span внутри product-edit карточки = .name (см. NutrientCardEditor.tsx).
+  // Hashed CSS module class не таргетируется, используем тип-селектор.
+  > span {
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-size: 0.95rem !important;
+    color: rgba(0, 0, 0, 0.7) !important;
+  }
 }
 
 .detailsOptIn {

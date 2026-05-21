@@ -101,14 +101,13 @@ beforeEach(() => {
 });
 
 // ── back-correctness ─────────────────────────────────────────────────────────
-// In Steps-bar modals the header back arrow closes the whole flow — a
-// completed step is re-reachable via the Steps breadcrumb, not step-−1.
+// Header back в Steps-bar модалках = переключение на предыдущий шаг по линейному
+// порядку stepsForBar. На первом шаге с StepHeader (time) back ведёт на search;
+// search — голый SearchFood со своим onBack=handleClose. Opt-in `details`
+// (visited) → previous = quantity.
 
-describe('ScheduleFoodCreateModals — header back closes the Steps-bar flow', () => {
-  const expectFlowClosed = () =>
-    expect(document.querySelector('[data-modal-by-label="expanded"]')).toBeNull();
-
-  it('back from the time step closes the whole flow', () => {
+describe('ScheduleFoodCreateModals — header back steps to previous step', () => {
+  it('back from the time step returns to search', () => {
     render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
 
     focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
@@ -118,10 +117,10 @@ describe('ScheduleFoodCreateModals — header back closes the Steps-bar flow', (
 
     clickActiveBack();
 
-    expectFlowClosed();
+    expect(expanded().querySelector('[data-testid="search-food"]')).not.toBeNull();
   });
 
-  it('back from the quantity step closes the whole flow', () => {
+  it('back from the quantity step returns to time', () => {
     render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
 
     focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
@@ -132,10 +131,10 @@ describe('ScheduleFoodCreateModals — header back closes the Steps-bar flow', (
 
     clickActiveBack();
 
-    expectFlowClosed();
+    expect(expanded().querySelector('[data-testid="time-choose"]')).not.toBeNull();
   });
 
-  it('back from the opt-in details step closes the whole flow', () => {
+  it('back from the opt-in details step returns to quantity', () => {
     render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
 
     focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
@@ -147,7 +146,7 @@ describe('ScheduleFoodCreateModals — header back closes the Steps-bar flow', (
 
     clickActiveBack();
 
-    expectFlowClosed();
+    expect(expanded().querySelector('[data-testid="product-quantity"]')).not.toBeNull();
   });
 });
 

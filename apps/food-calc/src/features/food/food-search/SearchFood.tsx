@@ -22,6 +22,18 @@ const SEARCH_FOOD_VARIANTS = [
 ] as const;
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
+export type SearchFilter = 'all' | 'mine';
+
+const FILTER_OPTIONS_BY_MODE: Record<SearchMode, readonly SearchFilter[] | null> = {
+  'dishes-only': null,
+  'products-only': ['all', 'mine'],
+  'products-and-dishes': ['all', 'mine'],
+};
+
+export const FILTER_LABELS: Record<SearchFilter, string> = {
+  all: 'Еда',
+  mine: 'Мое',
+};
 
 type SelectFoodPayload = { variant: 'product' | 'dish'; id: string; name: string };
 
@@ -36,6 +48,9 @@ type Props = {
    * Когда задан — в верхней строке рядом с полем поиска встаёт заголовок
    * (serif italic). Стрелка «назад» (`onBack`) — слева от него. Заголовок
    * и поиск живут в одном баре `SearchFoodControls`.
+   *
+   * Если `mode` допускает фильтр (не `dishes-only`), статический title
+   * игнорируется — вместо него рендерится кликабельный селект.
    */
   title?: string;
   bottomLeft?: React.ReactNode;
@@ -80,6 +95,9 @@ const SearchFood = ({
   const [openTicket, setOpenTicket] = useState(0);
   const { anchor } = useDesignVariant('SearchFood', SEARCH_FOOD_VARIANTS);
 
+  const filterOptions = FILTER_OPTIONS_BY_MODE[mode];
+  const [selectedFilter, setSelectedFilter] = useState<SearchFilter>('all');
+
   useEffect(() => {
     if (!isActive) {
       setShowHeavy(false);
@@ -92,6 +110,17 @@ const SearchFood = ({
     return () => cancelAnimationFrame(id);
   }, [isActive]);
 
+  const handleSelectFood = useCallback(
+    (payload: SelectFoodPayload) => {
+      onSelectFood(payload);
+      // (б): после выбора элемента селект моргает обратно в «Еда». В большинстве
+      // флоу SearchFood в этот момент уже размонтируется (step переключается) и
+      // ресет невидим, но это защита для сценариев где он остаётся открытым.
+      if (filterOptions) setSelectedFilter('all');
+    },
+    [onSelectFood, filterOptions],
+  );
+
   return (
     <div className={styles.content} {...anchor}>
       <div className={styles.header}>
@@ -101,6 +130,9 @@ const SearchFood = ({
           onBack={onBack}
           title={title}
           inputId={inputId}
+          filterOptions={filterOptions ?? undefined}
+          selectedFilter={selectedFilter}
+          onSelectFilter={setSelectedFilter}
         />
       </div>
 
@@ -110,10 +142,11 @@ const SearchFood = ({
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             mode={mode}
+            selectedFilter={selectedFilter}
             activeItemId={activeItemId}
             richNutrient={richNutrient}
             onInfoClick={onInfoClick}
-            onSelectFood={onSelectFood}
+            onSelectFood={handleSelectFood}
             bottomLeft={bottomLeft}
             itemHtmlFor={itemHtmlFor}
             createInputHtmlFor={createInputHtmlFor}
@@ -129,6 +162,7 @@ type HeavyProps = {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   mode: SearchMode;
+  selectedFilter: SearchFilter;
   activeItemId?: string | null;
   richNutrient?: { id: string; unit: string } | null;
   onInfoClick?: (variant: 'product' | 'dish', id: string) => void;
@@ -143,6 +177,7 @@ const SearchFoodHeavy = ({
   searchQuery,
   setSearchQuery,
   mode,
+  selectedFilter,
   activeItemId,
   richNutrient,
   onInfoClick,
@@ -156,11 +191,22 @@ const SearchFoodHeavy = ({
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(listContainerRef);
   const isProgrammaticScrollRef = useRef(false);
 
-  const { products, dishes, nutrientMap } = useFilteredFoods(searchQuery, richNutrient?.id);
+  const userOnlyProducts = selectedFilter === 'mine';
+  const { products, dishes, nutrientMap } = useFilteredFoods(
+    searchQuery,
+    richNutrient?.id,
+    userOnlyProducts,
+  );
   const { handleCreateProduct, handleCreateDish } = useFoodCreation(searchQuery, setSearchQuery);
 
-  const showProducts = mode !== 'dishes-only';
-  const showDishes = mode !== 'products-only';
+  // mode задаёт глобальный скоуп, selectedFilter сужает дальше:
+  //   'all'  → не сужает; catalog + user-products + (dishes если mode)
+  //   'mine' → только user-products + (dishes если mode); catalog скрыт
+  //            (catalog-фильтрация делается в useFilteredFoods через userOnlyProducts)
+  const showProductsByMode = mode !== 'dishes-only';
+  const showDishesByMode = mode !== 'products-only';
+  const showProducts = showProductsByMode;
+  const showDishes = showDishesByMode;
   const totalItems = (showProducts ? products.length : 0) + (showDishes ? dishes.length : 0);
 
   // Scroll to top when items change (search)

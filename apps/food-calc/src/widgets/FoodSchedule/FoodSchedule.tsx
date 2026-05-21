@@ -2,8 +2,7 @@ import React, { memo, useCallback, useMemo, useRef, Fragment } from 'react';
 import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
-import { groupItemsByTime, getNowMarkerIndex } from '@/shared/lib/schedule';
-import { NowMarker } from '@/shared/ui/NowMarker';
+import { groupItemsByTime } from '@/shared/lib/schedule';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { ScheduleFoodItem } from '@/widgets/FoodSchedule/ScheduleFoodItem';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
@@ -99,7 +98,7 @@ const FoodSchedule = ({
     void drawerStore.show(
       NutrientsDrawer,
       { totals, missingNutrientNames, isLoading },
-      { side: 'left', width: 'min(85vw, 360px)' },
+      { side: 'left', width: 'min(85vw, 360px)' }
     );
   }, [totals, missingNutrientNames, isLoading]);
 
@@ -140,7 +139,6 @@ const FoodSchedule = ({
   );
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
-  const nowMarkerIndex = useMemo(() => getNowMarkerIndex(groups, date), [groups, date]);
 
   const setSelectedIdsRef = useRef(setSelectedIds);
   setSelectedIdsRef.current = setSelectedIds;
@@ -221,55 +219,47 @@ const FoodSchedule = ({
             writeFoodInputId={writeFoodInputId}
             searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
             searchLabel="Найти еду"
-            searchText={'список\nеды'}
-            writeFoodLabel="Опишите, что ели…"
-            leadingSlot={
-              <NutrientsSummaryButton totals={totals} onClick={openNutrients} />
-            }
+            searchText={'Добавить \nиз списка'}
+            writeFoodLabel="Чем питались?"
+            leadingSlot={<NutrientsSummaryButton totals={totals} onClick={openNutrients} />}
           />
         ) : null
       }
     >
       <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
       <div {...foodAnchor} className={styles.foodListAnchor}>
-      <ItemsList offsetTop>
-        {(() => {
-          let globalIndex = 0;
-          const rendered = groups.map((group, idx) => (
-            <Fragment key={group.time}>
-              {nowMarkerIndex === idx && <NowMarker />}
-              <TimeGroup
-                group={group}
-                isFuture={nowMarkerIndex >= 0 && idx >= nowMarkerIndex}
-                onTimeClick={onTimeClick}
-              >
-                {
-                  group.items.map((item) => {
-                    const itemIndex = globalIndex++;
-                    return (
-                      <ScheduleFoodItem
-                        key={item.id}
-                        item={item}
-                        index={itemIndex}
-                        totalCount={items.length}
-                        selectionStore={selectionStoreFood}
-                        onEditTime={onEditTime}
-                        onEditFood={onEditFood}
-                        onEditQuantity={onEditQuantity}
-                        timeHtmlFor={SCHEDULE_FOOD_INPUT_IDS.TIME_EDIT_INPUT}
-                        foodHtmlFor={SCHEDULE_FOOD_INPUT_IDS.DETAILS_EDIT_INPUT}
-                        quantityHtmlFor={SCHEDULE_FOOD_INPUT_IDS.QUANTITY_EDIT_INPUT}
-                      />
-                    );
-                  }) as unknown as JSX.Element
-                }
-              </TimeGroup>
-              {nowMarkerIndex === groups.length && idx === groups.length - 1 && <NowMarker />}
-            </Fragment>
-          ));
-          return rendered;
-        })()}
-      </ItemsList>
+        <ItemsList offsetTop>
+          {(() => {
+            let globalIndex = 0;
+            const rendered = groups.map((group) => (
+              <Fragment key={group.startTime}>
+                <TimeGroup group={group} onTimeClick={onTimeClick}>
+                  {
+                    group.items.map((item) => {
+                      const itemIndex = globalIndex++;
+                      return (
+                        <ScheduleFoodItem
+                          key={item.id}
+                          item={item}
+                          index={itemIndex}
+                          totalCount={items.length}
+                          selectionStore={selectionStoreFood}
+                          onEditTime={onEditTime}
+                          onEditFood={onEditFood}
+                          onEditQuantity={onEditQuantity}
+                          timeHtmlFor={SCHEDULE_FOOD_INPUT_IDS.TIME_EDIT_INPUT}
+                          foodHtmlFor={SCHEDULE_FOOD_INPUT_IDS.DETAILS_EDIT_INPUT}
+                          quantityHtmlFor={SCHEDULE_FOOD_INPUT_IDS.QUANTITY_EDIT_INPUT}
+                        />
+                      );
+                    }) as unknown as JSX.Element
+                  }
+                </TimeGroup>
+              </Fragment>
+            ));
+            return rendered;
+          })()}
+        </ItemsList>
       </div>
     </Screen>
   );

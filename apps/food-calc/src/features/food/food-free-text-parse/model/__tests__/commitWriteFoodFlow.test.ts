@@ -4,12 +4,19 @@ import { db } from '@/shared/lib/dexie/schema';
 import { addScheduleFood } from '@/entities/schedule-food/api/mutations';
 import { addDishItem } from '@/entities/dish/api/mutations';
 import { useAuthStore } from '@/features/auth/auth-store';
-import type { CommittedItem } from '../mode';
 
-// Tests for the mutation block of FreeTextFoodFlow.handleCommit.
+interface CommittedItem {
+  productId: string;
+  quantity: number;
+  time: string;
+  details: string;
+}
+
+// Tests for the mutation block of useWriteFoodFlow.commit().
 //
 // Scope: the loop+transaction that turns a CommittedItem[] into real Dexie
-// rows (schedule_foods or dish_items).
+// rows (schedule_foods or dish_items). The loop body mirrors the schedule
+// and dish branches of `commit` in useWriteFoodFlow.ts.
 
 const USER_ID = '11111111-1111-1111-1111-111111111111';
 
@@ -29,8 +36,7 @@ afterEach(async () => {
   });
 });
 
-// Mirrors the schedule branch of handleCommit (lines 584-603 of
-// FreeTextFoodFlow.tsx) — the exact code path under test.
+// Mirrors the schedule branch of useWriteFoodFlow.commit().
 async function commitScheduleItems(
   committed: CommittedItem[],
   date: string,
@@ -67,7 +73,7 @@ async function commitDishItems(
   });
 }
 
-describe('FreeTextFoodFlow handleCommit — schedule mode', () => {
+describe('useWriteFoodFlow.commit — schedule mode', () => {
   it('persists every committed item with correct fields', async () => {
     const date = '02-05-2026';
     const committed: CommittedItem[] = [
@@ -96,18 +102,12 @@ describe('FreeTextFoodFlow handleCommit — schedule mode', () => {
 
   it('rolls back atomically when an addScheduleFood throws mid-loop', async () => {
     const date = '02-05-2026';
-    // The 2nd item violates the addScheduleFood invariant (neither productId
-    // nor dishId set) — addScheduleFood throws. With db.transaction the 1st
-    // and 3rd writes must roll back.
     const committed: CommittedItem[] = [
       { productId: 'p-a', quantity: 100, time: '08:00', details: '' },
       { productId: '', quantity: 100, time: '09:00', details: '' },
       { productId: 'p-c', quantity: 100, time: '10:00', details: '' },
     ];
 
-    // Replace the 2nd item's productId with null at the addScheduleFood
-    // boundary by intercepting committed[1] — easier: just use null directly
-    // through a custom committer that mirrors handleCommit but allows null.
     let threw = false;
     try {
       await db.transaction('rw', db.schedule_foods, async () => {
@@ -159,8 +159,6 @@ describe('FreeTextFoodFlow handleCommit — schedule mode', () => {
     expect(ids).toHaveLength(2);
     expect(ids[0]).not.toBe(ids[1]);
 
-    // Order in returned ids matches order in committed[]: looking up by
-    // product_id should give id[i] for committed[i].
     const r0 = await db.schedule_foods.get(ids[0]);
     const r1 = await db.schedule_foods.get(ids[1]);
     expect(r0!.product_id).toBe('p-a');
@@ -168,7 +166,7 @@ describe('FreeTextFoodFlow handleCommit — schedule mode', () => {
   });
 });
 
-describe('FreeTextFoodFlow handleCommit — dish mode', () => {
+describe('useWriteFoodFlow.commit — dish mode', () => {
   it('persists every committed item as a dish_item', async () => {
     const dishId = 'dish-xyz';
     const committed: CommittedItem[] = [
@@ -212,14 +210,11 @@ describe('FreeTextFoodFlow handleCommit — dish mode', () => {
   });
 });
 
-describe('FreeTextFoodFlow handleCommit — committed[] filter', () => {
-  // Filter logic from handleCommit (lines 541-569 of FreeTextFoodFlow.tsx):
+describe('useWriteFoodFlow.commit — committed[] filter', () => {
+  // Filter logic from useWriteFoodFlow.commit():
   //   resolved   → !r.enabled                      → skip
   //   ambiguous  → !a.enabled || !a.selectedId     → skip
-  //   unresolved → !u.manual || !u.manual.id       → skip (post-fix)
-  //
-  // The filter is pure JS — we replicate it directly to confirm behavior
-  // matches the source (and to lock in the unresolved-empty-id guard).
+  //   unresolved → !u.manual || !u.manual.id       → skip
 
   type ResolvedRow = { enabled: boolean; productId: string; quantity: number; time: string; details: string };
   type AmbiguousRow = { enabled: boolean; selectedId: string | null; quantity: number; time: string; details: string };

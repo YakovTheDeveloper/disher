@@ -1,75 +1,36 @@
 import type { ReactNode } from 'react';
 import s from './ModalShell.module.scss';
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalHeader } from '@/shared/ui/ModalHeader';
 
-type Variant =
-  | 'default'
-  | 'spring'
-  | 'spring2'
-  | 'spring4'
-  | 'spring5'
-  | 'gradient1'
-  | 'gradient2'
-  | 'gradient3';
+// Application-wide theme convention (2026-05-21):
+//   * spring2 — дефолт. Используется на DishPage / ProductPage / FoodPage
+//     и любых не-HomePage экранах.
+//   * spring4 — HomePage и модалки её контекста (FoodSchedule /
+//     ScheduleEvents / Laboratory / free-text-food / analysis).
+//     Передаётся явно: `<ModalShell variant="spring4">`.
+type Variant = 'spring2' | 'spring4';
 type Props = { children: ReactNode; className?: string; variant?: Variant };
 
-const GRADIENT_SOURCES: Record<
-  'gradient1' | 'gradient2' | 'gradient3',
-  { avif: string; webp: string; fallback: string }
-> = {
-  gradient1: { avif: '/bg/1.avif', webp: '/bg/1.webp', fallback: '/bg/1.png' },
-  gradient2: { avif: '/bg/2.avif', webp: '/bg/2.webp', fallback: '/bg/2.jpg' },
-  gradient3: { avif: '/bg/3.png', webp: '/bg/3.png', fallback: '/bg/3.png' },
-};
-
-type SpringVariant = 'spring' | 'spring2' | 'spring4' | 'spring5';
-
-const SPRING_CLASSES: Record<SpringVariant, string> = {
-  spring: s.wrapperSpring,
+const SPRING_CLASSES: Record<Variant, string> = {
   spring2: s.wrapperSpring2,
   spring4: s.wrapperSpring4,
-  spring5: s.wrapperSpring5,
 };
 
-const isSpringVariant = (v: Variant): v is SpringVariant => v in SPRING_CLASSES;
-
-const DV_VARIANTS = ['default', 'spring2', 'spring4', 'spring5'] as const;
-
-export const ModalShell = ({ children, className, variant: variantProp = 'spring' }: Props) => {
-  const showDv = shouldShowDvBar();
-  const { variant: dvVariant, anchor: dvAnchor } = useDesignVariant('ModalShell', DV_VARIANTS);
-  const variant: Variant = showDv ? dvVariant : variantProp;
-
-  const isSpring = isSpringVariant(variant);
-  const isGradient = variant === 'gradient1' || variant === 'gradient2' || variant === 'gradient3';
-  const variantClass = isSpring ? SPRING_CLASSES[variant] : isGradient ? s.wrapperGradient : '';
+export const ModalShell = ({ children, className, variant = 'spring2' }: Props) => {
+  const variantClass = SPRING_CLASSES[variant];
 
   return (
-    <div {...dvAnchor} className={`${s.wrapper} ${variantClass} ${className ?? ''}`}>
-      {isSpring && (
-        <div className={s.springOrbs} aria-hidden>
-          <span className={`${s.orb} ${s.orb1}`} />
-          <span className={`${s.orb} ${s.orb2}`} />
-          <span className={`${s.orb} ${s.orb3}`} />
-          <span className={`${s.orb} ${s.orb4}`} />
-          <span className={`${s.orb} ${s.orb5}`} />
-        </div>
-      )}
-      {isGradient && (
-        <>
-          <picture className={s.gradientImage} aria-hidden>
-            <source srcSet={GRADIENT_SOURCES[variant].avif} type="image/avif" />
-            <source srcSet={GRADIENT_SOURCES[variant].webp} type="image/webp" />
-            <img src={GRADIENT_SOURCES[variant].fallback} alt="" />
-          </picture>
-          <div className={s.gradientScrim} aria-hidden />
-        </>
-      )}
+    <div className={`${s.wrapper} ${variantClass} ${className ?? ''}`}>
+      <div className={s.springOrbs} aria-hidden>
+        <span className={`${s.orb} ${s.orb1}`} />
+        <span className={`${s.orb} ${s.orb2}`} />
+        <span className={`${s.orb} ${s.orb3}`} />
+        <span className={`${s.orb} ${s.orb4}`} />
+        <span className={`${s.orb} ${s.orb5}`} />
+      </div>
       {children}
     </div>
   );

@@ -7,20 +7,15 @@
 }
 
 // ── Spring variants (shared scaffolding) ──────────────────────────────────────
-// .wrapperSpring* all use the same orb scaffolding; palette + positions are
-// overridden per-variant below.
-.wrapperSpring,
+// .wrapperSpring2/4 — единственные доступные варианты ModalShell (см.
+// ModalShell.tsx). spring/spring5/gradient — удалены после канона
+// 2026-05-21.
 .wrapperSpring2,
-.wrapperSpring4,
-.wrapperSpring5 {
+.wrapperSpring4 {
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-}
-
-.wrapperSpring {
-  background: rgba(255, 255, 255, 0.85);
 }
 
 .wrapperSpring2 {
@@ -45,48 +40,7 @@
   filter: blur(48px);
 }
 
-// ── Variant 2 (original spring): pastel mint/sky/yellow ───────────────────────
-.wrapperSpring .orb1 {
-  width: 260px;
-  height: 260px;
-  background: radial-gradient(circle, #a8e6cf, #56c596);
-  top: -60px;
-  left: -60px;
-}
-
-.wrapperSpring .orb2 {
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, #b3e5fc, #4fc3f7);
-  top: 80px;
-  right: -40px;
-}
-
-.wrapperSpring .orb3 {
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, #fff9c4, #ffe082);
-  bottom: 120px;
-  left: 20px;
-}
-
-.wrapperSpring .orb4 {
-  width: 180px;
-  height: 180px;
-  background: radial-gradient(circle, #c8e6c9, #81c784);
-  bottom: -40px;
-  right: 30px;
-}
-
-.wrapperSpring .orb5 {
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, #e1f5fe, #80deea);
-  top: 35%;
-  left: 30%;
-}
-
-// ── Variant 3: blue + light-green orbs in opposite corners, whiter bg ─────────
+// ── Spring2: blue + light-green orbs in opposite corners ─────────────────────
 .wrapperSpring2 .orb {
   opacity: 0.38;
 }
@@ -131,7 +85,7 @@
   right: 30%;
 }
 
-// ── Variant 5: warm peach + sage spring ──────────────────────────────────────
+// ── Spring4: warm peach + sage ────────────────────────────────────────────────
 .wrapperSpring4 .orb1 {
   width: 250px;
   height: 250px;
@@ -172,78 +126,8 @@
   left: 45%;
 }
 
-// ── Variant 6: soft pastel — kept as-is per user feedback ────────────────────
-.wrapperSpring5 {
-  background: rgba(255, 255, 255, 0.95);
-
-  .orb {
-    opacity: 0.32;
-    filter: blur(64px);
-  }
-
-  .orb1 {
-    width: 220px;
-    height: 220px;
-    background: radial-gradient(circle, #cfe8fb, #9fd0f4);
-    top: -90px;
-    left: -90px;
-  }
-
-  .orb2 {
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, #d8efd8, #b6dfb1);
-    bottom: -80px;
-    right: -80px;
-  }
-
-  .orb3,
-  .orb4,
-  .orb5 {
-    display: none;
-  }
-}
-
-.wrapperSpring>*:not(.springOrbs),
 .wrapperSpring2>*:not(.springOrbs),
-.wrapperSpring4>*:not(.springOrbs),
-.wrapperSpring5>*:not(.springOrbs) {
-  position: relative;
-  z-index: 1;
-}
-
-// ── Gradient variants (gradient1 / gradient2) ─────────────────────────────
-.wrapperGradient {
-  position: relative;
-  overflow: hidden;
-  background: #fff;
-}
-
-.gradientImage {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-}
-
-.gradientScrim {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background: rgba(255, 255, 255, 0.7);
-  // backdrop-filter: blur(12px);
-  // -webkit-backdrop-filter: blur(12px);
-}
-
-.wrapperGradient>*:not(.gradientImage):not(.gradientScrim) {
+.wrapperSpring4>*:not(.springOrbs) {
   position: relative;
   z-index: 1;
 }

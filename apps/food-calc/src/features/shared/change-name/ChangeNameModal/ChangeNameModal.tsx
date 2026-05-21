@@ -46,7 +46,7 @@ const ChangeNameModal = ({ currentName, isExpanded, onClose, onChangeName }: Pro
       position="absolute"
       isExpanded={isExpanded}
       content={
-        <ModalShell variant="spring">
+        <ModalShell variant="spring2">
           <ModalShell.Header title="Изменить название" onBack={onClose} />
           <ModalShell.Body>
             <AutoGrowSearch

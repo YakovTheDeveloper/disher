@@ -5,31 +5,45 @@
   gap: 8px;
 }
 
-.loadingOverlay {
+// Инпут всегда в DOM (нужен для label[for=...] делегирования фокуса
+// из WriteFoodButton в bottom-bar даже когда модалка закрыта на ready).
+// Прячем за viewport — AutoGrowSearch внутри сохраняет натуральные
+// размеры (focus event на iOS WebKit стабильно срабатывает).
+.inputHidden {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: -9999px;
+  width: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+// Loading-блок — без frosted-overlay, ambient просвечивает. Спиннер +
+// одна warm-серая строка, заметить что джоба идёт + что можно свернуть,
+// без дубля с title шапки («Думаем…»).
+.loadingBlock {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  border-radius: 10px;
-  background: rgba(245, 245, 245, 0.92);
-  backdrop-filter: blur(4px);
+  padding: var(--space-6) var(--space-4);
   text-align: center;
+
+  // Перекрашиваем стандартный спиннер в warm-honey (текущий зелёный
+  // не дружит с peach-rose ambient HomePage).
+  svg circle {
+    stroke: var(--tod-day-outline-to, #f0c850);
+  }
 }
 
-.loadingText {
-  font-size: 15px;
-  color: #1f2a44;
+.loadingCopy {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.005em;
   margin: 0;
-}
-
-.loadingHint {
-  font-size: 12px;
-  color: #5f6b87;
-  margin: 0;
+  line-height: 1.4;
 }
 
 .error {
@@ -47,4 +61,139 @@
   border-radius: 10px;
   padding: 8px 12px;
   font-size: 12px;
+}
+
+// ─── Review step (in-modal review screen) ──────────────────────
+
+.reviewWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-bottom: var(--space-4);
+}
+
+.originalText {
+  margin: 0;
+  padding: 0 var(--space-3);
+  border-left: 2px solid var(--border-subtle);
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+.empty {
+  padding: var(--space-8) var(--space-4) 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.emptyText {
+  font-size: var(--text-base);
+  font-style: italic;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 320px;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0 var(--space-2);
+}
+
+.sectionCount {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+
+  > li {
+    margin: 0;
+    padding: 0;
+    display: flex;
+  }
+
+  // Last row in a section drops its bottom hairline.
+  > li:last-child > div > div {
+    border-bottom: 0;
+  }
+}
+
+.undoSnackbar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  background-color: var(--color-ink);
+  color: var(--color-white);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
+  z-index: 102;
+  box-shadow: var(--shadow-lg);
+  animation: snackbarIn var(--duration-normal) var(--easing-spring);
+}
+
+@keyframes snackbarIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.undoBtn {
+  background: none;
+  border: 0;
+  color: var(--tod-day-outline-from, #ffd666);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: var(--tod-day-outline-to, #f0c850);
+  }
 }

@@ -1,9 +1,11 @@
+import { useEffect, useRef, useState } from 'react';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { useProduct } from '@/entities/product';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
+import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { DetailsChips, useHasDetailsHints } from '@/features/food/details-chips';
 import {
   useDishProductFlow,
@@ -27,11 +29,28 @@ const DishProductCreateModals = ({ dishId }: Props) => {
     handleFocusCapture,
     handleClose,
     handleFoodSelect,
+    handlePickCreate,
+    handleConfirmCreate,
     handleCommit,
     quantityContent,
     visitedSteps,
-    inputIds: { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
+    inputIds: { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT, CREATE_INPUT },
   } = useDishProductFlow({ type: 'create', dishId });
+
+  // Local state для инпута создания — пересинкивается из draft.foodName при
+  // каждом входе в шаг 'create' (свежий prefill из handlePickCreate не должен
+  // затирать редактирование внутри той же сессии шага).
+  const [createName, setCreateName] = useState('');
+  const prevStepRef = useRef(step);
+  useEffect(() => {
+    if (prevStepRef.current !== 'create' && step === 'create') {
+      setCreateName(draft.foodName ?? '');
+    }
+    prevStepRef.current = step;
+  }, [step, draft.foodName]);
+
+  const handleBackToSearch = () => setStep('search');
+  const createTrimmed = createName.trim();
 
   const hasHints = useHasDetailsHints(draft.productId);
   const createSteps = hasHints ? CREATE_STEPS_WITH_DETAILS : CREATE_STEPS_NO_DETAILS;
@@ -55,8 +74,19 @@ const DishProductCreateModals = ({ dishId }: Props) => {
     details: draft.details.trim() || undefined,
   };
 
-  // Стрелка «назад» в модалках со Steps bar закрывает весь флоу: вернуться на
-  // пройденный шаг можно кликом по табу в Steps, отдельная step-−1 не нужна.
+  // «Назад» в StepHeader — на предыдущий шаг по линейному порядку stepsForBar
+  // (тот же массив, что отрисован в bar; включает opt-in `details` если шаг
+  // уже посещён). Первый шаг (search) рисуется голым SearchFood со своим
+  // onBack=handleClose; первый шаг с StepHeader — quantity, его back ведёт
+  // на search.
+  const handleBack = () => {
+    const idx = stepsForBar.indexOf(step as (typeof stepsForBar)[number]);
+    if (idx <= 0) {
+      handleClose();
+      return;
+    }
+    setStep(stepsForBar[idx - 1]);
+  };
 
   return (
     <div onFocusCapture={handleFocusCapture}>
@@ -79,7 +109,49 @@ const DishProductCreateModals = ({ dishId }: Props) => {
             activeItemId={draft.productId ?? undefined}
             itemHtmlFor={QUANTITY_INPUT}
             inputId={SEARCH_INPUT}
+            isActive={step === 'search'}
+            createInputHtmlFor={CREATE_INPUT}
+            onPickCreate={handlePickCreate}
           />
+        }
+      />
+
+      {/* Step 1a: Create product — opened from «+ Продукт» pill в SearchFood
+          empty-state. Confirm = <label htmlFor={QUANTITY_INPUT}>; шаг 'quantity'
+          выставляется через onFocusCapture после делегирования фокуса
+          (см. CLAUDE.md «Label focus delegation»). */}
+      <ModalByLabel
+        position="absolute"
+        isExpanded={step === 'create'}
+        content={
+          <ModalShell variant="spring2">
+            <ModalShell.Header title="Новый продукт" onBack={handleBackToSearch} />
+            <ModalShell.Body>
+              <AutoGrowSearch
+                singleLine
+                id={CREATE_INPUT}
+                value={createName}
+                onChange={setCreateName}
+                placeholder="Название продукта"
+                autoComplete="off"
+              />
+              <ModalShell.ActionButtons
+                debugId="dish-create-name"
+                right={
+                  createTrimmed ? (
+                    <ModalNextButton
+                      as="label"
+                      htmlFor={QUANTITY_INPUT}
+                      onClick={() => handleConfirmCreate(createName)}
+                      label="Создать"
+                    />
+                  ) : (
+                    <ModalNextButton onClick={() => {}} label="Создать" disabled />
+                  )
+                }
+              />
+            </ModalShell.Body>
+          </ModalShell>
         }
       />
 
@@ -96,7 +168,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
               stepLabels={STEP_LABELS}
               stepResults={stepResults}
               visitedSteps={visitedSteps}
-              onBack={handleClose}
+              onBack={handleBack}
               onStepClick={goToStep}
             />
 
@@ -135,7 +207,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
         position="absolute"
         isExpanded={step === 'details'}
         content={
-          <ModalShell variant="spring">
+          <ModalShell variant="spring2">
             <ModalShell.StepHeader
               title={STEP_LABELS.details}
               currentStep="details"
@@ -143,7 +215,7 @@ const DishProductCreateModals = ({ dishId }: Props) => {
               stepLabels={STEP_LABELS}
               stepResults={stepResults}
               visitedSteps={visitedSteps}
-              onBack={handleClose}
+              onBack={handleBack}
               onStepClick={goToStep}
             />
             <ModalShell.Body>

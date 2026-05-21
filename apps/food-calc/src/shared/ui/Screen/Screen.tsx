@@ -39,6 +39,26 @@ type Props = {
    * клики ловятся самим элементом без invisible-overlay'ев.
    */
   stickyTop?: React.ReactNode;
+  /**
+   * Hero-блок ПОД `stickyTop` (не sticky, regular flow). Тайлы остаются
+   * вверху прилипшими, hero (имя страницы) стартует ниже их и при скролле
+   * уезжает вверх. Используется страницами блюда/продукта; HomePage hero
+   * не задаёт.
+   */
+  heroTop?: React.ReactNode;
+  /**
+   * Опциональная подпись под `heroTop` (имя текущего тайла, 20px italic).
+   * Заменяет старый `ScreenIndicator.band` для страниц блюда/продукта
+   * (там индикатор рендерится с `hideBand=true`). Стилизуется внутри
+   * Screen — страницам не надо знать про класс.
+   */
+  heroSubLabel?: React.ReactNode;
+  /**
+   * Эмитит `scrollTop` контейнера на каждом scroll-событии (passive listener
+   * через JSX `onScroll`). Страница использует чтобы при `y > N` вернуть
+   * имя блюда/продукта в `HomeTopBar.centerLabel`.
+   */
+  onScrollY?: (y: number) => void;
 };
 
 const Screen = ({
@@ -57,6 +77,9 @@ const Screen = ({
   headerOverlap = false,
   hollow = false,
   stickyTop,
+  heroTop,
+  heroSubLabel,
+  onScrollY,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollContainerRef);
@@ -74,8 +97,24 @@ const Screen = ({
         />
       )}
       <div className={styles.scrollWrap}>
-        <div className={styles.screenScroll} ref={scrollContainerRef}>
+        <div
+          className={styles.screenScroll}
+          ref={scrollContainerRef}
+          onScroll={
+            onScrollY
+              ? (e) => onScrollY((e.currentTarget as HTMLDivElement).scrollTop)
+              : undefined
+          }
+        >
           {stickyTop && <div className={styles.stickyTop}>{stickyTop}</div>}
+          {(heroTop || heroSubLabel) && (
+            <div className={styles.heroTop}>
+              {heroTop}
+              {heroSubLabel && (
+                <div className={styles.heroSubLabel}>{heroSubLabel}</div>
+              )}
+            </div>
+          )}
           <div className={styles.topPanel}>{topPanel}</div>
           {header}
           {headerOverlap ? (

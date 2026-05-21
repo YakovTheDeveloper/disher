@@ -10,8 +10,7 @@ import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
-import { groupItemsByTime, getNowMarkerIndex } from '@/shared/lib/schedule';
-import { NowMarker } from '@/shared/ui/NowMarker';
+import { groupItemsByTime } from '@/shared/lib/schedule';
 import {
   ScheduleEventCreateModals,
   EVENT_MODAL_INPUT_IDS,
@@ -51,10 +50,6 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
   const selectedIds = useStore(selectionStoreEvents, (s) => s.selectedIds);
   const { clearSelection, toggleSelectedId } = selectionStoreEvents.getState();
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
-  const nowMarkerIndex = useMemo(
-    () => getNowMarkerIndex(eventsGroupedByTime, date),
-    [eventsGroupedByTime, date]
-  );
 
   const { anchor: eventsAnchor } = useDesignVariant('ScheduleFood', EVENTS_VARIANTS);
 
@@ -132,12 +127,10 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
         <ItemsList offsetTop>
           {(() => {
             let globalIndex = 0;
-            const rendered = eventsGroupedByTime.map((timeGroup, idx) => (
-              <React.Fragment key={timeGroup.time}>
-                {nowMarkerIndex === idx && <NowMarker />}
+            const rendered = eventsGroupedByTime.map((timeGroup) => (
+              <React.Fragment key={timeGroup.startTime}>
                 <TimeGroup
                   group={timeGroup}
-                  isFuture={nowMarkerIndex >= 0 && idx >= nowMarkerIndex}
                 >
                   {timeGroup.items.map((item) => {
                     const itemIndex = globalIndex++;
@@ -160,8 +153,6 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
                     );
                   })}
                 </TimeGroup>
-                {nowMarkerIndex === eventsGroupedByTime.length &&
-                  idx === eventsGroupedByTime.length - 1 && <NowMarker />}
               </React.Fragment>
             ));
             if (reducedMotion) return rendered;

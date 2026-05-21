@@ -2,3 +2,75 @@
     display: grid;
     grid-template-columns: 1fr auto;
 }
+
+// Inline secondary action at the top of the ingredients list — mirrors
+// Laboratory.topLinkRow / weeklyLink. Lives in screen content, not in a
+// topPanel, so the slide matches HomePage's chrome.
+.topLinkRow {
+    display: flex;
+    justify-content: flex-end;
+    padding: 4px var(--space-3) 0;
+}
+
+.suggestLink {
+    padding: 4px 2px;
+    background: transparent;
+    border: none;
+    color: rgba(15, 23, 42, 0.5);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.14s ease;
+
+    &:hover,
+    &:focus-visible {
+        color: rgba(15, 23, 42, 0.8);
+        outline: none;
+    }
+}
+
+// Bottom-bar wrapper for the «Порции»-slide add-portion CTA. Mirrors the
+// AppBottomBar dock geometry so the slide reads as a single page-level bar.
+.portionsBar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 16px 16px;
+}
+
+.addPortionButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 18px;
+    min-height: 44px;
+    border-radius: 999px;
+    border: none;
+    background: #c7dbf3;
+    color: rgb(31, 50, 95);
+    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(30, 64, 124, 0.18);
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s ease;
+
+    &:active {
+        transform: scale(0.97);
+    }
+}
+
+.addPortionPlus {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+}

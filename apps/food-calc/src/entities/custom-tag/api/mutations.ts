@@ -36,3 +36,19 @@ export async function upsertCustomTags(
   if (toAdd.length === 0) return;
   await db.custom_tags.bulkAdd(toAdd);
 }
+
+/**
+ * Remove a single (productId, tag) pair from custom_tags. Idempotent — no-op
+ * if the row never existed. `tag` is normalised here so callers can pass the
+ * display string from a chip without pre-processing.
+ */
+export async function removeCustomTag(productId: string, tag: string): Promise<void> {
+  if (!productId) return;
+  const norm = normalizeTag(tag);
+  if (!norm) return;
+  await db.custom_tags
+    .where('product_id')
+    .equals(productId)
+    .filter((row) => row.tag === norm)
+    .delete();
+}

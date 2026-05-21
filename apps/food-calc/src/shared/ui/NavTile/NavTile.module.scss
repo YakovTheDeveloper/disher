@@ -1,6 +1,11 @@
-// NavTile — квадратная навигационная плитка. Стиль извлечён из HomePage
-// ScreenIndicator (паттерн «before redesign», 29df90b): aspect-ratio:1 +
-// пунктирная рамка + serif-italic подпись у нижнего края.
+// NavTile — квадратная навигационная плитка. Default-семантика
+// «inverse-lift»: ACTIVE «выпуклая» (белая бумага + тень), INACTIVE —
+// плоские с лёгкой подложкой. ACTIVE сразу читается без обводки.
+//
+// Ambient (radial-glow per nth-child) — отдельный design-variant anchor
+// `NavTileAmbient`, его CSS-переменная `--nav-ambient` подмешивается как
+// первый слой background'а в обоих состояниях. На страницах, где anchor
+// не задан, переменная остаётся `none` — плитки без подсветки.
 
 .tile {
   position: relative;
@@ -12,42 +17,56 @@
   padding: 0 var(--space-1) var(--space-2);
   cursor: pointer;
   text-align: left;
-  background: transparent;
   color: #000000;
-  border: 2px dotted rgba(0, 0, 0, 0.05);
-  border-radius: var(--space-1);
+  border: 2px solid transparent;
+  border-radius: var(--space-2);
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
-  transition: opacity var(--press-out) ease;
+
+  // Default — без ambient (см. NavTileAmbient ниже). Переопределяется
+  // на nth-child через CSS-переменную; шорткат `var(...)` принимает `none`
+  // как валидное bg-image-значение, поэтому fallback не ломает раскладку.
+  --nav-ambient: none;
+
+  // INACTIVE = плоский: лёгкая тёмная подложка, без тени, без обводки.
+  background: var(--nav-ambient), rgba(0, 0, 0, 0.02);
+  box-shadow: none;
+  transition: opacity var(--press-out) ease, box-shadow var(--press-out) ease,
+    background-color var(--press-out) ease;
 
   // Картинка-призрак: ручки положения. Потребитель переопределяет через
   // inline style или свой .module.scss — composite-only сдвиг/масштаб,
   // overflow:hidden на тайле режет вылезающие края.
   --tile-img-x: 0px; // + вправо
-  --tile-img-y: 10px; // + вниз (воспроизводит прежний bottom:-10px)
+  --tile-img-y: 10px; // + вниз
   --tile-img-scale: 1; // >1 — плотнее обрезка
   --tile-img-opacity: 0.07;
 }
 
-// Press-feedback — только opacity (анимационный бюджет HomePage: никаких
-// transform/scale, см. ScreenIndicator). Вход мгновенный (--press-in) —
-// pre-attentive отклик в том же кадре; выход плавный (--press-out).
+// Press-feedback — только opacity (см. ScreenIndicator анимационный бюджет).
+// Вход мгновенный (--press-in), выход плавный (--press-out).
 .tile:active {
   opacity: 0.45;
   transition-duration: var(--press-in);
 }
 
 .tileActive {
-  border: 1px solid rgba(0, 0, 0, 0.9);
+  // ACTIVE = выпуклая: белая бумага + мягкая 2-слойная тень.
+  // Ambient (если задан) накладывается на белый поверх.
+  background: var(--nav-ambient), #ffffff;
+  box-shadow:
+    0 10px 22px rgba(31, 42, 68, 0.14),
+    0 3px 6px rgba(31, 42, 68, 0.08);
 
-  // Active-дефолты картинки заданы на самом .tileActive (а не на вложенном
-  // .tileImg) — так inline style потребителя всегда перекрывает их.
-  --tile-img-y: -5px; // было .tileActive .tileImg { bottom: 5px }
-  --tile-img-opacity: 0.2;
+  // Active-дефолты картинки — на самом `.tileActive` (не на вложенном
+  // `.tileImg`) чтобы inline style потребителя всегда перекрывал их.
+  --tile-img-y: -3px;
+  --tile-img-opacity: 0.22;
 
   .tileTitle {
-    opacity: 0.2;
-    font-weight: 300;
+    opacity: 0.92;
+    color: #000000;
+    font-weight: 500;
   }
 }
 
@@ -72,7 +91,7 @@
   line-height: 1;
   letter-spacing: -0.3px;
   white-space: nowrap;
-  opacity: 0.45;
+  opacity: 0.5;
 }
 
 .tileImg {
@@ -86,4 +105,73 @@
   transform: translate(var(--tile-img-x), var(--tile-img-y)) scale(var(--tile-img-scale));
   pointer-events: none;
   user-select: none;
+}
+
+// ─── NavTileAmbient — subtle radial-glow ───────────────────────────────
+// Подсветка плиток через CSS-переменную `--nav-ambient` (подмешивается
+// первым слоем в `background` обоих состояний). Канон: единый тон на ВСЕХ
+// плитках в ряду (без per-nth-child вариаций) + низкая альфа 0.14–0.22 +
+// крупный радиус 75% — присутствие «воздуха», а не цветовое пятно.
+//
+// Включается через `useDesignVariant('NavTileAmbient', ...)` на странице
+// блюда/продукта; anchor навешивается на `.swipeArea`. Дефолтный вариант
+// (первый в массиве) — `ice-blue`. HomePage anchor не использует.
+
+// Default: holodnyy cyan-голубой, тон ProductAmbient.ice-blue. Тонкий,
+// узнаваемый. Лучше всего работает на ambient-странице того же тона.
+:global([data-dv='NavTileAmbient'][data-dv-v='ice-blue']) {
+  .tile {
+    --nav-ambient: radial-gradient(circle at 50% 30%,
+        rgba(186, 230, 253, 0.20), transparent 75%);
+  }
+}
+
+// Paper-warm: кремовая бумажная подсветка. Совместима со stripe-warm-канон.
+:global([data-dv='NavTileAmbient'][data-dv-v='paper-warm']) {
+  .tile {
+    --nav-ambient: radial-gradient(circle at 50% 30%,
+        rgba(254, 243, 222, 0.28), transparent 75%);
+  }
+}
+
+// Mint-fog: едва заметный зелёный туман — спокойный, нейтральный.
+:global([data-dv='NavTileAmbient'][data-dv-v='mint-fog']) {
+  .tile {
+    --nav-ambient: radial-gradient(circle at 50% 30%,
+        rgba(209, 250, 229, 0.22), transparent 75%);
+  }
+}
+
+// Lavender-haze: пыльно-лавандовый. Самый «вечерний» из subtle.
+:global([data-dv='NavTileAmbient'][data-dv-v='lavender-haze']) {
+  .tile {
+    --nav-ambient: radial-gradient(circle at 50% 30%,
+        rgba(221, 214, 254, 0.22), transparent 75%);
+  }
+}
+
+// Peach-fog: персиковая дымка. Тёплая, но без яркости peach-rainbow.
+:global([data-dv='NavTileAmbient'][data-dv-v='peach-fog']) {
+  .tile {
+    --nav-ambient: radial-gradient(circle at 50% 30%,
+        rgba(254, 226, 198, 0.22), transparent 75%);
+  }
+}
+
+// Silver-mist: серебристо-серый, нейтральный. Подойдёт когда страница
+// уже носит цветной ambient — плитки не спорят с фоном.
+:global([data-dv='NavTileAmbient'][data-dv-v='silver-mist']) {
+  .tile {
+    --nav-ambient: radial-gradient(circle at 50% 30%,
+        rgba(241, 245, 249, 0.40), transparent 75%);
+  }
+}
+
+// Rose-quartz: бледно-розовый. Romantic, но низкая альфа держит его «в
+// стороне» — не доминирует над контентом.
+:global([data-dv='NavTileAmbient'][data-dv-v='rose-quartz']) {
+  .tile {
+    --nav-ambient: radial-gradient(circle at 50% 30%,
+        rgba(252, 231, 243, 0.22), transparent 75%);
+  }
 }

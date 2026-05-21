@@ -5,8 +5,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  padding-top: var(--modal-title-offset);
-  padding-bottom: var(--space-4);
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-2);
 
   // Инпут (AutoGrowSearch читает по наследованию): менее жёлтый + мелкий
   // радиус как у плитки ScreenIndicator.
@@ -14,9 +14,9 @@
   --field-bg-mid: #fbf9f4;
   --field-bg-to: #f6f1e6;
   --field-radius: var(--radius-sm);
-  --field-placeholder: rgba(31, 42, 68, 0.4);
-  --field-hairline: rgba(31, 42, 68, 0.12);
-  --field-hairline-focus: rgba(31, 42, 68, 0.32);
+  --field-placeholder: rgba(124, 65, 15, 0.45);
+  --field-hairline: rgba(124, 66, 15, 0.336);
+  --field-hairline-focus: rgba(243, 129, 29, 0.45);
 
   // Чипы — плотный gap (больше помещается над клавиатурой).
   --dc-chip-gap: var(--space-1);

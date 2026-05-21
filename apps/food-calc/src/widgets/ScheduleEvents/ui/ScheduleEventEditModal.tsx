@@ -110,7 +110,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         position="absolute"
         isExpanded={step === 'time'}
         content={
-          <ModalShell className={modalStyles.whiteShell}>
+          <ModalShell variant="spring4" className={modalStyles.whiteShell}>
             <ModalShell.Header title="Выберите время" onBack={handleClose} />
             <ModalShell.Body>
               <TimeChoose
@@ -136,7 +136,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         position="absolute"
         isExpanded={step === 'text'}
         content={
-          <ModalShell className={modalStyles.whiteShell}>
+          <ModalShell variant="spring4" className={modalStyles.whiteShell}>
             <ModalShell.Header title="Опишите событие" onBack={handleClose} />
             <ModalShell.Body>
               <AutoGrowSearch
@@ -158,7 +158,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         position="absolute"
         isExpanded={step === 'atoms'}
         content={
-          <ModalShell className={modalStyles.whiteShell}>
+          <ModalShell variant="spring4" className={modalStyles.whiteShell}>
             {!atomPanelOpen && <ModalShell.Header title="Добавьте теги" onBack={handleClose} />}
             <ModalShell.AtomsBody>
               <AtomBuilder id={EDIT_MODAL_INPUT_IDS.ATOMS_INPUT} onPanelChange={setAtomPanelOpen} />

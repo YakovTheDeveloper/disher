@@ -7,6 +7,19 @@
     box-sizing: border-box;
 }
 
+// Внешний `<div onFocusCapture>` оборачивает <Screen> ради focus-делегации
+// для ModalByLabel. Без своих правил он остаётся блоком auto-высоты —
+// Screen внутри (height:100%; overflow-y:auto) теряет ограниченную высоту,
+// и слайд перестаёт скроллиться вертикально (FoodSchedule/ScheduleEvents
+// отдают Screen прямо в .slideContent и не страдают). Повторяем layout
+// `.slideContent`, чтобы обёртка была прозрачна для flex.
+.focusPassthrough {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+}
+
 // ── top-right entry into /analyses ───────────────────────────────────
 // Duplicates the AnalysisKindDrawer «по неделям» path so /analyses stays
 // reachable without opening the chooser.

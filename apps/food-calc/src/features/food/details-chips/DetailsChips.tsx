@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Chip } from '@/shared/ui/atoms/Chip';
 import { getSuggestionsForProduct } from '@/shared/data/tag-suggestions';
-import { useCustomTagsByProduct } from '@/entities/custom-tag';
+import { useCustomTagsByProduct, removeCustomTag } from '@/entities/custom-tag';
 import { useProduct } from '@/entities/product';
 import { hasTag, normalizeTag, toggleTag } from '@/shared/lib/details/tags';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DetailsChips.module.scss';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 
@@ -15,10 +16,6 @@ type Props = {
   productId: string | null;
   textareaId: string;
   placeholder?: string;
-  /** When false — suggestion + custom chips render as one flat flow without
-   *  the «Особенности» / «Ваши теги» sub-labels (used by DetailsStep, where a
-   *  single section heading sits above and vertical space is at a premium). */
-  showSectionLabels?: boolean;
 };
 
 function readCategories(product: { categories: string } | null): readonly string[] {
@@ -36,13 +33,17 @@ type ChipEntry = {
   source: 'suggestion' | 'custom';
 };
 
+const LONG_PRESS_MS = 500;
+// Если палец сдвинулся больше этого порога — считаем что юзер скроллит, не
+// удерживает. Канон 2026 (Vaul, Radix long-press) — 6-10px; берём 8.
+const LONG_PRESS_MOVE_THRESHOLD_PX = 8;
+
 export function DetailsChips({
   value,
   onChange,
   productId,
   textareaId,
   placeholder = 'Уточнение к записи...',
-  showSectionLabels = true,
 }: Props) {
   const product = useProduct(productId ?? undefined);
   const customTagRows = useCustomTagsByProduct(productId);
@@ -72,22 +73,12 @@ export function DetailsChips({
     onChange(toggleTag(value, tag));
   };
 
-  const renderChip = ({ tag }: ChipEntry) => {
-    const active = hasTag(value, tag);
-    return (
-      <Chip
-        key={tag}
-        active={active}
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => handleToggle(tag)}
-        aria-pressed={active}
-      >
-        {tag}
-      </Chip>
-    );
+  const handleDeleteCustom = (tag: string) => {
+    if (!productId) return;
+    const confirmed = window.confirm(`Удалить тег «${tag}»?`);
+    if (!confirmed) return;
+    void safeMutate(() => removeCustomTag(productId, tag), 'Не удалось удалить тег');
   };
-
-  const allChips = [...suggestionChips, ...customChips];
 
   return (
     <div className={styles.root}>
@@ -101,33 +92,128 @@ export function DetailsChips({
         />
       </div>
 
-      {showSectionLabels ? (
-        <>
-          {suggestionChips.length > 0 && (
-            <div className={styles.section}>
-              <div className={styles.sectionLabel}>Особенности</div>
-              <div className={styles.chips} role="group" aria-label="Особенности">
-                {suggestionChips.map(renderChip)}
-              </div>
-            </div>
-          )}
-          {customChips.length > 0 && (
-            <div className={styles.section}>
-              <div className={styles.sectionLabel}>Ваши теги</div>
-              <div className={styles.chips} role="group" aria-label="Ваши теги">
-                {customChips.map(renderChip)}
-              </div>
-            </div>
-          )}
-        </>
-      ) : (
-        allChips.length > 0 && (
-          <div className={styles.chips} role="group" aria-label="Особенности">
-            {allChips.map(renderChip)}
+      {suggestionChips.length > 0 && (
+        <div className={styles.chips} role="group" aria-label="Особенности">
+          {suggestionChips.map(({ tag }) => {
+            const active = hasTag(value, tag);
+            return (
+              <Chip
+                key={tag}
+                active={active}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => handleToggle(tag)}
+                aria-pressed={active}
+              >
+                {tag}
+              </Chip>
+            );
+          })}
+        </div>
+      )}
+
+      {suggestionChips.length > 0 && customChips.length > 0 && (
+        <div className={styles.separator} aria-hidden />
+      )}
+
+      {customChips.length > 0 && (
+        <div className={styles.customGroup}>
+          <div className={styles.customLabel}>Ваши теги</div>
+          <div className={styles.chips} role="group" aria-label="Ваши теги">
+            {customChips.map(({ tag }) => (
+              <CustomChip
+                key={tag}
+                tag={tag}
+                active={hasTag(value, tag)}
+                onToggle={() => handleToggle(tag)}
+                onDelete={() => handleDeleteCustom(tag)}
+              />
+            ))}
           </div>
-        )
+          <p className={styles.hint}>Зажмите чтобы удалить</p>
+        </div>
       )}
     </div>
+  );
+}
+
+type CustomChipProps = {
+  tag: string;
+  active: boolean;
+  onToggle: () => void;
+  onDelete: () => void;
+};
+
+// Long-press (~500ms) opens a confirm + delete. Toggle on regular click is
+// suppressed when the long-press fired so a hold doesn't also flip the chip.
+function CustomChip({ tag, active, onToggle, onDelete }: CustomChipProps) {
+  const timerRef = useRef<number | null>(null);
+  const firedRef = useRef(false);
+  const startRef = useRef<{ x: number; y: number } | null>(null);
+
+  // clear НЕ трогает firedRef — иначе trailing click после Cancel в confirm
+  // (PointerUp → clear → click) увидел бы firedRef=false и зря дёрнул onToggle.
+  // Сброс firedRef живёт в handleClick (потребил → сбросил), это закрывает и
+  // edge-case с synthetic-click после long-press + Cancel.
+  const clear = () => {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    startRef.current = null;
+  };
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    firedRef.current = false;
+    startRef.current = { x: e.clientX, y: e.clientY };
+    timerRef.current = window.setTimeout(() => {
+      firedRef.current = true;
+      timerRef.current = null;
+      onDelete();
+    }, LONG_PRESS_MS);
+  };
+
+  // На touch браузер обычно шлёт pointercancel при распознавании скролла, но
+  // не моментально. Доп. страховка: если палец уехал > threshold — отменяем
+  // таймер сами, чтобы скролл листа не превращался в ложный confirm.
+  const handlePointerMove = (e: React.PointerEvent) => {
+    const start = startRef.current;
+    if (!start || timerRef.current === null) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (dx * dx + dy * dy > LONG_PRESS_MOVE_THRESHOLD_PX * LONG_PRESS_MOVE_THRESHOLD_PX) {
+      clear();
+    }
+  };
+
+  const handleClick = () => {
+    if (firedRef.current) {
+      firedRef.current = false;
+      return;
+    }
+    onToggle();
+  };
+
+  useEffect(() => clear, []);
+
+  return (
+    <Chip
+      active={active}
+      // styles.customChipPress отключает iOS callout/text-selection для long-press
+      // явно на корне CustomChip — не зависит от структуры Chip (см. SCSS-комментарий).
+      className={styles.customChipPress}
+      onMouseDown={(e) => e.preventDefault()}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={clear}
+      onPointerLeave={clear}
+      onPointerCancel={clear}
+      onContextMenu={(e) => e.preventDefault()}
+      onClick={handleClick}
+      aria-pressed={active}
+    >
+      {tag}
+    </Chip>
   );
 }
 

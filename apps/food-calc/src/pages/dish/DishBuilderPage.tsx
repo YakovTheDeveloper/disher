@@ -11,7 +11,7 @@ import {
   updateDishPortion,
   removeDishPortion,
 } from '@/entities/dish';
-import { ChangeNameModal } from '@/features/shared/change-name';
+import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-name';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
@@ -23,6 +23,7 @@ import {
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import { SelectableListItem } from '@/features/shared/selectable-list-item';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
+import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { Quantity } from '@/shared/ui/Quantity';
 import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
@@ -38,14 +39,13 @@ import {
   DishSuggestionsModal,
   useDishProductFlow,
 } from './ui';
-import { FoodPortionsManager } from '@/features/food/food-portions-manager';
+import { FoodPortionsManager, nextDefaultPortionLabel } from '@/features/food/food-portions-manager';
 import { DishAnalysisScreen } from '@/features/dish-analysis';
 import { useDishNutrientTotals } from '@/entities/dish';
-import { TopBar } from '@/shared/ui/TopBar';
-import Button from '@/shared/ui/atoms/Button/Button';
 import { PasteFromClipboardToDishButton } from '@/features/clipboard';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
 import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
+import { PlusIcon } from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { AppBottomBar, NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
@@ -82,6 +82,25 @@ const PRODUCT_AMBIENT_VARIANTS = [
   'dawn-blue',
 ] as const;
 
+// NavTile ambient — radial-glow per nth-child (см. NavTile.module.scss).
+// Дефолтная семантика тайла (inverse-lift) уже в base-стилях; этот anchor
+// добавляет цветную подсветку каждой плитке отдельно — аналог ProductAmbient,
+// но per-tile. HomePage anchor не использует.
+// Первый элемент = дефолт (см. useDesignVariant fallback). `ice-blue` —
+// subtle голубоватый glow, согласуется с ProductAmbient.ice-blue фоном
+// страницы. Остальные — моно-tone subtle палитры; `none` сохранён как
+// явный off-вариант для отладки.
+const NAVTILE_AMBIENT_VARIANTS = [
+  'ice-blue',
+  'paper-warm',
+  'mint-fog',
+  'lavender-haze',
+  'peach-fog',
+  'silver-mist',
+  'rose-quartz',
+  'none',
+] as const;
+
 const DishBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
 
@@ -102,6 +121,32 @@ const DishBuilderPage = () => {
 
   const [isOpen, setIsOpen] = useState<'suggestions' | null>(null);
   const [renameOpen, setRenameOpen] = useState(false);
+  // При scrollY > 120 активного слайда — возвращаем имя блюда в
+  // HomeTopBar.centerLabel. Per-slide state (3 слайда — 3 ячейки): Embla
+  // сохраняет scroll-позицию каждого Screen, поэтому возврат на скроллнутый
+  // слайд должен сразу показать имя в баре. Активный индекс — из
+  // Swipeable.onIndexChange ниже.
+  const [activeSlide, setActiveSlide] = useState(DEFAULT_SLIDE);
+  const [scrollByIndex, setScrollByIndex] = useState<number[]>(() =>
+    Array.from({ length: DISH_SCREENS.length }, () => 0),
+  );
+  const isScrolled = (scrollByIndex[activeSlide] ?? 0) > 120;
+  const makeScrollHandler = useCallback(
+    (idx: number) => (y: number) => {
+      setScrollByIndex((prev) => {
+        if (prev[idx] === y) return prev;
+        const next = prev.slice();
+        next[idx] = y;
+        return next;
+      });
+    },
+    [],
+  );
+  const handleNameFocusCapture = useCallback((e: React.FocusEvent) => {
+    if ((e.target as HTMLElement).id === CHANGE_NAME_INPUT_ID) {
+      setRenameOpen(true);
+    }
+  }, []);
   const openNutrients = useCallback(() => {
     void drawerStore.show(
       NutrientsDrawer,
@@ -165,27 +210,59 @@ const DishBuilderPage = () => {
   }, []);
 
   const { anchor: ambientAnchor } = useDesignVariant('ProductAmbient', PRODUCT_AMBIENT_VARIANTS);
+  const { anchor: navTileAnchor } = useDesignVariant('NavTileAmbient', NAVTILE_AMBIENT_VARIANTS);
 
   // Инстансы индикатора держим стабильными (useMemo на стабильном
   // handleSelect) по канону HomePage. Прямого выигрыша от memo(Screen) тут
   // нет — соседние пропы Screen (children/actions/...) инлайн-JSX, memo
   // пробивается всё равно; вреда тоже нет.
   const analysisIndicator = useMemo(
-    () => <ScreenIndicator screens={DISH_SCREENS} onSelect={handleSelect} slideIndex={0} />,
+    () => (
+      <ScreenIndicator
+        screens={DISH_SCREENS}
+        onSelect={handleSelect}
+        slideIndex={0}
+      />
+    ),
     [handleSelect],
   );
   const ingredientsIndicator = useMemo(
-    () => <ScreenIndicator screens={DISH_SCREENS} onSelect={handleSelect} slideIndex={1} />,
+    () => (
+      <ScreenIndicator
+        screens={DISH_SCREENS}
+        onSelect={handleSelect}
+        slideIndex={1}
+      />
+    ),
     [handleSelect],
   );
   const portionsIndicator = useMemo(
-    () => <ScreenIndicator screens={DISH_SCREENS} onSelect={handleSelect} slideIndex={2} />,
+    () => (
+      <ScreenIndicator
+        screens={DISH_SCREENS}
+        onSelect={handleSelect}
+        slideIndex={2}
+      />
+    ),
     [handleSelect],
   );
 
   if (!dish) return null;
 
   const items = dishItems;
+
+  // Hero-имя ПОД тайлами в каждом Screen. `<label>` лежит ВНУТРИ heading-а
+  // и оборачивает span — валидный HTML (label принимает phrasing content),
+  // и при этом heading рендерится как `<h2>` чтобы у страницы остался один
+  // `<h1>` (его роль играет первый Screen). Дублирование heroTop в 3 Screen-ах
+  // не плодит h1 в DOM. Клик по label → focus на input ChangeNameModal.
+  const heroTop = (
+    <Heading size="screen" as="h2">
+      <label htmlFor={CHANGE_NAME_INPUT_ID} aria-label="Изменить название">
+        <span>{dish.name}</span>
+      </label>
+    </Heading>
+  );
 
   const getSelectedItems = () => items.filter((item) => selectedIds.includes(item.id));
 
@@ -229,33 +306,45 @@ const DishBuilderPage = () => {
         date={dateForTopBar}
         dateButtonLabel={<CalendarIcon width={22} height={22} />}
         centerLabel={dish.name}
-        onTitleClick={() => setRenameOpen(true)}
+        centerLabelHtmlFor={CHANGE_NAME_INPUT_ID}
+        centerLabelVisible={isScrolled}
         noInterruptGuard
       />
-      <ChangeNameModal
-        currentName={dish.name}
-        isExpanded={renameOpen}
-        onClose={() => setRenameOpen(false)}
-        onChangeName={(name) => {
-          void safeMutate(() => updateDishName(dish.id, name), 'Не удалось переименовать');
-          setRenameOpen(false);
-        }}
-      />
-      <div className={homeStyles.swipeArea}>
+      <div onFocusCapture={handleNameFocusCapture}>
+        <ChangeNameModal
+          currentName={dish.name}
+          isExpanded={renameOpen}
+          onClose={() => setRenameOpen(false)}
+          onChangeName={(name) => {
+            void safeMutate(() => updateDishName(dish.id, name), 'Не удалось переименовать');
+            setRenameOpen(false);
+          }}
+        />
+      </div>
+      <div className={homeStyles.swipeArea} {...navTileAnchor}>
         <Swipeable
           ref={swipeableRef}
           defaultSlide={DEFAULT_SLIDE}
           duration={SWIPE_DURATION}
           hasDots={false}
+          onIndexChange={(idx) => setActiveSlide(idx)}
         >
-          <Screen key={1} headerOverlap stickyTop={analysisIndicator}>
+          <Screen
+            key={1}
+            headerOverlap
+            heroTop={heroTop}
+            stickyTop={analysisIndicator}
+            onScrollY={makeScrollHandler(0)}
+          >
             <DishAnalysisScreen dishId={id} hasIngredients={items.length > 0} />
           </Screen>
 
           <Screen
             key={2}
             headerOverlap
+            heroTop={heroTop}
             stickyTop={ingredientsIndicator}
+            onScrollY={makeScrollHandler(1)}
             hollow={items.length === 0}
             overlay={
               <>
@@ -287,6 +376,7 @@ const DishBuilderPage = () => {
                 <AppBottomBar
                   writeFoodFlow={writeFoodFlow}
                   writeFoodInputId={writeFoodInputId}
+                  writeFoodSky
                   searchHtmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
                   searchLabel="Найти продукт"
                   writeFoodLabel="Опишите ингредиенты…"
@@ -296,16 +386,18 @@ const DishBuilderPage = () => {
                 />
               ) : null
             }
-            topPanel={
-              <TopBar>
-                {items.length > 0 && (
-                  <Button variant="menu" onClick={() => setIsOpen('suggestions')}>
-                    Предложить
-                  </Button>
-                )}
-              </TopBar>
-            }
           >
+            {items.length > 0 && (
+              <div className={styles.topLinkRow}>
+                <button
+                  type="button"
+                  className={styles.suggestLink}
+                  onClick={() => setIsOpen('suggestions')}
+                >
+                  Предложить →
+                </button>
+              </div>
+            )}
             <PasteFromClipboardToDishButton dishId={id} wrapperStyle={{ width: '50%' }} />
             <ItemsList offsetTop>
               {items.map((item) => (
@@ -345,7 +437,40 @@ const DishBuilderPage = () => {
             </ItemsList>
           </Screen>
 
-          <Screen key={3} headerOverlap stickyTop={portionsIndicator}>
+          <Screen
+            key={3}
+            headerOverlap
+            heroTop={heroTop}
+            stickyTop={portionsIndicator}
+            onScrollY={makeScrollHandler(2)}
+            bottomBar={
+              <div className={styles.portionsBar}>
+                <button
+                  type="button"
+                  className={styles.addPortionButton}
+                  onClick={() => {
+                    const portionsForLabel = portionsRaw.map((p) => ({
+                      label: p.label,
+                      grams: p.grams,
+                    }));
+                    void safeMutate(
+                      () =>
+                        addDishPortion(id, {
+                          label: nextDefaultPortionLabel(portionsForLabel),
+                          grams: 0,
+                        }),
+                      'Не удалось добавить порцию',
+                    );
+                  }}
+                >
+                  <span className={styles.addPortionPlus} aria-hidden="true">
+                    <PlusIcon />
+                  </span>
+                  Добавить порцию
+                </button>
+              </div>
+            }
+          >
             <FoodPortionsManager
               portions={portionsRaw.map((p) => ({
                 label: p.label,
@@ -359,6 +484,8 @@ const DishBuilderPage = () => {
                     }
                   : undefined
               }
+              showAddButton={false}
+              showHint={false}
               onAdd={(p) =>
                 void safeMutate(() => addDishPortion(id, p), 'Не удалось добавить порцию')
               }

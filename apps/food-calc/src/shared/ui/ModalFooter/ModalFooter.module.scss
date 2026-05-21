@@ -16,7 +16,6 @@
   font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
 
   &:hover {
     border-color: rgba(0, 0, 0, 0.25);
@@ -54,7 +53,7 @@
   padding: var(--space-5) 0 calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
   // margin: var(--space-5);
   font-family: "Onest", "YS Text", "Golos Text", system-ui, sans-serif;
-  transition: opacity 0.15s ease, background-color 0.15s ease;
+  transition: opacity 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 
   svg {
@@ -108,4 +107,3 @@
   pointer-events: none;
   cursor: default;
 }
-

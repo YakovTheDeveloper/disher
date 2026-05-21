@@ -7,6 +7,8 @@ import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
+import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
+import { NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
 import { DetailsStep, useHasDetailsHints } from '@/features/food/details-chips';
 import {
   useScheduleFoodFlow,
@@ -65,9 +67,22 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
 
   const goToStep = (target: typeof step) => setStep(target);
 
+  // «Назад» в StepHeader — на предыдущий шаг по линейному порядку stepsForBar
+  // (тот же массив, что отрисован в bar; включает opt-in `details` если шаг
+  // уже посещён). На первом шаге с StepHeader (time) back ведёт на search;
+  // search рисуется голым SearchFood со своим onBack=handleClose. Если шага
+  // нет в наборе (краевой случай) — закрываем флоу целиком.
+  const handleBack = () => {
+    const idx = stepsForBar.indexOf(step as (typeof stepsForBar)[number]);
+    if (idx <= 0) {
+      handleClose();
+      return;
+    }
+    setStep(stepsForBar[idx - 1]);
+  };
+
   // «Назад» с экрана создания продукта/блюда — возврат к поиску (это не
-  // Steps-bar модалка, а ответвление из SearchFood). В модалках со Steps bar
-  // стрелка «назад» закрывает весь флоу — см. onBack={handleClose} ниже.
+  // Steps-bar модалка, а ответвление из SearchFood).
   const handleBackToSearch = () => setStep('search');
 
   // Local state for the create-name input. Re-synced from draft.foodName on
@@ -76,14 +91,35 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
   // same step session).
   const [createName, setCreateName] = useState('');
   const [isSupplement, setIsSupplement] = useState(false);
+  // БАД-only: введённые в модалке нутриенты per 1 шт.
+  // Аккордеоны по дефолту свёрнуты, single-open — открыта максимум одна группа.
+  // Тап другой → предыдущая сворачивается (экран не превращается в длинный
+  // скролл из ~70 карточек).
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [supplementNutrients, setSupplementNutrients] = useState<Record<string, number>>({});
+
+  const toggleGroup = (name: string) => {
+    setOpenGroup((prev) => (prev === name ? null : name));
+  };
   const prevStepRef = useRef(step);
   useEffect(() => {
     if (prevStepRef.current !== 'create' && step === 'create') {
       setCreateName(draft.foodName ?? '');
       setIsSupplement(false);
+      setOpenGroup(null);
+      setSupplementNutrients({});
     }
     prevStepRef.current = step;
   }, [step, draft.foodName]);
+
+  const handleNutrientChange = (nutrientId: string, value: number) => {
+    setSupplementNutrients((prev) => {
+      const next = { ...prev };
+      if (value === 0) delete next[nutrientId];
+      else next[nutrientId] = value;
+      return next;
+    });
+  };
 
   const createVariantLabel = draft.variant === 'dish' ? 'блюдо' : 'продукт';
   const createTrimmed = createName.trim();
@@ -124,7 +160,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         position="absolute"
         isExpanded={step === 'create'}
         content={
-          <ModalShell variant="spring2">
+          <ModalShell variant="spring4">
             <ModalShell.Header
               title={createVariantLabel === 'блюдо' ? 'Новое блюдо' : 'Новый продукт'}
               onBack={handleBackToSearch}
@@ -151,6 +187,54 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
                     />
                   </div>
                 )}
+                {isProductCreate && isSupplement && (
+                  <div className={styles.supplementBlock}>
+                    <p className={styles.supplementUnit}>1 приём = 1 шт</p>
+                    <div className={styles.nutrientGroupsList}>
+                      {nutrientGroups.map((group) => {
+                        const isOpen = openGroup === group.name;
+                        const filledCount = group.content.filter(
+                          (n) => (supplementNutrients[n.id] ?? 0) > 0,
+                        ).length;
+                        return (
+                          <div
+                            key={group.name}
+                            data-group={group.name}
+                            className={`${styles.nutrientGroupItem} ${isOpen ? styles.nutrientGroupOpen : ''}`}
+                          >
+                            <button
+                              type="button"
+                              className={styles.nutrientsToggle}
+                              onClick={() => toggleGroup(group.name)}
+                              aria-expanded={isOpen}
+                            >
+                              <span>
+                                {isOpen ? '−' : '+'} {group.displayName}
+                              </span>
+                              <span className={styles.nutrientsToggleHint}>
+                                {filledCount > 0 ? `${filledCount} запис.` : 'per 1 шт'}
+                              </span>
+                            </button>
+                            {isOpen && (
+                              <div className={styles.nutrientsGrid}>
+                                {group.content.map((nutrientData) => (
+                                  <NutrientCardEditor
+                                    key={nutrientData.id}
+                                    content={nutrientData}
+                                    variant="product-edit"
+                                    className={styles.inlineCard}
+                                    editValue={supplementNutrients[nutrientData.id] ?? 0}
+                                    onValueChange={handleNutrientChange}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
               <ModalShell.ActionButtons
                 debugId="create-name"
@@ -159,7 +243,12 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
                     <ModalNextButton
                       as="label"
                       htmlFor={TIME_INPUT}
-                      onClick={() => handleConfirmCreate(createName, { isSupplement })}
+                      onClick={() =>
+                        handleConfirmCreate(createName, {
+                          isSupplement,
+                          nutrients: isSupplement ? supplementNutrients : undefined,
+                        })
+                      }
                       label="Создать"
                     />
                   ) : (
@@ -177,7 +266,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         position="absolute"
         isExpanded={step === 'time'}
         content={
-          <ModalShell variant="gradient1">
+          <ModalShell variant="spring4">
             <ModalShell.StepHeader
               title={STEP_LABELS.time}
               currentStep="time"
@@ -185,7 +274,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
               stepLabels={STEP_LABELS}
               stepResults={stepResults}
               visitedSteps={visitedSteps}
-              onBack={handleClose}
+              onBack={handleBack}
               onStepClick={goToStep}
             />
 
@@ -217,7 +306,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
               stepLabels={STEP_LABELS}
               stepResults={stepResults}
               visitedSteps={visitedSteps}
-              onBack={handleClose}
+              onBack={handleBack}
               onStepClick={goToStep}
             />
 
@@ -267,7 +356,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
               stepLabels={STEP_LABELS}
               stepResults={stepResults}
               visitedSteps={visitedSteps}
-              onBack={handleClose}
+              onBack={handleBack}
               onStepClick={goToStep}
             />
             <ModalShell.Body flush>

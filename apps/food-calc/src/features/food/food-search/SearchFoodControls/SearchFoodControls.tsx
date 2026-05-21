@@ -1,6 +1,8 @@
 import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
 import { Heading } from '@/shared/ui/atoms/Typography';
+import type { SearchFilter } from '../SearchFood';
+import { FILTER_LABELS } from '../SearchFood';
 
 import SearchIcon from '@/shared/assets/icons/lupa.svg?react';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';
@@ -11,8 +13,12 @@ type Props = {
   className?: string;
   onBack?: () => void;
   inputId?: string;
-  /** Когда задан — слева от поля поиска встаёт заголовок (serif italic). */
+  /** Когда задан и `filterOptions` пуст — слева встаёт статический заголовок (serif italic). */
   title?: string;
+  /** Когда задан — слева встаёт бинарный pill-toggle, кликабельные опции. */
+  filterOptions?: readonly SearchFilter[];
+  selectedFilter?: SearchFilter;
+  onSelectFilter?: (next: SearchFilter) => void;
 };
 
 const SearchFoodControls = ({
@@ -22,9 +28,14 @@ const SearchFoodControls = ({
   onBack,
   inputId,
   title,
+  filterOptions,
+  selectedFilter,
+  onSelectFilter,
 }: Props) => {
+  const hasFilter = Boolean(filterOptions && filterOptions.length > 1 && selectedFilter && onSelectFilter);
+
   return (
-    <header className={clsx([styles.header, className])}>
+    <header className={clsx(styles.header, hasFilter && styles.headerWithFilter, className)}>
       {onBack && (
         <button className={styles.backButton} onClick={onBack} type="button">
           <svg
@@ -55,10 +66,33 @@ const SearchFoodControls = ({
         </button>
       )}
 
-      {title && (
-        <Heading size="drawer" as="h2" className={styles.title}>
-          {title}
-        </Heading>
+      {hasFilter && filterOptions ? (
+        <div className={styles.filterToggle} role="tablist" aria-label="Фильтр поиска">
+          {filterOptions.map((opt) => {
+            const isActive = opt === selectedFilter;
+            return (
+              <button
+                key={opt}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={clsx(
+                  styles.filterPill,
+                  isActive && styles.filterPillActive,
+                )}
+                onClick={() => onSelectFilter?.(opt)}
+              >
+                {FILTER_LABELS[opt]}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        title && (
+          <Heading size="drawer" as="h2" className={styles.title}>
+            {title}
+          </Heading>
+        )
       )}
 
       <div className={styles.searchWrapper}>

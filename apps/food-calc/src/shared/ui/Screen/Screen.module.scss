@@ -108,7 +108,7 @@
     // за него. Другие страницы переменную не задают — паддинг = 0.
     // HomePage больше не задаёт эту переменную — индикатор едет в потоке через
     // `.stickyTop`-слот; переменная оставлена для других страниц / future-use.
-    padding-top: var(--page-top-inset, 0);
+    // padding-top: var(--page-top-inset, 0);
     // Раньше тут жили `transform: translateZ(0)` + `backface-visibility: hidden`
     // как GPU-хинты для smooth scroll. На iOS Safari они создавали тонкие
     // синеватые швы на границах composited-слоя (fringe от alpha-compositing
@@ -120,6 +120,58 @@
 .overlay {
     position: fixed;
     inset: 0;
+}
+
+// Hero-слот ПОД `stickyTop`. Regular flow (не sticky). Тайлы остаются
+// прилипшими вверху; hero (имя страницы + подпись активного экрана) стартует
+// ниже и при скролле уезжает наверх под тайлы. centerLabel в HomeTopBar
+// просыпается, когда `.heroTop` фактически вышел из видимости.
+//   • Padding по бокам синхронизирован с `homeStyles.container` (24px),
+//     чтобы hero не упирался в края экрана.
+//   • Имя рендерится через `<Heading size="screen">` (40px Source Serif italic).
+//   • Под ним опционально — `.heroSubLabel` (имя текущего тайла, 20px той же
+//     гарнитуры, opacity 0.75). Структура задаётся самой страницей.
+.heroTop {
+    padding: 14px 24px 18px;
+    text-align: center;
+
+    // Имена продуктов хранятся lowercase («абрикос») — sentence-case первой
+    // буквы внутри Heading средствами CSS. Тот же паттерн что в
+    // HomeTopBar.centerLabel.
+    h1::first-letter,
+    h2::first-letter,
+    h3::first-letter {
+        text-transform: uppercase;
+    }
+
+    // Когда hero — кликабельный `<label htmlFor>` (rename-flow), вложен
+    // ВНУТРЬ heading-а (валидный HTML: label принимает phrasing content,
+    // span — phrasing). Нейтрализуем default cursor inheritance и сохраняем
+    // clickable feedback.
+    label {
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+
+        &:active {
+            opacity: 0.6;
+        }
+    }
+}
+
+// Подпись активного экрана (имя тайла) под hero-именем. Та же гарнитура,
+// но 1.25rem (20px) и приглушённый цвет — реакция на запрос юзера 2026-05-21
+// «под именем еды название текущего тайла». Заменяет старый ScreenIndicator.band
+// для страниц блюда/продукта; `hideBand` на индикаторе при этом включён.
+.heroSubLabel {
+    margin-top: 4px;
+    font-family: 'Source Serif 4', 'Merriweather', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.25rem;
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+    color: rgba(0, 0, 0, 0.6);
+    text-align: center;
 }
 
 // Sticky-слот внутри `screenScroll`. Прилипает к `top: var(--top-bar-h)` —

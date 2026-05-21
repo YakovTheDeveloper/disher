@@ -1,11 +1,17 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
-import type { UseWriteFoodFlowResult } from '../model/useWriteFoodFlow';
+import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
+import { createProduct } from '@/entities/product/api/mutations';
+import { safeMutate } from '@/shared/lib/safeMutate';
+import type { UseWriteFoodFlowResult, ReviewEditStep } from '../model/useWriteFoodFlow';
+import { FreeTextFoodReviewItem } from './FreeTextFoodReviewItem';
+import { FreeTextFoodReviewEditModals } from './FreeTextFoodReviewEditModals';
+import { AddToListPopover } from './AddToListPopover';
 import styles from './WriteFoodModal.module.scss';
 
 export interface WriteFoodModalProps {
@@ -17,6 +23,22 @@ export interface WriteFoodModalProps {
 }
 
 const DEFAULT_PLACEHOLDER = 'На завтрак овсянка 200, кофе.';
+
+const REVIEW_INPUT_IDS = {
+  SEARCH_INPUT: 'write-food-review-search',
+  DETAILS_INPUT: 'write-food-review-details',
+} as const;
+
+const INPUT_TO_STEP: Record<string, ReviewEditStep> = {
+  [REVIEW_INPUT_IDS.SEARCH_INPUT]: 'search',
+  [REVIEW_INPUT_IDS.DETAILS_INPUT]: 'details',
+};
+
+interface RescueState {
+  uid: string;
+  anchor: HTMLElement;
+  originalName: string;
+}
 
 export const WriteFoodModal = ({
   isExpanded,
@@ -30,17 +52,49 @@ export const WriteFoodModal = ({
     state,
     inputText,
     errorMessage,
-    parseResult,
     submit,
     retry,
     cancel,
-    goToReview,
     setInputText,
+
+    resolved,
+    ambiguous,
+    unresolved,
+    hideTime,
+    totalToAdd,
+    isSubmitting,
+    deletedItem,
+
+    editingUid,
+    editingStep,
+    editingRowView,
+
+    deleteResolved,
+    deleteAmbiguous,
+    deleteUnresolved,
+    updateResolved,
+    updateAmbiguous,
+    updateUnresolved,
+    handleUndo,
+    startEdit,
+    closeEdit,
+    setEditingStep,
+    handleEditChange,
+    commit,
   } = flow;
 
-  const readyCount = parseResult
-    ? parseResult.resolved.length + parseResult.ambiguous.length + parseResult.unresolved.length
-    : 0;
+  useSwipeableLock(isExpanded && editingStep !== 'idle');
+
+  const [rescue, setRescue] = useState<RescueState | null>(null);
+
+  const readyCount =
+    resolved.length + ambiguous.length + unresolved.length;
+  const isReviewEmpty = state === 'ready' && readyCount === 0;
+  // Цитата ввода полезна когда есть что сверять — иначе она просто дублирует
+  // имена в рядах (см. /critique 2026-05-21: /critique). Скрываем когда всё
+  // resolved.
+  const showOriginalText =
+    state === 'ready' && (ambiguous.length > 0 || unresolved.length > 0);
 
   const handleCancel = useCallback(() => {
     cancel();
@@ -51,42 +105,84 @@ export const WriteFoodModal = ({
     onClose();
   }, [onClose]);
 
-  const handleGoToReview = useCallback(() => {
-    goToReview();
-    onClose();
-  }, [goToReview, onClose]);
+  const handleCommit = useCallback(async () => {
+    const ok = await commit();
+    if (ok) onClose();
+  }, [commit, onClose]);
 
-  // If the user confirms commit elsewhere (parseResult cleared) while modal is open, close.
-  useEffect(() => {
-    if (isExpanded && state === 'idle' && !inputText) {
-      // nothing to do — stay open at idle
-    }
-  }, [isExpanded, state, inputText]);
+  const handleReviewFocusCapture = useCallback(
+    (e: React.FocusEvent) => {
+      const target = e.target as HTMLElement;
+      const nextStep = INPUT_TO_STEP[target.id];
+      if (!nextStep || !editingUid) return;
+      setEditingStep(nextStep);
+    },
+    [editingUid, setEditingStep],
+  );
 
-  const readOnly = state === 'loading' || state === 'ready';
+  const closeRescue = useCallback(() => setRescue(null), []);
 
-  // Back-стрелка состояние-зависима: во время обработки «назад» = свернуть
-  // (джоба продолжается в фоне); в остальных состояниях — отменить.
-  const handleBack = state === 'loading' ? handleMinimize : handleCancel;
+  const handleRescueUseExisting = useCallback(
+    (productId: string, name: string) => {
+      if (!rescue) return;
+      updateUnresolved(rescue.uid, {
+        manual: { id: productId, name, score: 1 },
+      });
+      setRescue(null);
+    },
+    [rescue, updateUnresolved],
+  );
+
+  const handleRescueCreateNew = useCallback(
+    async (name: string) => {
+      if (!rescue) return;
+      const result = await safeMutate(
+        () => createProduct({ name }),
+        'Не удалось создать продукт',
+      );
+      if (!result.ok) return;
+      updateUnresolved(rescue.uid, {
+        manual: { id: result.value, name, score: 1 },
+      });
+      setRescue(null);
+    },
+    [rescue, updateUnresolved],
+  );
+
+  // Back в режиме loading = свернуть (джоба продолжается в фоне);
+  // ready = свернуть (результат лежит в storage); остальное = отменить.
+  const handleBack =
+    state === 'loading' || state === 'ready' ? handleMinimize : handleCancel;
 
   const title =
     state === 'idle'
       ? 'Опишите, что вы ели'
       : state === 'loading'
-        ? 'Обрабатываем…'
+        ? 'Думаем…'
         : state === 'ready'
           ? `Готово · ${readyCount} ${pluralizeItems(readyCount)}`
           : 'Не получилось';
+
+  const readOnly = state === 'loading';
 
   return (
     <ModalByLabel
       position="absolute"
       isExpanded={isExpanded}
       content={
-        <ModalShell>
+        <ModalShell variant="spring4">
           <ModalShell.Header title={title} onBack={handleBack} />
           <ModalShell.Body>
-            <div className={styles.textareaWrap}>
+            {/*
+              Инпут всегда в DOM: htmlFor у WriteFoodButton делегирует
+              focus сюда даже когда модалка закрыта на ready-стейте.
+              Без этого «К проверке» из bottom-bar ничего не делает.
+            */}
+            <div
+              className={
+                state === 'ready' ? styles.inputHidden : styles.textareaWrap
+              }
+            >
               <AutoGrowSearch
                 id={inputId}
                 value={inputText}
@@ -96,13 +192,192 @@ export const WriteFoodModal = ({
                 readOnly={readOnly}
               />
               {state === 'loading' && (
-                <div className={styles.loadingOverlay}>
-                  <Spinner size={32} />
-                  <p className={styles.loadingText}>Обрабатываем… (это займёт ~20–30 сек)</p>
-                  <p className={styles.loadingHint}>Можно свернуть — мы закончим в фоне.</p>
+                <div className={styles.loadingBlock}>
+                  <Spinner size={36} />
+                  <p className={styles.loadingCopy}>
+                    ~25 сек · можно свернуть
+                  </p>
                 </div>
               )}
             </div>
+
+            {state === 'ready' && (
+              <div
+                className={styles.reviewWrap}
+                onFocusCapture={handleReviewFocusCapture}
+              >
+                {showOriginalText && inputText && (
+                  <div className={styles.originalText}>{inputText}</div>
+                )}
+
+                {isReviewEmpty ? (
+                  <div className={styles.empty}>
+                    <p className={styles.emptyText}>
+                      Ничего не распозналось. Попробуйте описать подробнее.
+                    </p>
+                  </div>
+                ) : (
+                  <div className={styles.sections}>
+                    {resolved.length > 0 && (
+                      <section className={styles.section}>
+                        <ul className={styles.list}>
+                          {resolved.map((r) => (
+                            <li key={r.uid}>
+                              <FreeTextFoodReviewItem
+                                uid={r.uid}
+                                item={r}
+                                hideTime={hideTime}
+                                onStartEdit={startEdit}
+                                onDeleteNote={() =>
+                                  updateResolved(r.uid, { details: '' })
+                                }
+                                onDeleteItem={() => deleteResolved(r.uid)}
+                                onCommitTime={(uid, time) =>
+                                  updateResolved(uid, { time })
+                                }
+                                onCommitQuantity={(uid, quantity) =>
+                                  updateResolved(uid, { quantity })
+                                }
+                                searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
+                                detailsInputId={REVIEW_INPUT_IDS.DETAILS_INPUT}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    )}
+
+                    {ambiguous.length > 0 && (
+                      <section className={styles.section}>
+                        <h3 className={styles.sectionTitle}>
+                          Уточните
+                          <span className={styles.sectionCount}>
+                            {ambiguous.length}
+                          </span>
+                        </h3>
+                        <ul className={styles.list}>
+                          {ambiguous.map((a) => {
+                            const selected =
+                              a.candidates.find((c) => c.id === a.selectedId) ??
+                              a.candidates[0];
+                            return (
+                              <li key={a.uid}>
+                                <FreeTextFoodReviewItem
+                                  uid={a.uid}
+                                  item={{
+                                    ...a,
+                                    name: selected?.name ?? '—',
+                                    productId: a.selectedId ?? '',
+                                  }}
+                                  hideTime={hideTime}
+                                  isAmbiguous
+                                  candidates={a.candidates}
+                                  selectedCandidateId={a.selectedId}
+                                  onSelectCandidate={(id) =>
+                                    updateAmbiguous(a.uid, { selectedId: id })
+                                  }
+                                  onStartEdit={startEdit}
+                                  onDeleteNote={() =>
+                                    updateAmbiguous(a.uid, { details: '' })
+                                  }
+                                  onDeleteItem={() => deleteAmbiguous(a.uid)}
+                                  onCommitTime={(uid, time) =>
+                                    updateAmbiguous(uid, { time })
+                                  }
+                                  onCommitQuantity={(uid, quantity) =>
+                                    updateAmbiguous(uid, { quantity })
+                                  }
+                                  searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
+                                  detailsInputId={REVIEW_INPUT_IDS.DETAILS_INPUT}
+                                />
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </section>
+                    )}
+
+                    {unresolved.length > 0 && (
+                      <section className={styles.section}>
+                        <h3 className={styles.sectionTitle}>
+                          Не распознано
+                          <span className={styles.sectionCount}>
+                            {unresolved.length}
+                          </span>
+                        </h3>
+                        <ul className={styles.list}>
+                          {unresolved.map((u) => (
+                            <li key={u.uid}>
+                              <FreeTextFoodReviewItem
+                                uid={u.uid}
+                                item={{
+                                  ...u,
+                                  name: u.manual?.name ?? u.originalName,
+                                  productId: u.manual?.id ?? '',
+                                }}
+                                hideTime={hideTime}
+                                isUnresolved={!u.manual}
+                                wasRescued={!!u.manual}
+                                onStartEdit={startEdit}
+                                onDeleteNote={() =>
+                                  updateUnresolved(u.uid, { details: '' })
+                                }
+                                onDeleteItem={() => deleteUnresolved(u.uid)}
+                                onCommitTime={(uid, time) =>
+                                  updateUnresolved(uid, { time })
+                                }
+                                onCommitQuantity={(uid, quantity) =>
+                                  updateUnresolved(uid, { quantity })
+                                }
+                                onClickRescue={(uid, anchor) =>
+                                  setRescue({
+                                    uid,
+                                    anchor,
+                                    originalName: u.originalName,
+                                  })
+                                }
+                                searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
+                                detailsInputId={REVIEW_INPUT_IDS.DETAILS_INPUT}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    )}
+                  </div>
+                )}
+
+                <FreeTextFoodReviewEditModals
+                  row={editingRowView}
+                  step={editingStep}
+                  onChange={handleEditChange}
+                  onClose={closeEdit}
+                  inputIds={REVIEW_INPUT_IDS}
+                />
+
+                <AddToListPopover
+                  anchor={rescue?.anchor ?? null}
+                  open={!!rescue}
+                  initialName={rescue?.originalName ?? ''}
+                  onClose={closeRescue}
+                  onUseExisting={handleRescueUseExisting}
+                  onCreateNew={handleRescueCreateNew}
+                />
+
+                {deletedItem && (
+                  <div className={styles.undoSnackbar}>
+                    <span>Удалено</span>
+                    <button
+                      type="button"
+                      className={styles.undoBtn}
+                      onClick={handleUndo}
+                    >
+                      ← Отменить
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {state === 'error' && errorMessage && (
               <div className={styles.error}>{errorMessage}</div>
@@ -126,9 +401,20 @@ export const WriteFoodModal = ({
                     label={online ? 'Отправить' : 'Нет сети'}
                   />
                 ) : state === 'loading' ? (
-                  <ModalNextButton onClick={() => {}} label="Ожидаем…" />
+                  <ModalNextButton onClick={() => {}} label="Ожидаем…" disabled />
                 ) : state === 'ready' ? (
-                  <ModalNextButton onClick={handleGoToReview} label="К проверке" variant="finish" />
+                  <ModalNextButton
+                    onClick={handleCommit}
+                    label={
+                      isSubmitting
+                        ? 'Добавляем…'
+                        : totalToAdd > 0
+                          ? `Добавить ${totalToAdd}`
+                          : 'Нечего добавлять'
+                    }
+                    variant="finish"
+                    disabled={isSubmitting || totalToAdd === 0}
+                  />
                 ) : (
                   <ModalNextButton onClick={retry} label="Повторить" />
                 )

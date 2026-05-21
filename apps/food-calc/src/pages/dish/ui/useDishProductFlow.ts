@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { addDishItem, updateDishItem } from '@/entities/dish';
-import { useProductPortions } from '@/entities/product';
+import { createProduct, useProductPortions } from '@/entities/product';
 import { persistCustomTagsFromDetails } from '@/features/food/details-chips';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -12,13 +12,14 @@ export const DISH_PRODUCT_INPUT_IDS = {
   SEARCH_CREATE_INPUT: 'dish-item-search',
   QUANTITY_CREATE_INPUT: 'dish-item-quantity',
   DETAILS_CREATE_INPUT: 'dish-item-details',
+  CREATE_INPUT: 'dish-item-create-name',
   // edit
   SEARCH_EDIT_INPUT: 'dish-item-edit-search',
   QUANTITY_EDIT_INPUT: 'dish-item-edit-quantity',
   DETAILS_EDIT_INPUT: 'dish-item-edit-details',
 } as const;
 
-export type Step = 'idle' | 'search' | 'quantity' | 'details';
+export type Step = 'idle' | 'search' | 'create' | 'quantity' | 'details';
 type ActiveStep = Exclude<Step, 'idle'>;
 
 // Full flow (3 steps) — used when the selected product has either a curated
@@ -30,12 +31,15 @@ export const CREATE_STEPS_NO_DETAILS: ActiveStep[] = ['search', 'quantity'];
 export const CREATE_STEPS = CREATE_STEPS_WITH_DETAILS;
 export const STEP_LABELS: Record<ActiveStep, string> = {
   search: 'Еда',
+  create: 'Создать',
   quantity: 'Порция',
   details: 'Заметка',
 };
 
 export type DraftState = {
   productId: string | null;
+  /** Prefill для шага create — поисковый запрос юзера, по которому он не нашёл и тапнул «+ Продукт». */
+  foodName: string | null;
   quantity: number;
   details: string;
 };
@@ -52,12 +56,14 @@ const DEFAULT_PRODUCT_ID = '1';
 
 const createEmptyDraft = (): DraftState => ({
   productId: DEFAULT_PRODUCT_ID,
+  foodName: null,
   quantity: 100,
   details: '',
 });
 
 const draftFromItem = (item: EditItem): DraftState => ({
   productId: item.productId,
+  foodName: item.product?.name ?? null,
   quantity: item.quantity,
   details: item.details ?? '',
 });
@@ -98,11 +104,14 @@ export function useDishProductFlow(mode: FlowMode) {
   const DETAILS_INPUT = mode.type === 'create'
     ? DISH_PRODUCT_INPUT_IDS.DETAILS_CREATE_INPUT
     : DISH_PRODUCT_INPUT_IDS.DETAILS_EDIT_INPUT;
+  const CREATE_INPUT = DISH_PRODUCT_INPUT_IDS.CREATE_INPUT;
 
   const INPUT_TO_STEP: Record<string, ActiveStep> = {
     [SEARCH_INPUT]: 'search',
     [QUANTITY_INPUT]: 'quantity',
     [DETAILS_INPUT]: 'details',
+    // CREATE_INPUT валиден только в create-режиме — edit никогда не открывает создание.
+    ...(mode.type === 'create' ? { [CREATE_INPUT]: 'create' as ActiveStep } : {}),
   };
 
   const handleFocusCapture = useCallback((e: React.FocusEvent) => {
@@ -116,7 +125,7 @@ export function useDishProductFlow(mode: FlowMode) {
         target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
       });
     });
-  }, [SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT]);
+  }, [SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT, CREATE_INPUT, mode.type]);
 
   const handleClose = () => {
     if (mode.type === 'create') {
@@ -157,7 +166,7 @@ export function useDishProductFlow(mode: FlowMode) {
       // {QUANTITY_INPUT}>, фокус на инпуте ловит onFocusCapture. Синхронный
       // setStep здесь размонтировал бы <label> до делегирования фокуса
       // (см. CLAUDE.md «Label focus delegation»). Совпадает с HomePage-флоу.
-      setDraft((prev) => ({ ...prev, productId: payload.id }));
+      setDraft((prev) => ({ ...prev, productId: payload.id, foodName: payload.name ?? null }));
       return;
     }
 
@@ -171,6 +180,56 @@ export function useDishProductFlow(mode: FlowMode) {
     setDraft(createEmptyDraft());
     setStep('idle');
   };
+
+  // Stash the proposed name in draft when the user clicks «+ Продукт» on
+  // SearchFood's empty state. Step transition to 'create' happens via
+  // onFocusCapture once label htmlFor={CREATE_INPUT} delegates focus.
+  // На DishPage variant всегда product — блюда в блюда не вкладываются.
+  const handlePickCreate = useCallback(
+    (variant: 'product' | 'dish', name: string) => {
+      if (variant !== 'product') return;
+      setDraft((d) => ({
+        ...d,
+        productId: null,
+        foodName: name,
+      }));
+    },
+    [],
+  );
+
+  // Confirm the create-name step: optimistically stamp a UUID into draft so
+  // the subsequent quantity step has a stable id, then fire-and-forget Dexie
+  // write. setStep is NOT called here — Confirm в UI рендерится как <label
+  // htmlFor={QUANTITY_INPUT}> и onFocusCapture флипает шаг после делегации
+  // фокуса. См. CLAUDE.md «Label focus delegation».
+  const handleConfirmCreate = useCallback(
+    (name: string) => {
+      if (mode.type !== 'create') return;
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      const id = crypto.randomUUID();
+      setDraft((d) => ({
+        ...d,
+        productId: id,
+        foodName: trimmed,
+      }));
+      // Rollback the flow if Dexie write fails (quota / IDB locked) — иначе
+      // draft.productId укажет на несуществующую строку и handleCommit
+      // запишет orphan dish_item.
+      const rollback = () => {
+        setStep('idle');
+        setDraft(createEmptyDraft());
+        setSessionKey((k) => k + 1);
+      };
+      void safeMutate(
+        () => createProduct({ id, name: trimmed }),
+        'Не удалось создать продукт',
+      ).then((res) => {
+        if (!res.ok) rollback();
+      });
+    },
+    [mode.type],
+  );
 
   const handleCommit = async () => {
     if (mode.type === 'create') {
@@ -242,8 +301,10 @@ export function useDishProductFlow(mode: FlowMode) {
     handleFocusCapture,
     handleClose,
     handleFoodSelect,
+    handlePickCreate,
+    handleConfirmCreate,
     handleCommit,
     quantityContent,
-    inputIds: { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
+    inputIds: { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT, CREATE_INPUT },
   };
 }

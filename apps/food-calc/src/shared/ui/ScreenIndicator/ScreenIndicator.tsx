@@ -1,4 +1,3 @@
-import clsx from 'clsx';
 import { NavTile } from '@/shared/ui/NavTile';
 import s from './ScreenIndicator.module.scss';
 
@@ -22,9 +21,18 @@ type Props = {
   //   один инстанс на странице).
   activeIndex?: number;
   slideIndex?: number;
+  // Опциональный заголовок под тайлами (HomePage: день недели с большой
+  // буквы). Не задан → band не рендерится (дефолт для product/dish).
+  title?: string;
 };
 
-export const ScreenIndicator = ({ screens, activeIndex, onSelect, slideIndex }: Props) => {
+export const ScreenIndicator = ({
+  screens,
+  activeIndex,
+  onSelect,
+  slideIndex,
+  title,
+}: Props) => {
   const displayIndex = slideIndex ?? activeIndex ?? 0;
   const activeScreen = screens[displayIndex];
   const activeLabel = activeScreen?.label ?? '';
@@ -65,11 +73,11 @@ export const ScreenIndicator = ({ screens, activeIndex, onSelect, slideIndex }: 
         ))}
       </div>
 
-      <div className={s.band}>
-        <span className={clsx([s.bandLabel, s[`bandLabel_${activeScreen.label}`]])}>
-          {activeLabel}
-        </span>
-      </div>
+      {title && (
+        <div className={s.band}>
+          <span className={s.bandLabel}>{title}</span>
+        </div>
+      )}
     </div>
   );
 };

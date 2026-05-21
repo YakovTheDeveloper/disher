@@ -1,49 +1,73 @@
+// Sky-pill: каждая строка-порция = самостоятельная капсула с 3-stop голубым
+// градиентом и focus-halo. Идиома из AutoGrowSearch (warm-pill) пересажена в
+// sky-палитру. Капсулы разделены только gap'ом — `::after`-хайрлайн внутри
+// pill'а смотрелся бы инородно (см. AutoGrowSearch — там один pill = одно поле).
+$sky-bg-from: #fbfdff;
+$sky-bg-mid: #f3f8ff;
+$sky-bg-to: #e6f1ff;
+$sky-stripe: #c7dbf3;
+$sky-ink: rgb(31, 50, 95);
+$sky-ink-soft: rgba(30, 64, 124, 0.55);
+$sky-ink-faint: rgba(30, 64, 124, 0.35);
+$sky-shadow: 0 1px 3px rgba(30, 64, 124, 0.06);
+$sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
+
 .container {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding: 8px 0;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
 }
 
 .hint {
-    margin: 0 4px 8px;
+    margin: 0 8px 8px;
     font-family: "Raleway", sans-serif;
     font-size: 12px;
     font-weight: 300;
     line-height: 1.45;
     letter-spacing: 0.01em;
-    color: rgba(0, 0, 0, 0.42);
+    color: $sky-ink-soft;
 }
 
 .list {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-2);
 }
 
+// View-only pill (and implicit pinned row).
 .portion {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 4px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-    transition: background-color 0.15s ease;
-
-    &:last-child {
-        border-bottom: none;
-    }
+    padding: var(--space-2) var(--space-3);
+    border-radius: 14px;
+    background: linear-gradient(90deg,
+            $sky-bg-from 0%,
+            $sky-bg-mid 55%,
+            $sky-bg-to 100%);
+    box-shadow: $sky-shadow;
+    transition: box-shadow 120ms ease;
 }
 
+// Edit pill — inputs live inside.
 .portionEdit {
     display: grid;
-    grid-template-columns: 1fr 10ch auto auto;
+    grid-template-columns: 1fr 7ch auto auto;
     align-items: center;
-    gap: 10px;
-    padding: 10px 4px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-radius: 14px;
+    background: linear-gradient(90deg,
+            $sky-bg-from 0%,
+            $sky-bg-mid 55%,
+            $sky-bg-to 100%);
+    box-shadow: $sky-shadow;
+    transition: box-shadow 120ms ease;
 
-    &:last-child {
-        border-bottom: none;
+    &:hover,
+    &:focus-within {
+        box-shadow: $sky-shadow-focus;
     }
 }
 
@@ -58,65 +82,62 @@
     font-size: 15px;
     font-weight: 500;
     letter-spacing: 0.01em;
-    color: rgb(60, 60, 60);
+    color: $sky-ink;
 }
 
 .portionGrams {
     font-family: "Jost", sans-serif;
     font-size: 13px;
     font-weight: 300;
-    color: rgba(0, 0, 0, 0.35);
+    color: $sky-ink-soft;
 }
 
 .portionUnitSuffix {
     font-family: "Jost", sans-serif;
     font-size: 13px;
     font-weight: 300;
-    color: rgba(0, 0, 0, 0.4);
+    color: $sky-ink-soft;
     user-select: none;
 }
 
 .iconButton {
     background: none;
     border: none;
-    padding: 6px;
-    color: rgba(0, 0, 0, 0.2);
+    padding: var(--space-1);
+    color: $sky-ink-faint;
     cursor: pointer;
     transition: color 0.15s ease;
     font-size: 16px;
     line-height: 1;
 
     &:hover {
-        color: rgba(0, 0, 0, 0.5);
+        color: $sky-ink;
     }
 }
 
 .formInput {
     border: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     background: transparent;
     font-family: "Raleway", sans-serif;
-    font-size: 15px;
-    font-weight: 400;
-    color: rgb(50, 50, 50);
-    padding: 6px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: $sky-ink;
+    padding: var(--space-1) 0;
     outline: none;
     min-width: 0;
-    transition: border-color 0.2s ease;
-
-    &:focus {
-        border-color: rgba(0, 0, 0, 0.2);
-    }
+    caret-color: $sky-ink;
 
     &::placeholder {
-        color: rgba(0, 0, 0, 0.18);
-        font-weight: 300;
+        color: $sky-ink-faint;
+        font-weight: 400;
     }
 }
 
 .formInputGrams {
     composes: formInput;
     text-align: right;
+    font-family: "Jost", sans-serif;
+    font-variant-numeric: tabular-nums;
 
     &::placeholder {
         font-size: 12px;
@@ -129,15 +150,16 @@
     border: none;
     font-family: "Raleway", sans-serif;
     font-size: 13px;
-    font-weight: 400;
-    letter-spacing: 0.05em;
-    color: rgba(0, 0, 0, 0.25);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: $sky-ink-soft;
     cursor: pointer;
     padding: 12px 16px;
+    margin-top: 4px;
     transition: color 0.15s ease;
 
     &:hover {
-        color: rgba(0, 0, 0, 0.45);
+        color: $sky-ink;
     }
 }
 
@@ -146,7 +168,7 @@
     font-family: "Jost", sans-serif;
     font-size: 14px;
     font-weight: 300;
-    color: rgba(0, 0, 0, 0.2);
+    color: $sky-ink-faint;
     padding: 16px 0;
     font-style: italic;
 }

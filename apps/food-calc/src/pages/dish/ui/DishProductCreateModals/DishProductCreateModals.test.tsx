@@ -74,6 +74,7 @@ vi.mock('@/features/food/food-search', () => ({
     return (
       <div data-testid="search-food">
         <input id={props.inputId} data-testid="search-input" placeholder="search" />
+        <button data-testid="search-back" onClick={() => props.onBack?.()}>back</button>
         <label
           data-testid="select-product-1"
           htmlFor={props.itemHtmlFor}
@@ -396,18 +397,19 @@ describe('DishProductCreateModals — reset after commit', () => {
 // ─── close / back ───────────────────────────────────────────────────────────
 
 describe('DishProductCreateModals — back / close', () => {
-  // In Steps-bar modals the header back arrow closes the whole flow — a
-  // completed step is re-reachable via the Steps breadcrumb, not step-−1.
-  it('header back on a Steps-bar step closes the whole flow', () => {
+  // Header back в Steps-bar модалках = переключение на предыдущий шаг по
+  // линейному порядку stepsForBar. Первый шаг (search) рисуется голым
+  // SearchFood со своим onBack=handleClose.
+  it('header back from quantity step returns to search', () => {
     renderAndSelectProduct();
 
     clickActiveBack();
 
     expect(mockAddDishItem).not.toHaveBeenCalled();
-    expect(document.querySelector('[data-modal-by-label="expanded"]')).toBeNull();
+    expect(screen.getByTestId('search-food')).toBeInTheDocument();
   });
 
-  it('header back from the opt-in details step closes the whole flow', () => {
+  it('header back from the opt-in details step returns to quantity', () => {
     renderAndSelectProduct();
     const detailsInput = document.getElementById(DISH_MODAL_INPUT_IDS.DETAILS_INPUT);
     fireEvent.focus(detailsInput!);
@@ -415,25 +417,52 @@ describe('DishProductCreateModals — back / close', () => {
 
     clickActiveBack();
 
-    expect(document.querySelector('[data-modal-by-label="expanded"]')).toBeNull();
+    expect(screen.getByTestId('product-quantity')).toBeInTheDocument();
   });
 
-  it('resets draft on close so next flow starts fresh', () => {
+  it('back-chain quantity→search keeps draft (next focus does NOT reset)', () => {
     renderAndSelectProduct();
 
-    // Change quantity
+    // Меняем количество
     fireEvent.click(screen.getByTestId('quick-200'));
 
-    // Header back closes the whole flow.
+    // Back: quantity → search
     clickActiveBack();
     expect(mockAddDishItem).not.toHaveBeenCalled();
+    expect(screen.getByTestId('search-food')).toBeInTheDocument();
 
-    // Start a new flow
-    const searchInput = screen.getByTestId('search-input');
-    fireEvent.focus(searchInput);
+    // Заново выбираем продукт — модалка остаётся открытой, draft переезжает.
+    // Количество не сбрасывается, т.к. флоу не закрывался (это не close-then-reopen).
     fireEvent.click(screen.getByTestId('select-product-1'));
 
-    // Quantity should be default 100, not 200
+    expect(latestQuantityProps?.content.quantity).toBe(200);
+  });
+
+  // Раньше это покрывал тест "resets draft on close so next flow starts fresh",
+  // снятый при изменении семантики back. Полный close → reopen всё ещё должен
+  // обнулять draft, иначе stale state перетечёт между сессиями.
+  it('full close (SearchFood back) → reopen → draft сброшен в дефолты', () => {
+    renderAndSelectProduct();
+
+    // Меняем количество и проваливаемся в детали
+    fireEvent.click(screen.getByTestId('quick-200'));
+    const detailsInput = document.getElementById(DISH_MODAL_INPUT_IDS.DETAILS_INPUT);
+    fireEvent.focus(detailsInput!);
+    const textarea = screen.getByTestId('details-textarea') as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: 'варёное' } });
+
+    // Возвращаемся: details → quantity → search
+    clickActiveBack();
+    clickActiveBack();
+    expect(screen.getByTestId('search-food')).toBeInTheDocument();
+
+    // SearchFood back = handleClose (полное закрытие флоу)
+    fireEvent.click(screen.getByTestId('search-back'));
+    expect(document.querySelector('[data-modal-by-label="expanded"]')).toBeNull();
+
+    // Re-open и выбираем продукт — quantity должно быть дефолтное 100, не 200
+    fireEvent.focus(screen.getByTestId('search-input'));
+    fireEvent.click(screen.getByTestId('select-product-1'));
     expect(latestQuantityProps?.content.quantity).toBe(100);
   });
 });

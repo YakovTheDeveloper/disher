@@ -1,5 +1,6 @@
 import { RouterLinks } from '@/app/router';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { parse, isValid } from 'date-fns';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import homeStyles from './HomePage.module.scss';
@@ -36,6 +37,16 @@ const HOME_AMBIENT_VARIANTS = [
 // drop ("11111110099"). Меньшее окно (~300ms) делает spring менее заметным.
 // На пользовательский свайп не влияет — там momentum, не `duration`.
 const SWIPE_DURATION = 0;
+
+// Заголовок индикатора = день недели даты экрана, с большой буквы
+// ("Понедельник"). Intl возвращает lowercase в ru-RU, поэтому капитализируем
+// первый символ вручную.
+const formatWeekdayTitle = (input: string): string => {
+  const date = parse(input, 'dd-MM-yyyy', new Date());
+  if (!isValid(date)) return '';
+  const weekday = new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(date);
+  return weekday.charAt(0).toUpperCase() + weekday.slice(1);
+};
 
 const Page = ({ date }: { date: string }) => {
   const scheduleFoods = useScheduleFoods(date);
@@ -75,22 +86,45 @@ const Page = ({ date }: { date: string }) => {
     swipeableRef.current?.goToPage(idx);
   }, []);
 
+  const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
+
   // ScreenIndicator передаётся в каждый слайд как `topSlot`. slideIndex={0/1/2}
   // → каждый инстанс статично показывает СВОЙ экран (label, image, highlight'-
-  // нутый тайл). Единственная зависимость useMemo — stable handleSelect, поэтому
-  // ссылки на topSlot никогда не меняются → memo на слайд-виджетах держит,
-  // свайп = ноль React-ре-рендеров (Embla двигает DOM сам).
+  // нутый тайл). Зависимости useMemo — stable handleSelect + weekdayTitle
+  // (меняется только при смене даты, не на свайпе) → memo на слайд-виджетах
+  // держит, свайп = ноль React-ре-рендеров (Embla двигает DOM сам).
   const labIndicator = useMemo(
-    () => <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={0} />,
-    [handleSelect]
+    () => (
+      <ScreenIndicator
+        screens={SCREENS}
+        onSelect={handleSelect}
+        slideIndex={0}
+        title={weekdayTitle}
+      />
+    ),
+    [handleSelect, weekdayTitle]
   );
   const foodIndicator = useMemo(
-    () => <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={1} />,
-    [handleSelect]
+    () => (
+      <ScreenIndicator
+        screens={SCREENS}
+        onSelect={handleSelect}
+        slideIndex={1}
+        title={weekdayTitle}
+      />
+    ),
+    [handleSelect, weekdayTitle]
   );
   const eventsIndicator = useMemo(
-    () => <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={2} />,
-    [handleSelect]
+    () => (
+      <ScreenIndicator
+        screens={SCREENS}
+        onSelect={handleSelect}
+        slideIndex={2}
+        title={weekdayTitle}
+      />
+    ),
+    [handleSelect, weekdayTitle]
   );
 
   return (

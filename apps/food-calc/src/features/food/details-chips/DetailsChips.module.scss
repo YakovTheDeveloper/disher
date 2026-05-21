@@ -3,7 +3,7 @@
   flex-direction: column;
   gap: var(--space-2);
   width: 100%;
-  padding-top: var(--space-4);
+  // padding-top: var(--space-4);
 }
 
 // Инпут чуть отступает от краёв (читаемая колонка), чипы ниже — почти во
@@ -12,13 +12,50 @@
   padding-inline: var(--space-2);
 }
 
-.section {
+// Чипы рендерятся унифицированным <Chip> из shared/ui/atoms/Chip — здесь
+// остаётся только раскладка контейнера.
+.chips {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  flex-wrap: wrap;
+  gap: var(--dc-chip-gap, var(--space-2));
+  padding: 2px var(--space-1);
 }
 
-.sectionLabel {
+// Hairline между built-in и пользовательской группой — канон stripe-fork
+// divider (fading hairline вместо solid border).
+.separator {
+  align-self: stretch;
+  height: 1px;
+  margin: var(--space-1) var(--space-4);
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(124, 65, 15, 0.14) 18%,
+      rgba(124, 65, 15, 0.14) 82%,
+      transparent 100%);
+  pointer-events: none;
+}
+
+.customGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+// iOS Safari: иначе долгий тап (long-press → delete в CustomChip) вытягивает
+// системное меню «Копировать/Поделиться» и перехватывает жест ~300мс раньше
+// нашего 500мс таймера. user-select: none убирает text selection, которая
+// на iOS триггерится тем же long-press'ом. Класс ставится напрямую на корне
+// CustomChip — НЕ зависит от того, что Chip рендерит `<button>` верхнего
+// уровня (если в будущем Chip обернёт content в `<span>`, fix не отвалится).
+.customChipPress {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+// Лейбл только над пользовательской группой — built-in группа дефолтная и
+// в подписи не нуждается; «Ваши теги» подписывает то, что отличается от базы.
+// Тот же канон, что был раньше в showSectionLabels=true (Source Serif italic).
+.customLabel {
   font-family: "Source Serif 4", "Merriweather", serif;
   font-style: italic;
   font-size: var(--text-lg);
@@ -29,11 +66,12 @@
   padding-inline: var(--space-4);
 }
 
-// Чипы рендерятся унифицированным <Chip> из shared/ui/atoms/Chip — здесь
-// остаётся только раскладка контейнера.
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--dc-chip-gap, var(--space-2));
-  padding: 2px var(--space-1);
+.hint {
+  margin: 0;
+  padding-inline: var(--space-4);
+  font-family: "Onest", "YS Text", "Golos Text", system-ui, sans-serif;
+  font-size: var(--text-xs, 12px);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  color: rgba(31, 42, 68, 0.5);
 }

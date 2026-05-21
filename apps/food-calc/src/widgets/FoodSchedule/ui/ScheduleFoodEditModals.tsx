@@ -51,7 +51,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         position="absolute"
         isExpanded={step === 'time'}
         content={
-          <ModalShell>
+          <ModalShell variant="spring4">
             <ModalShell.Header title={STEP_LABELS.time} onBack={handleClose} />
             <ModalShell.Body>
               <TimeChoose
@@ -72,7 +72,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         position="absolute"
         isExpanded={step === 'quantity'}
         content={
-          <ModalShell>
+          <ModalShell variant="spring4">
             <ModalShell.Header title={STEP_LABELS.quantity} onBack={handleClose} />
             <ModalShell.Body>
               <ProductQuantity
@@ -94,7 +94,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         position="absolute"
         isExpanded={step === 'details'}
         content={
-          <ModalShell>
+          <ModalShell variant="spring4">
             <ModalShell.Header title={STEP_LABELS.details} onBack={handleClose} />
             <ModalShell.Body flush>
               <DetailsStep

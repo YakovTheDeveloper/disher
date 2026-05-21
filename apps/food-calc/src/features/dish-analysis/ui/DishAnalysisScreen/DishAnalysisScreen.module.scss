@@ -29,19 +29,23 @@
     letter-spacing: -0.01em;
 }
 
+// Sky CTA — solid #c7dbf3 + deep-ink. Shared palette with FoodPortionsManager
+// pill rows and WriteFoodButton.sky on DishBuilderPage.
 .runButton {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 20px;
+    padding: 12px 22px;
     border: 0;
     border-radius: 999px;
-    background-color: var(--color-primary, #111);
-    color: var(--color-on-primary, #fff);
+    background-color: #c7dbf3;
+    color: rgb(31, 50, 95);
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
+    box-shadow: 0 1px 4px rgba(30, 64, 124, 0.18);
     -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s ease;
 
     &:active {
         transform: scale(0.97);
@@ -58,14 +62,21 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 14px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 10px 18px;
+    border: 0;
     border-radius: 999px;
-    background-color: transparent;
-    color: rgba(0, 0, 0, 0.72);
+    background-color: #c7dbf3;
+    color: rgb(31, 50, 95);
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
+    box-shadow: 0 1px 4px rgba(30, 64, 124, 0.18);
     -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s ease;
+
+    &:active {
+        transform: scale(0.97);
+    }
 
     &:disabled {
         opacity: 0.5;

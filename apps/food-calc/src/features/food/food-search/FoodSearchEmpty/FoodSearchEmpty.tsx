@@ -20,6 +20,47 @@ const PlusIcon = () => (
   </svg>
 );
 
+// Яблоко — «единичный продукт». Силуэт тела (с лёгкой выемкой сверху по центру),
+// черенок-линия и листок справа.
+const AppleIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+    className={styles.trailingIcon}
+  >
+    <path d="M12 8c-1 0-2-1-3.5-1-2.5 0-4 2-4 4.5 0 3.5 2 7.5 4.5 7.5 1 0 1.5-.5 2-.5s1 .5 2 .5c2.5 0 4.5-4 4.5-7.5 0-2.5-1.5-4.5-4-4.5-1.5 0-2.5 1-3.5 1z" />
+    <path d="M12 8V5" />
+    <path d="M12 6c2-2 4-.5 3 1.5-2 .5-3.5-.3-3-1.5z" />
+  </svg>
+);
+
+// Чаша с фруктами — «многосоставное блюдо». Два круглых фрукта над прямым
+// ободом чаши, под ним полу-эллипс корпуса.
+const FruitBowlIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+    className={styles.trailingIcon}
+  >
+    <circle cx="9" cy="10" r="2.5" />
+    <circle cx="14.5" cy="10" r="2.5" />
+    <path d="M3 13h18" />
+    <path d="M4 13c0 4 3.5 6.5 8 6.5s8-2.5 8-6.5" />
+  </svg>
+);
+
 type Props = {
   query: string;
   onCreateProduct?: () => void;
@@ -50,12 +91,14 @@ export const FoodSearchEmpty = ({
     <>
       <PlusIcon />
       <span className={styles.pillTitle}>Продукт</span>
+      <AppleIcon />
     </>
   );
   const dishContent = (
     <>
       <PlusIcon />
       <span className={styles.pillTitle}>Блюдо</span>
+      <FruitBowlIcon />
     </>
   );
 
@@ -68,8 +111,8 @@ export const FoodSearchEmpty = ({
       )}
       <p className={styles.prompt}>Нету нужной еды? Создать в два клика</p>
       <div className={styles.actions}>
-        {onCreateDish && (
-          asLabel ? (
+        {onCreateDish &&
+          (asLabel ? (
             <label
               htmlFor={createInputHtmlFor}
               className={styles.pillSecondary}
@@ -81,10 +124,9 @@ export const FoodSearchEmpty = ({
             <button className={styles.pillSecondary} onClick={onCreateDish}>
               {dishContent}
             </button>
-          )
-        )}
-        {onCreateProduct && (
-          asLabel ? (
+          ))}
+        {onCreateProduct &&
+          (asLabel ? (
             <label
               htmlFor={createInputHtmlFor}
               className={styles.pillPrimary}
@@ -96,8 +138,7 @@ export const FoodSearchEmpty = ({
             <button className={styles.pillPrimary} onClick={onCreateProduct}>
               {productContent}
             </button>
-          )
-        )}
+          ))}
       </div>
     </div>
   );

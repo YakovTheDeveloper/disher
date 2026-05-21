@@ -1,0 +1,139 @@
+.popover {
+  // Поверх ModalBackdrop (6000) и ModalPopup (6001+10·nested) — иначе popover
+  // прячется под fullscreen ModalByLabel, в котором живёт WriteFoodModal.
+  // См. CLAUDE.md §«Z-index strategy».
+  z-index: 7000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 280px;
+  max-width: 92vw;
+  padding: var(--space-4);
+  background: linear-gradient(135deg, #fffefb 0%, #fef8ec 100%);
+  border: 1px solid var(--border-subtle, rgba(124, 65, 15, 0.16));
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 12px 32px -8px rgba(31, 42, 68, 0.18),
+    0 4px 12px -4px rgba(31, 42, 68, 0.1);
+  // Block touch swipes from bubbling to surrounding Drawer (Base UI swipe-ignore).
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--text-lg);
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.nameInput {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border-subtle, rgba(124, 65, 15, 0.16));
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--easing-default),
+    box-shadow var(--duration-fast) var(--easing-default);
+
+  &:focus-visible {
+    border-color: var(--tod-day-outline-to, #f0c850);
+    box-shadow: 0 0 0 3px rgba(240, 200, 80, 0.25);
+  }
+}
+
+.dupHint {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  background: rgba(240, 200, 80, 0.16);
+  border-left: 2px solid var(--tod-day-outline-to, #f0c850);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.dupName {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dupSource {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.btnGhost,
+.btnSecondary,
+.btnPrimary {
+  background: transparent;
+  border: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--duration-fast) var(--easing-default),
+    color var(--duration-fast) var(--easing-default),
+    transform var(--press-in, 0.1s) ease;
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.btnGhost {
+  color: var(--text-tertiary);
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--border-hairline);
+    color: var(--text-secondary);
+    outline: none;
+  }
+}
+
+.btnSecondary {
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle, rgba(124, 65, 15, 0.16));
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--border-hairline);
+    outline: none;
+  }
+}
+
+.btnPrimary {
+  color: var(--color-white);
+  background-color: var(--color-ink);
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+
+  &:hover,
+  &:focus-visible {
+    background-color: color-mix(in oklch, var(--color-ink) 88%, white);
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}

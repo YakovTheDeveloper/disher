@@ -96,7 +96,7 @@ const EditHypothesisModal = ({ hypothesisId, isExpanded, onClose }: Props) => {
       position="absolute"
       isExpanded={isExpanded}
       content={
-        <ModalShell variant="spring">
+        <ModalShell variant="spring4">
           <ModalShell.Header title="Гипотеза" onBack={onClose} />
           <ModalShell.Body>
             <div className={styles.fields}>

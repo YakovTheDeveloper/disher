@@ -1,12 +1,18 @@
 export { WriteFoodButton } from './ui/WriteFoodButton';
 export { WriteFoodModal } from './ui/WriteFoodModal';
 export { WriteFoodModals } from './ui/WriteFoodModals';
-export { FreeTextFoodReviewItem, type ReviewItemVariant } from './ui/FreeTextFoodReviewItem';
+export { FreeTextFoodReviewItem } from './ui/FreeTextFoodReviewItem';
 export { useRecentlyAddedStore } from './model/recentlyAddedStore';
 export { useWriteFoodFlow } from './model/useWriteFoodFlow';
-export type { UseWriteFoodFlowResult, WriteFoodFlowState } from './model/useWriteFoodFlow';
+export type {
+  UseWriteFoodFlowResult,
+  WriteFoodFlowState,
+  ReviewEditStep,
+  ReviewRowView,
+  ReviewRowUpdates,
+} from './model/useWriteFoodFlow';
 export type { ParseTarget } from './model/target';
-export { getReviewUrl, getStorageKey, targetId, getWriteFoodInputId } from './model/target';
+export { getStorageKey, targetId, getWriteFoodInputId } from './model/target';
 export {
   readParseState,
   writeParseState,

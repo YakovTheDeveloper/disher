@@ -10,16 +10,19 @@ type Props<T> = {
   group: TimeGroupUI<T>;
   renderAside?: (group: TimeGroupUI<T>) => JSX.Element | null;
   onTimeClick?: (group: TimeGroupUI<T>) => void;
-  isFuture?: boolean;
 };
 
-const TimeGroup = <T,>({ children, group, renderAside, onTimeClick, isFuture }: Props<T>) => {
+const TimeGroup = <T,>({ children, group, renderAside, onTimeClick }: Props<T>) => {
   const disabled = !onTimeClick;
   const timeOffsetFromPreviousGroupView = formatOffset(group.offset);
+  const timeView =
+    group.startTime === group.endTime
+      ? group.startTime
+      : `${group.startTime}-${group.endTime}`;
 
   return (
     <motion.ul
-      className={clsx(styles.container, isFuture && styles.future)}
+      className={styles.container}
     >
       <header className={styles.header}>
         <div className={styles.headerCenter}>
@@ -29,7 +32,7 @@ const TimeGroup = <T,>({ children, group, renderAside, onTimeClick, isFuture }: 
             className={clsx([styles.message_time, styles.message])}
             onClick={() => onTimeClick?.(group)}
           >
-            {group.time}
+            {timeView}
           </button>
           {group.offset && (
             <span className={clsx([styles.message_delta, styles.message])}>

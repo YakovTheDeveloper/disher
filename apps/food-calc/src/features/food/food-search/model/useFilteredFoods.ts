@@ -2,23 +2,35 @@ import { useMemo } from 'react';
 import Fuse from 'fuse.js';
 import { useProducts, useNutrientsByProductIds } from '@/entities/product';
 import { useDishes } from '@/entities/dish';
+import { isCatalogId } from '@/shared/data/catalog';
 
 const FUSE_THRESHOLD = 0.35;
 const FUSE_MIN_LEN = 2;
 
-export function useFilteredFoods(searchQuery: string, richNutrientId?: string | null) {
+export function useFilteredFoods(
+  searchQuery: string,
+  richNutrientId?: string | null,
+  userOnlyProducts = false,
+) {
   const allProductsRaw = useProducts();
   const allDishesRaw = useDishes();
 
+  // pre-filter BEFORE Fuse-index — иначе для нового юзера Fuse вернёт catalog-хиты,
+  // которые мы выкинем постфактум и получим пустой список при ненулевом совпадении.
+  const productsBase = useMemo(
+    () => (userOnlyProducts ? allProductsRaw.filter((p) => !isCatalogId(p.id)) : allProductsRaw),
+    [allProductsRaw, userOnlyProducts],
+  );
+
   const productFuse = useMemo(
     () =>
-      new Fuse(allProductsRaw, {
+      new Fuse(productsBase, {
         keys: ['name'],
         threshold: FUSE_THRESHOLD,
         ignoreLocation: true,
         includeScore: true,
       }),
-    [allProductsRaw]
+    [productsBase]
   );
 
   const dishFuse = useMemo(
@@ -34,9 +46,9 @@ export function useFilteredFoods(searchQuery: string, richNutrientId?: string | 
 
   const allProducts = useMemo(() => {
     const q = searchQuery.trim();
-    if (q.length < FUSE_MIN_LEN) return allProductsRaw;
+    if (q.length < FUSE_MIN_LEN) return productsBase;
     return productFuse.search(q).map((r) => r.item);
-  }, [searchQuery, allProductsRaw, productFuse]);
+  }, [searchQuery, productsBase, productFuse]);
 
   const dishes = useMemo(() => {
     const q = searchQuery.trim();

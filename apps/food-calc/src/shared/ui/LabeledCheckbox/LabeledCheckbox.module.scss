@@ -1,9 +1,61 @@
+// Warm-pill обвязка под образец AutoGrowSearch: 3-stop тёплый градиент (в
+// «light-wash» интенсивности — заметно слабее инпута, чтобы не перетягивать
+// внимание), fading-hairline снизу через ::after и soft warm-shadow.
+// Квадратик чекбокса носит ту же warm-cocoa палитру: border в idle,
+// сплошная заливка в checked. Анимации composite-only (background, opacity).
 .container {
-    display: inline-flex;
+    position: relative;
+    display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    background: linear-gradient(
+        90deg,
+        #fffefe 0%,
+        #fffdfa 55%,
+        #fef9ed 100%
+    );
+    box-shadow: 0 1px 3px rgba(124, 65, 15, 0.04);
     cursor: pointer;
     user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: box-shadow 120ms ease;
+
+    &::after {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(124, 65, 15, 0.18) 18%,
+            rgba(124, 65, 15, 0.18) 82%,
+            transparent 100%
+        );
+        pointer-events: none;
+        transition: background 120ms ease;
+    }
+
+    &:hover,
+    &:focus-within {
+        box-shadow: 0 1px 8px rgba(124, 65, 15, 0.08);
+    }
+
+    &:hover::after,
+    &:focus-within::after {
+        background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(124, 65, 15, 0.36) 18%,
+            rgba(124, 65, 15, 0.36) 82%,
+            transparent 100%
+        );
+    }
 
     &.disabled {
         opacity: 0.4;
@@ -15,23 +67,23 @@
     appearance: none;
     width: 20px;
     height: 20px;
-    border: 1.5px solid #8e8e93;
-    border-radius: 4px;
+    border: 1.5px solid rgba(124, 65, 15, 0.45);
+    border-radius: 5px;
     background: transparent;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease;
     flex-shrink: 0;
 
     &:checked {
-        background: #8e8e93;
-        border-color: #8e8e93;
+        background: rgba(124, 65, 15, 0.92);
+        border-color: rgba(124, 65, 15, 0.92);
 
         &::after {
             content: '';
             display: block;
             width: 6px;
             height: 10px;
-            border: solid white;
+            border: solid #fff;
             border-width: 0 2px 2px 0;
             transform: rotate(45deg) translate(-1px, -1px);
             margin: 3px auto;
@@ -43,14 +95,16 @@
     }
 
     &:focus-visible {
-        outline: 2px solid #8e8e93;
+        outline: 2px solid rgba(124, 65, 15, 0.55);
         outline-offset: 2px;
     }
 }
 
 .label {
+    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 15px;
+    font-weight: 500;
     line-height: 1.4;
-    color: #3a3a3c;
-    font-weight: 400;
+    letter-spacing: -0.005em;
+    color: rgba(31, 31, 31, 0.85);
 }

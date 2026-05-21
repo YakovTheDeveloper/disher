@@ -11,12 +11,10 @@
   min-height: 50px;
   padding: 0 16px;
   border-radius: var(--field-radius, 24px);
-  background: linear-gradient(
-    90deg,
-    var(--field-bg-from, #fffefb) 0%,
-    var(--field-bg-mid, #fffaf2) 55%,
-    var(--field-bg-to, #fdf4e3) 100%
-  );
+  background: linear-gradient(90deg,
+      var(--field-bg-from, #fffefb) 0%,
+      var(--field-bg-mid, #fffaf2) 55%,
+      var(--field-bg-to, #fdf4e3) 100%);
   color: var(--field-text, rgb(31, 31, 31));
   box-shadow: var(--field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
   transition: box-shadow 120ms ease;
@@ -28,13 +26,11 @@
     right: 14px;
     bottom: 0;
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      var(--field-hairline, rgba(124, 65, 15, 0.18)) 18%,
-      var(--field-hairline, rgba(124, 65, 15, 0.18)) 82%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--field-hairline, rgba(124, 65, 15, 0.18)) 18%,
+        var(--field-hairline, rgba(124, 65, 15, 0.18)) 82%,
+        transparent 100%);
     pointer-events: none;
     transition: background 120ms ease;
   }
@@ -46,13 +42,11 @@
 
   &:hover::after,
   &:focus-within::after {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
-      var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
+        var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
+        transparent 100%);
   }
 }
 

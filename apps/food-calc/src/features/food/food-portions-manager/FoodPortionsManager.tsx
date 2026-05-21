@@ -27,6 +27,18 @@ type Props = {
   onAdd?: (portion: Portion) => void;
   onUpdate?: (label: string, updates: Partial<Portion>) => void;
   onRemove?: (label: string) => void;
+  /**
+   * Default `true`. Set to `false` on screens that move the "Add portion"
+   * affordance to a page-level bottom bar (ProductPage / DishBuilderPage
+   * «Порции»-slide). The widget then only renders the list itself.
+   */
+  showAddButton?: boolean;
+  /**
+   * Default `true`. Set to `false` on the «Порции»-slide of ProductPage /
+   * DishBuilderPage, which floats the hint as an absolute caption under the
+   * screen title instead.
+   */
+  showHint?: boolean;
 };
 
 const GRAM_UNITS = new Set(['г', 'g', 'G']);
@@ -40,7 +52,10 @@ function defaultHint(unit: string): string {
 
 const DEFAULT_LABEL_BASE = 'моя порция';
 
-function nextDefaultLabel(existing: Portion[]): string {
+// Exported: ProductPage / DishBuilderPage call this from the page-level
+// bottom-bar «Добавить порцию» button to pre-compute the next free label
+// without rebuilding the helper.
+export function nextDefaultPortionLabel(existing: Portion[]): string {
   const labels = new Set(existing.map((p) => p.label));
   if (!labels.has(DEFAULT_LABEL_BASE)) return DEFAULT_LABEL_BASE;
   let n = 2;
@@ -56,13 +71,25 @@ const FoodPortionsManager: FC<Props> = ({
   onAdd,
   onUpdate,
   onRemove,
+  showAddButton = true,
+  showHint = true,
 }) => {
   const editable = !!(onAdd && onUpdate && onRemove);
   const hintText = hint ?? defaultHint(unit);
 
   const handleAdd = useCallback(() => {
-    onAdd?.({ label: nextDefaultLabel(portions), grams: 0 });
+    onAdd?.({ label: nextDefaultPortionLabel(portions), grams: 0 });
   }, [portions, onAdd]);
+
+  // Nothing to render: no portions, no derived/implicit row, hint suppressed,
+  // and the add-affordance lives elsewhere (page-level bottom bar). Skip the
+  // container entirely so the screen doesn't show an empty padded box.
+  const hasNothingToShow =
+    portions.length === 0 &&
+    !implicitPortion &&
+    !(editable && showHint) &&
+    !(editable && showAddButton);
+  if (hasNothingToShow) return null;
 
   // Label is the row key — collisions break React reconciliation. На blur
   // откатываем пустые/дублирующие значения визуально, в state не уходим.
@@ -97,7 +124,7 @@ const FoodPortionsManager: FC<Props> = ({
 
   return (
     <div className={s.container}>
-      {editable && <p className={s.hint}>{hintText}</p>}
+      {editable && showHint && <p className={s.hint}>{hintText}</p>}
 
       {portions.length === 0 && !implicitPortion && !editable && (
         <div className={s.empty}>нет порций</div>
@@ -154,7 +181,7 @@ const FoodPortionsManager: FC<Props> = ({
         )}
       </div>
 
-      {editable && (
+      {editable && showAddButton && (
         <button type="button" className={s.addButton} onClick={handleAdd}>
           + добавить порцию
         </button>

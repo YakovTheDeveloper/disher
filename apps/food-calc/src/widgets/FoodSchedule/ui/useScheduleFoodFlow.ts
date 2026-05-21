@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { addScheduleFood, updateScheduleFood } from '@/entities/schedule-food';
-import { createProduct, useProductPortions } from '@/entities/product';
+import { createProduct, setProductNutrients, useProductPortions } from '@/entities/product';
 import { createDish, useDishPortions } from '@/entities/dish';
 import { persistCustomTagsFromDetails } from '@/features/food/details-chips';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { highlightListItem } from '@/shared/lib/emitter/emitter';
+import { useRecentlyAddedStore } from '@/features/food/food-free-text-parse';
 import toaster from '@/shared/lib/toaster/toaster';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 
@@ -198,12 +198,12 @@ export function useScheduleFoodFlow(mode: FlowMode) {
 
   useOverlayHistory(step !== 'idle', handleClose);
 
+  // Шаг 'time' переключается на 'quantity' ТОЛЬКО кликом по нижней кнопке
+  // подтверждения (она = `<label htmlFor={QUANTITY_INPUT}>`, фокус ловит
+  // onFocusCapture). Изменения часов/минут/«Сейчас»/native blur просто
+  // обновляют draft, не двигают флоу.
   const handleTimeFinish = (time: string) => {
-
     setDraft((prev) => ({ ...prev, time }));
-    if (mode.type === 'create') {
-      setStep('quantity');
-    }
   };
 
   // Stash the chosen variant + proposed name in the draft when the user clicks
@@ -230,7 +230,10 @@ export function useScheduleFoodFlow(mode: FlowMode) {
   // would unmount this modal before the native event finishes bubbling and
   // kill the focus delegation (see CLAUDE.md "Label focus delegation").
   const handleConfirmCreate = useCallback(
-    (name: string, opts?: { isSupplement?: boolean }) => {
+    (
+      name: string,
+      opts?: { isSupplement?: boolean; nutrients?: Record<string, number> },
+    ) => {
       if (mode.type !== 'create') return;
       const trimmed = name.trim();
       if (!trimmed) return;
@@ -265,7 +268,20 @@ export function useScheduleFoodFlow(mode: FlowMode) {
           ? () => createProduct({ id, name: trimmed, isSupplement: opts?.isSupplement })
           : () => createDish(trimmed, id);
       void safeMutate(mutation, errorMsg).then((res) => {
-        if (!res.ok) rollback();
+        if (!res.ok) {
+          rollback();
+          return;
+        }
+        // Для БАД — записываем введённые в модалке нутриенты (per 1 шт).
+        // Best-effort: ошибку покажет setProductNutrients через toaster,
+        // продукт уже создан, флоу не откатываем.
+        const n = opts?.nutrients;
+        if (variant === 'product' && n && Object.keys(n).length > 0) {
+          void safeMutate(
+            () => setProductNutrients(id, JSON.stringify(n)),
+            'Не удалось сохранить нутриенты',
+          );
+        }
       });
     },
     [draft.variant, mode],
@@ -335,12 +351,12 @@ export function useScheduleFoodFlow(mode: FlowMode) {
             const newId = res.value;
             void persistCustomTagsFromDetails(snapshot.productId, snapshot.details);
             toaster.success('Добавлено в расписание');
+            useRecentlyAddedStore.getState().addMany([newId]);
             requestAnimationFrame(() => {
               setTimeout(() => {
                 const el = document.querySelector(`[data-schedule-food-id="${newId}"]`);
                 if (el) {
                   el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-                  highlightListItem(newId);
                 }
               }, 150);
             });

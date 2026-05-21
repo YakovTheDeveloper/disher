@@ -69,7 +69,7 @@
 }
 
 // Strip wrapper visual chrome (the .wrapper div has padding/border/bg/shadow).
-.timeEdit > div {
+.timeEdit>div {
     padding: 0;
     background: transparent;
     border: 0;
@@ -203,11 +203,17 @@
     padding-left: var(--space-2);
 }
 
-.recentFreeText {
-    background: var(--surface-muted, #e5e5e5);
-    outline: 3px dotted var(--color-danger, #d32f2f);
-    outline-offset: -3px;
-    border-radius: 8px;
+// Лавандовая подложка позади всей строки — растянута на всю ширину
+// viewport (inset -100vw по бокам), pill сохраняет свой tropic цвет.
+// Скругления минимальные (2px) — на краях экрана почти не заметны.
+.recentFreeTextWrapper::before {
+    content: '';
+    position: absolute;
+    inset: var(--space-2) -100vw;
+    background-color: rgba(180, 150, 220, 0.40);
+    border-radius: 2px;
+    z-index: 0;
+    pointer-events: none;
 }
 
 .customTitle {

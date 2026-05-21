@@ -1,1 +1,1 @@
-export { default as FoodPortionsManager } from './FoodPortionsManager';
+export { default as FoodPortionsManager, nextDefaultPortionLabel } from './FoodPortionsManager';

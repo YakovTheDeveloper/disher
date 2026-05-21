@@ -42,9 +42,13 @@ const ScheduleFoodItemInline = ({
   const toggleSelectedId = selectionStore.getState().toggleSelectedId;
   const isRecentFromFreeText = useRecentlyAddedStore((s) => s.ids.has(id));
 
-  const dismissRecent = () => {
-    if (isRecentFromFreeText) useRecentlyAddedStore.getState().remove(id);
-  };
+  useEffect(() => {
+    if (!isRecentFromFreeText) return;
+    const timer = setTimeout(() => {
+      useRecentlyAddedStore.getState().remove(id);
+    }, 15000);
+    return () => clearTimeout(timer);
+  }, [isRecentFromFreeText, id]);
 
   const commitTime = (time: string) => {
     safeMutate(
@@ -91,7 +95,6 @@ const ScheduleFoodItemInline = ({
   // stash our item id on the input synchronously on pointerdown so the focus
   // capture handler in FoodSchedule knows which item to prime for editing.
   const handleFoodPointerDown = () => {
-    dismissRecent();
     if (foodHtmlFor) {
       const trigger = document.getElementById(foodHtmlFor);
       if (trigger) trigger.dataset.activeItemId = id;
@@ -113,8 +116,8 @@ const ScheduleFoodItemInline = ({
         className,
         styles.group,
         isCustom && styles.customProduct,
-        isRecentFromFreeText && styles.recentFreeText,
       ])}
+      wrapperClassName={clsx(isRecentFromFreeText && styles.recentFreeTextWrapper)}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={id}
       tod={getTimeOfDay(item.time)}
@@ -168,10 +171,7 @@ const ScheduleFoodItemInline = ({
         ) : (
           <span
             className={styles.qtyEdit}
-            onClick={() => {
-              dismissRecent();
-              setEditingQty(true);
-            }}
+            onClick={() => setEditingQty(true)}
           >
             {qtyDisplay}
             <span className={styles.qtyUnit}>{getQtyUnit(item.product)}</span>

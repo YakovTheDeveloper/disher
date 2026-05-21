@@ -26,6 +26,12 @@ type Props = {
   writeFoodFlow: UseWriteFoodFlowResult;
   writeFoodInputId: string;
   writeFoodLabel?: string;
+  /**
+   * Repaint the CTA pill as sky (solid #c7dbf3 + deep-ink). Default `false` →
+   * dark purple-navy pill (HomePage canon, time-of-day-tinted). Opt-in for
+   * DishBuilderPage where the page is unified around the sky palette.
+   */
+  writeFoodSky?: boolean;
   /** htmlFor of the search input. Each consumer points at its own MODAL_INPUT_IDS.SEARCH_INPUT. */
   searchHtmlFor: string;
   searchLabel?: string;
@@ -46,6 +52,7 @@ export const AppBottomBar = ({
   writeFoodFlow,
   writeFoodInputId,
   writeFoodLabel = 'Опишите, что ели…',
+  writeFoodSky = false,
   searchHtmlFor,
   searchLabel,
   searchText,
@@ -62,7 +69,8 @@ export const AppBottomBar = ({
         inputId={writeFoodInputId}
         label={writeFoodLabel}
         className={s.dockPrimary}
-        dark
+        dark={!writeFoodSky}
+        sky={writeFoodSky}
       />
 
       <label

@@ -1,9 +1,8 @@
 // ScreenIndicator — 3-tile indicator. Анимации сведены к одной opacity-
 // transition по запросу юзера. Никаких transform/scale/border-color
-// переходов, никакого View Transitions морфа title — title в band просто
-// меняется на новый. Активная плитка скрывается через `opacity: 0`,
-// при этом ОСТАЁТСЯ в layout (место в потоке сохраняется → 3-колоночная
-// сетка не схлопывается).
+// переходов. Активная плитка скрывается через `opacity: 0`, при этом
+// ОСТАЁТСЯ в layout (место в потоке сохраняется → 3-колоночная сетка
+// не схлопывается).
 
 .root {
     position: relative;
@@ -11,6 +10,7 @@
     flex-direction: column;
     padding: 0 var(--space-1);
     background: transparent;
+    padding-top: var(--space-3);
 }
 
 .tilesRow {
@@ -45,10 +45,13 @@
     user-select: none;
 }
 
+// Опциональная подпись под тайлами. Рендерится только если ScreenIndicator
+// получил `title` (HomePage передаёт день недели с большой буквы;
+// product/dish — не передают, band скрыт).
 .band {
     position: relative;
     width: 100%;
-    height: 88px;
+    min-height: 90px;
     background: transparent;
     flex-shrink: 0;
     display: flex;
@@ -57,18 +60,23 @@
     overflow: visible;
 }
 
-// Картинка активного экрана. Живёт в `.root` (не в `.band`), занимает
-// всю высоту индикатора — от верха тайлов до низа band. Колонка
-// активного тайла задаётся через `--active-idx` / `--tiles-total`
-// CSS-vars, прокинутые из JSX. Ширина — 2× ширины одного тайла,
-// opacity 0.04 (вдвое меньше, чем `.tileImg` в плиточке).
-//
-// `left` КЛАМПИТСЯ через clamp(): родитель (Screen.screenScroll) имеет
-// overflow-x:hidden, поэтому image для крайних тайлов (0 и 2) при
-// «центр под колонкой»-позиционировании вылезала за границу .root и
-// обрезалась. clamp удерживает image целиком внутри .root: для tile=0
-// упирается левым краем в 0, для tile=2 — правым в 100%, для центра
-// остаётся под колонкой.
+.bandLabel {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    font-family: var(--heading-font, "Source Serif 4", "Merriweather", serif);
+    font-style: var(--heading-style, italic);
+    font-weight: var(--heading-weight, 600);
+    font-size: 48px;
+    line-height: 1;
+    letter-spacing: var(--heading-letter, -0.3px);
+    color: rgba(0, 0, 0, 0.75);
+    white-space: nowrap;
+}
+
+// Картинка активного экрана. Живёт в `.root`. Колонка активного тайла
+// задаётся через `--active-idx` / `--tiles-total` CSS-vars, прокинутые
+// из JSX. Ширина — 100%, aspect-ratio 1, opacity 0.03.
 .bandImg {
     position: absolute;
     left: -20%;
@@ -87,18 +95,4 @@
         right: 20px;
         top: 30%;
     }
-}
-
-.bandLabel {
-    position: relative;
-    z-index: 1;
-    display: inline-block;
-    font-family: var(--heading-font, "Source Serif 4", "Merriweather", serif);
-    font-style: var(--heading-style, italic);
-    font-weight: var(--heading-weight, 600);
-    font-size: var(--heading-size, 2.5rem);
-    line-height: 1;
-    letter-spacing: var(--heading-letter, -0.7px);
-    color: #000000;
-    white-space: nowrap;
 }

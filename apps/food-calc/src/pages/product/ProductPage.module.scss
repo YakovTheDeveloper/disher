@@ -16,7 +16,8 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding-inline: var(--space-4);
+    padding-inline: var(--space-5);
+    padding-block-start: var(--space-2);
     padding-block-end: var(--space-3);
 }
 
@@ -107,7 +108,16 @@
 // снизу контейнеру Nutrients (последний блок страницы). Учитываем iOS
 // safe-area.
 .nutrientsTail {
+    padding-inline: var(--space-4);
     padding-block-end: max(var(--space-6), env(safe-area-inset-bottom, 0px));
+}
+
+// Wrap для FoodPortionsManager на «Порции»-слайде. Сам компонент рисует
+// внутри `padding: var(--space-2) var(--space-3)` (12px); добавляем
+// небольшой внешний gutter, чтобы суммарный inset был ~16px — как у
+// quantity-строки и нутриентов.
+.portionsScreenInset {
+    padding-inline: var(--space-1);
 }
 
 // ─── Segmented control ────────────────────────────────────────────
@@ -179,6 +189,51 @@
     color: #7c410f;
     appearance: none;
     -webkit-appearance: none;
+}
+
+// Sky-bar with «Добавить порцию» CTA on the «Порции»-slide. Geometry mirrors
+// AppBottomBar dock so the slide reads as a single page-level bar.
+.portionsBar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 16px 16px;
+}
+
+.addPortionButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 18px;
+    min-height: 44px;
+    border-radius: 999px;
+    border: none;
+    background: #c7dbf3;
+    color: rgb(31, 50, 95);
+    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(30, 64, 124, 0.18);
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s ease;
+
+    &:active {
+        transform: scale(0.97);
+    }
+}
+
+.addPortionPlus {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
 }
 
 .massWarning {

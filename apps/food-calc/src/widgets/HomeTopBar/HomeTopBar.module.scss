@@ -51,17 +51,13 @@
   width: 100%;
   box-sizing: border-box;
   padding: var(--bar-pad-y) var(--bar-pad-x);
-  background: var(--bar-bg);
-  border-bottom: var(--bar-border);
-  border-bottom-right-radius: var(--bar-radius);
-  border-bottom-left-radius: var(--bar-radius);
-  box-shadow: var(--bar-shadow);
+  background: transparent;
+  border: none;
+  box-shadow: none;
   font-size: 13px;
   line-height: 1.2;
   font-family: var(--seg-font);
   letter-spacing: var(--seg-letter);
-
-  background: rgba(255, 255, 255, 1);
 }
 
 // Центральный заголовок (название продукта/блюда). Лежит абсолютно поверх
@@ -93,6 +89,18 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
+  // Плавное появление/исчезновение при `data-hidden` toggle (страницы
+  // блюда/продукта переключают через scroll-threshold). Без transition
+  // переход выглядит как резкий jank.
+  opacity: 1;
+  transition: opacity 0.18s ease-out;
+
+  // `data-hidden` ставится parent'ом, когда страница хочет спрятать центр
+  // бара (hero на странице ещё виден). Прозрачность 0, события мыши отключены.
+  &[data-hidden='true'] {
+    opacity: 0;
+    pointer-events: none;
+  }
 
   // Имена в каталоге продуктов хранятся lowercase («абрикос») — sentence-case
   // первой буквы средствами CSS, не строкой. Тот же паттерн, что в
@@ -118,14 +126,23 @@
   }
 }
 
-// AccountPanel — первый flex-child pill'а. Слева, перед leadingSlot
+// AccountPanel — первый flex-child. Слева, перед leadingSlot
 // (nav-tiles в hero-варианте) и dateSegment (margin-left:auto уводит
-// дату вправо). Без своего фона — avatar читается как есть.
+// дату вправо). Сам слот теперь — «парящая» круглая pill'а с
+// фоном/тенью/blur'ом (унаследованным из --bar-* токенов), вместо
+// общего контейнерного фона.
 .accountSlot {
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   margin-right: 4px;
+  background: var(--bar-bg);
+  border: var(--bar-border);
+  box-shadow: var(--bar-shadow);
+  border-radius: var(--radius-full, 999px);
+  backdrop-filter: blur(var(--bar-blur));
+  -webkit-backdrop-filter: blur(var(--bar-blur));
 }
 
 .segment {
@@ -151,17 +168,16 @@
 }
 
 .dateSegment {
-  --date-bg: transparent;
-  --date-border: none;
-  --date-shadow: none;
-  --date-radius: 6px;
-  --date-pad-x: 8px;
-  --date-pad-y: 2px;
+  --date-radius: 16px;
+  --date-pad-x: 14px;
+  --date-pad-y: 8px;
 
-  background: var(--date-bg);
-  border: var(--date-border);
-  box-shadow: var(--date-shadow);
+  background: var(--bar-bg);
+  border: var(--bar-border);
+  box-shadow: var(--bar-shadow);
   border-radius: var(--date-radius);
+  backdrop-filter: blur(var(--bar-blur));
+  -webkit-backdrop-filter: blur(var(--bar-blur));
   padding: var(--date-pad-y) var(--date-pad-x);
   margin-left: auto;
 }
@@ -206,7 +222,7 @@
 
 .dateNumeralDay {
   font-family: "Source Serif 4", "Merriweather", serif;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 500;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -217,7 +233,7 @@
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.2;
   letter-spacing: 0.1em;
   text-transform: lowercase;

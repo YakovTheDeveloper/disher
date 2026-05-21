@@ -157,7 +157,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         position="absolute"
         isExpanded={step === 'text'}
         content={
-          <ModalShell className={modalStyles.whiteShell}>
+          <ModalShell variant="spring4" className={modalStyles.whiteShell}>
             <ModalShell.StepHeader
               title={STEP_LABELS.text}
               currentStep="text"
@@ -188,7 +188,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         position="absolute"
         isExpanded={step === 'time'}
         content={
-          <ModalShell className={modalStyles.whiteShell}>
+          <ModalShell variant="spring4" className={modalStyles.whiteShell}>
             <ModalShell.StepHeader
               title={STEP_LABELS.time}
               currentStep="time"
@@ -223,7 +223,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
         position="absolute"
         isExpanded={step === 'atoms'}
         content={
-          <ModalShell className={modalStyles.whiteShell}>
+          <ModalShell variant="spring4" className={modalStyles.whiteShell}>
             {!atomPanelOpen && (
               <ModalShell.StepHeader
                 title={STEP_LABELS.atoms}
