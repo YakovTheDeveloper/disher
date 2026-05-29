@@ -304,6 +304,32 @@ $row-hairline:        rgba(31, 42, 68, 0.08);
     }
 }
 
+// ── Touch row floor (canon: list-item min-height) ──────────────────────────
+// Industry 2026: Apple HIG 44, Material 3 48, WCAG 2.2 AAA 44.
+// 48px = пересечение всех канонов. Применяй на row-карточки, которые
+// сами являются единым кликабельным элементом ИЛИ wrapper-driven
+// (padding-block на wrapper'е, без cell-canon).
+//
+// Для cell-driven рядов (ScheduleFoodItem) min-height живёт на ячейках
+// через --row-cell-min-h — этот mixin не нужен.
+//
+// `align-content: center` — современная (CSS Box Alignment Level 3) альтернатива
+// flex-centering: работает одновременно на block, grid, и flex layout'ах. НЕ
+// меняет display родителя, поэтому консумеры могут пробрасывать свои layout-
+// классы (e.g. ScheduleFoodItemInline пробрасывает `.group` с display: grid
+// в `<SelectableListItem className=...>` — это попадает на тот же div, что и
+// .commonListItemInner; flex centering сломал бы grid). Safari 17.4+ /
+// Chrome 117+ / Firefox 125+ — iOS PWA минимум 17, OK.
+//
+// НЕ применяй на:
+//   - grid-карточки в плотных N-col grid'ах (NutrientCard)
+//   - chip-row'ы (DetailsChips)
+//   - inline-toggle / pill-кнопки
+@mixin row-touch() {
+    min-height: var(--row-min-h-touch);
+    align-content: center;
+}
+
 @mixin blink($color1, $color2, $time) {
     @keyframes blink {
 

@@ -8,10 +8,29 @@ import { DetailsStep } from '@/features/food/details-chips';
 import { getProductUrl, RouterUrls } from '@/app/router';
 
 import { STEP_LABELS, type ScheduleFoodFlow } from './useScheduleFoodFlow';
+import s from './ScheduleFoodEditModals.module.scss';
 
 type Props = {
   flow: ScheduleFoodFlow;
 };
+
+const InfoIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="0.75" />
+    <text
+      x="12"
+      y="17"
+      textAnchor="middle"
+      fill="currentColor"
+      fontFamily="'Source Serif 4', 'Source Serif Pro', Georgia, serif"
+      fontStyle="italic"
+      fontSize="16"
+      fontWeight="300"
+    >
+      i
+    </text>
+  </svg>
+);
 
 const ScheduleFoodEditModals = ({ flow }: Props) => {
   const navigate = useNavigate();
@@ -43,6 +62,10 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
     handleClose();
     navigate(href);
   };
+
+  const detailsTitle = draft.foodName
+    ? draft.foodName.charAt(0).toUpperCase() + draft.foodName.slice(1)
+    : STEP_LABELS.details;
 
   return (
     <div onFocusCapture={handleFocusCapture}>
@@ -95,15 +118,25 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
         isExpanded={step === 'details'}
         content={
           <ModalShell variant="spring4">
-            <ModalShell.Header title={STEP_LABELS.details} onBack={handleClose} />
+            <ModalShell.Header
+              title={detailsTitle}
+              onBack={handleClose}
+              trailing={
+                infoTarget ? (
+                  <button
+                    type="button"
+                    className={s.infoBtn}
+                    aria-label={infoTarget.label}
+                    onClick={handleInfoClick(infoTarget.href)}
+                  >
+                    <InfoIcon />
+                  </button>
+                ) : undefined
+              }
+            />
             <ModalShell.Body flush>
               <DetailsStep
-                title={draft.foodName || 'Уточнение'}
-                info={
-                  infoTarget
-                    ? { label: infoTarget.label, onClick: handleInfoClick(infoTarget.href) }
-                    : null
-                }
+                foodName={draft.foodName ?? null}
                 textareaId={DETAILS_INPUT}
                 value={draft.details}
                 onChange={(value) => setDraft((d) => ({ ...d, details: value }))}

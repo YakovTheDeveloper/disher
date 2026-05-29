@@ -22,10 +22,9 @@ import { removeScheduleFoods } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
 import { CopyToClipboardButton, PasteFromClipboardButton } from '@/features/clipboard';
-import { NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
-import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
-import type { NutrientTotals } from '@/shared/lib/nutrients';
 import type { ClipboardItem } from '@/shared/model/clipboardStore';
+import { Heading } from '@/shared/ui/atoms/Typography/Heading';
+import { formatWeekdayTitle } from '@/shared/lib/time/formatWeekday';
 
 // Cheerful pastel families with semantic time-of-day progression
 // (lightest at morning, deepening towards graphite at night).
@@ -39,9 +38,9 @@ const FOOD_DV_VARIANTS = [
   'twilight',
 ] as const;
 import {
-  WriteFoodModals,
   useWriteFoodFlow,
   getWriteFoodInputId,
+  InlineWriteFoodReview,
 } from '@/features/food/food-free-text-parse';
 
 const TrashIcon = () => (
@@ -57,12 +56,12 @@ const TrashIcon = () => (
   </svg>
 );
 
+// `totals` / `missingNutrientNames` / `isLoading` уехали в HomePage — там же
+// открывается NutrientsDrawer из HomeTopBar центральной pill (эксперимент
+// 2026-05-21). FoodSchedule больше не владеет агрегатами нутриентов.
 type CommonProps = {
   date: string;
   items: ScheduleFoodWithRelations[];
-  totals: NutrientTotals;
-  missingNutrientNames?: string[];
-  isLoading?: boolean;
   richNutrient?: { id: string; unit: string } | null;
   onRichNutrientClear?: () => void;
   isActive?: boolean;
@@ -72,9 +71,6 @@ type CommonProps = {
 const FoodSchedule = ({
   date,
   items,
-  totals,
-  missingNutrientNames,
-  isLoading,
   richNutrient,
   onRichNutrientClear,
   isActive = true,
@@ -93,14 +89,6 @@ const FoodSchedule = ({
 
   // Design-variant picker for the food list palette (graphite-blue family).
   const { anchor: foodAnchor } = useDesignVariant('ScheduleFood', FOOD_DV_VARIANTS);
-
-  const openNutrients = useCallback(() => {
-    void drawerStore.show(
-      NutrientsDrawer,
-      { totals, missingNutrientNames, isLoading },
-      { side: 'left', width: 'min(85vw, 360px)' }
-    );
-  }, [totals, missingNutrientNames, isLoading]);
 
   const startEdit = editFlow.startEdit;
   const onEditTime = useCallback(
@@ -139,6 +127,7 @@ const FoodSchedule = ({
   );
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
+  const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
 
   const setSelectedIdsRef = useRef(setSelectedIds);
   setSelectedIdsRef.current = setSelectedIds;
@@ -174,9 +163,9 @@ const FoodSchedule = ({
 
   return (
     <Screen
+      className={styles.scheduleScreen}
       stickyTop={topSlot}
       headerOverlap
-      hollow={items.length === 0}
       overlay={
         <>
           {isActive ? (
@@ -189,7 +178,9 @@ const FoodSchedule = ({
               <div onFocusCapture={handleEditFocusCapture}>
                 <ScheduleFoodEditModals flow={editFlow} />
               </div>
-              <WriteFoodModals flow={writeFoodFlow} inputId={writeFoodInputId} />
+              {/* WriteFoodModals overlay removed: real AutoGrowSearch теперь
+                  живёт прямо в AppBottomBar (writeFoodInputLike). Лишний
+                  `<input id={writeFoodInputId}>` тут дал бы дубль id'а. */}
             </>
           ) : null}
         </>
@@ -219,16 +210,18 @@ const FoodSchedule = ({
             writeFoodInputId={writeFoodInputId}
             searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
             searchLabel="Найти еду"
-            searchText={'Добавить \nиз списка'}
-            writeFoodLabel="Чем питались?"
-            leadingSlot={<NutrientsSummaryButton totals={totals} onClick={openNutrients} />}
+            searchText="Еда"
+            writeFoodPlaceholder="Введите, что вы ели и когда"
           />
         ) : null
       }
     >
+      <div className={styles.weekdayHeading}>
+        <Heading size="section">{weekdayTitle}</Heading>
+      </div>
       <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
       <div {...foodAnchor} className={styles.foodListAnchor}>
-        <ItemsList offsetTop>
+        <ItemsList>
           {(() => {
             let globalIndex = 0;
             const rendered = groups.map((group) => (
@@ -261,6 +254,11 @@ const FoodSchedule = ({
           })()}
         </ItemsList>
       </div>
+      {/* Предложка переехала ПОД список (2026-05-23): chat-pattern — место
+          результата рядом с местом ввода (bottom-bar). Во время loading
+          рендерится skeleton-блок со спиннером; auto-scroll триггерится из
+          AppBottomBar.handleSubmit (привязан к user-action). */}
+      <InlineWriteFoodReview flow={writeFoodFlow} />
     </Screen>
   );
 };

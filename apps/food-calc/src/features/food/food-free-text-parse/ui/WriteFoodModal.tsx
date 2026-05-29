@@ -63,19 +63,17 @@ export const WriteFoodModal = ({
     hideTime,
     totalToAdd,
     isSubmitting,
-    deletedItem,
 
     editingUid,
     editingStep,
     editingRowView,
 
-    deleteResolved,
-    deleteAmbiguous,
-    deleteUnresolved,
+    toggleResolved,
+    toggleAmbiguous,
+    toggleUnresolved,
     updateResolved,
     updateAmbiguous,
     updateUnresolved,
-    handleUndo,
     startEdit,
     closeEdit,
     setEditingStep,
@@ -95,6 +93,14 @@ export const WriteFoodModal = ({
   // resolved.
   const showOriginalText =
     state === 'ready' && (ambiguous.length > 0 || unresolved.length > 0);
+
+  // Все ряды dismissed (юзер кликнул × на каждом) — добавить нечего, остаётся
+  // только закрыть. См. InlineWriteFoodReview — CTA унифицирован.
+  const allDismissed =
+    readyCount > 0 &&
+    resolved.every((r) => !r.enabled) &&
+    ambiguous.every((a) => !a.enabled) &&
+    unresolved.every((u) => !u.enabled);
 
   const handleCancel = useCallback(() => {
     cancel();
@@ -227,11 +233,12 @@ export const WriteFoodModal = ({
                                 uid={r.uid}
                                 item={r}
                                 hideTime={hideTime}
+                                dismissed={!r.enabled}
                                 onStartEdit={startEdit}
                                 onDeleteNote={() =>
                                   updateResolved(r.uid, { details: '' })
                                 }
-                                onDeleteItem={() => deleteResolved(r.uid)}
+                                onToggleItem={() => toggleResolved(r.uid)}
                                 onCommitTime={(uid, time) =>
                                   updateResolved(uid, { time })
                                 }
@@ -270,6 +277,7 @@ export const WriteFoodModal = ({
                                     productId: a.selectedId ?? '',
                                   }}
                                   hideTime={hideTime}
+                                  dismissed={!a.enabled}
                                   isAmbiguous
                                   candidates={a.candidates}
                                   selectedCandidateId={a.selectedId}
@@ -280,7 +288,7 @@ export const WriteFoodModal = ({
                                   onDeleteNote={() =>
                                     updateAmbiguous(a.uid, { details: '' })
                                   }
-                                  onDeleteItem={() => deleteAmbiguous(a.uid)}
+                                  onToggleItem={() => toggleAmbiguous(a.uid)}
                                   onCommitTime={(uid, time) =>
                                     updateAmbiguous(uid, { time })
                                   }
@@ -316,13 +324,14 @@ export const WriteFoodModal = ({
                                   productId: u.manual?.id ?? '',
                                 }}
                                 hideTime={hideTime}
+                                dismissed={!u.enabled}
                                 isUnresolved={!u.manual}
                                 wasRescued={!!u.manual}
                                 onStartEdit={startEdit}
                                 onDeleteNote={() =>
                                   updateUnresolved(u.uid, { details: '' })
                                 }
-                                onDeleteItem={() => deleteUnresolved(u.uid)}
+                                onToggleItem={() => toggleUnresolved(u.uid)}
                                 onCommitTime={(uid, time) =>
                                   updateUnresolved(uid, { time })
                                 }
@@ -364,18 +373,6 @@ export const WriteFoodModal = ({
                   onCreateNew={handleRescueCreateNew}
                 />
 
-                {deletedItem && (
-                  <div className={styles.undoSnackbar}>
-                    <span>Удалено</span>
-                    <button
-                      type="button"
-                      className={styles.undoBtn}
-                      onClick={handleUndo}
-                    >
-                      ← Отменить
-                    </button>
-                  </div>
-                )}
               </div>
             )}
 
@@ -404,16 +401,20 @@ export const WriteFoodModal = ({
                   <ModalNextButton onClick={() => {}} label="Ожидаем…" disabled />
                 ) : state === 'ready' ? (
                   <ModalNextButton
-                    onClick={handleCommit}
+                    onClick={allDismissed ? handleCancel : handleCommit}
                     label={
                       isSubmitting
                         ? 'Добавляем…'
                         : totalToAdd > 0
                           ? `Добавить ${totalToAdd}`
-                          : 'Нечего добавлять'
+                          : allDismissed
+                            ? 'Отменить'
+                            : 'Нечего добавлять'
                     }
                     variant="finish"
-                    disabled={isSubmitting || totalToAdd === 0}
+                    disabled={
+                      isSubmitting || (totalToAdd === 0 && !allDismissed)
+                    }
                   />
                 ) : (
                   <ModalNextButton onClick={retry} label="Повторить" />

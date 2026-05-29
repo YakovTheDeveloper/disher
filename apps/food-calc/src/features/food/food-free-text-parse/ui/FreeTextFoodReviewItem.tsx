@@ -23,7 +23,6 @@ interface FreeTextFoodReviewItemProps {
     originalName: string;
     quantity: number;
     time: string;
-    quantityGuessed?: boolean;
     productId?: string;
   };
   isAmbiguous?: boolean;
@@ -41,13 +40,29 @@ interface FreeTextFoodReviewItemProps {
   onSelectCandidate?: (id: string) => void;
   onStartEdit: (uid: string, step: ReviewEditTarget) => void;
   onDeleteNote?: () => void;
-  onDeleteItem?: () => void;
+  /**
+   * Soft-delete toggle: callback переключает `enabled` в источнике. Ряд
+   * остаётся в списке, визуально перечёркнут (data-dismissed='true'),
+   * кнопка показывает ↶ вместо ×. Тап ещё раз — undo. Заменил прежний
+   * hard-delete `onDeleteItem` после миграции DishBuilder на тот же
+   * паттерн, что в [[InlineWriteFoodReview]] (Todoist/Things канон).
+   */
+  onToggleItem?: () => void;
+  /** True когда `enabled === false` в источнике — рисует strikethrough + ↶. */
+  dismissed?: boolean;
   onCommitTime: (uid: string, time: string) => void;
   onCommitQuantity: (uid: string, quantity: number) => void;
   onClickRescue?: (uid: string, anchor: HTMLElement) => void;
   hideTime?: boolean;
   searchInputId: string;
   detailsInputId: string;
+  /**
+   * Полный override `STATUS_PALETTE[status]` — публикует `--tod-*` /
+   * `--accent-stripe` на wrapper. Используется `InlineWriteFoodReview`
+   * чтобы предложка читалась как обычный ScheduleFoodItem (белая/серая
+   * заливка), а не warm/coral по статусу.
+   */
+  paletteOverride?: CSSProperties;
 }
 
 // Per-group palette — overrides --tod-* CSS-vars read by SelectableListItem.
@@ -90,13 +105,15 @@ export const FreeTextFoodReviewItem = ({
   isUnresolved,
   wasRescued,
   onStartEdit,
-  onDeleteItem,
+  onToggleItem,
+  dismissed,
   onCommitTime,
   onCommitQuantity,
   onClickRescue,
   hideTime,
   searchInputId,
   detailsInputId,
+  paletteOverride,
 }: FreeTextFoodReviewItemProps) => {
   const hasNote = item.details.trim().length > 0;
   const showOriginalFallback = isUnresolved && !item.productId;
@@ -111,7 +128,7 @@ export const FreeTextFoodReviewItem = ({
     : isAmbiguous
       ? 'ambiguous'
       : 'resolved';
-  const paletteStyle = STATUS_PALETTE[statusKey] as CSSProperties;
+  const paletteStyle = (paletteOverride ?? STATUS_PALETTE[statusKey]) as CSSProperties;
 
   // Show rescue button only when row is truly unresolved (no manual yet).
   const showRescueBtn = !!(isUnresolved && !item.productId && onClickRescue);
@@ -154,7 +171,7 @@ export const FreeTextFoodReviewItem = ({
       style={paletteStyle}
       innerClassName={styles.inner}
     >
-      <div className={styles.row}>
+      <div className={styles.row} data-dismissed={dismissed ? 'true' : undefined}>
         {/* Time (inline) */}
         {hideTime ? (
           <span />
@@ -198,6 +215,7 @@ export const FreeTextFoodReviewItem = ({
               {item.details}
             </label>
           )}
+
         </div>
 
         {/* Quantity (inline) */}
@@ -231,9 +249,6 @@ export const FreeTextFoodReviewItem = ({
           >
             {qtyDisplay}
             <span className={styles.qtyUnit}>г</span>
-            {item.quantityGuessed && (
-              <span className={styles.qtyGuessed}>оценено</span>
-            )}
           </span>
         )}
 
@@ -257,15 +272,23 @@ export const FreeTextFoodReviewItem = ({
           <span />
         )}
 
-        {/* Delete (×) */}
-        <button
-          type="button"
-          className={styles.deleteBtn}
-          onClick={onDeleteItem}
-          aria-label="Удалить"
-        >
-          ×
-        </button>
+        {/* Toggle (×/↶) — soft-delete: тап dismiss'ит ряд (`enabled=false`)
+            визуально перечёркивая его, тап ещё раз — undo. Раньше тут был
+            hard-delete + toast-snackbar, после миграции DishBuilder
+            2026-05-23 — единый паттерн с InlineWriteFoodReview.
+            Inline-варианты (InlineWriteFoodReview) НЕ передают onToggleItem
+            и поднимают × НАРУЖУ ряда. */}
+        {onToggleItem && (
+          <button
+            type="button"
+            className={styles.deleteBtn}
+            onClick={onToggleItem}
+            aria-label={dismissed ? 'Вернуть' : 'Удалить'}
+          >
+            <span className={styles.iconDismiss} aria-hidden="true">×</span>
+            <span className={styles.iconUndo} aria-hidden="true">↶</span>
+          </button>
+        )}
       </div>
     </SelectableListItem>
   );

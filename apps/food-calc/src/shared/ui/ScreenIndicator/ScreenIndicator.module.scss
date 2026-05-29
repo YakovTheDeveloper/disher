@@ -17,6 +17,7 @@
     display: grid;
     flex-shrink: 0;
     gap: var(--space-1);
+    padding-top: var(--space-6);
     // 3 равные колонки. Активная плитка НЕ рендерится в DOM, но её
     // колонка остаётся пустой — оставшиеся плитки попадают в свои
     // позиции через inline `grid-column-start` (см. ScreenIndicator.tsx).
@@ -66,11 +67,10 @@
     display: inline-block;
     font-family: var(--heading-font, "Source Serif 4", "Merriweather", serif);
     font-style: var(--heading-style, italic);
-    font-weight: var(--heading-weight, 600);
+    font-weight: 500;
     font-size: 48px;
     line-height: 1;
-    letter-spacing: var(--heading-letter, -0.3px);
-    color: rgba(0, 0, 0, 0.75);
+    color: rgba(0, 0, 0, 0.8);
     white-space: nowrap;
 }
 

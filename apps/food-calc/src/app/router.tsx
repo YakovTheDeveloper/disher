@@ -9,7 +9,6 @@ import ProductPage from '@/pages/product/ProductPage.tsx';
 import { ScheduleFoodAnalyticsPage } from '@/pages/schedule/analytics/schedule-analytics-page/ScheduleFoodAnalyticsPage/index.ts';
 import AnalysesPage from '@/pages/analyses/AnalysesPage.tsx';
 import SettingsPage from '@/pages/settings/SettingsPage/SettingsPage.tsx';
-import SystemPage from '@/pages/settings/SystemPage/SystemPage.tsx';
 import NutrientArticlesPage from '@/pages/articles/NutrientArticlesPage.tsx';
 import NutrientArticlePage from '@/pages/articles/NutrientArticlePage.tsx';
 import ShareReceivePage from '@/pages/share/ShareReceivePage.tsx';
@@ -28,7 +27,6 @@ export enum RouterLinks {
   Analyses = '/analyses',
   Product = '/product',
   Settings = '/settings',
-  System = '/system',
   NutrientArticles = '/articles/nutrients',
   NutrientArticle = '/articles/nutrients/:folder',
   Share = '/share',
@@ -83,10 +81,6 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.Settings,
         element: <SettingsPage />,
-      },
-      {
-        path: RouterLinks.System,
-        element: <SystemPage />,
       },
       {
         path: RouterLinks.NutrientArticles,

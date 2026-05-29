@@ -14,7 +14,7 @@ const ActionsPanel = ({ children, left, show, onBack }: Props) => {
   return (
     <div className={styles.actions}>
       <div className={styles.actionsGroup}>
-        <button onClick={onBack}>
+        <button type="button" className={styles.back} onClick={onBack} aria-label="Назад">
           <ArrowLeftIcon />
         </button>
         {left}

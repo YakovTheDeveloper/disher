@@ -66,10 +66,11 @@
   outline: none;
   resize: none;
   background: transparent;
-  font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 22px;
+  font-family: var(--field-font-family, 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif);
+  font-weight: var(--field-font-weight, 500);
+  font-size: var(--field-font-size, 16px);
+  font-style: var(--field-font-style, normal);
+  line-height: var(--field-line-height, 22px);
   letter-spacing: -0.005em;
   color: var(--field-text, rgb(31, 31, 31));
   padding: 14px 0 3px;
@@ -80,6 +81,11 @@
 
   &::placeholder {
     color: var(--field-placeholder, rgba(124, 65, 15, 0.45));
+    font-family: var(--field-placeholder-family, inherit);
+    font-style: var(--field-placeholder-style, inherit);
+    font-weight: var(--field-placeholder-weight, inherit);
+    font-size: var(--field-placeholder-size, inherit);
+    letter-spacing: var(--field-placeholder-letter, inherit);
   }
 }
 

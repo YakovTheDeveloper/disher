@@ -12,7 +12,10 @@ $header-height: 50px;
     display: flex;
     gap: 8px;
     padding: 8px 12px;
-    background: rgba(247, 248, 250, 0.8);
+    // Прозрачная подложка, чтобы тёплый/лавандовый список ниже визуально
+    // продолжался под заголовком. blur оставляем — он мягчит то, что скроллит
+    // под полем поиска.
+    background: transparent;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: none;
@@ -60,82 +63,119 @@ $header-height: 50px;
 }
 
 // ─── Filter toggle (бинарный pill-переключатель Еда / Мое) ───────────────────
-// Две короткие pill'ы рядом — активная заполнена, неактивная outline.
-// Геометрия фиксированная (auto-width по тексту), без 2-строчных «прыжков».
+// Pill'ы стоят справа от поля поиска и зеркалят канон Chip из
+// shared/ui/atoms/Chip (DetailsChips «Особенности приёма»): тёплый
+// pill-градиент + тёплый бордюр, активная — тёмная заливка.
+// Высота 40px — нижняя граница touch-floor для chip-trigger.
 
 .filterToggle {
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
 }
 
 .filterPill {
+    appearance: none;
     flex-shrink: 0;
-    height: 32px;
-    padding: 0 12px;
-    border: 1px solid rgba(10, 10, 10, 0.12);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid rgb(255, 198, 160);
     border-radius: 9999px;
-    background: transparent;
+    background: linear-gradient(135deg, #fffbf1 0%, #fffcf8 60%, #fff9ee 100%);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
+    line-height: 1.1;
     letter-spacing: -0.005em;
-    color: rgba(10, 10, 10, 0.7);
-    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+    color: rgb(0, 0, 0);
+    transition:
+        background 140ms ease,
+        color 140ms ease,
+        border-color 140ms ease,
+        transform 80ms ease;
+
+    &:hover,
+    &:focus-visible {
+        border-color: rgba(124, 65, 15, 0.24);
+        outline: none;
+    }
 
     &:active {
-        background: rgba(10, 10, 10, 0.05);
+        transform: scale(0.96);
     }
 }
 
 .filterPillActive {
-    background: #0a0a0a;
-    border-color: #0a0a0a;
-    color: #ffffff;
-    font-weight: 600;
-
-    &:active {
-        background: #1a1a1a;
-    }
+    background: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
+    border-color: rgba(124, 65, 15, 0.5);
+    color: rgba(255, 255, 255, 1);
 }
 
-// ─── Inlined search input ────────────────────────────────────────────────────
+// ─── Inlined search input (warm-pill, surface-driven) ───────────────────────
+// Зеркалит AutoGrowSearch shell: 3-stop gradient + fading hairline ::after +
+// тёплая placeholder/иконка/каретка. Палитра приходит из `body[data-surface]`
+// (surfaces.scss) — warm на HomePage, lavender на Dish/Product.
 
 .searchWrapper {
     display: flex;
     align-items: center;
     position: relative;
-    background: #f2f4f7;
     flex: 1;
     min-width: 0;
-    border-radius: 9999px;
     border: none;
-    padding: 0 14px;
+    padding: 0 16px;
     height: 44px;
-    transition: background 0.15s ease;
+    border-radius: var(--field-radius, 24px);
+    background: linear-gradient(90deg,
+        var(--field-bg-from, #fffefb) 0%,
+        var(--field-bg-mid, #fffaf2) 55%,
+        var(--field-bg-to, #fdf4e3) 100%);
+    color: var(--field-text, rgb(31, 31, 31));
+    box-shadow: var(--field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
+    transition: box-shadow 120ms ease;
+
+    &::after {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+            transparent 0%,
+            var(--field-hairline, rgba(124, 65, 15, 0.18)) 18%,
+            var(--field-hairline, rgba(124, 65, 15, 0.18)) 82%,
+            transparent 100%);
+        pointer-events: none;
+        transition: background 120ms ease;
+    }
 
     &:has(input:focus) {
-        background: #eef1f5;
-        box-shadow: 0 0 0 3px rgba(51, 112, 255, 0.18);
+        box-shadow: var(--field-shadow-focus, 0 1px 8px rgba(124, 65, 15, 0.12));
 
-        & .searchIcon {
-            opacity: 0.85;
+        &::after {
+            background: linear-gradient(90deg,
+                transparent 0%,
+                var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
+                var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
+                transparent 100%);
         }
     }
 }
 
 .searchIcon {
-    opacity: 0.55;
     pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 1.1rem;
-    color: #5c6473;
+    color: var(--field-adornment, rgba(124, 65, 15, 0.55));
 
     svg {
         width: 18px;
@@ -145,16 +185,18 @@ $header-height: 50px;
 
 .searchInput {
     flex: 1;
+    width: 100%;
+    min-width: 0;
     border: none;
     padding-left: 10px;
     padding-right: 8px;
     line-height: 1.2;
-    caret-color: #3370ff;
+    caret-color: var(--field-caret, #b76d1a);
     font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-size: 1rem;
     font-weight: 500;
     letter-spacing: -0.005em;
-    color: rgb(38, 38, 51);
+    color: var(--field-text, rgb(31, 31, 31));
     outline: transparent;
     background: transparent;
 
@@ -170,7 +212,7 @@ $header-height: 50px;
 
     &::placeholder {
         font-weight: 500;
-        color: #8e939e;
+        color: var(--field-placeholder, rgba(124, 65, 15, 0.45));
         font-style: normal;
         font-size: 1rem;
         letter-spacing: -0.005em;
@@ -193,14 +235,14 @@ $header-height: 50px;
     padding: 0;
     border: none;
     border-radius: 9999px;
-    background: rgba(10, 10, 10, 0.12);
+    background: var(--field-hairline-focus, rgba(124, 65, 15, 0.36));
     color: #ffffff;
     cursor: pointer;
     transition: background 0.15s ease;
     flex-shrink: 0;
 
     &:active {
-        background: rgba(10, 10, 10, 0.28);
+        background: var(--field-caret, #b76d1a);
     }
 
     svg {

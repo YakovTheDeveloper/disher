@@ -42,6 +42,36 @@
   align-items: center;
   min-width: 0;
   width: 100%;
+  position: relative;
+
+  // Soft-delete (inline-undo, Todoist/Things канон). data-dismissed='true'
+  // ставится из WriteFoodModal через prop `dismissed={!enabled}`. Линия
+  // появляется мгновенно (юзер выбрал no-animation 2026-05-23), content
+  // тускнеет до opacity 0.55. Кнопка delete остаётся кликабельной — она и
+  // есть undo-аффорданс (swapped × → ↶).
+  &::after {
+    content: '';
+    position: absolute;
+    left: var(--space-3);
+    right: var(--space-3);
+    top: 50%;
+    height: 1px;
+    background: rgba(31, 42, 68, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  &[data-dismissed='true'] {
+    > *:not(.deleteBtn) {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    &::after {
+      opacity: 1;
+    }
+  }
 }
 
 // ─── Time (inline, как HomePage) ────────────────────────────────
@@ -268,12 +298,6 @@
   font-weight: 500;
 }
 
-.qtyGuessed {
-  font-size: var(--text-xs);
-  color: var(--text-tertiary);
-  font-style: italic;
-  margin-left: 4px;
-}
 
 // ─── Action buttons ─────────────────────────────────────────────
 
@@ -315,9 +339,8 @@
   border: 0;
   width: 28px;
   height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   font-size: var(--text-lg);
   line-height: 1;
   color: var(--text-tertiary);
@@ -326,6 +349,23 @@
   padding: 0;
   transition: background-color var(--duration-fast) var(--easing-default),
     color var(--duration-fast) var(--easing-default);
+
+  // Swap × ↔ ↶ через grid-stack: оба glyph'а монтированы (aria-label
+  // переключается родителем для screen-readers), opacity-flip без
+  // transition — мгновенно, согласовано с мгновенным появлением
+  // strikethrough-линии.
+  .iconDismiss,
+  .iconUndo {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .iconUndo {
+    opacity: 0;
+    font-size: var(--text-base);
+  }
 
   &:hover,
   &:focus-visible {
@@ -338,3 +378,14 @@
     transform: scale(0.9);
   }
 }
+
+.row[data-dismissed='true'] .deleteBtn {
+  .iconDismiss {
+    opacity: 0;
+  }
+
+  .iconUndo {
+    opacity: 1;
+  }
+}
+

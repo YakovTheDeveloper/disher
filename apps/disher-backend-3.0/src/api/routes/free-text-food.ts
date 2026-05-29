@@ -35,7 +35,6 @@ interface ResolvedItem {
   quantity: number;
   time: string;
   confidence: number;
-  quantityGuessed?: boolean;
 }
 
 interface AmbiguousItem {
@@ -44,7 +43,6 @@ interface AmbiguousItem {
   quantity: number;
   time: string;
   candidates: MatchCandidate[];
-  quantityGuessed?: boolean;
 }
 
 interface UnresolvedItem {
@@ -52,7 +50,6 @@ interface UnresolvedItem {
   details: string;
   quantity: number;
   time: string;
-  quantityGuessed?: boolean;
 }
 
 interface ParseResponse {
@@ -316,8 +313,7 @@ async function resolveItems(
     const details = typeof item.details === "string" ? item.details.trim() : "";
 
     const rawQty = typeof item.quantity === "number" && isFinite(item.quantity) ? item.quantity : 0;
-    const quantityGuessed = rawQty <= 0;
-    const quantity = quantityGuessed ? QUANTITY_FALLBACK_G : Math.round(rawQty);
+    const quantity = rawQty <= 0 ? QUANTITY_FALLBACK_G : Math.round(rawQty);
 
     const normalizedName = normalizeForEmbedding(item.name);
     const logBase = {
@@ -349,7 +345,6 @@ async function resolveItems(
         quantity,
         time,
         confidence: alias.score,
-        ...(quantityGuessed ? { quantityGuessed: true } : {}),
       });
       continue;
     }
@@ -371,7 +366,6 @@ async function resolveItems(
         details,
         quantity,
         time,
-        ...(quantityGuessed ? { quantityGuessed: true } : {}),
       });
       continue;
     }
@@ -413,7 +407,6 @@ async function resolveItems(
         quantity,
         time,
         confidence: top.score,
-        ...(quantityGuessed ? { quantityGuessed: true } : {}),
       });
     } else if (verdict === "ambiguous") {
       ambiguous.push({
@@ -422,7 +415,6 @@ async function resolveItems(
         quantity,
         time,
         candidates,
-        ...(quantityGuessed ? { quantityGuessed: true } : {}),
       });
     } else {
       unresolved.push({
@@ -430,7 +422,6 @@ async function resolveItems(
         details,
         quantity,
         time,
-        ...(quantityGuessed ? { quantityGuessed: true } : {}),
       });
     }
   }

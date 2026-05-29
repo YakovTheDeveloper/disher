@@ -53,9 +53,9 @@
 
 // Response
 {
-  "resolved":   [{ "productId", "name", "originalName", "quantity", "time", "confidence", "quantityGuessed?" }],
-  "ambiguous":  [{ "originalName", "quantity", "time", "candidates": [{id,name,score}×3], "quantityGuessed?" }],
-  "unresolved": [{ "originalName", "quantity", "time", "quantityGuessed?" }]
+  "resolved":   [{ "productId", "name", "originalName", "quantity", "time", "confidence" }],
+  "ambiguous":  [{ "originalName", "quantity", "time", "candidates": [{id,name,score}×3] }],
+  "unresolved": [{ "originalName", "quantity", "time" }]
 }
 ```
 
@@ -77,7 +77,7 @@ Frontend должен уметь: на 503 — показать «попробу
 1. Валидация request + rate-limit (30/ч/IP) + `isMatcherReady()` (503 пока embedder не поднялся).
 2. **LLM cache** — `sha1(text.trim().toLowerCase())` → `{items, expiresAt}`, TTL 10 мин, max 200 записей (FIFO eviction по insertion order).
 3. Если cache miss — `callLLM` через OpenRouter (`SUGGESTION_MODEL`, JSON response mode). Промпт компактный, каталог в него не попадает.
-4. **Quantity fallback** — если LLM вернул `quantity ≤ 0` или не число, подставляем 100г и флагим `quantityGuessed: true`. Item **не** отбрасывается.
+4. **Quantity fallback** — если LLM вернул `quantity ≤ 0` или не число, подставляем 100г. Item **не** отбрасывается.
 5. **Time defaults** — см. раздел ниже.
 6. Для каждого item:
    - `lookupAlias` → если exact-match алиаса, сразу resolved (score=1).
@@ -169,7 +169,6 @@ npx tsx scripts/probe-parse.ts
 - **Input → Loading → Result.** `AbortController` отменяет клиентский fetch; `signal.aborted` возвращает экран в `input`. LLM на бэке продолжит выполняться — это явно написано на loading-экране: «Отмена прекратит ожидание, но расчёт на сервере продолжится».
 - **Ambiguous секция compact-by-default.** По умолчанию top-1 уже принят и отображается как resolved-карточка с маленьким значком «?». Tap раскрывает chooser top-3 + кнопка «Ничего из предложенного». Без radio-групп в обычном виде — мобильный экран не захламляется.
 - **Unresolved escape hatch.** У каждого unresolved item — кнопка «Найти вручную», которая открывает `SearchFood` поверх с `initialSearchQuery = originalName`. Выбранный продукт кладётся в список «добавить в расписание». Без этого unresolved превращается в молчаливую потерю.
-- **`quantityGuessed` badge «оценено».** Если backend подставил дефолтные 100г — показываем пользователю, чтобы он знал, что цифру стоит проверить.
 - **Submit guard.** `isSubmitting` защищает от двойного тапа. Все принятые items коммитятся одним атомарным `store.commit(...events.scheduleFoodCreated[])` через `safeMutate` (см. [`@/shared/lib/safeMutate`](../../../../food-calc/src/shared/lib/safeMutate.ts)).
 - **Error handling.** Ошибки fetch показываются inline в input-шаге (не toaster), ошибки коммита — через общий `toaster` из `shared/lib/toaster`. Если parse вернул полностью пустой результат — отдельный empty-state с кнопкой «Попробовать снова».
 

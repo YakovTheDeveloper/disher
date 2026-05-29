@@ -1,6 +1,9 @@
 export { WriteFoodButton } from './ui/WriteFoodButton';
 export { WriteFoodModal } from './ui/WriteFoodModal';
 export { WriteFoodModals } from './ui/WriteFoodModals';
+export { WriteFoodInput } from './ui/WriteFoodInput';
+export type { WriteFoodInputProps } from './ui/WriteFoodInput';
+export { InlineWriteFoodReview } from './ui/InlineWriteFoodReview';
 export { FreeTextFoodReviewItem } from './ui/FreeTextFoodReviewItem';
 export { useRecentlyAddedStore } from './model/recentlyAddedStore';
 export { useWriteFoodFlow } from './model/useWriteFoodFlow';

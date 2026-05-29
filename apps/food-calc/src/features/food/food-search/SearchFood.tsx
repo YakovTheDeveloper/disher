@@ -6,20 +6,8 @@ import { SearchFoodControls } from '@/features/food/food-search/SearchFoodContro
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { useFilteredFoods, useFoodCreation } from './model';
 import { FoodSearchEmpty } from './FoodSearchEmpty';
-
-const SEARCH_FOOD_VARIANTS = [
-  'baseline',
-  'column-stripe',
-  'stripe-warm',
-  'stripe-mint',
-  'stripe-rose',
-  'stripe-graphite',
-  'stripe-sand',
-  'stripe-lavender',
-] as const;
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 export type SearchFilter = 'all' | 'mine';
@@ -93,7 +81,6 @@ const SearchFood = ({
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery ?? '');
   const [showHeavy, setShowHeavy] = useState(false);
   const [openTicket, setOpenTicket] = useState(0);
-  const { anchor } = useDesignVariant('SearchFood', SEARCH_FOOD_VARIANTS);
 
   const filterOptions = FILTER_OPTIONS_BY_MODE[mode];
   const [selectedFilter, setSelectedFilter] = useState<SearchFilter>('all');
@@ -122,7 +109,7 @@ const SearchFood = ({
   );
 
   return (
-    <div className={styles.content} {...anchor}>
+    <div className={styles.content}>
       <div className={styles.header}>
         <SearchFoodControls
           searchQuery={searchQuery}

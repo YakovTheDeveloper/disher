@@ -24,6 +24,7 @@ import {
 import type { AnalyticsTab } from '@/entities/analytics';
 import { useUserId } from '@/shared/lib/auth/useUserId';
 import { useAuthStore } from '@/features/auth/auth-store';
+import { useSurface } from '@/shared/lib/surface';
 import { createSSEParser } from '@/shared/lib/sse/parseSSELines';
 import styles from './ScheduleFoodAnalyticsPage.module.scss';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -515,6 +516,7 @@ const AnalyticsContent = ({
 // ─── Wrapper — fetches data ───
 
 const GetDatePageWrapper = () => {
+  useSurface('warm');
   const params = useParams();
   const date = params.id;
   const navigate = useNavigate();

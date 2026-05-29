@@ -2,7 +2,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 78dvh;
+  // Растём по контенту; 78dvh — потолок, чтобы при куче past-дней
+  // не съесть весь экран. Past-секция внутри уже скроллится сама.
+  max-height: 78dvh;
   overflow: hidden;
   background: #fffefb;
   color: #3a2e14;

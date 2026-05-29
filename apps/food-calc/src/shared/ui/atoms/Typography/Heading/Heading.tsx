@@ -4,8 +4,11 @@ import styles from './Heading.module.scss';
 type Props = {
   children: React.ReactNode;
   /** Type-scale tier. `screen` — page header, `modal` — wizard-flow modal,
-   *  `drawer` — drawer header. All share the same italic-serif canon. */
-  size: 'screen' | 'modal' | 'drawer';
+   *  `modalSub` — sub-heading inside a modal (Alice, non-italic, чуть меньше modal),
+   *  `drawer` — drawer header, `section` — in-page section / sub-heading
+   *  (визуально равен drawer, но не привязан семантически к Drawer). Все,
+   *  кроме `modalSub`, делят italic-serif канон. */
+  size: 'screen' | 'modal' | 'modalSub' | 'drawer' | 'section';
   /** Heading level for the DOM. Defaults to `h2`. */
   as?: 'h1' | 'h2' | 'h3';
   className?: string;

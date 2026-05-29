@@ -14,7 +14,6 @@ export interface ResolvedItem {
   quantity: number;
   time: string;
   confidence: number;
-  quantityGuessed?: boolean;
 }
 
 export interface AmbiguousItem {
@@ -23,7 +22,6 @@ export interface AmbiguousItem {
   quantity: number;
   time: string;
   candidates: MatchCandidate[];
-  quantityGuessed?: boolean;
 }
 
 export interface UnresolvedItem {
@@ -31,7 +29,6 @@ export interface UnresolvedItem {
   details: string;
   quantity: number;
   time: string;
-  quantityGuessed?: boolean;
 }
 
 export interface ParseResponse {

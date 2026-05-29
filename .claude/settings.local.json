@@ -203,7 +203,22 @@
       "Bash(rm \"/c/Users/booty/.claude/projects/c--Users-booty-Documents-GitHub-disher/memory/feedback_details_chips_label_only_custom.md\" \"/c/Users/booty/.claude/projects/c--Users-booty-Documents-GitHub-disher/memory/feedback_details_chips_a11y_touch_only.md\" \"/c/Users/booty/.claude/projects/c--Users-booty-Documents-GitHub-disher/memory/feedback_details_chips_silent_delete.md\" && echo \"deleted\")",
       "PowerShell(npx --prefix apps\\\\food-calc eslint apps/food-calc/src/shared/ui/ModalShell/)",
       "PowerShell(npx --prefix apps\\\\food-calc tsc -p apps\\\\food-calc\\\\tsconfig.json --noEmit 2>&1)",
-      "Bash(dir apps\\\\\\\\food-calc\\\\\\\\tsconfig*)"
+      "Bash(dir apps\\\\\\\\food-calc\\\\\\\\tsconfig*)",
+      "Bash(grep -v \"^\\\\$\")",
+      "Bash(grep -v \"✖\\\\|^$\\\\|^>\\\\|^npm\\\\|@disher\\\\|/usr\\\\|Done in\\\\|warning:\")",
+      "Bash(echo \"TS exit=$?\")",
+      "Bash(echo \"ESLint exit=$?\")",
+      "Bash(xargs grep -l \"Пятница\\\\|Понедельник\\\\|weekday\\\\|dayOfWeek\")",
+      "PowerShell(Remove-Item -Recurse -Force \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\\\\apps\\\\food-calc\\\\src\\\\pages\\\\settings\\\\SystemPage\"; if \\(-not \\(Test-Path \"c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\\\\apps\\\\food-calc\\\\src\\\\pages\\\\settings\\\\SystemPage\"\\)\\) { Write-Output \"deleted\" })",
+      "PowerShell(npx eslint src/features/food/food-free-text-parse/ui/InlineWriteFoodReview.tsx src/features/food/food-free-text-parse/ui/WriteFoodModal.tsx 2>&1)",
+      "WebFetch(domain:cingularis.com)",
+      "WebFetch(domain:tproger.ru)",
+      "PowerShell($folder = \"C:\\\\Users\\\\booty\\\\Documents\\\\Obsidian Vault\\\\ВЫ_НЕ_ГОТОВЫ\\\\Главное\"; \"Folder exists: $\\(Test-Path -LiteralPath $folder\\)\"; \"File exists: $\\(Test-Path -LiteralPath \\(Join-Path $folder 'Главное.md'\\)\\)\"; \"Parent exists: $\\(Test-Path -LiteralPath 'C:\\\\Users\\\\booty\\\\Documents\\\\Obsidian Vault\\\\ВЫ_НЕ_ГОТОВЫ'\\)\")",
+      "Bash(gh auth *)",
+      "PowerShell($gh = Get-Command gh -ErrorAction SilentlyContinue; if \\($gh\\) { \"gh found: $\\($gh.Source\\)\"; gh --version 2>&1 | Select-Object -First 1 } else { \"gh NOT installed\" })",
+      "WebFetch(domain:api.github.com)",
+      "PowerShell($env:GIT_TERMINAL_PROMPT='0'; $env:GCM_INTERACTIVE='never'; foreach \\($r in @\\('intellectgroup/livecity','Notify-inc/Front'\\)\\) { $name = \\($r -split '/'\\)[1]; $dest = \"C:\\\\tmp\\\\cv-$name.git\"; if \\(Test-Path $dest\\) { Remove-Item -Recurse -Force $dest }; \"=== cloning $r -> $dest ===\"; git clone --bare --quiet \"https://github.com/$r.git\" $dest; if \\($?\\) { \"OK: $r\" } else { \"FAILED: $r\" } })",
+      "PowerShell(foreach \\($d in @\\('C:\\\\tmp\\\\cv-livecity.git','C:\\\\tmp\\\\cv-Front.git'\\)\\) { \"==================== $d ====================\"; \"total commits: $\\(\\(git -C $d rev-list --all --count\\)\\)\"; \"--- authors \\(count | name | email\\) ---\"; git -C $d shortlog -sne --all })"
     ],
     "additionalDirectories": [
       "\\tmp",

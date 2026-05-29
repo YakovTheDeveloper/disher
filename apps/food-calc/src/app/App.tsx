@@ -35,6 +35,15 @@ export default function App() {
     void hydrateDailyAnalyses();
   }, []);
 
+  // Default surface (warm/lavender palette tokens — surfaces.scss). Lavender
+  // is the system default; warm-pages (HomePage, schedule selection/analytics)
+  // override via useSurface('warm'). Sits on body so it reaches Base UI portals.
+  useEffect(() => {
+    if (!document.body.hasAttribute('data-surface')) {
+      document.body.setAttribute('data-surface', 'lavender');
+    }
+  }, []);
+
   return (
     <I18nextProvider i18n={i18n}>
       <Toaster

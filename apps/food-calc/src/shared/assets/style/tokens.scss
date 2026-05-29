@@ -39,8 +39,10 @@
   --heading-letter: 0.01em;
   --heading-size-screen: 2.5rem; // 40px — page / screen header (HomePage band)
   --heading-size-modal: 2rem; //    32px — wizard-flow modal title (ModalShell.Title)
+  --heading-size-modal-sub: 2rem; // 26px — sub-heading inside a modal (Alice, non-italic)
   --heading-size-modal-header: 1.75rem; // 28px — ModalHeader bar title (centered)
   --heading-size-drawer: 1.5rem; // 24px — drawer header
+  --heading-size-section: 2rem; // 24px — in-page section / sub-heading (not a drawer)
   // Single top gap above an overlay title — owned by the title itself, so it
   // stays constant regardless of how the modal nests it (see ModalShell).
   --modal-title-offset: var(--space-6); // 24px
@@ -66,6 +68,25 @@
   --duration-slow: 350ms; // layout shifts, overlays
   --easing-default: cubic-bezier(0.4, 0, 0.2, 1); // Material-like
   --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1); // bouncy/spring
+
+  // ─── Row geometry (canon for list-item cells) ────────────────
+  // Hit-area gets owned by each interactive cell (.timeDisplay, .foodCol,
+  // .qtyEdit, event-fields…), NOT by the row wrapper. Wrapper keeps the
+  // visual chrome (bg / outline / radius / TOD gradient); cells inside
+  // collect padding-block + min-block-size so a tap "above" / "below" the
+  // glyph still lands on the <label htmlFor> trigger.
+  // Consumers override --row-pad-block on the grid root and set the cell
+  // tokens on each interactive cell. See ScheduleFoodItemInline.module.scss
+  // for the canonical implementation.
+  //
+  // CANON 2026-05-24: row-floor 48px (Material 3 + Apple HIG 44 + WCAG 2.2
+  // AAA пересечение). --row-cell-min-h и --row-min-h-touch ДОЛЖНЫ быть
+  // синхронны — оба описывают один и тот же canon row-floor с разных
+  // сторон (cell-canon vs wrapper-canon).
+  --row-pad-block: 9px; // wrapper vertical padding (default = pre-canon)
+  --row-cell-pad-block: 9px; // each cell's vertical padding (new canon)
+  --row-cell-min-h: 48px; // each cell's hit-area floor (was 36 → 48 on 2026-05-24)
+  --row-min-h-touch: 48px; // wrapper-driven row floor (consume via @include row-touch)
 
   // ─── Press-feedback ──────────────────────────────────────────
   // pre-attentive отклик интерактивных элементов: визуальное

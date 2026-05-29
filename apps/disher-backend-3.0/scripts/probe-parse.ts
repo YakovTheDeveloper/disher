@@ -65,9 +65,9 @@ const CONCURRENCY = 1;
 const TIMEOUT_MS = 30_000;
 
 interface Candidate { id: string; name: string; score: number }
-interface ResolvedItem { productId: string; name: string; originalName: string; quantity: number; time: string; confidence: number; note: string; quantityGuessed?: boolean }
-interface AmbiguousItem { originalName: string; quantity: number; time: string; candidates: Candidate[]; note: string; quantityGuessed?: boolean }
-interface UnresolvedItem { originalName: string; quantity: number; time: string; note: string; quantityGuessed?: boolean }
+interface ResolvedItem { productId: string; name: string; originalName: string; quantity: number; time: string; confidence: number; note: string }
+interface AmbiguousItem { originalName: string; quantity: number; time: string; candidates: Candidate[]; note: string }
+interface UnresolvedItem { originalName: string; quantity: number; time: string; note: string }
 interface ParseResponse { resolved: ResolvedItem[]; ambiguous: AmbiguousItem[]; unresolved: UnresolvedItem[] }
 
 async function parse(text: string): Promise<ParseResponse> {

@@ -4,13 +4,12 @@ import { db } from '@/shared/lib/dexie/schema';
 import { addScheduleFood } from '@/entities/schedule-food/api/mutations';
 import { addDishItem } from '@/entities/dish/api/mutations';
 import { useAuthStore } from '@/features/auth/auth-store';
-
-interface CommittedItem {
-  productId: string;
-  quantity: number;
-  time: string;
-  details: string;
-}
+import {
+  countDismissed,
+  countTotal,
+  selectCommittable,
+  type CommittedItem,
+} from '../selectCommittable';
 
 // Tests for the mutation block of useWriteFoodFlow.commit().
 //
@@ -210,82 +209,151 @@ describe('useWriteFoodFlow.commit — dish mode', () => {
   });
 });
 
-describe('useWriteFoodFlow.commit — committed[] filter', () => {
-  // Filter logic from useWriteFoodFlow.commit():
-  //   resolved   → !r.enabled                      → skip
-  //   ambiguous  → !a.enabled || !a.selectedId     → skip
-  //   unresolved → !u.manual || !u.manual.id       → skip
-
-  type ResolvedRow = { enabled: boolean; productId: string; quantity: number; time: string; details: string };
-  type AmbiguousRow = { enabled: boolean; selectedId: string | null; quantity: number; time: string; details: string };
-  type UnresolvedRow = { manual: { id: string } | null; quantity: number; time: string; details: string };
-
-  function buildCommitted(
-    resolved: ResolvedRow[],
-    ambiguous: AmbiguousRow[],
-    unresolved: UnresolvedRow[],
-  ): CommittedItem[] {
-    const out: CommittedItem[] = [];
-    for (const r of resolved) {
-      if (!r.enabled) continue;
-      out.push({ productId: r.productId, quantity: r.quantity, time: r.time, details: r.details });
-    }
-    for (const a of ambiguous) {
-      if (!a.enabled || !a.selectedId) continue;
-      out.push({ productId: a.selectedId, quantity: a.quantity, time: a.time, details: a.details });
-    }
-    for (const u of unresolved) {
-      if (!u.manual || !u.manual.id) continue;
-      out.push({ productId: u.manual.id, quantity: u.quantity, time: u.time, details: u.details });
-    }
-    return out;
-  }
-
+// Тестируем РЕАЛЬНУЮ функцию `selectCommittable` из './selectCommittable'.
+// Раньше тут была inline-копия логики — она расходилась с источником
+// (новый `u.enabled` гейт для soft-delete на unresolved не валидировался).
+describe('useWriteFoodFlow.commit — committed[] filter (selectCommittable)', () => {
   it('drops disabled resolved rows', () => {
-    const committed = buildCommitted(
-      [
+    const committed = selectCommittable({
+      resolved: [
         { enabled: true, productId: 'a', quantity: 1, time: '08:00', details: '' },
         { enabled: false, productId: 'b', quantity: 1, time: '08:00', details: '' },
       ],
-      [],
-      [],
-    );
+      ambiguous: [],
+      unresolved: [],
+    });
     expect(committed.map((c) => c.productId)).toEqual(['a']);
   });
 
   it('drops ambiguous rows with null/empty selectedId', () => {
-    const committed = buildCommitted(
-      [],
-      [
+    const committed = selectCommittable({
+      resolved: [],
+      ambiguous: [
         { enabled: true, selectedId: 'x', quantity: 1, time: '08:00', details: '' },
         { enabled: true, selectedId: null, quantity: 1, time: '08:00', details: '' },
         { enabled: true, selectedId: '', quantity: 1, time: '08:00', details: '' },
         { enabled: false, selectedId: 'y', quantity: 1, time: '08:00', details: '' },
       ],
-      [],
-    );
+      unresolved: [],
+    });
     expect(committed.map((c) => c.productId)).toEqual(['x']);
   });
 
   it('drops unresolved rows without manual selection or with empty manual.id', () => {
-    const committed = buildCommitted(
-      [],
-      [],
-      [
-        { manual: { id: 'm1' }, quantity: 1, time: '08:00', details: '' },
-        { manual: null, quantity: 1, time: '08:00', details: '' },
-        { manual: { id: '' }, quantity: 1, time: '08:00', details: '' },
+    const committed = selectCommittable({
+      resolved: [],
+      ambiguous: [],
+      unresolved: [
+        { enabled: true, manual: { id: 'm1' }, quantity: 1, time: '08:00', details: '' },
+        { enabled: true, manual: null, quantity: 1, time: '08:00', details: '' },
+        { enabled: true, manual: { id: '' }, quantity: 1, time: '08:00', details: '' },
       ],
-    );
+    });
     expect(committed.map((c) => c.productId)).toEqual(['m1']);
   });
 
+  it('drops soft-deleted unresolved rows even with a valid manual', () => {
+    // Inline-undo на HomePage: юзер вручную привязал unresolved → manual.id
+    // выставлен, но потом dismiss'нул ряд крестиком → enabled=false. Должен
+    // выпасть из committed. Регрессионный тест: до extract'а тут был
+    // антипаттерн — inline-копия фильтра НЕ проверяла `u.enabled`, и откат
+    // `&& u.enabled` в источнике прошёл бы незамеченным.
+    const committed = selectCommittable({
+      resolved: [],
+      ambiguous: [],
+      unresolved: [
+        { enabled: false, manual: { id: 'm1' }, quantity: 1, time: '08:00', details: '' },
+      ],
+    });
+    expect(committed).toHaveLength(0);
+  });
+
   it('combines all three categories preserving order resolved → ambiguous → unresolved', () => {
-    const committed = buildCommitted(
-      [{ enabled: true, productId: 'r1', quantity: 1, time: '08:00', details: '' }],
-      [{ enabled: true, selectedId: 'a1', quantity: 1, time: '08:00', details: '' }],
-      [{ manual: { id: 'u1' }, quantity: 1, time: '08:00', details: '' }],
-    );
+    const committed: CommittedItem[] = selectCommittable({
+      resolved: [{ enabled: true, productId: 'r1', quantity: 1, time: '08:00', details: '' }],
+      ambiguous: [{ enabled: true, selectedId: 'a1', quantity: 1, time: '08:00', details: '' }],
+      unresolved: [
+        { enabled: true, manual: { id: 'u1' }, quantity: 1, time: '08:00', details: '' },
+      ],
+    });
     expect(committed.map((c) => c.productId)).toEqual(['r1', 'a1', 'u1']);
+  });
+
+  it('returns [] when every row is dismissed — commit() must early-return', () => {
+
+    // Critical для UI-логики: при `totalToAdd === 0` CTA «Добавить N» становится
+    // disabled («Нечего добавлять»). Если фильтр перестанет учитывать
+    // `enabled === false` хоть в одной из категорий — отдельные dismissed
+    // ряды утекут в `addScheduleFood`/`addDishItem`, и `commit()` запишет в
+    // Dexie то, что юзер ВЫЧЕРКНУЛ.
+    const committed = selectCommittable({
+      resolved: [
+        { enabled: false, productId: 'r1', quantity: 1, time: '08:00', details: '' },
+      ],
+      ambiguous: [
+        { enabled: false, selectedId: 'a1', quantity: 1, time: '08:00', details: '' },
+      ],
+      unresolved: [
+        { enabled: false, manual: { id: 'u1' }, quantity: 1, time: '08:00', details: '' },
+      ],
+    });
+    expect(committed).toEqual([]);
+  });
+});
+
+// Telemetry-счётчики (buildTelemetry → itemsDeleted/itemsTotal). До extract'а
+// они жили inline и не были покрыты регрессионным тестом — откат фильтра в
+// useWriteFoodFlow.ts прошёл бы незамеченным (analytics показывала бы «0
+// удалено» при soft-delete). Теперь обе функции pure → тестируем напрямую.
+describe('telemetry counts — countDismissed / countTotal', () => {
+  it('countDismissed суммирует !enabled во всех трёх категориях', () => {
+    expect(
+      countDismissed({
+        resolved: [
+          { enabled: true, productId: 'a', quantity: 1, time: '08:00', details: '' },
+          { enabled: false, productId: 'b', quantity: 1, time: '08:00', details: '' },
+        ],
+        ambiguous: [
+          { enabled: false, selectedId: 'x', quantity: 1, time: '08:00', details: '' },
+        ],
+        unresolved: [
+          { enabled: true, manual: null, quantity: 1, time: '08:00', details: '' },
+          { enabled: false, manual: { id: 'u1' }, quantity: 1, time: '08:00', details: '' },
+        ],
+      }),
+    ).toBe(3);
+  });
+
+  it('countDismissed = 0 когда ничего не dismiss’нуто', () => {
+    expect(
+      countDismissed({
+        resolved: [
+          { enabled: true, productId: 'a', quantity: 1, time: '08:00', details: '' },
+        ],
+        ambiguous: [],
+        unresolved: [],
+      }),
+    ).toBe(0);
+  });
+
+  it('countTotal суммирует ВСЕ ряды (включая dismissed)', () => {
+    expect(
+      countTotal({
+        resolved: [
+          { enabled: true, productId: 'a', quantity: 1, time: '08:00', details: '' },
+          { enabled: false, productId: 'b', quantity: 1, time: '08:00', details: '' },
+        ],
+        ambiguous: [
+          { enabled: true, selectedId: 'x', quantity: 1, time: '08:00', details: '' },
+        ],
+        unresolved: [
+          { enabled: false, manual: null, quantity: 1, time: '08:00', details: '' },
+        ],
+      }),
+    ).toBe(4);
+  });
+
+  it('countTotal = 0 на пустом input', () => {
+    expect(countTotal({ resolved: [], ambiguous: [], unresolved: [] })).toBe(0);
   });
 });

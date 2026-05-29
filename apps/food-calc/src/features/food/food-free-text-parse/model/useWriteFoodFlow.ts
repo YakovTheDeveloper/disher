@@ -22,6 +22,7 @@ import { useUserId } from '@/shared/lib/auth/useUserId';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { useRecentlyAddedStore } from './recentlyAddedStore';
+import { countDismissed, countTotal, selectCommittable } from './selectCommittable';
 import {
   sendMatcherTelemetry,
   type TelemetryCorrection,
@@ -54,6 +55,7 @@ export type AmbiguousRow = AmbiguousItem & {
 export type UnresolvedRow = UnresolvedItem & {
   uid: string;
   manual: MatchCandidate | null;
+  enabled: boolean;
 } & EditFlags;
 
 export interface ReviewRowView {
@@ -72,19 +74,6 @@ export interface ReviewRowUpdates {
   productId?: string;
   name?: string;
   details?: string;
-}
-
-interface CommittedItem {
-  productId: string;
-  quantity: number;
-  time: string;
-  details: string;
-}
-
-interface DeletedItem {
-  uid: string;
-  type: ItemCategory;
-  data: ResolvedRow | AmbiguousRow | UnresolvedRow;
 }
 
 const PARSE_TIMEOUT_MS = 35_000;
@@ -109,21 +98,23 @@ export interface UseWriteFoodFlowResult {
   hideTime: boolean;
   totalToAdd: number;
   isSubmitting: boolean;
-  deletedItem: DeletedItem | null;
 
   // Edit state
   editingUid: string | null;
   editingStep: ReviewEditStep;
   editingRowView: ReviewRowView | null;
 
-  // Review actions
-  deleteResolved: (uid: string) => void;
-  deleteAmbiguous: (uid: string) => void;
-  deleteUnresolved: (uid: string) => void;
+  // Review actions — soft-delete: `toggle*` инвертит `enabled`. Ряд остаётся
+  // в массиве, `commit` + `totalToAdd` игнорируют `enabled === false`. Раньше
+  // тут параллельно жил hard-delete (`delete*` + `handleUndo` + toast), его
+  // выпилили после миграции DishBuilder 2026-05-23 — единый паттерн с
+  // InlineWriteFoodReview (Todoist/Things канон).
+  toggleResolved: (uid: string) => void;
+  toggleAmbiguous: (uid: string) => void;
+  toggleUnresolved: (uid: string) => void;
   updateResolved: (uid: string, updates: Partial<ResolvedRow>) => void;
   updateAmbiguous: (uid: string, updates: Partial<AmbiguousRow>) => void;
   updateUnresolved: (uid: string, updates: Partial<UnresolvedRow>) => void;
-  handleUndo: () => void;
   startEdit: (uid: string, step: Exclude<ReviewEditStep, 'idle'>) => void;
   closeEdit: () => void;
   setEditingStep: (step: ReviewEditStep) => void;
@@ -156,7 +147,6 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   const [ambiguous, setAmbiguous] = useState<AmbiguousRow[]>([]);
   const [unresolved, setUnresolved] = useState<UnresolvedRow[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deletedItem, setDeletedItem] = useState<DeletedItem | null>(null);
 
   const [editingUid, setEditingUid] = useState<string | null>(null);
   const [editingStep, setEditingStep] = useState<ReviewEditStep>('idle');
@@ -166,11 +156,9 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   const activeRequestIdRef = useRef<string | null>(null);
   const targetKeyRef = useRef<string>(`${target.kind}:${targetId(target)}`);
 
-  const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestIdRef = useRef<string | null>(null);
   const matcherLatencyRef = useRef<number>(0);
   const reviewStartRef = useRef<number>(0);
-  const deletedCountRef = useRef<number>(0);
   const telemetrySentRef = useRef<boolean>(false);
   const originalChoicesRef = useRef<
     Map<string, { originalName: string; matcherChoice: string }>
@@ -194,7 +182,6 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     requestIdRef.current = response.requestId;
     matcherLatencyRef.current = 0;
     reviewStartRef.current = Date.now();
-    deletedCountRef.current = 0;
     telemetrySentRef.current = false;
   }, []);
 
@@ -224,7 +211,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       const unresolvedRows: UnresolvedRow[] = response.unresolved.map((u) => {
         const uid = makeUid();
         choices.set(uid, { originalName: u.originalName, matcherChoice: '' });
-        return { ...u, uid, manual: null, ...EMPTY_FLAGS };
+        return { ...u, uid, manual: null, enabled: true, ...EMPTY_FLAGS };
       });
 
       setResolved(resolvedRows);
@@ -273,6 +260,13 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
           writeParseState(persisted);
           setParseResult(response);
           setErrorMessage(null);
+          // Очищаем input в момент успешного разбора — текст уже виден в
+          // `.originalText` блока предложки. Поле освобождается под следующий
+          // ввод. На restore-grace (страница перезагружена во время разбора)
+          // в персисте `inputText` остаётся — юзер увидит его в баре, и при
+          // resolve мы тоже очистим, что ОК (результат у юзера уже на
+          // экране, дублировать в input не нужно).
+          setInputText('');
           setState('ready');
         },
         (err: unknown) => {
@@ -439,7 +433,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         if (u.foodEdited) foodEdited += 1;
         if (u.timeEdited) timeEdited += 1;
         if (u.qtyEdited) qtyEdited += 1;
-        if (!u.manual) continue;
+        if (!u.enabled || !u.manual) continue;
         itemsCommitted += 1;
         const original = choices.get(u.uid);
         if (!original) continue;
@@ -451,11 +445,12 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         });
       }
 
-      const itemsTotal =
-        committedRows.resolved.length +
-        committedRows.ambiguous.length +
-        committedRows.unresolved.length +
-        deletedCountRef.current;
+      // itemsDeleted/itemsTotal — pure-функции из `selectCommittable.ts`,
+      // чтобы unit-тесты валидировали тот же источник, который читает
+      // прод. Раньше inline-копия логики жила в нескольких местах
+      // (test-mirror антипаттерн).
+      const itemsDeleted = countDismissed(committedRows);
+      const itemsTotal = countTotal(committedRows);
 
       return {
         requestId: requestIdRef.current,
@@ -463,7 +458,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         action,
         itemsTotal,
         itemsCommitted,
-        itemsDeleted: deletedCountRef.current,
+        itemsDeleted,
         itemsWithEditedFood: foodEdited,
         itemsWithEditedTime: timeEdited,
         itemsWithEditedQty: qtyEdited,
@@ -494,11 +489,10 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     sendTelemetryRef.current = sendTelemetryIfNotSent;
   }, [sendTelemetryIfNotSent]);
 
-  // Unmount cleanup — abort in-flight fetch, clear timers, fire `abandon`.
+  // Unmount cleanup — abort in-flight fetch, fire `abandon`.
   useEffect(() => {
     return () => {
       abortActive();
-      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
       sendTelemetryRef.current('abandon');
     };
   }, []);
@@ -545,10 +539,8 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     setResolved([]);
     setAmbiguous([]);
     setUnresolved([]);
-    setDeletedItem(null);
     setEditingUid(null);
     setEditingStep('idle');
-    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
     lastAppliedParseResultRef.current = null;
   }, []);
 
@@ -564,66 +556,31 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     // Fetch keeps going.
   }, []);
 
-  // ─── Review: delete + undo ───
-
-  const scheduleUndoExpiry = useCallback(() => {
-    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
-    undoTimeoutRef.current = setTimeout(() => setDeletedItem(null), 3000);
+  // ─── Review: soft-delete toggle ───
+  //
+  // `toggle*` инвертит `enabled` на ряду; ряд остаётся в массиве, `commit` +
+  // `totalToAdd` (`selectCommittable`) игнорируют `enabled === false`. UI
+  // рисует strikethrough + ↶ на месте крестика. Никакого 3-секундного
+  // toast'а / auto-cancel'а / hard-delete'а — после миграции DishBuilder
+  // 2026-05-23 это единственный путь dismiss'а для обеих точек входа
+  // (HomePage InlineWriteFoodReview + DishBuilder WriteFoodModal).
+  const toggleResolved = useCallback((uid: string) => {
+    setResolved((prev) =>
+      prev.map((r) => (r.uid === uid ? { ...r, enabled: !r.enabled } : r)),
+    );
   }, []);
 
-  const enqueueDelete = useCallback(
-    (uid: string, type: ItemCategory, data: DeletedItem['data']) => {
-      setDeletedItem({ uid, type, data });
-      deletedCountRef.current += 1;
-      scheduleUndoExpiry();
-    },
-    [scheduleUndoExpiry],
-  );
+  const toggleAmbiguous = useCallback((uid: string) => {
+    setAmbiguous((prev) =>
+      prev.map((a) => (a.uid === uid ? { ...a, enabled: !a.enabled } : a)),
+    );
+  }, []);
 
-  const deleteResolved = useCallback(
-    (uid: string) => {
-      setResolved((prev) => {
-        const item = prev.find((r) => r.uid === uid);
-        if (item) enqueueDelete(uid, 'resolved', item);
-        return prev.filter((r) => r.uid !== uid);
-      });
-    },
-    [enqueueDelete],
-  );
-
-  const deleteAmbiguous = useCallback(
-    (uid: string) => {
-      setAmbiguous((prev) => {
-        const item = prev.find((a) => a.uid === uid);
-        if (item) enqueueDelete(uid, 'ambiguous', item);
-        return prev.filter((a) => a.uid !== uid);
-      });
-    },
-    [enqueueDelete],
-  );
-
-  const deleteUnresolved = useCallback(
-    (uid: string) => {
-      setUnresolved((prev) => {
-        const item = prev.find((u) => u.uid === uid);
-        if (item) enqueueDelete(uid, 'unresolved', item);
-        return prev.filter((u) => u.uid !== uid);
-      });
-    },
-    [enqueueDelete],
-  );
-
-  const handleUndo = useCallback(() => {
-    if (!deletedItem) return;
-    if (deletedItem.type === 'resolved')
-      setResolved((prev) => [...prev, deletedItem.data as ResolvedRow]);
-    else if (deletedItem.type === 'ambiguous')
-      setAmbiguous((prev) => [...prev, deletedItem.data as AmbiguousRow]);
-    else setUnresolved((prev) => [...prev, deletedItem.data as UnresolvedRow]);
-    deletedCountRef.current = Math.max(0, deletedCountRef.current - 1);
-    setDeletedItem(null);
-    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
-  }, [deletedItem]);
+  const toggleUnresolved = useCallback((uid: string) => {
+    setUnresolved((prev) =>
+      prev.map((u) => (u.uid === uid ? { ...u, enabled: !u.enabled } : u)),
+    );
+  }, []);
 
   // ─── Review: row updates ───
 
@@ -782,7 +739,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   const totalToAdd = useMemo(() => {
     const a = resolved.filter((r) => r.enabled).length;
     const b = ambiguous.filter((x) => x.enabled && x.selectedId).length;
-    const c = unresolved.filter((u) => u.manual).length;
+    const c = unresolved.filter((u) => u.enabled && u.manual).length;
     return a + b + c;
   }, [resolved, ambiguous, unresolved]);
 
@@ -790,37 +747,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     if (isSubmitting || totalToAdd === 0) return false;
     setIsSubmitting(true);
     try {
-      const committed: CommittedItem[] = [];
-
-      for (const r of resolved) {
-        if (!r.enabled) continue;
-        committed.push({
-          productId: r.productId,
-          quantity: r.quantity,
-          time: r.time,
-          details: r.details,
-        });
-      }
-
-      for (const a of ambiguous) {
-        if (!a.enabled || !a.selectedId) continue;
-        committed.push({
-          productId: a.selectedId,
-          quantity: a.quantity,
-          time: a.time,
-          details: a.details,
-        });
-      }
-
-      for (const u of unresolved) {
-        if (!u.manual || !u.manual.id) continue;
-        committed.push({
-          productId: u.manual.id,
-          quantity: u.quantity,
-          time: u.time,
-          details: u.details,
-        });
-      }
+      const committed = selectCommittable({ resolved, ambiguous, unresolved });
 
       if (committed.length === 0) {
         setIsSubmitting(false);
@@ -931,19 +858,17 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     hideTime,
     totalToAdd,
     isSubmitting,
-    deletedItem,
 
     editingUid,
     editingStep,
     editingRowView,
 
-    deleteResolved,
-    deleteAmbiguous,
-    deleteUnresolved,
+    toggleResolved,
+    toggleAmbiguous,
+    toggleUnresolved,
     updateResolved,
     updateAmbiguous,
     updateUnresolved,
-    handleUndo,
     startEdit,
     closeEdit,
     setEditingStep,

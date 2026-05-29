@@ -16,7 +16,6 @@ import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
 import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import {
-  WriteFoodModals,
   useWriteFoodFlow,
   getWriteFoodInputId,
 } from '@/features/food/food-free-text-parse';
@@ -359,7 +358,9 @@ const DishBuilderPage = () => {
                   existingItems={getExistingItemsForSuggestions()}
                   onClose={closeModal}
                 />
-                <WriteFoodModals flow={writeFoodFlow} inputId={writeFoodInputId} />
+                {/* WriteFoodModals overlay убран 2026-05-23: AutoGrowSearch
+                    теперь живёт прямо в AppBottomBar через WriteFoodInput.
+                    Дубликат `<input id={writeFoodInputId}>` в DOM дал бы конфликт. */}
               </>
             }
             actions={
@@ -376,10 +377,10 @@ const DishBuilderPage = () => {
                 <AppBottomBar
                   writeFoodFlow={writeFoodFlow}
                   writeFoodInputId={writeFoodInputId}
-                  writeFoodSky
                   searchHtmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
                   searchLabel="Найти продукт"
-                  writeFoodLabel="Опишите ингредиенты…"
+                  searchText="Еда"
+                  writeFoodPlaceholder="Опишите ингредиенты…"
                   leadingSlot={
                     <NutrientsSummaryButton totals={dishTotals} onClick={openNutrients} />
                   }

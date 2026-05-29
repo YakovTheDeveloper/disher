@@ -1,8 +1,20 @@
 .group {
+    // ─── Text-driven row geometry ─────────────────────────────────────
+    // Wrapper (.commonListItemInner) keeps its bg / outline / radius /
+    // TOD-gradient but stops carrying vertical padding. Each interactive
+    // cell below owns its own padding-block + min-block-size, so a tap
+    // "above" / "below" the glyph still lands on the cell (and on its
+    // <label htmlFor> trigger inside .foodCol). Wrapper height grows to
+    // hit the floor — see CLAUDE.md "Touch / accessibility floor".
+    --row-pad-block: 0;
+
     display: grid;
     grid-template-columns: auto 1fr 5ch;
     gap: var(--space-3);
-    align-items: center;
+    // stretch (not center) so each cell expands to the tallest sibling
+    // and to its own min-block-size floor. Cells center their own content
+    // via inline-flex + align-items: center below.
+    align-items: stretch;
     position: relative;
 
     // ─── Color boundary (industry pattern: shadcn / Radix Themes / Pigment) ───
@@ -27,6 +39,12 @@
     line-height: 1;
     display: inline-flex;
     align-items: center;
+    // Hit-area lives on the cell — see .group's --row-pad-block comment.
+    padding-block: var(--row-cell-pad-block, 9px);
+    min-block-size: var(--row-cell-min-h, 36px);
+    // Tabular-nums чтобы time-колонка имела одинаковую ширину в соседних
+    // рядах (proportional `08:00` vs `11:11` иначе сдвигают name).
+    font-variant-numeric: tabular-nums;
 }
 
 .timeDisplay {
@@ -35,8 +53,13 @@
 
 // Whole time block lights up while either HH/MM input is focused.
 .timeEdit {
-    padding: 2px 6px;
-    margin: -2px -6px;
+    // padding-block comes from the shared cell rule above (--row-cell-pad-block).
+    // padding-inline + negative margin-inline keep the focus-ring's horizontal
+    // hit-area while preserving the glyph's optical position. Negative
+    // margin-block would collapse this cell's contribution to the grid row
+    // height — see the .group { align-items: stretch } note.
+    padding-inline: 6px;
+    margin-inline: -6px;
     border-radius: 6px;
     transition: background-color var(--press-out) ease, box-shadow var(--press-out) ease;
 
@@ -107,9 +130,9 @@
     display: inline-flex;
     // `center`, not `baseline`: an <input>'s baseline differs from a plain
     // text node's, so a baseline-aligned cell grew taller the moment the
-    // static qty was swapped for the NumberInput — making the whole row
-    // jump on focus. Centering + a fixed height keeps the cell (and row)
-    // identical in display and edit states.
+    // static qty was swapped for the NumberInput. The old `height: calc(1em + 4px)`
+    // fixed-height workaround is gone — min-block-size + padding-block from
+    // the row canon keep display/edit states identical without the hack.
     align-items: center;
     justify-content: flex-end;
     gap: 2px;
@@ -118,9 +141,10 @@
     color: inherit;
     line-height: 1;
     box-sizing: border-box;
-    height: calc(1em + 4px);
-    padding: 2px 6px;
-    margin: -2px -6px;
+    padding-block: var(--row-cell-pad-block, 9px);
+    padding-inline: 6px;
+    margin-inline: -6px;
+    min-block-size: var(--row-cell-min-h, 36px);
     border-radius: 6px;
     transition: background-color var(--press-out) ease, box-shadow var(--press-out) ease;
 
@@ -165,9 +189,16 @@
 .foodCol {
     display: inline-flex;
     flex-direction: column;
+    justify-content: center;
     min-width: 0;
     gap: 1px;
     line-height: 1.15;
+    // Same row canon: cell owns its hit-area. The cell itself is a
+    // <label htmlFor={DETAILS_EDIT_INPUT}> — tap anywhere in the column
+    // (name, subtitle, empty padding) delegates focus to the hidden edit
+    // input and opens the details modal.
+    padding-block: var(--row-cell-pad-block, 9px);
+    min-block-size: var(--row-cell-min-h, 36px);
 }
 
 .detailsSubtitle {
@@ -205,15 +236,33 @@
 
 // Лавандовая подложка позади всей строки — растянута на всю ширину
 // viewport (inset -100vw по бокам), pill сохраняет свой tropic цвет.
-// Скругления минимальные (2px) — на краях экрана почти не заметны.
+// Vertical inset: -(gap/2) — подложка влезает в половину row-gap сверху и снизу,
+// поэтому соседние «свежие» строки сливаются в одну непрерывную тёплую полосу.
+// Градиент (мягче сверху/снизу, плотнее в центре) — чтобы полоса дышала, а не
+// читалась как плоский прямоугольник (design-DNA: «surfaces never flat»).
 .recentFreeTextWrapper::before {
     content: '';
     position: absolute;
-    inset: var(--space-2) -100vw;
-    background-color: rgba(180, 150, 220, 0.40);
-    border-radius: 2px;
+    inset: calc(var(--space-3) / -2) -100vw;
+    background: linear-gradient(
+        180deg,
+        rgba(196, 168, 255, 0.18) 0%,
+        rgba(180, 150, 220, 0.46) 50%,
+        rgba(196, 168, 255, 0.18) 100%
+    );
     z-index: 0;
     pointer-events: none;
+    animation: recentFreeTextEnter 320ms cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+@keyframes recentFreeTextEnter {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .customTitle {

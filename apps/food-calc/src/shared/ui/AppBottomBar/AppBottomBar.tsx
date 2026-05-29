@@ -1,58 +1,42 @@
-import type { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import clsx from 'clsx';
-import { WriteFoodButton } from '@/features/food/food-free-text-parse';
+import { WriteFoodInput } from '@/features/food/food-free-text-parse';
 import type { UseWriteFoodFlowResult } from '@/features/food/food-free-text-parse';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { useNow } from '@/shared/lib/time/useNow';
 import s from './AppBottomBar.module.scss';
 
-const SearchIcon = ({ size = 24 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="10.3" cy="10.3" r="9.6" stroke="currentColor" strokeWidth="1.1" />
-    <path d="M21.5 21.5 L17.1 17.1" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-    {/* checkmark inside the lupa — smaller, more air to circle edge */}
-    <path
-      d="M7 10.8 L10 13.5 L14 8"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-  </svg>
-);
-
 type Props = {
   writeFoodFlow: UseWriteFoodFlowResult;
   writeFoodInputId: string;
-  writeFoodLabel?: string;
-  /**
-   * Repaint the CTA pill as sky (solid #c7dbf3 + deep-ink). Default `false` →
-   * dark purple-navy pill (HomePage canon, time-of-day-tinted). Opt-in for
-   * DishBuilderPage where the page is unified around the sky palette.
-   */
-  writeFoodSky?: boolean;
-  /** htmlFor of the search input. Each consumer points at its own MODAL_INPUT_IDS.SEARCH_INPUT. */
+  /** Placeholder самого инпута. */
+  writeFoodPlaceholder?: string;
+  /** htmlFor для search-affordance (лупа). Каждый consumer указывает свой MODAL_INPUT_IDS.SEARCH_INPUT. */
   searchHtmlFor: string;
   searchLabel?: string;
-  /**
-   * Visible 2-line caption next to the lupa icon (e.g. "список\nеды"). When
-   * omitted, the trailing slot stays icon-only.
-   */
+  /** Подпись под лупой (например, "Каталог"). */
   searchText?: string;
   /**
-   * Content for the leading 40px slot (left of the CTA pill). When omitted —
-   * a 40px placeholder keeps the row centered. Consumers compose their own
-   * node (e.g. <NutrientsSummaryButton/>) and gate visibility themselves.
+   * Контент перед write-field (например `<NutrientsSummaryButton/>`).
+   * На HomePage сейчас не используется (nutrient-pill переехал в HomeTopBar),
+   * на DishPage пока живёт здесь — детальные страницы заняты centerLabel'ом
+   * имени блюда/продукта, и centerSlot в HomeTopBar не свободен.
    */
   leadingSlot?: ReactNode;
 };
 
+/**
+ * Bottom dock для HomePage (FoodSchedule) и DishBuilderPage: writes-pill
+ * (`WriteFoodInput` — AutoGrowSearch + send + лупа) + опциональный leading
+ * слот слева. tod-tokens (`--cta-*`, `--bar-tint`) живут на `.dockV2[data-tod]`
+ * — их читают `dark-pill-button()` consumers (RunAnalysisButton, AddButton.dark)
+ * И `AppBottomBarShell` (Laboratory/ScheduleEvents). 2026-05-23: writeFoodInputLike
+ * флаг удалён, inline-input теперь единственный режим.
+ */
 export const AppBottomBar = ({
   writeFoodFlow,
   writeFoodInputId,
-  writeFoodLabel = 'Опишите, что ели…',
-  writeFoodSky = false,
+  writeFoodPlaceholder,
   searchHtmlFor,
   searchLabel,
   searchText,
@@ -61,26 +45,17 @@ export const AppBottomBar = ({
   const tod = getTimeOfDay(useNow());
 
   return (
-    <div className={clsx(s.dock, s.dockV2)} data-tod={tod}>
-      {leadingSlot ?? <span className={s.iconButton} aria-hidden />}
-
-      <WriteFoodButton
+    <div className={clsx(s.dock, s.dockV2, s.writeDock)} data-tod={tod}>
+      {leadingSlot}
+      <WriteFoodInput
         flow={writeFoodFlow}
         inputId={writeFoodInputId}
-        label={writeFoodLabel}
-        className={s.dockPrimary}
-        dark={!writeFoodSky}
-        sky={writeFoodSky}
+        placeholder={writeFoodPlaceholder}
+        searchHtmlFor={searchHtmlFor}
+        searchLabel={searchLabel}
+        searchText={searchText}
+        className={s.writeBarSlot}
       />
-
-      <label
-        htmlFor={searchHtmlFor}
-        className={clsx(s.iconButton, searchText && s.searchWithText)}
-        aria-label={searchLabel ?? 'Найти'}
-      >
-        <SearchIcon />
-        {searchText && <span className={s.searchTextLabel}>{searchText}</span>}
-      </label>
     </div>
   );
 };

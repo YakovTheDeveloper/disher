@@ -5,8 +5,35 @@ import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { ThemePicker } from '@/features/theme';
-import { push } from '@/shared/lib/snapshot';
+import { dump, apply, push } from '@/shared/lib/snapshot';
 import { HoldButton } from './HoldButton';
+
+const downloadJson = (name: string, obj: unknown) => {
+  const blob = new Blob([JSON.stringify(obj)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const pickJson = (): Promise<unknown> =>
+  new Promise((res, rej) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return rej(new Error('cancelled'));
+      try {
+        res(JSON.parse(await file.text()));
+      } catch (e) {
+        rej(e);
+      }
+    };
+    input.click();
+  });
 
 // Sign-out must be held for 5s — a deliberately rare action (it wipes local
 // Dexie). See task #15.
@@ -50,6 +77,17 @@ export function ProfileDrawer() {
     const t = setTimeout(() => setBackupState('idle'), 2000);
     return () => clearTimeout(t);
   }, [backupState]);
+
+  const handleExport = async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    downloadJson(`disher-${today}.json`, await dump());
+  };
+
+  const handleImport = async () => {
+    const snap = await pickJson();
+    await apply(snap as never);
+    window.location.reload();
+  };
 
   const handleSignOut = async () => {
     // signOut wipes Dexie + idb-keyval and resets the overlay stores, which
@@ -123,6 +161,29 @@ export function ProfileDrawer() {
         <section className={styles.section}>
           <h2 className={styles.sectionLabel}>Оформление</h2>
           <ThemePicker />
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionLabel}>Данные</h2>
+          <p className={styles.dataHint}>
+            Скачать копию данных в файл или загрузить ранее сохранённую.
+          </p>
+          <div className={styles.dataActions}>
+            <button
+              type="button"
+              className={styles.dataBtn}
+              onClick={handleExport}
+            >
+              Скачать файл
+            </button>
+            <button
+              type="button"
+              className={styles.dataBtn}
+              onClick={handleImport}
+            >
+              Загрузить из файла
+            </button>
+          </div>
         </section>
       </div>
     </DrawerLayout>

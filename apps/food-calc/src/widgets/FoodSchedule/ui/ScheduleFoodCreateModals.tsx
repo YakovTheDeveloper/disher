@@ -298,7 +298,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         position="absolute"
         isExpanded={step === 'quantity'}
         content={
-          <ModalShell>
+          <ModalShell variant="spring4">
             <ModalShell.StepHeader
               title={STEP_LABELS.quantity}
               currentStep="quantity"
@@ -348,7 +348,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         position="absolute"
         isExpanded={step === 'details'}
         content={
-          <ModalShell>
+          <ModalShell variant="spring4">
             <ModalShell.StepHeader
               title={STEP_LABELS.details}
               currentStep="details"

@@ -21,6 +21,23 @@
     font-size: var(--heading-size-modal);
 }
 
+.modalSub {
+    font-family: 'Source Serif 4', serif;
+    font-style: normal;
+    font-size: var(--heading-size-modal-sub);
+    font-weight: 700;
+    text-align: center;
+    font-style: italic;
+    text-transform: capitalize;
+}
+
 .drawer {
     font-size: var(--heading-size-drawer);
+}
+
+.section {
+    font-family: 'Alice', serif;
+    font-style: normal;
+    font-weight: 300;
+    font-size: var(--heading-size-section);
 }

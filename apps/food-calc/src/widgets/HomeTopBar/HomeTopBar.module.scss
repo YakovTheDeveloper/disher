@@ -50,7 +50,7 @@
   gap: 6px;
   width: 100%;
   box-sizing: border-box;
-  padding: var(--bar-pad-y) var(--bar-pad-x);
+  padding: var(--space-3) var(--space-2);
   background: transparent;
   border: none;
   box-shadow: none;
@@ -124,6 +124,29 @@
   &:active {
     color: rgba(0, 0, 0, 0.55);
   }
+}
+
+// Абсолютно центрированный pill для произвольного контента (HomePage —
+// nutrients summary). Геометрия и поверхность повторяют `.accountSlot`/
+// `.dateSegment`: те же `--bar-*` токены → один и тот же look.
+.centerSlot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  background: var(--bar-bg);
+  border: var(--bar-border);
+  box-shadow: var(--bar-shadow);
+  border-radius: var(--radius-full, 999px);
+  backdrop-filter: blur(var(--bar-blur));
+  -webkit-backdrop-filter: blur(var(--bar-blur));
+  padding: 4px 10px;
+  // Резерв под account-pill слева (~44px) + date-segment справа (~110px) +
+  // gap'ы, чтобы центр не наезжал на края. На уже-узких экранах кнопка
+  // нутриентов укоротится за счёт собственного `text-overflow`.
+  max-width: calc(100% - 170px);
 }
 
 // AccountPanel — первый flex-child. Слева, перед leadingSlot

@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 .commonListItemWrapper {
     --select-color: #6cffc4;
     --select-color-strong: #34d399;
@@ -60,6 +62,7 @@
 }
 
 .commonListItemInner {
+    @include row-touch;
     --t: var(--item-t, 0);
 
     // Time-of-day palette — defaults to morning (green)
@@ -73,7 +76,12 @@
     outline: 1px solid color-mix(in oklch, var(--_outline-from) calc((1 - var(--t)) * 100%), var(--_outline-to));
 
     position: relative;
-    padding: 9px 8px 9px 12px;
+    // Vertical padding is consumer-overridable via --row-pad-block. Default
+    // keeps legacy 9px so existing rows render unchanged; the FoodSchedule
+    // pilot (and other text-driven row families) set --row-pad-block: 0 on
+    // the grid root and grow each cell to --row-cell-min-h instead.
+    padding-block: var(--row-pad-block, 9px);
+    padding-inline: 12px 8px;
     transition: background-color 0.3s ease, padding 0.3s ease;
     border-radius: 9px;
     touch-action: manipulation;

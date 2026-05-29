@@ -1,7 +1,7 @@
 import { RouterLinks } from '@/app/router';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { parse, isValid } from 'date-fns';
 import { useNavigate, useParams } from 'react-router-dom';
+import { formatWeekdayTitle } from '@/shared/lib/time/formatWeekday';
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import homeStyles from './HomePage.module.scss';
 import { FoodSchedule } from '@/widgets/FoodSchedule';
@@ -13,11 +13,15 @@ import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { useSurface } from '@/shared/lib/surface';
 import normsImg from '@/shared/assets/decarative/norms.png';
+import { NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
+import { drawerStore } from '@/shared/ui/drawer-store';
+import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 
 const SCREENS: ScreenEntry[] = [
   { label: 'Лаборатория', image: '/art/experiment.png', titleStyle: 'display-sans' },
-  { label: 'Приемы пищи', image: '/art/schedule-food.png', titleStyle: 'display-sans' },
+  { label: 'Дневной рацион', image: '/art/schedule-food.png', titleStyle: 'display-sans' },
   { label: 'События', image: normsImg, titleStyle: 'display-sans' },
 ];
 
@@ -38,17 +42,11 @@ const HOME_AMBIENT_VARIANTS = [
 // На пользовательский свайп не влияет — там momentum, не `duration`.
 const SWIPE_DURATION = 0;
 
-// Заголовок индикатора = день недели даты экрана, с большой буквы
-// ("Понедельник"). Intl возвращает lowercase в ru-RU, поэтому капитализируем
-// первый символ вручную.
-const formatWeekdayTitle = (input: string): string => {
-  const date = parse(input, 'dd-MM-yyyy', new Date());
-  if (!isValid(date)) return '';
-  const weekday = new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(date);
-  return weekday.charAt(0).toUpperCase() + weekday.slice(1);
-};
-
 const Page = ({ date }: { date: string }) => {
+  // HomePage — warm surface (стрипфорки FoodActionCard / SearchFood input).
+  // Лавандовый дефолт стоит на body в App.tsx; здесь перекрываем на warm.
+  useSurface('warm');
+
   const scheduleFoods = useScheduleFoods(date);
   const scheduleEvents = useScheduleEvents(date);
   const {
@@ -78,6 +76,27 @@ const Page = ({ date }: { date: string }) => {
 
   const { anchor: ambientAnchor } = useDesignVariant('HomeAmbient', HOME_AMBIENT_VARIANTS);
 
+  // Nutrients pill переехал с bottom-bar (leadingSlot) в HomeTopBar centerSlot
+  // (эксперимент 2026-05-21: bottom-bar теперь messenger-style write-field, в
+  // нём не остаётся места под 2-строчный nutrient-summary). Колбэк живёт здесь,
+  // FoodSchedule больше не владеет drawer'ом нутриентов.
+  const openNutrients = useCallback(() => {
+    void drawerStore.show(
+      NutrientsDrawer,
+      {
+        totals: scheduleTotals,
+        missingNutrientNames,
+        isLoading: nutrientsLoading,
+      },
+      { side: 'left', width: 'min(85vw, 360px)' }
+    );
+  }, [scheduleTotals, missingNutrientNames, nutrientsLoading]);
+
+  const topBarCenterSlot = useMemo(
+    () => <NutrientsSummaryButton totals={scheduleTotals} onClick={openNutrients} />,
+    [scheduleTotals, openNutrients]
+  );
+
   // Свайп НЕ прокидывается в React-стейт намеренно: каждый слайд рендерит
   // свой статичный ScreenIndicator (slideIndex={0/1/2}), поэтому Page не
   // зависит от активного индекса. Без onIndexChange/activeIndex свайп не
@@ -99,7 +118,7 @@ const Page = ({ date }: { date: string }) => {
         screens={SCREENS}
         onSelect={handleSelect}
         slideIndex={0}
-        title={weekdayTitle}
+        // title={weekdayTitle}
       />
     ),
     [handleSelect, weekdayTitle]
@@ -110,7 +129,7 @@ const Page = ({ date }: { date: string }) => {
         screens={SCREENS}
         onSelect={handleSelect}
         slideIndex={1}
-        title={weekdayTitle}
+        // title={weekdayTitle}
       />
     ),
     [handleSelect, weekdayTitle]
@@ -121,7 +140,7 @@ const Page = ({ date }: { date: string }) => {
         screens={SCREENS}
         onSelect={handleSelect}
         slideIndex={2}
-        title={weekdayTitle}
+        // title={weekdayTitle}
       />
     ),
     [handleSelect, weekdayTitle]
@@ -129,7 +148,7 @@ const Page = ({ date }: { date: string }) => {
 
   return (
     <div className={homeStyles.container} {...ambientAnchor}>
-      <HomeTopBar date={date} />
+      <HomeTopBar date={date} centerSlot={topBarCenterSlot} />
       <div className={homeStyles.swipeArea}>
         <Swipeable
           ref={swipeableRef}
@@ -138,15 +157,7 @@ const Page = ({ date }: { date: string }) => {
           hasDots={false}
         >
           <Laboratory key={date} date={date} topSlot={labIndicator} />
-          <FoodSchedule
-            key={date}
-            date={date}
-            items={items}
-            totals={scheduleTotals}
-            missingNutrientNames={missingNutrientNames}
-            isLoading={nutrientsLoading}
-            topSlot={foodIndicator}
-          />
+          <FoodSchedule key={date} date={date} items={items} topSlot={foodIndicator} />
           <ScheduleEvents key={date} date={date} events={events} topSlot={eventsIndicator} />
         </Swipeable>
       </div>

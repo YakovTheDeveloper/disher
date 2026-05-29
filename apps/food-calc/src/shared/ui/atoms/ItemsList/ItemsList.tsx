@@ -37,7 +37,6 @@ const ItemsList = ({ children, offsetTop, count, backgroundImage, emptyContent }
       {isEmpty && backgroundImage && (
         <img src={backgroundImage} className={styles.backgroundImage} alt="" />
       )}
-      <div className={styles.offsetBottom}></div>
     </ul>
   );
 };

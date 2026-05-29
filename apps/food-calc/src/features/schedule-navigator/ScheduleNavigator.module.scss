@@ -4,14 +4,15 @@
 // Source Serif 4 for the day number, 9px lowercase letter-spacing meta.
 // Warm honey is reserved for selected/today data-accents only.
 //
-// Layout: CSS grid `1fr / auto / auto / 1fr`. Row 1 is the scrollable past
-// section (collapses to 0 visual height when empty thanks to align-self:end
-// + flex-bottom packing). Rows 2-3 are the divider + anchor block (Вчера /
-// Сегодня / Завтра). Row 4 is an empty spacer that balances row 1 so the
-// anchor block sits at the geometric centre of the drawer regardless of how
-// much past content there is. The past section uses mask-image to fade its
-// top edge — that's the visual "there's more above" hint without resorting
-// to ResizeObserver + slice() math.
+// Layout: CSS grid `minmax(0, 1fr) / auto / auto`. Row 1 is the scrollable
+// past section, bottom-packed (align-self:end) so the newest past day sits
+// flush against the divider. Rows 2-3 are the divider + anchor block
+// (Вчера / Сегодня / Завтра). The wrapper has no bottom spacer — anchor
+// block sits at the bottom of the drawer, drawer shrinks to content when
+// past is small, caps at 78dvh from the outer .shell and the past section
+// scrolls within its 1fr row when overflowed. The past section uses
+// mask-image to fade its top edge — that's the visual "there's more above"
+// hint without resorting to ResizeObserver + slice() math.
 
 $ink: #1f2a44;
 $ink-soft: rgba(31, 42, 68, 0.62);
@@ -25,14 +26,17 @@ $accent-today: #e07a3a;
 .shell {
   position: relative;
   display: grid;
-  // row 1 — past (scrollable, grows up to 1fr)
-  // row 2 — divider (auto, hidden when no past)
-  // row 3 — anchor block (auto, always rendered)
-  // row 4 — empty balance spacer (1fr)
-  // Anchor sits in the geometric centre because rows 1 + 4 share the
-  // remaining flex equally.
-  grid-template-rows: 1fr auto auto 1fr;
-  flex: 1;
+  // row 1 — past (bottom-packed, scrollable when constrained, collapses to
+  //         content height when small).
+  // row 2 — divider (auto, hidden when no past).
+  // row 3 — anchor block (auto, always rendered, sits at the bottom).
+  // minmax(0,1fr) on row 1: collapses to 0 when empty, grows up to all
+  // remaining height when the outer .shell hits its max-height cap.
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  // flex-basis: auto so the inner shell reports its content height to the
+  // wrapping flex column — лишает дрейвер пустого хвоста под anchor-блоком,
+  // но при large past grow до wrapper max-height.
+  flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
   color: $ink;
@@ -48,13 +52,11 @@ $accent-today: #e07a3a;
   // drawer chrome (drag handle) with no visible seam, then deepens into a
   // mint → sky tint toward the bottom.
   background:
-    linear-gradient(
-      to bottom,
+    linear-gradient(to bottom,
       #ffffff 0%,
       #ffffff 14%,
       rgba(213, 236, 224, 0.55) 52%,
-      rgba(199, 224, 238, 0.9) 100%
-    );
+      rgba(199, 224, 238, 0.9) 100%);
   z-index: 0;
 }
 
@@ -168,17 +170,16 @@ $accent-today: #e07a3a;
 }
 
 .dayChipToday {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 240, 220, 0.85) 0%,
-    rgba(255, 230, 200, 0.55) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(255, 240, 220, 0.85) 0%,
+      rgba(255, 230, 200, 0.55) 100%);
   border-style: solid;
   border-color: rgba(224, 122, 58, 0.30);
 
   .dayChipNumber {
     color: $accent-today;
   }
+
   .dayChipWeekday {
     color: $accent-today;
     opacity: 0.85;
@@ -186,17 +187,16 @@ $accent-today: #e07a3a;
 }
 
 .dayChipSelected {
-  background: linear-gradient(
-    180deg,
-    rgba(252, 224, 179, 0.95) 0%,
-    rgba(249, 201, 126, 0.7) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(252, 224, 179, 0.95) 0%,
+      rgba(249, 201, 126, 0.7) 100%);
   border-style: solid;
   border-color: rgba(163, 90, 20, 0.30);
 
   .dayChipNumber {
     color: $accent-honey-deep;
   }
+
   .dayChipWeekday {
     color: $accent-honey-deep;
     opacity: 0.85;
@@ -208,13 +208,11 @@ $accent-today: #e07a3a;
   grid-row: 2;
   height: 1px;
   margin: 10px 28px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    $hairline 25%,
-    $hairline 75%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      $hairline 25%,
+      $hairline 75%,
+      transparent 100%);
   position: relative;
   z-index: 1;
 }
@@ -226,6 +224,7 @@ $accent-today: #e07a3a;
   flex-direction: column;
   position: relative;
   z-index: 1;
+  margin-bottom: var(--space-6);
 }
 
 // ─── Day row ───────────────────────────────────────────────────────────────
@@ -255,13 +254,11 @@ $accent-today: #e07a3a;
     right: 22px;
     bottom: 0;
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      $hairline 20%,
-      $hairline 80%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg,
+        transparent 0%,
+        $hairline 20%,
+        $hairline 80%,
+        transparent 100%);
     pointer-events: none;
   }
 
@@ -383,33 +380,28 @@ $accent-today: #e07a3a;
 }
 
 .dayRowToday {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 240, 220, 0.45) 0%,
-    rgba(255, 240, 220, 0.10) 60%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 240, 220, 0.45) 0%,
+      rgba(255, 240, 220, 0.10) 60%,
+      transparent 100%);
 }
 
 .dayRowSelected {
-  background: linear-gradient(
-    90deg,
-    rgba(252, 224, 179, 0.55) 0%,
-    rgba(252, 224, 179, 0.18) 70%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(252, 224, 179, 0.55) 0%,
+      rgba(252, 224, 179, 0.18) 70%,
+      transparent 100%);
 }
 
 .dayRowFilled:not(.dayRowToday):not(.dayRowSelected) {
-  background: linear-gradient(
-    90deg,
-    rgba(217, 154, 76, 0.07) 0%,
-    rgba(217, 154, 76, 0.02) 60%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(217, 154, 76, 0.07) 0%,
+      rgba(217, 154, 76, 0.02) 60%,
+      transparent 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .dayRow,
   .dayAccent,
   .dayChip {

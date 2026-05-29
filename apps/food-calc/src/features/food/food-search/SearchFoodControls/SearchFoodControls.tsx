@@ -66,33 +66,10 @@ const SearchFoodControls = ({
         </button>
       )}
 
-      {hasFilter && filterOptions ? (
-        <div className={styles.filterToggle} role="tablist" aria-label="Фильтр поиска">
-          {filterOptions.map((opt) => {
-            const isActive = opt === selectedFilter;
-            return (
-              <button
-                key={opt}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                className={clsx(
-                  styles.filterPill,
-                  isActive && styles.filterPillActive,
-                )}
-                onClick={() => onSelectFilter?.(opt)}
-              >
-                {FILTER_LABELS[opt]}
-              </button>
-            );
-          })}
-        </div>
-      ) : (
-        title && (
-          <Heading size="drawer" as="h2" className={styles.title}>
-            {title}
-          </Heading>
-        )
+      {!hasFilter && title && (
+        <Heading size="drawer" as="h2" className={styles.title}>
+          {title}
+        </Heading>
       )}
 
       <div className={styles.searchWrapper}>
@@ -123,6 +100,29 @@ const SearchFoodControls = ({
           </button>
         )}
       </div>
+
+      {hasFilter && filterOptions && (
+        <div className={styles.filterToggle} role="tablist" aria-label="Фильтр поиска">
+          {filterOptions.map((opt) => {
+            const isActive = opt === selectedFilter;
+            return (
+              <button
+                key={opt}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={clsx(
+                  styles.filterPill,
+                  isActive && styles.filterPillActive,
+                )}
+                onClick={() => onSelectFilter?.(opt)}
+              >
+                {FILTER_LABELS[opt]}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </header>
   );
 };

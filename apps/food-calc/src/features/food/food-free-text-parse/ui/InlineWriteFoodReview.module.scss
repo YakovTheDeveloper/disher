@@ -1,0 +1,457 @@
+// Inline review — рендерится ПОСЛЕ ItemsList в FoodSchedule (chat-pattern:
+// результат разбора рядом с write-bar внизу). Контейнер elevated (box-shadow)
+// + 4-corner radial-glow ambient внутри (родственник HomePage.HomeAmbient)
+// — поднимает блок над списком и над общим ambient'ом HomePage.
+
+// Fading hairline — канон stripe-fork (FoodActionCard.module.scss:315-328):
+// transparent → cool blue hairline @18-82% → transparent, inset 14px.
+// Отделяет шедул-список от предложки. Виден только когда сама предложка
+// mounted — сидит в общем return, поэтому условный рендер сверху
+// автоматически синхронизирует видимость разделителя с видимостью wrap'а.
+.divider {
+  margin: var(--space-4) 14px var(--space-2);
+  height: 1px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(31, 64, 124, 0.12) 18%,
+      rgba(31, 64, 124, 0.12) 82%,
+      transparent 100%);
+  pointer-events: none;
+}
+
+.wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  // top-зазор от шедул-списка теперь даёт `.divider` (margin-top var(--space-4)
+  // + bottom var(--space-2)). Здесь только bottom-margin до края скролла.
+  margin: 0 0 calc(var(--space-6) * 3);
+  padding: var(--space-4) var(--space-3);
+  background: #ffffff;
+  border-radius: 20px;
+  // Симметричная вертикальная тень: одинаково сверху и снизу, без directional
+  // drop. Боковые edge'и почти без блюра — wrap читается как «квадратная
+  // плашка», а не приподнятая carta. Hairline-кольцо удерживает контур над
+  // цветным HomeAmbient.
+  box-shadow:
+    0 -14px 28px -10px rgba(31, 42, 68, 0.20),
+    0 14px 28px -10px rgba(31, 42, 68, 0.20),
+    0 0 0 1px rgba(31, 42, 68, 0.06);
+  overflow: hidden;
+
+  // 4-corner radial-glow: blue-leaning gamma (sky / periwinkle / steel / ice)
+  // — родственник `ProductAmbient` палитры из HomePage.module.scss. Тёплый
+  // peach убран по запросу юзера 2026-05-23 — синие тона лучше держат
+  // primary-action настроение карточки (тёмный ink-pill снизу).
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 0% 0%, rgba(205, 230, 250, 0.65), transparent 45%),
+      radial-gradient(ellipse 70% 60% at 100% 0%, rgba(212, 220, 248, 0.55), transparent 45%),
+      radial-gradient(ellipse 70% 60% at 0% 100%, rgba(220, 228, 240, 0.5), transparent 45%),
+      radial-gradient(ellipse 70% 60% at 100% 100%, rgba(212, 235, 240, 0.55), transparent 45%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  // Все children — над ::before-glow.
+  >* {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+// Mount-only enter-анимация ТОЛЬКО для ready-state: лёгкий
+// горизонтальный шимми (влево → вправо → settle) + fade-in. «Мы тебя
+// заметили» — UX-nudge, чтобы взгляд юзера сам нашёл новую карточку. Шаги
+// затухают (-10, +6, -2, 0), чтобы движение не выглядело резким. Skeleton
+// (`data-state='loading'`) не анимируем — он живёт через внутренний
+// spinner, лишнее движение поверх создавало бы двойной сигнал. Анимация
+// composite-only (transform+opacity) согласно animation budget.
+@keyframes inlineReviewEnter {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateX(-10px);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateX(6px);
+  }
+
+  85% {
+    opacity: 1;
+    transform: translateX(-2px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.wrap[data-state='ready'] {
+  animation: inlineReviewEnter 480ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+// Vertical shake — триггерится из AppBottomBar.handleViewResults через
+// toggle `data-shake` на `[data-write-food-anchor]` (=`.wrap`). Маленький
+// translateY вверх-вниз затухающей амплитуды, чтобы взгляд юзера прибил
+// к предложке после instant-scroll'а. Композит-only (transform).
+@keyframes inlineReviewShake {
+  0% { transform: translateY(0); }
+  20% { transform: translateY(-6px); }
+  40% { transform: translateY(4px); }
+  60% { transform: translateY(-3px); }
+  80% { transform: translateY(2px); }
+  100% { transform: translateY(0); }
+}
+
+.wrap[data-shake] {
+  animation: inlineReviewShake 380ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrap[data-state='ready'],
+  .wrap[data-shake] {
+    animation: none;
+  }
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-3);
+}
+
+.originalText {
+  margin: 0;
+  padding: 4px var(--space-3);
+  border-left: 2px solid rgba(31, 64, 124, 0.28);
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(31, 42, 68, 0.6);
+  line-height: 1.4;
+}
+
+.empty {
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(31, 42, 68, 0.62);
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sectionTitle {
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(31, 42, 68, 0.72);
+}
+
+.sectionCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background: rgba(31, 42, 68, 0.1);
+  color: rgba(31, 42, 68, 0.65);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+// Wrapper для одного ряда предложки. Сам ряд (FreeTextFoodReviewItem)
+// занимает 100% ширины — той же, что у обычного ScheduleFoodItem ниже.
+// `× outerDelete` рендерится absolute справа в padding-right'е `.list`'а,
+// «вне контейнера ряда» по запросу юзера. Если убрать absolute и сделать
+// flex — ряд станет уже schedule-row, что юзер критиковал.
+//
+// Soft-delete (inline-undo pattern, Todoist/Things канон):
+// data-dismissed='true' → перечёркивание линией (scaleX 0→1 за 200ms,
+// left-origin) + opacity 0.55 на содержимое ряда. Сам крестик меняется
+// на ↶ через crossfade .iconDismiss / .iconUndo. Composite-only
+// (transform + opacity) согласно animation-budget из CLAUDE.md.
+.itemRow {
+  position: relative;
+
+  // Strikethrough — линия через всю ширину `.itemRow` (НЕ задевает
+  // `.outerDelete`, та сидит `right: -28px` вне itemRow). Появляется
+  // мгновенно при dismissed — без drawing-animation, чтобы выглядело
+  // как чистый task-manager toggle, а не «эффектный» переход.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: rgba(31, 42, 68, 0.6);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  &[data-dismissed='true'] {
+    // pointer-events: none на содержимое — пока ряд «вычеркнут», ВСЁ внутри
+    // (name-label → search, qty → edit, rescue-plus, time-input) не должно
+    // реагировать на тапы. Единственный аффорданс — undo-кнопка справа
+    // (`.outerDelete`), она остаётся кликабельной потому что position:absolute
+    // вынесена за пределы itemRow по селектору `> :not(.outerDelete)`.
+    > :not(.outerDelete) {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    &::after {
+      opacity: 1;
+    }
+  }
+}
+
+.list {
+  // Справа резерв под `.outerDelete` — она ВСЕГДА присутствует на каждом
+  // ряду. Левый резерв ставится УСЛОВНО через `data-rescue-slot='true'`:
+  // outerRescue появляется только для unresolved-без-manual, и резерв
+  // нужен только в той секции, где такие ряды есть. Иначе у
+  // resolved/ambiguous rows было бы 28px пустого пространства слева.
+  //
+  // Per-row padding-left не работает: outerRescue `left: -28px` от
+  // .itemRow.border-box.left, а wrap.padding=12px < 28px и
+  // wrap.overflow:hidden → кнопка обрезалась бы. Резерв через padding на
+  // .list делает outerRescue.left = list.padding-area.left → внутри wrap.
+  padding-right: 28px;
+
+  &[data-rescue-slot='true'] {
+    padding-left: 28px;
+  }
+}
+
+// Внешняя rescue-кнопка (+) — симметрия с outerDelete. Появляется ТОЛЬКО
+// для unresolved-без-manual: open AddToListPopover с e.currentTarget как
+// anchor'ом. Внутреннего .rescueBtn в ProposalFoodItem больше нет.
+.outerRescue {
+  position: absolute;
+  left: -28px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  color: rgba(31, 42, 68, 0.45);
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(31, 42, 68, 0.06);
+    color: rgba(31, 42, 68, 0.85);
+    outline: none;
+  }
+
+  &:active {
+    transform: translateY(-50%) scale(0.9);
+  }
+}
+
+.outerDelete {
+  position: absolute;
+  right: -28px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  color: rgba(31, 42, 68, 0.45);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(31, 42, 68, 0.06);
+    color: rgba(31, 42, 68, 0.85);
+    outline: none;
+  }
+
+  &:active {
+    transform: translateY(-50%) scale(0.9);
+  }
+
+  // Свич × ↔ ↶. Оба glyph'а монтированы (для screen-readers свич идёт
+  // через aria-label); opacity-flip без transition, мгновенно — согласовано
+  // с мгновенным появлением strikethrough-линии.
+  .iconDismiss,
+  .iconUndo {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  display: grid;
+  place-items: center;
+
+  .iconUndo {
+    opacity: 0;
+    font-size: 16px;
+  }
+}
+
+.itemRow[data-dismissed='true'] .outerDelete {
+  .iconDismiss {
+    opacity: 0;
+  }
+
+  .iconUndo {
+    opacity: 1;
+  }
+}
+
+// CTA «Добавить N» — solid `--color-ink` pill. Сильный контраст с warm
+// ambient'ом предложки + HomeAmbient под ней; играет роль primary action
+// на экране (юзер пришёл в предложку именно ради этой кнопки).
+.commitBtn {
+  align-self: stretch;
+  margin-top: calc(var(--space-6) * 2);
+  padding: 12px 22px;
+  min-height: 44px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  transition: transform 0.12s ease, opacity 0.15s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Skeleton-блок во время loading: 3 серых ряда-плейсхолдера + спиннер
+// поверх по центру. Сразу видно ГДЕ появится результат — авто-скролл
+// в loading-фазе сюда же ставит юзера, потом ready просто заменяет
+// разметку, без layout-прыжка.
+.skeleton {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  min-height: 180px;
+}
+
+.skeletonRow {
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(90deg,
+      rgba(31, 42, 68, 0.05) 0%,
+      rgba(31, 42, 68, 0.09) 50%,
+      rgba(31, 42, 68, 0.05) 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+
+  &:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+}
+
+.skeletonSpinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(31, 42, 68, 0.6);
+  pointer-events: none;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonRow {
+    animation: none;
+  }
+}
+

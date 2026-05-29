@@ -194,7 +194,9 @@
     background: transparent;
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    // stripe-fork rows touch row-to-row; divider is each row's fading ::after
+    // hairline (see FoodActionCard.module.scss). No outer gap.
+    gap: 0;
 }
 
 .filterChipActive {
@@ -209,64 +211,10 @@
     }
 }
 
-// ─── Stripe family (list-level) ─────────────────────────
-// All variants share v5's structure (3px richness-stripe, fading hairline,
-// nth-child rhythm). They differ only in palette/intensity. Container gets
-// a soft 2-stop vertical gradient that harmonises with the row palettes.
-
-// column-stripe — cool blue base (v5, kept verbatim)
-:global([data-dv='SearchFood'][data-dv-v='column-stripe']) {
-    .listContainer {
-        background: linear-gradient(180deg, #fbfcfd 0%, #f7f9fc 100%);
-    }
-    .list { gap: 0; }
-}
-
-// stripe-warm — honey / peach
-:global([data-dv='SearchFood'][data-dv-v='stripe-warm']) {
-    .listContainer {
-        background: linear-gradient(180deg, #fefcf7 0%, #faf3e3 100%);
-    }
-    .list { gap: 0; }
-}
-
-// stripe-mint — sage / mint
-:global([data-dv='SearchFood'][data-dv-v='stripe-mint']) {
-    .listContainer {
-        background: linear-gradient(180deg, #fbfdfb 0%, #f4f8f5 100%);
-    }
-    .list { gap: 0; }
-}
-
-// stripe-rose — dusty pink
-:global([data-dv='SearchFood'][data-dv-v='stripe-rose']) {
-    .listContainer {
-        background: linear-gradient(180deg, #fdfafc 0%, #f8eff4 100%);
-    }
-    .list { gap: 0; }
-}
-
-// stripe-graphite — neutral grey (slightly more contrast on rules)
-:global([data-dv='SearchFood'][data-dv-v='stripe-graphite']) {
-    .listContainer {
-        background: linear-gradient(180deg, #fafafb 0%, #f0f0f2 100%);
-    }
-    .list { gap: 0; }
-}
-
-// stripe-sand — warm beige / cream
-:global([data-dv='SearchFood'][data-dv-v='stripe-sand']) {
-    .listContainer {
-        background: linear-gradient(180deg, #fcf9ee 0%, #f4eada 100%);
-    }
-    .list { gap: 0; }
-}
-
-// stripe-lavender — soft purple
-:global([data-dv='SearchFood'][data-dv-v='stripe-lavender']) {
-    .listContainer {
-        background: linear-gradient(180deg, #fcfbfd 0%, #f4eef9 100%);
-    }
-    .list { gap: 0; }
+// ─── List container backdrop (surface-driven) ──────────────────────
+// Backdrop gradient harmonises with the stripe-fork row palette and is
+// driven by the body[data-surface] token in surfaces.scss.
+.listContainer {
+    background: var(--list-bg);
 }
 

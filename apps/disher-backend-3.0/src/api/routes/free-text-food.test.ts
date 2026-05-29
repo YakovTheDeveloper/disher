@@ -157,7 +157,6 @@ describe("POST /api/free-text-food/parse — pipeline", () => {
       time: "13:00",
       confidence: 1,
     });
-    expect(body.resolved[0].quantityGuessed).toBeUndefined();
     expect(body.ambiguous).toHaveLength(0);
     expect(body.unresolved).toHaveLength(0);
   });
@@ -278,7 +277,7 @@ describe("POST /api/free-text-food/parse — pipeline", () => {
     expect(res.json().unresolved).toHaveLength(1);
   });
 
-  it("applies quantity fallback and flags quantityGuessed when LLM returns 0", async () => {
+  it("applies quantity fallback when LLM returns 0", async () => {
     setAlias("банан", { id: "p-banana", name: "Банан" });
     mockLLM([{ name: "банан", quantity: 0, time: "08:00" }]);
 
@@ -289,9 +288,7 @@ describe("POST /api/free-text-food/parse — pipeline", () => {
       payload: { text: "банан" },
     });
 
-    const body = res.json();
-    expect(body.resolved[0].quantity).toBe(100);
-    expect(body.resolved[0].quantityGuessed).toBe(true);
+    expect(res.json().resolved[0].quantity).toBe(100);
   });
 
   it("applies quantity fallback when LLM returns null", async () => {
@@ -306,10 +303,9 @@ describe("POST /api/free-text-food/parse — pipeline", () => {
     });
 
     expect(res.json().resolved[0].quantity).toBe(100);
-    expect(res.json().resolved[0].quantityGuessed).toBe(true);
   });
 
-  it("rounds fractional quantities and does NOT flag quantityGuessed", async () => {
+  it("rounds fractional quantities", async () => {
     setAlias("молоко", { id: "p-milk", name: "Молоко" });
     mockLLM([{ name: "молоко", quantity: 123.4, time: "08:00" }]);
 
@@ -321,7 +317,6 @@ describe("POST /api/free-text-food/parse — pipeline", () => {
     });
 
     expect(res.json().resolved[0].quantity).toBe(123);
-    expect(res.json().resolved[0].quantityGuessed).toBeUndefined();
   });
 
   it("fills default times [08:00, 13:00, 16:00] when LLM returns all null", async () => {

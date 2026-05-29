@@ -10,6 +10,21 @@
   gap: var(--space-3);
 }
 
+// Нейтральный серый wash сверху headerOverlap'а — даёт «Пятнице» лёгкую
+// поверхность под собой (раньше текст лежал на плоском white и сливался
+// с белым `stickyTop`-ом сверху). Без тёплого тона: палитра экрана уже
+// warm через `useSurface`, дублировать на «листе» не надо.
+// Watermark рисуется отдельно через `mask-image` (см. `.weekdayHeading::after`)
+// — он сам себе тон, gradient ему не нужен.
+.scheduleScreen {
+  --header-overlap-bg:
+    linear-gradient(180deg,
+      rgba(0, 0, 0, 0.022) 0%,
+      rgba(0, 0, 0, 0.012) 50%,
+      rgba(0, 0, 0, 0) 100%),
+    #ffffff;
+}
+
 // Anchor wrapper around the food list — gives the design-variant bar a
 // hook for visibility tracking + flash. Plain block so the outline-based
 // flash animation can render; the inner ItemsList carries its own layout.
@@ -23,18 +38,81 @@
   display: block;
 }
 
+// Sub-heading в начале scroll-области (под ScreenIndicator'ом).
+// День недели с заглавной буквы — Heading size="section" (24px serif italic).
+// Канон совпадает с InlineWriteFoodReview.headerRow.
+//
+// `::after` — кремовый watermark логотипа в правой части строки заголовка.
+// Срабатывает в паре с warm-wash gradient'ом на `.scheduleScreen` выше:
+// заливка лого ≈ `#f5efe0`, на чистом белом она бы пропала, на honey-tint
+// проступает ровно как ненавязчивый брендинг-знак (Time Machine-стиль).
+.weekdayHeading {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4) var(--space-3) var(--space-1);
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: var(--space-4);
+    top: 30%;
+    transform: translateY(-45%);
+    width: 144px;
+    height: 70px;
+    background-color: rgba(0, 0, 0, 0.13);
+    -webkit-mask-image: url('/logo/logo-white-no-fill.png');
+    mask-image: url('/logo/logo-white-no-fill.png');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: right center;
+    mask-position: right center;
+    pointer-events: none;
+  }
+}
+
 // Palette variants for the food list. Each variant binds shared time-of-
 // day surface tokens (`@include dv-palette-<name>`) AND text tokens for
 // the inline row labels. Text stays in the family's dark anchor hue so
 // contrast holds on every period's gentle pastel background.
 
-[data-dv='ScheduleFood'][data-dv-v='meadow']   { @include dv-palette-meadow;   @include dv-text($dv-text-graphite); }
-[data-dv='ScheduleFood'][data-dv-v='sunrise']  { @include dv-palette-sunrise;  @include dv-text($dv-text-graphite); }
-[data-dv='ScheduleFood'][data-dv-v='sorbet']   { @include dv-palette-sorbet;   @include dv-text($dv-text-graphite); }
-[data-dv='ScheduleFood'][data-dv-v='garden']   { @include dv-palette-garden;   @include dv-text($dv-text-graphite); }
-[data-dv='ScheduleFood'][data-dv-v='lagoon']   { @include dv-palette-lagoon;   @include dv-text($dv-text-graphite); }
-[data-dv='ScheduleFood'][data-dv-v='tropic']   { @include dv-palette-tropic;   @include dv-text($dv-text-graphite); }
-[data-dv='ScheduleFood'][data-dv-v='twilight'] { @include dv-palette-twilight; @include dv-text($dv-text-twilight); }
+[data-dv='ScheduleFood'][data-dv-v='meadow'] {
+  @include dv-palette-meadow;
+  @include dv-text($dv-text-graphite);
+}
+
+[data-dv='ScheduleFood'][data-dv-v='sunrise'] {
+  @include dv-palette-sunrise;
+  @include dv-text($dv-text-graphite);
+}
+
+[data-dv='ScheduleFood'][data-dv-v='sorbet'] {
+  @include dv-palette-sorbet;
+  @include dv-text($dv-text-graphite);
+}
+
+[data-dv='ScheduleFood'][data-dv-v='garden'] {
+  @include dv-palette-garden;
+  @include dv-text($dv-text-graphite);
+}
+
+[data-dv='ScheduleFood'][data-dv-v='lagoon'] {
+  @include dv-palette-lagoon;
+  @include dv-text($dv-text-graphite);
+}
+
+[data-dv='ScheduleFood'][data-dv-v='tropic'] {
+  @include dv-palette-tropic;
+  @include dv-text($dv-text-graphite);
+}
+
+[data-dv='ScheduleFood'][data-dv-v='twilight'] {
+  @include dv-palette-twilight;
+  @include dv-text($dv-text-twilight);
+}
 
 .minimalButton {
   display: inline-flex;
@@ -88,5 +166,3 @@
 .analyticsDot_stale {
   background: #f59e0b;
 }
-
-
