@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // Stripe-fork hypothesis row. Palette CSS-vars (`--lh-*`) are published by
 // the parent `[data-dv='LabHypothesis'][data-dv-v=...]` anchor in
 // HypothesisListCollapsible.module.scss — this file only consumes them.
@@ -34,11 +36,7 @@
         right: 14px;
         bottom: 0;
         height: 1px;
-        background: linear-gradient(90deg,
-            transparent 0%,
-            var(--lh-hairline, rgba(124, 65, 15, 0.09)) 18%,
-            var(--lh-hairline, rgba(124, 65, 15, 0.09)) 82%,
-            transparent 100%);
+        @include hairline(var(--lh-hairline, rgba(124, 65, 15, 0.09)));
         pointer-events: none;
     }
 

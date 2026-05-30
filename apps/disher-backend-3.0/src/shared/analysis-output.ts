@@ -44,6 +44,45 @@ export const ANALYSIS_OUTPUT_PROMPT_SPEC = `Верни строго JSON и НИ
 // of days in the window before calling something a cohort.
 const DETAILS_COHORT_INSTRUCTION = `Каждый приём пищи может иметь поле details (строка через запятую: «жареное, без масла», «выдержанный», «домашнее», «с кожурой» и т.п.). Прочти details всех приёмов окна. Выдели повторяющиеся оси (способ готовки, источник, выдержка, кожура, маринад) и стройте когорты — например «жареные дни» vs «варёные дни», «домашнее» vs «магазинное». Минимум для когорты — присутствие в ≥20% дней окна; единичные упоминания не паттерн. Если ось встречается слишком редко, не натягивай её на разбор.`;
 
+// ─── Nutrient anchor ───
+// The client computes approximate per-day nutrient sums (from the catalog) and
+// ships them as an anchor. They are NOT a calculator readout for the user — the
+// instruction below tells the LLM to treat them as rough calibration only.
+
+export type NutrientLine = {
+  name: string;
+  amount: number;
+  unit: string;
+  norm: number | null;
+};
+
+// Coerce arbitrary client JSON into NutrientLine[]. Permissive: drops malformed
+// entries rather than throwing, mirrors the rest of this module's contract.
+export function asNutrientLines(v: unknown): NutrientLine[] {
+  if (!Array.isArray(v)) return [];
+  const out: NutrientLine[] = [];
+  for (const item of v) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    if (typeof o.name !== "string") continue;
+    if (typeof o.amount !== "number" || !Number.isFinite(o.amount)) continue;
+    const unit = typeof o.unit === "string" ? o.unit : "";
+    const norm =
+      typeof o.norm === "number" && Number.isFinite(o.norm) ? o.norm : null;
+    out.push({ name: o.name, amount: o.amount, unit, norm });
+  }
+  return out;
+}
+
+// One nutrient → a compact token, e.g. «Белки 95 г (норма ~51)». Used inline
+// (long, per-day) and as bullets (daily).
+export function nutrientLineToken(n: NutrientLine): string {
+  const base = `${n.name} ${n.amount} ${n.unit}`.trim();
+  return n.norm !== null ? `${base} (норма ~${n.norm})` : base;
+}
+
+export const NUTRIENT_ANCHOR_INSTRUCTION = `К данным приложены ОРИЕНТИРОВОЧНЫЕ суммы нутриентов за день — посчитаны автоматически из каталога по съеденным продуктам и порциям. Они приблизительные: часть продуктов может быть без данных, состав и порции варьируются. Используй их ТОЛЬКО как опору: грубо прикинуть, чего за день могло быть заметно мало или много относительно ориентира суточной нормы, и не предлагать абсурдных количеств. НЕ зачитывай эти числа юзеру как точные и НЕ превращай ответ в таблицу БЖУ — говори о тенденциях («белка в эти дни заметно ниже ориентира»), а не «у вас было ровно 73.4 г белка». Если по нутриентам данных нет — просто не упоминай их.`;
+
 // Dish names may carry a bracket-tag with per-ingredient modifications, e.g.
 // `Борщ [особенности: свёкла печёная, говядина тушёная 2ч]`. This is the
 // dish's own «recipe variation», not a tag on the meal — treat it as part
@@ -59,6 +98,8 @@ export const SYSTEM_PROMPT_BASE = `Ты помогаешь юзеру в его 
 ${DETAILS_COHORT_INSTRUCTION}
 
 ${DISH_DETAILS_INSTRUCTION}
+
+${NUTRIENT_ANCHOR_INSTRUCTION}
 
 ${ANALYSIS_OUTPUT_PROMPT_SPEC}`;
 

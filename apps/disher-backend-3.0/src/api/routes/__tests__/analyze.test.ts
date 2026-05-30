@@ -233,6 +233,34 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
     expect(userPromptArg).not.toContain("h-1");
   });
 
+  it("nutrientsByDay reaches the LLM prompt as per-day anchor lines", async () => {
+    const id = crypto.randomUUID();
+    await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id,
+        windowStart: "2026-05-01T00:00:00Z",
+        windowEnd: "2026-05-08T00:00:00Z",
+        payload: {
+          scheduleFoods: [],
+          scheduleEvents: [],
+          nutrientsByDay: [
+            {
+              date: "01-05-2026",
+              nutrients: [{ name: "Белки", amount: 88, unit: "г", norm: 51 }],
+            },
+          ],
+        },
+      },
+    });
+    await pollUntilDone(id, user.headers);
+    const userPromptArg = mockCallLLM.mock.calls[0]?.[1] as string;
+    expect(userPromptArg).toContain("суммы нутриентов по дням");
+    expect(userPromptArg).toContain("01-05-2026: Белки 88 г (норма ~51)");
+  });
+
   it("rejects a window shorter than 7 days with 400", async () => {
     // 01-05 … 06-05 — 5 days apart = 6 inclusive days, just under the floor.
     const res = await app.inject({

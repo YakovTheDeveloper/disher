@@ -1,11 +1,13 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { pool } from "../db.js";
 import { requireUser } from "../../auth/require-user.js";
+import { asNutrientLines } from "../../shared/analysis-output.js";
 import {
   runAnalysisJob,
   updateAnalysisFailed,
   type AnalyzePayload,
   type CallLLM,
+  type DayNutrients,
   type HypothesisContext,
 } from "./analyze.runJob.js";
 
@@ -39,9 +41,26 @@ type AnalyzeBody = {
   payload?: {
     scheduleFoods?: unknown[];
     scheduleEvents?: unknown[];
+    nutrientsByDay?: unknown[];
     hypotheses?: HypothesisContext[];
   };
 };
+
+// Sanitise the client's nutrientsByDay into validated DayNutrients[]. Drops
+// entries without a string date or with no surviving nutrient lines.
+function asNutrientsByDay(v: unknown): DayNutrients[] {
+  if (!Array.isArray(v)) return [];
+  const out: DayNutrients[] = [];
+  for (const item of v) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    if (typeof o.date !== "string") continue;
+    const nutrients = asNutrientLines(o.nutrients);
+    if (nutrients.length === 0) continue;
+    out.push({ date: o.date, nutrients });
+  }
+  return out;
+}
 
 // Number of calendar days the window covers — INCLUSIVE of both ends, so it
 // agrees with the frontend RangePickerWithFallback (a «7 дней» preset sends a
@@ -124,6 +143,10 @@ export async function analyzeRoutes(
       scheduleEvents: Array.isArray(body.payload?.scheduleEvents)
         ? body.payload!.scheduleEvents!
         : [],
+      ...(() => {
+        const nutrientsByDay = asNutrientsByDay(body.payload?.nutrientsByDay);
+        return nutrientsByDay.length > 0 ? { nutrientsByDay } : {};
+      })(),
       ...(Array.isArray(body.payload?.hypotheses)
         ? { hypotheses: body.payload!.hypotheses! }
         : {}),

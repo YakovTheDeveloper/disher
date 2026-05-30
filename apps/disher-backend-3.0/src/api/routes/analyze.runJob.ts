@@ -2,10 +2,12 @@ import { pool } from "../db.js";
 import {
   ANALYSIS_OUTPUT_PROMPT_SPEC,
   SYSTEM_PROMPT_BASE,
+  nutrientLineToken,
   safeStringifyArray,
   stripNullBytes,
   tryParseOutput,
   type AnalysisOutput,
+  type NutrientLine,
 } from "../../shared/analysis-output.js";
 
 // Background runner for /api/analyze. Invoked as `void runAnalysisJob(...)`
@@ -21,6 +23,9 @@ const LLM_TIMEOUT_MS = 120_000;
 const FOODS_BUDGET = 80_000;
 const EVENTS_BUDGET = 80_000;
 const HYPOTHESES_BUDGET = 8_000;
+// Per-day nutrient anchor lines. Compact (one line per day) but still capped:
+// 35 days × ~30 nutrients can add up. Oldest days drop first if over budget.
+const NUTRIENTS_BUDGET = 40_000;
 
 const FAILURE_PREFIX = "⚠️ Анализ не удался";
 
@@ -34,11 +39,14 @@ export type HypothesisContext = {
   body: string;
 };
 
+export type DayNutrients = { date: string; nutrients: NutrientLine[] };
+
 export type AnalyzePayload = {
   windowStart: string;
   windowEnd: string;
   scheduleFoods: unknown[];
   scheduleEvents: unknown[];
+  nutrientsByDay?: DayNutrients[];
   hypotheses?: HypothesisContext[];
 };
 
@@ -69,6 +77,28 @@ function buildUserPrompt(payload: AnalyzePayload): string {
     `События (всего ${payload.scheduleEvents.length}, в промпте ${events.kept}):`,
   );
   lines.push(events.json);
+
+  if (payload.nutrientsByDay && payload.nutrientsByDay.length > 0) {
+    // One compact line per day. Keep the most recent days if over budget
+    // (drop from the start), so the window's tail — usually what the user
+    // cares about — survives.
+    const dayLines = payload.nutrientsByDay.map(
+      (d) => `${d.date}: ${d.nutrients.map(nutrientLineToken).join(", ")}`,
+    );
+    const kept: string[] = [];
+    let used = 0;
+    for (let i = dayLines.length - 1; i >= 0; i--) {
+      const cost = dayLines[i].length + 1;
+      if (used + cost > NUTRIENTS_BUDGET) break;
+      used += cost;
+      kept.unshift(dayLines[i]);
+    }
+    lines.push("");
+    lines.push(
+      `Ориентировочные суммы нутриентов по дням (приблизительно, в промпте ${kept.length} из ${dayLines.length} дней):`,
+    );
+    lines.push(...kept);
+  }
 
   if (payload.hypotheses && payload.hypotheses.length > 0) {
     // Project to {title, body} only — the id (UUID) is snapshot bookkeeping,

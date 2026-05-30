@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   ANALYSIS_OUTPUT_PROMPT_SPEC,
   SYSTEM_PROMPT_BASE,
+  asNutrientLines,
+  nutrientLineToken,
   safeStringifyArray,
   stripNullBytes,
   tryParseOutput,
@@ -30,6 +32,54 @@ describe("system prompt — dish-name [особенности: …] hint", () =>
   // doesn't treat it as a meal-level tag.
   it("SYSTEM_PROMPT_BASE explains the [особенности: …] dish suffix", () => {
     expect(SYSTEM_PROMPT_BASE).toContain("[особенности:");
+  });
+
+  it("SYSTEM_PROMPT_BASE carries the nutrient-anchor instruction", () => {
+    expect(SYSTEM_PROMPT_BASE).toContain("ОРИЕНТИРОВОЧНЫЕ суммы нутриентов");
+    expect(SYSTEM_PROMPT_BASE).toContain("НЕ превращай ответ в таблицу БЖУ");
+  });
+});
+
+describe("asNutrientLines", () => {
+  it("keeps well-formed lines and coerces a missing norm to null", () => {
+    expect(
+      asNutrientLines([
+        { name: "Белки", amount: 95, unit: "г", norm: 51 },
+        { name: "Цинк", amount: 6.2, unit: "мг" },
+      ]),
+    ).toEqual([
+      { name: "Белки", amount: 95, unit: "г", norm: 51 },
+      { name: "Цинк", amount: 6.2, unit: "мг", norm: null },
+    ]);
+  });
+
+  it("drops entries with no name or a non-finite amount", () => {
+    expect(
+      asNutrientLines([
+        { amount: 10, unit: "г" },
+        { name: "Железо", amount: Number.NaN, unit: "мг" },
+        { name: "Кальций", amount: 800, unit: "мг", norm: 700 },
+      ]),
+    ).toEqual([{ name: "Кальций", amount: 800, unit: "мг", norm: 700 }]);
+  });
+
+  it("returns [] for non-array input", () => {
+    expect(asNutrientLines(undefined)).toEqual([]);
+    expect(asNutrientLines("nope")).toEqual([]);
+  });
+});
+
+describe("nutrientLineToken", () => {
+  it("appends the norm anchor when present", () => {
+    expect(
+      nutrientLineToken({ name: "Белки", amount: 95, unit: "г", norm: 51 }),
+    ).toBe("Белки 95 г (норма ~51)");
+  });
+
+  it("omits the norm clause when null", () => {
+    expect(
+      nutrientLineToken({ name: "Цинк", amount: 6.2, unit: "мг", norm: null }),
+    ).toBe("Цинк 6.2 мг");
   });
 });
 

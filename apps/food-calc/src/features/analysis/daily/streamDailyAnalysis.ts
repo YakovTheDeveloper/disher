@@ -1,6 +1,7 @@
 import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { API_BASE } from '@/shared/lib/api/base';
 import { createSSEParser } from '@/shared/lib/sse/parseSSELines';
+import type { NutrientLine } from '../api/runAnalysis';
 
 // SSE consumer for POST /api/analyze/daily. Mirrors streamDishAnalysis but
 // adds a failure-kind discriminator: the daily store needs to know whether a
@@ -30,6 +31,8 @@ type StreamArgs = {
   date: string;
   scheduleFoods: unknown[];
   scheduleEvents: unknown[];
+  /** Approximate per-day nutrient totals — an anchor for the LLM, not exact. */
+  nutrients: NutrientLine[];
   hypotheses: DailyPromptHypothesis[];
   onChunk: (chunk: string) => void;
   signal: AbortSignal;
@@ -39,7 +42,7 @@ type StreamArgs = {
 // success OR on abort (caller checks `signal.aborted` to tell them apart).
 // Rejects with DailyStreamError on a genuine network/server failure.
 export async function streamDailyAnalysis(args: StreamArgs): Promise<string> {
-  const { date, scheduleFoods, scheduleEvents, hypotheses, onChunk, signal } =
+  const { date, scheduleFoods, scheduleEvents, nutrients, hypotheses, onChunk, signal } =
     args;
 
   let accumulated = '';
@@ -53,7 +56,7 @@ export async function streamDailyAnalysis(args: StreamArgs): Promise<string> {
     res = await authedFetch(ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date, scheduleFoods, scheduleEvents, hypotheses }),
+      body: JSON.stringify({ date, scheduleFoods, scheduleEvents, nutrients, hypotheses }),
       signal,
     });
   } catch (err) {

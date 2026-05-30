@@ -39,6 +39,23 @@ describe("buildDailyUserPrompt", () => {
     const out = buildDailyUserPrompt("15-05-2026", [], [], []);
     expect(out).not.toContain("Гипотезы");
   });
+
+  it("renders the nutrient anchor lines with name/amount/unit + norm", () => {
+    const out = buildDailyUserPrompt("15-05-2026", [], [], [], [
+      { name: "Белки", amount: 95, unit: "г", norm: 51 },
+      { name: "Цинк", amount: 6.2, unit: "мг", norm: null },
+    ]);
+    expect(out).toContain("Ориентировочные суммы нутриентов за день");
+    expect(out).toContain("- Белки 95 г (норма ~51)");
+    // norm omitted when null.
+    expect(out).toContain("- Цинк 6.2 мг");
+    expect(out).not.toContain("Цинк 6.2 мг (норма");
+  });
+
+  it("omits the nutrient block when no lines are given", () => {
+    const out = buildDailyUserPrompt("15-05-2026", [], [], []);
+    expect(out).not.toContain("суммы нутриентов");
+  });
 });
 
 describe("DAILY_SYSTEM_PROMPT", () => {
@@ -50,6 +67,11 @@ describe("DAILY_SYSTEM_PROMPT", () => {
   it("includes the dish-details instruction but not the cohort one", () => {
     expect(DAILY_SYSTEM_PROMPT).toContain("[особенности: …]");
     expect(DAILY_SYSTEM_PROMPT).not.toContain("≥20% дней окна");
+  });
+
+  it("carries the nutrient-anchor instruction (numbers are approximate, not a table)", () => {
+    expect(DAILY_SYSTEM_PROMPT).toContain("ОРИЕНТИРОВОЧНЫЕ суммы нутриентов");
+    expect(DAILY_SYSTEM_PROMPT).toContain("НЕ превращай ответ в таблицу БЖУ");
   });
 });
 

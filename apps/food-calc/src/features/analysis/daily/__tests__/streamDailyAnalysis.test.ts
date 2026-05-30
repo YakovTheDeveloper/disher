@@ -41,6 +41,7 @@ const baseArgs = () => ({
   date: '15-05-2026',
   scheduleFoods: [],
   scheduleEvents: [],
+  nutrients: [],
   hypotheses: [],
   onChunk: () => {},
   signal: new AbortController().signal,
@@ -81,6 +82,14 @@ describe('streamDailyAnalysis — success', () => {
     const body = JSON.parse(String(mockFetch.mock.calls[0]?.[1]?.body));
     expect(body.hypotheses).toEqual([{ title: 'Без кофе', body: 'убрать кофе' }]);
     expect(body.date).toBe('15-05-2026');
+  });
+
+  it('forwards the nutrient anchor lines in the POST body', async () => {
+    mockFetch.mockResolvedValue(fakeResponse({ frames: ['data: [DONE]\n\n'] }));
+    const nutrients = [{ name: 'Белки', amount: 95, unit: 'г', norm: 51 }];
+    await streamDailyAnalysis({ ...baseArgs(), nutrients });
+    const body = JSON.parse(String(mockFetch.mock.calls[0]?.[1]?.body));
+    expect(body.nutrients).toEqual(nutrients);
   });
 });
 

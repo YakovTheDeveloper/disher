@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { get as idbGet, set as idbSet } from 'idb-keyval';
 import { db } from '@/shared/lib/dexie/schema';
-import { collectFoods, collectEvents } from '../api/runAnalysis';
+import { collectFoods, collectEvents, collectNutrientsByDay } from '../api/runAnalysis';
 import { streamDailyAnalysis, DailyStreamError } from './streamDailyAnalysis';
 import { parseIdeaCardsFromMarkdown } from './parseIdeaCardsFromMarkdown';
 import type { DailyAnalysis, DailyAnalysisReason } from './types';
@@ -94,11 +94,14 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
         .map((r) => ({ id: r.id, title: r.title, body: r.body }));
 
       // Hydrate the day's foods/events with human-readable names so the LLM
-      // never sees product_id UUIDs.
-      const [scheduleFoods, scheduleEvents] = await Promise.all([
+      // never sees product_id UUIDs. nutrients = approximate per-day totals as
+      // an anchor (see streamDailyAnalysis / DAILY_SYSTEM_PROMPT).
+      const [scheduleFoods, scheduleEvents, nutrientsByDay] = await Promise.all([
         collectFoods([date]),
         collectEvents([date]),
+        collectNutrientsByDay([date]),
       ]);
+      const nutrients = nutrientsByDay[0]?.nutrients ?? [];
 
       const controller = new AbortController();
       controllers.set(date, controller);
@@ -124,6 +127,7 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
           date,
           scheduleFoods,
           scheduleEvents,
+          nutrients,
           hypotheses: appliedHypotheses.map(({ title, body }) => ({
             title,
             body,

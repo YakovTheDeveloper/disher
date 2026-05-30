@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/shared/lib/dexie/schema';
-import { collectFoods, formatDishNameWithDetails } from '../runAnalysis';
+import {
+  collectFoods,
+  collectNutrientsByDay,
+  formatDishNameWithDetails,
+} from '../runAnalysis';
 
 const ISO = '2026-05-13T10:00:00.000Z';
 
@@ -201,5 +205,62 @@ describe('collectFoods — bracket-tag for dish details', () => {
     const out = await collectFoods([dayKey]);
     expect(out[0].name).toBe('яблоко');
     expect(out[0].details).toBe('свежее');
+  });
+});
+
+// Integration: per-day nutrient anchor — scaled by quantity, named in RU, with
+// the daily-norm anchor attached. Mirrors useScheduleNutrientTotals but outside
+// React.
+describe('collectNutrientsByDay — per-day anchor', () => {
+  const dayKey = '13-05-2026';
+
+  it('scales a product by quantity/100 and labels nutrients in RU + norm', async () => {
+    await db.products.add({
+      id: 'p-chicken',
+      name: 'курица',
+      source: '',
+      // protein id '1' = 20 g/100g, energy id '7' = 165 kcal/100g
+      nutrients: { '1': 20, '7': 165 },
+      portions: [],
+      categories: [],
+      serving_basis: '100g',
+      serving_unit: null,
+      created_at: ISO,
+    });
+    await db.schedule_foods.add({
+      id: 'sf-chicken',
+      date: dayKey,
+      time: '13:00',
+      type: 'food',
+      quantity: 200,
+      details: '',
+      product_id: 'p-chicken',
+      dish_id: null,
+      created_at: ISO,
+    });
+
+    const out = await collectNutrientsByDay([dayKey]);
+    expect(out).toHaveLength(1);
+    expect(out[0].date).toBe(dayKey);
+    const byName = new Map(out[0].nutrients.map((n) => [n.name, n]));
+    // 20 g/100g × 200g = 40 g protein, norm anchor 51.
+    expect(byName.get('Белки')).toEqual({
+      name: 'Белки',
+      amount: 40,
+      unit: 'г',
+      norm: 51,
+    });
+    // 165 × 2 = 330 kcal, norm anchor 2000.
+    expect(byName.get('Энергия')).toEqual({
+      name: 'Энергия',
+      amount: 330,
+      unit: 'ккал',
+      norm: 2000,
+    });
+  });
+
+  it('returns no entry for a day with no scheduled food', async () => {
+    const out = await collectNutrientsByDay([dayKey]);
+    expect(out).toEqual([]);
   });
 });

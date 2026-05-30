@@ -58,6 +58,21 @@
     }
 }
 
+// Fading hairline divider — the canon 1px row/card separator (design-DNA).
+// A HORIZONTAL line that fades to transparent at both ends. NOT fade-top /
+// fade-bottom (those are VERTICAL scroll-fades). Sets only the gradient
+// `background`; the consumer owns its own ::after/::before geometry
+// (position / left / right / bottom / height) — those vary per surface.
+// Colour is passed in: warm rows → var(--card-hairline) / rgba(124,65,15,0.09),
+// fields → var(--field-hairline), chrome → its own ink-tinted alpha.
+@mixin hairline($color, $start: 18%, $end: 82%) {
+    background: linear-gradient(90deg,
+            transparent 0%,
+            $color $start,
+            $color $end,
+            transparent 100%);
+}
+
 @mixin mobile-breakpoint($breakpoint: 768px) {
     @media (max-width: $breakpoint) {
         @content;

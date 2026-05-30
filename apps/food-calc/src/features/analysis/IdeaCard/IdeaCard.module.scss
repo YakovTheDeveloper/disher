@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // Idea card — a single LLM-suggested experiment idea with a one-tap
 // «+ в гипотезы» action on the right. Warm stripe-fork surface (design-DNA
 // canon): 3-stop gradient, fading hairline divider, left accent stripe.
@@ -28,11 +30,7 @@
         right: 14px;
         bottom: 0;
         height: 1px;
-        background: linear-gradient(90deg,
-            transparent 0%,
-            rgba(124, 65, 15, 0.09) 18%,
-            rgba(124, 65, 15, 0.09) 82%,
-            transparent 100%);
+        @include hairline(rgba(124, 65, 15, 0.09));
         pointer-events: none;
     }
 

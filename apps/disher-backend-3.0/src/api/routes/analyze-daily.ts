@@ -1,6 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import { requireUser } from "../../auth/require-user.js";
-import { DISH_DETAILS_INSTRUCTION } from "../../shared/analysis-output.js";
+import {
+  DISH_DETAILS_INSTRUCTION,
+  NUTRIENT_ANCHOR_INSTRUCTION,
+  asNutrientLines,
+  nutrientLineToken,
+  type NutrientLine,
+} from "../../shared/analysis-output.js";
 import { applySSECorsHeaders } from "../lib/sse-cors.js";
 
 // POST /api/analyze/daily — SSE stream. The "daily analysis" — a one-day
@@ -51,6 +57,8 @@ export const DAILY_SYSTEM_PROMPT = `Ты помогаешь юзеру в его
 
 ${DISH_DETAILS_INSTRUCTION}
 
+${NUTRIENT_ANCHOR_INSTRUCTION}
+
 Пиши на русском, дружелюбно, лаконично (2–4 коротких абзаца). Markdown,
 без оборачивания в код-фенс.
 
@@ -64,6 +72,7 @@ type AnalyzeDailyBody = {
   date?: unknown;
   scheduleFoods?: unknown;
   scheduleEvents?: unknown;
+  nutrients?: unknown;
   hypotheses?: unknown;
 };
 
@@ -97,6 +106,7 @@ export function buildDailyUserPrompt(
   scheduleFoods: unknown[],
   scheduleEvents: unknown[],
   hypotheses: HypothesisInput[],
+  nutrients: NutrientLine[] = [],
 ): string {
   const lines: string[] = [];
   lines.push(`День: ${date || "(дата не указана)"}`);
@@ -106,6 +116,11 @@ export function buildDailyUserPrompt(
   lines.push("");
   lines.push(`События и теги за день (${scheduleEvents.length}):`);
   lines.push(JSON.stringify(scheduleEvents));
+  if (nutrients.length > 0) {
+    lines.push("");
+    lines.push("Ориентировочные суммы нутриентов за день (приблизительно):");
+    for (const n of nutrients) lines.push(`- ${nutrientLineToken(n)}`);
+  }
   if (hypotheses.length > 0) {
     lines.push("");
     lines.push(
@@ -259,6 +274,7 @@ export async function analyzeDailyRoutes(
     const date = asString(body.date);
     const scheduleFoods = asArray(body.scheduleFoods);
     const scheduleEvents = asArray(body.scheduleEvents);
+    const nutrients = asNutrientLines(body.nutrients);
     const hypotheses = asHypotheses(body.hypotheses);
 
     if (!date.trim()) {
@@ -283,6 +299,7 @@ export async function analyzeDailyRoutes(
       scheduleFoods,
       scheduleEvents,
       hypotheses,
+      nutrients,
     );
 
     await runDailySSE({
