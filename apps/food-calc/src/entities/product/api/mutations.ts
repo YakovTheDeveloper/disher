@@ -1,4 +1,5 @@
 import { db, type ProductRow } from '@/shared/lib/dexie/schema';
+import { putRow, updateRow, deleteRow, deleteRows } from '@/shared/lib/dexie/write';
 
 function safeParseJson<T>(json: string | undefined, fallback: T): T {
   if (!json) return fallback;
@@ -16,7 +17,7 @@ export async function createProduct(params: {
   isSupplement?: boolean;
 }): Promise<string> {
   const id = params.id ?? crypto.randomUUID();
-  const row: ProductRow = {
+  const row: Omit<ProductRow, 'updated_at'> = {
     id,
     name: params.name,
     source: '',
@@ -27,7 +28,7 @@ export async function createProduct(params: {
     serving_unit: params.isSupplement ? 'шт' : null,
     created_at: new Date().toISOString(),
   };
-  await db.products.add(row);
+  await putRow(db.products, row);
   return id;
 }
 
@@ -78,7 +79,7 @@ export async function updateProduct(
     }
   }
 
-  await db.products.update(productId, patch as never);
+  await updateRow(db.products, productId, patch);
 }
 
 export async function setProductNutrients(
@@ -96,10 +97,10 @@ export async function setProductPortions(
 }
 
 export async function deleteProduct(productId: string): Promise<void> {
-  await db.products.delete(productId);
+  await deleteRow(db.products, productId);
 }
 
 export async function deleteProducts(productIds: string[]): Promise<void> {
   if (productIds.length === 0) return;
-  await db.products.bulkDelete(productIds);
+  await deleteRows(productIds.map((id) => ({ table: db.products, id })));
 }

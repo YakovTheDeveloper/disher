@@ -1,4 +1,5 @@
 import { db, type CustomTagRow } from '@/shared/lib/dexie/schema';
+import { putRows, deleteRows } from '@/shared/lib/dexie/write';
 import { normalizeTag } from '@/shared/lib/details/tags';
 
 /**
@@ -22,7 +23,7 @@ export async function upsertCustomTags(
     .toArray();
   const existingSet = new Set(existing.map((r) => r.tag));
 
-  const toAdd: CustomTagRow[] = [];
+  const toAdd: Array<Omit<CustomTagRow, 'updated_at'>> = [];
   const now = new Date().toISOString();
   for (const tag of normalised) {
     if (existingSet.has(tag)) continue;
@@ -34,21 +35,23 @@ export async function upsertCustomTags(
     });
   }
   if (toAdd.length === 0) return;
-  await db.custom_tags.bulkAdd(toAdd);
+  await putRows(db.custom_tags, toAdd);
 }
 
 /**
  * Remove a single (productId, tag) pair from custom_tags. Idempotent — no-op
  * if the row never existed. `tag` is normalised here so callers can pass the
- * display string from a chip without pre-processing.
+ * display string from a chip without pre-processing. Resolves matching ids
+ * first, then deletes each through the contract so a tombstone is written.
  */
 export async function removeCustomTag(productId: string, tag: string): Promise<void> {
   if (!productId) return;
   const norm = normalizeTag(tag);
   if (!norm) return;
-  await db.custom_tags
+  const matches = await db.custom_tags
     .where('product_id')
     .equals(productId)
     .filter((row) => row.tag === norm)
-    .delete();
+    .toArray();
+  await deleteRows(matches.map((row) => ({ table: db.custom_tags, id: row.id })));
 }

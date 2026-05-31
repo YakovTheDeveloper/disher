@@ -9,7 +9,10 @@ import type { ProductRow } from '@/shared/lib/dexie/schema';
 // works on both. There is no `/api/catalog` endpoint and no Dexie catalog
 // table — see apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md.
 
-export const catalog: ReadonlyArray<ProductRow> = raw as ProductRow[];
+// Catalog rows are build-route data: read-only, never written or merged, so
+// they carry no `updated_at` (a user-route/LWW field). Cast through `unknown`
+// since the JSON is structurally ProductRow minus that one sync column.
+export const catalog: ReadonlyArray<ProductRow> = raw as unknown as ProductRow[];
 
 const byId = new Map<string, ProductRow>(catalog.map((r) => [r.id, r]));
 

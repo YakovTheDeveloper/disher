@@ -1,4 +1,5 @@
 import { db, type HypothesisRow } from '@/shared/lib/dexie/schema';
+import { putRow, updateRow, deleteRow } from '@/shared/lib/dexie/write';
 
 const now = () => new Date().toISOString();
 
@@ -7,13 +8,13 @@ export async function saveHypothesis(input: {
   body: string;
 }): Promise<string> {
   const id = crypto.randomUUID();
-  const row: HypothesisRow = {
+  const row: Omit<HypothesisRow, 'updated_at'> = {
     id,
     title: input.title,
     body: input.body,
     created_at: now(),
   };
-  await db.hypotheses.add(row);
+  await putRow(db.hypotheses, row);
   return id;
 }
 
@@ -24,9 +25,9 @@ export async function updateHypothesis(
   const changes: Partial<HypothesisRow> = {};
   if (patch.title !== undefined) changes.title = patch.title;
   if (patch.body !== undefined) changes.body = patch.body;
-  if (Object.keys(changes).length > 0) await db.hypotheses.update(id, changes);
+  if (Object.keys(changes).length > 0) await updateRow(db.hypotheses, id, changes);
 }
 
 export async function deleteHypothesis(id: string): Promise<void> {
-  await db.hypotheses.delete(id);
+  await deleteRow(db.hypotheses, id);
 }

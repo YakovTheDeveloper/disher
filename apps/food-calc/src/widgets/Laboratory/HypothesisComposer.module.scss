@@ -1,0 +1,29 @@
+@import '@/shared/assets/style/mixin.scss';
+
+// Inline hypothesis composer — heading + single-line field + submit button.
+// Sits above the list inside HypothesisSection. The field is an AutoGrowSearch
+// (warm-pill defaults via `--field-*`); the heading mirrors the list header's
+// Source Serif italic so create and list read as one section.
+
+.composer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.heading {
+    margin: 0;
+    padding: 0 4px;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1;
+    color: rgba(15, 23, 42, 0.88);
+}
+
+// Confirm CTA below the field, right-aligned. Reuses the app-wide dark-pill
+// CTA (same mixin as «+ Анализ» / the former «+ Гипотеза»).
+.submit {
+    @include dark-pill-button();
+    align-self: flex-end;
+}

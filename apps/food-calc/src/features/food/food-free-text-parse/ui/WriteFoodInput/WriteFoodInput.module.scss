@@ -32,53 +32,74 @@
 }
 
 // ─── Inner write-field (input + send + spinner) ────────────────────────────
-// Тематизация AutoGrowSearch через его публичные `--field-*` переменные —
-// прозрачный фон, без хайрлайна и тени; «коробка» рисуется на .writeBarInput.
+// Внутренний AutoGrowSearch.shell держим прозрачным (см. .writeFieldInput);
+// «коробку» (rose-gold градиент + бровка + тень) рисует .writeBarInput.
 
 .writeField {
-    --field-bg-from: transparent;
-    --field-bg-mid: transparent;
-    --field-bg-to: transparent;
-    --field-radius: 0;
-    --field-shadow: none;
-    --field-shadow-focus: none;
-    --field-hairline: transparent;
-    --field-hairline-focus: transparent;
-    --field-placeholder: rgba(31, 42, 68, 0.42);
-    --field-text: rgba(31, 42, 68, 0.92);
-    --field-adornment: rgba(31, 42, 68, 0.55);
+    // Rose-gold: текст / плейсхолдер заданы явно (rose-gold нет в surface-
+    // токенах). Shell-токены (фон, бровка, тень) гасим НЕ здесь, а на
+    // .writeFieldInput (потомок) — иначе .writeBarInput (тот же элемент,
+    // что .writeField) прочитал бы transparent вместо палитры коробки.
+    --field-text: rgba(74, 36, 30, 0.92);
+    --field-placeholder: rgba(168, 92, 80, 0.48);
 
     &[data-state='loading'] {
-        --field-text: rgba(31, 42, 68, 0.55);
-        --field-placeholder: rgba(31, 42, 68, 0.3);
-        background: rgba(234, 237, 248, 0.7);
-        border-color: rgba(64, 82, 128, 0.2);
+        --field-text: rgba(150, 78, 68, 0.6);
+        --field-placeholder: rgba(150, 78, 68, 0.4);
+        background: rgba(250, 238, 233, 0.72);
     }
 
     &[data-state='error'] {
         background: rgba(239, 68, 68, 0.06);
-        border-color: rgba(239, 68, 68, 0.3);
     }
 }
 
-// Pill — белая полупрозрачная, едва различимый border, тонкая (~36px).
+// Pill — rose-gold (как верхний инпут поиска), тонкая (~36px).
 // align-self: center внутри stretch-row'а — pill не растягивается под высоту
 // соседнего «Каталог»-tile'а.
 .writeBarInput {
     flex: 1;
     align-self: center;
     margin: 0;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(31, 42, 68, 0.08);
+    position: relative;
+    // Rose-gold: 3-stop светлый розово-золотой градиент + тёплая тень,
+    // без сплошной рамки. Форма-капсула (999px) сохранена.
+    background: linear-gradient(90deg, #fffdfc 0%, #fdf2ee 52%, #f7e1d9 100%);
+    border: none;
     border-radius: 999px;
-    box-shadow: 0 1px 2px rgba(31, 42, 68, 0.04);
+    box-shadow: 0 1px 3px rgba(150, 78, 68, 0.08);
     padding: 2px 4px 2px 14px;
     min-height: 36px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: box-shadow 0.15s ease;
+
+    // «Бровка» снизу — затухающий rose-gold хайрлайн, как у верхнего инпута
+    // поиска (SearchFoodControls.searchWrapper), усиливается в фокусе.
+    &::after {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(170, 95, 82, 0.20) 18%,
+            rgba(170, 95, 82, 0.20) 82%,
+            transparent 100%);
+        pointer-events: none;
+        transition: background 120ms ease;
+    }
 
     &:focus-within {
-        border-color: rgba(31, 42, 68, 0.18);
-        box-shadow: 0 1px 3px rgba(31, 42, 68, 0.08);
+        box-shadow: 0 1px 8px rgba(150, 78, 68, 0.14);
+
+        &::after {
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(170, 95, 82, 0.40) 18%,
+                rgba(170, 95, 82, 0.40) 82%,
+                transparent 100%);
+        }
     }
 }
 
@@ -115,6 +136,18 @@
 // Specificity bump через родителя, чтобы перебить `.shell{min-height:50px}`
 // из AutoGrowSearch.
 .writeField .writeFieldInput {
+    // Гасим внутренний AutoGrowSearch.shell — «коробку» (градиент, тень,
+    // бровку) рисует .writeBarInput на родителе. Гасим ЗДЕСЬ (на потомке),
+    // а не на .writeField, иначе .writeBarInput (тот же элемент) прочитал бы
+    // transparent вместо rose-gold палитры коробки.
+    --field-bg-from: transparent;
+    --field-bg-mid: transparent;
+    --field-bg-to: transparent;
+    --field-radius: 0;
+    --field-shadow: none;
+    --field-shadow-focus: none;
+    --field-hairline: transparent;
+    --field-hairline-focus: transparent;
     flex: 1;
     min-width: 0;
     min-height: 0;
@@ -132,7 +165,8 @@
     height: 28px;
     border: none;
     border-radius: 999px;
-    background: #2f80ed;
+    // Rose-gold: розово-медный градиент в тон полю.
+    background: linear-gradient(135deg, #e9aa95 0%, #c87c6c 100%);
     color: #fff;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -144,7 +178,7 @@
     }
 
     &:not(:disabled):hover {
-        background: #1f70dd;
+        background: linear-gradient(135deg, #e0997f 0%, #b86b5b 100%);
     }
 
     &:not(:disabled):active {
@@ -152,7 +186,7 @@
     }
 
     &:disabled {
-        background: rgba(47, 128, 237, 0.35);
+        background: linear-gradient(135deg, rgba(233, 170, 149, 0.4) 0%, rgba(200, 124, 108, 0.4) 100%);
         cursor: not-allowed;
     }
 }
@@ -166,8 +200,8 @@
     width: 28px;
     height: 28px;
     border-radius: 999px;
-    background: rgba(64, 82, 128, 0.12);
-    color: rgba(64, 82, 128, 0.85);
+    background: rgba(170, 95, 82, 0.14);
+    color: rgba(150, 78, 68, 0.85);
     pointer-events: none;
     user-select: none;
 }

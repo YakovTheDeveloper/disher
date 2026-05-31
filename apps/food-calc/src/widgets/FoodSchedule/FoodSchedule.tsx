@@ -5,9 +5,7 @@ import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { groupItemsByTime } from '@/shared/lib/schedule';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { ScheduleFoodItem } from '@/widgets/FoodSchedule/ScheduleFoodItem';
-import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import { Screen } from '@/shared/ui/Screen';
-import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import toaster from '@/shared/lib/toaster/toaster';
 import {
   ScheduleFoodCreateModals,
@@ -17,12 +15,11 @@ import {
 } from '@/widgets/FoodSchedule/ui';
 import { AppBottomBar } from '@/shared/ui/AppBottomBar';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
-import { removeScheduleFoods } from '@/entities/schedule-food';
+import { removeScheduleFood } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
-import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
-import { CopyToClipboardButton, PasteFromClipboardButton } from '@/features/clipboard';
-import type { ClipboardItem } from '@/shared/model/clipboardStore';
+import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
+import { useNavigate } from 'react-router-dom';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { formatWeekdayTitle } from '@/shared/lib/time/formatWeekday';
 
@@ -42,19 +39,6 @@ import {
   getWriteFoodInputId,
   InlineWriteFoodReview,
 } from '@/features/food/food-free-text-parse';
-
-const TrashIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
 
 // `totals` / `missingNutrientNames` / `isLoading` уехали в HomePage — там же
 // открывается NutrientsDrawer из HomeTopBar центральной pill (эксперимент
@@ -76,10 +60,7 @@ const FoodSchedule = ({
   isActive = true,
   topSlot,
 }: CommonProps) => {
-  const selectionStoreFood = useSelection();
-  const isActionsMode = useStore(selectionStoreFood, (s) => s.isActionsMode);
-  const selectedIds = useStore(selectionStoreFood, (s) => s.selectedIds);
-  const { clearSelection, setSelectedIds } = selectionStoreFood.getState();
+  const navigate = useNavigate();
 
   const editFlow = useScheduleFoodFlow({ type: 'edit' });
 
@@ -128,37 +109,26 @@ const FoodSchedule = ({
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
   const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
+  // Пустой список → «листа» под контентом нет (hollow), watermark-лого в
+  // заголовке прячем, а нижний бар, наоборот, становится «листом»
+  // (`bottomBarSheet`). Заголовок дня недели остаётся.
+  const isEmpty = items.length === 0;
 
-  const setSelectedIdsRef = useRef(setSelectedIds);
-  setSelectedIdsRef.current = setSelectedIds;
-  const onTimeClick = useCallback((group: { items: Array<{ id: string }> }) => {
-    setSelectedIdsRef.current(group.items.map((i) => i.id));
-  }, []);
-
-  const onDeleteSelected = async () => {
-    const ids = selectedIds;
-    if (ids.length === 0) return;
-    const confirmed = await drawerStore.show(DeleteConfirmationModal, { count: ids.length });
-    if (!confirmed) return;
-    await removeScheduleFoods(ids);
-    clearSelection();
-    toaster.success(`Удалено: ${ids.length}`);
-  };
-
-  const selectedItemsForClipboard: ClipboardItem[] = useMemo(
-    () =>
-      items
-        .filter((item) => selectedIds.includes(item.id))
-        .map((item) => ({
-          time: item.time,
-          type: item.type as 'food' | 'dish',
-          quantity: item.quantity,
-          details: item.details ?? null,
-          productId: item.productId ?? null,
-          dishId: item.dishId ?? null,
-          displayName: item.product?.name ?? item.dish?.name ?? '—',
-        })),
-    [items, selectedIds]
+  // Long-press → per-item action drawer: delete (top-right) + «Информация о
+  // продукте/блюде» when the row points at a real entity (guarded — orphan
+  // rows with no productId/dishId show delete only).
+  const openActionsDrawer = useCallback(
+    (item: ScheduleFoodWithRelations) => {
+      void drawerStore.show(ItemActionsDrawer, {
+        title: item.product?.name ?? item.dish?.name ?? 'Еда',
+        onDelete: async () => {
+          const res = await safeMutate(() => removeScheduleFood(item.id), 'Не удалось удалить');
+          if (res.ok) toaster.success('Удалено');
+        },
+        actions: buildInfoActions(item, navigate),
+      });
+    },
+    [navigate]
   );
 
   return (
@@ -166,6 +136,12 @@ const FoodSchedule = ({
       className={styles.scheduleScreen}
       stickyTop={topSlot}
       headerOverlap
+      hollow={isEmpty}
+      bottomBarSheet={isEmpty}
+      // Список есть → бар-оверлей (строки скроллятся под плавающей пилюлей).
+      // Пусто → остаётся empty-state «лист» (bottomBarSheet), не overlay,
+      // чтобы прозрачный absolute-бар не конфликтовал с белой плашкой.
+      bottomBarOverlay={!isEmpty}
       overlay={
         <>
           {isActive ? (
@@ -185,48 +161,32 @@ const FoodSchedule = ({
           ) : null}
         </>
       }
-      actions={
-        <ActionsPanel
-          show={isActionsMode}
-          onBack={clearSelection}
-          left={
-            <IconButton icon={<TrashIcon />} onClick={onDeleteSelected}>
-              Удалить
-            </IconButton>
-          }
-        >
-          <CopyToClipboardButton
-            items={selectedItemsForClipboard}
-            sourceDate={date}
-            selectedCount={selectedIds.length}
-            onCopied={clearSelection}
-          />
-        </ActionsPanel>
-      }
       bottomBar={
-        !isActionsMode ? (
-          <AppBottomBar
-            writeFoodFlow={writeFoodFlow}
-            writeFoodInputId={writeFoodInputId}
-            searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
-            searchLabel="Найти еду"
-            searchText="Еда"
-            writeFoodPlaceholder="Введите, что вы ели и когда"
-          />
-        ) : null
+        <AppBottomBar
+          writeFoodFlow={writeFoodFlow}
+          writeFoodInputId={writeFoodInputId}
+          searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
+          searchLabel="Найти еду"
+          searchText="Еда"
+          writeFoodPlaceholder="Введите, что вы ели и когда"
+        />
       }
     >
-      <div className={styles.weekdayHeading}>
-        <Heading size="section">{weekdayTitle}</Heading>
-      </div>
-      <PasteFromClipboardButton targetDate={date} wrapperStyle={{ width: '50%' }} />
+      {/* Пустой список → заголовок дня недели уезжает В ЦЕНТР поверх лого
+          (SlideArtFrame в HomePage), поэтому верхний header тут не рендерим.
+          На заполнённом экране — обычный верхний заголовок с watermark-лого. */}
+      {!isEmpty && (
+        <div className={styles.weekdayHeading}>
+          <Heading size="section">{weekdayTitle}</Heading>
+        </div>
+      )}
       <div {...foodAnchor} className={styles.foodListAnchor}>
         <ItemsList>
           {(() => {
             let globalIndex = 0;
             const rendered = groups.map((group) => (
               <Fragment key={group.startTime}>
-                <TimeGroup group={group} onTimeClick={onTimeClick}>
+                <TimeGroup group={group}>
                   {
                     group.items.map((item) => {
                       const itemIndex = globalIndex++;
@@ -236,7 +196,7 @@ const FoodSchedule = ({
                           item={item}
                           index={itemIndex}
                           totalCount={items.length}
-                          selectionStore={selectionStoreFood}
+                          onLongPress={() => openActionsDrawer(item)}
                           onEditTime={onEditTime}
                           onEditFood={onEditFood}
                           onEditQuantity={onEditQuantity}

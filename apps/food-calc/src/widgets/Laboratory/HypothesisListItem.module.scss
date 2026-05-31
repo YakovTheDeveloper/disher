@@ -49,6 +49,14 @@
         background: var(--lh-accent-strong, rgba(214, 158, 70, 1));
     }
 
+    // «New» marker — ephemeral ring on a just-created row. Sharp (no radius):
+    // rows are flush and only the outer scrollWrap is rounded, so a rounded
+    // ring here would read as a misaligned box. Colour = the palette's strong
+    // accent (lavender→violet, warm→amber); composes with [data-selected].
+    &[data-new] {
+        box-shadow: inset 0 0 0 1.5px var(--lh-accent-strong, rgba(214, 158, 70, 1));
+    }
+
     // nth-child rhythm — surfaces are not identical (design-DNA rule 4).
     &:nth-child(2n)::after {
         background: linear-gradient(90deg,

@@ -53,8 +53,15 @@ export function useUserNormItems(): DailyNormItems | null | undefined {
   }, [r]);
 }
 
-/** True once the setup wizard has produced a norm. False while loading or absent. */
+/**
+ * True once the setup wizard has produced a norm WITH targets. False while
+ * loading, when no row exists, or when the row's items are empty. The norm is a
+ * singleton that is only ever upserted — never deleted, so never tombstoned (no
+ * cross-device delete→recreate trap). "Has a norm" is therefore defined by
+ * content (non-empty items), not row existence: the dev toggle resets to `{}`
+ * to represent "no norm" without a delete.
+ */
 export function useHasUserNorm(): boolean {
-  const r = useUserNormRowState();
-  return r !== LOADING && r !== undefined;
+  const items = useUserNormItems();
+  return items != null && Object.keys(items).length > 0;
 }

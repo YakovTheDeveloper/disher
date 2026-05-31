@@ -5,51 +5,51 @@ import {
   type DishPortionRow,
   type ScheduleFoodRow,
 } from '@/shared/lib/dexie/schema';
+import {
+  putRow,
+  putRows,
+  updateRow,
+  deleteRow,
+  deleteRows,
+} from '@/shared/lib/dexie/write';
 
 const now = () => new Date().toISOString();
 
 export async function createDish(name: string, id?: string): Promise<string> {
   const dishId = id ?? crypto.randomUUID();
-  const row: DishRow = { id: dishId, name, created_at: now() };
-  await db.dishes.add(row);
+  const row: Omit<DishRow, 'updated_at'> = { id: dishId, name, created_at: now() };
+  await putRow(db.dishes, row);
   return dishId;
 }
 
 export async function updateDishName(dishId: string, name: string): Promise<void> {
-  await db.dishes.update(dishId, { name });
+  await updateRow(db.dishes, dishId, { name });
 }
 
-export async function deleteDish(
-  dishId: string,
-  itemIds: string[],
-  portionIds: string[],
-): Promise<void> {
-  await db.transaction(
-    'rw',
-    [db.dishes, db.dish_items, db.dish_portions],
-    async () => {
-      if (itemIds.length) await db.dish_items.bulkDelete(itemIds);
-      if (portionIds.length) await db.dish_portions.bulkDelete(portionIds);
-      await db.dishes.delete(dishId);
-    },
-  );
+// Resolve a dish's full delete cascade — its dish_items + dish_portions
+// (queried by dish_id, NOT trusted from the caller) plus the dish row itself.
+// The live caller used to pass empty child arrays, so children were never
+// tombstoned and resurrected cross-device; enumerating here closes that hole.
+async function dishCascadePairs(dishId: string) {
+  const [itemIds, portionIds] = await Promise.all([
+    db.dish_items.where('dish_id').equals(dishId).primaryKeys(),
+    db.dish_portions.where('dish_id').equals(dishId).primaryKeys(),
+  ]);
+  return [
+    ...itemIds.map((id) => ({ table: db.dish_items, id })),
+    ...portionIds.map((id) => ({ table: db.dish_portions, id })),
+    { table: db.dishes, id: dishId },
+  ];
 }
 
-export async function deleteDishes(
-  dishes: Array<{ id: string; itemIds: string[]; portionIds: string[] }>,
-): Promise<void> {
-  if (dishes.length === 0) return;
-  await db.transaction(
-    'rw',
-    [db.dishes, db.dish_items, db.dish_portions],
-    async () => {
-      for (const d of dishes) {
-        if (d.itemIds.length) await db.dish_items.bulkDelete(d.itemIds);
-        if (d.portionIds.length) await db.dish_portions.bulkDelete(d.portionIds);
-        await db.dishes.delete(d.id);
-      }
-    },
-  );
+export async function deleteDish(dishId: string): Promise<void> {
+  await deleteRows(await dishCascadePairs(dishId));
+}
+
+export async function deleteDishes(dishIds: string[]): Promise<void> {
+  if (dishIds.length === 0) return;
+  const pairs = (await Promise.all(dishIds.map((id) => dishCascadePairs(id)))).flat();
+  await deleteRows(pairs);
 }
 
 export async function addDishItem(params: {
@@ -59,7 +59,7 @@ export async function addDishItem(params: {
   details?: string;
 }): Promise<string> {
   const id = crypto.randomUUID();
-  const row: DishItemRow = {
+  const row: Omit<DishItemRow, 'updated_at'> = {
     id,
     dish_id: params.dishId,
     product_id: params.productId,
@@ -67,7 +67,7 @@ export async function addDishItem(params: {
     details: params.details ?? '',
     created_at: now(),
   };
-  await db.dish_items.add(row);
+  await putRow(db.dish_items, row);
   return id;
 }
 
@@ -89,11 +89,11 @@ export async function updateDishItem(
   for (const k of keys) {
     patch[DISH_ITEM_COLUMN_MAP[k]] = updates[k];
   }
-  await db.dish_items.update(itemId, patch);
+  await updateRow(db.dish_items, itemId, patch);
 }
 
 export async function removeDishItem(itemId: string): Promise<void> {
-  await db.dish_items.delete(itemId);
+  await deleteRow(db.dish_items, itemId);
 }
 
 export async function copyDishItems(
@@ -102,7 +102,7 @@ export async function copyDishItems(
 ): Promise<void> {
   if (items.length === 0) return;
   const stamped = now();
-  const rows: DishItemRow[] = items.map((item) => ({
+  const rows: Array<Omit<DishItemRow, 'updated_at'>> = items.map((item) => ({
     id: crypto.randomUUID(),
     dish_id: toDishId,
     product_id: item.productId,
@@ -110,21 +110,21 @@ export async function copyDishItems(
     details: item.details ?? '',
     created_at: stamped,
   }));
-  await db.dish_items.bulkAdd(rows);
+  await putRows(db.dish_items, rows);
 }
 
 export async function addDishPortion(
   dishId: string,
   portion: { label: string; grams: number },
 ): Promise<void> {
-  const row: DishPortionRow = {
+  const row: Omit<DishPortionRow, 'updated_at'> = {
     id: crypto.randomUUID(),
     dish_id: dishId,
     label: portion.label,
     grams: portion.grams,
     created_at: now(),
   };
-  await db.dish_portions.add(row);
+  await putRow(db.dish_portions, row);
 }
 
 type DishPortionUpdates = Partial<{
@@ -138,11 +138,11 @@ export async function updateDishPortion(
 ): Promise<void> {
   const keys = Object.keys(updates) as (keyof DishPortionUpdates)[];
   if (keys.length === 0) return;
-  await db.dish_portions.update(portionId, updates as Record<string, unknown>);
+  await updateRow(db.dish_portions, portionId, updates);
 }
 
 export async function removeDishPortion(portionId: string): Promise<void> {
-  await db.dish_portions.delete(portionId);
+  await deleteRow(db.dish_portions, portionId);
 }
 
 export async function dishItemsToScheduleFoods(
@@ -152,7 +152,7 @@ export async function dishItemsToScheduleFoods(
 ): Promise<void> {
   if (items.length === 0) return;
   const stamped = now();
-  const rows: ScheduleFoodRow[] = items.map((item) => ({
+  const rows: Array<Omit<ScheduleFoodRow, 'updated_at'>> = items.map((item) => ({
     id: crypto.randomUUID(),
     date,
     time,
@@ -163,5 +163,5 @@ export async function dishItemsToScheduleFoods(
     dish_id: null,
     created_at: stamped,
   }));
-  await db.schedule_foods.bulkAdd(rows);
+  await putRows(db.schedule_foods, rows);
 }

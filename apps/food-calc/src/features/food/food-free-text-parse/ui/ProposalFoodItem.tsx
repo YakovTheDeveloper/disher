@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import clsx from 'clsx';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
-import { SelectableListItem } from '@/features/shared/selectable-list-item';
+import { LongPressRow } from '@/features/shared/long-press-item';
 import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import styles from './ProposalFoodItem.module.scss';
@@ -32,7 +32,7 @@ export interface ProposalFoodItemProps {
   onCommitQuantity: (uid: string, quantity: number) => void;
   hideTime?: boolean;
   searchInputId: string;
-  /** CSSProperties (`--tod-*` / `--accent-stripe`) → SelectableListItem surface. */
+  /** CSSProperties (`--tod-*` / `--accent-stripe`) → LongPressRow surface. */
   paletteStyle?: CSSProperties;
 }
 
@@ -99,11 +99,8 @@ export const ProposalFoodItem = ({
   const nameContent = { name: showOriginalFallback ? item.originalName : item.name };
 
   return (
-    <SelectableListItem
+    <LongPressRow
       id={uid}
-      isSelectMode={false}
-      isSelected={false}
-      onSelect={() => {}}
       className={styles.group}
       style={paletteStyle}
     >
@@ -163,7 +160,7 @@ export const ProposalFoodItem = ({
           </span>
         )}
       </div>
-    </SelectableListItem>
+    </LongPressRow>
   );
 };
 

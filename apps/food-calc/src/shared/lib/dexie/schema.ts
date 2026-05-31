@@ -1,15 +1,21 @@
 import Dexie, { type Table } from 'dexie';
 
-// Disher local Dexie DB. The user is the only writer; rows are dumped daily
-// as a single JSON blob to /api/backup. There is no sync metadata, no
-// soft-delete, no user_id discriminator — sign-out wipes the DB instead.
+// Disher local Dexie DB. The user is the only writer per device; rows are
+// pushed to / pulled from /api/backup as a single JSON blob and reconciled by
+// the sync merge() via a per-row `updated_at` (LWW) key plus a `tombstones`
+// table. Delete is hard (the row is removed) + a tombstone is recorded — the
+// read path stays clean (no `deleted_at` filter in queries). No per-row
+// `user_id` discriminator — sign-out wipes the DB.
 //
-// See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md.
+// See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md and the
+// merge-sync fix plan (.claude/ralph/fix_plan.md).
 
 // ─── per-table row interfaces ──────────────────────────────────────────────
 //
-// `created_at` is the only timestamp on every row. `id` is a uuid stamped at
-// mutation time. Everything else is domain.
+// Every row carries two timestamps: `created_at` (stamped once at insert) and
+// `updated_at` (re-stamped on every write — the per-row LWW key merge()
+// compares; backfilled from created_at by the v7 upgrade). `id` is a uuid
+// stamped at mutation time. Everything else is domain.
 
 export interface ProductRow {
   id: string;
@@ -22,12 +28,14 @@ export interface ProductRow {
   serving_basis: '100g' | 'serving';
   serving_unit: 'IU' | 'mg' | 'mcg' | 'g' | 'шт' | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface DishRow {
   id: string;
   name: string;
   created_at: string;
+  updated_at: string;
 }
 
 export interface DishItemRow {
@@ -40,6 +48,7 @@ export interface DishItemRow {
    *  needed; rows from pre-2026-05-13 snapshots fall back to '' in the mapper. */
   details: string;
   created_at: string;
+  updated_at: string;
 }
 
 export interface DishPortionRow {
@@ -48,6 +57,7 @@ export interface DishPortionRow {
   label: string;
   grams: number;
   created_at: string;
+  updated_at: string;
 }
 
 export type ScheduleFoodType = 'food' | 'dish';
@@ -62,6 +72,7 @@ export interface ScheduleFoodRow {
   product_id: string | null;
   dish_id: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface ScheduleEventRow {
@@ -72,6 +83,7 @@ export interface ScheduleEventRow {
   text: string;
   atoms: Array<unknown>;
   created_at: string;
+  updated_at: string;
 }
 
 export interface DailyNormRow {
@@ -80,6 +92,7 @@ export interface DailyNormRow {
   description: string;
   items: Record<string, unknown>;
   created_at: string;
+  updated_at: string;
 }
 
 // A hypothesis the user wants to check. Simplified in v6 (2026-05-15): the
@@ -91,6 +104,7 @@ export interface HypothesisRow {
   title: string;
   body: string;
   created_at: string;
+  updated_at: string;
 }
 
 // Per-product user-coined tags. The user types something into a schedule_food
@@ -104,6 +118,19 @@ export interface CustomTagRow {
   product_id: string;
   tag: string;
   created_at: string;
+  updated_at: string;
+}
+
+// A tombstone for a hard-deleted row. Written (alongside the row's removal, in
+// one rw-tx) by the deleteRow/deleteRows write contract; read by merge() to
+// suppress revival of a row another device still holds. Keyed by the deleted
+// row's `id` (uuids are globally unique across tables); `table` records which
+// domain table it belonged to so merge() can apply it; `deleted_at` is the LWW
+// timestamp compared against a surviving row's `updated_at`.
+export interface TombstoneRow {
+  id: string;
+  table: string;
+  deleted_at: string;
 }
 
 // Drops the v5-era hypothesis lifecycle columns from a row, in place. Run by
@@ -133,6 +160,7 @@ export class DisherDB extends Dexie {
   daily_norms!:     Table<DailyNormRow,      string>;
   hypotheses!:      Table<HypothesisRow,     string>;
   custom_tags!:     Table<CustomTagRow,      string>;
+  tombstones!:      Table<TombstoneRow,      string>;
 
   constructor() {
     super('disher');
@@ -204,6 +232,42 @@ export class DisherDB extends Dexie {
           .modify((row: Record<string, unknown>) =>
             stripLegacyHypothesisFields(row),
           ),
+      );
+
+    // v7 (2026-05-30): merge-sync foundation. Backfill `updated_at = created_at`
+    // on every existing row across the 9 domain tables — `updated_at` is the
+    // per-row LWW key the sync merge() compares (see the merge-sync fix plan).
+    // The backfill is non-destructive and idempotent: it only fills the field
+    // when absent, so a re-run (or a row already carrying updated_at) is a
+    // no-op. On a fresh device every table is empty and modify() never fires.
+    // Also create the `tombstones` store (hard-delete bookkeeping read by
+    // merge()) and drop the residual `periods` store (no entity, no writers).
+    this.version(7)
+      .stores({
+        periods: null,
+        tombstones: 'id, table',
+      })
+      .upgrade((tx) =>
+        Promise.all(
+          [
+            'products',
+            'dishes',
+            'dish_items',
+            'dish_portions',
+            'schedule_foods',
+            'schedule_events',
+            'daily_norms',
+            'hypotheses',
+            'custom_tags',
+          ].map((name) =>
+            tx
+              .table(name)
+              .toCollection()
+              .modify((row: Record<string, unknown>) => {
+                if (row.updated_at === undefined) row.updated_at = row.created_at;
+              }),
+          ),
+        ),
       );
   }
 }

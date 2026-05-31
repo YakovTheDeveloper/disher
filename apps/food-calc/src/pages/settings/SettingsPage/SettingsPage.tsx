@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Button from '@/shared/ui/atoms/Button/Button';
 import { clear as idbClear } from 'idb-keyval';
 import { db } from '@/shared/lib/dexie/schema';
-import { dump, apply, push } from '@/shared/lib/snapshot';
+import { dump, apply, syncNow } from '@/shared/lib/snapshot';
 import { ThemePicker } from '@/features/theme';
 import styles from './SettingsPage.module.scss';
 
@@ -54,7 +54,7 @@ const SettingsPage = () => {
   const handlePush = async () => {
     setIsPushing(true);
     try {
-      await push();
+      await syncNow();
     } finally {
       setIsPushing(false);
     }

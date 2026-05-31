@@ -24,6 +24,8 @@ type Props = {
   checkboxDisabled?: boolean;
   /** Hide the selection checkbox entirely (pure CRUD list, no selection). */
   hideCheckbox?: boolean;
+  /** Just created in this view — paints the ephemeral «new» ring. */
+  isNew?: boolean;
 } & EditProps;
 
 // One hypothesis row. Two independent interactive zones, never nested:
@@ -41,11 +43,13 @@ const HypothesisListItem = ({
   editInputHtmlFor,
   checkboxDisabled = false,
   hideCheckbox = false,
+  isNew = false,
 }: Props) => (
   <div
     className={styles.row}
     data-selected={selected || undefined}
     data-no-checkbox={hideCheckbox || undefined}
+    data-new={isNew || undefined}
   >
     {!hideCheckbox && (
       <label className={styles.checkboxWrap}>

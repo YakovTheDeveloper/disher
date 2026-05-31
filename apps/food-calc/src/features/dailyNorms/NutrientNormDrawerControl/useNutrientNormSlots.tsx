@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useHasUserNorm, upsertUserNorm } from '@/entities/daily-norm';
-import { USER_NORM_ID } from '@/entities/daily-norm/model/default-norm';
-import { db } from '@/shared/lib/dexie/schema';
 import CreateDailyNormModal from '@/features/dailyNorms/OpenDailyNorms/CreateDailyNormModal';
 import EditDailyNormModal from '@/features/dailyNorms/OpenDailyNorms/EditDailyNormModal';
 import FlagIcon from '@/shared/assets/icons/flag.svg?react';
@@ -70,11 +68,11 @@ export function useNutrientNormSlots(
   const goToCreate = useCallback(() => setMode('create'), []);
 
   const toggleNormDev = useCallback(async () => {
-    if (hasNorm) {
-      await db.daily_norms.delete(USER_NORM_ID);
-    } else {
-      await upsertUserNorm({});
-    }
+    // The norm is a singleton — never deleted (so never tombstoned). The dev
+    // toggle flips between empty items (= "no norm set") and a sample norm.
+    // '1' is a real catalog nutrient id (the scheme is custom numeric strings,
+    // not FDC) so the preview renders a recognised target, not a phantom.
+    await upsertUserNorm(hasNorm ? {} : { '1': 100 });
   }, [hasNorm]);
 
   const title =

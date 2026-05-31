@@ -1,0 +1,177 @@
+@import '@/shared/assets/style/mixin.scss';
+
+.commonListItemWrapper {
+    // Accent colour for the editing :focus-within ring (per time-of-day).
+    --select-color: #6cffc4;
+    --select-color-strong: #34d399;
+    --select-shadow: rgba(52, 211, 153, 0.25);
+    --select-overlay-outline: rgba(82, 255, 186, 0.5);
+
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    position: relative;
+    padding: 0 var(--space-2);
+    flex-grow: 1;
+}
+
+.commonListItemInner {
+    @include row-touch;
+    --t: var(--item-t, 0);
+
+    // Time-of-day palette — defaults to morning (green)
+    --_bg-from: var(--tod-bg-from, var(--tod-morning-bg-from));
+    --_bg-to: var(--tod-bg-to, var(--tod-morning-bg-to));
+    --_outline-from: var(--tod-outline-from, var(--tod-morning-outline-from));
+    --_outline-to: var(--tod-outline-to, var(--tod-morning-outline-to));
+    --_tapped: var(--tod-tapped, var(--tod-morning-tapped));
+
+    background-color: color-mix(in oklch, var(--_bg-from) calc((1 - var(--t)) * 100%), var(--_bg-to));
+    outline: 1px solid color-mix(in oklch, var(--_outline-from) calc((1 - var(--t)) * 100%), var(--_outline-to));
+
+    position: relative;
+    // Vertical padding is consumer-overridable via --row-pad-block. Default
+    // keeps legacy 9px so existing rows render unchanged; the FoodSchedule
+    // pilot (and other text-driven row families) set --row-pad-block: 0 on
+    // the grid root and grow each cell to --row-cell-min-h instead.
+    padding-block: var(--row-pad-block, 9px);
+    padding-inline: 12px 8px;
+    transition: background-color 0.3s ease, padding 0.3s ease;
+    border-radius: 9px;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    flex-grow: 1;
+    z-index: 1;
+
+    &:last-child {
+        box-shadow: 0px 10px 8px -11px rgba(0, 0, 0, 0.15);
+    }
+
+    &_tapped {
+        background-color: var(--_tapped) !important;
+    }
+
+    // Editing state — when any input/textarea inside is focused, lift the row
+    // and outline it with the time-of-day accent colour.
+    &:focus-within {
+        outline: 2px solid var(--select-color-strong);
+        outline-offset: 1px;
+        box-shadow:
+            0 0 0 4px var(--select-shadow),
+            0 6px 18px -8px rgba(0, 0, 0, 0.18);
+        background-color: color-mix(in oklch, var(--select-color) 18%, var(--_bg-from));
+        transition: background-color 0.2s ease, outline-color 0.2s ease, box-shadow 0.2s ease;
+        z-index: 2;
+    }
+}
+
+// ─── Time-of-day palette overrides via data-tod ─────────────────
+.commonListItemWrapper[data-tod="morning"] {
+    --select-color: #6cffc4;
+    --select-color-strong: #34d399;
+    --select-shadow: rgba(52, 211, 153, 0.25);
+    --select-overlay-outline: rgba(82, 255, 186, 0.5);
+}
+
+.commonListItemWrapper[data-tod="morning"] .commonListItemInner {
+    --tod-bg-from: var(--tod-morning-bg-from);
+    --tod-bg-to: var(--tod-morning-bg-to);
+    --tod-outline-from: var(--tod-morning-outline-from);
+    --tod-outline-to: var(--tod-morning-outline-to);
+    --tod-tapped: var(--tod-morning-tapped);
+}
+
+.commonListItemWrapper[data-tod="day"] {
+    --select-color: #ffd97a;
+    --select-color-strong: #f0b840;
+    --select-shadow: rgba(240, 184, 64, 0.25);
+    --select-overlay-outline: rgba(255, 217, 122, 0.5);
+}
+
+.commonListItemWrapper[data-tod="day"] .commonListItemInner {
+    --tod-bg-from: var(--tod-day-bg-from);
+    --tod-bg-to: var(--tod-day-bg-to);
+    --tod-outline-from: var(--tod-day-outline-from);
+    --tod-outline-to: var(--tod-day-outline-to);
+    --tod-tapped: var(--tod-day-tapped);
+}
+
+.commonListItemWrapper[data-tod="evening"] {
+    --select-color: #c4a8ff;
+    --select-color-strong: #a07de8;
+    --select-shadow: rgba(160, 125, 232, 0.25);
+    --select-overlay-outline: rgba(196, 168, 255, 0.5);
+}
+
+.commonListItemWrapper[data-tod="evening"] .commonListItemInner {
+    --tod-bg-from: var(--tod-evening-bg-from);
+    --tod-bg-to: var(--tod-evening-bg-to);
+    --tod-outline-from: var(--tod-evening-outline-from);
+    --tod-outline-to: var(--tod-evening-outline-to);
+    --tod-tapped: var(--tod-evening-tapped);
+}
+
+.commonListItemWrapper[data-tod="night"] {
+    --select-color: #8aa8ff;
+    --select-color-strong: #6b8ce8;
+    --select-shadow: rgba(107, 140, 232, 0.25);
+    --select-overlay-outline: rgba(138, 168, 255, 0.5);
+}
+
+.commonListItemWrapper[data-tod="night"] .commonListItemInner {
+    --tod-bg-from: var(--tod-night-bg-from);
+    --tod-bg-to: var(--tod-night-bg-to);
+    --tod-outline-from: var(--tod-night-outline-from);
+    --tod-outline-to: var(--tod-night-outline-to);
+    --tod-tapped: var(--tod-night-tapped);
+}
+
+.variant_2 {
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 32px;
+    padding: 12px 24px;
+    font-size: 1rem;
+
+    &:hover {
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
+}
+
+.content {
+    display: contents;
+}
+
+.highlighted {
+    animation: added-highlight-bg 3s ease-out forwards, added-highlight-outline 3s ease-out forwards;
+}
+
+@keyframes added-highlight-bg {
+    0% {
+        background-color: rgba(255, 191, 71, 0.35);
+    }
+
+    70% {
+        background-color: rgba(255, 191, 71, 0.12);
+    }
+
+    100% {
+        background-color: var(--_bg-from, #e6ffed);
+    }
+}
+
+@keyframes added-highlight-outline {
+    0% {
+        outline: 2.5px solid rgba(255, 170, 30, 0.7);
+    }
+
+    60% {
+        outline: 2.5px solid rgba(255, 170, 30, 0.25);
+    }
+
+    100% {
+        outline: 1px solid var(--_outline-from, #52ffba);
+    }
+}

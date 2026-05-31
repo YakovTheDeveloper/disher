@@ -9,11 +9,9 @@ type Props<T> = {
   children: React.ReactNode;
   group: TimeGroupUI<T>;
   renderAside?: (group: TimeGroupUI<T>) => JSX.Element | null;
-  onTimeClick?: (group: TimeGroupUI<T>) => void;
 };
 
-const TimeGroup = <T,>({ children, group, renderAside, onTimeClick }: Props<T>) => {
-  const disabled = !onTimeClick;
+const TimeGroup = <T,>({ children, group, renderAside }: Props<T>) => {
   const timeOffsetFromPreviousGroupView = formatOffset(group.offset);
   const timeView =
     group.startTime === group.endTime
@@ -26,14 +24,9 @@ const TimeGroup = <T,>({ children, group, renderAside, onTimeClick }: Props<T>) 
     >
       <header className={styles.header}>
         <div className={styles.headerCenter}>
-          <button
-            type="button"
-            disabled={disabled}
-            className={clsx([styles.message_time, styles.message])}
-            onClick={() => onTimeClick?.(group)}
-          >
+          <span className={clsx([styles.message_time, styles.message])}>
             {timeView}
-          </button>
+          </span>
           {group.offset && (
             <span className={clsx([styles.message_delta, styles.message])}>
               {timeOffsetFromPreviousGroupView}

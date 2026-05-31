@@ -2,10 +2,9 @@ import { memo, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import styles from './ScheduleFoodItemInline.module.scss';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
-import { SelectableListItem } from '@/features/shared/selectable-list-item';
+import { LongPressRow } from '@/features/shared/long-press-item';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { updateScheduleFood } from '@/entities/schedule-food';
-import { SelectionStoreType, useStore } from '@/hooks/factoryHooks/useSelection';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { useRecentlyAddedStore } from '@/features/food/food-free-text-parse';
 import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
@@ -18,7 +17,8 @@ type Props = {
   item: ScheduleFoodWithRelations;
   index?: number;
   totalCount?: number;
-  selectionStore: SelectionStoreType;
+  /** Long-press → per-item action drawer (built by FoodSchedule). */
+  onLongPress?: () => void;
   foodHtmlFor?: string;
   // Accepted for backwards-compatible call sites; unused — Inline edits in place.
   onEditTime?: (item: ScheduleFoodWithRelations) => void;
@@ -33,13 +33,10 @@ const ScheduleFoodItemInline = ({
   className,
   index = 0,
   totalCount = 1,
-  selectionStore,
+  onLongPress,
   foodHtmlFor,
 }: Props) => {
   const id = item.id;
-  const isActionsMode = useStore(selectionStore, (s) => s.isActionsMode);
-  const isSelected = useStore(selectionStore, (s) => s.selectedIds.includes(id));
-  const toggleSelectedId = selectionStore.getState().toggleSelectedId;
   const isRecentFromFreeText = useRecentlyAddedStore((s) => s.ids.has(id));
 
   useEffect(() => {
@@ -111,7 +108,7 @@ const ScheduleFoodItemInline = ({
   const isCustom = item.type === 'food' && (item.product?.isUserCreated ?? false);
 
   return (
-    <SelectableListItem
+    <LongPressRow
       className={clsx([
         className,
         styles.group,
@@ -122,9 +119,7 @@ const ScheduleFoodItemInline = ({
       id={id}
       tod={getTimeOfDay(item.time)}
       data-schedule-food-id={id}
-      isSelectMode={isActionsMode}
-      isSelected={isSelected}
-      onSelect={toggleSelectedId}
+      onLongPress={onLongPress}
     >
       <InlineTimeEditor
         value={item.time}
@@ -181,7 +176,7 @@ const ScheduleFoodItemInline = ({
           </span>
         )}
       </div>
-    </SelectableListItem>
+    </LongPressRow>
   );
 };
 

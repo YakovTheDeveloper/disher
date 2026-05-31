@@ -5,7 +5,7 @@ import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { ThemePicker } from '@/features/theme';
-import { dump, apply, push } from '@/shared/lib/snapshot';
+import { dump, apply, syncNow } from '@/shared/lib/snapshot';
 import { HoldButton } from './HoldButton';
 
 const downloadJson = (name: string, obj: unknown) => {
@@ -62,10 +62,10 @@ export function ProfileDrawer() {
   const handleBackup = async () => {
     setBackupState('saving');
     try {
-      await push();
+      await syncNow();
       setBackupState('done');
     } catch (e) {
-      console.error('manual backup push failed', e);
+      console.error('manual backup sync failed', e);
       setBackupState('error');
     }
   };

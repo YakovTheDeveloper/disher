@@ -11,7 +11,7 @@ import {
   updateHypothesis,
   deleteHypothesis,
 } from '@/entities/hypothesis';
-import styles from './CreateHypothesisModal.module.scss';
+import styles from './HypothesisModal.module.scss';
 import editStyles from './EditHypothesisModal.module.scss';
 
 // Каждая строка в HypothesisListPanel — это <label htmlFor={EDIT_…}> с
@@ -42,7 +42,7 @@ const EditHypothesisModal = ({ hypothesisId, isExpanded, onClose }: Props) => {
     setBusy(false);
   }, [isExpanded, hypothesis]);
 
-  // iOS scrollIntoView, тот же паттерн что и в CreateHypothesisModal.
+  // iOS scrollIntoView — подтянуть title в центр viewport после раскрытия.
   useEffect(() => {
     if (!isExpanded) return;
     const timer = setTimeout(() => {

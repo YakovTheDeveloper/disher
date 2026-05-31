@@ -24,6 +24,11 @@ type Props = {
   // Опциональный заголовок под тайлами (HomePage: день недели с большой
   // буквы). Не задан → band не рендерится (дефолт для product/dish).
   title?: string;
+  // Бледная картинка активного экрана (`.bandImg`), прижатая к верху индикатора.
+  // Дефолт — true (product/dish так и показывают). HomePage передаёт false:
+  // там картинка таба переехала в центр слайда (SlideArtFrame), и второй
+  // верхний экземпляр был бы дублем.
+  bandImg?: boolean;
 };
 
 export const ScreenIndicator = ({
@@ -32,6 +37,7 @@ export const ScreenIndicator = ({
   onSelect,
   slideIndex,
   title,
+  bandImg = true,
 }: Props) => {
   const displayIndex = slideIndex ?? activeIndex ?? 0;
   const activeScreen = screens[displayIndex];
@@ -48,7 +54,7 @@ export const ScreenIndicator = ({
         ['--tiles-total' as string]: total,
       }}
     >
-      {activeImage && (
+      {bandImg && activeImage && (
         <img
           key={activeImage}
           src={activeImage}

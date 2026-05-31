@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import type { Hypothesis } from '@/entities/hypothesis';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import HypothesisListItem from './HypothesisListItem';
@@ -38,6 +38,11 @@ type Props = {
    * Defaults to `true`.
    */
   selectable?: boolean;
+  /**
+   * Ids just created in this view — each paints the ephemeral «new» ring.
+   * Owned by HypothesisSection; cleared on remount (reload / leaving screen).
+   */
+  newIds?: Set<string>;
 } & EditProps;
 
 // The hypothesis list: a static header label + a height-bounded, internally
@@ -51,8 +56,28 @@ const HypothesisListPanel = ({
   editInputHtmlFor,
   maxBodyHeight = '58vh',
   selectable = true,
+  newIds,
 }: Props) => {
   const { anchor } = useDesignVariant('LabHypothesis', PALETTE_VARIANTS);
+
+  // The list scrolls inside itself (`maxBodyHeight`). A freshly created
+  // hypothesis lands at the top of this inner scroll, so when a new id arrives
+  // we reset scrollTop — otherwise, on a long list scrolled down, the new row
+  // and its «new» ring would be created above the fold and never seen.
+  const scrollBodyRef = useRef<HTMLDivElement | null>(null);
+  const anchorRefFn = anchor.ref;
+  const setScrollBodyRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      scrollBodyRef.current = el;
+      anchorRefFn(el); // keep the design-variant IntersectionObserver wired
+    },
+    [anchorRefFn],
+  );
+  useEffect(() => {
+    if (newIds && newIds.size > 0 && scrollBodyRef.current) {
+      scrollBodyRef.current.scrollTop = 0;
+    }
+  }, [newIds]);
 
   const total = hypotheses.length;
   const selectedCount = selectedIds.size;
@@ -64,7 +89,7 @@ const HypothesisListPanel = ({
         <p className={styles.emptyTitle}>Гипотез пока нет</p>
         <p className={styles.emptyBody}>
           Гипотеза — это короткая догадка о себе, которую хочется проверить.
-          Добавь первую кнопкой «+ Гипотеза» внизу.
+          Добавь первую в поле выше.
         </p>
       </section>
     );
@@ -83,7 +108,9 @@ const HypothesisListPanel = ({
         <div
           className={styles.scrollBody}
           style={{ maxHeight: maxBodyHeight }}
-          {...anchor}
+          data-dv={anchor['data-dv']}
+          data-dv-v={anchor['data-dv-v']}
+          ref={setScrollBodyRef}
         >
           {hypotheses.map((h) => {
             const selected = selectedIds.has(h.id);
@@ -102,6 +129,7 @@ const HypothesisListPanel = ({
                 onToggle={() => onToggle(h.id)}
                 checkboxDisabled={capReached && !selected}
                 hideCheckbox={!selectable}
+                isNew={newIds?.has(h.id) ?? false}
                 {...editProps}
               />
             );

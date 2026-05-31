@@ -12,6 +12,7 @@ import { useScheduleFoods, useScheduleNutrientTotals } from '@/entities/schedule
 import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
+import { SlideArtFrame } from './ui/SlideArtFrame';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { useSurface } from '@/shared/lib/surface';
 import normsImg from '@/shared/assets/decarative/norms.png';
@@ -118,6 +119,7 @@ const Page = ({ date }: { date: string }) => {
         screens={SCREENS}
         onSelect={handleSelect}
         slideIndex={0}
+        bandImg={false}
         // title={weekdayTitle}
       />
     ),
@@ -129,6 +131,7 @@ const Page = ({ date }: { date: string }) => {
         screens={SCREENS}
         onSelect={handleSelect}
         slideIndex={1}
+        bandImg={false}
         // title={weekdayTitle}
       />
     ),
@@ -140,6 +143,7 @@ const Page = ({ date }: { date: string }) => {
         screens={SCREENS}
         onSelect={handleSelect}
         slideIndex={2}
+        bandImg={false}
         // title={weekdayTitle}
       />
     ),
@@ -156,9 +160,15 @@ const Page = ({ date }: { date: string }) => {
           duration={SWIPE_DURATION}
           hasDots={false}
         >
-          <Laboratory key={date} date={date} topSlot={labIndicator} />
-          <FoodSchedule key={date} date={date} items={items} topSlot={foodIndicator} />
-          <ScheduleEvents key={date} date={date} events={events} topSlot={eventsIndicator} />
+          <SlideArtFrame>
+            <Laboratory key={date} date={date} topSlot={labIndicator} />
+          </SlideArtFrame>
+          <SlideArtFrame>
+            <FoodSchedule key={date} date={date} items={items} topSlot={foodIndicator} />
+          </SlideArtFrame>
+          <SlideArtFrame>
+            <ScheduleEvents key={date} date={date} events={events} topSlot={eventsIndicator} />
+          </SlideArtFrame>
         </Swipeable>
       </div>
     </div>

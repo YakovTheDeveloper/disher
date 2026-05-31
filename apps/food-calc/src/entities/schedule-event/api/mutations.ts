@@ -1,4 +1,5 @@
 import { db, type ScheduleEventRow } from '@/shared/lib/dexie/schema';
+import { putRow, updateRow, deleteRow, deleteRows } from '@/shared/lib/dexie/write';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
 
 const now = () => new Date().toISOString();
@@ -11,7 +12,7 @@ export async function addScheduleEvent(params: {
   atoms?: Atom[];
 }): Promise<string> {
   const id = crypto.randomUUID();
-  const row: ScheduleEventRow = {
+  const row: Omit<ScheduleEventRow, 'updated_at'> = {
     id,
     date: params.date,
     time: params.time,
@@ -20,7 +21,7 @@ export async function addScheduleEvent(params: {
     atoms: params.atoms ?? [],
     created_at: now(),
   };
-  await db.schedule_events.add(row);
+  await putRow(db.schedule_events, row);
   return id;
 }
 
@@ -52,14 +53,14 @@ export async function updateScheduleEvent(
     if (k === 'atoms') patch[col] = updates.atoms ?? [];
     else patch[col] = updates[k];
   }
-  await db.schedule_events.update(eventId, patch);
+  await updateRow(db.schedule_events, eventId, patch);
 }
 
 export async function removeScheduleEvent(eventId: string): Promise<void> {
-  await db.schedule_events.delete(eventId);
+  await deleteRow(db.schedule_events, eventId);
 }
 
 export async function removeScheduleEvents(eventIds: string[]): Promise<void> {
   if (eventIds.length === 0) return;
-  await db.schedule_events.bulkDelete(eventIds);
+  await deleteRows(eventIds.map((id) => ({ table: db.schedule_events, id })));
 }

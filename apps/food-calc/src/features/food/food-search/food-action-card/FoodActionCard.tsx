@@ -120,7 +120,7 @@ const FoodActionCard = ({
       void safeMutate(() => deleteProducts([item.id]), 'Не удалось удалить продукт');
     } else {
       void safeMutate(
-        () => deleteDishes([{ id: item.id, itemIds: [], portionIds: [] }]),
+        () => deleteDishes([item.id]),
         'Не удалось удалить блюдо'
       );
     }

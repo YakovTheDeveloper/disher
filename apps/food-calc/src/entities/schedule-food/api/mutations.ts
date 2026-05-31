@@ -1,6 +1,10 @@
 import { db, type ScheduleFoodRow } from '@/shared/lib/dexie/schema';
-import type { ClipboardItem } from '@/shared/model/clipboardStore';
-
+import {
+  putRow,
+  updateRow,
+  deleteRow,
+  deleteRows,
+} from '@/shared/lib/dexie/write';
 const now = () => new Date().toISOString();
 
 export async function addScheduleFood(params: {
@@ -22,7 +26,7 @@ export async function addScheduleFood(params: {
   }
 
   const id = crypto.randomUUID();
-  const row: ScheduleFoodRow = {
+  const row: Omit<ScheduleFoodRow, 'updated_at'> = {
     id,
     date: params.date,
     time: params.time,
@@ -33,7 +37,7 @@ export async function addScheduleFood(params: {
     dish_id: params.dishId ?? null,
     created_at: now(),
   };
-  await db.schedule_foods.add(row);
+  await putRow(db.schedule_foods, row);
   return id;
 }
 
@@ -86,34 +90,14 @@ export async function updateScheduleFood(
     else patch[col] = updates[k] ?? null;
   }
 
-  await db.schedule_foods.update(itemId, patch);
+  await updateRow(db.schedule_foods, itemId, patch);
 }
 
 export async function removeScheduleFood(itemId: string): Promise<void> {
-  await db.schedule_foods.delete(itemId);
+  await deleteRow(db.schedule_foods, itemId);
 }
 
 export async function removeScheduleFoods(itemIds: string[]): Promise<void> {
   if (itemIds.length === 0) return;
-  await db.schedule_foods.bulkDelete(itemIds);
-}
-
-export async function pasteClipboardItems(
-  items: ClipboardItem[],
-  targetDate: string,
-): Promise<void> {
-  if (items.length === 0) return;
-  const stamped = now();
-  const rows: ScheduleFoodRow[] = items.map((item) => ({
-    id: crypto.randomUUID(),
-    date: targetDate,
-    time: item.time,
-    type: item.type,
-    quantity: item.quantity,
-    details: item.details ?? '',
-    product_id: item.productId ?? null,
-    dish_id: item.dishId ?? null,
-    created_at: stamped,
-  }));
-  await db.schedule_foods.bulkAdd(rows);
+  await deleteRows(itemIds.map((id) => ({ table: db.schedule_foods, id })));
 }

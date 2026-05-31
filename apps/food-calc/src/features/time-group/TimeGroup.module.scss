@@ -85,16 +85,9 @@
         font-size: var(--text-lg);
         font-weight: 400;
         font-style: italic;
-        cursor: pointer;
         user-select: none;
-        transition: all var(--duration-fast) var(--easing-default);
         border-radius: var(--radius-xs);
         padding: var(--space-1) var(--space-2);
-
-        &:active {
-            transform: scale(0.96);
-            background-color: rgba(55, 0, 255, 0.1);
-        }
     }
 
 

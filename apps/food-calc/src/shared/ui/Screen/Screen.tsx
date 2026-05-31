@@ -32,6 +32,24 @@ type Props = {
    */
   hollow?: boolean;
   /**
+   * Когда `true` — нижний бар получает «лист»-подложку (белый bg, скругления
+   * сверху, мягкая тень). Парный приём к `hollow`: на пустом экране «лист»
+   * уходит из-под контента и проявляется под нижним баром. Триггер через
+   * `data-sheet` атрибут. НЕ завязан на `hollow` — это отдельный визуальный
+   * переключатель (hollow используют и Product/Dish, где нижний лист не нужен).
+   */
+  bottomBarSheet?: boolean;
+  /**
+   * Overlay-режим нижнего бара: бар становится `position: absolute` над
+   * контентом, а список скроллится ПОД ним (низ скроллера затухает маской,
+   * чтобы строки растворялись под плавающей пилюлей без белой плашки).
+   * `fixed` тут невозможен — слайды Embla двигаются `transform`'ом и несут
+   * `contain: strict`, оба перехватывают containing-block у fixed-потомка.
+   * Используется HomePage (write-dock). Прочие страницы не задают — остаётся
+   * integrated-dock (бар в потоке, список кончается над ним).
+   */
+  bottomBarOverlay?: boolean;
+  /**
    * Sticky-блок внутри `screenScroll`. Прилипает к `top: var(--top-bar-h, 0)`
    * (см. `.stickyTop` в CSS). Используется HomePage'ем чтобы класть
    * ScreenIndicator В ПОТОК каждого слайда — sticky резервирует место
@@ -76,6 +94,8 @@ const Screen = ({
   backgroundImageOpacity = 0.05,
   headerOverlap = false,
   hollow = false,
+  bottomBarSheet = false,
+  bottomBarOverlay = false,
   stickyTop,
   heroTop,
   heroSubLabel,
@@ -86,7 +106,12 @@ const Screen = ({
 
   return (
     <div
-      className={clsx(styles.screen, backgroundColor && styles[`bg-${backgroundColor}`], className)}
+      className={clsx(
+        styles.screen,
+        backgroundColor && styles[`bg-${backgroundColor}`],
+        bottomBarOverlay && styles.screenBottomOverlay,
+        className,
+      )}
     >
       {backgroundImage && (
         <img
@@ -126,10 +151,14 @@ const Screen = ({
           )}
           <div ref={sentinelRef} />
         </div>
-        <ScrollIndicator visible={hasMoreBelow} />
+        <ScrollIndicator visible={hasMoreBelow && !bottomBarOverlay} />
       </div>
 
-      {bottomBar && <div className={styles.bottomBar}>{bottomBar}</div>}
+      {bottomBar && (
+        <div className={styles.bottomBar} data-sheet={bottomBarSheet ? 'true' : undefined}>
+          {bottomBar}
+        </div>
+      )}
 
       {bottomLeft && <div className={styles.bottomLeft}>{bottomLeft}</div>}
 

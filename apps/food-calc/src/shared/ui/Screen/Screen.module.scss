@@ -84,6 +84,50 @@
     padding-bottom: env(safe-area-inset-bottom);
 }
 
+// «Лист»-подложка под нижним баром (см. Screen `bottomBarSheet`). Зеркало
+// `.headerOverlap`-листа, но прижато к низу: белый opaque bg, скруглённые
+// ВЕРХНИЕ углы (нижние упираются в край экрана), мягкая тень вверх.
+// Включается на пустом экране — «физического листа» под контентом нет, он
+// «переезжает» под нижний бар. Хайрлайн-границу гасим — её роль берёт тень.
+.bottomBar[data-sheet='true'] {
+    background: #ffffff;
+    border-top: none;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.07);
+}
+
+// ─── Overlay bottom-bar (см. Screen `bottomBarOverlay`) ────────────────
+// Бар становится absolute-оверлеем над контентом, список скроллится ПОД ним.
+// `fixed` тут невозможен: слайды Embla двигаются transform'ом и несут
+// `contain: strict` — оба перехватывают containing-block у fixed-потомка.
+// Поэтому absolute относительно `.screen` (он уже position: relative; рядом
+// тем же приёмом живёт `.actions`). Низ скроллера затухает mask'ом → строки
+// растворяются, уходя под плавающую пилюлю, без белой плашки.
+.screenBottomOverlay {
+    // Высота resting-бара (write-dock ≈ 56px tile + padding) + safe-area.
+    // Родитель может переопределить под свой бар.
+    --bb-overlay-h: calc(72px + env(safe-area-inset-bottom));
+
+    .bottomBar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 4;
+        background: transparent;
+        border-top: none;
+    }
+
+    .screenScroll {
+        // Last item встаёт на 12px выше бара; контент прозрачен ровно там,
+        // где бар, и плавно проявляется выше него.
+        padding-bottom: calc(var(--bb-overlay-h) + 12px);
+        -webkit-mask-image: linear-gradient(to top, transparent 0, #000 var(--bb-overlay-h));
+        mask-image: linear-gradient(to top, transparent 0, #000 var(--bb-overlay-h));
+    }
+}
+
 // Wrapper around the scroller + ScrollIndicator gradient.
 // Anchors the gradient to the bottom of the scroll area, NOT to the bottom
 // of the whole Screen — otherwise the indicator (position:absolute, bottom:0,

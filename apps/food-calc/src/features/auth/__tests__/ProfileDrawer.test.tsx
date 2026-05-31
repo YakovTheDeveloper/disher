@@ -12,8 +12,12 @@ vi.mock('../auth-store', () => ({
   useAuthStore: (selector: (s: typeof mockAuth) => unknown) => selector(mockAuth),
 }));
 
-const mockPush = vi.fn();
-vi.mock('@/shared/lib/snapshot', () => ({ push: () => mockPush() }));
+const mockSync = vi.fn();
+vi.mock('@/shared/lib/snapshot', () => ({
+  syncNow: () => mockSync(),
+  dump: vi.fn(),
+  apply: vi.fn(),
+}));
 
 vi.mock('@/shared/ui/DrawerLayout', () => ({
   DrawerLayout: ({ children, footer }: { children: ReactNode; footer?: ReactNode }) => (
@@ -53,7 +57,7 @@ const expandDanger = () => {
 
 beforeEach(() => {
   vi.useFakeTimers();
-  mockPush.mockReset();
+  mockSync.mockReset();
   mockAuth.signOut.mockReset();
 });
 
@@ -84,7 +88,7 @@ describe('ProfileDrawer', () => {
   });
 
   it('runs a manual backup and resets the label back to idle after a beat', async () => {
-    mockPush.mockResolvedValue(undefined);
+    mockSync.mockResolvedValue(undefined);
     render(<ProfileDrawer />);
     expandDanger();
 
@@ -94,7 +98,7 @@ describe('ProfileDrawer', () => {
       );
     });
 
-    expect(mockPush).toHaveBeenCalledOnce();
+    expect(mockSync).toHaveBeenCalledOnce();
     expect(
       screen.getByRole('button', { name: 'Сохранено ✓' }),
     ).toBeInTheDocument();
@@ -109,7 +113,7 @@ describe('ProfileDrawer', () => {
 
   it('surfaces a failed backup and logs it', async () => {
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    mockPush.mockRejectedValue(new Error('network down'));
+    mockSync.mockRejectedValue(new Error('network down'));
     render(<ProfileDrawer />);
     expandDanger();
 

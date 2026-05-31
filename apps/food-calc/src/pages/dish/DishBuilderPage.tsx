@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 import { format } from 'date-fns';
 import {
   useDish,
@@ -14,17 +14,15 @@ import {
 import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-name';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
-import { ActionsPanel } from '@/shared/ui/ActionsPanel';
 import {
   useWriteFoodFlow,
   getWriteFoodInputId,
 } from '@/features/food/food-free-text-parse';
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
-import { SelectableListItem } from '@/features/shared/selectable-list-item';
+import { LongPressRow } from '@/features/shared/long-press-item';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { Quantity } from '@/shared/ui/Quantity';
-import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
@@ -41,7 +39,7 @@ import {
 import { FoodPortionsManager, nextDefaultPortionLabel } from '@/features/food/food-portions-manager';
 import { DishAnalysisScreen } from '@/features/dish-analysis';
 import { useDishNutrientTotals } from '@/entities/dish';
-import { PasteFromClipboardToDishButton } from '@/features/clipboard';
+import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
 import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
 import { PlusIcon } from '@/shared/ui/atoms/Button/AddButton/AddButton';
@@ -113,10 +111,7 @@ const DishBuilderPage = () => {
   const portionsRaw = useDishPortions(id);
   const dishTotals = useDishNutrientTotals(id);
 
-  const selectionStore = useSelection();
-  const isActionsMode = useStore(selectionStore, (s) => s.isActionsMode);
-  const selectedIds = useStore(selectionStore, (s) => s.selectedIds);
-  const { clearSelection } = selectionStore.getState();
+  const navigate = useNavigate();
 
   const [isOpen, setIsOpen] = useState<'suggestions' | null>(null);
   const [renameOpen, setRenameOpen] = useState(false);
@@ -263,33 +258,18 @@ const DishBuilderPage = () => {
     </Heading>
   );
 
-  const getSelectedItems = () => items.filter((item) => selectedIds.includes(item.id));
-
-  const onDeleteSelected = async () => {
-    const ids = selectedIds;
-    if (ids.length === 0) return;
-    const results = await Promise.all(
-      ids.map((id) => safeMutate(() => removeDishItem(id), 'Не удалось удалить'))
-    );
-    if (results.some((r) => !r.ok)) return;
-    clearSelection();
-    toaster.success(`Удалено: ${ids.length}`);
-  };
-
-  const onShareSelected = async () => {
-    const selected = getSelectedItems();
-    if (selected.length === 0) return;
-
-    const payload = selected.map((item) => `${item.productId}:${item.quantity}`).join(',');
-    const url = `${window.location.origin}/share?p=${encodeURIComponent(payload)}`;
-
-    try {
-      await navigator.clipboard.writeText(url);
-      toaster.success('Ссылка скопирована');
-      clearSelection();
-    } catch {
-      toaster.error('Не удалось скопировать ссылку');
-    }
+  // Long-press → per-item action drawer: delete (top-right) + «Информация о
+  // продукте» → product page.
+  const openActionsDrawer = (item: DishItemWithProduct) => {
+    void drawerStore.show(ItemActionsDrawer, {
+      title: item.product?.name ?? 'Продукт',
+      onDelete: async () => {
+        const res = await safeMutate(() => removeDishItem(item.id), 'Не удалось удалить');
+        if (res.ok) toaster.success('Удалено');
+      },
+      // Dish ingredients are always products → reuse the shared guard.
+      actions: buildInfoActions({ type: 'food', productId: item.productId, dishId: null }, navigate),
+    });
   };
 
   const getExistingItemsForSuggestions = () =>
@@ -363,29 +343,18 @@ const DishBuilderPage = () => {
                     Дубликат `<input id={writeFoodInputId}>` в DOM дал бы конфликт. */}
               </>
             }
-            actions={
-              <ActionsPanel
-                show={isActionsMode}
-                onBack={() => clearSelection()}
-                left={<button onClick={onDeleteSelected}>удалить</button>}
-              >
-                <button onClick={onShareSelected}>поделиться</button>
-              </ActionsPanel>
-            }
             bottomBar={
-              !isActionsMode ? (
-                <AppBottomBar
-                  writeFoodFlow={writeFoodFlow}
-                  writeFoodInputId={writeFoodInputId}
-                  searchHtmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
-                  searchLabel="Найти продукт"
-                  searchText="Еда"
-                  writeFoodPlaceholder="Опишите ингредиенты…"
-                  leadingSlot={
-                    <NutrientsSummaryButton totals={dishTotals} onClick={openNutrients} />
-                  }
-                />
-              ) : null
+              <AppBottomBar
+                writeFoodFlow={writeFoodFlow}
+                writeFoodInputId={writeFoodInputId}
+                searchHtmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
+                searchLabel="Найти продукт"
+                searchText="Еда"
+                writeFoodPlaceholder="Опишите ингредиенты…"
+                leadingSlot={
+                  <NutrientsSummaryButton totals={dishTotals} onClick={openNutrients} />
+                }
+              />
             }
           >
             {items.length > 0 && (
@@ -399,17 +368,14 @@ const DishBuilderPage = () => {
                 </button>
               </div>
             )}
-            <PasteFromClipboardToDishButton dishId={id} wrapperStyle={{ width: '50%' }} />
             <ItemsList offsetTop>
               {items.map((item) => (
-                <SelectableListItem
+                <LongPressRow
                   key={item.id}
                   id={item.id}
                   className={styles.group}
                   innerClassName={styles.dishFoodListItem}
-                  isSelectMode={isActionsMode}
-                  isSelected={selectedIds.includes(item.id)}
-                  onSelect={() => selectionStore.getState().toggleSelectedId(item.id)}
+                  onLongPress={() => openActionsDrawer(item)}
                 >
                   <span
                     onPointerDown={() => {
@@ -433,7 +399,7 @@ const DishBuilderPage = () => {
                     unit="г"
                     content={{ quantity: item.quantity }}
                   />
-                </SelectableListItem>
+                </LongPressRow>
               ))}
             </ItemsList>
           </Screen>

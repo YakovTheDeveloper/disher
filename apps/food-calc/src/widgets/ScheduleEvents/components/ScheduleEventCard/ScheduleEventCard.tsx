@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './ScheduleEventCard.module.scss';
 import clsx from 'clsx';
-import { SelectableListItem } from '@/features/shared/selectable-list-item';
+import { LongPressRow } from '@/features/shared/long-press-item';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
@@ -10,9 +10,7 @@ type Props = {
   item: ScheduleEvent;
   index?: number;
   totalCount?: number;
-  isSelectMode: boolean;
-  isSelected: boolean;
-  onSelect: (id: string) => void;
+  onLongPress: () => void;
   onEditTime: () => void;
   onEditText: () => void;
   onEditAtoms: () => void;
@@ -57,9 +55,7 @@ export function ScheduleEventCard({
   item,
   index = 0,
   totalCount = 1,
-  isSelectMode,
-  isSelected,
-  onSelect,
+  onLongPress,
   onEditTime,
   onEditText,
   onEditAtoms,
@@ -73,14 +69,12 @@ export function ScheduleEventCard({
   const hasAtoms = atoms.length > 0;
 
   return (
-    <SelectableListItem
+    <LongPressRow
       className={clsx(className, styles.row)}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={item.id}
       tod={getTimeOfDay(item.time)}
-      isSelectMode={isSelectMode}
-      isSelected={isSelected}
-      onSelect={onSelect}
+      onLongPress={onLongPress}
     >
       <label htmlFor={timeHtmlFor} className={styles.time} onClick={onEditTime}>
         {item.time || '—'}
@@ -102,6 +96,6 @@ export function ScheduleEventCard({
           <span className={styles.atomsPlaceholder}>+ данные</span>
         )}
       </label>
-    </SelectableListItem>
+    </LongPressRow>
   );
 }

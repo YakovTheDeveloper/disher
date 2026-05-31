@@ -1,0 +1,41 @@
+// Обёртка слайда HomePage. Заполняет слайд по высоте (flex), внутри —
+// абсолютный центрированный арт-слой ПОД контентом и сам контент сверху.
+//
+// `isolation: isolate` делает `.frame` собственным stacking-контекстом, чтобы
+// `.art` с `z-index: -1` гарантированно уезжал ЗА контент слайда независимо от
+// родителей (а не за фон всего emblaSlide). На контейнмент fixed-оверлеев
+// (модалки ModalByLabel внутри Screen) не влияет — он живёт на `.emblaSlide`
+// (`contain: strict`), не на isolation.
+.frame {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.art {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+}
+
+// Лого Disher — центр по обеим осям, как очень бледный watermark под текстом.
+// Белое PNG (500×500, квадрат) красим через mask тёмным цветом, иначе на
+// светлой поверхности невидимо. Opacity втрое меньше прежнего (0.08 → ~0.027)
+// — лого почти не читается, день недели остаётся главным.
+.logoArt {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(46vw, 180px);
+    aspect-ratio: 1;
+    background-color: rgba(0, 0, 0, 0.027);
+    -webkit-mask: url('/logo/logo-white-no-fill.png') center / contain no-repeat;
+    mask: url('/logo/logo-white-no-fill.png') center / contain no-repeat;
+}

@@ -5,14 +5,11 @@ import { AppBottomBarShell } from '@/shared/ui/AppBottomBar/AppBottomBarShell';
 import { useAllHypotheses } from '@/entities/hypothesis';
 import { AnalysisCtaButton } from '@/features/analysis/AnalysisCtaButton';
 import {
-  CreateHypothesisModal,
-  CREATE_HYPOTHESIS_TITLE_INPUT_ID,
   EditHypothesisModal,
   EDIT_HYPOTHESIS_TITLE_INPUT_ID,
 } from '@/features/analysis/hypothesis-drawers';
 import { RouterLinks } from '@/app/router';
-import { PlusIcon } from '@/shared/ui/atoms/Button/AddButton/AddButton';
-import HypothesisListPanel from './HypothesisListPanel';
+import HypothesisSection from './HypothesisSection';
 import DailyAnalysisSection from './DailyAnalysisSection';
 import styles from './Laboratory.module.scss';
 
@@ -21,11 +18,11 @@ type Props = {
   topSlot?: React.ReactNode;
 };
 
-// HomePage slot 0 — the Laboratory. Hypothesis list (tick → ride into the
-// analysis, tap → edit) + the inline daily-analysis surface. The bottom bar
-// carries two CTAs: «Разбор» (opens the kind chooser) and «Добавить
-// гипотезу» (label → focuses the title input inside CreateHypothesisModal).
-// Tap on a hypothesis row is also a label htmlFor — opens EditHypothesisModal.
+// HomePage slot 0 — the Laboratory. HypothesisSection (inline composer + list:
+// tick → ride into the analysis, tap → edit) + the inline daily-analysis
+// surface. The bottom bar carries one CTA: «Разбор» (opens the kind chooser).
+// Creation is inline (composer); tap on a row is a label htmlFor that opens
+// EditHypothesisModal.
 const Laboratory = ({ date, topSlot }: Props) => {
   const navigate = useNavigate();
   const hypotheses = useAllHypotheses();
@@ -40,7 +37,6 @@ const Laboratory = ({ date, topSlot }: Props) => {
   // → handleFocusCapture флипает соответствующий step. editingId меняется
   // синхронно onClick'ом на label строки (он — draft data, не step, поэтому
   // setEditingId в onClick безопасен и не размонтирует label).
-  const [createStep, setCreateStep] = useState<'idle' | 'create'>('idle');
   const [editStep, setEditStep] = useState<'idle' | 'edit'>('idle');
   const [editingHypothesisId, setEditingHypothesisId] = useState<string | null>(null);
 
@@ -62,28 +58,17 @@ const Laboratory = ({ date, topSlot }: Props) => {
 
   const handleFocusCapture = useCallback((e: FocusEvent<HTMLDivElement>) => {
     const id = (e.target as HTMLElement).id;
-    if (id === CREATE_HYPOTHESIS_TITLE_INPUT_ID) setCreateStep('create');
-    else if (id === EDIT_HYPOTHESIS_TITLE_INPUT_ID) setEditStep('edit');
+    if (id === EDIT_HYPOTHESIS_TITLE_INPUT_ID) setEditStep('edit');
   }, []);
 
-  const closeCreate = useCallback(() => setCreateStep('idle'), []);
   const closeEdit = useCallback(() => {
     setEditStep('idle');
     setEditingHypothesisId(null);
   }, []);
 
   const bottomBar = (
-    <AppBottomBarShell side="split">
+    <AppBottomBarShell side="left">
       <AnalysisCtaButton date={date} selectedIds={[...validSelected]} />
-      <label
-        htmlFor={CREATE_HYPOTHESIS_TITLE_INPUT_ID}
-        className={styles.newHypothesisButton}
-      >
-        <span className={styles.plusIcon} aria-hidden="true">
-          <PlusIcon />
-        </span>
-        Добавить гипотезу
-      </label>
     </AppBottomBarShell>
   );
 
@@ -101,7 +86,7 @@ const Laboratory = ({ date, topSlot }: Props) => {
             </button>
           </div>
 
-          <HypothesisListPanel
+          <HypothesisSection
             hypotheses={hypotheses}
             selectedIds={validSelected}
             onToggle={handleToggle}
@@ -112,10 +97,6 @@ const Laboratory = ({ date, topSlot }: Props) => {
           <DailyAnalysisSection date={date} />
         </div>
       </Screen>
-      <CreateHypothesisModal
-        isExpanded={createStep === 'create'}
-        onClose={closeCreate}
-      />
       <EditHypothesisModal
         hypothesisId={editingHypothesisId}
         isExpanded={editStep === 'edit'}

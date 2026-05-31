@@ -29,16 +29,14 @@
 // Modifier для write-режима (HomePage / DishBuilderPage): убираем толстый
 // padding и min-height — WriteFoodInput сам владеет своим внутренним
 // padding'ом и высотой пилюли.
-// Ambient backdrop (parity с HomeAmbient `lavender-cream`, 2026-05-24):
-// два radial-glow источника в top-corners бара — лавандовый слева, кремовый
-// справа. Glow «излучается» из верхней грани бара в нижнюю часть страницы.
+// Фон бара прозрачный (2026-06-01): radial-glow убран, пилюля «парит» на
+// фоне страницы без отдельной плашки. На HomePage бар к тому же overlay
+// (см. Screen `bottomBarOverlay`) — список скроллится под ним.
 .writeDock {
     align-items: stretch;
     padding: 0;
     min-height: 0;
-    background:
-        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(225, 215, 245, 0.5), transparent 60%),
-        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(252, 245, 220, 0.55), transparent 60%);
+    background: transparent;
 }
 
 .writeBarSlot {

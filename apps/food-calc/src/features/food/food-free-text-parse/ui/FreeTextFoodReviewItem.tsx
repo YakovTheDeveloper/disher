@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import clsx from 'clsx';
-import { SelectableListItem } from '@/features/shared/selectable-list-item';
+import { LongPressRow } from '@/features/shared/long-press-item';
 import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
 import NumberInput from '@/shared/ui/atoms/input/NumberInput/NumberInput';
 import { PlusIcon } from '@/shared/ui/atoms/Button/AddButton/AddButton';
@@ -65,7 +65,7 @@ interface FreeTextFoodReviewItemProps {
   paletteOverride?: CSSProperties;
 }
 
-// Per-group palette — overrides --tod-* CSS-vars read by SelectableListItem.
+// Per-group palette — overrides --tod-* CSS-vars read by LongPressRow.
 // + --accent-stripe is the 3px vertical bar on .inner::before.
 //
 // resolved (incl. rescued unresolved with manual)  → warm peach-honey (calm)
@@ -163,11 +163,8 @@ export const FreeTextFoodReviewItem = ({
   const qtyInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <SelectableListItem
+    <LongPressRow
       id={uid}
-      isSelectMode={false}
-      isSelected={false}
-      onSelect={() => {}}
       style={paletteStyle}
       innerClassName={styles.inner}
     >
@@ -290,6 +287,6 @@ export const FreeTextFoodReviewItem = ({
           </button>
         )}
       </div>
-    </SelectableListItem>
+    </LongPressRow>
   );
 };

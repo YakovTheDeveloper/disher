@@ -7,8 +7,6 @@ import { removeScheduleEvents } from '@/entities/schedule-event';
 import clsx from 'clsx';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
-import { ActionsPanel } from '@/shared/ui/ActionsPanel';
-import { useSelection, useStore } from '@/hooks/factoryHooks/useSelection';
 import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import { groupItemsByTime } from '@/shared/lib/schedule';
 import {
@@ -19,10 +17,11 @@ import {
 } from './ui';
 import { AppBottomBarShell } from '@/shared/ui/AppBottomBar';
 import { ScheduleEventCard } from './components/ScheduleEventCard';
-import { IconButton } from '@/shared/ui/atoms/Button/IconButton';
+import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer';
+import { buildEventEditActions } from './eventActions';
 import toaster from '@/shared/lib/toaster/toaster';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import { drawerStore } from '@/shared/ui/drawer-store';
-import { DeleteConfirmationModal } from '@/widgets/FoodSchedule/ui/drawers';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 
 // Цветовая схема общая с FoodSchedule (`useDesignVariant('ScheduleFood', …)`):
@@ -45,23 +44,9 @@ type Props = {
 };
 
 const ScheduleEvents = ({ date, events, topSlot }: Props) => {
-  const selectionStoreEvents = useSelection();
-  const isActionsMode = useStore(selectionStoreEvents, (s) => s.isActionsMode);
-  const selectedIds = useStore(selectionStoreEvents, (s) => s.selectedIds);
-  const { clearSelection, toggleSelectedId } = selectionStoreEvents.getState();
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
 
   const { anchor: eventsAnchor } = useDesignVariant('ScheduleFood', EVENTS_VARIANTS);
-
-  const onDeleteSelected = async () => {
-    const ids = selectedIds;
-    if (ids.length === 0) return;
-    const confirmed = await drawerStore.show(DeleteConfirmationModal, { count: ids.length });
-    if (!confirmed) return;
-    await removeScheduleEvents(ids);
-    clearSelection();
-    toaster.success(`Удалено: ${ids.length}`);
-  };
 
   const [editingItem, setEditingItem] = useState<ScheduleEvent | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'text' | 'atoms'>('idle');
@@ -76,6 +61,19 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
     setEditingStep(step);
   };
 
+  // Long-press → per-item action drawer: delete (top-right) + the three field
+  // editors (events have no detail page, so these replace the «info» action).
+  const openActionsDrawer = (item: ScheduleEvent) => {
+    void drawerStore.show(ItemActionsDrawer, {
+      title: item.text || 'Событие',
+      onDelete: async () => {
+        const res = await safeMutate(() => removeScheduleEvents([item.id]), 'Не удалось удалить');
+        if (res.ok) toaster.success('Удалено');
+      },
+      actions: buildEventEditActions((step) => openEditModal(item, step)),
+    });
+  };
+
   const reducedMotion = useReducedMotion();
 
   return (
@@ -83,6 +81,7 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
       stickyTop={topSlot}
       headerOverlap
       hollow={events.length === 0}
+      bottomBarSheet={events.length === 0}
       overlay={
         <>
           <ScheduleEventCreateModals scheduleId={date} />
@@ -94,19 +93,6 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
             />
           )}
         </>
-      }
-      actions={
-        <ActionsPanel
-          show={isActionsMode}
-          onBack={() => clearSelection()}
-          left={
-            <IconButton icon={<TrashIcon />} onClick={onDeleteSelected}>
-              Удалить
-            </IconButton>
-          }
-        >
-          экшены событий
-        </ActionsPanel>
       }
       key={3}
       bottomBar={
@@ -140,9 +126,7 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
                         item={item}
                         index={itemIndex}
                         totalCount={events.length}
-                        isSelectMode={isActionsMode}
-                        isSelected={selectedIds.includes(item.id)}
-                        onSelect={toggleSelectedId}
+                        onLongPress={() => openActionsDrawer(item)}
                         onEditTime={() => openEditModal(item, 'time')}
                         onEditText={() => openEditModal(item, 'text')}
                         onEditAtoms={() => openEditModal(item, 'atoms')}
@@ -163,18 +147,5 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
     </Screen>
   );
 };
-
-const TrashIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
 
 export default memo(ScheduleEvents);

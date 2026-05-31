@@ -1,12 +1,14 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { db } from '@/shared/lib/dexie/schema';
-import { apply, pull, push } from '@/shared/lib/snapshot';
+import { syncNow } from '@/shared/lib/snapshot';
 
-// One push per mount when local Dexie has rows; otherwise one pull. Multi-
-// session days produce multi-push, harmless because the backend upsert is
-// LWW. Push is fire-and-forget; pull is in a try/catch so first-launch on a
-// new device renders even when offline. AuthGate sign-out → unmount, so the
-// gate fires fresh on next sign-in.
+// On mount, reconcile with the vault via syncNow() (pull → merge → push) under
+// the 'disher-sync' lock. merge() handles both first-launch adoption (empty
+// local) and returning-device LWW + tombstone reconciliation, so no push-or-
+// pull branch is needed. We still gate rendering on local row count: a device
+// that already has data renders immediately and syncs in the background; a
+// fresh device blocks until the pull+merge lands so the UI hydrates. Offline-
+// tolerant. AuthGate sign-out → unmount, so the gate fires fresh on next sign-in.
 //
 // See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md §Boot.
 export function BackupGate({ children }: { children: ReactNode }) {
@@ -18,13 +20,15 @@ export function BackupGate({ children }: { children: ReactNode }) {
       try {
         const counts = await Promise.all(db.tables.map((t) => t.count()));
         if (counts.some((c) => c > 0)) {
-          push().catch(() => {
+          // Local data present — render now, reconcile in the background.
+          void syncNow().catch(() => {
             /* offline; next mount tries again */
           });
         } else {
+          // First launch on this device — block until the vault is pulled and
+          // merged so the UI renders with the user's data.
           try {
-            const snap = await pull();
-            if (snap && !cancelled) await apply(snap);
+            await syncNow();
           } catch {
             /* offline first-launch; render fresh */
           }
