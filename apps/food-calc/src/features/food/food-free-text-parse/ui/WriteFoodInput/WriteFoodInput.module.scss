@@ -1,9 +1,11 @@
 // WriteFoodInput — messenger-style write field. Извлечён 2026-05-23 из
-// AppBottomBar.writeFoodInputLike. После сравнения 10 design-вариантов
-// (2026-05-24) выбран и зафиксирован канон `thin-pill`: тонкая белая pill
-// (~36px) с input + синим send-button, отдельный column-tile «Каталог»
-// справа (иконка сверху, подпись снизу). Bar background прозрачный —
-// ambient-фон HomePage просвечивает.
+// AppBottomBar.writeFoodInputLike. Канон `thin-pill`: тонкая pill (~36px) с
+// input + send-button, отдельный column-tile «Каталог» справа.
+//
+// Палитра surface-driven (2026-06-01): на warm (HomePage/Schedule) — rose-gold
+// (см. блок `body[data-surface='warm']` внизу); на lavender (Dish/Product) —
+// нейтральная белая pill + синий send (база ниже). Design-варианты
+// (warm-soft/graphite/messenger-*) удалены — канон зафиксирован.
 
 @import '@/shared/assets/style/mixin.scss';
 
@@ -33,73 +35,49 @@
 
 // ─── Inner write-field (input + send + spinner) ────────────────────────────
 // Внутренний AutoGrowSearch.shell держим прозрачным (см. .writeFieldInput);
-// «коробку» (rose-gold градиент + бровка + тень) рисует .writeBarInput.
+// «коробку» рисует .writeBarInput.
 
 .writeField {
-    // Rose-gold: текст / плейсхолдер заданы явно (rose-gold нет в surface-
-    // токенах). Shell-токены (фон, бровка, тень) гасим НЕ здесь, а на
-    // .writeFieldInput (потомок) — иначе .writeBarInput (тот же элемент,
-    // что .writeField) прочитал бы transparent вместо палитры коробки.
-    --field-text: rgba(74, 36, 30, 0.92);
-    --field-placeholder: rgba(168, 92, 80, 0.48);
+    // Нейтральная база (lavender / Dish). На warm перекрывается rose-gold внизу.
+    --field-placeholder: rgba(31, 42, 68, 0.42);
+    --field-text: rgba(31, 42, 68, 0.92);
+    --field-adornment: rgba(31, 42, 68, 0.55);
 
     &[data-state='loading'] {
-        --field-text: rgba(150, 78, 68, 0.6);
-        --field-placeholder: rgba(150, 78, 68, 0.4);
-        background: rgba(250, 238, 233, 0.72);
+        --field-text: rgba(31, 42, 68, 0.55);
+        --field-placeholder: rgba(31, 42, 68, 0.3);
+        background: rgba(234, 237, 248, 0.7);
     }
 
+    // Error — заметный красный контур. `outline` следует border-radius pill'и,
+    // не зависит от border (которого на rose-gold нет) и не конфликтует с
+    // box-shadow фокуса. Работает и на белой, и на rose-gold коробке.
     &[data-state='error'] {
         background: rgba(239, 68, 68, 0.06);
+        outline: 1.5px solid rgba(239, 68, 68, 0.55);
+        outline-offset: -1px;
     }
 }
 
-// Pill — rose-gold (как верхний инпут поиска), тонкая (~36px).
+// Pill — нейтральная белая база (lavender / Dish). На warm — rose-gold внизу.
 // align-self: center внутри stretch-row'а — pill не растягивается под высоту
-// соседнего «Каталог»-tile'а.
+// соседнего «Каталог»-tile'а. position: relative — для rose-gold `::after`.
 .writeBarInput {
     flex: 1;
     align-self: center;
     margin: 0;
     position: relative;
-    // Rose-gold: 3-stop светлый розово-золотой градиент + тёплая тень,
-    // без сплошной рамки. Форма-капсула (999px) сохранена.
-    background: linear-gradient(90deg, #fffdfc 0%, #fdf2ee 52%, #f7e1d9 100%);
-    border: none;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(31, 42, 68, 0.08);
     border-radius: 999px;
-    box-shadow: 0 1px 3px rgba(150, 78, 68, 0.08);
+    box-shadow: 0 1px 2px rgba(31, 42, 68, 0.04);
     padding: 2px 4px 2px 14px;
     min-height: 36px;
-    transition: box-shadow 0.15s ease;
-
-    // «Бровка» снизу — затухающий rose-gold хайрлайн, как у верхнего инпута
-    // поиска (SearchFoodControls.searchWrapper), усиливается в фокусе.
-    &::after {
-        content: '';
-        position: absolute;
-        left: 14px;
-        right: 14px;
-        bottom: 0;
-        height: 1px;
-        background: linear-gradient(90deg,
-            transparent 0%,
-            rgba(170, 95, 82, 0.20) 18%,
-            rgba(170, 95, 82, 0.20) 82%,
-            transparent 100%);
-        pointer-events: none;
-        transition: background 120ms ease;
-    }
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
     &:focus-within {
-        box-shadow: 0 1px 8px rgba(150, 78, 68, 0.14);
-
-        &::after {
-            background: linear-gradient(90deg,
-                transparent 0%,
-                rgba(170, 95, 82, 0.40) 18%,
-                rgba(170, 95, 82, 0.40) 82%,
-                transparent 100%);
-        }
+        border-color: rgba(31, 42, 68, 0.18);
+        box-shadow: 0 1px 3px rgba(31, 42, 68, 0.08);
     }
 }
 
@@ -110,36 +88,12 @@
     min-height: 32px;
 }
 
-// Leading search-affordance — default hidden, монтируется ВСЕГДА (для
-// стабильного DOM между вариантами). Показывается в `messenger-*` через
-// блок ниже. Лупа становится in-field affordance слева от input'а.
-.leadingSearch {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-    border-radius: 999px;
-    color: rgba(31, 42, 68, 0.55);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: color 0.15s ease, background 0.15s ease;
-
-    &:hover,
-    &:focus-visible {
-        color: rgba(31, 42, 68, 0.85);
-        outline: none;
-    }
-}
-
 // Specificity bump через родителя, чтобы перебить `.shell{min-height:50px}`
-// из AutoGrowSearch.
+// из AutoGrowSearch. Здесь же гасим внутренний AutoGrowSearch.shell — «коробку»
+// (фон, бровку, тень) рисует .writeBarInput на родителе. Гасим на потомке (а
+// не на .writeField), иначе .writeBarInput (тот же элемент, что .writeField)
+// прочитал бы transparent вместо surface-палитры коробки.
 .writeField .writeFieldInput {
-    // Гасим внутренний AutoGrowSearch.shell — «коробку» (градиент, тень,
-    // бровку) рисует .writeBarInput на родителе. Гасим ЗДЕСЬ (на потомке),
-    // а не на .writeField, иначе .writeBarInput (тот же элемент) прочитал бы
-    // transparent вместо rose-gold палитры коробки.
     --field-bg-from: transparent;
     --field-bg-mid: transparent;
     --field-bg-to: transparent;
@@ -154,8 +108,8 @@
     padding: 0;
 }
 
-// Send-кнопка — 28×28, синяя сплошная. Disabled — полупрозрачный «выкл»,
-// не серая плитка.
+// Send-кнопка — 28×28. База синяя (lavender / Dish), на warm → rose внизу.
+// Disabled — полупрозрачный «выкл», не серая плитка.
 .writeFieldSend {
     flex-shrink: 0;
     display: inline-flex;
@@ -165,8 +119,7 @@
     height: 28px;
     border: none;
     border-radius: 999px;
-    // Rose-gold: розово-медный градиент в тон полю.
-    background: linear-gradient(135deg, #e9aa95 0%, #c87c6c 100%);
+    background: #2f80ed;
     color: #fff;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -178,7 +131,7 @@
     }
 
     &:not(:disabled):hover {
-        background: linear-gradient(135deg, #e0997f 0%, #b86b5b 100%);
+        background: #1f70dd;
     }
 
     &:not(:disabled):active {
@@ -186,7 +139,7 @@
     }
 
     &:disabled {
-        background: linear-gradient(135deg, rgba(233, 170, 149, 0.4) 0%, rgba(200, 124, 108, 0.4) 100%);
+        background: rgba(47, 128, 237, 0.35);
         cursor: not-allowed;
     }
 }
@@ -200,8 +153,8 @@
     width: 28px;
     height: 28px;
     border-radius: 999px;
-    background: rgba(170, 95, 82, 0.14);
-    color: rgba(150, 78, 68, 0.85);
+    background: rgba(64, 82, 128, 0.12);
+    color: rgba(64, 82, 128, 0.85);
     pointer-events: none;
     user-select: none;
 }
@@ -295,255 +248,78 @@
 }
 
 // ═════════════════════════════════════════════════════════════════════════
-// Design-variants (scaffold 2026-05-24, см. WriteFoodInput.tsx).
-// Default = `current` (правила выше). Альтернативы переопределяют
-// палитру / форму / типографику через каскад на `.wrap` [data-dv-v=...].
+// Rose-gold — ТОЛЬКО на warm-surface (HomePage / Schedule). На lavender
+// (Dish / Product) остаётся нейтральная белая база выше. `body[data-surface]`
+// — обычный атрибут-селектор, в CSS-module проходит без хеширования (как
+// прежние `[data-dv]`-варианты) и каскадит через Base UI порталы, см.
+// surfaces.scss / useSurface.
 // ═════════════════════════════════════════════════════════════════════════
 
-// ─── warm-soft ────────────────────────────────────────────────────────────
-// Send-кнопка cinnamon→amber gradient; tile pill-shape без border,
-// fade-hairline, warm wash; подпись «Каталог» скрыта; placeholder serif
-// italic 15px-400.
-[data-dv='WriteBar'][data-dv-v='warm-soft'] {
+body[data-surface='warm'] {
+    // Текст / плейсхолдер — тёплая rose-gold гамма (rose-gold нет в --field-*).
     .writeField {
-        --field-placeholder: rgba(124, 65, 15, 0.5);
-        --field-placeholder-family: var(--heading-font);
-        --field-placeholder-style: italic;
-        --field-placeholder-size: 15px;
-        --field-placeholder-weight: 400;
-        --field-text: rgba(82, 38, 7, 0.92);
+        --field-text: rgba(74, 36, 30, 0.92);
+        --field-placeholder: rgba(168, 92, 80, 0.48);
+
+        &[data-state='loading'] {
+            --field-text: rgba(150, 78, 68, 0.6);
+            --field-placeholder: rgba(150, 78, 68, 0.4);
+            background: rgba(250, 238, 233, 0.72);
+        }
     }
 
+    // Pill — 3-stop светлый розово-золотой градиент + тёплая тень, без рамки.
     .writeBarInput {
-        background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fef0dd 100%);
-        border-color: rgba(124, 65, 15, 0.10);
-
-        &:focus-within {
-            border-color: rgba(124, 65, 15, 0.22);
-            box-shadow: 0 1px 4px rgba(124, 65, 15, 0.10);
-        }
-    }
-
-    .writeFieldSend {
-        background: linear-gradient(135deg, #e89858 0%, #c97123 100%);
-
-        &:not(:disabled):hover {
-            background: linear-gradient(135deg, #d68847 0%, #b8651f 100%);
-        }
-
-        &:disabled {
-            background: linear-gradient(135deg, rgba(232, 152, 88, 0.4) 0%, rgba(201, 113, 35, 0.4) 100%);
-        }
-    }
-
-    .writeBarList {
-        background: linear-gradient(135deg, #fefaf2 0%, #fdf0db 100%);
+        background: linear-gradient(90deg, #fffdfc 0%, #fdf2ee 52%, #f7e1d9 100%);
         border: none;
-        border-radius: 999px;
-        min-width: 44px;
-        padding: 0 8px;
-        box-shadow: 0 1px 3px rgba(124, 65, 15, 0.08);
-        color: rgba(124, 65, 15, 0.65);
+        box-shadow: 0 1px 3px rgba(150, 78, 68, 0.08);
 
-        &:hover,
-        &:focus-visible {
-            background: linear-gradient(135deg, #fef5e8 0%, #fce8c8 100%);
-            color: rgba(124, 65, 15, 0.85);
+        // «Бровка» снизу — затухающий rose-gold хайрлайн, как у верхнего инпута
+        // поиска (SearchFoodControls.searchWrapper), усиливается в фокусе.
+        &::after {
+            content: '';
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            bottom: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(170, 95, 82, 0.20) 18%,
+                rgba(170, 95, 82, 0.20) 82%,
+                transparent 100%);
+            pointer-events: none;
+            transition: background 120ms ease;
         }
-    }
-
-    .writeBarListText {
-        display: none;
-    }
-}
-
-// ─── graphite ────────────────────────────────────────────────────────────
-// Send-кнопка глубокий graphite (как .writeFieldReady); pill+tile белые,
-// graphite hairline; placeholder sans 14px-400 (тоньше дефолта).
-[data-dv='WriteBar'][data-dv-v='graphite'] {
-    .writeField {
-        --field-placeholder: rgba(15, 23, 42, 0.42);
-        --field-placeholder-size: 14px;
-        --field-placeholder-weight: 400;
-        --field-text: rgba(15, 23, 42, 0.92);
-        --field-font-size: 15px;
-    }
-
-    // Унифицированная ink-обводка для pill и кнопки «Еда»: один и тот же
-    // alpha (0.20), 1px solid. На :hover / :focus-within — один и тот же
-    // step-up (0.32). Цель — читать pair как «один outlined-stamp set», не
-    // как два разных control'а.
-    .writeBarInput {
-        background: rgba(255, 255, 255, 0.96);
-        border-color: rgba(15, 23, 42, 0.20);
 
         &:focus-within {
-            border-color: rgba(15, 23, 42, 0.32);
-            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+            box-shadow: 0 1px 8px rgba(150, 78, 68, 0.14);
+
+            &::after {
+                background: linear-gradient(90deg,
+                    transparent 0%,
+                    rgba(170, 95, 82, 0.40) 18%,
+                    rgba(170, 95, 82, 0.40) 82%,
+                    transparent 100%);
+            }
         }
     }
 
+    // Send-кнопка — розово-медный градиент в тон полю.
     .writeFieldSend {
-        background: rgb(38, 38, 51);
+        background: linear-gradient(135deg, #e9aa95 0%, #c87c6c 100%);
 
         &:not(:disabled):hover {
-            background: rgb(48, 48, 62);
+            background: linear-gradient(135deg, #e0997f 0%, #b86b5b 100%);
         }
 
         &:disabled {
-            background: rgb(136, 136, 146);
-        }
-    }
-
-    .writeBarList {
-        background: rgba(255, 255, 255, 0.98);
-        border-color: rgba(15, 23, 42, 0.20);
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-        color: rgba(15, 23, 42, 0.82);
-
-        &:hover,
-        &:focus-visible {
-            background: rgba(255, 255, 255, 1);
-            border-color: rgba(15, 23, 42, 0.32);
-            color: rgba(15, 23, 42, 0.95);
-        }
-    }
-
-    .writeBarListText {
-        color: rgba(15, 23, 42, 0.7);
-    }
-}
-
-// ─── messenger-blue ──────────────────────────────────────────────────────
-// Структурный сдвиг: leading лупа ВНУТРИ pill, send полноразмерный круг
-// 36×36 trailing, paper-plane icon, внешний tile скрыт. Send — Telegram-blue.
-[data-dv='WriteBar'][data-dv-v='messenger-blue'] {
-    .writeField {
-        --field-placeholder: rgba(31, 42, 68, 0.5);
-        --field-placeholder-size: 14px;
-        --field-placeholder-weight: 400;
-        --field-text: rgba(31, 42, 68, 0.92);
-        --field-font-size: 15px;
-        --field-font-weight: 400;
-    }
-
-    .writeBarInput {
-        background: #ffffff;
-        border-color: rgba(31, 42, 68, 0.08);
-        min-height: 44px;
-        padding: 2px 4px 2px 6px;
-        box-shadow: 0 1px 4px rgba(31, 42, 68, 0.06);
-
-        &:focus-within {
-            border-color: rgba(31, 42, 68, 0.18);
-            box-shadow: 0 1px 6px rgba(31, 42, 68, 0.10);
-        }
-    }
-
-    .writeFieldRow {
-        min-height: 36px;
-    }
-
-    .leadingSearch {
-        display: inline-flex;
-        color: rgba(31, 42, 68, 0.55);
-    }
-
-    .writeFieldSend {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, #4d9bff 0%, #2a7fea 100%);
-
-        svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        &:not(:disabled):hover {
-            background: linear-gradient(135deg, #3d8eee 0%, #1f70dd 100%);
-        }
-
-        &:disabled {
-            background: linear-gradient(135deg, rgba(77, 155, 255, 0.35) 0%, rgba(42, 127, 234, 0.35) 100%);
+            background: linear-gradient(135deg, rgba(233, 170, 149, 0.4) 0%, rgba(200, 124, 108, 0.4) 100%);
         }
     }
 
     .writeFieldStatus {
-        width: 36px;
-        height: 36px;
-    }
-
-    .writeBarList {
-        display: none;
-    }
-}
-
-// ─── messenger-warm ──────────────────────────────────────────────────────
-// То же что messenger-blue, но send в warm cinnamon→amber gradient
-// (растворяется в HomePage warm-фоне). Placeholder serif italic.
-[data-dv='WriteBar'][data-dv-v='messenger-warm'] {
-    .writeField {
-        --field-placeholder: rgba(124, 65, 15, 0.55);
-        --field-placeholder-family: var(--heading-font);
-        --field-placeholder-style: italic;
-        --field-placeholder-size: 15px;
-        --field-placeholder-weight: 400;
-        --field-text: rgba(82, 38, 7, 0.92);
-        --field-font-size: 15px;
-    }
-
-    .writeBarInput {
-        background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fef0dd 100%);
-        border-color: rgba(124, 65, 15, 0.10);
-        min-height: 44px;
-        padding: 2px 4px 2px 6px;
-        box-shadow: 0 1px 4px rgba(124, 65, 15, 0.06);
-
-        &:focus-within {
-            border-color: rgba(124, 65, 15, 0.22);
-            box-shadow: 0 1px 6px rgba(124, 65, 15, 0.10);
-        }
-    }
-
-    .writeFieldRow {
-        min-height: 36px;
-    }
-
-    .leadingSearch {
-        display: inline-flex;
-        color: rgba(124, 65, 15, 0.6);
-
-        &:hover,
-        &:focus-visible {
-            color: rgba(124, 65, 15, 0.85);
-        }
-    }
-
-    .writeFieldSend {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, #e89858 0%, #c97123 100%);
-
-        svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        &:not(:disabled):hover {
-            background: linear-gradient(135deg, #d68847 0%, #b8651f 100%);
-        }
-
-        &:disabled {
-            background: linear-gradient(135deg, rgba(232, 152, 88, 0.4) 0%, rgba(201, 113, 35, 0.4) 100%);
-        }
-    }
-
-    .writeFieldStatus {
-        width: 36px;
-        height: 36px;
-    }
-
-    .writeBarList {
-        display: none;
+        background: rgba(170, 95, 82, 0.14);
+        color: rgba(150, 78, 68, 0.85);
     }
 }

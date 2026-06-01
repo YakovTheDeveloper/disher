@@ -74,6 +74,13 @@
   }
 }
 
+// Пустой список → «листа» под контентом нет, поэтому watermark-лого в шапке
+// прячем (мелкий знак справа дублировал бы бледное лого по центру слайда).
+// Сам заголовок дня недели остаётся.
+.bareHeading::after {
+  display: none;
+}
+
 // Palette variants for the food list. Each variant binds shared time-of-
 // day surface tokens (`@include dv-palette-<name>`) AND text tokens for
 // the inline row labels. Text stays in the family's dark anchor hue so

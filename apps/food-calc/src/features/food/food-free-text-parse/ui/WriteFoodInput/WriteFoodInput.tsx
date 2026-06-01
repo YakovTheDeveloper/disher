@@ -3,40 +3,8 @@ import clsx from 'clsx';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import type { UseWriteFoodFlowResult } from '../../model/useWriteFoodFlow';
 import s from './WriteFoodInput.module.scss';
-
-// WriteBar design-variants (scaffold 2026-05-24). Default = `current` —
-// текущий thin-pill canon. Альтернативы:
-// - warm-soft / graphite — CSS-only переодевания (pill+tile рядом).
-// - messenger-blue / messenger-warm — структурный сдвиг: лупа становится
-//   leading-affordance ВНУТРИ pill, send — полноразмерный круг trailing,
-//   внешний tile скрыт. Inspired by Telegram/Messenger reference.
-// Юзер свайпает через DesignVariantsBar, выбирает финал, неподходящие
-// чистим вместе с этим anchor'ом.
-const WRITE_BAR_VARIANTS = [
-  'current',
-  'warm-soft',
-  'graphite',
-  'messenger-blue',
-  'messenger-warm',
-] as const;
-
-const SearchIcon = ({ size = 22 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="10.3" cy="10.3" r="9.6" stroke="currentColor" strokeWidth="1.1" />
-    <path d="M21.5 21.5 L17.1 17.1" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-    <path
-      d="M7 10.8 L10 13.5 L14 8"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-  </svg>
-);
 
 const SendArrowIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -46,17 +14,6 @@ const SendArrowIcon = () => (
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-    />
-  </svg>
-);
-
-// Paper-plane (Telegram-style) — slightly tilted self, fill currentColor.
-// Используется в `messenger-*` вариантах вместо плоской стрелки.
-const PaperPlaneIcon = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden="true">
-    <path
-      d="M2.3 9.3 L17.2 2.6 C17.8 2.3 18.4 2.9 18.1 3.5 L11.4 18.4 C11.1 19.1 10.1 19.0 9.9 18.3 L8.0 12.5 C7.9 12.2 7.7 12.0 7.4 11.9 L1.6 10.0 C0.9 9.8 0.8 8.8 1.5 8.5 Z"
-      fill="currentColor"
     />
   </svg>
 );
@@ -159,11 +116,6 @@ export const WriteFoodInput = ({
   className,
 }: WriteFoodInputProps) => {
   const online = useOnline();
-  const { variant, anchor: variantAnchor } = useDesignVariant(
-    'WriteBar',
-    WRITE_BAR_VARIANTS,
-  );
-  const isMessenger = variant === 'messenger-blue' || variant === 'messenger-warm';
 
   // Idle/blur — 1 ряд, фокус — до 4 рядов. Auto-grow от value уже встроен в
   // AutoGrowSearch (он сам пересчитывает через recomputeRows на изменение
@@ -207,7 +159,6 @@ export const WriteFoodInput = ({
     <div
       className={clsx(s.wrap, className)}
       data-write-state={isReady ? 'ready' : 'idle'}
-      {...variantAnchor}
     >
       <div className={s.writeBarRow}>
         {isReady ? (
@@ -224,16 +175,6 @@ export const WriteFoodInput = ({
             data-state={flow.state}
           >
             <div className={s.writeFieldRow}>
-              {/* Leading search-affordance — ВСЕГДА монтируется (чтобы DOM был
-                  стабилен между вариантами), default скрыт через CSS,
-                  показывается только в [data-dv-v='messenger-*']. */}
-              <label
-                htmlFor={searchHtmlFor}
-                className={s.leadingSearch}
-                aria-label={searchLabel ?? 'Найти'}
-              >
-                <SearchIcon size={20} />
-              </label>
               <AutoGrowSearch
                 id={inputId}
                 value={flow.inputText}
@@ -266,7 +207,7 @@ export const WriteFoodInput = ({
                   disabled={!canSubmit}
                   aria-label={online ? 'Отправить' : 'Нет сети'}
                 >
-                  {isMessenger ? <PaperPlaneIcon /> : <SendArrowIcon />}
+                  <SendArrowIcon />
                 </button>
               )}
             </div>

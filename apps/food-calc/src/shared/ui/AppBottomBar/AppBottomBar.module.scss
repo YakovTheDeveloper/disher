@@ -29,13 +29,20 @@
 // Modifier для write-режима (HomePage / DishBuilderPage): убираем толстый
 // padding и min-height — WriteFoodInput сам владеет своим внутренним
 // padding'ом и высотой пилюли.
-// Фон бара прозрачный (2026-06-01): radial-glow убран, пилюля «парит» на
-// фоне страницы без отдельной плашки. На HomePage бар к тому же overlay
-// (см. Screen `bottomBarOverlay`) — список скроллится под ним.
+// Ambient glow (lavender + cream) — база для lavender-страниц (DishBuilderPage).
+// На warm (HomePage) гасим ниже: там бар overlay'ный (Screen `bottomBarOverlay`),
+// список скроллится под ним, и пилюля «парит» на фоне без отдельной плашки.
 .writeDock {
     align-items: stretch;
     padding: 0;
     min-height: 0;
+    background:
+        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(225, 215, 245, 0.5), transparent 60%),
+        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(252, 245, 220, 0.55), transparent 60%);
+}
+
+// HomePage (warm) — без glow: пилюля «парит» на ambient-фоне страницы.
+body[data-surface='warm'] .writeDock {
     background: transparent;
 }
 

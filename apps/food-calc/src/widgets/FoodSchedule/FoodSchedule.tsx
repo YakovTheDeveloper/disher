@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useMemo, useRef, Fragment } from 'react';
+import clsx from 'clsx';
 import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
@@ -172,14 +173,12 @@ const FoodSchedule = ({
         />
       }
     >
-      {/* Пустой список → заголовок дня недели уезжает В ЦЕНТР поверх лого
-          (SlideArtFrame в HomePage), поэтому верхний header тут не рендерим.
-          На заполнённом экране — обычный верхний заголовок с watermark-лого. */}
-      {!isEmpty && (
-        <div className={styles.weekdayHeading}>
-          <Heading size="section">{weekdayTitle}</Heading>
-        </div>
-      )}
+      {/* Заголовок дня недели — всегда наверху. На пустом списке watermark-лого
+          справа прячем (`bareHeading`): нет «листа» под контентом → нет и
+          мелкого лого в шапке (бренд-знак остаётся бледным по центру слайда). */}
+      <div className={clsx(styles.weekdayHeading, isEmpty && styles.bareHeading)}>
+        <Heading size="section">{weekdayTitle}</Heading>
+      </div>
       <div {...foodAnchor} className={styles.foodListAnchor}>
         <ItemsList>
           {(() => {
