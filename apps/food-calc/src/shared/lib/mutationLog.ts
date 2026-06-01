@@ -36,15 +36,3 @@ export function logMutationError(operation: string, error: unknown, classified?:
     // localStorage full or unavailable — silently skip
   }
 }
-
-export function getMutationLog(): MutationLogEntry[] {
-  try {
-    return JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
-  } catch {
-    return [];
-  }
-}
-
-export function clearMutationLog() {
-  localStorage.removeItem(LOG_KEY);
-}

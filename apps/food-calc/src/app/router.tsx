@@ -6,12 +6,9 @@ import ScheduleDateSelectionPage from '@/pages/schedule/schedule-date-selection-
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
 
 import ProductPage from '@/pages/product/ProductPage.tsx';
-import { ScheduleFoodAnalyticsPage } from '@/pages/schedule/analytics/schedule-analytics-page/ScheduleFoodAnalyticsPage/index.ts';
 import AnalysesPage from '@/pages/analyses/AnalysesPage.tsx';
-import SettingsPage from '@/pages/settings/SettingsPage/SettingsPage.tsx';
-import NutrientArticlesPage from '@/pages/articles/NutrientArticlesPage.tsx';
-import NutrientArticlePage from '@/pages/articles/NutrientArticlePage.tsx';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage.tsx';
+import UiKitPage from '@/pages/ui-kit/UiKitPage.tsx';
 
 export enum RouterLinks {
   Root = '/',
@@ -21,19 +18,13 @@ export enum RouterLinks {
   Dish = '/dish/:id',
   ScheduleDateSelection = '/date',
   ScheduleBuilder = '/schedule',
-  ScheduleAnalytics = `/schedule/:id/analytics`,
   Analyses = '/analyses',
   Product = '/product',
-  Settings = '/settings',
-  NutrientArticles = '/articles/nutrients',
-  NutrientArticle = '/articles/nutrients/:folder',
+  UiKit = '/ui-kit',
   VerifyEmail = '/auth/verify-email',
 }
 
-export const getScheduleAnalyticsUrl = (id: string) => `/schedule/${id}/analytics`;
-
 export const getProductUrl = (id: string) => `/product/${id}`;
-export const getNutrientArticleUrl = (folder: string) => `/articles/nutrients/${folder}`;
 
 export const RouterUrls = {
   Schedule: (id: string) => `/schedule/${id}`,
@@ -63,10 +54,6 @@ export const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: RouterLinks.ScheduleAnalytics,
-        element: <ScheduleFoodAnalyticsPage />,
-      },
-      {
         path: RouterLinks.Analyses,
         element: <AnalysesPage />,
       },
@@ -75,16 +62,8 @@ export const router = createBrowserRouter([
         element: <ProductPage />,
       },
       {
-        path: RouterLinks.Settings,
-        element: <SettingsPage />,
-      },
-      {
-        path: RouterLinks.NutrientArticles,
-        element: <NutrientArticlesPage />,
-      },
-      {
-        path: RouterLinks.NutrientArticle,
-        element: <NutrientArticlePage />,
+        path: RouterLinks.UiKit,
+        element: <UiKitPage />,
       },
       {
         path: RouterLinks.VerifyEmail,

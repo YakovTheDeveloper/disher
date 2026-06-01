@@ -37,7 +37,6 @@
     "better-auth": "1.6.9",
     "better-sqlite3": "^12.8.0",
     "fastify": "^5.2.0",
-    "google-translate-api-x": "^10.7.2",
     "pg": "^8.20.0",
     "resend": "^6.12.2"
   },
@@ -48,7 +47,6 @@
     "concurrently": "^9.1.0",
     "cross-env": "^10.1.0",
     "dotenv": "^17.3.1",
-    "fast-check": "^4.7.0",
     "kill-port": "^2.0.1",
     "lmdb": "^3.5.2",
     "selfsigned": "^5.5.0",

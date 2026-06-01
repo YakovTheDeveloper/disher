@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router';
-import { RouterLinks, RouterUrls, getScheduleAnalyticsUrl, getProductUrl, getNutrientArticleUrl } from '@/app/router';
+import { RouterLinks, RouterUrls, getProductUrl } from '@/app/router';
 
 export interface UseAppRoutesOptions {
     fallbackUrl?: string;
@@ -13,12 +13,8 @@ export interface UseAppRoutesReturn {
     toDish: (id: string) => void;
     toSchedule: () => void;
     toScheduleBuilder: (id: string) => void;
-    toScheduleAnalytics: (id: string) => void;
     toFood: () => void;
     toProduct: (id: string) => void;
-    toNutrientArticles: () => void;
-    toNutrientArticle: (folder: string) => void;
-    toTest: () => void;
 }
 
 export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn => {
@@ -40,12 +36,8 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
     const toDish = (id: string) => navigate(RouterUrls.getDish(id));
     const toScheduleDateSelection = () => navigate(RouterLinks.ScheduleDateSelection);
     const toScheduleBuilder = (id: string) => navigate(`${RouterLinks.ScheduleBuilder}/${id}`, { viewTransition: true });
-    const toScheduleAnalytics = (id: string) => navigate(getScheduleAnalyticsUrl(id), { viewTransition: true });
     const toFood = () => navigate(RouterLinks.Food);
     const toProduct = (id: string) => navigate(getProductUrl(id));
-    const toNutrientArticles = () => navigate(RouterLinks.NutrientArticles);
-    const toNutrientArticle = (folder: string) => navigate(getNutrientArticleUrl(folder));
-    const toTest = () => navigate(RouterLinks.Root);
 
     return {
         navigate,
@@ -55,11 +47,7 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
         toDish,
         toSchedule: toScheduleDateSelection,
         toScheduleBuilder,
-        toScheduleAnalytics,
         toFood,
         toProduct,
-        toNutrientArticles,
-        toNutrientArticle,
-        toTest,
     };
 };

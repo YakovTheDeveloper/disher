@@ -1,5 +1,5 @@
 import { db, type ProductRow } from '@/shared/lib/dexie/schema';
-import { putRow, updateRow, deleteRow, deleteRows } from '@/shared/lib/dexie/write';
+import { putRow, updateRow, deleteRows } from '@/shared/lib/dexie/write';
 
 function safeParseJson<T>(json: string | undefined, fallback: T): T {
   if (!json) return fallback;
@@ -94,10 +94,6 @@ export async function setProductPortions(
   portions: string,
 ): Promise<void> {
   await updateProduct(productId, { portions });
-}
-
-export async function deleteProduct(productId: string): Promise<void> {
-  await deleteRow(db.products, productId);
 }
 
 export async function deleteProducts(productIds: string[]): Promise<void> {

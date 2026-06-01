@@ -11,7 +11,8 @@ import { ModalHeader } from '@/shared/ui/ModalHeader';
 //   * spring4 — HomePage и модалки её контекста (FoodSchedule /
 //     ScheduleEvents / Laboratory / free-text-food / analysis).
 //     Передаётся явно: `<ModalShell variant="spring4">`.
-type Variant = 'spring2' | 'spring4';
+export type ModalShellVariant = 'spring2' | 'spring4';
+type Variant = ModalShellVariant;
 type Props = { children: ReactNode; className?: string; variant?: Variant };
 
 const SPRING_CLASSES: Record<Variant, string> = {

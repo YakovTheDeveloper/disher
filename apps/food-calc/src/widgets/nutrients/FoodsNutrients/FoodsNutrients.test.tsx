@@ -4,8 +4,8 @@ import '@testing-library/jest-dom/vitest';
 import FoodsNutrients from './FoodsNutrients';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 
-// Mock NutrientDesignVariants to expose getValue() resolution per nutrient id.
-vi.mock('./NutrientDesignVariants', () => ({
+// Mock NutrientTable to expose getValue() resolution per nutrient id.
+vi.mock('./NutrientTable', () => ({
   default: ({ getValue }: { getValue: (id: string) => number }) => (
     <div data-testid="nutrients-list">
       <div data-testid="nutrient-card-7" data-value={String(getValue('7'))} />

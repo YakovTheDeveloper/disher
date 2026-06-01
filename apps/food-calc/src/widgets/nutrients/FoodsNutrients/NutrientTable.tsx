@@ -4,10 +4,19 @@ import {
   defaultDailyNorms,
 } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { useUserNormItems } from '@/entities/daily-norm';
-import s from './NutrientDesignVariants.module.scss';
+import s from './NutrientTable.module.scss';
 import clsx from 'clsx';
 import { memo, useCallback, useRef, useState, useEffect, type CSSProperties } from 'react';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+
+// Palette/typography forks for the nutrient widget — flip live via the
+// DesignVariantsBar (key `Nutrients`). Nutrients are no longer the app's
+// headline feature, so the restrained forks mute the rainbow into a single
+// calm accent + quieter type. First entry `vivid` is the untouched original
+// (so production renders exactly as before until a fork is chosen). Every
+// fork changes ONLY colour + typography — the skeleton layout is shared.
+const NUTRIENT_DV_VARIANTS = ['vivid', 'graphite', 'paper', 'mist'] as const;
 
 interface Props {
   getValue: (id: string) => number;
@@ -69,11 +78,12 @@ const getGroupColors = (nutrientName: string, group: string) => {
   return undefined;
 };
 
-const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValueChange }: Props) => {
+const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }: Props) => {
   const isEditNorms = variant === 'edit-norms';
   const isEditValues = variant === 'edit-values';
   const isView = variant === 'view';
   const isViewNorms = variant === 'view-norms';
+  const { anchor } = useDesignVariant('Nutrients', NUTRIENT_DV_VARIANTS);
   const [overlayOpen, setOverlayOpen] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const userItems = useUserNormItems();
@@ -318,7 +328,7 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
   };
 
   return (
-    <div className={s.container}>
+    <div className={s.container} {...anchor}>
       <div className={s.section}>{mainNutrients.map(renderRow)}</div>
 
       {nutrientGroups.slice(1).map((group) => (
@@ -331,4 +341,4 @@ const NutrientDesignVariants = ({ getValue, variant = 'view', onRichFood, onValu
   );
 };
 
-export default memo(NutrientDesignVariants);
+export default memo(NutrientTable);

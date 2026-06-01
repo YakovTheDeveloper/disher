@@ -3,11 +3,9 @@ import {
   type DishRow,
   type DishItemRow,
   type DishPortionRow,
-  type ScheduleFoodRow,
 } from '@/shared/lib/dexie/schema';
 import {
   putRow,
-  putRows,
   updateRow,
   deleteRow,
   deleteRows,
@@ -96,23 +94,6 @@ export async function removeDishItem(itemId: string): Promise<void> {
   await deleteRow(db.dish_items, itemId);
 }
 
-export async function copyDishItems(
-  items: Array<{ productId: string; quantity: number; details?: string }>,
-  toDishId: string,
-): Promise<void> {
-  if (items.length === 0) return;
-  const stamped = now();
-  const rows: Array<Omit<DishItemRow, 'updated_at'>> = items.map((item) => ({
-    id: crypto.randomUUID(),
-    dish_id: toDishId,
-    product_id: item.productId,
-    quantity: item.quantity,
-    details: item.details ?? '',
-    created_at: stamped,
-  }));
-  await putRows(db.dish_items, rows);
-}
-
 export async function addDishPortion(
   dishId: string,
   portion: { label: string; grams: number },
@@ -143,25 +124,4 @@ export async function updateDishPortion(
 
 export async function removeDishPortion(portionId: string): Promise<void> {
   await deleteRow(db.dish_portions, portionId);
-}
-
-export async function dishItemsToScheduleFoods(
-  items: Array<{ productId: string; quantity: number }>,
-  date: string,
-  time: string,
-): Promise<void> {
-  if (items.length === 0) return;
-  const stamped = now();
-  const rows: Array<Omit<ScheduleFoodRow, 'updated_at'>> = items.map((item) => ({
-    id: crypto.randomUUID(),
-    date,
-    time,
-    type: 'food',
-    quantity: item.quantity,
-    details: '',
-    product_id: item.productId,
-    dish_id: null,
-    created_at: stamped,
-  }));
-  await putRows(db.schedule_foods, rows);
 }

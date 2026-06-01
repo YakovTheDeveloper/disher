@@ -16,7 +16,6 @@ const litePath = resolve(__dirname, "../../data/food-catalog-lite.json");
 
 let catalog: CatalogEntry[] | null = null;
 let catalogIds: Set<string> | null = null;
-let byId: Map<string, CatalogEntry> | null = null;
 
 function shouldRegenerate(): boolean {
   if (!existsSync(litePath)) return true;
@@ -33,20 +32,10 @@ export function loadCatalog(): CatalogEntry[] {
   }
   catalog = JSON.parse(readFileSync(litePath, "utf-8")) as CatalogEntry[];
   catalogIds = new Set(catalog.map((f) => f.id));
-  byId = new Map(catalog.map((f) => [f.id, f]));
   return catalog;
 }
 
 export function getCatalogIds(): Set<string> {
   if (!catalogIds) loadCatalog();
   return catalogIds!;
-}
-
-export function getCatalogById(id: string): CatalogEntry | undefined {
-  if (!byId) loadCatalog();
-  return byId!.get(id);
-}
-
-export function getSeedMtimeMs(): number {
-  return statSync(seedPath).mtimeMs;
 }

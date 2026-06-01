@@ -369,10 +369,11 @@ const DishBuilderPage = () => {
               </div>
             )}
             <ItemsList offsetTop>
-              {items.map((item) => (
+              {items.map((item, index) => (
                 <LongPressRow
                   key={item.id}
                   id={item.id}
+                  index={index}
                   className={styles.group}
                   innerClassName={styles.dishFoodListItem}
                   onLongPress={() => openActionsDrawer(item)}

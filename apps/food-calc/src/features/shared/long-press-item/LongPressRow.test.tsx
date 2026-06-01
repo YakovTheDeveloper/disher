@@ -1,6 +1,7 @@
 import { render, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import LongPressRow from './LongPressRow';
+import entranceStyles from '@/shared/lib/hooks/useEntranceStagger.module.scss';
 
 const LONG_PRESS_DELAY = 450; // keep in sync with LongPressRow
 
@@ -133,5 +134,19 @@ describe('LongPressRow', () => {
 
     expect(innerClick).not.toHaveBeenCalled(); // stopPropagation
     expect(clickEv.defaultPrevented).toBe(true); // preventDefault → no <label htmlFor> focus
+  });
+
+  it('wires the staggered CSS entrance: wrapper carries the class + --enter-i index', () => {
+    const { container } = render(
+      <LongPressRow id="row-1" index={3}>
+        <span>content</span>
+      </LongPressRow>,
+    );
+
+    // The outer wrapper <div> is the element the entrance animation runs on.
+    const wrapper = container.firstElementChild as HTMLElement;
+
+    expect(wrapper.className).toContain(entranceStyles.entrance);
+    expect(wrapper.style.getPropertyValue('--enter-i')).toBe('3');
   });
 });

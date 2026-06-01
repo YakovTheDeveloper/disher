@@ -164,32 +164,3 @@ export function useScheduleFoods(
     return enrichWithCache(filtered, products, dishes, cacheRef.current);
   }, [all, date, products, dishes]);
 }
-
-export function useScheduleFoodsByDates(
-  dates: string[],
-): ScheduleFoodWithRelations[] {
-  const all = useAllScheduleFoods();
-  const products = useProductLookup();
-  const dishes = useDishLookup();
-  const cacheRef = useRef<EnrichCache>(new Map());
-  return useMemo(() => {
-    if (dates.length === 0) return [];
-    const dateSet = new Set(dates);
-    const filtered = all.filter((r) => dateSet.has(r.date));
-    return enrichWithCache(filtered, products, dishes, cacheRef.current);
-  }, [all, dates, products, dishes]);
-}
-
-export function useAllScheduleFoodsList(): ScheduleFoodWithRelations[] {
-  const all = useAllScheduleFoods();
-  const products = useProductLookup();
-  const dishes = useDishLookup();
-  const cacheRef = useRef<EnrichCache>(new Map());
-  return useMemo(
-    () => enrichWithCache(all, products, dishes, cacheRef.current),
-    [all, products, dishes],
-  );
-}
-
-// Backwards-compatible alias — was the public name pre-Dexie migration.
-export { useAllScheduleFoodsList as useAllScheduleFoods };

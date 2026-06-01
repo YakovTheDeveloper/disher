@@ -1,5 +1,5 @@
 import { db, type ScheduleEventRow } from '@/shared/lib/dexie/schema';
-import { putRow, updateRow, deleteRow, deleteRows } from '@/shared/lib/dexie/write';
+import { putRow, updateRow, deleteRows } from '@/shared/lib/dexie/write';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
 
 const now = () => new Date().toISOString();
@@ -54,10 +54,6 @@ export async function updateScheduleEvent(
     else patch[col] = updates[k];
   }
   await updateRow(db.schedule_events, eventId, patch);
-}
-
-export async function removeScheduleEvent(eventId: string): Promise<void> {
-  await deleteRow(db.schedule_events, eventId);
 }
 
 export async function removeScheduleEvents(eventIds: string[]): Promise<void> {

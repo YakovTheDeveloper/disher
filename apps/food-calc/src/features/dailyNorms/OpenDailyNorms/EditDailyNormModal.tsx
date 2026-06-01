@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { modalStore, type BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
 import { useUserNormItems, USER_NORM_NAME } from '@/entities/daily-norm';
-import NutrientDesignVariants from '@/widgets/nutrients/FoodsNutrients/NutrientDesignVariants';
+import { NutrientTable } from '@/widgets/nutrients/FoodsNutrients';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import CreateDailyNormModal from './CreateDailyNormModal';
@@ -75,7 +75,7 @@ const EditDailyNormModal = ({ onClose, chrome = 'modal', onRecalc }: Props) => {
             <span className={styles.loadingText}>Загружаем норму…</span>
           </div>
         ) : (
-          <NutrientDesignVariants
+          <NutrientTable
             variant="view-norms"
             getValue={ZERO_VALUE}
           />

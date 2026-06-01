@@ -50,7 +50,3 @@ export function logMatcherQuery(entry: Omit<MatcherQueryLogEntry, "ts">): void {
       console.warn("matcher-query-log write failed:", err);
     });
 }
-
-export function getLogPath(): string {
-  return LOG_PATH;
-}

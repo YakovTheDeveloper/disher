@@ -73,6 +73,7 @@ export function ScheduleEventCard({
       className={clsx(className, styles.row)}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={item.id}
+      index={index}
       tod={getTimeOfDay(item.time)}
       onLongPress={onLongPress}
     >

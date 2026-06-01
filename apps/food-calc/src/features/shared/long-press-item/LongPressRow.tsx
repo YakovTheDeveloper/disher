@@ -1,8 +1,8 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import styles from './LongPressRow.module.scss';
 import clsx from 'clsx';
-import { motion } from 'motion/react';
 import { emitter } from '@/shared/lib/emitter/emitter';
+import { useEntranceStagger } from '@/shared/lib/hooks/useEntranceStagger';
 
 import type { TimeOfDay } from '@/shared/lib/time-of-day';
 
@@ -14,6 +14,8 @@ type Props = {
   wrapperClassName?: string;
   style?: React.CSSProperties;
   variant?: 1 | 2 | 3;
+  /** Position in the list — drives the staggered entrance cascade. */
+  index?: number;
   tod?: TimeOfDay;
   onClick?: () => void;
   /** Fired on a sustained press (~450ms). Used to open the per-item action
@@ -26,11 +28,6 @@ type Props = {
 const LONG_PRESS_DELAY = 450;
 const MOVE_THRESHOLD = 10; // Pixels allowed before canceling long press
 
-const EASE_OUT = [0, 0, 0.2, 1] as const;
-const EASE_IN = [0.4, 0, 1, 1] as const;
-const ITEM_ENTER = { duration: 0.28, ease: EASE_OUT } as const;
-const ITEM_EXIT = { duration: 0.16, ease: EASE_IN } as const;
-
 const LongPressRow = ({
   id,
   children,
@@ -39,11 +36,13 @@ const LongPressRow = ({
   wrapperClassName,
   style,
   variant,
+  index,
   tod,
   onClick,
   onLongPress,
   ...rest
 }: Props) => {
+  const entrance = useEntranceStagger(index);
   // Extract data-* attributes
   const dataAttrs = Object.fromEntries(
     Object.entries(rest).filter(([key]) => key.startsWith('data-'))
@@ -155,17 +154,14 @@ const LongPressRow = ({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0, transition: ITEM_ENTER }}
-      exit={{ opacity: 0, y: -4, transition: ITEM_EXIT }}
-      className={clsx(styles.commonListItemWrapper, wrapperClassName)}
+    <div
+      className={clsx(styles.commonListItemWrapper, wrapperClassName, entrance.className)}
+      style={entrance.style}
       data-tod={tod}
       onContextMenu={onContextMenu}
       {...dataAttrs}
     >
-      <motion.li
-        whileTap={{ scale: 0.98 }}
+      <li
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
         onPointerMove={onPointerMove}
@@ -201,8 +197,8 @@ const LongPressRow = ({
         >
           {children}
         </div>
-      </motion.li>
-    </motion.div>
+      </li>
+    </div>
   );
 };
 

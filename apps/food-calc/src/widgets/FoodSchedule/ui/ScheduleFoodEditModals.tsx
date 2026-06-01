@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
+import { ModalByLabelDetails } from '@/features/shared/components/ModalByLabelDetails';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
@@ -113,42 +114,34 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
       />
 
       {/* Details — entry point in edit is now tap-on-name on a schedule-food row */}
-      <ModalByLabel
-        position="absolute"
+      <ModalByLabelDetails
         isExpanded={step === 'details'}
-        content={
-          <ModalShell variant="spring4">
-            <ModalShell.Header
-              title={detailsTitle}
-              onBack={handleClose}
-              trailing={
-                infoTarget ? (
-                  <button
-                    type="button"
-                    className={s.infoBtn}
-                    aria-label={infoTarget.label}
-                    onClick={handleInfoClick(infoTarget.href)}
-                  >
-                    <InfoIcon />
-                  </button>
-                ) : undefined
-              }
-            />
-            <ModalShell.Body flush>
-              <DetailsStep
-                foodName={draft.foodName ?? null}
-                textareaId={DETAILS_INPUT}
-                value={draft.details}
-                onChange={(value) => setDraft((d) => ({ ...d, details: value }))}
-                productId={draft.productId}
-              />
-              <ModalShell.ActionButtons
-                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
-              />
-            </ModalShell.Body>
-          </ModalShell>
+        variant="spring4"
+        flush
+        onCommit={handleCommit}
+        title={detailsTitle}
+        onBack={handleClose}
+        trailing={
+          infoTarget ? (
+            <button
+              type="button"
+              className={s.infoBtn}
+              aria-label={infoTarget.label}
+              onClick={handleInfoClick(infoTarget.href)}
+            >
+              <InfoIcon />
+            </button>
+          ) : undefined
         }
-      />
+      >
+        <DetailsStep
+          foodName={draft.foodName ?? null}
+          textareaId={DETAILS_INPUT}
+          value={draft.details}
+          onChange={(value) => setDraft((d) => ({ ...d, details: value }))}
+          productId={draft.productId}
+        />
+      </ModalByLabelDetails>
     </div>
   );
 };

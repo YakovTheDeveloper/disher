@@ -33,7 +33,3 @@ export const pool = connectionString
       connectionTimeoutMillis: 10_000,
     })
   : null;
-
-export function isDbReady(): boolean {
-  return pool !== null;
-}

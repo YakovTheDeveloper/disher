@@ -1,6 +1,5 @@
 import { pool } from "../db.js";
 import {
-  ANALYSIS_OUTPUT_PROMPT_SPEC,
   SYSTEM_PROMPT_BASE,
   nutrientLineToken,
   safeStringifyArray,
@@ -60,7 +59,7 @@ export type CallLLM = (
   options: CallLLMOptions,
 ) => Promise<string>;
 
-export { SYSTEM_PROMPT_BASE, ANALYSIS_OUTPUT_PROMPT_SPEC };
+export { SYSTEM_PROMPT_BASE };
 
 function buildUserPrompt(payload: AnalyzePayload): string {
   const lines: string[] = [];

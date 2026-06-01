@@ -3,7 +3,6 @@ import {
   putRow,
   updateRow,
   deleteRow,
-  deleteRows,
 } from '@/shared/lib/dexie/write';
 const now = () => new Date().toISOString();
 
@@ -95,9 +94,4 @@ export async function updateScheduleFood(
 
 export async function removeScheduleFood(itemId: string): Promise<void> {
   await deleteRow(db.schedule_foods, itemId);
-}
-
-export async function removeScheduleFoods(itemIds: string[]): Promise<void> {
-  if (itemIds.length === 0) return;
-  await deleteRows(itemIds.map((id) => ({ table: db.schedule_foods, id })));
 }

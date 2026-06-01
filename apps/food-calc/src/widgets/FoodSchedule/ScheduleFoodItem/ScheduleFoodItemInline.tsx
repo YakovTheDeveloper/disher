@@ -117,6 +117,7 @@ const ScheduleFoodItemInline = ({
       wrapperClassName={clsx(isRecentFromFreeText && styles.recentFreeTextWrapper)}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={id}
+      index={index}
       tod={getTimeOfDay(item.time)}
       data-schedule-food-id={id}
       onLongPress={onLongPress}

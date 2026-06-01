@@ -20,12 +20,3 @@ export function parsePortions(json: string | null | undefined): PortionEntry[] {
     return [];
   }
 }
-
-export function parseCategories(json: string | null | undefined): string[] {
-  if (!json) return [];
-  try {
-    return JSON.parse(json) as string[];
-  } catch {
-    return [];
-  }
-}

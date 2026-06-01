@@ -10,7 +10,7 @@ import {
   updateProduct,
 } from '@/entities/product';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import NutrientDesignVariants from '@/widgets/nutrients/FoodsNutrients/NutrientDesignVariants';
+import { NutrientTable } from '@/widgets/nutrients/FoodsNutrients';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { OpenDailyNorms } from '@/features/dailyNorms/OpenDailyNorms';
 import { FoodPortionsManager, nextDefaultPortionLabel } from '@/features/food/food-portions-manager';
@@ -365,13 +365,13 @@ const ProductPage = () => {
 
             <div className={s.nutrientsTail}>
               {isUserCreated ? (
-                <NutrientDesignVariants
+                <NutrientTable
                   getValue={getNutrientValue}
                   variant="edit-values"
                   onValueChange={handleNutrientValueChange}
                 />
               ) : (
-                <NutrientDesignVariants getValue={getScaledValue} />
+                <NutrientTable getValue={getScaledValue} />
               )}
             </div>
           </Screen>

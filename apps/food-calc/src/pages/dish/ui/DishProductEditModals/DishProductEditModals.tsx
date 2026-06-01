@@ -1,4 +1,5 @@
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
+import { ModalByLabelDetails } from '@/features/shared/components/ModalByLabelDetails';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
@@ -24,9 +25,8 @@ const DishProductEditModals = ({ flow }: Props) => {
     inputIds: { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT },
   } = flow;
 
-  const detailsTitle = editingItem?.product?.name
-    ? `Уточнение: ${editingItem.product.name}`
-    : 'Уточнение к ингредиенту';
+  // edit-флоу (тап по названию ингредиента): в шапке — само название продукта.
+  const detailsTitle = editingItem?.product?.name ?? 'Уточнение к ингредиенту';
 
   return (
     <div onFocusCapture={handleFocusCapture}>
@@ -77,26 +77,19 @@ const DishProductEditModals = ({ flow }: Props) => {
       />
 
       {/* Details — entry point in edit is tap-on-name on a dish-item row */}
-      <ModalByLabel
-        position="absolute"
+      <ModalByLabelDetails
         isExpanded={step === 'details'}
-        content={
-          <ModalShell>
-            <ModalShell.Header title={detailsTitle} onBack={handleClose} />
-            <ModalShell.Body>
-              <DetailsChips
-                textareaId={DETAILS_INPUT}
-                value={draft.details}
-                onChange={(value) => setDraft((d) => ({ ...d, details: value }))}
-                productId={draft.productId}
-              />
-              <ModalShell.ActionButtons
-                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
-              />
-            </ModalShell.Body>
-          </ModalShell>
-        }
-      />
+        onCommit={handleCommit}
+        title={detailsTitle}
+        onBack={handleClose}
+      >
+        <DetailsChips
+          textareaId={DETAILS_INPUT}
+          value={draft.details}
+          onChange={(value) => setDraft((d) => ({ ...d, details: value }))}
+          productId={draft.productId}
+        />
+      </ModalByLabelDetails>
     </div>
   );
 };

@@ -1,7 +1,6 @@
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
+import { ModalByLabelDetails } from '@/features/shared/components/ModalByLabelDetails';
 import { SearchFood } from '@/features/food/food-search';
-import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { DetailsChips } from '@/features/food/details-chips';
 import type {
   ReviewEditStep,
@@ -57,27 +56,24 @@ export const FreeTextFoodReviewEditModals = ({
         }
       />
 
-      {/* Details */}
-      <ModalByLabel
-        position="fixed"
+      {/* Details — position="fixed": оверлеится поверх fullscreen free-text
+          review (длинный скроллящийся список); absolute уехал бы на верх
+          документа при scrollTop>0. 4 schedule/dish консумера — absolute. */}
+      <ModalByLabelDetails
         isExpanded={step === 'details'}
-        content={
-          <ModalShell variant="spring4">
-            <ModalShell.Header title="Заметка о еде" onBack={onClose} />
-            <ModalShell.Body>
-              <DetailsChips
-                textareaId={DETAILS_INPUT}
-                value={row?.details ?? ''}
-                onChange={(value) => onChange({ details: value })}
-                productId={row?.productId ?? null}
-              />
-              <ModalShell.ActionButtons
-                right={<ModalNextButton onClick={onClose} variant="finish" />}
-              />
-            </ModalShell.Body>
-          </ModalShell>
-        }
-      />
+        position="fixed"
+        variant="spring4"
+        onCommit={onClose}
+        title="Заметка о еде"
+        onBack={onClose}
+      >
+        <DetailsChips
+          textareaId={DETAILS_INPUT}
+          value={row?.details ?? ''}
+          onChange={(value) => onChange({ details: value })}
+          productId={row?.productId ?? null}
+        />
+      </ModalByLabelDetails>
     </div>
   );
 };

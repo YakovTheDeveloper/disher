@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
+import { ModalByLabelDetails } from '@/features/shared/components/ModalByLabelDetails';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { useProduct } from '@/entities/product';
@@ -203,35 +204,30 @@ const DishProductCreateModals = ({ dishId }: Props) => {
       />
 
       {/* Step 3: Details */}
-      <ModalByLabel
-        position="absolute"
+      <ModalByLabelDetails
         isExpanded={step === 'details'}
-        content={
-          <ModalShell variant="spring2">
-            <ModalShell.StepHeader
-              title={STEP_LABELS.details}
-              currentStep="details"
-              steps={stepsForBar}
-              stepLabels={STEP_LABELS}
-              stepResults={stepResults}
-              visitedSteps={visitedSteps}
-              onBack={handleBack}
-              onStepClick={goToStep}
-            />
-            <ModalShell.Body>
-              <DetailsChips
-                textareaId={DETAILS_INPUT}
-                value={draft.details}
-                onChange={(value) => setDraft((d) => ({ ...d, details: value }))}
-                productId={draft.productId}
-              />
-              <ModalShell.ActionButtons
-                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
-              />
-            </ModalShell.Body>
-          </ModalShell>
+        variant="spring2"
+        onCommit={handleCommit}
+        header={
+          <ModalShell.StepHeader
+            title={STEP_LABELS.details}
+            currentStep="details"
+            steps={stepsForBar}
+            stepLabels={STEP_LABELS}
+            stepResults={stepResults}
+            visitedSteps={visitedSteps}
+            onBack={handleBack}
+            onStepClick={goToStep}
+          />
         }
-      />
+      >
+        <DetailsChips
+          textareaId={DETAILS_INPUT}
+          value={draft.details}
+          onChange={(value) => setDraft((d) => ({ ...d, details: value }))}
+          productId={draft.productId}
+        />
+      </ModalByLabelDetails>
     </div>
   );
 };

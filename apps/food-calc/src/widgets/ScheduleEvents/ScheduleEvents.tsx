@@ -1,6 +1,5 @@
 import styles from './ScheduleEvents.module.scss';
 import React, { memo, useMemo, useState } from 'react';
-import { AnimatePresence, useReducedMotion } from 'motion/react';
 import { TimeGroup } from '@/features/time-group';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { removeScheduleEvents } from '@/entities/schedule-event';
@@ -74,8 +73,6 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
     });
   };
 
-  const reducedMotion = useReducedMotion();
-
   return (
     <Screen
       stickyTop={topSlot}
@@ -113,7 +110,7 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
         <ItemsList offsetTop>
           {(() => {
             let globalIndex = 0;
-            const rendered = eventsGroupedByTime.map((timeGroup) => (
+            return eventsGroupedByTime.map((timeGroup) => (
               <React.Fragment key={timeGroup.startTime}>
                 <TimeGroup
                   group={timeGroup}
@@ -139,8 +136,6 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
                 </TimeGroup>
               </React.Fragment>
             ));
-            if (reducedMotion) return rendered;
-            return <AnimatePresence initial={false}>{rendered}</AnimatePresence>;
           })()}
         </ItemsList>
       </section>

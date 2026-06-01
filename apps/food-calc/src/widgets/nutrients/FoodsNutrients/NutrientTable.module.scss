@@ -470,3 +470,108 @@
     background: rgba(0, 0, 0, 0.12);
   }
 }
+
+// ── Restrained design-variant forks (DesignVariantsBar key `Nutrients`) ──
+// Nutrients dropped from headline to supporting role, so these forks calm
+// the rainbow original above. The default `vivid` variant has NO block here
+// — it is the untouched markup. Each fork below changes ONLY colour +
+// typography: the skeleton layout (flex/grid, spacing, sizes) is shared.
+//
+//   $wash   — one faint tint behind the 7 БЖУ names (replaces 7 rainbows)
+//   $accent — one progress-bar fill (replaces the 7 neon gradients)
+//   $ink    — --text-primary (names)
+//   $sub    — --text-secondary (values)
+@mixin nutrients-restrained($wash, $accent, $ink, $sub) {
+  --text-primary: #{$ink};
+  --text-secondary: #{$sub};
+
+  // 7 rainbow name backdrops → one calm wash.
+  :global([data-nutrient='protein']) .name::before,
+  :global([data-nutrient='fats']) .name::before,
+  :global([data-nutrient='carbohydrates']) .name::before,
+  :global([data-nutrient='fiber']) .name::before,
+  :global([data-nutrient='water']) .name::before,
+  :global([data-nutrient='energy']) .name::before,
+  :global([data-nutrient='sugar']) .name::before {
+    background: #{$wash};
+  }
+
+  // Fiber leaf glyph — desaturate so it stops shouting green.
+  :global([data-nutrient='fiber']) .name::after {
+    filter: grayscale(1);
+    opacity: 0.28;
+  }
+
+  // Neon progress bars (main rows here + group rows set inline) → one accent.
+  // `!important` is needed to beat the inline gradient on group rows.
+  :global([data-nutrient]) .progressBar {
+    background: linear-gradient(45deg, transparent 0%, #{$accent} 100%) !important;
+  }
+
+  // Group decoration blobs (pentagon / sun / diamond) → muted neutral.
+  .deco {
+    filter: grayscale(1);
+    opacity: 0.12;
+  }
+}
+
+// graphite — monochrome slate. Quietest fork: zero hue; the group title
+// drops its serif-italic drama for a small tracked-sans label.
+.container[data-dv='Nutrients'][data-dv-v='graphite'] {
+  @include nutrients-restrained(
+    linear-gradient(120deg, transparent 0%, rgba(60, 70, 92, 0.05) 50%, transparent 100%),
+    rgba(72, 84, 112, 0.55),
+    rgba(31, 42, 68, 0.9),
+    rgba(31, 42, 68, 0.55)
+  );
+
+  .groupTitle {
+    font-family: 'Raleway', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(31, 42, 68, 0.5);
+  }
+
+  .name { font-weight: 500; }
+  .pct { color: rgba(31, 42, 68, 0.75); }
+}
+
+// paper — warm editorial. Keeps the serif-italic title but pulls it and the
+// body into a calm ink-brown; accent is a soft clay.
+.container[data-dv='Nutrients'][data-dv-v='paper'] {
+  @include nutrients-restrained(
+    linear-gradient(120deg, transparent 0%, rgba(150, 110, 70, 0.07) 50%, transparent 100%),
+    rgba(150, 112, 74, 0.5),
+    rgba(58, 46, 36, 0.92),
+    rgba(58, 46, 36, 0.55)
+  );
+
+  .groupTitle {
+    color: rgba(74, 56, 40, 0.72);
+    font-weight: 500;
+  }
+
+  .name { font-weight: 500; }
+  .pct { color: rgba(120, 88, 56, 0.85); font-weight: 500; }
+}
+
+// mist — cool desaturated blue-grey. Serif-italic title kept but softened to
+// a dusty slate-blue; the lightest, airiest fork.
+.container[data-dv='Nutrients'][data-dv-v='mist'] {
+  @include nutrients-restrained(
+    linear-gradient(120deg, transparent 0%, rgba(95, 120, 150, 0.06) 50%, transparent 100%),
+    rgba(104, 128, 158, 0.5),
+    rgba(44, 56, 74, 0.88),
+    rgba(44, 56, 74, 0.5)
+  );
+
+  .groupTitle {
+    color: rgba(70, 90, 120, 0.62);
+    font-weight: 400;
+  }
+
+  .pct { color: rgba(70, 90, 120, 0.8); font-weight: 400; }
+}

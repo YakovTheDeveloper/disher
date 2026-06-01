@@ -144,19 +144,6 @@ export interface MatchCandidate {
   hybrid?: number;
 }
 
-export function topKMatches(query: Float32Array, k = 3): MatchCandidate[] {
-  const scored: MatchCandidate[] = new Array(catalogVectors.length);
-  for (let i = 0; i < catalogVectors.length; i++) {
-    scored[i] = {
-      id: catalogMeta[i].id,
-      name: catalogMeta[i].name,
-      score: cosineSimilarity(query, catalogVectors[i]),
-    };
-  }
-  scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, k);
-}
-
 /**
  * Hybrid ranker: combines cosine embeddings with Dice trigram similarity.
  *

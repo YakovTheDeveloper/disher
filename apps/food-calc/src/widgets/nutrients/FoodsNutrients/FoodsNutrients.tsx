@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import NutrientDesignVariants from './NutrientDesignVariants';
+import NutrientTable from './NutrientTable';
 import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
@@ -21,7 +21,7 @@ const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading }: Props)
           <Spinner size={16} />
         </div>
       )}
-      <NutrientDesignVariants getValue={getValue} />
+      <NutrientTable getValue={getValue} />
       {missingNutrientNames.length > 0 && (
         <p className={styles.missing}>
           Нет данных о нутриентах: {missingNutrientNames.join(', ')}
