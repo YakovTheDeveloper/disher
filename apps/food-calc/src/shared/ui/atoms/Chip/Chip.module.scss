@@ -9,9 +9,11 @@
   min-height: 42px;
   padding: 7px 14px;
   border-radius: 999px;
-  border: 1px solid rgb(255, 198, 160);
-  background: linear-gradient(135deg, #fffbf1 0%, #fffcf8 60%, #fff9ee 100%);
-  color: rgb(0, 0, 0);
+  // Surface-driven (surfaces.scss): warm на HomePage, lavender на Dish/Product.
+  // Fallback = warm-канон, если body[data-surface] почему-то не выставлен.
+  border: 1px solid var(--chip-border, rgb(255, 198, 160));
+  background: var(--chip-bg, linear-gradient(135deg, #fffbf1 0%, #fffcf8 60%, #fff9ee 100%));
+  color: var(--chip-text, rgb(0, 0, 0));
   font-size: 16px;
   font-weight: 400;
   line-height: 1.1;
@@ -22,7 +24,7 @@
 
 .chip:hover,
 .chip:focus-visible {
-  border-color: rgba(124, 65, 15, 0.24);
+  border-color: var(--chip-hover-border, rgba(124, 65, 15, 0.24));
   outline: none;
 }
 
@@ -31,7 +33,7 @@
 }
 
 .chip.active {
-  background: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
-  border-color: rgba(124, 65, 15, 0.5);
-  color: rgba(255, 255, 255, 1);
+  background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+  border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
+  color: var(--chip-active-text, rgba(255, 255, 255, 1));
 }

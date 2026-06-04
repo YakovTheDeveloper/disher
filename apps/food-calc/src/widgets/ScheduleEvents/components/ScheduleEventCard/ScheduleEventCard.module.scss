@@ -15,6 +15,17 @@
   white-space: nowrap;
 }
 
+// Time hidden (toggled from the TimeGroup time header): the `.time` cell is not
+// rendered, so collapse to a single column and pull text + atoms flush-left.
+.row.timeHidden {
+  grid-template-columns: 1fr;
+
+  .text,
+  .atomsZone {
+    grid-column: 1;
+  }
+}
+
 .text {
   grid-column: 2;
   font-size: 0.9rem;
@@ -97,3 +108,6 @@
   border-radius: 2px;
   background-color: var(--text-secondary);
 }
+
+// «Недавно добавлено» marker переехал в LongPressRow (правый жёлоб вне подложки,
+// recent-dot canon) — передаётся пропом `recent`, не рендерится здесь.

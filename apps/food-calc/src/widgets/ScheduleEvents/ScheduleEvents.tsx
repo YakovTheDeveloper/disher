@@ -22,6 +22,8 @@ import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { Heading } from '@/shared/ui/atoms/Typography/Heading';
+import { formatWeekdayTitle } from '@/shared/lib/time/formatWeekday';
 
 // Цветовая схема общая с FoodSchedule (`useDesignVariant('ScheduleFood', …)`):
 // один anchor в DesignBar управляет обоими списками. Порядок и имена должны
@@ -44,6 +46,10 @@ type Props = {
 
 const ScheduleEvents = ({ date, events, topSlot }: Props) => {
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
+  // Заголовок дня недели — идентично экрану Еды (FoodSchedule): contentHeader
+  // даёт маленький логотип справа при наличии событий и большой по центру на
+  // пустом дне.
+  const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
 
   const { anchor: eventsAnchor } = useDesignVariant('ScheduleFood', EVENTS_VARIANTS);
 
@@ -78,7 +84,7 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
       stickyTop={topSlot}
       headerOverlap
       hollow={events.length === 0}
-      bottomBarSheet={events.length === 0}
+      contentHeader={<Heading size="section">{weekdayTitle}</Heading>}
       overlay={
         <>
           <ScheduleEventCreateModals scheduleId={date} />

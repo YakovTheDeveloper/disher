@@ -16,6 +16,8 @@ type TimeInputProps = {
   inputId?: string;
   autoFocus?: boolean;
   onBlur?: () => void;
+  /** Не снимать фокус на завершении ввода (клавиатура не закрывается). */
+  keepKeyboardOnFinish?: boolean;
 };
 
 /** Single time input (manual or native) — extracted for reuse outside TimeChoose. */
@@ -31,6 +33,7 @@ const TimeInput = ({
   inputId,
   autoFocus = false,
   onBlur,
+  keepKeyboardOnFinish = false,
 }: TimeInputProps) => {
   const {
     hhRef,
@@ -41,7 +44,7 @@ const TimeInput = ({
     handleMinutesKeyDown,
     handleHoursBlur,
     handleMinutesBlur,
-  } = useTimeChoose({ hours, minutes, setHours, setMinutes, onFinish });
+  } = useTimeChoose({ hours, minutes, setHours, setMinutes, onFinish, keepKeyboardOnFinish });
 
   const handleNativeTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;

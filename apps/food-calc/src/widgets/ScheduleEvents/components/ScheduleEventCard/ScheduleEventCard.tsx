@@ -5,6 +5,8 @@ import { LongPressRow } from '@/features/shared/long-press-item';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
+import { useItemTimesStore } from '@/shared/model/itemTimesStore';
+import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 
 type Props = {
   item: ScheduleEvent;
@@ -67,20 +69,27 @@ export function ScheduleEventCard({
   const title = item.text || 'Новое событие';
   const atoms: Atom[] = Array.isArray(item.atoms) ? item.atoms : [];
   const hasAtoms = atoms.length > 0;
+  // Global toggle (set from the TimeGroup time header): hide the per-row time.
+  const hideTime = useItemTimesStore((s) => s.hidden);
+  // «Недавно добавлено» — синий кружок справа (чистится на свайп/уход, см. store).
+  const isRecent = useRecentlyAddedStore((s) => s.ids.has(item.id));
 
   return (
     <LongPressRow
-      className={clsx(className, styles.row)}
+      className={clsx(className, styles.row, hideTime && styles.timeHidden)}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={item.id}
       index={index}
       tod={getTimeOfDay(item.time)}
+      recent={isRecent}
       onLongPress={onLongPress}
     >
-      <label htmlFor={timeHtmlFor} className={styles.time} onClick={onEditTime}>
-        {item.time || '—'}
-        {item.endTime && ` — ${item.endTime}`}
-      </label>
+      {!hideTime && (
+        <label htmlFor={timeHtmlFor} className={styles.time} onClick={onEditTime}>
+          {item.time || '—'}
+          {item.endTime && ` — ${item.endTime}`}
+        </label>
+      )}
 
       <label htmlFor={textHtmlFor} className={styles.text} onClick={onEditText}>
         {title}

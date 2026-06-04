@@ -28,22 +28,13 @@
 
 // Modifier для write-режима (HomePage / DishBuilderPage): убираем толстый
 // padding и min-height — WriteFoodInput сам владеет своим внутренним
-// padding'ом и высотой пилюли.
-// Ambient glow (lavender + cream) — база для lavender-страниц (DishBuilderPage).
-// На warm (HomePage) гасим ниже: там бар overlay'ный (Screen `bottomBarOverlay`),
-// список скроллится под ним, и пилюля «парит» на фоне без отдельной плашки.
+// padding'ом и высотой пилюли. Фон бара НЕ красим — источник истины один:
+// Screen `.bottomBar` (`--bottom-bar-bg`, прозрачный по умолчанию; пилюля
+// «парит» на фоне страницы).
 .writeDock {
     align-items: stretch;
     padding: 0;
     min-height: 0;
-    background:
-        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(225, 215, 245, 0.5), transparent 60%),
-        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(252, 245, 220, 0.55), transparent 60%);
-}
-
-// HomePage (warm) — без glow: пилюля «парит» на ambient-фоне страницы.
-body[data-surface='warm'] .writeDock {
-    background: transparent;
 }
 
 .writeBarSlot {
@@ -124,11 +115,10 @@ body[data-surface='warm'] .writeDock {
 }
 
 // ─── TOD palette tokens ───────────────────────────────────────────────
-// One source of truth: setting `--cta-*` AND `--bar-tint` on
-// `.dockV2[data-tod=...]`. The `dark-pill-button()` mixin (used by
-// RunAnalysisButton, AddButton.dark) reads `--cta-*` via `var()`; the
-// shellSolo background reads `--bar-tint` to draw a TOD-tinted horizontal
-// gradient. CTA pill + bar background share the same hue.
+// Sets `--cta-*` on `.dockV2[data-tod=...]`. The `dark-pill-button()` mixin
+// (used by RunAnalysisButton, AddButton.dark) reads `--cta-*` via `var()`.
+// NB: `--bar-tint` ниже больше НЕ читается — shellSolo-градиент убран, фон бара
+// теперь Screen `.bottomBar`-scrim. Присвоения оставлены на случай возврата tint'а.
 
 .dockV2[data-tod='morning'] {
     --cta-bg-from: var(--tod-morning-bg-from);
@@ -159,10 +149,10 @@ body[data-surface='warm'] .writeDock {
 }
 
 // ─── Shell — chrome-only wrapper for slides without 3-slot dock ───────
-// Used by Laboratory + ScheduleEvents (HomePage screens 1 & 3). Surface
-// is currently flat white — TOD-tinted gradients были убраны по запросу
-// юзера (слишком сильно на screens 1 & 3). `data-tod` атрибут всё ещё
-// публикует `--cta-*` токены для CTA-кнопок внутри shell'а.
+// Used by Laboratory + ScheduleEvents (HomePage screens 1 & 3). Фон бара НЕ
+// красим — источник истины один: Screen `.bottomBar` (`--bottom-bar-bg`,
+// прозрачный по умолчанию). `data-tod` атрибут всё ещё публикует `--cta-*`
+// токены для CTA-кнопок внутри shell'а; разделитель — `.shellSolo::before`.
 
 .shellSolo {
     justify-content: center;
@@ -184,14 +174,7 @@ body[data-surface='warm'] .writeDock {
     }
 }
 
-.dockV2.shellSolo,
-.dockV2.shellSolo[data-shell-side='left'],
-.dockV2.shellSolo[data-shell-side='right'] {
-    background: #ffffff;
-}
-
-// Split: две CTAs пушим к краям; layout only, no tint.
+// Split: две CTAs пушим к краям; layout only (фон — Screen `.bottomBar`).
 .dockV2.shellSolo[data-shell-side='split'] {
     justify-content: space-between;
-    background: #ffffff;
 }

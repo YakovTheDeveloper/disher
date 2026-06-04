@@ -6,3 +6,43 @@
     position: relative;
     overflow: hidden;
 }
+
+// ─── Global ambient backdrop ─────────────────────────────────────────────
+// Единый источник свечения для ВСЕХ страниц (design-DNA «ambient-backdrop
+// page chrome»). Anchor `HomeAmbient` живёт на `.main` (App.tsx), переключается
+// глобально через DesignVariantsBar. Радиальные glow'и из верхних углов
+// угасают в transparent — страницы прозрачны, контент-лист (`.headerOverlap`)
+// остаётся opaque, поэтому строки списка никогда не читаются поверх свечения.
+// Раньше дублировалось на HomePage `.container` (HomeAmbient) + Product/Dish
+// (ProductAmbient) + AnalysesPage `.ambient` — теперь одно место.
+
+.main[data-dv='HomeAmbient'][data-dv-v='plain'] {
+    background: none;
+}
+
+// peach-rose — тёплый peach слева + холодный rose справа. Продакшен-дефолт.
+.main[data-dv='HomeAmbient'][data-dv-v='peach-rose'] {
+    background:
+        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(253, 230, 200, 0.55), transparent 60%),
+        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(252, 225, 235, 0.45), transparent 60%);
+}
+
+// mint-sky — прохладный mint + sky-blue.
+.main[data-dv='HomeAmbient'][data-dv-v='mint-sky'] {
+    background:
+        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(210, 240, 220, 0.55), transparent 60%),
+        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(210, 228, 245, 0.5), transparent 60%);
+}
+
+// lavender-cream — лавандовый + кремовый.
+.main[data-dv='HomeAmbient'][data-dv-v='lavender-cream'] {
+    background:
+        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(225, 215, 245, 0.5), transparent 60%),
+        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(252, 245, 220, 0.55), transparent 60%);
+}
+
+// sunrise — широкий single-glow по центру сверху, имитирует рассвет.
+.main[data-dv='HomeAmbient'][data-dv-v='sunrise'] {
+    background:
+        radial-gradient(ellipse 120% 50% at 50% 0%, rgba(255, 220, 180, 0.6), transparent 65%);
+}

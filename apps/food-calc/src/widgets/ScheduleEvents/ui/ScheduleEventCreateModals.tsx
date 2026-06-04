@@ -7,6 +7,7 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { TimeChoose, type TimeRangeState } from '@/shared/ui/TimeChoose';
 import { addScheduleEvent } from '@/entities/schedule-event';
 import { safeMutate } from '@/shared/lib/safeMutate';
+import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
@@ -126,6 +127,9 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
       'Не удалось создать событие'
     );
     if (!result.ok) return;
+    // Пометить строку «недавней» → синий кружок в ScheduleEventCard (гаснет на
+    // свайп слайда / уход со страницы).
+    useRecentlyAddedStore.getState().addMany([result.value]);
     setDraft(createEmptyDraft());
     clearAtoms();
     setStep('idle');
@@ -204,6 +208,7 @@ const ScheduleEventCreateModals = ({ scheduleId }: Props) => {
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
                 inputId={MODAL_INPUT_IDS.TIME_INPUT}
+                keepKeyboardOnFinish
                 range={{
                   initialFrom: draft.time,
                   initialTo: draft.endTime ?? undefined,

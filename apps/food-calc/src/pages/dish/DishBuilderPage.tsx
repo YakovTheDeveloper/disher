@@ -69,16 +69,6 @@ const DISH_SCREENS: ScreenEntry[] = [
 const DEFAULT_SLIDE = 1;
 const SWIPE_DURATION = 25;
 
-// Общий ambient-anchor со страницей продукта (CSS в HomePage.module.scss) —
-// детальные экраны продукта и блюда делят одну голубую подложку.
-const PRODUCT_AMBIENT_VARIANTS = [
-  'plain',
-  'sky-mist',
-  'ice-blue',
-  'periwinkle',
-  'dawn-blue',
-] as const;
-
 // NavTile ambient — radial-glow per nth-child (см. NavTile.module.scss).
 // Дефолтная семантика тайла (inverse-lift) уже в base-стилях; этот anchor
 // добавляет цветную подсветку каждой плитке отдельно — аналог ProductAmbient,
@@ -115,26 +105,30 @@ const DishBuilderPage = () => {
 
   const [isOpen, setIsOpen] = useState<'suggestions' | null>(null);
   const [renameOpen, setRenameOpen] = useState(false);
-  // При scrollY > 120 активного слайда — возвращаем имя блюда в
-  // HomeTopBar.centerLabel. Per-slide state (3 слайда — 3 ячейки): Embla
-  // сохраняет scroll-позицию каждого Screen, поэтому возврат на скроллнутый
-  // слайд должен сразу показать имя в баре. Активный индекс — из
-  // Swipeable.onIndexChange ниже.
-  const [activeSlide, setActiveSlide] = useState(DEFAULT_SLIDE);
-  const [scrollByIndex, setScrollByIndex] = useState<number[]>(() =>
+  // При scrollY > 120 активного слайда возвращаем имя блюда в
+  // HomeTopBar.centerLabel. РАНЬШЕ активный слайд и per-slide scrollY жили в
+  // useState → каждый свайп и каждый кадр скролла ре-рендерил всю страницу
+  // (3 Screen'а) прямо во время Embla-анимации = visible-лаг (HomePage этим
+  // не страдает, т.к. свайп туда не прокидывается в стейт). Теперь это ref'ы,
+  // а в React-стейт уходит ТОЛЬКО булева isScrolled и только когда она реально
+  // пересекает порог 120px. Тот же zero-render-on-swipe принцип, что у HomePage.
+  const activeSlideRef = useRef(DEFAULT_SLIDE);
+  const scrollByIndexRef = useRef<number[]>(
     Array.from({ length: DISH_SCREENS.length }, () => 0),
   );
-  const isScrolled = (scrollByIndex[activeSlide] ?? 0) > 120;
+  const [isScrolled, setIsScrolled] = useState(false);
+  const recomputeScrolled = useCallback(() => {
+    const next = (scrollByIndexRef.current[activeSlideRef.current] ?? 0) > 120;
+    // setState с тем же значением → React bail-out (без ре-рендера). Страница
+    // ре-рендерится максимум раз на пересечение порога, не на каждый кадр.
+    setIsScrolled((prev) => (prev === next ? prev : next));
+  }, []);
   const makeScrollHandler = useCallback(
     (idx: number) => (y: number) => {
-      setScrollByIndex((prev) => {
-        if (prev[idx] === y) return prev;
-        const next = prev.slice();
-        next[idx] = y;
-        return next;
-      });
+      scrollByIndexRef.current[idx] = y;
+      if (idx === activeSlideRef.current) recomputeScrolled();
     },
-    [],
+    [recomputeScrolled],
   );
   const handleNameFocusCapture = useCallback((e: React.FocusEvent) => {
     if ((e.target as HTMLElement).id === CHANGE_NAME_INPUT_ID) {
@@ -203,7 +197,6 @@ const DishBuilderPage = () => {
     swipeableRef.current?.goToPage(idx);
   }, []);
 
-  const { anchor: ambientAnchor } = useDesignVariant('ProductAmbient', PRODUCT_AMBIENT_VARIANTS);
   const { anchor: navTileAnchor } = useDesignVariant('NavTileAmbient', NAVTILE_AMBIENT_VARIANTS);
 
   // Инстансы индикатора держим стабильными (useMemo на стабильном
@@ -245,13 +238,13 @@ const DishBuilderPage = () => {
 
   const items = dishItems;
 
-  // Hero-имя ПОД тайлами в каждом Screen. `<label>` лежит ВНУТРИ heading-а
+  // Имя блюда в `contentHeader` каждого Screen. `<label>` лежит ВНУТРИ heading-а
   // и оборачивает span — валидный HTML (label принимает phrasing content),
   // и при этом heading рендерится как `<h2>` чтобы у страницы остался один
-  // `<h1>` (его роль играет первый Screen). Дублирование heroTop в 3 Screen-ах
-  // не плодит h1 в DOM. Клик по label → focus на input ChangeNameModal.
-  const heroTop = (
-    <Heading size="screen" as="h2">
+  // `<h1>`. Дублирование contentHeader в 3 Screen-ах не плодит h1 в DOM.
+  // Клик по label → focus на input ChangeNameModal.
+  const nameHeading = (
+    <Heading size="section" as="h2">
       <label htmlFor={CHANGE_NAME_INPUT_ID} aria-label="Изменить название">
         <span>{dish.name}</span>
       </label>
@@ -280,7 +273,7 @@ const DishBuilderPage = () => {
     }));
 
   return (
-    <div className={homeStyles.container} {...ambientAnchor}>
+    <div className={homeStyles.container}>
       <HomeTopBar
         date={dateForTopBar}
         dateButtonLabel={<CalendarIcon width={22} height={22} />}
@@ -306,12 +299,15 @@ const DishBuilderPage = () => {
           defaultSlide={DEFAULT_SLIDE}
           duration={SWIPE_DURATION}
           hasDots={false}
-          onIndexChange={(idx) => setActiveSlide(idx)}
+          onIndexChange={(idx) => {
+            activeSlideRef.current = idx;
+            recomputeScrolled();
+          }}
         >
           <Screen
             key={1}
             headerOverlap
-            heroTop={heroTop}
+            contentHeader={nameHeading}
             stickyTop={analysisIndicator}
             onScrollY={makeScrollHandler(0)}
           >
@@ -321,7 +317,7 @@ const DishBuilderPage = () => {
           <Screen
             key={2}
             headerOverlap
-            heroTop={heroTop}
+            contentHeader={nameHeading}
             stickyTop={ingredientsIndicator}
             onScrollY={makeScrollHandler(1)}
             hollow={items.length === 0}
@@ -349,7 +345,7 @@ const DishBuilderPage = () => {
                 writeFoodInputId={writeFoodInputId}
                 searchHtmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
                 searchLabel="Найти продукт"
-                searchText="Еда"
+                searchText="Выбор еды"
                 writeFoodPlaceholder="Опишите ингредиенты…"
                 leadingSlot={
                   <NutrientsSummaryButton totals={dishTotals} onClick={openNutrients} />
@@ -378,7 +374,14 @@ const DishBuilderPage = () => {
                   innerClassName={styles.dishFoodListItem}
                   onLongPress={() => openActionsDrawer(item)}
                 >
-                  <span
+                  {/* Колонка = <label htmlFor={DETAILS_INPUT}>: тап по имени ИЛИ
+                      по сабтайтлу уточнения открывает редактор деталей (паритет
+                      с HomePage foodCol). FoodName БЕЗ htmlFor → рендерит <p>, не
+                      вложенный <label> (иначе невалидный HTML). onPointerDown
+                      стэшит activeItemId до focus — его читает handleEditFocusCapture. */}
+                  <label
+                    className={styles.foodCol}
+                    htmlFor={DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT}
                     onPointerDown={() => {
                       const trigger = document.getElementById(
                         DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT
@@ -387,11 +390,12 @@ const DishBuilderPage = () => {
                     }}
                   >
                     <FoodName
-                      htmlFor={DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT}
-                      onClick={() => {}}
                       content={{ name: item.product?.name ?? item.productId }}
                     />
-                  </span>
+                    {item.details ? (
+                      <span className={styles.detailsSubtitle}>{item.details}</span>
+                    ) : null}
+                  </label>
                   <Quantity
                     htmlFor={DISH_EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
                     id={item.id}
@@ -408,7 +412,7 @@ const DishBuilderPage = () => {
           <Screen
             key={3}
             headerOverlap
-            heroTop={heroTop}
+            contentHeader={nameHeading}
             stickyTop={portionsIndicator}
             onScrollY={makeScrollHandler(2)}
             bottomBar={

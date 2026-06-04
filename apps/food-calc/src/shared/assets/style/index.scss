@@ -1,5 +1,7 @@
-/* @import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap'); */
-@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Jost:ital,wght@0,100..900;1,100..900&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Ubuntu+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+// Fonts are SELF-HOSTED via @fontsource — see src/app/fonts.ts (bundled → PWA-precached →
+// render correctly offline). Body = Jost (--font-sans), headings = Source Serif 4 italic
+// (--heading-font), display = Raleway, mono = Ubuntu Mono. The Google Fonts @import (and Jost)
+// were removed 2026-06-01 (design-consistency-plan Phase 0 — offline + render-blocking перф).
 
 
 //  @import url('@/components/features/builders/shared/style/styles.scss');
@@ -67,7 +69,7 @@ body {
   margin: 0;
   display: flex;
   overflow: hidden;
-  font-family: "Jost", sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   margin: 0 auto;
   transition: background-color 0.3s ease-in;

@@ -38,6 +38,13 @@ type Params = {
     setHours: (value: string) => void;
     setMinutes: (value: string) => void;
     onFinish: (value: string) => void; // REQUIRED - fires when user enters 4 digits
+    /**
+     * Режим без-blur: на завершении ввода (2 цифры минут / вставка) НЕ снимать
+     * фокус, чтобы клавиатура не закрывалась и кнопка «Далее» оставалась на
+     * предсказуемом месте. Вместо blur минуты выделяются целиком — следующая
+     * цифра перепечатывает их заново. Default false (обычный auto-blur).
+     */
+    keepKeyboardOnFinish?: boolean;
 };
 
 /**
@@ -50,17 +57,26 @@ export const useTimeChoose = ({
     setHours,
     setMinutes,
     onFinish,
+    keepKeyboardOnFinish = false,
 }: Params) => {
     const hhRef = useRef<HTMLInputElement | null>(null);
     const mmRef = useRef<HTMLInputElement | null>(null);
 
     /**
-     * Finish and call onFinish callback
+     * Commit the entered time. Default — blur (закрывает клавиатуру). В режиме
+     * keepKeyboardOnFinish blur не делаем: клавиатура остаётся открытой, «Далее»
+     * не прыгает, а минуты выделяются целиком, чтобы следующая цифра
+     * перепечатала их заново (иначе ввод упёрся бы в 2-значный кап и «ничего не
+     * происходит»).
      */
-    const finishAndBlur = (h: string, m: string) => {
+    const commitTime = (h: string, m: string) => {
         const norm = normalize(h || '0', m || '0');
         onFinish(norm);
-        mmRef.current?.blur();
+        if (keepKeyboardOnFinish) {
+            mmRef.current?.select();
+        } else {
+            mmRef.current?.blur();
+        }
     };
 
     const handleHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,7 +97,7 @@ export const useTimeChoose = ({
             setHours(hh);
             setMinutes(mm);
             // Auto-finish if both fields populated from paste
-            setTimeout(() => finishAndBlur(hh, mm), 0);
+            setTimeout(() => commitTime(hh, mm), 0);
             return;
         }
 
@@ -136,7 +152,7 @@ export const useTimeChoose = ({
             const mm = pad2(clamp(Number(pasted.mm), 0, 59));
             setHours(hh);
             setMinutes(mm);
-            setTimeout(() => finishAndBlur(hh, mm), 0);
+            setTimeout(() => commitTime(hh, mm), 0);
             return;
         }
 
@@ -148,7 +164,7 @@ export const useTimeChoose = ({
             setMinutes(mmFormatted);
             // Fire onFinish after state update
             setTimeout(() => {
-                finishAndBlur(hours || '0', mmFormatted);
+                commitTime(hours || '0', mmFormatted);
             }, 0);
         }
     };
@@ -214,8 +230,14 @@ export const useTimeChoose = ({
     const handleHoursBlur = () => {
         const hhFormatted = hours.length === 0 ? '00' : pad2(clamp(Number(hours), 0, 23));
         if (hours !== hhFormatted) setHours(hhFormatted);
-        // Intentionally does NOT call onFinish — commit happens only on MM blur or after 4 digits.
-        // Otherwise tabbing/focus-jumping HH→MM would commit prematurely.
+        // Commit on HH blur too. Leaving the time field via the "Далее" label
+        // (which moves focus to the next step's input) blurs HH without ever
+        // touching MM — without this the just-typed hour (especially a single
+        // digit 0/1/2, or a fast tap before the auto-jump to MM lands) would be
+        // silently dropped. Premature commit is harmless: onFinish only updates
+        // the draft, never advances the step, and a later MM change/blur
+        // re-commits the final value.
+        onFinish(normalize(hhFormatted, minutes));
     };
 
     const handleMinutesBlur = () => {

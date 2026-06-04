@@ -27,10 +27,13 @@
   align-self: stretch;
   height: 1px;
   margin: var(--space-1) var(--space-4);
+  // Surface-driven hairline (surfaces.scss --chip-separator): warm на HomePage,
+  // lavender на Dish/Product — иначе тёплый разделитель выбивался из лавандовой
+  // темы страницы блюда.
   background: linear-gradient(90deg,
       transparent 0%,
-      rgba(124, 65, 15, 0.14) 18%,
-      rgba(124, 65, 15, 0.14) 82%,
+      var(--chip-separator, rgba(124, 65, 15, 0.14)) 18%,
+      var(--chip-separator, rgba(124, 65, 15, 0.14)) 82%,
       transparent 100%);
   pointer-events: none;
 }
@@ -69,7 +72,7 @@
 .hint {
   margin: 0;
   padding-inline: var(--space-4);
-  font-family: "Onest", "YS Text", "Golos Text", system-ui, sans-serif;
+  font-family: "Jost", "YS Text", "Golos Text", system-ui, sans-serif;
   font-size: var(--text-xs, 12px);
   font-weight: 400;
   letter-spacing: -0.005em;

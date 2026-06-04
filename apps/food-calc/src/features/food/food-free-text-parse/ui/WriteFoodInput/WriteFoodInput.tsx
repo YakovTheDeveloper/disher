@@ -3,8 +3,17 @@ import clsx from 'clsx';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
+import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import type { UseWriteFoodFlowResult } from '../../model/useWriteFoodFlow';
 import s from './WriteFoodInput.module.scss';
+
+// Цветовое оформление бара (пилюля + плитка «Выбор еды» + send-стрелка).
+// Набор сведён юзером к двум (2026-06-05): `ash` (светлый нейтральный серый,
+// строгий — дефолт) и `mint` (мятно-небесный градиент, = бывш. warm mint-sky).
+// Высота зафиксирована (xl ≈ 72px). Каждый вариант — набор `--wb-*` / `--field-*`
+// на `.wrap` (см. .module.scss). Перелистывается DesignVariantsBar.
+const WRITEBAR_VARIANTS = ['ash', 'mint'] as const;
 
 const SendArrowIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -55,7 +64,7 @@ const KEYBOARD_FALLBACK_MS = 500;
 
 function scrollInputAboveKeyboard(target: HTMLElement) {
   const doScroll = () => {
-    target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    target.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
   };
   const vv = window.visualViewport;
   if (!vv) {
@@ -104,7 +113,7 @@ export interface WriteFoodInputProps {
  *
  * Auto-scroll/shake к предложке (`[data-write-food-anchor]`) — встроены: после
  * submit'а смуз-скроллит, в ready-state клик «Посмотреть варианты» докручивает
- * мгновенно + триггерит CSS-shake.
+ * мгновенно + триггерит CSS-shake. Скролл над клавиатурой при фокусе — мгновенный.
  */
 export const WriteFoodInput = ({
   flow,
@@ -116,6 +125,8 @@ export const WriteFoodInput = ({
   className,
 }: WriteFoodInputProps) => {
   const online = useOnline();
+  const { pressed: searchPressed, pressProps: searchPressProps } = usePressFeedback();
+  const { anchor: writeBarAnchor } = useDesignVariant('WriteBar', WRITEBAR_VARIANTS);
 
   // Idle/blur — 1 ряд, фокус — до 4 рядов. Auto-grow от value уже встроен в
   // AutoGrowSearch (он сам пересчитывает через recomputeRows на изменение
@@ -124,8 +135,16 @@ export const WriteFoodInput = ({
 
   const isReady = flow.state === 'ready';
   const isLoading = flow.state === 'loading';
-  const canSubmit =
-    online && !isLoading && flow.inputText.trim().length > 0;
+  const hasText = flow.inputText.trim().length > 0;
+  const canSubmit = online && !isLoading && hasText;
+
+  // Развёрнутая раскладка (пилюля на всю ширину, плитка «Еда» уезжает) — строго
+  // на фокусе (выбор юзера 2026-06-04: blur сворачивает обратно, даже если текст
+  // остался). `!isReady` — в ready-state pill заменён на CTA, фокуса нет.
+  const expanded = focused && !isReady;
+  // Стрелку показываем только когда поле в фокусе И есть текст — «прятать до
+  // текста». В свёрнутом состоянии стрелки нет вовсе (канон 2026-06-04).
+  const showSend = !isLoading && expanded && hasText;
 
   const handleSubmit = useCallback(
     (text: string) => {
@@ -157,10 +176,11 @@ export const WriteFoodInput = ({
 
   return (
     <div
+      {...writeBarAnchor}
       className={clsx(s.wrap, className)}
       data-write-state={isReady ? 'ready' : 'idle'}
     >
-      <div className={s.writeBarRow}>
+      <div className={s.writeBarRow} data-expanded={expanded || undefined}>
         {isReady ? (
           <button
             type="button"
@@ -199,17 +219,21 @@ export const WriteFoodInput = ({
                 >
                   <Spinner size={16} />
                 </div>
-              ) : (
+              ) : showSend ? (
                 <button
                   type="button"
                   className={s.writeFieldSend}
+                  // preventDefault на pointerdown держит фокус: иначе нажатие
+                  // блюрит инпут → expanded=false → кнопка размонтируется до
+                  // того как долетит click, и submit не происходит.
+                  onPointerDown={(e) => e.preventDefault()}
                   onClick={() => handleSubmit(flow.inputText)}
                   disabled={!canSubmit}
                   aria-label={online ? 'Отправить' : 'Нет сети'}
                 >
                   <SendArrowIcon />
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
         )}
@@ -217,8 +241,10 @@ export const WriteFoodInput = ({
           htmlFor={searchHtmlFor}
           className={s.writeBarList}
           aria-label={searchLabel ?? 'Найти'}
+          data-pressed={searchPressed || undefined}
+          {...searchPressProps}
         >
-          <CatalogIconDome size={20} />
+          <CatalogIconDome size={22} />
           {searchText && (
             <span className={s.writeBarListText}>{searchText}</span>
           )}

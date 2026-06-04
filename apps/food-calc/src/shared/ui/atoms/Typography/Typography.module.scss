@@ -1,7 +1,7 @@
 .action {
     font-weight: 500;
     color: rgba(63, 86, 255, 0.335);
-    font-family: "Jost", sans-serif;
+    font-family: var(--font-sans);
     font-size: 16px;
 }
 
@@ -10,7 +10,7 @@
     font-style: italic;
     text-align: center;
     color: rgb(76, 76, 76);
-    font-family: "Jost", sans-serif;
+    font-family: var(--font-sans);
     font-weight: 300;
 
 }

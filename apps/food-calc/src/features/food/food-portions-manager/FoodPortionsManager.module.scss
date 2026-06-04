@@ -86,14 +86,14 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 }
 
 .portionGrams {
-    font-family: "Jost", sans-serif;
+    font-family: var(--font-sans);
     font-size: 13px;
     font-weight: 300;
     color: $sky-ink-soft;
 }
 
 .portionUnitSuffix {
-    font-family: "Jost", sans-serif;
+    font-family: var(--font-sans);
     font-size: 13px;
     font-weight: 300;
     color: $sky-ink-soft;
@@ -136,7 +136,7 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 .formInputGrams {
     composes: formInput;
     text-align: right;
-    font-family: "Jost", sans-serif;
+    font-family: var(--font-sans);
     font-variant-numeric: tabular-nums;
 
     &::placeholder {
@@ -165,7 +165,7 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 
 .empty {
     text-align: center;
-    font-family: "Jost", sans-serif;
+    font-family: var(--font-sans);
     font-size: 14px;
     font-weight: 300;
     color: $sky-ink-faint;

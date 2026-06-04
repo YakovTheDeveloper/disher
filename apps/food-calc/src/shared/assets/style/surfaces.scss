@@ -39,6 +39,10 @@
   --card-wash-3n: linear-gradient(90deg, transparent 45%, rgba(220, 190, 150, 0.055) 100%);
   --card-hover: linear-gradient(90deg, #fefdfa 0%, #fbf6ea 60%, #f4ecd9 100%);
   --card-active: linear-gradient(90deg, rgba(255, 240, 220, 0.35) 0%, rgba(255, 240, 220, 0.08) 60%, transparent 100%);
+  // Press — сильная инверсия (эспрессо-фон + кремовый текст). JS-driven
+  // `[data-pressed]` (см. usePressFeedback) — `:active` на тач не успевает.
+  --card-press-bg: linear-gradient(90deg, #2e2410 0%, #3f3115 55%, #4f3c1b 100%);
+  --card-press-fg: #fdf3e2;
   --card-hairline: rgba(124, 65, 15, 0.09);
   --card-text-rest: #3a2e14;
   --card-text-active: #e07a3a; // $row-accent-today
@@ -50,6 +54,17 @@
   // List container backdrop — softer warm wash (was visibly honey at
   // the bottom of the list, now a hint of cream).
   --list-bg: linear-gradient(180deg, #fefdfa 0%, #faf5e9 100%);
+
+  // Chip / filter-pill (DetailsChips «Особенности приёма», SearchFood Еда/Мое).
+  // warm = HomePage flow (тёплый pill — канон). Активная — тёмная инверсия.
+  --chip-bg: linear-gradient(135deg, #fffbf1 0%, #fffcf8 60%, #fff9ee 100%);
+  --chip-border: rgb(255, 198, 160);
+  --chip-text: rgb(0, 0, 0);
+  --chip-hover-border: rgba(124, 65, 15, 0.24);
+  --chip-active-bg: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
+  --chip-active-border: rgba(124, 65, 15, 0.5);
+  --chip-active-text: #ffffff;
+  --chip-separator: rgba(124, 65, 15, 0.14);
 }
 
 [data-surface='lavender'] {
@@ -73,6 +88,9 @@
   --card-wash-3n: linear-gradient(90deg, transparent 45%, rgba(215, 200, 245, 0.08) 100%);
   --card-hover: linear-gradient(90deg, #fbfafe 0%, #f0eafa 60%, #ddd0f0 100%);
   --card-active: linear-gradient(90deg, #ebe4fa 0%, #d6c3f5 60%, #b89cee 100%);
+  // Press — сильная инверсия (тёмно-фиолетовый фон + светлый текст).
+  --card-press-bg: linear-gradient(90deg, #241836 0%, #3a2560 55%, #4a1a7a 100%);
+  --card-press-fg: #f3ecff;
   --card-hairline: rgba(70, 30, 110, 0.08);
   --card-text-rest: #241836;
   --card-text-active: #4a1a7a;
@@ -83,4 +101,16 @@
 
   // List container backdrop
   --list-bg: linear-gradient(180deg, #fcfbfd 0%, #f4eef9 100%);
+
+  // Chip / filter-pill — lavender (Dish/Product flow). Зеркалит warm-канон,
+  // но в лавандовой палитре: мягкий лиловый pill, активная — тёмно-фиолетовая
+  // инверсия (совпадает с --card-press-bg / press-fg ниже).
+  --chip-bg: linear-gradient(135deg, #fbf9ff 0%, #fdfcff 60%, #f3edfb 100%);
+  --chip-border: rgba(120, 86, 178, 0.42);
+  --chip-text: #241836;
+  --chip-hover-border: rgba(70, 30, 110, 0.34);
+  --chip-active-bg: linear-gradient(135deg, #241836 0%, #3a2560 60%, #4a1a7a 100%);
+  --chip-active-border: rgba(70, 30, 110, 0.55);
+  --chip-active-text: #f3ecff;
+  --chip-separator: rgba(70, 30, 110, 0.14);
 }

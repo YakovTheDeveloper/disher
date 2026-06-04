@@ -25,7 +25,10 @@
     z-index: 0;
 }
 
-.topPanel {
+// Пустой спейсер сверху контента (40px). Раньше это был слот `topPanel`
+// (проп удалён — нигде не передавался). Отступ сохранён намеренно: задаёт
+// вертикальный ритм между sticky-обвязкой и листом контента на всех экранах.
+.topSpacer {
     min-height: 40px;
 }
 
@@ -70,31 +73,35 @@
 
 // Integrated bottom bar — part of layout flow (NOT overlay).
 // Sits below the scroll area; the scroller shrinks to make room.
-// Solid surface + top hairline separator → reads as "part of structure",
-// not "floating over content" (M3 2025-26 pattern: FAB-density drops,
-// primary actions integrated into the dock).
 .bottomBar {
     flex-shrink: 0;
     position: relative;
     z-index: 2;
-    // Родитель может переопределить через `--bottom-bar-bg` (например на
-    // ambient-страницах — `transparent`, чтобы свечение проступало).
-    background: var(--bottom-bar-bg, #ffffff);
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    // Фон бара — токен `--bottom-bar-bg`. Дефолт = тёмный scrim
+    // (`--bottom-bar-scrim`): Gemini-style «затемнение к низу» — контент уходит
+    // в полупрозрачную тёмную дымку под баром/плавающей пилюлей. `::before`
+    // тянет тот же тон ВВЕРХ над баром, чтобы строки растворялись в затемнении,
+    // а не обрывались резко. Страница/surface может переопределить
+    // `--bottom-bar-bg` (сплошной цвет или `transparent`). Внутренние обёртки
+    // (AppBottomBar `.writeDock`/`.shellSolo`) фон НЕ красят — источник тут.
+    --bottom-bar-scrim: rgba(0, 0, 0, 0.13);
+    // --bottom-bar-scrim-h: 30px;
+    background: var(--bottom-bar-bg, var(--bottom-bar-scrim));
     padding-bottom: env(safe-area-inset-bottom);
 }
 
-// «Лист»-подложка под нижним баром (см. Screen `bottomBarSheet`). Зеркало
-// `.headerOverlap`-листа, но прижато к низу: белый opaque bg, скруглённые
-// ВЕРХНИЕ углы (нижние упираются в край экрана), мягкая тень вверх.
-// Включается на пустом экране — «физического листа» под контентом нет, он
-// «переезжает» под нижний бар. Хайрлайн-границу гасим — её роль берёт тень.
-.bottomBar[data-sheet='true'] {
-    background: #ffffff;
-    border-top: none;
-    border-top-left-radius: 24px;
-    border-top-right-radius: 24px;
-    box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.07);
+// Scrim-рамп НАД баром: тот же тон → transparent вверх. Даёт «затемнение к
+// низу» (контент темнеет, приближаясь к бару, как у Gemini). pointer-events:
+// none — клики проходят к строкам под ним. Высота — `--bottom-bar-scrim-h`.
+.bottomBar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: var(--bottom-bar-scrim-h, 88px);
+    background: linear-gradient(to top, var(--bottom-bar-bg, var(--bottom-bar-scrim)), transparent);
+    pointer-events: none;
 }
 
 // ─── Overlay bottom-bar (см. Screen `bottomBarOverlay`) ────────────────
@@ -115,8 +122,6 @@
         right: 0;
         bottom: 0;
         z-index: 4;
-        background: transparent;
-        border-top: none;
     }
 
     .screenScroll {
@@ -136,6 +141,9 @@
     flex: 1;
     min-height: 0; // critical: lets the nested flex scroller actually shrink
     position: relative;
+    // Собственный stacking-контекст — чтобы `.brandWatermark` (z-index: -1)
+    // гарантированно уезжал ЗА контент скроллера, а не за фон всего экрана.
+    isolation: isolate;
     display: flex;
     flex-direction: column;
 }
@@ -166,32 +174,33 @@
     inset: 0;
 }
 
-// Hero-слот ПОД `stickyTop`. Regular flow (не sticky). Тайлы остаются
-// прилипшими вверху; hero (имя страницы + подпись активного экрана) стартует
-// ниже и при скролле уезжает наверх под тайлы. centerLabel в HomeTopBar
-// просыпается, когда `.heroTop` фактически вышел из видимости.
-//   • Padding по бокам синхронизирован с `homeStyles.container` (24px),
-//     чтобы hero не упирался в края экрана.
-//   • Имя рендерится через `<Heading size="screen">` (40px Source Serif italic).
-//   • Под ним опционально — `.heroSubLabel` (имя текущего тайла, 20px той же
-//     гарнитуры, opacity 0.75). Структура задаётся самой страницей.
-.heroTop {
-    padding: 14px 24px 18px;
+// ─── Content header (canon) ──────────────────────────────────────────────
+// Семантический заголовок контента (Screen `contentHeader`). Рендерится
+// первым ВНУТРИ листа `.headerOverlap`, по центру. Канон — заголовок дня на
+// HomePage (`<Heading size="section">`). Используют FoodSchedule (день недели)
+// и Dish/Product (имя + rename-label).
+.contentHeader {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-6) var(--space-3);
     text-align: center;
 
+    // Локальный custom-prop под masked-логотип (token-gate допускает; гасит
+    // raw-литерал в `background-color: var(...)` ниже).
+    --content-header-logo-color: rgba(0, 0, 0, 0.08);
+
     // Имена продуктов хранятся lowercase («абрикос») — sentence-case первой
-    // буквы внутри Heading средствами CSS. Тот же паттерн что в
-    // HomeTopBar.centerLabel.
+    // буквы средствами CSS.
     h1::first-letter,
     h2::first-letter,
     h3::first-letter {
         text-transform: uppercase;
     }
 
-    // Когда hero — кликабельный `<label htmlFor>` (rename-flow), вложен
-    // ВНУТРЬ heading-а (валидный HTML: label принимает phrasing content,
-    // span — phrasing). Нейтрализуем default cursor inheritance и сохраняем
-    // clickable feedback.
+    // Кликабельный rename-label вложен ВНУТРЬ heading-а (валидный HTML).
+    // Нейтрализуем cursor inheritance + clickable feedback.
     label {
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
@@ -200,22 +209,65 @@
             opacity: 0.6;
         }
     }
+
+    // Маленький watermark-логотип справа от заголовка — лежит на видимом белом
+    // листе, ненавязчивый бренд-знак (Time Machine-стиль). Гаснет на пустом
+    // экране (`[data-hollow]` ниже) — там включается большой центральный
+    // `.brandWatermark`.
+    &::after {
+        content: '';
+        position: absolute;
+        right: var(--space-4);
+        top: 25%;
+        transform: translateY(-50%);
+        width: 144px;
+        height: 70px;
+        background-color: var(--content-header-logo-color);
+        -webkit-mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;
+        mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;
+        pointer-events: none;
+    }
 }
 
-// Подпись активного экрана (имя тайла) под hero-именем. Та же гарнитура,
-// но 1.25rem (20px) и приглушённый цвет — реакция на запрос юзера 2026-05-21
-// «под именем еды название текущего тайла». Заменяет старый ScreenIndicator.band
-// для страниц блюда/продукта; `hideBand` на индикаторе при этом включён.
-.heroSubLabel {
-    margin-top: 4px;
-    font-family: 'Source Serif 4', 'Merriweather', serif;
-    font-style: italic;
-    font-weight: 500;
-    font-size: 1.25rem;
-    line-height: 1.1;
-    letter-spacing: -0.3px;
-    color: rgba(0, 0, 0, 0.6);
-    text-align: center;
+// ─── Brand watermark (большой центральный логотип) ────────────────────────
+// Фон-слой ПОД скроллером (z-index: -1 в isolated `.scrollWrap`). Виден ТОЛЬКО
+// на пустом экране (`.scrollWrap[data-hollow='true']`); при наличии контента
+// непрозрачный лист накрывает его, а бренд проступает маленьким знаком в
+// `.contentHeader::after`. Единый источник для всех Screen-экранов — раньше
+// жил локально в HomePage SlideArtFrame.
+.brandWatermark {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+
+    // Локальный custom-prop под masked-логотип (token-gate).
+    --brand-watermark-color: rgba(0, 0, 0, 0.027);
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: min(46vw, 180px);
+        aspect-ratio: 1;
+        background-color: var(--brand-watermark-color);
+        -webkit-mask: url('/logo/logo-white-no-fill.png') center / contain no-repeat;
+        mask: url('/logo/logo-white-no-fill.png') center / contain no-repeat;
+    }
+}
+
+// Пустой экран: большой логотип проявляется, маленький у заголовка гаснет.
+.scrollWrap[data-hollow='true'] .brandWatermark {
+    opacity: 1;
+}
+
+.scrollWrap[data-hollow='true'] .contentHeader::after {
+    display: none;
 }
 
 // Sticky-слот внутри `screenScroll`. Прилипает к `top: var(--top-bar-h)` —
@@ -242,31 +294,15 @@
     background: var(--sticky-top-bg, #fff);
 }
 
-// Samokat-style: контент-плашка наезжает на низ `header`'а скруглением.
-// Реализация чисто на CSS — никаких scroll-listener'ов.
-//   • `position: relative; z-index: 1` поднимает плашку над `header`
-//     (хедер в normal-flow, без своего z → проигрывает).
-//   • `background: #fff` обязателен: без него видна часть хедера сквозь
-//     радиус. Если родительская поверхность другого цвета — поменять.
-//   • `border-top-radius` создаёт визуальный «лист бумаги».
-//   • `margin-top: -16px` сдвигает плашку поверх хедера на величину
-//     радиуса. Стык под скруглением — глазом не виден.
-// При скролле всей панели вверх и хедер, и плашка едут в lockstep
-// (один scroll-container), но плашка всегда отрисовывается поверх —
-// получается эффект «хедер уезжает под контент».
 .headerOverlap {
     position: relative;
     z-index: 1;
     // Родитель может переопределить через `--header-overlap-bg` (например на
     // ambient-страницах — `transparent`, чтобы свечение проступало).
     background: var(--header-overlap-bg, #ffffff);
-    border-top-left-radius: 24px;
-    border-top-right-radius: 24px;
-    margin-top: -24px;
-    // Самокат: `box-shadow: 0 0 6px #0000000d` (rgba 0,0,0,0.05). У нас
-    // нижний контур плашки уходит вниз бесконечно — тень нужна только
-    // сверху, поэтому `0 -2px 6px ...`. Очень тонкая, добавляет легкий
-    // объём над скруглением.
+    border-top-left-radius: 36px;
+    border-top-right-radius: 36px;
+    // margin-top: -24px;
     box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05);
 }
 

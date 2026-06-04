@@ -21,7 +21,7 @@ import { persistCustomTagsFromDetails } from '@/features/food/details-chips';
 import { useUserId } from '@/shared/lib/auth/useUserId';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { useRecentlyAddedStore } from './recentlyAddedStore';
+import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import { countDismissed, countTotal, selectCommittable } from './selectCommittable';
 import {
   sendMatcherTelemetry,

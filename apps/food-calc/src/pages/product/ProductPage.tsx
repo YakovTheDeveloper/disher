@@ -36,17 +36,6 @@ const SERVING_UNIT_OPTIONS: ServingUnitOpt[] = ['IU', 'mg', 'mcg', 'g', 'шт'];
 
 const gramNutrientIds = new Set(allNutrientsList.filter((n) => n.unit === 'g').map((n) => n.id));
 
-// Ambient backdrop варианты — radial-glow подложки на `homeStyles.container`.
-// CSS живёт в HomePage.module.scss (`[data-dv='ProductAmbient']`), общий
-// anchor для страниц продукта и блюда.
-const PRODUCT_AMBIENT_VARIANTS = [
-  'plain',
-  'sky-mist',
-  'ice-blue',
-  'periwinkle',
-  'dawn-blue',
-] as const;
-
 // NavTile ambient — radial-glow per nth-child. Общий anchor-ключ с
 // DishBuilderPage: переключение варианта в баре синхронно меняет подсветку
 // на обеих страницах. Дефолтная семантика тайла — в base-стилях NavTile.
@@ -110,7 +99,6 @@ const ProductPage = () => {
     [],
   );
 
-  const { anchor: ambientAnchor } = useDesignVariant('ProductAmbient', PRODUCT_AMBIENT_VARIANTS);
   const { anchor: navTileAnchor } = useDesignVariant('NavTileAmbient', NAVTILE_AMBIENT_VARIANTS);
   const swipeableRef = useRef<SwipeableRef>(null);
 
@@ -213,7 +201,7 @@ const ProductPage = () => {
   };
 
   return (
-    <div className={homeStyles.container} {...ambientAnchor}>
+    <div className={homeStyles.container}>
       <HomeTopBar
         date={dateForTopBar}
         dateButtonLabel={<CalendarIcon width={22} height={22} />}
@@ -248,18 +236,18 @@ const ProductPage = () => {
           <Screen
             key={0}
             headerOverlap
-            heroTop={
+            contentHeader={
               // `<label>` лежит ВНУТРИ heading-а и оборачивает span — валидный
               // HTML, в отличие от `label>h1`. h2 (не h1) — чтобы у страницы
-              // остался один h1 даже после дублирования heroTop в 2 Screen-ах.
+              // остался один h1 даже после дублирования contentHeader в Screen-ах.
               isUserCreated ? (
-                <Heading size="screen" as="h2">
+                <Heading size="section" as="h2">
                   <label htmlFor={CHANGE_NAME_INPUT_ID} aria-label="Изменить название">
                     <span>{food.name}</span>
                   </label>
                 </Heading>
               ) : (
-                <Heading size="screen" as="h2">{food.name}</Heading>
+                <Heading size="section" as="h2">{food.name}</Heading>
               )
             }
             stickyTop={nutrientsIndicator}
@@ -382,15 +370,15 @@ const ProductPage = () => {
           <Screen
             key={1}
             headerOverlap
-            heroTop={
+            contentHeader={
               isUserCreated ? (
-                <Heading size="screen" as="h2">
+                <Heading size="section" as="h2">
                   <label htmlFor={CHANGE_NAME_INPUT_ID} aria-label="Изменить название">
                     <span>{food.name}</span>
                   </label>
                 </Heading>
               ) : (
-                <Heading size="screen" as="h2">{food.name}</Heading>
+                <Heading size="section" as="h2">{food.name}</Heading>
               )
             }
             stickyTop={portionsIndicator}

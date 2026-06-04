@@ -55,9 +55,14 @@
         transform: scale(0.98);
     }
 
-    // Editing state — when any input/textarea inside is focused, lift the row
-    // and outline it with the time-of-day accent colour.
-    &:focus-within {
+    // Editing state — lift + accent outline for an EXPLICIT row focus only.
+    // Inline cell edits (time HH/MM, qty NumberInput) focus an <input>, and the
+    // free-text review row also holds rescue (+) / delete (×) <button>s. For all
+    // of those the per-control affordance (cell :focus-within tint, button's own
+    // styling) is the right, subtle feedback — the whole-row outline + glow read
+    // as "selected" and were visually jarring. Gate the row treatment off
+    // whenever a form field or button is the focus target.
+    &:focus-within:not(:has(input:focus, textarea:focus, button:focus)) {
         outline: 2px solid var(--select-color-strong);
         outline-offset: 1px;
         box-shadow:
@@ -175,5 +180,47 @@
 
     100% {
         outline: 1px solid var(--_outline-from, #52ffba);
+    }
+}
+
+// «Недавно добавлен» marker (recent-dot canon). Синий кружок живёт в жёлобе
+// СПРАВА, ВНЕ подложки карточки. Жёлоб открывается только когда маркер есть:
+// wrapper получает правый padding, li (flex-grow:1) ужимается → карточка
+// отъезжает влево, освобождая место. Кружок — absolute относительно wrapper'а,
+// сидит в открывшемся жёлобе, не участвует в grid'е строки. Чистится глобально
+// (свайп слайда / уход со страницы), не по таймеру — см. recentlyAddedStore.
+.commonListItemWrapper.hasRecentDot {
+    padding-right: 20px;
+}
+
+.recentDot {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    width: 6px;
+    height: 6px;
+    transform: translateY(-50%);
+    border-radius: var(--radius-full);
+    background: var(--color-blue-2);
+    pointer-events: none;
+    z-index: 2;
+    animation: recentDotIn 240ms cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+@keyframes recentDotIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) scale(0.4);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .recentDot {
+        animation: none;
     }
 }

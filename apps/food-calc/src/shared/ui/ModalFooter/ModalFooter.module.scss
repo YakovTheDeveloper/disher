@@ -40,7 +40,7 @@
 
 // ── Назад / Далее — общий футер модалок ──────────────────────────────────
 // Полоса во всю ширину, прижата к низу. Левая — светлая заливка, правая —
-// ink-заливка. Шрифт Onest (не моно), оба угла прямые.
+// ink-заливка. Шрифт Jost (не моно), оба угла прямые.
 .prevArrow,
 .nextArrow {
   display: flex;
@@ -52,7 +52,7 @@
   cursor: pointer;
   padding: var(--space-5) 0 calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
   // margin: var(--space-5);
-  font-family: "Onest", "YS Text", "Golos Text", system-ui, sans-serif;
+  font-family: "Jost", "YS Text", "Golos Text", system-ui, sans-serif;
   transition: opacity 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 

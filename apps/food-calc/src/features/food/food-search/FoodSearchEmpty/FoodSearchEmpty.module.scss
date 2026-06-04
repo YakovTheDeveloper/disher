@@ -55,6 +55,9 @@
 
 .pillPrimary,
 .pillSecondary {
+    // Светлый текст инверсии (custom-prop, token-gate допускает).
+    --pill-fg-invert: #ffffff;
+
     flex: 1;
     min-width: 0;
     display: inline-flex;
@@ -71,6 +74,15 @@
     transition: transform 0.12s ease;
 
     &:active {
+        transform: scale(0.97);
+    }
+
+    // Press — сильная инверсия (ink-заливка + светлый текст/иконки).
+    // JS-driven `data-pressed` (usePressFeedback) гарантирует кадр на тапе,
+    // который тут же делегирует фокус в create-input и уводит со step'а.
+    &[data-pressed] {
+        background: var(--color-ink);
+        color: var(--pill-fg-invert);
         transform: scale(0.97);
     }
 }

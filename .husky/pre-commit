@@ -1,0 +1,4 @@
+# Design-token gate (stylelint) on staged *.scss — design-consistency-plan Phase 1.
+# Run from the frontend package so lint-staged finds its nested config + local
+# stylelint bin. (Update the path if apps/food-calc is renamed to apps/frontend.)
+cd apps/food-calc && pnpm exec lint-staged

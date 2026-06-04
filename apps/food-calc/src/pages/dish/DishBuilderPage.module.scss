@@ -1,11 +1,36 @@
 .dishFoodListItem {
     display: grid;
     grid-template-columns: 1fr auto;
+    align-items: center;
+}
+
+// Ингредиент-строка: имя + (опц.) сабтайтл «уточнений» в колонку — зеркалит
+// FoodSchedule (ScheduleFoodItemInline.foodCol / .detailsSubtitle), чтобы
+// детали были видны на экране «Ингредиенты», как в дневном рационе на HomePage.
+.foodCol {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    gap: 1px;
+    line-height: 1.15;
+}
+
+.detailsSubtitle {
+    font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+    font-style: italic;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 // Inline secondary action at the top of the ingredients list — mirrors
-// Laboratory.topLinkRow / weeklyLink. Lives in screen content, not in a
-// topPanel, so the slide matches HomePage's chrome.
+// Laboratory.topLinkRow / weeklyLink. Lives in the screen content flow, so the
+// slide matches HomePage's chrome.
 .topLinkRow {
     display: flex;
     justify-content: flex-end;
@@ -50,11 +75,10 @@
     border: none;
     background: #c7dbf3;
     color: rgb(31, 50, 95);
-    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(30, 64, 124, 0.18);
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.12s ease;
 

@@ -10,9 +10,18 @@ type Props = {
   bottomRight?: React.ReactNode;
   bottomLeft?: React.ReactNode;
   bottomBar?: React.ReactNode;
-  topPanel?: React.ReactNode;
   header?: React.ReactNode;
-  title?: React.ReactNode;
+  /**
+   * Семантический заголовок контента — день недели (FoodSchedule) или имя
+   * блюда/продукта (Dish/Product). Рендерится первым ВНУТРИ листа
+   * (`headerOverlap`), по центру, как `<Heading size="section">` (канон —
+   * заголовок дня на HomePage). Маленький watermark-логотип справа от него
+   * рисует `.contentHeader::after` и гаснет на пустом экране (`hollow`) —
+   * там вместо него включается большой центральный логотип в `.scrollWrap`.
+   */
+  contentHeader?: React.ReactNode;
+  /** Доп. класс на обёртку `contentHeader` (page-specific тюнинг). */
+  contentHeaderClassName?: string;
   backgroundColor?: 'gray' | 'white';
   className?: string;
   overlay?: React.ReactNode;
@@ -32,14 +41,6 @@ type Props = {
    */
   hollow?: boolean;
   /**
-   * Когда `true` — нижний бар получает «лист»-подложку (белый bg, скругления
-   * сверху, мягкая тень). Парный приём к `hollow`: на пустом экране «лист»
-   * уходит из-под контента и проявляется под нижним баром. Триггер через
-   * `data-sheet` атрибут. НЕ завязан на `hollow` — это отдельный визуальный
-   * переключатель (hollow используют и Product/Dish, где нижний лист не нужен).
-   */
-  bottomBarSheet?: boolean;
-  /**
    * Overlay-режим нижнего бара: бар становится `position: absolute` над
    * контентом, а список скроллится ПОД ним (низ скроллера затухает маской,
    * чтобы строки растворялись под плавающей пилюлей без белой плашки).
@@ -58,20 +59,6 @@ type Props = {
    */
   stickyTop?: React.ReactNode;
   /**
-   * Hero-блок ПОД `stickyTop` (не sticky, regular flow). Тайлы остаются
-   * вверху прилипшими, hero (имя страницы) стартует ниже их и при скролле
-   * уезжает вверх. Используется страницами блюда/продукта; HomePage hero
-   * не задаёт.
-   */
-  heroTop?: React.ReactNode;
-  /**
-   * Опциональная подпись под `heroTop` (имя текущего тайла, 20px italic).
-   * Заменяет старый `ScreenIndicator.band` для страниц блюда/продукта
-   * (там индикатор рендерится с `hideBand=true`). Стилизуется внутри
-   * Screen — страницам не надо знать про класс.
-   */
-  heroSubLabel?: React.ReactNode;
-  /**
    * Эмитит `scrollTop` контейнера на каждом scroll-событии (passive listener
    * через JSX `onScroll`). Страница использует чтобы при `y > N` вернуть
    * имя блюда/продукта в `HomeTopBar.centerLabel`.
@@ -85,7 +72,8 @@ const Screen = ({
   bottomRight,
   bottomLeft,
   bottomBar,
-  topPanel,
+  contentHeader,
+  contentHeaderClassName,
   actions,
   backgroundColor,
   className,
@@ -94,11 +82,8 @@ const Screen = ({
   backgroundImageOpacity = 0.05,
   headerOverlap = false,
   hollow = false,
-  bottomBarSheet = false,
   bottomBarOverlay = false,
   stickyTop,
-  heroTop,
-  heroSubLabel,
   onScrollY,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -121,7 +106,12 @@ const Screen = ({
           alt=""
         />
       )}
-      <div className={styles.scrollWrap}>
+      <div className={styles.scrollWrap} data-hollow={hollow ? 'true' : undefined}>
+        {/* Большой бледный логотип Disher по центру — фон-слой ПОД контентом.
+            Виден только на пустом экране (`[data-hollow]`); когда есть контент,
+            непрозрачный лист накрывает его, а справа от заголовка проступает
+            маленький watermark (`.contentHeader::after`). */}
+        <span className={styles.brandWatermark} aria-hidden="true" />
         <div
           className={styles.screenScroll}
           ref={scrollContainerRef}
@@ -132,33 +122,33 @@ const Screen = ({
           }
         >
           {stickyTop && <div className={styles.stickyTop}>{stickyTop}</div>}
-          {(heroTop || heroSubLabel) && (
-            <div className={styles.heroTop}>
-              {heroTop}
-              {heroSubLabel && (
-                <div className={styles.heroSubLabel}>{heroSubLabel}</div>
-              )}
-            </div>
-          )}
-          <div className={styles.topPanel}>{topPanel}</div>
+          <div className={styles.topSpacer} aria-hidden="true" />
           {header}
           {headerOverlap ? (
             <div className={styles.headerOverlap} data-hollow={hollow ? 'true' : undefined}>
+              {contentHeader != null && (
+                <div className={clsx(styles.contentHeader, contentHeaderClassName)}>
+                  {contentHeader}
+                </div>
+              )}
               {children}
             </div>
           ) : (
-            children
+            <>
+              {contentHeader != null && (
+                <div className={clsx(styles.contentHeader, contentHeaderClassName)}>
+                  {contentHeader}
+                </div>
+              )}
+              {children}
+            </>
           )}
           <div ref={sentinelRef} />
         </div>
         <ScrollIndicator visible={hasMoreBelow && !bottomBarOverlay} />
       </div>
 
-      {bottomBar && (
-        <div className={styles.bottomBar} data-sheet={bottomBarSheet ? 'true' : undefined}>
-          {bottomBar}
-        </div>
-      )}
+      {bottomBar && <div className={styles.bottomBar}>{bottomBar}</div>}
 
       {bottomLeft && <div className={styles.bottomLeft}>{bottomLeft}</div>}
 

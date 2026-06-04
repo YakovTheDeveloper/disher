@@ -83,17 +83,19 @@ $header-height: 50px;
     justify-content: center;
     min-height: 40px;
     padding: 0 14px;
-    border: 1px solid rgb(255, 198, 160);
+    // Surface-driven (surfaces.scss --chip-*): warm на HomePage, lavender на
+    // Dish/Product. Зеркалит канон Chip из shared/ui/atoms/Chip.
+    border: 1px solid var(--chip-border, rgb(255, 198, 160));
     border-radius: 9999px;
-    background: linear-gradient(135deg, #fffbf1 0%, #fffcf8 60%, #fff9ee 100%);
+    background: var(--chip-bg, linear-gradient(135deg, #fffbf1 0%, #fffcf8 60%, #fff9ee 100%));
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-size: 14px;
     font-weight: 500;
     line-height: 1.1;
     letter-spacing: -0.005em;
-    color: rgb(0, 0, 0);
+    color: var(--chip-text, rgb(0, 0, 0));
     transition:
         background 140ms ease,
         color 140ms ease,
@@ -102,7 +104,7 @@ $header-height: 50px;
 
     &:hover,
     &:focus-visible {
-        border-color: rgba(124, 65, 15, 0.24);
+        border-color: var(--chip-hover-border, rgba(124, 65, 15, 0.24));
         outline: none;
     }
 
@@ -112,9 +114,9 @@ $header-height: 50px;
 }
 
 .filterPillActive {
-    background: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
-    border-color: rgba(124, 65, 15, 0.5);
-    color: rgba(255, 255, 255, 1);
+    background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+    border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
+    color: var(--chip-active-text, rgba(255, 255, 255, 1));
 }
 
 // ─── Inlined search input (warm-pill, surface-driven) ───────────────────────
@@ -192,7 +194,7 @@ $header-height: 50px;
     padding-right: 8px;
     line-height: 1.2;
     caret-color: var(--field-caret, #b76d1a);
-    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-size: 1rem;
     font-weight: 500;
     letter-spacing: -0.005em;

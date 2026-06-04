@@ -67,6 +67,16 @@
         outline-color: transparent;
         background: var(--card-active);
     }
+
+    // Press — сильная инверсия. JS-driven `data-pressed` (usePressFeedback)
+    // вместо `:active`: гарантированно рисуется на тапе, который тут же уводит
+    // на следующий шаг и размонтирует строку. Идёт ПОСЛЕ nth-child/hover/active/
+    // has — при равной специфичности перекрывает их по порядку.
+    &[data-pressed] {
+        background: var(--card-press-bg);
+        transform: scale(0.965);
+        transition-duration: var(--press-in);
+    }
 }
 
 @keyframes growBar {
@@ -107,7 +117,8 @@
 // pop: акцент-штрих «выстреливает» в ширину при нажатии — motion
 // у самого края строки, сильнейший pre-attentive канал.
 @media (prefers-reduced-motion: no-preference) {
-    .wrapper:active .richBar {
+    .wrapper:active .richBar,
+    .wrapper[data-pressed] .richBar {
         transform: scaleX(2.4);
         opacity: 1;
         transition-duration: var(--press-in);
@@ -156,13 +167,23 @@
     }
 }
 
+// Press-инверсия: на тёмном фоне текст/числа/инфо-иконка перекрашиваются в
+// светлый. Специфичность (0,3,0) перебивает `.item_active .name` (0,2,0).
+.wrapper[data-pressed] {
+    .name,
+    .richValue,
+    .infoBtn {
+        color: var(--card-press-fg);
+    }
+}
+
 .name {
     flex: 1;
     min-width: 0;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-size: 0.94rem;
     font-weight: 500;
     text-transform: capitalize;
@@ -190,7 +211,7 @@
     height: auto;
     padding: 0 10px;
     flex-shrink: 0;
-    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
     font-size: 13px;
     font-weight: 600;

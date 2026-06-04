@@ -5,24 +5,12 @@ type Props = {
   children: ReactNode;
 };
 
-// Per-slide центрирующий арт-слой для HomePage. Лежит ПОД контентом слайда
-// (`z-index: -1` в собственном stacking-контексте `.frame`), поэтому
-// проступает сквозь прозрачную обвязку и пустые (`hollow`) экраны.
-// Единственная метка — очень бледное лого Disher по центру. Лого — белое PNG,
-// красим через `mask` тёмным цветом (обычный <img> на светлой поверхности был
-// бы невидим, тот же приём, что в FoodSchedule.weekdayHeading::after). День
-// недели сюда НЕ кладём — он живёт в шапке FoodSchedule. `bandImg` в
-// ScreenIndicator на HomePage подавлён (`bandImg={false}`), чтобы картинка таба
-// не дублировала лого.
+// Per-slide flex-обёртка слайда HomePage. Бледный логотип Disher по центру
+// больше НЕ живёт здесь — он переехал в Screen (`.brandWatermark`, единый для
+// всех экранов, проявляется на пустом `hollow`-слайде). Обёртка осталась как
+// flex-каркас, заполняющий слайд по высоте.
 export const SlideArtFrame = ({ children }: Props) => {
-  return (
-    <div className={s.frame}>
-      <div className={s.art} aria-hidden>
-        <span className={s.logoArt} />
-      </div>
-      {children}
-    </div>
-  );
+  return <div className={s.frame}>{children}</div>;
 };
 
 export default SlideArtFrame;

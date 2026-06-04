@@ -98,7 +98,7 @@
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--color-ink);
-    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     transition: background-color 0.15s, color 0.15s, transform 0.1s;
     cursor: pointer;
 
@@ -277,7 +277,7 @@
 // Канон row-выделения из ScheduleNavigator (.dayRow*). Единый язык состояний
 // (rest / filled / today / selected) для любых list-item / card-row компонентов.
 // Курсив-серифную типографику из ScheduleNavigator НЕ тянем — только цвета и
-// фоновые washes. Текст row'а остаётся в Onest sans (см. CLAUDE.md).
+// фоновые washes. Текст row'а остаётся в Jost sans (см. CLAUDE.md).
 //
 // Использование:
 //   .row { @include warm-row-bg(rest); }

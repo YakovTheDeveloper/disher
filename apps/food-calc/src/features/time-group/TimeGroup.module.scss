@@ -80,14 +80,52 @@
     line-height: 1;
 
     &_time {
+        position: relative;
         color: var(--text-primary);
         font-family: var(--font-serif);
         font-size: var(--text-lg);
         font-weight: 400;
         font-style: italic;
         user-select: none;
+        cursor: pointer;
         border-radius: var(--radius-xs);
         padding: var(--space-1) var(--space-2);
+        transition: background-color var(--press-out) ease;
+
+        // Clickable affordance: a thin black bar under the time. Slightly
+        // lighter at rest, fully solid once the per-item times are hidden.
+        &::after {
+            content: '';
+            position: absolute;
+            left: var(--space-2);
+            right: var(--space-2);
+            bottom: 1px;
+            height: 1px;
+            background: var(--text-primary);
+            opacity: 0.75;
+            transform: scaleX(0.92);
+            transform-origin: center;
+            transition: opacity var(--press-out) ease, transform var(--press-out) ease;
+            pointer-events: none;
+        }
+
+        &:active {
+            background-color: color-mix(in oklch, var(--text-primary) 6%, transparent);
+
+            &::after {
+                transform: scaleX(1);
+            }
+        }
+
+        &[data-active='true'] {
+            // background-color: color-mix(in oklch, var(--text-primary) 7%, transparent);
+
+            &::after {
+                background: var(--text-primary);
+                opacity: 1;
+                transform: scaleX(1);
+            }
+        }
     }
 
 
@@ -127,7 +165,7 @@
     margin-top: var(--space-6);
     margin-bottom: var(--space-2);
     padding-bottom: var(--space-2);
-    border-bottom: 1px solid var(--border-hairline);
+    // border-bottom: 1px solid var(--border-hairline);
 
     &Aside {
         margin-left: auto;

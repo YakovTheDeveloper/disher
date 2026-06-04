@@ -66,6 +66,15 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
     details: draft.details.trim() || undefined,
   };
 
+  // Заголовок step-шагов = «Добавляем <еда>» вместо дублирования названия шага
+  // (текущий шаг и так виден в крошках Breadcrumbs). foodName появляется только
+  // после выбора еды; до него (search/create) шаги держат свои заголовки,
+  // поэтому ниже fallback на STEP_LABELS. Длинное имя обрезается ellipsis'ом —
+  // это уже зашито в ModalHeader.title (white-space: nowrap + text-overflow).
+  const addingTitle = draft.foodName
+    ? draft.foodName.charAt(0).toUpperCase() + draft.foodName.slice(1)
+    : null;
+
   const goToStep = (target: typeof step) => setStep(target);
 
   // «Назад» в StepHeader — на предыдущий шаг по линейному порядку stepsForBar
@@ -195,7 +204,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
                       {nutrientGroups.map((group) => {
                         const isOpen = openGroup === group.name;
                         const filledCount = group.content.filter(
-                          (n) => (supplementNutrients[n.id] ?? 0) > 0,
+                          (n) => (supplementNutrients[n.id] ?? 0) > 0
                         ).length;
                         return (
                           <div
@@ -269,7 +278,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         content={
           <ModalShell variant="spring4">
             <ModalShell.StepHeader
-              title={STEP_LABELS.time}
+              title={addingTitle ?? STEP_LABELS.time}
               currentStep="time"
               steps={stepsForBar}
               stepLabels={STEP_LABELS}
@@ -284,6 +293,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
                 onFinish={handleTimeFinish}
                 initialTime={draft.time}
                 inputId={TIME_INPUT}
+                keepKeyboardOnFinish
               />
               <ModalShell.ActionButtons
                 debugId="create-time"
@@ -301,7 +311,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         content={
           <ModalShell variant="spring4">
             <ModalShell.StepHeader
-              title={STEP_LABELS.quantity}
+              title={addingTitle ?? STEP_LABELS.quantity}
               currentStep="quantity"
               steps={stepsForBar}
               stepLabels={STEP_LABELS}
@@ -353,7 +363,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
         onCommit={handleCommit}
         header={
           <ModalShell.StepHeader
-            title={STEP_LABELS.details}
+            title={addingTitle ?? STEP_LABELS.details}
             currentStep="details"
             steps={stepsForBar}
             stepLabels={STEP_LABELS}

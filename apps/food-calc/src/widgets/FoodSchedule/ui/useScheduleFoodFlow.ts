@@ -6,7 +6,7 @@ import { createProduct, setProductNutrients, useProductPortions } from '@/entiti
 import { createDish, useDishPortions } from '@/entities/dish';
 import { persistCustomTagsFromDetails } from '@/features/food/details-chips';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { useRecentlyAddedStore } from '@/features/food/food-free-text-parse';
+import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import toaster from '@/shared/lib/toaster/toaster';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 

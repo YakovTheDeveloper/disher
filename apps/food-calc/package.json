@@ -12,6 +12,8 @@
     "build": "vite build",
     "preview": "vite preview --host",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:style": "stylelint \"src/**/*.scss\" --max-warnings 0",
+    "lint:style:baseline": "node scripts/gen-stylelint-baseline.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
@@ -23,6 +25,12 @@
   "dependencies": {
     "@base-ui/react": "^1.4.1",
     "@floating-ui/react": "0.27.0",
+    "@fontsource/jost": "^5.2.8",
+    "@fontsource/merriweather": "^5.2.11",
+    "@fontsource/onest": "^5.2.11",
+    "@fontsource/raleway": "^5.2.8",
+    "@fontsource/source-serif-4": "^5.2.9",
+    "@fontsource/ubuntu-mono": "^5.2.8",
     "@sentry/react": "^10.50.0",
     "@vitejs/plugin-react-swc": "^3.7.2",
     "better-auth": "1.6.9",
@@ -69,9 +77,12 @@
     "jiti": "^2.5.1",
     "jsdom": "^25.0.1",
     "kill-port": "^2.0.1",
+    "postcss-scss": "^4.0.9",
     "prettier": "3.6.2",
     "sass": "^1.81.0",
     "sharp": "^0.34.5",
+    "stylelint": "^16",
+    "stylelint-declaration-strict-value": "^1.11.1",
     "supabase": "^2.95.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
@@ -82,5 +93,8 @@
     "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-svgr": "^4.5.0",
     "vitest": "^3.2.4"
+  },
+  "lint-staged": {
+    "*.scss": "stylelint"
   }
 }

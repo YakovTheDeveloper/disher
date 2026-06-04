@@ -1,5 +1,4 @@
 import React, { memo, useCallback, useMemo, useRef, Fragment } from 'react';
-import clsx from 'clsx';
 import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
@@ -110,9 +109,10 @@ const FoodSchedule = ({
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
   const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
-  // Пустой список → «листа» под контентом нет (hollow), watermark-лого в
-  // заголовке прячем, а нижний бар, наоборот, становится «листом»
-  // (`bottomBarSheet`). Заголовок дня недели остаётся.
+  // Пустой список → «листа» под контентом нет (hollow): маленький watermark у
+  // заголовка гаснет, вместо него большой бренд-знак по центру (Screen
+  // `.brandWatermark`), а бар становится интегрированным (не overlay).
+  // Заголовок дня недели остаётся.
   const isEmpty = items.length === 0;
 
   // Long-press → per-item action drawer: delete (top-right) + «Информация о
@@ -138,10 +138,10 @@ const FoodSchedule = ({
       stickyTop={topSlot}
       headerOverlap
       hollow={isEmpty}
-      bottomBarSheet={isEmpty}
+      contentHeader={<Heading size="section">{weekdayTitle}</Heading>}
       // Список есть → бар-оверлей (строки скроллятся под плавающей пилюлей).
-      // Пусто → остаётся empty-state «лист» (bottomBarSheet), не overlay,
-      // чтобы прозрачный absolute-бар не конфликтовал с белой плашкой.
+      // Пусто → интегрированный бар в потоке: overlay-режим наезжал бы
+      // absolute-баром на empty-state по центру.
       bottomBarOverlay={!isEmpty}
       overlay={
         <>
@@ -168,17 +168,11 @@ const FoodSchedule = ({
           writeFoodInputId={writeFoodInputId}
           searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
           searchLabel="Найти еду"
-          searchText="Еда"
+          searchText="Выбор еды"
           writeFoodPlaceholder="Введите, что вы ели и когда"
         />
       }
     >
-      {/* Заголовок дня недели — всегда наверху. На пустом списке watermark-лого
-          справа прячем (`bareHeading`): нет «листа» под контентом → нет и
-          мелкого лого в шапке (бренд-знак остаётся бледным по центру слайда). */}
-      <div className={clsx(styles.weekdayHeading, isEmpty && styles.bareHeading)}>
-        <Heading size="section">{weekdayTitle}</Heading>
-      </div>
       <div {...foodAnchor} className={styles.foodListAnchor}>
         <ItemsList>
           {(() => {

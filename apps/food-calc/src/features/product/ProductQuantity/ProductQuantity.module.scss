@@ -20,7 +20,7 @@
     // the mirror's box.
     .mirror,
     .input {
-        font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        font-family: var(--font-big-numeric);
         font-size: 6rem;
         font-weight: 800;
         letter-spacing: -0.06em;
@@ -132,7 +132,7 @@
 }
 
 .unit {
-    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 1.125rem;
     font-weight: 500;
     letter-spacing: 0;
@@ -152,7 +152,7 @@
 }
 
 .sectionLabel {
-    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.875rem;
     font-weight: 600;
     letter-spacing: 0;
@@ -192,7 +192,7 @@
     background: rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--color-ink);
@@ -216,7 +216,7 @@
 .multiplierInput {
     width: 4rem;
     text-align: center;
-    font-family: 'Onest', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--color-ink);

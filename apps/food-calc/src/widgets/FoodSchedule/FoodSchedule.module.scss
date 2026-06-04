@@ -14,8 +14,8 @@
 // поверхность под собой (раньше текст лежал на плоском white и сливался
 // с белым `stickyTop`-ом сверху). Без тёплого тона: палитра экрана уже
 // warm через `useSurface`, дублировать на «листе» не надо.
-// Watermark рисуется отдельно через `mask-image` (см. `.weekdayHeading::after`)
-// — он сам себе тон, gradient ему не нужен.
+// Заголовок дня недели + watermark-логотип теперь канон Screen.contentHeader
+// (`contentHeader` проп) — локального `.weekdayHeading` больше нет.
 .scheduleScreen {
   --header-overlap-bg:
     linear-gradient(180deg,
@@ -36,49 +36,6 @@
 // when the dev DV-bar picks a specific palette (dev only).
 .foodListAnchor {
   display: block;
-}
-
-// Sub-heading в начале scroll-области (под ScreenIndicator'ом).
-// День недели с заглавной буквы — Heading size="section" (24px serif italic).
-// Канон совпадает с InlineWriteFoodReview.headerRow.
-//
-// `::after` — кремовый watermark логотипа в правой части строки заголовка.
-// Срабатывает в паре с warm-wash gradient'ом на `.scheduleScreen` выше:
-// заливка лого ≈ `#f5efe0`, на чистом белом она бы пропала, на honey-tint
-// проступает ровно как ненавязчивый брендинг-знак (Time Machine-стиль).
-.weekdayHeading {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-6) var(--space-3) var(--space-1);
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: var(--space-4);
-    top: 30%;
-    transform: translateY(-45%);
-    width: 144px;
-    height: 70px;
-    background-color: rgba(0, 0, 0, 0.13);
-    -webkit-mask-image: url('/logo/logo-white-no-fill.png');
-    mask-image: url('/logo/logo-white-no-fill.png');
-    -webkit-mask-size: contain;
-    mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-position: right center;
-    mask-position: right center;
-    pointer-events: none;
-  }
-}
-
-// Пустой список → «листа» под контентом нет, поэтому watermark-лого в шапке
-// прячем (мелкий знак справа дублировал бы бледное лого по центру слайда).
-// Сам заголовок дня недели остаётся.
-.bareHeading::after {
-  display: none;
 }
 
 // Palette variants for the food list. Each variant binds shared time-of-

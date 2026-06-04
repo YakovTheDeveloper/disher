@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './TimeChoose.module.scss';
 import clsx from 'clsx';
 import { TimeNow } from './TimeNow';
@@ -20,6 +20,12 @@ type Props = {
   inputId?: string;
   timePickerVariant?: TimePickerVariant;
   range?: RangeProps;
+  /**
+   * Не снимать фокус на завершении ввода минут — клавиатура остаётся открытой,
+   * кнопка «Далее» не прыгает. Следующая цифра перепечатывает минуты. Включено
+   * в step-флоу добавления еды и событий; default — обычный auto-blur.
+   */
+  keepKeyboardOnFinish?: boolean;
 };
 
 const formatDurationLabel = (mins: number): string => {
@@ -66,6 +72,7 @@ const TimeChoose = ({
   inputId,
   timePickerVariant: controlledVariant,
   range,
+  keepKeyboardOnFinish = false,
 }: Props) => {
   const [localVariant, setLocalVariant] = useState<TimePickerVariant>('manual');
   const variant = controlledVariant ?? localVariant;
@@ -81,6 +88,22 @@ const TimeChoose = ({
     onChangeRange: range?.onChangeRange,
   });
   const isRange = !!range;
+
+  // TimeChoose монтируется ОДИН раз: в степпер-флоу он живёт внутри ModalByLabel,
+  // который всегда в DOM (раскрывается/схлопывается по CSS, без mount/unmount).
+  // Поэтому useState-инициализатор отрабатывает единожды, и без этой синхронизации
+  // дисплей "залипает" на времени прошлой сессии, пока родительский draft.time
+  // уже сброшен на "сейчас" — пользователь видит 16:00, а «Далее» коммитит 14:24
+  // (время попадает в draft только через onFinish, а при нетронутом поле он молчит).
+  // Источник правды — initialTime (как в InlineTimeEditor): пере-синхронизируем
+  // дисплей на каждое изменение initialTime. В range-режиме своё per-tab состояние
+  // (rangeHours/rangeMinutes), его не трогаем.
+  useEffect(() => {
+    if (isRange) return;
+    const [h, m] = initialTime.split(':');
+    setHours(h);
+    setMinutes(m);
+  }, [initialTime, isRange]);
 
   // In range mode, the inner time input is driven by the active tab
   const effectiveOnFinish = isRange ? timeRange.currentTimeProps.onFinish : onFinish;
@@ -134,6 +157,7 @@ const TimeChoose = ({
             hourAriaLabel={hourAriaLabel}
             minuteAriaLabel={minuteAriaLabel}
             inputId={inputId}
+            keepKeyboardOnFinish={keepKeyboardOnFinish}
           />
           {isRange && (
             <RangeTabs

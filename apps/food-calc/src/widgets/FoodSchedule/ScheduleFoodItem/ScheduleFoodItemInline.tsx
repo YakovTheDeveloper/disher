@@ -6,11 +6,12 @@ import { LongPressRow } from '@/features/shared/long-press-item';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { updateScheduleFood } from '@/entities/schedule-food';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
-import { useRecentlyAddedStore } from '@/features/food/food-free-text-parse';
+import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { getQtyUnit } from '@/shared/lib/servingUnit';
+import { useItemTimesStore } from '@/shared/model/itemTimesStore';
 
 type Props = {
   className?: string;
@@ -37,15 +38,11 @@ const ScheduleFoodItemInline = ({
   foodHtmlFor,
 }: Props) => {
   const id = item.id;
-  const isRecentFromFreeText = useRecentlyAddedStore((s) => s.ids.has(id));
-
-  useEffect(() => {
-    if (!isRecentFromFreeText) return;
-    const timer = setTimeout(() => {
-      useRecentlyAddedStore.getState().remove(id);
-    }, 15000);
-    return () => clearTimeout(timer);
-  }, [isRecentFromFreeText, id]);
+  // «Недавно добавлен» — синий кружок справа. Чистится не по таймеру, а на
+  // свайп слайда / уход со страницы (HomePage owns the clear).
+  const isRecent = useRecentlyAddedStore((s) => s.ids.has(id));
+  // Global toggle (set from the TimeGroup time header): hide the per-row time.
+  const hideTime = useItemTimesStore((s) => s.hidden);
 
   const commitTime = (time: string) => {
     safeMutate(
@@ -112,22 +109,25 @@ const ScheduleFoodItemInline = ({
       className={clsx([
         className,
         styles.group,
+        hideTime && styles.timesHidden,
         isCustom && styles.customProduct,
       ])}
-      wrapperClassName={clsx(isRecentFromFreeText && styles.recentFreeTextWrapper)}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={id}
       index={index}
       tod={getTimeOfDay(item.time)}
+      recent={isRecent}
       data-schedule-food-id={id}
       onLongPress={onLongPress}
     >
-      <InlineTimeEditor
-        value={item.time}
-        onCommit={commitTime}
-        displayClassName={styles.timeDisplay}
-        editClassName={styles.timeEdit}
-      />
+      {!hideTime && (
+        <InlineTimeEditor
+          value={item.time}
+          onCommit={commitTime}
+          displayClassName={styles.timeDisplay}
+          editClassName={styles.timeEdit}
+        />
+      )}
 
       <label
         className={styles.foodCol}

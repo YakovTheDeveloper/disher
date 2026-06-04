@@ -13,8 +13,8 @@ import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { SlideArtFrame } from './ui/SlideArtFrame';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { useSurface } from '@/shared/lib/surface';
+import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import normsImg from '@/shared/assets/decarative/norms.png';
 import { NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
 import { drawerStore } from '@/shared/ui/drawer-store';
@@ -27,15 +27,8 @@ const SCREENS: ScreenEntry[] = [
 ];
 
 const DEFAULT_SLIDE = 1;
-// Ambient backdrop варианты — radial-glow подложки на `.container`. CSS
-// живёт в HomePage.module.scss (`[data-dv='HomeAmbient']`).
-const HOME_AMBIENT_VARIANTS = [
-  'plain',
-  'peach-rose',
-  'mint-sky',
-  'lavender-cream',
-  'sunrise',
-] as const;
+// Ambient backdrop переехал на app-уровень (App.tsx `useDesignVariant('HomeAmbient')`
+// на `.main`) — один глобальный переключатель свечения для всех страниц.
 // Embla programmatic-scroll duration (frame-loop units). Сокращён
 // относительно дефолта 25, потому что юзер добавил margin между слайдами:
 // scroll-дистанция выросла → spring-кривая Embla в конце давала visible
@@ -63,6 +56,17 @@ const Page = ({ date }: { date: string }) => {
 
   const swipeableRef = useRef<SwipeableRef>(null);
 
+  // «Недавно добавлен»-кружки (еда + события) живут до первого свайпа слайда
+  // или ухода со страницы. Чистка идёт через zustand-стор → ре-рендерятся
+  // только сами «свежие» строки (теряют кружок), Page не подписан и не
+  // ре-рендерится — свайп остаётся zero-React-render (Embla двигает DOM сам).
+  const clearRecent = useCallback(() => {
+    useRecentlyAddedStore.getState().clear();
+  }, []);
+  // Уход со страницы / смена даты — сбросить пометки (cleanup на размонтаж и
+  // перед сменой date).
+  useEffect(() => clearRecent, [date, clearRecent]);
+
   // Preload bandImg PNG'шек: на первый клик по тайлу image уже в HTTP-кеше,
   // decode <1ms → CSS-fade стартует на готовых пикселях, нет "pop"
   // (cold-cache decode ~50-150ms на iOS WebKit съедал первую часть
@@ -74,8 +78,6 @@ const Page = ({ date }: { date: string }) => {
       img.src = s.image;
     });
   }, []);
-
-  const { anchor: ambientAnchor } = useDesignVariant('HomeAmbient', HOME_AMBIENT_VARIANTS);
 
   // Nutrients pill переехал с bottom-bar (leadingSlot) в HomeTopBar centerSlot
   // (эксперимент 2026-05-21: bottom-bar теперь messenger-style write-field, в
@@ -151,7 +153,7 @@ const Page = ({ date }: { date: string }) => {
   );
 
   return (
-    <div className={homeStyles.container} {...ambientAnchor}>
+    <div className={homeStyles.container}>
       <HomeTopBar date={date} centerSlot={topBarCenterSlot} />
       <div className={homeStyles.swipeArea}>
         <Swipeable
@@ -159,6 +161,7 @@ const Page = ({ date }: { date: string }) => {
           defaultSlide={DEFAULT_SLIDE}
           duration={SWIPE_DURATION}
           hasDots={false}
+          onIndexChange={clearRecent}
         >
           <SlideArtFrame>
             <Laboratory key={date} date={date} topSlot={labIndicator} />

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
+import './fonts';
 import s from '@/shared/assets/style/App.module.scss';
 import '@/shared/assets/style/index.scss';
 import '@/shared/assets/style/App.module.scss';
@@ -17,6 +18,20 @@ import { AuthGate } from '@/features/auth';
 import { BackupGate } from '@/features/backup/BackupGate';
 import { useApplyUserTheme } from '@/shared/lib/user-theme';
 import { useHeadingFontTrial } from '@/shared/lib/useHeadingFontTrial';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+
+// Глобальный ambient-backdrop (radial-glow обвязки экрана). Один anchor на
+// app-уровне (`.main`) → DesignVariantsBar переключает свечение сразу для ВСЕХ
+// страниц (HomePage / Schedule / Product / Dish / Analyses). Первый вариант =
+// продакшен-дефолт (см. useDesignVariant fallback). CSS — App.module.scss
+// (`.main[data-dv='HomeAmbient']`).
+const HOME_AMBIENT_VARIANTS = [
+  'peach-rose',
+  'mint-sky',
+  'lavender-cream',
+  'sunrise',
+  'plain',
+] as const;
 
 export default function App() {
   useLastFocusMethod();
@@ -25,6 +40,8 @@ export default function App() {
   useApplyUserTheme();
   useHeadingFontTrial();
   setupGlobalLog();
+
+  const { anchor: ambientAnchor } = useDesignVariant('HomeAmbient', HOME_AMBIENT_VARIANTS);
 
   // Boot-hydrate the daily-analysis store from idb-keyval. Without this the
   // store starts empty on every reload — a completed daily review would not
@@ -60,7 +77,7 @@ export default function App() {
           },
         }}
       />
-      <div className={s.main}>
+      <div className={s.main} {...ambientAnchor}>
         <ModalManager />
         <DrawerManager />
 

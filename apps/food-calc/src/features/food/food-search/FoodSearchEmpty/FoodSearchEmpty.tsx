@@ -1,4 +1,5 @@
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
+import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import styles from './FoodSearchEmpty.module.scss';
 
 const PlusIcon = () => (
@@ -87,6 +88,10 @@ export const FoodSearchEmpty = ({
   const hasQuery = query.length > 0;
   const asLabel = Boolean(createInputHtmlFor);
 
+  // Независимый press-отклик на каждую кнопку (один общий хук подсветил бы обе).
+  const dishPress = usePressFeedback();
+  const productPress = usePressFeedback();
+
   const productContent = (
     <>
       <PlusIcon />
@@ -117,11 +122,18 @@ export const FoodSearchEmpty = ({
               htmlFor={createInputHtmlFor}
               className={styles.pillSecondary}
               onClick={onCreateDish}
+              data-pressed={dishPress.pressed || undefined}
+              {...dishPress.pressProps}
             >
               {dishContent}
             </label>
           ) : (
-            <button className={styles.pillSecondary} onClick={onCreateDish}>
+            <button
+              className={styles.pillSecondary}
+              onClick={onCreateDish}
+              data-pressed={dishPress.pressed || undefined}
+              {...dishPress.pressProps}
+            >
               {dishContent}
             </button>
           ))}
@@ -131,11 +143,18 @@ export const FoodSearchEmpty = ({
               htmlFor={createInputHtmlFor}
               className={styles.pillPrimary}
               onClick={onCreateProduct}
+              data-pressed={productPress.pressed || undefined}
+              {...productPress.pressProps}
             >
               {productContent}
             </label>
           ) : (
-            <button className={styles.pillPrimary} onClick={onCreateProduct}>
+            <button
+              className={styles.pillPrimary}
+              onClick={onCreateProduct}
+              data-pressed={productPress.pressed || undefined}
+              {...productPress.pressProps}
+            >
               {productContent}
             </button>
           ))}

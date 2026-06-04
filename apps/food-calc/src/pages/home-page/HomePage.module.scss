@@ -17,92 +17,18 @@
     // Контент в `Screen.screenScroll` стартует под top-bar'ом. Используем
     // существующую переменную `--page-top-inset`, читаемую `screenScroll`.
     --page-top-inset: var(--top-bar-h);
-    // Ambient свечение живёт на `.container` (см. варианты ниже). Системный
-    // принцип: ambient проступает только через chrome (sticky-индикатор +
-    // нижний dock), а контент-плашка `.headerOverlap` остаётся opaque —
-    // иначе строки списка плывут через свечение (нечитаемо) и samokat-эффект
-    // «контент накрывает хедер скруглением» ломается. Тот же паттерн стоит
-    // применять на любой странице с ambient-подложкой.
+    // Ambient свечение живёт на app-уровне (`.main[data-dv='HomeAmbient']`, см.
+    // строки 30-32 ниже). Системный принцип: ambient проступает только через
+    // chrome (sticky-индикатор + нижний dock), а контент-плашка `.headerOverlap`
+    // остаётся opaque — иначе строки списка плывут через свечение (нечитаемо) и
+    // samokat-эффект «контент накрывает хедер скруглением» ломается.
     --sticky-top-bg: transparent;
-    --bottom-bar-bg: transparent;
+    // Фон нижнего бара НЕ задаём — его источник истины один: `.bottomBar` в
+    // Screen.module.scss (прозрачный по умолчанию, свечение проступает сквозь).
     // --header-overlap-bg намеренно НЕ переопределяем — дефолт `#ffffff`.
-    // Дефолт — чистый white body (без свечения). Ambient-glow подложки
-    // живут на вариантах `[data-dv='HomeAmbient']` ниже; переключаются
-    // через `DesignVariantsBar`.
-}
-
-// ─── Ambient backdrop variants ───────────────────────────────────────
-// Все варианты — radial-glow из верхних углов, угасают в transparent.
-// Никаких чётких границ, никаких квадратных коробок.
-
-// 1) plain — чистый white body. Дефолт.
-.container[data-dv='HomeAmbient'][data-dv-v='plain'] {
-    background: none;
-}
-
-// 2) peach-rose — тёплый peach слева + холодный rose справа.
-.container[data-dv='HomeAmbient'][data-dv-v='peach-rose'] {
-    background:
-        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(253, 230, 200, 0.55), transparent 60%),
-        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(252, 225, 235, 0.45), transparent 60%);
-}
-
-// 3) mint-sky — прохладный mint + sky-blue.
-.container[data-dv='HomeAmbient'][data-dv-v='mint-sky'] {
-    background:
-        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(210, 240, 220, 0.55), transparent 60%),
-        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(210, 228, 245, 0.5), transparent 60%);
-}
-
-// 4) lavender-cream — лавандовый + кремовый.
-.container[data-dv='HomeAmbient'][data-dv-v='lavender-cream'] {
-    background:
-        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(225, 215, 245, 0.5), transparent 60%),
-        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(252, 245, 220, 0.55), transparent 60%);
-}
-
-// 5) sunrise — широкий single-glow по центру сверху, имитирует рассвет.
-.container[data-dv='HomeAmbient'][data-dv-v='sunrise'] {
-    background:
-        radial-gradient(ellipse 120% 50% at 50% 0%, rgba(255, 220, 180, 0.6), transparent 65%);
-}
-
-// ─── ProductAmbient variants ─────────────────────────────────────────
-// Тот же идиом radial-glow из углов, что HomeAmbient, но голубая гамма.
-// Anchor общий для ProductPage и DishBuilderPage (детальные экраны
-// продукта/блюда). Селекторы навешиваются на тот же scoped-класс
-// `.container` — обе страницы применяют `homeStyles.container`.
-
-// 1) plain — чистый white body. Дефолт (скриншоты/тесты).
-.container[data-dv='ProductAmbient'][data-dv-v='plain'] {
-    background: none;
-}
-
-// 2) sky-mist — мягкий небесно-голубой слева + белёсо-голубой справа.
-.container[data-dv='ProductAmbient'][data-dv-v='sky-mist'] {
-    background:
-        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(205, 230, 250, 0.55), transparent 60%),
-        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(225, 238, 248, 0.5), transparent 60%);
-}
-
-// 3) ice-blue — холодный лёд слева + бледно-стальной справа.
-.container[data-dv='ProductAmbient'][data-dv-v='ice-blue'] {
-    background:
-        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(212, 235, 240, 0.55), transparent 60%),
-        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(220, 228, 240, 0.5), transparent 60%);
-}
-
-// 4) periwinkle — барвинково-голубой + светло-сиреневый край.
-.container[data-dv='ProductAmbient'][data-dv-v='periwinkle'] {
-    background:
-        radial-gradient(ellipse 90% 60% at 0% 0%, rgba(212, 220, 248, 0.5), transparent 60%),
-        radial-gradient(ellipse 90% 60% at 100% 0%, rgba(230, 226, 246, 0.5), transparent 60%);
-}
-
-// 5) dawn-blue — широкий single-glow по центру сверху, холодный аналог sunrise.
-.container[data-dv='ProductAmbient'][data-dv-v='dawn-blue'] {
-    background:
-        radial-gradient(ellipse 120% 50% at 50% 0%, rgba(200, 224, 248, 0.6), transparent 65%);
+    // Ambient-glow подложка переехала на app-уровень (`.main[data-dv='HomeAmbient']`
+    // в App.module.scss) — один глобальный переключатель для всех страниц.
+    // `.container` сам прозрачен, свечение `.main` проступает сквозь обвязку.
 }
 
 .swipeArea {

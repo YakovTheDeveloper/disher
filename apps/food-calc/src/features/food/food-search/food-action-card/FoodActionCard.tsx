@@ -6,6 +6,7 @@ import { deleteProducts } from '@/entities/product';
 import { deleteDishes } from '@/entities/dish';
 import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
 import { isCreatedByUser } from '@/shared/lib';
+import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { getProductUrl, RouterUrls } from '@/app/router';
 import { drawerStore } from '@/shared/ui/drawer-store';
@@ -111,6 +112,7 @@ const FoodActionCard = ({
   htmlFor,
 }: Props) => {
   const navigate = useNavigate();
+  const { pressed, pressProps } = usePressFeedback();
   const infoHref = variant === 'product' ? getProductUrl(item.id) : RouterUrls.getDish(item.id);
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.id);
   const isCatalogProduct = variant === 'product' && !userCreated;
@@ -172,7 +174,7 @@ const FoodActionCard = ({
       : null;
 
   return (
-    <li className={styles.wrapper} role="option">
+    <li className={styles.wrapper} role="option" data-pressed={pressed || undefined}>
       {richNutrientValue !== null && richness > 0 && (
         <span
           className={styles.richBar}
@@ -199,6 +201,7 @@ const FoodActionCard = ({
           onClick={() => {
             onClick?.();
           }}
+          {...pressProps}
         >
           <span className={styles.name}>{item.name}</span>
           {variant === 'product' && item.servingBasis === 'serving' && (
@@ -211,6 +214,7 @@ const FoodActionCard = ({
           onClick={() => {
             onClick?.();
           }}
+          {...pressProps}
         >
           <span className={styles.name}>{item.name}</span>
           {variant === 'product' && item.servingBasis === 'serving' && (

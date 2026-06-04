@@ -17,6 +17,9 @@ type Props = {
   /** Position in the list — drives the staggered entrance cascade. */
   index?: number;
   tod?: TimeOfDay;
+  /** «Недавно добавлен» marker — синий кружок в правом жёлобе ВНЕ подложки
+   *  карточки (recent-dot canon). Жёлоб открывается только когда true. */
+  recent?: boolean;
   onClick?: () => void;
   /** Fired on a sustained press (~450ms). Used to open the per-item action
    *  drawer. When omitted, a long press is a no-op (e.g. free-text rows that
@@ -38,6 +41,7 @@ const LongPressRow = ({
   variant,
   index,
   tod,
+  recent,
   onClick,
   onLongPress,
   ...rest
@@ -155,7 +159,12 @@ const LongPressRow = ({
 
   return (
     <div
-      className={clsx(styles.commonListItemWrapper, wrapperClassName, entrance.className)}
+      className={clsx(
+        styles.commonListItemWrapper,
+        wrapperClassName,
+        entrance.className,
+        recent && styles.hasRecentDot
+      )}
       style={entrance.style}
       data-tod={tod}
       onContextMenu={onContextMenu}
@@ -198,6 +207,7 @@ const LongPressRow = ({
           {children}
         </div>
       </li>
+      {recent && <span className={styles.recentDot} aria-hidden="true" />}
     </div>
   );
 };

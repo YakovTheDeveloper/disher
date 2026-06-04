@@ -26,6 +26,16 @@ $digit-size: 6rem;
     align-items: center;
     gap: 18px;
     width: 100%;
+
+    // ─── Цифры циферблата: канон Onest 800 (--font-big-numeric) ───
+    // Цифры (.input) и двоеточие (.separator) читают эти переменные из одного
+    // места, чтобы не разъезжались при правке. Onest читается лучше Jost'а на
+    // огромных глифах (см. project_font_big_numeric / --font-big-numeric).
+    --tc-digit-font: var(--font-big-numeric);
+    --tc-digit-weight: 800;
+    --tc-digit-style: normal;
+    --tc-digit-tracking: -0.085em;
+    --tc-digit-size: #{$digit-size};
 }
 
 // AutoGrowSearch-канон: warm-pill surface (gradient + hairline). `--field-*`
@@ -87,11 +97,12 @@ $digit-size: 6rem;
     display: block;
     width: 2ch;
     // padding: 0;
-    font-size: $digit-size;
-    font-family: 'Onest', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    font-weight: 800;
+    font-size: var(--tc-digit-size);
+    font-family: var(--tc-digit-font);
+    font-weight: var(--tc-digit-weight);
+    font-style: var(--tc-digit-style);
     line-height: 1;
-    letter-spacing: -0.085em;
+    letter-spacing: var(--tc-digit-tracking);
     text-align: center;
     border: none;
     background: transparent;
@@ -111,7 +122,7 @@ $digit-size: 6rem;
 
     &::placeholder {
         color: rgba(38, 38, 51, 0.45);
-        font-weight: 800;
+        font-weight: inherit;
     }
 }
 
@@ -132,14 +143,14 @@ $digit-size: 6rem;
     align-items: center;
     justify-content: center;
     color: rgba(38, 38, 51, 0.8);
-    // font-weight: 800;
+    font-family: var(--tc-digit-font);
+    font-style: var(--tc-digit-style);
     user-select: none;
     pointer-events: none;
-    font-size: $digit-size;
+    font-size: var(--tc-digit-size);
     line-height: 1;
     width: 10px;
     transform: translateY(-10%);
-    // letter-spacing: -0.085em;
     padding: 0 1px;
     text-shadow: var(--field-digit-shadow, 0 1px 2px rgba(124, 65, 15, 0.14));
 }
@@ -217,7 +228,7 @@ $digit-size: 6rem;
 .rangeTab {
     flex: 1;
     padding: 8px 14px;
-    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-size: 13px;
     font-weight: 500;
     text-transform: uppercase;
@@ -241,7 +252,7 @@ $digit-size: 6rem;
 }
 
 .rangeSummary {
-    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-size: 14px;
     font-weight: 500;
     color: rgba(10, 10, 10, 0.55);
@@ -252,7 +263,7 @@ $digit-size: 6rem;
 
 .nativeInput {
     font-size: 2rem;
-    font-family: 'Onest', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     padding: 12px 18px;
     border-radius: 16px;
     border: 1px solid transparent;
