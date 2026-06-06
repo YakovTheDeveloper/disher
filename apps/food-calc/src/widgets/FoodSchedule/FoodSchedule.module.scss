@@ -19,8 +19,8 @@
 .scheduleScreen {
   --header-overlap-bg:
     linear-gradient(180deg,
-      rgba(0, 0, 0, 0.022) 0%,
-      rgba(0, 0, 0, 0.012) 50%,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0) 99%,
       rgba(0, 0, 0, 0) 100%),
     #ffffff;
 }

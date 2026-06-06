@@ -84,7 +84,7 @@
     // а не обрывались резко. Страница/surface может переопределить
     // `--bottom-bar-bg` (сплошной цвет или `transparent`). Внутренние обёртки
     // (AppBottomBar `.writeDock`/`.shellSolo`) фон НЕ красят — источник тут.
-    --bottom-bar-scrim: rgba(0, 0, 0, 0.13);
+    --bottom-bar-scrim: rgba(0, 0, 0, 0.07);
     // --bottom-bar-scrim-h: 30px;
     background: var(--bottom-bar-bg, var(--bottom-bar-scrim));
     padding-bottom: env(safe-area-inset-bottom);
@@ -99,10 +99,39 @@
     left: 0;
     right: 0;
     bottom: 100%;
-    height: var(--bottom-bar-scrim-h, 88px);
+    height: var(--bottom-bar-scrim-h, 40px);
     background: linear-gradient(to top, var(--bottom-bar-bg, var(--bottom-bar-scrim)), transparent);
     pointer-events: none;
 }
+
+// ─── Прятать нижний бар при инлайн-правке сущности (время/количество) ──────
+// Когда инлайн-редактор поля сущности в скролл-контенте получает фокус, прячем
+// весь `.bottomBar` (а с ним и scrim-`::before`) — write-пилюля не мешает правке
+// и не накладывается на клавиатуру. `display: none` ВОЗВРАЩАЕТ место бара в flex
+// (скроллер растягивается). Скоуп через `[data-entity-edit]` (маркер на edit-
+// обёртке InlineTimeEditor / qty): фокус самого write-бара (он ВНУТРИ .bottomBar
+// и маркера не несёт) бар НЕ прячет. `.screen` — общий предок и контента, и бара,
+// поэтому :has() достаёт. Поддержка :has() — уже опираемся на неё в проекте.
+.screen:has([data-entity-edit]:focus-within) .bottomBar {
+    display: none;
+}
+
+// Органичная альтернатива (если резкое исчезновение не нравится) — съезд вниз +
+// затухание вместо display:none. Минус: translateY оставляет место бара в потоке
+// (скроллер не растягивается). `allow-discrete` (Safari 17.4+/Chrome 116+) даёт
+// «и красиво, и место освобождается»: анимируем transform/opacity, а затем
+// дискретно гасим display после перехода. Раскомментировать ВМЕСТО правила выше.
+//
+// .bottomBar {
+//     transition: transform 0.22s ease, opacity 0.22s ease,
+//         display 0.22s allow-discrete;
+// }
+// .screen:has([data-entity-edit]:focus-within) .bottomBar {
+//     display: none;
+//     transform: translateY(100%);
+//     opacity: 0;
+//     pointer-events: none;
+// }
 
 // ─── Overlay bottom-bar (см. Screen `bottomBarOverlay`) ────────────────
 // Бар становится absolute-оверлеем над контентом, список скроллится ПОД ним.

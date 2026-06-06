@@ -45,7 +45,7 @@
   --heading-size-modal-sub: 2rem; // 26px — sub-heading inside a modal (Alice, non-italic)
   --heading-size-modal-header: 1.75rem; // 28px — ModalHeader bar title (centered)
   --heading-size-drawer: 1.5rem; // 24px — drawer header
-  --heading-size-section: 2.3rem; // ~37px — in-page content heading (FoodSchedule day, Product/Dish name)
+  --heading-size-section: var(--text-2xl); // ~37px — in-page content heading (FoodSchedule day, Product/Dish name)
   // Single top gap above an overlay title — owned by the title itself, so it
   // stays constant regardless of how the modal nests it (see ModalShell).
   --modal-title-offset: var(--space-6); // 24px

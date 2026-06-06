@@ -63,6 +63,141 @@
     }
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// Row-boundary design variants — DesignBar key `RowBoundary`
+// ════════════════════════════════════════════════════════════════════════
+// The anchor (see rowBoundary.ts) wraps the ItemsList in BOTH FoodSchedule and
+// ScheduleEvents, so these rules reach food rows AND health-event rows with one
+// shared bar control. Each variant decides how adjacent rows in a time-group
+// meet at their shared edge.
+//
+// The legacy look (`.container` block above) stacks three 1px lines at every
+// seam: the upper card's bottom outline + the lower card's top outline (outline
+// never collapses) + this block's `::before` hairline — the muddy "inorganic"
+// border. The variants below each replace that with ONE coherent treatment.
+//
+// `li` = the inner card (`.commonListItemInner`, rendered by LongPressRow).
+// Position (first / middle / last) is tracked on the `> div` wrapper; some
+// consumers render the row as a bare `> li`, so both forms are matched.
+// `var(--_outline-from)` is the per-time-of-day accent colour, published on
+// each card by LongPressRow. The `-flat` / `-soft` suffixes share geometry and
+// differ only in the group's drop shadow (flat = none, soft = half strength).
+
+// ── merged (flat | soft): one soft frame around the whole group; inner rows
+//    parted by a fading hairline (transparent → tint → transparent).
+:global([data-dv='RowBoundary'][data-dv-v='merged-flat']) .container,
+:global([data-dv='RowBoundary'][data-dv-v='merged-soft']) .container {
+
+    >div li,
+    >li {
+        --row-rest-outline-w: 0; // drop the vivid per-row frame
+        --row-last-shadow: none; // …and the per-row drop shadow
+        --bnd-edge: color-mix(in oklch, var(--_outline-from) 36%, transparent);
+        border-inline: 1px solid var(--bnd-edge); // continuous side rails
+    }
+
+    >div:first-of-type li,
+    >li:first-of-type {
+        border-top: 1px solid var(--bnd-edge);
+    }
+
+    >div:last-of-type li,
+    >li:last-of-type {
+        border-bottom: 1px solid var(--bnd-edge);
+    }
+
+    >div:not(:first-of-type) li::before,
+    >li:not(:first-of-type)::before {
+        left: var(--space-4);
+        right: var(--space-4);
+        background: linear-gradient(90deg,
+                transparent 0%,
+                color-mix(in oklch, var(--_outline-from) 30%, transparent) 20%,
+                color-mix(in oklch, var(--_outline-from) 30%, transparent) 80%,
+                transparent 100%);
+    }
+}
+
+// merged-soft: group's last row casts a half-strength shadow (0.16 → 0.08).
+:global([data-dv='RowBoundary'][data-dv-v='merged-soft']) .container {
+
+    >div:last-of-type li,
+    >li:last-of-type {
+        --row-last-shadow: 0 12px 18px -14px rgba(0, 0, 0, 0.08);
+    }
+}
+
+// ── borderless: no frame at all. Rows read as soft tint blocks parted by a
+//    whisper-faint hairline. The most subtle / organic option.
+:global([data-dv='RowBoundary'][data-dv-v='borderless']) .container {
+
+    >div li,
+    >li {
+        --row-rest-outline-w: 0;
+        --row-last-shadow: none;
+        border: 0;
+    }
+
+    >div:not(:first-of-type) li::before,
+    >li:not(:first-of-type)::before {
+        left: var(--space-4);
+        right: var(--space-4);
+        background: linear-gradient(90deg,
+                transparent 0%,
+                color-mix(in oklch, var(--_outline-from) 15%, transparent) 30%,
+                color-mix(in oklch, var(--_outline-from) 15%, transparent) 70%,
+                transparent 100%);
+    }
+}
+
+// ── rail (flat | soft): soft frame + a vivid full-height accent rail on the
+//    left edge (stripe-fork rule #3). The accent colour moves OFF the full
+//    perimeter and ONTO the rail, so the green stays as identity.
+:global([data-dv='RowBoundary'][data-dv-v='rail-flat']) .container,
+:global([data-dv='RowBoundary'][data-dv-v='rail-soft']) .container {
+
+    >div li,
+    >li {
+        --row-rest-outline-w: 0;
+        --row-last-shadow: none;
+        --bnd-edge: color-mix(in oklch, var(--_outline-from) 26%, transparent);
+        border-inline-end: 1px solid var(--bnd-edge);
+        border-inline-start: 3px solid var(--_outline-from); // vivid TOD rail
+    }
+
+    >div:first-of-type li,
+    >li:first-of-type {
+        border-top: 1px solid var(--bnd-edge);
+        border-top-left-radius: 0; // square the left so the rail reads as a straight bar
+    }
+
+    >div:last-of-type li,
+    >li:last-of-type {
+        border-bottom: 1px solid var(--bnd-edge);
+        border-bottom-left-radius: 0;
+    }
+
+    >div:not(:first-of-type) li::before,
+    >li:not(:first-of-type)::before {
+        left: var(--space-4);
+        right: var(--space-4);
+        background: linear-gradient(90deg,
+                transparent 0%,
+                color-mix(in oklch, var(--_outline-from) 26%, transparent) 20%,
+                color-mix(in oklch, var(--_outline-from) 26%, transparent) 80%,
+                transparent 100%);
+    }
+}
+
+// rail-soft: group's last row casts a half-strength shadow (0.16 → 0.08).
+:global([data-dv='RowBoundary'][data-dv-v='rail-soft']) .container {
+
+    >div:last-of-type li,
+    >li:last-of-type {
+        --row-last-shadow: 0 12px 18px -14px rgba(0, 0, 0, 0.08);
+    }
+}
+
 .noShadow {
     box-shadow: none;
     border: none;
@@ -176,7 +311,7 @@
         justify-content: center;
         align-items: center;
         gap: var(--space-1);
-        padding-left: var(--space-2);
+        padding-left: var(--space-3);
 
     }
 

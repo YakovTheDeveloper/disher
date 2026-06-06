@@ -11,7 +11,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const MODEL_NAME = "Xenova/multilingual-e5-small";
 const DIM = 384;
 
-const seedPath = resolve(__dirname, "../../seed/combined-foods-final.json");
+// Embeddings are built from the frontend catalog (see gen-food-embeddings.ts) —
+// track its mtime for the staleness check so a catalog rebuild triggers a regen.
+const seedPath = resolve(__dirname, "../../../food-calc/src/shared/data/catalog.json");
 const embPath = resolve(__dirname, "../../data/food-embeddings.json");
 const aliasPath = resolve(__dirname, "../../data/food-aliases.json");
 

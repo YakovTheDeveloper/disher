@@ -3,6 +3,12 @@ import { getStorageKey, type ParseTarget } from './target';
 
 export type PersistedStatus = 'loading' | 'ready' | 'error';
 
+// Which front-end produced this parse — picks the fetcher on a reload-during-
+// loading restore. 'text' = user typed (free-text-food/parse), 'dishName' =
+// semantic "infer recipe" button (suggestions/dish-products). Optional for
+// backward compat with states persisted before this field existed (→ 'text').
+export type ParseIntake = 'text' | 'dishName';
+
 export interface PersistedParseState {
   target: ParseTarget;
   status: PersistedStatus;
@@ -11,6 +17,7 @@ export interface PersistedParseState {
   errorMessage?: string;
   startedAt: number;
   requestId: string;
+  intake?: ParseIntake;
 }
 
 function storageAvailable(): boolean {

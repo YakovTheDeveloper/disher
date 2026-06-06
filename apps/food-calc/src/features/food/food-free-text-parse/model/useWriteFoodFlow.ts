@@ -7,11 +7,13 @@ import {
   type UnresolvedItem,
   type MatchCandidate,
 } from '../api/parseFreeTextFood';
+import { parseDishName } from '../api/parseDishName';
 import {
   clearParseState,
   readParseState,
   writeParseState,
   type PersistedParseState,
+  type ParseIntake,
 } from './parseStateStorage';
 import { targetId, type ParseTarget } from './target';
 import { db } from '@/shared/lib/dexie/schema';
@@ -86,6 +88,7 @@ export interface UseWriteFoodFlowResult {
   inputText: string;
   errorMessage: string | null;
   submit: (text: string) => void;
+  submitDishName: (dishName: string) => void;
   retry: () => void;
   cancel: () => void;
   minimize: () => void;
@@ -155,6 +158,9 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeRequestIdRef = useRef<string | null>(null);
   const targetKeyRef = useRef<string>(`${target.kind}:${targetId(target)}`);
+  // Which front-end produced the latest intake — so `retry` re-runs the right
+  // one (text → head B, dishName → head A) instead of always re-parsing as text.
+  const lastIntakeRef = useRef<ParseIntake>('text');
 
   const requestIdRef = useRef<string | null>(null);
   const matcherLatencyRef = useRef<number>(0);
@@ -222,7 +228,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   );
 
   const startFetch = useCallback(
-    (text: string, requestId: string, startedAt: number) => {
+    (text: string, requestId: string, startedAt: number, intake: ParseIntake = 'text') => {
       const controller = new AbortController();
       abortRef.current = controller;
       activeRequestIdRef.current = requestId;
@@ -238,13 +244,17 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
           errorMessage: 'Не дождались ответа. Попробуйте ещё раз.',
           startedAt,
           requestId,
+          intake,
         };
         writeParseState(persisted);
         setState('error');
         setErrorMessage(persisted.errorMessage ?? null);
       }, PARSE_TIMEOUT_MS);
 
-      parseFreeTextFood(text, controller.signal).then(
+      // Two front-ends, one state machine: typed text → head B; semantic
+      // "infer recipe" button → head A. Both resolve to the same ParseResponse.
+      const fetcher = intake === 'dishName' ? parseDishName : parseFreeTextFood;
+      fetcher(text, controller.signal).then(
         (response) => {
           if (controller.signal.aborted) return;
           if (activeRequestIdRef.current !== requestId) return;
@@ -256,6 +266,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
             parseResult: response,
             startedAt,
             requestId,
+            intake,
           };
           writeParseState(persisted);
           setParseResult(response);
@@ -282,6 +293,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
             errorMessage: message,
             startedAt,
             requestId,
+            intake,
           };
           writeParseState(persisted);
           setErrorMessage(message);
@@ -354,7 +366,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       startedAt: Date.now(),
     };
     writeParseState(refreshed);
-    startFetch(persisted.inputText, newRequestId, refreshed.startedAt);
+    startFetch(persisted.inputText, newRequestId, refreshed.startedAt, persisted.intake);
     // cleanup on unmount handled by separate effect
   }, [target.kind, targetId(target)]);
 
@@ -499,10 +511,11 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
 
   // ─── Parse-cycle actions ───
 
-  const submit = useCallback(
-    (text: string) => {
-      const trimmed = text.trim();
+  const startIntake = useCallback(
+    (rawText: string, intake: ParseIntake) => {
+      const trimmed = rawText.trim();
       if (!trimmed) return;
+      lastIntakeRef.current = intake;
       abortActive();
       const requestId = makeRequestId();
       const startedAt = Date.now();
@@ -512,15 +525,27 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         inputText: trimmed,
         startedAt,
         requestId,
+        intake,
       };
       writeParseState(persisted);
       setInputText(trimmed);
       setParseResult(null);
       setErrorMessage(null);
       setState('loading');
-      startFetch(trimmed, requestId, startedAt);
+      startFetch(trimmed, requestId, startedAt, intake);
     },
     [abortActive, startFetch, target],
+  );
+
+  // Typed text (head B). Same single entry point the bottom write-bar uses.
+  const submit = useCallback((text: string) => startIntake(text, 'text'), [startIntake]);
+
+  // Semantic "infer recipe" button (head A) — symmetric to `submit`: fetch lives
+  // inside the engine, result lands in the same resolved/ambiguous/unresolved
+  // state machine + предложка. Used by the dish page «Предложить состав» button.
+  const submitDishName = useCallback(
+    (dishName: string) => startIntake(dishName, 'dishName'),
+    [startIntake],
   );
 
   const retry = useCallback(() => {
@@ -528,8 +553,8 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       setState('idle');
       return;
     }
-    submit(inputText);
-  }, [inputText, submit]);
+    startIntake(inputText, lastIntakeRef.current);
+  }, [inputText, startIntake]);
 
   const resetAll = useCallback(() => {
     setState('idle');
@@ -561,9 +586,9 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   // `toggle*` инвертит `enabled` на ряду; ряд остаётся в массиве, `commit` +
   // `totalToAdd` (`selectCommittable`) игнорируют `enabled === false`. UI
   // рисует strikethrough + ↶ на месте крестика. Никакого 3-секундного
-  // toast'а / auto-cancel'а / hard-delete'а — после миграции DishBuilder
-  // 2026-05-23 это единственный путь dismiss'а для обеих точек входа
-  // (HomePage InlineWriteFoodReview + DishBuilder WriteFoodModal).
+  // toast'а / auto-cancel'а / hard-delete'а — единственный путь dismiss'а для
+  // обеих точек входа, обе теперь на InlineWriteFoodReview (HomePage/Schedule +
+  // DishBuilderPage, последний подмонтирован 2026-06-05).
   const toggleResolved = useCallback((uid: string) => {
     setResolved((prev) =>
       prev.map((r) => (r.uid === uid ? { ...r, enabled: !r.enabled } : r)),
@@ -792,6 +817,9 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
                   dishId,
                   productId: c.productId,
                   quantity: c.quantity,
+                  // head A fills details (борщ→свекла «вареная»); persist it so
+                  // it renders as the ingredient subtitle on the dish row.
+                  details: c.details ?? '',
                 });
               }
             }),
@@ -847,6 +875,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     inputText,
     errorMessage,
     submit,
+    submitDishName,
     retry,
     cancel,
     minimize,

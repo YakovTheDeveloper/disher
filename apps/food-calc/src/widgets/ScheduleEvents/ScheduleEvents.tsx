@@ -22,6 +22,7 @@ import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS } from '@/features/shared/long-press-item';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { formatWeekdayTitle } from '@/shared/lib/time/formatWeekday';
 
@@ -52,6 +53,9 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
   const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
 
   const { anchor: eventsAnchor } = useDesignVariant('ScheduleFood', EVENTS_VARIANTS);
+  // Shared with FoodSchedule: one DesignBar control for the adjacent-row edge
+  // treatment across food + event rows (same key → same stored variant).
+  const { anchor: boundaryAnchor } = useDesignVariant(ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS);
 
   const [editingItem, setEditingItem] = useState<ScheduleEvent | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'text' | 'atoms'>('idle');
@@ -113,37 +117,37 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
       }
     >
       <section {...eventsAnchor} className={clsx(['builder__time-groups', styles.eventsBuilder])}>
-        <ItemsList offsetTop>
-          {(() => {
-            let globalIndex = 0;
-            return eventsGroupedByTime.map((timeGroup) => (
-              <React.Fragment key={timeGroup.startTime}>
-                <TimeGroup
-                  group={timeGroup}
-                >
-                  {timeGroup.items.map((item) => {
-                    const itemIndex = globalIndex++;
-                    return (
-                      <ScheduleEventCard
-                        key={item.id}
-                        item={item}
-                        index={itemIndex}
-                        totalCount={events.length}
-                        onLongPress={() => openActionsDrawer(item)}
-                        onEditTime={() => openEditModal(item, 'time')}
-                        onEditText={() => openEditModal(item, 'text')}
-                        onEditAtoms={() => openEditModal(item, 'atoms')}
-                        timeHtmlFor={EVENT_EDIT_MODAL_INPUT_IDS.TIME_INPUT}
-                        textHtmlFor={EVENT_EDIT_MODAL_INPUT_IDS.TEXT_INPUT}
-                        atomsHtmlFor={EVENT_EDIT_MODAL_INPUT_IDS.ATOMS_INPUT}
-                      />
-                    );
-                  })}
-                </TimeGroup>
-              </React.Fragment>
-            ));
-          })()}
-        </ItemsList>
+        <div {...boundaryAnchor}>
+          <ItemsList offsetTop>
+            {(() => {
+              let globalIndex = 0;
+              return eventsGroupedByTime.map((timeGroup) => (
+                <React.Fragment key={timeGroup.startTime}>
+                  <TimeGroup group={timeGroup}>
+                    {timeGroup.items.map((item) => {
+                      const itemIndex = globalIndex++;
+                      return (
+                        <ScheduleEventCard
+                          key={item.id}
+                          item={item}
+                          index={itemIndex}
+                          totalCount={events.length}
+                          onLongPress={() => openActionsDrawer(item)}
+                          onEditTime={() => openEditModal(item, 'time')}
+                          onEditText={() => openEditModal(item, 'text')}
+                          onEditAtoms={() => openEditModal(item, 'atoms')}
+                          timeHtmlFor={EVENT_EDIT_MODAL_INPUT_IDS.TIME_INPUT}
+                          textHtmlFor={EVENT_EDIT_MODAL_INPUT_IDS.TEXT_INPUT}
+                          atomsHtmlFor={EVENT_EDIT_MODAL_INPUT_IDS.ATOMS_INPUT}
+                        />
+                      );
+                    })}
+                  </TimeGroup>
+                </React.Fragment>
+              ));
+            })()}
+          </ItemsList>
+        </div>
       </section>
     </Screen>
   );

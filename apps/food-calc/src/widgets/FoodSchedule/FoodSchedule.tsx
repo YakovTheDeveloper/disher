@@ -15,6 +15,7 @@ import {
 } from '@/widgets/FoodSchedule/ui';
 import { AppBottomBar } from '@/shared/ui/AppBottomBar';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS } from '@/features/shared/long-press-item';
 import { removeScheduleFood } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
@@ -70,6 +71,9 @@ const FoodSchedule = ({
 
   // Design-variant picker for the food list palette (graphite-blue family).
   const { anchor: foodAnchor } = useDesignVariant('ScheduleFood', FOOD_DV_VARIANTS);
+  // Second anchor: how adjacent rows meet at their shared edge. Same key as
+  // ScheduleEvents so one DesignBar control drives food + event rows together.
+  const { anchor: boundaryAnchor } = useDesignVariant(ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS);
 
   const startEdit = editFlow.startEdit;
   const onEditTime = useCallback(
@@ -174,38 +178,40 @@ const FoodSchedule = ({
       }
     >
       <div {...foodAnchor} className={styles.foodListAnchor}>
-        <ItemsList>
-          {(() => {
-            let globalIndex = 0;
-            const rendered = groups.map((group) => (
-              <Fragment key={group.startTime}>
-                <TimeGroup group={group}>
-                  {
-                    group.items.map((item) => {
-                      const itemIndex = globalIndex++;
-                      return (
-                        <ScheduleFoodItem
-                          key={item.id}
-                          item={item}
-                          index={itemIndex}
-                          totalCount={items.length}
-                          onLongPress={() => openActionsDrawer(item)}
-                          onEditTime={onEditTime}
-                          onEditFood={onEditFood}
-                          onEditQuantity={onEditQuantity}
-                          timeHtmlFor={SCHEDULE_FOOD_INPUT_IDS.TIME_EDIT_INPUT}
-                          foodHtmlFor={SCHEDULE_FOOD_INPUT_IDS.DETAILS_EDIT_INPUT}
-                          quantityHtmlFor={SCHEDULE_FOOD_INPUT_IDS.QUANTITY_EDIT_INPUT}
-                        />
-                      );
-                    }) as unknown as JSX.Element
-                  }
-                </TimeGroup>
-              </Fragment>
-            ));
-            return rendered;
-          })()}
-        </ItemsList>
+        <div {...boundaryAnchor}>
+          <ItemsList>
+            {(() => {
+              let globalIndex = 0;
+              const rendered = groups.map((group) => (
+                <Fragment key={group.startTime}>
+                  <TimeGroup group={group}>
+                    {
+                      group.items.map((item) => {
+                        const itemIndex = globalIndex++;
+                        return (
+                          <ScheduleFoodItem
+                            key={item.id}
+                            item={item}
+                            index={itemIndex}
+                            totalCount={items.length}
+                            onLongPress={() => openActionsDrawer(item)}
+                            onEditTime={onEditTime}
+                            onEditFood={onEditFood}
+                            onEditQuantity={onEditQuantity}
+                            timeHtmlFor={SCHEDULE_FOOD_INPUT_IDS.TIME_EDIT_INPUT}
+                            foodHtmlFor={SCHEDULE_FOOD_INPUT_IDS.DETAILS_EDIT_INPUT}
+                            quantityHtmlFor={SCHEDULE_FOOD_INPUT_IDS.QUANTITY_EDIT_INPUT}
+                          />
+                        );
+                      }) as unknown as JSX.Element
+                    }
+                  </TimeGroup>
+                </Fragment>
+              ));
+              return rendered;
+            })()}
+          </ItemsList>
+        </div>
       </div>
       {/* Предложка переехала ПОД список (2026-05-23): chat-pattern — место
           результата рядом с местом ввода (bottom-bar). Во время loading

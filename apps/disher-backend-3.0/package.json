@@ -26,6 +26,7 @@
     "probe:matcher:oov": "tsx scripts/probe-matcher.ts --set=oov",
     "probe:coverage": "tsx scripts/probe-coverage.ts",
     "probe:parse": "tsx scripts/probe-parse.ts",
+    "probe:recipe": "tsx scripts/probe-recipe.ts",
     "mine:queries": "tsx scripts/mine-queries.ts",
     "analyze:logs": "tsx scripts/analyze-logs.ts"
   },

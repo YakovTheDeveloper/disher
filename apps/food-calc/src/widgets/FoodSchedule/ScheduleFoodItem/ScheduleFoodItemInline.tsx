@@ -147,6 +147,9 @@ const ScheduleFoodItemInline = ({
         {editingQty ? (
           <span
             className={styles.qtyEdit}
+            // Глобальный хук: пока правим количество, Screen прячет нижний бар
+            // (`Screen.module.scss` :has([data-entity-edit]:focus-within)).
+            data-entity-edit
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.currentTarget.querySelector('input')?.blur();

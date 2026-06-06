@@ -1,8 +1,11 @@
 import styles from './Screen.module.scss';
 import clsx from 'clsx';
-import { useRef, memo } from 'react';
+import { useRef, useEffect, memo } from 'react';
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
+
+// Фолбэк высоты absolute-бара, если `--top-bar-h` не резолвится.
+const TOP_BAR_FALLBACK_PX = 80;
 
 type Props = {
   children: React.ReactNode;
@@ -59,11 +62,13 @@ type Props = {
    */
   stickyTop?: React.ReactNode;
   /**
-   * Эмитит `scrollTop` контейнера на каждом scroll-событии (passive listener
-   * через JSX `onScroll`). Страница использует чтобы при `y > N` вернуть
-   * имя блюда/продукта в `HomeTopBar.centerLabel`.
+   * Эмитит видимость элемента `contentHeader` относительно своего скролл-рута
+   * (IntersectionObserver, тот же идиом, что `useScrollBottomIndicator`).
+   * Деталь-страницы используют, чтобы вернуть имя в `HomeTopBar.centerLabel`
+   * РОВНО когда заголовок уехал под бар. Колбэк должен быть СТАБИЛЬНЫМ
+   * (`useCallback`) — иначе пере-подписка наблюдателя каждый рендер.
    */
-  onScrollY?: (y: number) => void;
+  onContentHeaderVisibilityChange?: (visible: boolean) => void;
 };
 
 const Screen = ({
@@ -84,10 +89,35 @@ const Screen = ({
   hollow = false,
   bottomBarOverlay = false,
   stickyTop,
-  onScrollY,
+  onContentHeaderVisibilityChange,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollContainerRef);
+
+  // Наблюдаем реальный элемент заголовка (`contentHeader`) против собственного
+  // скролл-рута. Эмитим булеву видимость наружу — страница флипает
+  // `HomeTopBar.centerLabel` ровно на пересечении, без per-frame setState.
+  const contentHeaderRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const root = scrollContainerRef.current;
+    const el = contentHeaderRef.current;
+    if (!root || !el || !onContentHeaderVisibilityChange) return;
+    // Высота бара = `--top-bar-h` (= calc(env(safe-area-inset-top) + 80px)).
+    // env()/calc нельзя положить строкой в rootMargin, поэтому резолвим в px
+    // через временный probe — иначе на notched-устройствах (safe-area > 0) имя
+    // в хедере «проваливалось» бы на полосе высотой safe-area.
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;visibility:hidden;height:var(--top-bar-h,80px);';
+    root.appendChild(probe);
+    const barH = probe.offsetHeight || TOP_BAR_FALLBACK_PX;
+    root.removeChild(probe);
+    const io = new IntersectionObserver(
+      ([entry]) => onContentHeaderVisibilityChange(entry.isIntersecting),
+      { root, threshold: 0, rootMargin: `-${barH}px 0px 0px 0px` },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [onContentHeaderVisibilityChange]);
 
   return (
     <div
@@ -112,22 +142,14 @@ const Screen = ({
             непрозрачный лист накрывает его, а справа от заголовка проступает
             маленький watermark (`.contentHeader::after`). */}
         <span className={styles.brandWatermark} aria-hidden="true" />
-        <div
-          className={styles.screenScroll}
-          ref={scrollContainerRef}
-          onScroll={
-            onScrollY
-              ? (e) => onScrollY((e.currentTarget as HTMLDivElement).scrollTop)
-              : undefined
-          }
-        >
+        <div className={styles.screenScroll} ref={scrollContainerRef}>
           {stickyTop && <div className={styles.stickyTop}>{stickyTop}</div>}
           <div className={styles.topSpacer} aria-hidden="true" />
           {header}
           {headerOverlap ? (
             <div className={styles.headerOverlap} data-hollow={hollow ? 'true' : undefined}>
               {contentHeader != null && (
-                <div className={clsx(styles.contentHeader, contentHeaderClassName)}>
+                <div ref={contentHeaderRef} className={clsx(styles.contentHeader, contentHeaderClassName)}>
                   {contentHeader}
                 </div>
               )}
@@ -136,7 +158,7 @@ const Screen = ({
           ) : (
             <>
               {contentHeader != null && (
-                <div className={clsx(styles.contentHeader, contentHeaderClassName)}>
+                <div ref={contentHeaderRef} className={clsx(styles.contentHeader, contentHeaderClassName)}>
                   {contentHeader}
                 </div>
               )}

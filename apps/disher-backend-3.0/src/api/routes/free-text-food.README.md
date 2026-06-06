@@ -36,9 +36,9 @@
 |---|---|
 | [`src/api/routes/free-text-food.ts`](./free-text-food.ts) | HTTP-эндпоинт `POST /api/free-text-food/parse` + LLM + cache + threshold-логика |
 | [`src/api/food-matcher.ts`](../food-matcher.ts) | embedder, cosine similarity, alias lookup, warmup, `normalizeForEmbedding` |
-| [`src/api/catalog.ts`](../catalog.ts) | lite-каталог (id/name/categories), auto-regen по mtime |
-| [`scripts/gen-food-catalog-lite.ts`](../../../scripts/gen-food-catalog-lite.ts) | генератор `data/food-catalog-lite.json` из seed |
-| [`scripts/gen-food-embeddings.ts`](../../../scripts/gen-food-embeddings.ts) | генератор `data/food-embeddings.json` (одна запись на продукт) |
+| [`src/api/resolve-names.ts`](../resolve-names.ts) | общий matcher-pipeline (alias→hybrid→resolved/ambiguous/unresolved), используется и `/parse`, и `/suggestions/dish-products` |
+| [`scripts/gen-food-catalog-lite.ts`](../../../scripts/gen-food-catalog-lite.ts) | генератор `data/food-catalog-lite.json` из `apps/food-calc/src/shared/data/catalog.json` (тот же источник, что эмбеддинги; только probe-tooling) |
+| [`scripts/gen-food-embeddings.ts`](../../../scripts/gen-food-embeddings.ts) | генератор `data/food-embeddings.json` из `catalog.json` (одна запись на продукт; 0 сирот by construction) |
 | [`scripts/probe-matcher.ts`](../../../scripts/probe-matcher.ts) | локальный probe matcher (top-3 для 21 односложного запроса) |
 | [`scripts/probe-parse.ts`](../../../scripts/probe-parse.ts) | E2E-probe полного `/parse` на 15 голосовых фразах через HTTP |
 | [`data/food-aliases.json`](../../../data/food-aliases.json) | точные алиасы (exact-match нормализованной строки до embedding) |
@@ -142,11 +142,12 @@ npx tsx scripts/probe-parse.ts
 
 Если правится `seed/combined-foods-final.json`:
 
-1. `npx tsx scripts/gen-food-catalog-lite.ts` — перегенерирует `data/food-catalog-lite.json`.
-2. При старте сервера `initMatcher()` сам проверит `shouldRegenerate()` по mtime и перегенерирует `data/food-embeddings.json`, если seed новее. Ручной вызов: `npx tsx scripts/gen-food-embeddings.ts`.
-3. Рестарт backend.
-4. Прогнать `probe-parse.ts` — пороги могли поплыть после добавления новых продуктов в узкое эмбеддинг-пространство.
-5. Проверить `food-aliases.json` — упавшие `productId` залогируются при загрузке, их нужно поправить.
+1. `pnpm --filter @disher/backend build:catalog` — пересобрать `apps/food-calc/src/shared/data/catalog.json` из сида. Фронтовой `catalog.json` — единственный источник и для матчера, и для lite-каталога (исключает векторы-сироты, которых нет на фронте).
+2. `npx tsx scripts/gen-food-catalog-lite.ts` — перегенерирует `data/food-catalog-lite.json` из `catalog.json` (только для probe-tooling).
+3. При старте сервера `initMatcher()` сам проверит `shouldRegenerate()` по mtime `catalog.json` и перегенерирует `data/food-embeddings.json`, если каталог новее. Ручной вызов: `npx tsx scripts/gen-food-embeddings.ts`.
+4. Рестарт backend.
+5. Прогнать `probe-parse.ts` — пороги могли поплыть после добавления новых продуктов в узкое эмбеддинг-пространство.
+6. Проверить `food-aliases.json` — упавшие `productId` залогируются при загрузке, их нужно поправить.
 
 ## Frontend
 

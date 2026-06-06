@@ -33,7 +33,7 @@
     --field-placeholder: rgba(31, 42, 68, 0.4);
     --field-adornment: rgba(31, 42, 68, 0.55);
 
-    --wb-pill-bg: rgba(255, 255, 255, 0.92);
+    --wb-pill-bg: rgba(255, 255, 255, 1);
     --wb-pill-border: rgba(31, 42, 68, 0.08);
     --wb-pill-border-focus: rgba(31, 42, 68, 0.18);
     --wb-hairline: transparent;
@@ -59,7 +59,7 @@
     &[data-dv-v='ash'] {
         --field-text: rgba(34, 38, 46, 0.92);
         --field-placeholder: rgba(90, 96, 108, 0.55);
-        --wb-pill-bg: #edeef1;
+        --wb-pill-bg: #fffffff5;
         --wb-pill-border: rgba(40, 44, 54, 0.12);
         --wb-pill-border-focus: rgba(40, 44, 54, 0.26);
         --wb-hairline: rgba(40, 44, 54, 0.14);
@@ -267,10 +267,14 @@
     // Светлый текст инверсии (custom-prop — допустимо token-gate'ом; гасит
     // raw-литерал в `color: var(...)` ниже).
     --press-fg-invert: #ffffff;
+    // Прозрачность фон-гравюры (клош). NavTile-вайб: белый фон картинки тает,
+    // видны только чёрные линии. Перекрывается per-variant при желании.
+    --tile-img-opacity: 0.16;
 
     flex-shrink: 0;
     align-self: center;
     overflow: hidden;
+    position: relative; // для декоративных слоёв FoodTile-вариантов (::after)
     display: inline-flex;
     flex-direction: column;
     align-items: center;
@@ -279,7 +283,9 @@
     width: var(--pill-h);
     height: var(--pill-h);
     margin-left: 8px;
-    padding: 6px;
+    // Узкие боковые отступы — чтобы однострочная подпись «Выбор еды» (nowrap)
+    // помещалась в 72px-плитку без обрезки. Низ/верх держат вертикальный ритм.
+    padding: 6px 3px;
     background: var(--wb-tile-bg);
     border: 1px solid var(--wb-tile-border);
     border-radius: 999px;
@@ -328,7 +334,29 @@
 
 // «Выбор еды» — двусловная подпись, переносится на 2 строки в квадратной
 // плитке (nowrap обрезался бы overflow:hidden'ом). balance — ровный перенос.
+// Фон-гравюра (клош) — призрак ПОД подписью, заполняет плитку. inset:0 +
+// object-fit:cover + overflow:hidden родителя клипает её под форму варианта.
+// z-index:0 (positioned) ставит её ниже подписи (z-index:1).
+.writeBarListImg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: var(--tile-img-opacity);
+    pointer-events: none;
+    user-select: none;
+}
+
 .writeBarListText {
+    // margin-top:auto прижимает подпись к нижнему краю плитки (вайб NavTile —
+    // картинка-призрак на всю плитку, serif-подпись у дна). z-index:1 — над
+    // фон-картинкой (.writeBarListImg, z-index:0). Когда подписи нет, картинка
+    // занимает плитку целиком.
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
     font-family: var(--heading-font);
     font-style: italic;
     font-weight: 500;
@@ -336,9 +364,85 @@
     line-height: 1.12;
     letter-spacing: 0.01em;
     color: var(--wb-tile-fg);
-    white-space: normal;
+    white-space: nowrap;
     text-wrap: balance;
     text-align: center;
+}
+
+// ─── FoodTile — DesignBar-варианты формы плитки «Выбор еды» ────────────────
+// «Почтовая марка» + вайб NavTile (квадратики смены контента сверху). Anchor
+// `FoodTile` на самой плитке (`.writeBarList` несёт data-dv-v). Варианты меняют
+// ТОЛЬКО силуэт / рамку / декор — цвет (`--wb-tile-*`) приходит из WriteBar,
+// поэтому stamp-рамка композируется и с ash, и с mint. Квадрат со скруглением
+// (NavTile) вместо круга (999px база). Все декор-слои = ::after → схлопываются
+// вместе с плиткой на фокусе (overflow:hidden + opacity у родителя). После
+// выбора — оставить один вариант inline, anchor + остальные снести.
+
+// perf (ДЕФОЛТ) — круглая перфорация по периметру (dotted border): самый прямой
+// «почтовая марка» read, пуленепробиваемый CSS.
+.writeBarList[data-dv-v='perf'] {
+    border-radius: var(--space-2);
+    border-style: dotted;
+    border-width: 2px;
+    border-color: rgba(31, 42, 68, 0.32);
+}
+
+// paper — NavTile «inverse-lift»: бумажный квадрат + мягкая 2-слойная тень, без
+// рамки. Ближе всего к активной NavTile (но WriteBar-канон тени снял — здесь
+// это сознательный визуальный «лифт» плитки, на выбор юзера).
+.writeBarList[data-dv-v='paper'] {
+    border-radius: var(--space-2);
+    border-color: transparent;
+    box-shadow:
+        0 10px 22px rgba(31, 42, 68, 0.12),
+        0 3px 6px rgba(31, 42, 68, 0.07);
+}
+
+// dashed — пунктирная рамка (исходный «before redesign» NavTile + билетный вайб).
+.writeBarList[data-dv-v='dashed'] {
+    border-radius: var(--space-2);
+    border-style: dashed;
+    border-width: 1.5px;
+    border-color: rgba(31, 42, 68, 0.3);
+}
+
+// engraving — двойная филателистическая рамка: внешняя (border) + внутренняя
+// тонкая линия (::after, inset). Гравюрный «штемпель».
+.writeBarList[data-dv-v='engraving'] {
+    border-radius: var(--space-2);
+    border-color: rgba(31, 42, 68, 0.22);
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 4px;
+        border: 1px solid rgba(31, 42, 68, 0.18);
+        border-radius: calc(var(--space-2) - 3px);
+        pointer-events: none;
+    }
+}
+
+// scallop — НАСТОЯЩАЯ вырезанная кромка марки (mask из 4 рядов полукругов).
+// ЭКСПЕРИМЕНТАЛЬНЫЙ: геометрию mask'и проверить глазами в DesignBar — на разных
+// движках выемки могут чуть «гулять». Силуэт сам несёт форму → border не нужен.
+// Перфорация «прорезает» плитку насквозь — сквозь дырки виден ambient страницы.
+.writeBarList[data-dv-v='scallop'] {
+    --perf-r: 3.5px; // радиус выемки
+    --perf-step: 12px; // шаг между центрами выемок
+    border: none;
+    border-radius: 0;
+    -webkit-mask:
+        radial-gradient(var(--perf-r) at 50% 0, #0000 98%, #000) 50% 0 / var(--perf-step) 100% repeat-x,
+        radial-gradient(var(--perf-r) at 50% 100%, #0000 98%, #000) 50% 100% / var(--perf-step) 100% repeat-x,
+        radial-gradient(var(--perf-r) at 0 50%, #0000 98%, #000) 0 50% / 100% var(--perf-step) repeat-y,
+        radial-gradient(var(--perf-r) at 100% 50%, #0000 98%, #000) 100% 50% / 100% var(--perf-step) repeat-y;
+    -webkit-mask-composite: source-in;
+    mask:
+        radial-gradient(var(--perf-r) at 50% 0, #0000 98%, #000) 50% 0 / var(--perf-step) 100% repeat-x,
+        radial-gradient(var(--perf-r) at 50% 100%, #0000 98%, #000) 50% 100% / var(--perf-step) 100% repeat-x,
+        radial-gradient(var(--perf-r) at 0 50%, #0000 98%, #000) 0 50% / 100% var(--perf-step) repeat-y,
+        radial-gradient(var(--perf-r) at 100% 50%, #0000 98%, #000) 100% 50% / 100% var(--perf-step) repeat-y;
+    mask-composite: intersect;
 }
 
 // ─── Ready-state CTA ──────────────────────────────────────────────────────

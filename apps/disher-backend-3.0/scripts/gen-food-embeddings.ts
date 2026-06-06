@@ -1,7 +1,13 @@
 /**
  * Generates embeddings for the food catalog using Xenova/multilingual-e5-small (384 dim).
  *
- * Reads seed/combined-foods-final.json and writes data/food-embeddings.json.
+ * Reads the FRONTEND catalog (apps/food-calc/src/shared/data/catalog.json) and
+ * writes data/food-embeddings.json. catalog.json is the single source of truth
+ * for the id-space the frontend can render — building embeddings from it
+ * guarantees the matcher never returns an id the frontend lacks (otherwise
+ * `findCatalogProduct` → null → empty review row). Previously this read
+ * seed/combined-foods-final.json (430 rows incl. 24 supplements that
+ * build-catalog drops) → 24 orphan vectors custom-27..custom-50.
  * For e5: each catalog entry uses "passage: <name>. <categories>" prefix.
  *
  * Usage: npx tsx scripts/gen-food-embeddings.ts
@@ -23,7 +29,7 @@ const BATCH_SIZE = 16;
 interface FullProduct {
   id: string;
   name: string;
-  categories: string[];
+  categories?: string[];
 }
 
 interface EmbeddingsFile {
@@ -33,7 +39,9 @@ interface EmbeddingsFile {
   vectors: Array<{ id: string; name: string; v: number[] }>;
 }
 
-const seedPath = resolve(__dirname, "../seed/combined-foods-final.json");
+// Frontend build-route catalog (committed JS-bundle artifact). Same id-space
+// the UI renders, so 0 orphan vectors by construction.
+const seedPath = resolve(__dirname, "../../food-calc/src/shared/data/catalog.json");
 const outDir = resolve(__dirname, "../data");
 const outPath = resolve(outDir, "food-embeddings.json");
 
@@ -58,7 +66,7 @@ export async function generateEmbeddings(): Promise<void> {
   for (let i = 0; i < data.length; i += BATCH_SIZE) {
     const batch = data.slice(i, i + BATCH_SIZE);
     const texts = batch.map((f) => {
-      const cats = f.categories.join(", ");
+      const cats = (f.categories ?? []).join(", ");
       return `passage: ${f.name}${cats ? `. ${cats}` : ""}`;
     });
 

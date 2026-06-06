@@ -33,6 +33,11 @@ const GIT_SHA = readGitSha();
 
 export const MATCHER_VERSION = `${PKG_VERSION}+${GIT_SHA}`;
 
+// Default pinned to deepseek-v4-flash (2026-06-05): it advertises
+// `structured_outputs` in OpenRouter's supported_parameters, which both LLM
+// heads now require for strict json_schema. deepseek-chat (the old default) is
+// no longer in OpenRouter's model list and v4-pro lacks structured_outputs, so
+// either would 500 a require_parameters request.
 export function getLLMModel(): string {
-  return process.env.SUGGESTION_MODEL ?? "deepseek/deepseek-chat";
+  return process.env.SUGGESTION_MODEL ?? "deepseek/deepseek-v4-flash";
 }

@@ -1,0 +1,15 @@
+.gramsRow {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: var(--space-1);
+    padding-block: var(--space-4);
+}
+
+.gramsUnit {
+    font-family: var(--font-sans);
+    font-size: var(--text-lg);
+    font-weight: 500;
+    color: var(--text-secondary);
+    user-select: none;
+}

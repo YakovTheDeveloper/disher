@@ -17,13 +17,13 @@ import { Screen } from '@/shared/ui/Screen';
 import {
   useWriteFoodFlow,
   getWriteFoodInputId,
+  InlineWriteFoodReview,
 } from '@/features/food/food-free-text-parse';
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import { LongPressRow } from '@/features/shared/long-press-item';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { Quantity } from '@/shared/ui/Quantity';
-import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DishBuilderPage.module.scss';
@@ -33,16 +33,18 @@ import {
   DISH_MODAL_INPUT_IDS,
   DishProductEditModals,
   DISH_EDIT_MODAL_INPUT_IDS,
-  DishSuggestionsModal,
   useDishProductFlow,
 } from './ui';
-import { FoodPortionsManager, nextDefaultPortionLabel } from '@/features/food/food-portions-manager';
+import {
+  FoodPortionsManager,
+  PortionCreateModals,
+  AddPortionButton,
+} from '@/features/food/food-portions-manager';
 import { DishAnalysisScreen } from '@/features/dish-analysis';
 import { useDishNutrientTotals } from '@/entities/dish';
 import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
 import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
-import { PlusIcon } from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { AppBottomBar, NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
@@ -88,6 +90,13 @@ const NAVTILE_AMBIENT_VARIANTS = [
   'none',
 ] as const;
 
+// Sparkle — the "infer recipe" affordance icon (head A semantic suggest).
+const SparkleIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 2.5l1.6 4.9a4 4 0 0 0 2.5 2.5l4.9 1.6-4.9 1.6a4 4 0 0 0-2.5 2.5L12 20.5l-1.6-4.9a4 4 0 0 0-2.5-2.5L3 11.5l4.9-1.6a4 4 0 0 0 2.5-2.5L12 2.5z" />
+  </svg>
+);
+
 const DishBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
 
@@ -103,33 +112,7 @@ const DishBuilderPage = () => {
 
   const navigate = useNavigate();
 
-  const [isOpen, setIsOpen] = useState<'suggestions' | null>(null);
   const [renameOpen, setRenameOpen] = useState(false);
-  // При scrollY > 120 активного слайда возвращаем имя блюда в
-  // HomeTopBar.centerLabel. РАНЬШЕ активный слайд и per-slide scrollY жили в
-  // useState → каждый свайп и каждый кадр скролла ре-рендерил всю страницу
-  // (3 Screen'а) прямо во время Embla-анимации = visible-лаг (HomePage этим
-  // не страдает, т.к. свайп туда не прокидывается в стейт). Теперь это ref'ы,
-  // а в React-стейт уходит ТОЛЬКО булева isScrolled и только когда она реально
-  // пересекает порог 120px. Тот же zero-render-on-swipe принцип, что у HomePage.
-  const activeSlideRef = useRef(DEFAULT_SLIDE);
-  const scrollByIndexRef = useRef<number[]>(
-    Array.from({ length: DISH_SCREENS.length }, () => 0),
-  );
-  const [isScrolled, setIsScrolled] = useState(false);
-  const recomputeScrolled = useCallback(() => {
-    const next = (scrollByIndexRef.current[activeSlideRef.current] ?? 0) > 120;
-    // setState с тем же значением → React bail-out (без ре-рендера). Страница
-    // ре-рендерится максимум раз на пересечение порога, не на каждый кадр.
-    setIsScrolled((prev) => (prev === next ? prev : next));
-  }, []);
-  const makeScrollHandler = useCallback(
-    (idx: number) => (y: number) => {
-      scrollByIndexRef.current[idx] = y;
-      if (idx === activeSlideRef.current) recomputeScrolled();
-    },
-    [recomputeScrolled],
-  );
   const handleNameFocusCapture = useCallback((e: React.FocusEvent) => {
     if ((e.target as HTMLElement).id === CHANGE_NAME_INPUT_ID) {
       setRenameOpen(true);
@@ -142,6 +125,13 @@ const DishBuilderPage = () => {
       { side: 'left', width: 'min(85vw, 360px)' },
     );
   }, [dishTotals]);
+  // Калории-пилюля в центре топбара — 1:1 с HomePage (унификация двух экранов).
+  // Раньше жила в AppBottomBar.leadingSlot и только на экране «Ингредиенты»;
+  // теперь видна на всех трёх экранах блюда, как nutrients-pill на HomePage.
+  const topBarCenterSlot = useMemo(
+    () => <NutrientsSummaryButton totals={dishTotals} onClick={openNutrients} />,
+    [dishTotals, openNutrients],
+  );
   const editFlow = useDishProductFlow({ type: 'edit' });
 
   const writeFoodTarget = useMemo(
@@ -152,12 +142,6 @@ const DishBuilderPage = () => {
   const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
 
   const swipeableRef = useRef<SwipeableRef>(null);
-
-  // НЕ убирать: блокирует свайп между экранами, пока открыта
-  // DishSuggestionsModal — иначе свайп уводит из-под модалки.
-  useSwipeableLock(isOpen !== null);
-
-  const closeModal = () => setIsOpen(null);
 
   const startEdit = editFlow.startEdit;
   const handleEditQuantity = useCallback(
@@ -203,12 +187,16 @@ const DishBuilderPage = () => {
   // handleSelect) по канону HomePage. Прямого выигрыша от memo(Screen) тут
   // нет — соседние пропы Screen (children/actions/...) инлайн-JSX, memo
   // пробивается всё равно; вреда тоже нет.
+  // bandImg={false}: крупная бледная картинка активного экрана снята (юзер: «от
+  // этого уже ушли») — паритет с HomePage-индикаторами. Мелкие картинки в самих
+  // NavTile остаются.
   const analysisIndicator = useMemo(
     () => (
       <ScreenIndicator
         screens={DISH_SCREENS}
         onSelect={handleSelect}
         slideIndex={0}
+        bandImg={false}
       />
     ),
     [handleSelect],
@@ -219,6 +207,7 @@ const DishBuilderPage = () => {
         screens={DISH_SCREENS}
         onSelect={handleSelect}
         slideIndex={1}
+        bandImg={false}
       />
     ),
     [handleSelect],
@@ -229,10 +218,38 @@ const DishBuilderPage = () => {
         screens={DISH_SCREENS}
         onSelect={handleSelect}
         slideIndex={2}
+        bandImg={false}
       />
     ),
     [handleSelect],
   );
+
+  // ── Порции блюда: создание 2-шаговой модалкой + удаление long-press → drawer ──
+  // Адаптер прячет хранение: блюдо = таблица dish_portions по id (label→id-мап).
+  // PortionCreateModals (с внутренним usePortionFlow) — общий с ProductPage.
+  const portionLabels = useMemo(() => portionsRaw.map((p) => p.label), [portionsRaw]);
+  const createPortion = (portion: { label: string; grams: number }) =>
+    void safeMutate(() => addDishPortion(id, portion), 'Не удалось добавить порцию');
+  const deletePortion = (label: string) => {
+    const portion = portionsRaw.find((p) => p.label === label);
+    if (portion)
+      void safeMutate(() => removeDishPortion(portion.id), 'Не удалось удалить порцию');
+  };
+  const updatePortion = (
+    label: string,
+    updates: Partial<{ label: string; grams: number }>,
+  ) => {
+    const portion = portionsRaw.find((p) => p.label === label);
+    if (portion)
+      void safeMutate(() => updateDishPortion(portion.id, updates), 'Не удалось обновить порцию');
+  };
+  const openPortionDeleteDrawer = (label: string) => {
+    void drawerStore.show(ItemActionsDrawer, {
+      title: label,
+      onDelete: () => deletePortion(label),
+      actions: [],
+    });
+  };
 
   if (!dish) return null;
 
@@ -265,21 +282,24 @@ const DishBuilderPage = () => {
     });
   };
 
-  const getExistingItemsForSuggestions = () =>
-    items.map((item) => ({
-      productId: item.productId,
-      name: item.product?.name ?? '',
-      quantity: item.quantity,
-    }));
+  // Semantic suggest: grab the dish name → head A → matched ingredients land
+  // in InlineWriteFoodReview below the list. rAF waits for the skeleton render
+  // (which carries [data-write-food-anchor]) before scrolling it into view.
+  const handleSuggestIngredients = () => {
+    writeFoodFlow.submitDishName(dish.name);
+    requestAnimationFrame(() => {
+      document
+        .querySelector('[data-write-food-anchor]')
+        ?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+  };
 
   return (
     <div className={homeStyles.container}>
       <HomeTopBar
         date={dateForTopBar}
         dateButtonLabel={<CalendarIcon width={22} height={22} />}
-        centerLabel={dish.name}
-        centerLabelHtmlFor={CHANGE_NAME_INPUT_ID}
-        centerLabelVisible={isScrolled}
+        centerSlot={topBarCenterSlot}
         noInterruptGuard
       />
       <div onFocusCapture={handleNameFocusCapture}>
@@ -299,17 +319,12 @@ const DishBuilderPage = () => {
           defaultSlide={DEFAULT_SLIDE}
           duration={SWIPE_DURATION}
           hasDots={false}
-          onIndexChange={(idx) => {
-            activeSlideRef.current = idx;
-            recomputeScrolled();
-          }}
         >
           <Screen
             key={1}
             headerOverlap
             contentHeader={nameHeading}
             stickyTop={analysisIndicator}
-            onScrollY={makeScrollHandler(0)}
           >
             <DishAnalysisScreen dishId={id} hasIngredients={items.length > 0} />
           </Screen>
@@ -319,7 +334,6 @@ const DishBuilderPage = () => {
             headerOverlap
             contentHeader={nameHeading}
             stickyTop={ingredientsIndicator}
-            onScrollY={makeScrollHandler(1)}
             hollow={items.length === 0}
             overlay={
               <>
@@ -327,13 +341,6 @@ const DishBuilderPage = () => {
                 <div onFocusCapture={handleEditFocusCapture}>
                   <DishProductEditModals flow={editFlow} />
                 </div>
-                <DishSuggestionsModal
-                  isExpanded={isOpen === 'suggestions'}
-                  dishId={id}
-                  dishName={dish.name}
-                  existingItems={getExistingItemsForSuggestions()}
-                  onClose={closeModal}
-                />
                 {/* WriteFoodModals overlay убран 2026-05-23: AutoGrowSearch
                     теперь живёт прямо в AppBottomBar через WriteFoodInput.
                     Дубликат `<input id={writeFoodInputId}>` в DOM дал бы конфликт. */}
@@ -347,23 +354,25 @@ const DishBuilderPage = () => {
                 searchLabel="Найти продукт"
                 searchText="Выбор еды"
                 writeFoodPlaceholder="Опишите ингредиенты…"
-                leadingSlot={
-                  <NutrientsSummaryButton totals={dishTotals} onClick={openNutrients} />
-                }
               />
             }
           >
-            {items.length > 0 && (
-              <div className={styles.topLinkRow}>
-                <button
-                  type="button"
-                  className={styles.suggestLink}
-                  onClick={() => setIsOpen('suggestions')}
-                >
-                  Предложить →
-                </button>
-              </div>
-            )}
+            <div className={styles.suggestRow}>
+              <button
+                type="button"
+                className={styles.suggestButton}
+                // Disable while parsing AND when the dish has no name yet —
+                // submitDishName('') is a silent no-op otherwise.
+                disabled={writeFoodFlow.state === 'loading' || !dish.name.trim()}
+                onClick={handleSuggestIngredients}
+              >
+                <span className={styles.suggestButtonIcon} aria-hidden="true">
+                  <SparkleIcon />
+                </span>
+                Предложить ингредиенты
+              </button>
+            </div>
+            <div className={styles.dishItemsGroup}>
             <ItemsList offsetTop>
               {items.map((item, index) => (
                 <LongPressRow
@@ -407,6 +416,12 @@ const DishBuilderPage = () => {
                 </LongPressRow>
               ))}
             </ItemsList>
+            </div>
+            {/* Предложка под списком (паритет с FoodSchedule): результат и
+                typed-text-бара, и кнопки «Предложить ингредиенты» рендерится
+                здесь. Несёт [data-write-food-anchor] — без него «Посмотреть
+                варианты» в баре скроллил в пустоту (живой баг до 2026-06-05). */}
+            <InlineWriteFoodReview flow={writeFoodFlow} />
           </Screen>
 
           <Screen
@@ -414,33 +429,17 @@ const DishBuilderPage = () => {
             headerOverlap
             contentHeader={nameHeading}
             stickyTop={portionsIndicator}
-            onScrollY={makeScrollHandler(2)}
-            bottomBar={
-              <div className={styles.portionsBar}>
-                <button
-                  type="button"
-                  className={styles.addPortionButton}
-                  onClick={() => {
-                    const portionsForLabel = portionsRaw.map((p) => ({
-                      label: p.label,
-                      grams: p.grams,
-                    }));
-                    void safeMutate(
-                      () =>
-                        addDishPortion(id, {
-                          label: nextDefaultPortionLabel(portionsForLabel),
-                          grams: 0,
-                        }),
-                      'Не удалось добавить порцию',
-                    );
-                  }}
-                >
-                  <span className={styles.addPortionPlus} aria-hidden="true">
-                    <PlusIcon />
-                  </span>
-                  Добавить порцию
-                </button>
-              </div>
+            bottomBar={<AddPortionButton />}
+            overlay={
+              <PortionCreateModals
+                // «Всё блюдо» — производная строка implicitPortion; добавляем в
+                // reserved-список, чтобы юзер не создал порцию-двойник.
+                existingLabels={
+                  items.length > 0 ? [...portionLabels, 'Всё блюдо'] : portionLabels
+                }
+                unit="г"
+                onCreate={createPortion}
+              />
             }
           >
             <FoodPortionsManager
@@ -456,24 +455,9 @@ const DishBuilderPage = () => {
                     }
                   : undefined
               }
-              showAddButton={false}
               showHint={false}
-              onAdd={(p) =>
-                void safeMutate(() => addDishPortion(id, p), 'Не удалось добавить порцию')
-              }
-              onUpdate={(label, updates) => {
-                const portion = portionsRaw.find((p) => p.label === label);
-                if (portion)
-                  void safeMutate(
-                    () => updateDishPortion(portion.id, updates),
-                    'Не удалось обновить порцию'
-                  );
-              }}
-              onRemove={(label) => {
-                const portion = portionsRaw.find((p) => p.label === label);
-                if (portion)
-                  void safeMutate(() => removeDishPortion(portion.id), 'Не удалось удалить порцию');
-              }}
+              onUpdate={updatePortion}
+              onLongPressRow={openPortionDeleteDrawer}
             />
           </Screen>
         </Swipeable>

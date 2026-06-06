@@ -10,7 +10,9 @@
  * Usage: npx tsx scripts/probe-parse.ts [baseUrl]
  *   default baseUrl: http://localhost:3100
  *
- * Updated 2026-04-16 for consolidated catalog v2 (412 products, lowercase names).
+ * Updated 2026-06-05 for catalog v406 (rebuilt from food-calc/catalog.json):
+ * refreshed dead expected-ids (3775→sk-164, 3792/sk-35→3772, dropped sk-624/sk-554)
+ * and swapped compound dish-names for ingredient lists (see note on `phrases`).
  */
 
 export {};
@@ -22,13 +24,19 @@ interface Expected {
 
 interface Phrase { text: string; expected: Expected[] }
 
+// NB: phrases use ingredient LISTS, not compound dish-names. The MVP free-text
+// contract keeps a compound whole ("всё считай как product, даже борщ; составные
+// обработаем позже"), so "смузи из банана"/"салат из помидоров"/"бутерброд с
+// сыром" intentionally resolve to ONE (unresolved) product — not their parts.
+// Testing decomposition of those would assert behavior the prompt forbids.
+// Expected ids track catalog v406 (2026-06-05 rebuild from catalog.json).
 const phrases: Phrase[] = [
   {
     text: "на завтрак овсянку с бананом, в обед борщ с хлебом",
-    expected: [{ ids: ["sk-638"] }, { ids: ["sk-898"] }, { ids: ["20", "sk-624"] }],
+    expected: [{ ids: ["sk-638"] }, { ids: ["sk-898"] }, { ids: ["20"] }],
   },
   { text: "утром творог с мёдом", expected: [{ ids: ["sk-78"] }, { ids: ["2128"] }] },
-  { text: "съел яйцо варёное и бутерброд с сыром", expected: [{ ids: ["3775"] }, { ids: ["sk-145"] }] },
+  { text: "съел яйцо варёное и сыр", expected: [{ ids: ["sk-164"] }, { ids: ["sk-145"] }] },
   {
     text: "помидор огурец сметана на обед",
     expected: [{ ids: ["sk-821"] }, { ids: ["897"] }, { ids: ["sk-73"] }],
@@ -38,13 +46,13 @@ const phrases: Phrase[] = [
     expected: [{ ids: ["2774"], qty: 200 }, { ids: ["7881"] }],
   },
   { text: "картошка с курицей вечером", expected: [{ ids: ["sk-746"] }, { ids: ["7881"] }] },
-  { text: "кофе с молоком утром и йогурт", expected: [{ ids: ["4378"] }, { ids: ["3792", "sk-35"] }] },
+  { text: "кофе с молоком утром и йогурт", expected: [{ ids: ["4378"] }, { ids: ["3772"] }] },
   { text: "яблоко банан апельсин", expected: [{ ids: ["sk-880"] }, { ids: ["sk-898"] }, { ids: ["sk-890"] }] },
-  { text: "макароны с сыром на ужин", expected: [{ ids: ["sk-561", "sk-554"] }, { ids: ["sk-145"] }] },
+  { text: "макароны с сыром на ужин", expected: [{ ids: ["sk-561"] }, { ids: ["sk-145"] }] },
   { text: "рис с овощами в обед 300 грамм", expected: [{ ids: ["sk-644"], qty: 300 }] },
-  { text: "смузи из банана с молоком утром", expected: [{ ids: ["sk-898"] }, { ids: ["sk-53"] }] },
-  { text: "салат из помидоров с огурцами", expected: [{ ids: ["sk-821"] }, { ids: ["897"] }] },
-  { text: "сыр и хлеб на завтрак", expected: [{ ids: ["sk-145"] }, { ids: ["20", "sk-624"] }] },
+  { text: "банан с молоком утром", expected: [{ ids: ["sk-898"] }, { ids: ["sk-53"] }] },
+  { text: "помидоры с огурцами на обед", expected: [{ ids: ["sk-821"] }, { ids: ["897"] }] },
+  { text: "сыр и хлеб на завтрак", expected: [{ ids: ["sk-145"] }, { ids: ["20"] }] },
 
   // количества прописью
   { text: "творог двести грамм утром", expected: [{ ids: ["sk-78"], qty: 200 }] },

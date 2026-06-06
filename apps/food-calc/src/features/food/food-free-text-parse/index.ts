@@ -1,6 +1,3 @@
-export { WriteFoodButton } from './ui/WriteFoodButton';
-export { WriteFoodModal } from './ui/WriteFoodModal';
-export { WriteFoodModals } from './ui/WriteFoodModals';
 export { WriteFoodInput } from './ui/WriteFoodInput';
 export type { WriteFoodInputProps } from './ui/WriteFoodInput';
 export { InlineWriteFoodReview } from './ui/InlineWriteFoodReview';
@@ -29,6 +26,7 @@ export {
   type UnresolvedItem,
   type MatchCandidate,
 } from './api/parseFreeTextFood';
+export { parseDishName } from './api/parseDishName';
 export {
   sendMatcherTelemetry,
   type TelemetryEventPayload,

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDesignVariantsStore, selectActiveKey } from '@/shared/model/designVariantsStore';
+import { useLongPress } from '@/shared/lib/hooks/useLongPress';
+import { openBugReport } from '@/features/dev/bug-report';
 import s from './DesignVariantsBar.module.scss';
 
 const FLASH_DURATION_MS = 320;
@@ -57,6 +59,15 @@ export const DesignVariantsBar = () => {
 
   const shellRef = useRef<HTMLDivElement | null>(null);
   const dragOffsetRef = useRef<{ dx: number; dy: number } | null>(null);
+
+  // Long-press the collapsed 🎨 trigger to open the dev bug-report form. Short
+  // tap (and keyboard Enter/Space) keeps opening the variants bar via onClick.
+  const bugReportPress = useLongPress(() => {
+    // Contain a failed modal/chunk load (flaky dev server, stale cache) as a
+    // log line instead of an unhandled rejection — matches the best-effort
+    // error handling inside the flow (captureScreenshot, submitBugReport).
+    openBugReport().catch((e) => console.warn('[bug-report] open failed', e));
+  });
 
   useEffect(() => {
     try {
@@ -206,7 +217,8 @@ export const DesignVariantsBar = () => {
         type="button"
         className={s.trigger}
         onClick={() => setOpen(true)}
-        aria-label="Open design variants"
+        {...bugReportPress}
+        aria-label="Open design variants (long-press for bug report)"
         aria-expanded={false}
       >
         <span className={s.triggerIcon} aria-hidden>

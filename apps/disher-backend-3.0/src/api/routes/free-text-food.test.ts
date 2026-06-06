@@ -184,7 +184,7 @@ describe("POST /api/free-text-food/parse — pipeline", () => {
   it("falls to ambiguous when margin is too thin (top2 close to top1)", async () => {
     setMatches("борщ", [
       { id: "p-a", name: "Суп овощной", score: 0.9 },
-      { id: "p-b", name: "Суп куриный", score: 0.895 }, // margin 0.005 < 0.015
+      { id: "p-b", name: "Суп куриный", score: 0.898 }, // margin 0.002 < AUTO_ACCEPT_MARGIN (0.003)
       { id: "p-c", name: "Бульон", score: 0.85 },
     ]);
     mockLLM([{ name: "борщ", quantity: 250, time: "13:00" }]);
@@ -210,7 +210,7 @@ describe("POST /api/free-text-food/parse — pipeline", () => {
   it("falls to ambiguous when top1 above floor but margin too thin", async () => {
     setMatches("запеканка", [
       { id: "p-a", name: "Творожная масса", score: 0.83 },
-      { id: "p-b", name: "Сырники", score: 0.82 }, // margin 0.01 < 0.02
+      { id: "p-b", name: "Сырники", score: 0.829 }, // margin 0.001 < AUTO_ACCEPT_MARGIN (0.003)
     ]);
     mockLLM([{ name: "запеканка", quantity: 150 }]);
 
@@ -390,7 +390,7 @@ describe("POST /api/free-text-food/parse — pipeline", () => {
     setAlias("овсянка", { id: "p-oats", name: "Овсяные хлопья" });
     setMatches("борщ", [
       { id: "p-a", name: "Суп овощной", score: 0.9 },
-      { id: "p-b", name: "Суп куриный", score: 0.895 },
+      { id: "p-b", name: "Суп куриный", score: 0.898 }, // margin 0.002 < AUTO_ACCEPT_MARGIN (0.003)
     ]);
     setMatches("нечтостранное", [{ id: "p-z", name: "Что-то", score: 0.5 }]);
     mockLLM([

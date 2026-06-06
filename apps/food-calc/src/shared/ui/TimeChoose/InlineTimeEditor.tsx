@@ -64,6 +64,9 @@ const InlineTimeEditor = ({
   return (
     <span
       className={clsx(styles.edit, editClassName, className)}
+      // Глобальный хук для Screen: пока редактируется инлайн-поле сущности,
+      // нижний бар прячется (`Screen.module.scss` :has([data-entity-edit]…)).
+      data-entity-edit
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           setHours(value.split(':')[0] ?? '00');

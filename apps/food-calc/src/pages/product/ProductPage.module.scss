@@ -183,50 +183,6 @@
     -webkit-appearance: none;
 }
 
-// Sky-bar with «Добавить порцию» CTA on the «Порции»-slide. Geometry mirrors
-// AppBottomBar dock so the slide reads as a single page-level bar.
-.portionsBar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 16px 16px;
-}
-
-.addPortionButton {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 12px 18px;
-    min-height: 44px;
-    border-radius: 999px;
-    border: none;
-    background: #c7dbf3;
-    color: rgb(31, 50, 95);
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: transform 0.12s ease;
-
-    &:active {
-        transform: scale(0.97);
-    }
-}
-
-.addPortionPlus {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-
-    svg {
-        width: 14px;
-        height: 14px;
-    }
-}
-
 .massWarning {
     margin: 0 var(--space-4) var(--space-3);
     padding: var(--space-3) var(--space-4);

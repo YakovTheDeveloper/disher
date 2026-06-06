@@ -1,7 +1,90 @@
+// ── Dish Items (экран «Ингредиенты») — rail-soft boundary + плоский sky-оттенок ──
+// База = RowBoundary-вариант `rail-soft` (TimeGroup.module.scss): строки сливаются
+// в один блок (мягкая рамка + затухающий хайрлайн между строками), слева — яркая
+// вертикальная rail-полоса, последняя строка группы роняет мягкую тень («-soft»).
+// Зелёный TOD-градиент расписания заменён ПЛОСКОЙ (без градиента) sky-заливкой в
+// тон 3-му экрану «Порции» (FoodPortionsManager sky-палитра).
+$dish-sky-fill: #f3f8ff; // плоская подложка строки (subtle, почти белый)
+$dish-sky-rail: #7aa7e0; // левая акцент-полоса (средняя синяя)
+$dish-sky-edge: rgba(122, 167, 224, 0.3); // мягкая рамка / правый край
+$dish-sky-hairline: rgba(122, 167, 224, 0.28); // разделитель между строками
+$dish-sky-tapped: #e6f1ff; // фон строки в момент нажатия
+$dish-row-radius: 9px; // совпадает с radius строки LongPressRow
+$dish-row-last-shadow: 0 12px 18px -14px rgba(0, 0, 0, 0.08); // «-soft» тень группы
+
 .dishFoodListItem {
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
+}
+
+// Обёртка вокруг ItemsList на экране «Ингредиенты». Геометрию rail-soft и sky-
+// заливку держим локально здесь (не трогая shared ItemsList/LongPressRow и не
+// затрагивая расписание) — через CSS-переменные, которые LongPressRow публикует
+// как override-точки (--row-rest-outline-w / --row-last-shadow / --_bg-from…).
+.dishItemsGroup {
+    // Слить строки в один блок: погасить gap shared-ItemsList между обёртками строк.
+    > ul {
+        gap: 0;
+    }
+
+    // Каждая строка-ингредиент (.dishFoodListItem = inner <li> из LongPressRow).
+    .dishFoodListItem {
+        // Плоский sky-фон вместо зелёного TOD-color-mix: обе точки = один цвет,
+        // тогда и base-фон, и highlight-keyframe резолвятся в sky, а не в зелёный.
+        --_bg-from: #{$dish-sky-fill};
+        --_bg-to: #{$dish-sky-fill};
+        --_outline-from: #{$dish-sky-edge};
+        --_outline-to: #{$dish-sky-edge};
+        --tod-tapped: #{$dish-sky-tapped};
+        // rail-soft: снять per-row рамку и per-row тень (рамку даёт группа).
+        --row-rest-outline-w: 0;
+        --row-last-shadow: none;
+
+        // Боковые края: тонкий правый + яркий 3px rail слева (stripe-fork rule #3).
+        border-inline-end: 1px solid $dish-sky-edge;
+        border-inline-start: 3px solid $dish-sky-rail;
+        // По умолчанию квадратим — углы скругляем только на краях группы (ниже).
+        border-radius: 0;
+    }
+
+    // Внутренние швы: один затухающий хайрлайн вместо стопки из 1px-линий.
+    > ul > div:not(:first-child) .dishFoodListItem::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: var(--space-4);
+        right: var(--space-4);
+        height: 1px;
+        background: linear-gradient(90deg,
+                transparent 0%,
+                $dish-sky-hairline 20%,
+                $dish-sky-hairline 80%,
+                transparent 100%);
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    // Верх группы: закрыть рамку сверху, скруглить правый-верх, левый — квадрат под rail.
+    > ul > div:first-child .dishFoodListItem {
+        border-top: 1px solid $dish-sky-edge;
+        border-top-right-radius: $dish-row-radius;
+    }
+
+    // Низ группы: закрыть рамку снизу + мягкая тень («-soft»).
+    > ul > div:last-child .dishFoodListItem {
+        --row-last-shadow: #{$dish-row-last-shadow};
+        border-bottom: 1px solid $dish-sky-edge;
+        border-bottom-right-radius: $dish-row-radius;
+    }
+
+    // Единственная строка — рамка по периметру, правые углы скруглены.
+    > ul > div:only-child .dishFoodListItem {
+        border-top: 1px solid $dish-sky-edge;
+        border-bottom: 1px solid $dish-sky-edge;
+        border-top-right-radius: $dish-row-radius;
+        border-bottom-right-radius: $dish-row-radius;
+    }
 }
 
 // Ингредиент-строка: имя + (опц.) сабтайтл «уточнений» в колонку — зеркалит
@@ -28,73 +111,64 @@
     text-overflow: ellipsis;
 }
 
-// Inline secondary action at the top of the ingredients list — mirrors
-// Laboratory.topLinkRow / weeklyLink. Lives in the screen content flow, so the
-// slide matches HomePage's chrome.
-.topLinkRow {
+// Semantic "infer recipe" CTA (head A). Always visible — incl. an empty dish,
+// where it's most useful (gives a brand-new recipe a starting set). Grabs the
+// dish name → /suggestions/dish-products → matched ingredients land in the
+// InlineWriteFoodReview предложка below the list (same widget as HomePage).
+.suggestRow {
     display: flex;
-    justify-content: flex-end;
-    padding: 4px var(--space-3) 0;
+    justify-content: flex-start;
+    padding: var(--space-2) var(--space-3) 0;
 }
 
-.suggestLink {
-    padding: 4px 2px;
-    background: transparent;
-    border: none;
-    color: rgba(15, 23, 42, 0.5);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: color 0.14s ease;
-
-    &:hover,
-    &:focus-visible {
-        color: rgba(15, 23, 42, 0.8);
-        outline: none;
-    }
-}
-
-// Bottom-bar wrapper for the «Порции»-slide add-portion CTA. Mirrors the
-// AppBottomBar dock geometry so the slide reads as a single page-level bar.
-.portionsBar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 16px 16px;
-}
-
-.addPortionButton {
+// Тихая текст-кнопка без подложки: «Предложить ингредиенты» прижата влево и
+// больше не перетягивает внимание. Заливочный honey-пилюльный вариант снят
+// 2026-06-06 (юзер: «слишком берёт на себя внимание»). Sparkle наследует
+// приглушённый currentColor — остаётся лёгкий «magic»-намёк без акцента.
+.suggestButton {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 12px 18px;
-    min-height: 44px;
-    border-radius: 999px;
+    padding: 6px 4px;
+    min-height: 40px;
     border: none;
-    background: #c7dbf3;
-    color: rgb(31, 50, 95);
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
-    font-size: 15px;
+    background: none;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
     font-weight: 500;
+    letter-spacing: -0.005em;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.12s ease;
+    transition: color 0.14s ease, opacity 0.14s ease;
 
     &:active {
-        transform: scale(0.97);
+        opacity: 0.55;
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--text-muted);
+        outline-offset: 3px;
+        border-radius: var(--radius-sm);
     }
 }
 
-.addPortionPlus {
+.suggestButtonIcon {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
     flex-shrink: 0;
 
     svg {
-        width: 14px;
-        height: 14px;
+        width: 15px;
+        height: 15px;
     }
 }
+
+// Кнопка «Добавить порцию» вынесена в общий AddPortionButton
+// (features/food/food-portions-manager) — раньше тут жила дублированная
+// `.portionsBar`/`.addPortionButton` разметка.

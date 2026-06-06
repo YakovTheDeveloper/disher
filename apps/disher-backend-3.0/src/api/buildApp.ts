@@ -109,18 +109,19 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   await app.register(suggestionsRoutes, { prefix: "/api/suggestions" });
   await app.register(freeTextFoodRoutes, { prefix: "/api/free-text-food" });
   await app.register(matcherTelemetryRoutes, { prefix: "/api/matcher-telemetry" });
-  await app.register(bugReportRoutes, { prefix: "/api/bug-reports" });
   await app.register(diagLogsRoutes, { prefix: "/api/diag-logs" });
   await app.register(backupRoutes, { prefix: "/api/backup" });
   await app.register(analyzeRoutes, { prefix: "/api" });
   await app.register(analyzeDishRoutes, { prefix: "/api" });
   await app.register(analyzeDailyRoutes, { prefix: "/api" });
 
-  // Dev/test-only: e2e bridge endpoint for verify-email. The route handler
-  // itself rejects with 404 when NODE_ENV === 'production' as a second line
-  // of defense, but skip registration entirely in prod so the route is not
-  // even discoverable.
+  // Dev/test-only routes. Each handler also 404s when NODE_ENV === 'production'
+  // as a second line of defense, but skip registration entirely in prod so the
+  // routes aren't even discoverable. bug-reports writes client-supplied JSON +
+  // decoded image bytes to disk, so its locality must be enforced in code, not
+  // just by the dev-gated frontend trigger.
   if (process.env.NODE_ENV !== "production") {
+    await app.register(bugReportRoutes, { prefix: "/api/bug-reports" });
     await app.register(devRoutes, { prefix: "/api/dev" });
   }
 

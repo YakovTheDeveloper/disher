@@ -1,8 +1,12 @@
 /**
  * Generates a lite catalog: { id, n (name), c (categories) }.
  *
- * Reads seed/combined-foods-final.json and writes data/food-catalog-lite.json.
- * Used for name lookup by id (matcher) and as compact catalog for LLM prompts.
+ * Reads the FRONTEND catalog (apps/food-calc/src/shared/data/catalog.json) and
+ * writes data/food-catalog-lite.json. Same source as the matcher embeddings
+ * (see gen-food-embeddings.ts) so the calibration probes that read this file
+ * (probe-hybrid-sim, probe-coverage) model the SAME id-space the live matcher
+ * holds. Previously read seed/combined-foods-final.json (430 incl. 24 supplements
+ * the frontend drops) → probes over-counted candidates the matcher can't return.
  *
  * Usage: npx tsx scripts/gen-food-catalog-lite.ts
  */
@@ -17,7 +21,7 @@ interface FullProduct {
   id: string;
   name: string;
   source?: string;
-  categories: string[];
+  categories?: string[];
 }
 
 interface LiteEntry {
@@ -26,14 +30,14 @@ interface LiteEntry {
   c: string[];
 }
 
-const inputPath = resolve(__dirname, "../seed/combined-foods-final.json");
+const inputPath = resolve(__dirname, "../../food-calc/src/shared/data/catalog.json");
 const outputDir = resolve(__dirname, "../data");
 const outputPath = resolve(outputDir, "food-catalog-lite.json");
 
 export function generateLiteCatalog(): LiteEntry[] {
   const raw = readFileSync(inputPath, "utf-8");
   const data: FullProduct[] = JSON.parse(raw);
-  return data.map((f) => ({ id: f.id, n: f.name, c: f.categories }));
+  return data.map((f) => ({ id: f.id, n: f.name, c: f.categories ?? [] }));
 }
 
 export function writeLiteCatalog(): void {

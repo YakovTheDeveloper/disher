@@ -12,4 +12,3 @@ export {
 } from './useDishProductFlow';
 export type { DishProductFlow, EditItem as DishEditItem } from './useDishProductFlow';
 export { Heading } from './Heading';
-export { DishSuggestionsModal, DISH_SUGGESTIONS_INPUT_IDS } from './DishSuggestionsModal';

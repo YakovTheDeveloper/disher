@@ -1,15 +1,9 @@
 import { createHash, randomUUID } from "crypto";
 import { FastifyInstance } from "fastify";
-import {
-  isMatcherReady,
-  lookupAlias,
-  matchOne,
-  normalizeForEmbedding,
-  type MatchCandidate,
-} from "../food-matcher.js";
-import { logMatcherQuery } from "../matcher-query-log.js";
+import { isMatcherReady } from "../food-matcher.js";
 import { logLLMOutput } from "../llm-output-log.js";
-import { MATCHER_VERSION, getLLMModel } from "../build-info.js";
+import { getLLMModel } from "../build-info.js";
+import { resolveNames, type LLMItem, LLM_ITEMS_JSON_SCHEMA } from "../resolve-names.js";
 
 // ─── Types ───
 
@@ -18,60 +12,6 @@ interface ParseRequest {
   // existingDishNames is accepted for forward compatibility (Full phase). Ignored in MVP.
   existingDishNames?: Array<{ id: string; name: string }>;
 }
-
-interface LLMItem {
-  type?: "product" | "dish";
-  name: string;
-  details?: string;
-  quantity: number | null;
-  time: string | null;
-}
-
-interface ResolvedItem {
-  productId: string;
-  name: string;
-  originalName: string;
-  details: string;
-  quantity: number;
-  time: string;
-  confidence: number;
-}
-
-interface AmbiguousItem {
-  originalName: string;
-  details: string;
-  quantity: number;
-  time: string;
-  candidates: MatchCandidate[];
-}
-
-interface UnresolvedItem {
-  originalName: string;
-  details: string;
-  quantity: number;
-  time: string;
-}
-
-interface ParseResponse {
-  requestId: string;
-  resolved: ResolvedItem[];
-  ambiguous: AmbiguousItem[];
-  unresolved: UnresolvedItem[];
-}
-
-// ─── Thresholds (calibrated from probe-parse logs 2026-04 ───
-//
-// e5-small на русском выдаёт узкий диапазон score (0.83–0.91). Типичный
-// margin top1-top2 для корректного top-1 — 0.003–0.008. Раньше было 0.02 →
-// 83% запросов падали в ambiguous даже когда top-1 был правильный.
-// Новый порог 0.003 оставляет место для реально сомнительных (margin < 0.003 =
-// почти ничья, честно показать пользователю кандидатов).
-const SCORE_FLOOR = 0.8;
-const AUTO_ACCEPT_MARGIN = 0.003;
-
-// ─── Quantity fallback ───
-
-const QUANTITY_FALLBACK_G = 100;
 
 // ─── LLM response cache ───
 
@@ -82,7 +22,9 @@ const LLM_CACHE_MAX = 200;
 // were produced under a different contract and would otherwise leak through.
 // v2 (2026-05-12): renamed `note` → `details`, broadened the field to cover
 // prep method / aging / source / marinade / peel / cuisine style.
-const PROMPT_VERSION = 2;
+// v3 (2026-06-05): switched model→deepseek-v4-flash + strict json_schema —
+// outputs from the old model/format must not leak through the cache.
+const PROMPT_VERSION = 3;
 
 const llmCache = new Map<string, { items: LLMItem[]; expiresAt: number }>();
 
@@ -112,7 +54,8 @@ function setCachedLLM(text: string, items: LLMItem[]): void {
   llmCache.set(cacheKey(text), { items, expiresAt: Date.now() + LLM_CACHE_TTL_MS });
 }
 
-// ─── Rate limit (shared with dish suggestions: 30/hour/IP per плану) ───
+// ─── Rate limit (30/hour/IP). NB: the suggestions route keeps its OWN separate
+// budget (not a shared limiter) — a user effectively gets 30 here + 30 there. ───
 
 const RATE_LIMIT = parseInt(process.env.FREE_TEXT_RATE_LIMIT ?? "30", 10);
 const RATE_WINDOW_MS = 60 * 60 * 1000;
@@ -206,7 +149,7 @@ async function callLLM(text: string): Promise<LLMCallResult> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
 
-  const model = process.env.SUGGESTION_MODEL ?? "deepseek/deepseek-chat";
+  const model = getLLMModel();
 
   const MAX_RETRIES = 3;
   let response!: Response;
@@ -225,7 +168,13 @@ async function callLLM(text: string): Promise<LLMCallResult> {
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: text },
         ],
-        response_format: { type: "json_object" },
+        // temp 0.3: lower than the model default for more deterministic
+        // extraction + stabler cache keys (canon decision 2026-06-04).
+        temperature: 0.3,
+        // Strict structured output (shared schema). require_parameters → only
+        // route to providers that enforce json_schema (deepseek-v4-flash).
+        response_format: { type: "json_schema", json_schema: LLM_ITEMS_JSON_SCHEMA },
+        provider: { require_parameters: true },
       }),
     });
     if (response.status !== 429) break;
@@ -261,172 +210,6 @@ async function callLLM(text: string): Promise<LLMCallResult> {
         ? { totalCost: usage.cost }
         : {}),
   };
-}
-
-// ─── Time defaults ───
-
-const DEFAULT_SLOTS = ["08:00", "13:00", "16:00", "19:00"];
-
-function isValidTime(t: unknown): t is string {
-  return typeof t === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(t);
-}
-
-function fillDefaultTimes(items: LLMItem[]): string[] {
-  // Walk left-to-right; if missing, take next default slot after the last used time.
-  const filled: string[] = new Array(items.length);
-  let slotIdx = 0;
-  let lastTime: string | null = null;
-  for (let i = 0; i < items.length; i++) {
-    const t = items[i].time;
-    if (isValidTime(t)) {
-      filled[i] = t;
-      lastTime = t;
-      // Bump slotIdx past any default slots ≤ lastTime.
-      while (slotIdx < DEFAULT_SLOTS.length && DEFAULT_SLOTS[slotIdx] <= lastTime) slotIdx++;
-    } else {
-      const candidate = DEFAULT_SLOTS[Math.min(slotIdx, DEFAULT_SLOTS.length - 1)];
-      filled[i] = candidate;
-      lastTime = candidate;
-      slotIdx = Math.min(slotIdx + 1, DEFAULT_SLOTS.length - 1);
-    }
-  }
-  return filled;
-}
-
-// ─── Pipeline ───
-
-async function resolveItems(
-  items: LLMItem[],
-  phrase: string,
-  requestId: string,
-): Promise<ParseResponse> {
-  const times = fillDefaultTimes(items);
-  const llmModel = getLLMModel();
-
-  const resolved: ResolvedItem[] = [];
-  const ambiguous: AmbiguousItem[] = [];
-  const unresolved: UnresolvedItem[] = [];
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    const time = times[i];
-    const details = typeof item.details === "string" ? item.details.trim() : "";
-
-    const rawQty = typeof item.quantity === "number" && isFinite(item.quantity) ? item.quantity : 0;
-    const quantity = rawQty <= 0 ? QUANTITY_FALLBACK_G : Math.round(rawQty);
-
-    const normalizedName = normalizeForEmbedding(item.name);
-    const logBase = {
-      requestId,
-      phrase,
-      originalName: item.name,
-      llmNote: details,
-      llmQuantity: typeof item.quantity === "number" ? item.quantity : null,
-      llmTime: typeof item.time === "string" ? item.time : null,
-      normalizedName,
-      matcherVersion: MATCHER_VERSION,
-      llmModel,
-    } as const;
-
-    const alias = lookupAlias(item.name);
-    if (alias) {
-      logMatcherQuery({
-        ...logBase,
-        verdict: "alias",
-        top: [{ id: alias.id, name: alias.name, score: alias.score }],
-        margin: null,
-        aliasHit: true,
-      });
-      resolved.push({
-        productId: alias.id,
-        name: alias.name,
-        originalName: item.name,
-        details,
-        quantity,
-        time,
-        confidence: alias.score,
-      });
-      continue;
-    }
-
-    const candidates = await matchOne(item.name, 3);
-    const top = candidates[0];
-    const second = candidates[1];
-
-    if (!top) {
-      logMatcherQuery({
-        ...logBase,
-        verdict: "unresolved",
-        top: [],
-        margin: null,
-        aliasHit: false,
-      });
-      unresolved.push({
-        originalName: item.name,
-        details,
-        quantity,
-        time,
-      });
-      continue;
-    }
-
-    const margin = second ? top.score - second.score : 1;
-    const aboveFloor = top.score >= SCORE_FLOOR;
-    const confident = aboveFloor && margin >= AUTO_ACCEPT_MARGIN;
-
-    const verdict: "resolved" | "ambiguous" | "unresolved" = confident
-      ? "resolved"
-      : aboveFloor
-        ? "ambiguous"
-        : "unresolved";
-
-    const scoreBreakdown =
-      top.trigram !== undefined || top.cosine !== undefined || top.hybrid !== undefined
-        ? {
-            ...(top.trigram !== undefined ? { trigram: top.trigram } : {}),
-            ...(top.cosine !== undefined ? { cosine: top.cosine } : {}),
-            ...(top.hybrid !== undefined ? { hybrid: top.hybrid } : {}),
-          }
-        : undefined;
-
-    logMatcherQuery({
-      ...logBase,
-      verdict,
-      top: candidates.map((c) => ({ id: c.id, name: c.name, score: c.score })),
-      margin,
-      aliasHit: false,
-      ...(scoreBreakdown ? { scoreBreakdown } : {}),
-    });
-
-    if (verdict === "resolved") {
-      resolved.push({
-        productId: top.id,
-        name: top.name,
-        originalName: item.name,
-        details,
-        quantity,
-        time,
-        confidence: top.score,
-      });
-    } else if (verdict === "ambiguous") {
-      ambiguous.push({
-        originalName: item.name,
-        details,
-        quantity,
-        time,
-        candidates,
-      });
-    } else {
-      unresolved.push({
-        originalName: item.name,
-        details,
-        quantity,
-        time,
-      });
-    }
-  }
-
-  return { requestId, resolved, ambiguous, unresolved };
 }
 
 // ─── Routes ───
@@ -494,7 +277,7 @@ export async function freeTextFoodRoutes(app: FastifyInstance) {
       if (items.length === 0) {
         return reply.send({ requestId, resolved: [], ambiguous: [], unresolved: [] });
       }
-      const result = await resolveItems(items, text, requestId);
+      const result = await resolveNames(items, text, requestId);
       return reply.send(result);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";

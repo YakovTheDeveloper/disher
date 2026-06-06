@@ -67,6 +67,8 @@ async function commitDishItems(
         dishId,
         productId: c.productId,
         quantity: c.quantity,
+        // Mirror production: head-A details (борщ→свекла «вареная») must persist.
+        details: c.details ?? '',
       });
     }
   });
@@ -170,7 +172,7 @@ describe('useWriteFoodFlow.commit — dish mode', () => {
     const dishId = 'dish-xyz';
     const committed: CommittedItem[] = [
       { productId: 'p-a', quantity: 100, time: '00:00', details: '' },
-      { productId: 'p-b', quantity: 200, time: '00:00', details: '' },
+      { productId: 'p-b', quantity: 200, time: '00:00', details: 'вареная' },
     ];
 
     await commitDishItems(committed, dishId);
@@ -182,6 +184,9 @@ describe('useWriteFoodFlow.commit — dish mode', () => {
       expect(row).toBeTruthy();
       expect(row!.dish_id).toBe(dishId);
       expect(row!.quantity).toBe(c.quantity);
+      // head-A details must round-trip onto the dish_item (regression guard
+      // for the dish-commit details passthrough in useWriteFoodFlow.commit).
+      expect(row!.details).toBe(c.details);
     }
   });
 

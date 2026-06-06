@@ -1,4 +1,5 @@
-import { FC, useCallback } from 'react';
+import { FC, useState } from 'react';
+import { useLongPress } from '@/shared/lib/hooks/useLongPress';
 import s from './FoodPortionsManager.module.scss';
 
 type Portion = { label: string; grams: number };
@@ -14,29 +15,26 @@ type Props = {
   /**
    * Подсказка над виджетом — объясняет юзеру, что хранят порции в его
    * контексте. Если не задана, виджет покажет дефолт по `unit`.
-   * Передавай явный текст из модалки создания еды/добавки, где контекст
-   * («еда vs БАД») известен на момент рендера.
    */
   hint?: string;
   /**
    * Derived non-editable row pinned to the top of the list (e.g. for Dish:
    * `{ label: 'Всё блюдо', grams: Σ dish_items.quantity }`). Always recomputed
-   * by the parent — never persisted; bypassing the empty-state.
+   * by the parent — never persisted, never deletable.
    */
   implicitPortion?: Portion;
-  onAdd?: (portion: Portion) => void;
+  /** Inline-правка существующей порции (label / grams). Наличие = editable-режим. */
   onUpdate?: (label: string, updates: Partial<Portion>) => void;
-  onRemove?: (label: string) => void;
   /**
-   * Default `true`. Set to `false` on screens that move the "Add portion"
-   * affordance to a page-level bottom bar (ProductPage / DishBuilderPage
-   * «Порции»-slide). The widget then only renders the list itself.
+   * Long-press по строке-порции → страница открывает drawer подтверждения
+   * удаления (`ItemActionsDrawer`). Создание и удаление вынесены из виджета:
+   * виджет рисует список + inline-правку, а add/delete живут на странице
+   * (модалка создания + long-press-drawer). Если не задан — long-press off.
    */
-  showAddButton?: boolean;
+  onLongPressRow?: (label: string) => void;
   /**
-   * Default `true`. Set to `false` on the «Порции»-slide of ProductPage /
-   * DishBuilderPage, which floats the hint as an absolute caption under the
-   * screen title instead.
+   * Default `true`. На «Порции»-слайде Product/Dish hint вынесен в caption под
+   * заголовком, поэтому страницы передают `false`.
    */
   showHint?: boolean;
 };
@@ -50,49 +48,101 @@ function defaultHint(unit: string): string {
   return `Порции — твои дозы. Например, «утренняя» = 1 ${unit}.`;
 }
 
-const DEFAULT_LABEL_BASE = 'моя порция';
+type EditRowProps = {
+  portion: Portion;
+  unit: string;
+  isGramUnit: boolean;
+  onLabelCommit: (e: React.FocusEvent<HTMLInputElement>) => void;
+  onGramsCommit: (e: React.FocusEvent<HTMLInputElement>) => void;
+  onLongPress?: () => void;
+};
 
-// Exported: ProductPage / DishBuilderPage call this from the page-level
-// bottom-bar «Добавить порцию» button to pre-compute the next free label
-// without rebuilding the helper.
-export function nextDefaultPortionLabel(existing: Portion[]): string {
-  const labels = new Set(existing.map((p) => p.label));
-  if (!labels.has(DEFAULT_LABEL_BASE)) return DEFAULT_LABEL_BASE;
-  let n = 2;
-  while (labels.has(`${DEFAULT_LABEL_BASE} ${n}`)) n += 1;
-  return `${DEFAULT_LABEL_BASE} ${n}`;
-}
+// Канон HomePage (ScheduleFoodItemInline): в ПОКОЕ ячейки — тап-таргеты (span),
+// сырой <input> появляется ТОЛЬКО в режиме правки (тап → input autoFocus → blur
+// коммитит). Поэтому в покое инпутов нет, и long-press по pill'у не конфликтует
+// с удержанием каретки. useLongPress навешен прямо на sky-pill (без обёртки
+// LongPressRow, которая красила бы свой tod-фон поверх sky-градиента —
+// «один владелец bg», см. drawer-layout-canon).
+const PortionEditRow = ({
+  portion,
+  unit,
+  isGramUnit,
+  onLabelCommit,
+  onGramsCommit,
+  onLongPress,
+}: EditRowProps) => {
+  const longPress = useLongPress(onLongPress ?? (() => {}));
+  const pressHandlers = onLongPress ? longPress : {};
+  const [editing, setEditing] = useState<null | 'label' | 'grams'>(null);
+
+  const finishLabel = (e: React.FocusEvent<HTMLInputElement>) => {
+    onLabelCommit(e);
+    setEditing(null);
+  };
+  const finishGrams = (e: React.FocusEvent<HTMLInputElement>) => {
+    onGramsCommit(e);
+    setEditing(null);
+  };
+
+  return (
+    <div className={s.portionEdit} {...pressHandlers}>
+      {editing === 'label' ? (
+        <input
+          className={s.formInput}
+          defaultValue={portion.label}
+          placeholder="название"
+          autoFocus
+          onBlur={finishLabel}
+        />
+      ) : (
+        <span className={s.cellLabel} onClick={() => setEditing('label')}>
+          {portion.label}
+        </span>
+      )}
+
+      {editing === 'grams' ? (
+        <input
+          className={s.formInputGrams}
+          defaultValue={portion.grams || ''}
+          placeholder={isGramUnit ? 'вес, г' : unit}
+          inputMode="numeric"
+          autoFocus
+          onBlur={finishGrams}
+        />
+      ) : (
+        <span className={s.cellGrams} onClick={() => setEditing('grams')}>
+          {portion.grams || '—'}
+        </span>
+      )}
+
+      <span className={s.portionUnitSuffix}>{unit}</span>
+    </div>
+  );
+};
 
 const FoodPortionsManager: FC<Props> = ({
   portions,
   unit = 'г',
   hint,
   implicitPortion,
-  onAdd,
   onUpdate,
-  onRemove,
-  showAddButton = true,
+  onLongPressRow,
   showHint = true,
 }) => {
-  const editable = !!(onAdd && onUpdate && onRemove);
+  const editable = !!onUpdate;
   const hintText = hint ?? defaultHint(unit);
+  const isGramUnit = GRAM_UNITS.has(unit);
 
-  const handleAdd = useCallback(() => {
-    onAdd?.({ label: nextDefaultPortionLabel(portions), grams: 0 });
-  }, [portions, onAdd]);
-
-  // Nothing to render: no portions, no derived/implicit row, hint suppressed,
-  // and the add-affordance lives elsewhere (page-level bottom bar). Skip the
-  // container entirely so the screen doesn't show an empty padded box.
+  // Nothing to render: no portions, no derived/implicit row, hint suppressed.
+  // Add-affordance живёт на странице (нижний бар), так что пустой editable-экран
+  // отдаём наверх пустым — Screen покажет hollow-watermark.
   const hasNothingToShow =
-    portions.length === 0 &&
-    !implicitPortion &&
-    !(editable && showHint) &&
-    !(editable && showAddButton);
+    portions.length === 0 && !implicitPortion && !(editable && showHint);
   if (hasNothingToShow) return null;
 
   // Label is the row key — collisions break React reconciliation. На blur
   // откатываем пустые/дублирующие значения визуально, в state не уходим.
+  // Сравнение дублей — case-insensitive (единообразно с usePortionFlow.isDuplicate).
   const handleLabelBlur =
     (originalLabel: string) => (e: React.FocusEvent<HTMLInputElement>) => {
       const next = e.target.value.trim();
@@ -100,8 +150,9 @@ const FoodPortionsManager: FC<Props> = ({
         e.target.value = originalLabel;
         return;
       }
+      const nextLower = next.toLowerCase();
       const collision = portions.some(
-        (p) => p.label !== originalLabel && p.label === next,
+        (p) => p.label !== originalLabel && p.label.toLowerCase() === nextLower,
       );
       if (collision) {
         e.target.value = originalLabel;
@@ -144,30 +195,15 @@ const FoodPortionsManager: FC<Props> = ({
 
         {portions.map((p) =>
           editable ? (
-            <div key={p.label} className={s.portionEdit}>
-              <input
-                className={s.formInput}
-                defaultValue={p.label}
-                placeholder="название"
-                onBlur={handleLabelBlur(p.label)}
-              />
-              <input
-                className={s.formInputGrams}
-                defaultValue={p.grams || ''}
-                placeholder={GRAM_UNITS.has(unit) ? 'вес, г' : unit}
-                inputMode="numeric"
-                onBlur={handleGramsBlur(p.label, p.grams)}
-              />
-              <span className={s.portionUnitSuffix}>{unit}</span>
-              <button
-                type="button"
-                className={s.iconButton}
-                onClick={() => onRemove?.(p.label)}
-                aria-label="Удалить порцию"
-              >
-                ×
-              </button>
-            </div>
+            <PortionEditRow
+              key={p.label}
+              portion={p}
+              unit={unit}
+              isGramUnit={isGramUnit}
+              onLabelCommit={handleLabelBlur(p.label)}
+              onGramsCommit={handleGramsBlur(p.label, p.grams)}
+              onLongPress={onLongPressRow ? () => onLongPressRow(p.label) : undefined}
+            />
           ) : (
             <div key={p.label} className={s.portion}>
               <div className={s.portionInfo}>
@@ -180,12 +216,6 @@ const FoodPortionsManager: FC<Props> = ({
           ),
         )}
       </div>
-
-      {editable && showAddButton && (
-        <button type="button" className={s.addButton} onClick={handleAdd}>
-          + добавить порцию
-        </button>
-      )}
     </div>
   );
 };

@@ -15,6 +15,13 @@ import s from './WriteFoodInput.module.scss';
 // на `.wrap` (см. .module.scss). Перелистывается DesignVariantsBar.
 const WRITEBAR_VARIANTS = ['ash', 'mint'] as const;
 
+// Форма/рамка плитки «Выбор еды» — «почтовая марка» + вайб NavTile (тех же
+// «квадратиков смены контента» сверху). Anchor `FoodTile` навешен на саму
+// плитку (`.writeBarList`); варианты меняют ТОЛЬКО силуэт/рамку/декор, цвет
+// берётся из WriteBar-палитры (`--wb-tile-*`) → композируется с ash/mint.
+// perf (дефолт) = круглая перфорация по периметру (самый прямой «марка» read).
+const FOODTILE_VARIANTS = ['perf', 'paper', 'dashed', 'engraving', 'scallop'] as const;
+
 const SendArrowIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
     <path
@@ -27,23 +34,10 @@ const SendArrowIcon = () => (
   </svg>
 );
 
-// Catalog-icon (filled, 2026-05-24): рука держит cloche (room-service dome)
-// с тарелкой. ViewBox 24×24, в DOM 20×20. fill=currentColor — наследует
-// graphite-тон из `.writeBarList`.
-const CatalogIconDome = ({ size = 22 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <circle cx="12" cy="6.4" r="0.9" />
-    <path d="M 5 14 A 7 7 0 0 1 19 14 Z" />
-    <ellipse cx="12" cy="14.3" rx="7.8" ry="0.7" />
-    <path d="M 2 17.5 Q 4 16 7 16 L 17 16 Q 20 16 22 17.5 Q 22.6 19 21.4 19.6 L 20.4 19.6 Q 19.6 19.6 19.4 20.4 L 19.2 21 Q 19 21.8 18.2 21.8 L 5.8 21.8 Q 5 21.8 4.8 21 L 4.6 20.4 Q 4.4 19.6 3.6 19.6 L 2.6 19.6 Q 1.4 19 2 17.5 Z" />
-  </svg>
-);
+// Фоновая картинка плитки «Выбор еды» — гравюра-клош (cloche / room-service
+// dome) на белом фоне, в стиле NavTile-арта. Лежит призраком ПОД подписью
+// (см. `.writeBarListImg`), белый фон сливается с плиткой на малой opacity.
+const FOOD_TILE_IMG = '/art/plate.png';
 
 const DEFAULT_PLACEHOLDER = 'Опишите, что ели…';
 const ANCHOR_SELECTOR = '[data-write-food-anchor]';
@@ -127,6 +121,7 @@ export const WriteFoodInput = ({
   const online = useOnline();
   const { pressed: searchPressed, pressProps: searchPressProps } = usePressFeedback();
   const { anchor: writeBarAnchor } = useDesignVariant('WriteBar', WRITEBAR_VARIANTS);
+  const { anchor: foodTileAnchor } = useDesignVariant('FoodTile', FOODTILE_VARIANTS);
 
   // Idle/blur — 1 ряд, фокус — до 4 рядов. Auto-grow от value уже встроен в
   // AutoGrowSearch (он сам пересчитывает через recomputeRows на изменение
@@ -243,8 +238,9 @@ export const WriteFoodInput = ({
           aria-label={searchLabel ?? 'Найти'}
           data-pressed={searchPressed || undefined}
           {...searchPressProps}
+          {...foodTileAnchor}
         >
-          <CatalogIconDome size={22} />
+          <img src={FOOD_TILE_IMG} className={s.writeBarListImg} alt="" aria-hidden />
           {searchText && (
             <span className={s.writeBarListText}>{searchText}</span>
           )}

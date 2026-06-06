@@ -14,14 +14,22 @@ import {
 const now = () => new Date().toISOString();
 
 export async function createDish(name: string, id?: string): Promise<string> {
+  // Contract guard: a dish must always have a non-empty name. UI create flows
+  // already trim+guard, but enforcing it here makes the invariant structural —
+  // a nameless dish would silently break name-driven features (e.g. the
+  // «Предложить ингредиенты» head-A button no-ops on an empty name).
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error('Название блюда не может быть пустым');
   const dishId = id ?? crypto.randomUUID();
-  const row: Omit<DishRow, 'updated_at'> = { id: dishId, name, created_at: now() };
+  const row: Omit<DishRow, 'updated_at'> = { id: dishId, name: trimmed, created_at: now() };
   await putRow(db.dishes, row);
   return dishId;
 }
 
 export async function updateDishName(dishId: string, name: string): Promise<void> {
-  await updateRow(db.dishes, dishId, { name });
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error('Название блюда не может быть пустым');
+  await updateRow(db.dishes, dishId, { name: trimmed });
 }
 
 // Resolve a dish's full delete cascade — its dish_items + dish_portions

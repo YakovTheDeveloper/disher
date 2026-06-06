@@ -6,6 +6,8 @@
 // Use diagLog('[tag] message', { ...fields }) instead of console.warn for
 // anything you want included in the dump.
 
+import { getPwaTag } from './pwaTag';
+
 type DiagEntry = {
   t: number;        // ms since boot
   ts: string;       // ISO timestamp
@@ -108,13 +110,6 @@ function flushDiagBeacon(): void {
   } catch {
     // Best effort.
   }
-}
-
-function getPwaTag(): string {
-  const standalone = (navigator as unknown as { standalone?: boolean }).standalone;
-  const displayMode =
-    typeof matchMedia === 'function' ? matchMedia('(display-mode: standalone)').matches : undefined;
-  return `standalone=${standalone ?? 'n/a'} display-mode=${displayMode ?? 'n/a'}`;
 }
 
 if (typeof window !== 'undefined') {

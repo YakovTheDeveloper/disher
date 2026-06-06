@@ -27,7 +27,11 @@
     --_tapped: var(--tod-tapped, var(--tod-morning-tapped));
 
     background-color: color-mix(in oklch, var(--_bg-from) calc((1 - var(--t)) * 100%), var(--_bg-to));
-    outline: 1px solid color-mix(in oklch, var(--_outline-from) calc((1 - var(--t)) * 100%), var(--_outline-to));
+    // Resting frame width is consumer-overridable via --row-rest-outline-w so the
+    // RowBoundary design-variant can drop the per-row outline (merged/rail/
+    // borderless looks) without a specificity war against the :focus-within ring
+    // below (which sets its own explicit outline). Default 1px = unchanged.
+    outline: var(--row-rest-outline-w, 1px) solid color-mix(in oklch, var(--_outline-from) calc((1 - var(--t)) * 100%), var(--_outline-to));
 
     position: relative;
     // Vertical padding is consumer-overridable via --row-pad-block. Default
@@ -45,8 +49,12 @@
     flex-grow: 1;
     z-index: 1;
 
+    // Per-row drop shadow. Overridable via --row-last-shadow so the RowBoundary
+    // merged/rail/borderless variants can suppress per-row shadows and let only
+    // the group's last row cast one (a per-row shadow under every card adds to
+    // the seam heaviness). Default = unchanged.
     &:last-child {
-        box-shadow: 0px 10px 8px -11px rgba(0, 0, 0, 0.15);
+        box-shadow: var(--row-last-shadow, 0px 10px 8px -11px rgba(0, 0, 0, 0.15));
     }
 
     // Press feedback — replaces the old motion `whileTap={{ scale: 0.98 }}`.

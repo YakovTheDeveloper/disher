@@ -13,9 +13,14 @@ import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants
 import { NutrientTable } from '@/widgets/nutrients/FoodsNutrients';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { OpenDailyNorms } from '@/features/dailyNorms/OpenDailyNorms';
-import { FoodPortionsManager, nextDefaultPortionLabel } from '@/features/food/food-portions-manager';
+import {
+  FoodPortionsManager,
+  PortionCreateModals,
+  AddPortionButton,
+} from '@/features/food/food-portions-manager';
 import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-name';
-import { PlusIcon } from '@/shared/ui/atoms/Button/AddButton/AddButton';
+import { drawerStore } from '@/shared/ui/drawer-store';
+import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer';
 import { Screen } from '@/shared/ui/Screen';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
@@ -80,23 +85,32 @@ const ProductPage = () => {
       setRenameOpen(true);
     }
   }, []);
-  // Per-slide scroll-стейт: Embla сохраняет позицию каждого Screen, поэтому
-  // нам нужно знать scrollY активного слайда (не «последнего скроллившего»).
-  // При scrollY > 120 активного слайда — возвращаем имя продукта в
-  // HomeTopBar.centerLabel. Активный индекс — из Swipeable.onIndexChange ниже.
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [scrollByIndex, setScrollByIndex] = useState<number[]>([0, 0]);
-  const isScrolled = (scrollByIndex[activeSlide] ?? 0) > 120;
-  const makeScrollHandler = useCallback(
-    (idx: number) => (y: number) => {
-      setScrollByIndex((prev) => {
-        if (prev[idx] === y) return prev;
-        const next = prev.slice();
-        next[idx] = y;
-        return next;
-      });
+  // Имя в HomeTopBar.centerLabel возвращается РОВНО когда заголовок контента
+  // ушёл под бар — сигнал даёт IntersectionObserver внутри Screen
+  // (onContentHeaderVisibilityChange), не магический порог скролла. Видимость
+  // держим per-slide в ref (Embla хранит позицию каждого Screen), наружу уходит
+  // только булева labelVisible и только на пересечении — свайп/скролл = ноль
+  // per-frame ре-рендеров (канон HomePage/DishBuilderPage).
+  const activeSlideRef = useRef(0);
+  const titleHiddenRef = useRef<boolean[]>([false, false]);
+  const [labelVisible, setLabelVisible] = useState(false);
+  const recomputeLabel = useCallback(() => {
+    const next = titleHiddenRef.current[activeSlideRef.current] ?? false;
+    setLabelVisible((prev) => (prev === next ? prev : next));
+  }, []);
+  const onTitleVisible0 = useCallback(
+    (visible: boolean) => {
+      titleHiddenRef.current[0] = !visible;
+      if (activeSlideRef.current === 0) recomputeLabel();
     },
-    [],
+    [recomputeLabel],
+  );
+  const onTitleVisible1 = useCallback(
+    (visible: boolean) => {
+      titleHiddenRef.current[1] = !visible;
+      if (activeSlideRef.current === 1) recomputeLabel();
+    },
+    [recomputeLabel],
   );
 
   const { anchor: navTileAnchor } = useDesignVariant('NavTileAmbient', NAVTILE_AMBIENT_VARIANTS);
@@ -169,6 +183,46 @@ const ProductPage = () => {
     return sum;
   }, [nutrientValueMap]);
 
+  // ── Порции: создание 2-шаговой модалкой + удаление long-press → drawer ──
+  // Адаптер прячет хранение: продукт = JSON-массив `products.portions` по label
+  // (whole-array replace). Флоу создания живёт внутри PortionCreateModals —
+  // общий компонент с DishBuilderPage.
+  const portionLabels = useMemo(() => portionsRaw.map((p) => p.label), [portionsRaw]);
+  const createPortion = (portion: { label: string; grams: number }) => {
+    if (!food) return;
+    const updated = [...portionsRaw, portion];
+    void safeMutate(
+      () => setProductPortions(food.id, JSON.stringify(updated)),
+      'Не удалось добавить порцию',
+    );
+  };
+  const deletePortion = (label: string) => {
+    if (!food) return;
+    const updated = portionsRaw.filter((p) => p.label !== label);
+    void safeMutate(
+      () => setProductPortions(food.id, JSON.stringify(updated)),
+      'Не удалось удалить порцию',
+    );
+  };
+  const updatePortion = (
+    label: string,
+    updates: Partial<{ label: string; grams: number }>,
+  ) => {
+    if (!food) return;
+    const updated = portionsRaw.map((p) => (p.label === label ? { ...p, ...updates } : p));
+    void safeMutate(
+      () => setProductPortions(food.id, JSON.stringify(updated)),
+      'Не удалось обновить порцию',
+    );
+  };
+  const openPortionDeleteDrawer = (label: string) => {
+    void drawerStore.show(ItemActionsDrawer, {
+      title: label,
+      onDelete: () => deletePortion(label),
+      actions: [],
+    });
+  };
+
   if (!food) return null;
 
   const isUserCreated = isCreatedByUser(food.id);
@@ -207,7 +261,7 @@ const ProductPage = () => {
         dateButtonLabel={<CalendarIcon width={22} height={22} />}
         centerLabel={food.name}
         centerLabelHtmlFor={isUserCreated ? CHANGE_NAME_INPUT_ID : undefined}
-        centerLabelVisible={isScrolled}
+        centerLabelVisible={labelVisible}
         noInterruptGuard
       />
       <div onFocusCapture={handleNameFocusCapture}>
@@ -230,7 +284,10 @@ const ProductPage = () => {
           ref={swipeableRef}
           defaultSlide={0}
           hasDots={false}
-          onIndexChange={(idx) => setActiveSlide(idx)}
+          onIndexChange={(idx) => {
+            activeSlideRef.current = idx;
+            recomputeLabel();
+          }}
         >
           {/* ── Slide 0: Nutrients ── */}
           <Screen
@@ -251,7 +308,7 @@ const ProductPage = () => {
               )
             }
             stickyTop={nutrientsIndicator}
-            onScrollY={makeScrollHandler(0)}
+            onContentHeaderVisibilityChange={onTitleVisible0}
           >
             {/* Имя продукта живёт в centerLabel HomeTopBar (sticky сверху).
                 Для своих продуктов нутриенты редактируются inline (как
@@ -382,32 +439,17 @@ const ProductPage = () => {
               )
             }
             stickyTop={portionsIndicator}
-            onScrollY={makeScrollHandler(1)}
+            onContentHeaderVisibilityChange={onTitleVisible1}
             hollow={portionsRaw.length === 0}
-            bottomBar={
+            bottomBar={isUserCreated ? <AddPortionButton /> : null}
+            overlay={
               isUserCreated ? (
-                <div className={s.portionsBar}>
-                  <button
-                    type="button"
-                    className={s.addPortionButton}
-                    onClick={() => {
-                      const updated = [
-                        ...portionsRaw,
-                        { label: nextDefaultPortionLabel(portions), grams: 0 },
-                      ];
-                      void safeMutate(
-                        () => setProductPortions(food.id, JSON.stringify(updated)),
-                        'Не удалось добавить порцию'
-                      );
-                    }}
-                  >
-                    <span className={s.addPortionPlus} aria-hidden="true">
-                      <PlusIcon />
-                    </span>
-                    Добавить порцию
-                  </button>
-                </div>
-              ) : null
+                <PortionCreateModals
+                  existingLabels={portionLabels}
+                  unit="г"
+                  onCreate={createPortion}
+                />
+              ) : undefined
             }
           >
             <div className={s.portionsScreenInset}>
@@ -415,31 +457,9 @@ const ProductPage = () => {
               <FoodPortionsManager
                 portions={portions}
                 unit={portionUnit}
-                showAddButton={false}
                 showHint={false}
-                onAdd={(p) => {
-                  const updated = [...portionsRaw, p];
-                  void safeMutate(
-                    () => setProductPortions(food.id, JSON.stringify(updated)),
-                    'Не удалось добавить порцию'
-                  );
-                }}
-                onUpdate={(label, updates) => {
-                  const updated = portionsRaw.map((p) =>
-                    p.label === label ? { ...p, ...updates } : p
-                  );
-                  void safeMutate(
-                    () => setProductPortions(food.id, JSON.stringify(updated)),
-                    'Не удалось обновить порцию'
-                  );
-                }}
-                onRemove={(label) => {
-                  const updated = portionsRaw.filter((p) => p.label !== label);
-                  void safeMutate(
-                    () => setProductPortions(food.id, JSON.stringify(updated)),
-                    'Не удалось удалить порцию'
-                  );
-                }}
+                onUpdate={updatePortion}
+                onLongPressRow={openPortionDeleteDrawer}
               />
             ) : (
               <FoodPortionsManager portions={portions} unit={portionUnit} />

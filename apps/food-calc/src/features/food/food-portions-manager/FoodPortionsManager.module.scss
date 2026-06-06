@@ -50,10 +50,12 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
     transition: box-shadow 120ms ease;
 }
 
-// Edit pill — inputs live inside.
+// Edit pill — inputs live inside. Long-press по самому pill'у открывает drawer
+// удаления (useLongPress навешен на этот div в PortionEditRow), поэтому гасим
+// iOS-callout/контекст-меню и double-tap-zoom; текст в инпутах остаётся выделяемым.
 .portionEdit {
     display: grid;
-    grid-template-columns: 1fr 7ch auto auto;
+    grid-template-columns: 1fr 7ch auto;
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-2) var(--space-3);
@@ -64,6 +66,8 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
             $sky-bg-to 100%);
     box-shadow: $sky-shadow;
     transition: box-shadow 120ms ease;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
 
     &:hover,
     &:focus-within {
@@ -100,19 +104,36 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
     user-select: none;
 }
 
-.iconButton {
-    background: none;
-    border: none;
-    padding: var(--space-1);
-    color: $sky-ink-faint;
+// Tap-таргеты режима правки: в покое показываем значение span'ом (как
+// ScheduleFoodItemInline qty), тап → input. min-height даёт комфортный тап и
+// держит высоту строки стабильной при переключении span↔input.
+.cellLabel {
+    font-family: "Raleway", sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: $sky-ink;
     cursor: pointer;
-    transition: color 0.15s ease;
-    font-size: 16px;
-    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
-    &:hover {
-        color: $sky-ink;
-    }
+.cellGrams {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 400;
+    color: $sky-ink-soft;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 32px;
+    font-variant-numeric: tabular-nums;
 }
 
 .formInput {
@@ -141,25 +162,6 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 
     &::placeholder {
         font-size: 12px;
-    }
-}
-
-.addButton {
-    align-self: center;
-    background: none;
-    border: none;
-    font-family: "Raleway", sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    color: $sky-ink-soft;
-    cursor: pointer;
-    padding: 12px 16px;
-    margin-top: 4px;
-    transition: color 0.15s ease;
-
-    &:hover {
-        color: $sky-ink;
     }
 }
 
