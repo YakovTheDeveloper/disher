@@ -6,7 +6,7 @@ import {
 import { useUserNormItems } from '@/entities/daily-norm';
 import s from './NutrientTable.module.scss';
 import clsx from 'clsx';
-import { memo, useCallback, useRef, useState, useEffect, type CSSProperties } from 'react';
+import { memo, useCallback, useRef, useState, useEffect } from 'react';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 
@@ -155,13 +155,19 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
         onClick={handleRowClick}
         ref={showOverlay ? wrapperRef : undefined}
       >
-        <div className={s.rowTop}>
+        <div className={clsx(s.rowTop, isViewNorms && s.rowInline)}>
           <span className={s.name}>{nutrient.displayNameRu}</span>
           <span className={s.dots} />
           {showPctView && (
             <span className={s.pct}>
               {pct}
               <span className={s.pctSign}>%</span>
+            </span>
+          )}
+          {isViewNorms && (
+            <span className={clsx(s.value, s.valueNorm)}>
+              <span>{Math.round(norm)}</span>
+              <span>{nutrient.unitRu}</span>
             </span>
           )}
         </div>
@@ -173,53 +179,49 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
             />
           </div>
         )}
-        <div className={s.rowBottom}>
-          {isView && (
-            <>
-              <span className={clsx(s.value, s.valueLeft)}>
-                <span>{Math.round(value)}</span>
-                <span>{nutrient.unitRu}</span>
-              </span>
-              {hasNorm && (
-                <span className={`${s.value} ${s.valueRight}`}>
-                  {norm}
-                  {nutrient.unitRu}
+        {!isViewNorms && (
+          <div className={s.rowBottom}>
+            {isView && (
+              <>
+                <span className={clsx(s.value, s.valueLeft)}>
+                  <span>{Math.round(value)}</span>
+                  <span>{nutrient.unitRu}</span>
                 </span>
-              )}
-            </>
-          )}
-          {isEditNorms && (
-            <div className={s.editRow}>
-              <NumberInput
-                value={norm}
-                onChange={(v) => onValueChange?.(nutrient.id, v)}
-                className={s.editInput}
-              />
-              <span className={s.unitProminent}>{nutrient.unitRu}</span>
-            </div>
-          )}
-          {isEditValues && (
-            <div className={s.editRow}>
-              <span className={clsx(s.value, s.valueLeft)}>
-                {pct}<span className={s.pctSign}>%</span>
-              </span>
-              <div className={s.editInputRight}>
+                {hasNorm && (
+                  <span className={`${s.value} ${s.valueRight}`}>
+                    {norm}
+                    {nutrient.unitRu}
+                  </span>
+                )}
+              </>
+            )}
+            {isEditNorms && (
+              <div className={s.editRow}>
                 <NumberInput
-                  value={Math.round(value)}
+                  value={norm}
                   onChange={(v) => onValueChange?.(nutrient.id, v)}
                   className={s.editInput}
                 />
                 <span className={s.unitProminent}>{nutrient.unitRu}</span>
               </div>
-            </div>
-          )}
-          {isViewNorms && (
-            <span className={clsx(s.value, s.valueLeft)}>
-              <span>{Math.round(norm)}</span>
-              <span>{nutrient.unitRu}</span>
-            </span>
-          )}
-        </div>
+            )}
+            {isEditValues && (
+              <div className={s.editRow}>
+                <span className={clsx(s.value, s.valueLeft)}>
+                  {pct}<span className={s.pctSign}>%</span>
+                </span>
+                <div className={s.editInputRight}>
+                  <NumberInput
+                    value={Math.round(value)}
+                    onChange={(v) => onValueChange?.(nutrient.id, v)}
+                    className={s.editInput}
+                  />
+                  <span className={s.unitProminent}>{nutrient.unitRu}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         {showOverlay && isOverlayOpen && (
           <div className={s.overlay}>
             <button
@@ -249,21 +251,17 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
 
     return (
       <div key={nutrient.id} className={`${s.row} ${s[nutrient.group]}`} data-nutrient={nutrient.name}>
-        <div className={s.rowTop}>
-          {groupColors && (
-            <span
-              className={s.deco}
-              aria-hidden="true"
-              style={
-                {
-                  '--deco-c1': groupColors.color1,
-                  '--deco-c2': groupColors.color2,
-                } as CSSProperties
-              }
-            />
-          )}
+        <div className={clsx(s.rowTop, isViewNorms && s.rowInline)}>
           <span className={s.name}>{nutrient.displayNameRu}</span>
+          {isViewNorms && <span className={s.dots} />}
           {showPctView && <span className={s.pct}>{norm ? `${pct}%` : ''}</span>}
+          {isViewNorms && (
+            <span className={clsx(s.value, s.valueNorm)}>
+              {norm
+                ? `${nutrient.unitRu === 'г' ? Math.round(norm) : norm}${nutrient.unitRu}`
+                : '—'}
+            </span>
+          )}
         </div>
         {showProgress && norm > 0 && progressColor && (
           <div className={s.progressTrack}>
@@ -276,53 +274,48 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
             />
           </div>
         )}
-        <div className={s.rowBottom}>
-          {isView && (
-            <>
-              <span className={clsx(s.value, s.valueLeft)}>
-                {nutrient.unitRu === 'г' ? Math.round(value) : value.toFixed(1)}
-                {nutrient.unitRu}
-              </span>
-              {hasNorm && (
-                <span className={`${s.value} ${s.valueRight}`}>
-                  {norm ? `${norm}${nutrient.unitRu}` : ''}
+        {!isViewNorms && (
+          <div className={s.rowBottom}>
+            {isView && (
+              <>
+                <span className={clsx(s.value, s.valueLeft)}>
+                  {nutrient.unitRu === 'г' ? Math.round(value) : value.toFixed(1)}
+                  {nutrient.unitRu}
                 </span>
-              )}
-            </>
-          )}
-          {isEditNorms && (
-            <div className={s.editRow}>
-              <NumberInput
-                value={norm}
-                onChange={(v) => onValueChange?.(nutrient.id, v)}
-                className={s.editInput}
-              />
-              <span className={s.unitProminent}>{nutrient.unitRu}</span>
-            </div>
-          )}
-          {isEditValues && (
-            <div className={s.editRow}>
-              <span className={clsx(s.value, s.valueLeft)}>
-                {norm ? `${pct}%` : ''}
-              </span>
-              <div className={s.editInputRight}>
+                {hasNorm && (
+                  <span className={`${s.value} ${s.valueRight}`}>
+                    {norm ? `${norm}${nutrient.unitRu}` : ''}
+                  </span>
+                )}
+              </>
+            )}
+            {isEditNorms && (
+              <div className={s.editRow}>
                 <NumberInput
-                  value={nutrient.unitRu === 'г' ? Math.round(value) : Number(value.toFixed(1))}
+                  value={norm}
                   onChange={(v) => onValueChange?.(nutrient.id, v)}
                   className={s.editInput}
                 />
                 <span className={s.unitProminent}>{nutrient.unitRu}</span>
               </div>
-            </div>
-          )}
-          {isViewNorms && (
-            <span className={clsx(s.value, s.valueLeft)}>
-              {norm
-                ? `${nutrient.unitRu === 'г' ? Math.round(norm) : norm}${nutrient.unitRu}`
-                : '—'}
-            </span>
-          )}
-        </div>
+            )}
+            {isEditValues && (
+              <div className={s.editRow}>
+                <span className={clsx(s.value, s.valueLeft)}>
+                  {norm ? `${pct}%` : ''}
+                </span>
+                <div className={s.editInputRight}>
+                  <NumberInput
+                    value={nutrient.unitRu === 'г' ? Math.round(value) : Number(value.toFixed(1))}
+                    onChange={(v) => onValueChange?.(nutrient.id, v)}
+                    className={s.editInput}
+                  />
+                  <span className={s.unitProminent}>{nutrient.unitRu}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -333,7 +326,6 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
 
       {nutrientGroups.slice(1).map((group) => (
         <div key={group.name} className={`${s.section} ${s[group.name]}`}>
-          <h3 className={s.groupTitle}>{group.displayName}</h3>
           {group.content.map(renderGroupRow)}
         </div>
       ))}

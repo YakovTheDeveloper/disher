@@ -4,7 +4,7 @@ import clsx from 'clsx';
 
 type Props = {
   children: React.ReactNode;
-  offsetTop?: boolean;
+
   count?: number;
   backgroundImage?: string;
   emptyContent?: React.ReactNode;
@@ -27,12 +27,12 @@ const EmptyLines = ({ content }: { content?: React.ReactNode }) => {
   );
 };
 
-const ItemsList = ({ children, offsetTop, count, backgroundImage, emptyContent }: Props) => {
+const ItemsList = ({ children, count, backgroundImage, emptyContent }: Props) => {
   const listRef = useRef<HTMLUListElement | null>(null);
   const isEmpty = count !== undefined && count === 0;
 
   return (
-    <ul ref={listRef} className={clsx([styles.container, offsetTop && styles.offsetTop])}>
+    <ul ref={listRef} className={clsx([styles.container])}>
       {isEmpty ? <EmptyLines content={emptyContent} /> : children}
       {isEmpty && backgroundImage && (
         <img src={backgroundImage} className={styles.backgroundImage} alt="" />

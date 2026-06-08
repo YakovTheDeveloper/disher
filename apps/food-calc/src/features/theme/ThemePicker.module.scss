@@ -19,7 +19,11 @@
   border: 1.5px solid rgba(0, 0, 0, 0.06);
   background: transparent;
   cursor: pointer;
-  transition: border-color 140ms ease, transform 100ms ease, box-shadow 140ms ease;
+  transition:
+    border-color var(--press-out) var(--easing-default),
+    background var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default),
+    box-shadow 140ms ease;
 }
 
 .swatch:hover,
@@ -28,8 +32,18 @@
   outline: none;
 }
 
+// Цветной отклик: карточка темы (chip-вариант) → заливка chip-токеном.
+// .label держит свой тёмный color — на тёмной заливке перекрашиваем (.preview
+// со своим градиентом не трогаем, он остаётся виден).
 .swatch:active {
+  background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+  border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
   transform: scale(0.97);
+  transition-duration: var(--press-in);
+
+  .label {
+    color: var(--chip-active-text, #fff);
+  }
 }
 
 .swatch.active {

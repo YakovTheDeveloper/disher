@@ -13,12 +13,16 @@
   color: rgba(0, 0, 0, 0.2);
   -webkit-tap-highlight-color: transparent;
   transition:
-    background var(--duration-fast) var(--easing-default),
-    transform var(--duration-fast) var(--easing-default);
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
 
+  // Цветной отклик: иконка-аватар → тинт фона + цвет иконки
   &:active {
-    background: rgba(0, 0, 0, 0.06);
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
     transform: scale(0.94);
+    transition-duration: var(--press-in);
   }
 }
 

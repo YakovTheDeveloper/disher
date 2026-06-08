@@ -3,7 +3,7 @@ import { createProduct } from '@/entities/product/api/mutations';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
-import { PlusIcon } from '@/shared/ui/atoms/Button/AddButton/AddButton';
+import { PlusIcon } from '@/shared/ui/atoms/Button/PlusIcon';
 import type { UseWriteFoodFlowResult, ReviewEditStep } from '../model/useWriteFoodFlow';
 import { ProposalFoodItem } from './ProposalFoodItem';
 import { FreeTextFoodReviewEditModals } from './FreeTextFoodReviewEditModals';
@@ -158,7 +158,6 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
   if (isLoading) {
     return (
       <>
-        <div className={styles.divider} aria-hidden />
         <div
           key="wrap-loading"
           className={styles.wrap}
@@ -184,7 +183,6 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
 
   return (
     <>
-      <div className={styles.divider} aria-hidden />
       <div
         key="wrap-ready"
         className={styles.wrap}
@@ -307,9 +305,7 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
                 </h3>
                 <ul
                   className={styles.list}
-                  data-rescue-slot={
-                    unresolved.some((u) => !u.manual) ? 'true' : undefined
-                  }
+                  data-rescue-slot={unresolved.some((u) => !u.manual) ? 'true' : undefined}
                 >
                   {unresolved.map((u) => (
                     <li
@@ -371,18 +367,21 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
         )}
 
         {/*
-          CTA унифицирован с DishBuilder (WriteFoodModal.tsx:412) — кнопка
-          ВСЕГДА видима. При totalToAdd=0 есть два кейса:
-          — все ряды dismissed → «Отменить» (тап чистит предложку);
-          — иначе (unresolved без rescue, пусто на старте) → disabled
-            «Нечего добавлять». Аffordance: юзер видит, почему тап не
-            сработает, и не теряется в пустом месте под списком.
+          CTA унифицирован с DishBuilder — кнопка ВСЕГДА видима и (кроме как во
+          время сабмита) ВСЕГДА кликабельна. Три состояния:
+          — totalToAdd > 0 → «Добавить N» → commit();
+          — totalToAdd 0 + все ряды dismissed → «Отменить» → cancel();
+          — totalToAdd 0 + добавить нечего (unresolved без rescue / ничего не
+            распозналось) → «Закрыть» → cancel().
+          Раньше «Закрыть» была disabled-кнопкой-affordance'ом, но это
+          ЕДИНСТВЕННЫЙ способ закрыть предложку (× в шапке нет) — юзер на ней
+          застревал. Теперь и «Отменить», и «Закрыть» чистят flow (cancel()).
         */}
         <button
           type="button"
           className={styles.commitBtn}
-          onClick={() => (allDismissed ? cancel() : void commit())}
-          disabled={isSubmitting || (totalToAdd === 0 && !allDismissed)}
+          onClick={() => (totalToAdd > 0 ? void commit() : cancel())}
+          disabled={isSubmitting}
         >
           {isSubmitting
             ? 'Добавляем…'
@@ -390,7 +389,7 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
               ? `Добавить ${totalToAdd}`
               : allDismissed
                 ? 'Отменить'
-                : 'Нечего добавлять'}
+                : 'Закрыть'}
         </button>
 
         <FreeTextFoodReviewEditModals

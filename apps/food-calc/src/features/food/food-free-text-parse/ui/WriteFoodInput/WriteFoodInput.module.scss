@@ -22,11 +22,11 @@
     // Единая высота с solo-CTA Лаборатории/Событий и кнопками создания в поиске.
     --pill-h: var(--bottom-action-h, 72px);
 
-    // Типографика инпута (потребляется AutoGrowSearch.field через var()).
-    // Размер — строго по токен-шкале (tokens.scss): шаг вверх base→lg.
+    // Типографика инпута (потребляется AutoGrowSearch.field/richPlaceholder через var()).
+    // Размер + жирность — семантические токены нижнего бара (эталон типографики бара).
     --field-font-family: var(--font-sans);
-    --field-font-weight: 500;
-    --field-font-size: var(--text-lg);
+    --field-font-weight: var(--bottom-bar-font-weight);
+    --field-font-size: var(--bottom-bar-font-size);
     --field-line-height: 1.4;
     --field-placeholder-weight: 400;
 
@@ -213,19 +213,13 @@
 // «коробку» рисует .writeBarInput.
 
 // Цвет текста/плейсхолдера — на `.wrap` (база + варианты). Здесь только
-// state-оверрайды (loading приглушает, error — красный контур).
+// state-оверрайды (loading приглушает). Ошибку разбора рамкой НЕ красим —
+// фидбэк ушёл в toaster (см. useWriteFoodFlow.startFetch). Жёсткий красный
+// outline вокруг всей пилюли спорил с канон-правилом «никаких сплошных рамок».
 .writeField {
     &[data-state='loading'] {
         --field-text: rgba(31, 42, 68, 0.55);
         --field-placeholder: rgba(31, 42, 68, 0.3);
-    }
-
-    // Error — заметный красный контур. `outline` следует border-radius pill'и,
-    // не зависит от border (которого на градиентных вариантах нет) и не
-    // конфликтует с фокус-рамкой. Работает на любой коробке — светлой и тёмной.
-    &[data-state='error'] {
-        outline: 1.5px solid rgba(239, 68, 68, 0.55);
-        outline-offset: -1px;
     }
 }
 
@@ -241,9 +235,7 @@
     display: flex;
     align-items: center;
     // Поверхность (фон/рамка/бровка/фокус-рамка) переехала на `.writeBarRow`
-    // (общая плашка). Здесь осталась только раскладка ввода. border-radius
-    // держим ради pill-формы error-outline (`.writeField[data-state='error']`).
-    border-radius: 999px;
+    // (общая плашка). Здесь осталась только раскладка ввода.
     padding: 4px var(--space-2);
     min-height: var(--pill-h);
 }
@@ -328,8 +320,11 @@
         filter: brightness(0.93);
     }
 
+    // Цветной отклик: сплошную send-кнопку затемняем фильтром на нажатии.
     &:not(:disabled):active {
         transform: scale(0.92);
+        filter: brightness(0.85);
+        transition-duration: var(--press-in);
     }
 
     &:disabled {
@@ -585,14 +580,14 @@
         color: var(--field-text);
         // Фиксированная ink-рамка, НЕ --wb-pill-border-focus: на варианте `mint`
         // тот transparent → ghost-кнопка теряла бы видимый контур.
-        border: 1px solid rgba(31, 42, 68, 0.18);
+        border: none;
+        color: var(--color-ink);
+        text-decoration: underline;
+        font-size: var(--text-lg);
+        font-weight: 400;
 
-        &:hover {
-            background: rgba(31, 42, 68, 0.04);
-        }
 
         &:active {
-            background: rgba(31, 42, 68, 0.06);
             transform: scale(0.98);
         }
     }

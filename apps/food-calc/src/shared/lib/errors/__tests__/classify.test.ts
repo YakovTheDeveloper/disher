@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { classifyError, defaultUserMessage, type ErrorKind } from '../classify';
+import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 
 // classify.ts is fully vendor-agnostic since the better-auth migration —
 // classifyError consumes plain TypeError / DOMException / HTTP-shaped objects
@@ -102,6 +103,27 @@ describe('classifyError → rate_limit', () => {
   });
 });
 
+// ─── payment_required ────────────────────────────────────────────────────────
+
+describe('classifyError → payment_required', () => {
+  it('PaymentRequiredError → payment_required (status 402, need/have preserved)', () => {
+    const r = classifyError(new PaymentRequiredError(200, 50));
+    expect(r.kind).toBe('payment_required');
+    if (r.kind === 'payment_required') {
+      expect(r.status).toBe(402);
+      expect(r.needKop).toBe(200);
+      expect(r.haveKop).toBe(50);
+      expect(r.message).toBe('Недостаточно средств — пополните баланс');
+    }
+  });
+
+  it('HTTP-like 402 → payment_required', () => {
+    const r = classifyError({ status: 402, statusText: 'Payment Required' });
+    expect(r.kind).toBe('payment_required');
+    if (r.kind === 'payment_required') expect(r.status).toBe(402);
+  });
+});
+
 // ─── server ──────────────────────────────────────────────────────────────────
 
 describe('classifyError → server', () => {
@@ -184,6 +206,11 @@ describe('defaultUserMessage prod', () => {
   it('rate_limit → "Слишком много запросов"', () => {
     const k = classifyError({ status: 429, statusText: 'Too Many' });
     expect(defaultUserMessage(k, false)).toContain('Слишком много');
+  });
+
+  it('payment_required → "Недостаточно средств — пополните баланс"', () => {
+    const k = classifyError(new PaymentRequiredError(200, 50));
+    expect(defaultUserMessage(k, false)).toBe('Недостаточно средств — пополните баланс');
   });
 
   it('unknown → "Что-то пошло не так"', () => {

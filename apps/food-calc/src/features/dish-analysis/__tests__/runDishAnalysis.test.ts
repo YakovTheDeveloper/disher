@@ -1,6 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('@/shared/lib/api/authedFetch', () => ({ authedFetch: vi.fn() }));
+
+import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { db } from '@/shared/lib/dexie/schema';
-import { buildDishAnalysisPayload } from '../api/runDishAnalysis';
+import { PaymentRequiredError } from '@/shared/lib/api/apiError';
+import { buildDishAnalysisPayload, streamDishAnalysis } from '../api/runDishAnalysis';
+import type { DishAnalysisPayload } from '../api/types';
 
 // SSE parsing moved to shared/lib/sse/parseSSELines — covered by its own test.
 const ISO = '2026-05-13T10:00:00.000Z';
@@ -126,5 +132,43 @@ describe('buildDishAnalysisPayload', () => {
     const out = await buildDishAnalysisPayload('does-not-exist');
     expect(out.dishName).toBe('');
     expect(out.totalGrams).toBe(0);
+  });
+});
+
+// ── billing surface: 402 → PaymentRequiredError + idempotency header ──────────
+const mockFetch = vi.mocked(authedFetch);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function jsonRes(status: number, body: unknown): Response {
+  return {
+    status,
+    ok: status >= 200 && status < 300,
+    json: async () => body,
+  } as unknown as Response;
+}
+
+describe('streamDishAnalysis — billing surface', () => {
+  const payload: DishAnalysisPayload = {
+    dishId: 'd',
+    dishName: 'Борщ',
+    totalGrams: 0,
+    ingredients: [],
+  };
+
+  beforeEach(() => mockFetch.mockReset());
+
+  it('throws PaymentRequiredError on 402 (carries need/have)', async () => {
+    mockFetch.mockResolvedValue(jsonRes(402, { needKop: 200, haveKop: 0 }));
+    const err = await streamDishAnalysis({ payload, onChunk: () => {} }).catch((e) => e);
+    expect(err).toBeInstanceOf(PaymentRequiredError);
+    expect(err.message).toBe('Недостаточно средств — пополните баланс');
+    expect(err.needKop).toBe(200);
+  });
+
+  it('sends an X-Request-Id header on the POST', async () => {
+    mockFetch.mockResolvedValue(jsonRes(402, {}));
+    await streamDishAnalysis({ payload, onChunk: () => {} }).catch(() => {});
+    const headers = mockFetch.mock.calls[0]?.[1]?.headers as Record<string, string>;
+    expect(headers['X-Request-Id']).toMatch(UUID_RE);
   });
 });

@@ -286,11 +286,29 @@ select :user_id, :kop, balance_kop, 'grant', '{"reason":"manual top-up"}'::jsonb
   from public.wallet where user_id = :user_id;
 ```
 
-## 13. Client test coverage plan (TODO — следующая сессия)
+## 13. Client test coverage plan (✅ ВЫПОЛНЕНО 2026-06-08)
 
 `/critique` 2026-06-08 показал: бэкенд покрыт (30 тестов), **клиент — 0 тестов**.
 Менялось много на стыке, регрессию ловили только typecheck + существующие тесты.
 План (vitest + testing-library, как `ProfileDrawer.test.tsx`):
+
+**Статус: все 6 пунктов закрыты, +49 клиент-тестов (8 файлов, 93/93 зелёные).**
+- §1 `apiError.test.ts` (новый, 9) · §2 `billing.test.ts` (новый, 7) ·
+  §3 `classify.test.ts` (+3 блок `payment_required`) ·
+  §4+§5 `parseFood.test.ts` (новый, 10 — parse×2 через таблицу: 402 +
+  X-Request-Id) · §4 `runDishAnalysis.test.ts` (+2) · §4+body-id
+  `runAnalysis.test.ts` (+2: 402 + «long не шлёт X-Request-Id, идемпотентность
+  по body.id») · §4+§5 `streamDailyAnalysis.test.ts` (+2: kind `'payment'` +
+  X-Request-Id) · §6 `BalanceSection.test.tsx` (новый, 3: loading/loaded/error).
+- NB: `startAnalysis` (long) намеренно БЕЗ заголовка `X-Request-Id` —
+  идемпотентность по body `id`; тест это фиксирует, не баг.
+- Известный пре-существующий drift (НЕ из этой работы): whole-project
+  `tsc --noEmit` красный из-за старых Dexie-фикстур в `runAnalysis.test.ts` /
+  `runDishAnalysis.test.ts` без поля `updated_at` (схема его сделала required
+  позже) + `TimeGroup.tsx` / `ModalShell.tsx`. Мои добавленные строки tsc-чисты.
+
+---
+Исходный план (для истории):
 
 1. **`shared/lib/api/apiError.ts`** — `readApiError`: 402 → `{paymentRequired:true, needKop, haveKop, message:'Недостаточно…'}`; не-402 → `{message: body.error}`; не-JSON body → `HTTP <status>`. `throwApiError`: 402 → `instanceof PaymentRequiredError` с need/have; иначе → `Error(message)`.
 2. **`shared/lib/api/billing.ts`** — `fetchBalance`/`fetchLedger` (мок `authedFetch`): ok → распарсено; non-ok → throw; `fetchLedger` пустой `items` → `[]`.

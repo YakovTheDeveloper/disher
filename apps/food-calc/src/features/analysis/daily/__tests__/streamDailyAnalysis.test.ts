@@ -91,6 +91,32 @@ describe('streamDailyAnalysis — success', () => {
     const body = JSON.parse(String(mockFetch.mock.calls[0]?.[1]?.body));
     expect(body.nutrients).toEqual(nutrients);
   });
+
+  it('includes userMessage in the POST body when provided', async () => {
+    mockFetch.mockResolvedValue(fakeResponse({ frames: ['data: [DONE]\n\n'] }));
+    await streamDailyAnalysis({
+      ...baseArgs(),
+      userMessage: 'без сахара после обеда',
+    });
+    const body = JSON.parse(String(mockFetch.mock.calls[0]?.[1]?.body));
+    expect(body.userMessage).toBe('без сахара после обеда');
+  });
+
+  it('omits userMessage from the POST body when not provided', async () => {
+    mockFetch.mockResolvedValue(fakeResponse({ frames: ['data: [DONE]\n\n'] }));
+    await streamDailyAnalysis(baseArgs());
+    const body = JSON.parse(String(mockFetch.mock.calls[0]?.[1]?.body));
+    expect(body.userMessage).toBeUndefined();
+  });
+
+  it('sends a fresh X-Request-Id header on the POST (idempotency key)', async () => {
+    mockFetch.mockResolvedValue(fakeResponse({ frames: ['data: [DONE]\n\n'] }));
+    await streamDailyAnalysis(baseArgs());
+    const headers = mockFetch.mock.calls[0]?.[1]?.headers as Record<string, string>;
+    expect(headers['X-Request-Id']).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
+  });
 });
 
 describe('streamDailyAnalysis — failure classification', () => {
@@ -106,6 +132,14 @@ describe('streamDailyAnalysis — failure classification', () => {
     const err = await streamDailyAnalysis(baseArgs()).catch((e) => e);
     expect(err).toBeInstanceOf(DailyStreamError);
     expect(err.kind).toBe('server');
+  });
+
+  it('classifies an HTTP 402 response as a `payment` error with the RU message', async () => {
+    mockFetch.mockResolvedValue(fakeResponse({ ok: false, status: 402 }));
+    const err = await streamDailyAnalysis(baseArgs()).catch((e) => e);
+    expect(err).toBeInstanceOf(DailyStreamError);
+    expect(err.kind).toBe('payment');
+    expect(err.message).toBe('Недостаточно средств — пополните баланс');
   });
 
   it('classifies a fetch throw (offline) as a `network` error', async () => {

@@ -28,10 +28,15 @@
   border-radius: var(--radius-xs);
   color: #111;
   -webkit-tap-highlight-color: transparent;
-  transition: opacity 0.15s ease;
+  transition:
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default);
 
+  // Цветной отклик: кнопка «Назад» (иконка) → тинт фона + цвет иконки
   &:active {
-    opacity: 0.4;
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
+    transition-duration: var(--press-in);
   }
 
   svg {
@@ -105,10 +110,17 @@
   text-decoration-thickness: 1px;
   text-decoration-color: rgba(128, 128, 128, 0.4);
   cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition:
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default);
 
+  // Цветной отклик: текстовая кнопка «Пересчитать» → тинт фона + цвет
   &:active {
-    color: var(--text-primary);
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
     text-decoration-color: currentColor;
+    transition-duration: var(--press-in);
   }
 }
 

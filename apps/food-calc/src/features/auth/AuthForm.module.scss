@@ -49,10 +49,15 @@
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
-  transition: background var(--duration-fast) var(--easing-default);
+  transition:
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default);
 
+  // Цветной отклик: кнопка «Назад» → тинт с изменением цвета иконки
   &:active {
-    background: rgba(0, 0, 0, 0.06);
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
+    transition-duration: var(--press-in);
   }
 }
 
@@ -155,9 +160,10 @@
   color: #fff;
   cursor: pointer;
   transition:
-    background var(--duration-fast) var(--easing-default),
-    transform var(--duration-fast) var(--easing-default),
-    opacity var(--duration-fast) var(--easing-default);
+    background var(--press-out) var(--easing-default),
+    filter var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default),
+    opacity var(--press-out) var(--easing-default);
 
   &:disabled {
     background: rgba(0, 0, 0, 0.08);
@@ -169,8 +175,11 @@
     background: #000;
   }
 
+  // Цветной отклик: основная CTA кнопка (тёмная заливка) → потемнение
   &:not(:disabled):active {
-    transform: scale(0.985);
+    filter: brightness(0.9);
+    transform: scale(0.97);
+    transition-duration: var(--press-in);
   }
 }
 
@@ -196,12 +205,19 @@
   text-underline-offset: 4px;
   text-decoration-thickness: 1px;
   transition:
-    background var(--duration-fast) var(--easing-default),
-    color var(--duration-fast) var(--easing-default);
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default);
 
   &:hover:not(:disabled) {
     color: var(--text-primary);
     background: rgba(0, 0, 0, 0.04);
+  }
+
+  // Цветной отклик: текстовая ссылка-кнопка → тинт фона + цвет текста
+  &:not(:disabled):active {
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
+    transition-duration: var(--press-in);
   }
 
   &:disabled {

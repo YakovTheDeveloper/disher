@@ -76,6 +76,15 @@ type Props = {
    */
   stickyTop?: React.ReactNode;
   /**
+   * Слот ПОСЛЕ листа `.headerOverlap` (и после `children` в non-overlap
+   * режиме), но всё ещё ВНУТРИ скролл-рута `.screenScroll`. Контент уезжает
+   * из-под опаковой плашки на фон страницы (ambient backdrop). Сюда едет
+   * предложка (InlineWriteFoodReview): результат разбора плавает ПОД листом
+   * со списком, рядом с write-баром (chat-pattern). Скроллится вместе с
+   * контентом → auto-scroll по `[data-write-food-anchor]` продолжает работать.
+   */
+  afterContent?: React.ReactNode;
+  /**
    * Эмитит видимость элемента `contentHeader` относительно своего скролл-рута
    * (IntersectionObserver, тот же идиом, что `useScrollBottomIndicator`).
    * Деталь-страницы используют, чтобы вернуть имя в `HomeTopBar.centerLabel`
@@ -104,6 +113,7 @@ const Screen = ({
   hollow = false,
   bottomBarOverlay = true,
   stickyTop,
+  afterContent,
   onContentHeaderVisibilityChange,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -186,6 +196,9 @@ const Screen = ({
               {children}
             </>
           )}
+          {/* Слот ПОСЛЕ листа `.headerOverlap` — контент на фоне страницы под
+              плашкой (см. `afterContent` в Props). Несёт предложку. */}
+          {afterContent}
           <div ref={sentinelRef} />
         </div>
         <ScrollIndicator visible={hasMoreBelow && !overlayActive} />

@@ -37,6 +37,7 @@ const DailyAnalysisSection = ({ date }: Props) => {
     if (!daily) return;
     void useDailyAnalysisStore.getState().start(date, {
       hypothesisIds: daily.appliedHypotheses.map((h) => h.id),
+      userMessage: daily.appliedUserMessage,
     });
   }, [date, daily]);
 

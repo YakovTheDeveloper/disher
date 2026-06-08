@@ -4,7 +4,10 @@ import type { ErrorKind } from '@/shared/lib/errors/classify';
 
 export interface ToastAction {
     label: string;
-    href: string;
+    /** Навигация по URL. Игнорируется, если задан `onClick`. */
+    href?: string;
+    /** Произвольное действие вместо навигации (напр. открыть Drawer). Приоритет над `href`. */
+    onClick?: () => void;
 }
 
 export interface ToastOptions {
@@ -25,6 +28,13 @@ function buildAction(action?: ToastAction) {
     return {
         label: action.label,
         onClick: () => {
+            // Drawer-style (или любое императивное) действие имеет приоритет —
+            // навигацию по href не делаем.
+            if (action.onClick) {
+                action.onClick();
+                return;
+            }
+            if (!action.href) return;
             // Forward push so the destination's BackButton can return precisely
             // (state.from = where the toast was shown). Global VT cleanup clears
             // data-vt-type on transition.finished.

@@ -27,10 +27,16 @@
     font-weight: 500;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.1s ease;
+    transition:
+        transform var(--press-out) var(--easing-default),
+        background var(--press-out) var(--easing-default),
+        border-color var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
+        filter var(--press-out) var(--easing-default);
 
     &:active {
         transform: scale(0.97);
+        transition-duration: var(--press-in);
     }
 }
 
@@ -38,16 +44,32 @@
     border: 1px solid rgba(15, 23, 42, 0.16);
     background: transparent;
     color: rgba(15, 23, 42, 0.7);
+
+    // Цветной отклик: светлая отмена заливается ink + белый текст.
+    &:active {
+        background: var(--color-ink);
+        border-color: var(--color-ink);
+        color: var(--text-on-accent);
+    }
 }
 
 .confirm {
     border: none;
     background: rgba(24, 24, 105, 0.92);
     color: #fff;
+
+    // Цветной отклик: сплошную кнопку затемняем фильтром.
+    &:active {
+        filter: brightness(0.9);
+    }
 }
 
 .confirmDanger {
     border: none;
     background: #c0392b;
     color: #fff;
+
+    &:active {
+        filter: brightness(0.9);
+    }
 }

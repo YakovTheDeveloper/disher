@@ -139,4 +139,25 @@ describe('ProfileDrawer', () => {
 
     expect(mockAuth.signOut).toHaveBeenCalledOnce();
   });
+
+  it('hides the data import/export actions until the «Данные» accordion is expanded', () => {
+    render(<ProfileDrawer />);
+
+    // Collapsed by default — the two file actions are not in the DOM.
+    expect(
+      screen.queryByRole('button', { name: 'Скачать файл' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Загрузить из файла' }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /данные/i }));
+
+    expect(
+      screen.getByRole('button', { name: 'Скачать файл' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Загрузить из файла' }),
+    ).toBeInTheDocument();
+  });
 });

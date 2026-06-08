@@ -1,7 +1,10 @@
 import type { NavigateFunction } from 'react-router';
 import type { ItemAction } from './ItemActionsDrawer';
-import { getProductUrl, RouterUrls } from '@/app/router';
+import { RouterUrls } from '@/app/router';
 import { pushNavigate } from '@/shared/lib/viewTransition';
+import { drawerStore } from '@/shared/ui/drawer-store';
+// Конкретный файл, не barrel — иначе цикл с этим же модулем (см. ProductDrawer).
+import { ProductDrawer } from '@/features/food/product-drawer/ProductDrawer';
 
 type InfoItem = {
   type: string;
@@ -33,7 +36,14 @@ export function buildInfoActions(item: InfoItem, navigate: NavigateFunction): It
     return [
       {
         label: 'Информация о продукте',
-        onClick: () => pushNavigate(navigate, getProductUrl(productId), 'push'),
+        // Продукт открывается боковым ProductDrawer (страница /product/:id
+        // инактивирована). Имя для шапки подъедет из useProduct внутри дровера.
+        onClick: () =>
+          drawerStore.show(
+            ProductDrawer,
+            { productId },
+            { side: 'left', width: 'min(85vw, 360px)' },
+          ),
       },
     ];
   }

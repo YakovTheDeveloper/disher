@@ -6,8 +6,10 @@ import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { DetailsStep } from '@/features/food/details-chips';
-import { getProductUrl, RouterUrls } from '@/app/router';
+import { RouterUrls } from '@/app/router';
 import { pushNavigate } from '@/shared/lib/viewTransition';
+import { drawerStore } from '@/shared/ui/drawer-store';
+import { ProductDrawer } from '@/features/food/product-drawer';
 
 import { STEP_LABELS, type ScheduleFoodFlow } from './useScheduleFoodFlow';
 import s from './ScheduleFoodEditModals.module.scss';
@@ -50,20 +52,34 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
 
   const infoTarget = (() => {
     if (draft.variant === 'dish' && draft.dishId) {
-      return { label: 'Информация о блюде', href: RouterUrls.getDish(draft.dishId) };
+      const dishId = draft.dishId;
+      return {
+        label: 'Информация о блюде',
+        onClick: () => {
+          handleClose();
+          pushNavigate(navigate, RouterUrls.getDish(dishId), 'push');
+        },
+      };
     }
     if (draft.variant === 'product' && draft.productId) {
-      // Catalog products don't have a user-mutable detail page; route still
-      // exists and shows read-only catalog data, so we link to it.
-      return { label: 'Информация о продукте', href: getProductUrl(draft.productId) };
+      // Продукт (свой и каталожный) → боковой ProductDrawer; страница
+      // /product/:id инактивирована. Имя для шапки берём из draft.foodName.
+      const productId = draft.productId;
+      const productName = draft.foodName ?? undefined;
+      return {
+        label: 'Информация о продукте',
+        onClick: () => {
+          handleClose();
+          drawerStore.show(
+            ProductDrawer,
+            { productId, productName },
+            { side: 'left', width: 'min(85vw, 360px)' },
+          );
+        },
+      };
     }
     return null;
   })();
-
-  const handleInfoClick = (href: string) => () => {
-    handleClose();
-    pushNavigate(navigate, href, 'push');
-  };
 
   const detailsTitle = draft.foodName
     ? draft.foodName.charAt(0).toUpperCase() + draft.foodName.slice(1)
@@ -128,7 +144,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
               type="button"
               className={s.infoBtn}
               aria-label={infoTarget.label}
-              onClick={handleInfoClick(infoTarget.href)}
+              onClick={infoTarget.onClick}
             >
               <InfoIcon />
             </button>

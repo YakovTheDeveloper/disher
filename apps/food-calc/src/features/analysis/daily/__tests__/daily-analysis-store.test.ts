@@ -123,6 +123,30 @@ describe('start', () => {
       'server',
     );
   });
+
+  it('threads userMessage to the stream and snapshots it on the record', async () => {
+    mockStream.mockResolvedValue('готово');
+    await useDailyAnalysisStore
+      .getState()
+      .start('15-05-2026', { hypothesisIds: [], userMessage: 'учти сон' });
+
+    expect(mockStream).toHaveBeenCalledWith(
+      expect.objectContaining({ userMessage: 'учти сон' }),
+    );
+    const rec = useDailyAnalysisStore.getState().byDate['15-05-2026'];
+    expect(rec.appliedUserMessage).toBe('учти сон');
+  });
+
+  it('leaves appliedUserMessage undefined when no message is given', async () => {
+    mockStream.mockResolvedValue('готово');
+    await useDailyAnalysisStore
+      .getState()
+      .start('15-05-2026', { hypothesisIds: [] });
+
+    expect(
+      useDailyAnalysisStore.getState().byDate['15-05-2026'].appliedUserMessage,
+    ).toBeUndefined();
+  });
 });
 
 describe('clear', () => {

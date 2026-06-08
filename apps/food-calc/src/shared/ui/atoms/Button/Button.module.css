@@ -22,15 +22,18 @@
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, filter var(--press-out) var(--easing-default);
 
   &:hover {
     background: var(--color-blue-2);
     transform: translateY(-1px);
   }
 
+  /* Цветной отклик: сплошную кнопку нечем залить — затемняем фильтром. */
   &:active {
     transform: translateY(0);
+    filter: brightness(0.9);
+    transition-duration: var(--press-in);
   }
 
 }
@@ -45,25 +48,43 @@
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, filter var(--press-out) var(--easing-default);
 
   &:hover {
     opacity: 0.85;
     transform: translateY(-1px);
   }
 
+  /* Тёмную кнопку затемнение не покажет — слегка подсвечиваем. */
   &:active {
     transform: translateY(0);
+    filter: brightness(1.45);
+    transition-duration: var(--press-in);
   }
 }
 
 .secondary {
   color: var(--color-green);
+  border-radius: 7px;
+  transition: background var(--press-out) var(--easing-default), color var(--press-out) var(--easing-default);
+
+  &:active {
+    background: rgba(76, 175, 80, 0.12);
+    color: var(--color-green-2);
+    transition-duration: var(--press-in);
+  }
 }
 
 .tertiary {
   color: var(--color-green);
   border-color: var(--color-green);
+  transition: background var(--press-out) var(--easing-default), color var(--press-out) var(--easing-default);
+
+  &:active {
+    background: var(--color-green);
+    color: #fff;
+    transition-duration: var(--press-in);
+  }
 }
 
 .disabled {
@@ -78,6 +99,13 @@
 
 .danger {
   color: var(--color-danger);
+  border-radius: 7px;
+  transition: background var(--press-out) var(--easing-default);
+
+  &:active {
+    background: rgba(236, 0, 0, 0.1);
+    transition-duration: var(--press-in);
+  }
 }
 
 .ghost {
@@ -88,6 +116,12 @@
   font-weight: 200;
   text-decoration: underline;
   padding: 0 2px;
+  transition: color var(--press-out) var(--easing-default);
+
+  &:active {
+    color: var(--color-ink);
+    transition-duration: var(--press-in);
+  }
 }
 
 .center {
@@ -106,6 +140,13 @@
   padding: 3px 8px;
   font-size: 0.8rem;
   width: fit-content;
+  transition: filter var(--press-out) var(--easing-default), transform var(--press-out) var(--easing-default);
+
+  &:active {
+    filter: brightness(0.9);
+    transform: scale(0.96);
+    transition-duration: var(--press-in);
+  }
 }
 
 .filter-2 {
@@ -115,6 +156,13 @@
   padding: 3px 8px;
   font-size: 0.8rem;
   width: fit-content;
+  transition: filter var(--press-out) var(--easing-default), transform var(--press-out) var(--easing-default);
+
+  &:active {
+    filter: brightness(1.2);
+    transform: scale(0.96);
+    transition-duration: var(--press-in);
+  }
 }
 
 .menu {
@@ -134,12 +182,82 @@
   transition: all var(--duration-fast) var(--easing-default);
   white-space: nowrap;
 
+  /* Цветной отклик: текст темнеет до основного + scale. */
   &:active {
     transform: scale(0.96);
-    opacity: 0.7;
+    opacity: 1;
+    color: var(--text-primary);
+    transition-duration: var(--press-in);
   }
 
   &:hover {
     opacity: 0.7;
   }
+}
+
+/* ─── bottomActionBar — единый вид кнопок нижнего бара ──────────────────────
+   Белая база + лёгкий peach-rose градиент (как HomeAmbient peach-rose) + чёрная
+   обводка + малая тень. Типографика — общие токены бара (--bottom-bar-font-*,
+   эталон — write-поле). Высота — канон нижних действий (--bottom-action-h).
+   Ширину задаёт контейнер (AppBottomBarShell: split = hug, sized = доля). */
+.bottomActionBar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: auto;
+  min-height: var(--bottom-action-h);
+  padding: 0 var(--space-5);
+  border-radius: 999px;
+  /* Стеклянная окаёмка: светлый кант сверху ловит свет. */
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  /* Матовое стекло: полупрозрачная белая база + ЕДВА заметный прохладный
+     градиент (голубой → зелёный → жёлтый, низкая альфа). Blur размывает фон. */
+
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  /* Окаёмка + объём: тонкий внешний контур (чёткость на светлом баре) +
+     мягкая тень-подъём + внутренний верхний блик (стеклянная кромка). */
+  box-shadow:
+    0 0 0 0.5px rgba(31, 42, 68, 0.03),
+    0 6px 18px rgba(31, 42, 68, 0.07),
+    inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  color: #262626;
+  font-family: var(--font-sans);
+  font-size: var(--bottom-bar-font-size);
+  /* Свой вес — намеренно на 100 легче общего токена бара (500 → 400). */
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--press-out) var(--easing-default),
+    filter var(--press-out) var(--easing-default);
+
+  /* Не гасим прозрачностью (базовый .button:hover это делает). */
+  &:hover {
+    opacity: 1;
+  }
+
+  /* Цветной отклик: лёгкое затемнение + scale. */
+  &:active {
+    transform: scale(0.97);
+    filter: brightness(0.96);
+    transition-duration: var(--press-in);
+  }
+}
+
+/* Ведущая иконка (currentColor). Размер — фиксированный в баре, не зависит от
+   width/height, проброшенных в сам svg. */
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bottomActionBar .icon svg {
+  width: 20px;
+  height: 20px;
 }

@@ -5,11 +5,16 @@
   padding: 0;
 }
 
+// Nutrients render in TWO columns by default (везде по умолчанию). Each
+// section is its own 2-col grid; group titles are dropped, so the sections
+// read as one continuous two-column list separated only by the container gap.
 .section {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  column-gap: var(--space-5, 20px);
+  row-gap: var(--space-3);
   padding: var(--space-2) 0;
-  gap: var(--space-3);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
@@ -34,6 +39,7 @@
   margin: 0;
   border-radius: 6px;
   overflow: hidden;
+
 }
 
 // Stripe-fork rhythm — replaces flat zebra. Warm wash from left on 2n,
@@ -172,7 +178,10 @@
   line-break: break-word;
   line-height: 24px;
   width: fit-content;
+  max-width: 100%;
   margin-right: auto;
+  // Длинные имена нутриентов переносятся внутри узкой колонки сетки.
+  overflow-wrap: break-word;
 
   .main & {
     font-size: 1rem;
@@ -217,6 +226,38 @@
 
 .valueLeft {
   padding-left: var(--space-1);
+}
+
+// view-norms: имя слева · точечный лидер · значение справа — на ОДНОЙ строке.
+// Длинное имя переносится (flex-shrink + min-width:0), лидер сжимается,
+// значение прижато вправо. Заменяет stacked имя-над-значением.
+.rowInline {
+  justify-content: flex-start;
+  gap: var(--space-1);
+
+  .name {
+    width: auto;
+    margin-right: 0;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .dots {
+    opacity: 0.28;
+    flex: 1 1 auto;
+    min-width: 12px;
+  }
+
+  .value {
+    flex: 0 0 auto;
+  }
+}
+
+// Значение в inline-ряду нормы выравнивается по базовой линии имени
+// (а не прижато к низу, как в .rowBottom).
+.valueNorm {
+  align-self: baseline;
+  padding-bottom: 0;
 }
 
 
@@ -297,73 +338,6 @@
 
 :global([data-nutrient="sugar"]) .name::before {
   background: linear-gradient(120deg, transparent 0%, rgba(255, 45, 128, 0.1) 25%, #ff2d8018 55%, rgba(255, 45, 128, 0.08) 85%, transparent 100%);
-}
-
-// Group decorations (minerals pentagon, vitamins sun, aminoAcids diamond)
-.minerals .row,
-.vitamins .row,
-.aminoAcids .row {
-  position: relative;
-  // Let the .deco blob bleed past the row — off the drawer's left edge
-  // and above/below the name. Final clip happens at .body (drawer edge).
-  overflow: visible;
-}
-
-.minerals .row .name,
-.vitamins .row .name,
-.aminoAcids .row .name {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-// Group decoration — one element per row. Shape comes from a shared SVG
-// `mask-image` (pentagon / diamond, rasterized once by the browser and
-// reused for every row); the vitamin "sun" is a pure radial-gradient with
-// no mask at all. Per-nutrient colour arrives via --deco-c1/--deco-c2.
-// Replaces ~50 per-row inline <svg> + per-element `filter: blur()`.
-.deco {
-  position: absolute;
-  // Bleeds ~10px past the drawer's left edge (clipped by .body's
-  // overflow-x) and overlaps the name's first letter on the right.
-  // Vertically centred on the name (top -12 + half of 48 = name centre).
-  left: -22px;
-  top: -12px;
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  pointer-events: none;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-}
-
-.minerals .deco {
-  transform: rotate(45deg);
-  opacity: 0.2;
-  background: linear-gradient(135deg, var(--deco-c1, #999) 0%, var(--deco-c2, #ccc) 100%);
-  --deco-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><filter id="b" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2"/></filter></defs><polygon points="24,4 42,17 36,38 12,38 6,17" fill="black" filter="url(%23b)"/></svg>');
-  -webkit-mask-image: var(--deco-mask);
-  mask-image: var(--deco-mask);
-}
-
-.vitamins .deco {
-  opacity: 0.5;
-  background: radial-gradient(circle,
-      var(--deco-c1, #ffb800) 0%,
-      var(--deco-c2, #ffe082) 45%,
-      transparent 75%);
-}
-
-.aminoAcids .deco {
-  opacity: 0.22;
-  background: linear-gradient(135deg, var(--deco-c1, #7a9cc6) 0%, var(--deco-c2, #b0c4de) 100%);
-  --deco-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><filter id="b" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2"/></filter></defs><polygon points="24,6 42,24 24,42 6,24" fill="black" filter="url(%23b)"/></svg>');
-  -webkit-mask-image: var(--deco-mask);
-  mask-image: var(--deco-mask);
 }
 
 // Edit mode styles
@@ -507,23 +481,15 @@
   :global([data-nutrient]) .progressBar {
     background: linear-gradient(45deg, transparent 0%, #{$accent} 100%) !important;
   }
-
-  // Group decoration blobs (pentagon / sun / diamond) → muted neutral.
-  .deco {
-    filter: grayscale(1);
-    opacity: 0.12;
-  }
 }
 
 // graphite — monochrome slate. Quietest fork: zero hue; the group title
 // drops its serif-italic drama for a small tracked-sans label.
 .container[data-dv='Nutrients'][data-dv-v='graphite'] {
-  @include nutrients-restrained(
-    linear-gradient(120deg, transparent 0%, rgba(60, 70, 92, 0.05) 50%, transparent 100%),
+  @include nutrients-restrained(linear-gradient(120deg, transparent 0%, rgba(60, 70, 92, 0.05) 50%, transparent 100%),
     rgba(72, 84, 112, 0.55),
     rgba(31, 42, 68, 0.9),
-    rgba(31, 42, 68, 0.55)
-  );
+    rgba(31, 42, 68, 0.55));
 
   .groupTitle {
     font-family: 'Raleway', sans-serif;
@@ -535,43 +501,53 @@
     color: rgba(31, 42, 68, 0.5);
   }
 
-  .name { font-weight: 500; }
-  .pct { color: rgba(31, 42, 68, 0.75); }
+  .name {
+    font-weight: 500;
+  }
+
+  .pct {
+    color: rgba(31, 42, 68, 0.75);
+  }
 }
 
 // paper — warm editorial. Keeps the serif-italic title but pulls it and the
 // body into a calm ink-brown; accent is a soft clay.
 .container[data-dv='Nutrients'][data-dv-v='paper'] {
-  @include nutrients-restrained(
-    linear-gradient(120deg, transparent 0%, rgba(150, 110, 70, 0.07) 50%, transparent 100%),
+  @include nutrients-restrained(linear-gradient(120deg, transparent 0%, rgba(150, 110, 70, 0.07) 50%, transparent 100%),
     rgba(150, 112, 74, 0.5),
     rgba(58, 46, 36, 0.92),
-    rgba(58, 46, 36, 0.55)
-  );
+    rgba(58, 46, 36, 0.55));
 
   .groupTitle {
     color: rgba(74, 56, 40, 0.72);
     font-weight: 500;
   }
 
-  .name { font-weight: 500; }
-  .pct { color: rgba(120, 88, 56, 0.85); font-weight: 500; }
+  .name {
+    font-weight: 500;
+  }
+
+  .pct {
+    color: rgba(120, 88, 56, 0.85);
+    font-weight: 500;
+  }
 }
 
 // mist — cool desaturated blue-grey. Serif-italic title kept but softened to
 // a dusty slate-blue; the lightest, airiest fork.
 .container[data-dv='Nutrients'][data-dv-v='mist'] {
-  @include nutrients-restrained(
-    linear-gradient(120deg, transparent 0%, rgba(95, 120, 150, 0.06) 50%, transparent 100%),
+  @include nutrients-restrained(linear-gradient(120deg, transparent 0%, rgba(95, 120, 150, 0.06) 50%, transparent 100%),
     rgba(104, 128, 158, 0.5),
     rgba(44, 56, 74, 0.88),
-    rgba(44, 56, 74, 0.5)
-  );
+    rgba(44, 56, 74, 0.5));
 
   .groupTitle {
     color: rgba(70, 90, 120, 0.62);
     font-weight: 400;
   }
 
-  .pct { color: rgba(70, 90, 120, 0.8); font-weight: 400; }
+  .pct {
+    color: rgba(70, 90, 120, 0.8);
+    font-weight: 400;
+  }
 }

@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // Тихая текст-кнопка без подложки: приглушённый текст + значок (currentColor),
 // не перетягивает внимание. Geometry-floor 40px (inner-control touch-floor).
 // Примитив — семантику (значок/текст/действие) задаёт консумер
@@ -16,12 +18,12 @@
     font-weight: 500;
     letter-spacing: -0.005em;
     cursor: pointer;
+    border-radius: var(--radius-sm);
     -webkit-tap-highlight-color: transparent;
-    transition: color 0.14s ease, opacity 0.14s ease;
 
-    &:active {
-        opacity: 0.55;
-    }
+    // Цветной отклик: текст + значок (currentColor) красятся в surface-акцент
+    // (--field-caret: тёплый/лавандовый) + лёгкий тинт-фон. Заменяет opacity.
+    @include press-fill-tint();
 
     &:disabled {
         opacity: 0.4;

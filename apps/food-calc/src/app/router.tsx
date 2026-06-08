@@ -5,7 +5,10 @@ import { format } from 'date-fns';
 import ScheduleDateSelectionPage from '@/pages/schedule/schedule-date-selection-page/ScheduleDateSelectionPage.tsx';
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
 
-import ProductPage from '@/pages/product/ProductPage.tsx';
+// ProductPage инактивирована (2026-06-08): продукт теперь открывается боковым
+// ProductDrawer (features/food/product-drawer) везде, где раньше был переход на
+// /product/:id. Файл оставлен для возможного возврата; роут ниже закомментирован.
+// import ProductPage from '@/pages/product/ProductPage.tsx';
 import AnalysesPage from '@/pages/analyses/AnalysesPage.tsx';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage.tsx';
 import UiKitPage from '@/pages/ui-kit/UiKitPage.tsx';
@@ -57,10 +60,12 @@ export const router = createBrowserRouter([
         path: RouterLinks.Analyses,
         element: <AnalysesPage />,
       },
-      {
-        path: `${RouterLinks.Product}/:id`,
-        element: <ProductPage />,
-      },
+      // Инактивировано 2026-06-08 — продукт открывается боковым ProductDrawer,
+      // не страницей. Раскомментировать вместе с импортом ProductPage выше.
+      // {
+      //   path: `${RouterLinks.Product}/:id`,
+      //   element: <ProductPage />,
+      // },
       {
         path: RouterLinks.UiKit,
         element: <UiKitPage />,

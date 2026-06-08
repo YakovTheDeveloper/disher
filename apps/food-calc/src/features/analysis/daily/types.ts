@@ -32,6 +32,9 @@ export type DailyAnalysis = {
   resultMd: string;
   ideaCards: IdeaCardData[];
   appliedHypotheses: AppliedHypothesisSnapshot[];
+  /** Free-text «уточнения от пользователя» the run was started with, so a retry
+   *  reproduces the same prompt. Undefined when none was provided. */
+  appliedUserMessage?: string;
   createdAt: string;
   status: DailyAnalysisStatus;
   reason: DailyAnalysisReason;

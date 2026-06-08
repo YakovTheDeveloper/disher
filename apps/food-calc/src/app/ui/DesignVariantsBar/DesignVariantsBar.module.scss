@@ -49,7 +49,7 @@ $pad-right: max(10px, env(safe-area-inset-right));
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-
+  transition: background var(--press-out) var(--easing-default), border-color var(--press-out) var(--easing-default), opacity 120ms ease, transform 120ms ease;
 
   // Reveal only on direct intent — hover (desktop) or focus (keyboard / tap).
   &:hover,
@@ -62,9 +62,13 @@ $pad-right: max(10px, env(safe-area-inset-right));
       inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   }
 
+  // Цветной отклик: тёмная тинт-подсветка на касание (ghost pill на тёмной панели)
   &:active {
     opacity: 1;
+    background: rgba(167, 139, 250, 0.18);
+    border-color: $panel-border;
     transform: scale(0.94);
+    transition-duration: var(--press-in);
   }
 }
 
@@ -381,9 +385,9 @@ $pad-right: max(10px, env(safe-area-inset-right));
   touch-action: manipulation;
 
   transition:
-    background 120ms ease,
-    border-color 120ms ease,
-    color 120ms ease,
+    background var(--press-out) var(--easing-default),
+    border-color var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
     transform 120ms ease;
 
   &:hover {
@@ -391,8 +395,13 @@ $pad-right: max(10px, env(safe-area-inset-right));
     border-color: rgba(167, 139, 250, 0.4);
   }
 
+  // Цветной отклик: акцентная заливка на касание (chip на тёмной панели)
   &:active {
+    background: $accent-soft;
+    border-color: $accent;
+    color: $ink;
     transform: scale(0.96);
+    transition-duration: var(--press-in);
   }
 }
 

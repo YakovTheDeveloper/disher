@@ -1,101 +1,63 @@
-import { memo, useCallback, useMemo, useState, type FocusEvent } from 'react';
+import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
 import { Screen } from '@/shared/ui/Screen';
 import { AppBottomBarShell } from '@/shared/ui/AppBottomBar/AppBottomBarShell';
-import { useAllHypotheses } from '@/entities/hypothesis';
-import { AnalysisCtaButton } from '@/features/analysis/AnalysisCtaButton';
-import {
-  EditHypothesisModal,
-  EDIT_HYPOTHESIS_TITLE_INPUT_ID,
-} from '@/features/analysis/hypothesis-drawers';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
-import HypothesisSection from './HypothesisSection';
+import Button from '@/shared/ui/atoms/Button/Button';
+import FlaskIcon from '@/shared/assets/icons/flask.svg?react';
+import { AnalysisCtaButton } from '@/features/analysis/AnalysisCtaButton';
+import { useDailyAnalysisStore } from '@/features/analysis/daily';
+import { formatWeekdayTitle } from '@/shared/lib/time/formatWeekday';
 import DailyAnalysisSection from './DailyAnalysisSection';
+import HypothesisManagerModal from './HypothesisManagerModal';
 import styles from './Laboratory.module.scss';
 
 type Props = {
   date: string;
-  topSlot?: React.ReactNode;
+  topSlot?: ReactNode;
 };
 
-// HomePage slot 0 — the Laboratory. HypothesisSection (inline composer + list:
-// tick → ride into the analysis, tap → edit) + the inline daily-analysis
-// surface. The bottom bar carries one CTA: «Разбор» (opens the kind chooser).
-// Creation is inline (composer); tap on a row is a label htmlFor that opens
-// EditHypothesisModal.
+// HomePage slot 0. Mirrors FoodSchedule/ScheduleEvents: weekday heading +
+// hollow empty-state (the brand watermark) when there is no daily analysis for
+// the date. The only content is the daily-analysis surface. The bottom bar
+// carries two actions: «Гипотезы» (manage hypotheses — composer + list + edit)
+// and «Анализ» (kind chooser → today clarification / long analysis). Hypothesis
+// selection for a run lives in the clarification modal, not here.
 const Laboratory = ({ date, topSlot }: Props) => {
-  const hypotheses = useAllHypotheses();
+  const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
+  const hasDaily = useDailyAnalysisStore((s) => Boolean(s.byDate[date]));
 
-  // Which hypotheses ride into the next analysis. Ephemeral UI state — lives
-  // here so AnalysisCtaButton (and, through it, AnalysisKindDrawer) can read
-  // the snapshot at start time.
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-
-  // Create/Edit modal steps. Triggered by <label htmlFor> focus delegation:
-  // клик на label фокусит общий (collapsed) input, focus bubbles up React tree
-  // → handleFocusCapture флипает соответствующий step. editingId меняется
-  // синхронно onClick'ом на label строки (он — draft data, не step, поэтому
-  // setEditingId в onClick безопасен и не размонтирует label).
-  const [editStep, setEditStep] = useState<'idle' | 'edit'>('idle');
-  const [editingHypothesisId, setEditingHypothesisId] = useState<string | null>(null);
-
-  // Prune selection against the live list — a deleted hypothesis must not
-  // keep inflating the «N выбрано» count or the started snapshot.
-  const validSelected = useMemo(() => {
-    const live = new Set(hypotheses.map((h) => h.id));
-    return new Set([...selectedIds].filter((id) => live.has(id)));
-  }, [selectedIds, hypotheses]);
-
-  const handleToggle = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const handleFocusCapture = useCallback((e: FocusEvent<HTMLDivElement>) => {
-    const id = (e.target as HTMLElement).id;
-    if (id === EDIT_HYPOTHESIS_TITLE_INPUT_ID) setEditStep('edit');
-  }, []);
-
-  const closeEdit = useCallback(() => {
-    setEditStep('idle');
-    setEditingHypothesisId(null);
-  }, []);
+  const [managerOpen, setManagerOpen] = useState(false);
+  const openManager = useCallback(() => setManagerOpen(true), []);
+  const closeManager = useCallback(() => setManagerOpen(false), []);
 
   const bottomBar = (
-    <AppBottomBarShell side="left">
-      <AnalysisCtaButton date={date} selectedIds={[...validSelected]} />
+    <AppBottomBarShell side="split">
+      <Button
+        variant="bottomActionBar"
+        icon={<FlaskIcon width={16} height={16} />}
+        onClick={openManager}
+      >
+        Гипотезы
+      </Button>
+      <AnalysisCtaButton date={date} />
     </AppBottomBarShell>
   );
 
   return (
-    <div className={styles.focusPassthrough} onFocusCapture={handleFocusCapture}>
-      <Screen
-        stickyTop={topSlot}
-        headerOverlap
-        contentHeader={<Heading size="section">Гипотезы</Heading>}
-        bottomBar={bottomBar}
-      >
-        <div className={styles.container}>
-          <HypothesisSection
-            hypotheses={hypotheses}
-            selectedIds={validSelected}
-            onToggle={handleToggle}
-            onEditHypothesis={setEditingHypothesisId}
-            editInputHtmlFor={EDIT_HYPOTHESIS_TITLE_INPUT_ID}
-          />
-
-          <DailyAnalysisSection date={date} />
-        </div>
-      </Screen>
-      <EditHypothesisModal
-        hypothesisId={editingHypothesisId}
-        isExpanded={editStep === 'edit'}
-        onClose={closeEdit}
-      />
-    </div>
+    <Screen
+      stickyTop={topSlot}
+      headerOverlap
+      hollow={!hasDaily}
+      contentHeader={<Heading size="section">{weekdayTitle}</Heading>}
+      overlay={
+        <HypothesisManagerModal isOpen={managerOpen} onClose={closeManager} />
+      }
+      bottomBar={bottomBar}
+    >
+      <div className={styles.container}>
+        <DailyAnalysisSection date={date} />
+      </div>
+    </Screen>
   );
 };
 

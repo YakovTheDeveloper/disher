@@ -192,8 +192,10 @@ $digit-size: 6rem;
         transition: background-color 0.15s;
     }
 
+    // pill-button заливает кнопку ink на :active → иконка (mask в ::before)
+    // должна стать светлой, иначе сольётся с тёмной заливкой.
     &:active::before {
-        background-color: var(--color-ink-strong);
+        background-color: var(--text-on-accent);
     }
 }
 
@@ -239,10 +241,17 @@ $digit-size: 6rem;
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    transition: background-color 0.15s, color 0.15s, transform 0.1s;
+    transition:
+        background-color var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
 
+    // Цветной отклик: текст-таб темнеет до ink + лёгкий тинт-фон.
     &:active {
+        background: var(--press-tint-bg);
+        color: var(--color-ink);
         transform: scale(0.97);
+        transition-duration: var(--press-in);
     }
 }
 

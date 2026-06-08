@@ -99,12 +99,18 @@
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--color-ink);
     font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    transition: background-color 0.15s, color 0.15s, transform 0.1s;
+    transition:
+        background-color var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
     cursor: pointer;
 
+    // Цветной отклик: на нажатии стеклянная пилюля заливается ink + белый текст.
     &:active {
-        color: var(--color-ink-strong);
+        background: var(--color-ink);
+        color: #fff;
         transform: scale(0.97);
+        transition-duration: var(--press-in);
     }
 }
 
@@ -127,6 +133,7 @@
     box-shadow: var(--shadow-sm);
     transition: transform var(--duration-normal) ease,
         box-shadow var(--duration-normal) ease,
+        color var(--press-out) var(--easing-default),
         background var(--duration-normal) ease;
 
     &:hover {
@@ -135,10 +142,13 @@
         background: rgba(255, 255, 255, 0.25);
     }
 
+    // Цветной отклик: на нажатии стеклянный круг заливается ink + белый значок.
     &:active {
         transform: scale(0.95);
         box-shadow: var(--shadow-xs);
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--color-ink);
+        color: #fff;
+        transition-duration: var(--press-in);
     }
 }
 
@@ -148,17 +158,6 @@
     border-radius: var(--radius-xl);
     padding: 0 var(--space-4) 0 var(--space-3);
     gap: var(--space-2);
-}
-
-// Empty-state CTA modifier for glass-button: large outlined pill.
-@mixin glass-button-prominent() {
-    width: auto;
-    height: auto;
-    border: 1px solid #0000002d;
-    border-radius: 32px;
-    padding: var(--space-4) var(--space-6);
-    box-shadow: var(--shadow-xs);
-    text-align: left;
 }
 
 // Primary CTA pill — single source of truth shared by WriteFoodButton.dark,
@@ -190,29 +189,119 @@
     // Размер метки — токен `--cta-font-size` (дефолт 15px для inline-CTA).
     // Нижние бары переопределяют на `--text-lg` (= размер плейсхолдера write-бара).
     font-size: var(--cta-font-size, 15px);
-    font-weight: 500;
+    // Жирность метки — токен `--cta-font-weight` (дефолт 500 для inline-CTA).
+    // Нижние бары публикуют `--bottom-bar-font-weight`.
+    font-weight: var(--cta-font-weight, 500);
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-appearance: none;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    box-shadow: none;
-    transition: transform 0.12s ease;
+    // Тень — токен `--cta-shadow` (дефолт none = плоская заливка-CTA). Светлые
+    // тоны (paper-пилюля Событий на бледно-жёлтой поверхности) публикуют мягкую
+    // тень, чтобы белое «парило» и не сливалось с фоном.
+    box-shadow: var(--cta-shadow, none);
+    transition:
+        transform var(--press-out) var(--easing-default),
+        filter var(--press-out) var(--easing-default);
 
     &:hover {
         transform: none;
-        box-shadow: none;
+        box-shadow: var(--cta-shadow, none);
     }
 
+    // Цветной отклик: сплошную CTA нечем «залить» — затемняем фильтром (тон).
     &:active {
         transform: scale(0.97);
         box-shadow: none;
+        filter: brightness(0.9);
+        transition-duration: var(--press-in);
     }
 
     &:disabled {
         opacity: 0.4;
         cursor: not-allowed;
+    }
+}
+
+// ── Press feedback: ЦВЕТНОЙ отклик на нажатии (canon 2026-06-08) ─────────────
+// Каждая кнопка должна давать ЦВЕТНОЙ тач-отклик, не только scale. Эталон —
+// нижние пилюли SearchFood (FoodSearchEmpty: ink-заливка + белый текст) и
+// активная «Еда/Мое» (chip-инверсия). Глобальный `button:active` (index.scss)
+// оставляет scale как fallback для кнопок, до которых канон не дошёл.
+//
+// Тайминг — асимметрия из tokens.scss: ВХОД мгновенный (`--press-in: 0ms`,
+// тот же кадр, что касание → ловится pre-attentive), ВЫХОД мягкий
+// (`--press-out: 260ms`). Реализация: базовый transition держит выход, а в
+// `:active` `transition-duration: var(--press-in)` обнуляет вход.
+//
+// Четыре варианта под четыре архетипа кнопок:
+//   press-fill-chip()  — светлый pill/chip с surface-палитрой → заливка
+//                        `--chip-active-*` (тёмная инверсия + светлый текст).
+//   press-fill-ink()   — светлая generic кнопка без chip-токенов → ink-заливка.
+//   press-fill-tint()  — тихая текст/иконочная кнопка без подложки → текст и
+//                        значок (currentColor) красятся в акцент + лёгкий тинт.
+//   press-darken()     — уже сплошная/тёмная кнопка (CTA, primary) → её нечем
+//                        «залить», поэтому затемняем фильтром (тональный отклик).
+
+@mixin press-fill-chip($scale: 0.97) {
+    transition:
+        background var(--press-out) var(--easing-default),
+        border-color var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
+
+    &:active {
+        background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+        border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
+        color: var(--chip-active-text, #fff);
+        transform: scale($scale);
+        transition-duration: var(--press-in);
+    }
+}
+
+@mixin press-fill-ink($fg: #fff, $scale: 0.97) {
+    transition:
+        background var(--press-out) var(--easing-default),
+        border-color var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
+
+    &:active {
+        background: var(--color-ink);
+        border-color: var(--color-ink);
+        color: $fg;
+        transform: scale($scale);
+        transition-duration: var(--press-in);
+    }
+}
+
+@mixin press-fill-tint($accent: var(--field-caret, var(--color-ink)), $scale: 1) {
+    transition:
+        background var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
+
+    &:active {
+        background: var(--press-tint-bg, rgba(0, 0, 0, 0.05));
+        color: $accent;
+        @if $scale != 1 {
+            transform: scale($scale);
+        }
+        transition-duration: var(--press-in);
+    }
+}
+
+@mixin press-darken($brightness: 0.88, $scale: 0.97) {
+    transition:
+        filter var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
+
+    &:active {
+        filter: brightness($brightness);
+        transform: scale($scale);
+        transition-duration: var(--press-in);
     }
 }
 

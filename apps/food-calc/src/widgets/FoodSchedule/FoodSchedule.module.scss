@@ -92,7 +92,7 @@
   font-weight: 500;
   cursor: pointer;
   user-select: none;
-  transition: color 0.15s ease, transform 0.12s ease;
+  transition: color var(--press-out) var(--easing-default), background var(--press-out) var(--easing-default), transform 0.12s ease;
 
   &:hover,
   &:focus-visible {
@@ -100,8 +100,12 @@
     outline: none;
   }
 
+  // Цветной отклик: тихая тинт-подсветка на касание (quiet icon-button archetype)
   &:active {
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
     transform: scale(0.97);
+    transition-duration: var(--press-in);
   }
 }
 

@@ -9,7 +9,7 @@ import { useState, type CSSProperties } from 'react';
 import type { Atom } from '@/entities/schedule-event';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import { NavTile } from '@/shared/ui/NavTile';
-import { Text } from '@/shared/ui/atoms/Typography';
+import { Heading, Text, Typography } from '@/shared/ui/atoms/Typography';
 import { AtomList } from './AtomList';
 import { ScaleAtomInput } from './ScaleAtomInput';
 import { TagAtomInput } from './TagAtomInput';
@@ -34,9 +34,19 @@ const ATOM_BUTTONS: {
   image: string;
   imgOffset: { x: string; y: string };
 }[] = [
-  { kind: 'scale', label: 'Оценка', image: '/art/scale-2.png', imgOffset: { x: '-22.8%', y: '4%' } },
+  {
+    kind: 'scale',
+    label: 'Оценка',
+    image: '/art/scale-2.png',
+    imgOffset: { x: '-22.8%', y: '4%' },
+  },
   { kind: 'tag', label: 'Тег', image: '/art/tag-2.png', imgOffset: { x: '13.9%', y: '5.9%' } },
-  { kind: 'relation', label: 'Связь', image: '/art/link-2.png', imgOffset: { x: '28.7%', y: '3%' } },
+  {
+    kind: 'relation',
+    label: 'Связь',
+    image: '/art/link-2.png',
+    imgOffset: { x: '28.7%', y: '3%' },
+  },
 ];
 
 export const AtomBuilder = ({ id, className = '', onPanelChange }: AtomBuilderProps) => {
@@ -70,11 +80,7 @@ export const AtomBuilder = ({ id, className = '', onPanelChange }: AtomBuilderPr
     }[openPanel];
 
     return (
-      <div
-        id={id}
-        tabIndex={id ? -1 : undefined}
-        className={`${styles.panelView} ${className}`}
-      >
+      <div id={id} tabIndex={id ? -1 : undefined} className={`${styles.panelView} ${className}`}>
         <InputComponent onAddAtom={handleAddAtom} onClose={handleClose} />
       </div>
     );
@@ -82,11 +88,13 @@ export const AtomBuilder = ({ id, className = '', onPanelChange }: AtomBuilderPr
 
   // Default: show atom list + type selector buttons
   return (
-    <div
-      id={id}
-      tabIndex={id ? -1 : undefined}
-      className={`${styles.container} ${className}`}
-    >
+    <div id={id} tabIndex={id ? -1 : undefined} className={`${styles.container} ${className}`}>
+      {atoms.length === 0 && (
+        <Heading size="section" className={styles.topHint}>
+          Можно пропустить, если нет уточнений.
+        </Heading>
+      )}
+
       <AtomList atoms={atoms} onRemove={removeAtom} />
 
       <div className={styles.tileSection}>
@@ -105,7 +113,7 @@ export const AtomBuilder = ({ id, className = '', onPanelChange }: AtomBuilderPr
         </div>
 
         <Text variant="hint" as="p" className={styles.tileHint}>
-          Если особо нечего уточнять - пропускаем.
+          Можно добавить подробности.
         </Text>
       </div>
     </div>

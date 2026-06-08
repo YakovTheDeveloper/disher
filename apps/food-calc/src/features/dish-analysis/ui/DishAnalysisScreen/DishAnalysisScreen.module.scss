@@ -45,10 +45,14 @@
     cursor: pointer;
     box-shadow: 0 1px 4px rgba(30, 64, 124, 0.18);
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.12s ease;
+    transition: transform var(--press-out) var(--easing-default),
+        filter var(--press-out) var(--easing-default);
 
+    // Цветной отклик: сплошную sky-кнопку затемняем фильтром
     &:active {
+        filter: brightness(0.9);
         transform: scale(0.97);
+        transition-duration: var(--press-in);
     }
 
     &:disabled {
@@ -72,10 +76,14 @@
     cursor: pointer;
     box-shadow: 0 1px 4px rgba(30, 64, 124, 0.18);
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.12s ease;
+    transition: transform var(--press-out) var(--easing-default),
+        filter var(--press-out) var(--easing-default);
 
+    // Цветной отклик: сплошную sky-кнопку rerun затемняем фильтром
     &:active {
+        filter: brightness(0.9);
         transform: scale(0.97);
+        transition-duration: var(--press-in);
     }
 
     &:disabled {

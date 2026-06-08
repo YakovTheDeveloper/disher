@@ -319,9 +319,9 @@
     align-items: center;
     justify-content: center;
     gap: 2px;
-    width: 48px;
+    width: 70px;
     height: 56px;
-    padding: 0;
+    padding: 0 var(--space-1);
     border: none;
     background: transparent;
     color: var(--card-info-rest);

@@ -15,7 +15,6 @@ import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { Heading, Text, Typography } from '@/shared/ui/atoms/Typography';
 import Button from '@/shared/ui/atoms/Button/Button';
-import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
 import NumberInput from '@/shared/ui/atoms/input/NumberInput/NumberInput';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch/AutoGrowSearch';
 import { Chip } from '@/shared/ui/atoms/Chip/Chip';
@@ -288,15 +287,11 @@ const UiKitPage = () => {
                 </Button>
               </Specimen>
 
-              <Specimen name="<AddButton>" note="icon · withText · prominent · dark" wide>
-                <AddButton onClick={() => {}} />
-                <AddButton onClick={() => {}}>Добавить</AddButton>
-                <AddButton onClick={() => {}} prominent>
-                  prominent
-                </AddButton>
-                <AddButton onClick={() => {}} dark>
-                  dark
-                </AddButton>
+              <Specimen name='<Button variant="bottomActionBar">' note="нижний бар: иконка + метка (peach-rose · обводка · тень)" wide>
+                <Button variant="bottomActionBar" icon={<PlusGlyph />}>
+                  Добавить
+                </Button>
+                <Button variant="bottomActionBar">Без иконки</Button>
               </Specimen>
             </Section>
 

@@ -1,0 +1,282 @@
+// Боковой дровер продукта (замена ProductPage). Палитра — нейтральная
+// drawer-обвязка. Все цвета / размеры / радиусы через токены (token-gate,
+// новый файл обязан проходить).
+
+.body {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-3) var(--space-3) var(--space-6);
+}
+
+// ─── Верхняя панель: карандаш (edit) + × (close), прижата вправо ──
+.topBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-1);
+    margin-bottom: var(--space-1);
+}
+
+// Обёртка карандаша — anchor для absolute-меню (inline-popover в стекинг-
+// контексте дровера, чтобы не уйти под него как PopoverTrigger z-1000).
+.editWrap {
+    position: relative;
+}
+
+// Карандаш «видна хорошо» — заливка акцентом, белый глиф.
+.editIconBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    color: var(--text-on-accent);
+    cursor: pointer;
+
+    svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.closeBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+// Невидимый full-bleed бэкдроп для click-outside (внутри дровера).
+.editBackdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    border: none;
+    background: none;
+    cursor: default;
+}
+
+.editMenu {
+    position: absolute;
+    top: calc(100% + var(--space-1));
+    right: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    min-width: 220px;
+    padding: var(--space-1);
+    border-radius: var(--radius-md);
+    background: var(--color-white);
+    box-shadow: var(--shadow-lg);
+}
+
+.editMenuItem {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    font-weight: 500;
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover,
+    &:active {
+        background: var(--press-tint-bg);
+    }
+}
+
+// ─── Шапка: имя + цветная подпись «мой продукт» ──────────────────
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: var(--space-3);
+}
+
+.title {
+    min-width: 0;
+
+    // Имена продуктов приходят строчными («абрикос») — поднимаем регистр.
+    &::first-letter {
+        text-transform: uppercase;
+    }
+}
+
+.ownership {
+    font-family: var(--heading-font);
+    font-style: italic;
+    font-size: var(--text-sm);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    color: var(--color-primary);
+}
+
+// ─── Аккордеон «Порции» ──────────────────────────────────────────
+.portions {
+    margin-bottom: var(--space-3);
+}
+
+.portionsHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+}
+
+.portionsToggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+.portionsTitle {
+    font-family: var(--heading-font);
+    font-style: italic;
+    font-weight: var(--heading-weight);
+    font-size: var(--text-lg);
+    letter-spacing: var(--heading-letter);
+}
+
+.chevron {
+    color: var(--text-tertiary);
+    transition: transform var(--duration-normal) var(--easing-default);
+}
+
+.chevronOpen {
+    transform: rotate(180deg);
+}
+
+.portionsAdd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: var(--press-tint-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+// Раскрытие через grid-template-rows 0fr→1fr — анимируем grid-track, не height
+// (composite-friendly, без layout-thrash). Внутренний контейнер режет overflow.
+.portionsReveal {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--duration-normal) var(--easing-default);
+}
+
+.portionsRevealOpen {
+    grid-template-rows: 1fr;
+}
+
+.portionsRevealInner {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.portionsEmpty {
+    padding: var(--space-2) 0;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .portionsReveal {
+        transition: none;
+    }
+
+    .chevron {
+        transition: none;
+    }
+}
+
+// ─── Количество ──────────────────────────────────────────────────
+.servingComposition {
+    margin: var(--space-2) 0;
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    color: var(--text-secondary);
+}
+
+// Строгий Select: плоский белый фон + тонкая чёрная обводка, малый радиус,
+// без тёплой тени. Переопределяем --field-* токены, которые читает
+// Select-триггер (он наш потомок; popup портируется и берёт surface-токены).
+.quantityControl {
+    margin-bottom: var(--space-2);
+
+    --field-bg-from: var(--color-white);
+    --field-bg-mid: var(--color-white);
+    --field-bg-to: var(--color-white);
+    --field-hairline: var(--color-ink);
+    --field-hairline-focus: var(--color-ink);
+    --field-radius: var(--radius-sm);
+    --field-shadow: 0 0 0 transparent;
+    --field-shadow-focus: 0 0 0 transparent;
+    --field-text: var(--text-primary);
+    --field-adornment: var(--text-primary);
+}
+
+.quantitySelect {
+    width: 100%;
+}
+
+.quantityInputRow {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-1);
+    margin-bottom: var(--space-2);
+}
+
+.quantityUnit {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    color: var(--text-secondary);
+}
+
+// ─── Действия своих продуктов ────────────────────────────────────
+.suggestRow {
+    display: flex;
+    margin-bottom: var(--space-1);
+}
+
+.normRow {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--space-1);
+}

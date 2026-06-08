@@ -1,7 +1,9 @@
 import { useCallback } from 'react';
 import { createProduct } from '@/entities/product';
 import { createDish } from '@/entities/dish';
-import { getProductUrl, RouterUrls } from '@/app/router';
+import { RouterUrls } from '@/app/router';
+import { ProductDrawer } from '@/features/food/product-drawer';
+import { drawerStore } from '@/shared/ui/drawer-store';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 
@@ -15,8 +17,17 @@ export function useFoodCreation(
     const result = await safeMutate(() => createProduct({ name }), 'Не удалось создать продукт');
     if (!result.ok) return;
     setSearchQuery('');
+    const productId = result.value;
     toaster.success(`Продукт «${name}» создан`, {
-      action: { label: 'Открыть', href: getProductUrl(result.value) },
+      action: {
+        label: 'Открыть',
+        onClick: () =>
+          drawerStore.show(
+            ProductDrawer,
+            { productId, productName: name },
+            { side: 'left', width: 'min(85vw, 360px)' },
+          ),
+      },
     });
   }, [searchQuery, setSearchQuery]);
 

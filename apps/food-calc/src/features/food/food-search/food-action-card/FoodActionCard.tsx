@@ -10,7 +10,7 @@ import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { getProductUrl, RouterUrls } from '@/app/router';
 import { drawerStore } from '@/shared/ui/drawer-store';
-import { CatalogProductNutrientsDrawer } from './CatalogProductNutrientsDrawer';
+import { ProductDrawer } from '@/features/food/product-drawer';
 
 type Props = {
   variant: 'product' | 'dish';
@@ -129,7 +129,6 @@ const FoodActionCard = ({
     state: { heroName: item.name },
   });
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.id);
-  const isCatalogProduct = variant === 'product' && !userCreated;
 
   const handleDelete = () => {
     if (variant === 'product') {
@@ -255,14 +254,17 @@ const FoodActionCard = ({
         </p>
       )}
       {onInfoClick &&
-        (isCatalogProduct ? (
+        (variant === 'product' ? (
+          // Продукт (свой ИЛИ каталожный) → боковой ProductDrawer. Страница
+          // /product/:id инактивирована; ProductDrawer сам ветвит каталог/свой
+          // по isCreatedByUser, точке входа ветвиться не нужно.
           <button
             type="button"
             className={styles.infoBtn}
-            aria-label="Нутриенты"
+            aria-label="Информация о продукте"
             onClick={() => {
               drawerStore.show(
-                CatalogProductNutrientsDrawer,
+                ProductDrawer,
                 { productId: item.id, productName: item.name },
                 { side: 'left', width: 'min(85vw, 360px)' }
               );
@@ -272,10 +274,8 @@ const FoodActionCard = ({
             {showOwnershipLabel && <span className={styles.ownershipLabel}>{ownershipLabel}</span>}
           </button>
         ) : (
-          // Кнопка (НЕ <Link>) с тем же хелпером, что и «Анализ по неделям»:
-          // goToInfo → navigate(viewTransition:true) + html[data-vt-type='cover'].
-          // Навигация размонтирует хост-роут (HomePage/DishBuilderPage) с
-          // ModalByLabel — модалку вручную не закрываем.
+          // Блюдо → страница /dish/:id (та же раскадровка 'push', что и «Анализ
+          // по неделям»). goToInfo → navigate(viewTransition:true).
           <button
             type="button"
             className={styles.infoBtn}

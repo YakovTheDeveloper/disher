@@ -16,14 +16,23 @@
   font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
+  transition:
+    background var(--press-out) var(--easing-default),
+    border-color var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default);
 
   &:hover {
     border-color: rgba(0, 0, 0, 0.25);
     color: rgba(0, 0, 0, 0.6);
   }
 
+  // Цветной отклик: на нажатии светлая outline-кнопка заливается ink + белый текст.
   &:active {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--text-on-accent);
     transform: translateY(1px);
+    transition-duration: var(--press-in);
   }
 }
 
@@ -53,7 +62,10 @@
   padding: var(--space-5) 0 calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
   // margin: var(--space-5);
   font-family: "Jost", "YS Text", "Golos Text", system-ui, sans-serif;
-  transition: opacity 0.15s ease;
+  transition:
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    opacity var(--press-out) var(--easing-default);
   -webkit-tap-highlight-color: transparent;
 
   svg {
@@ -65,9 +77,16 @@
   }
 }
 
-.prevArrow:active,
-.nextArrow:active {
-  opacity: 0.7;
+// Цветной отклик: светлая «Назад» заливается ink + белый текст; тёмная «Далее»
+// (заливка в ::before) затемняется фильтром.
+.prevArrow:active {
+  background: var(--color-ink);
+  color: var(--text-on-accent);
+  transition-duration: var(--press-in);
+}
+
+.nextArrow:active::before {
+  filter: brightness(0.85);
 }
 
 .prevArrow {
@@ -90,6 +109,7 @@
     background: var(--color-ink);
     border-radius: var(--radius-sm);
     z-index: 0;
+    transition: filter var(--press-out) var(--easing-default);
   }
 }
 

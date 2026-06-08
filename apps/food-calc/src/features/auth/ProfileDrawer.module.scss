@@ -1,50 +1,37 @@
 // ─── Profile Drawer (logged-in user) ───────────────────────────
 
+// Ambient backdrop (canon: «ambient-backdrop page chrome», project_design_dna).
+// A soft peach→rose glow from the top corners — same palette as HomeAmbient
+// `peach-rose` (App.module.scss) and the warm ModalShell forks — sits behind the
+// identity header («Аккаунт» + email), then fades to the drawer's white before
+// the content so the balance / theme rows stay opaque and readable. Lands on
+// `Drawer.Popup` via DrawerLayout's `className`; the popup already clips
+// (`overflow: hidden`) and paints chrome/content above this z-0 layer.
+.surface::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 230px;
+  background:
+    radial-gradient(ellipse 92% 72% at 0% 0%, rgba(253, 230, 200, 0.5), transparent 60%),
+    radial-gradient(ellipse 92% 72% at 100% 0%, rgba(252, 225, 235, 0.42), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .container {
   display: flex;
   flex-direction: column;
+  // Fill the scroll viewport so `.danger { margin-top: auto }` can park the
+  // danger zone against the bottom edge. `flex-shrink: 0` lets tall content
+  // overflow into a scroll rather than squash; min-height is a legacy floor.
+  flex: 1 0 auto;
   min-height: 50vh;
-  padding: 0 var(--space-5) var(--space-4);
+  padding: var(--space-3) var(--space-5) var(--space-4);
   gap: var(--space-8);
 }
 
-.profile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--space-3);
-  padding-top: var(--space-6);
-}
-
-.avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: var(--radius-full);
-  background: #111;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: var(--space-2);
-}
-
-.avatarLetter {
-  font-family: var(--font-display);
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  color: #fff;
-  line-height: 1;
-}
-
-.email {
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  margin: 0;
-  word-break: break-all;
-}
-
-// ─── Оформление section ─────────────────────────────────────────
+// ─── Sections (Оформление, Данные) ──────────────────────────────
 
 .section {
   display: flex;
@@ -60,7 +47,50 @@
   color: var(--text-primary);
 }
 
-// ─── Данные section ─────────────────────────────────────────────
+// ─── Accordion (Данные) ─────────────────────────────────────────
+// A full-width header row: the serif section label on the left, a chevron on
+// the right. No box — it sits in the column like a plain heading until tapped.
+
+.accordionToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--press-out) var(--easing-default);
+
+  &:active .sectionLabel,
+  &:active .chevron {
+    color: var(--color-ink);
+    transition-duration: var(--press-in);
+  }
+}
+
+.accordionBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  animation: sectionReveal 200ms var(--easing-default);
+}
+
+.chevron {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-secondary);
+  transition: transform 180ms var(--easing-default);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+// ─── Данные section body ────────────────────────────────────────
 
 .dataHint {
   margin: 0;
@@ -74,7 +104,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: var(--space-2);
 }
 
 .dataBtn {
@@ -89,10 +118,19 @@
   font-weight: 500;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: transform var(--duration-fast) var(--easing-default);
+  transition:
+    background var(--press-out) var(--easing-default),
+    border-color var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
 
+  // Цветной отклик: светлая кнопка-данные → заливка чернилами
   &:active {
-    transform: scale(0.985);
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--text-on-accent);
+    transform: scale(0.97);
+    transition-duration: var(--press-in);
   }
 
   &:disabled {
@@ -101,20 +139,37 @@
   }
 }
 
-// ─── Опасная зона (pinned footer, collapsed by default) ─────────
-
-// Wrapper supplies the padding the footer slot loses by sitting outside
-// .container; bottom padding carries the safe-area inset.
-.dangerFooter {
-  padding: var(--space-2) var(--space-5)
-    calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
-}
+// ─── Опасная зона (last in main flow, collapsed by default) ──────
+// No card / no border box — the zone is set apart by a single fading red
+// hairline above it (canon: no hard frames). The danger tone lives in the
+// toggle text and the hold-to-sign-out control, not a tinted container.
 
 .danger {
-  border-radius: var(--radius-md);
-  background: rgba(176, 52, 35, 0.045);
-  border: 1px solid rgba(176, 52, 35, 0.14);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  // Park at the bottom of the (viewport-filling) container — «снизу основного
+  // потока», but still in the scroll flow, not a pinned footer.
+  margin-top: auto;
+  padding-top: var(--space-4);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(176, 52, 35, 0.18) 18%,
+      rgba(176, 52, 35, 0.18) 82%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
 }
 
 .dangerToggle {
@@ -122,36 +177,45 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 14px 16px;
+  padding: 0;
   border: none;
   background: transparent;
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
-  font-weight: 600;
+  // Same serif-italic rhythm as «Оформление»/«Данные» (.sectionLabel) — these
+  // are now sibling section headers in one flow; red is the only divergence,
+  // carrying the «danger» signal on its own.
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-style: italic;
+  font-size: 19px;
   color: #b03423;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-}
+  transition: color var(--press-out) var(--easing-default);
 
-.chevron {
-  font-size: 18px;
-  line-height: 1;
-  transition: transform 180ms var(--easing-default);
-}
+  // Чевpon в зоне тонируется красным заодно с лейблом.
+  .chevron {
+    color: #b03423;
+  }
 
-.chevronOpen {
-  transform: rotate(180deg);
+  // Цветной отклик: текст и шеврон темнеют до ink.
+  &:active {
+    color: var(--color-ink);
+    transition-duration: var(--press-in);
+
+    .chevron {
+      color: var(--color-ink);
+    }
+  }
 }
 
 .dangerBody {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 0 16px 16px;
-  animation: dangerReveal 200ms var(--easing-default);
+  margin-top: var(--space-1);
+  animation: sectionReveal 200ms var(--easing-default);
 }
 
-@keyframes dangerReveal {
+@keyframes sectionReveal {
   from {
     opacity: 0;
     transform: translateY(-6px);
@@ -181,10 +245,19 @@
   font-weight: 500;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: transform var(--duration-fast) var(--easing-default);
+  transition:
+    background var(--press-out) var(--easing-default),
+    border-color var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
 
+  // Цветной отклик: кнопка резервной копии (outlined) → заливка чернилами
   &:active {
-    transform: scale(0.985);
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--text-on-accent);
+    transform: scale(0.97);
+    transition-duration: var(--press-in);
   }
 
   &:disabled {
@@ -198,6 +271,7 @@
     transition: none;
   }
 
+  .accordionBody,
   .dangerBody {
     animation: none;
   }

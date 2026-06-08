@@ -115,9 +115,9 @@ const ProductQuantity = ({
             <button
               type="button"
               className={style.multiplierBtn}
-              onClick={() => handleMultiplierChange(multiplier - 0.5)}
+              onClick={() => handleMultiplierChange(multiplier + 0.5)}
             >
-              −
+              +
             </button>
             <NumberInput
               className={style.multiplierInput}
@@ -128,9 +128,9 @@ const ProductQuantity = ({
             <button
               type="button"
               className={style.multiplierBtn}
-              onClick={() => handleMultiplierChange(multiplier + 0.5)}
+              onClick={() => handleMultiplierChange(multiplier - 0.5)}
             >
-              +
+              −
             </button>
           </div>
         )}

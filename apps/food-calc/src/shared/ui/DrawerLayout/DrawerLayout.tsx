@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { Drawer } from '@base-ui/react/drawer';
 import { useTranslation } from 'react-i18next';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';
+import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import { useDrawerSide } from './drawerSide';
 
 type Props = {
@@ -18,7 +19,25 @@ type Props = {
    * inside the drawer should be `<h3>`+ to keep the document outline correct.
    */
   title?: React.ReactNode;
+  /**
+   * Optional caption rendered directly beneath the centered `title`, inside the
+   * same chrome row (e.g. the account email under «Аккаунт»). Only shown when a
+   * visible title is present — it's a subtitle of that heading, never standalone.
+   * Styled as a small secondary caption; keep it short (it wraps/breaks).
+   */
+  subtitle?: React.ReactNode;
   topRight?: React.ReactNode;
+  /**
+   * When provided, the top-left chrome button becomes a back arrow that calls
+   * this instead of closing the drawer (Drawer.Close). Use for in-drawer
+   * sub-screens (e.g. a two-state drawer): the leading control is contextual —
+   * back on a sub-screen, close at the root — so a back arrow and a close cross
+   * never sit side by side (no mis-tap). Closing from the sub-screen stays
+   * available via swipe-down / backdrop.
+   */
+  onBack?: () => void;
+  /** Accessible label for the back button (defaults to a generic «Назад»). */
+  backLabel?: string;
   /** Pinned, non-scrolling content below the scroll area — always visible. */
   footer?: React.ReactNode;
   className?: string;
@@ -41,7 +60,10 @@ type Props = {
 const DrawerLayout = ({
   children,
   title,
+  subtitle,
   topRight,
+  onBack,
+  backLabel,
   footer,
   className,
   a11yLabel,
@@ -100,16 +122,49 @@ const DrawerLayout = ({
       )}
       <div className={styles.panel}>
         {!hideTopChrome && (
-          <div className={styles.dragHandle}>
-            <Drawer.Close
-              className={clsx(styles.topLeft, styles.actionHeaderButton, styles.actionHeaderButton_back)}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <CrossIcon />
-            </Drawer.Close>
-            {showVisibleTitle && (
-              <Drawer.Title className={styles.titleCenter}>{title}</Drawer.Title>
+          <div
+            className={clsx(
+              styles.dragHandle,
+              showVisibleTitle && subtitle != null && styles.dragHandleStacked,
             )}
+          >
+            {onBack ? (
+              <button
+                type="button"
+                className={clsx(
+                  styles.topLeft,
+                  styles.actionHeaderButton,
+                  styles.actionHeaderButton_back,
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBack();
+                }}
+                aria-label={backLabel ?? t('overlay.drawer.back', 'Назад')}
+              >
+                <ArrowLeftIcon width={22} height={22} />
+              </button>
+            ) : (
+              <Drawer.Close
+                className={clsx(styles.topLeft, styles.actionHeaderButton, styles.actionHeaderButton_back)}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <CrossIcon />
+              </Drawer.Close>
+            )}
+            {showVisibleTitle &&
+              (subtitle != null ? (
+                <div className={styles.titleStack}>
+                  <Drawer.Title className={styles.titleCenter}>
+                    {title}
+                  </Drawer.Title>
+                  <p className={styles.titleSubtitle}>{subtitle}</p>
+                </div>
+              ) : (
+                <Drawer.Title className={styles.titleCenter}>
+                  {title}
+                </Drawer.Title>
+              ))}
             <div className={clsx(styles.actionHeaderButton, styles.topRight)}>{topRight}</div>
           </div>
         )}

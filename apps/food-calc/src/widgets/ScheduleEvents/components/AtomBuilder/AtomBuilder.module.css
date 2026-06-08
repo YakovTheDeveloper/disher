@@ -27,6 +27,17 @@
   padding-bottom: var(--space-6);
 }
 
+/* Подсказка у самого верха контейнера, когда ни одного атома не добавлено. */
+.topHint {
+  margin: var(--space-6) auto auto;
+  text-align: center;
+  font-style: italic;
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+  max-width: 340px;
+
+}
+
 /* Заголовок прямо над рядом плиток (раньше — у верха экрана). */
 .tileHeading {
   margin-bottom: var(--space-3);

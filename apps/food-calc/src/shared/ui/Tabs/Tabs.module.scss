@@ -70,8 +70,17 @@
         cursor: default;
     }
 
+    // Цветной отклик: на нажатии вкладка заливается ink + белеет заголовок.
     &:active:not(:disabled) {
+        background: var(--color-ink);
+        border-color: var(--color-ink);
         transform: scale(0.97);
+        transition-duration: var(--press-in);
+
+        .header {
+            color: var(--text-on-accent);
+            opacity: 1;
+        }
     }
 
     &.active {

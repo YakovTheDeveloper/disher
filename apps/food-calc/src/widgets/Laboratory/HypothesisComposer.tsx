@@ -7,6 +7,12 @@ import styles from './HypothesisComposer.module.scss';
 type Props = {
   /** Called after a successful saveHypothesis with the new id. */
   onCreated: (id: string) => void;
+  /**
+   * Id поля ввода. Нужен, когда модалку открывают по ModalByLabel-идиоме:
+   * внешний `<label htmlFor>` (кнопка «Гипотезы» в нижнем баре) фокусит это
+   * поле → onFocusCapture раскрывает модалку и курсор сразу в композере.
+   */
+  inputId?: string;
 };
 
 // Inline create surface at the top of the hypothesis section: heading, a
@@ -14,7 +20,7 @@ type Props = {
 // body is added later via EditHypothesisModal (tap on a row). Enter submits
 // and keeps focus in the field (a series is entered with Enter); the button
 // submits and loses focus — that is accepted, we do not refocus explicitly.
-const HypothesisComposer = ({ onCreated }: Props) => {
+const HypothesisComposer = ({ onCreated, inputId }: Props) => {
   const [title, setTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -43,6 +49,7 @@ const HypothesisComposer = ({ onCreated }: Props) => {
   return (
     <section className={styles.composer}>
       <AutoGrowSearch
+        id={inputId}
         singleLine
         value={title}
         onChange={setTitle}

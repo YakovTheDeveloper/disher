@@ -35,6 +35,8 @@ type StreamArgs = {
   /** Approximate per-day nutrient totals — an anchor for the LLM, not exact. */
   nutrients: NutrientLine[];
   hypotheses: DailyPromptHypothesis[];
+  /** Optional free-text «уточнения от пользователя» for this run. */
+  userMessage?: string;
   onChunk: (chunk: string) => void;
   signal: AbortSignal;
 };
@@ -43,8 +45,16 @@ type StreamArgs = {
 // success OR on abort (caller checks `signal.aborted` to tell them apart).
 // Rejects with DailyStreamError on a genuine network/server failure.
 export async function streamDailyAnalysis(args: StreamArgs): Promise<string> {
-  const { date, scheduleFoods, scheduleEvents, nutrients, hypotheses, onChunk, signal } =
-    args;
+  const {
+    date,
+    scheduleFoods,
+    scheduleEvents,
+    nutrients,
+    hypotheses,
+    userMessage,
+    onChunk,
+    signal,
+  } = args;
 
   let accumulated = '';
   const collect = (chunk: string) => {
@@ -60,7 +70,14 @@ export async function streamDailyAnalysis(args: StreamArgs): Promise<string> {
         'Content-Type': 'application/json',
         'X-Request-Id': crypto.randomUUID(),
       },
-      body: JSON.stringify({ date, scheduleFoods, scheduleEvents, nutrients, hypotheses }),
+      body: JSON.stringify({
+        date,
+        scheduleFoods,
+        scheduleEvents,
+        nutrients,
+        hypotheses,
+        userMessage,
+      }),
       signal,
     });
   } catch (err) {

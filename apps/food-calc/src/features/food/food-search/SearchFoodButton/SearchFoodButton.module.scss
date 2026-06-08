@@ -33,7 +33,7 @@
   font-size: 1rem;
   line-height: 1.5;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease, filter var(--press-out) var(--easing-default);
   text-align: left;
   font-style: italic;
   background: rgba(255, 255, 255, 0.6);
@@ -58,10 +58,14 @@
     box-shadow: 0 4px 16px rgba(115, 45, 255, 0.15);
   }
 
+  // Цветной отклик: обводочная кнопка — заливка чернилами
   &:active {
-    border-color: var(--color-deep-blue);
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--text-on-accent);
     transform: scale(0.98);
     box-shadow: 0 2px 8px rgba(55, 0, 255, 0.15);
+    transition-duration: var(--press-in);
   }
 }
 
@@ -126,7 +130,7 @@
   cursor: pointer;
   padding: 4px 12px;
   border-radius: 10px;
-  transition: all 0.2s ease;
+  transition: background var(--press-out) var(--easing-default), color var(--press-out) var(--easing-default), transform 0.12s ease;
   margin-right: 8px;
 }
 
@@ -134,7 +138,10 @@
   background: rgba(115, 45, 255, 0.14);
 }
 
+// Цветной отклик: чип — заливка chip-токенами при нажатии
 .detailButton:active {
-  background: rgba(115, 45, 255, 0.2);
+  background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+  color: var(--chip-active-text, #fff);
   transform: scale(0.97);
+  transition-duration: var(--press-in);
 }

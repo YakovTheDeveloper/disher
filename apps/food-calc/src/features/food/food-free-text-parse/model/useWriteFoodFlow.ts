@@ -22,6 +22,7 @@ import { addDishItem } from '@/entities/dish/api/mutations';
 import { persistCustomTagsFromDetails } from '@/features/food/details-chips';
 import { useUserId } from '@/shared/lib/auth/useUserId';
 import toaster from '@/shared/lib/toaster/toaster';
+import { classifyError, defaultUserMessage } from '@/shared/lib/errors/classify';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import { countDismissed, countTotal, selectCommittable } from './selectCommittable';
@@ -249,6 +250,11 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         writeParseState(persisted);
         setState('error');
         setErrorMessage(persisted.errorMessage ?? null);
+        // Единственный видимый фидбэк об ошибке — toaster (красную рамку убрали).
+        // kind: 'timeout' → короткая длительность тоста (3s, см. toaster.ts).
+        toaster.error('Не дождались ответа. Попробуйте ещё раз.', {
+          kind: { kind: 'timeout', message: 'parse timeout', raw: null },
+        });
       }, PARSE_TIMEOUT_MS);
 
       // Two front-ends, one state machine: typed text → head B; semantic
@@ -284,8 +290,12 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
           if (controller.signal.aborted) return;
           if (activeRequestIdRef.current !== requestId) return;
           clearTimer();
-          const message =
-            err instanceof Error ? err.message : 'Не удалось разобрать текст';
+          // Классифицируем (network/timeout/402/server/...) → человекочитаемый
+          // RU-текст. Это же сообщение показываем тостером — единственный фидбэк
+          // об ошибке после того, как красную рамку с пилюли убрали. Заодно
+          // покрывает 402 «Недостаточно средств», которое раньше молча краснело.
+          const kind = classifyError(err);
+          const message = defaultUserMessage(kind);
           const persisted: PersistedParseState = {
             target,
             status: 'error',
@@ -298,6 +308,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
           writeParseState(persisted);
           setErrorMessage(message);
           setState('error');
+          toaster.error(message, { kind });
         },
       );
     },

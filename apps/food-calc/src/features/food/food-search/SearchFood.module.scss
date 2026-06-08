@@ -24,8 +24,13 @@
 }
 
 @keyframes heavyFadeIn {
-    0%   { opacity: 0; }
-    100% { opacity: 1; }
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -176,7 +181,7 @@
     flex-direction: column;
     // stripe-fork rows touch row-to-row; divider is each row's fading ::after
     // hairline (see FoodActionCard.module.scss). No outer gap.
-    gap: 0;
+    gap: var(--space-1);
 }
 
 .filterChipActive {
@@ -197,4 +202,3 @@
 .listContainer {
     background: var(--list-bg);
 }
-

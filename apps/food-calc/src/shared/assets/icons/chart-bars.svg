@@ -1,0 +1,6 @@
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- three ascending bars (short -> taller -> tallest), bottom-aligned -->
+  <rect x="3" y="14" width="4.4" height="7" rx="1.6" fill="currentColor"/>
+  <rect x="9.8" y="9" width="4.4" height="12" rx="1.6" fill="currentColor"/>
+  <rect x="16.6" y="4" width="4.4" height="17" rx="1.6" fill="currentColor"/>
+</svg>

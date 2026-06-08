@@ -6,7 +6,8 @@ import { removeScheduleEvents } from '@/entities/schedule-event';
 import clsx from 'clsx';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
-import AddButton from '@/shared/ui/atoms/Button/AddButton/AddButton';
+import Button from '@/shared/ui/atoms/Button/Button';
+import { PlusIcon } from '@/shared/ui/atoms/Button/PlusIcon';
 import { groupItemsByTime } from '@/shared/lib/schedule';
 import {
   ScheduleEventCreateModals,
@@ -54,6 +55,9 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
   // пустом дне.
   const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
 
+  // Пустой день → hollow-заглушка Screen (большой бренд-логотип по центру).
+  const isDayEmpty = events.length === 0;
+
   const { anchor: eventsAnchor } = useDesignVariant('ScheduleEvents', EVENTS_VARIANTS);
   // Shared with FoodSchedule: one DesignBar control for the adjacent-row edge
   // treatment across food + event rows (same key → same stored variant).
@@ -89,7 +93,7 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
     <Screen
       stickyTop={topSlot}
       headerOverlap
-      hollow={events.length === 0}
+      hollow={isDayEmpty}
       contentHeader={<Heading size="section">{weekdayTitle}</Heading>}
       overlay={
         <>
@@ -105,16 +109,16 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
       }
       key={3}
       bottomBar={
-        <AppBottomBarShell side="right" tone="lemon">
-          <AddButton
-            htmlFor={EVENT_MODAL_INPUT_IDS.TEXT_INPUT}
+        <AppBottomBarShell side="right" width="33%">
+          <Button
+            variant="bottomActionBar"
             as="label"
+            htmlFor={EVENT_MODAL_INPUT_IDS.TEXT_INPUT}
+            icon={<PlusIcon />}
             onClick={() => {}}
-            prominent={events.length === 0}
-            dark
           >
             Добавить событие
-          </AddButton>
+          </Button>
         </AppBottomBarShell>
       }
     >

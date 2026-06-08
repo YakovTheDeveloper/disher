@@ -172,6 +172,14 @@ const FoodSchedule = ({
           writeFoodHint={'Например, 9:40 гречка 80, сливочное масло 10,\nяйцо 80, вода 200, хлеб 100, сыр 30'}
         />
       }
+      afterContent={
+        /* Предложка живёт в afterContent-слоте Screen (2026-06-08): результат
+           разбора плавает на фоне страницы ПОД листом со списком, рядом с
+           write-баром (chat-pattern). Несёт [data-write-food-anchor] —
+           auto-scroll из AppBottomBar.handleSubmit находит её по селектору.
+           Loading рисует skeleton-блок со спиннером. */
+        <InlineWriteFoodReview flow={writeFoodFlow} />
+      }
     >
       <div {...foodAnchor} className={styles.foodListAnchor}>
         <div {...boundaryAnchor}>
@@ -209,11 +217,6 @@ const FoodSchedule = ({
           </ItemsList>
         </div>
       </div>
-      {/* Предложка переехала ПОД список (2026-05-23): chat-pattern — место
-          результата рядом с местом ввода (bottom-bar). Во время loading
-          рендерится skeleton-блок со спиннером; auto-scroll триггерится из
-          AppBottomBar.handleSubmit (привязан к user-action). */}
-      <InlineWriteFoodReview flow={writeFoodFlow} />
     </Screen>
   );
 };

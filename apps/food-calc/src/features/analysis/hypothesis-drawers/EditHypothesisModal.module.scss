@@ -12,11 +12,19 @@
     font-weight: 500;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.1s ease, background 0.14s ease;
+    transition: transform var(--press-out) var(--easing-default),
+        background var(--press-out) var(--easing-default),
+        border-color var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default);
 
+    // Цветной отклик: danger-кнопка на нажатии заливается КРАСНЫМ (не ink) —
+    // danger-семантика сохраняется, единообразно с ConfirmModal.confirmDanger.
     &:active {
+        background: var(--color-danger);
+        border-color: var(--color-danger);
+        color: var(--text-on-accent);
         transform: scale(0.97);
-        background: rgba(192, 57, 43, 0.05);
+        transition-duration: var(--press-in);
     }
 
     &:disabled {

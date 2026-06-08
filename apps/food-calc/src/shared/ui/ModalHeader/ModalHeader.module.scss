@@ -30,10 +30,15 @@
   border-radius: var(--radius-xs);
   color: #111;
   -webkit-tap-highlight-color: transparent;
-  transition: opacity 0.15s ease;
+  transition:
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default);
 
+  // Цветной отклик: на нажатии глиф → surface-акцент + лёгкий тинт-фон.
   &:active {
-    opacity: 0.4;
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
+    transition-duration: var(--press-in);
   }
 
   svg {

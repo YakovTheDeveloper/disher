@@ -51,7 +51,9 @@ $accent-bg: #fdf2dc;
     border-radius: var(--radius-xs);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: opacity 0.15s ease, background 0.15s ease;
+    transition:
+        background var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default);
 
     svg {
         width: 24px;
@@ -59,7 +61,12 @@ $accent-bg: #fdf2dc;
     }
 
     &:hover { background: rgba(124, 65, 15, 0.05); }
-    &:active { opacity: 0.4; }
+    // Цветной отклик: кнопка «Назад» (иконка) → тинт фона + цвет иконки
+    &:active {
+        background: var(--press-tint-bg);
+        color: var(--field-caret, var(--color-ink));
+        transition-duration: var(--press-in);
+    }
     &:focus-visible { outline: 2px solid $accent; outline-offset: 2px; }
 }
 
@@ -178,7 +185,11 @@ $accent-bg: #fdf2dc;
     cursor: pointer;
     text-align: center;
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    transition:
+        background var(--press-out) var(--easing-default),
+        border-color var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
     overflow: hidden;
 
     // 3px left accent stripe (stripe-fork DNA), hidden until active
@@ -194,7 +205,21 @@ $accent-bg: #fdf2dc;
         transition: opacity 0.15s ease, width 0.15s ease;
     }
 
-    &:active { transform: scale(0.985); }
+    // Цветной отклик: pill-выбор нормы (chip-вариант) → заливка chip-токеном.
+    // .pillHint держит свой тёмный $ink-muted — на тёмной заливке перекрашиваем
+    // (.pillTitle уже inherit, задаём явно для надёжности).
+    &:active {
+        background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+        border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
+        color: var(--chip-active-text, #fff);
+        transform: scale(0.97);
+        transition-duration: var(--press-in);
+
+        .pillTitle,
+        .pillHint {
+            color: var(--chip-active-text, #fff);
+        }
+    }
     &:focus-visible { outline: 2px solid $accent; outline-offset: 2px; }
 }
 
@@ -476,11 +501,20 @@ $accent-bg: #fdf2dc;
     letter-spacing: -0.005em;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.15s ease, opacity 0.15s ease, transform 0.12s ease;
+    transition:
+        background var(--press-out) var(--easing-default),
+        filter var(--press-out) var(--easing-default),
+        opacity var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
     box-shadow: 0 1px 2px rgba(44, 29, 10, 0.18);
 
     &:hover { background: #1b1206; }
-    &:active { transform: scale(0.985); }
+    // Цветной отклик: основная CTA (тёмная заливка) → потемнение
+    &:active {
+        filter: brightness(0.9);
+        transform: scale(0.97);
+        transition-duration: var(--press-in);
+    }
     &:focus-visible { outline: 2px solid $accent; outline-offset: 2px; }
 }
 

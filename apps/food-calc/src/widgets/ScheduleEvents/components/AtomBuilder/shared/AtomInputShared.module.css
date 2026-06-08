@@ -117,11 +117,15 @@
   padding: var(--space-1);
   color: rgba(0, 0, 0, 0.3);
   -webkit-tap-highlight-color: transparent;
-  transition: transform 80ms ease;
+  transition: background var(--press-out, 260ms) ease, color var(--press-out, 260ms) ease, transform 80ms ease;
 }
 
+/* Цветной отклик: тинт-подсветка на касание (quiet icon-button archetype) */
 .navBtn:active {
+  background: var(--press-tint-bg, rgba(0, 0, 0, 0.08));
+  color: var(--field-caret, rgba(0, 0, 0, 0.7));
   transform: scale(0.88);
+  transition-duration: var(--press-in, 0ms);
 }
 
 .doneBtn {

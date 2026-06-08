@@ -138,9 +138,18 @@
     font-weight: 500;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    transition: background var(--press-out) var(--easing-default),
+        border-color var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
 
+    // Цветной отклик: светлая кнопка баннера заполняется ink при нажатии
     &:active {
+        background: var(--color-ink);
+        border-color: var(--color-ink);
+        color: var(--text-on-accent);
         transform: scale(0.97);
+        transition-duration: var(--press-in);
     }
 }
 

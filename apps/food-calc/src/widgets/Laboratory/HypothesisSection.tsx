@@ -25,6 +25,8 @@ type Props = {
   selectable?: boolean;
   /** Caps the scrollable list body; a drawer/page host can shrink it. */
   maxBodyHeight?: string;
+  /** Id поля композера — для ModalByLabel-открытия модалки внешним label'ом. */
+  composerInputId?: string;
 } & EditProps;
 
 // The shared hypotheses widget (Variant B): inline composer on top, list below.
@@ -36,6 +38,7 @@ const HypothesisSection = ({
   onToggle,
   selectable = true,
   maxBodyHeight,
+  composerInputId,
   onEditHypothesis,
   editInputHtmlFor,
 }: Props) => {
@@ -58,7 +61,7 @@ const HypothesisSection = ({
 
   return (
     <div className={styles.section}>
-      <HypothesisComposer onCreated={markNew} />
+      <HypothesisComposer onCreated={markNew} inputId={composerInputId} />
       <HypothesisListPanel
         hypotheses={hypotheses}
         selectedIds={selectedIds ?? EMPTY_SELECTION}

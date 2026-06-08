@@ -37,9 +37,9 @@ import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import bagImg from '@/shared/assets/decarative/bag.png';
 import moneyImg from '@/shared/assets/decarative/money.png';
 import { Select } from '@/shared/ui/atoms/Select';
-import { buildQuantityOptions } from './buildQuantityOptions';
-import { scaleForBasis } from './scaleForBasis';
-import { EditNutrientsModal } from './EditNutrientsModal';
+import { buildQuantityOptions } from '@/features/food/product-drawer/buildQuantityOptions';
+import { scaleForBasis } from '@/features/food/product-drawer/scaleForBasis';
+import { EditNutrientsModal } from '@/features/food/product-drawer/EditNutrientsModal';
 
 const gramNutrientIds = new Set(allNutrientsList.filter((n) => n.unit === 'g').map((n) => n.id));
 

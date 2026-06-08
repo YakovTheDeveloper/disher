@@ -15,7 +15,26 @@ vi.mock('@/entities/daily-norm', () => ({
   USER_NORM_NAME: 'Моя норма',
 }));
 vi.mock('@/shared/ui/DrawerLayout', () => ({
-  DrawerLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  // The contextual back button lives in DrawerLayout (via `onBack`), not in the
+  // drawer's children — surface it here so the recalc↔back assertions hold.
+  DrawerLayout: ({
+    children,
+    onBack,
+    backLabel,
+  }: {
+    children: ReactNode;
+    onBack?: () => void;
+    backLabel?: string;
+  }) => (
+    <div>
+      {onBack && (
+        <button aria-label={backLabel} onClick={onBack}>
+          {backLabel}
+        </button>
+      )}
+      {children}
+    </div>
+  ),
 }));
 vi.mock('@/features/dailyNorms/OpenDailyNorms/CreateDailyNormModal', () => ({
   default: ({ onClose }: { onClose: () => void }) => (

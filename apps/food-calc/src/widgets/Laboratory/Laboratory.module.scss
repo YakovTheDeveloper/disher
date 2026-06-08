@@ -7,16 +7,43 @@
     box-sizing: border-box;
 }
 
-// Внешний `<div onFocusCapture>` оборачивает <Screen> ради focus-делегации
-// для ModalByLabel. Без своих правил он остаётся блоком auto-высоты —
-// Screen внутри (height:100%; overflow-y:auto) теряет ограниченную высоту,
-// и слайд перестаёт скроллиться вертикально (FoodSchedule/ScheduleEvents
-// отдают Screen прямо в .slideContent и не страдают). Повторяем layout
-// `.slideContent`, чтобы обёртка была прозрачна для flex.
-.focusPassthrough {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    min-height: 0;
+// «Гипотезы» — secondary action в split-баре, парная к тёмной pill «Анализ».
+// Outline-pill в один рост с CTA (--bottom-action-h), чтобы две кнопки читались
+// как сбалансированная пара, а не «текст + большая кнопка». Press-fill чернилами
+// (outline-архетип канона press-feedback 2026-06-08).
+.hypothesesBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: var(--bottom-action-h);
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-subtle);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: var(--bottom-bar-font-size);
+    font-weight: 500;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        background var(--press-out) var(--easing-default),
+        border-color var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
+        transform var(--duration-fast) ease;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &:active {
+        background: var(--color-ink);
+        border-color: var(--color-ink);
+        color: var(--text-on-accent);
+        transform: scale(0.97);
+        transition-duration: var(--press-in);
+    }
 }
 

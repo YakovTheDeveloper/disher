@@ -10,8 +10,8 @@ $header-height: 50px;
     min-height: $header-height;
     width: 100%;
     display: flex;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: var(--space-1);
+    padding: var(--space-1);
     // Прозрачная подложка, чтобы тёплый/лавандовый список ниже визуально
     // продолжался под заголовком. blur оставляем — он мягчит то, что скроллит
     // под полем поиска.
@@ -71,10 +71,10 @@ $header-height: 50px;
     letter-spacing: -0.005em;
     color: var(--chip-text, rgb(0, 0, 0));
     transition:
-        background 140ms ease,
-        color 140ms ease,
-        border-color 140ms ease,
-        transform 80ms ease;
+        background var(--press-out) ease,
+        color var(--press-out) ease,
+        border-color var(--press-out) ease,
+        transform var(--press-out) ease;
 
     &:hover,
     &:focus-visible {
@@ -82,8 +82,13 @@ $header-height: 50px;
         outline: none;
     }
 
+    // Цветной отклик: на нажатии чип заливается акцентом (как активный .filterPillActive).
     &:active {
+        background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+        border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
+        color: var(--chip-active-text, #fff);
         transform: scale(0.96);
+        transition-duration: var(--press-in);
     }
 }
 
@@ -243,27 +248,34 @@ $header-height: 50px;
     padding: 0 var(--space-3);
 }
 
-.nutrientButton {
+// Иконка-кнопка «Нутриенты» в верхнем ряду — между полем поиска и фильтр-пилюлями.
+// Текст заменён на иконку из трёх восходящих столбиков (chart-bars.svg) — уровни
+// нутриента. Тёплый chip-вид (как .filterPill); выбранный нутриент → active-заливка.
+.nutrientIconButton {
     appearance: none;
-    margin-left: auto;
+    flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 40px;
-    padding: 0 16px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
     border: 1px solid var(--chip-border, rgb(255, 198, 160));
     border-radius: var(--radius-full);
     background: var(--chip-bg, linear-gradient(135deg, #fffbf1 0%, #fffcf8 60%, #fff9ee 100%));
     color: var(--chip-text, rgb(0, 0, 0));
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    letter-spacing: -0.005em;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition:
-        border-color var(--duration-fast) ease,
-        transform 80ms ease;
+        background var(--press-out) ease,
+        color var(--press-out) ease,
+        border-color var(--press-out) ease,
+        transform var(--press-out) ease;
+
+    svg {
+        width: 20px;
+        height: 20px;
+    }
 
     &:hover,
     &:focus-visible {
@@ -271,9 +283,21 @@ $header-height: 50px;
         outline: none;
     }
 
+    // Цветной отклик: на нажатии заливается акцентом + иконка белеет (currentColor).
     &:active {
+        background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+        border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
+        color: var(--chip-active-text, #fff);
         transform: scale(0.96);
+        transition-duration: var(--press-in);
     }
+}
+
+// Выбран нутриент — кнопка остаётся залитой акцентом (как .filterPillActive).
+.nutrientIconButtonActive {
+    background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+    border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
+    color: var(--chip-active-text, #fff);
 }
 
 .nutrientSelected {
@@ -303,6 +327,17 @@ $header-height: 50px;
     color: var(--field-text, rgb(31, 31, 31));
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    transition: color var(--press-out) ease;
+
+    // Цветной отклик: на нажатии метка (и значение) красятся в surface-акцент.
+    &:active {
+        color: var(--field-caret, var(--color-ink));
+        transition-duration: var(--press-in);
+
+        strong {
+            color: var(--field-caret, var(--color-ink));
+        }
+    }
 
     strong {
         font-weight: 700;

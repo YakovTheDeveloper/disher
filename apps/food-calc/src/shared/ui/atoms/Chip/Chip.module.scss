@@ -18,8 +18,9 @@
   font-weight: 400;
   line-height: 1.1;
   cursor: pointer;
-  transition: background 140ms ease, color 140ms ease, border-color 140ms ease,
-    transform 80ms ease, box-shadow 140ms ease;
+  transition: background var(--press-out) ease, color var(--press-out) ease,
+    border-color var(--press-out) ease, transform var(--press-out) ease,
+    box-shadow 140ms ease;
 }
 
 .chip:hover,
@@ -28,8 +29,14 @@
   outline: none;
 }
 
+// Цветной отклик: на нажатии чип заливается акцентом (--chip-active-*) —
+// тот же вид, что у выбранного `.chip.active`. Вход мгновенный, выход мягкий.
 .chip:active {
+  background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+  border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
+  color: var(--chip-active-text, #fff);
   transform: scale(0.96);
+  transition-duration: var(--press-in);
 }
 
 .chip.active {

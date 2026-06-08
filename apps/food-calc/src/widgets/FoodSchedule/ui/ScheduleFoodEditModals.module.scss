@@ -14,7 +14,7 @@
   color: rgba(31, 42, 68, 0.6);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: color 140ms ease, transform 80ms ease;
+  transition: background var(--press-out) var(--easing-default), color var(--press-out) var(--easing-default), transform 80ms ease;
 
   svg {
     width: 20px;
@@ -27,7 +27,11 @@
     outline: none;
   }
 
+  // Цветной отклик: тинт-подсветка на касание (quiet icon-button archetype)
   &:active {
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
     transform: scale(0.9);
+    transition-duration: var(--press-in);
   }
 }

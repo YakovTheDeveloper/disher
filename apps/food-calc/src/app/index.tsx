@@ -14,6 +14,7 @@ import { installE2EBridge } from '@/shared/lib/e2e/bridge';
 import { installViewTransitionCleanup } from '@/shared/lib/viewTransition';
 import { diagLog } from '@/shared/lib/observability/diagLog';
 import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
+import { LayoutEditOverlay } from '@/features/dev/layout-edit';
 
 // Boot diagnostics — UA + AbortSignal.any/timeout + storage.estimate +
 // idb-keyval roundtrip probe. Gated behind VITE_DIAG=1 so cold-start (incl.
@@ -68,6 +69,14 @@ navigator.storage
     if (DIAG_ENABLED) diagLog('[boot] storage.persist failed', { err: String(e) });
   });
 
+// iOS Safari применяет CSS `:active` к не-ссылочным элементам ТОЛЬКО когда на
+// документе есть хоть один touchstart-листенер — иначе цветной press-отклик
+// кнопок (заливка по `:active`, см. канон colored-press) на тапе не
+// отрисовывается. Одна пустая passive-подписка глобально включает это
+// (документированный WebKit-воркэраунд, Apple Safari Web Content Guide).
+// passive → не блокирует скролл; вне iOS — безвредный no-op.
+document.addEventListener('touchstart', () => {}, { passive: true });
+
 installE2EBridge();
 
 // Wrap document.startViewTransition once so `data-vt-type` (the storyboard
@@ -88,6 +97,7 @@ ReactDOM.createRoot(root).render(
     showDialog={false}
   >
     {shouldShowDvBar() && <DesignVariantsBar />}
+    {shouldShowDvBar() && <LayoutEditOverlay />}
     <RouterProvider router={router} />
   </Sentry.ErrorBoundary>
 );

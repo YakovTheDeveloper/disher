@@ -24,8 +24,16 @@
   line-height: 1;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
 
+  // Цветной отклик: на нажатии глиф ‹ темнеет до ink + лёгкий тинт-фон.
   &:active {
+    background: var(--press-tint-bg, rgba(0, 0, 0, 0.06));
+    color: var(--color-ink);
     transform: scale(0.94);
+    transition-duration: var(--press-in);
   }
 }

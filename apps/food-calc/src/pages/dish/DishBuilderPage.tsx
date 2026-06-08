@@ -379,6 +379,14 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
                 writeFoodPlaceholder="Опишите ингредиенты…"
               />
             }
+            afterContent={
+              /* Предложка в afterContent-слоте Screen (паритет с FoodSchedule):
+                 результат typed-text-бара И кнопки «Предложить ингредиенты»
+                 плавает на фоне страницы под листом со списком. Несёт
+                 [data-write-food-anchor] — без него «Посмотреть варианты» в
+                 баре скроллил в пустоту (живой баг до 2026-06-05). */
+              <InlineWriteFoodReview flow={writeFoodFlow} />
+            }
           >
             <div className={styles.dishItemsGroup}>
             <ItemsList offsetTop>
@@ -425,11 +433,6 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
               ))}
             </ItemsList>
             </div>
-            {/* Предложка под списком (паритет с FoodSchedule): результат и
-                typed-text-бара, и кнопки «Предложить ингредиенты» рендерится
-                здесь. Несёт [data-write-food-anchor] — без него «Посмотреть
-                варианты» в баре скроллил в пустоту (живой баг до 2026-06-05). */}
-            <InlineWriteFoodReview flow={writeFoodFlow} />
           </Screen>
 
           <Screen

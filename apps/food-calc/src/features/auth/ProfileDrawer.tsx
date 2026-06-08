@@ -3,7 +3,6 @@ import clsx from 'clsx';
 import { useAuthStore } from './auth-store';
 import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { Heading } from '@/shared/ui/atoms/Typography';
 import { ThemePicker } from '@/features/theme';
 import { dump, apply, syncNow } from '@/shared/lib/snapshot';
 import { HoldButton } from './HoldButton';
@@ -57,6 +56,9 @@ export function ProfileDrawer() {
   // Sign-out lives behind a collapsed «Опасная зона» so it can't be hit by a
   // stray tap — the user must expand the section first (see task #15).
   const [dangerOpen, setDangerOpen] = useState(false);
+  // The data import/export section is an accordion, collapsed by default —
+  // a rarely-used backup primitive that shouldn't crowd the drawer at rest.
+  const [dataOpen, setDataOpen] = useState(false);
   const [backupState, setBackupState] = useState<BackupState>('idle');
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -97,68 +99,13 @@ export function ProfileDrawer() {
     await signOut();
   };
 
-  const initial = email ? email[0].toUpperCase() : '?';
-
-  // «Опасная зона» lives in DrawerLayout's pinned footer — not in the scroll
-  // area — so it's always visible without scrolling past the theme picker.
-  const dangerFooter = (
-    <div className={styles.dangerFooter}>
-      <section className={styles.danger}>
-        <button
-          type="button"
-          className={styles.dangerToggle}
-          onClick={() => setDangerOpen((v) => !v)}
-          aria-expanded={dangerOpen}
-        >
-          <span>Опасная зона</span>
-          <span
-            className={clsx(styles.chevron, dangerOpen && styles.chevronOpen)}
-            aria-hidden
-          >
-            ⌄
-          </span>
-        </button>
-
-        {dangerOpen && (
-          <div className={styles.dangerBody}>
-            <p className={styles.dangerHint}>
-              При выходе данные на этом устройстве очищаются. Они хранятся в
-              облаке и вернутся при следующем входе — но лучше сохранить
-              свежую копию прямо сейчас.
-            </p>
-            <button
-              type="button"
-              className={styles.backupBtn}
-              onClick={handleBackup}
-              disabled={backupState === 'saving'}
-            >
-              {BACKUP_LABEL[backupState]}
-            </button>
-            <HoldButton
-              holdMs={HOLD_MS}
-              onComplete={handleSignOut}
-              busy={loggingOut}
-              label="Удерживайте, чтобы выйти"
-              activeLabel="Не отпускайте…"
-              busyLabel="Выходим…"
-            />
-          </div>
-        )}
-      </section>
-    </div>
-  );
-
   return (
-    <DrawerLayout a11yLabel="Аккаунт и настройки" footer={dangerFooter}>
+    // «Аккаунт» rides in the drawer's chrome row (next to the Close cross); the
+    // email sits right under it as the chrome subtitle — together they form the
+    // identity header, replacing the old centered avatar block. A soft peach→rose
+    // ambient glow (`.surface`) sits behind that header, echoing HomeAmbient.
+    <DrawerLayout title="Аккаунт" subtitle={email} className={styles.surface}>
       <div className={styles.container}>
-        <div className={styles.profile}>
-          <div className={styles.avatar}>
-            <span className={styles.avatarLetter}>{initial}</span>
-          </div>
-          <Heading size="drawer" as="h1">Аккаунт</Heading>
-          <p className={styles.email}>{email}</p>
-        </div>
-
         <BalanceSection />
 
         <section className={styles.section}>
@@ -166,27 +113,94 @@ export function ProfileDrawer() {
           <ThemePicker />
         </section>
 
+        {/* Данные — accordion, collapsed by default. */}
         <section className={styles.section}>
-          <h2 className={styles.sectionLabel}>Данные</h2>
-          <p className={styles.dataHint}>
-            Скачать копию данных в файл или загрузить ранее сохранённую.
-          </p>
-          <div className={styles.dataActions}>
-            <button
-              type="button"
-              className={styles.dataBtn}
-              onClick={handleExport}
+          <button
+            type="button"
+            className={styles.accordionToggle}
+            onClick={() => setDataOpen((v) => !v)}
+            aria-expanded={dataOpen}
+          >
+            <span className={styles.sectionLabel}>Данные</span>
+            <span
+              className={clsx(styles.chevron, dataOpen && styles.chevronOpen)}
+              aria-hidden
             >
-              Скачать файл
-            </button>
-            <button
-              type="button"
-              className={styles.dataBtn}
-              onClick={handleImport}
+              ⌄
+            </span>
+          </button>
+
+          {dataOpen && (
+            <div className={styles.accordionBody}>
+              <p className={styles.dataHint}>
+                Скачать копию данных в файл или загрузить ранее сохранённую.
+              </p>
+              <div className={styles.dataActions}>
+                <button
+                  type="button"
+                  className={styles.dataBtn}
+                  onClick={handleExport}
+                >
+                  Скачать файл
+                </button>
+                <button
+                  type="button"
+                  className={styles.dataBtn}
+                  onClick={handleImport}
+                >
+                  Загрузить из файла
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/*
+          «Опасная зона» — last in the main flow, separated by a fading hairline.
+          Still collapsed behind a toggle so sign-out can't be hit by a stray
+          tap (task #15); the 5s hold is the second line of defence.
+        */}
+        <section className={styles.danger}>
+          <button
+            type="button"
+            className={styles.dangerToggle}
+            onClick={() => setDangerOpen((v) => !v)}
+            aria-expanded={dangerOpen}
+          >
+            <span>Опасная зона</span>
+            <span
+              className={clsx(styles.chevron, dangerOpen && styles.chevronOpen)}
+              aria-hidden
             >
-              Загрузить из файла
-            </button>
-          </div>
+              ⌄
+            </span>
+          </button>
+
+          {dangerOpen && (
+            <div className={styles.dangerBody}>
+              <p className={styles.dangerHint}>
+                При выходе данные на этом устройстве очищаются. Они хранятся в
+                облаке и вернутся при следующем входе — но лучше сохранить
+                свежую копию прямо сейчас.
+              </p>
+              <button
+                type="button"
+                className={styles.backupBtn}
+                onClick={handleBackup}
+                disabled={backupState === 'saving'}
+              >
+                {BACKUP_LABEL[backupState]}
+              </button>
+              <HoldButton
+                holdMs={HOLD_MS}
+                onComplete={handleSignOut}
+                busy={loggingOut}
+                label="Удерживайте, чтобы выйти"
+                activeLabel="Не отпускайте…"
+                busyLabel="Выходим…"
+              />
+            </div>
+          )}
         </section>
       </div>
     </DrawerLayout>

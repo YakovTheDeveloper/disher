@@ -29,10 +29,13 @@ $sky-ink: rgb(31, 50, 95);
     font-weight: 500;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.12s ease;
+    transition: transform 0.12s ease, filter var(--press-out) var(--easing-default);
 
+    // Цветной отклик: солидная sky-кнопка — затемнение при нажатии
     &:active {
+        filter: brightness(0.9);
         transform: scale(0.97);
+        transition-duration: var(--press-in);
     }
 }
 

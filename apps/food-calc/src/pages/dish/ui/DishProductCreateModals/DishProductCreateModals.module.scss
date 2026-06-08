@@ -13,10 +13,13 @@
   text-decoration-thickness: 1.5px;
   text-underline-offset: 4px;
   -webkit-tap-highlight-color: transparent;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: background var(--press-out) var(--easing-default), color var(--press-out) var(--easing-default), opacity 0.15s ease, transform 0.15s ease;
 
+  // Цветной отклик: тинт-заливка на касание (quiet text-link button archetype)
   &:active {
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
     transform: scale(0.97);
-    opacity: 0.65;
+    transition-duration: var(--press-in);
   }
 }

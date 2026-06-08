@@ -206,8 +206,8 @@
     cursor: pointer;
     border-radius: var(--radius-sm);
     padding: 0;
-    transition: background-color var(--duration-fast) var(--easing-default),
-        color var(--duration-fast) var(--easing-default),
+    transition: background-color var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
         transform var(--press-in, 0.1s) ease;
 
     svg {
@@ -222,7 +222,11 @@
         outline: none;
     }
 
+    // Цветной отклик: тихая иконка-кнопка — тинт фон + акцентный цвет
     &:active {
+        background: var(--press-tint-bg);
+        color: var(--field-caret, var(--color-ink));
         transform: scale(0.9);
+        transition-duration: var(--press-in);
     }
 }

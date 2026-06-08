@@ -7,6 +7,7 @@ import { FILTER_LABELS } from '../SearchFood';
 
 import SearchIcon from '@/shared/assets/icons/lupa.svg?react';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';
+import NutrientIcon from '@/shared/assets/icons/chart-bars.svg?react';
 
 type Props = {
   searchQuery: string;
@@ -85,6 +86,22 @@ const SearchFoodControls = ({
         )}
       </div>
 
+      {showNutrientFilter && (
+        <button
+          type="button"
+          className={clsx(
+            styles.nutrientIconButton,
+            selectedNutrientLabel && styles.nutrientIconButtonActive,
+          )}
+          onClick={onOpenNutrientPicker}
+          aria-label="Фильтр по нутриенту"
+          aria-pressed={Boolean(selectedNutrientLabel)}
+          title="Нутриенты"
+        >
+          <NutrientIcon />
+        </button>
+      )}
+
       {hasFilter && filterOptions && (
         <div className={styles.filterToggle} role="tablist" aria-label="Фильтр поиска">
           {filterOptions.map((opt) => {
@@ -109,35 +126,25 @@ const SearchFoodControls = ({
       )}
       </header>
 
-      {showNutrientFilter && (
+      {showNutrientFilter && selectedNutrientLabel && (
         <div className={styles.nutrientRow}>
-          {selectedNutrientLabel ? (
-            <div className={styles.nutrientSelected}>
-              <button
-                type="button"
-                className={styles.nutrientSelectedText}
-                onClick={onOpenNutrientPicker}
-              >
-                Еда богатая нутриентом: <strong>{selectedNutrientLabel}</strong>
-              </button>
-              <button
-                type="button"
-                className={styles.nutrientClear}
-                onClick={onClearNutrient}
-                aria-label="Отменить выбор нутриента"
-              >
-                <CrossIcon />
-              </button>
-            </div>
-          ) : (
+          <div className={styles.nutrientSelected}>
             <button
               type="button"
-              className={styles.nutrientButton}
+              className={styles.nutrientSelectedText}
               onClick={onOpenNutrientPicker}
             >
-              Нутриенты
+              Еда богатая нутриентом: <strong>{selectedNutrientLabel}</strong>
             </button>
-          )}
+            <button
+              type="button"
+              className={styles.nutrientClear}
+              onClick={onClearNutrient}
+              aria-label="Отменить выбор нутриента"
+            >
+              <CrossIcon />
+            </button>
+          </div>
         </div>
       )}
     </div>

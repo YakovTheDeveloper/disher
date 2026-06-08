@@ -1,12 +1,10 @@
 import { useCallback, useState } from 'react';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { Heading } from '@/shared/ui/atoms/Typography';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { useUserNormItems, USER_NORM_NAME } from '@/entities/daily-norm';
 import CreateDailyNormModal from '@/features/dailyNorms/OpenDailyNorms/CreateDailyNormModal';
 import EditDailyNormModal from '@/features/dailyNorms/OpenDailyNorms/EditDailyNormModal';
-import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import s from './DailyNormDrawer.module.scss';
 
 /**
@@ -44,22 +42,12 @@ export function DailyNormDrawer({ onClose }: BaseDrawerProps) {
       : USER_NORM_NAME;
 
   return (
-    <DrawerLayout a11yLabel={title} className={s.surface}>
-      <div className={s.header}>
-        {canGoBack && (
-          <button
-            type="button"
-            className={s.back}
-            onClick={goBackToView}
-            aria-label="Назад к норме"
-          >
-            <ArrowLeftIcon />
-          </button>
-        )}
-        <Heading size="drawer" as="h2" className={s.title}>
-          {title}
-        </Heading>
-      </div>
+    <DrawerLayout
+      title={title}
+      onBack={canGoBack ? goBackToView : undefined}
+      backLabel="Назад к норме"
+      className={s.surface}
+    >
       <div className={s.body}>
         {isLoading ? (
           <div className={s.loading} aria-live="polite">

@@ -25,8 +25,12 @@ type DailyAnalysisState = {
   byDate: ByDate;
   /** True once idb-keyval has been read at boot. */
   hydrated: boolean;
-  /** Snapshot the ticked hypotheses, hydrate the day, start the SSE stream. */
-  start: (date: string, opts: { hypothesisIds: string[] }) => Promise<void>;
+  /** Snapshot the ticked hypotheses, hydrate the day, start the SSE stream.
+   *  `userMessage` is optional free-text «уточнения от пользователя». */
+  start: (
+    date: string,
+    opts: { hypothesisIds: string[]; userMessage?: string },
+  ) => Promise<void>;
   /** Abort an in-flight stream and mark it interrupted (date-switch / reload).
    *  No-op when the date is not currently streaming. */
   interrupt: (date: string, reason: 'reload' | 'date-switch') => void;
@@ -80,7 +84,7 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
     byDate: {},
     hydrated: false,
 
-    start: async (date, { hypothesisIds }) => {
+    start: async (date, { hypothesisIds, userMessage }) => {
       // Replacing a record must abort the prior stream first — otherwise its
       // onChunk closure keeps appending into the fresh record.
       controllers.get(date)?.abort();
@@ -114,6 +118,7 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
             resultMd: '',
             ideaCards: [],
             appliedHypotheses,
+            appliedUserMessage: userMessage || undefined,
             createdAt: new Date().toISOString(),
             status: 'streaming',
             reason: null,
@@ -132,6 +137,7 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
             title,
             body,
           })),
+          userMessage,
           signal: controller.signal,
           onChunk: (chunk) => {
             patch(date, (a) => ({ ...a, resultMd: a.resultMd + chunk }));

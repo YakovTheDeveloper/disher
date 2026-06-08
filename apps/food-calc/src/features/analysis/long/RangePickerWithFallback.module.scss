@@ -25,7 +25,18 @@
     color: rgba(15, 23, 42, 0.5);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.13s ease, color 0.13s ease;
+    transition: background var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
+
+    // Цветной отклик: чип-вкладка заполняется тёмным при нажатии
+    &:active {
+        background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+        border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
+        color: var(--chip-active-text, #fff);
+        transform: scale(0.97);
+        transition-duration: var(--press-in);
+    }
 }
 
 .modeActive {
@@ -53,11 +64,18 @@
     color: rgba(60, 38, 10, 0.7);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.12s ease, border-color 0.12s ease,
-        transform 0.1s ease;
+    transition: background var(--press-out) var(--easing-default),
+        border-color var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
 
+    // Цветной отклик: пресет-пилюля заполняется чип-заливкой при нажатии
     &:active {
+        background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+        border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
+        color: var(--chip-active-text, #fff);
         transform: scale(0.96);
+        transition-duration: var(--press-in);
     }
 }
 

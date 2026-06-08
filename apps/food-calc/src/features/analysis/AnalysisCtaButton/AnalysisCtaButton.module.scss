@@ -1,24 +1,21 @@
-@import '@/shared/assets/style/mixin.scss';
+// Иконки кнопки «Анализ» (sparkle / spinner) для варианта Button.bottomActionBar.
+// Сам вид кнопки (фон/обводка/тень/типографика) — в Button.module.css.
 
-// Primary CTA pill — inherits the TOD-tinted `--cta-*` tokens published by
-// the AppBottomBar shell, same as WriteFoodButton on the food screen.
-.cta {
-    @include dark-pill-button();
-}
-
-// Bumped 13px → 18px: at 13px the sparkle visually disappeared next to the
-// label («теряется»).
 .sparkle {
-    font-size: 18px;
+    // Размер наследует от метки кнопки (--bottom-bar-font-size). Только сброс
+    // line-height, чтобы глиф не распирал строку.
     line-height: 1;
 }
 
+// Спиннер под СВЕТЛУЮ пилюлю: тёмный ink (раньше был белый под dark-pill).
 .spinner {
+    --spin-track: rgba(31, 42, 68, 0.25);
+    --spin-head: rgba(31, 42, 68, 0.9);
     width: 15px;
     height: 15px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.35);
-    border-top-color: #fff;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--spin-track);
+    border-top-color: var(--spin-head);
     animation: cta-spin 0.7s linear infinite;
 }
 

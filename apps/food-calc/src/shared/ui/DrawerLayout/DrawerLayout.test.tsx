@@ -5,7 +5,7 @@
 // удаляется целиком — ряд занимал место, который заголовок drawer'а должен
 // был занимать сам. Swipe-to-close через edgeHandle и backdrop остаются.
 import { describe, it, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import DrawerLayout from './DrawerLayout';
 
 vi.mock('./DrawerLayout.module.scss', () => ({
@@ -27,6 +27,9 @@ vi.mock('@base-ui/react/drawer', () => ({
 }));
 vi.mock('@/shared/assets/icons/cross.svg?react', () => ({
   default: () => <svg data-testid="cross-icon" />,
+}));
+vi.mock('@/shared/assets/icons/arrowLeftLong.svg?react', () => ({
+  default: () => <svg data-testid="arrow-left-icon" />,
 }));
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_: string, fallback?: string) => fallback ?? '' }),
@@ -53,5 +56,22 @@ describe('DrawerLayout — hideTopChrome', () => {
     expect(queryByTestId('content')).not.toBeNull();
     rerender(<DrawerLayout hideTopChrome>body</DrawerLayout>);
     expect(queryByTestId('content')).not.toBeNull();
+  });
+
+  // Contextual leading control: when `onBack` is provided the top-left button
+  // becomes a back arrow that calls onBack instead of rendering Drawer.Close —
+  // so a back arrow and a close cross never sit side by side (sub-screen case).
+  it('renders a contextual back button (not Close) when onBack is provided', () => {
+    const onBack = vi.fn();
+    const { queryByTestId, getByRole } = render(
+      <DrawerLayout onBack={onBack} backLabel="Назад к норме">
+        body
+      </DrawerLayout>,
+    );
+    expect(queryByTestId('close-button')).toBeNull();
+    expect(queryByTestId('cross-icon')).toBeNull();
+    const back = getByRole('button', { name: 'Назад к норме' });
+    fireEvent.click(back);
+    expect(onBack).toHaveBeenCalledTimes(1);
   });
 });

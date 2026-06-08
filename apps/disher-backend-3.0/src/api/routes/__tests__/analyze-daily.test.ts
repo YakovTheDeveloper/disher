@@ -56,6 +56,24 @@ describe("buildDailyUserPrompt", () => {
     const out = buildDailyUserPrompt("15-05-2026", [], [], []);
     expect(out).not.toContain("суммы нутриентов");
   });
+
+  it("renders the user-message section when present", () => {
+    const out = buildDailyUserPrompt(
+      "15-05-2026",
+      [],
+      [],
+      [],
+      [],
+      "Обрати внимание на сахар после обеда",
+    );
+    expect(out).toContain("Уточнения от пользователя");
+    expect(out).toContain("Обрати внимание на сахар после обеда");
+  });
+
+  it("omits the user-message section when empty", () => {
+    const out = buildDailyUserPrompt("15-05-2026", [], [], []);
+    expect(out).not.toContain("Уточнения от пользователя");
+  });
 });
 
 describe("DAILY_SYSTEM_PROMPT", () => {
@@ -211,7 +229,9 @@ describeIfReady("POST /api/analyze/daily — route", () => {
   let app: FastifyInstance;
   let user: TestUser;
 
-  const stubStream: DailyStreamFn = async (_prompt, write) => {
+  let capturedPrompt = "";
+  const stubStream: DailyStreamFn = async (prompt, write) => {
+    capturedPrompt = prompt;
     write('data: {"choices":[{"delta":{"content":"разбор дня"}}]}\n\n');
   };
 
@@ -268,5 +288,18 @@ describeIfReady("POST /api/analyze/daily — route", () => {
     expect(res.statusCode).toBe(200);
     expect(res.body).toContain("разбор дня");
     expect(res.body).toContain("data: [DONE]");
+  });
+
+  it("clamps an over-long userMessage to 1000 chars before the prompt", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/analyze/daily",
+      headers: user.headers,
+      payload: { ...nonEmptyBody, userMessage: "я".repeat(1500) },
+    });
+    expect(res.statusCode).toBe(200);
+    const marker = "Уточнения от пользователя — учти при разборе:";
+    const section = (capturedPrompt.split(marker)[1] ?? "").trim();
+    expect(section.length).toBe(1000);
   });
 });

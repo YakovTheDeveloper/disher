@@ -106,10 +106,15 @@ $accent-today: #e07a3a;
   font-weight: 600;
   letter-spacing: 0.01em;
   color: $ink-soft;
-  transition: color 0.12s ease;
+  transition:
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default);
 
+  // Цветной отклик: триггер аккордеона (тихая кнопка) → тинт фона + цвет
   &:active {
-    color: $ink;
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
+    transition-duration: var(--press-in);
   }
 }
 
@@ -217,13 +222,25 @@ $accent-today: #e07a3a;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
-    background 0.12s ease,
-    border-color 0.12s ease,
-    transform 0.06s ease;
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    border-color var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
 
+  // Цветной отклик: чип прошедшего дня → заливка chip-токеном. Дети
+  // (.dayChipNumber/.dayChipWeekday) держат свой тёмный $ink — на тёмной
+  // заливке их надо перекрасить, иначе цифра дня сливается с фоном.
   &:active {
+    background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+    border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
+    color: var(--chip-active-text, #fff);
     transform: scale(0.94);
-    background: rgba(31, 42, 68, 0.04);
+    transition-duration: var(--press-in);
+
+    .dayChipNumber,
+    .dayChipWeekday {
+      color: var(--chip-active-text, #fff);
+    }
   }
 }
 

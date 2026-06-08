@@ -32,10 +32,14 @@
     font-weight: 500;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.1s ease;
+    transition: transform var(--press-out) var(--easing-default),
+        filter var(--press-out) var(--easing-default);
 
+    // Цветной отклик: сплошную тёмную CTA затемняем фильтром
     &:active {
+        filter: brightness(0.9);
         transform: scale(0.98);
+        transition-duration: var(--press-in);
     }
 
     &:disabled {

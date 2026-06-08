@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { LongPressRow } from '@/features/shared/long-press-item';
 import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
 import NumberInput from '@/shared/ui/atoms/input/NumberInput/NumberInput';
-import { PlusIcon } from '@/shared/ui/atoms/Button/AddButton/AddButton';
+import { PlusIcon } from '@/shared/ui/atoms/Button/PlusIcon';
 import styles from './FreeTextFoodReviewItem.module.scss';
 
 interface MatchCandidate {

@@ -187,12 +187,19 @@
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
-  transition: color var(--duration-fast) var(--easing-default);
+  transition: color var(--duration-fast) var(--easing-default), background var(--press-out) var(--easing-default);
 
   &:hover,
   &:focus-visible {
     color: var(--color-ink);
     outline: none;
+  }
+
+  // Цветной отклик: тихая текстовая кнопка — тинт фон + акцент
+  &:active {
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
+    transition-duration: var(--press-in);
   }
 }
 
@@ -313,8 +320,8 @@
   cursor: pointer;
   border-radius: var(--radius-sm);
   padding: 0;
-  transition: background-color var(--duration-fast) var(--easing-default),
-    color var(--duration-fast) var(--easing-default),
+  transition: background-color var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
     transform var(--press-in, 0.1s) ease;
 
   svg {
@@ -329,8 +336,12 @@
     outline: none;
   }
 
+  // Цветной отклик: тихая иконка-кнопка — тинт фон + акцентный цвет
   &:active {
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
     transform: scale(0.9);
+    transition-duration: var(--press-in);
   }
 }
 
@@ -347,8 +358,8 @@
   cursor: pointer;
   border-radius: var(--radius-sm);
   padding: 0;
-  transition: background-color var(--duration-fast) var(--easing-default),
-    color var(--duration-fast) var(--easing-default);
+  transition: background-color var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default);
 
   // Swap × ↔ ↶ через grid-stack: оба glyph'а монтированы (aria-label
   // переключается родителем для screen-readers), opacity-flip без
@@ -374,8 +385,12 @@
     outline: none;
   }
 
+  // Цветной отклик: тихая иконка-кнопка — тинт фон + акцентный цвет
   &:active {
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
     transform: scale(0.9);
+    transition-duration: var(--press-in);
   }
 }
 

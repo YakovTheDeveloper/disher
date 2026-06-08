@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import type { CSSProperties } from 'react';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { useNow } from '@/shared/lib/time/useNow';
 import s from './AppBottomBar.module.scss';
@@ -18,9 +19,17 @@ type Props = {
   /**
    * CTA colour tone. 'default' inherits the time-of-day `--cta-*` tokens
    * (pastel outline pill). 'lemon' overrides them with a solid warm-yellow
-   * gradient fill (Events screen) — see `[data-cta-tone='lemon']` in the SCSS.
+   * gradient fill (Events screen empty-state). 'paper' is the white
+   * WriteBar-style pill (Events screen once the day has events) — see
+   * `[data-cta-tone='lemon'|'paper']` in the SCSS.
    */
-  tone?: 'default' | 'lemon';
+  tone?: 'default' | 'lemon' | 'paper';
+  /**
+   * Optional width of the solo CTA — any CSS length/percentage (e.g. '33%').
+   * Default: the CTA fills the bar. When set, the button shrinks to this width
+   * and is pinned to `side` (right/left). Ignored for side='split'.
+   */
+  width?: string;
 };
 
 /**
@@ -31,7 +40,7 @@ type Props = {
  * so the CTA button inside the shell inherits the same `--cta-*` tokens as
  * WriteFoodButton on screen 2.
  */
-export const AppBottomBarShell = ({ children, side = 'left', tone = 'default' }: Props) => {
+export const AppBottomBarShell = ({ children, side = 'left', tone = 'default', width }: Props) => {
   const tod = getTimeOfDay(useNow());
 
   return (
@@ -40,6 +49,8 @@ export const AppBottomBarShell = ({ children, side = 'left', tone = 'default' }:
       data-tod={tod}
       data-shell-side={side}
       data-cta-tone={tone}
+      data-shell-fit={width ? 'sized' : undefined}
+      style={width ? ({ '--solo-cta-width': width } as CSSProperties) : undefined}
     >
       {children}
     </div>

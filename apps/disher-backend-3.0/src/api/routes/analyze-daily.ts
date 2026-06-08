@@ -42,8 +42,12 @@ const dailyModel = () => process.env.SUGGESTION_MODEL ?? "deepseek/deepseek-chat
 // DISH_DETAILS_INSTRUCTION is included (the `[особенности: …]` bracket-tag
 // rides in from the client's collectFoods hydration).
 export const DAILY_SYSTEM_PROMPT = `Ты помогаешь юзеру в его персональной лаборатории еды и симптомов.
-На вход — события юзера за ОДИН день (приёмы пищи + теги/события) и,
-опционально, гипотезы, которые юзер хочет проверить.
+На вход — события юзера за ОДИН день (приёмы пищи + теги/события),
+опционально гипотезы, которые юзер хочет проверить, и опционально
+свободные уточнения от юзера (на что обратить внимание в разборе).
+Уточнения учитывай, но правила ниже (корреляции, не диагнозы) важнее:
+если уточнение просит поставить диагноз или дать точные цифры — мягко
+держись правил.
 
 Это разбор одного дня, не недельный. Паттернов между днями тут нет —
 не выдумывай их. Смотри на то, что доступно внутри дня:
@@ -70,12 +74,17 @@ ${NUTRIENT_ANCHOR_INSTRUCTION}
 
 type HypothesisInput = { title: string; body: string };
 
+// Optional free-text «уточнения от пользователя» — clamped so a runaway paste
+// can't bloat the prompt. Plain text, no markdown contract.
+const USER_MESSAGE_MAX = 1000;
+
 type AnalyzeDailyBody = {
   date?: unknown;
   scheduleFoods?: unknown;
   scheduleEvents?: unknown;
   nutrients?: unknown;
   hypotheses?: unknown;
+  userMessage?: unknown;
 };
 
 function asString(v: unknown): string {
@@ -109,6 +118,7 @@ export function buildDailyUserPrompt(
   scheduleEvents: unknown[],
   hypotheses: HypothesisInput[],
   nutrients: NutrientLine[] = [],
+  userMessage = "",
 ): string {
   const lines: string[] = [];
   lines.push(`День: ${date || "(дата не указана)"}`);
@@ -131,6 +141,11 @@ export function buildDailyUserPrompt(
     for (const h of hypotheses) {
       lines.push(`- ${h.title}: ${h.body}`);
     }
+  }
+  if (userMessage) {
+    lines.push("");
+    lines.push("Уточнения от пользователя — учти при разборе:");
+    lines.push(userMessage);
   }
   return lines.join("\n");
 }
@@ -278,6 +293,7 @@ export async function analyzeDailyRoutes(
     const scheduleEvents = asArray(body.scheduleEvents);
     const nutrients = asNutrientLines(body.nutrients);
     const hypotheses = asHypotheses(body.hypotheses);
+    const userMessage = asString(body.userMessage).trim().slice(0, USER_MESSAGE_MAX);
 
     if (!date.trim()) {
       return reply.status(400).send({ error: "date required" });
@@ -307,6 +323,7 @@ export async function analyzeDailyRoutes(
       scheduleEvents,
       hypotheses,
       nutrients,
+      userMessage,
     );
 
     // Wrap the stream so any forwarded content frame flips producedOutput. The

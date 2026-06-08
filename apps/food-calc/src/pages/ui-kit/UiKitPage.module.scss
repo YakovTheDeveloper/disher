@@ -97,11 +97,16 @@
   color: rgba(60, 40, 90, 0.55);
   background: transparent;
   transition:
-    background var(--duration-fast) var(--easing-default),
-    color var(--duration-fast) var(--easing-default);
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    transform var(--duration-fast) var(--easing-default);
 
+  // Цветной отклик: тинт-подсветка на касание (quiet toggle-button archetype)
   &:active {
+    background: var(--press-tint-bg);
+    color: var(--field-caret, var(--color-ink));
     transform: scale(0.96);
+    transition-duration: var(--press-in);
   }
 }
 

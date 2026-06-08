@@ -95,6 +95,15 @@
     padding: 0 6px 0 14px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    transition: background var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default);
+
+    // Цветной отклик: тинт фона при нажатии на область чекбокса
+    &:active {
+        background: var(--press-tint-bg);
+        color: var(--field-caret, var(--color-ink));
+        transition-duration: var(--press-in);
+    }
 }
 
 .checkbox {
@@ -163,6 +172,15 @@
     text-align: left;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    transition: background var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default);
+
+    // Цветной отклик: тинт фона текстовой кнопки гипотезы при нажатии
+    &:active {
+        background: var(--press-tint-bg);
+        color: var(--field-caret, var(--color-ink));
+        transition-duration: var(--press-in);
+    }
 
     &:disabled {
         cursor: default;

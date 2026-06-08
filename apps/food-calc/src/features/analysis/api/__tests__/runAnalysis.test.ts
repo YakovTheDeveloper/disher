@@ -1,9 +1,15 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('@/shared/lib/api/authedFetch', () => ({ authedFetch: vi.fn() }));
+
+import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { db } from '@/shared/lib/dexie/schema';
+import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 import {
   collectFoods,
   collectNutrientsByDay,
   formatDishNameWithDetails,
+  startAnalysis,
 } from '../runAnalysis';
 
 const ISO = '2026-05-13T10:00:00.000Z';
@@ -262,5 +268,44 @@ describe('collectNutrientsByDay — per-day anchor', () => {
   it('returns no entry for a day with no scheduled food', async () => {
     const out = await collectNutrientsByDay([dayKey]);
     expect(out).toEqual([]);
+  });
+});
+
+// ── billing surface: 402 → PaymentRequiredError; idempotency rides on body.id ──
+const mockFetch = vi.mocked(authedFetch);
+
+function jsonRes(status: number, body: unknown): Response {
+  return {
+    status,
+    ok: status >= 200 && status < 300,
+    json: async () => body,
+  } as unknown as Response;
+}
+
+describe('startAnalysis — billing surface', () => {
+  // Empty dayKeys → the collectors short-circuit, so this exercises just the
+  // request shape + 402 handling without touching Dexie/catalog.
+  const args = { windowStart: '2026-05-01', windowEnd: '2026-05-07', dayKeys: [] };
+
+  beforeEach(() => mockFetch.mockReset());
+
+  it('throws PaymentRequiredError on 402 (carries need/have)', async () => {
+    mockFetch.mockResolvedValue(jsonRes(402, { needKop: 500, haveKop: 0 }));
+    const err = await startAnalysis(args).catch((e) => e);
+    expect(err).toBeInstanceOf(PaymentRequiredError);
+    expect(err.message).toBe('Недостаточно средств — пополните баланс');
+    expect(err.needKop).toBe(500);
+  });
+
+  it('keys idempotency by the body `id` (long analysis sends no X-Request-Id header)', async () => {
+    mockFetch.mockResolvedValue(jsonRes(402, {}));
+    await startAnalysis(args).catch(() => {});
+    const init = mockFetch.mock.calls[0]?.[1];
+    const headers = init?.headers as Record<string, string>;
+    expect(headers['X-Request-Id']).toBeUndefined();
+    const body = JSON.parse(String(init?.body));
+    expect(body.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
   });
 });
