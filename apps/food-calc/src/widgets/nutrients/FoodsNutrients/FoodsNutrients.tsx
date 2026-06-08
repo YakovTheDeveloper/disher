@@ -3,6 +3,7 @@ import NutrientTable from './NutrientTable';
 import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
+import { DailyNormButton } from '@/features/dailyNorms/DailyNormButton';
 import styles from './FoodsNutrients.module.scss';
 
 type Props = {
@@ -21,6 +22,9 @@ const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading }: Props)
           <Spinner size={16} />
         </div>
       )}
+      <div className={styles.normRow}>
+        <DailyNormButton />
+      </div>
       <NutrientTable getValue={getValue} />
       {missingNutrientNames.length > 0 && (
         <p className={styles.missing}>

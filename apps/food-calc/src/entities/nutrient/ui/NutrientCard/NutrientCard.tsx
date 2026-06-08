@@ -35,6 +35,7 @@ const NutrientCard = ({
     percentText,
     statusClass,
     progressPercent,
+    hasNorm,
   } = useNutrientCard({ content, getValue });
 
   const { group } = content;
@@ -51,11 +52,11 @@ const NutrientCard = ({
         </span>
         {hasChildren ? (
           <div className={styles.rightSlot}>{children}</div>
-        ) : (
+        ) : hasNorm ? (
           <span className={clsx(styles.percent, styles[statusClass])}>{percentText}%</span>
-        )}
+        ) : null}
       </div>
-      {showProgress && (
+      {showProgress && hasNorm && (
         <div className={styles.progressBar}>
           <div
             className={styles.progressFill}

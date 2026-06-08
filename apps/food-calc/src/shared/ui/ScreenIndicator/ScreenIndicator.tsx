@@ -44,6 +44,12 @@ export const ScreenIndicator = ({
   const activeLabel = activeScreen?.label ?? '';
   const activeImage = activeScreen?.image;
   const total = screens.length;
+  // Анти-гигантизм для коротких индикаторов: ≤2 плиток раскладываются в
+  // 3-колоночную сетку (каждая = 1/3 ширины, квадрат → и по высоте меньше) и
+  // прижимаются к ПРАВОМУ краю — пустая колонка слева. 3+ плиток (Home/Dish)
+  // занимают всю ширину как раньше (slots === total, offset 0).
+  const slots = Math.max(total, 3);
+  const colOffset = slots - total;
 
   return (
     <div
@@ -52,6 +58,7 @@ export const ScreenIndicator = ({
       style={{
         ['--active-idx' as string]: displayIndex,
         ['--tiles-total' as string]: total,
+        ['--tiles-slots' as string]: slots,
       }}
     >
       {bandImg && activeImage && (
@@ -73,7 +80,7 @@ export const ScreenIndicator = ({
             label={screen.label}
             image={screen.image}
             active={screen.label === activeLabel}
-            style={{ gridColumnStart: i + 1 }}
+            style={{ gridColumnStart: i + 1 + colOffset }}
             onClick={() => onSelect(i)}
           />
         ))}

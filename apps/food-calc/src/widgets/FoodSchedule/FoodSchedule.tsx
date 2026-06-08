@@ -47,8 +47,6 @@ import {
 type CommonProps = {
   date: string;
   items: ScheduleFoodWithRelations[];
-  richNutrient?: { id: string; unit: string } | null;
-  onRichNutrientClear?: () => void;
   isActive?: boolean;
   topSlot?: React.ReactNode;
 };
@@ -56,8 +54,6 @@ type CommonProps = {
 const FoodSchedule = ({
   date,
   items,
-  richNutrient,
-  onRichNutrientClear,
   isActive = true,
   topSlot,
 }: CommonProps) => {
@@ -151,11 +147,7 @@ const FoodSchedule = ({
         <>
           {isActive ? (
             <>
-              <ScheduleFoodCreateModals
-                scheduleId={date}
-                richNutrient={richNutrient}
-                onRichNutrientClear={onRichNutrientClear}
-              />
+              <ScheduleFoodCreateModals scheduleId={date} />
               <div onFocusCapture={handleEditFocusCapture}>
                 <ScheduleFoodEditModals flow={editFlow} />
               </div>
@@ -172,8 +164,8 @@ const FoodSchedule = ({
           writeFoodInputId={writeFoodInputId}
           searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
           searchLabel="Найти еду"
-          searchText="Выбор еды"
-          writeFoodPlaceholder="Введите, что вы ели и когда"
+          searchText="выбрать из списка"
+          writeFoodPlaceholder="Напишите, что вы ели или"
         />
       }
     >

@@ -12,7 +12,6 @@
   --bar-bg: rgba(255, 255, 255, 0.85);
   --bar-blur: 8px;
   --bar-border: 1px solid rgba(0, 0, 0, 0.05);
-  --bar-radius: 18px;
   --bar-shadow: none;
   --bar-pad-x: 12px;
   --bar-pad-y: 8px;
@@ -70,10 +69,10 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  // Резервируем место для account-slot слева (~40px) + date-segment справа
-  // (~40px иконочная кнопка) + gap. На узких экранах это режет длинное имя
-  // через line-clamp ниже.
-  max-width: calc(100% - 110px);
+  // Резервируем место под left-кластер слева (back ~40 + account ~40 + gap)
+  // и date-segment справа (~40px). На узких экранах это режет длинное имя
+  // через line-clamp ниже. (До back-кнопки было 110px — под один account.)
+  max-width: calc(100% - 156px);
   text-align: center;
   font-family: 'Source Serif 4', 'Merriweather', serif;
   font-style: italic;
@@ -139,7 +138,7 @@
   background: var(--bar-bg);
   border: var(--bar-border);
   box-shadow: var(--bar-shadow);
-  border-radius: var(--radius-full, 999px);
+  border-radius: var(--radius-full);
   backdrop-filter: blur(var(--bar-blur));
   -webkit-backdrop-filter: blur(var(--bar-blur));
   padding: 4px 10px;
@@ -163,7 +162,7 @@
   background: var(--bar-bg);
   border: var(--bar-border);
   box-shadow: var(--bar-shadow);
-  border-radius: var(--radius-full, 999px);
+  border-radius: var(--radius-full);
   backdrop-filter: blur(var(--bar-blur));
   -webkit-backdrop-filter: blur(var(--bar-blur));
 }
@@ -180,7 +179,7 @@
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   white-space: nowrap;
-  border-radius: 6px;
+  border-radius: var(--radius-full);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -191,14 +190,13 @@
 }
 
 .dateSegment {
-  --date-radius: 16px;
   --date-pad-x: 14px;
   --date-pad-y: 8px;
 
   background: var(--bar-bg);
   border: var(--bar-border);
   box-shadow: var(--bar-shadow);
-  border-radius: var(--date-radius);
+  border-radius: var(--radius-full);
   backdrop-filter: blur(var(--bar-blur));
   -webkit-backdrop-filter: blur(var(--bar-blur));
   padding: var(--date-pad-y) var(--date-pad-x);
@@ -216,7 +214,6 @@
   --bar-bg: rgba(255, 255, 255, 0.94);
   --bar-blur: 14px;
   --bar-border: none;
-  --bar-radius: 18px;
   --bar-shadow: 0 1px 2px rgba(31, 42, 68, 0.08);
   --bar-pad-x: 14px;
   --bar-margin: max(10px, env(safe-area-inset-top)) 10px 0;

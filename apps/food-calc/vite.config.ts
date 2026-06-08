@@ -1,6 +1,6 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import path from 'path';
 import { patchCssModules } from 'vite-css-modules';
@@ -18,7 +18,15 @@ export default defineConfig({
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
   },
   plugins: [
-    react(),
+    // React Compiler (авто-мемоизация, 1.0). Это Babel-плагин, поэтому ушли с
+    // @vitejs/plugin-react-swc на Babel-вариант — теряем скорость SWC ради
+    // авто-мемоизации (компилятор сам расставляет useMemo/useCallback/memo).
+    // Откат: вернуть @vitejs/plugin-react-swc + `react()` без babel-опции.
+    react({
+      babel: {
+        plugins: [['babel-plugin-react-compiler', {}]],
+      },
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',

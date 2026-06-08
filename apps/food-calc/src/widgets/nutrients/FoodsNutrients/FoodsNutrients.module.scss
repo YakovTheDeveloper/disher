@@ -2,10 +2,18 @@
     position: relative;
 }
 
+// Кнопка дневной нормы — «неотъемлемая часть» виджета, вверху списка.
+.normRow {
+    display: flex;
+    justify-content: flex-end;
+    padding-bottom: 2px;
+}
+
+// Слева, чтобы не накладываться на DailyNormButton (правый край normRow).
 .spinnerOverlay {
     position: absolute;
     top: 0;
-    right: 4px;
+    left: 4px;
     z-index: 1;
     padding: 4px;
 }

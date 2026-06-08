@@ -1,0 +1,31 @@
+// Shared circular back button (‹). In HomeTopBar it inherits the floating-pill
+// surface through `--bar-*` tokens published on `.shell`, so it visually matches
+// the account / date pills. Where those tokens are absent (AnalysesTopBar) it
+// falls back to a glassy white circle — the look the old raw `.back` had.
+.back {
+  --back-fg: var(--seg-color, rgba(15, 23, 42, 0.72));
+  --back-glyph-size: 26px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: var(--bar-border, none);
+  border-radius: var(--radius-full);
+  background: var(--bar-bg, rgba(255, 255, 255, 0.6));
+  box-shadow: var(--bar-shadow, none);
+  backdrop-filter: blur(var(--bar-blur, 0));
+  -webkit-backdrop-filter: blur(var(--bar-blur, 0));
+  color: var(--back-fg);
+  font-size: var(--back-glyph-size);
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    transform: scale(0.94);
+  }
+}

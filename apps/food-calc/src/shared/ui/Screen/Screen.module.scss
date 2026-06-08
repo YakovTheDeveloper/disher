@@ -12,6 +12,34 @@
     // scroll-слой на каждый скроллер, что нагружает композитор поверх
     // свайп-слоя. iOS и так скроллит momentum-ом по умолчанию.
     overscroll-behavior: contain;
+
+    // Тон focus-scrim'а (см. `.screen::before` ниже). Custom-prop — token-gate ok.
+    --screen-scrim: rgba(15, 23, 42, 0.42);
+}
+
+// Focus-scrim: при фокусе write-bar'а (инпут «что ели») затемняем весь экран —
+// контент уходит в дымку, пилюля бара остаётся «в свету» (она в `.bottomBar`,
+// z-index:2 — НАД scrim'ом z-index:1; floating-кнопки z-index ≥100 тоже сверху).
+// Pure-CSS через `:has()` — проект уже опирается на него (`.bottomBar`-hide ниже).
+// `position:fixed` тут нельзя: слайды Embla на HomePage несут `contain:strict`/
+// `transform` и перехватывают containing-block у fixed-потомка; `absolute`
+// относительно `.screen` (position:relative) надёжен и кроет ровно видимый слайд.
+// Тап по затемнению снимает фокус: pointerdown по pseudo блюрит textarea →
+// `:has` перестаёт матчиться → scrim гаснет.
+.screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: var(--screen-scrim);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.screen:has([data-write-bar] textarea:focus)::before {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .backgroundImage {
@@ -84,7 +112,7 @@
     // а не обрывались резко. Страница/surface может переопределить
     // `--bottom-bar-bg` (сплошной цвет или `transparent`). Внутренние обёртки
     // (AppBottomBar `.writeDock`/`.shellSolo`) фон НЕ красят — источник тут.
-    --bottom-bar-scrim: rgba(0, 0, 0, 0.07);
+    --bottom-bar-scrim: rgba(255, 255, 255, 0.15);
     // --bottom-bar-scrim-h: 30px;
     background: var(--bottom-bar-bg, var(--bottom-bar-scrim));
     padding-bottom: env(safe-area-inset-bottom);
@@ -203,6 +231,23 @@
     inset: 0;
 }
 
+// ─── Header action (slot) ─────────────────────────────────────────────────
+// Лёгкое page-level действие в левом-верхнем углу листа (туда юзер указывал
+// стрелкой). `position: absolute` — НЕ толкает центрированный hero вниз, плавает
+// поверх. Якорь — `.headerOverlap` (position: relative), поэтому скроллится
+// вместе с листом-хедером. Слева → не конфликтует с центрированным hero и
+// watermark-логотипом справа; z-index держит кнопку кликабельной над hero-боксом.
+// Носитель — общий `SuggestActionButton` (DishPage «Предложить ингредиенты» /
+// ProductPage «Предложить нутриенты»).
+.headerAction {
+    position: absolute;
+    top: var(--space-1);
+    left: var(--space-3);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+}
+
 // ─── Content header (canon) ──────────────────────────────────────────────
 // Семантический заголовок контента (Screen `contentHeader`). Рендерится
 // первым ВНУТРИ листа `.headerOverlap`, по центру. Канон — заголовок дня на
@@ -213,7 +258,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-6) var(--space-3);
+    padding: var(--space-8) var(--space-3) var(--space-6);
     text-align: center;
 
     // Локальный custom-prop под masked-логотип (token-gate допускает; гасит

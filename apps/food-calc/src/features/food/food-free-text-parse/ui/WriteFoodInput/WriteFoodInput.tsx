@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useId, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
@@ -15,12 +15,10 @@ import s from './WriteFoodInput.module.scss';
 // на `.wrap` (см. .module.scss). Перелистывается DesignVariantsBar.
 const WRITEBAR_VARIANTS = ['ash', 'mint'] as const;
 
-// Форма/рамка плитки «Выбор еды» — «почтовая марка» + вайб NavTile (тех же
-// «квадратиков смены контента» сверху). Anchor `FoodTile` навешен на саму
-// плитку (`.writeBarList`); варианты меняют ТОЛЬКО силуэт/рамку/декор, цвет
-// берётся из WriteBar-палитры (`--wb-tile-*`) → композируется с ash/mint.
-// perf (дефолт) = круглая перфорация по периметру (самый прямой «марка» read).
-const FOODTILE_VARIANTS = ['perf', 'paper', 'dashed', 'engraving', 'scallop'] as const;
+// Текст дуговых подписей медальона-печати: верхняя дуга + нижняя (как на монете).
+// Хардкод — одинаков для всех консьюмеров; searchText идёт только в aria-label.
+const ARC_TOP = 'выбрать из';
+const ARC_BOTTOM = 'списка еды';
 
 const SendArrowIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -41,6 +39,22 @@ const FOOD_TILE_IMG = '/art/plate.png';
 
 const DEFAULT_PLACEHOLDER = 'Опишите, что ели…';
 const ANCHOR_SELECTOR = '[data-write-food-anchor]';
+
+// Богатый плейсхолдер: первое слово — serif-italic акцент (канон --heading-font),
+// остальное — обычный шрифт поля. Нативный `placeholder` остаётся строкой (для
+// скринридеров + детекта пустоты через :placeholder-shown), AutoGrowSearch
+// рисует этот узел поверх него (см. `renderPlaceholder`). Split по первому
+// пробелу: «Опишите,» → акцент, « что ели…» → обычным (ведущий пробел сохранён).
+function renderAccentPlaceholder(text: string): ReactNode {
+  const spaceIdx = text.indexOf(' ');
+  if (spaceIdx === -1) return text;
+  return (
+    <>
+      <em className={s.placeholderAccent}>{text.slice(0, spaceIdx)}</em>
+      {text.slice(spaceIdx)}
+    </>
+  );
+}
 
 // iOS Safari: нативный scroll-on-focus для инпута в нижнем доке иногда не
 // срабатывает — клавиатура закрывает поле. setTimeout 300ms (folk-pattern)
@@ -120,8 +134,17 @@ export const WriteFoodInput = ({
 }: WriteFoodInputProps) => {
   const online = useOnline();
   const { pressed: searchPressed, pressProps: searchPressProps } = usePressFeedback();
+  // Press-отклик самой пилюли (как у плитки «Еда», но мягче): pointerdown по полю
+  // ввода мгновенно красит подложку в светло-серый. Хук тот же — :active на
+  // не-button не работает на iOS. Тащим `data-pressed` на ряд-пилюлю, а слушатели
+  // вешаем на поле ввода (`.writeField`), чтобы тап по плитке/CTA пилюлю НЕ красил.
+  const { pressed: barPressed, pressProps: barPressProps } = usePressFeedback();
   const { anchor: writeBarAnchor } = useDesignVariant('WriteBar', WRITEBAR_VARIANTS);
-  const { anchor: foodTileAnchor } = useDesignVariant('FoodTile', FOODTILE_VARIANTS);
+  // Уникальные id для SVG-путей дуг (textPath ссылается по #id). Колоны из useId
+  // выпиливаем — чище для URL-фрагмента.
+  const arcBase = useId().replace(/:/g, '');
+  const arcTopId = `${arcBase}-t`;
+  const arcBotId = `${arcBase}-b`;
 
   // Idle/blur — 1 ряд, фокус — до 4 рядов. Auto-grow от value уже встроен в
   // AutoGrowSearch (он сам пересчитывает через recomputeRows на изменение
@@ -174,8 +197,15 @@ export const WriteFoodInput = ({
       {...writeBarAnchor}
       className={clsx(s.wrap, className)}
       data-write-state={isReady ? 'ready' : 'idle'}
+      // Маркер для focus-scrim'а: `Screen` ловит `:has([data-write-bar]
+      // textarea:focus)` и затемняет весь экран на время фокуса (см. Screen.module.scss).
+      data-write-bar=""
     >
-      <div className={s.writeBarRow} data-expanded={expanded || undefined}>
+      <div
+        className={s.writeBarRow}
+        data-expanded={expanded || undefined}
+        data-pressed={barPressed || undefined}
+      >
         {isReady ? (
           <button
             type="button"
@@ -188,6 +218,7 @@ export const WriteFoodInput = ({
           <div
             className={clsx(s.writeField, s.writeBarInput)}
             data-state={flow.state}
+            {...barPressProps}
           >
             <div className={s.writeFieldRow}>
               <AutoGrowSearch
@@ -201,6 +232,7 @@ export const WriteFoodInput = ({
                 }}
                 onBlur={() => setFocused(false)}
                 placeholder={placeholder}
+                renderPlaceholder={renderAccentPlaceholder(placeholder)}
                 maxRows={focused ? 4 : 1}
                 collapseOnBlur={false}
                 className={s.writeFieldInput}
@@ -235,15 +267,31 @@ export const WriteFoodInput = ({
         <label
           htmlFor={searchHtmlFor}
           className={s.writeBarList}
-          aria-label={searchLabel ?? 'Найти'}
+          aria-label={searchLabel ?? searchText ?? 'Найти'}
           data-pressed={searchPressed || undefined}
           {...searchPressProps}
-          {...foodTileAnchor}
         >
+          {/* Медальон-печать: клош-эмблема по центру + две дуговые подписи
+              (верх/низ, SVG textPath), как на монете. Рим-текст = явная кнопка. */}
           <img src={FOOD_TILE_IMG} className={s.writeBarListImg} alt="" aria-hidden />
-          {searchText && (
-            <span className={s.writeBarListText}>{searchText}</span>
-          )}
+          <svg className={s.writeBarListArc} viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              {/* верхний полукруг (sweep 1) + нижний (sweep 0) — текст обоих
+                  читается слева-направо, прямо */}
+              <path id={arcTopId} d="M 14,50 A 36,36 0 0 1 86,50" fill="none" />
+              <path id={arcBotId} d="M 3,50 A 47,47 0 0 0 97,50" fill="none" />
+            </defs>
+            <text>
+              <textPath href={`#${arcTopId}`} startOffset="50%" textAnchor="middle">
+                {ARC_TOP}
+              </textPath>
+            </text>
+            <text>
+              <textPath href={`#${arcBotId}`} startOffset="50%" textAnchor="middle">
+                {ARC_BOTTOM}
+              </textPath>
+            </text>
+          </svg>
         </label>
       </div>
     </div>

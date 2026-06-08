@@ -79,8 +79,6 @@ const draftFromItem = (item: ScheduleFoodWithRelations): DraftState => ({
 type CreateMode = {
   type: 'create';
   scheduleId: string;
-  richNutrient?: { id: string; unit: string } | null;
-  onRichNutrientClear?: () => void;
 };
 
 type EditMode = {
@@ -111,17 +109,6 @@ export function useScheduleFoodFlow(mode: FlowMode) {
     }
     setVisitedSteps((prev) => (prev.includes(step) ? prev : [...prev, step]));
   }, [step]);
-
-  const richNutrient = mode.type === 'create' ? mode.richNutrient : null;
-
-  // Auto-open search when richNutrient is set externally (create mode only)
-  useEffect(() => {
-    if (mode.type === 'create' && richNutrient && step === 'idle') {
-      setDraft(createEmptyDraft());
-      setSessionKey((k) => k + 1);
-      setStep('search');
-    }
-  }, [richNutrient]);
 
   const foodPortions = useProductPortions(
     draft.variant === 'product' ? (draft.productId ?? undefined) : undefined
@@ -170,7 +157,6 @@ export function useScheduleFoodFlow(mode: FlowMode) {
     if (mode.type === 'create') {
       setDraft(createEmptyDraft());
       setSessionKey((k) => k + 1);
-      mode.onRichNutrientClear?.();
     } else {
       setEditingItem(null);
       setDraft(createEmptyDraft());
@@ -259,7 +245,6 @@ export function useScheduleFoodFlow(mode: FlowMode) {
         setStep('idle');
         setDraft(createEmptyDraft());
         setSessionKey((k) => k + 1);
-        if (mode.type === 'create') mode.onRichNutrientClear?.();
       };
       const errorMsg =
         variant === 'product' ? 'Не удалось создать продукт' : 'Не удалось создать блюдо';
@@ -342,7 +327,6 @@ export function useScheduleFoodFlow(mode: FlowMode) {
       setStep('idle');
       setDraft(createEmptyDraft());
       setSessionKey((k) => k + 1);
-      mode.onRichNutrientClear?.();
 
       if (snapshot) {
         void safeMutate(() => addScheduleFood(snapshot), 'Не удалось добавить в расписание')

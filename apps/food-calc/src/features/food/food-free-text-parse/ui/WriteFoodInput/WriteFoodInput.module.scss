@@ -36,6 +36,9 @@
     --wb-pill-bg: rgba(255, 255, 255, 1);
     --wb-pill-border: rgba(31, 42, 68, 0.08);
     --wb-pill-border-focus: rgba(31, 42, 68, 0.18);
+    // Подложка пилюли на press (см. `.writeBarRow[data-pressed]`). Один светло-
+    // серый на все варианты (по просьбе) — вариант может перекрыть при желании.
+    --wb-pill-press: #e6e8ec;
     --wb-hairline: transparent;
     --wb-hairline-focus: transparent;
     --wb-backdrop: none;
@@ -51,6 +54,7 @@
     flex-direction: column;
     width: 100%;
     padding: 4px 8px 6px;
+    padding-left: var(--space-8);
     position: relative;
     box-sizing: border-box;
     background: transparent;
@@ -94,8 +98,60 @@
 
 .writeBarRow {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     min-height: var(--pill-h);
+    position: relative;
+
+    // Плашка-пилюля = ОДНА поверхность: слева ввод, справа ВНУТРИ — марка
+    // «или / Выбрать из списка». Поверхность (фон/рамка/бровка) переехала сюда
+    // с `.writeBarInput`, чтобы марка читалась внутри общей плашки, а не как
+    // отдельная коробка. Палитра — те же `--wb-pill-*` (WriteBar-варианты на .wrap).
+    background: var(--wb-pill-bg);
+    border: 1px solid var(--wb-pill-border);
+    border-radius: 999px;
+    // Лево — внутренний отступ плашки (просьба: padding-left var(--space-4));
+    // право — чтобы марка не липла к скруглённому краю.
+    padding: 0 var(--space-2) 0 var(--space-4);
+    backdrop-filter: var(--wb-backdrop);
+    transition: border-color 0.15s ease, background 0.15s ease;
+
+    &:focus-within {
+        border-color: var(--wb-pill-border-focus);
+    }
+
+    // Press-отклик: подложка пилюли мгновенно (transition 0s — «резко») светло-
+    // серая на pointerdown по полю ввода. `data-pressed` ставит usePressFeedback
+    // (см. WriteFoodInput.tsx; слушатели на `.writeField`, поэтому тап по плитке
+    // «Еда»/CTA пилюлю НЕ красит). Возврат — базовым transition'ом (мягко).
+    &[data-pressed] {
+        background: var(--wb-pill-press);
+        transition: background 0s;
+    }
+
+    // Затухающая «бровка» (бывш. на .writeBarInput) — теперь под всей плашкой.
+    &::after {
+        content: '';
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+                transparent 0%,
+                var(--wb-hairline) 18%,
+                var(--wb-hairline) 82%,
+                transparent 100%);
+        pointer-events: none;
+        transition: background 120ms ease;
+    }
+
+    &:focus-within::after {
+        background: linear-gradient(90deg,
+                transparent 0%,
+                var(--wb-hairline-focus) 18%,
+                var(--wb-hairline-focus) 82%,
+                transparent 100%);
+    }
 }
 
 // ─── Inner write-field (input + send + spinner) ────────────────────────────
@@ -130,41 +186,12 @@
     position: relative;
     display: flex;
     align-items: center;
-    background: var(--wb-pill-bg);
-    border: 1px solid var(--wb-pill-border);
+    // Поверхность (фон/рамка/бровка/фокус-рамка) переехала на `.writeBarRow`
+    // (общая плашка). Здесь осталась только раскладка ввода. border-radius
+    // держим ради pill-формы error-outline (`.writeField[data-state='error']`).
     border-radius: 999px;
-    padding: 4px var(--space-2) 4px var(--space-6);
+    padding: 4px var(--space-2);
     min-height: var(--pill-h);
-    backdrop-filter: var(--wb-backdrop);
-    transition: border-color 0.15s ease, background 0.15s ease;
-
-    &::after {
-        content: '';
-        position: absolute;
-        left: 18px;
-        right: 18px;
-        bottom: 0;
-        height: 1px;
-        background: linear-gradient(90deg,
-                transparent 0%,
-                var(--wb-hairline) 18%,
-                var(--wb-hairline) 82%,
-                transparent 100%);
-        pointer-events: none;
-        transition: background 120ms ease;
-    }
-
-    &:focus-within {
-        border-color: var(--wb-pill-border-focus);
-
-        &::after {
-            background: linear-gradient(90deg,
-                    transparent 0%,
-                    var(--wb-hairline-focus) 18%,
-                    var(--wb-hairline-focus) 82%,
-                    transparent 100%);
-        }
-    }
 }
 
 .writeFieldRow {
@@ -177,13 +204,12 @@
 
 // AutoGrowSearch.field несёт `padding: 14px 0 3px` + `border-bottom: 8px` под
 // тонкую пилюлю — в толстой это сажает текст высоко. Симметризуем (равный
-// верх/низ, без border-смещения), чтобы flex-центрирование клало текст ровно
-// по центру. Элементные селекторы (textarea/input) стабильны — не зависят от
-// хеш-класса AutoGrowSearch.
+// верх/низ) через `--field-pad-*` (см. ниже на `.writeFieldInput`) — так
+// rich-placeholder overlay читает тот же inset и совпадает с текстом поля.
+// Здесь гасим только border-смещение. Элементный селектор (textarea/input)
+// стабилен — не зависит от хеш-класса AutoGrowSearch.
 .writeFieldRow textarea,
 .writeFieldRow input {
-    padding-top: 4px;
-    padding-bottom: 4px;
     border-bottom-width: 0;
 }
 
@@ -201,10 +227,24 @@
     --field-shadow-focus: none;
     --field-hairline: transparent;
     --field-hairline-focus: transparent;
+    // Симметричный вертикальный inset под толстую пилюлю (см. .writeFieldRow
+    // textarea выше). Читается и `.field`, и rich-placeholder overlay → текст и
+    // акцент-плейсхолдер ложатся на одну линию.
+    --field-pad-top: 4px;
+    --field-pad-bottom: 4px;
     flex: 1;
     min-width: 0;
     min-height: 0;
     padding: 0;
+}
+
+// Первое слово rich-плейсхолдера — serif-italic акцент (канон проекта,
+// --heading-font, как все акценты). Цвет/размер наследуются от overlay
+// (`--field-placeholder` / `--field-font-size`); меняем только начертание.
+.placeholderAccent {
+    font-family: var(--heading-font);
+    font-style: italic;
+    font-weight: 500;
 }
 
 // Send-кнопка — 32×32, всегда СПЛОШНОЙ цвет `--wb-send` (без градиента).
@@ -259,43 +299,81 @@
     user-select: none;
 }
 
-// ─── «Каталог» tile (справа от pill'и) ────────────────────────────────────
-// Column-stack: иконка сверху, подпись снизу. Естественный source order
-// (pill → tile) — без order override.
+// ─── Марка «или / Выбрать из списка» (штамп ВНУТРИ плашки, справа) ─────────
+// Лежит как inner-badge внутри `.writeBarRow`-плашки: фон-гравюра клоша +
+// serif-подпись. На фокусе сворачивается (см. [data-expanded] ниже).
 
 .writeBarList {
     // Светлый текст инверсии (custom-prop — допустимо token-gate'ом; гасит
     // raw-литерал в `color: var(...)` ниже).
     --press-fg-invert: #ffffff;
-    // Прозрачность фон-гравюры (клош). NavTile-вайб: белый фон картинки тает,
-    // видны только чёрные линии. Перекрывается per-variant при желании.
-    --tile-img-opacity: 0.16;
+    // Непрозрачность гравюры-клоша. img идёт через mix-blend-mode: multiply →
+    // белый фон png гасится (white*bg=bg), видны только линии на любом тоне tile.
+    --tile-img-opacity: 0.85;
 
     flex-shrink: 0;
     align-self: center;
-    overflow: hidden;
-    position: relative; // для декоративных слоёв FoodTile-вариантов (::after)
+    overflow: visible; // ::before-монета даёт тень наружу → не клипаем
+    position: relative; // слои: ::before (монета), img (клош), svg (дуги)
     display: inline-flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    width: var(--pill-h);
-    height: var(--pill-h);
-    margin-left: 8px;
-    // Узкие боковые отступы — чтобы однострочная подпись «Выбор еды» (nowrap)
-    // помещалась в 72px-плитку без обрезки. Низ/верх держат вертикальный ритм.
-    padding: 6px 3px;
-    background: var(--wb-tile-bg);
-    border: 1px solid var(--wb-tile-border);
+    gap: 2px;
+    // Круглый медальон ВНУТРИ плашки: width == height → круг (border-radius
+    // 999px из базы). Меньше высоты плашки → инсет сверху/снизу. Ширина — length
+    // (не auto), чтобы сворачивание на фокусе анимировалось (width → 0).
+    // border-box — чтобы padding/border НЕ раздували width/height в овал:
+    // размеры включают рамку → ровный круг.
+    box-sizing: border-box;
+    // 68px (pill - space-1) — крупнее, чтобы увеличенная (×2) дуговая подпись по
+    // нижнему ободу читалась.
+    width: calc(var(--pill-h) - var(--space-1));
+    height: calc(var(--pill-h) - var(--space-1));
+    margin-left: var(--space-2);
+    padding: 0;
     border-radius: 999px;
     color: var(--wb-tile-fg);
-    backdrop-filter: var(--wb-backdrop);
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     transition: width 0.24s ease, margin 0.24s ease, padding 0.24s ease,
         opacity 0.18s ease, transform 0.24s ease, filter 0.15s ease;
+
+    // Заливка-«монета»: фон `--wb-tile-bg` + lift-тень. Меньше круга (inset 19%),
+    // поэтому дуги ложатся СНАРУЖИ неё, кольцом на плашке (это бывш. вариант
+    // `outside` — теперь единственный). Контейнер прозрачный.
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 19%;
+        z-index: 0;
+        background: var(--wb-tile-bg);
+        border-radius: 999px;
+        box-shadow:
+            0 5px 12px rgba(31, 42, 68, 0.14),
+            0 2px 4px rgba(31, 42, 68, 0.08);
+        backdrop-filter: var(--wb-backdrop);
+        pointer-events: none;
+        transition: inset 0.2s ease, background 0.15s ease;
+    }
+
+    // Press-подложка: навигационная инверсия — навой круг ШИРЕ монеты (inset -3px),
+    // накрывает и дуги, и клош (сама монета-`::before` мала, её бы не хватило).
+    // z-index:1 — над монетой (::before z0), ПОД клошем (z2) и дугами (z3), чтобы
+    // белые клош/текст ложились поверх неё. Дефолт — скрыта (opacity 0).
+    &::after {
+        content: '';
+        position: absolute;
+        inset: -3px;
+        z-index: 1;
+        border-radius: 999px;
+        background: #1f2a44;
+        opacity: 0;
+        transform: scale(0.6);
+        transition: opacity 0.15s ease, transform 0.18s ease;
+        pointer-events: none;
+    }
 
     &:hover,
     &:focus-visible {
@@ -308,12 +386,29 @@
     // отрисоваться до открытия модалки поиска. Перебивает hover/focus по
     // специфичности атрибута.
     &[data-pressed] {
-        background: #1f2a44;
-        color: var(--press-fg-invert);
         transform: scale(0.96);
 
-        .writeBarListText {
-            color: var(--press-fg-invert);
+        // Мгновенно navy-центр (без фейда), пока ::after-подложка выезжает.
+        &::before {
+            background: #1f2a44;
+        }
+
+        // Подложка выезжает (navy, шире монеты) — накрывает дуги.
+        &::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        // Белый клош на тёмной подложке: invert(1) делает линии белыми (фон
+        // чёрным), screen гасит чёрный фон → белые линии на navy (multiply красил
+        // бы тёмным).
+        .writeBarListImg {
+            filter: invert(1);
+            mix-blend-mode: screen;
+        }
+
+        .writeBarListArc text {
+            fill: var(--press-fg-invert);
         }
     }
 }
@@ -332,117 +427,50 @@
     pointer-events: none;
 }
 
-// «Выбор еды» — двусловная подпись, переносится на 2 строки в квадратной
-// плитке (nowrap обрезался бы overflow:hidden'ом). balance — ровный перенос.
-// Фон-гравюра (клош) — призрак ПОД подписью, заполняет плитку. inset:0 +
-// object-fit:cover + overflow:hidden родителя клипает её под форму варианта.
-// z-index:0 (positioned) ставит её ниже подписи (z-index:1).
+// Гравюра-клош — эмблема по ЦЕНТРУ медальона (между верхней и нижней дугами).
+// mix-blend-mode: multiply гасит белый фон png → на любом тоне tile (ash/mint)
+// виден только рисунок, без белого квадрата. z-index:2 — над монетой (::before
+// z0) и press-подложкой (::after z1).
 .writeBarListImg {
     position: absolute;
-    inset: 0;
-    z-index: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    width: 60%; // почти заполняет ужатую монету (::before inset 19%)
+    height: auto;
+    transform: translate(-50%, -50%);
     opacity: var(--tile-img-opacity);
+    mix-blend-mode: multiply;
     pointer-events: none;
     user-select: none;
 }
 
-.writeBarListText {
-    // margin-top:auto прижимает подпись к нижнему краю плитки (вайб NavTile —
-    // картинка-призрак на всю плитку, serif-подпись у дна). z-index:1 — над
-    // фон-картинкой (.writeBarListImg, z-index:0). Когда подписи нет, картинка
-    // занимает плитку целиком.
-    position: relative;
-    z-index: 1;
-    margin-top: auto;
-    font-family: var(--heading-font);
-    font-style: italic;
-    font-weight: 500;
-    font-size: 12px;
-    line-height: 1.12;
-    letter-spacing: 0.01em;
-    color: var(--wb-tile-fg);
-    white-space: nowrap;
-    text-wrap: balance;
-    text-align: center;
-}
+// Две дуговые подписи (верх + низ) — SVG textPath по полукруговым путям (CSS
+// дугу не умеет). Делают медальон похожим на печать/монету; текст — явная
+// подсказка, что это кнопка. z-index:3 — над монетой, press-подложкой и клошем.
+// font-size — в единицах viewBox(100) → масштабируется с размером круга.
+.writeBarListArc {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 
-// ─── FoodTile — DesignBar-варианты формы плитки «Выбор еды» ────────────────
-// «Почтовая марка» + вайб NavTile (квадратики смены контента сверху). Anchor
-// `FoodTile` на самой плитке (`.writeBarList` несёт data-dv-v). Варианты меняют
-// ТОЛЬКО силуэт / рамку / декор — цвет (`--wb-tile-*`) приходит из WriteBar,
-// поэтому stamp-рамка композируется и с ash, и с mint. Квадрат со скруглением
-// (NavTile) вместо круга (999px база). Все декор-слои = ::after → схлопываются
-// вместе с плиткой на фокусе (overflow:hidden + opacity у родителя). После
-// выбора — оставить один вариант inline, anchor + остальные снести.
-
-// perf (ДЕФОЛТ) — круглая перфорация по периметру (dotted border): самый прямой
-// «почтовая марка» read, пуленепробиваемый CSS.
-.writeBarList[data-dv-v='perf'] {
-    border-radius: var(--space-2);
-    border-style: dotted;
-    border-width: 2px;
-    border-color: rgba(31, 42, 68, 0.32);
-}
-
-// paper — NavTile «inverse-lift»: бумажный квадрат + мягкая 2-слойная тень, без
-// рамки. Ближе всего к активной NavTile (но WriteBar-канон тени снял — здесь
-// это сознательный визуальный «лифт» плитки, на выбор юзера).
-.writeBarList[data-dv-v='paper'] {
-    border-radius: var(--space-2);
-    border-color: transparent;
-    box-shadow:
-        0 10px 22px rgba(31, 42, 68, 0.12),
-        0 3px 6px rgba(31, 42, 68, 0.07);
-}
-
-// dashed — пунктирная рамка (исходный «before redesign» NavTile + билетный вайб).
-.writeBarList[data-dv-v='dashed'] {
-    border-radius: var(--space-2);
-    border-style: dashed;
-    border-width: 1.5px;
-    border-color: rgba(31, 42, 68, 0.3);
-}
-
-// engraving — двойная филателистическая рамка: внешняя (border) + внутренняя
-// тонкая линия (::after, inset). Гравюрный «штемпель».
-.writeBarList[data-dv-v='engraving'] {
-    border-radius: var(--space-2);
-    border-color: rgba(31, 42, 68, 0.22);
-
-    &::after {
-        content: '';
-        position: absolute;
-        inset: 4px;
-        border: 1px solid rgba(31, 42, 68, 0.18);
-        border-radius: calc(var(--space-2) - 3px);
-        pointer-events: none;
+    text {
+        font-family: var(--heading-font);
+        // ПРЯМОЕ (не italic): на тугой дуге курсив добавляет свой наклон к
+        // повороту глифа по касательной → буквы выглядят «гуляющими». Прямое
+        // начертание заметно чище и больше похоже на чеканку монеты.
+        font-style: normal;
+        font-weight: 600;
+        // в единицах viewBox(100) → на 68px-медальоне ≈ 11.6px (×2 к прежним 9).
+        font-size: 17px;
+        // 0 (а не +trk): на дуге положительный letter-spacing растягивает
+        // угловой пролёт текста → сильнее загибает. Без него — площе.
+        letter-spacing: 0;
+        fill: var(--wb-tile-fg);
     }
-}
-
-// scallop — НАСТОЯЩАЯ вырезанная кромка марки (mask из 4 рядов полукругов).
-// ЭКСПЕРИМЕНТАЛЬНЫЙ: геометрию mask'и проверить глазами в DesignBar — на разных
-// движках выемки могут чуть «гулять». Силуэт сам несёт форму → border не нужен.
-// Перфорация «прорезает» плитку насквозь — сквозь дырки виден ambient страницы.
-.writeBarList[data-dv-v='scallop'] {
-    --perf-r: 3.5px; // радиус выемки
-    --perf-step: 12px; // шаг между центрами выемок
-    border: none;
-    border-radius: 0;
-    -webkit-mask:
-        radial-gradient(var(--perf-r) at 50% 0, #0000 98%, #000) 50% 0 / var(--perf-step) 100% repeat-x,
-        radial-gradient(var(--perf-r) at 50% 100%, #0000 98%, #000) 50% 100% / var(--perf-step) 100% repeat-x,
-        radial-gradient(var(--perf-r) at 0 50%, #0000 98%, #000) 0 50% / 100% var(--perf-step) repeat-y,
-        radial-gradient(var(--perf-r) at 100% 50%, #0000 98%, #000) 100% 50% / 100% var(--perf-step) repeat-y;
-    -webkit-mask-composite: source-in;
-    mask:
-        radial-gradient(var(--perf-r) at 50% 0, #0000 98%, #000) 50% 0 / var(--perf-step) 100% repeat-x,
-        radial-gradient(var(--perf-r) at 50% 100%, #0000 98%, #000) 50% 100% / var(--perf-step) 100% repeat-x,
-        radial-gradient(var(--perf-r) at 0 50%, #0000 98%, #000) 0 50% / 100% var(--perf-step) repeat-y,
-        radial-gradient(var(--perf-r) at 100% 50%, #0000 98%, #000) 100% 50% / 100% var(--perf-step) repeat-y;
-    mask-composite: intersect;
 }
 
 // ─── Ready-state CTA ──────────────────────────────────────────────────────

@@ -3,10 +3,17 @@ import clsx from 'clsx';
 import styles from './SearchFood.module.scss';
 import { FoodActionCard } from './food-action-card';
 import { SearchFoodControls } from '@/features/food/food-search/SearchFoodControls';
-import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
+import {
+  allNutrientsList,
+  defaultDailyNorms,
+  nutrientsHaveDailyNorm,
+} from '@/entities/nutrient/ui/NutrientGroup/constants';
+import { useUserNormItems } from '@/entities/daily-norm';
+import { drawerStore } from '@/shared/ui/drawer-store';
+import { NutrientPickerDrawer } from './NutrientPickerDrawer';
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
-import { useFilteredFoods, useFoodCreation } from './model';
+import { useFilteredFoods, useFoodCreation, useRichNutrientStore } from './model';
 import { FoodSearchEmpty } from './FoodSearchEmpty';
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
@@ -29,7 +36,6 @@ type Props = {
   onSelectFood: (payload: SelectFoodPayload) => void;
   mode: SearchMode;
   activeItemId?: string | null;
-  richNutrient?: { id: string; unit: string } | null;
   onInfoClick?: (variant: 'product' | 'dish', id: string) => void;
   onBack?: () => void;
   /**
@@ -66,7 +72,6 @@ const SearchFood = ({
   onSelectFood,
   mode = 'products-and-dishes',
   activeItemId,
-  richNutrient,
   onInfoClick,
   onBack,
   title,
@@ -84,6 +89,32 @@ const SearchFood = ({
 
   const filterOptions = FILTER_OPTIONS_BY_MODE[mode];
   const [selectedFilter, setSelectedFilter] = useState<SearchFilter>('all');
+
+  // Выбранный нутриент для фильтра «Еда богатая нутриентом» — в сторе (не useState),
+  // чтобы переживать remount SearchFood (консумеры рендерят `key={sessionKey}` и
+  // бампают key после каждого добавления). Держится, пока юзер сам не снимет
+  // крестиком. Не персистим. Стор же делает orphan-drawer гонку безобидной: выбор
+  // из «осиротевшего» пикера просто пишется в стор, который читает текущий инстанс.
+  const richNutrient = useRichNutrientStore((s) => s.richNutrient);
+  const setRichNutrient = useRichNutrientStore((s) => s.setRichNutrient);
+  const clearRichNutrient = useRichNutrientStore((s) => s.clearRichNutrient);
+
+  const richNutrientName = useMemo(
+    () =>
+      richNutrient
+        ? (allNutrientsList.find((n) => n.id === richNutrient.id)?.displayNameRu ?? null)
+        : null,
+    [richNutrient],
+  );
+
+  const handleOpenNutrientPicker = useCallback(async () => {
+    const picked = await drawerStore.show(
+      NutrientPickerDrawer,
+      {},
+      { side: 'left', width: 'min(85vw, 360px)' },
+    );
+    if (picked) setRichNutrient(picked);
+  }, [setRichNutrient]);
 
   useEffect(() => {
     if (!isActive) {
@@ -120,6 +151,10 @@ const SearchFood = ({
           filterOptions={filterOptions ?? undefined}
           selectedFilter={selectedFilter}
           onSelectFilter={setSelectedFilter}
+          showNutrientFilter={mode !== 'dishes-only'}
+          selectedNutrientLabel={richNutrientName}
+          onOpenNutrientPicker={handleOpenNutrientPicker}
+          onClearNutrient={clearRichNutrient}
         />
       </div>
 
@@ -214,11 +249,6 @@ const SearchFoodHeavy = ({
     }
   }, []);
 
-  const richNutrientInfo = useMemo(
-    () => (richNutrient ? allNutrientsList.find((n) => n.id === richNutrient.id) : null),
-    [richNutrient]
-  );
-
   // Compute max nutrient value across all products for richness bar scaling
   const richNutrientMax = useMemo(() => {
     if (!richNutrient?.id || nutrientMap.size === 0) return 0;
@@ -229,6 +259,19 @@ const SearchFoodHeavy = ({
     }
     return max;
   }, [richNutrient?.id, nutrientMap]);
+
+  // Суточная норма выбранного нутриента (user-норма ?? дефолт). Считаем один раз
+  // и прокидываем числом в каждую карточку, чтобы не дёргать хук в ~400 строках.
+  // undefined у нутриентов без нормы → карточка покажет абсолютное значение.
+  const userNormItems = useUserNormItems();
+  const richNutrientNorm = useMemo(() => {
+    if (!richNutrient?.id) return undefined;
+    // «нет официальной нормы» (сахар/крахмал/каротины) → % не считаем, остаётся
+    // абсолютное значение. nutrientsHaveDailyNorm — канонический флаг (был мёртвый,
+    // теперь подключён здесь и в useNutrientCard).
+    if (nutrientsHaveDailyNorm[+richNutrient.id] !== true) return undefined;
+    return userNormItems?.[richNutrient.id] ?? defaultDailyNorms[+richNutrient.id];
+  }, [richNutrient?.id, userNormItems]);
 
   const onFoodAdd = useCallback(
     (item: { id: string; name: string }) =>
@@ -293,11 +336,21 @@ const SearchFoodHeavy = ({
           richNutrientId={richNutrient?.id}
           richNutrientUnit={richNutrient?.unit}
           richNutrientMax={richNutrientMax}
+          richNutrientNorm={richNutrientNorm}
           htmlFor={itemHtmlFor}
         />
       );
     },
-    [activeItemId, onFoodAdd, onInfoClick, richNutrient, nutrientMap, richNutrientMax, itemHtmlFor]
+    [
+      activeItemId,
+      onFoodAdd,
+      onInfoClick,
+      richNutrient,
+      nutrientMap,
+      richNutrientMax,
+      richNutrientNorm,
+      itemHtmlFor,
+    ]
   );
 
   const renderDishItem = useCallback(
@@ -317,11 +370,6 @@ const SearchFoodHeavy = ({
 
   return (
     <>
-      {richNutrientInfo && (
-        <div className={styles.filterMessage}>
-          Богатые по <strong>{richNutrientInfo.displayNameRu}</strong>
-        </div>
-      )}
       <div
         ref={listContainerRef}
         className={clsx(styles.listContainer, styles.listContainerOffset)}

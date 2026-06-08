@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import clsx from 'clsx';
-import { Link, useNavigate } from 'react-router';
+import { useViewTransitionNavigate } from '@/shared/lib/viewTransition';
 import styles from './FoodActionCard.module.scss';
 import { deleteProducts } from '@/entities/product';
 import { deleteDishes } from '@/entities/dish';
@@ -31,6 +31,10 @@ type Props = {
   richNutrientId?: string | null;
   richNutrientUnit?: string;
   richNutrientMax?: number;
+  /** Суточная норма выбранного нутриента (в его единице). SearchFood считает её
+   *  один раз (user-норма ?? дефолт) и прокидывает сюда; undefined у нутриентов
+   *  без нормы — тогда процент не рисуется. */
+  richNutrientNorm?: number;
   /**
    * If provided, the name area becomes a <label htmlFor={htmlFor}> so a tap on
    * the text focuses the corresponding input (used by ModalByLabel step flows).
@@ -60,12 +64,14 @@ function getRichnessColor(ratio: number): string {
   return RICHNESS_COLORS[idx];
 }
 
-function getMassPercent(value: number, unit: string): string {
-  if (unit === 'г' || unit === 'g') return `${value.toFixed(1)}%`;
-  if (unit === 'мг' || unit === 'mg') return `${(value / 1000).toFixed(3)}%`;
-  if (unit === 'мкг' || unit === 'μg' || unit === 'mcg')
-    return `${(value / 1_000_000).toFixed(6)}%`;
-  return '';
+// «% от суточной нормы» для выбранного нутриента: значение_на_100г / норма × 100.
+// Норму считает SearchFood один раз (`richNutrientNorm`) и прокидывает числом —
+// у нутриентов без нормы (сахар, B7, часть аминокислот) она undefined, процент
+// не рисуется, остаётся абсолютное значение + единица.
+export function formatNormPercent(percent: number): string {
+  if (percent > 0 && percent < 1) return `${percent.toFixed(2)}%`;
+  if (percent < 10) return `${percent.toFixed(1)}%`;
+  return `${Math.round(percent)}%`;
 }
 
 const TrashIcon = () => (
@@ -109,11 +115,19 @@ const FoodActionCard = ({
   richNutrientId,
   richNutrientUnit,
   richNutrientMax = 0,
+  richNutrientNorm,
   htmlFor,
 }: Props) => {
-  const navigate = useNavigate();
   const { pressed, pressProps } = usePressFeedback();
   const infoHref = variant === 'product' ? getProductUrl(item.id) : RouterUrls.getDish(item.id);
+  // Переход card→page через тот же хелпер, что и кнопка «Анализ по неделям», но
+  // раскадровка 'push' (iOS-навигация: новая страница въезжает справа, старая
+  // параллаксит влево). cover (снизу) остаётся за секцией «Анализ по неделям».
+  // state.heroName даёт ProductPage показать имя сразу, пока продукт грузится из
+  // Dexie.
+  const goToInfo = useViewTransitionNavigate(infoHref, 'push', {
+    state: { heroName: item.name },
+  });
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.id);
   const isCatalogProduct = variant === 'product' && !userCreated;
 
@@ -168,9 +182,12 @@ const FoodActionCard = ({
   }, [richNutrientValue, richNutrientMax]);
 
   const richnessColor = richNutrientValue !== null ? getRichnessColor(richness) : undefined;
-  const massPercent =
-    richNutrientValue !== null && richNutrientValue > 0 && richNutrientUnit
-      ? getMassPercent(richNutrientValue, richNutrientUnit)
+  const normPercent =
+    richNutrientValue !== null &&
+    richNutrientValue > 0 &&
+    richNutrientNorm != null &&
+    richNutrientNorm > 0
+      ? formatNormPercent((richNutrientValue / richNutrientNorm) * 100)
       : null;
 
   return (
@@ -190,7 +207,7 @@ const FoodActionCard = ({
           {richNutrientValue > 0 && richNutrientUnit && (
             <span className={styles.richUnit}>{richNutrientUnit}</span>
           )}
-          {massPercent && <span className={styles.richPercent}>{massPercent}</span>}
+          {normPercent && <span className={styles.richPercent}>{normPercent}</span>}
         </span>
       )}
       {deleteButton}
@@ -203,7 +220,9 @@ const FoodActionCard = ({
           }}
           {...pressProps}
         >
-          <span className={styles.name}>{item.name}</span>
+          <span className={styles.name}>
+            {item.name}
+          </span>
           {variant === 'product' && item.servingBasis === 'serving' && (
             <span className={styles.supplementBadge}> · добавка</span>
           )}
@@ -216,7 +235,9 @@ const FoodActionCard = ({
           }}
           {...pressProps}
         >
-          <span className={styles.name}>{item.name}</span>
+          <span className={styles.name}>
+            {item.name}
+          </span>
           {variant === 'product' && item.servingBasis === 'serving' && (
             <span className={styles.supplementBadge}> · добавка</span>
           )}
@@ -242,23 +263,21 @@ const FoodActionCard = ({
             )}
           </button>
         ) : (
-          <Link
-            to={infoHref}
+          // Кнопка (НЕ <Link>) с тем же хелпером, что и «Анализ по неделям»:
+          // goToInfo → navigate(viewTransition:true) + html[data-vt-type='cover'].
+          // Навигация размонтирует хост-роут (HomePage/DishBuilderPage) с
+          // ModalByLabel — модалку вручную не закрываем.
+          <button
+            type="button"
             className={styles.infoBtn}
             aria-label="Информация"
-            onClick={(e) => {
-              // Let cmd/ctrl/middle-click open in a new tab without closing the modal.
-              if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-              e.preventDefault();
-              onInfoClick();
-              navigate(infoHref);
-            }}
+            onClick={goToInfo}
           >
             <InfoIcon />
             {showOwnershipLabel && (
               <span className={styles.ownershipLabel}>{ownershipLabel}</span>
             )}
-          </Link>
+          </button>
         )
       )}
     </li>

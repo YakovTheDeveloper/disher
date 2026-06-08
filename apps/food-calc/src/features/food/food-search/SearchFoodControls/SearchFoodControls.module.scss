@@ -252,3 +252,116 @@ $header-height: 50px;
         height: 10px;
     }
 }
+
+// ─── Controls column (поиск-ряд + нутриент-ряд) ──────────────────────────────
+.controls {
+    display: flex;
+    flex-direction: column;
+}
+
+// ─── Nutrient filter row (второй ряд) ────────────────────────────────────────
+// idle — pill «Нутриенты» в конце ряда (открывает боковой drawer-выбор); выбран —
+// «Еда богатая нутриентом: X» + крестик отмены. Палитра наследуется от surface
+// (chip/field-токены), как и Еда/Мое.
+.nutrientRow {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px 8px;
+}
+
+.nutrientButton {
+    appearance: none;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--chip-border, rgb(255, 198, 160));
+    border-radius: var(--radius-full);
+    background: var(--chip-bg, linear-gradient(135deg, #fffbf1 0%, #fffcf8 60%, #fff9ee 100%));
+    color: var(--chip-text, rgb(0, 0, 0));
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        border-color var(--duration-fast) ease,
+        transform 80ms ease;
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--chip-hover-border, rgba(124, 65, 15, 0.24));
+        outline: none;
+    }
+
+    &:active {
+        transform: scale(0.96);
+    }
+}
+
+.nutrientSelected {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-height: 40px;
+}
+
+.nutrientSelectedText {
+    appearance: none;
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: var(--field-text, rgb(31, 31, 31));
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    strong {
+        font-weight: 700;
+        color: var(--field-text, rgb(31, 31, 31));
+    }
+}
+
+.nutrientClear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--field-adornment, rgba(124, 65, 15, 0.55));
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        color var(--duration-fast) ease,
+        transform 80ms ease;
+
+    &:active {
+        color: var(--field-caret, #b76d1a);
+        transform: scale(0.9);
+    }
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+}

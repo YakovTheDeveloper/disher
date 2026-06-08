@@ -11,6 +11,7 @@ import { Sentry } from '@/shared/lib/observability/sentry';
 import { router } from '@/app/router.tsx';
 import { useAuthStore } from '@/features/auth/auth-store';
 import { installE2EBridge } from '@/shared/lib/e2e/bridge';
+import { installViewTransitionCleanup } from '@/shared/lib/viewTransition';
 import { diagLog } from '@/shared/lib/observability/diagLog';
 import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 
@@ -68,6 +69,11 @@ navigator.storage
   });
 
 installE2EBridge();
+
+// Wrap document.startViewTransition once so `data-vt-type` (the storyboard
+// selector set right before each VT navigation) is cleared on every
+// transition.finished — covers both hook and imperative (pushNavigate) sites.
+installViewTransitionCleanup();
 
 // Resolve the initial session. AuthGate flips to `isReady` and either renders
 // AuthScreen or BackupGate→app accordingly.

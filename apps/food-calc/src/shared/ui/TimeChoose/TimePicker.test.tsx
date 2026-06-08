@@ -206,11 +206,11 @@ describe('TimePicker — initialTime prop', () => {
 // ─── mode toggle ─────────────────────────────────────────────────────────────
 
 describe('TimePicker — native/manual mode toggle', () => {
-  it('switches to native mode when "Системный" button is clicked', async () => {
+  it('switches to native mode when "Другой вид" button is clicked', async () => {
     const user = userEvent.setup();
     renderPicker();
 
-    await user.click(screen.getByRole('button', { name: /системный/i }));
+    await user.click(screen.getByRole('button', { name: /другой вид/i }));
 
     await waitFor(() => {
       expect(screen.queryByLabelText('Minute')).not.toBeInTheDocument();
@@ -221,7 +221,7 @@ describe('TimePicker — native/manual mode toggle', () => {
     const user = userEvent.setup();
     renderPicker();
 
-    await user.click(screen.getByRole('button', { name: /системный/i }));
+    await user.click(screen.getByRole('button', { name: /другой вид/i }));
     await waitFor(() => expect(screen.queryByLabelText('Minute')).not.toBeInTheDocument());
 
     await user.click(screen.getByRole('button', { name: /ручной ввод/i }));
@@ -230,7 +230,7 @@ describe('TimePicker — native/manual mode toggle', () => {
 
   it('toggle button label reflects current mode', () => {
     renderPicker();
-    // starts in manual → offers "Системный"
-    expect(screen.getByRole('button', { name: /системный/i })).toBeInTheDocument();
+    // starts in manual → offers "Другой вид"
+    expect(screen.getByRole('button', { name: /другой вид/i })).toBeInTheDocument();
   });
 });

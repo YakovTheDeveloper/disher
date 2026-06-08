@@ -21,11 +21,9 @@ import styles from './ScheduleFoodCreateModals.module.scss';
 
 type Props = {
   scheduleId: string;
-  richNutrient?: { id: string; unit: string } | null;
-  onRichNutrientClear?: () => void;
 };
 
-const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClear }: Props) => {
+const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
   const {
     step,
     setStep,
@@ -42,7 +40,7 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
     quantityContent,
     visitedSteps,
     inputIds: { TIME_INPUT, SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT, CREATE_INPUT },
-  } = useScheduleFoodFlow({ type: 'create', scheduleId, richNutrient, onRichNutrientClear });
+  } = useScheduleFoodFlow({ type: 'create', scheduleId });
 
   const hasHints = useHasDetailsHints(draft.productId);
   const createSteps = hasHints ? CREATE_STEPS_WITH_DETAILS : CREATE_STEPS_NO_DETAILS;
@@ -148,7 +146,6 @@ const ScheduleFoodCreateModals = ({ scheduleId, richNutrient, onRichNutrientClea
             }}
             key={sessionKey}
             mode="products-and-dishes"
-            richNutrient={richNutrient}
             onSelectFood={handleFoodSelect}
             onBack={handleClose}
             title="Еда"

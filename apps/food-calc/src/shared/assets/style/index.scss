@@ -175,18 +175,191 @@ body {
 
 // ─── View Transitions API ────────────────────────────────────────
 // Same-document crossfade between routes (Baseline Newly Available, Oct 2025).
-// React Router triggers this via `navigate(url, { viewTransition: true })`.
-// In browsers without support the navigation just happens instantly —
-// progressive enhancement, no fallback code needed.
+// React Router triggers this via `navigate(url, { viewTransition: true })` /
+// `<Link viewTransition>`. In browsers without support the navigation just
+// happens instantly — progressive enhancement, no fallback code needed.
+// Spec: apps/food-calc/tds/page-transitions.md
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: var(--duration-normal);
   animation-timing-function: var(--easing-default);
 }
 
+// Shared-element морф: имя еды из карточки SearchFood «переезжает» и растёт в
+// заголовок ProductPage/DishBuilderPage. Имя `food-hero-title` ставит карточка
+// на свой `.name` (gated) и страница на заголовок slide-0. Группа морфит
+// положение/размер, old/new — кроссфейд содержимого внутри.
+::view-transition-group(food-hero-title),
+::view-transition-old(food-hero-title),
+::view-transition-new(food-hero-title) {
+  animation-duration: var(--duration-normal);
+  animation-timing-function: var(--easing-default);
+}
+
+// «Наслоение страниц» (cover / iOS-sheet): новая страница въезжает снизу и
+// НАКРЫВАЕТ старую, которая слегка отъезжает назад (scale + затемнение) под ней.
+// Включается через useViewTransitionNavigate(to, 'cover') — он ставит
+// html[data-vt-type='cover'] на время RR-перехода (navigate viewTransition:true).
+html[data-vt-type='cover'] {
+  &::view-transition-old(root) {
+    animation: vt-cover-recede var(--duration-slow) var(--easing-default) both;
+  }
+  &::view-transition-new(root) {
+    animation: vt-cover-rise var(--duration-slow) var(--easing-default) both;
+  }
+}
+
+@keyframes vt-cover-recede {
+  from {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  to {
+    transform: scale(0.94);
+    filter: brightness(0.82);
+  }
+}
+
+@keyframes vt-cover-rise {
+  from {
+    transform: translateY(100%);
+    box-shadow: 0 -10px 44px rgba(0, 0, 0, 0.22);
+  }
+  to {
+    transform: translateY(0);
+    box-shadow: 0 -10px 44px rgba(0, 0, 0, 0);
+  }
+}
+
+// iOS-навигация «push» (drill-in в деталь): новая страница въезжает СПРАВА и
+// накрывает старую; старая параллаксит влево на 30% (медленнее) и ЕДВА
+// притемняется. Значения — эталон UINavigationController / React Navigation
+// forHorizontalIOS: параллакс −0.3·width, dim ≈ overlay 0.07 (брайтнес 0.92, НЕ
+// 0.82 — то было вдвое жёстче и читалось «резко»), мягкая тень на ведущем крае.
+// Длительность 500ms + iOS-кривая ≈ передемпфированная пружина (stiffness 1000 /
+// damping 500 / mass 3): мягкий разгон, долгое плавное торможение — органично, не
+// рывком. New рисуется поверх old по умолчанию (forward), z-index не нужен.
+// Включается через useViewTransitionNavigate(to, 'push'). Зеркальный back —
+// data-vt-type='push-back' ниже (страница уезжает вправо, прошлая возвращается
+// из параллакса; old поверх new через z-index, чтобы уходящая открывала нижнюю).
+html[data-vt-type='push'] {
+  &::view-transition-old(root) {
+    animation: vt-push-old-out var(--duration-ios) var(--easing-ios) both;
+  }
+  &::view-transition-new(root) {
+    animation: vt-push-new-in var(--duration-ios) var(--easing-ios) both;
+  }
+}
+
+@keyframes vt-push-new-in {
+  from {
+    transform: translateX(100%);
+    box-shadow: -6px 0 22px rgba(0, 0, 0, 0.16);
+  }
+  to {
+    transform: translateX(0);
+    box-shadow: -6px 0 22px rgba(0, 0, 0, 0);
+  }
+}
+
+@keyframes vt-push-old-out {
+  from {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+  to {
+    transform: translateX(-30%);
+    filter: brightness(0.92);
+  }
+}
+
+// ── BACK (зеркала) ──────────────────────────────────────────────
+// ВАЖНО: анимируется ТОЛЬКО для ЯВНОЙ in-app кнопки, которая делает
+// navigate(url, {viewTransition:true}) как PUSH. Системный back (жест/кнопка
+// Android → popstate) React намеренно НЕ анимирует (popstate обязан
+// завершаться синхронно ради восстановления скролла) — лечится лишь переходом
+// роутера на Navigation API. Источник: reactrouter.com/how-to/view-transitions.
+//
+// В обоих back-кейсах УХОДЯЩАЯ страница (old) должна быть ПОВЕРХ возвращающейся
+// (new) — иначе она «спрячется» под нижнюю. По умолчанию VT рисует new поверх
+// old, поэтому для back инвертируем через z-index.
+
+// cover-back: зеркало cover (AnalysesPage). Уходящая съезжает ВНИЗ, нижняя
+// возвращается из scale .94 + затемнения.
+html[data-vt-type='cover-back'] {
+  &::view-transition-old(root) {
+    z-index: 2;
+    animation: vt-cover-descend var(--duration-slow) var(--easing-default) both;
+  }
+  &::view-transition-new(root) {
+    z-index: 1;
+    animation: vt-cover-return var(--duration-slow) var(--easing-default) both;
+  }
+}
+
+@keyframes vt-cover-descend {
+  from {
+    transform: translateY(0);
+    box-shadow: 0 -10px 44px rgba(0, 0, 0, 0);
+  }
+  to {
+    transform: translateY(100%);
+    box-shadow: 0 -10px 44px rgba(0, 0, 0, 0.22);
+  }
+}
+
+@keyframes vt-cover-return {
+  from {
+    transform: scale(0.94);
+    filter: brightness(0.82);
+  }
+  to {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+// push-back: зеркало iOS-push (ProductPage). Уходящая уезжает ВПРАВО, прошлая
+// возвращается из −30% параллакса + лёгкого затемнения. Те же 500ms + iOS-кривая.
+html[data-vt-type='push-back'] {
+  &::view-transition-old(root) {
+    z-index: 2;
+    animation: vt-push-back-old-out var(--duration-ios) var(--easing-ios) both;
+  }
+  &::view-transition-new(root) {
+    z-index: 1;
+    animation: vt-push-back-new-in var(--duration-ios) var(--easing-ios) both;
+  }
+}
+
+@keyframes vt-push-back-old-out {
+  from {
+    transform: translateX(0);
+    box-shadow: -6px 0 22px rgba(0, 0, 0, 0);
+  }
+  to {
+    transform: translateX(100%);
+    box-shadow: -6px 0 22px rgba(0, 0, 0, 0.16);
+  }
+}
+
+@keyframes vt-push-back-new-in {
+  from {
+    transform: translateX(-30%);
+    filter: brightness(0.92);
+  }
+  to {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+}
+
+// prefers-reduced-motion → мгновенная склейка для ВСЕХ переходов (root + морф +
+// cover + push + back-зеркала). Перекрывает длительности выше.
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none;
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

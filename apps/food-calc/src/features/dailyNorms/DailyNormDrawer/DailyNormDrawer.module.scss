@@ -1,0 +1,60 @@
+// Surface владеет фоном (drawer-канон: surface owns bg). Warm 3-stop градиент —
+// тот же stripe-warm, что у CreateDailyNormModal .root. Edit-панель прозрачная и
+// показывает этот фон; Create-панель красит идентичный градиент поверх (безвредно).
+.surface {
+    background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 16px 12px;
+    flex-shrink: 0;
+}
+
+.back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-left: -8px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s ease;
+
+    &:active {
+        opacity: 0.5;
+    }
+
+    svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+.title {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+// Контент (Create/Edit panel) владеет своим padding — body остаётся flush.
+.body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+}

@@ -25,6 +25,15 @@ type Props = {
   contentHeader?: React.ReactNode;
   /** Доп. класс на обёртку `contentHeader` (page-specific тюнинг). */
   contentHeaderClassName?: string;
+  /**
+   * Лёгкое page-level действие в левом-верхнем углу листа. `position: absolute`
+   * (см. `.headerAction`) — НЕ толкает центрированный hero вниз, плавает поверх
+   * в углу; якорится к `.headerOverlap` (рассчитано на `headerOverlap`-режим).
+   * Слева → не конфликтует с центрированным hero и watermark-логотипом справа.
+   * Используют DishPage («Предложить ингредиенты») и ProductPage
+   * («Предложить нутриенты») через общий `SuggestActionButton`.
+   */
+  headerAction?: React.ReactNode;
   backgroundColor?: 'gray' | 'white';
   className?: string;
   overlay?: React.ReactNode;
@@ -79,6 +88,7 @@ const Screen = ({
   bottomBar,
   contentHeader,
   contentHeaderClassName,
+  headerAction,
   actions,
   backgroundColor,
   className,
@@ -148,6 +158,7 @@ const Screen = ({
           {header}
           {headerOverlap ? (
             <div className={styles.headerOverlap} data-hollow={hollow ? 'true' : undefined}>
+              {headerAction && <div className={styles.headerAction}>{headerAction}</div>}
               {contentHeader != null && (
                 <div ref={contentHeaderRef} className={clsx(styles.contentHeader, contentHeaderClassName)}>
                   {contentHeader}
@@ -157,6 +168,7 @@ const Screen = ({
             </div>
           ) : (
             <>
+              {headerAction && <div className={styles.headerAction}>{headerAction}</div>}
               {contentHeader != null && (
                 <div ref={contentHeaderRef} className={clsx(styles.contentHeader, contentHeaderClassName)}>
                   {contentHeader}

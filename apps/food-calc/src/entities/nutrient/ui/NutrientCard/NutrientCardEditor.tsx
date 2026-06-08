@@ -43,6 +43,7 @@ const NutrientCardEditor: FC<Props> = ({
     percentText,
     statusClass,
     progressPercent,
+    hasNorm,
   } = useNutrientCard({ content, getValue });
 
   const { group } = content;
@@ -65,7 +66,7 @@ const NutrientCardEditor: FC<Props> = ({
             value={editValue}
             onChange={(v) => onValueChange?.(id, v)}
             unit={unitRu}
-            norm={norm}
+            norm={hasNorm ? norm : undefined}
           />
         </div>
       </label>
@@ -82,11 +83,13 @@ const NutrientCardEditor: FC<Props> = ({
         <span className={clsx(styles.value, !showValue && styles.valueHidden)}>
           {showValue ? <>{value.toFixed(1)} {unitRu}</> : ' '}
         </span>
-        <span className={styles.percentLabel}>
-          <span className={clsx(styles.percent, styles[statusClass])}>{percentText}%</span>
-        </span>
+        {hasNorm && (
+          <span className={styles.percentLabel}>
+            <span className={clsx(styles.percent, styles[statusClass])}>{percentText}%</span>
+          </span>
+        )}
       </div>
-      {showProgress && (
+      {showProgress && hasNorm && (
         <div className={styles.progressBar}>
           <div
             className={styles.progressFill}

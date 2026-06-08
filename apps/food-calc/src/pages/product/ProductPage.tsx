@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { type CSSProperties, useState, useMemo, useCallback, useRef } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import {
   useProduct,
@@ -12,7 +12,7 @@ import {
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { NutrientTable } from '@/widgets/nutrients/FoodsNutrients';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
-import { OpenDailyNorms } from '@/features/dailyNorms/OpenDailyNorms';
+import { DailyNormButton } from '@/features/dailyNorms/DailyNormButton';
 import {
   FoodPortionsManager,
   PortionCreateModals,
@@ -22,24 +22,33 @@ import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer';
 import { Screen } from '@/shared/ui/Screen';
+import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
-import { ScreenLabel } from '@/shared/ui/atoms/Typography/ScreenLabel';
 import { isCreatedByUser } from '@/shared/lib';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import s from './ProductPage.module.scss';
 import homeStyles from '@/pages/home-page/HomePage.module.scss';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
+import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
 import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import bagImg from '@/shared/assets/decarative/bag.png';
 import moneyImg from '@/shared/assets/decarative/money.png';
-
-type ServingUnitOpt = 'IU' | 'mg' | 'mcg' | 'g' | 'шт';
-const SERVING_UNIT_OPTIONS: ServingUnitOpt[] = ['IU', 'mg', 'mcg', 'g', 'шт'];
+import { Select } from '@/shared/ui/atoms/Select';
+import { buildQuantityOptions } from './buildQuantityOptions';
+import { scaleForBasis } from './scaleForBasis';
+import { EditNutrientsModal } from './EditNutrientsModal';
 
 const gramNutrientIds = new Set(allNutrientsList.filter((n) => n.unit === 'g').map((n) => n.id));
+
+// Морф имени card→заголовок временно отключён — сейчас iOS-push-переход
+// (FoodActionCard «i» → useViewTransitionNavigate(..., 'push')). Пустой стиль =
+// заголовок едет вместе со всей страницей в push'е, без отдельной VT-группы.
+// Вернуть морф: поставить { viewTransitionName: 'food-hero-title' } здесь +
+// тегать имя-источник в карточке.
+const HERO_TITLE_VT_STYLE: CSSProperties = {};
 
 // NavTile ambient — radial-glow per nth-child. Общий anchor-ключ с
 // DishBuilderPage: переключение варианта в баре синхронно меняет подсветку
@@ -69,6 +78,10 @@ const PRODUCT_SCREENS_SUPPLEMENT: ScreenEntry[] = [PRODUCT_SCREENS_FOOD[0]];
 const ProductPage = () => {
   const { id } = useParams<'id'>();
   const food = useProduct(id);
+  // Имя + origin из навигации (`state.heroName` — цель морфа на первом кадре,
+  // пока user-продукт грузится из Dexie; `state.from` — точка, КУДА вернёт back).
+  const navState = useLocation().state as { heroName?: string; from?: string } | null;
+  const heroName = navState?.heroName;
   const portionsRaw = useProductPortions(id);
   const { results: nutrientsRaw } = useProductNutrients(id);
   // Lazy default depends on food, which is undefined on first tick; keep
@@ -79,6 +92,10 @@ const ProductPage = () => {
   const [quantity, setQuantity] = useState<number | null>(null);
   const defaultQty = food?.servingBasis === 'serving' ? 1 : 100;
   const displayQuantity = quantity ?? defaultQty;
+  // «Своё значение» в Select количества → раскрывает числовой ввод граммов.
+  const [isCustom, setIsCustom] = useState(false);
+  // Fullscreen-редактор нутриентов (только свои продукты).
+  const [editOpen, setEditOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const handleNameFocusCapture = useCallback((e: React.FocusEvent) => {
     if ((e.target as HTMLElement).id === CHANGE_NAME_INPUT_ID) {
@@ -132,6 +149,10 @@ const ProductPage = () => {
   // handleSelect) по канону HomePage. Прямого выигрыша от memo(Screen) тут
   // нет — соседние пропы Screen (children/actions/bottomRight) инлайн-JSX,
   // memo пробивается всё равно; вреда тоже нет.
+  // bandImg={false} — паритет с Home/Dish: крупная бледная картинка активного
+  // экрана снята (юзер: «от этого уже ушли»). С правоприжатыми 2 плитками она
+  // к тому же висела бы под пустой левой колонкой. Мелкие картинки в самих
+  // NavTile остаются.
   const nutrientsIndicator = useMemo(
     () =>
       screens.length > 1 ? (
@@ -139,6 +160,7 @@ const ProductPage = () => {
           screens={screens}
           onSelect={handleSelect}
           slideIndex={0}
+          bandImg={false}
         />
       ) : null,
     [handleSelect, screens]
@@ -150,6 +172,7 @@ const ProductPage = () => {
           screens={screens}
           onSelect={handleSelect}
           slideIndex={1}
+          bandImg={false}
         />
       ) : null,
     [handleSelect, screens]
@@ -164,6 +187,10 @@ const ProductPage = () => {
       window.localStorage.getItem('lastVisitedScheduleDate') ?? format(new Date(), 'dd-MM-yyyy')
     );
   }, []);
+
+  // Back ведёт на реальный origin (state.from), фолбэк — последняя посещённая
+  // дата расписания. PUSH на явный URL (popstate-back RR намеренно не анимирует).
+  const backTo = navState?.from ?? `/schedule/${dateForTopBar}`;
 
   const nutrientValueMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -188,6 +215,12 @@ const ProductPage = () => {
   // (whole-array replace). Флоу создания живёт внутри PortionCreateModals —
   // общий компонент с DishBuilderPage.
   const portionLabels = useMemo(() => portionsRaw.map((p) => p.label), [portionsRaw]);
+  // Пункты Select количества (для продукта-еды): «На 100 г» + «Своё значение» +
+  // именованные порции. Мемо на стабильном portionsRaw.
+  const quantityOptions = useMemo(
+    () => buildQuantityOptions(portionsRaw.map((p) => ({ label: p.label, grams: p.grams }))),
+    [portionsRaw],
+  );
   const createPortion = (portion: { label: string; grams: number }) => {
     if (!food) return;
     const updated = [...portionsRaw, portion];
@@ -223,13 +256,43 @@ const ProductPage = () => {
     });
   };
 
-  if (!food) return null;
+  if (!food) {
+    // user-продукт ещё грузится из Dexie (useLiveQuery → undefined на первом
+    // тике). Рендерим заголовок-«призрак» из имени, переданного навигацией
+    // (`state.heroName`), чтобы shared-element морф из карточки SearchFood имел
+    // цель уже на ПЕРВОМ кадре нового снапшота. Двойной mount HomeTopBar скрыт
+    // под VT-снимком; после перехода показывается реальная страница на том же
+    // месте. Прямой заход по URL (без heroName) → обычный null до загрузки.
+    if (!heroName) return null;
+    return (
+      <div className={homeStyles.container}>
+        <HomeTopBar
+          date={dateForTopBar}
+          backSlot={<BackButton to={backTo} />}
+          dateButtonLabel={<CalendarIcon width={22} height={22} />}
+          centerLabelVisible={false}
+          noInterruptGuard
+        />
+        <div className={homeStyles.swipeArea}>
+          <Screen
+            headerOverlap
+            contentHeader={
+              <Heading size="section" as="h2">
+                <span style={HERO_TITLE_VT_STYLE}>{heroName}</span>
+              </Heading>
+            }
+          >
+            <div style={{ minHeight: '50vh' }} />
+          </Screen>
+        </div>
+      </div>
+    );
+  }
 
   const isUserCreated = isCreatedByUser(food.id);
 
   const getNutrientValue = (nutrientId: string) => nutrientValueMap.get(nutrientId) ?? 0;
-  // basis '100g' → scale = quantity / 100 (food). 'serving' → scale = quantity (supplement).
-  const scale = food.servingBasis === 'serving' ? displayQuantity : displayQuantity / 100;
+  const scale = scaleForBasis(food.servingBasis, displayQuantity);
   const getScaledValue = (nutrientId: string) => getNutrientValue(nutrientId) * scale;
   // Screen «Порции» рендерится только для еды (servingBasis !== 'serving' —
   // см. условный рендер ниже), так что unit здесь всегда 'г'. Прежняя ветка
@@ -242,6 +305,31 @@ const ProductPage = () => {
     label: p.label,
     grams: p.grams,
   }));
+
+  // Текущий выбор Select количества (продукт-еда): 'custom' при ручном вводе,
+  // иначе пункт с grams === displayQuantity (выбор пункта всегда ставит quantity
+  // в один из них). Фолбэк — первый пункт. Связывает «выбор количества» с
+  // «составом на это количество» через getScaledValue ниже.
+  const selectValue = isCustom
+    ? 'custom'
+    : (quantityOptions.find((o) => o.grams === displayQuantity)?.value ??
+      quantityOptions[0]?.value ??
+      '100g');
+
+  const handleQuantityModeChange = (value: string) => {
+    if (value === 'custom') {
+      setIsCustom(true);
+      return;
+    }
+    const opt = quantityOptions.find((o) => o.value === value);
+    if (opt?.grams != null) {
+      setIsCustom(false);
+      setQuantity(opt.grams);
+    }
+  };
+
+  const massWarningGrams =
+    isUserCreated && food.servingBasis === '100g' && massExceeds100 ? totalGramMass : null;
 
   const handleNutrientValueChange = (nutrientId: string, value: number) => {
     const current: Record<string, number> = {};
@@ -258,6 +346,7 @@ const ProductPage = () => {
     <div className={homeStyles.container}>
       <HomeTopBar
         date={dateForTopBar}
+        backSlot={<BackButton to={backTo} />}
         dateButtonLabel={<CalendarIcon width={22} height={22} />}
         centerLabel={food.name}
         centerLabelHtmlFor={isUserCreated ? CHANGE_NAME_INPUT_ID : undefined}
@@ -275,6 +364,15 @@ const ProductPage = () => {
           }}
         />
       </div>
+      {isUserCreated && (
+        <EditNutrientsModal
+          isExpanded={editOpen}
+          onClose={() => setEditOpen(false)}
+          getValue={getNutrientValue}
+          onValueChange={handleNutrientValueChange}
+          massWarningGrams={massWarningGrams}
+        />
+      )}
       <div className={homeStyles.swipeArea} {...navTileAnchor}>
         {/* При смене количества слайдов (toggle "еда ↔ БАД" у своих продуктов
             прямо на странице) нужен ремаунт Embla — иначе selectedSnap может
@@ -297,127 +395,91 @@ const ProductPage = () => {
               // `<label>` лежит ВНУТРИ heading-а и оборачивает span — валидный
               // HTML, в отличие от `label>h1`. h2 (не h1) — чтобы у страницы
               // остался один h1 даже после дублирования contentHeader в Screen-ах.
+              // span несёт `view-transition-name` (HERO_TITLE_VT_STYLE) — цель
+              // морфа из карточки SearchFood. ТОЛЬКО slide-0 (slide-1 без имени).
               isUserCreated ? (
                 <Heading size="section" as="h2">
                   <label htmlFor={CHANGE_NAME_INPUT_ID} aria-label="Изменить название">
-                    <span>{food.name}</span>
+                    <span style={HERO_TITLE_VT_STYLE}>{food.name}</span>
                   </label>
                 </Heading>
               ) : (
-                <Heading size="section" as="h2">{food.name}</Heading>
+                <Heading size="section" as="h2">
+                  <span style={HERO_TITLE_VT_STYLE}>{food.name}</span>
+                </Heading>
               )
             }
             stickyTop={nutrientsIndicator}
             onContentHeaderVisibilityChange={onTitleVisible0}
+            // Кнопка «Предложить нутриенты» — только у своих продуктов, слева
+            // над hero (общий slot Screen.headerAction + SuggestActionButton,
+            // паритет с DishPage). Функционал подключим в следующей сессии —
+            // пока onClick намеренно не задан (кнопка-плейсхолдер).
+            headerAction={
+              isUserCreated ? (
+                <SuggestActionButton label="Предложить нутриенты" />
+              ) : undefined
+            }
           >
             {/* Имя продукта живёт в centerLabel HomeTopBar (sticky сверху).
-                Для своих продуктов нутриенты редактируются inline (как
-                ингредиенты блюда) — отдельного view/edit-режима нет.
-                Системные продукты — read-only со скейлом по quantity. */}
+                Страница — режим просмотра: read-only таблица со скейлом по
+                выбранному количеству. Правка состава своих продуктов — в
+                fullscreen-модалке (кнопка ниже). Тип (еда/добавка) задаётся при
+                создании и здесь НЕ меняется. */}
 
-            {!isUserCreated && (
-              <section className={s.foodActions}>
-                <span className={s.quantityInputRow}>
-                  <span className={s.quantityInputBox}>
-                    <span aria-hidden className={s.quantityMirror}>
-                      {displayQuantity || 0}
+            {food.servingBasis === 'serving' ? (
+              // Добавка: доза — одна единица; количество выбирается при добавлении
+              // в расписание, не тут. Состав показываем на 1 шт.
+              <p className={s.servingComposition}>Состав на одну единицу:</p>
+            ) : (
+              <>
+                <section className={s.quantityControl}>
+                  <Select
+                    className={s.quantitySelect}
+                    ariaLabel="Способ измерения количества"
+                    value={selectValue}
+                    options={quantityOptions}
+                    onChange={handleQuantityModeChange}
+                  />
+                </section>
+
+                {isCustom && (
+                  <section className={s.foodActions}>
+                    <span className={s.quantityInputRow}>
+                      <span className={s.quantityInputBox}>
+                        <span aria-hidden className={s.quantityMirror}>
+                          {displayQuantity || 0}
+                        </span>
+                        <NumberInput
+                          value={displayQuantity}
+                          min={0}
+                          maxLength={4}
+                          className={s.quantityInput}
+                          onChange={(val) => setQuantity(val)}
+                        />
+                      </span>
+                      <span className={s.quantityUnit}>г</span>
                     </span>
-                    <NumberInput
-                      value={displayQuantity}
-                      min={0}
-                      maxLength={4}
-                      className={s.quantityInput}
-                      onChange={(val) => setQuantity(val)}
-                    />
-                  </span>
-                  <span className={s.quantityUnit}>
-                    {food.servingBasis === 'serving' ? (food.servingUnit ?? 'шт') : 'г'}
-                  </span>
-                </span>
-                <OpenDailyNorms className={s.normIcon} variant="icon" />
-              </section>
+                  </section>
+                )}
+              </>
             )}
 
             {isUserCreated && (
-              <div className={s.servingBlock}>
-                <div className={s.modeToggleRow}>
-                  <button
-                    type="button"
-                    className={`${s.modeBtn} ${food.servingBasis === '100g' ? s.modeBtnActive : ''}`}
-                    onClick={() =>
-                      void safeMutate(
-                        () =>
-                          updateProduct(food.id, {
-                            servingBasis: '100g',
-                            servingUnit: null,
-                          }),
-                        'Не удалось сменить режим продукта'
-                      )
-                    }
-                  >
-                    Еда (на 100 г)
-                  </button>
-                  <button
-                    type="button"
-                    className={`${s.modeBtn} ${food.servingBasis === 'serving' ? s.modeBtnActive : ''}`}
-                    onClick={() =>
-                      void safeMutate(
-                        () =>
-                          updateProduct(food.id, {
-                            servingBasis: 'serving',
-                            // default unit when switching to supplement; user can change it.
-                            servingUnit: food.servingUnit ?? 'шт',
-                          }),
-                        'Не удалось сменить режим продукта'
-                      )
-                    }
-                  >
-                    Добавка (на 1 порцию)
-                  </button>
-                </div>
-                {food.servingBasis === 'serving' && (
-                  <div className={s.servingRow}>
-                    <ScreenLabel variant="formValueLabel">Единица:</ScreenLabel>
-                    <select
-                      className={s.servingUnitSelect}
-                      value={food.servingUnit ?? 'шт'}
-                      onChange={(e) =>
-                        void safeMutate(
-                          () =>
-                            updateProduct(food.id, {
-                              servingUnit: e.target.value as ServingUnitOpt,
-                            }),
-                          'Не удалось сменить единицу'
-                        )
-                      }
-                    >
-                      {SERVING_UNIT_OPTIONS.map((u) => (
-                        <option key={u} value={u}>
-                          {u}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {isUserCreated && massExceeds100 && (
-              <div className={s.massWarning}>
-                Совокупная масса нутриентов ({totalGramMass.toFixed(1)} г) превышает 100 г
-              </div>
+              <button
+                type="button"
+                className={s.editNutrientsBtn}
+                onClick={() => setEditOpen(true)}
+              >
+                Редактировать нутриенты
+              </button>
             )}
 
             <div className={s.nutrientsTail}>
-              {isUserCreated ? (
-                <NutrientTable
-                  getValue={getNutrientValue}
-                  variant="edit-values"
-                  onValueChange={handleNutrientValueChange}
-                />
-              ) : (
-                <NutrientTable getValue={getScaledValue} />
-              )}
+              <div className={s.normRow}>
+                <DailyNormButton />
+              </div>
+              <NutrientTable getValue={getScaledValue} />
             </div>
           </Screen>
 
@@ -473,4 +535,14 @@ const ProductPage = () => {
   );
 };
 
-export default ProductPage;
+// Роут `/product/:id` переиспользует ОДИН инстанс при смене параметра — без
+// key'а quantity / isCustom / editOpen залипают между продуктами. Особо опасно
+// еда→добавка: scale=quantity дал бы таблице добавки ×N. key по id форсит
+// ремаунт со свежим state. Фикс /critique 2026-06-06
+// (tds/product-page-measurement-redesign.md).
+const ProductPageRoute = () => {
+  const { id } = useParams<'id'>();
+  return <ProductPage key={id} />;
+};
+
+export default ProductPageRoute;

@@ -18,6 +18,19 @@ const protein: Nutrient = {
 // defaultDailyNorms[1] = 51, so 25.5g → 50%
 const getValue = (id: string) => (id === '1' ? 25.5 : 0);
 
+// Сахар: defaultDailyNorms[4] = 50 существует, но nutrientsHaveDailyNorm[4] = false
+// → официальной нормы нет, % показывать нельзя (только значение).
+const sugar: Nutrient = {
+  id: '4',
+  name: 'sugar',
+  displayName: 'Sugar',
+  displayNameRu: 'Сахар',
+  unit: 'g',
+  unitRu: 'г',
+  symbol: 'SUG',
+  group: 'main',
+};
+
 describe('NutrientCard', () => {
   it('renders label, value, and percent by default', () => {
     render(<NutrientCard content={protein} getValue={getValue} />);
@@ -94,6 +107,16 @@ describe('NutrientCard', () => {
     expect(screen.getByText('0.0 г')).toBeInTheDocument();
     // getRoundedPercent(0) → "0.0" (falls into < 10 branch)
     expect(screen.getByText('0.0%')).toBeInTheDocument();
+  });
+
+  it('hides percent for a nutrient without an official daily norm (sugar)', () => {
+    const { container } = render(
+      <NutrientCard content={sugar} getValue={(id) => (id === '4' ? 15 : 0)} />
+    );
+
+    // Значение видно, а процента — нет (nutrientsHaveDailyNorm[4] = false).
+    expect(screen.getByText('15.0 г')).toBeInTheDocument();
+    expect(container.textContent).not.toContain('%');
   });
 
   it('applies group class for styling', () => {

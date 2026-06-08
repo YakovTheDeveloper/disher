@@ -33,6 +33,16 @@ export interface AutoGrowSearchProps extends TextareaProps {
    * Use for name/tag fields; omit for free-form note fields.
    */
   singleLine?: boolean;
+  /**
+   * Rich placeholder overlay (e.g. a styled first word). Rendered as an
+   * `aria-hidden` layer over the field, visible only while it is empty
+   * (`:placeholder-shown`). The native `placeholder` string is kept for screen
+   * readers and emptiness detection, but painted transparent — this node draws
+   * the visible, partially-styled version on top. The internal wrapper stays
+   * `display:contents` until this is set, so consumers that don't use it keep an
+   * identical box tree. Assumes no `startAdornment`/`endAdornment` overlap.
+   */
+  renderPlaceholder?: ReactNode;
 }
 
 export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProps>(
@@ -47,6 +57,7 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
       startAdornment,
       endAdornment,
       singleLine = false,
+      renderPlaceholder,
       className,
       onKeyDown,
       onBlur,
@@ -127,26 +138,43 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
     };
 
     return (
-      <div className={[styles.shell, className].filter(Boolean).join(' ')}>
+      <div
+        className={[
+          styles.shell,
+          renderPlaceholder ? styles.hasRichPlaceholder : null,
+          className,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
         {startAdornment && <span className={styles.adornment}>{startAdornment}</span>}
-        <textarea
-          spellCheck={spellCheck ?? false}
-          autoCorrect={autoCorrect ?? 'off'}
-          autoCapitalize={autoCapitalize ?? 'off'}
-          data-base-ui-swipe-ignore=""
-          {...rest}
-          ref={innerRef}
-          rows={1}
-          value={value}
-          placeholder={placeholder}
-          onChange={handleInput}
-          onKeyDown={handleKeyDown}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          className={[styles.field, singleLine && styles.fieldSingleLine]
-            .filter(Boolean)
-            .join(' ')}
-        />
+        {/* display:contents until a rich placeholder is present (see SCSS), so
+            adornment-less consumers keep the textarea as a direct flex child. */}
+        <div className={styles.fieldWrap}>
+          <textarea
+            spellCheck={spellCheck ?? false}
+            autoCorrect={autoCorrect ?? 'off'}
+            autoCapitalize={autoCapitalize ?? 'off'}
+            data-base-ui-swipe-ignore=""
+            {...rest}
+            ref={innerRef}
+            rows={1}
+            value={value}
+            placeholder={placeholder}
+            onChange={handleInput}
+            onKeyDown={handleKeyDown}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            className={[styles.field, singleLine && styles.fieldSingleLine]
+              .filter(Boolean)
+              .join(' ')}
+          />
+          {renderPlaceholder && (
+            <span className={styles.richPlaceholder} aria-hidden="true">
+              {renderPlaceholder}
+            </span>
+          )}
+        </div>
         {endAdornment && <span className={styles.adornment}>{endAdornment}</span>}
       </div>
     );

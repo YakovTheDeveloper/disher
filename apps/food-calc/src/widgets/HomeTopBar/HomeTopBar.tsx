@@ -30,9 +30,14 @@ type Props = {
    *  `ModalByLabel`, which expands on focus capture. Takes precedence over
    *  `onTitleClick` if both are provided. */
   centerLabelHtmlFor?: string;
-  /** Slot rendered as the FIRST child of `.bar` (before the date segment).
-   *  Used by HomePage to mount mini-tile navigation inside the bar pill
-   *  itself instead of stacking another absolute layer over it. */
+  /** Slot rendered as the VERY FIRST child of `.bar`, before the account pill.
+   *  Detail pages (product / dish) put a `<BackButton>` here → the leading edge
+   *  reads `[‹] [account] … [date]` (iOS leading-back canon). Inherits the
+   *  `--bar-*` tokens so the ‹ pill matches the account / date pills. */
+  backSlot?: React.ReactNode;
+  /** Slot rendered after the account pill (before the date segment). Used by
+   *  HomePage to mount mini-tile navigation inside the bar pill itself instead
+   *  of stacking another absolute layer over it. */
   leadingSlot?: React.ReactNode;
   /** Абсолютно центрированный pill-слот для произвольного контента
    *  (без serif-overrides из `.centerLabel` — он заточен под имя
@@ -86,6 +91,7 @@ const DateButtonContent = ({ parts }: { parts: DateParts }) => {
 
 const HomeTopBar = ({
   date,
+  backSlot,
   dateButtonLabel,
   centerLabel,
   onTitleClick,
@@ -134,6 +140,7 @@ const HomeTopBar = ({
   return (
     <div className={styles.shell} {...barAnchor}>
       <div className={styles.bar}>
+        {backSlot}
         <div className={styles.accountSlot}>
           <AccountPanel />
         </div>

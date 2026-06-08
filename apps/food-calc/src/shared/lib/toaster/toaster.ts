@@ -25,9 +25,14 @@ function buildAction(action?: ToastAction) {
     return {
         label: action.label,
         onClick: () => {
-            console.warn('[debug toaster] action click → navigate', action.href);
-            const result = router.navigate(action.href);
-            console.warn('[debug toaster] navigate result', result);
+            // Forward push so the destination's BackButton can return precisely
+            // (state.from = where the toast was shown). Global VT cleanup clears
+            // data-vt-type on transition.finished.
+            document.documentElement.dataset.vtType = 'push';
+            void router.navigate(action.href, {
+                viewTransition: true,
+                state: { from: window.location.pathname + window.location.search },
+            });
         },
     };
 }

@@ -12,6 +12,11 @@
 
     --color-white: rgb(252, 255, 252);
     --color-danger: rgb(236, 0, 0);
+    // Semantic warning (амбер) — единственный «осторожно» акцент (mass-warning
+    // в редакторе нутриентов). Раньше эти значения хардкодились в ProductPage.
+    --color-warning: rgb(184, 110, 26);
+    --color-warning-surface: rgba(235, 137, 39, 0.1);
+    --color-warning-border: rgba(235, 137, 39, 0.25);
     --color-primary: rgb(0, 140, 195);
     --color-green: rgb(76, 175, 80);
     --color-green-2: rgb(34, 124, 37);
@@ -32,7 +37,7 @@
     --text-primary: #111827;
     --text-secondary: #6b7280;
     --text-tertiary: #9ca3af;
-    --text-muted: rgba(0, 0, 0, 0.4);
+    --text-muted: rgba(0, 0, 0, 0.15);
     --text-on-accent: #ffffff;
 
     // ─── Ink: brand near-black used across pill buttons, footer CTA, big digits ──

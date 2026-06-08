@@ -19,6 +19,12 @@ type Props = {
   filterOptions?: readonly SearchFilter[];
   selectedFilter?: SearchFilter;
   onSelectFilter?: (next: SearchFilter) => void;
+  /** Второй ряд «Нутриенты»: idle — pill-кнопка справа (открывает drawer-выбор);
+   *  выбран — «Еда богатая нутриентом: X» + крестик отмены. Скрыт в dishes-only. */
+  showNutrientFilter?: boolean;
+  selectedNutrientLabel?: string | null;
+  onOpenNutrientPicker?: () => void;
+  onClearNutrient?: () => void;
 };
 
 const SearchFoodControls = ({
@@ -31,11 +37,16 @@ const SearchFoodControls = ({
   filterOptions,
   selectedFilter,
   onSelectFilter,
+  showNutrientFilter,
+  selectedNutrientLabel,
+  onOpenNutrientPicker,
+  onClearNutrient,
 }: Props) => {
   const hasFilter = Boolean(filterOptions && filterOptions.length > 1 && selectedFilter && onSelectFilter);
 
   return (
-    <header className={clsx(styles.header, hasFilter && styles.headerWithFilter, className)}>
+    <div className={clsx(styles.controls, className)}>
+      <header className={clsx(styles.header, hasFilter && styles.headerWithFilter)}>
       {onBack && (
         <button className={styles.backButton} onClick={onBack} type="button">
           <svg
@@ -123,7 +134,40 @@ const SearchFoodControls = ({
           })}
         </div>
       )}
-    </header>
+      </header>
+
+      {showNutrientFilter && (
+        <div className={styles.nutrientRow}>
+          {selectedNutrientLabel ? (
+            <div className={styles.nutrientSelected}>
+              <button
+                type="button"
+                className={styles.nutrientSelectedText}
+                onClick={onOpenNutrientPicker}
+              >
+                Еда богатая нутриентом: <strong>{selectedNutrientLabel}</strong>
+              </button>
+              <button
+                type="button"
+                className={styles.nutrientClear}
+                onClick={onClearNutrient}
+                aria-label="Отменить выбор нутриента"
+              >
+                <CrossIcon />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className={styles.nutrientButton}
+              onClick={onOpenNutrientPicker}
+            >
+              Нутриенты
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 

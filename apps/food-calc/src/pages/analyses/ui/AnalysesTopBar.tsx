@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
 import styles from './AnalysesTopBar.module.scss';
 
 type Props = {
@@ -13,18 +13,12 @@ const TABS = ['Гипотезы', 'Разборы'] as const;
 // Sticky header for AnalysesPage — a back arrow plus a two-tab switcher that
 // doubles as the slide indicator. Tapping a tab drives the Swipeable.
 const AnalysesTopBar = ({ activeSlide, onSelectSlide }: Props) => {
-  const navigate = useNavigate();
-
   return (
     <div className={styles.bar}>
-      <button
-        type="button"
-        className={styles.back}
-        onClick={() => navigate('/')}
-        aria-label="На главную"
-      >
-        ‹
-      </button>
+      {/* Назад на главную — зеркало входа (cover снизу): AnalysesPage съезжает
+          вниз, HomePage возвращается из scale .94. PUSH на '/' (не navigate(-1)):
+          popstate-back React не анимирует, push — да. Общий BackButton. */}
+      <BackButton to="/" type="cover-back" ariaLabel="На главную" />
       <div className={styles.tabs} role="tablist">
         {TABS.map((label, i) => (
           <button

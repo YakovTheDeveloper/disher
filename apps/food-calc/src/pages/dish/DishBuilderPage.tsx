@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useLocation } from 'react-router';
 import { format } from 'date-fns';
 import {
   useDish,
@@ -44,10 +44,12 @@ import { DishAnalysisScreen } from '@/features/dish-analysis';
 import { useDishNutrientTotals } from '@/entities/dish';
 import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
+import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
 import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { AppBottomBar, NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
+import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 import jazzImg from '@/shared/assets/decarative/jazz.png';
@@ -90,13 +92,6 @@ const NAVTILE_AMBIENT_VARIANTS = [
   'none',
 ] as const;
 
-// Sparkle — the "infer recipe" affordance icon (head A semantic suggest).
-const SparkleIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M12 2.5l1.6 4.9a4 4 0 0 0 2.5 2.5l4.9 1.6-4.9 1.6a4 4 0 0 0-2.5 2.5L12 20.5l-1.6-4.9a4 4 0 0 0-2.5-2.5L3 11.5l4.9-1.6a4 4 0 0 0 2.5-2.5L12 2.5z" />
-  </svg>
-);
-
 const DishBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
 
@@ -111,6 +106,7 @@ const DishBuilderPage = () => {
   const dishTotals = useDishNutrientTotals(id);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [renameOpen, setRenameOpen] = useState(false);
   const handleNameFocusCapture = useCallback((e: React.FocusEvent) => {
@@ -174,6 +170,11 @@ const DishBuilderPage = () => {
     const stored = window.localStorage.getItem('lastVisitedScheduleDate');
     return stored ?? format(new Date(), 'dd-MM-yyyy');
   }, []);
+
+  // Back ведёт на реальный origin (state.from), фолбэк — последняя посещённая
+  // дата расписания. PUSH на явный URL (popstate-back RR намеренно не анимирует).
+  const backTo =
+    (location.state as { from?: string } | null)?.from ?? `/schedule/${dateForTopBar}`;
 
   // Свайп не прокидывается в стейт: каждый слайд рендерит свой статичный
   // ScreenIndicator (slideIndex={0/1/2}). Тот же паттерн, что HomePage.
@@ -298,6 +299,7 @@ const DishBuilderPage = () => {
     <div className={homeStyles.container}>
       <HomeTopBar
         date={dateForTopBar}
+        backSlot={<BackButton to={backTo} />}
         dateButtonLabel={<CalendarIcon width={22} height={22} />}
         centerSlot={topBarCenterSlot}
         noInterruptGuard
@@ -335,6 +337,15 @@ const DishBuilderPage = () => {
             contentHeader={nameHeading}
             stickyTop={ingredientsIndicator}
             hollow={items.length === 0}
+            headerAction={
+              <SuggestActionButton
+                label="Предложить ингредиенты"
+                // Disable while parsing AND when the dish has no name yet —
+                // submitDishName('') is a silent no-op otherwise.
+                disabled={writeFoodFlow.state === 'loading' || !dish.name.trim()}
+                onClick={handleSuggestIngredients}
+              />
+            }
             overlay={
               <>
                 <DishProductCreateModals dishId={id} />
@@ -352,26 +363,11 @@ const DishBuilderPage = () => {
                 writeFoodInputId={writeFoodInputId}
                 searchHtmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
                 searchLabel="Найти продукт"
-                searchText="Выбор еды"
+                searchText="выбрать из списка"
                 writeFoodPlaceholder="Опишите ингредиенты…"
               />
             }
           >
-            <div className={styles.suggestRow}>
-              <button
-                type="button"
-                className={styles.suggestButton}
-                // Disable while parsing AND when the dish has no name yet —
-                // submitDishName('') is a silent no-op otherwise.
-                disabled={writeFoodFlow.state === 'loading' || !dish.name.trim()}
-                onClick={handleSuggestIngredients}
-              >
-                <span className={styles.suggestButtonIcon} aria-hidden="true">
-                  <SparkleIcon />
-                </span>
-                Предложить ингредиенты
-              </button>
-            </div>
             <div className={styles.dishItemsGroup}>
             <ItemsList offsetTop>
               {items.map((item, index) => (

@@ -7,6 +7,7 @@ import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { DetailsStep } from '@/features/food/details-chips';
 import { getProductUrl, RouterUrls } from '@/app/router';
+import { pushNavigate } from '@/shared/lib/viewTransition';
 
 import { STEP_LABELS, type ScheduleFoodFlow } from './useScheduleFoodFlow';
 import s from './ScheduleFoodEditModals.module.scss';
@@ -61,7 +62,7 @@ const ScheduleFoodEditModals = ({ flow }: Props) => {
 
   const handleInfoClick = (href: string) => () => {
     handleClose();
-    navigate(href);
+    pushNavigate(navigate, href, 'push');
   };
 
   const detailsTitle = draft.foodName

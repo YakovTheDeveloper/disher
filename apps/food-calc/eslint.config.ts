@@ -2,12 +2,33 @@ import { defineConfig } from 'eslint/config';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import pluginReact from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
 import path from 'path';
 
 export default defineConfig([
     js.configs.recommended,
     ...tseslint.configs.recommended,
     pluginReact.configs.flat.recommended,
+    // React Compiler линт: набор granular-правил (purity / set-state-in-render /
+    // immutability / refs / static-components / use-memo …), которые ловят код,
+    // мешающий компилятору безопасно мемоизировать (он молча «бейлит» такие
+    // компоненты). rules-of-hooks тоже здесь. Подключён вместе с включённым
+    // React Compiler (см. [[project_react_compiler_2026_06_06]]).
+    {
+        // recommended-latest в v7 — legacy eslintrc-формат (plugins массивом),
+        // поэтому регистрируем плагин объектом сами и тянем severity-набор из
+        // пресета. exhaustive-deps + ещё два правила там `warn`, а у нас
+        // `--max-warnings 0` (warn = провал гейта); exhaustive-deps с включённым
+        // компилятором избыточен и шумит на легаси — глушим в off, оставляя
+        // только error-level compiler-rules.
+        plugins: { 'react-hooks': reactHooks },
+        rules: {
+            ...reactHooks.configs['recommended-latest'].rules,
+            'react-hooks/exhaustive-deps': 'off',
+            'react-hooks/incompatible-library': 'off',
+            'react-hooks/unsupported-syntax': 'off',
+        },
+    },
     {
         languageOptions: {
             parserOptions: {

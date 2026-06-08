@@ -1,5 +1,6 @@
 import {
     defaultDailyNorms,
+    nutrientsHaveDailyNorm,
     Nutrient,
 } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { useUserNormItems } from '@/entities/daily-norm';
@@ -20,6 +21,10 @@ export interface UseNutrientCardReturn {
     progressPercent: number;
     percentText: string;
     statusClass: string;
+    /** Есть ли у нутриента официальная суточная норма (`nutrientsHaveDailyNorm`).
+     *  false → сахар/крахмал/β-каротин/α-каротин: показываем только значение, без %
+     *  (в `defaultDailyNorms` у них лежат плейсхолдеры, но нормы как таковой нет). */
+    hasNorm: boolean;
 }
 
 const getRoundedPercent = (percentage: number) => {
@@ -48,6 +53,7 @@ export const useNutrientCard = ({
     const userItems = useUserNormItems();
     const userNorm = userItems?.[id];
     const norm = userNorm ?? defaultDailyNorms[+id];
+    const hasNorm = nutrientsHaveDailyNorm[+id] === true;
 
     const percent = norm > 0 ? (value / norm) * 100 : 0;
     const progressPercent = Math.min(100, percent);
@@ -64,6 +70,7 @@ export const useNutrientCard = ({
         progressPercent,
         percentText,
         statusClass,
-        symbol
+        symbol,
+        hasNorm,
     };
 };

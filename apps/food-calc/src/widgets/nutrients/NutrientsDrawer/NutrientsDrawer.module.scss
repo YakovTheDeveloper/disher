@@ -93,34 +93,3 @@
     padding: 0 12px 24px;
     overflow-x: hidden;
 }
-
-// ─── Panel-mode overrides ───────────────────────────────────────
-// When the drawer hosts the embedded norm form (slots.bodyContent != null),
-// surface owns bg + the content owns padding. See industry-2026 canon:
-// surface owns colour and reaches every edge regardless of content height;
-// padding is set exactly once, by whoever renders the form children. The
-// nested form (CreateDailyNormModal/EditDailyNormModal) is that owner here,
-// so the drawer body drops its own padding and lets the form sit flush.
-
-// Drawer.Popup (DrawerLayout passes this through as the popup className).
-// Warm gradient mirrors `.root` in CreateDailyNormModal — horizontal 3-stop
-// stripe-warm. Lives on the surface so it covers the entire popup rectangle
-// even when the form is short; previously the gradient was on the form
-// element and clipped to content height → visible white floor.
-.contentWarm {
-    background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
-}
-
-// Sticky header in panel mode: warm-on-warm so scrolling content disappears
-// behind it cleanly. The existing scroll-state shadow (warm-tinted) still
-// fires when stuck — gives the seam affordance without a white band.
-.headerWarm {
-    background: transparent;
-}
-
-// Content owns its own padding (CreateDailyNormModal `.bodyPanel` = 16px).
-// Removing the outer 12px here means no double-padded inset and no 12px
-// white frame along the drawer edges.
-.bodyFlush {
-    padding: 0;
-}

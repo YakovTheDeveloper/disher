@@ -18,10 +18,12 @@
     flex-shrink: 0;
     gap: var(--space-1);
     padding-top: var(--space-6);
-    // 3 равные колонки. Активная плитка НЕ рендерится в DOM, но её
-    // колонка остаётся пустой — оставшиеся плитки попадают в свои
-    // позиции через inline `grid-column-start` (см. ScreenIndicator.tsx).
-    grid-template-columns: repeat(var(--tiles-total, 3), 1fr);
+    // Колонок = `--tiles-slots` (= max(plitok, 3)): для Home/Dish (3 плитки)
+    // это 3 полноширинные колонки; для Product (2 плитки) — тоже 3 колонки,
+    // но плитки сдвинуты вправо через inline `grid-column-start` (см.
+    // ScreenIndicator.tsx `colOffset`), левая колонка пустая → каждая плитка
+    // 1/3 ширины вместо 1/2 (анти-гигантизм).
+    grid-template-columns: repeat(var(--tiles-slots, 3), 1fr);
 }
 
 // Сами плиточки — примитив `NavTile` (shared/ui/NavTile). Здесь остаётся

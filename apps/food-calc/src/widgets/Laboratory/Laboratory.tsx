@@ -1,5 +1,4 @@
 import { memo, useCallback, useMemo, useState, type FocusEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/shared/ui/Screen';
 import { AppBottomBarShell } from '@/shared/ui/AppBottomBar/AppBottomBarShell';
 import { useAllHypotheses } from '@/entities/hypothesis';
@@ -9,6 +8,7 @@ import {
   EDIT_HYPOTHESIS_TITLE_INPUT_ID,
 } from '@/features/analysis/hypothesis-drawers';
 import { RouterLinks } from '@/app/router';
+import { useViewTransitionNavigate } from '@/shared/lib/viewTransition';
 import HypothesisSection from './HypothesisSection';
 import DailyAnalysisSection from './DailyAnalysisSection';
 import styles from './Laboratory.module.scss';
@@ -24,7 +24,9 @@ type Props = {
 // Creation is inline (composer); tap on a row is a label htmlFor that opens
 // EditHypothesisModal.
 const Laboratory = ({ date, topSlot }: Props) => {
-  const navigate = useNavigate();
+  // «Анализ по неделям →» — наслоение (cover): AnalysesPage въезжает снизу и
+  // накрывает HomePage. RR-native: см. useViewTransitionNavigate.
+  const goWeekly = useViewTransitionNavigate(RouterLinks.Analyses, 'cover');
   const hypotheses = useAllHypotheses();
 
   // Which hypotheses ride into the next analysis. Ephemeral UI state — lives
@@ -80,7 +82,7 @@ const Laboratory = ({ date, topSlot }: Props) => {
             <button
               type="button"
               className={styles.weeklyLink}
-              onClick={() => navigate(RouterLinks.Analyses)}
+              onClick={goWeekly}
             >
               Анализ по неделям →
             </button>

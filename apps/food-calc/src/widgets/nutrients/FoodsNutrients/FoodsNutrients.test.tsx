@@ -18,10 +18,19 @@ vi.mock('@/shared/ui/atoms/Spinner/Spinner', () => ({
   default: () => <div data-testid="spinner" />,
 }));
 
+vi.mock('@/features/dailyNorms/DailyNormButton', () => ({
+  DailyNormButton: () => <div data-testid="daily-norm-button" />,
+}));
+
 describe('FoodsNutrients', () => {
   it('renders without crashing with empty totals', () => {
     render(<FoodsNutrients totals={{}} />);
     expect(screen.getByTestId('nutrients-list')).toBeInTheDocument();
+  });
+
+  it('renders the DailyNormButton at the top of the widget', () => {
+    render(<FoodsNutrients totals={{}} />);
+    expect(screen.getByTestId('daily-norm-button')).toBeInTheDocument();
   });
 
   it('passes correct values from totals to cards via getValue', () => {
