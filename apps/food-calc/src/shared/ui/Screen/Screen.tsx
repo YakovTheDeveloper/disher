@@ -58,8 +58,13 @@ type Props = {
    * чтобы строки растворялись под плавающей пилюлей без белой плашки).
    * `fixed` тут невозможен — слайды Embla двигаются `transform`'ом и несут
    * `contain: strict`, оба перехватывают containing-block у fixed-потомка.
-   * Используется HomePage (write-dock). Прочие страницы не задают — остаётся
-   * integrated-dock (бар в потоке, список кончается над ним).
+   *
+   * КАНОН (2026-06-08): по умолчанию `true` — плавающий бар стал общим
+   * паттерном для ВСЕХ экранов с нижним баром (как HomePage screen 2), БЕЗ
+   * гейта на пустоте (юзер выбрал «всегда плавает, для упрощения»). Эффект
+   * включается ТОЛЬКО когда есть `bottomBar` (экраны без бара не получают ни
+   * mask'у, ни нижний padding). Опт-аут `false` существует на крайний случай,
+   * но сейчас им никто не пользуется — не плодить per-page гейты без причины.
    */
   bottomBarOverlay?: boolean;
   /**
@@ -97,12 +102,16 @@ const Screen = ({
   backgroundImageOpacity = 0.05,
   headerOverlap = false,
   hollow = false,
-  bottomBarOverlay = false,
+  bottomBarOverlay = true,
   stickyTop,
   onContentHeaderVisibilityChange,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollContainerRef);
+
+  // Плавающий бар включается, только когда бар реально есть — иначе экран без
+  // нижнего бара зря получил бы маску + нижний padding скроллера.
+  const overlayActive = bottomBarOverlay && Boolean(bottomBar);
 
   // Наблюдаем реальный элемент заголовка (`contentHeader`) против собственного
   // скролл-рута. Эмитим булеву видимость наружу — страница флипает
@@ -134,7 +143,7 @@ const Screen = ({
       className={clsx(
         styles.screen,
         backgroundColor && styles[`bg-${backgroundColor}`],
-        bottomBarOverlay && styles.screenBottomOverlay,
+        overlayActive && styles.screenBottomOverlay,
         className,
       )}
     >
@@ -179,7 +188,7 @@ const Screen = ({
           )}
           <div ref={sentinelRef} />
         </div>
-        <ScrollIndicator visible={hasMoreBelow && !bottomBarOverlay} />
+        <ScrollIndicator visible={hasMoreBelow && !overlayActive} />
       </div>
 
       {bottomBar && <div className={styles.bottomBar}>{bottomBar}</div>}

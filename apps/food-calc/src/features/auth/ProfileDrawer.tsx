@@ -7,6 +7,7 @@ import { Heading } from '@/shared/ui/atoms/Typography';
 import { ThemePicker } from '@/features/theme';
 import { dump, apply, syncNow } from '@/shared/lib/snapshot';
 import { HoldButton } from './HoldButton';
+import { BalanceSection } from './BalanceSection';
 
 const downloadJson = (name: string, obj: unknown) => {
   const blob = new Blob([JSON.stringify(obj)], { type: 'application/json' });
@@ -157,6 +158,8 @@ export function ProfileDrawer() {
           <Heading size="drawer" as="h1">Аккаунт</Heading>
           <p className={styles.email}>{email}</p>
         </div>
+
+        <BalanceSection />
 
         <section className={styles.section}>
           <h2 className={styles.sectionLabel}>Оформление</h2>

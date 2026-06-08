@@ -2,6 +2,8 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { pool } from "../db.js";
 import { requireUser } from "../../auth/require-user.js";
 import { asNutrientLines } from "../../shared/analysis-output.js";
+import { chargeOr402 } from "../../billing/http.js";
+import { refund } from "../../billing/wallet.js";
 import {
   runAnalysisJob,
   updateAnalysisFailed,
@@ -152,17 +154,30 @@ export async function analyzeRoutes(
         : {}),
     };
 
+    // Paid: debit before inserting. requestId = the analysis id, so a duplicate
+    // POST (same id) is idempotent on BOTH the charge and the row — no double
+    // debit — and a 402 leaves no orphan pending row. The async job refunds on
+    // failure (see analyze.runJob.ts).
+    if (!(await chargeOr402(req, reply, "long_analysis", id))) return;
+
     // INSERT pending row. The row id IS the idempotency key — a duplicate POST
     // hits the conflict path and returns the existing row without re-firing
     // the LLM.
-    const insert = await pool.query<AnalysisRow>(
-      `insert into public.analyses
-         (id, user_id, window_start, window_end, applied_hypotheses)
-       values ($1::uuid, $2::uuid, $3::timestamptz, $4::timestamptz, $5::jsonb)
-       on conflict (id) do nothing
-       returning *`,
-      [id, req.userId, start, end, JSON.stringify(payload.hypotheses ?? [])],
-    );
+    let insert;
+    try {
+      insert = await pool.query<AnalysisRow>(
+        `insert into public.analyses
+           (id, user_id, window_start, window_end, applied_hypotheses)
+         values ($1::uuid, $2::uuid, $3::timestamptz, $4::timestamptz, $5::jsonb)
+         on conflict (id) do nothing
+         returning *`,
+        [id, req.userId, start, end, JSON.stringify(payload.hypotheses ?? [])],
+      );
+    } catch (err) {
+      // Charged but couldn't create the job — give the money back.
+      await refund(req.userId, "long_analysis", id).catch(() => {});
+      throw err;
+    }
 
     if ((insert.rowCount ?? 0) > 0) {
       const row = insert.rows[0];
@@ -178,7 +193,12 @@ export async function analyzeRoutes(
       [id, req.userId],
     );
     const row = existing.rows[0];
-    if (!row) return reply.status(404).send({ error: "analysis not found" });
+    if (!row) {
+      // The id exists but isn't this user's (or vanished). The charge above was
+      // a fresh debit for an id we can't serve — refund it.
+      await refund(req.userId, "long_analysis", id).catch(() => {});
+      return reply.status(404).send({ error: "analysis not found" });
+    }
     return reply.send({ analysis: serialiseRow(row) });
   });
 

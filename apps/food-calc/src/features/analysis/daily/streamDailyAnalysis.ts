@@ -1,5 +1,6 @@
 import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { API_BASE } from '@/shared/lib/api/base';
+import { readApiError } from '@/shared/lib/api/apiError';
 import { createSSEParser } from '@/shared/lib/sse/parseSSELines';
 import type { NutrientLine } from '../api/runAnalysis';
 
@@ -14,7 +15,7 @@ import type { NutrientLine } from '../api/runAnalysis';
 
 const ENDPOINT = `${API_BASE}/api/analyze/daily`;
 
-export type DailyStreamErrorKind = 'network' | 'server';
+export type DailyStreamErrorKind = 'network' | 'server' | 'payment';
 
 export class DailyStreamError extends Error {
   readonly kind: DailyStreamErrorKind;
@@ -55,7 +56,10 @@ export async function streamDailyAnalysis(args: StreamArgs): Promise<string> {
   try {
     res = await authedFetch(ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Request-Id': crypto.randomUUID(),
+      },
       body: JSON.stringify({ date, scheduleFoods, scheduleEvents, nutrients, hypotheses }),
       signal,
     });
@@ -67,13 +71,11 @@ export async function streamDailyAnalysis(args: StreamArgs): Promise<string> {
     );
   }
 
-  // Any non-ok HTTP response (4xx auth/validation, 5xx) — surface as `server`.
+  // Any non-ok HTTP response (4xx auth/validation, 402 payment, 5xx) — surface
+  // as `server`. readApiError carries the localized RU message for 402.
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new DailyStreamError(
-      'server',
-      `POST /api/analyze/daily ${res.status}: ${text.slice(0, 200)}`,
-    );
+    const e = await readApiError(res);
+    throw new DailyStreamError(e.paymentRequired ? 'payment' : 'server', e.message);
   }
 
   const parser = createSSEParser(collect);

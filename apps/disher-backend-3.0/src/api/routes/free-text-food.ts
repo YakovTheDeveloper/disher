@@ -1,9 +1,11 @@
-import { createHash, randomUUID } from "crypto";
+import { createHash } from "crypto";
 import { FastifyInstance } from "fastify";
 import { isMatcherReady } from "../food-matcher.js";
 import { logLLMOutput } from "../llm-output-log.js";
 import { getLLMModel } from "../build-info.js";
 import { resolveNames, type LLMItem, LLM_ITEMS_JSON_SCHEMA } from "../resolve-names.js";
+import { chargeOr402, resolveRequestId } from "../../billing/http.js";
+import { refund } from "../../billing/wallet.js";
 
 // ─── Types ───
 
@@ -238,7 +240,8 @@ export async function freeTextFoodRoutes(app: FastifyInstance) {
       });
     }
 
-    const requestId = randomUUID();
+    const requestId = resolveRequestId(req);
+    let charged = false;
 
     try {
       const cached = getCachedLLM(text);
@@ -255,6 +258,14 @@ export async function freeTextFoodRoutes(app: FastifyInstance) {
           latencyMs: 0,
         });
       } else {
+        // Paid step: debit before the OpenRouter call. Cache hits above are
+        // free (no upstream call). req.userId is set by the requireUser
+        // preHandler (added on the scope in buildApp); it's absent only in the
+        // pure-pipeline unit tests, which skip billing.
+        if (req.userId) {
+          if (!(await chargeOr402(req, reply, "free_text_parse", requestId))) return;
+          charged = true;
+        }
         const result = await callLLM(text);
         items = result.items;
         setCachedLLM(text, items);
@@ -280,6 +291,10 @@ export async function freeTextFoodRoutes(app: FastifyInstance) {
       const result = await resolveNames(items, text, requestId);
       return reply.send(result);
     } catch (err) {
+      // Refund a completed charge if the request failed before a usable result.
+      if (charged && req.userId) {
+        await refund(req.userId, "free_text_parse", requestId).catch(() => {});
+      }
       const message = err instanceof Error ? err.message : "Unknown error";
       app.log.error(`free-text-food/parse error: ${message}`);
       return reply.status(500).send({ error: message });

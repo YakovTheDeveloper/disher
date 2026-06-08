@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useRef, Fragment } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, Fragment } from 'react';
 import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
@@ -92,7 +92,11 @@ const FoodSchedule = ({
   // editingItem + draft. The flow's own onFocusCapture then flips the step
   // to 'details' from the same focus event.
   const itemsRef = useRef(items);
-  itemsRef.current = items;
+  // Освежаем ref в эффекте, не в рендере (react-hooks/refs). itemsRef читается
+  // только в обработчике фокуса (после рендера) — рассинхрона нет.
+  useEffect(() => {
+    itemsRef.current = items;
+  });
   const primeEdit = editFlow.primeEdit;
   const handleEditFocusCapture = useCallback(
     (e: React.FocusEvent) => {
@@ -111,8 +115,9 @@ const FoodSchedule = ({
   const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
   // Пустой список → «листа» под контентом нет (hollow): маленький watermark у
   // заголовка гаснет, вместо него большой бренд-знак по центру (Screen
-  // `.brandWatermark`), а бар становится интегрированным (не overlay).
-  // Заголовок дня недели остаётся.
+  // `.brandWatermark`). Бар плавает над контентом всегда (канон 2026-06-08:
+  // Screen.bottomBarOverlay дефолт true, без гейта на пустоте). Заголовок дня
+  // недели остаётся.
   const isEmpty = items.length === 0;
 
   // Long-press → per-item action drawer: delete (top-right) + «Информация о
@@ -139,10 +144,6 @@ const FoodSchedule = ({
       headerOverlap
       hollow={isEmpty}
       contentHeader={<Heading size="section">{weekdayTitle}</Heading>}
-      // Список есть → бар-оверлей (строки скроллятся под плавающей пилюлей).
-      // Пусто → интегрированный бар в потоке: overlay-режим наезжал бы
-      // absolute-баром на empty-state по центру.
-      bottomBarOverlay={!isEmpty}
       overlay={
         <>
           {isActive ? (
@@ -166,6 +167,9 @@ const FoodSchedule = ({
           searchLabel="Найти еду"
           searchText="выбрать из списка"
           writeFoodPlaceholder="Напишите, что вы ели или"
+          // Переносы регулируются `\n` прямо в строке (CSS white-space: pre-line);
+          // без них длинные строки переносит auto-wrap по ширине 80%.
+          writeFoodHint={'Например, 9:40 гречка 80, сливочное масло 10,\nяйцо 80, вода 200, хлеб 100, сыр 30'}
         />
       }
     >

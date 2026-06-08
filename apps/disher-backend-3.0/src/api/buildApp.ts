@@ -15,9 +15,10 @@ import { backupRoutes } from "./routes/backup.js";
 import { analyzeRoutes } from "./routes/analyze.js";
 import { analyzeDishRoutes } from "./routes/analyze-dish.js";
 import { analyzeDailyRoutes } from "./routes/analyze-daily.js";
+import { billingRoutes } from "./routes/billing.js";
 import { devRoutes } from "./routes/dev.js";
 import { betterAuthPlugin } from "../auth/fastify-plugin.js";
-import { registerUserIdDecorator } from "../auth/require-user.js";
+import { registerUserIdDecorator, requireUser } from "../auth/require-user.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -106,14 +107,34 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   });
 
   await app.register(analyticsRoutes, { prefix: "/api/analytics" });
-  await app.register(suggestionsRoutes, { prefix: "/api/suggestions" });
-  await app.register(freeTextFoodRoutes, { prefix: "/api/free-text-food" });
+
+  // suggestions + free-text-food are PAID (debit the wallet per LLM call). They
+  // used to be anonymous (IP-rate-limited) — the app now mandates signup
+  // (AuthGate), so requiring a bearer is safe. requireUser is added on a scope
+  // here, NOT inside the route modules, so their pure-pipeline unit tests keep
+  // registering the bare route without auth. Billing inside the handler is gated
+  // on req.userId, which only those bare tests lack.
+  await app.register(
+    async (scope) => {
+      scope.addHook("preHandler", requireUser);
+      await scope.register(suggestionsRoutes);
+    },
+    { prefix: "/api/suggestions" },
+  );
+  await app.register(
+    async (scope) => {
+      scope.addHook("preHandler", requireUser);
+      await scope.register(freeTextFoodRoutes);
+    },
+    { prefix: "/api/free-text-food" },
+  );
   await app.register(matcherTelemetryRoutes, { prefix: "/api/matcher-telemetry" });
   await app.register(diagLogsRoutes, { prefix: "/api/diag-logs" });
   await app.register(backupRoutes, { prefix: "/api/backup" });
   await app.register(analyzeRoutes, { prefix: "/api" });
   await app.register(analyzeDishRoutes, { prefix: "/api" });
   await app.register(analyzeDailyRoutes, { prefix: "/api" });
+  await app.register(billingRoutes, { prefix: "/api" });
 
   // Dev/test-only routes. Each handler also 404s when NODE_ENV === 'production'
   // as a second line of defense, but skip registration entirely in prod so the

@@ -83,17 +83,9 @@ const HypothesisListPanel = ({
   const selectedCount = selectedIds.size;
   const capReached = selectable && selectedCount >= MAX_SELECTED;
 
-  if (total === 0) {
-    return (
-      <section className={styles.empty}>
-        <p className={styles.emptyTitle}>Гипотез пока нет</p>
-        <p className={styles.emptyBody}>
-          Гипотеза — это короткая догадка о себе, которую хочется проверить.
-          Добавь первую в поле выше.
-        </p>
-      </section>
-    );
-  }
+  // Пустой список — никакой подсказки: композер выше с живым плейсхолдером
+  // («Головная боль после молочки») сам учит формату записи (решение 2026-06-08).
+  if (total === 0) return null;
 
   return (
     <section className={styles.section}>

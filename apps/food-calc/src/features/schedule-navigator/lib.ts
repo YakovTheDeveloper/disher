@@ -11,7 +11,10 @@ export interface ParsedDay {
 
 export interface MonthGroup {
   key: string;
-  label: string;
+  /** Month name only, e.g. "май". Rendered with the year as "май'26". */
+  name: string;
+  /** 2-digit year, e.g. "26". */
+  year: string;
   items: ParsedDay[];
 }
 
@@ -39,9 +42,10 @@ export function computePastFilledAsc(filledAsc: ParsedDay[], today: Date): Parse
 }
 
 /**
- * Group consecutive days by year-month, preserving input order. Header label
- * is the Russian month + year ("май 2026"). Use with ASC-sorted input so
- * months ascend with the list.
+ * Group consecutive days by year-month, preserving input order. Each group
+ * carries the Russian month name ("май") and a 2-digit year ("26"), rendered
+ * as "май'26" by the UI. Use with ASC-sorted input so months ascend with the
+ * list.
  */
 export function groupByMonth(days: ParsedDay[]): MonthGroup[] {
   const out: MonthGroup[] = [];
@@ -51,7 +55,8 @@ export function groupByMonth(days: ParsedDay[]): MonthGroup[] {
     if (!current || current.key !== key) {
       current = {
         key,
-        label: format(d.date, 'LLLL yyyy', { locale: ru }),
+        name: format(d.date, 'LLLL', { locale: ru }),
+        year: format(d.date, 'yy'),
         items: [],
       };
       out.push(current);

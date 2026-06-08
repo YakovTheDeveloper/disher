@@ -3,7 +3,7 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalByLabelDetails } from '@/features/shared/components/ModalByLabelDetails';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
-import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalShell, ModalVariantFields } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
@@ -140,22 +140,24 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
         position="absolute"
         isExpanded={step === 'search'}
         content={
-          <SearchFood
-            onInfoClick={() => {
-              handleClose();
-            }}
-            key={sessionKey}
-            mode="products-and-dishes"
-            onSelectFood={handleFoodSelect}
-            onBack={handleClose}
-            title="Еда"
-            activeItemId={draft.productId ?? draft.dishId ?? undefined}
-            itemHtmlFor={TIME_INPUT}
-            inputId={SEARCH_INPUT}
-            isActive={step === 'search'}
-            createInputHtmlFor={CREATE_INPUT}
-            onPickCreate={handlePickCreate}
-          />
+          <ModalVariantFields>
+            <SearchFood
+              onInfoClick={() => {
+                handleClose();
+              }}
+              key={sessionKey}
+              mode="products-and-dishes"
+              onSelectFood={handleFoodSelect}
+              onBack={handleClose}
+              title="Еда"
+              activeItemId={draft.productId ?? draft.dishId ?? undefined}
+              itemHtmlFor={TIME_INPUT}
+              inputId={SEARCH_INPUT}
+              isActive={step === 'search'}
+              createInputHtmlFor={CREATE_INPUT}
+              onPickCreate={handlePickCreate}
+            />
+          </ModalVariantFields>
         }
       />
 

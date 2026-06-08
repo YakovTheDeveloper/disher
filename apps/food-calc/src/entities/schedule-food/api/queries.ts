@@ -161,6 +161,7 @@ export function useScheduleFoods(
   return useMemo(() => {
     if (!date) return [];
     const filtered = all.filter((r) => r.date === date);
+    // eslint-disable-next-line react-hooks/refs -- намеренный ref-кэш мемоизации enrich (стабилен между рендерами, не render-state)
     return enrichWithCache(filtered, products, dishes, cacheRef.current);
   }, [all, date, products, dishes]);
 }

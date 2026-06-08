@@ -8,7 +8,11 @@ import { registerCloseHandler, unregisterCloseHandler } from './overlay-history'
  */
 export function useOverlayHistory(isExpanded: boolean, onClose: () => void): void {
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  // Освежаем ref в эффекте, не в рендере (react-hooks/refs). Читается только
+  // в back-handler (после коммита) — задержки на кадр нет.
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!isExpanded) return;

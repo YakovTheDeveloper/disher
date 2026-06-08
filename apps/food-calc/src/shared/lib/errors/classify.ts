@@ -1,3 +1,5 @@
+import { PaymentRequiredError } from '@/shared/lib/api/apiError';
+
 export type ErrorKind =
   | { kind: 'network';     message: string; raw: unknown }
   | { kind: 'timeout';     message: string; raw: unknown }
@@ -5,6 +7,7 @@ export type ErrorKind =
   | { kind: 'validation';  message: string; status?: 400 | 422 | number; code?: string; fieldErrors?: Record<string, string>; raw: unknown }
   | { kind: 'not_found';   message: string; status: 404; code?: string; raw: unknown }
   | { kind: 'rate_limit';  message: string; status: 429; retryAfter?: number; raw: unknown }
+  | { kind: 'payment_required'; message: string; status: 402; needKop?: number; haveKop?: number; raw: unknown }
   | { kind: 'server';      message: string; status: number; code?: string; raw: unknown }
   | { kind: 'unknown';     message: string; raw: unknown };
 
@@ -23,6 +26,7 @@ function isResponseLike(err: unknown): err is { status: number; statusText?: str
 
 function classifyByStatus(status: number, message: string, raw: unknown, extras: { code?: string; retryAfter?: number; fieldErrors?: Record<string, string> } = {}): ErrorKind {
   if (status === 401 || status === 403) return { kind: 'auth', status, message, code: extras.code, raw };
+  if (status === 402) return { kind: 'payment_required', status: 402, message, raw };
   if (status === 404) return { kind: 'not_found', status, message, code: extras.code, raw };
   if (status === 429) return { kind: 'rate_limit', status, message, retryAfter: extras.retryAfter, raw };
   if (status === 400 || status === 422) return { kind: 'validation', status, message, code: extras.code, fieldErrors: extras.fieldErrors, raw };
@@ -33,6 +37,10 @@ function classifyByStatus(status: number, message: string, raw: unknown, extras:
 export function classifyError(err: unknown): ErrorKind {
   if (err === null || err === undefined) {
     return { kind: 'unknown', message: 'Что-то пошло не так', raw: err };
+  }
+
+  if (err instanceof PaymentRequiredError) {
+    return { kind: 'payment_required', status: 402, message: err.message, needKop: err.needKop, haveKop: err.haveKop, raw: err };
   }
 
   // AbortError / DOMException timeout
@@ -79,6 +87,7 @@ const RU_TEXT: Record<ErrorKind['kind'], string> = {
   validation: 'Проверьте введённые данные',
   not_found: 'Не найдено',
   rate_limit: 'Слишком много запросов, подождите',
+  payment_required: 'Недостаточно средств — пополните баланс',
   server: 'Сбой на сервере',
   unknown: 'Что-то пошло не так',
 };

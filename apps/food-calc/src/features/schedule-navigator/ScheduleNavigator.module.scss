@@ -60,55 +60,135 @@ $accent-today: #e07a3a;
   z-index: 0;
 }
 
-// ─── Past section (row 1) ──────────────────────────────────────────────────
-// Content is bottom-packed (align-self: end), so the newest past day sits
-// flush against the divider/anchor block above. If pastFilledAsc.length === 0,
-// the section is empty and its 1fr share collapses visually.
-.pastSection {
+// ─── Past accordion (row 1) ────────────────────────────────────────────────
+// Past days hide behind a «Показать прошлые дни» Base UI accordion. The Root
+// owns grid-row 1; its content is bottom-packed (flex-end) so the trigger sits
+// flush against the divider when collapsed, and the chips grow upward from the
+// divider when expanded. When pastFilledAsc.length === 0 the whole accordion is
+// unmounted (so is the divider) and the drawer is just the anchor block.
+.accordion {
   grid-row: 1;
-  align-self: end;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.accordionItem {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.accordionHeader {
+  margin: 0;
+}
+
+// «Показать прошлые дни» — a quiet, full-width toggle. No plate: just the label
+// + a chevron that flips when open, matching the navigator's low-contrast warm
+// chrome.
+.accordionTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
-  max-height: 100%;
+  padding: 12px 22px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: $ink-soft;
+  transition: color 0.12s ease;
+
+  &:active {
+    color: $ink;
+  }
+}
+
+.accordionChevron {
+  color: $ink-faint;
+  transition: transform 0.2s ease;
+}
+
+.accordionTrigger[data-panel-open] .accordionChevron {
+  transform: rotate(180deg);
+}
+
+// Base UI drives the open/close height animation via --accordion-panel-height
+// (px while animating, `auto` once settled). overflow:hidden is required for
+// the height transition to clip the content.
+.accordionPanel {
+  overflow: hidden;
+  height: var(--accordion-panel-height);
+  transition: height 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    height: 0;
+  }
+}
+
+.pastSection {
+  width: 100%;
+  // Cap the open height so a long history scrolls inside the panel rather than
+  // pushing the drawer past its 78dvh ceiling. The accordion animates up to
+  // this cap (or the content height, whichever is smaller).
+  max-height: 42dvh;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
-  // Top fade — "there's more above" visual signal. Same gradient used as
-  // a mask so the content underneath shows through with a soft transition
-  // instead of a hard scrollbar/clip edge.
-  mask-image: linear-gradient(to bottom, transparent 0, #000 36px, #000 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 36px, #000 100%);
+  // Directional scroll fades — "there's more above / below" signals. The mask
+  // fades whichever edge has hidden content; the JS toggles data-fade-top /
+  // data-fade-bottom from the scroll position. Defaults to 0 (no fade) so a
+  // non-overflowing section stays fully opaque.
+  --fade-top: 0px;
+  --fade-bottom: 0px;
+  $mask: linear-gradient(to bottom,
+      transparent 0,
+      #000 var(--fade-top),
+      #000 calc(100% - var(--fade-bottom)),
+      transparent 100%);
+  mask-image: $mask;
+  -webkit-mask-image: $mask;
   position: relative;
   z-index: 1;
   padding-top: 24px;
+
+  &[data-fade-top] {
+    --fade-top: 36px;
+  }
+
+  &[data-fade-bottom] {
+    --fade-bottom: 36px;
+  }
 }
 
-// Title for the whole past-days bar — sits above all month groups.
-.sectionTitle {
-  padding: 0 24px 10px;
-  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
-  font-style: italic;
-  font-size: 15px;
-  font-weight: 600;
-  color: $ink-soft;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-}
-
-.monthGroup {
+// Month name — the first inline item of the chip row. Chips have no backing,
+// so it shows through the wrap flow rather than claiming a separate column.
+.monthName {
+  position: absolute;
+  align-self: center;
   display: flex;
-  flex-direction: column;
-}
-
-.monthHeader {
-  padding: 4px 24px 6px;
+  top: 0;
+  left: var(--space-1);
   font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
-  font-style: italic;
-  font-size: 12px;
-  font-weight: 500;
-  color: $ink-faint;
-  text-transform: lowercase;
-  letter-spacing: -0.005em;
-  line-height: 1.1;
+  gap: var(--space-1);
+  font-style: normal;
+  font-weight: 400;
+  font-size: var(--text-sm);
+  width: 90%;
+  text-transform: capitalize;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--text-muted);
 }
 
 // Past chips — flex-wrap of 44×52 cells, gap-aligned. Compact enough to fit
@@ -116,8 +196,9 @@ $accent-today: #e07a3a;
 .chipRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  padding: 0 22px 12px;
+  gap: var(--space-3);
+  position: relative;
+  padding: var(--space-1) var(--space-1) var(--space-8) var(--space-1);
 }
 
 // Past-day chips — mirror the HomePage navigation tiles: transparent
@@ -126,15 +207,12 @@ $accent-today: #e07a3a;
 .dayChip {
   position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: baseline;
   justify-content: center;
   gap: 2px;
   width: 53px;
-  height: 62px;
-  padding: 7px 0 8px;
+  padding: 5px 0 6px;
   background: transparent;
-  border: 2px dotted rgba(0, 0, 0, 0.05);
   border-radius: 4px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -152,8 +230,8 @@ $accent-today: #e07a3a;
 .dayChipNumber {
   font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
   font-style: italic;
-  font-size: 20px;
-  font-weight: 500;
+  font-size: 30px;
+  font-weight: 400;
   color: $ink;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -162,7 +240,7 @@ $accent-today: #e07a3a;
 
 .dayChipWeekday {
   font-size: 9px;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: lowercase;
   letter-spacing: 0.06em;
   color: $ink-faint;
@@ -404,7 +482,9 @@ $accent-today: #e07a3a;
 
   .dayRow,
   .dayAccent,
-  .dayChip {
+  .dayChip,
+  .accordionChevron,
+  .accordionPanel {
     transition: none;
   }
 }

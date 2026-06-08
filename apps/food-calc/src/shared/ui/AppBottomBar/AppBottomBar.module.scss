@@ -18,7 +18,10 @@
     display: flex;
     align-items: center;
     padding: var(--space-2) var(--space-1);
-    min-height: 60px;
+    // Высота бара унифицирована: кнопка (--bottom-action-h, 72px) + 8px padding
+    // сверху/снизу = 88px. Пустой spacer-бар (HypothesesSlide) совпадает с
+    // CTA-баром (AnalysesSlide), а write-бар (см. .wrap padding) — с обоими.
+    min-height: calc(var(--bottom-action-h) + var(--space-4));
     box-sizing: border-box;
 }
 
@@ -148,6 +151,18 @@
     --bar-tint: var(--tod-night-bg-from);
 }
 
+// Lemon tone (Events screen): PALE warm-yellow gradient, locked to yellow
+// regardless of theme/time. Matches the existing tod-tinted CTA look (pastel
+// bg ~0.88 alpha + the `.shellSolo` outline border) — just always yellow.
+// Mirrors the lemon palette's day step so the pill echoes the cards. Comes
+// AFTER the data-tod rules (equal specificity) so it wins over the tod fill;
+// the outline border from `.shellSolo` is intentionally kept (no override).
+.dockV2[data-cta-tone='lemon'] {
+    --cta-bg-from: rgba(255, 246, 200, 0.92);
+    --cta-bg-to: rgba(250, 235, 172, 0.92);
+    --cta-text: rgba(31, 42, 68, 0.92);
+}
+
 // ─── Shell — chrome-only wrapper for slides without 3-slot dock ───────
 // Used by Laboratory + ScheduleEvents (HomePage screens 1 & 3). Фон бара НЕ
 // красим — источник истины один: Screen `.bottomBar` (`--bottom-bar-bg`,
@@ -158,19 +173,29 @@
     justify-content: center;
     position: relative;
 
-    &::before {
-        content: '';
-        position: absolute;
-        left: 14px;
-        right: 14px;
-        top: 0;
-        height: 1px;
-        background: linear-gradient(90deg,
-                transparent 0%,
-                rgba(15, 23, 42, 0.08) 18%,
-                rgba(15, 23, 42, 0.08) 82%,
-                transparent 100%);
-        pointer-events: none;
+    // Канон высоты нижних кнопок: solo-CTA читает `--bottom-action-h` (72px,
+    // как write-пилюля экрана 2) + тонкую ink-рамку → высокая outline-пилюля.
+    // Оба токена наследуются в кнопку, которая собрана `dark-pill-button()`
+    // (AnalysisCtaButton «Разбор», AddButton.dark «Добавить событие»).
+    --cta-min-h: var(--bottom-action-h);
+    --cta-border: 1px solid rgba(31, 42, 68, 0.16);
+    // Размер метки CTA = размер плейсхолдера write-бара (--text-lg, 20px).
+    --cta-font-size: var(--text-lg);
+
+}
+
+// Одиночный CTA (не split) тянется на всю ширину бара с боковыми инсетами —
+// крупная outline-пилюля «во всю строку», как на write-баре экрана 2.
+.dockV2.shellSolo:not([data-shell-side='split']) {
+    // Левый инсет = write-пилюля FoodSchedule (`--space-8`, см. WriteFoodInput
+    // `.wrap`). Канон 2026-06-08: solo-CTA выравнивается по левому краю с
+    // write-баром экрана 2 на всех экранах. Правый — `--space-4` (асимметрия
+    // намеренна: у write-пилюли справа медальон, у solo-CTA его нет).
+    padding-left: var(--space-8);
+    padding-right: var(--space-4);
+
+    >* {
+        flex: 1 1 auto;
     }
 }
 

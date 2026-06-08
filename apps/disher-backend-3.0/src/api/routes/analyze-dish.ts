@@ -1,6 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { requireUser } from "../../auth/require-user.js";
 import { applySSECorsHeaders } from "../lib/sse-cors.js";
+import { chargeOr402, resolveRequestId } from "../../billing/http.js";
+import { refund } from "../../billing/wallet.js";
 
 // POST /api/analyze-dish — SSE stream. The frontend hydrates the dish payload
 // from Dexie + catalog and posts it; the backend forwards the OpenRouter
@@ -91,11 +93,11 @@ export function buildDishUserPrompt(
 async function streamDishAnalysis(
   userPrompt: string,
   reply: any,
-): Promise<void> {
+): Promise<{ producedOutput: boolean }> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     reply.status(500).send({ error: "OPENROUTER_API_KEY not set" });
-    return;
+    return { producedOutput: false };
   }
 
   reply.raw.writeHead(200, {
@@ -130,7 +132,7 @@ async function streamDishAnalysis(
       `event: error\ndata: ${JSON.stringify(`fetch failed: ${msg}`)}\n\n`,
     );
     reply.raw.end();
-    return;
+    return { producedOutput: false };
   }
 
   if (!response.ok) {
@@ -139,7 +141,7 @@ async function streamDishAnalysis(
       `event: error\ndata: ${JSON.stringify(`OpenRouter ${response.status}: ${text.slice(0, 200)}`)}\n\n`,
     );
     reply.raw.end();
-    return;
+    return { producedOutput: false };
   }
 
   const reader = response.body?.getReader();
@@ -148,13 +150,17 @@ async function streamDishAnalysis(
       `event: error\ndata: ${JSON.stringify("no response body")}\n\n`,
     );
     reply.raw.end();
-    return;
+    return { producedOutput: false };
   }
 
+  // producedOutput drives the refund decision: a failure before any frame
+  // reaches the client refunds; once content has streamed, the user got value.
+  let producedOutput = false;
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
+      producedOutput = true;
       reply.raw.write(value);
     }
   } catch (err) {
@@ -166,13 +172,19 @@ async function streamDishAnalysis(
     reply.raw.write("data: [DONE]\n\n");
     reply.raw.end();
   }
+  return { producedOutput };
 }
 
 type AnalyzeDishRouteOptions = {
   /** Test-only: replace the OpenRouter call with a stub that writes SSE
    *  frames directly to the reply. The handler still owns the response head;
-   *  the stub should only write `data: ...\n\n` lines and not call end(). */
-  streamLLM?: (userPrompt: string, reply: any) => Promise<void>;
+   *  the stub should only write `data: ...\n\n` lines and not call end().
+   *  Return `{ producedOutput: false }` to simulate a pre-content failure
+   *  (which refunds); omit/return void to count as having produced output. */
+  streamLLM?: (
+    userPrompt: string,
+    reply: any,
+  ) => Promise<void | { producedOutput?: boolean }>;
 };
 
 export async function analyzeDishRoutes(
@@ -193,6 +205,11 @@ export async function analyzeDishRoutes(
         .send({ error: "dishName or ingredients required" });
     }
 
+    // Paid: debit before opening the SSE stream so an insufficient-balance 402
+    // is a clean JSON reply (the raw socket is still untouched here).
+    const requestId = resolveRequestId(req);
+    if (!(await chargeOr402(req, reply, "dish_analysis", requestId))) return;
+
     // SSE streams reply.raw directly — @fastify/cors only writes Access-Control-*
     // through reply.send(), so for raw-socket responses we have to seed those
     // headers ourselves before writeHead().
@@ -200,6 +217,7 @@ export async function analyzeDishRoutes(
 
     const userPrompt = buildDishUserPrompt(dishName, totalGrams, ingredients);
 
+    let producedOutput: boolean;
     if (opts.streamLLM) {
       reply.raw.writeHead(200, {
         "Content-Type": "text/event-stream",
@@ -207,14 +225,19 @@ export async function analyzeDishRoutes(
         Connection: "keep-alive",
       });
       try {
-        await opts.streamLLM(userPrompt, reply);
+        const r = await opts.streamLLM(userPrompt, reply);
+        producedOutput = r?.producedOutput ?? true;
       } finally {
         reply.raw.write("data: [DONE]\n\n");
         reply.raw.end();
       }
-      return;
+    } else {
+      ({ producedOutput } = await streamDishAnalysis(userPrompt, reply));
     }
 
-    await streamDishAnalysis(userPrompt, reply);
+    // Refund if the stream failed before any content reached the client.
+    if (!producedOutput) {
+      await refund(req.userId, "dish_analysis", requestId).catch(() => {});
+    }
   });
 }

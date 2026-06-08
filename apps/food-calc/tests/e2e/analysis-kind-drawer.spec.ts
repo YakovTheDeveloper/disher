@@ -12,7 +12,7 @@ test.describe('AnalysisKindDrawer', () => {
     await signUpAndVerify(page);
     // No schedule food seeded → the day is empty.
 
-    await page.getByRole('tab', { name: 'Лаборатория' }).first().click();
+    await page.getByRole('tab', { name: 'Анализ' }).first().click();
     await page.getByRole('button', { name: 'Анализировать' }).click();
     await expect(
       page.getByRole('heading', { name: 'Что разобрать?' }),
@@ -36,7 +36,7 @@ test.describe('AnalysisKindDrawer', () => {
     await signUpAndVerify(page);
     await page.context().setOffline(true);
 
-    await page.getByRole('tab', { name: 'Лаборатория' }).first().click();
+    await page.getByRole('tab', { name: 'Анализ' }).first().click();
     await page.getByRole('button', { name: 'Анализировать' }).click();
 
     const dailyOption = page.getByRole('button', { name: /^Текущий день/ });

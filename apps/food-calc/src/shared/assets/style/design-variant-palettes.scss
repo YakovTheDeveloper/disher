@@ -103,6 +103,19 @@
   }
 }
 
+// lemon — ONE pale warm-yellow hue across the whole day (the Events-screen
+// default). Base is a soft lemon close to tropic's warm tone; the four
+// time-of-day steps stay deliberately CLOSE (narrow morning→night delta) so
+// the list reads as "one pale yellow that barely shifts" rather than four
+// distinct shades. No nested night text flip — graphite stays legible on the
+// deepest (still pale) step.
+@mixin dv-palette-lemon {
+  @include _tod-palette((rgba(255, 250, 214, 0.88), rgba(253, 246, 200, 0.88), rgba(225, 190, 70, 0.28), rgba(225, 190, 70, 0.18), rgba(251, 244, 196, 0.92)),
+    (rgba(255, 246, 200, 0.88), rgba(252, 240, 186, 0.88), rgba(222, 182, 60, 0.30), rgba(222, 182, 60, 0.20), rgba(250, 237, 182, 0.92)),
+    (rgba(254, 241, 188, 0.88), rgba(250, 234, 174, 0.88), rgba(218, 172, 52, 0.30), rgba(218, 172, 52, 0.20), rgba(248, 231, 170, 0.90)),
+    (rgba(252, 235, 176, 0.90), rgba(247, 228, 162, 0.90), rgba(212, 162, 48, 0.32), rgba(212, 162, 48, 0.22), rgba(244, 224, 158, 0.92)));
+}
+
 // ─── Shared foreground (text) tokens ────────────────────────────────
 // One foreground system for every design-variant row — FoodSchedule and
 // ScheduleEvents both publish these so their colour schemes are identical.

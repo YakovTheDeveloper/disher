@@ -7,6 +7,7 @@ import type { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { IdeaCard } from '../IdeaCard';
+import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 import { deriveStatus, startAnalysis, useAnalysis, type Analysis } from '../api';
 import { restartArgs } from './restart';
 import styles from './AnalysisDetailModal.module.scss';
@@ -47,7 +48,9 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
       onClose(created);
     } catch (err) {
       console.error('restart analysis failed', err);
-      toast.error('Не удалось перезапустить разбор');
+      toast.error(
+        err instanceof PaymentRequiredError ? err.message : 'Не удалось перезапустить разбор',
+      );
       setRestarting(false);
     }
   }

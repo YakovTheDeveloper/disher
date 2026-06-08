@@ -1,4 +1,5 @@
 import { pool } from "../db.js";
+import { refund } from "../../billing/wallet.js";
 import {
   SYSTEM_PROMPT_BASE,
   nutrientLineToken,
@@ -27,6 +28,24 @@ const HYPOTHESES_BUDGET = 8_000;
 const NUTRIENTS_BUDGET = 40_000;
 
 const FAILURE_PREFIX = "⚠️ Анализ не удался";
+
+// A failed long analysis produced no usable result → refund the kickoff charge.
+// requestId is the analysis id (see analyze.ts chargeOr402); refund is idempotent,
+// so calling this from both the in-job catch and updateAnalysisFailed is safe.
+// Best-effort — a refund hiccup must not mask the original failure.
+async function refundAnalysis(analysisId: string): Promise<void> {
+  if (!pool) return;
+  try {
+    const r = await pool.query<{ user_id: string }>(
+      `select user_id from public.analyses where id = $1::uuid`,
+      [analysisId],
+    );
+    const userId = r.rows[0]?.user_id;
+    if (userId) await refund(userId, "long_analysis", analysisId);
+  } catch {
+    /* best-effort refund */
+  }
+}
 
 // Snapshot shape of a hypothesis the user ticked for this analysis. `id` is
 // kept for the persisted `applied_hypotheses` snapshot (future link to the
@@ -216,6 +235,7 @@ export async function runAnalysisJob(
         [`${FAILURE_PREFIX}: ${reason.slice(0, 500)}`, analysisId],
       )
       .catch(() => {});
+    await refundAnalysis(analysisId);
   }
 }
 
@@ -233,4 +253,5 @@ export async function updateAnalysisFailed(
       [`${FAILURE_PREFIX}: ${reason.slice(0, 500)}`, analysisId],
     )
     .catch(() => {});
+  await refundAnalysis(analysisId);
 }

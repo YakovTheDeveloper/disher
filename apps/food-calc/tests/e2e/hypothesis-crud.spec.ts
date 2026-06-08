@@ -12,7 +12,7 @@ test.describe('hypothesis CRUD', () => {
     await signUpAndVerify(page);
 
     // HomePage Laboratory is slide 0.
-    await page.getByRole('tab', { name: 'Лаборатория' }).first().click();
+    await page.getByRole('tab', { name: 'Анализ' }).first().click();
 
     // ── Create via the inline composer ──────────────────────────────
     const composer = page

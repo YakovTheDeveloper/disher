@@ -135,14 +135,11 @@ const FoodActionCard = ({
     if (variant === 'product') {
       void safeMutate(() => deleteProducts([item.id]), 'Не удалось удалить продукт');
     } else {
-      void safeMutate(
-        () => deleteDishes([item.id]),
-        'Не удалось удалить блюдо'
-      );
+      void safeMutate(() => deleteDishes([item.id]), 'Не удалось удалить блюдо');
     }
   };
 
-  const ownershipLabel = variant === 'product' ? 'мой' : 'моё';
+  const ownershipLabel = variant === 'product' ? 'мой продукт' : 'мое блюдо';
   const showOwnershipLabel = userCreated;
 
   const deleteButton = showDelete ? (
@@ -193,10 +190,28 @@ const FoodActionCard = ({
   return (
     <li className={styles.wrapper} role="option" data-pressed={pressed || undefined}>
       {richNutrientValue !== null && richness > 0 && (
-        <span
-          className={styles.richBar}
-          style={{ width: `${richness * 70}%`, backgroundColor: richnessColor }}
-        />
+        <>
+          {/* Заливка-гейдж: ширина = насыщенность, лежит ПОД текстом (z-index 0,
+              .item поднят на z-index 1), низкая alpha + затухание вправо в
+              прозрачность — имя еды всегда читаемо, без резкой непрозрачной полосы.
+              `key` завязан на выбранный нутриент: при смене нутриента span
+              ремаунтится → growFill (~1.6s) проигрывается заново, и юзер видит,
+              как гейдж дорастает до нового уровня. */}
+          <span
+            key={`fill-${richNutrientId}`}
+            className={styles.richFill}
+            style={{
+              width: `${richness * 100}%`,
+              backgroundImage: `linear-gradient(90deg, ${richnessColor} 0%, ${richnessColor} 55%, transparent 100%)`,
+            }}
+          />
+          {/* Канонический тонкий 3px вертикальный акцент слева — цвет несёт данные. */}
+          <span
+            key={`bar-${richNutrientId}`}
+            className={styles.richBar}
+            style={{ backgroundColor: richnessColor }}
+          />
+        </>
       )}
       {richNutrientValue !== null && (
         <span
@@ -220,9 +235,7 @@ const FoodActionCard = ({
           }}
           {...pressProps}
         >
-          <span className={styles.name}>
-            {item.name}
-          </span>
+          <span className={styles.name}>{item.name}</span>
           {variant === 'product' && item.servingBasis === 'serving' && (
             <span className={styles.supplementBadge}> · добавка</span>
           )}
@@ -235,16 +248,14 @@ const FoodActionCard = ({
           }}
           {...pressProps}
         >
-          <span className={styles.name}>
-            {item.name}
-          </span>
+          <span className={styles.name}>{item.name}</span>
           {variant === 'product' && item.servingBasis === 'serving' && (
             <span className={styles.supplementBadge}> · добавка</span>
           )}
         </p>
       )}
-      {onInfoClick && (
-        isCatalogProduct ? (
+      {onInfoClick &&
+        (isCatalogProduct ? (
           <button
             type="button"
             className={styles.infoBtn}
@@ -253,14 +264,12 @@ const FoodActionCard = ({
               drawerStore.show(
                 CatalogProductNutrientsDrawer,
                 { productId: item.id, productName: item.name },
-                { side: 'left', width: 'min(85vw, 360px)' },
+                { side: 'left', width: 'min(85vw, 360px)' }
               );
             }}
           >
             <InfoIcon />
-            {showOwnershipLabel && (
-              <span className={styles.ownershipLabel}>{ownershipLabel}</span>
-            )}
+            {showOwnershipLabel && <span className={styles.ownershipLabel}>{ownershipLabel}</span>}
           </button>
         ) : (
           // Кнопка (НЕ <Link>) с тем же хелпером, что и «Анализ по неделям»:
@@ -274,12 +283,9 @@ const FoodActionCard = ({
             onClick={goToInfo}
           >
             <InfoIcon />
-            {showOwnershipLabel && (
-              <span className={styles.ownershipLabel}>{ownershipLabel}</span>
-            )}
+            {showOwnershipLabel && <span className={styles.ownershipLabel}>{ownershipLabel}</span>}
           </button>
-        )
-      )}
+        ))}
     </li>
   );
 };

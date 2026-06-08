@@ -9,7 +9,7 @@ interface Props extends BaseDrawerProps<string> {
 
 export const ScheduleNavigatorDrawer = ({ onClose, selectedDate }: Props) => {
   return (
-    <DrawerLayout a11yLabel="Выбор даты">
+    <DrawerLayout title="Активность">
       <div className={s.shell}>
         <ScheduleNavigator selectedDate={selectedDate} onSelect={(date) => onClose(date)} />
       </div>

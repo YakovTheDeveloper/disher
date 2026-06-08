@@ -26,10 +26,12 @@ import { ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS } from '@/features/shared/long-
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { formatWeekdayTitle } from '@/shared/lib/time/formatWeekday';
 
-// Цветовая схема общая с FoodSchedule (`useDesignVariant('ScheduleFood', …)`):
-// один anchor в DesignBar управляет обоими списками. Порядок и имена должны
-// совпадать с `FOOD_DV_VARIANTS` в FoodSchedule.tsx.
+// События держат СВОЙ DesignBar-anchor ('ScheduleEvents'), отдельный от
+// FoodSchedule. Дефолт (первый в списке) — `lemon`: один жёлтый оттенок,
+// меняется только по насыщенности в течение дня. Остальные палитры оставлены
+// переключаемыми. Еда ('ScheduleFood') свою палитру не меняет.
 const EVENTS_VARIANTS = [
+  'lemon',
   'meadow',
   'sunrise',
   'sorbet',
@@ -52,7 +54,7 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
   // пустом дне.
   const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
 
-  const { anchor: eventsAnchor } = useDesignVariant('ScheduleFood', EVENTS_VARIANTS);
+  const { anchor: eventsAnchor } = useDesignVariant('ScheduleEvents', EVENTS_VARIANTS);
   // Shared with FoodSchedule: one DesignBar control for the adjacent-row edge
   // treatment across food + event rows (same key → same stored variant).
   const { anchor: boundaryAnchor } = useDesignVariant(ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS);
@@ -103,7 +105,7 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
       }
       key={3}
       bottomBar={
-        <AppBottomBarShell side="right">
+        <AppBottomBarShell side="right" tone="lemon">
           <AddButton
             htmlFor={EVENT_MODAL_INPUT_IDS.TEXT_INPUT}
             as="label"
@@ -111,7 +113,7 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
             prominent={events.length === 0}
             dark
           >
-            Добавить событие дня
+            Добавить событие
           </AddButton>
         </AppBottomBarShell>
       }

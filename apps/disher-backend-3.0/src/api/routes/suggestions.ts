@@ -1,9 +1,10 @@
-import { randomUUID } from "crypto";
 import { FastifyInstance } from "fastify";
 import { isMatcherReady } from "../food-matcher.js";
 import { logLLMOutput } from "../llm-output-log.js";
 import { getLLMModel } from "../build-info.js";
 import { resolveNames, type LLMItem, LLM_ITEMS_JSON_SCHEMA } from "../resolve-names.js";
+import { chargeOr402, resolveRequestId } from "../../billing/http.js";
+import { refund } from "../../billing/wallet.js";
 
 // ─── Head A: "infer recipe" ───
 //
@@ -222,8 +223,9 @@ export async function suggestionsRoutes(app: FastifyInstance) {
         });
       }
 
-      const requestId = randomUUID();
+      const requestId = resolveRequestId(req);
       const cacheKey = normalizeName(dishName);
+      let charged = false;
 
       try {
         const cached = getCachedLLM(cacheKey);
@@ -240,6 +242,13 @@ export async function suggestionsRoutes(app: FastifyInstance) {
             latencyMs: 0,
           });
         } else {
+          // Paid step: debit before the OpenRouter call (cache hits are free).
+          // req.userId comes from the requireUser preHandler added on the scope
+          // in buildApp; absent only in the pure-pipeline unit tests.
+          if (req.userId) {
+            if (!(await chargeOr402(req, reply, "dish_suggestions", requestId))) return;
+            charged = true;
+          }
           const result = await callLLM(dishName);
           items = result.items;
           setCachedLLM(cacheKey, items);
@@ -267,6 +276,10 @@ export async function suggestionsRoutes(app: FastifyInstance) {
         const response = await resolveNames(items, dishName, requestId);
         return reply.send(response);
       } catch (err: unknown) {
+        // Refund a completed charge if the request failed before a usable result.
+        if (charged && req.userId) {
+          await refund(req.userId, "dish_suggestions", requestId).catch(() => {});
+        }
         const message = err instanceof Error ? err.message : "Unknown error";
         app.log.error(`Suggestion error: ${message}`);
         return reply.status(500).send({ error: message });

@@ -91,6 +91,43 @@
     }
 }
 
+// Как growBar, но settle-opacity = 0.16 (subtle заливка). Отдельный keyframe
+// нужен из-за animation-fill-mode: both — `to`-кадр growBar держит opacity:1
+// после конца анимации и перебил бы статичный opacity заливки.
+@keyframes growFill {
+    from {
+        transform: scaleX(0);
+        opacity: 0;
+    }
+
+    to {
+        transform: scaleX(1);
+        opacity: 0.16;
+    }
+}
+
+// Richness fill-gauge: width encodes magnitude, sits BEHIND row content
+// (z-index 0; .item/.richValue lift to z-index 1). Low alpha + gradient
+// fade-to-transparent toward the right so the food name stays readable —
+// replaces the old opaque sweeping bar that overlapped the text.
+.richFill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
+    opacity: 0.16;
+    pointer-events: none;
+    border-radius: inherit;
+    transform-origin: left;
+    // Deliberate ~1.6s fill on nutrient pick (was 0.6s) — let the user watch
+    // each card's richness gauge grow to its level, but short enough that a quick
+    // nutrient-to-nutrient switch still reaches the end before being re-keyed.
+    // Still composite-only (transform: scaleX), so N visible cards animating at
+    // once stays cheap. Re-triggered per nutrient via a `key` on the span.
+    animation: growFill 1.6s cubic-bezier(0.33, 0, 0.18, 1) both;
+}
+
 // Full-height 3px richness stripe on the left edge (5px when active).
 .richBar {
     position: absolute;
@@ -117,6 +154,7 @@
 // pop: акцент-штрих «выстреливает» в ширину при нажатии — motion
 // у самого края строки, сильнейший pre-attentive канал.
 @media (prefers-reduced-motion: no-preference) {
+
     .wrapper:active .richBar,
     .wrapper[data-pressed] .richBar {
         transform: scaleX(2.4);
@@ -142,6 +180,7 @@
     gap: 10px;
     margin: 0;
     border-radius: inherit;
+    z-index: 1; // над .richFill (z-index 0) — имя всегда поверх заливки
 }
 
 .categoryIcon {
@@ -170,6 +209,7 @@
 // Press-инверсия: на тёмном фоне текст/числа/инфо-иконка перекрашиваются в
 // светлый. Специфичность (0,3,0) перебивает `.item_active .name` (0,2,0).
 .wrapper[data-pressed] {
+
     .name,
     .richValue,
     .infoBtn {
@@ -220,6 +260,7 @@
     line-height: 1.1;
     text-align: center;
     position: relative;
+    z-index: 1; // над .richFill — число читаемо поверх заливки
 }
 
 .richUnit {
@@ -360,5 +401,14 @@
 @media (prefers-reduced-motion: reduce) {
     .wrapper:active {
         transform: none;
+    }
+
+    // Entrance баров: при выборе нутриента все видимые карточки одновременно
+    // проигрывают growFill/growBar (0.6s). Гасим — `animation: none` оставляет
+    // элементы в их статичных финальных состояниях (richFill opacity 0.16,
+    // richBar 3px/opacity 0.85), т.к. fill-mode `both` больше не нужен.
+    .richFill,
+    .richBar {
+        animation: none;
     }
 }

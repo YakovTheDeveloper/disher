@@ -31,7 +31,7 @@ test.describe('daily analysis — SSE stream', () => {
     await seedScheduleFood(page, date);
 
     // HomePage Laboratory is slide 0 — bring it on-screen via the indicator.
-    await page.getByRole('tab', { name: 'Лаборатория' }).first().click();
+    await page.getByRole('tab', { name: 'Анализ' }).first().click();
 
     await page.getByRole('button', { name: 'Анализировать' }).click();
     await expect(

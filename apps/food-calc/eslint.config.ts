@@ -27,6 +27,30 @@ export default defineConfig([
             'react-hooks/exhaustive-deps': 'off',
             'react-hooks/incompatible-library': 'off',
             'react-hooks/unsupported-syntax': 'off',
+            // set-state-in-effect намеренно off: все срабатывания в кодовой базе
+            // на легитимных паттернах (async-fetch в polling-хуках, reset/sync
+            // state при смене пропа когда не редактируем, optimistic-pending
+            // против мелькания). Это не баги; остальные ~12 compiler-rules
+            // (rules-of-hooks, purity, refs, set-state-in-render, immutability,
+            // preserve-manual-memoization…) остаются строгими. Решение 2026-06-06.
+            'react-hooks/set-state-in-effect': 'off',
+        },
+    },
+    {
+        // react-hooks/refs ложно срабатывает на floating-ui `useFloating().refs`
+        // (setReference/setFloating — это ref-сеттеры библиотеки, не React-ref-
+        // доступ в рендере) и на createElement ref-forward в ChangeHighlight
+        // (hostRef — обычный ref, .current читается только в эффектах). Правило
+        // флагует место `ref={...}` в JSX, куда inline-disable не поставить —
+        // поэтому точечный off на эти файлы. Latest-ref паттерны в других местах
+        // остаются под правилом (их чинили переносом записи ref в эффект).
+        files: [
+            'src/shared/ui/popover/PopoverTrigger/PopoverTrigger.tsx',
+            'src/features/food/food-free-text-parse/ui/AddToListPopover.tsx',
+            'src/shared/ui/ChangeHighlight/ChangeHighlight.tsx',
+        ],
+        rules: {
+            'react-hooks/refs': 'off',
         },
     },
     {

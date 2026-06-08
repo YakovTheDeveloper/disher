@@ -47,6 +47,7 @@ function durationFor(kind?: ErrorKind): number | undefined {
             return 3000;
         case 'auth':
         case 'validation':
+        case 'payment_required':
             return 6000;
         default:
             return undefined;

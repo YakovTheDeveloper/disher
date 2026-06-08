@@ -55,7 +55,9 @@
     &.withText,
     &.prominent {
         & .text {
-            font-size: 15px;
+            // Размер метки — токен (дефолт 15px); в нижнем баре shellSolo
+            // публикует --cta-font-size = --text-lg (= плейсхолдер write-бара).
+            font-size: var(--cta-font-size, 15px);
             font-weight: 500;
         }
     }

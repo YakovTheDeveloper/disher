@@ -56,6 +56,21 @@ function renderAccentPlaceholder(text: string): ReactNode {
   );
 }
 
+// Focus-hint (`hint` prop): пример ввода, всплывающий НАД баром при фокусе,
+// поверх Screen focus-scrim'а. Первое слово («Например,») — serif-italic акцент
+// (тот же канон, что у плейсхолдера), остальное — сам пример. Тот же split по
+// первому пробелу, что и в renderAccentPlaceholder.
+function renderHint(text: string): ReactNode {
+  const spaceIdx = text.indexOf(' ');
+  if (spaceIdx === -1) return text;
+  return (
+    <>
+      <em className={s.focusHintAccent}>{text.slice(0, spaceIdx)}</em>
+      {text.slice(spaceIdx)}
+    </>
+  );
+}
+
 // iOS Safari: нативный scroll-on-focus для инпута в нижнем доке иногда не
 // срабатывает — клавиатура закрывает поле. setTimeout 300ms (folk-pattern)
 // не годится: магическое число, ловит не тот момент. Слушаем реальный сигнал
@@ -109,6 +124,12 @@ export interface WriteFoodInputProps {
   searchLabel?: string;
   /** Подпись под лупой (например, "Каталог"). */
   searchText?: string;
+  /**
+   * Опциональная подсказка-пример. Всплывает НАД баром в фокусе (поверх
+   * focus-scrim'а), плавает в затемнённой области над пилюлей. Не задана —
+   * подсказки нет. Напр.: «Например, 9:40 гречка 80, масло 10, яйцо 80».
+   */
+  hint?: string;
   className?: string;
 }
 
@@ -130,6 +151,7 @@ export const WriteFoodInput = ({
   searchHtmlFor,
   searchLabel,
   searchText,
+  hint,
   className,
 }: WriteFoodInputProps) => {
   const online = useOnline();
@@ -201,6 +223,14 @@ export const WriteFoodInput = ({
       // textarea:focus)` и затемняет весь экран на время фокуса (см. Screen.module.scss).
       data-write-bar=""
     >
+      {hint ? (
+        // Парит НАД пилюлей в затемнённой области (Screen focus-scrim) — абсолют
+        // от `.wrap`, поэтому скролл-над-клавиатурой держит подсказку над
+        // клавиатурой вместе с баром. aria-hidden: дублирует смысл плейсхолдера.
+        <div className={s.focusHint} data-visible={expanded || undefined} aria-hidden="true">
+          {renderHint(hint)}
+        </div>
+      ) : null}
       <div
         className={s.writeBarRow}
         data-expanded={expanded || undefined}

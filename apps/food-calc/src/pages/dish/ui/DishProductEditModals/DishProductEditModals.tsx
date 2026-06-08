@@ -2,7 +2,7 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalByLabelDetails } from '@/features/shared/components/ModalByLabelDetails';
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
-import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalShell, ModalVariantFields } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { DetailsChips } from '@/features/food/details-chips';
 import type { DishProductFlow } from '../useDishProductFlow';
@@ -36,18 +36,20 @@ const DishProductEditModals = ({ flow }: Props) => {
         position="absolute"
         isExpanded={step === 'search'}
         content={
-          <SearchFood
-            mode="products-only"
-            title="Продукт"
-            onSelectFood={handleFoodSelect}
-            onInfoClick={() => {
-              handleClose();
-            }}
-            onBack={handleClose}
-            activeItemId={draft.productId ?? undefined}
-            inputId={SEARCH_INPUT}
-            initialSearchQuery={editingItem?.product?.name ?? undefined}
-          />
+          <ModalVariantFields>
+            <SearchFood
+              mode="products-only"
+              title="Продукт"
+              onSelectFood={handleFoodSelect}
+              onInfoClick={() => {
+                handleClose();
+              }}
+              onBack={handleClose}
+              activeItemId={draft.productId ?? undefined}
+              inputId={SEARCH_INPUT}
+              initialSearchQuery={editingItem?.product?.name ?? undefined}
+            />
+          </ModalVariantFields>
         }
       />
 

@@ -9,14 +9,16 @@
     padding: var(--space-2) var(--space-4) var(--space-8);
 }
 
-.heading {
+// Инструкция вместо заголовка — сам заголовок «Нутриенты» уехал в хедер
+// DrawerLayout (на строку с крестиком). Тут — мягкий пояснительный текст.
+.intro {
     margin: 0;
-    font-family: var(--heading-font);
-    font-style: var(--heading-style);
-    font-weight: var(--heading-weight);
-    font-size: var(--heading-size-drawer);
-    letter-spacing: var(--heading-letter);
-    color: var(--card-text-rest);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: -0.005em;
+    color: var(--card-rich-unit);
 }
 
 .group {

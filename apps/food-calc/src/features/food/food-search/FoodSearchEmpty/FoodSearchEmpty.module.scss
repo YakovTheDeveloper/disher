@@ -1,13 +1,18 @@
 // FoodSearchEmpty — bottom dock for create-product / create-dish actions in SearchFood.
-// Visual language mirrors HomeBottomBar V2 (`.dockV2`): solid white surface with a
-// top hairline, V2 row layout (gap 8px, padding 10px 12px, min-height 60px). Both
-// pills are outline-only in `--color-ink` — neutral, equal weight, no primary/secondary
-// hierarchy because the two actions are equivalent choices.
+// Pills borrow the NavTile visual language: warm chip surface + a muted ghost
+// art image (product.png / dish.png) bleeding from the right edge + a two-line
+// serif-italic label (verb «Создать» over the noun). Equal weight, no
+// primary/secondary hierarchy — the two actions are equivalent choices.
 //
 // position: fixed; bottom: 0 — useKeyboardStick translates this element up by the
 // visualViewport offset when the keyboard opens so the pills stay tappable.
 
 .root {
+    // Тёплый ambient-скрим вместо плоского белого бара: низ поиска «дышит» той
+    // же тёплой поверхностью (data-surface=warm), а не выглядит чужим тулбаром.
+    // Custom-prop — token-gate допускает.
+    --fse-scrim: #fdf8ee;
+
     position: fixed;
     bottom: 0;
     left: 0;
@@ -15,10 +20,22 @@
     z-index: 10;
     display: flex;
     flex-direction: column;
-    background: #ffffff;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    background: var(--fse-scrim);
     padding-bottom: env(safe-area-inset-bottom);
     transition: transform 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
+
+    // Затухающий рамп НАД баром (вместо жёсткого border-top): строки списка
+    // растворяются в скриме, а не обрываются линией.
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 100%;
+        height: 28px;
+        background: linear-gradient(to top, var(--fse-scrim), transparent);
+        pointer-events: none;
+    }
 }
 
 .message {
@@ -49,7 +66,7 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px 10px;
-    min-height: 60px;
+    min-height: var(--bottom-action-h);
     box-sizing: border-box;
 }
 
@@ -58,15 +75,17 @@
     // Светлый текст инверсии (custom-prop, token-gate допускает).
     --pill-fg-invert: #ffffff;
 
+    position: relative;
+    overflow: hidden;
     flex: 1;
     min-width: 0;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 8px;
-    min-height: 44px;
-    padding: 12px 22px;
-    border-radius: 999px;
+    min-height: var(--bottom-action-h);
+    padding: 10px 18px;
+    border-radius: var(--space-3);
     border: none;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -87,40 +106,75 @@
     }
 }
 
-.plusIcon {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-    display: block;
+// Картинка-призрак NavTile-стиля (product.png / dish.png) — приглушённая,
+// прижата к правому краю пилюли, режется overflow:hidden скруглением.
+// Ручки положения/прозрачности — как у NavTile.tileImg.
+.tileImg {
+    --fse-img-x: 6px; // + вправо
+    --fse-img-y: 0px; // + вниз
+    --fse-img-scale: 1;
+    --fse-img-opacity: 0.16;
+
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 0;
+    width: 46%;
+    height: 100%;
+    object-fit: contain;
+    object-position: right center;
+    opacity: var(--fse-img-opacity);
+    transform: translate(var(--fse-img-x), var(--fse-img-y)) scale(var(--fse-img-scale));
+    pointer-events: none;
+    user-select: none;
 }
 
-// Trailing semantic icon (яблоко у «Продукта», чаша с фруктами у «Блюда»).
-// Тот же размер, что и плюс — это stroke-only иконки и они визуально легче
-// плюса, поэтому равный размер их не пережимает.
-.trailingIcon {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-    display: block;
+// В press-инверсии (ink-заливка) картинка ярче проявляется поверх тёмного.
+.pillPrimary[data-pressed] .tileImg,
+.pillSecondary[data-pressed] .tileImg {
+    --fse-img-opacity: 0.32;
 }
 
-// Both pills are outline-only in --color-ink — equal weight, no fill hierarchy.
+// Тёплые пилюли (2026-06-08): тянут warm chip-палитру (data-surface=warm) —
+// мягкий кремовый градиент + тёплая рамка, в тон поверхности поиска. Равный вес,
+// без primary/secondary иерархии (два равнозначных выбора). Press → ink-инверсия.
 .pillPrimary,
 .pillSecondary {
-    background: #fff;
-    border: 1px solid var(--color-ink);
-    color: var(--color-ink);
+    background: var(--chip-bg);
+    border: 1px solid var(--chip-border);
+    color: var(--chip-text);
 }
 
+// NavTile-подпись: serif italic, в две строки (глагол над существительным).
+// z-index держит её поверх картинки-призрака.
 .pillTitle {
-    font-size: 15px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.05;
+    text-align: left;
+    min-width: 0;
+    font-family: var(--heading-font, 'Source Serif 4', serif);
+    font-style: italic;
+}
+
+// «Создать» — глагол вторичен: мельче и бледнее, на отдельной строке.
+.pillVerb {
+    font-size: var(--text-sm);
+    font-weight: 400;
+    opacity: 0.55;
+}
+
+// Существительное («Продукт»/«Блюдо») несёт смысл и держит вес.
+.pillNoun {
+    font-size: var(--text-lg);
     font-weight: 500;
-    letter-spacing: 0;
-    line-height: 1;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    min-width: 0;
+    max-width: 100%;
 }
 
 .pillTag {

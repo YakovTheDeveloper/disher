@@ -15,6 +15,12 @@ type Props = {
    * Defaults to 'left'.
    */
   side?: 'left' | 'right' | 'split';
+  /**
+   * CTA colour tone. 'default' inherits the time-of-day `--cta-*` tokens
+   * (pastel outline pill). 'lemon' overrides them with a solid warm-yellow
+   * gradient fill (Events screen) — see `[data-cta-tone='lemon']` in the SCSS.
+   */
+  tone?: 'default' | 'lemon';
 };
 
 /**
@@ -25,7 +31,7 @@ type Props = {
  * so the CTA button inside the shell inherits the same `--cta-*` tokens as
  * WriteFoodButton on screen 2.
  */
-export const AppBottomBarShell = ({ children, side = 'left' }: Props) => {
+export const AppBottomBarShell = ({ children, side = 'left', tone = 'default' }: Props) => {
   const tod = getTimeOfDay(useNow());
 
   return (
@@ -33,6 +39,7 @@ export const AppBottomBarShell = ({ children, side = 'left' }: Props) => {
       className={clsx(s.dock, s.dockV2, s.shellSolo)}
       data-tod={tod}
       data-shell-side={side}
+      data-cta-tone={tone}
     >
       {children}
     </div>

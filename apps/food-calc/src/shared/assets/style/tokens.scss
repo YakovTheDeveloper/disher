@@ -93,6 +93,14 @@
   --row-cell-min-h: 48px; // each cell's hit-area floor (was 36 → 48 on 2026-05-24)
   --row-min-h-touch: 48px; // wrapper-driven row floor (consume via @include row-touch)
 
+  // ─── Bottom action (canon: unified bottom bar/button height) ─────────────
+  // Все нижние «действия» делят одну высоту: solo-CTA Лаборатории/Событий
+  // (AppBottomBarShell), write-пилюля FoodSchedule (--pill-h ← этот токен) и
+  // кнопки создания в поиске еды (FoodSearchEmpty). Единая высота = нижний край
+  // приложения не «прыгает» при свайпе между экранами, большой палец всегда
+  // попадает в ту же зону. Источник истины один — менять только здесь.
+  --bottom-action-h: 72px;
+
   // ─── Press-feedback ──────────────────────────────────────────
   // pre-attentive отклик интерактивных элементов: визуальное
   // изменение должно появляться в ТОМ ЖЕ кадре, что касание (вход

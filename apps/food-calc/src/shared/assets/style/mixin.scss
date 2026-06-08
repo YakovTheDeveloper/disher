@@ -173,16 +173,23 @@
     justify-content: center;
     gap: 0;
     padding: 12px 22px;
-    min-height: 44px;
+    // Высота — токен `--cta-min-h` (дефолт 44px для inline-CTA). Нижние бары
+    // (AppBottomBarShell) переопределяют его на `--bottom-action-h` (72px), и
+    // тот же mixin даёт высокую outline-пилюлю — без отдельного класса.
+    min-height: var(--cta-min-h, 44px);
     width: auto;
     height: auto;
     border-radius: 999px;
-    border: none;
+    // Рамка — токен `--cta-border` (дефолт none = сплошная заливка). Нижние бары
+    // публикуют тонкую ink-рамку → pill читается как outline (канон solo-CTA).
+    border: var(--cta-border, none);
     background: linear-gradient(135deg,
             var(--cta-bg-from, rgba(24, 24, 105, 0.92)),
             var(--cta-bg-to, rgba(24, 24, 105, 0.92)));
     color: var(--cta-text, #fff);
-    font-size: 15px;
+    // Размер метки — токен `--cta-font-size` (дефолт 15px для inline-CTA).
+    // Нижние бары переопределяют на `--text-lg` (= размер плейсхолдера write-бара).
+    font-size: var(--cta-font-size, 15px);
     font-weight: 500;
     cursor: pointer;
     user-select: none;

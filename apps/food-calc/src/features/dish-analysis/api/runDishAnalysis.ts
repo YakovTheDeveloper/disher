@@ -1,5 +1,6 @@
 import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { API_BASE } from '@/shared/lib/api/base';
+import { throwApiError } from '@/shared/lib/api/apiError';
 import { db } from '@/shared/lib/dexie/schema';
 import { createSSEParser } from '@/shared/lib/sse/parseSSELines';
 import { saveDishAnalysis } from './storage';
@@ -67,7 +68,10 @@ export async function streamDishAnalysis(args: StreamArgs): Promise<string> {
 
   const res = await authedFetch(ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Request-Id': crypto.randomUUID(),
+    },
     body: JSON.stringify({
       dishName: payload.dishName,
       totalGrams: payload.totalGrams,
@@ -76,10 +80,7 @@ export async function streamDishAnalysis(args: StreamArgs): Promise<string> {
     signal,
   });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`POST /api/analyze-dish ${res.status}: ${text.slice(0, 200)}`);
-  }
+  if (!res.ok) await throwApiError(res); // throws PaymentRequiredError on 402
 
   let accumulated = '';
   const collect = (chunk: string) => {

@@ -1,30 +1,47 @@
 import type { ReactNode } from 'react';
 import s from './ModalShell.module.scss';
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalHeader } from '@/shared/ui/ModalHeader';
 
-// Application-wide theme convention (2026-05-21):
-//   * spring2 — дефолт. Используется на DishPage / ProductPage / FoodPage
-//     и любых не-HomePage экранах.
-//   * spring4 — HomePage и модалки её контекста (FoodSchedule /
-//     ScheduleEvents / Laboratory / free-text-food / analysis).
-//     Передаётся явно: `<ModalShell variant="spring4">`.
-export type ModalShellVariant = 'spring2' | 'spring4';
-type Variant = ModalShellVariant;
-type Props = { children: ReactNode; className?: string; variant?: Variant };
+// ── ModalShell ambient background — DesignBar-driven ─────────────────────────
+// ModalShell publishes ONE `useDesignVariant('ModalShell', …)` anchor on its
+// wrapper; the DesignVariantsBar flips the background + orb palette globally for
+// EVERY mounted modal at once. The first entry is the production fallback (no
+// pick yet) — see `useDesignVariant`. Palettes live in ModalShell.module.scss
+// (`$modal-shell-variants`).
+//
+// History: the background used to be a static per-page `variant` prop
+// (spring2 на Dish/Product, spring4 на HomePage-контексте) — выбиралось «по
+// дисциплине» (memory feedback_modal_spring_variant_convention). The prop is
+// still ACCEPTED for source compatibility but no longer drives styling — the
+// anchor wins. Once a winner is chosen in the bar, bake it in and drop the prop.
+export const MODAL_SHELL_VARIANTS = [
+  'spring2',
+  'spring4',
+  'blue-white',
+  'cream-white',
+  'rose-white',
+  'sage-white',
+  'pure-white',
+  'lavender-cream',
+  'mint-sky',
+  'peach-rose',
+  'blush-sky',
+  'honey',
+  'sunrise',
+] as const;
 
-const SPRING_CLASSES: Record<Variant, string> = {
-  spring2: s.wrapperSpring2,
-  spring4: s.wrapperSpring4,
-};
+export type ModalShellVariant = (typeof MODAL_SHELL_VARIANTS)[number];
+type Props = { children: ReactNode; className?: string; variant?: ModalShellVariant };
 
-export const ModalShell = ({ children, className, variant = 'spring2' }: Props) => {
-  const variantClass = SPRING_CLASSES[variant];
+export const ModalShell = ({ children, className }: Props) => {
+  const { anchor } = useDesignVariant('ModalShell', MODAL_SHELL_VARIANTS);
 
   return (
-    <div className={`${s.wrapper} ${variantClass} ${className ?? ''}`}>
+    <div className={`${s.wrapper} ${className ?? ''}`} {...anchor}>
       <div className={s.springOrbs} aria-hidden>
         <span className={`${s.orb} ${s.orb1}`} />
         <span className={`${s.orb} ${s.orb2}`} />

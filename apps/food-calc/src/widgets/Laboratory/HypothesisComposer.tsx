@@ -42,13 +42,12 @@ const HypothesisComposer = ({ onCreated }: Props) => {
 
   return (
     <section className={styles.composer}>
-      <h2 className={styles.heading}>Добавить гипотезу</h2>
       <AutoGrowSearch
         singleLine
         value={title}
         onChange={setTitle}
         onSubmit={handleSubmit}
-        placeholder="Коротко — что проверяем"
+        placeholder="Головная боль после молочки"
         maxLength={500}
       />
       <button

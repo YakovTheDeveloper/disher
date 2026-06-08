@@ -169,9 +169,11 @@
 // тем же приёмом живёт `.actions`). Низ скроллера затухает mask'ом → строки
 // растворяются, уходя под плавающую пилюлю, без белой плашки.
 .screenBottomOverlay {
-    // Высота resting-бара (write-dock ≈ 56px tile + padding) + safe-area.
-    // Родитель может переопределить под свой бар.
-    --bb-overlay-h: calc(72px + env(safe-area-inset-bottom));
+    // Высота resting-бара = единый канон дока: кнопка `--bottom-action-h` (72px)
+    // + `--space-4` (8px сверху/снизу) = 88px, совпадает с `.dock` min-height
+    // (AppBottomBar). Раньше было 72px — solo-CTA бар (88px) перекрывал нижние
+    // ~16px списка без затухания. + safe-area. Родитель может переопределить.
+    --bb-overlay-h: calc(var(--bottom-action-h) + var(--space-4) + env(safe-area-inset-bottom));
 
     .bottomBar {
         position: absolute;

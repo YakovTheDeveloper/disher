@@ -250,6 +250,7 @@ const SearchFoodHeavy = ({
   }, []);
 
   // Compute max nutrient value across all products for richness bar scaling
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- результат примитив (number); референсная стабильность не важна, компилятор мемоизирует сам
   const richNutrientMax = useMemo(() => {
     if (!richNutrient?.id || nutrientMap.size === 0) return 0;
     let max = 0;
@@ -264,6 +265,7 @@ const SearchFoodHeavy = ({
   // и прокидываем числом в каждую карточку, чтобы не дёргать хук в ~400 строках.
   // undefined у нутриентов без нормы → карточка покажет абсолютное значение.
   const userNormItems = useUserNormItems();
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- результат примитив (number | undefined); компилятор мемоизирует сам
   const richNutrientNorm = useMemo(() => {
     if (!richNutrient?.id) return undefined;
     // «нет официальной нормы» (сахар/крахмал/каротины) → % не считаем, остаётся

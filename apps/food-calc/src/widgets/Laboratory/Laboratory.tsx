@@ -7,8 +7,7 @@ import {
   EditHypothesisModal,
   EDIT_HYPOTHESIS_TITLE_INPUT_ID,
 } from '@/features/analysis/hypothesis-drawers';
-import { RouterLinks } from '@/app/router';
-import { useViewTransitionNavigate } from '@/shared/lib/viewTransition';
+import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import HypothesisSection from './HypothesisSection';
 import DailyAnalysisSection from './DailyAnalysisSection';
 import styles from './Laboratory.module.scss';
@@ -24,9 +23,6 @@ type Props = {
 // Creation is inline (composer); tap on a row is a label htmlFor that opens
 // EditHypothesisModal.
 const Laboratory = ({ date, topSlot }: Props) => {
-  // «Анализ по неделям →» — наслоение (cover): AnalysesPage въезжает снизу и
-  // накрывает HomePage. RR-native: см. useViewTransitionNavigate.
-  const goWeekly = useViewTransitionNavigate(RouterLinks.Analyses, 'cover');
   const hypotheses = useAllHypotheses();
 
   // Which hypotheses ride into the next analysis. Ephemeral UI state — lives
@@ -76,18 +72,13 @@ const Laboratory = ({ date, topSlot }: Props) => {
 
   return (
     <div className={styles.focusPassthrough} onFocusCapture={handleFocusCapture}>
-      <Screen stickyTop={topSlot} headerOverlap bottomBar={bottomBar}>
+      <Screen
+        stickyTop={topSlot}
+        headerOverlap
+        contentHeader={<Heading size="section">Гипотезы</Heading>}
+        bottomBar={bottomBar}
+      >
         <div className={styles.container}>
-          <div className={styles.topLinkRow}>
-            <button
-              type="button"
-              className={styles.weeklyLink}
-              onClick={goWeekly}
-            >
-              Анализ по неделям →
-            </button>
-          </div>
-
           <HypothesisSection
             hypotheses={hypotheses}
             selectedIds={validSelected}

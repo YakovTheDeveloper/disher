@@ -18,9 +18,11 @@ type Props = BaseDrawerProps<RichNutrientPick>;
  */
 export function NutrientPickerDrawer({ onClose }: Props) {
   return (
-    <DrawerLayout a11yLabel="Выбор нутриента">
+    <DrawerLayout title="Нутриенты">
       <div className={styles.root}>
-        <h2 className={styles.heading}>Нутриенты</h2>
+        <p className={styles.intro}>
+          Выберите нутриент, еда будет отображаться с его содержанием
+        </p>
         {nutrientGroups.map((group) => (
           <section key={group.name} className={styles.group}>
             <h3 className={styles.groupTitle}>{group.displayName}</h3>

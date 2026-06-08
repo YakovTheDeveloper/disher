@@ -21,7 +21,7 @@ import { drawerStore } from '@/shared/ui/drawer-store';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 
 const SCREENS: ScreenEntry[] = [
-  { label: 'Лаборатория', image: '/art/experiment.png', titleStyle: 'display-sans' },
+  { label: 'Анализ', image: '/art/experiment.png', titleStyle: 'display-sans' },
   { label: 'Дневной рацион', image: '/art/schedule-food.png', titleStyle: 'display-sans' },
   { label: 'События', image: normsImg, titleStyle: 'display-sans' },
 ];

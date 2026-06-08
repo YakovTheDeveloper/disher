@@ -12,6 +12,7 @@ export type DailyAnalysisStatus =
 export type DailyAnalysisReason =
   | 'network' // failed: the network dropped
   | 'server' // failed: 5xx / event:error from the server
+  | 'payment' // failed: 402 — wallet can't cover the price
   | 'reload' // interrupted: the page reloaded mid-stream (boot flip)
   | 'date-switch' // interrupted: the user switched away from the date
   | null;

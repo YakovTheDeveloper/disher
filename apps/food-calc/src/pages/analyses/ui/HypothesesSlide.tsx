@@ -1,12 +1,12 @@
 import { memo, useCallback, useState, type FocusEvent, type ReactNode } from 'react';
 import { Screen } from '@/shared/ui/Screen';
-import { AppBottomBarShell } from '@/shared/ui/AppBottomBar/AppBottomBarShell';
 import { useAllHypotheses } from '@/entities/hypothesis';
 import {
   EditHypothesisModal,
   EDIT_HYPOTHESIS_TITLE_INPUT_ID,
 } from '@/features/analysis/hypothesis-drawers';
 import HypothesisSection from '@/widgets/Laboratory/HypothesisSection';
+import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import styles from './HypothesesSlide.module.scss';
 
 type Props = {
@@ -15,9 +15,9 @@ type Props = {
 
 // AnalysesPage slide 0 — a pure hypothesis CRUD list (`selectable={false}`
 // hides the checkboxes). Creation is inline via the composer inside
-// HypothesisSection; a tap on a row opens EditHypothesisModal. Creation moved
-// inline, but we keep an empty bottom-bar shell as a height spacer so swiping
-// to slide 1 (which has the «+ Анализ» bar) doesn't jump vertically.
+// HypothesisSection; a tap on a row opens EditHypothesisModal. No bottom bar:
+// the old empty-shell height-spacer was dropped 2026-06-08 (floating-bar canon
+// made it a zero-height absolute element — it no longer reserved space anyway).
 const HypothesesSlide = ({ topBar }: Props) => {
   const hypotheses = useAllHypotheses();
 
@@ -40,7 +40,7 @@ const HypothesesSlide = ({ topBar }: Props) => {
       <Screen
         stickyTop={topBar}
         headerOverlap
-        bottomBar={<AppBottomBarShell>{null}</AppBottomBarShell>}
+        contentHeader={<Heading size="section">Гипотезы</Heading>}
       >
         <div className={styles.container}>
           <HypothesisSection

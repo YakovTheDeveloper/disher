@@ -18,7 +18,9 @@
 // элементы читают их с fallback, так что вариант на `.wrap` всегда выигрывает.
 
 .wrap {
-    --pill-h: 72px;
+    // Высота пилюли = общий канон нижних действий (--bottom-action-h, 72px).
+    // Единая высота с solo-CTA Лаборатории/Событий и кнопками создания в поиске.
+    --pill-h: var(--bottom-action-h, 72px);
 
     // Типографика инпута (потребляется AutoGrowSearch.field через var()).
     // Размер — строго по токен-шкале (tokens.scss): шаг вверх base→lg.
@@ -50,10 +52,17 @@
     --wb-tile-fg: rgba(31, 42, 68, 0.74);
     --wb-tile-border: rgba(31, 42, 68, 0.1);
 
+    // Focus-hint (см. `.focusHint`): светлый текст поверх затемнённого
+    // focus-scrim'а Screen'а. Custom-prop — token-gate ok.
+    --hint-fg: rgba(255, 255, 255, 0.95);
+    --hint-accent: rgba(255, 255, 255, 0.72);
+
     display: flex;
     flex-direction: column;
     width: 100%;
-    padding: 4px 8px 6px;
+    // Симметричный 8px вертикальный padding: пилюля 72px + 16px = 88px — та же
+    // высота, что у solo-CTA баров (.dock), чтобы низ не прыгал при свайпе.
+    padding: var(--space-2);
     padding-left: var(--space-8);
     position: relative;
     box-sizing: border-box;
@@ -88,6 +97,51 @@
         --wb-tile-fg: rgba(40, 86, 96, 0.8);
         --wb-tile-border: rgba(74, 134, 146, 0.18);
     }
+}
+
+// ─── Focus-hint: пример ввода НАД баром (поверх focus-scrim'а) ──────────────
+// Опциональная подсказка (`hint` prop WriteFoodInput). Всплывает при фокусе
+// (`[data-visible]` ← `expanded`), плавает над пилюлей в затемнённой области
+// (Screen `.screen::before` focus-scrim). Светлый текст + мягкая тень — читается
+// на полупрозрачном тёмном scrim'е. Абсолют от `.wrap` (а не fixed): при фокусе
+// iOS скроллит бар над клавиатурой — подсказка едет вместе с ним и не уходит под
+// клавиатуру. left/right 10% → блок занимает 80% ширины, центрирован.
+// `white-space: pre-line` чтит ручные переносы `\n` прямо в строке `hint`
+// (перенос регулируется в тексте), длинные строки доносит auto-wrap.
+.focusHint {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: calc(100% + var(--space-4));
+    padding: 0 var(--space-1);
+    text-align: center;
+    white-space: pre-line;
+    color: var(--hint-fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.focusHint[data-visible] {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+// «Например,» — serif-italic акцент (канон --heading-font, как у плейсхолдера),
+// чуть приглушённый относительно тела примера.
+.focusHintAccent {
+    font-family: var(--heading-font);
+    font-style: italic;
+    font-weight: 500;
+    color: var(--hint-accent);
 }
 
 // ─── Row: pill + tile «Еда» ───────────────────────────────────────────────
@@ -517,3 +571,37 @@
 // Палитра surface-driven (warm mint-sky / lavender neutral) удалена 2026-06-04:
 // бар теперь полностью DesignBar-вариант-driven (см. `.wrap[data-dv-v]` выше).
 // Бывший warm mint-sky сохранён как вариант `mint`.
+
+// ─── Гашение пилюли во время открытой предложки ────────────────────────────
+// Когда LLM вернул разбор (data-write-state='ready'), единственный громкий
+// акцент — кнопка «Добавить N» внизу карточки предложки. Чтобы два сильных
+// акцента не спорили (решение 2026-06-08), write-бар уходит в тихий режим:
+//   • «Посмотреть варианты»: тёмная заливка → ghost-outline;
+//   • медальон «выбрать из списка»: снимаем lift-тень и приглушаем.
+// Возвращается к полному весу, как только предложка закрыта.
+.wrap[data-write-state='ready'] {
+    .writeFieldReady {
+        background: transparent;
+        color: var(--field-text);
+        // Фиксированная ink-рамка, НЕ --wb-pill-border-focus: на варианте `mint`
+        // тот transparent → ghost-кнопка теряла бы видимый контур.
+        border: 1px solid rgba(31, 42, 68, 0.18);
+
+        &:hover {
+            background: rgba(31, 42, 68, 0.04);
+        }
+
+        &:active {
+            background: rgba(31, 42, 68, 0.06);
+            transform: scale(0.98);
+        }
+    }
+
+    .writeBarList {
+        opacity: 0.6;
+
+        &::before {
+            box-shadow: none;
+        }
+    }
+}

@@ -10,8 +10,28 @@
     padding-inline: var(--space-4);
 }
 
+// Row holding the number backdrop + the multiplier stepper. Three grid columns:
+// [left flank | backdrop | right flank]. Idle `1fr auto 1fr` → equal flanks
+// centre the backdrop. Active `0fr auto 1fr` → the left flank collapses and the
+// backdrop slides flush-left, the right flank (1fr) holds the stepper. The slide
+// is grid-track interpolation (layout, NOT transform) — so the backdrop's
+// dynamic width never offsets it. Deliberately grid, not a flex-grow spacer:
+// flex transitions SNAP on iOS Safari (WebKit bug), grid fr-tracks interpolate
+// (Safari 16+). No column-gap: when active the backdrop must sit flush against
+// the content edge; spacing to the stepper comes from the right flank track.
+.quantityRow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    transition: grid-template-columns 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.quantityRowActive {
+    grid-template-columns: 0fr auto 1fr;
+}
+
 .inputWrapper {
-    flex: 1;
+    grid-column: 2;
     min-width: 0;
     text-align: center;
 
@@ -176,12 +196,42 @@
 }
 
 // ── Multiplier row ──────────────────────────────────────────────────────────
+// Right grid column, pinned to its right edge (justify-self: end). min-width: 0
+// keeps the (wider-than-track) stepper from forcing the right flank track open,
+// so centring stays defined by the fr-tracks alone. It's mounted only while a
+// portion is active, so the entrance is a keyframe (transitions don't run on
+// mount) — opacity + a small slide, in step with the backdrop's grid slide.
+@keyframes multiplierIn {
+    from {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
 
 .multiplierRow {
+    grid-column: 3;
+    justify-self: end;
+    min-width: 0;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     gap: var(--space-3);
+    animation: multiplierIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .quantityRow {
+        transition: none;
+    }
+
+    .multiplierRow {
+        animation: none;
+    }
 }
 
 .multiplierBtn {

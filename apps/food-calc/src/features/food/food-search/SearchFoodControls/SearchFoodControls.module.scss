@@ -27,32 +27,6 @@ $header-height: 50px;
     align-items: center;
 }
 
-.backButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 9999px;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: opacity 0.15s ease;
-    -webkit-tap-highlight-color: transparent;
-    opacity: 0.85;
-
-    svg line,
-    svg path {
-        stroke: #0a0a0a;
-    }
-
-    &:active {
-        opacity: 0.5;
-    }
-}
-
 // ─── Inline title ────────────────────────────────────────────────────────────
 // Сидит между back-кнопкой и полем поиска в одной строке. Не сжимается —
 // поиск (flex:1) забирает всю оставшуюся ширину.
@@ -135,9 +109,9 @@ $header-height: 50px;
     height: 44px;
     border-radius: var(--field-radius, 24px);
     background: linear-gradient(90deg,
-        var(--field-bg-from, #fffefb) 0%,
-        var(--field-bg-mid, #fffaf2) 55%,
-        var(--field-bg-to, #fdf4e3) 100%);
+            var(--field-bg-from, #fffefb) 0%,
+            var(--field-bg-mid, #fffaf2) 55%,
+            var(--field-bg-to, #fdf4e3) 100%);
     color: var(--field-text, rgb(31, 31, 31));
     box-shadow: var(--field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
     transition: box-shadow 120ms ease;
@@ -150,10 +124,10 @@ $header-height: 50px;
         bottom: 0;
         height: 1px;
         background: linear-gradient(90deg,
-            transparent 0%,
-            var(--field-hairline, rgba(124, 65, 15, 0.18)) 18%,
-            var(--field-hairline, rgba(124, 65, 15, 0.18)) 82%,
-            transparent 100%);
+                transparent 0%,
+                var(--field-hairline, rgba(124, 65, 15, 0.18)) 18%,
+                var(--field-hairline, rgba(124, 65, 15, 0.18)) 82%,
+                transparent 100%);
         pointer-events: none;
         transition: background 120ms ease;
     }
@@ -163,10 +137,10 @@ $header-height: 50px;
 
         &::after {
             background: linear-gradient(90deg,
-                transparent 0%,
-                var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
-                var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
-                transparent 100%);
+                    transparent 0%,
+                    var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
+                    var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
+                    transparent 100%);
         }
     }
 }
@@ -266,8 +240,7 @@ $header-height: 50px;
 .nutrientRow {
     display: flex;
     align-items: center;
-    min-height: 44px;
-    padding: 0 12px 8px;
+    padding: 0 var(--space-3);
 }
 
 .nutrientButton {

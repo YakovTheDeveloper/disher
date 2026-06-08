@@ -1,29 +1,11 @@
+@use 'sass:list';
+
 .wrapper {
   display: flex;
   flex-direction: column;
   height: 100dvh;
   width: 100%;
   background: rgb(244, 251, 255);
-}
-
-// ── Spring variants (shared scaffolding) ──────────────────────────────────────
-// .wrapperSpring2/4 — единственные доступные варианты ModalShell (см.
-// ModalShell.tsx). spring/spring5/gradient — удалены после канона
-// 2026-05-21.
-.wrapperSpring2,
-.wrapperSpring4 {
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
-
-.wrapperSpring2 {
-  background: rgba(255, 255, 255, 0.92);
-}
-
-.wrapperSpring4 {
-  background: rgba(252, 253, 250, 0.88);
 }
 
 .springOrbs {
@@ -40,96 +22,172 @@
   filter: blur(48px);
 }
 
-// ── Spring2: blue + light-green orbs in opposite corners ─────────────────────
-.wrapperSpring2 .orb {
-  opacity: 0.38;
-}
-
-.wrapperSpring2 .orb1 {
-  width: 280px;
-  height: 280px;
-  background: radial-gradient(circle, #bbdefb, #64b5f6);
-  top: -80px;
-  left: -80px;
-}
-
-.wrapperSpring2 .orb2 {
-  width: 240px;
-  height: 240px;
-  background: radial-gradient(circle, #d0f0c0, #aed581);
-  bottom: -60px;
-  right: -60px;
-}
-
-.wrapperSpring2 .orb3 {
-  width: 180px;
-  height: 180px;
-  background: radial-gradient(circle, #e3f2fd, #90caf9);
-  top: 40%;
-  right: -30px;
-}
-
-.wrapperSpring2 .orb4 {
-  width: 160px;
-  height: 160px;
-  background: radial-gradient(circle, #e8f5e9, #c5e1a5);
-  bottom: 25%;
-  left: -20px;
-}
-
-.wrapperSpring2 .orb5 {
-  width: 140px;
-  height: 140px;
-  background: radial-gradient(circle, #f1f8ff, #bbdefb);
-  top: 15%;
-  right: 30%;
-}
-
-// ── Spring4: warm peach + sage ────────────────────────────────────────────────
-.wrapperSpring4 .orb1 {
-  width: 250px;
-  height: 250px;
-  background: radial-gradient(circle, #ffe5d9, #ffb38a);
-  top: -50px;
-  right: -60px;
-}
-
-.wrapperSpring4 .orb2 {
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, #d4e9d4, #8bbf8b);
-  top: 100px;
-  left: -60px;
-}
-
-.wrapperSpring4 .orb3 {
-  width: 190px;
-  height: 190px;
-  background: radial-gradient(circle, #fff3e0, #ffcc80);
-  bottom: 140px;
-  right: 30px;
-}
-
-.wrapperSpring4 .orb4 {
-  width: 170px;
-  height: 170px;
-  background: radial-gradient(circle, #e0f2f1, #80cbc4);
-  bottom: -30px;
-  left: 40px;
-}
-
-.wrapperSpring4 .orb5 {
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, #fce4ec, #f8bbd0);
-  top: 50%;
-  left: 45%;
-}
-
-.wrapperSpring2>*:not(.springOrbs),
-.wrapperSpring4>*:not(.springOrbs) {
+// ── ModalShell ambient background — DesignBar-driven ─────────────────────────
+// ModalShell wraps its content in one `useDesignVariant('ModalShell', …)` anchor
+// (ModalShell.tsx); the DesignVariantsBar flips the wrapper wash + orb palette
+// globally for every mounted modal at once. The attribute selector is GLOBAL
+// (Base UI renders modals through a portal); `.springOrbs` / `.orb*` stay
+// CSS-module-scoped. spring/spring5/gradient — удалены после канона 2026-05-21.
+//
+// Geometry (orb size + position) is shared across all variants — each variant
+// only re-colours the 5 orbs + the wrapper wash. Add a palette by appending a
+// row to $modal-shell-variants below AND to MODAL_SHELL_VARIANTS in the .tsx.
+[data-dv='ModalShell'] {
   position: relative;
-  z-index: 1;
+  overflow: hidden;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+
+  .orb1 { width: 250px; height: 250px; top: -50px; right: -60px; }
+  .orb2 { width: 220px; height: 220px; top: 100px; left: -60px; }
+  .orb3 { width: 190px; height: 190px; bottom: 140px; right: 30px; }
+  .orb4 { width: 170px; height: 170px; bottom: -30px; left: 40px; }
+  .orb5 { width: 150px; height: 150px; top: 50%; left: 45%; }
+
+  >*:not(.springOrbs) {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+// Each palette = (wrapper wash, orb opacity, 5×(inner, outer) orb gradient stops).
+// `background` is intentionally NOT token-gated (stripe-fork canon — см.
+// .stylelintrc.cjs), so raw rgba()/gradients are allowed here.
+$modal-shell-variants: (
+  // existing canon — bluish white (был spring2) + cream/peach (был spring4)
+  'spring2': (rgba(255, 255, 255, 0.92), 0.38,
+    ((#bbdefb, #64b5f6), (#d0f0c0, #aed581), (#e3f2fd, #90caf9), (#e8f5e9, #c5e1a5), (#f1f8ff, #bbdefb))),
+  'spring4': (rgba(252, 253, 250, 0.88), 0.45,
+    ((#ffe5d9, #ffb38a), (#d4e9d4, #8bbf8b), (#fff3e0, #ffcc80), (#e0f2f1, #80cbc4), (#fce4ec, #f8bbd0))),
+  // near-white forks — same hue family, lifted toward white + softened orbs
+  'blue-white': (rgba(255, 255, 255, 0.95), 0.26,
+    ((#e3f2fd, #bbdefb), (#eaf4ff, #cfe6ff), (#eef6ff, #cfe6fb), (#f0f7ff, #d8ecff), (#f5faff, #e3f2fd))),
+  'cream-white': (rgba(255, 254, 251, 0.95), 0.26,
+    ((#fff3e8, #ffe2c8), (#fff6ec, #ffe9d4), (#fff8f0, #ffedd8), (#fdf6ee, #f6e6cf), (#fffaf3, #ffeede))),
+  'rose-white': (rgba(255, 253, 254, 0.95), 0.24,
+    ((#fdeef3, #fbd6e3), (#fef0f5, #fcdde8), (#fff2f6, #fde0ec), (#fdeff4, #f8d8e6), (#fff6f9, #fde6ef))),
+  'sage-white': (rgba(253, 255, 253, 0.95), 0.24,
+    ((#eef6ec, #d4e8cd), (#f0f7ee, #dcecd6), (#f2f8f0, #e0eeda), (#eff7ed, #d8e9d2), (#f5faf3, #e4f0de))),
+  'pure-white': (rgba(255, 255, 255, 0.96), 0.18,
+    ((#f5f7fa, #e6ebf2), (#f7f9fb, #e9eef4), (#f8fafc, #ecf0f5), (#f6f8fb, #e7edf3), (#fafbfd, #eef2f7))),
+  // saturated ambient forks (inspired by HomeAmbient — App.module.scss)
+  'lavender-cream': (rgba(253, 252, 255, 0.92), 0.4,
+    ((#ece4fb, #cdb8f3), (#fff6e0, #ffe9b8), (#f0e9fc, #d8c8f5), (#fff8ea, #ffedc4), (#f4eefe, #e0d2f8))),
+  'mint-sky': (rgba(251, 255, 253, 0.92), 0.4,
+    ((#d6f3e2, #a6e2c2), (#d8ebfb, #add2f3), (#e2f7ec, #b8ead0), (#e0f0fc, #bcdcf6), (#ecfaf2, #cdeedd))),
+  'peach-rose': (rgba(255, 253, 252, 0.92), 0.4,
+    ((#ffe7d6, #ffc6a0), (#ffe4ec, #ffbcd2), (#fff0e6, #ffd6bc), (#ffe8f0, #ffc8de), (#fff4ee, #ffd9c8))),
+  'blush-sky': (rgba(254, 253, 255, 0.92), 0.4,
+    ((#ffe4ee, #ffbcd6), (#dceafe, #b3d0f6), (#ffeaf2, #ffcde0), (#e4f0ff, #c0dbf8), (#fff0f6, #ffd8e8))),
+  'honey': (rgba(255, 253, 247, 0.9), 0.4,
+    ((#fff0cc, #ffd980), (#fff4d8, #ffe199), (#fdeec0, #f5d985), (#fff6e0, #ffe6a8), (#fef3d0, #f8dd90))),
+  'sunrise': (rgba(255, 253, 250, 0.9), 0.42,
+    ((#ffe9c8, #ffcf8f), (#fff0d8, #ffdca0), (#fff3e0, #ffd9a0), (#ffe6d0, #ffc890), (#fff6e8, #ffe3b0))),
+);
+
+@each $name, $cfg in $modal-shell-variants {
+  [data-dv='ModalShell'][data-dv-v='#{$name}'] {
+    background: list.nth($cfg, 1);
+
+    .orb { opacity: list.nth($cfg, 2); }
+
+    $orbs: list.nth($cfg, 3);
+
+    @for $i from 1 through 5 {
+      $pair: list.nth($orbs, $i);
+
+      .orb#{$i} {
+        background: radial-gradient(circle, list.nth($pair, 1), list.nth($pair, 2));
+      }
+    }
+  }
+}
+
+// ── ModalShell-variant-driven field & chip palette ──────────────────────────
+// The interactive widgets inside a modal (AutoGrowSearch / TimeChoose / the
+// ProductQuantity surface, all warm-pill canon, + DetailsChips) already read
+// their colours off `--field-*` / `--chip-*` instead of hard-coding them.
+// Those tokens are published page-wide by `[data-surface=warm|lavender]` on
+// `<body>`. The ModalShell wrapper carries `[data-dv='ModalShell'][data-dv-v]`
+// and is a DESCENDANT of `<body>`, so re-declaring the same tokens here wins by
+// proximity for everything inside the modal — the inputs/chips/time/qty widgets
+// follow whichever DesignBar variant is live, while the rest of the page keeps
+// its surface palette. No component edits needed; pure cascade.
+//
+// One palette is derived from a few inputs per variant via `field-chip-palette`,
+// mirroring the alpha ladder of the warm/lavender surfaces (surfaces.scss):
+//   placeholder .45 · adornment .55 · hairline .18 / focus .36 · shadow .06/.12
+//   · digit-shadow .14 · chip hover-border .24 · chip-active-border .5 · sep .14
+//
+// Inputs: $text  — near-black field/chip ink (hue-tinted)
+//         $ink   — the saturated hue used for the alpha ladder (hairlines/shadows)
+//         $accent— chip rest border (the variant's signature hue)
+//         $pill  — 3 stops of the rest field/chip gradient (light, hue-tinted)
+//         $dark  — (from, mid, to) — dark stops of the active/filled chip inversion
+//         $on-dark — text on the active chip
+@mixin field-chip-palette($text, $ink, $accent, $pill, $dark, $on-dark) {
+  --field-radius: 24px;
+  --field-bg-from: #{list.nth($pill, 1)};
+  --field-bg-mid: #{list.nth($pill, 2)};
+  --field-bg-to: #{list.nth($pill, 3)};
+  --field-text: #{$text};
+  --field-placeholder: #{rgba($ink, 0.45)};
+  --field-adornment: #{rgba($ink, 0.55)};
+  --field-hairline: #{rgba($ink, 0.18)};
+  --field-hairline-focus: #{rgba($ink, 0.36)};
+  --field-shadow: 0 1px 3px #{rgba($ink, 0.06)};
+  --field-shadow-focus: 0 1px 8px #{rgba($ink, 0.12)};
+  --field-digit-shadow: 0 1px 2px #{rgba($ink, 0.14)};
+
+  --chip-bg: linear-gradient(135deg,
+      #{list.nth($pill, 1)} 0%, #{list.nth($pill, 2)} 60%, #{list.nth($pill, 3)} 100%);
+  --chip-border: #{rgba($accent, 0.5)};
+  --chip-text: #{$text};
+  --chip-hover-border: #{rgba($ink, 0.24)};
+  --chip-active-bg: linear-gradient(135deg,
+      #{list.nth($dark, 1)} 0%, #{list.nth($dark, 2)} 60%, #{list.nth($dark, 3)} 100%);
+  --chip-active-border: #{rgba($ink, 0.5)};
+  --chip-active-text: #{$on-dark};
+  --chip-separator: #{rgba($ink, 0.14)};
+}
+
+// (text, ink, accent, (pill ×3), (dark from, mid, to), on-dark).
+// The active-chip mid stop is the rounded per-channel average of from/to —
+// precomputed (not `color.mix`) so the emitted CSS has integer rgb.
+$modal-shell-field-chip: (
+  'spring2':        (#1c2733, #28466e, #3b7fc4, (#fdfeff, #f6fafe, #eef5fc), (#18202c, #213046, #2a4060), #eef5fc),
+  'spring4':        (#1f1f1f, #7c410f, #b76d1a, (#fffefb, #fffaf2, #fdf4e3), (#251f16, #37312a, #49433d), #ffffff),
+  'blue-white':     (#1c2733, #1e3a5f, #3b82c4, (#fdfeff, #f4f9ff, #ebf3fd), (#16202e, #20324a, #2a4566), #ecf4ff),
+  'cream-white':    (#221a0f, #7c4a12, #c0892e, (#fffdf8, #fff8ee, #fdf1df), (#251d12, #382d1d, #4a3d28), #fff7e9),
+  'rose-white':     (#2b121d, #8a2b4a, #c9577f, (#fffafc, #fef2f6, #fde6ee), (#2a131c, #421d2e, #5a2740), #fdeef4),
+  'sage-white':     (#15220f, #3a5a2e, #6a9a4e, (#fbfdf9, #f3f9ef, #e9f2e2), (#16210f, #28371e, #3a4d2c), #eef6e6),
+  'pure-white':     (#1f2530, #2c3440, #5b6b85, (#fefeff, #f8fafc, #eef2f7), (#1a1f28, #2a313d, #3a4252), #eef2f7),
+  'lavender-cream': (#241836, #461e6e, #6b3aa5, (#fdfcff, #f8f4fe, #efe9fb), (#241836, #371958, #4a1a7a), #f3ecff),
+  'mint-sky':       (#0f2622, #1d5a52, #2b9d8f, (#f9fefb, #effbf6, #e4f6ef), (#0f231f, #1e3833, #2c4d47), #e6f7f1),
+  'peach-rose':     (#2b1810, #8a3a20, #d2562e, (#fffbf8, #fff3ec, #ffe7da), (#2a160d, #422215, #5a2d1c), #fff0e6),
+  'blush-sky':      (#2a1320, #8a2b52, #d2618f, (#fffafd, #fef1f6, #fde4ee), (#2a1320, #421d31, #5a2742), #fdeef5),
+  'honey':          (#241c08, #6b4a0f, #d99a1a, (#fffdf3, #fff8e0, #fdf0c8), (#241b08, #372b0e, #4a3a14), #fff6da),
+  'sunrise':        (#2a1c0c, #7a4a18, #e0883a, (#fffcf6, #fff4e4, #ffe9cf), (#2a1c0c, #422b14, #5a3a1c), #fff2e0),
+);
+
+// Two entry points share one palette:
+//   [data-dv='ModalShell'][data-dv-v]  — the ModalShell wrapper itself.
+//   [data-modal-fields]                — a light-weight opt-in attribute for
+//     modal content that is NOT wrapped in ModalShell (e.g. the bare SearchFood
+//     search step of a ModalByLabel flow). It carries ONLY these tokens, none of
+//     the `[data-dv='ModalShell']` ambient baggage (orbs / position /
+//     backdrop-filter — the latter would create a containing block and break the
+//     fixed-position modal expansion). Consumers spread it on a `display:contents`
+//     wrapper so the field/chip palette follows the live variant without changing
+//     layout.
+@each $name, $p in $modal-shell-field-chip {
+  [data-dv='ModalShell'][data-dv-v='#{$name}'],
+  [data-modal-fields='#{$name}'] {
+    @include field-chip-palette(
+      list.nth($p, 1), list.nth($p, 2), list.nth($p, 3),
+      list.nth($p, 4), list.nth($p, 5), list.nth($p, 6)
+    );
+  }
 }
 
 .spacer {

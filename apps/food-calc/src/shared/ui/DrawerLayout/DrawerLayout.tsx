@@ -8,10 +8,26 @@ import { useDrawerSide } from './drawerSide';
 
 type Props = {
   children: React.ReactNode;
+  /**
+   * Centered header title — sits between the Close cross and the topRight slot,
+   * on the same row. When the chrome row is visible, the title IS the single
+   * `Drawer.Title` (the dialog's `<h2>` AND its accessible name — see precedence
+   * on `a11yLabel`), styled with the canonical drawer-heading tokens (Source
+   * Serif italic, `--heading-size-drawer`). Pass a plain string for canonical
+   * styling, or a custom node if you need a bespoke heading. Body headings
+   * inside the drawer should be `<h3>`+ to keep the document outline correct.
+   */
+  title?: React.ReactNode;
   topRight?: React.ReactNode;
   /** Pinned, non-scrolling content below the scroll area — always visible. */
   footer?: React.ReactNode;
   className?: string;
+  /**
+   * Screen-reader accessible name for the drawer. Used ONLY when there is no
+   * visible title to serve as the heading (no `title`, or `hideTopChrome`) —
+   * a visible title always wins as the accessible name so it never diverges
+   * from what's on screen (WCAG 2.5.3). Falls back to a default if neither set.
+   */
   a11yLabel?: string;
   /**
    * Hide the 40px top drag-handle row (with the Close cross + topRight slot).
@@ -24,6 +40,7 @@ type Props = {
 
 const DrawerLayout = ({
   children,
+  title,
   topRight,
   footer,
   className,
@@ -37,6 +54,10 @@ const DrawerLayout = ({
   const { side, width } = useDrawerSide();
   const isSide = side === 'left' || side === 'right';
 
+  // The visible header title doubles as the single `Drawer.Title` (one <h2> =
+  // accessible name + visible heading) when the chrome row is on screen.
+  const showVisibleTitle = title != null && !hideTopChrome;
+
   const style = width
     ? ({ '--side-drawer-width': width } as CSSProperties)
     : undefined;
@@ -47,9 +68,21 @@ const DrawerLayout = ({
       style={style}
       id="drawer-content"
     >
-      <Drawer.Title className={styles.srOnly}>
-        {a11yLabel ?? t('overlay.drawer.defaultA11yLabel', 'Панель')}
-      </Drawer.Title>
+      {/*
+        Exactly ONE Drawer.Title per drawer (Base UI wires aria-labelledby to
+        it and renders it as <h2>). When a visible title shows in the chrome row
+        it IS that Title (rendered below, in `.dragHandle`) — so the accessible
+        name equals the on-screen label and there's no duplicate <h2>. Only when
+        there's no visible title (title-less, or hideTopChrome) do we emit a
+        sr-only Title carrying a11yLabel.
+      */}
+      {!showVisibleTitle && (
+        <Drawer.Title className={styles.srOnly}>
+          {a11yLabel ??
+            (typeof title === 'string' ? title : undefined) ??
+            t('overlay.drawer.defaultA11yLabel', 'Панель')}
+        </Drawer.Title>
+      )}
       {/*
         Edge swipe-handle — side drawers only. It's a plain sibling of
         Drawer.Content (no `data-base-ui-swipe-ignore`, not inside
@@ -74,6 +107,9 @@ const DrawerLayout = ({
             >
               <CrossIcon />
             </Drawer.Close>
+            {showVisibleTitle && (
+              <Drawer.Title className={styles.titleCenter}>{title}</Drawer.Title>
+            )}
             <div className={clsx(styles.actionHeaderButton, styles.topRight)}>{topRight}</div>
           </div>
         )}

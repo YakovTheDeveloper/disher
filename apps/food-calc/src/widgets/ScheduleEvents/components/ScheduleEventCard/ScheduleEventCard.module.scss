@@ -76,8 +76,9 @@
   white-space: nowrap;
 }
 
-// Chips / scale derive from the same `--text-*` foreground as the rest
-// of the card, so the events list shares ScheduleFood's colour scheme.
+// Chips / scale derive from the same `--text-*` foreground as the rest of the
+// card, published by the events' own `[data-dv='ScheduleEvents']` palette
+// (default `lemon`; switchable in the DesignBar).
 .chipScale {
   background-color: color-mix(in oklch, var(--text-primary) 10%, transparent);
   color: var(--text-secondary);

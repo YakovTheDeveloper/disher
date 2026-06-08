@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router';
 import { format } from 'date-fns';
 import {
@@ -100,6 +100,13 @@ const DishBuilderPage = () => {
     return null;
   }
 
+  // id-guard живёт в обёртке (до return — только useParams, Rules of React ок).
+  // Всё тело с хуками — в Inner, который получает гарантированный id: string,
+  // поэтому ни один хук не вызывается условно (react-hooks/rules-of-hooks).
+  return <DishBuilderPageInner id={id} />;
+};
+
+const DishBuilderPageInner = ({ id }: { id: string }) => {
   const dish = useDish(id);
   const dishItems = useDishItemsWithProducts(id);
   const portionsRaw = useDishPortions(id);
@@ -146,7 +153,12 @@ const DishBuilderPage = () => {
   );
 
   const itemsRef = useRef(dishItems);
-  itemsRef.current = dishItems;
+  // Освежаем ref в эффекте, не в рендере (react-hooks/refs: запись ref.current
+  // во время рендера небезопасна для компилятора). itemsRef читается только в
+  // обработчике фокуса — он срабатывает после рендера, рассинхрона нет.
+  useEffect(() => {
+    itemsRef.current = dishItems;
+  });
   const primeEdit = editFlow.primeEdit;
   const handleEditFocusCapture = useCallback(
     (e: React.FocusEvent) => {

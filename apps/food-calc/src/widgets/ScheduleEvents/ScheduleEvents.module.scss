@@ -2,17 +2,19 @@
 
 .eventsBuilder {}
 
-// ScheduleEvents использует тот же DesignBar-якорь, что и FoodSchedule
-// (`useDesignVariant('ScheduleFood', …)`), поэтому селекторы здесь
-// читают `[data-dv='ScheduleFood']` — события и еда меняют палитру вместе.
+// ScheduleEvents owns its OWN DesignBar anchor (`useDesignVariant('ScheduleEvents', …)`),
+// decoupled from FoodSchedule's `'ScheduleFood'`. Default variant is `lemon`
+// (single warm yellow hue across the day) — the food list keeps its own palette.
+// The other six palettes stay switchable here so the DesignBar still offers them.
 
-.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='meadow']   { @include dv-palette-meadow;   @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='sunrise']  { @include dv-palette-sunrise;  @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='sorbet']   { @include dv-palette-sorbet;   @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='garden']   { @include dv-palette-garden;   @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='lagoon']   { @include dv-palette-lagoon;   @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='tropic']   { @include dv-palette-tropic;   @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleFood'][data-dv-v='twilight'] { @include dv-palette-twilight; @include dv-text($dv-text-twilight); }
+.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='lemon']    { @include dv-palette-lemon;    @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='meadow']   { @include dv-palette-meadow;   @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='sunrise']  { @include dv-palette-sunrise;  @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='sorbet']   { @include dv-palette-sorbet;   @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='garden']   { @include dv-palette-garden;   @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='lagoon']   { @include dv-palette-lagoon;   @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='tropic']   { @include dv-palette-tropic;   @include dv-text($dv-text-graphite); }
+.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='twilight'] { @include dv-palette-twilight; @include dv-text($dv-text-twilight); }
 
 .listItemRow {
     display: grid;

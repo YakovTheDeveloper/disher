@@ -15,14 +15,14 @@ test.describe('daily analysis — interrupted', () => {
     // Hang the request — the response never completes, so the store record
     // stays `streaming` (and is persisted to idb-keyval that way).
     await page.route('**/api/analyze/daily', async () => {
-      await new Promise(() => {});
+      await new Promise(() => { });
     });
 
     await signUpAndVerify(page);
     const date = todayKey();
     await seedScheduleFood(page, date);
 
-    await page.getByRole('tab', { name: 'Лаборатория' }).first().click();
+    await page.getByRole('tab', { name: 'Анализ' }).first().click();
     await page.getByRole('button', { name: 'Анализировать' }).click();
     await page.getByText('Текущий день').click();
 
@@ -33,7 +33,7 @@ test.describe('daily analysis — interrupted', () => {
 
     // Hard reload — boot hydration flips streaming → interrupted.
     await page.reload();
-    await page.getByRole('tab', { name: 'Лаборатория' }).first().click();
+    await page.getByRole('tab', { name: 'Анализ' }).first().click();
 
     // «Разбор прерван» (NOT «не удался») + the restart action.
     await expect(page.getByText('Разбор прерван')).toBeVisible({

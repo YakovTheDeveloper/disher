@@ -16,6 +16,8 @@ type Props = {
   searchLabel?: string;
   /** Подпись под лупой (например, "Каталог"). */
   searchText?: string;
+  /** Опциональная подсказка-пример над баром в фокусе (см. WriteFoodInput.hint). */
+  writeFoodHint?: string;
   /**
    * Контент перед write-field (например `<NutrientsSummaryButton/>`).
    * На HomePage сейчас не используется (nutrient-pill переехал в HomeTopBar),
@@ -40,6 +42,7 @@ export const AppBottomBar = ({
   searchHtmlFor,
   searchLabel,
   searchText,
+  writeFoodHint,
   leadingSlot,
 }: Props) => {
   const tod = getTimeOfDay(useNow());
@@ -54,6 +57,7 @@ export const AppBottomBar = ({
         searchHtmlFor={searchHtmlFor}
         searchLabel={searchLabel}
         searchText={searchText}
+        hint={writeFoodHint}
         className={s.writeBarSlot}
       />
     </div>

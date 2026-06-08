@@ -8,6 +8,8 @@ import {
   type NutrientLine,
 } from "../../shared/analysis-output.js";
 import { applySSECorsHeaders } from "../lib/sse-cors.js";
+import { chargeOr402, resolveRequestId } from "../../billing/http.js";
+import { refund } from "../../billing/wallet.js";
 
 // POST /api/analyze/daily — SSE stream. The "daily analysis" — a one-day
 // review of the user's meals + health tags. The frontend hydrates the day's
@@ -288,6 +290,11 @@ export async function analyzeDailyRoutes(
       return reply.status(400).send({ error: "empty day" });
     }
 
+    // Paid: debit before touching the raw socket so an insufficient-balance 402
+    // is a clean JSON reply.
+    const requestId = resolveRequestId(req);
+    if (!(await chargeOr402(req, reply, "daily_analysis", requestId))) return;
+
     // @fastify/cors writes Access-Control-* via reply.header(), which is only
     // flushed by reply.send(). SSE handlers stream through reply.raw and
     // bypass that path entirely — set the headers on the raw socket so they
@@ -302,11 +309,28 @@ export async function analyzeDailyRoutes(
       nutrients,
     );
 
+    // Wrap the stream so any forwarded content frame flips producedOutput. The
+    // error/[DONE] control frames runDailySSE writes itself bypass this wrapper,
+    // so a failure before the first content frame refunds.
+    let producedOutput = false;
+    const billedStreamLLM: DailyStreamFn = async (prompt, write, signal) => {
+      const trackingWrite: SSEWrite = (data) => {
+        producedOutput = true;
+        return write(data);
+      };
+      await streamLLM(prompt, trackingWrite, signal);
+    };
+
     await runDailySSE({
       userPrompt,
       raw: reply.raw,
       socket: req.socket,
-      streamLLM,
+      streamLLM: billedStreamLLM,
     });
+
+    // Refund if the stream failed before any content reached the client.
+    if (!producedOutput) {
+      await refund(req.userId, "daily_analysis", requestId).catch(() => {});
+    }
   });
 }

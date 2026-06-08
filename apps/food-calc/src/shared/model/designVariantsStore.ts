@@ -7,6 +7,15 @@ export type RegistryEntry = {
   visible: boolean;
   /** Timestamp of last visibility report — used to pick "most recently visible" when no pin. */
   lastSeen: number;
+  /**
+   * How many mounted components currently share this key. Multi-instance
+   * anchors (e.g. `ModalShell` — the ModalByLabel flows keep several steps
+   * mounted at once, or the shared row-boundary key) register the SAME key N
+   * times; without a refcount the first unmount would delete the entry while
+   * siblings are still mounted, snapping them back to the fallback variant.
+   * The entry is removed only when the last instance unregisters.
+   */
+  refCount: number;
 };
 
 function loadStoredVariant(key: string, fallback: string): string {
@@ -60,6 +69,9 @@ export const useDesignVariantsStore = create<DesignVariantsStore>((set, get) => 
             variant,
             visible: existing?.visible ?? false,
             lastSeen: existing?.lastSeen ?? 0,
+            // Bump on every mount sharing this key; entry survives until the
+            // last sibling unregisters (see RegistryEntry.refCount).
+            refCount: (existing?.refCount ?? 0) + 1,
           },
         },
       };
@@ -67,8 +79,17 @@ export const useDesignVariantsStore = create<DesignVariantsStore>((set, get) => 
 
   unregister: (key) =>
     set((state) => {
-      if (!(key in state.entries)) return state;
-      const { [key]: _, ...rest } = state.entries;
+      const existing = state.entries[key];
+      if (!existing) return state;
+      // More than one mount still shares the key — just drop our reference.
+      if (existing.refCount > 1) {
+        return {
+          entries: { ...state.entries, [key]: { ...existing, refCount: existing.refCount - 1 } },
+        };
+      }
+      // Last instance — remove the entry entirely.
+      const rest = { ...state.entries };
+      delete rest[key];
       return {
         entries: rest,
         pinned: state.pinned === key ? null : state.pinned,

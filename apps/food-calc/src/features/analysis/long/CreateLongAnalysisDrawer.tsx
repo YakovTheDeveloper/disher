@@ -5,6 +5,7 @@ import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { useAllHypotheses } from '@/entities/hypothesis';
 import HypothesisListPanel from '@/widgets/Laboratory/HypothesisListPanel';
+import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 import { startAnalysis, type Analysis } from '../api';
 import RangePickerWithFallback from './RangePickerWithFallback';
 import {
@@ -64,7 +65,9 @@ const CreateLongAnalysisDrawer = ({ onClose }: Props) => {
       onClose(analysis);
     } catch (err) {
       console.error('startAnalysis failed', err);
-      toast.error('Не удалось запустить разбор');
+      toast.error(
+        err instanceof PaymentRequiredError ? err.message : 'Не удалось запустить разбор',
+      );
       setSubmitting(false);
     }
   }

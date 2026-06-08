@@ -19,6 +19,7 @@ type Props = {
 const REASON_TEXT: Record<NonNullable<DailyAnalysisReason>, string> = {
   network: 'Похоже, пропала сеть.',
   server: 'Что-то пошло не так на сервере.',
+  payment: 'Недостаточно средств — пополните баланс.',
   reload: 'Страница перезагрузилась во время разбора.',
   'date-switch': 'Ты переключился на другую дату.',
 };
@@ -28,7 +29,6 @@ const REASON_TEXT: Record<NonNullable<DailyAnalysisReason>, string> = {
 // idle invitation when the day has never been analysed.
 const DailyAnalysisSection = ({ date }: Props) => {
   const daily = useDailyAnalysisStore((s) => s.byDate[date]);
-  const hydrated = useDailyAnalysisStore((s) => s.hydrated);
   const { anchor } = useDesignVariant('DailyAnalysis', SURFACE_VARIANTS);
 
   // Re-run uses the snapshot's hypothesis ids — the same hypotheses the
@@ -40,21 +40,9 @@ const DailyAnalysisSection = ({ date }: Props) => {
     });
   }, [date, daily]);
 
-  if (!daily) {
-    // Before the idb-keyval boot read finishes, `byDate` is empty — render
-    // nothing rather than flashing the invitation over a result that is
-    // about to hydrate in.
-    if (!hydrated) return null;
-    return (
-      <section className={styles.invite} {...anchor}>
-        <p className={styles.inviteTitle}>Разбор дня</p>
-        <p className={styles.inviteBody}>
-          Запусти разбор — ИИ посмотрит, что ты ел и как себя чувствовал за
-          день, и подскажет, на что обратить внимание.
-        </p>
-      </section>
-    );
-  }
+  // Нет разбора за день — ничего не показываем (решение 2026-06-08: убрали
+  // подсказку «Разбор дня»; CTA «Разбор» в нижнем баре самоочевиден).
+  if (!daily) return null;
 
   const { status, resultMd, ideaCards, reason } = daily;
 

@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
 import { Heading } from '@/shared/ui/atoms/Typography';
+import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
 import type { SearchFilter } from '../SearchFood';
 import { FILTER_LABELS } from '../SearchFood';
 
@@ -47,35 +48,7 @@ const SearchFoodControls = ({
   return (
     <div className={clsx(styles.controls, className)}>
       <header className={clsx(styles.header, hasFilter && styles.headerWithFilter)}>
-      {onBack && (
-        <button className={styles.backButton} onClick={onBack} type="button">
-          <svg
-            width="36"
-            height="20"
-            viewBox="0 0 36 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <line
-              x1="34"
-              y1="10"
-              x2="2"
-              y2="10"
-              stroke="black"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M12 2L2 10L12 18"
-              stroke="black"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          </svg>
-        </button>
-      )}
+      {onBack && <BackButton onClick={onBack} />}
 
       {!hasFilter && title && (
         <Heading size="drawer" as="h2" className={styles.title}>

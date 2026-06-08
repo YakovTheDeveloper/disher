@@ -4,7 +4,7 @@ import { ModalByLabelDetails } from '@/features/shared/components/ModalByLabelDe
 import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { useProduct } from '@/entities/product';
-import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalShell, ModalVariantFields } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { DetailsChips, useHasDetailsHints } from '@/features/food/details-chips';
@@ -98,22 +98,24 @@ const DishProductCreateModals = ({ dishId }: Props) => {
         position="absolute"
         isExpanded={step === 'search'}
         content={
-          <SearchFood
-            key={sessionKey}
-            mode="products-only"
-            title="Еда"
-            onSelectFood={handleFoodSelect}
-            onBack={handleClose}
-            onInfoClick={() => {
-              handleClose();
-            }}
-            activeItemId={draft.productId ?? undefined}
-            itemHtmlFor={QUANTITY_INPUT}
-            inputId={SEARCH_INPUT}
-            isActive={step === 'search'}
-            createInputHtmlFor={CREATE_INPUT}
-            onPickCreate={handlePickCreate}
-          />
+          <ModalVariantFields>
+            <SearchFood
+              key={sessionKey}
+              mode="products-only"
+              title="Еда"
+              onSelectFood={handleFoodSelect}
+              onBack={handleClose}
+              onInfoClick={() => {
+                handleClose();
+              }}
+              activeItemId={draft.productId ?? undefined}
+              itemHtmlFor={QUANTITY_INPUT}
+              inputId={SEARCH_INPUT}
+              isActive={step === 'search'}
+              createInputHtmlFor={CREATE_INPUT}
+              onPickCreate={handlePickCreate}
+            />
+          </ModalVariantFields>
         }
       />
 

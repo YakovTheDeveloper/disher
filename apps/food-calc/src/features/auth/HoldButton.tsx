@@ -61,6 +61,7 @@ export function HoldButton({
   };
 
   const tick = () => {
+    // eslint-disable-next-line react-hooks/purity -- performance.now() в rAF-колбэке tick, не в рендере
     const elapsed = performance.now() - startRef.current;
     const progress = Math.min(1, elapsed / holdMs);
     setFill(progress);

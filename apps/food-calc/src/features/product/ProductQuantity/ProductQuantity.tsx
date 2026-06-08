@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import clsx from 'clsx';
 import style from './ProductQuantity.module.scss';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { Chip } from '@/shared/ui/atoms/Chip';
@@ -66,42 +67,80 @@ const ProductQuantity = ({
     }
   };
 
+  const multiplierShown = isActive && activePortion !== null;
+
   return (
     <div className={style.container}>
-      <div className={style.inputWrapper}>
-        <div className={style.inputRow}>
-          {/* Auto-grow input: a span mirrors the digits with the same font,
-              so its width = the real rendered width of the number. The
-              <input> is absolutely placed on top of the span, so the
-              wrapper's flex layout sees the SPAN's width — and the .unit
-              sibling sits flush against the last digit, not a fixed ch box.
-              Works in every browser (no field-sizing dependency). */}
-          <span className={style.inputBox}>
-            <span aria-hidden className={style.mirror}>
-              {value || 0}
+      {/* Grid `1fr auto 1fr → 0fr auto 1fr` slides the (dynamic-width) backdrop
+          from centred (equal fr flanks) to flush-left (left flank collapses) via
+          LAYOUT, not a transform — so the backdrop's variable width never offsets
+          the slide. Grid-track interpolation (not flex-grow, which SNAPS on iOS
+          Safari — known WebKit bug) is what keeps the slide smooth on-device. */}
+      <div className={clsx(style.quantityRow, multiplierShown && style.quantityRowActive)}>
+        <div className={style.inputWrapper}>
+          <div className={style.inputRow}>
+            {/* Auto-grow input: a span mirrors the digits with the same font,
+                so its width = the real rendered width of the number. The
+                <input> is absolutely placed on top of the span, so the
+                wrapper's flex layout sees the SPAN's width — and the .unit
+                sibling sits flush against the last digit, not a fixed ch box.
+                Works in every browser (no field-sizing dependency). */}
+            <span className={style.inputBox}>
+              <span aria-hidden className={style.mirror}>
+                {value || 0}
+              </span>
+              <NumberInput
+                id={inputId}
+                placeholder="Количество"
+                ref={inputRef}
+                className={style.input}
+                onChange={setValue}
+                value={value}
+                onBlur={onBlur}
+                maxLength={5}
+              />
             </span>
-            <NumberInput
-              id={inputId}
-              placeholder="Количество"
-              ref={inputRef}
-              className={style.input}
-              onChange={setValue}
-              value={value}
-              onBlur={onBlur}
-              maxLength={5}
-            />
-          </span>
-          <span className={style.unit}>{'г'}</span>
+            <span className={style.unit}>{'г'}</span>
+          </div>
         </div>
+
+        {/* Multiplier lives here (outer) — its state is here and it must share
+            the SAME row as the backdrop, in the right grid column. Mounted only
+            while a portion is active (so it's absent from the DOM/tab order
+            otherwise); grid fr-tracks centre the backdrop with or without it, so
+            its presence doesn't shift centring. The entrance fade is a keyframe,
+            not a transition — transitions don't fire on mount. */}
+        {multiplierShown && (
+          <div className={style.multiplierRow}>
+            <button
+              type="button"
+              className={style.multiplierBtn}
+              onClick={() => handleMultiplierChange(multiplier - 0.5)}
+            >
+              −
+            </button>
+            <NumberInput
+              className={style.multiplierInput}
+              value={multiplier}
+              onChange={handleMultiplierChange}
+              placeholder="×"
+            />
+            <button
+              type="button"
+              className={style.multiplierBtn}
+              onClick={() => handleMultiplierChange(multiplier + 0.5)}
+            >
+              +
+            </button>
+          </div>
+        )}
       </div>
 
       {isActive && (
         <ProductQuantityHeavy
           content={content}
           activePortion={activePortion}
-          multiplier={multiplier}
           onPortionClick={handlePortionClick}
-          onMultiplierChange={handleMultiplierChange}
         />
       )}
     </div>
@@ -111,18 +150,12 @@ const ProductQuantity = ({
 type HeavyProps = {
   content: ProductQuantityContent;
   activePortion: Portion | null;
-  multiplier: number;
   onPortionClick: (portion: Portion) => void;
-  onMultiplierChange: (mult: number) => void;
 };
 
-const ProductQuantityHeavy = ({
-  content,
-  activePortion,
-  multiplier,
-  onPortionClick,
-  onMultiplierChange,
-}: HeavyProps) => {
+// Portion chips only — the multiplier stepper lives in the outer component now,
+// so it can share the backdrop's row (see render above).
+const ProductQuantityHeavy = ({ content, activePortion, onPortionClick }: HeavyProps) => {
   const portions = content.product?.portions || content.dish?.portions || [];
 
   if (portions.length === 0) return null;
@@ -145,31 +178,6 @@ const ProductQuantityHeavy = ({
           </Chip>
         ))}
       </div>
-
-      {activePortion && (
-        <div className={style.multiplierRow}>
-          <button
-            type="button"
-            className={style.multiplierBtn}
-            onClick={() => onMultiplierChange(multiplier - 0.5)}
-          >
-            −
-          </button>
-          <NumberInput
-            className={style.multiplierInput}
-            value={multiplier}
-            onChange={onMultiplierChange}
-            placeholder="×"
-          />
-          <button
-            type="button"
-            className={style.multiplierBtn}
-            onClick={() => onMultiplierChange(multiplier + 0.5)}
-          >
-            +
-          </button>
-        </div>
-      )}
     </div>
   );
 };

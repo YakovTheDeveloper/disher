@@ -20,29 +20,3 @@
     min-height: 0;
 }
 
-// ── top-right entry into /analyses ───────────────────────────────────
-// Duplicates the AnalysisKindDrawer «по неделям» path so /analyses stays
-// reachable without opening the chooser.
-.topLinkRow {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.weeklyLink {
-    padding: 4px 2px;
-    background: transparent;
-    border: none;
-    color: rgba(15, 23, 42, 0.5);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: color 0.14s ease;
-
-    &:hover,
-    &:focus-visible {
-        color: rgba(15, 23, 42, 0.8);
-        outline: none;
-    }
-}
-
