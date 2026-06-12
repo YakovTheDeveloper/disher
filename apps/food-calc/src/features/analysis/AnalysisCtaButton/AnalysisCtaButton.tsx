@@ -16,12 +16,12 @@ type Props = {
 // otherwise it is always active (offline / empty-day gating lives on the
 // «текущий день» option inside the drawer).
 const AnalysisCtaButton = ({ date }: Props) => {
-  const streaming = useDailyAnalysisStore(
-    (s) => s.byDate[date]?.status === 'streaming',
+  const loading = useDailyAnalysisStore(
+    (s) => s.byDate[date]?.status === 'loading',
   );
 
   function handleClick() {
-    if (streaming) return;
+    if (loading) return;
     void drawerStore.show(AnalysisKindDrawer, { date });
   }
 
@@ -29,16 +29,16 @@ const AnalysisCtaButton = ({ date }: Props) => {
     <Button
       variant="bottomActionBar"
       onClick={handleClick}
-      disabled={streaming}
+      disabled={loading}
       icon={
-        streaming ? (
+        loading ? (
           <span className={styles.spinner} />
         ) : (
           <span className={styles.sparkle}>✦</span>
         )
       }
     >
-      {streaming ? 'Разбираем…' : 'Анализ'}
+      {loading ? 'Разбираем…' : 'Анализ'}
     </Button>
   );
 };

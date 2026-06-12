@@ -9,8 +9,8 @@ type Props = {
 const fmt = (v: number | undefined) => (v == null ? '—' : String(Math.round(v)));
 
 // Leading slot for AppBottomBar: 2-line gray macros + kcal/water summary.
-// Fiber reads greenish, water blue — colour replaces the textual labels.
-// Tap opens a nutrients drawer wired by the consumer.
+// Все значения единым приглушённым серым — без цветовых акцентов на клетчатке
+// и воде (по запросу: «убери цветные цифры»). Tap opens a nutrients drawer.
 export const NutrientsSummaryButton = ({ totals, onClick }: Props) => {
   const protein = fmt(totals['1']);
   const fat = fmt(totals['2']);
@@ -32,11 +32,11 @@ export const NutrientsSummaryButton = ({ totals, onClick }: Props) => {
         <span className={s.dot}>•</span>
         <span>{carbs}</span>
         <span className={s.dot}>•</span>
-        <span className={s.fiber}>{fiber}</span>
+        <span>{fiber}</span>
       </span>
       <span className={s.nutrientsLine}>
         <span>{`${kcal} ккал`}</span>
-        <span className={s.water}>{`${water} мл`}</span>
+        <span>{`${water} мл`}</span>
       </span>
     </button>
   );

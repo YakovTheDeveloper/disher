@@ -1,0 +1,432 @@
+// WriteBarShell — shared messenger-style write bar (pill + optional left slot +
+// input + send + optional right slot). Extracted 2026-06-09 from WriteFoodInput
+// so the Analysis (screen 1) and Events (screen 3) bars reuse the same chrome:
+// fat-pill geometry, expand-on-focus, send button, keyboard-scroll, press
+// feedback, design-variant palette. WriteFoodInput is now a thin adapter over it.
+//
+// Right-slot collapse (the medal / arc) keys off the row's `[data-expanded]`
+// plain attribute, so WriteBarMedal (its own module) can read it cross-file.
+//
+// ЦВЕТ — DesignBar `WriteBar` варианты (`ash`/`mint`): набор `--wb-*`/`--field-*`
+// на `.wrap[data-dv-v]`. Базовые дефолты на `.wrap`, элементы их ПОТРЕБЛЯЮТ.
+
+@import '@/shared/assets/style/mixin.scss';
+
+// ─── Wrapper + base tokens + colour variants ───────────────────────────────
+
+.wrap {
+    --pill-h: var(--bottom-action-h, 72px);
+    // On focus the pill (field) + clip grow ~1.5×. The send coin does NOT — it is
+    // pinned to --coin-size so it always fits the bar width (a focus-sized coin
+    // overflowed the right edge). --coin-size keys off the BASE height, not the
+    // overridden --pill-h, so it stays put when the subtree's --pill-h grows.
+    --pill-h-focus: calc(var(--bottom-action-h, 72px) * 1.5);
+    --coin-size: calc(var(--bottom-action-h, 72px) - var(--space-1));
+
+    --field-font-family: var(--font-sans);
+    --field-font-weight: var(--bottom-bar-font-weight);
+    --field-font-size: var(--bottom-bar-font-size);
+    --field-line-height: 1.4;
+    --field-placeholder-weight: 400;
+
+    --field-text: rgba(31, 42, 68, 0.92);
+    --field-placeholder: rgba(31, 42, 68, 0.4);
+    --field-adornment: rgba(31, 42, 68, 0.55);
+
+    --wb-pill-bg: rgba(255, 255, 255, 1);
+    --wb-pill-border: rgba(31, 42, 68, 0.08);
+    --wb-pill-border-focus: rgba(31, 42, 68, 0.18);
+    --wb-pill-press: #e6e8ec;
+    --wb-hairline: transparent;
+    --wb-hairline-focus: transparent;
+    --wb-backdrop: none;
+
+    --wb-send: #2f80ed;
+    --wb-send-fg: #ffffff;
+
+    --wb-tile-bg: #ffffff;
+    --wb-tile-fg: rgba(31, 42, 68, 0.74);
+    --wb-tile-border: rgba(31, 42, 68, 0.1);
+
+    --wb-status-bg: rgba(64, 82, 128, 0.12);
+    --wb-status-fg: rgba(64, 82, 128, 0.85);
+
+    --hint-fg: rgba(255, 255, 255, 0.95);
+    --hint-accent: rgba(255, 255, 255, 0.72);
+
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: var(--space-2);
+    padding-left: var(--space-8);
+    position: relative;
+    box-sizing: border-box;
+    background: transparent;
+
+    // ash (DEFAULT) — light neutral grey, flat, strict.
+    &[data-dv-v='ash'] {
+        --field-text: rgba(34, 38, 46, 0.92);
+        --field-placeholder: rgba(90, 96, 108, 0.55);
+        --wb-pill-bg: #fffffff5;
+        --wb-pill-border: rgba(40, 44, 54, 0.12);
+        --wb-pill-border-focus: rgba(40, 44, 54, 0.26);
+        --wb-hairline: rgba(40, 44, 54, 0.14);
+        --wb-hairline-focus: rgba(40, 44, 54, 0.3);
+        --wb-send: #454b59;
+        --wb-tile-bg: #f3f4f6;
+        --wb-tile-fg: rgba(40, 44, 54, 0.78);
+        --wb-tile-border: rgba(40, 44, 54, 0.12);
+    }
+
+    // mint — mint-sky gradient (mirrors HomeAmbient mint-sky).
+    &[data-dv-v='mint'] {
+        --field-text: rgba(28, 54, 60, 0.92);
+        --field-placeholder: rgba(64, 110, 124, 0.5);
+        --wb-pill-bg: linear-gradient(90deg, #ecf9f1 0%, #eef6fa 52%, #e4f0fb 100%);
+        --wb-pill-border: transparent;
+        --wb-pill-border-focus: transparent;
+        --wb-hairline: rgba(74, 134, 146, 0.2);
+        --wb-hairline-focus: rgba(74, 134, 146, 0.42);
+        --wb-send: #4f9bc9;
+        --wb-tile-bg: rgba(255, 255, 255, 0.82);
+        --wb-tile-fg: rgba(40, 86, 96, 0.8);
+        --wb-tile-border: rgba(74, 134, 146, 0.18);
+    }
+}
+
+// ─── Focus-hint: example input ABOVE the bar (over the Screen focus-scrim) ──
+
+.focusHint {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: calc(100% + var(--space-4));
+    padding: 0 var(--space-1);
+    text-align: center;
+    white-space: pre-line;
+    color: var(--hint-fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.focusHint[data-visible] {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.focusHintAccent {
+    font-family: var(--heading-font);
+    font-style: italic;
+    font-weight: 500;
+    color: var(--hint-accent);
+}
+
+// ─── Row: pill (left slot + field + right slot) ────────────────────────────
+
+.writeBarRow {
+    display: flex;
+    align-items: center;
+    min-height: var(--pill-h);
+    position: relative;
+
+    background: var(--wb-pill-bg);
+    // Контур рисуем на masked ::before (ниже), сам border прозрачный — держит
+    // метрику бокса, а цвет/затухание рамки делает псевдоэлемент.
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    padding: 0 var(--space-2) 0 var(--space-4);
+    backdrop-filter: var(--wb-backdrop);
+    transition: background 0.15s ease;
+
+    // Растворяющийся контур: рамка пилюли цела слева/в центре и затухает ТОЛЬКО
+    // справа, у медали — кнопка «протыкает» рамку, а не обведена кольцом. Фейд
+    // начинается рано (~70% длины) и уходит в прозрачность к правому торцу.
+    // Обычный border затухать по позиции не умеет → рисуем на ::before и срезаем
+    // горизонтальной mask-маской (alpha-стоп = видимость).
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        border: 1px solid var(--wb-pill-border);
+        pointer-events: none;
+        // Полная прозрачность достигается на ~72% (ДО медали) — иначе у правого
+        // края оставался бы полупрозрачный «хвост» рамки вокруг кнопки. Старт
+        // фейда — 40%.
+        -webkit-mask: linear-gradient(90deg,
+                #000 0%,
+                #000 40%,
+                transparent 72%);
+        -webkit-mask-repeat: no-repeat;
+        mask: linear-gradient(90deg,
+                #000 0%,
+                #000 40%,
+                transparent 72%);
+        mask-repeat: no-repeat;
+        transition: border-color 0.15s ease;
+    }
+
+    &:focus-within::before {
+        border-color: var(--wb-pill-border-focus);
+    }
+
+    // Grow on focus: bump --pill-h for this subtree so the field min-height (and
+    // the clip, below) scale up. Snap — no height transition (canon: never
+    // animate layout props). The send coin is pinned to --coin-size and does NOT
+    // grow with this.
+    &[data-expanded] {
+        --pill-h: var(--pill-h-focus);
+    }
+
+    // A left slot (paperclip) sits inside the pill — trim the left padding so
+    // it does not push the affordance too far in.
+    &[data-has-left] {
+        padding-left: var(--space-2);
+    }
+
+    &[data-pressed] {
+        background: var(--wb-pill-press);
+        transition: background 0s;
+    }
+
+    // Fading hairline under the whole pill.
+    &::after {
+        content: '';
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+                transparent 0%,
+                var(--wb-hairline) 18%,
+                var(--wb-hairline) 82%,
+                transparent 100%);
+        pointer-events: none;
+        transition: background 120ms ease;
+    }
+
+    &:focus-within::after {
+        background: linear-gradient(90deg,
+                transparent 0%,
+                var(--wb-hairline-focus) 18%,
+                var(--wb-hairline-focus) 82%,
+                transparent 100%);
+    }
+}
+
+// ─── Inner write-field (input + send + spinner) ────────────────────────────
+
+.writeField {
+    &[data-state='loading'] {
+        --field-text: rgba(31, 42, 68, 0.55);
+        --field-placeholder: rgba(31, 42, 68, 0.3);
+    }
+}
+
+.writeBarInput {
+    flex: 1;
+    // min-width:0 — без него этот flex-итем держит intrinsic-ширину поля (текст/
+    // плейсхолдер) и не сжимается, выталкивая send-кружок за скруглённый правый
+    // край пилюли. Сжимаем инпут, кнопка остаётся внутри контейнера.
+    min-width: 0;
+    margin: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 4px var(--space-2);
+    min-height: var(--pill-h);
+}
+
+.writeFieldRow {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.writeFieldRow textarea,
+.writeFieldRow input {
+    border-bottom-width: 0;
+}
+
+.writeField .writeFieldInput {
+    --field-bg-from: transparent;
+    --field-bg-mid: transparent;
+    --field-bg-to: transparent;
+    --field-radius: 0;
+    --field-shadow: none;
+    --field-shadow-focus: none;
+    --field-hairline: transparent;
+    --field-hairline-focus: transparent;
+    --field-pad-top: 4px;
+    --field-pad-bottom: 4px;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+}
+
+.placeholderAccent {
+    font-family: var(--heading-font);
+    font-style: italic;
+    font-weight: 500;
+}
+
+// Send coin — rides in the right slot, taking the medal's footprint (the medal
+// collapses on focus, this takes its place). Round, SOLID `--wb-send`. Pinned to
+// --coin-size (the medal's REST size, ~68px) so it always fits the bar width — it
+// does NOT grow with the focused pill. Scales-in on mount (composite — medal→send).
+.sendCoin {
+    flex-shrink: 0;
+    align-self: center;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--coin-size);
+    height: var(--coin-size);
+    margin-left: var(--space-2);
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--wb-send);
+    color: var(--wb-send-fg);
+    box-shadow:
+        0 5px 12px rgba(31, 42, 68, 0.14),
+        0 2px 4px rgba(31, 42, 68, 0.08);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    animation: sendCoinIn 0.22s ease;
+    transition: filter 0.15s ease, opacity 0.15s ease, transform 0.12s ease;
+
+    svg {
+        width: 40%;
+        height: 40%;
+    }
+
+    &:not(:disabled):hover {
+        filter: brightness(0.93);
+    }
+
+    &:not(:disabled):active {
+        transform: scale(0.92);
+        filter: brightness(0.85);
+        transition-duration: var(--press-in);
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    // Spinner variant — not a button: quiet status fill, no shadow/press.
+    &[data-busy] {
+        background: var(--wb-status-bg);
+        color: var(--wb-status-fg);
+        box-shadow: none;
+        cursor: default;
+        pointer-events: none;
+        user-select: none;
+    }
+}
+
+@keyframes sendCoinIn {
+    from {
+        opacity: 0;
+        transform: scale(0.7) translateX(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+// ─── Left affordance (paperclip) — attach hypotheses / atoms ───────────────
+// Shared by AnalysisWriteBar + EventsWriteBar via <WriteBarClip>. Inherits
+// `--field-adornment` / `--wb-send*` from `.wrap`.
+
+.clip {
+    flex-shrink: 0;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-right: var(--space-1);
+    border: none;
+    background: transparent;
+    color: var(--field-adornment);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+
+    svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    &:active {
+        background: var(--press-tint-bg);
+        transform: scale(0.92);
+        transition-duration: var(--press-in);
+    }
+}
+
+// Grow the left affordance on focus alongside the pill (snap — no size transition,
+// canon: never animate layout props).
+[data-expanded] .clip {
+    width: 54px;
+    height: 54px;
+
+    svg {
+        width: 26px;
+        height: 26px;
+    }
+}
+
+// Count of attached items — small accent badge at the top-right of the clip.
+.clipBadge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    background: var(--wb-send);
+    color: var(--wb-send-fg);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    line-height: 1;
+}
+
+// Secondary presence-flag (e.g. a clarification is attached) — a small accent
+// dot at the bottom-right, distinct corner from the numeric badge so both can
+// show at once (hypotheses count + «уточнение есть»).
+.clipDot {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--wb-send);
+}
+

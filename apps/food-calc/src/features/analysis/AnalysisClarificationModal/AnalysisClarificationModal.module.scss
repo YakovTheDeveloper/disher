@@ -1,26 +1,5 @@
-.day {
-    margin: 0;
-    font-family: var(--heading-font);
-    font-style: italic;
-    font-size: var(--text-base);
-    color: var(--text-secondary);
-}
-
-.lead {
-    margin: 0;
-    font-size: var(--text-sm);
-    color: var(--text-tertiary);
-}
-
 .block {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-}
-
-.label {
-    margin: 0;
-    font-size: var(--text-sm);
-    font-weight: 500;
-    color: var(--text-secondary);
 }

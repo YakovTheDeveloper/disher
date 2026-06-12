@@ -27,6 +27,12 @@ type Props = {
   maxBodyHeight?: string;
   /** Id поля композера — для ModalByLabel-открытия модалки внешним label'ом. */
   composerInputId?: string;
+  /** Вид кнопки «Добавить» композера: `inline` (страница) / `floating` (модалка). */
+  composerSubmitVariant?: 'inline' | 'floating';
+  /** `field`-Heading над полем композера (напр. «Добавление новой»). */
+  composerHeading?: string;
+  /** Вид шапки списка: `title` (заголовок+счётчик) / `divider` (см. панель). */
+  listHeaderVariant?: 'title' | 'divider';
 } & EditProps;
 
 // The shared hypotheses widget (Variant B): inline composer on top, list below.
@@ -39,6 +45,9 @@ const HypothesisSection = ({
   selectable = true,
   maxBodyHeight,
   composerInputId,
+  composerSubmitVariant,
+  composerHeading,
+  listHeaderVariant,
   onEditHypothesis,
   editInputHtmlFor,
 }: Props) => {
@@ -61,7 +70,12 @@ const HypothesisSection = ({
 
   return (
     <div className={styles.section}>
-      <HypothesisComposer onCreated={markNew} inputId={composerInputId} />
+      <HypothesisComposer
+        onCreated={markNew}
+        inputId={composerInputId}
+        submitVariant={composerSubmitVariant}
+        heading={composerHeading}
+      />
       <HypothesisListPanel
         hypotheses={hypotheses}
         selectedIds={selectedIds ?? EMPTY_SELECTION}
@@ -69,6 +83,7 @@ const HypothesisSection = ({
         selectable={selectable}
         maxBodyHeight={maxBodyHeight}
         newIds={newIds}
+        headerVariant={listHeaderVariant}
         {...editProps}
       />
     </div>

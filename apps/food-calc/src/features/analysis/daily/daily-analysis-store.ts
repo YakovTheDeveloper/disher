@@ -2,21 +2,19 @@ import { create } from 'zustand';
 import { get as idbGet, set as idbSet } from 'idb-keyval';
 import { db } from '@/shared/lib/dexie/schema';
 import { collectFoods, collectEvents, collectNutrientsByDay } from '../api/runAnalysis';
-import { streamDailyAnalysis, DailyStreamError } from './streamDailyAnalysis';
-import { parseIdeaCardsFromMarkdown } from './parseIdeaCardsFromMarkdown';
+import { requestDailyAnalysis, DailyStreamError } from './requestDailyAnalysis';
 import type { DailyAnalysis, DailyAnalysisReason } from './types';
 
 // Daily-analysis store. Frontend-only: results live in idb-keyval keyed by
 // date, never in Dexie and never in the backup snapshot (anti-goal: no
 // cross-device sync for daily analyses).
 //
-// Persist is debounced — streaming fires onChunk many times a second and
-// there is no point writing idb-keyval per chunk. Terminal transitions
-// (done/failed/interrupted) flush immediately so a reload right after
-// completion never loses the result.
+// Single-request (no longer streaming): start() fires one POST and awaits the
+// structured {summary, insights, hypotheses} contract. While in flight the
+// record sits at status 'loading'; the terminal transition (done/failed/
+// interrupted) persists immediately so a reload never loses the result.
 
 const STORAGE_KEY = 'disher.daily-analyses';
-const PERSIST_DEBOUNCE_MS = 400;
 const MAX_AGE_DAYS = 30;
 
 type ByDate = Record<string, DailyAnalysis>;
@@ -25,39 +23,25 @@ type DailyAnalysisState = {
   byDate: ByDate;
   /** True once idb-keyval has been read at boot. */
   hydrated: boolean;
-  /** Snapshot the ticked hypotheses, hydrate the day, start the SSE stream.
+  /** Snapshot the ticked hypotheses, hydrate the day, request the analysis.
    *  `userMessage` is optional free-text «уточнения от пользователя». */
   start: (
     date: string,
     opts: { hypothesisIds: string[]; userMessage?: string },
   ) => Promise<void>;
-  /** Abort an in-flight stream and mark it interrupted (date-switch / reload).
-   *  No-op when the date is not currently streaming. */
+  /** Abort an in-flight request and mark it interrupted (date-switch / reload).
+   *  No-op when the date is not currently loading. */
   interrupt: (date: string, reason: 'reload' | 'date-switch') => void;
-  /** Delete a stored analysis. No-op while it is still streaming. */
+  /** Delete a stored analysis. No-op while it is still loading. */
   clear: (date: string) => void;
 };
 
 // In-memory only — AbortControllers are not serialisable and must not be
-// persisted. One controller per actively-streaming date.
+// persisted. One controller per actively-loading date.
 const controllers = new Map<string, AbortController>();
 
-let persistTimer: ReturnType<typeof setTimeout> | null = null;
-
 function persistNow(): void {
-  if (persistTimer) {
-    clearTimeout(persistTimer);
-    persistTimer = null;
-  }
   void idbSet(STORAGE_KEY, useDailyAnalysisStore.getState().byDate);
-}
-
-function persistDebounced(): void {
-  if (persistTimer) return;
-  persistTimer = setTimeout(() => {
-    persistTimer = null;
-    void idbSet(STORAGE_KEY, useDailyAnalysisStore.getState().byDate);
-  }, PERSIST_DEBOUNCE_MS);
 }
 
 // Age in whole days of a dd-MM-yyyy day key relative to `nowMs`. Returns null
@@ -85,8 +69,7 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
     hydrated: false,
 
     start: async (date, { hypothesisIds, userMessage }) => {
-      // Replacing a record must abort the prior stream first — otherwise its
-      // onChunk closure keeps appending into the fresh record.
+      // Replacing a record must abort the prior request first.
       controllers.get(date)?.abort();
       controllers.delete(date);
 
@@ -99,7 +82,7 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
 
       // Hydrate the day's foods/events with human-readable names so the LLM
       // never sees product_id UUIDs. nutrients = approximate per-day totals as
-      // an anchor (see streamDailyAnalysis / DAILY_SYSTEM_PROMPT).
+      // an anchor (see requestDailyAnalysis / DAILY_SYSTEM_PROMPT).
       const [scheduleFoods, scheduleEvents, nutrientsByDay] = await Promise.all([
         collectFoods([date]),
         collectEvents([date]),
@@ -115,12 +98,13 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
           ...s.byDate,
           [date]: {
             date,
-            resultMd: '',
-            ideaCards: [],
+            summary: '',
+            insights: [],
+            hypotheses: [],
             appliedHypotheses,
             appliedUserMessage: userMessage || undefined,
             createdAt: new Date().toISOString(),
-            status: 'streaming',
+            status: 'loading',
             reason: null,
           },
         },
@@ -128,7 +112,7 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
       persistNow();
 
       try {
-        const resultMd = await streamDailyAnalysis({
+        const result = await requestDailyAnalysis({
           date,
           scheduleFoods,
           scheduleEvents,
@@ -139,10 +123,6 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
           })),
           userMessage,
           signal: controller.signal,
-          onChunk: (chunk) => {
-            patch(date, (a) => ({ ...a, resultMd: a.resultMd + chunk }));
-            persistDebounced();
-          },
         });
 
         // An abort means interrupt() already owns the final state — leave it.
@@ -150,8 +130,9 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
 
         patch(date, (a) => ({
           ...a,
-          resultMd,
-          ideaCards: parseIdeaCardsFromMarkdown(resultMd),
+          summary: result.summary,
+          insights: result.insights,
+          hypotheses: result.hypotheses,
           status: 'done',
           reason: null,
         }));
@@ -171,15 +152,15 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
       controllers.get(date)?.abort();
       controllers.delete(date);
       const cur = get().byDate[date];
-      if (!cur || cur.status !== 'streaming') return;
+      if (!cur || cur.status !== 'loading') return;
       patch(date, (a) => ({ ...a, status: 'interrupted', reason }));
       persistNow();
     },
 
     clear: (date) => {
       const cur = get().byDate[date];
-      // Guard: a clear mid-stream would let the next chunk recreate the row.
-      if (!cur || cur.status === 'streaming') return;
+      // Guard: clearing mid-request would let the resolution recreate the row.
+      if (!cur || cur.status === 'loading') return;
       set((s) => {
         const next = { ...s.byDate };
         delete next[date];
@@ -190,7 +171,36 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
   };
 });
 
-// Boot-time hydration. Reads idb-keyval, flips any stream that was mid-flight
+// Coerce a record read from idb-keyval into the CURRENT DailyAnalysis shape.
+// A record persisted by a pre-structured-output build carries {resultMd,
+// ideaCards, status:'streaming'} and lacks summary/insights/hypotheses — those
+// `undefined` arrays crash AnalysisResult (`insights.length`). Carry the old
+// `resultMd` markdown over to `summary` so a cached разбор still shows; map the
+// dead 'streaming' status to interrupted/reload (it can never resume).
+function normalizeStored(raw: DailyAnalysis): DailyAnalysis {
+  const r = raw as unknown as Record<string, unknown>;
+  const wasStreaming = r.status === 'streaming';
+  const summary =
+    typeof r.summary === 'string'
+      ? (r.summary as string)
+      : typeof r.resultMd === 'string'
+        ? (r.resultMd as string)
+        : '';
+  return {
+    ...raw,
+    summary,
+    insights: Array.isArray(r.insights)
+      ? (r.insights as DailyAnalysis['insights'])
+      : [],
+    hypotheses: Array.isArray(r.hypotheses)
+      ? (r.hypotheses as DailyAnalysis['hypotheses'])
+      : [],
+    status: wasStreaming ? 'interrupted' : raw.status,
+    reason: wasStreaming ? 'reload' : (raw.reason ?? null),
+  };
+}
+
+// Boot-time hydration. Reads idb-keyval, flips any request that was in flight
 // at unload to `interrupted` (it cannot resume), and drops analyses older
 // than 30 days. Must be called once at app boot before the UI reads the
 // store. Idempotent — a second call (or a call after the store already has
@@ -211,15 +221,19 @@ export async function hydrateDailyAnalyses(nowMs: number = Date.now()): Promise<
     const age = dayAgeInDays(date, nowMs);
     // Boot cleanup: drop entries strictly older than 30 days (exactly 30 stays).
     if (age !== null && age > MAX_AGE_DAYS) continue;
+    // Coerce records written by an older app version (the streaming era:
+    // {resultMd, ideaCards, status:'streaming'}, no summary/insights/hypotheses)
+    // into the current shape — otherwise they crash AnalysisResult on `.length`.
+    const normalized = normalizeStored(analysis);
     byDate[date] =
-      analysis.status === 'streaming'
-        ? { ...analysis, status: 'interrupted', reason: 'reload' }
-        : analysis;
+      normalized.status === 'loading'
+        ? { ...normalized, status: 'interrupted', reason: 'reload' }
+        : normalized;
   }
 
-  // A stream started before this idb read resolved already wrote a record
+  // A request started before this idb read resolved already wrote a record
   // into the store. The stored snapshot is stale relative to it — let the
-  // in-memory record win so a just-started stream is not dropped on boot.
+  // in-memory record win so a just-started request is not dropped on boot.
   const live = useDailyAnalysisStore.getState().byDate;
   for (const [date, analysis] of Object.entries(live)) {
     byDate[date] = analysis;

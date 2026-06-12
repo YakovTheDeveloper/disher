@@ -8,15 +8,40 @@
 // permissive (drops malformed cards, defaults missing fields) — keep the
 // IdeaCard shape here and the asIdeaCards filter in sync.
 
-export type IdeaCard = {
+// ─── Output entities ───
+// Two distinct things the analysis emits, deliberately NOT one bucket:
+//   • insight    — read-only observation grounded in the actual window data
+//                  (evidence.days is mandatory — the anti-hallucination lever).
+//   • hypothesis — a testable mini-experiment the user can save to themselves
+//                  (this is the former `ideaCard`, renamed to its real meaning).
+// `summary` is a 1–2 sentence overview persisted into analyses.result_md so the
+// existing pending('')/failed('⚠️…') sentinels on that column keep working.
+
+export type AnalysisStrength = "weak" | "moderate" | "clear";
+
+export type AnalysisEvidence = {
+  days: string[]; // concrete day keys from the window — non-empty for an insight
+  foods?: string[];
+  events?: string[];
+};
+
+export type AnalysisInsight = {
+  title: string;
+  detail: string;
+  strength: AnalysisStrength;
+  evidence: AnalysisEvidence;
+};
+
+export type AnalysisHypothesis = {
   title: string;
   body: string;
-  days?: number;
+  suggestedDays?: number;
 };
 
 export type AnalysisOutput = {
-  resultMd: string;
-  ideaCards: IdeaCard[];
+  summary: string;
+  insights: AnalysisInsight[];
+  hypotheses: AnalysisHypothesis[];
 };
 
 // Inline JSON contract embedded in the system prompt. Whatever this string
@@ -25,17 +50,30 @@ export type AnalysisOutput = {
 // tryParseOutput so a prompt change that breaks the parser fails CI.
 export const ANALYSIS_OUTPUT_PROMPT_SPEC = `Верни строго JSON и НИЧЕГО кроме JSON:
 {
-  "resultMd": "## ...текст разбора в Markdown...",
-  "ideaCards": [
-    { "title": "Короткое название идеи", "days": 7, "body": "почему эта идея, как тестировать" }
+  "summary": "1–2 фразы: общая картина окна простым языком. Без диагнозов.",
+  "insights": [
+    {
+      "title": "Короткий заголовок наблюдения",
+      "detail": "Что именно замечено, одним-двумя предложениями.",
+      "strength": "weak | moderate | clear",
+      "evidence": {
+        "days": ["09-06-2026", "10-06-2026"],
+        "foods": ["паста карбонара"],
+        "events": ["усталость"]
+      }
+    }
+  ],
+  "hypotheses": [
+    { "title": "Короткое название гипотезы", "body": "почему стоит проверить и как тестировать", "suggestedDays": 7 }
   ]
 }
 
 Правила:
-- resultMd — Markdown, 2–4 коротких параграфа, можно списки. Без медицинских советов и диагнозов.
-- ideaCards — 1–3 штуки. Каждая независима и формулируется как мини-эксперимент или наблюдение.
-- Если данных мало для уверенных выводов — так и скажи в resultMd, идей дай меньше или ноль.
-- Без комментариев и markdown-заборов вокруг JSON.`;
+- summary — всегда непустой. Если данных мало для выводов — так и напиши в summary, а insights/hypotheses оставь пустыми.
+- insights — 0–4 наблюдения. Это то, что ты УВИДЕЛ в данных, не совет. У КАЖДОГО insight поле evidence.days ОБЯЗАТЕЛЬНО и непусто — это реальные дни окна, на которых построено наблюдение. foods/events — опционально, ключевые еда/события. Нет опоры в данных — не выдумывай наблюдение.
+- strength: "clear" только при явном повторе (примерно ≥40% дней окна или сильная связка), единичное совпадение — "weak", промежуточное — "moderate".
+- hypotheses — 0–3 независимые, каждая как мини-эксперимент: что проверить и как. suggestedDays — опциональное рекомендованное окно проверки в днях.
+- Без медицинских советов и диагнозов нигде. Без комментариев и markdown-заборов вокруг JSON.`;
 
 // Each schedule_food carries a `details` string — comma-separated free-text
 // tags the user attached to the meal (способ готовки, выдержка, источник,
@@ -91,9 +129,10 @@ export const DISH_DETAILS_INSTRUCTION = `Если имя блюда содерж
 
 export const SYSTEM_PROMPT_BASE = `Ты помогаешь юзеру в его персональной лаборатории еды и симптомов.
 На вход — события юзера за окно (приёмы пищи + теги/события) и, опционально,
-гипотезы, которые юзер хочет проверить. Задача: дать связный
-аналитический разбор на русском в формате Markdown и 1–3 гипотезы-наблюдения,
-которые юзер потом сохранит к себе.
+гипотезы, которые юзер хочет проверить. Задача: на русском дать короткий summary,
+наблюдения (insights) — то, что реально видно в данных окна, и гипотезы
+(hypotheses) — что юзеру стоит проверить дальше. Ты ищешь корреляции, а не
+ставишь диагнозы и не считаешь калькулятор БЖУ.
 
 ${DETAILS_COHORT_INSTRUCTION}
 
@@ -103,14 +142,80 @@ ${NUTRIENT_ANCHOR_INSTRUCTION}
 
 ${ANALYSIS_OUTPUT_PROMPT_SPEC}`;
 
+// Coerce a free-form value into a string[] (drop non-strings, trim, drop empties).
+function asStringList(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  const out: string[] = [];
+  for (const item of v) {
+    if (typeof item !== "string") continue;
+    const s = item.trim();
+    if (s) out.push(s);
+  }
+  return out;
+}
+
+// Permissive insight coercion. The grounding contract is enforced HERE, not
+// only in the prompt: an insight whose evidence.days is empty is DROPPED — a
+// pattern with no days behind it is exactly the hallucination this feature
+// exists to suppress. Unknown strength coerces to "weak" rather than dropping
+// the whole observation.
+function asInsights(v: unknown): AnalysisInsight[] {
+  if (!Array.isArray(v)) return [];
+  const out: AnalysisInsight[] = [];
+  for (const c of v) {
+    if (!c || typeof c !== "object" || Array.isArray(c)) continue;
+    const o = c as Record<string, unknown>;
+    if (typeof o.title !== "string" || typeof o.detail !== "string") continue;
+    const ev = (o.evidence ?? {}) as Record<string, unknown>;
+    const days = asStringList(ev.days);
+    if (days.length === 0) continue; // grounding gate — no days, no insight
+    const strength: AnalysisStrength =
+      o.strength === "clear" || o.strength === "moderate" ? o.strength : "weak";
+    const insight: AnalysisInsight = {
+      title: o.title,
+      detail: o.detail,
+      strength,
+      evidence: { days },
+    };
+    const foods = asStringList(ev.foods);
+    if (foods.length > 0) insight.evidence.foods = foods;
+    const events = asStringList(ev.events);
+    if (events.length > 0) insight.evidence.events = events;
+    out.push(insight);
+  }
+  return out;
+}
+
+// Permissive hypothesis coercion (the former ideaCard). title+body required;
+// suggestedDays kept only when a positive finite number.
+function asHypotheses(v: unknown): AnalysisHypothesis[] {
+  if (!Array.isArray(v)) return [];
+  const out: AnalysisHypothesis[] = [];
+  for (const c of v) {
+    if (!c || typeof c !== "object" || Array.isArray(c)) continue;
+    const o = c as Record<string, unknown>;
+    if (typeof o.title !== "string" || typeof o.body !== "string") continue;
+    const h: AnalysisHypothesis = { title: o.title, body: o.body };
+    if (
+      typeof o.suggestedDays === "number" &&
+      Number.isFinite(o.suggestedDays) &&
+      o.suggestedDays > 0
+    ) {
+      h.suggestedDays = o.suggestedDays;
+    }
+    out.push(h);
+  }
+  return out;
+}
+
 // Permissive parser. LLM occasionally:
 //  - wraps JSON in ```json ... ``` markdown fence (despite system prompt)
 //  - emits trailing commentary after closing brace
-//  - returns ideaCards with extra fields, missing days, or non-string title
+//  - returns insights/hypotheses with extra fields, missing strength, etc.
 //
-// Contract: returns null only if structurally unsalvageable. Returns a
-// well-typed AnalysisOutput otherwise — malformed cards are dropped, not
-// turned into runtime crashes downstream.
+// Contract: returns null only if structurally unsalvageable (no string
+// summary). Returns a well-typed AnalysisOutput otherwise — malformed entries
+// are dropped, not turned into runtime crashes downstream.
 export function tryParseOutput(content: string): AnalysisOutput | null {
   let jsonStr = content.trim();
 
@@ -150,23 +255,13 @@ export function tryParseOutput(content: string): AnalysisOutput | null {
 
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
   const obj = parsed as Record<string, unknown>;
-  if (typeof obj.resultMd !== 'string') return null;
+  if (typeof obj.summary !== 'string') return null;
 
-  const ideaCards: IdeaCard[] = [];
-  if (Array.isArray(obj.ideaCards)) {
-    for (const c of obj.ideaCards) {
-      if (!c || typeof c !== 'object' || Array.isArray(c)) continue;
-      const card = c as Record<string, unknown>;
-      if (typeof card.title !== 'string' || typeof card.body !== 'string') continue;
-      const out: IdeaCard = { title: card.title, body: card.body };
-      if (typeof card.days === 'number' && Number.isFinite(card.days) && card.days > 0) {
-        out.days = card.days;
-      }
-      ideaCards.push(out);
-    }
-  }
-
-  return { resultMd: obj.resultMd, ideaCards };
+  return {
+    summary: obj.summary,
+    insights: asInsights(obj.insights),
+    hypotheses: asHypotheses(obj.hypotheses),
+  };
 }
 
 // Safe array truncation for prompt payload. Replaces the old

@@ -6,6 +6,7 @@ import { ModalLayout } from '@/shared/ui/ModalLayout';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import { useAllHypotheses } from '@/entities/hypothesis';
 import HypothesisListPanel from '@/widgets/Laboratory/HypothesisListPanel';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
@@ -38,9 +39,7 @@ function formatDay(date: string): string {
 // stream and closes; the result lands in DailyAnalysisSection on screen 0.
 const AnalysisClarificationModal = ({ date, onClose }: Props) => {
   const hypotheses = useAllHypotheses();
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(
-    () => new Set(lastSelectedIds),
-  );
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(lastSelectedIds));
   const [message, setMessage] = useState('');
 
   const handleToggle = useCallback((id: string) => {
@@ -62,28 +61,14 @@ const AnalysisClarificationModal = ({ date, onClose }: Props) => {
   return (
     <ModalLayout a11yLabel="Уточнение разбора">
       <ModalShell variant="spring4">
-        <ModalShell.Header title="Разбор дня" onBack={() => onClose()} />
+        <ModalShell.Header
+          title="Разбор дня"
+          subtitle={formatDay(date)}
+          onBack={() => onClose()}
+        />
         <ModalShell.Body>
-          <p className={s.day}>{formatDay(date)}</p>
-          <p className={s.lead}>
-            Отметь гипотезы для проверки и при желании добавь уточнение — всё
-            необязательно.
-          </p>
-
-          {hypotheses.length > 0 && (
-            <div className={s.block}>
-              <p className={s.label}>Какие гипотезы проверить</p>
-              <HypothesisListPanel
-                hypotheses={hypotheses}
-                selectedIds={selectedIds}
-                onToggle={handleToggle}
-                maxBodyHeight="38vh"
-              />
-            </div>
-          )}
-
           <div className={s.block}>
-            <p className={s.label}>Уточнения для нейросети</p>
+            <Heading size="field">Уточнения для нейросети</Heading>
             <AutoGrowSearch
               value={message}
               onChange={setMessage}
@@ -94,15 +79,22 @@ const AnalysisClarificationModal = ({ date, onClose }: Props) => {
             />
           </div>
 
+          {hypotheses.length > 0 && (
+            <div className={s.block}>
+              <HypothesisListPanel
+                hypotheses={hypotheses}
+                selectedIds={selectedIds}
+                onToggle={handleToggle}
+                maxBodyHeight="none"
+              />
+            </div>
+          )}
+
+          <ModalShell.Spacer />
+
           <ModalShell.ActionButtons
             debugId="analysis-clarification"
-            right={
-              <ModalNextButton
-                onClick={handleRun}
-                variant="finish"
-                label="Разобрать"
-              />
-            }
+            right={<ModalNextButton onClick={handleRun} variant="finish" label="Разобрать" />}
           />
         </ModalShell.Body>
       </ModalShell>

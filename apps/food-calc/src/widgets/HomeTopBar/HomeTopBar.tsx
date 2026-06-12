@@ -63,28 +63,28 @@ type Props = {
   centerLabelVisible?: boolean;
 };
 
-type DateParts = { weekday: string; day: string; month: string; full: string };
+type DateParts = { weekday: string; ddmm: string };
 
 const formatDateParts = (input: string): DateParts => {
   const date = parse(input, 'dd-MM-yyyy', new Date());
   if (!isValid(date)) {
-    return { weekday: '', day: input, month: '', full: input };
+    return { weekday: '', ddmm: input };
   }
-  const weekday = new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(date);
-  const month = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(date);
-  const day = String(date.getDate());
-  return { weekday, day, month, full: `${weekday} ${day} ${month}` };
+  // Короткая форма дня недели («пн», «вт» …) — обвязка бара, не место для
+  // полного «понедельник», который перегружал date-пилюлю по высоте/весу.
+  // CSS `::first-letter` капитализирует → «Пн».
+  const weekday = new Intl.DateTimeFormat('ru-RU', { weekday: 'short' }).format(date);
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  return { weekday, ddmm: `${dd}.${mm}` };
 };
 
 const DateButtonContent = ({ parts }: { parts: DateParts }) => {
-  const { weekday, day, month } = parts;
+  const { weekday, ddmm } = parts;
   return (
     <span className={styles.dateNumeral}>
-      <span className={styles.dateNumeralDay}>{day}</span>
-      <span className={styles.dateNumeralMeta}>
-        <span>{weekday}</span>
-        <span>{month}</span>
-      </span>
+      <span className={styles.dateWeekday}>{weekday}</span>
+      <span className={styles.dateDdmm}>{ddmm}</span>
     </span>
   );
 };
@@ -118,12 +118,12 @@ const HomeTopBar = ({
     // означает «остаёмся на месте» — там ранний return корректен.
     if (!noInterruptGuard && selectedDate === date) return;
 
-    // Leaving the date mid-stream interrupts the daily analysis (the SSE
-    // cannot resume). Confirm before navigating away; on confirm, abort the
-    // stream with the `date-switch` reason so the banner reads correctly.
-    const streaming =
-      useDailyAnalysisStore.getState().byDate[date]?.status === 'streaming';
-    if (!noInterruptGuard && streaming) {
+    // Leaving the date mid-request interrupts the daily analysis (it cannot
+    // resume). Confirm before navigating away; on confirm, abort the request
+    // with the `date-switch` reason so the banner reads correctly.
+    const loading =
+      useDailyAnalysisStore.getState().byDate[date]?.status === 'loading';
+    if (!noInterruptGuard && loading) {
       const confirmed = await modalStore.show(ConfirmModal, {
         title: 'Разбор ещё идёт',
         message: 'Если уйти на другую дату, разбор дня прервётся.',

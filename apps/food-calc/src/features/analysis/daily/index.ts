@@ -2,8 +2,10 @@ export {
   useDailyAnalysisStore,
   hydrateDailyAnalyses,
 } from './daily-analysis-store';
-export { streamDailyAnalysis, DailyStreamError } from './streamDailyAnalysis';
-export { parseIdeaCardsFromMarkdown } from './parseIdeaCardsFromMarkdown';
+export {
+  requestDailyAnalysis,
+  DailyStreamError,
+} from './requestDailyAnalysis';
 export type {
   DailyAnalysis,
   DailyAnalysisStatus,

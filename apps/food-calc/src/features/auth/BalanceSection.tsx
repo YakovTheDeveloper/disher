@@ -18,6 +18,7 @@ const KIND_LABEL: Record<LedgerEntry['kind'], string> = {
 const FEATURE_LABEL: Record<string, string> = {
   free_text_parse: 'Разбор еды',
   dish_suggestions: 'Подсказка рецепта',
+  nutrient_suggestions: 'Подсказка нутриентов',
   daily_analysis: 'Анализ дня',
   dish_analysis: 'Анализ блюда',
   long_analysis: 'Длинный анализ',

@@ -37,6 +37,7 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions }: Props) 
 
   return (
     <DrawerLayout
+      title={title}
       a11yLabel={title ?? 'Действия'}
       topRight={
         <button
@@ -49,8 +50,6 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions }: Props) 
         </button>
       }
     >
-      {title && <span className={s.title}>{title}</span>}
-
       <div className={s.actions}>
         {actions.map((action, i) => (
           <button

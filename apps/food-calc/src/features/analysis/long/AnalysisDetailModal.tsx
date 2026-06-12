@@ -1,12 +1,11 @@
 import { memo, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { format, isValid, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { toast } from 'sonner';
 import type { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
-import { IdeaCard } from '../IdeaCard';
+import { AnalysisResult } from '../AnalysisResult';
 import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 import { deriveStatus, startAnalysis, useAnalysis, type Analysis } from '../api';
 import { restartArgs } from './restart';
@@ -37,7 +36,7 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
   const [restarting, setRestarting] = useState(false);
 
   const status = deriveStatus(analysis);
-  const { appliedHypotheses, ideaCards } = analysis;
+  const { appliedHypotheses } = analysis;
 
   async function handleRestart() {
     if (restarting) return;
@@ -98,14 +97,16 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
         {status === 'failed' && (
           <div className={styles.failed}>
             <p className={styles.failedTitle}>Разбор не удался</p>
-            <p className={styles.failedBody}>{analysis.resultMd}</p>
+            <p className={styles.failedBody}>{analysis.summary}</p>
           </div>
         )}
 
         {status === 'done' && (
-          <div className={styles.markdown}>
-            <ReactMarkdown>{analysis.resultMd}</ReactMarkdown>
-          </div>
+          <AnalysisResult
+            summary={analysis.summary}
+            insights={analysis.insights}
+            hypotheses={analysis.hypotheses}
+          />
         )}
 
         {(status === 'stale' || status === 'failed') && (
@@ -117,17 +118,6 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
           >
             {restarting ? 'Запускаем…' : 'Запустить заново'}
           </button>
-        )}
-
-        {status === 'done' && ideaCards.length > 0 && (
-          <section className={styles.section}>
-            <p className={styles.sectionTitle}>Идеи для эксперимента</p>
-            <div className={styles.ideas}>
-              {ideaCards.map((idea, idx) => (
-                <IdeaCard key={idx} idea={idea} />
-              ))}
-            </div>
-          </section>
         )}
 
         <section className={styles.section}>

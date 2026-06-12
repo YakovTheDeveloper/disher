@@ -1,6 +1,7 @@
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { NutrientTable } from '@/widgets/nutrients/FoodsNutrients';
+import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
 import s from './EditNutrientsModal.module.scss';
 
 interface Props {
@@ -14,6 +15,13 @@ interface Props {
    * `null` — не показывать (добавка / в норме). Только для basis '100g'.
    */
   massWarningGrams: number | null;
+  /**
+   * Деструктивный AI-подбор всего состава (whole-replace за confirm-гейтом).
+   * Живёт здесь, а не на витрине: для заполненного продукта это правка
+   * нутриентов, не просмотр. Не задан → кнопка не рисуется.
+   */
+  onResuggest?: () => void;
+  suggesting?: boolean;
 }
 
 /**
@@ -27,6 +35,8 @@ export const EditNutrientsModal = ({
   getValue,
   onValueChange,
   massWarningGrams,
+  onResuggest,
+  suggesting,
 }: Props) => (
   <ModalByLabel
     position="fixed"
@@ -35,6 +45,15 @@ export const EditNutrientsModal = ({
       <ModalShell variant="spring2">
         <ModalShell.Header title="Редактировать нутриенты" onBack={onClose} />
         <ModalShell.Body>
+          {onResuggest && (
+            <div className={s.suggestRow}>
+              <SuggestActionButton
+                label={suggesting ? 'Подбираем…' : 'Переподобрать состав'}
+                onClick={onResuggest}
+                disabled={suggesting}
+              />
+            </div>
+          )}
           {massWarningGrams != null && (
             <div className={s.massWarning} role="status">
               Совокупная масса нутриентов ({massWarningGrams.toFixed(1)} г) превышает 100 г

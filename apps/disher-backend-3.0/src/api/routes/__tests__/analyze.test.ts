@@ -19,8 +19,16 @@ let pool: ReturnType<typeof makeTestPool>;
 let mockCallLLM: ReturnType<typeof vi.fn>;
 
 const validResponse = JSON.stringify({
-  resultMd: "## ok",
-  ideaCards: [{ title: "idea", body: "body", days: 7 }],
+  summary: "## ok",
+  insights: [
+    {
+      title: "ins",
+      detail: "d",
+      strength: "moderate",
+      evidence: { days: ["07-04-2026"] },
+    },
+  ],
+  hypotheses: [{ title: "idea", body: "body", suggestedDays: 7 }],
 });
 
 type AnalysisResponse = {
@@ -31,6 +39,7 @@ type AnalysisResponse = {
     window_end: string;
     result_md: string;
     idea_cards: unknown;
+    insights: unknown;
     applied_hypotheses: unknown;
     created_at: string;
   };
@@ -388,6 +397,7 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
         id: string;
         result_md: string;
         idea_cards: unknown;
+        insights: unknown;
         applied_hypotheses: unknown;
       }>;
     };
@@ -397,10 +407,14 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
     expect(byId.get(idPending)?.result_md).toBe("");
     expect(byId.get(idFailed)?.result_md).toMatch(/^⚠️/);
     expect(byId.get(idDone)?.result_md).toBe("## ok");
-    // result_md + idea_cards + applied_hypotheses are projected into the list.
+    // result_md + idea_cards (hypotheses) + insights + applied_hypotheses are
+    // projected into the list.
     expect(byId.get(idDone)).toHaveProperty("result_md");
     expect(byId.get(idDone)?.idea_cards).toEqual([
-      { title: "idea", body: "body", days: 7 },
+      { title: "idea", body: "body", suggestedDays: 7 },
+    ]);
+    expect(byId.get(idDone)?.insights).toEqual([
+      { title: "ins", detail: "d", strength: "moderate", evidence: { days: ["07-04-2026"] } },
     ]);
     expect(byId.get(idDone)?.applied_hypotheses).toEqual([]);
 

@@ -1,8 +1,6 @@
 import { useState, useMemo, useCallback, type FocusEvent } from 'react';
 import clsx from 'clsx';
-import { Drawer } from '@base-ui/react/drawer';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import {
   useProduct,
   useProductPortions,
@@ -28,10 +26,13 @@ import { isCreatedByUser } from '@/shared/lib';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import type { BaseDrawerProps } from '@/shared/ui';
 import EditIcon from '@/shared/assets/icons/edit.svg?react';
-import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import { buildQuantityOptions } from './buildQuantityOptions';
 import { scaleForBasis } from './scaleForBasis';
 import { EditNutrientsModal } from './EditNutrientsModal';
+import { SuggestNutrientsConfirmDrawer } from './SuggestNutrientsConfirmDrawer';
+import { suggestProductNutrients } from './suggestProductNutrients';
+import toaster from '@/shared/lib/toaster/toaster';
+import { classifyError, defaultUserMessage } from '@/shared/lib/errors/classify';
 import s from './ProductDrawer.module.scss';
 
 const gramNutrientIds = new Set(
@@ -78,10 +79,12 @@ type PortionsAccordionProps = {
   onLongPressRow: (label: string) => void;
 };
 
-// Аккордеон «Порции» — сверху дровера, закрыт по умолчанию. «+» создаёт порцию с
-// дефолтами и раскрывает аккордеон. Раскрытие — grid-template-rows 0fr→1fr
-// (composite-friendly; reduced-motion глушит длительность в .scss). При 0 порций
-// рисуем подсказку — аккордеон всё равно visibly раскрывается.
+// Аккордеон «Порции» — сверху дровера, закрыт по умолчанию. Шапка = заголовок +
+// счётчик (· N) + шеврон; голого „+“ в углу нет. «Добавить» живёт в языке списка:
+// пунктирная sky-ghost-пилюля последней строкой раскрытого списка (превью формы
+// будущей порции). Тап создаёт порцию с дефолтами и держит аккордеон раскрытым.
+// Раскрытие — grid-template-rows 0fr→1fr (composite-friendly; reduced-motion
+// глушит длительность в .scss).
 const PortionsAccordion = ({
   open,
   onToggle,
@@ -91,33 +94,21 @@ const PortionsAccordion = ({
   onLongPressRow,
 }: PortionsAccordionProps) => (
   <section className={s.portions}>
-    <div className={s.portionsHeader}>
-      <button
-        type="button"
-        className={s.portionsToggle}
-        onClick={onToggle}
-        aria-expanded={open}
-      >
+    <button
+      type="button"
+      className={s.portionsToggle}
+      onClick={onToggle}
+      aria-expanded={open}
+    >
+      <span className={s.portionsTitleWrap}>
         <span className={s.portionsTitle}>Порции</span>
-        <ChevronIcon className={clsx(s.chevron, open && s.chevronOpen)} />
-      </button>
-      <button
-        type="button"
-        className={s.portionsAdd}
-        onClick={onAdd}
-        aria-label="Добавить порцию"
-      >
-        <PlusIcon />
-      </button>
-    </div>
+        {portions.length > 0 && <span className={s.portionsCount}>· {portions.length}</span>}
+      </span>
+      <ChevronIcon className={clsx(s.chevron, open && s.chevronOpen)} />
+    </button>
     <div className={clsx(s.portionsReveal, open && s.portionsRevealOpen)}>
       <div className={s.portionsRevealInner}>
-        {portions.length === 0 ? (
-          <p className={s.portionsEmpty}>
-            Пока нет порций. По «+» добавим «{DEFAULT_PORTION_BASE}, {DEFAULT_PORTION_GRAMS} г» —
-            переименуешь и поправишь вес.
-          </p>
-        ) : (
+        {portions.length > 0 && (
           <FoodPortionsManager
             portions={portions}
             unit="г"
@@ -126,6 +117,10 @@ const PortionsAccordion = ({
             onLongPressRow={onLongPressRow}
           />
         )}
+        <button type="button" className={s.addPortionGhost} onClick={onAdd}>
+          <PlusIcon />
+          Добавить порцию
+        </button>
       </div>
     </div>
   </section>
@@ -152,10 +147,18 @@ export function ProductDrawer({ productId, productName }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const [portionsOpen, setPortionsOpen] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Rename триггерится `<label htmlFor>` в меню → focus-делегация на input
+  // (iOS открывает клавиатуру ТОЛЬКО так, см. feedback_ios_focus). Меню
+  // закрываем здесь, ПОСЛЕ того как фокус уже улетел (focusin firing) — иначе
+  // unmount лейбла до делегации сломал бы rename.
   const handleNameFocusCapture = useCallback((e: FocusEvent) => {
-    if ((e.target as HTMLElement).id === CHANGE_NAME_INPUT_ID) setRenameOpen(true);
+    if ((e.target as HTMLElement).id === CHANGE_NAME_INPUT_ID) {
+      setRenameOpen(true);
+      setMenuOpen(false);
+    }
   }, []);
 
   const nutrientValueMap = useMemo(() => {
@@ -179,27 +182,14 @@ export function ProductDrawer({ productId, productName }: Props) {
 
   if (!food) {
     // user-продукт грузится из Dexie (useLiveQuery → undefined первый тик).
-    // Показываем имя-«призрак» из productName, пока не подъедет реальная строка.
+    // Показываем имя-«призрак» из productName в родной обвязке DrawerLayout
+    // (× в углу + заголовок по центру), пока не подъедет реальная строка.
+    const ghostName = productName
+      ? productName.charAt(0).toUpperCase() + productName.slice(1)
+      : undefined;
     return (
-      <DrawerLayout a11yLabel={productName ?? 'Продукт'} hideTopChrome>
-        <div className={s.body}>
-          <div className={s.topBar}>
-            <Drawer.Close
-              className={s.closeBtn}
-              aria-label="Закрыть"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <CrossIcon />
-            </Drawer.Close>
-          </div>
-          {productName && (
-            <div className={s.header}>
-              <Heading size="drawer" as="h2" className={s.title}>
-                {productName}
-              </Heading>
-            </div>
-          )}
-        </div>
+      <DrawerLayout title={ghostName} a11yLabel={productName ?? 'Продукт'}>
+        <div className={s.body} />
       </DrawerLayout>
     );
   }
@@ -284,76 +274,103 @@ export function ProductDrawer({ productId, productName }: Props) {
     );
   };
 
+  // «Предложить нутриенты»: AI estimates the full profile per 100 g from the
+  // name → whole-replace. Paid AI request (402 → toast via classifyError).
+  //  - `confirm: false` — пустой состав (терять нечего): конструктивное действие
+  //    с витрины, без гейта.
+  //  - `confirm: true` — состав уже есть: деструктивный overwrite внутри
+  //    редактора нутриентов, за confirm-дровером «всё сотрётся».
+  const runSuggest = async (confirm: boolean) => {
+    if (confirm) {
+      const proceed = await drawerStore.show(SuggestNutrientsConfirmDrawer, {});
+      if (!proceed) return;
+    }
+    setSuggesting(true);
+    try {
+      const record = await suggestProductNutrients(food.name);
+      // Empty result (LLM returned all-zero / nothing mapped): do NOT wipe the
+      // existing nutrients with `{}`. Keep prior data, tell the user it failed.
+      if (Object.keys(record).length === 0) {
+        toaster.error('Не удалось подобрать состав, попробуй ещё раз');
+        return;
+      }
+      await setProductNutrients(food.id, JSON.stringify(record));
+      toaster.success('Состав обновлён');
+    } catch (e) {
+      const kind = classifyError(e);
+      toaster.error(defaultUserMessage(kind), { kind });
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
+  // Имя в шапке: первая буква в верхний регистр (имена приходят строчными,
+  // напр. «абрикос»).
+  const displayName = food.name.charAt(0).toUpperCase() + food.name.slice(1);
+
   return (
-    <DrawerLayout a11yLabel={food.name} hideTopChrome>
-      <div className={s.body} onFocusCapture={handleNameFocusCapture}>
-        <div className={s.topBar}>
-          {/* × закрытия — СЛЕВА (канон проекта: Drawer.Close всегда topLeft). */}
-          <Drawer.Close
-            className={s.closeBtn}
-            aria-label="Закрыть"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <CrossIcon />
-          </Drawer.Close>
-          {/* Карандаш справа → мини-popover «Редактировать название / нутриенты».
-              Только свои продукты. Кастомный inline-popover (не PopoverTrigger):
-              его content z-index 1000 < дровер 5001 → меню ушло бы ПОД дровер.
-              Inline-меню живёт в стекинг-контексте дровера, поверх контента. */}
-          {isUserCreated && (
-            <div className={s.editWrap}>
-              <button
-                type="button"
-                className={s.editIconBtn}
-                aria-label="Редактировать продукт"
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                onClick={() => setMenuOpen((o) => !o)}
-              >
-                <EditIcon />
-              </button>
-              {menuOpen && (
-                <>
+    <DrawerLayout
+      title={displayName}
+      subtitle={isUserCreated ? 'мой продукт' : undefined}
+      a11yLabel={food.name}
+      // Карандаш в правом углу обвязки → drop-down «Название / Нутриенты».
+      // Только свои продукты. Меню живёт в стекинг-контексте обвязки дровера
+      // (z поверх контента); `.editWrap`-scoped правила в scss перебивают
+      // DrawerLayout `.actionHeaderButton *` (бледный глиф / 1.5rem). Rename —
+      // `<label htmlFor>` (focus-делегация для iOS-клавиатуры), нутриенты —
+      // обычная кнопка.
+      topRight={
+        isUserCreated ? (
+          <div className={s.editWrap}>
+            <button
+              type="button"
+              className={s.editIconBtn}
+              aria-label="Редактировать продукт"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((o) => !o)}
+            >
+              <EditIcon />
+            </button>
+            {menuOpen && (
+              <>
+                <button
+                  type="button"
+                  className={s.editBackdrop}
+                  aria-hidden="true"
+                  tabIndex={-1}
+                  onClick={() => setMenuOpen(false)}
+                />
+                <div className={s.editMenu} role="menu">
+                  {/* НЕ закрываем меню на клике по rename: unmount лейбла до
+                      делегации фокуса сломал бы rename. Закрытие — в
+                      handleNameFocusCapture (после делегации) / по бэкдропу. */}
+                  <label
+                    htmlFor={CHANGE_NAME_INPUT_ID}
+                    className={s.editMenuItem}
+                    role="menuitem"
+                  >
+                    Редактировать название
+                  </label>
                   <button
                     type="button"
-                    className={s.editBackdrop}
-                    aria-hidden="true"
-                    tabIndex={-1}
-                    onClick={() => setMenuOpen(false)}
-                  />
-                  <div className={s.editMenu} role="menu">
-                    {/* rename — `<label htmlFor>` (iOS открывает клавиатуру только
-                        по focus-делегации). НЕ закрываем меню на этом клике: иначе
-                        unmount лейбла до делегации фокуса ломает rename. Меню
-                        перекроется модалкой переименования / закроется бэкдропом. */}
-                    <label htmlFor={CHANGE_NAME_INPUT_ID} className={s.editMenuItem} role="menuitem">
-                      Редактировать название
-                    </label>
-                    <button
-                      type="button"
-                      className={s.editMenuItem}
-                      role="menuitem"
-                      onClick={() => {
-                        setEditOpen(true);
-                        setMenuOpen(false);
-                      }}
-                    >
-                      Редактировать нутриенты
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className={s.header}>
-          <Heading size="drawer" as="h2" className={s.title}>
-            {food.name}
-          </Heading>
-          {isUserCreated && <span className={s.ownership}>мой продукт</span>}
-        </div>
-
+                    className={s.editMenuItem}
+                    role="menuitem"
+                    onClick={() => {
+                      setEditOpen(true);
+                      setMenuOpen(false);
+                    }}
+                  >
+                    Редактировать нутриенты
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        ) : undefined
+      }
+    >
+      <div className={s.body} onFocusCapture={handleNameFocusCapture}>
         {/* Порции — только свой продукт-еда (каталог read-only, БАД без порций) */}
         {isUserCreated && !isSupplement && (
           <PortionsAccordion
@@ -366,47 +383,73 @@ export function ProductDrawer({ productId, productName }: Props) {
           />
         )}
 
-        {isUserCreated && (
-          <div className={s.suggestRow}>
-            <SuggestActionButton label="Предложить нутриенты" />
+        {isUserCreated && nutrientValueMap.size === 0 ? (
+          // Пустой состав → живой empty-state вместо мёртвой таблицы. Главное
+          // действие нового продукта (заполнить состав) на витрине, не под
+          // карандашом: крупная CTA AI-подбора (конструктивно, без confirm) +
+          // тихий путь ручного ввода. measureRow/норму прячем — скейлить нечего.
+          <div className={s.emptyNutrients}>
+            <p className={s.emptyNutrientsCaption}>У продукта пока нет состава</p>
+            <SuggestActionButton
+              label={suggesting ? 'Подбираем…' : 'Предложить нутриенты'}
+              onClick={() => runSuggest(false)}
+              disabled={suggesting || !food.name.trim()}
+            />
+            <button
+              type="button"
+              className={s.manualLink}
+              onClick={() => setEditOpen(true)}
+            >
+              Ввести вручную
+            </button>
           </div>
-        )}
-
-        <div className={s.normRow}>
-          <DailyNormButton />
-        </div>
-
-        {/* Количество + скейл — ПРЯМО над таблицей нутриентов (юзер). БАД —
-            состав на 1 единицу, без выбора количества. */}
-        {isSupplement ? (
-          <p className={s.servingComposition}>Состав на одну единицу:</p>
         ) : (
           <>
-            <div className={s.quantityControl}>
-              <Select
-                className={s.quantitySelect}
-                ariaLabel="Способ измерения количества"
-                value={selectValue}
-                options={quantityOptions}
-                onChange={handleQuantityModeChange}
-              />
-            </div>
-            {isCustom && (
-              <div className={s.quantityInputRow}>
-                <NumberInput
-                  value={displayQuantity}
-                  min={0}
-                  maxLength={4}
-                  className={s.quantityInput}
-                  onChange={(val) => setQuantity(val)}
-                />
-                <span className={s.quantityUnit}>г</span>
-              </div>
+            {/* Количество + норма — ПРЯМО над таблицей нутриентов. Еда: выбор
+                количества (50% слева) + кнопка нормы (50% справа, текст
+                переносится и прижат влево). БАД: выбора количества нет → норма
+                на всю ширину + подпись «состав на 1 единицу». */}
+            {isSupplement ? (
+              <>
+                <div className={s.normRowFull}>
+                  <DailyNormButton className={s.normButtonFull} />
+                </div>
+                <p className={s.servingComposition}>Состав на одну единицу:</p>
+              </>
+            ) : (
+              <>
+                <div className={s.measureRow}>
+                  <div className={s.quantityControl}>
+                    <Select
+                      className={s.quantitySelect}
+                      ariaLabel="Способ измерения количества"
+                      value={selectValue}
+                      options={quantityOptions}
+                      onChange={handleQuantityModeChange}
+                    />
+                  </div>
+                  <div className={s.normSlot}>
+                    <DailyNormButton className={s.normButton} />
+                  </div>
+                </div>
+                {isCustom && (
+                  <div className={s.quantityInputRow}>
+                    <NumberInput
+                      value={displayQuantity}
+                      min={0}
+                      maxLength={4}
+                      className={s.quantityInput}
+                      onChange={(val) => setQuantity(val)}
+                    />
+                    <span className={s.quantityUnit}>г</span>
+                  </div>
+                )}
+              </>
             )}
+
+            <NutrientTable getValue={getScaledValue} />
           </>
         )}
-
-        <NutrientTable getValue={getScaledValue} />
 
         {isUserCreated && (
           <ChangeNameModal
@@ -426,6 +469,11 @@ export function ProductDrawer({ productId, productName }: Props) {
             getValue={getNutrientValue}
             onValueChange={handleNutrientValueChange}
             massWarningGrams={massWarningGrams}
+            // «Переподобрать» здесь, а не на витрине: у заполненного продукта
+            // AI-подбор деструктивен (whole-replace), его место в редакторе за
+            // confirm-гейтом, не среди read-only просмотра.
+            onResuggest={() => runSuggest(true)}
+            suggesting={suggesting}
           />
         )}
       </div>

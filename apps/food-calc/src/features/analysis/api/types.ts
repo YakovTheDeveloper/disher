@@ -1,7 +1,32 @@
-export type IdeaCardData = {
+// Frontend mirror of the backend analysis contract (apps/disher-backend-3.0/
+// src/shared/analysis-output.ts). Two distinct output entities, deliberately
+// separate:
+//   • insight    — read-only observation grounded in real window days
+//                  (evidence.days). Cannot be added (yet) — display only.
+//   • hypothesis — a testable experiment the user can save to their own
+//                  hypothesis list (the former «idea card»).
+// `summary` rides in the `result_md` column so its pending('')/failed('⚠️…')
+// sentinels keep working.
+
+export type AnalysisStrength = 'weak' | 'moderate' | 'clear';
+
+export type AnalysisEvidence = {
+  days: string[];
+  foods?: string[];
+  events?: string[];
+};
+
+export type AnalysisInsight = {
+  title: string;
+  detail: string;
+  strength: AnalysisStrength;
+  evidence: AnalysisEvidence;
+};
+
+export type AnalysisHypothesis = {
   title: string;
   body: string;
-  days?: number;
+  suggestedDays?: number;
 };
 
 // Frozen snapshot of a hypothesis the user ticked when starting the analysis.
@@ -16,17 +41,19 @@ export type Analysis = {
   id: string;
   windowStart: string;
   windowEnd: string;
-  resultMd: string;
-  ideaCards: IdeaCardData[];
+  /** Short overview. '' ⇒ pending; '⚠️…'-prefixed ⇒ failed. */
+  summary: string;
+  insights: AnalysisInsight[];
+  hypotheses: AnalysisHypothesis[];
   appliedHypotheses: AppliedHypothesis[];
   createdAt: string;
 };
 
 const FAILURE_PREFIX = '⚠️ Анализ не удался';
 
-export const isPendingAnalysis = (a: Analysis): boolean => a.resultMd === '';
+export const isPendingAnalysis = (a: Analysis): boolean => a.summary === '';
 export const isFailedAnalysis = (a: Analysis): boolean =>
-  a.resultMd.startsWith(FAILURE_PREFIX);
+  a.summary.startsWith(FAILURE_PREFIX);
 
 type ServerRow = {
   id: string;
@@ -34,22 +61,66 @@ type ServerRow = {
   window_end: string;
   result_md: string;
   idea_cards: unknown;
+  insights: unknown;
   applied_hypotheses: unknown;
   created_at: string;
 };
 
-function asIdeaCards(value: unknown): IdeaCardData[] {
+// Permissive coercions — mirror the backend parser. Malformed entries are
+// dropped, not crashed on. An insight with no evidence.days is dropped (the
+// grounding gate, same rule as the server).
+function asStringList(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  const out: IdeaCardData[] = [];
+  const out: string[] = [];
+  for (const item of value) {
+    if (typeof item !== 'string') continue;
+    const s = item.trim();
+    if (s) out.push(s);
+  }
+  return out;
+}
+
+export function asInsights(value: unknown): AnalysisInsight[] {
+  if (!Array.isArray(value)) return [];
+  const out: AnalysisInsight[] = [];
   for (const c of value) {
     if (!c || typeof c !== 'object') continue;
-    const card = c as Record<string, unknown>;
-    if (typeof card.title !== 'string' || typeof card.body !== 'string') continue;
-    const idea: IdeaCardData = { title: card.title, body: card.body };
-    if (typeof card.days === 'number' && Number.isFinite(card.days)) {
-      idea.days = card.days;
+    const o = c as Record<string, unknown>;
+    if (typeof o.title !== 'string' || typeof o.detail !== 'string') continue;
+    const ev = (o.evidence ?? {}) as Record<string, unknown>;
+    const days = asStringList(ev.days);
+    if (days.length === 0) continue; // grounding gate
+    const strength: AnalysisStrength =
+      o.strength === 'clear' || o.strength === 'moderate' ? o.strength : 'weak';
+    const insight: AnalysisInsight = {
+      title: o.title,
+      detail: o.detail,
+      strength,
+      evidence: { days },
+    };
+    const foods = asStringList(ev.foods);
+    if (foods.length > 0) insight.evidence.foods = foods;
+    const events = asStringList(ev.events);
+    if (events.length > 0) insight.evidence.events = events;
+    out.push(insight);
+  }
+  return out;
+}
+
+export function asHypotheses(value: unknown): AnalysisHypothesis[] {
+  if (!Array.isArray(value)) return [];
+  const out: AnalysisHypothesis[] = [];
+  for (const c of value) {
+    if (!c || typeof c !== 'object') continue;
+    const o = c as Record<string, unknown>;
+    if (typeof o.title !== 'string' || typeof o.body !== 'string') continue;
+    const h: AnalysisHypothesis = { title: o.title, body: o.body };
+    // Accept `suggestedDays` (new) or `days` (legacy idea_cards rows).
+    const rawDays = o.suggestedDays ?? o.days;
+    if (typeof rawDays === 'number' && Number.isFinite(rawDays) && rawDays > 0) {
+      h.suggestedDays = rawDays;
     }
-    out.push(idea);
+    out.push(h);
   }
   return out;
 }
@@ -76,8 +147,9 @@ export function mapServerAnalysis(row: ServerRow): Analysis {
     id: row.id,
     windowStart: row.window_start,
     windowEnd: row.window_end,
-    resultMd: row.result_md ?? '',
-    ideaCards: asIdeaCards(row.idea_cards),
+    summary: row.result_md ?? '',
+    insights: asInsights(row.insights),
+    hypotheses: asHypotheses(row.idea_cards),
     appliedHypotheses: asAppliedHypotheses(row.applied_hypotheses),
     createdAt: row.created_at,
   };
@@ -86,7 +158,7 @@ export function mapServerAnalysis(row: ServerRow): Analysis {
 // ─── Derived status ───────────────────────────────────────────────────────
 
 /**
- * A pending row whose job died (backend restart, crash) sits at result_md=''
+ * A pending row whose job died (backend restart, crash) sits at summary=''
  * forever. After this much wall-clock both the list row and the detail modal
  * stop calling it «идёт» and treat it as «возможно, не удалось» — a
  * client-side heuristic, no extra request.

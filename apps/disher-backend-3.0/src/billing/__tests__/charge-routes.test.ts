@@ -327,12 +327,18 @@ describeIfReady("POST /api/analyze-dish — billing", () => {
   });
 });
 
-// ─── analyze-daily (SSE, injected stub) ───
+// ─── analyze-daily (single JSON, injected stub) ───
 
 describeIfReady("POST /api/analyze/daily — billing", () => {
   let app: FastifyInstance;
   let user: TestUser;
   let mode: "ok" | "fail" = "ok";
+
+  const okResponse = JSON.stringify({
+    summary: "разбор дня",
+    insights: [],
+    hypotheses: [],
+  });
 
   beforeAll(async () => {
     if (!ready) return;
@@ -341,9 +347,9 @@ describeIfReady("POST /api/analyze/daily — billing", () => {
     await app.register(
       async (instance) => {
         await analyzeDailyRoutes(instance, {
-          streamLLM: async (_prompt, write) => {
+          callLLM: async () => {
             if (mode === "fail") throw new Error("upstream down");
-            write('data: {"choices":[{"delta":{"content":"разбор дня"}}]}\n\n');
+            return okResponse;
           },
         });
       },
@@ -368,7 +374,7 @@ describeIfReady("POST /api/analyze/daily — billing", () => {
     scheduleEvents: [],
   };
 
-  it("debits daily_analysis on a streamed analysis", async () => {
+  it("debits daily_analysis on a successful analysis", async () => {
     const res = await app.inject({ method: "POST", url, headers: user.headers, payload: body });
     expect(res.statusCode).toBe(200);
     expect(res.body).toContain("разбор дня");
@@ -382,12 +388,12 @@ describeIfReady("POST /api/analyze/daily — billing", () => {
     expect(await getBalance(user.userId)).toBe(0);
   });
 
-  it("refunds when the stream fails before any content", async () => {
+  it("refunds when the model call fails", async () => {
     mode = "fail";
     const res = await app.inject({ method: "POST", url, headers: user.headers, payload: body });
-    expect(res.statusCode).toBe(200); // SSE opened, error frame sent
-    expect(res.body).toContain("event: error");
-    // charged then refunded (post-stream)
+    expect(res.statusCode).toBe(502);
+    expect(res.body).toContain("analysis-failed");
+    // charged then refunded
     expect(await waitForBalance(user.userId, WELCOME_GRANT_KOP)).toBe(WELCOME_GRANT_KOP);
   });
 });
@@ -399,7 +405,11 @@ describeIfReady("POST /api/analyze — billing", () => {
   let user: TestUser;
   let mockCallLLM: ReturnType<typeof vi.fn>;
 
-  const validResponse = JSON.stringify({ resultMd: "## ok", ideaCards: [] });
+  const validResponse = JSON.stringify({
+    summary: "## ok",
+    insights: [],
+    hypotheses: [],
+  });
 
   async function pollResultMd(id: string): Promise<string> {
     for (let i = 0; i < 100; i++) {

@@ -9,6 +9,7 @@
 export const PRICES_KOP = {
   free_text_parse: 50, //  0.5 ₽ — parse freeform food text (frequent, core flow)
   dish_suggestions: 50, //  0.5 ₽ — infer dish ingredients
+  nutrient_suggestions: 50, //  0.5 ₽ — estimate a product's full nutrient profile
   daily_analysis: 200, //  2 ₽   — one-day food review (SSE)
   dish_analysis: 200, //  2 ₽   — single-dish breakdown (SSE)
   long_analysis: 500, //  5 ₽   — multi-day analysis (background job)

@@ -132,9 +132,6 @@ export const LayoutEditOverlay = () => {
   const [fields, setFields] = useState({ x: '', y: '', w: '', h: '' });
   const focusedFieldRef = useRef<string | null>(null);
 
-  // временный диагностический ридаут (key / счётчик нажатий / состояние selected)
-  const [dbg, setDbg] = useState({ key: '—', n: 0 });
-
   // перетаскиваемая панель слоёв
   const [layersPos, setLayersPos] = useState<Pos | null>(readLayersPos);
   const [layersDragging, setLayersDragging] = useState(false);
@@ -219,8 +216,13 @@ export const LayoutEditOverlay = () => {
     setSelected(el);
   }, []);
 
-  // ---- нейтрализация предков: снимаем CB/clip-триггеры, overflow НЕ трогаем ---
+  // ---- нейтрализация предков: снимаем CB/clip-триггеры, overflow НЕ трогаем.
+  //      Идём ТОЛЬКО до drawer-обвязки (#drawer-content, включительно) — реальные
+  //      клипперы сидят там; выше (#drawer-root, .main с ambient-фоном, body) не
+  //      трогаем, чтобы не гасить чужой transform/filter/backdrop в режиме правки.
+  //      Если элемент не в drawer'е — boundary=null, идём до body (fallback).
   const neutralizeAncestors = useCallback((el: HTMLElement) => {
+    const boundary = el.closest('#drawer-content');
     let node = el.parentElement;
     while (node && node !== document.body && node !== document.documentElement) {
       if (!neutralizedRef.current.has(node)) {
@@ -252,6 +254,7 @@ export const LayoutEditOverlay = () => {
           st.setProperty('-webkit-backdrop-filter', 'none');
         }
       }
+      if (node === boundary) break; // дошли до drawer-обвязки (включительно) — стоп
       node = node.parentElement;
     }
   }, []);
@@ -402,7 +405,6 @@ export const LayoutEditOverlay = () => {
     if (!enabled) return;
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
-      setDbg((d) => ({ key: e.key, n: d.n + 1 }));
       if (t && t.tagName === 'INPUT' && t.closest('[data-layout-edit-ui]')) return;
 
       const raw = selectedRef.current;
@@ -786,11 +788,6 @@ export const LayoutEditOverlay = () => {
             >
               ×
             </button>
-          </div>
-
-          <div className={s.dbg}>
-            key:{dbg.key} ·{dbg.n} · sel:
-            {selected ? (selected.isConnected ? shortTag(selected) : 'gone') : '∅'}
           </div>
 
           {selected && frame ? (

@@ -1,0 +1,22 @@
+// Content owns padding (surface owns bg) — drawer-layout canon.
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 4px 20px 24px;
+}
+
+.title {
+    text-align: center;
+    text-wrap: balance;
+}
+
+// Two equal-width actions: «Отмена» (ghost) + «Продолжить» (primary, right).
+.actions {
+    display: flex;
+    gap: 12px;
+
+    >* {
+        flex: 1;
+    }
+}

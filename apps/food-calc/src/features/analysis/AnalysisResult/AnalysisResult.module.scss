@@ -1,0 +1,45 @@
+// Shared layout for a finished structured analysis. Visual surface lives in
+// the child cards (InsightCard / HypothesisCard); this is just rhythm between
+// the three blocks. Local custom properties keep it token-gate compliant.
+.root {
+    --ar-ink-soft: rgba(40, 40, 40, 0.55);
+    --ar-fs-section: 12.5px;
+    --ar-fs-summary: 13.5px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.summary {
+    font-size: var(--ar-fs-summary);
+    line-height: 1.55;
+
+    :global(p) {
+        margin: 0 0 8px;
+    }
+
+    :global(p:last-child) {
+        margin-bottom: 0;
+    }
+}
+
+.block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.blockTitle {
+    margin: 0;
+    font-size: var(--ar-fs-section);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--ar-ink-soft);
+}
+
+// Cards stack flush — each card owns its own first/last radius + hairline.
+.list {
+    display: flex;
+    flex-direction: column;
+}

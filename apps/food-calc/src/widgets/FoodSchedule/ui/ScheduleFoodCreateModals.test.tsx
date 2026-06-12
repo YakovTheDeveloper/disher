@@ -38,6 +38,7 @@ vi.mock('@/shared/lib/toaster/toaster', () => ({
 vi.mock('@/features/food/details-chips', () => ({
   useHasDetailsHints: () => false,
   DetailsStep: (props: any) => <div data-testid="details-step" id={props.textareaId} />,
+  persistCustomTagsFromDetails: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock('@/features/food/food-search', () => ({
   SearchFood: (props: any) => (
@@ -68,13 +69,6 @@ vi.mock('@/features/product/ProductQuantity', () => ({
     </div>
   ),
 }));
-vi.mock('@/shared/ui/TimeChoose', () => ({
-  TimeChoose: (props: any) => (
-    <div data-testid="time-choose">
-      <input id={props.inputId} data-testid="time-input" />
-    </div>
-  ),
-}));
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -102,36 +96,23 @@ beforeEach(() => {
 
 // ── back-correctness ─────────────────────────────────────────────────────────
 // Header back в Steps-bar модалках = переключение на предыдущий шаг по линейному
-// порядку stepsForBar. На первом шаге с StepHeader (time) back ведёт на search;
-// search — голый SearchFood со своим onBack=handleClose. Opt-in `details`
-// (visited) → previous = quantity.
+// порядку stepsForBar. Шаг времени убран из create-флоу (время = «сейчас»),
+// поэтому первый шаг с StepHeader — quantity; его back ведёт на search (голый
+// SearchFood со своим onBack=handleClose). Opt-in `details` (visited) →
+// previous = quantity.
 
 describe('ScheduleFoodCreateModals — header back steps to previous step', () => {
-  it('back from the time step returns to search', () => {
+  it('back from the quantity step returns to search', () => {
     render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
 
     focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
     fireEvent.click(expanded().querySelector('[data-testid="select-product"]')!);
-    focusInput(SCHEDULE_FOOD_INPUT_IDS.TIME_CREATE_INPUT);
-    expect(expanded().querySelector('[data-testid="time-choose"]')).not.toBeNull();
-
-    clickActiveBack();
-
-    expect(expanded().querySelector('[data-testid="search-food"]')).not.toBeNull();
-  });
-
-  it('back from the quantity step returns to time', () => {
-    render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
-
-    focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
-    fireEvent.click(expanded().querySelector('[data-testid="select-product"]')!);
-    focusInput(SCHEDULE_FOOD_INPUT_IDS.TIME_CREATE_INPUT);
     focusInput(SCHEDULE_FOOD_INPUT_IDS.QUANTITY_CREATE_INPUT);
     expect(expanded().querySelector('[data-testid="product-quantity"]')).not.toBeNull();
 
     clickActiveBack();
 
-    expect(expanded().querySelector('[data-testid="time-choose"]')).not.toBeNull();
+    expect(expanded().querySelector('[data-testid="search-food"]')).not.toBeNull();
   });
 
   it('back from the opt-in details step returns to quantity', () => {
@@ -139,7 +120,6 @@ describe('ScheduleFoodCreateModals — header back steps to previous step', () =
 
     focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
     fireEvent.click(expanded().querySelector('[data-testid="select-product"]')!);
-    focusInput(SCHEDULE_FOOD_INPUT_IDS.TIME_CREATE_INPUT);
     focusInput(SCHEDULE_FOOD_INPUT_IDS.QUANTITY_CREATE_INPUT);
     focusInput(SCHEDULE_FOOD_INPUT_IDS.DETAILS_INPUT);
     expect(expanded().querySelector('[data-testid="details-step"]')).not.toBeNull();
@@ -147,6 +127,95 @@ describe('ScheduleFoodCreateModals — header back steps to previous step', () =
     clickActiveBack();
 
     expect(expanded().querySelector('[data-testid="product-quantity"]')).not.toBeNull();
+  });
+});
+
+// ── time = «сейчас» ──────────────────────────────────────────────────────────
+// Шаг времени убран: коммит штампует текущее время (HH:MM), а не спрашивает.
+describe('ScheduleFoodCreateModals — commit stamps current time', () => {
+  it('selecting a food then finishing commits with the current HH:MM', async () => {
+    const { addScheduleFood } = await import('@/entities/schedule-food');
+
+    render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
+
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
+    fireEvent.click(expanded().querySelector('[data-testid="select-product"]')!);
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.QUANTITY_CREATE_INPUT);
+
+    // no-hints flow → quantity step's right button commits directly.
+    const finish = expanded().querySelector('button[aria-label="Готово"]');
+    expect(finish).not.toBeNull();
+
+    // handleCommit штампует время ВНУТРИ клика; тест-now считается отдельно.
+    // На стыке минуты (HH:59 → HH+1:00) одиночный снимок разошёлся бы с
+    // заштампованным → флейк. Снимаем now до и после клика, принимаем обе границы.
+    const before = new Date().toTimeString().slice(0, 5);
+    fireEvent.click(finish!);
+    const after = new Date().toTimeString().slice(0, 5);
+
+    expect(addScheduleFood).toHaveBeenCalledTimes(1);
+    const arg = vi.mocked(addScheduleFood).mock.calls[0][0] as { date: string; time: string };
+    expect(arg.date).toBe('2026-05-19');
+    expect([before, after]).toContain(arg.time);
+  });
+});
+
+// ── create-new → commit ──────────────────────────────────────────────────────
+// Самый рискованный путь: «+ создать продукт» → confirm (productId: null→UUID)
+// → quantity → Готово. Гейт quantity = `(productId || dishId)`; на момент клика
+// «Создать» productId ещё null, после — UUID. jsdom не воспроизводит браузерный
+// тайминг label-делегации фокуса, поэтому шаг 'quantity' двигаем ручным focus —
+// тест проверяет ЛОГИКУ шагов и коммит, не iOS-делегацию.
+describe('ScheduleFoodCreateModals — create-new product flows to commit', () => {
+  it('search → create product → quantity → commit with the new product id', async () => {
+    const { addScheduleFood } = await import('@/entities/schedule-food');
+    const { createProduct } = await import('@/entities/product');
+
+    render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
+
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
+    fireEvent.click(expanded().querySelector('[data-testid="pick-create-product"]')!);
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.CREATE_INPUT);
+
+    // confirm создаёт продукт (productId: null → UUID) и через
+    // <label htmlFor={QUANTITY_INPUT}> делегирует фокус; step двигаем вручную.
+    const createBtn = expanded().querySelector(
+      `label[for="${SCHEDULE_FOOD_INPUT_IDS.QUANTITY_CREATE_INPUT}"]`,
+    );
+    expect(createBtn).not.toBeNull();
+    fireEvent.click(createBtn!);
+    expect(createProduct).toHaveBeenCalledTimes(1);
+
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.QUANTITY_CREATE_INPUT);
+    expect(expanded().querySelector('[data-testid="product-quantity"]')).not.toBeNull();
+
+    const finish = expanded().querySelector('button[aria-label="Готово"]');
+    expect(finish).not.toBeNull();
+    fireEvent.click(finish!);
+
+    expect(addScheduleFood).toHaveBeenCalledTimes(1);
+    const arg = vi.mocked(addScheduleFood).mock.calls[0][0] as {
+      type: string;
+      productId: string | null;
+    };
+    expect(arg.type).toBe('food');
+    expect(arg.productId).toBeTruthy();
+  });
+});
+
+// ── негатив: шага времени нет ────────────────────────────────────────────────
+// Guard против случайного возврата шага времени в create-флоу: time-input не
+// монтируется нигде, «Время» не появляется в Steps-bar.
+describe('ScheduleFoodCreateModals — create flow has no time step', () => {
+  it('never mounts the time input and omits «Время» from the step bar', () => {
+    render(<ScheduleFoodCreateModals scheduleId="2026-05-19" />);
+
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT);
+    fireEvent.click(expanded().querySelector('[data-testid="select-product"]')!);
+    focusInput(SCHEDULE_FOOD_INPUT_IDS.QUANTITY_CREATE_INPUT);
+
+    expect(document.getElementById(SCHEDULE_FOOD_INPUT_IDS.TIME_CREATE_INPUT)).toBeNull();
+    expect(expanded().textContent).not.toContain('Время');
   });
 });
 

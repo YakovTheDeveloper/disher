@@ -14,8 +14,9 @@
 // поверхность под собой (раньше текст лежал на плоском white и сливался
 // с белым `stickyTop`-ом сверху). Без тёплого тона: палитра экрана уже
 // warm через `useSurface`, дублировать на «листе» не надо.
-// Заголовок дня недели + watermark-логотип теперь канон Screen.contentHeader
-// (`contentHeader` проп) — локального `.weekdayHeading` больше нет.
+// День недели уехал в HomeTopBar; watermark-логотип + верхний отступ листа
+// теперь даёт сам Screen-лист (`.headerOverlap`) — ни `contentHeader`, ни
+// локального `.weekdayHeading` тут больше нет.
 .scheduleScreen {
   --header-overlap-bg:
     linear-gradient(180deg,
@@ -24,6 +25,7 @@
       rgba(0, 0, 0, 0) 100%),
     #ffffff;
 }
+
 
 // Anchor wrapper around the food list — gives the design-variant bar a
 // hook for visibility tracking + flash. Plain block so the outline-based

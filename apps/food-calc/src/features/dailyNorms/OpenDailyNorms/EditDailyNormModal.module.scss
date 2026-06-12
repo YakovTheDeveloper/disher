@@ -6,14 +6,30 @@
 }
 
 .header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
   padding: 20px 20px 12px;
   padding-top: max(var(--modal-title-offset), env(safe-area-inset-top));
-  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
   flex-shrink: 0;
+
+  // Canon rule 2: fading hairline via ::after, NOT a solid 1px border.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--field-hairline, rgba(124, 65, 15, 0.12)) 18%,
+        var(--field-hairline, rgba(124, 65, 15, 0.12)) 82%,
+        transparent 100%);
+    pointer-events: none;
+  }
 }
 
 .backButton {
@@ -26,7 +42,7 @@
   cursor: pointer;
   padding: var(--space-1);
   border-radius: var(--radius-xs);
-  color: #111;
+  color: var(--field-text, #111);
   -webkit-tap-highlight-color: transparent;
   transition:
     background var(--press-out) var(--easing-default),
@@ -52,14 +68,16 @@
   min-width: 0;
 }
 
+// Serif-italic kicker (mirrors CreateDailyNormModal .kicker) — NOT the
+// uppercase 0.7rem opacity-0.55 "label-as-placeholder" anti-pattern banned in
+// CLAUDE.md Design Philosophy. Follows the ModalShell variant hue.
 .kicker {
-  font-family: "Raleway", sans-serif;
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-secondary);
-  opacity: 0.55;
+  font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+  font-style: italic;
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  color: var(--chip-active-border, #b88436);
 }
 
 .title {
@@ -68,7 +86,7 @@
   font-size: var(--heading-size-modal);
   font-weight: var(--heading-weight);
   letter-spacing: var(--heading-letter);
-  color: var(--text-primary);
+  color: var(--field-text, var(--text-primary));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -83,9 +101,10 @@
   padding: var(--space-1) var(--space-2);
 }
 
-// Ghost-link «Пересчитать по анкете», прижата к правому краю. Живёт между
-// header (или drawer-handle в panel-режиме) и body — лёгкая отдельная полоса,
-// не конкурирует с primary-action футером.
+// «Пересчитать по анкете» — вторичное действие (перезапуск всей анкеты), теперь
+// полноценная chip-кнопка справа, а не подчёркнутая ghost-сноска. Живёт между
+// header (или drawer-handle в panel-режиме) и body — отдельная полоса, не
+// конкурирует с primary-action футером.
 .recalcBar {
   display: flex;
   justify-content: flex-end;
@@ -98,29 +117,38 @@
 }
 
 .recalcBtn {
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  padding: 6px 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px; // inner-control touch floor (canon 2026-05-24)
+  padding: 8px 16px;
+  border: 1px solid var(--chip-border, rgba(124, 65, 15, 0.28));
+  background: var(--chip-bg, #fff);
+  color: var(--chip-text, var(--text-secondary));
   font-size: 0.82rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.005em;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-  text-decoration-color: rgba(128, 128, 128, 0.4);
   cursor: pointer;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-full);
+  -webkit-tap-highlight-color: transparent;
   transition:
     background var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default);
+    border-color var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
 
-  // Цветной отклик: текстовая кнопка «Пересчитать» → тинт фона + цвет
+  // Цветной отклик (press-canon): chip-кнопка → тёмная chip-active заливка.
   &:active {
-    background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
-    text-decoration-color: currentColor;
+    background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+    border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
+    color: var(--chip-active-text, #fff);
+    transform: scale(0.97);
     transition-duration: var(--press-in);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--chip-active-border, #b88436);
+    outline-offset: 2px;
   }
 }
 

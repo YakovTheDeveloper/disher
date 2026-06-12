@@ -21,6 +21,16 @@ describe('ModalHeader', () => {
     expect(screen.getByRole('button', { name: 'Закрыть' })).toBeInTheDocument();
   });
 
+  it('renders the subtitle when provided', () => {
+    render(<ModalHeader title="Разбор дня" subtitle="9 июня, понедельник" onBack={() => {}} />);
+    expect(screen.getByText('9 июня, понедельник')).toBeInTheDocument();
+  });
+
+  it('omits the subtitle when not provided', () => {
+    render(<ModalHeader title="Разбор дня" onBack={() => {}} />);
+    expect(screen.queryByText('9 июня, понедельник')).not.toBeInTheDocument();
+  });
+
   it('renders the trailing slot when provided', () => {
     render(
       <ModalHeader title="X" onBack={() => {}} trailing={<span data-testid="tr">i</span>} />,

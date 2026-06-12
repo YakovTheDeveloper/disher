@@ -15,12 +15,12 @@ type Props = {
   bottomBar?: React.ReactNode;
   header?: React.ReactNode;
   /**
-   * Семантический заголовок контента — день недели (FoodSchedule) или имя
-   * блюда/продукта (Dish/Product). Рендерится первым ВНУТРИ листа
-   * (`headerOverlap`), по центру, как `<Heading size="section">` (канон —
-   * заголовок дня на HomePage). Маленький watermark-логотип справа от него
-   * рисует `.contentHeader::after` и гаснет на пустом экране (`hollow`) —
-   * там вместо него включается большой центральный логотип в `.scrollWrap`.
+   * Семантический заголовок контента — имя блюда/продукта (Dish/Product) или
+   * «Гипотезы». Рендерится первым ВНУТРИ листа (`headerOverlap`), по центру,
+   * как `<Heading size="section">`. Не передавать → лист получает дефолтный
+   * верхний отступ сам (`.headerOverlap:not(:has(.contentHeader))`). Watermark-
+   * логотип Disher рисует сам лист (`.headerOverlap::after`) на всех overlap-
+   * экранах и гаснет на пустом (`hollow`) — там вместо него большой логотип.
    */
   contentHeader?: React.ReactNode;
   /** Доп. класс на обёртку `contentHeader` (page-specific тюнинг). */
@@ -168,8 +168,8 @@ const Screen = ({
       <div className={styles.scrollWrap} data-hollow={hollow ? 'true' : undefined}>
         {/* Большой бледный логотип Disher по центру — фон-слой ПОД контентом.
             Виден только на пустом экране (`[data-hollow]`); когда есть контент,
-            непрозрачный лист накрывает его, а справа от заголовка проступает
-            маленький watermark (`.contentHeader::after`). */}
+            непрозрачный лист накрывает его, а справа-сверху на листе проступает
+            маленький watermark (`.headerOverlap::after`). */}
         <span className={styles.brandWatermark} aria-hidden="true" />
         <div className={styles.screenScroll} ref={scrollContainerRef}>
           {stickyTop && <div className={styles.stickyTop}>{stickyTop}</div>}

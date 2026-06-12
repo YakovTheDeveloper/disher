@@ -512,13 +512,3 @@ $z: 2147483000; // выше любого drawer/portal
   font-size: 12px;
   opacity: 0.75;
 }
-
-// временная диагностическая строка
-.dbg {
-  padding: 4px 2px 0;
-  font-size: 10px;
-  color: $ink-dim;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}

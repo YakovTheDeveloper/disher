@@ -4,10 +4,9 @@ import { createTestUser, type TestUser } from "../../../test/auth-helpers.js";
 import {
   analyzeDailyRoutes,
   buildDailyUserPrompt,
-  runDailySSE,
   DAILY_SYSTEM_PROMPT,
-  type DailyStreamFn,
 } from "../analyze-daily.js";
+import type { CallLLM } from "../analyze.runJob.js";
 
 // ─── buildDailyUserPrompt — pure helper ───
 
@@ -77,9 +76,12 @@ describe("buildDailyUserPrompt", () => {
 });
 
 describe("DAILY_SYSTEM_PROMPT", () => {
-  it("is markdown-mode — carries no JSON output contract", () => {
-    expect(DAILY_SYSTEM_PROMPT).not.toContain("Верни строго JSON");
-    expect(DAILY_SYSTEM_PROMPT).toContain("## Идеи для эксперимента");
+  it("carries the shared structured-output JSON contract", () => {
+    expect(DAILY_SYSTEM_PROMPT).toContain("Верни строго JSON");
+    expect(DAILY_SYSTEM_PROMPT).toContain("summary");
+    expect(DAILY_SYSTEM_PROMPT).toContain("insights");
+    expect(DAILY_SYSTEM_PROMPT).toContain("hypotheses");
+    expect(DAILY_SYSTEM_PROMPT).toContain("evidence");
   });
 
   it("includes the dish-details instruction but not the cohort one", () => {
@@ -93,134 +95,7 @@ describe("DAILY_SYSTEM_PROMPT", () => {
   });
 });
 
-// ─── runDailySSE — SSE contract + client-disconnect abort ───
-//
-// Tested directly (not via Fastify.inject) because light-my-request resolves
-// the whole response at once and cannot model a mid-stream client disconnect.
-
-function makeRaw() {
-  const chunks: string[] = [];
-  return {
-    headStatuses: [] as number[],
-    writableEnded: false,
-    destroyed: false,
-    writeHead(status: number, _headers: Record<string, string>) {
-      this.headStatuses.push(status);
-    },
-    write(data: string | Uint8Array): boolean {
-      chunks.push(
-        typeof data === "string" ? data : Buffer.from(data).toString("utf8"),
-      );
-      return true;
-    },
-    end() {
-      this.writableEnded = true;
-    },
-    get output() {
-      return chunks.join("");
-    },
-  };
-}
-
-function makeSocket() {
-  let handler: (() => void) | null = null;
-  return {
-    on(_event: "close", cb: () => void) {
-      handler = cb;
-    },
-    off(_event: "close", cb: () => void) {
-      if (handler === cb) handler = null;
-    },
-    emitClose() {
-      handler?.();
-    },
-  };
-}
-
-const abortError = () =>
-  Object.assign(new Error("operation aborted"), { name: "AbortError" });
-
-describe("runDailySSE", () => {
-  it("forwards LLM frames and appends the terminal [DONE] + end()", async () => {
-    const raw = makeRaw();
-    const socket = makeSocket();
-    const streamLLM: DailyStreamFn = async (_prompt, write) => {
-      write('data: {"choices":[{"delta":{"content":"Hi"}}]}\n\n');
-      write('data: {"choices":[{"delta":{"content":" there"}}]}\n\n');
-    };
-
-    await runDailySSE({ userPrompt: "x", raw, socket, streamLLM });
-
-    expect(raw.headStatuses).toEqual([200]);
-    expect(raw.output).toContain('"content":"Hi"');
-    expect(raw.output).toContain('"content":" there"');
-    expect(raw.output.endsWith("data: [DONE]\n\n")).toBe(true);
-    expect(raw.writableEnded).toBe(true);
-  });
-
-  it("converts an upstream throw into an event: error frame", async () => {
-    const raw = makeRaw();
-    const socket = makeSocket();
-    const streamLLM: DailyStreamFn = async () => {
-      throw new Error("OpenRouter 503: upstream down");
-    };
-
-    await runDailySSE({ userPrompt: "x", raw, socket, streamLLM });
-
-    expect(raw.output).toContain("event: error");
-    expect(raw.output).toContain("OpenRouter 503: upstream down");
-    expect(raw.output).toContain("data: [DONE]\n\n");
-    expect(raw.writableEnded).toBe(true);
-  });
-
-  it("aborts the upstream signal when the client socket closes", async () => {
-    const raw = makeRaw();
-    const socket = makeSocket();
-    let capturedSignal: AbortSignal | undefined;
-
-    const streamLLM: DailyStreamFn = (_prompt, _write, signal) => {
-      capturedSignal = signal;
-      return new Promise<void>((_resolve, reject) => {
-        if (signal.aborted) return reject(abortError());
-        signal.addEventListener("abort", () => reject(abortError()));
-      });
-    };
-
-    const promise = runDailySSE({ userPrompt: "x", raw, socket, streamLLM });
-
-    // Simulate the client disconnecting mid-stream: the socket is dead and
-    // its 'close' event fires.
-    raw.destroyed = true;
-    socket.emitClose();
-
-    await promise;
-
-    expect(capturedSignal?.aborted).toBe(true);
-    // The socket is gone — nothing (not even [DONE]) was written after close.
-    expect(raw.writableEnded).toBe(false);
-    expect(raw.output).not.toContain("[DONE]");
-  });
-
-  it("does not throw write-after-end when the socket dies before finally", async () => {
-    const raw = makeRaw();
-    const socket = makeSocket();
-    const streamLLM: DailyStreamFn = async (_prompt, write) => {
-      write('data: {"choices":[{"delta":{"content":"partial"}}]}\n\n');
-      // Client leaves right here.
-      raw.destroyed = true;
-      socket.emitClose();
-      throw abortError();
-    };
-
-    // The assertion is simply that this resolves without an unhandled throw.
-    await expect(
-      runDailySSE({ userPrompt: "x", raw, socket, streamLLM }),
-    ).resolves.toBeUndefined();
-    expect(raw.writableEnded).toBe(false);
-  });
-});
-
-// ─── Route — auth + request validation (needs an auth DB for the bearer) ───
+// ─── Route — auth + validation + structured JSON (needs an auth DB for bearer) ───
 
 const ready = Boolean(process.env.TEST_DATABASE_URL);
 const describeIfReady = ready ? describe : describe.skip;
@@ -230,9 +105,20 @@ describeIfReady("POST /api/analyze/daily — route", () => {
   let user: TestUser;
 
   let capturedPrompt = "";
-  const stubStream: DailyStreamFn = async (prompt, write) => {
-    capturedPrompt = prompt;
-    write('data: {"choices":[{"delta":{"content":"разбор дня"}}]}\n\n');
+  const stubLLM: CallLLM = async (_sys, usr) => {
+    capturedPrompt = usr;
+    return JSON.stringify({
+      summary: "разбор дня",
+      insights: [
+        {
+          title: "поздний ужин",
+          detail: "ужин в 22:00",
+          strength: "weak",
+          evidence: { days: ["15-05-2026"] },
+        },
+      ],
+      hypotheses: [],
+    });
   };
 
   beforeAll(async () => {
@@ -240,7 +126,7 @@ describeIfReady("POST /api/analyze/daily — route", () => {
     app = Fastify({ logger: false });
     await app.register(
       async (instance) => {
-        await analyzeDailyRoutes(instance, { streamLLM: stubStream });
+        await analyzeDailyRoutes(instance, { callLLM: stubLLM });
       },
       { prefix: "/api" },
     );
@@ -278,7 +164,7 @@ describeIfReady("POST /api/analyze/daily — route", () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it("accepts a day with food but no events (events-free day is valid)", async () => {
+  it("returns the parsed structured analysis for a valid day", async () => {
     const res = await app.inject({
       method: "POST",
       url: "/api/analyze/daily",
@@ -286,8 +172,12 @@ describeIfReady("POST /api/analyze/daily — route", () => {
       payload: nonEmptyBody,
     });
     expect(res.statusCode).toBe(200);
-    expect(res.body).toContain("разбор дня");
-    expect(res.body).toContain("data: [DONE]");
+    const body = res.json() as {
+      analysis: { summary: string; insights: unknown[]; hypotheses: unknown[] };
+    };
+    expect(body.analysis.summary).toBe("разбор дня");
+    expect(body.analysis.insights).toHaveLength(1);
+    expect(body.analysis.hypotheses).toEqual([]);
   });
 
   it("clamps an over-long userMessage to 1000 chars before the prompt", async () => {

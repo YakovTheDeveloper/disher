@@ -1,0 +1,59 @@
+import { memo, useState } from 'react';
+import { toast } from 'sonner';
+import { saveHypothesis } from '@/entities/hypothesis';
+import type { AnalysisHypothesis } from '../api';
+import styles from './HypothesisCard.module.scss';
+
+type Props = {
+  hypothesis: AnalysisHypothesis;
+};
+
+// One hypothesis = one testable experiment the model proposes. Unlike an
+// insight, it IS addable: «Добавить к себе» writes it into the user's Dexie
+// hypothesis list (saveHypothesis → putRow), so the next analysis can pick it
+// up via appliedHypotheses — closing the «заметил → проверяю» loop.
+const HypothesisCard = ({ hypothesis }: Props) => {
+  const { title, body, suggestedDays } = hypothesis;
+  const [added, setAdded] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  async function handleAdd() {
+    if (added || saving) return;
+    setSaving(true);
+    try {
+      await saveHypothesis({ title, body });
+      setAdded(true);
+      toast.success('Гипотеза добавлена к тебе');
+    } catch (err) {
+      console.error('save hypothesis failed', err);
+      toast.error('Не удалось добавить гипотезу');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <article className={styles.card}>
+      <div className={styles.text}>
+        <div className={styles.head}>
+          <h3 className={styles.title}>{title}</h3>
+          {suggestedDays ? (
+            <span className={styles.days}>проверить ~{suggestedDays} дн.</span>
+          ) : null}
+        </div>
+        {body && <p className={styles.body}>{body}</p>}
+      </div>
+      <button
+        type="button"
+        className={styles.add}
+        onClick={handleAdd}
+        disabled={added || saving}
+        data-added={added || undefined}
+      >
+        {added ? 'Добавлено ✓' : 'Добавить к себе'}
+      </button>
+    </article>
+  );
+};
+
+export default memo(HypothesisCard);

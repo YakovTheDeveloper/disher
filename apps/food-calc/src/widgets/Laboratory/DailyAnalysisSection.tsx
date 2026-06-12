@@ -1,7 +1,6 @@
-import { memo, useCallback } from 'react';
-import ReactMarkdown from 'react-markdown';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
-import { IdeaCard } from '@/features/analysis/IdeaCard';
+import { AnalysisResult } from '@/features/analysis/AnalysisResult';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import type { DailyAnalysisReason } from '@/features/analysis/daily';
@@ -29,7 +28,18 @@ const REASON_TEXT: Record<NonNullable<DailyAnalysisReason>, string> = {
 // idle invitation when the day has never been analysed.
 const DailyAnalysisSection = ({ date }: Props) => {
   const daily = useDailyAnalysisStore((s) => s.byDate[date]);
+  const status = daily?.status;
   const { anchor } = useDesignVariant('DailyAnalysis', SURFACE_VARIANTS);
+  // Merge the design-variant ref (IntersectionObserver) with our own scroll ref.
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const anchorRefFn = anchor.ref;
+  const setSectionRef = useCallback(
+    (el: HTMLElement | null) => {
+      sectionRef.current = el;
+      anchorRefFn(el);
+    },
+    [anchorRefFn],
+  );
 
   // Re-run uses the snapshot's hypothesis ids — the same hypotheses the
   // failed/interrupted run was started with (re-snapshotted from Dexie).
@@ -41,25 +51,43 @@ const DailyAnalysisSection = ({ date }: Props) => {
     });
   }, [date, daily]);
 
+  // When a run starts (fired from the bottom write-bar), reveal this section —
+  // otherwise the result lands above/below the fold and the SEND reads as
+  // "nothing happened". Fires once per transition into 'loading'.
+  useEffect(() => {
+    if (status === 'loading') {
+      sectionRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+  }, [status]);
+
   // Нет разбора за день — ничего не показываем (решение 2026-06-08: убрали
   // подсказку «Разбор дня»; CTA «Разбор» в нижнем баре самоочевиден).
   if (!daily) return null;
 
-  const { status, resultMd, ideaCards, reason } = daily;
+  const { summary, insights, hypotheses, reason } = daily;
 
   return (
-    <section className={styles.section} {...anchor} data-status={status}>
-      {status === 'streaming' && (
+    <section
+      ref={setSectionRef}
+      className={styles.section}
+      data-dv={anchor['data-dv']}
+      data-dv-v={anchor['data-dv-v']}
+      data-status={status}
+      data-daily-analysis-anchor=""
+    >
+      {status === 'loading' && (
         <div className={styles.statusRow}>
           <Spinner />
           <span className={styles.statusText}>Разбираем день…</span>
         </div>
       )}
 
-      {resultMd && (
-        <div className={styles.markdown}>
-          <ReactMarkdown>{resultMd}</ReactMarkdown>
-        </div>
+      {status === 'done' && (
+        <AnalysisResult
+          summary={summary}
+          insights={insights}
+          hypotheses={hypotheses}
+        />
       )}
 
       {status === 'failed' && (
@@ -91,17 +119,6 @@ const DailyAnalysisSection = ({ date }: Props) => {
           >
             Запустить заново
           </button>
-        </div>
-      )}
-
-      {status === 'done' && ideaCards.length > 0 && (
-        <div className={styles.ideas}>
-          <p className={styles.ideasTitle}>Идеи для эксперимента</p>
-          <div className={styles.ideasList}>
-            {ideaCards.map((idea, idx) => (
-              <IdeaCard key={idx} idea={idea} />
-            ))}
-          </div>
         </div>
       )}
     </section>

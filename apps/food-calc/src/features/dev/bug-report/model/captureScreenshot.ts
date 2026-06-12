@@ -7,7 +7,7 @@ const MAX_DATA_URL_LENGTH = 4_500_000;
  * Snapshot the current screen to a PNG dataURL via snapdom.
  *
  * snapdom (not html-to-image) because the app's brand logo is a CSS-`mask`ed
- * pseudo-element (Screen.module.scss `.contentHeader::after`) — html-to-image
+ * pseudo-element (Screen.module.scss `.headerOverlap::after`) — html-to-image
  * can't render `mask`/`-webkit-mask` and drew it as a grey box; snapdom's
  * SVG-foreignObject engine preserves masks/filters/blend.
  *

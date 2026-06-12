@@ -1,6 +1,9 @@
 import { memo, useState } from 'react';
 import { toast } from 'sonner';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { ModalNextButton } from '@/shared/ui/ModalFooter';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import { saveHypothesis } from '@/entities/hypothesis';
 import styles from './HypothesisComposer.module.scss';
 
@@ -13,6 +16,15 @@ type Props = {
    * поле → onFocusCapture раскрывает модалку и курсор сразу в композере.
    */
   inputId?: string;
+  /**
+   * `inline` (default) — обычная dark-pill «Добавить» под полем (страница
+   * HypothesesSlide). `floating` — каноничный «прыгающий» футер из флоу
+   * добавления еды: `ModalShell.ActionButtons` + `ModalNextButton`, который
+   * прилипает над клавиатурой (`useKeyboardStick`). Для менеджера в модалке.
+   */
+  submitVariant?: 'inline' | 'floating';
+  /** Опциональный `field`-Heading над полем (напр. «Добавление новой»). */
+  heading?: string;
 };
 
 // Inline create surface at the top of the hypothesis section: heading, a
@@ -20,7 +32,12 @@ type Props = {
 // body is added later via EditHypothesisModal (tap on a row). Enter submits
 // and keeps focus in the field (a series is entered with Enter); the button
 // submits and loses focus — that is accepted, we do not refocus explicitly.
-const HypothesisComposer = ({ onCreated, inputId }: Props) => {
+const HypothesisComposer = ({
+  onCreated,
+  inputId,
+  submitVariant = 'inline',
+  heading,
+}: Props) => {
   const [title, setTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -48,6 +65,7 @@ const HypothesisComposer = ({ onCreated, inputId }: Props) => {
 
   return (
     <section className={styles.composer}>
+      {heading && <Heading size="field">{heading}</Heading>}
       <AutoGrowSearch
         id={inputId}
         singleLine
@@ -57,14 +75,28 @@ const HypothesisComposer = ({ onCreated, inputId }: Props) => {
         placeholder="Головная боль после молочки"
         maxLength={500}
       />
-      <button
-        type="button"
-        className={styles.submit}
-        disabled={!canSubmit}
-        onClick={handleSubmit}
-      >
-        Добавить
-      </button>
+      {submitVariant === 'floating' ? (
+        <ModalShell.ActionButtons
+          debugId="hypothesis-add"
+          right={
+            <ModalNextButton
+              onClick={handleSubmit}
+              variant="finish"
+              label="Добавить"
+              disabled={!canSubmit}
+            />
+          }
+        />
+      ) : (
+        <button
+          type="button"
+          className={styles.submit}
+          disabled={!canSubmit}
+          onClick={handleSubmit}
+        >
+          Добавить
+        </button>
+      )}
     </section>
   );
 };

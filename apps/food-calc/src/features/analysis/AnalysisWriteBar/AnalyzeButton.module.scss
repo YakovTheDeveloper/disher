@@ -1,0 +1,78 @@
+// Кнопка «Анализировать» в баре Анализа (fieldOverride). Цвета берём из палитры
+// бара (--wb-*), чтобы кнопка жила в тон текущему варианту (ash/mint). ВИД
+// перебирается DesignBar-anchor'ом `AnalyzeBtn`: .analyzeBtn[data-dv-v='…'].
+.analyzeBtn {
+    flex: 1;
+    min-width: 0;
+    align-self: center;
+    min-height: var(--coin-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 var(--space-2);
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    background: none;
+    font-family: var(--font-sans);
+    font-size: var(--bottom-bar-font-size);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--field-text);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: filter 0.15s ease, background 0.15s ease, border-color 0.15s ease,
+        transform 0.12s ease;
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    &[data-pressed] {
+        transform: scale(0.97);
+        transition-duration: var(--press-in);
+    }
+}
+
+// fill — сплошная акцентная CTA (как send-кружок, растянутый в пилюлю).
+.analyzeBtn[data-dv-v='fill'] {
+    background: var(--wb-send);
+    color: var(--wb-send-fg);
+
+    &[data-pressed] {
+        filter: brightness(0.9);
+    }
+}
+
+// ghost — прозрачная: тонкий акцентный контур + акцентный текст.
+.analyzeBtn[data-dv-v='ghost'] {
+    border-color: var(--wb-send);
+    color: var(--wb-send);
+
+    &[data-pressed] {
+        background: var(--press-tint-bg);
+    }
+}
+
+// tint — мягкая тонировка (status-токены бара), не кричит.
+.analyzeBtn[data-dv-v='tint'] {
+    background: var(--wb-status-bg);
+    color: var(--wb-status-fg);
+
+    &[data-pressed] {
+        filter: brightness(0.95);
+    }
+}
+
+// serif — плоская «глагол-ссылка», serif-italic как заголовки (канон Heading).
+.analyzeBtn[data-dv-v='serif'] {
+    font-family: var(--heading-font);
+    font-style: italic;
+    font-weight: var(--heading-weight);
+    font-size: var(--text-lg);
+    color: var(--field-text);
+
+    &[data-pressed] {
+        filter: brightness(0.85);
+    }
+}

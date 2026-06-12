@@ -45,6 +45,7 @@
   --heading-size-modal-sub: 2rem; // 26px — sub-heading inside a modal (Alice, non-italic)
   --heading-size-modal-header: 1.75rem; // 28px — ModalHeader bar title (centered)
   --heading-size-drawer: 1.5rem; // 24px — drawer header
+  --heading-size-field: 1rem; //    16px — small in-modal field/section label (serif italic) — below drawer
   --heading-size-section: var(--text-2xl); // ~37px — in-page content heading (FoodSchedule day, Product/Dish name)
   // Single top gap above an overlay title — owned by the title itself, so it
   // stays constant regardless of how the modal nests it (see ModalShell).
@@ -128,6 +129,15 @@
   --nutrient-accent-vitamins: var(--color-deep-blue);
   --nutrient-progress-height: 3px;
   --nutrient-card-radius: var(--radius-sm);
+  // Едва заметная «карточная» подложка под каждым нутриентом + мягкая тень.
+  // Подложка живёт на ::before (z-index -2), чтобы цветные пилюли имён БЖУ
+  // (.name::before, z-index -1) оставались поверх неё. Полупрозрачная — на
+  // белом дровере почти невидима (тень делает работу), на тёплом фоне страницы
+  // даёт лёгкий лифт.
+  --nutrient-card-surface: rgba(255, 255, 255, 0.55);
+  --nutrient-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04);
+  // Внутренний отступ карточки нутриента — чтобы контент не липнул к краю/тени.
+  --nutrient-card-padding: var(--space-2) var(--space-3);
 
   // ─── Event / Atom family ──────────────────────────────────────
   // accent — solid colour for caret / underline / borders / icons.

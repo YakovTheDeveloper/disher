@@ -37,9 +37,22 @@
   gap: 0;
   position: relative;
   margin: 0;
-  border-radius: 6px;
+  padding: var(--nutrient-card-padding);
+  border-radius: var(--nutrient-card-radius);
   overflow: hidden;
+  // Едва заметная тень-«карточка». Поверхность вынесена на ::before (z-index
+  // -2), чтобы цветные пилюли имён БЖУ (.name::before, z-index -1) читались
+  // над ней.
+  box-shadow: var(--nutrient-card-shadow);
 
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--nutrient-card-radius);
+    background: var(--nutrient-card-surface);
+    z-index: -2;
+  }
 }
 
 // Stripe-fork rhythm — replaces flat zebra. Warm wash from left on 2n,

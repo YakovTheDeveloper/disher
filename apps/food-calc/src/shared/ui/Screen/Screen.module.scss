@@ -263,10 +263,6 @@
     padding: var(--space-8) var(--space-3) var(--space-6);
     text-align: center;
 
-    // Локальный custom-prop под masked-логотип (token-gate допускает; гасит
-    // raw-литерал в `background-color: var(...)` ниже).
-    --content-header-logo-color: rgba(0, 0, 0, 0.08);
-
     // Имена продуктов хранятся lowercase («абрикос») — sentence-case первой
     // буквы средствами CSS.
     h1::first-letter,
@@ -285,31 +281,13 @@
             opacity: 0.6;
         }
     }
-
-    // Маленький watermark-логотип справа от заголовка — лежит на видимом белом
-    // листе, ненавязчивый бренд-знак (Time Machine-стиль). Гаснет на пустом
-    // экране (`[data-hollow]` ниже) — там включается большой центральный
-    // `.brandWatermark`.
-    &::after {
-        content: '';
-        position: absolute;
-        right: var(--space-4);
-        top: 25%;
-        transform: translateY(-50%);
-        width: 144px;
-        height: 70px;
-        background-color: var(--content-header-logo-color);
-        -webkit-mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;
-        mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;
-        pointer-events: none;
-    }
 }
 
 // ─── Brand watermark (большой центральный логотип) ────────────────────────
 // Фон-слой ПОД скроллером (z-index: -1 в isolated `.scrollWrap`). Виден ТОЛЬКО
 // на пустом экране (`.scrollWrap[data-hollow='true']`); при наличии контента
-// непрозрачный лист накрывает его, а бренд проступает маленьким знаком в
-// `.contentHeader::after`. Единый источник для всех Screen-экранов — раньше
+// непрозрачный лист накрывает его, а бренд проступает маленьким знаком на листе
+// (`.headerOverlap::after`). Единый источник для всех Screen-экранов — раньше
 // жил локально в HomePage SlideArtFrame.
 .brandWatermark {
     position: absolute;
@@ -337,13 +315,10 @@
     }
 }
 
-// Пустой экран: большой логотип проявляется, маленький у заголовка гаснет.
+// Пустой экран: большой логотип проявляется (маленький на листе гаснет рядом,
+// см. `.headerOverlap[data-hollow]::after`).
 .scrollWrap[data-hollow='true'] .brandWatermark {
     opacity: 1;
-}
-
-.scrollWrap[data-hollow='true'] .contentHeader::after {
-    display: none;
 }
 
 // Sticky-слот внутри `screenScroll`. Прилипает к `top: var(--top-bar-h)` —
@@ -380,13 +355,49 @@
     border-top-right-radius: 36px;
     // margin-top: -24px;
     box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05);
+
+    // Локальный custom-prop под masked-логотип (token-gate допускает; гасит
+    // raw-литерал в `background-color: var(...)` ниже).
+    --header-overlap-logo-color: rgba(0, 0, 0, 0.08);
+
+    // Watermark-логотип Disher теперь принадлежит самому ЛИСТУ (а не заголовку):
+    // ненавязчивый бренд-знак справа-сверху на видимой плашке. `z-index: -1` —
+    // лежит НАД белым фоном листа, но ПОД контентом (заголовок/список рисуются
+    // поверх). Гаснет на пустом экране (`[data-hollow]` ниже) — там включается
+    // большой центральный `.brandWatermark`.
+    &::after {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        right: var(--space-4);
+        top: var(--space-3);
+        width: 144px;
+        height: 70px;
+        background-color: var(--header-overlap-logo-color);
+        -webkit-mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;
+        mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;
+        pointer-events: none;
+    }
 }
 
-// «Пустой» экран: лист исчезает (фон прозрачный, тень убрана). Контент
-// (empty-state текст / "Добавить") остаётся в потоке — нет визуальной
-// плашки под ним. Триггер выставляет Screen.tsx, когда родитель
-// передал `hollow`.
+// Лист БЕЗ заголовка (`contentHeader` не передан — FoodSchedule/Events/Lab/
+// Analyses): у плашки нет встроенного верхнего паддинга заголовка, поэтому
+// список липнет к верху. Даём дефолтный верхний отступ по токену. Экраны С
+// заголовком (Dish/Product/Hypotheses) уже несут паддинг в `.contentHeader` —
+// им добавлять нельзя, иначе двойной отступ (`:not(:has())` их исключает).
+.headerOverlap:not(:has(.contentHeader)) {
+    padding-top: var(--space-6);
+}
+
+// «Пустой» экран: лист исчезает (фон прозрачный, тень убрана), маленький
+// watermark гаснет — вместо него зажигается большой центральный
+// `.brandWatermark`. Контент (empty-state текст / "Добавить") остаётся в
+// потоке. Триггер выставляет Screen.tsx, когда родитель передал `hollow`.
 .headerOverlap[data-hollow='true'] {
     background: transparent;
     box-shadow: none;
+
+    &::after {
+        display: none;
+    }
 }

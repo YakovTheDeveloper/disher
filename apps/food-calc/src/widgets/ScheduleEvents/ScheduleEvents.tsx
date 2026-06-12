@@ -6,16 +6,12 @@ import { removeScheduleEvents } from '@/entities/schedule-event';
 import clsx from 'clsx';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
-import Button from '@/shared/ui/atoms/Button/Button';
-import { PlusIcon } from '@/shared/ui/atoms/Button/PlusIcon';
 import { groupItemsByTime } from '@/shared/lib/schedule';
 import {
-  ScheduleEventCreateModals,
-  EVENT_MODAL_INPUT_IDS,
   ScheduleEventEditModal,
   EVENT_EDIT_MODAL_INPUT_IDS,
+  EventsWriteBar,
 } from './ui';
-import { AppBottomBarShell } from '@/shared/ui/AppBottomBar';
 import { ScheduleEventCard } from './components/ScheduleEventCard';
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer';
 import { buildEventEditActions } from './eventActions';
@@ -24,8 +20,6 @@ import { safeMutate } from '@/shared/lib/safeMutate';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS } from '@/features/shared/long-press-item';
-import { Heading } from '@/shared/ui/atoms/Typography/Heading';
-import { formatWeekdayTitle } from '@/shared/lib/time/formatWeekday';
 
 // События держат СВОЙ DesignBar-anchor ('ScheduleEvents'), отдельный от
 // FoodSchedule. Дефолт (первый в списке) — `lemon`: один жёлтый оттенок,
@@ -50,10 +44,6 @@ type Props = {
 
 const ScheduleEvents = ({ date, events, topSlot }: Props) => {
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
-  // Заголовок дня недели — идентично экрану Еды (FoodSchedule): contentHeader
-  // даёт маленький логотип справа при наличии событий и большой по центру на
-  // пустом дне.
-  const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
 
   // Пустой день → hollow-заглушка Screen (большой бренд-логотип по центру).
   const isDayEmpty = events.length === 0;
@@ -94,33 +84,17 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
       stickyTop={topSlot}
       headerOverlap
       hollow={isDayEmpty}
-      contentHeader={<Heading size="section">{weekdayTitle}</Heading>}
       overlay={
-        <>
-          <ScheduleEventCreateModals scheduleId={date} />
-          {editingItem && (
-            <ScheduleEventEditModal
-              item={editingItem}
-              initialStep={editingStep}
-              onClose={closeEditModal}
-            />
-          )}
-        </>
+        editingItem && (
+          <ScheduleEventEditModal
+            item={editingItem}
+            initialStep={editingStep}
+            onClose={closeEditModal}
+          />
+        )
       }
       key={3}
-      bottomBar={
-        <AppBottomBarShell side="right" width="33%">
-          <Button
-            variant="bottomActionBar"
-            as="label"
-            htmlFor={EVENT_MODAL_INPUT_IDS.TEXT_INPUT}
-            icon={<PlusIcon />}
-            onClick={() => {}}
-          >
-            Добавить событие
-          </Button>
-        </AppBottomBarShell>
-      }
+      bottomBar={<EventsWriteBar scheduleId={date} />}
     >
       <section {...eventsAnchor} className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <div {...boundaryAnchor}>

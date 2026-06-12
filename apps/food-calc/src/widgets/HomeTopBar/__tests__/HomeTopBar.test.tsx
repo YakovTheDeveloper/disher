@@ -51,7 +51,7 @@ beforeEach(() => {
 describe('HomeTopBar — noInterruptGuard', () => {
   it('with the flag: a streaming date → no confirm, no interrupt, just navigates', async () => {
     h.drawerShow.mockResolvedValue(NEW_DATE);
-    h.byDate[DATE] = { status: 'streaming' };
+    h.byDate[DATE] = { status: 'loading' };
 
     render(<HomeTopBar date={DATE} noInterruptGuard />);
     clickDate();
@@ -64,7 +64,7 @@ describe('HomeTopBar — noInterruptGuard', () => {
   it('without the flag: a streaming date → shows the confirm', async () => {
     h.drawerShow.mockResolvedValue(NEW_DATE);
     h.modalShow.mockResolvedValue(false); // user stays
-    h.byDate[DATE] = { status: 'streaming' };
+    h.byDate[DATE] = { status: 'loading' };
 
     render(<HomeTopBar date={DATE} />);
     clickDate();
@@ -78,7 +78,7 @@ describe('HomeTopBar — noInterruptGuard', () => {
   it('without the flag: confirming the streaming date → interrupts then navigates', async () => {
     h.drawerShow.mockResolvedValue(NEW_DATE);
     h.modalShow.mockResolvedValue(true); // user confirms leaving
-    h.byDate[DATE] = { status: 'streaming' };
+    h.byDate[DATE] = { status: 'loading' };
 
     render(<HomeTopBar date={DATE} />);
     clickDate();

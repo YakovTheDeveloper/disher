@@ -4,9 +4,13 @@
 // слотом. Когда hideTopChrome=true (NutrientsDrawer case), эта строка
 // удаляется целиком — ряд занимал место, который заголовок drawer'а должен
 // был занимать сам. Swipe-to-close через edgeHandle и backdrop остаются.
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import DrawerLayout from './DrawerLayout';
+
+// Mutable so a single test can flip to a side drawer (where the edge handle
+// renders). Defaults to 'bottom' so the existing chrome tests are unaffected.
+const sideMock = vi.hoisted(() => ({ side: 'bottom' as 'bottom' | 'left' | 'right' }));
 
 vi.mock('./DrawerLayout.module.scss', () => ({
   default: new Proxy({}, { get: (_t, p: string) => `dl-${String(p)}` }),
@@ -35,10 +39,14 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_: string, fallback?: string) => fallback ?? '' }),
 }));
 vi.mock('./drawerSide', () => ({
-  useDrawerSide: () => ({ side: 'bottom', width: undefined }),
+  useDrawerSide: () => ({ side: sideMock.side, width: undefined }),
 }));
 
 describe('DrawerLayout — hideTopChrome', () => {
+  afterEach(() => {
+    sideMock.side = 'bottom';
+  });
+
   it('renders the Close button by default', () => {
     const { queryByTestId } = render(<DrawerLayout>body</DrawerLayout>);
     expect(queryByTestId('close-button')).not.toBeNull();
@@ -73,5 +81,21 @@ describe('DrawerLayout — hideTopChrome', () => {
     const back = getByRole('button', { name: 'Назад к норме' });
     fireEvent.click(back);
     expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  // Side drawers render the edge swipe-handle, which follows the live ModalShell
+  // DesignBar variant via `data-modal-fields` (falls back to the first variant
+  // when no ModalShell entry is registered — the case here).
+  it('side drawer edge handle carries data-modal-fields = ModalShell variant', () => {
+    sideMock.side = 'left';
+    const { container } = render(<DrawerLayout>body</DrawerLayout>);
+    const handle = container.querySelector('[data-modal-fields]');
+    expect(handle).not.toBeNull();
+    expect(handle?.getAttribute('data-modal-fields')).toBe('spring2');
+  });
+
+  it('bottom drawer has no edge handle (no data-modal-fields)', () => {
+    const { container } = render(<DrawerLayout>body</DrawerLayout>);
+    expect(container.querySelector('[data-modal-fields]')).toBeNull();
   });
 });

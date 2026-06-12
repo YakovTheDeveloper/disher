@@ -146,16 +146,6 @@
     opacity: 0.55;
 }
 
-// Клетчатка — зеленоватая, темнее базового серого.
-.fiber {
-    color: rgba(106, 173, 89, 0.993);
-}
-
-// Вода — голубая.
-.water {
-    color: rgba(36, 124, 184, 0.9);
-}
-
 // ─── TOD palette tokens ───────────────────────────────────────────────
 // Sets `--cta-*` on `.dockV2[data-tod=...]`. The `dark-pill-button()` mixin
 // (used by RunAnalysisButton, AddButton.dark) reads `--cta-*` via `var()`.

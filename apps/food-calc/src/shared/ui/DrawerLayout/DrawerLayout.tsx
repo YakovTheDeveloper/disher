@@ -5,6 +5,8 @@ import { Drawer } from '@base-ui/react/drawer';
 import { useTranslation } from 'react-i18next';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
+import { useDesignVariantsStore } from '@/shared/model/designVariantsStore';
+import { MODAL_SHELL_VARIANTS } from '@/shared/ui/ModalShell/ModalShell';
 import { useDrawerSide } from './drawerSide';
 
 type Props = {
@@ -55,6 +57,16 @@ type Props = {
    * the content needs.
    */
   hideTopChrome?: boolean;
+  /**
+   * Publish the live `'ModalShell'` DesignBar variant's field/chip tokens
+   * (`--field-*` / `--chip-*`) onto the whole popup via `data-modal-fields`, so
+   * a drawer's surface wash + its inner pills/chips/fields follow whatever the
+   * modals are showing (instead of a bespoke per-drawer palette). Carries ONLY
+   * the tokens — never `data-dv='ModalShell'` (which would drag the modal's
+   * orbs / backdrop-filter / wash onto the popup). Same read-only subscription
+   * the edge-handle already uses. See ModalShell.module.scss `[data-modal-fields]`.
+   */
+  modalFields?: boolean;
 };
 
 const DrawerLayout = ({
@@ -68,6 +80,7 @@ const DrawerLayout = ({
   className,
   a11yLabel,
   hideTopChrome,
+  modalFields,
 }: Props) => {
   const { t } = useTranslation();
   // Side/width are decided at `drawerStore.show(..., { side })` call time and
@@ -75,6 +88,18 @@ const DrawerLayout = ({
   // component itself never has to know or forward them.
   const { side, width } = useDrawerSide();
   const isSide = side === 'left' || side === 'right';
+
+  // The edge swipe-handle (side drawers) follows the live ModalShell DesignBar
+  // variant. Read-only subscription to the SAME `'ModalShell'` store entry the
+  // modal wrapper registers — does NOT register itself (mirrors ModalVariantFields:
+  // no DesignBar churn, no IntersectionObserver). We publish ONLY that variant's
+  // field tokens onto the handle via `data-modal-fields` — never `data-dv='ModalShell'`
+  // (that would drag the modal's backdrop-filter / wash onto the popup). The
+  // handle's gradient + grip read `--field-*`, so flipping the variant in the bar
+  // recolours the grip in step with the modals. Fallback covers first paint before
+  // any ModalShell sibling has registered. See ModalShell.module.scss.
+  const modalShellVariant =
+    useDesignVariantsStore((s) => s.entries['ModalShell']?.variant) ?? MODAL_SHELL_VARIANTS[0];
 
   // The visible header title doubles as the single `Drawer.Title` (one <h2> =
   // accessible name + visible heading) when the chrome row is on screen.
@@ -89,6 +114,7 @@ const DrawerLayout = ({
       className={clsx(styles.content, styles[`content_${side}`], className)}
       style={style}
       id="drawer-content"
+      data-modal-fields={modalFields ? modalShellVariant : undefined}
     >
       {/*
         Exactly ONE Drawer.Title per drawer (Base UI wires aria-labelledby to
@@ -117,6 +143,7 @@ const DrawerLayout = ({
       {isSide && (
         <div
           className={clsx(styles.edgeHandle, styles[`edgeHandle_${side}`])}
+          data-modal-fields={modalShellVariant}
           aria-hidden="true"
         />
       )}

@@ -5,7 +5,6 @@ import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell, ModalVariantFields } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
-import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
 import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
@@ -32,14 +31,13 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
     sessionKey,
     handleFocusCapture,
     handleClose,
-    handleTimeFinish,
     handleFoodSelect,
     handlePickCreate,
     handleConfirmCreate,
     handleCommit,
     quantityContent,
     visitedSteps,
-    inputIds: { TIME_INPUT, SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT, CREATE_INPUT },
+    inputIds: { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT, CREATE_INPUT },
   } = useScheduleFoodFlow({ type: 'create', scheduleId });
 
   const hasHints = useHasDetailsHints(draft.productId);
@@ -58,7 +56,6 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
   // показать — решает `visitedSteps` в Breadcrumbs, а не подмножество здесь
   // (раньше шаг quantity не отдавал свой результат и не появлялся в трейле).
   const stepResults = {
-    time: draft.time,
     search: draft.foodName ?? undefined,
     quantity: draft.quantity,
     details: draft.details.trim() || undefined,
@@ -77,7 +74,7 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
 
   // «Назад» в StepHeader — на предыдущий шаг по линейному порядку stepsForBar
   // (тот же массив, что отрисован в bar; включает opt-in `details` если шаг
-  // уже посещён). На первом шаге с StepHeader (time) back ведёт на search;
+  // уже посещён). На первом шаге с StepHeader (quantity) back ведёт на search;
   // search рисуется голым SearchFood со своим onBack=handleClose. Если шага
   // нет в наборе (краевой случай) — закрываем флоу целиком.
   const handleBack = () => {
@@ -151,7 +148,7 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
               onBack={handleClose}
               title="Еда"
               activeItemId={draft.productId ?? draft.dishId ?? undefined}
-              itemHtmlFor={TIME_INPUT}
+              itemHtmlFor={QUANTITY_INPUT}
               inputId={SEARCH_INPUT}
               isActive={step === 'search'}
               createInputHtmlFor={CREATE_INPUT}
@@ -162,9 +159,9 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
       />
 
       {/* Step 1a: Create product/dish — opened from the "Нет нужного…" labels
-          inside SearchFood. Confirm is a <label htmlFor={TIME_INPUT}> so the
-          step transition to 'time' happens via onFocusCapture after focus
-          delegation lands. */}
+          inside SearchFood. Confirm is a <label htmlFor={QUANTITY_INPUT}> so the
+          step transition to 'quantity' happens via onFocusCapture after focus
+          delegation lands (шаг времени убран — время = «сейчас» на коммите). */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'create'}
@@ -251,7 +248,7 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
                   createTrimmed ? (
                     <ModalNextButton
                       as="label"
-                      htmlFor={TIME_INPUT}
+                      htmlFor={QUANTITY_INPUT}
                       onClick={() =>
                         handleConfirmCreate(createName, {
                           isSupplement,
@@ -270,40 +267,7 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
         }
       />
 
-      {/* Step 2: Time */}
-      <ModalByLabel
-        position="absolute"
-        isExpanded={step === 'time'}
-        content={
-          <ModalShell variant="spring4">
-            <ModalShell.StepHeader
-              title={addingTitle ?? STEP_LABELS.time}
-              currentStep="time"
-              steps={stepsForBar}
-              stepLabels={STEP_LABELS}
-              stepResults={stepResults}
-              visitedSteps={visitedSteps}
-              onBack={handleBack}
-              onStepClick={goToStep}
-            />
-
-            <ModalShell.Body>
-              <TimeChoose
-                onFinish={handleTimeFinish}
-                initialTime={draft.time}
-                inputId={TIME_INPUT}
-                keepKeyboardOnFinish
-              />
-              <ModalShell.ActionButtons
-                debugId="create-time"
-                right={<ModalNextButton as="label" htmlFor={QUANTITY_INPUT} />}
-              />
-            </ModalShell.Body>
-          </ModalShell>
-        }
-      />
-
-      {/* Step 3: Quantity */}
+      {/* Step 2: Quantity */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'quantity'}
@@ -353,7 +317,7 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
         }
       />
 
-      {/* Step 4: Details */}
+      {/* Step 3: Details */}
       <ModalByLabelDetails
         isExpanded={step === 'details'}
         variant="spring4"

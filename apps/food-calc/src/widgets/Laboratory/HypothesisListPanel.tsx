@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useRef } from 'react';
 import type { Hypothesis } from '@/entities/hypothesis';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import HypothesisListItem from './HypothesisListItem';
 import styles from './HypothesisListPanel.module.scss';
 
@@ -29,7 +30,9 @@ type Props = {
   /**
    * Caps the scrollable body. A long list scrolls inside this box while the
    * surrounding Screen still scrolls down to the daily-analysis section.
-   * Defaults to `58vh`; a drawer host can pass a smaller value.
+   * Defaults to `58vh`; a drawer host can pass a smaller value. Pass `'none'`
+   * to let the list flow at its natural height (no inner scroll) — for a modal
+   * that owns the single scroll container itself.
    */
   maxBodyHeight?: string;
   /**
@@ -43,6 +46,12 @@ type Props = {
    * Owned by HypothesisSection; cleared on remount (reload / leaving screen).
    */
   newIds?: Set<string>;
+  /**
+   * `title` (default) — рисует заголовок «Гипотезы» + счётчик над списком.
+   * `divider` — заголовок/счётчик не рисуются (их несёт хост, напр. шапка
+   * модалки), вместо них — тонкий fading-hairline divider.
+   */
+  headerVariant?: 'title' | 'divider';
 } & EditProps;
 
 // The hypothesis list: a static header label + a height-bounded, internally
@@ -57,6 +66,7 @@ const HypothesisListPanel = ({
   maxBodyHeight = '58vh',
   selectable = true,
   newIds,
+  headerVariant = 'title',
 }: Props) => {
   const { anchor } = useDesignVariant('LabHypothesis', PALETTE_VARIANTS);
 
@@ -71,7 +81,7 @@ const HypothesisListPanel = ({
       scrollBodyRef.current = el;
       anchorRefFn(el); // keep the design-variant IntersectionObserver wired
     },
-    [anchorRefFn],
+    [anchorRefFn]
   );
   useEffect(() => {
     if (newIds && newIds.size > 0 && scrollBodyRef.current) {
@@ -82,6 +92,9 @@ const HypothesisListPanel = ({
   const total = hypotheses.length;
   const selectedCount = selectedIds.size;
   const capReached = selectable && selectedCount >= MAX_SELECTED;
+  // `'none'` — список течёт по натуральной высоте, без внутреннего скролла
+  // (модалка владеет единственным скроллом тела).
+  const bounded = maxBodyHeight !== 'none';
 
   // Пустой список — никакой подсказки: композер выше с живым плейсхолдером
   // («Головная боль после молочки») сам учит формату записи (решение 2026-06-08).
@@ -89,17 +102,23 @@ const HypothesisListPanel = ({
 
   return (
     <section className={styles.section}>
-      <div className={styles.header}>
-        <span className={styles.headerTitle}>Мои гипотезы</span>
-        <span className={styles.headerCount}>
-          {selectable ? `${selectedCount} выбрано из ${total}` : total}
-        </span>
-      </div>
+      {headerVariant === 'divider' ? (
+        <div className={styles.divider} aria-hidden />
+      ) : (
+        <div className={styles.header}>
+          <Heading size="field" className={styles.headerTitle}>
+            Гипотезы
+          </Heading>
+          <span className={styles.headerCount}>
+            {selectable ? `${selectedCount} выбрано из ${total}` : total}
+          </span>
+        </div>
+      )}
 
       <div className={styles.scrollWrap}>
         <div
-          className={styles.scrollBody}
-          style={{ maxHeight: maxBodyHeight }}
+          className={`${styles.scrollBody} ${bounded ? '' : styles.scrollBodyFlow}`}
+          style={bounded ? { maxHeight: maxBodyHeight } : undefined}
           data-dv={anchor['data-dv']}
           data-dv-v={anchor['data-dv-v']}
           ref={setScrollBodyRef}
@@ -130,9 +149,7 @@ const HypothesisListPanel = ({
       </div>
 
       {capReached && (
-        <p className={styles.capHint}>
-          В один разбор берётся максимум {MAX_SELECTED} гипотез.
-        </p>
+        <p className={styles.capHint}>В один разбор берётся максимум {MAX_SELECTED} гипотез.</p>
       )}
     </section>
   );

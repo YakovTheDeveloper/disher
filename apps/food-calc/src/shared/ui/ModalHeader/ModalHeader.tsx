@@ -7,6 +7,11 @@ export type ModalHeaderProps = {
   /** Заголовок экрана / шага / atom-панели. Обязателен. */
   title: ReactNode;
   /**
+   * Опциональная вторая строка под заголовком (serif italic, мельче) — для
+   * контекста вроде даты разбора. Центрируется вместе с заголовком.
+   */
+  subtitle?: ReactNode;
+  /**
    * Leading-слот — всегда стрелка «‹». Что делает — решает caller:
    * шаг визарда >1 → предыдущий шаг; шаг 1 / одношаговая → закрыть модалку;
    * atom-панель → возврат к выбору типа атома.
@@ -29,6 +34,7 @@ export type ModalHeaderProps = {
  */
 export const ModalHeader = ({
   title,
+  subtitle,
   onBack,
   backLabel = 'Назад',
   trailing,
@@ -38,9 +44,12 @@ export const ModalHeader = ({
     <button className={s.backButton} onClick={onBack} type="button" aria-label={backLabel}>
       <ArrowLeftIcon />
     </button>
-    <Heading size={size === 'compact' ? 'drawer' : 'modal'} as="h2" className={s.title}>
-      {title}
-    </Heading>
+    <div className={s.titleBlock}>
+      <Heading size={size === 'compact' ? 'drawer' : 'modal'} as="h2" className={s.title}>
+        {title}
+      </Heading>
+      {subtitle != null && <span className={s.subtitle}>{subtitle}</span>}
+    </div>
     {trailing != null && <div className={s.trailing}>{trailing}</div>}
   </header>
 );

@@ -5,8 +5,17 @@ import '@testing-library/jest-dom/vitest';
 // DrawerLayout wraps Base UI Drawer.Popup, which needs a Drawer.Root context.
 // We only care about the action wiring, so stub the shell to a passthrough.
 vi.mock('@/shared/ui/DrawerLayout', () => ({
-  DrawerLayout: ({ children, topRight }: { children: React.ReactNode; topRight?: React.ReactNode }) => (
+  DrawerLayout: ({
+    children,
+    title,
+    topRight,
+  }: {
+    children: React.ReactNode;
+    title?: React.ReactNode;
+    topRight?: React.ReactNode;
+  }) => (
     <div data-testid="drawer-layout">
+      {title}
       {topRight}
       {children}
     </div>

@@ -214,11 +214,19 @@ export async function runAnalysisJob(
       signal,
       callLLM,
     );
+    // summary lives in result_md — guard against an empty string, which would
+    // make deriveStatus read the done row as forever-pending (result_md === '').
+    const summaryMd = result.summary.trim() || "Разбор готов.";
     await pool.query(
       `update public.analyses
-       set result_md = $1, idea_cards = $2::jsonb
-       where id = $3::uuid and result_md = ''`,
-      [result.resultMd, JSON.stringify(result.ideaCards), analysisId],
+       set result_md = $1, idea_cards = $2::jsonb, insights = $3::jsonb
+       where id = $4::uuid and result_md = ''`,
+      [
+        summaryMd,
+        JSON.stringify(result.hypotheses),
+        JSON.stringify(result.insights),
+        analysisId,
+      ],
     );
   } catch (err) {
     const reason =
@@ -230,7 +238,7 @@ export async function runAnalysisJob(
     await pool
       .query(
         `update public.analyses
-         set result_md = $1, idea_cards = '[]'::jsonb
+         set result_md = $1, idea_cards = '[]'::jsonb, insights = '[]'::jsonb
          where id = $2::uuid and result_md = ''`,
         [`${FAILURE_PREFIX}: ${reason.slice(0, 500)}`, analysisId],
       )

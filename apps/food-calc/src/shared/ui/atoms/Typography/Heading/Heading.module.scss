@@ -35,6 +35,11 @@
     font-size: var(--heading-size-drawer);
 }
 
+// Мелкий под-заголовок поля/секции внутри модалки (serif italic, ниже drawer).
+.field {
+    font-size: var(--heading-size-field);
+}
+
 .section {
     font-family: var(--heading-font); // was 'Alice' (never loaded → fallback serif); canon voice = Source Serif 4
     font-style: normal;

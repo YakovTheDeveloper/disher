@@ -1,19 +1,19 @@
-import type { IdeaCardData } from '../api';
+import type { AnalysisInsight, AnalysisHypothesis } from '../api';
 
 export type DailyAnalysisStatus =
-  | 'streaming'
+  | 'loading'
   | 'done'
   | 'failed'
   | 'interrupted';
 
-// Why the stream stopped — drives the banner subtitle. `null` for
-// streaming/done. Without it the two `interrupted` cases (reload vs the user
+// Why the request stopped — drives the banner subtitle. `null` for
+// loading/done. Without it the two `interrupted` cases (reload vs the user
 // switching dates) are indistinguishable on render.
 export type DailyAnalysisReason =
   | 'network' // failed: the network dropped
-  | 'server' // failed: 5xx / event:error from the server
+  | 'server' // failed: 5xx / parse error from the server
   | 'payment' // failed: 402 — wallet can't cover the price
-  | 'reload' // interrupted: the page reloaded mid-stream (boot flip)
+  | 'reload' // interrupted: the page reloaded mid-request (boot flip)
   | 'date-switch' // interrupted: the user switched away from the date
   | null;
 
@@ -29,8 +29,10 @@ export type AppliedHypothesisSnapshot = {
 export type DailyAnalysis = {
   /** dd-MM-yyyy — primary key. One analysis per date; a re-run replaces it. */
   date: string;
-  resultMd: string;
-  ideaCards: IdeaCardData[];
+  /** Short overview (markdown). Empty while loading / on failure. */
+  summary: string;
+  insights: AnalysisInsight[];
+  hypotheses: AnalysisHypothesis[];
   appliedHypotheses: AppliedHypothesisSnapshot[];
   /** Free-text «уточнения от пользователя» the run was started with, so a retry
    *  reproduces the same prompt. Undefined when none was provided. */

@@ -1,0 +1,141 @@
+@import '@/shared/assets/style/mixin.scss';
+
+// Insight card — one read-only observation grounded in evidence. Warm
+// stripe-fork surface (design-DNA canon): 3-stop gradient, fading hairline,
+// left accent stripe whose colour carries `strength`. Colours/sizes are
+// published as local custom properties so the file satisfies the token gate
+// (values resolve to var()) and a consumer can retheme without rewriting rules.
+.card {
+    --ic-ink: rgba(60, 38, 10, 0.92);
+    --ic-ink-soft: rgba(60, 38, 10, 0.62);
+    --ic-ink-faint: rgba(60, 38, 10, 0.5);
+    --ic-accent: rgba(214, 158, 70, 0.7);
+    --ic-chip-day: rgba(124, 65, 15, 0.08);
+    --ic-chip-food: rgba(120, 96, 40, 0.1);
+    --ic-chip-event: rgba(168, 78, 36, 0.1);
+    --ic-radius: 14px;
+    --ic-chip-radius: 7px;
+    --ic-fs-title: 14.5px;
+    --ic-fs-detail: 13px;
+    --ic-fs-meta: 11.5px;
+
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    padding: 14px 16px 14px 18px;
+    overflow: hidden;
+    background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 8px;
+        bottom: 8px;
+        width: 3px;
+        border-radius: var(--ic-chip-radius);
+        background: var(--ic-accent);
+    }
+
+    // strength tints the accent: weak = pale, clear = saturated.
+    &[data-strength='weak']::before {
+        background: rgba(214, 158, 70, 0.4);
+    }
+    &[data-strength='clear']::before {
+        background: rgba(201, 124, 44, 0.85);
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 0;
+        height: 1px;
+        @include hairline(rgba(124, 65, 15, 0.09));
+        pointer-events: none;
+    }
+
+    &:last-child::after {
+        display: none;
+    }
+
+    &:first-child {
+        border-top-left-radius: var(--ic-radius);
+        border-top-right-radius: var(--ic-radius);
+    }
+
+    &:last-child {
+        border-bottom-left-radius: var(--ic-radius);
+        border-bottom-right-radius: var(--ic-radius);
+    }
+}
+
+.text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.title {
+    margin: 0;
+    font-size: var(--ic-fs-title);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--ic-ink);
+}
+
+.strength {
+    flex-shrink: 0;
+    font-size: var(--ic-fs-meta);
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--ic-ink-faint);
+}
+
+.detail {
+    margin: 0;
+    font-size: var(--ic-fs-detail);
+    line-height: 1.5;
+    color: var(--ic-ink-soft);
+}
+
+.evidence {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 2px;
+}
+
+.chipDay,
+.chipFood,
+.chipEvent {
+    padding: 2px 8px;
+    border-radius: var(--ic-chip-radius);
+    font-size: var(--ic-fs-meta);
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--ic-ink-soft);
+}
+
+.chipDay {
+    background: var(--ic-chip-day);
+}
+
+.chipFood {
+    background: var(--ic-chip-food);
+}
+
+.chipEvent {
+    background: var(--ic-chip-event);
+}

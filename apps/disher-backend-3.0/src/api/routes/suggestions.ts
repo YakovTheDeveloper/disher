@@ -195,6 +195,193 @@ async function callLLM(dishName: string): Promise<LLMCallResult> {
   };
 }
 
+// ─── Head C: "suggest product nutrients" ───
+//
+// Product name → estimated FULL nutrient profile per 100 g of edible part.
+// The frontend owns the nutrient catalog and sends it (name = stable english
+// key, label = RU display, unit). The backend stays nutrient-agnostic: it builds
+// a STRICT json_schema dynamically from the sent names so the model returns a
+// number for every nutrient (0 when absent/unknown). Values are correlational
+// estimates, not lab data — the app treats nutrients as correlations.
+
+interface NutrientSpec {
+  name: string;
+  label: string;
+  unit: string;
+}
+
+interface SuggestProductNutrientsRequest {
+  productName: string;
+  nutrients: NutrientSpec[];
+}
+
+const MAX_NUTRIENTS = 100;
+
+// Bump when NUTRIENT_SYSTEM_PROMPT meaningfully changes so values cached under
+// the old contract can't leak through.
+const NUTRIENT_PROMPT_VERSION = 1;
+const NUTRIENT_CACHE_TTL_MS = 60 * 60 * 1000;
+const NUTRIENT_CACHE_MAX = 200;
+
+// Cache the estimated values keyed by normalized product name. The nutrient
+// catalog is stable across requests, so it's not part of the key.
+const nutrientCache = new Map<string, { values: Record<string, number>; expiresAt: number }>();
+
+function normalizeNutrientKey(name: string): string {
+  return `${name.toLowerCase().trim()}|nv${NUTRIENT_PROMPT_VERSION}`;
+}
+
+function getCachedNutrients(key: string): Record<string, number> | null {
+  const entry = nutrientCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    nutrientCache.delete(key);
+    return null;
+  }
+  return entry.values;
+}
+
+function setCachedNutrients(key: string, values: Record<string, number>): void {
+  if (nutrientCache.size >= NUTRIENT_CACHE_MAX) {
+    const firstKey = nutrientCache.keys().next().value;
+    if (firstKey) nutrientCache.delete(firstKey);
+  }
+  nutrientCache.set(key, { values, expiresAt: Date.now() + NUTRIENT_CACHE_TTL_MS });
+}
+
+const NUTRIENT_SYSTEM_PROMPT = `Ты — нутрициолог со справочными таблицами состава продуктов (USDA / СНГ).
+Пользователь называет продукт. Оцени содержание каждого запрошенного нутриента
+на 100 г съедобной части.
+
+Верни JSON и НИЧЕГО кроме JSON, строго по схеме: { "values": { "<ключ>": число } }.
+
+Правила:
+- Ключи в ответе — РОВНО те английские ключи, что перечислены в запросе. Все до одного.
+- Число — в указанной для ключа единице, на 100 г продукта.
+- Если нутриента в продукте практически нет или значение неизвестно — ставь 0.
+- energy — в ккал на 100 г. Остальное — в своих единицах (г, мг, мкг).
+- Это разумная оценка по типичным справочным значениям, не лабораторный анализ.
+- Не добавляй комментариев, пояснений, markdown — только чистый JSON.`;
+
+function buildNutrientSchema(nutrients: NutrientSpec[]) {
+  const properties: Record<string, { type: "number" }> = {};
+  for (const n of nutrients) properties[n.name] = { type: "number" };
+  return {
+    name: "product_nutrients",
+    strict: true,
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        values: {
+          type: "object",
+          additionalProperties: false,
+          properties,
+          required: nutrients.map((n) => n.name),
+        },
+      },
+      required: ["values"],
+    },
+  };
+}
+
+interface NutrientLLMResult {
+  values: Record<string, number>;
+  latencyMs: number;
+  promptTokens?: number;
+  completionTokens?: number;
+  totalCost?: number;
+}
+
+async function callNutrientLLM(
+  productName: string,
+  nutrients: NutrientSpec[],
+): Promise<NutrientLLMResult> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
+
+  const model = getLLMModel();
+  const nutrientLines = nutrients
+    .map((n) => `${n.name} — ${n.unit} — ${n.label}`)
+    .join("\n");
+  const userContent = `Продукт: "${productName}"\nНутриенты (ключ — единица — название):\n${nutrientLines}`;
+
+  const MAX_RETRIES = 3;
+  let response!: Response;
+  const startedAt = Date.now();
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 1500 * attempt));
+    response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: NUTRIENT_SYSTEM_PROMPT },
+          { role: "user", content: userContent },
+        ],
+        // temp 0.2: estimates should be stable + cache-friendly across retries.
+        temperature: 0.2,
+        // ~52 short numeric entries fit comfortably; cap guards against runaway.
+        max_tokens: 2000,
+        response_format: { type: "json_schema", json_schema: buildNutrientSchema(nutrients) },
+        provider: { require_parameters: true },
+      }),
+    });
+    if (response.status !== 429) break;
+  }
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`OpenRouter error ${response.status}: ${body}`);
+  }
+
+  const data = await response.json();
+  const latencyMs = Date.now() - startedAt;
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error("Empty LLM response");
+
+  let jsonStr = String(content).trim();
+  const fenceMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) jsonStr = fenceMatch[1].trim();
+
+  const parsed = JSON.parse(jsonStr);
+  const rawValues = (parsed?.values ?? {}) as Record<string, unknown>;
+
+  // Keep only numbers for the keys we actually asked about — drop anything the
+  // model invented or returned non-numeric/non-positive. Plus a magnitude
+  // sanity-clamp: a 'g' nutrient can't exceed 100 g per 100 g of product, and
+  // energy can't realistically exceed ~900 kcal/100 g (pure fat) — drop absurd
+  // values (wrong unit / scale) rather than corrupt the product's profile.
+  const unitByName = new Map(nutrients.map((n) => [n.name, n.unit]));
+  const values: Record<string, number> = {};
+  for (const [k, v] of Object.entries(rawValues)) {
+    if (!unitByName.has(k)) continue;
+    const num = typeof v === "number" ? v : Number(v);
+    if (!Number.isFinite(num) || num <= 0) continue;
+    const unit = unitByName.get(k);
+    if (unit === "g" && num > 100) continue;
+    if (unit === "kcal" && num > 1000) continue;
+    values[k] = num;
+  }
+
+  const usage = (data as { usage?: { prompt_tokens?: number; completion_tokens?: number; total_cost?: number; cost?: number } }).usage;
+  return {
+    values,
+    latencyMs,
+    ...(typeof usage?.prompt_tokens === "number" ? { promptTokens: usage.prompt_tokens } : {}),
+    ...(typeof usage?.completion_tokens === "number" ? { completionTokens: usage.completion_tokens } : {}),
+    ...(typeof usage?.total_cost === "number"
+      ? { totalCost: usage.total_cost }
+      : typeof usage?.cost === "number"
+        ? { totalCost: usage.cost }
+        : {}),
+  };
+}
+
 // ─── Routes ───
 
 export async function suggestionsRoutes(app: FastifyInstance) {
@@ -285,5 +472,95 @@ export async function suggestionsRoutes(app: FastifyInstance) {
         return reply.status(500).send({ error: message });
       }
     }
+  );
+
+  // Head C: product name → estimated full nutrient profile (per 100 g).
+  app.post<{ Body: SuggestProductNutrientsRequest }>(
+    "/product-nutrients",
+    async (req, reply) => {
+      const { productName, nutrients } = req.body ?? {};
+
+      if (!productName || typeof productName !== "string" || !productName.trim()) {
+        return reply.status(400).send({ error: "productName is required" });
+      }
+      if (productName.length > 200) {
+        return reply.status(400).send({ error: "productName too long (max 200 chars)" });
+      }
+      if (!Array.isArray(nutrients) || nutrients.length === 0) {
+        return reply.status(400).send({ error: "nutrients[] is required" });
+      }
+      if (nutrients.length > MAX_NUTRIENTS) {
+        return reply.status(400).send({ error: `too many nutrients (max ${MAX_NUTRIENTS})` });
+      }
+      const valid = nutrients.every(
+        (n) =>
+          n &&
+          typeof n.name === "string" &&
+          n.name.trim() &&
+          typeof n.label === "string" &&
+          typeof n.unit === "string",
+      );
+      if (!valid) {
+        return reply.status(400).send({ error: "each nutrient needs {name,label,unit}" });
+      }
+
+      if (!checkRateLimit(`nut:${req.ip}`)) {
+        return reply.status(429).send({
+          error: `Rate limit exceeded. Max ${RATE_LIMIT} requests per hour.`,
+        });
+      }
+
+      const requestId = resolveRequestId(req);
+      const cacheKey = normalizeNutrientKey(productName);
+      let charged = false;
+
+      try {
+        const cached = getCachedNutrients(cacheKey);
+        let values: Record<string, number>;
+        if (cached) {
+          values = cached;
+          app.log.info({ productName, requestId }, "suggestions/product-nutrients cache hit");
+        } else {
+          // Paid step: debit before the OpenRouter call (cache hits are free).
+          if (req.userId) {
+            if (!(await chargeOr402(req, reply, "nutrient_suggestions", requestId))) return;
+            charged = true;
+          }
+          const result = await callNutrientLLM(productName, nutrients);
+          values = result.values;
+          setCachedNutrients(cacheKey, values);
+          app.log.info(
+            {
+              productName,
+              filled: Object.keys(values).length,
+              requestId,
+              latencyMs: result.latencyMs,
+            },
+            "suggestions/product-nutrients LLM inferred",
+          );
+          logLLMOutput({
+            requestId,
+            model: getLLMModel(),
+            phrase: productName,
+            itemsReturned: [],
+            cached: false,
+            latencyMs: result.latencyMs,
+            ...(result.promptTokens !== undefined ? { promptTokens: result.promptTokens } : {}),
+            ...(result.completionTokens !== undefined ? { completionTokens: result.completionTokens } : {}),
+            ...(result.totalCost !== undefined ? { totalCost: result.totalCost } : {}),
+          });
+        }
+
+        return reply.send({ values });
+      } catch (err: unknown) {
+        // Refund a completed charge if the request failed before a usable result.
+        if (charged && req.userId) {
+          await refund(req.userId, "nutrient_suggestions", requestId).catch(() => {});
+        }
+        const message = err instanceof Error ? err.message : "Unknown error";
+        app.log.error(`Nutrient suggestion error: ${message}`);
+        return reply.status(500).send({ error: message });
+      }
+    },
   );
 }

@@ -21,8 +21,6 @@ import { drawerStore } from '@/shared/ui/drawer-store';
 import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
 import { useNavigate } from 'react-router-dom';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { Heading } from '@/shared/ui/atoms/Typography/Heading';
-import { formatWeekdayTitle } from '@/shared/lib/time/formatWeekday';
 
 // Cheerful pastel families with semantic time-of-day progression
 // (lightest at morning, deepening towards graphite at night).
@@ -112,12 +110,9 @@ const FoodSchedule = ({
   );
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
-  const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
-  // Пустой список → «листа» под контентом нет (hollow): маленький watermark у
-  // заголовка гаснет, вместо него большой бренд-знак по центру (Screen
-  // `.brandWatermark`). Бар плавает над контентом всегда (канон 2026-06-08:
-  // Screen.bottomBarOverlay дефолт true, без гейта на пустоте). Заголовок дня
-  // недели остаётся.
+  // Пустой список → «листа» под контентом нет (hollow): большой бренд-знак по
+  // центру (Screen `.brandWatermark`). Бар плавает над контентом всегда (канон
+  // 2026-06-08: Screen.bottomBarOverlay дефолт true, без гейта на пустоте).
   const isEmpty = items.length === 0;
 
   // Long-press → per-item action drawer: delete (top-right) + «Информация о
@@ -143,7 +138,10 @@ const FoodSchedule = ({
       stickyTop={topSlot}
       headerOverlap
       hollow={isEmpty}
-      contentHeader={<Heading size="section">{weekdayTitle}</Heading>}
+      // Заголовок-дня НЕ рендерим (день недели уже в HomeTopBar справа). Верхний
+      // паддинг листа и watermark-логотип Disher теперь даёт сам Screen-лист
+      // (`.headerOverlap` — дефолтный отступ + `::after`); на пустом дне (hollow)
+      // маленький знак гаснет, включается большой центральный brandWatermark.
       overlay={
         <>
           {isActive ? (

@@ -17,10 +17,11 @@ describe("ANALYSIS_OUTPUT_PROMPT_SPEC", () => {
   it("describes the same field names the parser accepts", () => {
     // Serves as a tripwire: if anyone renames a field in the spec without
     // updating the parser (or vice versa), this test fails.
-    expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("resultMd");
-    expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("ideaCards");
-    expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain('"title"');
-    expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain('"body"');
+    expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("summary");
+    expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("insights");
+    expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("hypotheses");
+    expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("evidence");
+    expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("strength");
     expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain('"days"');
   });
 });
@@ -83,134 +84,190 @@ describe("nutrientLineToken", () => {
   });
 });
 
+const INSIGHT = {
+  title: "Поздние ужины",
+  detail: "Ужин после 21:00 в части дней.",
+  strength: "moderate",
+  evidence: { days: ["09-06-2026", "10-06-2026"], events: ["усталость"] },
+};
+
 describe("tryParseOutput — happy path", () => {
-  it("clean JSON with single idea card", () => {
+  it("clean JSON with summary + insight + hypothesis", () => {
     const out = tryParseOutput(
       JSON.stringify({
-        resultMd: "## разбор\nтекст",
-        ideaCards: [{ title: "молочка", body: "убрать на 7 дней", days: 7 }],
+        summary: "## разбор\nтекст",
+        insights: [INSIGHT],
+        hypotheses: [{ title: "молочка", body: "убрать на 7 дней", suggestedDays: 7 }],
       }),
     );
     expect(out).toEqual({
-      resultMd: "## разбор\nтекст",
-      ideaCards: [{ title: "молочка", body: "убрать на 7 дней", days: 7 }],
+      summary: "## разбор\nтекст",
+      insights: [
+        {
+          title: "Поздние ужины",
+          detail: "Ужин после 21:00 в части дней.",
+          strength: "moderate",
+          evidence: { days: ["09-06-2026", "10-06-2026"], events: ["усталость"] },
+        },
+      ],
+      hypotheses: [{ title: "молочка", body: "убрать на 7 дней", suggestedDays: 7 }],
     });
   });
 
-  it("empty ideaCards array is valid", () => {
+  it("empty insights/hypotheses arrays are valid", () => {
     const out = tryParseOutput(
-      JSON.stringify({ resultMd: "мало данных", ideaCards: [] }),
+      JSON.stringify({ summary: "мало данных", insights: [], hypotheses: [] }),
     );
-    expect(out).toEqual({ resultMd: "мало данных", ideaCards: [] });
+    expect(out).toEqual({ summary: "мало данных", insights: [], hypotheses: [] });
   });
 
-  it("missing ideaCards entirely defaults to empty", () => {
-    const out = tryParseOutput(JSON.stringify({ resultMd: "## ok" }));
-    expect(out).toEqual({ resultMd: "## ok", ideaCards: [] });
+  it("missing insights/hypotheses entirely default to empty", () => {
+    const out = tryParseOutput(JSON.stringify({ summary: "ok" }));
+    expect(out).toEqual({ summary: "ok", insights: [], hypotheses: [] });
+  });
+
+  it("coerces unknown strength to weak", () => {
+    const out = tryParseOutput(
+      JSON.stringify({
+        summary: "s",
+        insights: [{ ...INSIGHT, strength: "bananas" }],
+      }),
+    );
+    expect(out?.insights[0]?.strength).toBe("weak");
   });
 });
 
 describe("tryParseOutput — wrappers and noise", () => {
   it("strips ```json fence", () => {
-    const out = tryParseOutput(
-      '```json\n{"resultMd":"x","ideaCards":[]}\n```',
-    );
-    expect(out?.resultMd).toBe("x");
+    const out = tryParseOutput('```json\n{"summary":"x"}\n```');
+    expect(out?.summary).toBe("x");
   });
 
   it("strips bare ``` fence", () => {
-    const out = tryParseOutput(
-      '```\n{"resultMd":"x","ideaCards":[]}\n```',
-    );
-    expect(out?.resultMd).toBe("x");
+    const out = tryParseOutput('```\n{"summary":"x"}\n```');
+    expect(out?.summary).toBe("x");
   });
 
   it("ignores trailing commentary after closing brace", () => {
-    const out = tryParseOutput(
-      '{"resultMd":"x","ideaCards":[]}\n\nдополнительно: всё ок',
-    );
-    expect(out?.resultMd).toBe("x");
+    const out = tryParseOutput('{"summary":"x"}\n\nдополнительно: всё ок');
+    expect(out?.summary).toBe("x");
   });
 
-  it("handles nested braces in resultMd correctly", () => {
+  it("handles nested braces in summary correctly", () => {
     const out = tryParseOutput(
-      JSON.stringify({
-        resultMd: "## ok\n{ это не json а пример }",
-        ideaCards: [],
-      }),
+      JSON.stringify({ summary: "## ok\n{ это не json а пример }" }),
     );
-    expect(out?.resultMd).toContain("{ это не json а пример }");
+    expect(out?.summary).toContain("{ это не json а пример }");
   });
 });
 
-describe("tryParseOutput — malformed cards (drop, don't crash)", () => {
-  it("drops cards with non-string title", () => {
+describe("tryParseOutput — grounding gate (insight needs evidence.days)", () => {
+  it("drops an insight with no evidence at all", () => {
     const out = tryParseOutput(
       JSON.stringify({
-        resultMd: "x",
-        ideaCards: [
-          { title: "good", body: "b" },
-          { title: 5, body: "b" },
-          { title: "good2", body: "b", days: 7 },
+        summary: "s",
+        insights: [{ title: "t", detail: "d", strength: "clear" }],
+      }),
+    );
+    expect(out?.insights).toEqual([]);
+  });
+
+  it("drops an insight with an empty evidence.days array", () => {
+    const out = tryParseOutput(
+      JSON.stringify({
+        summary: "s",
+        insights: [{ title: "t", detail: "d", strength: "clear", evidence: { days: [] } }],
+      }),
+    );
+    expect(out?.insights).toEqual([]);
+  });
+
+  it("keeps the grounded insight, drops the ungrounded one", () => {
+    const out = tryParseOutput(
+      JSON.stringify({
+        summary: "s",
+        insights: [
+          INSIGHT,
+          { title: "no days", detail: "d", strength: "weak", evidence: {} },
         ],
       }),
     );
-    expect(out?.ideaCards).toEqual([
-      { title: "good", body: "b" },
-      { title: "good2", body: "b", days: 7 },
-    ]);
+    expect(out?.insights).toHaveLength(1);
+    expect(out?.insights[0]?.title).toBe("Поздние ужины");
   });
 
-  it("drops cards with missing body", () => {
+  it("filters non-string day entries, dropping insight if none survive", () => {
     const out = tryParseOutput(
       JSON.stringify({
-        resultMd: "x",
-        ideaCards: [{ title: "no body", days: 7 }, { title: "ok", body: "b" }],
+        summary: "s",
+        insights: [{ title: "t", detail: "d", strength: "weak", evidence: { days: [1, null, ""] } }],
       }),
     );
-    expect(out?.ideaCards).toEqual([{ title: "ok", body: "b" }]);
+    expect(out?.insights).toEqual([]);
   });
+});
 
-  it("drops days when not a positive finite number", () => {
+describe("tryParseOutput — malformed entries (drop, don't crash)", () => {
+  it("drops insights with non-string title/detail", () => {
     const out = tryParseOutput(
       JSON.stringify({
-        resultMd: "x",
-        ideaCards: [
-          { title: "a", body: "b", days: "no" },
-          { title: "b", body: "b", days: 0 },
-          { title: "c", body: "b", days: -3 },
-          { title: "d", body: "b", days: Infinity },
-          { title: "e", body: "b", days: 5 },
+        summary: "s",
+        insights: [INSIGHT, { title: 5, detail: "d", evidence: { days: ["x"] } }],
+      }),
+    );
+    expect(out?.insights).toHaveLength(1);
+  });
+
+  it("drops empty foods/events arrays from evidence", () => {
+    const out = tryParseOutput(
+      JSON.stringify({
+        summary: "s",
+        insights: [{ title: "t", detail: "d", strength: "weak", evidence: { days: ["x"], foods: [], events: [] } }],
+      }),
+    );
+    expect(out?.insights[0]?.evidence).toEqual({ days: ["x"] });
+  });
+
+  it("drops hypotheses with missing body", () => {
+    const out = tryParseOutput(
+      JSON.stringify({
+        summary: "s",
+        hypotheses: [{ title: "no body", suggestedDays: 7 }, { title: "ok", body: "b" }],
+      }),
+    );
+    expect(out?.hypotheses).toEqual([{ title: "ok", body: "b" }]);
+  });
+
+  it("drops suggestedDays when not a positive finite number", () => {
+    const out = tryParseOutput(
+      JSON.stringify({
+        summary: "s",
+        hypotheses: [
+          { title: "a", body: "b", suggestedDays: "no" },
+          { title: "b", body: "b", suggestedDays: 0 },
+          { title: "c", body: "b", suggestedDays: -3 },
+          { title: "d", body: "b", suggestedDays: Infinity },
+          { title: "e", body: "b", suggestedDays: 5 },
         ],
       }),
     );
-    expect(out?.ideaCards).toEqual([
+    expect(out?.hypotheses).toEqual([
       { title: "a", body: "b" },
       { title: "b", body: "b" },
       { title: "c", body: "b" },
       { title: "d", body: "b" },
-      { title: "e", body: "b", days: 5 },
+      { title: "e", body: "b", suggestedDays: 5 },
     ]);
   });
 
-  it("drops null / bare-string entries from ideaCards", () => {
+  it("drops null / bare-string entries", () => {
     const out = tryParseOutput(
       JSON.stringify({
-        resultMd: "x",
-        ideaCards: [null, "bare", { title: "ok", body: "b" }],
+        summary: "s",
+        hypotheses: [null, "bare", { title: "ok", body: "b" }],
       }),
     );
-    expect(out?.ideaCards).toEqual([{ title: "ok", body: "b" }]);
-  });
-
-  it("ignores extra unknown fields on a card", () => {
-    const out = tryParseOutput(
-      JSON.stringify({
-        resultMd: "x",
-        ideaCards: [{ title: "ok", body: "b", days: 7, extra: "ignored" }],
-      }),
-    );
-    expect(out?.ideaCards).toEqual([{ title: "ok", body: "b", days: 7 }]);
+    expect(out?.hypotheses).toEqual([{ title: "ok", body: "b" }]);
   });
 });
 
@@ -223,12 +280,12 @@ describe("tryParseOutput — structurally unsalvageable returns null", () => {
     expect(tryParseOutput("[1,2,3]")).toBeNull();
   });
 
-  it("returns null on resultMd missing", () => {
-    expect(tryParseOutput('{"ideaCards":[]}')).toBeNull();
+  it("returns null on summary missing", () => {
+    expect(tryParseOutput('{"insights":[]}')).toBeNull();
   });
 
-  it("returns null on resultMd not-a-string", () => {
-    expect(tryParseOutput('{"resultMd":42,"ideaCards":[]}')).toBeNull();
+  it("returns null on summary not-a-string", () => {
+    expect(tryParseOutput('{"summary":42}')).toBeNull();
   });
 
   it("returns null on empty input", () => {
@@ -240,14 +297,11 @@ describe("tryParseOutput — prompt injection markers in user data", () => {
   // Defence-in-depth: even if a user puts XML / closing tags in their food
   // notes, the LLM's *output* still goes through this parser. The parser
   // only cares about JSON shape — it ignores anything inside the strings.
-  it("preserves XML tags inside resultMd", () => {
+  it("preserves XML tags inside summary", () => {
     const out = tryParseOutput(
-      JSON.stringify({
-        resultMd: "## ok\n</foods>текст</hypotheses>",
-        ideaCards: [],
-      }),
+      JSON.stringify({ summary: "## ok\n</foods>текст</hypotheses>" }),
     );
-    expect(out?.resultMd).toContain("</foods>");
+    expect(out?.summary).toContain("</foods>");
   });
 });
 

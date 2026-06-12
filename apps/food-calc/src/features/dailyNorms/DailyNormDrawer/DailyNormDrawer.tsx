@@ -47,6 +47,7 @@ export function DailyNormDrawer({ onClose }: BaseDrawerProps) {
       onBack={canGoBack ? goBackToView : undefined}
       backLabel="Назад к норме"
       className={s.surface}
+      modalFields
     >
       <div className={s.body}>
         {isLoading ? (

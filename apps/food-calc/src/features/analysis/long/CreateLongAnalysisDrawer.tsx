@@ -2,7 +2,6 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { Heading } from '@/shared/ui/atoms/Typography';
 import { useAllHypotheses } from '@/entities/hypothesis';
 import HypothesisListPanel from '@/widgets/Laboratory/HypothesisListPanel';
 import { PaymentRequiredError } from '@/shared/lib/api/apiError';
@@ -73,10 +72,8 @@ const CreateLongAnalysisDrawer = ({ onClose }: Props) => {
   }
 
   return (
-    <DrawerLayout a11yLabel="Новый разбор по неделям">
+    <DrawerLayout title="Разбор по неделям">
       <div className={styles.body}>
-        <Heading size="drawer">Разбор по неделям</Heading>
-
         <RangePickerWithFallback value={range} onChange={setRange} />
 
         <div className={styles.hypotheses}>

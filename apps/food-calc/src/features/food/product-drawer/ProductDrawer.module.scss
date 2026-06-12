@@ -8,22 +8,16 @@
     padding: var(--space-3) var(--space-3) var(--space-6);
 }
 
-// ─── Верхняя панель: карандаш (edit) + × (close), прижата вправо ──
-.topBar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-1);
-    margin-bottom: var(--space-1);
-}
-
-// Обёртка карандаша — anchor для absolute-меню (inline-popover в стекинг-
-// контексте дровера, чтобы не уйти под него как PopoverTrigger z-1000).
+// ─── Карандаш в правом углу обвязки (topRight slot DrawerLayout) ──
+// Обёртка-anchor для drop-down меню (живёт в стекинг-контексте обвязки).
 .editWrap {
     position: relative;
+    display: inline-flex;
 }
 
-// Карандаш «видна хорошо» — заливка акцентом, белый глиф.
+// Прозрачный фон, чёрный (ink) глиф. `.editIconBtn svg { color }` (0,1,1)
+// перебивает DrawerLayout `.actionHeaderButton * { color: rgba(0,0,0,.2) }`
+// (0,1,0) — тот же приём, что `.deleteBtn svg` в ItemActionsDrawer.
 .editIconBtn {
     display: inline-flex;
     align-items: center;
@@ -32,35 +26,22 @@
     height: 40px;
     border: none;
     border-radius: var(--radius-full);
-    background: var(--color-primary);
-    color: var(--text-on-accent);
+    background: none;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 
     svg {
         width: 20px;
         height: 20px;
+        color: var(--color-ink);
+    }
+
+    &:active {
+        background: var(--press-tint-bg);
     }
 }
 
-.closeBtn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border: none;
-    border-radius: var(--radius-full);
-    background: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-
-    svg {
-        width: 18px;
-        height: 18px;
-    }
-}
-
-// Невидимый full-bleed бэкдроп для click-outside (внутри дровера).
+// Невидимый full-bleed бэкдроп для click-outside (закрывает меню).
 .editBackdrop {
     position: fixed;
     inset: 0;
@@ -70,6 +51,8 @@
     cursor: default;
 }
 
+// Drop-down под карандашом. Падает вниз в область контента (внутри .content,
+// не клипается). right:0 — прижат к правому краю панели.
 .editMenu {
     position: absolute;
     top: calc(100% + var(--space-1));
@@ -84,7 +67,9 @@
     box-shadow: var(--shadow-lg);
 }
 
-.editMenuItem {
+// `.editWrap .editMenuItem` (0,2,0) перебивает DrawerLayout
+// `.actionHeaderButton * { color: rgba(0,0,0,.2); font-size: 1.5rem }` (0,1,0).
+.editWrap .editMenuItem {
     display: flex;
     align-items: center;
     width: 100%;
@@ -99,6 +84,7 @@
     color: var(--text-primary);
     text-align: left;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 
     &:hover,
     &:active {
@@ -106,54 +92,37 @@
     }
 }
 
-// ─── Шапка: имя + цветная подпись «мой продукт» ──────────────────
-.header {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    margin-bottom: var(--space-3);
-}
-
-.title {
-    min-width: 0;
-
-    // Имена продуктов приходят строчными («абрикос») — поднимаем регистр.
-    &::first-letter {
-        text-transform: uppercase;
-    }
-}
-
-.ownership {
-    font-family: var(--heading-font);
-    font-style: italic;
-    font-size: var(--text-sm);
-    font-weight: 400;
-    letter-spacing: 0.01em;
-    line-height: 1;
-    color: var(--color-primary);
-}
-
 // ─── Аккордеон «Порции» ──────────────────────────────────────────
+// Sky-палитра ghost-пилюли «Добавить» — зеркалит FoodPortionsManager (список =
+// sky-капсулы). $var-присвоения token-gate'ом не проверяются; в свойствах
+// используем $var/var() → правило (color/font-size/border-radius → токен) проходит.
+$sky-stripe: #c7dbf3;
+$sky-ink-soft: rgba(30, 64, 124, 0.55);
+$pill-radius: 14px;
+
 .portions {
     margin-bottom: var(--space-3);
 }
 
-.portionsHeader {
+// Шапка = единственный ряд-toggle на всю ширину: слева заголовок + счётчик,
+// справа шеврон. Голого „+“ больше нет (переехал ghost-пилюлей в список).
+.portionsToggle {
     display: flex;
+    width: 100%;
     align-items: center;
     justify-content: space-between;
     min-height: 48px;
-}
-
-.portionsToggle {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
     padding: var(--space-2) 0;
     background: none;
     border: none;
     cursor: pointer;
     color: var(--text-primary);
+}
+
+.portionsTitleWrap {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-1);
 }
 
 .portionsTitle {
@@ -164,6 +133,14 @@
     letter-spacing: var(--heading-letter);
 }
 
+// Счётчик порций — закрытый аккордеон сообщает, есть ли в нём что-то.
+.portionsCount {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 400;
+    color: var(--text-tertiary);
+}
+
 .chevron {
     color: var(--text-tertiary);
     transition: transform var(--duration-normal) var(--easing-default);
@@ -171,24 +148,6 @@
 
 .chevronOpen {
     transform: rotate(180deg);
-}
-
-.portionsAdd {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-full);
-    border: none;
-    background: var(--press-tint-bg);
-    color: var(--text-primary);
-    cursor: pointer;
-
-    svg {
-        width: 18px;
-        height: 18px;
-    }
 }
 
 // Раскрытие через grid-template-rows 0fr→1fr — анимируем grid-track, не height
@@ -208,12 +167,35 @@
     overflow: hidden;
 }
 
-.portionsEmpty {
-    padding: var(--space-2) 0;
+// «Добавить порцию» в языке списка: пунктирная sky-ghost-капсула той же формы,
+// что строки-порции (radius 14px, sky-обводка). Без заливки — вес ниже реальных
+// порций. margin-top даёт зазор от FoodPortionsManager (у него внутри свой gap).
+.addPortionGhost {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1.5px dashed $sky-stripe;
+    border-radius: $pill-radius;
+    background: none;
     font-family: var(--font-sans);
     font-size: var(--text-sm);
-    color: var(--text-secondary);
-    line-height: 1.4;
+    font-weight: 500;
+    color: $sky-ink-soft;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &:active {
+        border-color: $sky-ink-soft;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -234,11 +216,21 @@
     color: var(--text-secondary);
 }
 
-// Строгий Select: плоский белый фон + тонкая чёрная обводка, малый радиус,
-// без тёплой тени. Переопределяем --field-* токены, которые читает
-// Select-триггер (он наш потомок; popup портируется и берёт surface-токены).
-.quantityControl {
+// ─── Ряд «количество (50% слева) + норма (50% справа)» — продукт-еда ──
+.measureRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
     margin-bottom: var(--space-2);
+}
+
+// Строгий Select: плоский белый фон + тонкая чёрная обводка, малый радиус,
+// без тёплой тени. Левая половина ряда. Переопределяем --field-* токены,
+// которые читает Select-триггер (он наш потомок; popup портируется и берёт
+// surface-токены).
+.quantityControl {
+    flex: 1 1 0;
+    min-width: 0;
 
     --field-bg-from: var(--color-white);
     --field-bg-mid: var(--color-white);
@@ -256,6 +248,28 @@
     width: 100%;
 }
 
+// Правая половина ряда — кнопка нормы; на БАД норма на всю ширину
+// (.normRowFull). В обоих случаях текст переносится и прижат влево
+// (`.normSlot .normButton` / `.normRowFull .normButtonFull` = (0,2,0)
+// перебивают QuietActionButton `.button` justify-content:center).
+.normSlot {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+}
+
+.normRowFull {
+    display: flex;
+    margin-bottom: var(--space-2);
+}
+
+.normSlot .normButton,
+.normRowFull .normButtonFull {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+}
+
 .quantityInputRow {
     display: inline-flex;
     align-items: baseline;
@@ -269,14 +283,42 @@
     color: var(--text-secondary);
 }
 
-// ─── Действия своих продуктов ────────────────────────────────────
-.suggestRow {
+// ─── Пустой состав: живой empty-state ────────────────────────────
+// Главное действие нового продукта (заполнить состав) не прячем под карандаш —
+// показываем на витрине: подпись + крупная CTA AI-подбора + тихий ручной путь.
+// Прижато не к верху, а с воздухом — пустой лист должен дышать, не казаться
+// «обрезанным».
+.emptyNutrients {
     display: flex;
-    margin-bottom: var(--space-1);
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-6) var(--space-3);
+    text-align: center;
 }
 
-.normRow {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: var(--space-1);
+.emptyNutrientsCaption {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+}
+
+// Тихий вторичный путь — ручной ввод (открывает тот же редактор нутриентов,
+// что и карандаш). Подчёркнутый текст-линк, без подложки: вес ниже CTA.
+.manualLink {
+    border: none;
+    background: none;
+    padding: var(--space-1) var(--space-2);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+        color: var(--text-secondary);
+    }
 }

@@ -207,7 +207,7 @@
   gap: var(--space-2);
   width: auto;
   min-height: var(--bottom-action-h);
-  padding: 0 var(--space-5);
+  padding: 0 var(--space-8);
   border-radius: 999px;
   /* Стеклянная окаёмка: светлый кант сверху ловит свет. */
   border: 1px solid rgba(255, 255, 255, 0.65);
@@ -223,27 +223,31 @@
     0 6px 18px rgba(31, 42, 68, 0.07),
     inset 0 1px 1px rgba(255, 255, 255, 0.6);
   color: #262626;
-  font-family: var(--font-sans);
-  font-size: var(--bottom-bar-font-size);
+  font-family: var(--heading-font);
+  font-size: var(--text-base);
   /* Свой вес — намеренно на 100 легче общего токена бара (500 → 400). */
   font-weight: 400;
-  letter-spacing: 0.01em;
-  line-height: 1.15;
+  line-height: 1;
   text-align: center;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: transform var(--press-out) var(--easing-default),
-    filter var(--press-out) var(--easing-default);
+    background var(--press-out) var(--easing-default),
+    border-color var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default);
 
   /* Не гасим прозрачностью (базовый .button:hover это делает). */
   &:hover {
     opacity: 1;
   }
 
-  /* Цветной отклик: лёгкое затемнение + scale. */
+  /* Цветной отклик (canon press-fill-ink): инверсия — ink-заливка + белый текст
+     и значок (currentColor наследуется). Эталон — нижние пилюли SearchFood. */
   &:active {
     transform: scale(0.97);
-    filter: brightness(0.96);
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: #fff;
     transition-duration: var(--press-in);
   }
 }

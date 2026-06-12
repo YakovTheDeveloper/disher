@@ -28,12 +28,14 @@ export const SCHEDULE_FOOD_INPUT_IDS = {
 export type Step = 'idle' | 'time' | 'search' | 'quantity' | 'details' | 'create';
 type ActiveStep = Exclude<Step, 'idle'>;
 
-// Full flow (4 steps) — used when the selected product has either a curated
+// Full flow (3 steps) — used when the selected product has either a curated
 // suggestion list or saved custom tags, so the details step is worth visiting.
-export const CREATE_STEPS_WITH_DETAILS: ActiveStep[] = ['search', 'time', 'quantity', 'details'];
-// Compact flow (3 steps) — used when there's nothing to put on a chip-row.
+// Шаг 'time' убран из создания: время = «сейчас» (штампуется на коммите).
+// 'time' остаётся в Step/STEP_LABELS/INPUT_TO_STEP только для edit-флоу.
+export const CREATE_STEPS_WITH_DETAILS: ActiveStep[] = ['search', 'quantity', 'details'];
+// Compact flow (2 steps) — used when there's nothing to put on a chip-row.
 // Details is reachable via an opt-in "+ деталь" link on the quantity step.
-export const CREATE_STEPS_NO_DETAILS: ActiveStep[] = ['search', 'time', 'quantity'];
+export const CREATE_STEPS_NO_DETAILS: ActiveStep[] = ['search', 'quantity'];
 // Backwards-compatible export (any external import still resolves to the full flow).
 export const CREATE_STEPS = CREATE_STEPS_WITH_DETAILS;
 export const STEP_LABELS: Record<ActiveStep, string> = {
@@ -314,7 +316,9 @@ export function useScheduleFoodFlow(mode: FlowMode) {
       const snapshot = canCommit
         ? {
           date: mode.scheduleId,
-          time: draft.time,
+          // Шаг времени убран из create-флоу — время всегда «сейчас» (на момент
+          // коммита). Edit-флоу по-прежнему правит время отдельным шагом.
+          time: new Date().toTimeString().slice(0, 5),
           type: (draft.variant === 'product' ? 'food' : 'dish') as 'food' | 'dish',
           productId: draft.productId,
           dishId: draft.dishId,

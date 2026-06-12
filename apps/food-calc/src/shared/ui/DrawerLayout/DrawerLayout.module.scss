@@ -218,29 +218,36 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
 
-    // Never flat (canon rule 1). Ambient peach→rose wash echoing HomeAmbient
-    // (App.module.scss `peach-rose`) + the warm ModalShell forks: a soft top
-    // glow over a peach-to-rose vertical blend, so the grab strip reads as the
-    // same warm ambient surface as the page chrome instead of a flat beige bar.
+    // Never flat (canon rule 1). Follows the live ModalShell DesignBar variant:
+    // DrawerLayout publishes that variant's field tokens onto this strip via
+    // `data-modal-fields`, so the wash matches whatever the modals are showing.
+    // More distinct than a single flat tint — the variant's light pill gradient
+    // with the saturated variant ink mixed into the BOTTOM stop + a soft top
+    // glow. Fallback values keep the original warm peach→rose when no variant
+    // token is present (e.g. SSR / a drawer opened before any modal mounted).
     background:
-        radial-gradient(120% 55% at 50% -8%, rgba(255, 244, 224, 0.9), transparent 62%),
+        radial-gradient(120% 55% at 50% -8%,
+            color-mix(in srgb, var(--field-bg-from, #fdeede) 80%, white),
+            transparent 62%),
         linear-gradient(180deg,
-            #fdeede 0%,
-            #fcecdf 32%,
-            #fbe6e6 70%,
-            #fae1ec 100%);
+            var(--field-bg-from, #fdeede) 0%,
+            var(--field-bg-mid, #fcecdf) 42%,
+            color-mix(in srgb,
+                var(--field-bg-to, #fae1ec) 55%,
+                var(--field-hairline-focus, rgba(124, 65, 15, 0.18))) 100%);
 
     &:active {
         cursor: grabbing;
     }
 
-    // Centred grip pill — warm, low-contrast, grows + darkens while swiping.
+    // Centred grip pill — carries the variant's saturated ink, grows + darkens
+    // while swiping.
     &::before {
         content: '';
         width: 4px;
         height: clamp(36px, 7vh, 56px);
-        border-radius: 999px;
-        background: rgba(124, 65, 15, 0.16);
+        border-radius: var(--radius-full);
+        background: var(--field-adornment, rgba(124, 65, 15, 0.16));
         transition: background 140ms ease, height 140ms ease;
     }
 
@@ -253,8 +260,8 @@
         width: 1px;
         background: linear-gradient(180deg,
                 transparent 0%,
-                rgba(124, 65, 15, 0.1) 18%,
-                rgba(124, 65, 15, 0.1) 82%,
+                var(--field-hairline, rgba(124, 65, 15, 0.1)) 18%,
+                var(--field-hairline, rgba(124, 65, 15, 0.1)) 82%,
                 transparent 100%);
         pointer-events: none;
     }
@@ -273,7 +280,7 @@
 // Active-swipe feedback: pill becomes longer and more saturated.
 .content[data-swiping] .edgeHandle::before {
     height: clamp(48px, 9vh, 72px);
-    background: rgba(124, 65, 15, 0.34);
+    background: var(--field-hairline-focus, rgba(124, 65, 15, 0.34));
 }
 
 .actionHeaderButton {
@@ -419,8 +426,12 @@
         flex-shrink: 0;
         z-index: 2;
 
+        // No `forwards` fill: when content doesn't overflow the scroll timeline is
+        // inactive, and a forwards-fill would paint this hint's last keyframe
+        // (100% → opacity 1) — leaving the top fade visible with nothing to scroll
+        // up to. Default `none` fill falls back to the base opacity:0 instead.
         opacity: 0;
-        animation: scroll-fade-hint-top linear forwards;
+        animation: scroll-fade-hint-top linear;
         animation-timeline: --scrollerY;
     }
 
@@ -438,8 +449,10 @@
         flex-shrink: 0;
         z-index: 2;
 
+        // Same as the top hint: no `forwards` fill, so an inactive timeline
+        // (non-overflowing content) degrades to base opacity:0, not a filled keyframe.
         opacity: 0;
-        animation: scroll-fade-hint linear forwards;
+        animation: scroll-fade-hint linear;
         animation-timeline: --scrollerY;
     }
 }

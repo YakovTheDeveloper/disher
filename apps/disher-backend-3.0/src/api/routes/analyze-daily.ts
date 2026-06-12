@@ -1,46 +1,42 @@
 import type { FastifyInstance } from "fastify";
 import { requireUser } from "../../auth/require-user.js";
 import {
+  ANALYSIS_OUTPUT_PROMPT_SPEC,
   DISH_DETAILS_INSTRUCTION,
   NUTRIENT_ANCHOR_INSTRUCTION,
   asNutrientLines,
   nutrientLineToken,
   type NutrientLine,
 } from "../../shared/analysis-output.js";
-import { applySSECorsHeaders } from "../lib/sse-cors.js";
+import { callLLMWithValidation, type CallLLM } from "./analyze.runJob.js";
 import { chargeOr402, resolveRequestId } from "../../billing/http.js";
 import { refund } from "../../billing/wallet.js";
 
-// POST /api/analyze/daily — SSE stream. The "daily analysis" — a one-day
-// review of the user's meals + health tags. The frontend hydrates the day's
-// payload from Dexie + catalog (human-readable names, not product_id UUIDs)
-// and posts it; the backend forwards the OpenRouter chat-completions stream.
+// POST /api/analyze/daily — single JSON response (NOT SSE). The "daily
+// analysis" — a one-day review of the user's meals + health tags. The frontend
+// hydrates the day's payload from Dexie + catalog (human-readable names, not
+// product_id UUIDs) and posts it; the backend calls OpenRouter once with the
+// shared structured-output contract and returns the parsed {summary, insights,
+// hypotheses}.
 //
-// Why no Postgres row (unlike /api/analyze): a daily review is cheap and
-// short, the client stays alive for the whole call, and the result is
-// persisted client-side in idb-keyval keyed by date. Re-run = re-post =
-// overwrite. No idempotency key, no polling endpoint.
+// Why no Postgres row (unlike /api/analyze): a daily review is cheap and short,
+// and the result is persisted client-side in idb-keyval keyed by date. Re-run =
+// re-post = overwrite. No idempotency key, no polling endpoint.
 //
-// Output contract: plain markdown chunks (no `response_format: json_object`).
-// The markdown tail may carry a `## Идеи для эксперимента` section that the
-// client parses into idea-cards.
-//
-// Net-new vs analyze-dish.ts: client-disconnect abort. The dish endpoint
-// reads the OpenRouter stream to completion even after the client leaves;
-// here we wire `socket.on('close')` → AbortController so a disconnect stops
-// burning LLM tokens. See the Fastify "Detecting When Clients Abort" guide.
+// Why not streaming (history): the daily flow used to forward an SSE markdown
+// stream. We switched to a deterministic JSON contract shared with the long
+// analysis (summary + grounded insights + addable hypotheses) — the structure
+// is worth losing the live-text feel. See
+// apps/food-calc/tds/analysis-structured-output.md.
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-
-// Model is env-driven (shared knob with the long analysis in runJob.ts) so it
-// can be swapped without a code change. Read at call time, not module load.
-const dailyModel = () => process.env.SUGGESTION_MODEL ?? "deepseek/deepseek-chat";
+// One day is a small payload; the model rarely needs the long-analysis budget.
+const DAILY_TIMEOUT_MS = 60_000;
 
 // System prompt is net-new — it does NOT reuse SYSTEM_PROMPT_BASE (that one
-// carries a JSON output contract and a cohort-mining paragraph). A one-day
-// window has no cross-day cohorts, so DETAILS_COHORT_INSTRUCTION is omitted;
-// DISH_DETAILS_INSTRUCTION is included (the `[особенности: …]` bracket-tag
-// rides in from the client's collectFoods hydration).
+// carries the cohort-mining paragraph). A one-day window has no cross-day
+// cohorts, so DETAILS_COHORT_INSTRUCTION is omitted; DISH_DETAILS_INSTRUCTION
+// is included (the `[особенности: …]` bracket-tag rides in from the client's
+// collectFoods hydration). The output contract is the SHARED one.
 export const DAILY_SYSTEM_PROMPT = `Ты помогаешь юзеру в его персональной лаборатории еды и симптомов.
 На вход — события юзера за ОДИН день (приёмы пищи + теги/события),
 опционально гипотезы, которые юзер хочет проверить, и опционально
@@ -59,18 +55,15 @@ export const DAILY_SYSTEM_PROMPT = `Ты помогаешь юзеру в его
 
 Не превращай разбор в калькулятор БЖУ и не ставь диагнозов. Корреляции
 и наблюдения, не точные цифры. Если день пустой или данных мало — так
-и скажи, коротко.
+и скажи в summary, а insights и hypotheses оставь пустыми.
 
 ${DISH_DETAILS_INSTRUCTION}
 
 ${NUTRIENT_ANCHOR_INSTRUCTION}
 
-Пиши на русском, дружелюбно, лаконично (2–4 коротких абзаца). Markdown,
-без оборачивания в код-фенс.
+${ANALYSIS_OUTPUT_PROMPT_SPEC}
 
-Заверши ответ блоком «## Идеи для эксперимента» — 0–3 буллета формата
-\`- **Заголовок** — описание одним предложением\`. Если зацепиться не за
-что — блок не пиши вовсе, идеи через силу не выдумывай.`;
+Окно — это один день, поэтому evidence.days у каждого наблюдения — просто этот день.`;
 
 type HypothesisInput = { title: string; body: string };
 
@@ -150,133 +143,10 @@ export function buildDailyUserPrompt(
   return lines.join("\n");
 }
 
-// ─── SSE plumbing ───
-
-/** A write sink for SSE frames. Returns false when the socket is gone. */
-export type SSEWrite = (data: string | Uint8Array) => boolean;
-
-/** Streams the LLM response into `write`. Throws on any failure — the caller
- *  converts a throw into an `event: error` frame. */
-export type DailyStreamFn = (
-  userPrompt: string,
-  write: SSEWrite,
-  signal: AbortSignal,
-) => Promise<void>;
-
-async function streamFromOpenRouter(
-  userPrompt: string,
-  write: SSEWrite,
-  signal: AbortSignal,
-): Promise<void> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
-
-  const response = await fetch(OPENROUTER_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: dailyModel(),
-      stream: true,
-      messages: [
-        { role: "system", content: DAILY_SYSTEM_PROMPT },
-        { role: "user", content: userPrompt },
-      ],
-    }),
-    signal,
-  });
-
-  if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    throw new Error(`OpenRouter ${response.status}: ${text.slice(0, 200)}`);
-  }
-
-  const reader = response.body?.getReader();
-  if (!reader) throw new Error("no response body");
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    // Forward the OpenRouter SSE frames verbatim. Stop early if the client
-    // socket is already gone (write returns false).
-    if (!write(value)) break;
-  }
-}
-
-type RawReply = {
-  writeHead: (status: number, headers: Record<string, string>) => void;
-  write: (data: string | Uint8Array) => boolean;
-  end: () => void;
-  writableEnded: boolean;
-  destroyed: boolean;
-};
-
-type CloseEmitter = {
-  on: (event: "close", cb: () => void) => void;
-  off: (event: "close", cb: () => void) => void;
-};
-
-// Core handler — extracted from the route so the SSE contract and the
-// client-disconnect abort wiring are unit-testable without Fastify, auth or
-// OpenRouter. (Fastify.inject resolves the whole response at once and cannot
-// model a mid-stream disconnect — see tds/home-and-analyses-ui.md critique.)
-export async function runDailySSE(args: {
-  userPrompt: string;
-  raw: RawReply;
-  socket: CloseEmitter;
-  streamLLM: DailyStreamFn;
-}): Promise<void> {
-  const { userPrompt, raw, socket, streamLLM } = args;
-
-  const ac = new AbortController();
-  const onClose = () => ac.abort();
-  socket.on("close", onClose);
-
-  const canWrite = () => !raw.writableEnded && !raw.destroyed;
-  const write: SSEWrite = (data) => {
-    if (!canWrite()) return false;
-    try {
-      return raw.write(data);
-    } catch {
-      return false;
-    }
-  };
-
-  if (canWrite()) {
-    raw.writeHead(200, {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    });
-  }
-
-  try {
-    await streamLLM(userPrompt, write, ac.signal);
-  } catch (err) {
-    // A throw is either an upstream failure or our own abort after the client
-    // left. write() is no-op'd once the socket is gone, so this is safe.
-    const msg = err instanceof Error ? err.message : String(err);
-    write(`event: error\ndata: ${JSON.stringify(msg)}\n\n`);
-  } finally {
-    socket.off("close", onClose);
-    // The terminal [DONE] + end() must also be guarded — after a disconnect
-    // the socket is dead and a bare write/end would throw write-after-end.
-    if (canWrite()) {
-      write("data: [DONE]\n\n");
-      try {
-        raw.end();
-      } catch {
-        /* socket gone between the guard and end() — ignore */
-      }
-    }
-  }
-}
-
 type AnalyzeDailyRouteOptions = {
-  /** Test-only: replace the OpenRouter call with a stub. */
-  streamLLM?: DailyStreamFn;
+  /** Test-only: replace the OpenRouter call with a stub. Same CallLLM contract
+   *  as the long analysis — returns the raw model string, parsed downstream. */
+  callLLM?: CallLLM;
 };
 
 export async function analyzeDailyRoutes(
@@ -284,7 +154,6 @@ export async function analyzeDailyRoutes(
   opts: AnalyzeDailyRouteOptions = {},
 ) {
   app.addHook("preHandler", requireUser);
-  const streamLLM = opts.streamLLM ?? streamFromOpenRouter;
 
   app.post("/analyze/daily", async (req, reply) => {
     const body = (req.body ?? {}) as AnalyzeDailyBody;
@@ -306,16 +175,10 @@ export async function analyzeDailyRoutes(
       return reply.status(400).send({ error: "empty day" });
     }
 
-    // Paid: debit before touching the raw socket so an insufficient-balance 402
-    // is a clean JSON reply.
+    // Paid: debit before calling the model so an insufficient-balance 402 is a
+    // clean JSON reply. Refund if the call/parse fails.
     const requestId = resolveRequestId(req);
     if (!(await chargeOr402(req, reply, "daily_analysis", requestId))) return;
-
-    // @fastify/cors writes Access-Control-* via reply.header(), which is only
-    // flushed by reply.send(). SSE handlers stream through reply.raw and
-    // bypass that path entirely — set the headers on the raw socket so they
-    // survive writeHead() inside runDailySSE.
-    applySSECorsHeaders(reply.raw, req.headers.origin);
 
     const userPrompt = buildDailyUserPrompt(
       date,
@@ -326,28 +189,20 @@ export async function analyzeDailyRoutes(
       userMessage,
     );
 
-    // Wrap the stream so any forwarded content frame flips producedOutput. The
-    // error/[DONE] control frames runDailySSE writes itself bypass this wrapper,
-    // so a failure before the first content frame refunds.
-    let producedOutput = false;
-    const billedStreamLLM: DailyStreamFn = async (prompt, write, signal) => {
-      const trackingWrite: SSEWrite = (data) => {
-        producedOutput = true;
-        return write(data);
-      };
-      await streamLLM(prompt, trackingWrite, signal);
-    };
-
-    await runDailySSE({
-      userPrompt,
-      raw: reply.raw,
-      socket: req.socket,
-      streamLLM: billedStreamLLM,
-    });
-
-    // Refund if the stream failed before any content reached the client.
-    if (!producedOutput) {
+    try {
+      const result = await callLLMWithValidation(
+        DAILY_SYSTEM_PROMPT,
+        userPrompt,
+        AbortSignal.timeout(DAILY_TIMEOUT_MS),
+        opts.callLLM,
+      );
+      return reply.send({ analysis: result });
+    } catch (err) {
       await refund(req.userId, "daily_analysis", requestId).catch(() => {});
+      const msg = err instanceof Error ? err.message : String(err);
+      return reply
+        .status(502)
+        .send({ error: "analysis-failed", detail: msg.slice(0, 200) });
     }
   });
 }

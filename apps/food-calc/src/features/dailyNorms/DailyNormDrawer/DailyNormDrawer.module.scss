@@ -1,8 +1,16 @@
-// Surface владеет фоном (drawer-канон: surface owns bg). Warm 3-stop градиент —
-// тот же stripe-warm, что у CreateDailyNormModal .root. Edit-панель прозрачная и
-// показывает этот фон; Create-панель красит идентичный градиент поверх (безвредно).
+// Surface владеет фоном (drawer-канон: surface owns bg). Цвет НЕ хардкодим —
+// наследуем от живого варианта ModalShell: DrawerLayout публикует его field-токены
+// на popup через `modalFields` (data-modal-fields), и wash собирается из
+// `--field-bg-*` ровно как у edgeHandle. Так дровер «Норма» следует за DesignBar
+// в ногу с модалками. Fallback-стопы (warm) держат первый кадр до регистрации
+// варианта (SSR / открытие до первого ModalShell).
 .surface {
-    background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
+    background: linear-gradient(180deg,
+            var(--field-bg-from, #fffefb) 0%,
+            var(--field-bg-mid, #fffaf2) 55%,
+            color-mix(in srgb,
+                var(--field-bg-to, #fdf4e3) 88%,
+                var(--field-hairline, rgba(124, 65, 15, 0.09))) 100%);
 }
 
 // Контент (Create/Edit panel) владеет своим padding — body остаётся flush.

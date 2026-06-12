@@ -1,0 +1,134 @@
+@import '@/shared/assets/style/mixin.scss';
+
+// Hypothesis card — a testable experiment with an «add to my list» action.
+// Cooler stripe-fork fork than InsightCard so the two read as different kinds
+// at a glance (observation vs experiment). Local custom properties keep it
+// token-gate compliant.
+.card {
+    --hc-ink: rgba(28, 40, 64, 0.92);
+    --hc-ink-soft: rgba(28, 40, 64, 0.62);
+    --hc-ink-faint: rgba(28, 40, 64, 0.5);
+    --hc-accent: rgba(96, 132, 196, 0.7);
+    --hc-btn-bg: rgba(96, 132, 196, 0.12);
+    --hc-btn-ink: rgba(40, 78, 150, 0.95);
+    --hc-btn-added-bg: rgba(72, 152, 96, 0.14);
+    --hc-btn-added-ink: rgba(38, 110, 64, 0.95);
+    --hc-radius: 14px;
+    --hc-btn-radius: 9px;
+    --hc-fs-title: 14.5px;
+    --hc-fs-body: 13px;
+    --hc-fs-meta: 11.5px;
+
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 14px 14px 18px;
+    overflow: hidden;
+    background: linear-gradient(90deg, #fcfdff 0%, #f6f9ff 55%, #eef4fd 100%);
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 8px;
+        bottom: 8px;
+        width: 3px;
+        border-radius: var(--hc-btn-radius);
+        background: var(--hc-accent);
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 0;
+        height: 1px;
+        @include hairline(rgba(28, 40, 64, 0.08));
+        pointer-events: none;
+    }
+
+    &:last-child::after {
+        display: none;
+    }
+
+    &:first-child {
+        border-top-left-radius: var(--hc-radius);
+        border-top-right-radius: var(--hc-radius);
+    }
+
+    &:last-child {
+        border-bottom-left-radius: var(--hc-radius);
+        border-bottom-right-radius: var(--hc-radius);
+    }
+}
+
+.text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.title {
+    margin: 0;
+    font-size: var(--hc-fs-title);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--hc-ink);
+}
+
+.days {
+    flex-shrink: 0;
+    font-size: var(--hc-fs-meta);
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--hc-ink-faint);
+}
+
+.body {
+    margin: 0;
+    font-size: var(--hc-fs-body);
+    line-height: 1.5;
+    color: var(--hc-ink-soft);
+}
+
+.add {
+    flex-shrink: 0;
+    align-self: center;
+    padding: 8px 12px;
+    min-height: 40px;
+    border: none;
+    border-radius: var(--hc-btn-radius);
+    background: var(--hc-btn-bg);
+    color: var(--hc-btn-ink);
+    font-size: var(--hc-fs-meta);
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+
+    &:active {
+        transform: scale(0.96);
+    }
+
+    &:disabled {
+        cursor: default;
+    }
+
+    &[data-added] {
+        background: var(--hc-btn-added-bg);
+        color: var(--hc-btn-added-ink);
+    }
+}

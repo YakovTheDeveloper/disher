@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
-import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import { Text } from '@/shared/ui/atoms/Typography';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { submitBugReport } from '../api/submitBugReport';
@@ -76,39 +76,42 @@ const BugReportModal = ({
 
   return (
     <ModalLayout className={s.layout} a11yLabel="Баг-репорт">
-      <Heading size="drawer" as="h2">
-        Баг-репорт
-      </Heading>
-      <Text variant="hint" className={s.route}>
-        {page}
-      </Text>
+      {/* Full-bleed screenshot underneath — contain, centred on a dark stage. */}
+      <div className={s.shotArea}>
+        {shotLoading ? (
+          <div className={s.shotLoading} aria-live="polite">
+            <Spinner size={20} />
+            <span>Снимаю экран…</span>
+          </div>
+        ) : screenshot ? (
+          <img className={s.shot} src={screenshot} alt="Скриншот текущего экрана" />
+        ) : (
+          <div className={s.shotMissing}>Скриншот не снялся</div>
+        )}
+      </div>
 
-      {shotLoading ? (
-        <div className={s.shotLoading} aria-live="polite">
-          <Spinner size={20} />
-          <span>Снимаю экран…</span>
-        </div>
-      ) : screenshot ? (
-        <img className={s.shot} src={screenshot} alt="Скриншот текущего экрана" />
-      ) : (
-        <div className={s.shotMissing}>Скриншот не снялся</div>
-      )}
-
-      <AutoGrowSearch
-        value={text}
-        onChange={setText}
-        placeholder="Что не так? Шаги, ожидаемое, фактическое…"
-        maxRows={10}
-        collapseOnBlur={false}
-      />
-
-      {error && (
-        <Text variant="hint" className={s.error}>
-          {error}
+      {/* Floating top bar — route hint + the text/dictation field. */}
+      <div className={s.topBar}>
+        <Text variant="hint" className={s.route}>
+          {page}
         </Text>
-      )}
+        <AutoGrowSearch
+          className={s.input}
+          value={text}
+          onChange={setText}
+          placeholder="Что не так? Шаги, ожидаемое, фактическое…"
+          maxRows={6}
+          collapseOnBlur={false}
+        />
+        {error && (
+          <Text variant="hint" className={s.error}>
+            {error}
+          </Text>
+        )}
+      </div>
 
-      <div className={s.actions}>
+      {/* Floating bottom bar — actions, screenshot fills the gap between. */}
+      <div className={s.bottomBar}>
         <button
           type="button"
           className={s.cancel}

@@ -1,5 +1,8 @@
-// Warm palette tokens — aligned with stripe-fork "warm" canon
-// (FoodActionCard.module.scss: stripe-warm).
+// Warm palette — kept ONLY as the fallback ladder. The live colours come from
+// the ModalShell field/chip tokens (`--field-*` / `--chip-*`), published onto the
+// drawer popup by DrawerLayout `modalFields` (data-modal-fields). So in the drawer
+// the form follows the global DesignBar variant in step with the modals; in the
+// legacy modal-mode path (no tokens) these warm fallbacks keep the old look.
 $bg-warm-from: #fffefb;
 $bg-warm-mid: #fffaf2;
 $bg-warm-to: #fdf4e3;
@@ -8,14 +11,17 @@ $ink: #2c1d0a;
 $ink-soft: #6a5436;
 $ink-muted: rgba(58, 46, 20, 0.55);
 $accent: #b88436;
-$accent-bg: #fdf2dc;
+$chip-dark: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
 
 .root {
     display: flex;
     flex-direction: column;
     height: 100%;
     min-height: 0;
-    background: linear-gradient(90deg, $bg-warm-from 0%, $bg-warm-mid 55%, $bg-warm-to 100%);
+    background: linear-gradient(90deg,
+            var(--field-bg-from, #{$bg-warm-from}) 0%,
+            var(--field-bg-mid, #{$bg-warm-mid}) 55%,
+            var(--field-bg-to, #{$bg-warm-to}) 100%);
 }
 
 // ─── Header ─────────────────────────────────────────────────────
@@ -33,7 +39,7 @@ $accent-bg: #fdf2dc;
         right: 14px;
         bottom: 0;
         height: 1px;
-        background: linear-gradient(90deg, transparent 0%, $hairline 18%, $hairline 82%, transparent 100%);
+        background: linear-gradient(90deg, transparent 0%, var(--field-hairline, #{$hairline}) 18%, var(--field-hairline, #{$hairline}) 82%, transparent 100%);
         pointer-events: none;
     }
 }
@@ -47,7 +53,7 @@ $accent-bg: #fdf2dc;
     padding: var(--space-1);
     border: none;
     background: none;
-    color: $ink;
+    color: var(--field-text, #{$ink});
     border-radius: var(--radius-xs);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -60,14 +66,14 @@ $accent-bg: #fdf2dc;
         height: 24px;
     }
 
-    &:hover { background: rgba(124, 65, 15, 0.05); }
+    &:hover { background: var(--press-tint-bg, rgba(124, 65, 15, 0.05)); }
     // Цветной отклик: кнопка «Назад» (иконка) → тинт фона + цвет иконки
     &:active {
         background: var(--press-tint-bg);
         color: var(--field-caret, var(--color-ink));
         transition-duration: var(--press-in);
     }
-    &:focus-visible { outline: 2px solid $accent; outline-offset: 2px; }
+    &:focus-visible { outline: 2px solid var(--chip-active-border, #{$accent}); outline-offset: 2px; }
 }
 
 .kicker {
@@ -77,7 +83,7 @@ $accent-bg: #fdf2dc;
     font-size: 0.85rem;
     font-weight: 400;
     letter-spacing: -0.005em;
-    color: $accent;
+    color: var(--chip-active-border, #{$accent});
     margin-bottom: 2px;
 }
 
@@ -87,7 +93,7 @@ $accent-bg: #fdf2dc;
     font-style: var(--heading-style);
     font-size: var(--heading-size-modal);
     font-weight: var(--heading-weight);
-    color: $ink;
+    color: var(--field-text, #{$ink});
     letter-spacing: var(--heading-letter);
     line-height: 1.05;
 }
@@ -97,7 +103,7 @@ $accent-bg: #fdf2dc;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.83rem;
     line-height: 1.45;
-    color: $ink-soft;
+    color: var(--field-adornment, #{$ink-soft});
     letter-spacing: -0.005em;
 }
 
@@ -135,7 +141,7 @@ $accent-bg: #fdf2dc;
     font-style: italic;
     font-size: 1.05rem;
     font-weight: 500;
-    color: $ink;
+    color: var(--field-text, #{$ink});
     letter-spacing: -0.005em;
 }
 
@@ -143,7 +149,7 @@ $accent-bg: #fdf2dc;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.72rem;
     font-weight: 400;
-    color: $ink-muted;
+    color: var(--field-placeholder, #{$ink-muted});
     letter-spacing: 0;
     text-align: right;
     flex-shrink: 1;
@@ -175,13 +181,13 @@ $accent-bg: #fdf2dc;
     justify-content: center;
     gap: 4px;
     padding: 10px 14px;
-    background: #fff;
-    border: 1px solid rgba(124, 65, 15, 0.18);
+    background: var(--chip-bg, #fff);
+    border: 1px solid var(--chip-border, rgba(124, 65, 15, 0.18));
     border-radius: 12px;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.88rem;
     font-weight: 500;
-    color: $ink;
+    color: var(--chip-text, #{$ink});
     cursor: pointer;
     text-align: center;
     -webkit-tap-highlight-color: transparent;
@@ -192,7 +198,8 @@ $accent-bg: #fdf2dc;
         transform var(--press-out) var(--easing-default);
     overflow: hidden;
 
-    // 3px left accent stripe (stripe-fork DNA), hidden until active
+    // 3px left accent stripe (stripe-fork DNA), hidden until active. On the
+    // filled (selected) chip it reads as a light accent over the dark fill.
     &::before {
         content: '';
         position: absolute;
@@ -200,16 +207,16 @@ $accent-bg: #fdf2dc;
         bottom: 0;
         left: 0;
         width: 3px;
-        background: $accent;
+        background: var(--chip-active-text, #{$accent});
         opacity: 0;
         transition: opacity 0.15s ease, width 0.15s ease;
     }
 
-    // Цветной отклик: pill-выбор нормы (chip-вариант) → заливка chip-токеном.
-    // .pillHint держит свой тёмный $ink-muted — на тёмной заливке перекрашиваем
-    // (.pillTitle уже inherit, задаём явно для надёжности).
+    // Press = the SAME dark chip-active fill as the selected state (.pillActive
+    // below), so pressing an unselected pill previews exactly what it becomes on
+    // release — no light↔dark inversion. On press-canon (colored press fill).
     &:active {
-        background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
+        background: var(--chip-active-bg, #{$chip-dark});
         border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
         color: var(--chip-active-text, #fff);
         transform: scale(0.97);
@@ -220,7 +227,7 @@ $accent-bg: #fdf2dc;
             color: var(--chip-active-text, #fff);
         }
     }
-    &:focus-visible { outline: 2px solid $accent; outline-offset: 2px; }
+    &:focus-visible { outline: 2px solid var(--chip-active-border, #{$accent}); outline-offset: 2px; }
 }
 
 .pillStacked {
@@ -231,10 +238,18 @@ $accent-bg: #fdf2dc;
     gap: 3px;
 }
 
+// Selected = the dark chip-active fill (matches the press state above), so the
+// chosen option is unmistakable and press→select is visually continuous. The
+// stripe brightens to a 5px light accent over the fill.
 .pillActive {
-    background: $accent-bg;
-    border-color: rgba(184, 132, 54, 0.55);
-    color: $ink;
+    background: var(--chip-active-bg, #{$chip-dark});
+    border-color: var(--chip-active-border, rgba(184, 132, 54, 0.55));
+    color: var(--chip-active-text, #fff);
+
+    .pillTitle,
+    .pillHint {
+        color: var(--chip-active-text, #fff);
+    }
 
     &::before { opacity: 1; width: 5px; }
 }
@@ -249,7 +264,7 @@ $accent-bg: #fdf2dc;
 .pillHint {
     font-size: 0.72rem;
     font-weight: 400;
-    color: $ink-muted;
+    color: var(--field-placeholder, #{$ink-muted});
     letter-spacing: 0;
     line-height: 1.25;
 }
@@ -267,15 +282,15 @@ $accent-bg: #fdf2dc;
     flex-direction: column;
     gap: 6px;
     padding: 12px 12px 11px;
-    background: #fff;
-    border: 1px solid rgba(124, 65, 15, 0.14);
+    background: var(--field-bg-from, #fff);
+    border: 1px solid var(--field-hairline, rgba(124, 65, 15, 0.14));
     border-radius: 12px;
     cursor: text;
     transition: border-color 0.15s ease, background 0.15s ease;
 
     &:focus-within {
-        border-color: rgba(184, 132, 54, 0.55);
-        background: #fffdf6;
+        border-color: var(--field-hairline-focus, rgba(184, 132, 54, 0.55));
+        background: var(--field-bg-mid, #fffdf6);
     }
 }
 
@@ -295,7 +310,7 @@ $accent-bg: #fdf2dc;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.7rem;
     font-weight: 500;
-    color: $ink-muted;
+    color: var(--field-placeholder, #{$ink-muted});
     letter-spacing: 0.02em;
 }
 
@@ -316,7 +331,7 @@ $accent-bg: #fdf2dc;
         font-size: 1.5rem;
         font-weight: 500;
         font-feature-settings: 'tnum' 1, 'lnum' 1;
-        color: $ink;
+        color: var(--field-text, #{$ink});
         letter-spacing: -0.01em;
         outline: none;
 
@@ -332,7 +347,7 @@ $accent-bg: #fdf2dc;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.78rem;
     font-weight: 500;
-    color: $ink-muted;
+    color: var(--field-adornment, #{$ink-muted});
     letter-spacing: 0;
     flex-shrink: 0;
 }
@@ -343,9 +358,15 @@ $accent-bg: #fdf2dc;
     position: relative;
     margin-top: 6px;
     padding: 20px 18px 18px;
-    background: linear-gradient(90deg, $bg-warm-from 0%, $bg-warm-mid 55%, $bg-warm-to 100%);
+    background: linear-gradient(135deg,
+            var(--field-bg-from, #{$bg-warm-from}) 0%,
+            var(--field-bg-mid, #{$bg-warm-mid}) 55%,
+            var(--field-bg-to, #{$bg-warm-to}) 100%);
     border-radius: 16px;
     overflow: hidden;
+    // Lift the kcal hero off the (same-family) surface — needed now that both
+    // read the variant's near-white field-bg and would otherwise blend.
+    box-shadow: var(--field-shadow-focus, 0 1px 8px rgba(44, 29, 10, 0.1));
 
     // Top fading hairline
     &::before {
@@ -355,7 +376,7 @@ $accent-bg: #fdf2dc;
         right: 14px;
         top: 0;
         height: 1px;
-        background: linear-gradient(90deg, transparent 0%, $hairline 18%, $hairline 82%, transparent 100%);
+        background: linear-gradient(90deg, transparent 0%, var(--field-hairline, #{$hairline}) 18%, var(--field-hairline, #{$hairline}) 82%, transparent 100%);
         pointer-events: none;
     }
 
@@ -367,7 +388,7 @@ $accent-bg: #fdf2dc;
         bottom: 12px;
         left: 0;
         width: 3px;
-        background: $accent;
+        background: var(--chip-active-border, #{$accent});
         opacity: 0.8;
         border-radius: 0 2px 2px 0;
     }
@@ -386,7 +407,7 @@ $accent-bg: #fdf2dc;
     font-style: italic;
     font-size: clamp(2.6rem, 11vw, 3.4rem);
     font-weight: 500;
-    color: $ink;
+    color: var(--field-text, #{$ink});
     line-height: 1;
     letter-spacing: -0.02em;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
@@ -396,7 +417,7 @@ $accent-bg: #fdf2dc;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.85rem;
     font-weight: 500;
-    color: $ink-soft;
+    color: var(--field-adornment, #{$ink-soft});
     letter-spacing: -0.005em;
 }
 
@@ -413,8 +434,8 @@ $accent-bg: #fdf2dc;
     justify-content: center;
     gap: 4px;
     padding: 9px 6px;
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(124, 65, 15, 0.12);
+    background: var(--chip-bg, rgba(255, 255, 255, 0.6));
+    border: 1px solid var(--chip-border, rgba(124, 65, 15, 0.12));
     border-radius: 10px;
 }
 
@@ -423,7 +444,7 @@ $accent-bg: #fdf2dc;
     font-style: italic;
     font-size: 0.95rem;
     font-weight: 500;
-    color: $accent;
+    color: var(--chip-active-border, #{$accent});
     letter-spacing: -0.01em;
 }
 
@@ -431,7 +452,7 @@ $accent-bg: #fdf2dc;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 1.05rem;
     font-weight: 600;
-    color: $ink;
+    color: var(--field-text, #{$ink});
     font-feature-settings: 'tnum' 1, 'lnum' 1;
     letter-spacing: -0.01em;
 }
@@ -439,7 +460,7 @@ $accent-bg: #fdf2dc;
 .macroUnit {
     font-size: 0.72rem;
     font-weight: 500;
-    color: $ink-muted;
+    color: var(--field-placeholder, #{$ink-muted});
     letter-spacing: 0;
 }
 
@@ -448,7 +469,7 @@ $accent-bg: #fdf2dc;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.76rem;
     font-weight: 500;
-    color: $ink-soft;
+    color: var(--field-adornment, #{$ink-soft});
     letter-spacing: 0;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
@@ -458,7 +479,7 @@ $accent-bg: #fdf2dc;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.72rem;
     line-height: 1.45;
-    color: $ink-muted;
+    color: var(--field-placeholder, #{$ink-muted});
     letter-spacing: 0;
 }
 
@@ -482,7 +503,7 @@ $accent-bg: #fdf2dc;
         right: 14px;
         top: 0;
         height: 1px;
-        background: linear-gradient(90deg, transparent 0%, $hairline 18%, $hairline 82%, transparent 100%);
+        background: linear-gradient(90deg, transparent 0%, var(--field-hairline, #{$hairline}) 18%, var(--field-hairline, #{$hairline}) 82%, transparent 100%);
         pointer-events: none;
     }
 }
@@ -492,8 +513,8 @@ $accent-bg: #fdf2dc;
     min-height: 48px;
     padding: 12px 22px;
     border: none;
-    background: $ink;
-    color: #fffaf0;
+    background: var(--field-text, #{$ink});
+    color: var(--chip-active-text, #fffaf0);
     border-radius: 12px;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.92rem;
@@ -508,21 +529,21 @@ $accent-bg: #fdf2dc;
         transform var(--press-out) var(--easing-default);
     box-shadow: 0 1px 2px rgba(44, 29, 10, 0.18);
 
-    &:hover { background: #1b1206; }
+    &:hover { filter: brightness(0.92); }
     // Цветной отклик: основная CTA (тёмная заливка) → потемнение
     &:active {
-        filter: brightness(0.9);
+        filter: brightness(0.85);
         transform: scale(0.97);
         transition-duration: var(--press-in);
     }
-    &:focus-visible { outline: 2px solid $accent; outline-offset: 2px; }
+    &:focus-visible { outline: 2px solid var(--chip-active-border, #{$accent}); outline-offset: 2px; }
 }
 
 .commitBtnInactive {
     opacity: 0.45;
     box-shadow: none;
 
-    &:hover { background: $ink; }
+    &:hover { filter: none; }
     &:active { transform: none; }
 }
 
@@ -553,8 +574,8 @@ $accent-bg: #fdf2dc;
         height: 1px;
         background: linear-gradient(90deg,
                 transparent 0%,
-                $hairline 18%,
-                $hairline 82%,
+                var(--field-hairline, #{$hairline}) 18%,
+                var(--field-hairline, #{$hairline}) 82%,
                 transparent 100%);
         pointer-events: none;
         z-index: 1;
@@ -569,7 +590,7 @@ $accent-bg: #fdf2dc;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.8rem;
     line-height: 1.45;
-    color: $ink-soft;
+    color: var(--field-adornment, #{$ink-soft});
     letter-spacing: -0.005em;
 }
 
