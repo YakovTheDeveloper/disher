@@ -31,22 +31,24 @@ type Props = {
 
 const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) => {
   const [step, setStep] = useState<Step>(initialStep);
-  const [atomPanelOpen, setAtomPanelOpen] = useState(false);
   const [draft, setDraft] = useState<DraftState>(() => ({
     time: item.time,
     endTime: item.endTime ?? null,
     text: item.text ?? '',
   }));
-  const draftAtoms = useEventDraftStore((s) => s.draft.atoms);
   const clearAtoms = useEventDraftStore((s) => s.clearAtoms);
 
   useEffect(() => {
     const store = useEventDraftStore.getState();
-    store.clearAtoms();
+    store.clearAtoms(); // also resets pendingScale
     const existingAtoms = (typeof item.atoms === 'string' ? JSON.parse(item.atoms) : item.atoms ?? []) as Atom[];
     for (const atom of existingAtoms) {
       store.addAtom(atom);
     }
+    // Seed the scale form from the event's existing scale (if any) so the Оценка
+    // step shows/edits it instead of a blank 5.
+    const scale = existingAtoms.find((a) => a.kind === 'scale');
+    if (scale && scale.kind === 'scale') store.hydratePendingScale(scale);
   }, [item.id]);
 
   useSwipeableLock(step !== 'idle');
@@ -56,6 +58,9 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
   });
 
   const handleClose = () => {
+    // Cancel = discard. Clear the shared draft so the loaded atoms don't leak
+    // into the next event created on the same day (the draft is a singleton).
+    clearAtoms();
     setStep('idle');
     onClose();
   };
@@ -93,8 +98,13 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
   };
 
   const handleCommit = async () => {
+    // Flush the pending scale into atoms BEFORE reading them — «Готово» must not
+    // drop a rating the user typed but didn't separately confirm.
+    const store = useEventDraftStore.getState();
+    store.commitPendingScale();
+    const atoms = store.draft.atoms;
     const result = await safeMutate(
-      () => updateScheduleEvent(item.id, { time: draft.time, endTime: draft.endTime ?? undefined, text: draft.text, atoms: draftAtoms }),
+      () => updateScheduleEvent(item.id, { time: draft.time, endTime: draft.endTime ?? undefined, text: draft.text, atoms }),
       'Не удалось обновить событие',
     );
     if (!result.ok) return;
@@ -159,14 +169,12 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         isExpanded={step === 'atoms'}
         content={
           <ModalShell variant="spring4" className={modalStyles.whiteShell}>
-            {!atomPanelOpen && <ModalShell.Header title="Добавьте теги" onBack={handleClose} />}
+            <ModalShell.Header title="Оценка" onBack={handleClose} />
             <ModalShell.AtomsBody>
-              <AtomBuilder id={EDIT_MODAL_INPUT_IDS.ATOMS_INPUT} onPanelChange={setAtomPanelOpen} />
-              {!atomPanelOpen && (
-                <ModalShell.ActionButtons
-                  right={<ModalNextButton onClick={handleCommit} variant="finish" />}
-                />
-              )}
+              <AtomBuilder id={EDIT_MODAL_INPUT_IDS.ATOMS_INPUT} />
+              <ModalShell.ActionButtons
+                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
+              />
             </ModalShell.AtomsBody>
           </ModalShell>
         }

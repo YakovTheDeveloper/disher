@@ -203,3 +203,14 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
+// Read-only signal — relative «created» date. Only rendered on the view-first
+// hypotheses screen (showMeta); the selection lists stay clean. Micro-label
+// size, dimmer than the body.
+.meta {
+    margin-top: 2px;
+    font-size: var(--text-xs);
+    line-height: 1.2;
+    color: var(--lh-text-dim, rgba(60, 38, 10, 0.5));
+    opacity: 0.8;
+}

@@ -1,8 +1,13 @@
 import '@testing-library/jest-dom/vitest';
 import { render } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import HypothesisListItem from '../HypothesisListItem';
 import type { Hypothesis } from '@/entities/hypothesis';
+
+// Deterministic relative date — the real util is wall-clock-dependent.
+vi.mock('@/shared/lib/time/relativeTimeRu', () => ({
+  relativeTimeRu: () => '2 дня назад',
+}));
 
 const H: Hypothesis = {
   id: 'h1',
@@ -33,5 +38,21 @@ describe('HypothesisListItem «new» marker', () => {
     const row = container.querySelector('[data-new]');
     expect(row).not.toBeNull();
     expect(row).toHaveAttribute('data-selected');
+  });
+});
+
+describe('HypothesisListItem meta (relative date)', () => {
+  it('renders the date only when showMeta is set (view-first screen)', () => {
+    const { queryByText } = render(
+      <HypothesisListItem hypothesis={H} selected={false} onToggle={() => {}} showMeta />,
+    );
+    expect(queryByText('2 дня назад')).not.toBeNull();
+  });
+
+  it('hides the date by default (selection lists stay clean)', () => {
+    const { queryByText } = render(
+      <HypothesisListItem hypothesis={H} selected={false} onToggle={() => {}} />,
+    );
+    expect(queryByText('2 дня назад')).toBeNull();
   });
 });

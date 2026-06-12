@@ -4,6 +4,7 @@ import { safeMutate } from '@/shared/lib/safeMutate';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { PlusIcon } from '@/shared/ui/atoms/Button/PlusIcon';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import type { UseWriteFoodFlowResult, ReviewEditStep } from '../model/useWriteFoodFlow';
 import { ProposalFoodItem } from './ProposalFoodItem';
 import { FreeTextFoodReviewEditModals } from './FreeTextFoodReviewEditModals';
@@ -38,6 +39,10 @@ const NEUTRAL_PALETTE: CSSProperties = {
   '--accent-stripe': 'rgba(31, 42, 68, 0.18)',
 } as CSSProperties;
 
+// DesignBar: как предложка расположена относительно листа со списком дня.
+// `undersheet` — дефолт (выезжает из-под листа), см. InlineWriteFoodReview.module.scss.
+const PREDLOZHKA_VARIANTS = ['undersheet', 'seamless', 'tray'] as const;
+
 interface RescueState {
   uid: string;
   anchor: HTMLElement;
@@ -46,9 +51,17 @@ interface RescueState {
 
 export interface InlineWriteFoodReviewProps {
   flow: UseWriteFoodFlowResult;
+  /**
+   * В дне УЖЕ есть контент (лист со списком сверху существует). Включает
+   * «выезд из-под листа» (`data-tucked`) для undersheet/seamless. На пустом
+   * дне (false) выезжать не из-под чего → предложка = самостоятельная карточка.
+   */
+  hasContent?: boolean;
 }
 
-export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
+export const InlineWriteFoodReview = ({ flow, hasContent = false }: InlineWriteFoodReviewProps) => {
+  const { anchor: layoutAnchor } = useDesignVariant('Predlozhka', PREDLOZHKA_VARIANTS);
+  const tucked = hasContent ? 'true' : undefined;
   const {
     state,
     inputText,
@@ -160,8 +173,10 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
       <>
         <div
           key="wrap-loading"
+          {...layoutAnchor}
           className={styles.wrap}
           data-state="loading"
+          data-tucked={tucked}
           data-write-food-anchor=""
         >
           <div className={styles.headerRow}>
@@ -185,10 +200,21 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
     <>
       <div
         key="wrap-ready"
+        {...layoutAnchor}
         className={styles.wrap}
         data-state="ready"
+        data-tucked={tucked}
         data-write-food-anchor=""
         onFocusCapture={handleReviewFocusCapture}
+        onAnimationEnd={(e) => {
+          // Снимаем data-shake после завершения СОБСТВЕННОЙ анимации wrap'а,
+          // чтобы следующий клик «Посмотреть варианты» давал чистый переход
+          // absent→present — единственное, что надёжно перезапускает CSS-
+          // анимацию во всех движках (re-add в том же тике после reflow
+          // перезапуск НЕ гарантирует). Гард target===currentTarget отсекает
+          // всплывшие animationend дочерних рядов.
+          if (e.target === e.currentTarget) e.currentTarget.removeAttribute('data-shake');
+        }}
       >
         <div className={styles.headerRow}>
           <Heading size="section">

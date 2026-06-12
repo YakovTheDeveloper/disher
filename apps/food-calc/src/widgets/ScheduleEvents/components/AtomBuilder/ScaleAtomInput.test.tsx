@@ -1,54 +1,44 @@
-// ScaleAtomInput — phenomenon text field + preset chips. The field is the
-// single source of the label: a chip tap writes straight into it.
-import { describe, it, expect, vi } from 'vitest';
+// ScaleAtomInput — the scale form is now store-backed (no «Добавить» button):
+// edits write into `pendingScale`, the modal's «Готово» commits it. These tests
+// cover that a chip/typing/number reach the store.
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { ScaleAtomInput } from './ScaleAtomInput';
+import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 
-describe('ScaleAtomInput preset chips', () => {
-  it('fills the phenomenon field with the preset text when a chip is tapped', () => {
-    render(<ScaleAtomInput onAddAtom={vi.fn()} onClose={vi.fn()} />);
+beforeEach(() => {
+  useEventDraftStore.getState().clear(); // resets draft + pendingScale
+});
 
+describe('ScaleAtomInput — store-backed pending scale', () => {
+  it('a preset chip writes the label into pendingScale + the field', () => {
+    render(<ScaleAtomInput />);
     const field = screen.getByPlaceholderText('Явление') as HTMLTextAreaElement;
     expect(field.value).toBe('');
 
     fireEvent.click(screen.getByRole('button', { name: 'Боль' }));
 
     expect(field.value).toBe('Боль');
+    expect(useEventDraftStore.getState().pendingScale.label).toBe('Боль');
+    expect(useEventDraftStore.getState().pendingScale.touched).toBe(true);
   });
 
-  it('a chip tap replaces whatever was typed in the field', () => {
-    render(<ScaleAtomInput onAddAtom={vi.fn()} onClose={vi.fn()} />);
-
+  it('typing the phenomenon updates pendingScale', () => {
+    render(<ScaleAtomInput />);
     const field = screen.getByPlaceholderText('Явление') as HTMLTextAreaElement;
-    fireEvent.change(field, { target: { value: 'своё' } });
-    expect(field.value).toBe('своё');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Энергия' }));
-    expect(field.value).toBe('Энергия');
-  });
-});
+    fireEvent.change(field, { target: { value: 'мигрень' } });
 
-describe('ScaleAtomInput commit', () => {
-  it('commits a scale atom with the field text as label', () => {
-    const onAddAtom = vi.fn();
-    render(<ScaleAtomInput onAddAtom={onAddAtom} onClose={vi.fn()} />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Стресс' }));
-    // The action button appears once the value input is focused.
-    fireEvent.focus(screen.getByDisplayValue('5'));
-    fireEvent.click(screen.getByText('Добавить'));
-
-    expect(onAddAtom).toHaveBeenCalledWith({ kind: 'scale', value: 5, label: 'Стресс' });
+    expect(useEventDraftStore.getState().pendingScale.label).toBe('мигрень');
   });
 
-  it('commits with an undefined label when no phenomenon is entered', () => {
-    const onAddAtom = vi.fn();
-    render(<ScaleAtomInput onAddAtom={onAddAtom} onClose={vi.fn()} />);
+  it('changing the number clamps to 1–10 in pendingScale', () => {
+    render(<ScaleAtomInput />);
+    const number = screen.getByDisplayValue('5') as HTMLInputElement;
 
-    fireEvent.focus(screen.getByDisplayValue('5'));
-    fireEvent.click(screen.getByText('Добавить'));
+    fireEvent.change(number, { target: { value: '99' } });
 
-    expect(onAddAtom).toHaveBeenCalledWith({ kind: 'scale', value: 5, label: undefined });
+    expect(useEventDraftStore.getState().pendingScale.value).toBe(10);
   });
 });

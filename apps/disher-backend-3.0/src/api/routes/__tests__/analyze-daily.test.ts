@@ -89,6 +89,13 @@ describe("DAILY_SYSTEM_PROMPT", () => {
     expect(DAILY_SYSTEM_PROMPT).not.toContain("≥20% дней окна");
   });
 
+  it("tells the model to read event text + suspected cause (single-day, no cohort)", () => {
+    expect(DAILY_SYSTEM_PROMPT).toContain("предполагаемую причину");
+    expect(DAILY_SYSTEM_PROMPT).toContain("гипотезой юзера, а не фактом");
+    // Single-day analysis must NOT borrow the cross-day clustering clause.
+    expect(DAILY_SYSTEM_PROMPT).not.toContain("Кластеризуй повторяющиеся явления");
+  });
+
   it("carries the nutrient-anchor instruction (numbers are approximate, not a table)", () => {
     expect(DAILY_SYSTEM_PROMPT).toContain("ОРИЕНТИРОВОЧНЫЕ суммы нутриентов");
     expect(DAILY_SYSTEM_PROMPT).toContain("НЕ превращай ответ в таблицу БЖУ");

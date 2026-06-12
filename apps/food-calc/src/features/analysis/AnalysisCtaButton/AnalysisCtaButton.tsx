@@ -38,7 +38,7 @@ const AnalysisCtaButton = ({ date }: Props) => {
         )
       }
     >
-      {loading ? 'Разбираем…' : 'Анализ'}
+      {loading ? 'Разбираем…' : 'Анализировать'}
     </Button>
   );
 };

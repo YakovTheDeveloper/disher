@@ -41,19 +41,6 @@
     color: rgba(60, 38, 10, 0.58);
 }
 
-// ── streaming status row ─────────────────────────────────────────────
-.statusRow {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.statusText {
-    font-size: 13.5px;
-    font-weight: 500;
-    color: rgba(60, 38, 10, 0.62);
-}
-
 // ── markdown body ────────────────────────────────────────────────────
 .markdown {
     font-size: 14.5px;

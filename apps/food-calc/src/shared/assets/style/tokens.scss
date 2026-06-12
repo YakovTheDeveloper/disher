@@ -27,6 +27,7 @@
   --font-sans: "Jost", sans-serif;
   --font-serif: "Merriweather", serif;
   --font-display: "Raleway", sans-serif;
+  --font-alice: "Alice", "Source Serif 4", serif; // accent serif (analysis loader caption)
   --font-mono: "Ubuntu Mono", monospace;
   // Крупные цифры (циферблат TimeChoose, большое число ProductQuantity) —
   // Onest читается лучше Jost'а на огромных глифах. Только вес 800 (см. fonts.ts).

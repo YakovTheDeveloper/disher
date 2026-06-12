@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import type { Hypothesis } from '@/entities/hypothesis';
+import { relativeTimeRu } from '@/shared/lib/time/relativeTimeRu';
 import styles from './HypothesisListItem.module.scss';
 
 type EditProps =
@@ -26,6 +27,11 @@ type Props = {
   hideCheckbox?: boolean;
   /** Just created in this view — paints the ephemeral «new» ring. */
   isNew?: boolean;
+  /**
+   * Render the read-only meta line (relative «created» date). Only the
+   * view-first hypotheses screen passes this; selection lists keep rows clean.
+   */
+  showMeta?: boolean;
 } & EditProps;
 
 // One hypothesis row. Two independent interactive zones, never nested:
@@ -44,46 +50,50 @@ const HypothesisListItem = ({
   checkboxDisabled = false,
   hideCheckbox = false,
   isNew = false,
-}: Props) => (
-  <div
-    className={styles.row}
-    data-selected={selected || undefined}
-    data-no-checkbox={hideCheckbox || undefined}
-    data-new={isNew || undefined}
-  >
-    {!hideCheckbox && (
-      <label className={styles.checkboxWrap}>
-        <input
-          type="checkbox"
-          className={styles.checkbox}
-          checked={selected}
-          disabled={checkboxDisabled}
-          onChange={onToggle}
-          aria-label={`Включить в разбор: ${hypothesis.title}`}
-        />
-        <span className={styles.checkboxBox} aria-hidden="true" />
-      </label>
-    )}
-    {onEdit && editInputHtmlFor ? (
-      <label
-        htmlFor={editInputHtmlFor}
-        className={styles.textButton}
-        onClick={onEdit}
-      >
-        <span className={styles.title}>{hypothesis.title}</span>
-        {hypothesis.body && (
-          <span className={styles.body}>{hypothesis.body}</span>
-        )}
-      </label>
-    ) : (
-      <div className={styles.textButton}>
-        <span className={styles.title}>{hypothesis.title}</span>
-        {hypothesis.body && (
-          <span className={styles.body}>{hypothesis.body}</span>
-        )}
-      </div>
-    )}
-  </div>
-);
+  showMeta = false,
+}: Props) => {
+  const meta = showMeta ? relativeTimeRu(hypothesis.createdAt) : '';
+  const content = (
+    <>
+      <span className={styles.title}>{hypothesis.title}</span>
+      {hypothesis.body && <span className={styles.body}>{hypothesis.body}</span>}
+      {meta && <span className={styles.meta}>{meta}</span>}
+    </>
+  );
+
+  return (
+    <div
+      className={styles.row}
+      data-selected={selected || undefined}
+      data-no-checkbox={hideCheckbox || undefined}
+      data-new={isNew || undefined}
+    >
+      {!hideCheckbox && (
+        <label className={styles.checkboxWrap}>
+          <input
+            type="checkbox"
+            className={styles.checkbox}
+            checked={selected}
+            disabled={checkboxDisabled}
+            onChange={onToggle}
+            aria-label={`Включить в разбор: ${hypothesis.title}`}
+          />
+          <span className={styles.checkboxBox} aria-hidden="true" />
+        </label>
+      )}
+      {onEdit && editInputHtmlFor ? (
+        <label
+          htmlFor={editInputHtmlFor}
+          className={styles.textButton}
+          onClick={onEdit}
+        >
+          {content}
+        </label>
+      ) : (
+        <div className={styles.textButton}>{content}</div>
+      )}
+    </div>
+  );
+};
 
 export default memo(HypothesisListItem);

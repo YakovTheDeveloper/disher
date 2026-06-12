@@ -11,6 +11,19 @@ export interface EventDraft {
   atoms: Atom[];
 }
 
+// The Оценка modal edits ONE scale at a time, held here as a pending value.
+// `touched` gates commit: an untouched form (default 5, no label) must NOT
+// attach a phantom «5/10» to every event — the user may have opened the modal
+// just to read the hint and close. Any edit flips `touched`; `commitPendingScale`
+// (called on the modal's «Готово»/close) upserts it into `draft.atoms`.
+export interface PendingScale {
+  value: number | "";
+  label: string;
+  touched: boolean;
+}
+
+const EMPTY_PENDING = (): PendingScale => ({ value: 5, label: "", touched: false });
+
 const POPULAR_TAGS_LIMIT = 10;
 const MAX_TAG_HISTORY = 100;
 
@@ -23,6 +36,14 @@ interface EventDraftStore {
   updateAtom: (index: number, atom: Atom) => void;
   clearAtoms: () => void;
   clear: () => void;
+
+  // Pending scale for the Оценка modal (single scale per event).
+  pendingScale: PendingScale;
+  setPendingScale: (patch: Partial<Pick<PendingScale, "value" | "label">>) => void;
+  hydratePendingScale: (scale: { value: number; label?: string }) => void;
+  resetPendingScale: () => void;
+  /** Upsert the pending scale into atoms (replace the existing scale, else append). No-op if untouched. */
+  commitPendingScale: () => void;
 
   tagHistory: string[];
   tagFrequency: Record<string, number>;
@@ -63,8 +84,28 @@ export const useEventDraftStore = create<EventDraftStore>()(
           "updateAtom",
         ),
       clearAtoms: () =>
-        set((s) => ({ draft: { ...s.draft, atoms: [] } }), false, "clearAtoms"),
-      clear: () => set({ draft: DEFAULT_DRAFT() }, false, "clear"),
+        set((s) => ({ draft: { ...s.draft, atoms: [] }, pendingScale: EMPTY_PENDING() }), false, "clearAtoms"),
+      clear: () => set({ draft: DEFAULT_DRAFT(), pendingScale: EMPTY_PENDING() }, false, "clear"),
+
+      pendingScale: EMPTY_PENDING(),
+      setPendingScale: (patch) =>
+        set((s) => ({ pendingScale: { ...s.pendingScale, ...patch, touched: true } }), false, "setPendingScale"),
+      hydratePendingScale: (scale) =>
+        set({ pendingScale: { value: scale.value, label: scale.label ?? "", touched: true } }, false, "hydratePendingScale"),
+      resetPendingScale: () => set({ pendingScale: EMPTY_PENDING() }, false, "resetPendingScale"),
+      commitPendingScale: () =>
+        set((s) => {
+          const p = s.pendingScale;
+          if (!p.touched) return { pendingScale: EMPTY_PENDING() };
+          const value = typeof p.value === "number" ? p.value : 5;
+          const atom: Atom = { kind: "scale", value: value || 5, label: p.label.trim() || undefined };
+          const idx = s.draft.atoms.findIndex((a) => a.kind === "scale");
+          const atoms =
+            idx >= 0
+              ? s.draft.atoms.map((a, i) => (i === idx ? atom : a))
+              : [...s.draft.atoms, atom];
+          return { draft: { ...s.draft, atoms }, pendingScale: EMPTY_PENDING() };
+        }, false, "commitPendingScale"),
 
       tagHistory: [],
       tagFrequency: {},

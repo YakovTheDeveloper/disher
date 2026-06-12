@@ -1,0 +1,245 @@
+// FabricLoader — лоадер анализа дня. Над бледной гравюрой-библиотекой анимация
+// работает с самой картинкой (без концентрической ауры). Три слоя на .art:
+//   ::before — база (постоянно бледная гравюра; в study медленно наезжает);
+//   ::after  — проявляющая копия (видна сквозь маску: полоса scan / круг study);
+//   .glow    — тёплый свет лампы (отдельный слой, чтобы складываться с проявлением).
+// Характер — DesignBar 'AnalysisLoader': scan / glow / study / scan-glow.
+// Цветовое сырьё — в локальных проперти БЕЗ суффикса `-color` (token-gate ловит
+// /color$/, font-size, border-radius; mask / filter / градиенты освобождены).
+
+.loader {
+  --fl-ink: #6b4a23;
+  --fl-day-size: clamp(28px, 16vw, 62px);
+  --fl-glow: rgba(120, 150, 220, 0.5);
+  --fl-art-w: min(340px, 86vw);
+  --fl-base-opacity: 0.16; // постоянная бледность гравюры
+  --fl-reveal-opacity: 0.5; // яркость проявляющей копии
+  // типографика подписи (дизайн-токены: цвет основной + шрифт Alice)
+  --fl-caption-font: var(--font-alice);
+  --fl-caption-color: var(--text-primary);
+  --fl-caption-size: var(--text-lg);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5) 0 var(--space-4);
+  isolation: isolate;
+}
+
+// Размер блока задаёт картинка; подпись ложится прямо под её нижний край.
+.stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 196px;
+  min-height: 196px;
+}
+
+// ─── Гравюра + слои анимации ──────────────────────────────────────
+// Края «съедены» виньеткой (mask на родителе клипует все слои разом).
+// Размер задаёт базовый <img> (в потоке) — работает с картинкой любых пропорций.
+.art {
+  grid-area: 1 / 1;
+  position: relative;
+  width: var(--fl-art-w);
+  pointer-events: none;
+  --fl-vignette: radial-gradient(
+    ellipse 74% 74% at 50% 47%,
+    #000 34%,
+    rgba(0, 0, 0, 0.4) 60%,
+    transparent 82%
+  );
+  -webkit-mask-image: var(--fl-vignette);
+  mask-image: var(--fl-vignette);
+}
+
+// базовый слой — постоянная бледная гравюра; в потоке, задаёт высоту .art
+.artBase {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: var(--fl-base-opacity);
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+// проявляющий слой — та же гравюра ярче, видна сквозь маску.
+// Дефолт (scan) = бегущая слева-направо световая полоса.
+.art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--fl-art) center / contain no-repeat;
+  opacity: var(--fl-reveal-opacity);
+  -webkit-mask: linear-gradient(100deg, transparent 0%, #000 50%, transparent 100%) no-repeat;
+  mask: linear-gradient(100deg, transparent 0%, #000 50%, transparent 100%) no-repeat;
+  -webkit-mask-size: 48% 100%;
+  mask-size: 48% 100%;
+  will-change: mask-position;
+  animation: fl-scan 3.4s var(--easing-default) infinite;
+}
+
+// тёплый свет лампы — отдельный слой, выключен пока вариант его не оживит
+.glow {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, var(--fl-glow) 0%, transparent 60%);
+  opacity: 0;
+}
+
+@keyframes fl-scan {
+  0% {
+    -webkit-mask-position: -55% 0;
+    mask-position: -55% 0;
+    opacity: 0;
+  }
+  18% {
+    opacity: var(--fl-reveal-opacity);
+  }
+  82% {
+    opacity: var(--fl-reveal-opacity);
+  }
+  100% {
+    -webkit-mask-position: 155% 0;
+    mask-position: 155% 0;
+    opacity: 0;
+  }
+}
+
+// ── glow: только тёплый свет, без проявляющей полосы ──
+.stage[data-dv-v='glow'] {
+  .art::after {
+    display: none;
+  }
+  .glow {
+    animation: fl-glow 5.2s ease-in-out infinite;
+  }
+}
+
+// ── scan-glow: проявляющая полоса + тёплый свет одновременно ──
+.stage[data-dv-v='scan-glow'] {
+  // ::after остаётся дефолтным scan
+  .glow {
+    animation: fl-glow 5.2s ease-in-out infinite;
+  }
+}
+
+// ── study: наезд (Ken Burns) + пульс-лампа из центра + тёплый свет вместе ──
+.stage[data-dv-v='study'] {
+  .artBase {
+    transform-origin: 52% 46%;
+    animation: fl-pushin 7.5s ease-in-out infinite;
+  }
+  .art::after {
+    -webkit-mask: radial-gradient(circle at 50% 50%, #000 0%, #000 34%, transparent 64%) center
+      no-repeat;
+    mask: radial-gradient(circle at 50% 50%, #000 0%, #000 34%, transparent 64%) center no-repeat;
+    animation: fl-spotlight 3.8s ease-in-out infinite;
+  }
+  .glow {
+    animation: fl-glow 5.2s ease-in-out infinite;
+  }
+}
+
+@keyframes fl-glow {
+  0%,
+  100% {
+    transform: translate(-12%, 6%) scale(0.9);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(12%, -6%) scale(1.15);
+    opacity: 0.75;
+  }
+}
+@keyframes fl-spotlight {
+  0%,
+  100% {
+    -webkit-mask-size: 58% 58%;
+    mask-size: 58% 58%;
+    opacity: 0.22;
+  }
+  50% {
+    -webkit-mask-size: 132% 132%;
+    mask-size: 132% 132%;
+    opacity: 0.55;
+  }
+}
+@keyframes fl-pushin {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.12;
+  }
+  50% {
+    transform: scale(1.07);
+    opacity: 0.26;
+  }
+}
+
+// ─── Fallback: цифра дня (когда нет art) ──────────────────────────
+.digit {
+  grid-area: 1 / 1;
+  place-self: center;
+  display: grid;
+  place-items: center;
+  width: 196px;
+  height: 196px;
+  pointer-events: none;
+}
+
+.day {
+  font-family: var(--font-big-numeric);
+  font-weight: 800;
+  font-size: var(--fl-day-size);
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  line-height: 1;
+  color: var(--fl-ink);
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75), 0 0 22px rgba(255, 248, 235, 0.95);
+}
+
+// ─── Подпись «Анализируем день» — под картинкой, основным цветом, Alice ──
+.caption {
+  margin: 0;
+  font-family: var(--fl-caption-font);
+  font-size: var(--fl-caption-size);
+  font-weight: 400;
+  color: var(--fl-caption-color);
+  letter-spacing: 0.01em;
+  text-align: center;
+  animation: fl-breathe-text 2.8s var(--easing-default) infinite;
+}
+
+@keyframes fl-breathe-text {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+// ─── Reduced motion: статичная бледная гравюра + подпись, без движения ──
+@media (prefers-reduced-motion: reduce) {
+  .art::after {
+    display: none;
+  }
+  .artBase {
+    animation: none;
+    transform: none;
+    opacity: var(--fl-base-opacity);
+  }
+  .glow {
+    animation: none;
+    opacity: 0;
+  }
+  .caption {
+    animation: none;
+  }
+}

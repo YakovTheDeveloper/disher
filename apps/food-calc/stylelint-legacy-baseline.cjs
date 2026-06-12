@@ -88,7 +88,6 @@ module.exports = [
   "src/widgets/FoodSchedule/ui/ScheduleFoodEditModals.module.scss",
   "src/widgets/HomeTopBar/HomeTopBar.module.scss",
   "src/widgets/Laboratory/DailyAnalysisSection.module.scss",
-  "src/widgets/Laboratory/HypothesisComposer.module.scss",
   "src/widgets/Laboratory/HypothesisListItem.module.scss",
   "src/widgets/Laboratory/HypothesisListPanel.module.scss",
   "src/widgets/Laboratory/Laboratory.module.scss",

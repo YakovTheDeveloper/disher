@@ -102,6 +102,9 @@ importers:
       '@floating-ui/react':
         specifier: 0.27.0
         version: 0.27.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@fontsource/alice':
+        specifier: ^5.2.8
+        version: 5.2.8
       '@fontsource/jost':
         specifier: ^5.2.8
         version: 5.2.8
@@ -1412,6 +1415,9 @@ packages:
 
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
+
+  '@fontsource/alice@5.2.8':
+    resolution: {integrity: sha512-EDpK9aFXsaRKdyZpgFu8d5+zmE07yIaFxqVeKrYQJjdQpEhWDZA+naLflHwQQmMbLMJK3a4X/RAm5MCScT93NA==}
 
   '@fontsource/jost@5.2.8':
     resolution: {integrity: sha512-PEK7oGJL8r+YZm6BriWhmCql9DhVYTMt0iEQbZHo8mqfIPIZo67Tm68xEIaRA0yB3wsHA7Tm66yMQDIxq3Bjqw==}
@@ -7149,6 +7155,8 @@ snapshots:
       tabbable: 6.4.0
 
   '@floating-ui/utils@0.2.11': {}
+
+  '@fontsource/alice@5.2.8': {}
 
   '@fontsource/jost@5.2.8': {}
 

@@ -43,7 +43,7 @@ type Props = {
   selectable?: boolean;
   /**
    * Ids just created in this view — each paints the ephemeral «new» ring.
-   * Owned by HypothesisSection; cleared on remount (reload / leaving screen).
+   * Owned by the host (HypothesesSlide); cleared on remount (reload / leaving).
    */
   newIds?: Set<string>;
   /**
@@ -52,6 +52,12 @@ type Props = {
    * модалки), вместо них — тонкий fading-hairline divider.
    */
   headerVariant?: 'title' | 'divider';
+  /**
+   * Show the read-only meta line (relative date) on each row. Only the
+   * view-first hypotheses screen passes `true`; selection hosts leave it off so
+   * their rows stay clean (checkbox + title only).
+   */
+  showMeta?: boolean;
 } & EditProps;
 
 // The hypothesis list: a static header label + a height-bounded, internally
@@ -67,6 +73,7 @@ const HypothesisListPanel = ({
   selectable = true,
   newIds,
   headerVariant = 'title',
+  showMeta = false,
 }: Props) => {
   const { anchor } = useDesignVariant('LabHypothesis', PALETTE_VARIANTS);
 
@@ -141,6 +148,7 @@ const HypothesisListPanel = ({
                 checkboxDisabled={capReached && !selected}
                 hideCheckbox={!selectable}
                 isNew={newIds?.has(h.id) ?? false}
+                showMeta={showMeta}
                 {...editProps}
               />
             );

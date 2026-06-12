@@ -242,6 +242,26 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
     expect(userPromptArg).not.toContain("h-1");
   });
 
+  it("the system prompt carries the events-mining instruction (not just the constant)", async () => {
+    const id = crypto.randomUUID();
+    await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id,
+        windowStart: "2026-05-01T00:00:00Z",
+        windowEnd: "2026-05-08T00:00:00Z",
+        payload: { scheduleFoods: [], scheduleEvents: [] },
+      },
+    });
+    await pollUntilDone(id, user.headers);
+    // calls[0][0] = system prompt actually handed to the LLM for the long job.
+    const systemPromptArg = mockCallLLM.mock.calls[0]?.[0] as string;
+    expect(systemPromptArg).toContain("Кластеризуй повторяющиеся явления");
+    expect(systemPromptArg).toContain("это ГИПОТЕЗА юзера, а не факт");
+  });
+
   it("nutrientsByDay reaches the LLM prompt as per-day anchor lines", async () => {
     const id = crypto.randomUUID();
     await app.inject({

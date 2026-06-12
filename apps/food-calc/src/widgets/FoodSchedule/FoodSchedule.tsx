@@ -176,7 +176,7 @@ const FoodSchedule = ({
            write-баром (chat-pattern). Несёт [data-write-food-anchor] —
            auto-scroll из AppBottomBar.handleSubmit находит её по селектору.
            Loading рисует skeleton-блок со спиннером. */
-        <InlineWriteFoodReview flow={writeFoodFlow} />
+        <InlineWriteFoodReview flow={writeFoodFlow} hasContent={!isEmpty} />
       }
     >
       <div {...foodAnchor} className={styles.foodListAnchor}>

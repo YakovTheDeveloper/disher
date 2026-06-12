@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { WriteBarShell, WriteBarClip } from '@/shared/ui/WriteBarShell';
+import { WriteBarShell, WriteBarClip, RateIcon, RATE_ICON_VARIANTS } from '@/shared/ui/WriteBarShell';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
@@ -14,6 +15,12 @@ import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
 import modalStyles from './ScheduleEventModals.module.scss';
 
 const EVENT_DESCRIPTION_INPUT_ID = 'event-description-bar';
+
+// Focus-hint shown in the centre above the bar (same affordance food uses). It
+// migrates the old «Связь» preset chips: instead of a structured relation atom,
+// the user is nudged to write the phenomenon AND its suspected cause straight
+// into the text — which the analysis LLM mines (EVENTS_MINING_INSTRUCTION).
+const EVENT_HINT = 'Например болела голова — похоже, из-за недосыпа';
 
 type Props = {
   /** dd-MM-yyyy day to attach the event to. */
@@ -38,12 +45,18 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
   const atoms = useEventDraftStore((st) => st.draft.atoms);
   const clearAtoms = useEventDraftStore((st) => st.clearAtoms);
 
+  // DesignBar-driven left-icon variants (anchor key `EventsRateIcon`). All keep
+  // the «1–10» idea; flip live via the floating 🎨 bar. anchor → the clip button.
+  const { variant: rateVariant, anchor: rateAnchor } = useDesignVariant(
+    'EventsRateIcon',
+    RATE_ICON_VARIANTS,
+  );
+
   const [description, setDescription] = useState('');
-  // Atoms modal: `atomsOpen` raises the ModalByLabel; `atomPanelOpen` mirrors
-  // AtomBuilder's inner sub-panel (scale / tag / relation) so the header + Done
-  // footer hide while a sub-panel owns the screen — identical to the old step-3.
+  // Atoms modal: `atomsOpen` raises the ModalByLabel. Since the picker is now
+  // Scale-only (AtomBuilder renders the scale form directly — no sub-panels),
+  // the header + «Готово» footer are always shown.
   const [atomsOpen, setAtomsOpen] = useState(false);
-  const [atomPanelOpen, setAtomPanelOpen] = useState(false);
   const submittingRef = useRef(false);
 
   // Reset on date change — the atoms draft is a global singleton, so clear it too
@@ -52,16 +65,24 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
     setDescription('');
     clearAtoms();
     setAtomsOpen(false);
-    setAtomPanelOpen(false);
     submittingRef.current = false;
   }, [scheduleId, clearAtoms]);
 
   const hasContent = description.trim().length > 0 || atoms.length > 0;
 
-  const openAtoms = useCallback(() => setAtomsOpen(true), []);
+  // Open: seed the form from the existing scale atom (so re-opening shows/edits
+  // it, not a blank 5), else a clean default. Close/«Готово»/Back: commit the
+  // pending scale into atoms — a single button that never silently drops it.
+  const openAtoms = useCallback(() => {
+    const store = useEventDraftStore.getState();
+    const scale = store.draft.atoms.find((a) => a.kind === 'scale');
+    if (scale && scale.kind === 'scale') store.hydratePendingScale(scale);
+    else store.resetPendingScale();
+    setAtomsOpen(true);
+  }, []);
   const closeAtoms = useCallback(() => {
+    useEventDraftStore.getState().commitPendingScale();
     setAtomsOpen(false);
-    setAtomPanelOpen(false);
   }, []);
 
   // Lock the day-pager while the modal is open; route hardware/browser Back to
@@ -110,6 +131,7 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
         onSubmit={handleSubmit}
         inputId={EVENT_DESCRIPTION_INPUT_ID}
         placeholder="Опишите событие"
+        hint={EVENT_HINT}
         online={online}
         // After send: drop focus so the scrim/overlay dismisses (atoms already
         // cleared on success — once focus drops the badge reflects the reset).
@@ -119,29 +141,32 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
         computeSend={({ focused }) => ({ visible: focused, enabled: hasContent })}
         sendAriaLabel="Добавить событие"
         leftSlot={
-          <WriteBarClip onClick={openAtoms} ariaLabel="Добавить особенности" count={atoms.length} />
+          <WriteBarClip
+            onClick={openAtoms}
+            ariaLabel="Оценить состояние"
+            count={atoms.length}
+            icon={<RateIcon variant={rateVariant} />}
+            anchor={rateAnchor}
+          />
         }
       />
 
-      {/* Атомы — полноэкранная модалка по той же обвязке, что у прежнего шага 3
-          (ModalShell + AtomBuilder в ModalByLabel). Выбор пишется в draft-store
-          живьём; «Готово» / стрелка-назад / системный Back просто закрывают. */}
+      {/* Оценка — полноэкранная модалка (ModalShell + AtomBuilder в ModalByLabel).
+          Scale-only: AtomBuilder рисует форму шкалы напрямую, поэтому шапка и
+          «Готово» показаны всегда. Выбор пишется в draft-store живьём; «Готово» /
+          стрелка-назад / системный Back просто закрывают. */}
       <ModalByLabel
         position="fixed"
         isExpanded={atomsOpen}
         content={
           <ModalShell variant="spring4" className={modalStyles.whiteShell}>
-            {!atomPanelOpen && (
-              <ModalShell.Header title="Особенности" onBack={closeAtoms} backLabel="Закрыть" />
-            )}
+            <ModalShell.Header title="Оценка состояния" onBack={closeAtoms} backLabel="Закрыть" />
             <ModalShell.AtomsBody>
-              {atomsOpen && <AtomBuilder onPanelChange={setAtomPanelOpen} />}
+              {atomsOpen && <AtomBuilder />}
             </ModalShell.AtomsBody>
-            {!atomPanelOpen && (
-              <ModalShell.ActionButtons
-                right={<ModalNextButton onClick={closeAtoms} variant="finish" />}
-              />
-            )}
+            <ModalShell.ActionButtons
+              right={<ModalNextButton onClick={closeAtoms} variant="finish" />}
+            />
           </ModalShell>
         }
       />

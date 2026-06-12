@@ -16,11 +16,9 @@
 
 .wrap {
     --pill-h: var(--bottom-action-h, 72px);
-    // On focus the pill (field) + clip grow ~1.5×. The send coin does NOT — it is
-    // pinned to --coin-size so it always fits the bar width (a focus-sized coin
-    // overflowed the right edge). --coin-size keys off the BASE height, not the
-    // overridden --pill-h, so it stays put when the subtree's --pill-h grows.
-    --pill-h-focus: calc(var(--bottom-action-h, 72px) * 1.5);
+    // Высота бара на фокусе НЕ растёт (по просьбе 2026-06-12 — focus-рост снят).
+    // Send-кружок привязан к --coin-size (от базовой высоты) и всегда влезает по
+    // ширине.
     --coin-size: calc(var(--bottom-action-h, 72px) - var(--space-1));
 
     --field-font-family: var(--font-sans);
@@ -139,52 +137,66 @@
     position: relative;
 
     background: var(--wb-pill-bg);
-    // Контур рисуем на masked ::before (ниже), сам border прозрачный — держит
-    // метрику бокса, а цвет/затухание рамки делает псевдоэлемент.
-    border: 1px solid transparent;
+    border: 1px solid var(--wb-pill-border);
     border-radius: var(--radius-full);
     padding: 0 var(--space-2) 0 var(--space-4);
     backdrop-filter: var(--wb-backdrop);
-    transition: background 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease;
 
-    // Растворяющийся контур: рамка пилюли цела слева/в центре и затухает ТОЛЬКО
-    // справа, у медали — кнопка «протыкает» рамку, а не обведена кольцом. Фейд
-    // начинается рано (~70% длины) и уходит в прозрачность к правому торцу.
-    // Обычный border затухать по позиции не умеет → рисуем на ::before и срезаем
-    // горизонтальной mask-маской (alpha-стоп = видимость).
-    &::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        border: 1px solid var(--wb-pill-border);
-        pointer-events: none;
-        // Полная прозрачность достигается на ~72% (ДО медали) — иначе у правого
-        // края оставался бы полупрозрачный «хвост» рамки вокруг кнопки. Старт
-        // фейда — 40%.
-        -webkit-mask: linear-gradient(90deg,
-                #000 0%,
-                #000 40%,
-                transparent 72%);
-        -webkit-mask-repeat: no-repeat;
-        mask: linear-gradient(90deg,
-                #000 0%,
-                #000 40%,
-                transparent 72%);
-        mask-repeat: no-repeat;
-        transition: border-color 0.15s ease;
-    }
-
-    &:focus-within::before {
+    &:focus-within {
         border-color: var(--wb-pill-border-focus);
     }
 
-    // Grow on focus: bump --pill-h for this subtree so the field min-height (and
-    // the clip, below) scale up. Snap — no height transition (canon: never
-    // animate layout props). The send coin is pinned to --coin-size and does NOT
-    // grow with this.
-    &[data-expanded] {
-        --pill-h: var(--pill-h-focus);
+    // Fade-right — ТОЛЬКО по пропу (WriteFoodInput → fadeRight, бар еды). Заливка
+    // И контур пилюли уезжают в прозрачность к правому торцу (у медали «Выбор
+    // еды»), будто пилюля «открывается» к кнопке. Слой fill+border вынесен на
+    // ::before и срезан горизонтальной mask-маской; контент (поле/медаль) рисуется
+    // ПОВЕРХ (isolate + z-index:-1), поэтому маска не трогает текст и медаль.
+    // Полная прозрачность достигается на ~72% (ДО медали), старт фейда — 40%.
+    // Не-еда барам (Анализ/События) — обычная ровная рамка выше.
+    &[data-fade-right] {
+        background: transparent;
+        border-color: transparent;
+        isolation: isolate;
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            border-radius: inherit;
+            background: var(--wb-pill-bg);
+            border: 1px solid var(--wb-pill-border);
+            pointer-events: none;
+            -webkit-mask: linear-gradient(90deg,
+                    #000 0%,
+                    #000 40%,
+                    transparent 72%);
+            -webkit-mask-repeat: no-repeat;
+            mask: linear-gradient(90deg,
+                    #000 0%,
+                    #000 40%,
+                    transparent 72%);
+            mask-repeat: no-repeat;
+            transition: opacity 0.15s ease;
+        }
+
+        &[data-pressed]::before {
+            background: var(--wb-pill-press);
+            transition: background 0s;
+        }
+
+        // На фокусе fade выключаем: возвращаем цельную пилюлю (fill + border на
+        // самом элементе), masked-слой ::before прячем — растворённый правый край
+        // мешал бы при вводе.
+        &:focus-within {
+            background: var(--wb-pill-bg);
+            border-color: var(--wb-pill-border-focus);
+
+            &::before {
+                opacity: 0;
+            }
+        }
     }
 
     // A left slot (paperclip) sits inside the pill — trim the left padding so
@@ -193,7 +205,7 @@
         padding-left: var(--space-2);
     }
 
-    &[data-pressed] {
+    &[data-pressed]:not([data-fade-right]) {
         background: var(--wb-pill-press);
         transition: background 0s;
     }
@@ -294,8 +306,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: var(--coin-size);
-    height: var(--coin-size);
+    // Trim a hair below --coin-size (the medal footprint) so the send button
+    // feels a touch lighter / better-proportioned in the circle without losing
+    // its «big» character (user 2026-06-13). Stays centred via align-self.
+    width: calc(var(--coin-size) - var(--space-1));
+    height: calc(var(--coin-size) - var(--space-1));
     margin-left: var(--space-2);
     border: none;
     border-radius: var(--radius-full);
@@ -309,9 +324,11 @@
     animation: sendCoinIn 0.22s ease;
     transition: filter 0.15s ease, opacity 0.15s ease, transform 0.12s ease;
 
+    // 37% (was 40%) — a touch more breathing room so the arrow sits inscribed
+    // in the circle rather than crowding its edges.
     svg {
-        width: 40%;
-        height: 40%;
+        width: 37%;
+        height: 37%;
     }
 
     &:not(:disabled):hover {
@@ -383,6 +400,17 @@
         transform: scale(0.92);
         transition-duration: var(--press-in);
     }
+
+    // Title-first gate (Hypotheses bar): no body without a title.
+    &:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+
+    &:disabled:active {
+        background: transparent;
+        transform: none;
+    }
 }
 
 // Grow the left affordance on focus alongside the pill (snap — no size transition,
@@ -395,6 +423,19 @@
         width: 26px;
         height: 26px;
     }
+}
+
+// `bars` RateIcon variant is an app-tile (filled backdrop + inverted content),
+// so it renders ~2× the other glyphs to read as an icon, not a hairline mark.
+// `data-dv-v` rides the clip button (the useDesignVariant anchor).
+.clip[data-dv-v='bars'] svg {
+    width: 38px;
+    height: 38px;
+}
+
+[data-expanded] .clip[data-dv-v='bars'] svg {
+    width: 48px;
+    height: 48px;
 }
 
 // Count of attached items — small accent badge at the top-right of the clip.

@@ -39,6 +39,15 @@ describe("system prompt — dish-name [особенности: …] hint", () =>
     expect(SYSTEM_PROMPT_BASE).toContain("ОРИЕНТИРОВОЧНЫЕ суммы нутриентов");
     expect(SYSTEM_PROMPT_BASE).toContain("НЕ превращай ответ в таблицу БЖУ");
   });
+
+  // Tripwire: events used to be dumped as raw JSON with no reading guidance —
+  // less leveraged than food `details`. The mining instruction is what makes
+  // it safe to drop manual tag/relation atom input (the cause now lives in the
+  // event text, and the LLM is told to mine it). See entities/schedule-event.
+  it("SYSTEM_PROMPT_BASE carries the events-mining instruction", () => {
+    expect(SYSTEM_PROMPT_BASE).toContain("Кластеризуй повторяющиеся явления");
+    expect(SYSTEM_PROMPT_BASE).toContain("это ГИПОТЕЗА юзера, а не факт");
+  });
 });
 
 describe("asNutrientLines", () => {

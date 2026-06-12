@@ -82,6 +82,15 @@ export const ANALYSIS_OUTPUT_PROMPT_SPEC = `Верни строго JSON и НИ
 // of days in the window before calling something a cohort.
 const DETAILS_COHORT_INSTRUCTION = `Каждый приём пищи может иметь поле details (строка через запятую: «жареное, без масла», «выдержанный», «домашнее», «с кожурой» и т.п.). Прочти details всех приёмов окна. Выдели повторяющиеся оси (способ готовки, источник, выдержка, кожура, маринад) и стройте когорты — например «жареные дни» vs «варёные дни», «домашнее» vs «магазинное». Минимум для когорты — присутствие в ≥20% дней окна; единичные упоминания не паттерн. Если ось встречается слишком редко, не натягивай её на разбор.`;
 
+// Events arrive as JSON: each has `text` (free-form description of how the user
+// felt / what they noted) and optionally `atoms` — currently scale ratings
+// (`{kind:"scale", value:1–10, label:"Боль"}`). The user writes the phenomenon
+// AND often its suspected cause directly into `text`; the model must mine that
+// prose, cluster it across days, and treat user-stated causes as hypotheses —
+// not facts. This is the events-side mirror of DETAILS_COHORT_INSTRUCTION; it
+// exists because events used to be dumped as raw JSON with no reading guidance.
+const EVENTS_MINING_INSTRUCTION = `События юзера приходят с полем text (свободное описание самочувствия/состояния) и иногда с атомами-оценками (шкала 1–10 с ярлыком явления, напр. «Боль» 7/10). Прочти text всех событий окна. Кластеризуй повторяющиеся явления, даже если в разные дни они названы по-разному («болит голова» ≈ «мигрень» ≈ «тяжёлая голова») — для корреляции это один ряд. В тексте юзер часто сам называет предполагаемую причину («болела голова из-за недосыпа», «бодрость после кофе») — это ГИПОТЕЗА юзера, а не факт: взвешивай её против реальной еды окна, не принимай на веру и не повторяй как готовый вывод. Шкальные оценки — это сила явления: учитывай величину (7/10 vs 3/10), а не только факт, что событие было. Минимум для паттерна — повтор примерно в ≥20% дней окна; единичное явление не паттерн.`;
+
 // ─── Nutrient anchor ───
 // The client computes approximate per-day nutrient sums (from the catalog) and
 // ships them as an anchor. They are NOT a calculator readout for the user — the
@@ -135,6 +144,8 @@ export const SYSTEM_PROMPT_BASE = `Ты помогаешь юзеру в его 
 ставишь диагнозы и не считаешь калькулятор БЖУ.
 
 ${DETAILS_COHORT_INSTRUCTION}
+
+${EVENTS_MINING_INSTRUCTION}
 
 ${DISH_DETAILS_INSTRUCTION}
 

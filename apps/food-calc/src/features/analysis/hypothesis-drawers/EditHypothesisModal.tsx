@@ -19,6 +19,7 @@ import editStyles from './EditHypothesisModal.module.scss';
 // родителе → setEditStep('edit'). Один input id на весь список — модалка
 // одна, просто меняет hypothesisId.
 export const EDIT_HYPOTHESIS_TITLE_INPUT_ID = 'edit-hypothesis-title';
+const EDIT_HYPOTHESIS_BODY_INPUT_ID = 'edit-hypothesis-body';
 
 type Props = {
   hypothesisId: string | null;
@@ -100,32 +101,46 @@ const EditHypothesisModal = ({ hypothesisId, isExpanded, onClose }: Props) => {
           <ModalShell.Header title="Гипотеза" onBack={onClose} />
           <ModalShell.Body>
             <div className={styles.fields}>
-              <AutoGrowSearch
-                singleLine
-                id={EDIT_HYPOTHESIS_TITLE_INPUT_ID}
-                value={title}
-                onChange={setTitle}
-                placeholder="Коротко — что проверяем"
-                maxLength={500}
-              />
-              <AutoGrowSearch
-                value={body}
-                onChange={setBody}
-                placeholder="Подробнее (необязательно): что отслеживаем, при каких условиях…"
-                maxRows={10}
-                collapseOnBlur={false}
-              />
-              {body.length > 0 && (
-                <span
-                  className={
-                    body.length > 5000
-                      ? `${styles.counter} ${styles.counterOver}`
-                      : styles.counter
-                  }
-                >
-                  {body.length}
-                </span>
-              )}
+              {/* Видимые лейблы — без них непонятно, где название, где описание
+                  (просьба 2026-06-13). htmlFor связывает с инпутом AutoGrowSearch. */}
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor={EDIT_HYPOTHESIS_TITLE_INPUT_ID}>
+                  Название
+                </label>
+                <AutoGrowSearch
+                  singleLine
+                  id={EDIT_HYPOTHESIS_TITLE_INPUT_ID}
+                  value={title}
+                  onChange={setTitle}
+                  placeholder="Коротко — что проверяем"
+                  maxLength={500}
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor={EDIT_HYPOTHESIS_BODY_INPUT_ID}>
+                  Описание <span className={styles.fieldLabelHint}>· необязательно</span>
+                </label>
+                <AutoGrowSearch
+                  id={EDIT_HYPOTHESIS_BODY_INPUT_ID}
+                  value={body}
+                  onChange={setBody}
+                  placeholder="Что отслеживаем, при каких условиях…"
+                  maxRows={10}
+                  collapseOnBlur={false}
+                />
+                {body.length > 0 && (
+                  <span
+                    className={
+                      body.length > 5000
+                        ? `${styles.counter} ${styles.counterOver}`
+                        : styles.counter
+                    }
+                  >
+                    {body.length}
+                  </span>
+                )}
+              </div>
             </div>
             {isExpanded && (
               <ModalShell.ActionButtons

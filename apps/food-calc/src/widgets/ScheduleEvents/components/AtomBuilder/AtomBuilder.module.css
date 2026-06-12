@@ -1,5 +1,6 @@
 /**
- * AtomBuilder.module.css — layout for atom list + type selector + panel view
+ * AtomBuilder.module.css — layout for the scale-only atom entry:
+ * a top hint (when nothing added) + the added-atoms list + the add-scale form.
  */
 
 .container {
@@ -7,55 +8,18 @@
   flex-direction: column;
   flex: 1 0;
   min-height: 0;
-  margin-top: auto;
+  gap: var(--space-3);
 }
 
-/* When an atom input panel is open — fill the parent */
-.panelView {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-/* Блок «можно уточниться» — заголовок + ряд плиток + подсказка.
-   Прижат к низу (margin-top: auto), плитки в центре блока. */
-.tileSection {
-  display: flex;
-  flex-direction: column;
-  margin-top: auto;
-  padding-bottom: var(--space-6);
-}
-
-/* Подсказка у самого верха контейнера, когда ни одного атома не добавлено. */
-.topHint {
-  margin: var(--space-6) auto auto;
+/* Подсказка — мелким кеглем, под шкалой и пилюлями (а не крупным заголовком
+   сверху). «Намного меньше» по просьбе 2026-06-13. */
+.bottomHint {
+  margin: var(--space-2) auto 0;
   text-align: center;
   font-style: italic;
+  font-size: var(--text-sm);
+  line-height: 1.4;
   color: var(--color-text-secondary);
   opacity: 0.5;
   max-width: 340px;
-
-}
-
-/* Заголовок прямо над рядом плиток (раньше — у верха экрана). */
-.tileHeading {
-  margin-bottom: var(--space-3);
-  text-align: center;
-}
-
-/* Селектор типов атома — ряд из 3 плиток. Сами плитки — примитив NavTile
-   (shared/ui/NavTile), здесь только grid-раскладка ряда. */
-.atomButtons {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-1);
-  padding: var(--space-2) 0 var(--space-4);
-}
-
-/* Подсказка под рядом плиток — служит безопасной зоной между плитками
-   и кнопкой «Далее», чтобы юзер не промахнулся мимо плитки. */
-.tileHint {
-  margin-top: var(--space-3);
-  text-align: center;
 }

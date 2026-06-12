@@ -1,8 +1,8 @@
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import { AnalysisResult } from '@/features/analysis/AnalysisResult';
+import { FabricLoader } from '@/features/analysis/FabricLoader';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import type { DailyAnalysisReason } from '@/features/analysis/daily';
 import styles from './DailyAnalysisSection.module.scss';
 
@@ -76,10 +76,7 @@ const DailyAnalysisSection = ({ date }: Props) => {
       data-daily-analysis-anchor=""
     >
       {status === 'loading' && (
-        <div className={styles.statusRow}>
-          <Spinner />
-          <span className={styles.statusText}>Разбираем день…</span>
-        </div>
+        <FabricLoader art="/art/loader-analysis.png" caption="Анализируем день" />
       )}
 
       {status === 'done' && (

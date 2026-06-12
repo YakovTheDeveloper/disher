@@ -12,13 +12,18 @@ const DEFAULT_VARIANTS = ['ash', 'mint'] as const;
 
 const SendArrowIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-    <path
-      d="M3.5 9h11M10 4.5L14.5 9 10 13.5"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+    {/* Optically centred: an arrow's visual weight sits toward the head, so the
+        glyph is nudged right ~0.4 to read as centred inside the circle. Slightly
+        shorter shaft + a hair bolder stroke balance it at the coin's size. */}
+    <g transform="translate(0.4 0)">
+      <path
+        d="M3.7 9h9.6M9.3 4.8 13.7 9 9.3 13.2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </g>
   </svg>
 );
 
@@ -129,6 +134,12 @@ export interface WriteBarShellProps {
    * flow into its loading → ready-state, so it leaves this off.
    */
   blurOnSubmit?: boolean;
+  /**
+   * Opt-in: the pill's fill + border dissolve toward the right end (near the
+   * medal), so the pill «opens» toward it. Only the food bar (WriteFoodInput)
+   * uses this; Analysis/Events keep a plain even border.
+   */
+  fadeRight?: boolean;
 }
 
 /**
@@ -159,6 +170,7 @@ export const WriteBarShell = ({
   designVariant,
   scrollToOnSubmit,
   blurOnSubmit = false,
+  fadeRight = false,
 }: WriteBarShellProps) => {
   const { pressed: barPressed, pressProps: barPressProps } = usePressFeedback();
   const { anchor } = useDesignVariant(
@@ -220,6 +232,7 @@ export const WriteBarShell = ({
         data-expanded={expanded || undefined}
         data-pressed={barPressed || undefined}
         data-has-left={leftSlot ? '' : undefined}
+        data-fade-right={fadeRight ? '' : undefined}
       >
         {leftSlot}
         {fieldOverride ?? (

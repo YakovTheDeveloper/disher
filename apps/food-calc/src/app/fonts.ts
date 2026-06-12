@@ -31,6 +31,11 @@ import '@fontsource/source-serif-4/300-italic.css';
 import '@fontsource/source-serif-4/600-italic.css';
 import '@fontsource/source-serif-4/700-italic.css';
 
+// Accent serif — Alice (--font-alice). One weight (400); bundles cyrillic +
+// latin subsets. Used by the analysis loader caption; also a --heading-font
+// variant option (heading-font-variants.scss).
+import '@fontsource/alice/400.css';
+
 // Display accents — Raleway (--font-display)
 import '@fontsource/raleway/200.css';
 import '@fontsource/raleway/400.css';

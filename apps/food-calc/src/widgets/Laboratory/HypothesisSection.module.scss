@@ -1,7 +1,0 @@
-// Shared hypotheses widget: composer (top) + list (bottom). Just a vertical
-// stack with breathing room between the create field and the list.
-.section {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}

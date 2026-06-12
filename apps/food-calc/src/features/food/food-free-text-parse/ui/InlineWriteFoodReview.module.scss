@@ -54,6 +54,86 @@
   }
 }
 
+// ─── DesignBar: раскладка предложки (anchor `Predlozhka`) ──────────────────
+// 3 варианта положения предложки относительно белого листа со списком дня.
+// База `.wrap` выше = плавающая белая карточка — её же получают ВСЕ варианты
+// на ПУСТОМ дне (`:not([data-tucked])`), когда выезжать не из-под чего.
+// `data-tucked='true'` ставит родитель, когда в дне УЖЕ есть еда (лист сверху
+// существует): undersheet/seamless тогда «прилипают» к нему. Лист дня
+// (`.headerOverlap`, z-index:1) красится ПОВЕРХ предложки (z-index:auto) —
+// поэтому отрицательный margin-top реально прячет верх под лист.
+
+// undersheet (дефолт): второй лист, выезжает из-под белого листа дня. Плоский
+// тёмный верх (имитация тени, отброшенной листом сверху), низ скруглён,
+// оттенок off-white — читается как ДРУГОЙ лист под белым.
+.wrap[data-dv-v='undersheet'][data-tucked='true'] {
+  margin-top: -8px;
+  border-radius: 0 0 20px 20px;
+  background: #f7f6f3;
+  box-shadow:
+    0 18px 30px -16px rgba(31, 42, 68, 0.20),
+    0 0 0 1px rgba(31, 42, 68, 0.05);
+  padding-top: var(--space-6);
+
+  // плоский лист — без card-glow
+  &::before {
+    display: none;
+  }
+
+  // тёмная полоса у верхнего края = тень, отброшенная листом дня сверху
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 24px;
+    background: linear-gradient(to bottom,
+        rgba(31, 42, 68, 0.17) 0%,
+        rgba(31, 42, 68, 0.07) 55%,
+        rgba(31, 42, 68, 0) 100%);
+    pointer-events: none;
+    z-index: 2;
+  }
+}
+
+// seamless: та же бумага, что и лист дня — без отдельной карточки. Разделяет
+// затухающий хайрлайн-шов (stripe-fork канон) + лёгкая внутренняя тень сверху.
+.wrap[data-dv-v='seamless'][data-tucked='true'] {
+  margin-top: 0;
+  border-radius: 0;
+  background: #ffffff;
+  box-shadow: inset 0 8px 10px -10px rgba(31, 42, 68, 0.12);
+  padding-top: var(--space-6);
+
+  &::before {
+    display: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(31, 42, 68, 0.10) 18%,
+        rgba(31, 42, 68, 0.10) 82%,
+        transparent 100%);
+    pointer-events: none;
+    z-index: 2;
+  }
+}
+
+// tray: отдельная заметно приподнятая карточка-черновик со своим тёплым
+// оттенком и воздухом сверху — всегда парит над листом дня (tucked или нет).
+.wrap[data-dv-v='tray'] {
+  margin-top: var(--space-4);
+  background: #fffefc;
+}
+
 // Mount-only enter-анимация ТОЛЬКО для ready-state: лёгкий
 // горизонтальный шимми (влево → вправо → settle) + fade-in. «Мы тебя
 // заметили» — UX-nudge, чтобы взгляд юзера сам нашёл новую карточку. Шаги
