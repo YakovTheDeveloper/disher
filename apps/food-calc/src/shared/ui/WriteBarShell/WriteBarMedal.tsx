@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from 'react';
+import clsx from 'clsx';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import s from './WriteBarMedal.module.scss';
 
@@ -16,6 +17,8 @@ export interface WriteBarMedalProps {
   arcBottom?: string;
   /** Quiet/dimmed state (Food ready-state): no lift shadow + faded. */
   dimmed?: boolean;
+  /** Nudge the coin up a touch above the pill centre (Food bar — «приподнятая» кнопка). */
+  lifted?: boolean;
 }
 
 /**
@@ -31,6 +34,7 @@ export const WriteBarMedal = ({
   arcTop,
   arcBottom,
   dimmed,
+  lifted,
 }: WriteBarMedalProps) => {
   const { pressed, pressProps } = usePressFeedback();
   // Unique ids for the SVG arc paths (textPath references them by #id).
@@ -41,7 +45,7 @@ export const WriteBarMedal = ({
   return (
     <label
       htmlFor={htmlFor}
-      className={s.writeBarList}
+      className={clsx(s.writeBarList, lifted && s.lifted)}
       aria-label={ariaLabel}
       data-pressed={pressed || undefined}
       data-dim={dimmed || undefined}

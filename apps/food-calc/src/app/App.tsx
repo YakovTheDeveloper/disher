@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import './fonts';
 import s from '@/shared/assets/style/App.module.scss';
@@ -17,8 +17,8 @@ import i18n from '@/app/i18n';
 import { AuthGate } from '@/features/auth';
 import { BackupGate } from '@/features/backup/BackupGate';
 import { useApplyUserTheme } from '@/shared/lib/user-theme';
-import { useHeadingFontTrial } from '@/shared/lib/useHeadingFontTrial';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { MODAL_SHELL_VARIANTS } from '@/shared/ui/ModalShell';
 
 // Глобальный ambient-backdrop (radial-glow обвязки экрана). Один anchor на
 // app-уровне (`.main`) → DesignVariantsBar переключает свечение сразу для ВСЕХ
@@ -26,9 +26,9 @@ import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 // продакшен-дефолт (см. useDesignVariant fallback). CSS — App.module.scss
 // (`.main[data-dv='HomeAmbient']`).
 const HOME_AMBIENT_VARIANTS = [
+  'lavender-cream',
   'peach-rose',
   'mint-sky',
-  'lavender-cream',
   'sunrise',
   'plain',
 ] as const;
@@ -38,10 +38,13 @@ export default function App() {
   useUserAgentDetection();
   useGlobalScrollBlur();
   useApplyUserTheme();
-  useHeadingFontTrial();
   setupGlobalLog();
 
   const { anchor: ambientAnchor } = useDesignVariant('HomeAmbient', HOME_AMBIENT_VARIANTS);
+
+  // App-wide tone — ModalShell is the «law-giver». Registering the anchor here
+  // keeps it alive even with no modal mounted, and gives the live variant.
+  const { variant: tone } = useDesignVariant('ModalShell', MODAL_SHELL_VARIANTS);
 
   // Boot-hydrate the daily-analysis store from idb-keyval. Without this the
   // store starts empty on every reload — a completed daily review would not
@@ -52,14 +55,16 @@ export default function App() {
     void hydrateDailyAnalyses();
   }, []);
 
-  // Default surface (warm/lavender palette tokens — surfaces.scss). Lavender
-  // is the system default; warm-pages (HomePage, schedule selection/analytics)
-  // override via useSurface('warm'). Sits on body so it reaches Base UI portals.
-  useEffect(() => {
-    if (!document.body.hasAttribute('data-surface')) {
-      document.body.setAttribute('data-surface', 'lavender');
-    }
-  }, []);
+  // Publish the app-wide tone on `body[data-modal-fields]` — the tokens-only
+  // attribute (no modal ambient/orbs/backdrop-filter), so the live ModalShell
+  // variant's --field/card/chip/list-* cascade across every page AND through
+  // Base UI portals. Replaces the old `data-surface` warm/lavender default.
+  // useLayoutEffect (not useEffect): set the attribute BEFORE first paint so
+  // token-driven surfaces (`background: var(--card-bg)`, no fallback) never
+  // flash unstyled on a cold load.
+  useLayoutEffect(() => {
+    document.body.setAttribute('data-modal-fields', tone);
+  }, [tone]);
 
   return (
     <I18nextProvider i18n={i18n}>

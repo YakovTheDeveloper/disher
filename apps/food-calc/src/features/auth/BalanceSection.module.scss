@@ -9,7 +9,7 @@
 .sectionLabel {
   margin: 0;
   font-family: var(--heading-font);
-  font-style: italic;
+  font-style: var(--heading-style);
   font-size: var(--text-lg);
   color: var(--text-primary);
 }

@@ -1,13 +1,8 @@
-import { memo, useCallback, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import type { Hypothesis } from '@/entities/hypothesis';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import HypothesisListItem from './HypothesisListItem';
 import styles from './HypothesisListPanel.module.scss';
-
-// Palette forks for the hypothesis rows — flip live via the DesignVariantsBar.
-// First entry is the default (lavender — calm, faintly "lab").
-const PALETTE_VARIANTS = ['lavender', 'warm', 'sand', 'mint'] as const;
 
 // Hard cap on how many hypotheses ride into one analysis: keeps the LLM
 // prompt bounded — extra checkboxes are disabled with a hint.
@@ -75,21 +70,11 @@ const HypothesisListPanel = ({
   headerVariant = 'title',
   showMeta = false,
 }: Props) => {
-  const { anchor } = useDesignVariant('LabHypothesis', PALETTE_VARIANTS);
-
   // The list scrolls inside itself (`maxBodyHeight`). A freshly created
   // hypothesis lands at the top of this inner scroll, so when a new id arrives
   // we reset scrollTop — otherwise, on a long list scrolled down, the new row
   // and its «new» ring would be created above the fold and never seen.
   const scrollBodyRef = useRef<HTMLDivElement | null>(null);
-  const anchorRefFn = anchor.ref;
-  const setScrollBodyRef = useCallback(
-    (el: HTMLDivElement | null) => {
-      scrollBodyRef.current = el;
-      anchorRefFn(el); // keep the design-variant IntersectionObserver wired
-    },
-    [anchorRefFn]
-  );
   useEffect(() => {
     if (newIds && newIds.size > 0 && scrollBodyRef.current) {
       scrollBodyRef.current.scrollTop = 0;
@@ -126,9 +111,7 @@ const HypothesisListPanel = ({
         <div
           className={`${styles.scrollBody} ${bounded ? '' : styles.scrollBodyFlow}`}
           style={bounded ? { maxHeight: maxBodyHeight } : undefined}
-          data-dv={anchor['data-dv']}
-          data-dv-v={anchor['data-dv-v']}
-          ref={setScrollBodyRef}
+          ref={scrollBodyRef}
         >
           {hypotheses.map((h) => {
             const selected = selectedIds.has(h.id);

@@ -48,9 +48,10 @@
     user-select: none;
 }
 
-// Опциональная подпись под тайлами. Рендерится только если ScreenIndicator
-// получил `title` (HomePage передаёт день недели с большой буквы;
-// product/dish — не передают, band скрыт).
+// Опциональный слот под тайлами. Рендерится только если ScreenIndicator
+// получил `title` (HomePage кладёт сюда `<SelectedDayHeading>`; product/dish —
+// не передают, band скрыт). Типографику владеет переданный узел (Heading),
+// band отвечает только за центрирование и резерв высоты.
 .band {
     position: relative;
     width: 100%;
@@ -61,19 +62,6 @@
     align-items: center;
     justify-content: center;
     overflow: visible;
-}
-
-.bandLabel {
-    position: relative;
-    z-index: 1;
-    display: inline-block;
-    font-family: var(--heading-font, "Source Serif 4", "Merriweather", serif);
-    font-style: var(--heading-style, italic);
-    font-weight: 500;
-    font-size: 48px;
-    line-height: 1;
-    color: rgba(0, 0, 0, 0.8);
-    white-space: nowrap;
 }
 
 // Картинка активного экрана. Живёт в `.root`. Колонка активного тайла

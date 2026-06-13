@@ -39,6 +39,31 @@
     grid-template-columns: 1fr 5ch;
 }
 
+// ── gutter-time (RowBoundary variant): the time leaves the tinted backing and
+//    right-aligns against the card's left edge, hanging in the wrapper's left
+//    gutter (opened by LongPressRow). Drop the leading grid track so name + qty
+//    fill the card — the time is taken out of flow (absolute).
+:global([data-dv='RowBoundary'][data-dv-v='gutter-time']) {
+    .group {
+        grid-template-columns: 1fr 5ch;
+    }
+
+    .timeDisplay,
+    .timeEdit {
+        position: absolute;
+        right: calc(100% + var(--space-2)); // sit just left of the card, grow leftward
+        top: 50%;
+        transform: translateY(-50%);
+        margin-inline: 0;
+        padding-block: 0;
+        min-block-size: 0;
+        // Match the food-name body size (the item text) so the time reads as a
+        // peer of the row, not a micro-label.
+        font-size: var(--text-base);
+        color: var(--text-muted);
+    }
+}
+
 .timeDisplay,
 .timeEdit {
     font-size: var(--text-sm);

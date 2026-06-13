@@ -21,6 +21,7 @@ export const ROW_BOUNDARY_VARIANTS = [
   'borderless', // no frame; soft tint blocks parted by a whisper hairline
   'rail-flat', // soft frame + vivid left accent rail (stripe-fork), no group shadow
   'rail-soft', // same rail, group's last row casts a half-strength shadow
+  'gutter-time', // borderless + the per-row time leaves the backing into a left gutter (messenger style)
 ] as const;
 
 export type RowBoundaryVariant = (typeof ROW_BOUNDARY_VARIANTS)[number];

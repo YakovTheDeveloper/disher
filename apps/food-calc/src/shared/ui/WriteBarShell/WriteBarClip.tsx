@@ -46,6 +46,11 @@ export const WriteBarClip = ({
   <button
     type="button"
     className={s.clip}
+    // preventDefault keeps focus: when the bar is focused, a tap would otherwise
+    // blur the input → the row collapses/reflows out from under the finger before
+    // the click lands → «nothing happens & the bar closes». Same trick the send
+    // coin uses. The click still fires (opens the attach/rate overlay).
+    onPointerDown={(e) => e.preventDefault()}
     onClick={onClick}
     aria-label={ariaLabel}
     disabled={disabled}

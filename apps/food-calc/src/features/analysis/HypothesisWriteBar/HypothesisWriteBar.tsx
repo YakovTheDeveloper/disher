@@ -9,6 +9,7 @@ import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { saveHypothesis } from '@/entities/hypothesis';
 import { NoteIcon } from './NoteIcon';
+import styles from './HypothesisWriteBar.module.scss';
 
 const TITLE_INPUT_ID = 'hypothesis-title-bar';
 
@@ -115,6 +116,7 @@ const HypothesisWriteBar = ({ onCreated }: Props) => {
           бара; «Готово» / стрелка-назад / системный Back просто закрывают. */}
       <ModalByLabel
         position="fixed"
+        className={styles.overDrawer}
         isExpanded={detailsOpen}
         content={
           <ModalShell variant="spring4">

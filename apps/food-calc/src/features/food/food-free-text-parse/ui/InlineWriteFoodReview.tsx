@@ -39,9 +39,9 @@ const NEUTRAL_PALETTE: CSSProperties = {
   '--accent-stripe': 'rgba(31, 42, 68, 0.18)',
 } as CSSProperties;
 
-// DesignBar: как предложка расположена относительно листа со списком дня.
-// `undersheet` — дефолт (выезжает из-под листа), см. InlineWriteFoodReview.module.scss.
-const PREDLOZHKA_VARIANTS = ['undersheet', 'seamless', 'tray'] as const;
+// DesignBar: характер глянца предложки («карточка на листке», без elevation).
+// `satin` — дефолт, см. InlineWriteFoodReview.module.scss.
+const PREDLOZHKA_VARIANTS = ['satin', 'glass', 'pearl', 'frost'] as const;
 
 interface RescueState {
   uid: string;
@@ -51,17 +51,10 @@ interface RescueState {
 
 export interface InlineWriteFoodReviewProps {
   flow: UseWriteFoodFlowResult;
-  /**
-   * В дне УЖЕ есть контент (лист со списком сверху существует). Включает
-   * «выезд из-под листа» (`data-tucked`) для undersheet/seamless. На пустом
-   * дне (false) выезжать не из-под чего → предложка = самостоятельная карточка.
-   */
-  hasContent?: boolean;
 }
 
-export const InlineWriteFoodReview = ({ flow, hasContent = false }: InlineWriteFoodReviewProps) => {
+export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
   const { anchor: layoutAnchor } = useDesignVariant('Predlozhka', PREDLOZHKA_VARIANTS);
-  const tucked = hasContent ? 'true' : undefined;
   const {
     state,
     inputText,
@@ -93,17 +86,6 @@ export const InlineWriteFoodReview = ({ flow, hasContent = false }: InlineWriteF
   const readyCount = resolved.length + ambiguous.length + unresolved.length;
   const isReviewEmpty = state === 'ready' && readyCount === 0;
   const showOriginalText = state === 'ready' && (ambiguous.length > 0 || unresolved.length > 0);
-
-  // Все ряды dismissed (юзер кликнул × на каждом) — добавить нечего и
-  // работать тоже не над чем. Кнопка коммита превращается в «Отменить»:
-  // тап чистит предложку и возвращает HomePage в исходное состояние.
-  // Кейс «unresolved без rescue» сюда не попадает — там enabled=true, юзер
-  // ещё может ↶ rescue или ×.
-  const allDismissed =
-    readyCount > 0 &&
-    resolved.every((r) => !r.enabled) &&
-    ambiguous.every((a) => !a.enabled) &&
-    unresolved.every((u) => !u.enabled);
 
   // Auto-reset предложки на delete-to-empty живёт внутри useWriteFoodFlow
   // (через tap в scheduleUndoExpiry-timer). Здесь его НЕ дублируем — child
@@ -176,7 +158,6 @@ export const InlineWriteFoodReview = ({ flow, hasContent = false }: InlineWriteF
           {...layoutAnchor}
           className={styles.wrap}
           data-state="loading"
-          data-tucked={tucked}
           data-write-food-anchor=""
         >
           <div className={styles.headerRow}>
@@ -203,7 +184,6 @@ export const InlineWriteFoodReview = ({ flow, hasContent = false }: InlineWriteF
         {...layoutAnchor}
         className={styles.wrap}
         data-state="ready"
-        data-tucked={tucked}
         data-write-food-anchor=""
         onFocusCapture={handleReviewFocusCapture}
         onAnimationEnd={(e) => {
@@ -217,9 +197,8 @@ export const InlineWriteFoodReview = ({ flow, hasContent = false }: InlineWriteF
         }}
       >
         <div className={styles.headerRow}>
-          <Heading size="section">
-            Предложка · {readyCount}
-            {/* {pluralizeItems(readyCount)} */}
+          <Heading size="section" className={styles.reviewTitle}>
+            Предложения
           </Heading>
         </div>
 
@@ -393,30 +372,29 @@ export const InlineWriteFoodReview = ({ flow, hasContent = false }: InlineWriteF
         )}
 
         {/*
-          CTA унифицирован с DishBuilder — кнопка ВСЕГДА видима и (кроме как во
-          время сабмита) ВСЕГДА кликабельна. Три состояния:
-          — totalToAdd > 0 → «Добавить N» → commit();
-          — totalToAdd 0 + все ряды dismissed → «Отменить» → cancel();
-          — totalToAdd 0 + добавить нечего (unresolved без rescue / ничего не
-            распозналось) → «Закрыть» → cancel().
-          Раньше «Закрыть» была disabled-кнопкой-affordance'ом, но это
-          ЕДИНСТВЕННЫЙ способ закрыть предложку (× в шапке нет) — юзер на ней
-          застревал. Теперь и «Отменить», и «Закрыть» чистят flow (cancel()).
+          CTA-ряд: «Отменить» (fit-content, слева) чистит flow (cancel()) — это
+          теперь единственный способ закрыть предложку (× в шапке нет). «Добавить
+          N» (растягивается, справа) коммитит; задизейблена, когда добавлять
+          нечего (totalToAdd === 0) или во время сабмита.
         */}
-        <button
-          type="button"
-          className={styles.commitBtn}
-          onClick={() => (totalToAdd > 0 ? void commit() : cancel())}
-          disabled={isSubmitting}
-        >
-          {isSubmitting
-            ? 'Добавляем…'
-            : totalToAdd > 0
-              ? `Добавить ${totalToAdd}`
-              : allDismissed
-                ? 'Отменить'
-                : 'Закрыть'}
-        </button>
+        <div className={styles.ctaRow}>
+          <button
+            type="button"
+            className={styles.cancelBtn}
+            onClick={() => cancel()}
+            disabled={isSubmitting}
+          >
+            Отменить
+          </button>
+          <button
+            type="button"
+            className={styles.commitBtn}
+            onClick={() => void commit()}
+            disabled={isSubmitting || totalToAdd === 0}
+          >
+            {isSubmitting ? 'Добавляем…' : `Добавить ${totalToAdd}`}
+          </button>
+        </div>
 
         <FreeTextFoodReviewEditModals
           row={editingRowView}

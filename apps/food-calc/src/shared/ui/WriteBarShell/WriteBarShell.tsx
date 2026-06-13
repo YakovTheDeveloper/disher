@@ -1,4 +1,4 @@
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useId, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
@@ -27,15 +27,52 @@ const SendArrowIcon = () => (
   </svg>
 );
 
+// Trailing word lifted along a gentle upward arc — bends the last placeholder
+// word toward the raised medal at the right (Food bar «или» → «Выбор еды»).
+// Same SVG `textPath` trick as WriteBarMedal's arc captions. EXPERIMENT 2026-06-13.
+function ArcWord({ word }: { word: string }) {
+  const id = useId().replace(/:/g, '');
+  return (
+    <svg className={s.arcTail} viewBox="0 0 48 26" width="48" height="26" aria-hidden="true">
+      <defs>
+        <path id={id} d="M 1,21 Q 24,20 47,6" fill="none" />
+      </defs>
+      <text>
+        <textPath href={`#${id}`} startOffset="0">
+          {word}
+        </textPath>
+      </text>
+    </svg>
+  );
+}
+
 // First word → serif-italic accent (canon --heading-font); rest plain. Split on
-// the first space; leading space of the remainder is preserved.
-function renderAccent(text: string): ReactNode {
-  const spaceIdx = text.indexOf(' ');
-  if (spaceIdx === -1) return text;
+// the first space; leading space of the remainder is preserved. When `arcTail`
+// matches the end of the text, that trailing word is lifted along an upward arc
+// (Food bar «или» curving toward the medal) instead of sitting on the baseline.
+function renderAccent(text: string, arcTail?: string): ReactNode {
+  let head = text;
+  let tail: string | undefined;
+  if (arcTail && text.endsWith(arcTail)) {
+    head = text.slice(0, text.length - arcTail.length).replace(/\s+$/, '');
+    tail = arcTail;
+  }
+
+  const spaceIdx = head.indexOf(' ');
+  const headNode: ReactNode =
+    spaceIdx === -1 ? (
+      head
+    ) : (
+      <>
+        <em className={s.placeholderAccent}>{head.slice(0, spaceIdx)}</em>
+        {head.slice(spaceIdx)}
+      </>
+    );
+
+  if (!tail) return headNode;
   return (
     <>
-      <em className={s.placeholderAccent}>{text.slice(0, spaceIdx)}</em>
-      {text.slice(spaceIdx)}
+      {headNode} <ArcWord word={tail} />
     </>
   );
 }
@@ -101,6 +138,13 @@ export interface WriteBarShellProps {
   placeholder: string;
   /** Serif-accent the first placeholder word. Default true. */
   accentPlaceholder?: boolean;
+  /**
+   * If set AND the placeholder ends with this exact word, that trailing word is
+   * drawn lifted along a gentle upward arc (instead of on the baseline) — bends
+   * it toward the raised right-slot medal. Food bar only («или» → «Выбор еды»).
+   * Requires `accentPlaceholder`.
+   */
+  placeholderArcTail?: string;
   maxLength?: number;
   /** Rows the field grows to on focus. Default 4. */
   maxRowsFocused?: number;
@@ -154,6 +198,7 @@ export const WriteBarShell = ({
   inputId,
   placeholder,
   accentPlaceholder = true,
+  placeholderArcTail,
   maxLength,
   maxRowsFocused = 4,
   readOnly,
@@ -253,7 +298,9 @@ export const WriteBarShell = ({
                 }}
                 onBlur={() => setFocused(false)}
                 placeholder={placeholder}
-                renderPlaceholder={accentPlaceholder ? renderAccent(placeholder) : undefined}
+                renderPlaceholder={
+                  accentPlaceholder ? renderAccent(placeholder, placeholderArcTail) : undefined
+                }
                 maxRows={focused ? maxRowsFocused : 1}
                 maxLength={maxLength}
                 collapseOnBlur={false}

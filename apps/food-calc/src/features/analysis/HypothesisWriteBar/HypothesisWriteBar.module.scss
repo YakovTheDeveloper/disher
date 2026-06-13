@@ -1,0 +1,9 @@
+// The «Подробности» ModalByLabel renders while this write-bar lives in the
+// HypothesesDrawer footer (Drawer.Popup z-index 5001). ModalByLabel ships
+// `.expanded { z-index: 1000 }` — below the drawer — so without this override
+// the details field opens BEHIND the drawer. Clear the drawer, but stay below
+// real modals (z 6001). !important beats the hardcoded `.container.expanded`
+// (0,2,0) in ModalByLabel.module.scss.
+.overDrawer {
+    z-index: 5500 !important;
+}

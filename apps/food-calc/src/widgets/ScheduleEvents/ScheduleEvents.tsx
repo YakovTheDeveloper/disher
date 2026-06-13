@@ -1,6 +1,6 @@
 import styles from './ScheduleEvents.module.scss';
 import React, { memo, useMemo, useState } from 'react';
-import { TimeGroup } from '@/features/time-group';
+import { TimeGroup, TIME_HEADER_KEY, TIME_HEADER_VARIANTS } from '@/features/time-group';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { removeScheduleEvents } from '@/entities/schedule-event';
 import clsx from 'clsx';
@@ -21,20 +21,9 @@ import { drawerStore } from '@/shared/ui/drawer-store';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS } from '@/features/shared/long-press-item';
 
-// События держат СВОЙ DesignBar-anchor ('ScheduleEvents'), отдельный от
-// FoodSchedule. Дефолт (первый в списке) — `lemon`: один жёлтый оттенок,
-// меняется только по насыщенности в течение дня. Остальные палитры оставлены
-// переключаемыми. Еда ('ScheduleFood') свою палитру не меняет.
-const EVENTS_VARIANTS = [
-  'lemon',
-  'meadow',
-  'sunrise',
-  'sorbet',
-  'garden',
-  'lagoon',
-  'tropic',
-  'twilight',
-] as const;
+// Events use the `lemon` palette (single warm yellow hue, deepening across the
+// day). Baked-in 2026-06-13 — the 7 alt palettes + the 'ScheduleEvents' DesignBar
+// anchor were retired. FoodSchedule keeps its own palette.
 type Props = {
   children?: React.ReactNode;
   date: string;
@@ -48,10 +37,11 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
   // Пустой день → hollow-заглушка Screen (большой бренд-логотип по центру).
   const isDayEmpty = events.length === 0;
 
-  const { anchor: eventsAnchor } = useDesignVariant('ScheduleEvents', EVENTS_VARIANTS);
   // Shared with FoodSchedule: one DesignBar control for the adjacent-row edge
   // treatment across food + event rows (same key → same stored variant).
   const { anchor: boundaryAnchor } = useDesignVariant(ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS);
+  // Time-group header look. Shared key with FoodSchedule — one DesignBar control.
+  const { anchor: timeHeaderAnchor } = useDesignVariant(TIME_HEADER_KEY, TIME_HEADER_VARIANTS);
 
   const [editingItem, setEditingItem] = useState<ScheduleEvent | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'text' | 'atoms'>('idle');
@@ -96,8 +86,9 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
       key={3}
       bottomBar={<EventsWriteBar scheduleId={date} />}
     >
-      <section {...eventsAnchor} className={clsx(['builder__time-groups', styles.eventsBuilder])}>
+      <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <div {...boundaryAnchor}>
+          <div {...timeHeaderAnchor}>
           <ItemsList offsetTop>
             {(() => {
               let globalIndex = 0;
@@ -127,6 +118,7 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
               ));
             })()}
           </ItemsList>
+          </div>
         </div>
       </section>
     </Screen>

@@ -42,7 +42,7 @@ export default defineConfig({
         'apple-touch-icon.png',
       ],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
         // wa-sqlite + powersync ship large wasm/worker bundles that we don't
         // want eagerly precached; they're loaded on demand.
         globIgnores: ['**/wa-sqlite*', '**/powersync*', '**/sql-wasm*'],

@@ -36,13 +36,27 @@ type CatalogProductRow = {
   categories: string[];
   serving_basis: "100g" | "serving";
   serving_unit: null;
+  // Optional thumbnail in apps/food-calc/public/catalog-food/<id>.webp.
+  // Curated from Wikimedia Commons; mapping lives in seed/catalog-images.json
+  // (id → path) so regenerating the catalog preserves the images. Attribution
+  // per file is recorded in public/catalog-food/CREDITS.tsv.
+  image?: string;
   created_at: string;
 };
 
 const SEED_PATH = join(__dirname, "../seed/combined-foods-final.json");
+const IMAGES_PATH = join(__dirname, "../seed/catalog-images.json");
 const OUT_PATH = join(__dirname, "../../food-calc/src/shared/data/catalog.json");
 
 const seed = JSON.parse(readFileSync(SEED_PATH, "utf8")) as SeedFood[];
+
+// id → "/catalog-food/<id>.webp". Missing key = no image for that food.
+let images: Record<string, string> = {};
+try {
+  images = JSON.parse(readFileSync(IMAGES_PATH, "utf8")) as Record<string, string>;
+} catch {
+  // No image map yet — catalog ships without thumbnails. Not an error.
+}
 
 const rows: CatalogProductRow[] = seed
   .filter((f) => !(f.categories ?? []).includes("supplement"))
@@ -55,6 +69,7 @@ const rows: CatalogProductRow[] = seed
     categories: f.categories ?? [],
     serving_basis: "100g",
     serving_unit: null,
+    ...(images[f.id] ? { image: images[f.id] } : {}),
     // Frozen at build time so catalog rows have a deterministic ordering field.
     created_at: "1970-01-01T00:00:00.000Z",
   }));

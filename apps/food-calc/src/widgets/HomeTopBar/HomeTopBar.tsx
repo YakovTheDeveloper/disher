@@ -6,10 +6,7 @@ import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import styles from './HomeTopBar.module.scss';
-
-const BAR_VARIANTS = ['floating', 'ribbon'] as const;
 
 type Props = {
   date: string;
@@ -104,8 +101,6 @@ const HomeTopBar = ({
   const { toScheduleBuilder } = useAppRoutes();
   const dateParts = useMemo(() => formatDateParts(date), [date]);
 
-  const { anchor: barAnchor } = useDesignVariant('HomeTopBar', BAR_VARIANTS);
-
   const handleDateClick = useCallback(async () => {
     const selectedDate = await drawerStore.show(ScheduleNavigatorDrawer, {
       selectedDate: date,
@@ -138,7 +133,7 @@ const HomeTopBar = ({
   }, [date, toScheduleBuilder, noInterruptGuard]);
 
   return (
-    <div className={styles.shell} {...barAnchor}>
+    <div className={styles.shell}>
       <div className={styles.bar}>
         {backSlot}
         <div className={styles.accountSlot}>

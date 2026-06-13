@@ -3,10 +3,33 @@
     flex-direction: column;
     flex-grow: 1;
     position: relative;
+    // Own stacking context so the ambient layer (z-index:-1) sits above the
+    // screen's solid base but below all in-flow content — and never escapes to
+    // interfere with the modal/drawer behind this screen.
+    isolation: isolate;
     min-height: 0;
     width: 100%;
     height: 100%;
-    background: transparent;
+    // Solid monochrome base — decouples the screen from the app-wide tone
+    // (body[data-modal-fields]). Per-variant value below; transparent fallback
+    // keeps non-mono contexts unchanged.
+    background: var(--search-page-bg, transparent);
+}
+
+// Ambient glow — the only colour allowed on the otherwise monochrome screen.
+// Two soft radial glows (top + bottom edges); colour comes from per-variant
+// tokens (transparent → no glow, e.g. graphite). Behind all content (z-index:-1)
+// but above .content's solid base (isolation context above).
+.ambient {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 92% 46% at 50% 0%,
+            var(--search-ambient-top, transparent), transparent 66%),
+        radial-gradient(ellipse 92% 46% at 50% 100%,
+            var(--search-ambient-bottom, transparent), transparent 66%);
 }
 
 // Wrapper around SearchFoodHeavy: replicates .content's flex/positioning so
@@ -171,17 +194,26 @@
     padding-top: var(--space-2);
 }
 
+// Inset grouped list (Material / iOS «inset grouped»): side margins + a rounded
+// container that clips the first row's top corners and the last row's bottom
+// corners. Rows touch (gap:0); the fading ::after hairline divides them; the
+// radius harmonises with the top-bar field/segment rounding. `overflow:hidden`
+// does the corner clipping so individual rows need no per-row radius. When both
+// products and dishes are shown, each <ul> is its own rounded group.
 .list {
     list-style: none;
     padding: 0;
-    margin: 0;
-    overflow-x: hidden;
-    background: transparent;
+    margin: 0 var(--space-3) var(--space-3);
+    overflow: hidden;
+    border-radius: var(--card-group-radius, 16px);
+    box-shadow: var(--card-group-shadow, none);
+    background: var(--card-group-bg, transparent);
     display: flex;
     flex-direction: column;
-    // stripe-fork rows touch row-to-row; divider is each row's fading ::after
-    // hairline (see FoodActionCard.module.scss). No outer gap.
-    gap: var(--space-1);
+    // 0 by default (rows touch, hairline divides). zebra sets a few px so the
+    // white group background shows through as a bright «reflex» seam between
+    // the faintly-tinted cards.
+    gap: var(--card-row-gap, 0);
 }
 
 .filterChipActive {
@@ -198,7 +230,126 @@
 
 // ─── List container backdrop (surface-driven) ──────────────────────
 // Backdrop gradient harmonises with the stripe-fork row palette and is
-// driven by the body[data-surface] token in surfaces.scss.
+// driven by the app-wide tone (body[data-modal-fields], the live variant) —
+// or, in a SearchMono variant, by the local monochrome --list-bg below.
 .listContainer {
     background: var(--list-bg);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SearchMono — DesignBar-controlled monochrome tone, scoped to this screen.
+// The anchor (SearchFood.tsx → useDesignVariant('SearchMono', …)) puts
+// `data-dv='SearchMono'`/`data-dv-v` on `.content`. These rules redefine the
+// stripe-fork `--card-*` / field `--field-*` / list `--list-*` tokens (plus the
+// screen-local `--seg-*` / `--icon-btn-*` / `--search-*` tokens) on that element,
+// so they OVERRIDE the values inherited from `body[data-modal-fields]` for the
+// whole subtree — the screen no longer depends on the app-wide colour theme.
+// Global attribute selectors (un-hashed by CSS Modules), mirroring ModalShell.
+// ══════════════════════════════════════════════════════════════════════════
+
+// Constants shared by every monochrome variant (only the surface/ambient bits
+// vary per variant). Achromatic ink, dark press inversion, gray search field,
+// neutral segmented control + ghost icon button.
+:global([data-dv='SearchMono']) {
+    // Stripe-fork card ink + states (hue-free)
+    --card-press-bg: linear-gradient(90deg, #1f1f1f 0%, #2a2a2a 55%, #353535 100%);
+    --card-press-fg: #ffffff;
+    --card-text-rest: #1d1d1f;
+    --card-text-active: #000000;
+    --card-rich-text: #2a2a2a;
+    --card-rich-unit: rgba(42, 42, 42, 0.6);
+    --card-rich-percent: rgba(42, 42, 42, 0.4);
+    // Quiet info ⓘ — the symbol is right (universal «details»); just dial down the
+    // weight so 10 identical glyphs stop reading as a noisy right rail.
+    --card-info-rest: rgba(0, 0, 0, 0.22);
+    --card-hover: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.015) 45%, transparent 100%), var(--card-bg);
+    // Selected — EVEN soft tint (not the old left-weighted directional smear,
+    // which read as muddy): a uniform faint gray on the white card.
+    --card-active: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05));
+    --card-hairline: rgba(0, 0, 0, 0.08);
+
+    // Search field — gray, near-flat (a real input container, not a faint pill)
+    --field-radius: 22px;
+    --field-text: #1d1d1f;
+    --field-placeholder: rgba(0, 0, 0, 0.4);
+    --field-adornment: rgba(0, 0, 0, 0.42);
+    --field-hairline: transparent;
+    --field-hairline-focus: transparent;
+    --field-caret: #555555;
+    --field-shadow: none;
+    --field-shadow-focus: 0 0 0 2px rgba(0, 0, 0, 0.07);
+
+    // Segmented control (Еда|Мое) — neutral track + white thumb
+    --seg-text: #5c6473;
+    --seg-thumb: #ffffff;
+    --seg-thumb-text: #0a0a0a;
+    --seg-thumb-shadow: 0 1px 2px rgba(10, 10, 10, 0.12);
+
+    // Ghost nutrient-filter icon
+    --icon-btn-fg: #5c6473;
+    --icon-btn-active-bg: #1a1a1a;
+    --icon-btn-active-fg: #ffffff;
+
+    // Bottom create-pills (FoodSearchEmpty) — LOCKED to the lavender-cream-top
+    // palette (the chosen default), fixed regardless of which ModalShell variant
+    // the page is on. accent #8a72b8 → border @0.5 (the pill's radial top-glow
+    // reads --chip-border); dark lavender ink for the serif label.
+    --chip-border: rgba(138, 114, 184, 0.5);
+    --chip-text: #241836;
+
+    // Inset grouped-list radius (harmonises with the 22px search field + pills)
+    --card-group-radius: 16px;
+
+    // Bottom bar — HomePage lavender-cream ambient (lavender from the left, cream
+    // from the right). Glows are TALL so they fill the whole dock (not just the
+    // bottom corners where the content isn't), the base is faintly lavender (so
+    // even faded areas read tinted, never bald white), and the white floor is a
+    // THIN sliver at the very bottom only — just enough to meet Android's white
+    // nav bar smoothly without eating the colour. The ::before ramp above carries
+    // a clearly-lavender tint so the list melts into the glow.
+    --fse-bg:
+        linear-gradient(to top, #ffffff 0%, #ffffff 7%, transparent 22%),
+        radial-gradient(ellipse 115% 155% at 0% 105%, rgba(219, 206, 246, 0.82), transparent 74%),
+        radial-gradient(ellipse 115% 155% at 100% 105%, rgba(252, 242, 212, 0.82), transparent 74%),
+        #f7f2fc;
+    --fse-ramp: #ece2f8;
+}
+
+// Common to both surviving variants: white card group + white field/pills on a
+// faintly-gray page (iOS «inset grouped»), with a faint lavender echo at the top
+// (kin to the lavender-cream bottom glow — HomePage puts its glow at the top, so
+// this ties the screen together). Hairline divides the white rows; rows touch.
+:global([data-dv='SearchMono'][data-dv-v='paper-mono']),
+:global([data-dv='SearchMono'][data-dv-v='graphite']) {
+    --search-ambient-top: rgba(225, 215, 245, 0.32);
+    --search-ambient-bottom: transparent;
+    --list-bg: transparent;
+    --card-bg: transparent;
+    --card-wash-2n: linear-gradient(transparent, transparent);
+    --card-wash-3n: linear-gradient(transparent, transparent);
+    // White search field + pills pop as containers on the gray page.
+    --field-bg-from: #ffffff;
+    --field-bg-mid: #ffffff;
+    --field-bg-to: #ffffff;
+    --field-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --field-shadow-focus: 0 1px 4px rgba(0, 0, 0, 0.1);
+    --seg-track: #e6e8ec;
+    --icon-btn-bg: #ffffff;
+    --icon-btn-border: rgba(10, 10, 10, 0.12);
+    --card-group-bg: #ffffff;
+    --card-group-shadow: 0 1px 5px rgba(0, 0, 0, 0.07);
+}
+
+// paper-mono (default) — softest neutral; GRAYSCALE richness (SearchFood passes
+// monoRichness for this variant). Page is faintly gray so the white group reads
+// as a distinct container.
+:global([data-dv='SearchMono'][data-dv-v='paper-mono']) {
+    --search-page-bg: #f0f1f4;
+}
+
+// graphite — same grouped list, a deeper/cooler page for more contrast, and
+// COLOUR richness (the only chromatic signal, only when a nutrient filter is on).
+:global([data-dv='SearchMono'][data-dv-v='graphite']) {
+    --search-page-bg: #e9ebef;
+    --card-hairline: rgba(0, 0, 0, 0.07);
 }

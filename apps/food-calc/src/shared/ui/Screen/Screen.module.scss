@@ -53,13 +53,6 @@
     z-index: 0;
 }
 
-// Пустой спейсер сверху контента (40px). Раньше это был слот `topPanel`
-// (проп удалён — нигде не передавался). Отступ сохранён намеренно: задаёт
-// вертикальный ритм между sticky-обвязкой и листом контента на всех экранах.
-.topSpacer {
-    min-height: 40px;
-}
-
 .bottomRight {
     position: absolute;
     right: 0;
@@ -270,7 +263,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-8) var(--space-3) var(--space-6);
+    padding: var(--space-10) var(--space-3) var(--space-6);
     text-align: center;
 
     // Имена продуктов хранятся lowercase («абрикос») — sentence-case первой
@@ -358,6 +351,9 @@
 .headerOverlap {
     position: relative;
     z-index: 1;
+    margin: 0 var(--space-1);
+    padding-right: var(--space-1);
+    padding-left: var(--space-1);
     // Родитель может переопределить через `--header-overlap-bg` (например на
     // ambient-страницах — `transparent`, чтобы свечение проступало).
     background: var(--header-overlap-bg, #ffffff);
@@ -381,8 +377,8 @@
         z-index: -1;
         right: var(--space-4);
         top: var(--space-3);
-        width: 144px;
-        height: 70px;
+        width: 70px;
+        height: 20px;
         background-color: var(--header-overlap-logo-color);
         -webkit-mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;
         mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;
@@ -396,7 +392,7 @@
 // заголовком (Dish/Product/Hypotheses) уже несут паддинг в `.contentHeader` —
 // им добавлять нельзя, иначе двойной отступ (`:not(:has())` их исключает).
 .headerOverlap:not(:has(.contentHeader)) {
-    padding-top: var(--space-6);
+    padding-top: var(--space-12);
 }
 
 // «Пустой» экран: лист исчезает (фон прозрачный, тень убрана), маленький

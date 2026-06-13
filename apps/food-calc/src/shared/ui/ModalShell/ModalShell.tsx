@@ -6,36 +6,42 @@ import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalHeader } from '@/shared/ui/ModalHeader';
 
-// ── ModalShell ambient background — DesignBar-driven ─────────────────────────
-// ModalShell publishes ONE `useDesignVariant('ModalShell', …)` anchor on its
-// wrapper; the DesignVariantsBar flips the background + orb palette globally for
-// EVERY mounted modal at once. The first entry is the production fallback (no
-// pick yet) — see `useDesignVariant`. Palettes live in ModalShell.module.scss
-// (`$modal-shell-variants`).
+// ── ModalShell variant — the app-wide tone «law-giver» ───────────────────────
+// The ModalShell variant is no longer a modal-local override: it is the app's
+// single palette source. App.tsx registers this same anchor and publishes the
+// live variant on `body[data-modal-fields]`, so the variant's field/card/chip/
+// list tokens (ModalShell.module.scss → field-chip-palette + card-palette)
+// cascade across EVERY page and through Base UI portals. The old `data-surface`
+// warm/lavender axis dissolved into this (see tds/modalshell-lawgiver-2026-06-13).
 //
-// History: the background used to be a static per-page `variant` prop
-// (spring2 на Dish/Product, spring4 на HomePage-контексте) — выбиралось «по
-// дисциплине» (memory feedback_modal_spring_variant_convention). The prop is
-// still ACCEPTED for source compatibility but no longer drives styling — the
-// anchor wins. Once a winner is chosen in the bar, bake it in and drop the prop.
+// The ModalShell wrapper still carries its own `[data-dv='ModalShell']` for the
+// modal-only ambient (wash + orbs); same store key → same variant → it always
+// matches the page. The first entry is the production default (`useDesignVariant`
+// fallback). The legacy `variant` prop is still ACCEPTED for source
+// compatibility but no longer drives styling.
+//
+// 2026-06-13 — converged on the TOP-CLUSTER aesthetic: every variant is a
+// two/three-hue transition with orbs in the upper region (bottom clean, like
+// HomePage HomeAmbient). The earlier base/near-white/single-hue forks were
+// dropped entirely from both the bar AND the SCSS palette maps (the store
+// self-heals a stale localStorage variant → variants[0], so deletion is safe).
+// Set = 4 calm keepers + 6 vivid. Palettes + geometry: ModalShell.module.scss.
 export const MODAL_SHELL_VARIANTS = [
-  'spring2',
-  'spring4',
-  'blue-white',
-  'cream-white',
-  'rose-white',
-  'sage-white',
-  'pure-white',
-  'lavender-cream',
-  'mint-sky',
-  'peach-rose',
-  'blush-sky',
-  'honey',
-  'sunrise',
+  // Calm keepers:
+  'lavender-cream-top',
+  'peach-lilac-top',
+  'dove-sage-top',
+  'rose-amber-top',
+  // Soft (gentle morning-light vibe):
+  'morning-lavender-top',
 ] as const;
 
 export type ModalShellVariant = (typeof MODAL_SHELL_VARIANTS)[number];
-type Props = { children: ReactNode; className?: string; variant?: ModalShellVariant };
+// `variant` is vestigial: ~19 call sites still pass variant="spring2"/"spring4"
+// for source compatibility, but ModalShell ignores it (the tone comes from the
+// global useDesignVariant('ModalShell') store). Typed as a bare string so
+// curating MODAL_SHELL_VARIANTS above doesn't break those legacy callers.
+type Props = { children: ReactNode; className?: string; variant?: string };
 
 export const ModalShell = ({ children, className }: Props) => {
   const { anchor } = useDesignVariant('ModalShell', MODAL_SHELL_VARIANTS);
@@ -94,7 +100,7 @@ type ActionButtonsProps = {
 };
 
 const ModalShellActionButtons = ({ left, right, debugId }: ActionButtonsProps) => {
-  const ref = useKeyboardStick<HTMLDivElement>(debugId);
+  const ref = useKeyboardStick<HTMLDivElement>({ debugId });
 
   return (
     <div ref={ref} className={s.actionButtons}>

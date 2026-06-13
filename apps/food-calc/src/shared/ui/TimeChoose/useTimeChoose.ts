@@ -45,6 +45,18 @@ type Params = {
      * цифра перепечатывает их заново. Default false (обычный auto-blur).
      */
     keepKeyboardOnFinish?: boolean;
+    /**
+     * Коммитить ли на blur поля часов. По умолчанию true — нужно для
+     * многошагового «Далее»-флоу (TimeChoose), где у поля времени нет
+     * собственного wrapper-blur и уход с часов через label иначе потеряет
+     * только что введённый час.
+     *
+     * В инлайн-редакторе (InlineTimeEditor) это ВРЕДНО: авто-переход с часов на
+     * минуты блюрит часы и преждевременно коммитит время (17:22 → 16:22 ещё до
+     * ввода минут). Там передаём false — коммит делает собственный wrapper-blur
+     * редактора, когда фокус реально уходит из поля.
+     */
+    commitOnHoursBlur?: boolean;
 };
 
 /**
@@ -58,6 +70,7 @@ export const useTimeChoose = ({
     setMinutes,
     onFinish,
     keepKeyboardOnFinish = false,
+    commitOnHoursBlur = true,
 }: Params) => {
     const hhRef = useRef<HTMLInputElement | null>(null);
     const mmRef = useRef<HTMLInputElement | null>(null);
@@ -234,10 +247,17 @@ export const useTimeChoose = ({
         // (which moves focus to the next step's input) blurs HH without ever
         // touching MM — without this the just-typed hour (especially a single
         // digit 0/1/2, or a fast tap before the auto-jump to MM lands) would be
-        // silently dropped. Premature commit is harmless: onFinish only updates
-        // the draft, never advances the step, and a later MM change/blur
+        // silently dropped. Premature commit is harmless THERE: onFinish only
+        // updates the draft, never advances the step, and a later MM change/blur
         // re-commits the final value.
-        onFinish(normalize(hhFormatted, minutes));
+        //
+        // In the inline editor it IS harmful — the auto-jump HH→MM blurs HH and
+        // persists the time before minutes are typed (17:22 → 16:22). That
+        // consumer passes commitOnHoursBlur=false and commits on its own
+        // wrapper-blur instead.
+        if (commitOnHoursBlur) {
+            onFinish(normalize(hhFormatted, minutes));
+        }
     };
 
     const handleMinutesBlur = () => {

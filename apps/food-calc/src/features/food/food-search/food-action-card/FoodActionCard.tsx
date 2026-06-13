@@ -6,6 +6,7 @@ import { deleteProducts } from '@/entities/product';
 import { deleteDishes } from '@/entities/dish';
 import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
 import { isCreatedByUser } from '@/shared/lib';
+import { findCatalogProduct } from '@/shared/data/catalog';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { getProductUrl, RouterUrls } from '@/app/router';
@@ -35,6 +36,10 @@ type Props = {
    *  один раз (user-норма ?? дефолт) и прокидывает сюда; undefined у нутриентов
    *  без нормы — тогда процент не рисуется. */
   richNutrientNorm?: number;
+  /** When true, the richness bar/value/fill use a grayscale ramp instead of the
+   *  green→amber hue scale. Set by SearchFood in strict-monochrome variants so
+   *  the screen stays achromatic. */
+  monoRichness?: boolean;
   /**
    * If provided, the name area becomes a <label htmlFor={htmlFor}> so a tap on
    * the text focuses the corresponding input (used by ModalByLabel step flows).
@@ -55,13 +60,26 @@ const RICHNESS_COLORS = [
   '#0f7a3f', // deep green
 ] as const;
 
-function getRichnessColor(ratio: number): string {
-  if (ratio <= 0) return RICHNESS_COLORS[0];
-  const idx = Math.min(
-    Math.floor(ratio * (RICHNESS_COLORS.length - 1)),
-    RICHNESS_COLORS.length - 1
-  );
-  return RICHNESS_COLORS[idx];
+// Achromatic richness ramp — used when the screen is in a strict-monochrome
+// DesignBar variant (SearchFood passes `monoRichness`). Magnitude still reads,
+// via value (light→dark gray) instead of hue, so the only colour on the screen
+// can stay in the ambient glow.
+const RICHNESS_GRAYS = [
+  '#cfcfcf', // 0: none
+  '#b8b8b8',
+  '#9c9c9c',
+  '#7e7e7e',
+  '#646464',
+  '#4c4c4c',
+  '#363636',
+  '#222222',
+] as const;
+
+function getRichnessColor(ratio: number, mono = false): string {
+  const ramp = mono ? RICHNESS_GRAYS : RICHNESS_COLORS;
+  if (ratio <= 0) return ramp[0];
+  const idx = Math.min(Math.floor(ratio * (ramp.length - 1)), ramp.length - 1);
+  return ramp[idx];
 }
 
 // «% от суточной нормы» для выбранного нутриента: значение_на_100г / норма × 100.
@@ -116,6 +134,7 @@ const FoodActionCard = ({
   richNutrientUnit,
   richNutrientMax = 0,
   richNutrientNorm,
+  monoRichness = false,
   htmlFor,
 }: Props) => {
   const { pressed, pressProps } = usePressFeedback();
@@ -129,6 +148,24 @@ const FoodActionCard = ({
     state: { heroName: item.name },
   });
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.id);
+
+  // Каталожные продукты могут нести миниатюру (build-route поле `image`); резолвим
+  // прямо по id, чтобы не протягивать картинку через весь SearchFood.
+  const imageSrc = variant === 'product' ? findCatalogProduct(item.id)?.image : undefined;
+  const thumb = imageSrc ? (
+    <img
+      className={styles.thumb}
+      src={imageSrc}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      // If a catalog `image` path ever drifts from the shipped asset, hide the
+      // thumbnail instead of showing the browser's broken-image glyph.
+      onError={(e) => {
+        e.currentTarget.style.display = 'none';
+      }}
+    />
+  ) : null;
 
   const handleDelete = () => {
     if (variant === 'product') {
@@ -177,7 +214,8 @@ const FoodActionCard = ({
     return Math.min(richNutrientValue / richNutrientMax, 1);
   }, [richNutrientValue, richNutrientMax]);
 
-  const richnessColor = richNutrientValue !== null ? getRichnessColor(richness) : undefined;
+  const richnessColor =
+    richNutrientValue !== null ? getRichnessColor(richness, monoRichness) : undefined;
   const normPercent =
     richNutrientValue !== null &&
     richNutrientValue > 0 &&
@@ -234,6 +272,7 @@ const FoodActionCard = ({
           }}
           {...pressProps}
         >
+          {thumb}
           <span className={styles.name}>{item.name}</span>
           {variant === 'product' && item.servingBasis === 'serving' && (
             <span className={styles.supplementBadge}> · добавка</span>
@@ -247,6 +286,7 @@ const FoodActionCard = ({
           }}
           {...pressProps}
         >
+          {thumb}
           <span className={styles.name}>{item.name}</span>
           {variant === 'product' && item.servingBasis === 'serving' && (
             <span className={styles.supplementBadge}> · добавка</span>

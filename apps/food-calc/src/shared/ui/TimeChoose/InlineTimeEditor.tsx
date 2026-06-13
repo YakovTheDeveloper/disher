@@ -45,7 +45,10 @@ const InlineTimeEditor = ({
 
   const commitTime = (time: string) => {
     const normalized = time || normalizeTime(hours, minutes);
-    if (normalized === value) return;
+    // Dedupe against the just-committed pending too: minutes-complete commits
+    // via TimeInput's onFinish, then the wrapper-blur would re-commit the same
+    // value — skip it.
+    if (normalized === value || normalized === pending) return;
     setPending(normalized);
     onCommit(normalized);
   };
@@ -78,7 +81,13 @@ const InlineTimeEditor = ({
         const wrapper = e.currentTarget;
         setTimeout(() => {
           const ae = document.activeElement as HTMLElement | null;
+          // Focus moved within the editor (hours→minutes auto-jump) — stay open,
+          // don't commit yet.
           if (wrapper.contains(ae)) return;
+          // Focus truly left the editor — commit the current value (the hours
+          // field no longer commits on its own blur, see commitOnHoursBlur) and
+          // close.
+          commitTime('');
           setEditing(false);
         }, 0);
       }}
@@ -90,6 +99,7 @@ const InlineTimeEditor = ({
         setHours={setHours}
         setMinutes={setMinutes}
         onFinish={commitTime}
+        commitOnHoursBlur={false}
         autoFocus
       />
     </span>

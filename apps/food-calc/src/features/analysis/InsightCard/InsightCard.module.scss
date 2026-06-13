@@ -1,18 +1,18 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// Insight card — one read-only observation grounded in evidence. Warm
-// stripe-fork surface (design-DNA canon): 3-stop gradient, fading hairline,
-// left accent stripe whose colour carries `strength`. Colours/sizes are
-// published as local custom properties so the file satisfies the token gate
-// (values resolve to var()) and a consumer can retheme without rewriting rules.
+// Insight card — one read-only observation grounded in evidence. Stripe-fork
+// surface (design-DNA canon): 3-stop gradient, fading hairline, left accent
+// stripe whose colour carries `strength`. Token-driven by the app-wide tone
+// (the live ModalShell variant → `--card-*`); local `--ic-*` props just alias
+// those so the rules stay readable.
 .card {
-    --ic-ink: rgba(60, 38, 10, 0.92);
-    --ic-ink-soft: rgba(60, 38, 10, 0.62);
-    --ic-ink-faint: rgba(60, 38, 10, 0.5);
-    --ic-accent: rgba(214, 158, 70, 0.7);
-    --ic-chip-day: rgba(124, 65, 15, 0.08);
-    --ic-chip-food: rgba(120, 96, 40, 0.1);
-    --ic-chip-event: rgba(168, 78, 36, 0.1);
+    --ic-ink: var(--card-text-rest);
+    --ic-ink-soft: color-mix(in srgb, var(--card-text-rest) 62%, transparent);
+    --ic-ink-faint: color-mix(in srgb, var(--card-text-rest) 50%, transparent);
+    --ic-accent: var(--card-text-active);
+    --ic-chip-day: color-mix(in srgb, var(--card-text-active) 9%, transparent);
+    --ic-chip-food: color-mix(in srgb, var(--card-text-active) 11%, transparent);
+    --ic-chip-event: color-mix(in srgb, var(--card-text-active) 13%, transparent);
     --ic-radius: 14px;
     --ic-chip-radius: 7px;
     --ic-fs-title: 14.5px;
@@ -24,7 +24,7 @@
     align-items: flex-start;
     padding: 14px 16px 14px 18px;
     overflow: hidden;
-    background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
+    background: var(--card-bg);
 
     &::before {
         content: '';
@@ -39,10 +39,10 @@
 
     // strength tints the accent: weak = pale, clear = saturated.
     &[data-strength='weak']::before {
-        background: rgba(214, 158, 70, 0.4);
+        background: color-mix(in srgb, var(--card-text-active) 45%, transparent);
     }
     &[data-strength='clear']::before {
-        background: rgba(201, 124, 44, 0.85);
+        background: var(--card-text-active);
     }
 
     &::after {
@@ -52,7 +52,7 @@
         right: 14px;
         bottom: 0;
         height: 1px;
-        @include hairline(rgba(124, 65, 15, 0.09));
+        @include hairline(var(--card-hairline));
         pointer-events: none;
     }
 

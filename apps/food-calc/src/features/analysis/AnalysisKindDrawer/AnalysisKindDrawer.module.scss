@@ -56,8 +56,8 @@
 .optionPrimary {
     border-color: var(--chip-hover-border);
     box-shadow:
-        0 6px 16px rgba(124, 65, 15, 0.1),
-        0 2px 5px rgba(124, 65, 15, 0.07);
+        0 6px 16px color-mix(in srgb, var(--card-text-active) 12%, transparent),
+        0 2px 5px color-mix(in srgb, var(--card-text-active) 8%, transparent);
 
     &:disabled {
         box-shadow: none;
@@ -106,7 +106,7 @@
 // Тайтл — serif italic (язык SearchFood-пилюль: существительное несёт вес).
 .optionTitle {
     font-family: var(--heading-font);
-    font-style: italic;
+    font-style: var(--heading-style);
     font-size: var(--text-lg);
     font-weight: 500;
     color: inherit;

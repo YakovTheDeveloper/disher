@@ -5,6 +5,7 @@ import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { modalStore } from '@/shared/ui';
+import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import {
   useHypothesis,
@@ -32,6 +33,10 @@ const EditHypothesisModal = ({ hypothesisId, isExpanded, onClose }: Props) => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [busy, setBusy] = useState(false);
+
+  // Hosted inside HypothesesDrawer: register as top-of-stack so hardware/browser
+  // Back closes THIS modal (not the parent drawer, which would drop the edit).
+  useOverlayHistory(isExpanded, onClose);
 
   // Re-seed состояние, когда открыли модалку или сменили editingId на лету.
   // Без проверки `hypothesis` пустой prefill съест уже введённые правки на
@@ -95,6 +100,7 @@ const EditHypothesisModal = ({ hypothesisId, isExpanded, onClose }: Props) => {
   return (
     <ModalByLabel
       position="absolute"
+      className={editStyles.overDrawer}
       isExpanded={isExpanded}
       content={
         <ModalShell variant="spring4">

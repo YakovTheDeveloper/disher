@@ -39,6 +39,5 @@
     flex-direction: column;
 }
 
-// Heading-font trial теперь глобальный — анкер `data-dv='Heading'` на <html>
-// (useHeadingFontTrial.ts), CSS — shared/assets/style/heading-font-variants.scss.
-// Применяется ко всем `<Heading>` приложения, не только к HomePage.
+// bandLabel наследует канон-шрифт заголовков (--heading-font = Alice, tokens.scss),
+// единый для всех `<Heading>` приложения.

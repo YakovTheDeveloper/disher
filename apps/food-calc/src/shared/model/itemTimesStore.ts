@@ -2,34 +2,25 @@ import { create } from 'zustand';
 
 /**
  * Display preference: hide the per-item time inside schedule rows
- * (FoodSchedule + ScheduleEvents). Items are clustered into TimeGroups whose
- * header already shows the time range, so the per-row time is redundant noise
- * once you're scanning a day. Clicking the group time (TimeGroup `message_time`)
- * toggles this flag; it's a global, persisted UI preference shared by both the
- * Food and Event screens.
+ * (FoodSchedule + ScheduleEvents). Shared by both the Food and Event screens.
  *
- * Persisted in localStorage (synchronous read on init → no flash on load),
- * matching the `designVariantsStore` convention. Not user data — survives
- * sign-out (idb-keyval wipe doesn't touch this).
+ * Default is **always shown** (`hidden: false`) and NOT persisted: the time-group
+ * header — the only toggle entry point — is hidden by default now (TimeHeader
+ * `hidden` variant), and the per-row time lives in the gutter (`gutter-time`
+ * RowBoundary). So per-row time must reliably appear out of the box; we no
+ * longer read a saved "hidden" flag on load. The toggle still works in-session
+ * for anyone on a visible header variant — it just doesn't survive a reload.
+ *
+ * A one-time cleanup drops the legacy `disher.hideItemTimes` key so devices that
+ * had it persisted to "1" aren't stuck with times hidden.
  */
 
-const STORAGE_KEY = 'disher.hideItemTimes';
+const LEGACY_STORAGE_KEY = 'disher.hideItemTimes';
 
-function loadHidden(): boolean {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-function persistHidden(hidden: boolean): void {
-  try {
-    if (hidden) localStorage.setItem(STORAGE_KEY, '1');
-    else localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    /* ignore quota / private mode */
-  }
+try {
+  localStorage.removeItem(LEGACY_STORAGE_KEY);
+} catch {
+  /* ignore quota / private mode */
 }
 
 type ItemTimesStore = {
@@ -39,10 +30,6 @@ type ItemTimesStore = {
 };
 
 export const useItemTimesStore = create<ItemTimesStore>((set, get) => ({
-  hidden: loadHidden(),
-  toggle: () => {
-    const hidden = !get().hidden;
-    persistHidden(hidden);
-    set({ hidden });
-  },
+  hidden: false,
+  toggle: () => set({ hidden: !get().hidden }),
 }));

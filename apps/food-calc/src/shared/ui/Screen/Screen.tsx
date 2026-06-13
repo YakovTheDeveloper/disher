@@ -173,7 +173,6 @@ const Screen = ({
         <span className={styles.brandWatermark} aria-hidden="true" />
         <div className={styles.screenScroll} ref={scrollContainerRef}>
           {stickyTop && <div className={styles.stickyTop}>{stickyTop}</div>}
-          <div className={styles.topSpacer} aria-hidden="true" />
           {header}
           {headerOverlap ? (
             <div className={styles.headerOverlap} data-hollow={hollow ? 'true' : undefined}>

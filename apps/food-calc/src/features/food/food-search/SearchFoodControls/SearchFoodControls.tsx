@@ -46,85 +46,98 @@ const SearchFoodControls = ({
 }: Props) => {
   const hasFilter = Boolean(filterOptions && filterOptions.length > 1 && selectedFilter && onSelectFilter);
 
+  const hasTopRow = Boolean(onBack || hasFilter || title || showNutrientFilter);
+
   return (
     <div className={clsx(styles.controls, className)}>
-      <header className={clsx(styles.header, hasFilter && styles.headerWithFilter)}>
-      {onBack && <BackButton onClick={onBack} />}
+      {/* Row A — scope controls: back + (segmented Еда|Мое OR static title) on the
+          left, the nutrient-filter icon pushed to the right. The segmented control
+          is one connected track with a single moving thumb (iOS / M3 «connected
+          button group»), so the two scopes read as equal peers — not a heavy dark
+          pill beside a ghost outline. The nutrient filter is a separate ghost
+          icon-action, deliberately NOT styled like a segment. */}
+      {hasTopRow && (
+        <div className={clsx(styles.topRow, hasFilter && styles.topRowWithFilter)}>
+          {onBack && <BackButton onClick={onBack} />}
 
-      {!hasFilter && title && (
-        <Heading size="drawer" as="h2" className={styles.title}>
-          {title}
-        </Heading>
-      )}
-
-      <div className={styles.searchWrapper}>
-        <div className={styles.searchIcon}>
-          <SearchIcon />
-        </div>
-        <input
-          type="search"
-          inputMode="search"
-          enterKeyHint="search"
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck={false}
-          className={styles.searchInput}
-          placeholder="Поиск"
-          id={inputId ?? 'search'}
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-        {searchQuery.length > 0 && (
-          <button
-            type="button"
-            className={styles.clearButton}
-            onClick={() => onSearchChange('')}
-            aria-label="Очистить поиск"
-          >
-            <CrossIcon />
-          </button>
-        )}
-      </div>
-
-      {showNutrientFilter && (
-        <button
-          type="button"
-          className={clsx(
-            styles.nutrientIconButton,
-            selectedNutrientLabel && styles.nutrientIconButtonActive,
+          {hasFilter && filterOptions ? (
+            <div className={styles.segmented} role="tablist" aria-label="Фильтр поиска">
+              {filterOptions.map((opt) => {
+                const isActive = opt === selectedFilter;
+                return (
+                  <button
+                    key={opt}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    className={clsx(styles.segment, isActive && styles.segmentActive)}
+                    onClick={() => onSelectFilter?.(opt)}
+                  >
+                    {FILTER_LABELS[opt]}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            title && (
+              <Heading size="drawer" as="h2" className={styles.title}>
+                {title}
+              </Heading>
+            )
           )}
-          onClick={onOpenNutrientPicker}
-          aria-label="Фильтр по нутриенту"
-          aria-pressed={Boolean(selectedNutrientLabel)}
-          title="Нутриенты"
-        >
-          <NutrientIcon />
-        </button>
-      )}
 
-      {hasFilter && filterOptions && (
-        <div className={styles.filterToggle} role="tablist" aria-label="Фильтр поиска">
-          {filterOptions.map((opt) => {
-            const isActive = opt === selectedFilter;
-            return (
-              <button
-                key={opt}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                className={clsx(
-                  styles.filterPill,
-                  isActive && styles.filterPillActive,
-                )}
-                onClick={() => onSelectFilter?.(opt)}
-              >
-                {FILTER_LABELS[opt]}
-              </button>
-            );
-          })}
+          <div className={styles.topRowSpacer} />
+
+          {showNutrientFilter && (
+            <button
+              type="button"
+              className={clsx(
+                styles.nutrientIconButton,
+                selectedNutrientLabel && styles.nutrientIconButtonActive,
+              )}
+              onClick={onOpenNutrientPicker}
+              aria-label="Фильтр по нутриенту"
+              aria-pressed={Boolean(selectedNutrientLabel)}
+              title="Нутриенты"
+            >
+              <NutrientIcon />
+            </button>
+          )}
         </div>
       )}
-      </header>
+
+      {/* Row B — search gets its own full-width container row (the field reads as a
+          field, not a faint decorative pill). */}
+      <div className={styles.searchRow}>
+        <div className={styles.searchWrapper}>
+          <div className={styles.searchIcon}>
+            <SearchIcon />
+          </div>
+          <input
+            type="search"
+            inputMode="search"
+            enterKeyHint="search"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            className={styles.searchInput}
+            placeholder="Поиск"
+            id={inputId ?? 'search'}
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+          {searchQuery.length > 0 && (
+            <button
+              type="button"
+              className={styles.clearButton}
+              onClick={() => onSearchChange('')}
+              aria-label="Очистить поиск"
+            >
+              <CrossIcon />
+            </button>
+          )}
+        </div>
+      </div>
 
       {showNutrientFilter && selectedNutrientLabel && (
         <div className={styles.nutrientRow}>

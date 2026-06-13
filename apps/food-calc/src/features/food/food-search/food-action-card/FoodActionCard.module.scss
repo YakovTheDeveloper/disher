@@ -1,9 +1,9 @@
 @import '@/shared/assets/style/mixin.scss';
 
 // ──────────────────────────────────────────────────────────────────────
-// FoodActionCard — stripe-fork row, token-driven by `body[data-surface]`.
-// Surface tokens (--card-*) live in `shared/assets/style/surfaces.scss`;
-// HomePage flow runs `useSurface('warm')`, Dish/Product run lavender.
+// FoodActionCard — stripe-fork row, token-driven by the app-wide tone.
+// Surface tokens (--card-*) come from the live ModalShell variant on
+// `body[data-modal-fields]` (see tds/modalshell-lawgiver-2026-06-13).
 // Structure is v5 stripe-fork: 3-stop gradient + fading hairline ::after
 // + full-height richness bar + nth-child rhythm overlay + tabular numerics.
 // ──────────────────────────────────────────────────────────────────────
@@ -190,6 +190,18 @@
     flex-shrink: 0;
     object-fit: contain;
     opacity: 0.75;
+}
+
+// Каталожная миниатюра продукта (build-route поле `image`). Круглая, тёплая
+// рамка-хайрлайн в тон stripe-warm каскада, кадрируется по центру.
+.thumb {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 1px rgba(124, 65, 15, 0.1);
+    background: rgba(124, 65, 15, 0.04);
 }
 
 .item_active {

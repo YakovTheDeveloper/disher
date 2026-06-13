@@ -1,23 +1,21 @@
 // HomeTopBar — top-of-home bar: avatar / nutrients / date selector.
 //
-// One design-variant anchor driven by `useDesignVariant`:
-//   [data-dv='HomeTopBar']      → 2 bar-shell variants (floating / ribbon)
-//
-// The date button always uses the "numeral" rendering (short serif-italic day
-// «Пн» over tiny stacked dd.mm meta) — no variant rotation. Day/meta sizes and
-// the pill height come from the `--bar-*` tokens in `.shell` so the date pill
-// stays in one grid with the account/center pills.
+// Shell look = the «floating» canon (detached translucent pill, soft elevation),
+// baked into `.shell` directly (2026-06-13 — the `ribbon` alt + the DesignBar
+// anchor were retired). The date button always uses the "numeral" rendering
+// (short serif day «Пн» over tiny stacked dd.mm meta). Day/meta sizes and the
+// pill height come from the `--bar-*` tokens in `.shell` so the date pill stays
+// in one grid with the account/center pills.
 
 // ─── Local tokens (defaults — overridden per bar-shell variant) ────────
 
 .shell {
-  --bar-bg: rgba(255, 255, 255, 0.85);
-  --bar-blur: 8px;
-  --bar-border: 1px solid rgba(0, 0, 0, 0.05);
-  --bar-shadow: none;
-  --bar-pad-x: 12px;
+  // «floating» canon (baked-in): translucent glass pill, tight crisp shadow.
+  --bar-bg: rgba(255, 255, 255, 0.94);
+  --bar-blur: 14px;
+  --bar-border: none;
+  --bar-shadow: 0 1px 2px rgba(31, 42, 68, 0.08);
   --bar-pad-y: 8px;
-  --bar-margin: 0;
 
   --seg-color: rgba(0, 0, 0, 0.78);
   --seg-tap: rgba(0, 0, 0, 0.05);
@@ -225,35 +223,6 @@
   -webkit-backdrop-filter: blur(var(--bar-blur));
   padding: var(--date-pad-y) var(--date-pad-x);
   margin-left: auto;
-}
-
-// ─── Bar-shell variants ────────────────────────────────────────────────
-
-// 1) floating — detached rounded pill above content, soft elevation.
-// Shadow is intentionally TIGHT (low blur radius, short offset) so the
-// rounded silhouette stays crisp — a wide soft halo would smear the
-// bottom-corner radius and visually erase it during scroll. Bg stays
-// translucent so the bar reads as glass, not as a flat plate.
-.shell[data-dv='HomeTopBar'][data-dv-v='floating'] {
-  --bar-bg: rgba(255, 255, 255, 0.94);
-  --bar-blur: 14px;
-  --bar-border: none;
-  --bar-shadow: 0 1px 2px rgba(31, 42, 68, 0.08);
-  --bar-pad-x: 14px;
-  --bar-margin: max(10px, env(safe-area-inset-top)) 10px 0;
-}
-
-// 2) ribbon — warm tri-tone gradient flush at top.
-.shell[data-dv='HomeTopBar'][data-dv-v='ribbon'] {
-  --bar-bg: linear-gradient(90deg,
-      rgba(255, 230, 215, 0.92) 0%,
-      rgba(232, 248, 220, 0.92) 50%,
-      rgba(220, 205, 238, 0.92) 100%);
-  --bar-blur: 0px;
-  --bar-border: 1px solid rgba(31, 42, 68, 0.07);
-  --bar-pad-y: 6px;
-  --seg-color: rgba(31, 42, 68, 0.86);
-  --seg-tap: rgba(31, 42, 68, 0.08);
 }
 
 // ─── Date-button (numeral, fixed) ──────────────────────────────────────

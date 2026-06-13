@@ -7,21 +7,8 @@
 
 // .back перенесён в общий BackButton-атом (shared/ui/atoms/Button/BackButton).
 
-// Ряд с кнопкой «назад» над плитками.
+// Ряд с кнопкой «назад».
 .barTop {
     display: flex;
     align-items: center;
-}
-
-// Плитки — как ScreenIndicator на HomePage: ряд слева (justify-start), пустая
-// треть справа зеркалит 3-колоночную сетку главной.
-.tiles {
-    display: flex;
-    justify-content: flex-start;
-    gap: var(--space-2);
-}
-
-// Каждая плитка ≈ 1/3 ширины ряда (минус два гэпа делёное на три).
-.tile {
-    flex: 0 0 calc((100% - 2 * var(--space-2)) / 3);
 }

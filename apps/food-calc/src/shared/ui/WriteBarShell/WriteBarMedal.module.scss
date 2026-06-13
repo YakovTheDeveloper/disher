@@ -13,6 +13,11 @@
     --tile-img-opacity: 0.85;
     // Дуговая подпись в единицах viewBox(100) → ≈11.6px на 68px-медальоне.
     --wb-arc-size: 17px;
+    // Тень монеты-подъёма. DesignBar-варианты «FoodMedal» переопределяют её на
+    // направленную (см. блок вариантов внизу). Дефолт = симметричный lift.
+    --medal-shadow:
+        0 5px 12px rgba(31, 42, 68, 0.14),
+        0 2px 4px rgba(31, 42, 68, 0.08);
 
     flex-shrink: 0;
     align-self: center;
@@ -44,9 +49,7 @@
         z-index: 0;
         background: var(--wb-tile-bg);
         border-radius: var(--radius-full);
-        box-shadow:
-            0 5px 12px rgba(31, 42, 68, 0.14),
-            0 2px 4px rgba(31, 42, 68, 0.08);
+        box-shadow: var(--medal-shadow);
         backdrop-filter: var(--wb-backdrop);
         pointer-events: none;
         transition: inset 0.2s ease, background 0.15s ease;
@@ -106,6 +109,19 @@
             box-shadow: none;
         }
     }
+}
+
+// Lifted (Food bar) — nudge the coin a touch above the pill centre so it reads
+// as «приподнятая» (the placeholder «или» arcs up toward it). Uses `top` (not
+// `transform`) so it never clashes with the press-scale / collapse-translate.
+// Lifted (Food bar) — приподнятая монета с направленной «cast»-тенью: она парит
+// вверх-вправо, свет сверху-справа → тень собирается вниз-влево, что продаёт
+// высоту. Анализ/События (без `.lifted`) сохраняют симметричную базовую тень.
+.lifted {
+    top: calc(-1 * var(--space-8));
+    --medal-shadow:
+        -7px 11px 20px rgba(31, 42, 68, 0.09),
+        -2px 4px 7px rgba(31, 42, 68, 0.05);
 }
 
 // Collapse on focus — the row carries the `[data-expanded]` plain attribute, so

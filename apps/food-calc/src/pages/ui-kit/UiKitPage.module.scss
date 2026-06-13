@@ -219,7 +219,7 @@
 // ─── Per-component helpers ───────────────────────────────────────────────────
 .bigNum {
   font-family: var(--heading-font);
-  font-style: italic;
+  font-style: var(--heading-style);
   font-size: var(--text-2xl);
   font-feature-settings: 'tnum' 1, 'lnum' 1;
 }

@@ -27,6 +27,8 @@ export interface ProductRow {
   categories: Array<unknown>;
   serving_basis: '100g' | 'serving';
   serving_unit: 'IU' | 'mg' | 'mcg' | 'g' | 'шт' | null;
+  /** Optional thumbnail path (build-route catalog rows only; user products have none). */
+  image?: string;
   created_at: string;
   updated_at: string;
 }

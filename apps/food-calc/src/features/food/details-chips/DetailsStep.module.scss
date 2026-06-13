@@ -8,15 +8,10 @@
   padding-top: var(--space-1);
   padding-bottom: var(--space-2);
 
-  // Инпут (AutoGrowSearch читает по наследованию): менее жёлтый + мелкий
-  // радиус как у плитки ScreenIndicator.
-  --field-bg-from: #fdfcfa;
-  --field-bg-mid: #fbf9f4;
-  --field-bg-to: #f6f1e6;
-  --field-radius: var(--radius-sm);
-  --field-placeholder: rgba(124, 65, 15, 0.45);
-  --field-hairline: rgba(124, 66, 15, 0.336);
-  --field-hairline-focus: rgba(243, 129, 29, 0.45);
+  // Инпут (AutoGrowSearch) НЕ перекрашиваем локально — он наследует общий тон
+  // приложения с `body[data-modal-fields]` (канон law-giver 2026-06-13), как и
+  // чипы рядом. Раньше тут был тёплый honey-override + мелкий радиус — он и давал
+  // диссонанс «жёлтое поле / лавандовые чипы».
 
   // Чипы — плотный gap (больше помещается над клавиатурой).
   --dc-chip-gap: var(--space-1);

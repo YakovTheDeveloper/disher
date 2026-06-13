@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { NavTile } from '@/shared/ui/NavTile';
 import s from './ScreenIndicator.module.scss';
 
@@ -21,9 +22,11 @@ type Props = {
   //   один инстанс на странице).
   activeIndex?: number;
   slideIndex?: number;
-  // Опциональный заголовок под тайлами (HomePage: день недели с большой
-  // буквы). Не задан → band не рендерится (дефолт для product/dish).
-  title?: string;
+  // Опциональный слот под тайлами — заголовок контента страницы. HomePage
+  // кладёт сюда `<SelectedDayHeading>` (Heading size="section"). Типографику
+  // задаёт сам переданный узел, не band. Не задан → band не рендерится
+  // (дефолт для product/dish).
+  title?: ReactNode;
   // Бледная картинка активного экрана (`.bandImg`), прижатая к верху индикатора.
   // Дефолт — true (product/dish так и показывают). HomePage передаёт false:
   // там картинка таба переехала в центр слайда (SlideArtFrame), и второй
@@ -86,11 +89,7 @@ export const ScreenIndicator = ({
         ))}
       </div>
 
-      {title && (
-        <div className={s.band}>
-          <span className={s.bandLabel}>{title}</span>
-        </div>
-      )}
+      {title != null && <div className={s.band}>{title}</div>}
     </div>
   );
 };

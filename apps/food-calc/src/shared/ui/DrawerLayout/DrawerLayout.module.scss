@@ -244,6 +244,8 @@
     // while swiping.
     &::before {
         content: '';
+        position: relative;
+        z-index: 2;
         width: 4px;
         height: clamp(36px, 7vh, 56px);
         border-radius: var(--radius-full);
@@ -255,6 +257,7 @@
     &::after {
         content: '';
         position: absolute;
+        z-index: 2;
         top: 14px;
         bottom: 14px;
         width: 1px;
@@ -265,6 +268,44 @@
                 transparent 100%);
         pointer-events: none;
     }
+}
+
+// Idea 1 — vertical crop of the food photo filling the grip strip. Sits below
+// the grip pill + hairline (z-index above). `pointer-events: none` keeps the
+// whole strip a single swipe target; the parent `.edgeHandle` owns the drag.
+// Catalog source photos are tiny (~200px long edge), so a hard crop into a
+// 20–30px strip upscales ~5× and reads pixelated — a firm blur + `saturate`
+// turns it into an ambient colour texture (recognisability isn't the point on
+// a strip this narrow). `scale` pushes the blur fade past the clipped edges.
+.edgeImage {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(8px) saturate(1.15);
+    transform: scale(1.45);
+    pointer-events: none;
+    user-select: none;
+}
+
+// When a photo backs the strip, the variant wash would peek through the photo's
+// edges and the brown grip pill loses contrast over a busy crop. Drop the wash
+// to a neutral base, clip the blurred photo, and turn the grip into a
+// frosted-white pill with a soft shadow so it reads on any image.
+.edgeHandleImage {
+    background: var(--color-bg, #f5f3ef);
+    overflow: hidden;
+
+    &::before {
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.28);
+    }
+}
+
+.content[data-swiping] .edgeHandleImage::before {
+    background: white;
 }
 
 // Right-anchored drawer → handle on its left edge → panel is to the right.

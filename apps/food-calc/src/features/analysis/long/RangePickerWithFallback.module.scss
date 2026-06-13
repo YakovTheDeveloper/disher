@@ -31,9 +31,9 @@
 
     // Цветной отклик: чип-вкладка заполняется тёмным при нажатии
     &:active {
-        background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
-        border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
-        color: var(--chip-active-text, #fff);
+        background: var(--chip-active-bg);
+        border-color: var(--chip-active-border);
+        color: var(--chip-active-text);
         transform: scale(0.97);
         transition-duration: var(--press-in);
     }
@@ -56,12 +56,12 @@
 .presetActive {
     padding: 8px 14px;
     border-radius: 999px;
-    border: 1px solid rgba(124, 65, 15, 0.18);
+    border: 1px solid var(--chip-border);
     background: transparent;
     font-size: 13px;
     font-weight: 500;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
-    color: rgba(60, 38, 10, 0.7);
+    color: color-mix(in srgb, var(--card-text-rest) 70%, transparent);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: background var(--press-out) var(--easing-default),
@@ -71,18 +71,18 @@
 
     // Цветной отклик: пресет-пилюля заполняется чип-заливкой при нажатии
     &:active {
-        background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
-        border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
-        color: var(--chip-active-text, #fff);
+        background: var(--chip-active-bg);
+        border-color: var(--chip-active-border);
+        color: var(--chip-active-text);
         transform: scale(0.96);
         transition-duration: var(--press-in);
     }
 }
 
 .presetActive {
-    border-color: rgba(206, 142, 45, 0.85);
-    background: linear-gradient(90deg, #fffaf2 0%, #fdf0db 100%);
-    color: rgba(60, 38, 10, 0.95);
+    border-color: var(--card-text-active);
+    background: var(--card-active);
+    color: var(--card-text-rest);
 }
 
 // ─── react-day-picker container ───────────────────────────────────────
@@ -91,13 +91,13 @@
     align-self: center;
     border-radius: 14px;
     padding: 4px 8px;
-    background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
+    background: var(--card-bg);
     box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04),
         0 6px 20px -14px rgba(15, 23, 42, 0.25);
 
-    --rdp-accent-color: rgba(206, 142, 45, 1);
-    --rdp-accent-background-color: rgba(206, 142, 45, 0.14);
-    --rdp-today-color: rgba(206, 142, 45, 1);
+    --rdp-accent-color: var(--card-text-active);
+    --rdp-accent-background-color: color-mix(in srgb, var(--card-text-active) 14%, transparent);
+    --rdp-today-color: var(--card-text-active);
     font-size: 14px;
 }
 
@@ -133,8 +133,8 @@
 
     &:focus {
         outline: none;
-        border-color: rgba(206, 142, 45, 0.7);
-        box-shadow: 0 0 0 3px rgba(206, 142, 45, 0.14);
+        border-color: var(--card-text-active);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-text-active) 14%, transparent);
     }
 }
 

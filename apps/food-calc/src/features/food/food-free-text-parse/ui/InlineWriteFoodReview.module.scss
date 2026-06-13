@@ -1,13 +1,10 @@
-// Inline review — рендерится ПОСЛЕ ItemsList в FoodSchedule (chat-pattern:
-// результат разбора рядом с write-bar внизу). Контейнер elevated (box-shadow)
-// + 4-corner radial-glow ambient внутри (родственник HomePage.HomeAmbient)
-// — поднимает блок над списком и над общим ambient'ом HomePage.
-
-// Fading hairline — канон stripe-fork (FoodActionCard.module.scss:315-328):
-// transparent → cool blue hairline @18-82% → transparent, inset 14px.
-// Отделяет шедул-список от предложки. Виден только когда сама предложка
-// mounted — сидит в общем return, поэтому условный рендер сверху
-// автоматически синхронизирует видимость разделителя с видимостью wrap'а.
+// Inline review (предложка) — рендерится ПОСЛЕ ItemsList в FoodSchedule.
+// Дизайн-направление 2026-06-13: НЕ elevated карточка, а «карточка на листке» —
+// плоская скруглённая плашка, лежащая на бумаге (warm ambient страницы), с
+// едва уловимым глянцем. Без box-shadow, без подъёма. Горизонтальный margin
+// делает её уже листа со списком → читается как карточка ПОВЕРХ листа.
+// Характер блика — варианты через DesignBar (anchor `Predlozhka`):
+// satin / glass / pearl / frost.
 
 .wrap {
   position: relative;
@@ -15,123 +12,84 @@
   flex-direction: column;
   gap: var(--space-3);
 
-  // + bottom var(--space-2)). Здесь только bottom-margin до края скролла.
-  margin: 0 0 calc(var(--space-6) * 3);
-  padding: var(--space-4) var(--space-3);
-  background: #ffffff;
-  border-radius: 20px;
-  // Симметричная вертикальная тень: одинаково сверху и снизу, без directional
-  // drop. Боковые edge'и почти без блюра — wrap читается как «квадратная
-  // плашка», а не приподнятая carta. Hairline-кольцо удерживает контур над
-  // цветным HomeAmbient.
-  box-shadow:
-    0 -14px 28px -10px rgba(31, 42, 68, 0.20),
-    0 14px 28px -10px rgba(31, 42, 68, 0.20),
-    0 0 0 1px rgba(31, 42, 68, 0.06);
+  // space-3 со всех сторон: вертикальный — воздух до листа/края, горизонтальный
+  // — инсет от краёв листа (карточка уже бумаги). Низ держит scroller-padding
+  // самого Screen (overlay-бар), поэтому большой bottom-margin не нужен.
+  margin: var(--space-12) var(--space-3) var(--space-3);
+  background: #f7f6f3;
+  border-radius: 2rem;
   overflow: hidden;
 
-  // 4-corner radial-glow: blue-leaning gamma (sky / periwinkle / steel / ice)
-  // — родственник `ProductAmbient` палитры из HomePage.module.scss. Тёплый
-  // peach убран по запросу юзера 2026-05-23 — синие тона лучше держат
-  // primary-action настроение карточки (тёмный ink-pill снизу).
+  // Глянец-слой: едва уловимый блик. Дефолт (satin) — мягкий верхний блик, как
+  // на сатиновой бумаге. glass/pearl/frost переопределяют `background` ниже.
   &::before {
     content: '';
     position: absolute;
     inset: 0;
-    background:
-      radial-gradient(ellipse 70% 60% at 0% 0%, rgba(205, 230, 250, 0.65), transparent 45%),
-      radial-gradient(ellipse 70% 60% at 100% 0%, rgba(212, 220, 248, 0.55), transparent 45%),
-      radial-gradient(ellipse 70% 60% at 0% 100%, rgba(220, 228, 240, 0.5), transparent 45%),
-      radial-gradient(ellipse 70% 60% at 100% 100%, rgba(212, 235, 240, 0.55), transparent 45%);
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.85) 0%,
+        rgba(255, 255, 255, 0.18) 22%,
+        rgba(255, 255, 255, 0) 50%);
     pointer-events: none;
     z-index: 0;
   }
 
-  // Все children — над ::before-glow.
+  // Контент — над глянец-слоем.
   >* {
     position: relative;
     z-index: 1;
   }
 }
 
-// ─── DesignBar: раскладка предложки (anchor `Predlozhka`) ──────────────────
-// 3 варианта положения предложки относительно белого листа со списком дня.
-// База `.wrap` выше = плавающая белая карточка — её же получают ВСЕ варианты
-// на ПУСТОМ дне (`:not([data-tucked])`), когда выезжать не из-под чего.
-// `data-tucked='true'` ставит родитель, когда в дне УЖЕ есть еда (лист сверху
-// существует): undersheet/seamless тогда «прилипают» к нему. Лист дня
-// (`.headerOverlap`, z-index:1) красится ПОВЕРХ предложки (z-index:auto) —
-// поэтому отрицательный margin-top реально прячет верх под лист.
+// ─── DesignBar: глянец предложки (anchor `Predlozhka`) ─────────────────────
+// Тема «карточка на листке»: плоская плашка + едва уловимый блик, БЕЗ elevation
+// (никаких drop-shadow). Варианты отличаются характером глянца и тоном плашки.
 
-// undersheet (дефолт): второй лист, выезжает из-под белого листа дня. Плоский
-// тёмный верх (имитация тени, отброшенной листом сверху), низ скруглён,
-// оттенок off-white — читается как ДРУГОЙ лист под белым.
-.wrap[data-dv-v='undersheet'][data-tucked='true'] {
-  margin-top: -8px;
-  border-radius: 0 0 20px 20px;
-  background: #f7f6f3;
-  box-shadow:
-    0 18px 30px -16px rgba(31, 42, 68, 0.20),
-    0 0 0 1px rgba(31, 42, 68, 0.05);
-  padding-top: var(--space-6);
+// satin (дефолт): мягкий верхний сатиновый блик задан в базовом `.wrap::before`
+// + тёплый off-white тон — отдельного override не требует.
 
-  // плоский лист — без card-glow
+// glass: глянцевая стеклянная плашка — диагональный световой свайп + узкая
+// световая полоса по верхнему краю. Тон чуть прохладнее.
+.wrap[data-dv-v='glass'] {
+  background: #f4f6f8;
+
   &::before {
-    display: none;
-  }
-
-  // тёмная полоса у верхнего края = тень, отброшенная листом дня сверху
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 24px;
-    background: linear-gradient(to bottom,
-        rgba(31, 42, 68, 0.17) 0%,
-        rgba(31, 42, 68, 0.07) 55%,
-        rgba(31, 42, 68, 0) 100%);
-    pointer-events: none;
-    z-index: 2;
+    background:
+      linear-gradient(125deg,
+        rgba(255, 255, 255, 0.55) 0%,
+        rgba(255, 255, 255, 0) 32%),
+      linear-gradient(180deg,
+        rgba(255, 255, 255, 0.75) 0%,
+        rgba(255, 255, 255, 0) 12%);
   }
 }
 
-// seamless: та же бумага, что и лист дня — без отдельной карточки. Разделяет
-// затухающий хайрлайн-шов (stripe-fork канон) + лёгкая внутренняя тень сверху.
-.wrap[data-dv-v='seamless'][data-tucked='true'] {
-  margin-top: 0;
-  border-radius: 0;
-  background: #ffffff;
-  box-shadow: inset 0 8px 10px -10px rgba(31, 42, 68, 0.12);
-  padding-top: var(--space-6);
+// pearl: перламутровый отлив — яркий верхне-левый угол + еле заметный
+// прохладный блик снизу-справа. Тон — чуть лиловый off-white.
+.wrap[data-dv-v='pearl'] {
+  background: #f7f5f7;
 
   &::before {
-    display: none;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: 14px;
-    right: 14px;
-    top: 0;
-    height: 1px;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(31, 42, 68, 0.10) 18%,
-        rgba(31, 42, 68, 0.10) 82%,
-        transparent 100%);
-    pointer-events: none;
-    z-index: 2;
+    background:
+      radial-gradient(ellipse 85% 60% at 12% 0%,
+        rgba(255, 255, 255, 0.72), transparent 46%),
+      radial-gradient(ellipse 70% 55% at 100% 100%,
+        rgba(214, 224, 245, 0.34), transparent 52%);
   }
 }
 
-// tray: отдельная заметно приподнятая карточка-черновик со своим тёплым
-// оттенком и воздухом сверху — всегда парит над листом дня (tucked или нет).
-.wrap[data-dv-v='tray'] {
-  margin-top: var(--space-4);
-  background: #fffefc;
+// frost: матовое стекло — полупрозрачная плашка + backdrop-blur размывает
+// тёплый ambient под ней. Самый «стеклянный» вариант, всё ещё без подъёма.
+.wrap[data-dv-v='frost'] {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px) saturate(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+
+  &::before {
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.6) 0%,
+        rgba(255, 255, 255, 0) 30%);
+  }
 }
 
 // Mount-only enter-анимация ТОЛЬКО для ready-state: лёгкий
@@ -220,6 +178,13 @@
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-6) var(--space-3);
+}
+
+// «Предложенные варианты» — мельче канонного section-заголовка (~31px) по
+// запросу юзера. Сохраняем section-голос (не italic), уменьшаем кегль до
+// --text-lg (20px) — заметно меньше, но всё ещё заголовок, не лейбл.
+.reviewTitle {
+  font-size: var(--text-xl);
 }
 
 .originalText {
@@ -466,12 +431,52 @@
   }
 }
 
+// CTA-ряд: «Отменить» (fit-content) + «Добавить N» (растягивается). Боковой
+// margin var(--space-2) (по запросу юзера) — кнопки инсетятся от краёв плашки;
+// низ space-2, чтобы пилюли не упирались в скруглённый угол (у `.wrap` padding
+// снят). Верх держит прежний отступ от списка.
+.ctaRow {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+  margin: calc(var(--space-6) * 2) var(--space-2) var(--space-2);
+}
+
+// «Отменить» — тихая вторичная кнопка по ширине контента, слева от primary.
+.cancelBtn {
+  flex: 0 0 auto;
+  padding: 12px 18px;
+  min-height: 44px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(31, 42, 68, 0.06);
+  color: rgba(31, 42, 68, 0.75);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  transition: transform 0.12s ease, background var(--press-out) var(--easing-default);
+
+  // Цветной отклик: тихая кнопка — тинт-фон на нажатии.
+  &:active {
+    background: var(--press-tint-bg);
+    transform: scale(0.98);
+    transition-duration: var(--press-in);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
 // CTA «Добавить N» — solid `--color-ink` pill. Сильный контраст с warm
 // ambient'ом предложки + HomeAmbient под ней; играет роль primary action
-// на экране (юзер пришёл в предложку именно ради этой кнопки).
+// на экране (юзер пришёл в предложку именно ради этой кнопки). Растягивается
+// на остаток ряда рядом с «Отменить».
 .commitBtn {
-  align-self: stretch;
-  margin-top: calc(var(--space-6) * 2);
+  flex: 1;
   padding: 12px 22px;
   min-height: 44px;
   border: none;

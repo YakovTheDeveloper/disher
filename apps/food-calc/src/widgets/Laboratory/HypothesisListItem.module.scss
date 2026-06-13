@@ -1,8 +1,8 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// Stripe-fork hypothesis row. Palette CSS-vars (`--lh-*`) are published by
-// the parent `[data-dv='LabHypothesis'][data-dv-v=...]` anchor in
-// HypothesisListCollapsible.module.scss — this file only consumes them.
+// Stripe-fork hypothesis row — token-driven by the app-wide tone (the live
+// ModalShell variant → `--card-*`, see tds/modalshell-lawgiver-2026-06-13).
+// Same idiom as FoodActionCard / AnalysisListItem.
 
 .row {
     position: relative;
@@ -10,10 +10,7 @@
     align-items: stretch;
     gap: 4px;
     overflow: hidden;
-    background: linear-gradient(90deg,
-        var(--lh-bg-from, #fffefb) 0%,
-        var(--lh-bg-mid, #fffaf2) 55%,
-        var(--lh-bg-to, #fdf4e3) 100%);
+    background: var(--card-bg);
 
     // Vertical accent stripe — 3px idle, 5px + saturated when selected.
     &::before {
@@ -24,7 +21,7 @@
         bottom: 7px;
         width: 3px;
         border-radius: 2px;
-        background: var(--lh-accent, rgba(214, 158, 70, 0.55));
+        background: color-mix(in srgb, var(--card-text-active) 55%, transparent);
         transition: width 0.14s ease, background 0.14s ease;
     }
 
@@ -36,7 +33,7 @@
         right: 14px;
         bottom: 0;
         height: 1px;
-        @include hairline(var(--lh-hairline, rgba(124, 65, 15, 0.09)));
+        @include hairline(var(--card-hairline));
         pointer-events: none;
     }
 
@@ -46,46 +43,32 @@
 
     &[data-selected]::before {
         width: 5px;
-        background: var(--lh-accent-strong, rgba(214, 158, 70, 1));
+        background: var(--card-text-active);
     }
 
     // «New» marker — ephemeral ring on a just-created row. Sharp (no radius):
     // rows are flush and only the outer scrollWrap is rounded, so a rounded
-    // ring here would read as a misaligned box. Colour = the palette's strong
-    // accent (lavender→violet, warm→amber); composes with [data-selected].
+    // ring here would read as a misaligned box. Colour = the tone's accent;
+    // composes with [data-selected].
     &[data-new] {
-        box-shadow: inset 0 0 0 1.5px var(--lh-accent-strong, rgba(214, 158, 70, 1));
+        box-shadow: inset 0 0 0 1.5px var(--card-text-active);
     }
 
     // nth-child rhythm — surfaces are not identical (design-DNA rule 4).
     &:nth-child(2n)::after {
         background: linear-gradient(90deg,
             transparent 0%,
-            var(--lh-hairline, rgba(124, 65, 15, 0.09)) 18%,
-            var(--lh-hairline, rgba(124, 65, 15, 0.09)) 82%,
+            var(--card-hairline) 18%,
+            var(--card-hairline) 82%,
             transparent 100%);
     }
 
     &:nth-child(2n) {
-        background-image:
-            linear-gradient(90deg,
-                color-mix(in srgb, var(--lh-accent, rgba(214, 158, 70, 0.55)) 8%, transparent) 0%,
-                transparent 55%),
-            linear-gradient(90deg,
-                var(--lh-bg-from, #fffefb) 0%,
-                var(--lh-bg-mid, #fffaf2) 55%,
-                var(--lh-bg-to, #fdf4e3) 100%);
+        background-image: var(--card-wash-2n), var(--card-bg);
     }
 
     &:nth-child(3n) {
-        background-image:
-            linear-gradient(90deg,
-                transparent 45%,
-                color-mix(in srgb, var(--lh-accent, rgba(214, 158, 70, 0.55)) 7%, transparent) 100%),
-            linear-gradient(90deg,
-                var(--lh-bg-from, #fffefb) 0%,
-                var(--lh-bg-mid, #fffaf2) 55%,
-                var(--lh-bg-to, #fdf4e3) 100%);
+        background-image: var(--card-wash-3n), var(--card-bg);
     }
 }
 
@@ -121,7 +104,7 @@
     width: 22px;
     height: 22px;
     border-radius: 7px;
-    border: 1.5px solid var(--lh-accent-strong, rgba(214, 158, 70, 0.85));
+    border: 1.5px solid var(--card-text-active);
     background: rgba(255, 255, 255, 0.7);
     transition: background 0.13s ease, transform 0.1s ease;
 
@@ -138,8 +121,8 @@
 }
 
 .checkbox:checked + .checkboxBox {
-    background: var(--lh-accent-strong, rgba(214, 158, 70, 1));
-    border-color: var(--lh-accent-strong, rgba(214, 158, 70, 1));
+    background: var(--card-text-active);
+    border-color: var(--card-text-active);
 
     &::after {
         transform: rotate(-45deg) scale(1);
@@ -191,13 +174,13 @@
     font-size: 14.5px;
     font-weight: 600;
     line-height: 1.3;
-    color: var(--lh-text, rgba(60, 38, 10, 0.92));
+    color: var(--card-text-rest);
 }
 
 .body {
     font-size: 12.5px;
     line-height: 1.45;
-    color: var(--lh-text-dim, rgba(60, 38, 10, 0.58));
+    color: color-mix(in srgb, var(--card-text-rest) 58%, transparent);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -211,6 +194,6 @@
     margin-top: 2px;
     font-size: var(--text-xs);
     line-height: 1.2;
-    color: var(--lh-text-dim, rgba(60, 38, 10, 0.5));
+    color: color-mix(in srgb, var(--card-text-rest) 50%, transparent);
     opacity: 0.8;
 }

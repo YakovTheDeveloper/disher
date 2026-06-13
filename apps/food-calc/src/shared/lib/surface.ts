@@ -3,14 +3,15 @@ import { useEffect } from 'react';
 export type Surface = 'warm' | 'lavender';
 
 /**
- * Sets `body[data-surface]` for the lifetime of the component. CSS-vars defined
- * in `shared/assets/style/surfaces.scss` cascade through Base UI portals (which
- * mount on document.body), so a warm-pill AutoGrowSearch rendered inside a
- * portaled modal still picks up the surface chosen by the host page.
+ * LEGACY (2026-06-13): the app-wide palette now comes from the live ModalShell
+ * variant on `body[data-modal-fields]` (App.tsx), NOT from `data-surface`. This
+ * hook + `surfaces.scss` survive ONLY for the UiKitPage palette previewer, which
+ * suppresses the global tone while mounted so this toggle stays authoritative.
+ * Do not add new callers — pages follow the «law-giver» tone automatically
+ * (tds/modalshell-lawgiver-2026-06-13).
  *
- * Default value on body is set once in App.tsx. Pages that need a different
- * surface call this hook on mount; on unmount, the previous value (or the
- * default) is restored.
+ * Sets `body[data-surface]` for the lifetime of the component; restores the
+ * previous value on unmount.
  */
 export function useSurface(surface: Surface) {
   useEffect(() => {

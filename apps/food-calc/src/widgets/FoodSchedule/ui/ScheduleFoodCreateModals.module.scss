@@ -95,13 +95,16 @@
   border-radius: 14px;
   overflow: hidden;
 
-  // Default stripe (main / БЖУ) — warm honey. Остальные группы перекрывают
-  // фон и accent ниже через [data-group="..."].
-  background: linear-gradient(90deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
-  --group-accent: rgba(170, 110, 30, 0.55);
-  --group-hairline: rgba(124, 65, 15, 0.09);
+  // Surface + hairline follow the app-wide tone (--card-*); folded into the
+  // ModalShell «law-giver» 2026-06-13 (was per-group honey/green/orange/purple
+  // backgrounds that fought the global tone). Each group keeps ONLY a distinct
+  // 3px accent stripe for nutrient-category identity (stripe-fork rule 3 —
+  // accent carries data, not the whole surface). main/БЖУ = neutral tone accent.
+  background: var(--card-bg);
+  --group-accent: var(--card-text-active);
+  --group-hairline: var(--card-hairline);
 
-  // Vertical accent 3px слева на палитру группы (правило 3 stripe-fork).
+  // Vertical accent 3px слева — несёт категорию группы (правило 3 stripe-fork).
   &::before {
     content: '';
     position: absolute;
@@ -114,21 +117,15 @@
     pointer-events: none;
   }
 
-  // Палитры по группам — нутриенты дают 4 различимые stripe-палитры.
+  // Только accent-полоска несёт категорию — поверхность общая (тон).
   &[data-group='minerals'] {
-    background: linear-gradient(90deg, #fbfffd 0%, #f1faf5 55%, #e3f1e8 100%);
     --group-accent: rgba(45, 120, 80, 0.55);
-    --group-hairline: rgba(20, 80, 50, 0.10);
   }
   &[data-group='vitamins'] {
-    background: linear-gradient(90deg, #fffcfa 0%, #fff3ed 55%, #fde2d2 100%);
     --group-accent: rgba(195, 95, 35, 0.55);
-    --group-hairline: rgba(140, 60, 20, 0.10);
   }
   &[data-group='aminoAcids'] {
-    background: linear-gradient(90deg, #fcfbff 0%, #f3eefc 55%, #e6dcf5 100%);
     --group-accent: rgba(110, 75, 165, 0.55);
-    --group-hairline: rgba(70, 40, 130, 0.10);
   }
 }
 

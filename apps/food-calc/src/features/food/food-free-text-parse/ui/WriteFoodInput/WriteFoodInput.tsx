@@ -78,6 +78,10 @@ export const WriteFoodInput = ({
       onSubmit={handleSubmit}
       inputId={inputId}
       placeholder={placeholder}
+      // EXPERIMENT 2026-06-13: гнём хвостовое «или» дугой вверх к приподнятой
+      // медали «Выбор еды». Срабатывает, только если placeholder кончается на это
+      // слово (FoodSchedule: «…вы ели или»). Не нравится — заменить на «или можно».
+      placeholderArcTail="или"
       online={online}
       // Бар еды: заливка+рамка пилюли растворяются к правому торцу (у медали
       // «Выбор еды»). Только здесь — Анализ/События остаются с ровной рамкой.
@@ -101,6 +105,7 @@ export const WriteFoodInput = ({
           img={FOOD_TILE_IMG}
           arcTop={ARC_TOP}
           arcBottom={ARC_BOTTOM}
+          lifted
           dimmed={isReady}
         />
       }

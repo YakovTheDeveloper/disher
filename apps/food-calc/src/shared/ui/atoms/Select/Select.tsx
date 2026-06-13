@@ -33,9 +33,9 @@ const ChevronDownIcon = () => (
 
 /**
  * Тонкая обёртка над Base UI Select (та же библиотека, что Drawer/Dialog).
- * Тема — через `--field-*` токены страницы; попап портируется в `<body>`, где
- * `[data-surface]` объявляет токены, поэтому lavender-палитра доезжает и в
- * портал (см. surfaces.scss). `items={options}` отдаёт `<Select.Value>` готовый
+ * Тема — через `--field-*` токены; попап портируется в `<body>`, где
+ * `[data-modal-fields]` (живой ModalShell-вариант) объявляет токены, поэтому
+ * тон доезжает и в портал. `items={options}` отдаёт `<Select.Value>` готовый
  * лейбл выбранного пункта.
  */
 export const Select = ({ value, options, onChange, ariaLabel, className }: SelectProps) => (

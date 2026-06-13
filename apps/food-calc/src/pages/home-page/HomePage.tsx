@@ -1,7 +1,6 @@
 import { RouterLinks } from '@/app/router';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { formatWeekdayTitle } from '@/shared/lib/time/formatWeekday';
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import homeStyles from './HomePage.module.scss';
 import { FoodSchedule } from '@/widgets/FoodSchedule';
@@ -13,7 +12,7 @@ import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { SlideArtFrame } from './ui/SlideArtFrame';
-import { useSurface } from '@/shared/lib/surface';
+import { SelectedDayHeading } from './ui/SelectedDayHeading';
 import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import normsImg from '@/shared/assets/decarative/norms.png';
 import { NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
@@ -37,10 +36,9 @@ const DEFAULT_SLIDE = 1;
 const SWIPE_DURATION = 0;
 
 const Page = ({ date }: { date: string }) => {
-  // HomePage — warm surface (стрипфорки FoodActionCard / SearchFood input).
-  // Лавандовый дефолт стоит на body в App.tsx; здесь перекрываем на warm.
-  useSurface('warm');
-
+  // Тон страницы задаёт глобальный ModalShell-вариант (App.tsx → body
+  // [data-modal-fields]). Своего surface больше нет — HomePage следует общему
+  // «законодателю» (см. tds/modalshell-lawgiver-2026-06-13).
   const scheduleFoods = useScheduleFoods(date);
   const scheduleEvents = useScheduleEvents(date);
   const {
@@ -108,13 +106,16 @@ const Page = ({ date }: { date: string }) => {
     swipeableRef.current?.goToPage(idx);
   }, []);
 
-  const weekdayTitle = useMemo(() => formatWeekdayTitle(date), [date]);
+  // Заголовок выбранного дня под плитками (Сегодня/Вчера/Завтра или «5 июня»).
+  // Один общий узел переиспользуется всеми тремя индикаторами — дата одна и та
+  // же на любом слайде. Меняется только при смене date, не на свайпе.
+  const dayHeading = useMemo(() => <SelectedDayHeading date={date} />, [date]);
 
   // ScreenIndicator передаётся в каждый слайд как `topSlot`. slideIndex={0/1/2}
   // → каждый инстанс статично показывает СВОЙ экран (label, image, highlight'-
-  // нутый тайл). Зависимости useMemo — stable handleSelect + weekdayTitle
-  // (меняется только при смене даты, не на свайпе) → memo на слайд-виджетах
-  // держит, свайп = ноль React-ре-рендеров (Embla двигает DOM сам).
+  // нутый тайл) + общий заголовок дня. Зависимости useMemo — stable
+  // handleSelect + dayHeading (меняется только при смене даты, не на свайпе) →
+  // memo на слайд-виджетах держит, свайп = ноль React-ре-рендеров (Embla сам).
   const labIndicator = useMemo(
     () => (
       <ScreenIndicator
@@ -122,10 +123,10 @@ const Page = ({ date }: { date: string }) => {
         onSelect={handleSelect}
         slideIndex={0}
         bandImg={false}
-        // title={weekdayTitle}
+        title={dayHeading}
       />
     ),
-    [handleSelect, weekdayTitle]
+    [handleSelect, dayHeading]
   );
   const foodIndicator = useMemo(
     () => (
@@ -134,10 +135,10 @@ const Page = ({ date }: { date: string }) => {
         onSelect={handleSelect}
         slideIndex={1}
         bandImg={false}
-        // title={weekdayTitle}
+        title={dayHeading}
       />
     ),
-    [handleSelect, weekdayTitle]
+    [handleSelect, dayHeading]
   );
   const eventsIndicator = useMemo(
     () => (
@@ -146,10 +147,10 @@ const Page = ({ date }: { date: string }) => {
         onSelect={handleSelect}
         slideIndex={2}
         bandImg={false}
-        // title={weekdayTitle}
+        title={dayHeading}
       />
     ),
-    [handleSelect, weekdayTitle]
+    [handleSelect, dayHeading]
   );
 
   return (

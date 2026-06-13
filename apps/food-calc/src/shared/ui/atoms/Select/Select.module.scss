@@ -58,7 +58,7 @@
     }
 }
 
-// ── Popup (портируется в body — токены доезжают через body[data-surface]) ──
+// ── Popup (портируется в body — токены доезжают через body[data-modal-fields]) ──
 .positioner {
     z-index: 6500; // выше drawer (5xxx); вровень с modal-tier
 }

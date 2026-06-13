@@ -5,6 +5,8 @@ import clsx from 'clsx';
 import { motion } from 'motion/react';
 import { TimeGroupUI } from '@/shared/lib/schedule';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
+import { formatClockRange } from '@/shared/lib/time/formatClock';
+import { getTimeOfDay } from '@/shared/lib/time-of-day';
 
 type Props<T> = {
   children: React.ReactNode;
@@ -13,9 +15,12 @@ type Props<T> = {
 };
 
 const TimeGroup = <T,>({ children, group, renderAside }: Props<T>) => {
-  const timeOffsetFromPreviousGroupView = formatOffset(group.offset);
-  const timeView =
-    group.startTime === group.endTime ? group.startTime : `${group.startTime}-${group.endTime}`;
+  // Display only: strip the hour's leading zero ("00:04" → "0:04"). The grouping
+  // / edit paths keep the raw "HH:mm" — this never leaves the header label.
+  const timeView = formatClockRange(group.startTime, group.endTime);
+  // Lets a header design-variant tint toward the group's time of day (the rows
+  // already deepen morning→night; see `timeHeader.ts` + TimeGroup.module.scss).
+  const tod = getTimeOfDay(group.startTime);
 
   // Clicking the group time toggles the global "hide per-item time" preference
   // (both Food + Event rows). The header already carries the time range, so the
@@ -26,7 +31,7 @@ const TimeGroup = <T,>({ children, group, renderAside }: Props<T>) => {
 
   return (
     <motion.ul className={styles.container}>
-      <header className={styles.header}>
+      <header className={styles.header} data-tg-tod={tod}>
         <div className={styles.headerCenter}>
           <span
             className={clsx([styles.message_time, styles.message])}
@@ -44,11 +49,8 @@ const TimeGroup = <T,>({ children, group, renderAside }: Props<T>) => {
           >
             {timeView}
           </span>
-          {/* {group.offset && (
-            <span className={clsx([styles.message_delta, styles.message])}>
-              {timeOffsetFromPreviousGroupView}
-            </span>
-          )} */}
+          {/* Inter-group offset label ("2 ч. 14 м.") intentionally disabled —
+              re-add a formatOffset(group.offset) helper here if revived. */}
         </div>
         {renderAside && <span className={clsx([styles.headerAside])}>{renderAside?.(group)}</span>}
       </header>
@@ -58,18 +60,3 @@ const TimeGroup = <T,>({ children, group, renderAside }: Props<T>) => {
 };
 
 export default memo(TimeGroup) as typeof TimeGroup;
-
-function formatOffset(offset: { hours: number; minutes: number } | null): string {
-  if (!offset) return '';
-
-  const parts: string[] = [];
-
-  if (offset.hours > 0) {
-    parts.push(`${offset.hours} ч.`);
-  }
-  if (offset.minutes > 0) {
-    parts.push(`${offset.minutes} м.`);
-  }
-
-  return parts.join(' ').trim();
-}

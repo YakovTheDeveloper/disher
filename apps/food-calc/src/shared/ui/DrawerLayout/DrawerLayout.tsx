@@ -67,6 +67,15 @@ type Props = {
    * the edge-handle already uses. See ModalShell.module.scss `[data-modal-fields]`.
    */
   modalFields?: boolean;
+  /**
+   * Optional food photo (public path, e.g. `/catalog-food/4185.webp`). When set,
+   * the side-drawer edge-handle shows a blurred vertical crop of the photo as an
+   * ambient colour texture instead of the variant wash (the grip pill + hairline
+   * ride above it). Catalog products carry one (`findCatalogProduct(id)?.image`);
+   * user products / dishes don't, so they keep the plain wash. No-op on bottom
+   * drawers (no edge handle).
+   */
+  image?: string;
 };
 
 const DrawerLayout = ({
@@ -81,6 +90,7 @@ const DrawerLayout = ({
   a11yLabel,
   hideTopChrome,
   modalFields,
+  image,
 }: Props) => {
   const { t } = useTranslation();
   // Side/width are decided at `drawerStore.show(..., { side })` call time and
@@ -142,10 +152,21 @@ const DrawerLayout = ({
       */}
       {isSide && (
         <div
-          className={clsx(styles.edgeHandle, styles[`edgeHandle_${side}`])}
+          className={clsx(
+            styles.edgeHandle,
+            styles[`edgeHandle_${side}`],
+            image != null && styles.edgeHandleImage,
+          )}
           data-modal-fields={modalShellVariant}
           aria-hidden="true"
-        />
+        >
+          {/* Idea 1: a clear vertical crop of the food photo fills the grip
+              strip (object-fit: cover); the grip pill + hairline ride above it
+              via z-index in the .scss. No image → the variant wash shows. */}
+          {image != null && (
+            <img className={styles.edgeImage} src={image} alt="" decoding="async" />
+          )}
+        </div>
       )}
       <div className={styles.panel}>
         {!hideTopChrome && (

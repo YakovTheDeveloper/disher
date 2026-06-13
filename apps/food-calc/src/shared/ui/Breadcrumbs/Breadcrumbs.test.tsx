@@ -1,17 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import Breadcrumbs from './Breadcrumbs';
-
-// useDesignVariant drives which branch renders. Mock it so the test can pin
-// the variant — the store-backed real hook defaults to 'labels'.
-let mockVariant: 'labels' | 'results' = 'results';
-vi.mock('@/shared/lib/useDesignVariant', () => ({
-  useDesignVariant: () => ({
-    variant: mockVariant,
-    anchor: { ref: () => {}, 'data-dv': 'Breadcrumbs', 'data-dv-v': mockVariant },
-  }),
-}));
 
 type Step = 'search' | 'time' | 'quantity' | 'details';
 const STEPS: Step[] = ['search', 'time', 'quantity', 'details'];
@@ -22,11 +12,7 @@ const LABELS: Record<Step, string> = {
   details: 'Особенности',
 };
 
-beforeEach(() => {
-  mockVariant = 'results';
-});
-
-describe('Breadcrumbs — results variant', () => {
+describe('Breadcrumbs — компактный трейл результатов', () => {
   it('shows only visited steps in the trail', () => {
     render(
       <Breadcrumbs
@@ -119,23 +105,5 @@ describe('Breadcrumbs — results variant', () => {
     );
     fireEvent.click(screen.getByText('Курица'));
     expect(onStepClick).toHaveBeenCalledWith('search');
-  });
-});
-
-describe('Breadcrumbs — labels variant', () => {
-  it('renders every step regardless of visited (legacy behaviour)', () => {
-    mockVariant = 'labels';
-    render(
-      <Breadcrumbs
-        steps={STEPS}
-        current="time"
-        stepLabels={LABELS}
-        visitedSteps={['search']}
-        onStepClick={() => {}}
-      />,
-    );
-    expect(screen.getAllByRole('button')).toHaveLength(4);
-    expect(screen.getByText('Еда')).toBeInTheDocument();
-    expect(screen.getByText('Особенности')).toBeInTheDocument();
   });
 });

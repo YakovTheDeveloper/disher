@@ -33,16 +33,9 @@ const readInitialPos = (): Pos | null => {
   }
 };
 
-const clampPos = (pos: Pos, el: HTMLElement | null): Pos => {
-  if (typeof window === 'undefined' || !el) return pos;
-  const rect = el.getBoundingClientRect();
-  const maxX = Math.max(0, window.innerWidth - rect.width);
-  const maxY = Math.max(0, window.innerHeight - rect.height);
-  return {
-    x: Math.min(Math.max(0, pos.x), maxX),
-    y: Math.min(Math.max(0, pos.y), maxY),
-  };
-};
+// NB: no position clamping. The bar may be dragged fully off-screen on purpose
+// (dev tool — acceptable to "lose" it; recover by clearing localStorage
+// `disher.dvBar.pos`). Earlier a clampPos() penned it inside the viewport.
 
 export const DesignVariantsBar = () => {
   const entries = useDesignVariantsStore((st) => st.entries);
@@ -86,15 +79,6 @@ export const DesignVariantsBar = () => {
     }
   }, [pos]);
 
-  useEffect(() => {
-    if (!open) return;
-    const onResize = () => {
-      setPos((p) => (p ? clampPos(p, shellRef.current) : p));
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [open]);
-
   const onHandlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     if (target.closest('button')) return; // let the close button work
@@ -114,7 +98,7 @@ export const DesignVariantsBar = () => {
       x: e.clientX - dragOffsetRef.current.dx,
       y: e.clientY - dragOffsetRef.current.dy,
     };
-    setPos(clampPos(next, shellRef.current));
+    setPos(next);
   };
 
   const onHandlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {

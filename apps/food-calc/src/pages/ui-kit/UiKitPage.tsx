@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useSurface, type Surface } from '@/shared/lib/surface';
@@ -135,6 +135,19 @@ const SCREEN_TILES = [{ label: 'Дом' }, { label: 'Блюда' }, { label: 'Н
 const UiKitPage = () => {
   const [surface, setSurface] = useState<Surface>('lavender');
   useSurface(surface);
+
+  // Legacy dev previewer of the warm/lavender surface axis (retired in prod —
+  // the app tone now comes from the ModalShell variant). Suppress the global
+  // `data-modal-fields` tone while this page is mounted so the surface toggle
+  // above stays authoritative here; restore it on unmount.
+  useEffect(() => {
+    const body = document.body;
+    const prev = body.getAttribute('data-modal-fields');
+    body.removeAttribute('data-modal-fields');
+    return () => {
+      if (prev !== null) body.setAttribute('data-modal-fields', prev);
+    };
+  }, []);
 
   // local interactive state
   const [num1, setNum1] = useState(50);
@@ -367,13 +380,12 @@ const UiKitPage = () => {
                 </div>
               </Specimen>
 
-              <Specimen name="<ScreenIndicator>" note="ряд NavTile + полоса заголовка" wide>
+              <Specimen name="<ScreenIndicator>" note="ряд NavTile (+ опц. слот заголовка)" wide>
                 <ScreenIndicator
                   screens={SCREEN_TILES}
                   activeIndex={screenIdx}
                   onSelect={setScreenIdx}
                   bandImg={false}
-                  title="Понедельник"
                 />
               </Specimen>
             </Section>

@@ -9,20 +9,20 @@
     gap: 14px;
 }
 
-// ── card variant — warm boxed surface ────────────────────────────────
+// ── card variant — boxed tone surface ────────────────────────────────
 .section[data-dv-v='card'],
 .invite[data-dv-v='card'] {
     padding: 16px 16px 18px;
     border-radius: 16px;
-    background: linear-gradient(135deg, #fffefb 0%, #fffaf2 55%, #fdf4e3 100%);
-    box-shadow: 0 6px 22px -16px rgba(60, 38, 10, 0.4);
+    background: var(--card-bg);
+    box-shadow: 0 6px 22px -16px color-mix(in srgb, var(--card-text-rest) 40%, transparent);
 }
 
 // ── flat variant — bare, only a top hairline to mark the section ─────
 .section[data-dv-v='flat'],
 .invite[data-dv-v='flat'] {
     padding: 14px 4px 4px;
-    border-top: 1px solid rgba(124, 65, 15, 0.1);
+    border-top: 1px solid var(--card-hairline);
 }
 
 // ── invitation (idle) ────────────────────────────────────────────────
@@ -31,21 +31,21 @@
     font-family: 'Source Serif 4', Georgia, serif;
     font-style: italic;
     font-size: 19px;
-    color: rgba(60, 38, 10, 0.85);
+    color: var(--card-text-rest);
 }
 
 .inviteBody {
     margin: 0;
     font-size: 13px;
     line-height: 1.55;
-    color: rgba(60, 38, 10, 0.58);
+    color: color-mix(in srgb, var(--card-text-rest) 58%, transparent);
 }
 
 // ── markdown body ────────────────────────────────────────────────────
 .markdown {
     font-size: 14.5px;
     line-height: 1.6;
-    color: rgba(40, 28, 12, 0.88);
+    color: var(--card-text-rest);
 
     p {
         margin: 0 0 10px;
@@ -62,7 +62,7 @@
         font-style: italic;
         font-weight: 600;
         font-size: 17px;
-        color: rgba(40, 28, 12, 0.92);
+        color: var(--card-text-rest);
     }
 
     ul,
@@ -152,7 +152,7 @@
     font-family: 'Source Serif 4', Georgia, serif;
     font-style: italic;
     font-size: 17px;
-    color: rgba(40, 28, 12, 0.85);
+    color: var(--card-text-rest);
 }
 
 .ideasList {
@@ -160,6 +160,6 @@
     flex-direction: column;
     border-radius: 14px;
     overflow: hidden;
-    box-shadow: 0 1px 0 rgba(60, 38, 10, 0.05),
-        0 6px 18px -14px rgba(60, 38, 10, 0.35);
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--card-text-rest) 5%, transparent),
+        0 6px 18px -14px color-mix(in srgb, var(--card-text-rest) 35%, transparent);
 }

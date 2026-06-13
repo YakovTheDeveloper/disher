@@ -32,8 +32,8 @@ type Props = {
 };
 
 // One long-analysis row — stripe-fork surface. The accent stripe + status
-// pill carry the derived state; the palette CSS-vars (`--la-*`) and the
-// nth-child rhythm come from the parent `[data-dv='LabAnalysis']` anchor.
+// pill carry the derived state; the surface palette (`--card-*`) follows the
+// app-wide tone (the live ModalShell variant — see modalshell-lawgiver).
 const AnalysisListItem = ({ analysis, onOpen }: Props) => {
   // `deriveStatus` reads the wall clock, so a `running` row that crosses the
   // 15-min staleness line will not re-flip on its own without a re-render.

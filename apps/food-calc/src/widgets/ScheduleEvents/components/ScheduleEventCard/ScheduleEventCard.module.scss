@@ -26,6 +26,31 @@
   }
 }
 
+// ── gutter-time (RowBoundary variant): mirror the food rows — the event time
+//    leaves the backing and hangs in the wrapper's left gutter (opened by
+//    LongPressRow) instead of the leading grid cell.
+:global([data-dv='RowBoundary'][data-dv-v='gutter-time']) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .text,
+  .atomsZone {
+    grid-column: 1;
+  }
+
+  .time {
+    position: absolute;
+    right: calc(100% + var(--space-2));
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: var(--text-base);
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
 .text {
   grid-column: 2;
   font-size: 0.9rem;

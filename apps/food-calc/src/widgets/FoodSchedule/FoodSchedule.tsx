@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, Fragment } from 'react';
-import { TimeGroup } from '@/features/time-group';
+import { TimeGroup, TIME_HEADER_KEY, TIME_HEADER_VARIANTS } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { groupItemsByTime } from '@/shared/lib/schedule';
@@ -68,6 +68,8 @@ const FoodSchedule = ({
   // Second anchor: how adjacent rows meet at their shared edge. Same key as
   // ScheduleEvents so one DesignBar control drives food + event rows together.
   const { anchor: boundaryAnchor } = useDesignVariant(ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS);
+  // Third anchor: the time-group header look. Also shared with ScheduleEvents.
+  const { anchor: timeHeaderAnchor } = useDesignVariant(TIME_HEADER_KEY, TIME_HEADER_VARIANTS);
 
   const startEdit = editFlow.startEdit;
   const onEditTime = useCallback(
@@ -176,11 +178,12 @@ const FoodSchedule = ({
            write-баром (chat-pattern). Несёт [data-write-food-anchor] —
            auto-scroll из AppBottomBar.handleSubmit находит её по селектору.
            Loading рисует skeleton-блок со спиннером. */
-        <InlineWriteFoodReview flow={writeFoodFlow} hasContent={!isEmpty} />
+        <InlineWriteFoodReview flow={writeFoodFlow} />
       }
     >
       <div {...foodAnchor} className={styles.foodListAnchor}>
         <div {...boundaryAnchor}>
+          <div {...timeHeaderAnchor}>
           <ItemsList>
             {(() => {
               let globalIndex = 0;
@@ -213,6 +216,7 @@ const FoodSchedule = ({
               return rendered;
             })()}
           </ItemsList>
+          </div>
         </div>
       </div>
     </Screen>

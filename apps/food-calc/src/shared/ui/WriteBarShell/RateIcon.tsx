@@ -9,8 +9,11 @@
  *  (anchor key `EventsRateIcon`). */
 
 /** Variant tuple — first entry is the default. Drives the DesignBar order.
- *  `bars` is the chosen canon (user pick 2026-06-13): an app-tile glyph. */
+ *  `disc` is the current default (user pick 2026-06-13): a filled round button
+ *  with an inverted broken-up arrow — reads clearly as a tap target. The rest
+ *  stay switchable in the DesignBar. */
 export const RATE_ICON_VARIANTS = [
+  'disc',
   'bars',
   'pill',
   'gauge',
@@ -139,7 +142,35 @@ const StackedGlyph = () => (
   </svg>
 );
 
+/** Filled accent disc + an inverted (light) broken-line up-arrow (trending up).
+ *  Reads as a round, tappable button — like the send coin — instead of a bare
+ *  hairline mark; addresses «не похоже на кликабельную иконку». Disc = the bar's
+ *  accent (`--wb-send`), content = its inverted fg (`--wb-send-fg`). No «1–10»
+ *  label by design. Rendered ~2× the hairline glyphs (see `.clip[data-dv-v='disc']`).
+ *  (Default — user pick 2026-06-13.) */
+const DiscGlyph = () => (
+  <svg {...svgProps}>
+    <circle cx="12" cy="12" r="10.5" fill="var(--wb-send, #2f80ed)" />
+    {/* ломаная стрелка-график вверх (инверсный контент) */}
+    <path
+      d="M6.4 15 9.8 11.6 12.2 13.6 16.6 8.8"
+      stroke={BARS_FG}
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M13.2 8.8 16.6 8.8 16.6 12.2"
+      stroke={BARS_FG}
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 const GLYPHS: Record<RateIconVariant, () => JSX.Element> = {
+  disc: DiscGlyph,
   pill: PillGlyph,
   gauge: GaugeGlyph,
   bars: BarsGlyph,
@@ -147,8 +178,8 @@ const GLYPHS: Record<RateIconVariant, () => JSX.Element> = {
   stacked: StackedGlyph,
 };
 
-export const RateIcon = ({ variant = 'bars' }: { variant?: RateIconVariant }) => {
-  const Glyph = GLYPHS[variant] ?? BarsGlyph;
+export const RateIcon = ({ variant = 'disc' }: { variant?: RateIconVariant }) => {
+  const Glyph = GLYPHS[variant] ?? DiscGlyph;
   return <Glyph />;
 };
 

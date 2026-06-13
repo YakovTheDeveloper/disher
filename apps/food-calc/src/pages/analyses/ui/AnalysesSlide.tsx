@@ -2,8 +2,10 @@ import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
 import { Screen } from '@/shared/ui/Screen';
 import { AppBottomBarShell } from '@/shared/ui/AppBottomBar/AppBottomBarShell';
 import { drawerStore, modalStore } from '@/shared/ui';
+import Button from '@/shared/ui/atoms/Button/Button';
+import FlaskIcon from '@/shared/assets/icons/flask.svg?react';
+import { openHypotheses } from '@/widgets/Laboratory/openHypotheses';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { useAnalysesList, type Analysis } from '@/features/analysis/api';
 import {
   AnalysisListItem,
@@ -16,10 +18,6 @@ type Props = {
   topBar: ReactNode;
 };
 
-// Stripe-fork palette forks for the analysis rows — flip live via the
-// DesignVariantsBar. `warm` (honey/peach) is the leaning canon default.
-const PALETTE_VARIANTS = ['warm', 'graphite', 'sand', 'mint'] as const;
-
 // AnalysesPage slide 1 — the long-analyses list. The list is NOT polled;
 // useAnalysesList refetches on mount + tab refocus. A freshly created (or
 // restarted) row is merged in optimistically so it shows as «идёт» without
@@ -27,7 +25,6 @@ const PALETTE_VARIANTS = ['warm', 'graphite', 'sand', 'mint'] as const;
 const AnalysesSlide = ({ topBar }: Props) => {
   const { data, error, refetch } = useAnalysesList();
   const [optimistic, setOptimistic] = useState<Analysis[]>([]);
-  const { anchor } = useDesignVariant('LabAnalysis', PALETTE_VARIANTS);
 
   // Optimistic rows first, then the server list with duplicates dropped.
   const analyses = useMemo(() => {
@@ -63,8 +60,19 @@ const AnalysesSlide = ({ topBar }: Props) => {
     [analyses, addOptimistic],
   );
 
+  // Unified with HomePage: «Гипотезы» (left → shared HypothesesDrawer) +
+  // «+ Анализ» (right → CreateLongAnalysisDrawer, surface-specific — здесь это
+  // длительный разбор, в отличие от HomePage, где правый слот = дневной/долгий
+  // chooser).
   const bottomBar = (
-    <AppBottomBarShell side="left">
+    <AppBottomBarShell side="split">
+      <Button
+        variant="bottomActionBar"
+        onClick={() => void openHypotheses()}
+        icon={<FlaskIcon width={16} height={16} />}
+      >
+        Гипотезы
+      </Button>
       <button type="button" className={styles.cta} onClick={openCreate}>
         + Анализ
       </button>
@@ -107,7 +115,7 @@ const AnalysesSlide = ({ topBar }: Props) => {
           </div>
         ) : (
           <div className={styles.listWrap}>
-            <div className={styles.listBody} {...anchor}>
+            <div className={styles.listBody}>
               {analyses.map((a) => (
                 <AnalysisListItem
                   key={a.id}

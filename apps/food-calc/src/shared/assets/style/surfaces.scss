@@ -1,9 +1,14 @@
-// ─── Surface palette (warm / lavender) ──────────────────────────────────────
+// ─── Surface palette (warm / lavender) — LEGACY / dev-previewer only ─────────
+// SUPERSEDED 2026-06-13: the app-wide palette now comes from the live ModalShell
+// variant, published on `<body data-modal-fields>` (App.tsx → ModalShell.module
+// .scss `field-chip-palette` + `card-palette`). See tds/modalshell-lawgiver-
+// 2026-06-13. Pages no longer call `useSurface` — these two `[data-surface]`
+// blocks survive ONLY as the backing for the UiKitPage palette previewer
+// (the one remaining `useSurface` caller). Do not add new consumers.
+//
 // Page-level palette for warm-pill fields, stripe-fork rows, and list backdrops.
-// Applied via `data-surface="warm|lavender"` on the body (default) or on a page
-// root. CSS custom properties cascade through Base UI portals when the attribute
-// sits on `<body>`, so `useSurface(...)` (apps/food-calc/src/shared/lib/surface.ts)
-// writes there.
+// Applied via `data-surface="warm|lavender"`. CSS custom properties cascade
+// through Base UI portals when the attribute sits on `<body>`.
 //
 // NOT to be confused with `<html data-theme="...">` (themes.scss) — that picks
 // the user's time-of-day palette (tropic / meadow / ...) and binds `--tod-*`.

@@ -1,67 +1,67 @@
 @import '@/shared/assets/style/mixin.scss';
 
-$header-height: 50px;
-
-.header {
+// ─── Row A: scope controls (back + segmented/title + ghost nutrient icon) ────
+// Search moved to its own row (Row B), so this row is just the scope switch and
+// the nutrient-filter action. `isolation` keeps the blur/stacking local.
+.topRow {
     position: relative;
     isolation: isolate;
     z-index: 11;
     align-items: center;
-    min-height: $header-height;
+    min-height: 44px;
     width: 100%;
     display: flex;
-    gap: var(--space-1);
-    padding: var(--space-1);
-    // Прозрачная подложка, чтобы тёплый/лавандовый список ниже визуально
-    // продолжался под заголовком. blur оставляем — он мягчит то, что скроллит
-    // под полем поиска.
+    gap: var(--space-2);
+    // Horizontal inset matches the search row + the inset list group below, so
+    // back/segment/icon align with the rounded card edges (one tidy column).
+    padding: var(--space-1) var(--space-3) 0;
     background: transparent;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border: none;
 }
 
-// Header c toggle-фильтром использует ту же высоту — две короткие pill'ы
-// «Еда / Мое» помещаются inline без 2-строчного скролла.
-.headerWithFilter {
+.topRowWithFilter {
     align-items: center;
 }
 
-// ─── Inline title ────────────────────────────────────────────────────────────
-// Сидит между back-кнопкой и полем поиска в одной строке. Не сжимается —
-// поиск (flex:1) забирает всю оставшуюся ширину.
+// Pushes the nutrient-filter icon to the right edge, away from the segmented
+// control / title on the left — the two are different kinds of control.
+.topRowSpacer {
+    flex: 1 1 auto;
+    min-width: 0;
+}
 
+// ─── Inline title (dishes-only / titled flows) ───────────────────────────────
 .title {
     flex-shrink: 0;
     white-space: nowrap;
 }
 
-// ─── Filter toggle (бинарный pill-переключатель Еда / Мое) ───────────────────
-// Pill'ы стоят справа от поля поиска и зеркалят канон Chip из
-// shared/ui/atoms/Chip (DetailsChips «Особенности приёма»): тёплый
-// pill-градиент + тёплый бордюр, активная — тёмная заливка.
-// Высота 40px — нижняя граница touch-floor для chip-trigger.
-
-.filterToggle {
+// ─── Segmented control (Еда / Мое) ───────────────────────────────────────────
+// One connected track with a single moving «thumb» on the selected segment —
+// iOS segmented control / M3 connected button group. Equal-weight peers, one
+// tint of selection. Token-driven (--seg-*) so the SearchMono variants paint it
+// monochrome; fallbacks keep it sane outside the mono scope.
+.segmented {
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 9999px;
+    background: var(--seg-track, #eceef2);
 }
 
-.filterPill {
+.segment {
     appearance: none;
-    flex-shrink: 0;
+    flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 40px;
-    padding: 0 14px;
-    // Surface-driven (surfaces.scss --chip-*): warm на HomePage, lavender на
-    // Dish/Product. Зеркалит канон Chip из shared/ui/atoms/Chip.
-    border: 1px solid var(--chip-border, rgb(255, 198, 160));
+    min-height: 32px;
+    padding: 0 16px;
+    border: none;
     border-radius: 9999px;
-    background: var(--chip-bg, linear-gradient(135deg, #fffbf1 0%, #fffcf8 60%, #fff9ee 100%));
+    background: transparent;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
@@ -69,45 +69,47 @@ $header-height: 50px;
     font-weight: 500;
     line-height: 1.1;
     letter-spacing: -0.005em;
-    color: var(--chip-text, rgb(0, 0, 0));
+    color: var(--seg-text, #5c6473);
     transition:
         background var(--press-out) ease,
         color var(--press-out) ease,
-        border-color var(--press-out) ease,
-        transform var(--press-out) ease;
+        transform var(--press-in) ease;
 
-    &:hover,
     &:focus-visible {
-        border-color: var(--chip-hover-border, rgba(124, 65, 15, 0.24));
         outline: none;
     }
 
-    // Цветной отклик: на нажатии чип заливается акцентом (как активный .filterPillActive).
     &:active {
-        background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
-        border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
-        color: var(--chip-active-text, #fff);
         transform: scale(0.96);
         transition-duration: var(--press-in);
     }
 }
 
-.filterPillActive {
-    background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
-    border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
-    color: var(--chip-active-text, rgba(255, 255, 255, 1));
+.segmentActive {
+    background: var(--seg-thumb, #ffffff);
+    color: var(--seg-thumb-text, #0a0a0a);
+    font-weight: 600;
+    box-shadow: var(--seg-thumb-shadow, 0 1px 2px rgba(10, 10, 10, 0.1));
 }
 
-// ─── Inlined search input (warm-pill, surface-driven) ───────────────────────
+// ─── Inlined search input (full-width row, token-driven) ─────────────────────
 // Зеркалит AutoGrowSearch shell: 3-stop gradient + fading hairline ::after +
-// тёплая placeholder/иконка/каретка. Палитра приходит из `body[data-surface]`
-// (surfaces.scss) — warm на HomePage, lavender на Dish/Product.
+// placeholder/иконка/каретка. Палитра приходит из app-wide тона
+// (`body[data-modal-fields]` — живой ModalShell-вариант).
+
+// Row B — search field gets the full content width so it reads as a real input
+// container, not a faint pill squeezed between controls.
+.searchRow {
+    display: flex;
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+}
 
 .searchWrapper {
     display: flex;
     align-items: center;
     position: relative;
-    flex: 1;
+    width: 100%;
     min-width: 0;
     border: none;
     padding: 0 16px;
@@ -248,9 +250,10 @@ $header-height: 50px;
     padding: 0 var(--space-3);
 }
 
-// Иконка-кнопка «Нутриенты» в верхнем ряду — между полем поиска и фильтр-пилюлями.
-// Текст заменён на иконку из трёх восходящих столбиков (chart-bars.svg) — уровни
-// нутриента. Тёплый chip-вид (как .filterPill); выбранный нутриент → active-заливка.
+// Иконка-кнопка «Нутриенты» — отдельное действие-фильтр (открывает боковой
+// drawer-выбор нутриента), НЕ сегмент. Поэтому ghost-вид (тонкая рамка, без
+// заливки), визуально отличный от сегмент-контрола `Еда|Мое`. Выбранный нутриент
+// → тёмная заливка (active state). Token-driven (--icon-btn-*); fallback серый.
 .nutrientIconButton {
     appearance: none;
     flex-shrink: 0;
@@ -260,10 +263,10 @@ $header-height: 50px;
     width: 40px;
     height: 40px;
     padding: 0;
-    border: 1px solid var(--chip-border, rgb(255, 198, 160));
+    border: 1px solid var(--icon-btn-border, rgba(10, 10, 10, 0.14));
     border-radius: var(--radius-full);
-    background: var(--chip-bg, linear-gradient(135deg, #fffbf1 0%, #fffcf8 60%, #fff9ee 100%));
-    color: var(--chip-text, rgb(0, 0, 0));
+    background: var(--icon-btn-bg, transparent);
+    color: var(--icon-btn-fg, #5c6473);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition:
@@ -277,27 +280,24 @@ $header-height: 50px;
         height: 20px;
     }
 
-    &:hover,
     &:focus-visible {
-        border-color: var(--chip-hover-border, rgba(124, 65, 15, 0.24));
         outline: none;
     }
 
-    // Цветной отклик: на нажатии заливается акцентом + иконка белеет (currentColor).
     &:active {
-        background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
-        border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
-        color: var(--chip-active-text, #fff);
-        transform: scale(0.96);
+        background: var(--icon-btn-active-bg, #1a1a1a);
+        border-color: transparent;
+        color: var(--icon-btn-active-fg, #fff);
+        transform: scale(0.94);
         transition-duration: var(--press-in);
     }
 }
 
-// Выбран нутриент — кнопка остаётся залитой акцентом (как .filterPillActive).
+// Выбран нутриент — кнопка остаётся залитой (active).
 .nutrientIconButtonActive {
-    background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
-    border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
-    color: var(--chip-active-text, #fff);
+    background: var(--icon-btn-active-bg, #1a1a1a);
+    border-color: transparent;
+    color: var(--icon-btn-active-fg, #fff);
 }
 
 .nutrientSelected {

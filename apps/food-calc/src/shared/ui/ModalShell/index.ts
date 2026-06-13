@@ -1,2 +1,2 @@
-export { ModalShell, type ModalShellVariant } from './ModalShell';
+export { ModalShell, MODAL_SHELL_VARIANTS, type ModalShellVariant } from './ModalShell';
 export { ModalVariantFields } from './ModalVariantFields';

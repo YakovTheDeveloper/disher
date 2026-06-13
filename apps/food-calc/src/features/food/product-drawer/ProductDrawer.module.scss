@@ -127,7 +127,7 @@ $pill-radius: 14px;
 
 .portionsTitle {
     font-family: var(--heading-font);
-    font-style: italic;
+    font-style: var(--heading-style);
     font-weight: var(--heading-weight);
     font-size: var(--text-lg);
     letter-spacing: var(--heading-letter);

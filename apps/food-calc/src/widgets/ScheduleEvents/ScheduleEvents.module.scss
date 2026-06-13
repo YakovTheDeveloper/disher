@@ -1,20 +1,12 @@
 @import '@/shared/assets/style/design-variant-palettes.scss';
 
-.eventsBuilder {}
-
-// ScheduleEvents owns its OWN DesignBar anchor (`useDesignVariant('ScheduleEvents', …)`),
-// decoupled from FoodSchedule's `'ScheduleFood'`. Default variant is `lemon`
-// (single warm yellow hue across the day) — the food list keeps its own palette.
-// The other six palettes stay switchable here so the DesignBar still offers them.
-
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='lemon']    { @include dv-palette-lemon;    @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='meadow']   { @include dv-palette-meadow;   @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='sunrise']  { @include dv-palette-sunrise;  @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='sorbet']   { @include dv-palette-sorbet;   @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='garden']   { @include dv-palette-garden;   @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='lagoon']   { @include dv-palette-lagoon;   @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='tropic']   { @include dv-palette-tropic;   @include dv-text($dv-text-graphite); }
-.eventsBuilder[data-dv='ScheduleEvents'][data-dv-v='twilight'] { @include dv-palette-twilight; @include dv-text($dv-text-twilight); }
+// Events use the `lemon` palette — a single warm yellow hue, deepening across
+// the day. Baked-in 2026-06-13 (the 7 alt palettes + the 'ScheduleEvents'
+// DesignBar anchor were retired). FoodSchedule keeps its own palette.
+.eventsBuilder {
+    @include dv-palette-lemon;
+    @include dv-text($dv-text-graphite);
+}
 
 .listItemRow {
     display: grid;

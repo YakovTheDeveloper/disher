@@ -1,6 +1,6 @@
 // Простой сгруппированный список нутриентов в боковом drawer'е. Surface (белый
 // фон) принадлежит DrawerLayout (Drawer.Popup), padding — этому контенту
-// (drawer-layout canon). Палитра текста наследуется от body[data-surface].
+// (drawer-layout canon). Палитра текста — из app-wide тона (body[data-modal-fields]).
 
 .root {
     display: flex;

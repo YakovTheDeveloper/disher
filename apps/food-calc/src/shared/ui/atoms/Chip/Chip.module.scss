@@ -9,8 +9,8 @@
   min-height: 42px;
   padding: 7px 14px;
   border-radius: 999px;
-  // Surface-driven (surfaces.scss): warm на HomePage, lavender на Dish/Product.
-  // Fallback = warm-канон, если body[data-surface] почему-то не выставлен.
+  // Tone-driven: токены из app-wide варианта (body[data-modal-fields]).
+  // Fallback — на случай, если токены почему-то не выставлены.
   border: 1px solid var(--chip-border, rgb(255, 198, 160));
   background: var(--chip-bg, linear-gradient(135deg, #fffbf1 0%, #fffcf8 60%, #fff9ee 100%));
   color: var(--chip-text, rgb(0, 0, 0));

@@ -8,10 +8,10 @@
 // visualViewport offset when the keyboard opens so the pills stay tappable.
 
 .root {
-    // Тёплый ambient-скрим вместо плоского белого бара: низ поиска «дышит» той
-    // же тёплой поверхностью (data-surface=warm), а не выглядит чужим тулбаром.
-    // Custom-prop — token-gate допускает.
-    --fse-scrim: #fdf8ee;
+    // Ambient-скрим вместо плоского белого бара: низ поиска «дышит» той же
+    // поверхностью, что и app-wide тон (живой ModalShell-вариант), а не
+    // выглядит чужим тулбаром. Светлый стоп поля = мягкий тон-tinted скрим.
+    --fse-scrim: var(--field-bg-to);
 
     position: fixed;
     bottom: 0;
@@ -20,22 +20,25 @@
     z-index: 10;
     display: flex;
     flex-direction: column;
-    background: var(--fse-scrim);
+    // TEMP (2026-06-13 colour-test): bottom panel background removed so the
+    // create-pills sit on the bare page — colours read in isolation. Restore
+    // `background: var(--fse-bg, var(--fse-scrim));` + the ::before ramp after.
+    background: transparent;
     padding-bottom: env(safe-area-inset-bottom);
     transition: transform 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
 
-    // Затухающий рамп НАД баром (вместо жёсткого border-top): строки списка
-    // растворяются в скриме, а не обрываются линией.
-    &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 100%;
-        height: 28px;
-        background: linear-gradient(to top, var(--fse-scrim), transparent);
-        pointer-events: none;
-    }
+    // TEMP (2026-06-13 colour-test): fading ramp above the bar disabled with the
+    // background. Restore the block below to melt the list into the dock again.
+    // &::before {
+    //     content: '';
+    //     position: absolute;
+    //     left: 0;
+    //     right: 0;
+    //     bottom: 100%;
+    //     height: 44px;
+    //     background: linear-gradient(to top, var(--fse-ramp, var(--fse-scrim)), transparent);
+    //     pointer-events: none;
+    // }
 }
 
 .message {
@@ -136,14 +139,28 @@
     --fse-img-opacity: 0.32;
 }
 
-// Тёплые пилюли (2026-06-08): тянут warm chip-палитру (data-surface=warm) —
-// мягкий кремовый градиент + тёплая рамка, в тон поверхности поиска. Равный вес,
+// Пилюли (2026-06-08): тянут chip-палитру app-wide тона (data-modal-fields) —
+// в тон поверхности поиска. Равный вес,
 // без primary/secondary иерархии (два равнозначных выбора). Press → ink-инверсия.
 .pillPrimary,
 .pillSecondary {
-    background: var(--chip-bg);
+    // TEMP (2026-06-13 colour-test): colour as ModalShell-style ORBS — three soft
+    // radial glows rising from ABOVE the top edge (left / right / centre, varied
+    // size + negative-y so they feel like they come from above), overlapping into
+    // an organic, non-uniform top wash that fades to a white body. NOT a flat
+    // linear tint, NOT the whole button. Single hue available here (the variant
+    // accent via --chip-border = rgba(accent, .5)); the overlap gives the variety.
+    // Restore `background: var(--chip-bg);` to tint the whole button again.
+    background:
+        radial-gradient(ellipse 70% 80% at 12% -15%, var(--chip-border) 0%, transparent 72%),
+        radial-gradient(ellipse 65% 78% at 88% -25%, var(--chip-border) 0%, transparent 68%),
+        radial-gradient(ellipse 95% 65% at 50% -30%, var(--chip-border) 0%, transparent 60%),
+        #ffffff;
     border: 1px solid var(--chip-border);
     color: var(--chip-text);
+    // Neutral BLACK elevation shadow (not a variant-tinted one) so the pills read
+    // as cards on the now-bare panel and the colour test isn't muddied.
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 // NavTile-подпись: serif italic, в две строки (глагол над существительным).
@@ -158,7 +175,7 @@
     text-align: left;
     min-width: 0;
     font-family: var(--heading-font, 'Source Serif 4', serif);
-    font-style: italic;
+    font-style: var(--heading-style);
 }
 
 // «Создать» — глагол вторичен: мельче и бледнее, на отдельной строке.

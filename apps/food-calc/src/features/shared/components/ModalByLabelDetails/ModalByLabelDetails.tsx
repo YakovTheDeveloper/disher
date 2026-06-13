@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-import { ModalShell, type ModalShellVariant } from '@/shared/ui/ModalShell';
+import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 
 /**
@@ -23,7 +23,8 @@ type BaseProps = {
   /** Поле деталей: `DetailsStep` (schedule) или `DetailsChips` (dish). */
   children: ReactNode;
   position?: 'fixed' | 'absolute';
-  variant?: ModalShellVariant;
+  /** Vestigial — ModalShell ignores it (tone is the global law-giver). */
+  variant?: string;
   /** Body вплотную к краям (schedule). Dish — без flush. */
   flush?: boolean;
   /** data-debug-id для ActionButtons (schedule create → "create-details"). */

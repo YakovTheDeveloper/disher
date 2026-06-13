@@ -11,7 +11,7 @@
     gap: 0.5rem;
     align-items: center;
     position: relative;
-    padding: 0 var(--space-2);
+    // padding: 0 var(--space-2);
     flex-grow: 1;
 }
 
@@ -231,4 +231,13 @@
     .recentDot {
         animation: none;
     }
+}
+
+// ── gutter-time (RowBoundary variant): the per-row time leaves the tinted card
+//    backing and hangs in a left gutter, messenger-timestamp style. The wrapper
+//    opens the channel here (li is flex-grow:1 → it shifts right); each row
+//    module absolutely positions its own time element into the gutter (see
+//    ScheduleFoodItemInline / ScheduleEventCard, same `gutter-time` selector).
+:global([data-dv='RowBoundary'][data-dv-v='gutter-time']) .commonListItemWrapper {
+    padding-left: 56px;
 }

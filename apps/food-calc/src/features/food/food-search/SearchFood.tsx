@@ -15,6 +15,18 @@ import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 import { useFilteredFoods, useFoodCreation, useRichNutrientStore } from './model';
 import { FoodSearchEmpty } from './FoodSearchEmpty';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+
+// DesignBar-controlled monochrome looks for the search screen. This anchor lives
+// on `.content` and locally overrides the --card-*/--field-*/--chip-*/--list-*
+// tokens (see SearchFood.module.scss), so the screen is independent of the
+// app-wide tone (body[data-modal-fields]) — light/light-gray surfaces + a faint
+// colour hint only in the ambient glow.
+//   paper-mono  — white card group on a faintly-gray page (iOS «inset grouped»),
+//                 GRAYSCALE richness, lavender-cream bottom ambient (default)
+//   graphite    — same grouped list, deeper gray page + colour richness
+export const SEARCH_MONO_VARIANTS = ['paper-mono', 'graphite'] as const;
+export type SearchMonoVariant = (typeof SEARCH_MONO_VARIANTS)[number];
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 export type SearchFilter = 'all' | 'mine';
@@ -87,6 +99,14 @@ const SearchFood = ({
   const [showHeavy, setShowHeavy] = useState(false);
   const [openTicket, setOpenTicket] = useState(0);
 
+  // Local monochrome tone for this screen (DesignBar). Anchor sits on `.content`;
+  // `paper-mono` is the only strict-achromatic variant → grayscale richness.
+  const { variant: monoVariant, anchor: monoAnchor } = useDesignVariant(
+    'SearchMono',
+    SEARCH_MONO_VARIANTS,
+  );
+  const monoRichness = monoVariant === 'paper-mono';
+
   const filterOptions = FILTER_OPTIONS_BY_MODE[mode];
   const [selectedFilter, setSelectedFilter] = useState<SearchFilter>('all');
 
@@ -140,7 +160,10 @@ const SearchFood = ({
   );
 
   return (
-    <div className={styles.content}>
+    <div className={styles.content} {...monoAnchor}>
+      {/* Ambient glow (top + bottom) — the one place a faint colour hint is
+          allowed on this otherwise monochrome screen. Sits behind everything. */}
+      <div className={styles.ambient} aria-hidden />
       <div className={styles.header}>
         <SearchFoodControls
           searchQuery={searchQuery}
@@ -173,6 +196,7 @@ const SearchFood = ({
             itemHtmlFor={itemHtmlFor}
             createInputHtmlFor={createInputHtmlFor}
             onPickCreate={onPickCreate}
+            monoRichness={monoRichness}
           />
         </div>
       )}
@@ -193,6 +217,7 @@ type HeavyProps = {
   itemHtmlFor?: string;
   createInputHtmlFor?: string;
   onPickCreate?: (variant: 'product' | 'dish', name: string) => void;
+  monoRichness?: boolean;
 };
 
 const SearchFoodHeavy = ({
@@ -208,6 +233,7 @@ const SearchFoodHeavy = ({
   itemHtmlFor,
   createInputHtmlFor,
   onPickCreate,
+  monoRichness,
 }: HeavyProps) => {
   const listContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(listContainerRef);
@@ -339,6 +365,7 @@ const SearchFoodHeavy = ({
           richNutrientUnit={richNutrient?.unit}
           richNutrientMax={richNutrientMax}
           richNutrientNorm={richNutrientNorm}
+          monoRichness={monoRichness}
           htmlFor={itemHtmlFor}
         />
       );
@@ -351,6 +378,7 @@ const SearchFoodHeavy = ({
       nutrientMap,
       richNutrientMax,
       richNutrientNorm,
+      monoRichness,
       itemHtmlFor,
     ]
   );

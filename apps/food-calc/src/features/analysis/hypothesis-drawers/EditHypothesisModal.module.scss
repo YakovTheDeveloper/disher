@@ -32,3 +32,12 @@
         cursor: not-allowed;
     }
 }
+
+// Hosted inside HypothesesDrawer (Drawer.Popup z-index 5001). ModalByLabel ships
+// `.expanded { z-index: 1000 }` — below the drawer — so without this the edit
+// modal renders BEHIND the drawer + its backdrop. Clear the drawer, but stay
+// below real modals (ConfirmModal delete = modalStore z 6001). !important beats
+// the hardcoded `.container.expanded` (0,2,0) in ModalByLabel.module.scss.
+.overDrawer {
+    z-index: 5500 !important;
+}

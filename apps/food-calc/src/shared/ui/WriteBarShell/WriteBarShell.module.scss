@@ -295,6 +295,35 @@
     font-weight: 500;
 }
 
+// Trailing placeholder word lifted along an upward arc (Food bar «или» curving
+// toward the raised medal). The path rises to the right; the SVG box is taller
+// than the line, so `vertical-align` drops it back down to sit the arc's start
+// near the text baseline. EXPERIMENT 2026-06-13 — tune `vertical-align` / the
+// `<path d>` if the lift reads wrong.
+.arcTail {
+    display: inline-block;
+    width: 2.7em;
+    height: 1.5em;
+    margin-left: 2px;
+    vertical-align: -0.4em;
+    overflow: visible;
+    transition: opacity 0.15s ease;
+
+    text {
+        fill: currentColor;
+        font-family: var(--field-font-family, var(--font-sans));
+        font-size: var(--field-font-size, var(--text-base));
+        font-weight: var(--field-placeholder-weight, 400);
+        letter-spacing: -0.005em;
+    }
+}
+
+// On focus the row expands and the medal collapses — the «или» arc has nothing
+// left to point at, so it fades out alongside the medal (same 0.15s feel).
+[data-expanded] .arcTail {
+    opacity: 0;
+}
+
 // Send coin — rides in the right slot, taking the medal's footprint (the medal
 // collapses on focus, this takes its place). Round, SOLID `--wb-send`. Pinned to
 // --coin-size (the medal's REST size, ~68px) so it always fits the bar width — it
@@ -434,6 +463,18 @@
 }
 
 [data-expanded] .clip[data-dv-v='bars'] svg {
+    width: 48px;
+    height: 48px;
+}
+
+// `disc` RateIcon variant — a filled round button (same app-icon read as `bars`),
+// so it gets the same ~2× sizing.
+.clip[data-dv-v='disc'] svg {
+    width: 38px;
+    height: 38px;
+}
+
+[data-expanded] .clip[data-dv-v='disc'] svg {
     width: 48px;
     height: 48px;
 }

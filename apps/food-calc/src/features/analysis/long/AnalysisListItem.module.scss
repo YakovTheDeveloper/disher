@@ -1,8 +1,9 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// Stripe-fork analysis row. Palette CSS-vars (`--la-*`) are published by the
-// parent `[data-dv='LabAnalysis'][data-dv-v=…]` anchor in AnalysesSlide —
-// this file only consumes them.
+// Stripe-fork analysis row — token-driven by the app-wide tone (the live
+// ModalShell variant → `--card-*`, see tds/modalshell-lawgiver-2026-06-13).
+// Same idiom as FoodActionCard: 3-stop gradient surface + fading hairline +
+// vertical accent + nth-child wash rhythm. Status colours stay semantic.
 
 .row {
     position: relative;
@@ -17,10 +18,7 @@
     cursor: pointer;
     overflow: hidden;
     -webkit-tap-highlight-color: transparent;
-    background: linear-gradient(90deg,
-        var(--la-bg-from, #fffefb) 0%,
-        var(--la-bg-mid, #fffaf2) 55%,
-        var(--la-bg-to, #fdf4e3) 100%);
+    background: var(--card-bg);
 
     // Vertical accent stripe — colour carries status.
     &::before {
@@ -31,7 +29,7 @@
         bottom: 7px;
         width: 3px;
         border-radius: 2px;
-        background: var(--la-accent, rgba(214, 158, 70, 0.55));
+        background: color-mix(in srgb, var(--card-text-active) 55%, transparent);
     }
 
     // Fading hairline divider — never a full border.
@@ -42,7 +40,7 @@
         right: 14px;
         bottom: 0;
         height: 1px;
-        @include hairline(var(--la-hairline, rgba(124, 65, 15, 0.09)));
+        @include hairline(var(--card-hairline));
         pointer-events: none;
     }
 
@@ -56,7 +54,7 @@
 
     // Status overrides the accent stripe colour.
     &[data-status='done']::before {
-        background: var(--la-accent-strong, rgba(206, 142, 45, 1));
+        background: var(--card-text-active);
     }
     &[data-status='failed']::before {
         background: #c0392b;
@@ -67,25 +65,11 @@
 
     // nth-child rhythm — surfaces are not identical (design-DNA rule 4).
     &:nth-child(2n) {
-        background-image:
-            linear-gradient(90deg,
-                color-mix(in srgb, var(--la-accent, rgba(214, 158, 70, 0.55)) 8%, transparent) 0%,
-                transparent 55%),
-            linear-gradient(90deg,
-                var(--la-bg-from, #fffefb) 0%,
-                var(--la-bg-mid, #fffaf2) 55%,
-                var(--la-bg-to, #fdf4e3) 100%);
+        background-image: var(--card-wash-2n), var(--card-bg);
     }
 
     &:nth-child(3n) {
-        background-image:
-            linear-gradient(90deg,
-                transparent 45%,
-                color-mix(in srgb, var(--la-accent, rgba(214, 158, 70, 0.55)) 7%, transparent) 100%),
-            linear-gradient(90deg,
-                var(--la-bg-from, #fffefb) 0%,
-                var(--la-bg-mid, #fffaf2) 55%,
-                var(--la-bg-to, #fdf4e3) 100%);
+        background-image: var(--card-wash-3n), var(--card-bg);
     }
 }
 
@@ -102,12 +86,12 @@
     font-style: italic;
     font-size: 17px;
     line-height: 1.2;
-    color: var(--la-text, rgba(60, 38, 10, 0.92));
+    color: var(--card-text-rest);
 }
 
 .meta {
     font-size: 12.5px;
-    color: var(--la-text-dim, rgba(60, 38, 10, 0.58));
+    color: color-mix(in srgb, var(--card-text-rest) 58%, transparent);
     font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 

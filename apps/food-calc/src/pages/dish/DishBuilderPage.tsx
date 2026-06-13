@@ -385,7 +385,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
                  плавает на фоне страницы под листом со списком. Несёт
                  [data-write-food-anchor] — без него «Посмотреть варианты» в
                  баре скроллил в пустоту (живой баг до 2026-06-05). */
-              <InlineWriteFoodReview flow={writeFoodFlow} hasContent={items.length > 0} />
+              <InlineWriteFoodReview flow={writeFoodFlow} />
             }
           >
             <div className={styles.dishItemsGroup}>

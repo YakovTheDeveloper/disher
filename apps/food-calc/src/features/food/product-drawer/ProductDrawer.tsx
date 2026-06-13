@@ -23,6 +23,7 @@ import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer/ItemAct
 import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { isCreatedByUser } from '@/shared/lib';
+import { findCatalogProduct } from '@/shared/data/catalog';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import type { BaseDrawerProps } from '@/shared/ui';
 import EditIcon from '@/shared/assets/icons/edit.svg?react';
@@ -138,6 +139,10 @@ const PortionsAccordion = ({
  */
 export function ProductDrawer({ productId, productName }: Props) {
   const food = useProduct(productId);
+  // Каталожный продукт может нести фото (build-route поле `image`) — резолвим
+  // синхронно по id (catalog — const). У своих продуктов / блюд его нет →
+  // боковая полоска остаётся с обычной заливкой. Доступно и в ghost-ветке.
+  const image = findCatalogProduct(productId)?.image;
   const portionsRaw = useProductPortions(productId);
   const { results: nutrientsRaw } = useProductNutrients(productId);
 
@@ -188,7 +193,7 @@ export function ProductDrawer({ productId, productName }: Props) {
       ? productName.charAt(0).toUpperCase() + productName.slice(1)
       : undefined;
     return (
-      <DrawerLayout title={ghostName} a11yLabel={productName ?? 'Продукт'}>
+      <DrawerLayout title={ghostName} a11yLabel={productName ?? 'Продукт'} image={image}>
         <div className={s.body} />
       </DrawerLayout>
     );
@@ -313,6 +318,7 @@ export function ProductDrawer({ productId, productName }: Props) {
       title={displayName}
       subtitle={isUserCreated ? 'мой продукт' : undefined}
       a11yLabel={food.name}
+      image={image}
       // Карандаш в правом углу обвязки → drop-down «Название / Нутриенты».
       // Только свои продукты. Меню живёт в стекинг-контексте обвязки дровера
       // (z поверх контента); `.editWrap`-scoped правила в scss перебивают
