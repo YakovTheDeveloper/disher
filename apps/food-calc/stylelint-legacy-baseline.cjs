@@ -14,7 +14,6 @@ module.exports = [
   "src/features/analysis/hypothesis-drawers/HypothesisModal.module.scss",
   "src/features/analysis/long/AnalysisDetailModal.module.scss",
   "src/features/analysis/long/AnalysisListItem.module.scss",
-  "src/features/analysis/long/CreateLongAnalysisDrawer.module.scss",
   "src/features/analysis/long/RangePickerWithFallback.module.scss",
   "src/features/auth/AccountPanel.module.scss",
   "src/features/auth/AuthForm.module.scss",

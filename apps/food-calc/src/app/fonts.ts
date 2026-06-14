@@ -23,6 +23,15 @@ import '@fontsource/jost/500-italic.css';
 // never fetched. Body stays Jost; this is a surgical numeric face, not a revert.
 import '@fontsource/onest/800.css';
 
+// Pilot (2026-06-14): Onest as the body face on the «Мои открытия» slide ONLY
+// (scoped via Laboratory `.ambientSheet` → `--font-sans`). Weights the analysis
+// cards use: 400 body, 500 chips/meta, 600 titles. Higher x-height + cyrillic-
+// native → reads better than Jost on dense text. If the pilot is rejected, drop
+// these three imports (and the `.ambientSheet` font block).
+import '@fontsource/onest/400.css';
+import '@fontsource/onest/500.css';
+import '@fontsource/onest/600.css';
+
 // Headings — Source Serif 4 (--heading-font); italic is the canon section/overlay voice
 import '@fontsource/source-serif-4/300.css';
 import '@fontsource/source-serif-4/600.css';

@@ -106,6 +106,8 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
             summary={analysis.summary}
             insights={analysis.insights}
             hypotheses={analysis.hypotheses}
+            insightSource="long"
+            bare
           />
         )}
 

@@ -1,5 +1,6 @@
 import { test, expect, type Page, type Locator } from '@playwright/test';
 import { installSupabaseMock } from './supabaseMock';
+import { signUpAndVerify } from './analysisHelpers';
 
 // Colored press-feedback smoke (canon 2026-06-08, см. project colored-press).
 //
@@ -60,6 +61,31 @@ async function assertPressContrast(page: Page, pressEl: Locator, textEl: Locator
   }
 }
 
+/**
+ * Press `pressEl` and assert that `surfaceEl` (the visible backdrop — may be an
+ * ANCESTOR wrapper, not the button itself) actually fills dark on `:active`.
+ * Guards the «подложка → инверсия» canon (2026-06-14): a pill whose inner button
+ * fills ink while its padded wrapper stays light leaves a white halo. Contrast
+ * (text↔bg) checks can't catch that — this asserts the surface luminance is low.
+ */
+async function assertPressedDark(page: Page, pressEl: Locator, surfaceEl: Locator) {
+  await expect(pressEl).toBeVisible();
+  const box = await pressEl.boundingBox();
+  if (!box) throw new Error('pressEl has no bounding box');
+
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  try {
+    const bg = await surfaceEl.evaluate((n) => getComputedStyle(n as Element).backgroundColor);
+    expect(
+      luminance(bg),
+      `pressed surface not dark — bg ${bg} (expected ink fill). White halo / no inversion?`,
+    ).toBeLessThan(0.25);
+  } finally {
+    await page.mouse.up();
+  }
+}
+
 test.describe('Colored press feedback', () => {
   test('pressed CTA keeps text↔background contrast (no dark-on-dark)', async ({ page }) => {
     await installSupabaseMock(page, 'ok');
@@ -75,5 +101,33 @@ test.describe('Colored press feedback', () => {
 
     // On press the dark CTA stays dark fill + light text → high luminance delta.
     await assertPressContrast(page, submit);
+  });
+});
+
+// Top-bar pill inversion (canon 2026-06-14: «подложка → инверсия в ink + белый»).
+// Drives the REAL dev:e2e backend for auth (like the analysis specs) — NOT yet
+// run in CI, selectors may need a runtime pass against the live HomePage DOM.
+test.describe('Top-bar press inversion', () => {
+  test('settings / date / nutrients pills invert to ink (legible, no halo)', async ({
+    page,
+  }) => {
+    await signUpAndVerify(page); // lands logged-in on the HomePage (top bar visible)
+
+    const gear = page.getByRole('button', { name: /Настройки и аккаунт/ });
+    const date = page.getByRole('button', { name: 'Выбрать дату' });
+    const nutrients = page.getByRole('button', { name: 'Открыть нутриенты' });
+
+    // Each fills ink + white content on press → text stays legible (no dark-on-dark).
+    await assertPressContrast(page, gear);
+    // Date: guard the GOTCHA child (weekday has its own colour → must whiten too).
+    await assertPressContrast(page, date, date.locator('[class*=dateWeekday]'));
+    await assertPressContrast(page, nutrients);
+
+    // Halo guard: the nutrients pill WRAPPER (.centerSlot, padded) — not just the
+    // inner button — must fill ink, else its padding rings the fill with white.
+    const centerSlot = nutrients
+      .locator('xpath=ancestor::*[contains(@class,"centerSlot")]')
+      .first();
+    await assertPressedDark(page, nutrients, centerSlot);
   });
 });

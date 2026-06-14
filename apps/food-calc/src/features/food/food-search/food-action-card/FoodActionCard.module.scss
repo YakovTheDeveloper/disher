@@ -58,8 +58,12 @@
         background: var(--card-hover);
     }
 
+    // No scale on press. The row lives inside a `border-radius` + `overflow:hidden`
+    // group (.list); a transformed child escapes that rounded clip on iOS WebKit,
+    // so its square corners poke past the card rounding — the press selection then
+    // read as «crooked». The dark inversion (::before) carries the press feedback
+    // without a whole-row transform.
     &:active {
-        transform: scale(0.965);
         transition-duration: var(--press-in);
     }
 
@@ -68,105 +72,48 @@
         background: var(--card-active);
     }
 
-    // Press — сильная инверсия. JS-driven `data-pressed` (usePressFeedback)
-    // вместо `:active`: гарантированно рисуется на тапе, который тут же уводит
-    // на следующий шаг и размонтирует строку. Идёт ПОСЛЕ nth-child/hover/active/
-    // has — при равной специфичности перекрывает их по порядку.
+    // Press — тёмная инверсия, но СКРУГЛЁННОЙ inset-пилюлей, а не full-bleed
+    // полосой. Рисуется отдельным `::before` поверх фона карточки (z-index 0, под
+    // текстом z-index 1) — у него свои скруглённые углы и боковые отступы, поэтому
+    // он «уважает» бордеры независимо от позиции строки в inset-grouped списке
+    // (раньше квадратные углы тёмной полосы вылезали за скругление группы). Цвет
+    // — прежний --card-press-bg; текст/иконка инвертируются ниже (--card-press-fg).
+    // JS-driven `data-pressed` (usePressFeedback) вместо `:active` —
+    // гарантированно рисуется на тапе, который тут же уводит на следующий шаг.
     &[data-pressed] {
-        background: var(--card-press-bg);
-        transform: scale(0.965);
         transition-duration: var(--press-in);
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 3px 6px;
+            border-radius: var(--radius-md);
+            background: var(--card-press-bg);
+            z-index: 0;
+            pointer-events: none;
+        }
     }
 }
 
-@keyframes growBar {
-    from {
-        transform: scaleX(0);
-        opacity: 0;
-    }
-
-    to {
-        transform: scaleX(1);
-        opacity: 1;
-    }
-}
-
-// Как growBar, но settle-opacity = 0.16 (subtle заливка). Отдельный keyframe
-// нужен из-за animation-fill-mode: both — `to`-кадр growBar держит opacity:1
-// после конца анимации и перебил бы статичный opacity заливки.
+// Заливка квадрат-гейджа растёт по ширине 0 → уровень (scaleX, origin left).
+// Композит-only — N видимых строк анимируются дёшево.
 @keyframes growFill {
     from {
         transform: scaleX(0);
-        opacity: 0;
     }
 
     to {
         transform: scaleX(1);
-        opacity: 0.16;
-    }
-}
-
-// Richness fill-gauge: width encodes magnitude, sits BEHIND row content
-// (z-index 0; .item/.richValue lift to z-index 1). Low alpha + gradient
-// fade-to-transparent toward the right so the food name stays readable —
-// replaces the old opaque sweeping bar that overlapped the text.
-.richFill {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 0;
-    opacity: 0.16;
-    pointer-events: none;
-    border-radius: inherit;
-    transform-origin: left;
-    // Deliberate ~1.6s fill on nutrient pick (was 0.6s) — let the user watch
-    // each card's richness gauge grow to its level, but short enough that a quick
-    // nutrient-to-nutrient switch still reaches the end before being re-keyed.
-    // Still composite-only (transform: scaleX), so N visible cards animating at
-    // once stays cheap. Re-triggered per nutrient via a `key` on the span.
-    animation: growFill 1.6s cubic-bezier(0.33, 0, 0.18, 1) both;
-}
-
-// Full-height 3px richness stripe on the left edge (5px when active).
-.richBar {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    height: auto;
-    width: 3px;
-    opacity: 0.85;
-    border-radius: 0;
-    pointer-events: none;
-    transform-origin: left;
-    animation: growBar 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
-    z-index: 1;
-    transition:
-        transform var(--press-out) var(--easing-spring),
-        opacity var(--press-out) ease;
-}
-
-.wrapper:has(.item_active) .richBar {
-    width: 5px;
-}
-
-// pop: акцент-штрих «выстреливает» в ширину при нажатии — motion
-// у самого края строки, сильнейший pre-attentive канал.
-@media (prefers-reduced-motion: no-preference) {
-
-    .wrapper:active .richBar,
-    .wrapper[data-pressed] .richBar {
-        transform: scaleX(2.4);
-        opacity: 1;
-        transition-duration: var(--press-in);
     }
 }
 
 .item {
     display: flex;
     align-items: center;
-    padding: 11px 6px 11px 14px;
+    // Отступы по 4px-сетке (--space-*). Снизу больше, чем сверху — освобождает
+    // место под абсолютную строку-подпись (.kindLabel «мой продукт · добавка»),
+    // чтобы она не липла к имени.
+    padding: var(--space-2);
     flex-grow: 1;
     min-width: 0;
     overflow: hidden;
@@ -180,7 +127,7 @@
     gap: 10px;
     margin: 0;
     border-radius: inherit;
-    z-index: 1; // над .richFill (z-index 0) — имя всегда поверх заливки
+    z-index: 1; // над press-инверсией ::before (z-index 0) — имя всегда читаемо
 }
 
 .categoryIcon {
@@ -195,8 +142,8 @@
 // Каталожная миниатюра продукта (build-route поле `image`). Круглая, тёплая
 // рамка-хайрлайн в тон stripe-warm каскада, кадрируется по центру.
 .thumb {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     flex-shrink: 0;
     border-radius: 50%;
     object-fit: cover;
@@ -218,12 +165,12 @@
     }
 }
 
-// Press-инверсия: на тёмном фоне текст/числа/инфо-иконка перекрашиваются в
-// светлый. Специфичность (0,3,0) перебивает `.item_active .name` (0,2,0).
+// Press-инверсия: на тёмном фоне имя/инфо-иконка перекрашиваются в светлый.
+// richValue НЕ инвертируется — у квадрата свой светлый фон поверх press-пилюли,
+// тёмные числа на нём читаемы. Специфичность (0,3,0) перебивает `.item_active`.
 .wrapper[data-pressed] {
 
     .name,
-    .richValue,
     .infoBtn {
         color: var(--card-press-fg);
     }
@@ -236,7 +183,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    font-size: 0.94rem;
+    font-size: var(--text-base);
     font-weight: 500;
     text-transform: capitalize;
     color: var(--card-text-rest);
@@ -244,25 +191,24 @@
     letter-spacing: -0.005em;
 }
 
-.supplementBadge {
-    flex: 0 0 auto;
-    margin-left: var(--space-2, 8px);
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: rgba(38, 38, 51, 0.45);
-    letter-spacing: 0.01em;
-    white-space: nowrap;
-}
-
+// Левый слот = почти-квадратный progress-bar. Сплошной светлый трек + цветная
+// заливка (.richValueFill, ширина = доля богатства, слева направо). Значение/%/
+// единица — поверх заливки (in-flow → над z-index:-1 заливкой). Квадрат
+// вертикально центрируется в строке (align-self), не растягивается.
 .richValue {
+    position: relative;
+    flex-shrink: 0;
+    align-self: center;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-width: 60px;
-    height: auto;
-    padding: 0 10px;
-    flex-shrink: 0;
+    width: 48px;
+    height: 44px;
+    margin-left: var(--space-2);
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--card-rich-track, #eef0f3);
     font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
     font-size: 13px;
@@ -271,8 +217,21 @@
     letter-spacing: -0.01em;
     line-height: 1.1;
     text-align: center;
-    position: relative;
-    z-index: 1; // над .richFill — число читаемо поверх заливки
+    z-index: 1; // stacking context; заливка z-index:-1 → над треком, под текстом
+}
+
+// Цветная заливка квадрата (ширина = доля богатства, слева направо). z-index:-1:
+// над фоном-треком richValue, под in-flow числами. Растёт ~1.2s при выборе.
+.richValueFill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: -1;
+    border-radius: inherit;
+    transform-origin: left;
+    animation: growFill 1.2s cubic-bezier(0.33, 0, 0.18, 1) both;
+    pointer-events: none;
 }
 
 .richUnit {
@@ -282,6 +241,13 @@
     margin-top: 1px;
     letter-spacing: 0.03em;
     text-transform: uppercase;
+}
+
+// Единица (мг/г) — только у ПЕРВОГО item списка (он же самый богатый — список
+// отсортирован по убыванию). У остальных строк остаются значение + процент без
+// единицы, чтобы 10 одинаковых «мг» не шумели в правом столбце.
+.wrapper:not(:first-child) .richUnit {
+    display: none;
 }
 
 .richPercent {
@@ -314,15 +280,22 @@
     }
 }
 
-.ownershipLabel {
+// Подпись-вид под названием еды («блюдо» / «мой продукт»). Absolute, чтобы не
+// сдвигать вертикально центрированное имя в .item — висит у нижнего края,
+// с лёгким отступом слева (--space-2). Еле заметный серый курсив.
+.kindLabel {
+    position: absolute;
+    // left: var(--space-6, 8px);
+    bottom: 4px;
     font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
     font-style: italic;
-    font-size: 10px;
+    font-size: var(--text-sm);
     font-weight: 400;
     line-height: 1;
     letter-spacing: 0.01em;
-    color: rgba(15, 23, 42, 0.38);
+    color: color-mix(in srgb, var(--card-text-rest) 50%, transparent);
     pointer-events: none;
+    white-space: nowrap;
 }
 
 .infoBtn {
@@ -408,19 +381,16 @@
 
 // ─── Reduced-motion ──────────────────────────────────────────────────
 // Press highlight (смена фона) остаётся — это не motion, а abrupt
-// luminance change. Гасим только transform-составляющую pop'а (scale
-// строки). scaleX штриха уже под `no-preference`-гейтом выше.
+// luminance change. Гасим только transform-составляющую pop'а (scale строки).
 @media (prefers-reduced-motion: reduce) {
     .wrapper:active {
         transform: none;
     }
 
-    // Entrance баров: при выборе нутриента все видимые карточки одновременно
-    // проигрывают growFill/growBar (0.6s). Гасим — `animation: none` оставляет
-    // элементы в их статичных финальных состояниях (richFill opacity 0.16,
-    // richBar 3px/opacity 0.85), т.к. fill-mode `both` больше не нужен.
-    .richFill,
-    .richBar {
+    // Entrance заливки квадрата: при выборе нутриента все видимые карточки
+    // проигрывают growFill. Гасим — `animation: none` оставляет заливку на полной
+    // ширине уровня (fill-mode `both` больше не нужен).
+    .richValueFill {
         animation: none;
     }
 }

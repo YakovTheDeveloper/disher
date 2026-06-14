@@ -2,9 +2,8 @@ import { useCallback, useState, type CSSProperties } from 'react';
 import { createProduct } from '@/entities/product/api/mutations';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
-import { Heading } from '@/shared/ui/atoms/Typography/Heading';
+import { SheetCard } from '@/shared/ui/SheetCard';
 import { PlusIcon } from '@/shared/ui/atoms/Button/PlusIcon';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import type { UseWriteFoodFlowResult, ReviewEditStep } from '../model/useWriteFoodFlow';
 import { ProposalFoodItem } from './ProposalFoodItem';
 import { FreeTextFoodReviewEditModals } from './FreeTextFoodReviewEditModals';
@@ -39,10 +38,6 @@ const NEUTRAL_PALETTE: CSSProperties = {
   '--accent-stripe': 'rgba(31, 42, 68, 0.18)',
 } as CSSProperties;
 
-// DesignBar: характер глянца предложки («карточка на листке», без elevation).
-// `satin` — дефолт, см. InlineWriteFoodReview.module.scss.
-const PREDLOZHKA_VARIANTS = ['satin', 'glass', 'pearl', 'frost'] as const;
-
 interface RescueState {
   uid: string;
   anchor: HTMLElement;
@@ -54,7 +49,6 @@ export interface InlineWriteFoodReviewProps {
 }
 
 export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
-  const { anchor: layoutAnchor } = useDesignVariant('Predlozhka', PREDLOZHKA_VARIANTS);
   const {
     state,
     inputText,
@@ -152,232 +146,49 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
 
   if (isLoading) {
     return (
-      <>
-        <div
-          key="wrap-loading"
-          {...layoutAnchor}
-          className={styles.wrap}
-          data-state="loading"
-          data-write-food-anchor=""
-        >
-          <div className={styles.headerRow}>
-            <Heading size="section">Распознаём…</Heading>
-          </div>
-          {inputText && <div className={styles.originalText}>{inputText}</div>}
-          <div className={styles.skeleton} aria-live="polite" aria-busy="true">
-            <div className={styles.skeletonRow} />
-            <div className={styles.skeletonRow} />
-            <div className={styles.skeletonRow} />
-            <div className={styles.skeletonSpinner}>
-              <Spinner size={28} />
-            </div>
+      <SheetCard
+        key="wrap-loading"
+        className={styles.reviewSheet}
+        header="Распознаём…"
+        data-state="loading"
+        data-write-food-anchor=""
+      >
+        {inputText && <div className={styles.originalText}>{inputText}</div>}
+        <div className={styles.skeleton} aria-live="polite" aria-busy="true">
+          <div className={styles.skeletonRow} />
+          <div className={styles.skeletonRow} />
+          <div className={styles.skeletonRow} />
+          <div className={styles.skeletonSpinner}>
+            <Spinner size={28} />
           </div>
         </div>
-      </>
+      </SheetCard>
     );
   }
 
   return (
-    <>
-      <div
-        key="wrap-ready"
-        {...layoutAnchor}
-        className={styles.wrap}
-        data-state="ready"
-        data-write-food-anchor=""
-        onFocusCapture={handleReviewFocusCapture}
-        onAnimationEnd={(e) => {
-          // Снимаем data-shake после завершения СОБСТВЕННОЙ анимации wrap'а,
-          // чтобы следующий клик «Посмотреть варианты» давал чистый переход
-          // absent→present — единственное, что надёжно перезапускает CSS-
-          // анимацию во всех движках (re-add в том же тике после reflow
-          // перезапуск НЕ гарантирует). Гард target===currentTarget отсекает
-          // всплывшие animationend дочерних рядов.
-          if (e.target === e.currentTarget) e.currentTarget.removeAttribute('data-shake');
-        }}
-      >
-        <div className={styles.headerRow}>
-          <Heading size="section" className={styles.reviewTitle}>
-            Предложения
-          </Heading>
-        </div>
-
-        {showOriginalText && inputText && <div className={styles.originalText}>{inputText}</div>}
-
-        {isReviewEmpty ? (
-          <div className={styles.empty}>
-            <p className={styles.emptyText}>
-              Ничего не распозналось. Попробуйте описать подробнее.
-            </p>
-          </div>
-        ) : (
-          <div className={styles.sections}>
-            {resolved.length > 0 && (
-              <section className={styles.section}>
-                <ul className={styles.list}>
-                  {resolved.map((r) => (
-                    <li
-                      key={r.uid}
-                      className={styles.itemRow}
-                      data-dismissed={r.enabled ? undefined : 'true'}
-                    >
-                      <ProposalFoodItem
-                        uid={r.uid}
-                        item={r}
-                        hideTime={hideTime}
-                        onCommitTime={(uid, time) => updateResolved(uid, { time })}
-                        onCommitQuantity={(uid, quantity) => updateResolved(uid, { quantity })}
-                        searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
-                        paletteStyle={NEUTRAL_PALETTE}
-                      />
-                      <button
-                        type="button"
-                        className={styles.outerDelete}
-                        onClick={() => toggleResolved(r.uid)}
-                        aria-label={r.enabled ? 'Удалить' : 'Вернуть'}
-                      >
-                        <span className={styles.iconDismiss} aria-hidden="true">
-                          ×
-                        </span>
-                        <span className={styles.iconUndo} aria-hidden="true">
-                          ↶
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {ambiguous.length > 0 && (
-              <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>
-                  Уточните
-                  <span className={styles.sectionCount}>{ambiguous.length}</span>
-                </h3>
-                <ul className={styles.list}>
-                  {ambiguous.map((a) => {
-                    const selected =
-                      a.candidates.find((c) => c.id === a.selectedId) ?? a.candidates[0];
-                    return (
-                      <li
-                        key={a.uid}
-                        className={styles.itemRow}
-                        data-dismissed={a.enabled ? undefined : 'true'}
-                      >
-                        <ProposalFoodItem
-                          uid={a.uid}
-                          item={{
-                            ...a,
-                            name: selected?.name ?? '—',
-                            productId: a.selectedId ?? '',
-                          }}
-                          hideTime={hideTime}
-                          isAmbiguous
-                          candidates={a.candidates}
-                          selectedCandidateId={a.selectedId}
-                          onSelectCandidate={(id) => updateAmbiguous(a.uid, { selectedId: id })}
-                          onCommitTime={(uid, time) => updateAmbiguous(uid, { time })}
-                          onCommitQuantity={(uid, quantity) => updateAmbiguous(uid, { quantity })}
-                          searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
-                          paletteStyle={NEUTRAL_PALETTE}
-                        />
-                        <button
-                          type="button"
-                          className={styles.outerDelete}
-                          onClick={() => toggleAmbiguous(a.uid)}
-                          aria-label={a.enabled ? 'Удалить' : 'Вернуть'}
-                        >
-                          <span className={styles.iconDismiss} aria-hidden="true">
-                            ×
-                          </span>
-                          <span className={styles.iconUndo} aria-hidden="true">
-                            ↶
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            )}
-
-            {unresolved.length > 0 && (
-              <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>
-                  Не распознано
-                  <span className={styles.sectionCount}>{unresolved.length}</span>
-                </h3>
-                <ul
-                  className={styles.list}
-                  data-rescue-slot={unresolved.some((u) => !u.manual) ? 'true' : undefined}
-                >
-                  {unresolved.map((u) => (
-                    <li
-                      key={u.uid}
-                      className={styles.itemRow}
-                      data-dismissed={u.enabled ? undefined : 'true'}
-                    >
-                      {!u.manual && (
-                        <button
-                          type="button"
-                          className={styles.outerRescue}
-                          onClick={(e) =>
-                            setRescue({
-                              uid: u.uid,
-                              anchor: e.currentTarget,
-                              originalName: u.originalName,
-                            })
-                          }
-                          aria-label="Добавить в свой список"
-                          title="Добавить в свой список"
-                        >
-                          <PlusIcon />
-                        </button>
-                      )}
-                      <ProposalFoodItem
-                        uid={u.uid}
-                        item={{
-                          ...u,
-                          name: u.manual?.name ?? u.originalName,
-                          productId: u.manual?.id ?? '',
-                        }}
-                        hideTime={hideTime}
-                        isUnresolved={!u.manual}
-                        wasRescued={!!u.manual}
-                        onCommitTime={(uid, time) => updateUnresolved(uid, { time })}
-                        onCommitQuantity={(uid, quantity) => updateUnresolved(uid, { quantity })}
-                        searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
-                        paletteStyle={NEUTRAL_PALETTE}
-                      />
-                      <button
-                        type="button"
-                        className={styles.outerDelete}
-                        onClick={() => toggleUnresolved(u.uid)}
-                        aria-label={u.enabled ? 'Удалить' : 'Вернуть'}
-                      >
-                        <span className={styles.iconDismiss} aria-hidden="true">
-                          ×
-                        </span>
-                        <span className={styles.iconUndo} aria-hidden="true">
-                          ↶
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-          </div>
-        )}
-
-        {/*
-          CTA-ряд: «Отменить» (fit-content, слева) чистит flow (cancel()) — это
-          теперь единственный способ закрыть предложку (× в шапке нет). «Добавить
-          N» (растягивается, справа) коммитит; задизейблена, когда добавлять
-          нечего (totalToAdd === 0) или во время сабмита.
-        */}
-        <div className={styles.ctaRow}>
+    <SheetCard
+      key="wrap-ready"
+      className={styles.reviewSheet}
+      header="Предложения"
+      data-state="ready"
+      data-write-food-anchor=""
+      onFocusCapture={handleReviewFocusCapture}
+      onAnimationEnd={(e) => {
+        // Снимаем data-shake после завершения СОБСТВЕННОЙ анимации wrap'а,
+        // чтобы следующий клик «Посмотреть варианты» давал чистый переход
+        // absent→present — единственное, что надёжно перезапускает CSS-
+        // анимацию во всех движках (re-add в том же тике после reflow
+        // перезапуск НЕ гарантирует). Гард target===currentTarget отсекает
+        // всплывшие animationend дочерних рядов.
+        if (e.target === e.currentTarget) e.currentTarget.removeAttribute('data-shake');
+      }}
+      actions={
+        // CTA-ряд: «Отменить» (fit-content, слева) чистит flow (cancel()) — это
+        // теперь единственный способ закрыть предложку (× в шапке нет). «Добавить
+        // N» (растягивается, справа) коммитит; задизейблена, когда добавлять
+        // нечего (totalToAdd === 0) или во время сабмита.
+        <>
           <button
             type="button"
             className={styles.cancelBtn}
@@ -394,26 +205,195 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
           >
             {isSubmitting ? 'Добавляем…' : `Добавить ${totalToAdd}`}
           </button>
+        </>
+      }
+    >
+      {showOriginalText && inputText && <div className={styles.originalText}>{inputText}</div>}
+
+      {isReviewEmpty ? (
+        <div className={styles.empty}>
+          <p className={styles.emptyText}>
+            Ничего не распозналось. Попробуйте описать подробнее.
+          </p>
         </div>
+      ) : (
+        <div className={styles.sections}>
+          {resolved.length > 0 && (
+            <section className={styles.section}>
+              <ul className={styles.list}>
+                {resolved.map((r) => (
+                  <li
+                    key={r.uid}
+                    className={styles.itemRow}
+                    data-dismissed={r.enabled ? undefined : 'true'}
+                  >
+                    <ProposalFoodItem
+                      uid={r.uid}
+                      item={r}
+                      hideTime={hideTime}
+                      onCommitTime={(uid, time) => updateResolved(uid, { time })}
+                      onCommitQuantity={(uid, quantity) => updateResolved(uid, { quantity })}
+                      searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
+                      paletteStyle={NEUTRAL_PALETTE}
+                    />
+                    <button
+                      type="button"
+                      className={styles.outerDelete}
+                      onClick={() => toggleResolved(r.uid)}
+                      aria-label={r.enabled ? 'Удалить' : 'Вернуть'}
+                    >
+                      <span className={styles.iconDismiss} aria-hidden="true">
+                        ×
+                      </span>
+                      <span className={styles.iconUndo} aria-hidden="true">
+                        ↶
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
-        <FreeTextFoodReviewEditModals
-          row={editingRowView}
-          step={editingStep}
-          onChange={handleEditChange}
-          onClose={closeEdit}
-          inputIds={REVIEW_INPUT_IDS}
-        />
+          {ambiguous.length > 0 && (
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>
+                Уточните
+                <span className={styles.sectionCount}>{ambiguous.length}</span>
+              </h3>
+              <ul className={styles.list}>
+                {ambiguous.map((a) => {
+                  const selected =
+                    a.candidates.find((c) => c.id === a.selectedId) ?? a.candidates[0];
+                  return (
+                    <li
+                      key={a.uid}
+                      className={styles.itemRow}
+                      data-dismissed={a.enabled ? undefined : 'true'}
+                    >
+                      <ProposalFoodItem
+                        uid={a.uid}
+                        item={{
+                          ...a,
+                          name: selected?.name ?? '—',
+                          productId: a.selectedId ?? '',
+                        }}
+                        hideTime={hideTime}
+                        isAmbiguous
+                        candidates={a.candidates}
+                        selectedCandidateId={a.selectedId}
+                        onSelectCandidate={(id) => updateAmbiguous(a.uid, { selectedId: id })}
+                        onCommitTime={(uid, time) => updateAmbiguous(uid, { time })}
+                        onCommitQuantity={(uid, quantity) => updateAmbiguous(uid, { quantity })}
+                        searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
+                        paletteStyle={NEUTRAL_PALETTE}
+                      />
+                      <button
+                        type="button"
+                        className={styles.outerDelete}
+                        onClick={() => toggleAmbiguous(a.uid)}
+                        aria-label={a.enabled ? 'Удалить' : 'Вернуть'}
+                      >
+                        <span className={styles.iconDismiss} aria-hidden="true">
+                          ×
+                        </span>
+                        <span className={styles.iconUndo} aria-hidden="true">
+                          ↶
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
 
-        <AddToListPopover
-          anchor={rescue?.anchor ?? null}
-          open={!!rescue}
-          initialName={rescue?.originalName ?? ''}
-          onClose={closeRescue}
-          onUseExisting={handleRescueUseExisting}
-          onCreateNew={handleRescueCreateNew}
-        />
-      </div>
-    </>
+          {unresolved.length > 0 && (
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>
+                Не распознано
+                <span className={styles.sectionCount}>{unresolved.length}</span>
+              </h3>
+              <ul
+                className={styles.list}
+                data-rescue-slot={unresolved.some((u) => !u.manual) ? 'true' : undefined}
+              >
+                {unresolved.map((u) => (
+                  <li
+                    key={u.uid}
+                    className={styles.itemRow}
+                    data-dismissed={u.enabled ? undefined : 'true'}
+                  >
+                    {!u.manual && (
+                      <button
+                        type="button"
+                        className={styles.outerRescue}
+                        onClick={(e) =>
+                          setRescue({
+                            uid: u.uid,
+                            anchor: e.currentTarget,
+                            originalName: u.originalName,
+                          })
+                        }
+                        aria-label="Добавить в свой список"
+                        title="Добавить в свой список"
+                      >
+                        <PlusIcon />
+                      </button>
+                    )}
+                    <ProposalFoodItem
+                      uid={u.uid}
+                      item={{
+                        ...u,
+                        name: u.manual?.name ?? u.originalName,
+                        productId: u.manual?.id ?? '',
+                      }}
+                      hideTime={hideTime}
+                      isUnresolved={!u.manual}
+                      wasRescued={!!u.manual}
+                      onCommitTime={(uid, time) => updateUnresolved(uid, { time })}
+                      onCommitQuantity={(uid, quantity) => updateUnresolved(uid, { quantity })}
+                      searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
+                      paletteStyle={NEUTRAL_PALETTE}
+                    />
+                    <button
+                      type="button"
+                      className={styles.outerDelete}
+                      onClick={() => toggleUnresolved(u.uid)}
+                      aria-label={u.enabled ? 'Удалить' : 'Вернуть'}
+                    >
+                      <span className={styles.iconDismiss} aria-hidden="true">
+                        ×
+                      </span>
+                      <span className={styles.iconUndo} aria-hidden="true">
+                        ↶
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      )}
+
+      <FreeTextFoodReviewEditModals
+        row={editingRowView}
+        step={editingStep}
+        onChange={handleEditChange}
+        onClose={closeEdit}
+        inputIds={REVIEW_INPUT_IDS}
+      />
+
+      <AddToListPopover
+        anchor={rescue?.anchor ?? null}
+        open={!!rescue}
+        initialName={rescue?.originalName ?? ''}
+        onClose={closeRescue}
+        onUseExisting={handleRescueUseExisting}
+        onCreateNew={handleRescueCreateNew}
+      />
+    </SheetCard>
   );
 };
 

@@ -1,43 +1,47 @@
-.delete {
+// «Удалить» в правом верхнем слоте обвязки (ModalHeader.trailing) — иконка-
+// корзина, ≥40px тап-таргет, danger-цвет. Соседствует со стрелкой «назад»
+// слева и заголовком по центру; от «Сохранить» в футере уведена.
+.deleteHeader {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 44px;
-    padding: 10px 18px;
-    border-radius: 999px;
-    border: 1px solid rgba(192, 57, 43, 0.32);
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
     background: transparent;
-    color: #c0392b;
-    font-size: 14px;
-    font-weight: 500;
+    border-radius: var(--radius-sm);
+    color: var(--color-danger);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: transform var(--press-out) var(--easing-default),
-        background var(--press-out) var(--easing-default),
-        border-color var(--press-out) var(--easing-default),
-        color var(--press-out) var(--easing-default);
+        background var(--press-out) var(--easing-default);
 
-    // Цветной отклик: danger-кнопка на нажатии заливается КРАСНЫМ (не ink) —
-    // danger-семантика сохраняется, единообразно с ConfirmModal.confirmDanger.
+    // Цветной отклик: лёгкий danger-тинт-фон на нажатии (как ItemActionsDrawer).
     &:active {
-        background: var(--color-danger);
-        border-color: var(--color-danger);
-        color: var(--text-on-accent);
-        transform: scale(0.97);
+        background: rgba(229, 83, 75, 0.1);
+        transform: scale(0.94);
         transition-duration: var(--press-in);
     }
 
     &:disabled {
-        opacity: 0.4;
+        opacity: 0.35;
         cursor: not-allowed;
+    }
+
+    svg {
+        width: 22px;
+        height: 22px;
     }
 }
 
-// Hosted inside HypothesesDrawer (Drawer.Popup z-index 5001). ModalByLabel ships
-// `.expanded { z-index: 1000 }` — below the drawer — so without this the edit
-// modal renders BEHIND the drawer + its backdrop. Clear the drawer, but stay
-// below real modals (ConfirmModal delete = modalStore z 6001). !important beats
-// the hardcoded `.container.expanded` (0,2,0) in ModalByLabel.module.scss.
+// Hosted inside the «Гипотезы» modal: the edit overlay portals into a node
+// INSIDE that popup (ModalByLabel.container), so this z-index is scoped to the
+// popup's own stacking context — it just has to clear the modal body + floating
+// write-bar. A real modal opened on top (ConfirmModal delete = modalStore z
+// 6001, a sibling of the host popup) still paints above the whole popup subtree.
+// !important beats the hardcoded `.container.expanded` (0,2,0) in
+// ModalByLabel.module.scss.
 .overDrawer {
     z-index: 5500 !important;
 }

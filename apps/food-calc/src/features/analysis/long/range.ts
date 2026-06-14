@@ -46,6 +46,16 @@ export function isValidWindow(range: DateRange): boolean {
 }
 
 /**
+ * `end` later than today. Analysing future days is meaningless (no schedule
+ * data yet) — the calendar picker barred it via `disabled.after`; the manual
+ * masked input has no such bound, so the host gates on this explicitly.
+ */
+export function endsInFuture(range: DateRange): boolean {
+  const e = parseISO(range.end);
+  return isValid(e) && differenceInCalendarDays(e, startOfDay(new Date())) > 0;
+}
+
+/**
  * `dd-MM-yyyy` keys for every day in [start, end] inclusive — feeds the Dexie
  * collectors (`collectFoods` / `collectEvents` key schedule rows by date).
  */

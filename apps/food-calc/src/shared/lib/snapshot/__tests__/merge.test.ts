@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { db, type ProductRow } from '@/shared/lib/dexie/schema';
+import { db, type ProductRow, type InsightRow } from '@/shared/lib/dexie/schema';
 import { merge, type Snapshot } from '@/shared/lib/snapshot';
 
 // merge() reconciles an incoming vault blob into local Dexie. These cover the
@@ -143,5 +143,61 @@ describe('merge() — LWW, tombstones, idempotency, adoption', () => {
 
     expect(after2).toEqual(after1);
     expect(after1.map((r) => r.id)).toEqual(['p1']); // p2 tombstoned, p1 adopted
+  });
+});
+
+// `insights` joined DOMAIN_TABLES in schema v8. The merge is table-agnostic, but
+// the whole point of adding a domain table is that an OLD vault blob (written
+// before the table existed, so it has no `insights` key) must NOT wipe a
+// locally-saved insight — and a blob carrying insights must LWW-merge like any
+// other table. This pins both directly rather than transitively via products.
+function insightRow(
+  id: string,
+  title: string,
+  updated_at: string,
+  created_at = ISO,
+): InsightRow {
+  return {
+    id,
+    title,
+    detail: 'd',
+    valence: 'neutral',
+    strength: 'weak',
+    evidence: { days: ['01-01-2026'] },
+    source: 'daily',
+    created_at,
+    updated_at,
+  };
+}
+
+describe('merge() — insights table (DOMAIN_TABLES, v8)', () => {
+  beforeEach(clearAll);
+
+  it('an OLD blob without an `insights` key never drops a locally-saved insight', async () => {
+    await db.insights.put(insightRow('i1', 'iron+C', '2026-06-01T00:00:00.000Z'));
+    // Legacy-shaped blob: only products, no `insights` key at all.
+    await merge({ products: [legacyProduct('p1', 'Apple', ISO)] });
+    expect((await db.insights.get('i1'))?.title).toBe('iron+C');
+  });
+
+  it('adopts incoming insights and applies LWW by updated_at', async () => {
+    await db.insights.put(insightRow('i1', 'Local', '2026-02-01T00:00:00.000Z'));
+    await merge({
+      insights: [
+        insightRow('i1', 'Incoming-newer', '2026-03-01T00:00:00.000Z'), // newer → wins
+        insightRow('i2', 'Fresh', '2026-01-01T00:00:00.000Z'), // new id → adopted
+      ],
+      tombstones: [],
+    });
+    expect((await db.insights.get('i1'))?.title).toBe('Incoming-newer');
+    expect((await db.insights.get('i2'))?.title).toBe('Fresh');
+  });
+
+  it('a tombstone newer than a local insight removes it', async () => {
+    await db.insights.put(insightRow('i1', 'doomed', '2026-02-01T00:00:00.000Z'));
+    await merge({
+      tombstones: [{ id: 'i1', table: 'insights', deleted_at: '2026-03-01T00:00:00.000Z' }],
+    });
+    expect(await db.insights.get('i1')).toBeUndefined();
   });
 });

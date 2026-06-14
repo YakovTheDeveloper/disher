@@ -31,8 +31,10 @@
   // Типошкала date-пилюли — день недели (serif italic accent) и dd.mm-мета.
   // Раньше день был зашит 19px и перебивал весь бар; теперь — контролируемый
   // токен, тоньше пилюли по высоте.
-  --bar-day-size: 15px;
-  --bar-meta-size: 12px;
+  --bar-day-size: 16px;
+  // Размер мета-строки (месяц / dd.mm) = глобальный --text-meta, общий со
+  // сводкой нутриентов в этом же баре (NutrientsSummaryButton).
+  --bar-meta-size: var(--text-meta);
 
 
 
@@ -160,6 +162,21 @@
   // gap'ы, чтобы центр не наезжал на края. На уже-узких экранах кнопка
   // нутриентов укоротится за счёт собственного `text-overflow`.
   max-width: calc(100% - 170px);
+  // transform/opacity — для scroll-hide (см. блок `data-topbar-hide` внизу),
+  // background — для press-инверсии. Оба composite-only.
+  transition:
+    transform var(--duration-normal) var(--easing-default),
+    opacity var(--duration-normal) var(--easing-default),
+    background var(--press-out) var(--easing-default);
+
+  // Инверсия (канон 2026-06-14): подложка-обёртка владеет заливкой. На press
+  // пилюля заливается ink ЦЕЛИКОМ (иначе ink внутренней кнопки оставлял бы
+  // белый ореол от этого padding'а); текст внутри белеет своим :active.
+  // transform НЕ ставим — перебил бы центрирующий translate(-50%, -50%).
+  &:active {
+    background: var(--color-ink);
+    transition-duration: var(--press-in);
+  }
 }
 
 // AccountPanel — первый flex-child. Слева, перед leadingSlot
@@ -181,6 +198,10 @@
   border-radius: var(--radius-full);
   backdrop-filter: blur(var(--bar-blur));
   -webkit-backdrop-filter: blur(var(--bar-blur));
+  // transform/opacity — для scroll-hide (см. блок `data-topbar-hide` внизу).
+  transition:
+    transform var(--duration-normal) var(--easing-default),
+    opacity var(--duration-normal) var(--easing-default);
 }
 
 .segment {
@@ -199,9 +220,16 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  transition:
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default);
 
+  // Инверсия (канон 2026-06-14): пилюля бара на press заливается ink, контент
+  // белеет. Вход мгновенный (--press-in), выход мягкий (--press-out).
   &:active {
-    background-color: var(--seg-tap);
+    background: var(--color-ink);
+    color: var(--text-on-accent, #fff);
+    transition-duration: var(--press-in);
   }
 }
 
@@ -223,6 +251,13 @@
   -webkit-backdrop-filter: blur(var(--bar-blur));
   padding: var(--date-pad-y) var(--date-pad-x);
   margin-left: auto;
+  // Перебивает transition из `.segment` — добавляет transform/opacity для
+  // scroll-hide, сохраняя background/color press-инверсии (см. `.segment`).
+  transition:
+    transform var(--duration-normal) var(--easing-default),
+    opacity var(--duration-normal) var(--easing-default),
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default);
 }
 
 // ─── Date-button (numeral, fixed) ──────────────────────────────────────
@@ -231,32 +266,104 @@
   display: inline-flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 1px;
+  gap: 2px;
 }
 
-// Название дня недели — главный элемент кнопки: тёмный, отчётливо читаемый,
-// крупный для обвязки. Intl даёт lowercase («понедельник») — капитализируем
-// первую букву средствами CSS (тот же приём, что в .centerLabel).
 .dateWeekday {
   font-family: "Source Serif 4", "Merriweather", serif;
-  font-style: italic;
+  // font-style: italic;
   font-size: var(--bar-day-size);
   font-weight: 600;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
-  color: rgba(0, 0, 0, 0.9);
+  color: rgb(54, 63, 68);
 
   &::first-letter {
     text-transform: uppercase;
   }
 }
 
-// dd.mm — подпись под названием дня, приглушённая, моноширинные цифры.
-.dateDdmm {
+// Нижняя строка — месяц прижат влево, dd.mm вправо. Тянется на всю ширину
+// стопки (= ширина дня недели сверху), `space-between` разводит их по краям.
+.dateMeta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
   font-size: var(--bar-meta-size);
-  font-weight: 500;
   line-height: 1.2;
+}
+
+// Название месяца — нижним регистром («июнь»), как отдаёт Intl standalone.
+.dateMonth {
+  letter-spacing: 0.01em;
+  font-style: italic;
+  padding-left: 2px;
+  color: rgb(168, 168, 168);
+
+}
+
+// dd.mm — приглушённые моноширинные цифры, прижаты вправо.
+.dateDdmm {
   letter-spacing: 0.02em;
-  color: rgba(0, 0, 0, 0.5);
   font-feature-settings: 'tnum' 1, 'lnum' 1;
+  color: rgb(75, 75, 75);
+
+}
+
+// ГОЧА инверсии: у дня/месяца/dd.mm собственный color — каскад от .segment:active
+// их не перекрасит. Наследуем белый кнопки на press; color-transition держит
+// выход в темпе с фоном пилюли (вход мгновенный через --press-in).
+.dateWeekday,
+.dateMonth,
+.dateDdmm {
+  transition: color var(--press-out) var(--easing-default);
+}
+
+.dateSegment:active {
+
+  .dateWeekday,
+  .dateMonth,
+  .dateDdmm {
+    color: inherit;
+    transition-duration: var(--press-in);
+  }
+}
+
+// ─── Scroll-hide (направление-зависимое) ───────────────────────────────────
+// Активный `Screen` пишет `data-topbar-hide` на `.shell` через
+// `TopBarScrollHideContext` (императивно, без ре-рендера — см. `topBarScrollHide`).
+//   • `settings` — уезжает только пилюля аккаунта (нутриенты + дата остаются);
+//   • `all`      — уезжают аккаунт + нутриенты + дата.
+// `backSlot` (стрелка «Назад» на DishPage) НЕ трогается — выход со страницы
+// всегда виден. Сдвиг = на полную высоту бара вверх → пилюли уходят за экран;
+// opacity подстраховывает на устройствах с большим safe-area-inset-top.
+// Анимация — только transform/opacity (composite-only).
+
+.shell[data-topbar-hide='settings'] .accountSlot,
+.shell[data-topbar-hide='all'] .accountSlot {
+  transform: translateY(calc(-1 * var(--top-bar-h, 80px)));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.shell[data-topbar-hide='all'] .dateSegment {
+  transform: translateY(calc(-1 * var(--top-bar-h, 80px)));
+  opacity: 0;
+  pointer-events: none;
+}
+
+// centerSlot центрируется через translate(-50%, -50%) — сохраняем X, добавляем
+// вертикальный увод поверх него.
+.shell[data-topbar-hide='all'] .centerSlot {
+  transform: translate(-50%, calc(-50% - var(--top-bar-h, 80px)));
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .accountSlot,
+  .centerSlot,
+  .dateSegment {
+    transition: none;
+  }
 }

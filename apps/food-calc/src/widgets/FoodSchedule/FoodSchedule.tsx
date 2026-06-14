@@ -1,11 +1,11 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, Fragment } from 'react';
-import { TimeGroup, TIME_HEADER_KEY, TIME_HEADER_VARIANTS } from '@/features/time-group';
+import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { groupItemsByTime } from '@/shared/lib/schedule';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { ScheduleFoodItem } from '@/widgets/FoodSchedule/ScheduleFoodItem';
-import { Screen } from '@/shared/ui/Screen';
+import { Screen, type TopBarHideTarget } from '@/shared/ui/Screen';
 import toaster from '@/shared/lib/toaster/toaster';
 import {
   ScheduleFoodCreateModals,
@@ -47,6 +47,10 @@ type CommonProps = {
   items: ScheduleFoodWithRelations[];
   isActive?: boolean;
   topSlot?: React.ReactNode;
+  /** Заголовок дня — едет в `contentHeader` листа (по центру вверху «бумажки»). */
+  contentHeader?: React.ReactNode;
+  /** Прокидывается в `Screen` → направление-зависимое скрытие кнопок бара. */
+  topBarHide?: TopBarHideTarget;
 };
 
 const FoodSchedule = ({
@@ -54,6 +58,8 @@ const FoodSchedule = ({
   items,
   isActive = true,
   topSlot,
+  contentHeader,
+  topBarHide,
 }: CommonProps) => {
   const navigate = useNavigate();
 
@@ -68,8 +74,6 @@ const FoodSchedule = ({
   // Second anchor: how adjacent rows meet at their shared edge. Same key as
   // ScheduleEvents so one DesignBar control drives food + event rows together.
   const { anchor: boundaryAnchor } = useDesignVariant(ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS);
-  // Third anchor: the time-group header look. Also shared with ScheduleEvents.
-  const { anchor: timeHeaderAnchor } = useDesignVariant(TIME_HEADER_KEY, TIME_HEADER_VARIANTS);
 
   const startEdit = editFlow.startEdit;
   const onEditTime = useCallback(
@@ -138,12 +142,15 @@ const FoodSchedule = ({
     <Screen
       className={styles.scheduleScreen}
       stickyTop={topSlot}
+      contentHeader={contentHeader}
       headerOverlap
       hollow={isEmpty}
-      // Заголовок-дня НЕ рендерим (день недели уже в HomeTopBar справа). Верхний
-      // паддинг листа и watermark-логотип Disher теперь даёт сам Screen-лист
-      // (`.headerOverlap` — дефолтный отступ + `::after`); на пустом дне (hollow)
-      // маленький знак гаснет, включается большой центральный brandWatermark.
+      topBarHide={topBarHide}
+      // Заголовок дня (Сегодня/Вчера/«5 июня») едет в `contentHeader` — по центру
+      // вверху листа («бумажки»), его прокидывает HomePage. Watermark-логотип
+      // Disher даёт сам Screen-лист (`.headerOverlap::after`); на пустом дне
+      // (hollow) маленький знак гаснет, включается большой центральный
+      // brandWatermark.
       overlay={
         <>
           {isActive ? (
@@ -183,7 +190,6 @@ const FoodSchedule = ({
     >
       <div {...foodAnchor} className={styles.foodListAnchor}>
         <div {...boundaryAnchor}>
-          <div {...timeHeaderAnchor}>
           <ItemsList>
             {(() => {
               let globalIndex = 0;
@@ -191,13 +197,21 @@ const FoodSchedule = ({
                 <Fragment key={group.startTime}>
                   <TimeGroup group={group}>
                     {
-                      group.items.map((item) => {
-                        const itemIndex = globalIndex++;
-                        return (
+                      (() => {
+                        // Dedup the per-row time: a row whose time matches the row
+                        // above renders the label blank (still tappable to edit).
+                        // Reset per group so each group's first row always shows.
+                        let prevTime: string | null = null;
+                        return group.items.map((item) => {
+                          const itemIndex = globalIndex++;
+                          const dimTime = prevTime === item.time;
+                          prevTime = item.time;
+                          return (
                           <ScheduleFoodItem
                             key={item.id}
                             item={item}
                             index={itemIndex}
+                            dimTime={dimTime}
                             totalCount={items.length}
                             onLongPress={() => openActionsDrawer(item)}
                             onEditTime={onEditTime}
@@ -207,8 +221,9 @@ const FoodSchedule = ({
                             foodHtmlFor={SCHEDULE_FOOD_INPUT_IDS.DETAILS_EDIT_INPUT}
                             quantityHtmlFor={SCHEDULE_FOOD_INPUT_IDS.QUANTITY_EDIT_INPUT}
                           />
-                        );
-                      }) as unknown as JSX.Element
+                          );
+                        });
+                      })() as unknown as JSX.Element
                     }
                   </TimeGroup>
                 </Fragment>
@@ -216,7 +231,6 @@ const FoodSchedule = ({
               return rendered;
             })()}
           </ItemsList>
-          </div>
         </div>
       </div>
     </Screen>

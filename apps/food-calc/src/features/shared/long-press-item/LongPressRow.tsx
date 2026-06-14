@@ -162,8 +162,7 @@ const LongPressRow = ({
       className={clsx(
         styles.commonListItemWrapper,
         wrapperClassName,
-        entrance.className,
-        recent && styles.hasRecentDot
+        entrance.className
       )}
       style={entrance.style}
       data-tod={tod}

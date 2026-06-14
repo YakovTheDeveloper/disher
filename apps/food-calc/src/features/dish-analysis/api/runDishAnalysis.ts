@@ -2,7 +2,7 @@ import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { API_BASE } from '@/shared/lib/api/base';
 import { throwApiError } from '@/shared/lib/api/apiError';
 import { db } from '@/shared/lib/dexie/schema';
-import { createSSEParser } from '@/shared/lib/sse/parseSSELines';
+import { asInsights, type AnalysisInsight } from '@/features/analysis/api';
 import { saveDishAnalysis } from './storage';
 import type { DishAnalysisIngredient, DishAnalysisPayload } from './types';
 
@@ -55,16 +55,24 @@ export async function buildDishAnalysisPayload(
   };
 }
 
-type StreamArgs = {
+export type DishAnalysisResult = {
+  summary: string;
+  insights: AnalysisInsight[];
+};
+
+type RequestArgs = {
   payload: DishAnalysisPayload;
-  onChunk: (chunk: string) => void;
   signal?: AbortSignal;
 };
 
-// Stream the LLM response into onChunk and return the full accumulated text.
-// Caller is responsible for persisting the result (or not, if aborted).
-export async function streamDishAnalysis(args: StreamArgs): Promise<string> {
-  const { payload, onChunk, signal } = args;
+// One-shot POST → structured {summary, insights} (the dish endpoint dropped its
+// SSE markdown stream 2026-06-14; it now mirrors /api/analyze/daily, with the
+// same charge/refund billing and X-Request-Id idempotency). Throws
+// PaymentRequiredError on 402 (via throwApiError), like before.
+export async function requestDishAnalysis(
+  args: RequestArgs,
+): Promise<DishAnalysisResult> {
+  const { payload, signal } = args;
 
   const res = await authedFetch(ENDPOINT, {
     method: 'POST',
@@ -82,66 +90,32 @@ export async function streamDishAnalysis(args: StreamArgs): Promise<string> {
 
   if (!res.ok) await throwApiError(res); // throws PaymentRequiredError on 402
 
-  let accumulated = '';
-  const collect = (chunk: string) => {
-    accumulated += chunk;
-    onChunk(chunk);
+  const body = (await res.json()) as { analysis?: { summary?: unknown; insights?: unknown } };
+  const analysis = body?.analysis;
+  if (!analysis || typeof analysis.summary !== 'string') {
+    throw new Error('Некорректный ответ сервера');
+  }
+
+  return {
+    summary: analysis.summary,
+    insights: asInsights(analysis.insights),
   };
-
-  // iOS Safari sometimes lacks ReadableStream on fetch responses — fall back
-  // to a single text() read (same workaround as ScheduleFoodAnalyticsPage).
-  if (!res.body) {
-    const text = await res.text();
-    if (signal?.aborted) return accumulated;
-    const parser = createSSEParser(collect);
-    const fed = parser.feed(text);
-    if (fed.error) throw new Error(fed.error);
-    const flushed = parser.end();
-    if (flushed.error) throw new Error(flushed.error);
-    return accumulated;
-  }
-
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  const parser = createSSEParser(collect);
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (signal?.aborted) break;
-
-      const result = parser.feed(decoder.decode(value, { stream: true }));
-      if (result.error) throw new Error(result.error);
-      if (result.done) return accumulated;
-    }
-    const tail = parser.end();
-    if (tail.error) throw new Error(tail.error);
-  } finally {
-    reader.releaseLock();
-  }
-
-  return accumulated;
 }
 
-// Convenience wrapper: hydrate + stream + persist. Called from the screen
+// Convenience wrapper: hydrate + request + persist. Called from the screen
 // when the user taps «Проанализировать» or «Перезапустить».
 export async function runDishAnalysis(args: {
   dishId: string;
-  onChunk: (chunk: string) => void;
   signal?: AbortSignal;
-}): Promise<string> {
+}): Promise<DishAnalysisResult> {
   const payload = await buildDishAnalysisPayload(args.dishId);
-  const resultMd = await streamDishAnalysis({
-    payload,
-    onChunk: args.onChunk,
-    signal: args.signal,
-  });
-  if (args.signal?.aborted) return resultMd;
+  const result = await requestDishAnalysis({ payload, signal: args.signal });
+  if (args.signal?.aborted) return result;
   await saveDishAnalysis({
     dishId: args.dishId,
-    resultMd,
+    summary: result.summary,
+    insights: result.insights,
     createdAt: new Date().toISOString(),
   });
-  return resultMd;
+  return result;
 }

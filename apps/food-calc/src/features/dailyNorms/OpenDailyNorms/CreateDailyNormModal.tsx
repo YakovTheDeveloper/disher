@@ -32,7 +32,7 @@ const DEFAULT_SURVEY: NormSurvey = {
   weightKg: 70,
   heightCm: 175,
   activity: 'moderate',
-  goal: 'maintain',
+  goal: 'health',
 };
 
 const ACTIVITY_OPTIONS: Array<{ value: Activity; label: string; hint: string }> = [
@@ -43,11 +43,14 @@ const ACTIVITY_OPTIONS: Array<{ value: Activity; label: string; hint: string }> 
   { value: 'extra_active', label: 'Очень высокий', hint: 'спорт + физ. работа' },
 ];
 
+// 'maintain' и 'health' слиты в одну цель: обе держат калории на поддержании,
+// разница была только в скрытых микро (клетчатка/вода/сахар), которую превью
+// не показывало → отдельная «Поддерживать» читалась как дубль «Улучшить рацион».
+// Оставляем один пункт с value 'health' (поддержание калорий + качественные микро).
 const GOAL_OPTIONS: Array<{ value: Goal; label: string; hint: string }> = [
   { value: 'lose', label: 'Худеть', hint: '−15% от поддержания' },
-  { value: 'maintain', label: 'Поддерживать', hint: 'текущий вес' },
+  { value: 'health', label: 'Улучшить рацион (поддержание)', hint: 'держим вес + акцент на качестве' },
   { value: 'gain', label: 'Набирать', hint: '+15% к поддержанию' },
-  { value: 'health', label: 'Улучшить рацион', hint: 'поддержание + акцент на качестве' },
 ];
 
 const LIMITS = {
@@ -150,7 +153,7 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
       )}
 
         <div className={clsx(styles.body, isPanel && styles.bodyPanel)}>
-          <Section label="Пол" hint="нужен только для формулы калорий">
+          <Section label="Пол">
             <div className={styles.pillRow}>
               <Pill active={survey.sex === 'male'} onClick={() => patch({ sex: 'male' })}>
                 Мужской
@@ -161,10 +164,9 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
             </div>
           </Section>
 
-          <Section label="Возраст · Вес · Рост" hint="14–100 · 30–250 кг · 100–230 см">
+          <Section label="Возраст · Вес · Рост">
             <div className={styles.numbersRow}>
               <NumberField
-                label="возраст"
                 unit="лет"
                 value={survey.age}
                 min={LIMITS.age.min}
@@ -172,7 +174,6 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
                 onChange={(v) => patch({ age: v })}
               />
               <NumberField
-                label="вес"
                 unit="кг"
                 value={survey.weightKg}
                 min={LIMITS.weightKg.min}
@@ -180,7 +181,6 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
                 onChange={(v) => patch({ weightKg: v })}
               />
               <NumberField
-                label="рост"
                 unit="см"
                 value={survey.heightCm}
                 min={LIMITS.heightCm.min}
@@ -190,8 +190,8 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
             </div>
           </Section>
 
-          <Section label="Активность" hint="дневная, не только спорт">
-            <div className={clsx(styles.pillRow, styles.pillRowWrap)}>
+          <Section label="Активность">
+            <div className={clsx(styles.pillRow, styles.pillCol)}>
               {ACTIVITY_OPTIONS.map((o) => (
                 <Pill
                   key={o.value}
@@ -207,7 +207,7 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
           </Section>
 
           <Section label="Цель">
-            <div className={clsx(styles.pillRow, styles.pillRowWrap)}>
+            <div className={clsx(styles.pillRow, styles.pillCol)}>
               {GOAL_OPTIONS.map((o) => (
                 <Pill
                   key={o.value}
@@ -260,15 +260,13 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
 
 type SectionProps = {
   label: string;
-  hint?: string;
   children: React.ReactNode;
 };
 
-const Section = ({ label, hint, children }: SectionProps) => (
+const Section = ({ label, children }: SectionProps) => (
   <section className={styles.section}>
     <div className={styles.sectionHead}>
       <span className={styles.sectionLabel}>{label}</span>
-      {hint && <span className={styles.sectionHint}>{hint}</span>}
     </div>
     {children}
   </section>
@@ -296,7 +294,6 @@ const Pill = ({ active, onClick, children, stacked }: PillProps) => (
 );
 
 type NumberFieldProps = {
-  label: string;
   unit: string;
   value: number;
   min: number;
@@ -304,11 +301,10 @@ type NumberFieldProps = {
   onChange: (v: number) => void;
 };
 
-const NumberField = ({ label, unit, value, min, max, onChange }: NumberFieldProps) => {
+const NumberField = ({ unit, value, min, max, onChange }: NumberFieldProps) => {
   const invalid = !isInRange(value, { min, max });
   return (
     <label className={clsx(styles.numberField, invalid && styles.numberFieldInvalid)}>
-      <span className={styles.numberLabel}>{label}</span>
       <div className={styles.numberInputRow}>
         <NumberInput value={value} onChange={onChange} maxLength={3} />
         <span className={styles.numberUnit}>{unit}</span>

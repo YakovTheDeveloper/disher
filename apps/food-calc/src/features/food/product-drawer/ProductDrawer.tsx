@@ -29,7 +29,6 @@ import type { BaseDrawerProps } from '@/shared/ui';
 import EditIcon from '@/shared/assets/icons/edit.svg?react';
 import { buildQuantityOptions } from './buildQuantityOptions';
 import { scaleForBasis } from './scaleForBasis';
-import { EditNutrientsModal } from './EditNutrientsModal';
 import { SuggestNutrientsConfirmDrawer } from './SuggestNutrientsConfirmDrawer';
 import { suggestProductNutrients } from './suggestProductNutrients';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -68,6 +67,13 @@ interface Props extends BaseDrawerProps {
 const ChevronIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true" className={className}>
     <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+// × выхода из режима правки — inline (как ChevronIcon); currentColor.
+const CloseIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true" className={className}>
+    <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
   </svg>
 );
 
@@ -377,83 +383,130 @@ export function ProductDrawer({ productId, productName }: Props) {
       }
     >
       <div className={s.body} onFocusCapture={handleNameFocusCapture}>
-        {/* Порции — только свой продукт-еда (каталог read-only, БАД без порций) */}
-        {isUserCreated && !isSupplement && (
-          <PortionsAccordion
-            open={portionsOpen}
-            onToggle={() => setPortionsOpen((o) => !o)}
-            onAdd={addPortion}
-            portions={portions}
-            onUpdate={updatePortion}
-            onLongPressRow={openPortionDeleteDrawer}
-          />
-        )}
-
-        {isUserCreated && nutrientValueMap.size === 0 ? (
-          // Пустой состав → живой empty-state вместо мёртвой таблицы. Главное
-          // действие нового продукта (заполнить состав) на витрине, не под
-          // карандашом: крупная CTA AI-подбора (конструктивно, без confirm) +
-          // тихий путь ручного ввода. measureRow/норму прячем — скейлить нечего.
-          <div className={s.emptyNutrients}>
-            <p className={s.emptyNutrientsCaption}>У продукта пока нет состава</p>
-            <SuggestActionButton
-              label={suggesting ? 'Подбираем…' : 'Предложить нутриенты'}
-              onClick={() => runSuggest(false)}
-              disabled={suggesting || !food.name.trim()}
+        {editOpen ? (
+          // Инлайн-редактирование состава (вместо отдельной модалки): шапка
+          // «Редактирование» + × выхода, AI-подбор, warning-полоса, таблица в
+          // режиме инпутов. Селект количества / порции / норму прячем — правится
+          // база (на 100 г / 1 единицу), скейл тут не нужен.
+          <section className={s.editSection}>
+            <div className={s.editHeader}>
+              <span className={s.editTitle}>Редактирование</span>
+              <button
+                type="button"
+                className={s.editClose}
+                aria-label="Выйти из режима редактирования"
+                onClick={() => setEditOpen(false)}
+              >
+                <CloseIcon />
+              </button>
+            </div>
+            <div className={s.suggestRow}>
+              <SuggestActionButton
+                label={
+                  suggesting
+                    ? 'Подбираем…'
+                    : nutrientValueMap.size === 0
+                      ? 'Предложить состав'
+                      : 'Переподобрать состав'
+                }
+                // Пустой состав — конструктивный подбор без confirm; заполненный —
+                // деструктивный whole-replace за confirm-дровером.
+                onClick={() => runSuggest(nutrientValueMap.size > 0)}
+                disabled={suggesting || !food.name.trim()}
+              />
+            </div>
+            {massWarningGrams != null && (
+              <p className={s.massWarning} role="status">
+                Совокупная масса нутриентов ({massWarningGrams.toFixed(1)} г) превышает 100 г
+              </p>
+            )}
+            <NutrientTable
+              getValue={getNutrientValue}
+              variant="edit-values"
+              onValueChange={handleNutrientValueChange}
             />
-            <button
-              type="button"
-              className={s.manualLink}
-              onClick={() => setEditOpen(true)}
-            >
-              Ввести вручную
-            </button>
-          </div>
+          </section>
         ) : (
           <>
-            {/* Количество + норма — ПРЯМО над таблицей нутриентов. Еда: выбор
-                количества (50% слева) + кнопка нормы (50% справа, текст
-                переносится и прижат влево). БАД: выбора количества нет → норма
-                на всю ширину + подпись «состав на 1 единицу». */}
-            {isSupplement ? (
-              <>
-                <div className={s.normRowFull}>
-                  <DailyNormButton className={s.normButtonFull} />
-                </div>
-                <p className={s.servingComposition}>Состав на одну единицу:</p>
-              </>
-            ) : (
-              <>
-                <div className={s.measureRow}>
-                  <div className={s.quantityControl}>
-                    <Select
-                      className={s.quantitySelect}
-                      ariaLabel="Способ измерения количества"
-                      value={selectValue}
-                      options={quantityOptions}
-                      onChange={handleQuantityModeChange}
-                    />
-                  </div>
-                  <div className={s.normSlot}>
-                    <DailyNormButton className={s.normButton} />
-                  </div>
-                </div>
-                {isCustom && (
-                  <div className={s.quantityInputRow}>
-                    <NumberInput
-                      value={displayQuantity}
-                      min={0}
-                      maxLength={4}
-                      className={s.quantityInput}
-                      onChange={(val) => setQuantity(val)}
-                    />
-                    <span className={s.quantityUnit}>г</span>
-                  </div>
-                )}
-              </>
+            {/* Порции — только свой продукт-еда (каталог read-only, БАД без порций) */}
+            {isUserCreated && !isSupplement && (
+              <PortionsAccordion
+                open={portionsOpen}
+                onToggle={() => setPortionsOpen((o) => !o)}
+                onAdd={addPortion}
+                portions={portions}
+                onUpdate={updatePortion}
+                onLongPressRow={openPortionDeleteDrawer}
+              />
             )}
 
-            <NutrientTable getValue={getScaledValue} />
+            {isUserCreated && nutrientValueMap.size === 0 ? (
+              // Пустой состав → живой empty-state вместо мёртвой таблицы. Главное
+              // действие нового продукта (заполнить состав) на витрине, не под
+              // карандашом: крупная CTA AI-подбора (конструктивно, без confirm) +
+              // тихий путь ручного ввода (открывает инлайн-режим правки).
+              <div className={s.emptyNutrients}>
+                <p className={s.emptyNutrientsCaption}>У продукта пока нет состава</p>
+                <SuggestActionButton
+                  label={suggesting ? 'Подбираем…' : 'Предложить нутриенты'}
+                  onClick={() => runSuggest(false)}
+                  disabled={suggesting || !food.name.trim()}
+                />
+                <button
+                  type="button"
+                  className={s.manualLink}
+                  onClick={() => setEditOpen(true)}
+                >
+                  Ввести вручную
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Количество + норма — ПРЯМО над таблицей нутриентов. Еда: выбор
+                    количества (50% слева) + кнопка нормы (50% справа, текст
+                    переносится и прижат влево). БАД: выбора количества нет → норма
+                    на всю ширину + подпись «состав на 1 единицу». */}
+                {isSupplement ? (
+                  <>
+                    <div className={s.normRowFull}>
+                      <DailyNormButton className={s.normButtonFull} />
+                    </div>
+                    <p className={s.servingComposition}>Состав на одну единицу:</p>
+                  </>
+                ) : (
+                  <>
+                    <div className={s.measureRow}>
+                      <div className={s.quantityControl}>
+                        <Select
+                          className={s.quantitySelect}
+                          ariaLabel="Способ измерения количества"
+                          value={selectValue}
+                          options={quantityOptions}
+                          onChange={handleQuantityModeChange}
+                        />
+                      </div>
+                      <div className={s.normSlot}>
+                        <DailyNormButton className={s.normButton} />
+                      </div>
+                    </div>
+                    {isCustom && (
+                      <div className={s.quantityInputRow}>
+                        <NumberInput
+                          value={displayQuantity}
+                          min={0}
+                          maxLength={4}
+                          className={s.quantityInput}
+                          onChange={(val) => setQuantity(val)}
+                        />
+                        <span className={s.quantityUnit}>г</span>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                <NutrientTable getValue={getScaledValue} />
+              </>
+            )}
           </>
         )}
 
@@ -466,20 +519,6 @@ export function ProductDrawer({ productId, productName }: Props) {
               void safeMutate(() => updateProduct(food.id, { name }), 'Не удалось переименовать');
               setRenameOpen(false);
             }}
-          />
-        )}
-        {isUserCreated && (
-          <EditNutrientsModal
-            isExpanded={editOpen}
-            onClose={() => setEditOpen(false)}
-            getValue={getNutrientValue}
-            onValueChange={handleNutrientValueChange}
-            massWarningGrams={massWarningGrams}
-            // «Переподобрать» здесь, а не на витрине: у заполненного продукта
-            // AI-подбор деструктивен (whole-replace), его место в редакторе за
-            // confirm-гейтом, не среди read-only просмотра.
-            onResuggest={() => runSuggest(true)}
-            suggesting={suggesting}
           />
         )}
       </div>

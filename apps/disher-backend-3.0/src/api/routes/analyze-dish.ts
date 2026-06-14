@@ -1,24 +1,35 @@
 import type { FastifyInstance } from "fastify";
 import { requireUser } from "../../auth/require-user.js";
-import { applySSECorsHeaders } from "../lib/sse-cors.js";
+import {
+  ANALYSIS_OUTPUT_PROMPT_SPEC,
+  DISH_DETAILS_INSTRUCTION,
+  ISOLATED_FOOD_INSIGHT_INSTRUCTION,
+} from "../../shared/analysis-output.js";
+import { callLLMWithValidation, type CallLLM } from "./analyze.runJob.js";
 import { chargeOr402, resolveRequestId } from "../../billing/http.js";
 import { refund } from "../../billing/wallet.js";
 
-// POST /api/analyze-dish — SSE stream. The frontend hydrates the dish payload
-// from Dexie + catalog and posts it; the backend forwards the OpenRouter
-// chat-completions stream verbatim (no Postgres row, no idempotency key, no
-// polling endpoint). Result is persisted on the client in idb-keyval under
-// `dish-analysis:<dishId>`. Re-run = re-post = overwrite.
+// POST /api/analyze-dish — single JSON response (NOT SSE). The frontend hydrates
+// the dish payload (name, total grams, ingredients) from Dexie + catalog and
+// posts it; the backend calls OpenRouter once with the SHARED structured-output
+// contract and returns the parsed {summary, insights, hypotheses:[]}. The result
+// is persisted on the client in idb-keyval under `dish-analysis:<dishId>`.
+// Re-run = re-post = overwrite.
 //
-// Why no Postgres: a per-dish analysis is cheap and the result lives next to
-// the dish (UI is a screen of DishBuilderPage). No cross-device history is
-// owed to the user, and the latest backup snapshot already carries the dish
-// itself — losing an analysis on device swap is acceptable.
+// Why no Postgres row (unlike /api/analyze): a per-dish analysis is cheap, and
+// the result lives next to the dish (a screen of DishBuilderPage). No
+// cross-device history is owed; the latest backup snapshot already carries the
+// dish itself — losing an analysis on device swap is acceptable.
 //
-// Output contract: plain markdown chunks (no `response_format: json_object`,
-// no idea_cards). Format mirrors apps/disher-backend-3.0/src/api/routes/
-// analytics.ts streamFromLLM, which the schedule-analytics page already
-// consumes via parseSSELines.
+// Why not streaming (history): the dish flow used to forward an SSE markdown
+// stream. We switched to the deterministic JSON contract shared with the daily
+// and long analyses — a short prose summary plus compositional insights
+// (nutrient synergies/antagonisms) the user can save. A dish has no temporal
+// window, so it never produces hypotheses (hypotheses: [] always). See
+// apps/food-calc/tds/hypotheses-insights.md §3.4.
+
+// A single dish is a small payload; mirrors the daily timeout.
+const DISH_TIMEOUT_MS = 60_000;
 
 type Ingredient = {
   name?: unknown;
@@ -32,23 +43,34 @@ type AnalyzeDishBody = {
   ingredients?: unknown;
 };
 
-const MODEL = "deepseek/deepseek-chat";
-
-const SYSTEM_PROMPT = `Ты — нутрициолог-аналитик. На вход — рецепт одного блюда (название, общий вес,
+// System prompt is net-new — it does NOT reuse SYSTEM_PROMPT_BASE (that one
+// carries the cross-day cohort-mining paragraph, irrelevant to a single dish).
+// A dish has no days and no events: every insight is COMPOSITIONAL (nutrient
+// synergy/antagonism among the ingredients), grounded by evidence.foods — the
+// relaxed grounding gate in tryParseOutput lets foods-only insights through.
+// hypotheses are always empty for a dish. The output contract is the SHARED one.
+export const DISH_SYSTEM_PROMPT = `Ты — нутрициолог-аналитик. На вход — рецепт одного блюда (название, общий вес,
 список ингредиентов с граммовкой и необязательной заметкой по способу готовки).
+Задача: дать структурный разбор состава блюда. Не калькулятор и не диагноз —
+качественные характеристики и связки, а не точные цифры.
 
-Задача: дать короткий разбор-описание блюда в Markdown. Не калькулятор и не диагноз.
-Корреляции и качественные характеристики, не точные цифры.
+Это разбор одного блюда, не дня и не окна. Дней и событий тут нет вообще —
+не выдумывай их. Смотри на сам состав:
+- что преобладает по БЖУ, чего дефицитно;
+- гликемические свойства (быстрые/медленные углеводы, ощущение после еды);
+- для каких целей блюдо уместно (тренировка, ужин, восстановление…);
+- синергии и антагонизмы нутриентов между ингредиентами.
 
-Структура ответа:
-- Профиль БЖУ — кратко: что преобладает, что дефицитно.
-- Гликемическая характеристика — быстрые/медленные углеводы, ощущение после еды.
-- Для каких целей хорош — кому/когда это блюдо уместно (тренировка, ужин, восстановление…).
-- Что добавить или заменить — 1-3 конкретные идеи для апгрейда (источник клетчатки,
-  жиров, замена готовки и т.п.).
+${DISH_DETAILS_INSTRUCTION}
 
-Пиши на русском, лаконично, дружелюбно. Без медицинских советов и без выдумывания
-симптомов. Если данных мало — так и скажи. Markdown, без оборачивания в код-фенс.`;
+${ISOLATED_FOOD_INSIGHT_INSTRUCTION}
+
+${ANALYSIS_OUTPUT_PROMPT_SPEC}
+
+Для разбора блюда:
+- summary — 1–3 предложения прозой: БЖУ-профиль, гликемические свойства, для чего блюдо подходит. Это суть разбора, кратко и по делу.
+- insights — синергии и антагонизмы состава этого блюда. У КАЖДОГО insight evidence.foods ОБЯЗАТЕЛЬНО (ингредиенты, о которых речь), а evidence.days оставляй ПУСТЫМ массивом — у блюда нет дней. Не выдумывай связки, которых нет в составе.
+- hypotheses — ВСЕГДА пустой массив []. У блюда нет временного окна, проверять нечего.`;
 
 function asString(v: unknown): string {
   return typeof v === "string" ? v : "";
@@ -90,101 +112,11 @@ export function buildDishUserPrompt(
   return lines.join("\n");
 }
 
-async function streamDishAnalysis(
-  userPrompt: string,
-  reply: any,
-): Promise<{ producedOutput: boolean }> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    reply.status(500).send({ error: "OPENROUTER_API_KEY not set" });
-    return { producedOutput: false };
-  }
-
-  reply.raw.writeHead(200, {
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache",
-    Connection: "keep-alive",
-  });
-
-  let response: Response;
-  try {
-    response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          stream: true,
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: userPrompt },
-          ],
-        }),
-      },
-    );
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    reply.raw.write(
-      `event: error\ndata: ${JSON.stringify(`fetch failed: ${msg}`)}\n\n`,
-    );
-    reply.raw.end();
-    return { producedOutput: false };
-  }
-
-  if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    reply.raw.write(
-      `event: error\ndata: ${JSON.stringify(`OpenRouter ${response.status}: ${text.slice(0, 200)}`)}\n\n`,
-    );
-    reply.raw.end();
-    return { producedOutput: false };
-  }
-
-  const reader = response.body?.getReader();
-  if (!reader) {
-    reply.raw.write(
-      `event: error\ndata: ${JSON.stringify("no response body")}\n\n`,
-    );
-    reply.raw.end();
-    return { producedOutput: false };
-  }
-
-  // producedOutput drives the refund decision: a failure before any frame
-  // reaches the client refunds; once content has streamed, the user got value.
-  let producedOutput = false;
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      producedOutput = true;
-      reply.raw.write(value);
-    }
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    reply.raw.write(
-      `event: error\ndata: ${JSON.stringify(`stream aborted: ${msg}`)}\n\n`,
-    );
-  } finally {
-    reply.raw.write("data: [DONE]\n\n");
-    reply.raw.end();
-  }
-  return { producedOutput };
-}
-
 type AnalyzeDishRouteOptions = {
-  /** Test-only: replace the OpenRouter call with a stub that writes SSE
-   *  frames directly to the reply. The handler still owns the response head;
-   *  the stub should only write `data: ...\n\n` lines and not call end().
-   *  Return `{ producedOutput: false }` to simulate a pre-content failure
-   *  (which refunds); omit/return void to count as having produced output. */
-  streamLLM?: (
-    userPrompt: string,
-    reply: any,
-  ) => Promise<void | { producedOutput?: boolean }>;
+  /** Test-only: replace the OpenRouter call with a stub. Same CallLLM contract
+   *  as the daily/long analysis — returns the raw model string, parsed
+   *  downstream by callLLMWithValidation. */
+  callLLM?: CallLLM;
 };
 
 export async function analyzeDishRoutes(
@@ -205,39 +137,29 @@ export async function analyzeDishRoutes(
         .send({ error: "dishName or ingredients required" });
     }
 
-    // Paid: debit before opening the SSE stream so an insufficient-balance 402
-    // is a clean JSON reply (the raw socket is still untouched here).
+    // Paid: debit before calling the model so an insufficient-balance 402 is a
+    // clean JSON reply. Refund if the call/parse fails.
     const requestId = resolveRequestId(req);
     if (!(await chargeOr402(req, reply, "dish_analysis", requestId))) return;
 
-    // SSE streams reply.raw directly — @fastify/cors only writes Access-Control-*
-    // through reply.send(), so for raw-socket responses we have to seed those
-    // headers ourselves before writeHead().
-    applySSECorsHeaders(reply.raw, req.headers.origin);
-
     const userPrompt = buildDishUserPrompt(dishName, totalGrams, ingredients);
 
-    let producedOutput: boolean;
-    if (opts.streamLLM) {
-      reply.raw.writeHead(200, {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      });
-      try {
-        const r = await opts.streamLLM(userPrompt, reply);
-        producedOutput = r?.producedOutput ?? true;
-      } finally {
-        reply.raw.write("data: [DONE]\n\n");
-        reply.raw.end();
-      }
-    } else {
-      ({ producedOutput } = await streamDishAnalysis(userPrompt, reply));
-    }
-
-    // Refund if the stream failed before any content reached the client.
-    if (!producedOutput) {
+    try {
+      const result = await callLLMWithValidation(
+        DISH_SYSTEM_PROMPT,
+        userPrompt,
+        AbortSignal.timeout(DISH_TIMEOUT_MS),
+        opts.callLLM,
+      );
+      // A dish never produces hypotheses — enforce it on the server so the
+      // contract holds even if the model emits some.
+      return reply.send({ analysis: { ...result, hypotheses: [] } });
+    } catch (err) {
       await refund(req.userId, "dish_analysis", requestId).catch(() => {});
+      const msg = err instanceof Error ? err.message : String(err);
+      return reply
+        .status(502)
+        .send({ error: "analysis-failed", detail: msg.slice(0, 200) });
     }
   });
 }

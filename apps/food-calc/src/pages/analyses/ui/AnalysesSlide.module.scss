@@ -1,15 +1,9 @@
-@import '@/shared/assets/style/mixin.scss';
-
 .container {
     display: flex;
     flex-direction: column;
     padding: 8px 16px 24px;
     width: 100%;
     box-sizing: border-box;
-}
-
-.cta {
-    @include dark-pill-button();
 }
 
 .centered {
@@ -19,13 +13,13 @@
 }
 
 // ─── Empty state ──────────────────────────────────────────────────────
+// Flat: лист Screen (`.headerOverlap`) уже сам подложка — отдельная card-плашка
+// внутри = подложка-на-подложке. Ни bg, ни radius; текст ложится прямо на лист.
 .empty {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    padding: 24px 18px;
-    border-radius: 14px;
-    background: var(--card-bg);
+    padding: 24px 4px;
 }
 
 .emptyTitle {
@@ -71,10 +65,10 @@
 }
 
 // ─── List frame ───────────────────────────────────────────────────────
+// Flat: список лежит прямо на листе Screen, без card-тени (та же логика, что
+// `.empty` — не плодим подложку-на-подложке). Скругление рядов держит `.listBody`.
 .listWrap {
     border-radius: 14px;
-    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04),
-        0 6px 20px -14px rgba(15, 23, 42, 0.25);
 }
 
 .listBody {

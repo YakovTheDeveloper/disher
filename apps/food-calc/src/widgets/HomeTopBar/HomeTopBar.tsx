@@ -58,30 +58,42 @@ type Props = {
    *  «возвращается» в центр бара. По умолчанию `true` для backward-compat
    *  с HomePage и любыми callers, которые не управляют видимостью. */
   centerLabelVisible?: boolean;
+  /** Ref на корневой `.shell`. Страницы со `Swipeable`-баром передают сюда
+   *  `shellRef` из `useTopBarScrollHideController`, чтобы активный экран мог
+   *  императивно писать `data-topbar-hide` (направление-зависимое скрытие
+   *  кнопок при скролле). Обычный DOM-ref, ре-рендеров не вызывает. */
+  shellRef?: React.Ref<HTMLDivElement>;
 };
 
-type DateParts = { weekday: string; ddmm: string };
+type DateParts = { weekday: string; month: string; ddmm: string };
 
 const formatDateParts = (input: string): DateParts => {
   const date = parse(input, 'dd-MM-yyyy', new Date());
   if (!isValid(date)) {
-    return { weekday: '', ddmm: input };
+    return { weekday: '', month: '', ddmm: input };
   }
-  // Короткая форма дня недели («пн», «вт» …) — обвязка бара, не место для
-  // полного «понедельник», который перегружал date-пилюлю по высоте/весу.
-  // CSS `::first-letter` капитализирует → «Пн».
-  const weekday = new Intl.DateTimeFormat('ru-RU', { weekday: 'short' }).format(date);
+  // Полная форма дня недели («суббота», «воскресенье» …) сверху; CSS
+  // `::first-letter` капитализирует → «Суббота». Стопка column + align-items:
+  // flex-end растёт в ширину, не в высоту, так что длинное название не ломает
+  // высоту пилюли.
+  const weekday = new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(date);
+  // Standalone-форма даёт именительный падеж нижним регистром («июнь»), а не
+  // родительный («июня»); в нижней строке месяц прижат влево, dd.mm — вправо.
+  const month = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(date);
   const dd = String(date.getDate()).padStart(2, '0');
   const mm = String(date.getMonth() + 1).padStart(2, '0');
-  return { weekday, ddmm: `${dd}.${mm}` };
+  return { weekday, month, ddmm: `${dd}.${mm}` };
 };
 
 const DateButtonContent = ({ parts }: { parts: DateParts }) => {
-  const { weekday, ddmm } = parts;
+  const { weekday, month, ddmm } = parts;
   return (
     <span className={styles.dateNumeral}>
       <span className={styles.dateWeekday}>{weekday}</span>
-      <span className={styles.dateDdmm}>{ddmm}</span>
+      <span className={styles.dateMeta}>
+        <span className={styles.dateMonth}>{month}</span>
+        <span className={styles.dateDdmm}>{ddmm}</span>
+      </span>
     </span>
   );
 };
@@ -97,6 +109,7 @@ const HomeTopBar = ({
   centerSlot,
   noInterruptGuard,
   centerLabelVisible = true,
+  shellRef,
 }: Props) => {
   const { toScheduleBuilder } = useAppRoutes();
   const dateParts = useMemo(() => formatDateParts(date), [date]);
@@ -116,8 +129,7 @@ const HomeTopBar = ({
     // Leaving the date mid-request interrupts the daily analysis (it cannot
     // resume). Confirm before navigating away; on confirm, abort the request
     // with the `date-switch` reason so the banner reads correctly.
-    const loading =
-      useDailyAnalysisStore.getState().byDate[date]?.status === 'loading';
+    const loading = useDailyAnalysisStore.getState().byDate[date]?.status === 'loading';
     if (!noInterruptGuard && loading) {
       const confirmed = await modalStore.show(ConfirmModal, {
         title: 'Разбор ещё идёт',
@@ -133,18 +145,16 @@ const HomeTopBar = ({
   }, [date, toScheduleBuilder, noInterruptGuard]);
 
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} ref={shellRef}>
       <div className={styles.bar}>
         {backSlot}
         <div className={styles.accountSlot}>
           <AccountPanel />
         </div>
         {leadingSlot}
-        {centerSlot != null && (
-          <div className={styles.centerSlot}>{centerSlot}</div>
-        )}
-        {centerLabel != null && (
-          centerLabelHtmlFor ? (
+        {centerSlot != null && <div className={styles.centerSlot}>{centerSlot}</div>}
+        {centerLabel != null &&
+          (centerLabelHtmlFor ? (
             <label
               htmlFor={centerLabelHtmlFor}
               className={`${styles.centerLabel} ${styles.centerLabelButton}`}
@@ -170,8 +180,7 @@ const HomeTopBar = ({
             >
               {centerLabel}
             </span>
-          )
-        )}
+          ))}
         <button
           type="button"
           className={`${styles.segment} ${styles.dateSegment}`}

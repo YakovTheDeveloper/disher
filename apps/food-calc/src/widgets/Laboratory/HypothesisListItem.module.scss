@@ -72,6 +72,42 @@
     }
 }
 
+// ─── Separated card variant ──────────────────────────────────────────────
+// Discrete rounded cards with their own shadow + spacing (parent list adds the
+// gap) — closer to the HomePage schedule rows. Drops the flush-list fading
+// hairline divider; the accent stripe insets so it doesn't touch the rounded
+// corners. Used by the «Гипотезы» modal (HypothesisListPanel `separated`).
+.row[data-separated] {
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04),
+        0 8px 18px -14px rgba(15, 23, 42, 0.28);
+
+    // No hairline between cards — they're spaced apart now.
+    &::after,
+    &:nth-child(2n)::after {
+        display: none;
+    }
+
+    // Inset the accent stripe inside the rounded corners.
+    &::before {
+        top: 10px;
+        bottom: 10px;
+        left: 4px;
+        border-radius: var(--radius-full);
+    }
+}
+
+// A just-created card that is ALSO separated: box-shadow doesn't merge across
+// rules, so the separated drop-shadow above would clobber the `[data-new]` inset
+// ring. Re-state both shadows together (higher specificity wins) so the
+// ephemeral «new» ring still shows on the modal's discrete cards.
+.row[data-separated][data-new] {
+    box-shadow:
+        inset 0 0 0 1.5px var(--card-text-active),
+        0 1px 0 rgba(15, 23, 42, 0.04),
+        0 8px 18px -14px rgba(15, 23, 42, 0.28);
+}
+
 .checkboxWrap {
     display: flex;
     align-items: center;

@@ -78,6 +78,7 @@ describe('start', () => {
         {
           title: 'Ранний ужин',
           detail: 'до 19:00',
+          valence: 'neutral',
           strength: 'weak',
           evidence: { days: ['15-05-2026'] },
         },

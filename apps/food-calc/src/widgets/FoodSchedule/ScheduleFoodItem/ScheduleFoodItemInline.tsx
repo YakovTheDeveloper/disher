@@ -12,6 +12,7 @@ import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { getQtyUnit } from '@/shared/lib/servingUnit';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
+import { formatClock } from '@/shared/lib/time/formatClock';
 
 type Props = {
   className?: string;
@@ -20,6 +21,9 @@ type Props = {
   totalCount?: number;
   /** Long-press → per-item action drawer (built by FoodSchedule). */
   onLongPress?: () => void;
+  /** True when the row above shares this row's time — the time label renders
+   *  blank (dedup) but stays tappable to edit. */
+  dimTime?: boolean;
   foodHtmlFor?: string;
   // Accepted for backwards-compatible call sites; unused — Inline edits in place.
   onEditTime?: (item: ScheduleFoodWithRelations) => void;
@@ -35,6 +39,7 @@ const ScheduleFoodItemInline = ({
   index = 0,
   totalCount = 1,
   onLongPress,
+  dimTime = false,
   foodHtmlFor,
 }: Props) => {
   const id = item.id;
@@ -124,7 +129,8 @@ const ScheduleFoodItemInline = ({
         <InlineTimeEditor
           value={item.time}
           onCommit={commitTime}
-          displayClassName={styles.timeDisplay}
+          formatDisplay={formatClock}
+          displayClassName={clsx(styles.timeDisplay, dimTime && styles.timeDup)}
           editClassName={styles.timeEdit}
         />
       )}

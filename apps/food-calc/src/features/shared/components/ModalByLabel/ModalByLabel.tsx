@@ -8,6 +8,15 @@ export interface ModalByLabelProps {
   isExpanded: boolean;
   position?: 'fixed' | 'absolute';
   className?: string;
+  /**
+   * Portal target. Defaults to `#modal-by-label-root` (top-level, behind real
+   * modals). Pass a node INSIDE a host modal's popup so this overlay joins that
+   * popup's stacking context — then a real modal opened on top (e.g. the delete
+   * ConfirmModal) still paints above it. React event bubbling is unaffected by
+   * the DOM target (the portal stays a React-child of wherever <ModalByLabel> is
+   * placed), so label-focus delegation keeps working.
+   */
+  container?: HTMLElement | null;
 }
 
 const ModalByLabel: React.FC<ModalByLabelProps> = ({
@@ -15,6 +24,7 @@ const ModalByLabel: React.FC<ModalByLabelProps> = ({
   isExpanded,
   position = 'fixed',
   className,
+  container,
 }) => {
   const node = (
     <div
@@ -31,7 +41,8 @@ const ModalByLabel: React.FC<ModalByLabelProps> = ({
     </div>
   );
 
-  const target = document.getElementById('modal-by-label-root') ?? document.body;
+  const target =
+    container ?? document.getElementById('modal-by-label-root') ?? document.body;
   return createPortal(node, target);
 };
 

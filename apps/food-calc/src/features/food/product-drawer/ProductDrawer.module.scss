@@ -266,8 +266,7 @@ $pill-radius: 14px;
 .normSlot .normButton,
 .normRowFull .normButtonFull {
     width: 100%;
-    justify-content: flex-start;
-    text-align: left;
+
 }
 
 .quantityInputRow {
@@ -321,4 +320,68 @@ $pill-radius: 14px;
     &:active {
         color: var(--text-secondary);
     }
+}
+
+// ─── Инлайн-редактирование состава ───────────────────────────────
+.editSection {
+    display: flex;
+    flex-direction: column;
+}
+
+// Шапка режима: заголовок «Редактирование» (типографика как у «Порции») + ×.
+.editHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    padding: var(--space-2) 0;
+}
+
+.editTitle {
+    font-family: var(--heading-font);
+    font-style: var(--heading-style);
+    font-weight: var(--heading-weight);
+    font-size: var(--text-lg);
+    letter-spacing: var(--heading-letter);
+    color: var(--text-primary);
+}
+
+// × выхода — тихий icon-button (40×40, touch-floor), цветной press как у меню.
+.editClose {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+        background: var(--press-tint-bg);
+    }
+}
+
+// AI-подбор над таблицей — отделён снизу. Тело уже даёт боковой отступ.
+.suggestRow {
+    display: flex;
+    margin-bottom: var(--space-3);
+}
+
+// Семантический warning (масса грамм-нутриентов > 100 г) — амбер-полоса с
+// подложкой, единственный «осторожно» акцент.
+.massWarning {
+    margin: 0 0 var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm);
+    background: var(--color-warning-surface);
+    border: 1px solid var(--color-warning-border);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-warning);
+    line-height: 1.4;
 }

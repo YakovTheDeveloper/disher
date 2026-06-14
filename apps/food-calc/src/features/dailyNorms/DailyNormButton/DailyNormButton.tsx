@@ -38,8 +38,8 @@ export const DailyNormButton = ({ className }: Props) => {
     <QuietActionButton
       className={className}
       label={label}
-      icon={<FlagIcon width={15} height={15} />}
-      iconPosition="end"
+      icon={<FlagIcon width={25} height={25} />}
+      iconPosition="start"
       onClick={open}
     />
   );

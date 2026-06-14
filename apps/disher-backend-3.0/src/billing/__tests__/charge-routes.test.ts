@@ -266,12 +266,18 @@ describeIfReady("POST /api/suggestions/dish-products — billing", () => {
   });
 });
 
-// ─── analyze-dish (SSE, injected stub) ───
+// ─── analyze-dish (single JSON, injected stub) ───
 
 describeIfReady("POST /api/analyze-dish — billing", () => {
   let app: FastifyInstance;
   let user: TestUser;
-  let mode: "ok" | "noOutput" = "ok";
+  let mode: "ok" | "fail" = "ok";
+
+  const okResponse = JSON.stringify({
+    summary: "разбор блюда",
+    insights: [],
+    hypotheses: [],
+  });
 
   beforeAll(async () => {
     if (!ready) return;
@@ -280,10 +286,9 @@ describeIfReady("POST /api/analyze-dish — billing", () => {
     await app.register(
       async (instance) => {
         await analyzeDishRoutes(instance, {
-          streamLLM: async (_prompt, reply) => {
-            if (mode === "noOutput") return { producedOutput: false };
-            reply.raw.write('data: {"choices":[{"delta":{"content":"разбор"}}]}\n\n');
-            return { producedOutput: true };
+          callLLM: async () => {
+            if (mode === "fail") throw new Error("upstream down");
+            return okResponse;
           },
         });
       },
@@ -304,10 +309,10 @@ describeIfReady("POST /api/analyze-dish — billing", () => {
   const url = "/api/analyze-dish";
   const body = { dishName: "Борщ", ingredients: [{ name: "свёкла", grams: 300 }] };
 
-  it("debits dish_analysis on a streamed analysis", async () => {
+  it("debits dish_analysis on a successful analysis", async () => {
     const res = await app.inject({ method: "POST", url, headers: user.headers, payload: body });
     expect(res.statusCode).toBe(200);
-    expect(res.body).toContain("data: [DONE]");
+    expect(res.body).toContain("разбор блюда");
     expect(await getBalance(user.userId)).toBe(WELCOME_GRANT_KOP - PRICES_KOP.dish_analysis);
   });
 
@@ -318,11 +323,11 @@ describeIfReady("POST /api/analyze-dish — billing", () => {
     expect(await getBalance(user.userId)).toBe(0);
   });
 
-  it("refunds when the stream produced no output", async () => {
-    mode = "noOutput";
+  it("refunds when the analysis fails", async () => {
+    mode = "fail";
     const res = await app.inject({ method: "POST", url, headers: user.headers, payload: body });
-    expect(res.statusCode).toBe(200);
-    // charged then refunded (post-stream)
+    expect(res.statusCode).toBe(502);
+    // charged then refunded
     expect(await waitForBalance(user.userId, WELCOME_GRANT_KOP)).toBe(WELCOME_GRANT_KOP);
   });
 });

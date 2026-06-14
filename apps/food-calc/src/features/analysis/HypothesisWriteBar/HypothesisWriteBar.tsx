@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { WriteBarShell, WriteBarClip } from '@/shared/ui/WriteBarShell';
+import { WriteBarShell, WriteBarClip, PlusIcon } from '@/shared/ui/WriteBarShell';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
@@ -8,7 +8,6 @@ import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { saveHypothesis } from '@/entities/hypothesis';
-import { NoteIcon } from './NoteIcon';
 import styles from './HypothesisWriteBar.module.scss';
 
 const TITLE_INPUT_ID = 'hypothesis-title-bar';
@@ -23,13 +22,25 @@ type Props = {
   /** Called with the new hypothesis id after a successful save — the slide
    *  paints the ephemeral «new» ring on that row. */
   onCreated: (id: string) => void;
+  /** Portal target for the «Подробности» overlay — a node inside the host modal
+   *  popup so it joins that popup's stacking context (see ModalByLabel.container).
+   *  When omitted, the overlay falls back to `#modal-by-label-root`. */
+  overlayContainer?: HTMLElement | null;
+  /**
+   * Show the focus-hint example above the bar. Default `true` (HomePage/Analyses,
+   * where the bar floats over a dark focus-scrim that makes the white hint read).
+   * The «Гипотезы» modal passes `false` — there's no scrim there, so the white
+   * hint would vanish on the light surface; the «Ваша гипотеза?» placeholder
+   * carries the invitation instead.
+   */
+  showHint?: boolean;
 };
 
 /**
  * Bottom write-bar for the Hypotheses screen — the canon Food/Events idiom on
  * the shared WriteBarShell (palette flips with the family via the 'WriteBar'
  * design-variant). Mirrors EventsWriteBar:
- *  - note glyph (left) → fullscreen «Подробности» modal for the optional `body`
+ *  - plus glyph (left) → fullscreen «Подробности» modal for the optional `body`
  *    (presence shown as a dot on the clip);
  *  - field (center)    → the hypothesis `title`;
  *  - SEND              → saveHypothesis({title, body}), then clears + collapses.
@@ -38,7 +49,7 @@ type Props = {
  * send arrow never shows «Нет сети». Enabled requires a non-empty title; body
  * alone does not create a hypothesis.
  */
-const HypothesisWriteBar = ({ onCreated }: Props) => {
+const HypothesisWriteBar = ({ onCreated, overlayContainer, showHint = true }: Props) => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -91,8 +102,8 @@ const HypothesisWriteBar = ({ onCreated }: Props) => {
         onChange={handleTitleChange}
         onSubmit={handleSubmit}
         inputId={TITLE_INPUT_ID}
-        placeholder="Опишите ваше предположение"
-        hint={HYPOTHESIS_HINT}
+        placeholder="Ваша гипотеза?"
+        hint={showHint ? HYPOTHESIS_HINT : undefined}
         // Local Dexie write — never gated on network.
         online
         // After send: drop focus so the scrim drops, bar collapses, keyboard hides.
@@ -105,7 +116,7 @@ const HypothesisWriteBar = ({ onCreated }: Props) => {
             onClick={() => setDetailsOpen(true)}
             ariaLabel="Добавить подробности"
             dot={body.trim().length > 0}
-            icon={<NoteIcon />}
+            icon={<PlusIcon />}
             disabled={!hasTitle}
           />
         }
@@ -117,6 +128,7 @@ const HypothesisWriteBar = ({ onCreated }: Props) => {
       <ModalByLabel
         position="fixed"
         className={styles.overDrawer}
+        container={overlayContainer}
         isExpanded={detailsOpen}
         content={
           <ModalShell variant="spring4">
@@ -127,6 +139,7 @@ const HypothesisWriteBar = ({ onCreated }: Props) => {
             />
             <ModalShell.Body>
               <AutoGrowSearch
+                className={styles.formField}
                 value={body}
                 onChange={setBody}
                 placeholder="Что именно проверяем? (необязательно)"

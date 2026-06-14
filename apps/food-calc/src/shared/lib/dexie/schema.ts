@@ -109,6 +109,25 @@ export interface HypothesisRow {
   updated_at: string;
 }
 
+// An insight the user saved from an analysis result. Unlike a hypothesis (the
+// user authors it), an insight only ever enters this table from an LLM answer
+// («Добавить к себе» on an InsightCard) — there is no manual create. Read-only
+// after save; the user can delete it. `valence` is good/bad (synergy vs
+// antagonism), `strength` is confidence, `evidence` is the parsed grounding
+// object ({days, foods?, events?}); `source` records which разбор produced it.
+export interface InsightRow {
+  id: string;
+  title: string;
+  detail: string;
+  valence: 'positive' | 'negative' | 'neutral';
+  strength: 'weak' | 'moderate' | 'clear';
+  /** Stored as a parsed object, not stringified: {days, foods?, events?}. */
+  evidence: Record<string, unknown>;
+  source: 'daily' | 'dish' | 'long';
+  created_at: string;
+  updated_at: string;
+}
+
 // Per-product user-coined tags. The user types something into a schedule_food
 // `details` textarea that isn't in TAG_SUGGESTIONS for that product's category
 // — we remember it so next time the same product is selected, that tag shows
@@ -161,6 +180,7 @@ export class DisherDB extends Dexie {
   schedule_events!: Table<ScheduleEventRow,  string>;
   daily_norms!:     Table<DailyNormRow,      string>;
   hypotheses!:      Table<HypothesisRow,     string>;
+  insights!:        Table<InsightRow,        string>;
   custom_tags!:     Table<CustomTagRow,      string>;
   tombstones!:      Table<TombstoneRow,      string>;
 
@@ -271,6 +291,15 @@ export class DisherDB extends Dexie {
           ),
         ),
       );
+
+    // v8 (2026-06-14): add the `insights` store — insights saved from analysis
+    // results («Добавить к себе»), the read-only sibling of hypotheses. Keyed
+    // by id, sorted by created_at in memory (same idiom as hypotheses). Existing
+    // stores are untouched; Dexie just opens the new objectStore. It joins
+    // DOMAIN_TABLES so it LWW-merges and rides the backup snapshot.
+    this.version(8).stores({
+      insights: 'id',
+    });
   }
 }
 

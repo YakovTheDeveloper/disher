@@ -112,44 +112,23 @@
   flex-shrink: 0;
 }
 
-.recalcBarPanel {
-  padding: 0 4px 8px;
+// Panel-режим (drawer «Моя норма»): кнопка пересчёта ПАРИТ справа-снизу над
+// списком — sticky к низу скролл-области (DrawerLayout .scrollableContent),
+// хагает свою ширину (align-self) и не перехватывает скролл мимо себя. Сама
+// кнопка — общий `Button.bottomActionBar` (матовая ActionBar-пилюля, как на
+// HomePage). Зазор сверху отрывает её от последней строки в состоянии покоя.
+.recalcBarFloat {
+  position: sticky;
+  bottom: var(--space-3);
+  z-index: 2;
+  align-self: flex-end;
+  width: auto;
+  padding: 0;
+  margin-top: var(--space-3);
 }
 
-.recalcBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px; // inner-control touch floor (canon 2026-05-24)
-  padding: 8px 16px;
-  border: 1px solid var(--chip-border, rgba(124, 65, 15, 0.28));
-  background: var(--chip-bg, #fff);
-  color: var(--chip-text, var(--text-secondary));
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: -0.005em;
-  cursor: pointer;
-  border-radius: var(--radius-full);
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background var(--press-out) var(--easing-default),
-    border-color var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default),
-    transform var(--press-out) var(--easing-default);
-
-  // Цветной отклик (press-canon): chip-кнопка → тёмная chip-active заливка.
-  &:active {
-    background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
-    border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
-    color: var(--chip-active-text, #fff);
-    transform: scale(0.97);
-    transition-duration: var(--press-in);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--chip-active-border, #b88436);
-    outline-offset: 2px;
-  }
+.recalcGlyph {
+  line-height: 1;
 }
 
 // ── chrome="panel" overrides — render inside a drawer body ─────

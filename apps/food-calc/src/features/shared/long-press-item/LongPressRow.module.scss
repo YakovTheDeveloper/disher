@@ -191,25 +191,26 @@
     }
 }
 
-// «Недавно добавлен» marker (recent-dot canon). Синий кружок живёт в жёлобе
-// СПРАВА, ВНЕ подложки карточки. Жёлоб открывается только когда маркер есть:
-// wrapper получает правый padding, li (flex-grow:1) ужимается → карточка
-// отъезжает влево, освобождая место. Кружок — absolute относительно wrapper'а,
-// сидит в открывшемся жёлобе, не участвует в grid'е строки. Чистится глобально
-// (свайп слайда / уход со страницы), не по таймеру — см. recentlyAddedStore.
-.commonListItemWrapper.hasRecentDot {
-    padding-right: 20px;
-}
-
+// «Недавно добавлен» marker (recent-dot canon). Синий кружок живёт СПРАВА, ВНЕ
+// подложки карточки — в правом отступе листа (`.headerOverlap` padding-inline:
+// 16px). Раньше мы открывали жёлоб через padding-right на wrapper'е, отчего
+// li (flex-grow:1) ужимался и карточка дёргалась при добавлении. Теперь место
+// уже есть благодаря паддингу контейнера, поэтому ширину карточки НЕ трогаем —
+// кружок просто absolute-сдвинут наружу (negative right) в этот gutter. Не
+// участвует в grid'е строки. Чистится глобально (свайп слайда / уход со
+// страницы), не по таймеру — см. recentlyAddedStore.
 .recentDot {
     position: absolute;
     top: 50%;
-    right: 8px;
-    width: 6px;
-    height: 6px;
+    // Наружу за правый край карточки, в паддинг листа, но ближе к карточке
+    // (не по центру жёлоба). В пределах `.main { overflow-x: hidden }` — не
+    // обрезается и не даёт гор. скролл.
+    right: -7px;
+    width: 5px;
+    height: 5px;
     transform: translateY(-50%);
     border-radius: var(--radius-full);
-    background: var(--color-blue-2);
+    background: var(--color-ink);
     pointer-events: none;
     z-index: 2;
     animation: recentDotIn 240ms cubic-bezier(0, 0, 0.2, 1) both;
@@ -239,5 +240,5 @@
 //    module absolutely positions its own time element into the gutter (see
 //    ScheduleFoodItemInline / ScheduleEventCard, same `gutter-time` selector).
 :global([data-dv='RowBoundary'][data-dv-v='gutter-time']) .commonListItemWrapper {
-    padding-left: 56px;
+    padding-left: 46px;
 }

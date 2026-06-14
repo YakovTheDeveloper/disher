@@ -67,11 +67,9 @@ describe('FoodActionCard — daily-norm percent', () => {
 });
 
 describe('FoodActionCard — richness visuals', () => {
-  // Guards the regression fixed 2026-06-08: the richness gauge used to be a
-  // single opaque bar drawn over the name; it's now a soft fill BEHIND the text
-  // (.richFill) + a thin left accent (.richBar). Assert both render when the
-  // nutrient is present and neither when its value is zero — there's no z-index
-  // unit-test, but the presence/absence contract catches an accidental removal.
+  // Richness viz = a near-square progress bar in the left slot (.richValue) with
+  // a coloured fill (.richValueFill, width = ratio). Assert the fill renders when
+  // the nutrient is present and is absent when its value is zero.
   const renderCard = (nutrientValue: number) => {
     const item = {
       id: 'p1',
@@ -97,15 +95,13 @@ describe('FoodActionCard — richness visuals', () => {
     return render(<RouterProvider router={router} />);
   };
 
-  it('renders both the fill gauge and the accent stripe when the nutrient is present', () => {
+  it('renders the richness fill when the nutrient is present', () => {
     const { container } = renderCard(9);
-    expect(container.querySelector('[class*="richFill"]')).not.toBeNull();
-    expect(container.querySelector('[class*="richBar"]')).not.toBeNull();
+    expect(container.querySelector('[class*="richValueFill"]')).not.toBeNull();
   });
 
-  it('renders neither the fill nor the accent when the nutrient value is zero', () => {
+  it('renders no fill when the nutrient value is zero', () => {
     const { container } = renderCard(0);
-    expect(container.querySelector('[class*="richFill"]')).toBeNull();
-    expect(container.querySelector('[class*="richBar"]')).toBeNull();
+    expect(container.querySelector('[class*="richValueFill"]')).toBeNull();
   });
 });

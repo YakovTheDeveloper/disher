@@ -22,20 +22,42 @@ import editStyles from './EditHypothesisModal.module.scss';
 export const EDIT_HYPOTHESIS_TITLE_INPUT_ID = 'edit-hypothesis-title';
 const EDIT_HYPOTHESIS_BODY_INPUT_ID = 'edit-hypothesis-body';
 
+const TrashIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path
+      d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
+
 type Props = {
   hypothesisId: string | null;
   isExpanded: boolean;
   onClose: () => void;
+  /** Portal target for the overlay — a node inside the host modal popup so it
+   *  joins that popup's stacking context (see ModalByLabel.container). Falls
+   *  back to `#modal-by-label-root` when omitted. */
+  overlayContainer?: HTMLElement | null;
 };
 
-const EditHypothesisModal = ({ hypothesisId, isExpanded, onClose }: Props) => {
+const EditHypothesisModal = ({
+  hypothesisId,
+  isExpanded,
+  onClose,
+  overlayContainer,
+}: Props) => {
   const hypothesis = useHypothesis(hypothesisId ?? undefined);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [busy, setBusy] = useState(false);
 
-  // Hosted inside HypothesesDrawer: register as top-of-stack so hardware/browser
-  // Back closes THIS modal (not the parent drawer, which would drop the edit).
+  // Hosted inside the «Гипотезы» modal: register as top-of-stack so hardware/
+  // browser Back closes THIS overlay (not the host modal, which would drop the edit).
   useOverlayHistory(isExpanded, onClose);
 
   // Re-seed состояние, когда открыли модалку или сменили editingId на лету.
@@ -101,10 +123,27 @@ const EditHypothesisModal = ({ hypothesisId, isExpanded, onClose }: Props) => {
     <ModalByLabel
       position="absolute"
       className={editStyles.overDrawer}
+      container={overlayContainer}
       isExpanded={isExpanded}
       content={
         <ModalShell variant="spring4">
-          <ModalShell.Header title="Гипотеза" onBack={onClose} />
+          <ModalShell.Header
+            title="Гипотеза"
+            onBack={onClose}
+            // «Удалить» — деструктив, живёт в правом верхнем углу обвязки
+            // (канон ItemActionsDrawer), подальше от «Сохранить» в футере.
+            trailing={
+              <button
+                type="button"
+                className={editStyles.deleteHeader}
+                disabled={busy || !hypothesis}
+                onClick={handleDelete}
+                aria-label="Удалить гипотезу"
+              >
+                <TrashIcon />
+              </button>
+            }
+          />
           <ModalShell.Body>
             <div className={styles.fields}>
               {/* Видимые лейблы — без них непонятно, где название, где описание
@@ -151,16 +190,6 @@ const EditHypothesisModal = ({ hypothesisId, isExpanded, onClose }: Props) => {
             {isExpanded && (
               <ModalShell.ActionButtons
                 debugId="edit-hypothesis"
-                left={
-                  <button
-                    type="button"
-                    className={editStyles.delete}
-                    disabled={busy || !hypothesis}
-                    onClick={handleDelete}
-                  >
-                    Удалить
-                  </button>
-                }
                 right={
                   <ModalNextButton
                     onClick={handleSave}

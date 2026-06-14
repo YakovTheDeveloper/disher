@@ -20,10 +20,10 @@
     z-index: 10;
     display: flex;
     flex-direction: column;
-    // TEMP (2026-06-13 colour-test): bottom panel background removed so the
-    // create-pills sit on the bare page — colours read in isolation. Restore
-    // `background: var(--fse-bg, var(--fse-scrim));` + the ::before ramp after.
-    background: transparent;
+
+    background: white;
+    border-radius: var(--space-3) var(--space-3) 0 0;
+    box-shadow: 0 -1px 6px rgba(15, 23, 42, 0.1);
     padding-bottom: env(safe-area-inset-bottom);
     transition: transform 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
 
@@ -61,7 +61,8 @@
     color: rgba(0, 0, 0, 0.45);
     text-align: center;
     margin: 0;
-    padding: 10px 16px 0;
+    padding: var(--space-2) var(--space-1) 0;
+    font-style: italic;
 }
 
 .actions {
@@ -77,6 +78,8 @@
 .pillSecondary {
     // Светлый текст инверсии (custom-prop, token-gate допускает).
     --pill-fg-invert: #ffffff;
+    // Ink-рамка как у нижних CTA HomePage (`--cta-border` в AppBottomBar.shellSolo).
+    --fse-border: 1px solid rgba(31, 42, 68, 0.16);
 
     position: relative;
     overflow: hidden;
@@ -86,8 +89,7 @@
     align-items: center;
     justify-content: flex-start;
     gap: 8px;
-    min-height: var(--bottom-action-h);
-    padding: 10px 18px;
+    padding: var(--space-3) var(--space-3);
     border-radius: var(--space-3);
     border: none;
     cursor: pointer;
@@ -144,23 +146,13 @@
 // без primary/secondary иерархии (два равнозначных выбора). Press → ink-инверсия.
 .pillPrimary,
 .pillSecondary {
-    // TEMP (2026-06-13 colour-test): colour as ModalShell-style ORBS — three soft
-    // radial glows rising from ABOVE the top edge (left / right / centre, varied
-    // size + negative-y so they feel like they come from above), overlapping into
-    // an organic, non-uniform top wash that fades to a white body. NOT a flat
-    // linear tint, NOT the whole button. Single hue available here (the variant
-    // accent via --chip-border = rgba(accent, .5)); the overlap gives the variety.
-    // Restore `background: var(--chip-bg);` to tint the whole button again.
-    background:
-        radial-gradient(ellipse 70% 80% at 12% -15%, var(--chip-border) 0%, transparent 72%),
-        radial-gradient(ellipse 65% 78% at 88% -25%, var(--chip-border) 0%, transparent 68%),
-        radial-gradient(ellipse 95% 65% at 50% -30%, var(--chip-border) 0%, transparent 60%),
-        #ffffff;
-    border: 1px solid var(--chip-border);
+    // Outline-пилюли: фон убран (пилюля «парит» на голой поверхности дока, как
+    // нижние CTA HomePage), только тонкая ink-рамка. Press → ink-инверсия
+    // (`[data-pressed]` выше) остаётся.
+    background: transparent;
+    border: var(--fse-border);
     color: var(--chip-text);
-    // Neutral BLACK elevation shadow (not a variant-tinted one) so the pills read
-    // as cards on the now-bare panel and the colour test isn't muddied.
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    box-shadow: none;
 }
 
 // NavTile-подпись: serif italic, в две строки (глагол над существительным).

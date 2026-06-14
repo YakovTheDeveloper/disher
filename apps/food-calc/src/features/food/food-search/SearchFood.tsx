@@ -15,18 +15,6 @@ import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 import { useFilteredFoods, useFoodCreation, useRichNutrientStore } from './model';
 import { FoodSearchEmpty } from './FoodSearchEmpty';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-
-// DesignBar-controlled monochrome looks for the search screen. This anchor lives
-// on `.content` and locally overrides the --card-*/--field-*/--chip-*/--list-*
-// tokens (see SearchFood.module.scss), so the screen is independent of the
-// app-wide tone (body[data-modal-fields]) — light/light-gray surfaces + a faint
-// colour hint only in the ambient glow.
-//   paper-mono  — white card group on a faintly-gray page (iOS «inset grouped»),
-//                 GRAYSCALE richness, lavender-cream bottom ambient (default)
-//   graphite    — same grouped list, deeper gray page + colour richness
-export const SEARCH_MONO_VARIANTS = ['paper-mono', 'graphite'] as const;
-export type SearchMonoVariant = (typeof SEARCH_MONO_VARIANTS)[number];
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 export type SearchFilter = 'all' | 'mine';
@@ -38,7 +26,7 @@ const FILTER_OPTIONS_BY_MODE: Record<SearchMode, readonly SearchFilter[] | null>
 };
 
 export const FILTER_LABELS: Record<SearchFilter, string> = {
-  all: 'Еда',
+  all: 'Всё',
   mine: 'Мое',
 };
 
@@ -99,13 +87,22 @@ const SearchFood = ({
   const [showHeavy, setShowHeavy] = useState(false);
   const [openTicket, setOpenTicket] = useState(0);
 
-  // Local monochrome tone for this screen (DesignBar). Anchor sits on `.content`;
-  // `paper-mono` is the only strict-achromatic variant → grayscale richness.
-  const { variant: monoVariant, anchor: monoAnchor } = useDesignVariant(
-    'SearchMono',
-    SEARCH_MONO_VARIANTS,
-  );
-  const monoRichness = monoVariant === 'paper-mono';
+  // Парящая шапка лежит поверх списка (см. .header в SearchFood.module.scss).
+  // Меряем её реальную высоту (меняется, когда появляется ряд «Нутриенты») и
+  // кладём в --search-header-h → список берёт её в padding-top. Так офсет точный
+  // и без магической константы.
+  const contentRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const header = headerRef.current;
+    const content = contentRef.current;
+    if (!header || !content) return;
+    const ro = new ResizeObserver(() => {
+      content.style.setProperty('--search-header-h', `${header.offsetHeight}px`);
+    });
+    ro.observe(header);
+    return () => ro.disconnect();
+  }, []);
 
   const filterOptions = FILTER_OPTIONS_BY_MODE[mode];
   const [selectedFilter, setSelectedFilter] = useState<SearchFilter>('all');
@@ -124,17 +121,17 @@ const SearchFood = ({
       richNutrient
         ? (allNutrientsList.find((n) => n.id === richNutrient.id)?.displayNameRu ?? null)
         : null,
-    [richNutrient],
+    [richNutrient]
   );
 
   const handleOpenNutrientPicker = useCallback(async () => {
     const picked = await drawerStore.show(
       NutrientPickerDrawer,
-      {},
-      { side: 'left', width: 'min(85vw, 360px)' },
+      { activeId: richNutrient?.id },
+      { side: 'left', width: 'min(85vw, 360px)' }
     );
     if (picked) setRichNutrient(picked);
-  }, [setRichNutrient]);
+  }, [setRichNutrient, richNutrient?.id]);
 
   useEffect(() => {
     if (!isActive) {
@@ -156,15 +153,15 @@ const SearchFood = ({
       // ресет невидим, но это защита для сценариев где он остаётся открытым.
       if (filterOptions) setSelectedFilter('all');
     },
-    [onSelectFood, filterOptions],
+    [onSelectFood, filterOptions]
   );
 
   return (
-    <div className={styles.content} {...monoAnchor}>
+    <div className={styles.content} ref={contentRef}>
       {/* Ambient glow (top + bottom) — the one place a faint colour hint is
           allowed on this otherwise monochrome screen. Sits behind everything. */}
       <div className={styles.ambient} aria-hidden />
-      <div className={styles.header}>
+      <div className={styles.header} ref={headerRef}>
         <SearchFoodControls
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -196,7 +193,6 @@ const SearchFood = ({
             itemHtmlFor={itemHtmlFor}
             createInputHtmlFor={createInputHtmlFor}
             onPickCreate={onPickCreate}
-            monoRichness={monoRichness}
           />
         </div>
       )}
@@ -217,7 +213,6 @@ type HeavyProps = {
   itemHtmlFor?: string;
   createInputHtmlFor?: string;
   onPickCreate?: (variant: 'product' | 'dish', name: string) => void;
-  monoRichness?: boolean;
 };
 
 const SearchFoodHeavy = ({
@@ -233,7 +228,6 @@ const SearchFoodHeavy = ({
   itemHtmlFor,
   createInputHtmlFor,
   onPickCreate,
-  monoRichness,
 }: HeavyProps) => {
   const listContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(listContainerRef);
@@ -243,7 +237,7 @@ const SearchFoodHeavy = ({
   const { products, dishes, nutrientMap } = useFilteredFoods(
     searchQuery,
     richNutrient?.id,
-    userOnlyProducts,
+    userOnlyProducts
   );
   const { handleCreateProduct, handleCreateDish } = useFoodCreation(searchQuery, setSearchQuery);
 
@@ -324,9 +318,7 @@ const SearchFoodHeavy = ({
   const productHandler = onPickCreate
     ? () => onPickCreate('product', trimmedQuery)
     : handleCreateProduct;
-  const dishHandler = onPickCreate
-    ? () => onPickCreate('dish', trimmedQuery)
-    : handleCreateDish;
+  const dishHandler = onPickCreate ? () => onPickCreate('dish', trimmedQuery) : handleCreateDish;
 
   const createButtons = (
     <FoodSearchEmpty
@@ -365,7 +357,6 @@ const SearchFoodHeavy = ({
           richNutrientUnit={richNutrient?.unit}
           richNutrientMax={richNutrientMax}
           richNutrientNorm={richNutrientNorm}
-          monoRichness={monoRichness}
           htmlFor={itemHtmlFor}
         />
       );
@@ -378,7 +369,6 @@ const SearchFoodHeavy = ({
       nutrientMap,
       richNutrientMax,
       richNutrientNorm,
-      monoRichness,
       itemHtmlFor,
     ]
   );
@@ -410,7 +400,8 @@ const SearchFoodHeavy = ({
         {showDishes && <ul className={styles.list}>{dishes.map(renderDishItem)}</ul>}
         <div ref={sentinelRef} />
       </div>
-      {createButtons}
+      {/* При выбранном нутриенте поиск = режим фильтра по богатству; create-пустышку прячем. */}
+      {!richNutrient && createButtons}
       <ScrollIndicator visible={hasMoreBelow} variant="dark" />
 
       {bottomLeft && <div className={styles.bottomLeft}>{bottomLeft}</div>}

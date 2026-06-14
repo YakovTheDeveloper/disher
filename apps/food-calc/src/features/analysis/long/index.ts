@@ -1,4 +1,4 @@
-export { default as CreateLongAnalysisDrawer } from './CreateLongAnalysisDrawer';
+export { default as CreateLongAnalysisModal } from './CreateLongAnalysisModal';
 export { default as AnalysisListItem } from './AnalysisListItem';
 // `deriveStatus` / `AnalysisRowStatus` now live in the api layer (shared by
 // the list row, the detail modal and useAnalysis polling) — import them from

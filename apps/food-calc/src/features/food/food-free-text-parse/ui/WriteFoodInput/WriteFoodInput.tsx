@@ -5,8 +5,8 @@ import type { UseWriteFoodFlowResult } from '../../model/useWriteFoodFlow';
 import s from './WriteFoodInput.module.scss';
 
 // Дуговые подписи медальона-печати «Выбор еды» (верх/низ, как на монете).
-const ARC_TOP = 'выбрать из';
-const ARC_BOTTOM = 'списка еды';
+const ARC_TOP = 'Список еды';
+const ARC_BOTTOM = 'вручную';
 
 // Фоновая гравюра плитки «Выбор еды» — клош (cloche / room-service dome).
 const FOOD_TILE_IMG = '/art/plate.png';
@@ -57,7 +57,7 @@ export const WriteFoodInput = ({
       if (!trimmed) return;
       flow.submit(trimmed);
     },
-    [flow],
+    [flow]
   );
 
   // Ready-state: instant-scroll до предложки + короткий shake.
@@ -78,10 +78,6 @@ export const WriteFoodInput = ({
       onSubmit={handleSubmit}
       inputId={inputId}
       placeholder={placeholder}
-      // EXPERIMENT 2026-06-13: гнём хвостовое «или» дугой вверх к приподнятой
-      // медали «Выбор еды». Срабатывает, только если placeholder кончается на это
-      // слово (FoodSchedule: «…вы ели или»). Не нравится — заменить на «или можно».
-      placeholderArcTail="или"
       online={online}
       // Бар еды: заливка+рамка пилюли растворяются к правому торцу (у медали
       // «Выбор еды»). Только здесь — Анализ/События остаются с ровной рамкой.

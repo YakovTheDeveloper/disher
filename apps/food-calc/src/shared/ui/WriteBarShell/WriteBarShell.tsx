@@ -1,14 +1,9 @@
-import { useCallback, useId, useState, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import s from './WriteBarShell.module.scss';
-
-// Shared palette anchor — all three write bars (food / analysis / events) flip
-// together so the family stays visually 1:1 (decision 2026-06-09).
-const DEFAULT_VARIANTS = ['ash', 'mint'] as const;
 
 const SendArrowIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -27,52 +22,15 @@ const SendArrowIcon = () => (
   </svg>
 );
 
-// Trailing word lifted along a gentle upward arc — bends the last placeholder
-// word toward the raised medal at the right (Food bar «или» → «Выбор еды»).
-// Same SVG `textPath` trick as WriteBarMedal's arc captions. EXPERIMENT 2026-06-13.
-function ArcWord({ word }: { word: string }) {
-  const id = useId().replace(/:/g, '');
-  return (
-    <svg className={s.arcTail} viewBox="0 0 48 26" width="48" height="26" aria-hidden="true">
-      <defs>
-        <path id={id} d="M 1,21 Q 24,20 47,6" fill="none" />
-      </defs>
-      <text>
-        <textPath href={`#${id}`} startOffset="0">
-          {word}
-        </textPath>
-      </text>
-    </svg>
-  );
-}
-
 // First word → serif-italic accent (canon --heading-font); rest plain. Split on
-// the first space; leading space of the remainder is preserved. When `arcTail`
-// matches the end of the text, that trailing word is lifted along an upward arc
-// (Food bar «или» curving toward the medal) instead of sitting on the baseline.
-function renderAccent(text: string, arcTail?: string): ReactNode {
-  let head = text;
-  let tail: string | undefined;
-  if (arcTail && text.endsWith(arcTail)) {
-    head = text.slice(0, text.length - arcTail.length).replace(/\s+$/, '');
-    tail = arcTail;
-  }
-
-  const spaceIdx = head.indexOf(' ');
-  const headNode: ReactNode =
-    spaceIdx === -1 ? (
-      head
-    ) : (
-      <>
-        <em className={s.placeholderAccent}>{head.slice(0, spaceIdx)}</em>
-        {head.slice(spaceIdx)}
-      </>
-    );
-
-  if (!tail) return headNode;
+// the first space; leading space of the remainder is preserved.
+function renderAccent(text: string): ReactNode {
+  const spaceIdx = text.indexOf(' ');
+  if (spaceIdx === -1) return text;
   return (
     <>
-      {headNode} <ArcWord word={tail} />
+      <em className={s.placeholderAccent}>{text.slice(0, spaceIdx)}</em>
+      {text.slice(spaceIdx)}
     </>
   );
 }
@@ -138,13 +96,6 @@ export interface WriteBarShellProps {
   placeholder: string;
   /** Serif-accent the first placeholder word. Default true. */
   accentPlaceholder?: boolean;
-  /**
-   * If set AND the placeholder ends with this exact word, that trailing word is
-   * drawn lifted along a gentle upward arc (instead of on the baseline) — bends
-   * it toward the raised right-slot medal. Food bar only («или» → «Выбор еды»).
-   * Requires `accentPlaceholder`.
-   */
-  placeholderArcTail?: string;
   maxLength?: number;
   /** Rows the field grows to on focus. Default 4. */
   maxRowsFocused?: number;
@@ -169,7 +120,6 @@ export interface WriteBarShellProps {
   /** Value for `data-write-state` on the wrap (external hooks). */
   writeState?: string;
   className?: string;
-  designVariant?: { key: string; variants: readonly string[] };
   /** After a successful submit, smooth-scroll to this selector. */
   scrollToOnSubmit?: string;
   /**
@@ -198,7 +148,6 @@ export const WriteBarShell = ({
   inputId,
   placeholder,
   accentPlaceholder = true,
-  placeholderArcTail,
   maxLength,
   maxRowsFocused = 4,
   readOnly,
@@ -212,16 +161,11 @@ export const WriteBarShell = ({
   hint,
   writeState,
   className,
-  designVariant,
   scrollToOnSubmit,
   blurOnSubmit = false,
   fadeRight = false,
 }: WriteBarShellProps) => {
   const { pressed: barPressed, pressProps: barPressProps } = usePressFeedback();
-  const { anchor } = useDesignVariant(
-    designVariant?.key ?? 'WriteBar',
-    designVariant?.variants ?? DEFAULT_VARIANTS,
-  );
 
   const [focused, setFocused] = useState(false);
 
@@ -261,7 +205,6 @@ export const WriteBarShell = ({
 
   return (
     <div
-      {...anchor}
       className={clsx(s.wrap, className)}
       data-write-state={writeState}
       // Marker for the Screen focus-scrim (`:has([data-write-bar] textarea:focus)`).
@@ -298,9 +241,7 @@ export const WriteBarShell = ({
                 }}
                 onBlur={() => setFocused(false)}
                 placeholder={placeholder}
-                renderPlaceholder={
-                  accentPlaceholder ? renderAccent(placeholder, placeholderArcTail) : undefined
-                }
+                renderPlaceholder={accentPlaceholder ? renderAccent(placeholder) : undefined}
                 maxRows={focused ? maxRowsFocused : 1}
                 maxLength={maxLength}
                 collapseOnBlur={false}

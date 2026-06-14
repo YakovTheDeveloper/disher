@@ -1,0 +1,116 @@
+// SheetCard — «карточка на листке». Плоская скруглённая плашка, лежащая на
+// бумаге (warm ambient страницы), с едва уловимым глянцем. БЕЗ box-shadow, без
+// подъёма. Общий контейнер для предложки (free-text-разбор) и секций домашнего
+// экрана «Наблюдения» / «Гипотезы» — у них одна суть, один контейнер.
+//
+// Примитив владеет ТОЛЬКО обвязкой: фон, глянец-слой ::before, скругление,
+// overflow, z-index-раскладка + слоты header / content (children) / actions.
+// Характер глянца — DesignBar (anchor `Predlozhka`): pearl (дефолт = база ниже)
+// / satin / glass / frost. Контент консьюмеры наполняют сами.
+
+.sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  // pearl-тон (дефолт). satin/glass/frost переопределяют ниже по [data-dv-v].
+  // `--sheet-bg` / `--sheet-shadow` — точки переопределения для консьюмера: дом
+  // на liquid-glass листе делает секции белыми + лёгкий подъём (см. Laboratory
+  // `.ambientSheet`). Дефолт — off-white pearl, без тени.
+  background: var(--sheet-bg, #f7f5f7);
+  box-shadow: var(--sheet-shadow, none);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+
+  // pearl-глянец (база): яркий верхне-левый угол + еле заметный прохладный блик
+  // снизу-справа. Перламутровый отлив.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 85% 60% at 12% 0%,
+        rgba(255, 255, 255, 0.72), transparent 46%),
+      radial-gradient(ellipse 70% 55% at 100% 100%,
+        rgba(214, 224, 245, 0.34), transparent 52%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  // Контент — над глянец-слоем.
+  >* {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+// ─── DesignBar: характер глянца (anchor `Predlozhka`) ──────────────────────
+
+// satin: мягкий верхний сатиновый блик + тёплый off-white тон.
+.sheet[data-dv-v='satin'] {
+  background: #f7f6f3;
+
+  &::before {
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.85) 0%,
+        rgba(255, 255, 255, 0.18) 22%,
+        rgba(255, 255, 255, 0) 50%);
+  }
+}
+
+// glass: глянцевая стеклянная плашка — диагональный световой свайп + узкая
+// световая полоса по верхнему краю. Тон чуть прохладнее.
+.sheet[data-dv-v='glass'] {
+  background: #f4f6f8;
+
+  &::before {
+    background:
+      linear-gradient(125deg,
+        rgba(255, 255, 255, 0.55) 0%,
+        rgba(255, 255, 255, 0) 32%),
+      linear-gradient(180deg,
+        rgba(255, 255, 255, 0.75) 0%,
+        rgba(255, 255, 255, 0) 12%);
+  }
+}
+
+// frost: матовое стекло — полупрозрачная плашка + backdrop-blur размывает
+// тёплый ambient под ней.
+.sheet[data-dv-v='frost'] {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px) saturate(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+
+  &::before {
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.6) 0%,
+        rgba(255, 255, 255, 0) 30%);
+  }
+}
+
+// ─── Header-слот — заголовок-string, стиль инкапсулирован здесь ─────────────
+.header {
+  display: flex;
+  align-items: center;
+  // Ось заголовка переопределяема (`--sheet-header-justify`, дефолт center) —
+  // экран может лево-выровнять секции в одну ось с контентом (Laboratory).
+  justify-content: var(--sheet-header-justify, center);
+  padding: var(--space-6) var(--space-3) var(--space-2);
+}
+
+// Кегль --text-xl. Шрифт/начертание/размер заголовка переопределяемы
+// (`--sheet-title-*`) — дом возвращает канон-сериф Alice (вместо Raleway-italic),
+// мельче и без псевдокурсива (см. Laboratory `.ambientSheet`). Дефолты прежние.
+.title {
+  font-size: var(--sheet-title-fs, var(--text-xl));
+  font-family: var(--sheet-title-font, var(--font-display));
+  font-style: var(--sheet-title-style, italic);
+}
+
+// ─── Actions-слот — нижний ряд кнопок ──────────────────────────────────────
+.actions {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+  margin: var(--space-6) var(--space-2) var(--space-2);
+}

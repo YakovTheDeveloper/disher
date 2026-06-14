@@ -49,21 +49,24 @@ type Props = {
   htmlFor?: string;
 };
 
+// Богатство нутриентом: тускло-серый (мало) → мягкий жёлтый (середина) →
+// бледный светло-зелёный с желтизной (богато). Верх НЕ насыщенно-зелёный, а
+// лёгкий жёлто-зелёный, уходящий в бледно-жёлтый.
 const RICHNESS_COLORS = [
-  '#bbb', // 0: none
-  '#999', // very low
-  '#e8a838', // low-mid warm
-  '#e07b28', // mid amber
-  '#d45d1e', // high amber
-  '#b83d15', // deep
-  '#1a8c4e', // rich green
-  '#0f7a3f', // deep green
+  '#c6c5bf', // 0: none — тусклый серый
+  '#d4cfa6', // very low — серо-жёлтый
+  '#e0d589', // low-mid — приглушённый жёлтый
+  '#e7d771', // mid — мягкий жёлтый
+  '#dcd96f', // жёлто-зелёный (бледный)
+  '#cdda77', // лайм к жёлтому (бледный)
+  '#bfdb80', // светло-зелёный, к жёлтому
+  '#b2da84', // rich — лёгкий бледный жёлто-зелёный
 ] as const;
 
-// Achromatic richness ramp — used when the screen is in a strict-monochrome
-// DesignBar variant (SearchFood passes `monoRichness`). Magnitude still reads,
-// via value (light→dark gray) instead of hue, so the only colour on the screen
-// can stay in the ambient glow.
+// Achromatic richness ramp — opt-in via the `monoRichness` prop for a
+// strict-monochrome host. Magnitude still reads, via value (light→dark gray)
+// instead of hue. Latent capability: SearchFood no longer requests it (its
+// paper-mono tone uses the colour ramp), but the prop stays for reuse.
 const RICHNESS_GRAYS = [
   '#cfcfcf', // 0: none
   '#b8b8b8',
@@ -175,8 +178,16 @@ const FoodActionCard = ({
     }
   };
 
-  const ownershipLabel = variant === 'product' ? 'мой продукт' : 'мое блюдо';
-  const showOwnershipLabel = userCreated;
+  // Подпись-вид под названием: блюдо → «блюдо» (блюда всегда созданы юзером),
+  // свой продукт → «мой продукт», каталожный продукт → ничего. Добавка (продукт
+  // с serving-basis) дописывается в ту же строку через серединную точку:
+  // «мой продукт · добавка» (раньше «добавка» висела отдельной плашкой справа).
+  const kindLabel = variant === 'product' ? 'мой продукт' : 'блюдо';
+  const showKindLabel = userCreated;
+  const isSupplement = variant === 'product' && item.servingBasis === 'serving';
+  const subtitle = [showKindLabel ? kindLabel : null, isSupplement ? 'добавка' : null]
+    .filter(Boolean)
+    .join(' · ');
 
   const deleteButton = showDelete ? (
     userCreated ? (
@@ -226,35 +237,18 @@ const FoodActionCard = ({
 
   return (
     <li className={styles.wrapper} role="option" data-pressed={pressed || undefined}>
-      {richNutrientValue !== null && richness > 0 && (
-        <>
-          {/* Заливка-гейдж: ширина = насыщенность, лежит ПОД текстом (z-index 0,
-              .item поднят на z-index 1), низкая alpha + затухание вправо в
-              прозрачность — имя еды всегда читаемо, без резкой непрозрачной полосы.
-              `key` завязан на выбранный нутриент: при смене нутриента span
-              ремаунтится → growFill (~1.6s) проигрывается заново, и юзер видит,
-              как гейдж дорастает до нового уровня. */}
-          <span
-            key={`fill-${richNutrientId}`}
-            className={styles.richFill}
-            style={{
-              width: `${richness * 100}%`,
-              backgroundImage: `linear-gradient(90deg, ${richnessColor} 0%, ${richnessColor} 55%, transparent 100%)`,
-            }}
-          />
-          {/* Канонический тонкий 3px вертикальный акцент слева — цвет несёт данные. */}
-          <span
-            key={`bar-${richNutrientId}`}
-            className={styles.richBar}
-            style={{ backgroundColor: richnessColor }}
-          />
-        </>
-      )}
       {richNutrientValue !== null && (
-        <span
-          className={styles.richValue}
-          style={richnessColor ? { color: richnessColor } : undefined}
-        >
+        <span className={styles.richValue}>
+          {/* Цветная заливка квадрата (ширина = доля богатства, слева направо),
+              под числами (z-index:-1). Re-key по нутриенту → растёт заново. */}
+          {richness > 0 && (
+            <span
+              key={`fill-${richNutrientId}`}
+              className={styles.richValueFill}
+              style={{ width: `${richness * 100}%`, backgroundColor: richnessColor }}
+              aria-hidden
+            />
+          )}
           {richNutrientValue > 0 ? richNutrientValue.toFixed(1) : '—'}
           {richNutrientValue > 0 && richNutrientUnit && (
             <span className={styles.richUnit}>{richNutrientUnit}</span>
@@ -274,9 +268,7 @@ const FoodActionCard = ({
         >
           {thumb}
           <span className={styles.name}>{item.name}</span>
-          {variant === 'product' && item.servingBasis === 'serving' && (
-            <span className={styles.supplementBadge}> · добавка</span>
-          )}
+          {subtitle && <span className={styles.kindLabel}>{subtitle}</span>}
         </label>
       ) : (
         <p
@@ -288,9 +280,7 @@ const FoodActionCard = ({
         >
           {thumb}
           <span className={styles.name}>{item.name}</span>
-          {variant === 'product' && item.servingBasis === 'serving' && (
-            <span className={styles.supplementBadge}> · добавка</span>
-          )}
+          {subtitle && <span className={styles.kindLabel}>{subtitle}</span>}
         </p>
       )}
       {onInfoClick &&
@@ -311,7 +301,6 @@ const FoodActionCard = ({
             }}
           >
             <InfoIcon />
-            {showOwnershipLabel && <span className={styles.ownershipLabel}>{ownershipLabel}</span>}
           </button>
         ) : (
           // Блюдо → страница /dish/:id (та же раскадровка 'push', что и «Анализ
@@ -323,7 +312,6 @@ const FoodActionCard = ({
             onClick={goToInfo}
           >
             <InfoIcon />
-            {showOwnershipLabel && <span className={styles.ownershipLabel}>{ownershipLabel}</span>}
           </button>
         ))}
     </li>

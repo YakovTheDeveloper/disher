@@ -498,6 +498,16 @@
     }
 }
 
+// Opt-out (DrawerLayout `scrollHints={false}`): drop both edge-fade pseudo-elements
+// for short form drawers whose own footer marks the end — there the bottom fade
+// dissolves the last row into the surface and reads as a glitch, not a hint.
+.noScrollHints {
+    &::before,
+    &::after {
+        content: none;
+    }
+}
+
 // Pinned, non-scrolling footer slot — sits below the scroll area, always
 // visible. Used for content that must not require a scroll to reach (e.g. the
 // account drawer's «Опасная зона»).

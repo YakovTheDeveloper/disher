@@ -1,11 +1,11 @@
 import styles from './ScheduleEvents.module.scss';
 import React, { memo, useMemo, useState } from 'react';
-import { TimeGroup, TIME_HEADER_KEY, TIME_HEADER_VARIANTS } from '@/features/time-group';
+import { TimeGroup } from '@/features/time-group';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { removeScheduleEvents } from '@/entities/schedule-event';
 import clsx from 'clsx';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
-import { Screen } from '@/shared/ui/Screen';
+import { Screen, type TopBarHideTarget } from '@/shared/ui/Screen';
 import { groupItemsByTime } from '@/shared/lib/schedule';
 import {
   ScheduleEventEditModal,
@@ -29,9 +29,13 @@ type Props = {
   date: string;
   events: ScheduleEvent[];
   topSlot?: React.ReactNode;
+  /** Заголовок дня — едет в `contentHeader` листа (по центру вверху «бумажки»). */
+  contentHeader?: React.ReactNode;
+  /** Прокидывается в `Screen` → направление-зависимое скрытие кнопок бара. */
+  topBarHide?: TopBarHideTarget;
 };
 
-const ScheduleEvents = ({ date, events, topSlot }: Props) => {
+const ScheduleEvents = ({ date, events, topSlot, contentHeader, topBarHide }: Props) => {
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
 
   // Пустой день → hollow-заглушка Screen (большой бренд-логотип по центру).
@@ -40,8 +44,6 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
   // Shared with FoodSchedule: one DesignBar control for the adjacent-row edge
   // treatment across food + event rows (same key → same stored variant).
   const { anchor: boundaryAnchor } = useDesignVariant(ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS);
-  // Time-group header look. Shared key with FoodSchedule — one DesignBar control.
-  const { anchor: timeHeaderAnchor } = useDesignVariant(TIME_HEADER_KEY, TIME_HEADER_VARIANTS);
 
   const [editingItem, setEditingItem] = useState<ScheduleEvent | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'text' | 'atoms'>('idle');
@@ -72,8 +74,10 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
   return (
     <Screen
       stickyTop={topSlot}
+      contentHeader={contentHeader}
       headerOverlap
       hollow={isDayEmpty}
+      topBarHide={topBarHide}
       overlay={
         editingItem && (
           <ScheduleEventEditModal
@@ -88,20 +92,26 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
     >
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <div {...boundaryAnchor}>
-          <div {...timeHeaderAnchor}>
           <ItemsList offsetTop>
             {(() => {
               let globalIndex = 0;
               return eventsGroupedByTime.map((timeGroup) => (
                 <React.Fragment key={timeGroup.startTime}>
                   <TimeGroup group={timeGroup}>
-                    {timeGroup.items.map((item) => {
+                    {(() => {
+                      // Dedup the per-row time (reset per group): a row matching
+                      // the time above renders blank but stays tappable to edit.
+                      let prevTime: string | null = null;
+                      return timeGroup.items.map((item) => {
                       const itemIndex = globalIndex++;
+                      const dimTime = prevTime === item.time;
+                      prevTime = item.time;
                       return (
                         <ScheduleEventCard
                           key={item.id}
                           item={item}
                           index={itemIndex}
+                          dimTime={dimTime}
                           totalCount={events.length}
                           onLongPress={() => openActionsDrawer(item)}
                           onEditTime={() => openEditModal(item, 'time')}
@@ -112,13 +122,13 @@ const ScheduleEvents = ({ date, events, topSlot }: Props) => {
                           atomsHtmlFor={EVENT_EDIT_MODAL_INPUT_IDS.ATOMS_INPUT}
                         />
                       );
-                    })}
+                      });
+                      })()}
                   </TimeGroup>
                 </React.Fragment>
               ));
             })()}
           </ItemsList>
-          </div>
         </div>
       </section>
     </Screen>

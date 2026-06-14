@@ -4,6 +4,7 @@ import { modalStore, type BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
 import { useUserNormItems, USER_NORM_NAME } from '@/entities/daily-norm';
 import { NutrientTable } from '@/widgets/nutrients/FoodsNutrients';
+import Button from '@/shared/ui/atoms/Button/Button';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import CreateDailyNormModal from './CreateDailyNormModal';
@@ -59,15 +60,6 @@ const EditDailyNormModal = ({ onClose, chrome = 'modal', onRecalc }: Props) => {
           </div>
         </div>
       )}
-      <div className={clsx(styles.recalcBar, isPanel && styles.recalcBarPanel)}>
-        <button
-          className={styles.recalcBtn}
-          onClick={handleRecalc}
-          type="button"
-        >
-          Пересчитать по анкете
-        </button>
-      </div>
       <div className={clsx(styles.body, isPanel && styles.bodyPanel)}>
         {isLoading ? (
           <div className={styles.loadingState} aria-live="polite">
@@ -80,6 +72,16 @@ const EditDailyNormModal = ({ onClose, chrome = 'modal', onRecalc }: Props) => {
             getValue={ZERO_VALUE}
           />
         )}
+      </div>
+      {/* Парящая ActionBar-кнопка справа-снизу (sticky над контентом). */}
+      <div className={clsx(styles.recalcBar, isPanel && styles.recalcBarFloat)}>
+        <Button
+          variant="bottomActionBar"
+          onClick={handleRecalc}
+          icon={<span className={styles.recalcGlyph}>↻</span>}
+        >
+          Пересчитать по анкете
+        </Button>
       </div>
     </div>
   );

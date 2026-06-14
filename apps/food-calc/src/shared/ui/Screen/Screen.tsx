@@ -1,11 +1,18 @@
 import styles from './Screen.module.scss';
 import clsx from 'clsx';
-import { useRef, useEffect, memo } from 'react';
+import { useRef, useEffect, useContext, memo } from 'react';
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
+import { TopBarScrollHideContext, type TopBarHideTarget } from './topBarScrollHide';
 
 // Фолбэк высоты absolute-бара, если `--top-bar-h` не резолвится.
 const TOP_BAR_FALLBACK_PX = 80;
+
+// Направление-зависимое скрытие бара (см. `topBarScrollHide`).
+// Порог движения — гасит дрожание на микро-скроллах/«резинке».
+const HIDE_DIR_THRESHOLD_PX = 8;
+// У самого верха бар всегда виден (не прячем «шапку списка»).
+const HIDE_REVEAL_TOP_PX = 24;
 
 type Props = {
   children: React.ReactNode;
@@ -92,6 +99,15 @@ type Props = {
    * (`useCallback`) — иначе пере-подписка наблюдателя каждый рендер.
    */
   onContentHeaderVisibilityChange?: (visible: boolean) => void;
+  /**
+   * Включает направление-зависимое скрытие кнопок `HomeTopBar` при скролле
+   * ВНУТРИ этого экрана. `settings` — уезжает только пилюля аккаунта; `all` —
+   * аккаунт + нутриенты + дата (кнопка «Назад» не трогается). Работает только
+   * при наличии `TopBarScrollHideContext.Provider` выше по дереву (страница со
+   * `Swipeable`-баром); без провайдера — no-op, остальные страницы не задеты.
+   * См. `topBarScrollHide`.
+   */
+  topBarHide?: TopBarHideTarget;
 };
 
 const Screen = ({
@@ -115,9 +131,42 @@ const Screen = ({
   stickyTop,
   afterContent,
   onContentHeaderVisibilityChange,
+  topBarHide,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollContainerRef);
+
+  // Направление-зависимое скрытие кнопок бара (Headroom-канон). Активный экран
+  // — тот, что реально скроллят; смена слайда сбрасывает бар через
+  // `onIndexChange` страницы. Пишем в DOM через `setHide` (контекст), без
+  // setState — свайп/скролл остаются zero-React-render. `setHide` стабилен
+  // (useCallback в контроллере), `topBarHide` — строка → эффект вешается один раз.
+  const hideApi = useContext(TopBarScrollHideContext);
+  useEffect(() => {
+    const root = scrollContainerRef.current;
+    if (!root || !topBarHide || !hideApi) return;
+    const setHide = hideApi.setHide;
+    let lastY = root.scrollTop;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const y = root.scrollTop;
+        if (y <= HIDE_REVEAL_TOP_PX) {
+          setHide('none');
+        } else {
+          const dy = y - lastY;
+          if (dy > HIDE_DIR_THRESHOLD_PX) setHide(topBarHide);
+          else if (dy < -HIDE_DIR_THRESHOLD_PX) setHide('none');
+        }
+        lastY = y;
+      });
+    };
+    root.addEventListener('scroll', onScroll, { passive: true });
+    return () => root.removeEventListener('scroll', onScroll);
+  }, [topBarHide, hideApi]);
 
   // Плавающий бар включается, только когда бар реально есть — иначе экран без
   // нижнего бара зря получил бы маску + нижний padding скроллера.

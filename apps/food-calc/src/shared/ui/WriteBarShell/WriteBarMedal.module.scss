@@ -18,6 +18,10 @@
     --medal-shadow:
         0 5px 12px rgba(31, 42, 68, 0.14),
         0 2px 4px rgba(31, 42, 68, 0.08);
+    // Белая подложка-«монета»: дуги-подписи лежат на ней, серый диск (::before)
+    // остаётся внутри. Подъём (float-тень) теперь несёт сама подложка → медаль
+    // парит как одно целое.
+    --medal-plate: #ffffff;
 
     flex-shrink: 0;
     align-self: center;
@@ -34,12 +38,17 @@
     margin-left: var(--space-2);
     padding: 0;
     border-radius: var(--radius-full);
+    // Белая подложка под дугами + float-тень монеты. Spread-кольцо +3px даёт
+    // хвостам букв («р»/«у» в «вручную») запас, чтобы не вылезать за край белого.
+    background: var(--medal-plate);
+    box-shadow: 0 0 0 3px var(--medal-plate), var(--medal-shadow);
     color: var(--wb-tile-fg);
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     transition: width 0.24s ease, margin 0.24s ease, padding 0.24s ease,
-        opacity 0.18s ease, transform 0.24s ease, filter 0.15s ease;
+        opacity 0.18s ease, transform 0.24s ease, filter 0.15s ease,
+        box-shadow 0.15s ease;
 
     // Coin fill: `--wb-tile-bg` + lift shadow, inset inside the ring of arcs.
     &::before {
@@ -49,7 +58,9 @@
         z-index: 0;
         background: var(--wb-tile-bg);
         border-radius: var(--radius-full);
-        box-shadow: var(--medal-shadow);
+        // Float ушёл на белую подложку; серому диску — лёгкая тень, чтобы он
+        // читался приподнятым НА белом, а не парил отдельной монетой.
+        box-shadow: 0 1px 3px rgba(31, 42, 68, 0.12);
         backdrop-filter: var(--wb-backdrop);
         pointer-events: none;
         transition: inset 0.2s ease, background 0.15s ease;
@@ -104,6 +115,9 @@
     // Quiet/dimmed (Food ready-state): drop the lift shadow + fade.
     &[data-dim] {
         opacity: 0.6;
+        // Тихий ready-state: белую подложку оставляем (дуги всё ещё на ней),
+        // но снимаем float — монета «садится».
+        box-shadow: 0 0 0 3px var(--medal-plate);
 
         &::before {
             box-shadow: none;

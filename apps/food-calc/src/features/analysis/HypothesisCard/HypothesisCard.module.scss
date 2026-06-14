@@ -1,43 +1,48 @@
-@import '@/shared/assets/style/mixin.scss';
-
 // Hypothesis card — a testable experiment with an «add to my list» action.
-// Cooler stripe-fork fork than InsightCard so the two read as different kinds
-// at a glance (observation vs experiment). Local custom properties keep it
-// token-gate compliant.
+// Сидит внутри pearl-плашки SheetCard (общий контейнер с наблюдениями и
+// предложкой). Унифицирована с InsightCard (2026-06-14): тот же монохромный
+// ink (`--card-text-rest`, не навигационный navy) и те же кегли, поверхность —
+// от активного `Analysis` design-варианта через `--ax-*` (плоский текст у
+// hairline/rail/inset, приподнятая белая у card). Действенность читается из
+// тихой «+ к себе», не из заливки. Layout — колонка: текст сверху, действие в
+// правом нижнем углу.
 .card {
-    --hc-ink: rgba(28, 40, 64, 0.92);
-    --hc-ink-soft: rgba(28, 40, 64, 0.62);
-    --hc-ink-faint: rgba(28, 40, 64, 0.5);
-    --hc-accent: rgba(96, 132, 196, 0.7);
-    --hc-btn-bg: rgba(96, 132, 196, 0.12);
-    --hc-btn-ink: rgba(40, 78, 150, 0.95);
-    --hc-btn-added-bg: rgba(72, 152, 96, 0.14);
-    --hc-btn-added-ink: rgba(38, 110, 64, 0.95);
-    --hc-radius: 14px;
-    --hc-btn-radius: 9px;
-    --hc-fs-title: 14.5px;
-    --hc-fs-body: 13px;
-    --hc-fs-meta: 11.5px;
+    --hc-ink: var(--card-text-rest);
+    // Плотность soft/faint переопределяема (`--analysis-*-amt`): на белой карточке
+    // 62% выцветает, дом поднимает до 80/64 (см. Laboratory `.ambientSheet`).
+    --hc-ink-soft: color-mix(in srgb, var(--card-text-rest) var(--analysis-soft-amt, 62%), transparent);
+    --hc-ink-faint: color-mix(in srgb, var(--card-text-rest) var(--analysis-faint-amt, 50%), transparent);
+    // У гипотезы нет strength — нейтральная средняя плотность полосы (rail).
+    --hc-accent: color-mix(in srgb, var(--card-text-rest) 24%, transparent);
+    --hc-chip-radius: 7px;
+    --hc-fs-title: 16px;
+    --hc-fs-body: 14.5px;
+    --hc-fs-meta: 12.5px;
 
     position: relative;
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 12px;
-    padding: 14px 14px 14px 18px;
-    overflow: hidden;
-    background: linear-gradient(90deg, #fcfdff 0%, #f6f9ff 55%, #eef4fd 100%);
+    // Поверхность — от активного `Analysis`-варианта (`--ax-*`).
+    padding: var(--ax-pad-y, 14px) var(--ax-pad-x, 16px);
+    border-radius: var(--ax-card-radius, 0px);
+    background: var(--ax-card-bg, transparent);
+    box-shadow: var(--ax-card-shadow, none);
 
+    // Левая accent-полоса (rail): ширина от варианта (0 везде, 3px у rail).
     &::before {
         content: '';
         position: absolute;
         left: 0;
         top: 8px;
         bottom: 8px;
-        width: 3px;
-        border-radius: var(--hc-btn-radius);
+        width: var(--ax-accent-w, 0px);
+        border-radius: var(--hc-chip-radius);
         background: var(--hc-accent);
+        pointer-events: none;
     }
 
+    // Бровка-разделитель: только у hairline-варианта (`--ax-divider`).
     &::after {
         content: '';
         position: absolute;
@@ -45,31 +50,20 @@
         right: 14px;
         bottom: 0;
         height: 1px;
-        @include hairline(rgba(28, 40, 64, 0.08));
+        background: var(--ax-divider, transparent);
         pointer-events: none;
     }
 
     &:last-child::after {
-        display: none;
-    }
-
-    &:first-child {
-        border-top-left-radius: var(--hc-radius);
-        border-top-right-radius: var(--hc-radius);
-    }
-
-    &:last-child {
-        border-bottom-left-radius: var(--hc-radius);
-        border-bottom-right-radius: var(--hc-radius);
+        background: transparent;
     }
 }
 
 .text {
-    flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
 }
 
 .head {
@@ -103,24 +97,43 @@
     color: var(--hc-ink-soft);
 }
 
+// Тихая ghost-иконка «+ к себе» (унифицирована с InsightCard 2026-06-14),
+// прижата в правый нижний угол. ≥40px (touch-floor inner control).
 .add {
+    --hc-btn-ink: var(--hc-ink-faint);
+    --hc-btn-added-ink: rgba(38, 110, 64, 0.92);
+    --hc-btn-hover-bg: color-mix(in srgb, var(--card-text-rest) 7%, transparent);
+    --hc-btn-radius: 10px;
+
+    align-self: flex-end;
     flex-shrink: 0;
-    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     padding: 8px 12px;
     min-height: 40px;
     border: none;
     border-radius: var(--hc-btn-radius);
-    background: var(--hc-btn-bg);
+    background: transparent;
     color: var(--hc-btn-ink);
     font-size: var(--hc-fs-meta);
     font-weight: 600;
     line-height: 1.2;
     white-space: nowrap;
     cursor: pointer;
-    transition: transform 0.12s ease;
+    transition:
+        transform 0.12s ease,
+        color 0.15s ease,
+        background 0.15s ease;
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
 
     &:active {
         transform: scale(0.96);
+        background: var(--hc-btn-hover-bg);
     }
 
     &:disabled {
@@ -128,7 +141,6 @@
     }
 
     &[data-added] {
-        background: var(--hc-btn-added-bg);
         color: var(--hc-btn-added-ink);
     }
 }

@@ -22,6 +22,10 @@
   --text-xl: 1.563rem; // 25px — section headings
   --text-2xl: 1.953rem; // 31.3px — page headings
   --text-3xl: 2.441rem; // 39px — hero text, accent numbers
+  // Компактная мета-строка — фиксированные 12px (намеренно вне 1.25-шкалы):
+  // строка месяц/dd.mm под днём недели в HomeTopBar и числа сводки нутриентов
+  // делят один размер, чтобы верхний бар читался как одна типошкала.
+  --text-meta: 12px;
 
   // ─── Font families ───────────────────────────────────────────
   --font-sans: "Jost", sans-serif;
@@ -49,7 +53,7 @@
   --heading-size-modal-header: 1.75rem; // 28px — ModalHeader bar title (centered)
   --heading-size-drawer: 1.5rem; // 24px — drawer header
   --heading-size-field: 1rem; //    16px — small in-modal field/section label (serif italic) — below drawer
-  --heading-size-section: var(--text-2xl); // ~37px — in-page content heading (FoodSchedule day, Product/Dish name)
+  --heading-size-section: var(--text-3xl); // ~37px — in-page content heading (FoodSchedule day, Product/Dish name)
   // Single top gap above an overlay title — owned by the title itself, so it
   // stays constant regardless of how the modal nests it (see ModalShell).
   --modal-title-offset: var(--space-6); // 24px
@@ -60,6 +64,7 @@
   --radius-md: 12px; // cards, panels
   --radius-lg: 16px; // drawers, modals
   --radius-xl: 24px; // search bars, large pills
+  --radius-2xl: 40px; // sheet overlays, large content surfaces (headerOverlap)
   --radius-full: 9999px; // circular buttons, badges
 
   // ─── Shadows ─────────────────────────────────────────────────
@@ -122,6 +127,9 @@
   // Лёгкий тинт-фон для press тихих текст/иконочных кнопок (press-fill-tint).
   // Нейтральный дефолт; surface-палитры могут переопределить (тёплый/лавандовый).
   --press-tint-bg: rgba(0, 0, 0, 0.05);
+  // Цвет контента (текст/иконка) когда кнопка инверсируется в ink на press.
+  // Единый «белый-на-тёмном» для press-fill-ink и ручных инверсий в барах.
+  --text-on-accent: #fff;
 
   // ─── Nutrient family ──────────────────────────────────────────
   --nutrient-bg-main: #fef5e7;
@@ -138,7 +146,7 @@
   // белом дровере почти невидима (тень делает работу), на тёплом фоне страницы
   // даёт лёгкий лифт.
   --nutrient-card-surface: rgba(255, 255, 255, 0.55);
-  --nutrient-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --nutrient-card-shadow: 0 1px 6px rgba(15, 23, 42, 0.2);
   // Внутренний отступ карточки нутриента — чтобы контент не липнул к краю/тени.
   --nutrient-card-padding: var(--space-2) var(--space-3);
 

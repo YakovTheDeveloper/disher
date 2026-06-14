@@ -1,28 +1,12 @@
-// Daily-analysis surface. Two design-variants on the `DailyAnalysis` anchor:
-//   card — boxed warm stripe-fork surface
-//   flat — text sits directly in the slot column, no container
+// Daily-analysis surface — текст и наблюдения сидят прямо на листе, без
+// подложки (подложку сняли 2026-06-13; «card» был дефолтом-победителем и
+// сводился к transparent / нулевому padding, поэтому растворён в базу).
 
 .section,
 .invite {
     display: flex;
     flex-direction: column;
     gap: 14px;
-}
-
-// ── card variant — boxed tone surface ────────────────────────────────
-.section[data-dv-v='card'],
-.invite[data-dv-v='card'] {
-    padding: 16px 16px 18px;
-    border-radius: 16px;
-    background: var(--card-bg);
-    box-shadow: 0 6px 22px -16px color-mix(in srgb, var(--card-text-rest) 40%, transparent);
-}
-
-// ── flat variant — bare, only a top hairline to mark the section ─────
-.section[data-dv-v='flat'],
-.invite[data-dv-v='flat'] {
-    padding: 14px 4px 4px;
-    border-top: 1px solid var(--card-hairline);
 }
 
 // ── invitation (idle) ────────────────────────────────────────────────

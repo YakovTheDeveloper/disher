@@ -3,7 +3,7 @@
 // Покрывает инварианты рефактора 2026-06-09 (project_product_drawer_chrome):
 //  • заголовок/«мой продукт»/карандаш едут в обвязку (title/subtitle/topRight);
 //  • карандаш → drop-down: rename = <label htmlFor> (iOS focus-делегация,
-//    feedback_ios_focus), нутриенты = кнопка → EditNutrientsModal;
+//    feedback_ios_focus), нутриенты = кнопка → инлайн-режим правки (без модалки);
 //  • focus на rename-input → ChangeNameModal (handleNameFocusCapture);
 //  • БАД: «Состав на одну единицу» + нет Select количества;
 //  • каталог: ни карандаша, ни «мой продукт».
@@ -93,12 +93,6 @@ vi.mock('@/shared/assets/icons/edit.svg?react', () => ({
 vi.mock('./ProductDrawer.module.scss', () => ({
   default: new Proxy({}, { get: (_t, p: string) => `pd-${String(p)}` }),
 }));
-vi.mock('./EditNutrientsModal', () => ({
-  EditNutrientsModal: ({ isExpanded }: { isExpanded?: boolean }) => (
-    <div data-testid="edit-nutrients-modal" data-expanded={String(isExpanded)} />
-  ),
-}));
-
 import { ProductDrawer } from './ProductDrawer';
 
 describe('ProductDrawer — chrome + edit menu', () => {
@@ -125,12 +119,15 @@ describe('ProductDrawer — chrome + edit menu', () => {
     expect(getByText('Редактировать нутриенты').tagName).toBe('BUTTON');
   });
 
-  it('«Редактировать нутриенты» opens EditNutrientsModal', () => {
-    const { getByLabelText, getByText, getByTestId } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
-    expect(getByTestId('edit-nutrients-modal').getAttribute('data-expanded')).toBe('false');
+  it('«Редактировать нутриенты» enters inline edit mode (header «Редактирование» + editable table)', () => {
+    const { getByLabelText, getByText, queryByText, getByTestId } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
+    expect(queryByText('Редактирование')).toBeNull(); // не в режиме правки по умолчанию
     fireEvent.click(getByLabelText('Редактировать продукт'));
     fireEvent.click(getByText('Редактировать нутриенты'));
-    expect(getByTestId('edit-nutrients-modal').getAttribute('data-expanded')).toBe('true');
+    // Инлайн-режим: появляется шапка «Редактирование» + таблица в режиме инпутов
+    // (отдельной модалки больше нет).
+    expect(getByText('Редактирование')).not.toBeNull();
+    expect(getByTestId('nutrient-table')).not.toBeNull();
   });
 
   it('focusing the rename input opens ChangeNameModal (focus-delegation handler)', () => {

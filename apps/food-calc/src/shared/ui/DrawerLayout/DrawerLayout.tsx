@@ -68,6 +68,14 @@ type Props = {
    */
   modalFields?: boolean;
   /**
+   * Top/bottom scroll-fade hints on the scroll area (the sticky white→transparent
+   * gradients that dissolve content at the edges to signal "more above/below").
+   * Defaults to `true`. Pass `false` for short form-style drawers whose own footer
+   * already marks the end — there the bottom fade washes the last row into the
+   * surface and reads as a render glitch rather than an affordance.
+   */
+  scrollHints?: boolean;
+  /**
    * Optional food photo (public path, e.g. `/catalog-food/4185.webp`). When set,
    * the side-drawer edge-handle shows a blurred vertical crop of the photo as an
    * ambient colour texture instead of the variant wash (the grip pill + hairline
@@ -90,6 +98,7 @@ const DrawerLayout = ({
   a11yLabel,
   hideTopChrome,
   modalFields,
+  scrollHints = true,
   image,
 }: Props) => {
   const { t } = useTranslation();
@@ -218,7 +227,7 @@ const DrawerLayout = ({
         )}
         <Drawer.Content
           id="drawer-content-scrollable"
-          className={styles.scrollableContent}
+          className={clsx(styles.scrollableContent, !scrollHints && styles.noScrollHints)}
           // Touch swipe-to-close opts out of the scrollable body. For mouse/pen
           // Base UI already exempts `[data-drawer-content]`; for touch the only
           // hook is this attribute. Bottom drawers keep the default (swipe axis

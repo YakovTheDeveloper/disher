@@ -5,10 +5,9 @@ vi.mock('@/shared/lib/api/authedFetch', () => ({ authedFetch: vi.fn() }));
 import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { db } from '@/shared/lib/dexie/schema';
 import { PaymentRequiredError } from '@/shared/lib/api/apiError';
-import { buildDishAnalysisPayload, streamDishAnalysis } from '../api/runDishAnalysis';
+import { buildDishAnalysisPayload, requestDishAnalysis } from '../api/runDishAnalysis';
 import type { DishAnalysisPayload } from '../api/types';
 
-// SSE parsing moved to shared/lib/sse/parseSSELines — covered by its own test.
 const ISO = '2026-05-13T10:00:00.000Z';
 
 async function clearDb() {
@@ -147,7 +146,7 @@ function jsonRes(status: number, body: unknown): Response {
   } as unknown as Response;
 }
 
-describe('streamDishAnalysis — billing surface', () => {
+describe('requestDishAnalysis — billing surface', () => {
   const payload: DishAnalysisPayload = {
     dishId: 'd',
     dishName: 'Борщ',
@@ -159,7 +158,7 @@ describe('streamDishAnalysis — billing surface', () => {
 
   it('throws PaymentRequiredError on 402 (carries need/have)', async () => {
     mockFetch.mockResolvedValue(jsonRes(402, { needKop: 200, haveKop: 0 }));
-    const err = await streamDishAnalysis({ payload, onChunk: () => {} }).catch((e) => e);
+    const err = await requestDishAnalysis({ payload }).catch((e) => e);
     expect(err).toBeInstanceOf(PaymentRequiredError);
     expect(err.message).toBe('Недостаточно средств — пополните баланс');
     expect(err.needKop).toBe(200);
@@ -167,8 +166,35 @@ describe('streamDishAnalysis — billing surface', () => {
 
   it('sends an X-Request-Id header on the POST', async () => {
     mockFetch.mockResolvedValue(jsonRes(402, {}));
-    await streamDishAnalysis({ payload, onChunk: () => {} }).catch(() => {});
+    await requestDishAnalysis({ payload }).catch(() => {});
     const headers = mockFetch.mock.calls[0]?.[1]?.headers as Record<string, string>;
     expect(headers['X-Request-Id']).toMatch(UUID_RE);
+  });
+
+  it('returns the structured {summary, insights} on success', async () => {
+    mockFetch.mockResolvedValue(
+      jsonRes(200, {
+        analysis: {
+          summary: 'Сытно и сбалансированно.',
+          insights: [
+            {
+              title: 'Железо + витамин C',
+              detail: 'Свёкла и зелень — лучше усвоение.',
+              valence: 'positive',
+              strength: 'moderate',
+              evidence: { days: [], foods: ['свёкла', 'зелень'] },
+            },
+          ],
+          hypotheses: [],
+        },
+      }),
+    );
+    const out = await requestDishAnalysis({ payload });
+    expect(out.summary).toBe('Сытно и сбалансированно.');
+    expect(out.insights).toHaveLength(1);
+    expect(out.insights[0]).toMatchObject({
+      title: 'Железо + витамин C',
+      valence: 'positive',
+    });
   });
 });

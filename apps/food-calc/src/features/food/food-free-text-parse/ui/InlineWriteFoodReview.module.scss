@@ -1,95 +1,14 @@
 // Inline review (предложка) — рендерится ПОСЛЕ ItemsList в FoodSchedule.
-// Дизайн-направление 2026-06-13: НЕ elevated карточка, а «карточка на листке» —
-// плоская скруглённая плашка, лежащая на бумаге (warm ambient страницы), с
-// едва уловимым глянцем. Без box-shadow, без подъёма. Горизонтальный margin
-// делает её уже листа со списком → читается как карточка ПОВЕРХ листа.
-// Характер блика — варианты через DesignBar (anchor `Predlozhka`):
-// satin / glass / pearl / frost.
+// Обвязку «карточка на листке» (плоская плашка + глянец + варианты pearl/satin/
+// glass/frost) теперь владеет общий примитив SheetCard — у предложки, гипотез и
+// наблюдений одна суть, один контейнер. Здесь — только предложко-специфика:
+// внешний margin + enter/shake-анимации, навешенные на корень SheetCard через
+// класс `.reviewSheet`.
 
-.wrap {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-
-  // space-3 со всех сторон: вертикальный — воздух до листа/края, горизонтальный
-  // — инсет от краёв листа (карточка уже бумаги). Низ держит scroller-padding
-  // самого Screen (overlay-бар), поэтому большой bottom-margin не нужен.
+.reviewSheet {
+  // space-3 по бокам: инсет от краёв листа (карточка уже бумаги). Сверху —
+  // воздух до списка/края; низ держит scroller-padding самого Screen.
   margin: var(--space-12) var(--space-3) var(--space-3);
-  background: #f7f6f3;
-  border-radius: 2rem;
-  overflow: hidden;
-
-  // Глянец-слой: едва уловимый блик. Дефолт (satin) — мягкий верхний блик, как
-  // на сатиновой бумаге. glass/pearl/frost переопределяют `background` ниже.
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg,
-        rgba(255, 255, 255, 0.85) 0%,
-        rgba(255, 255, 255, 0.18) 22%,
-        rgba(255, 255, 255, 0) 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  // Контент — над глянец-слоем.
-  >* {
-    position: relative;
-    z-index: 1;
-  }
-}
-
-// ─── DesignBar: глянец предложки (anchor `Predlozhka`) ─────────────────────
-// Тема «карточка на листке»: плоская плашка + едва уловимый блик, БЕЗ elevation
-// (никаких drop-shadow). Варианты отличаются характером глянца и тоном плашки.
-
-// satin (дефолт): мягкий верхний сатиновый блик задан в базовом `.wrap::before`
-// + тёплый off-white тон — отдельного override не требует.
-
-// glass: глянцевая стеклянная плашка — диагональный световой свайп + узкая
-// световая полоса по верхнему краю. Тон чуть прохладнее.
-.wrap[data-dv-v='glass'] {
-  background: #f4f6f8;
-
-  &::before {
-    background:
-      linear-gradient(125deg,
-        rgba(255, 255, 255, 0.55) 0%,
-        rgba(255, 255, 255, 0) 32%),
-      linear-gradient(180deg,
-        rgba(255, 255, 255, 0.75) 0%,
-        rgba(255, 255, 255, 0) 12%);
-  }
-}
-
-// pearl: перламутровый отлив — яркий верхне-левый угол + еле заметный
-// прохладный блик снизу-справа. Тон — чуть лиловый off-white.
-.wrap[data-dv-v='pearl'] {
-  background: #f7f5f7;
-
-  &::before {
-    background:
-      radial-gradient(ellipse 85% 60% at 12% 0%,
-        rgba(255, 255, 255, 0.72), transparent 46%),
-      radial-gradient(ellipse 70% 55% at 100% 100%,
-        rgba(214, 224, 245, 0.34), transparent 52%);
-  }
-}
-
-// frost: матовое стекло — полупрозрачная плашка + backdrop-blur размывает
-// тёплый ambient под ней. Самый «стеклянный» вариант, всё ещё без подъёма.
-.wrap[data-dv-v='frost'] {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(12px) saturate(1.1);
-  -webkit-backdrop-filter: blur(12px) saturate(1.1);
-
-  &::before {
-    background: linear-gradient(180deg,
-        rgba(255, 255, 255, 0.6) 0%,
-        rgba(255, 255, 255, 0) 30%);
-  }
 }
 
 // Mount-only enter-анимация ТОЛЬКО для ready-state: лёгкий
@@ -126,12 +45,12 @@
   }
 }
 
-.wrap[data-state='ready'] {
+.reviewSheet[data-state='ready'] {
   animation: inlineReviewEnter 480ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 // Vertical shake — триггерится из AppBottomBar.handleViewResults через
-// toggle `data-shake` на `[data-write-food-anchor]` (=`.wrap`). Маленький
+// toggle `data-shake` на `[data-write-food-anchor]` (=`.reviewSheet`). Маленький
 // translateY вверх-вниз затухающей амплитуды, чтобы взгляд юзера прибил
 // к предложке после instant-scroll'а. Композит-only (transform).
 @keyframes inlineReviewShake {
@@ -160,31 +79,16 @@
   }
 }
 
-.wrap[data-shake] {
+.reviewSheet[data-shake] {
   animation: inlineReviewShake 380ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
 
-  .wrap[data-state='ready'],
-  .wrap[data-shake] {
+  .reviewSheet[data-state='ready'],
+  .reviewSheet[data-shake] {
     animation: none;
   }
-}
-
-.headerRow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-6) var(--space-3);
-}
-
-// «Предложенные варианты» — мельче канонного section-заголовка (~31px) по
-// запросу юзера. Сохраняем section-голос (не italic), уменьшаем кегль до
-// --text-lg (20px) — заметно меньше, но всё ещё заголовок, не лейбл.
-.reviewTitle {
-  font-size: var(--text-xl);
 }
 
 .originalText {
@@ -431,16 +335,9 @@
   }
 }
 
-// CTA-ряд: «Отменить» (fit-content) + «Добавить N» (растягивается). Боковой
-// margin var(--space-2) (по запросу юзера) — кнопки инсетятся от краёв плашки;
-// низ space-2, чтобы пилюли не упирались в скруглённый угол (у `.wrap` padding
-// снят). Верх держит прежний отступ от списка.
-.ctaRow {
-  display: flex;
-  align-items: stretch;
-  gap: var(--space-2);
-  margin: calc(var(--space-6) * 2) var(--space-2) var(--space-2);
-}
+// CTA-ряд («Отменить» + «Добавить N») рендерится в actions-слоте SheetCard —
+// раскладку ряда (flex + gap + margin) владеет примитив; здесь только сами
+// кнопки.
 
 // «Отменить» — тихая вторичная кнопка по ширине контента, слева от primary.
 .cancelBtn {

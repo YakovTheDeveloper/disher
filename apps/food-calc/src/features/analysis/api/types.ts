@@ -10,6 +10,12 @@
 
 export type AnalysisStrength = 'weak' | 'moderate' | 'clear';
 
+// Valence — whether the observation is a good combination (synergy, e.g. iron +
+// vitamin C) or a bad one (antagonism / поведенческий минус). Orthogonal to
+// `strength` (confidence): one says good/bad, the other says how sure. The LLM
+// classifies it; 'neutral' is the safe default for a plain observation.
+export type AnalysisValence = 'positive' | 'negative' | 'neutral';
+
 export type AnalysisEvidence = {
   days: string[];
   foods?: string[];
@@ -19,6 +25,7 @@ export type AnalysisEvidence = {
 export type AnalysisInsight = {
   title: string;
   detail: string;
+  valence: AnalysisValence;
   strength: AnalysisStrength;
   evidence: AnalysisEvidence;
 };
@@ -67,8 +74,10 @@ type ServerRow = {
 };
 
 // Permissive coercions — mirror the backend parser. Malformed entries are
-// dropped, not crashed on. An insight with no evidence.days is dropped (the
-// grounding gate, same rule as the server).
+// dropped, not crashed on. An insight with neither evidence.days NOR
+// evidence.foods is dropped (the grounding gate, same rule as the server):
+// pattern insights ground in days, compositional/isolated-food insights
+// (synergies/antagonisms) ground in foods, so foods-only is now valid.
 function asStringList(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   const out: string[] = [];
@@ -89,16 +98,19 @@ export function asInsights(value: unknown): AnalysisInsight[] {
     if (typeof o.title !== 'string' || typeof o.detail !== 'string') continue;
     const ev = (o.evidence ?? {}) as Record<string, unknown>;
     const days = asStringList(ev.days);
-    if (days.length === 0) continue; // grounding gate
+    const foods = asStringList(ev.foods);
+    if (days.length === 0 && foods.length === 0) continue; // grounding gate
     const strength: AnalysisStrength =
       o.strength === 'clear' || o.strength === 'moderate' ? o.strength : 'weak';
+    const valence: AnalysisValence =
+      o.valence === 'positive' || o.valence === 'negative' ? o.valence : 'neutral';
     const insight: AnalysisInsight = {
       title: o.title,
       detail: o.detail,
+      valence,
       strength,
       evidence: { days },
     };
-    const foods = asStringList(ev.foods);
     if (foods.length > 0) insight.evidence.foods = foods;
     const events = asStringList(ev.events);
     if (events.length > 0) insight.evidence.events = events;

@@ -10,6 +10,7 @@ import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
 // /product/:id. Файл оставлен для возможного возврата; роут ниже закомментирован.
 // import ProductPage from '@/pages/product/ProductPage.tsx';
 import AnalysesPage from '@/pages/analyses/AnalysesPage.tsx';
+import { DiscoveriesPage } from '@/pages/discoveries';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage.tsx';
 import UiKitPage from '@/pages/ui-kit/UiKitPage.tsx';
 
@@ -22,6 +23,7 @@ export enum RouterLinks {
   ScheduleDateSelection = '/date',
   ScheduleBuilder = '/schedule',
   Analyses = '/analyses',
+  Discoveries = '/discoveries',
   Product = '/product',
   UiKit = '/ui-kit',
   VerifyEmail = '/auth/verify-email',
@@ -59,6 +61,10 @@ export const router = createBrowserRouter([
       {
         path: RouterLinks.Analyses,
         element: <AnalysesPage />,
+      },
+      {
+        path: RouterLinks.Discoveries,
+        element: <DiscoveriesPage />,
       },
       // Инактивировано 2026-06-08 — продукт открывается боковым ProductDrawer,
       // не страницей. Раскомментировать вместе с импортом ProductPage выше.

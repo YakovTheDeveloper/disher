@@ -7,6 +7,7 @@ import type { Atom } from '@/entities/schedule-event/model/atoms';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
 import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
+import { formatClock } from '@/shared/lib/time/formatClock';
 
 type Props = {
   item: ScheduleEvent;
@@ -20,6 +21,9 @@ type Props = {
   textHtmlFor?: string;
   atomsHtmlFor?: string;
   className?: string;
+  /** True when the row above shares this row's time — the time renders blank
+   *  (dedup) but stays tappable to edit. */
+  dimTime?: boolean;
 };
 
 function formatAtomChip(atom: Atom, index: number) {
@@ -65,6 +69,7 @@ export function ScheduleEventCard({
   textHtmlFor,
   atomsHtmlFor,
   className,
+  dimTime = false,
 }: Props) {
   const title = item.text || 'Новое событие';
   const atoms: Atom[] = Array.isArray(item.atoms) ? item.atoms : [];
@@ -85,9 +90,13 @@ export function ScheduleEventCard({
       onLongPress={onLongPress}
     >
       {!hideTime && (
-        <label htmlFor={timeHtmlFor} className={styles.time} onClick={onEditTime}>
-          {item.time || '—'}
-          {item.endTime && ` — ${item.endTime}`}
+        <label
+          htmlFor={timeHtmlFor}
+          className={clsx(styles.time, dimTime && styles.timeDup)}
+          onClick={onEditTime}
+        >
+          {item.time ? formatClock(item.time) : '—'}
+          {item.endTime && ` — ${formatClock(item.endTime)}`}
         </label>
       )}
 

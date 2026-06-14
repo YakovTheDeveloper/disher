@@ -1,37 +1,42 @@
 import { memo, type ReactNode } from 'react';
-import { Screen } from '@/shared/ui/Screen';
+import { useNavigate } from 'react-router-dom';
+import { Screen, type TopBarHideTarget } from '@/shared/ui/Screen';
 import { AppBottomBarShell } from '@/shared/ui/AppBottomBar/AppBottomBarShell';
 import Button from '@/shared/ui/atoms/Button/Button';
 import FlaskIcon from '@/shared/assets/icons/flask.svg?react';
 import { AnalysisCtaButton } from '@/features/analysis/AnalysisCtaButton';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import DailyAnalysisSection from './DailyAnalysisSection';
-import { openHypotheses } from './openHypotheses';
 import styles from './Laboratory.module.scss';
 
 type Props = {
   date: string;
   topSlot?: ReactNode;
+  /** Прокидывается в `Screen` → направление-зависимое скрытие кнопок бара. */
+  topBarHide?: TopBarHideTarget;
 };
 
-// HomePage slot 0. Weekday heading + hollow empty-state; the only content is the
-// daily-analysis surface. Bottom bar = two actions (split), unified with the
-// Analyses page: «Гипотезы» (left → opens the shared HypothesesDrawer bottom-sheet)
-// and «Анализировать» (right → AnalysisCtaButton: текущий день / по неделям). The
-// hypotheses surface is one shared drawer reused here and on /analyses (2026-06-13,
-// supersedes the navigate-to-/analyses-slide-0 entry). Weekly review is reached via
+// HomePage slot 0. Заголовок дня снят (2026-06-14): экран = три секции-плашки
+// разбора (summary / Наблюдения / Гипотезы, см. AnalysisResult `summaryCard`) —
+// БЕЛЫЕ карточки на подложке-«листе» из liquid glass (светло-серое стекло,
+// Screen `.ambientSheet`). Пустой день → hollow (плашек нет, стекло гаснет,
+// большой watermark-логотип). Bottom bar = two
+// actions (split), unified with the Analyses page: «Мои открытия» (left →
+// navigate('/discoveries'): гипотезы + инсайты) and «Анализировать» (right →
+// AnalysisCtaButton: текущий день / по неделям). Weekly review is reached via
 // the «По неделям» option inside the kind chooser, not a header button.
-const Laboratory = ({ date, topSlot }: Props) => {
+const Laboratory = ({ date, topSlot, topBarHide }: Props) => {
   const hasDaily = useDailyAnalysisStore((s) => Boolean(s.byDate[date]));
+  const navigate = useNavigate();
 
   const bottomBar = (
     <AppBottomBarShell side="split">
       <Button
         variant="bottomActionBar"
-        onClick={() => void openHypotheses()}
+        onClick={() => navigate('/discoveries')}
         icon={<FlaskIcon width={16} height={16} />}
       >
-        Гипотезы
+        Мои открытия
       </Button>
       <AnalysisCtaButton date={date} />
     </AppBottomBarShell>
@@ -39,10 +44,12 @@ const Laboratory = ({ date, topSlot }: Props) => {
 
   return (
     <Screen
+      className={styles.ambientSheet}
       stickyTop={topSlot}
       headerOverlap
       hollow={!hasDaily}
       bottomBar={bottomBar}
+      topBarHide={topBarHide}
     >
       <div className={styles.container}>
         {/* Лоадер анализа (гравюрный, канон tds/art-loader-canon.md) вшит в

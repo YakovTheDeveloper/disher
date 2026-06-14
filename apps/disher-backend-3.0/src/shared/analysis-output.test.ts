@@ -22,6 +22,7 @@ describe("ANALYSIS_OUTPUT_PROMPT_SPEC", () => {
     expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("hypotheses");
     expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("evidence");
     expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("strength");
+    expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("valence");
     expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain('"days"');
   });
 });
@@ -115,6 +116,7 @@ describe("tryParseOutput — happy path", () => {
         {
           title: "Поздние ужины",
           detail: "Ужин после 21:00 в части дней.",
+          valence: "neutral",
           strength: "moderate",
           evidence: { days: ["09-06-2026", "10-06-2026"], events: ["усталость"] },
         },
@@ -144,6 +146,32 @@ describe("tryParseOutput — happy path", () => {
     );
     expect(out?.insights[0]?.strength).toBe("weak");
   });
+
+  it("keeps a valid valence (positive / negative)", () => {
+    const out = tryParseOutput(
+      JSON.stringify({
+        summary: "s",
+        insights: [
+          { ...INSIGHT, valence: "positive" },
+          { ...INSIGHT, valence: "negative" },
+        ],
+      }),
+    );
+    expect(out?.insights.map((i) => i.valence)).toEqual(["positive", "negative"]);
+  });
+
+  it("coerces a missing or unknown valence to neutral", () => {
+    const out = tryParseOutput(
+      JSON.stringify({
+        summary: "s",
+        insights: [
+          { ...INSIGHT }, // no valence field
+          { ...INSIGHT, valence: "spicy" }, // unknown value
+        ],
+      }),
+    );
+    expect(out?.insights.map((i) => i.valence)).toEqual(["neutral", "neutral"]);
+  });
 });
 
 describe("tryParseOutput — wrappers and noise", () => {
@@ -170,7 +198,7 @@ describe("tryParseOutput — wrappers and noise", () => {
   });
 });
 
-describe("tryParseOutput — grounding gate (insight needs evidence.days)", () => {
+describe("tryParseOutput — grounding gate (insight needs days OR foods)", () => {
   it("drops an insight with no evidence at all", () => {
     const out = tryParseOutput(
       JSON.stringify({
@@ -181,14 +209,41 @@ describe("tryParseOutput — grounding gate (insight needs evidence.days)", () =
     expect(out?.insights).toEqual([]);
   });
 
-  it("drops an insight with an empty evidence.days array", () => {
+  it("drops an insight with empty days AND no foods", () => {
     const out = tryParseOutput(
       JSON.stringify({
         summary: "s",
-        insights: [{ title: "t", detail: "d", strength: "clear", evidence: { days: [] } }],
+        insights: [{ title: "t", detail: "d", strength: "clear", evidence: { days: [], foods: [] } }],
       }),
     );
     expect(out?.insights).toEqual([]);
+  });
+
+  it("keeps a foods-only compositional insight (empty days, foods present)", () => {
+    // D8: a nutrient synergy/antagonism is grounded by foods alone — a dish
+    // analysis has no days at all, so this must survive.
+    const out = tryParseOutput(
+      JSON.stringify({
+        summary: "s",
+        insights: [
+          {
+            title: "Железо + витамин C",
+            detail: "Витамин C улучшает усвоение железа.",
+            valence: "positive",
+            strength: "clear",
+            evidence: { days: [], foods: ["говядина", "болгарский перец"] },
+          },
+        ],
+      }),
+    );
+    expect(out?.insights).toHaveLength(1);
+    expect(out?.insights[0]).toEqual({
+      title: "Железо + витамин C",
+      detail: "Витамин C улучшает усвоение железа.",
+      valence: "positive",
+      strength: "clear",
+      evidence: { days: [], foods: ["говядина", "болгарский перец"] },
+    });
   });
 
   it("keeps the grounded insight, drops the ungrounded one", () => {

@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 import type { Hypothesis } from '@/entities/hypothesis';
 import { Heading } from '@/shared/ui/atoms/Typography';
+import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
 import HypothesisListItem from './HypothesisListItem';
 import styles from './HypothesisListPanel.module.scss';
 
@@ -48,11 +49,25 @@ type Props = {
    */
   headerVariant?: 'title' | 'divider';
   /**
+   * Голос заголовка «Гипотезы» в варианте `title`. `'heading'` (default) —
+   * Alice-serif heading (HomePage / HypothesesSlide). `'label'` — тот же
+   * serif-italic FieldLabel, что и подписи полей (модалка создания разбора),
+   * чтобы заголовок секции звучал в один голос с лейблами.
+   */
+  titleVariant?: 'heading' | 'label';
+  /**
    * Show the read-only meta line (relative date) on each row. Only the
    * view-first hypotheses screen passes `true`; selection hosts leave it off so
    * their rows stay clean (checkbox + title only).
    */
   showMeta?: boolean;
+  /**
+   * Discrete-card rows (rounded, spaced, self-shadowed) instead of the default
+   * flush list (hairline-divided rows in a single shadowed frame). The
+   * «Гипотезы» modal passes `true` to bring rows closer to the HomePage
+   * schedule cards; selection hosts keep the compact flush list.
+   */
+  separated?: boolean;
 } & EditProps;
 
 // The hypothesis list: a static header label + a height-bounded, internally
@@ -68,7 +83,9 @@ const HypothesisListPanel = ({
   selectable = true,
   newIds,
   headerVariant = 'title',
+  titleVariant = 'heading',
   showMeta = false,
+  separated = false,
 }: Props) => {
   // The list scrolls inside itself (`maxBodyHeight`). A freshly created
   // hypothesis lands at the top of this inner scroll, so when a new id arrives
@@ -98,18 +115,25 @@ const HypothesisListPanel = ({
         <div className={styles.divider} aria-hidden />
       ) : (
         <div className={styles.header}>
-          <Heading size="field" className={styles.headerTitle}>
-            Гипотезы
-          </Heading>
+          {titleVariant === 'label' ? (
+            <FieldLabel>Гипотезы</FieldLabel>
+          ) : (
+            <Heading size="field" className={styles.headerTitle}>
+              Гипотезы
+            </Heading>
+          )}
           <span className={styles.headerCount}>
             {selectable ? `${selectedCount} выбрано из ${total}` : total}
           </span>
         </div>
       )}
 
-      <div className={styles.scrollWrap}>
+      <div className={`${styles.scrollWrap} ${separated ? styles.scrollWrapSeparated : ''}`}>
         <div
-          className={`${styles.scrollBody} ${bounded ? '' : styles.scrollBodyFlow}`}
+          data-testid="hypothesis-scroll-body"
+          className={`${styles.scrollBody} ${bounded ? '' : styles.scrollBodyFlow} ${
+            separated ? styles.scrollBodySeparated : ''
+          }`}
           style={bounded ? { maxHeight: maxBodyHeight } : undefined}
           ref={scrollBodyRef}
         >
@@ -132,6 +156,7 @@ const HypothesisListPanel = ({
                 hideCheckbox={!selectable}
                 isNew={newIds?.has(h.id) ?? false}
                 showMeta={showMeta}
+                separated={separated}
                 {...editProps}
               />
             );

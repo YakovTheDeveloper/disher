@@ -7,8 +7,8 @@
 // Right-slot collapse (the medal / arc) keys off the row's `[data-expanded]`
 // plain attribute, so WriteBarMedal (its own module) can read it cross-file.
 //
-// ЦВЕТ — DesignBar `WriteBar` варианты (`ash`/`mint`): набор `--wb-*`/`--field-*`
-// на `.wrap[data-dv-v]`. Базовые дефолты на `.wrap`, элементы их ПОТРЕБЛЯЮТ.
+// ЦВЕТ — тон `ash` (единственный оставшийся, `mint` ретайрнут 2026-06-14):
+// `--wb-*`/`--field-*` заданы дефолтами прямо на `.wrap`, элементы их ПОТРЕБЛЯЮТ.
 
 @import '@/shared/assets/style/mixin.scss';
 
@@ -27,24 +27,26 @@
     --field-line-height: 1.4;
     --field-placeholder-weight: 400;
 
-    --field-text: rgba(31, 42, 68, 0.92);
-    --field-placeholder: rgba(31, 42, 68, 0.4);
+    // ash tone — the surviving WriteBar palette (`mint` retired 2026-06-14):
+    // light neutral grey, flat, strict. Folded in as the `.wrap` defaults.
+    --field-text: rgba(34, 38, 46, 0.92);
+    --field-placeholder: rgba(90, 96, 108, 0.55);
     --field-adornment: rgba(31, 42, 68, 0.55);
 
-    --wb-pill-bg: rgba(255, 255, 255, 1);
-    --wb-pill-border: rgba(31, 42, 68, 0.08);
-    --wb-pill-border-focus: rgba(31, 42, 68, 0.18);
+    --wb-pill-bg: rgb(250, 250, 250);
+    --wb-pill-border: rgba(40, 44, 54, 0.12);
+    --wb-pill-border-focus: rgba(40, 44, 54, 0.26);
     --wb-pill-press: #e6e8ec;
-    --wb-hairline: transparent;
-    --wb-hairline-focus: transparent;
+    --wb-hairline: rgba(40, 44, 54, 0.14);
+    --wb-hairline-focus: rgba(40, 44, 54, 0.3);
     --wb-backdrop: none;
 
-    --wb-send: #2f80ed;
+    --wb-send: #454b59;
     --wb-send-fg: #ffffff;
 
-    --wb-tile-bg: #ffffff;
-    --wb-tile-fg: rgba(31, 42, 68, 0.74);
-    --wb-tile-border: rgba(31, 42, 68, 0.1);
+    --wb-tile-bg: #f3f4f6;
+    --wb-tile-fg: rgba(40, 44, 54, 0.78);
+    --wb-tile-border: rgba(40, 44, 54, 0.12);
 
     --wb-status-bg: rgba(64, 82, 128, 0.12);
     --wb-status-fg: rgba(64, 82, 128, 0.85);
@@ -56,40 +58,10 @@
     flex-direction: column;
     width: 100%;
     padding: var(--space-2);
-    padding-left: var(--space-8);
+    padding-left: var(--space-12);
     position: relative;
     box-sizing: border-box;
     background: transparent;
-
-    // ash (DEFAULT) — light neutral grey, flat, strict.
-    &[data-dv-v='ash'] {
-        --field-text: rgba(34, 38, 46, 0.92);
-        --field-placeholder: rgba(90, 96, 108, 0.55);
-        --wb-pill-bg: #fffffff5;
-        --wb-pill-border: rgba(40, 44, 54, 0.12);
-        --wb-pill-border-focus: rgba(40, 44, 54, 0.26);
-        --wb-hairline: rgba(40, 44, 54, 0.14);
-        --wb-hairline-focus: rgba(40, 44, 54, 0.3);
-        --wb-send: #454b59;
-        --wb-tile-bg: #f3f4f6;
-        --wb-tile-fg: rgba(40, 44, 54, 0.78);
-        --wb-tile-border: rgba(40, 44, 54, 0.12);
-    }
-
-    // mint — mint-sky gradient (mirrors HomeAmbient mint-sky).
-    &[data-dv-v='mint'] {
-        --field-text: rgba(28, 54, 60, 0.92);
-        --field-placeholder: rgba(64, 110, 124, 0.5);
-        --wb-pill-bg: linear-gradient(90deg, #ecf9f1 0%, #eef6fa 52%, #e4f0fb 100%);
-        --wb-pill-border: transparent;
-        --wb-pill-border-focus: transparent;
-        --wb-hairline: rgba(74, 134, 146, 0.2);
-        --wb-hairline-focus: rgba(74, 134, 146, 0.42);
-        --wb-send: #4f9bc9;
-        --wb-tile-bg: rgba(255, 255, 255, 0.82);
-        --wb-tile-fg: rgba(40, 86, 96, 0.8);
-        --wb-tile-border: rgba(74, 134, 146, 0.18);
-    }
 }
 
 // ─── Focus-hint: example input ABOVE the bar (over the Screen focus-scrim) ──
@@ -295,35 +267,6 @@
     font-weight: 500;
 }
 
-// Trailing placeholder word lifted along an upward arc (Food bar «или» curving
-// toward the raised medal). The path rises to the right; the SVG box is taller
-// than the line, so `vertical-align` drops it back down to sit the arc's start
-// near the text baseline. EXPERIMENT 2026-06-13 — tune `vertical-align` / the
-// `<path d>` if the lift reads wrong.
-.arcTail {
-    display: inline-block;
-    width: 2.7em;
-    height: 1.5em;
-    margin-left: 2px;
-    vertical-align: -0.4em;
-    overflow: visible;
-    transition: opacity 0.15s ease;
-
-    text {
-        fill: currentColor;
-        font-family: var(--field-font-family, var(--font-sans));
-        font-size: var(--field-font-size, var(--text-base));
-        font-weight: var(--field-placeholder-weight, 400);
-        letter-spacing: -0.005em;
-    }
-}
-
-// On focus the row expands and the medal collapses — the «или» arc has nothing
-// left to point at, so it fades out alongside the medal (same 0.15s feel).
-[data-expanded] .arcTail {
-    opacity: 0;
-}
-
 // Send coin — rides in the right slot, taking the medal's footprint (the medal
 // collapses on focus, this takes its place). Round, SOLID `--wb-send`. Pinned to
 // --coin-size (the medal's REST size, ~68px) so it always fits the bar width — it
@@ -511,4 +454,3 @@
     border-radius: var(--radius-full);
     background: var(--wb-send);
 }
-

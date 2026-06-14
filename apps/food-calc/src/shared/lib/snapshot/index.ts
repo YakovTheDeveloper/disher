@@ -22,9 +22,9 @@ const URL = `${API_BASE}/api/backup`;
 
 export type Snapshot = Record<string, unknown[]>;
 
-// The nine user-owned domain tables merge() reconciles (tombstones ride their
-// own track; `periods` was dropped in schema v7). Single source of truth for
-// "which tables hold user rows that LWW-merge".
+// The ten user-owned domain tables merge() reconciles (tombstones ride their
+// own track; `periods` was dropped in schema v7, `insights` added in v8).
+// Single source of truth for "which tables hold user rows that LWW-merge".
 export const DOMAIN_TABLES = [
   'products',
   'dishes',
@@ -34,6 +34,7 @@ export const DOMAIN_TABLES = [
   'schedule_events',
   'daily_norms',
   'hypotheses',
+  'insights',
   'custom_tags',
 ] as const;
 

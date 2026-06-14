@@ -32,6 +32,10 @@ type Props = {
   // там картинка таба переехала в центр слайда (SlideArtFrame), и второй
   // верхний экземпляр был бы дублем.
   bandImg?: boolean;
+  // Accessible name for the role="tablist". Default «Экран» (slide switcher on
+  // Home/Dish). Surfaces that reuse this as a content tab-switcher pass a
+  // meaningful label (e.g. /discoveries → «Открытия: раздел»).
+  tablistLabel?: string;
 };
 
 export const ScreenIndicator = ({
@@ -41,6 +45,7 @@ export const ScreenIndicator = ({
   slideIndex,
   title,
   bandImg = true,
+  tablistLabel = 'Экран',
 }: Props) => {
   const displayIndex = slideIndex ?? activeIndex ?? 0;
   const activeScreen = screens[displayIndex];
@@ -74,12 +79,12 @@ export const ScreenIndicator = ({
           decoding="async"
         />
       )}
-      <div className={s.tilesRow} role="tablist" aria-label="Экран">
+      <div className={s.tilesRow} role="tablist" aria-label={tablistLabel}>
         {screens.map((screen, i) => (
           <NavTile
             key={screen.label}
             role="tab"
-            aria-selected={false}
+            aria-selected={screen.label === activeLabel}
             label={screen.label}
             image={screen.image}
             active={screen.label === activeLabel}

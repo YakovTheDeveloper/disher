@@ -19,6 +19,11 @@
 
 export type AnalysisStrength = "weak" | "moderate" | "clear";
 
+// Whether an insight reads as a good thing, a bad thing, or just a neutral
+// observation. ORTHOGONAL to `strength` (confidence) — a "clear" insight can be
+// negative. LLM-determined; coerced to "neutral" when missing/unknown.
+export type AnalysisValence = "positive" | "negative" | "neutral";
+
 export type AnalysisEvidence = {
   days: string[]; // concrete day keys from the window — non-empty for an insight
   foods?: string[];
@@ -28,6 +33,7 @@ export type AnalysisEvidence = {
 export type AnalysisInsight = {
   title: string;
   detail: string;
+  valence: AnalysisValence;
   strength: AnalysisStrength;
   evidence: AnalysisEvidence;
 };
@@ -55,6 +61,7 @@ export const ANALYSIS_OUTPUT_PROMPT_SPEC = `Верни строго JSON и НИ
     {
       "title": "Короткий заголовок наблюдения",
       "detail": "Что именно замечено, одним-двумя предложениями.",
+      "valence": "positive | negative | neutral",
       "strength": "weak | moderate | clear",
       "evidence": {
         "days": ["09-06-2026", "10-06-2026"],
@@ -71,9 +78,19 @@ export const ANALYSIS_OUTPUT_PROMPT_SPEC = `Верни строго JSON и НИ
 Правила:
 - summary — всегда непустой. Если данных мало для выводов — так и напиши в summary, а insights/hypotheses оставь пустыми.
 - insights — 0–4 наблюдения. Это то, что ты УВИДЕЛ в данных, не совет. У КАЖДОГО insight поле evidence.days ОБЯЗАТЕЛЬНО и непусто — это реальные дни окна, на которых построено наблюдение. foods/events — опционально, ключевые еда/события. Нет опоры в данных — не выдумывай наблюдение.
+- valence: классифицируй КАЖДОЕ наблюдение — "positive" = полезная связка/синергия нутриентов, "negative" = нежелательное сочетание/антагонизм, "neutral" = нейтральное наблюдение. valence (хорошо/плохо) и strength (уверенность) — разные оси: уверенное наблюдение может быть отрицательным.
 - strength: "clear" только при явном повторе (примерно ≥40% дней окна или сильная связка), единичное совпадение — "weak", промежуточное — "moderate".
 - hypotheses — 0–3 независимые, каждая как мини-эксперимент: что проверить и как. suggestedDays — опциональное рекомендованное окно проверки в днях.
 - Без медицинских советов и диагнозов нигде. Без комментариев и markdown-заборов вокруг JSON.`;
+
+// Insights don't have to come from food↔event correlations — they can come from
+// the FOOD ITSELF: nutrient synergies and antagonisms in what was eaten (iron +
+// vitamin C → better absorption; calcium blocks iron absorption; etc). Such
+// compositional insights are grounded by `evidence.foods` (the products
+// involved), and `evidence.days` may be empty — the relaxed grounding gate in
+// tryParseOutput lets a foods-only insight through. Append this to a system
+// prompt that wants compositional insights (daily / period / dish).
+export const ISOLATED_FOOD_INSIGHT_INSTRUCTION = `Ищи наблюдения не только в связке «еда↔событие», но и в САМОМ составе еды: синергии и антагонизмы нутриентов (напр. железо + витамин C — лучше усвоение; кальций мешает усвоению железа; жирорастворимые витамины лучше с жирами; и т. п.). Для таких наблюдений по составу поле evidence.foods ОБЯЗАТЕЛЬНО (продукты, о которых речь), а evidence.days может быть пустым — наблюдение про состав не привязано к конкретному дню.`;
 
 // Each schedule_food carries a `details` string — comma-separated free-text
 // tags the user attached to the meal (способ готовки, выдержка, источник,
@@ -151,6 +168,8 @@ ${DISH_DETAILS_INSTRUCTION}
 
 ${NUTRIENT_ANCHOR_INSTRUCTION}
 
+${ISOLATED_FOOD_INSIGHT_INSTRUCTION}
+
 ${ANALYSIS_OUTPUT_PROMPT_SPEC}`;
 
 // Coerce a free-form value into a string[] (drop non-strings, trim, drop empties).
@@ -166,10 +185,12 @@ function asStringList(v: unknown): string[] {
 }
 
 // Permissive insight coercion. The grounding contract is enforced HERE, not
-// only in the prompt: an insight whose evidence.days is empty is DROPPED — a
-// pattern with no days behind it is exactly the hallucination this feature
-// exists to suppress. Unknown strength coerces to "weak" rather than dropping
-// the whole observation.
+// only in the prompt: an insight with NO days AND NO foods behind it is DROPPED
+// — an observation with nothing concrete behind it is exactly the hallucination
+// this feature exists to suppress. A compositional insight (nutrient
+// synergy/antagonism) is grounded by foods alone, so days may be empty for it.
+// Unknown strength coerces to "weak" and unknown valence to "neutral" rather
+// than dropping the whole observation.
 function asInsights(v: unknown): AnalysisInsight[] {
   if (!Array.isArray(v)) return [];
   const out: AnalysisInsight[] = [];
@@ -179,16 +200,23 @@ function asInsights(v: unknown): AnalysisInsight[] {
     if (typeof o.title !== "string" || typeof o.detail !== "string") continue;
     const ev = (o.evidence ?? {}) as Record<string, unknown>;
     const days = asStringList(ev.days);
-    if (days.length === 0) continue; // grounding gate — no days, no insight
+    const foods = asStringList(ev.foods);
+    // Grounding gate — drop only when there's nothing concrete at all (no days
+    // AND no foods). Foods-only insights (composition synergies) survive.
+    if (days.length === 0 && foods.length === 0) continue;
+    const valence: AnalysisValence =
+      o.valence === "positive" || o.valence === "negative"
+        ? o.valence
+        : "neutral";
     const strength: AnalysisStrength =
       o.strength === "clear" || o.strength === "moderate" ? o.strength : "weak";
     const insight: AnalysisInsight = {
       title: o.title,
       detail: o.detail,
+      valence,
       strength,
       evidence: { days },
     };
-    const foods = asStringList(ev.foods);
     if (foods.length > 0) insight.evidence.foods = foods;
     const events = asStringList(ev.events);
     if (events.length > 0) insight.evidence.events = events;

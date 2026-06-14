@@ -434,7 +434,7 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
       { title: "idea", body: "body", suggestedDays: 7 },
     ]);
     expect(byId.get(idDone)?.insights).toEqual([
-      { title: "ins", detail: "d", strength: "moderate", evidence: { days: ["07-04-2026"] } },
+      { title: "ins", detail: "d", valence: "neutral", strength: "moderate", evidence: { days: ["07-04-2026"] } },
     ]);
     expect(byId.get(idDone)?.applied_hypotheses).toEqual([]);
 

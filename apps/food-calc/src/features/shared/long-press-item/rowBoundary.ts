@@ -22,6 +22,7 @@ export const ROW_BOUNDARY_VARIANTS = [
   'rail-flat', // soft frame + vivid left accent rail (stripe-fork), no group shadow
   'rail-soft', // same rail, group's last row casts a half-strength shadow
   'gutter-time', // borderless + the per-row time leaves the backing into a left gutter (messenger style)
+  'corner-time', // borderless + a tiny muted time stamped in the card's bottom-right corner (Telegram style)
 ] as const;
 
 export type RowBoundaryVariant = (typeof ROW_BOUNDARY_VARIANTS)[number];

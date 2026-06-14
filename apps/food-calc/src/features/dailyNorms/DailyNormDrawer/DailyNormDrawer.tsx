@@ -48,6 +48,11 @@ export function DailyNormDrawer({ onClose }: BaseDrawerProps) {
       backLabel="Назад к норме"
       className={s.surface}
       modalFields
+      // Анкета подбора нормы имеет собственный footer («Готово»), который
+      // отмечает конец формы — нижний scroll-fade там лишь размывает последнюю
+      // плитку в поверхность и читается как глюк. Во вью нормы (таблица
+      // нутриентов, длинный скролл) хинт полезен — оставляем.
+      scrollHints={!showCreate}
     >
       <div className={s.body}>
         {isLoading ? (

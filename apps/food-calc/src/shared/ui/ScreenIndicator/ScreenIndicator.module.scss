@@ -18,6 +18,7 @@
     flex-shrink: 0;
     gap: var(--space-1);
     padding-top: var(--space-6);
+    padding-bottom: var(--space-5);
     // Колонок = `--tiles-slots` (= max(plitok, 3)): для Home/Dish (3 плитки)
     // это 3 полноширинные колонки; для Product (2 плитки) — тоже 3 колонки,
     // но плитки сдвинуты вправо через inline `grid-column-start` (см.

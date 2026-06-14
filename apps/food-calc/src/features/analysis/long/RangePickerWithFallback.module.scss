@@ -4,123 +4,20 @@
     gap: 14px;
 }
 
-// ─── Calendar / native mode toggle ────────────────────────────────────
-.modeToggle {
-    display: inline-flex;
-    align-self: flex-start;
-    padding: 3px;
-    border-radius: 11px;
-    background: rgba(15, 23, 42, 0.05);
-    gap: 2px;
-}
-
-.modeTab,
-.modeActive {
-    padding: 6px 14px;
-    border: none;
-    border-radius: 9px;
-    background: transparent;
-    font-size: 13px;
-    font-weight: 500;
-    color: rgba(15, 23, 42, 0.5);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: background var(--press-out) var(--easing-default),
-        color var(--press-out) var(--easing-default),
-        transform var(--press-out) var(--easing-default);
-
-    // Цветной отклик: чип-вкладка заполняется тёмным при нажатии
-    &:active {
-        background: var(--chip-active-bg);
-        border-color: var(--chip-active-border);
-        color: var(--chip-active-text);
-        transform: scale(0.97);
-        transition-duration: var(--press-in);
-    }
-}
-
-.modeActive {
-    background: #fff;
-    color: rgba(15, 23, 42, 0.9);
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
-}
-
-// ─── Preset span chips ────────────────────────────────────────────────
-.presets {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.preset,
-.presetActive {
-    padding: 8px 14px;
-    border-radius: 999px;
-    border: 1px solid var(--chip-border);
-    background: transparent;
-    font-size: 13px;
-    font-weight: 500;
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
-    color: color-mix(in srgb, var(--card-text-rest) 70%, transparent);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: background var(--press-out) var(--easing-default),
-        border-color var(--press-out) var(--easing-default),
-        color var(--press-out) var(--easing-default),
-        transform var(--press-out) var(--easing-default);
-
-    // Цветной отклик: пресет-пилюля заполняется чип-заливкой при нажатии
-    &:active {
-        background: var(--chip-active-bg);
-        border-color: var(--chip-active-border);
-        color: var(--chip-active-text);
-        transform: scale(0.96);
-        transition-duration: var(--press-in);
-    }
-}
-
-.presetActive {
-    border-color: var(--card-text-active);
-    background: var(--card-active);
-    color: var(--card-text-rest);
-}
-
-// ─── react-day-picker container ───────────────────────────────────────
-// The library ships its own `.rdp-*` classes; this only tones the host.
-.calendarWrap {
-    align-self: center;
-    border-radius: 14px;
-    padding: 4px 8px;
-    background: var(--card-bg);
-    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04),
-        0 6px 20px -14px rgba(15, 23, 42, 0.25);
-
-    --rdp-accent-color: var(--card-text-active);
-    --rdp-accent-background-color: color-mix(in srgb, var(--card-text-active) 14%, transparent);
-    --rdp-today-color: var(--card-text-active);
-    font-size: 14px;
-}
-
-// ─── Native fallback ──────────────────────────────────────────────────
-.nativeRow {
+// ─── Manual masked DD-MM-YYYY fields ──────────────────────────────────
+.fieldRow {
     display: flex;
     gap: 10px;
 }
 
-.nativeField {
+.field {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
 
-.nativeLabel {
-    font-size: 12px;
-    font-weight: 500;
-    color: rgba(15, 23, 42, 0.5);
-}
-
-.nativeInput {
+.input {
     width: 100%;
     box-sizing: border-box;
     padding: 11px 12px;
@@ -129,7 +26,14 @@
     background: rgba(255, 255, 255, 0.9);
     font-family: inherit;
     font-size: 14px;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+    letter-spacing: 0.02em;
     color: rgba(15, 23, 42, 0.92);
+
+    &::placeholder {
+        color: rgba(15, 23, 42, 0.3);
+        letter-spacing: 0;
+    }
 
     &:focus {
         outline: none;

@@ -11,7 +11,7 @@ vi.mock('@/entities/hypothesis', () => ({
   saveHypothesis: (input: { title: string; body: string }) => saveHypothesis(input),
 }));
 
-const TITLE_PLACEHOLDER = 'Опишите ваше предположение';
+const TITLE_PLACEHOLDER = 'Ваша гипотеза?';
 const BODY_PLACEHOLDER = 'Что именно проверяем? (необязательно)';
 
 beforeEach(() => {

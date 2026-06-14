@@ -1,3 +1,5 @@
+import type { AnalysisInsight } from '@/features/analysis/api';
+
 export type DishAnalysisIngredient = {
   name: string;
   grams: number;
@@ -11,9 +13,13 @@ export type DishAnalysisPayload = {
   ingredients: DishAnalysisIngredient[];
 };
 
-// Persisted shape — what we keep in idb-keyval per dish.
+// Persisted shape — the structured result kept in idb-keyval per dish. Was
+// `{ resultMd }` (markdown stream) until 2026-06-14; now a structured разбор
+// (summary + valent insights) rendered by the shared AnalysisResult. A dish has
+// no hypotheses, so none are stored.
 export type DishAnalysis = {
   dishId: string;
-  resultMd: string;
+  summary: string;
+  insights: AnalysisInsight[];
   createdAt: string;
 };

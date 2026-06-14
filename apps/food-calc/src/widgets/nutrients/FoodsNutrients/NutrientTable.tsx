@@ -4,19 +4,11 @@ import {
   defaultDailyNorms,
 } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { useUserNormItems } from '@/entities/daily-norm';
+import { NutrientRow } from '@/entities/nutrient/ui/NutrientRow';
 import s from './NutrientTable.module.scss';
 import clsx from 'clsx';
 import { memo, useCallback, useRef, useState, useEffect } from 'react';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-
-// Palette/typography forks for the nutrient widget — flip live via the
-// DesignVariantsBar (key `Nutrients`). Nutrients are no longer the app's
-// headline feature, so the restrained forks mute the rainbow into a single
-// calm accent + quieter type. First entry `vivid` is the untouched original
-// (so production renders exactly as before until a fork is chosen). Every
-// fork changes ONLY colour + typography — the skeleton layout is shared.
-const NUTRIENT_DV_VARIANTS = ['vivid', 'graphite', 'paper', 'mist'] as const;
 
 interface Props {
   getValue: (id: string) => number;
@@ -25,65 +17,14 @@ interface Props {
   onValueChange?: (nutrientId: string, value: number) => void;
 }
 
-const mineralColors: Record<string, { color1: string; color2: string }> = {
-  iron: { color1: '#c0392b', color2: '#e57373' },
-  magnesium: { color1: '#4caf50', color2: '#81c784' },
-  phosphorus: { color1: '#ff9d4d', color2: '#ffc266' },
-  calcium: { color1: '#a855f7', color2: '#d8b4fe' },
-  potassium: { color1: '#5b9cf6', color2: '#90caf9' },
-  sodium: { color1: '#78909c', color2: '#b0bec5' },
-  zinc: { color1: '#90a4ae', color2: '#cfd8dc' },
-  copper: { color1: '#b87333', color2: '#d4a373' },
-  manganese: { color1: '#8d6e63', color2: '#bcaaa4' },
-  selenium: { color1: '#9e9d24', color2: '#cddc39' },
-  iodine: { color1: '#6a1b9a', color2: '#ba68c8' },
-};
-
-const vitaminColors: Record<string, { color1: string; color2: string }> = {
-  vitaminA: { color1: '#ff8c42', color2: '#ffcc80' },
-  vitaminC: { color1: '#ffd60a', color2: '#fff176' },
-  vitaminD: { color1: '#ffb800', color2: '#ffe082' },
-  vitaminE: { color1: '#9cc962', color2: '#c5e1a5' },
-  vitaminK: { color1: '#2e7d32', color2: '#81c784' },
-  vitaminB1: { color1: '#f48fb1', color2: '#f8bbd0' },
-  vitaminB2: { color1: '#f48fb1', color2: '#f8bbd0' },
-  vitaminB3: { color1: '#f48fb1', color2: '#f8bbd0' },
-  vitaminB4: { color1: '#f48fb1', color2: '#f8bbd0' },
-  vitaminB5: { color1: '#f48fb1', color2: '#f8bbd0' },
-  vitaminB6: { color1: '#f48fb1', color2: '#f8bbd0' },
-  vitaminB7: { color1: '#f48fb1', color2: '#f8bbd0' },
-  vitaminB9: { color1: '#f48fb1', color2: '#f8bbd0' },
-  vitaminB12: { color1: '#f48fb1', color2: '#f8bbd0' },
-  betaCarotene: { color1: '#ff7043', color2: '#ffab91' },
-  alphaCarotene: { color1: '#ff7043', color2: '#ffab91' },
-};
-
-const essentialAminoAcids = new Set([
-  'tryptophan', 'threonine', 'isoleucine', 'leucine', 'lysine',
-  'methionine', 'phenylalanine', 'valine', 'histidine',
-  'cystine', 'tyrosine',
-]);
-
-const aminoAcidEssentialColor = { color1: '#ff7a59', color2: '#ffab91' };
-const aminoAcidNonEssentialColor = { color1: '#7a9cc6', color2: '#b0c4de' };
-
-const getGroupColors = (nutrientName: string, group: string) => {
-  if (group === 'minerals') return mineralColors[nutrientName];
-  if (group === 'vitamins') return vitaminColors[nutrientName];
-  if (group === 'aminoAcids') {
-    return essentialAminoAcids.has(nutrientName)
-      ? aminoAcidEssentialColor
-      : aminoAcidNonEssentialColor;
-  }
-  return undefined;
-};
-
+// Цвета нутриентов запечены в один mist-акцент (см. NutrientTable.module.scss):
+// один бледный wash под именами БЖУ + один акцент на прогресс-барах. Радуга и
+// design-форки (vivid/graphite/paper/mist) убраны.
 const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }: Props) => {
   const isEditNorms = variant === 'edit-norms';
   const isEditValues = variant === 'edit-values';
   const isView = variant === 'view';
   const isViewNorms = variant === 'view-norms';
-  const { anchor } = useDesignVariant('Nutrients', NUTRIENT_DV_VARIANTS);
   const [overlayOpen, setOverlayOpen] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const userItems = useUserNormItems();
@@ -94,7 +35,9 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
   // `!= null` covers both null (no row) AND undefined (still loading from
   // IDB). Showing pct/progress while loading would briefly flash defaults.
   const hasNorm = userItems != null;
-  const showProgress = (isView && hasNorm) || isEditValues;
+  // В режиме правки (edit-values) карточка = только имя + инпут: ни %, ни бара,
+  // ни нормы. Поэтому прогресс-бар теперь только в просмотре.
+  const showProgress = isView && hasNorm;
   const showPctView = isView && hasNorm;
 
   const handleOutsideClick = useCallback(
@@ -112,6 +55,22 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
       return () => document.removeEventListener('pointerdown', handleOutsideClick);
     }
   }, [overlayOpen, handleOutsideClick]);
+
+  // Правки нутриентов коммитятся в БД на BLUR, не на каждый символ: держим
+  // черновик ввода локально, чтобы не писать в Dexie на каждое нажатие (и не
+  // ловить delete-on-zero посреди набора). На blur — onValueChange + очистка.
+  const [editDraft, setEditDraft] = useState<Record<string, number>>({});
+  const editFieldValue = (id: string, fallback: number) => editDraft[id] ?? fallback;
+  const handleEditChange = (id: string, v: number) =>
+    setEditDraft((d) => ({ ...d, [id]: v }));
+  const handleEditBlur = (id: string, v: number) => {
+    onValueChange?.(id, v);
+    setEditDraft((d) => {
+      const next = { ...d };
+      delete next[id];
+      return next;
+    });
+  };
 
   const findNutrient = (name: string) => allNutrientsList.find((n) => n.name === name);
 
@@ -138,6 +97,19 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
     const value = getValue(nutrient.id);
     const norm = getNorm(nutrient.id);
     const pct = getPercentage(nutrient.id);
+
+    // view-norms = единый ряд (NutrientRow): имя · норма+юнит, как в пикере.
+    if (isViewNorms) {
+      return (
+        <NutrientRow
+          key={nutrient.id}
+          name={nutrient.displayNameRu}
+          value={Math.round(norm)}
+          unit={nutrient.unitRu}
+        />
+      );
+    }
+
     const isOverlayOpen = overlayOpen === nutrient.id;
     const showOverlay = isView && onRichFood;
 
@@ -155,7 +127,7 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
         onClick={handleRowClick}
         ref={showOverlay ? wrapperRef : undefined}
       >
-        <div className={clsx(s.rowTop, isViewNorms && s.rowInline)}>
+        <div className={s.rowTop}>
           <span className={s.name}>{nutrient.displayNameRu}</span>
           <span className={s.dots} />
           {showPctView && (
@@ -164,64 +136,54 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
               <span className={s.pctSign}>%</span>
             </span>
           )}
-          {isViewNorms && (
-            <span className={clsx(s.value, s.valueNorm)}>
-              <span>{Math.round(norm)}</span>
-              <span>{nutrient.unitRu}</span>
-            </span>
-          )}
         </div>
-        {showProgress && (
-          <div className={s.progressTrack}>
-            <div
-              className={s.progressBar}
-              style={{ width: `${Math.min(pct, 100)}%` }}
-            />
-          </div>
-        )}
-        {!isViewNorms && (
-          <div className={s.rowBottom}>
-            {isView && (
-              <>
-                <span className={clsx(s.value, s.valueLeft)}>
-                  <span>{Math.round(value)}</span>
-                  <span>{nutrient.unitRu}</span>
+        <div className={clsx(s.rowBottom, isView && s.rowBottomBar)}>
+          {isView && (
+            <>
+              <span className={clsx(s.value, s.valueLeft)}>
+                <span>{Math.round(value)}</span>
+                <span className={s.unit}>{nutrient.unitRu}</span>
+              </span>
+              {showProgress && (
+                <div className={s.progressTrack}>
+                  <div
+                    className={s.progressBar}
+                    style={{ width: `${Math.min(pct, 100)}%` }}
+                  />
+                </div>
+              )}
+              {hasNorm && (
+                <span className={`${s.value} ${s.valueRight}`}>
+                  <span>{norm}</span>
+                  <span className={s.unit}>{nutrient.unitRu}</span>
                 </span>
-                {hasNorm && (
-                  <span className={`${s.value} ${s.valueRight}`}>
-                    {norm}
-                    {nutrient.unitRu}
-                  </span>
-                )}
-              </>
-            )}
-            {isEditNorms && (
-              <div className={s.editRow}>
+              )}
+            </>
+          )}
+          {isEditNorms && (
+            <div className={s.editRow}>
+              <NumberInput
+                value={norm}
+                onChange={(v) => onValueChange?.(nutrient.id, v)}
+                className={s.editInput}
+              />
+              <span className={s.unitProminent}>{nutrient.unitRu}</span>
+            </div>
+          )}
+          {isEditValues && (
+            <div className={s.editRow}>
+              <div className={s.editInputRight}>
                 <NumberInput
-                  value={norm}
-                  onChange={(v) => onValueChange?.(nutrient.id, v)}
+                  value={editFieldValue(nutrient.id, Math.round(value))}
+                  onChange={(v) => handleEditChange(nutrient.id, v)}
+                  onBlur={(v) => handleEditBlur(nutrient.id, v)}
                   className={s.editInput}
                 />
                 <span className={s.unitProminent}>{nutrient.unitRu}</span>
               </div>
-            )}
-            {isEditValues && (
-              <div className={s.editRow}>
-                <span className={clsx(s.value, s.valueLeft)}>
-                  {pct}<span className={s.pctSign}>%</span>
-                </span>
-                <div className={s.editInputRight}>
-                  <NumberInput
-                    value={Math.round(value)}
-                    onChange={(v) => onValueChange?.(nutrient.id, v)}
-                    className={s.editInput}
-                  />
-                  <span className={s.unitProminent}>{nutrient.unitRu}</span>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
         {showOverlay && isOverlayOpen && (
           <div className={s.overlay}>
             <button
@@ -246,82 +208,113 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
     const value = getValue(nutrient.id);
     const norm = getNorm(nutrient.id);
     const pct = getPercentage(nutrient.id);
-    const groupColors = getGroupColors(nutrient.name, nutrient.group);
-    const progressColor = groupColors?.color1;
+
+    // view-norms = единый ряд (NutrientRow). Нет нормы → тире без юнита.
+    if (isViewNorms) {
+      const hasValue = norm > 0;
+      return (
+        <NutrientRow
+          key={nutrient.id}
+          name={nutrient.displayNameRu}
+          value={hasValue ? (nutrient.unitRu === 'г' ? Math.round(norm) : norm) : '—'}
+          unit={hasValue ? nutrient.unitRu : ''}
+        />
+      );
+    }
 
     return (
       <div key={nutrient.id} className={`${s.row} ${s[nutrient.group]}`} data-nutrient={nutrient.name}>
-        <div className={clsx(s.rowTop, isViewNorms && s.rowInline)}>
+        <div className={s.rowTop}>
           <span className={s.name}>{nutrient.displayNameRu}</span>
-          {isViewNorms && <span className={s.dots} />}
           {showPctView && <span className={s.pct}>{norm ? `${pct}%` : ''}</span>}
-          {isViewNorms && (
-            <span className={clsx(s.value, s.valueNorm)}>
-              {norm
-                ? `${nutrient.unitRu === 'г' ? Math.round(norm) : norm}${nutrient.unitRu}`
-                : '—'}
-            </span>
-          )}
         </div>
-        {showProgress && norm > 0 && progressColor && (
-          <div className={s.progressTrack}>
-            <div
-              className={s.progressBar}
-              style={{
-                width: `${Math.min(pct, 100)}%`,
-                background: `linear-gradient(45deg, transparent 0%, ${progressColor} 100%)`,
-              }}
-            />
-          </div>
-        )}
-        {!isViewNorms && (
-          <div className={s.rowBottom}>
-            {isView && (
-              <>
-                <span className={clsx(s.value, s.valueLeft)}>
-                  {nutrient.unitRu === 'г' ? Math.round(value) : value.toFixed(1)}
-                  {nutrient.unitRu}
+        <div className={clsx(s.rowBottom, isView && s.rowBottomBar)}>
+          {isView && (
+            <>
+              <span className={clsx(s.value, s.valueLeft)}>
+                <span>{nutrient.unitRu === 'г' ? Math.round(value) : value.toFixed(1)}</span>
+                <span className={s.unit}>{nutrient.unitRu}</span>
+              </span>
+              {showProgress && norm > 0 && (
+                <div className={s.progressTrack}>
+                  <div
+                    className={s.progressBar}
+                    style={{ width: `${Math.min(pct, 100)}%` }}
+                  />
+                </div>
+              )}
+              {hasNorm && (
+                <span className={`${s.value} ${s.valueRight}`}>
+                  {norm ? (
+                    <>
+                      <span>{norm}</span>
+                      <span className={s.unit}>{nutrient.unitRu}</span>
+                    </>
+                  ) : (
+                    ''
+                  )}
                 </span>
-                {hasNorm && (
-                  <span className={`${s.value} ${s.valueRight}`}>
-                    {norm ? `${norm}${nutrient.unitRu}` : ''}
-                  </span>
-                )}
-              </>
-            )}
-            {isEditNorms && (
-              <div className={s.editRow}>
+              )}
+            </>
+          )}
+          {isEditNorms && (
+            <div className={s.editRow}>
+              <NumberInput
+                value={norm}
+                onChange={(v) => onValueChange?.(nutrient.id, v)}
+                className={s.editInput}
+              />
+              <span className={s.unitProminent}>{nutrient.unitRu}</span>
+            </div>
+          )}
+          {isEditValues && (
+            <div className={s.editRow}>
+              <div className={s.editInputRight}>
                 <NumberInput
-                  value={norm}
-                  onChange={(v) => onValueChange?.(nutrient.id, v)}
+                  value={editFieldValue(
+                    nutrient.id,
+                    nutrient.unitRu === 'г' ? Math.round(value) : Number(value.toFixed(1)),
+                  )}
+                  onChange={(v) => handleEditChange(nutrient.id, v)}
+                  onBlur={(v) => handleEditBlur(nutrient.id, v)}
                   className={s.editInput}
                 />
                 <span className={s.unitProminent}>{nutrient.unitRu}</span>
               </div>
-            )}
-            {isEditValues && (
-              <div className={s.editRow}>
-                <span className={clsx(s.value, s.valueLeft)}>
-                  {norm ? `${pct}%` : ''}
-                </span>
-                <div className={s.editInputRight}>
-                  <NumberInput
-                    value={nutrient.unitRu === 'г' ? Math.round(value) : Number(value.toFixed(1))}
-                    onChange={(v) => onValueChange?.(nutrient.id, v)}
-                    className={s.editInput}
-                  />
-                  <span className={s.unitProminent}>{nutrient.unitRu}</span>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     );
   };
 
+  // view-norms (экран «Моя норма») — плоский сгруппированный список как в пикере
+  // нутриентов: заголовок группы (БЖУ / Минералы / …) над списком NutrientRow
+  // с затухающими бровками. Бровка :last-child гасится → граница между группами
+  // держится зазором + заголовком следующей группы.
+  if (isViewNorms) {
+    const normGroups: Array<{ key: string; title: string; rows: JSX.Element[] }> = [
+      { key: 'main', title: nutrientGroups[0].displayName, rows: mainNutrients.map(renderRow) },
+      ...nutrientGroups.slice(1).map((group) => ({
+        key: group.name,
+        title: group.displayName,
+        rows: group.content.map(renderGroupRow),
+      })),
+    ];
+    return (
+      <div className={clsx(s.container, s.containerNorms)}>
+        {normGroups.map((group) => (
+          <section key={group.key} className={s.normGroup}>
+            <h3 className={s.normGroupTitle}>{group.title}</h3>
+            <div className={s.normList}>{group.rows}</div>
+          </section>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className={s.container} {...anchor}>
+    <div className={s.container}>
       <div className={s.section}>{mainNutrients.map(renderRow)}</div>
 
       {nutrientGroups.slice(1).map((group) => (

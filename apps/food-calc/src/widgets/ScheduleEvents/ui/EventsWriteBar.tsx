@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { WriteBarShell, WriteBarClip, RateIcon, RATE_ICON_VARIANTS } from '@/shared/ui/WriteBarShell';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { WriteBarShell, WriteBarClip, PlusIcon } from '@/shared/ui/WriteBarShell';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
@@ -30,7 +29,7 @@ type Props = {
 /**
  * Bottom write-bar for the Events screen (screen 3). Replaces the old
  * «Добавить событие» 3-step modal (2026-06-09):
- *  - paperclip (left) → atoms picker (existing AtomBuilder in a ModalByLabel
+ *  - plus glyph (left) → atoms picker (existing AtomBuilder in a ModalByLabel
  *    fullscreen modal — same shell the old flow used, restored 2026-06-09 on
  *    user request instead of a bottom-sheet Drawer);
  *  - field (center)   → «Описание»;
@@ -44,13 +43,6 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
   const online = useOnline();
   const atoms = useEventDraftStore((st) => st.draft.atoms);
   const clearAtoms = useEventDraftStore((st) => st.clearAtoms);
-
-  // DesignBar-driven left-icon variants (anchor key `EventsRateIcon`). All keep
-  // the «1–10» idea; flip live via the floating 🎨 bar. anchor → the clip button.
-  const { variant: rateVariant, anchor: rateAnchor } = useDesignVariant(
-    'EventsRateIcon',
-    RATE_ICON_VARIANTS,
-  );
 
   const [description, setDescription] = useState('');
   // Atoms modal: `atomsOpen` raises the ModalByLabel. Since the picker is now
@@ -145,8 +137,7 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
             onClick={openAtoms}
             ariaLabel="Оценить состояние"
             count={atoms.length}
-            icon={<RateIcon variant={rateVariant} />}
-            anchor={rateAnchor}
+            icon={<PlusIcon />}
           />
         }
       />

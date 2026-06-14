@@ -51,16 +51,79 @@
     .timeDisplay,
     .timeEdit {
         position: absolute;
-        right: calc(100% + var(--space-2)); // sit just left of the card, grow leftward
+        right: calc(100% + var(--space-3)); // sit just left of the card, grow leftward
         top: 50%;
         transform: translateY(-50%);
         margin-inline: 0;
         padding-block: 0;
         min-block-size: 0;
-        // Match the food-name body size (the item text) so the time reads as a
-        // peer of the row, not a micro-label.
-        font-size: var(--text-base);
-        color: var(--text-muted);
+        // Small, quiet metadata — the time is for glancing-to-confirm, not the
+        // row's headline.
+        font-size: var(--text-sm);
+        line-height: 1.15; // match the food name so first lines align
+        // Fixed page-context ink, NOT the card's --text-* tokens: in the gutter
+        // the time sits on the page, but it's a DOM descendant of the card, so a
+        // dark palette (twilight) would otherwise paint it white → invisible on
+        // the light page. `--color-light-gray` is :root-only, palette-stable.
+        color: var(--color-light-gray);
+    }
+
+    // The edit state (TimeInput) inherits the same card --text-* tokens — pin it
+    // to the page ink too so typing a corrected time stays readable in the gutter.
+    .timeEdit {
+        --tc-fg: var(--color-light-gray);
+
+        input,
+        span {
+            color: var(--color-light-gray);
+        }
+    }
+
+    // Two-line rows (name + details subtitle) center the name+subtitle BLOCK, so
+    // a card-centered time hangs below the name. Pin the time to the name's first
+    // line instead. Single-line rows (no subtitle) keep the card-center default.
+    .group:has(.detailsSubtitle) {
+
+        .timeDisplay,
+        .timeEdit {
+            top: calc(var(--row-cell-pad-block, 9px) + 9px); // name pad-top + ~half its 16px/1.15 line-box
+        }
+    }
+}
+
+// ── corner-time (RowBoundary variant): Telegram-style — the time is a tiny,
+//    muted stamp tucked into the card's bottom-right corner. Pure read-as-
+//    metadata: out of the reading path, glanced at to confirm "when", rarely
+//    touched. No left gutter; the row reserves a little bottom room and the
+//    stamp sits in it, below the (still-centered) quantity.
+:global([data-dv='RowBoundary'][data-dv-v='corner-time']) {
+    .group {
+        grid-template-columns: 1fr 5ch;
+        padding-bottom: var(--space-4); // room under the content for the corner stamp
+    }
+
+    .timeDisplay,
+    .timeEdit {
+        position: absolute;
+        right: var(--space-3);
+        bottom: 2px;
+        top: auto;
+        transform: none;
+        margin-inline: 0;
+        padding-block: 0;
+        min-block-size: 0;
+        font-size: var(--text-xs); // corner metadata — the smallest of the three
+        line-height: 1;
+        color: var(--color-light-gray); // fixed page ink, palette-stable (see gutter-time)
+    }
+
+    .timeEdit {
+        --tc-fg: var(--color-light-gray);
+
+        input,
+        span {
+            color: var(--color-light-gray);
+        }
     }
 }
 
@@ -81,6 +144,14 @@
 
 .timeDisplay {
     cursor: pointer;
+}
+
+// Dedup: on a row whose time equals the row above it, the time is heavily
+// faded (not gone) — repetition drops away but you can still glance down and
+// confirm the time, which is the whole point of showing it. The element stays
+// tappable; tapping flips InlineTimeEditor into its full-opacity edit state.
+.timeDup {
+    opacity: 0.3;
 }
 
 // Whole time block lights up while either HH/MM input is focused.
@@ -216,6 +287,7 @@
 
 .qtyUnit {
     color: var(--text-muted);
+    font-size: var(--text-sm); // quieter than the number it trails
 }
 
 .foodCol {

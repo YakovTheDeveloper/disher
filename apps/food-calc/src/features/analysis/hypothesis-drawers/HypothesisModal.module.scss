@@ -1,33 +1,42 @@
 .fields {
+    // Стандартные form-инпуты — мягкий прямоугольник (12px), не поисковая
+    // пилюля (24px). Наследуется в AutoGrowSearch `.shell` через var(--field-radius).
+    --field-radius: var(--radius-md);
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--space-5);
 }
 
 // Один блок поля: лейбл над инпутом.
 .field {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
+    gap: var(--space-2);
 }
 
-// Лейбл поля — мелкий, приглушённый, по дизайн-токенам.
+// Лейбл поля — serif italic, крупнее body, лёгкий по весу и чуть прозрачнее:
+// читается как подпись, а не как жирный микро-капс.
 .fieldLabel {
-    padding-left: var(--space-1);
-    font-size: var(--text-sm);
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    // Совпасть с внутренним инсетом пилюли AutoGrowSearch (--space-4), чтобы
+    // текст подписи стоял ровно над текстом значения — одна левая колонка.
+    padding-left: var(--space-4);
+    font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+    font-style: italic;
+    font-size: var(--heading-size-field);
+    font-weight: 400;
+    letter-spacing: 0;
     color: var(--color-text-secondary);
+    opacity: 0.72;
 }
 
 .fieldLabelHint {
-    font-weight: 500;
+    font-weight: 400;
     opacity: 0.6;
 }
 
 .counter {
     align-self: flex-end;
-    font-size: 11px;
+    font-size: var(--text-xs);
     color: rgba(15, 23, 42, 0.4);
     font-feature-settings: 'tnum' 1, 'lnum' 1;
 }

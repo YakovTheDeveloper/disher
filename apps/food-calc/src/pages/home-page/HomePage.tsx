@@ -11,6 +11,7 @@ import { useScheduleFoods, useScheduleNutrientTotals } from '@/entities/schedule
 import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
+import { TopBarScrollHideContext, useTopBarScrollHideController } from '@/shared/ui/Screen';
 import { SlideArtFrame } from './ui/SlideArtFrame';
 import { SelectedDayHeading } from './ui/SelectedDayHeading';
 import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
@@ -18,9 +19,10 @@ import normsImg from '@/shared/assets/decarative/norms.png';
 import { NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
+import { useRolloverNudge } from './useRolloverNudge';
 
 const SCREENS: ScreenEntry[] = [
-  { label: 'Анализ', image: '/art/experiment.png', titleStyle: 'display-sans' },
+  { label: 'Открытия', image: '/art/experiment.png', titleStyle: 'display-sans' },
   { label: 'Дневной рацион', image: '/art/schedule-food.png', titleStyle: 'display-sans' },
   { label: 'События', image: normsImg, titleStyle: 'display-sans' },
 ];
@@ -54,6 +56,11 @@ const Page = ({ date }: { date: string }) => {
 
   const swipeableRef = useRef<SwipeableRef>(null);
 
+  // Направление-зависимое скрытие кнопок бара при скролле (см. topBarScrollHide).
+  // Контроллер пишет `data-topbar-hide` на `.shell` бара императивно — свайп и
+  // скролл остаются zero-React-render.
+  const { shellRef, setHide, api: topBarHideApi } = useTopBarScrollHideController();
+
   // «Недавно добавлен»-кружки (еда + события) живут до первого свайпа слайда
   // или ухода со страницы. Чистка идёт через zustand-стор → ре-рендерятся
   // только сами «свежие» строки (теряют кружок), Page не подписан и не
@@ -64,6 +71,14 @@ const Page = ({ date }: { date: string }) => {
   // Уход со страницы / смена даты — сбросить пометки (cleanup на размонтаж и
   // перед сменой date).
   useEffect(() => clearRecent, [date, clearRecent]);
+
+  // Смена слайда → бар возвращается видимым (новый экран читается «с верха»),
+  // заодно чистим «недавно добавлен»-кружки. Стабилен (deps стабильны) → Embla
+  // не переподписывает листенеры каждый рендер.
+  const handleIndexChange = useCallback(() => {
+    clearRecent();
+    setHide('none');
+  }, [clearRecent, setHide]);
 
   // Preload bandImg PNG'шек: на первый клик по тайлу image уже в HTTP-кеше,
   // decode <1ms → CSS-fade стартует на готовых пикселях, нет "pop"
@@ -106,74 +121,78 @@ const Page = ({ date }: { date: string }) => {
     swipeableRef.current?.goToPage(idx);
   }, []);
 
-  // Заголовок выбранного дня под плитками (Сегодня/Вчера/Завтра или «5 июня»).
-  // Один общий узел переиспользуется всеми тремя индикаторами — дата одна и та
-  // же на любом слайде. Меняется только при смене date, не на свайпе.
+  // Заголовок выбранного дня (Сегодня/Вчера/Завтра или «5 июня»). Едет ВНУТРЬ
+  // листа через Screen `contentHeader` (по центру вверху «бумажки») на слайдах
+  // Рацион и События. Слайд «Мои открытия» (Laboratory) заголовок дня НЕ
+  // показывает (снят 2026-06-14) — там три секции-плашки разбора на ambient'е.
+  // Один общий узел переиспользуется обоими слайдами — дата одна, меняется
+  // только при смене date, не на свайпе.
   const dayHeading = useMemo(() => <SelectedDayHeading date={date} />, [date]);
 
   // ScreenIndicator передаётся в каждый слайд как `topSlot`. slideIndex={0/1/2}
   // → каждый инстанс статично показывает СВОЙ экран (label, image, highlight'-
-  // нутый тайл) + общий заголовок дня. Зависимости useMemo — stable
-  // handleSelect + dayHeading (меняется только при смене даты, не на свайпе) →
-  // memo на слайд-виджетах держит, свайп = ноль React-ре-рендеров (Embla сам).
+  // нутый тайл). Заголовок дня тут больше НЕ живёт — он переехал в
+  // `contentHeader` листа (см. dayHeading ниже). Зависимость useMemo — stable
+  // handleSelect → memo на слайд-виджетах держит, свайп = ноль React-ре-рендеров.
   const labIndicator = useMemo(
     () => (
-      <ScreenIndicator
-        screens={SCREENS}
-        onSelect={handleSelect}
-        slideIndex={0}
-        bandImg={false}
-        title={dayHeading}
-      />
+      <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={0} bandImg={false} />
     ),
-    [handleSelect, dayHeading]
+    [handleSelect]
   );
   const foodIndicator = useMemo(
     () => (
-      <ScreenIndicator
-        screens={SCREENS}
-        onSelect={handleSelect}
-        slideIndex={1}
-        bandImg={false}
-        title={dayHeading}
-      />
+      <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={1} bandImg={false} />
     ),
-    [handleSelect, dayHeading]
+    [handleSelect]
   );
   const eventsIndicator = useMemo(
     () => (
-      <ScreenIndicator
-        screens={SCREENS}
-        onSelect={handleSelect}
-        slideIndex={2}
-        bandImg={false}
-        title={dayHeading}
-      />
+      <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={2} bandImg={false} />
     ),
-    [handleSelect, dayHeading]
+    [handleSelect]
   );
 
   return (
     <div className={homeStyles.container}>
-      <HomeTopBar date={date} centerSlot={topBarCenterSlot} />
+      <HomeTopBar date={date} centerSlot={topBarCenterSlot} shellRef={shellRef} />
       <div className={homeStyles.swipeArea}>
-        <Swipeable
-          ref={swipeableRef}
-          defaultSlide={DEFAULT_SLIDE}
-          duration={SWIPE_DURATION}
-          hasDots={false}
-          onIndexChange={clearRecent}
-        >
-          <SlideArtFrame>
-            <Laboratory key={date} date={date} topSlot={labIndicator} />
-          </SlideArtFrame>
-          <SlideArtFrame>
-            <FoodSchedule key={date} date={date} items={items} topSlot={foodIndicator} />
-          </SlideArtFrame>
-          <SlideArtFrame>
-            <ScheduleEvents key={date} date={date} events={events} topSlot={eventsIndicator} />
-          </SlideArtFrame>
-        </Swipeable>
+        <TopBarScrollHideContext.Provider value={topBarHideApi}>
+          <Swipeable
+            ref={swipeableRef}
+            defaultSlide={DEFAULT_SLIDE}
+            duration={SWIPE_DURATION}
+            hasDots={false}
+            onIndexChange={handleIndexChange}
+          >
+            <SlideArtFrame>
+              {/* Экран 1 (Открытия) — чтение: при скролле вниз уезжают ВСЕ кнопки. */}
+              <Laboratory key={date} date={date} topSlot={labIndicator} topBarHide="all" />
+            </SlideArtFrame>
+            <SlideArtFrame>
+              {/* Экран 2 (Рацион) — уезжают только настройки (нутриенты+дата нужны). */}
+              <FoodSchedule
+                key={date}
+                date={date}
+                items={items}
+                topSlot={foodIndicator}
+                contentHeader={dayHeading}
+                topBarHide="settings"
+              />
+            </SlideArtFrame>
+            <SlideArtFrame>
+              {/* Экран 3 (События) — уезжают только настройки. */}
+              <ScheduleEvents
+                key={date}
+                date={date}
+                events={events}
+                topSlot={eventsIndicator}
+                contentHeader={dayHeading}
+                topBarHide="settings"
+              />
+            </SlideArtFrame>
+          </Swipeable>
+        </TopBarScrollHideContext.Provider>
       </div>
     </div>
   );
@@ -183,6 +202,10 @@ const GetDatePageWrapper = () => {
   const params = useParams();
   const date = params.id;
   const navigate = useNavigate();
+
+  // Если день перевалил за полночь, пока приложение было в фоне, а юзер «следил
+  // за сегодня» — мягко предлагаем тостером перейти на новое сегодня.
+  useRolloverNudge(date);
 
   useEffect(() => {
     if (!date) {

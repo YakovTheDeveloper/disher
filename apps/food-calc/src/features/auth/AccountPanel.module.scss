@@ -17,10 +17,10 @@
     color var(--press-out) var(--easing-default),
     transform var(--press-out) var(--easing-default);
 
-  // Цветной отклик: иконка-аватар → тинт фона + цвет иконки
+  // Инверсия (канон 2026-06-14): кнопка-в-подложке заливается ink, иконка белеет.
   &:active {
-    background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
+    background: var(--color-ink);
+    color: var(--text-on-accent, #fff);
     transform: scale(0.94);
     transition-duration: var(--press-in);
   }

@@ -1,6 +1,7 @@
 import { memo, useState } from 'react';
 import { toast } from 'sonner';
 import { saveHypothesis } from '@/entities/hypothesis';
+import PlusIcon from '@/shared/assets/icons/plus.svg?react';
 import type { AnalysisHypothesis } from '../api';
 import styles from './HypothesisCard.module.scss';
 
@@ -49,8 +50,15 @@ const HypothesisCard = ({ hypothesis }: Props) => {
         onClick={handleAdd}
         disabled={added || saving}
         data-added={added || undefined}
+        aria-label={added ? 'Добавлено к себе' : 'Добавить к себе'}
       >
-        {added ? 'Добавлено ✓' : 'Добавить к себе'}
+        {added ? (
+          '✓ добавлено'
+        ) : (
+          <>
+            <PlusIcon aria-hidden />к себе
+          </>
+        )}
       </button>
     </article>
   );

@@ -2,11 +2,8 @@ import { memo, useCallback, useEffect, useRef } from 'react';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import { AnalysisResult } from '@/features/analysis/AnalysisResult';
 import { FabricLoader } from '@/features/analysis/FabricLoader';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import type { DailyAnalysisReason } from '@/features/analysis/daily';
 import styles from './DailyAnalysisSection.module.scss';
-
-const SURFACE_VARIANTS = ['card', 'flat'] as const;
 
 type Props = {
   date: string;
@@ -29,17 +26,7 @@ const REASON_TEXT: Record<NonNullable<DailyAnalysisReason>, string> = {
 const DailyAnalysisSection = ({ date }: Props) => {
   const daily = useDailyAnalysisStore((s) => s.byDate[date]);
   const status = daily?.status;
-  const { anchor } = useDesignVariant('DailyAnalysis', SURFACE_VARIANTS);
-  // Merge the design-variant ref (IntersectionObserver) with our own scroll ref.
   const sectionRef = useRef<HTMLElement | null>(null);
-  const anchorRefFn = anchor.ref;
-  const setSectionRef = useCallback(
-    (el: HTMLElement | null) => {
-      sectionRef.current = el;
-      anchorRefFn(el);
-    },
-    [anchorRefFn],
-  );
 
   // Re-run uses the snapshot's hypothesis ids — the same hypotheses the
   // failed/interrupted run was started with (re-snapshotted from Dexie).
@@ -68,10 +55,8 @@ const DailyAnalysisSection = ({ date }: Props) => {
 
   return (
     <section
-      ref={setSectionRef}
+      ref={sectionRef}
       className={styles.section}
-      data-dv={anchor['data-dv']}
-      data-dv-v={anchor['data-dv-v']}
       data-status={status}
       data-daily-analysis-anchor=""
     >
@@ -84,6 +69,8 @@ const DailyAnalysisSection = ({ date }: Props) => {
           summary={summary}
           insights={insights}
           hypotheses={hypotheses}
+          showDays={false}
+          summaryCard
         />
       )}
 

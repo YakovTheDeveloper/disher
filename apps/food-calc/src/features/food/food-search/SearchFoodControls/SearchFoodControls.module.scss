@@ -1,33 +1,19 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// ─── Row A: scope controls (back + segmented/title + ghost nutrient icon) ────
-// Search moved to its own row (Row B), so this row is just the scope switch and
-// the nutrient-filter action. `isolation` keeps the blur/stacking local.
-.topRow {
+// ─── One common bar ──────────────────────────────────────────────────────────
+// Back button OUTSIDE on the left; everything else rides inside a single pill
+// (`.pill`). Horizontal inset matches the inset list group below so the back
+// button + pill align with the rounded card edges.
+.bar {
     position: relative;
     isolation: isolate;
     z-index: 11;
-    align-items: center;
-    min-height: 44px;
-    width: 100%;
     display: flex;
-    gap: var(--space-2);
-    // Horizontal inset matches the search row + the inset list group below, so
-    // back/segment/icon align with the rounded card edges (one tidy column).
-    padding: var(--space-1) var(--space-3) 0;
-    background: transparent;
-    border: none;
-}
-
-.topRowWithFilter {
     align-items: center;
-}
-
-// Pushes the nutrient-filter icon to the right edge, away from the segmented
-// control / title on the left — the two are different kinds of control.
-.topRowSpacer {
-    flex: 1 1 auto;
-    min-width: 0;
+    gap: var(--space-1);
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: none;
 }
 
 // ─── Inline title (dishes-only / titled flows) ───────────────────────────────
@@ -40,7 +26,8 @@
 // One connected track with a single moving «thumb» on the selected segment —
 // iOS segmented control / M3 connected button group. Equal-weight peers, one
 // tint of selection. Token-driven (--seg-*) so the SearchMono variants paint it
-// monochrome; fallbacks keep it sane outside the mono scope.
+// monochrome; fallbacks keep it sane outside the mono scope. Lives inside the
+// common pill now, so it sits flush to the right of the search field.
 .segmented {
     flex-shrink: 0;
     display: inline-flex;
@@ -58,7 +45,7 @@
     align-items: center;
     justify-content: center;
     min-height: 32px;
-    padding: 0 16px;
+    padding: 0 12px;
     border: none;
     border-radius: 9999px;
     background: transparent;
@@ -97,23 +84,17 @@
 // placeholder/иконка/каретка. Палитра приходит из app-wide тона
 // (`body[data-modal-fields]` — живой ModalShell-вариант).
 
-// Row B — search field gets the full content width so it reads as a real input
-// container, not a faint pill squeezed between controls.
-.searchRow {
-    display: flex;
-    width: 100%;
-    padding: var(--space-2) var(--space-3);
-}
-
-.searchWrapper {
+// The common pill — fills the bar beside the back button and holds the search
+// field, the Еда|Мое toggle and the nutrient («richness») button in one surface.
+.pill {
     display: flex;
     align-items: center;
     position: relative;
-    width: 100%;
+    flex: 1;
     min-width: 0;
     border: none;
-    padding: 0 16px;
-    height: 44px;
+    // Tighter right padding: the toggle / nutrient button live flush at the end.
+    padding: var(--space-1) 0 var(--space-1) var(--space-2);
     border-radius: var(--field-radius, 24px);
     background: linear-gradient(90deg,
             var(--field-bg-from, #fffefb) 0%,
@@ -238,34 +219,116 @@
 .controls {
     display: flex;
     flex-direction: column;
+    // Фон-скрим теперь несёт frosted-слой парящей шапки (.header::before в
+    // SearchFood.module.scss) — здесь прозрачно, чтобы блюр был виден.
+    background: transparent;
 }
 
-// ─── Nutrient filter row (второй ряд) ────────────────────────────────────────
-// idle — pill «Нутриенты» в конце ряда (открывает боковой drawer-выбор); выбран —
-// «Еда богатая нутриентом: X» + крестик отмены. Палитра наследуется от surface
-// (chip/field-токены), как и Еда/Мое.
-.nutrientRow {
-    display: flex;
+// ─── Selected nutrient — чёрная пилюля «иконка · имя · ×» ─────────────────────
+// Раньше был выносной треугольник-callout; теперь компактная чёрная пилюля в духе
+// сегмента Всё|Мое, живёт в баре справа. Инпут (flex:1, min-width:0) ужимается под
+// неё; имя обрезается ellipsis, чтобы не распирать бар. idle (нутриент не выбран) —
+// ghost-иконка внутри pill (см. .nutrientIconButton).
+.nutrientPill {
+    flex-shrink: 0;
+    display: inline-flex;
     align-items: center;
-    padding: 0 var(--space-3);
+    gap: 2px;
+    min-height: 32px;
+    margin-left: var(--space-1);
+    margin-right: var(--space-1);
+    padding: 0 3px 0 9px;
+    border-radius: 9999px;
+    background: var(--icon-btn-active-bg, #1a1a1a);
+    color: var(--icon-btn-active-fg, #fff);
+}
+
+// Иконка + название — тап открывает drawer-выбор (меняет нутриент).
+.nutrientPillMain {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 4px 2px;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform var(--press-in) ease;
+
+    &:active {
+        transform: scale(0.96);
+    }
+
+    svg {
+        flex-shrink: 0;
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.nutrientPillLabel {
+    min-width: 0;
+    max-width: 11ch;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.005em;
+}
+
+// Крестик отмены фильтра.
+.nutrientPillClear {
+    appearance: none;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 9999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 80ms ease;
+
+    &:active {
+        transform: scale(0.85);
+    }
+
+    svg {
+        width: 11px;
+        height: 11px;
+    }
 }
 
 // Иконка-кнопка «Нутриенты» — отдельное действие-фильтр (открывает боковой
 // drawer-выбор нутриента), НЕ сегмент. Поэтому ghost-вид (тонкая рамка, без
 // заливки), визуально отличный от сегмент-контрола `Еда|Мое`. Выбранный нутриент
 // → тёмная заливка (active state). Token-driven (--icon-btn-*); fallback серый.
+// Lives INSIDE the common pill now → a borderless ghost adornment at the field's
+// right end (a bordered circle would double-chrome against the pill). Selected
+// nutrient still fills dark (active state below).
 .nutrientIconButton {
     appearance: none;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     padding: 0;
-    border: 1px solid var(--icon-btn-border, rgba(10, 10, 10, 0.14));
+    border: none;
     border-radius: var(--radius-full);
-    background: var(--icon-btn-bg, transparent);
+    background: transparent;
     color: var(--icon-btn-fg, #5c6473);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -290,86 +353,5 @@
         color: var(--icon-btn-active-fg, #fff);
         transform: scale(0.94);
         transition-duration: var(--press-in);
-    }
-}
-
-// Выбран нутриент — кнопка остаётся залитой (active).
-.nutrientIconButtonActive {
-    background: var(--icon-btn-active-bg, #1a1a1a);
-    border-color: transparent;
-    color: var(--icon-btn-active-fg, #fff);
-}
-
-.nutrientSelected {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    width: 100%;
-    min-height: 40px;
-}
-
-.nutrientSelectedText {
-    appearance: none;
-    flex: 1;
-    min-width: 0;
-    padding: 0;
-    border: none;
-    background: transparent;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    text-align: left;
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    letter-spacing: -0.005em;
-    color: var(--field-text, rgb(31, 31, 31));
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: color var(--press-out) ease;
-
-    // Цветной отклик: на нажатии метка (и значение) красятся в surface-акцент.
-    &:active {
-        color: var(--field-caret, var(--color-ink));
-        transition-duration: var(--press-in);
-
-        strong {
-            color: var(--field-caret, var(--color-ink));
-        }
-    }
-
-    strong {
-        font-weight: 700;
-        color: var(--field-text, rgb(31, 31, 31));
-    }
-}
-
-.nutrientClear {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border: none;
-    border-radius: var(--radius-full);
-    background: transparent;
-    color: var(--field-adornment, rgba(124, 65, 15, 0.55));
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition:
-        color var(--duration-fast) ease,
-        transform 80ms ease;
-
-    &:active {
-        color: var(--field-caret, #b76d1a);
-        transform: scale(0.9);
-    }
-
-    svg {
-        width: 12px;
-        height: 12px;
     }
 }

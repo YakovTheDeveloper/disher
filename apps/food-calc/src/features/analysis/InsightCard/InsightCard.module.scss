@@ -1,50 +1,60 @@
-@import '@/shared/assets/style/mixin.scss';
-
-// Insight card — one read-only observation grounded in evidence. Stripe-fork
-// surface (design-DNA canon): 3-stop gradient, fading hairline, left accent
-// stripe whose colour carries `strength`. Token-driven by the app-wide tone
-// (the live ModalShell variant → `--card-*`); local `--ic-*` props just alias
-// those so the rules stay readable.
+// Insight card — one read-only observation grounded in evidence. Сидит внутри
+// pearl-плашки SheetCard (общий контейнер с гипотезами и предложкой). Сама
+// поверхность карточки больше НЕ задаётся здесь жёстко — её рисует активный
+// `Analysis` design-вариант через `--ax-*` (см. AnalysisResult.module.scss):
+// hairline (плоский текст + бровка) / rail (левая полоса) / inset (wash) /
+// card (приподнятая белая). Левая accent-полоса несёт strength (плотность
+// серого, не смена оттенка). Token-driven app-wide тоном (`--card-*`); local
+// `--ic-*` props алиасят их, чтобы правила читались.
 .card {
     --ic-ink: var(--card-text-rest);
-    --ic-ink-soft: color-mix(in srgb, var(--card-text-rest) 62%, transparent);
-    --ic-ink-faint: color-mix(in srgb, var(--card-text-rest) 50%, transparent);
-    --ic-accent: var(--card-text-active);
-    --ic-chip-day: color-mix(in srgb, var(--card-text-active) 9%, transparent);
-    --ic-chip-food: color-mix(in srgb, var(--card-text-active) 11%, transparent);
-    --ic-chip-event: color-mix(in srgb, var(--card-text-active) 13%, transparent);
-    --ic-radius: 14px;
+    // Плотность soft/faint переопределяема (`--analysis-*-amt`): на белой карточке
+    // 62% выцветает (~3:1), дом поднимает до 80/64 (см. Laboratory `.ambientSheet`).
+    --ic-ink-soft: color-mix(in srgb, var(--card-text-rest) var(--analysis-soft-amt, 62%), transparent);
+    --ic-ink-faint: color-mix(in srgb, var(--card-text-rest) var(--analysis-faint-amt, 50%), transparent);
+    // strength = плотность серого (moderate-дефолт; weak бледнее, clear плотнее).
+    --ic-accent: color-mix(in srgb, var(--card-text-rest) 28%, transparent);
+    --ic-chip-bg: color-mix(in srgb, var(--card-text-rest) 6%, transparent);
+    --ic-radius: var(--radius-md);
     --ic-chip-radius: 7px;
-    --ic-fs-title: 14.5px;
-    --ic-fs-detail: 13px;
-    --ic-fs-meta: 11.5px;
+    // Укрупнено (2026-06-13, «шрифт слишком маленький»).
+    --ic-fs-title: 16px;
+    --ic-fs-detail: 14.5px;
+    --ic-fs-meta: 12.5px;
 
     position: relative;
     display: flex;
     align-items: flex-start;
-    padding: 14px 16px 14px 18px;
-    overflow: hidden;
-    background: var(--card-bg);
+    // Поверхность — от активного `Analysis`-варианта (`--ax-*`).
+    padding: var(--ax-pad-y, 14px) var(--ax-pad-x, 16px);
+    border-radius: var(--ax-card-radius, 0px);
+    background: var(--ax-card-bg, transparent);
+    box-shadow: var(--ax-card-shadow, none);
 
+    // Левая accent-полоса: геометрия постоянна, ширину даёт вариант (0 везде,
+    // 3px у rail). Цвет = плотность strength.
     &::before {
         content: '';
         position: absolute;
         left: 0;
         top: 8px;
         bottom: 8px;
-        width: 3px;
+        width: var(--ax-accent-w, 0px);
         border-radius: var(--ic-chip-radius);
         background: var(--ic-accent);
+        pointer-events: none;
     }
 
-    // strength tints the accent: weak = pale, clear = saturated.
-    &[data-strength='weak']::before {
-        background: color-mix(in srgb, var(--card-text-active) 45%, transparent);
-    }
-    &[data-strength='clear']::before {
-        background: var(--card-text-active);
+    &[data-strength='weak'] {
+        --ic-accent: color-mix(in srgb, var(--card-text-rest) 16%, transparent);
     }
 
+    &[data-strength='clear'] {
+        --ic-accent: color-mix(in srgb, var(--card-text-rest) 40%, transparent);
+    }
+
+    // Бровка-разделитель: показывается только у hairline-варианта (`--ax-divider`
+    // там градиент, у остальных transparent). Тающая волосяная линия по канону.
     &::after {
         content: '';
         position: absolute;
@@ -52,22 +62,12 @@
         right: 14px;
         bottom: 0;
         height: 1px;
-        @include hairline(var(--card-hairline));
+        background: var(--ax-divider, transparent);
         pointer-events: none;
     }
 
     &:last-child::after {
-        display: none;
-    }
-
-    &:first-child {
-        border-top-left-radius: var(--ic-radius);
-        border-top-right-radius: var(--ic-radius);
-    }
-
-    &:last-child {
-        border-bottom-left-radius: var(--ic-radius);
-        border-bottom-right-radius: var(--ic-radius);
+        background: transparent;
     }
 }
 
@@ -126,16 +126,118 @@
     font-weight: 500;
     line-height: 1.4;
     color: var(--ic-ink-soft);
+    background: var(--ic-chip-bg);
 }
 
-.chipDay {
-    background: var(--ic-chip-day);
+// ── valence (без цвета, F3) ───────────────────────────────────────────────
+// Хорошо/плохо несёт монохромный знак ＋/− у заголовка (дефолт, variant 'sign')
+// ИЛИ тихое слово «синергия»/«осторожно» (variant 'label'). Оттенка нет.
+// Видимостью рулит ancestor `[data-dv='Insight']` (anchor в AnalysisResult /
+// InsightListPanel) — обе ноды рендерятся, CSS выбирает видимую.
+.valenceSign {
+    margin-right: 5px;
+    font-weight: 700;
+    color: var(--ic-ink-soft);
 }
 
-.chipFood {
-    background: var(--ic-chip-food);
+.valenceLabel {
+    display: none;
+    flex-shrink: 0;
+    font-size: var(--ic-fs-meta);
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--ic-ink-faint);
 }
 
-.chipEvent {
-    background: var(--ic-chip-event);
+// variant 'label' — знак прячем, слово показываем.
+:global([data-dv='Insight'][data-dv-v='label']) .valenceSign {
+    display: none;
+}
+
+:global([data-dv='Insight'][data-dv-v='label']) .valenceLabel {
+    display: inline-block;
+}
+
+// variant 'plain' — ни знака, ни слова (валентность не показываем).
+:global([data-dv='Insight'][data-dv-v='plain']) .valenceSign {
+    display: none;
+}
+
+// ── действия: «+ к себе» (результат) / ✕ (сохранённый список) ──────────────
+// Тихая ghost-иконка вместо полноширинной кнопки (2026-06-14): наблюдение
+// ведёт, действие не спорит за внимание. ≥40px (touch-floor inner control).
+.add {
+    --ic-btn-ink: var(--ic-ink-faint);
+    --ic-btn-added-ink: rgba(38, 110, 64, 0.92);
+    --ic-btn-hover-bg: color-mix(in srgb, var(--card-text-rest) 7%, transparent);
+    --ic-btn-radius: 10px;
+
+    align-self: flex-end;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+    padding: 8px 12px;
+    min-height: 40px;
+    border: none;
+    border-radius: var(--ic-btn-radius);
+    background: transparent;
+    color: var(--ic-btn-ink);
+    font-size: var(--ic-fs-meta);
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        transform 0.12s ease,
+        color 0.15s ease,
+        background 0.15s ease;
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    &:active {
+        transform: scale(0.96);
+        background: var(--ic-btn-hover-bg);
+    }
+
+    &:disabled {
+        cursor: default;
+    }
+
+    &[data-added] {
+        color: var(--ic-btn-added-ink);
+    }
+}
+
+.delete {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin: -2px -4px 0 6px;
+    padding: 0;
+    border: none;
+    border-radius: var(--ic-chip-radius);
+    background: transparent;
+    color: var(--ic-ink-faint);
+    cursor: pointer;
+    transition:
+        transform 0.12s ease,
+        color 0.15s ease;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &:active {
+        transform: scale(0.92);
+    }
 }

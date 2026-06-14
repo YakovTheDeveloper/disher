@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
@@ -5,41 +6,42 @@ import styles from './NutrientPickerDrawer.module.scss';
 
 export type RichNutrientPick = { id: string; unit: string };
 
-type Props = BaseDrawerProps<RichNutrientPick>;
+type Props = BaseDrawerProps<RichNutrientPick> & {
+  /** Id текущего выбранного нутриента — его чип подсвечивается синим. */
+  activeId?: string;
+};
 
 /**
  * Боковой выбор нутриента для фильтра «Еда богатая нутриентом» в SearchFood.
- * Открывается через `drawerStore.show(NutrientPickerDrawer, {}, { side: 'left' })`;
+ * Открывается через `drawerStore.show(NutrientPickerDrawer, { activeId }, { side: 'left' })`;
  * клик по нутриенту резолвит drawer выбранным `{ id, unit }`, дисмисс (backdrop /
- * edge-swipe / крестик) — `undefined`. Список сгруппирован (Основные / Минералы /
- * Витамины / Аминокислоты) и показывает ВСЕ нутриенты — даже те, у кого нет
- * суточной нормы (в карточке у них вместо «%» останется абсолютное значение).
+ * edge-swipe / крестик) — `undefined`. Список сгруппирован (БЖУ / Минералы /
+ * Витамины / Аминокислоты) — чипы-кнопки в ряд (flex-wrap): текущий выбранный
+ * синий, остальные белые с тенью. Между группами — каноничная затухающая бровка.
  * Выбор живёт в локальном стейте SearchFood и не персистится.
  */
-export function NutrientPickerDrawer({ onClose }: Props) {
+export function NutrientPickerDrawer({ onClose, activeId }: Props) {
   return (
-    <DrawerLayout title="Нутриенты">
+    <DrawerLayout title="Выбери нутриенты">
       <div className={styles.root}>
         <p className={styles.intro}>
-          Выберите нутриент, еда будет отображаться с его содержанием
+          Еда в поиске покажет, сколько в ней выбранного нутриента
         </p>
         {nutrientGroups.map((group) => (
           <section key={group.name} className={styles.group}>
             <h3 className={styles.groupTitle}>{group.displayName}</h3>
-            <ul className={styles.list}>
+            <div className={styles.list}>
               {group.content.map((nutrient) => (
-                <li key={nutrient.id}>
-                  <button
-                    type="button"
-                    className={styles.item}
-                    onClick={() => onClose({ id: nutrient.id, unit: nutrient.unitRu })}
-                  >
-                    <span className={styles.itemName}>{nutrient.displayNameRu}</span>
-                    <span className={styles.itemUnit}>{nutrient.unitRu}</span>
-                  </button>
-                </li>
+                <button
+                  key={nutrient.id}
+                  type="button"
+                  className={clsx(styles.chip, nutrient.id === activeId && styles.chipActive)}
+                  onClick={() => onClose({ id: nutrient.id, unit: nutrient.unitRu })}
+                >
+                  {nutrient.displayNameRu}
+                </button>
               ))}
-            </ul>
+            </div>
           </section>
         ))}
       </div>

@@ -1,7 +1,7 @@
 export { DishAnalysisScreen } from './ui/DishAnalysisScreen';
 export {
   runDishAnalysis,
-  streamDishAnalysis,
+  requestDishAnalysis,
   buildDishAnalysisPayload,
   useDishAnalysis,
   getDishAnalysis,
@@ -10,6 +10,7 @@ export {
 } from './api';
 export type {
   DishAnalysis,
+  DishAnalysisResult,
   DishAnalysisIngredient,
   DishAnalysisPayload,
 } from './api';

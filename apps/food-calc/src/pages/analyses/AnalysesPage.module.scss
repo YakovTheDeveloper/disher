@@ -13,9 +13,16 @@
     // Свечение проступает сквозь обвязку; контент-лист остаётся белым. Нижний
     // бар прозрачен по умолчанию (источник истины — Screen `.bottomBar`).
     --sticky-top-bg: transparent;
+
+    // Высота плавающего HomeTopBar (absolute поверх `.ambient`) — тот же расчёт,
+    // что на HomePage. `.swipeArea` сдвигает лист на эту высоту вниз.
+    --top-bar-h: calc(env(safe-area-inset-top, 0px) + 60px);
 }
 
 .swipeArea {
     flex: 1;
     min-height: 0;
+    box-sizing: border-box;
+    // Лист Screen стартует под баром (бар — absolute, из потока выпадает).
+    padding-top: var(--top-bar-h);
 }

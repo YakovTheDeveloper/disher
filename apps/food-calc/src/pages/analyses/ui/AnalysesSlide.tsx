@@ -1,30 +1,28 @@
-import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Screen } from '@/shared/ui/Screen';
 import { AppBottomBarShell } from '@/shared/ui/AppBottomBar/AppBottomBarShell';
-import { drawerStore, modalStore } from '@/shared/ui';
+import { modalStore } from '@/shared/ui';
 import Button from '@/shared/ui/atoms/Button/Button';
 import FlaskIcon from '@/shared/assets/icons/flask.svg?react';
-import { openHypotheses } from '@/widgets/Laboratory/openHypotheses';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { useAnalysesList, type Analysis } from '@/features/analysis/api';
 import {
   AnalysisListItem,
   AnalysisDetailModal,
-  CreateLongAnalysisDrawer,
+  CreateLongAnalysisModal,
 } from '@/features/analysis/long';
 import styles from './AnalysesSlide.module.scss';
-
-type Props = {
-  topBar: ReactNode;
-};
 
 // AnalysesPage slide 1 — the long-analyses list. The list is NOT polled;
 // useAnalysesList refetches on mount + tab refocus. A freshly created (or
 // restarted) row is merged in optimistically so it shows as «идёт» without
-// waiting for the refetch to land.
-const AnalysesSlide = ({ topBar }: Props) => {
+// waiting for the refetch to land. Топбар (HomeTopBar) живёт на уровне страницы
+// (AnalysesPage), не здесь — поэтому Screen без `stickyTop`.
+const AnalysesSlide = () => {
   const { data, error, refetch } = useAnalysesList();
   const [optimistic, setOptimistic] = useState<Analysis[]>([]);
+  const navigate = useNavigate();
 
   // Optimistic rows first, then the server list with duplicates dropped.
   const analyses = useMemo(() => {
@@ -38,11 +36,11 @@ const AnalysesSlide = ({ topBar }: Props) => {
       setOptimistic((prev) => [a, ...prev]);
       refetch();
     },
-    [refetch],
+    [refetch]
   );
 
   const openCreate = useCallback(async () => {
-    const created = await drawerStore.show(CreateLongAnalysisDrawer, {});
+    const created = await modalStore.show(CreateLongAnalysisModal, {});
     if (created) addOptimistic(created);
   }, [addOptimistic]);
 
@@ -57,25 +55,25 @@ const AnalysesSlide = ({ topBar }: Props) => {
       });
       if (restarted) addOptimistic(restarted);
     },
-    [analyses, addOptimistic],
+    [analyses, addOptimistic]
   );
 
-  // Unified with HomePage: «Гипотезы» (left → shared HypothesesDrawer) +
-  // «+ Анализ» (right → CreateLongAnalysisDrawer, surface-specific — здесь это
-  // длительный разбор, в отличие от HomePage, где правый слот = дневной/долгий
-  // chooser).
+  // Unified with HomePage: «Открытия» (left → /discoveries: гипотезы + инсайты) +
+  // «Анализ по неделям» (right → CreateLongAnalysisModal, surface-specific —
+  // здесь это длительный разбор, в отличие от HomePage, где правый слот =
+  // дневной/долгий chooser).
   const bottomBar = (
     <AppBottomBarShell side="split">
       <Button
         variant="bottomActionBar"
-        onClick={() => void openHypotheses()}
+        onClick={() => navigate('/discoveries')}
         icon={<FlaskIcon width={16} height={16} />}
       >
-        Гипотезы
+        Открытия
       </Button>
-      <button type="button" className={styles.cta} onClick={openCreate}>
-        + Анализ
-      </button>
+      <Button variant="bottomActionBar" onClick={openCreate}>
+        Анализ по неделям
+      </Button>
     </AppBottomBarShell>
   );
 
@@ -85,7 +83,7 @@ const AnalysesSlide = ({ topBar }: Props) => {
   const failedToLoad = nothingYet && error !== null;
 
   return (
-    <Screen stickyTop={topBar} headerOverlap bottomBar={bottomBar}>
+    <Screen headerOverlap bottomBar={bottomBar}>
       <div className={styles.container}>
         {loading ? (
           <div className={styles.centered}>
@@ -94,14 +92,8 @@ const AnalysesSlide = ({ topBar }: Props) => {
         ) : failedToLoad ? (
           <div className={styles.empty}>
             <p className={styles.emptyTitle}>Не удалось загрузить</p>
-            <p className={styles.emptyBody}>
-              Список разборов не подгрузился — проверь сеть.
-            </p>
-            <button
-              type="button"
-              className={styles.retry}
-              onClick={() => refetch()}
-            >
+            <p className={styles.emptyBody}>Список разборов не подгрузился — проверь сеть.</p>
+            <button type="button" className={styles.retry} onClick={() => refetch()}>
               Повторить
             </button>
           </div>
@@ -109,19 +101,15 @@ const AnalysesSlide = ({ topBar }: Props) => {
           <div className={styles.empty}>
             <p className={styles.emptyTitle}>Разборов пока нет</p>
             <p className={styles.emptyBody}>
-              Длительный разбор смотрит на 1–5 недель сразу — еду, события и
-              выбранные гипотезы. Запусти первый кнопкой «+ Анализ».
+              Длительный разбор смотрит на 1–5 недель сразу — еду, события и выбранные гипотезы.
+              Запусти первый кнопкой «+ Анализ».
             </p>
           </div>
         ) : (
           <div className={styles.listWrap}>
             <div className={styles.listBody}>
               {analyses.map((a) => (
-                <AnalysisListItem
-                  key={a.id}
-                  analysis={a}
-                  onOpen={openDetail}
-                />
+                <AnalysisListItem key={a.id} analysis={a} onOpen={openDetail} />
               ))}
             </div>
           </div>

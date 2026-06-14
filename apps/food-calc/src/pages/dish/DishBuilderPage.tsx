@@ -13,7 +13,7 @@ import {
 } from '@/entities/dish';
 import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-name';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
-import { Screen } from '@/shared/ui/Screen';
+import { Screen, TopBarScrollHideContext, useTopBarScrollHideController } from '@/shared/ui/Screen';
 import {
   useWriteFoodFlow,
   getWriteFoodInputId,
@@ -145,6 +145,13 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
 
   const swipeableRef = useRef<SwipeableRef>(null);
+
+  // Направление-зависимое скрытие кнопок бара при скролле (см. topBarScrollHide).
+  // Экран «Разбор» прячет всё (кроме «Назад»), Ингредиенты/Порции — только
+  // настройки. Контроллер пишет в DOM императивно → zero-React-render.
+  const { shellRef, setHide, api: topBarHideApi } = useTopBarScrollHideController();
+  // Смена слайда → бар возвращается видимым (новый экран читается «с верха»).
+  const handleIndexChange = useCallback(() => setHide('none'), [setHide]);
 
   const startEdit = editFlow.startEdit;
   const handleEditQuantity = useCallback(
@@ -315,6 +322,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         dateButtonLabel={<CalendarIcon width={22} height={22} />}
         centerSlot={topBarCenterSlot}
         noInterruptGuard
+        shellRef={shellRef}
       />
       <div onFocusCapture={handleNameFocusCapture}>
         <ChangeNameModal
@@ -328,17 +336,20 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         />
       </div>
       <div className={homeStyles.swipeArea} {...navTileAnchor}>
+        <TopBarScrollHideContext.Provider value={topBarHideApi}>
         <Swipeable
           ref={swipeableRef}
           defaultSlide={DEFAULT_SLIDE}
           duration={SWIPE_DURATION}
           hasDots={false}
+          onIndexChange={handleIndexChange}
         >
           <Screen
             key={1}
             headerOverlap
             contentHeader={nameHeading}
             stickyTop={analysisIndicator}
+            topBarHide="all"
           >
             <DishAnalysisScreen dishId={id} hasIngredients={items.length > 0} />
           </Screen>
@@ -349,6 +360,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
             contentHeader={nameHeading}
             stickyTop={ingredientsIndicator}
             hollow={items.length === 0}
+            topBarHide="settings"
             headerAction={
               <SuggestActionButton
                 label="Предложить ингредиенты"
@@ -440,6 +452,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
             headerOverlap
             contentHeader={nameHeading}
             stickyTop={portionsIndicator}
+            topBarHide="settings"
             bottomBar={<AddPortionButton />}
             overlay={
               <PortionCreateModals
@@ -472,6 +485,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
             />
           </Screen>
         </Swipeable>
+        </TopBarScrollHideContext.Provider>
       </div>
     </div>
   );

@@ -10,6 +10,9 @@ type Props = {
   className?: string;
   displayClassName?: string;
   editClassName?: string;
+  /** Format the resting display string (NOT the editable value). e.g. strip the
+   *  hour's leading zero. Editing still operates on the raw "HH:MM". */
+  formatDisplay?: (value: string) => string;
 };
 
 /**
@@ -25,6 +28,7 @@ const InlineTimeEditor = ({
   className,
   displayClassName,
   editClassName,
+  formatDisplay,
 }: Props) => {
   const [editing, setEditing] = useState(false);
   const [hours, setHours] = useState(() => value.split(':')[0] ?? '00');
@@ -59,7 +63,7 @@ const InlineTimeEditor = ({
         className={clsx(styles.display, displayClassName, className)}
         onClick={() => setEditing(true)}
       >
-        {pending ?? value}
+        {formatDisplay ? formatDisplay(pending ?? value) : (pending ?? value)}
       </span>
     );
   }

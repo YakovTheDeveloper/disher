@@ -4,6 +4,7 @@
   --toast-error: #f87171;
   --toast-info: #60a5fa;
   --toast-warning: #fbbf24;
+  --toast-notify: #c4b5fd;
 }
 
 // Base toast styles — dark glass-morphism
@@ -47,6 +48,29 @@
       rgba(251, 191, 36, 0.18) 0%,
       rgba(15, 15, 15, 0.92) 60%) !important;
   border-left: 3px solid var(--toast-warning) !important;
+}
+
+// Notification variant — taller, title + description. Used for ambient nudges
+// (e.g. day-rollover «Наступил новый день»), not for inline action feedback.
+:global(.toast--notify) {
+  min-height: 72px !important;
+  padding: 18px 20px !important;
+  background: linear-gradient(135deg,
+      rgba(196, 181, 253, 0.2) 0%,
+      rgba(15, 15, 15, 0.92) 60%) !important;
+  border-left: 3px solid var(--toast-notify) !important;
+}
+
+:global(.toast--notify) :global([data-title]) {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}
+
+:global(.toast--notify) :global([data-description]) {
+  margin-top: 3px;
+  font-size: 13px !important;
+  font-weight: 450 !important;
+  color: rgba(255, 255, 255, 0.66) !important;
 }
 
 // Close button styling

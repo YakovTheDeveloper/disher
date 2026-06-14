@@ -23,6 +23,15 @@ export interface ErrorToastOptions extends ToastOptions {
     kind?: ErrorKind;
 }
 
+export interface NotifyOptions extends ToastOptions {
+    /**
+     * Subtitle (second line). Notifications carry a title + description, which
+     * makes them ~2× taller than a plain toast — the `.toast--notify` style
+     * reinforces that. Use for ambient nudges, not inline action feedback.
+     */
+    description?: string;
+}
+
 function buildAction(action?: ToastAction) {
     if (!action) return undefined;
     return {
@@ -69,6 +78,8 @@ interface ToasterAPI {
     error(message: string, options?: ErrorToastOptions): void;
     info(message: string, options?: ToastOptions): void;
     warning(message: string, options?: ToastOptions): void;
+    /** Taller notification-style toast (title + description). */
+    notify(message: string, options?: NotifyOptions): void;
 }
 
 const toaster: ToasterAPI = {
@@ -90,6 +101,16 @@ const toaster: ToasterAPI = {
 
     warning: (msg, options) =>
         toast.warning(msg, {
+            action: buildAction(options?.action),
+        }),
+
+    // Base `toast()` (default type) + `.toast--notify` class. The global
+    // `classNames.toast` ('toast') still applies, so it composes with the base
+    // glass style; `description` adds the second line.
+    notify: (msg, options) =>
+        toast(msg, {
+            className: 'toast--notify',
+            description: options?.description,
             action: buildAction(options?.action),
         }),
 };

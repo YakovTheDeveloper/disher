@@ -18,7 +18,7 @@
 
 // Ambient glow — the only colour allowed on the otherwise monochrome screen.
 // Two soft radial glows (top + bottom edges); colour comes from per-variant
-// tokens (transparent → no glow, e.g. graphite). Behind all content (z-index:-1)
+// tokens (transparent → no glow). Behind all content (z-index:-1)
 // but above .content's solid base (isolation context above).
 .ambient {
     position: absolute;
@@ -63,16 +63,40 @@
     }
 }
 
-// В потоке: единый бар SearchFoodControls (стрелка + заголовок + поиск)
-// стоит сверху, список ниже ложится сам — без абсолютного позиционирования
-// и магического padding-top-офсета. flex-shrink:0 не даёт шапке сжаться.
+// Парящая шапка (Telegram/HomeTopBar canon): бар лежит ПОВЕРХ списка
+// (`position:absolute`, z-index выше .heavyFade), список скроллится под ним.
+// `::before` — НЕ frosted (без backdrop-filter): чистый градиент-скрим в цвет
+// страницы, гаснущий книзу. Сознательный perf-выбор: backdrop-blur запускал
+// GPU-пересэмпл всего под баром НА КАЖДЫЙ кадр скролла (главный источник лагов
+// frosted-баров на мобилках); скрим — обычный градиент, ноль per-frame работы.
+// Контент уезжает под бар и растворяется в фоне (без эффекта стекла — это цена).
+// Сам градиент даёт fade, отдельная mask больше не нужна. Высоту бара меряет
+// ResizeObserver в SearchFood.tsx → `--search-header-h`; список берёт её в
+// padding-top — без магического офсета. flex-shrink:0 не нужен — бар вне потока.
 .header {
     display: flex;
     flex-direction: column;
-    flex-shrink: 0;
     z-index: 10;
-    background: transparent;
     border: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        // Плотно в цвет страницы сверху → прозрачно книзу. Скрим должен совпадать
+        // с фоном страницы (--search-bar-scrim задаётся per-variant ниже), чтобы
+        // верхняя зона была бесшовной, а строки таяли в неё.
+        background: linear-gradient(to bottom,
+                var(--search-bar-scrim, rgba(255, 255, 255, 0.92)) 0%,
+                var(--search-bar-scrim, rgba(255, 255, 255, 0.92)) 42%,
+                transparent 100%);
+        pointer-events: none;
+    }
 }
 
 .tabBar {
@@ -188,10 +212,12 @@
     padding-bottom: calc(60px + env(safe-area-inset-bottom) + 8px);
 }
 
-// Шапка теперь в потоке, поэтому офсет под абсолютную полосу больше не нужен —
-// остаётся лишь небольшой воздух между поиском и первой карточкой.
+// Бар парит поверх — резервируем под него место измеренной высотой
+// (--search-header-h от ResizeObserver) + воздух. Первая карточка садится ровно
+// под фрост-край, дальше строки скроллятся под матовый бар и тают в нём.
+// Фолбэк 72px ≈ один ряд бара, на случай первого кадра до измерения.
 .listContainerOffset {
-    padding-top: var(--space-2);
+    padding-top: calc(var(--search-header-h, 72px) + var(--space-2));
 }
 
 // Inset grouped list (Material / iOS «inset grouped»): side margins + a rounded
@@ -237,20 +263,23 @@
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// SearchMono — DesignBar-controlled monochrome tone, scoped to this screen.
-// The anchor (SearchFood.tsx → useDesignVariant('SearchMono', …)) puts
-// `data-dv='SearchMono'`/`data-dv-v` on `.content`. These rules redefine the
-// stripe-fork `--card-*` / field `--field-*` / list `--list-*` tokens (plus the
-// screen-local `--seg-*` / `--icon-btn-*` / `--search-*` tokens) on that element,
-// so they OVERRIDE the values inherited from `body[data-modal-fields]` for the
-// whole subtree — the screen no longer depends on the app-wide colour theme.
-// Global attribute selectors (un-hashed by CSS Modules), mirroring ModalShell.
+// SearchMono — monochrome tone, scoped to this screen. Folded onto `.content`
+// directly (the design-variant anchor was retired 2026-06-14 once paper-mono
+// stayed the only tone). These rules redefine the stripe-fork `--card-*` / field
+// `--field-*` / list `--list-*` tokens (plus the screen-local `--seg-*` /
+// `--icon-btn-*` / `--search-*` tokens) on `.content`, so they OVERRIDE the
+// values inherited from `body[data-modal-fields]` for the whole subtree — the
+// screen no longer depends on the app-wide colour theme.
 // ══════════════════════════════════════════════════════════════════════════
 
-// Constants shared by every monochrome variant (only the surface/ambient bits
-// vary per variant). Achromatic ink, dark press inversion, gray search field,
-// neutral segmented control + ghost icon button.
-:global([data-dv='SearchMono']) {
+// Achromatic ink, dark press inversion, gray search field, neutral segmented
+// control + ghost icon button.
+.content {
+    // Скрим парящей шапки (.header::before) — выводим из фона страницы, чтобы
+    // верхняя плотная зона была бесшовной с .listContainer, а строки таяли в неё.
+    // 92% непрозрачности: без блюра скрим обязан сам прятать контент сверху.
+    --search-bar-scrim: color-mix(in srgb, var(--search-page-bg, #f0f1f4) 92%, transparent);
+
     // Stripe-fork card ink + states (hue-free)
     --card-press-bg: linear-gradient(90deg, #1f1f1f 0%, #2a2a2a 55%, #353535 100%);
     --card-press-fg: #ffffff;
@@ -315,12 +344,14 @@
     --fse-ramp: #ece2f8;
 }
 
-// Common to both surviving variants: white card group + white field/pills on a
-// faintly-gray page (iOS «inset grouped»), with a faint lavender echo at the top
-// (kin to the lavender-cream bottom glow — HomePage puts its glow at the top, so
-// this ties the screen together). Hairline divides the white rows; rows touch.
-:global([data-dv='SearchMono'][data-dv-v='paper-mono']),
-:global([data-dv='SearchMono'][data-dv-v='graphite']) {
+// paper-mono — the only SearchMono tone (graphite retired 2026-06-14). White
+// card group + white field/pills on a faintly-gray page (iOS «inset grouped»),
+// with a faint lavender echo at the top (kin to the lavender-cream bottom glow —
+// HomePage puts its glow at the top, so this ties the screen together). Hairline
+// divides the white rows; rows touch. Richness is COLOUR (pale yellow-green) —
+// the one chromatic signal, only when a nutrient filter is on.
+.content {
+    --search-page-bg: #f0f1f4;
     --search-ambient-top: rgba(225, 215, 245, 0.32);
     --search-ambient-bottom: transparent;
     --list-bg: transparent;
@@ -338,18 +369,4 @@
     --icon-btn-border: rgba(10, 10, 10, 0.12);
     --card-group-bg: #ffffff;
     --card-group-shadow: 0 1px 5px rgba(0, 0, 0, 0.07);
-}
-
-// paper-mono (default) — softest neutral; GRAYSCALE richness (SearchFood passes
-// monoRichness for this variant). Page is faintly gray so the white group reads
-// as a distinct container.
-:global([data-dv='SearchMono'][data-dv-v='paper-mono']) {
-    --search-page-bg: #f0f1f4;
-}
-
-// graphite — same grouped list, a deeper/cooler page for more contrast, and
-// COLOUR richness (the only chromatic signal, only when a nutrient filter is on).
-:global([data-dv='SearchMono'][data-dv-v='graphite']) {
-    --search-page-bg: #e9ebef;
-    --card-hairline: rgba(0, 0, 0, 0.07);
 }

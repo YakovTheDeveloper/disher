@@ -7,6 +7,38 @@
     line-height: 1;
 }
 
+// ── vivid: энергичная заливка для пустого экрана ──────────────────────────
+// Когда разбора за день ещё нет, кнопка «Анализировать» заливается тем же
+// градиентом, что её окаёмка (peach → rose → перивинкл), но насыщеннее — и с
+// мягким цветным свечением, чтобы быть очевидным следующим шагом. Двойной класс
+// (.vivid.vivid) поднимает специфичность над `.bottomActionBar` независимо от
+// порядка CSS-модулей в бандле. Градиент в `background` токен-гейтом не
+// проверяется (канон stripe-fork); `color` берём из токена `--text-on-accent`.
+.vivid.vivid {
+    background: linear-gradient(135deg, #f6a063 0%, #e0699f 50%, #7d80ea 100%);
+    color: var(--text-on-accent);
+    box-shadow:
+        0 10px 24px -10px rgba(224, 105, 159, 0.55),
+        0 3px 8px -3px rgba(125, 128, 234, 0.45);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+// Окаёмку-кольцо заменяем тонким белым бликом сверху — «стеклянный» энергичный
+// край поверх заливки (ring-маска ::before сохраняется).
+.vivid.vivid::before {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 55%);
+    opacity: 1;
+}
+
+// Press: лёгкий поджим + затемнение градиента (вместо ink-инверсии базы).
+.vivid.vivid:active {
+    background: linear-gradient(135deg, #f6a063 0%, #e0699f 50%, #7d80ea 100%);
+    color: var(--text-on-accent);
+    transform: scale(0.97);
+    filter: brightness(0.95);
+}
+
 // Спиннер под СВЕТЛУЮ пилюлю: тёмный ink (раньше был белый под dark-pill).
 .spinner {
     --spin-track: rgba(31, 42, 68, 0.25);

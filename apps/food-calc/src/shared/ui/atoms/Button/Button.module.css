@@ -201,32 +201,30 @@
    эталон — write-поле). Высота — канон нижних действий (--bottom-action-h).
    Ширину задаёт контейнер (AppBottomBarShell: split = hug, sized = доля). */
 .bottomActionBar {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
   width: auto;
   min-height: var(--bottom-action-h);
-  padding: 0 var(--space-8);
+  padding: 0 var(--space-6);
   border-radius: 999px;
-  /* Стеклянная окаёмка: светлый кант сверху ловит свет. */
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  /* Матовое стекло: полупрозрачная белая база + ЕДВА заметный прохладный
-     градиент (голубой → зелёный → жёлтый, низкая альфа). Blur размывает фон. */
-
+  /* Окаёмку рисует градиентный ::before-ring (mask), не border. */
+  border: none;
+  /* Матовое стекло: прозрачная база + blur размывает фон. Тон даёт окаёмка. */
   -webkit-backdrop-filter: blur(14px) saturate(1.3);
   backdrop-filter: blur(14px) saturate(1.3);
-  /* Окаёмка + объём: тонкий внешний контур (чёткость на светлом баре) +
-     мягкая тень-подъём + внутренний верхний блик (стеклянная кромка). */
-  box-shadow:
-    0 0 0 0.5px rgba(31, 42, 68, 0.03),
-    0 6px 18px rgba(31, 42, 68, 0.07),
-    inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  /* Тень снята (канон 2026-06-13): объём держит градиентная окаёмка, не lift. */
+  box-shadow: none;
   color: #262626;
-  font-family: var(--heading-font);
-  font-size: var(--text-base);
-  /* Свой вес — намеренно на 100 легче общего токена бара (500 → 400). */
-  font-weight: 400;
+  /* Типографика канон-кнопки: sans (не serif-заголовок), вес 500, чуть плотнее.
+     Serif italic читался декоративно на стеклянной пилюле — кнопка ≠ заголовок. */
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  /* 15px — на ступень плотнее body-base */
+  font-weight: 500;
+  letter-spacing: -0.01em;
   line-height: 1;
   text-align: center;
   cursor: pointer;
@@ -236,19 +234,45 @@
     border-color var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default);
 
+  /* Градиентная окаёмка: тёплый peach → rose → перивинкл. Рисуется маской на
+     ::before (ring), чтобы сохранить полупрозрачную blur-базу под ней —
+     background-clip:border-box залил бы стекло и убил matte. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg,
+        rgba(243, 169, 120, 0.85) 0%,
+        rgba(221, 138, 191, 0.8) 50%,
+        rgba(146, 150, 232, 0.8) 100%);
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    transition: opacity var(--press-out) var(--easing-default);
+  }
+
   /* Не гасим прозрачностью (базовый .button:hover это делает). */
   &:hover {
     opacity: 1;
   }
 
   /* Цветной отклик (canon press-fill-ink): инверсия — ink-заливка + белый текст
-     и значок (currentColor наследуется). Эталон — нижние пилюли SearchFood. */
+     и значок (currentColor наследуется). Окаёмку прячем — чистая ink-пилюля.
+     Эталон — нижние пилюли SearchFood. */
   &:active {
     transform: scale(0.97);
     background: var(--color-ink);
-    border-color: var(--color-ink);
     color: #fff;
     transition-duration: var(--press-in);
+  }
+
+  &:active::before {
+    opacity: 0;
   }
 }
 

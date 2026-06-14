@@ -32,6 +32,11 @@ type Props = {
    * view-first hypotheses screen passes this; selection lists keep rows clean.
    */
   showMeta?: boolean;
+  /**
+   * Discrete-card row — rounded + self-shadowed, no fading hairline divider
+   * (the parent list spaces rows). Default `false` keeps the flush list look.
+   */
+  separated?: boolean;
 } & EditProps;
 
 // One hypothesis row. Two independent interactive zones, never nested:
@@ -51,6 +56,7 @@ const HypothesisListItem = ({
   hideCheckbox = false,
   isNew = false,
   showMeta = false,
+  separated = false,
 }: Props) => {
   const meta = showMeta ? relativeTimeRu(hypothesis.createdAt) : '';
   const content = (
@@ -67,6 +73,7 @@ const HypothesisListItem = ({
       data-selected={selected || undefined}
       data-no-checkbox={hideCheckbox || undefined}
       data-new={isNew || undefined}
+      data-separated={separated || undefined}
     >
       {!hideCheckbox && (
         <label className={styles.checkboxWrap}>

@@ -1,0 +1,102 @@
+// Единый ряд нутриента: имя слева · значение+юнит справа, затухающая бровка-
+// разделитель (stripe-fork rule 2 — не сплошной border). Палитра из app-wide
+// тона ModalShell (body[data-modal-fields] → --card-*). Один источник для
+// NutrientPickerDrawer (выбор богатого нутриента) и NutrientTable view-norms.
+.row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: 48px;
+    padding: var(--space-2);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    text-align: left;
+    font-family: var(--font-sans);
+
+    &::after {
+        content: '';
+        position: absolute;
+        left: var(--space-2);
+        right: var(--space-2);
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+            transparent 0%,
+            var(--card-hairline) 18%,
+            var(--card-hairline) 82%,
+            transparent 100%);
+        pointer-events: none;
+    }
+
+    &:last-child::after {
+        display: none;
+    }
+}
+
+// Кликабельный ряд (пикер) — цветной press как у list-item.
+.clickable {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background var(--duration-fast) var(--easing-default);
+
+    &:active {
+        background: var(--card-hover);
+    }
+}
+
+.name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--text-base);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: var(--card-text-rest);
+}
+
+.right {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+
+// Число — герой, юнит уходит ПОД него (absolute), чтобы правый край ЧИСЕЛ встал
+// в один ровный столбик независимо от ширины юнита (г / мг / ккал).
+.rightStacked {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+
+    .unit {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 1px;
+        font-size: var(--text-xs);
+        font-weight: 500;
+        opacity: 0.7;
+    }
+}
+
+.value {
+    font-size: var(--text-base);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+    line-height: 1.1;
+    color: var(--card-text-rest);
+}
+
+.unit {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--card-rich-unit);
+}

@@ -1,4 +1,6 @@
 .block {
+    // Стандартный form-инпут — мягкий прямоугольник (12px), не поисковая пилюля.
+    --field-radius: var(--radius-md);
     display: flex;
     flex-direction: column;
     gap: var(--space-2);

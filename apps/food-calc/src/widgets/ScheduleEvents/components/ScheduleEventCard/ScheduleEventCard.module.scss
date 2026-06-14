@@ -8,7 +8,7 @@
 
 .time {
   grid-row: 1 / -1;
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
   cursor: pointer;
   align-self: center;
@@ -41,11 +41,39 @@
 
   .time {
     position: absolute;
-    right: calc(100% + var(--space-2));
+    right: calc(100% + var(--space-3));
     top: 50%;
     transform: translateY(-50%);
-    font-size: var(--text-base);
-    color: var(--text-muted);
+    font-size: var(--text-sm);
+    // Fixed page-context ink, NOT the card's --text-* tokens — a dark event
+    // palette would otherwise paint the gutter time white on the light page.
+    color: var(--color-light-gray);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// ── corner-time (RowBoundary variant): Telegram-style — a tiny muted time
+//    stamped in the card's bottom-right corner (mirrors ScheduleFoodItemInline).
+:global([data-dv='RowBoundary'][data-dv-v='corner-time']) {
+  .row {
+    grid-template-columns: 1fr;
+    padding-bottom: var(--space-4);
+  }
+
+  .text,
+  .atomsZone {
+    grid-column: 1;
+  }
+
+  .time {
+    position: absolute;
+    right: var(--space-3);
+    bottom: 2px;
+    top: auto;
+    transform: none;
+    font-size: var(--text-xs);
+    color: var(--color-light-gray);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
@@ -75,6 +103,12 @@
 
 .atomsZoneEmpty {
   opacity: 0.4;
+}
+
+// Dedup: an event whose time equals the row above is heavily faded (not gone)
+// so you can still glance-confirm it — see ScheduleFoodItemInline `.timeDup`.
+.timeDup {
+  opacity: 0.3;
 }
 
 .atomsPlaceholder {

@@ -8,10 +8,10 @@ const HYPS: Hypothesis[] = [
   { id: '1', title: 'Гипотеза A', body: '', createdAt: '2026-06-09T00:00:00.000Z' },
 ];
 
-// The scrollBody carries the `data-dv` anchor attribute — it is the element
-// whose inline maxHeight / flow class encodes the bounded-vs-flow contract.
+// The scrollBody is the element whose inline maxHeight / flow class encodes the
+// bounded-vs-flow contract (tagged with a stable testid).
 function scrollBody(container: HTMLElement): HTMLElement {
-  return container.querySelector('[data-dv]') as HTMLElement;
+  return container.querySelector('[data-testid="hypothesis-scroll-body"]') as HTMLElement;
 }
 
 describe('HypothesisListPanel scroll mode', () => {

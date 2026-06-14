@@ -3,6 +3,7 @@ import { requireUser } from "../../auth/require-user.js";
 import {
   ANALYSIS_OUTPUT_PROMPT_SPEC,
   DISH_DETAILS_INSTRUCTION,
+  ISOLATED_FOOD_INSIGHT_INSTRUCTION,
   NUTRIENT_ANCHOR_INSTRUCTION,
   asNutrientLines,
   nutrientLineToken,
@@ -67,9 +68,11 @@ ${DISH_DETAILS_INSTRUCTION}
 
 ${NUTRIENT_ANCHOR_INSTRUCTION}
 
+${ISOLATED_FOOD_INSIGHT_INSTRUCTION}
+
 ${ANALYSIS_OUTPUT_PROMPT_SPEC}
 
-Окно — это один день, поэтому evidence.days у каждого наблюдения — просто этот день.`;
+Окно — это один день, поэтому evidence.days у наблюдений по событиям дня — просто этот день. Для наблюдений по составу еды (синергии/антагонизмы нутриентов) evidence.days может быть пустым, но evidence.foods обязателен.`;
 
 type HypothesisInput = { title: string; body: string };
 

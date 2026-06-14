@@ -1,4 +1,9 @@
-export { runDishAnalysis, streamDishAnalysis, buildDishAnalysisPayload } from './runDishAnalysis';
+export {
+  runDishAnalysis,
+  requestDishAnalysis,
+  buildDishAnalysisPayload,
+} from './runDishAnalysis';
+export type { DishAnalysisResult } from './runDishAnalysis';
 export { useDishAnalysis } from './queries';
 export {
   getDishAnalysis,

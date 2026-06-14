@@ -10,8 +10,13 @@ import styles from './AnalysesPage.module.scss';
 const AnalysesPage = () => {
   return (
     <div className={styles.ambient}>
+      {/* HomeTopBar — page-level floating bar (absolute over `.ambient`), как на
+          Dish/Home. В `Screen.stickyTop` его absolute-shell схлопывался и уезжал
+          под `.headerOverlap` (z-index:1). `.swipeArea` резервирует высоту бара
+          паддингом, чтобы лист стартовал под ним. */}
+      <AnalysesTopBar />
       <div className={styles.swipeArea}>
-        <AnalysesSlide topBar={<AnalysesTopBar />} />
+        <AnalysesSlide />
       </div>
     </div>
   );

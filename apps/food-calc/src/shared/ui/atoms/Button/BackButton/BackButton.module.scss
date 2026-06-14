@@ -10,12 +10,12 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   padding: 0;
   border: var(--bar-border, none);
   border-radius: var(--radius-full);
-  background: var(--bar-bg, rgba(255, 255, 255, 0.6));
+  background: var(--bar-bg, rgba(255, 255, 255, 1));
   box-shadow: var(--bar-shadow, none);
   backdrop-filter: blur(var(--bar-blur, 0));
   -webkit-backdrop-filter: blur(var(--bar-blur, 0));
@@ -29,10 +29,12 @@
     color var(--press-out) var(--easing-default),
     transform var(--press-out) var(--easing-default);
 
-  // Цветной отклик: на нажатии глиф ‹ темнеет до ink + лёгкий тинт-фон.
+  // Инверсия (канон 2026-06-14): круглый шеврон-в-подложке на press заливается
+  // ink, глиф ‹ белеет. Шеврон с подложкой инверсирует (в отличие от голого ×
+  // в шапке дровера — там подложки нет, см. tds/button-press-unification).
   &:active {
-    background: var(--press-tint-bg, rgba(0, 0, 0, 0.06));
-    color: var(--color-ink);
+    background: var(--color-ink);
+    color: var(--text-on-accent, #fff);
     transform: scale(0.94);
     transition-duration: var(--press-in);
   }

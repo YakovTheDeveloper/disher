@@ -6,10 +6,10 @@
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--space-3);
   width: 100%;
   min-height: 50px;
-  padding: 0 16px;
+  padding: 0 var(--space-4);
   border-radius: var(--field-radius, 24px);
   background: linear-gradient(90deg,
       var(--field-bg-from, #fffefb) 0%,

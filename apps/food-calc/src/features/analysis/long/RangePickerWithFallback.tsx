@@ -1,18 +1,16 @@
-import { memo, useState } from 'react';
-import { DayPicker } from 'react-day-picker';
+import { memo } from 'react';
+import { format, isValid, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { format, isValid, parseISO, startOfDay, subDays } from 'date-fns';
-import 'react-day-picker/style.css';
+import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
 import {
-  MAX_RETRO_DAYS,
-  MIN_WINDOW_DAYS,
   MAX_WINDOW_DAYS,
-  RANGE_PRESETS,
+  MIN_WINDOW_DAYS,
+  endsInFuture,
   isValidWindow,
-  toKey,
   windowSpanDays,
   type DateRange,
 } from './range';
+import MaskedDateInput from './MaskedDateInput';
 import styles from './RangePickerWithFallback.module.scss';
 
 function formatHuman(key: string): string {
@@ -20,142 +18,69 @@ function formatHuman(key: string): string {
   return isValid(d) ? format(d, 'd MMMM', { locale: ru }) : key;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────
+const START_ID = 'long-analysis-window-start';
+const END_ID = 'long-analysis-window-end';
 
 type Props = {
   value: DateRange;
   onChange: (next: DateRange) => void;
 };
 
-// Long-analysis window picker. Two interchangeable surfaces:
-//   - «calendar» — preset span chips + a react-day-picker for the end date
-//     (the span is preserved when the end date moves);
-//   - «native»  — two plain <input type="date"> for a hand-picked range.
-// Either way it emits a DateRange; the host validates the span via
-// isValidWindow before enabling submit.
+// Long-analysis window picker — two manual DD-MM-YYYY masked fields. The
+// «Календарь / Вручную» toggle (and the react-day-picker surface) was removed
+// 2026-06-13: one manual surface, app-owned date format. The host validates the
+// span (7..35 days, end ≥ start, end ≤ today) before enabling submit.
 const RangePickerWithFallback = ({ value, onChange }: Props) => {
-  const [mode, setMode] = useState<'calendar' | 'native'>('calendar');
-
-  const today = startOfDay(new Date());
-  const todayKey = toKey(today);
   const span = windowSpanDays(value);
-  const endDate = parseISO(value.end);
-
-  // Calendar: tapping a preset keeps the end date, recomputes the start.
-  // `days` is an INCLUSIVE day count, so the start sits `days − 1` back —
-  // a «7 дней» preset really covers 7 dates, not 8.
-  function applyPreset(days: number) {
-    const end = isValid(endDate) ? endDate : today;
-    onChange({ start: toKey(subDays(end, days - 1)), end: toKey(end) });
-  }
-
-  // Calendar: picking an end date keeps the current span (default 14).
-  function pickEnd(date: Date | undefined) {
-    if (!date) return;
-    const keepSpan =
-      Number.isFinite(span) && span >= 1 ? span : 14;
-    const end = startOfDay(date);
-    onChange({ start: toKey(subDays(end, keepSpan - 1)), end: toKey(end) });
-  }
+  const spanKnown = Number.isFinite(span);
+  const future = endsInFuture(value);
 
   return (
     <div className={styles.root}>
-      <div className={styles.modeToggle}>
-        <button
-          type="button"
-          className={mode === 'calendar' ? styles.modeActive : styles.modeTab}
-          onClick={() => setMode('calendar')}
-        >
-          Календарь
-        </button>
-        <button
-          type="button"
-          className={mode === 'native' ? styles.modeActive : styles.modeTab}
-          onClick={() => setMode('native')}
-        >
-          Вручную
-        </button>
-      </div>
-
-      {mode === 'calendar' ? (
-        <>
-          <div className={styles.presets}>
-            {RANGE_PRESETS.map((p) => (
-              <button
-                key={p}
-                type="button"
-                className={
-                  span === p ? styles.presetActive : styles.preset
-                }
-                onClick={() => applyPreset(p)}
-              >
-                {p} дней
-              </button>
-            ))}
-          </div>
-          <div className={styles.calendarWrap}>
-            <DayPicker
-              mode="single"
-              locale={ru}
-              selected={isValid(endDate) ? endDate : undefined}
-              onSelect={pickEnd}
-              disabled={{
-                before: subDays(today, MAX_RETRO_DAYS),
-                after: today,
-              }}
-              defaultMonth={isValid(endDate) ? endDate : today}
-            />
-          </div>
-        </>
-      ) : (
-        <div className={styles.nativeRow}>
-          <label className={styles.nativeField}>
-            <span className={styles.nativeLabel}>Начало</span>
-            <input
-              type="date"
-              className={styles.nativeInput}
-              value={value.start}
-              max={value.end || todayKey}
-              onChange={(e) =>
-                onChange({ ...value, start: e.target.value })
-              }
-              data-base-ui-swipe-ignore
-            />
-          </label>
-          <label className={styles.nativeField}>
-            <span className={styles.nativeLabel}>Конец</span>
-            <input
-              type="date"
-              className={styles.nativeInput}
-              value={value.end}
-              max={todayKey}
-              onChange={(e) => onChange({ ...value, end: e.target.value })}
-              data-base-ui-swipe-ignore
-            />
-          </label>
+      <div className={styles.fieldRow}>
+        <div className={styles.field}>
+          <FieldLabel htmlFor={START_ID}>Начало</FieldLabel>
+          <MaskedDateInput
+            id={START_ID}
+            className={styles.input}
+            value={value.start}
+            onChange={(start) => onChange({ ...value, start })}
+          />
         </div>
-      )}
+        <div className={styles.field}>
+          <FieldLabel htmlFor={END_ID}>Конец</FieldLabel>
+          <MaskedDateInput
+            id={END_ID}
+            className={styles.input}
+            value={value.end}
+            onChange={(end) => onChange({ ...value, end })}
+          />
+        </div>
+      </div>
 
       <p
         className={
-          isValidWindow(value)
+          spanKnown && isValidWindow(value) && !future
             ? styles.summary
             : `${styles.summary} ${styles.summaryInvalid}`
         }
       >
-        {Number.isFinite(span) ? (
+        {spanKnown ? (
           <>
             {formatHuman(value.start)} — {formatHuman(value.end)}
             <span className={styles.summarySpan}> · {span} дней</span>
           </>
         ) : (
-          'Выбери даты окна'
+          'Введи даты окна'
         )}
-        {Number.isFinite(span) && !isValidWindow(value) && (
+        {spanKnown && !isValidWindow(value) && (
           <span className={styles.summaryHint}>
             {' '}
             — окно должно быть от {MIN_WINDOW_DAYS} до {MAX_WINDOW_DAYS} дней
           </span>
+        )}
+        {spanKnown && isValidWindow(value) && future && (
+          <span className={styles.summaryHint}> — конец не может быть в будущем</span>
         )}
       </p>
     </div>

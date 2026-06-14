@@ -1,19 +1,97 @@
 // Shared layout for a finished structured analysis. Visual surface lives in
-// the child cards (InsightCard / HypothesisCard); this is just rhythm between
-// the three blocks. Local custom properties keep it token-gate compliant.
+// the child cards (InsightCard / HypothesisCard); this file owns rhythm between
+// the blocks AND the `Analysis` design-variant contract — the `--ax-*` custom
+// props that BOTH card modules consume. Local custom properties keep it
+// token-gate compliant.
 .root {
-    --ar-ink-soft: rgba(40, 40, 40, 0.55);
-    --ar-fs-section: 12.5px;
-    --ar-fs-summary: 13.5px;
-
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-5);
 }
 
+// Две pearl-плашки (Наблюдения / Гипотезы) — несёт valence-anchor `Insight`.
+.sections {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+// ─── `Analysis` design-variant contract ────────────────────────────────────
+// Base = вариант 'hairline' (дефолт): плоский текст, строки встык, разделены
+// канон-бровкой (fading hairline). Каждый вариант ниже переопределяет дельту.
+// Карточки читают эти `--ax-*` в своих base-правилах (InsightCard /
+// HypothesisCard), поэтому один тумблер restyle'ит весь разбор.
+:global([data-dv='Analysis']) {
+    --ax-list-gap: 0px;
+    --ax-pad-y: 14px;
+    --ax-pad-x: 16px;
+    --ax-card-bg: transparent;
+    --ax-card-radius: 0px;
+    --ax-card-shadow: none;
+    --ax-accent-w: 0px;
+    // Бровка: тающая волосяная линия по канону design-DNA.
+    --ax-divider: linear-gradient(90deg,
+            transparent 0%,
+            color-mix(in srgb, var(--card-text-rest) 14%, transparent) 18%,
+            color-mix(in srgb, var(--card-text-rest) 14%, transparent) 82%,
+            transparent 100%);
+}
+
+// rail — тонкая нейтральная левая полоса несёт силу связи; линий нет.
+:global([data-dv='Analysis'][data-dv-v='rail']) {
+    --ax-list-gap: 6px;
+    --ax-pad-x: 14px;
+    --ax-accent-w: 3px;
+    --ax-divider: transparent;
+}
+
+// inset — едва уловимый нейтральный wash + мягкий радиус. Текстура без линий.
+:global([data-dv='Analysis'][data-dv-v='inset']) {
+    --ax-list-gap: 8px;
+    --ax-pad-y: 12px;
+    --ax-card-bg: color-mix(in srgb, var(--card-text-rest) 4%, transparent);
+    --ax-card-radius: var(--radius-md);
+    --ax-divider: transparent;
+}
+
+// card — возвращённая белая приподнятая карточка (сравнить flat↔card свайпом).
+:global([data-dv='Analysis'][data-dv-v='card']) {
+    --ax-list-gap: 10px;
+    --ax-card-bg: #ffffff;
+    --ax-card-radius: var(--radius-md);
+    --ax-card-shadow:
+        0 1px 2px rgba(31, 42, 68, 0.04),
+        0 6px 16px -12px rgba(31, 42, 68, 0.22);
+    --ax-divider: transparent;
+}
+
+// ─── Резюме разбора ────────────────────────────────────────────────────────
+// Lead-абзац над первой плашкой. Тихий левый акцент (тающий 2px) привязывает
+// его к монохромному «rail»-языку — раньше абзац висел в воздухе между дилом и
+// плашкой. Локальный --ar-lead-radius держит token-gate (border-radius gated).
 .summary {
-    font-size: var(--ar-fs-summary);
-    line-height: 1.55;
+    --ar-lead-radius: 2px;
+
+    position: relative;
+    font-size: var(--text-base);
+    line-height: 1.6;
+    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-5);
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: var(--space-3);
+        top: 5px;
+        bottom: 5px;
+        width: 2px;
+        border-radius: var(--ar-lead-radius);
+        background: linear-gradient(180deg,
+                transparent 0%,
+                color-mix(in srgb, var(--card-text-rest) 22%, transparent) 18%,
+                color-mix(in srgb, var(--card-text-rest) 22%, transparent) 82%,
+                transparent 100%);
+        pointer-events: none;
+    }
 
     :global(p) {
         margin: 0 0 8px;
@@ -24,22 +102,47 @@
     }
 }
 
-.block {
+// Дом (`summaryCard`): summary внутри pearl-плашки SheetCard — своя секция-
+// подложка, в один ряд с «Наблюдениями» и «Гипотезами». Левый акцент `.summary`
+// тут не нужен (он привязывал «висящий» lead-абзац к rail-языку); плашка сама
+// несёт поверхность. Верхний воздух больше, т.к. у summary-плашки нет
+// header-слота. Горизонтальный inset совпадает с `.list` внутри SheetCard.
+.summaryBody {
+    font-size: var(--text-base);
+    line-height: 1.6;
+    padding: var(--space-5) var(--space-3) var(--space-4);
+
+    :global(p) {
+        margin: 0 0 8px;
+    }
+
+    :global(p:last-child) {
+        margin-bottom: 0;
+    }
+}
+
+// Заголовки секций («Наблюдения» / «Гипотезы») на доме владеет SheetCard
+// (header-проп) — общий стиль с предложкой. В bare-режиме (длинная модалка, без
+// плашки) — секция с канон-заголовком <Heading size="drawer"> (serif italic).
+.bareBlock {
     display: flex;
     flex-direction: column;
-    gap: 8px;
 }
 
-.blockTitle {
-    margin: 0;
-    font-size: var(--ar-fs-section);
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    color: var(--ar-ink-soft);
+.bareHead {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: var(--space-4);
 }
 
-// Cards stack flush — each card owns its own first/last radius + hairline.
+// Список карточек внутри pearl-плашки SheetCard: горизонтальный инсет от краёв
+// плашки + нижний воздух. Зазор между строками — от активного варианта
+// (`--ax-list-gap`: 0 у hairline = встык, >0 у rail/inset/card). В bare-режиме
+// тот же список сидит в padding'е модалки.
 .list {
     display: flex;
     flex-direction: column;
+    gap: var(--ax-list-gap, 0px);
+    padding: 0 var(--space-3) var(--space-3);
 }

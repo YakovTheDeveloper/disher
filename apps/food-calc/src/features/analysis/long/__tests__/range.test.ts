@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { subDays, parseISO } from 'date-fns';
+import { addDays, format, startOfDay, subDays, parseISO } from 'date-fns';
 import {
   RANGE_PRESETS,
   MIN_WINDOW_DAYS,
   MAX_WINDOW_DAYS,
   windowSpanDays,
   isValidWindow,
+  endsInFuture,
   rangeDayKeys,
   defaultRange,
   toKey,
@@ -90,5 +91,30 @@ describe('defaultRange', () => {
     const r = defaultRange();
     expect(windowSpanDays(r)).toBe(14);
     expect(isValidWindow(r)).toBe(true);
+  });
+
+  it('does not end in the future', () => {
+    expect(endsInFuture(defaultRange())).toBe(false);
+  });
+});
+
+describe('endsInFuture', () => {
+  const key = (d: Date) => format(d, 'yyyy-MM-dd');
+  const today = startOfDay(new Date());
+
+  it('is false when the window ends today', () => {
+    expect(endsInFuture({ start: '2020-01-01', end: key(today) })).toBe(false);
+  });
+
+  it('is false when the window ends in the past', () => {
+    expect(endsInFuture({ start: '2020-01-01', end: key(subDays(today, 3)) })).toBe(false);
+  });
+
+  it('is true when the end sits one day ahead of today', () => {
+    expect(endsInFuture({ start: '2020-01-01', end: key(addDays(today, 1)) })).toBe(true);
+  });
+
+  it('is false for an unparseable end', () => {
+    expect(endsInFuture({ start: '2020-01-01', end: '' })).toBe(false);
   });
 });
