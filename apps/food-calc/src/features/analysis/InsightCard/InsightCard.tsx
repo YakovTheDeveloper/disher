@@ -90,7 +90,7 @@ const InsightCard = ({
     try {
       await saveInsight({ title, detail, valence, strength, evidence, source });
       setAdded(true);
-      toast.success('Инсайт добавлен к тебе');
+      toast.success('Инсайт сохранён');
     } catch (err) {
       console.error('save insight failed', err);
       toast.error('Не удалось добавить инсайт');
@@ -141,13 +141,13 @@ const InsightCard = ({
             onClick={handleAdd}
             disabled={added || saving}
             data-added={added || undefined}
-            aria-label={added ? 'Добавлено к себе' : 'Добавить к себе'}
+            aria-label={added ? 'Инсайт сохранён' : 'Сохранить инсайт'}
           >
             {added ? (
-              '✓ добавлено'
+              '✓ сохранено'
             ) : (
               <>
-                <PlusIcon aria-hidden />к себе
+                <PlusIcon aria-hidden />Сохранить инсайт
               </>
             )}
           </button>

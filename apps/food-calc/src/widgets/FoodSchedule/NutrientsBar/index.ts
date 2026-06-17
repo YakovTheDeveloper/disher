@@ -1,0 +1,1 @@
+export { NutrientsBar } from './NutrientsBar';

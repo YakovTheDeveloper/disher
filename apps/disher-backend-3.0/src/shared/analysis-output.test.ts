@@ -18,6 +18,7 @@ describe("ANALYSIS_OUTPUT_PROMPT_SPEC", () => {
     // Serves as a tripwire: if anyone renames a field in the spec without
     // updating the parser (or vice versa), this test fails.
     expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("summary");
+    expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("observations");
     expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("insights");
     expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("hypotheses");
     expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("evidence");
@@ -94,47 +95,68 @@ describe("nutrientLineToken", () => {
   });
 });
 
-const INSIGHT = {
+// A neutral pattern — belongs in `observations` (no valence). Fed under
+// `insights`, the parser demotes it here too (a neutral insight is a category
+// error).
+const OBSERVATION = {
   title: "Поздние ужины",
   detail: "Ужин после 21:00 в части дней.",
   strength: "moderate",
   evidence: { days: ["09-06-2026", "10-06-2026"], events: ["усталость"] },
 };
 
+// A valenced takeaway — belongs in `insights` (good/bad, worth keeping).
+const INSIGHT = {
+  title: "Железо + витамин C",
+  detail: "Витамин C улучшает усвоение железа.",
+  valence: "positive",
+  strength: "clear",
+  evidence: { days: [], foods: ["говядина", "болгарский перец"] },
+};
+
 describe("tryParseOutput — happy path", () => {
-  it("clean JSON with summary + insight + hypothesis", () => {
+  it("clean JSON with summary + observation + insight + hypothesis", () => {
     const out = tryParseOutput(
       JSON.stringify({
         summary: "## разбор\nтекст",
+        observations: [OBSERVATION],
         insights: [INSIGHT],
         hypotheses: [{ title: "молочка", body: "убрать на 7 дней", suggestedDays: 7 }],
       }),
     );
     expect(out).toEqual({
       summary: "## разбор\nтекст",
-      insights: [
+      observations: [
         {
           title: "Поздние ужины",
           detail: "Ужин после 21:00 в части дней.",
-          valence: "neutral",
           strength: "moderate",
           evidence: { days: ["09-06-2026", "10-06-2026"], events: ["усталость"] },
+        },
+      ],
+      insights: [
+        {
+          title: "Железо + витамин C",
+          detail: "Витамин C улучшает усвоение железа.",
+          valence: "positive",
+          strength: "clear",
+          evidence: { days: [], foods: ["говядина", "болгарский перец"] },
         },
       ],
       hypotheses: [{ title: "молочка", body: "убрать на 7 дней", suggestedDays: 7 }],
     });
   });
 
-  it("empty insights/hypotheses arrays are valid", () => {
+  it("empty observations/insights/hypotheses arrays are valid", () => {
     const out = tryParseOutput(
-      JSON.stringify({ summary: "мало данных", insights: [], hypotheses: [] }),
+      JSON.stringify({ summary: "мало данных", observations: [], insights: [], hypotheses: [] }),
     );
-    expect(out).toEqual({ summary: "мало данных", insights: [], hypotheses: [] });
+    expect(out).toEqual({ summary: "мало данных", observations: [], insights: [], hypotheses: [] });
   });
 
-  it("missing insights/hypotheses entirely default to empty", () => {
+  it("missing observations/insights/hypotheses entirely default to empty", () => {
     const out = tryParseOutput(JSON.stringify({ summary: "ok" }));
-    expect(out).toEqual({ summary: "ok", insights: [], hypotheses: [] });
+    expect(out).toEqual({ summary: "ok", observations: [], insights: [], hypotheses: [] });
   });
 
   it("coerces unknown strength to weak", () => {
@@ -159,18 +181,68 @@ describe("tryParseOutput — happy path", () => {
     );
     expect(out?.insights.map((i) => i.valence)).toEqual(["positive", "negative"]);
   });
+});
 
-  it("coerces a missing or unknown valence to neutral", () => {
+describe("tryParseOutput — observations + neutral-insight demotion", () => {
+  it("parses neutral observations with no valence field", () => {
+    const out = tryParseOutput(
+      JSON.stringify({ summary: "s", observations: [OBSERVATION] }),
+    );
+    expect(out?.insights).toEqual([]);
+    expect(out?.observations).toEqual([
+      {
+        title: "Поздние ужины",
+        detail: "Ужин после 21:00 в части дней.",
+        strength: "moderate",
+        evidence: { days: ["09-06-2026", "10-06-2026"], events: ["усталость"] },
+      },
+    ]);
+  });
+
+  it("ignores a stray valence on an observation entry", () => {
+    const out = tryParseOutput(
+      JSON.stringify({
+        summary: "s",
+        observations: [{ ...OBSERVATION, valence: "positive" }],
+      }),
+    );
+    // @ts-expect-error — observations never carry a valence field
+    expect(out?.observations[0]?.valence).toBeUndefined();
+  });
+
+  it("demotes a neutral / missing / unknown-valence insight into observations", () => {
     const out = tryParseOutput(
       JSON.stringify({
         summary: "s",
         insights: [
-          { ...INSIGHT }, // no valence field
-          { ...INSIGHT, valence: "spicy" }, // unknown value
+          { ...INSIGHT, valence: undefined }, // no valence → demoted
+          { ...INSIGHT, valence: "spicy" }, // unknown → demoted
         ],
       }),
     );
-    expect(out?.insights.map((i) => i.valence)).toEqual(["neutral", "neutral"]);
+    expect(out?.insights).toEqual([]);
+    expect(out?.observations).toHaveLength(2);
+    // The demoted entry loses the valence field entirely.
+    expect(out?.observations[0]).toEqual({
+      title: "Железо + витамин C",
+      detail: "Витамин C улучшает усвоение железа.",
+      strength: "clear",
+      evidence: { days: [], foods: ["говядина", "болгарский перец"] },
+    });
+  });
+
+  it("keeps explicit observations first, demoted insights after", () => {
+    const out = tryParseOutput(
+      JSON.stringify({
+        summary: "s",
+        observations: [OBSERVATION],
+        insights: [{ ...INSIGHT, valence: undefined }], // neutral → demoted
+      }),
+    );
+    expect(out?.observations.map((o) => o.title)).toEqual([
+      "Поздние ужины", // explicit observation
+      "Железо + витамин C", // demoted insight
+    ]);
   });
 });
 
@@ -252,12 +324,12 @@ describe("tryParseOutput — grounding gate (insight needs days OR foods)", () =
         summary: "s",
         insights: [
           INSIGHT,
-          { title: "no days", detail: "d", strength: "weak", evidence: {} },
+          { title: "no days", detail: "d", valence: "negative", strength: "weak", evidence: {} },
         ],
       }),
     );
     expect(out?.insights).toHaveLength(1);
-    expect(out?.insights[0]?.title).toBe("Поздние ужины");
+    expect(out?.insights[0]?.title).toBe("Железо + витамин C");
   });
 
   it("filters non-string day entries, dropping insight if none survive", () => {
@@ -286,7 +358,7 @@ describe("tryParseOutput — malformed entries (drop, don't crash)", () => {
     const out = tryParseOutput(
       JSON.stringify({
         summary: "s",
-        insights: [{ title: "t", detail: "d", strength: "weak", evidence: { days: ["x"], foods: [], events: [] } }],
+        insights: [{ title: "t", detail: "d", valence: "negative", strength: "weak", evidence: { days: ["x"], foods: [], events: [] } }],
       }),
     );
     expect(out?.insights[0]?.evidence).toEqual({ days: ["x"] });

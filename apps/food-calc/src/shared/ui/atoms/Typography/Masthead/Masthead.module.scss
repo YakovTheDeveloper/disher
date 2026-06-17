@@ -1,0 +1,49 @@
+// Apple «Large Title» шапка слайда — крупный жирный sans-заголовок с тающей
+// волосяной бровкой снизу. Канон шапок слайдов HomePage (Анализ / Еда и
+// нутриенты / События дня): один голос на всех трёх. Вынесен из Laboratory
+// DailyAnalysisSection. Самодостаточен — несёт свою типографику и бровку, не
+// завязан на контекст-лист: `--ap-inset` уважается, если задан листом
+// (`.ambientSheet` — слайд «Анализ» равняет заголовок по тексту разбора), иначе
+// заголовок прижат к левому краю листа (слайды Еда/События).
+.masthead {
+    position: relative;
+    padding: var(--space-2) var(--ap-inset, 0) var(--space-4);
+    // Отступ до контента ниже принадлежит масштхеду (бровке), НЕ родительскому
+    // gap'у — так интервал одинаков на всех слайдах HomePage (Анализ/Еда/События),
+    // где консумеры кладут масштхед в разные контейнеры.
+    margin-bottom: var(--space-3);
+
+    // Тающая волосяная бровка (как hairline под nav-bar'ом) — отделяет масштхед
+    // от первого абзаца. Левый край по `--ap-inset`, цвет — чернила листа.
+    &::after {
+        content: '';
+        position: absolute;
+        left: var(--ap-inset, 0);
+        right: var(--space-3);
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+                transparent 0%,
+                color-mix(in srgb, var(--card-text-rest, var(--color-ink)) 14%, transparent) 18%,
+                color-mix(in srgb, var(--card-text-rest, var(--color-ink)) 14%, transparent) 82%,
+                transparent 100%);
+        pointer-events: none;
+    }
+}
+
+// Apple Large Title: крупный жирный SANS с тугим трекингом (SF Pro на Apple-
+// устройствах, Onest fallback вне), НЕ serif-канон — крупный bold-grotesque
+// читается как Apple Large Title.
+.title {
+    --masthead-font: -apple-system, BlinkMacSystemFont, 'Onest', 'Golos Text', system-ui, sans-serif;
+    --masthead-fs: 32px;
+
+    margin: 0;
+    font-family: var(--masthead-font);
+    font-style: normal;
+    font-weight: 700;
+    font-size: var(--masthead-fs);
+    letter-spacing: -0.022em;
+    line-height: 1.05;
+    color: var(--color-ink);
+}

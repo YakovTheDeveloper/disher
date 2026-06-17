@@ -24,7 +24,7 @@ const HypothesisCard = ({ hypothesis }: Props) => {
     try {
       await saveHypothesis({ title, body });
       setAdded(true);
-      toast.success('Гипотеза добавлена к тебе');
+      toast.success('Гипотеза сохранена');
     } catch (err) {
       console.error('save hypothesis failed', err);
       toast.error('Не удалось добавить гипотезу');
@@ -50,13 +50,13 @@ const HypothesisCard = ({ hypothesis }: Props) => {
         onClick={handleAdd}
         disabled={added || saving}
         data-added={added || undefined}
-        aria-label={added ? 'Добавлено к себе' : 'Добавить к себе'}
+        aria-label={added ? 'Гипотеза сохранена' : 'Сохранить гипотезу'}
       >
         {added ? (
-          '✓ добавлено'
+          '✓ сохранено'
         ) : (
           <>
-            <PlusIcon aria-hidden />к себе
+            <PlusIcon aria-hidden />Сохранить гипотезу
           </>
         )}
       </button>

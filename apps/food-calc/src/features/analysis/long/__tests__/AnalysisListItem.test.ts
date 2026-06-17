@@ -9,6 +9,7 @@ function mk(over: Partial<Analysis>): Analysis {
     windowStart: '2026-05-01T00:00:00Z',
     windowEnd: '2026-05-08T00:00:00Z',
     summary: '',
+    observations: [],
     insights: [],
     hypotheses: [],
     appliedHypotheses: [],

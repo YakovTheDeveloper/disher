@@ -82,6 +82,8 @@ type AnalysisRow = {
   result_md: string;
   idea_cards: unknown;
   insights: unknown;
+  /** Neutral read-only patterns (reference) — distinct from saveable insights. */
+  observations: unknown;
   /** Snapshot of {id,title,body}[] the user ticked when starting the job. */
   applied_hypotheses: unknown;
   created_at: Date;
@@ -101,6 +103,7 @@ function serialiseRow(row: AnalysisRow) {
     result_md: row.result_md,
     idea_cards: row.idea_cards,
     insights: row.insights,
+    observations: row.observations,
     applied_hypotheses: row.applied_hypotheses,
     created_at: row.created_at.toISOString(),
   };
@@ -220,11 +223,12 @@ export async function analyzeRoutes(
         | "result_md"
         | "idea_cards"
         | "insights"
+        | "observations"
         | "applied_hypotheses"
       >
     >(
       `select id, window_start, window_end, created_at,
-              result_md, idea_cards, insights, applied_hypotheses
+              result_md, idea_cards, insights, observations, applied_hypotheses
        from public.analyses
        where user_id = $1::uuid
        order by created_at desc
@@ -240,6 +244,7 @@ export async function analyzeRoutes(
         result_md: row.result_md,
         idea_cards: row.idea_cards,
         insights: row.insights,
+        observations: row.observations,
         applied_hypotheses: row.applied_hypotheses,
       })),
     });

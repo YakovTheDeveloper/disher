@@ -1,4 +1,5 @@
 @import '@/shared/assets/style/design-variant-palettes.scss';
+@import '@/shared/assets/style/mixin.scss';
 
 // `dv-text` mixin + `$dv-text-*` maps now live in design-variant-palettes.scss
 // so ScheduleEvents shares the exact same foreground system.
@@ -10,20 +11,19 @@
   gap: var(--space-3);
 }
 
-// Нейтральный серый wash сверху headerOverlap'а — даёт «Пятнице» лёгкую
-// поверхность под собой (раньше текст лежал на плоском white и сливался
-// с белым `stickyTop`-ом сверху). Без своего тона: палитра экрана приходит
-// из app-wide варианта (body[data-modal-fields]), дублировать на «листе» не надо.
-// День недели уехал в HomeTopBar; watermark-логотип + верхний отступ листа
-// теперь даёт сам Screen-лист (`.headerOverlap`) — ни `contentHeader`, ни
-// локального `.weekdayHeading` тут больше нет.
+// Лист Рациона несёт тот же liquid-glass материал, что экран «Открытия»
+// (общий канон подложки HomePage, см. mixin `liquid-glass-sheet`): off-white
+// стекло + блюр/saturate, specular-кромка, мягкая тень, мягкие top-углы,
+// нижний fade-mask над плавающим баром.
 .scheduleScreen {
-  --header-overlap-bg:
-    linear-gradient(180deg,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(0, 0, 0, 0) 99%,
-      rgba(0, 0, 0, 0) 100%),
-    #ffffff;
+  @include liquid-glass-sheet;
+  // Шапка «Еда и нутриенты» (Masthead) сидит первым ребёнком листа, без
+  // `contentHeader` — прижимаем её к верху тем же отступом, что слайд «Открытия».
+  --header-overlap-pad-top: var(--space-5);
+  // Нижний fade под контентом даёт AppBottomBar (маска скроллера над плавающим
+  // баром). Собственную нижнюю маску стекла листа гасим: фон непрозрачный, стекло
+  // тут и так невидимо, а на коротком листе её fade-зона выцветала бы заголовок.
+  --header-overlap-mask: none;
 }
 
 
@@ -78,6 +78,45 @@
 [data-dv='ScheduleFood'][data-dv-v='twilight'] {
   @include dv-palette-twilight;
   @include dv-text($dv-text-twilight);
+}
+
+// «без подложки» — прозрачный фон и рамка во все периоды суток; список
+// читается как чистый текст на странице. Гасим и тень последней строки
+// (без карточки она висела бы сиротой) — переменная каскадит в ряды.
+[data-dv='ScheduleFood'][data-dv-v='plain'] {
+  @include dv-palette-plain;
+  @include dv-text($dv-text-graphite);
+  --row-last-shadow: none;
+}
+
+// `lime` — как События (один бледный оттенок, едва меняется за день), но
+// зелёный: главная палитра идёт от зелёного tropic'а.
+[data-dv='ScheduleFood'][data-dv-v='lime'] {
+  @include dv-palette-lime;
+  @include dv-text($dv-text-graphite);
+}
+
+// `lemon` — палитра Событий для еды: один бледно-жёлтый оттенок, едва меняется
+// за день.
+[data-dv='ScheduleFood'][data-dv-v='lemon'] {
+  @include dv-palette-lemon;
+  @include dv-text($dv-text-graphite);
+}
+
+// ── KILL the tropic-theme white-night leak on the LIGHT palettes ───────────
+// The `tropic` USER THEME (`:root[data-theme='tropic']`) includes dv-palette-
+// tropic, whose nested `[data-tod='night'] { --text-primary: #fff }` is correct
+// for tropic's OWN dark night rows — but it lands GLOBALLY on every night row,
+// set on the row wrapper (a closer ancestor than this anchor's dv-text). On the
+// single-hue LIGHT palettes (lemon/lime/plain) the night step stays pale, so the
+// leaked white text turns the names invisible. Re-pin the dark graphite text on
+// the night wrapper here. The leading `div` lifts specificity to (0,3,1) so this
+// beats the theme's `:root[data-theme] [data-tod='night']` (0,3,0) regardless of
+// stylesheet order — the food anchor is always rendered as a <div>.
+div[data-dv='ScheduleFood'][data-dv-v='lemon'] [data-tod='night'],
+div[data-dv='ScheduleFood'][data-dv-v='lime'] [data-tod='night'],
+div[data-dv='ScheduleFood'][data-dv-v='plain'] [data-tod='night'] {
+  @include dv-text($dv-text-graphite);
 }
 
 .minimalButton {

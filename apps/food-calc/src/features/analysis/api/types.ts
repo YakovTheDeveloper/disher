@@ -1,25 +1,37 @@
 // Frontend mirror of the backend analysis contract (apps/disher-backend-3.0/
-// src/shared/analysis-output.ts). Two distinct output entities, deliberately
+// src/shared/analysis-output.ts). THREE distinct output entities, deliberately
 // separate:
-//   • insight    — read-only observation grounded in real window days
-//                  (evidence.days). Cannot be added (yet) — display only.
-//   • hypothesis — a testable experiment the user can save to their own
-//                  hypothesis list (the former «idea card»).
+//   • observation — a neutral pattern the model saw. Read-only reference, NOT
+//                   saveable, no valence. Display only.
+//   • insight     — a good/bad takeaway about the user (valence positive|
+//                   negative) the user can save to themselves («+ к себе»).
+//   • hypothesis  — a testable experiment the user can save (the former «idea card»).
 // `summary` rides in the `result_md` column so its pending('')/failed('⚠️…')
-// sentinels keep working.
+// sentinels keep working. The backend parser is the single point that splits
+// observations from insights (it demotes neutral insights) — these frontend
+// coercions are straight pass-throughs so older persisted rows keep rendering.
 
 export type AnalysisStrength = 'weak' | 'moderate' | 'clear';
 
-// Valence — whether the observation is a good combination (synergy, e.g. iron +
+// Valence — whether an insight is a good combination (synergy, e.g. iron +
 // vitamin C) or a bad one (antagonism / поведенческий минус). Orthogonal to
 // `strength` (confidence): one says good/bad, the other says how sure. The LLM
-// classifies it; 'neutral' is the safe default for a plain observation.
+// classifies it; 'neutral' is a legacy/fallback marker (a neutral finding is an
+// observation, not an insight).
 export type AnalysisValence = 'positive' | 'negative' | 'neutral';
 
 export type AnalysisEvidence = {
   days: string[];
   foods?: string[];
   events?: string[];
+};
+
+// A neutral pattern for reference — insight shape MINUS valence.
+export type AnalysisObservation = {
+  title: string;
+  detail: string;
+  strength: AnalysisStrength;
+  evidence: AnalysisEvidence;
 };
 
 export type AnalysisInsight = {
@@ -50,6 +62,7 @@ export type Analysis = {
   windowEnd: string;
   /** Short overview. '' ⇒ pending; '⚠️…'-prefixed ⇒ failed. */
   summary: string;
+  observations: AnalysisObservation[];
   insights: AnalysisInsight[];
   hypotheses: AnalysisHypothesis[];
   appliedHypotheses: AppliedHypothesis[];
@@ -69,6 +82,7 @@ type ServerRow = {
   result_md: string;
   idea_cards: unknown;
   insights: unknown;
+  observations: unknown;
   applied_hypotheses: unknown;
   created_at: string;
 };
@@ -85,6 +99,37 @@ function asStringList(value: unknown): string[] {
     if (typeof item !== 'string') continue;
     const s = item.trim();
     if (s) out.push(s);
+  }
+  return out;
+}
+
+// Permissive observation coercion — title+detail + grounded evidence required,
+// strength coerced. No valence (an observation makes no good/bad claim). Mirror
+// of asObservations on the backend. Straight parse: the backend already split
+// neutral insights out, so this never needs to demote.
+export function asObservations(value: unknown): AnalysisObservation[] {
+  if (!Array.isArray(value)) return [];
+  const out: AnalysisObservation[] = [];
+  for (const c of value) {
+    if (!c || typeof c !== 'object') continue;
+    const o = c as Record<string, unknown>;
+    if (typeof o.title !== 'string' || typeof o.detail !== 'string') continue;
+    const ev = (o.evidence ?? {}) as Record<string, unknown>;
+    const days = asStringList(ev.days);
+    const foods = asStringList(ev.foods);
+    if (days.length === 0 && foods.length === 0) continue; // grounding gate
+    const strength: AnalysisStrength =
+      o.strength === 'clear' || o.strength === 'moderate' ? o.strength : 'weak';
+    const observation: AnalysisObservation = {
+      title: o.title,
+      detail: o.detail,
+      strength,
+      evidence: { days },
+    };
+    if (foods.length > 0) observation.evidence.foods = foods;
+    const events = asStringList(ev.events);
+    if (events.length > 0) observation.evidence.events = events;
+    out.push(observation);
   }
   return out;
 }
@@ -160,6 +205,7 @@ export function mapServerAnalysis(row: ServerRow): Analysis {
     windowStart: row.window_start,
     windowEnd: row.window_end,
     summary: row.result_md ?? '',
+    observations: asObservations(row.observations),
     insights: asInsights(row.insights),
     hypotheses: asHypotheses(row.idea_cards),
     appliedHypotheses: asAppliedHypotheses(row.applied_hypotheses),

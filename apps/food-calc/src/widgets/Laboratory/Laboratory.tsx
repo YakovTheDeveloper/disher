@@ -29,10 +29,10 @@ const Laboratory = ({ date, topSlot, topBarHide }: Props) => {
   const hasDaily = useDailyAnalysisStore((s) => Boolean(s.byDate[date]));
   const navigate = useNavigate();
 
-  const bottomBar = (
+  const actions = (
     <AppBottomBarShell side="split">
       <Button
-        variant="bottomActionBar"
+        variant="brand"
         onClick={() => navigate('/discoveries')}
         icon={<FlaskIcon width={16} height={16} />}
       >
@@ -42,13 +42,18 @@ const Laboratory = ({ date, topSlot, topBarHide }: Props) => {
     </AppBottomBarShell>
   );
 
+  // Есть разбор → кнопки уезжают В ПОТОК под результатом (`afterContent`, на
+  // фоне страницы под листом, без плавающего бара/маски) — листаешь весь разбор
+  // и кнопки идут следом. Пустой день → их некуда «подвесить» в потоке, поэтому
+  // оставляем в плавающем нижнем баре по центру, как раньше.
   return (
     <Screen
       className={styles.ambientSheet}
       stickyTop={topSlot}
       headerOverlap
       hollow={!hasDaily}
-      bottomBar={bottomBar}
+      bottomBar={hasDaily ? undefined : actions}
+      afterContent={hasDaily ? <div className={styles.flowActions}>{actions}</div> : undefined}
       topBarHide={topBarHide}
     >
       <div className={styles.container}>

@@ -116,12 +116,21 @@ describeIfReady("POST /api/analyze/daily — route", () => {
     capturedPrompt = usr;
     return JSON.stringify({
       summary: "разбор дня",
-      insights: [
+      observations: [
         {
           title: "поздний ужин",
           detail: "ужин в 22:00",
           strength: "weak",
           evidence: { days: ["15-05-2026"] },
+        },
+      ],
+      insights: [
+        {
+          title: "железо + витамин C",
+          detail: "лучше усвоение",
+          valence: "positive",
+          strength: "moderate",
+          evidence: { days: ["15-05-2026"], foods: ["говядина"] },
         },
       ],
       hypotheses: [],
@@ -180,9 +189,15 @@ describeIfReady("POST /api/analyze/daily — route", () => {
     });
     expect(res.statusCode).toBe(200);
     const body = res.json() as {
-      analysis: { summary: string; insights: unknown[]; hypotheses: unknown[] };
+      analysis: {
+        summary: string;
+        observations: unknown[];
+        insights: unknown[];
+        hypotheses: unknown[];
+      };
     };
     expect(body.analysis.summary).toBe("разбор дня");
+    expect(body.analysis.observations).toHaveLength(1);
     expect(body.analysis.insights).toHaveLength(1);
     expect(body.analysis.hypotheses).toEqual([]);
   });

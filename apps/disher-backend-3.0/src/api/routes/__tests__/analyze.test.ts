@@ -20,10 +20,19 @@ let mockCallLLM: ReturnType<typeof vi.fn>;
 
 const validResponse = JSON.stringify({
   summary: "## ok",
+  observations: [
+    {
+      title: "obs",
+      detail: "od",
+      strength: "weak",
+      evidence: { days: ["07-04-2026"] },
+    },
+  ],
   insights: [
     {
       title: "ins",
       detail: "d",
+      valence: "positive",
       strength: "moderate",
       evidence: { days: ["07-04-2026"] },
     },
@@ -40,6 +49,7 @@ type AnalysisResponse = {
     result_md: string;
     idea_cards: unknown;
     insights: unknown;
+    observations: unknown;
     applied_hypotheses: unknown;
     created_at: string;
   };
@@ -418,6 +428,7 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
         result_md: string;
         idea_cards: unknown;
         insights: unknown;
+        observations: unknown;
         applied_hypotheses: unknown;
       }>;
     };
@@ -434,7 +445,11 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
       { title: "idea", body: "body", suggestedDays: 7 },
     ]);
     expect(byId.get(idDone)?.insights).toEqual([
-      { title: "ins", detail: "d", valence: "neutral", strength: "moderate", evidence: { days: ["07-04-2026"] } },
+      { title: "ins", detail: "d", valence: "positive", strength: "moderate", evidence: { days: ["07-04-2026"] } },
+    ]);
+    // Neutral observations ride in their own column, separate from insights.
+    expect(byId.get(idDone)?.observations).toEqual([
+      { title: "obs", detail: "od", strength: "weak", evidence: { days: ["07-04-2026"] } },
     ]);
     expect(byId.get(idDone)?.applied_hypotheses).toEqual([]);
 

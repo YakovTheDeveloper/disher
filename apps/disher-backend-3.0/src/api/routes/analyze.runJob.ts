@@ -219,12 +219,13 @@ export async function runAnalysisJob(
     const summaryMd = result.summary.trim() || "Разбор готов.";
     await pool.query(
       `update public.analyses
-       set result_md = $1, idea_cards = $2::jsonb, insights = $3::jsonb
-       where id = $4::uuid and result_md = ''`,
+       set result_md = $1, idea_cards = $2::jsonb, insights = $3::jsonb, observations = $4::jsonb
+       where id = $5::uuid and result_md = ''`,
       [
         summaryMd,
         JSON.stringify(result.hypotheses),
         JSON.stringify(result.insights),
+        JSON.stringify(result.observations),
         analysisId,
       ],
     );
@@ -238,7 +239,7 @@ export async function runAnalysisJob(
     await pool
       .query(
         `update public.analyses
-         set result_md = $1, idea_cards = '[]'::jsonb, insights = '[]'::jsonb
+         set result_md = $1, idea_cards = '[]'::jsonb, insights = '[]'::jsonb, observations = '[]'::jsonb
          where id = $2::uuid and result_md = ''`,
         [`${FAILURE_PREFIX}: ${reason.slice(0, 500)}`, analysisId],
       )

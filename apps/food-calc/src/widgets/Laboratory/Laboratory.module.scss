@@ -1,44 +1,106 @@
-// Слайд «Мои открытия»: подложка-«лист» Screen = liquid glass — полупрозрачный
-// светло-серый тон + блюр тёплого ambient'а под ним. На стекле лежат три БЕЛЫЕ
-// секции (summary / Наблюдения / Гипотезы, все SheetCard): переключаем их фон на
-// белый + лёгкая тень подъёма (`--sheet-*`), чтобы карточки читались поверх
-// стекла. Светло-серый берём чуть прохладным и достаточно плотным, чтобы тёплый
-// ambient сквозь блюр не перекрашивал стекло в жёлтый.
-.ambientSheet {
-    --header-overlap-bg: rgba(238, 240, 244, 0.62);
-    --header-overlap-backdrop: blur(22px) saturate(1.05);
-    // Нижняя кромка стекла растворяется над баром — ровно по высоте overlay-зоны
-    // (`--bb-overlay-h`, та же, что у mask'а скроллера), чтобы стекло не обрывалось
-    // резким швом. Full-opaque достигается ниже последней карточки (нижний padding
-    // = bb-overlay-h + 12px), так что карточки не затухают.
-    --header-overlap-mask: linear-gradient(to top, transparent 0, #000 var(--bb-overlay-h, 96px));
-    --sheet-bg: #ffffff;
-    --sheet-shadow:
-        0 1px 2px rgba(15, 42, 68, 0.04),
-        0 10px 22px -16px rgba(15, 42, 68, 0.24);
+@import '@/shared/assets/style/mixin.scss';
 
-    // ── Типографика этого экрана (пилот + читаемость, 2026-06-14) ───────────
-    // Пилот body-шрифта: Onest ТОЛЬКО здесь — выше x-height и родная кириллица,
-    // на плотном аналитическом тексте читается лучше геометрического Jost'а.
-    // Переопределяем `--font-sans` локально + вешаем font-family, чтобы перешли
-    // и наследники, и явные потребители `var(--font-sans)` (кнопки бара).
-    // Заголовки задают свой font-family сами (Alice/serif) — пилот их не трогает.
-    --font-sans: 'Onest', 'Golos Text', sans-serif;
+// Слайд «Мои открытия» — Apple Liquid Glass redesign (2026, typography-first).
+// Подложка-«лист» Screen = люминесцентное полупрозрачное БЕЛОЕ стекло (не серое)
+// с усиленным блюром и saturation-boost → вибрантность Apple `.regularMaterial`;
+// бликовая верхняя кромка (specular) + мягкая тень; мягкие Apple-углы. Разбор
+// живёт текстом прямо на стекле, иерархию несёт ТИПОГРАФИКА: Apple Large Title
+// «Анализ» → Headline под-заголовки секций → Body/Footnote строки. Voice — SF Pro
+// (системный стек) на Apple-устройствах, Onest fallback.
+.ambientSheet {
+    // ── Liquid Glass материал ────────────────────────────────────────────────
+    // Общий канон подложки HomePage (см. mixin `liquid-glass-sheet`): off-white
+    // стекло + блюр/saturate, specular-кромка, мягкая тень, мягкие top-углы,
+    // нижний fade-mask. Тот же материал теперь несут Рацион/События.
+    @include liquid-glass-sheet;
+    // Заголовок-плашка «Анализ» сидит вверху листа сама (без `contentHeader`) —
+    // прижимаем её к верху меньшим отступом, чем дефолт `.headerOverlap`.
+    --header-overlap-pad-top: var(--space-5);
+
+    // ── Apple типографика (главное в этом редизайне) ─────────────────────────
+    // Системный стек → на Apple-устройствах рендерится настоящий SF Pro (родная
+    // кириллица, аутентичный «голос» Apple); вне Apple — Onest (cyrillic-native).
+    // Перекрывает и явных потребителей `var(--font-sans)` (кнопки нижнего бара).
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Onest', 'Golos Text', system-ui, sans-serif;
     font-family: var(--font-sans);
 
-    // Тело наблюдений/гипотез темнее: 62% настраивали под off-white плашку, на
-    // белой карточке это ~3:1 (выцветает). 80/64 → читаемо, иерархия с тайтлом
-    // (100% ink + 600) держится весом.
-    --analysis-soft-amt: 80%;
-    --analysis-faint-amt: 64%;
+    // Apple label-ramp по светлому стеклу: нейтральные near-black чернила +
+    // alpha-производные secondary/tertiary. Нейтральный ink (не navy) = читается
+    // как SF на стекле.
+    --ap-ink: #1d1d1f;
+    --card-text-rest: var(--ap-ink);
+    --analysis-soft-amt: 72%; // body / detail (secondary label)
+    --analysis-faint-amt: 50%; // meta / chips (tertiary label)
 
-    // Заголовки секций спокойнее и в гармонии с контентом: канон-сериф Alice
-    // (вместо off-canon Raleway-italic), без псевдокурсива, мельче (20 вместо 25)
-    // и по левому краю — одна ось чтения с лево-выровненными карточками.
-    --sheet-title-font: var(--heading-font);
-    --sheet-title-style: normal;
-    --sheet-title-fs: var(--text-lg);
-    --sheet-header-justify: flex-start;
+    // Шкала строк (Apple): Headline title · Body detail · Footnote meta. Сиды
+    // читают карточки (InsightCard / HypothesisCard) с дефолтами = старым
+    // значениям → экран владеет шкалой, не форкая общие компоненты.
+    --analysis-fs-title: 17px;
+    --analysis-fs-detail: 15.5px;
+    --analysis-fs-meta: 13px;
+    --analysis-w-title: 600;
+    --analysis-track-title: -0.012em;
+    --analysis-lh-title: 1.32;
+    --analysis-lh-detail: 1.5;
+
+    // Единый Apple content-margin: по нему выровнены Large Title, под-заголовки
+    // секций и текст строк (после обнуления собственного padding'а списка ниже
+    // текст строки стартует от card `--ax-pad-x` = 16 = --space-4).
+    --ap-inset: var(--space-4);
+}
+
+// ── Apple-раскладка разбора (scoped: только под этим листом) ─────────────────
+// `data-analysis-*` — стабильные хуки на общих узлах AnalysisResult (хешированные
+// module-классы из консумера не достать). Длинная модалка / разбор блюда НЕ под
+// `.ambientSheet` → их этот блок не трогает.
+
+// Список строк: убираем собственный гор. инсет, чтобы текст строки встал ровно
+// по `--ap-inset` (общий с заголовком и под-заголовками).
+.ambientSheet :global([data-analysis-list]) {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+// Воздух между блоками — щедрый Apple-ритм.
+.ambientSheet :global([data-analysis-root]) {
+    gap: var(--space-8);
+}
+
+.ambientSheet :global([data-analysis-sections]) {
+    gap: var(--space-8);
+}
+
+// Лид-абзац (summary): чистый Apple-lead без тёплой канон-полосы слева.
+.ambientSheet :global([data-analysis-summary]) {
+    --ap-fs-lead: 16.5px;
+
+    padding: 0 var(--ap-inset);
+    font-size: var(--ap-fs-lead);
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--card-text-rest) 88%, transparent);
+
+    &::before {
+        display: none;
+    }
+}
+
+// Под-заголовок секции (Наблюдения / Инсайты / Гипотезы) → Apple «Headline»:
+// слева, semibold sans, primary ink. Heading рендерится как <h3>; селектор
+// `.ambientSheet [data-analysis-section] > h3` (0,2,1) перебивает serif-канон
+// Heading (`.heading.drawer`, 0,1,0).
+.ambientSheet :global([data-analysis-section])>h3 {
+    --ap-fs-head: 17px;
+
+    justify-content: flex-start;
+    padding: 0 var(--ap-inset) var(--space-3);
+    font-family: var(--font-sans);
+    font-style: normal;
+    font-weight: 600;
+    font-size: var(--ap-fs-head);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    color: var(--card-text-rest);
+    text-transform: none;
 }
 
 .container {
@@ -51,6 +113,16 @@
     padding: 0 0 16px;
     width: 100%;
     box-sizing: border-box;
+}
+
+// In-flow split-ряд кнопок (только когда разбор есть): едет в `afterContent`
+// под лист на фон страницы. Небольшой зазор сверху, чтобы кнопки не липли к
+// нижней кромке листа, и нижний отступ под safe-area, чтобы не липли к краю
+// экрана. Сам AppBottomBarShell прозрачный → пилюли «парят» на ambient-фоне,
+// как раньше в плавающем баре.
+.flowActions {
+    margin-top: var(--space-2);
+    padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-3));
 }
 
 // «Гипотезы» — secondary action в split-баре, парная к тёмной pill «Анализ».
@@ -92,4 +164,3 @@
         transition-duration: var(--press-in);
     }
 }
-

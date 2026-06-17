@@ -39,5 +39,25 @@
     flex-direction: column;
 }
 
+// Layout-passthrough вокруг Swipeable: повторяет раскладку `.swipeArea`, чтобы
+// Embla заполнял высоту (лишний слой ему незаметен). Раньше нёс DEV-anchor
+// `HomeTabs` — ось убрана, обёртка осталась чисто под flex-высоту.
+.tabsAnchor {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+// NavSwitcher tray-варианты: основной лист (`.headerOverlap` в Screen.module)
+// получает крупный радиус верхних углов, чтобы гармонировать с пилюлями/треем
+// табов. `--header-overlap-radius` наследуется вниз по DOM к листу, поэтому
+// правим её здесь — на `.swipeArea`, который несёт `data-dv-v` anchor.
+// `inverse-lift` (дефолт) не трогаем — лист как на всех экранах (near-square).
+.swipeArea[data-dv-v='tray-pill-bleed'],
+.swipeArea[data-dv-v='tray-pill-bleed-hero'] {
+    --header-overlap-radius: var(--radius-2xl);
+}
+
 // bandLabel наследует канон-шрифт заголовков (--heading-font = Alice, tokens.scss),
 // единый для всех `<Heading>` приложения.

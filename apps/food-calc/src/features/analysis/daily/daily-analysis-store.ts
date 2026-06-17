@@ -99,6 +99,7 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
           [date]: {
             date,
             summary: '',
+            observations: [],
             insights: [],
             hypotheses: [],
             appliedHypotheses,
@@ -131,6 +132,7 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
         patch(date, (a) => ({
           ...a,
           summary: result.summary,
+          observations: result.observations,
           insights: result.insights,
           hypotheses: result.hypotheses,
           status: 'done',
@@ -189,6 +191,9 @@ function normalizeStored(raw: DailyAnalysis): DailyAnalysis {
   return {
     ...raw,
     summary,
+    observations: Array.isArray(r.observations)
+      ? (r.observations as DailyAnalysis['observations'])
+      : [],
     insights: Array.isArray(r.insights)
       ? (r.insights as DailyAnalysis['insights'])
       : [],

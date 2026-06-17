@@ -102,25 +102,6 @@
     }
 }
 
-// Дом (`summaryCard`): summary внутри pearl-плашки SheetCard — своя секция-
-// подложка, в один ряд с «Наблюдениями» и «Гипотезами». Левый акцент `.summary`
-// тут не нужен (он привязывал «висящий» lead-абзац к rail-языку); плашка сама
-// несёт поверхность. Верхний воздух больше, т.к. у summary-плашки нет
-// header-слота. Горизонтальный inset совпадает с `.list` внутри SheetCard.
-.summaryBody {
-    font-size: var(--text-base);
-    line-height: 1.6;
-    padding: var(--space-5) var(--space-3) var(--space-4);
-
-    :global(p) {
-        margin: 0 0 8px;
-    }
-
-    :global(p:last-child) {
-        margin-bottom: 0;
-    }
-}
-
 // Заголовки секций («Наблюдения» / «Гипотезы») на доме владеет SheetCard
 // (header-проп) — общий стиль с предложкой. В bare-режиме (длинная модалка, без
 // плашки) — секция с канон-заголовком <Heading size="drawer"> (serif italic).

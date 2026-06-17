@@ -6,6 +6,7 @@ import { removeScheduleEvents } from '@/entities/schedule-event';
 import clsx from 'clsx';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen, type TopBarHideTarget } from '@/shared/ui/Screen';
+import { Masthead } from '@/shared/ui/atoms/Typography/Masthead';
 import { groupItemsByTime } from '@/shared/lib/schedule';
 import {
   ScheduleEventEditModal,
@@ -29,13 +30,11 @@ type Props = {
   date: string;
   events: ScheduleEvent[];
   topSlot?: React.ReactNode;
-  /** Заголовок дня — едет в `contentHeader` листа (по центру вверху «бумажки»). */
-  contentHeader?: React.ReactNode;
   /** Прокидывается в `Screen` → направление-зависимое скрытие кнопок бара. */
   topBarHide?: TopBarHideTarget;
 };
 
-const ScheduleEvents = ({ date, events, topSlot, contentHeader, topBarHide }: Props) => {
+const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
 
   // Пустой день → hollow-заглушка Screen (большой бренд-логотип по центру).
@@ -73,8 +72,8 @@ const ScheduleEvents = ({ date, events, topSlot, contentHeader, topBarHide }: Pr
 
   return (
     <Screen
+      className={styles.eventsScreen}
       stickyTop={topSlot}
-      contentHeader={contentHeader}
       headerOverlap
       hollow={isDayEmpty}
       topBarHide={topBarHide}
@@ -90,6 +89,7 @@ const ScheduleEvents = ({ date, events, topSlot, contentHeader, topBarHide }: Pr
       key={3}
       bottomBar={<EventsWriteBar scheduleId={date} />}
     >
+      <Masthead as="h2">События дня</Masthead>
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <div {...boundaryAnchor}>
           <ItemsList offsetTop>

@@ -53,7 +53,7 @@ vi.mock('@/shared/ui/drawer-store', () => ({
   drawerStore: { show: h.drawerShow },
 }));
 vi.mock('./ProfileDrawer', () => ({ ProfileDrawer: () => null }));
-vi.mock('@/shared/assets/icons/settings.svg?react', () => ({
+vi.mock('@/shared/assets/icons/more.svg?react', () => ({
   default: (props: object) => <svg data-testid="settings-icon" {...props} />,
 }));
 

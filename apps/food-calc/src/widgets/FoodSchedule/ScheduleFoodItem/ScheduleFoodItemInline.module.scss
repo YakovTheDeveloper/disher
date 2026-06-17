@@ -341,19 +341,23 @@
 // «Недавно добавлен» marker переехал в LongPressRow (правый жёлоб вне подложки,
 // recent-dot canon) — передаётся пропом `recent`, не рендерится здесь.
 
+// Weights lifted 2026-06-14: names were weight 400 (below the body canon of
+// 500), so on the warm tinted row surfaces the thin glyphs washed out — the
+// single biggest legibility lever on a coloured background is stroke weight,
+// not text alpha. 600 for the headline names, 500 for the quieter custom label.
 .customTitle {
     color: var(--text-secondary);
-    font-weight: 400;
+    font-weight: 500;
     font-style: italic;
 }
 
 .dishTitle {
     color: var(--text-primary);
-    font-weight: 400;
+    font-weight: 600;
     letter-spacing: 1.5px;
 }
 
 .foodTitle {
     color: var(--text-primary);
-    font-weight: 400;
+    font-weight: 600;
 }

@@ -135,7 +135,7 @@ const Swipeable = forwardRef<SwipeableRef, Props>(
               </div>
             )}
             {children.map((slide, index) => (
-              <div key={index} className={styles.emblaSlide}>
+              <div key={index} className={styles.emblaSlide} data-embla-slide="">
                 <div className={styles.slideContent}>{slide}</div>
               </div>
             ))}

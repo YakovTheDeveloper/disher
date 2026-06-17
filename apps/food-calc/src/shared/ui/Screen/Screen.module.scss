@@ -341,7 +341,7 @@
 .stickyTop {
     position: sticky;
     top: 0;
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--space-2);
     // Непрозрачный фон обязателен: между «залипанием» и моментом когда
     // `headerOverlap` накрывает индикатор есть прозрачные пиксели через
     // которые виден контент. Дефолт — белый; родитель может переопределить
@@ -352,18 +352,23 @@
 .headerOverlap {
     position: relative;
     z-index: 1;
-    margin: 0 var(--space-1);
+    margin: 0 var(--space-3);
     padding-right: var(--space-2);
     padding-left: var(--space-2);
     // Родитель может переопределить через `--header-overlap-bg` (например на
     // ambient-страницах — `transparent`, чтобы свечение проступало).
     background: var(--header-overlap-bg, #ffffff);
-    border-top-left-radius: var(--radius-2xl);
-    border-top-right-radius: var(--radius-2xl);
+    // Радиус верхних углов переопределяем (`--header-overlap-radius`, дефолт 2xl) —
+    // ambient-экран делает почти прямые углы (near-square, см. `.ambientSheet`).
+    border-top-left-radius: var(--header-overlap-radius, var(--radius-xs));
+    border-top-right-radius: var(--header-overlap-radius, var(--radius-xs));
     // margin-top: -24px;
-    // Тень листа — токенизирована: ambient-страница может погасить её
-    // (`--header-overlap-shadow: none`) или задать свою (см. Laboratory `.ambientSheet`).
-    box-shadow: var(--header-overlap-shadow, 0 -2px 6px rgba(0, 0, 0, 0.05));
+    // Тень листа управляется токеном `--header-overlap-shadow`. На HomePage его
+    // задаёт mixin `liquid-glass-sheet()` (там и живёт верхняя «парящая» тень —
+    // см. mixin.scss). Обычные Screen-страницы токен не ставят → дефолт `none`
+    // (без тени, как и было). ВНИМАНИЕ: если лист несёт `--header-overlap-mask`,
+    // маска клипает любые OUTSET-тени — видна только inset-кромка.
+    box-shadow: var(--header-overlap-shadow, none);
     // Liquid-glass лист: родитель включает блюр backdrop'а (ambient под листом)
     // через `--header-overlap-backdrop`. Дефолт `none` — обычные экраны остаются
     // плоскими opaque-листами (см. Laboratory `.ambientSheet`).
@@ -407,7 +412,9 @@
 // заголовком (Dish/Product/Hypotheses) уже несут паддинг в `.contentHeader` —
 // им добавлять нельзя, иначе двойной отступ (`:not(:has())` их исключает).
 .headerOverlap:not(:has(.contentHeader)) {
-    padding-top: var(--space-12);
+    // Верхний отступ переопределяем (`--header-overlap-pad-top`, дефолт space-12) —
+    // ambient-экран с собственной title-плашкой («Анализ») прижимает её к верху.
+    padding-top: var(--header-overlap-pad-top, var(--space-12));
 }
 
 // «Пустой» экран: лист исчезает (фон прозрачный, тень убрана), маленький

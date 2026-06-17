@@ -1,10 +1,35 @@
 @import '@/shared/assets/style/design-variant-palettes.scss';
+@import '@/shared/assets/style/mixin.scss';
+
+// Лист Событий несёт тот же liquid-glass материал, что экран «Открытия»
+// (общий канон подложки HomePage, см. mixin `liquid-glass-sheet`): off-white
+// стекло + блюр/saturate, specular-кромка, мягкая тень, мягкие top-углы,
+// нижний fade-mask над плавающим баром.
+.eventsScreen {
+    @include liquid-glass-sheet;
+    // Шапка «События дня» (Masthead) сидит первым ребёнком листа, без
+    // `contentHeader` — прижимаем её к верху тем же отступом, что слайд «Открытия».
+    --header-overlap-pad-top: var(--space-5);
+    // Нижний fade под контентом даёт AppBottomBar (маска скроллера над плавающим
+    // баром). Собственную нижнюю маску стекла листа гасим (см. `.scheduleScreen`).
+    --header-overlap-mask: none;
+}
 
 // Events use the `lemon` palette — a single warm yellow hue, deepening across
 // the day. Baked-in 2026-06-13 (the 7 alt palettes + the 'ScheduleEvents'
 // DesignBar anchor were retired). FoodSchedule keeps its own palette.
 .eventsBuilder {
     @include dv-palette-lemon;
+    @include dv-text($dv-text-graphite);
+}
+
+// Same tropic-theme white-night leak as FoodSchedule (see the long comment in
+// FoodSchedule.module.scss): `:root[data-theme='tropic'] [data-tod='night']`
+// whitens every night row globally, but Events' lemon night step stays light so
+// the white names vanish. Re-pin dark graphite text on the night wrapper. The
+// class is tripled to lift specificity to (0,4,0) — tag-agnostic — so it clears
+// the theme's (0,3,0) override regardless of stylesheet order.
+.eventsBuilder.eventsBuilder.eventsBuilder [data-tod='night'] {
     @include dv-text($dv-text-graphite);
 }
 

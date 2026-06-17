@@ -12,8 +12,10 @@ import { refund } from "../../billing/wallet.js";
 // POST /api/analyze-dish — single JSON response (NOT SSE). The frontend hydrates
 // the dish payload (name, total grams, ingredients) from Dexie + catalog and
 // posts it; the backend calls OpenRouter once with the SHARED structured-output
-// contract and returns the parsed {summary, insights, hypotheses:[]}. The result
-// is persisted on the client in idb-keyval under `dish-analysis:<dishId>`.
+// contract and returns the parsed {summary, observations:[], insights,
+// hypotheses:[]} — a dish has no day-patterns, so observations is always empty
+// (its valenced compositional findings ride in insights). The result is
+// persisted on the client in idb-keyval under `dish-analysis:<dishId>`.
 // Re-run = re-post = overwrite.
 //
 // Why no Postgres row (unlike /api/analyze): a per-dish analysis is cheap, and
@@ -69,7 +71,8 @@ ${ANALYSIS_OUTPUT_PROMPT_SPEC}
 
 Для разбора блюда:
 - summary — 1–3 предложения прозой: БЖУ-профиль, гликемические свойства, для чего блюдо подходит. Это суть разбора, кратко и по делу.
-- insights — синергии и антагонизмы состава этого блюда. У КАЖДОГО insight evidence.foods ОБЯЗАТЕЛЬНО (ингредиенты, о которых речь), а evidence.days оставляй ПУСТЫМ массивом — у блюда нет дней. Не выдумывай связки, которых нет в составе.
+- observations — ВСЕГДА пустой массив []. У блюда нет дней и событий-паттернов; нейтральные качественные характеристики состава идут в summary, а удачные/неудачные связки — в insights.
+- insights — синергии и антагонизмы состава этого блюда (полезно/вредно). У КАЖДОГО insight valence ОБЯЗАТЕЛЬНО ("positive"/"negative") и evidence.foods ОБЯЗАТЕЛЬНО (ингредиенты, о которых речь), а evidence.days оставляй ПУСТЫМ массивом — у блюда нет дней. Не выдумывай связки, которых нет в составе.
 - hypotheses — ВСЕГДА пустой массив []. У блюда нет временного окна, проверять нечего.`;
 
 function asString(v: unknown): string {
@@ -151,9 +154,11 @@ export async function analyzeDishRoutes(
         AbortSignal.timeout(DISH_TIMEOUT_MS),
         opts.callLLM,
       );
-      // A dish never produces hypotheses — enforce it on the server so the
-      // contract holds even if the model emits some.
-      return reply.send({ analysis: { ...result, hypotheses: [] } });
+      // A dish never produces day-pattern observations or hypotheses — enforce
+      // both on the server so the contract holds even if the model emits some.
+      return reply.send({
+        analysis: { ...result, observations: [], hypotheses: [] },
+      });
     } catch (err) {
       await refund(req.userId, "dish_analysis", requestId).catch(() => {});
       const msg = err instanceof Error ? err.message : String(err);

@@ -21,7 +21,7 @@ const todayKey = () => format(new Date(), DATE_FORMAT);
  * (detached HEAD) — там `displayedDate !== lastKnownToday`, тихо выходим.
  *
  * Никакого молчаливого `navigate` — только тостер с действием. Постоянная
- * страховка, если юзер смахнёт тост, — лейбл «Вчера» в SelectedDayHeading.
+ * страховка, если юзер смахнёт тост, — дата (день недели · dd.mm) в HomeTopBar.
  *
  * Сигнал — `visibilitychange → visible`: надёжен при возврате PWA из фона и
  * переключении вкладки; `window.focus` на мобилке часто не стреляет. Холодный

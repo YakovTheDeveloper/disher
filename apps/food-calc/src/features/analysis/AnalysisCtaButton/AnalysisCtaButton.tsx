@@ -19,10 +19,6 @@ const AnalysisCtaButton = ({ date }: Props) => {
   const loading = useDailyAnalysisStore(
     (s) => s.byDate[date]?.status === 'loading',
   );
-  // Пока разбора за этот день ещё нет на странице — заливаем CTA энергичным
-  // градиентом (тем же, что окаёмка), чтобы тянуть взгляд на пустом экране.
-  // Появился разбор (loading/done/…) → кнопка успокаивается до matte-вида.
-  const noAnalysisYet = useDailyAnalysisStore((s) => !s.byDate[date]);
 
   function handleClick() {
     if (loading) return;
@@ -31,8 +27,7 @@ const AnalysisCtaButton = ({ date }: Props) => {
 
   return (
     <Button
-      variant="bottomActionBar"
-      className={noAnalysisYet ? styles.vivid : undefined}
+      variant="brand"
       onClick={handleClick}
       disabled={loading}
       icon={

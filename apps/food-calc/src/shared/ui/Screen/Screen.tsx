@@ -146,26 +146,49 @@ const Screen = ({
     const root = scrollContainerRef.current;
     if (!root || !topBarHide || !hideApi) return;
     const setHide = hideApi.setHide;
+    // Гейт «только активный слайд»: уходящий слайд продолжает докручивать
+    // инерцию ПОСЛЕ начала свайпа — без гейта его momentum-scroll перебивал бы
+    // reset бара (`onIndexChange`) и бар мигал бы спрятанным на соседнем экране.
+    // Активным считаем слайд, чей прямоугольник накрывает центр карусели —
+    // чистая геометрия, без Embla API и без React-стейта (zero-render сохранён).
+    // Маркеры ставит `Swipeable` (`data-embla-slide` / `data-carousel-container`);
+    // вне карусели их нет → гейт выключен, поведение как раньше.
+    const slideEl = root.closest('[data-embla-slide]');
+    const viewport = root.closest('[data-carousel-container]');
+    const isInactiveSlide = () => {
+      if (!slideEl || !viewport) return false;
+      const v = viewport.getBoundingClientRect();
+      const s = slideEl.getBoundingClientRect();
+      const center = v.left + v.width / 2;
+      return center < s.left || center > s.right;
+    };
     let lastY = root.scrollTop;
     let ticking = false;
+    let rafId = 0;
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
-      requestAnimationFrame(() => {
+      rafId = requestAnimationFrame(() => {
         ticking = false;
         const y = root.scrollTop;
-        if (y <= HIDE_REVEAL_TOP_PX) {
-          setHide('none');
-        } else {
-          const dy = y - lastY;
-          if (dy > HIDE_DIR_THRESHOLD_PX) setHide(topBarHide);
-          else if (dy < -HIDE_DIR_THRESHOLD_PX) setHide('none');
-        }
+        const dy = y - lastY;
+        // Базовую позицию освежаем ВСЕГДА (даже когда слайд неактивен) — иначе
+        // при возврате на экран первый dy посчитается от устаревшего lastY и
+        // даст ложный скачок направления.
         lastY = y;
+        if (isInactiveSlide()) return;
+        if (y <= HIDE_REVEAL_TOP_PX) setHide('none');
+        else if (dy > HIDE_DIR_THRESHOLD_PX) setHide(topBarHide);
+        else if (dy < -HIDE_DIR_THRESHOLD_PX) setHide('none');
       });
     };
     root.addEventListener('scroll', onScroll, { passive: true });
-    return () => root.removeEventListener('scroll', onScroll);
+    return () => {
+      root.removeEventListener('scroll', onScroll);
+      // Снимаем висящий кадр — иначе он выстрелит setHide уже после отписки
+      // (смена даты `key={date}` → remount, размонтаж страницы).
+      cancelAnimationFrame(rafId);
+    };
   }, [topBarHide, hideApi]);
 
   // Плавающий бар включается, только когда бар реально есть — иначе экран без

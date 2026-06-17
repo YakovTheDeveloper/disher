@@ -5,7 +5,9 @@ import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { groupItemsByTime } from '@/shared/lib/schedule';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { ScheduleFoodItem } from '@/widgets/FoodSchedule/ScheduleFoodItem';
+import { NutrientsBar } from '@/widgets/FoodSchedule/NutrientsBar';
 import { Screen, type TopBarHideTarget } from '@/shared/ui/Screen';
+import { Masthead } from '@/shared/ui/atoms/Typography/Masthead';
 import toaster from '@/shared/lib/toaster/toaster';
 import {
   ScheduleFoodCreateModals,
@@ -16,8 +18,9 @@ import {
 import { AppBottomBar } from '@/shared/ui/AppBottomBar';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS } from '@/features/shared/long-press-item';
-import { removeScheduleFood } from '@/entities/schedule-food';
+import { removeScheduleFood, useScheduleNutrientTotals } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
+import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
 import { useNavigate } from 'react-router-dom';
 import { safeMutate } from '@/shared/lib/safeMutate';
@@ -32,6 +35,15 @@ const FOOD_DV_VARIANTS = [
   'lagoon',
   'tropic',
   'twilight',
+  // `plain` — neutral grey, identical across every time-of-day step: the
+  // list reads as fully colourless (no TOD tint, no period shift).
+  'plain',
+  // `lime` — the green parallel to Events' `lemon`: ONE pale lime-green
+  // (anchored on tropic's green) that barely shifts morning→night.
+  'lime',
+  // `lemon` — the Events palette applied to food: ONE pale warm-yellow hue
+  // that barely shifts morning→night.
+  'lemon',
 ] as const;
 import {
   useWriteFoodFlow,
@@ -39,16 +51,14 @@ import {
   InlineWriteFoodReview,
 } from '@/features/food/food-free-text-parse';
 
-// `totals` / `missingNutrientNames` / `isLoading` уехали в HomePage — там же
-// открывается NutrientsDrawer из HomeTopBar центральной pill (эксперимент
-// 2026-05-21). FoodSchedule больше не владеет агрегатами нутриентов.
+// HomePage держит свою пилюлю нутриентов (HomeTopBar leadingSlot). FoodSchedule
+// дополнительно считает тоталы для полосы-сводки (NutrientsBar) в конце списка —
+// тот же useScheduleNutrientTotals, открывает тот же NutrientsDrawer.
 type CommonProps = {
   date: string;
   items: ScheduleFoodWithRelations[];
   isActive?: boolean;
   topSlot?: React.ReactNode;
-  /** Заголовок дня — едет в `contentHeader` листа (по центру вверху «бумажки»). */
-  contentHeader?: React.ReactNode;
   /** Прокидывается в `Screen` → направление-зависимое скрытие кнопок бара. */
   topBarHide?: TopBarHideTarget;
 };
@@ -58,7 +68,6 @@ const FoodSchedule = ({
   items,
   isActive = true,
   topSlot,
-  contentHeader,
   topBarHide,
 }: CommonProps) => {
   const navigate = useNavigate();
@@ -121,6 +130,18 @@ const FoodSchedule = ({
   // 2026-06-08: Screen.bottomBarOverlay дефолт true, без гейта на пустоте).
   const isEmpty = items.length === 0;
 
+  // Тоталы дня для полосы-сводки (NutrientsBar) в конце списка. Кнопка полосы
+  // открывает тот же NutrientsDrawer слева, что и пилюля HomeTopBar.
+  const { totals, missingNutrientNames, isLoading: nutrientsLoading } =
+    useScheduleNutrientTotals(date);
+  const openNutrients = useCallback(() => {
+    void drawerStore.show(
+      NutrientsDrawer,
+      { totals, missingNutrientNames, isLoading: nutrientsLoading },
+      { side: 'left', width: 'min(85vw, 360px)' }
+    );
+  }, [totals, missingNutrientNames, nutrientsLoading]);
+
   // Long-press → per-item action drawer: delete (top-right) + «Информация о
   // продукте/блюде» when the row points at a real entity (guarded — orphan
   // rows with no productId/dishId show delete only).
@@ -142,14 +163,13 @@ const FoodSchedule = ({
     <Screen
       className={styles.scheduleScreen}
       stickyTop={topSlot}
-      contentHeader={contentHeader}
       headerOverlap
       hollow={isEmpty}
       topBarHide={topBarHide}
-      // Заголовок дня (Сегодня/Вчера/«5 июня») едет в `contentHeader` — по центру
-      // вверху листа («бумажки»), его прокидывает HomePage. Watermark-логотип
-      // Disher даёт сам Screen-лист (`.headerOverlap::after`); на пустом дне
-      // (hollow) маленький знак гаснет, включается большой центральный
+      // Шапка слайда «Еда и нутриенты» (Masthead) едет первым ребёнком листа —
+      // как «Анализ» на слайде «Открытия» (день уехал в HomeTopBar). Watermark-
+      // логотип Disher даёт сам Screen-лист (`.headerOverlap::after`); на пустом
+      // дне (hollow) маленький знак гаснет, включается большой центральный
       // brandWatermark.
       overlay={
         <>
@@ -188,6 +208,7 @@ const FoodSchedule = ({
         <InlineWriteFoodReview flow={writeFoodFlow} />
       }
     >
+      <Masthead as="h2">Еда и нутриенты</Masthead>
       <div {...foodAnchor} className={styles.foodListAnchor}>
         <div {...boundaryAnchor}>
           <ItemsList>
@@ -233,6 +254,10 @@ const FoodSchedule = ({
           </ItemsList>
         </div>
       </div>
+      {/* Полоса-сводка нутриентов — в конце списка, всегда перед предложкой
+          (InlineWriteFoodReview живёт в afterContent → рендерится после контента).
+          На пустом дне не показываем. */}
+      {!isEmpty && <NutrientsBar totals={totals} onOpen={openNutrients} />}
     </Screen>
   );
 };

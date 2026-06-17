@@ -2,7 +2,7 @@ import { useAuthStore } from './auth-store';
 import styles from './AccountPanel.module.scss';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ProfileDrawer } from './ProfileDrawer';
-import SettingsIcon from '@/shared/assets/icons/settings.svg?react';
+import MoreIcon from '@/shared/assets/icons/more.svg?react';
 
 const AccountPanel = () => {
   const email = useAuthStore((s) => s.email);
@@ -17,7 +17,7 @@ const AccountPanel = () => {
       onClick={openDrawer}
       aria-label={email ? `Настройки и аккаунт ${email}` : 'Настройки и аккаунт'}
     >
-      <SettingsIcon className={styles.icon} />
+      <MoreIcon className={styles.icon} />
     </button>
   );
 };

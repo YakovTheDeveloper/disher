@@ -104,6 +104,7 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
         {status === 'done' && (
           <AnalysisResult
             summary={analysis.summary}
+            observations={analysis.observations}
             insights={analysis.insights}
             hypotheses={analysis.hypotheses}
             insightSource="long"

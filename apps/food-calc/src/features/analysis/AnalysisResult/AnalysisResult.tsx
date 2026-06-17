@@ -6,7 +6,7 @@ import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import type { InsightSource } from '@/entities/insight';
 import { InsightCard } from '../InsightCard';
 import { HypothesisCard } from '../HypothesisCard';
-import type { AnalysisInsight, AnalysisHypothesis } from '../api';
+import type { AnalysisObservation, AnalysisInsight, AnalysisHypothesis } from '../api';
 import styles from './AnalysisResult.module.scss';
 
 // Valence-display variants (F3 «хз» → pick by eye). The anchor sits on the
@@ -27,6 +27,8 @@ const ANALYSIS_STYLE_VARIANTS = ['hairline', 'rail', 'inset', 'card'] as const;
 
 type Props = {
   summary: string;
+  /** Neutral patterns — read-only reference, NOT saveable (no «+ к себе»). */
+  observations: AnalysisObservation[];
   insights: AnalysisInsight[];
   hypotheses: AnalysisHypothesis[];
   /** Which разбор this is — recorded on each insight the user adds («Добавить к
@@ -35,45 +37,53 @@ type Props = {
   /** Forwarded to InsightCard. Daily analysis passes `false` to drop the
    *  always-«сегодня» day-chip; long analysis keeps days. */
   showDays?: boolean;
-  /** Bare mode: секции без pearl-плашки (заголовок + список прямо на
-   *  поверхности). Длинный разбор (AnalysisDetailModal) стоит на бледном
-   *  ModalShell-фоне — pearl-плашка там не отделялась бы (pearl-на-pearl), а
-   *  тёплого HomeAmbient под ней нет. Дом — с плашкой (по умолчанию). */
+  /** Bare mode: секции без pearl-плашки (список прямо на поверхности). Длинный
+   *  разбор (AnalysisDetailModal) и дом — без плашки; разбор блюда — с плашкой
+   *  (по умолчанию). */
   bare?: boolean;
-  /** Дом: summary едет СВОЕЙ pearl-плашкой (отдельная секция-подложка), а не
-   *  lead-абзацем — три плашки (summary / Наблюдения / Гипотезы) плавают на
-   *  ambient'е без единого «листа». Только non-bare; dish/long оставляют
-   *  lead-абзац. */
-  summaryCard?: boolean;
+  /** Дом (bare): убрать под-заголовки секций («Наблюдения» / «Гипотезы — что
+   *  проверить») — разбор живёт текстом прямо на стекле, иерархию несут
+   *  типографика + бровки. Длинный разбор под-заголовки оставляет. */
+  hideSectionHeaders?: boolean;
 };
 
 // Shared render of a finished structured analysis — same body for the daily
-// inline section and the long detail modal. Three blocks, each shown only when
-// it has content: summary (markdown) → insights (read-only observations) →
-// hypotheses (addable experiments). На доме наблюдения/гипотезы живут в pearl-
-// плашке SheetCard; в `bare`-режиме — секцией с заголовком, без плашки.
+// inline section and the long detail modal. FOUR blocks, each shown only when it
+// has content: summary (markdown) → наблюдения (read-only patterns, reference) →
+// инсайты (valenced, addable «+ к себе») → гипотезы (addable experiments). На
+// доме секции живут в pearl-плашке SheetCard; в `bare`-режиме — секцией с
+// заголовком, без плашки.
 //
 // Array defaults are a safety net: a stale cache record (older shape) can reach
-// here with insights/hypotheses === undefined; default to [] so `.length` never
-// throws even if the data boundary (hydrate/mapper) missed it.
+// here with observations/insights/hypotheses === undefined; default to [] so
+// `.length` never throws even if the data boundary (hydrate/mapper) missed it.
 const AnalysisResult = ({
   summary,
+  observations = [],
   insights = [],
   hypotheses = [],
   insightSource = 'daily',
   showDays = true,
   bare = false,
-  summaryCard = false,
+  hideSectionHeaders = false,
 }: Props) => {
   const { anchor: valenceAnchor } = useDesignVariant('Insight', INSIGHT_VALENCE_VARIANTS);
   const { anchor: styleAnchor } = useDesignVariant('Analysis', ANALYSIS_STYLE_VARIANTS);
   const renderSection = (title: string, children: React.ReactNode) =>
     bare ? (
-      <section className={styles.bareBlock}>
-        <Heading size="drawer" as="h3" className={styles.bareHead}>
-          {title}
-        </Heading>
-        <div className={styles.list}>{children}</div>
+      // `data-analysis-*` are stable styling hooks (the hashed module classes
+      // can't be reached from a consumer's scss). The home «Открытия» slide
+      // restyles these under `.ambientSheet` into the Apple type system; other
+      // consumers (long modal / dish) are unaffected — they're not under it.
+      <section className={styles.bareBlock} data-analysis-section="">
+        {!hideSectionHeaders && (
+          <Heading size="drawer" as="h3" className={styles.bareHead}>
+            {title}
+          </Heading>
+        )}
+        <div className={styles.list} data-analysis-list="">
+          {children}
+        </div>
       </section>
     ) : (
       <SheetCard header={title}>
@@ -82,24 +92,34 @@ const AnalysisResult = ({
     );
 
   return (
-    <div className={styles.root} {...styleAnchor}>
-      {summary &&
-        (summaryCard && !bare ? (
-          <SheetCard>
-            <div className={styles.summaryBody}>
-              <ReactMarkdown>{summary}</ReactMarkdown>
-            </div>
-          </SheetCard>
-        ) : (
-          <div className={styles.summary}>
-            <ReactMarkdown>{summary}</ReactMarkdown>
-          </div>
-        ))}
+    <div className={styles.root} data-analysis-root="" {...styleAnchor}>
+      {summary && (
+        <div className={styles.summary} data-analysis-summary="">
+          <ReactMarkdown>{summary}</ReactMarkdown>
+        </div>
+      )}
 
-      <div className={styles.sections} {...valenceAnchor}>
+      <div className={styles.sections} data-analysis-sections="" {...valenceAnchor}>
+        {observations.length > 0 &&
+          renderSection(
+            '',
+            // Read-only reference: render through InsightCard with a neutral
+            // valence (no sign/label) and action="none" (no «+ к себе»). An
+            // observation is the insight shape minus valence, so we synthesise a
+            // neutral one for display — never persisted.
+            observations.map((observation, idx) => (
+              <InsightCard
+                key={idx}
+                insight={{ ...observation, valence: 'neutral' }}
+                showDays={showDays}
+                action="none"
+              />
+            ))
+          )}
+
         {insights.length > 0 &&
           renderSection(
-            'Наблюдения',
+            '',
             insights.map((insight, idx) => (
               <InsightCard
                 key={idx}
@@ -108,15 +128,15 @@ const AnalysisResult = ({
                 action="add"
                 source={insightSource}
               />
-            )),
+            ))
           )}
 
         {hypotheses.length > 0 &&
           renderSection(
-            'Гипотезы — что проверить',
+            '',
             hypotheses.map((hypothesis, idx) => (
               <HypothesisCard key={idx} hypothesis={hypothesis} />
-            )),
+            ))
           )}
       </div>
     </div>

@@ -1,4 +1,8 @@
-import type { AnalysisInsight, AnalysisHypothesis } from '../api';
+import type {
+  AnalysisObservation,
+  AnalysisInsight,
+  AnalysisHypothesis,
+} from '../api';
 
 export type DailyAnalysisStatus =
   | 'loading'
@@ -31,6 +35,7 @@ export type DailyAnalysis = {
   date: string;
   /** Short overview (markdown). Empty while loading / on failure. */
   summary: string;
+  observations: AnalysisObservation[];
   insights: AnalysisInsight[];
   hypotheses: AnalysisHypothesis[];
   appliedHypotheses: AppliedHypothesisSnapshot[];

@@ -13,7 +13,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     | 'filter'
     | 'filter-2'
     | 'menu'
-    | 'bottomActionBar';
+    | 'bottomActionBar'
+    | 'brand';
   isLoading?: boolean;
   before?: React.ReactNode;
   /** Ведущая иконка — в span слева от метки (currentColor, fixed-size в варианте). */

@@ -109,11 +109,44 @@
 // the list reads as "one pale yellow that barely shifts" rather than four
 // distinct shades. No nested night text flip — graphite stays legible on the
 // deepest (still pale) step.
+// Tuned 2026-06-14: the real culprit was never the yellow — it was WHITE names
+// (the tropic-theme night-text leak, now killed in FoodSchedule/ScheduleEvents).
+// With solid-graphite names a healthy warm yellow reads fine, so this sits at a
+// comfortable MEDIUM (green channel ~184 at night) — clearly yellow, not the
+// washed-out cream of the over-correction, not the saturated gold of the
+// original. High alpha keeps HomePage's ambient glow from re-saturating it.
 @mixin dv-palette-lemon {
-  @include _tod-palette((rgba(255, 250, 214, 0.88), rgba(253, 246, 200, 0.88), rgba(225, 190, 70, 0.28), rgba(225, 190, 70, 0.18), rgba(251, 244, 196, 0.92)),
-    (rgba(255, 246, 200, 0.88), rgba(252, 240, 186, 0.88), rgba(222, 182, 60, 0.30), rgba(222, 182, 60, 0.20), rgba(250, 237, 182, 0.92)),
-    (rgba(254, 241, 188, 0.88), rgba(250, 234, 174, 0.88), rgba(218, 172, 52, 0.30), rgba(218, 172, 52, 0.20), rgba(248, 231, 170, 0.90)),
-    (rgba(252, 235, 176, 0.90), rgba(247, 228, 162, 0.90), rgba(212, 162, 48, 0.32), rgba(212, 162, 48, 0.22), rgba(244, 224, 158, 0.92)));
+  @include _tod-palette((rgba(255, 248, 205, 0.93), rgba(254, 244, 193, 0.93), rgba(225, 190, 70, 0.24), rgba(225, 190, 70, 0.16), rgba(253, 242, 190, 0.94)),
+    (rgba(255, 245, 196, 0.93), rgba(253, 241, 184, 0.93), rgba(222, 182, 60, 0.26), rgba(222, 182, 60, 0.17), rgba(252, 239, 182, 0.94)),
+    (rgba(254, 243, 190, 0.93), rgba(251, 238, 178, 0.93), rgba(218, 172, 52, 0.26), rgba(218, 172, 52, 0.17), rgba(250, 236, 174, 0.92)),
+    (rgba(252, 240, 184, 0.94), rgba(248, 234, 170, 0.94), rgba(212, 162, 48, 0.28), rgba(212, 162, 48, 0.18), rgba(247, 232, 166, 0.94)));
+}
+
+// plain — «без подложки»: at rest the rows carry NO card at all — transparent
+// fill AND transparent outline across every time-of-day step, so the list is
+// just text on the page (no hue, no frame, no period shift). A faint neutral-
+// grey tap tint keeps press feedback perceptible. The orphan last-row shadow is
+// suppressed at the anchor (see FoodSchedule.module.scss). Pairs with
+// $dv-text-graphite for clean near-black labels.
+@mixin dv-palette-plain {
+  @include _tod-palette((transparent, transparent, transparent, transparent, rgba(0, 0, 0, 0.05)),
+    (transparent, transparent, transparent, transparent, rgba(0, 0, 0, 0.05)),
+    (transparent, transparent, transparent, transparent, rgba(0, 0, 0, 0.05)),
+    (transparent, transparent, transparent, transparent, rgba(0, 0, 0, 0.05)));
+}
+
+// lime — the GREEN parallel to `lemon` (the Events-screen single-hue style):
+// ONE pale lime-green across the whole day, anchored on tropic's fresh green
+// hue. The four time-of-day steps stay deliberately CLOSE (narrow morning→night
+// delta) so the list reads as "one pale green that barely shifts" rather than
+// four distinct shades. Unlike the multi-shade families, the night step stays
+// GREEN (never slides into graphite/slate) — same single-hue discipline as
+// lemon. Pairs with $dv-text-graphite (dark slate reads cleanly on pale green).
+@mixin dv-palette-lime {
+  @include _tod-palette((rgba(234, 250, 206, 0.88), rgba(224, 246, 192, 0.88), rgba(120, 175, 50, 0.28), rgba(120, 175, 50, 0.18), rgba(216, 240, 186, 0.92)),
+    (rgba(228, 247, 198, 0.88), rgba(218, 243, 184, 0.88), rgba(116, 170, 48, 0.30), rgba(116, 170, 48, 0.20), rgba(210, 237, 178, 0.92)),
+    (rgba(222, 244, 190, 0.88), rgba(212, 240, 176, 0.88), rgba(112, 165, 46, 0.30), rgba(112, 165, 46, 0.20), rgba(204, 233, 170, 0.90)),
+    (rgba(216, 240, 182, 0.90), rgba(206, 236, 168, 0.90), rgba(108, 160, 44, 0.32), rgba(108, 160, 44, 0.22), rgba(198, 230, 162, 0.92)));
 }
 
 // ─── Shared foreground (text) tokens ────────────────────────────────
@@ -122,11 +155,16 @@
 // Text stays in the family's dark anchor hue for clean contrast on the
 // gentle pastel surfaces above.
 
+// Crisped 2026-06-14: primary was 0.92-alpha + weight 400, so on the warm
+// pastel surfaces the background bled through the names and the 0.62 secondary
+// left the per-row time barely legible. Primary now solid (no bleed-through),
+// secondary lifted so the time reads at a glance. Darker ink on light pastels
+// only ever helps contrast, so this is safe across every graphite-text palette.
 $dv-text-graphite: (
-  primary: rgba(31, 42, 68, 0.92),
-  secondary: rgba(31, 42, 68, 0.62),
-  tertiary: rgba(31, 42, 68, 0.45),
-  muted: rgba(31, 42, 68, 0.42),
+  primary: rgba(31, 42, 68, 1),
+  secondary: rgba(31, 42, 68, 0.78),
+  tertiary: rgba(31, 42, 68, 0.56),
+  muted: rgba(31, 42, 68, 0.5),
 );
 
 $dv-text-twilight: (

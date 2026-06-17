@@ -10,11 +10,18 @@
 // ─── Local tokens (defaults — overridden per bar-shell variant) ────────
 
 .shell {
-  // «floating» canon (baked-in): translucent glass pill, tight crisp shadow.
-  --bar-bg: rgba(255, 255, 255, 0.94);
-  --bar-blur: 14px;
-  --bar-border: none;
-  --bar-shadow: 0 1px 2px rgba(31, 42, 68, 0.08);
+  // Liquid-glass пилюли: фон полупрозрачный (оттенок картинки/фона проступает),
+  // backdrop = blur + saturate (цвет под стеклом становится сочнее, а детали
+  // размываются → текст читается), сверху тонкий световой кант стекла + мягкая
+  // тень для «парения». Альфа 0.6 — компромисс: достаточно вуали, чтобы тёмный
+  // текст оставался контрастным над любой картинкой, но не «глухой» белый.
+  --bar-bg: rgba(255, 255, 255, 0.6);
+  --bar-blur: 20px;
+  --bar-backdrop: blur(var(--bar-blur)) saturate(180%);
+  --bar-border: 1px solid rgba(255, 255, 255, 0.5);
+  --bar-shadow:
+    0 2px 10px rgba(31, 42, 68, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
   --bar-pad-y: 8px;
 
   --seg-color: rgba(0, 0, 0, 0.78);
@@ -63,7 +70,7 @@
   gap: 6px;
   width: 100%;
   box-sizing: border-box;
-  padding: var(--space-3) var(--space-2);
+  padding: var(--space-3) var(--space-3);
   background: transparent;
   border: none;
   box-shadow: none;
@@ -155,8 +162,8 @@
   border: var(--bar-border);
   box-shadow: var(--bar-shadow);
   border-radius: var(--radius-full);
-  backdrop-filter: blur(var(--bar-blur));
-  -webkit-backdrop-filter: blur(var(--bar-blur));
+  backdrop-filter: var(--bar-backdrop);
+  -webkit-backdrop-filter: var(--bar-backdrop);
   padding: 4px 10px;
   // Резерв под account-pill слева (~44px) + date-segment справа (~110px) +
   // gap'ы, чтобы центр не наезжал на края. На уже-узких экранах кнопка
@@ -196,8 +203,8 @@
   border: var(--bar-border);
   box-shadow: var(--bar-shadow);
   border-radius: var(--radius-full);
-  backdrop-filter: blur(var(--bar-blur));
-  -webkit-backdrop-filter: blur(var(--bar-blur));
+  backdrop-filter: var(--bar-backdrop);
+  -webkit-backdrop-filter: var(--bar-backdrop);
   // transform/opacity — для scroll-hide (см. блок `data-topbar-hide` внизу).
   transition:
     transform var(--duration-normal) var(--easing-default),
@@ -234,7 +241,8 @@
 }
 
 .dateSegment {
-  --date-pad-x: 14px;
+  // Воздух по бокам по сетке проекта (space-5 = 20px) вместо raw 14px.
+  --date-pad-x: var(--space-5);
   // Вертикальный паддинг минимален — высоту пилюли держит `--bar-pill-h`
   // (min-height ниже), а `.segment` (inline-flex, align-items:center)
   // центрирует day/dd.mm-стопку внутри неё. Так date-пилюля ровно в одной
@@ -247,8 +255,8 @@
   border: var(--bar-border);
   box-shadow: var(--bar-shadow);
   border-radius: var(--radius-full);
-  backdrop-filter: blur(var(--bar-blur));
-  -webkit-backdrop-filter: blur(var(--bar-blur));
+  backdrop-filter: var(--bar-backdrop);
+  -webkit-backdrop-filter: var(--bar-backdrop);
   padding: var(--date-pad-y) var(--date-pad-x);
   margin-left: auto;
   // Перебивает transition из `.segment` — добавляет transform/opacity для
@@ -361,9 +369,20 @@
 
 @media (prefers-reduced-motion: reduce) {
 
-  .accountSlot,
-  .centerSlot,
-  .dateSegment {
+  // Скрытие (transform/opacity) становится мгновенным, но press-инверсия
+  // (background/color) сохраняет свой transition — её гасить незачем.
+  // accountSlot своей press-анимации не имеет → ему просто `none`.
+  .accountSlot {
     transition: none;
+  }
+
+  .centerSlot {
+    transition: background var(--press-out) var(--easing-default);
+  }
+
+  .dateSegment {
+    transition:
+      background var(--press-out) var(--easing-default),
+      color var(--press-out) var(--easing-default);
   }
 }

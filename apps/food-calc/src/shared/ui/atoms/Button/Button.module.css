@@ -276,6 +276,66 @@
   }
 }
 
+/* ─── brand — фирменная sage-CTA (единый цвет primary-действий) ─────────────
+   Один фирменный цвет кнопки по проекту: бледный шалфейно-жёлтый направленный
+   градиент (плотный слева → растворяется в полупрозрачный крем справа, сквозь
+   правый край просвечивает ambient-подложка). Тёмный ink-текст. Геометрия
+   повторяет `.bottomActionBar` (pill, высота --bottom-action-h), чтобы в split-
+   баре HomePage обе кнопки совпадали. Источник правды цвета — этот блок; чтобы
+   перекрасить кнопку по всему проекту, правится один градиент здесь.
+   Press: заливка светлая, инверсией не залить → тон через затемнение градиента
+   + фильтр (canon press-darken для сплошных/светлых CTA). */
+.brand {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: auto;
+  min-height: var(--bottom-action-h);
+  padding: 0 var(--space-6);
+  border: none;
+  border-radius: 999px;
+  background: var(--cta-brand-fill);
+  color: var(--cta-brand-ink);
+  box-shadow: var(--cta-brand-shadow);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--press-out) var(--easing-default),
+    background var(--press-out) var(--easing-default),
+    filter var(--press-out) var(--easing-default);
+
+  /* Не гасим прозрачностью (базовый .button:hover это делает). */
+  &:hover {
+    opacity: 1;
+  }
+
+  &:active {
+    transform: scale(0.97);
+    background: var(--cta-brand-fill-press);
+    filter: brightness(0.97);
+    transition-duration: var(--press-in);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.brand .icon svg {
+  width: 20px;
+  height: 20px;
+}
+
 /* Ведущая иконка (currentColor). Размер — фиксированный в баре, не зависит от
    width/height, проброшенных в сам svg. */
 .icon {

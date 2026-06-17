@@ -25,6 +25,7 @@ function loadingRecord(date: string): DailyAnalysis {
   return {
     date,
     summary: '',
+    observations: [],
     insights: [],
     hypotheses: [],
     appliedHypotheses: [],
@@ -71,16 +72,24 @@ describe('dayAgeInDays', () => {
 });
 
 describe('start', () => {
-  it('resolves to done with summary / insights / hypotheses', async () => {
+  it('resolves to done with summary / observations / insights / hypotheses', async () => {
     mockRequest.mockResolvedValue({
       summary: 'Разбор дня.',
-      insights: [
+      observations: [
         {
           title: 'Ранний ужин',
           detail: 'до 19:00',
-          valence: 'neutral',
           strength: 'weak',
           evidence: { days: ['15-05-2026'] },
+        },
+      ],
+      insights: [
+        {
+          title: 'Железо + витамин C',
+          detail: 'лучше усвоение',
+          valence: 'positive',
+          strength: 'moderate',
+          evidence: { days: ['15-05-2026'], foods: ['говядина'] },
         },
       ],
       hypotheses: [{ title: 'Без сахара', body: 'на день' }],
@@ -94,12 +103,13 @@ describe('start', () => {
     expect(rec.status).toBe('done');
     expect(rec.reason).toBeNull();
     expect(rec.summary).toBe('Разбор дня.');
+    expect(rec.observations).toHaveLength(1);
     expect(rec.insights).toHaveLength(1);
     expect(rec.hypotheses).toEqual([{ title: 'Без сахара', body: 'на день' }]);
   });
 
   it('persists the finished analysis to idb-keyval', async () => {
-    mockRequest.mockResolvedValue({ summary: 'готово', insights: [], hypotheses: [] });
+    mockRequest.mockResolvedValue({ summary: 'готово', observations: [], insights: [], hypotheses: [] });
     await useDailyAnalysisStore
       .getState()
       .start('15-05-2026', { hypothesisIds: [] });
@@ -132,7 +142,7 @@ describe('start', () => {
   });
 
   it('threads userMessage to the request and snapshots it on the record', async () => {
-    mockRequest.mockResolvedValue({ summary: 'готово', insights: [], hypotheses: [] });
+    mockRequest.mockResolvedValue({ summary: 'готово', observations: [], insights: [], hypotheses: [] });
     await useDailyAnalysisStore
       .getState()
       .start('15-05-2026', { hypothesisIds: [], userMessage: 'учти сон' });
@@ -145,7 +155,7 @@ describe('start', () => {
   });
 
   it('leaves appliedUserMessage undefined when no message is given', async () => {
-    mockRequest.mockResolvedValue({ summary: 'готово', insights: [], hypotheses: [] });
+    mockRequest.mockResolvedValue({ summary: 'готово', observations: [], insights: [], hypotheses: [] });
     await useDailyAnalysisStore
       .getState()
       .start('15-05-2026', { hypothesisIds: [] });
@@ -248,8 +258,9 @@ describe('hydrateDailyAnalyses', () => {
     await hydrateDailyAnalyses(NOW);
 
     const rec = useDailyAnalysisStore.getState().byDate['15-05-2026'];
-    // Old resultMd carried over to summary; insights/hypotheses defaulted to [].
+    // Old resultMd carried over to summary; observations/insights/hypotheses defaulted to [].
     expect(rec.summary).toBe('## разбор\nкэшированный текст');
+    expect(rec.observations).toEqual([]);
     expect(rec.insights).toEqual([]);
     expect(rec.hypotheses).toEqual([]);
     // Dead 'streaming' status mapped to interrupted/reload.

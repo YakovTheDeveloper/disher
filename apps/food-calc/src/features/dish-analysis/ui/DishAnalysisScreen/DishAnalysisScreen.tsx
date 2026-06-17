@@ -136,6 +136,7 @@ const DishAnalysisScreen = ({ dishId, hasIngredients }: Props) => {
       {hasContent && shown && (
         <AnalysisResult
           summary={shown.summary}
+          observations={[]}
           insights={shown.insights}
           hypotheses={[]}
           insightSource="dish"

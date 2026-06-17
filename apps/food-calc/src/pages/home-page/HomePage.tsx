@@ -7,25 +7,44 @@ import { FoodSchedule } from '@/widgets/FoodSchedule';
 import { ScheduleEvents } from '@/widgets/ScheduleEvents';
 import { Laboratory } from '@/widgets/Laboratory';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
-import { useScheduleFoods, useScheduleNutrientTotals } from '@/entities/schedule-food';
+import { useScheduleFoods } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { TopBarScrollHideContext, useTopBarScrollHideController } from '@/shared/ui/Screen';
 import { SlideArtFrame } from './ui/SlideArtFrame';
-import { SelectedDayHeading } from './ui/SelectedDayHeading';
+import { HomeHero } from './ui/HomeHero';
 import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import normsImg from '@/shared/assets/decarative/norms.png';
-import { NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
-import { drawerStore } from '@/shared/ui/drawer-store';
-import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 import { useRolloverNudge } from './useRolloverNudge';
 
 const SCREENS: ScreenEntry[] = [
   { label: 'Открытия', image: '/art/experiment.png', titleStyle: 'display-sans' },
-  { label: 'Дневной рацион', image: '/art/schedule-food.png', titleStyle: 'display-sans' },
+  { label: 'Рацион', image: '/art/schedule-food.png', titleStyle: 'display-sans' },
   { label: 'События', image: normsImg, titleStyle: 'display-sans' },
 ];
+
+// NavSwitcher — affordance HomePage-табов. Anchor на `.swipeArea` (только
+// HomePage — Dish/AtomBuilder не затронуты). Первый в массиве = живой дефолт →
+// `tray-pill-bleed-hero`: hero-обложка-гравюра сверху + короткие текст-табы БЕЗ
+// трея-подложки, утопленные в нижний fade обложки (верхний блок = единая рамка).
+// Базовый облик HomePage. CSS: NavTile.module.scss (внутренности плитки/пилюли) +
+// ScreenIndicator.module.scss (трей/fade-лифт) + HomeHero.module.scss (обложка),
+// всё под `[data-dv='NavSwitcher']`.
+//   tray-pill-bleed-hero  — БАЗА: графика в Hero сверху, пилюли — чистый текст,
+//                           ряд утоплен в fade обложки (см. --home-tabs-lift)
+//   inverse-lift          — легаси: белая active-бумага, faded inactive (квадраты)
+//   tray-pill-bleed       — пилюли в стадион-трее; картинка «вытекает» справа
+const NAV_SWITCHER_VARIANTS = [
+  'tray-pill-bleed-hero',
+  'inverse-lift',
+  'tray-pill-bleed',
+] as const;
+
+// Облик подписей табов (small-caps serif + чернильная линейка под активным)
+// вшит как канон прямо в NavTile.module.scss под структурой NavSwitcher hero —
+// бывшая DEV-ось `HomeTabs` убрана из DesignBar (выбран smallcaps-rule).
 
 const DEFAULT_SLIDE = 1;
 // Ambient backdrop переехал на app-уровень (App.tsx `useDesignVariant('HomeAmbient')`
@@ -43,11 +62,6 @@ const Page = ({ date }: { date: string }) => {
   // «законодателю» (см. tds/modalshell-lawgiver-2026-06-13).
   const scheduleFoods = useScheduleFoods(date);
   const scheduleEvents = useScheduleEvents(date);
-  const {
-    totals: scheduleTotals,
-    missingNutrientNames,
-    isLoading: nutrientsLoading,
-  } = useScheduleNutrientTotals(date);
 
   const items = scheduleFoods;
   // НЕ делать `[...scheduleEvents]` — spread даёт новую ссылку на каждом
@@ -55,6 +69,11 @@ const Page = ({ date }: { date: string }) => {
   const events = scheduleEvents as ScheduleEvent[];
 
   const swipeableRef = useRef<SwipeableRef>(null);
+
+  // Anchor для аудита affordance NavTile-табов (см. NAV_SWITCHER_VARIANTS).
+  // Висит на `.swipeArea` — общий предок всех трёх слайдов → одним атрибутом
+  // покрывает плитки во всех табах, и только на HomePage.
+  const { anchor: navSwitcherAnchor } = useDesignVariant('NavSwitcher', NAV_SWITCHER_VARIANTS);
 
   // Направление-зависимое скрытие кнопок бара при скролле (см. topBarScrollHide).
   // Контроллер пишет `data-topbar-hide` на `.shell` бара императивно — свайп и
@@ -92,72 +111,64 @@ const Page = ({ date }: { date: string }) => {
     });
   }, []);
 
-  // Nutrients pill переехал с bottom-bar (leadingSlot) в HomeTopBar centerSlot
-  // (эксперимент 2026-05-21: bottom-bar теперь messenger-style write-field, в
-  // нём не остаётся места под 2-строчный nutrient-summary). Колбэк живёт здесь,
-  // FoodSchedule больше не владеет drawer'ом нутриентов.
-  const openNutrients = useCallback(() => {
-    void drawerStore.show(
-      NutrientsDrawer,
-      {
-        totals: scheduleTotals,
-        missingNutrientNames,
-        isLoading: nutrientsLoading,
-      },
-      { side: 'left', width: 'min(85vw, 360px)' }
-    );
-  }, [scheduleTotals, missingNutrientNames, nutrientsLoading]);
+  // Сумма нутриентов за день теперь живёт в полосе-сводке в конце списка еды
+  // (FoodSchedule → NutrientsBar), а не в пилюле верхнего бара — пилюлю убрали.
 
-  const topBarCenterSlot = useMemo(
-    () => <NutrientsSummaryButton totals={scheduleTotals} onClick={openNutrients} />,
-    [scheduleTotals, openNutrients]
-  );
-
-  // Свайп НЕ прокидывается в React-стейт намеренно: каждый слайд рендерит
-  // свой статичный ScreenIndicator (slideIndex={0/1/2}), поэтому Page не
-  // зависит от активного индекса. Без onIndexChange/activeIndex свайп не
-  // вызывает ре-рендер Page и memo'нутых слайдов — Embla двигает DOM сам.
+  // Каждый слайд рендерит свой статичный ScreenIndicator (slideIndex={0/1/2}),
+  // поэтому индикаторы статичны. Свайп больше не ре-рендерит Page
+  // (handleIndexChange — только imperative-чистка), слайд-виджеты и индикаторы
+  // мемоизированы со стабильными пропсами → Embla двигает DOM сам.
   const handleSelect = useCallback((idx: number) => {
     swipeableRef.current?.goToPage(idx);
   }, []);
 
-  // Заголовок выбранного дня (Сегодня/Вчера/Завтра или «5 июня»). Едет ВНУТРЬ
-  // листа через Screen `contentHeader` (по центру вверху «бумажки») на слайдах
-  // Рацион и События. Слайд «Мои открытия» (Laboratory) заголовок дня НЕ
-  // показывает (снят 2026-06-14) — там три секции-плашки разбора на ambient'е.
-  // Один общий узел переиспользуется обоими слайдами — дата одна, меняется
-  // только при смене date, не на свайпе.
-  const dayHeading = useMemo(() => <SelectedDayHeading date={date} />, [date]);
+  // Заголовок дня внутри листа снят (2026-06-14): на всех трёх слайдах шапку
+  // теперь несёт общий `Masthead` (Анализ / Еда и нутриенты / События дня),
+  // выбранный день читается в HomeTopBar (Суббота · 13.06).
 
   // ScreenIndicator передаётся в каждый слайд как `topSlot`. slideIndex={0/1/2}
   // → каждый инстанс статично показывает СВОЙ экран (label, image, highlight'-
   // нутый тайл). Заголовок дня тут больше НЕ живёт — он переехал в
   // `contentHeader` листа (см. dayHeading ниже). Зависимость useMemo — stable
   // handleSelect → memo на слайд-виджетах держит, свайп = ноль React-ре-рендеров.
+  // topSlot каждого слайда = Hero (статичная обложка) НАД ScreenIndicator.
+  // Hero виден только в hero-варианте (gate в HomeHero.module.scss); оба сидят
+  // в `stickyTop` слайда, поэтому лист контента (`.headerOverlap`, z-index:1)
+  // при скролле наезжает на них. 3 слайда → 3 одинаковых Hero.
   const labIndicator = useMemo(
     () => (
-      <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={0} bandImg={false} />
+      <>
+        <HomeHero slide={0} />
+        <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={0} bandImg={false} />
+      </>
     ),
     [handleSelect]
   );
   const foodIndicator = useMemo(
     () => (
-      <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={1} bandImg={false} />
+      <>
+        <HomeHero slide={1} />
+        <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={1} bandImg={false} />
+      </>
     ),
     [handleSelect]
   );
   const eventsIndicator = useMemo(
     () => (
-      <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={2} bandImg={false} />
+      <>
+        <HomeHero slide={2} />
+        <ScreenIndicator screens={SCREENS} onSelect={handleSelect} slideIndex={2} bandImg={false} />
+      </>
     ),
     [handleSelect]
   );
 
   return (
     <div className={homeStyles.container}>
-      <HomeTopBar date={date} centerSlot={topBarCenterSlot} shellRef={shellRef} />
-      <div className={homeStyles.swipeArea}>
+      <HomeTopBar date={date} shellRef={shellRef} />
+      <div className={homeStyles.swipeArea} {...navSwitcherAnchor}>
         <TopBarScrollHideContext.Provider value={topBarHideApi}>
+          <div className={homeStyles.tabsAnchor}>
           <Swipeable
             ref={swipeableRef}
             defaultSlide={DEFAULT_SLIDE}
@@ -176,7 +187,6 @@ const Page = ({ date }: { date: string }) => {
                 date={date}
                 items={items}
                 topSlot={foodIndicator}
-                contentHeader={dayHeading}
                 topBarHide="settings"
               />
             </SlideArtFrame>
@@ -187,11 +197,11 @@ const Page = ({ date }: { date: string }) => {
                 date={date}
                 events={events}
                 topSlot={eventsIndicator}
-                contentHeader={dayHeading}
                 topBarHide="settings"
               />
             </SlideArtFrame>
           </Swipeable>
+          </div>
         </TopBarScrollHideContext.Provider>
       </div>
     </div>

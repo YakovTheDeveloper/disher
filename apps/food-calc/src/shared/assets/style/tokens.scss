@@ -131,6 +131,18 @@
   // Единый «белый-на-тёмном» для press-fill-ink и ручных инверсий в барах.
   --text-on-accent: #fff;
 
+  // ─── Brand CTA — единый фирменный цвет primary-кнопок ──────────
+  // ОДИН источник правды цвета кнопки по проекту: тёплый бледно-жёлтый
+  // НЕПРОЗРАЧНЫЙ направленный градиент — плотный #FFF4BD слева, переходит
+  // в более светлый кремовый справа (без альфы). Тёмный navy-ink. Читают:
+  // Button `.brand` (нижние CTA HomePage) + InsightCard/HypothesisCard
+  // `.add` (действия в карточках разбора). Перекрасить кнопку во всём
+  // приложении = правка этих токенов. (tokens.scss exempt от token-gate.)
+  --cta-brand-fill: linear-gradient(270deg, #fffae0 0%, #fff4bd 100%);
+  --cta-brand-fill-press: linear-gradient(270deg, #f7f0cf 0%, #f3e8a6 100%);
+  --cta-brand-ink: rgba(31, 42, 68, 0.92);
+  --cta-brand-shadow: 0 5px 14px -6px rgba(170, 150, 60, 0.3), 0 2px 5px -2px rgba(170, 150, 60, 0.28);
+
   // ─── Nutrient family ──────────────────────────────────────────
   --nutrient-bg-main: #fef5e7;
   --nutrient-bg-minerals: #ecf6ef;

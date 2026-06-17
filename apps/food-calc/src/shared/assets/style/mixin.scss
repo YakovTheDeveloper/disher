@@ -114,6 +114,35 @@
     }
 }
 
+// Жёлтая градиентная CTA-пилюля — модификатор `bottomActionBar`-кнопок нижнего
+// бара (HomePage экран 1 «Открытия»: «Мои открытия» + «Анализировать»). Тот же
+// honey-fill и чёрный ink, что у InsightCard/HypothesisCard `.add`. Включать на
+// ДВОЙНОМ классе (`.x.x { @include yellow-cta-pill(); }`), чтобы перебить
+// `.bottomActionBar` (градиентную окаёмку-ring, matte-blur и press-инверсию в
+// ink) независимо от порядка CSS-модулей в бандле.
+@mixin yellow-cta-pill() {
+    background: linear-gradient(135deg, #ffe98a 0%, #ffd84d 52%, #f7c948 100%);
+    color: var(--color-ink);
+    box-shadow:
+        0 6px 16px -7px rgba(180, 140, 40, 0.34),
+        0 2px 6px -2px rgba(180, 140, 40, 0.3);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+
+    // Окаёмку-ring base'а прячем — заливка сама несёт тон.
+    &::before {
+        display: none;
+    }
+
+    // Press: затемняем градиент + поджим (вместо ink-инверсии base'а).
+    &:active {
+        background: linear-gradient(135deg, #ffe07a 0%, #f7c93b 52%, #e9b838 100%);
+        color: var(--color-ink);
+        transform: scale(0.97);
+        filter: brightness(0.97);
+    }
+}
+
 // Glass action button base. Shared by AddButton and WriteFoodButton.
 // $size controls the icon-only square (also the min-height when text is added).
 // Adding a `.withText` modifier turns the circle into a pill — see usage.
@@ -158,6 +187,29 @@
     border-radius: var(--radius-xl);
     padding: 0 var(--space-4) 0 var(--space-3);
     gap: var(--space-2);
+}
+
+// ─── Liquid-glass «лист» (Screen `headerOverlap` material) ─────────────────
+// Канон подложки HomePage: люминесцентное полупрозрачное off-white стекло с
+// усиленным блюром + saturation-boost (Apple `.regularMaterial`), бликовой
+// верхней кромкой (specular) + мягкой ambient-тенью, мягкими top-углами и
+// нижним fade-mask'ом (стекло растворяется над плавающим баром — backdrop-filter
+// НЕ затухает под mask'ом скроллера на WebKit, поэтому листу нужен свой).
+// Питает `--header-overlap-*`-токены, которые читает `.headerOverlap`
+// (Screen.module.scss). Изначально жил в Laboratory `.ambientSheet` (экран 1
+// HomePage); вынесен, чтобы Рацион/События несли тот же материал листа.
+@mixin liquid-glass-sheet() {
+    --header-overlap-bg: rgba(250, 250, 252, 1);
+    --header-overlap-backdrop: blur(30px) saturate(1.8);
+    --header-overlap-radius: var(--radius-2xl);
+    // specular-кромка (inset) + ТОЛЬКО небольшая верхняя тень — лист чуть
+    //    «приподнят» над треем табов/hero. Нижний drop убран. Верхняя тень видна
+    //    там, где нижняя fade-маска погашена (Рацион/События ставят
+    //    `--header-overlap-mask: none`); на «Открытиях» маска клипает outset-тени.
+    --header-overlap-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 -3px 3px rgba(31, 42, 68, 0.05);
+    --header-overlap-mask: linear-gradient(to top, transparent 0, #000 var(--bb-overlay-h, 96px));
 }
 
 // Primary CTA pill — single source of truth shared by WriteFoodButton.dark,
@@ -286,9 +338,11 @@
     &:active {
         background: var(--press-tint-bg, rgba(0, 0, 0, 0.05));
         color: $accent;
-        @if $scale != 1 {
+
+        @if $scale !=1 {
             transform: scale($scale);
         }
+
         transition-duration: var(--press-in);
     }
 }
@@ -384,33 +438,41 @@
 // Source of truth: src/features/schedule-navigator/ScheduleNavigator.module.scss
 // (`.dayRowToday / .dayRowSelected / .dayRowFilled`).
 
-$row-accent-neutral:  #d99a4c;  // filled: «есть данные», ненавязчиво
-$row-accent-today:    #e07a3a;  // today / current / active — фокус
-$row-accent-selected: #a35a14;  // выбран пользователем, deepest
-$row-ink:             #1f2a44;
-$row-ink-soft:        rgba(31, 42, 68, 0.62);
-$row-ink-faint:       rgba(31, 42, 68, 0.38);
-$row-hairline:        rgba(31, 42, 68, 0.08);
+$row-accent-neutral: #d99a4c; // filled: «есть данные», ненавязчиво
+$row-accent-today: #e07a3a; // today / current / active — фокус
+$row-accent-selected: #a35a14; // выбран пользователем, deepest
+$row-ink: #1f2a44;
+$row-ink-soft: rgba(31, 42, 68, 0.62);
+$row-ink-faint: rgba(31, 42, 68, 0.38);
+$row-hairline: rgba(31, 42, 68, 0.08);
 
 @mixin warm-row-bg($state) {
-    @if $state == rest {
+    @if $state ==rest {
         background: transparent;
-    } @else if $state == filled {
+    }
+
+    @else if $state ==filled {
         background: linear-gradient(90deg,
-            rgba(217, 154, 76, 0.07) 0%,
-            rgba(217, 154, 76, 0.02) 60%,
-            transparent 100%);
-    } @else if $state == today {
+                rgba(217, 154, 76, 0.07) 0%,
+                rgba(217, 154, 76, 0.02) 60%,
+                transparent 100%);
+    }
+
+    @else if $state ==today {
         background: linear-gradient(90deg,
-            rgba(255, 240, 220, 0.45) 0%,
-            rgba(255, 240, 220, 0.10) 60%,
-            transparent 100%);
-    } @else if $state == selected {
+                rgba(255, 240, 220, 0.45) 0%,
+                rgba(255, 240, 220, 0.10) 60%,
+                transparent 100%);
+    }
+
+    @else if $state ==selected {
         background: linear-gradient(90deg,
-            rgba(252, 224, 179, 0.55) 0%,
-            rgba(252, 224, 179, 0.18) 70%,
-            transparent 100%);
-    } @else {
+                rgba(252, 224, 179, 0.55) 0%,
+                rgba(252, 224, 179, 0.18) 70%,
+                transparent 100%);
+    }
+
+    @else {
         @error 'warm-row-bg: unknown state #{$state}. Expected rest|filled|today|selected.';
     }
 }

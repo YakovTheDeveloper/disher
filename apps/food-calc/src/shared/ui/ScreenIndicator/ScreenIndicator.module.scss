@@ -8,9 +8,9 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    padding: 0 var(--space-1);
     background: transparent;
     padding-top: var(--space-3);
+    margin: 0 var(--space-3);
 }
 
 .tilesRow {
@@ -18,7 +18,7 @@
     flex-shrink: 0;
     gap: var(--space-1);
     padding-top: var(--space-6);
-    padding-bottom: var(--space-5);
+    // padding-bottom: var(--space-1);
     // Колонок = `--tiles-slots` (= max(plitok, 3)): для Home/Dish (3 плитки)
     // это 3 полноширинные колонки; для Product (2 плитки) — тоже 3 колонки,
     // но плитки сдвинуты вправо через inline `grid-column-start` (см.
@@ -63,6 +63,55 @@
     align-items: center;
     justify-content: center;
     overflow: visible;
+}
+
+// ─── NavSwitcher — обвязка ряда (стадион-трей) под HomePage-табы ─────────
+// Anchor на `.swipeArea` (HomePage only), `.tilesRow` — потомок. Здесь только
+// контейнер ряда — утопленный стадион-трей вокруг пилюль; форму пилюль/графику
+// держит NavTile.module.scss. На HomePage `bandImg={false}`, поэтому большой
+// `padding-top: var(--space-6)` (резерв под band-картинку) ужимаем. `inverse-
+// lift` (дефолт) тут не упомянут — ноль оверрайдов.
+//
+// tray-pill-bleed — пилюли В утопленном стадион-трее (видимая подложка). hero-
+// форк (база) трей НЕ носит — там чистый текст поверх растворяющейся гравюры.
+:global([data-dv='NavSwitcher'][data-dv-v='tray-pill-bleed']) {
+    .tilesRow {
+        padding: var(--space-1);
+        background: rgba(0, 0, 0, 0.035);
+        // Радиус трея = стадион, чтобы перекликаться с капсулами-пилюлями.
+        border-radius: var(--radius-full);
+        box-shadow: inset 0 1px 3px rgba(31, 42, 68, 0.08);
+    }
+}
+
+// bleed: трей — первый элемент под `.stickyTop`(top:0) у самого верха скролла,
+// а `HomeTopBar` absolute поверх → без отступа табы слипаются с кнопками бара.
+// Отступ = высота бара (`--top-bar-h`, задаёт HomePage) + воздух.
+:global([data-dv='NavSwitcher'][data-dv-v='tray-pill-bleed']) .tilesRow {
+    margin-top: calc(var(--top-bar-h, 60px) + var(--space-2));
+}
+
+
+// hero (база): ряд табов «утоплен» в нижний fade обложки — низ растворяющейся
+// гравюры заходит ЗА подписи, и верхний блок (обложка + табы) читается единой
+// рамкой, а не двумя соседями. Лифт = отрицательный margin-top, высоту держит
+// `--home-tabs-lift`. `.root` позже hero в DOM и position:relative → подписи
+// рисуются ПОВЕРХ fade.
+:global([data-dv='NavSwitcher'][data-dv-v='tray-pill-bleed-hero']) {
+    .root {
+        // ↓↓↓ ГЛУБИНА УТОПЛЕНИЯ ряда в гравюру — крути это число.
+        // больше (56–64px) → глубже/плотнее рамка; меньше (28–36px) → деликатнее.
+        --home-tabs-lift: 44px;
+        padding-top: 0;
+        margin-top: calc(-1 * var(--home-tabs-lift));
+    }
+
+    // База `.tilesRow` несёт `padding-top: var(--space-6)` (24px, резерв под
+    // band-картинку, которой в hero НЕТ) — он отжимал подписи вниз и гасил лифт.
+    // Обнуляем, чтобы `--home-tabs-lift` управлял позицией ряда напрямую.
+    .tilesRow {
+        padding-top: 0;
+    }
 }
 
 // Картинка активного экрана. Живёт в `.root`. Колонка активного тайла

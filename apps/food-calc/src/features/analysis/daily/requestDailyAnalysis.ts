@@ -2,8 +2,10 @@ import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { API_BASE } from '@/shared/lib/api/base';
 import { readApiError } from '@/shared/lib/api/apiError';
 import {
+  asObservations,
   asInsights,
   asHypotheses,
+  type AnalysisObservation,
   type AnalysisInsight,
   type AnalysisHypothesis,
 } from '../api';
@@ -34,6 +36,7 @@ export type DailyPromptHypothesis = { title: string; body: string };
 
 export type DailyAnalysisOutput = {
   summary: string;
+  observations: AnalysisObservation[];
   insights: AnalysisInsight[];
   hypotheses: AnalysisHypothesis[];
 };
@@ -120,6 +123,7 @@ export async function requestDailyAnalysis(
 
   return {
     summary: analysis.summary,
+    observations: asObservations(analysis.observations),
     insights: asInsights(analysis.insights),
     hypotheses: asHypotheses(analysis.hypotheses),
   };

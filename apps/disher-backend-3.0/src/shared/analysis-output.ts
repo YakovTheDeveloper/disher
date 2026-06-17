@@ -9,25 +9,43 @@
 // IdeaCard shape here and the asIdeaCards filter in sync.
 
 // ─── Output entities ───
-// Two distinct things the analysis emits, deliberately NOT one bucket:
-//   • insight    — read-only observation grounded in the actual window data
-//                  (evidence.days is mandatory — the anti-hallucination lever).
-//   • hypothesis — a testable mini-experiment the user can save to themselves
-//                  (this is the former `ideaCard`, renamed to its real meaning).
+// THREE distinct things the analysis emits, deliberately separate buckets:
+//   • observation — a neutral regularity the model SAW in the data. Read-only,
+//                   not the user's to keep — pure reference. NO valence (it makes
+//                   no good/bad claim). The anti-hallucination lever (grounded
+//                   evidence) still applies.
+//   • insight     — a takeaway ABOUT the user that is good or bad and worth
+//                   remembering: a lucky/unlucky combination, a nutrient synergy
+//                   or antagonism. ALWAYS carries a valence (positive|negative);
+//                   the user can save it to themselves. A neutral "insight" is a
+//                   category error — it is really an observation, and the parser
+//                   demotes it.
+//   • hypothesis  — a testable mini-experiment the user can save to themselves
+//                   (this is the former `ideaCard`, renamed to its real meaning).
 // `summary` is a 1–2 sentence overview persisted into analyses.result_md so the
 // existing pending('')/failed('⚠️…') sentinels on that column keep working.
 
 export type AnalysisStrength = "weak" | "moderate" | "clear";
 
-// Whether an insight reads as a good thing, a bad thing, or just a neutral
-// observation. ORTHOGONAL to `strength` (confidence) — a "clear" insight can be
-// negative. LLM-determined; coerced to "neutral" when missing/unknown.
+// Whether an insight reads as a good thing or a bad thing. ORTHOGONAL to
+// `strength` (confidence) — a "clear" insight can be negative. "neutral" is only
+// a coercion fallback / observation marker: a neutral finding is an observation,
+// not an insight, so the parser never KEEPS a neutral insight (it demotes it).
 export type AnalysisValence = "positive" | "negative" | "neutral";
 
 export type AnalysisEvidence = {
   days: string[]; // concrete day keys from the window — non-empty for an insight
   foods?: string[];
   events?: string[];
+};
+
+// A neutral pattern for reference. Same shape as an insight MINUS valence — it
+// makes no good/bad claim, so there is no valence field to misread.
+export type AnalysisObservation = {
+  title: string;
+  detail: string;
+  strength: AnalysisStrength;
+  evidence: AnalysisEvidence;
 };
 
 export type AnalysisInsight = {
@@ -46,6 +64,7 @@ export type AnalysisHypothesis = {
 
 export type AnalysisOutput = {
   summary: string;
+  observations: AnalysisObservation[];
   insights: AnalysisInsight[];
   hypotheses: AnalysisHypothesis[];
 };
@@ -57,11 +76,10 @@ export type AnalysisOutput = {
 export const ANALYSIS_OUTPUT_PROMPT_SPEC = `Верни строго JSON и НИЧЕГО кроме JSON:
 {
   "summary": "1–2 фразы: общая картина окна простым языком. Без диагнозов.",
-  "insights": [
+  "observations": [
     {
       "title": "Короткий заголовок наблюдения",
-      "detail": "Что именно замечено, одним-двумя предложениями.",
-      "valence": "positive | negative | neutral",
+      "detail": "Что именно замечено, одним-двумя предложениями. Нейтрально, без оценки.",
       "strength": "weak | moderate | clear",
       "evidence": {
         "days": ["09-06-2026", "10-06-2026"],
@@ -70,27 +88,47 @@ export const ANALYSIS_OUTPUT_PROMPT_SPEC = `Верни строго JSON и НИ
       }
     }
   ],
+  "insights": [
+    {
+      "title": "Короткий заголовок инсайта",
+      "detail": "Чем именно это полезно или вредно, одним-двумя предложениями.",
+      "valence": "positive | negative",
+      "strength": "weak | moderate | clear",
+      "evidence": {
+        "days": ["09-06-2026"],
+        "foods": ["говядина", "болгарский перец"]
+      }
+    }
+  ],
   "hypotheses": [
     { "title": "Короткое название гипотезы", "body": "почему стоит проверить и как тестировать", "suggestedDays": 7 }
   ]
 }
 
+Три РАЗНЫХ блока — не путай их:
+- observations (наблюдения) — нейтральные закономерности, которые ты УВИДЕЛ в данных: «что есть», просто справка. Без оценки «хорошо/плохо», без совета. У наблюдения НЕТ поля valence.
+- insights (инсайты) — выводы ПРО ЮЗЕРА, у которых есть явная польза или вред и которые стоит запомнить: удачные/неудачные сочетания, синергии и антагонизмы нутриентов. У КАЖДОГО инсайта valence ОБЯЗАТЕЛЬНО "positive" (полезно) или "negative" (вредно) — нейтральных инсайтов НЕ бывает, нейтральное это наблюдение.
+- hypotheses (гипотезы) — что юзеру стоит проверить дальше, мини-эксперименты.
+
+Как выбрать между наблюдением и инсайтом: спроси себя «это просто факт/закономерность для справки — или это полезно/вредно для юзера и стоит запомнить?». Факт без оценки → observation. Польза или вред → insight (с valence).
+
 Правила:
-- summary — всегда непустой. Если данных мало для выводов — так и напиши в summary, а insights/hypotheses оставь пустыми.
-- insights — 0–4 наблюдения. Это то, что ты УВИДЕЛ в данных, не совет. У КАЖДОГО insight поле evidence.days ОБЯЗАТЕЛЬНО и непусто — это реальные дни окна, на которых построено наблюдение. foods/events — опционально, ключевые еда/события. Нет опоры в данных — не выдумывай наблюдение.
-- valence: классифицируй КАЖДОЕ наблюдение — "positive" = полезная связка/синергия нутриентов, "negative" = нежелательное сочетание/антагонизм, "neutral" = нейтральное наблюдение. valence (хорошо/плохо) и strength (уверенность) — разные оси: уверенное наблюдение может быть отрицательным.
-- strength: "clear" только при явном повторе (примерно ≥40% дней окна или сильная связка), единичное совпадение — "weak", промежуточное — "moderate".
+- summary — всегда непустой. Если данных мало для выводов — так и напиши в summary, а observations/insights/hypotheses оставь пустыми.
+- observations — 0–4. У КАЖДОГО поле evidence обязательно с опорой в данных: evidence.days (реальные дни окна) ИЛИ evidence.foods (продукты). foods/events — ключевые еда/события. Нет опоры — не выдумывай наблюдение.
+- insights — 0–4. У КАЖДОГО valence ("positive"/"negative") И evidence (days или foods) ОБЯЗАТЕЛЬНЫ. Нет опоры — не выдумывай связку.
+- strength: уверенность в находке. "clear" только при явном повторе (примерно ≥40% дней окна или сильная связка), единичное совпадение — "weak", промежуточное — "moderate". valence (хорошо/плохо) и strength (уверенность) — разные оси.
 - hypotheses — 0–3 независимые, каждая как мини-эксперимент: что проверить и как. suggestedDays — опциональное рекомендованное окно проверки в днях.
 - Без медицинских советов и диагнозов нигде. Без комментариев и markdown-заборов вокруг JSON.`;
 
 // Insights don't have to come from food↔event correlations — they can come from
 // the FOOD ITSELF: nutrient synergies and antagonisms in what was eaten (iron +
 // vitamin C → better absorption; calcium blocks iron absorption; etc). Such
-// compositional insights are grounded by `evidence.foods` (the products
-// involved), and `evidence.days` may be empty — the relaxed grounding gate in
-// tryParseOutput lets a foods-only insight through. Append this to a system
-// prompt that wants compositional insights (daily / period / dish).
-export const ISOLATED_FOOD_INSIGHT_INSTRUCTION = `Ищи наблюдения не только в связке «еда↔событие», но и в САМОМ составе еды: синергии и антагонизмы нутриентов (напр. железо + витамин C — лучше усвоение; кальций мешает усвоению железа; жирорастворимые витамины лучше с жирами; и т. п.). Для таких наблюдений по составу поле evidence.foods ОБЯЗАТЕЛЬНО (продукты, о которых речь), а evidence.days может быть пустым — наблюдение про состав не привязано к конкретному дню.`;
+// compositional findings are good/bad by nature, so they are INSIGHTS (carry a
+// valence), grounded by `evidence.foods` (the products involved); `evidence.days`
+// may be empty — the relaxed grounding gate in tryParseOutput lets a foods-only
+// insight through. Append this to a system prompt that wants compositional
+// insights (daily / period / dish).
+export const ISOLATED_FOOD_INSIGHT_INSTRUCTION = `Ищи инсайты не только в связке «еда↔событие», но и в САМОМ составе еды: синергии и антагонизмы нутриентов (напр. железо + витамин C — лучше усвоение → positive; кальций мешает усвоению железа → negative; жирорастворимые витамины лучше с жирами; и т. п.). Это именно ИНСАЙТЫ (полезно/вредно), а не нейтральные наблюдения: у каждого valence ОБЯЗАТЕЛЬНО ("positive" — удачная связка, "negative" — мешающая) и evidence.foods ОБЯЗАТЕЛЬНО (продукты, о которых речь), а evidence.days может быть пустым — связка по составу не привязана к конкретному дню.`;
 
 // Each schedule_food carries a `details` string — comma-separated free-text
 // tags the user attached to the meal (способ готовки, выдержка, источник,
@@ -155,10 +193,11 @@ export const DISH_DETAILS_INSTRUCTION = `Если имя блюда содерж
 
 export const SYSTEM_PROMPT_BASE = `Ты помогаешь юзеру в его персональной лаборатории еды и симптомов.
 На вход — события юзера за окно (приёмы пищи + теги/события) и, опционально,
-гипотезы, которые юзер хочет проверить. Задача: на русском дать короткий summary,
-наблюдения (insights) — то, что реально видно в данных окна, и гипотезы
-(hypotheses) — что юзеру стоит проверить дальше. Ты ищешь корреляции, а не
-ставишь диагнозы и не считаешь калькулятор БЖУ.
+гипотезы, которые юзер хочет проверить. Задача: на русском дать короткий summary
+и три РАЗНЫХ блока — наблюдения (observations: нейтральные закономерности в данных,
+для справки), инсайты (insights: что полезно или вредно для юзера и стоит
+запомнить, с valence) и гипотезы (hypotheses: что стоит проверить дальше). Ты
+ищешь корреляции, а не ставишь диагнозы и не считаешь калькулятор БЖУ.
 
 ${DETAILS_COHORT_INSTRUCTION}
 
@@ -184,45 +223,82 @@ function asStringList(v: unknown): string[] {
   return out;
 }
 
-// Permissive insight coercion. The grounding contract is enforced HERE, not
-// only in the prompt: an insight with NO days AND NO foods behind it is DROPPED
-// — an observation with nothing concrete behind it is exactly the hallucination
-// this feature exists to suppress. A compositional insight (nutrient
-// synergy/antagonism) is grounded by foods alone, so days may be empty for it.
-// Unknown strength coerces to "weak" and unknown valence to "neutral" rather
-// than dropping the whole observation.
-function asInsights(v: unknown): AnalysisInsight[] {
+// Unknown strength coerces to "weak" rather than dropping the whole finding.
+function coerceStrength(v: unknown): AnalysisStrength {
+  return v === "clear" || v === "moderate" ? v : "weak";
+}
+
+// The grounding contract is enforced HERE, not only in the prompt: a finding
+// with NO days AND NO foods behind it is DROPPED — a claim with nothing concrete
+// behind it is exactly the hallucination this feature exists to suppress. A
+// compositional insight (nutrient synergy/antagonism) is grounded by foods
+// alone, so days may be empty for it. Returns null when ungrounded.
+function coerceEvidence(o: Record<string, unknown>): AnalysisEvidence | null {
+  const ev = (o.evidence ?? {}) as Record<string, unknown>;
+  const days = asStringList(ev.days);
+  const foods = asStringList(ev.foods);
+  if (days.length === 0 && foods.length === 0) return null;
+  const evidence: AnalysisEvidence = { days };
+  if (foods.length > 0) evidence.foods = foods;
+  const events = asStringList(ev.events);
+  if (events.length > 0) evidence.events = events;
+  return evidence;
+}
+
+// Permissive observation coercion — title+detail required, grounded evidence
+// required, strength coerced. No valence: an observation makes no good/bad claim.
+function asObservations(v: unknown): AnalysisObservation[] {
   if (!Array.isArray(v)) return [];
-  const out: AnalysisInsight[] = [];
+  const out: AnalysisObservation[] = [];
   for (const c of v) {
     if (!c || typeof c !== "object" || Array.isArray(c)) continue;
     const o = c as Record<string, unknown>;
     if (typeof o.title !== "string" || typeof o.detail !== "string") continue;
-    const ev = (o.evidence ?? {}) as Record<string, unknown>;
-    const days = asStringList(ev.days);
-    const foods = asStringList(ev.foods);
-    // Grounding gate — drop only when there's nothing concrete at all (no days
-    // AND no foods). Foods-only insights (composition synergies) survive.
-    if (days.length === 0 && foods.length === 0) continue;
-    const valence: AnalysisValence =
-      o.valence === "positive" || o.valence === "negative"
-        ? o.valence
-        : "neutral";
-    const strength: AnalysisStrength =
-      o.strength === "clear" || o.strength === "moderate" ? o.strength : "weak";
-    const insight: AnalysisInsight = {
+    const evidence = coerceEvidence(o);
+    if (!evidence) continue;
+    out.push({
       title: o.title,
       detail: o.detail,
-      valence,
-      strength,
-      evidence: { days },
-    };
-    if (foods.length > 0) insight.evidence.foods = foods;
-    const events = asStringList(ev.events);
-    if (events.length > 0) insight.evidence.events = events;
-    out.push(insight);
+      strength: coerceStrength(o.strength),
+      evidence,
+    });
   }
   return out;
+}
+
+// Permissive insight coercion. An insight is good/bad BY DEFINITION — it must
+// carry a valence of "positive" or "negative". A neutral (or missing/unknown)
+// valence means the model misfiled an observation as an insight, so we DEMOTE it
+// to the observations bucket rather than keep a contradiction. Returns both the
+// kept insights and the demoted observations so the buckets stay clean even when
+// the model gets the split wrong. Grounding gate applies (days OR foods).
+function asInsightsSplit(v: unknown): {
+  insights: AnalysisInsight[];
+  demoted: AnalysisObservation[];
+} {
+  const insights: AnalysisInsight[] = [];
+  const demoted: AnalysisObservation[] = [];
+  if (!Array.isArray(v)) return { insights, demoted };
+  for (const c of v) {
+    if (!c || typeof c !== "object" || Array.isArray(c)) continue;
+    const o = c as Record<string, unknown>;
+    if (typeof o.title !== "string" || typeof o.detail !== "string") continue;
+    const evidence = coerceEvidence(o);
+    if (!evidence) continue;
+    const strength = coerceStrength(o.strength);
+    if (o.valence === "positive" || o.valence === "negative") {
+      insights.push({
+        title: o.title,
+        detail: o.detail,
+        valence: o.valence,
+        strength,
+        evidence,
+      });
+    } else {
+      demoted.push({ title: o.title, detail: o.detail, strength, evidence });
+    }
+  }
+  return { insights, demoted };
 }
 
 // Permissive hypothesis coercion (the former ideaCard). title+body required;
@@ -296,9 +372,14 @@ export function tryParseOutput(content: string): AnalysisOutput | null {
   const obj = parsed as Record<string, unknown>;
   if (typeof obj.summary !== 'string') return null;
 
+  // Split insights into kept (valenced) + demoted (neutral → observation), then
+  // fold the demoted ones into the observations bucket. Explicit observations
+  // first, demoted insights after, each preserving the model's order.
+  const { insights, demoted } = asInsightsSplit(obj.insights);
   return {
     summary: obj.summary,
-    insights: asInsights(obj.insights),
+    observations: [...asObservations(obj.observations), ...demoted],
+    insights,
     hypotheses: asHypotheses(obj.hypotheses),
   };
 }

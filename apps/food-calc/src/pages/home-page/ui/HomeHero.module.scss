@@ -1,73 +1,123 @@
-// HomeHero — большая декоративная обложка активного экрана.
-// Лежит внутри `.indicatorFloat` (под Embla viewport) — НЕинтерактивна:
-// клики/свайпы Embla viewport'а перехватывает первым. Кликабельная навигация
-// между экранами живёт отдельно в `.navTiles` (HomePage.module.scss).
-//
-// Каждый экран = одна `.layer`-обёртка (flex-column, image сверху, title
-// снизу, всё центрировано). Все layer'ы position:absolute стэком в root'е;
-// активный получает `.layerActive` (opacity:1 + translateY:0), неактивные
-// fade-out + сдвиг на 8px вниз. Cross-fade через CSS transition.
-
-$hero-easing: cubic-bezier(0.4, 0, 0.2, 1);
-$hero-duration: 0.32s;
-$hero-shift: 8px;
+// HomeHero — декоративная обложка над табами. У каждого слайда свой набор
+// картинок; клик по обложке перелистывает их с crossfade'ом (см. HomeHero.tsx).
+// Живёт В `stickyTop` КАЖДОГО слайда, НАД табами — поэтому контент-лист
+// (`.headerOverlap`, z-index:1) при скролле НАЕЗЖАЕТ на неё (самокат-оверлеер),
+// ровно как и на табы. 3 слайда → 3 обложки. Видна только в NavSwitcher-
+// варианте `tray-pill-bleed-hero` (gate по `data-dv-v` на `.swipeArea`-предке);
+// в остальных display:none — место не занимает.
+// z-index НЕ задаём — лист (z-index:1) перекрывает по дефолту.
 
 .root {
+    display: none;
     position: relative;
+    // Прижата к самому верху экрана: HomeTopBar прозрачный (background:none),
+    // поверх плавают только пилюли — обложка уходит под них до верхней кромки.
+    // Высоту растим на высоту бара, чтобы под пилюлями осталась видимая полоса.
+    margin-top: 0;
     width: 100%;
-    height: 140px;
+    // Видимая полоса под баром — было 140px, +20% → 168px.
+    height: calc(var(--top-bar-h, 60px) + 190px);
     overflow: hidden;
+    // Сам контейнер прозрачен для указателя — свайпы по краям ловит Embla ниже;
+    // кликабельна только обложка (`.hit` ниже переопределяет на auto).
+    pointer-events: none;
+    // Краевой фейд: ВЕРХ чёткий (картинка прибита к верхней кромке), а низ и
+    // бока мягко и длинно растворяются в фон — рамки/паспарту артефактов не
+    // дают видимого шва. Две маски пересекаются (`intersect`): вертикальная
+    // гасит только низ, горизонтальная — оба бока.
+    --hero-fade-v: linear-gradient(to bottom, #000 0%, #000 30%, transparent 100%);
+    --hero-fade-h: linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
+    -webkit-mask-image: var(--hero-fade-v), var(--hero-fade-h);
+    -webkit-mask-composite: source-in; // вебкитовый аналог intersect
+    mask-image: var(--hero-fade-v), var(--hero-fade-h);
+    mask-composite: intersect;
 }
 
-.layer {
+// Gate: показываем только в hero-варианте. Anchor `[data-dv-v]` на `.swipeArea`
+// (предок), `.root` — потомок.
+:global([data-dv='NavSwitcher'][data-dv-v='tray-pill-bleed-hero']) .root {
+    display: block;
+}
+
+// Кликабельный слой — заполняет обложку, на нём висит onClick (смена картинки).
+.hit {
     position: absolute;
     inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 16px;
-    box-sizing: border-box;
-    pointer-events: none;
-    opacity: 0;
-    transform: translateY($hero-shift);
-    transition:
-        opacity $hero-duration $hero-easing,
-        transform $hero-duration $hero-easing;
-}
-
-.layerActive {
-    opacity: 1;
-    transform: translateY(0);
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .heroImg {
-    width: auto;
-    height: 64px;
-    max-width: 70%;
-    object-fit: contain;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    // Картинка прижата верхом — кадрируем от верхней кромки, а не от центра:
+    // верх виден целиком, обрезка уходит вниз (там фейд в фон).
+    object-position: center top;
     opacity: 0.7;
     user-select: none;
-    flex-shrink: 0;
 }
 
-// Serif-italic title — heading-канон. Размер чуть меньше прежних 2.6rem —
-// в вертикальном стэке с картинкой плотнее читается ~2rem.
-.heroTitle {
-    font-family: var(--heading-font);
-    font-style: var(--heading-style);
-    font-weight: 400;
-    font-size: 2rem;
-    line-height: 1;
-    letter-spacing: -0.5px;
-    color: #000000;
-    text-align: center;
-    margin: 0;
+// Логотип Disher — белый, full-opacity, по центру сверху над картинкой.
+// Тот же приём, что у Screen-watermark: PNG-силуэт как маска, цвет даёт
+// `background-color` (белый). Лежит НАД картинками; pointer-events:none —
+// тап проваливается на `.hit` ниже (клик по обложке всё равно листает).
+.logo {
+    --hero-logo-color: #fff;
+    position: absolute;
+    top: calc(var(--top-bar-h, 60px) + var(--space-2));
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 32px;
+    z-index: 2;
+    background-color: var(--hero-logo-color);
+    -webkit-mask: url('/logo/logo-white-no-fill.png') center / contain no-repeat;
+    mask: url('/logo/logo-white-no-fill.png') center / contain no-repeat;
+    pointer-events: none;
+    user-select: none;
+}
+
+// Crossfade: новая картинка проявляется до рабочей непрозрачности (0.7),
+// уходящая — гаснет под ней. Composite-only (opacity).
+.fadeIn {
+    animation: heroFadeIn 420ms ease both;
+}
+
+.fadeOut {
+    animation: heroFadeOut 420ms ease both;
+}
+
+@keyframes heroFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 0.7;
+    }
+}
+
+@keyframes heroFadeOut {
+    from {
+        opacity: 0.7;
+    }
+
+    to {
+        opacity: 0;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .layer {
-        transition: none;
+
+    .fadeIn,
+    .fadeOut {
+        animation-duration: 1ms;
     }
 }
