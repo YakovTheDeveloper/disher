@@ -14,6 +14,7 @@ import {
 import { safeMutate } from '@/shared/lib/safeMutate';
 import toaster from '@/shared/lib/toaster/toaster';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
+import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import styles from './CreateDailyNormModal.module.scss';
 
@@ -266,7 +267,7 @@ type SectionProps = {
 const Section = ({ label, children }: SectionProps) => (
   <section className={styles.section}>
     <div className={styles.sectionHead}>
-      <span className={styles.sectionLabel}>{label}</span>
+      <FieldLabel>{label}</FieldLabel>
     </div>
     {children}
   </section>

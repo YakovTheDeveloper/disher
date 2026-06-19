@@ -1,5 +1,5 @@
 // FoodSearchEmpty — bottom dock for create-product / create-dish actions in SearchFood.
-// Pills borrow the NavTile visual language: warm chip surface + a muted ghost
+// Pills borrow the SwitcherTab visual language: warm chip surface + a muted ghost
 // art image (product.png / dish.png) bleeding from the right edge + a two-line
 // serif-italic label (verb «Создать» over the noun). Equal weight, no
 // primary/secondary hierarchy — the two actions are equivalent choices.
@@ -21,10 +21,15 @@
     display: flex;
     flex-direction: column;
 
-    background: white;
+    // Док прозрачный: фон несут ЗОНЫ — стеклянный `.header` (просвечивает список)
+    // и непрозрачная серая `.actions`. Будь у root собственный непрозрачный фон, он
+    // перекрыл бы список, и backdrop-filter в `.header` размывал бы сам root, а не
+    // строки, скроллящиеся под фиксированным доком. overflow:hidden клипит стеклянный
+    // верх к скруглённым углам (box-shadow рисуется снаружи border-box и не режется).
+    background: transparent;
     border-radius: var(--space-3) var(--space-3) 0 0;
+    overflow: hidden;
     box-shadow: 0 -1px 6px rgba(15, 23, 42, 0.1);
-    padding-bottom: env(safe-area-inset-bottom);
     transition: transform 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
 
     // TEMP (2026-06-13 colour-test): fading ramp above the bar disabled with the
@@ -41,16 +46,28 @@
     // }
 }
 
+// Верхняя зона дока — «стеклянная полка» в духе Screen `headerOverlap`/`sheetBand`:
+// полупрозрачный матовый фон + backdrop-blur, сквозь который размыто просвечивает
+// список, скроллящийся ПОД фиксированным доком. Тон/блюр приходят сверху из
+// SearchFood `.content` (--fse-header-*). Несёт подсказку (+ message при пустом
+// поиске); текст на стекле — тёмный (см. --fse-prompt/-msg в SearchFood).
+.header {
+    background: var(--fse-header-bg, rgba(255, 255, 255, 0.55));
+    backdrop-filter: var(--fse-header-blur, blur(16px));
+    -webkit-backdrop-filter: var(--fse-header-blur, blur(16px));
+    padding-bottom: var(--space-2);
+}
+
 .message {
     font-size: var(--text-sm);
-    color: rgba(0, 0, 0, 0.35);
+    color: var(--fse-msg, rgba(0, 0, 0, 0.35));
     text-align: center;
     margin: 0;
     padding: 10px 16px 0;
 
     em {
         font-style: normal;
-        color: rgba(0, 0, 0, 0.6);
+        color: var(--fse-msg-strong, rgba(0, 0, 0, 0.6));
     }
 }
 
@@ -58,7 +75,7 @@
     font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.01em;
-    color: rgba(0, 0, 0, 0.45);
+    color: var(--fse-prompt, rgba(0, 0, 0, 0.45));
     text-align: center;
     margin: 0;
     padding: var(--space-2) var(--space-1) 0;
@@ -69,15 +86,20 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px 10px;
+    // safe-area уехала сюда с root (root прозрачный) — фон зоны дотягивается под
+    // home-indicator.
+    padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
     min-height: var(--bottom-action-h);
     box-sizing: border-box;
+    // Нижняя зона — светло-серое матовое стекло (в духе верха хедера): полупрозрачный
+    // тон + blur, сквозь который размыто просвечивает список. Тон/блюр приходят сверху.
+    background: var(--fse-actions-bg, #2a2a2a);
+    backdrop-filter: var(--fse-actions-blur, none);
+    -webkit-backdrop-filter: var(--fse-actions-blur, none);
 }
 
 .pillPrimary,
 .pillSecondary {
-    // Светлый текст инверсии (custom-prop, token-gate допускает).
-    --pill-fg-invert: #ffffff;
     // Ink-рамка как у нижних CTA HomePage (`--cta-border` в AppBottomBar.shellSolo).
     --fse-border: 1px solid rgba(31, 42, 68, 0.16);
 
@@ -101,24 +123,27 @@
         transform: scale(0.97);
     }
 
-    // Press — сильная инверсия (ink-заливка + светлый текст/иконки).
+    // Press — сильная инверсия. Светлая плашка → ink-заливка (дефолт); чёрная
+    // плашка ink-канона → светлая заливка (--fse-press-* переопределяются сверху).
     // JS-driven `data-pressed` (usePressFeedback) гарантирует кадр на тапе,
     // который тут же делегирует фокус в create-input и уводит со step'а.
     &[data-pressed] {
-        background: var(--color-ink);
-        color: var(--pill-fg-invert);
+        background: var(--fse-press-bg, var(--color-ink));
+        color: var(--fse-press-fg, #ffffff);
         transform: scale(0.97);
     }
 }
 
-// Картинка-призрак NavTile-стиля (product.png / dish.png) — приглушённая,
+// Картинка-призрак SwitcherTab-стиля (product.png / dish.png) — приглушённая,
 // прижата к правому краю пилюли, режется overflow:hidden скруглением.
-// Ручки положения/прозрачности — как у NavTile.tileImg.
+// Ручки положения/прозрачности — как у SwitcherTab.tileImg.
 .tileImg {
     --fse-img-x: 6px; // + вправо
     --fse-img-y: 0px; // + вниз
     --fse-img-scale: 1;
-    --fse-img-opacity: 0.16;
+    // Покой: на светлой плашке 0.16; на чёрной (ink-канон) призрак тонет — SearchFood
+    // поднимает --fse-img-rest через `.content`. Press-состояние ниже бьёт напрямую.
+    --fse-img-opacity: var(--fse-img-rest, 0.16);
 
     position: absolute;
     right: 0;
@@ -146,16 +171,17 @@
 // без primary/secondary иерархии (два равнозначных выбора). Press → ink-инверсия.
 .pillPrimary,
 .pillSecondary {
-    // Outline-пилюли: фон убран (пилюля «парит» на голой поверхности дока, как
-    // нижние CTA HomePage), только тонкая ink-рамка. Press → ink-инверсия
-    // (`[data-pressed]` выше) остаётся.
-    background: transparent;
+    // Полупрозрачное стекло: пилюля «чуть просвечивает» матовую панель под ней
+    // (как верх хедера) — тон сверху (--fse-pill-bg); собственный blur не нужен,
+    // размытие даёт панель `.actions`. Тёмный хайрлайн держит силуэт; press →
+    // ink-заливка (`[data-pressed]` выше). Дефолт прозрачный (outline) вне ink-канона.
+    background: var(--fse-pill-bg, transparent);
     border: var(--fse-border);
     color: var(--chip-text);
     box-shadow: none;
 }
 
-// NavTile-подпись: serif italic, в две строки (глагол над существительным).
+// SwitcherTab-подпись: serif italic, в две строки (глагол над существительным).
 // z-index держит её поверх картинки-призрака.
 .pillTitle {
     position: relative;

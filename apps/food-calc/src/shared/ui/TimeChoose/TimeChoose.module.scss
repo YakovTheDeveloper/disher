@@ -49,7 +49,10 @@ $digit-size: 6rem;
     padding: 8px 28px;
     border: 0;
     outline: none;
-    border-radius: var(--field-radius, 24px);
+    // Крупная hero-пилюля выбора времени — намеренно НЕ следует за квадратным
+    // дефолтом полей (--field-radius=--radius-sm), держит свой large-pill радиус
+    // (--radius-xl). bg/тень всё ещё тянет из --field-*; отвязан только радиус.
+    border-radius: var(--radius-xl);
     background: linear-gradient(90deg,
             var(--field-bg-from, #fffefb) 0%,
             var(--field-bg-mid, #fffaf2) 55%,

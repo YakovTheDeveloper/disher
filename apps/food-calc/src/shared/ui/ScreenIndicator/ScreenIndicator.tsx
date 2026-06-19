@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
-import { NavTile } from '@/shared/ui/NavTile';
+import { SwitcherTab } from '@/shared/ui/SwitcherTab';
 import s from './ScreenIndicator.module.scss';
 
 export type TileTitleStyle = 'serif-initial' | 'display-sans' | 'mono-track';
@@ -85,7 +85,7 @@ export const ScreenIndicator = ({
       )}
       <div className={s.tilesRow} role="tablist" aria-label={tablistLabel}>
         {screens.map((screen, i) => (
-          <NavTile
+          <SwitcherTab
             key={screen.label}
             role="tab"
             aria-selected={screen.label === activeLabel}

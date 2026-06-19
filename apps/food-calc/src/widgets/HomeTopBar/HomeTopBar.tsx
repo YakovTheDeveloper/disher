@@ -49,8 +49,9 @@ type Props = {
    *  (без serif-overrides из `.centerLabel` — он заточен под имя
    *  продукта/блюда). Обёртка наследует bg/border/blur/shadow из
    *  `--bar-*` токенов, чтобы visual совпадал с accountSlot/dateSegment.
-   *  HomePage кладёт сюда `<NutrientsSummaryButton/>`. Не совмещается
-   *  с `centerLabel` — кто-то один. */
+   *  Свободный слот произвольного контента (сводка нутриентов сюда больше не
+   *  кладётся — переехала в полосу NutrientsBar). Не совмещается с
+   *  `centerLabel` — кто-то один. */
   centerSlot?: React.ReactNode;
   /** Suppress the date-switch interrupt guard in `handleDateClick` — skips
    *  BOTH the "analysis still streaming" confirm AND the

@@ -48,10 +48,12 @@ import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
 import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { AppBottomBar, NutrientsSummaryButton } from '@/shared/ui/AppBottomBar';
+import { AppBottomBar } from '@/shared/ui/AppBottomBar';
 import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
 import { drawerStore } from '@/shared/ui/drawer-store';
+import { SuggestIngredientsClarifyDrawer } from '@/features/food/food-free-text-parse/ui/SuggestIngredientsClarifyDrawer';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
+import { NutrientsBar } from '@/widgets/FoodSchedule/NutrientsBar';
 import jazzImg from '@/shared/assets/decarative/jazz.png';
 import bagImg from '@/shared/assets/decarative/bag3.png';
 import moneyImg from '@/shared/assets/decarative/money.png';
@@ -73,7 +75,7 @@ const DISH_SCREENS: ScreenEntry[] = [
 const DEFAULT_SLIDE = 1;
 const SWIPE_DURATION = 25;
 
-// NavTile ambient — radial-glow per nth-child (см. NavTile.module.scss).
+// SwitcherTab ambient — radial-glow per nth-child (см. SwitcherTab.module.scss).
 // Дефолтная семантика тайла (inverse-lift) уже в base-стилях; этот anchor
 // добавляет цветную подсветку каждой плитке отдельно — аналог ProductAmbient,
 // но per-tile. HomePage anchor не использует.
@@ -81,7 +83,7 @@ const SWIPE_DURATION = 25;
 // subtle голубоватый glow, согласуется с ProductAmbient.ice-blue фоном
 // страницы. Остальные — моно-tone subtle палитры; `none` сохранён как
 // явный off-вариант для отладки.
-const NAVTILE_AMBIENT_VARIANTS = [
+const SWITCHER_TAB_AMBIENT_VARIANTS = [
   'ice-blue',
   'paper-warm',
   'mint-fog',
@@ -128,13 +130,9 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
       { side: 'left', width: 'min(85vw, 360px)' },
     );
   }, [dishTotals]);
-  // Калории-пилюля в центре топбара — 1:1 с HomePage (унификация двух экранов).
-  // Раньше жила в AppBottomBar.leadingSlot и только на экране «Ингредиенты»;
-  // теперь видна на всех трёх экранах блюда, как nutrients-pill на HomePage.
-  const topBarCenterSlot = useMemo(
-    () => <NutrientsSummaryButton totals={dishTotals} onClick={openNutrients} />,
-    [dishTotals, openNutrients],
-  );
+  // Сумма нутриентов блюда — 1:1 с HomePage: полоса-сводка (NutrientsBar) в
+  // конце списка ингредиентов, а не пилюля верхнего бара (пилюлю убрали
+  // 2026-06-19). Тот же dishTotals открывает тот же NutrientsDrawer слева.
   const editFlow = useDishProductFlow({ type: 'edit' });
 
   const writeFoodTarget = useMemo(
@@ -201,7 +199,10 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     swipeableRef.current?.goToPage(idx);
   }, []);
 
-  const { anchor: navTileAnchor } = useDesignVariant('NavTileAmbient', NAVTILE_AMBIENT_VARIANTS);
+  const { anchor: switcherTabAnchor } = useDesignVariant(
+    'SwitcherTabAmbient',
+    SWITCHER_TAB_AMBIENT_VARIANTS,
+  );
 
   // Инстансы индикатора держим стабильными (useMemo на стабильном
   // handleSelect) по канону HomePage. Прямого выигрыша от memo(Screen) тут
@@ -209,7 +210,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   // пробивается всё равно; вреда тоже нет.
   // bandImg={false}: крупная бледная картинка активного экрана снята (юзер: «от
   // этого уже ушли») — паритет с HomePage-индикаторами. Мелкие картинки в самих
-  // NavTile остаются.
+  // SwitcherTab остаются.
   const analysisIndicator = useMemo(
     () => (
       <ScreenIndicator
@@ -305,8 +306,12 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   // Semantic suggest: grab the dish name → head A → matched ingredients land
   // in InlineWriteFoodReview below the list. rAF waits for the skeleton render
   // (which carries [data-write-food-anchor]) before scrolling it into view.
-  const handleSuggestIngredients = () => {
-    writeFoodFlow.submitDishName(dish.name);
+  const handleSuggestIngredients = async () => {
+    // Optional «Уточнения» step: undefined = cancelled/swipe-dismissed (don't
+    // suggest); any string (incl. '') = proceed, the comment rides into head A.
+    const comment = await drawerStore.show(SuggestIngredientsClarifyDrawer, {});
+    if (comment === undefined) return;
+    writeFoodFlow.submitDishName(dish.name, comment);
     requestAnimationFrame(() => {
       document
         .querySelector('[data-write-food-anchor]')
@@ -315,12 +320,15 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   };
 
   return (
-    <div className={homeStyles.container}>
+    // NavSwitcher tab-as-title — каноничный облик табов экранов (как на HomePage):
+    // активный раздел = крупный заголовок, неактивные — тихие serif-указатели.
+    // Хардкод-атрибут (а не useDesignVariant) намеренно: облик зафиксирован и не
+    // делит персист-ключ `dv:NavSwitcher` с HomePage. Квадрат ретайрнут 2026-06-19.
+    <div className={homeStyles.container} data-dv="NavSwitcher" data-dv-v="tab-as-title">
       <HomeTopBar
         date={dateForTopBar}
         backSlot={<BackButton to={backTo} />}
         dateButtonLabel={<CalendarIcon width={22} height={22} />}
-        centerSlot={topBarCenterSlot}
         noInterruptGuard
         shellRef={shellRef}
       />
@@ -335,7 +343,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
           }}
         />
       </div>
-      <div className={homeStyles.swipeArea} {...navTileAnchor}>
+      <div className={homeStyles.swipeArea} {...switcherTabAnchor}>
         <TopBarScrollHideContext.Provider value={topBarHideApi}>
         <Swipeable
           ref={swipeableRef}
@@ -366,7 +374,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
                 // Disable while parsing AND when the dish has no name yet —
                 // submitDishName('') is a silent no-op otherwise.
                 disabled={writeFoodFlow.state === 'loading' || !dish.name.trim()}
-                onClick={handleSuggestIngredients}
+                onClick={() => void handleSuggestIngredients()}
               />
             }
             overlay={
@@ -444,6 +452,11 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
               ))}
             </ItemsList>
             </div>
+            {/* Полоса-сводка нутриентов блюда — в конце списка (паритет с
+                FoodSchedule). На пустом блюде не показываем. */}
+            {items.length > 0 && (
+              <NutrientsBar totals={dishTotals} onOpen={openNutrients} />
+            )}
           </Screen>
 
           <Screen

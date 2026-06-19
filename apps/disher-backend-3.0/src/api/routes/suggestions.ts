@@ -21,7 +21,14 @@ import { refund } from "../../billing/wallet.js";
 
 interface SuggestDishProductsRequest {
   dishName: string;
+  // Optional free-form clarification typed in the «Уточнения» drawer (e.g.
+  // "вегетарианский", "без мяса, побольше овощей"). Empty/absent → identical
+  // behaviour to before. Folded into the cache key so a commented request can't
+  // serve (or be served) the no-comment recipe.
+  comment?: string;
 }
+
+const MAX_COMMENT_LEN = 500;
 
 // ─── Rate limit (30/hour/IP, mirrors free-text-food) ───
 
@@ -58,8 +65,9 @@ const PROMPT_VERSION = 2;
 
 const llmCache = new Map<string, { items: LLMItem[]; expiresAt: number }>();
 
-function normalizeName(name: string): string {
-  return `${name.toLowerCase().trim()}|v${PROMPT_VERSION}`;
+function normalizeName(name: string, comment?: string): string {
+  const c = comment?.trim().toLowerCase() ?? "";
+  return `${name.toLowerCase().trim()}|c:${c}|v${PROMPT_VERSION}`;
 }
 
 function getCachedLLM(key: string): LLMItem[] | null {
@@ -128,11 +136,15 @@ interface LLMCallResult {
   totalCost?: number;
 }
 
-async function callLLM(dishName: string): Promise<LLMCallResult> {
+async function callLLM(dishName: string, comment?: string): Promise<LLMCallResult> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
 
   const model = getLLMModel();
+  const trimmedComment = comment?.trim();
+  const userContent = trimmedComment
+    ? `Блюдо: "${dishName}"\nУточнение от пользователя (учти при подборе продуктов): "${trimmedComment}"`
+    : `Блюдо: "${dishName}"`;
 
   const MAX_RETRIES = 3;
   let response!: Response;
@@ -149,7 +161,7 @@ async function callLLM(dishName: string): Promise<LLMCallResult> {
         model,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: `Блюдо: "${dishName}"` },
+          { role: "user", content: userContent },
         ],
         // temp 0.3: same as head B — stabler recipes + cache (canon 2026-06-04).
         temperature: 0.3,
@@ -388,7 +400,7 @@ export async function suggestionsRoutes(app: FastifyInstance) {
   app.post<{ Body: SuggestDishProductsRequest }>(
     "/dish-products",
     async (req, reply) => {
-      const { dishName } = req.body ?? {};
+      const { dishName, comment } = req.body ?? {};
 
       if (!dishName || typeof dishName !== "string" || !dishName.trim()) {
         return reply.status(400).send({ error: "dishName is required" });
@@ -396,6 +408,15 @@ export async function suggestionsRoutes(app: FastifyInstance) {
 
       if (dishName.length > 200) {
         return reply.status(400).send({ error: "dishName too long (max 200 chars)" });
+      }
+
+      if (comment !== undefined && typeof comment !== "string") {
+        return reply.status(400).send({ error: "comment must be a string" });
+      }
+      if (typeof comment === "string" && comment.length > MAX_COMMENT_LEN) {
+        return reply
+          .status(400)
+          .send({ error: `comment too long (max ${MAX_COMMENT_LEN} chars)` });
       }
 
       if (!isMatcherReady()) {
@@ -411,7 +432,7 @@ export async function suggestionsRoutes(app: FastifyInstance) {
       }
 
       const requestId = resolveRequestId(req);
-      const cacheKey = normalizeName(dishName);
+      const cacheKey = normalizeName(dishName, comment);
       let charged = false;
 
       try {
@@ -436,7 +457,7 @@ export async function suggestionsRoutes(app: FastifyInstance) {
             if (!(await chargeOr402(req, reply, "dish_suggestions", requestId))) return;
             charged = true;
           }
-          const result = await callLLM(dishName);
+          const result = await callLLM(dishName, comment);
           items = result.items;
           setCachedLLM(cacheKey, items);
           app.log.info(

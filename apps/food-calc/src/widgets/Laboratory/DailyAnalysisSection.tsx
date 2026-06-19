@@ -3,6 +3,7 @@ import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import { AnalysisResult } from '@/features/analysis/AnalysisResult';
 import { FabricLoader } from '@/features/analysis/FabricLoader';
 import type { DailyAnalysisReason } from '@/features/analysis/daily';
+import { Button } from '@/shared/ui/atoms/Button';
 import styles from './DailyAnalysisSection.module.scss';
 
 type Props = {
@@ -85,13 +86,9 @@ const DailyAnalysisSection = ({ date }: Props) => {
           <p className={styles.bannerBody}>
             {reason ? REASON_TEXT[reason] : 'Что-то пошло не так.'}
           </p>
-          <button
-            type="button"
-            className={styles.bannerButton}
-            onClick={handleRetry}
-          >
+          <Button variant="secondary" className={styles.bannerButton} onClick={handleRetry}>
             Повторить
-          </button>
+          </Button>
         </div>
       )}
 
@@ -101,13 +98,9 @@ const DailyAnalysisSection = ({ date }: Props) => {
           <p className={styles.bannerBody}>
             {reason ? REASON_TEXT[reason] : 'Разбор не завершился.'}
           </p>
-          <button
-            type="button"
-            className={styles.bannerButton}
-            onClick={handleRetry}
-          >
+          <Button variant="secondary" className={styles.bannerButton} onClick={handleRetry}>
             Запустить заново
-          </button>
+          </Button>
         </div>
       )}
     </section>

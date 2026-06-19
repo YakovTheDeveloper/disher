@@ -129,19 +129,11 @@ $chip-dark: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
     gap: 10px;
 }
 
+// Подпись секции — общий примитив FieldLabel (serif italic, тихий ярус).
 .sectionHead {
     display: flex;
     align-items: baseline;
     gap: 10px;
-}
-
-.sectionLabel {
-    font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
-    font-style: italic;
-    font-size: 1.05rem;
-    font-weight: 500;
-    color: var(--field-text, #{$ink});
-    letter-spacing: -0.005em;
 }
 
 // ─── Pills ───────────────────────────────────────────────────────

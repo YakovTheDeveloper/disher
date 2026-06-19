@@ -7,7 +7,7 @@ import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { ScheduleFoodItem } from '@/widgets/FoodSchedule/ScheduleFoodItem';
 import { NutrientsBar } from '@/widgets/FoodSchedule/NutrientsBar';
 import { Screen, type TopBarHideTarget } from '@/shared/ui/Screen';
-import { Masthead } from '@/shared/ui/atoms/Typography/Masthead';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import toaster from '@/shared/lib/toaster/toaster';
 import {
   ScheduleFoodCreateModals,
@@ -204,7 +204,7 @@ const FoodSchedule = ({
         <InlineWriteFoodReview flow={writeFoodFlow} />
       }
     >
-      <Masthead as="h2">Еда и нутриенты</Masthead>
+      <Heading size="masthead" as="h2">Еда и нутриенты</Heading>
       <div {...foodAnchor} className={styles.foodListAnchor}>
         <div {...boundaryAnchor}>
           <ItemsList>

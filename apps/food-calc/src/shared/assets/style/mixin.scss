@@ -8,31 +8,11 @@
 }
 
 
-// ─── «Masthead-таб»: активный раздел = крупный жирный sans (антиква-сан),
-// единственная типографическая фигура; неактивные — тихие серые serif-italic
-// указатели («музейная табличка»). Общий голос HomePage-табов
-// (NavSwitcher = tab-as-title-center) и шапки флоу создания еды.
-// Размер задаёт ПОТРЕБИТЕЛЬ (контексты разного кегля).
-@mixin nav-tab-active {
-    font-family: -apple-system, BlinkMacSystemFont, 'Onest', 'Golos Text', system-ui, sans-serif;
-    font-style: normal;
-    font-weight: 700;
-    letter-spacing: -0.022em;
-    line-height: 1.05;
-    color: var(--color-ink);
-    opacity: 1;
-}
-
-@mixin nav-tab-quiet {
-    font-family: 'Source Serif 4', 'Merriweather', serif;
-    font-style: italic;
-    font-weight: 500;
-    font-size: 15px; // размер роли — здесь, единый источник (не вписывать у потребителя)
-    letter-spacing: -0.2px;
-    line-height: 1.1;
-    color: var(--color-ink);
-    opacity: 0.22;
-}
+// Типографические голоса больше НЕ живут в миксинах (2026-06-19): display-голос
+// (бывш. nav-tab-active, Onest bold-sans) инкапсулирован в примитиве <Heading> +
+// токенах --heading-*; тихий указатель (бывш. nav-tab-quiet, serif-italic) — в
+// <Text variant="navTabQuiet">. SwitcherTab data-dv-варианты (CSS-only, тематизация
+// через ancestor-атрибут) инлайнят голос напрямую / читают --heading-* токены.
 
 
 @mixin glassBackgroundPseudoElement($blur: 5px) {
@@ -138,35 +118,6 @@
         color: #fff;
         transform: scale(0.97);
         transition-duration: var(--press-in);
-    }
-}
-
-// Жёлтая градиентная CTA-пилюля — модификатор `bottomActionBar`-кнопок нижнего
-// бара (HomePage экран 1 «Открытия»: «Мои открытия» + «Анализировать»). Тот же
-// honey-fill и чёрный ink, что у InsightCard/HypothesisCard `.add`. Включать на
-// ДВОЙНОМ классе (`.x.x { @include yellow-cta-pill(); }`), чтобы перебить
-// `.bottomActionBar` (градиентную окаёмку-ring, matte-blur и press-инверсию в
-// ink) независимо от порядка CSS-модулей в бандле.
-@mixin yellow-cta-pill() {
-    background: linear-gradient(135deg, #ffe98a 0%, #ffd84d 52%, #f7c948 100%);
-    color: var(--color-ink);
-    box-shadow:
-        0 6px 16px -7px rgba(180, 140, 40, 0.34),
-        0 2px 6px -2px rgba(180, 140, 40, 0.3);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-
-    // Окаёмку-ring base'а прячем — заливка сама несёт тон.
-    &::before {
-        display: none;
-    }
-
-    // Press: затемняем градиент + поджим (вместо ink-инверсии base'а).
-    &:active {
-        background: linear-gradient(135deg, #ffe07a 0%, #f7c93b 52%, #e9b838 100%);
-        color: var(--color-ink);
-        transform: scale(0.97);
-        filter: brightness(0.97);
     }
 }
 
@@ -538,4 +489,136 @@ $row-hairline: rgba(31, 42, 68, 0.08);
     }
 
     animation: blink $time ease-in-out infinite;
+}
+
+// ── Card unification: inset-grouped paper-mono cards (canon 2026-06-19) ───────
+// Единый источник правды для облика карточек-рядов SearchFood И навигатора дат.
+// Три миксина, разделённые по слоям:
+//   paper-mono-cards() — ПАЛИТРА (--card-* токены). iOS «inset grouped», белая
+//                        скруглённая группа на бледно-сером фоне, прозрачные ряды,
+//                        тающий hairline, тёмная press-пилюля. Раньше дублировалась
+//                        инлайном в SearchFood `.content`; вынесена сюда.
+//   inset-group()      — КОНТЕЙНЕР-ГРУППА (тело `.list`): overflow-clip + радиус +
+//                        мягкая тень группы, ряды впритык, hairline делит.
+//   stripe-fork-row()  — ПОВЕРХНОСТЬ РЯДА (тело `.wrapper` FoodActionCard): bg,
+//                        тающий ::after hairline, nth-child ритм-вошши,
+//                        press-инверсия [data-pressed]. Состояние active/selected
+//                        и инверсию текста консумер дописывает локально (зависит
+//                        от его классов имени/иконок).
+//
+// Консумер публикует палитру (`@include paper-mono-cards`) на корне поддерева,
+// затем оборачивает ряды в `@include inset-group` и красит каждый ряд
+// `@include stripe-fork-row`. mixin.scss exempt от token-gate → сырые литералы тут ок.
+
+@mixin paper-mono-cards() {
+    // Фон страницы под белой группой (бледно-серый, iOS inset-grouped).
+    --cards-page-bg: #f0f1f4;
+
+    // Поверхность ряда — прозрачная (видно белую группу), ритм/градиент выключены.
+    --card-bg: transparent;
+    --card-wash-2n: linear-gradient(transparent, transparent);
+    --card-wash-3n: linear-gradient(transparent, transparent);
+    --card-hairline: rgba(0, 0, 0, 0.08);
+
+    // Контейнер-группа: белая, скруглённая, мягкая тень.
+    --card-group-bg: #ffffff;
+    --card-group-shadow: 0 1px 5px rgba(0, 0, 0, 0.07);
+    --card-group-radius: 16px;
+
+    // Текст + состояния (hue-free).
+    --card-text-rest: #1d1d1f;
+    --card-text-active: #000000;
+    --card-hover: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.015) 45%, transparent 100%), var(--card-bg);
+    --card-active: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05));
+    --card-press-bg: linear-gradient(90deg, #1f1f1f 0%, #2a2a2a 55%, #353535 100%);
+    --card-press-fg: #ffffff;
+
+    // Левый квадрат-гейдж богатства + тихий ⓘ (пищевое; навигатор их не рисует,
+    // публикуем для полноты, чтобы FoodActionCard читал из одного места).
+    --card-rich-text: #2a2a2a;
+    --card-rich-unit: rgba(42, 42, 42, 0.6);
+    --card-rich-percent: rgba(42, 42, 42, 0.4);
+    --card-info-rest: rgba(0, 0, 0, 0.22);
+}
+
+@mixin inset-group() {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    border-radius: var(--card-group-radius, 16px);
+    box-shadow: var(--card-group-shadow, none);
+    background: var(--card-group-bg, transparent);
+    display: flex;
+    flex-direction: column;
+    gap: var(--card-row-gap, 0);
+}
+
+@mixin stripe-fork-row() {
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+
+    background: var(--card-bg);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+
+    transition:
+        background var(--press-out) ease,
+        outline-color 0.18s ease,
+        transform var(--press-out) var(--easing-spring);
+
+    // Тающий hairline-разделитель (вместо плоского border-bottom).
+    &::after {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 0;
+        height: 1px;
+        @include hairline(var(--card-hairline));
+        pointer-events: none;
+    }
+
+    &:last-child::after {
+        display: none;
+    }
+
+    // nth-child ритм — еле заметные washes поверх базы.
+    &:nth-child(2n) {
+        background: var(--card-wash-2n), var(--card-bg);
+    }
+
+    &:nth-child(3n) {
+        background: var(--card-wash-3n), var(--card-bg);
+    }
+
+    &:hover {
+        background: var(--card-hover);
+    }
+
+    &:active {
+        transition-duration: var(--press-in);
+    }
+
+    // Press — тёмная инверсия скруглённой inset-пилюлей (::before, z-index 0 под
+    // текстом z-index 1). data-pressed (usePressFeedback) гарантирует отрисовку на
+    // тапе, который тут же уводит дальше.
+    &[data-pressed] {
+        transition-duration: var(--press-in);
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 3px 6px;
+            border-radius: var(--radius-md);
+            background: var(--card-press-bg);
+            z-index: 0;
+            pointer-events: none;
+        }
+    }
 }

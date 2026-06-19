@@ -9,7 +9,10 @@ interface Props extends BaseDrawerProps<string> {
 
 export const ScheduleNavigatorDrawer = ({ onClose, selectedDate }: Props) => {
   return (
-    <DrawerLayout title="Активность">
+    // No visible title — the tab construction inside (active label «Навигация» /
+    // «Активные дни») IS the heading. We keep the chrome row (× close in the
+    // corner) and pass the title only as the sr-only accessible name.
+    <DrawerLayout a11yLabel="Активность">
       <div className={s.shell}>
         <ScheduleNavigator selectedDate={selectedDate} onSelect={(date) => onClose(date)} />
       </div>

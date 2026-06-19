@@ -1,3 +1,4 @@
+import { Button } from '@/shared/ui/atoms/Button';
 import s from './ModalFooter.module.scss';
 
 type ModalNextButtonLabelProps = {
@@ -50,40 +51,38 @@ const arrowIcon = (
  */
 export const ModalNextButton = (props: ModalNextButtonProps) => {
   const isFinish = props.variant === 'finish';
-  const defaultLabel = isFinish ? 'Готово' : 'Далее';
-  const label = props.label ?? defaultLabel;
-  const content = (
-    <>
-      <span className={s.nextArrowLabel}>{label}</span>
-      {isFinish ? doneIcon : arrowIcon}
-    </>
-  );
-  const isDisabled = props.as !== 'label' && props.disabled === true;
-  const className = [s.nextArrow, isDisabled ? s.nextArrowDisabled : '']
-    .filter(Boolean)
-    .join(' ');
+  const label = props.label ?? (isFinish ? 'Готово' : 'Далее');
+  const ariaLabel = isFinish ? 'Готово' : 'Далее';
+  const trailingIcon = isFinish ? doneIcon : arrowIcon;
 
+  // Канон сплошной CTA — `Button variant="primary"` (та же тёмная заливка/press,
+  // что у submitBtn авторизации). `.nextArrow` оставляет только footer-раскладку
+  // (safe-area снизу). Стрелка/галка — ведомая иконка.
   if (props.as === 'label') {
     return (
-      <label
+      <Button
+        variant="primary"
+        as="label"
         htmlFor={props.htmlFor}
         onClick={props.onClick}
-        className={className}
-        aria-label={isFinish ? 'Готово' : 'Далее'}
+        className={s.nextArrow}
+        trailingIcon={trailingIcon}
+        aria-label={ariaLabel}
       >
-        {content}
-      </label>
+        {label}
+      </Button>
     );
   }
   return (
-    <button
-      type="button"
+    <Button
+      variant="primary"
       onClick={props.onClick}
-      disabled={isDisabled}
-      className={className}
-      aria-label={isFinish ? 'Готово' : 'Далее'}
+      disabled={props.disabled === true}
+      className={s.nextArrow}
+      trailingIcon={trailingIcon}
+      aria-label={ariaLabel}
     >
-      {content}
-    </button>
+      {label}
+    </Button>
   );
 };

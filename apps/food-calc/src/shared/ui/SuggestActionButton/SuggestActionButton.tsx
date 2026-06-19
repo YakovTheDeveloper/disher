@@ -25,6 +25,7 @@ export const SuggestActionButton = ({ label, onClick, disabled }: Props) => (
     label={label}
     icon={<SparkleIcon />}
     iconPosition="start"
+    chevron
     onClick={onClick}
     disabled={disabled}
   />

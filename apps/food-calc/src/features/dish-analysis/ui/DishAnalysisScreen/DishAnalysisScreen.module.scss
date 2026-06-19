@@ -1,3 +1,15 @@
+// Sky-тон для `Button variant="brand"`: единый бренд-вариант, перекрашенный в
+// небесную палитру DishPage через override-точки --cta-brand-* (как .primary
+// перекрашивает auth-темы). brand-2 слит в brand 2026-06-19. Заливка сплошная
+// (не градиент) — press через filter brightness базового .brand.
+.root,
+.emptyHero {
+    --cta-brand-fill: #c7dbf3;
+    --cta-brand-fill-press: #b9d2f0;
+    --cta-brand-ink: rgb(31, 50, 95);
+    --cta-brand-shadow: 0 1px 4px rgba(30, 64, 124, 0.18);
+}
+
 .root {
     display: flex;
     flex-direction: column;
@@ -29,67 +41,12 @@
     letter-spacing: -0.01em;
 }
 
-// Sky CTA — solid #c7dbf3 + deep-ink. Shared palette with FoodPortionsManager
-// pill rows and WriteFoodButton.sky on DishBuilderPage.
-.runButton {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 22px;
-    border: 0;
-    border-radius: 999px;
-    background-color: #c7dbf3;
-    color: rgb(31, 50, 95);
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    box-shadow: 0 1px 4px rgba(30, 64, 124, 0.18);
-    -webkit-tap-highlight-color: transparent;
-    transition: transform var(--press-out) var(--easing-default),
-        filter var(--press-out) var(--easing-default);
-
-    // Цветной отклик: сплошную sky-кнопку затемняем фильтром
-    &:active {
-        filter: brightness(0.9);
-        transform: scale(0.97);
-        transition-duration: var(--press-in);
-    }
-
-    &:disabled {
-        opacity: 0.55;
-        cursor: default;
-    }
-}
-
-.rerunButton {
+// Sky-CTA вынесена в общий `Button variant="brand"` (sky-тон через --cta-brand-*
+// override выше, 2026-06-19). Здесь остаётся только раскладка кнопки перезапуска
+// в flex-колонке .root — чтобы pill не растягивался на всю ширину (align-items:
+// stretch у .root).
+.rerunSlot {
     align-self: flex-start;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 18px;
-    border: 0;
-    border-radius: 999px;
-    background-color: #c7dbf3;
-    color: rgb(31, 50, 95);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    box-shadow: 0 1px 4px rgba(30, 64, 124, 0.18);
-    -webkit-tap-highlight-color: transparent;
-    transition: transform var(--press-out) var(--easing-default),
-        filter var(--press-out) var(--easing-default);
-
-    // Цветной отклик: сплошную sky-кнопку rerun затемняем фильтром
-    &:active {
-        filter: brightness(0.9);
-        transform: scale(0.97);
-        transition-duration: var(--press-in);
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: default;
-    }
 }
 
 .streamingHeader {

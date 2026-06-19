@@ -1,0 +1,30 @@
+/* Единый × для закрытия оверлеев БЕЗ ModalHeader — full-height модалки без
+   backdrop-dismiss (длинный разбор, «Разбор по неделям»). Тихий ink-глиф,
+   press-tint (canon press-feedback). */
+.close {
+  background: none;
+  border: none;
+  padding: 0 4px;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--color-ink);
+  opacity: 0.4;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    opacity var(--press-out) var(--easing-default);
+}
+
+.close:hover {
+  opacity: 0.7;
+}
+
+/* Цветной отклик: тинт фона иконки-крестика при нажатии. */
+.close:active {
+  background: var(--press-tint-bg);
+  color: var(--field-caret, var(--color-ink));
+  opacity: 1;
+  transition-duration: var(--press-in);
+}

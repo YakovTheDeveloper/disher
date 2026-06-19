@@ -56,12 +56,14 @@ export const FoodSearchEmpty = ({
 
   return (
     <div ref={ref} className={styles.root}>
-      {showMessage && hasQuery && (
-        <p className={styles.message}>
-          По запросу <em>«{query}»</em> ничего нет
-        </p>
-      )}
-      <p className={styles.prompt}>Нету нужной еды? Создать в два клика</p>
+      <div className={styles.header}>
+        {showMessage && hasQuery && (
+          <p className={styles.message}>
+            По запросу <em>«{query}»</em> ничего нет
+          </p>
+        )}
+        <p className={styles.prompt}>Нету нужной еды? Создать в два клика</p>
+      </div>
       <div className={styles.actions}>
         {onCreateDish &&
           (asLabel ? (

@@ -8,15 +8,19 @@ import type { ParseResponse } from './parseFreeTextFood';
 // (head B) so `useWriteFoodFlow` feeds both into one state machine + предложка.
 export async function parseDishName(
   dishName: string,
+  comment?: string,
   signal?: AbortSignal,
 ): Promise<ParseResponse> {
+  const trimmedComment = comment?.trim();
   const res = await authedFetch(`${API_BASE}/api/suggestions/dish-products`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       'X-Request-Id': crypto.randomUUID(),
     },
-    body: JSON.stringify({ dishName }),
+    // Omit `comment` entirely when empty so the no-clarification path hits the
+    // same backend cache key it did before this feature existed.
+    body: JSON.stringify(trimmedComment ? { dishName, comment: trimmedComment } : { dishName }),
     signal,
   });
 

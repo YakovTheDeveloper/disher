@@ -1,11 +1,11 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// NavTile — квадратная навигационная плитка. Default-семантика
-// «inverse-lift»: ACTIVE «выпуклая» (белая бумага + тень), INACTIVE —
-// плоские с лёгкой подложкой. ACTIVE сразу читается без обводки.
+// SwitcherTab — навигационный таб-переключатель (квадратная плитка-легаси).
+// Default-семантика «inverse-lift»: ACTIVE «выпуклая» (белая бумага + тень),
+// INACTIVE — плоские с лёгкой подложкой. ACTIVE сразу читается без обводки.
 //
 // Ambient (radial-glow per nth-child) — отдельный design-variant anchor
-// `NavTileAmbient`, его CSS-переменная `--nav-ambient` подмешивается как
+// `SwitcherTabAmbient`, его CSS-переменная `--nav-ambient` подмешивается как
 // первый слой background'а в обоих состояниях. На страницах, где anchor
 // не задан, переменная остаётся `none` — плитки без подсветки.
 
@@ -25,7 +25,7 @@
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 
-  // Default — без ambient (см. NavTileAmbient ниже). Переопределяется
+  // Default — без ambient (см. SwitcherTabAmbient ниже). Переопределяется
   // на nth-child через CSS-переменную; шорткат `var(...)` принимает `none`
   // как валидное bg-image-значение, поэтому fallback не ломает раскладку.
   --nav-ambient: none;
@@ -64,36 +64,19 @@
   // `.tileImg`) чтобы inline style потребителя всегда перекрывал их.
   --tile-img-y: -3px;
   --tile-img-opacity: 0.22;
-
-  .tileTitle {
-    opacity: 0.92;
-    color: #000000;
-    font-weight: 500;
-  }
+  // Подпись активного таба = <Heading> (bold-sans, opacity 1) — голос даёт
+  // примитив, отдельных font/opacity-оверрайдов тут не нужно.
 }
 
-// Подпись чёрная и непрозрачная даже на active-плитке — перекрывает
-// .tileActive .tileTitle (та же специфичность, ниже по исходнику).
-.tileSolidLabel .tileTitle {
-  opacity: 1;
-  font-weight: 300;
-  color: #000000;
-}
-
+// Голос подписи берётся из примитива (Heading у активного / Text navTabQuiet у
+// неактивного). Здесь — только структура/позиция; раскладку и размер активного
+// заголовка задаёт per-data-dv-вариант (выше по специфичности).
 .tileTitle {
   position: relative;
   z-index: 1;
   display: inline-block;
-  color: inherit;
-  font-family: "Source Serif 4", "Merriweather", serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 1rem;
   text-align: center;
-  line-height: 1;
-  letter-spacing: -0.3px;
   white-space: nowrap;
-  opacity: 0.5;
 }
 
 .tileImg {
@@ -109,19 +92,19 @@
   user-select: none;
 }
 
-// ─── NavTileAmbient — subtle radial-glow ───────────────────────────────
+// ─── SwitcherTabAmbient — subtle radial-glow ───────────────────────────
 // Подсветка плиток через CSS-переменную `--nav-ambient` (подмешивается
 // первым слоем в `background` обоих состояний). Канон: единый тон на ВСЕХ
 // плитках в ряду (без per-nth-child вариаций) + низкая альфа 0.14–0.22 +
 // крупный радиус 75% — присутствие «воздуха», а не цветовое пятно.
 //
-// Включается через `useDesignVariant('NavTileAmbient', ...)` на странице
+// Включается через `useDesignVariant('SwitcherTabAmbient', ...)` на странице
 // блюда/продукта; anchor навешивается на `.swipeArea`. Дефолтный вариант
 // (первый в массиве) — `ice-blue`. HomePage anchor не использует.
 
 // Default: holodnyy cyan-голубой, тон ProductAmbient.ice-blue. Тонкий,
 // узнаваемый. Лучше всего работает на ambient-странице того же тона.
-:global([data-dv='NavTileAmbient'][data-dv-v='ice-blue']) {
+:global([data-dv='SwitcherTabAmbient'][data-dv-v='ice-blue']) {
   .tile {
     --nav-ambient: radial-gradient(circle at 50% 30%,
         rgba(186, 230, 253, 0.20), transparent 75%);
@@ -129,7 +112,7 @@
 }
 
 // Paper-warm: кремовая бумажная подсветка. Совместима со stripe-warm-канон.
-:global([data-dv='NavTileAmbient'][data-dv-v='paper-warm']) {
+:global([data-dv='SwitcherTabAmbient'][data-dv-v='paper-warm']) {
   .tile {
     --nav-ambient: radial-gradient(circle at 50% 30%,
         rgba(254, 243, 222, 0.28), transparent 75%);
@@ -137,7 +120,7 @@
 }
 
 // Mint-fog: едва заметный зелёный туман — спокойный, нейтральный.
-:global([data-dv='NavTileAmbient'][data-dv-v='mint-fog']) {
+:global([data-dv='SwitcherTabAmbient'][data-dv-v='mint-fog']) {
   .tile {
     --nav-ambient: radial-gradient(circle at 50% 30%,
         rgba(209, 250, 229, 0.22), transparent 75%);
@@ -145,7 +128,7 @@
 }
 
 // Lavender-haze: пыльно-лавандовый. Самый «вечерний» из subtle.
-:global([data-dv='NavTileAmbient'][data-dv-v='lavender-haze']) {
+:global([data-dv='SwitcherTabAmbient'][data-dv-v='lavender-haze']) {
   .tile {
     --nav-ambient: radial-gradient(circle at 50% 30%,
         rgba(221, 214, 254, 0.22), transparent 75%);
@@ -153,7 +136,7 @@
 }
 
 // Peach-fog: персиковая дымка. Тёплая, но без яркости peach-rainbow.
-:global([data-dv='NavTileAmbient'][data-dv-v='peach-fog']) {
+:global([data-dv='SwitcherTabAmbient'][data-dv-v='peach-fog']) {
   .tile {
     --nav-ambient: radial-gradient(circle at 50% 30%,
         rgba(254, 226, 198, 0.22), transparent 75%);
@@ -162,7 +145,7 @@
 
 // Silver-mist: серебристо-серый, нейтральный. Подойдёт когда страница
 // уже носит цветной ambient — плитки не спорят с фоном.
-:global([data-dv='NavTileAmbient'][data-dv-v='silver-mist']) {
+:global([data-dv='SwitcherTabAmbient'][data-dv-v='silver-mist']) {
   .tile {
     --nav-ambient: radial-gradient(circle at 50% 30%,
         rgba(241, 245, 249, 0.40), transparent 75%);
@@ -171,7 +154,7 @@
 
 // Rose-quartz: бледно-розовый. Romantic, но низкая альфа держит его «в
 // стороне» — не доминирует над контентом.
-:global([data-dv='NavTileAmbient'][data-dv-v='rose-quartz']) {
+:global([data-dv='SwitcherTabAmbient'][data-dv-v='rose-quartz']) {
   .tile {
     --nav-ambient: radial-gradient(circle at 50% 30%,
         rgba(252, 231, 243, 0.22), transparent 75%);
@@ -275,25 +258,18 @@
     display: none;
   }
 
-  // Неактивный — тихий указатель: мелкая серая антиква-италик (15px/0.22 —
-  // всё в миксине `nav-tab-quiet`, единый источник для табов и крошек).
-  .tileTitle {
-    @include nav-tab-quiet;
-  }
+  // Неактивный — тихий указатель: голос уже даёт <Text variant="navTabQuiet">
+  // (serif-italic 15px/0.22), здесь доп. правил не нужно.
 
   .tileActive {
     background: transparent;
     box-shadow: none;
   }
 
-  // Активная подпись = облик Masthead, но КРУПНЕЕ (это теперь главная фигура):
-  // жирный чёрный sans, тугой трекинг. Лейбл таба короткий (Открытия/Рацион/
-  // События) → 38px не переносится. Облик — общий миксин `nav-tab-active`.
+  // Активная подпись = <Heading> (display bold-sans даёт сам примитив). Вариант
+  // задаёт ТОЛЬКО размер: лейбл короткий (Открытия/Рацион/События) → 38px без переноса.
   .tileActive .tileTitle {
-    --tab-title-fs: 38px;
-    @include nav-tab-active;
-    font-variant: normal;
-    font-size: var(--tab-title-fs);
+    font-size: 38px;
   }
 }
 

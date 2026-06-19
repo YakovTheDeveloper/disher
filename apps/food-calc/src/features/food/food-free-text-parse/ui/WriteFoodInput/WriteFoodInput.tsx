@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { WriteBarShell, WriteBarMedal } from '@/shared/ui/WriteBarShell';
+import { Button } from '@/shared/ui/atoms/Button';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import type { UseWriteFoodFlowResult } from '../../model/useWriteFoodFlow';
 import s from './WriteFoodInput.module.scss';
@@ -89,9 +90,11 @@ export const WriteFoodInput = ({
       scrollToOnSubmit={ANCHOR_SELECTOR}
       fieldOverride={
         isReady ? (
-          <button type="button" className={s.readyCta} onClick={handleViewResults}>
+          // Канон-вариант `link` (скроллит к предложке). `.readyCta` оставляет
+          // только раскладку: flex-fill + крупный размер через --btn-font-size.
+          <Button variant="link" className={s.readyCta} onClick={handleViewResults}>
             Посмотреть варианты
-          </button>
+          </Button>
         ) : undefined
       }
       rightSlot={

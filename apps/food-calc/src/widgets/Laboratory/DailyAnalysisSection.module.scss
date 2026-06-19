@@ -103,31 +103,11 @@
     color: rgba(15, 23, 42, 0.55);
 }
 
+// Вид «Повторить» владеет `Button variant="secondary"` (белая пилюля + ink
+// press-fill). Здесь — ТОЛЬКО раскладка внутри баннера: прижать влево + зазор.
 .bannerButton {
     align-self: flex-start;
     margin-top: 8px;
-    padding: 8px 18px;
-    border-radius: 999px;
-    border: 1px solid rgba(15, 23, 42, 0.2);
-    background: rgba(255, 255, 255, 0.85);
-    color: rgba(15, 23, 42, 0.8);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: background var(--press-out) var(--easing-default),
-        border-color var(--press-out) var(--easing-default),
-        color var(--press-out) var(--easing-default),
-        transform var(--press-out) var(--easing-default);
-
-    // Цветной отклик: светлая кнопка баннера заполняется ink при нажатии
-    &:active {
-        background: var(--color-ink);
-        border-color: var(--color-ink);
-        color: var(--text-on-accent);
-        transform: scale(0.97);
-        transition-duration: var(--press-in);
-    }
 }
 
 // ── idea cards ───────────────────────────────────────────────────────

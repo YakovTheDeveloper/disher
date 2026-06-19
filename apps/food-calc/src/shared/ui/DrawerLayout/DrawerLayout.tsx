@@ -5,8 +5,6 @@ import { Drawer } from '@base-ui/react/drawer';
 import { useTranslation } from 'react-i18next';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
-import { useDesignVariantsStore } from '@/shared/model/designVariantsStore';
-import { MODAL_SHELL_VARIANTS } from '@/shared/ui/ModalShell/variants';
 import { useDrawerSide } from './drawerSide';
 
 type Props = {
@@ -58,13 +56,12 @@ type Props = {
    */
   hideTopChrome?: boolean;
   /**
-   * Publish the live `'ModalShell'` DesignBar variant's field/chip tokens
-   * (`--field-*` / `--chip-*`) onto the whole popup via `data-modal-fields`, so
-   * a drawer's surface wash + its inner pills/chips/fields follow whatever the
-   * modals are showing (instead of a bespoke per-drawer palette). Carries ONLY
-   * the tokens — never `data-dv='ModalShell'` (which would drag the modal's
-   * orbs / backdrop-filter / wash onto the popup). Same read-only subscription
-   * the edge-handle already uses. See ModalShell.module.scss `[data-modal-fields]`.
+   * Publish ModalShell's fixed `mono` field/chip tokens (`--field-*` / `--chip-*`)
+   * onto the whole popup via `data-modal-fields='mono'`, so a drawer's surface
+   * wash + its inner pills/chips/fields share the app-wide monochrome tone
+   * (instead of a bespoke per-drawer palette). Carries ONLY the tokens — never
+   * `data-dv='ModalShell'` (which would drag the modal's orbs / backdrop-filter /
+   * wash onto the popup). See ModalShell.module.scss `[data-modal-fields]`.
    */
   modalFields?: boolean;
   /**
@@ -108,17 +105,13 @@ const DrawerLayout = ({
   const { side, width } = useDrawerSide();
   const isSide = side === 'left' || side === 'right';
 
-  // The edge swipe-handle (side drawers) follows the live ModalShell DesignBar
-  // variant. Read-only subscription to the SAME `'ModalShell'` store entry the
-  // modal wrapper registers — does NOT register itself (mirrors ModalVariantFields:
-  // no DesignBar churn, no IntersectionObserver). We publish ONLY that variant's
-  // field tokens onto the handle via `data-modal-fields` — never `data-dv='ModalShell'`
-  // (that would drag the modal's backdrop-filter / wash onto the popup). The
-  // handle's gradient + grip read `--field-*`, so flipping the variant in the bar
-  // recolours the grip in step with the modals. Fallback covers first paint before
-  // any ModalShell sibling has registered. See ModalShell.module.scss.
-  const modalShellVariant =
-    useDesignVariantsStore((s) => s.entries['ModalShell']?.variant) ?? MODAL_SHELL_VARIANTS[0];
+  // The edge swipe-handle (side drawers) + the optional popup-wide field tone
+  // carry ModalShell's single fixed `mono` tone (the «great unification»,
+  // 2026-06-19). We publish ONLY the field tokens via `data-modal-fields='mono'`
+  // — never `data-dv='ModalShell'` (that would drag the modal's backdrop-filter /
+  // wash onto the popup). The handle's gradient + grip read `--field-*`. See
+  // ModalShell.module.scss `[data-modal-fields]`.
+  const modalShellVariant = 'mono';
 
   // The visible header title doubles as the single `Drawer.Title` (one <h2> =
   // accessible name + visible heading) when the chrome row is on screen.

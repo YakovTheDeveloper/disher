@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Button } from '@/shared/ui/atoms/Button';
 import { useAuthStore } from './auth-store';
 import styles from './AuthForm.module.scss';
 
@@ -43,14 +44,14 @@ export function CheckInboxView({ email, layout }: Props) {
 
       <div className={styles.formWrap}>
         <div className={styles.form}>
-          <button
-            type="button"
+          <Button
+            variant="primary"
             className={styles.submitBtn}
             onClick={handleResend}
             disabled={isLoading}
           >
             {isLoading ? '…' : 'Отправить ссылку ещё раз'}
-          </button>
+          </Button>
           {error && (
             <p className={styles.fieldError} role="alert">
               {error}
@@ -60,14 +61,14 @@ export function CheckInboxView({ email, layout }: Props) {
       </div>
 
       <footer className={styles.footer}>
-        <button
-          type="button"
+        <Button
+          variant="link"
           className={styles.switchBtn}
           onClick={clearPending}
           disabled={isLoading}
         >
           Изменить email
-        </button>
+        </Button>
       </footer>
     </div>
   );

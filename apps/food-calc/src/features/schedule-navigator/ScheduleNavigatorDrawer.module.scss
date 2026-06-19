@@ -1,4 +1,9 @@
+@import '@/shared/assets/style/mixin.scss';
+
 .shell {
+  // Paper-mono card palette in scope + grey inset-grouped page (mixin.scss).
+  // Replaces the old warm honey chrome — the date cards now match SearchFood.
+  @include paper-mono-cards;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -6,6 +11,6 @@
   // не съесть весь экран. Past-секция внутри уже скроллится сама.
   max-height: 78dvh;
   overflow: hidden;
-  background: #fffefb;
-  color: #3a2e14;
+  background: var(--cards-page-bg);
+  color: var(--card-text-rest);
 }

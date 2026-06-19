@@ -22,7 +22,7 @@
 [data-surface='warm'] {
   // Field (warm-pill input) — input keeps a touch more warmth so it still
   // reads as a tangible pill against the now-subtler card row palette.
-  --field-radius: 24px;
+  --field-radius: var(--radius-sm);
   --field-bg-from: #fffefb;
   --field-bg-mid: #fffaf2;
   --field-bg-to: #fdf4e3;
@@ -76,7 +76,7 @@
 
 [data-surface='lavender'] {
   // Field
-  --field-radius: 24px;
+  --field-radius: var(--radius-sm);
   --field-bg-from: #fefefe;
   --field-bg-mid: #fbfafe;
   --field-bg-to: #f5f1fa;

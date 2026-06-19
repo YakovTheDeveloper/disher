@@ -89,7 +89,7 @@ export interface UseWriteFoodFlowResult {
   inputText: string;
   errorMessage: string | null;
   submit: (text: string) => void;
-  submitDishName: (dishName: string) => void;
+  submitDishName: (dishName: string, comment?: string) => void;
   retry: () => void;
   cancel: () => void;
   minimize: () => void;
@@ -162,6 +162,8 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   // Which front-end produced the latest intake — so `retry` re-runs the right
   // one (text → head B, dishName → head A) instead of always re-parsing as text.
   const lastIntakeRef = useRef<ParseIntake>('text');
+  // The «Уточнения» comment of the latest dishName intake — re-applied on retry.
+  const lastCommentRef = useRef<string | undefined>(undefined);
 
   const requestIdRef = useRef<string | null>(null);
   const matcherLatencyRef = useRef<number>(0);
@@ -229,7 +231,13 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   );
 
   const startFetch = useCallback(
-    (text: string, requestId: string, startedAt: number, intake: ParseIntake = 'text') => {
+    (
+      text: string,
+      requestId: string,
+      startedAt: number,
+      intake: ParseIntake = 'text',
+      comment?: string,
+    ) => {
       const controller = new AbortController();
       abortRef.current = controller;
       activeRequestIdRef.current = requestId;
@@ -246,6 +254,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
           startedAt,
           requestId,
           intake,
+          comment,
         };
         writeParseState(persisted);
         setState('error');
@@ -259,8 +268,12 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
 
       // Two front-ends, one state machine: typed text → head B; semantic
       // "infer recipe" button → head A. Both resolve to the same ParseResponse.
-      const fetcher = intake === 'dishName' ? parseDishName : parseFreeTextFood;
-      fetcher(text, controller.signal).then(
+      // Only head A carries the optional «Уточнения» comment.
+      const parsePromise =
+        intake === 'dishName'
+          ? parseDishName(text, comment, controller.signal)
+          : parseFreeTextFood(text, controller.signal);
+      parsePromise.then(
         (response) => {
           if (controller.signal.aborted) return;
           if (activeRequestIdRef.current !== requestId) return;
@@ -273,6 +286,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
             startedAt,
             requestId,
             intake,
+            comment,
           };
           writeParseState(persisted);
           setParseResult(response);
@@ -304,6 +318,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
             startedAt,
             requestId,
             intake,
+            comment,
           };
           writeParseState(persisted);
           setErrorMessage(message);
@@ -377,7 +392,13 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       startedAt: Date.now(),
     };
     writeParseState(refreshed);
-    startFetch(persisted.inputText, newRequestId, refreshed.startedAt, persisted.intake);
+    startFetch(
+      persisted.inputText,
+      newRequestId,
+      refreshed.startedAt,
+      persisted.intake,
+      persisted.comment,
+    );
     // cleanup on unmount handled by separate effect
   }, [target.kind, targetId(target)]);
 
@@ -523,10 +544,11 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   // ─── Parse-cycle actions ───
 
   const startIntake = useCallback(
-    (rawText: string, intake: ParseIntake) => {
+    (rawText: string, intake: ParseIntake, comment?: string) => {
       const trimmed = rawText.trim();
       if (!trimmed) return;
       lastIntakeRef.current = intake;
+      lastCommentRef.current = comment;
       abortActive();
       const requestId = makeRequestId();
       const startedAt = Date.now();
@@ -537,13 +559,14 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         startedAt,
         requestId,
         intake,
+        comment,
       };
       writeParseState(persisted);
       setInputText(trimmed);
       setParseResult(null);
       setErrorMessage(null);
       setState('loading');
-      startFetch(trimmed, requestId, startedAt, intake);
+      startFetch(trimmed, requestId, startedAt, intake, comment);
     },
     [abortActive, startFetch, target],
   );
@@ -553,9 +576,10 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
 
   // Semantic "infer recipe" button (head A) — symmetric to `submit`: fetch lives
   // inside the engine, result lands in the same resolved/ambiguous/unresolved
-  // state machine + предложка. Used by the dish page «Предложить состав» button.
+  // state machine + предложка. Used by the dish page «Предложить ингредиенты»
+  // button; `comment` is the optional «Уточнения» clarification.
   const submitDishName = useCallback(
-    (dishName: string) => startIntake(dishName, 'dishName'),
+    (dishName: string, comment?: string) => startIntake(dishName, 'dishName', comment),
     [startIntake],
   );
 
@@ -564,7 +588,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       setState('idle');
       return;
     }
-    startIntake(inputText, lastIntakeRef.current);
+    startIntake(inputText, lastIntakeRef.current, lastCommentRef.current);
   }, [inputText, startIntake]);
 
   const resetAll = useCallback(() => {

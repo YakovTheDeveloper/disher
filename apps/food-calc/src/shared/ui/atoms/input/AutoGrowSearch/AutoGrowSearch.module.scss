@@ -10,7 +10,7 @@
   width: 100%;
   min-height: 50px;
   padding: 0 var(--space-4);
-  border-radius: var(--field-radius, 24px);
+  border-radius: var(--field-radius, var(--radius-sm));
   background: linear-gradient(90deg,
       var(--field-bg-from, #fffefb) 0%,
       var(--field-bg-mid, #fffaf2) 55%,

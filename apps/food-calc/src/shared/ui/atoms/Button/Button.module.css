@@ -12,30 +12,57 @@
   }
 }
 
+/* ─── primary — канон сплошной CTA (база — submitBtn авторизации) ────────────
+   Тёмная ink-заливка, 56px, вес 600, скруглённая. Палитра — через токены:
+   --cta-fill (фон, дефолт ink), --cta-ink (текст, дефолт белый), --cta-shadow
+   (тень, дефолт none). Так auth перекрашивает свои темы (dark/yandex), задавая
+   токены под [data-auth-theme], не форкая селектор. Слоты иконок — `icon`
+   (ведущая) и `trailingIcon` (ведомая, напр. стрелка «Далее» в футере модалки).
+   Press: brightness + scale (canon press-darken для сплошных/светлых CTA). */
 .primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   width: 100%;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  background: var(--color-blue-2);
-  color: white;
+  min-height: 56px;
+  padding: 0 1.5rem;
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  background: var(--cta-fill, var(--color-ink));
+  color: var(--cta-ink, #fff);
+  box-shadow: var(--cta-shadow, none);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: transform 0.2s ease, filter var(--press-out) var(--easing-default);
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--press-out) var(--easing-default),
+    filter var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
 
+  /* база .button:hover гасит opacity — сплошной CTA это не нужно */
   &:hover {
-    background: var(--color-blue-2);
-    transform: translateY(-1px);
+    opacity: 1;
   }
 
-  /* Цветной отклик: сплошную кнопку нечем залить — затемняем фильтром. */
-  &:active {
-    transform: translateY(0);
+  &:not(:disabled):active {
     filter: brightness(0.9);
+    transform: scale(0.97);
     transition-duration: var(--press-in);
   }
 
+  &:disabled {
+    background: var(--cta-fill-disabled, rgba(0, 0, 0, 0.08));
+    color: var(--cta-ink-disabled, rgba(0, 0, 0, 0.35));
+    box-shadow: none;
+    cursor: default;
+  }
+}
+
+.primary .icon svg {
+  width: 20px;
+  height: 20px;
 }
 
 .disabled {
@@ -64,6 +91,97 @@
   }
 }
 
+/* ─── link — навигация/скролл: тихая подчёркнутая ссылка-кнопка ──────────────
+   Семантика «ведёт куда-то» (другой экран / скролл к контенту), НЕ действие.
+   Прозрачная, подчёркнутая, опц. ведущая иконка (через prop `icon`). Размер —
+   через --btn-font-size (дефолт base), flex/раскладку задаёт консумер. База —
+   readyCta «Посмотреть варианты» / discoveriesBtn «Мои открытия». */
+.link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  /* tap-floor: ссылка остаётся ≥ высоты бара, в split-баре ровна с CTA. */
+  min-height: var(--bottom-action-h);
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--btn-font-size, var(--text-base));
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
+}
+
+/* база .button:hover гасит opacity — для ссылки не нужно */
+.link:hover {
+  opacity: 1;
+}
+
+.link:active {
+  transform: scale(0.98);
+  color: var(--color-ink);
+  transition-duration: var(--press-in);
+}
+
+.link .icon svg {
+  width: 18px;
+  height: 18px;
+  /* иконка-маркер чуть тише текста */
+  opacity: 0.7;
+}
+
+/* ─── secondary — белая вторичная пилюля (действие, не навигация) ─────────────
+   Белый фон + ink-окаёмка + мягкая тень + ink press-fill (canon press-fill-ink).
+   Размещение (align-self / margin) задаёт консумер. База — bannerButton
+   «Повторить» в баннере ошибки разбора. */
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid rgba(31, 42, 68, 0.16);
+  border-radius: var(--radius-full);
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(31, 42, 68, 0.08);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 550;
+  letter-spacing: 0.005em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    border-color var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
+}
+
+.secondary:hover {
+  opacity: 1;
+}
+
+.secondary:active {
+  background: var(--color-ink);
+  color: var(--text-on-accent);
+  border-color: var(--color-ink);
+  transform: scale(0.97);
+  transition-duration: var(--press-in);
+}
+
+.secondary .icon svg {
+  width: 18px;
+  height: 18px;
+}
+
 .center {
   display: flex;
   align-self: center;
@@ -71,93 +189,12 @@
   margin: 0 auto;
 }
 
-/* ─── bottomActionBar — единый вид кнопок нижнего бара ──────────────────────
-   Белая база + лёгкий peach-rose градиент (как HomeAmbient peach-rose) + чёрная
-   обводка + малая тень. Типографика — общие токены бара (--bottom-bar-font-*,
-   эталон — write-поле). Высота — канон нижних действий (--bottom-action-h).
-   Ширину задаёт контейнер (AppBottomBarShell: split = hug, sized = доля). */
-.bottomActionBar {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  width: auto;
-  min-height: var(--bottom-action-h);
-  padding: 0 var(--space-6);
-  border-radius: 999px;
-  /* Окаёмку рисует градиентный ::before-ring (mask), не border. */
-  border: none;
-  /* Матовое стекло: прозрачная база + blur размывает фон. Тон даёт окаёмка. */
-  -webkit-backdrop-filter: blur(14px) saturate(1.3);
-  backdrop-filter: blur(14px) saturate(1.3);
-  /* Тень снята (канон 2026-06-13): объём держит градиентная окаёмка, не lift. */
-  box-shadow: none;
-  color: #262626;
-  /* Типографика канон-кнопки: sans (не serif-заголовок), вес 500, чуть плотнее.
-     Serif italic читался декоративно на стеклянной пилюле — кнопка ≠ заголовок. */
-  font-family: var(--font-sans);
-  font-size: 0.9375rem;
-  /* 15px — на ступень плотнее body-base */
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1;
-  text-align: center;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform var(--press-out) var(--easing-default),
-    background var(--press-out) var(--easing-default),
-    border-color var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default);
-
-  /* Градиентная окаёмка: тёплый peach → rose → перивинкл. Рисуется маской на
-     ::before (ring), чтобы сохранить полупрозрачную blur-базу под ней —
-     background-clip:border-box залил бы стекло и убил matte. */
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg,
-        rgba(243, 169, 120, 0.85) 0%,
-        rgba(221, 138, 191, 0.8) 50%,
-        rgba(146, 150, 232, 0.8) 100%);
-    -webkit-mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    transition: opacity var(--press-out) var(--easing-default);
-  }
-
-  /* Не гасим прозрачностью (базовый .button:hover это делает). */
-  &:hover {
-    opacity: 1;
-  }
-
-  /* Цветной отклик (canon press-fill-ink): инверсия — ink-заливка + белый текст
-     и значок (currentColor наследуется). Окаёмку прячем — чистая ink-пилюля.
-     Эталон — нижние пилюли SearchFood. */
-  &:active {
-    transform: scale(0.97);
-    background: var(--color-ink);
-    color: #fff;
-    transition-duration: var(--press-in);
-  }
-
-  &:active::before {
-    opacity: 0;
-  }
-}
-
 /* ─── brand — фирменная sage-CTA (единый цвет primary-действий) ─────────────
    Один фирменный цвет кнопки по проекту: бледный шалфейно-жёлтый направленный
    градиент (плотный слева → растворяется в полупрозрачный крем справа, сквозь
-   правый край просвечивает ambient-подложка). Тёмный ink-текст. Геометрия
-   повторяет `.bottomActionBar` (pill, высота --bottom-action-h), чтобы в split-
-   баре HomePage обе кнопки совпадали. Источник правды цвета — этот блок; чтобы
+   правый край просвечивает ambient-подложка). Тёмный ink-текст. Pill, высота
+   выровнена с `.primary` (56px, ревизия 2026-06-19 — была --bottom-action-h
+   72px). Источник правды цвета — этот блок; чтобы
    перекрасить кнопку по всему проекту, правится один градиент здесь.
    Press: заливка светлая, инверсией не залить → тон через затемнение градиента
    + фильтр (canon press-darken для сплошных/светлых CTA). */
@@ -168,7 +205,7 @@
   justify-content: center;
   gap: var(--space-2);
   width: auto;
-  min-height: var(--bottom-action-h);
+  min-height: 56px;
   padding: 0 var(--space-6);
   border: none;
   border-radius: 999px;
@@ -219,9 +256,4 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-.bottomActionBar .icon svg {
-  width: 20px;
-  height: 20px;
 }

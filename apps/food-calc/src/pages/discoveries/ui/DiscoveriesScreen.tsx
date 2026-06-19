@@ -22,7 +22,7 @@ const noop = () => {};
 
 type Tab = 'hypotheses' | 'insights';
 
-// Two NavTile tabs via the canon ScreenIndicator (2 tiles → right-aligned in a
+// Two SwitcherTab tabs via the canon ScreenIndicator (2 tiles → right-aligned in a
 // 3-col grid, the app's standard ≤2-tile layout). bandImg off (no ghost art).
 const TAB_SCREENS: ScreenEntry[] = [
   { label: 'Гипотезы' },
@@ -70,14 +70,20 @@ const DiscoveriesScreen = () => {
     void deleteInsight(id);
   }, []);
 
+  // NavSwitcher tab-as-title — каноничный облик табов (как на HomePage): активный
+  // раздел = крупный заголовок, неактивный — тихий serif-указатель. Хардкод-атрибут
+  // (не useDesignVariant) — облик зафиксирован и не делит персист-ключ
+  // `dv:NavSwitcher` с HomePage. Квадратная плитка ретайрнута 2026-06-19.
   const tabsNode = (
-    <ScreenIndicator
-      screens={TAB_SCREENS}
-      activeIndex={tab === 'hypotheses' ? 0 : 1}
-      onSelect={(i) => setTab(i === 0 ? 'hypotheses' : 'insights')}
-      bandImg={false}
-      tablistLabel="Открытия: раздел"
-    />
+    <div data-dv="NavSwitcher" data-dv-v="tab-as-title">
+      <ScreenIndicator
+        screens={TAB_SCREENS}
+        activeIndex={tab === 'hypotheses' ? 0 : 1}
+        onSelect={(i) => setTab(i === 0 ? 'hypotheses' : 'insights')}
+        bandImg={false}
+        tablistLabel="Открытия: раздел"
+      />
+    </div>
   );
 
   // Write-bar belongs to the Гипотезы tab, but it stays MOUNTED (hidden via CSS

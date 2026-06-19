@@ -7,6 +7,7 @@ import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { modalStore } from '@/shared/ui';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
+import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
 import {
   useHypothesis,
   updateHypothesis,
@@ -150,9 +151,9 @@ const EditHypothesisModal = ({
               {/* Видимые лейблы — без них непонятно, где название, где описание
                   (просьба 2026-06-13). htmlFor связывает с инпутом AutoGrowSearch. */}
               <div className={styles.field}>
-                <label className={styles.fieldLabel} htmlFor={EDIT_HYPOTHESIS_TITLE_INPUT_ID}>
+                <FieldLabel className={styles.labelInset} htmlFor={EDIT_HYPOTHESIS_TITLE_INPUT_ID}>
                   Название
-                </label>
+                </FieldLabel>
                 <AutoGrowSearch
                   singleLine
                   id={EDIT_HYPOTHESIS_TITLE_INPUT_ID}
@@ -164,9 +165,13 @@ const EditHypothesisModal = ({
               </div>
 
               <div className={styles.field}>
-                <label className={styles.fieldLabel} htmlFor={EDIT_HYPOTHESIS_BODY_INPUT_ID}>
-                  Описание <span className={styles.fieldLabelHint}>· необязательно</span>
-                </label>
+                <FieldLabel
+                  className={styles.labelInset}
+                  htmlFor={EDIT_HYPOTHESIS_BODY_INPUT_ID}
+                  hint="· необязательно"
+                >
+                  Описание
+                </FieldLabel>
                 <AutoGrowSearch
                   id={EDIT_HYPOTHESIS_BODY_INPUT_ID}
                   value={body}

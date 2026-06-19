@@ -1,6 +1,5 @@
 import styles from './FoodName.module.scss';
 import clsx from 'clsx';
-import { Typography } from '@/shared/ui/atoms/Typography';
 import { ChangeHighlight } from '@/shared/ui/ChangeHighlight';
 
 type Props = {
@@ -12,25 +11,35 @@ type Props = {
   htmlFor?: string;
 };
 
+// FoodName — доменная обёртка имени продукта: capitalize + ellipsis + sweep-
+// анимация смены значения. Рендерит свой <p>/<label> (как <label> при htmlFor —
+// для label-driven rename-флоу). Голос наследуется от консумера; типографику не
+// навязывает (это не Heading/Text-роль, а имя-сущности).
 const FoodName = ({ className, onClick, onTouchEnd, after, content, htmlFor }: Props) => {
   const initTitle = content?.name;
   const normalizedTitle = initTitle || 'не выбрано';
 
-  return (
-    <Typography
-      ellipsis={true}
-      variant="custom"
-      after={after}
-      className={clsx([className, styles.capitalize, !initTitle && styles.noTitle])}
-      onClick={onClick}
-      onTouchEnd={onTouchEnd ? () => onTouchEnd({} as React.TouchEvent<HTMLElement>) : undefined}
-      as={htmlFor ? 'label' : 'p'}
-      htmlFor={htmlFor}
-    >
+  const cls = clsx(styles.ellipsis, styles.capitalize, !initTitle && styles.noTitle, className);
+  const handleTouchEnd = onTouchEnd
+    ? () => onTouchEnd({} as React.TouchEvent<HTMLElement>)
+    : undefined;
+  const inner = (
+    <>
       <ChangeHighlight trigger={initTitle} variant="sweep">
         {normalizedTitle}
       </ChangeHighlight>
-    </Typography>
+      {after}
+    </>
+  );
+
+  return htmlFor ? (
+    <label className={cls} htmlFor={htmlFor} onClick={onClick} onTouchEnd={handleTouchEnd}>
+      {inner}
+    </label>
+  ) : (
+    <p className={cls} onClick={onClick} onTouchEnd={handleTouchEnd}>
+      {inner}
+    </p>
   );
 };
 

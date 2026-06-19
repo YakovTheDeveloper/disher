@@ -1,12 +1,10 @@
 import type { ReactNode } from 'react';
-import { useDesignVariantsStore } from '@/shared/model/designVariantsStore';
-import { MODAL_SHELL_VARIANTS } from './variants';
 
-// Publishes the live ModalShell design-variant as a lightweight
-// `data-modal-fields` attribute on a `display: contents` wrapper, so modal
-// content that is NOT wrapped in <ModalShell> — the bare SearchFood search step
-// of a ModalByLabel flow — still inherits the variant's `--field-*` / `--chip-*`
-// palette and stays in colour with the time/quantity/details steps that follow.
+// Publishes ModalShell's fixed `mono` tone as a lightweight `data-modal-fields`
+// attribute on a `display: contents` wrapper, so modal content that is NOT
+// wrapped in <ModalShell> — the bare SearchFood search step of a ModalByLabel
+// flow — still inherits the `--field-*` / `--chip-*` palette and stays in colour
+// with the time/quantity/details steps that follow.
 //
 // Why a separate attribute (not `[data-dv='ModalShell']`): the ambient block
 // (`[data-dv='ModalShell']`) also sets `backdrop-filter`, which establishes a
@@ -17,16 +15,11 @@ import { MODAL_SHELL_VARIANTS } from './variants';
 // `display: contents` keeps the box tree byte-identical (SearchFood stays the
 // effective child of ModalByLabel's `.content`), so layout is untouched.
 //
-// Read-only by design: it subscribes to the SAME `'ModalShell'` store entry the
-// wrapper registers, but does NOT register itself — no DesignBar churn, no extra
-// IntersectionObserver. The fallback covers the first paint before any
-// ModalShell sibling has registered.
+// Since the «great unification» (2026-06-19) the tone is a single fixed `mono` —
+// this just mirrors `body[data-modal-fields]` locally for portal-free subtrees.
 export const ModalVariantFields = ({ children }: { children: ReactNode }) => {
-  const variant =
-    useDesignVariantsStore((s) => s.entries['ModalShell']?.variant) ?? MODAL_SHELL_VARIANTS[0];
-
   return (
-    <div data-modal-fields={variant} style={{ display: 'contents' }}>
+    <div data-modal-fields="mono" style={{ display: 'contents' }}>
       {children}
     </div>
   );

@@ -187,7 +187,7 @@
 }
 
 // AccountPanel — первый flex-child. Слева, перед leadingSlot
-// (nav-tiles в hero-варианте) и dateSegment (margin-left:auto уводит
+// (SwitcherTab в hero-варианте) и dateSegment (margin-left:auto уводит
 // дату вправо). Сам слот теперь — «парящая» круглая pill'а с
 // фоном/тенью/blur'ом (унаследованным из --bar-* токенов), вместо
 // общего контейнерного фона.

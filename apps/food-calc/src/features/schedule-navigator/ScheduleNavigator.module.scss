@@ -1,159 +1,87 @@
-// schedule-navigator — lives inside the HomePage mint chrome.
-// Ambient mint+sky backdrop (mirrors HomeAmbient mint-sky variant).
-// Date typography mirrors HomeTopBar.dateNumeral{Day,Meta}:
-// Source Serif 4 for the day number, 9px lowercase letter-spacing meta.
-// Warm honey is reserved for selected/today data-accents only.
+@import '@/shared/assets/style/mixin.scss';
+
+// schedule-navigator — unified onto the SearchFood card canon (2026-06-19).
+// The quick-nav anchor rows reuse the stripe-fork-row surface + inset-group
+// container + paper-mono palette (mixin.scss), the SAME look as the food cards
+// in SearchFood. Honey/mint accents and the mint→sky ambient were retired —
+// state now reads through the shared --card-* tokens (selected = faint grey
+// fill, today = active ink). Date typography (Source Serif day numeral + 9px
+// stacked weekday/month) is preserved and moved into the card's LEFT slot,
+// where FoodActionCard puts its round thumbnail. The relative word
+// (Вчера/Сегодня/Завтра) is the card «name» (centre), the chevron the trailing
+// affordance (right) — replacing the ⓘ info button.
 //
-// Layout: CSS grid `minmax(0, 1fr) / auto / auto`. Row 1 is the scrollable
-// past section, bottom-packed (align-self:end) so the newest past day sits
-// flush against the divider. Rows 2-3 are the divider + anchor block
-// (Вчера / Сегодня / Завтра). The wrapper has no bottom spacer — anchor
-// block sits at the bottom of the drawer, drawer shrinks to content when
-// past is small, caps at 78dvh from the outer .shell and the past section
-// scrolls within its 1fr row when overflowed. The past section uses
-// mask-image to fade its top edge — that's the visual "there's more above"
-// hint without resorting to ResizeObserver + slice() math.
+// Layout: flex column. A tab row on top switches the body between the anchor
+// block (the quick tab) and the scrollable active-days section (chips by month).
 
-$ink: #1f2a44;
-$ink-soft: rgba(31, 42, 68, 0.62);
-$ink-faint: rgba(31, 42, 68, 0.38);
-$hairline: rgba(31, 42, 68, 0.08);
-
-$accent-honey: #d99a4c;
-$accent-honey-deep: #a35a14;
-$accent-today: #e07a3a;
+$ink-soft: rgba(0, 0, 0, 0.55);
+$ink-faint: rgba(0, 0, 0, 0.4);
 
 .shell {
   position: relative;
-  display: grid;
-  // row 1 — past (bottom-packed, scrollable when constrained, collapses to
-  //         content height when small).
-  // row 2 — divider (auto, hidden when no past).
-  // row 3 — anchor block (auto, always rendered, sits at the bottom).
-  // minmax(0,1fr) on row 1: collapses to 0 when empty, grows up to all
-  // remaining height when the outer .shell hits its max-height cap.
-  grid-template-rows: minmax(0, 1fr) auto auto;
-  // flex-basis: auto so the inner shell reports its content height to the
-  // wrapping flex column — лишает дрейвер пустого хвоста под anchor-блоком,
-  // но при large past grow до wrapper max-height.
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  color: $ink;
+  color: var(--card-text-rest);
   font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  background: #fdfdfb;
+  // Grey inset-grouped page so the white card group pops (SearchFood parity).
+  background: var(--cards-page-bg);
 }
 
-.ambient {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  // Strong top-to-bottom wash: pure white at the top so it meets the white
-  // drawer chrome (drag handle) with no visible seam, then deepens into a
-  // mint → sky tint toward the bottom.
-  background:
-    linear-gradient(to bottom,
-      #ffffff 0%,
-      #ffffff 14%,
-      rgba(213, 236, 224, 0.55) 52%,
-      rgba(199, 224, 238, 0.9) 100%);
-  z-index: 0;
-}
-
-// ─── Past accordion (row 1) ────────────────────────────────────────────────
-// Past days hide behind a «Показать прошлые дни» Base UI accordion. The Root
-// owns grid-row 1; its content is bottom-packed (flex-end) so the trigger sits
-// flush against the divider when collapsed, and the chips grow upward from the
-// divider when expanded. When pastFilledAsc.length === 0 the whole accordion is
-// unmounted (so is the divider) and the drawer is just the anchor block.
-.accordion {
-  grid-row: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+// ─── Tab row ───────────────────────────────────────────────────────────────
+// Обёртка под anchor `[data-dv='NavSwitcher']` — раскладку и облик ряда держит
+// ScreenIndicator (.root/.tilesRow) под этим anchor'ом, как на HomePage.
+.tabRow {
   position: relative;
   z-index: 1;
-  overflow: hidden;
+  padding-top: var(--space-3);
 }
 
-.accordionItem {
+// ─── Slider viewport ───────────────────────────────────────────────────────
+// Горизонтальный CSS scroll-snap: две панели по 100% ширины, один свайп =
+// снап на соседнюю. Высоту задаёт JS (дышит под активную панель) с transition;
+// вертикальный скролл живёт ВНУТРИ панели (.activeSection), не на viewport.
+.viewport {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  transition: height 0.28s var(--easing-default, ease);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.panel {
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-}
-
-.accordionHeader {
-  margin: 0;
-}
-
-// «Показать прошлые дни» — a quiet, full-width toggle. No plate: just the label
-// + a chevron that flips when open, matching the navigator's low-contrast warm
-// chrome.
-.accordionTrigger {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px 22px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: $ink-soft;
-  transition:
-    background var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default);
-
-  // Цветной отклик: триггер аккордеона (тихая кнопка) → тинт фона + цвет
-  &:active {
-    background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
-    transition-duration: var(--press-in);
-  }
-}
-
-.accordionChevron {
-  color: $ink-faint;
-  transition: transform 0.2s ease;
-}
-
-.accordionTrigger[data-panel-open] .accordionChevron {
-  transform: rotate(180deg);
-}
-
-// Base UI drives the open/close height animation via --accordion-panel-height
-// (px while animating, `auto` once settled). overflow:hidden is required for
-// the height transition to clip the content.
-.accordionPanel {
   overflow: hidden;
-  height: var(--accordion-panel-height);
-  transition: height 0.24s cubic-bezier(0.4, 0, 0.2, 1);
-
-  &[data-starting-style],
-  &[data-ending-style] {
-    height: 0;
-  }
 }
 
-.pastSection {
+// ─── Active-days section ───────────────────────────────────────────────────
+// All days with records (past + today + future), chips grouped by month.
+// Rendered only on the «Активные дни» tab; sizes to content up to a cap, then
+// scrolls inside (directional fade hints signal more above/below).
+.activeSection {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  // Cap the open height so a long history scrolls inside the panel rather than
-  // pushing the drawer past its 78dvh ceiling. The accordion animates up to
-  // this cap (or the content height, whichever is smaller).
-  max-height: 42dvh;
+  height: 100%;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
-  // Directional scroll fades — "there's more above / below" signals. The mask
-  // fades whichever edge has hidden content; the JS toggles data-fade-top /
-  // data-fade-bottom from the scroll position. Defaults to 0 (no fade) so a
-  // non-overflowing section stays fully opaque.
+  // Directional scroll fades — "there's more above / below" signals.
   --fade-top: 0px;
   --fade-bottom: 0px;
   $mask: linear-gradient(to bottom,
@@ -163,8 +91,6 @@ $accent-today: #e07a3a;
       transparent 100%);
   mask-image: $mask;
   -webkit-mask-image: $mask;
-  position: relative;
-  z-index: 1;
   padding-top: 24px;
 
   &[data-fade-top] {
@@ -196,8 +122,8 @@ $accent-today: #e07a3a;
   color: var(--text-muted);
 }
 
-// Past chips — flex-wrap of 44×52 cells, gap-aligned. Compact enough to fit
-// many past days without consuming vertical space; anchors below stay full-row.
+// Past chips — flex-wrap of cells, gap-aligned. Compact enough to fit many
+// past days without consuming vertical space.
 .chipRow {
   display: flex;
   flex-wrap: wrap;
@@ -206,9 +132,9 @@ $accent-today: #e07a3a;
   padding: var(--space-1) var(--space-1) var(--space-8) var(--space-1);
 }
 
-// Past-day chips — mirror the HomePage navigation tiles: transparent
-// surface, faint dotted border, a barely-there 4px radius. ~20% larger
-// than before (44×52 → 53×62).
+// Past-day chips — transparent surface, compact. State reads through the shared
+// --card-* tokens (no more honey): today/selected = active ink + faint grey
+// fill, press = dark inversion pill.
 .dayChip {
   position: relative;
   display: flex;
@@ -218,28 +144,24 @@ $accent-today: #e07a3a;
   width: 53px;
   padding: 5px 0 6px;
   background: transparent;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
     background var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default),
-    border-color var(--press-out) var(--easing-default),
     transform var(--press-out) var(--easing-default);
 
-  // Цветной отклик: чип прошедшего дня → заливка chip-токеном. Дети
-  // (.dayChipNumber/.dayChipWeekday) держат свой тёмный $ink — на тёмной
-  // заливке их надо перекрасить, иначе цифра дня сливается с фоном.
+  // Цветной отклик: чип → тёмная инверсия (общий --card-press-bg/fg).
   &:active {
-    background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
-    border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
-    color: var(--chip-active-text, #fff);
+    background: var(--card-press-bg);
+    color: var(--card-press-fg);
     transform: scale(0.94);
     transition-duration: var(--press-in);
 
     .dayChipNumber,
     .dayChipWeekday {
-      color: var(--chip-active-text, #fff);
+      color: var(--card-press-fg);
     }
   }
 }
@@ -249,7 +171,7 @@ $accent-today: #e07a3a;
   font-style: italic;
   font-size: 30px;
   font-weight: 400;
-  color: $ink;
+  color: var(--card-text-rest);
   line-height: 1;
   letter-spacing: -0.02em;
   font-feature-settings: 'tnum' 1, 'lnum' 1;
@@ -265,148 +187,89 @@ $accent-today: #e07a3a;
 }
 
 .dayChipToday {
-  background: linear-gradient(180deg,
-      rgba(255, 240, 220, 0.85) 0%,
-      rgba(255, 230, 200, 0.55) 100%);
-  border-style: solid;
-  border-color: rgba(224, 122, 58, 0.30);
+  background: var(--card-active);
 
-  .dayChipNumber {
-    color: $accent-today;
-  }
-
+  .dayChipNumber,
   .dayChipWeekday {
-    color: $accent-today;
-    opacity: 0.85;
+    color: var(--card-text-active);
   }
 }
 
 .dayChipSelected {
-  background: linear-gradient(180deg,
-      rgba(252, 224, 179, 0.95) 0%,
-      rgba(249, 201, 126, 0.7) 100%);
-  border-style: solid;
-  border-color: rgba(163, 90, 20, 0.30);
+  background: var(--card-active);
 
   .dayChipNumber {
-    color: $accent-honey-deep;
+    color: var(--card-text-active);
+    font-style: italic;
+    font-weight: 600;
   }
 
   .dayChipWeekday {
-    color: $accent-honey-deep;
-    opacity: 0.85;
+    color: var(--card-text-active);
   }
 }
 
-// ─── Divider (row 2) ───────────────────────────────────────────────────────
-.divider {
-  grid-row: 2;
-  height: 1px;
-  margin: 10px 28px;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      $hairline 25%,
-      $hairline 75%,
-      transparent 100%);
+// ─── Empty state (active tab, no records yet) ──────────────────────────────
+.empty {
   position: relative;
   z-index: 1;
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
+  font-style: italic;
+  font-size: var(--text-sm);
+  color: $ink-faint;
 }
 
-// ─── Anchor list (row 3) ───────────────────────────────────────────────────
+// ─── Anchor list (quick tab) ───────────────────────────────────────────────
+// Measuring wrapper (quickInnerRef): padding-bottom (not margin) so the panel's
+// measured offsetHeight includes the breathing space → viewport «breathes».
 .anchorList {
-  grid-row: 3;
-  display: flex;
-  flex-direction: column;
   position: relative;
   z-index: 1;
-  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-6);
+}
+
+// White inset-grouped container (mixin.scss) holding the anchor rows — the SAME
+// container SearchFood wraps its food cards in. Side margins = inset offset.
+.navList {
+  @include inset-group;
+  margin: var(--space-3) var(--space-3) 0;
 }
 
 // ─── Day row ───────────────────────────────────────────────────────────────
+// Stripe-fork-row surface (mixin.scss) — identical to a SearchFood food card.
+// `<button>` is the row; `.dayItem` is the padded content flex on top of the
+// press pill (z-index 1).
 .dayRow {
-  position: relative;
-  display: grid;
-  // col1 — relative label (Вчера/Сегодня/Завтра, the focal element),
-  // col2 — the numeral block (day + weekday/month), pinned to the right.
-  // The numeral block is fixed-width, so the varying length of the relative
-  // word ("Вчера" vs "Сегодня") no longer shifts it — all rows line up.
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  column-gap: 14px;
-  padding: 16px 22px 16px 28px;
-  background: transparent;
-  border: none;
+  @include stripe-fork-row;
   cursor: pointer;
   text-align: left;
-  -webkit-tap-highlight-color: transparent;
   color: inherit;
-  transition: background 0.14s ease;
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: 22px;
-    right: 22px;
-    bottom: 0;
-    height: 1px;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        $hairline 20%,
-        $hairline 80%,
-        transparent 100%);
-    pointer-events: none;
-  }
-
-  &:last-child::after {
-    display: none;
-  }
-
-  &:active {
-    background: rgba(31, 42, 68, 0.03);
-  }
 }
 
-.dayAccent {
-  position: absolute;
-  left: 0;
-  top: 12px;
-  bottom: 12px;
-  width: 3px;
-  border-radius: 0 2px 2px 0;
-  background: $accent-honey;
-  opacity: 0;
-  transition: opacity 0.12s ease, width 0.12s ease, background 0.12s ease;
-  pointer-events: none;
+.dayItem {
+  position: relative;
+  z-index: 1; // над press-инверсией ::before (z-index 0)
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-grow: 1;
+  min-width: 0;
+  padding: var(--space-3);
 }
 
-.dayRowFilled .dayAccent {
-  opacity: 0.85;
-}
-
-.dayRowToday .dayAccent {
-  background: $accent-today;
-  opacity: 1;
-}
-
-.dayRowSelected .dayAccent {
-  background: $accent-honey-deep;
-  width: 5px;
-  opacity: 1;
-}
-
-// ─── Numeral block — reused HomeTopBar date pattern ────────────────────────
-// Big serif day number + a tiny stacked weekday/month column (mirrors
-// HomeTopBar `.dateNumeral`). Colours stay ScheduleSelection's own. Pinned
-// to the right edge; the meta column is fixed-width so the day number stays
-// column-aligned across rows regardless of weekday-name length.
-.dayNumeral {
-  justify-self: end;
+// ─── Left slot — exact date (reused HomeTopBar numeral pattern) ─────────────
+// Big serif day number + a tiny stacked weekday/month column. Sits where
+// FoodActionCard puts its round thumbnail («вместо кружков»).
+.dateSlot {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 10px;
 }
 
-.dayNumeralDay {
+.dateDay {
   min-width: 2ch;
   text-align: right;
   font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
@@ -414,17 +277,17 @@ $accent-today: #e07a3a;
   font-weight: 500;
   line-height: 1;
   letter-spacing: -0.02em;
-  color: $ink;
+  color: var(--card-text-rest);
   font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
-.dayNumeralMeta {
+.dateMeta {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 1px;
   // Fixed width — longest weekday is «понедельник»; a constant column keeps
-  // every row's day number at the same x.
+  // every row's day number column-aligned.
   width: 78px;
   font-size: 9px;
   font-weight: 600;
@@ -434,23 +297,10 @@ $accent-today: #e07a3a;
   color: $ink-faint;
 }
 
-.dayRowEmpty .dayNumeralDay {
-  color: $ink-faint;
-  font-weight: 400;
-}
-
-.dayRowToday .dayNumeralDay {
-  color: $accent-today;
-}
-
-.dayRowSelected .dayNumeralDay {
-  color: $accent-honey-deep;
-}
-
-// Relative label — the focal element of each anchor row. No plate/border:
-// a plain serif-italic word, capitalised, set before the day number.
-.dayRelative {
-  justify-self: start;
+// ─── Centre — the relative word (card «name») ──────────────────────────────
+.dayName {
+  flex: 1;
+  min-width: 0;
   font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
   font-style: italic;
   font-size: 27px;
@@ -458,50 +308,63 @@ $accent-today: #e07a3a;
   line-height: 1;
   letter-spacing: -0.015em;
   text-transform: capitalize;
-  color: $ink;
+  color: var(--card-text-rest);
   white-space: nowrap;
 }
 
-.dayRowEmpty .dayRelative {
-  color: $ink-soft;
+// ─── Trailing chevron (replaces the ⓘ info button) ─────────────────────────
+.dayChevron {
+  flex-shrink: 0;
+  color: $ink-faint;
 }
 
-.dayRowToday .dayRelative {
-  color: $accent-today;
+// ─── State — through shared --card-* tokens, no honey ──────────────────────
+// empty (день без записей) — приглушённая дата; filled — норма.
+.dayRowEmpty {
+  .dateDay {
+    color: $ink-faint;
+    font-weight: 400;
+  }
+
+  .dayName {
+    color: $ink-soft;
+  }
 }
 
-.dayRowSelected .dayRelative {
-  color: $accent-honey-deep;
-}
-
+// today — активные чернила (акцент через вес/цвет, не honey).
 .dayRowToday {
-  background: linear-gradient(90deg,
-      rgba(255, 240, 220, 0.45) 0%,
-      rgba(255, 240, 220, 0.10) 60%,
-      transparent 100%);
+
+  .dateDay,
+  .dayName,
+  .dayChevron {
+    color: var(--card-text-active);
+  }
 }
 
+// selected — равномерная бледно-серая заливка (как у FoodActionCard
+// `:has(.item_active)`), имя жирнее.
 .dayRowSelected {
-  background: linear-gradient(90deg,
-      rgba(252, 224, 179, 0.55) 0%,
-      rgba(252, 224, 179, 0.18) 70%,
-      transparent 100%);
-}
+  background: var(--card-active);
 
-.dayRowFilled:not(.dayRowToday):not(.dayRowSelected) {
-  background: linear-gradient(90deg,
-      rgba(217, 154, 76, 0.07) 0%,
-      rgba(217, 154, 76, 0.02) 60%,
-      transparent 100%);
+  .dateDay,
+  .dayChevron {
+    color: var(--card-text-active);
+  }
+
+  .dayName {
+    color: var(--card-text-active);
+    font-weight: 700;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
 
+  .viewport {
+    transition: none;
+  }
+
   .dayRow,
-  .dayAccent,
-  .dayChip,
-  .accordionChevron,
-  .accordionPanel {
+  .dayChip {
     transition: none;
   }
 }

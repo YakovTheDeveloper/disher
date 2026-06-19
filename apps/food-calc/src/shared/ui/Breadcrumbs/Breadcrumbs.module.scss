@@ -1,5 +1,3 @@
-@import '@/shared/assets/style/mixin.scss';
-
 .breadcrumbs {
   display: flex;
   align-items: center;
@@ -11,6 +9,12 @@
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+// Текущий шаг = активный заголовок шапки над крошками — в трейле он не нужен,
+// прячем целиком (кнопку и его точку-разделитель), чтобы не дублировать.
+.crumbWrapperCurrent {
+  display: none;
 }
 
 /* ── компактный трейл результатов ───────────── */
@@ -27,58 +31,26 @@
   font-size: 0.72rem;
   font-weight: 700;
   line-height: 1;
+  opacity: 0.6;
   user-select: none;
 }
 
+// Голос крошки (тихий serif-italic указатель) даёт примитив <Text
+// variant="navTabQuiet"> — единый источник с неактивными nav-табами. Здесь —
+// только button-reset, обрезка ellipsis'ом и hover-affordance.
 .resultCrumb {
   background: none;
   border: none;
   padding: 3px 2px;
   cursor: pointer;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.55);
-  letter-spacing: 0.01em;
-  line-height: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 140px;
   -webkit-tap-highlight-color: transparent;
-  transition: color 0.2s ease;
+  transition: opacity 0.2s ease;
 
   &:hover {
-    color: rgba(0, 0, 0, 0.8);
-  }
-}
-
-// Текущий шаг остаётся в трейле (не вырезается) — просто подсвечен,
-// чтобы было видно «где я», без отдельной подписи.
-.resultCrumbCurrent {
-  color: rgba(0, 0, 0, 0.9);
-  font-weight: 600;
-}
-
-// ─── DesignBar-вариант «tab-title-center» (флоу создания еды) ───────────
-// Крошки = тихие серые serif-italic указатели (как неактивные HomePage-табы).
-// Текущий шаг скрыт целиком — он уже звучит как активный заголовок над ними,
-// дублировать незачем; прячем и его кнопку, и его точку-разделитель.
-:global([data-dv='FoodCreateHeader'][data-dv-v='tab-title-center']) {
-  .resultCrumb {
-    // Тот же тихий указатель, что у неактивных табов — целиком из миксина
-    // (15px/0.22). Руками размер не вписываем: один источник, не разъедется.
-    @include nav-tab-quiet;
-  }
-
-  .resultCrumbCurrent {
-    display: none;
-  }
-
-  .crumbWrapperCurrent {
-    display: none;
-  }
-
-  .dot {
-    opacity: 0.6;
+    opacity: 0.55;
   }
 }

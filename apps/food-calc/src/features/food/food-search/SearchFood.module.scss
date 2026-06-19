@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 .content {
     display: flex;
     flex-direction: column;
@@ -227,19 +229,11 @@
 // does the corner clipping so individual rows need no per-row radius. When both
 // products and dishes are shown, each <ul> is its own rounded group.
 .list {
-    list-style: none;
-    padding: 0;
+    // Inset-grouped container canon (mixin.scss) — overflow-clip + group radius +
+    // soft shadow, rows touch (gap:0), hairline divides. Shared with the date
+    // navigator. Side margins are the consumer's concern (inset offset).
+    @include inset-group;
     margin: 0 var(--space-3) var(--space-3);
-    overflow: hidden;
-    border-radius: var(--card-group-radius, 16px);
-    box-shadow: var(--card-group-shadow, none);
-    background: var(--card-group-bg, transparent);
-    display: flex;
-    flex-direction: column;
-    // 0 by default (rows touch, hairline divides). zebra sets a few px so the
-    // white group background shows through as a bright «reflex» seam between
-    // the faintly-tinted cards.
-    gap: var(--card-row-gap, 0);
 }
 
 .filterChipActive {
@@ -280,22 +274,9 @@
     // 92% непрозрачности: без блюра скрим обязан сам прятать контент сверху.
     --search-bar-scrim: color-mix(in srgb, var(--search-page-bg, #f0f1f4) 92%, transparent);
 
-    // Stripe-fork card ink + states (hue-free)
-    --card-press-bg: linear-gradient(90deg, #1f1f1f 0%, #2a2a2a 55%, #353535 100%);
-    --card-press-fg: #ffffff;
-    --card-text-rest: #1d1d1f;
-    --card-text-active: #000000;
-    --card-rich-text: #2a2a2a;
-    --card-rich-unit: rgba(42, 42, 42, 0.6);
-    --card-rich-percent: rgba(42, 42, 42, 0.4);
-    // Quiet info ⓘ — the symbol is right (universal «details»); just dial down the
-    // weight so 10 identical glyphs stop reading as a noisy right rail.
-    --card-info-rest: rgba(0, 0, 0, 0.22);
-    --card-hover: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.015) 45%, transparent 100%), var(--card-bg);
-    // Selected — EVEN soft tint (not the old left-weighted directional smear,
-    // which read as muddy): a uniform faint gray on the white card.
-    --card-active: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05));
-    --card-hairline: rgba(0, 0, 0, 0.08);
+    // Card palette (surface + group + states + rich/info) — single source of
+    // truth in mixin.scss, shared with the date navigator. Was inline here.
+    @include paper-mono-cards;
 
     // Search field — gray, near-flat (a real input container, not a faint pill)
     --field-radius: 22px;
@@ -326,9 +307,6 @@
     --chip-border: rgba(138, 114, 184, 0.5);
     --chip-text: #241836;
 
-    // Inset grouped-list radius (harmonises with the 22px search field + pills)
-    --card-group-radius: 16px;
-
     // Bottom bar — HomePage lavender-cream ambient (lavender from the left, cream
     // from the right). Glows are TALL so they fill the whole dock (not just the
     // bottom corners where the content isn't), the base is faintly lavender (so
@@ -351,13 +329,11 @@
 // divides the white rows; rows touch. Richness is COLOUR (pale yellow-green) —
 // the one chromatic signal, only when a nutrient filter is on.
 .content {
-    --search-page-bg: #f0f1f4;
+    // Page background = the shared inset-grouped paper-mono token (mixin.scss).
+    --search-page-bg: var(--cards-page-bg);
     --search-ambient-top: rgba(225, 215, 245, 0.32);
     --search-ambient-bottom: transparent;
     --list-bg: transparent;
-    --card-bg: transparent;
-    --card-wash-2n: linear-gradient(transparent, transparent);
-    --card-wash-3n: linear-gradient(transparent, transparent);
     // White search field + pills pop as containers on the gray page.
     --field-bg-from: #ffffff;
     --field-bg-mid: #ffffff;
@@ -367,6 +343,68 @@
     --seg-track: #e6e8ec;
     --icon-btn-bg: #ffffff;
     --icon-btn-border: rgba(10, 10, 10, 0.12);
-    --card-group-bg: #ffffff;
-    --card-group-shadow: 0 1px 5px rgba(0, 0, 0, 0.07);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// INK TOP + BOTTOM (тест канона 2026-06-19) — «верхние элементы инверсивные».
+// Поверхность экрана и список карточек ОСТАЮТСЯ светлыми (paper-mono выше);
+// чернеют только верхние/нижние элементы: пилюля поиска в шапке (+ круглая
+// кнопка «назад») и нижний док создания (FoodSearchEmpty). Опора — ink-канон
+// HomeTopBar (ink-inline date-пилюля): фон --color-ink-strong + белый контент.
+// Блок идёт ПОСЛЕ mono → перекрывает только header/bottom-токены, не трогая
+// --search-page-bg / --card-* / --list-* (список светлый).
+// ══════════════════════════════════════════════════════════════════════════
+.content {
+    // ── Шапка: чёрная пилюля поиска ──
+    --field-bg-from: var(--color-ink-strong);
+    --field-bg-mid: var(--color-ink-strong);
+    --field-bg-to: var(--color-ink-strong);
+    --field-text: #ffffff;
+    --field-placeholder: rgba(255, 255, 255, 0.5);
+    --field-adornment: rgba(255, 255, 255, 0.6);
+    --field-caret: #ffffff;
+    --field-hairline: transparent;
+    --field-hairline-focus: rgba(255, 255, 255, 0.28);
+    --field-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+    --field-shadow-focus: 0 0 0 2px rgba(255, 255, 255, 0.16);
+
+    // Сегмент Еда|Мое внутри чёрной пилюли — тёмный трек + светлый thumb.
+    --seg-track: rgba(255, 255, 255, 0.1);
+    --seg-text: rgba(255, 255, 255, 0.62);
+    --seg-thumb: rgba(255, 255, 255, 0.92);
+    --seg-thumb-text: #0a0a0a;
+    --seg-thumb-shadow: none;
+
+    // Нутриент-кнопка: ghost — светлый; выбранная/press — светлая пилюля (inverse).
+    --icon-btn-fg: rgba(255, 255, 255, 0.6);
+    --icon-btn-active-bg: rgba(255, 255, 255, 0.92);
+    --icon-btn-active-fg: #0a0a0a;
+
+    // Кнопка «назад»: подложка = цвет серого фона страницы (--search-page-bg).
+    // Так вверху (на сером скриме) она сливается и невидима, а при скролле, когда
+    // под плавающей шапкой проходят БЕЛЫЕ карточки, проступает серым кружком.
+    // Шеврон чёрный; без рамки/тени.
+    --bar-bg: var(--search-page-bg);
+    --bar-border: none;
+    --bar-shadow: none;
+    --back-fg: var(--color-ink-strong);
+
+    // ── Нижний док (FoodSearchEmpty): весь светлый, матовое стекло ──
+    // Верх (подсказка) — светлое матовое стекло (sheetBand), сквозь него размыто
+    // просвечивает список. Низ (.actions) — светло-серое матовое стекло того же
+    // рода (полупрозрачный тон + blur). Пилюли «Создать» полупрозрачны — чуть
+    // просвечивают панель; тёмный текст/хайрлайн; press → ink + белый (дефолт
+    // --fse-press-* в FoodSearchEmpty → здесь НЕ переопределяем).
+    --fse-header-bg: rgba(255, 255, 255, 0.55);
+    --fse-header-blur: blur(16px) saturate(1.3);
+    --fse-actions-bg: rgba(242, 242, 246, 0.62);
+    --fse-actions-blur: blur(16px) saturate(1.3);
+    --fse-pill-bg: rgba(255, 255, 255, 0.42);
+    --fse-border: 1px solid rgba(0, 0, 0, 0.12);
+    --chip-text: rgba(20, 20, 24, 0.82);
+    --fse-msg: rgba(0, 0, 0, 0.45);
+    --fse-msg-strong: rgba(0, 0, 0, 0.68);
+    --fse-prompt: rgba(0, 0, 0, 0.5);
+    // Панель снова светлая → «надгробий» нет; призрак-картинки product/dish
+    // возвращаются (дефолт 0.16 в FoodSearchEmpty — --fse-img-rest здесь не задаём).
 }

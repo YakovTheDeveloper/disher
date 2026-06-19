@@ -42,3 +42,16 @@
     display: inline-flex;
     flex-shrink: 0;
 }
+
+// Ведомый шеврон ›: тише текста, фиксированный размер, не зависит от svg-пропов.
+.chevron {
+    display: inline-flex;
+    flex-shrink: 0;
+    margin-left: 2px;
+    opacity: 0.55;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}

@@ -5,33 +5,11 @@
 
 @import '@/shared/assets/style/mixin.scss';
 
-// Ready-state CTA — quiet ghost/underline button «Посмотреть варианты». Replaces
-// the pill field (passed as WriteBarShell `fieldOverride`); the loud accent at
-// that moment is the «Добавить N» button on the предложка card below (решение
-// 2026-06-08), so this stays understated.
+// Ready-state CTA «Посмотреть варианты» — канон `Button variant="link"` (вид +
+// press владеет примитив). Здесь остаётся ТОЛЬКО раскладка: заполнить ширину
+// поля (flex) и крупный размер через --btn-font-size (вариант его читает).
 .readyCta {
     flex: 1;
     margin: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: var(--pill-h);
-    padding: 10px 18px;
-    border: none;
-    background: transparent;
-    color: var(--color-ink);
-    font-size: var(--text-lg);
-    font-weight: 400;
-    text-decoration: underline;
-    letter-spacing: -0.005em;
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-appearance: none;
-    appearance: none;
-    transition: transform 0.12s ease;
-
-    &:active {
-        transform: scale(0.98);
-    }
+    --btn-font-size: var(--text-lg);
 }

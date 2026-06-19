@@ -8,8 +8,8 @@
     z-index: 5500 !important;
 }
 
-// Поле «Подробности» — стандартный form-инпут: мягкий прямоугольник (12px),
-// не поисковая пилюля. var(--field-radius) читается в AutoGrowSearch `.shell`.
+// Поле «Подробности» — стандартный form-инпут: квадратный примитив
+// (--radius-sm), не поисковая пилюля. var(--field-radius) читается в AutoGrowSearch `.shell`.
 .formField {
-    --field-radius: var(--radius-md);
+    --field-radius: var(--radius-sm);
 }

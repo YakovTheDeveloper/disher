@@ -19,10 +19,9 @@ type Props = {
   /** Опциональная подсказка-пример над баром в фокусе (см. WriteFoodInput.hint). */
   writeFoodHint?: string;
   /**
-   * Контент перед write-field (например `<NutrientsSummaryButton/>`).
-   * На HomePage сейчас не используется (nutrient-pill переехал в HomeTopBar),
-   * на DishPage пока живёт здесь — детальные страницы заняты centerLabel'ом
-   * имени блюда/продукта, и centerSlot в HomeTopBar не свободен.
+   * Контент перед write-field. Сейчас не используется (сводка нутриентов
+   * переехала в полосу NutrientsBar в конце списка и на HomePage, и на DishPage
+   * — 2026-06-19); слот оставлен как общая точка расширения дока.
    */
   leadingSlot?: ReactNode;
 };

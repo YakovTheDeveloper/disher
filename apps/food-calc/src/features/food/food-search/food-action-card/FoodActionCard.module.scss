@@ -9,89 +9,14 @@
 // ──────────────────────────────────────────────────────────────────────
 
 .wrapper {
-    display: flex;
-    align-items: stretch;
-    position: relative;
-    -webkit-tap-highlight-color: transparent;
-
-    background: var(--card-bg);
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    outline: none;
-
-    transition:
-        background var(--press-out) ease,
-        outline-color 0.18s ease,
-        transform var(--press-out) var(--easing-spring);
-    outline: 2px solid transparent;
-    outline-offset: -2px;
-
-    // Fading hairline divider (replaces flat border-bottom).
-    &::after {
-        content: '';
-        position: absolute;
-        left: 14px;
-        right: 14px;
-        bottom: 0;
-        height: 1px;
-        @include hairline(var(--card-hairline));
-        pointer-events: none;
-    }
-
-    &:last-child::after {
-        display: none;
-    }
-
-    // Rhythm — barely-perceptible wash overlays on top of base.
-    //  :nth-child(2n) — wash from the left, fades out by ~55%
-    //  :nth-child(3n) — wash from the right, fades in from ~45% (wins on 6n)
-    &:nth-child(2n) {
-        background: var(--card-wash-2n), var(--card-bg);
-    }
-
-    &:nth-child(3n) {
-        background: var(--card-wash-3n), var(--card-bg);
-    }
-
-    &:hover {
-        background: var(--card-hover);
-    }
-
-    // No scale on press. The row lives inside a `border-radius` + `overflow:hidden`
-    // group (.list); a transformed child escapes that rounded clip on iOS WebKit,
-    // so its square corners poke past the card rounding — the press selection then
-    // read as «crooked». The dark inversion (::before) carries the press feedback
-    // without a whole-row transform.
-    &:active {
-        transition-duration: var(--press-in);
-    }
+    // Surface = stripe-fork-row canon (mixin.scss): bg, fading ::after hairline,
+    // nth-child rhythm, [data-pressed] dark press pill. The active-selection state
+    // below stays local — it keys off this card's own `.item_active` child.
+    @include stripe-fork-row;
 
     &:has(.item_active) {
         outline-color: transparent;
         background: var(--card-active);
-    }
-
-    // Press — тёмная инверсия, но СКРУГЛЁННОЙ inset-пилюлей, а не full-bleed
-    // полосой. Рисуется отдельным `::before` поверх фона карточки (z-index 0, под
-    // текстом z-index 1) — у него свои скруглённые углы и боковые отступы, поэтому
-    // он «уважает» бордеры независимо от позиции строки в inset-grouped списке
-    // (раньше квадратные углы тёмной полосы вылезали за скругление группы). Цвет
-    // — прежний --card-press-bg; текст/иконка инвертируются ниже (--card-press-fg).
-    // JS-driven `data-pressed` (usePressFeedback) вместо `:active` —
-    // гарантированно рисуется на тапе, который тут же уводит на следующий шаг.
-    &[data-pressed] {
-        transition-duration: var(--press-in);
-
-        &::before {
-            content: '';
-            position: absolute;
-            inset: 3px 6px;
-            border-radius: var(--radius-md);
-            background: var(--card-press-bg);
-            z-index: 0;
-            pointer-events: none;
-        }
     }
 }
 

@@ -11,8 +11,8 @@ type Props = {
   label?: string;
 };
 
-// HomePage bottom-bar CTA «Анализ» — `Button.bottomActionBar` (единый вид
-// кнопок нижнего бара). Opens AnalysisKindDrawer (daily vs long); the daily
+// HomePage bottom-bar CTA «Анализ» — `Button variant="brand"` (фирменная CTA
+// нижнего бара). Opens AnalysisKindDrawer (daily vs long); the daily
 // path then opens the clarification modal (hypothesis pick + note). While a
 // daily stream for this date is running it shows a spinner and is disabled;
 // otherwise it is always active (offline / empty-day gating lives on the

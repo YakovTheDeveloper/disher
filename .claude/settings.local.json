@@ -221,11 +221,35 @@
       "PowerShell(foreach \\($d in @\\('C:\\\\tmp\\\\cv-livecity.git','C:\\\\tmp\\\\cv-Front.git'\\)\\) { \"==================== $d ====================\"; \"total commits: $\\(\\(git -C $d rev-list --all --count\\)\\)\"; \"--- authors \\(count | name | email\\) ---\"; git -C $d shortlog -sne --all })",
       "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\('build:',p.scripts.build\\);console.log\\('dev-local:',p.scripts['dev-local']\\)\")",
       "Bash(npx stylelint *)",
-      "Bash(echo \"stylelint_exit:$?\")"
+      "Bash(echo \"stylelint_exit:$?\")",
+      "Bash(echo \"=== exit $? \\(1=clean none found\\) ===\")",
+      "Bash(rm -rf \"shared/ui/atoms/Typography/ScreenLabel\")",
+      "Bash(rm -f \"shared/ui/atoms/Typography/Typography.tsx\" \"shared/ui/atoms/Typography/Typography.module.scss\")",
+      "Bash(rm -f \"features/shared/change-name/ChangeName.tsx\" \"features/shared/change-name/ChangeName.module.scss\")",
+      "Bash(cd /c/Users/booty/Documents/GitHub/disher/apps/food-calc/src/shared/ui/AppBottomBar && rm -f NutrientsSummaryButton.tsx NutrientsSummaryButton.module.scss NutrientsSummaryButton.test.tsx && echo \"deleted\" && ls)",
+      "Bash(echo \"---stylelint-exit:$?---\")",
+      "Bash(NODE_OPTIONS=--max-old-space-size=4096 npx eslint src/shared/ui/atoms/Button/Button.tsx src/shared/ui/atoms/Button/QuietActionButton/QuietActionButton.tsx src/shared/ui/SuggestActionButton/SuggestActionButton.tsx src/features/dailyNorms/DailyNormButton/DailyNormButton.tsx src/pages/analyses/ui/AnalysesSlide.tsx src/features/dailyNorms/OpenDailyNorms/EditDailyNormModal.tsx src/features/dish-analysis/ui/DishAnalysisScreen/DishAnalysisScreen.tsx src/pages/dish/DishBuilderPage.tsx src/shared/ui/AppBottomBar/index.ts src/shared/ui/AppBottomBar/AppBottomBar.tsx src/pages/ui-kit/UiKitPage.tsx)",
+      "Bash(NODE_OPTIONS=--max-old-space-size=4096 npx eslint src/pages/ui-kit/UiKitPage.tsx)",
+      "Bash(NODE_OPTIONS=--max-old-space-size=4096 npx stylelint \"src/shared/ui/atoms/Button/Button.module.css\")",
+      "Bash(echo \"---exit:$?---\")",
+      "Bash(NODE_OPTIONS=--max-old-space-size=4096 npx stylelint \"src/pages/dish/DishBuilderPage.module.scss\" \"src/features/dish-analysis/ui/DishAnalysisScreen/DishAnalysisScreen.module.scss\")",
+      "Bash(NODE_OPTIONS=--max-old-space-size=4096 npx vitest run src/shared/ui/atoms/Button/QuietActionButton/QuietActionButton.test.tsx src/widgets/FoodSchedule/NutrientsBar/NutrientsBar.test.tsx)",
+      "Bash(NODE_OPTIONS=--max-old-space-size=4096 npx eslint src/shared/ui/atoms/Button/Button.tsx src/features/dish-analysis/ui/DishAnalysisScreen/DishAnalysisScreen.tsx src/pages/ui-kit/UiKitPage.tsx src/shared/ui/atoms/Button/QuietActionButton/QuietActionButton.test.tsx src/widgets/FoodSchedule/NutrientsBar/NutrientsBar.test.tsx)",
+      "PowerShell(cd c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\\\\apps\\\\food-calc; npx tsc --noEmit 2>&1 | Select-Object -First 40; Write-Output \"=== TSC EXIT: $LASTEXITCODE ===\")",
+      "PowerShell(cd c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\\\\apps\\\\food-calc; npx eslint src/pages/ui-kit/UiKitPage.tsx src/pages/product/ProductPage.tsx src/pages/dish/DishBuilderPage.tsx src/pages/discoveries/ui/DiscoveriesScreen.tsx 2>&1 | Select-Object -First 40; Write-Output \"=== ESLINT EXIT: $LASTEXITCODE ===\")",
+      "Bash(xargs grep -l \"renderHook\\\\|useWriteFoodFlow\")",
+      "Bash(xargs grep -l \"drawerStore.show\\\\|BaseDrawerProps\")",
+      "PowerShell(cd c:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\\\\apps\\\\food-calc; npx eslint src/pages/ui-kit/UiKitPage.tsx src/pages/product/ProductPage.tsx src/pages/discoveries/ui/DiscoveriesScreen.tsx 2>&1 | Select-String -Pattern \"error|problem\"; Write-Output \"=== ESLINT EXIT: $LASTEXITCODE ===\")",
+      "PowerShell(cd C:\\\\Users\\\\booty\\\\Documents\\\\GitHub\\\\disher\\\\apps\\\\food-calc; npx stylelint \"src/shared/ui/SwitcherTab/SwitcherTab.module.scss\" 2>&1 | Select-Object -Last 20; \"exit: $LASTEXITCODE\")",
+      "PowerShell(npx stylelint \"src/features/schedule-navigator/ScheduleNavigator.module.scss\" 2>&1)",
+      "PowerShell(npx eslint \"src/features/schedule-navigator/ScheduleNavigator.tsx\" 2>&1)",
+      "PowerShell(npx vitest run src/features/schedule-navigator 2>&1)",
+      "Bash(node -e \"console.log\\(require\\('./package.json'\\).scripts.build\\)\")"
     ],
     "additionalDirectories": [
       "\\tmp",
-      "C:\\Users\\booty\\.claude\\projects\\c--Users-booty-Documents-GitHub-disher\\memory"
+      "C:\\Users\\booty\\.claude\\projects\\c--Users-booty-Documents-GitHub-disher\\memory",
+      "c:\\c\\Users\\booty\\Documents\\GitHub\\disher\\apps\\food-calc\\src\\shared\\ui\\AppBottomBar"
     ]
   }
 }

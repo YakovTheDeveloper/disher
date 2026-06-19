@@ -10,16 +10,6 @@ type Props<T extends string> = ModalHeaderProps & {
   /** Шаги, посещённые в текущей сессии флоу — см. `Breadcrumbs`. */
   visitedSteps?: readonly T[];
   onStepClick: (step: T) => void;
-  /**
-   * Опциональный DesignBar-якорь (`useDesignVariant(...).anchor` или его
-   * data-атрибуты). Спредится на корень `.stepHeader` — CSS-варианты шапки
-   * читают `[data-dv][data-dv-v]` с предка. Без пропа — дефолтный вид.
-   */
-  headerAnchor?: {
-    ref?: (el: HTMLElement | null) => void;
-    'data-dv'?: string;
-    'data-dv-v'?: string;
-  };
 };
 
 /**
@@ -38,10 +28,12 @@ function ModalStepHeader<T extends string>({
   stepResults,
   visitedSteps,
   onStepClick,
-  headerAnchor,
 }: Props<T>) {
   return (
-    <div className={s.stepHeader} {...headerAnchor}>
+    // data-nav-tabs — постоянный маркер «таб-метафора шапки»: заголовок шага =
+    // активный таб (жирный sans), крошки = тихие serif-italic. CSS-оверрайды в
+    // ModalHeader/Breadcrumbs цепляются за него (cross-module через :global).
+    <div className={s.stepHeader} data-nav-tabs>
       <ModalHeader title={title} onBack={onBack} backLabel={backLabel} trailing={trailing} />
       <div className={s.crumbs}>
         <Breadcrumbs

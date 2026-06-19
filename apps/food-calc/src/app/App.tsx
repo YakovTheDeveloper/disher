@@ -18,7 +18,6 @@ import { AuthGate } from '@/features/auth';
 import { BackupGate } from '@/features/backup/BackupGate';
 import { useApplyUserTheme } from '@/shared/lib/user-theme';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { MODAL_SHELL_VARIANTS } from '@/shared/ui/ModalShell';
 
 // Глобальный ambient-backdrop (radial-glow обвязки экрана). Один anchor на
 // app-уровне (`.main`) → DesignVariantsBar переключает свечение сразу для ВСЕХ
@@ -42,10 +41,6 @@ export default function App() {
 
   const { anchor: ambientAnchor } = useDesignVariant('HomeAmbient', HOME_AMBIENT_VARIANTS);
 
-  // App-wide tone — ModalShell is the «law-giver». Registering the anchor here
-  // keeps it alive even with no modal mounted, and gives the live variant.
-  const { variant: tone } = useDesignVariant('ModalShell', MODAL_SHELL_VARIANTS);
-
   // Boot-hydrate the daily-analysis store from idb-keyval. Without this the
   // store starts empty on every reload — a completed daily review would not
   // reappear, and a mid-stream reload would never flip `streaming` →
@@ -56,15 +51,16 @@ export default function App() {
   }, []);
 
   // Publish the app-wide tone on `body[data-modal-fields]` — the tokens-only
-  // attribute (no modal ambient/orbs/backdrop-filter), so the live ModalShell
-  // variant's --field/card/chip/list-* cascade across every page AND through
-  // Base UI portals. Replaces the old `data-surface` warm/lavender default.
+  // attribute (no modal ambient/orbs/backdrop-filter), so ModalShell's single
+  // fixed `mono` --field/card/chip/list-* cascade across every page AND through
+  // Base UI portals. Replaces the old `data-surface` warm/lavender default and
+  // the earlier multi-variant law-giver («great unification», 2026-06-19).
   // useLayoutEffect (not useEffect): set the attribute BEFORE first paint so
   // token-driven surfaces (`background: var(--card-bg)`, no fallback) never
   // flash unstyled on a cold load.
   useLayoutEffect(() => {
-    document.body.setAttribute('data-modal-fields', tone);
-  }, [tone]);
+    document.body.setAttribute('data-modal-fields', 'mono');
+  }, []);
 
   return (
     <I18nextProvider i18n={i18n}>

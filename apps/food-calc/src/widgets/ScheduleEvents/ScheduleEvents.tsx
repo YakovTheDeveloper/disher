@@ -6,7 +6,7 @@ import { removeScheduleEvents } from '@/entities/schedule-event';
 import clsx from 'clsx';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen, type TopBarHideTarget } from '@/shared/ui/Screen';
-import { Masthead } from '@/shared/ui/atoms/Typography/Masthead';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import { groupItemsByTime } from '@/shared/lib/schedule';
 import {
   ScheduleEventEditModal,
@@ -85,7 +85,7 @@ const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
       key={3}
       bottomBar={<EventsWriteBar scheduleId={date} />}
     >
-      <Masthead as="h2">События дня</Masthead>
+      <Heading size="masthead" as="h2">События дня</Heading>
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <div {...boundaryAnchor}>
           <ItemsList offsetTop>

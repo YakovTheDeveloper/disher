@@ -4,26 +4,33 @@ import styles from './Heading.module.scss';
 type Props = {
   children: React.ReactNode;
   /** Type-scale tier. `screen` — page header, `modal` — wizard-flow modal,
-   *  `modalSub` — sub-heading inside a modal (Alice, non-italic, чуть меньше modal),
-   *  `drawer` — drawer header, `field` — мелкий под-заголовок поля/секции внутри
-   *  модалки (16px, ниже drawer), `section` — in-page section / sub-heading
-   *  (визуально равен drawer, но не привязан семантически к Drawer). Все,
-   *  кроме `modalSub`, делят italic-serif канон. */
-  size: 'screen' | 'modal' | 'modalSub' | 'drawer' | 'field' | 'section';
-  /** Heading level for the DOM. Defaults to `h2`. */
-  as?: 'h1' | 'h2' | 'h3';
+   *  `modalSub` — sub-heading inside a modal, `drawer` — drawer header,
+   *  `field` — мелкий под-заголовок поля/секции (16px, ниже drawer),
+   *  `section` — in-page section / sub-heading, `masthead` — крупная шапка
+   *  слайда HomePage (рендерит обёртку-<header>). Все sizes делят один
+   *  Onest bold-sans канон; меняется только font-size. */
+  size: 'screen' | 'modal' | 'modalSub' | 'drawer' | 'field' | 'section' | 'masthead';
+  /** DOM-тег. По умолч. `h2`; `span` — когда заголовок инлайновый (напр. подпись
+   *  активного таба внутри кнопки). */
+  as?: 'h1' | 'h2' | 'h3' | 'span';
   className?: string;
 };
 
 /**
- * Canonical heading — Source Serif 4 italic, matching the HomePage
- * navigation band label. Use for every section/overlay title.
+ * Canonical display heading — ОДИН Onest bold-sans голос (Apple Large Title).
+ * Используй для любого section/overlay/masthead заголовка. serif-italic — НЕ
+ * этот примитив (тихий указатель = Text variant="navTabQuiet").
  */
 const Heading = ({ children, size, as = 'h2', className }: Props) => {
   const Tag = as;
-  return (
+  const heading = (
     <Tag className={clsx(styles.heading, styles[size], className)}>{children}</Tag>
   );
+  // masthead несёт свою обёртку-<header> (отступ слайда + NavSwitcher hiding).
+  if (size === 'masthead') {
+    return <header className={styles.mastheadWrap}>{heading}</header>;
+  }
+  return heading;
 };
 
 export default Heading;

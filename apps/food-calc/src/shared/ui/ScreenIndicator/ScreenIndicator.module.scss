@@ -27,7 +27,7 @@
     grid-template-columns: repeat(var(--tiles-slots, 3), 1fr);
 }
 
-// Сами плиточки — примитив `NavTile` (shared/ui/NavTile). Здесь остаётся
+// Сами плиточки — примитив `SwitcherTab` (shared/ui/SwitcherTab). Здесь остаётся
 // только grid-раскладка ряда (`.tilesRow`) и band ниже.
 
 .tileShadow {
@@ -68,7 +68,7 @@
 // ─── NavSwitcher — обвязка ряда (стадион-трей) под HomePage-табы ─────────
 // Anchor на `.swipeArea` (HomePage only), `.tilesRow` — потомок. Здесь только
 // контейнер ряда — утопленный стадион-трей вокруг пилюль; форму пилюль/графику
-// держит NavTile.module.scss. На HomePage `bandImg={false}`, поэтому большой
+// держит SwitcherTab.module.scss. На HomePage `bandImg={false}`, поэтому большой
 // `padding-top: var(--space-6)` (резерв под band-картинку) ужимаем. `inverse-
 // lift` (дефолт) тут не упомянут — ноль оверрайдов.
 //
@@ -153,7 +153,7 @@
 
 // tab-as-title / -center / tab-numerals: активный раздел поглощает роль Masthead
 // (крупный жирный заголовок), неактивные — тихие указатели. Ряд = flex-wrap:
-// активный тайл получает `flex-basis:100%` (NavTile.module.scss) → встаёт на
+// активный тайл получает `flex-basis:100%` (SwitcherTab.module.scss) → встаёт на
 // СВОЮ строку, неактивные перетекают строкой ниже. Masthead скрыт
 // (Masthead.module.scss). Обложка-hero остаётся над рядом (DOM-порядок, без
 // reorder). center/numerals форки центрируют кластер.

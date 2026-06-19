@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import type { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
+import CloseButton from '@/shared/ui/atoms/Button/CloseButton/CloseButton';
 import { AnalysisResult } from '../AnalysisResult';
 import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 import { deriveStatus, startAnalysis, useAnalysis, type Analysis } from '../api';
@@ -63,14 +64,7 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
             {formatRange(analysis.windowStart, analysis.windowEnd)}
           </p>
         </div>
-        <button
-          type="button"
-          className={styles.closeButton}
-          onClick={() => onClose()}
-          aria-label="Закрыть"
-        >
-          ×
-        </button>
+        <CloseButton onClick={() => onClose()} />
       </header>
 
       <div className={styles.body}>

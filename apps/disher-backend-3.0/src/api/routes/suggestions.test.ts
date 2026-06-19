@@ -239,6 +239,65 @@ describe("POST /api/suggestions/dish-products — caching", () => {
   });
 });
 
+describe("POST /api/suggestions/dish-products — clarification comment", () => {
+  it("passes the comment to the LLM user message", async () => {
+    setAlias("тофу", { id: "p-tofu", name: "Тофу" });
+    const fetchMock = mockLLM([{ name: "тофу", quantity: 100 }]);
+
+    const app = await buildApp();
+    const res = await app.inject({
+      method: "POST",
+      url,
+      payload: { dishName: "плов", comment: "вегетарианский, без мяса" },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // mockLLM's fn is argless → mock.calls is typed as empty tuples; cast to the
+    // real fetch(url, init) shape to read the request body we care about.
+    const calls = fetchMock.mock.calls as unknown as Array<[string, { body: string }]>;
+    const sentBody = JSON.parse(calls[0][1].body);
+    const userMsg = sentBody.messages.find(
+      (m: { role: string }) => m.role === "user",
+    );
+    expect(userMsg.content).toContain("вегетарианский, без мяса");
+    expect(userMsg.content).toContain("плов");
+  });
+
+  it("segments the cache by comment (same dish, different comment → second LLM call)", async () => {
+    setAlias("рис", { id: "p-rice", name: "Рис" });
+    const fetchMock = mockLLM([{ name: "рис", quantity: 150 }]);
+
+    const app = await buildApp();
+    // No comment, then a comment, then the same comment again.
+    await app.inject({ method: "POST", url, payload: { dishName: "плов кэш-тест" } });
+    await app.inject({
+      method: "POST",
+      url,
+      payload: { dishName: "плов кэш-тест", comment: "острый" },
+    });
+    await app.inject({
+      method: "POST",
+      url,
+      payload: { dishName: "плов кэш-тест", comment: "острый" },
+    });
+
+    // 1st (no comment) + 2nd (new comment) miss; 3rd (repeat comment) is a hit.
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("400 when comment exceeds the max length", async () => {
+    const app = await buildApp();
+    const res = await app.inject({
+      method: "POST",
+      url,
+      payload: { dishName: "борщ", comment: "я".repeat(501) },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error).toMatch(/comment too long/);
+  });
+});
+
 describe("POST /api/suggestions/dish-products — errors", () => {
   it("500 when OPENROUTER_API_KEY is missing", async () => {
     delete process.env.OPENROUTER_API_KEY;

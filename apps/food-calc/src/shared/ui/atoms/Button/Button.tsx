@@ -3,11 +3,13 @@ import s from './Button.module.css';
 import clsx from 'clsx';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'ghost' | 'bottomActionBar' | 'brand';
+  variant?: 'primary' | 'secondary' | 'link' | 'ghost' | 'brand';
   isLoading?: boolean;
   before?: React.ReactNode;
   /** Ведущая иконка — в span слева от метки (currentColor, fixed-size в варианте). */
   icon?: React.ReactNode;
+  /** Ведомая иконка — в span справа от метки (напр. стрелка «Далее» в футере). */
+  trailingIcon?: React.ReactNode;
   center?: boolean;
   /**
    * Render-тег. `label` + `htmlFor` — для ModalByLabel focus-делегации
@@ -22,6 +24,7 @@ type ButtonComponent = React.FC<ButtonProps>;
 const Button: ButtonComponent = ({
   before,
   icon,
+  trailingIcon,
   children,
   variant = 'primary',
   isLoading = false,
@@ -49,6 +52,11 @@ const Button: ButtonComponent = ({
         </span>
       )}
       {isLoading ? 'Loading...' : children}
+      {trailingIcon != null && (
+        <span className={s.icon} aria-hidden="true">
+          {trailingIcon}
+        </span>
+      )}
     </>
   );
 

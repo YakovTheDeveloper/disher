@@ -14,26 +14,23 @@ import {
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-import { Heading, Text, Typography } from '@/shared/ui/atoms/Typography';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import Button from '@/shared/ui/atoms/Button/Button';
 import BackButton from '@/shared/ui/atoms/Button/BackButton/BackButton';
+import CloseButton from '@/shared/ui/atoms/Button/CloseButton/CloseButton';
 import { QuietActionButton } from '@/shared/ui/atoms/Button/QuietActionButton';
 import SuggestActionButton from '@/shared/ui/SuggestActionButton/SuggestActionButton';
 import { AppBottomBarShell } from '@/shared/ui/AppBottomBar/AppBottomBarShell';
-import { NutrientsSummaryButton } from '@/shared/ui/AppBottomBar/NutrientsSummaryButton';
 import NumberInput from '@/shared/ui/atoms/input/NumberInput/NumberInput';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch/AutoGrowSearch';
 import { Select } from '@/shared/ui/atoms/Select/Select';
 import { Chip } from '@/shared/ui/atoms/Chip/Chip';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
-import Tabs from '@/shared/ui/Tabs/Tabs';
 import Breadcrumbs from '@/shared/ui/Breadcrumbs/Breadcrumbs';
-import ScreenLabel from '@/shared/ui/atoms/Typography/ScreenLabel/ScreenLabel';
 import FoodName from '@/shared/ui/atoms/Typography/FoodName/FoodName';
 import Quantity from '@/shared/ui/Quantity/Quantity';
 import { ChangeHighlight } from '@/shared/ui/ChangeHighlight';
-import { NavTile } from '@/shared/ui/NavTile';
 import { ScreenIndicator } from '@/shared/ui/ScreenIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
@@ -66,11 +63,24 @@ import { NutrientPickerDrawer } from '@/features/food/food-search/NutrientPicker
 import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { ProfileDrawer } from '@/features/auth/ProfileDrawer';
 
-// Imported only to render ONE real local one-off button live in the debt catalog
-// (the «Мои открытия» pill from HomePage screen 1). pages → widgets is a legal
-// FSD import; this reuses the button's own styles instead of re-deriving them.
-import labStyles from '@/widgets/Laboratory/Laboratory.module.scss';
+// Real component style modules — imported ONLY so the debt catalog can render
+// each local one-off button LIVE (its actual class, not a re-creation). pages may
+// import widgets/features (downward FSD). Trade-off: if one of these classes is
+// renamed, its preview here silently loses styling — acceptable for a dev page.
+// (Laboratory / DailyAnalysisSection / WriteFoodInput local classes больше не
+// импортируются — discoveriesBtn / bannerButton / readyCta объединены в Button
+// variants link/secondary, превью рендерит сам примитив.)
+import authFormStyles from '@/features/auth/AuthForm.module.scss';
+import balanceStyles from '@/features/auth/BalanceSection.module.scss';
+import inlineReviewStyles from '@/features/food/food-free-text-parse/ui/InlineWriteFoodReview.module.scss';
+// Reused only for the placeholder-accent preview (§03 an-field) so it matches the
+// real serif-italic first-word treatment instead of re-creating the class.
+import writeBarStyles from '@/shared/ui/WriteBarShell/WriteBarShell.module.scss';
 import ListIcon from '@/shared/assets/icons/list.svg?react';
+
+// Static no-op for the controlled-input previews in the anatomy tables — they
+// demonstrate the surface live, not editing (value stays put).
+const NOOP = () => {};
 
 import {
   DEMO_DATE,
@@ -117,7 +127,15 @@ const SECTIONS = [
 // to source — on drift, read the component's own `.module.scss`). Each block is
 // rendered inside its matching section via <AnatomyBlock>. Prose source of truth:
 // tds/semantic-roles.md.
-type AnatomyPart = { part: string; role: string; css: string; why: string; smell?: boolean };
+type AnatomyPart = {
+  part: string;
+  role: string;
+  css: string;
+  why: string;
+  smell?: boolean;
+  /** Optional live render of the primitive (shown in the «Примитив» cell). */
+  preview?: React.ReactNode;
+};
 type AnatomyEntity = {
   id: string;
   title: string;
@@ -132,88 +150,92 @@ const ANATOMY: AnatomyEntity[] = [
   {
     id: 'an-segment',
     title: 'Сегмент-выбор (один из нескольких)',
+    win: true,
     intro:
-      'Одна семантика — два разных визуальных языка в проекте. Это корень ощущения «бардака».',
+      'RESOLVED 2026-06-19: было два конкурирующих языка «выбери один из N» (Tabs — CAPS-заливка; квадратная SwitcherTab-плитка — white-paper lift). Оба сняты. Остался ОДИН канон: NavSwitcher tab-as-title — на HomePage, Product, Dish и Discoveries.',
     parts: [
       {
-        part: 'Tabs — активный (визард)',
-        role: 'шаг, на котором ты сейчас',
-        css: 'заливка #111, белый CAPS-текст 11px, weight 600',
-        why: 'press-канон «заливка ink + инверсия»; максимальный контраст',
-      },
-      {
-        part: 'Tabs — неактивный',
-        role: 'доступный, не выбранный',
-        css: 'прозрачный фон, opacity 0.6, CAPS',
-        why: 'приглушён контрастом, НЕ курсивом',
-      },
-      {
-        part: 'NavTile — активная плитка (дефолт)',
-        role: 'выбранный раздел (плиточный режим)',
-        css: 'белая «бумага» + 2-слойная тень, serif italic, opacity 0.92',
-        why: '«inverse-lift»: активный выпуклый',
-      },
-      {
-        part: 'NavSwitcher tab-as-title — активный (прод HomePage)',
-        role: 'активный ПОГЛОЩАЕТ роль заголовка слайда',
-        css: 'sans-bold 38px (Onest, голос Masthead), opacity 1',
-        why: 'активный = буквально заголовок (ВАШ пример); тот же sans-голос, что у Masthead',
+        part: 'NavSwitcher tab-as-title — активный',
+        role: 'выбранный раздел поглощает роль заголовка',
+        css: 'Onest bold-sans 38px (голос Heading), opacity 1',
+        why: 'активный = буквально заголовок экрана; тот же display-голос, что у <Heading>',
       },
       {
         part: 'NavSwitcher tab-as-title — неактивный',
         role: 'тихий указатель «вы здесь»',
-        css: 'serif italic 15px, opacity 0.22',
-        why: 'курсив = интерактивность; полупрозрачность = не перетягивать внимание (ВАША модель — точно)',
+        css: 'serif italic 15px, opacity 0.22 (Text navTabQuiet)',
+        why: 'курсив = интерактивность; полупрозрачность = не перетягивать внимание',
+      },
+      {
+        part: 'точки-индикатор (.swipeDots)',
+        role: '«какой раздел из N» + аффорданс «свайпай»',
+        css: '5px точки, активная — pill 16px',
+        why: 'крупный заголовок сам не кричит «листай» — точки добавляют сигнал',
       },
     ],
     critique:
-      'Ваша гипотеза (активный = заголовок, неактивный = полупрозрачный курсив) — это ИМЕННО вариант NavSwitcher tab-as-title, и она точна. Но: (1) компонент Tabs устроен иначе — CAPS + чёрная заливка, без курсива → два разных языка для «выбери один из N»; (2) активный-заголовок в tab-as-title использует sans-bold голос Masthead — тот самый конфликт serif ↔ sans, что в находке про заголовки.',
+      'Канон сведён к одному облику (data-dv NavSwitcher=tab-as-title, хардкод на предке — облик зафиксирован, не делит персист-ключ DesignBar между страницами). Tabs (CAPS-заливка) удалён целиком — был ровно один dev-потребитель (BugReportModal рисует свои табы локально). Квадратная плитка ретайрнута.',
     improve:
-      'Выбрать один канон сегмент-выбора, либо явно развести роли: Tabs = «шаги визарда», NavSwitcher tab-as-title = «разделы дома» — и записать. Заодно решить голос активного-заголовка (serif Heading ↔ sans Masthead).',
+      'Остался мёртвый square-base в SwitcherTab.module.scss (`.tile` aspect-ratio:1 + `.tileActive` paper-lift + ось SwitcherTabAmbient, невидимая под прозрачным tab-as-title) — снести отдельным проходом ПОСЛЕ визуальной проверки 3 страниц.',
   },
   {
     id: 'an-button',
     title: 'Кнопка действия',
     intro:
-      'После ревизии 2026-06-19 у Button осталось 4 живых варианта (было 11): primary, ghost, '
-      + 'bottomActionBar, brand. Семь мёртвых (secondary, tertiary, danger, filter, filter-2, menu, '
-      + 'primary-form) удалены — именно они и были «именами-по-виду».',
+      'После ревизии 2026-06-19 у Button 5 живых вариантов: primary, secondary, link, '
+      + 'ghost, brand. bottomActionBar свёрнут в brand (это было место — «в баре», а не вид). '
+      + 'brand сам themeable: дефолт sage-жёлтый, DishPage перекрашивает его в sky через '
+      + '--cta-brand-* (туда слит бывший runButton разбора блюда — без второго варианта). '
+      + 'Мёртвые имена-по-виду (tertiary, danger, filter, filter-2, menu, primary-form) удалены ранее.',
     parts: [
       {
         part: 'primary',
         role: 'главное действие формы / подтверждения',
-        css: 'width:100%, фон --color-blue-2, белый текст',
+        css: 'width:100%, ink-заливка, белый текст, высота 56px',
         why: 'заливка-акцент = «это основной путь»',
+        preview: <Button variant="primary">Сохранить</Button>,
       },
       {
         part: 'brand',
-        role: 'фирменная CTA (единый цвет primary-действий)',
-        css: 'pill, sage-жёлтый градиент --cta-brand-fill, ink-текст',
-        why: 'один брендовый цвет на проект; перекрашивается одним градиентом',
+        role: 'фирменная CTA (единый цвет primary-действий, themeable)',
+        css: 'pill, заливка --cta-brand-fill (дефолт sage-жёлтый), ink-текст, высота 56px (как primary)',
+        why: 'один вариант, цвет через --cta-brand-* — DishPage перекрашивает в sky, не плодя второй вариант',
+        preview: (
+          <Button variant="brand" icon={<PlusGlyph />}>
+            Разобрать
+          </Button>
+        ),
       },
       {
-        part: 'bottomActionBar',
-        role: 'действие нижнего дока',
-        css: 'стеклянная pill, peach-rose окаёмка (mask-ring), без тени',
-        why: 'единый вид действий в нижнем баре; объём держит окаёмка, не lift',
+        part: 'secondary',
+        role: 'вторичное действие рядом с primary',
+        css: 'белая пилюля, ink-окаёмка 16%, мягкая тень, min-height 40px, ink press-fill',
+        why: 'тише primary по заливке (белый, не ink) — «второй путь», не навигация; база — bannerButton «Повторить»',
+        preview: <Button variant="secondary">Повторить</Button>,
       },
       {
-        part: 'press-отклик (все варианты)',
-        role: 'тактильный ответ на нажатие',
-        css: 'заливка ink + инверсия текста + scale 0.96–0.97',
-        why: 'код: «сплошную нечем залить — затемняем фильтром»; «цветной отклик заменяет opacity»',
+        part: 'link',
+        role: 'тихая подчёркнутая ссылка-кнопка (ведёт куда-то)',
+        css: 'прозрачная, подчёркнута, опц. ведущая иконка',
+        why: 'семантика «навигация / скролл», не действие; вынесена из локальных discoveriesBtn / readyCta / switchBtn',
+        preview: (
+          <Button variant="link" icon={<ListIcon width={18} height={18} />}>
+            Мои открытия
+          </Button>
+        ),
       },
       {
         part: 'ghost',
         role: 'тихая текст-ссылка / отмена',
         css: 'курсив, weight 200, подчёркнут, серый',
         why: 'минимальный вес = «это ссылка, не кнопка-действие»',
+        preview: <Button variant="ghost">Отмена</Button>,
       },
     ],
     critique:
-      'Было 11 вариантов: половина названа по смыслу (primary / danger / ghost), половина — по виду или месту (filter-2, menu, brand, bottomActionBar, primary-form). Имя-по-виду и есть двигатель разрастания. Семь вариантов с нулём боевых использований снесены; brand и bottomActionBar оставлены осознанно — это места (бар, CTA), а не вид.',
+      'Имя-по-виду / по-месту — двигатель разрастания. Ревизия 2026-06-19 дочистила: bottomActionBar (peach-rose стекло) свёрнут в brand — нижний бар не отдельный вид кнопки, а место; высота brand выровнена с primary (56px, было 72). press-отклик убран из таблицы — это свойство ВСЕХ вариантов, а не отдельный примитив. Локальный sky-CTA разбора блюда (runButton/rerunButton) тоже слит в brand — но как ТЕМА (--cta-brand-* override на DishPage), а не второй вариант brand-2: цвет — это ось темы, не новый вариант.',
     improve:
-      'Если линейка снова разрастётся — свести к осям: intent (primary / quiet / danger) × size × context (флаг «в баре»). Тихие текст-действия уже вынесены в отдельный примитив QuietActionButton — не плодить их как варианты Button.',
+      'Если линейка снова разрастётся — свести к осям: intent (primary / quiet / danger) × size × context, цвет — через --cta-* токены, не через новые варианты. Тихие текст-действия — в QuietActionButton, навигация-ссылки — в variant="link". Эталон темизации — brand (sage по умолчанию, sky на DishPage одним набором --cta-brand-*).',
   },
   {
     id: 'an-field',
@@ -228,29 +250,49 @@ const ANATOMY: AnatomyEntity[] = [
         role: 'поверхность поля',
         css: 'тёплый 3-stop градиент, radius 24px, через --field-bg-*',
         why: 'не плоско (stripe-fork прав. 1); токены объявлены выше → предок переопределяет тон',
+        preview: (
+          <AutoGrowSearch singleLine value="" onChange={NOOP} placeholder="тёплая пилюля" />
+        ),
       },
       {
         part: 'fading hairline (::after)',
         role: 'разделитель снизу',
         css: 'тающая линия 1px, прозрачная по краям',
         why: 'тающая линия, а не рамка (stripe-fork прав. 2) — мягче «коробки»',
+        preview: (
+          <AutoGrowSearch value="" onChange={NOOP} placeholder="тающая линия снизу" />
+        ),
       },
       {
         part: 'placeholder-accent',
         role: 'первое слово плейсхолдера',
         css: 'serif italic, weight 500',
         why: 'serif-акцент намекает на «тему» поля',
+        preview: (
+          <AutoGrowSearch
+            singleLine
+            value=""
+            onChange={NOOP}
+            placeholder="Заметка про вкус"
+            renderPlaceholder={
+              <>
+                <em className={writeBarStyles.placeholderAccent}>Заметка</em> про вкус
+              </>
+            }
+          />
+        ),
       },
       {
         part: 'NumberInput',
         role: 'числовое поле (количество / норма)',
-        css: 'центр, tnum, фокус-ring синий; size=big — крупнее',
+        css: 'центр, focus-ring #0070f3 + ring, radius 6px (raw); size=big — крупнее',
         why: 'отдельный примитив с numeric-клавиатурой и draft-стейтом (пустая строка ≠ 0)',
         smell: true,
+        preview: <NumberInput value={120} maxLength={4} />,
       },
     ],
     critique:
-      'AutoGrowSearch / Select / LabeledCheckbox делят ОДНУ систему --field-* (один тон) — это win. NumberInput по-прежнему выпадает: сырые #ccc / #0070f3 на фокусе, не --field-* токены. Числовое поле звучит из другой системы (но мёртвые «underline/grey/white»-скины уже сняты — расхождение сузилось до одного focus-ring).',
+      'AutoGrowSearch / Select / LabeledCheckbox делят ОДНУ систему --field-* (один тон) — это win. NumberInput по-прежнему выпадает: сырой #0070f3 focus-ring + raw 6px radius, не --field-* токены (дефолтная рамка прозрачная, #ccc в коде НЕТ). Числовое поле звучит из другой системы (но мёртвые «underline/grey/white»-скины уже сняты — расхождение сузилось до одного focus-ring).',
     improve: 'Перевести NumberInput на --field-* токены (фон + focus-ring), чтобы все поля говорили одним голосом.',
   },
   {
@@ -271,7 +313,7 @@ const ANATOMY: AnatomyEntity[] = [
       },
     ],
     critique:
-      '~11 мест в features рисуют свой .fieldLabel / .sectionLabel вместо FieldLabel — расходятся вес, цвет, курсив.',
+      '3 места рисуют свой .sectionLabel вместо FieldLabel (ProductQuantity, ProfileDrawer, BalanceSection) — расходятся вес, цвет, курсив. Локальный .fieldLabel остался только в dev-баре (DesignVariantsBar), не в фичах.',
     improve: 'Заменить на FieldLabel; новые .*Label-классы ловить на ревью / линтом.',
   },
   {
@@ -279,29 +321,22 @@ const ANATOMY: AnatomyEntity[] = [
     title: 'Заголовок',
     parts: [
       {
-        part: 'Heading (канон)',
-        role: 'заголовок экрана / оверлея',
-        css: 'Source Serif italic (Alice), размеры по роли',
-        why: 'единый «голос» — роднит с навигационным band',
+        part: 'Heading (единый display-канон)',
+        role: 'заголовок экрана / оверлея / слайда (size="masthead") / активного таба',
+        css: 'Onest bold-sans (Apple Large Title register), размеры по роли',
+        why: 'ОДИН display-голос — Masthead свёрнут сюда (2026-06-19)',
       },
       {
-        part: 'Masthead',
-        role: 'слайд-заголовок (дом)',
-        css: 'Apple sans-bold 32px, НЕ курсив',
-        why: 'намеренно «Apple Large Title» — другой голос',
-        smell: true,
-      },
-      {
-        part: 'Typography feature-title / ScreenLabel',
-        role: 'декор / watermark',
-        css: 'serif 90px / opacity 0.03 caps',
-        why: 'декоративный, не заголовок',
+        part: 'Text variant="navTabQuiet"',
+        role: 'тихий указатель: неактивный таб / шаг-крошка',
+        css: 'serif italic 15px, opacity 0.22',
+        why: 'намеренный второй ярус — «музейная табличка», не заголовок',
       },
     ],
     critique:
-      'Текст-заголовки рисуют 5 сущностей, и два голоса конфликтуют: serif-italic (Heading) ↔ sans-bold (Masthead). Глаз не понимает, «что главнее».',
+      'RESOLVED (2026-06-19): задвоение display-голоса убрано. Heading = единственный Onest bold-sans голос (Masthead свёрнут в size="masthead", Typography/ScreenLabel удалены). serif-italic остался только тихим указателем (Text navTabQuiet) + FieldLabel.',
     improve:
-      'Решить: один голос ИЛИ две явные роли (display-serif vs slide-sans) — и зафиксировать, какую где применять.',
+      'Канон зафиксирован: display = Heading (bold-sans), тихий ярус = Text navTabQuiet. Голоса инкапсулированы в примитивах, typography-миксины удалены. Мёртвый вариант: Heading size="field" — 0 боевых использований (FieldLabel ест токен --heading-size-field напрямую, а не через Heading-вариант) → кандидат на culling.',
   },
   {
     id: 'an-card',
@@ -314,23 +349,24 @@ const ANATOMY: AnatomyEntity[] = [
         why: 'код: «лежит на бумаге, без подъёма»',
       },
       {
-        part: 'NavTile',
-        role: 'плитка-навигация',
-        css: 'приподнятая, 2-слойная тень (active)',
-        why: 'inverse-lift: выбранное «выступает»',
+        part: 'SwitcherTab — приподнятая плитка (РЕТАЙРНУТО)',
+        role: 'был «card-выбор» (inverse-lift)',
+        css: 'lift снят: под tab-as-title плитка прозрачная, без тени',
+        why: 'квадрат-карточка ретайрнут 2026-06-19 — больше не философия карточки',
+        smell: true,
       },
       {
         part: 'Analysis .card',
         role: 'feature-карточка',
         css: 'свои --ax-* токены (hairline / rail / inset)',
-        why: 'третья философия карточки',
+        why: 'вторая философия карточки',
         smell: true,
       },
     ],
     critique:
-      'Три разных представления о том, что такое «карточка»: плоская-бумага, приподнятая и feature-локальная.',
+      'После ретайра приподнятой SwitcherTab-плитки осталось два представления о «карточке»: плоская-бумага (SheetCard) и feature-локальная (Analysis .card).',
     improve:
-      'Назвать роли явно: «карточка-лист» (SheetCard) для секций, «плитка» (NavTile) для выбора; Analysis-карточки свести к SheetCard или осознанно выделить третью роль.',
+      'Канон секций — «карточка-лист» (SheetCard). Analysis-карточки свести к SheetCard или осознанно выделить как вторую роль.',
   },
   {
     id: 'an-row',
@@ -373,75 +409,6 @@ const ANATOMY_BY_ID = Object.fromEntries(ANATOMY.map((e) => [e.id, e])) as Recor
   string,
   AnatomyEntity
 >;
-
-// ─── Local one-off buttons — the debt catalog (§02) ───────────────────────────
-// ~40+ buttons across the app are hand-built locally with their own `.xxxBtn`
-// class instead of a shared variant. THIS is why Button's secondary/tertiary had
-// 0 uses (the white-outline secondary is re-drawn per place — see discoveriesBtn).
-// These rows are the notable unification candidates (debt map, no refactor here).
-type LocalButton = { cls: string; where: string; does: string; shouldBe: string };
-const LOCAL_BUTTONS: LocalButton[] = [
-  {
-    cls: 'discoveriesBtn',
-    where: 'Laboratory (экран 1)',
-    does: 'white-outline pill «Мои открытия» → /discoveries',
-    shouldBe: 'вторичная CTA (Button variant secondary — был, снесён за 0 использований)',
-  },
-  {
-    cls: 'bannerButton',
-    where: 'DailyAnalysisSection',
-    does: 'повтор после ошибки разбора дня',
-    shouldBe: 'вторичная кнопка',
-  },
-  {
-    cls: 'runButton / rerunButton',
-    where: 'DishAnalysisScreen',
-    does: 'запустить / перезапустить разбор блюда',
-    shouldBe: 'Button primary / brand',
-  },
-  {
-    cls: 'submitBtn',
-    where: 'AuthForm, CheckInboxView',
-    does: 'отправка формы авторизации',
-    shouldBe: 'Button primary',
-  },
-  {
-    cls: 'switchBtn',
-    where: 'AuthForm, CheckInboxView',
-    does: 'переключить логин ↔ регистрация',
-    shouldBe: 'Button ghost (текст-ссылка)',
-  },
-  {
-    cls: 'backBtn / backButton',
-    where: 'AuthForm, ModalHeader, Edit/CreateDailyNormModal',
-    does: 'назад',
-    shouldBe: 'BackButton (shared-примитив уже существует!)',
-  },
-  {
-    cls: 'closeButton',
-    where: 'CreateLongAnalysisModal, AnalysisDetailModal',
-    does: 'закрыть × модалку',
-    shouldBe: 'единый close-× примитив',
-  },
-  {
-    cls: 'topupBtn',
-    where: 'BalanceSection',
-    does: 'пополнить баланс (пока disabled)',
-    shouldBe: 'Button primary',
-  },
-  {
-    cls: 'commitBtn / cancelBtn',
-    where: 'InlineWriteFoodReview',
-    does: 'подтвердить / отменить разбор',
-    shouldBe: 'Button primary / ghost',
-  },
-  {
-    cls: 'readyCta',
-    where: 'WriteFoodInput',
-    does: '«смотреть результат» после разбора',
-    shouldBe: 'Button brand / primary CTA',
-  },
-];
 
 // ─── Showcase layout primitives ─────────────────────────────────────────────
 function Section({
@@ -534,7 +501,10 @@ function AnatomyBlock({ e }: { e: AnatomyEntity }) {
           <tbody>
             {e.parts.map((p) => (
               <tr key={p.part} className={p.smell ? s.anatomySmellRow : undefined}>
-                <td className={s.anatomyPart}>{p.part}</td>
+                <td className={s.anatomyPart}>
+                  {p.part}
+                  {p.preview && <div className={s.cellPreview}>{p.preview}</div>}
+                </td>
                 <td>{p.role}</td>
                 <td className={s.anatomyCss}>{p.css}</td>
                 <td className={s.anatomyWhy}>
@@ -561,80 +531,344 @@ function AnatomyBlock({ e }: { e: AnatomyEntity }) {
   );
 }
 
-/**
- * Debt catalog of local one-off buttons (§02). Renders the canonical example live
- * (discoveriesBtn from HomePage screen 1, reusing its own styles) + a table of the
- * notable hand-built buttons and the shared primitive each should reuse instead.
- */
-function LocalButtonsBlock() {
+// ─── §02 Buttons — flat showcase data ─────────────────────────────────────────
+// Each component = a name header + a stack of items. One item = a live preview
+// with a caption «variant — essence» right under it (Apple gallery stacking:
+// sight ↔ meaning together, no columns). Multi-button previews just wrap.
+type KitRow = {
+  /** Bold mono lead of the caption (variant / mode name); omitted = plain caption. */
+  variant?: string;
+  preview: React.ReactNode;
+  /** One-sentence essence. Omit + set `unknown` when the суть isn't established. */
+  essence?: string;
+  /** Semantic band: relation tag — «← Button primary» / «автономная». */
+  builtOn?: string;
+  /** Chrome primitive (BackButton / CloseButton) — tiny tinted chip behind it. */
+  darkStage?: boolean;
+  /** Суть не выяснена → render a red «не выяснено» instead of the essence. */
+  unknown?: boolean;
+};
+type KitComp = { name: string; note?: string; rows: KitRow[] };
+
+const PRIMITIVE_COMPS: KitComp[] = [
+  {
+    name: 'Button',
+    note: 'главный примитив',
+    rows: [
+      {
+        variant: 'primary',
+        preview: <Button variant="primary">Подтвердить</Button>,
+        essence: 'Главное действие формы — заливка-акцент во всю ширину.',
+      },
+      {
+        variant: 'secondary',
+        preview: <Button variant="secondary">Повторить</Button>,
+        essence: 'Вторичное действие рядом с primary — тише по заливке.',
+      },
+      {
+        variant: 'brand',
+        preview: (
+          <Button variant="brand" icon={<PlusGlyph />}>
+            Разобрать
+          </Button>
+        ),
+        essence: 'Фирменная CTA — тон через --cta-brand-* (sage, sky на DishPage).',
+      },
+      {
+        variant: 'link',
+        preview: (
+          <Button variant="link" icon={<ListIcon width={16} height={16} />}>
+            Мои открытия
+          </Button>
+        ),
+        essence: 'Ссылка-кнопка: ведёт куда-то (навигация / скролл), не действие.',
+      },
+      {
+        variant: 'ghost',
+        preview: <Button variant="ghost">Отмена</Button>,
+        essence: 'Тихая отмена / текст-ссылка — минимальный вес.',
+      },
+      {
+        variant: 'состояния',
+        essence: 'isLoading блокирует + спиннер · disabled · ведущий значок before / icon.',
+        preview: (
+          <>
+            <Button variant="primary" isLoading>
+              loading
+            </Button>
+            <Button variant="primary" disabled>
+              disabled
+            </Button>
+            <Button variant="brand" before={<PlusGlyph />}>
+              before
+            </Button>
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    name: 'BackButton',
+    rows: [
+      {
+        darkStage: true,
+        preview: <BackButton onClick={() => toast('назад')} />,
+        essence: 'Единый жест «назад» на весь app — одна ‹-стрелка вместо разнобоя.',
+      },
+    ],
+  },
+  {
+    name: 'CloseButton',
+    rows: [
+      {
+        darkStage: true,
+        preview: <CloseButton onClick={() => toast('закрыть')} />,
+        essence: 'Единый крестик закрытия оверлея.',
+      },
+    ],
+  },
+  {
+    name: 'QuietActionButton',
+    rows: [
+      {
+        preview: (
+          <QuietActionButton
+            label="Тихое действие"
+            icon={<PlusGlyph />}
+            onClick={() => toast('quiet action')}
+          />
+        ),
+        essence: 'Тихая текст-кнопка-кирпич: значок + label без подложки; смысл задаёт консумер.',
+      },
+    ],
+  },
+  {
+    name: 'ModalNextButton',
+    rows: [
+      {
+        variant: 'next · finish',
+        essence: 'Primary-confirm в футере модалок: «Далее» (стрелка) или «Готово» (галка).',
+        preview: (
+          <>
+            <ModalNextButton onClick={() => toast('далее')} variant="next" />
+            <ModalNextButton onClick={() => toast('готово')} variant="finish" />
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    name: 'AppBottomBarShell',
+    note: 'side=split',
+    rows: [
+      {
+        essence: 'Каркас нижнего дока без своей поверхности — раскладывает CTA (left / right / split).',
+        preview: (
+          <AppBottomBarShell side="split">
+            <Button variant="brand" icon={<PlusGlyph />}>
+              Добавить
+            </Button>
+            <Button variant="brand">Разобрать</Button>
+          </AppBottomBarShell>
+        ),
+      },
+    ],
+  },
+];
+
+const SEMANTIC_COMPS: KitComp[] = [
+  {
+    name: 'SuggestActionButton',
+    rows: [
+      {
+        builtOn: '← QuietActionButton',
+        preview: (
+          <SuggestActionButton label="Предложить нутриенты" onClick={() => toast('предложить')} />
+        ),
+        essence: 'AI-предложка: sparkle + label поверх QuietActionButton — единый вид предложений.',
+      },
+    ],
+  },
+  {
+    name: 'DailyNormButton',
+    rows: [
+      {
+        builtOn: '← QuietActionButton',
+        preview: <DailyNormButton />,
+        essence: 'Кнопка дневной нормы (текст по состоянию) — по клику открывает DailyNormDrawer.',
+      },
+    ],
+  },
+  {
+    name: 'AnalysisCtaButton',
+    rows: [
+      {
+        builtOn: '← Button brand',
+        preview: <AnalysisCtaButton date={DEMO_DATE} label="Анализировать" />,
+        essence: 'Доменная CTA запуска разбора: открывает AnalysisKindDrawer, спиннер на стрим.',
+      },
+    ],
+  },
+
+  // Бывший «технический долг» — локальные кнопки фич, перенесены сюда. Тег связи:
+  // «← примитив» = переиспользует общий вариант; «автономная» = свой класс, не
+  // сведён в примитив (намеренно). Где суть не выяснена — флаг `unknown` (красным).
+  {
+    name: 'submitBtn',
+    note: 'AuthForm · CheckInbox · VerifyEmail',
+    rows: [
+      {
+        builtOn: '← Button primary',
+        preview: <Button variant="primary">Войти</Button>,
+        essence: 'Отправка формы авторизации.',
+      },
+    ],
+  },
+  {
+    name: 'bannerButton',
+    note: 'DailyAnalysisSection',
+    rows: [
+      {
+        builtOn: '← Button secondary',
+        preview: <Button variant="secondary">Повторить</Button>,
+        essence: 'Повтор после ошибки разбора дня.',
+      },
+    ],
+  },
+  {
+    name: 'runButton / rerunButton',
+    note: 'DishAnalysisScreen',
+    rows: [
+      {
+        builtOn: '← Button brand',
+        preview: <Button variant="brand">Проанализировать</Button>,
+        essence: 'Запустить / перезапустить разбор блюда (sky-тон через --cta-brand-*).',
+      },
+    ],
+  },
+  {
+    name: 'readyCta',
+    note: 'WriteFoodInput',
+    rows: [
+      {
+        builtOn: '← Button link',
+        preview: <Button variant="link">Посмотреть варианты</Button>,
+        essence: '«Смотреть результат» → скролл к предложке (навигация).',
+      },
+    ],
+  },
+  {
+    name: 'closeButton',
+    note: 'CreateLongAnalysisModal · AnalysisDetailModal',
+    rows: [
+      {
+        builtOn: '← CloseButton',
+        darkStage: true,
+        preview: <CloseButton onClick={() => toast('закрыть')} />,
+        essence: 'Закрыть × модалку разбора.',
+      },
+    ],
+  },
+  {
+    name: 'backBtn',
+    note: 'AuthForm · ModalHeader · Edit/CreateDailyNormModal',
+    rows: [
+      {
+        builtOn: 'автономная',
+        darkStage: true,
+        preview: (
+          <button type="button" className={authFormStyles.backBtn} aria-label="Назад">
+            ←
+          </button>
+        ),
+        essence:
+          'Локальный «назад» — 3 намеренных вида (bar ‹ / modal arrow / auth ←), сознательно не сведены в BackButton.',
+      },
+    ],
+  },
+  {
+    name: 'commitBtn / cancelBtn',
+    note: 'InlineWriteFoodReview',
+    rows: [
+      {
+        builtOn: 'автономная',
+        preview: (
+          <>
+            <button type="button" className={inlineReviewStyles.cancelBtn}>
+              Отменить
+            </button>
+            <button type="button" className={inlineReviewStyles.commitBtn}>
+              Добавить 3
+            </button>
+          </>
+        ),
+        essence:
+          'Подтвердить / отменить разбор — намеренная pill-пара предложки (ink pill + tinted), не 56px modal-CTA.',
+      },
+    ],
+  },
+  {
+    name: 'topupBtn',
+    note: 'BalanceSection',
+    rows: [
+      {
+        builtOn: 'автономная',
+        preview: (
+          <button type="button" className={balanceStyles.topupBtn} disabled>
+            Пополнить — скоро
+          </button>
+        ),
+        essence: 'Пополнить баланс — намеренный тихий disabled-плейсхолдер «скоро», не CTA.',
+      },
+    ],
+  },
+];
+
+/** One item — Apple gallery stacking: the live preview, then a caption
+ *  «variant — essence» directly under it. No columns, no horizontal spread. */
+function KitItem({ r }: { r: KitRow }) {
   return (
-    <article className={clsx(s.anatomyEntity, s.anatomyInline)}>
-      <div className={s.anatomyHead}>
-        <Heading size="drawer" as="h3" className={s.anatomyTitle}>
-          Локальные одноразовые кнопки
-        </Heading>
-        <span className={s.anatomyTag}>долг</span>
-      </div>
-      <p className={s.anatomyIntro}>
-        Эти кнопки сверстаны на месте своим классом (<code>.xxxBtn</code>), а не общим вариантом
-        Button — таких по проекту ~40+. Именно поэтому у Button варианты secondary / tertiary имели
-        ноль использований: вторичную кнопку рисуют локально. Живой пример — «Мои открытия» с экрана
-        1 (Laboratory): плоская белая pill с ink-обводкой — буквально «вторичная рядом с залитой
-        CTA».
+    <div className={s.kitItem}>
+      <div className={clsx(s.kitItemStage, r.darkStage && s.kitItemStageDark)}>{r.preview}</div>
+      <p className={s.kitItemCaption}>
+        {r.variant && (
+          <>
+            <span className={s.kitItemVariant}>{r.variant}</span>
+            <span className={s.kitItemDash}> — </span>
+          </>
+        )}
+        {r.unknown ? <span className={s.kitItemUnknown}>не выяснено</span> : r.essence}
+        {r.builtOn && <span className={s.kitBuiltOn}> {r.builtOn}</span>}
       </p>
-      <div className={s.localLiveRow}>
-        <button
-          type="button"
-          className={labStyles.discoveriesBtn}
-          onClick={() => toast('→ /discoveries')}
-        >
-          <ListIcon width={18} height={18} />
-          Мои открытия
-        </button>
-      </div>
+    </div>
+  );
+}
 
-      <div className={s.anatomyTableWrap}>
-        <table className={s.anatomyTable}>
-          <thead>
-            <tr>
-              <th>Класс</th>
-              <th>Где</th>
-              <th>Что делает</th>
-              <th>Должен переиспользовать</th>
-            </tr>
-          </thead>
-          <tbody>
-            {LOCAL_BUTTONS.map((b) => (
-              <tr key={b.cls} className={s.anatomySmellRow}>
-                <td className={s.anatomyPart}>{b.cls}</td>
-                <td className={s.anatomyCss}>{b.where}</td>
-                <td>{b.does}</td>
-                <td className={s.anatomyWhy}>
-                  <span className={s.anatomySmellTag}>дубль</span>
-                  {b.shouldBe}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+/** One component block: name (+ note) header and its stack of items. */
+function KitComp({ c }: { c: KitComp }) {
+  return (
+    <div className={s.kitComp}>
+      <div className={s.kitCompHead}>
+        <span className={s.kitCompName}>{c.name}</span>
+        {c.note && <span className={s.kitCompNote}>{c.note}</span>}
       </div>
+      <div>
+        {c.rows.map((r, i) => (
+          <KitItem key={r.variant ?? i} r={r} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
-      <div className={s.anatomyNotes}>
-        <p className={s.anatomyCritique}>
-          <span className={s.anatomyNoteLabel}>Критика</span>В таблице — заметные кандидаты на
-          унификацию (вторичные / первичные CTA, «назад», close-×). Ещё ~30 одноразовых — это
-          icon-утилиты (<code>infoBtn</code>, <code>clearButton</code>, <code>multiplierBtn</code>,
-          <code>thumbBtn</code>…), часть из них легитимно локальные.
-        </p>
-        <p className={s.anatomyImprove}>
-          <span className={s.anatomyNoteLabel}>Улучшение</span>Вернуть один shared-вариант
-          white-outline secondary (или сделать discoveriesBtn примитивом) и перевести на него
-          вторичные CTA; <code>backBtn</code>-места — на существующий BackButton; close-× свести к
-          одному примитиву. Тогда у Button снова появятся боевые secondary, а локальный разнобой
-          схлопнется.
-        </p>
-      </div>
-    </article>
+/** A black-bold band («Примитивы» / «Семантическое применение») — title only, no
+ *  descriptive lead; holds a stack of KitComp. Spans the full section row. */
+function ButtonBand({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className={s.kitBand}>
+      <h3 className={s.kitBandTitle}>{title}</h3>
+      {children}
+    </section>
   );
 }
 
@@ -665,21 +899,15 @@ function DemoDrawer({ onClose }: BaseDrawerProps) {
           DrawerLayout — каркас нижней или боковой панели: drag-handle, крестик, скролл-зона и
           закреплённый <code>footer</code>. Открывается через <code>drawerStore.show()</code>.
         </Text>
-        <Typography variant="info">
+        <Text variant="hint">
           Боковой вариант открывается с опцией <code>{`{ side: 'right', width }`}</code>.
-        </Typography>
+        </Text>
       </div>
     </DrawerLayout>
   );
 }
 
 // ─── Static config ───────────────────────────────────────────────────────────
-const TAB_OPTIONS = [
-  { value: 'overview', alternativeLabel: 'Обзор' },
-  { value: 'details', alternativeLabel: 'Детали' },
-  { value: 'history', alternativeLabel: 'История', disabled: true, disabledLabel: 'Скоро' },
-] as const;
-
 type BcStep = 'food' | 'time' | 'qty';
 const BC_STEPS: BcStep[] = ['food', 'time', 'qty'];
 const BC_LABELS: Record<BcStep, string> = { food: 'Продукт', time: 'Время', qty: 'Порция' };
@@ -798,7 +1026,6 @@ const UiKitPage = () => {
   const [activeChips, setActiveChips] = useState<Record<string, boolean>>({ keto: true });
   const [checkA, setCheckA] = useState(true);
   const [checkB, setCheckB] = useState(false);
-  const [tab, setTab] = useState<string>('overview');
   const [bcStep, setBcStep] = useState<BcStep>('time');
   const [screenIdx, setScreenIdx] = useState(0);
   const [chKey, setChKey] = useState(0);
@@ -880,13 +1107,14 @@ const UiKitPage = () => {
               id="typography"
               index="01"
               title="Типографика"
-              desc="Источник правды для заголовков и текста. Heading — italic-serif канон, Text — тело. Внизу — разбор ролей «Заголовок» и «Метка поля»."
+              desc="Источник правды для заголовков и текста. Heading — единый Onest bold-sans display-голос, Text — тело + тихий указатель (navTabQuiet). Внизу — разбор ролей «Заголовок» и «Метка поля»."
             >
-              <Specimen name="<Heading>" note="size: screen · modal · modalSub · drawer · section" wide>
+              <Specimen name="<Heading>" note="size: masthead · screen · modal · modalSub · drawer · section" wide>
                 <div className={s.stack}>
+                  <Heading size="masthead">Masthead 32px</Heading>
                   <Heading size="screen">Screen 40px</Heading>
                   <Heading size="modal">Modal 32px</Heading>
-                  <Heading size="modalSub">ModalSub (Alice)</Heading>
+                  <Heading size="modalSub">ModalSub</Heading>
                   <Heading size="drawer">Drawer 24px</Heading>
                   <Heading size="section">Section</Heading>
                 </div>
@@ -899,21 +1127,11 @@ const UiKitPage = () => {
                 <Text variant="hint">Спокойная подсказка под полем или заголовком оверлея.</Text>
               </Specimen>
 
-              <Specimen name="<Typography>" note="action · info · elegant · feature-title*">
-                <div className={s.stack}>
-                  <Typography variant="action">action — акцентное действие</Typography>
-                  <Typography variant="info">info — второстепенная информация</Typography>
-                  <Typography variant="elegant">elegant — тонкая подача</Typography>
-                  <Typography variant="feature-title">feature-title</Typography>
-                  <Typography variant="feature-title-s">feature-title-s</Typography>
-                </div>
-              </Specimen>
-
               <Specimen
-                name="<ScreenLabel>"
-                note="variant=screenHeader · known-issue: ScreenLabel рендерит div-в-p, показан 1 вариант"
+                name="<Text variant='navTabQuiet'>"
+                role={<>Роль: тихий serif-italic указатель. Где: неактивный таб, шаг-крошка. Зачем: «вы здесь», не контрол.</>}
               >
-                <ScreenLabel variant="screenHeader">screenHeader</ScreenLabel>
+                <Text variant="navTabQuiet">navTabQuiet — тихий указатель</Text>
               </Specimen>
 
               <Specimen name="<FoodName>" note="анимация смены значения">
@@ -945,128 +1163,19 @@ const UiKitPage = () => {
               id="buttons"
               index="02"
               title="Кнопки"
-              desc="После ревизии 2026-06-19: у Button осталось 4 живых варианта (было 11). Рядом — остальные кнопки-примитивы, у каждой подписана роль, где используется и зачем такой вид. Внизу — разбор «Кнопка действия»."
+              desc="Базовая кнопка и её применение. В каждой строке — вариант, живой вид и суть одним предложением."
             >
-              <Specimen
-                name='<Button variant="primary">'
-                role={<><b>Что:</b> залитая кнопка во всю ширину. <b>Роль:</b> главное действие формы / подтверждения. <b>Где:</b> SuggestNutrientsConfirmDrawer («Продолжить»), AttachHypothesesPicker. <b>Зачем:</b> заливка-акцент = основной путь.</>}
-              >
-                <Button variant="primary">Подтвердить</Button>
-              </Specimen>
+              <ButtonBand title="Примитивы">
+                {PRIMITIVE_COMPS.map((c) => (
+                  <KitComp key={c.name} c={c} />
+                ))}
+              </ButtonBand>
 
-              <Specimen
-                name='<Button variant="ghost">'
-                role={<><b>Что:</b> подчёркнутый серый курсив, без подложки. <b>Роль:</b> тихая текст-ссылка / отмена. <b>Где:</b> SuggestNutrientsConfirmDrawer («Отмена»), footer ModalShell. <b>Зачем:</b> минимальный вес — это ссылка, не действие.</>}
-              >
-                <Button variant="ghost">Отмена</Button>
-              </Specimen>
-
-              <Specimen
-                name='<Button variant="brand">'
-                role={<><b>Что:</b> pill с фирменным sage-жёлтым градиентом. <b>Роль:</b> фирменная CTA — единый цвет primary-действий проекта. <b>Где:</b> AnalysisCtaButton. <b>Зачем:</b> один брендовый цвет, перекрашивается одним градиентом.</>}
-              >
-                <Button variant="brand" icon={<PlusGlyph />}>
-                  Разобрать день
-                </Button>
-              </Specimen>
-
-              <Specimen
-                name='<Button variant="bottomActionBar">'
-                note="peach-rose окаёмка · стекло"
-                role={<><b>Что:</b> стеклянная pill с градиентной окаёмкой. <b>Роль:</b> действие нижнего дока. <b>Где:</b> AnalysesSlide, EditDailyNormModal. <b>Зачем:</b> единый вид действий в нижнем баре.</>}
-                wide
-              >
-                <Button variant="bottomActionBar" icon={<PlusGlyph />}>
-                  Добавить
-                </Button>
-                <Button variant="bottomActionBar">Без иконки</Button>
-              </Specimen>
-
-              <Specimen
-                name="<Button>"
-                note="состояния"
-                role={<><b>Роль:</b> состояния любого варианта — <code>isLoading</code> (блокирует + «Loading…»), <code>disabled</code>, ведущий значок через <code>before</code> / <code>icon</code>.</>}
-              >
-                <Button variant="primary" isLoading>
-                  loading
-                </Button>
-                <Button variant="primary" disabled>
-                  disabled
-                </Button>
-                <Button variant="brand" before={<PlusGlyph />}>
-                  before
-                </Button>
-              </Specimen>
-
-              <Specimen
-                name="<BackButton>"
-                role={<><b>Что:</b> ‹-стрелка. <b>Роль:</b> единый жест «назад» на весь app. <b>Где:</b> HomeTopBar.backSlot (продукт / блюдо), AnalysesTopBar, шапки оверлеев (SearchFood). <b>Зачем:</b> одна аффорданс-стрелка вместо разнобоя; <code>to</code> = push-навигация, <code>onClick</code> = шаг оверлея.</>}
-              >
-                <div className={s.darkStage}>
-                  <BackButton onClick={() => toast('назад')} />
-                </div>
-              </Specimen>
-
-              <Specimen
-                name="<QuietActionButton>"
-                role={<><b>Что:</b> значок + label, без подложки, приглушённый текст. <b>Роль:</b> тихая текст-кнопка-примитив. <b>Где:</b> база для SuggestActionButton и DailyNormButton. <b>Зачем:</b> владеет только видом — значок / текст / действие задаёт консумер (не плодить такие как варианты Button).</>}
-              >
-                <QuietActionButton
-                  label="Тихое действие"
-                  icon={<PlusGlyph />}
-                  onClick={() => toast('quiet action')}
-                />
-              </Specimen>
-
-              <Specimen
-                name="<SuggestActionButton>"
-                role={<><b>Что:</b> sparkle + label (обёртка над QuietActionButton). <b>Роль:</b> семантическая «предложка». <b>Где:</b> Screen.headerAction — DishPage «Предложить ингредиенты», ProductPage «Предложить нутриенты». <b>Зачем:</b> единый вид AI-предложений.</>}
-              >
-                <SuggestActionButton label="Предложить нутриенты" onClick={() => toast('предложить')} />
-              </Specimen>
-
-              <Specimen
-                name="<DailyNormButton>"
-                role={<><b>Что:</b> текст + флажок справа (обёртка над QuietActionButton). <b>Роль:</b> кнопка дневной нормы, текст по состоянию. <b>Где:</b> вверху FoodsNutrients и в hero продукта. <b>Зачем:</b> по клику открывает DailyNormDrawer.</>}
-              >
-                <DailyNormButton />
-              </Specimen>
-
-              <Specimen
-                name="<ModalNextButton>"
-                note="next · finish"
-                role={<><b>Что:</b> label + стрелка / галочка. <b>Роль:</b> primary Confirm в footer’е модалок (right-слот ModalShell.ActionButtons). <b>Где:</b> все пошаговые модалки. <b>Зачем:</b> «Далее» (стрелка) vs «Готово» (галка) — один примитив для обоих.</>}
-                wide
-              >
-                <ModalNextButton onClick={() => toast('далее')} variant="next" />
-                <ModalNextButton onClick={() => toast('готово')} variant="finish" />
-              </Specimen>
-
-              <Specimen
-                name="<NutrientsSummaryButton>"
-                note="ведущий слот AppBottomBar"
-                role={<><b>Что:</b> 2-строчная серая сводка Б·Ж·У·клетчатка + ккал/вода. <b>Роль:</b> кнопка-сводка дня. <b>Где:</b> левый слот нижнего бара экрана еды. <b>Зачем:</b> тап открывает разбор нутриентов; единый приглушённый серый, без цветных цифр.</>}
-                wide
-              >
-                <NutrientsSummaryButton totals={DEMO_TOTALS} onClick={() => toast('нутриенты')} />
-              </Specimen>
-
-              <Specimen
-                name="<AppBottomBarShell>"
-                note="side=split · chrome-only"
-                role={<><b>Что:</b> каркас нижнего дока без собственной поверхности (фон — Screen-scrim). <b>Роль:</b> раскладка CTA нижнего бара. <b>Где:</b> слайды без 3-слотового food-дока (ScheduleEvents, Laboratory). <b>Зачем:</b> <code>side</code> = left / right / split, <code>tone</code> = default / lemon / paper.</>}
-                full
-              >
-                <AppBottomBarShell side="split">
-                  <Button variant="bottomActionBar" icon={<PlusGlyph />}>
-                    Добавить
-                  </Button>
-                  <Button variant="brand">Разобрать</Button>
-                </AppBottomBarShell>
-              </Specimen>
-
-              <AnatomyBlock e={ANATOMY_BY_ID['an-button']} />
-              <LocalButtonsBlock />
+              <ButtonBand title="Семантическое применение">
+                {SEMANTIC_COMPS.map((c) => (
+                  <KitComp key={c.name} c={c} />
+                ))}
+              </ButtonBand>
             </Section>
 
             {/* ── 03 Inputs ── */}
@@ -1137,7 +1246,7 @@ const UiKitPage = () => {
               id="selection"
               index="04"
               title="Выбор и навигация"
-              desc="Чипы, чекбоксы, табы, крошки и плитки навигации. Внизу — разбор «Сегмент-выбор»: почему «выбери один из N» звучит двумя разными языками."
+              desc="Чипы, чекбоксы, крошки и каноничный переключатель разделов (NavSwitcher tab-as-title). Внизу — разбор «Сегмент-выбор»: канон сведён к одному облику (Tabs удалён, квадратная плитка ретайрнута)."
             >
               <Specimen name="<Chip active>" note="презентационный — toggle на стороне вызова">
                 {[
@@ -1159,10 +1268,6 @@ const UiKitPage = () => {
                 </div>
               </Specimen>
 
-              <Specimen name="<Tabs>" note="disabled-таб + disabledLabel" wide>
-                <Tabs tabs={[...TAB_OPTIONS]} current={tab} setTab={setTab} />
-              </Specimen>
-
               <Specimen name="<Breadcrumbs>" note="шаги визарда с результатами" wide>
                 <Breadcrumbs
                   steps={BC_STEPS}
@@ -1173,21 +1278,22 @@ const UiKitPage = () => {
                 />
               </Specimen>
 
-              <Specimen name="<NavTile>" note="квадратная плитка · active · solidLabel">
-                <div className={s.navTileGrid}>
-                  <NavTile label="Дом" active />
-                  <NavTile label="Блюда" />
-                  <NavTile label="Норма" />
+              <Specimen
+                name="<ScreenIndicator>"
+                note="каноничный NavSwitcher tab-as-title — активный = заголовок"
+                role={<><b>Что:</b> ряд табов экранов (примитив SwitcherTab). Активный = крупный заголовок (Heading), неактивные — тихие serif-указатели, под ними точки «свайпай раздел». <b>Где:</b> HomePage, ProductPage, DishBuilderPage, DiscoveriesScreen. <b>Зачем:</b> единый облик переключения разделов на весь app. <b>Облик:</b> задаёт <code>{'data-dv="NavSwitcher" data-dv-v="tab-as-title"'}</code> на предке. Квадратная плитка (white-paper lift) ретайрнута 2026-06-19.</>}
+                full
+              >
+                {/* Атрибут активирует каноничный tab-as-title облик — ровно как на
+                    боевых страницах (хардкод, не useDesignVariant). */}
+                <div data-dv="NavSwitcher" data-dv-v="tab-as-title">
+                  <ScreenIndicator
+                    screens={SCREEN_TILES}
+                    activeIndex={screenIdx}
+                    onSelect={setScreenIdx}
+                    bandImg={false}
+                  />
                 </div>
-              </Specimen>
-
-              <Specimen name="<ScreenIndicator>" note="ряд NavTile (+ опц. слот заголовка)" full>
-                <ScreenIndicator
-                  screens={SCREEN_TILES}
-                  activeIndex={screenIdx}
-                  onSelect={setScreenIdx}
-                  bandImg={false}
-                />
               </Specimen>
 
               <AnatomyBlock e={ANATOMY_BY_ID['an-segment']} />

@@ -7,8 +7,8 @@
 //
 // 2026-05-23: вся messenger-style write-field разметка и 9 chat-* дизайн-вариантов
 // уехали в `features/food/food-free-text-parse/ui/WriteFoodInput/WriteFoodInput.module.scss`.
-// Этот файл оставляет только wrapper-геометрию + tod-tokens + slot-стили для
-// leadingSlot (NutrientsSummaryButton) + shellSolo (AppBottomBarShell).
+// Этот файл оставляет только wrapper-геометрию + tod-tokens + shellSolo
+// (AppBottomBarShell).
 
 @import '@/shared/assets/style/mixin.scss';
 
@@ -82,72 +82,9 @@
     @extend .iconButton;
 }
 
-// Leading slot variant: 2-line gray macros + kcal summary — рендерится
-// `NutrientsSummaryButton`. Tap открывает nutrients drawer (caller прокидывает onClick).
-.nutrientsBtn {
-    flex-shrink: 0;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: stretch; // обе строки тянутся на ширину кнопки — вода уходит вправо до конца
-    justify-content: center;
-    gap: 3px;
-    min-height: 40px;
-    padding: 4px 8px;
-    background: transparent;
-    border: none;
-    border-radius: var(--radius-full);
-    color: rgba(31, 42, 68, 0.5);
-    // Унифицировано с мета-строкой даты HomeTopBar (--bar-meta-size ← тот же
-    // токен), чтобы числа в верхнем баре читались одним размером.
-    font-size: var(--text-meta);
-    line-height: 1.15;
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease;
-
-    &:hover,
-    &:focus-visible {
-        color: rgba(31, 42, 68, 0.78);
-        background: rgba(0, 0, 0, 0.04);
-        outline: none;
-    }
-
-    // Инверсия (канон 2026-06-14): кнопка-в-подложке заливается ink, цифры
-    // белеют (все строки наследуют color кнопки).
-    &:active {
-        color: var(--text-on-accent, #fff);
-        background: var(--color-ink);
-        transform: scale(0.96);
-        transition-duration: var(--press-in);
-    }
-}
-
-// Вторая строка: ккал слева, вода прижата к противоположному краю.
-.nutrientsLine {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    white-space: nowrap;
-}
-
-// Первая строка: б/ж/у бледно-серые, к (клетчатка) зеленоватая —
-// крупная точка-разделитель между значениями.
-.nutrientsMacros {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    line-height: 1;
-    white-space: nowrap;
-}
-
-.dot {
-    font-size: 15px;
-    line-height: 0;
-    opacity: 0.55;
-}
+// (Стили leadingSlot-сводки `.nutrientsBtn/.nutrientsLine/.nutrientsMacros/.dot`
+// удалены 2026-06-19 вместе с NutrientsSummaryButton — сводка теперь полоса
+// NutrientsBar в конце списка.)
 
 // ─── TOD palette tokens ───────────────────────────────────────────────
 // Sets `--cta-*` on `.dockV2[data-tod=...]`. The `dark-pill-button()` mixin

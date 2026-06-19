@@ -50,13 +50,13 @@ const gramNutrientIds = new Set(allNutrientsList.filter((n) => n.unit === 'g').m
 // тегать имя-источник в карточке.
 const HERO_TITLE_VT_STYLE: CSSProperties = {};
 
-// NavTile ambient — radial-glow per nth-child. Общий anchor-ключ с
+// SwitcherTab ambient — radial-glow per nth-child. Общий anchor-ключ с
 // DishBuilderPage: переключение варианта в баре синхронно меняет подсветку
-// на обеих страницах. Дефолтная семантика тайла — в base-стилях NavTile.
+// на обеих страницах. Дефолтная семантика тайла — в base-стилях SwitcherTab.
 // Общий ключ с DishBuilderPage; переключение в баре синхронно меняет
 // подсветку на обеих страницах. Дефолт `ice-blue` (subtle cool glow,
 // согласуется с ProductAmbient.ice-blue фоном).
-const NAVTILE_AMBIENT_VARIANTS = [
+const SWITCHER_TAB_AMBIENT_VARIANTS = [
   'ice-blue',
   'paper-warm',
   'mint-fog',
@@ -130,7 +130,10 @@ const ProductPage = () => {
     [recomputeLabel],
   );
 
-  const { anchor: navTileAnchor } = useDesignVariant('NavTileAmbient', NAVTILE_AMBIENT_VARIANTS);
+  const { anchor: switcherTabAnchor } = useDesignVariant(
+    'SwitcherTabAmbient',
+    SWITCHER_TAB_AMBIENT_VARIANTS,
+  );
   const swipeableRef = useRef<SwipeableRef>(null);
 
   const isSupplementProduct = food?.servingBasis === 'serving';
@@ -152,7 +155,7 @@ const ProductPage = () => {
   // bandImg={false} — паритет с Home/Dish: крупная бледная картинка активного
   // экрана снята (юзер: «от этого уже ушли»). С правоприжатыми 2 плитками она
   // к тому же висела бы под пустой левой колонкой. Мелкие картинки в самих
-  // NavTile остаются.
+  // SwitcherTab остаются.
   const nutrientsIndicator = useMemo(
     () =>
       screens.length > 1 ? (
@@ -343,7 +346,12 @@ const ProductPage = () => {
   };
 
   return (
-    <div className={homeStyles.container}>
+    // NavSwitcher tab-as-title — каноничный облик табов экранов (как на HomePage):
+    // активный раздел = крупный заголовок, неактивные — тихие serif-указатели.
+    // Хардкод-атрибут (а не useDesignVariant) намеренно: облик зафиксирован, и не
+    // должен делить персист-ключ `dv:NavSwitcher` с HomePage (флип в DesignBar там
+    // иначе перекрашивал бы и эту страницу). Квадратная плитка ретайрнута 2026-06-19.
+    <div className={homeStyles.container} data-dv="NavSwitcher" data-dv-v="tab-as-title">
       <HomeTopBar
         date={dateForTopBar}
         backSlot={<BackButton to={backTo} />}
@@ -373,7 +381,7 @@ const ProductPage = () => {
           massWarningGrams={massWarningGrams}
         />
       )}
-      <div className={homeStyles.swipeArea} {...navTileAnchor}>
+      <div className={homeStyles.swipeArea} {...switcherTabAnchor}>
         {/* При смене количества слайдов (toggle "еда ↔ БАД" у своих продуктов
             прямо на странице) нужен ремаунт Embla — иначе selectedSnap может
             остаться на несуществующей странице. */}

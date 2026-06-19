@@ -48,10 +48,9 @@
 /* .nextLabel / .nextButton removed with the dead NextStepButton component. */
 
 // ── Назад / Далее — общий футер модалок ──────────────────────────────────
-// Полоса во всю ширину, прижата к низу. Левая — светлая заливка, правая —
-// ink-заливка. Шрифт Jost (не моно), оба угла прямые.
-.prevArrow,
-.nextArrow {
+// «Далее/Готово» теперь = `Button variant="primary"` (тёмный CTA-канон), сам
+// несёт вид и press. «Назад» (prevArrow) — светлая полоса, осталась как есть.
+.prevArrow {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -60,8 +59,9 @@
   border: none;
   cursor: pointer;
   padding: var(--space-5) 0 calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
-  // margin: var(--space-5);
   font-family: "Jost", "YS Text", "Golos Text", system-ui, sans-serif;
+  background: rgba(38, 38, 51, 0.1);
+  color: var(--color-ink);
   transition:
     background var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default),
@@ -77,40 +77,17 @@
   }
 }
 
-// Цветной отклик: светлая «Назад» заливается ink + белый текст; тёмная «Далее»
-// (заливка в ::before) затемняется фильтром.
+// Цветной отклик: светлая «Назад» заливается ink + белый текст.
 .prevArrow:active {
   background: var(--color-ink);
   color: var(--text-on-accent);
   transition-duration: var(--press-in);
 }
 
-.nextArrow:active::before {
-  filter: brightness(0.85);
-}
-
-.prevArrow {
-  background: rgba(38, 38, 51, 0.1);
-  color: var(--color-ink);
-}
-
-// Кнопка остаётся во всю ширину/высоту полосы — тач-зона и место в layout
-// не меняются. Видимая тёмная заливка рисуется псевдоэлементом, вставленным
-// внутрь с отступами, поэтому визуально кнопка «меньше с воздухом вокруг».
+// «Далее/Готово» — Button primary; здесь только footer-раскладка: зазор под
+// safe-area, чтобы тёмная пилюля не липла к нижней кромке экрана.
 .nextArrow {
-  position: relative;
-  background: transparent;
-  color: #fff;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: var(--space-1) var(--space-1) calc(var(--space-1) + env(safe-area-inset-bottom, 0px));
-    background: var(--color-ink);
-    border-radius: var(--radius-sm);
-    z-index: 0;
-    transition: filter var(--press-out) var(--easing-default);
-  }
+  margin-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .prevArrowLabel,

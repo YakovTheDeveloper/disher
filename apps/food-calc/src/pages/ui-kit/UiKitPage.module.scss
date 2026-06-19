@@ -22,6 +22,12 @@
   font-family: var(--font-sans);
 
   --uk-ink: #241836;
+  // §02 Apple-grade neutrals (lead UX/UI restraint): true text-black + secondary
+  // grey + hairline — drop the purple cast so the kit reads calm, like Apple docs.
+  --uk-ink-strong: #1d1d1f; // Apple primary text
+  --uk-secondary: #6e6e73; // Apple secondary text
+  --uk-hairline: rgba(0, 0, 0, 0.07);
+  --uk-danger: #d70015; // «не выяснено» — Apple red (when a button's суть is unknown)
   --uk-muted: rgba(60, 40, 90, 0.58);
   --uk-faint: rgba(60, 40, 90, 0.42);
   --uk-line: rgba(60, 40, 90, 0.1);
@@ -398,17 +404,6 @@
   font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
-.navTileGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 76px);
-  gap: var(--space-2);
-
-  > * {
-    width: 76px;
-    height: 76px;
-  }
-}
-
 .demoLi {
   list-style: none;
   padding: var(--space-3) var(--space-2);
@@ -484,6 +479,134 @@
   }
 }
 
+// ─── §02 Buttons — flat showcase ───────────────────────────────────────────────
+// No подложки, no cards, no vertical rules. Each component is a black-bold name
+// followed by a vertical list of rows: «вариант · вид · суть». Constrained to a
+// readable left column so the eye scans top-down (the user's skeleton).
+.kitBand {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  // Components sit further apart than the variants inside them — so a new
+  // component name reads as a fresh group (more air than between variants).
+  gap: calc(var(--space-12) + var(--space-6));
+  // Big air before each band — Apple-style section breathing room.
+  margin-top: var(--space-12);
+  // Comfortable measure: essence column lands ~60ch, not a banner.
+  max-width: 880px;
+}
+
+// Band title («Примитивы» / «Семантическое применение») — a clear subsection
+// header, deliberately well below the «Кнопки» section title in scale.
+.kitBandTitle {
+  margin: 0;
+  font-family: var(--heading-font);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: -0.014em;
+  line-height: 1.2;
+  color: var(--uk-ink-strong);
+}
+
+// One component block: name header + a stack of items.
+.kitComp {
+  display: flex;
+  flex-direction: column;
+}
+
+.kitCompHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.kitCompName {
+  font-family: var(--heading-font);
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--uk-ink-strong);
+}
+
+.kitCompNote {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--uk-secondary);
+}
+
+// One item — Apple gallery stacking: the live preview, then a caption
+// «variant — essence» directly under it. Grouping is by PROXIMITY, not rules:
+// the caption hugs its preview (tight gap), while generous air separates one
+// variant from the next — so nothing reads as detached. No hairlines.
+.kitItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  &:not(:last-child) {
+    margin-bottom: var(--space-12);
+  }
+}
+
+.kitItemStage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  // Even rhythm: short previews (link / icon buttons) get the same block height
+  // as the tall filled buttons, so the stack doesn't read as ragged.
+  min-height: 44px;
+
+  > button {
+    max-width: 240px;
+  }
+}
+
+// Tiny neutral chip behind a chrome primitive (BackButton / CloseButton) so the
+// transparent icon stays visible — not a card подложка.
+.kitItemStageDark > span,
+.kitItemStageDark > button {
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.kitItemCaption {
+  margin: 0;
+  max-width: 64ch;
+  font-size: var(--text-base);
+  line-height: 1.45;
+  color: var(--uk-secondary);
+}
+
+// Bold mono lead of the caption — the variant / mode name.
+.kitItemVariant {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--uk-ink-strong);
+}
+
+.kitItemDash {
+  color: var(--uk-secondary);
+  opacity: 0.5;
+}
+
+.kitBuiltOn {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--uk-secondary);
+  opacity: 0.72;
+}
+
+// Суть не выяснена — red flag in place of the essence.
+.kitItemUnknown {
+  font-weight: 600;
+  color: var(--uk-danger);
+}
+
 // ─── Anatomy blocks (inline, distributed per section) ──────────────────────────
 // Each block is the reasoned breakdown of ONE entity (parts table + critique +
 // improvement). Rendered via <AnatomyBlock> inside its section's specimen grid,
@@ -493,12 +616,20 @@
   margin-top: var(--space-2);
 }
 
-// Stage for the one live local-button sample inside the debt catalog block.
-.localLiveRow {
+// Live preview of a primitive inside an anatomy / debt-catalog table cell —
+// rendered under the type name. Caps full-width buttons (primary / submitBtn) so
+// they stay button-sized, and wraps multi-button previews (commit + cancel).
+.cellPreview {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
-  padding: var(--space-2) 0 var(--space-1);
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  max-width: 260px;
+
+  > button {
+    max-width: 100%;
+  }
 }
 
 // "Hand-maintained snapshot" disclaimer under the section heading — the table

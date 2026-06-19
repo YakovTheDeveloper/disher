@@ -1,0 +1,12 @@
+// Content owns padding (surface owns bg) — drawer-layout canon.
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 4px 20px 24px;
+}
+
+.title {
+    text-align: center;
+    text-wrap: balance;
+}

@@ -1,7 +1,7 @@
 .fields {
-    // Стандартные form-инпуты — мягкий прямоугольник (12px), не поисковая
-    // пилюля (24px). Наследуется в AutoGrowSearch `.shell` через var(--field-radius).
-    --field-radius: var(--radius-md);
+    // Стандартные form-инпуты — квадратный примитив (--radius-sm, 8px), не
+    // поисковая пилюля. Наследуется в AutoGrowSearch `.shell` через var(--field-radius).
+    --field-radius: var(--radius-sm);
     display: flex;
     flex-direction: column;
     gap: var(--space-5);
@@ -14,24 +14,12 @@
     gap: var(--space-2);
 }
 
-// Лейбл поля — serif italic, крупнее body, лёгкий по весу и чуть прозрачнее:
-// читается как подпись, а не как жирный микро-капс.
-.fieldLabel {
-    // Совпасть с внутренним инсетом пилюли AutoGrowSearch (--space-4), чтобы
-    // текст подписи стоял ровно над текстом значения — одна левая колонка.
+// Подпись поля — общий примитив FieldLabel (serif italic, тихий ярус). Локально
+// только инсет: выровнять текст подписи над текстом значения в пилюле
+// AutoGrowSearch (её внутренний горизонтальный инсет = --space-4). Селектор
+// `.field >` поднимает специфичность над дефолтным --space-1 у FieldLabel.
+.field > .labelInset {
     padding-left: var(--space-4);
-    font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
-    font-style: italic;
-    font-size: var(--heading-size-field);
-    font-weight: 400;
-    letter-spacing: 0;
-    color: var(--color-text-secondary);
-    opacity: 0.72;
-}
-
-.fieldLabelHint {
-    font-weight: 400;
-    opacity: 0.6;
 }
 
 .counter {

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Button } from '@/shared/ui/atoms/Button';
 import { useAuthStore } from './auth-store';
 import styles from './AuthForm.module.scss';
 
@@ -160,9 +161,9 @@ export function AuthForm({
               )}
             </div>
 
-            <button type="submit" className={styles.submitBtn} disabled={!emailValid}>
+            <Button variant="primary" type="submit" className={styles.submitBtn} disabled={!emailValid}>
               Продолжить
-            </button>
+            </Button>
           </form>
         ) : (
           <form onSubmit={handlePasswordSubmit} className={styles.form} noValidate>
@@ -187,26 +188,27 @@ export function AuthForm({
               )}
             </div>
 
-            <button
+            <Button
+              variant="primary"
               type="submit"
               className={styles.submitBtn}
               disabled={!passwordValid || isLoading}
             >
               {submitLabel}
-            </button>
+            </Button>
           </form>
         )}
       </div>
 
       <footer className={styles.footer}>
-        <button
-          type="button"
+        <Button
+          variant="link"
           className={styles.switchBtn}
           onClick={handleSwitchMode}
           disabled={isLoading}
         >
           {mode === 'signIn' ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти'}
-        </button>
+        </Button>
       </footer>
     </div>
   );

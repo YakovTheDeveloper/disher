@@ -100,11 +100,9 @@
   flex-shrink: 0;
 }
 
-// ─── DesignBar-вариант «tab-title-center» (флоу создания еды) ───────────
-// Заголовок шага = активный «masthead-таб»: крупный жирный sans, как у
-// HomePage-табов. data-dv висит на `.stepHeader` (предок). Специфичность
-// селектора перекрывает базовый `.header:not(.compact) .title` (28px).
-:global([data-dv='FoodCreateHeader'][data-dv-v='tab-title-center']) .header:not(.compact) .title {
-  @include nav-tab-active;
+// ─── Таб-метафора step-шапки (маркер data-nav-tabs на .stepHeader) ──────
+// Заголовок шага крупнее базового (28px → 32px). Сам голос (Onest bold-sans)
+// теперь несёт <Heading> по умолчанию — отдельный font-override не нужен.
+:global([data-nav-tabs]) .header:not(.compact) .title {
   font-size: var(--heading-size-modal);
 }

@@ -40,6 +40,7 @@ export const DailyNormButton = ({ className }: Props) => {
       label={label}
       icon={<FlagIcon width={25} height={25} />}
       iconPosition="start"
+      chevron
       onClick={open}
     />
   );

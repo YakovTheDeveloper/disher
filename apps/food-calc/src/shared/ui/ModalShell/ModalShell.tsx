@@ -1,45 +1,28 @@
 import type { ReactNode } from 'react';
 import s from './ModalShell.module.scss';
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalHeader } from '@/shared/ui/ModalHeader';
-// MODAL_SHELL_VARIANTS + ModalShellVariant live in ./variants so this module
-// stays component-only (a stray const export breaks React Fast Refresh).
-import { MODAL_SHELL_VARIANTS } from './variants';
 
-// ── ModalShell variant — the app-wide tone «law-giver» ───────────────────────
-// The ModalShell variant is no longer a modal-local override: it is the app's
-// single palette source. App.tsx registers this same anchor and publishes the
-// live variant on `body[data-modal-fields]`, so the variant's field/card/chip/
-// list tokens (ModalShell.module.scss → field-chip-palette + card-palette)
-// cascade across EVERY page and through Base UI portals. The old `data-surface`
-// warm/lavender axis dissolved into this (see tds/modalshell-lawgiver-2026-06-13).
+// ── ModalShell tone — a single fixed monochrome ──────────────────────────────
+// After the «great unification» (2026-06-19) ModalShell is no longer a switchable
+// design-variant: it carries one fixed `mono` tone. App.tsx publishes the same
+// tone statically on `body[data-modal-fields]='mono'`, so the field/card/chip/
+// list tokens (ModalShell.module.scss → field-chip-palette + card-palette) cascade
+// across EVERY page and through Base UI portals. This replaced the old
+// `data-surface` warm/lavender axis AND the earlier multi-variant law-giver.
 //
-// The ModalShell wrapper still carries its own `[data-dv='ModalShell']` for the
-// modal-only ambient (wash + orbs); same store key → same variant → it always
-// matches the page. The first entry is the production default (`useDesignVariant`
-// fallback). The legacy `variant` prop is still ACCEPTED for source
-// compatibility but no longer drives styling.
-//
-// 2026-06-13 — converged on the TOP-CLUSTER aesthetic: every variant is a
-// two/three-hue transition with orbs in the upper region (bottom clean, like
-// HomePage HomeAmbient). The earlier base/near-white/single-hue forks were
-// dropped entirely from both the bar AND the SCSS palette maps (the store
-// self-heals a stale localStorage variant → variants[0], so deletion is safe).
-// Set = 4 calm keepers + 6 vivid. Palettes + geometry: ModalShell.module.scss.
-// `variant` is vestigial: ~19 call sites still pass variant="spring2"/"spring4"
-// for source compatibility, but ModalShell ignores it (the tone comes from the
-// global useDesignVariant('ModalShell') store). Typed as a bare string so
-// curating MODAL_SHELL_VARIANTS above doesn't break those legacy callers.
+// The wrapper carries a STATIC `[data-dv='ModalShell'][data-dv-v='mono']` for its
+// own ambient (wash + desaturated orbs). It no longer registers with
+// `useDesignVariant`, so ModalShell does NOT appear in the DesignVariantsBar.
+// The legacy `variant` prop is still ACCEPTED for source compatibility (~19 call
+// sites pass variant="spring2"/etc.) but is fully ignored.
 type Props = { children: ReactNode; className?: string; variant?: string };
 
 export const ModalShell = ({ children, className }: Props) => {
-  const { anchor } = useDesignVariant('ModalShell', MODAL_SHELL_VARIANTS);
-
   return (
-    <div className={`${s.wrapper} ${className ?? ''}`} {...anchor}>
+    <div className={`${s.wrapper} ${className ?? ''}`} data-dv="ModalShell" data-dv-v="mono">
       <div className={s.springOrbs} aria-hidden>
         <span className={`${s.orb} ${s.orb1}`} />
         <span className={`${s.orb} ${s.orb2}`} />

@@ -2,7 +2,8 @@ import { memo, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Screen, type TopBarHideTarget } from '@/shared/ui/Screen';
 import { AppBottomBarShell } from '@/shared/ui/AppBottomBar/AppBottomBarShell';
-import { Masthead } from '@/shared/ui/atoms/Typography/Masthead';
+import { Heading } from '@/shared/ui/atoms/Typography';
+import { Button } from '@/shared/ui/atoms/Button';
 import ListIcon from '@/shared/assets/icons/list.svg?react';
 import { AnalysisCtaButton } from '@/features/analysis/AnalysisCtaButton';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
@@ -25,15 +26,16 @@ const Laboratory = ({ date, topSlot, topBarHide }: Props) => {
   const hasDaily = useDailyAnalysisStore((s) => Boolean(s.byDate[date]));
   const navigate = useNavigate();
 
+  // «Мои открытия» ведёт на /discoveries → канон-вариант `link` (навигация,
+  // тихая подчёркнутая ссылка-кнопка с ведущей иконкой), не белая пилюля.
   const discoveriesButton = (
-    <button
-      type="button"
-      className={styles.discoveriesBtn}
+    <Button
+      variant="link"
+      icon={<ListIcon width={18} height={18} />}
       onClick={() => navigate('/discoveries')}
     >
-      <ListIcon width={18} height={18} />
       Мои открытия
-    </button>
+    </Button>
   );
 
   return (
@@ -55,7 +57,7 @@ const Laboratory = ({ date, topSlot, topBarHide }: Props) => {
       topBarHide={topBarHide}
     >
       <div className={styles.container}>
-        <Masthead as="h2">Анализ</Masthead>
+        <Heading size="masthead" as="h2">Анализ</Heading>
         {hasDaily ? (
           /* Лоадер анализа (гравюрный, канон tds/art-loader-canon.md) вшит в
              DailyAnalysisSection и показывается при status==='loading'. */

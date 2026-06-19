@@ -18,6 +18,9 @@ export interface PersistedParseState {
   startedAt: number;
   requestId: string;
   intake?: ParseIntake;
+  // Optional «Уточнения» comment that accompanied a 'dishName' intake. Persisted
+  // so a reload-during-loading restore re-submits with the same clarification.
+  comment?: string;
 }
 
 function storageAvailable(): boolean {

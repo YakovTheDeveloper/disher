@@ -47,6 +47,23 @@ const fetchers = [
   },
 ] as const;
 
+describe('parseDishName — «Уточнения» comment', () => {
+  it('includes a trimmed comment in the body when provided', async () => {
+    mockFetch.mockResolvedValue(jsonRes(200, emptyParse));
+    await parseDishName('плов', '  вегетарианский  ');
+    const body = JSON.parse(String(mockFetch.mock.calls[0]?.[1]?.body));
+    expect(body).toEqual({ dishName: 'плов', comment: 'вегетарианский' });
+  });
+
+  it('omits the comment key entirely when empty/whitespace (preserves the no-comment cache key)', async () => {
+    mockFetch.mockResolvedValue(jsonRes(200, emptyParse));
+    await parseDishName('плов', '   ');
+    const body = JSON.parse(String(mockFetch.mock.calls[0]?.[1]?.body));
+    expect(body).toEqual({ dishName: 'плов' });
+    expect('comment' in body).toBe(false);
+  });
+});
+
 for (const f of fetchers) {
   describe(f.name, () => {
     it('returns the parsed response on 200', async () => {

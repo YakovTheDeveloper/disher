@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import { AnalysisResult } from '@/features/analysis/AnalysisResult';
 import { FabricLoader } from '@/features/analysis/FabricLoader';
+import Button from '@/shared/ui/atoms/Button/Button';
 import { useDishAnalysis } from '../../api/queries';
 import { runDishAnalysis, type DishAnalysisResult } from '../../api/runDishAnalysis';
 import styles from './DishAnalysisScreen.module.scss';
@@ -108,14 +109,13 @@ const DishAnalysisScreen = ({ dishId, hasIngredients }: Props) => {
           ощущение, для каких целей блюдо подходит, плюс отметит удачные и
           неудачные связки нутриентов.
         </p>
-        <button
-          type="button"
-          className={styles.runButton}
+        <Button
+          variant="brand"
           onClick={handleRun}
           disabled={!isOnline || !hasIngredients}
         >
           Проанализировать
-        </button>
+        </Button>
         {!hasIngredients && (
           <p className={styles.disabledHint}>
             Добавьте хотя бы один ингредиент.
@@ -143,14 +143,14 @@ const DishAnalysisScreen = ({ dishId, hasIngredients }: Props) => {
           showDays={false}
         />
       )}
-      <button
-        type="button"
-        className={styles.rerunButton}
+      <Button
+        variant="brand"
+        className={styles.rerunSlot}
         onClick={handleRun}
         disabled={!isOnline || !hasIngredients}
       >
         {status === 'error' ? 'Повторить' : 'Перезапустить разбор'}
-      </button>
+      </Button>
     </div>
   );
 };

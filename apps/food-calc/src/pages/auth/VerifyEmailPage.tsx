@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authClient } from '@/shared/lib/auth/betterAuthClient';
+import { Button } from '@/shared/ui/atoms/Button';
 import { useAuthStore } from '@/features/auth/auth-store';
 import authScreenStyles from '@/features/auth/AuthScreen.module.scss';
 import authFormStyles from '@/features/auth/AuthForm.module.scss';
@@ -84,8 +85,8 @@ export default function VerifyEmailPage() {
         {(state.kind === 'error' || state.kind === 'no-token') && (
           <div className={authFormStyles.formWrap}>
             <div className={authFormStyles.form}>
-              <button
-                type="button"
+              <Button
+                variant="primary"
                 className={authFormStyles.submitBtn}
                 onClick={() => {
                   clearPending();
@@ -93,7 +94,7 @@ export default function VerifyEmailPage() {
                 }}
               >
                 На главную
-              </button>
+              </Button>
             </div>
           </div>
         )}

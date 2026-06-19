@@ -5,7 +5,7 @@
   flex-direction: column;
   height: 100dvh;
   width: 100%;
-  background: rgb(244, 251, 255);
+  background: #f0f1f4;
 }
 
 .springOrbs {
@@ -36,16 +36,16 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-// ── ModalShell ambient background — DesignBar-driven ─────────────────────────
-// ModalShell wraps its content in one `useDesignVariant('ModalShell', …)` anchor
-// (ModalShell.tsx); the DesignVariantsBar flips the wrapper wash + orb palette
-// globally for every mounted modal at once. The attribute selector is GLOBAL
-// (Base UI renders modals through a portal); `.springOrbs` / `.orb*` stay
-// CSS-module-scoped. spring/spring5/gradient — удалены после канона 2026-05-21.
+// ── ModalShell ambient background — single monochrome tone ───────────────────
+// After the «great unification» (2026-06-19) ModalShell is no longer a switchable
+// design-variant: it carries one fixed `mono` tone, set statically as
+// `[data-dv='ModalShell'][data-dv-v='mono']` on the wrapper (ModalShell.tsx) — it
+// is NOT registered with the DesignVariantsBar anymore. The attribute selector is
+// GLOBAL (Base UI renders modals through a portal); `.springOrbs` / `.orb*` stay
+// CSS-module-scoped.
 //
-// Geometry (orb size + position) is shared across all variants — each variant
-// only re-colours the 5 orbs + the wrapper wash. Add a palette by appending a
-// row to $modal-shell-variants below AND to MODAL_SHELL_VARIANTS in the .tsx.
+// Geometry (orb size + position) is shared — the single `mono` palette below only
+// colours the 5 orbs + the wrapper wash.
 [data-dv='ModalShell'] {
   position: relative;
   overflow: hidden;
@@ -69,26 +69,20 @@
   }
 }
 
-// Each palette = (wrapper wash, orb opacity, 5×(inner, outer) orb gradient stops).
-// `background` is intentionally NOT token-gated (stripe-fork canon). Every variant
-// is a TOP-CLUSTER, two/three-hue transition: orbs walk the variant's hues along
-// the spatial path orb2 → orb4 → orb5 → orb3 → orb1 (far-left → far-right), so the
-// seams blend like the original lavender-cream / HomePage HomeAmbient. The
-// transparent-feather + dither (above) keep them band-free.
+// Palette = (wrapper wash, orb opacity, 5×(inner, outer) orb gradient stops).
+// `background` is intentionally NOT token-gated (stripe-fork canon). After the
+// «great unification» (2026-06-19) there is a single MONOCHROME tone: a faintly
+// gray page (`#f0f1f4`, kin to SearchFood `--search-page-bg`) with five
+// desaturated orbs giving a barely-there light/dark unevenness — a couple of
+// them lean LIGHTER than the wash (toward white), the rest a touch DARKER
+// (toward `#e6e6ea`), and the top cluster carries a whisper of lavender echo
+// (`rgba(225,215,245,…)`, the SearchFood `--search-ambient-top` hue) so the top
+// glow ties the screen to the search step. Orbs still walk the spatial path
+// orb2 → orb4 → orb5 → orb3 → orb1 (far-left → far-right). The transparent-
+// feather + dither (above) keep them band-free.
 $modal-shell-variants: (
-  // ── Calm set (the 4 keepers) ──────────────────────────────────────────────
-  'lavender-cream-top': (rgba(253, 252, 255, 0.94), 0.5,
-    ((#fff6e0, #ffe9b8), (#ece4fb, #cdb8f3), (#fff3e6, #ffe4c2), (#f0e9fc, #d8c8f5), (#f4eefe, #e0d2f8))),
-  'peach-lilac-top': (rgba(255, 253, 254, 0.94), 0.48,
-    ((#eee4fb, #d3c0f2), (#ffe7d6, #ffcaa6), (#f2e9fc, #dccdf5), (#fff0e6, #ffd9bf), (#f6ecf3, #e6cfe0))),
-  'dove-sage-top': (rgba(254, 255, 254, 0.95), 0.42,
-    ((#eef1f7, #d0d8e6), (#eef6ec, #cfe6c8), (#f2f5f9, #dae0eb), (#f2f8f0, #d8ecd2), (#eef4f1, #d4e0d8))),
-  'rose-amber-top': (rgba(255, 253, 251, 0.93), 0.46,
-    ((#ffe2ea, #ffc0d2), (#ffe9d2, #ffd2a2), (#ffe8ef, #ffccda), (#fff0e0, #ffdcb4), (#ffe8e4, #ffccc0))),
-  // ── Soft — gentle morning-light vibe (sun through a summer window). The one
-  // keeper from the soft set: pale lavender → periwinkle → warm cream.
-  'morning-lavender-top': (rgba(254, 253, 255, 0.94), 0.44,
-    ((#fdf4e2, #eedcbc), (#eee8fa, #d2c8ee), (#ece8f6, #d0cce8), (#f2ecfa, #dcd2ee), (#e8eafa, #cccef0))),
+  'mono': (#f0f1f4, 0.4,
+    ((#fbfbfd, #f4f4f7), (#eef0f4, #e6e7ec), (#f3f1f9, #e7e3f2), (#f7f7fa, #ececf0), (#f4f2fa, #e4dff1))),
 );
 
 @each $name, $cfg in $modal-shell-variants {
@@ -112,19 +106,19 @@ $modal-shell-variants: (
   }
 }
 
-// ── ModalShell-variant-driven field & chip palette (app-wide tone) ───────────
+// ── ModalShell field & chip palette (app-wide tone) ──────────────────────────
 // The interactive widgets (AutoGrowSearch / TimeChoose / the ProductQuantity
 // surface / DetailsChips) read their colours off `--field-*` / `--chip-*`
 // instead of hard-coding them. These tokens are published APP-WIDE: App.tsx sets
-// the live variant on `<body data-modal-fields>` (the tokens-only attribute, no
-// ambient), so the whole page — not just modals — follows the DesignBar pick.
-// The ModalShell wrapper also carries `[data-dv='ModalShell'][data-dv-v]` (same
-// store key → same variant) for its own ambient orbs. This replaced the old
-// `data-surface` warm/lavender axis: ModalShell is now the tone «law-giver»
-// (tds/modalshell-lawgiver-2026-06-13). The `card-palette` mixin below extends
-// the same variant to the stripe-fork `--card-*`/`--list-*` surface tokens.
+// the fixed `mono` tone on `<body data-modal-fields>` (the tokens-only attribute,
+// no ambient), so the whole page — not just modals — shares one monochrome tone.
+// The ModalShell wrapper also carries `[data-dv='ModalShell'][data-dv-v='mono']`
+// for its own ambient orbs. This replaced the old `data-surface` warm/lavender
+// axis AND the earlier multi-variant law-giver: ModalShell is now a single fixed
+// tone (the «great unification», 2026-06-19). The `card-palette` mixin below
+// extends the same inputs to the stripe-fork `--card-*`/`--list-*` surface tokens.
 //
-// One palette is derived from a few inputs per variant via `field-chip-palette`,
+// The palette is derived from a few inputs via `field-chip-palette`,
 // mirroring the alpha ladder of the warm/lavender surfaces (surfaces.scss):
 //   placeholder .45 · adornment .55 · hairline .18 / focus .36 · shadow .06/.12
 //   · digit-shadow .14 · chip hover-border .24 · chip-active-border .5 · sep .14
@@ -136,7 +130,7 @@ $modal-shell-variants: (
 //         $dark  — (from, mid, to) — dark stops of the active/filled chip inversion
 //         $on-dark — text on the active chip
 @mixin field-chip-palette($text, $ink, $accent, $pill, $dark, $on-dark) {
-  --field-radius: 24px;
+  --field-radius: var(--radius-sm);
   --field-bg-from: #{list.nth($pill, 1)};
   --field-bg-mid: #{list.nth($pill, 2)};
   --field-bg-to: #{list.nth($pill, 3)};
@@ -162,11 +156,11 @@ $modal-shell-variants: (
   --chip-separator: #{rgba($ink, 0.14)};
 }
 
-// ── ModalShell-variant-driven CARD & LIST palette (stripe-fork surfaces) ─────
-// Card/list tokens (--card-*/--list-*) derived from the SAME variant inputs as
-// field-chip-palette. Emitted alongside it so a single DesignBar pick paints
-// page rows/cards too — ModalShell is the app-wide tone «law-giver» (the old
-// `data-surface` warm/lavender axis dissolved into the variant; published on
+// ── ModalShell CARD & LIST palette (stripe-fork surfaces) ────────────────────
+// Card/list tokens (--card-*/--list-*) derived from the SAME inputs as
+// field-chip-palette. Emitted alongside it so the single fixed `mono` tone paints
+// page rows/cards too — ModalShell is the app-wide tone source (the old
+// `data-surface` warm/lavender axis dissolved into it; published on
 // `<body data-modal-fields>` from App.tsx). Mirrors the structure that used to
 // live in surfaces.scss: tinted edge on the LEFT fading to near-white RIGHT,
 // fading hairline from $ink, accent-tinted hover/active, dark-stop press
@@ -197,17 +191,16 @@ $modal-shell-variants: (
 }
 
 // (text, ink, accent, (pill ×3), (dark from, mid, to), on-dark).
-// The active-chip mid stop is the rounded per-channel average of from/to —
-// precomputed (not `color.mix`) so the emitted CSS has integer rgb.
+// Single MONOCHROME tone (the «great unification», 2026-06-19): neutral-gray
+// `text`/`ink` so the field hairlines, shadows, card hairline and chip
+// separators stay achromatic; a dusty-lavender `accent` (`#877f9c`) so the one
+// chromatic signal — caret, chip-rest border, card active text — reads as a
+// barely-there lavender echo of the top glow rather than a loud hue. `pill`
+// stops are near-white with a whisper of lavender; the `dark` press stops match
+// SearchFood's `--card-press-bg` (`#1f1f1f → #353535`). The active-chip mid stop
+// is the rounded per-channel average of from/to (integer rgb in the emitted CSS).
 $modal-shell-field-chip: (
-  // ── Calm set (4 keepers) — QUIET tokens (soft accent) so colour lives in the
-  // top glow, not in loud component borders. ──────────────────────────────────
-  'lavender-cream-top': (#241836, #4a3a63, #8a72b8, (#fdfcff, #f7f4fc, #efeafa), (#241836, #352450, #46306a), #f1ecfa),
-  'peach-lilac-top':    (#2a1f28, #574459, #a87fa0, (#fffdff, #faf5f8, #f2ebf0), (#281c26, #3c2b3b, #503a50), #f3ebf1),
-  'dove-sage-top':      (#1c2622, #3e4c44, #6f8a78, (#fdfefd, #f5f9f6, #ecf2ee), (#1a231e, #2a372f, #3a4a40), #eef3ef),
-  'rose-amber-top':     (#2a1a18, #5a3e3c, #c77f7a, (#fffcfb, #fdf3f1, #f6e7e3), (#281816, #3c2421, #50302c), #f6e8e4),
-  // ── Soft (1 keeper) — QUIET muted lavender to match the morning-light orbs.
-  'morning-lavender-top':  (#221c30, #463e64, #857aae, (#fdfcff, #f6f4fc, #ece8f8), (#201a2c, #322c46, #464060), #efeafa),
+  'mono': (#1d1d1f, #2c2c30, #877f9c, (#fdfcfe, #f6f5f8, #eeedf1), (#1f1f1f, #2a2a2a, #353535), #ffffff),
 );
 
 // Two entry points share one palette:
@@ -218,8 +211,8 @@ $modal-shell-field-chip: (
 //     the `[data-dv='ModalShell']` ambient baggage (orbs / position /
 //     backdrop-filter — the latter would create a containing block and break the
 //     fixed-position modal expansion). Consumers spread it on a `display:contents`
-//     wrapper so the field/chip palette follows the live variant without changing
-//     layout.
+//     wrapper so the field/chip palette stays in colour with ModalShell without
+//     changing layout.
 @each $name, $p in $modal-shell-field-chip {
   [data-dv='ModalShell'][data-dv-v='#{$name}'],
   [data-modal-fields='#{$name}'] {

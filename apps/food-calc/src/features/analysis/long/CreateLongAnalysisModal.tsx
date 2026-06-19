@@ -2,6 +2,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import type { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
+import CloseButton from '@/shared/ui/atoms/Button/CloseButton/CloseButton';
 import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
 import { useAllHypotheses } from '@/entities/hypothesis';
 import HypothesisListPanel from '@/widgets/Laboratory/HypothesisListPanel';
@@ -80,14 +81,7 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
       <div className={styles.shell}>
         <header className={styles.header}>
           <h2 className={styles.title}>Разбор по неделям</h2>
-          <button
-            type="button"
-            className={styles.closeButton}
-            onClick={() => onClose()}
-            aria-label="Закрыть"
-          >
-            ×
-          </button>
+          <CloseButton onClick={() => onClose()} />
         </header>
 
         {/* Single scroll container — the list flows (maxBodyHeight='none') so the

@@ -74,8 +74,12 @@
     left: 0;
     right: 0;
     max-height: 100svh;
-    border-top-left-radius: var(--radius-lg);
-    border-top-right-radius: var(--radius-lg);
+    // Крупное «листовое» скругление верхних углов — тот же радиус, что у листа
+    // Screen `headerOverlap` на HomePage (--radius-2xl, 40px). Единый силуэт
+    // «листа» между нижними drawer'ами и Screen-обвязкой. Side-drawer'ы (left/
+    // right) держат свой --radius-lg намеренно.
+    border-top-left-radius: var(--radius-2xl);
+    border-top-right-radius: var(--radius-2xl);
     box-shadow: 0px -2px 4px rgba(0, 0, 0, 0.03);
     padding-bottom: env(safe-area-inset-bottom, 0px);
 

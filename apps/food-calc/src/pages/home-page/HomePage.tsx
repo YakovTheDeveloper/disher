@@ -29,7 +29,7 @@ const SCREENS: ScreenEntry[] = [
 // HomePage — Dish/AtomBuilder не затронуты). Первый в массиве = живой дефолт →
 // `tray-pill-bleed-hero`: hero-обложка-гравюра сверху + короткие текст-табы БЕЗ
 // трея-подложки, утопленные в нижний fade обложки (верхний блок = единая рамка).
-// Базовый облик HomePage. CSS: NavTile.module.scss (внутренности плитки/пилюли) +
+// Базовый облик HomePage. CSS: SwitcherTab.module.scss (внутренности плитки/пилюли) +
 // ScreenIndicator.module.scss (трей/fade-лифт) + HomeHero.module.scss (обложка),
 // всё под `[data-dv='NavSwitcher']`.
 //   tray-pill-bleed-hero  — БАЗА: графика в Hero сверху, пилюли — чистый текст,
@@ -74,7 +74,7 @@ const NAV_SWITCHER_VARIANTS = [
 const SHEET_MATERIAL_VARIANTS = ['band', 'dissolve'] as const;
 
 // Облик подписей табов (small-caps serif + чернильная линейка под активным)
-// вшит как канон прямо в NavTile.module.scss под структурой NavSwitcher hero —
+// вшит как канон прямо в SwitcherTab.module.scss под структурой NavSwitcher hero —
 // бывшая DEV-ось `HomeTabs` убрана из DesignBar (выбран smallcaps-rule).
 
 const DEFAULT_SLIDE = 1;
@@ -101,7 +101,7 @@ const Page = ({ date }: { date: string }) => {
 
   const swipeableRef = useRef<SwipeableRef>(null);
 
-  // Anchor для аудита affordance NavTile-табов (см. NAV_SWITCHER_VARIANTS).
+  // Anchor для аудита affordance SwitcherTab-табов (см. NAV_SWITCHER_VARIANTS).
   // Висит на `.swipeArea` — общий предок всех трёх слайдов → одним атрибутом
   // покрывает плитки во всех табах, и только на HomePage.
   const { anchor: navSwitcherAnchor } = useDesignVariant('NavSwitcher', NAV_SWITCHER_VARIANTS);

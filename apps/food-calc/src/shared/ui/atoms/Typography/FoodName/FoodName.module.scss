@@ -16,3 +16,13 @@
 .capitalize {
     text-transform: capitalize;
 }
+
+// Раньше давал примитив Typography (ellipsis-проп); теперь FoodName свой.
+.ellipsis {
+    display: block;
+    min-width: 0;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

@@ -194,6 +194,10 @@
 .switchBtn {
   font-family: var(--font-sans);
   font-size: var(--text-sm);
+  // Через Button variant="link": размер пробрасываем токеном, чтобы не зависеть
+  // от порядка каскада (.link vs .switchBtn — обе single-class). Палитру держит
+  // .switchBtn + theme-блоки [data-auth-theme] (выше по специфичности).
+  --btn-font-size: var(--text-sm);
   font-weight: 500;
   padding: var(--space-3) var(--space-4);
   border: none;

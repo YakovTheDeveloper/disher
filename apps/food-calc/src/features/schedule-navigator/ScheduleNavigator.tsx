@@ -1,9 +1,11 @@
 import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Accordion } from '@base-ui/react/accordion';
 import { addDays, differenceInCalendarDays, format, isSameDay, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import { deriveFilledDates, useFilledDateKeys, useToday } from './hooks';
-import { computePastFilledAsc, DATE_FORMAT, groupByMonth, parseKeys, type ParsedDay } from './lib';
+import { DATE_FORMAT, groupByMonth, parseKeys, type ParsedDay } from './lib';
 import type { DateStr } from './model';
 import s from './ScheduleNavigator.module.scss';
 
@@ -12,10 +14,34 @@ interface Props {
   selectedDate?: DateStr;
 }
 
-// Stable controlled-value arrays for the past-days accordion — single item
-// keyed "past". Hoisted so the Root prop identity is stable across renders.
-const PAST_OPEN = ['past'];
-const PAST_CLOSED: string[] = [];
+type NavTab = 'quick' | 'active';
+
+// Два режима навигатора как ряд табов HomePage. Index ↔ tab по порядку.
+// «Навигация» — якоря вчера/сегодня/завтра (частый прыжок); «Активные дни» —
+// все дни с записями чипами. Дефолт — всегда 'quick'.
+const NAV_TAB_ORDER: NavTab[] = ['quick', 'active'];
+const NAV_SCREENS: ScreenEntry[] = [
+  { label: 'Быстрая навигация', titleStyle: 'display-sans' },
+  { label: 'Активные дни', titleStyle: 'display-sans' },
+];
+
+// Доля высоты окна, до которой активная панель слайдера может расти, прежде чем
+// начнёт скроллиться внутри (drawer «дышит» под текущую панель до этого потолка).
+const PANEL_MAX_VH = 0.56;
+
+// Тот же anchor и список вариантов, что у HomePage (`pages/home-page/HomePage`).
+// `useDesignVariant` хранит выбор глобально по ключу 'NavSwitcher', поэтому
+// переключение варианта в DesignBar меняет облик табов HomePage И этого drawer'а
+// разом. Первый элемент = живой дефолт = 'tab-as-title' (активный раздел =
+// крупный заголовок own-line, неактивный — тихий указатель ниже). Массив зеркалит
+// HomePage; держать в синхроне (FSD не даёт импортить из pages).
+const NAV_SWITCHER_VARIANTS = [
+  'tab-as-title',
+  'tab-as-title-center',
+  'tab-inplace',
+  'tab-numerals',
+  'tab-numerals-left',
+] as const;
 
 // ─── DayRow (anchors — full-width, three of them) ──────────────────────────
 interface DayRowProps {
@@ -28,6 +54,7 @@ interface DayRowProps {
 
 const DayRow = memo(function DayRow({ day, today, isFilled, isSelected, onSelect }: DayRowProps) {
   const handleClick = useCallback(() => onSelect(day.dateStr), [day.dateStr, onSelect]);
+  const { pressed, pressProps } = usePressFeedback();
 
   const isToday = isSameDay(day.date, today);
   const diff = differenceInCalendarDays(day.date, today);
@@ -49,16 +76,37 @@ const DayRow = memo(function DayRow({ day, today, isFilled, isSelected, onSelect
     .join(' ');
 
   return (
-    <button type="button" className={className} onClick={handleClick} data-date={day.dateStr}>
-      <span className={s.dayAccent} aria-hidden />
-      {relativeLabel && <span className={s.dayRelative}>{relativeLabel}</span>}
-      {/* HomeTopBar date pattern: big serif day + tiny stacked weekday/month. */}
-      <span className={s.dayNumeral}>
-        <span className={s.dayNumeralDay}>{dayNumber}</span>
-        <span className={s.dayNumeralMeta}>
-          <span>{weekday}</span>
-          <span>{monthLong}</span>
+    <button
+      type="button"
+      className={className}
+      onClick={handleClick}
+      data-date={day.dateStr}
+      data-pressed={pressed || undefined}
+      {...pressProps}
+    >
+      <span className={s.dayItem}>
+        {/* Left slot — exact date (HomeTopBar numeral pattern). Sits where the
+            SearchFood food card shows its round thumbnail («вместо кружков»). */}
+        <span className={s.dateSlot}>
+          <span className={s.dateDay}>{dayNumber}</span>
+          <span className={s.dateMeta}>
+            <span>{weekday}</span>
+            <span>{monthLong}</span>
+          </span>
         </span>
+        {/* Centre — the relative word is the card «name». */}
+        {relativeLabel && <span className={s.dayName}>{relativeLabel}</span>}
+        {/* Right — trailing chevron (replaces the ⓘ info button). */}
+        <svg className={s.dayChevron} viewBox="0 0 16 16" width="16" height="16" aria-hidden>
+          <path
+            d="M6 4l4 4-4 4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </span>
     </button>
   );
@@ -97,6 +145,36 @@ export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
   const today = useToday();
   const filledKeys = useFilledDateKeys();
 
+  // Дефолт — всегда «Быстрая навигация» (якоря). «Активные дни» — явный тап/свайп.
+  const [tab, setTab] = useState<NavTab>('quick');
+  const { anchor: navAnchor } = useDesignVariant('NavSwitcher', NAV_SWITCHER_VARIANTS);
+
+  // Горизонтальный CSS scroll-snap слайдер: viewport со снапом + две панели по
+  // 100% ширины. Таб ↔ панель синхронизированы в обе стороны (клик скроллит,
+  // свайп обновляет таб). Высота viewport «дышит» под активную панель.
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const quickInnerRef = useRef<HTMLDivElement>(null);
+  const activeInnerRef = useRef<HTMLDivElement>(null);
+  const [viewportH, setViewportH] = useState<number>();
+
+  // Клик по табу → плавный снап к его панели. setTab — оптимистично; свайп всё
+  // равно подтвердит через onViewportScroll.
+  const handleTabSelect = useCallback((i: number) => {
+    setTab(NAV_TAB_ORDER[i] ?? 'quick');
+    const vp = viewportRef.current;
+    if (vp) vp.scrollTo({ left: i * vp.clientWidth, behavior: 'smooth' });
+  }, []);
+
+  // Свайп → активный таб по ближайшей панели (functional-guard гасит лишние
+  // ре-рендеры на каждом scroll-тике).
+  const onViewportScroll = useCallback(() => {
+    const vp = viewportRef.current;
+    if (!vp || vp.clientWidth === 0) return;
+    const idx = Math.round(vp.scrollLeft / vp.clientWidth);
+    const next = NAV_TAB_ORDER[idx] ?? 'quick';
+    setTab((prev) => (prev === next ? prev : next));
+  }, []);
+
   const todayStr = useMemo(() => format(today, DATE_FORMAT), [today]);
   const yesterdayStr = useMemo(() => format(subDays(today, 1), DATE_FORMAT), [today]);
   const tomorrowStr = useMemo(() => format(addDays(today, 1), DATE_FORMAT), [today]);
@@ -104,8 +182,11 @@ export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
   const filledAsc = useMemo(() => parseKeys(filledKeys), [filledKeys]);
   const filledSet = useMemo(() => deriveFilledDates(filledKeys), [filledKeys]);
 
-  const pastFilledAsc = useMemo(() => computePastFilledAsc(filledAsc, today), [filledAsc, today]);
-  const pastGroups = useMemo(() => groupByMonth(pastFilledAsc), [pastFilledAsc]);
+  // «Активные дни» = ВСЕ дни с записями (прошлое + сегодня + будущее),
+  // сгруппированы по месяцам ascending. В отличие от прежнего accordion'а
+  // (только past) фильтр past-only снят — семантика таба = «есть данные».
+  const activeGroups = useMemo(() => groupByMonth(filledAsc), [filledAsc]);
+  const hasActive = filledAsc.length > 0;
 
   const yesterday = useMemo(() => subDays(today, 1), [today]);
   const anchors: ParsedDay[] = useMemo(
@@ -119,30 +200,16 @@ export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
 
   const handleSelect = useCallback((dateStr: DateStr) => onSelect(dateStr), [onSelect]);
 
-  // After hydration: if selectedDate is inside the past chips, centre it; else
-  // pin scroll to the bottom so the newest past day sits flush against the
-  // anchor block. Without this branch a far-in-past selectedDate would be
-  // silently invisible if it scrolled outside the visible area.
-  const pastSectionRef = useRef<HTMLDivElement>(null);
-  const hasPast = pastFilledAsc.length > 0;
-
-  // Past days hide behind a «Показать прошлые дни» accordion — the drawer stays
-  // compact (just the yesterday/today/tomorrow anchors) until the user opens it.
-  // The accordion ALWAYS starts closed, even when the selected day lives in the
-  // past — the compact view is the deliberate default; opening it is an explicit
-  // tap. `selectedInPast` still feeds the scroll-into-view below so that, once
-  // the user opens the accordion, a past selection is centred rather than left
-  // off-screen.
-  const [openPast, setOpenPast] = useState(false);
-  const selectedInPast = !!selectedDate && pastFilledAsc.some((d) => d.dateStr === selectedDate);
+  // Active-days scroll: if selectedDate is among the active days, centre it on
+  // tab mount; otherwise pin scroll to the bottom so the newest day is visible.
+  const activeSectionRef = useRef<HTMLDivElement>(null);
+  const selectedInActive = !!selectedDate && filledSet.has(selectedDate);
 
   // Directional fade hints: fade the top edge only when content is scrolled
-  // above the fold, fade the bottom edge only when there's more below. A
-  // static top-only mask (the previous approach) hid the "more below" signal
-  // whenever you scrolled up to the oldest dates.
+  // above the fold, fade the bottom edge only when there's more below.
   const [fades, setFades] = useState({ top: false, bottom: false });
   const updateFades = useCallback(() => {
-    const wrap = pastSectionRef.current;
+    const wrap = activeSectionRef.current;
     if (!wrap) return;
     const { scrollTop, scrollHeight, clientHeight } = wrap;
     const top = scrollTop > 1;
@@ -151,11 +218,11 @@ export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
   }, []);
 
   useLayoutEffect(() => {
-    // The panel is unmounted while collapsed (ref is null), so this only runs
-    // once the accordion is open and the chips are in the DOM.
-    const wrap = pastSectionRef.current;
-    if (!wrap || !hasPast || !openPast) return;
-    if (selectedInPast) {
+    // The active section is mounted only while its tab is open (ref is null on
+    // the quick tab), so this runs when the user switches to «Активные дни».
+    const wrap = activeSectionRef.current;
+    if (!wrap || tab !== 'active' || !hasActive) return;
+    if (selectedInActive) {
       const target = wrap.querySelector<HTMLElement>(`[data-date="${selectedDate}"]`);
       if (target) {
         target.scrollIntoView({ block: 'center', behavior: 'auto' });
@@ -165,48 +232,79 @@ export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
     }
     wrap.scrollTop = wrap.scrollHeight;
     updateFades();
-  }, [hasPast, openPast, pastFilledAsc, selectedDate, selectedInPast, updateFades]);
+  }, [tab, hasActive, filledAsc, selectedDate, selectedInActive, updateFades]);
+
+  // «Дыхание» высоты: меряем НАТУРАЛЬНУЮ высоту контента активной панели
+  // (inner-обёртка без height-ограничений) и ставим её на viewport с transition,
+  // ограничивая потолком PANEL_MAX_VH (дальше панель скроллится внутри). Меряем
+  // на смене таба, изменении данных и ресайзе окна.
+  useLayoutEffect(() => {
+    const measure = () => {
+      const inner = tab === 'quick' ? quickInnerRef.current : activeInnerRef.current;
+      if (!inner) return;
+      const cap = window.innerHeight * PANEL_MAX_VH;
+      setViewportH(Math.min(inner.offsetHeight, cap));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [tab, filledAsc, hasActive]);
 
   return (
     <div className={s.shell}>
-      <div className={s.ambient} aria-hidden />
-      {hasPast && (
-        <Accordion.Root
-          className={s.accordion}
-          value={openPast ? PAST_OPEN : PAST_CLOSED}
-          onValueChange={(value) => setOpenPast(value.length > 0)}
-        >
-          <Accordion.Item value="past" className={s.accordionItem}>
-            <Accordion.Header className={s.accordionHeader}>
-              <Accordion.Trigger className={s.accordionTrigger}>
-                <span>Показать прошлые дни</span>
-                <svg
-                  className={s.accordionChevron}
-                  viewBox="0 0 16 16"
-                  width="16"
-                  height="16"
-                  aria-hidden
-                >
-                  <path
-                    d="M4 6l4 4 4-4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </Accordion.Trigger>
-            </Accordion.Header>
-            <Accordion.Panel className={s.accordionPanel}>
-              <div
-                className={s.pastSection}
-                ref={pastSectionRef}
-                onScroll={updateFades}
-                data-fade-top={fades.top || undefined}
-                data-fade-bottom={fades.bottom || undefined}
-              >
-                {pastGroups.map((g) => (
+      {/* Ряд табов = тот же ScreenIndicator + NavSwitcher-anchor, что на
+          HomePage → идентичный облик (дефолт tab-as-title), и DesignBar меняет
+          оба разом. bandImg={false}: картинок у режимов нет. */}
+      <div className={s.tabRow} {...navAnchor}>
+        <ScreenIndicator
+          screens={NAV_SCREENS}
+          activeIndex={tab === 'quick' ? 0 : 1}
+          onSelect={handleTabSelect}
+          bandImg={false}
+          tablistLabel="Режим навигации"
+        />
+      </div>
+
+      {/* Слайдер: горизонтальный scroll-snap. Высота — от активной панели
+          (дышит). `data-base-ui-swipe-ignore`: горизонтальный драг не должен
+          триггерить вертикальный swipe-to-close bottom-sheet'а. */}
+      <div
+        className={s.viewport}
+        ref={viewportRef}
+        onScroll={onViewportScroll}
+        style={viewportH ? { height: `${viewportH}px` } : undefined}
+        data-base-ui-swipe-ignore=""
+      >
+        <section className={s.panel} aria-hidden={tab !== 'quick'} aria-label="Быстрая навигация">
+          <div className={s.anchorList} ref={quickInnerRef}>
+            {/* Inset-grouped white container — the SAME wrapper SearchFood uses
+                for its food cards (mixin.scss inset-group). */}
+            <div className={s.navList}>
+              {anchors.map((d) => (
+                <DayRow
+                  key={d.dateStr}
+                  day={d}
+                  today={today}
+                  isFilled={filledSet.has(d.dateStr)}
+                  isSelected={selectedDate === d.dateStr}
+                  onSelect={handleSelect}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className={s.panel} aria-hidden={tab !== 'active'} aria-label="Активные дни">
+          {hasActive ? (
+            <div
+              className={s.activeSection}
+              ref={activeSectionRef}
+              onScroll={updateFades}
+              data-fade-top={fades.top || undefined}
+              data-fade-bottom={fades.bottom || undefined}
+            >
+              <div ref={activeInnerRef}>
+                {activeGroups.map((g) => (
                   // Month name is the first inline item of the chip row — chips
                   // have no backing, so it shows through the wrap flow without
                   // claiming a column.
@@ -230,22 +328,13 @@ export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
                   </div>
                 ))}
               </div>
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion.Root>
-      )}
-      {hasPast && <div className={s.divider} aria-hidden />}
-      <div className={s.anchorList}>
-        {anchors.map((d) => (
-          <DayRow
-            key={d.dateStr}
-            day={d}
-            today={today}
-            isFilled={filledSet.has(d.dateStr)}
-            isSelected={selectedDate === d.dateStr}
-            onSelect={handleSelect}
-          />
-        ))}
+            </div>
+          ) : (
+            <div className={s.empty} ref={activeInnerRef}>
+              Пока нет дней с записями
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

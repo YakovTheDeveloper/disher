@@ -5,7 +5,6 @@ import { SearchFood } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell, ModalVariantFields } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
 import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
@@ -22,12 +21,6 @@ import styles from './ScheduleFoodCreateModals.module.scss';
 type Props = {
   scheduleId: string;
 };
-
-// DesignBar-ось «голос шапки флоу создания еды»: classic (текущий вид) ↔
-// tab-title-center (активный шаг = крупный жирный заголовок, неактивные —
-// тихие серые крошки, как у HomePage-табов). Якорь живёт ТОЛЬКО здесь —
-// другие step-флоу (блюдо/порции/details) общий ModalStepHeader не задевает.
-const FOOD_CREATE_HEADER_VARIANTS = ['classic', 'tab-title-center'] as const;
 
 const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
   const {
@@ -50,22 +43,6 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
   const hasHints = useHasDetailsHints(draft.productId);
   const createSteps = hasHints ? CREATE_STEPS_WITH_DETAILS : CREATE_STEPS_NO_DETAILS;
 
-  // Якорь варианта шапки. Оба StepHeader (quantity/details) всегда смонтированы
-  // (ModalByLabel сворачивает CSS-ом, не размонтирует), поэтому ref-наблюдатель
-  // отдаём одному (quantity), а второму — только data-атрибуты для CSS.
-  const { variant: headerVariant, anchor: headerAnchor } = useDesignVariant(
-    'FoodCreateHeader',
-    FOOD_CREATE_HEADER_VARIANTS,
-  );
-  const headerAnchorAttrs = {
-    'data-dv': headerAnchor['data-dv'],
-    'data-dv-v': headerAnchor['data-dv-v'],
-  };
-  // В таб-метафоре активный «таб» = имя ТЕКУЩЕГО экрана, а не «Добавляем X»:
-  // шапка несёт заголовок шага, неактивные шаги тихо лежат в крошках под ним.
-  // Classic сохраняет прежний контекстный заголовок (addingTitle).
-  const isTabTitleHeader = headerVariant === 'tab-title-center';
-
   // Один список шагов на ВСЕ StepHeader флоу. `details` — опт-ин (нет в
   // createSteps без hints), но как только шаг посещён, он должен остаться
   // в строке на всех шагах — иначе крошка «Особенности» пропадает при
@@ -83,15 +60,6 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
     quantity: draft.quantity,
     details: draft.details.trim() || undefined,
   };
-
-  // Заголовок step-шагов = «Добавляем <еда>» вместо дублирования названия шага
-  // (текущий шаг и так виден в крошках Breadcrumbs). foodName появляется только
-  // после выбора еды; до него (search/create) шаги держат свои заголовки,
-  // поэтому ниже fallback на STEP_LABELS. Длинное имя обрезается ellipsis'ом —
-  // это уже зашито в ModalHeader.title (white-space: nowrap + text-overflow).
-  const addingTitle = draft.foodName
-    ? draft.foodName.charAt(0).toUpperCase() + draft.foodName.slice(1)
-    : null;
 
   const goToStep = (target: typeof step) => setStep(target);
 
@@ -297,7 +265,7 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
         content={
           <ModalShell variant="spring4">
             <ModalShell.StepHeader
-              title={isTabTitleHeader ? STEP_LABELS.quantity : (addingTitle ?? STEP_LABELS.quantity)}
+              title={STEP_LABELS.quantity}
               currentStep="quantity"
               steps={stepsForBar}
               stepLabels={STEP_LABELS}
@@ -305,7 +273,6 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
               visitedSteps={visitedSteps}
               onBack={handleBack}
               onStepClick={goToStep}
-              headerAnchor={headerAnchor}
             />
 
             <ModalShell.Body>
@@ -350,7 +317,7 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
         onCommit={handleCommit}
         header={
           <ModalShell.StepHeader
-            title={isTabTitleHeader ? STEP_LABELS.details : (addingTitle ?? STEP_LABELS.details)}
+            title={STEP_LABELS.details}
             currentStep="details"
             steps={stepsForBar}
             stepLabels={STEP_LABELS}
@@ -358,7 +325,6 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
             visitedSteps={visitedSteps}
             onBack={handleBack}
             onStepClick={goToStep}
-            headerAnchor={headerAnchorAttrs}
           />
         }
       >
