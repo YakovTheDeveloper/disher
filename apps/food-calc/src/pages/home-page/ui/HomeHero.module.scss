@@ -22,21 +22,97 @@
     // кликабельна только обложка (`.hit` ниже переопределяет на auto).
     pointer-events: none;
     // Краевой фейд: ВЕРХ чёткий (картинка прибита к верхней кромке), а низ и
-    // бока мягко и длинно растворяются в фон — рамки/паспарту артефактов не
-    // дают видимого шва. Две маски пересекаются (`intersect`): вертикальная
-    // гасит только низ, горизонтальная — оба бока.
-    --hero-fade-v: linear-gradient(to bottom, #000 0%, #000 30%, transparent 100%);
+    // бока мягко растворяются в фон — рамки/паспарту артефактов не дают видимого
+    // шва. Две маски пересекаются (`intersect`): вертикальная гасит только низ,
+    // горизонтальная — оба бока.
+    //
+    // Вертикальный фейд (2026-06-18) — EASING-SCRIM, не наивный 2-стоповый градиент.
+    //
+    // ВАЖНО: это `mask-image` → работает по АЛЬФЕ. Цвет стопов роли НЕ играет
+    // (можно хоть `red`), значение имеет только прозрачность: альфа 1 = картинка
+    // видна, альфа 0 = растворена. `#000` — просто по привычке.
+    //
+    // Почему много стопов: 2 стопа дают линейный спад альфы → виден резкий «шов».
+    // Кривая — `smootherstep` (ease-IN-OUT, 6t⁵−15t⁴+10t³): ПОЛОГАЯ на ОБОИХ
+    // концах. У старта альфа сходит почти незаметно (1 → 0.99 → 0.94 …), поэтому
+    // нет излома/полосы на границе «целая картинка → фейд»; у конца так же мягко
+    // садится в 0. Симметрично, градиент «невидим», внимание идёт на табы поверх.
+    //
+    // ⬇️ КРУТИ ТОЛЬКО ЭТИ ДВА (в % высоты обложки) — промежуточные стопы сами
+    //    распределяются по кривой между start и end через calc. Если полоса всё
+    //    ещё заметна — РАСТЯНИ зону: уменьши `--hero-fade-start` (напр. 65–70%).
+    //    Чем уже полоса, тем круче спад и тем виднее любой край.
+    --hero-fade-start: 85%; // с какой высоты НАЧИНАЕТСЯ растворение (тут альфа ещё 1)
+    --hero-fade-end: 100%; //  на какой высоте картинка растворилась ПОЛНОСТЬЮ (альфа 0)
+    --hero-fade-span: calc(var(--hero-fade-end) - var(--hero-fade-start));
+    --hero-fade-v: linear-gradient(to bottom,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 1) var(--hero-fade-start),
+            rgba(0, 0, 0, 0.991) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.1),
+            rgba(0, 0, 0, 0.942) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.2),
+            rgba(0, 0, 0, 0.837) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.3),
+            rgba(0, 0, 0, 0.683) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.4),
+            rgba(0, 0, 0, 0.5) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.5),
+            rgba(0, 0, 0, 0.317) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.6),
+            rgba(0, 0, 0, 0.163) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.7),
+            rgba(0, 0, 0, 0.058) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.8),
+            rgba(0, 0, 0, 0.009) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.9),
+            rgba(0, 0, 0, 0) var(--hero-fade-end));
     --hero-fade-h: linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
-    -webkit-mask-image: var(--hero-fade-v), var(--hero-fade-h);
+
+    // Скругление НИЖНИХ углов «туманом». Вертикальный + горизонтальный фейды —
+    // прямые рампы; в нижнем углу они встречаются под прямым углом → читается
+    // «уголок квадрата». Эти две радиальные маски карвят четверть-круг
+    // прозрачности в каждом нижнем углу (transparent в самом углу → #000 к
+    // радиусу), поэтому угол растворяется ДУГОЙ, а не обрублен прямой. min'ятся
+    // с остальными слоями через тот же intersect — могут только смягчить, не
+    // ужесточить.
+    //
+    // ДВЕ РУЧКИ:
+    //   --hero-corner       — радиус дуги (как далеко угол «закруглён»).
+    //   --hero-corner-solid — где альфа снова = 1 (в % радиуса). Чем БОЛЬШЕ, тем
+    //     уже зона полупрозрачности → меньше «сияния» фона. Чем меньше — шире
+    //     туманный ореол (и больше просвечивает светлый фон). Растягивать дугу
+    //     радиусом, а ореол держать узким этим стопом — так не растёт белёсость.
+    --hero-corner: 80px;
+    --hero-corner-solid: 90%;
+    --hero-corner-bl: radial-gradient(circle var(--hero-corner) at bottom left, transparent 0%, #000 var(--hero-corner-solid));
+    --hero-corner-br: radial-gradient(circle var(--hero-corner) at bottom right, transparent 0%, #000 var(--hero-corner-solid));
+    -webkit-mask-image: var(--hero-fade-v), var(--hero-fade-h), var(--hero-corner-bl), var(--hero-corner-br);
     -webkit-mask-composite: source-in; // вебкитовый аналог intersect
-    mask-image: var(--hero-fade-v), var(--hero-fade-h);
+    mask-image: var(--hero-fade-v), var(--hero-fade-h), var(--hero-corner-bl), var(--hero-corner-br);
     mask-composite: intersect;
 }
 
-// Gate: показываем только в hero-варианте. Anchor `[data-dv-v]` на `.swipeArea`
+// Gate: показываем только в hero-вариантах. Anchor `[data-dv-v]` на `.swipeArea`
 // (предок), `.root` — потомок.
-:global([data-dv='NavSwitcher'][data-dv-v='tray-pill-bleed-hero']) .root {
+:global([data-dv='NavSwitcher'][data-dv-v='tray-pill-bleed-hero']) .root,
+:global([data-dv='NavSwitcher'][data-dv-v='hero-tabs-top']) .root,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title']) .root,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title-center']) .root,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace']) .root,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace-rule']) .root,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']) .root,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals-left']) .root,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-peek']) .root {
     display: block;
+}
+
+// hero-tabs-top — форк, где табы подняты НАД обложкой (reorder во flex-stickyTop,
+// см. Screen.module.scss). Обложка едет ВНИЗ под ряд табов (`order: 1`), поэтому
+// больше НЕ резервирует высоту бара (табы заняли зону бара) — высота = только
+// видимая полоса картинки. Между табами и обложкой — лёгкий зазор.
+:global([data-dv='NavSwitcher'][data-dv-v='hero-tabs-top']) .root {
+    order: 1;
+    height: 190px;
+    margin-top: var(--space-2);
+
+    // Логотип больше не прячется под бар (бара над обложкой нет — там табы):
+    // центрируем «Disher» по самой обложке, как смысловую печать кадра.
+    .logo {
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
 }
 
 // Кликабельный слой — заполняет обложку, на нём висит onClick (смена картинки).

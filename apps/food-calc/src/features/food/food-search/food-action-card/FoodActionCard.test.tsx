@@ -2,7 +2,8 @@ import { render } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { describe, it, expect } from 'vitest';
 import '@testing-library/jest-dom/vitest';
-import FoodActionCard, { formatNormPercent } from './FoodActionCard';
+import FoodActionCard from './FoodActionCard';
+import { formatNormPercent } from './formatNormPercent';
 
 describe('formatNormPercent', () => {
   it('uses 2 decimals below 1%', () => {

@@ -34,13 +34,44 @@ const SCREENS: ScreenEntry[] = [
 // всё под `[data-dv='NavSwitcher']`.
 //   tray-pill-bleed-hero  — БАЗА: графика в Hero сверху, пилюли — чистый текст,
 //                           ряд утоплен в fade обложки (см. --home-tabs-lift)
-//   inverse-lift          — легаси: белая active-бумага, faded inactive (квадраты)
-//   tray-pill-bleed       — пилюли в стадион-трее; картинка «вытекает» справа
+//   hero-tabs-top         — форк hero: те же текст-табы, но подняты НАД обложкой
+//                           (в зону бара). Порядок сверху-вниз: табы → обложка →
+//                           заголовок листа. Снимает конфликт «табы vs заголовок»
+//                           (две строки силы рядом), разводя их обложкой.
+//   tab-as-title          — слияние табов и заголовка: АКТИВНЫЙ раздел = крупная
+//                           жирная чёрная антиква-сан (облик Masthead), на своей
+//                           строке; неактивные — тихие мелкие указатели ниже.
+//                           Masthead-заголовок СКРЫТ (нет дубля), гравюра сверху.
+//                           Лево-выровненный (редакционный, асимметрия).
+//   tab-as-title-center   — то же слияние, но активный заголовок и указатели
+//                           по центру.
+//   tab-inplace           — слияние, но активный заголовок остаётся В РЯДУ на
+//                           своём месте (короткий лейбл таба жирным «садится» в
+//                           позицию активного); неактивные жмутся вплотную к нему,
+//                           кластер наклоняется к стороне активного таба.
+//   tab-inplace-rule      — tab-inplace + тонкая чернильная линейка под активным
+//                           («музейный» индикатор выбранного).
+//   tab-numerals          — own-line заголовок (по центру) + индикатор «номера
+//                           таблиц» I·II·III (вместо точек) — дневник-натуралист.
+//   tab-numerals-left     — то же, но заголовок и номера лево-выровнены
+//                           (редакционная асимметрия, как tab-as-title).
 const NAV_SWITCHER_VARIANTS = [
-  'tray-pill-bleed-hero',
-  'inverse-lift',
-  'tray-pill-bleed',
+  'tab-as-title',
+  'tab-as-title-center',
+  'tab-inplace',
+  'tab-numerals',
+  'tab-numerals-left',
 ] as const;
+
+// SheetMaterial — «история» материала контент-листа Screen: как мирятся стеклянный
+// верх и бумажный низ. Anchor на `.container` (корень HomePage, предок листа) —
+// несёт активацию стекла (band-bg прозрачна, веиль, blur, белый логотип) в БАЗЕ оси,
+// поэтому варианты могут её переопределять. Базовый divider-шов скрыт (нет
+// разделителя по дефолту). Токены доезжают до `.headerOverlap` / `.sheetBand`
+// (Screen.module.scss). CSS-карта — HomePage.module.scss.
+//   band      — БАЗА: стеклянная полка сверху + сплошная бумага ниже (текущее).
+//   dissolve  — верх плавно растворяется из стекла в бумагу, шва нет.
+const SHEET_MATERIAL_VARIANTS = ['band', 'dissolve'] as const;
 
 // Облик подписей табов (small-caps serif + чернильная линейка под активным)
 // вшит как канон прямо в NavTile.module.scss под структурой NavSwitcher hero —
@@ -74,6 +105,11 @@ const Page = ({ date }: { date: string }) => {
   // Висит на `.swipeArea` — общий предок всех трёх слайдов → одним атрибутом
   // покрывает плитки во всех табах, и только на HomePage.
   const { anchor: navSwitcherAnchor } = useDesignVariant('NavSwitcher', NAV_SWITCHER_VARIANTS);
+
+  // Ось «истории» материала листа (см. SHEET_MATERIAL_VARIANTS). Якорь на
+  // `.container` — корневой предок, чтобы база оси перебивала дефолты и доезжала
+  // до листа Screen внутри слайдов.
+  const { anchor: sheetMaterialAnchor } = useDesignVariant('SheetMaterial', SHEET_MATERIAL_VARIANTS);
 
   // Направление-зависимое скрытие кнопок бара при скролле (см. topBarScrollHide).
   // Контроллер пишет `data-topbar-hide` на `.shell` бара императивно — свайп и
@@ -164,7 +200,7 @@ const Page = ({ date }: { date: string }) => {
   );
 
   return (
-    <div className={homeStyles.container}>
+    <div className={homeStyles.container} {...sheetMaterialAnchor}>
       <HomeTopBar date={date} shellRef={shellRef} />
       <div className={homeStyles.swipeArea} {...navSwitcherAnchor}>
         <TopBarScrollHideContext.Provider value={topBarHideApi}>

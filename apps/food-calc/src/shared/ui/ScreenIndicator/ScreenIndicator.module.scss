@@ -101,7 +101,7 @@
     .root {
         // ↓↓↓ ГЛУБИНА УТОПЛЕНИЯ ряда в гравюру — крути это число.
         // больше (56–64px) → глубже/плотнее рамка; меньше (28–36px) → деликатнее.
-        --home-tabs-lift: 44px;
+        --home-tabs-lift: 24px;
         padding-top: 0;
         margin-top: calc(-1 * var(--home-tabs-lift));
     }
@@ -112,6 +112,217 @@
     .tilesRow {
         padding-top: 0;
     }
+}
+
+// hero-tabs-top: табы подняты НАД обложкой. `.stickyTop` стал flex-колонкой
+// (Screen.module.scss), здесь ряд получает `order: -1` → встаёт первым, обложка
+// (`order: 1`) уходит под него. Лифта в гравюру НЕТ (он жил в bleed-hero, где
+// табы внизу); вместо этого ряд отступает вниз на высоту плавающего бара
+// (`--top-bar-h`), чтобы пилюли не слиплись с кнопками меню/даты.
+:global([data-dv='NavSwitcher'][data-dv-v='hero-tabs-top']) {
+    .root {
+        order: -1;
+        padding-top: 0;
+    }
+
+    .tilesRow {
+        padding-top: 0;
+        margin-top: calc(var(--top-bar-h, 60px) + var(--space-2));
+    }
+}
+
+// Левый inset — все merge-варианты выравнивают заголовок/табы по левому краю
+// контента листа. `.root` уже несёт `margin: 0 space-3` (как `.headerOverlap`),
+// добавляем `padding-inline: space-2` — столько же, сколько внутренний паддинг
+// листа → крупный заголовок встаёт ровно туда, где была шапка-Masthead.
+// (`tab-as-title`, `tab-numerals` — own-line; `tab-inplace[-rule]` — in-row;
+//  `tab-peek` — фильмстрип; ставится точечно в каждом блоке ниже.)
+
+// Лифт ряда ближе к гравюре (по запросу −16px). Раньше тут жил ещё и ambient-glow
+// СНИЗУ ряда (цветное двухтоновое свечение, ось IndicatorAmbient) — СНЯТ 2026-06-18:
+// под стеклянной полкой листа он накладывался вторым translucent-слоем на гравюру и
+// читался грязно. Край листа теперь подчёркивает rim-свет на самом стекле
+// (`.sheetBand` box-shadow, ось GlassEdge — см. HomePage.module.scss). Остался только
+// структурный лифт ряда.
+@mixin merge-lift {
+    .root {
+        padding-top: 0;
+        margin-top: calc(-1 * var(--space-4));
+    }
+}
+
+// tab-as-title / -center / tab-numerals: активный раздел поглощает роль Masthead
+// (крупный жирный заголовок), неактивные — тихие указатели. Ряд = flex-wrap:
+// активный тайл получает `flex-basis:100%` (NavTile.module.scss) → встаёт на
+// СВОЮ строку, неактивные перетекают строкой ниже. Masthead скрыт
+// (Masthead.module.scss). Обложка-hero остаётся над рядом (DOM-порядок, без
+// reorder). center/numerals форки центрируют кластер.
+:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title']),
+:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title-center']),
+:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']),
+:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals-left']) {
+    @include merge-lift;
+
+    .tilesRow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        column-gap: var(--space-3);
+        row-gap: var(--space-1);
+        padding-top: var(--space-2);
+        padding-bottom: var(--space-1);
+        padding-inline: var(--space-4);
+    }
+}
+
+:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title-center']) .tilesRow,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']) .tilesRow {
+    justify-content: center;
+}
+
+// tab-inplace / tab-inplace-rule: ряд НЕ переносится, неактивные жмутся ВПЛОТНУЮ
+// к активному (gap, не space-between). Кластер «наклоняется» к стороне активного
+// таба, чтобы крупный заголовок читался на своём месте, а соседи липли к нему:
+// слайд 0 — влево, 1 — центр, 2 — вправо (по `data-screen` на `.root`).
+:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace']),
+:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace-rule']) {
+    @include merge-lift;
+
+    .tilesRow {
+        display: flex;
+        align-items: baseline;
+        column-gap: var(--space-3);
+        padding-top: var(--space-2);
+        padding-bottom: var(--space-1);
+        padding-inline: var(--space-8);
+    }
+
+    .root[data-screen='0'] .tilesRow {
+        justify-content: flex-start;
+    }
+
+    .root[data-screen='1'] .tilesRow {
+        justify-content: center;
+    }
+
+    .root[data-screen='2'] .tilesRow {
+        justify-content: flex-end;
+    }
+}
+
+// tab-peek (фильмстрип): три раздела крупно в ряд, активный по центру и чёрный,
+// соседи бледные и подрезаны краями (mask-fade) — «там продолжение, свайпай».
+// Центрируем активный сдвигом ряда: каждый тайл = 60% ширины, сдвиг
+// `20% - active*60%` ставит активный по центру при любом индексе (CSS-only,
+// `--active-idx` приходит из JSX). Маска гасит боковые слова к краям.
+:global([data-dv='NavSwitcher'][data-dv-v='tab-peek']) {
+
+    // Лифт ближе к гравюре, как у остальных merge-вариантов (ambient-glow снят, см.
+    // `merge-lift`). `overflow:hidden` + mask — для фильмстрип-обрезки соседей.
+    .root {
+        padding-top: var(--space-2);
+        padding-bottom: var(--space-1);
+        margin-top: calc(-1 * var(--space-4));
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+        mask-image: linear-gradient(90deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+    }
+
+    .tilesRow {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: baseline;
+        transform: translateX(calc(20% - var(--active-idx, 0) * 60%));
+    }
+}
+
+// ─── Индикатор «листаемые разделы»: точки (дефолт) или номера таблиц ──────────
+// Дефолт — скрыт (другие страницы/варианты не показывают). Включается в own-line
+// merge-вариантах, где крупный заголовок сам по себе не кричит «свайпай».
+// Разметка одна (пустой span + `data-num`); точки = круги, numerals = глиф
+// через `::before { content: attr(data-num) }`.
+.swipeDots {
+    display: none;
+    align-items: baseline;
+    gap: 6px;
+    padding-top: var(--space-2);
+    padding-inline: var(--space-2);
+}
+
+.swipeDot {
+    width: 5px;
+    height: 5px;
+    border-radius: var(--radius-full);
+    background: var(--color-ink);
+    opacity: 0.2;
+}
+
+// Активная точка — шире (pill) и темнее: «вы на этом развороте».
+.swipeDotActive {
+    width: 16px;
+    opacity: 0.55;
+}
+
+// Точки — для own-line title-вариантов (tab-as-title слева, -center по центру).
+:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title']) .swipeDots {
+    display: flex;
+    justify-content: flex-start;
+}
+
+:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title-center']) .swipeDots {
+    display: flex;
+    justify-content: center;
+}
+
+// Номера таблиц (plate numerals) — авторский индикатор «дневника натуралиста»:
+// I · II · III антиквой-италик, активный чёрный/жирный, остальные бледные.
+// `tab-numerals` центрирует ряд номеров, `tab-numerals-left` прижимает влево
+// (под лево-выровненный заголовок).
+:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']),
+:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals-left']) {
+    .swipeDots {
+        display: flex;
+        gap: 12px;
+    }
+
+    .swipeDot {
+        width: auto;
+        height: auto;
+        background: transparent;
+        border-radius: 0;
+        opacity: 1;
+        font-family: "Source Serif 4", "Merriweather", serif;
+        font-style: italic;
+        line-height: 1;
+
+        &::before {
+            --numeral-fs: 13px;
+            content: attr(data-num);
+            font-size: var(--numeral-fs);
+            letter-spacing: 0.04em;
+            color: var(--color-ink);
+            opacity: 0.3;
+        }
+    }
+
+    .swipeDotActive {
+        width: auto;
+
+        &::before {
+            opacity: 1;
+            font-weight: 600;
+        }
+    }
+}
+
+:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']) .swipeDots {
+    justify-content: center;
+}
+
+// `-left` — ряд номеров влево, выровнен под заголовок (та же inline-полка space-4).
+:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals-left']) .swipeDots {
+    justify-content: flex-start;
+    padding-inline: var(--space-4);
 }
 
 // Картинка активного экрана. Живёт в `.root`. Колонка активного тайла

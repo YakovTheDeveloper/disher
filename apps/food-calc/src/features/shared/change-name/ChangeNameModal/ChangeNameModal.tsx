@@ -3,8 +3,7 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
-
-export const CHANGE_NAME_INPUT_ID = 'change-name-input';
+import { CHANGE_NAME_INPUT_ID } from './constants';
 
 type Props = {
   currentName: string;

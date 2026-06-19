@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import { useDesignVariantsStore } from '@/shared/model/designVariantsStore';
-import { MODAL_SHELL_VARIANTS } from '@/shared/ui/ModalShell/ModalShell';
+import { MODAL_SHELL_VARIANTS } from '@/shared/ui/ModalShell/variants';
 import { useDrawerSide } from './drawerSide';
 
 type Props = {

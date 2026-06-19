@@ -1,34 +1,34 @@
-// Apple «Large Title» шапка слайда — крупный жирный sans-заголовок с тающей
-// волосяной бровкой снизу. Канон шапок слайдов HomePage (Анализ / Еда и
-// нутриенты / События дня): один голос на всех трёх. Вынесен из Laboratory
-// DailyAnalysisSection. Самодостаточен — несёт свою типографику и бровку, не
+// Apple «Large Title» шапка слайда — крупный жирный sans-заголовок. Канон шапок
+// слайдов HomePage (Анализ / Еда и нутриенты / События дня): один голос на всех
+// трёх. Вынесен из Laboratory DailyAnalysisSection. Несёт свою типографику, не
 // завязан на контекст-лист: `--ap-inset` уважается, если задан листом
 // (`.ambientSheet` — слайд «Анализ» равняет заголовок по тексту разбора), иначе
 // заголовок прижат к левому краю листа (слайды Еда/События).
+//
+// Бровку-divider масштхед БОЛЬШЕ НЕ несёт (2026-06-18): divider стал дефолтом
+// самого листа (`Screen .headerOverlap::before`), отделяющим верхнюю полку
+// (логотип) от контента — он всегда есть, даже когда заголовок скрыт/отсутствует.
+// Масштхед от divider'а отвязан, остаётся только нижний отступ до контента.
 .masthead {
     position: relative;
     padding: var(--space-2) var(--ap-inset, 0) var(--space-4);
-    // Отступ до контента ниже принадлежит масштхеду (бровке), НЕ родительскому
-    // gap'у — так интервал одинаков на всех слайдах HomePage (Анализ/Еда/События),
-    // где консумеры кладут масштхед в разные контейнеры.
+    // Отступ до контента ниже принадлежит масштхеду, НЕ родительскому gap'у — так
+    // интервал одинаков на всех слайдах HomePage, где консумеры кладут масштхед в
+    // разные контейнеры.
     margin-bottom: var(--space-3);
+}
 
-    // Тающая волосяная бровка (как hairline под nav-bar'ом) — отделяет масштхед
-    // от первого абзаца. Левый край по `--ap-inset`, цвет — чернила листа.
-    &::after {
-        content: '';
-        position: absolute;
-        left: var(--ap-inset, 0);
-        right: var(--space-3);
-        bottom: 0;
-        height: 1px;
-        background: linear-gradient(90deg,
-                transparent 0%,
-                color-mix(in srgb, var(--card-text-rest, var(--color-ink)) 14%, transparent) 18%,
-                color-mix(in srgb, var(--card-text-rest, var(--color-ink)) 14%, transparent) 82%,
-                transparent 100%);
-        pointer-events: none;
-    }
+// NavSwitcher `tab-as-title[-center]` / `tab-inplace`: активный таб поглощает роль
+// шапки слайда (становится крупным жирным заголовком сам), поэтому Masthead-
+// заголовок в этих вариантах скрыт — иначе дубль. Anchor на `.swipeArea` (предок).
+:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title']) .masthead,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title-center']) .masthead,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace']) .masthead,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace-rule']) .masthead,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']) .masthead,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals-left']) .masthead,
+:global([data-dv='NavSwitcher'][data-dv-v='tab-peek']) .masthead {
+    display: none;
 }
 
 // Apple Large Title: крупный жирный SANS с тугим трекингом (SF Pro на Apple-

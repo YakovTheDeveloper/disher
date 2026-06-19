@@ -74,6 +74,21 @@
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
 
+  // ─── Framed-plate (canon 2026-06-18) ─────────────────────────
+  // «Серая подложка внутри + белая рамка + мягкая тень» — рецепт медали
+  // «Список еды» (WriteBarMedal), вынесенный для повторного использования:
+  // пилюли верхнего бара («…» / дата) и светлые кнопки нижнего бара. Белая
+  // рамка рисуется spread-кольцом box-shadow (НЕ border) → не сдвигает геометрию
+  // и не требует ::before/z-index. Применять через mixin `framed-plate()`
+  // (см. mixin.scss) или напрямую: `background: var(--plate-fill); box-shadow: var(--plate-shadow);`.
+  --plate-fill: #ebecf0; // нейтральная серая заливка внутри рамки
+  --plate-frame: #ffffff; // цвет белой рамки-кольца
+  --plate-frame-w: 3px; // толщина рамки
+  --plate-shadow:
+    0 0 0 var(--plate-frame-w) var(--plate-frame),
+    0 3px 10px rgba(31, 42, 68, 0.12),
+    0 1px 3px rgba(31, 42, 68, 0.08);
+
   // ─── Animation ───────────────────────────────────────────────
   --duration-fast: 120ms; // hover, focus, micro-interactions
   --duration-normal: 200ms; // standard transitions

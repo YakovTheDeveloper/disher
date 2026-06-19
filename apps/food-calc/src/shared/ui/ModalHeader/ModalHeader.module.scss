@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // Единая верхняя обвязка модалок. Структура заимствована у ModalStepHeader:
 // липкая полоса сверху, back-кнопка слева. Заголовок центрируется
 // относительно всей полосы (= ширины экрана у полноэкранной модалки),
@@ -96,4 +98,13 @@
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
+}
+
+// ─── DesignBar-вариант «tab-title-center» (флоу создания еды) ───────────
+// Заголовок шага = активный «masthead-таб»: крупный жирный sans, как у
+// HomePage-табов. data-dv висит на `.stepHeader` (предок). Специфичность
+// селектора перекрывает базовый `.header:not(.compact) .title` (28px).
+:global([data-dv='FoodCreateHeader'][data-dv-v='tab-title-center']) .header:not(.compact) .title {
+  @include nav-tab-active;
+  font-size: var(--heading-size-modal);
 }

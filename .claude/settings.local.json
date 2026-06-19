@@ -218,7 +218,10 @@
       "PowerShell($gh = Get-Command gh -ErrorAction SilentlyContinue; if \\($gh\\) { \"gh found: $\\($gh.Source\\)\"; gh --version 2>&1 | Select-Object -First 1 } else { \"gh NOT installed\" })",
       "WebFetch(domain:api.github.com)",
       "PowerShell($env:GIT_TERMINAL_PROMPT='0'; $env:GCM_INTERACTIVE='never'; foreach \\($r in @\\('intellectgroup/livecity','Notify-inc/Front'\\)\\) { $name = \\($r -split '/'\\)[1]; $dest = \"C:\\\\tmp\\\\cv-$name.git\"; if \\(Test-Path $dest\\) { Remove-Item -Recurse -Force $dest }; \"=== cloning $r -> $dest ===\"; git clone --bare --quiet \"https://github.com/$r.git\" $dest; if \\($?\\) { \"OK: $r\" } else { \"FAILED: $r\" } })",
-      "PowerShell(foreach \\($d in @\\('C:\\\\tmp\\\\cv-livecity.git','C:\\\\tmp\\\\cv-Front.git'\\)\\) { \"==================== $d ====================\"; \"total commits: $\\(\\(git -C $d rev-list --all --count\\)\\)\"; \"--- authors \\(count | name | email\\) ---\"; git -C $d shortlog -sne --all })"
+      "PowerShell(foreach \\($d in @\\('C:\\\\tmp\\\\cv-livecity.git','C:\\\\tmp\\\\cv-Front.git'\\)\\) { \"==================== $d ====================\"; \"total commits: $\\(\\(git -C $d rev-list --all --count\\)\\)\"; \"--- authors \\(count | name | email\\) ---\"; git -C $d shortlog -sne --all })",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\('build:',p.scripts.build\\);console.log\\('dev-local:',p.scripts['dev-local']\\)\")",
+      "Bash(npx stylelint *)",
+      "Bash(echo \"stylelint_exit:$?\")"
     ],
     "additionalDirectories": [
       "\\tmp",

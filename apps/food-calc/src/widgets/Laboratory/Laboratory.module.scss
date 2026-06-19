@@ -1,21 +1,12 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// Слайд «Мои открытия» — Apple Liquid Glass redesign (2026, typography-first).
-// Подложка-«лист» Screen = люминесцентное полупрозрачное БЕЛОЕ стекло (не серое)
-// с усиленным блюром и saturation-boost → вибрантность Apple `.regularMaterial`;
-// бликовая верхняя кромка (specular) + мягкая тень; мягкие Apple-углы. Разбор
-// живёт текстом прямо на стекле, иерархию несёт ТИПОГРАФИКА: Apple Large Title
-// «Анализ» → Headline под-заголовки секций → Body/Footnote строки. Voice — SF Pro
-// (системный стек) на Apple-устройствах, Onest fallback.
+// Слайд «Мои открытия» — typography-first. Подложка = стандартный off-white
+// Screen-лист (плоский, без стекла/тени). Разбор живёт текстом прямо на листе,
+// иерархию несёт ТИПОГРАФИКА: Apple Large Title «Анализ» → Headline под-заголовки
+// секций → Body/Footnote строки. Voice — SF Pro (системный стек) на Apple-
+// устройствах, Onest fallback.
 .ambientSheet {
-    // ── Liquid Glass материал ────────────────────────────────────────────────
-    // Общий канон подложки HomePage (см. mixin `liquid-glass-sheet`): off-white
-    // стекло + блюр/saturate, specular-кромка, мягкая тень, мягкие top-углы,
-    // нижний fade-mask. Тот же материал теперь несут Рацион/События.
-    @include liquid-glass-sheet;
-    // Заголовок-плашка «Анализ» сидит вверху листа сама (без `contentHeader`) —
-    // прижимаем её к верху меньшим отступом, чем дефолт `.headerOverlap`.
-    --header-overlap-pad-top: var(--space-5);
+    // Заголовок-плашка «Анализ» сидит вверху листа сама (без `contentHeader`).
 
     // ── Apple типографика (главное в этом редизайне) ─────────────────────────
     // Системный стек → на Apple-устройствах рендерится настоящий SF Pro (родная
@@ -125,41 +116,61 @@
     padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-3));
 }
 
-// «Гипотезы» — secondary action в split-баре, парная к тёмной pill «Анализ».
-// Outline-pill в один рост с CTA (--bottom-action-h), чтобы две кнопки читались
-// как сбалансированная пара, а не «текст + большая кнопка». Press-fill чернилами
-// (outline-архетип канона press-feedback 2026-06-08).
-.hypothesesBtn {
+// CTA «Начать» в контенте пустого дня — приглашение запустить разбор. Левый
+// инсет по тексту контента (`--ap-inset`), небольшой воздух сверху от заголовка.
+.startCta {
+    padding: var(--space-2) var(--ap-inset);
+}
+
+// «Мои открытия» — плоская белая пилюля (канон `tone='paper'` из AppBottomBar):
+// белая заливка + тонкая ink-окаёмка 0.12 + мягкая float-тень. Медаль-рецепт
+// (`framed-plate`: серая подложка + белое кольцо) НАМЕРЕННО не берём — он
+// зарезервирован за «Список еды», чтобы та осталась единственным «медальоном» в
+// приложении. Press-fill чернилами (канон press-feedback 2026-06-08).
+.discoveriesBtn {
+    // 15px — в один размер с brand-CTA «Анализировать» (.brand). 20px на
+    // вторичной ссылке перебивал первичную CTA → инвертированная иерархия.
+    --discoveries-fs: 0.9375rem;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
+    // Один рост с brand-CTA (`--bottom-action-h`) — пара в split-баре выровнена
+    // по высоте. Вес несёт не размер, а контраст: плоская белая (вторичная)
+    // рядом со сплошной залитой CTA (первичная).
     min-height: var(--bottom-action-h);
-    padding: 0 var(--space-4);
+    padding: 0 var(--space-5);
     border-radius: var(--radius-full);
-    border: 1px solid var(--border-subtle);
-    background: transparent;
-    color: var(--text-secondary);
+    background: #fff;
+    border: 1px solid rgba(31, 42, 68, 0.12);
+    box-shadow: 0 6px 16px rgba(31, 42, 68, 0.1), 0 2px 5px rgba(31, 42, 68, 0.07);
+    color: var(--color-ink);
     font-family: var(--font-sans);
-    font-size: var(--bottom-bar-font-size);
-    font-weight: 500;
+    font-size: var(--discoveries-fs);
+    font-weight: 550;
+    // Чуть разреженный трекинг — короткая «лейбловая» подпись на тихой
+    // вторичной пилюле читается ровнее, чем плотный CTA-трекинг.
+    letter-spacing: 0.005em;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition:
         background var(--press-out) var(--easing-default),
-        border-color var(--press-out) var(--easing-default),
         color var(--press-out) var(--easing-default),
+        border-color var(--press-out) var(--easing-default),
         transform var(--duration-fast) ease;
 
     svg {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
+        // Иконка-список чуть тише текста — она маркер, не акцент.
+        opacity: 0.7;
     }
 
     &:active {
         background: var(--color-ink);
-        border-color: var(--color-ink);
         color: var(--text-on-accent);
+        border-color: var(--color-ink);
         transform: scale(0.97);
         transition-duration: var(--press-in);
     }

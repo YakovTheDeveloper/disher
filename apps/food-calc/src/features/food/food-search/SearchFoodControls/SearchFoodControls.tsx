@@ -3,7 +3,7 @@ import styles from './SearchFoodControls.module.scss';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
 import type { SearchFilter } from '../SearchFood';
-import { FILTER_LABELS } from '../SearchFood';
+import { FILTER_LABELS } from '../searchFilterLabels';
 
 import SearchIcon from '@/shared/assets/icons/lupa.svg?react';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';

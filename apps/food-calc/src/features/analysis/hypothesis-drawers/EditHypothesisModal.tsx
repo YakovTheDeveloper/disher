@@ -14,12 +14,13 @@ import {
 } from '@/entities/hypothesis';
 import styles from './HypothesisModal.module.scss';
 import editStyles from './EditHypothesisModal.module.scss';
-
 // Каждая строка в HypothesisListPanel — это <label htmlFor={EDIT_…}> с
 // onClick, который записывает в parent editingId. focus → onFocusCapture в
 // родителе → setEditStep('edit'). Один input id на весь список — модалка
-// одна, просто меняет hypothesisId.
-export const EDIT_HYPOTHESIS_TITLE_INPUT_ID = 'edit-hypothesis-title';
+// одна, просто меняет hypothesisId. Const вынесен в отдельный файл, чтобы этот
+// модуль остался «только компонент» (Fast Refresh).
+import { EDIT_HYPOTHESIS_TITLE_INPUT_ID } from './editHypothesisModal.constants';
+
 const EDIT_HYPOTHESIS_BODY_INPUT_ID = 'edit-hypothesis-body';
 
 const TrashIcon = () => (

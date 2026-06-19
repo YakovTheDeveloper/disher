@@ -48,7 +48,10 @@ function Breadcrumbs<T extends string>({
   return (
     <nav className={clsx(s.breadcrumbs, s.results)}>
       {trail.map((stepName, i) => (
-        <span key={stepName} className={s.crumbWrapper}>
+        <span
+          key={stepName}
+          className={clsx(s.crumbWrapper, stepName === current && s.crumbWrapperCurrent)}
+        >
           {i > 0 && (
             <span className={s.dot} aria-hidden>
               ·

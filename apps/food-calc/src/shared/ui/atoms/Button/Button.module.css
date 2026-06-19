@@ -38,55 +38,6 @@
 
 }
 
-.primary-form {
-  width: 100%;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  background: #222222;
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: transform 0.2s ease, filter var(--press-out) var(--easing-default);
-
-  &:hover {
-    opacity: 0.85;
-    transform: translateY(-1px);
-  }
-
-  /* Тёмную кнопку затемнение не покажет — слегка подсвечиваем. */
-  &:active {
-    transform: translateY(0);
-    filter: brightness(1.45);
-    transition-duration: var(--press-in);
-  }
-}
-
-.secondary {
-  color: var(--color-green);
-  border-radius: 7px;
-  transition: background var(--press-out) var(--easing-default), color var(--press-out) var(--easing-default);
-
-  &:active {
-    background: rgba(76, 175, 80, 0.12);
-    color: var(--color-green-2);
-    transition-duration: var(--press-in);
-  }
-}
-
-.tertiary {
-  color: var(--color-green);
-  border-color: var(--color-green);
-  transition: background var(--press-out) var(--easing-default), color var(--press-out) var(--easing-default);
-
-  &:active {
-    background: var(--color-green);
-    color: #fff;
-    transition-duration: var(--press-in);
-  }
-}
-
 .disabled {
   opacity: 0.5;
 
@@ -94,17 +45,6 @@
     cursor: auto;
     opacity: 0.5;
     user-select: none;
-  }
-}
-
-.danger {
-  color: var(--color-danger);
-  border-radius: 7px;
-  transition: background var(--press-out) var(--easing-default);
-
-  &:active {
-    background: rgba(236, 0, 0, 0.1);
-    transition-duration: var(--press-in);
   }
 }
 
@@ -129,70 +69,6 @@
   align-self: center;
   justify-self: center;
   margin: 0 auto;
-}
-
-
-
-.filter {
-  border-radius: 12px;
-  background-color: rgb(176, 176, 176);
-  color: #fff;
-  padding: 3px 8px;
-  font-size: 0.8rem;
-  width: fit-content;
-  transition: filter var(--press-out) var(--easing-default), transform var(--press-out) var(--easing-default);
-
-  &:active {
-    filter: brightness(0.9);
-    transform: scale(0.96);
-    transition-duration: var(--press-in);
-  }
-}
-
-.filter-2 {
-  border-radius: 12px;
-  background-color: var(--color-deep-blue);
-  color: #fff;
-  padding: 3px 8px;
-  font-size: 0.8rem;
-  width: fit-content;
-  transition: filter var(--press-out) var(--easing-default), transform var(--press-out) var(--easing-default);
-
-  &:active {
-    filter: brightness(1.2);
-    transform: scale(0.96);
-    transition-duration: var(--press-in);
-  }
-}
-
-.menu {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  padding: var(--space-1) var(--space-3);
-  border-radius: 0;
-  border: none;
-  border-bottom: 1px solid currentColor;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  opacity: 0.5;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  transition: all var(--duration-fast) var(--easing-default);
-  white-space: nowrap;
-
-  /* Цветной отклик: текст темнеет до основного + scale. */
-  &:active {
-    transform: scale(0.96);
-    opacity: 1;
-    color: var(--text-primary);
-    transition-duration: var(--press-in);
-  }
-
-  &:hover {
-    opacity: 0.7;
-  }
 }
 
 /* ─── bottomActionBar — единый вид кнопок нижнего бара ──────────────────────

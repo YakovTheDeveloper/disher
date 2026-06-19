@@ -25,11 +25,6 @@ const FILTER_OPTIONS_BY_MODE: Record<SearchMode, readonly SearchFilter[] | null>
   'products-and-dishes': ['all', 'mine'],
 };
 
-export const FILTER_LABELS: Record<SearchFilter, string> = {
-  all: 'Всё',
-  mine: 'Мое',
-};
-
 type SelectFoodPayload = { variant: 'product' | 'dish'; id: string; name: string };
 
 type Props = {

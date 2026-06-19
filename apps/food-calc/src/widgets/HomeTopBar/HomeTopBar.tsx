@@ -6,7 +6,16 @@ import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import styles from './HomeTopBar.module.scss';
+
+// DesignBar-ось облика date-пилюли бара (см. CSS-блок в HomeTopBar.module.scss
+// под `[data-dv='HomeTopBar']`). Обе раскладки одинаковы (одна строка: короткий
+// serif-день «Пн» · тонкий разделитель · цифры dd.mm) — различается только
+// палитра пилюли.
+//   ink-inline    — БАЗА: чёрная пилюля, белый текст.
+//   paper-inline  — форк: белая пилюля, чёрный текст.
+const TOPBAR_VARIANTS = ['ink-inline', 'paper-inline'] as const;
 
 type Props = {
   date: string;
@@ -65,31 +74,43 @@ type Props = {
   shellRef?: React.Ref<HTMLDivElement>;
 };
 
-type DateParts = { weekday: string; month: string; ddmm: string };
+type DateParts = {
+  weekday: string;
+  weekdayShort: string;
+  month: string;
+  ddmm: string;
+};
 
 const formatDateParts = (input: string): DateParts => {
   const date = parse(input, 'dd-MM-yyyy', new Date());
   if (!isValid(date)) {
-    return { weekday: '', month: '', ddmm: input };
+    return { weekday: '', weekdayShort: '', month: '', ddmm: input };
   }
   // Полная форма дня недели («суббота», «воскресенье» …) сверху; CSS
   // `::first-letter` капитализирует → «Суббота». Стопка column + align-items:
   // flex-end растёт в ширину, не в высоту, так что длинное название не ломает
   // высоту пилюли.
   const weekday = new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(date);
+  // Короткая форма («пн», «вт» …) — для компактных вариантов (ink-inline /
+  // ink-numeral). Рендерится всегда, CSS прячет её вне нужного варианта.
+  const weekdayShort = new Intl.DateTimeFormat('ru-RU', { weekday: 'short' }).format(date);
   // Standalone-форма даёт именительный падеж нижним регистром («июнь»), а не
   // родительный («июня»); в нижней строке месяц прижат влево, dd.mm — вправо.
   const month = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(date);
   const dd = String(date.getDate()).padStart(2, '0');
   const mm = String(date.getMonth() + 1).padStart(2, '0');
-  return { weekday, month, ddmm: `${dd}.${mm}` };
+  return { weekday, weekdayShort, month, ddmm: `${dd}.${mm}` };
 };
 
+// Единая разметка для всех текстовых вариантов (default + ink-*). Раскладку и
+// видимость частей (полный/короткий день, месяц, крупные цифры) целиком ведёт
+// CSS под `[data-dv-v]` — markup один, варианты переключаются атрибутом.
 const DateButtonContent = ({ parts }: { parts: DateParts }) => {
-  const { weekday, month, ddmm } = parts;
+  const { weekday, weekdayShort, month, ddmm } = parts;
   return (
     <span className={styles.dateNumeral}>
       <span className={styles.dateWeekday}>{weekday}</span>
+      <span className={styles.dateWeekdayShort}>{weekdayShort}</span>
       <span className={styles.dateMeta}>
         <span className={styles.dateMonth}>{month}</span>
         <span className={styles.dateDdmm}>{ddmm}</span>
@@ -113,6 +134,11 @@ const HomeTopBar = ({
 }: Props) => {
   const { toScheduleBuilder } = useAppRoutes();
   const dateParts = useMemo(() => formatDateParts(date), [date]);
+  // Облик date-пилюли (см. TOPBAR_VARIANTS). Якорь висит на `.bar` —
+  // `.dateSegment` (потомок) ловит переопределения через `[data-dv-v]`.
+  // Раскладка одна на оба варианта — переключение чисто CSS, поэтому `variant`
+  // в JS не нужен.
+  const { anchor: topBarAnchor } = useDesignVariant('HomeTopBar', TOPBAR_VARIANTS);
 
   const handleDateClick = useCallback(async () => {
     const selectedDate = await drawerStore.show(ScheduleNavigatorDrawer, {
@@ -146,7 +172,7 @@ const HomeTopBar = ({
 
   return (
     <div className={styles.shell} ref={shellRef}>
-      <div className={styles.bar}>
+      <div className={styles.bar} {...topBarAnchor}>
         {backSlot}
         <div className={styles.accountSlot}>
           <AccountPanel />

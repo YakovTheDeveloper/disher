@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 .breadcrumbs {
   display: flex;
   align-items: center;
@@ -55,4 +57,28 @@
 .resultCrumbCurrent {
   color: rgba(0, 0, 0, 0.9);
   font-weight: 600;
+}
+
+// ─── DesignBar-вариант «tab-title-center» (флоу создания еды) ───────────
+// Крошки = тихие серые serif-italic указатели (как неактивные HomePage-табы).
+// Текущий шаг скрыт целиком — он уже звучит как активный заголовок над ними,
+// дублировать незачем; прячем и его кнопку, и его точку-разделитель.
+:global([data-dv='FoodCreateHeader'][data-dv-v='tab-title-center']) {
+  .resultCrumb {
+    // Тот же тихий указатель, что у неактивных табов — целиком из миксина
+    // (15px/0.22). Руками размер не вписываем: один источник, не разъедется.
+    @include nav-tab-quiet;
+  }
+
+  .resultCrumbCurrent {
+    display: none;
+  }
+
+  .crumbWrapperCurrent {
+    display: none;
+  }
+
+  .dot {
+    opacity: 0.6;
+  }
 }

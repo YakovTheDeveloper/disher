@@ -5,6 +5,9 @@ import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
 import { ModalHeader } from '@/shared/ui/ModalHeader';
+// MODAL_SHELL_VARIANTS + ModalShellVariant live in ./variants so this module
+// stays component-only (a stray const export breaks React Fast Refresh).
+import { MODAL_SHELL_VARIANTS } from './variants';
 
 // ── ModalShell variant — the app-wide tone «law-giver» ───────────────────────
 // The ModalShell variant is no longer a modal-local override: it is the app's
@@ -26,17 +29,6 @@ import { ModalHeader } from '@/shared/ui/ModalHeader';
 // dropped entirely from both the bar AND the SCSS palette maps (the store
 // self-heals a stale localStorage variant → variants[0], so deletion is safe).
 // Set = 4 calm keepers + 6 vivid. Palettes + geometry: ModalShell.module.scss.
-export const MODAL_SHELL_VARIANTS = [
-  // Calm keepers:
-  'lavender-cream-top',
-  'peach-lilac-top',
-  'dove-sage-top',
-  'rose-amber-top',
-  // Soft (gentle morning-light vibe):
-  'morning-lavender-top',
-] as const;
-
-export type ModalShellVariant = (typeof MODAL_SHELL_VARIANTS)[number];
 // `variant` is vestigial: ~19 call sites still pass variant="spring2"/"spring4"
 // for source compatibility, but ModalShell ignores it (the tone comes from the
 // global useDesignVariant('ModalShell') store). Typed as a bare string so

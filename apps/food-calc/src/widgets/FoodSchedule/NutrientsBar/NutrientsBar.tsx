@@ -1,4 +1,3 @@
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import s from './NutrientsBar.module.scss';
 
@@ -7,42 +6,44 @@ type Props = {
   onOpen: () => void;
 };
 
-// Все варианты — в mono-духе (Ubuntu Mono, капс-подписи, дашборд-читаемость).
-// База у всех: full-bleed подложка-градиент серый→белый, без скруглений, край
-// в край. Отличаются раскладкой ячеек и стилем кнопки. Флип через
-// DesignVariantsBar (anchor 'NutrientsBar', клавиши [ / ]):
-//   mono         — ячейки в строку «подпись значение» (дефолт).
-//   mono-stack   — подпись над цифрой (мини-стат дашборда), цифры крупнее.
-//   mono-divider — ячейки в строку, разделены тонкими вертикальными hairline.
-//   mono-boxed   — каждая ячейка в mono-чипе (рамка + радиус), как теги.
-const VARIANTS = ['mono', 'mono-stack', 'mono-divider', 'mono-boxed'] as const;
-
+// Сводка нутриентов за день — БЕЗ подложки, тихая (канон 2026-06-18). Тотал —
+// приятный бонус, не основа: выровненная колонка «как gofmt» (подписи слева,
+// числа справа, единицы строго друг под другом через tnum), прижатая ВПРАВО к
+// шеврону. Пустое пространство слева — НАМЕРЕННЫЙ элемент дизайна: узкая колонка
+// противопоставлена широким на весь лист строкам расписания. Числа тёмные
+// (--color-ink), подписи серые (--text-secondary) — цифра не сливается с
+// сокращением. Отделена от еды тающей волосяной бровкой (как `Masthead::after`).
+// Весь блок кликабелен → NutrientsDrawer. Облик зафиксирован (design-variants сняты).
 const fmt = (v: number | undefined) => (v == null ? '—' : String(Math.round(v)));
 
 export const NutrientsBar = ({ totals, onOpen }: Props) => {
-  const { anchor } = useDesignVariant('NutrientsBar', VARIANTS);
-  // Шесть однотипных ячеек: подпись несёт смысл (Ккал/Вода = единица), значение
-  // — tnum-цифра. Плоский список → варианты-раскладки ложатся без вложенности.
+  // Подпись несёт единицу, значение — tnum-цифру. Порядок: Б Ж У Кл Ккал Вода.
+  // DOM: подпись → значение (таблица собирается auto-flow'ом grid'а).
   const cells = [
-    { label: 'Б', value: fmt(totals['1']) },
-    { label: 'Ж', value: fmt(totals['2']) },
-    { label: 'У', value: fmt(totals['3']) },
-    { label: 'Кл', value: fmt(totals['6']) },
-    { label: 'Ккал', value: fmt(totals['7']) },
-    { label: 'Вода', value: fmt(totals['8']) },
+    { key: 'b', label: 'Б', value: fmt(totals['1']) },
+    { key: 'f', label: 'Ж', value: fmt(totals['2']) },
+    { key: 'c', label: 'У', value: fmt(totals['3']) },
+    { key: 'fiber', label: 'Кл', value: fmt(totals['6']) },
+    { key: 'kcal', label: 'Ккал', value: fmt(totals['7']) },
+    { key: 'water', label: 'Вода', value: fmt(totals['8']) },
   ];
+
   return (
-    <div className={s.bar} {...anchor}>
-      <div className={s.values}>
-        {cells.map((c) => (
-          <span key={c.label} className={s.pair}>
-            <span className={s.label}>{c.label}</span>
-            <span className={s.value}>{c.value}</span>
-          </span>
-        ))}
-      </div>
-      <button type="button" className={s.button} onClick={onOpen}>
-        <span>Показать все</span>
+    <div className={s.root}>
+      <button
+        type="button"
+        className={s.block}
+        onClick={onOpen}
+        aria-label="Показать все нутриенты за день"
+      >
+        <div className={s.cells}>
+          {cells.map((c) => (
+            <span key={c.key} className={s.cell}>
+              <span className={s.label}>{c.label}</span>
+              <span className={s.value}>{c.value}</span>
+            </span>
+          ))}
+        </div>
         <svg className={s.chevron} viewBox="0 0 24 24" fill="none" aria-hidden>
           <path
             d="M9 6l6 6-6 6"

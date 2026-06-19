@@ -10,18 +10,18 @@
 // ─── Local tokens (defaults — overridden per bar-shell variant) ────────
 
 .shell {
-  // Liquid-glass пилюли: фон полупрозрачный (оттенок картинки/фона проступает),
-  // backdrop = blur + saturate (цвет под стеклом становится сочнее, а детали
-  // размываются → текст читается), сверху тонкий световой кант стекла + мягкая
-  // тень для «парения». Альфа 0.6 — компромисс: достаточно вуали, чтобы тёмный
-  // текст оставался контрастным над любой картинкой, но не «глухой» белый.
-  --bar-bg: rgba(255, 255, 255, 0.6);
-  --bar-blur: 20px;
-  --bar-backdrop: blur(var(--bar-blur)) saturate(180%);
-  --bar-border: 1px solid rgba(255, 255, 255, 0.5);
+  // Белая пилюля (2026-06-19): серый framed-plate снят. Рецепт «серая подложка +
+  // белое кольцо» теперь зарезервирован ТОЛЬКО за медалью «Список еды»
+  // (WriteBarMedal) — она единственная в своём роде. Обвязка (меню / центр / дата)
+  // и нижняя кнопка «Мои открытия» говорят на одном «белом» языке: белая заливка +
+  // тонкая ink-окаёмка + мягкая float-тень. Все три пилюли читают эти `--bar-*`
+  // токены → один общий облик; blur по-прежнему снят (непрозрачные пилюли).
+  --bar-bg: #fff;
+  --bar-backdrop: none;
+  --bar-border: 1px solid rgba(31, 42, 68, 0.12);
   --bar-shadow:
-    0 2px 10px rgba(31, 42, 68, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    0 3px 10px rgba(31, 42, 68, 0.1),
+    0 1px 3px rgba(31, 42, 68, 0.07);
   --bar-pad-y: 8px;
 
   --seg-color: rgba(0, 0, 0, 0.78);
@@ -289,6 +289,16 @@
   }
 }
 
+// Короткий день («пн») — рендерится всегда, но скрыт в дефолте; компактные
+// ink-варианты (inline / numeral) показывают его вместо полного дня.
+.dateWeekdayShort {
+  display: none;
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
 // Нижняя строка — месяц прижат влево, dd.mm вправо. Тянется на всю ширину
 // стопки (= ширина дня недели сверху), `space-between` разводит их по краям.
 .dateMeta {
@@ -334,6 +344,72 @@
     color: inherit;
     transition-duration: var(--press-in);
   }
+}
+
+// ─── DesignBar-ось: облик date-пилюли ──────────────────────────────────────
+// Якорь `[data-dv='HomeTopBar']` висит на `.bar`; `.dateSegment` — потомок,
+// поэтому ловит переопределения. Обе раскладки одинаковы (одна строка: короткий
+// serif-день · тонкий разделитель · цифры dd.mm) — различается только палитра:
+//   ink-inline    — БАЗА: чёрная пилюля, белый текст.
+//   paper-inline  — форк: белая пилюля (канон-токены), чёрный текст.
+// Раскладка общая на оба, цвет — через `--inline-*` токены на `.dateSegment`.
+
+// Общая inline-раскладка (через `--inline-*` токены, которые красят варианты).
+[data-dv='HomeTopBar'][data-dv-v='ink-inline'],
+[data-dv='HomeTopBar'][data-dv-v='paper-inline'] {
+  .dateNumeral {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .dateWeekday {
+    display: none;
+  }
+
+  .dateWeekdayShort {
+    display: block;
+    font-family: 'Source Serif 4', 'Merriweather', serif;
+    font-style: italic;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--inline-day);
+  }
+
+  .dateMeta {
+    width: auto;
+    padding-left: 8px;
+    // Тонкий вертикальный разделитель слева от цифр.
+    border-left: 1px solid var(--inline-divider);
+  }
+
+  .dateMonth {
+    display: none;
+  }
+
+  .dateDdmm {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--inline-num);
+  }
+}
+
+// ink-inline (база) — чёрная пилюля, белый текст.
+[data-dv='HomeTopBar'][data-dv-v='ink-inline'] .dateSegment {
+  --bar-border: 1px solid var(--color-ink-strong);
+  background: var(--color-ink-strong);
+  --inline-day: #fff;
+  --inline-num: rgba(255, 255, 255, 0.92);
+  --inline-divider: rgba(255, 255, 255, 0.22);
+}
+
+// paper-inline (форк) — белая пилюля (наследует канон-токены `--bar-*`),
+// чёрный текст.
+[data-dv='HomeTopBar'][data-dv-v='paper-inline'] .dateSegment {
+  --inline-day: rgb(54, 63, 68);
+  --inline-num: rgb(75, 75, 75);
+  --inline-divider: rgba(0, 0, 0, 0.14);
 }
 
 // ─── Scroll-hide (направление-зависимое) ───────────────────────────────────

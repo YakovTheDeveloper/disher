@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useDesignVariantsStore } from '@/shared/model/designVariantsStore';
-import { MODAL_SHELL_VARIANTS } from './ModalShell';
+import { MODAL_SHELL_VARIANTS } from './variants';
 
 // Publishes the live ModalShell design-variant as a lightweight
 // `data-modal-fields` attribute on a `display: contents` wrapper, so modal

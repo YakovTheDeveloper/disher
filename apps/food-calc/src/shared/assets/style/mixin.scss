@@ -8,6 +8,33 @@
 }
 
 
+// ─── «Masthead-таб»: активный раздел = крупный жирный sans (антиква-сан),
+// единственная типографическая фигура; неактивные — тихие серые serif-italic
+// указатели («музейная табличка»). Общий голос HomePage-табов
+// (NavSwitcher = tab-as-title-center) и шапки флоу создания еды.
+// Размер задаёт ПОТРЕБИТЕЛЬ (контексты разного кегля).
+@mixin nav-tab-active {
+    font-family: -apple-system, BlinkMacSystemFont, 'Onest', 'Golos Text', system-ui, sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: -0.022em;
+    line-height: 1.05;
+    color: var(--color-ink);
+    opacity: 1;
+}
+
+@mixin nav-tab-quiet {
+    font-family: 'Source Serif 4', 'Merriweather', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 15px; // размер роли — здесь, единый источник (не вписывать у потребителя)
+    letter-spacing: -0.2px;
+    line-height: 1.1;
+    color: var(--color-ink);
+    opacity: 0.22;
+}
+
+
 @mixin glassBackgroundPseudoElement($blur: 5px) {
     &::after {
         content: "";
@@ -143,6 +170,18 @@
     }
 }
 
+// Framed-plate surface (canon 2026-06-18). «Серая подложка внутри + белая рамка
+// + мягкая тень» — рецепт медали «Список еды» (WriteBarMedal), закреплённый как
+// общий приём: пилюли верхнего бара и светлые кнопки нижнего бара. Белая рамка —
+// spread-кольцо box-shadow (НЕ border) → геометрия не сдвигается, ::before/z-index
+// не нужны. Задаёт ТОЛЬКО поверхность (fill + кольцо + тень) — display/радиус/
+// типографику владеет консумер (см. feedback: не вшивать layout в shared mixin).
+// Значения — токены `--plate-*` из tokens.scss (единый источник правды цвета/тени).
+@mixin framed-plate() {
+    background: var(--plate-fill);
+    box-shadow: var(--plate-shadow);
+}
+
 // Glass action button base. Shared by AddButton and WriteFoodButton.
 // $size controls the icon-only square (also the min-height when text is added).
 // Adding a `.withText` modifier turns the circle into a pill — see usage.
@@ -189,30 +228,8 @@
     gap: var(--space-2);
 }
 
-// ─── Liquid-glass «лист» (Screen `headerOverlap` material) ─────────────────
-// Канон подложки HomePage: люминесцентное полупрозрачное off-white стекло с
-// усиленным блюром + saturation-boost (Apple `.regularMaterial`), бликовой
-// верхней кромкой (specular) + мягкой ambient-тенью, мягкими top-углами и
-// нижним fade-mask'ом (стекло растворяется над плавающим баром — backdrop-filter
-// НЕ затухает под mask'ом скроллера на WebKit, поэтому листу нужен свой).
-// Питает `--header-overlap-*`-токены, которые читает `.headerOverlap`
-// (Screen.module.scss). Изначально жил в Laboratory `.ambientSheet` (экран 1
-// HomePage); вынесен, чтобы Рацион/События несли тот же материал листа.
-@mixin liquid-glass-sheet() {
-    --header-overlap-bg: rgba(250, 250, 252, 1);
-    --header-overlap-backdrop: blur(30px) saturate(1.8);
-    --header-overlap-radius: var(--radius-2xl);
-    // specular-кромка (inset) + ТОЛЬКО небольшая верхняя тень — лист чуть
-    //    «приподнят» над треем табов/hero. Нижний drop убран. Верхняя тень видна
-    //    там, где нижняя fade-маска погашена (Рацион/События ставят
-    //    `--header-overlap-mask: none`); на «Открытиях» маска клипает outset-тени.
-    --header-overlap-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.05),
-        0 -3px 3px rgba(31, 42, 68, 0.05);
-    --header-overlap-mask: linear-gradient(to top, transparent 0, #000 var(--bb-overlay-h, 96px));
-}
-
 // Primary CTA pill — single source of truth shared by WriteFoodButton.dark,
+
 // RunAnalysisButton, AddButton.dark. Reads `--cta-bg-from / --cta-bg-to /
 // --cta-text` from an ancestor (AppBottomBar publishes them per
 // `data-tod="<period>"`, so the same pill auto-tints on every HomePage

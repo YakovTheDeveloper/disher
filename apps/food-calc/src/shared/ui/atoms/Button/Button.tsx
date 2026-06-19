@@ -3,18 +3,7 @@ import s from './Button.module.css';
 import clsx from 'clsx';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?:
-    | 'primary'
-    | 'primary-form'
-    | 'secondary'
-    | 'tertiary'
-    | 'danger'
-    | 'ghost'
-    | 'filter'
-    | 'filter-2'
-    | 'menu'
-    | 'bottomActionBar'
-    | 'brand';
+  variant?: 'primary' | 'ghost' | 'bottomActionBar' | 'brand';
   isLoading?: boolean;
   before?: React.ReactNode;
   /** Ведущая иконка — в span слева от метки (currentColor, fixed-size в варианте). */

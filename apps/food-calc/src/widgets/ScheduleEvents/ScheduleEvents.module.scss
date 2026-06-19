@@ -1,18 +1,14 @@
 @import '@/shared/assets/style/design-variant-palettes.scss';
 @import '@/shared/assets/style/mixin.scss';
 
-// Лист Событий несёт тот же liquid-glass материал, что экран «Открытия»
-// (общий канон подложки HomePage, см. mixin `liquid-glass-sheet`): off-white
-// стекло + блюр/saturate, specular-кромка, мягкая тень, мягкие top-углы,
-// нижний fade-mask над плавающим баром.
+// Лист Событий. Шапка «События дня» (Masthead) сидит первым ребёнком листа, без
+// `contentHeader`.
 .eventsScreen {
-    @include liquid-glass-sheet;
-    // Шапка «События дня» (Masthead) сидит первым ребёнком листа, без
-    // `contentHeader` — прижимаем её к верху тем же отступом, что слайд «Открытия».
-    --header-overlap-pad-top: var(--space-5);
-    // Нижний fade под контентом даёт AppBottomBar (маска скроллера над плавающим
-    // баром). Собственную нижнюю маску стекла листа гасим (см. `.scheduleScreen`).
-    --header-overlap-mask: none;
+    // Единый левый хребет слайда: заголовок (Masthead) равняется по ЛЕВОМУ КРАЮ
+    // карточек событий (= край контент-бокса листа `.headerOverlap`), а не по их
+    // внутреннему тексту — заголовок и все ряды-карточки стоят на одной вертикали.
+    // 0 = край листа. (Слайд «Анализ» — проза — намеренно держит свой ap-inset.)
+    --ap-inset: 0;
 }
 
 // Events use the `lemon` palette — a single warm yellow hue, deepening across

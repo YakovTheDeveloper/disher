@@ -37,9 +37,6 @@ type Props = {
 const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
 
-  // Пустой день → hollow-заглушка Screen (большой бренд-логотип по центру).
-  const isDayEmpty = events.length === 0;
-
   // Shared with FoodSchedule: one DesignBar control for the adjacent-row edge
   // treatment across food + event rows (same key → same stored variant).
   const { anchor: boundaryAnchor } = useDesignVariant(ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS);
@@ -75,7 +72,6 @@ const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
       className={styles.eventsScreen}
       stickyTop={topSlot}
       headerOverlap
-      hollow={isDayEmpty}
       topBarHide={topBarHide}
       overlay={
         editingItem && (

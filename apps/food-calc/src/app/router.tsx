@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from '@/app/App.tsx';
 import HomePage from '@/pages/home-page/HomePage.tsx';
@@ -12,7 +13,10 @@ import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
 import AnalysesPage from '@/pages/analyses/AnalysesPage.tsx';
 import { DiscoveriesPage } from '@/pages/discoveries';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage.tsx';
-import UiKitPage from '@/pages/ui-kit/UiKitPage.tsx';
+
+// Dev-only component gallery — lazy so its (app-wide) widget/drawer imports stay
+// out of the main bundle. The only lazy route, so it carries its own Suspense.
+const UiKitPage = lazy(() => import('@/pages/ui-kit/UiKitPage.tsx'));
 
 export enum RouterLinks {
   Root = '/',
@@ -74,7 +78,11 @@ export const router = createBrowserRouter([
       // },
       {
         path: RouterLinks.UiKit,
-        element: <UiKitPage />,
+        element: (
+          <Suspense fallback={null}>
+            <UiKitPage />
+          </Suspense>
+        ),
       },
       {
         path: RouterLinks.VerifyEmail,

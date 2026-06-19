@@ -2,7 +2,6 @@ import { memo, useCallback, useEffect, useRef } from 'react';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import { AnalysisResult } from '@/features/analysis/AnalysisResult';
 import { FabricLoader } from '@/features/analysis/FabricLoader';
-import { Masthead } from '@/shared/ui/atoms/Typography/Masthead';
 import type { DailyAnalysisReason } from '@/features/analysis/daily';
 import styles from './DailyAnalysisSection.module.scss';
 
@@ -66,22 +65,18 @@ const DailyAnalysisSection = ({ date }: Props) => {
       )}
 
       {status === 'done' && (
-        <>
-          {/* «Анализ» — Apple Large Title + тающая бровка, общий атом
-              `Masthead` (тот же голос на слайдах Еда/События HomePage). */}
-          <Masthead as="h2">Анализ</Masthead>
-          {/* Под-заголовки секций (Наблюдения / Инсайты / Гипотезы) ВКЛЮЧЕНЫ —
-              Apple-grouped иерархия: типографика несёт структуру. `.ambientSheet`
-              переводит их в Apple «Headline» (sans, semibold, слева). */}
-          <AnalysisResult
-            summary={summary}
-            observations={observations}
-            insights={insights}
-            hypotheses={hypotheses}
-            showDays={false}
-            bare
-          />
-        </>
+        // Заголовок «Анализ» теперь рисует сам слайд (Masthead в Laboratory,
+        // всегда виден). Здесь — только секции разбора. Под-заголовки секций
+        // (Наблюдения / Инсайты / Гипотезы) ВКЛЮЧЕНЫ: `.ambientSheet` переводит
+        // их в Apple «Headline» (sans, semibold, слева).
+        <AnalysisResult
+          summary={summary}
+          observations={observations}
+          insights={insights}
+          hypotheses={hypotheses}
+          showDays={false}
+          bare
+        />
       )}
 
       {status === 'failed' && (

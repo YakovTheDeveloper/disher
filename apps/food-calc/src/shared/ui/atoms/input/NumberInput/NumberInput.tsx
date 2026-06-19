@@ -10,12 +10,8 @@ type Props = {
   className?: string;
   placeholder?: string;
   autoFocus?: boolean;
-  boxShadow?: boolean;
-  size?: 'small' | 'big';
-  color?: 'grey' | 'white';
-  variant?: 'default' | 'underline';
+  size?: 'big';
   disabled?: boolean;
-  bottom?: React.ReactNode;
   min?: number;
   maxLength?: number;
 };
@@ -29,16 +25,13 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
       className,
       placeholder,
       autoFocus,
-      boxShadow,
       onChange,
       size,
-      color,
-      variant,
       disabled,
-      bottom,
       maxLength,
     },
-    _ref
+    // Ref is intentionally not forwarded — the field owns an internal ref for
+    // focus/select; callers' refs were already dropped before this revision.
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -74,14 +67,7 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
         maxLength={maxLength}
         data-base-ui-swipe-ignore=""
         onFocus={handleFocus}
-        className={clsx([
-          styles.input,
-          boxShadow && styles.boxShadow,
-          color && styles[color],
-          size && styles[size],
-          variant && styles[variant],
-          className,
-        ])}
+        className={clsx([styles.input, size && styles[size], className])}
         value={draft}
         placeholder={placeholder}
         onChange={(e) => {
@@ -97,15 +83,6 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
         onContextMenu={(e) => e.preventDefault()}
       />
     );
-
-    if (bottom) {
-      return (
-        <div className={styles.wrapper}>
-          {input}
-          <span className={styles.bottom}>{bottom}</span>
-        </div>
-      );
-    }
 
     return input;
   }

@@ -1,4 +1,2 @@
-export {
-  default as EditHypothesisModal,
-  EDIT_HYPOTHESIS_TITLE_INPUT_ID,
-} from './EditHypothesisModal';
+export { default as EditHypothesisModal } from './EditHypothesisModal';
+export { EDIT_HYPOTHESIS_TITLE_INPUT_ID } from './editHypothesisModal.constants';

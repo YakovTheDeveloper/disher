@@ -135,7 +135,7 @@ const FoodPortionsManager: FC<Props> = ({
 
   // Nothing to render: no portions, no derived/implicit row, hint suppressed.
   // Add-affordance живёт на странице (нижний бар), так что пустой editable-экран
-  // отдаём наверх пустым — Screen покажет hollow-watermark.
+  // отдаём наверх пустым — Screen-лист остаётся с бренд-знаком в углу.
   const hasNothingToShow =
     portions.length === 0 && !implicitPortion && !(editable && showHint);
   if (hasNothingToShow) return null;

@@ -12,6 +12,7 @@ import { safeMutate } from '@/shared/lib/safeMutate';
 import { getProductUrl, RouterUrls } from '@/app/router';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ProductDrawer } from '@/features/food/product-drawer';
+import { formatNormPercent } from './formatNormPercent';
 
 type Props = {
   variant: 'product' | 'dish';
@@ -83,16 +84,6 @@ function getRichnessColor(ratio: number, mono = false): string {
   if (ratio <= 0) return ramp[0];
   const idx = Math.min(Math.floor(ratio * (ramp.length - 1)), ramp.length - 1);
   return ramp[idx];
-}
-
-// «% от суточной нормы» для выбранного нутриента: значение_на_100г / норма × 100.
-// Норму считает SearchFood один раз (`richNutrientNorm`) и прокидывает числом —
-// у нутриентов без нормы (сахар, B7, часть аминокислот) она undefined, процент
-// не рисуется, остаётся абсолютное значение + единица.
-export function formatNormPercent(percent: number): string {
-  if (percent > 0 && percent < 1) return `${percent.toFixed(2)}%`;
-  if (percent < 10) return `${percent.toFixed(1)}%`;
-  return `${Math.round(percent)}%`;
 }
 
 const TrashIcon = () => (

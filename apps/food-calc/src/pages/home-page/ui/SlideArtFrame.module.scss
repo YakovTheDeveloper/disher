@@ -1,5 +1,5 @@
-// Обёртка слайда HomePage. Заполняет слайд по высоте (flex). Бледный логотип
-// Disher переехал в Screen (`.brandWatermark`) — здесь остался только flex-каркас.
+// Обёртка слайда HomePage. Заполняет слайд по высоте (flex). Бренд-знак Disher
+// рисует Screen-лист (`.headerOverlap::after`) — здесь остался только flex-каркас.
 .frame {
     position: relative;
     display: flex;

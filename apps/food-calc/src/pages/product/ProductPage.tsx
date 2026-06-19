@@ -502,7 +502,6 @@ const ProductPage = () => {
             }
             stickyTop={portionsIndicator}
             onContentHeaderVisibilityChange={onTitleVisible1}
-            hollow={portionsRaw.length === 0}
             bottomBar={isUserCreated ? <AddPortionButton /> : null}
             overlay={
               isUserCreated ? (

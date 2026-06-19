@@ -125,9 +125,8 @@ const FoodSchedule = ({
   );
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
-  // Пустой список → «листа» под контентом нет (hollow): большой бренд-знак по
-  // центру (Screen `.brandWatermark`). Бар плавает над контентом всегда (канон
-  // 2026-06-08: Screen.bottomBarOverlay дефолт true, без гейта на пустоте).
+  // Бар плавает над контентом всегда (канон 2026-06-08: Screen.bottomBarOverlay
+  // дефолт true, без гейта на пустоте). Полоса-сводка скрыта на пустом списке.
   const isEmpty = items.length === 0;
 
   // Тоталы дня для полосы-сводки (NutrientsBar) в конце списка. Кнопка полосы
@@ -164,13 +163,10 @@ const FoodSchedule = ({
       className={styles.scheduleScreen}
       stickyTop={topSlot}
       headerOverlap
-      hollow={isEmpty}
       topBarHide={topBarHide}
       // Шапка слайда «Еда и нутриенты» (Masthead) едет первым ребёнком листа —
       // как «Анализ» на слайде «Открытия» (день уехал в HomeTopBar). Watermark-
-      // логотип Disher даёт сам Screen-лист (`.headerOverlap::after`); на пустом
-      // дне (hollow) маленький знак гаснет, включается большой центральный
-      // brandWatermark.
+      // логотип Disher даёт сам Screen-лист (`.headerOverlap::after`).
       overlay={
         <>
           {isActive ? (

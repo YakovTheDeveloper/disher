@@ -1,149 +1,114 @@
-// Полоса-сводка нутриентов в конце списка еды (перед предложкой).
-// БАЗА = mono: full-bleed подложка-градиент серый→белый (горизонт), без
-// скруглений, край в край; Ubuntu Mono, капс-подписи, цифры tnum. Варианты
-// (anchor 'NutrientsBar') — раскладки/кнопка в том же духе. Все
-// color/font-size/border-radius — через токены.
+// Сводка нутриентов в конце списка еды (перед предложкой). БЕЗ подложки, тихая
+// (канон 2026-06-18): тотал — приятный бонус, не основа. Выровненная колонка
+// «как gofmt» — подписи слева, числа справа, единицы строго друг под другом
+// (tnum + justify-self:end), прижата ВПРАВО к шеврону. Пустое пространство слева
+// НАМЕРЕННО: узкая колонка противопоставлена широким на весь лист строкам
+// расписания. Числа ТЁМНЫЕ (--color-ink), подписи СЕРЫЕ (--text-secondary) —
+// цифра не сливается с сокращением. Отделена от еды тающей волосяной бровкой
+// (как `Masthead::after`) с воздухом до/после. Весь блок кликабелен → дровер.
+// Облик зафиксирован — design-variants сняты. Все font-size/color/border-radius
+// — через токены/локальные `--nt-*` (token-gate).
 
-.bar {
-    // Full-bleed: на всю ширину экрана, разрывая боковые паддинги контент-
-    // карточки (симметричные → 100vw + центрирование = край в край). Подложка
-    // касается краёв; контент держит инсет (padding).
-    width: 100vw;
-    margin-left: 50%;
-    transform: translateX(-50%);
-    margin-top: var(--space-3);
-    box-sizing: border-box;
+.root {
+    // Локальная типошкала (raw px в custom-props не гейтятся; консумится через
+    // `font-size: var(--nt-*)`). Мелко — бонус, не основа.
+    --nt-md: 17px; //   размер числа
+    --nt-cap: 10.5px; // капс-подпись
 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-    padding: var(--space-3) var(--space-4);
-    background: linear-gradient(90deg, #e6e7ea 0%, #f4f5f6 55%, #ffffff 100%);
-    border-radius: 0;
+    // Числа — тёмные чернила; подписи — серые. Контраст = цифра ≠ сокращение.
+    --nt-ink: var(--color-ink);
+    --nt-muted: var(--text-secondary);
+
+    position: relative;
+    // Воздух ДО бровки (отрыв от последней строки еды) + отступ снизу перед
+    // предложкой. Бровка — на ::before (top:0); padding-top блока = воздух ПОСЛЕ.
+    margin: var(--space-6) 0 var(--space-2);
+
+    // Тающая волосяная бровка — копия `Masthead::after`.
+    &::before {
+        content: '';
+        position: absolute;
+        left: var(--ap-inset, var(--space-4));
+        right: var(--space-3);
+        top: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+                transparent 0%,
+                color-mix(in srgb, var(--color-ink) 14%, transparent) 18%,
+                color-mix(in srgb, var(--color-ink) 14%, transparent) 82%,
+                transparent 100%);
+        pointer-events: none;
+    }
 }
 
-.values {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--space-2) var(--space-4);
-    min-width: 0;
-}
-
-// Ячейка — «подпись значение» в строку (база mono).
-.pair {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 5px;
-}
-
-.label {
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: var(--text-xs);
-    color: var(--text-secondary);
-}
-
-.value {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: var(--text-sm);
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
-    color: var(--text-primary);
-}
-
-// Кнопка — mono капс-пилюля, открывает NutrientsDrawer.
-.button {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--text-muted);
-    border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.7);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-    font-size: var(--text-xs);
-    white-space: nowrap;
+// Весь блок — одна кнопка. Без заливки/рамки в покое; отклик — тихий тинт.
+.block {
+    display: block;
+    width: 100%;
+    position: relative;
+    padding: var(--space-5) var(--space-6) var(--space-1) var(--ap-inset, var(--space-4));
+    border: none;
+    background: transparent;
+    text-align: left;
     cursor: pointer;
+    border-radius: var(--radius-md);
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.15s ease, transform 0.12s ease;
+    transition:
+        background var(--press-out) var(--easing-default),
+        transform var(--press-in) ease;
 }
 
-.button:active {
-    background: rgba(0, 0, 0, 0.05);
-    transform: scale(0.96);
+.block:active {
+    background: var(--press-tint-bg);
+    transform: scale(0.99);
     transition-duration: var(--press-in);
 }
 
+// Шеврон-намёк «открыть» — тихий, в правом верхнем жёлобе.
 .chevron {
+    position: absolute;
+    top: var(--space-5);
+    right: var(--ap-inset, var(--space-4));
     width: 16px;
     height: 16px;
+    color: var(--nt-muted);
+    opacity: 0.5;
     flex-shrink: 0;
 }
 
-// ── mono-stack: подпись НАД цифрой (мини-стат дашборда), цифры крупнее ────
-.bar[data-dv-v='mono-stack'] {
-    .values {
-        gap: var(--space-2) var(--space-5);
-    }
-    .pair {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1px;
-    }
-    .value {
-        font-size: var(--text-base);
-        line-height: 1;
-    }
+// Выровненная 2-колоночная таблица «как gofmt», прижата вправо. `.cell:
+// display:contents` → подпись и значение становятся ячейками общей сетки
+// (DOM-порядок «подпись → значение» раскладывается auto-flow'ом в 2 колонки).
+.cells {
+    display: grid;
+    grid-template-columns: max-content max-content;
+    justify-content: end; // прижата ВПРАВО, к шеврону
+    align-items: baseline;
+    column-gap: var(--space-5);
+    row-gap: var(--space-2);
 }
 
-// ── mono-divider: ячейки в строку, разделены тонкими вертикальными hairline ─
-.bar[data-dv-v='mono-divider'] {
-    .values {
-        gap: 0;
-    }
-    .pair {
-        padding: 0 var(--space-3);
-    }
-    .pair:first-child {
-        padding-left: 0;
-    }
-    .pair + .pair {
-        border-left: 1px solid var(--text-muted);
-    }
-    // Кнопка-ссылка: без рамки/фона — в тон минимализму hairline'ов.
-    .button {
-        border: none;
-        background: transparent;
-        padding-right: 0;
-    }
-    .button:active {
-        background: transparent;
-        transform: scale(0.96);
-    }
+.cell {
+    display: contents;
 }
 
-// ── mono-boxed: каждая ячейка в mono-чипе (рамка + радиус), как теги ──────
-.bar[data-dv-v='mono-boxed'] {
-    .values {
-        gap: var(--space-2);
-    }
-    .pair {
-        gap: 4px;
-        padding: 3px var(--space-2);
-        border: 1px solid var(--text-muted);
-        border-radius: var(--radius-xs);
-    }
-    // Кнопка тоже «коробочкой» — тот же радиус, что у чипов.
-    .button {
-        border-radius: var(--radius-xs);
-    }
+.label {
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: var(--nt-cap);
+    color: var(--nt-muted);
+    line-height: 1;
+}
+
+// Число — правым краем колонки → единицы выравниваются друг под другом.
+.value {
+    justify-self: end;
+    font-family: var(--font-big-numeric);
+    font-weight: 800;
+    font-size: var(--nt-md);
+    letter-spacing: -0.01em;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+    color: var(--nt-ink);
+    line-height: 1;
 }

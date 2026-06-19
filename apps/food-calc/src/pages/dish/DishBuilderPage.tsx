@@ -359,7 +359,6 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
             headerOverlap
             contentHeader={nameHeading}
             stickyTop={ingredientsIndicator}
-            hollow={items.length === 0}
             topBarHide="settings"
             headerAction={
               <SuggestActionButton

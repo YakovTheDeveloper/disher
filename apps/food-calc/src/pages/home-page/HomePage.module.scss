@@ -25,7 +25,6 @@
     --sticky-top-bg: transparent;
     // Фон нижнего бара НЕ задаём — его источник истины один: `.bottomBar` в
     // Screen.module.scss (прозрачный по умолчанию, свечение проступает сквозь).
-    // --header-overlap-bg намеренно НЕ переопределяем — дефолт `#ffffff`.
     // Ambient-glow подложка переехала на app-уровень (`.main[data-dv='HomeAmbient']`
     // в App.module.scss) — один глобальный переключатель для всех страниц.
     // `.container` сам прозрачен, свечение `.main` проступает сквозь обвязку.
@@ -54,10 +53,51 @@
 // табов. `--header-overlap-radius` наследуется вниз по DOM к листу, поэтому
 // правим её здесь — на `.swipeArea`, который несёт `data-dv-v` anchor.
 // `inverse-lift` (дефолт) не трогаем — лист как на всех экранах (near-square).
-.swipeArea[data-dv-v='tray-pill-bleed'],
-.swipeArea[data-dv-v='tray-pill-bleed-hero'] {
+.swipeArea[data-dv-v='tab-as-title'],
+.swipeArea[data-dv-v='tab-as-title-center'],
+.swipeArea[data-dv-v='tab-inplace'],
+.swipeArea[data-dv-v='tab-numerals'],
+.swipeArea[data-dv-v='tab-numerals-left'] {
     --header-overlap-radius: var(--radius-2xl);
 }
+
+// ─── SheetMaterial — «история» материала контент-листа ──────────────────────
+// Ось на `.container` (корень HomePage). БАЗА = активация стекла (вариант `band`):
+// band-зона прозрачна (под полкой проступает Hero, фростит `.sheetBand`), молочный
+// веиль + blur, watermark «Disher» бел и поднят над стеклом. Варианты ниже
+// переопределяют поверхность. Белый логотип общий для всех (все они стеклянные).
+.container[data-dv='SheetMaterial'] {
+    --header-overlap-band-bg: transparent;
+    --sheet-band-blur: blur(14px) saturate(1.4);
+    --header-overlap-logo-color: #fff;
+    --header-overlap-logo-z: 1;
+    --header-overlap-logo-w: 92px;
+    --header-overlap-logo-h: 26px;
+    --header-overlap-logo-shadow: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.28));
+    // Divider-шов полки скрыт по дефолту — без разделителя на обоих вариантах
+    // (band наследует это; dissolve дополнительно гасит сам). Бывшая ось GlassEdge
+    // (которая могла подсветить шов) убрана из DesignBar.
+    --sheet-seam-color: transparent;
+}
+
+// dissolve — нет жёсткого шва: поверхность плавно идёт из прозрачного верха
+// в сплошную бумагу к ~150px; divider скрыт; фрост удлинён на всю зону растворения и
+// уведён ЗА контент (z:-1) → строки читаются поверх, верх = светящийся прозрачный
+// край той же страницы. Низ — честная сплошная бумага.
+.container[data-dv='SheetMaterial'][data-dv-v='dissolve'] {
+    --header-overlap-surface: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0) 0,
+            rgba(255, 255, 255, 0.30) 48px,
+            var(--screen-surface) 150px,
+            var(--screen-surface) 100%);
+    --sheet-band-visual-h: 150px;
+    --sheet-band-z: -1;
+    --sheet-seam-color: transparent;
+}
+
+// (Ось GlassEdge — характер кромки стеклянной полки — убрана из DesignBar
+// 2026-06-19; divider-шов скрыт в базе оси SheetMaterial выше. `.tabsAnchor`
+// остался чисто layout-обёрткой.)
 
 // bandLabel наследует канон-шрифт заголовков (--heading-font = Alice, tokens.scss),
 // единый для всех `<Heading>` приложения.

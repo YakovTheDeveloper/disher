@@ -1,8 +1,12 @@
 import type { ReactNode } from 'react';
+import clsx from 'clsx';
 import { NavTile } from '@/shared/ui/NavTile';
 import s from './ScreenIndicator.module.scss';
 
 export type TileTitleStyle = 'serif-initial' | 'display-sans' | 'mono-track';
+
+// Номера таблиц для индикатора-варианта `tab-numerals` (см. .swipeDot::before).
+const PLATE_NUMERALS = ['I', 'II', 'III', 'IV', 'V'];
 
 export type ScreenEntry = {
   label: string;
@@ -90,6 +94,20 @@ export const ScreenIndicator = ({
             active={screen.label === activeLabel}
             style={{ gridColumnStart: i + 1 + colOffset }}
             onClick={() => onSelect(i)}
+          />
+        ))}
+      </div>
+
+      {/* Индикатор-точки «листаемые разделы». Рендерится всегда (дёшево), но
+          по умолчанию display:none — показывается только в NavSwitcher-вариантах,
+          где ряд табов превратился в крупный заголовок и нужен явный сигнал
+          «свайпай между разделами» (см. .swipeDots в ScreenIndicator.module.scss). */}
+      <div className={s.swipeDots} aria-hidden="true">
+        {screens.map((screen, i) => (
+          <span
+            key={screen.label}
+            className={clsx(s.swipeDot, i === displayIndex && s.swipeDotActive)}
+            data-num={PLATE_NUMERALS[i] ?? String(i + 1)}
           />
         ))}
       </div>

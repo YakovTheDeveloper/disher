@@ -22,11 +22,16 @@ export default defineConfig({
     // @vitejs/plugin-react-swc на Babel-вариант — теряем скорость SWC ради
     // авто-мемоизации (компилятор сам расставляет useMemo/useCallback/memo).
     // Откат: вернуть @vitejs/plugin-react-swc + `react()` без babel-опции.
-    react({
-      babel: {
-        plugins: [['babel-plugin-react-compiler', {}]],
-      },
-    }),
+    // Тест C (HMR-диагностика): `VITE_NO_COMPILER=1` отключает React Compiler,
+    // чтобы проверить, не он ли виновник full-reload при правке .module.scss.
+    // По умолчанию (без флага) компилятор включён как раньше.
+    process.env.VITE_NO_COMPILER
+      ? react()
+      : react({
+          babel: {
+            plugins: [['babel-plugin-react-compiler', {}]],
+          },
+        }),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',

@@ -24,10 +24,11 @@ type Props = {
   /**
    * Семантический заголовок контента — имя блюда/продукта (Dish/Product) или
    * «Гипотезы». Рендерится первым ВНУТРИ листа (`headerOverlap`), по центру,
-   * как `<Heading size="section">`. Не передавать → лист получает дефолтный
-   * верхний отступ сам (`.headerOverlap:not(:has(.contentHeader))`). Watermark-
-   * логотип Disher рисует сам лист (`.headerOverlap::after`) на всех overlap-
-   * экранах и гаснет на пустом (`hollow`) — там вместо него большой логотип.
+   * как `<Heading size="section">`. Верхний отступ листа (полка + воздух) единый
+   * для всех экранов — его держит `.headerOverlap` padding-top, заголовок отвечает
+   * только за себя. Watermark-
+   * логотип Disher рисует сам лист (`.headerOverlap::after`) — маленький знак
+   * справа-сверху, виден на всех overlap-экранах.
    */
   contentHeader?: React.ReactNode;
   /** Доп. класс на обёртку `contentHeader` (page-specific тюнинг). */
@@ -53,12 +54,6 @@ type Props = {
    * хедер уходит «под» контент. Без JS.
    */
   headerOverlap?: boolean;
-  /**
-   * Когда `true` — visual `.headerOverlap` «лист» становится прозрачным
-   * и теряет тень. Использовать для пустых экранов (нет событий → нет
-   * «листа»). Триггер через `data-hollow` атрибут, чтобы стили жили в CSS.
-   */
-  hollow?: boolean;
   /**
    * Overlay-режим нижнего бара: бар становится `position: absolute` над
    * контентом, а список скроллится ПОД ним (низ скроллера затухает маской,
@@ -126,7 +121,6 @@ const Screen = ({
   backgroundImage,
   backgroundImageOpacity = 0.05,
   headerOverlap = false,
-  hollow = false,
   bottomBarOverlay = true,
   stickyTop,
   afterContent,
@@ -214,7 +208,7 @@ const Screen = ({
     root.removeChild(probe);
     const io = new IntersectionObserver(
       ([entry]) => onContentHeaderVisibilityChange(entry.isIntersecting),
-      { root, threshold: 0, rootMargin: `-${barH}px 0px 0px 0px` },
+      { root, threshold: 0, rootMargin: `-${barH}px 0px 0px 0px` }
     );
     io.observe(el);
     return () => io.disconnect();
@@ -226,7 +220,7 @@ const Screen = ({
         styles.screen,
         backgroundColor && styles[`bg-${backgroundColor}`],
         overlayActive && styles.screenBottomOverlay,
-        className,
+        className
       )}
     >
       {backgroundImage && (
@@ -237,20 +231,21 @@ const Screen = ({
           alt=""
         />
       )}
-      <div className={styles.scrollWrap} data-hollow={hollow ? 'true' : undefined}>
-        {/* Большой бледный логотип Disher по центру — фон-слой ПОД контентом.
-            Виден только на пустом экране (`[data-hollow]`); когда есть контент,
-            непрозрачный лист накрывает его, а справа-сверху на листе проступает
-            маленький watermark (`.headerOverlap::after`). */}
-        <span className={styles.brandWatermark} aria-hidden="true" />
+      <div className={styles.scrollWrap}>
         <div className={styles.screenScroll} ref={scrollContainerRef}>
           {stickyTop && <div className={styles.stickyTop}>{stickyTop}</div>}
           {header}
           {headerOverlap ? (
-            <div className={styles.headerOverlap} data-hollow={hollow ? 'true' : undefined}>
+            <div className={styles.headerOverlap}>
+              {/* Декоративная стеклянная полка (см. `.sheetBand` в CSS). Инертна
+                  по дефолту; на HomePage становится frosted-glass над Hero. */}
+              <div className={styles.sheetBand} aria-hidden="true" />
               {headerAction && <div className={styles.headerAction}>{headerAction}</div>}
               {contentHeader != null && (
-                <div ref={contentHeaderRef} className={clsx(styles.contentHeader, contentHeaderClassName)}>
+                <div
+                  ref={contentHeaderRef}
+                  className={clsx(styles.contentHeader, contentHeaderClassName)}
+                >
                   {contentHeader}
                 </div>
               )}
@@ -260,7 +255,10 @@ const Screen = ({
             <>
               {headerAction && <div className={styles.headerAction}>{headerAction}</div>}
               {contentHeader != null && (
-                <div ref={contentHeaderRef} className={clsx(styles.contentHeader, contentHeaderClassName)}>
+                <div
+                  ref={contentHeaderRef}
+                  className={clsx(styles.contentHeader, contentHeaderClassName)}
+                >
                   {contentHeader}
                 </div>
               )}
