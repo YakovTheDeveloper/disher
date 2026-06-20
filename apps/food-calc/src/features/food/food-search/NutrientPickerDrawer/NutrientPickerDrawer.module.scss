@@ -60,53 +60,11 @@
     color: var(--card-rich-unit);
 }
 
-// Нутриенты — чипы-кнопки в ряд с переносом (flex-wrap).
+// Нутриенты — общий примитив Chip в ряд с переносом (flex-wrap). Вид и
+// active-состояние (выбранный — navy из --chip-active-fill) принадлежат Chip;
+// тут только раскладка списка.
 .list {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
-}
-
-// Чип-кнопка нутриента: по умолчанию белая пилюля с мягкой тенью (без border),
-// активная (текущий выбранный) — тёмно-синяя как `.submit` в модалке «Разбор по
-// неделям» (CreateLongAnalysisModal). Фон/тень-литералы токен-гейтом не
-// проверяются (gated: color/font-size/border-radius).
-.chip {
-    display: inline-flex;
-    align-items: center;
-    min-height: 40px; // inner-control touch floor (canon 2026-05-24)
-    padding: 0 var(--space-4);
-    border: none;
-    border-radius: var(--radius-full);
-    background: var(--color-white);
-    color: var(--card-text-rest);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    letter-spacing: -0.005em;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition:
-        transform var(--press-out) var(--easing-default),
-        filter var(--press-out) var(--easing-default),
-        box-shadow var(--press-out) var(--easing-default);
-
-    &:active {
-        filter: brightness(0.97);
-        transform: scale(0.96);
-        transition-duration: var(--press-in);
-    }
-
-    &:focus-visible {
-        outline: 2px solid rgba(24, 24, 105, 0.92);
-        outline-offset: 2px;
-    }
-}
-
-// Активный чип — выбранный сейчас нутриент: синяя заливка + белый текст.
-.chipActive {
-    background: rgba(24, 24, 105, 0.92);
-    color: var(--color-white);
-    box-shadow: 0 2px 8px rgba(24, 24, 105, 0.28);
 }

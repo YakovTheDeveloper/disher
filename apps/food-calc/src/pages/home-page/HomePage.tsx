@@ -255,7 +255,7 @@ const GetDatePageWrapper = () => {
 
   useEffect(() => {
     if (!date) {
-      navigate(RouterLinks.ScheduleDateSelection);
+      navigate(RouterLinks.Root);
     } else {
       sessionStorage.setItem('lastScheduleBuilderId', date);
       localStorage.setItem('lastVisitedScheduleDate', date);

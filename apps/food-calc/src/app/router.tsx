@@ -3,7 +3,6 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from '@/app/App.tsx';
 import HomePage from '@/pages/home-page/HomePage.tsx';
 import { format } from 'date-fns';
-import ScheduleDateSelectionPage from '@/pages/schedule/schedule-date-selection-page/ScheduleDateSelectionPage.tsx';
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
 
 // ProductPage инактивирована (2026-06-08): продукт теперь открывается боковым
@@ -13,6 +12,11 @@ import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
 import AnalysesPage from '@/pages/analyses/AnalysesPage.tsx';
 import { DiscoveriesPage } from '@/pages/discoveries';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage.tsx';
+
+// Standalone dev-«предложки» (/suggestion_<id>) — top-level sibling <App>, вне
+// AuthGate. Автодискавери эфемерных папок s_*/ через glob; на чистом чекауте
+// пусто. См. app/development-features/.
+import { devRoute } from '@/app/development-features/devRoutes';
 
 // Dev-only component gallery — lazy so its (app-wide) widget/drawer imports stay
 // out of the main bundle. The only lazy route, so it carries its own Suspense.
@@ -24,7 +28,6 @@ export enum RouterLinks {
   DishBuilder = '/dish',
 
   Dish = '/dish/:id',
-  ScheduleDateSelection = '/date',
   ScheduleBuilder = '/schedule',
   Analyses = '/analyses',
   Discoveries = '/discoveries',
@@ -53,10 +56,6 @@ export const router = createBrowserRouter([
       {
         path: `${RouterLinks.Dish}`,
         element: <DishBuilderPage />,
-      },
-      {
-        path: RouterLinks.ScheduleDateSelection,
-        element: <ScheduleDateSelectionPage />,
       },
       {
         path: RouterLinks.ScheduleBuilder + '/' + ':id',
@@ -90,4 +89,5 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  devRoute,
 ]);

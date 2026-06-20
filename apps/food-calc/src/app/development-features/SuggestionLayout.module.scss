@@ -1,0 +1,306 @@
+// Обвязка dev-«предложек» с ИЗОЛИРОВАННОЙ редакционной типосистемой (намеренно НЕ
+// токены приложения — те настроены под UI, не под чтение). Пара в духе изданий
+// для инженеров (Increment / Stripe·Vercel·Linear docs): антиква в заголовках +
+// humanist-sans Onest в теле + mono в метках; истинный near-black на near-white,
+// без серого-на-сером и без геометрического Jost.
+//
+// Систему раздаём как custom-property `--s-*` на .devShell: сырые значения в
+// объявлении переменной stylelint-гейт не проверяет, а потребление через var()
+// легитимно. Обе таблицы (эта + s_*/unify) берут ОДНУ систему.
+
+.devShell {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+
+  // ── палитра (near-black ink на near-white бумаге) ──
+  --s-paper: #fbfbf9;
+  --s-card: #ffffff;
+  --s-ink: #1a1815; //      заголовки / максимальный контраст
+  --s-ink-body: #2c2a26; // ТЕЛО — near-black на полную силу (не альфа-серый)
+  --s-ink-2: #5b5852; //    вторичный / мета
+  --s-ink-3: #8b877f; //    редкий приглушённый
+  --s-rule: rgba(26, 24, 21, 0.1); // тонкие линии
+  --s-accent: #1c1c6b; //   navy-подпись
+  --s-accent-tint: rgba(28, 28, 107, 0.055);
+  --s-accent-marker: rgba(28, 28, 107, 0.55);
+
+  // ── гарнитуры ──
+  --s-font-head: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --s-font-body: 'Onest', system-ui, -apple-system, sans-serif;
+  --s-font-mono: 'Ubuntu Mono', ui-monospace, monospace;
+
+  // ── шкала кеглей ──
+  --s-size-eyebrow: 12px;
+  --s-size-meta: 13px;
+  --s-size-body: 16px;
+  --s-size-lead: 19px;
+  --s-size-card-title: 20px;
+  --s-size-tier: 25px;
+  --s-size-title: 40px;
+
+  background: var(--s-paper);
+  color: var(--s-ink-body);
+  font-family: var(--s-font-body);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-6) var(--space-12);
+}
+
+// Инлайн-код: спокойная плашка, моно, наследует кегль строки.
+.page code {
+  padding: 0.08em var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--s-accent-tint);
+  font-family: var(--s-font-mono);
+  color: var(--s-accent);
+}
+
+/* ── header ─────────────────────────────────────────────── */
+.header {
+  margin-bottom: var(--space-12);
+  max-width: 64ch;
+}
+
+.kicker {
+  margin: 0 0 var(--space-3);
+  font-family: var(--s-font-mono);
+  font-size: var(--s-size-eyebrow);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--s-accent);
+}
+
+.title {
+  margin: 0 0 var(--space-4);
+  font-family: var(--s-font-head);
+  font-size: var(--s-size-title);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--s-ink);
+}
+
+.lead {
+  margin: 0;
+  max-width: 60ch;
+  font-size: var(--s-size-lead);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--s-ink-body);
+}
+
+/* ── option grid ────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg, 16px);
+  background: var(--s-card);
+  border: 1px solid var(--col-border, var(--s-rule));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 8px 22px rgba(0, 0, 0, 0.05);
+}
+
+// Рекомендованный / выбранный — акцентное кольцо вместо рамки (гасим рамку через
+// локальную custom-property, не gated border-color).
+.cardRec {
+  --col-border: transparent;
+  box-shadow: 0 0 0 1.5px var(--s-accent), 0 12px 28px rgba(28, 28, 107, 0.14);
+}
+
+.cardPicked {
+  --col-border: transparent;
+  box-shadow: 0 0 0 1.5px var(--color-accent), 0 12px 28px rgba(28, 28, 107, 0.14);
+}
+
+.cardHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+// Метка варианта — моно-«код» (A/B/C — это перечень вариантов): тихая, не капс-болд.
+.badge {
+  align-self: flex-start;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--s-accent-tint);
+  color: var(--s-ink-2);
+  font-family: var(--s-font-mono);
+  font-size: var(--s-size-meta);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.badgeRec {
+  background: var(--s-accent);
+  color: var(--s-card);
+}
+
+.badgePicked {
+  background: var(--color-accent);
+  color: var(--text-on-accent, #fff);
+}
+
+// Заголовок карточки — антиквой, крупнее тела: иерархия размером и гарнитурой.
+.cardTitle {
+  margin: 0;
+  font-family: var(--s-font-head);
+  font-size: var(--s-size-card-title);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--s-ink);
+}
+
+// Описания — главное чтиво: Onest 400, 16px, near-black, воздух.
+.changes {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--s-size-body);
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--s-ink-body);
+
+  li::marker {
+    color: var(--s-accent-marker);
+  }
+}
+
+/* ── preview frame ──────────────────────────────────────── */
+.preview {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.caption {
+  font-family: var(--s-font-mono);
+  font-size: var(--s-size-meta);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--s-ink-2);
+}
+
+// «Экран» превью показывает РЕАЛЬНЫЕ компоненты приложения → внутри намеренно
+// живут app-токены/Jost (это и есть предмет показа), редсистема тут не вмешивается.
+.frame {
+  max-height: 460px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--radius-md, 12px);
+  background: var(--s-card);
+  border: 1px solid var(--s-rule);
+  padding: var(--space-3);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+
+  --card-hairline: rgba(0, 0, 0, 0.1);
+  --card-text-rest: #1a1a1a;
+  --card-rich-unit: rgba(0, 0, 0, 0.55);
+  --card-hover: rgba(0, 0, 0, 0.05);
+}
+
+/* ── verdict ────────────────────────────────────────────── */
+.verdict {
+  margin-top: var(--space-12);
+  max-width: 72ch;
+  padding: var(--space-5) var(--space-6);
+  border-left: 2px solid var(--s-accent);
+  border-radius: var(--radius-sm);
+  background: var(--s-accent-tint);
+}
+
+.verdictTitle {
+  margin: 0 0 var(--space-2);
+  font-family: var(--s-font-head);
+  font-size: var(--s-size-card-title);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--s-accent);
+}
+
+.verdictText {
+  margin: 0;
+  font-size: var(--s-size-body);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--s-ink-body);
+}
+
+/* ── index (/dev-suggestions) ───────────────────────────── */
+.index {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-6);
+}
+
+.indexList {
+  display: grid;
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+  margin: var(--space-6) 0 0;
+}
+
+.indexItem {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg, 16px);
+  background: var(--s-card);
+  border: 1px solid var(--s-rule);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 8px 20px rgba(0, 0, 0, 0.04);
+}
+
+.indexLink {
+  font-family: var(--s-font-head);
+  font-size: var(--s-size-card-title);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--s-ink);
+  text-decoration: none;
+}
+
+.indexLink:hover {
+  color: var(--s-accent);
+}
+
+.indexQuestion {
+  font-size: var(--s-size-body);
+  font-weight: 400;
+  color: var(--s-ink-body);
+  line-height: 1.5;
+}
+
+.indexMeta {
+  font-family: var(--s-font-mono);
+  font-size: var(--s-size-meta);
+  color: var(--s-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  font-size: var(--s-size-body);
+  color: var(--s-ink-2);
+  margin-top: var(--space-6);
+}

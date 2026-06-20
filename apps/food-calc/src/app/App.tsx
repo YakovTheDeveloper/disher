@@ -32,6 +32,16 @@ const HOME_AMBIENT_VARIANTS = [
   'plain',
 ] as const;
 
+// Single app-wide tone. THIS is the theming loophole: every interactive surface
+// (--field-* inputs/chips, --card-*/--list-* rows) derives its colour from ONE
+// palette entry, keyed by this name. To re-shade or add a theme:
+//   1. edit / add an entry in `$modal-shell-field-chip` (ModalShell.module.scss),
+//   2. point APP_TONE at it (or make it stateful for a runtime picker).
+// Nothing else hard-codes a colour — it all flows from the tokens here.
+// (Replaced the retired `data-surface` warm/lavender axis — fully removed
+// 2026-06-20.)
+const APP_TONE = 'mono';
+
 export default function App() {
   useLastFocusMethod();
   useUserAgentDetection();
@@ -51,15 +61,14 @@ export default function App() {
   }, []);
 
   // Publish the app-wide tone on `body[data-modal-fields]` — the tokens-only
-  // attribute (no modal ambient/orbs/backdrop-filter), so ModalShell's single
-  // fixed `mono` --field/card/chip/list-* cascade across every page AND through
-  // Base UI portals. Replaces the old `data-surface` warm/lavender default and
-  // the earlier multi-variant law-giver («great unification», 2026-06-19).
+  // attribute (no modal ambient/orbs/backdrop-filter), so the single APP_TONE
+  // --field/card/chip/list-* cascade across every page AND through Base UI
+  // portals. See APP_TONE above for the theming loophole.
   // useLayoutEffect (not useEffect): set the attribute BEFORE first paint so
   // token-driven surfaces (`background: var(--card-bg)`, no fallback) never
   // flash unstyled on a cold load.
   useLayoutEffect(() => {
-    document.body.setAttribute('data-modal-fields', 'mono');
+    document.body.setAttribute('data-modal-fields', APP_TONE);
   }, []);
 
   return (

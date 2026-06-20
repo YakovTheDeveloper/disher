@@ -11,7 +11,6 @@ export interface UseAppRoutesReturn {
     goBack: (fallback?: string) => void;
     toRoot: () => void;
     toDish: (id: string) => void;
-    toSchedule: () => void;
     toScheduleBuilder: (id: string) => void;
     toFood: () => void;
     toProduct: (id: string) => void;
@@ -34,7 +33,6 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
 
     const toRoot = () => navigate(RouterLinks.Root);
     const toDish = (id: string) => navigate(RouterUrls.getDish(id));
-    const toScheduleDateSelection = () => navigate(RouterLinks.ScheduleDateSelection);
     const toScheduleBuilder = (id: string) => navigate(`${RouterLinks.ScheduleBuilder}/${id}`, { viewTransition: true });
     const toFood = () => navigate(RouterLinks.Food);
     const toProduct = (id: string) => navigate(getProductUrl(id));
@@ -45,7 +43,6 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
         goBack,
         toRoot,
         toDish,
-        toSchedule: toScheduleDateSelection,
         toScheduleBuilder,
         toFood,
         toProduct,

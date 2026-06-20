@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { toast } from 'sonner';
 
-import { useSurface, type Surface } from '@/shared/lib/surface';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import {
   modalStore,
@@ -940,9 +939,6 @@ const FOOD_DV_VARIANTS = [
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 const UiKitPage = () => {
-  const [surface, setSurface] = useState<Surface>('lavender');
-  useSurface(surface);
-
   // Real design-variant anchors for the schedule-row specimens (section 08), so
   // they render in their actual palette (lemon/TOD) and the DesignBar can flip
   // them — instead of falling back to base styling. Food rows read the
@@ -957,19 +953,6 @@ const UiKitPage = () => {
     ROW_BOUNDARY_KEY,
     ROW_BOUNDARY_VARIANTS,
   );
-
-  // Legacy dev previewer of the warm/lavender surface axis (retired in prod —
-  // the app tone now comes from the ModalShell variant). Suppress the global
-  // `data-modal-fields` tone while this page is mounted so the surface toggle
-  // above stays authoritative here; restore it on unmount.
-  useEffect(() => {
-    const body = document.body;
-    const prev = body.getAttribute('data-modal-fields');
-    body.removeAttribute('data-modal-fields');
-    return () => {
-      if (prev !== null) body.setAttribute('data-modal-fields', prev);
-    };
-  }, []);
 
   // ── Scroll-spy: highlight the nav item of the section nearest the top of the
   // content scroller. The scroller is THIS page's own element (we don't wrap in
@@ -1062,22 +1045,6 @@ const UiKitPage = () => {
               UI Kit
             </Heading>
             <Text variant="hint">Живая витрина общих компонентов Disher</Text>
-          </div>
-
-          <div className={s.surfaceToggle} role="group" aria-label="Surface-палитра">
-            {(['warm', 'lavender'] as const).map((opt) => (
-              <button
-                key={opt}
-                type="button"
-                className={
-                  surface === opt ? `${s.surfaceBtn} ${s.surfaceBtnActive}` : s.surfaceBtn
-                }
-                onClick={() => setSurface(opt)}
-                aria-pressed={surface === opt}
-              >
-                {opt}
-              </button>
-            ))}
           </div>
 
           <nav className={s.nav} aria-label="Разделы">

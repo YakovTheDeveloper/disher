@@ -32,7 +32,9 @@ import '@fontsource/onest/400.css';
 import '@fontsource/onest/500.css';
 import '@fontsource/onest/600.css';
 
-// Headings — Source Serif 4 (--heading-font); italic is the canon section/overlay voice
+// Quiet serif tier — Source Serif 4: italic for Text variant="navTabQuiet"
+// (inactive tab / breadcrumb step) + FieldLabel. NOT the heading voice — that is
+// Onest bold-sans via --heading-font (flip 2026-06-19).
 import '@fontsource/source-serif-4/300.css';
 import '@fontsource/source-serif-4/600.css';
 import '@fontsource/source-serif-4/700.css';
@@ -40,9 +42,9 @@ import '@fontsource/source-serif-4/300-italic.css';
 import '@fontsource/source-serif-4/600-italic.css';
 import '@fontsource/source-serif-4/700-italic.css';
 
-// Headings + accent serif — Alice (--heading-font canon + --font-alice). One
-// weight (400); bundles cyrillic + latin subsets. The section/overlay heading
-// voice (every <Heading>) and the analysis loader caption.
+// Accent serif — Alice (--font-alice). One weight (400); bundles cyrillic +
+// latin subsets. Used for the analysis loader caption — NOT the heading voice
+// (that is Onest bold-sans via --heading-font since the 2026-06-19 flip).
 import '@fontsource/alice/400.css';
 
 // Display accents — Raleway (--font-display)
@@ -50,7 +52,8 @@ import '@fontsource/raleway/200.css';
 import '@fontsource/raleway/400.css';
 import '@fontsource/raleway/500.css';
 
-// Serif fallback — Merriweather (--font-serif, also fallback in --heading-font)
+// Serif fallback — Merriweather (--font-serif; fallback in the quiet serif tier,
+// e.g. Text navTabQuiet 'Source Serif 4','Merriweather',serif)
 import '@fontsource/merriweather/400.css';
 import '@fontsource/merriweather/700.css';
 

@@ -10,10 +10,11 @@ export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 /**
  * Chip — унифицированная кнопка-чип для быстрого выбора текста.
  *
- * Презентационный компонент: только вид (тёплый pill) и `active`-состояние.
- * Поведение (toggle / single-select / мгновенный коммит) задаёт вызывающий
- * код через `onClick`. Образец визуала — чипы «Особенности приёма» в
- * FoodSchedule; переиспользуется в модалках AtomBuilder.
+ * Презентационный компонент: только вид (белая пилюля с мягкой тенью, без
+ * рамки — канон пикера нутриентов; выбранный — navy из --chip-active-fill) и
+ * `active`-состояние. Поведение (toggle / single-select / мгновенный коммит)
+ * задаёт вызывающий код через `onClick`. Консумеры: NutrientPickerDrawer,
+ * DetailsChips «Особенности приёма», ProductQuantity, AtomBuilder.
  */
 export function Chip({ active = false, className, type = 'button', ...rest }: ChipProps) {
   return (

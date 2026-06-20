@@ -160,6 +160,17 @@
   --cta-brand-ink: rgba(31, 42, 68, 0.92);
   --cta-brand-shadow: 0 5px 14px -6px rgba(170, 150, 60, 0.3), 0 2px 5px -2px rgba(170, 150, 60, 0.28);
 
+  // ─── Selected chip — единый цвет «выбранной/нажатой» пилюли ────
+  // ОДИН источник правды: выбранный Chip во всём приложении (теги
+  // «Особенности приёма», количество продукта, шкала события, чипы норм,
+  // пилюли пикера нутриентов) заливается этим navy. Перекрасить выбранную
+  // пилюлю по всему проекту = правка ЭТИХ трёх токенов. ModalShell
+  // (field-chip-palette) и фолбэк Chip оба читают их. (tokens.scss exempt
+  // от token-gate.)
+  --chip-active-fill: rgba(24, 24, 105, 0.92);
+  --chip-active-fill-border: rgba(24, 24, 105, 1);
+  --chip-active-ink: #fff;
+
   // ─── Nutrient family ──────────────────────────────────────────
   --nutrient-bg-main: #fef5e7;
   --nutrient-bg-minerals: #ecf6ef;

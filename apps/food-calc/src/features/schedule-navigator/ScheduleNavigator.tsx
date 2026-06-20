@@ -1,9 +1,10 @@
 import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { addDays, differenceInCalendarDays, format, isSameDay, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import clsx from 'clsx';
+import { Button } from '@/shared/ui/atoms/Button';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import { deriveFilledDates, useFilledDateKeys, useToday } from './hooks';
 import { DATE_FORMAT, groupByMonth, parseKeys, type ParsedDay } from './lib';
 import type { DateStr } from './model';
@@ -21,7 +22,7 @@ type NavTab = 'quick' | 'active';
 // все дни с записями чипами. Дефолт — всегда 'quick'.
 const NAV_TAB_ORDER: NavTab[] = ['quick', 'active'];
 const NAV_SCREENS: ScreenEntry[] = [
-  { label: 'Быстрая навигация', titleStyle: 'display-sans' },
+  { label: 'Перейти к', titleStyle: 'display-sans' },
   { label: 'Активные дни', titleStyle: 'display-sans' },
 ];
 
@@ -43,7 +44,12 @@ const NAV_SWITCHER_VARIANTS = [
   'tab-numerals-left',
 ] as const;
 
-// ─── DayRow (anchors — full-width, three of them) ──────────────────────────
+// ─── DayRow (anchors — quiet link buttons, three of them) ──────────────────
+// Вчера/Сегодня/Завтра как `Button variant="link"`: относительное слово ведёт
+// (sans, средний кегль, подчёркнуто как ссылка), дата рядом — короткий день
+// недели · вертикальный разделитель · dd.mm (облик ink-пилюли бара, но без
+// подложки, чёрным, тоже подчёркнута). Кнопка — grid (фикс. колонка слова),
+// поэтому даты трёх строк выстраиваются в ровную колонку. «Есть записи» — точка.
 interface DayRowProps {
   day: ParsedDay;
   today: Date;
@@ -54,61 +60,37 @@ interface DayRowProps {
 
 const DayRow = memo(function DayRow({ day, today, isFilled, isSelected, onSelect }: DayRowProps) {
   const handleClick = useCallback(() => onSelect(day.dateStr), [day.dateStr, onSelect]);
-  const { pressed, pressProps } = usePressFeedback();
 
   const isToday = isSameDay(day.date, today);
   const diff = differenceInCalendarDays(day.date, today);
+  // На quick-табе всегда вчера/сегодня/завтра; weekday — безопасный fallback.
   const relativeLabel =
-    diff === 0 ? 'сегодня' : diff === -1 ? 'вчера' : diff === 1 ? 'завтра' : null;
+    diff === 0 ? 'сегодня' : diff === -1 ? 'вчера' : diff === 1 ? 'завтра' : format(day.date, 'EEEE', { locale: ru });
 
-  const weekday = format(day.date, 'EEEE', { locale: ru });
-  const dayNumber = format(day.date, 'd');
-  const monthLong = format(day.date, 'LLLL', { locale: ru });
-
-  const className = [
-    s.dayRow,
-    isFilled && s.dayRowFilled,
-    !isFilled && s.dayRowEmpty,
-    isToday && s.dayRowToday,
-    isSelected && s.dayRowSelected,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  // 'EEEEEE' = short standalone weekday in ru ("пн", "вт", …) — тот же формат,
+  // что у пилюли бара (DayChip тоже). dd.MM — моноширинные цифры даты.
+  const weekdayShort = format(day.date, 'EEEEEE', { locale: ru });
+  const ddmm = format(day.date, 'dd.MM');
 
   return (
-    <button
-      type="button"
-      className={className}
+    <Button
+      variant="link"
+      className={clsx(s.anchorLink, isToday && s.anchorToday, isSelected && s.anchorSelected)}
       onClick={handleClick}
       data-date={day.dateStr}
-      data-pressed={pressed || undefined}
-      {...pressProps}
     >
-      <span className={s.dayItem}>
-        {/* Left slot — exact date (HomeTopBar numeral pattern). Sits where the
-            SearchFood food card shows its round thumbnail («вместо кружков»). */}
-        <span className={s.dateSlot}>
-          <span className={s.dateDay}>{dayNumber}</span>
-          <span className={s.dateMeta}>
-            <span>{weekday}</span>
-            <span>{monthLong}</span>
-          </span>
+      {/* Слово-акцент — голос «имени» (sans), подчёркнуто как ссылка. */}
+      <span className={s.anchorWord}>{relativeLabel}</span>
+      {/* Дата в облике ink-пилюли: короткий день · разделитель · dd.mm,
+          чёрным и подчёркнуто; справа — опц. точка «есть записи» (вне underline). */}
+      <span className={s.anchorDateCell}>
+        <span className={s.anchorDate}>
+          <span className={s.anchorWeekday}>{weekdayShort}</span>
+          <span className={s.anchorDdmm}>{ddmm}</span>
         </span>
-        {/* Centre — the relative word is the card «name». */}
-        {relativeLabel && <span className={s.dayName}>{relativeLabel}</span>}
-        {/* Right — trailing chevron (replaces the ⓘ info button). */}
-        <svg className={s.dayChevron} viewBox="0 0 16 16" width="16" height="16" aria-hidden>
-          <path
-            d="M6 4l4 4-4 4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        {isFilled && <span className={s.anchorDot} aria-hidden />}
       </span>
-    </button>
+    </Button>
   );
 });
 
@@ -275,7 +257,7 @@ export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
         style={viewportH ? { height: `${viewportH}px` } : undefined}
         data-base-ui-swipe-ignore=""
       >
-        <section className={s.panel} aria-hidden={tab !== 'quick'} aria-label="Быстрая навигация">
+        <section className={s.panel} aria-hidden={tab !== 'quick'} aria-label="Перейти к">
           <div className={s.anchorList} ref={quickInnerRef}>
             {/* Inset-grouped white container — the SAME wrapper SearchFood uses
                 for its food cards (mixin.scss inset-group). */}

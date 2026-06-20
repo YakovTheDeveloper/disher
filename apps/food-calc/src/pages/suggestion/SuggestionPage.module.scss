@@ -1,0 +1,289 @@
+// Dev-песочница предложений по унификации UI-kit (роут /suggestion).
+// Токен-гейт: color / font-size / border-radius — только через переменные.
+// Шкала отступов: --space- 1·2·3·4·5·6·8·10·12 (7/9/11 НЕ существуют).
+
+// Акцент пикера нутриентов (синий «выбранного»). Один источник вместо повторов;
+// для gated-свойства color SCSS-$var так же легитимен, как var(--…).
+$accent: rgba(24, 24, 105, 0.92);
+
+// App-shell `.main` фиксирован (height:100dvh; overflow:hidden) и это flex-ряд.
+// Значит страница — flex-ребёнок, который скроллит САМ (как .page в UiKitPage).
+.page {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-8) var(--space-6) var(--space-12);
+    background: var(--cards-page-bg, #f4f2ef);
+    font-family: var(--font-sans);
+    color: var(--card-text-rest, #1a1a1a);
+}
+
+// Общий контейнер ширины — шапка и кейс по одной оси.
+.head,
+.case {
+    width: 100%;
+    max-width: 1200px;
+    margin-inline: auto;
+}
+
+// ── Шапка ────────────────────────────────────────────────────────────────────
+.head {
+    margin-bottom: var(--space-12);
+}
+
+.kicker {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--card-rich-unit, rgba(0, 0, 0, 0.5));
+}
+
+.h1 {
+    margin: 0 0 var(--space-3);
+    font-size: var(--heading-size-modal, 32px);
+    font-weight: 700;
+    letter-spacing: -0.022em;
+}
+
+.lead {
+    margin: 0;
+    max-width: 62ch;
+    font-size: var(--text-base);
+    font-weight: 500;
+    line-height: 1.55;
+    color: var(--card-rich-unit, rgba(0, 0, 0, 0.5));
+}
+
+// ── Кейс ─────────────────────────────────────────────────────────────────────
+.caseHead {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+}
+
+.caseTag {
+    flex-shrink: 0;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    background: $accent;
+    color: var(--color-white, #fff);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.h2 {
+    margin: 0;
+    font-size: var(--heading-size-drawer, 24px);
+    font-weight: 700;
+    letter-spacing: -0.018em;
+}
+
+.scenario {
+    margin: 0 0 var(--space-8);
+    max-width: 82ch;
+    font-size: var(--text-base);
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--card-rich-unit, rgba(0, 0, 0, 0.5));
+
+    b {
+        color: var(--card-text-rest, #1a1a1a);
+    }
+
+    code {
+        padding: 0 var(--space-1);
+        border-radius: var(--radius-sm);
+        background: rgba(0, 0, 0, 0.06);
+        font-family: var(--font-mono, monospace);
+        font-size: var(--text-sm);
+        color: var(--card-text-rest, #1a1a1a);
+    }
+}
+
+// ── Колонки-варианты ─────────────────────────────────────────────────────────
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-6);
+    align-items: start;
+}
+
+.col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    border-radius: var(--radius-lg, 18px);
+    background: var(--color-white, #fff);
+    border: 1px solid var(--col-border, var(--card-hairline, rgba(0, 0, 0, 0.08)));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 10px 24px rgba(0, 0, 0, 0.06);
+}
+
+// Рекомендованный вариант — акцентное кольцо вместо обычной рамки. Рамку гасим
+// через локальную custom-property (не gated-свойство border-color).
+.colRec {
+    --col-border: transparent;
+    box-shadow: 0 0 0 2px $accent, 0 12px 30px rgba(24, 24, 105, 0.16);
+}
+
+.colHead {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.badge {
+    align-self: flex-start;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--card-text-rest, #1a1a1a);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.badgeRec {
+    background: $accent;
+    color: var(--color-white, #fff);
+}
+
+.colTitle {
+    margin: 0;
+    font-size: var(--heading-size-field, 16px);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--card-text-rest, #1a1a1a);
+}
+
+.changes {
+    margin: 0;
+    padding-left: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    line-height: 1.45;
+    color: var(--card-rich-unit, rgba(0, 0, 0, 0.55));
+
+    li::marker {
+        color: var(--card-hairline, rgba(0, 0, 0, 0.25));
+    }
+}
+
+// ── Кадр предпросмотра ───────────────────────────────────────────────────────
+.preview {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.previewCap {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--card-rich-unit, rgba(0, 0, 0, 0.5));
+}
+
+// «Экран» дровера: светлая поверхность, ограниченная высота со скроллом —
+// чтобы вариант A честно показал длинный список рядов. Card-токены задаём
+// локально: на dev-роуте нет body[data-modal-fields], откуда их берут пилюли/ряды.
+.frame {
+    max-height: 460px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: var(--radius-md, 14px);
+    background: var(--color-white, #fff);
+    border: 1px solid var(--card-hairline, rgba(0, 0, 0, 0.1));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+
+    --card-hairline: rgba(0, 0, 0, 0.1);
+    --card-text-rest: #1a1a1a;
+    --card-rich-unit: rgba(0, 0, 0, 0.55);
+    --card-hover: rgba(0, 0, 0, 0.05);
+}
+
+// ── Тело превью для вариантов A/B (вариант C берёт стили реального пикера) ─────
+.previewBody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: var(--space-2) var(--space-4) var(--space-6);
+}
+
+.previewGroup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.previewGroupTitle {
+    margin: 0 0 var(--space-1);
+    padding: 0 var(--space-2);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--card-rich-unit, rgba(0, 0, 0, 0.55));
+}
+
+// Вариант A — список рядов NutrientRow (ряды идут прямыми соседями: бровка
+// гасится на :last-child самим NutrientRow).
+.rowsList {
+    display: flex;
+    flex-direction: column;
+}
+
+// Симуляция будущего selected-состояния NutrientRow (сейчас его нет). Специфичнее
+// базового `.row` (.rowsList .selectedSim → 0,2,0 > 0,1,0), !important не нужен.
+.rowsList .selectedSim {
+    background: $accent;
+    border-radius: var(--radius-sm);
+
+    span {
+        color: var(--color-white, #fff);
+    }
+}
+
+// Вариант B — пилюли Chip в ряд с переносом.
+.chipWrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+// ── Вывод ────────────────────────────────────────────────────────────────────
+.verdict {
+    margin-top: var(--space-12);
+    padding: var(--space-6);
+    border-left: 3px solid $accent;
+    border-radius: var(--radius-sm);
+    background: rgba(24, 24, 105, 0.05);
+}
+
+.verdictTitle {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-base);
+    font-weight: 700;
+    color: $accent;
+}
+
+.verdictText {
+    margin: 0;
+    max-width: 82ch;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--card-rich-unit, rgba(0, 0, 0, 0.6));
+}

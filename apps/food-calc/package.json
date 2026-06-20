@@ -12,7 +12,8 @@
     "build": "vite build",
     "preview": "vite preview --host",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "lint:style": "stylelint \"src/**/*.scss\" --max-warnings 0",
+    "check:tokens": "node scripts/check-scale-tokens.mjs",
+    "lint:style": "node scripts/check-scale-tokens.mjs && stylelint \"src/**/*.scss\" --max-warnings 0",
     "lint:style:baseline": "node scripts/gen-stylelint-baseline.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -99,6 +100,9 @@
     "vitest": "^3.2.4"
   },
   "lint-staged": {
-    "*.scss": "stylelint"
+    "*.scss": [
+      "node scripts/check-scale-tokens.mjs",
+      "stylelint"
+    ]
   }
 }

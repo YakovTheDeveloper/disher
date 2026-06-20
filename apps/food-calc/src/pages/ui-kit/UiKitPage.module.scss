@@ -51,13 +51,6 @@
   transition: background var(--duration-slow) var(--easing-default);
 }
 
-// Surface toggle tints the page (warm vs lavender) — kept subtle.
-:global(body[data-surface='warm']) .page {
-  background:
-    radial-gradient(ellipse 70% 48% at 100% 0%, rgba(255, 218, 175, 0.18), transparent 62%),
-    #fdfbf6;
-}
-
 // ─── Left nav rail ─────────────────────────────────────────────────────────────
 .rail {
   flex: 0 0 248px;
@@ -82,50 +75,6 @@
 
 .railBrand {
   margin: 0;
-}
-
-// ─── Surface toggle (segmented control, fills rail width) ─────────────────────
-.surfaceToggle {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.55);
-  box-shadow: var(--shadow-xs), inset 0 0 0 1px rgba(60, 40, 90, 0.08);
-}
-
-.surfaceBtn {
-  appearance: none;
-  border: none;
-  cursor: pointer;
-  flex: 1;
-  min-height: 38px;
-  padding: 7px 14px;
-  border-radius: var(--radius-full);
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  text-transform: capitalize;
-  color: var(--uk-muted);
-  background: transparent;
-  transition:
-    background var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default),
-    transform var(--duration-fast) var(--easing-default);
-
-  // Цветной отклик: тинт-подсветка на касание (quiet toggle-button archetype)
-  &:active {
-    background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
-    transform: scale(0.96);
-    transition-duration: var(--press-in);
-  }
-}
-
-.surfaceBtnActive {
-  color: var(--uk-ink);
-  background: #fff;
-  box-shadow: var(--shadow-sm);
 }
 
 // ─── Nav list (scroll-spy) ─────────────────────────────────────────────────────
@@ -221,7 +170,7 @@
   flex-direction: column;
   gap: var(--space-2);
   margin-bottom: var(--space-6);
-  padding-top: var(--space-7);
+  padding-top: var(--space-8);
   // The rule that demarcates the start of the section — full content width.
   border-top: 1px solid var(--uk-line);
 }

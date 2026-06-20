@@ -149,10 +149,13 @@ $modal-shell-variants: (
   --chip-border: #{rgba($accent, 0.5)};
   --chip-text: #{$text};
   --chip-hover-border: #{rgba($ink, 0.24)};
-  --chip-active-bg: linear-gradient(135deg,
-      #{list.nth($dark, 1)} 0%, #{list.nth($dark, 2)} 60%, #{list.nth($dark, 3)} 100%);
-  --chip-active-border: #{rgba($ink, 0.5)};
-  --chip-active-text: #{$on-dark};
+  // Выбранная пилюля — единый navy из tokens.scss (--chip-active-fill).
+  // НЕ выводится из тоновых $dark/$on-dark: цвет «выбранного» намеренно один
+  // на весь app и правится в одном месте (см. tokens.scss). $dark/$on-dark
+  // продолжают питать card-press ниже.
+  --chip-active-bg: var(--chip-active-fill);
+  --chip-active-border: var(--chip-active-fill-border);
+  --chip-active-text: var(--chip-active-ink);
   --chip-separator: #{rgba($ink, 0.14)};
 }
 

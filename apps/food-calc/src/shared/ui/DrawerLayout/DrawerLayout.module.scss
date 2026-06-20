@@ -299,7 +299,7 @@
 // to a neutral base, clip the blurred photo, and turn the grip into a
 // frosted-white pill with a soft shadow so it reads on any image.
 .edgeHandleImage {
-    background: var(--color-bg, #f5f3ef);
+    background: var(--surface-base);
     overflow: hidden;
 
     &::before {

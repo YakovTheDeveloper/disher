@@ -27,9 +27,9 @@
   align-self: stretch;
   height: 1px;
   margin: var(--space-1) var(--space-4);
-  // Surface-driven hairline (surfaces.scss --chip-separator): warm на HomePage,
-  // lavender на Dish/Product — иначе тёплый разделитель выбивался из лавандовой
-  // темы страницы блюда.
+  // Token-driven hairline: --chip-separator из единого app-тона APP_TONE
+  // (ModalShell `$modal-shell-field-chip`, body[data-modal-fields]). Fallback —
+  // на случай отсутствия токена.
   background: linear-gradient(90deg,
       transparent 0%,
       var(--chip-separator, rgba(124, 65, 15, 0.14)) 18%,
