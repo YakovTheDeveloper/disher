@@ -3,13 +3,19 @@
     background: var(--color-white);
 }
 
-// Основной контейнер drawer владеет отступом (space-3) — контент остаётся flush.
+// Основной контейнер drawer владеет отступом — контент остаётся flush. Боковой
+// «воздух» идёт через семантический --sys-inset-lg (24px); вертикаль — space-6
+// (та же ступень, но не inset-роль). Высота — по контенту (как ProductDrawer
+// `.body`): НЕ ставим `flex: 1 1 auto`. Этот `.body` — единственный реальный
+// ребёнок скролл-области DrawerLayout (`.scrollableContent`), зажатый между
+// sticky fade-псевдоэлементами `::before`/`::after`. Если дать ему
+// flex-grow/shrink, flexbox ужимает `.body` до высоты вьюпорта, а контент
+// выпускает «видимым overflow» — и нижний sticky-fade перестаёт ехать за
+// реальной длиной контента, застывая на одном месте при скролле.
 .body {
     display: flex;
     flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-    padding: var(--space-3);
+    padding: var(--space-6) var(--sys-inset-lg);
 }
 
 .loading {

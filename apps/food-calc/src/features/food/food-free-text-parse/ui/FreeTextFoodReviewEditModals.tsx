@@ -20,6 +20,8 @@ interface Props {
   onChange: (updates: ReviewRowUpdates) => void;
   onClose: () => void;
   inputIds: ReviewEditInputIds;
+  /** Контекст блюда: прячет БАД из rescue-поиска (см. food-entry-flow basis-gap). */
+  excludeSupplements?: boolean;
 }
 
 /**
@@ -33,6 +35,7 @@ export const FreeTextFoodReviewEditModals = ({
   onChange,
   onClose,
   inputIds: { SEARCH_INPUT, DETAILS_INPUT },
+  excludeSupplements = false,
 }: Props) => {
   return (
     <div>
@@ -54,6 +57,7 @@ export const FreeTextFoodReviewEditModals = ({
               activeItemId={row?.productId ?? undefined}
               inputId={SEARCH_INPUT}
               initialSearchQuery={row?.originalName ?? row?.productName ?? ''}
+              excludeSupplements={excludeSupplements}
             />
           </ModalVariantFields>
         }

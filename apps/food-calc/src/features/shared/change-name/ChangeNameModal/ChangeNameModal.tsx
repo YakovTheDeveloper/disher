@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
+import { HeaderDeleteButton } from '@/shared/ui/ModalHeader';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { CHANGE_NAME_INPUT_ID } from './constants';
 
@@ -10,9 +11,21 @@ type Props = {
   isExpanded: boolean;
   onClose: () => void;
   onChangeName: (newName: string) => void;
+  /** Опционально: удаление сущности → серая урна в правом слоте шапки.
+   *  Подтверждение (ConfirmModal), мутация и уход с экрана — на стороне caller'а. */
+  onDelete?: () => void;
+  /** a11y-метка урны, напр. «Удалить блюдо». */
+  deleteLabel?: string;
 };
 
-const ChangeNameModal = ({ currentName, isExpanded, onClose, onChangeName }: Props) => {
+const ChangeNameModal = ({
+  currentName,
+  isExpanded,
+  onClose,
+  onChangeName,
+  onDelete,
+  deleteLabel,
+}: Props) => {
   const [value, setValue] = useState(currentName);
 
   useEffect(() => {
@@ -46,8 +59,16 @@ const ChangeNameModal = ({ currentName, isExpanded, onClose, onChangeName }: Pro
       isExpanded={isExpanded}
       content={
         <ModalShell variant="spring2">
-          <ModalShell.Header title="Изменить название" onBack={onClose} />
-          <ModalShell.Body>
+          <ModalShell.Header
+            title="Изменить название"
+            onBack={onClose}
+            trailing={
+              onDelete ? (
+                <HeaderDeleteButton onClick={onDelete} label={deleteLabel} />
+              ) : undefined
+            }
+          />
+          <ModalShell.Body inset>
             <AutoGrowSearch
               singleLine
               id={CHANGE_NAME_INPUT_ID}

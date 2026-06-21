@@ -3,9 +3,9 @@
   // убраны): один бледный wash под именами БЖУ + один акцент на прогресс-барах.
   --nt-wash: linear-gradient(120deg, transparent 0%, rgba(95, 120, 150, 0.06) 50%, transparent 100%);
   --nt-accent: linear-gradient(45deg, transparent 0%, rgba(104, 128, 158, 0.5) 100%);
-  --nt-pct: rgba(70, 90, 120, 0.8);
+  --nt-pct: rgba(40, 54, 76, 1);
   --nt-hairline: rgba(44, 56, 74, 0.1);
-  --text-primary: rgba(44, 56, 74, 0.88);
+  --text-primary: rgba(30, 40, 56, 1);
   --text-secondary: rgba(44, 56, 74, 0.5);
 
   display: flex;
@@ -31,15 +31,11 @@
   gap: var(--space-1);
 }
 
+// Заголовок группы = сериф-italic метка (Text variant="sectionLabel") — типографику
+// владеет примитив, тут только раскладка.
 .normGroupTitle {
   margin: 0 0 var(--space-1);
   padding: 0 var(--space-2);
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--card-rich-unit);
 }
 
 // Ряды идут прямыми соседями — NutrientRow гасит бровку на :last-child.
@@ -63,17 +59,6 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-}
-
-.groupTitle {
-  margin: 0 0 var(--space-2) 4px;
-  font-family: 'Source Serif 4', 'Merriweather', serif;
-  font-style: italic;
-  font-weight: 500;
-  font-size: 22px;
-  letter-spacing: -0.01em;
-  color: rgba(0, 0, 0, 0.78);
-  text-transform: none;
 }
 
 .row {

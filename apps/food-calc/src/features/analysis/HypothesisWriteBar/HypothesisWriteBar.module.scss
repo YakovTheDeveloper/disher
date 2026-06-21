@@ -1,13 +1,3 @@
-// The «Подробности» ModalByLabel portals into a node INSIDE the «Гипотезы»
-// modal popup (ModalByLabel.container), so this z-index is scoped to that
-// popup's stacking context — it just has to clear the modal body + this bar.
-// A real modal opened on top (z 6001, sibling of the host popup) still paints
-// above. !important beats the hardcoded `.container.expanded` (0,2,0) in
-// ModalByLabel.module.scss.
-.overDrawer {
-    z-index: 5500 !important;
-}
-
 // Поле «Подробности» — стандартный form-инпут: квадратный примитив
 // (--radius-sm), не поисковая пилюля. var(--field-radius) читается в AutoGrowSearch `.shell`.
 .formField {

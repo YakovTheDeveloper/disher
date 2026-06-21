@@ -14,6 +14,14 @@
   --space-10: 40px; // 2.5rem — hero spacing
   --space-12: 48px; // 3rem — major section separation
 
+  // ─── System insets (CTI: sys · inset · size — по СМЫСЛУ, не по виду) ──
+  // Семантический «воздух» по краям контента: роль = inset (внутренний боковой
+  // отступ), размер = t-shirt-ступень поверх 4px-шкалы. Нейминг по Nathan Curtis
+  // (Category-Type-Item): `sys` слой → `inset` роль → размер. Крутишь воздух
+  // экранов здесь, в одном месте, а не в каждом компоненте.
+  --sys-inset-md: var(--space-3); // 12px — модалки редактирования (Hypothesis / Dish / Product)
+  --sys-inset-lg: var(--space-6); // 24px — drawer «Моя норма»
+
   // ─── Typography (modular scale 1.25) ─────────────────────────
   --text-xs: 0.64rem; // 10.2px — badges, micro labels
   --text-sm: 0.8rem; // 12.8px — secondary text, captions

@@ -252,6 +252,18 @@ $modal-shell-field-chip: (
   padding-top: env(safe-area-inset-top, 0px);
 }
 
+// Боковой отступ контента для модалок РЕДАКТИРОВАНИЯ сущностей
+// (Hypothesis / Dish / Product). Дефолтные --space-1 (4px) по бокам у `.body`
+// читаются как «без отступов» — пилюли упираются в края. Опт-ин через
+// `<ModalShell.Body inset>`; значение из семантического --sys-inset-md.
+// Longhand left/right переопределяют только горизонталь shorthand'а `.body`
+// (top --space-3 и bottom 0 остаются); идёт ПОСЛЕ `.body` — равная
+// специфичность, побеждает порядком.
+.bodyInset {
+  padding-left: var(--sys-inset-md);
+  padding-right: var(--sys-inset-md);
+}
+
 // Layout shell for ModalShell.Title — typography comes from the <Heading>
 // primitive it renders (size="modal"). `display: flex` keeps a leading
 // ButtonBack icon beside the title text (see ScheduleEventCreateModals time

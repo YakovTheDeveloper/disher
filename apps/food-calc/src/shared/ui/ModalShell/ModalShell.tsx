@@ -39,9 +39,22 @@ const ModalShellSpacer = () => <div className={s.spacer} />;
 ModalShellSpacer.displayName = 'ModalShell.Spacer';
 
 /** `flush` drops the default top padding — for bodies whose first child
- *  brings its own surface/spacing (e.g. the details-step plate). */
-const ModalShellBody = ({ children, flush }: { children: ReactNode; flush?: boolean }) => (
-  <div className={`${s.body} ${flush ? s.bodyFlush : ''}`}>{children}</div>
+ *  brings its own surface/spacing (e.g. the details-step plate).
+ *  `inset` bumps the side padding from the default --space-1 (4px, reads as
+ *  «no padding») to the semantic --sys-inset-md — used by the entity-edit
+ *  modals (Hypothesis / Dish / Product rename). */
+const ModalShellBody = ({
+  children,
+  flush,
+  inset,
+}: {
+  children: ReactNode;
+  flush?: boolean;
+  inset?: boolean;
+}) => (
+  <div className={`${s.body} ${flush ? s.bodyFlush : ''} ${inset ? s.bodyInset : ''}`}>
+    {children}
+  </div>
 );
 ModalShellBody.displayName = 'ModalShell.Body';
 

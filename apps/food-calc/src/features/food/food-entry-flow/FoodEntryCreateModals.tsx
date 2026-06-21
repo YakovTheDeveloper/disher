@@ -11,19 +11,21 @@ import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
 import { DetailsStep, useHasDetailsHints } from '@/features/food/details-chips';
 import {
-  useScheduleFoodFlow,
+  type FoodEntryFlow,
   CREATE_STEPS_WITH_DETAILS,
   CREATE_STEPS_NO_DETAILS,
   STEP_LABELS,
-} from './useScheduleFoodFlow';
-import styles from './ScheduleFoodCreateModals.module.scss';
+} from './useFoodEntryFlow';
+import styles from './FoodEntryCreateModals.module.scss';
 
 type Props = {
-  scheduleId: string;
+  /** Create-флоу, поднятый страницей (useFoodEntryFlow({ mode: 'create', target })). */
+  flow: FoodEntryFlow;
 };
 
-const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
+const FoodEntryCreateModals = ({ flow }: Props) => {
   const {
+    kind,
     step,
     setStep,
     draft,
@@ -38,23 +40,23 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
     quantityContent,
     visitedSteps,
     inputIds: { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT, CREATE_INPUT },
-  } = useScheduleFoodFlow({ type: 'create', scheduleId });
+  } = flow;
+
+  // У блюда в блюдо нельзя класть блюдо → products-only; в день можно добавить
+  // целое блюдо → products-and-dishes.
+  const searchMode = kind === 'dish' ? 'products-only' : 'products-and-dishes';
 
   const hasHints = useHasDetailsHints(draft.productId);
   const createSteps = hasHints ? CREATE_STEPS_WITH_DETAILS : CREATE_STEPS_NO_DETAILS;
 
   // Один список шагов на ВСЕ StepHeader флоу. `details` — опт-ин (нет в
-  // createSteps без hints), но как только шаг посещён, он должен остаться
-  // в строке на всех шагах — иначе крошка «Особенности» пропадает при
-  // прыжке назад (трейл «тасуется»).
+  // createSteps без hints), но как только шаг посещён, он остаётся в строке на
+  // всех шагах — иначе крошка «Особенности» пропадает при прыжке назад.
   const stepsForBar =
     visitedSteps.includes('details') && !createSteps.includes('details')
       ? [...createSteps, 'details' as const]
       : createSteps;
 
-  // Единый набор результатов для всех StepHeader флоу. Какие крошки реально
-  // показать — решает `visitedSteps` в Breadcrumbs, а не подмножество здесь
-  // (раньше шаг quantity не отдавал свой результат и не появлялся в трейле).
   const stepResults = {
     search: draft.foodName ?? undefined,
     quantity: draft.quantity,
@@ -63,11 +65,9 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
 
   const goToStep = (target: typeof step) => setStep(target);
 
-  // «Назад» в StepHeader — на предыдущий шаг по линейному порядку stepsForBar
-  // (тот же массив, что отрисован в bar; включает opt-in `details` если шаг
-  // уже посещён). На первом шаге с StepHeader (quantity) back ведёт на search;
-  // search рисуется голым SearchFood со своим onBack=handleClose. Если шага
-  // нет в наборе (краевой случай) — закрываем флоу целиком.
+  // «Назад» в StepHeader — на предыдущий шаг по линейному порядку stepsForBar.
+  // На первом шаге с StepHeader (quantity) back ведёт на search; search рисуется
+  // голым SearchFood со своим onBack=handleClose.
   const handleBack = () => {
     const idx = stepsForBar.indexOf(step as (typeof stepsForBar)[number]);
     if (idx <= 0) {
@@ -77,20 +77,15 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
     setStep(stepsForBar[idx - 1]);
   };
 
-  // «Назад» с экрана создания продукта/блюда — возврат к поиску (это не
-  // Steps-bar модалка, а ответвление из SearchFood).
+  // «Назад» с экрана создания продукта/блюда — возврат к поиску.
   const handleBackToSearch = () => setStep('search');
 
-  // Local state for the create-name input. Re-synced from draft.foodName on
-  // every transition INTO the 'create' step (so a fresh prefill from
-  // handlePickCreate lands without clobbering mid-edit user input within the
-  // same step session).
+  // Local state шага создания имени. Пересинкивается из draft.foodName при
+  // каждом входе в 'create' (свежий prefill из handlePickCreate не должен
+  // затирать редактирование внутри той же сессии шага).
   const [createName, setCreateName] = useState('');
   const [isSupplement, setIsSupplement] = useState(false);
-  // БАД-only: введённые в модалке нутриенты per 1 шт.
-  // Аккордеоны по дефолту свёрнуты, single-open — открыта максимум одна группа.
-  // Тап другой → предыдущая сворачивается (экран не превращается в длинный
-  // скролл из ~70 карточек).
+  // БАД-only: введённые в модалке нутриенты per 1 шт. Аккордеоны single-open.
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [supplementNutrients, setSupplementNutrients] = useState<Record<string, number>>({});
 
@@ -119,7 +114,10 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
 
   const createVariantLabel = draft.variant === 'dish' ? 'блюдо' : 'продукт';
   const createTrimmed = createName.trim();
-  const isProductCreate = draft.variant !== 'dish';
+  // БАД-блок — только в РАСПИСАНИИ при создании продукта. В блюде БАД запрещён:
+  // dish-калькулятор считает нутриенты в граммах (per-100g), serving-продукт дал
+  // бы неверную сумму → БАД не создаём и не ищем в блюде (2026-06-20).
+  const showSupplementOption = kind === 'schedule' && draft.variant !== 'dish';
 
   return (
     <div onFocusCapture={handleFocusCapture}>
@@ -134,7 +132,7 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
                 handleClose();
               }}
               key={sessionKey}
-              mode="products-and-dishes"
+              mode={searchMode}
               onSelectFood={handleFoodSelect}
               onBack={handleClose}
               title="Еда"
@@ -144,20 +142,21 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
               isActive={step === 'search'}
               createInputHtmlFor={CREATE_INPUT}
               onPickCreate={handlePickCreate}
+              excludeSupplements={kind === 'dish'}
             />
           </ModalVariantFields>
         }
       />
 
       {/* Step 1a: Create product/dish — opened from the "Нет нужного…" labels
-          inside SearchFood. Confirm is a <label htmlFor={QUANTITY_INPUT}> so the
+          inside SearchFood. Confirm = <label htmlFor={QUANTITY_INPUT}> so the
           step transition to 'quantity' happens via onFocusCapture after focus
           delegation lands (шаг времени убран — время = «сейчас» на коммите). */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'create'}
         content={
-          <ModalShell variant="spring4">
+          <ModalShell>
             <ModalShell.Header
               title={createVariantLabel === 'блюдо' ? 'Новое блюдо' : 'Новый продукт'}
               onBack={handleBackToSearch}
@@ -175,7 +174,7 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
                 <p className={styles.createHint}>
                   Сейчас создадим — детали можно будет добавить позже.
                 </p>
-                {isProductCreate && (
+                {showSupplementOption && (
                   <div className={styles.createSupplementRow}>
                     <LabeledCheckbox
                       checked={isSupplement}
@@ -184,14 +183,14 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
                     />
                   </div>
                 )}
-                {isProductCreate && isSupplement && (
+                {showSupplementOption && isSupplement && (
                   <div className={styles.supplementBlock}>
                     <p className={styles.supplementUnit}>1 приём = 1 шт</p>
                     <div className={styles.nutrientGroupsList}>
                       {nutrientGroups.map((group) => {
                         const isOpen = openGroup === group.name;
                         const filledCount = group.content.filter(
-                          (n) => (supplementNutrients[n.id] ?? 0) > 0
+                          (n) => (supplementNutrients[n.id] ?? 0) > 0,
                         ).length;
                         return (
                           <div
@@ -263,7 +262,7 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
         position="absolute"
         isExpanded={step === 'quantity'}
         content={
-          <ModalShell variant="spring4">
+          <ModalShell>
             <ModalShell.StepHeader
               title={STEP_LABELS.quantity}
               currentStep="quantity"
@@ -311,7 +310,6 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
       {/* Step 3: Details */}
       <ModalByLabelDetails
         isExpanded={step === 'details'}
-        variant="spring4"
         flush
         debugId="create-details"
         onCommit={handleCommit}
@@ -339,4 +337,4 @@ const ScheduleFoodCreateModals = ({ scheduleId }: Props) => {
   );
 };
 
-export default ScheduleFoodCreateModals;
+export default FoodEntryCreateModals;

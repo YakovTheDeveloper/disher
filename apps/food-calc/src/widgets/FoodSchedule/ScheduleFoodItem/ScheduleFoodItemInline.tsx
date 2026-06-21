@@ -6,7 +6,6 @@ import { LongPressRow } from '@/features/shared/long-press-item';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { updateScheduleFood } from '@/entities/schedule-food';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
-import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { safeMutate } from '@/shared/lib/safeMutate';
@@ -43,9 +42,6 @@ const ScheduleFoodItemInline = ({
   foodHtmlFor,
 }: Props) => {
   const id = item.id;
-  // «Недавно добавлен» — синий кружок справа. Чистится не по таймеру, а на
-  // свайп слайда / уход со страницы (HomePage owns the clear).
-  const isRecent = useRecentlyAddedStore((s) => s.ids.has(id));
   // Global toggle (set from the TimeGroup time header): hide the per-row time.
   const hideTime = useItemTimesStore((s) => s.hidden);
 
@@ -121,8 +117,7 @@ const ScheduleFoodItemInline = ({
       id={id}
       index={index}
       tod={getTimeOfDay(item.time)}
-      recent={isRecent}
-      data-schedule-food-id={id}
+      data-row-id={id}
       onLongPress={onLongPress}
     >
       {!hideTime && (

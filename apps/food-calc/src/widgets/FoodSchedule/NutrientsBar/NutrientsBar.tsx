@@ -1,4 +1,5 @@
 import type { NutrientTotals } from '@/shared/lib/nutrients';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import s from './NutrientsBar.module.scss';
 
 type Props = {
@@ -44,15 +45,7 @@ export const NutrientsBar = ({ totals, onOpen }: Props) => {
             </span>
           ))}
         </div>
-        <svg className={s.chevron} viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path
-            d="M9 6l6 6-6 6"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <ChevronGlyph className={s.chevron} />
       </button>
     </div>
   );

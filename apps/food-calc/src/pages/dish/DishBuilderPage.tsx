@@ -10,16 +10,17 @@ import {
   addDishPortion,
   updateDishPortion,
   removeDishPortion,
+  deleteDish,
 } from '@/entities/dish';
 import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-name';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
-import { Screen, TopBarScrollHideContext, useTopBarScrollHideController } from '@/shared/ui/Screen';
+import { Screen } from '@/shared/ui/Screen';
 import {
   useWriteFoodFlow,
   getWriteFoodInputId,
   InlineWriteFoodReview,
 } from '@/features/food/food-free-text-parse';
-import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
+import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
 import { LongPressRow } from '@/features/shared/long-press-item';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
@@ -27,14 +28,11 @@ import { Quantity } from '@/shared/ui/Quantity';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DishBuilderPage.module.scss';
-import homeStyles from '@/pages/home-page/HomePage.module.scss';
 import {
-  DishProductCreateModals,
-  DISH_MODAL_INPUT_IDS,
-  DishProductEditModals,
-  DISH_EDIT_MODAL_INPUT_IDS,
-  useDishProductFlow,
-} from './ui';
+  FoodEntryCreateModals,
+  FoodEntryEditModals,
+  useFoodEntryFlow,
+} from '@/features/food/food-entry-flow';
 import {
   FoodPortionsManager,
   PortionCreateModals,
@@ -46,17 +44,15 @@ import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-acti
 import { HomeTopBar } from '@/widgets/HomeTopBar';
 import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
 import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
-import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { AppBottomBar } from '@/shared/ui/AppBottomBar';
 import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
 import { drawerStore } from '@/shared/ui/drawer-store';
+import { modalStore } from '@/shared/ui/modal-store';
+import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { SuggestIngredientsClarifyDrawer } from '@/features/food/food-free-text-parse/ui/SuggestIngredientsClarifyDrawer';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 import { NutrientsBar } from '@/widgets/FoodSchedule/NutrientsBar';
-import jazzImg from '@/shared/assets/decarative/jazz.png';
-import bagImg from '@/shared/assets/decarative/bag3.png';
-import moneyImg from '@/shared/assets/decarative/money.png';
 
 type DishItemWithProduct = {
   id: string;
@@ -66,33 +62,14 @@ type DishItemWithProduct = {
   product: { name: string | null } | null;
 };
 
+// Разделы блюда. Плитки текстовые — tile-art снят (выпилен из проекта).
 const DISH_SCREENS: ScreenEntry[] = [
-  { label: 'Анализ', image: jazzImg, titleStyle: 'display-sans' },
-  { label: 'Ингредиенты', image: bagImg, titleStyle: 'display-sans' },
-  { label: 'Порции', image: moneyImg, titleStyle: 'display-sans' },
+  { label: 'Анализ', titleStyle: 'display-sans' },
+  { label: 'Ингредиенты', titleStyle: 'display-sans' },
+  { label: 'Порции', titleStyle: 'display-sans' },
 ];
 
 const DEFAULT_SLIDE = 1;
-const SWIPE_DURATION = 25;
-
-// SwitcherTab ambient — radial-glow per nth-child (см. SwitcherTab.module.scss).
-// Дефолтная семантика тайла (inverse-lift) уже в base-стилях; этот anchor
-// добавляет цветную подсветку каждой плитке отдельно — аналог ProductAmbient,
-// но per-tile. HomePage anchor не использует.
-// Первый элемент = дефолт (см. useDesignVariant fallback). `ice-blue` —
-// subtle голубоватый glow, согласуется с ProductAmbient.ice-blue фоном
-// страницы. Остальные — моно-tone subtle палитры; `none` сохранён как
-// явный off-вариант для отладки.
-const SWITCHER_TAB_AMBIENT_VARIANTS = [
-  'ice-blue',
-  'paper-warm',
-  'mint-fog',
-  'lavender-haze',
-  'peach-fog',
-  'silver-mist',
-  'rose-quartz',
-  'none',
-] as const;
 
 const DishBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -133,7 +110,9 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   // Сумма нутриентов блюда — 1:1 с HomePage: полоса-сводка (NutrientsBar) в
   // конце списка ингредиентов, а не пилюля верхнего бара (пилюлю убрали
   // 2026-06-19). Тот же dishTotals открывает тот же NutrientsDrawer слева.
-  const editFlow = useDishProductFlow({ type: 'edit' });
+  const editFlow = useFoodEntryFlow({ mode: 'edit', target: { kind: 'dish', dishId: id } });
+  const createFlow = useFoodEntryFlow({ mode: 'create', target: { kind: 'dish', dishId: id } });
+  const editIds = editFlow.inputIds;
 
   const writeFoodTarget = useMemo(
     () => ({ kind: 'dish' as const, dishId: id }),
@@ -141,15 +120,6 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   );
   const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
   const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
-
-  const swipeableRef = useRef<SwipeableRef>(null);
-
-  // Направление-зависимое скрытие кнопок бара при скролле (см. topBarScrollHide).
-  // Экран «Разбор» прячет всё (кроме «Назад»), Ингредиенты/Порции — только
-  // настройки. Контроллер пишет в DOM императивно → zero-React-render.
-  const { shellRef, setHide, api: topBarHideApi } = useTopBarScrollHideController();
-  // Смена слайда → бар возвращается видимым (новый экран читается «с верха»).
-  const handleIndexChange = useCallback(() => setHide('none'), [setHide]);
 
   const startEdit = editFlow.startEdit;
   const handleEditQuantity = useCallback(
@@ -168,14 +138,14 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   const handleEditFocusCapture = useCallback(
     (e: React.FocusEvent) => {
       const target = e.target as HTMLElement;
-      if (target.id !== DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT) return;
+      if (target.id !== editIds.DETAILS_INPUT) return;
       const itemId = target.dataset.activeItemId;
       if (!itemId) return;
       const item = itemsRef.current.find((it) => it.id === itemId);
       if (!item) return;
       primeEdit(item);
     },
-    [primeEdit]
+    [primeEdit, editIds]
   );
 
   // HomeTopBar is date-aware (click on date-segment → ScheduleNavigatorDrawer
@@ -193,56 +163,20 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   const backTo =
     (location.state as { from?: string } | null)?.from ?? `/schedule/${dateForTopBar}`;
 
-  // Свайп не прокидывается в стейт: каждый слайд рендерит свой статичный
-  // ScreenIndicator (slideIndex={0/1/2}). Тот же паттерн, что HomePage.
-  const handleSelect = useCallback((idx: number) => {
-    swipeableRef.current?.goToPage(idx);
-  }, []);
-
-  const { anchor: switcherTabAnchor } = useDesignVariant(
-    'SwitcherTabAmbient',
-    SWITCHER_TAB_AMBIENT_VARIANTS,
-  );
-
-  // Инстансы индикатора держим стабильными (useMemo на стабильном
-  // handleSelect) по канону HomePage. Прямого выигрыша от memo(Screen) тут
-  // нет — соседние пропы Screen (children/actions/...) инлайн-JSX, memo
-  // пробивается всё равно; вреда тоже нет.
-  // bandImg={false}: крупная бледная картинка активного экрана снята (юзер: «от
-  // этого уже ушли») — паритет с HomePage-индикаторами. Мелкие картинки в самих
-  // SwitcherTab остаются.
-  const analysisIndicator = useMemo(
-    () => (
-      <ScreenIndicator
-        screens={DISH_SCREENS}
-        onSelect={handleSelect}
-        slideIndex={0}
-        bandImg={false}
+  // Бар отдаётся в SwipeDeck через render-prop — каркас прокидывает `shellRef`
+  // (scroll-hide). На блюде нет даты: пилюля-дата = иконка-календарь, переход к
+  // расписанию остаётся; `noInterruptGuard` глушит date-switch confirm.
+  const renderTopBar = useCallback(
+    (shellRef: React.Ref<HTMLDivElement>) => (
+      <HomeTopBar
+        date={dateForTopBar}
+        backSlot={<BackButton to={backTo} />}
+        dateButtonLabel={<CalendarIcon width={22} height={22} />}
+        noInterruptGuard
+        shellRef={shellRef}
       />
     ),
-    [handleSelect],
-  );
-  const ingredientsIndicator = useMemo(
-    () => (
-      <ScreenIndicator
-        screens={DISH_SCREENS}
-        onSelect={handleSelect}
-        slideIndex={1}
-        bandImg={false}
-      />
-    ),
-    [handleSelect],
-  );
-  const portionsIndicator = useMemo(
-    () => (
-      <ScreenIndicator
-        screens={DISH_SCREENS}
-        onSelect={handleSelect}
-        slideIndex={2}
-        bandImg={false}
-      />
-    ),
-    [handleSelect],
+    [dateForTopBar, backTo],
   );
 
   // ── Порции блюда: создание 2-шаговой модалкой + удаление long-press → drawer ──
@@ -303,6 +237,25 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     });
   };
 
+  // Удаление блюда — серая урна в шапке rename-модалки (канон гипотезы). Confirm
+  // → cascade-delete (dish_items + portions) → уход на origin: после удаления
+  // useDish(id) отдаст undefined и страница вернёт null, поэтому навигируем сами,
+  // иначе остался бы пустой экран.
+  const handleDeleteDish = async () => {
+    const confirmed = await modalStore.show(ConfirmModal, {
+      title: 'Удалить блюдо?',
+      message: 'Блюдо и его состав будут удалены. Это действие не отменить.',
+      confirmLabel: 'Удалить',
+      tone: 'danger',
+    });
+    if (confirmed !== true) return;
+    const res = await safeMutate(() => deleteDish(id), 'Не удалось удалить блюдо');
+    if (res.ok) {
+      setRenameOpen(false);
+      navigate(backTo);
+    }
+  };
+
   // Semantic suggest: grab the dish name → head A → matched ingredients land
   // in InlineWriteFoodReview below the list. rAF waits for the skeleton render
   // (which carries [data-write-food-anchor]) before scrolling it into view.
@@ -319,95 +272,70 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     });
   };
 
-  return (
-    // NavSwitcher tab-as-title — каноничный облик табов экранов (как на HomePage):
-    // активный раздел = крупный заголовок, неактивные — тихие serif-указатели.
-    // Хардкод-атрибут (а не useDesignVariant) намеренно: облик зафиксирован и не
-    // делит персист-ключ `dv:NavSwitcher` с HomePage. Квадрат ретайрнут 2026-06-19.
-    <div className={homeStyles.container} data-dv="NavSwitcher" data-dv-v="tab-as-title">
-      <HomeTopBar
-        date={dateForTopBar}
-        backSlot={<BackButton to={backTo} />}
-        dateButtonLabel={<CalendarIcon width={22} height={22} />}
-        noInterruptGuard
-        shellRef={shellRef}
-      />
-      <div onFocusCapture={handleNameFocusCapture}>
-        <ChangeNameModal
-          currentName={dish.name}
-          isExpanded={renameOpen}
-          onClose={() => setRenameOpen(false)}
-          onChangeName={(name) => {
-            void safeMutate(() => updateDishName(dish.id, name), 'Не удалось переименовать');
-            setRenameOpen(false);
-          }}
-        />
-      </div>
-      <div className={homeStyles.swipeArea} {...switcherTabAnchor}>
-        <TopBarScrollHideContext.Provider value={topBarHideApi}>
-        <Swipeable
-          ref={swipeableRef}
-          defaultSlide={DEFAULT_SLIDE}
-          duration={SWIPE_DURATION}
-          hasDots={false}
-          onIndexChange={handleIndexChange}
+  // Каждый слайд = свой `<Screen>`, получающий topSlot (плитки) в `stickyTop`.
+  // Каркас (SwipeDeck) владеет container/стеклом/scroll-hide/свайпом/плитками.
+  const slides: DeckSlide[] = [
+    {
+      render: (topSlot) => (
+        <Screen
+          key={1}
+          headerOverlap
+          contentHeader={nameHeading}
+          stickyTop={topSlot}
+          topBarHide="all"
         >
-          <Screen
-            key={1}
-            headerOverlap
-            contentHeader={nameHeading}
-            stickyTop={analysisIndicator}
-            topBarHide="all"
-          >
-            <DishAnalysisScreen dishId={id} hasIngredients={items.length > 0} />
-          </Screen>
-
-          <Screen
-            key={2}
-            headerOverlap
-            contentHeader={nameHeading}
-            stickyTop={ingredientsIndicator}
-            topBarHide="settings"
-            headerAction={
-              <SuggestActionButton
-                label="Предложить ингредиенты"
-                // Disable while parsing AND when the dish has no name yet —
-                // submitDishName('') is a silent no-op otherwise.
-                disabled={writeFoodFlow.state === 'loading' || !dish.name.trim()}
-                onClick={() => void handleSuggestIngredients()}
-              />
-            }
-            overlay={
-              <>
-                <DishProductCreateModals dishId={id} />
-                <div onFocusCapture={handleEditFocusCapture}>
-                  <DishProductEditModals flow={editFlow} />
-                </div>
-                {/* WriteFoodModals overlay убран 2026-05-23: AutoGrowSearch
-                    теперь живёт прямо в AppBottomBar через WriteFoodInput.
-                    Дубликат `<input id={writeFoodInputId}>` в DOM дал бы конфликт. */}
-              </>
-            }
-            bottomBar={
-              <AppBottomBar
-                writeFoodFlow={writeFoodFlow}
-                writeFoodInputId={writeFoodInputId}
-                searchHtmlFor={DISH_MODAL_INPUT_IDS.SEARCH_INPUT}
-                searchLabel="Найти продукт"
-                searchText="выбрать из списка"
-                writeFoodPlaceholder="Опишите ингредиенты…"
-              />
-            }
-            afterContent={
-              /* Предложка в afterContent-слоте Screen (паритет с FoodSchedule):
-                 результат typed-text-бара И кнопки «Предложить ингредиенты»
-                 плавает на фоне страницы под листом со списком. Несёт
-                 [data-write-food-anchor] — без него «Посмотреть варианты» в
-                 баре скроллил в пустоту (живой баг до 2026-06-05). */
-              <InlineWriteFoodReview flow={writeFoodFlow} />
-            }
-          >
-            <div className={styles.dishItemsGroup}>
+          <DishAnalysisScreen dishId={id} hasIngredients={items.length > 0} />
+        </Screen>
+      ),
+    },
+    {
+      render: (topSlot) => (
+        <Screen
+          key={2}
+          headerOverlap
+          contentHeader={nameHeading}
+          stickyTop={topSlot}
+          topBarHide="settings"
+          headerAction={
+            <SuggestActionButton
+              label="Предложить ингредиенты"
+              // Disable while parsing AND when the dish has no name yet —
+              // submitDishName('') is a silent no-op otherwise.
+              disabled={writeFoodFlow.state === 'loading' || !dish.name.trim()}
+              onClick={() => void handleSuggestIngredients()}
+            />
+          }
+          overlay={
+            <>
+              <FoodEntryCreateModals flow={createFlow} />
+              <div onFocusCapture={handleEditFocusCapture}>
+                <FoodEntryEditModals flow={editFlow} />
+              </div>
+              {/* WriteFoodModals overlay убран 2026-05-23: AutoGrowSearch
+                  теперь живёт прямо в AppBottomBar через WriteFoodInput.
+                  Дубликат `<input id={writeFoodInputId}>` в DOM дал бы конфликт. */}
+            </>
+          }
+          bottomBar={
+            <AppBottomBar
+              writeFoodFlow={writeFoodFlow}
+              writeFoodInputId={writeFoodInputId}
+              searchHtmlFor={createFlow.inputIds.SEARCH_INPUT}
+              searchLabel="Найти продукт"
+              searchText="выбрать из списка"
+              writeFoodPlaceholder="Опишите ингредиенты…"
+            />
+          }
+          afterContent={
+            /* Предложка в afterContent-слоте Screen (паритет с FoodSchedule):
+               результат typed-text-бара И кнопки «Предложить ингредиенты»
+               плавает на фоне страницы под листом со списком. Несёт
+               [data-write-food-anchor] — без него «Посмотреть варианты» в
+               баре скроллил в пустоту (живой баг до 2026-06-05). */
+            <InlineWriteFoodReview flow={writeFoodFlow} />
+          }
+        >
+          <div className={styles.dishItemsGroup}>
             <ItemsList offsetTop>
               {items.map((item, index) => (
                 <LongPressRow
@@ -416,6 +344,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
                   index={index}
                   className={styles.group}
                   innerClassName={styles.dishFoodListItem}
+                  data-row-id={item.id}
                   onLongPress={() => openActionsDrawer(item)}
                 >
                   {/* Колонка = <label htmlFor={DETAILS_INPUT}>: тап по имени ИЛИ
@@ -425,23 +354,19 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
                       стэшит activeItemId до focus — его читает handleEditFocusCapture. */}
                   <label
                     className={styles.foodCol}
-                    htmlFor={DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT}
+                    htmlFor={editIds.DETAILS_INPUT}
                     onPointerDown={() => {
-                      const trigger = document.getElementById(
-                        DISH_EDIT_MODAL_INPUT_IDS.DETAILS_INPUT
-                      );
+                      const trigger = document.getElementById(editIds.DETAILS_INPUT);
                       if (trigger) trigger.dataset.activeItemId = item.id;
                     }}
                   >
-                    <FoodName
-                      content={{ name: item.product?.name ?? item.productId }}
-                    />
+                    <FoodName content={{ name: item.product?.name ?? item.productId }} />
                     {item.details ? (
                       <span className={styles.detailsSubtitle}>{item.details}</span>
                     ) : null}
                   </label>
                   <Quantity
-                    htmlFor={DISH_EDIT_MODAL_INPUT_IDS.QUANTITY_INPUT}
+                    htmlFor={editIds.QUANTITY_INPUT}
                     id={item.id}
                     onClick={() => handleEditQuantity(item)}
                     hide={false}
@@ -451,55 +376,82 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
                 </LongPressRow>
               ))}
             </ItemsList>
-            </div>
-            {/* Полоса-сводка нутриентов блюда — в конце списка (паритет с
-                FoodSchedule). На пустом блюде не показываем. */}
-            {items.length > 0 && (
-              <NutrientsBar totals={dishTotals} onOpen={openNutrients} />
-            )}
-          </Screen>
-
-          <Screen
-            key={3}
-            headerOverlap
-            contentHeader={nameHeading}
-            stickyTop={portionsIndicator}
-            topBarHide="settings"
-            bottomBar={<AddPortionButton />}
-            overlay={
-              <PortionCreateModals
-                // «Всё блюдо» — производная строка implicitPortion; добавляем в
-                // reserved-список, чтобы юзер не создал порцию-двойник.
-                existingLabels={
-                  items.length > 0 ? [...portionLabels, 'Всё блюдо'] : portionLabels
-                }
-                unit="г"
-                onCreate={createPortion}
-              />
-            }
-          >
-            <FoodPortionsManager
-              portions={portionsRaw.map((p) => ({
-                label: p.label,
-                grams: p.grams,
-              }))}
-              implicitPortion={
-                items.length > 0
-                  ? {
-                      label: 'Всё блюдо',
-                      grams: items.reduce((sum, it) => sum + it.quantity, 0),
-                    }
-                  : undefined
+          </div>
+          {/* Полоса-сводка нутриентов блюда — в конце списка (паритет с
+              FoodSchedule). На пустом блюде не показываем. */}
+          {items.length > 0 && <NutrientsBar totals={dishTotals} onOpen={openNutrients} />}
+        </Screen>
+      ),
+    },
+    {
+      render: (topSlot) => (
+        <Screen
+          key={3}
+          headerOverlap
+          contentHeader={nameHeading}
+          stickyTop={topSlot}
+          topBarHide="settings"
+          bottomBar={<AddPortionButton />}
+          overlay={
+            <PortionCreateModals
+              // «Всё блюдо» — производная строка implicitPortion; добавляем в
+              // reserved-список, чтобы юзер не создал порцию-двойник.
+              existingLabels={
+                items.length > 0 ? [...portionLabels, 'Всё блюдо'] : portionLabels
               }
-              showHint={false}
-              onUpdate={updatePortion}
-              onLongPressRow={openPortionDeleteDrawer}
+              unit="г"
+              onCreate={createPortion}
             />
-          </Screen>
-        </Swipeable>
-        </TopBarScrollHideContext.Provider>
+          }
+        >
+          <FoodPortionsManager
+            portions={portionsRaw.map((p) => ({
+              label: p.label,
+              grams: p.grams,
+            }))}
+            implicitPortion={
+              items.length > 0
+                ? {
+                    label: 'Всё блюдо',
+                    grams: items.reduce((sum, it) => sum + it.quantity, 0),
+                  }
+                : undefined
+            }
+            showHint={false}
+            onUpdate={updatePortion}
+            onLongPressRow={openPortionDeleteDrawer}
+          />
+        </Screen>
+      ),
+    },
+  ];
+
+  return (
+    <>
+      {/* Rename-модалка: focus-delegation работает через расположение ИНПУТА
+          (внутри ChangeNameModal), не лейбла — поэтому модалка живёт соседом
+          SwipeDeck. Лейбл в nameHeading (в каждом Screen) редиректит фокус на её
+          input по id → onFocusCapture здесь ловит и раскрывает rename. */}
+      <div onFocusCapture={handleNameFocusCapture}>
+        <ChangeNameModal
+          currentName={dish.name}
+          isExpanded={renameOpen}
+          onClose={() => setRenameOpen(false)}
+          onChangeName={(name) => {
+            void safeMutate(() => updateDishName(dish.id, name), 'Не удалось переименовать');
+            setRenameOpen(false);
+          }}
+          onDelete={handleDeleteDish}
+          deleteLabel="Удалить блюдо"
+        />
       </div>
-    </div>
+      <SwipeDeck
+        screens={DISH_SCREENS}
+        slides={slides}
+        defaultSlide={DEFAULT_SLIDE}
+        renderTopBar={renderTopBar}
+      />
+    </>
   );
 };
 

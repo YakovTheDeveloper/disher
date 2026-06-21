@@ -9,6 +9,7 @@ import s from './NutrientTable.module.scss';
 import clsx from 'clsx';
 import { memo, useCallback, useRef, useState, useEffect } from 'react';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
+import { Text } from '@/shared/ui/atoms/Typography';
 
 interface Props {
   getValue: (id: string) => number;
@@ -305,7 +306,9 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
       <div className={clsx(s.container, s.containerNorms)}>
         {normGroups.map((group) => (
           <section key={group.key} className={s.normGroup}>
-            <h3 className={s.normGroupTitle}>{group.title}</h3>
+            <Text as="h3" variant="sectionLabel" className={s.normGroupTitle}>
+              {group.title}
+            </Text>
             <div className={s.normList}>{group.rows}</div>
           </section>
         ))}

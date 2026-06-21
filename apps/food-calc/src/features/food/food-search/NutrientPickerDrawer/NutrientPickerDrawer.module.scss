@@ -49,15 +49,11 @@
     }
 }
 
+// Заголовок группы = сериф-italic метка (Text variant="sectionLabel") — типографику
+// владеет примитив, тут только раскладка.
 .groupTitle {
     margin: 0 0 var(--space-1);
     padding: 0 var(--space-2);
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--card-rich-unit);
 }
 
 // Нутриенты — общий примитив Chip в ряд с переносом (flex-wrap). Вид и

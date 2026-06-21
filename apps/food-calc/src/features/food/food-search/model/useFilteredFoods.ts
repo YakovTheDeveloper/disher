@@ -11,16 +11,23 @@ export function useFilteredFoods(
   searchQuery: string,
   richNutrientId?: string | null,
   userOnlyProducts = false,
+  excludeSupplements = false,
 ) {
   const allProductsRaw = useProducts();
   const allDishesRaw = useDishes();
 
   // pre-filter BEFORE Fuse-index — иначе для нового юзера Fuse вернёт catalog-хиты,
   // которые мы выкинем постфактум и получим пустой список при ненулевом совпадении.
-  const productsBase = useMemo(
-    () => (userOnlyProducts ? allProductsRaw.filter((p) => !isCatalogId(p.id)) : allProductsRaw),
-    [allProductsRaw, userOnlyProducts],
-  );
+  // excludeSupplements (контекст блюда) — БАД (basis='serving') не кладётся в
+  // блюдо: dish-калькулятор считает в граммах (per-100g), serving-продукт молча
+  // даст неверную сумму. Поэтому прячем их из поиска ингредиентов блюда.
+  const productsBase = useMemo(() => {
+    let base = userOnlyProducts
+      ? allProductsRaw.filter((p) => !isCatalogId(p.id))
+      : allProductsRaw;
+    if (excludeSupplements) base = base.filter((p) => p.servingBasis !== 'serving');
+    return base;
+  }, [allProductsRaw, userOnlyProducts, excludeSupplements]);
 
   const productFuse = useMemo(
     () =>

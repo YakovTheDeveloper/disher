@@ -294,7 +294,22 @@
       "Bash(npm install *)",
       "Bash(echo \"stylelint exit: $?\")",
       "Bash(echo \"exit: $?\")",
-      "PowerShell(if \\($?\\) { \"STYLELINT OK\" })"
+      "PowerShell(if \\($?\\) { \"STYLELINT OK\" })",
+      "WebFetch(domain:getomn.io)",
+      "WebFetch(domain:www.statsig.com)",
+      "Bash(xargs grep -l \"useDish\\\\|useProduct\\\\|useScheduleEvent\\\\|useHypothesis\\\\|useScheduleFood\")",
+      "Bash(xargs grep -l \"use.*Edit\\\\|use.*Write\\\\|use.*Flow\")",
+      "Bash(xargs grep -l \"InsightListPanel\\\\|legend\\\\|InsightList\")",
+      "Bash(echo \"started, pid $!\")",
+      "Bash(echo \"restarting dev \\(pid $!\\)\")",
+      "Bash(sleep 6; tail -8 /tmp/disher-dev2.log)",
+      "Bash(echo \"STYLELINT EXIT: $?\")",
+      "Bash(cd /c/Users/booty/Documents/GitHub/disher)",
+      "Bash(curl -s -o /dev/null -w \"5173:%{http_code}\\\\n\" http://localhost:5173 --max-time 3)",
+      "Bash(curl -s -o /dev/null -w \"4173:%{http_code}\\\\n\" http://localhost:4173 --max-time 3)",
+      "Bash(curl -sk -o /dev/null -w \"%{http_code}\" https://localhost:5173/)",
+      "Bash(cd \"c:/Users/booty/Documents/GitHub/disher/apps/food-calc\"; f=$\\(find ../../node_modules/embla-carousel/esm -name '*.js' 2>/dev/null | head -1\\); echo \"FILE: $f\"; grep -n \"addEventListener\\\\|pointercancel\\\\|pointerdown\\\\|pointermove\\\\|touch-action\\\\|setPointerCapture\\\\|preventDefault\\\\|ownerDocument\" ../../node_modules/embla-carousel/esm/embla-carousel.esm.js 2>/dev/null | head -50)",
+      "Read(//c/Users/booty/Documents/node_modules/embla-carousel/**)"
     ],
     "additionalDirectories": [
       "\\tmp",

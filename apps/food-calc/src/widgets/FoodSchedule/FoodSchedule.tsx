@@ -10,11 +10,10 @@ import { Screen, type TopBarHideTarget } from '@/shared/ui/Screen';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import toaster from '@/shared/lib/toaster/toaster';
 import {
-  ScheduleFoodCreateModals,
-  ScheduleFoodEditModals,
-  SCHEDULE_FOOD_INPUT_IDS,
-  useScheduleFoodFlow,
-} from '@/widgets/FoodSchedule/ui';
+  FoodEntryCreateModals,
+  FoodEntryEditModals,
+  useFoodEntryFlow,
+} from '@/features/food/food-entry-flow';
 import { AppBottomBar } from '@/shared/ui/AppBottomBar';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS } from '@/features/shared/long-press-item';
@@ -72,7 +71,9 @@ const FoodSchedule = ({
 }: CommonProps) => {
   const navigate = useNavigate();
 
-  const editFlow = useScheduleFoodFlow({ type: 'edit' });
+  const editFlow = useFoodEntryFlow({ mode: 'edit', target: { kind: 'schedule', date } });
+  const createFlow = useFoodEntryFlow({ mode: 'create', target: { kind: 'schedule', date } });
+  const editIds = editFlow.inputIds;
 
   const writeFoodTarget = useMemo(() => ({ kind: 'schedule' as const, date }), [date]);
   const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
@@ -114,14 +115,14 @@ const FoodSchedule = ({
   const handleEditFocusCapture = useCallback(
     (e: React.FocusEvent) => {
       const target = e.target as HTMLElement;
-      if (target.id !== SCHEDULE_FOOD_INPUT_IDS.DETAILS_EDIT_INPUT) return;
+      if (target.id !== editIds.DETAILS_INPUT) return;
       const itemId = target.dataset.activeItemId;
       if (!itemId) return;
       const item = itemsRef.current.find((it) => it.id === itemId);
       if (!item) return;
       primeEdit(item);
     },
-    [primeEdit]
+    [primeEdit, editIds]
   );
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
@@ -171,9 +172,9 @@ const FoodSchedule = ({
         <>
           {isActive ? (
             <>
-              <ScheduleFoodCreateModals scheduleId={date} />
+              <FoodEntryCreateModals flow={createFlow} />
               <div onFocusCapture={handleEditFocusCapture}>
-                <ScheduleFoodEditModals flow={editFlow} />
+                <FoodEntryEditModals flow={editFlow} />
               </div>
               {/* WriteFoodModals overlay removed: real AutoGrowSearch теперь
                   живёт прямо в AppBottomBar (writeFoodInputLike). Лишний
@@ -186,7 +187,7 @@ const FoodSchedule = ({
         <AppBottomBar
           writeFoodFlow={writeFoodFlow}
           writeFoodInputId={writeFoodInputId}
-          searchHtmlFor={SCHEDULE_FOOD_INPUT_IDS.SEARCH_INPUT}
+          searchHtmlFor={createFlow.inputIds.SEARCH_INPUT}
           searchLabel="Найти еду"
           searchText="выбрать из списка"
           writeFoodPlaceholder="Напишите, что вы ели или"
@@ -234,9 +235,9 @@ const FoodSchedule = ({
                             onEditTime={onEditTime}
                             onEditFood={onEditFood}
                             onEditQuantity={onEditQuantity}
-                            timeHtmlFor={SCHEDULE_FOOD_INPUT_IDS.TIME_EDIT_INPUT}
-                            foodHtmlFor={SCHEDULE_FOOD_INPUT_IDS.DETAILS_EDIT_INPUT}
-                            quantityHtmlFor={SCHEDULE_FOOD_INPUT_IDS.QUANTITY_EDIT_INPUT}
+                            timeHtmlFor={editIds.TIME_INPUT}
+                            foodHtmlFor={editIds.DETAILS_INPUT}
+                            quantityHtmlFor={editIds.QUANTITY_INPUT}
                           />
                           );
                         });

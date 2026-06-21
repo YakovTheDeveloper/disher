@@ -1,9 +1,0 @@
-// Обёртка слайда HomePage. Заполняет слайд по высоте (flex). Бренд-знак Disher
-// рисует Screen-лист (`.headerOverlap::after`) — здесь остался только flex-каркас.
-.frame {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-}

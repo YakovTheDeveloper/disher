@@ -1,6 +1,7 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { Chip } from '@/shared/ui/atoms/Chip/Chip';
+import { Text } from '@/shared/ui/atoms/Typography';
 import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import styles from './NutrientPickerDrawer.module.scss';
 
@@ -30,7 +31,9 @@ export function NutrientPickerDrawer({ onClose, activeId }: Props) {
         </p>
         {nutrientGroups.map((group) => (
           <section key={group.name} className={styles.group}>
-            <h3 className={styles.groupTitle}>{group.displayName}</h3>
+            <Text as="h3" variant="sectionLabel" className={styles.groupTitle}>
+              {group.displayName}
+            </Text>
             <div className={styles.list}>
               {group.content.map((nutrient) => (
                 <Chip

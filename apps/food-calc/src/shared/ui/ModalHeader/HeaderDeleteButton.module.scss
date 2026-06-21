@@ -1,0 +1,37 @@
+// Серая урна в правом верхнем слоте обвязки (ModalHeader.trailing) для модалок
+// РЕДАКТИРОВАНИЯ сущностей (Hypothesis / Dish / Product). ≥40px тап-таргет,
+// СЕРЫЙ тон (--text-secondary, не danger): действие деструктивное, но визуально
+// тихое — подтверждение идёт через ConfirmModal на стороне caller'а.
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform var(--press-out) var(--easing-default),
+        background var(--press-out) var(--easing-default);
+
+    // Отклик на нажатии: лёгкий нейтральный (не danger) тинт-фон.
+    &:active {
+        background: rgba(0, 0, 0, 0.06);
+        transform: scale(0.94);
+        transition-duration: var(--press-in);
+    }
+
+    &:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+    }
+
+    svg {
+        width: 22px;
+        height: 22px;
+    }
+}

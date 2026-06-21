@@ -8,6 +8,7 @@ import {
   setProductNutrients,
   setProductPortions,
   updateProduct,
+  deleteProducts,
 } from '@/entities/product';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { NutrientTable } from '@/widgets/nutrients/FoodsNutrients';
@@ -22,6 +23,8 @@ import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer/ItemActionsDrawer';
 import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
 import { drawerStore } from '@/shared/ui/drawer-store';
+import { modalStore } from '@/shared/ui/modal-store';
+import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { isCreatedByUser } from '@/shared/lib';
 import { findCatalogProduct } from '@/shared/data/catalog';
 import { safeMutate } from '@/shared/lib/safeMutate';
@@ -143,7 +146,7 @@ const PortionsAccordion = ({
  *
  * Открытие: `drawerStore.show(ProductDrawer, { productId, productName }, { side: 'left', width: 'min(85vw, 360px)' })`.
  */
-export function ProductDrawer({ productId, productName }: Props) {
+export function ProductDrawer({ productId, productName, onClose }: Props) {
   const food = useProduct(productId);
   // Каталожный продукт может нести фото (build-route поле `image`) — резолвим
   // синхронно по id (catalog — const). У своих продуктов / блюд его нет →
@@ -212,6 +215,24 @@ export function ProductDrawer({ productId, productName }: Props) {
   const scale = scaleForBasis(food.servingBasis, displayQuantity);
   const getNutrientValue = (nutrientId: string) => nutrientValueMap.get(nutrientId) ?? 0;
   const getScaledValue = (nutrientId: string) => getNutrientValue(nutrientId) * scale;
+
+  // Удаление продукта — серая урна в шапке rename-модалки (канон гипотезы).
+  // Только свои продукты (рендерится под isUserCreated); каталожные неудаляемы.
+  // Confirm → delete → закрываем весь дровер: продукта больше нет.
+  const handleDeleteProduct = async () => {
+    const confirmed = await modalStore.show(ConfirmModal, {
+      title: 'Удалить продукт?',
+      message: 'Продукт будет удалён из ваших продуктов. Это действие не отменить.',
+      confirmLabel: 'Удалить',
+      tone: 'danger',
+    });
+    if (confirmed !== true) return;
+    const res = await safeMutate(() => deleteProducts([productId]), 'Не удалось удалить продукт');
+    if (res.ok) {
+      setRenameOpen(false);
+      onClose();
+    }
+  };
 
   const portions = portionsRaw.map((p) => ({ label: p.label, grams: p.grams }));
   const massExceeds100 = totalGramMass > 100;
@@ -519,6 +540,8 @@ export function ProductDrawer({ productId, productName }: Props) {
               void safeMutate(() => updateProduct(food.id, { name }), 'Не удалось переименовать');
               setRenameOpen(false);
             }}
+            onDelete={handleDeleteProduct}
+            deleteLabel="Удалить продукт"
           />
         )}
       </div>

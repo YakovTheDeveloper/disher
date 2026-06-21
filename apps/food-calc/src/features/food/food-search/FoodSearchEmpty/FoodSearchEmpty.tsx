@@ -1,5 +1,6 @@
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
-import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
+import { ActionTile, ACTION_TILE_VARIANTS } from '@/shared/ui/atoms/ActionTile';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import styles from './FoodSearchEmpty.module.scss';
 
 const PRODUCT_IMG = '/art/product.png';
@@ -29,30 +30,13 @@ export const FoodSearchEmpty = ({
 }: Props) => {
   const ref = useKeyboardStick<HTMLDivElement>();
   const hasQuery = query.length > 0;
-  const asLabel = Boolean(createInputHtmlFor);
 
-  // Независимый press-отклик на каждую кнопку (один общий хук подсветил бы обе).
-  const dishPress = usePressFeedback();
-  const productPress = usePressFeedback();
-
-  const productContent = (
-    <>
-      <img src={PRODUCT_IMG} className={styles.tileImg} alt="" aria-hidden />
-      <span className={styles.pillTitle}>
-        <span className={styles.pillVerb}>Создать</span>
-        <span className={styles.pillNoun}>Продукт</span>
-      </span>
-    </>
-  );
-  const dishContent = (
-    <>
-      <img src={DISH_IMG} className={styles.tileImg} alt="" aria-hidden />
-      <span className={styles.pillTitle}>
-        <span className={styles.pillVerb}>Создать</span>
-        <span className={styles.pillNoun}>Блюдо</span>
-      </span>
-    </>
-  );
+  // Облик плиток (grad / shadow) — общий design-variant 'ActionTile', флипается
+  // DesignBar'ом разом с дровером анализа и навигацией. Атрибут — на .actions.
+  // Равновесная пара: оба слова существительные (noun сверху, «Создать» снизу),
+  // без primary/secondary иерархии. createInputHtmlFor → плитка рендерится как
+  // <label htmlFor> (делегирование фокуса в create-input).
+  const { anchor } = useDesignVariant('ActionTile', ACTION_TILE_VARIANTS);
 
   return (
     <div ref={ref} className={styles.root}>
@@ -64,49 +48,25 @@ export const FoodSearchEmpty = ({
         )}
         <p className={styles.prompt}>Нету нужной еды? Создать в два клика</p>
       </div>
-      <div className={styles.actions}>
-        {onCreateDish &&
-          (asLabel ? (
-            <label
-              htmlFor={createInputHtmlFor}
-              className={styles.pillSecondary}
-              onClick={onCreateDish}
-              data-pressed={dishPress.pressed || undefined}
-              {...dishPress.pressProps}
-            >
-              {dishContent}
-            </label>
-          ) : (
-            <button
-              className={styles.pillSecondary}
-              onClick={onCreateDish}
-              data-pressed={dishPress.pressed || undefined}
-              {...dishPress.pressProps}
-            >
-              {dishContent}
-            </button>
-          ))}
-        {onCreateProduct &&
-          (asLabel ? (
-            <label
-              htmlFor={createInputHtmlFor}
-              className={styles.pillPrimary}
-              onClick={onCreateProduct}
-              data-pressed={productPress.pressed || undefined}
-              {...productPress.pressProps}
-            >
-              {productContent}
-            </label>
-          ) : (
-            <button
-              className={styles.pillPrimary}
-              onClick={onCreateProduct}
-              data-pressed={productPress.pressed || undefined}
-              {...productPress.pressProps}
-            >
-              {productContent}
-            </button>
-          ))}
+      <div className={styles.actions} {...anchor}>
+        {onCreateDish && (
+          <ActionTile
+            htmlFor={createInputHtmlFor}
+            top="Блюдо"
+            bottom="Создать"
+            art={<img src={DISH_IMG} alt="" />}
+            onClick={onCreateDish}
+          />
+        )}
+        {onCreateProduct && (
+          <ActionTile
+            htmlFor={createInputHtmlFor}
+            top="Продукт"
+            bottom="Создать"
+            art={<img src={PRODUCT_IMG} alt="" />}
+            onClick={onCreateProduct}
+          />
+        )}
       </div>
     </div>
   );

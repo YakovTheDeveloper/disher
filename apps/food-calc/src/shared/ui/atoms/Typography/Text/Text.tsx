@@ -6,8 +6,11 @@ import styles from './Text.module.scss';
  *  `hint` — calm helper text under a field/title.
  *  `navTabQuiet` — quiet serif-italic «museum-label» pointer: inactive
  *  nav-tabs / breadcrumb-style steps. This primitive is the single source of
- *  that voice — SwitcherTab / Breadcrumbs render <Text variant="navTabQuiet">. */
-type TextVariant = 'hint' | 'navTabQuiet';
+ *  that voice — SwitcherTab / Breadcrumbs render <Text variant="navTabQuiet">.
+ *  `sectionLabel` — serif-italic, medium, dark-grey title for a small group
+ *  (nutrient section) or a single field (FieldLabel renders it inside a
+ *  <label>). Single source of that look. */
+type TextVariant = 'hint' | 'navTabQuiet' | 'sectionLabel';
 
 type Props = {
   children: ReactNode;
@@ -19,6 +22,9 @@ type Props = {
    * element; extra props (onClick, aria-*, …) forward to it.
    */
   as?: ElementType;
+  /** Forwarded to the tag — set when `as="label"` so the text IS a form label
+   *  (used by FieldLabel). Lives outside HTMLAttributes, hence declared here. */
+  htmlFor?: string;
   className?: string;
 } & HTMLAttributes<HTMLElement>;
 

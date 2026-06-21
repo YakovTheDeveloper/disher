@@ -127,7 +127,6 @@ const HypothesisWriteBar = ({ onCreated, overlayContainer, showHint = true }: Pr
           бара; «Готово» / стрелка-назад / системный Back просто закрывают. */}
       <ModalByLabel
         position="fixed"
-        className={styles.overDrawer}
         container={overlayContainer}
         isExpanded={detailsOpen}
         content={

@@ -32,6 +32,21 @@ description: Завести dev-страницу «предложку» — от
      `/suggestion_<id>` (подчёркивание — RR v7 не умеет параметр внутри сегмента,
      поэтому это литеральный путь целиком). `question` (суть «в чём вопрос») и
      `date` (YYYY-MM-DD) показываются в индексе `/dev-suggestions`.
+   - **HMR / Fast Refresh — раскладка по файлам.** Fast Refresh держит ТОЛЬКО
+     файлы, экспортящие исключительно компоненты; любой не-компонентный export
+     (в т.ч. `meta`) роняет файл на полный reload. `devRoutes.tsx` читает `meta`
+     и `default` с `index.tsx` через glob, но оба можно **ре-экспортить**. Поэтому:
+     - **`index.tsx` = тонкий шим**, который сам почти не правишь:
+       `export { meta } from './meta';` + `export { default } from './Suggestion';`
+       (этот файл «грязный» из-за meta — и ладно, он стабилен).
+     - **`Suggestion.tsx`** — боевой компонент, который ты и редактируешь по кругу:
+       экспортит ТОЛЬКО компонент → остаётся Fast-Refresh-чистым, HMR живой.
+     - **Все НЕ-компонентные идентификаторы** (константы вроде `ACCENTS`, дата-
+       таблицы, `type`-алиасы, чистые helper-функции, `meta`-объект) — в **смежные
+       файлы** (`meta.ts`, `data.ts`), не рядом с компонентом. Helper-*компоненты*
+       (`Swatch`, `Comp` …) можно держать в `Suggestion.tsx` или вынести в
+       `parts.tsx` — они компоненты, Fast Refresh их терпит. См. память
+       `project_fastrefresh_screenindicator`.
 
 4. **Собрать из закреплённой обвязки** `../SuggestionLayout` — НЕ верстать руками:
    `SuggestionPage` → `SuggestionHeader{title,lead}` → `OptionGrid` с

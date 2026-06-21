@@ -21,6 +21,22 @@
   opacity: 0.22;
 }
 
+// sectionLabel — serif-italic подпись среднего кегля, тёмно-серая. ОДИН голос
+// для заголовка небольшой группы (секция нутриентов) И для метки одного поля
+// (FieldLabel рендерит <Text variant="sectionLabel"> внутри <label>). Громче
+// navTabQuiet, тише display-Heading. Единственный источник этого вида в проекте.
+.sectionLabel {
+  font-family: 'Source Serif 4', 'Merriweather', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  // Токен, не хардкод: --text-primary флипается на белый под [data-tod='night']
+  // (см. design-variant-palettes). Хардкод rgba(0,0,0,…) был бы нечитаем ночью.
+  color: var(--text-primary);
+}
+
 // hint — small, calm helper text under a field or an overlay title.
 .hint {
   font-size: var(--text-sm); // 12.8px

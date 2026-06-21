@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import s from './QuietActionButton.module.scss';
 
 type Props = {
@@ -16,20 +17,6 @@ type Props = {
   className?: string;
   'aria-label'?: string;
 }
-
-// Ведомый шеврон ›: тихий маркер действия в конце кнопки (currentColor, тише
-// текста). Тот же путь, что у NutrientsBar.chevron — единый жест.
-const ChevronGlyph = () => (
-  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path
-      d="M9 6l6 6-6 6"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);;
 
 /**
  * Тихая текст-кнопка-примитив: значок + label, без подложки, приглушённый

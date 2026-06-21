@@ -56,6 +56,9 @@ type Props = {
    */
   createInputHtmlFor?: string;
   onPickCreate?: (variant: 'product' | 'dish', name: string) => void;
+  /** Контекст блюда: прячет БАД (basis='serving') из результатов поиска —
+   *  serving-продукт нельзя класть в блюдо (dish-калькулятор считает в граммах). */
+  excludeSupplements?: boolean;
 };
 
 // Outer component: ALWAYS renders the <input id={inputId}> via SearchFoodControls so
@@ -77,6 +80,7 @@ const SearchFood = ({
   isActive = true,
   createInputHtmlFor,
   onPickCreate,
+  excludeSupplements = false,
 }: Props) => {
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery ?? '');
   const [showHeavy, setShowHeavy] = useState(false);
@@ -188,6 +192,7 @@ const SearchFood = ({
             itemHtmlFor={itemHtmlFor}
             createInputHtmlFor={createInputHtmlFor}
             onPickCreate={onPickCreate}
+            excludeSupplements={excludeSupplements}
           />
         </div>
       )}
@@ -208,6 +213,7 @@ type HeavyProps = {
   itemHtmlFor?: string;
   createInputHtmlFor?: string;
   onPickCreate?: (variant: 'product' | 'dish', name: string) => void;
+  excludeSupplements?: boolean;
 };
 
 const SearchFoodHeavy = ({
@@ -223,6 +229,7 @@ const SearchFoodHeavy = ({
   itemHtmlFor,
   createInputHtmlFor,
   onPickCreate,
+  excludeSupplements = false,
 }: HeavyProps) => {
   const listContainerRef = useRef<HTMLDivElement>(null);
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(listContainerRef);
@@ -232,7 +239,8 @@ const SearchFoodHeavy = ({
   const { products, dishes, nutrientMap } = useFilteredFoods(
     searchQuery,
     richNutrient?.id,
-    userOnlyProducts
+    userOnlyProducts,
+    excludeSupplements
   );
   const { handleCreateProduct, handleCreateDish } = useFoodCreation(searchQuery, setSearchQuery);
 

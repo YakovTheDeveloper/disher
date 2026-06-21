@@ -1,0 +1,101 @@
+// Общие стили слайдов «Открытий» (Гипотезы / Инсайты). Бывший
+// DiscoveriesScreen.module.scss — переехал сюда, так как теперь это два
+// отдельных слайд-виджета внутри общего SwipeDeck.
+.container {
+    // ── «Анализ дня» look напрямую (без data-dv / useDesignVariant — см. план):
+    // InsightCard и analysis-режим HypothesisListItem читают `--ax-*`; ink + шкала
+    // зеркалят Laboratory `.ambientSheet`. Custom props наследуются в обе карточки.
+    // Значения runtime/semantic → вне токен-гейта.
+    --card-text-rest: #1d1d1f;
+    --card-text-active: #000;
+    --card-hairline: rgba(0, 0, 0, 0.08);
+
+    // --ax-* контракт поверхности (плоско + тающая бровка) — копия дефолта
+    // AnalysisResult.module.scss.
+    --ax-card-bg: transparent;
+    --ax-card-shadow: none;
+    --ax-card-radius: 0;
+    --ax-accent-w: 0;
+    --ax-list-gap: 0;
+    --ax-pad-y: 14px;
+    --ax-pad-x: 16px;
+    --ax-divider: linear-gradient(90deg,
+            transparent 0%,
+            color-mix(in srgb, var(--card-text-rest) 14%, transparent) 18%,
+            color-mix(in srgb, var(--card-text-rest) 14%, transparent) 82%,
+            transparent 100%);
+
+    // Apple-шкала типографики/ритма (как `.ambientSheet`).
+    --analysis-fs-title: 17px;
+    --analysis-fs-detail: 15.5px;
+    --analysis-fs-meta: 13px;
+    --analysis-w-title: 600;
+    --analysis-track-title: -0.012em;
+    --analysis-lh-title: 1.32;
+    --analysis-lh-detail: 1.5;
+    --analysis-soft-amt: 72%;
+    --analysis-faint-amt: 50%;
+
+    // Ink-замесы и размеры — локальные custom props (наследуются в потомков),
+    // чтобы gated-свойства (color/font-size) читались через var() (token-gate).
+    --d-ink: color-mix(in srgb, var(--card-text-rest) 88%, transparent);
+    --d-ink-soft: color-mix(in srgb, var(--card-text-rest) 62%, transparent);
+    --d-ink-faint: color-mix(in srgb, var(--card-text-rest) 50%, transparent);
+    --d-fs-count: 13px;
+    --d-fs-title: 17px;
+    --d-fs-body: 14px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    padding-bottom: 8px;
+
+    // Тач-свайп между разделами «Открытий». ТОЧЬ В ТОЧЬ как на HomePage: там
+    // строки списка лежат в `ItemsList`, у которого `.container` несёт
+    // `touch-action: pan-y` (см. shared/ui/atoms/ItemsList/ItemsList.module.scss).
+    // Без него глобальный `* { touch-action: manipulation }` (index.scss)
+    // разрешает браузеру забрать горизонтальный жест себе на скролл-контейнере
+    // под пальцем → Embla помечает `touchmove` non-cancelable и отменяет свайп
+    // (мышь от touch-action не зависит, потому ею слайды листались). `pan-y`
+    // отдаёт браузеру только вертикаль (скролл списка), горизонталь — в свайп.
+    touch-action: pan-y;
+}
+
+.topAnchor {
+    height: 0;
+}
+
+.count {
+    margin: 0;
+    font-size: var(--d-fs-count);
+    font-weight: 500;
+    color: var(--d-ink-faint);
+}
+
+.empty {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 24px 8px;
+    text-align: center;
+}
+
+.emptyTitle {
+    margin: 0;
+    font-size: var(--d-fs-title);
+    font-weight: 600;
+    color: var(--d-ink);
+}
+
+.emptyBody {
+    margin: 0;
+    font-size: var(--d-fs-body);
+    line-height: 1.55;
+    color: var(--d-ink-soft);
+}
+
+.writeBarDock {
+    width: 100%;
+    padding: 0 12px 12px;
+}

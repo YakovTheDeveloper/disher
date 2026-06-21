@@ -24,7 +24,7 @@ import { useUserId } from '@/shared/lib/auth/useUserId';
 import toaster from '@/shared/lib/toaster/toaster';
 import { classifyError, defaultUserMessage } from '@/shared/lib/errors/classify';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
+import { scrollToNewRow } from '@/features/food/food-entry-flow/scrollToNewRow';
 import { countDismissed, countTotal, selectCommittable } from './selectCommittable';
 import {
   sendMatcherTelemetry,
@@ -83,6 +83,9 @@ const PARSE_TIMEOUT_MS = 35_000;
 const STALE_LOADING_MS = 60_000;
 
 export interface UseWriteFoodFlowResult {
+  /** Куда коммитим — 'schedule' | 'dish'. Консумеры (InlineWriteFoodReview)
+   *  читают, чтобы прятать БАД из rescue-поиска в блюде (basis-gap, 2026-06-20). */
+  targetKind: ParseTarget['kind'];
   // Parse cycle
   state: WriteFoodFlowState;
   parseResult: ParseResponse | null;
@@ -822,6 +825,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
 
       let ok = true;
       const newScheduleIds: string[] = [];
+      const newDishItemIds: string[] = [];
       if (target.kind === 'schedule') {
         const date = target.date;
         const result = await safeMutate(
@@ -848,7 +852,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
           () =>
             db.transaction('rw', db.dish_items, async () => {
               for (const c of committed) {
-                await addDishItem({
+                const id = await addDishItem({
                   dishId,
                   productId: c.productId,
                   quantity: c.quantity,
@@ -856,6 +860,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
                   // it renders as the ingredient subtitle on the dish row.
                   details: c.details ?? '',
                 });
+                newDishItemIds.push(id);
               }
             }),
           'Не удалось добавить продукты в блюдо',
@@ -878,9 +883,12 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       sendTelemetryIfNotSent('commit');
       toaster.success(`Добавлено: ${committed.length}`);
 
-      if (target.kind === 'schedule' && newScheduleIds.length > 0) {
-        useRecentlyAddedStore.getState().addMany(newScheduleIds);
-      }
+      // Подскролл к первой добавленной строке (паритет с модальным созданием —
+      // см. food-entry-flow) на ОБОИХ экранах: еда в расписании и ингредиент
+      // блюда. «Недавно добавлен» dot у еды снят 2026-06-20.
+      const firstNewRowId =
+        target.kind === 'schedule' ? newScheduleIds[0] : newDishItemIds[0];
+      if (firstNewRowId) scrollToNewRow(firstNewRowId);
 
       clearParseState(target);
       resetAll();
@@ -905,6 +913,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   ]);
 
   return {
+    targetKind: target.kind,
     state,
     parseResult,
     inputText,

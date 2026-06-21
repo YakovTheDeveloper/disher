@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
+import { HeaderDeleteButton } from '@/shared/ui/ModalHeader';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { modalStore } from '@/shared/ui';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
@@ -14,7 +15,6 @@ import {
   deleteHypothesis,
 } from '@/entities/hypothesis';
 import styles from './HypothesisModal.module.scss';
-import editStyles from './EditHypothesisModal.module.scss';
 // Каждая строка в HypothesisListPanel — это <label htmlFor={EDIT_…}> с
 // onClick, который записывает в parent editingId. focus → onFocusCapture в
 // родителе → setEditStep('edit'). Один input id на весь список — модалка
@@ -23,19 +23,6 @@ import editStyles from './EditHypothesisModal.module.scss';
 import { EDIT_HYPOTHESIS_TITLE_INPUT_ID } from './editHypothesisModal.constants';
 
 const EDIT_HYPOTHESIS_BODY_INPUT_ID = 'edit-hypothesis-body';
-
-const TrashIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-    <path
-      d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
 
 type Props = {
   hypothesisId: string | null;
@@ -124,7 +111,6 @@ const EditHypothesisModal = ({
   return (
     <ModalByLabel
       position="absolute"
-      className={editStyles.overDrawer}
       container={overlayContainer}
       isExpanded={isExpanded}
       content={
@@ -135,18 +121,14 @@ const EditHypothesisModal = ({
             // «Удалить» — деструктив, живёт в правом верхнем углу обвязки
             // (канон ItemActionsDrawer), подальше от «Сохранить» в футере.
             trailing={
-              <button
-                type="button"
-                className={editStyles.deleteHeader}
-                disabled={busy || !hypothesis}
+              <HeaderDeleteButton
                 onClick={handleDelete}
-                aria-label="Удалить гипотезу"
-              >
-                <TrashIcon />
-              </button>
+                disabled={busy || !hypothesis}
+                label="Удалить гипотезу"
+              />
             }
           />
-          <ModalShell.Body>
+          <ModalShell.Body inset>
             <div className={styles.fields}>
               {/* Видимые лейблы — без них непонятно, где название, где описание
                   (просьба 2026-06-13). htmlFor связывает с инпутом AutoGrowSearch. */}

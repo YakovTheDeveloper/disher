@@ -88,7 +88,7 @@ const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
       <Heading size="masthead" as="h2">События дня</Heading>
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <div {...boundaryAnchor}>
-          <ItemsList offsetTop>
+          <ItemsList>
             {(() => {
               let globalIndex = 0;
               return eventsGroupedByTime.map((timeGroup) => (

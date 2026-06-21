@@ -14,11 +14,7 @@
 // Layout: flex column. A tab row on top switches the body between the anchor
 // block (the quick tab) and the scrollable active-days section (chips by month).
 
-$ink-soft: rgba(0, 0, 0, 0.55);
 $ink-faint: rgba(0, 0, 0, 0.4);
-$underline: rgba(0, 0, 0, 0.22);
-// Вертикальный разделитель внутри даты (день · | · dd.mm) — как у ink-пилюли бара.
-$divider: rgba(0, 0, 0, 0.18);
 
 .shell {
   position: relative;
@@ -233,136 +229,14 @@ $divider: rgba(0, 0, 0, 0.18);
   padding-bottom: var(--space-6);
 }
 
-// Вертикальный столбик тихих link-кнопок (без белой inset-карточки) —
-// выровнен по левому краю, читается как тихое меню на серой бумаге страницы.
+// Вертикальный столбик плиток ActionTile (вчера/сегодня/завтра). Плитки тянутся
+// на всю ширину; зазор больше «плотных 2px», чтобы тени shadow-варианта дышали.
 .navList {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-1);
+  align-items: stretch;
+  gap: var(--space-2);
   margin: var(--space-3) var(--space-3) 0;
-  padding: var(--space-2);
-}
-
-// ─── Anchor link (Button variant="link") ────────────────────────────────────
-// Консумерский override базового `.link` (Button.module.css): GRID-кнопка с
-// фиксированной колонкой слова → даты трёх строк (вчера/сегодня/завтра) встают
-// в ровную колонку под собой. Подчёркивание снимаем с кнопки — оно живёт на
-// слове И на дате по отдельности.
-.anchorLink {
-  display: grid;
-  // Фикс. ширина колонки слова (вмещает «Сегодня» в среднем sans-кегле) —
-  // источник «ровной верстки»: дата каждой строки стартует с одного X.
-  grid-template-columns: 6.5rem max-content;
-  justify-content: flex-start;
-  align-items: baseline;
-  align-content: center;
-  column-gap: var(--space-3);
-  width: auto;
-  min-height: var(--bottom-action-h);
-  padding: var(--space-1) 2px;
-  text-decoration: none;
-  color: var(--card-text-rest);
-}
-
-// Слово-акцент — голос «имени». Серифа больше нет: обычный sans, средний кегль
-// (спокойнее прежних 27px serif), подчёркнуто как ссылка.
-.anchorWord {
-  font-family: var(--font-sans);
-  font-style: normal;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
-  text-transform: capitalize;
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-decoration-color: $underline;
-  text-underline-offset: 3px;
-}
-
-// Ячейка даты в гриде: сама дата (подчёркнута) + опц. точка «есть записи»
-// (вне underline, поэтому отдельным flex-рядом).
-.anchorDateCell {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-// Дата = облик ink-пилюли бара без подложки: короткий день · вертикальный
-// разделитель · dd.mm, чёрным и подчёркнуто. Inline (не flex) → одно сплошное
-// подчёркивание под всем кластером.
-.anchorDate {
-  font-family: var(--font-sans);
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.1;
-  color: var(--card-text-rest);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-decoration-color: $underline;
-  text-underline-offset: 3px;
-}
-
-// День недели — точь-в-точь как «Вт» на ink-пилюле бара (HomeTopBar
-// `.dateWeekdayShort`): Source Serif italic 600, первая буква заглавная.
-// Это единственный serif-голос в кнопке; слово и цифры dd.mm — sans.
-.anchorWeekday {
-  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
-  font-style: italic;
-  font-size: 16px;
-  font-weight: 600;
-
-  &::first-letter {
-    text-transform: uppercase;
-  }
-}
-
-// dd.mm — моноширинные цифры, отделены вертикальным разделителем слева (как у
-// `.dateMeta` пилюли бара).
-.anchorDdmm {
-  margin-left: 7px;
-  padding-left: 8px;
-  border-left: 1px solid $divider;
-  letter-spacing: 0.02em;
-  font-feature-settings: 'tnum' 1, 'lnum' 1;
-}
-
-// «Есть записи» — тихая точка после даты (наследует цвет текста кнопки).
-.anchorDot {
-  align-self: center;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.45;
-}
-
-// today — активные чернила: слово и дата ярче, подчёркивание плотнее.
-.anchorToday {
-  color: var(--card-text-active);
-
-  .anchorWord {
-    text-decoration-color: var(--card-text-active);
-  }
-
-  .anchorDate {
-    color: var(--card-text-active);
-    text-decoration-color: var(--card-text-active);
-  }
-}
-
-// selected — слово жирнее + сплошное подчёркивание в цвет текста.
-.anchorSelected {
-  .anchorWord {
-    font-weight: 700;
-    text-decoration-color: currentColor;
-  }
-
-  .anchorDate {
-    text-decoration-color: currentColor;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -371,7 +245,6 @@ $divider: rgba(0, 0, 0, 0.18);
     transition: none;
   }
 
-  .anchorLink,
   .dayChip {
     transition: none;
   }

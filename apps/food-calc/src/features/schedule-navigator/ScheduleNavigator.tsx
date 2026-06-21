@@ -1,9 +1,8 @@
 import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { addDays, differenceInCalendarDays, format, isSameDay, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import clsx from 'clsx';
-import { Button } from '@/shared/ui/atoms/Button';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
+import { ActionTile, ArrowGlyph, ACTION_TILE_VARIANTS } from '@/shared/ui/atoms/ActionTile';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { deriveFilledDates, useFilledDateKeys, useToday } from './hooks';
 import { DATE_FORMAT, groupByMonth, parseKeys, type ParsedDay } from './lib';
@@ -44,12 +43,12 @@ const NAV_SWITCHER_VARIANTS = [
   'tab-numerals-left',
 ] as const;
 
-// ─── DayRow (anchors — quiet link buttons, three of them) ──────────────────
-// Вчера/Сегодня/Завтра как `Button variant="link"`: относительное слово ведёт
-// (sans, средний кегль, подчёркнуто как ссылка), дата рядом — короткий день
-// недели · вертикальный разделитель · dd.mm (облик ink-пилюли бара, но без
-// подложки, чёрным, тоже подчёркнута). Кнопка — grid (фикс. колонка слова),
-// поэтому даты трёх строк выстраиваются в ровную колонку. «Есть записи» — точка.
+// ─── DayRow (anchors — three ActionTiles) ──────────────────────────────────
+// Вчера/Сегодня/Завтра как общий примитив `ActionTile` (унификация 2026-06-21):
+// относительное слово сверху (heading-голос), дата снизу (короткий день недели ·
+// dd.mm), глиф справа — стрелка ←/→ для вчера/завтра, точка для «сегодня». today
+// несёт active («ты здесь»), выбранный — emphasis, «есть записи» — тихую точку.
+// Облик поверхности (grad / shadow) приходит с контейнера через design-variant.
 interface DayRowProps {
   day: ParsedDay;
   today: Date;
@@ -72,25 +71,20 @@ const DayRow = memo(function DayRow({ day, today, isFilled, isSelected, onSelect
   const weekdayShort = format(day.date, 'EEEEEE', { locale: ru });
   const ddmm = format(day.date, 'dd.MM');
 
+  // Глиф направления: вчера ← / сегодня • / завтра → (fallback-дни без глифа).
+  const glyphDir = diff === 0 ? 'dot' : diff === -1 ? 'left' : diff === 1 ? 'right' : undefined;
+
   return (
-    <Button
-      variant="link"
-      className={clsx(s.anchorLink, isToday && s.anchorToday, isSelected && s.anchorSelected)}
-      onClick={handleClick}
+    <ActionTile
       data-date={day.dateStr}
-    >
-      {/* Слово-акцент — голос «имени» (sans), подчёркнуто как ссылка. */}
-      <span className={s.anchorWord}>{relativeLabel}</span>
-      {/* Дата в облике ink-пилюли: короткий день · разделитель · dd.mm,
-          чёрным и подчёркнуто; справа — опц. точка «есть записи» (вне underline). */}
-      <span className={s.anchorDateCell}>
-        <span className={s.anchorDate}>
-          <span className={s.anchorWeekday}>{weekdayShort}</span>
-          <span className={s.anchorDdmm}>{ddmm}</span>
-        </span>
-        {isFilled && <span className={s.anchorDot} aria-hidden />}
-      </span>
-    </Button>
+      top={relativeLabel}
+      bottom={`${weekdayShort} · ${ddmm}`}
+      art={glyphDir ? <ArrowGlyph dir={glyphDir} /> : undefined}
+      active={isToday}
+      emphasis={isSelected && !isToday}
+      dot={isFilled}
+      onClick={handleClick}
+    />
   );
 });
 
@@ -130,6 +124,9 @@ export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
   // Дефолт — всегда «Быстрая навигация» (якоря). «Активные дни» — явный тап/свайп.
   const [tab, setTab] = useState<NavTab>('quick');
   const { anchor: navAnchor } = useDesignVariant('NavSwitcher', NAV_SWITCHER_VARIANTS);
+  // Облик якорей-плиток (grad / shadow) — общий design-variant 'ActionTile',
+  // флипается DesignBar'ом разом с дровером анализа и панелью поиска.
+  const { anchor: tileAnchor } = useDesignVariant('ActionTile', ACTION_TILE_VARIANTS);
 
   // Горизонтальный CSS scroll-snap слайдер: viewport со снапом + две панели по
   // 100% ширины. Таб ↔ панель синхронизированы в обе стороны (клик скроллит,
@@ -259,9 +256,8 @@ export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
       >
         <section className={s.panel} aria-hidden={tab !== 'quick'} aria-label="Перейти к">
           <div className={s.anchorList} ref={quickInnerRef}>
-            {/* Inset-grouped white container — the SAME wrapper SearchFood uses
-                for its food cards (mixin.scss inset-group). */}
-            <div className={s.navList}>
+            {/* Колонка плиток ActionTile под общим design-variant 'ActionTile'. */}
+            <div className={s.navList} {...tileAnchor}>
               {anchors.map((d) => (
                 <DayRow
                   key={d.dateStr}

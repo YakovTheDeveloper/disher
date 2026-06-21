@@ -120,7 +120,10 @@
 .recalcBarFloat {
   position: sticky;
   bottom: var(--space-3);
-  z-index: 2;
+  // Над нижним scroll-fade хинтом DrawerLayout (`.scrollableContent::after`,
+  // z-index 2): тот в порядке дерева красится последним и при равном z-index
+  // забеливал бы парящую CTA. Поднимаем кнопку выше, чтобы fade оставался под ней.
+  z-index: 3;
   align-self: flex-end;
   width: auto;
   padding: 0;

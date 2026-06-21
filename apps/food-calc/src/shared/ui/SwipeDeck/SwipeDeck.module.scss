@@ -1,0 +1,105 @@
+// SwipeDeck — общий каркас обвязки многослайдовой страницы (Home / Dish /
+// Discoveries). Chrome-CSS переехал сюда из бывшего HomePage.module.scss —
+// единственный источник правды для container/swipeArea/tabsAnchor + стеклянной
+// полки SheetMaterial + радиуса углов листа под NavSwitcher-вариантами.
+
+.container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    // Контейнер не скроллится — overflow живёт только внутри Screen.
+    // `HomeTopBar.shell` — absolute поверх верхней зоны, `.swipeArea` — flex:1
+    // занимает остаток.
+    //
+    // `--top-bar-h` читается:
+    //   • `HomeTopBar.shell` — собственная высота.
+    //   • `Screen.module.scss .stickyTop` — `top` для sticky-индикатора в
+    //     каждом слайде (прилипает под бар).
+    --top-bar-h: calc(env(safe-area-inset-top, 0px) + 60px);
+    // Контент в `Screen.screenScroll` стартует под top-bar'ом (читается
+    // `screenScroll` как `--page-top-inset`).
+    --page-top-inset: var(--top-bar-h);
+    // Ambient свечение живёт на app-уровне (`.main[data-dv='HomeAmbient']`):
+    // проступает только через chrome (sticky-индикатор + нижний dock), а
+    // контент-плашка `.headerOverlap` остаётся opaque.
+    --sticky-top-bg: transparent;
+}
+
+.swipeArea {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+// Layout-passthrough вокруг Swipeable: повторяет раскладку `.swipeArea`, чтобы
+// Embla заполнял высоту (лишний слой ему незаметен).
+.tabsAnchor {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+// Per-slide flex-обёртка слайда (бывший SlideArtFrame). Заполняет слайд по
+// высоте; бренд-знак Disher рисует Screen-лист (`.headerOverlap::after`).
+.slideFrame {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+// NavSwitcher-варианты: основной лист (`.headerOverlap` в Screen.module) получает
+// крупный радиус верхних углов, чтобы гармонировать с заголовком-табами.
+// `--header-overlap-radius` наследуется вниз по DOM к листу — правим её на
+// `.swipeArea`, который несёт `data-dv-v` anchor.
+.swipeArea[data-dv-v='tab-as-title'],
+.swipeArea[data-dv-v='tab-as-title-center'],
+.swipeArea[data-dv-v='tab-inplace'],
+.swipeArea[data-dv-v='tab-numerals'],
+.swipeArea[data-dv-v='tab-numerals-left'] {
+    --header-overlap-radius: var(--radius-2xl);
+}
+
+// ─── SheetMaterial — «история» материала контент-листа ──────────────────────
+// БАЗА = активация стекла (вариант `band`): band-зона прозрачна (под полкой
+// проступает фон/hero, фростит `.sheetBand`), молочный веиль + blur. Divider-шов
+// скрыт по дефолту. Токены доезжают до `.headerOverlap`/`.sheetBand`
+// (Screen.module.scss).
+.container[data-dv='SheetMaterial'] {
+    --header-overlap-band-bg: transparent;
+    --sheet-band-blur: blur(14px) saturate(1.4);
+    --sheet-seam-color: transparent;
+}
+
+// Белый watermark «Disher» над стеклом — ТОЛЬКО когда позади полки есть тёмная
+// hero-обложка (страница передала `heroForSlide` → `data-deck-hero`). На
+// hero-less страницах (Dish/Discoveries) белый знак утонул бы в светлом контенте,
+// поэтому там оставляем дефолтный тихий тёмный watermark (Screen.module.scss).
+.container[data-dv='SheetMaterial'][data-deck-hero] {
+    --header-overlap-logo-color: #fff;
+    --header-overlap-logo-z: 1;
+    --header-overlap-logo-w: 92px;
+    --header-overlap-logo-h: 26px;
+    --header-overlap-logo-shadow: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.28));
+}
+
+// dissolve — нет жёсткого шва: поверхность плавно идёт из прозрачного верха в
+// сплошную бумагу к ~150px; фрост удлинён и уведён ЗА контент (z:-1) → строки
+// читаются поверх, верх = светящийся прозрачный край той же страницы.
+.container[data-dv='SheetMaterial'][data-dv-v='dissolve'] {
+    --header-overlap-surface: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0) 0,
+            rgba(255, 255, 255, 0.30) 48px,
+            var(--screen-surface) 150px,
+            var(--screen-surface) 100%);
+    --sheet-band-visual-h: 150px;
+    --sheet-band-z: -1;
+    --sheet-seam-color: transparent;
+}

@@ -50,6 +50,7 @@ export interface InlineWriteFoodReviewProps {
 
 export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
   const {
+    targetKind,
     state,
     inputText,
     resolved,
@@ -383,6 +384,7 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
         onChange={handleEditChange}
         onClose={closeEdit}
         inputIds={REVIEW_INPUT_IDS}
+        excludeSupplements={targetKind === 'dish'}
       />
 
       <AddToListPopover
