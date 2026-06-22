@@ -62,12 +62,12 @@ type Props = {
    */
   showMeta?: boolean;
   /**
-   * Discrete-card rows (rounded, spaced, self-shadowed) instead of the default
-   * flush list (hairline-divided rows in a single shadowed frame). The
-   * «Гипотезы» modal passes `true` to bring rows closer to the HomePage
-   * schedule cards; selection hosts keep the compact flush list.
+   * Row surface presentation, forwarded to each `HypothesisListItem`.
+   * `'flush'` (default) — compact hairline-divided rows in a single shadowed
+   * frame (selection hosts). `'analysis'` — the «Анализ дня» look: frame off,
+   * rows flow flush with fading-hairline dividers (the «Открытия» slide).
    */
-  separated?: boolean;
+  presentation?: 'flush' | 'analysis';
 } & EditProps;
 
 // The hypothesis list: a static header label + a height-bounded, internally
@@ -85,7 +85,7 @@ const HypothesisListPanel = ({
   headerVariant = 'title',
   titleVariant = 'heading',
   showMeta = false,
-  separated = false,
+  presentation = 'flush',
 }: Props) => {
   // The list scrolls inside itself (`maxBodyHeight`). A freshly created
   // hypothesis lands at the top of this inner scroll, so when a new id arrives
@@ -104,6 +104,7 @@ const HypothesisListPanel = ({
   // `'none'` — список течёт по натуральной высоте, без внутреннего скролла
   // (модалка владеет единственным скроллом тела).
   const bounded = maxBodyHeight !== 'none';
+  const analysis = presentation === 'analysis';
 
   // Пустой список — никакой подсказки: композер выше с живым плейсхолдером
   // («Головная боль после молочки») сам учит формату записи (решение 2026-06-08).
@@ -128,11 +129,11 @@ const HypothesisListPanel = ({
         </div>
       )}
 
-      <div className={`${styles.scrollWrap} ${separated ? styles.scrollWrapSeparated : ''}`}>
+      <div className={`${styles.scrollWrap} ${analysis ? styles.scrollWrapAnalysis : ''}`}>
         <div
           data-testid="hypothesis-scroll-body"
           className={`${styles.scrollBody} ${bounded ? '' : styles.scrollBodyFlow} ${
-            separated ? styles.scrollBodySeparated : ''
+            analysis ? styles.scrollBodyAnalysis : ''
           }`}
           style={bounded ? { maxHeight: maxBodyHeight } : undefined}
           ref={scrollBodyRef}
@@ -156,7 +157,7 @@ const HypothesisListPanel = ({
                 hideCheckbox={!selectable}
                 isNew={newIds?.has(h.id) ?? false}
                 showMeta={showMeta}
-                separated={separated}
+                presentation={presentation}
                 {...editProps}
               />
             );

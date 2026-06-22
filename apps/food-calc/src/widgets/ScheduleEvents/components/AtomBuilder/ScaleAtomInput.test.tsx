@@ -12,12 +12,12 @@ beforeEach(() => {
 });
 
 describe('ScaleAtomInput — store-backed pending scale', () => {
-  it('a preset chip writes the label into pendingScale + the field', () => {
+  it('a preset choice writes the label into pendingScale + the field', () => {
     render(<ScaleAtomInput />);
     const field = screen.getByPlaceholderText('Явление') as HTMLTextAreaElement;
     expect(field.value).toBe('');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Боль' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Боль' }));
 
     expect(field.value).toBe('Боль');
     expect(useEventDraftStore.getState().pendingScale.label).toBe('Боль');

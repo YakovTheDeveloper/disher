@@ -11,10 +11,10 @@ import CreateDailyNormModal from './CreateDailyNormModal';
 import styles from './EditDailyNormModal.module.scss';
 
 // chrome:
-//   'modal' (default) — full modal with ModalLayout, kicker+title header,
+//   'modal' (default) — full modal with ModalLayout, title header,
 //                       and the bottom Close button.
 //   'panel' — inline content for a drawer that already provides its own
-//             header/back. Skips ModalLayout, kicker+title, and the
+//             header/back. Skips ModalLayout, the title header, and the
 //             Close button. `onRecalc`: when provided, called instead of
 //             opening CreateDailyNormModal on top (used by the drawer
 //             two-state to swap to the 'create' panel).
@@ -55,7 +55,6 @@ const EditDailyNormModal = ({ onClose, chrome = 'modal', onRecalc }: Props) => {
             <ArrowLeftIcon />
           </button>
           <div className={styles.titleWrap}>
-            <span className={styles.kicker}>Дневная норма</span>
             <span className={styles.title}>{USER_NORM_NAME}</span>
           </div>
         </div>

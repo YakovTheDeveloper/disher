@@ -21,6 +21,13 @@
     color: var(--card-rich-unit);
 }
 
+// Весь список — один radiogroup (ChoiceGroup); секции внутри разделены бровкой.
+.choiceGroups {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
 .group {
     display: flex;
     flex-direction: column;
@@ -56,9 +63,9 @@
     padding: 0 var(--space-2);
 }
 
-// Нутриенты — общий примитив Chip в ряд с переносом (flex-wrap). Вид и
-// active-состояние (выбранный — navy из --chip-active-fill) принадлежат Chip;
-// тут только раскладка списка.
+// Нутриенты — общий примитив ChoiceItem (role=radio) в ряд с переносом
+// (flex-wrap). Вид и «выбрано» (кромка + галочка из sys-яруса) принадлежат
+// Choice; тут только раскладка списка.
 .list {
     display: flex;
     flex-wrap: wrap;

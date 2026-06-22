@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import styles from './TimeChoose.module.scss';
 import clsx from 'clsx';
+import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { TimeNow } from './TimeNow';
 import { useTimeRange, type RangeTab, type TimeRangeState } from './useTimeRange';
 import TimeInput, { type TimePickerVariant } from './TimeInput';
@@ -48,19 +49,18 @@ const RangeTabs = ({
   tabs: RangeTab[];
   tabLabels: Record<RangeTab, string>;
 }) => (
-  <div className={styles.rangeTabs} role="tablist">
+  <ChoiceGroup
+    className={styles.rangeTabs}
+    aria-label="Диапазон времени"
+    value={activeTab}
+    onChange={(v) => onTabChange(v as RangeTab)}
+  >
     {tabs.map((tab) => (
-      <button
-        key={tab}
-        role="tab"
-        aria-selected={activeTab === tab}
-        className={clsx(styles.rangeTab, activeTab === tab && styles.rangeTabActive)}
-        onClick={() => onTabChange(tab)}
-      >
+      <ChoiceItem key={tab} value={tab} className={styles.rangeTab}>
         {tabLabels[tab]}
-      </button>
+      </ChoiceItem>
     ))}
-  </div>
+  </ChoiceGroup>
 );
 
 const TimeChoose = ({

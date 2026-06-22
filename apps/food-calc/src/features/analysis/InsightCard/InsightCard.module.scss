@@ -184,7 +184,7 @@
     display: none;
 }
 
-// ── действия: «+ к себе» (результат) / ✕ (сохранённый список) ──────────────
+// ── действия: «+ к себе» (результат) / шеврон-удаление (сохранённый список) ──
 // Жёлтая градиентная пилюля с ЧЁРНЫМ ink (2026-06-14): канон жёлтой CTA из
 // продуктовой/блюдной страницы (warm honey-fill) — заметное действие. Текст
 // тёмный (`--color-ink`), НЕ `--text-on-accent` (тот белый — не читается на
@@ -239,14 +239,22 @@
     }
 }
 
+// Тихий шеврон в правом-нижнем углу — affordance «открыть подтверждение
+// удаления» (parent гейтит onDelete через ConfirmDrawer). ≥40px hit-target
+// (touch-floor inner control) вокруг 16px-глифа. Отрицательные margin'ы по
+// --ax-pad-* прижимают 40px-кнопку ВПЛОТНУЮ к правому-нижнему углу карточки,
+// чтобы глиф стоял на том же ~12px-инсете, что и edit-шеврон гипотез (у тех
+// padding живёт на .textButton, а не на строке, поэтому без этой компенсации
+// инсеты разъезжаются). Яркость = --ic-ink-faint (~50% ink), как у .editChevron.
 .delete {
     flex-shrink: 0;
+    align-self: flex-end;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    margin: -2px -4px 0 6px;
+    width: 40px;
+    height: 40px;
+    margin: 0 calc(-1 * var(--ax-pad-x, 16px)) calc(-1 * var(--ax-pad-y, 14px)) 6px;
     padding: 0;
     border: none;
     border-radius: var(--ic-chip-radius);

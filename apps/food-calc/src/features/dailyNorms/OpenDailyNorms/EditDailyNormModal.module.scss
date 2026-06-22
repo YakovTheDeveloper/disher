@@ -68,18 +68,6 @@
   min-width: 0;
 }
 
-// Serif-italic kicker (mirrors CreateDailyNormModal .kicker) — NOT the
-// uppercase 0.7rem opacity-0.55 "label-as-placeholder" anti-pattern banned in
-// CLAUDE.md Design Philosophy. Follows the ModalShell variant hue.
-.kicker {
-  font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
-  font-style: italic;
-  font-size: 0.85rem;
-  font-weight: 400;
-  letter-spacing: -0.005em;
-  color: var(--chip-active-border, #b88436);
-}
-
 .title {
   font-family: var(--heading-font);
   font-style: var(--heading-style);

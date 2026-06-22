@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import clsx from 'clsx';
+import TickIcon from '@/shared/assets/icons/tick.svg?react';
 import { useViewTransitionNavigate } from '@/shared/lib/viewTransition';
 import styles from './FoodActionCard.module.scss';
 import { deleteProducts } from '@/entities/product';
@@ -227,7 +228,15 @@ const FoodActionCard = ({
       : null;
 
   return (
-    <li className={styles.wrapper} role="option" data-pressed={pressed || undefined}>
+    <li className={styles.wrapper} role="option" aria-selected={active || undefined} data-pressed={pressed || undefined}>
+      {/* Маркер «выбрано» = navy-кромка (см. scss) + галочка в светлом бейдже,
+          правый-верхний угол. Без заливки — текст карточки остаётся тёмным
+          (единая идиома с Choice/нормой/TimeChoose, sys-токены «выбрано»). */}
+      {active && (
+        <span className={styles.tick} aria-hidden>
+          <TickIcon />
+        </span>
+      )}
       {richNutrientValue !== null && (
         <span className={styles.richValue}>
           {/* Цветная заливка квадрата (ширина = доля богатства, слева направо),

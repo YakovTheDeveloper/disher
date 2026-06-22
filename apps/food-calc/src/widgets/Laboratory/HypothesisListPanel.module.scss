@@ -68,16 +68,16 @@
     overscroll-behavior: auto;
 }
 
-// Separated-card variant: the rows are discrete spaced cards, so the frame
-// drops its rounding/clipping and the body just stacks cards with a token gap.
+// Analysis presentation: the «Анализ дня» look has no frame — drop the rounding
+// and shadow so the rows flow flush, divided only by each row's fading hairline.
 // Declared AFTER .scrollBodyFlow so it wins the equal-specificity overflow race.
-.scrollWrapSeparated {
+.scrollWrapAnalysis {
     border-radius: 0;
     box-shadow: none;
 }
 
-.scrollBodySeparated {
-    gap: var(--space-2);
+.scrollBodyAnalysis {
+    gap: 0;
     overflow: visible;
     border-radius: 0;
 }

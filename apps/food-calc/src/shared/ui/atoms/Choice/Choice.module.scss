@@ -1,0 +1,77 @@
+// Choice — одиночный выбор (роль choice). Маркер «выбрано» = угловатая кромка +
+// галочка в правом-верхнем углу, БЕЗ заливки (текст остаётся тёмным). Цвета/радиус
+// ТОЛЬКО из sys-яруса (tds/interactive-tokens-system.md): перекрасить «выбрано» по
+// всему app = одна строка в tokens.scss или scope-override --sys-color-bg-selected.
+.choice {
+  position: relative;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 44px;
+  padding: 9px 14px;
+  border: 1px solid var(--sys-color-border-subtle);
+  border-radius: var(--sys-radius-control);
+  background: var(--sys-color-surface-raised);
+  color: var(--sys-color-text-primary);
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition:
+    border-color var(--press-out) ease,
+    background var(--press-out) ease,
+    transform var(--press-out) ease;
+}
+
+.choice:focus-visible {
+  outline: 2px solid var(--sys-color-border-focus);
+  outline-offset: 2px;
+}
+
+.choice:active {
+  transform: scale(0.97);
+  transition-duration: var(--press-in);
+}
+
+// «Выбрано» — кромка + галочка, без заливки.
+.checked {
+  border-color: var(--sys-color-border-selected);
+}
+
+// Колонка «заголовок + подпись» (sex / активность / цель).
+.stacked {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.content {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.stacked .content {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+// Галочка-маркер «выбрано» — правый-верхний угол, navy, проявляется на checked.
+.marker {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  color: var(--sys-color-bg-selected);
+  opacity: 0;
+  transition: opacity var(--press-out) ease;
+  pointer-events: none;
+}
+
+.checked .marker {
+  opacity: 1;
+}

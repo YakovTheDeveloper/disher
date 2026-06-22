@@ -173,14 +173,6 @@ $digit-size: 6rem;
         flex-direction: column;
         width: auto;
     }
-
-    .rangeTab {
-        border-right: none;
-
-        &:last-child {
-            border-bottom: none;
-        }
-    }
 }
 
 .toggleButton {
@@ -230,37 +222,13 @@ $digit-size: 6rem;
     background: transparent;
 }
 
+// Single-choice (роль radio) на примитиве Choice: презентация (кромка/радиус/
+// галочка-маркер/фокус) живёт в Choice на sys-ярусе. Здесь — только раскладка:
+// три равных сегмента в ряд. Маркер «выбрано» = галочка в углу (как везде).
 .rangeTab {
     flex: 1;
-    padding: 8px 14px;
-    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    justify-content: center;
     text-align: center;
-    color: rgba(10, 10, 10, 0.4);
-    background: transparent;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition:
-        background-color var(--press-out) var(--easing-default),
-        color var(--press-out) var(--easing-default),
-        transform var(--press-out) var(--easing-default);
-
-    // Цветной отклик: текст-таб темнеет до ink + лёгкий тинт-фон.
-    &:active {
-        background: var(--press-tint-bg);
-        color: var(--color-ink);
-        transform: scale(0.97);
-        transition-duration: var(--press-in);
-    }
-}
-
-.rangeTabActive {
-    background: rgba(10, 10, 10, 0.06);
-    color: var(--color-ink);
 }
 
 .rangeSummary {

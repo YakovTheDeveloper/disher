@@ -149,13 +149,11 @@ $modal-shell-variants: (
   --chip-border: #{rgba($accent, 0.5)};
   --chip-text: #{$text};
   --chip-hover-border: #{rgba($ink, 0.24)};
-  // Выбранная пилюля — единый navy из tokens.scss (--chip-active-fill).
-  // НЕ выводится из тоновых $dark/$on-dark: цвет «выбранного» намеренно один
-  // на весь app и правится в одном месте (см. tokens.scss). $dark/$on-dark
-  // продолжают питать card-press ниже.
-  --chip-active-bg: var(--chip-active-fill);
-  --chip-active-border: var(--chip-active-fill-border);
-  --chip-active-text: var(--chip-active-ink);
+  // «Выбрано»/press НЕ публикуется здесь больше: Chip + press-fill-chip читают
+  // --sys-color-*-selected НАПРЯМУЮ (индирекция --chip-active-* схлопнута
+  // 2026-06-22 — один источник, tokens.scss · ЯРУС sys). НЕ возвращать этот
+  // канал: единственный путь к «выбрано» = sys-токен (греп-гейт это сторожит).
+  // $dark/$on-dark продолжают питать card-press ниже.
   --chip-separator: #{rgba($ink, 0.14)};
 }
 

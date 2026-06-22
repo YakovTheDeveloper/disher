@@ -10,8 +10,6 @@ $hairline: rgba(124, 65, 15, 0.09);
 $ink: #2c1d0a;
 $ink-soft: #6a5436;
 $ink-muted: rgba(58, 46, 20, 0.55);
-$accent: #b88436;
-$chip-dark: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
 
 .root {
     display: flex;
@@ -73,18 +71,7 @@ $chip-dark: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
         color: var(--field-caret, var(--color-ink));
         transition-duration: var(--press-in);
     }
-    &:focus-visible { outline: 2px solid var(--chip-active-border, #{$accent}); outline-offset: 2px; }
-}
-
-.kicker {
-    display: block;
-    font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
-    font-style: italic;
-    font-size: 0.85rem;
-    font-weight: 400;
-    letter-spacing: -0.005em;
-    color: var(--chip-active-border, #{$accent});
-    margin-bottom: 2px;
+    &:focus-visible { outline: 2px solid var(--sys-color-border-focus); outline-offset: 2px; }
 }
 
 .title {
@@ -136,7 +123,9 @@ $chip-dark: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
     gap: 10px;
 }
 
-// ─── Pills ───────────────────────────────────────────────────────
+// ─── Choices (single-select) ─────────────────────────────────────
+// Презентация (кромка/радиус/галочка) живёт в примитиве Choice на sys-ярусе.
+// Здесь — только раскладка группы и типографика заголовка/подписи.
 
 .pillRow {
     display: flex;
@@ -146,95 +135,20 @@ $chip-dark: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
 // Полноширинная колонка — для списков выбора, где число опций нечётное
 // (Активность = 5) и сетка 2-в-ряд оставляла бы плитку-сироту на полуширине.
 .pillCol {
+    display: flex;
     flex-direction: column;
-
-    .pill {
-        width: 100%;
-        flex: 0 0 auto;
-        min-width: 0;
-    }
+    gap: 8px;
 }
 
-.pill {
-    position: relative;
+// Горизонтальный ряд (Пол): варианты делят ширину поровну.
+.choiceCell {
     flex: 1 1 auto;
-    min-height: 48px;
-    display: inline-flex;
-    align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 10px 14px;
-    background: var(--chip-bg, #fff);
-    border: 1px solid var(--chip-border, rgba(124, 65, 15, 0.18));
-    border-radius: 12px;
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--chip-text, #{$ink});
-    cursor: pointer;
-    text-align: center;
-    -webkit-tap-highlight-color: transparent;
-    transition:
-        background var(--press-out) var(--easing-default),
-        border-color var(--press-out) var(--easing-default),
-        color var(--press-out) var(--easing-default),
-        transform var(--press-out) var(--easing-default);
-    overflow: hidden;
-
-    // 3px left accent stripe (stripe-fork DNA), hidden until active. On the
-    // filled (selected) chip it reads as a light accent over the dark fill.
-    &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        width: 3px;
-        background: var(--chip-active-text, #{$accent});
-        opacity: 0;
-        transition: opacity 0.15s ease, width 0.15s ease;
-    }
-
-    // Press = the SAME dark chip-active fill as the selected state (.pillActive
-    // below), so pressing an unselected pill previews exactly what it becomes on
-    // release — no light↔dark inversion. On press-canon (colored press fill).
-    &:active {
-        background: var(--chip-active-bg, #{$chip-dark});
-        border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
-        color: var(--chip-active-text, #fff);
-        transform: scale(0.97);
-        transition-duration: var(--press-in);
-
-        .pillTitle,
-        .pillHint {
-            color: var(--chip-active-text, #fff);
-        }
-    }
-    &:focus-visible { outline: 2px solid var(--chip-active-border, #{$accent}); outline-offset: 2px; }
 }
 
-.pillStacked {
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
-    padding: 11px 14px 11px 16px;
-    gap: 3px;
-}
-
-// Selected = the dark chip-active fill (matches the press state above), so the
-// chosen option is unmistakable and press→select is visually continuous. The
-// stripe brightens to a 5px light accent over the fill.
-.pillActive {
-    background: var(--chip-active-bg, #{$chip-dark});
-    border-color: var(--chip-active-border, rgba(184, 132, 54, 0.55));
-    color: var(--chip-active-text, #fff);
-
-    .pillTitle,
-    .pillHint {
-        color: var(--chip-active-text, #fff);
-    }
-
-    &::before { opacity: 1; width: 5px; }
+// Вертикальная колонка (Активность/Цель): вариант во всю ширину.
+.choiceCellFull {
+    width: 100%;
 }
 
 .pillTitle {
@@ -352,19 +266,6 @@ $chip-dark: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
         background: linear-gradient(90deg, transparent 0%, var(--field-hairline, #{$hairline}) 18%, var(--field-hairline, #{$hairline}) 82%, transparent 100%);
         pointer-events: none;
     }
-
-    // Left full-height accent (canon)
-    &::after {
-        content: '';
-        position: absolute;
-        top: 12px;
-        bottom: 12px;
-        left: 0;
-        width: 3px;
-        background: var(--chip-active-border, #{$accent});
-        opacity: 0.8;
-        border-radius: 0 2px 2px 0;
-    }
 }
 
 .previewKcal {
@@ -417,7 +318,7 @@ $chip-dark: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
     font-style: italic;
     font-size: 0.85rem;
     font-weight: 500;
-    color: var(--chip-active-border, #{$accent});
+    color: var(--sys-color-text-primary);
     letter-spacing: -0.01em;
 }
 
@@ -487,7 +388,7 @@ $chip-dark: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
     padding: 12px 22px;
     border: none;
     background: var(--field-text, #{$ink});
-    color: var(--chip-active-text, #fffaf0);
+    color: var(--sys-color-text-on-accent);
     border-radius: 12px;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.92rem;
@@ -509,7 +410,7 @@ $chip-dark: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
         transform: scale(0.97);
         transition-duration: var(--press-in);
     }
-    &:focus-visible { outline: 2px solid var(--chip-active-border, #{$accent}); outline-offset: 2px; }
+    &:focus-visible { outline: 2px solid var(--sys-color-border-focus); outline-offset: 2px; }
 }
 
 .commitBtnInactive {
@@ -523,7 +424,7 @@ $chip-dark: linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%);
 // ── chrome="panel" overrides — render inside a drawer body ───
 //
 // The drawer body already provides scroll, header, and safe-area padding.
-// In panel mode the hero kicker/title header is skipped (drawer header
+// In panel mode the hero title header is skipped (drawer header
 // already says «Подобрать норму»). A compact subtitle keeps the same
 // explanatory copy without the title chrome.
 .rootPanel {

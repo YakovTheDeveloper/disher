@@ -2,9 +2,13 @@ import { useRef, useState } from 'react';
 import clsx from 'clsx';
 import style from './ProductQuantity.module.scss';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
-import { Chip } from '@/shared/ui/atoms/Chip';
+import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 
 export type Portion = { label: string; grams: number };
+
+// Index-suffixed so two portions with identical label+grams don't collide into
+// one Choice value (which would render both as checked + dup the React key).
+const portionKey = (p: Portion, i: number) => `${p.label}-${p.grams}-${i}`;
 
 type ProductQuantityContent = {
   quantity: number;
@@ -160,24 +164,32 @@ const ProductQuantityHeavy = ({ content, activePortion, onPortionClick }: HeavyP
 
   if (portions.length === 0) return null;
 
+  // Single-select among portions → role=radiogroup. Toggle-off (re-tapping the
+  // active portion clears it) stays in `handlePortionClick`: Choice always fires
+  // onChange on click, so the consumer owns the deselect — no Choice-level flag.
+  const selectedIdx = activePortion ? portions.findIndex((p) => p === activePortion) : -1;
+  const selectedKey = selectedIdx >= 0 ? portionKey(portions[selectedIdx], selectedIdx) : null;
+  const handleChange = (key: string) => {
+    const portion = portions.find((p, i) => portionKey(p, i) === key);
+    if (portion) onPortionClick(portion);
+  };
+
   return (
     <div className={style.section}>
       {/* Plain wrapping row — the portion set is small, so showing every chip
           at once beats a horizontal scroll (no hidden affordance, no JS). */}
-      <div className={style.portionChips}>
-        {portions.map((portion) => (
-          <Chip
-            key={`${portion.label}-${portion.grams}`}
-            className={style.portionChip}
-            active={
-              activePortion?.grams === portion.grams && activePortion?.label === portion.label
-            }
-            onClick={() => onPortionClick(portion)}
-          >
+      <ChoiceGroup
+        className={style.portionChips}
+        aria-label="Порция"
+        value={selectedKey}
+        onChange={handleChange}
+      >
+        {portions.map((portion, i) => (
+          <ChoiceItem key={portionKey(portion, i)} value={portionKey(portion, i)} className={style.portionChip}>
             {portion.label} ({portion.grams}г)
-          </Chip>
+          </ChoiceItem>
         ))}
-      </div>
+      </ChoiceGroup>
     </div>
   );
 };

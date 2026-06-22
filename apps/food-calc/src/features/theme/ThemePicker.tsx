@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import TickIcon from '@/shared/assets/icons/tick.svg?react';
 import {
   USER_THEMES,
   USER_THEME_LABELS,
@@ -26,6 +27,12 @@ const ThemePicker = () => {
             onClick={() => setTheme(t)}
           >
             <span className={styles.preview} aria-hidden />
+            {/* Маркер «выбрано» = галочка справа-сверху в светлом бейдже (не кольцо/
+                заливка — те дерутся с цветом самой темы). Бейдж держит контраст на
+                тёмных свотчах (twilight). */}
+            <span className={styles.tick} aria-hidden>
+              <TickIcon />
+            </span>
             <span className={styles.label}>{USER_THEME_LABELS[t]}</span>
           </button>
         );

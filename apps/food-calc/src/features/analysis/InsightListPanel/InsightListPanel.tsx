@@ -1,4 +1,6 @@
 import { memo } from 'react';
+import { drawerStore } from '@/shared/ui';
+import { ConfirmDrawer } from '@/shared/ui/ConfirmDrawer';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import type { Insight } from '@/entities/insight';
 import { InsightCard } from '../InsightCard';
@@ -20,6 +22,19 @@ type Props = {
 // there is no write-bar here. Empty state is owned by the page.
 const InsightListPanel = ({ insights, onDelete }: Props) => {
   const { anchor } = useDesignVariant('Insight', INSIGHT_VALENCE_VARIANTS);
+
+  // Удаление гейтится подтверждением: инсайт легко стереть случайным тапом по
+  // шеврону, а восстановления нет. Свайп/отмена резолвят не-`true` → no-op.
+  const confirmDelete = async (id: string) => {
+    const ok = await drawerStore.show(ConfirmDrawer, {
+      title: 'Удалить инсайт?',
+      message: 'Инсайт исчезнет из списка наблюдений.',
+      confirmLabel: 'Удалить',
+      tone: 'danger',
+    });
+    if (ok) onDelete(id);
+  };
+
   if (insights.length === 0) return null;
 
   return (
@@ -30,7 +45,7 @@ const InsightListPanel = ({ insights, onDelete }: Props) => {
             key={insight.id}
             insight={insight}
             action="delete"
-            onDelete={() => onDelete(insight.id)}
+            onDelete={() => confirmDelete(insight.id)}
           />
         ))}
       </div>

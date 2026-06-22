@@ -1,15 +1,17 @@
 import { memo } from 'react';
 import type { Hypothesis } from '@/entities/hypothesis';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import { relativeTimeRu } from '@/shared/lib/time/relativeTimeRu';
 import styles from './HypothesisListItem.module.scss';
 
 type EditProps =
   | {
       /**
-       * Open the edit modal for this row. Когда задано — клик по тексту строки
-       * фокусит общий edit-input (через `editInputHtmlFor`), а onEdit одновременно
-       * записывает в parent editingId. Оба ОБЯЗАТЕЛЬНЫ вместе — discriminated
-       * union ловит «забыл htmlFor» на этапе типа.
+       * Open the edit modal for this row. Когда задано — рендерится шеврон
+       * справа-снизу; клик по нему фокусит общий edit-input (через
+       * `editInputHtmlFor`), а onEdit одновременно записывает в parent editingId.
+       * Оба ОБЯЗАТЕЛЬНЫ вместе — discriminated union ловит «забыл htmlFor» на
+       * этапе типа.
        */
       onEdit: () => void;
       /** id единого edit-input'а, который рендерит EditHypothesisModal. */
@@ -33,19 +35,23 @@ type Props = {
    */
   showMeta?: boolean;
   /**
-   * Discrete-card row — rounded + self-shadowed, no fading hairline divider
-   * (the parent list spaces rows). Default `false` keeps the flush list look.
+   * Surface presentation. `'flush'` (default) — compact rows on the app tone
+   * (`--card-*`), accent stripe + per-row hairline; used by the selection lists.
+   * `'analysis'` — the «Анализ дня» look (`--ax-*`): surface off, no accent
+   * stripe, fading-hairline divider, Apple type scale; the «Открытия» slide.
    */
-  separated?: boolean;
+  presentation?: 'flush' | 'analysis';
 } & EditProps;
 
-// One hypothesis row. Two independent interactive zones, never nested:
+// One hypothesis row. The text is inert; interaction lives in two zones that
+// never nest:
 //   - the checkbox toggles whether the hypothesis rides into the analysis;
-//   - the text label фокусит общий edit-input EditHypothesisModal (label-driven
-//     focus delegation — onClick только обновляет editingId в parent, step
-//     перевернёт onFocusCapture после доставки фокуса).
-// Surface is a stripe-fork row (gradient + accent stripe + fading hairline);
-// nth-child rhythm + the palette come from the parent `[data-dv]` anchor.
+//   - the trailing chevron (bottom-right) фокусит общий edit-input
+//     EditHypothesisModal (label-driven focus delegation — onClick только
+//     обновляет editingId в parent, step перевернёт onFocusCapture после
+//     доставки фокуса). Рендерится только при onEdit + editInputHtmlFor.
+// Surface is token-driven: `'flush'` uses the app tone (`--card-*`),
+// `'analysis'` the «Анализ дня» hairline look (`--ax-*`).
 const HypothesisListItem = ({
   hypothesis,
   selected,
@@ -56,7 +62,7 @@ const HypothesisListItem = ({
   hideCheckbox = false,
   isNew = false,
   showMeta = false,
-  separated = false,
+  presentation = 'flush',
 }: Props) => {
   const meta = showMeta ? relativeTimeRu(hypothesis.createdAt) : '';
   const content = (
@@ -73,7 +79,7 @@ const HypothesisListItem = ({
       data-selected={selected || undefined}
       data-no-checkbox={hideCheckbox || undefined}
       data-new={isNew || undefined}
-      data-separated={separated || undefined}
+      data-presentation={presentation === 'analysis' ? 'analysis' : undefined}
     >
       {!hideCheckbox && (
         <label className={styles.checkboxWrap}>
@@ -88,16 +94,17 @@ const HypothesisListItem = ({
           <span className={styles.checkboxBox} aria-hidden="true" />
         </label>
       )}
-      {onEdit && editInputHtmlFor ? (
+      {/* Текст инертный — триггер редактирования вынесен на шеврон справа-снизу. */}
+      <div className={styles.textButton}>{content}</div>
+      {onEdit && editInputHtmlFor && (
         <label
           htmlFor={editInputHtmlFor}
-          className={styles.textButton}
+          className={styles.editChevron}
           onClick={onEdit}
+          aria-label="Редактировать гипотезу"
         >
-          {content}
+          <ChevronGlyph />
         </label>
-      ) : (
-        <div className={styles.textButton}>{content}</div>
       )}
     </div>
   );

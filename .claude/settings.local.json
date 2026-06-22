@@ -309,7 +309,9 @@
       "Bash(curl -s -o /dev/null -w \"4173:%{http_code}\\\\n\" http://localhost:4173 --max-time 3)",
       "Bash(curl -sk -o /dev/null -w \"%{http_code}\" https://localhost:5173/)",
       "Bash(cd \"c:/Users/booty/Documents/GitHub/disher/apps/food-calc\"; f=$\\(find ../../node_modules/embla-carousel/esm -name '*.js' 2>/dev/null | head -1\\); echo \"FILE: $f\"; grep -n \"addEventListener\\\\|pointercancel\\\\|pointerdown\\\\|pointermove\\\\|touch-action\\\\|setPointerCapture\\\\|preventDefault\\\\|ownerDocument\" ../../node_modules/embla-carousel/esm/embla-carousel.esm.js 2>/dev/null | head -50)",
-      "Read(//c/Users/booty/Documents/node_modules/embla-carousel/**)"
+      "Read(//c/Users/booty/Documents/node_modules/embla-carousel/**)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(grep -n '\\\\$accent' src/features/dailyNorms/OpenDailyNorms/CreateDailyNormModal.module.scss)"
     ],
     "additionalDirectories": [
       "\\tmp",

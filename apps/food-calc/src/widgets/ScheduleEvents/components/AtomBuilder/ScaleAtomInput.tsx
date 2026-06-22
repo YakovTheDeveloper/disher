@@ -12,7 +12,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
-import { Chip } from '@/shared/ui/atoms/Chip';
+import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import styles from './shared/AtomInputShared.module.css';
 
@@ -63,22 +63,26 @@ export const ScaleAtomInput = () => {
           />
         </div>
 
-        {/* Row 2 — preset chips. A tap replaces the text field's value. */}
-        <div className={styles.scaleChipsRow}>
+        {/* Row 2 — preset choices (single-select). A tap replaces the field. */}
+        <ChoiceGroup
+          className={styles.scaleChipsRow}
+          aria-label="Явление"
+          value={label.trim()}
+          onChange={(v) => setPendingScale({ label: v })}
+        >
           {PRESET_LABELS.map((item) => (
-            <Chip
+            <ChoiceItem
               key={item}
-              active={label.trim() === item}
+              value={item}
               // Prevent the tap from blurring the focused input — keeps the
-              // keyboard up (no viewport reshuffle) so the chip activates
+              // keyboard up (no viewport reshuffle) so the choice activates
               // instantly instead of after the keyboard-dismiss animation.
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => setPendingScale({ label: item })}
             >
               {item}
-            </Chip>
+            </ChoiceItem>
           ))}
-        </div>
+        </ChoiceGroup>
       </div>
     </div>
   );

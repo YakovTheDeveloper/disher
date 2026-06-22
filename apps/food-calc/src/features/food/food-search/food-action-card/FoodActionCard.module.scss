@@ -14,9 +14,35 @@
     // below stays local — it keys off this card's own `.item_active` child.
     @include stripe-fork-row;
 
+    // «Выбрано» = navy-кромка (inset outline уже разведён миксином) + галочка
+    // (.tick ниже), БЕЗ заливки. Единая идиома sys-«выбрано», как у Choice.
     &:has(.item_active) {
-        outline-color: transparent;
-        background: var(--card-active);
+        outline-color: var(--sys-color-border-selected);
+    }
+}
+
+// Галочка-маркер «выбрано» — светлый бейдж в правом-верхнем углу, поверх
+// контента (z-index выше .item z1 и press-пилюли z0). Бейдж держит контраст
+// над любой подложкой строки.
+.tick {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-full);
+    background: var(--sys-color-surface-raised);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
+    pointer-events: none;
+
+    svg {
+        width: 10px;
+        height: 10px;
+        color: var(--sys-color-bg-selected);
     }
 }
 

@@ -84,6 +84,27 @@
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
 
+  // ─── ELEVATION (M0 рельсы) · глубина = функция ИНТЕРАКТИВНОСТИ ──
+  // Ground truth: tds/elevation-palette-2026.md. Глубина приподнимает РЫЧАГИ
+  // (CTA / бары / плитки / оверлеи / drag), контент остаётся ПЛОСКИМ (paper-mono).
+  // M0 = объявить, НЕ применять (компоненты переедут в M1–M4). Значения = Вариант B
+  // (мягкий осмысленный лифт, §3.3 решено). Тень многослойная, один источник света
+  // (вертикальный, сверху), подтон ХОЛОДНЫЙ navy (наш ink 31,42,68), НЕ чёрный (§6.2).
+  // --ref-shadow-* — примитивы-рецепты; --sys-elevation-* — единственный API компонентов.
+  --ref-shadow-0: none;
+  --ref-shadow-1: 0 1px 2px rgba(31, 42, 68, 0.07), 0 2px 6px rgba(31, 42, 68, 0.06); // лифт действия в покое
+  --ref-shadow-2: 0 1px 2px rgba(31, 42, 68, 0.08), 0 4px 10px rgba(31, 42, 68, 0.08); // действие наведено / приподнятый бар
+  --ref-shadow-3: 0 1px 3px rgba(31, 42, 68, 0.08), 0 6px 16px rgba(31, 42, 68, 0.10), 0 12px 28px rgba(31, 42, 68, 0.10); // overlay
+  --ref-shadow-4: 0 2px 6px rgba(31, 42, 68, 0.10), 0 10px 24px rgba(31, 42, 68, 0.14), 0 20px 48px rgba(31, 42, 68, 0.14); // drag-лифт
+
+  // sys · СЕМАНТИКА глубины по РОЛИ действия+состоянию (не по размеру, не по элементу)
+  --sys-elevation-flat: var(--ref-shadow-0); // КОНТЕНТ: карточки еды, нутриенты, списки, секции
+  --sys-elevation-action-rest: var(--ref-shadow-1); // рычаг в покое: CTA, нижний/верхний бар, плитка, поле НЕ сюда
+  --sys-elevation-action-hover: var(--ref-shadow-2); // рычаг под наведением / фокусом — выше
+  --sys-elevation-action-pressed: var(--ref-shadow-0); // рычаг вдавлен: тень СЖИМАЕТСЯ (≤ rest)
+  --sys-elevation-overlay: var(--ref-shadow-3); // drawer / modal / popover / dropdown / sheet
+  --sys-elevation-dragging: var(--ref-shadow-4); // элемент в захвате (long-press lift)
+
   // ─── Framed-plate (canon 2026-06-18) ─────────────────────────
   // «Серая подложка внутри + белая рамка + мягкая тень» — рецепт медали
   // «Список еды» (WriteBarMedal), вынесенный для повторного использования:
@@ -168,16 +189,91 @@
   --cta-brand-ink: rgba(31, 42, 68, 0.92);
   --cta-brand-shadow: 0 5px 14px -6px rgba(170, 150, 60, 0.3), 0 2px 5px -2px rgba(170, 150, 60, 0.28);
 
-  // ─── Selected chip — единый цвет «выбранной/нажатой» пилюли ────
-  // ОДИН источник правды: выбранный Chip во всём приложении (теги
-  // «Особенности приёма», количество продукта, шкала события, чипы норм,
-  // пилюли пикера нутриентов) заливается этим navy. Перекрасить выбранную
-  // пилюлю по всему проекту = правка ЭТИХ трёх токенов. ModalShell
-  // (field-chip-palette) и фолбэк Chip оба читают их. (tokens.scss exempt
-  // от token-gate.)
-  --chip-active-fill: rgba(24, 24, 105, 0.92);
-  --chip-active-fill-border: rgba(24, 24, 105, 1);
-  --chip-active-ink: #fff;
+  // ─── ЯРУС ref · ПРИМИТИВЫ цвета (M0 рельсы) ───────────────────
+  // Ground truth: tds/elevation-palette-2026.md §4. M0 = объявить как алиасы
+  // ТЕКУЩИХ значений (ноль перекраски). OKLCH-warm-генерация (готовая шкала
+  // Radix/Stripe под единый ТЁПЛЫЙ лин, §6.5) ЗАМЕНИТ значения нейтрали на этапе
+  // генерации — пока это рельсы-плейсхолдеры с текущими литералами.
+  // Нейтраль: {0}=бумага … {1000}=ink (step растёт = темнее).
+  --ref-color-neutral-0: var(--surface-base); // #FAFAF7
+  --ref-color-neutral-50: var(--surface-raised); // rgba(255,255,255,.7)
+  --ref-color-neutral-100: #f0f1f4; // = cards-page-bg (mixin-scoped → литерал; перетон в тёплый при генерации)
+  --ref-color-neutral-200: var(--border-subtle); // rgba(0,0,0,.1)
+  --ref-color-neutral-300: var(--border-default); // #e5e7eb
+  --ref-color-neutral-400: var(--text-tertiary); // #9ca3af
+  --ref-color-neutral-500: var(--text-secondary); // #6b7280
+  // (neutral-700 НЕ объявлен в M0: нет текущего токена-источника на этом шаге →
+  // не выдумываем magic-литерал; ступень заведётся на этапе генерации шкалы.)
+  --ref-color-neutral-900: var(--color-ink); // rgb(38,38,51) — тёплый near-black
+  --ref-color-neutral-1000: var(--color-ink-strong); // #0a0a0a
+
+  // ink-accent (navy) — ЕДИНСТВЕННЫЙ брендовый hue для выбрано/действие/фокус.
+  // M0: точное ТЕКУЩЕЕ значение «выбрано» (oklch-перевод — на этапе генерации, §4.2).
+  --ref-color-navy-600: rgba(24, 24, 105, 0.92); // источник --sys-color-bg-selected
+  --ref-color-navy-700: rgba(24, 24, 105, 1); // источник --sys-color-border-selected
+
+  // статусы — землисто-гербарный регистр (§4.3). done/stale — НОВЫЕ (текущего
+  // токена нет → сразу целевые земельные, невидимы пока нет консумера); danger/
+  // warning — ТЕКУЩИЕ значения сохраняем (сдвиг danger→терракота отложен на M4).
+  // HEX-плейсхолдеры (кросс-браузерны). Точные OKLCH + @supports-fallback —
+  // на этапе генерации шкалы (§6.5): голый oklch() в custom-property невалиден
+  // на ~5-7% старых браузеров (старые Android WebView) → прозрачный цвет.
+  --ref-color-terracotta-600: #b25a3f; // danger TARGET (НЕ используется до M4)
+  --ref-color-moss-600: #5f7a4c; // done → мох
+  --ref-color-sepia-500: #8a7b60; // stale → сепия
+
+  // ─── ЯРУС sys · СЕМАНТИКА интерактивности (M0) ────────────────
+  // Ground truth: tds/interactive-tokens-system.md (§3 каталог).
+  // Семантический ярус ПОВЕРХ текущих примитивов (--color-*/--surface-*/
+  // --text-*/--radius-*) — НЕ переименование (ref-rename — опциональный финал,
+  // он не гейтит M0). Компоненты по мере миграции M1–M3 читают ТОЛЬКО эти
+  // `--sys-*`; «выбрано» получает ОДИН источник правды → консистентность по
+  // построению, перекраска/темизация = одна строка в нужном scope. Имена по
+  // CTI / Nathan Curtis (по СМЫСЛУ, не по виду): control/indicator/container —
+  // КАТЕГОРИЯ элемента, не «angular/pill». (tokens.scss exempt от token-gate.)
+
+  // color · surface
+  --sys-color-surface-page: var(--surface-base);
+  --sys-color-surface-raised: var(--surface-raised);
+  --sys-color-surface-sunken: var(--surface-base); // нет отдельного sunken-примитива → page-нейтраль
+  --sys-color-surface-overlay: var(--surface-overlay);
+
+  // color · text (foreground)
+  --sys-color-text-primary: var(--text-primary);
+  --sys-color-text-secondary: var(--text-secondary);
+  --sys-color-text-tertiary: var(--text-tertiary);
+  --sys-color-text-on-accent: var(--text-on-accent);
+
+  // color · border (один нейтральный хайрлайн)
+  --sys-color-border-subtle: var(--border-subtle);
+
+  // color · интенты (действие / статус — НЕ «accent»)
+  --sys-color-action-primary: var(--cta-brand-fill);
+  // статусы по СМЫСЛУ. danger/warning = ТЕКУЩИЕ значения (земельный сдвиг danger
+  // →терракота отложен на M4); done/stale/pending — НОВЫЕ (Анализ рисует их сейчас
+  // локально через color-mix; сводим к этим токенам в M4). Земельный регистр §4.3.
+  --sys-color-status-danger: var(--color-danger); // M0: неон; M4 → var(--ref-color-terracotta-600)
+  --sys-color-status-warning: var(--color-warning);
+  --sys-color-status-done: var(--ref-color-moss-600);
+  --sys-color-status-stale: var(--ref-color-sepia-500);
+  --sys-color-status-pending: var(--ref-color-neutral-400);
+
+  // color · интерактивные состояния (cross-element; «выбрано» — ЕДИНСТВЕННЫЙ источник)
+  --sys-color-bg-selected: var(--ref-color-navy-600); // «выбрано» → navy-ref (значение то же; M0 §4.2)
+  --sys-color-text-on-selected: #fff;
+  --sys-color-border-selected: var(--ref-color-navy-700);
+  --sys-color-bg-hover: rgba(0, 0, 0, 0.04);
+  // focus-ring — отдельный яркий blue, НЕ navy выбора: на уже выбранном элементе
+  // (navy-кромка) navy-фокус сливался; яркий --color-blue-2 читается поверх обоих.
+  --sys-color-border-focus: var(--color-blue-2);
+  --sys-opacity-disabled: 0.4;
+
+  // radius · по КАТЕГОРИИ элемента (НЕ по виду)
+  --sys-radius-control: var(--radius-sm); // 8px — radio, checkbox, input, select, field
+  --sys-radius-indicator: var(--radius-full); // chip, tag, badge, switch-трек
+  --sys-radius-container: var(--radius-md); // 12px — card, panel, surface
+  // (M2a, 2026-06-21: legacy `--chip-active-fill/-border/--chip-active-ink` шимы
+  // удалены — Chip + ModalShell теперь читают `--sys-color-*-selected` напрямую.)
 
   // ─── Nutrient family ──────────────────────────────────────────
   --nutrient-bg-main: #fef5e7;

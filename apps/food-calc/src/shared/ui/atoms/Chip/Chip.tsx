@@ -11,7 +11,7 @@ export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
  * Chip — унифицированная кнопка-чип для быстрого выбора текста.
  *
  * Презентационный компонент: только вид (белая пилюля с мягкой тенью, без
- * рамки — канон пикера нутриентов; выбранный — navy из --chip-active-fill) и
+ * рамки — канон пикера нутриентов; выбранный — navy из --sys-color-bg-selected) и
  * `active`-состояние. Поведение (toggle / single-select / мгновенный коммит)
  * задаёт вызывающий код через `onClick`. Консумеры: NutrientPickerDrawer,
  * DetailsChips «Особенности приёма», ProductQuantity, AtomBuilder.

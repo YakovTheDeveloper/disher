@@ -2,8 +2,11 @@
     width: 100%;
 }
 
+// Rows sit flush — each InsightCard's own fading-hairline `::after` (resolving
+// via the `--ax-divider` inherited from the Discoveries `.container`) divides
+// them, matching the «Анализ дня» look.
 .list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0;
 }

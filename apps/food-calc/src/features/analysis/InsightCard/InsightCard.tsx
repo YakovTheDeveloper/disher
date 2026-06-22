@@ -9,8 +9,8 @@ import {
   type InsightStrength,
   type InsightValence,
 } from '@/entities/insight';
-import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import PlusIcon from '@/shared/assets/icons/plus.svg?react';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import styles from './InsightCard.module.scss';
 
 export type InsightCardAction = 'none' | 'add' | 'delete';
@@ -22,7 +22,8 @@ type Props = {
   showDays?: boolean;
   /**
    * 'add'    — result view: «Добавить к себе» saves into the user's insight list.
-   * 'delete' — saved-insights page: a quiet ✕ removes it (parent owns onDelete).
+   * 'delete' — saved-insights page: a quiet chevron (bottom-right) triggers the
+   *            parent's onDelete (which gates it behind a confirm Drawer).
    * 'none'   — read-only (default), no action.
    */
   action?: InsightCardAction;
@@ -160,7 +161,7 @@ const InsightCard = ({
           onClick={onDelete}
           aria-label="Удалить инсайт"
         >
-          <CrossIcon />
+          <ChevronGlyph />
         </button>
       )}
     </article>

@@ -83,7 +83,7 @@ const HypothesesSlide = ({ topSlot }: Props) => {
             onToggle={noop}
             selectable={false}
             showMeta
-            separated
+            presentation="analysis"
             headerVariant="divider"
             maxBodyHeight="none"
             newIds={newIds}

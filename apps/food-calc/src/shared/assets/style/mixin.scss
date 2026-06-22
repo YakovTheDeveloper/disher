@@ -258,7 +258,7 @@
 //
 // Четыре варианта под четыре архетипа кнопок:
 //   press-fill-chip()  — светлый pill/chip с surface-палитрой → заливка
-//                        `--chip-active-*` (тёмная инверсия + светлый текст).
+//                        `--sys-color-*-selected` (единый «выбрано», navy).
 //   press-fill-ink()   — светлая generic кнопка без chip-токенов → ink-заливка.
 //   press-fill-tint()  — тихая текст/иконочная кнопка без подложки → текст и
 //                        значок (currentColor) красятся в акцент + лёгкий тинт.
@@ -273,9 +273,9 @@
         transform var(--press-out) var(--easing-default);
 
     &:active {
-        background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
-        border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
-        color: var(--chip-active-text, #fff);
+        background: var(--sys-color-bg-selected);
+        border-color: var(--sys-color-border-selected);
+        color: var(--sys-color-text-on-selected);
         transform: scale($scale);
         transition-duration: var(--press-in);
     }

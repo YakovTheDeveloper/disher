@@ -8,6 +8,7 @@
 }
 
 .swatch {
+  position: relative;
   appearance: none;
   -webkit-tap-highlight-color: transparent;
   display: flex;
@@ -32,23 +33,45 @@
   outline: none;
 }
 
-// Цветной отклик: карточка темы (chip-вариант) → заливка chip-токеном.
-// .label держит свой тёмный color — на тёмной заливке перекрашиваем (.preview
-// со своим градиентом не трогаем, он остаётся виден).
+// Одиночный выбор (choice): press = только лёгкий scale, БЕЗ цветной заливки —
+// заливка-отклик нужна action-кнопкам, а «выбор 1 из N» несёт маркер (галочка).
+// Как в примитиве Choice (`Choice.module.scss .choice:active`).
 .swatch:active {
-  background: var(--chip-active-bg, linear-gradient(135deg, #251f16 0%, #6d5f4f 60%, #49433d 100%));
-  border-color: var(--chip-active-border, rgba(124, 65, 15, 0.5));
   transform: scale(0.97);
   transition-duration: var(--press-in);
+}
 
-  .label {
-    color: var(--chip-active-text, #fff);
+// Маркер «выбрано» = галочка в светлом бейдже, правый-верхний угол поверх
+// превью. Кольцо/заливку НЕ используем — они дрались бы с цветом самой темы.
+.tick {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--sys-color-surface-raised);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
+  pointer-events: none;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    color: var(--color-ink);
   }
 }
 
-.swatch.active {
-  border-color: rgba(31, 42, 68, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(31, 42, 68, 0.7);
+.swatch.active .tick {
+  opacity: 1;
+  transform: scale(1);
 }
 
 // Each swatch publishes its own --tod-* tokens via the palette mixin,

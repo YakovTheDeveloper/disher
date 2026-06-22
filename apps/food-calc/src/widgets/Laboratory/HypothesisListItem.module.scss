@@ -80,45 +80,6 @@
     }
 }
 
-// ─── Separated card variant ──────────────────────────────────────────────
-// Discrete rounded cards with their own shadow + spacing (parent list adds the
-// gap) — closer to the HomePage schedule rows. Drops the flush-list fading
-// hairline divider; the accent stripe insets so it doesn't touch the rounded
-// corners. Used by the «Гипотезы» modal (HypothesisListPanel `separated`).
-.row[data-separated] {
-    // Сплошная белая карточка как в предложке s_ad537308 (не прозрачная) —
-    // иначе сквозь `--card-bg: transparent` просвечивает ambient-градиент
-    // SwipeDeck'а и читается как градиент на карточке.
-    background: var(--card-group-bg, #ffffff);
-    border-radius: var(--radius-md);
-    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04),
-        0 8px 18px -14px rgba(15, 23, 42, 0.28);
-
-    // No hairline between cards — they're spaced apart now.
-    &::after,
-    &:nth-child(2n)::after {
-        display: none;
-    }
-
-    // Чистая карточка как в предложке — без вертикальной accent-полоски слева.
-    // (В режиме выбора разбора список flush, не separated → там полоска остаётся
-    // и несёт состояние выбора/нового.)
-    &::before {
-        display: none;
-    }
-}
-
-// A just-created card that is ALSO separated: box-shadow doesn't merge across
-// rules, so the separated drop-shadow above would clobber the `[data-new]` inset
-// ring. Re-state both shadows together (higher specificity wins) so the
-// ephemeral «new» ring still shows on the modal's discrete cards.
-.row[data-separated][data-new] {
-    box-shadow:
-        inset 0 0 0 1.5px var(--card-text-active),
-        0 1px 0 rgba(15, 23, 42, 0.04),
-        0 8px 18px -14px rgba(15, 23, 42, 0.28);
-}
-
 .checkboxWrap {
     display: flex;
     align-items: center;
@@ -190,6 +151,7 @@
     padding-left: 16px;
 }
 
+// Текст строки — инертный (триггер редактирования вынесен на шеврон справа).
 .textButton {
     flex: 1;
     min-width: 0;
@@ -197,24 +159,7 @@
     flex-direction: column;
     gap: 2px;
     padding: 13px 16px 13px 6px;
-    background: transparent;
-    border: none;
     text-align: left;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: background var(--press-out) var(--easing-default),
-        color var(--press-out) var(--easing-default);
-
-    // Цветной отклик: тинт фона текстовой кнопки гипотезы при нажатии
-    &:active {
-        background: var(--press-tint-bg);
-        color: var(--field-caret, var(--color-ink));
-        transition-duration: var(--press-in);
-    }
-
-    &:disabled {
-        cursor: default;
-    }
 }
 
 // Заголовок — антиква (Source Serif), монохромный ink по токенам темы.
@@ -248,4 +193,73 @@
     line-height: 1.2;
     color: color-mix(in srgb, var(--card-text-rest) 50%, transparent);
     opacity: 0.8;
+}
+
+// ─── Analysis presentation — «Анализ дня» look ────────────────────────────
+// Surface off (`--ax-*`), no accent stripe, a fading-hairline divider between
+// rows, Apple type scale — mirrors InsightCard's analysis mode so both
+// «Открытия» slides read identically. Inherited `--ax-*` / `--analysis-*` come
+// from the Discoveries `.container`. Declared after `.textButton` / `.title` /
+// `.body` / `.meta` so equal-specificity overrides win on source order.
+.row[data-presentation='analysis'] {
+    background: var(--ax-card-bg, transparent);
+    box-shadow: var(--ax-card-shadow, none);
+    border-radius: var(--ax-card-radius, 0);
+
+    // Accent stripe off — the analysis look carries no left rail.
+    &::before {
+        display: none;
+    }
+
+    // Every divider identical: the fading hairline (neutralizes the flush
+    // nth-child re-paint below it).
+    &::after,
+    &:nth-child(2n)::after {
+        background: var(--ax-divider, transparent);
+    }
+
+    .textButton {
+        padding: var(--ax-pad-y, 14px) var(--ax-pad-x, 16px);
+    }
+
+    .title {
+        font-size: var(--analysis-fs-title, 1.0625rem);
+    }
+
+    .body {
+        font-size: var(--analysis-fs-detail, 0.96875rem);
+    }
+
+    .meta {
+        font-size: var(--analysis-fs-meta, 0.8125rem);
+    }
+}
+
+// Edit affordance — тихий шеврон в правом-нижнем углу строки. Заменил прежний
+// триггер «весь текст»; ≥40px hit-target (touch-floor canon) вокруг 16px-глифа.
+// label htmlFor → фокусит input EditHypothesisModal (делегирование), onClick
+// пишет editingId в parent. Рендерится только при onEdit + editInputHtmlFor.
+.editChevron {
+    flex-shrink: 0;
+    align-self: flex-end;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
+    color: var(--card-text-rest);
+    opacity: 0.5;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s ease, transform 0.12s ease;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &:active {
+        opacity: 0.85;
+        transform: scale(0.9);
+    }
 }

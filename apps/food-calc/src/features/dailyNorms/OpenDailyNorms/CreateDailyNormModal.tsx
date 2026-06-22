@@ -14,12 +14,13 @@ import {
 import { safeMutate } from '@/shared/lib/safeMutate';
 import toaster from '@/shared/lib/toaster/toaster';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
+import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import styles from './CreateDailyNormModal.module.scss';
 
 // chrome:
-//   'modal' (default) — full modal with ModalLayout, hero kicker+title header
+//   'modal' (default) — full modal with ModalLayout, hero title header
 //                       and the top-right × button.
 //   'panel' — inline content for a drawer that already provides its own header
 //             with back-button. Skips ModalLayout, hero header, Cancel button.
@@ -138,7 +139,6 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
           >
             <ArrowLeftIcon />
           </button>
-          <span className={styles.kicker}>Дневная норма</span>
           <h2 className={styles.title}>Моя норма</h2>
           <p className={styles.subtitle}>
             Несколько ответов — и калории, БЖУ, основные микроэлементы посчитаются
@@ -155,14 +155,19 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
 
         <div className={clsx(styles.body, isPanel && styles.bodyPanel)}>
           <Section label="Пол">
-            <div className={styles.pillRow}>
-              <Pill active={survey.sex === 'male'} onClick={() => patch({ sex: 'male' })}>
+            <ChoiceGroup
+              className={styles.pillRow}
+              aria-label="Пол"
+              value={survey.sex}
+              onChange={(v) => patch({ sex: v as NormSurvey['sex'] })}
+            >
+              <ChoiceItem className={styles.choiceCell} value="male">
                 Мужской
-              </Pill>
-              <Pill active={survey.sex === 'female'} onClick={() => patch({ sex: 'female' })}>
+              </ChoiceItem>
+              <ChoiceItem className={styles.choiceCell} value="female">
                 Женский
-              </Pill>
-            </div>
+              </ChoiceItem>
+            </ChoiceGroup>
           </Section>
 
           <Section label="Возраст · Вес · Рост">
@@ -192,35 +197,37 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
           </Section>
 
           <Section label="Активность">
-            <div className={clsx(styles.pillRow, styles.pillCol)}>
+            <ChoiceGroup
+              className={styles.pillCol}
+              orientation="vertical"
+              aria-label="Активность"
+              value={survey.activity}
+              onChange={(v) => patch({ activity: v as Activity })}
+            >
               {ACTIVITY_OPTIONS.map((o) => (
-                <Pill
-                  key={o.value}
-                  active={survey.activity === o.value}
-                  onClick={() => patch({ activity: o.value })}
-                  stacked
-                >
+                <ChoiceItem key={o.value} className={styles.choiceCellFull} value={o.value} stacked>
                   <span className={styles.pillTitle}>{o.label}</span>
                   <span className={styles.pillHint}>{o.hint}</span>
-                </Pill>
+                </ChoiceItem>
               ))}
-            </div>
+            </ChoiceGroup>
           </Section>
 
           <Section label="Цель">
-            <div className={clsx(styles.pillRow, styles.pillCol)}>
+            <ChoiceGroup
+              className={styles.pillCol}
+              orientation="vertical"
+              aria-label="Цель"
+              value={survey.goal}
+              onChange={(v) => patch({ goal: v as Goal })}
+            >
               {GOAL_OPTIONS.map((o) => (
-                <Pill
-                  key={o.value}
-                  active={survey.goal === o.value}
-                  onClick={() => patch({ goal: o.value })}
-                  stacked
-                >
+                <ChoiceItem key={o.value} className={styles.choiceCellFull} value={o.value} stacked>
                   <span className={styles.pillTitle}>{o.label}</span>
                   <span className={styles.pillHint}>{o.hint}</span>
-                </Pill>
+                </ChoiceItem>
               ))}
-            </div>
+            </ChoiceGroup>
           </Section>
 
           <div className={styles.preview}>
@@ -271,27 +278,6 @@ const Section = ({ label, children }: SectionProps) => (
     </div>
     {children}
   </section>
-);
-
-type PillProps = {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-  stacked?: boolean;
-};
-
-const Pill = ({ active, onClick, children, stacked }: PillProps) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={clsx(
-      styles.pill,
-      active && styles.pillActive,
-      stacked && styles.pillStacked,
-    )}
-  >
-    {children}
-  </button>
 );
 
 type NumberFieldProps = {
