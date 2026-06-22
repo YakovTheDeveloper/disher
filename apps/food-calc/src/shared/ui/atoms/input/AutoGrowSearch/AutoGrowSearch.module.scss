@@ -1,4 +1,4 @@
-// `--field-*` читаются как `var(--field-x, <default>)` — НЕ объявляются на
+// `--sys-field-*` читаются как `var(--sys-field-x, <default>)` — НЕ объявляются на
 // `.shell`, иначе предки не смогли бы их переопределить. Дефолт в каждом
 // `var()` повторяет прежний вид (тёплая пилюля) — существующие консьюмеры
 // (SearchFood и т.п.) не меняются; темизация доступна через предка.
@@ -10,13 +10,13 @@
   width: 100%;
   min-height: 50px;
   padding: 0 var(--space-4);
-  border-radius: var(--field-radius, var(--radius-sm));
+  border-radius: var(--sys-field-radius, var(--radius-sm));
   background: linear-gradient(90deg,
-      var(--field-bg-from, #fffefb) 0%,
-      var(--field-bg-mid, #fffaf2) 55%,
-      var(--field-bg-to, #fdf4e3) 100%);
-  color: var(--field-text, rgb(31, 31, 31));
-  box-shadow: var(--field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
+      var(--sys-field-bg-from, #fffefb) 0%,
+      var(--sys-field-bg-mid, #fffaf2) 55%,
+      var(--sys-field-bg-to, #fdf4e3) 100%);
+  color: var(--sys-field-text, rgb(31, 31, 31));
+  box-shadow: var(--sys-field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
   transition: box-shadow 120ms ease;
 
   &::after {
@@ -28,8 +28,8 @@
     height: 1px;
     background: linear-gradient(90deg,
         transparent 0%,
-        var(--field-hairline, rgba(124, 65, 15, 0.18)) 18%,
-        var(--field-hairline, rgba(124, 65, 15, 0.18)) 82%,
+        var(--sys-field-hairline, rgba(124, 65, 15, 0.18)) 18%,
+        var(--sys-field-hairline, rgba(124, 65, 15, 0.18)) 82%,
         transparent 100%);
     pointer-events: none;
     transition: background 120ms ease;
@@ -37,15 +37,15 @@
 
   &:hover,
   &:focus-within {
-    box-shadow: var(--field-shadow-focus, 0 1px 8px rgba(124, 65, 15, 0.12));
+    box-shadow: var(--sys-field-shadow-focus, 0 1px 8px rgba(124, 65, 15, 0.12));
   }
 
   &:hover::after,
   &:focus-within::after {
     background: linear-gradient(90deg,
         transparent 0%,
-        var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
-        var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
+        var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
+        var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
         transparent 100%);
   }
 }
@@ -55,7 +55,7 @@
   align-items: center;
   flex-shrink: 0;
   height: 50px;
-  color: var(--field-adornment, rgba(124, 65, 15, 0.55));
+  color: var(--sys-field-adornment, rgba(124, 65, 15, 0.55));
 }
 
 .field {
@@ -66,28 +66,26 @@
   outline: none;
   resize: none;
   background: transparent;
-  font-family: var(--field-font-family, 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif);
-  font-weight: var(--field-font-weight, 500);
-  font-size: var(--field-font-size, 16px);
-  font-style: var(--field-font-style, normal);
-  line-height: var(--field-line-height, 22px);
+  font-family: var(--sys-field-font-family, 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif);
+  font-weight: var(--sys-field-font-weight, 500);
+  font-size: var(--sys-field-font-size, 16px);
+  font-style: var(--sys-field-font-style, normal);
+  line-height: var(--sys-field-line-height, 22px);
   letter-spacing: -0.005em;
-  color: var(--field-text, rgb(31, 31, 31));
+  color: var(--sys-field-text, rgb(31, 31, 31));
   // Vertical insets are vars so a rich-placeholder overlay can mirror them
   // exactly (and consumers — e.g. WriteFoodInput — retune them in one place).
-  padding: var(--field-pad-top, 14px) 0 var(--field-pad-bottom, 3px);
+  padding: var(--sys-field-pad-top, 14px) 0 var(--sys-field-pad-bottom, 3px);
   margin: 0;
   overflow-x: hidden;
   overflow-y: hidden;
   overflow-wrap: break-word;
 
   &::placeholder {
-    color: var(--field-placeholder, rgba(124, 65, 15, 0.45));
-    font-family: var(--field-placeholder-family, inherit);
-    font-style: var(--field-placeholder-style, inherit);
-    font-weight: var(--field-placeholder-weight, inherit);
-    font-size: var(--field-placeholder-size, inherit);
-    letter-spacing: var(--field-placeholder-letter, inherit);
+    // Шрифт/начертание плейсхолдера наследуются от input (дефолт ::placeholder).
+    // Прежние --sys-field-placeholder-* хуки (все inherit) сняты 2026-06-22 как
+    // мёртвая индирекция при переносе бандла в sys-ярус (никто не переопределял).
+    color: var(--sys-field-placeholder, rgba(124, 65, 15, 0.45));
   }
 }
 
@@ -118,7 +116,7 @@
   }
 }
 
-// Overlay mirrors the field's text box (same `--field-*` font vars + vertical
+// Overlay mirrors the field's text box (same `--sys-field-*` font vars + vertical
 // padding) and is revealed only while the field is empty. `pointer-events:none`
 // lets caret/taps fall through to the textarea; `aria-hidden` (set in JSX) keeps
 // it out of the a11y tree. Sibling combinator off `:placeholder-shown` toggles
@@ -126,13 +124,13 @@
 .richPlaceholder {
   position: absolute;
   inset: 0;
-  padding: var(--field-pad-top, 14px) 0 var(--field-pad-bottom, 3px);
-  font-family: var(--field-font-family, 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif);
-  font-weight: var(--field-placeholder-weight, var(--field-font-weight, 500));
-  font-size: var(--field-font-size, 16px);
-  line-height: var(--field-line-height, 22px);
-  letter-spacing: var(--field-placeholder-letter, -0.005em);
-  color: var(--field-placeholder, rgba(124, 65, 15, 0.45));
+  padding: var(--sys-field-pad-top, 14px) 0 var(--sys-field-pad-bottom, 3px);
+  font-family: var(--sys-field-font-family, 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif);
+  font-weight: var(--sys-field-font-weight);
+  font-size: var(--sys-field-font-size, 16px);
+  line-height: var(--sys-field-line-height, 22px);
+  letter-spacing: -0.005em;
+  color: var(--sys-field-placeholder, rgba(124, 65, 15, 0.45));
   white-space: nowrap;
   pointer-events: none;
   user-select: none;

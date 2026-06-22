@@ -1,4 +1,4 @@
-// Select-примитив на Base UI. Все цвета/радиусы — через `--field-*` токены
+// Select-примитив на Base UI. Все цвета/радиусы — через `--sys-field-*` токены
 // surface-палитры (lavender на ProductPage), плюс базовые `--radius-*` /
 // `--text-*`. Сырых hex нет (stylelint token-gate). Градиенты в `background`
 // каноном не гейтятся — используем field-градиент как подложку.
@@ -11,15 +11,15 @@
     min-height: 44px; // inner-control touch-floor
     padding: var(--space-2) var(--space-3);
     border: none;
-    border-radius: var(--field-radius);
+    border-radius: var(--sys-field-radius);
     background: linear-gradient(90deg,
-        var(--field-bg-from) 0%,
-        var(--field-bg-mid) 55%,
-        var(--field-bg-to) 100%);
+        var(--sys-field-bg-from) 0%,
+        var(--sys-field-bg-mid) 55%,
+        var(--sys-field-bg-to) 100%);
     box-shadow:
-        inset 0 0 0 1px var(--field-hairline),
-        var(--field-shadow);
-    color: var(--field-text);
+        inset 0 0 0 1px var(--sys-field-hairline),
+        var(--sys-field-shadow);
+    color: var(--sys-field-text);
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     font-weight: 500;
@@ -31,12 +31,12 @@
     &:hover,
     &[data-popup-open] {
         box-shadow:
-            inset 0 0 0 1px var(--field-hairline-focus),
-            var(--field-shadow-focus);
+            inset 0 0 0 1px var(--sys-field-hairline-focus),
+            var(--sys-field-shadow-focus);
     }
 
     &:focus-visible {
-        outline: 2px solid var(--field-hairline-focus);
+        outline: 2px solid var(--sys-field-hairline-focus);
         outline-offset: 2px;
     }
 }
@@ -50,7 +50,7 @@
 .icon {
     display: inline-flex;
     flex-shrink: 0;
-    color: var(--field-adornment);
+    color: var(--sys-field-adornment);
     transition: transform 0.16s ease;
 
     .trigger[data-popup-open] & {
@@ -69,9 +69,9 @@
     overflow-y: auto;
     padding: var(--space-1);
     border-radius: var(--radius-md);
-    background: linear-gradient(180deg, var(--field-bg-from) 0%, var(--field-bg-to) 100%);
+    background: linear-gradient(180deg, var(--sys-field-bg-from) 0%, var(--sys-field-bg-to) 100%);
     box-shadow:
-        inset 0 0 0 1px var(--field-hairline),
+        inset 0 0 0 1px var(--sys-field-hairline),
         var(--sys-elevation-overlay);
     transform-origin: var(--transform-origin);
     transition:
@@ -93,7 +93,7 @@
     min-height: 44px; // touch-floor для пунктов списка
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-sm);
-    color: var(--field-text);
+    color: var(--sys-field-text);
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     font-weight: 500;
@@ -103,11 +103,11 @@
     -webkit-tap-highlight-color: transparent;
 
     &[data-highlighted] {
-        background: color-mix(in srgb, var(--field-text) 7%, transparent);
+        background: color-mix(in srgb, var(--sys-field-text) 7%, transparent);
     }
 
     &[data-selected] {
-        color: var(--field-caret);
+        color: var(--sys-field-caret);
     }
 }
 
@@ -120,7 +120,7 @@
 .itemIndicator {
     display: inline-flex;
     flex-shrink: 0;
-    color: var(--field-caret);
+    color: var(--sys-field-caret);
 
     svg {
         width: 14px;

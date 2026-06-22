@@ -8,7 +8,6 @@ import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { saveHypothesis } from '@/entities/hypothesis';
-import styles from './HypothesisWriteBar.module.scss';
 
 const TITLE_INPUT_ID = 'hypothesis-title-bar';
 
@@ -138,7 +137,6 @@ const HypothesisWriteBar = ({ onCreated, overlayContainer, showHint = true }: Pr
             />
             <ModalShell.Body>
               <AutoGrowSearch
-                className={styles.formField}
                 value={body}
                 onChange={setBody}
                 placeholder="Что именно проверяем? (необязательно)"

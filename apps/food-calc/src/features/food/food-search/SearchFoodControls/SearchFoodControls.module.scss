@@ -25,8 +25,8 @@
 // ─── Segmented control (Еда / Мое) ───────────────────────────────────────────
 // One connected track with a single moving «thumb» on the selected segment —
 // iOS segmented control / M3 connected button group. Equal-weight peers, one
-// tint of selection. Token-driven (--seg-*) so the SearchMono variants paint it
-// monochrome; fallbacks keep it sane outside the mono scope. Lives inside the
+// tint of selection. Reads sys control-tokens directly (the per-surface --seg-*
+// bundle was dissolved 2026-06-22 → --sys-color-control-*). Lives inside the
 // common pill now, so it sits flush to the right of the search field.
 .segmented {
     flex-shrink: 0;
@@ -35,7 +35,7 @@
     gap: 2px;
     padding: 3px;
     border-radius: 9999px;
-    background: var(--seg-track, #eceef2);
+    background: var(--sys-color-control-track);
 }
 
 .segment {
@@ -56,7 +56,7 @@
     font-weight: 500;
     line-height: 1.1;
     letter-spacing: -0.005em;
-    color: var(--seg-text, #5c6473);
+    color: var(--sys-color-control-segment-text);
     transition:
         background var(--press-out) ease,
         color var(--press-out) ease,
@@ -73,8 +73,8 @@
 }
 
 .segmentActive {
-    background: var(--seg-thumb, #ffffff);
-    color: var(--seg-thumb-text, #0a0a0a);
+    background: var(--sys-color-control-segment-active-bg);
+    color: var(--sys-color-control-segment-active-text);
     font-weight: 600;
     box-shadow: var(--sys-elevation-action-rest);
 }
@@ -95,13 +95,13 @@
     border: none;
     // Tighter right padding: the toggle / nutrient button live flush at the end.
     padding: var(--space-1) 0 var(--space-1) var(--space-2);
-    border-radius: var(--field-radius, var(--radius-sm));
+    border-radius: var(--sys-field-radius, var(--radius-sm));
     background: linear-gradient(90deg,
-            var(--field-bg-from, #fffefb) 0%,
-            var(--field-bg-mid, #fffaf2) 55%,
-            var(--field-bg-to, #fdf4e3) 100%);
-    color: var(--field-text, rgb(31, 31, 31));
-    box-shadow: var(--field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
+            var(--sys-field-bg-from, #fffefb) 0%,
+            var(--sys-field-bg-mid, #fffaf2) 55%,
+            var(--sys-field-bg-to, #fdf4e3) 100%);
+    color: var(--sys-field-text, rgb(31, 31, 31));
+    box-shadow: var(--sys-field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
     transition: box-shadow 120ms ease;
 
     &::after {
@@ -113,21 +113,21 @@
         height: 1px;
         background: linear-gradient(90deg,
                 transparent 0%,
-                var(--field-hairline, rgba(124, 65, 15, 0.18)) 18%,
-                var(--field-hairline, rgba(124, 65, 15, 0.18)) 82%,
+                var(--sys-field-hairline, rgba(124, 65, 15, 0.18)) 18%,
+                var(--sys-field-hairline, rgba(124, 65, 15, 0.18)) 82%,
                 transparent 100%);
         pointer-events: none;
         transition: background 120ms ease;
     }
 
     &:has(input:focus) {
-        box-shadow: var(--field-shadow-focus, 0 1px 8px rgba(124, 65, 15, 0.12));
+        box-shadow: var(--sys-field-shadow-focus, 0 1px 8px rgba(124, 65, 15, 0.12));
 
         &::after {
             background: linear-gradient(90deg,
                     transparent 0%,
-                    var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
-                    var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
+                    var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
+                    var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
                     transparent 100%);
         }
     }
@@ -139,7 +139,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: var(--field-adornment, rgba(124, 65, 15, 0.55));
+    color: var(--sys-field-adornment, rgba(124, 65, 15, 0.55));
 
     svg {
         width: 18px;
@@ -155,12 +155,12 @@
     padding-left: 10px;
     padding-right: 8px;
     line-height: 1.2;
-    caret-color: var(--field-caret, #b76d1a);
+    caret-color: var(--sys-field-caret, #b76d1a);
     font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-size: 1rem;
     font-weight: 500;
     letter-spacing: -0.005em;
-    color: var(--field-text, rgb(31, 31, 31));
+    color: var(--sys-field-text, rgb(31, 31, 31));
     outline: transparent;
     background: transparent;
 
@@ -176,7 +176,7 @@
 
     &::placeholder {
         font-weight: 500;
-        color: var(--field-placeholder, rgba(124, 65, 15, 0.45));
+        color: var(--sys-field-placeholder, rgba(124, 65, 15, 0.45));
         font-style: normal;
         font-size: 1rem;
         letter-spacing: -0.005em;
@@ -199,14 +199,14 @@
     padding: 0;
     border: none;
     border-radius: 9999px;
-    background: var(--field-hairline-focus, rgba(124, 65, 15, 0.36));
+    background: var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36));
     color: #ffffff;
     cursor: pointer;
     transition: background 0.15s ease;
     flex-shrink: 0;
 
     &:active {
-        background: var(--field-caret, #b76d1a);
+        background: var(--sys-field-caret, #b76d1a);
     }
 
     svg {

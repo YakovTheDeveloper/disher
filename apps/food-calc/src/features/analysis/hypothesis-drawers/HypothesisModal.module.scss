@@ -1,7 +1,4 @@
 .fields {
-    // Стандартные form-инпуты — квадратный примитив (--radius-sm, 8px), не
-    // поисковая пилюля. Наследуется в AutoGrowSearch `.shell` через var(--field-radius).
-    --field-radius: var(--radius-sm);
     display: flex;
     flex-direction: column;
     gap: var(--space-5);

@@ -56,15 +56,6 @@ type Props = {
    */
   hideTopChrome?: boolean;
   /**
-   * Publish ModalShell's fixed `mono` field/chip tokens (`--field-*` / `--chip-*`)
-   * onto the whole popup via `data-modal-fields='mono'`, so a drawer's surface
-   * wash + its inner pills/chips/fields share the app-wide monochrome tone
-   * (instead of a bespoke per-drawer palette). Carries ONLY the tokens — never the
-   * ModalShell `.wrapper` ambient (which would drag the modal's orbs / backdrop-filter /
-   * wash onto the popup). See ModalShell.module.scss `[data-modal-fields]`.
-   */
-  modalFields?: boolean;
-  /**
    * Top/bottom scroll-fade hints on the scroll area (the sticky white→transparent
    * gradients that dissolve content at the edges to signal "more above/below").
    * Defaults to `true`. Pass `false` for short form-style drawers whose own footer
@@ -94,7 +85,6 @@ const DrawerLayout = ({
   className,
   a11yLabel,
   hideTopChrome,
-  modalFields,
   scrollHints = true,
   image,
 }: Props) => {
@@ -105,13 +95,12 @@ const DrawerLayout = ({
   const { side, width } = useDrawerSide();
   const isSide = side === 'left' || side === 'right';
 
-  // The edge swipe-handle (side drawers) + the optional popup-wide field tone
-  // carry ModalShell's single fixed `mono` tone (the «great unification»,
-  // 2026-06-19). We publish ONLY the field tokens via `data-modal-fields='mono'`
-  // — never the ModalShell `.wrapper` ambient (that would drag the modal's
-  // backdrop-filter / wash onto the popup). The handle's gradient + grip read
-  // `--field-*`. See ModalShell.module.scss `[data-modal-fields]`.
-  const modalShellVariant = 'mono';
+  // The edge swipe-handle (side drawers) reads ModalShell's single fixed `mono`
+  // field tokens (`--sys-field-*`) for its gradient + grip. Those tokens are now
+  // published unconditionally on `:root` (ModalShell.module.scss), so the handle
+  // — and every drawer surface — inherits them without any local republisher; the
+  // old `data-modal-fields='mono'` attribute (a no-op single-position gate) was
+  // removed 2026-06-22.
 
   // The visible header title doubles as the single `Drawer.Title` (one <h2> =
   // accessible name + visible heading) when the chrome row is on screen.
@@ -126,7 +115,6 @@ const DrawerLayout = ({
       className={clsx(styles.content, styles[`content_${side}`], className)}
       style={style}
       id="drawer-content"
-      data-modal-fields={modalFields ? modalShellVariant : undefined}
     >
       {/*
         Exactly ONE Drawer.Title per drawer (Base UI wires aria-labelledby to
@@ -159,7 +147,6 @@ const DrawerLayout = ({
             styles[`edgeHandle_${side}`],
             image != null && styles.edgeHandleImage,
           )}
-          data-modal-fields={modalShellVariant}
           aria-hidden="true"
         >
           {/* Idea 1: a clear vertical crop of the food photo fills the grip

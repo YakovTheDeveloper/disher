@@ -19,7 +19,7 @@ type Props = {
  * рядами. Один источник стиля для `NutrientPickerDrawer` (выбор богатого
  * нутриента в SearchFood — кликабельный) и `NutrientTable` в режиме `view-norms`
  * (просмотр нормы — статичный). Палитра наследуется из app-wide тона ModalShell
- * (`--card-*`). Бровка `:last-child` гасится, поэтому ряды должны идти ПРЯМЫМИ
+ * (`--sys-card-*`). Бровка `:last-child` гасится, поэтому ряды должны идти ПРЯМЫМИ
  * соседями во flex-колонке-контейнере.
  */
 export function NutrientRow({ name, unit, value, onClick, className }: Props) {

@@ -1,7 +1,7 @@
 // Pill обвязка под образец AutoGrowSearch: 3-stop градиент тона (поля), fading
 // hairline снизу через ::after и soft shadow. Квадратик чекбокса носит ту же
 // палитру: border в idle, сплошная accent-заливка в checked. Цвета приходят из
-// app-wide тона (--field-*/--card-* — живой ModalShell-вариант, всегда на body),
+// app-wide тона (--sys-field-*/--sys-card-* — живой ModalShell-вариант, всегда на body),
 // см. tds/modalshell-lawgiver-2026-06-13. Анимации composite-only.
 .container {
     position: relative;
@@ -13,11 +13,11 @@
     border-radius: 18px;
     background: linear-gradient(
         90deg,
-        var(--field-bg-from) 0%,
-        var(--field-bg-mid) 55%,
-        var(--field-bg-to) 100%
+        var(--sys-field-bg-from) 0%,
+        var(--sys-field-bg-mid) 55%,
+        var(--sys-field-bg-to) 100%
     );
-    box-shadow: var(--field-shadow);
+    box-shadow: var(--sys-field-shadow);
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -33,8 +33,8 @@
         background: linear-gradient(
             90deg,
             transparent 0%,
-            var(--field-hairline) 18%,
-            var(--field-hairline) 82%,
+            var(--sys-field-hairline) 18%,
+            var(--sys-field-hairline) 82%,
             transparent 100%
         );
         pointer-events: none;
@@ -43,7 +43,7 @@
 
     &:hover,
     &:focus-within {
-        box-shadow: var(--field-shadow-focus);
+        box-shadow: var(--sys-field-shadow-focus);
     }
 
     &:hover::after,
@@ -51,8 +51,8 @@
         background: linear-gradient(
             90deg,
             transparent 0%,
-            var(--field-hairline-focus) 18%,
-            var(--field-hairline-focus) 82%,
+            var(--sys-field-hairline-focus) 18%,
+            var(--sys-field-hairline-focus) 82%,
             transparent 100%
         );
     }
@@ -67,7 +67,7 @@
     appearance: none;
     width: 20px;
     height: 20px;
-    border: 1.5px solid var(--chip-border);
+    border: 1.5px solid var(--sys-chip-border);
     border-radius: 5px;
     background: transparent;
     cursor: pointer;
@@ -75,8 +75,8 @@
     flex-shrink: 0;
 
     &:checked {
-        background: var(--card-text-active);
-        border-color: var(--card-text-active);
+        background: var(--sys-card-text-active);
+        border-color: var(--sys-card-text-active);
 
         &::after {
             content: '';
@@ -95,7 +95,7 @@
     }
 
     &:focus-visible {
-        outline: 2px solid color-mix(in srgb, var(--card-text-active) 55%, transparent);
+        outline: 2px solid color-mix(in srgb, var(--sys-card-text-active) 55%, transparent);
         outline-offset: 2px;
     }
 }
@@ -106,5 +106,5 @@
     font-weight: 500;
     line-height: 1.4;
     letter-spacing: -0.005em;
-    color: var(--card-text-rest);
+    color: var(--sys-card-text-rest);
 }

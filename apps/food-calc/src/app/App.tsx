@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react';
+import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import './fonts';
 import s from '@/shared/assets/style/App.module.scss';
@@ -18,16 +18,15 @@ import { AuthGate } from '@/features/auth';
 import { BackupGate } from '@/features/backup/BackupGate';
 import { useApplyUserTheme } from '@/shared/lib/user-theme';
 
-// Single app-wide tone. THIS is the theming loophole: every interactive surface
-// (--field-* inputs/chips, --card-*/--list-* rows) derives its colour from ONE
-// palette entry, keyed by this name. To re-shade or add a theme:
-//   1. edit / add an entry in `$modal-shell-field-chip` (ModalShell.module.scss),
-//   2. point APP_TONE at it (or make it stateful for a runtime picker).
-// Nothing else hard-codes a colour — it all flows from the tokens here.
+// Single app-wide tone. Every interactive surface (--sys-field-* inputs/chips,
+// --sys-card-*/--list-* rows) derives its colour from ONE palette: the fixed `mono`
+// inputs published UNCONDITIONALLY on `:root` in ModalShell.module.scss. There is
+// no longer an APP_TONE const or a `data-modal-fields` attribute setter here — the
+// tone-switch had exactly one position, so the attribute gated nothing and was
+// removed 2026-06-22 (publication is now pure CSS on `:root`, no JS). To re-shade,
+// edit the `:root` mono inputs in ModalShell.module.scss.
 // (Replaced the retired `data-surface` warm/lavender axis — fully removed
 // 2026-06-20.)
-const APP_TONE = 'mono';
-
 export default function App() {
   useLastFocusMethod();
   useUserAgentDetection();
@@ -42,17 +41,6 @@ export default function App() {
   // DailyAnalysisSection re-renders when `byDate` arrives.
   useEffect(() => {
     void hydrateDailyAnalyses();
-  }, []);
-
-  // Publish the app-wide tone on `body[data-modal-fields]` — the tokens-only
-  // attribute (no modal ambient/orbs/backdrop-filter), so the single APP_TONE
-  // --field/card/chip/list-* cascade across every page AND through Base UI
-  // portals. See APP_TONE above for the theming loophole.
-  // useLayoutEffect (not useEffect): set the attribute BEFORE first paint so
-  // token-driven surfaces (`background: var(--card-bg)`, no fallback) never
-  // flash unstyled on a cold load.
-  useLayoutEffect(() => {
-    document.body.setAttribute('data-modal-fields', APP_TONE);
   }, []);
 
   return (

@@ -39,7 +39,7 @@
   // Цветной отклик: на нажатии глиф → surface-акцент + лёгкий тинт-фон.
   &:active {
     background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
+    color: var(--sys-field-caret, var(--color-ink));
     transition-duration: var(--press-in);
   }
 

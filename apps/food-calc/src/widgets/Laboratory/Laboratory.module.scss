@@ -19,7 +19,7 @@
     // alpha-производные secondary/tertiary. Нейтральный ink (не navy) = читается
     // как SF на стекле.
     --ap-ink: #1d1d1f;
-    --card-text-rest: var(--ap-ink);
+    --sys-card-text-rest: var(--ap-ink);
     --analysis-soft-amt: 72%; // body / detail (secondary label)
     --analysis-faint-amt: 50%; // meta / chips (tertiary label)
 
@@ -66,7 +66,7 @@
     padding: 0;
     font-size: var(--ap-fs-lead);
     line-height: 1.55;
-    color: color-mix(in srgb, var(--card-text-rest) 88%, transparent);
+    color: color-mix(in srgb, var(--sys-card-text-rest) 88%, transparent);
 
     &::before {
         display: none;
@@ -88,7 +88,7 @@
     font-size: var(--ap-fs-head);
     letter-spacing: -0.01em;
     line-height: 1.2;
-    color: var(--card-text-rest);
+    color: var(--sys-card-text-rest);
     text-transform: none;
 }
 

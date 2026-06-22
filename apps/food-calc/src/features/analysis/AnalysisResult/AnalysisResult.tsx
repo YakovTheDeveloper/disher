@@ -2,7 +2,6 @@ import { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { SheetCard } from '@/shared/ui/SheetCard';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import type { InsightSource } from '@/entities/insight';
 import { InsightCard } from '../InsightCard';
 import { HypothesisCard } from '../HypothesisCard';
@@ -10,16 +9,11 @@ import type { AnalysisObservation, AnalysisInsight, AnalysisHypothesis } from '.
 import styles from './AnalysisResult.module.scss';
 
 // Visual treatment of the observation/hypothesis rows inside the pearl листок
-// (monochrome by design — see 2026-06-13 «слишком цветасто»). The anchor sits on
-// the result root and publishes `--ax-*` custom props that BOTH card modules
-// (InsightCard / HypothesisCard) consume, so a single тумблер restyles the whole
-// разбор. Default 'hairline' = плоский текст + канон-бровка между строками.
-//   hairline — flush rows, fading hairline divider (бровка)
-//   rail     — thin neutral left accent (density = сила связи), no line
-//   inset    — barely-there neutral wash + soft radius, texture без линий
-//   card     — restored white elevated card (flat↔card A/B)
-const ANALYSIS_STYLE_VARIANTS = ['hairline', 'rail', 'inset', 'card'] as const;
-
+// (monochrome by design — see 2026-06-13 «слишком цветасто»). The `--ax-*` custom
+// props that BOTH card modules (InsightCard / HypothesisCard) consume are baked on
+// the result `.root` (AnalysisResult.module.scss) — flat monochrome text, rows
+// parted by air (the hairline divider was dropped 2026-06-22; the 'Analysis'
+// DesignBar axis is retired).
 type Props = {
   summary: string;
   /** Neutral patterns — read-only reference, NOT saveable (no «+ к себе»). */
@@ -40,6 +34,9 @@ type Props = {
    *  проверить») — разбор живёт текстом прямо на стекле, иерархию несут
    *  типографика + бровки. Длинный разбор под-заголовки оставляет. */
   hideSectionHeaders?: boolean;
+  /** Sheet-режим (не-bare): заголовок pearl-плашки SheetCard. Разбор блюда
+   *  подаёт «Результат». Пусто → плашка без header-блока (см. SheetCard). */
+  sheetHeader?: string;
 };
 
 // Shared render of a finished structured analysis — same body for the daily
@@ -61,8 +58,8 @@ const AnalysisResult = ({
   showDays = true,
   bare = false,
   hideSectionHeaders = false,
+  sheetHeader = '',
 }: Props) => {
-  const { anchor: styleAnchor } = useDesignVariant('Analysis', ANALYSIS_STYLE_VARIANTS);
   const renderSection = (title: string, children: React.ReactNode) =>
     bare ? (
       // `data-analysis-*` are stable styling hooks (the hashed module classes
@@ -80,13 +77,13 @@ const AnalysisResult = ({
         </div>
       </section>
     ) : (
-      <SheetCard header={title}>
+      <SheetCard header={sheetHeader || undefined}>
         <div className={styles.list}>{children}</div>
       </SheetCard>
     );
 
   return (
-    <div className={styles.root} data-analysis-root="" {...styleAnchor}>
+    <div className={styles.root} data-analysis-root="">
       {summary && (
         <div className={styles.summary} data-analysis-summary="">
           <ReactMarkdown>{summary}</ReactMarkdown>

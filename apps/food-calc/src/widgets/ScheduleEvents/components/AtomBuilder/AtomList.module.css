@@ -37,8 +37,8 @@
     align-items: center;
     gap: var(--space-2, 8px);
     padding: var(--space-1, 4px) var(--space-3, 12px);
-    background: var(--chip-bg, #333);
-    color: var(--chip-text, #fff);
+    background: var(--sys-chip-bg, #333);
+    color: var(--sys-chip-text, #fff);
     border: none;
     border-radius: var(--radius-xs, 4px);
     font-size: var(--text-sm, 0.8rem);
@@ -50,23 +50,23 @@
 }
 
 .atomChip[data-kind='scale'] {
-    --chip-bg: var(--event-scale-fill, var(--event-scale-accent));
-    --chip-text: var(--event-scale-on, #fff);
+    --sys-chip-bg: var(--event-scale-fill, var(--event-scale-accent));
+    --sys-chip-text: var(--event-scale-on, #fff);
 }
 
 .atomChip[data-kind='tag'] {
-    --chip-bg: var(--event-tag-fill, var(--event-tag-accent));
-    --chip-text: var(--event-tag-on, #fff);
+    --sys-chip-bg: var(--event-tag-fill, var(--event-tag-accent));
+    --sys-chip-text: var(--event-tag-on, #fff);
 }
 
 .atomChip[data-kind='relation'] {
-    --chip-bg: var(--event-relation-fill, var(--event-relation-accent));
-    --chip-text: var(--event-relation-on, #fff);
+    --sys-chip-bg: var(--event-relation-fill, var(--event-relation-accent));
+    --sys-chip-text: var(--event-relation-on, #fff);
 }
 
 .atomValue {
     font-weight: 500;
-    color: var(--chip-text, #fff);
+    color: var(--sys-chip-text, #fff);
 }
 
 .removeButton {
@@ -79,7 +79,7 @@
     margin-left: 2px;
     background: transparent;
     border: none;
-    color: color-mix(in srgb, var(--chip-text, #fff) 55%, transparent);
+    color: color-mix(in srgb, var(--sys-chip-text, #fff) 55%, transparent);
     cursor: pointer;
     font-size: 12px;
     transition: color var(--duration-fast, 120ms);
@@ -87,5 +87,5 @@
 }
 
 .removeButton:hover {
-    color: var(--chip-text, #fff);
+    color: var(--sys-chip-text, #fff);
 }

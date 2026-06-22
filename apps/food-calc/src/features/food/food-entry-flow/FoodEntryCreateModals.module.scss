@@ -66,7 +66,7 @@
   // Цветной отклик: тинт-подсветка на касание (quiet section-toggle archetype)
   &:active {
     background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
+    color: var(--sys-field-caret, var(--color-ink));
     transition-duration: var(--press-in);
   }
 }
@@ -95,14 +95,14 @@
   border-radius: 14px;
   overflow: hidden;
 
-  // Surface + hairline follow the app-wide tone (--card-*); folded into the
+  // Surface + hairline follow the app-wide tone (--sys-card-*); folded into the
   // ModalShell «law-giver» 2026-06-13 (was per-group honey/green/orange/purple
   // backgrounds that fought the global tone). Each group keeps ONLY a distinct
   // 3px accent stripe for nutrient-category identity (stripe-fork rule 3 —
   // accent carries data, not the whole surface). main/БЖУ = neutral tone accent.
-  background: var(--card-bg);
-  --group-accent: var(--card-text-active);
-  --group-hairline: var(--card-hairline);
+  background: var(--sys-card-bg);
+  --group-accent: var(--sys-card-text-active);
+  --group-hairline: var(--sys-card-hairline);
 
   // Vertical accent 3px слева — несёт категорию группы (правило 3 stripe-fork).
   &::before {
@@ -203,7 +203,7 @@
   // Цветной отклик: тинт-заливка на касание (quiet text-link button archetype)
   &:active {
     background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
+    color: var(--sys-field-caret, var(--color-ink));
     transform: scale(0.97);
     transition-duration: var(--press-in);
   }

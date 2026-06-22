@@ -199,11 +199,9 @@
     box-shadow: none;
   }
 
-  // Активная подпись = <Heading> (display bold-sans даёт сам примитив). Вариант
-  // задаёт ТОЛЬКО размер: лейбл короткий (Открытия/Рацион/События) → 38px без переноса.
-  .tileActive .tileTitle {
-    font-size: 38px;
-  }
+  // Активная подпись = <Heading role="display"> — размер (38px) + вес + трекинг
+  // даёт сам роль-токен (--sys-text-display-*), bespoke font-size здесь больше не
+  // нужен (был 38px, ровно равен Display). Лейбл короткий → без переноса.
 }
 
 // Применяем безусловно: каждый живой ScreenIndicator сидит под nav-anchor

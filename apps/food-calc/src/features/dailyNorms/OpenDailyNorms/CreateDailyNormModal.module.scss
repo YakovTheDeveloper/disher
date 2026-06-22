@@ -1,5 +1,5 @@
 // Warm palette — kept ONLY as the fallback ladder. The live colours come from
-// the ModalShell field/chip tokens (`--field-*` / `--chip-*`), published onto the
+// the ModalShell field/chip tokens (`--sys-field-*` / `--sys-chip-*`), published onto the
 // drawer popup by DrawerLayout `modalFields` (data-modal-fields). So in the drawer
 // the form follows the global DesignBar variant in step with the modals; in the
 // legacy modal-mode path (no tokens) these warm fallbacks keep the old look.
@@ -17,9 +17,9 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     height: 100%;
     min-height: 0;
     background: linear-gradient(90deg,
-            var(--field-bg-from, #{$bg-warm-from}) 0%,
-            var(--field-bg-mid, #{$bg-warm-mid}) 55%,
-            var(--field-bg-to, #{$bg-warm-to}) 100%);
+            var(--sys-field-bg-from, #{$bg-warm-from}) 0%,
+            var(--sys-field-bg-mid, #{$bg-warm-mid}) 55%,
+            var(--sys-field-bg-to, #{$bg-warm-to}) 100%);
 }
 
 // ─── Header ─────────────────────────────────────────────────────
@@ -37,7 +37,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
         right: 14px;
         bottom: 0;
         height: 1px;
-        background: linear-gradient(90deg, transparent 0%, var(--field-hairline, #{$hairline}) 18%, var(--field-hairline, #{$hairline}) 82%, transparent 100%);
+        background: linear-gradient(90deg, transparent 0%, var(--sys-field-hairline, #{$hairline}) 18%, var(--sys-field-hairline, #{$hairline}) 82%, transparent 100%);
         pointer-events: none;
     }
 }
@@ -51,7 +51,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     padding: var(--space-1);
     border: none;
     background: none;
-    color: var(--field-text, #{$ink});
+    color: var(--sys-field-text, #{$ink});
     border-radius: var(--radius-xs);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -68,7 +68,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     // Цветной отклик: кнопка «Назад» (иконка) → тинт фона + цвет иконки
     &:active {
         background: var(--press-tint-bg);
-        color: var(--field-caret, var(--color-ink));
+        color: var(--sys-field-caret, var(--color-ink));
         transition-duration: var(--press-in);
     }
     &:focus-visible { outline: 2px solid var(--sys-color-border-focus); outline-offset: 2px; }
@@ -80,7 +80,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     font-style: var(--heading-style);
     font-size: var(--heading-size-modal);
     font-weight: var(--heading-weight);
-    color: var(--field-text, #{$ink});
+    color: var(--sys-field-text, #{$ink});
     letter-spacing: var(--heading-letter);
     line-height: 1.05;
 }
@@ -90,7 +90,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.83rem;
     line-height: 1.45;
-    color: var(--field-adornment, #{$ink-soft});
+    color: var(--sys-field-adornment, #{$ink-soft});
     letter-spacing: -0.005em;
 }
 
@@ -161,7 +161,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 .pillHint {
     font-size: 0.72rem;
     font-weight: 400;
-    color: var(--field-placeholder, #{$ink-muted});
+    color: var(--sys-field-placeholder, #{$ink-muted});
     letter-spacing: 0;
     line-height: 1.25;
 }
@@ -179,15 +179,15 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     flex-direction: column;
     gap: 6px;
     padding: 12px 12px 11px;
-    background: var(--field-bg-from, #fff);
-    border: 1px solid var(--field-hairline, rgba(124, 65, 15, 0.14));
+    background: var(--sys-field-bg-from, #fff);
+    border: 1px solid var(--sys-field-hairline, rgba(124, 65, 15, 0.14));
     border-radius: 12px;
     cursor: text;
     transition: border-color 0.15s ease, background 0.15s ease;
 
     &:focus-within {
-        border-color: var(--field-hairline-focus, rgba(184, 132, 54, 0.55));
-        background: var(--field-bg-mid, #fffdf6);
+        border-color: var(--sys-field-hairline-focus, rgba(184, 132, 54, 0.55));
+        background: var(--sys-field-bg-mid, #fffdf6);
     }
 }
 
@@ -218,7 +218,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
         font-size: 1.5rem;
         font-weight: 500;
         font-feature-settings: 'tnum' 1, 'lnum' 1;
-        color: var(--field-text, #{$ink});
+        color: var(--sys-field-text, #{$ink});
         letter-spacing: -0.01em;
         outline: none;
 
@@ -234,7 +234,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.78rem;
     font-weight: 500;
-    color: var(--field-adornment, #{$ink-muted});
+    color: var(--sys-field-adornment, #{$ink-muted});
     letter-spacing: 0;
     flex-shrink: 0;
 }
@@ -246,14 +246,14 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     margin-top: 6px;
     padding: 20px 18px 18px;
     background: linear-gradient(135deg,
-            var(--field-bg-from, #{$bg-warm-from}) 0%,
-            var(--field-bg-mid, #{$bg-warm-mid}) 55%,
-            var(--field-bg-to, #{$bg-warm-to}) 100%);
+            var(--sys-field-bg-from, #{$bg-warm-from}) 0%,
+            var(--sys-field-bg-mid, #{$bg-warm-mid}) 55%,
+            var(--sys-field-bg-to, #{$bg-warm-to}) 100%);
     border-radius: 16px;
     overflow: hidden;
     // Lift the kcal hero off the (same-family) surface — needed now that both
     // read the variant's near-white field-bg and would otherwise blend.
-    box-shadow: var(--field-shadow-focus, 0 1px 8px rgba(44, 29, 10, 0.1));
+    box-shadow: var(--sys-field-shadow-focus, 0 1px 8px rgba(44, 29, 10, 0.1));
 
     // Top fading hairline
     &::before {
@@ -263,7 +263,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
         right: 14px;
         top: 0;
         height: 1px;
-        background: linear-gradient(90deg, transparent 0%, var(--field-hairline, #{$hairline}) 18%, var(--field-hairline, #{$hairline}) 82%, transparent 100%);
+        background: linear-gradient(90deg, transparent 0%, var(--sys-field-hairline, #{$hairline}) 18%, var(--sys-field-hairline, #{$hairline}) 82%, transparent 100%);
         pointer-events: none;
     }
 }
@@ -281,7 +281,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     font-style: italic;
     font-size: clamp(2.6rem, 11vw, 3.4rem);
     font-weight: 500;
-    color: var(--field-text, #{$ink});
+    color: var(--sys-field-text, #{$ink});
     line-height: 1;
     letter-spacing: -0.02em;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
@@ -291,7 +291,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.85rem;
     font-weight: 500;
-    color: var(--field-adornment, #{$ink-soft});
+    color: var(--sys-field-adornment, #{$ink-soft});
     letter-spacing: -0.005em;
 }
 
@@ -308,8 +308,8 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     align-items: baseline;
     gap: 3px;
     padding: 3px 9px;
-    background: var(--chip-bg, rgba(255, 255, 255, 0.6));
-    border: 1px solid var(--chip-border, rgba(124, 65, 15, 0.12));
+    background: var(--sys-chip-bg, rgba(255, 255, 255, 0.6));
+    border: 1px solid var(--sys-chip-border, rgba(124, 65, 15, 0.12));
     border-radius: var(--radius-xs);
 }
 
@@ -326,7 +326,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.95rem;
     font-weight: 600;
-    color: var(--field-text, #{$ink});
+    color: var(--sys-field-text, #{$ink});
     font-feature-settings: 'tnum' 1, 'lnum' 1;
     letter-spacing: -0.01em;
 }
@@ -334,7 +334,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 .macroUnit {
     font-size: 0.7rem;
     font-weight: 500;
-    color: var(--field-placeholder, #{$ink-muted});
+    color: var(--sys-field-placeholder, #{$ink-muted});
     letter-spacing: 0;
 }
 
@@ -343,7 +343,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.76rem;
     font-weight: 500;
-    color: var(--field-adornment, #{$ink-soft});
+    color: var(--sys-field-adornment, #{$ink-soft});
     letter-spacing: 0;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
@@ -353,7 +353,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.72rem;
     line-height: 1.45;
-    color: var(--field-placeholder, #{$ink-muted});
+    color: var(--sys-field-placeholder, #{$ink-muted});
     letter-spacing: 0;
 }
 
@@ -377,7 +377,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
         right: 14px;
         top: 0;
         height: 1px;
-        background: linear-gradient(90deg, transparent 0%, var(--field-hairline, #{$hairline}) 18%, var(--field-hairline, #{$hairline}) 82%, transparent 100%);
+        background: linear-gradient(90deg, transparent 0%, var(--sys-field-hairline, #{$hairline}) 18%, var(--sys-field-hairline, #{$hairline}) 82%, transparent 100%);
         pointer-events: none;
     }
 }
@@ -387,7 +387,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     min-height: 48px;
     padding: 12px 22px;
     border: none;
-    background: var(--field-text, #{$ink});
+    background: var(--sys-field-text, #{$ink});
     color: var(--sys-color-text-on-accent);
     border-radius: 12px;
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
@@ -448,8 +448,8 @@ $ink-muted: rgba(58, 46, 20, 0.55);
         height: 1px;
         background: linear-gradient(90deg,
                 transparent 0%,
-                var(--field-hairline, #{$hairline}) 18%,
-                var(--field-hairline, #{$hairline}) 82%,
+                var(--sys-field-hairline, #{$hairline}) 18%,
+                var(--sys-field-hairline, #{$hairline}) 82%,
                 transparent 100%);
         pointer-events: none;
         z-index: 1;
@@ -464,7 +464,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
     font-size: 0.8rem;
     line-height: 1.45;
-    color: var(--field-adornment, #{$ink-soft});
+    color: var(--sys-field-adornment, #{$ink-soft});
     letter-spacing: -0.005em;
 }
 

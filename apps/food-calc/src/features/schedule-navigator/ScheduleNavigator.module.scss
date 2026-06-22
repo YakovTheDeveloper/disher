@@ -4,7 +4,7 @@
 // The quick-nav anchor rows reuse the stripe-fork-row surface + inset-group
 // container + paper-mono palette (mixin.scss), the SAME look as the food cards
 // in SearchFood. Honey/mint accents and the mint→sky ambient were retired —
-// state now reads through the shared --card-* tokens (selected = faint grey
+// state now reads through the shared --sys-card-* tokens (selected = faint grey
 // fill, today = active ink). Date typography (Source Serif day numeral + 9px
 // stacked weekday/month) is preserved and moved into the card's LEFT slot,
 // where FoodActionCard puts its round thumbnail. The relative word
@@ -23,7 +23,7 @@ $ink-faint: rgba(0, 0, 0, 0.4);
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  color: var(--card-text-rest);
+  color: var(--sys-card-text-rest);
   font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   // Стандартный белый дровер — фон отдаёт DrawerLayout `.content` (2026-06-20).
   background: transparent;
@@ -132,7 +132,7 @@ $ink-faint: rgba(0, 0, 0, 0.4);
 }
 
 // Past-day chips — transparent surface, compact. State reads through the shared
-// --card-* tokens (no more honey): today/selected = active ink + faint grey
+// --sys-card-* tokens (no more honey): today/selected = active ink + faint grey
 // fill, press = dark inversion pill.
 .dayChip {
   position: relative;
@@ -151,16 +151,16 @@ $ink-faint: rgba(0, 0, 0, 0.4);
     color var(--press-out) var(--easing-default),
     transform var(--press-out) var(--easing-default);
 
-  // Цветной отклик: чип → тёмная инверсия (общий --card-press-bg/fg).
+  // Цветной отклик: чип → тёмная инверсия (общий --sys-card-press-bg/fg).
   &:active {
-    background: var(--card-press-bg);
-    color: var(--card-press-fg);
+    background: var(--sys-card-press-bg);
+    color: var(--sys-card-press-fg);
     transform: scale(0.94);
     transition-duration: var(--press-in);
 
     .dayChipNumber,
     .dayChipWeekday {
-      color: var(--card-press-fg);
+      color: var(--sys-card-press-fg);
     }
   }
 }
@@ -170,7 +170,7 @@ $ink-faint: rgba(0, 0, 0, 0.4);
   font-style: italic;
   font-size: 30px;
   font-weight: 400;
-  color: var(--card-text-rest);
+  color: var(--sys-card-text-rest);
   line-height: 1;
   letter-spacing: -0.02em;
   font-feature-settings: 'tnum' 1, 'lnum' 1;
@@ -186,25 +186,25 @@ $ink-faint: rgba(0, 0, 0, 0.4);
 }
 
 .dayChipToday {
-  background: var(--card-active);
+  background: var(--sys-card-active);
 
   .dayChipNumber,
   .dayChipWeekday {
-    color: var(--card-text-active);
+    color: var(--sys-card-text-active);
   }
 }
 
 .dayChipSelected {
-  background: var(--card-active);
+  background: var(--sys-card-active);
 
   .dayChipNumber {
-    color: var(--card-text-active);
+    color: var(--sys-card-text-active);
     font-style: italic;
     font-weight: 600;
   }
 
   .dayChipWeekday {
-    color: var(--card-text-active);
+    color: var(--sys-card-text-active);
   }
 }
 

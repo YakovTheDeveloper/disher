@@ -16,21 +16,22 @@ import '@fontsource/jost/700.css';
 import '@fontsource/jost/400-italic.css';
 import '@fontsource/jost/500-italic.css';
 
-// Big numerals only — Onest 800 (--font-big-numeric). Used by the TimeChoose
-// dial + ProductQuantity giant digit, where Jost's geometric figures read worse
-// than Onest's. The @font-face registers ALL subsets but the browser downloads
-// only the latin one (~14.6 KB) since these spots render digits + ':' — cyrillic
-// never fetched. Body stays Jost; this is a surgical numeric face, not a revert.
-import '@fontsource/onest/800.css';
-
-// Pilot (2026-06-14): Onest as the body face on the «Мои открытия» slide ONLY
-// (scoped via Laboratory `.ambientSheet` → `--font-sans`). Weights the analysis
-// cards use: 400 body, 500 chips/meta, 600 titles. Higher x-height + cyrillic-
-// native → reads better than Jost on dense text. If the pilot is rejected, drop
-// these three imports (and the `.ambientSheet` font block).
+// Onest — теперь ГЛАВНОЕ текстовое семейство (2026-06-22): тело всего приложения
+// (--font-sans → --sys-text-family-sans), заголовки (--heading-font, вес 700) и
+// крупные цифры (--font-big-numeric, вес 800). На Apple системный SF Pro стоит в
+// стеке первым; Onest — fallback вне Apple (Windows/Android), поэтому грузим все
+// веса, что реально использует тело+заголовки: 300 (light) · 400 · 500 · 600 ·
+// 700 (heading + bold body) · 800 (big-numeric). @fontsource регистрирует все
+// subset'ы, браузер тянет нужный (RU UI → cyrillic).
+// NB: Onest БЕЗ курсива — body `font-style: italic` вне Apple = faux-oblique
+// (принято осознанно; настоящий курсив несёт serif-ярус Source Serif). Бывш.
+// «body = Jost» снят; Jost-импорты ниже остаются ради ~23 хардкод-'Jost' спотов.
+import '@fontsource/onest/300.css';
 import '@fontsource/onest/400.css';
 import '@fontsource/onest/500.css';
 import '@fontsource/onest/600.css';
+import '@fontsource/onest/700.css';
+import '@fontsource/onest/800.css';
 
 // Quiet serif tier — Source Serif 4: italic for Text variant="navTabQuiet"
 // (inactive tab / breadcrumb step) + FieldLabel. NOT the heading voice — that is

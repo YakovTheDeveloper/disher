@@ -21,10 +21,10 @@
   --bar-border: 1px solid rgba(31, 42, 68, 0.12);
   --bar-pad-y: 8px;
 
-  --seg-color: rgba(0, 0, 0, 0.78);
-  --seg-tap: rgba(0, 0, 0, 0.05);
-  --seg-font: inherit;
-  --seg-letter: 0;
+  // Цвет глифов/текста обвязки (центр-пилюля, шеврон «назад»). Живёт в семье
+  // --bar-* как сосед --bar-bg/--bar-border (бывш. misnamed --seg-color; --seg-tap/
+  // -font/-letter сняты 2026-06-22 — tap не читался, font=inherit/letter=0 = дефолты).
+  --bar-fg: rgba(0, 0, 0, 0.78);
 
   // ─── Pill scale (single source of truth) ─────────────────────────────
   // Высота-пол для ВСЕХ пилюль бара (account / center / date). Любая пилюля
@@ -69,8 +69,7 @@
   box-shadow: none;
   font-size: 13px;
   line-height: 1.2;
-  font-family: var(--seg-font);
-  letter-spacing: var(--seg-letter);
+  letter-spacing: 0;
 }
 
 // Центральный заголовок (название продукта/блюда). Лежит абсолютно поверх
@@ -211,7 +210,7 @@
   padding: 4px 8px;
   margin: 0;
   font: inherit;
-  color: var(--seg-color);
+  color: var(--bar-fg);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;

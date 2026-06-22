@@ -236,14 +236,14 @@
     // token is present (e.g. SSR / a drawer opened before any modal mounted).
     background:
         radial-gradient(120% 55% at 50% -8%,
-            color-mix(in srgb, var(--field-bg-from, #fdeede) 80%, white),
+            color-mix(in srgb, var(--sys-field-bg-from, #fdeede) 80%, white),
             transparent 62%),
         linear-gradient(180deg,
-            var(--field-bg-from, #fdeede) 0%,
-            var(--field-bg-mid, #fcecdf) 42%,
+            var(--sys-field-bg-from, #fdeede) 0%,
+            var(--sys-field-bg-mid, #fcecdf) 42%,
             color-mix(in srgb,
-                var(--field-bg-to, #fae1ec) 55%,
-                var(--field-hairline-focus, rgba(124, 65, 15, 0.18))) 100%);
+                var(--sys-field-bg-to, #fae1ec) 55%,
+                var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.18))) 100%);
 
     &:active {
         cursor: grabbing;
@@ -258,7 +258,7 @@
         width: 4px;
         height: clamp(36px, 7vh, 56px);
         border-radius: var(--radius-full);
-        background: var(--field-adornment, rgba(124, 65, 15, 0.16));
+        background: var(--sys-field-adornment, rgba(124, 65, 15, 0.16));
         transition: background 140ms ease, height 140ms ease;
     }
 
@@ -272,8 +272,8 @@
         width: 1px;
         background: linear-gradient(180deg,
                 transparent 0%,
-                var(--field-hairline, rgba(124, 65, 15, 0.1)) 18%,
-                var(--field-hairline, rgba(124, 65, 15, 0.1)) 82%,
+                var(--sys-field-hairline, rgba(124, 65, 15, 0.1)) 18%,
+                var(--sys-field-hairline, rgba(124, 65, 15, 0.1)) 82%,
                 transparent 100%);
         pointer-events: none;
     }
@@ -330,7 +330,7 @@
 // Active-swipe feedback: pill becomes longer and more saturated.
 .content[data-swiping] .edgeHandle::before {
     height: clamp(48px, 9vh, 72px);
-    background: var(--field-hairline-focus, rgba(124, 65, 15, 0.34));
+    background: var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.34));
 }
 
 .actionHeaderButton {

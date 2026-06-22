@@ -8,7 +8,7 @@
 // plain attribute, so WriteBarMedal (its own module) can read it cross-file.
 //
 // ЦВЕТ — тон `ash` (единственный оставшийся, `mint` ретайрнут 2026-06-14):
-// `--wb-*`/`--field-*` заданы дефолтами прямо на `.wrap`, элементы их ПОТРЕБЛЯЮТ.
+// `--wb-*`/`--sys-field-*` заданы дефолтами прямо на `.wrap`, элементы их ПОТРЕБЛЯЮТ.
 
 @import '@/shared/assets/style/mixin.scss';
 
@@ -21,17 +21,10 @@
     // ширине.
     --coin-size: calc(var(--bottom-action-h, 72px) - var(--space-1));
 
-    --field-font-family: var(--font-sans);
-    --field-font-weight: var(--bottom-bar-font-weight);
-    --field-font-size: var(--bottom-bar-font-size);
-    --field-line-height: 1.4;
-    --field-placeholder-weight: 400;
-
-    // ash tone — the surviving WriteBar palette (`mint` retired 2026-06-14):
-    // light neutral grey, flat, strict. Folded in as the `.wrap` defaults.
-    --field-text: rgba(34, 38, 46, 0.92);
-    --field-placeholder: rgba(90, 96, 108, 0.55);
-    --field-adornment: rgba(31, 42, 68, 0.55);
+    // ash field tone + typography overrides СНЯТЫ 2026-06-22 (бандл-роспуск
+    // --sys-field-*): write-бар наследует единую :root mono field-палитру
+    // (--sys-field-text/-placeholder/-adornment + --sys-field-font-*), как остальные поля.
+    // `--wb-*` ниже — собственные токены write-бара (пилюля/send/tile), не field.
 
     --wb-pill-bg: rgb(249, 249, 249);
     --wb-pill-border: rgba(40, 44, 54, 0.12);
@@ -212,8 +205,8 @@
 
 .writeField {
     &[data-state='loading'] {
-        --field-text: rgba(31, 42, 68, 0.55);
-        --field-placeholder: rgba(31, 42, 68, 0.3);
+        --sys-field-text: rgba(31, 42, 68, 0.55);
+        --sys-field-placeholder: rgba(31, 42, 68, 0.3);
     }
 }
 
@@ -245,16 +238,16 @@
 }
 
 .writeField .writeFieldInput {
-    --field-bg-from: transparent;
-    --field-bg-mid: transparent;
-    --field-bg-to: transparent;
-    --field-radius: 0;
-    --field-shadow: none;
-    --field-shadow-focus: none;
-    --field-hairline: transparent;
-    --field-hairline-focus: transparent;
-    --field-pad-top: 4px;
-    --field-pad-bottom: 4px;
+    --sys-field-bg-from: transparent;
+    --sys-field-bg-mid: transparent;
+    --sys-field-bg-to: transparent;
+    --sys-field-radius: 0;
+    --sys-field-shadow: none;
+    --sys-field-shadow-focus: none;
+    --sys-field-hairline: transparent;
+    --sys-field-hairline-focus: transparent;
+    --sys-field-pad-top: 4px;
+    --sys-field-pad-bottom: 4px;
     flex: 1;
     min-width: 0;
     min-height: 0;
@@ -343,7 +336,7 @@
 
 // ─── Left affordance (paperclip) — attach hypotheses / atoms ───────────────
 // Shared by AnalysisWriteBar + EventsWriteBar via <WriteBarClip>. Inherits
-// `--field-adornment` / `--wb-send*` from `.wrap`.
+// `--sys-field-adornment` / `--wb-send*` from `.wrap`.
 
 .clip {
     flex-shrink: 0;
@@ -356,7 +349,7 @@
     margin-right: var(--space-1);
     border: none;
     background: transparent;
-    color: var(--field-adornment);
+    color: var(--sys-field-adornment);
     border-radius: var(--radius-full);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;

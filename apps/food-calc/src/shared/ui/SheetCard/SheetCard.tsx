@@ -25,9 +25,7 @@ export const SheetCard = forwardRef<HTMLDivElement, SheetCardProps>(function She
     <div ref={forwardedRef} className={clsx(styles.sheet, className)} {...rest}>
       {header != null && (
         <div className={styles.header}>
-          <Heading size="section" className={styles.title}>
-            {header}
-          </Heading>
+          <Heading role="headline">{header}</Heading>
         </div>
       )}
       {children}

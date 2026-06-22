@@ -141,6 +141,7 @@ const DishAnalysisScreen = ({ dishId, hasIngredients }: Props) => {
           hypotheses={[]}
           insightSource="dish"
           showDays={false}
+          sheetHeader="Результат"
         />
       )}
       <Button

@@ -1,24 +1,25 @@
 // Insight card — one read-only observation grounded in evidence. Сидит внутри
 // pearl-плашки SheetCard (общий контейнер с гипотезами и предложкой). Сама
-// поверхность карточки больше НЕ задаётся здесь жёстко — её рисует активный
-// `Analysis` design-вариант через `--ax-*` (см. AnalysisResult.module.scss):
-// hairline (плоский текст + бровка) / rail (левая полоса) / inset (wash) /
-// card (приподнятая белая). Левая accent-полоса несёт strength (плотность
-// серого, не смена оттенка). Token-driven app-wide тоном (`--card-*`); local
-// `--ic-*` props алиасят их, чтобы правила читались.
+// поверхность карточки больше НЕ задаётся здесь жёстко — её рисуют `--ax-*`,
+// публикуемые консумером: AnalysisResult `.root` (разбор — плоский текст, строки
+// разделяет воздух; бровка убрана 2026-06-22, dv-ось 'Analysis' распущена) ИЛИ
+// DiscoveriesSlides `.container` («Открытия» — тот же плоский текст, но строки
+// делит тающая бровка `--ax-divider`). Левая accent-полоса несёт strength
+// (плотность серого, не смена оттенка). Token-driven app-wide тоном (`--sys-card-*`);
+// local `--ic-*` props алиасят их, чтобы правила читались.
 .card {
-    --ic-ink: var(--card-text-rest);
+    --ic-ink: var(--sys-card-text-rest);
     // Плотность soft/faint переопределяема (`--analysis-*-amt`): на белой карточке
     // 62% выцветает (~3:1), дом поднимает до 80/64 (см. Laboratory `.ambientSheet`).
-    --ic-ink-soft: color-mix(in srgb, var(--card-text-rest) var(--analysis-soft-amt, 62%), transparent);
-    --ic-ink-faint: color-mix(in srgb, var(--card-text-rest) var(--analysis-faint-amt, 50%), transparent);
+    --ic-ink-soft: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-soft-amt, 62%), transparent);
+    --ic-ink-faint: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-faint-amt, 50%), transparent);
     // Тело — near-black на полную силу (гармоничная композиция 2026-06-21): тело
     // должно читаться, а не выцветать как soft. Контексты могут поднять/опустить
     // через `--analysis-body-amt` (дом уже держит soft на 80%).
-    --ic-ink-body: color-mix(in srgb, var(--card-text-rest) var(--analysis-body-amt, 85%), transparent);
+    --ic-ink-body: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-body-amt, 85%), transparent);
     // strength = плотность серого (moderate-дефолт; weak бледнее, clear плотнее).
-    --ic-accent: color-mix(in srgb, var(--card-text-rest) 28%, transparent);
-    --ic-chip-bg: color-mix(in srgb, var(--card-text-rest) 6%, transparent);
+    --ic-accent: color-mix(in srgb, var(--sys-card-text-rest) 28%, transparent);
+    --ic-chip-bg: color-mix(in srgb, var(--sys-card-text-rest) 6%, transparent);
     --ic-radius: var(--radius-md);
     --ic-chip-radius: var(--radius-sm);
     // Кегли тела/меты — на модульной сетке (`--text-*`): тело 16 (`--text-base`),
@@ -52,15 +53,18 @@
     }
 
     &[data-strength='weak'] {
-        --ic-accent: color-mix(in srgb, var(--card-text-rest) 16%, transparent);
+        --ic-accent: color-mix(in srgb, var(--sys-card-text-rest) 16%, transparent);
     }
 
     &[data-strength='clear'] {
-        --ic-accent: color-mix(in srgb, var(--card-text-rest) 40%, transparent);
+        --ic-accent: color-mix(in srgb, var(--sys-card-text-rest) 40%, transparent);
     }
 
-    // Бровка-разделитель: показывается только у hairline-варианта (`--ax-divider`
-    // там градиент, у остальных transparent). Тающая волосяная линия по канону.
+    // Бровка-разделитель: тающая волосяная линия, показывается ТОЛЬКО когда
+    // консумер публикует `--ax-divider` градиентом. Discoveries («Открытия»,
+    // DiscoveriesSlides `.container`) публикует → строки делит бровка. AnalysisResult
+    // (разбор дня/блюда/длинный) с 2026-06-22 публикует `transparent` → бровки нет,
+    // строки разделяет воздух (`--ax-list-gap`). Один общий `::after`, два режима.
     &::after {
         content: '';
         position: absolute;
@@ -193,7 +197,7 @@
 
     // Сохранено — гасим градиент в спокойную выцветшую пилюлю с зелёным ink.
     &[data-added] {
-        background: color-mix(in srgb, var(--card-text-rest) 6%, transparent);
+        background: color-mix(in srgb, var(--sys-card-text-rest) 6%, transparent);
         box-shadow: none;
         color: var(--ic-btn-added-ink);
     }

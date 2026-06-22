@@ -242,7 +242,7 @@ const ANATOMY: AnatomyEntity[] = [
       {
         part: 'shell (пилюля)',
         role: 'поверхность поля',
-        css: 'тёплый 3-stop градиент, radius 24px, через --field-bg-*',
+        css: 'тёплый 3-stop градиент, radius 24px, через --sys-field-bg-*',
         why: 'не плоско (stripe-fork прав. 1); токены объявлены выше → предок переопределяет тон',
         preview: (
           <AutoGrowSearch singleLine value="" onChange={NOOP} placeholder="тёплая пилюля" />
@@ -286,8 +286,8 @@ const ANATOMY: AnatomyEntity[] = [
       },
     ],
     critique:
-      'AutoGrowSearch / Select / LabeledCheckbox делят ОДНУ систему --field-* (один тон) — это win. NumberInput по-прежнему выпадает: сырой #0070f3 focus-ring + raw 6px radius, не --field-* токены (дефолтная рамка прозрачная, #ccc в коде НЕТ). Числовое поле звучит из другой системы (но мёртвые «underline/grey/white»-скины уже сняты — расхождение сузилось до одного focus-ring).',
-    improve: 'Перевести NumberInput на --field-* токены (фон + focus-ring), чтобы все поля говорили одним голосом.',
+      'AutoGrowSearch / Select / LabeledCheckbox делят ОДНУ систему --sys-field-* (один тон) — это win. NumberInput по-прежнему выпадает: сырой #0070f3 focus-ring + raw 6px radius, не --sys-field-* токены (дефолтная рамка прозрачная, #ccc в коде НЕТ). Числовое поле звучит из другой системы (но мёртвые «underline/grey/white»-скины уже сняты — расхождение сузилось до одного focus-ring).',
+    improve: 'Перевести NumberInput на --sys-field-* токены (фон + focus-ring), чтобы все поля говорили одним голосом.',
   },
   {
     id: 'an-label',
@@ -1129,7 +1129,7 @@ const UiKitPage = () => {
               <Specimen
                 name="<AutoGrowSearch>"
                 note="многострочное поле-заметка"
-                role={<><b>Что:</b> textarea, растущая по мере ввода (тёплая pill, --field-* токены). <b>Роль:</b> свободный текст / заметка. <b>Где:</b> write-бары, поля заметок. <b>Зачем:</b> единый текст-примитив; <code>maxRows</code> ограничивает рост.</>}
+                role={<><b>Что:</b> textarea, растущая по мере ввода (тёплая pill, --sys-field-* токены). <b>Роль:</b> свободный текст / заметка. <b>Где:</b> write-бары, поля заметок. <b>Зачем:</b> единый текст-примитив; <code>maxRows</code> ограничивает рост.</>}
                 wide
               >
                 <AutoGrowSearch
@@ -1157,8 +1157,8 @@ const UiKitPage = () => {
 
               <Specimen
                 name="<Select>"
-                note="Base UI · --field-* тон"
-                role={<><b>Что:</b> тонкая обёртка над Base UI Select (та же библиотека, что Drawer/Dialog). <b>Роль:</b> выбор одного из списка. <b>Где:</b> поля выбора в модалках. <b>Зачем:</b> тема через --field-* токены доезжает и в портал попапа.</>}
+                note="Base UI · --sys-field-* тон"
+                role={<><b>Что:</b> тонкая обёртка над Base UI Select (та же библиотека, что Drawer/Dialog). <b>Роль:</b> выбор одного из списка. <b>Где:</b> поля выбора в модалках. <b>Зачем:</b> тема через --sys-field-* токены доезжает и в портал попапа.</>}
               >
                 <Select
                   value={selectValue}

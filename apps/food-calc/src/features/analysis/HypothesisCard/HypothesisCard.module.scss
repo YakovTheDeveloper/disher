@@ -1,21 +1,21 @@
 // Hypothesis card — a testable experiment with an «add to my list» action.
 // Сидит внутри pearl-плашки SheetCard (общий контейнер с наблюдениями и
 // предложкой). Унифицирована с InsightCard (2026-06-14): тот же монохромный
-// ink (`--card-text-rest`, не навигационный navy) и те же кегли, поверхность —
-// от активного `Analysis` design-варианта через `--ax-*` (плоский текст у
-// hairline/rail/inset, приподнятая белая у card). Действенность читается из
+// ink (`--sys-card-text-rest`, не навигационный navy) и те же кегли, поверхность —
+// от `--ax-*` контракта AnalysisResult `.root` (плоский текст, строки разделяет
+// воздух; бровка убрана и dv-ось 'Analysis' распущена 2026-06-22). Действенность читается из
 // тихой «+ к себе», не из заливки. Layout — колонка: текст сверху, действие в
 // правом нижнем углу.
 .card {
-    --hc-ink: var(--card-text-rest);
+    --hc-ink: var(--sys-card-text-rest);
     // Плотность soft/faint переопределяема (`--analysis-*-amt`): на белой карточке
     // 62% выцветает, дом поднимает до 80/64 (см. Laboratory `.ambientSheet`).
-    --hc-ink-soft: color-mix(in srgb, var(--card-text-rest) var(--analysis-soft-amt, 62%), transparent);
-    --hc-ink-faint: color-mix(in srgb, var(--card-text-rest) var(--analysis-faint-amt, 50%), transparent);
+    --hc-ink-soft: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-soft-amt, 62%), transparent);
+    --hc-ink-faint: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-faint-amt, 50%), transparent);
     // Тело — near-black на полную силу (гармоничная композиция 2026-06-21).
-    --hc-ink-body: color-mix(in srgb, var(--card-text-rest) var(--analysis-body-amt, 85%), transparent);
+    --hc-ink-body: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-body-amt, 85%), transparent);
     // У гипотезы нет strength — нейтральная средняя плотность полосы (rail).
-    --hc-accent: color-mix(in srgb, var(--card-text-rest) 24%, transparent);
+    --hc-accent: color-mix(in srgb, var(--sys-card-text-rest) 24%, transparent);
     --hc-chip-radius: var(--radius-sm);
     // Кегли тела/меты — на модульной сетке (`--text-*`): тело 16 (`--text-base`),
     // мета 12.8 (`--text-sm`). Заголовок больше НЕ здесь — рендерится примитивом
@@ -46,7 +46,11 @@
         pointer-events: none;
     }
 
-    // Бровка-разделитель: только у hairline-варианта (`--ax-divider`).
+    // Бровка-разделитель: показывается ТОЛЬКО когда консумер публикует
+    // `--ax-divider` градиентом (как InsightCard). HypothesisCard живёт только в
+    // AnalysisResult, который с 2026-06-22 публикует `transparent` → бровки нет,
+    // строки делит воздух (`--ax-list-gap`). `::after` оставлен общим с InsightCard
+    // для единообразия (в Discoveries-режиме показал бы линию).
     &::after {
         content: '';
         position: absolute;
@@ -144,7 +148,7 @@
 
     // Сохранено — гасим градиент в спокойную выцветшую плашку с зелёным ink.
     &[data-added] {
-        background: color-mix(in srgb, var(--card-text-rest) 6%, transparent);
+        background: color-mix(in srgb, var(--sys-card-text-rest) 6%, transparent);
         box-shadow: none;
         color: var(--hc-btn-added-ink);
     }

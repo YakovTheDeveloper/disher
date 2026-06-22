@@ -2,8 +2,6 @@ import { type ReactNode } from 'react';
 import clsx from 'clsx';
 import { WriteFoodInput } from '@/features/food/food-free-text-parse';
 import type { UseWriteFoodFlowResult } from '@/features/food/food-free-text-parse';
-import { getTimeOfDay } from '@/shared/lib/time-of-day';
-import { useNow } from '@/shared/lib/time/useNow';
 import s from './AppBottomBar.module.scss';
 
 type Props = {
@@ -29,10 +27,8 @@ type Props = {
 /**
  * Bottom dock для HomePage (FoodSchedule) и DishBuilderPage: writes-pill
  * (`WriteFoodInput` — AutoGrowSearch + send + лупа) + опциональный leading
- * слот слева. tod-tokens (`--cta-*`, `--bar-tint`) живут на `.dockV2[data-tod]`
- * — их читают `dark-pill-button()` consumers (RunAnalysisButton, AddButton.dark)
- * И `AppBottomBarShell` (Laboratory/ScheduleEvents). 2026-05-23: writeFoodInputLike
- * флаг удалён, inline-input теперь единственный режим.
+ * слот слева. 2026-05-23: writeFoodInputLike флаг удалён, inline-input теперь
+ * единственный режим.
  */
 export const AppBottomBar = ({
   writeFoodFlow,
@@ -44,10 +40,8 @@ export const AppBottomBar = ({
   writeFoodHint,
   leadingSlot,
 }: Props) => {
-  const tod = getTimeOfDay(useNow());
-
   return (
-    <div className={clsx(s.dock, s.dockV2, s.writeDock)} data-tod={tod}>
+    <div className={clsx(s.dock, s.dockV2, s.writeDock)}>
       {leadingSlot}
       <WriteFoodInput
         flow={writeFoodFlow}

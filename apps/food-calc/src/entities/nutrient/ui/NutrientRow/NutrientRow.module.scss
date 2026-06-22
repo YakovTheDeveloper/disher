@@ -1,6 +1,6 @@
 // Единый ряд нутриента: имя слева · значение+юнит справа, затухающая бровка-
 // разделитель (stripe-fork rule 2 — не сплошной border). Палитра из app-wide
-// тона ModalShell (body[data-modal-fields] → --card-*). Один источник для
+// тона ModalShell (body[data-modal-fields] → --sys-card-*). Один источник для
 // NutrientPickerDrawer (выбор богатого нутриента) и NutrientTable view-norms.
 .row {
     position: relative;
@@ -26,8 +26,8 @@
         height: 1px;
         background: linear-gradient(90deg,
             transparent 0%,
-            var(--card-hairline) 18%,
-            var(--card-hairline) 82%,
+            var(--sys-card-hairline) 18%,
+            var(--sys-card-hairline) 82%,
             transparent 100%);
         pointer-events: none;
     }
@@ -44,7 +44,7 @@
     transition: background var(--duration-fast) var(--easing-default);
 
     &:active {
-        background: var(--card-hover);
+        background: var(--sys-card-hover);
     }
 }
 
@@ -57,7 +57,7 @@
     font-size: var(--text-base);
     font-weight: 500;
     letter-spacing: -0.005em;
-    color: var(--card-text-rest);
+    color: var(--sys-card-text-rest);
 }
 
 .right {
@@ -92,11 +92,11 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
     line-height: 1.1;
-    color: var(--card-text-rest);
+    color: var(--sys-card-text-rest);
 }
 
 .unit {
     font-size: var(--text-sm);
     font-weight: 600;
-    color: var(--card-rich-unit);
+    color: var(--sys-card-rich-unit);
 }

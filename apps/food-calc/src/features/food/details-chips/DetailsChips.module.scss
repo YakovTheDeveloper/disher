@@ -27,13 +27,13 @@
   align-self: stretch;
   height: 1px;
   margin: var(--space-1) var(--space-4);
-  // Token-driven hairline: --chip-separator из единого app-тона APP_TONE
+  // Token-driven hairline: --sys-chip-separator из единого app-тона APP_TONE
   // (ModalShell `$modal-shell-field-chip`, body[data-modal-fields]). Fallback —
   // на случай отсутствия токена.
   background: linear-gradient(90deg,
       transparent 0%,
-      var(--chip-separator, rgba(124, 65, 15, 0.14)) 18%,
-      var(--chip-separator, rgba(124, 65, 15, 0.14)) 82%,
+      var(--sys-chip-separator, rgba(124, 65, 15, 0.14)) 18%,
+      var(--sys-chip-separator, rgba(124, 65, 15, 0.14)) 82%,
       transparent 100%);
   pointer-events: none;
 }

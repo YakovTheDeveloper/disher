@@ -6,24 +6,26 @@
     // InsightCard и analysis-режим HypothesisListItem читают `--ax-*`; ink + шкала
     // зеркалят Laboratory `.ambientSheet`. Custom props наследуются в обе карточки.
     // Значения runtime/semantic → вне токен-гейта.
-    --card-text-rest: #1d1d1f;
-    --card-text-active: #000;
-    --card-hairline: rgba(0, 0, 0, 0.08);
+    --sys-card-text-rest: #1d1d1f;
+    --sys-card-text-active: #000;
+    --sys-card-hairline: rgba(0, 0, 0, 0.08);
 
-    // --ax-* контракт поверхности (плоско + тающая бровка) — копия дефолта
-    // AnalysisResult.module.scss.
+    // --ax-* контракт поверхности (плоский монохромный текст) — зеркало дефолта
+    // AnalysisResult.module.scss. Бровка-divider убрана 2026-06-22: строки делит
+    // ВОЗДУХ (`--ax-list-gap`), а не тающая линия — чтобы «Открытия» читались
+    // ТОЧЬ В ТОЧЬ как разбор дня (решение: зеркальность экранов).
     --ax-card-bg: transparent;
     --ax-card-shadow: none;
     --ax-card-radius: 0;
     --ax-accent-w: 0;
-    --ax-list-gap: 0;
+    //   ⬇️ ВОЗДУХ между строками — основной визуальный регулятор (на каждой
+    //      карточке уже есть --ax-pad-y сверху/снизу; реальный зазор = 24px + это).
+    --ax-list-gap: var(--space-3);
     --ax-pad-y: var(--space-3);
     --ax-pad-x: var(--space-4);
-    --ax-divider: linear-gradient(90deg,
-            transparent 0%,
-            color-mix(in srgb, var(--card-text-rest) 14%, transparent) 18%,
-            color-mix(in srgb, var(--card-text-rest) 14%, transparent) 82%,
-            transparent 100%);
+    // Бровка погашена ЯВНО (общий `::after` InsightCard/HypothesisListItem читает
+    // `--ax-divider`; transparent → воздух единственный разделитель).
+    --ax-divider: transparent;
 
     // Кегли тела/меты на модульной сетке (`--text-*`), как `.ambientSheet`.
     // Заголовок — примитив <Heading size="card"> (`--text-lg`, 20px).
@@ -35,9 +37,9 @@
 
     // Ink-замесы и размеры — локальные custom props (наследуются в потомков),
     // чтобы gated-свойства (color/font-size) читались через var() (token-gate).
-    --d-ink: color-mix(in srgb, var(--card-text-rest) 88%, transparent);
-    --d-ink-soft: color-mix(in srgb, var(--card-text-rest) 62%, transparent);
-    --d-ink-faint: color-mix(in srgb, var(--card-text-rest) 50%, transparent);
+    --d-ink: color-mix(in srgb, var(--sys-card-text-rest) 88%, transparent);
+    --d-ink-soft: color-mix(in srgb, var(--sys-card-text-rest) 62%, transparent);
+    --d-ink-faint: color-mix(in srgb, var(--sys-card-text-rest) 50%, transparent);
     --d-fs-count: 13px;
     --d-fs-title: 17px;
     --d-fs-body: 14px;

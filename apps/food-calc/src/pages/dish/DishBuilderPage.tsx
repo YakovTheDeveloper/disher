@@ -216,7 +216,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   // `<h1>`. Дублирование contentHeader в 3 Screen-ах не плодит h1 в DOM.
   // Клик по label → focus на input ChangeNameModal.
   const nameHeading = (
-    <Heading size="section" as="h2">
+    <Heading role="headline" as="h2">
       <label htmlFor={CHANGE_NAME_INPUT_ID} aria-label="Изменить название">
         <span>{dish.name}</span>
       </label>

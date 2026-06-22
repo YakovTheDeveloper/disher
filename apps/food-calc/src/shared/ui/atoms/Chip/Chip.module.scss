@@ -3,7 +3,7 @@
 // БЕЗ рамки. Выбранный/нажатый (active) — navy-заливка из единого sys-токена
 // --sys-color-bg-selected (tokens.scss · ЯРУС sys): перекрасить «выбранное» во
 // всём приложении = правка одного токена. Читаем sys НАПРЯМУЮ (индирекция
-// --chip-active-* схлопнута 2026-06-22). Цвет текста rest наследует --chip-text.
+// --sys-chip-active-* схлопнута 2026-06-22). Цвет текста rest наследует --sys-chip-text.
 .chip {
   appearance: none;
   -webkit-tap-highlight-color: transparent;
@@ -15,7 +15,7 @@
   border: none;
   border-radius: 999px;
   background: var(--color-white);
-  color: var(--chip-text, var(--card-text-rest));
+  color: var(--sys-chip-text, var(--sys-card-text-rest));
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
   font-size: 16px;
   font-weight: 500;

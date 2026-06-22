@@ -56,7 +56,7 @@
   // Цветной отклик: кнопка «Назад» → тинт с изменением цвета иконки
   &:active {
     background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
+    color: var(--sys-field-caret, var(--color-ink));
     transition-duration: var(--press-in);
   }
 }
@@ -220,7 +220,7 @@
   // Цветной отклик: текстовая ссылка-кнопка → тинт фона + цвет текста
   &:not(:disabled):active {
     background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
+    color: var(--sys-field-caret, var(--color-ink));
     transition-duration: var(--press-in);
   }
 

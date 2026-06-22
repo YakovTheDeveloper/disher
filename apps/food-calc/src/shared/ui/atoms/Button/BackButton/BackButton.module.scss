@@ -3,7 +3,7 @@
 // the account / date pills. Where those tokens are absent (AnalysesTopBar) it
 // falls back to a glassy white circle — the look the old raw `.back` had.
 .back {
-  --back-fg: var(--seg-color, rgba(15, 23, 42, 0.72));
+  --back-fg: var(--bar-fg, rgba(15, 23, 42, 0.72));
   --back-glyph-size: 26px;
 
   display: inline-flex;

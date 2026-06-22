@@ -318,7 +318,8 @@
       "Bash(rm src/pages/product/ProductPage.tsx src/pages/product/ProductPage.module.scss src/pages/home-page/HomePage.module.scss)",
       "Bash(ls src/pages/product)",
       "Bash(echo \"=== exit: $? ===\")",
-      "Bash(echo \"=== eslint exit: $? ===\")"
+      "Bash(echo \"=== eslint exit: $? ===\")",
+      "Bash(xargs grep -l \"^[[:space:]]*--space-1:\")"
     ],
     "additionalDirectories": [
       "\\tmp",

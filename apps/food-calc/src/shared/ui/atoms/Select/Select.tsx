@@ -18,7 +18,7 @@ interface SelectProps {
 }
 
 // Chevron — inline (в icons/ нет down-варианта; svgr-импорт ради одной стрелки
-// избыточен). currentColor → красится `--field-adornment`.
+// избыточен). currentColor → красится `--sys-field-adornment`.
 const ChevronDownIcon = () => (
   <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
     <path
@@ -33,7 +33,7 @@ const ChevronDownIcon = () => (
 
 /**
  * Тонкая обёртка над Base UI Select (та же библиотека, что Drawer/Dialog).
- * Тема — через `--field-*` токены; попап портируется в `<body>`, где
+ * Тема — через `--sys-field-*` токены; попап портируется в `<body>`, где
  * `[data-modal-fields]` (живой ModalShell-вариант) объявляет токены, поэтому
  * тон доезжает и в портал. `items={options}` отдаёт `<Select.Value>` готовый
  * лейбл выбранного пункта.

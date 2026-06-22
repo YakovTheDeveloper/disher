@@ -3,22 +3,18 @@
 // «как gofmt» — подписи слева, числа справа, единицы строго друг под другом
 // (tnum + justify-self:end), прижата ВПРАВО к шеврону. Пустое пространство слева
 // НАМЕРЕННО: узкая колонка противопоставлена широким на весь лист строкам
-// расписания. Числа ТЁМНЫЕ (--color-ink), подписи СЕРЫЕ (--text-secondary) —
-// цифра не сливается с сокращением. Отделена от еды тающей волосяной бровкой
-// (как `Masthead::after`) с воздухом до/после. Весь блок кликабелен → дровер.
-// Облик зафиксирован — design-variants сняты. Все font-size/color/border-radius
-// — через токены/локальные `--nt-*` (token-gate).
+// расписания. Числа ТЁМНЫЕ (--color-ink напрямую), подписи СЕРЫЕ
+// (--sys-color-text-secondary) — цифра не сливается с сокращением. Отделена от еды
+// тающей волосяной бровкой (как `Masthead::after`) с воздухом до/после. Весь блок
+// кликабелен → дровер. Облик зафиксирован — design-variants сняты. Локальная
+// типошкала — SCSS-переменные (мелко = бонус, не основа; цвета — sys-роли напрямую).
+
+// Локальная типошкала «как gofmt»: число + капс-подпись. SCSS-переменные (compile-time)
+// проходят token-gate (strict-value принимает $scss) и не плодят bespoke `--nt-*`-проксей.
+$num-size: 17px; //   размер числа
+$cap-size: 10.5px; // капс-подпись
 
 .root {
-    // Локальная типошкала (raw px в custom-props не гейтятся; консумится через
-    // `font-size: var(--nt-*)`). Мелко — бонус, не основа.
-    --nt-md: 17px; //   размер числа
-    --nt-cap: 10.5px; // капс-подпись
-
-    // Числа — тёмные чернила; подписи — серые. Контраст = цифра ≠ сокращение.
-    --nt-ink: var(--color-ink);
-    --nt-muted: var(--text-secondary);
-
     position: relative;
     // Воздух ДО бровки (отрыв от последней строки еды) + отступ снизу перед
     // предложкой. Бровка — на ::before (top:0); padding-top блока = воздух ПОСЛЕ.
@@ -78,7 +74,7 @@
 .chevron {
     width: 16px;
     height: 16px;
-    color: var(--nt-muted);
+    color: var(--sys-color-text-secondary);
     opacity: 0.5;
     flex-shrink: 0;
 }
@@ -103,8 +99,8 @@
     font-family: var(--font-sans);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    font-size: var(--nt-cap);
-    color: var(--nt-muted);
+    font-size: $cap-size;
+    color: var(--sys-color-text-secondary);
     line-height: 1;
 }
 
@@ -113,9 +109,9 @@
     justify-self: end;
     font-family: var(--font-big-numeric);
     font-weight: 800;
-    font-size: var(--nt-md);
+    font-size: $num-size;
     letter-spacing: -0.01em;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
-    color: var(--nt-ink);
+    color: var(--color-ink);
     line-height: 1;
 }

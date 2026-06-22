@@ -5,7 +5,7 @@
 .body {
     display: flex;
     flex-direction: column;
-    padding: var(--space-3) var(--space-3) var(--space-6);
+    padding: var(--space-3) var(--sys-inset-panel) var(--space-6);
 }
 
 // ─── Карандаш в правом углу обвязки (topRight slot DrawerLayout) ──
@@ -225,23 +225,23 @@ $pill-radius: 14px;
 }
 
 // Строгий Select: плоский белый фон + тонкая чёрная обводка, малый радиус,
-// без тёплой тени. Левая половина ряда. Переопределяем --field-* токены,
+// без тёплой тени. Левая половина ряда. Переопределяем --sys-field-* токены,
 // которые читает Select-триггер (он наш потомок; popup портируется и берёт
 // surface-токены).
 .quantityControl {
     flex: 1 1 0;
     min-width: 0;
 
-    --field-bg-from: var(--color-white);
-    --field-bg-mid: var(--color-white);
-    --field-bg-to: var(--color-white);
-    --field-hairline: var(--color-ink);
-    --field-hairline-focus: var(--color-ink);
-    --field-radius: var(--radius-sm);
-    --field-shadow: 0 0 0 transparent;
-    --field-shadow-focus: 0 0 0 transparent;
-    --field-text: var(--text-primary);
-    --field-adornment: var(--text-primary);
+    --sys-field-bg-from: var(--color-white);
+    --sys-field-bg-mid: var(--color-white);
+    --sys-field-bg-to: var(--color-white);
+    --sys-field-hairline: var(--color-ink);
+    --sys-field-hairline-focus: var(--color-ink);
+    --sys-field-radius: var(--radius-sm);
+    --sys-field-shadow: 0 0 0 transparent;
+    --sys-field-shadow-focus: 0 0 0 transparent;
+    --sys-field-text: var(--text-primary);
+    --sys-field-adornment: var(--text-primary);
 }
 
 .quantitySelect {

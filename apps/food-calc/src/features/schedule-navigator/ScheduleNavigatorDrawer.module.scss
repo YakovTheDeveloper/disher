@@ -1,7 +1,7 @@
 @import '@/shared/assets/style/mixin.scss';
 
 .shell {
-  // Paper-mono palette in scope ТОЛЬКО ради --card-* токенов (состояния чипов
+  // Paper-mono palette in scope ТОЛЬКО ради --sys-card-* токенов (состояния чипов
   // на табе «Активные дни»). Сам дровер — стандартный белый: фон отдаёт
   // DrawerLayout `.content` (white), серую inset-grouped подложку сняли (2026-06-20).
   @include paper-mono-cards;
@@ -13,5 +13,5 @@
   max-height: 78dvh;
   overflow: hidden;
   background: transparent;
-  color: var(--card-text-rest);
+  color: var(--sys-card-text-rest);
 }

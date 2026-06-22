@@ -7,11 +7,12 @@ import { ModalHeader } from '@/shared/ui/ModalHeader';
 
 // ── ModalShell tone — a single fixed monochrome ──────────────────────────────
 // After the «great unification» (2026-06-19) ModalShell is no longer a switchable
-// design-variant: it carries one fixed `mono` tone. App.tsx publishes the same
-// tone statically on `body[data-modal-fields]='mono'`, so the field/card/chip/
-// list tokens (ModalShell.module.scss → field-chip-palette + card-palette) cascade
-// across EVERY page and through Base UI portals. This replaced the old
-// `data-surface` warm/lavender axis AND the earlier multi-variant law-giver.
+// design-variant: it carries one fixed `mono` tone. The field/card/chip/list
+// tokens (ModalShell.module.scss → field-chip-palette + card-palette) are published
+// UNCONDITIONALLY on `:root`, so they cascade across EVERY page and through Base UI
+// portals — no attribute, no JS (the single-position `data-modal-fields` gate was
+// removed 2026-06-22). This replaced the old `data-surface` warm/lavender axis AND
+// the earlier multi-variant law-giver.
 //
 // The wrapper's own ambient (wash + desaturated orbs) is baked into `.wrapper`
 // directly (dev-форк `data-dv='ModalShell'` снят 2026-06-22 — был single-variant).

@@ -37,8 +37,8 @@
 
     &:focus {
         outline: none;
-        border-color: var(--card-text-active);
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-text-active) 14%, transparent);
+        border-color: var(--sys-card-text-active);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--sys-card-text-active) 14%, transparent);
     }
 }
 

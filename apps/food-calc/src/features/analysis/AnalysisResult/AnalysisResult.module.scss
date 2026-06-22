@@ -7,6 +7,28 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-5);
+
+    // ─── Analysis surface contract (баком 2026-06-22, DesignBar-ось 'Analysis' снята) ──
+    // Вшит вариант 'hairline' (плоский монохромный текст), НО без бровки-divider:
+    // строки разбора разделяет ВОЗДУХ (`--ax-list-gap`), а не волосяная линия —
+    // спокойнее и легче (решение 2026-06-22: divider → воздух). Карточки
+    // (InsightCard / HypothesisCard) читают эти `--ax-*` в своих base-правилах,
+    // поэтому контракт живёт одним местом здесь. Прочие варианты (rail/inset/card)
+    // сняты вместе с dv-осью.
+    //   ⬇️ ВОЗДУХ между строками — основной визуальный регулятор этого бака.
+    //      На каждой карточке уже есть `--ax-pad-y` (12px) сверху/снизу, так что
+    //      реальный зазор текст-к-тексту = 24px + это значение. Крути при смоке.
+    --ax-list-gap: var(--space-3);
+    --ax-pad-y: var(--space-3);
+    --ax-pad-x: var(--space-4);
+    --ax-card-bg: transparent;
+    --ax-card-radius: 0px;
+    --ax-card-shadow: none;
+    --ax-accent-w: 0px;
+    // Бровка-разделитель погашена ЯВНО (карточки делят общий `::after`, читающий
+    // `--ax-divider`; Discoveries публикует градиент-бровку — здесь transparent,
+    // чтобы воздух был единственным разделителем независимо от предка).
+    --ax-divider: transparent;
 }
 
 // Две pearl-плашки (Наблюдения / Гипотезы) — несёт valence-anchor `Insight`.
@@ -14,56 +36,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-6);
-}
-
-// ─── `Analysis` design-variant contract ────────────────────────────────────
-// Base = вариант 'hairline' (дефолт): плоский текст, строки встык, разделены
-// канон-бровкой (fading hairline). Каждый вариант ниже переопределяет дельту.
-// Карточки читают эти `--ax-*` в своих base-правилах (InsightCard /
-// HypothesisCard), поэтому один тумблер restyle'ит весь разбор.
-:global([data-dv='Analysis']) {
-    --ax-list-gap: 0px;
-    // Внутр. падинг карточки на сетке: 12/16 (`--space-3`/`--space-4`).
-    --ax-pad-y: var(--space-3);
-    --ax-pad-x: var(--space-4);
-    --ax-card-bg: transparent;
-    --ax-card-radius: 0px;
-    --ax-card-shadow: none;
-    --ax-accent-w: 0px;
-    // Бровка: тающая волосяная линия по канону design-DNA.
-    --ax-divider: linear-gradient(90deg,
-            transparent 0%,
-            color-mix(in srgb, var(--card-text-rest) 14%, transparent) 18%,
-            color-mix(in srgb, var(--card-text-rest) 14%, transparent) 82%,
-            transparent 100%);
-}
-
-// rail — тонкая нейтральная левая полоса несёт силу связи; линий нет.
-:global([data-dv='Analysis'][data-dv-v='rail']) {
-    --ax-list-gap: 6px;
-    --ax-pad-x: 14px;
-    --ax-accent-w: 3px;
-    --ax-divider: transparent;
-}
-
-// inset — едва уловимый нейтральный wash + мягкий радиус. Текстура без линий.
-:global([data-dv='Analysis'][data-dv-v='inset']) {
-    --ax-list-gap: 8px;
-    --ax-pad-y: 12px;
-    --ax-card-bg: color-mix(in srgb, var(--card-text-rest) 4%, transparent);
-    --ax-card-radius: var(--radius-md);
-    --ax-divider: transparent;
-}
-
-// card — возвращённая белая приподнятая карточка (сравнить flat↔card свайпом).
-:global([data-dv='Analysis'][data-dv-v='card']) {
-    --ax-list-gap: 10px;
-    --ax-card-bg: #ffffff;
-    --ax-card-radius: var(--radius-md);
-    --ax-card-shadow:
-        0 1px 2px rgba(31, 42, 68, 0.04),
-        0 6px 16px -12px rgba(31, 42, 68, 0.22);
-    --ax-divider: transparent;
 }
 
 // ─── Резюме разбора ────────────────────────────────────────────────────────
@@ -88,8 +60,8 @@
         border-radius: var(--ar-lead-radius);
         background: linear-gradient(180deg,
                 transparent 0%,
-                color-mix(in srgb, var(--card-text-rest) 22%, transparent) 18%,
-                color-mix(in srgb, var(--card-text-rest) 22%, transparent) 82%,
+                color-mix(in srgb, var(--sys-card-text-rest) 22%, transparent) 18%,
+                color-mix(in srgb, var(--sys-card-text-rest) 22%, transparent) 82%,
                 transparent 100%);
         pointer-events: none;
     }
@@ -119,9 +91,9 @@
 }
 
 // Список карточек внутри pearl-плашки SheetCard: горизонтальный инсет от краёв
-// плашки + нижний воздух. Зазор между строками — от активного варианта
-// (`--ax-list-gap`: 0 у hairline = встык, >0 у rail/inset/card). В bare-режиме
-// тот же список сидит в padding'е модалки.
+// плашки + нижний воздух. Зазор между строками — `--ax-list-gap` (вшит воздухом,
+// бровка снята; см. `.root`-контракт). В bare-режиме тот же список сидит в
+// padding'е модалки.
 .list {
     display: flex;
     flex-direction: column;

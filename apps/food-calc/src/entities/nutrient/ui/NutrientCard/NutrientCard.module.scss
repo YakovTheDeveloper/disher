@@ -23,15 +23,15 @@
 
 // --- Group accent via CSS variable ---
 .main {
-    --card-accent: var(--nutrient-accent-main);
+    --sys-card-accent: var(--nutrient-accent-main);
 }
 
 .minerals {
-    --card-accent: var(--nutrient-accent-minerals);
+    --sys-card-accent: var(--nutrient-accent-minerals);
 }
 
 .vitamins {
-    --card-accent: var(--nutrient-accent-vitamins);
+    --sys-card-accent: var(--nutrient-accent-vitamins);
 }
 
 // --- Label ---
@@ -45,7 +45,7 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: var(--card-accent);
+    color: var(--sys-card-accent);
 }
 
 // --- Bottom row: value left, percent/slot right ---
@@ -81,7 +81,7 @@ label.card {
     font-weight: 200;
     letter-spacing: -0.03em;
     line-height: 1;
-    color: var(--card-accent);
+    color: var(--sys-card-accent);
 }
 
 .percent.low {
@@ -112,14 +112,14 @@ label.card {
 .progressFill {
     height: 100%;
     border-radius: var(--radius-full);
-    background: var(--card-accent);
+    background: var(--sys-card-accent);
     transition: width 0.3s ease;
 }
 
 .rightSlot {
     display: flex;
     align-items: baseline;
-    color: var(--card-accent);
+    color: var(--sys-card-accent);
     font-family: var(--font-sans);
     font-size: 2rem;
     font-weight: 200;

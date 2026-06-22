@@ -1,6 +1,4 @@
 .block {
-    // Стандартный form-инпут — квадратный примитив (--radius-sm), не поисковая пилюля.
-    --field-radius: var(--radius-sm);
     display: flex;
     flex-direction: column;
     gap: var(--space-2);

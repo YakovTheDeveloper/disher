@@ -123,7 +123,7 @@
 /* Цветной отклик: тинт-подсветка на касание (quiet icon-button archetype) */
 .navBtn:active {
   background: var(--press-tint-bg, rgba(0, 0, 0, 0.08));
-  color: var(--field-caret, rgba(0, 0, 0, 0.7));
+  color: var(--sys-field-caret, rgba(0, 0, 0, 0.7));
   transform: scale(0.88);
   transition-duration: var(--press-in, 0ms);
 }

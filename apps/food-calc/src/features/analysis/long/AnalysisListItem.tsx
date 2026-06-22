@@ -32,7 +32,7 @@ type Props = {
 };
 
 // One long-analysis row — stripe-fork surface. The accent stripe + status
-// pill carry the derived state; the surface palette (`--card-*`) follows the
+// pill carry the derived state; the surface palette (`--sys-card-*`) follows the
 // app-wide tone (the live ModalShell variant — see modalshell-lawgiver).
 const AnalysisListItem = ({ analysis, onOpen }: Props) => {
   // `deriveStatus` reads the wall clock, so a `running` row that crosses the

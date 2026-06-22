@@ -194,37 +194,30 @@
 .name {
   position: relative;
   border-radius: 6px;
-  // Шрифт как в NutrientPickerDrawer (выбор нутриента для «богатой» еды):
-  // var(--font-sans) / 500 / letter-spacing -0.005em — единый по всем группам,
-  // без раздельных весов.
-  font-family: var(--font-sans);
-  font-weight: 500;
-  letter-spacing: -0.005em;
-  color: var(--text-primary);
-  line-height: 1.15;
+  // Имя нутриента = роль Title — типографику (family/size/weight/lh/tracking)
+  // владеет примитив <Heading role="title"> (см. NutrientTable.tsx, решение
+  // 2026-06-22). Здесь только раскладка; цвет + line-height вынесены в
+  // `.rowTop .name` (специфичность 0,2,0), чтобы перебить базовый `.heading`.
   min-width: 0;
   width: 100%;
   line-break: break-word;
-  line-height: 24px;
   width: fit-content;
   max-width: 100%;
   margin-right: auto;
   // Длинные имена нутриентов переносятся внутри узкой колонки сетки.
   overflow-wrap: break-word;
+}
 
-  .main &,
-  .minerals &,
-  .vitamins &,
-  .aminoAcids & {
-    font-size: 1rem;
-  }
+.rowTop .name {
+  color: var(--text-primary);
+  line-height: 24px;
 }
 
 .value {
   display: flex;
   gap: 2px;
   position: relative;
-  font-family: "Raleway", sans-serif;
+  font-family: var(--font-display);
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "lnum" 1;
@@ -320,7 +313,7 @@
   border: none;
   border-bottom: 1.5px solid rgba(128, 128, 128, 0.25);
   text-align: center;
-  font-family: "Raleway", sans-serif;
+  font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -347,7 +340,7 @@
 }
 
 .unitProminent {
-  font-family: "Raleway", sans-serif;
+  font-family: var(--font-display);
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-secondary);

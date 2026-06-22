@@ -45,7 +45,7 @@ export const SwitcherTab = ({
   >
     {image && <img src={image} className={s.tileImg} alt="" aria-hidden />}
     {active ? (
-      <Heading as="span" size="section" className={s.tileTitle}>
+      <Heading as="span" role="display" className={s.tileTitle}>
         {label}
       </Heading>
     ) : (

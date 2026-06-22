@@ -1,7 +1,7 @@
 @import '@/shared/assets/style/mixin.scss';
 
 // Stripe-fork analysis row — token-driven by the app-wide tone (the live
-// ModalShell variant → `--card-*`, see tds/modalshell-lawgiver-2026-06-13).
+// ModalShell variant → `--sys-card-*`, see tds/modalshell-lawgiver-2026-06-13).
 // Same idiom as FoodActionCard: 3-stop gradient surface + fading hairline +
 // vertical accent + nth-child wash rhythm. Status colours stay semantic.
 
@@ -18,7 +18,7 @@
     cursor: pointer;
     overflow: hidden;
     -webkit-tap-highlight-color: transparent;
-    background: var(--card-bg);
+    background: var(--sys-card-bg);
 
     // Vertical accent stripe — colour carries status.
     &::before {
@@ -29,7 +29,7 @@
         bottom: 7px;
         width: 3px;
         border-radius: 2px;
-        background: color-mix(in srgb, var(--card-text-active) 55%, transparent);
+        background: color-mix(in srgb, var(--sys-card-text-active) 55%, transparent);
     }
 
     // Fading hairline divider — never a full border.
@@ -40,7 +40,7 @@
         right: 14px;
         bottom: 0;
         height: 1px;
-        @include hairline(var(--card-hairline));
+        @include hairline(var(--sys-card-hairline));
         pointer-events: none;
     }
 
@@ -54,7 +54,7 @@
 
     // Status overrides the accent stripe colour.
     &[data-status='done']::before {
-        background: var(--card-text-active);
+        background: var(--sys-card-text-active);
     }
     &[data-status='failed']::before {
         background: #c0392b;
@@ -65,11 +65,11 @@
 
     // nth-child rhythm — surfaces are not identical (design-DNA rule 4).
     &:nth-child(2n) {
-        background-image: var(--card-wash-2n), var(--card-bg);
+        background-image: var(--sys-card-wash-2n), var(--sys-card-bg);
     }
 
     &:nth-child(3n) {
-        background-image: var(--card-wash-3n), var(--card-bg);
+        background-image: var(--sys-card-wash-3n), var(--sys-card-bg);
     }
 }
 
@@ -86,12 +86,12 @@
     font-style: italic;
     font-size: 17px;
     line-height: 1.2;
-    color: var(--card-text-rest);
+    color: var(--sys-card-text-rest);
 }
 
 .meta {
     font-size: 12.5px;
-    color: color-mix(in srgb, var(--card-text-rest) 58%, transparent);
+    color: color-mix(in srgb, var(--sys-card-text-rest) 58%, transparent);
     font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 

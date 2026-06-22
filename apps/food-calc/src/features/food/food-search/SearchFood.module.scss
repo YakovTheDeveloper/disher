@@ -251,157 +251,72 @@
 // ─── List container backdrop (surface-driven) ──────────────────────
 // Backdrop gradient harmonises with the stripe-fork row palette and is
 // driven by the app-wide tone (body[data-modal-fields], the live variant) —
-// or, in a SearchMono variant, by the local monochrome --list-bg below.
+// or, in a SearchMono variant, by the local monochrome --sys-list-bg below.
 .listContainer {
-    background: var(--list-bg);
+    background: var(--sys-list-bg);
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// SearchMono — monochrome tone, scoped to this screen. Folded onto `.content`
-// directly (the design-variant anchor was retired 2026-06-14 once paper-mono
-// stayed the only tone). These rules redefine the stripe-fork `--card-*` / field
-// `--field-*` / list `--list-*` tokens (plus the screen-local `--seg-*` /
-// `--icon-btn-*` / `--search-*` tokens) on `.content`, so they OVERRIDE the
-// values inherited from `body[data-modal-fields]` for the whole subtree — the
-// screen no longer depends on the app-wide colour theme.
+// SearchMono — единственный тон экрана поиска (монохром paper-mono). Три бывших
+// stacked-`.content`-блока (SearchMono base + paper-mono + INK-TOP тест 2026-06-19)
+// СЛИТЫ в один 2026-06-22: dv-анкер ретайрнут 2026-06-14, а частичный роспуск
+// бандла --sys-field-* оставил INK-TOP с БЕЛЫМИ контролами шапки под уже-светлой
+// пилюлей (белое-на-светлом → таб «Еда|Мое» и фильтр-иконка были невидимы) —
+// слияние убрало каскад-ловушку, контролы шапки тёмные. Эти правила локально
+// переопределяют унаследованные от :root mono `--sys-card-*`/`--sys-field-*`/`--list-*` и
+// задают экранные `--icon-btn-*`/`--search-*`/`--fse-*` (сегмент `Еда|Мое` теперь
+// читает app-wide `--sys-color-control-*`, не экранный `--seg-*`).
+// Облик: белая card-группа + светлое mono-поле на бледно-сером фоне (iOS «inset
+// grouped»), тёмные контролы шапки, lavender-cream нижний док со светлым стеклом.
 // ══════════════════════════════════════════════════════════════════════════
-
-// Achromatic ink, dark press inversion, gray search field, neutral segmented
-// control + ghost icon button.
 .content {
-    // Скрим парящей шапки (.header::before) — выводим из фона страницы, чтобы
-    // верхняя плотная зона была бесшовной с .listContainer, а строки таяли в неё.
-    // 92% непрозрачности: без блюра скрим обязан сам прятать контент сверху.
-    --search-bar-scrim: color-mix(in srgb, var(--search-page-bg, #f0f1f4) 92%, transparent);
-
-    // Card palette (surface + group + states + rich/info) — single source of
-    // truth in mixin.scss, shared with the date navigator. Was inline here.
+    // Card palette (surface + group + states + rich/info) — единый источник
+    // правды в mixin.scss, общий с навигатором дат. Поле/чипы наследуют :root mono.
     @include paper-mono-cards;
 
-    // Search field — gray, near-flat (a real input container, not a faint pill)
-    --field-radius: 22px;
-    --field-text: #1d1d1f;
-    --field-placeholder: rgba(0, 0, 0, 0.4);
-    --field-adornment: rgba(0, 0, 0, 0.42);
-    --field-hairline: transparent;
-    --field-hairline-focus: transparent;
-    --field-caret: #555555;
-    --field-shadow: none;
-    --field-shadow-focus: 0 0 0 2px rgba(0, 0, 0, 0.07);
+    // Скрим парящей шапки (.header::before) — из фона страницы, чтобы верхняя
+    // плотная зона была бесшовной с .listContainer (92%: без блюра прячет контент).
+    --search-bar-scrim: color-mix(in srgb, var(--search-page-bg, #f0f1f4) 92%, transparent);
 
-    // Segmented control (Еда|Мое) — neutral track + white thumb
-    --seg-text: #5c6473;
-    --seg-thumb: #ffffff;
-    --seg-thumb-text: #0a0a0a;
+    // Фон страницы = общий inset-grouped paper-mono токен (mixin.scss); ряды на нём.
+    --search-page-bg: var(--cards-page-bg);
+    --search-ambient-top: rgba(225, 215, 245, 0.32);
+    --search-ambient-bottom: transparent;
+    --sys-list-bg: transparent;
 
-    // Ghost nutrient-filter icon
+    // (Сегмент Еда|Мое больше НЕ темится отсюда — per-surface --seg-* распущен
+    //  2026-06-22; SearchFoodControls читает --sys-color-control-* напрямую.)
+
+    // Нутриент-фильтр icon-btn — тёмный ghost, белая подложка; активный = тёмная
+    // пилюля + белый глиф. Бывшие белые INK-TOP значения убраны.
     --icon-btn-fg: #5c6473;
+    --icon-btn-bg: #ffffff;
+    --icon-btn-border: rgba(10, 10, 10, 0.12);
     --icon-btn-active-bg: #1a1a1a;
     --icon-btn-active-fg: #ffffff;
 
-    // Bottom create-pills (FoodSearchEmpty) — LOCKED to the lavender-cream-top
-    // palette (the chosen default), fixed regardless of which ModalShell variant
-    // the page is on. accent #8a72b8 → border @0.5 (the pill's radial top-glow
-    // reads --chip-border); dark lavender ink for the serif label.
-    --chip-border: rgba(138, 114, 184, 0.5);
-    --chip-text: #241836;
+    // Кнопка «назад»: подложка = серый фон страницы (сливается вверху на скриме,
+    // проступает серым кружком над белыми карточками при скролле); ink-шеврон, без рамки.
+    --bar-bg: var(--search-page-bg);
+    --bar-border: none;
+    --back-fg: var(--color-ink-strong);
 
-    // Bottom bar — HomePage lavender-cream ambient (lavender from the left, cream
-    // from the right). Glows are TALL so they fill the whole dock (not just the
-    // bottom corners where the content isn't), the base is faintly lavender (so
-    // even faded areas read tinted, never bald white), and the white floor is a
-    // THIN sliver at the very bottom only — just enough to meet Android's white
-    // nav bar smoothly without eating the colour. The ::before ramp above carries
-    // a clearly-lavender tint so the list melts into the glow.
+    // Нижний док (FoodSearchEmpty): lavender-cream ambient (--fse-bg, лаванда слева
+    // + крем справа, высокие glow'ы заполняют док, тонкий белый пол снизу) + светло-
+    // матовое стекло шапки/действий с тёмным текстом, полупрозрачные «Создать»-пилюли.
     --fse-bg:
         linear-gradient(to top, #ffffff 0%, #ffffff 7%, transparent 22%),
         radial-gradient(ellipse 115% 155% at 0% 105%, rgba(219, 206, 246, 0.82), transparent 74%),
         radial-gradient(ellipse 115% 155% at 100% 105%, rgba(252, 242, 212, 0.82), transparent 74%),
         #f7f2fc;
     --fse-ramp: #ece2f8;
-}
-
-// paper-mono — the only SearchMono tone (graphite retired 2026-06-14). White
-// card group + white field/pills on a faintly-gray page (iOS «inset grouped»),
-// with a faint lavender echo at the top (kin to the lavender-cream bottom glow —
-// HomePage puts its glow at the top, so this ties the screen together). Hairline
-// divides the white rows; rows touch. Richness is COLOUR (pale yellow-green) —
-// the one chromatic signal, only when a nutrient filter is on.
-.content {
-    // Page background = the shared inset-grouped paper-mono token (mixin.scss).
-    --search-page-bg: var(--cards-page-bg);
-    --search-ambient-top: rgba(225, 215, 245, 0.32);
-    --search-ambient-bottom: transparent;
-    --list-bg: transparent;
-    // White search field + pills pop as containers on the gray page.
-    --field-bg-from: #ffffff;
-    --field-bg-mid: #ffffff;
-    --field-bg-to: #ffffff;
-    --field-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --field-shadow-focus: 0 1px 4px rgba(0, 0, 0, 0.1);
-    --seg-track: #e6e8ec;
-    --icon-btn-bg: #ffffff;
-    --icon-btn-border: rgba(10, 10, 10, 0.12);
-}
-
-// ══════════════════════════════════════════════════════════════════════════
-// INK TOP + BOTTOM (тест канона 2026-06-19) — «верхние элементы инверсивные».
-// Поверхность экрана и список карточек ОСТАЮТСЯ светлыми (paper-mono выше);
-// чернеют только верхние/нижние элементы: пилюля поиска в шапке (+ круглая
-// кнопка «назад») и нижний док создания (FoodSearchEmpty). Опора — ink-канон
-// HomeTopBar (ink-inline date-пилюля): фон --color-ink-strong + белый контент.
-// Блок идёт ПОСЛЕ mono → перекрывает только header/bottom-токены, не трогая
-// --search-page-bg / --card-* / --list-* (список светлый).
-// ══════════════════════════════════════════════════════════════════════════
-.content {
-    // ── Шапка: чёрная пилюля поиска ──
-    --field-bg-from: var(--color-ink-strong);
-    --field-bg-mid: var(--color-ink-strong);
-    --field-bg-to: var(--color-ink-strong);
-    --field-text: #ffffff;
-    --field-placeholder: rgba(255, 255, 255, 0.5);
-    --field-adornment: rgba(255, 255, 255, 0.6);
-    --field-caret: #ffffff;
-    --field-hairline: transparent;
-    --field-hairline-focus: rgba(255, 255, 255, 0.28);
-    --field-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
-    --field-shadow-focus: 0 0 0 2px rgba(255, 255, 255, 0.16);
-
-    // Сегмент Еда|Мое внутри чёрной пилюли — тёмный трек + светлый thumb.
-    --seg-track: rgba(255, 255, 255, 0.1);
-    --seg-text: rgba(255, 255, 255, 0.62);
-    --seg-thumb: rgba(255, 255, 255, 0.92);
-    --seg-thumb-text: #0a0a0a;
-
-    // Нутриент-кнопка: ghost — светлый; выбранная/press — светлая пилюля (inverse).
-    --icon-btn-fg: rgba(255, 255, 255, 0.6);
-    --icon-btn-active-bg: rgba(255, 255, 255, 0.92);
-    --icon-btn-active-fg: #0a0a0a;
-
-    // Кнопка «назад»: подложка = цвет серого фона страницы (--search-page-bg).
-    // Так вверху (на сером скриме) она сливается и невидима, а при скролле, когда
-    // под плавающей шапкой проходят БЕЛЫЕ карточки, проступает серым кружком.
-    // Шеврон чёрный; без рамки/тени.
-    --bar-bg: var(--search-page-bg);
-    --bar-border: none;
-    --back-fg: var(--color-ink-strong);
-
-    // ── Нижний док (FoodSearchEmpty): весь светлый, матовое стекло ──
-    // Верх (подсказка) — светлое матовое стекло (sheetBand), сквозь него размыто
-    // просвечивает список. Низ (.actions) — светло-серое матовое стекло того же
-    // рода (полупрозрачный тон + blur). Пилюли «Создать» полупрозрачны — чуть
-    // просвечивают панель; тёмный текст/хайрлайн; press → ink + белый (дефолт
-    // --fse-press-* в FoodSearchEmpty → здесь НЕ переопределяем).
     --fse-header-bg: rgba(255, 255, 255, 0.55);
     --fse-header-blur: blur(16px) saturate(1.3);
     --fse-actions-bg: rgba(242, 242, 246, 0.62);
     --fse-actions-blur: blur(16px) saturate(1.3);
     --fse-pill-bg: rgba(255, 255, 255, 0.42);
     --fse-border: 1px solid rgba(0, 0, 0, 0.12);
-    --chip-text: rgba(20, 20, 24, 0.82);
     --fse-msg: rgba(0, 0, 0, 0.45);
     --fse-msg-strong: rgba(0, 0, 0, 0.68);
     --fse-prompt: rgba(0, 0, 0, 0.5);
-    // Панель снова светлая → «надгробий» нет; призрак-картинки product/dish
-    // возвращаются (дефолт 0.16 в FoodSearchEmpty — --fse-img-rest здесь не задаём).
 }

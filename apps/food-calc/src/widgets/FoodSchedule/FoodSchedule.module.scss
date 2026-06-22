@@ -69,7 +69,7 @@ div.foodListAnchor.foodListAnchor [data-tod='night'] {
   // Цветной отклик: тихая тинт-подсветка на касание (quiet icon-button archetype)
   &:active {
     background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
+    color: var(--sys-field-caret, var(--color-ink));
     transform: scale(0.97);
     transition-duration: var(--press-in);
   }

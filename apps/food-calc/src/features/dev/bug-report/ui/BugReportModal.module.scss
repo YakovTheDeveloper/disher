@@ -64,11 +64,11 @@
 
 // Glassy translucent field floating over the screenshot.
 .input {
-  --field-bg-from: rgba(255, 255, 255, 0.94);
-  --field-bg-mid: rgba(255, 255, 255, 0.9);
-  --field-bg-to: rgba(255, 255, 255, 0.94);
-  --field-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-  --field-shadow-focus: 0 8px 26px rgba(0, 0, 0, 0.45);
+  --sys-field-bg-from: rgba(255, 255, 255, 0.94);
+  --sys-field-bg-mid: rgba(255, 255, 255, 0.9);
+  --sys-field-bg-to: rgba(255, 255, 255, 0.94);
+  --sys-field-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  --sys-field-shadow-focus: 0 8px 26px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }

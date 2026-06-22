@@ -40,10 +40,10 @@
     // the mirror's box.
     .mirror,
     .input {
-        font-family: var(--font-big-numeric);
-        font-size: 6rem;
-        font-weight: 800;
-        letter-spacing: -0.06em;
+        font-family: var(--sys-text-mono-big-family);
+        font-size: var(--sys-text-mono-big-size);
+        font-weight: var(--sys-text-mono-big-weight);
+        letter-spacing: -0.06em; // оптический трекинг крупного количества (локально)
         line-height: 1;
         font-variant-numeric: tabular-nums;
         text-align: center;
@@ -60,7 +60,7 @@
         inset: 0;
         width: 100%;
         transition: color 0.2s ease;
-        text-shadow: var(--field-digit-shadow, 0 1px 2px rgba(124, 65, 15, 0.14));
+        text-shadow: var(--sys-field-digit-shadow, 0 1px 2px rgba(124, 65, 15, 0.14));
 
         &:focus {
             outline: none;
@@ -78,8 +78,8 @@
 // text-align: center centers the whole composition. align-items: baseline
 // drops the small unit onto the giant digits' baseline.
 //
-// AutoGrowSearch-канон: warm-pill surface (gradient + hairline). `--field-*`
-// читаются как `var(--field-x, <default>)` — НЕ объявляются здесь, чтобы предок
+// AutoGrowSearch-канон: warm-pill surface (gradient + hairline). `--sys-field-*`
+// читаются как `var(--sys-field-x, <default>)` — НЕ объявляются здесь, чтобы предок
 // мог переопределить через каскад. Дефолт повторяет AutoGrowSearch.shell.
 .inputRow {
     position: relative;
@@ -94,12 +94,12 @@
     // (а не 96 px от line-height: 1), плюс 8+8 padding = 138. Здесь геометрия
     // тянется с mirror-span (ровно 96 px), компенсируем дельту через padding.
     padding: 21px 28px;
-    border-radius: var(--field-radius, var(--radius-sm));
+    border-radius: var(--sys-field-radius, var(--radius-sm));
     background: linear-gradient(90deg,
-            var(--field-bg-from, #fffefb) 0%,
-            var(--field-bg-mid, #fffaf2) 55%,
-            var(--field-bg-to, #fdf4e3) 100%);
-    box-shadow: var(--field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
+            var(--sys-field-bg-from, #fffefb) 0%,
+            var(--sys-field-bg-mid, #fffaf2) 55%,
+            var(--sys-field-bg-to, #fdf4e3) 100%);
+    box-shadow: var(--sys-field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
     transition: box-shadow 120ms ease;
 
     &::after {
@@ -111,8 +111,8 @@
         height: 1px;
         background: linear-gradient(90deg,
                 transparent 0%,
-                var(--field-hairline, rgba(124, 65, 15, 0.18)) 18%,
-                var(--field-hairline, rgba(124, 65, 15, 0.18)) 82%,
+                var(--sys-field-hairline, rgba(124, 65, 15, 0.18)) 18%,
+                var(--sys-field-hairline, rgba(124, 65, 15, 0.18)) 82%,
                 transparent 100%);
         pointer-events: none;
         transition: background 120ms ease;
@@ -120,15 +120,15 @@
 
     &:hover,
     &:focus-within {
-        box-shadow: var(--field-shadow-focus, 0 1px 8px rgba(124, 65, 15, 0.12));
+        box-shadow: var(--sys-field-shadow-focus, 0 1px 8px rgba(124, 65, 15, 0.12));
     }
 
     &:hover::after,
     &:focus-within::after {
         background: linear-gradient(90deg,
                 transparent 0%,
-                var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
-                var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
+                var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
+                var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
                 transparent 100%);
     }
 }

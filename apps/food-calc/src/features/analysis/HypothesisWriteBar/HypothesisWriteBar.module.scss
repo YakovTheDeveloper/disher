@@ -1,5 +1,0 @@
-// Поле «Подробности» — стандартный form-инпут: квадратный примитив
-// (--radius-sm), не поисковая пилюля. var(--field-radius) читается в AutoGrowSearch `.shell`.
-.formField {
-    --field-radius: var(--radius-sm);
-}

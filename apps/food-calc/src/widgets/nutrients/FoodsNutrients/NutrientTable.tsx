@@ -9,7 +9,7 @@ import s from './NutrientTable.module.scss';
 import clsx from 'clsx';
 import { memo, useCallback, useRef, useState, useEffect } from 'react';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
-import { Text } from '@/shared/ui/atoms/Typography';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 
 interface Props {
   getValue: (id: string) => number;
@@ -129,7 +129,9 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
         ref={showOverlay ? wrapperRef : undefined}
       >
         <div className={s.rowTop}>
-          <span className={s.name}>{nutrient.displayNameRu}</span>
+          <Heading as="span" role="title" className={s.name}>
+            {nutrient.displayNameRu}
+          </Heading>
           <span className={s.dots} />
           {showPctView && (
             <span className={s.pct}>
@@ -226,7 +228,9 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
     return (
       <div key={nutrient.id} className={`${s.row} ${s[nutrient.group]}`} data-nutrient={nutrient.name}>
         <div className={s.rowTop}>
-          <span className={s.name}>{nutrient.displayNameRu}</span>
+          <Heading as="span" role="title" className={s.name}>
+            {nutrient.displayNameRu}
+          </Heading>
           {showPctView && <span className={s.pct}>{norm ? `${pct}%` : ''}</span>}
         </div>
         <div className={clsx(s.rowBottom, isView && s.rowBottomBar)}>

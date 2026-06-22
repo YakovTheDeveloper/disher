@@ -1,3 +1,5 @@
+@use 'sass:list';
+
 @mixin ellipsis($width: 100%) {
     display: block;
     min-width: 0;
@@ -6,6 +8,71 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+// ── Field & chip palette (app-wide tone) ─────────────────────────────────────
+// The interactive widgets (AutoGrowSearch / TimeChoose / the ProductQuantity
+// surface / DetailsChips) read their colours off `--sys-field-*` / `--sys-chip-*`
+// instead of hard-coding them. Published APP-WIDE and UNCONDITIONALLY on `:root`
+// from tokens.scss (sys tier) — no attribute, no JS. The whole page — not just
+// modals — shares one monochrome tone, and the tokens cascade everywhere incl.
+// through Base UI portals (`:root` is the ancestor of every node). Moved here
+// from ModalShell.module.scss 2026-06-22 (ModalShell, a modal component, no
+// longer owns app-wide tokens). Card/list surface tokens (`--sys-card-*`) come from
+// `paper-mono-cards()` (the single card canon — chosen 2026-06-22); the old
+// lavender-gradient `card-palette` mixin was removed in the same pass.
+//
+// The palette is derived from a few inputs, mirroring the alpha ladder of the
+// warm/lavender surfaces (surfaces.scss):
+//   placeholder .45 · adornment .55 · hairline .18 / focus .36 · shadow .06/.12
+//   · digit-shadow .14 · chip hover-border .24 · chip-active-border .5 · sep .14
+//
+// Inputs: $text  — near-black field/chip ink (hue-tinted)
+//         $ink   — the saturated hue used for the alpha ladder (hairlines/shadows)
+//         $accent— chip rest border (the variant's signature hue)
+//         $pill  — 3 stops of the rest field/chip gradient (light, hue-tinted)
+//         $dark  — (from, mid, to) — dark stops of the active/filled chip inversion
+//         $on-dark — text on the active chip
+@mixin field-chip-palette($text, $ink, $accent, $pill, $dark, $on-dark) {
+    --sys-field-radius: var(--radius-sm);
+    // Field typography — sys-дефолты (Jost 16px). Раньше эти токены никто не
+    // объявлял (хук был, питал его только WriteBar «ash»; снят 2026-06-22) →
+    // reads падали на фоллбэк. Объявлены здесь как единый sys-голос поля.
+    --sys-field-font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    --sys-field-font-weight: 500;
+    --sys-field-font-size: 16px;
+    --sys-field-font-style: normal;
+    --sys-field-line-height: 22px;
+    --sys-field-bg-from: #{list.nth($pill, 1)};
+    --sys-field-bg-mid: #{list.nth($pill, 2)};
+    --sys-field-bg-to: #{list.nth($pill, 3)};
+    --sys-field-text: #{$text};
+    --sys-field-placeholder: #{rgba($ink, 0.45)};
+    --sys-field-adornment: #{rgba($ink, 0.55)};
+    --sys-field-hairline: #{rgba($ink, 0.18)};
+    --sys-field-hairline-focus: #{rgba($ink, 0.36)};
+    --sys-field-shadow: 0 1px 3px #{rgba($ink, 0.06)};
+    --sys-field-shadow-focus: 0 1px 8px #{rgba($ink, 0.12)};
+    --sys-field-digit-shadow: 0 1px 2px #{rgba($ink, 0.14)};
+    --sys-field-caret: #{$accent};
+
+    --sys-chip-bg: linear-gradient(135deg,
+            #{list.nth($pill, 1)} 0%, #{list.nth($pill, 2)} 60%, #{list.nth($pill, 3)} 100%);
+    --sys-chip-border: #{rgba($accent, 0.5)};
+    --sys-chip-text: #{$text};
+    --sys-chip-hover-border: #{rgba($ink, 0.24)};
+    // «Выбрано»/press НЕ публикуется здесь больше: Chip + press-fill-chip читают
+    // --sys-color-*-selected НАПРЯМУЮ (индирекция --sys-chip-active-* схлопнута
+    // 2026-06-22 — один источник, tokens.scss · ЯРУС sys). НЕ возвращать этот
+    // канал: единственный путь к «выбрано» = sys-токен (греп-гейт это сторожит).
+    // $dark/$on-dark продолжают питать card-press ниже.
+    --sys-chip-separator: #{rgba($ink, 0.14)};
+}
+
+// ── CARD & LIST palette ──────────────────────────────────────────────────────
+// The lavender-gradient `card-palette` mixin was REMOVED 2026-06-22: the single
+// card canon is `paper-mono-cards()` below (flat, hue-free — chosen via предложка
+// suggestion_4c4a585a). App-wide `--sys-card-*` is published from tokens.scss · :root
+// via `@include paper-mono-cards` (+ a white `--sys-card-bg` for standalone rows).
 
 
 // Типографические голоса больше НЕ живут в миксинах (2026-06-19): display-голос
@@ -87,8 +154,8 @@
 // fade-bottom (those are VERTICAL scroll-fades). Sets only the gradient
 // `background`; the consumer owns its own ::after/::before geometry
 // (position / left / right / bottom / height) — those vary per surface.
-// Colour is passed in: warm rows → var(--card-hairline) / rgba(124,65,15,0.09),
-// fields → var(--field-hairline), chrome → its own ink-tinted alpha.
+// Colour is passed in: warm rows → var(--sys-card-hairline) / rgba(124,65,15,0.09),
+// fields → var(--sys-field-hairline), chrome → its own ink-tinted alpha.
 @mixin hairline($color, $start: 18%, $end: 82%) {
     background: linear-gradient(90deg,
             transparent 0%,
@@ -196,72 +263,6 @@
     gap: var(--space-2);
 }
 
-// Primary CTA pill — single source of truth shared by WriteFoodButton.dark,
-
-// RunAnalysisButton, AddButton.dark. Reads `--cta-bg-from / --cta-bg-to /
-// --cta-text` from an ancestor (AppBottomBar publishes them per
-// `data-tod="<period>"`, so the same pill auto-tints on every HomePage
-// screen). Outside a tod-aware container the vars are undefined and the
-// purple-navy fallback kicks in via `var(..., <fallback>)`.
-@mixin dark-pill-button() {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    padding: 12px 22px;
-    // Высота — токен `--cta-min-h` (дефолт 44px для inline-CTA). Нижние бары
-    // (AppBottomBarShell) переопределяют его на `--bottom-action-h` (72px), и
-    // тот же mixin даёт высокую outline-пилюлю — без отдельного класса.
-    min-height: var(--cta-min-h, 44px);
-    width: auto;
-    height: auto;
-    border-radius: 999px;
-    // Рамка — токен `--cta-border` (дефолт none = сплошная заливка). Нижние бары
-    // публикуют тонкую ink-рамку → pill читается как outline (канон solo-CTA).
-    border: var(--cta-border, none);
-    background: linear-gradient(135deg,
-            var(--cta-bg-from, rgba(24, 24, 105, 0.92)),
-            var(--cta-bg-to, rgba(24, 24, 105, 0.92)));
-    color: var(--cta-text, #fff);
-    // Размер метки — токен `--cta-font-size` (дефолт 15px для inline-CTA).
-    // Нижние бары переопределяют на `--text-lg` (= размер плейсхолдера write-бара).
-    font-size: var(--cta-font-size, 15px);
-    // Жирность метки — токен `--cta-font-weight` (дефолт 500 для inline-CTA).
-    // Нижние бары публикуют `--bottom-bar-font-weight`.
-    font-weight: var(--cta-font-weight, 500);
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-appearance: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    // Тень — токен `--cta-shadow` (дефолт none = плоская заливка-CTA). Светлые
-    // тоны (paper-пилюля Событий на бледно-жёлтой поверхности) публикуют мягкую
-    // тень, чтобы белое «парило» и не сливалось с фоном.
-    box-shadow: var(--cta-shadow, none);
-    transition:
-        transform var(--press-out) var(--easing-default),
-        filter var(--press-out) var(--easing-default);
-
-    &:hover {
-        transform: none;
-        box-shadow: var(--cta-shadow, none);
-    }
-
-    // Цветной отклик: сплошную CTA нечем «залить» — затемняем фильтром (тон).
-    &:active {
-        transform: scale(0.97);
-        box-shadow: none;
-        filter: brightness(0.9);
-        transition-duration: var(--press-in);
-    }
-
-    &:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-    }
-}
-
 // ── Press feedback: ЦВЕТНОЙ отклик на нажатии (canon 2026-06-08) ─────────────
 // Каждая кнопка должна давать ЦВЕТНОЙ тач-отклик, не только scale. Эталон —
 // нижние пилюли SearchFood (FoodSearchEmpty: ink-заливка + белый текст) и
@@ -314,7 +315,7 @@
     }
 }
 
-@mixin press-fill-tint($accent: var(--field-caret, var(--color-ink)), $scale: 1) {
+@mixin press-fill-tint($accent: var(--sys-field-caret, var(--color-ink)), $scale: 1) {
     transition:
         background var(--press-out) var(--easing-default),
         color var(--press-out) var(--easing-default),
@@ -457,7 +458,7 @@
 // ── Card unification: inset-grouped paper-mono cards (canon 2026-06-19) ───────
 // Единый источник правды для облика карточек-рядов SearchFood И навигатора дат.
 // Три миксина, разделённые по слоям:
-//   paper-mono-cards() — ПАЛИТРА (--card-* токены). iOS «inset grouped», белая
+//   paper-mono-cards() — ПАЛИТРА (--sys-card-* токены). iOS «inset grouped», белая
 //                        скруглённая группа на бледно-сером фоне, прозрачные ряды,
 //                        тающий hairline, тёмная press-пилюля. Раньше дублировалась
 //                        инлайном в SearchFood `.content`; вынесена сюда.
@@ -478,30 +479,30 @@
     --cards-page-bg: #f0f1f4;
 
     // Поверхность ряда — прозрачная (видно белую группу), ритм/градиент выключены.
-    --card-bg: transparent;
-    --card-wash-2n: linear-gradient(transparent, transparent);
-    --card-wash-3n: linear-gradient(transparent, transparent);
-    --card-hairline: rgba(0, 0, 0, 0.08);
+    --sys-card-bg: transparent;
+    --sys-card-wash-2n: linear-gradient(transparent, transparent);
+    --sys-card-wash-3n: linear-gradient(transparent, transparent);
+    --sys-card-hairline: rgba(0, 0, 0, 0.08);
 
     // Контейнер-группа: белая, скруглённая, мягкая тень.
-    --card-group-bg: #ffffff;
-    --card-group-shadow: 0 1px 5px rgba(0, 0, 0, 0.07);
-    --card-group-radius: 16px;
+    --sys-card-group-bg: #ffffff;
+    --sys-card-group-shadow: 0 1px 5px rgba(0, 0, 0, 0.07);
+    --sys-card-group-radius: 16px;
 
     // Текст + состояния (hue-free).
-    --card-text-rest: #1d1d1f;
-    --card-text-active: #000000;
-    --card-hover: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.015) 45%, transparent 100%), var(--card-bg);
-    --card-active: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05));
-    --card-press-bg: linear-gradient(90deg, #1f1f1f 0%, #2a2a2a 55%, #353535 100%);
-    --card-press-fg: #ffffff;
+    --sys-card-text-rest: #1d1d1f;
+    --sys-card-text-active: #000000;
+    --sys-card-hover: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.015) 45%, transparent 100%), var(--sys-card-bg);
+    --sys-card-active: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05));
+    --sys-card-press-bg: linear-gradient(90deg, #1f1f1f 0%, #2a2a2a 55%, #353535 100%);
+    --sys-card-press-fg: #ffffff;
 
     // Левый квадрат-гейдж богатства + тихий ⓘ (пищевое; навигатор их не рисует,
     // публикуем для полноты, чтобы FoodActionCard читал из одного места).
-    --card-rich-text: #2a2a2a;
-    --card-rich-unit: rgba(42, 42, 42, 0.6);
-    --card-rich-percent: rgba(42, 42, 42, 0.4);
-    --card-info-rest: rgba(0, 0, 0, 0.22);
+    --sys-card-rich-text: #2a2a2a;
+    --sys-card-rich-unit: rgba(42, 42, 42, 0.6);
+    --sys-card-rich-percent: rgba(42, 42, 42, 0.4);
+    --sys-card-info-rest: rgba(0, 0, 0, 0.22);
 }
 
 @mixin inset-group() {
@@ -509,12 +510,12 @@
     padding: 0;
     margin: 0;
     overflow: hidden;
-    border-radius: var(--card-group-radius, 16px);
-    box-shadow: var(--card-group-shadow, none);
-    background: var(--card-group-bg, transparent);
+    border-radius: var(--sys-card-group-radius, 16px);
+    box-shadow: var(--sys-card-group-shadow, none);
+    background: var(--sys-card-group-bg, transparent);
     display: flex;
     flex-direction: column;
-    gap: var(--card-row-gap, 0);
+    gap: 0; // ряды впритык (canon inset-group); бывший --card-row-gap хук — мёртвый, снят
 }
 
 @mixin stripe-fork-row() {
@@ -523,7 +524,7 @@
     position: relative;
     -webkit-tap-highlight-color: transparent;
 
-    background: var(--card-bg);
+    background: var(--sys-card-bg);
     border: none;
     border-radius: 0;
     box-shadow: none;
@@ -543,7 +544,7 @@
         right: 14px;
         bottom: 0;
         height: 1px;
-        @include hairline(var(--card-hairline));
+        @include hairline(var(--sys-card-hairline));
         pointer-events: none;
     }
 
@@ -553,15 +554,15 @@
 
     // nth-child ритм — еле заметные washes поверх базы.
     &:nth-child(2n) {
-        background: var(--card-wash-2n), var(--card-bg);
+        background: var(--sys-card-wash-2n), var(--sys-card-bg);
     }
 
     &:nth-child(3n) {
-        background: var(--card-wash-3n), var(--card-bg);
+        background: var(--sys-card-wash-3n), var(--sys-card-bg);
     }
 
     &:hover {
-        background: var(--card-hover);
+        background: var(--sys-card-hover);
     }
 
     &:active {
@@ -579,7 +580,7 @@
             position: absolute;
             inset: 3px 6px;
             border-radius: var(--radius-md);
-            background: var(--card-press-bg);
+            background: var(--sys-card-press-bg);
             z-index: 0;
             pointer-events: none;
         }

@@ -19,8 +19,12 @@
   // отступ), размер = t-shirt-ступень поверх 4px-шкалы. Нейминг по Nathan Curtis
   // (Category-Type-Item): `sys` слой → `inset` роль → размер. Крутишь воздух
   // экранов здесь, в одном месте, а не в каждом компоненте.
-  --sys-inset-md: var(--space-3); // 12px — модалки редактирования (Hypothesis / Dish / Product)
-  --sys-inset-lg: var(--space-6); // 24px — drawer «Моя норма»
+  // Боковой inset оверлеев — драйвер = ШИРИНА поверхности (tds/drawer-modal-inset-tokens.md).
+  --sys-inset-panel: var(--space-3); // 12px — узкий side-drawer (88vw): экономит ширину
+  --sys-inset-sheet: var(--space-6); // 24px — full-width: нижний лист + fullscreen-модалка (рамка)
+  // Legacy-шимы (на снос по мере миграции дроверов/модалок на panel/sheet выше):
+  --sys-inset-md: var(--sys-inset-panel); // было space-3 (12) — читается только мёртвым ModalShell.bodyInset
+  --sys-inset-lg: var(--sys-inset-sheet); // было space-6 (24) — читается DailyNormDrawer
   // page — единый боковой gutter «край листа → контент» ВСЕХ Screen-страниц
   // (канон 2026-06-22: один симметричный 16px, владелец — `.headerOverlap`).
   // Карточки/заголовки/бары равняются на край контент-бокса листа = этот инсет.
@@ -34,14 +38,17 @@
   --text-lg: 1.25rem; // 20px — subheadings
   --text-xl: 1.563rem; // 25px — section headings
   --text-2xl: 1.953rem; // 31.3px — page headings
-  --text-3xl: 2.441rem; // 39px — hero text, accent numbers
+  // (--text-3xl 39px удалён 2026-06-22 — последним читателем был
+  //  --heading-size-section, переехавший на Headline-роль 28px; orphan)
   // Компактная мета-строка — фиксированные 12px (намеренно вне 1.25-шкалы):
   // строка месяц/dd.mm под днём недели в HomeTopBar и числа сводки нутриентов
   // делят один размер, чтобы верхний бар читался как одна типошкала.
   --text-meta: 12px;
 
   // ─── Font families ───────────────────────────────────────────
-  --font-sans: "Jost", sans-serif;
+  // Body-голос = Onest-led sans (было "Jost"). Алиас на семейство sys-роли →
+  // тело всего app совпадает с Body-ролью композит-спека (SF Pro на Apple, Onest вне).
+  --font-sans: var(--sys-text-family-sans);
   --font-serif: "Merriweather", serif;
   --font-display: "Raleway", sans-serif;
   --font-alice: "Alice", "Source Serif 4", serif; // accent serif (analysis loader caption)
@@ -67,9 +74,20 @@
   --heading-size-modal-header: 1.75rem; // 28px — ModalHeader bar title (centered)
   --heading-size-drawer: 1.5rem; // 24px — drawer header
   --heading-size-field: 1rem; //    16px — small in-modal field/section label — below drawer
-  --heading-size-section: var(--text-3xl); // ~37px — in-page content heading (FoodSchedule day, Product/Dish name)
+  // M2b (2026-06-22): section = Headline-роль (28px, было var(--text-3xl)~39) —
+  // чинит ГЛАВНЫЙ дрейф section(39)≈Display(38). Живые потребители size="section"
+  // мигрированы на role="headline" напрямую (имя блюда DishBuilderPage, SheetCard-
+  // тайтл) — остался ТОЛЬКО UiKitPage-витрина. Значение держим на Headline (чтобы
+  // --text-3xl стал orphan и удалился); токен — кандидат на снос вместе с витриной.
+  --heading-size-section: var(--sys-text-headline-size); // 28px — legacy (только UiKitPage)
   --heading-size-masthead: 2rem; // 32px — Apple Large Title шапка слайда HomePage (бывш. Masthead)
-  --heading-size-card: var(--text-lg); // 20px — card/list-item title (Открытия инсайт/гипотеза); ТИХИЙ reading-регистр (вес 600), не display-700. На модульной сетке (Apple Title3)
+  // M2-шим (2026-06-22): legacy card-size теперь питается от Title-роли
+  // (--sys-text-title-size = 17px, было var(--text-lg)=20). Карточный <Heading
+  // size="card"> (Открытия инсайт/гипотеза) = ТИХИЙ reading-регистр (вес 600),
+  // не display-700; теперь делит размер с ролью Title (Apple-база карточек). Swap
+  // Title-токена двигает и карточки. Полный переезд size="card"→role="title"
+  // отложен: .card несёт surface-adaptive цвет, которого роль не моделирует.
+  --heading-size-card: var(--sys-text-title-size);
   // Single top gap above an overlay title — owned by the title itself, so it
   // stays constant regardless of how the modal nests it (see ModalShell).
   --modal-title-offset: var(--space-6); // 24px
@@ -129,11 +147,15 @@
   --sys-text-caption-line: 1.4;
   --sys-text-caption-tracking: 0;
 
-  // Mono — две нужды: крупные цифры (циферблат/количество, locked) + табличные (нутриенты).
-  // big делит семейство с --font-big-numeric (Onest 800), tab — Ubuntu Mono. Обе tabular.
-  --sys-text-mono-big-size: 44px;
+  // Mono — две нужды: крупные цифры (циферблат TimeChoose + крупное количество
+  // ProductQuantity — один hero-кегль) + табличные (нутриенты). big = ПОЛНЫЙ голос
+  // hero-цифры: family (Onest 800, делит с --font-big-numeric) + size (6rem≈96px —
+  // циферблат и количество делят один кегль) + weight. Трекинг ОПТИЧЕСКИЙ (зависит
+  // от кегля у консумера: циферблат плотнее количества) → остаётся локальным, в роль
+  // НЕ зашит. tab — Ubuntu Mono 13px. Обе tabular. (tokens.scss exempt от token-gate.)
+  --sys-text-mono-big-family: var(--font-big-numeric);
+  --sys-text-mono-big-size: 6rem; // ≈96px — циферблат + крупное количество
   --sys-text-mono-big-weight: 800;
-  --sys-text-mono-big-tracking: -0.01em;
   --sys-text-mono-tab-size: 13px;
 
   // ─── Border Radius ───────────────────────────────────────────
@@ -223,12 +245,6 @@
   // приложения не «прыгает» при свайпе между экранами, большой палец всегда
   // попадает в ту же зону. Источник истины один — менять только здесь.
   --bottom-action-h: 72px;
-
-  // Типографика контента нижнего бара: write-поле + его rich-placeholder
-  // (эталон, AutoGrowSearch `--field-*`) и метки solo-CTA (--cta-*). Один
-  // источник истины, чтобы поле ввода и кнопки делили размер и жирность.
-  --bottom-bar-font-size: var(--text-lg); // 20px
-  --bottom-bar-font-weight: 500;
 
   // ─── Press-feedback ──────────────────────────────────────────
   // pre-attentive отклик интерактивных элементов: визуальное
@@ -330,16 +346,29 @@
   --sys-color-text-on-selected: #fff;
   --sys-color-border-selected: var(--ref-color-navy-700);
   --sys-color-bg-hover: rgba(0, 0, 0, 0.04);
-  // focus-ring — отдельный яркий blue, НЕ navy выбора: на уже выбранном элементе
-  // (navy-кромка) navy-фокус сливался; яркий --color-blue-2 читается поверх обоих.
+  // focus — ЕДИНЫЙ фокус-индикатор на весь app: яркий blue-кольцо инпутов (не navy
+  // выбора — на navy-кромке navy-фокус сливался; яркий --color-blue-2 читается поверх)
+  // И halo «редактируемой» строки/ячейки расписания/free-text (:focus-within, через
+  // color-mix). Прежний per-TOD зелёный --select-* распущен 2026-06-22 (один фокус-цвет,
+  // предсказуемый UX).
   --sys-color-border-focus: var(--color-blue-2);
   --sys-opacity-disabled: 0.4;
+
+  // color · control (сегмент-контрол: трек + сегменты). Единый источник вместо
+  // per-surface --seg-* (распущен 2026-06-22). iOS segmented / M3 connected group.
+  // Связан с нейтральной ref-шкалой (2026-06-22): track→neutral-300, неактивный
+  // текст→neutral-500 (=secondary; лёгкий дрейф с прежнего #5c6473), активный
+  // текст→neutral-1000. active-bg = чистый белый (white-рунга в ref-шкале нет) — литерал.
+  --sys-color-control-track: var(--ref-color-neutral-300); // фон группы сегментов (#e5e7eb)
+  --sys-color-control-segment-text: var(--ref-color-neutral-500); // неактивный сегмент
+  --sys-color-control-segment-active-bg: #ffffff; // активный «thumb»
+  --sys-color-control-segment-active-text: var(--ref-color-neutral-1000); // текст активного (#0a0a0a)
 
   // radius · по КАТЕГОРИИ элемента (НЕ по виду)
   --sys-radius-control: var(--radius-sm); // 8px — radio, checkbox, input, select, field
   --sys-radius-indicator: var(--radius-full); // chip, tag, badge, switch-трек
   --sys-radius-container: var(--radius-md); // 12px — card, panel, surface
-  // (M2a, 2026-06-21: legacy `--chip-active-fill/-border/--chip-active-ink` шимы
+  // (M2a, 2026-06-21: legacy `--sys-chip-active-fill/-border/--sys-chip-active-ink` шимы
   // удалены — Chip + ModalShell теперь читают `--sys-color-*-selected` напрямую.)
 
   // ─── Nutrient family ──────────────────────────────────────────
@@ -411,4 +440,43 @@
   --tod-night-outline-from: #8aa8ff;
   --tod-night-outline-to: #7e9cf0;
   --tod-night-tapped: #d0dcfc;
+}
+
+// ─── Field / chip / card palette (app-wide tone — moved from ModalShell) ──────
+// (text, ink, accent, (pill ×3), (dark from, mid, to), on-dark).
+// Single MONOCHROME tone (the «great unification», 2026-06-19): neutral-gray
+// `text`/`ink` so the field hairlines, shadows, card hairline and chip
+// separators stay achromatic; a dusty-lavender `accent` (`#877f9c`) so the one
+// chromatic signal — caret, chip-rest border, card active text — reads as a
+// barely-there lavender echo of the top glow rather than a loud hue. `pill`
+// stops are near-white with a whisper of lavender; the `dark` press stops match
+// SearchFood's `--sys-card-press-bg` (`#1f1f1f → #353535`). The active-chip mid stop
+// is the rounded per-channel average of from/to (integer rgb in the emitted CSS).
+//
+// Published UNCONDITIONALLY on `:root` — no attribute, no JS. The mixin
+// DEFINITIONS live in mixin.scss (the shared mixin home); this is the single
+// app-wide publication. ModalShell no longer owns these tokens (moved here
+// 2026-06-22 — a modal component should not own app-wide tokens). The old
+// `data-modal-fields` attribute-gate decided nothing (App.tsx hardcoded `mono`,
+// the `@each` emitted one always-matching selector); removed 2026-06-22. `:root`
+// (0,1,0) is the ancestor of every node — incl. Base UI portals — so the tokens
+// cascade everywhere; per-surface override sites are class selectors on
+// descendants and still win. Carries ONLY field/chip/card tokens, no `.wrapper`
+// ambient baggage. (tokens.scss exempt от token-gate → raw literals тут ок.)
+:root {
+  @include field-chip-palette(
+    #1d1d1f, #2c2c30, #877f9c,
+    (#fdfcfe, #f6f5f8, #eeedf1), (#1f1f1f, #2a2a2a, #353535), #ffffff
+  );
+  // Карточки-ряды — единый канон paper-mono (выбор юзера 2026-06-22 по предложке
+  // suggestion_4c4a585a: плоский hue-free, БЕЗ лавандового градиента; лавандовый
+  // card-palette удалён). Грудированные поверхности (SearchFood/навигатор дат)
+  // локально включают `paper-mono-cards` → прозрачный ряд НАД белой inset-group и
+  // перебивают это значение. Здесь, app-wide, под рядом нет гарантии белой группы,
+  // поэтому --sys-card-bg = БЕЛЫЙ (а не transparent paper-mono-cards): standalone-ряды
+  // (flush-гипотезы / AnalysisListItem / FoodEntry-карточки) красятся сами и не
+  // растворяются. `--sys-list-bg` не публикуем — его единственный консумер SearchFood
+  // задаёт сам.
+  @include paper-mono-cards;
+  --sys-card-bg: #ffffff;
 }

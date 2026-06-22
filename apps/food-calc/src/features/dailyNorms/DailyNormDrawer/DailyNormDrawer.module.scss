@@ -3,8 +3,8 @@
     background: var(--color-white);
 }
 
-// Основной контейнер drawer владеет отступом — контент остаётся flush. Боковой
-// «воздух» идёт через семантический --sys-inset-lg (24px); вертикаль — space-6
+// Боковой «воздух» = `--sys-inset-sheet` (24px) — роль full-width-поверхности
+// (нижний лист), единая по доктрине «ширина → обрамление»; вертикаль — space-6
 // (та же ступень, но не inset-роль). Высота — по контенту (как ProductDrawer
 // `.body`): НЕ ставим `flex: 1 1 auto`. Этот `.body` — единственный реальный
 // ребёнок скролл-области DrawerLayout (`.scrollableContent`), зажатый между
@@ -15,7 +15,7 @@
 .body {
     display: flex;
     flex-direction: column;
-    padding: var(--space-6) var(--sys-inset-lg);
+    padding: var(--space-6) var(--sys-inset-sheet);
 }
 
 .loading {

@@ -23,7 +23,7 @@
     -webkit-tap-highlight-color: transparent;
 
     // Цветной отклик: текст + значок (currentColor) красятся в surface-акцент
-    // (--field-caret: тёплый/лавандовый) + лёгкий тинт-фон. Заменяет opacity.
+    // (--sys-field-caret: тёплый/лавандовый) + лёгкий тинт-фон. Заменяет opacity.
     @include press-fill-tint();
 
     &:disabled {

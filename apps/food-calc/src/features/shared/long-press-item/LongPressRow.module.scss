@@ -1,12 +1,6 @@
 @import '@/shared/assets/style/mixin.scss';
 
 .commonListItemWrapper {
-    // Accent colour for the editing :focus-within ring (per time-of-day).
-    --select-color: #6cffc4;
-    --select-color-strong: #34d399;
-    --select-shadow: rgba(52, 211, 153, 0.25);
-    --select-overlay-outline: rgba(82, 255, 186, 0.5);
-
     display: flex;
     gap: 0.5rem;
     align-items: center;
@@ -72,38 +66,26 @@
     // as "selected" and were visually jarring. Gate the row treatment off
     // whenever a form field or button is the focus target.
     &:focus-within:not(:has(input:focus, textarea:focus, button:focus)) {
-        outline: 2px solid var(--select-color-strong);
+        outline: 2px solid var(--sys-color-border-focus);
         outline-offset: 1px;
         box-shadow:
-            0 0 0 4px var(--select-shadow),
+            0 0 0 4px color-mix(in srgb, var(--sys-color-border-focus) 25%, transparent),
             0 6px 18px -8px rgba(0, 0, 0, 0.18);
-        background-color: color-mix(in oklch, var(--select-color) 18%, var(--_bg-from));
+        background-color: color-mix(in oklch, var(--sys-color-border-focus) 18%, var(--_bg-from));
         transition: background-color 0.2s ease, outline-color 0.2s ease, box-shadow 0.2s ease;
         z-index: 2;
     }
 }
 
-// ─── Time-of-day palette overrides via data-tod ─────────────────
-.commonListItemWrapper[data-tod="morning"] {
-    --select-color: #6cffc4;
-    --select-color-strong: #34d399;
-    --select-shadow: rgba(52, 211, 153, 0.25);
-    --select-overlay-outline: rgba(82, 255, 186, 0.5);
-}
-
+// ─── Time-of-day palette overrides via data-tod (card bg gradient only) ──────
+// (focus-ring оттенок больше НЕ варьируется по времени — снят 2026-06-22, единый
+//  --sys-color-focus-accent; см. tokens.scss.)
 .commonListItemWrapper[data-tod="morning"] .commonListItemInner {
     --tod-bg-from: var(--tod-morning-bg-from);
     --tod-bg-to: var(--tod-morning-bg-to);
     --tod-outline-from: var(--tod-morning-outline-from);
     --tod-outline-to: var(--tod-morning-outline-to);
     --tod-tapped: var(--tod-morning-tapped);
-}
-
-.commonListItemWrapper[data-tod="day"] {
-    --select-color: #ffd97a;
-    --select-color-strong: #f0b840;
-    --select-shadow: rgba(240, 184, 64, 0.25);
-    --select-overlay-outline: rgba(255, 217, 122, 0.5);
 }
 
 .commonListItemWrapper[data-tod="day"] .commonListItemInner {
@@ -114,26 +96,12 @@
     --tod-tapped: var(--tod-day-tapped);
 }
 
-.commonListItemWrapper[data-tod="evening"] {
-    --select-color: #c4a8ff;
-    --select-color-strong: #a07de8;
-    --select-shadow: rgba(160, 125, 232, 0.25);
-    --select-overlay-outline: rgba(196, 168, 255, 0.5);
-}
-
 .commonListItemWrapper[data-tod="evening"] .commonListItemInner {
     --tod-bg-from: var(--tod-evening-bg-from);
     --tod-bg-to: var(--tod-evening-bg-to);
     --tod-outline-from: var(--tod-evening-outline-from);
     --tod-outline-to: var(--tod-evening-outline-to);
     --tod-tapped: var(--tod-evening-tapped);
-}
-
-.commonListItemWrapper[data-tod="night"] {
-    --select-color: #8aa8ff;
-    --select-color-strong: #6b8ce8;
-    --select-shadow: rgba(107, 140, 232, 0.25);
-    --select-overlay-outline: rgba(138, 168, 255, 0.5);
 }
 
 .commonListItemWrapper[data-tod="night"] .commonListItemInner {

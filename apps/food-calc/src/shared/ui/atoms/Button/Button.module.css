@@ -13,12 +13,11 @@
 }
 
 /* ─── primary — канон сплошной CTA (база — submitBtn авторизации) ────────────
-   Тёмная ink-заливка, 56px, вес 600, скруглённая. Палитра — через токены:
-   --cta-fill (фон, дефолт ink), --cta-ink (текст, дефолт белый), --cta-shadow
-   (тень, дефолт none). Так auth перекрашивает свои темы (dark/yandex), задавая
-   токены под [data-auth-theme], не форкая селектор. Слоты иконок — `icon`
+   Тёмная ink-заливка, 56px, вес 600, скруглённая. Слоты иконок — `icon`
    (ведущая) и `trailingIcon` (ведомая, напр. стрелка «Далее» в футере модалки).
-   Press: brightness + scale (canon press-darken для сплошных/светлых CTA). */
+   Press: brightness + scale (canon press-darken для сплошных/светлых CTA).
+   (2026-06-22: мёртвые `--cta-fill/-ink/-shadow`-хуки сняты — их никто не публиковал;
+   auth темит свой `.submitBtn` классом, не этими токенами.) */
 .primary {
   display: inline-flex;
   align-items: center;
@@ -30,9 +29,8 @@
   font-size: var(--text-base);
   font-weight: 600;
   letter-spacing: -0.005em;
-  background: var(--cta-fill, var(--color-ink));
-  color: var(--cta-ink, #fff);
-  box-shadow: var(--cta-shadow, none);
+  background: var(--color-ink);
+  color: var(--text-on-accent);
   border: none;
   border-radius: var(--radius-lg);
   cursor: pointer;
@@ -53,8 +51,8 @@
   }
 
   &:disabled {
-    background: var(--cta-fill-disabled, rgba(0, 0, 0, 0.08));
-    color: var(--cta-ink-disabled, rgba(0, 0, 0, 0.35));
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--text-tertiary);
     box-shadow: none;
     cursor: default;
   }

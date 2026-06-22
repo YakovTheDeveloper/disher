@@ -36,7 +36,7 @@ type Props = {
   showMeta?: boolean;
   /**
    * Surface presentation. `'flush'` (default) — compact rows on the app tone
-   * (`--card-*`), accent stripe + per-row hairline; used by the selection lists.
+   * (`--sys-card-*`), accent stripe + per-row hairline; used by the selection lists.
    * `'analysis'` — the «Анализ дня» look (`--ax-*`): surface off, no accent
    * stripe, fading-hairline divider, Apple type scale; the «Открытия» slide.
    */
@@ -50,7 +50,7 @@ type Props = {
 //     EditHypothesisModal (label-driven focus delegation — onClick только
 //     обновляет editingId в parent, step перевернёт onFocusCapture после
 //     доставки фокуса). Рендерится только при onEdit + editInputHtmlFor.
-// Surface is token-driven: `'flush'` uses the app tone (`--card-*`),
+// Surface is token-driven: `'flush'` uses the app tone (`--sys-card-*`),
 // `'analysis'` the «Анализ дня» hairline look (`--ax-*`).
 const HypothesisListItem = ({
   hypothesis,

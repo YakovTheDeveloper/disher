@@ -53,14 +53,10 @@
   padding: var(--space-6) var(--space-3) var(--space-2);
 }
 
-// Кегль --text-xl. Шрифт/начертание/размер заголовка переопределяемы
-// (`--sheet-title-*`) — дом возвращает канон-сериф Alice (вместо Raleway-italic),
-// мельче и без псевдокурсива (см. Laboratory `.ambientSheet`). Дефолты прежние.
-.title {
-  font-size: var(--sheet-title-fs, var(--text-xl));
-  font-family: var(--sheet-title-font, var(--font-display));
-  font-style: var(--sheet-title-style, italic);
-}
+// Заголовок = Headline-роль (sans 28) — решение 2026-06-22. Типографику владеет
+// примитив `<Heading role="headline">` (text-role); SheetCard задаёт ТОЛЬКО ось
+// (центр через `.header`). Бывший bespoke-бандл `--sheet-title-*` (Raleway-italic
+// 25) распущен — у него не осталось ни одного сеттера (см. project_no_per_surface_theming).
 
 // ─── Actions-слот — нижний ряд кнопок ──────────────────────────────────────
 .actions {

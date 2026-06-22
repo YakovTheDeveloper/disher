@@ -1,7 +1,6 @@
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalByLabelDetails } from '@/features/shared/components/ModalByLabelDetails';
 import { SearchFood } from '@/features/food/food-search';
-import { ModalVariantFields } from '@/shared/ui/ModalShell';
 import { DetailsChips } from '@/features/food/details-chips';
 import type {
   ReviewEditStep,
@@ -44,22 +43,20 @@ export const FreeTextFoodReviewEditModals = ({
         position="fixed"
         isExpanded={step === 'search'}
         content={
-          <ModalVariantFields>
-            <SearchFood
-              onBack={onClose}
-              title="Продукт"
-              mode="products-only"
-              onSelectFood={({ variant, id, name }) => {
-                if (variant !== 'product') return;
-                onChange({ productId: id, name });
-                onClose();
-              }}
-              activeItemId={row?.productId ?? undefined}
-              inputId={SEARCH_INPUT}
-              initialSearchQuery={row?.originalName ?? row?.productName ?? ''}
-              excludeSupplements={excludeSupplements}
-            />
-          </ModalVariantFields>
+          <SearchFood
+            onBack={onClose}
+            title="Продукт"
+            mode="products-only"
+            onSelectFood={({ variant, id, name }) => {
+              if (variant !== 'product') return;
+              onChange({ productId: id, name });
+              onClose();
+            }}
+            activeItemId={row?.productId ?? undefined}
+            inputId={SEARCH_INPUT}
+            initialSearchQuery={row?.originalName ?? row?.productName ?? ''}
+            excludeSupplements={excludeSupplements}
+          />
         }
       />
 

@@ -3,11 +3,6 @@
 // Yandex Pogoda style: huge bold digits, no shell, no border, no shadow.
 // Just numbers floating on the parent background + light grey pill buttons.
 
-// Высота крупных цифр времени. Единый источник: и сами цифры (.input),
-// и двоеточие (.separator) читают эту переменную — иначе два литерала
-// 7rem молча разъезжаются при правке.
-$digit-size: 6rem;
-
 .shell {
     position: relative;
     display: flex;
@@ -27,19 +22,13 @@ $digit-size: 6rem;
     gap: 18px;
     width: 100%;
 
-    // ─── Цифры циферблата: канон Onest 800 (--font-big-numeric) ───
-    // Цифры (.input) и двоеточие (.separator) читают эти переменные из одного
-    // места, чтобы не разъезжались при правке. Onest читается лучше Jost'а на
-    // огромных глифах (см. project_font_big_numeric / --font-big-numeric).
-    --tc-digit-font: var(--font-big-numeric);
-    --tc-digit-weight: 800;
-    --tc-digit-style: normal;
-    --tc-digit-tracking: -0.085em;
-    --tc-digit-size: #{$digit-size};
+    // Цифры (.input) и двоеточие (.separator) — голос hero-цифры из sys-роли
+    // (--sys-text-mono-big-*: Onest 800, 6rem). Трекинг циферблата держим локально
+    // (плотнее количества) — см. project_font_big_numeric / tokens.scss mono-big.
 }
 
-// AutoGrowSearch-канон: warm-pill surface (gradient + hairline). `--field-*`
-// читаются как `var(--field-x, <default>)` — НЕ объявляются здесь, чтобы предок
+// AutoGrowSearch-канон: warm-pill surface (gradient + hairline). `--sys-field-*`
+// читаются как `var(--sys-field-x, <default>)` — НЕ объявляются здесь, чтобы предок
 // мог переопределить через каскад. Дефолт повторяет AutoGrowSearch.shell.
 .wrapper {
     position: relative;
@@ -50,14 +39,14 @@ $digit-size: 6rem;
     border: 0;
     outline: none;
     // Крупная hero-пилюля выбора времени — намеренно НЕ следует за квадратным
-    // дефолтом полей (--field-radius=--radius-sm), держит свой large-pill радиус
-    // (--radius-xl). bg/тень всё ещё тянет из --field-*; отвязан только радиус.
+    // дефолтом полей (--sys-field-radius=--radius-sm), держит свой large-pill радиус
+    // (--radius-xl). bg/тень всё ещё тянет из --sys-field-*; отвязан только радиус.
     border-radius: var(--radius-xl);
     background: linear-gradient(90deg,
-            var(--field-bg-from, #fffefb) 0%,
-            var(--field-bg-mid, #fffaf2) 55%,
-            var(--field-bg-to, #fdf4e3) 100%);
-    box-shadow: var(--field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
+            var(--sys-field-bg-from, #fffefb) 0%,
+            var(--sys-field-bg-mid, #fffaf2) 55%,
+            var(--sys-field-bg-to, #fdf4e3) 100%);
+    box-shadow: var(--sys-field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
     transition: box-shadow 120ms ease;
 
     &::after {
@@ -69,8 +58,8 @@ $digit-size: 6rem;
         height: 1px;
         background: linear-gradient(90deg,
                 transparent 0%,
-                var(--field-hairline, rgba(124, 65, 15, 0.18)) 18%,
-                var(--field-hairline, rgba(124, 65, 15, 0.18)) 82%,
+                var(--sys-field-hairline, rgba(124, 65, 15, 0.18)) 18%,
+                var(--sys-field-hairline, rgba(124, 65, 15, 0.18)) 82%,
                 transparent 100%);
         pointer-events: none;
         transition: background 120ms ease;
@@ -78,15 +67,15 @@ $digit-size: 6rem;
 
     &:hover,
     &:focus-within {
-        box-shadow: var(--field-shadow-focus, 0 1px 8px rgba(124, 65, 15, 0.12));
+        box-shadow: var(--sys-field-shadow-focus, 0 1px 8px rgba(124, 65, 15, 0.12));
     }
 
     &:hover::after,
     &:focus-within::after {
         background: linear-gradient(90deg,
                 transparent 0%,
-                var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
-                var(--field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
+                var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
+                var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
                 transparent 100%);
     }
 }
@@ -100,18 +89,17 @@ $digit-size: 6rem;
     display: block;
     width: 2ch;
     // padding: 0;
-    font-size: var(--tc-digit-size);
-    font-family: var(--tc-digit-font);
-    font-weight: var(--tc-digit-weight);
-    font-style: var(--tc-digit-style);
+    font-size: var(--sys-text-mono-big-size);
+    font-family: var(--sys-text-mono-big-family);
+    font-weight: var(--sys-text-mono-big-weight);
     line-height: 1;
-    letter-spacing: var(--tc-digit-tracking);
+    letter-spacing: -0.085em; // циферблат намеренно плотнее (оптический трекинг локально)
     text-align: center;
     border: none;
     background: transparent;
     color: var(--color-ink);
     font-variant-numeric: tabular-nums;
-    text-shadow: var(--field-digit-shadow, 0 1px 2px rgba(124, 65, 15, 0.14));
+    text-shadow: var(--sys-field-digit-shadow, 0 1px 2px rgba(124, 65, 15, 0.14));
 
     &::selection {
         color: #0a0a0a;
@@ -146,16 +134,15 @@ $digit-size: 6rem;
     align-items: center;
     justify-content: center;
     color: rgba(38, 38, 51, 0.8);
-    font-family: var(--tc-digit-font);
-    font-style: var(--tc-digit-style);
+    font-family: var(--sys-text-mono-big-family);
     user-select: none;
     pointer-events: none;
-    font-size: var(--tc-digit-size);
+    font-size: var(--sys-text-mono-big-size);
     line-height: 1;
     width: 10px;
     transform: translateY(-10%);
     padding: 0 1px;
-    text-shadow: var(--field-digit-shadow, 0 1px 2px rgba(124, 65, 15, 0.14));
+    text-shadow: var(--sys-field-digit-shadow, 0 1px 2px rgba(124, 65, 15, 0.14));
 }
 
 .buttonsWrapper {

@@ -11,7 +11,7 @@
     // Ambient-скрим вместо плоского белого бара: низ поиска «дышит» той же
     // поверхностью, что и app-wide тон (живой ModalShell-вариант), а не
     // выглядит чужим тулбаром. Светлый стоп поля = мягкий тон-tinted скрим.
-    --fse-scrim: var(--field-bg-to);
+    --fse-scrim: var(--sys-field-bg-to);
 
     position: fixed;
     bottom: 0;

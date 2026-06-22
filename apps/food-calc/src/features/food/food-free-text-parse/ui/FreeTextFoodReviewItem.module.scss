@@ -109,8 +109,8 @@
   }
 
   &:focus-within {
-    background-color: color-mix(in oklch, var(--select-color, #6cffc4) 22%, transparent);
-    box-shadow: inset 0 0 0 1.5px var(--select-color-strong, #34d399);
+    background-color: color-mix(in oklch, var(--sys-color-border-focus) 22%, transparent);
+    box-shadow: inset 0 0 0 1.5px var(--sys-color-border-focus);
   }
 }
 
@@ -198,7 +198,7 @@
   // Цветной отклик: тихая текстовая кнопка — тинт фон + акцент
   &:active {
     background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
+    color: var(--sys-field-caret, var(--color-ink));
     transition-duration: var(--press-in);
   }
 }
@@ -272,8 +272,8 @@
   }
 
   &:focus-within {
-    background-color: color-mix(in oklch, var(--select-color, #6cffc4) 22%, transparent);
-    box-shadow: inset 0 0 0 1.5px var(--select-color-strong, #34d399);
+    background-color: color-mix(in oklch, var(--sys-color-border-focus) 22%, transparent);
+    box-shadow: inset 0 0 0 1.5px var(--sys-color-border-focus);
   }
 }
 
@@ -339,7 +339,7 @@
   // Цветной отклик: тихая иконка-кнопка — тинт фон + акцентный цвет
   &:active {
     background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
+    color: var(--sys-field-caret, var(--color-ink));
     transform: scale(0.9);
     transition-duration: var(--press-in);
   }
@@ -388,7 +388,7 @@
   // Цветной отклик: тихая иконка-кнопка — тинт фон + акцентный цвет
   &:active {
     background: var(--press-tint-bg);
-    color: var(--field-caret, var(--color-ink));
+    color: var(--sys-field-caret, var(--color-ink));
     transform: scale(0.9);
     transition-duration: var(--press-in);
   }

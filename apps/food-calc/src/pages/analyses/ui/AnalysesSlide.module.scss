@@ -27,14 +27,14 @@
     font-family: 'Source Serif 4', Georgia, serif;
     font-style: italic;
     font-size: 20px;
-    color: var(--card-text-rest);
+    color: var(--sys-card-text-rest);
 }
 
 .emptyBody {
     margin: 0;
     font-size: 13px;
     line-height: 1.5;
-    color: color-mix(in srgb, var(--card-text-rest) 58%, transparent);
+    color: color-mix(in srgb, var(--sys-card-text-rest) 58%, transparent);
 }
 
 .retry {
@@ -42,9 +42,9 @@
     margin-top: 6px;
     padding: 9px 18px;
     border-radius: 999px;
-    border: 1px solid var(--chip-border);
+    border: 1px solid var(--sys-chip-border);
     background: rgba(255, 255, 255, 0.6);
-    color: var(--card-text-rest);
+    color: var(--sys-card-text-rest);
     font-size: 13.5px;
     font-weight: 500;
     cursor: pointer;
@@ -78,6 +78,6 @@
     overflow: hidden;
 }
 
-// Palette comes from the app-wide tone (`--card-*`) — the per-section
+// Palette comes from the app-wide tone (`--sys-card-*`) — the per-section
 // LabAnalysis picker was folded into the ModalShell «law-giver»
 // (tds/modalshell-lawgiver-2026-06-13).

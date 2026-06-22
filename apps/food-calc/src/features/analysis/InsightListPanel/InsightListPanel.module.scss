@@ -2,11 +2,12 @@
     width: 100%;
 }
 
-// Rows sit flush — each InsightCard's own fading-hairline `::after` (resolving
-// via the `--ax-divider` inherited from the Discoveries `.container`) divides
-// them, matching the «Анализ дня» look.
+// Rows are divided by AIR — the gap is `--ax-list-gap`, inherited from the
+// Discoveries `.container` (and `0px` fallback elsewhere). Mirrors AnalysisResult
+// `.list`: the «Анализ дня» look dropped the fading-hairline divider 2026-06-22
+// (`--ax-divider: transparent`), so the rhythm is carried by the gap, not a line.
 .list {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: var(--ax-list-gap, 0px);
 }
